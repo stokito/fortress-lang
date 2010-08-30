@@ -17,10 +17,13 @@ object Properties extends GenericProperties
         (a + b) + c = a + (b + c)
 
     (* Tests a polymorphic property and its desugared form. *)
-    propCommutativeAddition(a:ZZ64, b:ZZ64): Boolean =
-        a + b = b + a
-    propCommutativeAddition'[\A extends ZZ64, B extends ZZ64\](a:A, b:B): Boolean =
-        a + b = b + a
+    (* XXX RR32 + RR64 doesn't work correctly! *)
+    propCommutativeAddition(a:Number, b:Number): Boolean =
+        (*)a + b = b + a
+        1.0 a + 1.0 b = 1.0 b + 1.0 a
+    propCommutativeAddition'[\A extends Number, B extends Number\](a:A, b:B): Boolean =
+        (*)a + b = b + a
+        1.0 a + 1.0 b = 1.0 b + 1.0 a
 
     (* Tests several variants of same property. *)
     propDoubleReversal[\T\](g:Generator[\T\]): Boolean =

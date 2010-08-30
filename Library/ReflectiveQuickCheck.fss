@@ -235,6 +235,18 @@ private adaptType(arb:ReflectiveArbitrary, t:Type): Type =
         t
     end
 
+(** A generator for static arguments suitable for given generic type. **)
+private object genStaticArgs(ty:GenericType) extends Gen[\Any\]
+    getter asString(): String = "genStaticArgs"
+
+    generate(c:TestContext): Any = do
+        arb = c.arbitrary asif ReflectiveArbitrary
+        tupleFromIndexed[\Any\](
+            <|[\Any\] adaptType(arb, genTypeFromExtends(ext).generate(c))
+             | (_,ext) <- ty.staticParams |>)
+    end
+end
+
 (** Represents a property which consists of known `self` value and method
     wrapper from the reflected type object. **)
 private object BoundedProperty(props:GenericProperties, p:(Object,Any...)->Any)
@@ -250,6 +262,18 @@ private object BoundedProperty(props:GenericProperties, p:(Object,Any...)->Any)
             (a:Any) => p(props, a)
         end
         TestResult(result)
+    end
+end
+
+(** Represents a property which consists of known `self` value and method
+    wrapper from the reflected generic type object. **)
+private object BoundedGenericProperty(props:GenericProperties, name:String,
+            ty:GenericArrowType, p:(Object,Any...)->Any, c:TestContext)
+    extends Testable[\Any\]
+
+    run(args:Any): TestResult = do
+        (prop', gen') = props.toProperty((name, ty.apply(args), p(args)), c)
+        prop'.run(gen'.generate(c))
     end
 end
 
@@ -275,19 +299,15 @@ trait GenericProperties (* extends Testable[\()\] *)
             (Testable[\Any\],Gen[\Any\]) = do
         arb = c.arbitrary asif ReflectiveArbitrary
         (name, ty0, p) = prop
-        (ty', p') = typecase ty0 of
-            ty:GenericArrowType => do
-                sargs = tupleFromIndexed[\Any\](
-                        <|[\Any\] adaptType(arb, genTypeFromExtends(ext).generate(c))
-                         | (_,ext) <- ty.staticParams |>)
-                (ty.apply(sargs), p(sargs))
-            end
-            ty:ArrowType => (ty, p)
-        end
-        if gen <- arb.genFromType(true, ty'.domain) then
-            (BoundedProperty(self, p'), genAnyLifted(gen))
-        else
-            fail("unable to generate a test generator for " name " of type " ty0)
+        typecase ty0 of
+            ty:GenericArrowType =>
+                (BoundedGenericProperty(self, name, ty, p, c), genStaticArgs(ty))
+            ty:ArrowType =>
+                if gen <- arb.genFromType(true, ty.domain) then
+                    (BoundedProperty(self, p), genAnyLifted(gen))
+                else
+                    fail("unable to generate a test generator for " name " of type " ty)
+                end
         end
     end
 
