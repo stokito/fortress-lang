@@ -22,10 +22,13 @@ package com.sun.fortress.compiler.codegen;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.Naming;
 
 public class ManglingClassWriter extends ClassWriter {
 
+    public final static boolean TRACE_METHODS = ProjectProperties.getBoolean("fortress.bytecode.list", false);
+    
     public ManglingClassWriter(int flags) {
         super(flags);
     }
@@ -36,12 +39,12 @@ public class ManglingClassWriter extends ClassWriter {
         signature = Naming.mangleFortressIdentifier(signature);
         desc = Naming.mangleMethodSignature(desc);
 
-        return new ManglingMethodVisitor(super.visitMethod(access, name, desc, signature, exceptions));
+        return visitCGMethod(access, name, desc, signature, exceptions);
     }
 
     public MethodVisitor visitCGMethod(int access, String name, String desc, String signature, String[] exceptions) {
-
-        return new ManglingMethodVisitor(super.visitMethod(access, name, desc, signature, exceptions));
+        MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
+        return new ManglingMethodVisitor(TRACE_METHODS ? new TraceMethodVisitor(mv) : mv, access, name, desc);
     }
 
 

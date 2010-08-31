@@ -44,6 +44,8 @@ public class Naming {
                     )
         ;
 
+    public final static int TUPLE_ORIGIN = 1;
+    
     // Used to indicate translation convention to apply to type parameter.
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA
     public final static String NORMAL_TAG = "\u263a"; // smiley face == normal case.

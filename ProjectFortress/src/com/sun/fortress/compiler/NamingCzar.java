@@ -144,7 +144,7 @@ public class NamingCzar {
 
     //Asm requires you to call visitMaxs for every method
     // but ignores the arguments.
-    public static final int ignore = 1;
+    public static final int ignoredMaxsParameter = 1;
 
     // fortress types
     public static final String fortressPackage = "fortress";
@@ -892,27 +892,66 @@ public class NamingCzar {
     // Widely used
     public static String jvmTypeDesc(com.sun.fortress.nodes.Type type,
             final APIName ifNone) {
-        return jvmTypeDesc(type, ifNone, true);
+        return jvmTypeDesc(type, ifNone, true, false);
+    }
+
+    /**
+     * This deals with the boxed case of a type descriptor, meaning for
+     * typle types, Tuple[\ stuff \].  These are for return values,
+     * and for local variables.
+     * 
+     * @param type
+     * @param ifNone
+     * @return
+     */
+    public static String jvmBoxedTypeDesc(com.sun.fortress.nodes.Type type,
+            final APIName ifNone) {
+        return jvmTypeDesc(type, ifNone, true, true);
     }
 
     // Local, and Codegen.generateHigherOrderCall
     public static String makeArrowDescriptor(ArrowType t, final APIName ifNone) {
 
-          return makeArrowDescriptor(t.getDomain(), t.getRange(), ifNone);
+        return makeArrowDescriptor(ifNone, t.getDomain(), t.getRange());
 
-    }
+  }
 
-    public static String makeArrowDescriptor(com.sun.fortress.nodes.Type domain,
-            com.sun.fortress.nodes.Type range, final APIName ifNone) {
+    public static String makeTupleDescriptor(TupleType t, final APIName ifNone) {
 
+        List<com.sun.fortress.nodes.Type> types = t.getElements();
+        
         String res =
-         "Arrow"+ Naming.LEFT_OXFORD + makeArrowDescriptor(domain, ifNone) + ";" +
-            makeArrowDescriptor(range, ifNone) + Naming.RIGHT_OXFORD;
+            "Tuple"+ Naming.LEFT_OXFORD + makeGenericParameterDescriptor(t, ifNone) + Naming.RIGHT_OXFORD;
+
         return res;
 
-    }
+  }
 
-    private static String makeNestedArrowDescriptor(ArrowType t, final APIName ifNone) {
+    public static String[] makeTupleElementDescriptors(TupleType t, final APIName ifNone) {
+
+        List<com.sun.fortress.nodes.Type> types = t.getElements();
+        int n = types.size();
+        String[] res = new String[n];
+        for (int i = 0; i<n; i ++) {
+            res[i] = makeGenericParameterDescriptor(types.get(i), ifNone);
+        }
+          
+        return res;
+
+  }
+
+    
+//    public static String makeArrowDescriptor(com.sun.fortress.nodes.Type domain,
+//            com.sun.fortress.nodes.Type range, final APIName ifNone) {
+//
+//        String res =
+//         "Arrow"+ Naming.LEFT_OXFORD + makeGenericParameterDescriptor(domain, ifNone) + ";" +
+//            makeGenericParameterDescriptor(range, ifNone) + Naming.RIGHT_OXFORD;
+//        return res;
+//
+//    }
+
+    private static String makeGenericParameterDescriptor(ArrowType t, final APIName ifNone) {
         return // Naming.NORMAL_TAG +
         makeArrowDescriptor(t,ifNone);
     }
@@ -939,14 +978,14 @@ public class NamingCzar {
             StringBuilder buf = new StringBuilder();
             buf.append(result);
             for (com.sun.fortress.nodes.Type t : params) {
-                buf.append(makeArrowDescriptor(t, ifNone) + ";");
+                buf.append(makeGenericParameterDescriptor(t, ifNone) + ";");
             }
             result = buf.toString();
         } else {
             result = result + Naming.INTERNAL_SNOWMAN + ";";
         }
 
-        result = result + makeArrowDescriptor(rt, ifNone) + Naming.RIGHT_OXFORD;
+        result = result + makeGenericParameterDescriptor(rt, ifNone) + Naming.RIGHT_OXFORD;
         return result;
     }
 
@@ -968,6 +1007,14 @@ public class NamingCzar {
         return makeAnArrowDescriptor(params, rt, ifNone, "Arrow");
     }
 
+    public static String makeArrowDescriptor(
+            APIName ifNone,
+            com.sun.fortress.nodes.Type params,
+            com.sun.fortress.nodes.Type rt) {
+        List<com.sun.fortress.nodes.Type> list_of_type = (params instanceof TupleType) ? ((TupleType) params).getElements() : Useful.list(params);
+        return makeAnArrowDescriptor(list_of_type, rt, ifNone, "Arrow");
+    }
+
     // forFnExpr
     public static String makeArrowDescriptor(
             List<com.sun.fortress.nodes.Param> params,
@@ -975,11 +1022,11 @@ public class NamingCzar {
         return makeArrowDescriptor(ifNone, paramsToTypes(params), rt);
     }
 
-    private static String makeArrowDescriptor(AnyType t, final APIName ifNone) {
+    private static String makeGenericParameterDescriptor(AnyType t, final APIName ifNone) {
         return "Object_";
     }
 
-    private static String makeArrowDescriptor(TraitType t, final APIName ifNone) {
+    private static String makeGenericParameterDescriptor(TraitType t, final APIName ifNone) {
         //Id id = t.getName();
         //APIName apiName = id.getApiName().unwrap(ifNone);
         //String tag = "";
@@ -1005,7 +1052,7 @@ public class NamingCzar {
         }
     }
 
-    private static String makeArrowDescriptor(VarType t, final APIName ifNone) {
+    private static String makeGenericParameterDescriptor(VarType t, final APIName ifNone) {
         Id id = t.getName();
         String s = id.getText();
 
@@ -1021,7 +1068,7 @@ public class NamingCzar {
     }
 
 
-    private static String makeArrowDescriptor(TupleType t, final APIName ifNone) {
+    private static String makeGenericParameterDescriptor(TupleType t, final APIName ifNone) {
         if ( NodeUtil.isVoidType(t) )
             return Naming.INTERNAL_TAG + Naming.SNOWMAN;
         if (t.getVarargs().isSome())
@@ -1031,19 +1078,19 @@ public class NamingCzar {
         String res = "";
         StringBuilder buf = new StringBuilder();
         for (com.sun.fortress.nodes.Type ty : t.getElements()) {
-            buf.append(makeArrowDescriptor(ty, ifNone) +  ';');
+            buf.append(makeGenericParameterDescriptor(ty, ifNone) +  ';');
         }
         res = buf.toString();
         return Useful.substring(res, 0, -1);
     }
 
-    public static String makeArrowDescriptor(com.sun.fortress.nodes.Type t, final APIName ifNone) {
-        if (t instanceof TupleType) return makeArrowDescriptor((TupleType) t, ifNone);
-        else if (t instanceof TraitSelfType) return makeArrowDescriptor(((TraitSelfType) t).getNamed(), ifNone);
-        else if (t instanceof TraitType) return makeArrowDescriptor((TraitType) t, ifNone);
-        else if (t instanceof AnyType) return makeArrowDescriptor((AnyType) t, ifNone);
-        else if (t instanceof ArrowType) return makeNestedArrowDescriptor((ArrowType) t, ifNone);
-        else if (t instanceof VarType) return makeArrowDescriptor((VarType) t, ifNone);
+    public static String makeGenericParameterDescriptor(com.sun.fortress.nodes.Type t, final APIName ifNone) {
+        if (t instanceof TupleType) return makeGenericParameterDescriptor((TupleType) t, ifNone);
+        else if (t instanceof TraitSelfType) return makeGenericParameterDescriptor(((TraitSelfType) t).getNamed(), ifNone);
+        else if (t instanceof TraitType) return makeGenericParameterDescriptor((TraitType) t, ifNone);
+        else if (t instanceof AnyType) return makeGenericParameterDescriptor((AnyType) t, ifNone);
+        else if (t instanceof ArrowType) return makeGenericParameterDescriptor((ArrowType) t, ifNone);
+        else if (t instanceof VarType) return makeGenericParameterDescriptor((VarType) t, ifNone);
         else
             throw new CompilerError(t, " How did we get here? type = " +
                                      t + " of class " + t.getClass());
@@ -1061,8 +1108,16 @@ public class NamingCzar {
     }
 
     public static String jvmTypeDesc(final com.sun.fortress.nodes.Type type,
+            final APIName ifNone,
+            final boolean withLSemi) {
+        return jvmTypeDesc(type, ifNone, withLSemi, false);
+    }
+
+            
+            public static String jvmTypeDesc(final com.sun.fortress.nodes.Type type,
                                      final APIName ifNone,
-                                     final boolean withLSemi) {
+                                     final boolean withLSemi,
+                                     final boolean boxed) {
         return type.accept(new NodeAbstractVisitor<String>() {
             @Override
             public String defaultCase(Node x) {
@@ -1083,6 +1138,11 @@ public class NamingCzar {
                     throw new CompilerError(t,"Can't compile VarArgs yet");
                 if (!t.getKeywords().isEmpty())
                     throw new CompilerError(t,"Can't compile Keyword args yet");
+                if (boxed) {
+                    String res = makeTupleDescriptor(t, ifNone);
+                    if (withLSemi) res = internalToDesc(res);
+                    return res;
+                } else
                 return jvmTypeDescs(t.getElements(), ifNone);
             }
             @Override
@@ -1543,7 +1603,7 @@ public class NamingCzar {
         public Pair<String,String> forTypeArg(TypeArg that) {
             com.sun.fortress.nodes.Type arg = that.getTypeArg();
             // Pretagged with type information
-            String s =  makeArrowDescriptor(arg, ifMissing);
+            String s =  makeGenericParameterDescriptor(arg, ifMissing);
             return p("type", s);
         }
 
@@ -1561,7 +1621,7 @@ public class NamingCzar {
 
         @Override
         public Pair<String,String> forTraitType(TraitType that) {
-            String s =  makeArrowDescriptor(that, ifMissing);
+            String s =  makeGenericParameterDescriptor(that, ifMissing);
             return p("type", s);
         }
 

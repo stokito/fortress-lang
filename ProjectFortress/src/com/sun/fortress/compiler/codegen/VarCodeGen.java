@@ -99,7 +99,7 @@ public abstract class VarCodeGen {
             super(name, fortressType);
             String tyDesc = null;
             if (fortressType != null) {
-                tyDesc = NamingCzar.jvmTypeDesc(fortressType, cg.thisApi());
+                tyDesc = NamingCzar.jvmTypeDesc(fortressType, cg.thisApi(), true, true);
             }
             this.offset = cg.mv.createCompilerLocal(name.getText(), tyDesc);
         }

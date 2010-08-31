@@ -31,10 +31,14 @@ import com.sun.fortress.useful.Debug;
 
 public class ManglingMethodVisitor extends MethodAdapter {
 
-
-    public ManglingMethodVisitor(MethodVisitor mvisitor) {
+    String name, desc;
+    int access;
+    
+    public ManglingMethodVisitor(MethodVisitor mvisitor, int access, String name, String desc) {
         super(mvisitor);
-
+        this.access = access;
+        this.name = name;
+        this.desc = desc;
     }
 
     public void visitMaxs(int maxStack, int maxLocals) {
@@ -93,6 +97,17 @@ public class ManglingMethodVisitor extends MethodAdapter {
         type = Naming.mangleFortressIdentifier(type);
 
         super.visitTypeInsn(opcode, type);
+    }
+
+    @Override
+    public void visitEnd() {
+        if (mv instanceof TraceMethodVisitor) {
+            System.out.println(name + desc + " " + Integer.toHexString(access));
+            List t = ((TraceMethodVisitor)mv).getText();
+            for (Object s : t)
+                System.out.print(s);
+        }
+        super.visitEnd();
     }
 
 }
