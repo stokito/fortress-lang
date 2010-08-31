@@ -378,7 +378,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                            NamingCzar.fortressExecutableRunType);
 
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignore,NamingCzar.ignore);
+        mv.visitMaxs(NamingCzar.ignoredMaxsParameter,NamingCzar.ignoredMaxsParameter);
         mv.visitEnd();
         // return
 
@@ -391,7 +391,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Discard the FVoid that results
         mv.visitInsn(Opcodes.POP);
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
         mv.visitEnd();
     }
 
@@ -427,7 +427,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             pno++;
         }
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
         mv.visitEnd();
     }
 
@@ -1218,7 +1218,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 null);
 
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
         mv.visitEnd();
 
         for ( Decl d : x.getDecls() ) {
@@ -2304,7 +2304,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     private void methodReturnAndFinish() {
         mv.visitInsn(Opcodes.ARETURN);
-        mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
         mv.visitEnd();
     }
 
@@ -2327,6 +2327,21 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return selfIndex;
     }
 
+    public void forTupleExpr(TupleExpr x) {
+        List<Expr> exprs = x.getExprs();
+        Type t = x.getInfo().getExprType().unwrap();
+        evaluateSubExprsAppropriately(x, exprs);
+        // Invoke Tuple[\ whatever \].make(Object;Object;Object;etc)
+        String tcn = NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
+        String arg_sig = NamingCzar.jvmTypeDesc(t, thisApi(), true, false);
+        String sig = NamingCzar.makeMethodDesc(arg_sig, "L" + tcn + ";");
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                tcn,
+                "make",
+                sig);
+
+    }
+    
     public void forFnExpr(FnExpr x) {
         debug("forFnExpr ", x);
         FnHeader header = x.getHeader();
@@ -2747,20 +2762,52 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         // Compute rhs
-        List<Expr> rhss;
+        List<Expr> rhss = null;
         Expr rhs = d.getRhs().unwrap();
         if (n==1) {
             rhss = Collections.singletonList(rhs);
-        } else if (rhs instanceof TupleExpr &&
-                   !((TupleExpr)rhs).getVarargs().isSome() &&
-                   ((TupleExpr)rhs).getKeywords().isEmpty() &&
-                   ((TupleExpr)rhs).getExprs().size() == n) {
-            rhss = ((TupleExpr)rhs).getExprs();
+        } else if (rhs instanceof TupleExpr) {
+            if (!((TupleExpr)rhs).getVarargs().isSome() &&
+                    ((TupleExpr)rhs).getKeywords().isEmpty() ) {
+                if (((TupleExpr)rhs).getExprs().size() == n)
+                    rhss = ((TupleExpr)rhs).getExprs();
+                else
+                    rhss = null;
+            } else {
+                throw sayWhat(d, "Can't yet generate multiple-variable bindings if rhs is varargs or has keywords.");
+            }
         } else {
-            throw sayWhat(d, "Can't yet generate multiple-variable bindings unless rhs is a manifest tuple of the same size.");
+            // Binding one (assumed to be tuple type) to many
+            rhss = null;
         }
 
-        if (false && pa.worthParallelizing(rhs)) {
+        if (rhss == null) {
+            TupleType rhs_type = (TupleType) rhs.getInfo().getExprType().unwrap();
+            String rhs_type_desc = NamingCzar.makeTupleDescriptor(rhs_type, thisApi());
+            String[] rhs_element_type_descs = NamingCzar.makeTupleElementDescriptors(rhs_type, thisApi());
+            // Assignment of tuple, to multiple left hand side varibles.
+            // Serially pick the pieces out of the tuple.
+            rhs.accept(this);
+            // Tuple is TOS
+            for (int i = 0; i < n; i++) {
+                // dup tuple (always, ensure swap will work).
+                mv.visitInsn(Opcodes.DUP);
+
+                VarCodeGen vcg = vcgs.get(i);
+                vcg.prepareAssignValue(mv);
+                /* swap dup'd tuple to TOS -- note assumption that prepareAssignValue pushes 
+                 * either zero or one item on stack.
+                 */
+                mv.visitInsn(Opcodes.SWAP);
+                // extract i'th member from tuple.
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, rhs_type_desc, "e"+(Naming.TUPLE_ORIGIN+i), "()L"+rhs_element_type_descs[i]+";");
+                
+                vcg.assignValue(mv);
+            }
+            // discard tuple from TOS
+            mv.visitInsn(Opcodes.POP);
+
+        } else if (false && pa.worthParallelizing(rhs)) {
             forExprsParallel(rhss, vcgs);
         } else {
             forExprsSerial(rhss,vcgs);
@@ -2931,7 +2978,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             mv.visitMethodInsn(Opcodes.INVOKESPECIAL, cnb.className, "<init>", init_sig);
             mv.visitInsn(Opcodes.ARETURN);
-            mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+            mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
             mv.visitEnd();
 
             if (sparams_part.length() > 0) {
@@ -3054,7 +3101,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         
         imv.visitInsn(Opcodes.RETURN);
-        imv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        imv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
         imv.visitEnd();
     }
 
@@ -3151,7 +3198,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             v.assignValue(mv);
         }
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
         mv.visitEnd();
     }
 
@@ -3167,7 +3214,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitFieldInsn(Opcodes.PUTFIELD, className, "result", result);
 
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
         mv.visitEnd();
     }
 
@@ -3319,6 +3366,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         FunctionalRef op = x.getOp();
         List<Expr> args = x.getArgs();
 
+        evaluateSubExprsAppropriately(x, args);
+
+        op.accept(this);
+
+    }
+
+    /**
+     * @param x
+     * @param args
+     */
+    private void evaluateSubExprsAppropriately(ASTNode x, List<Expr> args) {
         if (pa.worthParallelizing(x)) {
             forExprsParallel(args, null);
         } else {
@@ -3326,9 +3384,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 arg.accept(this);
             }
         }
-
-        op.accept(this);
-
     }
 
     public void forOpRef(OpRef x) {
@@ -3535,7 +3590,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitFieldInsn(Opcodes.PUTSTATIC, classFile,
                           NamingCzar.SINGLETON_FIELD_NAME, tyDesc);
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+        mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
         mv.visitEnd();
         cw.dumpClass( classFile );
     }
@@ -3558,7 +3613,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Type ty = (Type)lv.getIdType().unwrap();
         Expr exp = oinit.unwrap();
         String classFile = NamingCzar.jvmClassForToplevelDecl(var, packageAndClassName);
-        String tyDesc = NamingCzar.jvmTypeDesc(ty, thisApi());
+        String tyDesc = NamingCzar.jvmBoxedTypeDesc(ty, thisApi());
         debug("VarDeclPrePass ", var, " : ", ty, " = ", exp);
         new CodeGen(this).generateVarDeclInnerClass(v, classFile, tyDesc, exp);
 
@@ -3730,7 +3785,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         string_sargs, anySymbolic);
 
                 // evaluate args
-                evalArg(arg);
+                evalArg(x, arg);
                 
                 String sig = NamingCzar.jvmSignatureFor(prepended_domain, range_type, thisApi());
 
@@ -3741,7 +3796,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 // put object on stack
                 obj.accept(this);
                 // put args on stack
-                evalArg(arg);
+                evalArg(x, arg);
                 methodCall(method, (NamedType)receiverType, domain_type, range_type);
             }
         } finally {
@@ -3801,7 +3856,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Cast-to-type is Arrow[\ receiverType; domain; range \]
         
         
-        String castToArrowType = NamingCzar.makeArrowDescriptor(prepended_domain, range_type, thisApi()); 
+        String castToArrowType = NamingCzar.makeArrowDescriptor(thisApi(), prepended_domain, range_type); 
         mv.visitTypeInsn(Opcodes.CHECKCAST, castToArrowType);
 
         // swap w/ TOS
@@ -3835,7 +3890,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     /**
      * @param arg
      */
-    private void evalArg(Expr arg) {
+    private void evalArg(ASTNode x, Expr arg) {
         if (arg instanceof VoidLiteralExpr) {
             paramCount = 0;
         } else if (arg instanceof TupleExpr) {
@@ -3879,7 +3934,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 fn.accept(this); // Puts the VarRef function on the stack.
             }
             fnRefIsApply = false;
-            evalArg(arg);
+            evalArg(x, arg);
             fnRefIsApply = true;
             if (!(fn instanceof FunctionalRef)) {
                 generateHigherOrderCall(exprType(fn));
@@ -4113,7 +4168,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 
                 String method_name = genericMethodName(f, selfIndex);
                 CodeGenMethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_ABSTRACT + ACC_PUBLIC, method_name, genericMethodClosureFinderSig, null, null);
-                mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+                mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
                 mv.visitEnd();
             } else {
             
@@ -4135,7 +4190,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 CodeGenMethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC,
                                 mname, desc, null, null);
 
-                mv.visitMaxs(NamingCzar.ignore, NamingCzar.ignore);
+                mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
                 mv.visitEnd();
             }
         }
