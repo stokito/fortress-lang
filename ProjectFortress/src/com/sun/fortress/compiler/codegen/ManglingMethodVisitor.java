@@ -42,6 +42,15 @@ public class ManglingMethodVisitor extends MethodAdapter {
     }
 
     public void visitMaxs(int maxStack, int maxLocals) {
+        /* 
+         * Print early, before it goes bad.
+         */
+        if (mv instanceof TraceMethodVisitor) {
+            System.out.println(name + desc + " " + Integer.toHexString(access));
+            List t = ((TraceMethodVisitor)mv).getText();
+            for (Object s : t)
+                System.out.print(s);
+        }
         super.visitMaxs(maxStack, maxLocals);
     }
 
@@ -101,12 +110,6 @@ public class ManglingMethodVisitor extends MethodAdapter {
 
     @Override
     public void visitEnd() {
-        if (mv instanceof TraceMethodVisitor) {
-            System.out.println(name + desc + " " + Integer.toHexString(access));
-            List t = ((TraceMethodVisitor)mv).getText();
-            for (Object s : t)
-                System.out.print(s);
-        }
         super.visitEnd();
     }
 
