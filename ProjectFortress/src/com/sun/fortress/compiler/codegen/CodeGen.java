@@ -319,7 +319,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     
     /** Factor out method call path so that we do it right
         everywhere we invoke a dotted method of any kind.
-        Here, we eitehr know the Strings already for name and signature,
+        Here, we either know the Strings already for name and signature,
         or they could not easily be encoded into AST anyway.
     */
     private void methodCall(String methodName,
@@ -2540,7 +2540,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         String decoration = NamingCzar.genericDecoration(sargs, thisApi());
-
 
         debug("forFunctionalRef ", x, " arrow = ", arrow);
 

@@ -921,7 +921,7 @@ public class NamingCzar {
         List<com.sun.fortress.nodes.Type> types = t.getElements();
         
         String res =
-            "Tuple"+ Naming.LEFT_OXFORD + makeGenericParameterDescriptor(t, ifNone) + Naming.RIGHT_OXFORD;
+            "Tuple"+ Naming.LEFT_OXFORD + makeUnboxedTupleDescriptor(t, ifNone) + Naming.RIGHT_OXFORD;
 
         return res;
 
@@ -1075,6 +1075,16 @@ public class NamingCzar {
             throw new CompilerError(t,"Can't compile VarArgs yet");
         if (!t.getKeywords().isEmpty())
             throw new CompilerError(t,"Can't compile Keyword args yet");
+        return jvmTypeDesc(t, ifNone, false, true);
+    }
+
+    private static String makeUnboxedTupleDescriptor(TupleType t, final APIName ifNone) {
+        if ( NodeUtil.isVoidType(t) )
+            throw new Error("Unexpected case in unboxed tuple descriptor");
+        if (t.getVarargs().isSome())
+            throw new CompilerError(t,"Can't compile VarArgs yet");
+        if (!t.getKeywords().isEmpty())
+            throw new CompilerError(t,"Can't compile Keyword args yet");
         String res = "";
         StringBuilder buf = new StringBuilder();
         for (com.sun.fortress.nodes.Type ty : t.getElements()) {
@@ -1097,11 +1107,11 @@ public class NamingCzar {
     }
 
     private static String jvmTypeDescs(List<com.sun.fortress.nodes.Type> types,
-                                      final APIName ifNone) {
+                                      final APIName ifNone, boolean withLSemi, boolean boxedTuples) {
         String r = "";
         StringBuilder buf = new StringBuilder();
         for (com.sun.fortress.nodes.Type t : types) {
-            buf.append(jvmTypeDesc(t, ifNone));
+            buf.append(jvmTypeDesc(t, ifNone, withLSemi, boxedTuples));
         }
         r = buf.toString();
         return r;
@@ -1114,7 +1124,7 @@ public class NamingCzar {
     }
 
             
-            public static String jvmTypeDesc(final com.sun.fortress.nodes.Type type,
+    public static String jvmTypeDesc(final com.sun.fortress.nodes.Type type,
                                      final APIName ifNone,
                                      final boolean withLSemi,
                                      final boolean boxed) {
@@ -1143,7 +1153,7 @@ public class NamingCzar {
                     if (withLSemi) res = internalToDesc(res);
                     return res;
                 } else
-                return jvmTypeDescs(t.getElements(), ifNone);
+                return jvmTypeDescs(t.getElements(), ifNone, true, true);
             }
             @Override
             public String forAnyType (AnyType t) {
@@ -1234,8 +1244,8 @@ public class NamingCzar {
             public String forArrowType(ArrowType t) {
                 if (NodeUtil.isVoidType(t.getDomain()))
                     return makeMethodDesc("", jvmTypeDesc(t.getRange(), ifNone));
-                else return makeMethodDesc(jvmTypeDesc(t.getDomain(), ifNone),
-                                           jvmTypeDesc(t.getRange(), ifNone));
+                else return makeMethodDesc(jvmTypeDesc(t.getDomain(), ifNone, true, false),
+                                           jvmTypeDesc(t.getRange(), ifNone, true, true));
             }
 
             // TODO CASES BELOW OUGHT TO JUST FAIL, WILL TEST SOON.
@@ -1364,7 +1374,8 @@ public class NamingCzar {
     public static String
             jvmTypeDescForGeneratedTaskInit(List<com.sun.fortress.nodes.Type> fvtypes,
                                             APIName ifNone) {
-        return "(" + jvmTypeDescs(fvtypes, ifNone) + ")V";
+        // May need to box any tuples, not really sure yet.
+        return "(" + jvmTypeDescs(fvtypes, ifNone, true, false) + ")V";
     }
 
     /** Type name for class containing singleton binding of toplevel
