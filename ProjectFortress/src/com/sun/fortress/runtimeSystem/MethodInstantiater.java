@@ -121,8 +121,8 @@ public class MethodInstantiater implements MethodVisitor {
 
     public void visitMethodInsn(int opcode, String owner, String name,
             String desc) {
+        String oname = name;
         if (owner.equals(Naming.magicInterpClass)) {
-            String oname = name;
             name = xlation.getTypeName(name);
             String op = Naming.encodedOp(name);
             String s = Naming.encodedConst(name);

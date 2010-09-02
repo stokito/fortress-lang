@@ -592,7 +592,7 @@ public class Naming {
      */
     private static boolean pointyDelimitedInitMethod(String s) {
         //int l = s.length();
-        return s.charAt(0) == '<' && s.endsWith("init>");
+        return s.length() > 0 && s.charAt(0) == '<' && s.endsWith("init>");
     }
 
 
