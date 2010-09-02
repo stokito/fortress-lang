@@ -282,12 +282,13 @@ public class InstantiationMap  {
             if (ch == Naming.HEAVY_X_CHAR)
                 disabled = true;
             
-            if (ch == '=') {
-                if (maybeVar)
-                    accum.append(input.substring(begin, at-1));
-                maybeVar = false;
-                break;
-            } else if (!maybeVar) {
+//            if (ch == '=') {
+//                if (maybeVar)
+//                    accum.append(input.substring(begin, at-1));
+//                maybeVar = false;
+//                break;
+//            } else
+                if (!maybeVar) {
                 accum.append(ch);
             } else if (nonVar(ch)) {
                 maybeVar = false;

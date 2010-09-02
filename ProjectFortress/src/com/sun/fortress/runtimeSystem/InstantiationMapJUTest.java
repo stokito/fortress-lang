@@ -51,10 +51,11 @@ public class InstantiationMapJUTest extends TestCase {
         assertEquals(4, i);
         assertEquals("cat;dog"+Naming.RIGHT_OXFORD, b.toString());
         
-        b = new StringBuilder();
-        i = map.maybeVarInOxfords("C=C;D=D"+Naming.RIGHT_OXFORD, 0, b);
-        assertEquals(8, i);
-        assertEquals("C=cat;D=dog"+Naming.RIGHT_OXFORD, b.toString());
+        // Don't know what this is for, we aren't using it.
+//        b = new StringBuilder();
+//        i = map.maybeVarInOxfords("C=C;D=D"+Naming.RIGHT_OXFORD, 0, b);
+//        assertEquals(8, i);
+//        assertEquals("C=cat;D=dog"+Naming.RIGHT_OXFORD, b.toString());
     }
 
     public void testMaybeVarInLSemi() {

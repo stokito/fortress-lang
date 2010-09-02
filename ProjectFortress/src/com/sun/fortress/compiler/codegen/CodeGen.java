@@ -1513,11 +1513,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
                 false);
         
-        /* Just append the schema. 
-           Do not separate with HEAVY_X, because schema may depend on 
-           parameters from parent trait/object.
-           (HEAVY_X stops substitution in instantiator).
-           */
         return genericMethodName(name.getText(), generic_arrow_type);
     }
 
@@ -1525,11 +1520,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
                 false);
         
-        /* Just append the schema. 
-           Do not separate with HEAVY_X, because schema may depend on 
-           parameters from parent trait/object.
-           (HEAVY_X stops substitution in instantiator).
-           */
         return genericMethodName(name, generic_arrow_type);
     }
 
@@ -1539,7 +1529,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @return
      */
     private String genericMethodName(String name, String generic_arrow_type) {
-        return name + Naming.UP_INDEX + generic_arrow_type;
+        /* Just append the schema.
+         * TEMP FIX -- do sep w/HEAVY_X.
+         * Need to stop substitution on static parameters from the method itself.
+         * 
+           Do not separate with HEAVY_X, because schema may depend on 
+           parameters from parent trait/object.
+           (HEAVY_X stops substitution in instantiator).
+           */
+        return name + Naming.UP_INDEX + Naming.HEAVY_X + generic_arrow_type;
     }
     
     private final static String genericMethodClosureFinderSig = "(JLjava/lang/String;)Ljava/lang/Object;";
@@ -3762,7 +3760,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 
                 TraitType rt_tt = ((TraitType)receiverType);
                 List<StaticArg> rt_args = rt_tt.getArgs();
-                if (rt_args.size() > 0) {
+                
+                if (false && rt_args.size() > 0) {
+                    // patch linked to use of HEAVY_X in generic method names -- protect the tvars from rewriting.
                     /* 
                      * Must check overloading schema for enclosing trait args.
                      */
