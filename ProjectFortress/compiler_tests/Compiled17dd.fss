@@ -37,7 +37,7 @@ object Gs(e:String)
    end
 end
 
-plus(x:String, y:String):String = x || y
+cat(x:String, y:String):String = x || y
 
 rcat(x:String, y:String):String = y || x
 id(x:String):String = x
@@ -45,7 +45,7 @@ id(x:String):String = x
 somebody(x:ZZ32):String = x.asString
 
 run():() = do
-  s = Gz(1, 10).generate[\String\](somebody, plus)
+  s = Gz(1, 10).generate[\String\](somebody, cat)
   println s
   t = Gs(s).generate[\String\](id, rcat)
   println t
