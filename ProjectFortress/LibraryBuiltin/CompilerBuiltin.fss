@@ -65,7 +65,9 @@ import java com.sun.fortress.nativeHelpers.{simpleDoubleArith.floatToDouble => j
                                             simpleDoubleArith.doubleNanoTime => jNanoTime}
 import java com.sun.fortress.nativeHelpers.{LocalRandom.localRandomDouble => jRandomDouble,
                                             LocalRandom.localRandomInt => jRandomInt }
-import java com.sun.fortress.nativeHelpers.{stringOps.compareTo => jCompareTo }
+import java com.sun.fortress.nativeHelpers.{stringOps.compareTo => jCompareTo,
+                                            stringOps.substring => jSubstring,
+                                            stringOps.charAt => jCharAt}
 
 import AnyType.{Any}
 export CompilerBuiltin
@@ -83,6 +85,8 @@ trait String
     opr =(self, b: String) = (jCompareTo(self, b) = 0)
     opr ||(self, b:String): String =  jConcatenate(self, b)
     opr juxtaposition(self, b:String): String = jConcatenate(self, b)
+    opr [i:ZZ32] : ZZ32 = jCharAt(self, i)
+    substring(lo:ZZ32, hi:ZZ32):String = jSubstring(self, lo, hi)
 end
 
 object FlatString extends String

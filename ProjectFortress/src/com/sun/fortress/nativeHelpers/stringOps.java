@@ -17,9 +17,19 @@
 
 package com.sun.fortress.nativeHelpers;
 
+import com.sun.fortress.useful.Useful;
+
 public class stringOps {
 
     public static int compareTo(String s, String t) {
-return s.compareTo(t);
+        return s.compareTo(t);
+    }
+    
+    public static String substring(String s, int start, int finish) {
+        return Useful.substring(s, start, finish);
+    }
+    
+    public static int charAt(String s, int at) {
+        return s.charAt(at);
     }
 }
