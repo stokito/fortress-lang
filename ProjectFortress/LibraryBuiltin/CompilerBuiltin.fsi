@@ -33,6 +33,8 @@ trait String
     opr |self| : ZZ32
     opr || (self, b:String):String
     opr juxtaposition(self, b:String): String
+    opr[i:ZZ32] : ZZ32
+    substring(lo:ZZ32, hi:ZZ32):String
 end
 
 object FlatString extends String
