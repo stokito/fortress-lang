@@ -70,6 +70,10 @@ public class Useful {
         return listInDelimiters("{", l, "}");
     }
 
+    public static <T> String listInCurlies(Object[] l) {
+        return listInDelimiters("{", l, "}");
+    }
+
     /**
      * Returns a string containing String.valueOf each element of l,
      * separated by commas, all surrounded by left and right delimiters.
@@ -81,6 +85,10 @@ public class Useful {
     public static <T> String listInDelimiters(String left, Collection<T> l, String right) {
         return listInDelimiters(left, l, right, ",");
     }
+    
+    public static <T> String listInDelimiters(String left, Object[] l, String right) {
+        return listInDelimiters(left, l, right, ",");
+    }
 
     /**
      * Returns a string containing String.valueOf each element of l,
@@ -90,7 +98,7 @@ public class Useful {
      * @param l
      * @return
      */
-    public static <T> String listInDelimiters(String left, Collection<T> l, String right, String sep) {
+    public static <T> String listInDelimiters(String left, Iterable<T> l, String right, String sep) {
         StringBuilder sb = new StringBuilder();
         sb.append(left);
         boolean first = true;
@@ -99,6 +107,20 @@ public class Useful {
             else sb.append(sep);
             sb.append(String.valueOf(x));
         }
+        sb.append(right);
+        return sb.toString();
+    }
+
+    public static <T> String listInDelimiters(String left, Object[] l, String right, String sep) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(left);
+        boolean first = true;
+        if (l != null) 
+            for (Object x : l) {
+            if (first) first = false;
+            else sb.append(sep);
+            sb.append(String.valueOf(x));
+            }
         sb.append(right);
         return sb.toString();
     }

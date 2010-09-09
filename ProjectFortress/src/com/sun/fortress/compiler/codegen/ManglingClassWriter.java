@@ -24,6 +24,7 @@ import org.objectweb.asm.util.*;
 
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.Naming;
+import com.sun.fortress.useful.Useful;
 
 public class ManglingClassWriter extends ClassWriter {
 
@@ -82,6 +83,10 @@ public class ManglingClassWriter extends ClassWriter {
             for (int i = 0; i < interfaces.length; i++)
                 _interfaces[i] = Naming.mangleFortressIdentifier(interfaces[i]);
 
+        if (TRACE_METHODS) {
+            System.out.println(name  + " extends " + superName + " implements " + Useful.listInCurlies(interfaces));
+        }
+        
         super.visit(version, access, name, signature, superName, _interfaces);
     }
 
