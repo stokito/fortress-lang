@@ -1833,15 +1833,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (inAMethod) {
             selfVar = addSelf();
         }
-        List<VarCodeGen> paramsGen = new ArrayList<VarCodeGen>(params.size());
-        int index = 0;
-        for (Param p : params) {
-            if (index != selfIndex) {
-                VarCodeGen v = addParam(p);
-                paramsGen.add(v);
-            }
-            index++;
-        }
+        List<VarCodeGen> paramsGen = addParams(params, selfIndex);
         // Compile the body in the parameter environment
 
         body.accept(this);
@@ -1850,6 +1842,79 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         } catch (Throwable t) {
             throw new Error("\n"+NodeUtil.getSpan(body)+": Error trying to close method scope.",t);
         }
+    }
+
+    /**
+     * @param params
+     * @param selfIndex
+     * @return
+     */
+    private List<VarCodeGen> addParams(List<Param> params, int selfIndex) {
+        
+        /* Special case 
+         * If there is just one parameter, and it is a tuple, then we need to
+         * monkey with the params a wee bit.
+         */
+        
+        List<VarCodeGen> paramsGen = new ArrayList<VarCodeGen>(params.size());
+        int index = 0;
+        
+        if (params.size() == 1 && selfIndex == NO_SELF && 
+                (params.get(0).getIdType().unwrap() instanceof TupleType) ) {
+            Param p0 = params.get(0);
+            TupleType tuple_type = ((TupleType) p0.getIdType().unwrap());
+            List<Type> tuple_types = tuple_type.getElements();
+            Id tuple_name = p0.getName();
+            String tuple_name_string = tuple_name.getText();
+                        
+            index = Naming.TUPLE_ORIGIN;
+            for (Type t : tuple_types) {
+                Id id = NodeFactory.makeId(tuple_name, tuple_name_string + index);
+                Param p = NodeFactory.makeParam(id, t);
+                VarCodeGen v = addParam(p);
+                paramsGen.add(v);
+                index++;
+            }
+            
+            /* 
+             * Next construct a local var, a tuple, from the parameters.
+             * Perhaps it will go unused, in which case dead code elimination
+             * in the JIT will clean it out for us.
+             * 
+             * First push everything, then invoke the appropriate static make
+             * method from the tuple type, then add the result as a local var.
+             */
+            
+            VarCodeGen vcg = new VarCodeGen.LocalVar(tuple_name, tuple_type, this);
+            
+            addLocalVar(vcg);
+            paramsGen.add(vcg);
+            
+            vcg.prepareAssignValue(mv);
+            
+            index = Naming.TUPLE_ORIGIN;
+            for (Type t : tuple_types) {
+                Id id = NodeFactory.makeId(tuple_name, tuple_name_string + index);
+                VarCodeGen vcge = getLocalVarOrNull(id);
+                vcge.pushValue(mv);
+                index++;
+            }
+            
+            makeTupleOfSpecifiedType(tuple_type);
+            
+            vcg.assignValue(mv);
+            
+        } else {
+            for (Param p : params) {
+                if (index != selfIndex) {
+                    VarCodeGen v = addParam(p);
+                    paramsGen.add(v);
+                }
+                index++;
+            }
+        }
+       
+        return paramsGen;
     }
 
     private static final Modifiers fnDeclCompilableModifiers =
@@ -2330,6 +2395,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Type t = x.getInfo().getExprType().unwrap();
         evaluateSubExprsAppropriately(x, exprs);
         // Invoke Tuple[\ whatever \].make(Object;Object;Object;etc)
+        makeTupleOfSpecifiedType(t);
+
+    }
+
+    /**
+     * @param t
+     */
+    private void makeTupleOfSpecifiedType(Type t) {
         String tcn = NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
         String arg_sig = NamingCzar.jvmTypeDesc(t, thisApi(), true, false);
         String sig = NamingCzar.makeMethodDesc(arg_sig, "L" + tcn + ";");
@@ -2337,7 +2410,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 tcn,
                 "make",
                 sig);
-
     }
     
     public void forFnExpr(FnExpr x) {
@@ -2380,10 +2452,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // Since we call this virtually we need a slot for the arrow implementation of this object.
         cg.mv.reserveSlot0();
-        for (Param p : params) {
-            cg.addParam(p);
-        }
-
+        
+        cg.addParams(params, NO_SELF);
+        
         body.accept(cg);
 
         cg.methodReturnAndFinish();
