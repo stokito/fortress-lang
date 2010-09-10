@@ -1610,7 +1610,6 @@ public class NodeUtil {
             op = NodeFactory.makeOpBig(getSpan(op), "BIG " + op.getText());
         else if (op.getText().equals("BIG +") ||
                  op.getText().equals("BIG juxtaposition")) {
-            op = op;
         } else if (params.size() == 0) { // nofix
             op = NodeFactory.makeOpNofix(op);
         } else if (isMultifix(params)) { // multifix

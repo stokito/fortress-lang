@@ -144,10 +144,11 @@ public class MethodInstantiater implements MethodVisitor {
                         String stem_sort = pslpss.first();
                         if (stem_sort.equals(Naming.OBJECT_GENERIC_TAG))
                             opcode = Opcodes.INVOKEVIRTUAL;
-                        else
-                            opcode = opcode; // do nothing
+                        else {
+                          // do nothing
+                        }
                     } else {
-                        opcode = opcode; // do nothing
+                    	// do nothing
                     }
 
                 } else {
@@ -157,13 +158,11 @@ public class MethodInstantiater implements MethodVisitor {
                         Class cl = Class.forName(new_owner_class_name, true, icl);
                         if (cl.isInterface()) {
                             // Do nothing
-                            opcode = opcode;
                         } else {
                             opcode = Opcodes.INVOKEVIRTUAL;
                         }
                     } catch (ClassNotFoundException e) {
                         // Do nothing, not our problem
-                        e = e;
                     }
                 }
             }

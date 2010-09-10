@@ -128,23 +128,23 @@ public final class DottedMethodApplication extends Fcn {
     }
 
     public DottedMethodApplication typeApply(List<StaticArg> sargs, Environment envForInference, HasAt site) {
-        Method cl = getMethod();
+        Method _cl = getMethod();
         FObject self = getSelf();
         Environment selfEnv = getWithin();
 
-        if (cl instanceof OverloadedMethod) {
+        if (_cl instanceof OverloadedMethod) {
             return bug(site, selfEnv, "Don't actually resolve overloading of generic methods yet.");
-        } else if (cl instanceof MethodInstance) {
+        } else if (_cl instanceof MethodInstance) {
             // What gets retrieved is the symbolic instantiation of
             // the generic method.
             // This is ever-so-slightly wrong -- we need to not
             // create an "instance"
             // if the parameters are non-symbolic.
-            GenericMethod gm = ((MethodInstance) cl).getGenerator();
+            GenericMethod gm = ((MethodInstance) _cl).getGenerator();
             MethodClosure actual = gm.typeApply(sargs, envForInference, site);
             return new DottedMethodApplication(self, actual, selfEnv);
         } else {
-            return error(site, selfEnv, errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ", cl));
+            return error(site, selfEnv, errorMsg("Unexpected Selection result in Juxt of FnRef of Selection, ", _cl));
         }
     }
 

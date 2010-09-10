@@ -171,7 +171,7 @@ public class Resolver {
             if (opExprs.size() >= 4) {
                 Object[] prefix = opExprs.toArray(4);
                 PureList<PrefixOpExpr> _rest = ((Cons<PrefixOpExpr>) rest).getRest();
-                PureList<PrefixOpExpr> __rest = ((Cons<PrefixOpExpr>) _rest).getRest();
+                // PureList<PrefixOpExpr> __rest = ((Cons<PrefixOpExpr>) _rest).getRest();
 
                 if (prefix[0] instanceof RealExpr && prefix[1] instanceof TightInfix && prefix[2] instanceof RealExpr &&
                     prefix[3] instanceof TightInfix) {

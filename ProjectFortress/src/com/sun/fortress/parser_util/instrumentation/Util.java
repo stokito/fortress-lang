@@ -57,7 +57,6 @@ public class Util {
                 return (Module) v.value;
             } else {
                 ParseError err = (ParseError) r;
-                String errMsg;
                 throw new RuntimeException("Parse error: " + err.toString());
             }
         }

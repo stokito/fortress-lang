@@ -275,7 +275,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
              new BATree<String, StaticParam>(StringHashComparer.V),
              new BASet<String>(StringHashComparer.V),
              new BASet<String>(StringHashComparer.V));
-        suppressDebugDump = suppressDebugDump;
+        this.suppressDebugDump = suppressDebugDump;
     }
 
     /**
@@ -822,7 +822,7 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
             _ensures = Option.<List<EnsuresClause>>none();
             _invariants = Option.<List<Expr>>none();
         }
-        List<Expr> _exprs = new ArrayList<Expr>();
+        // List<Expr> _exprs = new ArrayList<Expr>();
 
         AbstractNode n;
 

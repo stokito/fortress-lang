@@ -726,8 +726,7 @@ public class Naming {
                 mangledString = "\\=" + mangledString;
 
             // debugging check for double-mangling
-            if (mangledString.startsWith("\\-"))
-                mangledString = mangledString;
+            if (mangledString.startsWith("\\-")) {}
 
             return mangledString;
         }
