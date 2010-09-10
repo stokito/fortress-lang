@@ -379,7 +379,7 @@ class ConcealingSTypeEnv(protected val parent: STypeEnv,
     case parent:NestedSTypeEnv => 
       parent.bindings.map(_._2.name)
             .filterNot(concealedNames.toList.contains).isEmpty
-    case EmptySTypeEnv => true
+    case _ => true // case EmptySTypeEnv
   }
   
   /** Fail when looking up any of the hidden names. */

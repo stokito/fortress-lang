@@ -91,7 +91,6 @@ public class CodeGenerationPhase extends Phase {
         for (Component component : previous.componentIterator()) {
             Debug.debug(Debug.Type.CODEGEN, 1, "CodeGenerationPhase: Compile(" + component.getName() + ")");
             ComponentIndex ci = previous.components().get(component.getName());
-            Relation<IdOrOpOrAnonymousName, Function> fns = ci.functions();
             //TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ci, apiEnv));
             TypeAnalyzer sta = newTypeAnalyzer(new TraitTable(ci, apiEnv));
                  

@@ -506,7 +506,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Option<Id> target = x.getTarget();
         Option<Expr> returnExpr = x.getReturnExpr();
         FValue res;
-        LabelException e;
+        LabelException _e;
 
         if (returnExpr.isSome()) {
             res = returnExpr.unwrap().accept(new Evaluator(this));
@@ -516,11 +516,11 @@ public class Evaluator extends EvaluatorBase<FValue> {
 
         if (target.isSome()) {
             String t = target.unwrap().getText();
-            e = new NamedLabelException(x, t, res);
+            _e = new NamedLabelException(x, t, res);
         } else {
-            e = new LabelException(x, res);
+            _e = new LabelException(x, res);
         }
-        throw e;
+        throw _e;
     }
 
     public FValue forExtentRange(ExtentRange x) {

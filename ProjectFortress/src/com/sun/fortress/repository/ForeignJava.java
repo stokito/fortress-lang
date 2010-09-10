@@ -238,7 +238,6 @@ public class ForeignJava {
         List<AliasedSimpleName> names = ins.getAliasedNames();
         for (AliasedSimpleName name : names) {
             IdOrOpOrAnonymousName imported = name.getName();
-            Option<APIName> dotted_prefix = imported.getApiName();
             String suffix = NodeUtil.nameString(imported);
             /*
              * Okay, so this means that the "api" being imported

@@ -414,7 +414,7 @@ public class TypeResolver {
             if (opTypes.size() >= 4) {
                 Object[] prefix = opTypes.toArray(4);
                 PureList<PrefixOpExpr> _rest = ((Cons<PrefixOpExpr>) rest).getRest();
-                PureList<PrefixOpExpr> __rest = ((Cons<PrefixOpExpr>) _rest).getRest();
+                // PureList<PrefixOpExpr> __rest = ((Cons<PrefixOpExpr>) _rest).getRest();
 
                 if (prefix[0] instanceof RealType && prefix[1] instanceof JuxtInfix && prefix[2] instanceof RealType &&
                     prefix[3] instanceof JuxtInfix) {

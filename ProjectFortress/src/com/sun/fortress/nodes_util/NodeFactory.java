@@ -2676,9 +2676,9 @@ public class NodeFactory {
                     BoolExpr right = args.get(1).accept(this);
                     Span newSpan = NodeUtil.spanTwo(left, right);
                     BoolExpr result = makeBoolBinaryOp(newSpan, left, right, newOp);
-                    for ( Expr expr : args.subList(2, args.size()) ) {
+                    for ( Expr _expr : args.subList(2, args.size()) ) {
                         left = result;
-                        right = expr.accept(this);
+                        right = _expr.accept(this);
                         newSpan = NodeUtil.spanTwo(left, right);
                         result = makeBoolBinaryOp(newSpan, left, right, newOp);
                     }

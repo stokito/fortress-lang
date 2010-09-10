@@ -548,14 +548,13 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
 
     private void forObjectDecl2(ObjectDecl x) {
 
-        Environment e = containing;
+        // Environment e = containing;
         Id name = NodeUtil.getName(x);
 
         List<StaticParam> staticParams = NodeUtil.getStaticParams(x);
         Option<List<Param>> params = NodeUtil.getParams(x);
 
         String fname = NodeUtil.nameString(name);
-        FType ft;
 
         if (params.isSome()) {
             if (!staticParams.isEmpty()) {
@@ -582,7 +581,7 @@ public class BuildEnvironments extends NodeAbstractVisitor<Boolean> {
     }
 
     private void forObjectDecl3(ObjectDecl x) {
-        Environment e = containing;
+        // Environment e = containing;
         Id name = NodeUtil.getName(x);
 
         List<StaticParam> staticParams = NodeUtil.getStaticParams(x);

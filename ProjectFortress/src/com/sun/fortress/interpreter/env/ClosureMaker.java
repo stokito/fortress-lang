@@ -106,7 +106,6 @@ public class ClosureMaker implements Opcodes {
 
 
         ClassWriter cw = new ClassWriter(0);
-        FieldVisitor fv;
         MethodVisitor mv;
         AnnotationVisitor av0;
 
