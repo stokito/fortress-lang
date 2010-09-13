@@ -71,7 +71,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     public void toAsm(ClassWriter cw) {
         MethodVisitor mv = cw.visitMethod(access, name, desc, sig, exceptions);
         for (Insn i : insns) {
-            i.toAsm(mv);
+            i.toAsmWrapper(mv);
         }
     }
 

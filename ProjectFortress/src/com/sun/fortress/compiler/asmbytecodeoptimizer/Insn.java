@@ -30,6 +30,8 @@ abstract public class Insn {
     String name;
     Object locals[];
     Object stack[];
+    List<Insn> inlineExpansionInsns = new ArrayList<Insn>();
+    Insn parentInsn;
 
     public String toString() { return name; }
     public void setStack(Object stack[]) {this.stack = stack;}
@@ -37,8 +39,21 @@ abstract public class Insn {
 
     public abstract void toAsm(MethodVisitor mv);
 
+    public void toAsmWrapper(MethodVisitor mv) {
+        if (isExpanded()) {
+            for (int i = 0; i < inlineExpansionInsns.size(); i++)
+                inlineExpansionInsns.get(i).toAsmWrapper(mv);
+        } else {
+            toAsm(mv);
+        }
+    }
+
     public boolean matches(Insn i) {
         return false;
+    }
+
+    public boolean isExpanded() {
+        return inlineExpansionInsns.size() > 0 ;
     }
 
     public String getStackString() {
