@@ -31,13 +31,19 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.util.TraceClassVisitor;
 
+import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.compiler.codegen.CodeGenMethodVisitor;
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
+import com.sun.fortress.compiler.codegen.ManglingMethodVisitor;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.FnVoid;
+import com.sun.fortress.useful.FnVoidVoid;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.ProjectedList;
 import com.sun.fortress.useful.Useful;
@@ -199,6 +205,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         classData = instantiateAbstractArrow(dename, parameters);
                     } else if (stem.equals("Tuple")) {
                         classData = instantiateTuple(dename, parameters);
+                    } else if (stem.equals("ConcreteTuple")) {
+                        classData = instantiateConcreteTuple(dename, parameters);
                     } else {
                         try {
                         ArrayList<String> sargs = new ArrayList<String>();
@@ -659,10 +667,69 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return parameters;
     }
 
+    
+     private static ArrayList<String> extractStringParameters(String s) {
+        int leftBracket = s.indexOf(Naming.LEFT_OXFORD);
+        int rightBracket = s.lastIndexOf(Naming.RIGHT_OXFORD);
+        ArrayList<String> parameters = new ArrayList<String>();
+        int depth = 1;
+        int pbegin = leftBracket+1;
+        for (int i = leftBracket+1; i <= rightBracket; i++) {
+            char ch = s.charAt(i);
+
+            if ((ch == ';' || ch == Naming.RIGHT_OXFORD_CHAR) && depth == 1) {
+                String parameter = s.substring(pbegin,i);
+                parameters.add(parameter);
+                pbegin = i+1;
+            } else {
+                if (ch == Naming.LEFT_OXFORD_CHAR) {
+                    depth++;
+                } else if (ch == Naming.RIGHT_OXFORD_CHAR) {
+                    depth--;
+                } else {
+
+                }
+            }
+        }
+        return parameters;
+    }
+
+    
+    /**
+     * Generates an interface method (public, abstract) with specified name
+     * and signature.
+     * 
+     * @param cw
+     * @param m
+     * @param sig
+     */
+    private static void interfaceMethod(ManglingClassWriter cw, String m,
+            String sig) {
+        MethodVisitor mv = cw.visitCGMethod(ACC_PUBLIC | ACC_ABSTRACT, m, sig, null, null);
+        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+        mv.visitEnd();
+    }
+    
+    /**
+     * Generate a trivial init method.
+     * 
+     * @param cw
+     * @param _super
+     */
+    private static void simpleInitMethod(ManglingClassWriter cw, String _super) {
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+        mv.visitCode();
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitMethodInsn(INVOKESPECIAL, _super, "<init>", "()V");
+        mv.visitInsn(RETURN);
+        mv.visitMaxs(1, 1);
+        mv.visitEnd();
+    }
+    
     private static byte[] instantiateArrow(String name, ArrayList<String> parameters) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         FieldVisitor fv;
-        MethodVisitor mv;
+        
         AnnotationVisitor av0;
 
         cw.visit(Opcodes.V1_6, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE,
@@ -672,7 +739,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         {
             if (LOG_LOADS) System.err.println(name+".apply"+sig+" abstract");
-            mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
+            MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
                                 sig,
                                 null, null);
             mv.visitEnd();
@@ -685,7 +752,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     private static byte[] instantiateAbstractArrow(String dename, ArrayList<String> parameters) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         FieldVisitor fv;
-        MethodVisitor mv;
+        
         AnnotationVisitor av0;
 
         // String name = Naming.mangleIdentifier(dename);
@@ -700,20 +767,15 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
 
         {
-            mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
-            mv.visitCode();
-            mv.visitVarInsn(ALOAD, 0);
-            mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
-            mv.visitInsn(RETURN);
-            mv.visitMaxs(1, 1);
-            mv.visitEnd();
+            String _super = "java/lang/Object";
+            simpleInitMethod(cw, _super);
         }
 
         String sig = arrowParamsToJVMsig(parameters);
 
         {
             if (LOG_LOADS) System.err.println(name + ".apply" + sig+" abstract for abstract");
-            mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
+            MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
                                 sig,
                                 null, null);
             mv.visitEnd();
@@ -723,43 +785,408 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return cw.toByteArray();
     }
 
-    private static byte[] instantiateTuple(String dename, ArrayList<String> parameters) {
+    static final String UNTYPED_GETTER_SIG = "()LFortress$AnyType$Any;";
+    
+    private static byte[] instantiateAnyTuple(String dename, ArrayList<String> parameters) {
+        /*
+         * Single parameter, N, which is the arity of the tuple.
+         * 
+         * implements Ljava/util/List;
+         * implements LFortress$AnyType$Any;
+         * abstract methods o1 ... oN (or 0 ... N-1, depending on tuple origin)
+         */
+        int n = Integer.parseInt(parameters.get(0));
+
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
-        FieldVisitor fv;
-        MethodVisitor mv;
-        AnnotationVisitor av0;
+        String[] superInterfaces = {
+                "java/util/List",
+                "Fortress$AnyType$Any"
+        };
+        cw.visit( Opcodes.V1_5,
+                Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
+                dename, null, "Ljava/lang/Object;", superInterfaces);
 
-        // String name = Naming.mangleIdentifier(dename);
-        String name = (dename);
-        String if_name =
-        (dename.substring("Abstract".length()));
+        for (int i = 0; i < n; i++) {
+            String m = "o" + (i + Naming.TUPLE_ORIGIN);
+            String sig = UNTYPED_GETTER_SIG;
+            interfaceMethod(cw, m, sig);
+        }
 
-        cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER + ACC_ABSTRACT, name, null,
-                 "java/lang/Object", null);
+        cw.visitEnd(); 
+        return cw.toByteArray();
+    }
+    
+    private static byte[] instantiateAnyConcreteTuple(String dename, ArrayList<String> parameters) {
+        /*
+         * Single parameter, N, which is the arity of the tuple.
+         * 
+         * extends Ljava/util/AbstractList;
+         * implements LAnyTuple[\N\];
+         * int size() { return N; }
+         * Object get(int n) {
+         *    if (n >= N || n < 0) {
+         *       throw new IndexOutOfBoundsException();
+         *    } else {
+         *      // binary search tree returning o1 ... oN
+         *    }
+         * }
+         */
+        
+        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
 
-        String sig = tupleParamsToJvmInitSig(parameters);
+        final int n = Integer.parseInt(parameters.get(0));
+        final String any_tuple_n = "AnyTuple" + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
+        String[] superInterfaces = { any_tuple_n };
+        cw.visit( Opcodes.V1_5,
+                Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT,
+                dename, null, "java/util/AbstractList", superInterfaces);
 
-        {
-            mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+
+        { // size method
+            MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "size", "()I", null, null);
             mv.visitCode();
-            mv.visitVarInsn(ALOAD, 0);
-            mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
-            mv.visitInsn(RETURN);
+            mv.visitIntInsn(BIPUSH, n);
+            mv.visitInsn(IRETURN);
             mv.visitMaxs(1, 1);
             mv.visitEnd();
         }
 
+        { // get method  
+            final MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "get", "(I)Ljava/lang/Object;", null, null);
+            mv.visitCode();
+            mv.visitVarInsn(ILOAD, 1);
+            mv.visitIntInsn(BIPUSH, n);
+            Label l1 = new Label();
+            mv.visitJumpInsn(IF_ICMPGE, l1);
+            mv.visitVarInsn(ILOAD, 1);
+            Label l2 = new Label();
+            mv.visitJumpInsn(IFGE, l2);
+            mv.visitLabel(l1);
+            mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+            mv.visitTypeInsn(NEW, "java/lang/IndexOutOfBoundsException");
+            mv.visitInsn(DUP);
+            mv.visitMethodInsn(INVOKESPECIAL, "java/lang/IndexOutOfBoundsException", "<init>", "()V");
+            mv.visitInsn(ATHROW);
 
-        {
-            if (LOG_LOADS) System.err.println(name + ".apply" + sig+" abstract for abstract");
-            mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
-                                sig,
-                                null, null);
+            FnVoidVoid geti = new FnVoidVoid() {
+
+                @Override
+                public void apply() {
+                    mv.visitVarInsn(ILOAD, 1);
+                }
+                
+            };
+            
+            FnVoid<Integer> leaf = new FnVoid<Integer>() {
+
+                @Override
+                public void apply(Integer x) {
+                    mv.visitVarInsn(ALOAD, 0);
+                    mv.visitMethodInsn(INVOKEVIRTUAL, any_tuple_n, "o" + (Naming.TUPLE_ORIGIN + x), UNTYPED_GETTER_SIG);
+                    mv.visitInsn(ARETURN);
+                }
+                
+            };
+            
+            visitBinaryTree(mv, 0, n-1, l2, geti, leaf);
+            
+            mv.visitMaxs(2, 2);
             mv.visitEnd();
+
         }
+        
+        cw.visitEnd(); 
+        return cw.toByteArray();
+    }
+    
+    /**
+     * Generates a binary search tree for integers in the range [lo,hi]
+     * (INCLUSIVE!).  Target, if not null, is to be attached to the generated code.
+     * geti pushes the integer in question onto the top of the stack.
+     * leaf handles the leaf case where lo=hi.
+     * 
+     * Cases are generated into ascending order, just because.
+     * 
+     * @param mv
+     * @param lo
+     * @param hi
+     * @param target
+     * @param geti
+     * @param leaf
+     */
+    
+    static void visitBinaryTree(MethodVisitor mv, int lo, int hi, Label target, FnVoidVoid geti,  FnVoid<Integer> leaf) {
+        if (target != null)
+            mv.visitLabel(target);
+        mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+
+        if (lo == hi) {
+           leaf.apply(lo);
+        } else {
+            /*
+             * 0,1 -> 0,0; 1,1
+             * 0,2 -> 0,1; 2,2 
+             */
+            int mid = (lo + hi)/2;
+            Label small = null;
+            Label large = new Label();
+            geti.apply();
+            mv.visitJumpInsn(IF_ICMPGT, large);
+            visitBinaryTree(mv, lo, mid, small, geti, leaf);
+            visitBinaryTree(mv, mid+1, hi, small, geti, leaf);
+        }
+    }
+    
+    
+    private static byte[] instantiateTuple(String dename, ArrayList<String> parameters) {
+        /*
+         * interface implements AnyTuple[\ N \]
+         * methods e1 ... eN returning typed results.
+         */
+        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+ 
+        final int n = parameters.size();
+        final String any_tuple_n = "AnyTuple" + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
+        String[] superInterfaces = { any_tuple_n };
+        
+        cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER + ACC_ABSTRACT + ACC_INTERFACE, dename, null,
+                 "java/lang/Object", superInterfaces);
+
+
+        for (int i = 0; i < n; i++) {
+            String m = "e" + (i + Naming.TUPLE_ORIGIN);
+            String sig = "()L" + parameters.get(i) + ";";
+            interfaceMethod(cw, m, sig);
+        }
+
         cw.visitEnd();
 
         return cw.toByteArray();
+    }
+
+    private static byte[] instantiateConcreteTuple(String dename, ArrayList<String> parameters) {
+        /*
+         * extends AnyConcreteTuple[\ N \]
+         * 
+         * implements Tuple[\ parameters \]
+         * 
+         * defines f1 ... fN
+         * defines e1 ... eN
+         * defines o1 ... oN
+         */
+
+        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+        
+        final int n = parameters.size();
+        final String any_tuple_n = "AnyTuple" + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
+        final String any_concrete_tuple_n = "AnyConcreteTuple" + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
+        final String tuple_params = "Tuple" + Useful.listInDelimiters(Naming.LEFT_OXFORD, parameters, Naming.RIGHT_OXFORD, ";");
+        
+        String[] superInterfaces = { tuple_params };
+        
+        cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER + ACC_ABSTRACT, dename, null,
+                any_concrete_tuple_n, superInterfaces);
+        
+        
+        /* Outline of what must be generated:
+        
+        // fields
+        
+        // init method
+        
+        // factory method
+        
+        // is instance method -- takes an Object
+
+        // is instance method
+          
+        // cast method
+        
+        // typed getters
+        
+        // untyped getters
+         
+        */
+        
+        // fields
+        {
+            for (int i = 0; i < n; i++) {
+                String f = "f" + (i + Naming.TUPLE_ORIGIN);
+                String sig = "()L" + parameters.get(i) + ";";
+                cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, f,
+                        sig, null /* for non-generic */, null /* instance has no value */);
+            }
+        }
+        // init method
+        {
+            String init_sig = tupleParamsToJvmInitSig(parameters);
+            MethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC, "<init>", init_sig, null, null);
+            mv.visitCode();
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, any_concrete_tuple_n, "<init>", NamingCzar.voidToVoid);
+
+            for (int i = 0; i < n; i++) {
+                String f = "f" + (i + Naming.TUPLE_ORIGIN);
+                String sig = "L" + parameters.get(i) + ";";
+                mv.visitVarInsn(Opcodes.ALOAD, i+1);
+                mv.visitFieldInsn(Opcodes.PUTFIELD, dename, f, sig);
+            }
+            mv.visitInsn(Opcodes.RETURN);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            mv.visitEnd();
+        }
+            
+        // factory method -- same args as init, returns a new one.
+        {
+            String init_sig = tupleParamsToJvmInitSig(parameters);
+            String make_sig = toJvmSig(parameters, tuple_params);
+            MethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "make", make_sig, null, null);
+            
+            mv.visitCode();
+            mv.visitTypeInsn(NEW, dename);
+            mv.visitInsn(DUP);
+            // push params for init
+            for (int i = 0; i < n; i++) {
+                mv.visitVarInsn(Opcodes.ALOAD, i);
+            }
+            mv.visitMethodInsn(INVOKESPECIAL, dename, "<init>", init_sig);
+            
+            mv.visitInsn(Opcodes.ARETURN);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            mv.visitEnd();
+        }
+        
+        // is instance method -- takes an Object
+        {
+            String sig = "(Ljava/lang/Object;)Z";
+            MethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "isA", sig, null, null);
+            
+            Label fail = new Label();
+            
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitTypeInsn(Opcodes.INSTANCEOF, any_tuple_n);
+            mv.visitJumpInsn(Opcodes.IFEQ, fail);
+            
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitTypeInsn(Opcodes.CHECKCAST, any_tuple_n);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, dename,  "isA", "(L"+any_tuple_n+";)Z");
+            mv.visitInsn(Opcodes.IRETURN);
+            
+            mv.visitLabel(fail);
+            mv.visitIntInsn(BIPUSH, 0);
+            mv.visitInsn(Opcodes.IRETURN);
+            
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            mv.visitEnd();
+        }
+        
+        // is instance method -- takes an AnyTuple[\N\]
+        {
+            String sig = "(L" + any_tuple_n + ";)Z";
+            MethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "isA", sig, null, null);
+            
+            Label fail = new Label();
+            
+            for (int i = 0; i < n; i++) {
+                mv.visitVarInsn(Opcodes.ALOAD, 0);
+                mv.visitMethodInsn(INVOKEVIRTUAL, any_tuple_n, "o" + (Naming.TUPLE_ORIGIN + i), UNTYPED_GETTER_SIG);
+                
+                String cast_to = parameters.get(i);
+
+                generalizedInstanceOf(mv, cast_to);
+                
+                mv.visitJumpInsn(Opcodes.IFEQ, fail);
+
+            }
+            
+            mv.visitIntInsn(BIPUSH, 1);
+            mv.visitInsn(Opcodes.IRETURN);
+            
+            mv.visitLabel(fail);
+            mv.visitIntInsn(BIPUSH, 0);
+            mv.visitInsn(Opcodes.IRETURN);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            mv.visitEnd();
+        }
+        
+        // cast method
+        {
+            String sig = "(L" + any_tuple_n + ";)L"+tuple_params+";";
+            String make_sig = toJvmSig(parameters, tuple_params);
+            
+            MethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "castTo", sig, null, null);
+            
+            // Get the parameters to make, and cast them.
+            for (int i = 0; i < n; i++) {
+                mv.visitVarInsn(Opcodes.ALOAD, 0);
+                mv.visitMethodInsn(INVOKEVIRTUAL, any_tuple_n, "o" + (Naming.TUPLE_ORIGIN + i), UNTYPED_GETTER_SIG);
+                String cast_to = parameters.get(i);
+                generalizedCastTo(mv, cast_to);
+            }
+            
+            mv.visitMethodInsn(INVOKESTATIC, dename, "make", make_sig);
+            
+            mv.visitInsn(Opcodes.ARETURN);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            mv.visitEnd();
+        }
+        
+        // typed getters
+        // untyped getters
+        for (int i = 0; i < n; i++) {
+            String untyped = "o" + (Naming.TUPLE_ORIGIN + i);
+            String typed = "e" + (Naming.TUPLE_ORIGIN + i);
+            String field = "f" + (Naming.TUPLE_ORIGIN + i);
+            String param_type = parameters.get(i);
+            String param_desc = "L" + param_type + ";";
+            {
+                MethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC , untyped, UNTYPED_GETTER_SIG, null, null);
+                mv.visitVarInsn(Opcodes.ALOAD, 0);
+                mv.visitFieldInsn(GETFIELD, dename, field, param_desc);
+                mv.visitInsn(Opcodes.ARETURN);
+                mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+                mv.visitEnd();
+            }
+            {
+                MethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC , typed, "()" + param_desc, null, null);
+                mv.visitVarInsn(Opcodes.ALOAD, 0);
+                mv.visitFieldInsn(GETFIELD, dename, field, param_desc);
+                mv.visitInsn(Opcodes.ARETURN);
+                mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+                mv.visitEnd();
+            }
+        }
+
+        
+        return null;
+}
+
+    /**
+     * @param mv
+     * @param cast_to
+     */
+    private static void generalizedInstanceOf(MethodVisitor mv, String cast_to) {
+        if (cast_to.startsWith("Tuple" + Naming.LEFT_OXFORD)) {
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, "Concrete"+cast_to, "isA", "(Ljava/lang/Object;)Z");
+        } else {
+            mv.visitTypeInsn(Opcodes.INSTANCEOF, cast_to);
+        }
+    }
+
+    /**
+     * @param mv
+     * @param cast_to
+     */
+    private static void generalizedCastTo(MethodVisitor mv, String cast_to) {
+        if (cast_to.startsWith("Tuple" + Naming.LEFT_OXFORD)) {
+            List<String> cast_to_parameters = extractStringParameters(cast_to);
+            String any_tuple_n = "AnyTuple" + Naming.LEFT_OXFORD + cast_to_parameters.size() + Naming.RIGHT_OXFORD;
+            String sig = "(L" + any_tuple_n + ";)L" + cast_to + ";";
+            mv.visitTypeInsn(Opcodes.CHECKCAST, any_tuple_n);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, "Concrete"+cast_to, "cast", sig);
+        } else {
+            mv.visitTypeInsn(Opcodes.CHECKCAST, cast_to);
+        }
     }
 
     /**
@@ -767,30 +1194,24 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @return
      */
     private static String arrowParamsToJVMsig(ArrayList<String> parameters) {
-        String sig = "(";
-
         int l = parameters.size();
-
-        StringBuilder buf = new StringBuilder();
-        buf.append(sig);
-        for (int i = 0; i < l-1; i++) {
-            String s = parameters.get(i);
-            if (! s.equals(Naming.INTERNAL_SNOWMAN))
-                buf.append(Naming.javaDescForTaggedFortressType(parameters.get(i)));
-        }
-        sig = buf.toString();
-        sig += ")";
-        // nothing special here, yet, but AbstractArrow will be different.
-        String rt = parameters.get(l-1);
-        sig += Naming.javaDescForTaggedFortressType(rt);
-        return sig;
+        return toJvmSig(parameters.subList(0, l-1),
+                Naming.javaDescForTaggedFortressType(parameters.get(l-1)));
     }
 
     /**
      * @param parameters
      * @return
      */
-    private static String tupleParamsToJvmInitSig(ArrayList<String> parameters) {
+    private static String tupleParamsToJvmInitSig(List<String> parameters) {
+        return toJvmSig(parameters, "V");
+    }
+
+    /**
+     * @param parameters
+     * @return
+     */
+    private static String toJvmSig(List<String> parameters, String rt) {
         String sig = "(";
 
         int l = parameters.size();
@@ -805,11 +1226,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         sig = buf.toString();
         sig += ")";
         // nothing special here, yet, but AbstractArrow will be different.
-        String rt = parameters.get(l-1);
-        sig += Naming.javaDescForTaggedFortressType(rt);
+        sig += rt;
         return sig;
     }
 
+
+    
     static boolean isExpanded(String className) {
         int left = className.indexOf(Naming.LEFT_OXFORD);
         int right = className.indexOf(Naming.RIGHT_OXFORD);
