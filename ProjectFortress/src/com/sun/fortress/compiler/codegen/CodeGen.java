@@ -378,7 +378,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                            NamingCzar.fortressExecutableRunType);
 
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignoredMaxsParameter,NamingCzar.ignoredMaxsParameter);
+        mv.visitMaxs(Naming.ignoredMaxsParameter,Naming.ignoredMaxsParameter);
         mv.visitEnd();
         // return
 
@@ -391,7 +391,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Discard the FVoid that results
         mv.visitInsn(Opcodes.POP);
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
+        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
         mv.visitEnd();
     }
 
@@ -427,7 +427,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             pno++;
         }
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
+        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
         mv.visitEnd();
     }
 
@@ -1218,7 +1218,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 null);
 
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
+        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
         mv.visitEnd();
 
         for ( Decl d : x.getDecls() ) {
@@ -2367,7 +2367,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     private void methodReturnAndFinish() {
         mv.visitInsn(Opcodes.ARETURN);
-        mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
+        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
         mv.visitEnd();
     }
 
@@ -2403,9 +2403,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param t
      */
     private void makeTupleOfSpecifiedType(Type t) {
-        String tcn = NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
+        String tcn =  NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
         String arg_sig = NamingCzar.jvmTypeDesc(t, thisApi(), true, false);
         String sig = NamingCzar.makeMethodDesc(arg_sig, "L" + tcn + ";");
+        tcn = "Concrete" + tcn;
         mv.visitMethodInsn(Opcodes.INVOKESTATIC,
                 tcn,
                 "make",
@@ -3046,7 +3047,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             mv.visitMethodInsn(Opcodes.INVOKESPECIAL, cnb.className, "<init>", init_sig);
             mv.visitInsn(Opcodes.ARETURN);
-            mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
             mv.visitEnd();
 
             if (sparams_part.length() > 0) {
@@ -3169,7 +3170,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         
         imv.visitInsn(Opcodes.RETURN);
-        imv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
+        imv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
         imv.visitEnd();
     }
 
@@ -3266,7 +3267,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             v.assignValue(mv);
         }
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
+        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
         mv.visitEnd();
     }
 
@@ -3282,7 +3283,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitFieldInsn(Opcodes.PUTFIELD, className, "result", result);
 
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
+        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
         mv.visitEnd();
     }
 
@@ -3658,7 +3659,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitFieldInsn(Opcodes.PUTSTATIC, classFile,
                           NamingCzar.SINGLETON_FIELD_NAME, tyDesc);
         mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
+        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
         mv.visitEnd();
         cw.dumpClass( classFile );
     }
@@ -4238,7 +4239,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 
                 String method_name = genericMethodName(f, selfIndex);
                 CodeGenMethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_ABSTRACT + ACC_PUBLIC, method_name, genericMethodClosureFinderSig, null, null);
-                mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
+                mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
                 mv.visitEnd();
             } else {
             
@@ -4260,7 +4261,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 CodeGenMethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC,
                                 mname, desc, null, null);
 
-                mv.visitMaxs(NamingCzar.ignoredMaxsParameter, NamingCzar.ignoredMaxsParameter);
+                mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
                 mv.visitEnd();
             }
         }

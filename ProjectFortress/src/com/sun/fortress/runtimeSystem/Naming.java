@@ -799,5 +799,10 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
         return component_pkg_class + GEAR +"$" +
         simple_name + static_parameters + ENVELOPE + "$" + HEAVY_X + generic_arrow_schema;
     }
+
+
+    //Asm requires you to call visitMaxs for every method
+    // but ignores the arguments.
+    public static final int ignoredMaxsParameter = 1;
     
 }

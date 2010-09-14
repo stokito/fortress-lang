@@ -142,10 +142,6 @@ public class NamingCzar {
     public static final String cache = ProjectProperties.BYTECODE_CACHE_DIR + "/";
     public static final String optimizedcache = ProjectProperties.OPTIMIZED_BYTECODE_CACHE_DIR + "/";
 
-    //Asm requires you to call visitMaxs for every method
-    // but ignores the arguments.
-    public static final int ignoredMaxsParameter = 1;
-
     // fortress types
     public static final String fortressPackage = "fortress";
     public static final String fortressAny = fortressPackage + "/" +
