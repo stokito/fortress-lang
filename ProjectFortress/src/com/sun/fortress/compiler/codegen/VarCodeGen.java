@@ -188,7 +188,7 @@ public abstract class VarCodeGen {
                 ArrayList<String> sargs = new ArrayList<String>();
                 InstantiationMap.canonicalizeStaticParameters(static_args,
                                                               static_args.indexOf(Naming.LEFT_OXFORD),
-                                                              static_args.indexOf(Naming.RIGHT_OXFORD),
+                                                              static_args.lastIndexOf(Naming.RIGHT_OXFORD),
                                                               sargs);
 
                 Map<String, String> xlation  = Useful.map(sparams, sargs);

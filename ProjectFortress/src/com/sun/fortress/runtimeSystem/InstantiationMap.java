@@ -19,6 +19,7 @@ package com.sun.fortress.runtimeSystem;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class InstantiationMap  {
@@ -366,6 +367,50 @@ public class InstantiationMap  {
     }
 
     /**
+     * @param s
+     * @return
+     */
+    public static int templateClosingRightOxford(String s) {
+        int heavy_x = s.indexOf(Naming.HEAVY_X);
+        int rightBracket = (heavy_x == -1 ? s : s.substring(0, heavy_x)).lastIndexOf(Naming.RIGHT_OXFORD);
+        return rightBracket;
+    }
+
+
+    /**
+     * @param s
+     * @param leftBracket
+     * @param rightBracket
+     * @return
+     */
+    public static List<String> extractStringParameters(String s,
+                                                             int leftBracket, int rightBracket, List<String> parameters) {
+        
+        int depth = 1;
+        int pbegin = leftBracket+1;
+        for (int i = leftBracket+1; i <= rightBracket; i++) {
+            char ch = s.charAt(i);
+    
+            if ((ch == ';' || ch == Naming.RIGHT_OXFORD_CHAR) && depth == 1) {
+                String parameter = s.substring(pbegin,i);
+                if (parameters != null)
+                    parameters.add(parameter);
+                pbegin = i+1;
+            } else {
+                if (ch == Naming.LEFT_OXFORD_CHAR) {
+                    depth++;
+                } else if (ch == Naming.RIGHT_OXFORD_CHAR) {
+                    depth--;
+                } else {
+    
+                }
+            }
+        }
+        return parameters;
+    }
+
+
+    /**
      * 
      * @param name
      * @param left_oxford
@@ -375,26 +420,15 @@ public class InstantiationMap  {
      */
     public static String canonicalizeStaticParameters(String name, int left_oxford,
             int right_oxford, ArrayList<String> sargs) throws Error {
+        
+        
+        
         String template_start = name.substring(0,left_oxford+1);
         String template_end = name.substring(right_oxford);
         // Note include trailing oxford to simplify loop termination.
-        String generics = name.substring(left_oxford+1, right_oxford);
-        //String template_middle = "";
-        int i = 1;
-        while (generics.length() > 0) {
-            int end = generics.indexOf(';');
-            if (end == -1)
-                end = generics.length();
-            String tok =
-                generics.substring(0, end);
-            if (sargs != null)
-                sargs.add(tok);
-    
-            if (end == generics.length())
-                break;
-            generics = generics.substring(end+1);
-            i++;
-        }
+        
+        extractStringParameters(name, left_oxford, right_oxford, sargs);
+        
         String s = template_start +
                    // template_middle +
                    template_end;
