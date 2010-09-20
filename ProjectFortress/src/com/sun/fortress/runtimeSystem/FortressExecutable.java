@@ -72,6 +72,7 @@ public abstract class FortressExecutable extends RecursiveAction {
                 System.err.println("numThreads = " + numThreads +
                                    ", spawnThreshold = " + spawnThreshold +
                                    " helpJoin = " + useHelpJoin);
+                System.err.println("activeThreads = " + group.getActiveThreadCount());
                 System.err.println(group);
             }
         }

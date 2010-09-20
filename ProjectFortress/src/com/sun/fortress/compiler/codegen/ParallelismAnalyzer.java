@@ -19,6 +19,7 @@ package com.sun.fortress.compiler.codegen;
 
 import java.util.HashSet;
 import java.util.List;
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.Debug;
@@ -34,7 +35,7 @@ public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
         // We are parallelizing the evaluation of 2 and 3 in 2 + 3.  This needs
         // some serious refinement.  Turning parallelism way down for now.
         //        return (worthParallelizing(e) || (e instanceof _RewriteFnApp));
-        return worthParallelizing(e);
+        return worthy.contains(e);
     }
 
     private void debug(ASTNode x) {
@@ -58,13 +59,26 @@ public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
         return count >= ARG_THRESHOLD;
     }
 
-    public boolean worthParallelizing(ASTNode n) { return worthy.contains(n); }
+    public boolean worthParallelizing(OpExpr x) {
+        if (tallyArgs(x.getArgs())) return true; else return false;
+    }
+
+    public boolean worthParallelizing(ASTNode n) { 
+        if (n instanceof OpExpr) {
+            OpExpr x = (OpExpr) n;
+            if (tallyArgs(x.getArgs())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public void printTable() {
         for (ASTNode node : worthy)
-            debug("Parallelizable table has entry " + node);
+            System.out.println("Parallelizable table has entry " + node);
     }
 
+    // Line 51 is the only OpExpr we want to parallelize
     public void forOpExprOnly(OpExpr x) {
         debug(x,"forOpExpr");
         if (tallyArgs(x.getArgs())) worthy.add(x);
@@ -77,7 +91,6 @@ public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
 
     public void for_RewriteFnAppOnly(_RewriteFnApp x) {
         debug(x,"for_RewriteFnApp");
-        Expr arg = x.getArgument();
-        if (worthParallelizing(arg)) worthy.add(x);
+        worthy.add(x);
     }
 }
