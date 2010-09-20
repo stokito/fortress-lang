@@ -26,4 +26,12 @@ public class simplePrintln {
     public static void nativePrintln(int i) {
         System.out.println(String.valueOf(i));
     }
+
+    public static void nativePrintlnWithThreadInfo(String s) {
+        System.out.println(Thread.currentThread() + " " + s);
+    }
+
+    public static void nativePrintlnWithThreadInfo(int i) {
+        System.out.println(Thread.currentThread() + " " + String.valueOf(i));
+    }
 }

@@ -403,7 +403,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Type pt = (Type)p.getIdType().unwrap();
             // Field must be public?  Or is accessor wrong from generic methods?
             // Converting ACC_PUBLIC to ACC_PRIVATE breaks Compiled17a
-            // with an IllegalAccessError (at about r4668)
+            // with an IllegalAccessError (at about r4668) 
             cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, pn,
                     NamingCzar.jvmTypeDesc(pt, thisApi(), true), null /* for non-generic */, null /* instance has no value */);
         }
@@ -2876,7 +2876,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // discard tuple from TOS
             mv.visitInsn(Opcodes.POP);
 
-        } else if (false && pa.worthParallelizing(rhs)) {
+        } else if (pa.worthParallelizing(rhs)) {
             forExprsParallel(rhss, vcgs);
         } else {
             forExprsSerial(rhss,vcgs);
@@ -3276,6 +3276,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                   "compute", "()V", null, null);
         mv.visitCode();
 
+        // Debugging CHF
+        //        mv.visitLdcInsn("Look Here: " + className + ":" + x);
+        //
+        //        mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.internalFortressString, NamingCzar.make,
+        //                     NamingCzar.makeMethodDesc(NamingCzar.descString, NamingCzar.descFortressString));
+        //        mv.visitMethodInsn(Opcodes.INVOKESTATIC, "native/com/sun/fortress/nativeHelpers/simplePrintln", "nativePrintln",
+        //                   NamingCzar.makeMethodDesc(NamingCzar.descFortressString, NamingCzar.descFortressVoid));
+        //
+
         mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
 
         x.accept(this);
@@ -3317,7 +3326,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         cg.lexEnv = cg.createTaskLexEnvVariables(className, freeVars);
         // WARNING: result may need mangling / NamingCzar-ing.
-        cg.cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, "result", result, null, null);
+        cg.cw.visitField(Opcodes.ACC_PUBLIC, "result", result, null, null);
 
         cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
                     className, null, NamingCzar.fortressBaseTask, null);
