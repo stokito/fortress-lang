@@ -727,31 +727,141 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         FieldVisitor fv;
         
         AnnotationVisitor av0;
+        /*
+         * Special case extensions to plumb tuples
+         * correctly in the face of generics instantiated
+         * with tuple types.
+         * 
+         * Except, recall that Arrow parameters are domain...;range
+         * 
+         * if > 1 param then
+         *   unwrap = params
+         *   wrap = tuple params
+         * else 1 param
+         *   if tuple
+         *     wrap = param
+         *     unwrap = untuple params
+         *   else
+         *     unwrap = param
+         *     wrap = null
+         *   
+         */
+       
+        List<String> unwrapped_parameters = null;
+        List<String> tupled_parameters = null;
+        String tupleType = null;
+        int l = parameters.size();
+        String[] interfaces;
+        
+        if (l == 2) {
+            String parameter = parameters.get(0);
+            if (parameter.startsWith("Tuple" + Naming.LEFT_OXFORD)) {
+                /* Unwrap tuple, also. */
+                unwrapped_parameters = extractStringParameters(parameter);
+                unwrapped_parameters.add(parameters.get(1));
+                tupled_parameters = parameters;
+                interfaces = new String[] {
+                        stringListToArrow(unwrapped_parameters),
+                        stringListToArrow(tupled_parameters)
+                };
+                tupleType = parameter;
+
+            } else {
+                unwrapped_parameters = parameters;
+                interfaces = new String[] {
+                        stringListToArrow(unwrapped_parameters)
+                };
+            }
+            
+        } else {
+            unwrapped_parameters = parameters;
+            tupleType = stringListToTuple(parameters.subList(0, l-1));
+            tupled_parameters = Useful.<String>list(tupleType,
+                        parameters.get(l-1)  );
+            interfaces = new String[] {
+                    stringListToArrow(unwrapped_parameters),
+                    stringListToArrow(tupled_parameters),
+            };
+            
+        }
 
         // String name = Naming.mangleIdentifier(dename);
         String name = (dename);
-        String if_name =
-//            // Naming.mangleIdentifier("Arrow" + dename.substring("AbstractArrow".length()));
-//            Naming.mangleIdentifier(dename.substring("Abstract".length()));
-        (dename.substring("Abstract".length()));
 
         cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER + ACC_ABSTRACT, name, null,
-                 "java/lang/Object", new String[] { if_name });
+                "java/lang/Object", interfaces);
 
+        String _super = "java/lang/Object";
+        simpleInitMethod(cw, _super);
 
-        {
-            String _super = "java/lang/Object";
-            simpleInitMethod(cw, _super);
-        }
-
-        String sig = arrowParamsToJVMsig(parameters);
-
-        {
+        if (tupled_parameters == null) {
+            /* Single abstract method */
+            String sig = arrowParamsToJVMsig(unwrapped_parameters);
             if (LOG_LOADS) System.err.println(name + ".apply" + sig+" abstract for abstract");
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
-                                sig,
-                                null, null);
+                    sig,
+                    null, null);
             mv.visitEnd();
+
+        } else {
+            /*
+             * Establish two circular forwarding methods;
+             * the eventual implementer will break the cycle.
+             * 
+             */
+            String unwrapped_apply_sig = arrowParamsToJVMsig(unwrapped_parameters);
+            String tupled_apply_sig = arrowParamsToJVMsig(tupled_parameters);
+
+            {
+                /* Given tupled args, extract, and invoke apply. */
+                
+                if (LOG_LOADS) System.err.println(name + ".apply" + tupled_apply_sig+" abstract for abstract");
+                MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, Naming.APPLY_METHOD,
+                        tupled_apply_sig,
+                        null, null);
+                
+                mv.visitVarInsn(Opcodes.ALOAD, 0); // closure
+                
+                for (int i = 0; i < l-1; i++) {
+                    String param = unwrapped_parameters.get(i);
+                    mv.visitVarInsn(Opcodes.ALOAD, 1); // tuple
+                    mv.visitMethodInsn(INVOKEINTERFACE, tupleType, "e" + (Naming.TUPLE_ORIGIN + i), "()L" + param + ";");
+                }
+                
+                mv.visitMethodInsn(INVOKEINTERFACE, tupleType, "apply", unwrapped_apply_sig);
+                mv.visitInsn(Opcodes.ARETURN);
+                mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+
+                mv.visitEnd();
+            }
+
+            {   /* Given untupled args, load, make a tuple, invoke apply. */
+                if (LOG_LOADS) System.err.println(name + ".apply" + unwrapped_apply_sig+" abstract for abstract");
+                MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, Naming.APPLY_METHOD,
+                        unwrapped_apply_sig,
+                        null, null);
+                
+                mv.visitVarInsn(Opcodes.ALOAD, 0); // closure
+                
+                for (int i = 0; i < l-1; i++) {
+                    mv.visitVarInsn(Opcodes.ALOAD, i+1); // element
+                }
+
+                List<String> tuple_elements = unwrapped_parameters.subList(0,l-1);
+                
+                String make_sig = toJvmSig(tuple_elements,
+                                  Naming.javaDescForTaggedFortressType(tupleType));
+                mv.visitMethodInsn(INVOKESTATIC, 
+                        stringListToGeneric("ConcreteTuple", tuple_elements), "make", make_sig);
+
+                mv.visitMethodInsn(INVOKEINTERFACE, tupleType, "apply", tupled_apply_sig);
+                mv.visitInsn(Opcodes.ARETURN);
+                mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+           
+                mv.visitEnd();
+            }
+            
+
         }
         cw.visitEnd();
 
@@ -956,7 +1066,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         final int n = parameters.size();
         final String any_tuple_n = "AnyTuple" + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
         final String any_concrete_tuple_n = "AnyConcreteTuple" + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
-        final String tuple_params = "Tuple" + Useful.listInDelimiters(Naming.LEFT_OXFORD, parameters, Naming.RIGHT_OXFORD, ";");
+        final String tuple_params = stringListToTuple(parameters);
         
         String[] superInterfaces = { tuple_params };
         
@@ -1021,14 +1131,14 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "make", make_sig, null, null);
             
             mv.visitCode();
-            eep(mv, "before new");
+            // eep(mv, "before new");
             mv.visitTypeInsn(NEW, dename);
             mv.visitInsn(DUP);
             // push params for init
             for (int i = 0; i < n; i++) {
                 mv.visitVarInsn(Opcodes.ALOAD, i);
             }
-            eep(mv, "before init");
+            // eep(mv, "before init");
             mv.visitMethodInsn(INVOKESPECIAL, dename, "<init>", init_sig);
             
             mv.visitInsn(Opcodes.ARETURN);
@@ -1095,7 +1205,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String make_sig = toJvmSig(parameters, Naming.javaDescForTaggedFortressType(tuple_params));
             
             MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "castTo", sig, null, null);
-            
+                        
             // Get the parameters to make, and cast them.
             for (int i = 0; i < n; i++) {
                 mv.visitVarInsn(Opcodes.ALOAD, 0);
@@ -1142,6 +1252,22 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         return cw.toByteArray();
 }
+
+    /**
+     * @param parameters
+     * @return
+     */
+    private static String stringListToTuple(List<String> parameters) {
+        return stringListToGeneric("Tuple", parameters);
+    }
+
+    private static String stringListToArrow(List<String> parameters) {
+        return stringListToGeneric("Arrow", parameters);
+    }
+
+    private static String stringListToGeneric(String what, List<String> parameters) {
+        return what + Useful.listInDelimiters(Naming.LEFT_OXFORD, parameters, Naming.RIGHT_OXFORD, ";");
+    }
 
 
     static Pair<Integer, Integer> make(Integer a, Integer b) {
