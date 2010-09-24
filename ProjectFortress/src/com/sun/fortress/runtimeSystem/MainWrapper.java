@@ -64,7 +64,11 @@ public class MainWrapper {
             ClassLoader icl = InstantiatingClassloader.ONLY;
             Class cl = Class.forName(whatToRun, true, icl);
             java.lang.reflect.Method m = cl.getDeclaredMethod("main", String[].class);
-            m.invoke(null, (Object) subargs);
+            try {
+                m.invoke(null, (Object) subargs);
+            } finally {
+                InstantiatingClassloader.exitProgram();
+            }
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
             System.err.println("Could not load " + whatToRun);

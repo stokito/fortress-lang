@@ -16,8 +16,8 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
-import com.sun.fortress.compiler.ByteCodeWriter;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.runtimeSystem.ByteCodeWriter;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -28,9 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.objectweb.asm.*;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.util.*;
 
 

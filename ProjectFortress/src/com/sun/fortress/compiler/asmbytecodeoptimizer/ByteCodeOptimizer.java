@@ -16,7 +16,7 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
-import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.Useful;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -27,9 +27,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.objectweb.asm.*;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.util.*;
 
 class ByteCodeOptimizer {
@@ -101,7 +98,7 @@ class ByteCodeOptimizer {
         try {
             String outputFile = arg.replace("bytecode_cache", "optimizedbytecode_cache");
             String directoryName = outputFile.substring(0, outputFile.lastIndexOf("/"));
-            ProjectProperties.ensureDirectoryExists(directoryName);
+            Useful.ensureDirectoryExists(directoryName);
             System.out.println("Writing out jar file" + outputFile);
 
             JarOutputStream jos = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)));

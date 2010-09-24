@@ -2869,7 +2869,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  */
                 mv.visitInsn(Opcodes.SWAP);
                 // extract i'th member from tuple.
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, rhs_type_desc, "e"+(Naming.TUPLE_ORIGIN+i), "()L"+rhs_element_type_descs[i]+";");
+                mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, rhs_type_desc, "e"+(Naming.TUPLE_ORIGIN+i), "()L"+rhs_element_type_descs[i]+";");
                 
                 vcg.assignValue(mv);
             }

@@ -16,6 +16,8 @@
 ******************************************************************************/
 package com.sun.fortress.runtimeSystem;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -25,6 +27,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.jar.JarOutputStream;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
@@ -59,7 +62,27 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     // TODO make this depends on properties/env w/o dragging in all of the world.
     private static final boolean LOG_LOADS = false;
     private static final boolean LOG_FUNCTION_EXPANSION = false;
-
+    public final static String SAVE_EXPANDED_DIR = ProjectProperties.getDirectory("fortress.bytecodes.expanded.directory", null);
+    public static JarOutputStream SAVE_EXPANDED_JAR = null;
+    static {
+        try {
+            SAVE_EXPANDED_JAR = new JarOutputStream(new BufferedOutputStream( new FileOutputStream(SAVE_EXPANDED_DIR + "/" + "expanded.jar")));
+        } catch (IOException ex) {
+            
+        }
+    }
+    
+    public static void exitProgram() {
+        if (SAVE_EXPANDED_JAR != null) {
+            try {
+                SAVE_EXPANDED_JAR.close();
+            } catch (IOException e) {
+                System.err.println("Failed to close jar file for expanded bytecodes");
+            }
+        }
+    }
+   
+    
     public final static InstantiatingClassloader ONLY =
         new InstantiatingClassloader(Thread.currentThread().getContextClassLoader());
 
@@ -237,6 +260,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 } else {
                     classData = getClass(name);
                 }
+                
+                if ((isGeneric || isGenericFunction || isClosure) && SAVE_EXPANDED_JAR != null) {
+                    ByteCodeWriter.writeJarredClass(SAVE_EXPANDED_JAR, name , classData);
+                }
+                
                 clazz = defineClass(name, classData, 0, classData.length);
                 if (LOG_LOADS)
                     System.err.println("Loaded " + clazz.getName() + " (" + name+ ")");
@@ -708,9 +736,24 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         cw.visit(Opcodes.V1_6, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE,
                  name, null, "java/lang/Object", null);
 
-        String sig = arrowParamsToJVMsig(parameters);
 
-        {
+        /* If more than one domain parameter, then also include the tupled apply method. */
+        int l = parameters.size();
+        if (l > 2) {
+            String tupleType = stringListToTuple(parameters.subList(0, l-1));
+            List<String> tupled_parameters = Useful.<String>list(tupleType,
+                        parameters.get(l-1)  );
+           
+            String sig = arrowParamsToJVMsig(tupled_parameters);
+            if (LOG_LOADS) System.err.println(name+".apply"+sig+" abstract");
+            MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
+                                sig,
+                                null, null);
+            mv.visitEnd();
+        }
+        
+        {      
+            String sig = arrowParamsToJVMsig(parameters);
             if (LOG_LOADS) System.err.println(name+".apply"+sig+" abstract");
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
                                 sig,
@@ -828,7 +871,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     mv.visitMethodInsn(INVOKEINTERFACE, tupleType, "e" + (Naming.TUPLE_ORIGIN + i), "()L" + param + ";");
                 }
                 
-                mv.visitMethodInsn(INVOKEINTERFACE, tupleType, "apply", unwrapped_apply_sig);
+                mv.visitMethodInsn(INVOKEVIRTUAL, dename, "apply", unwrapped_apply_sig);
                 mv.visitInsn(Opcodes.ARETURN);
                 mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
 
@@ -854,7 +897,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 mv.visitMethodInsn(INVOKESTATIC, 
                         stringListToGeneric("ConcreteTuple", tuple_elements), "make", make_sig);
 
-                mv.visitMethodInsn(INVOKEINTERFACE, tupleType, "apply", tupled_apply_sig);
+                mv.visitMethodInsn(INVOKEVIRTUAL, dename, "apply", tupled_apply_sig);
                 mv.visitInsn(Opcodes.ARETURN);
                 mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
            
@@ -1376,8 +1419,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return pslpss;
 
     }
-    
 
+ 
 }
 
 /** Figures out whether a class can be loaded by a custom class loader or not. */

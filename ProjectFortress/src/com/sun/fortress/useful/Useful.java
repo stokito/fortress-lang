@@ -1168,4 +1168,22 @@ public class Useful {
         }
     }
 
+    public static String ensureDirectoryExists(String s) throws Error {
+        File f = new File(s);
+        if (f.exists()) {
+            if (f.isDirectory()) {
+                // ok
+            } else {
+                throw new Error("Necessary 'directory' " + s + " is not a directory");
+            }
+        } else {
+            if (f.mkdirs()) {
+                // ok
+            } else {
+                throw new Error("Failed to create directory " + s);
+            }
+        }
+        return s;
+    }
+
 }

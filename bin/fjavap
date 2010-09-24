@@ -24,6 +24,13 @@ fi
 
 CP="`"${FORTRESS_HOME}"/bin/run_classpath`"
 
+if [ -z "$MORE_PATH" ] ; then
+  true
+else
+  CP="${CP}:${MORE_PATH}"
+fi
+
+
 if [ -z "$JAVA_HOME" ] ; then
   JAVACMD=java
 else
