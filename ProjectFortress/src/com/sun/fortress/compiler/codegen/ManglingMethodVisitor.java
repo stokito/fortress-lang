@@ -110,6 +110,15 @@ public class ManglingMethodVisitor extends MethodAdapter {
 
     @Override
     public void visitEnd() {
+        
+        // Special case here for abstract methods
+        if (mv instanceof TraceMethodVisitor && 0 != (access & Opcodes.ACC_ABSTRACT) ) {
+            System.out.println(name + desc + " " + Integer.toHexString(access));
+            List t = ((TraceMethodVisitor)mv).getText();
+            for (Object s : t)
+                System.out.print(s);
+        }
+        
         super.visitEnd();
     }
 

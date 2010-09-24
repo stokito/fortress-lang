@@ -17,13 +17,13 @@
 
 package com.sun.fortress.interpreter.env;
 
-import com.sun.fortress.compiler.ByteCodeWriter;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.environments.SimpleClassLoader;
 import static com.sun.fortress.exceptions.ProgramError.error;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.runtimeSystem.ByteCodeWriter;
 import com.sun.fortress.useful.NotFound;
 import com.sun.fortress.useful.Useful;
 import org.objectweb.asm.*;

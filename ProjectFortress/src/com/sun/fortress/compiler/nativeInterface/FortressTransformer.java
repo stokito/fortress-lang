@@ -22,7 +22,6 @@ import java.util.Set;
 import java.io.FileOutputStream;
 import org.objectweb.asm.*;
 
-import com.sun.fortress.compiler.ByteCodeWriter;
 import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.OverloadSet;
@@ -31,6 +30,7 @@ import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.runtimeSystem.ByteCodeWriter;
 import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.MultiMap;
 

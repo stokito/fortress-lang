@@ -213,22 +213,65 @@ public class InstantiationMap  {
      * previous string is a variable, if it has not been disqualified.
      */
     int maybeVarInOxfords(String input, int begin, StringBuilder accum) {
-         int at = maybeBareVar(input, begin, accum, true);
-         char ch = input.charAt(at++);
-         
-         if (ch == ';' || ch == '=') {
-             accum.append(ch);
-             /* This recursion will never be very deep, so it does not
-              * need a tail-call, though golly, that would be nice.
-              */
-             return maybeVarInOxfords(input, at, accum);
-         } else if (ch == Naming.RIGHT_OXFORD_CHAR) {
-             accum.append(ch);
-             return at;
-         } else {
-             throw new Error();
-         }
+//         int at = maybeBareVar(input, begin, accum, true);
+//         char ch = input.charAt(at++);
+//         
+//         if (ch == ';' || ch == '=') {
+//             accum.append(ch);
+//             /* This recursion will never be very deep, so it does not
+//              * need a tail-call, though golly, that would be nice.
+//              */
+//             return maybeVarInOxfords(input, at, accum);
+//         } else if (ch == Naming.RIGHT_OXFORD_CHAR) {
+//             accum.append(ch);
+//             return at;
+//         } else {
+//             throw new Error();
+//         }
+        return mVIO(input, "", begin, accum);
      }
+    
+    int mVIO(String input, String tag, int begin, StringBuilder accum) {
+        ArrayList<String> params = new ArrayList<String>();
+        while (true) {
+            StringBuilder one_accum = new StringBuilder();
+            int at = maybeBareVar(input, begin, one_accum, true);
+            char ch = input.charAt(at++);
+        
+            if (ch == ';') {
+                params.add(one_accum.toString());
+                                
+                begin = at; 
+                
+            } else if (ch == Naming.RIGHT_OXFORD_CHAR) {
+                params.add(one_accum.toString());
+
+                /* 
+                 * Next, process params onto accum, but first check
+                 * for the case where tag is Arrow, the number of
+                 * params is 2, and the first one is Tuple[ something ].
+                 * In that case, normalize to remove the Tuple from the
+                 * Arrow.
+                 */
+                if (tag.equals("Arrow") && params.size() == 2) {
+                     String domain = params.get(0);
+                     if (domain.startsWith("Tuple" + Naming.LEFT_OXFORD)) {
+                         params.set(0, domain.substring(6, domain.length()-1));
+                     }
+                }
+                
+                int l = params.size(); 
+                for (int i = 0; i < l; i++) {
+                    accum.append(params.get(i));
+                    accum.append( i < (l-1) ? ';' : Naming.RIGHT_OXFORD_CHAR);
+                }
+                
+                return at;
+            } else {
+                throw new Error();
+            }
+        }
+    }
     
     /**
      * Come here after seeing L where a type signature is expected.
@@ -297,7 +340,7 @@ public class InstantiationMap  {
             } 
             
             if (ch == Naming.LEFT_OXFORD_CHAR) {
-                at = (disabled ? EMPTY: this).maybeVarInOxfords(input, at, accum);
+                at = (disabled ? EMPTY: this).mVIO(input, input.substring(begin, at-1), at, accum);
             }
             
             if (at >= input.length()) {

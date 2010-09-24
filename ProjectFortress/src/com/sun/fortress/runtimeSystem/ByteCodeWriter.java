@@ -15,9 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ******************************************************************************/
 
-package com.sun.fortress.compiler;
+package com.sun.fortress.runtimeSystem;
 
-import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.Useful;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.jar.JarEntry;
@@ -55,7 +56,7 @@ public class ByteCodeWriter {
     public static void writeClass(byte[] bytes, String fileName) {
         String directoryName = fileName.substring(0, fileName.lastIndexOf(slash));
         try {
-            ProjectProperties.ensureDirectoryExists(directoryName);
+            Useful.ensureDirectoryExists(directoryName);
             FileOutputStream out = new FileOutputStream(fileName);
             out.write(bytes);
             out.flush();  // Is this implicit in close?

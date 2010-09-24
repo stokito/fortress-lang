@@ -208,14 +208,25 @@ public class ProjectProperties {
      * @return
      */
     static final public String get(String s, String ifMissing) {
+        return get(s, ifMissing, false);
+    }
+    static final public String get(String s, String ifMissing, boolean null_ok) {
         String result = allProps.get(s);
         if (result == null) result = ifMissing;
         if (result != null) result = Useful.substituteVarsCompletely(result, allProps, 1000);
-        if (result == null) {
+        if (result == null && !null_ok) {
             throw new Error(
                     "Must supply a definition (as property, environment variable, or repository configuration property) for " +
                     s);
         }
+        return result;
+    }
+    
+    static final public String getDirectory(String s, String ifMissing) {
+        String result = get(s, ifMissing, true);
+        if (result == null)
+            return result;
+        Useful.ensureDirectoryExists(result);
         return result;
     }
 
@@ -295,35 +306,17 @@ public class ProjectProperties {
 
 
     static {
-        ensureDirectoryExists(PRESYNTAX_CACHE_DIR);
-        ensureDirectoryExists(INTERPRETER_CACHE_DIR);
-        ensureDirectoryExists(INTERPRETER_PARSED_CACHE_DIR);
-        ensureDirectoryExists(ANALYZED_CACHE_DIR);
-        ensureDirectoryExists(ANALYZED_CACHE_DEPENDS_DIR);
-        ensureDirectoryExists(SYNTAX_CACHE_DIR);
-        ensureDirectoryExists(ENVIRONMENT_CACHE_DIR);
-        ensureDirectoryExists(BYTECODE_CACHE_DIR);
-        ensureDirectoryExists(NATIVE_WRAPPER_CACHE_DIR);
+        Useful.ensureDirectoryExists(PRESYNTAX_CACHE_DIR);
+        Useful.ensureDirectoryExists(INTERPRETER_CACHE_DIR);
+        Useful.ensureDirectoryExists(INTERPRETER_PARSED_CACHE_DIR);
+        Useful.ensureDirectoryExists(ANALYZED_CACHE_DIR);
+        Useful.ensureDirectoryExists(ANALYZED_CACHE_DEPENDS_DIR);
+        Useful.ensureDirectoryExists(SYNTAX_CACHE_DIR);
+        Useful.ensureDirectoryExists(ENVIRONMENT_CACHE_DIR);
+        Useful.ensureDirectoryExists(BYTECODE_CACHE_DIR);
+        Useful.ensureDirectoryExists(NATIVE_WRAPPER_CACHE_DIR);
     }
 
-
-    public static String ensureDirectoryExists(String s) throws Error {
-        File f = new File(s);
-        if (f.exists()) {
-            if (f.isDirectory()) {
-                // ok
-            } else {
-                throw new Error("Necessary 'directory' " + s + " is not a directory");
-            }
-        } else {
-            if (f.mkdirs()) {
-                // ok
-            } else {
-                throw new Error("Failed to create directory " + s);
-            }
-        }
-        return s;
-    }
 
     public final static String COMP_SOURCE_SUFFIX = "fss";
 

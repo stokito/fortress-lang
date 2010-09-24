@@ -28,8 +28,8 @@ import java.util.jar.JarOutputStream;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
-import com.sun.fortress.compiler.ByteCodeWriter;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.runtimeSystem.ByteCodeWriter;
 import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Pair;
