@@ -17,16 +17,17 @@
 
 export Executable
 
-f[\ I, O \] (x:I, g:I->O):O = g(x)
+f[\ I, O \] (x:I, g:(I,I)->O):O = g(x, x)
 
 three:ZZ32 = 3
 four:ZZ32 = 4
 
 t34:(ZZ32,ZZ32) = (three, four)
 
-pluString(x:(ZZ32,ZZ32)):String = do
+pluString(w:(ZZ32,ZZ32),x:(ZZ32,ZZ32)):String = do
+  (u,v) = w
   (y,z) = x
-   y.asString || z.asString
+  ((u+y) DIV 2).asString || ((v+z) DIV 2).asString
 end
 
 
