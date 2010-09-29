@@ -1255,7 +1255,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             // Get the parameters to make, and cast them.
             for (int i = 0; i < n; i++) {
                 mv.visitVarInsn(Opcodes.ALOAD, 0);
-                mv.visitMethodInsn(INVOKEVIRTUAL, any_tuple_n, TUPLE_OBJECT_ELT_PFX + (Naming.TUPLE_ORIGIN + i), UNTYPED_GETTER_SIG);
+                mv.visitMethodInsn(INVOKEINTERFACE, any_tuple_n, TUPLE_OBJECT_ELT_PFX + (Naming.TUPLE_ORIGIN + i), UNTYPED_GETTER_SIG);
                 String cast_to = parameters.get(i);
                 generalizedCastTo(mv, cast_to);
             }
@@ -1324,7 +1324,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param mv
      * @param cast_to
      */
-    private static void generalizedInstanceOf(MethodVisitor mv, String cast_to) {
+    public static void generalizedInstanceOf(MethodVisitor mv, String cast_to) {
         if (cast_to.startsWith("Tuple" + Naming.LEFT_OXFORD)) {
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, "Concrete"+cast_to, "isA", "(Ljava/lang/Object;)Z");
         } else {
@@ -1336,13 +1336,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param mv
      * @param cast_to
      */
-    private static void generalizedCastTo(MethodVisitor mv, String cast_to) {
+    public static void generalizedCastTo(MethodVisitor mv, String cast_to) {
         if (cast_to.startsWith("Tuple" + Naming.LEFT_OXFORD)) {
             List<String> cast_to_parameters = extractStringParameters(cast_to);
             String any_tuple_n = "AnyTuple" + Naming.LEFT_OXFORD + cast_to_parameters.size() + Naming.RIGHT_OXFORD;
             String sig = "(L" + any_tuple_n + ";)L" + cast_to + ";";
             mv.visitTypeInsn(Opcodes.CHECKCAST, any_tuple_n);
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, "Concrete"+cast_to, "cast", sig);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, "Concrete"+cast_to, "castTo", sig);
         } else {
             mv.visitTypeInsn(Opcodes.CHECKCAST, cast_to);
         }

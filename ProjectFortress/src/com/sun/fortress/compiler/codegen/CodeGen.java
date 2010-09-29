@@ -3865,7 +3865,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         string_sargs, anySymbolic);
 
                 // evaluate args
-                evalArg(x, arg);
+                evalArg(x, domain_type, arg);
                 
                 String sig = NamingCzar.jvmSignatureFor(prepended_domain, range_type, thisApi());
 
@@ -3876,7 +3876,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 // put object on stack
                 obj.accept(this);
                 // put args on stack
-                evalArg(x, arg);
+                evalArg(x, domain_type, arg);
                 methodCall(method, (NamedType)receiverType, domain_type, range_type);
             }
         } finally {
@@ -3970,17 +3970,40 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     /**
      * @param arg
      */
-    private void evalArg(ASTNode x, Expr arg) {
+    private void evalArg(ASTNode x, Type domain_type, Expr arg) {
         if (arg instanceof VoidLiteralExpr) {
             paramCount = 0;
         } else if (arg instanceof TupleExpr) {
             // Why isn't this parallel???
             TupleExpr targ = (TupleExpr) arg;
-            List<Expr> exprs = targ.getExprs();
-            for (Expr expr : exprs) {
-                expr.accept(this);
+            Type arg_t = domain_type; // arg.getInfo().getExprType().unwrap();
+            if (arg_t instanceof TupleType) {
+                TupleType arg_tt = (TupleType) arg_t;
+                List<Type> arg_tts = arg_tt.getElements();
+                List<Expr> exprs = targ.getExprs();
+                int l = arg_tts.size();
+                
+                for (int i = 0; i < l; i++) {
+                    Expr expr = exprs.get(i);
+                    Type t = arg_tts.get(i);
+                    expr.accept(this);
+
+                    if (t instanceof TupleType) {
+                        // insert cast
+                        String cast_to = NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
+                        InstantiatingClassloader.generalizedCastTo(mv, cast_to);
+                    } else if (t instanceof VarType) {
+                        // insert conditional cast (what form does this take?)
+                        // note that generalizedCastTo will make this a bare instanceof.
+                        // watch out for possibility of double-rewrite,
+                        // in case of generic meth of generic trait/object.
+                    }
+                }
+                
+                paramCount = l;
+            } else {
+                // Passed to Any, probably.
             }
-            paramCount = exprs.size();
         } else {
             paramCount = 1; // for now; need to dissect tuple and do more.
             Type arg_t = arg.getInfo().getExprType().unwrap();
@@ -4043,7 +4066,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 fn.accept(this); // Puts the VarRef function on the stack.
             }
             fnRefIsApply = false;
-            evalArg(x, arg);
+            Type domain_type = ((ArrowType)(x.getFunction().getInfo().getExprType().unwrap())).getDomain();
+            evalArg(x, domain_type, arg);
             fnRefIsApply = true;
             if (!(fn instanceof FunctionalRef)) {
                 generateHigherOrderCall(exprType(fn));
