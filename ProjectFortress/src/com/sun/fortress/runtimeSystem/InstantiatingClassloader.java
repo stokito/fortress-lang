@@ -59,6 +59,9 @@ import com.sun.fortress.useful.VersionMismatch;
  */
 public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
+    public static final String TUPLE_TYPED_ELT_PFX = "e";
+    public static final String TUPLE_OBJECT_ELT_PFX = "o";
+    public static final String TUPLE_FIELD_PFX = "f";
     // TODO make this depends on properties/env w/o dragging in all of the world.
     private static final boolean LOG_LOADS = false;
     private static final boolean LOG_FUNCTION_EXPANSION = false;
@@ -868,7 +871,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 for (int i = 0; i < l-1; i++) {
                     String param = unwrapped_parameters.get(i);
                     mv.visitVarInsn(Opcodes.ALOAD, 1); // tuple
-                    mv.visitMethodInsn(INVOKEINTERFACE, tupleType, "e" + (Naming.TUPLE_ORIGIN + i), "()L" + param + ";");
+                    mv.visitMethodInsn(INVOKEINTERFACE, tupleType, TUPLE_TYPED_ELT_PFX + (Naming.TUPLE_ORIGIN + i), "()L" + param + ";");
                 }
                 
                 mv.visitMethodInsn(INVOKEVIRTUAL, dename, "apply", unwrapped_apply_sig);
@@ -933,7 +936,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 dename, null, "java/lang/Object", superInterfaces);
 
         for (int i = 0; i < n; i++) {
-            String m = "o" + (i + Naming.TUPLE_ORIGIN);
+            String m = TUPLE_OBJECT_ELT_PFX + (i + Naming.TUPLE_ORIGIN);
             String sig = UNTYPED_GETTER_SIG;
             interfaceMethod(cw, m, sig);
         }
@@ -1010,7 +1013,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 @Override
                 public void apply(Integer x) {
                     mv.visitVarInsn(ALOAD, 0);
-                    mv.visitMethodInsn(INVOKEINTERFACE, any_tuple_n, "o" + (Naming.TUPLE_ORIGIN + x), UNTYPED_GETTER_SIG);
+                    mv.visitMethodInsn(INVOKEINTERFACE, any_tuple_n, TUPLE_OBJECT_ELT_PFX + (Naming.TUPLE_ORIGIN + x), UNTYPED_GETTER_SIG);
                     mv.visitInsn(ARETURN);
                 }
                 
@@ -1083,7 +1086,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
 
         for (int i = 0; i < n; i++) {
-            String m = "e" + (i + Naming.TUPLE_ORIGIN);
+            String m = TUPLE_TYPED_ELT_PFX + (i + Naming.TUPLE_ORIGIN);
             String sig = "()L" + parameters.get(i) + ";";
             interfaceMethod(cw, m, sig);
         }
@@ -1140,7 +1143,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // fields
         {
             for (int i = 0; i < n; i++) {
-                String f = "f" + (i + Naming.TUPLE_ORIGIN);
+                String f = TUPLE_FIELD_PFX + (i + Naming.TUPLE_ORIGIN);
                 String sig = "L" + parameters.get(i) + ";";
                 cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, f,
                         sig, null /* for non-generic */, null /* instance has no value */);
@@ -1155,7 +1158,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitMethodInsn(Opcodes.INVOKESPECIAL, any_concrete_tuple_n, "<init>", NamingCzar.voidToVoid);
 
             for (int i = 0; i < n; i++) {
-                String f = "f" + (i + Naming.TUPLE_ORIGIN);
+                String f = TUPLE_FIELD_PFX + (i + Naming.TUPLE_ORIGIN);
                 String sig = "L" + parameters.get(i) + ";";
                 
                 mv.visitVarInsn(Opcodes.ALOAD, 0);
@@ -1222,7 +1225,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             
             for (int i = 0; i < n; i++) {
                 mv.visitVarInsn(Opcodes.ALOAD, 0);
-                mv.visitMethodInsn(INVOKEVIRTUAL, any_tuple_n, "o" + (Naming.TUPLE_ORIGIN + i), UNTYPED_GETTER_SIG);
+                mv.visitMethodInsn(INVOKEVIRTUAL, any_tuple_n, TUPLE_OBJECT_ELT_PFX + (Naming.TUPLE_ORIGIN + i), UNTYPED_GETTER_SIG);
                 
                 String cast_to = parameters.get(i);
 
@@ -1252,7 +1255,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             // Get the parameters to make, and cast them.
             for (int i = 0; i < n; i++) {
                 mv.visitVarInsn(Opcodes.ALOAD, 0);
-                mv.visitMethodInsn(INVOKEVIRTUAL, any_tuple_n, "o" + (Naming.TUPLE_ORIGIN + i), UNTYPED_GETTER_SIG);
+                mv.visitMethodInsn(INVOKEVIRTUAL, any_tuple_n, TUPLE_OBJECT_ELT_PFX + (Naming.TUPLE_ORIGIN + i), UNTYPED_GETTER_SIG);
                 String cast_to = parameters.get(i);
                 generalizedCastTo(mv, cast_to);
             }
@@ -1267,9 +1270,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // typed getters
         // untyped getters
         for (int i = 0; i < n; i++) {
-            String untyped = "o" + (Naming.TUPLE_ORIGIN + i);
-            String typed = "e" + (Naming.TUPLE_ORIGIN + i);
-            String field = "f" + (Naming.TUPLE_ORIGIN + i);
+            String untyped = TUPLE_OBJECT_ELT_PFX + (Naming.TUPLE_ORIGIN + i);
+            String typed = TUPLE_TYPED_ELT_PFX + (Naming.TUPLE_ORIGIN + i);
+            String field = TUPLE_FIELD_PFX + (Naming.TUPLE_ORIGIN + i);
             String param_type = parameters.get(i);
             String param_desc = "L" + param_type + ";";
             {

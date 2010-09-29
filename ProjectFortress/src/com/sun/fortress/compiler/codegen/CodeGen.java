@@ -3974,6 +3974,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (arg instanceof VoidLiteralExpr) {
             paramCount = 0;
         } else if (arg instanceof TupleExpr) {
+            // Why isn't this parallel???
             TupleExpr targ = (TupleExpr) arg;
             List<Expr> exprs = targ.getExprs();
             for (Expr expr : exprs) {
@@ -3982,7 +3983,35 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             paramCount = exprs.size();
         } else {
             paramCount = 1; // for now; need to dissect tuple and do more.
-            arg.accept(this);
+            Type arg_t = arg.getInfo().getExprType().unwrap();
+            if (arg_t instanceof TupleType) {
+                TupleType arg_tt = (TupleType) arg_t;
+                List<Type> arg_tts = arg_tt.getElements();
+                // First eval the tuple-typed expr.
+                // Then dup, extract one element, swap
+                // Repeat till last element,
+                // for it, do not dup or swap.
+                arg.accept(this);
+                int l = arg_tts.size();
+                String owner = NamingCzar.jvmTypeDesc(arg_tt, thisApi(), false, true);
+
+                for (int i = 0; i < l; i++) {
+                    Type t = arg_tts.get(i);
+                    String m = InstantiatingClassloader.TUPLE_TYPED_ELT_PFX + (i + Naming.TUPLE_ORIGIN);
+                    String sig = NamingCzar.jvmTypeDesc(t, thisApi(), true, true);
+
+                    if (i < l-1) {
+                        mv.visitInsn(Opcodes.DUP);
+                        mv.visitMethodInsn(INVOKEINTERFACE, owner, m, "()"+sig);
+                        mv.visitInsn(Opcodes.SWAP);
+                    } else {
+                        mv.visitMethodInsn(INVOKEINTERFACE, owner, m, "()"+sig);
+                    }
+                }
+               
+            } else {
+                arg.accept(this);
+            }
         }
     }
 
