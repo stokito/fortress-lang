@@ -772,13 +772,14 @@ public class NamingCzar {
     public static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
                                          com.sun.fortress.nodes.Type range,
                                          APIName ifNone) {
-        return jvmSignatureFor(domain, jvmTypeDesc(range, ifNone), ifNone);
-    }
+        return jvmSignatureFor(domain, jvmTypeDesc(range, ifNone, true, true), ifNone);
+    } // jvmTypeDesc(type, ifNone, true, false)
 
     //
     private static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
             String rangeDesc,
             APIName ifNone) {
+        // Changing this to do the tuple thing, seems to break "run".  Why?
         return makeMethodDesc(
                 NodeUtil.isVoidType(domain) ? "" : jvmTypeDesc(domain, ifNone),
                         rangeDesc);
@@ -812,7 +813,7 @@ public class NamingCzar {
             StringBuilder buf = new StringBuilder();
             buf.append(args);
             for (com.sun.fortress.nodes.Type p : tt.getElements()) {
-                buf.append(jvmTypeDesc(p, ifNone));
+                buf.append(jvmTypeDesc(p, ifNone, true, true));
                 i++;
                 if (spliceAt == i)
                     buf.append(jvmTypeDesc(spliceType, ifNone));
@@ -822,7 +823,7 @@ public class NamingCzar {
             if (spliceAt < 0)
                 return jvmSignatureFor(domain, rangeDesc, ifNone);
             else {
-                args += jvmTypeDesc(domain, ifNone);
+                args += jvmTypeDesc(domain, ifNone, true, true);
                 if (spliceAt == 1)
                     args += jvmTypeDesc(spliceType, ifNone);
             }
@@ -1239,7 +1240,7 @@ public class NamingCzar {
             @Override
             public String forArrowType(ArrowType t) {
                 if (NodeUtil.isVoidType(t.getDomain()))
-                    return makeMethodDesc("", jvmTypeDesc(t.getRange(), ifNone));
+                    return makeMethodDesc("", jvmTypeDesc(t.getRange(), ifNone, true, true));
                 else return makeMethodDesc(jvmTypeDesc(t.getDomain(), ifNone, true, false),
                                            jvmTypeDesc(t.getRange(), ifNone, true, true));
             }
