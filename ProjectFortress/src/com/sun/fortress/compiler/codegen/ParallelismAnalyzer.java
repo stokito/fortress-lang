@@ -74,6 +74,7 @@ public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
     }
 
     public void printTable() {
+        if (false)
         for (ASTNode node : worthy)
             System.out.println("Parallelizable table has entry " + node);
     }
