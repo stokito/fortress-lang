@@ -1671,7 +1671,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String sig = NamingCzar.jvmSignatureFor(
                          NodeUtil.getParamType(x),
                          NamingCzar.jvmTypeDesc(returnType,
-                                                component.getName()),
+                                                component.getName(), true, true),
                          0,
                          traitType,
                          component.getName());
