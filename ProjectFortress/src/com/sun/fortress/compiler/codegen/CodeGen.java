@@ -284,7 +284,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             exportsExecutable ? NamingCzar.fortressExecutable :
                                 NamingCzar.fortressComponent ;
 
-        cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
+        cw.visit(InstantiatingClassloader.JVM_BYTECODE_VERSION, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
                  packageAndClassName, null, extendedJavaClass,
                  null);
 
@@ -2436,7 +2436,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         debug("forFnExpr className = ", className, " desc = ", desc);
         List<VarCodeGen> freeVars = getFreeVars(body);
         cg.lexEnv = cg.createTaskLexEnvVariables(className, freeVars);
-        cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
+        cg.cw.visit(InstantiatingClassloader.JVM_BYTECODE_VERSION, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
                     className, null, desc, new String[] {idesc});
 
         // Generate the constructor (initializes captured free vars from param list)
@@ -2869,7 +2869,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  */
                 mv.visitInsn(Opcodes.SWAP);
                 // extract i'th member from tuple.
-                mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, rhs_type_desc, "e"+(Naming.TUPLE_ORIGIN+i), "()L"+rhs_element_type_descs[i]+";");
+                mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, rhs_type_desc, InstantiatingClassloader.TUPLE_TYPED_ELT_PFX+(Naming.TUPLE_ORIGIN+i), "()L"+rhs_element_type_descs[i]+";");
                 
                 vcg.assignValue(mv);
             }
@@ -3071,7 +3071,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Until we resolve the directory hierarchy problem.
         //            cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER+ Opcodes.ACC_FINAL,
         //                      classFile, null, NamingCzar.internalObject, new String[] { parent });
-        cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
+        cw.visit( InstantiatingClassloader.JVM_BYTECODE_VERSION, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
                 cnb.className, null, abstractSuperclass, superInterfaces);
 
         if (isSingletonObject) {
@@ -3192,7 +3192,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         CodeGenClassWriter prev = cw;
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
-        cw.visit( Opcodes.V1_5,
+        cw.visit( InstantiatingClassloader.JVM_BYTECODE_VERSION,
                   Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
                   classFile, null, NamingCzar.internalObject, superInterfaces);
 
@@ -3328,7 +3328,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // WARNING: result may need mangling / NamingCzar-ing.
         cg.cw.visitField(Opcodes.ACC_PUBLIC, "result", result, null, null);
 
-        cg.cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
+        cg.cw.visit(InstantiatingClassloader.JVM_BYTECODE_VERSION, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
                     className, null, NamingCzar.fortressBaseTask, null);
 
         cg.generateTaskInit(NamingCzar.fortressBaseTask, init, freeVars);
@@ -3584,7 +3584,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         CodeGenClassWriter prev = cw;
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, prev);
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
-        cw.visit( Opcodes.V1_5,
+        cw.visit( InstantiatingClassloader.JVM_BYTECODE_VERSION,
                   Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
                   cnb.className, null, NamingCzar.internalObject, superInterfaces);
         dumpSigs(header.getDecls());
@@ -3599,7 +3599,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
         // Springboard *must* be abstract if any methods / fields are abstract!
         // In general Springboard must not be directly instantiable.
-        cw.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT, springBoardClass,
+        cw.visit(InstantiatingClassloader.JVM_BYTECODE_VERSION, Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT, springBoardClass,
                  null, abstractSuperclass, new String[] { cnb.className } );
         debug("Start writing springboard class ",
               springBoardClass);
@@ -3658,7 +3658,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void generateVarDeclInnerClass(VarDecl x, String classFile, String tyDesc, Expr exp) {
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
-        cw.visit( Opcodes.V1_5, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
+        cw.visit( InstantiatingClassloader.JVM_BYTECODE_VERSION, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
                   classFile, null, NamingCzar.internalSingleton, null );
         cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL,
                       NamingCzar.SINGLETON_FIELD_NAME, tyDesc, null, null);
