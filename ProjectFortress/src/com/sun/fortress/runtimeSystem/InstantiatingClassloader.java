@@ -95,6 +95,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     private final Hashtable<String, Pair<String, List<Pair<String, String>>>>
        stemToXlation = new Hashtable<String, Pair<String, List<Pair<String, String>>>>();
+    public static final int JVM_BYTECODE_VERSION = Opcodes.V1_6;
     
     private InstantiatingClassloader() {
         throw new Error(); // Really do not call this.
@@ -490,7 +491,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         //String desc = "L" + name + ";";
         String field_desc = "L" +(ft) + ";";
         // Begin with a class
-        cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, name, null, superClass, null);
+        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER, name, null, superClass, null);
 
         // Static field closure of appropriate arrow type.
         fv = cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, "closure", field_desc, null, null);
@@ -736,7 +737,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         AnnotationVisitor av0;
 
-        cw.visit(Opcodes.V1_6, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE,
+        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE,
                  name, null, "java/lang/Object", null);
 
 
@@ -834,7 +835,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // String name = Naming.mangleIdentifier(dename);
         String name = (dename);
 
-        cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER + ACC_ABSTRACT, name, null,
+        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER + ACC_ABSTRACT, name, null,
                 "java/lang/Object", interfaces);
 
         String _super = "java/lang/Object";
@@ -931,7 +932,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         //        "java/util/List",
                 "fortress/AnyType$Any"
         };
-        cw.visit( Opcodes.V1_5,
+        cw.visit( JVM_BYTECODE_VERSION,
                 Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
                 dename, null, "java/lang/Object", superInterfaces);
 
@@ -967,7 +968,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         final int n = Integer.parseInt(parameters.get(0));
         final String any_tuple_n = "AnyTuple" + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
         String[] superInterfaces = { any_tuple_n };
-        cw.visit( Opcodes.V1_5,
+        cw.visit( JVM_BYTECODE_VERSION,
                 Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT,
                 dename, null, super_type, superInterfaces);
 
@@ -1081,7 +1082,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         final String any_tuple_n = "AnyTuple" + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
         String[] superInterfaces = { any_tuple_n };
         
-        cw.visit(V1_6, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE, dename, null,
+        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE, dename, null,
                  "java/lang/Object", superInterfaces);
 
 
@@ -1116,7 +1117,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         String[] superInterfaces = { tuple_params };
         
-        cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, dename, null,
+        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER, dename, null,
                 any_concrete_tuple_n, superInterfaces);
         
         
