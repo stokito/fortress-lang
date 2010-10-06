@@ -123,6 +123,7 @@ instantiate com.sun.fortress.parser.templateparser.Gaps(Symbol, Spacing, Identif
 
 header {
 import com.sun.fortress.exceptions.ProgramError;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.parser_util.precedence_opexpr.*;
 import com.sun.fortress.parser_util.precedence_resolver.*;
 import com.sun.fortress.nodes.*;
@@ -196,7 +197,7 @@ body {
     private BufferedWriter writer = getWriter();
     private BufferedWriter getWriter() {
         try {
-            return Useful.filenameToBufferedWriter( column(0).file + ".macroError.log" );
+            return Useful.filenameToBufferedWriter( ProjectProperties.macroErrorLog(column(0).file) );
         } catch (IOException error) {
             return error("Creating a log file for the parser failed!");
         }

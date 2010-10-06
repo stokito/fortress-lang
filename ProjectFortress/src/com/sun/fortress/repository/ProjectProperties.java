@@ -404,4 +404,40 @@ public class ProjectProperties {
     public static StringMap composedWith(StringMap props) {
         return new StringMap.ComposedMaps(props, allProps);
     }
+
+
+    /**
+     * @param s
+     * @return
+     */
+    public static String preparserErrorLog(String s) {
+        return s + ".preparserError.log";
+    }
+
+
+    /**
+     * @param f
+     * @return
+     * @throws IOException
+     */
+    public static String preparserErrorLog(File f) throws IOException {
+        String s = f.getCanonicalPath();
+        return preparserErrorLog(s);
+    }
+
+
+    /**
+     * @param f
+     * @return
+     * @throws IOException
+     */
+    public static String macroErrorLog(File f) throws IOException {
+        return macroErrorLog(f.getCanonicalPath() ) ;
+    }
+
+
+    public static String macroErrorLog(String fileName) {
+        return fileName + ".macroError.log";
+
+    }
 }

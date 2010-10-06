@@ -54,6 +54,7 @@ import com.sun.fortress.parser_util.FnHeaderClause;
 import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 
 import com.sun.fortress.parser.Fortress;
+import com.sun.fortress.repository.ProjectProperties;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
@@ -70,7 +71,7 @@ public class NodeUtil {
         try {
             if ( writer == null ) {
                 String file = span.getFileName();
-                writer = Useful.filenameToBufferedWriter( file + ".preparserError.log" );
+                writer = Useful.filenameToBufferedWriter( ProjectProperties.preparserErrorLog(file) );
             }
             writer.write( span + ":\n    " + msg + "\n" );
         } catch (IOException error) {

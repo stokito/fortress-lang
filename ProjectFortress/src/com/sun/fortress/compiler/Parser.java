@@ -148,10 +148,10 @@ public class Parser {
             return new Result(se);
         } finally {
             try {
-                Files.rm( f.getCanonicalPath() + ".preparserError.log" );
+                Files.rm( ProjectProperties.preparserErrorLog(f) );
             } catch (IOException ioe) {}
             try {
-                Files.rm( f.getCanonicalPath() + ".macroError.log" );
+                Files.rm( ProjectProperties.macroErrorLog(f) );
             } catch (IOException ioe) {}
         }
     }
@@ -278,7 +278,7 @@ public class Parser {
             in = Useful.utf8BufferedFileReader(f);
             /* instantiate the class using reflection */
             ParserBase p = RatsUtil.getParserObject(temporaryParserClass, in, f.toString());
-            reportSyntaxErrors(getSyntaxErrors( f.getCanonicalPath() + ".macroError.log" ));
+            reportSyntaxErrors(getSyntaxErrors( ProjectProperties.macroErrorLog(f) ));
             /* call the parser on the component and checks the validity,
              * get back a component AST
              */
@@ -301,7 +301,7 @@ public class Parser {
             return new Result(StaticError.make(desc, f));
         } finally {
             try {
-                Files.rm( f.getCanonicalPath() + ".preparserError.log" );
+                Files.rm( ProjectProperties.preparserErrorLog(f) );
                 if (in != null) in.close();
             } catch (IOException ioe) {}
         }
@@ -419,7 +419,7 @@ public class Parser {
      */
     private static List<StaticError> preParser(BufferedReader in,
                                                String filename) throws IOException {
-        String preparserLogFile = filename + ".preparserError.log";
+        String preparserLogFile = ProjectProperties.preparserErrorLog(filename);
         try {
             PreFortress preparser = new PreFortress(in, filename);
             preparser.pFile(0);

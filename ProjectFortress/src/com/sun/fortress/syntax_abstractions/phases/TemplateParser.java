@@ -23,6 +23,7 @@ import com.sun.fortress.exceptions.MacroError;
 import com.sun.fortress.exceptions.ParserError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.syntax_abstractions.ParserMaker;
 import com.sun.fortress.syntax_abstractions.environments.EnvFactory;
 import com.sun.fortress.syntax_abstractions.environments.GapEnv;
@@ -122,7 +123,7 @@ public class TemplateParser {
         }
         finally {
             try {
-                Files.rm(NodeUtil.getSpan(apiName).getFileName() + ".macroError.log");
+                Files.rm(ProjectProperties.macroErrorLog(NodeUtil.getSpan(apiName).getFileName() ));
             } catch (IOException e) {}
         }
     }

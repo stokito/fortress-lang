@@ -29,6 +29,7 @@ instantiate com.sun.fortress.parser.Unicode as Unicode;
 instantiate com.sun.fortress.parser.preparser.PreSymbol (Identifier, Spacing, Keyword) as PreSymbol;
 
 header {
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.parser_util.precedence_opexpr.*;
 import com.sun.fortress.parser_util.precedence_resolver.*;
@@ -77,7 +78,7 @@ body {
     private BufferedWriter writer;
 
     void initParser() {
-        String s = column(0).file + ".preparserError.log";
+        String s = ProjectProperties.preparserErrorLog(column(0).file);
         try {
             Debug.debug( Debug.Type.PARSER, 1, "Preparsing " + column(0).file + "...");
             writer = Useful.filenameToBufferedWriter( s );
