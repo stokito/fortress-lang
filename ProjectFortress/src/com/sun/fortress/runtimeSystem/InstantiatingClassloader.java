@@ -62,6 +62,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     public static final String TUPLE_TYPED_ELT_PFX = "e";
     public static final String TUPLE_OBJECT_ELT_PFX = "o";
     public static final String TUPLE_FIELD_PFX = "f";
+    public static final String ARROW_OX = "Arrow\u27e6";
+    public static final String TUPLE_OX = "Tuple\u27e6";
+    public static final int JVM_BYTECODE_VERSION = Opcodes.V1_6;
+
+    
     // TODO make this depends on properties/env w/o dragging in all of the world.
     private static final boolean LOG_LOADS = false;
     private static final boolean LOG_FUNCTION_EXPANSION = false;
@@ -95,7 +100,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     private final Hashtable<String, Pair<String, List<Pair<String, String>>>>
        stemToXlation = new Hashtable<String, Pair<String, List<Pair<String, String>>>>();
-    public static final int JVM_BYTECODE_VERSION = Opcodes.V1_6;
     
     private InstantiatingClassloader() {
         throw new Error(); // Really do not call this.
@@ -802,7 +806,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         if (l == 2) {
             String parameter = parameters.get(0);
-            if (parameter.startsWith("Tuple" + Naming.LEFT_OXFORD)) {
+            if (parameter.startsWith(TUPLE_OX)) {
                 /* Unwrap tuple, also. */
                 unwrapped_parameters = extractStringParameters(parameter);
                 unwrapped_parameters.add(parameters.get(1));
@@ -1338,7 +1342,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param cast_to
      */
     public static void generalizedCastTo(MethodVisitor mv, String cast_to) {
-        if (cast_to.startsWith("Tuple" + Naming.LEFT_OXFORD)) {
+        if (cast_to.startsWith(TUPLE_OX)) {
             List<String> cast_to_parameters = extractStringParameters(cast_to);
             String any_tuple_n = "AnyTuple" + Naming.LEFT_OXFORD + cast_to_parameters.size() + Naming.RIGHT_OXFORD;
             String sig = "(L" + any_tuple_n + ";)L" + cast_to + ";";

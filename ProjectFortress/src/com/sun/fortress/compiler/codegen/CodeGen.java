@@ -3655,7 +3655,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     /** Supposed to be called with nested codegen context. */
-    private void generateVarDeclInnerClass(VarDecl x, String classFile, String tyDesc, Expr exp) {
+    private void generateVarDeclInnerClass(VarDecl x, String classFile, String tyName, Expr exp) {
+        String tyDesc = "L" + tyName + ";";
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
         cw.visit( InstantiatingClassloader.JVM_BYTECODE_VERSION, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER + Opcodes.ACC_FINAL,
@@ -3665,6 +3666,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv = cw.visitCGMethod(Opcodes.ACC_STATIC,
                             "<clinit>", NamingCzar.voidToVoid, null, null);
         exp.accept(this);
+        if (tyName.startsWith(InstantiatingClassloader.TUPLE_OX)) {
+            InstantiatingClassloader.generalizedCastTo(mv, tyName);
+        }
         mv.visitFieldInsn(Opcodes.PUTSTATIC, classFile,
                           NamingCzar.SINGLETON_FIELD_NAME, tyDesc);
         mv.visitInsn(Opcodes.RETURN);
@@ -3691,13 +3695,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Type ty = (Type)lv.getIdType().unwrap();
         Expr exp = oinit.unwrap();
         String classFile = NamingCzar.jvmClassForToplevelDecl(var, packageAndClassName);
-        String tyDesc = NamingCzar.jvmBoxedTypeDesc(ty, thisApi());
+        String tyName = NamingCzar.jvmBoxedTypeName(ty, thisApi());
         debug("VarDeclPrePass ", var, " : ", ty, " = ", exp);
-        new CodeGen(this).generateVarDeclInnerClass(v, classFile, tyDesc, exp);
+        new CodeGen(this).generateVarDeclInnerClass(v, classFile, tyName, exp);
 
         addStaticVar(
             new VarCodeGen.StaticBinding(var, ty, classFile,
-                                         NamingCzar.SINGLETON_FIELD_NAME, tyDesc));
+                                         NamingCzar.SINGLETON_FIELD_NAME, "L" + tyName + ";"));
     }
 
     public void forVarRef(VarRef v) {
@@ -4006,6 +4010,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             }
         } else {
             paramCount = 1; // for now; need to dissect tuple and do more.
+            // Type arg_t = domain_type;
             Type arg_t = arg.getInfo().getExprType().unwrap();
             if (arg_t instanceof TupleType) {
                 TupleType arg_tt = (TupleType) arg_t;
@@ -4032,6 +4037,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     }
                 }
                
+            } else if (arg_t instanceof VarType) { 
+                arg.accept(this);
             } else {
                 arg.accept(this);
             }
@@ -4061,7 +4068,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         try {
             Expr arg = x.getArgument();
             Expr fn = x.getFunction();
-            if (!(fn instanceof FunctionalRef)) {
+            
+            // need to use closure if fn is generic and instantiating with a
+            // tuple type for the entire parameter list.
+            boolean useClosure =
+                !(fn instanceof FunctionalRef) 
+                // || ((FunctionalRef) fn).getStaticArgs().size() > 0
+                ;
+                
+            if (useClosure) {
                 // Higher-order call.
                 fn.accept(this); // Puts the VarRef function on the stack.
             }
@@ -4069,7 +4084,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Type domain_type = ((ArrowType)(x.getFunction().getInfo().getExprType().unwrap())).getDomain();
             evalArg(x, domain_type, arg);
             fnRefIsApply = true;
-            if (!(fn instanceof FunctionalRef)) {
+            if (useClosure) {
                 generateHigherOrderCall(exprType(fn));
             } else {
                 x.getFunction().accept(this);
