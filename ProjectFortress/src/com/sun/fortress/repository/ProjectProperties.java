@@ -301,6 +301,8 @@ public class ProjectProperties {
     public static final String OPTIMIZED_BYTECODE_CACHE_DIR = get("fortress.optimized.bytecode.cache", "${CACHES}/optimizedbytecode_cache");
     public static final String NATIVE_WRAPPER_CACHE_DIR = get("fortress.nativewrapper.cache",
                                                               "${CACHES}/nativewrapper_cache");
+    
+    public static final String LOGS_DIR = get("fortress.logs.dir", "${CACHES}/logs");
 
     public static final Path SOURCE_PATH = new Path(searchDef("fortress.source.path", "FORTRESS_SOURCE_PATH", "."));
 
@@ -411,7 +413,7 @@ public class ProjectProperties {
      * @return
      */
     public static String preparserErrorLog(String s) {
-        return s + ".preparserError.log";
+        return LOGS_DIR + (s.startsWith("/") ? "" : "/") + s + ".preparserError.log";
     }
 
 
@@ -436,8 +438,8 @@ public class ProjectProperties {
     }
 
 
-    public static String macroErrorLog(String fileName) {
-        return fileName + ".macroError.log";
+    public static String macroErrorLog(String s) {
+        return LOGS_DIR + (s.startsWith("/") ? "" : "/") +s + ".macroError.log";
 
     }
 }

@@ -954,8 +954,29 @@ public class Useful {
         return new BufferedReader(new FileReader(filename));
     }
 
+    /**
+     * Returns a BufferedWriter for a file with name filename, creating
+     * directories as necessary to Make It So.
+     * 
+     * @param filename
+     * @return
+     * @throws IOException
+     */
     public static BufferedWriter filenameToBufferedWriter(String filename) throws IOException {
-        return new BufferedWriter(new FileWriter(filename));
+        FileWriter fw;
+        try {
+            fw = new FileWriter(filename);
+        } catch (IOException ex) {
+            // Probably the directory did not exist, therefore, make it so.
+            // ONLY DEAL IN SLASHES.  THAT WORKS WITH WINDOWS.
+            int last_slash = filename.lastIndexOf('/');
+            if (last_slash == -1)
+                throw ex;
+            String dir = filename.substring(0, last_slash);
+            ensureDirectoryExists(dir);
+            fw = new FileWriter(filename);
+        }
+        return new BufferedWriter(fw);
     }
 
     /**
