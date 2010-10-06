@@ -695,7 +695,7 @@ public final class Shell {
         } catch ( FileNotFoundException f ){
             throw new UserError(file + " not found");
         } finally {
-            try { Files.rm( file + ".preparserError.log" ); }
+            try { Files.rm( ProjectProperties.preparserErrorLog(file) ); }
             catch (IOException e) {}
         }
         return return_code;

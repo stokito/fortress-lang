@@ -145,7 +145,7 @@ public class ParserJUTest extends TestCaseWrapper {
                 }
                 finally {
                     try {
-                        Files.rm(f.getCanonicalPath() + ".preparserError.log");
+                        Files.rm(ProjectProperties.preparserErrorLog(f));
                     }
                     catch (IOException e) {
                     }
