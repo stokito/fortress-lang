@@ -906,6 +906,11 @@ public class NamingCzar {
         return jvmTypeDesc(type, ifNone, true, true);
     }
 
+    public static String jvmBoxedTypeName(com.sun.fortress.nodes.Type type,
+            final APIName ifNone) {
+        return jvmTypeDesc(type, ifNone, false, true);
+    }
+
     // Local, and Codegen.generateHigherOrderCall
     public static String makeArrowDescriptor(ArrowType t, final APIName ifNone) {
 
