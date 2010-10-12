@@ -2546,36 +2546,64 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (fn != null)
             throw sayWhat(x, "Haven't figured out references to local/parameter functions yet");
 
-        // need to deal with generics.
-        //List<StaticArg> sargs = x.getStaticArgs();
-
-        // Get it from top level.
         Pair<String, String> pc_and_m= functionalRefToPackageClassAndMethod(x);
-        // If it's an overloaded type, oy.
-        com.sun.fortress.nodes.Type arrow = exprType(x);
-        // Capture the overloading foo, mutilate that into the name of the thing that we want.
-        Pair<String, String> method_and_signature = resolveMethodAndSignature(
-                x, arrow, pc_and_m.second());
-        /* we now have package+class, method name, and signature.
-         * Emit a static reference to a field in package/class/method+envelope+mangled_sig.
-         * Classloader will see this, and it will trigger demangling of the name, to figure
-         * out the contents of the class to be loaded.
-         */
-        String arrow_desc = NamingCzar.jvmTypeDesc(arrow, thisApi(), true);
-        String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), false);
-        String PCN = pc_and_m.first() + "$" +
+
+        // need to deal with generics.
+        // TODO refactor against else-arm and against forFunctionalRef
+        List<StaticArg> sargs = x.getStaticArgs();
+        String decoration = NamingCzar.genericDecoration(sargs, thisApi());
+        if (decoration.length() > 0) {
+            // com.sun.fortress.nodes.Type arrow = exprType(x);
+
+            // debugging reexecute
+            decoration = NamingCzar.genericDecoration(sargs, thisApi());
+            /*
+             * TODO, BUG, need to use arrow type of uninstantiated generic!
+             * This is necessary because otherwise it is difficult (impossible?)
+             * to figure out the name of the template class that will be
+             * expanded later.
+             */
+
+            Type oschema = x.getOverloadingSchema().unwrap();
+            Type otype = x.getOverloadingType().unwrap();
+
+            String arrow_desc = NamingCzar.jvmTypeDesc(otype, thisApi(), true);
+            String arrow_type = NamingCzar.jvmTypeDesc(oschema, thisApi(), false);
+
+            String PCN =
+                Naming.genericFunctionPkgClass(pc_and_m.first(), pc_and_m.second(),
+                                                   decoration, arrow_type);
+            
+            mv.visitFieldInsn(Opcodes.GETSTATIC, PCN, NamingCzar.closureFieldName, arrow_desc);
+
+        } else { // not generic reference.
+
+            // If it's an overloaded type, oy.
+            com.sun.fortress.nodes.Type arrow = exprType(x);
+            // Capture the overloading foo, mutilate that into the name of the thing that we want.
+            Pair<String, String> method_and_signature = resolveMethodAndSignature(
+                    x, arrow, pc_and_m.second());
+            /* we now have package+class, method name, and signature.
+             * Emit a static reference to a field in package/class/method+envelope+mangled_sig.
+             * Classloader will see this, and it will trigger demangling of the name, to figure
+             * out the contents of the class to be loaded.
+             */
+            String arrow_desc = NamingCzar.jvmTypeDesc(arrow, thisApi(), true);
+            String arrow_type = NamingCzar.jvmTypeDesc(arrow, thisApi(), false);
+            String PCN = pc_and_m.first() + "$" +
 
             method_and_signature.first() +
             Naming.ENVELOPE + "$"+ // "ENVELOPE"
             arrow_type;
-        /* The suffix will be
-         * (potentially mangled)
-         * functionName<ENVELOPE>closureType (which is an arrow)
-         *
-         * must generate code for the class with a method apply, that
-         * INVOKE_STATICs prefix.functionName .
-         */
-        mv.visitFieldInsn(Opcodes.GETSTATIC, PCN, NamingCzar.closureFieldName, arrow_desc);
+            /* The suffix will be
+             * (potentially mangled)
+             * functionName<ENVELOPE>closureType (which is an arrow)
+             *
+             * must generate code for the class with a method apply, that
+             * INVOKE_STATICs prefix.functionName .
+             */
+            mv.visitFieldInsn(Opcodes.GETSTATIC, PCN, NamingCzar.closureFieldName, arrow_desc);
+        }
     }
 
     /**
@@ -3006,6 +3034,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                     STypesUtil.staticParamsToArgs(original_static_params)),
                                     original_params.unwrap());
                 String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
+                
                 mname = nonCollidingSingleName(x.getHeader().getName(), sig, generic_arrow_type);
                 PCN =
                     Naming.genericFunctionPkgClass(packageAndClassName, mname,
@@ -4011,6 +4040,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         } else {
             paramCount = 1; // for now; need to dissect tuple and do more.
             // Type arg_t = domain_type;
+            // Has to be the expr type so that we extract the pieces using the right methods.
             Type arg_t = arg.getInfo().getExprType().unwrap();
             if (arg_t instanceof TupleType) {
                 TupleType arg_tt = (TupleType) arg_t;
@@ -4073,7 +4103,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // tuple type for the entire parameter list.
             boolean useClosure =
                 !(fn instanceof FunctionalRef) 
-                // || ((FunctionalRef) fn).getStaticArgs().size() > 0
+                || ((FunctionalRef) fn).getStaticArgs().size() > 0
                 ;
                 
             if (useClosure) {
