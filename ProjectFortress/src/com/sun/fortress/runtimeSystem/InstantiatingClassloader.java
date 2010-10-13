@@ -873,7 +873,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 
                 mv.visitVarInsn(Opcodes.ALOAD, 0); // closure
                 
-                for (int i = 0; i < l-1; i++) {
+                int unwrapped_l = unwrapped_parameters.size();
+                
+                for (int i = 0; i < unwrapped_l-1; i++) {
                     String param = unwrapped_parameters.get(i);
                     mv.visitVarInsn(Opcodes.ALOAD, 1); // tuple
                     mv.visitMethodInsn(INVOKEINTERFACE, tupleType, TUPLE_TYPED_ELT_PFX + (Naming.TUPLE_ORIGIN + i), "()L" + param + ";");
@@ -894,11 +896,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 
                 mv.visitVarInsn(Opcodes.ALOAD, 0); // closure
                 
-                for (int i = 0; i < l-1; i++) {
+                int unwrapped_l = unwrapped_parameters.size();
+
+                for (int i = 0; i < unwrapped_l-1; i++) {
                     mv.visitVarInsn(Opcodes.ALOAD, i+1); // element
                 }
 
-                List<String> tuple_elements = unwrapped_parameters.subList(0,l-1);
+                List<String> tuple_elements = unwrapped_parameters.subList(0,unwrapped_l-1);
                 
                 String make_sig = toJvmSig(tuple_elements,
                                   Naming.javaDescForTaggedFortressType(tupleType));
