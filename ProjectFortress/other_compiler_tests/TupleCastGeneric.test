@@ -13,7 +13,7 @@
 #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
 #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
-tests= TupleCastGeneric  TupleCastGeneric2 TupleCastGeneric3
+tests= TupleCastGeneric  TupleCastGeneric2 TupleCastGeneric3 TupleCastGeneric4
 compile
 link
 run
