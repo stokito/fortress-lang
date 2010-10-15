@@ -405,7 +405,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // Converting ACC_PUBLIC to ACC_PRIVATE breaks Compiled17a
             // with an IllegalAccessError (at about r4668) 
             cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, pn,
-                    NamingCzar.jvmTypeDesc(pt, thisApi(), true), null /* for non-generic */, null /* instance has no value */);
+                    NamingCzar.jvmBoxedTypeDesc(pt, thisApi()), null /* for non-generic */, null /* instance has no value */);
         }
 
         String init_sig = NamingCzar.jvmSignatureFor(params, "V", thisApi());
@@ -423,7 +423,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitVarInsn(Opcodes.ALOAD, pno);
             mv.visitFieldInsn(Opcodes.PUTFIELD, classFile, pn,
-                    NamingCzar.jvmTypeDesc(pt, thisApi(), true));
+                    NamingCzar.jvmBoxedTypeDesc(pt, thisApi()));
             pno++;
         }
         mv.visitInsn(Opcodes.RETURN);
@@ -3126,7 +3126,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     param_type,
                     cnb.className,
                     objectFieldName,
-                    NamingCzar.jvmTypeDesc(param_type, component.getName(), true)));
+                    NamingCzar.jvmBoxedTypeDesc(param_type, component.getName())));
         }
 
         currentTraitObjectDecl = x;
@@ -3264,7 +3264,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         for (VarCodeGen v : freeVars) {
             String name = v.name.getText();
             cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, name,
-                          NamingCzar.jvmTypeDesc(v.fortressType, thisApi()),
+                          NamingCzar.jvmBoxedTypeDesc(v.fortressType, thisApi()),
                           null, null);
             result.put(name, new TaskVarCodeGen(v, taskClass, thisApi()));
         }
@@ -3406,7 +3406,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             if (!ot.isSome())
                 throw sayWhat(arg, "Missing type information for argument " + arg);
             Type t = ot.unwrap();
-            String tDesc = NamingCzar.jvmTypeDesc(t, component.getName());
+            String tDesc = NamingCzar.jvmBoxedTypeDesc(t, component.getName());
             // Find free vars of arg
             List<VarCodeGen> freeVars = getFreeVars(arg);
 

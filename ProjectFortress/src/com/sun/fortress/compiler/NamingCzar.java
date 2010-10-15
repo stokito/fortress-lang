@@ -794,7 +794,7 @@ public class NamingCzar {
         String args = "";
         StringBuilder buf = new StringBuilder();
         for (Param p : domain) {
-            buf.append(jvmTypeDesc(NodeUtil.optTypeOrPatternToType(p.getIdType()), ifNone));
+            buf.append(jvmBoxedTypeDesc((com.sun.fortress.nodes.Type) p.getIdType().unwrap(), ifNone));
         }
         args = buf.toString();
         return makeMethodDesc(args, rangeDesc);
