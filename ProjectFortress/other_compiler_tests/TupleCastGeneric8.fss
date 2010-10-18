@@ -1,0 +1,51 @@
+(*******************************************************************************
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+export Executable
+
+trait T
+  getter asString():String
+end
+
+object O(s:String) extends T
+  getter asString():String = s
+end
+
+object P[\TT extends Any\](s:String, tpl1:TT, tpl2:TT ) extends T
+  getter asString():String = s
+  asTpl():TT = tpl1
+end
+
+too:(O,O) = foo[\(O,O)\]( ( O("Hello"), O("World!") ) )
+tu:(T,T) = foo[\(T,T)\]( foo[\(O,O)\]( too ) )
+
+join[\U extends T\](x:(U,U), y:Boolean) = do
+  (a,b) = x
+  a.asString " " b.asString
+end
+
+foo[\ V extends Any \](x:V):V = do
+  (*) println "Foo called"
+  x
+end
+
+run():() = do
+  y = P[\ (T,T) \]("Cat", foo[\(O,O)\]( ( O("Hello"), O("World!") ) ), foo[\(T,T)\]( foo[\(O,O)\]( too ) ))
+  z = y.asTpl()
+  (*) println "Foo returned"
+  println( join[\T\](z, true) )
+end
