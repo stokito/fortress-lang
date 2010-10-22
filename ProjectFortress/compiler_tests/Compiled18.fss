@@ -33,7 +33,7 @@ trait Reduction[\R\]
     join(a: R, b:R): R
 end
 
-object ReductionString extends Reduction[\String\]
+object TestReductionString extends Reduction[\String\]
     empty(): String = ""
     join(a: String, b: String): String = a || b
 end
@@ -67,14 +67,14 @@ gen[\R\](lo:ZZ32, hi:ZZ32, p: ZZ32->Boolean, r:Reduction[\R\], body: ZZ32->R): R
 
 opr :(lo:ZZ32, hi:ZZ32): FilteredRange = FilteredRange(lo, hi, fn (n) => true)
 
-opr BIG ||(): ReductionString = ReductionString
+opr BIG ||(): TestReductionString = TestReductionString
 
 opr AND(a:Boolean, b:()->Boolean): Boolean = if a then b() else a end
 
 run(): () = do
     (* This one doesn't appear to type check, even though the other three do.
        Baffling! *)
-    println(__bigOperator(ReductionString,
+    println(__bigOperator(TestReductionString,
                           fn (r, b) => (0:100).generate(r, fn(n) => b((2 n + 1).asString))))
     println(BIG ||[n <- 0:100] (2 n + 1).asString)
     println(BIG ||[n <- 0:10, m <- 0:10, n < m] (n+m).asString)
