@@ -42,10 +42,14 @@ __bigOperator[\R\](o:Reduction[\R\],
                 desugaredClauses:(Reduction[\R\], R->R)->R): R =
     desugaredClauses(o, fn (x:R):R => x)
 
+(* NOT YET CALLED, GENERIC OVERLOAD
+   Note that this goes wrong because of a wrong choice in the overload set.
+   
 __generate[\T,R\](g: Generator[\T\], r: Reduction[\R\], f:T->R): R =
     g.generate[\R\](r,f)
 __generate[\R\](p: Boolean, r: Reduction[\R\], f:()->R): R =
     if p then f() else r.empty() end
+ *)
 
 (* TODO: fix return type of filter when that works *)
 object FilteredRange(lo: ZZ32, hi:ZZ32, p: ZZ32 -> Boolean) extends Generator[\ZZ32\]
