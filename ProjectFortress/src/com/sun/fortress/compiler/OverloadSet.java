@@ -893,7 +893,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 TypeOrPattern ty = p.getIdType().unwrap();
                 if (! (ty instanceof Type))
                     bug("Type is expected: " + ty);
-                mv.visitTypeInsn(Opcodes.CHECKCAST, NamingCzar.jvmTypeDesc((Type)ty, ifNone, false));
+                InstantiatingClassloader.generalizedCastTo(mv,  NamingCzar.jvmBoxedTypeName((Type)ty, ifNone));
+                // mv.visitTypeInsn(Opcodes.CHECKCAST, NamingCzar.jvmBoxedTypeDesc((Type)ty, ifNone));
                 i++;
             }
             if (CodeGenerationPhase.debugOverloading)
@@ -909,7 +910,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 OverloadSet os = children[i];
                 Label lookahead = new Label();
                 mv.visitVarInsn(Opcodes.ALOAD, dispatchParameterIndex + firstArgIndex);
-                mv.visitTypeInsn(Opcodes.INSTANCEOF, NamingCzar.jvmTypeDesc(os.selectedParameterType, ifNone, false));
+                InstantiatingClassloader.generalizedInstanceOf(mv,
+                 NamingCzar.jvmBoxedTypeName(os.selectedParameterType, ifNone));
                 mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
                 os.generateCall(mv, firstArgIndex, failLabel);
                 mv.visitLabel(lookahead);
