@@ -36,8 +36,9 @@ public class DesugarerUtil {
     public final static Id LOOP_NAME =
         NodeFactory.makeId(span, WellKnownNames.loop);
 
-    public final static VarRef GENERATE_NAME =
-        ExprFactory.makeVarRef(span, WellKnownNames.generate);
+    public  static VarRef GENERATE_NAME(Span span) {
+        return ExprFactory.makeVarRef(span, WellKnownNames.generate);
+    }
 
     public final static VarRef MAP_NAME =
         ExprFactory.makeVarRef(span, WellKnownNames.map);
@@ -63,8 +64,8 @@ public class DesugarerUtil {
     public final static VarRef FILTER_NAME =
         ExprFactory.makeVarRef(span, WellKnownNames.filter);
 
-    public final static VarRef Q_GENERATE_NAME =
-        ExprFactory.makeVarRef(span, WellKnownNames.fortressLibrary(), WellKnownNames.generate);
+//    public final static VarRef Q_GENERATE_NAME =
+//        ExprFactory.makeVarRef(span, WellKnownNames.fortressLibrary(), WellKnownNames.generate);
 
     public final static VarRef Q_MAP_NAME =
         ExprFactory.makeVarRef(span, WellKnownNames.fortressLibrary(), WellKnownNames.map);
@@ -140,7 +141,7 @@ public class DesugarerUtil {
         if (i==0) {
             /* Single generator as body, with no generator clauses. */
             body = ExprFactory.makeTightJuxt(span,
-                                             GENERATE_NAME,
+                                             GENERATE_NAME(span),
                                              ExprFactory.makeTupleExpr(span,body,redVar,unitVar));
         } else {
             List<GeneratorClause> squozenGens =
@@ -397,6 +398,6 @@ public class DesugarerUtil {
         Expr loopBody = bindsAndBody(g, body);
         Span span = NodeUtil.spanTwo(reduction, loopBody);
         Expr params = ExprFactory.makeTupleExpr(span, g.getInit(), reduction, loopBody);
-        return ExprFactory.makeTightJuxt(NodeUtil.getSpan(g), GENERATE_NAME, params);
+        return ExprFactory.makeTightJuxt(NodeUtil.getSpan(g), GENERATE_NAME(span), params);
     }
 }

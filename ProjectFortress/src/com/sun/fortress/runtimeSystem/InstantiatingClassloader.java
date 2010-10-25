@@ -1234,7 +1234,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             
             for (int i = 0; i < n; i++) {
                 mv.visitVarInsn(Opcodes.ALOAD, 0);
-                mv.visitMethodInsn(INVOKEVIRTUAL, any_tuple_n, TUPLE_OBJECT_ELT_PFX + (Naming.TUPLE_ORIGIN + i), UNTYPED_GETTER_SIG);
+                mv.visitMethodInsn(INVOKEINTERFACE, any_tuple_n, TUPLE_OBJECT_ELT_PFX + (Naming.TUPLE_ORIGIN + i), UNTYPED_GETTER_SIG);
                 
                 String cast_to = parameters.get(i);
 
