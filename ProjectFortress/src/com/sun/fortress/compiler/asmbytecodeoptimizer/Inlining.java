@@ -145,13 +145,10 @@ public class Inlining {
 
     static void addLabel(Label label, LabelInsn labelInsn) {
         InlinedMethodLabels.put(label, labelInsn);
-        System.out.println("Just added (" + label + "," + labelInsn + " to InlinedMethodLabels:" + InlinedMethodLabels);
     }
 
     static LabelInsn getLabel(Label label) {
-        LabelInsn result = (LabelInsn) InlinedMethodLabels.get(label);
-        System.out.println("Just got " + result + " using " + label + " from " + InlinedMethodLabels);
-        return result;
+        return (LabelInsn) InlinedMethodLabels.get(label);
     }
 
     static String newIndex(MethodInsn mi, int index) { return mi.index + "." + index;}
