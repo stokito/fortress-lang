@@ -32,14 +32,18 @@ public class JumpInsn extends Insn {
     int opcode;
     Label label;
 
-    JumpInsn(String name, int opcode, Label label) {
-        this.name = name;
+    JumpInsn(String name, int opcode, Label label, String index) {
+        super(name, index);
         this.opcode = opcode;
         this.label = label;
     }
 
     public String toString() { 
         return "JumpInsn:" +  name + " label = " + label;
+    }
+
+    public JumpInsn copy(String newIndex) {
+        return new JumpInsn(name, opcode, label, newIndex);
     }
     
     public void toAsm(MethodVisitor mv) { 

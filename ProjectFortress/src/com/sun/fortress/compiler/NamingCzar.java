@@ -141,6 +141,7 @@ public class NamingCzar {
 
     public static final String cache = ProjectProperties.BYTECODE_CACHE_DIR + "/";
     public static final String optimizedcache = ProjectProperties.OPTIMIZED_BYTECODE_CACHE_DIR + "/";
+    public static final String nativecache = ProjectProperties.NATIVE_WRAPPER_CACHE_DIR + "/";
 
     // fortress types
     public static final String fortressPackage = "fortress";

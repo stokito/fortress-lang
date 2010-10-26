@@ -23,9 +23,13 @@ import org.objectweb.asm.util.*;
 public class LabelInsn extends Insn {
     Label label;
 
-    LabelInsn(String name, Label label) {
-        this.name = name;
+    LabelInsn(String name , Label label, String index) {
+        super(name + index, index);
         this.label = label;
+    }
+
+    public LabelInsn copy(String newIndex) {
+        return new LabelInsn(name, label, newIndex);
     }
 
     public String toString() { 

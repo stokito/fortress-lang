@@ -67,21 +67,23 @@ class ByteCodeVisitor implements ClassVisitor {
     }
 
     public void toAsm(JarOutputStream jos) {
-        ClassWriter cw = new ClassWriter(1);
-        cw.visit(version, access, name, sig, superName, interfaces);
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+        CheckClassAdapter cca = new CheckClassAdapter(cw);
+
+        cca.visit(version, access, name, sig, superName, interfaces);
         Iterator it = fieldVisitors.entrySet().iterator();
 
         while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry) it.next();
             ByteCodeFieldVisitor fv = (ByteCodeFieldVisitor) pairs.getValue();
-            fv.toAsm(cw);
+            fv.toAsm(cca);
         }
 
         it = methodVisitors.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry) it.next();
             ByteCodeMethodVisitor mv = (ByteCodeMethodVisitor) pairs.getValue();
-            mv.toAsm(cw);
+            mv.toAsm(cca);
         }
 
         byte [] bytes = cw.toByteArray();
@@ -91,7 +93,6 @@ class ByteCodeVisitor implements ClassVisitor {
         }
 
         ByteCodeWriter.writeJarredClass(jos, name, bytes);
-        System.out.println("Wrote class " + name);
     }
 
         

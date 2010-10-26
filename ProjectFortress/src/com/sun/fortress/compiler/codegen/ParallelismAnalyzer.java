@@ -25,7 +25,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.Debug;
 
 public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
-    private static final int ARG_THRESHOLD = 2;
+    private static final int ARG_THRESHOLD = 2000;
     private final HashSet<ASTNode> worthy = new HashSet<ASTNode>();
 
     private boolean isComputeIntensiveArg(Expr e) {
@@ -92,6 +92,15 @@ public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
 
     public void for_RewriteFnAppOnly(_RewriteFnApp x) {
         debug(x,"for_RewriteFnApp");
+        String node = x.toString();
+        String fcn = x.getFunction().toString();
+        if (node.contains("CompilerLibrary") ||
+            node.contains("CompilerBuiltin") ||
+            fcn.contains("CompilerBuiltin") ||
+            fcn.contains("println"))
+            {
+                return;
+            } 
         worthy.add(x);
     }
 }

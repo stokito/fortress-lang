@@ -20,14 +20,20 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
 public class SingleInsn extends Insn {
+    String op;
     int opcode;
 
-    SingleInsn(String name, int opcode) {
-        this.name = name;
+    SingleInsn(String op, int opcode, String index) {
+        super("SingleInsn:" + op , index);
+        this.op = op;
         this.opcode = opcode;
     }
     public String toString() { 
         return "SingleInsn:" + name;
+    }
+
+    public SingleInsn copy(String newIndex) {
+        return new SingleInsn(op, opcode, newIndex);
     }
     
     public void toAsm(MethodVisitor mv) { 

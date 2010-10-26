@@ -30,14 +30,44 @@ abstract public class Insn {
     String name;
     Object locals[];
     Object stack[];
-    List<Insn> inlineExpansionInsns = new ArrayList<Insn>();
+
+    // Imagine a function foo which inlines bar which inlines baz which has a label and a goto
+    // The indices are after the instruction in parenthesis.
+    // foo(1)
+    //    bar(1.1)
+    //       baz (1.1.1)
+    //          label start (1.1.1.1)
+    //          goto start (1.1.1.2)
+    //    bar(1.2)
+    //       baz (1.2.1)
+    //          label start (1.2.1.1)
+    //          goto start (1.1.1.2)
+    // end
+
+    // Then when we rename label start it will be either start.1.1.1.1 or start.1.2.1.1 and 
+    // this saves us from the duplicate label problem.
+    String index;
+
+    ArrayList<Insn> inlineExpansionInsns = new ArrayList<Insn>();
     Insn parentInsn;
 
-    public String toString() { return name; }
+    Insn(String name, String index) {
+        this.name = name;
+        this.index = index;
+    }
+
+    public String toString() { 
+        if (isExpanded())
+            return "Expanded" + " ind = " + index + " " + name;
+        else return name + " ind = " + index; 
+    }
+
     public void setStack(Object stack[]) {this.stack = stack;}
     public void setLocals(Object locals[]) {this.locals = locals;}
 
     public abstract void toAsm(MethodVisitor mv);
+
+    public abstract Insn copy(String index);
 
     public void toAsmWrapper(MethodVisitor mv) {
         if (isExpanded()) {
@@ -55,6 +85,8 @@ abstract public class Insn {
     public boolean isExpanded() {
         return inlineExpansionInsns.size() > 0 ;
     }
+
+    public void assignIndex(String i) {index = i;}
 
     public String getStackString() {
         String result = "[";

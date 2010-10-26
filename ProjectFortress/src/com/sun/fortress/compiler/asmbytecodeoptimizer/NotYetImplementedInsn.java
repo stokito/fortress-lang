@@ -21,9 +21,13 @@ import org.objectweb.asm.util.*;
 
 public class NotYetImplementedInsn extends Insn {
 
-    NotYetImplementedInsn(String name) {
-        this.name = name;
+    NotYetImplementedInsn(String name, String index) {
+        super(name, index);
         throw new RuntimeException("Encountered a not yet implemented instruction");
+    }
+
+    public NotYetImplementedInsn copy(String newIndex) {
+        return new NotYetImplementedInsn(name, newIndex);
     }
 
     public String toString() { 

@@ -26,7 +26,8 @@ public class VisitFrame extends Insn {
     int nStack;
     Object stack[];
 
-    VisitFrame(int type, int nLocal, Object local[], int nStack, Object stack[]) {
+    VisitFrame(int type, int nLocal, Object local[], int nStack, Object stack[], String index) {
+        super("VisitFrame", index);
         this.type = type;
         this.nLocal = nLocal;
         this.local = local;
@@ -45,6 +46,10 @@ public class VisitFrame extends Insn {
         return result;
     }
     
+    public VisitFrame copy(String newIndex) {
+        return new VisitFrame(type, nLocal, local, nStack, stack, newIndex);
+    }
+
     public void toAsm(MethodVisitor mv) {
         mv.visitFrame(type, nLocal, local, nStack, stack);
     }

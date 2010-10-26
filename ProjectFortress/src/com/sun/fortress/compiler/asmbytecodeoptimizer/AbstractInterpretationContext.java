@@ -102,6 +102,7 @@ public class AbstractInterpretationContext {
         else if (i instanceof VisitLineNumberInsn) { 
             interpretVisitLineNumberInsn((VisitLineNumberInsn) i);}
         else if (i instanceof VisitMaxs) {}
+        else if (i instanceof VisitCode) {}
         else if (i instanceof VisitEnd) {}
         else if (i instanceof VisitFrame) {}
         else if (i instanceof LocalVariableInsn) {}

@@ -45,19 +45,19 @@ public class Substitution {
             VisitLineNumberInsn vlni1 = (VisitLineNumberInsn) m1;
             VisitLineNumberInsn vlni2 = (VisitLineNumberInsn) m2;
             return vlni1.matches(vlni2);
+        } else if (m1 instanceof VisitCode & m2 instanceof VisitCode) { //fixme
+            return true;
         } else return false;
     }
 
     boolean isAMatch(ByteCodeMethodVisitor bcmv, int i) {
         boolean result = true;
-
         for (int j = 0; j < match.size(); j++) {
             if (!insnMatch(bcmv.insns.get(i+j), match.get(j))) {
                 result = false;
                 break;
             }
         }
-
         return result;
     }
 
@@ -73,7 +73,6 @@ public class Substitution {
         for (int i = 0; i < bcmv.insns.size() - match.size(); i++) {
             if (isAMatch(bcmv, i)) {
                 makeReplacements(bcmv, i);
-                //                System.out.println("Optimization starting at " + bcmv.insns.get(i));
             }
         }
     }

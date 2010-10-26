@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    All rights reserved.
+
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+ ******************************************************************************)
+
+component InliningTest2
+export Executable
+
+fun(x: RR64): RR64 = x (x x + 1.0)
+
+integrate_fo'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, tol: RR64): RR64 = do
+    w = 0.5 (h-l)
+    hw = 0.5 w
+    m = l + w
+    fm = fun(m)
+    al = hw (fl + fm)
+    ah = hw (fm + fh)
+    alh = al + ah
+    alh
+  end
+
+run(): () = do
+   foo = integrate_fo'(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+   println(foo)
+end
+end

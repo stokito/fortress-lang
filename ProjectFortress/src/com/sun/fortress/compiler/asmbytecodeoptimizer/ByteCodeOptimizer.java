@@ -17,6 +17,7 @@
 package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
 import com.sun.fortress.useful.Useful;
+import com.sun.fortress.compiler.NamingCzar;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -36,11 +37,19 @@ class ByteCodeOptimizer {
     HashMap classes = new HashMap();
     HashMap files = new HashMap();
 
+    void readInNativeClassFiles() {
+        String nativePrefix = "native/com/sun/fortress/nativeHelpers";
+        File dir = new File(NamingCzar.nativecache + nativePrefix);
+        String[] files = dir.list();
+        for (String file : files) {
+            String nfile = nativePrefix + "/" + file;
+            readInClassFile(nfile);
+        }
+    }
+        
     void readInClassFile(String name) {
-        System.out.println("readClassFile " + name);
         // Remove the .class and replace / with .
         String nname = name.substring(0, name.length() - 6).replace("/", ".");
-        System.out.println("readClassFile " + name + " new = " + nname);
         try {
             ClassReader cr = new ClassReader(nname);
             ByteCodeVisitor bcv = new ByteCodeVisitor();
@@ -99,8 +108,6 @@ class ByteCodeOptimizer {
             String outputFile = arg.replace("bytecode_cache", "optimizedbytecode_cache");
             String directoryName = outputFile.substring(0, outputFile.lastIndexOf("/"));
             Useful.ensureDirectoryExists(directoryName);
-            System.out.println("Writing out jar file" + outputFile);
-
             JarOutputStream jos = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)));
             Iterator it = classes.entrySet().iterator();
             while (it.hasNext()) {
@@ -117,7 +124,7 @@ class ByteCodeOptimizer {
                 jos.putNextEntry(entry);
                 jos.write(buf);
             }
-            
+
             jos.close();
         } catch (Exception e) {
             System.out.println("ClassFormatError:"  + e );
@@ -146,7 +153,6 @@ class ByteCodeOptimizer {
         ByteCodeOptimizer bco = new ByteCodeOptimizer();
 
         for (String arg : args) {
-            System.out.println("Reading in jar file " + arg);
             if (arg.endsWith(".jar")) {
                 bco.readInJarFile(arg);
                 bco.optimize();

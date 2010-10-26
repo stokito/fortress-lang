@@ -24,16 +24,25 @@ public class MethodInsn extends Insn {
     String owner;
     String _name;
     String desc;
+    int id;
 
-    MethodInsn(String name, int opcode, String owner, String _name, String desc) {
-        this.name = name;
+    static int counter = 0;
+
+    MethodInsn(String name, int opcode, String owner, String _name, String desc, String index) {
+        super(name,index);
         this.opcode = opcode;
         this.owner = owner;
         this._name = _name;
         this.desc = desc;
+        this.id = counter++;
     }
+
+    public MethodInsn copy(String newIndex) {
+        return new MethodInsn(name, opcode, owner, _name, desc, newIndex);
+    }
+
     public String toString() { 
-        return "MethodInsn:" +  opcode + " " + owner + " " + _name + " " + desc;
+        return "MethodInsn:" + id + " " + index + " " +  opcode + " " + owner + " " + _name + " " + desc;
     }
     
     public void toAsm(MethodVisitor mv) { 

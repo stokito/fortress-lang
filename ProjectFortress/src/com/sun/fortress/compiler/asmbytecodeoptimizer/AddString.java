@@ -24,12 +24,18 @@ public class AddString {
         // These strings should be pulled out in a naming file somewhere.
 
         ByteCodeMethodVisitor bcmv = (ByteCodeMethodVisitor) bcv.methodVisitors.get("main([Ljava/lang/String;)V");
-
         if (bcmv != null) {
-            bcmv.insns.add(0, new FieldInsn("GETSTATIC", Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;"));
-            bcmv.insns.add(1, new LdcInsn("LdcInsn", "Running Optimized Version"));
-            bcmv.insns.add(2, new MethodInsn("INVOKEVIRTUAL", Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println",
-                                          "(Ljava/lang/String;)V"));
+            ArrayList<Insn> matches = new ArrayList<Insn>();
+            matches.add(new VisitCode("-1"));
+            ArrayList<Insn> replacements = new ArrayList<Insn>();
+            replacements.add(new VisitCode("-1"));
+            replacements.add(new FieldInsn("GETSTATIC", Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;", 
+                                            "AddOptimizeString0"));
+            replacements.add(new LdcInsn("LdcInsn", "Running Optimized Version", "AddOptimizeString1"));
+            replacements.add(new MethodInsn("INVOKEVIRTUAL", Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println",
+                                            "(Ljava/lang/String;)V", "AddOptimizeString2"));
+            Substitution s = new Substitution(matches, replacements);
+            s.makeSubstitution(bcmv);
         }
     }
 }

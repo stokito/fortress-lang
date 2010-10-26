@@ -23,19 +23,24 @@ public class VisitLineNumberInsn extends Insn {
     int line;
     Label start;
 
-    VisitLineNumberInsn(String name, int line, Label start) {
-        this.name = name;
+    VisitLineNumberInsn(String name, int line, Label start, String index) {
+        super(name, index);
         this.line = line;
         this.start = start;
     }
 
     public String toString() { 
-        return name;
+        return name + " line = " + line + " start = " + start + " index " + index;
     }
     
     public void toAsm(MethodVisitor mv) {
         mv.visitLineNumber(line, start);
     }
+
+    public VisitLineNumberInsn copy(String newIndex) {
+        return new VisitLineNumberInsn(name, line, start, newIndex);
+    }
+        
 
     public boolean matches(VisitLineNumberInsn vlni) {
         return true;
