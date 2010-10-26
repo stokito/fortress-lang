@@ -244,7 +244,6 @@ public class Inlining {
     public static void inlineMethodCall(String className, ByteCodeMethodVisitor method, 
                                         MethodInsn mi, ByteCodeMethodVisitor methodToInline, 
                                         Boolean staticMethod) {
-        System.out.println("Inlining methodinsn " + mi + " with " + methodToInline);
         List<Insn> insns = new ArrayList<Insn>();
         Label start = new Label();
         Label end = new Label();
