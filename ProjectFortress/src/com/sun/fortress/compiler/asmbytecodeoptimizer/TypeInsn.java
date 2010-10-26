@@ -23,13 +23,17 @@ public class TypeInsn extends Insn {
     int opcode;
     String type;
 
-    TypeInsn(String name, int opcode, String type) {
-        this.name = name;
+    TypeInsn(String name, int opcode, String type, String index) {
+        super(name, index);
         this.opcode = opcode;
         this.type = type;
     }
     public String toString() { 
         return "TypeInsn:" +  name;
+    }
+
+    public TypeInsn copy(String newIndex) {
+        return new TypeInsn(name, opcode, type, newIndex);
     }
     
     public void toAsm(MethodVisitor mv) { 

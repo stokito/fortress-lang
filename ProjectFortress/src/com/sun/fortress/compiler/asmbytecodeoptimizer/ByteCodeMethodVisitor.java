@@ -27,6 +27,7 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
 import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.runtimeSystem.Naming;
 
 public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisitor {
 
@@ -47,6 +48,8 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
 
     static boolean noisy = false;
 
+    int index;
+
     void addInsn(Insn i) {
         insns.add(i);
     }
@@ -61,6 +64,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         this.exceptions = exceptions;
         this.args = NamingCzar.parseArgs(desc);
         this.result = NamingCzar.parseResult(desc);
+        this.index = 0;
         changed = false;
     }
 
@@ -75,9 +79,25 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         }
     }
 
+    public void toAsm(CheckClassAdapter cca) {
+        MethodVisitor mv = cca.visitMethod(access, name, desc, sig, exceptions);
+        for (Insn i : insns) {
+            i.toAsmWrapper(mv);
+        }
+    }
+
     public String toString() {
         return "Method " + name + " desc = " + desc + " sig = " + sig;
     }
+
+    public void printInsns(List<Insn> instructions) {
+        for (Insn i : instructions) {
+            if (i.isExpanded())
+                printInsns(i.inlineExpansionInsns);
+            else System.out.println(i.toString());
+        }
+    }
+        
 
     public void print() {
         if (noisy) {
@@ -85,12 +105,8 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
             System.out.println("BCMV = " + this);
             System.out.println("Args = " + args);
             System.out.println("result = " + result);
-
-            for (Insn i : insns) {
-                System.out.println(i.toString());
-            }
+            printInsns(insns);
         }
-        
     }
 
     public AnnotationVisitor visitAnnotationDefault() {
@@ -110,90 +126,91 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     }
 
     public void visitCode() {
+        addInsn(new VisitCode(Integer.toString(index++)));  
     }
         
     public void visitFrame(int type, int nLocal, Object local[], int nStack, Object stack[]) {
-        addInsn(new VisitFrame(type, nLocal, local, nStack, stack));
+        addInsn(new VisitFrame(type, nLocal, local, nStack, stack, Integer.toString(index++)));
     }
         
     public void visitInsn(int opcode) {
-        addInsn(new SingleInsn(OPCODES[opcode], opcode));
+        addInsn(new SingleInsn(OPCODES[opcode], opcode, Integer.toString(index++)));
     }
 
     public void visitIntInsn(int opcode, int operand) {
-        addInsn(new IntInsn(OPCODES[opcode], opcode, operand));
+        addInsn(new IntInsn(OPCODES[opcode], opcode, operand, Integer.toString(index++)));
     }
 
     public void visitVarInsn(int opcode, int var) {
-        addInsn(new VarInsn(OPCODES[opcode], opcode, var));
+        addInsn(new VarInsn(OPCODES[opcode], opcode, var, Integer.toString(index++)));
     }
     
     public void visitTypeInsn(int opcode, String type) {
-        addInsn(new TypeInsn(OPCODES[opcode], opcode, type));
+        addInsn(new TypeInsn(OPCODES[opcode], opcode, type, Integer.toString(index++)));
     }
 
     public void visitFieldInsn(int opcode, String owner, String name, String desc) {
-        addInsn(new FieldInsn(OPCODES[opcode], opcode, owner, name, desc));
+        addInsn(new FieldInsn(OPCODES[opcode], opcode, owner, name, desc, Integer.toString(index++)));
     }
 
     public void visitJumpInsn(int opcode, Label label) {
-        addInsn(new JumpInsn(OPCODES[opcode], opcode, label));
+        addInsn(new JumpInsn(OPCODES[opcode], opcode, label, Integer.toString(index++)));
     }
 
     public void visitLabel(Label label) {
-        labelNames.put(label.toString(), Integer.valueOf(insns.size()));
-        addInsn(new LabelInsn("Label", label));
+        labelNames.put(label.toString(), index);
+        addInsn(new LabelInsn("Label", label, Integer.toString(index++)));
     }
 
     public void visitLdcInsn(Object cst) {
-        addInsn(new LdcInsn("LdcInsn", cst));
+        addInsn(new LdcInsn("LdcInsn", cst, Integer.toString(index++)));
     }
 
     public void visitIincInsn(int var, int increment) {
-        addInsn(new IincInsn("IincInsn", var, increment));
+        addInsn(new IincInsn("IincInsn", var, increment, Integer.toString(index++)));
     }
 
     public void visitTableSwitchInsn(int min, int max, Label dflt, Label[] labels) {
-        addInsn(new TableSwitchInsn("TableSwitchInsn", min, max, dflt, labels));
+        addInsn(new TableSwitchInsn("TableSwitchInsn", min, max, dflt, labels, Integer.toString(index++)));
     }
 
     public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
-        addInsn(new LookupSwitchInsn("LookupSwitchInsn", dflt, keys, labels));
+        addInsn(new LookupSwitchInsn("LookupSwitchInsn", dflt, keys, labels, Integer.toString(index++)));
     }
 
     public void visitMultiNewArrayInsn(String desc, int dims) {
+        addInsn(new NotYetImplementedInsn("visitMultiNewArrayInsn", Integer.toString(index++)));
+        index++;
     }
 
     public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
-        addInsn(new NotYetImplementedInsn("visitTryCatchBlock"));
+        addInsn(new NotYetImplementedInsn("visitTryCatchBlock", Integer.toString(index++)));
     }
 
-    public void visitLocalVariable(String name, String desc, String sig, Label start, Label end, int index) {
-        addInsn(new LocalVariableInsn("visitLocalVariable", name, desc, sig, start, end, index));
+    public void visitLocalVariable(String name, String desc, String sig, Label start, Label end, int _index) {
+        addInsn(new LocalVariableInsn("visitLocalVariable", name, desc, sig, start, end, _index, Integer.toString(index++)));
     }
 
     public void visitMultiANewArrayInsn(String name, int i) {
-        addInsn(new NotYetImplementedInsn("visitMultiANewArrayInsn"));
+        addInsn(new NotYetImplementedInsn("visitMultiANewArrayInsn", Integer.toString(index++)));
     }
 
     public void visitMethodInsn(int opcode, String owner, String name, String desc) {
-        addInsn(new MethodInsn(OPCODES[opcode], opcode, owner, name, desc));
+        addInsn(new MethodInsn(OPCODES[opcode], opcode, owner, name, desc, Integer.toString(index++)));
     }
 
     public void visitLineNumber(int line, Label start) {
-        addInsn(new VisitLineNumberInsn("visitLineNumber", line, start));
+        addInsn(new VisitLineNumberInsn("visitLineNumber", line, start, Integer.toString(index++)));
     }
 
     public void visitMaxs(int maxStack, int maxLocals) {
         this.maxStack = maxStack;
         this.maxLocals = maxLocals;
-        addInsn(new VisitMaxs("visitMaxs", maxStack, maxLocals));
+        addInsn(new VisitMaxs("visitMaxs", maxStack, maxLocals, Integer.toString(index++)));
     }
 
     public void visitEnd() {
-        addInsn(new VisitEnd("visitEnd"));
+        addInsn(new VisitEnd("visitEnd", Integer.toString(index++)));
     }
-    
-
 }
 

@@ -20,17 +20,22 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
 public class IntInsn extends Insn {
-    String name;
+    String _name;
     int opcode;
     int operand;
 
-    IntInsn(String name, int opcode, int operand) {
-        this.name = name;
+    IntInsn(String name, int opcode, int operand, String index) {
+        super("IntInsn", index);
+        this._name = name;
         this.opcode = opcode;
         this.operand = operand;
     }
     public String toString() { 
         return "MethodInsn:" +  name + " " + operand;
+    }
+
+    public IntInsn copy(String newIndex) {
+        return new IntInsn(name, opcode, operand, newIndex);
     }
     
     public void toAsm(MethodVisitor mv) { 

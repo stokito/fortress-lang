@@ -23,8 +23,8 @@ public class VarInsn extends Insn {
     int opcode;
     int var;
 
-    VarInsn(String name, int opcode, int var) {
-        this.name = name;
+    VarInsn(String name, int opcode, int var, String index) {
+        super(name, index);
         this.opcode = opcode;
         this.var = var;
     }
@@ -32,6 +32,10 @@ public class VarInsn extends Insn {
         return "VarInsn:" +  name + " variable = " + var;
     }
     
+    public VarInsn copy(String newIndex) {
+        return new VarInsn(name, opcode, var, newIndex);
+    }
+
     public void toAsm(MethodVisitor mv) { 
         mv.visitVarInsn(opcode, var);
     }

@@ -22,8 +22,8 @@ import org.objectweb.asm.util.*;
 public class LdcInsn extends Insn {
     Object cst;
 
-    LdcInsn(String name, Object cst) {
-        this.name = name;
+    LdcInsn(String name, Object cst, String index) {
+        super(name, index);
         this.cst = cst;
     }
 
@@ -31,6 +31,10 @@ public class LdcInsn extends Insn {
         return "LdcInsn:" + name + " cst = " + cst;
     }
     
+    public LdcInsn copy(String newIndex) {
+        return new LdcInsn(name, cst, newIndex);
+    }
+
     public void toAsm(MethodVisitor mv) { 
         mv.visitLdcInsn(cst);
     }

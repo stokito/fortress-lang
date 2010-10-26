@@ -26,8 +26,8 @@ public class FieldInsn extends Insn {
     String _name;
     String desc;
 
-    FieldInsn(String name, int opcode, String owner, String _name, String desc) {
-        this.name = name;
+    FieldInsn(String name, int opcode, String owner, String _name, String desc, String index) {
+        super(name, index);
         this.opcode = opcode;
         this.owner = owner;
         this._name = _name;
@@ -36,6 +36,10 @@ public class FieldInsn extends Insn {
 
     public String toString() { 
         return "FieldInsn:" + name;
+    }
+
+    public FieldInsn copy(String newIndex) {
+        return new FieldInsn(name, opcode, owner, _name, desc, newIndex);
     }
     
     public void toAsm(MethodVisitor mv) { 

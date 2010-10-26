@@ -23,10 +23,14 @@ public class IincInsn extends Insn {
     int var;
     int increment;
 
-    IincInsn(String name, int var, int increment) {
-        this.name = name;
+    IincInsn(String name, int var, int increment, String index) {
+        super(name, index);
         this.var = var;
         this.increment = increment;
+    }
+
+    public IincInsn copy(String newIndex) {
+        return new IincInsn(name, var, increment, newIndex);
     }
 
     public String toString() { 

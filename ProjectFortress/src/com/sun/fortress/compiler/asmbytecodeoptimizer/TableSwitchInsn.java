@@ -25,8 +25,8 @@ public class TableSwitchInsn extends Insn {
     Label dflt;
     Label[] labels;
 
-    TableSwitchInsn(String name, int min, int max, Label dflt, Label[] labels) {
-        this.name = name;
+    TableSwitchInsn(String name, int min, int max, Label dflt, Label[] labels, String index) {
+        super(name,index);
         this.min = min;
         this.max = max;
         this.dflt = dflt;
@@ -35,6 +35,10 @@ public class TableSwitchInsn extends Insn {
 
     public String toString() { 
         return "MethodInsn:" + name + ":(" + min + "," + max + ")";
+    }
+
+    public TableSwitchInsn copy(String newIndex) {
+        return new TableSwitchInsn(name, min, max, dflt, labels, index);
     }
     
     public void toAsm(MethodVisitor mv) { 

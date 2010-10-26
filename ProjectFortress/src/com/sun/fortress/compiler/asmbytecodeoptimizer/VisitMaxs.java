@@ -16,24 +16,32 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
+import com.sun.fortress.runtimeSystem.Naming;
+
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
+
+
 
 public class VisitMaxs extends Insn {
     int maxStack;
     int maxLocals;
 
-    VisitMaxs(String name, int maxStack, int maxLocals) {
-        this.name = name;
+    VisitMaxs(String name, int maxStack, int maxLocals, String index) {
+        super(name, index);
         this.maxStack = maxStack;
         this.maxLocals = maxLocals;
     }
 
     public String toString() { 
-        return name;
+        return name + " maxStack = " + maxStack + " maxLocals = " + maxLocals;
+    }
+
+    public VisitMaxs copy(String newIndex) {
+        return new VisitMaxs(name, maxStack, maxLocals, newIndex);
     }
     
     public void toAsm(MethodVisitor mv) {
-        mv.visitMaxs(maxStack, maxLocals);
+        mv.visitMaxs(Naming.ignoredMaxsParameter,Naming.ignoredMaxsParameter);
     }
 }

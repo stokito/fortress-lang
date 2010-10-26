@@ -21,12 +21,16 @@ import org.objectweb.asm.util.*;
 
 public class VisitEnd extends Insn {
 
-    VisitEnd(String name) {
-        this.name = name;
+    VisitEnd(String name, String index) {
+        super(name,index);
     }
 
     public String toString() { 
         return name;
+    }
+
+    public VisitEnd copy(String newIndex) {
+        return new VisitEnd(name, newIndex);
     }
     
     public void toAsm(MethodVisitor mv) {

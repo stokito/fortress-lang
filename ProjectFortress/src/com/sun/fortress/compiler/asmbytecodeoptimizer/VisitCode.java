@@ -16,36 +16,37 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
+import com.sun.fortress.runtimeSystem.Naming;
+
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
-public class LocalVariable extends Insn {
-    String _name;
-    String desc;
-    String sig;
-    Label start;
-    Label end;
-    int _index;
 
-    LocalVariable(String name, String _name, String desc, String sig, Label start, Label end, int _index, String index) {
-        super(name, index);
-        this._name = _name;
-        this.desc = desc;
-        this.sig = sig;
-        this.start = start;
-        this.end = end;
-        this._index = _index;
+public class VisitCode extends Insn {
+
+    VisitCode(String index) {
+        super("VisitCode", index);
     }
 
-    public String toString() { 
-        return "LocalVariable" +  _name;
+    public String toString() {
+        return "VisitCode";
     }
 
-    public LocalVariable copy(String newIndex) {
-        return new LocalVariable(name, _name, desc, sig, start, end, _index, newIndex);
+    public VisitCode copy(String newIndex) {
+        return new VisitCode(index);
     }
-    
-    public void toAsm(MethodVisitor mv) { 
-        mv.visitLocalVariable(_name, desc, sig, start, end, _index);
+
+    public boolean matches(Insn i) { 
+        if (i instanceof VisitCode) {
+            System.out.println("We matched" + i);
+            return true; 
+        } else {
+            System.out.println("We didn't match " + i);
+            return false;
+        }
+    }
+
+    public void toAsm(MethodVisitor mv) {
+        mv.visitCode();
     }
 }

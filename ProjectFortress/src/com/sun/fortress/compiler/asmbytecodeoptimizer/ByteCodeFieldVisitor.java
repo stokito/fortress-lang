@@ -51,6 +51,9 @@ public class ByteCodeFieldVisitor implements FieldVisitor {
         cw.visitField(access, name, desc, sig, value);
     }
 
+    public void toAsm(CheckClassAdapter cca) {
+        cca.visitField(access, name, desc, sig, value);
+    }
 
     public void visitAttribute(Attribute attr) {
     }

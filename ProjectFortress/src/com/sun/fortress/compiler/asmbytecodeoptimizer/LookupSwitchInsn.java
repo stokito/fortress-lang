@@ -24,8 +24,8 @@ public class LookupSwitchInsn extends Insn {
     int[] keys;
     Label[] labels;
 
-    LookupSwitchInsn(String name, Label dflt, int[] keys, Label[] labels) {
-        this.name = name;
+    LookupSwitchInsn(String name, Label dflt, int[] keys, Label[] labels, String index) {
+        super(name,index);
         this.dflt = dflt;
         this.keys = keys;
         this.labels = labels;
@@ -33,6 +33,10 @@ public class LookupSwitchInsn extends Insn {
 
     public String toString() { 
         return "MethodInsn:" + name ;
+    }
+
+    public LookupSwitchInsn copy(String newIndex) {
+        return new LookupSwitchInsn(name, dflt, keys, labels, newIndex);
     }
     
     public void toAsm(MethodVisitor mv) { 
