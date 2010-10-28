@@ -162,6 +162,7 @@ run():() = do
   println(f("dummy",   o(tuSZZS)))
   println(f("dummy",   o(tuZSSZ)))
   println(f("dummy",   o(tuZSZS)))
+  println(f("dummy",   o(tuZZSS)))
 
   println(f("dummy",   o(tuSSSZ)))
   println(f("dummy",   o(tuSSZS)))
