@@ -4216,27 +4216,36 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                    new OverloadSet.Local(api_name, name,
                                          ta, fs, i);
 
-               os.split(true);
-
-               String s = name.stringName();
-               String s2 = NamingCzar.apiAndMethodToMethod(api_name, s);
-
-               os.generateAnOverloadDefinition(s2, cw);
-               if (cg != null) {
-                   /* Need to check if the overloaded function happens to match
-                    * a name in an API that this component exports; if so,
-                    * generate a forwarding wrapper from the
+               if (os.notGeneric()) {
+                   /*
+                    * Temporarily, do not generate code for generic
+                    * overloads.  Many of them are statically resolved,
+                    * and this includes the cases necessary for reduction.
                     */
-               }
+                   os.split(true);
 
-               for (Map.Entry<String, OverloadSet> o_entry : os.getOverloadSubsets().entrySet()) {
-                   String ss = o_entry.getKey();
-                   OverloadSet o_s = o_entry.getValue();
-                   ss = // s +
-                   ss + o_s.genericSchema;
-                   // Need to add Schema to the end of ss for generic overloads.
-                   // System.err.println("Adding "+s+" : "+ss);
-                   overloaded_names_and_sigs.add(ss);
+                   String s = name.stringName();
+                   String s2 = NamingCzar.apiAndMethodToMethod(api_name, s);
+
+                   os.generateAnOverloadDefinition(s2, cw);
+                   if (cg != null) {
+                       /* Need to check if the overloaded function happens to match
+                        * a name in an API that this component exports; if so,
+                        * generate a forwarding wrapper from the
+                        */
+                   }
+
+                   for (Map.Entry<String, OverloadSet> o_entry : os.getOverloadSubsets().entrySet()) {
+                       String ss = o_entry.getKey();
+                       OverloadSet o_s = o_entry.getValue();
+                       ss = // s +
+                           ss + o_s.genericSchema;
+                       // Need to add Schema to the end of ss for generic overloads.
+                       // System.err.println("Adding "+s+" : "+ss);
+                       overloaded_names_and_sigs.add(ss);
+                   }
+               } else {
+                   System.err.println("Punting on generic overload " + os);
                }
            }
         }

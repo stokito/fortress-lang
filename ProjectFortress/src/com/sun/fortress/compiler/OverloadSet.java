@@ -67,6 +67,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             this.tagA = a;
         }
 
+        public Function getF() {
+            return tagF;
+        }
+        
         public List<Param> tagParameters() {
             return tagF.parameters();
         }
@@ -1197,5 +1201,17 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
 
    }
+
+    public boolean notGeneric() {
+        // TODO Auto-generated method stub
+        for (TaggedFunctionName tfn: lessSpecificThanSoFar) {
+            Function f = tfn.getF();
+            List<StaticParam> lsp = f.staticParameters();
+            if (lsp.size() > 0)
+                return false;
+            
+        }
+        return true;
+    }
 
 }
