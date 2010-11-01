@@ -30,6 +30,9 @@ abstract public class Insn {
     String name;
     Object locals[];
     Object stack[];
+    static int inliningThreshold = getInliningThreshold();
+    String[] inliningHistory;
+    int inliningLevel;
 
     // Imagine a function foo which inlines bar which inlines baz which has a label and a goto
     // The indices are after the instruction in parenthesis.
@@ -54,6 +57,8 @@ abstract public class Insn {
     Insn(String name, String index) {
         this.name = name;
         this.index = index;
+        this.inliningHistory = index.split("\\.");
+        this.inliningLevel = this.inliningHistory.length;
     }
 
     public String toString() { 
@@ -61,6 +66,15 @@ abstract public class Insn {
             return "Expanded" + " ind = " + index + " " + name;
         else return name + " ind = " + index; 
     }
+
+    static int getInliningThreshold() {
+        String threshold = System.getenv("FORTRESS_INLINING_THRESHOLD");
+        if (threshold != null) 
+            return Integer.parseInt(threshold);
+        else
+            return 4;
+    }
+            
 
     public void setStack(Object stack[]) {this.stack = stack;}
     public void setLocals(Object locals[]) {this.locals = locals;}
@@ -70,7 +84,7 @@ abstract public class Insn {
     public abstract Insn copy(String index);
 
     public void toAsmWrapper(MethodVisitor mv) {
-        if (isExpanded()) {
+        if (isExpanded() && inliningLevel < inliningThreshold) {
             for (int i = 0; i < inlineExpansionInsns.size(); i++)
                 inlineExpansionInsns.get(i).toAsmWrapper(mv);
         } else {

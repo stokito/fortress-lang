@@ -90,11 +90,12 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         return "Method " + name + " desc = " + desc + " sig = " + sig;
     }
 
-    public void printInsns(List<Insn> instructions) {
+    public void printInsns(List<Insn> instructions, String header) {
         for (Insn i : instructions) {
-            if (i.isExpanded())
-                printInsns(i.inlineExpansionInsns);
-            else System.out.println(i.toString());
+            if (i.isExpanded()) {
+                System.out.println("This instruction was expanded: "+ i.toString());
+                printInsns(i.inlineExpansionInsns, header + "   ");
+            } else System.out.println(header + i.toString());
         }
     }
         
@@ -105,7 +106,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
             System.out.println("BCMV = " + this);
             System.out.println("Args = " + args);
             System.out.println("result = " + result);
-            printInsns(insns);
+            printInsns(insns, "");
         }
     }
 

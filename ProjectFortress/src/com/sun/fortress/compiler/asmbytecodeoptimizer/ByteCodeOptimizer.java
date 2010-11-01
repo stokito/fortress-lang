@@ -141,11 +141,7 @@ class ByteCodeOptimizer {
             AbstractInterpretation.optimize((String) pairs.getKey(), bcv);
             RemoveLiteralCoercions.optimize(bcv);
             Inlining.optimize(bcv);
-            // For Debugging
-            if (noisy) {
-                System.out.println("Debugging output starts here");
-                AbstractInterpretation.optimize((String) pairs.getKey(), bcv);
-            }
+            //            DefUseChains.optimize(bcv);
         }
     }
         
