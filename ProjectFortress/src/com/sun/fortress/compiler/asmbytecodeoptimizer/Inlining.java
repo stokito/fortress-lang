@@ -29,7 +29,18 @@ import org.objectweb.asm.util.*;
 
 public class Inlining {
 
-    private static boolean noisy = false;
+    private static boolean noisy = true;
+
+    public static void fixJumpInsns() {
+        Iterator it = InlinedJumpInsns.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pairs = (Map.Entry) it.next();
+            JumpInsn ji = (JumpInsn) pairs.getKey();
+            Label l = (Label) pairs.getValue();
+            LabelInsn newLabel = getLabel(l);
+            ji.label = newLabel.label;
+        }
+    }
 
     public static void optimize(ByteCodeVisitor bcv) {
         Iterator it = bcv.methodVisitors.entrySet().iterator();
@@ -38,7 +49,9 @@ public class Inlining {
             ByteCodeMethodVisitor bcmv = (ByteCodeMethodVisitor) pairs.getValue();
             String className = (String) pairs.getKey();
             InlinedMethodLabels = new HashMap();
+            InlinedJumpInsns = new HashMap();
             Inline(bcmv, className);
+            fixJumpInsns();
         }
     }
 
@@ -142,13 +155,19 @@ public class Inlining {
     }
 
     static HashMap InlinedMethodLabels;
+    static HashMap InlinedJumpInsns;
 
-    static void addLabel(Label label, LabelInsn labelInsn) {
-        InlinedMethodLabels.put(label, labelInsn);
+    static void addLabel(Label label, LabelInsn labelInsn) { 
+        InlinedMethodLabels.put(label, labelInsn); 
     }
 
-    static LabelInsn getLabel(Label label) {
-        return (LabelInsn) InlinedMethodLabels.get(label);
+    static LabelInsn getLabel(Label label) { 
+        LabelInsn result = (LabelInsn) InlinedMethodLabels.get(label); 
+        return result; 
+    }
+
+    static void addJump(JumpInsn JumpInsn, Label label) {
+        InlinedJumpInsns.put(JumpInsn, label);
     }
 
     static String newIndex(MethodInsn mi, int index) { return mi.index + "." + index;}
@@ -156,7 +175,6 @@ public class Inlining {
     public static List<Insn> convertInsns(MethodInsn mi, List<Insn> insns, int[] args, int _index) {
         List<Insn> result = new ArrayList<Insn>();
         int index = _index;
-
         for (Insn i : insns) {
             if (i instanceof LabelInsn) {
                 LabelInsn oldLabelInsn = (LabelInsn) i;
@@ -166,11 +184,10 @@ public class Inlining {
                 result.add(newLabelInsn);
             } else if (i instanceof JumpInsn)  {
                 JumpInsn oldJumpInsn = (JumpInsn) i; 
-                LabelInsn newJumpLabelInsn = getLabel(oldJumpInsn.label);
-
                 JumpInsn newJumpInsn = 
-                    new JumpInsn("InlinedJumpInsn", oldJumpInsn.opcode, 
-                                 newJumpLabelInsn.label, newIndex(mi,index++));
+                    new JumpInsn(oldJumpInsn.name, oldJumpInsn.opcode, 
+                                 oldJumpInsn.label, newIndex(mi,index++));
+                addJump(newJumpInsn, oldJumpInsn.label);
                 result.add(newJumpInsn);
             } else if (i instanceof VisitLineNumberInsn) {
                 VisitLineNumberInsn oldVisitLineNumberInsn = (VisitLineNumberInsn) i;
@@ -192,7 +209,7 @@ public class Inlining {
                                           oldLocalVariableInsn.sig,
                                           oldStartLabel.label,
                                           oldEndLabel.label,
-                                          oldLocalVariableInsn._index,
+                                          args[oldLocalVariableInsn._index],
                                           newIndex(mi, index++));
                 result.add(newLocalVariableInsn);
                 
@@ -248,6 +265,7 @@ public class Inlining {
         Label start = new Label();
         Label end = new Label();
         int argsStart = methodToInline.args.size();
+        int localsStart = methodToInline.maxLocals;
         int index = 0;
         insns.add(new LabelInsn("start_"+ mi._name, start, newIndex(mi, index++)));
         int[] offsets = new int[methodToInline.maxLocals + 1];
@@ -261,10 +279,14 @@ public class Inlining {
             offsets[i] = method.maxLocals + i;
         }
 
+        for (int i = localsStart-1; i > argsStart; i--)
+            offsets[i] = method.maxLocals+i;
+
         method.maxStack = java.lang.Math.max(method.maxStack, methodToInline.maxStack);
         method.maxLocals = method.maxLocals + methodToInline.args.size();
 
         insns.addAll(convertInsns(mi, methodToInline.insns, offsets, index));
+
         insns.add(new LabelInsn("end_" + mi._name, end, newIndex(mi, insns.size())));
 
         for (Insn insn : insns) {
@@ -273,7 +295,6 @@ public class Inlining {
 
 
         mi.inlineExpansionInsns.addAll(insns);
-        printMethod(method, "afterInlining");        
     }
                 
     public static void Inline(ByteCodeMethodVisitor bcmv, String className) {

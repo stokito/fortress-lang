@@ -15,20 +15,10 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component InliningTest5
+component InliningTest11
 export Executable
 
-
 run(): () = do
-       a = 1.0
-       b = 2.0
-       c = 3.0
-       d = 4.0
-       e = 5.0
-       if |a - b| <= |c| d OR: e < c then                 
-         println("true")
-      else
-        println("false")
-      end
+   z:RR64 = 7.0^2
 end
 end
