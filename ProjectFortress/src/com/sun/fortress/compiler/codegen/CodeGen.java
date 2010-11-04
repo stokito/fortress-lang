@@ -4216,7 +4216,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                    new OverloadSet.Local(api_name, name,
                                          ta, fs, i);
 
-               if (os.notGeneric()) {
+               if (true || os.notGeneric()) {
                    /*
                     * Temporarily, do not generate code for generic
                     * overloads.  Many of them are statically resolved,
@@ -4246,6 +4246,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                    }
                } else {
                    System.err.println("Punting on generic overload " + os);
+                   os.split(true);
+
                }
            }
         }
