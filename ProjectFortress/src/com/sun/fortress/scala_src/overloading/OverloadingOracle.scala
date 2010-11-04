@@ -64,6 +64,17 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
     val gd = sa.makeDomainFromArrow(ga)
     sa.subtypeED(fd, gd)
   }
+  
+  // Checks when f is more specific than g in a particular parameter.
+  // drc, trying to figure out Scala
+  def getParamType(f: Functional, i:Int): Type = {
+    val fa = makeArrowFromFunctional(f).get
+    val fd = sa.makeDomainFromArrow(fa)
+    val fp = sa.makeParamFromDomain(fd, i)
+    // Watch out, do we need to strip self type?
+    fp
+  }
+  
   // Checks the return type rule
   def typeSafe(f: Functional, g: Functional): Boolean = {
     if(!lteq(f, g))

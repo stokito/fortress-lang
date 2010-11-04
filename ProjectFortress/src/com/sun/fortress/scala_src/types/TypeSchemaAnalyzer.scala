@@ -58,6 +58,13 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     insertStaticParams(a.getDomain, getStaticParams(a))
   }
   
+  def makeParamFromDomain(t: Type, i:Int): Type = t match {
+      case (u:TupleType) =>
+          insertStaticParams(u.getElements.get(i), getStaticParams(t));
+      case _ =>
+          t
+  }
+  
   // Subtyping on universal arrows
   def subtypeUA(s: ArrowType, t: ArrowType): Boolean =
     subUA(normalizeUA(alphaRenameTypeSchema(s).asInstanceOf[ArrowType]),

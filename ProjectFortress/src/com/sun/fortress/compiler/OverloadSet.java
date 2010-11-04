@@ -32,6 +32,7 @@ import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.scala_src.overloading.OverloadingOracle;
 import com.sun.fortress.scala_src.typechecker.Formula;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
+import com.sun.fortress.scala_src.types.TypeSchemaAnalyzer;
 import com.sun.fortress.compiler.phases.CodeGenerationPhase;
 import com.sun.fortress.exceptions.InterpreterBug;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -272,7 +273,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     public void split(boolean computeSubsets) {
         /* First determine if there are any overload subsets.
-           This matters because it may affect naming of the leaf (single) functions.
+           This matters because it may affect naming
+           of the leaf (single) functions.
         */
         if (computeSubsets) {
             for (TaggedFunctionName f : lessSpecificThanSoFar) {
@@ -301,7 +303,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                          * specific than f; identify those, and create that
                          * subset.
                          */
-                        HashSet<TaggedFunctionName> subLSTSF = new HashSet<TaggedFunctionName>();
+                        HashSet<TaggedFunctionName> subLSTSF =
+                            new HashSet<TaggedFunctionName>();
                         subLSTSF.add(f);
                         for (TaggedFunctionName g : lessSpecificThanSoFar) {
                             if (!(f == g)) {
@@ -313,7 +316,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         OverloadSet subset = makeSubset(subLSTSF, f);
                         subset.overloadSubsets = overloadSubsets;
 
-                        overloadSubsets.put(name.stringName()+jvmSignatureFor(f), subset);
+                        overloadSubsets.put(
+                                name.stringName()+jvmSignatureFor(f), subset);
                     }
                 }
             }
@@ -328,7 +332,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
 
         if (principalMember != null)
-            overloadSubsets.put(name.stringName()+jvmSignatureFor(principalMember), this);
+            overloadSubsets.put(
+                    name.stringName()+jvmSignatureFor(principalMember), this);
 
         /* Split set into dispatch tree. */
         splitInternal();
@@ -356,23 +361,35 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
             List<Param> parameters = f.tagParameters();
-            int i = 0;
-            for (Param p : parameters) {
+            
+            for (int i = 0; i < parameters.size(); i++) {
                 if (testedIndices.contains(i)) {
-                    i++;
                     continue;
                 }
-                Option<TypeOrPattern> ot = p.getIdType();
-                Option<Type> ovt = p.getVarargsType();
-                if (ovt.isSome()) {
-                    bug("Not ready to handle compilation of overloaded varargs yet, function is " + f);
-                }
-                if (ot.isNone() || ot.unwrap() instanceof Pattern) {
-                    bug("Missing type for parameter " + i + " of " + f);
-                }
-                Type t = (Type)ot.unwrap();
-                typeSets[i++].putItem(t, f);
+                Function eff = f.getF();
+                Type t = oa.getParamType(eff,i);
+                typeSets[i].putItem(t, f);
+
             }
+            
+//            int i = 0;
+//            for (Param p : parameters) {
+//                if (testedIndices.contains(i)) {
+//                    i++;
+//                    continue;
+//                }
+//                Option<TypeOrPattern> ot = p.getIdType();
+//                Option<Type> ovt = p.getVarargsType();
+//                if (ovt.isSome()) {
+//                    bug("Not ready to handle compilation of overloaded " +
+//                            "varargs yet, function is " + f);
+//                }
+//                if (ot.isNone() || ot.unwrap() instanceof Pattern) {
+//                    bug("Missing type for parameter " + i + " of " + f);
+//                }
+//                Type t = (Type)ot.unwrap();
+//                typeSets[i++].putItem(t, f);
+//            }
         }
 
         // Choose parameter index with greatest variation.
@@ -442,14 +459,16 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         // fill in children.
         for (i = 0; i < specificFirst.size(); i++) {
             Type t = specificFirst.get(i).x;
-            Set<TaggedFunctionName> childLSTSF = new HashSet<TaggedFunctionName>();
+            Set<TaggedFunctionName> childLSTSF =
+                new HashSet<TaggedFunctionName>();
 
             for (TaggedFunctionName f : lessSpecificThanSoFar) {
-                List<Param> parameters = f.tagParameters();
-                Param p = parameters.get(dispatchParameterIndex);
-                if (! (p.getIdType().unwrap() instanceof Type))
-                    bug("Type is expected: " + p.getIdType().unwrap());
-                Type pt = (Type)p.getIdType().unwrap();
+//                List<Param> parameters = f.tagParameters();
+//                Param p = parameters.get(dispatchParameterIndex);
+//                if (! (p.getIdType().unwrap() instanceof Type))
+//                    bug("Type is expected: " + p.getIdType().unwrap());
+//                Type pt = (Type)p.getIdType().unwrap();
+                Type pt = oa.getParamType(f.getF(),dispatchParameterIndex);
                 if (tweakedSubtypeTest(ta, t, pt)) {
                     childLSTSF.add(f);
                 }
@@ -811,7 +830,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     private static boolean tweakedSubtypeTest(TypeAnalyzer ta, com.sun.fortress.nodes.Type sub_type, Type super_type ) {
         sub_type = normalizeSelfType(sub_type);
         super_type = normalizeSelfType(super_type);
-        return Formula.isTrue(ta.subtype(sub_type, super_type), ta);
+        TypeSchemaAnalyzer tsa = new TypeSchemaAnalyzer(ta);
+        return tsa.subtypeED(sub_type, super_type);
+        // return Formula.isTrue(ta.subtype(sub_type, super_type), ta);
     }
 
     /**
