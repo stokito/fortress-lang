@@ -33,8 +33,6 @@
 	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbytools.jar"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/register.jar"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/junit/junit_src.jar"/>
-	<classpathentry kind="lib" path="ProjectFortress/third_party/scala/scala-compiler-2.8.0.jar"/>
-	<classpathentry kind="lib" path="ProjectFortress/third_party/scala/scala-library-2.8.0.jar"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/xtc/xtc_src.jar"/>
 	<classpathentry kind="output" path="ProjectFortress/build"/>
 </classpath>
