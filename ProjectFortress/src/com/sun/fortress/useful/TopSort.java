@@ -72,11 +72,11 @@ public class TopSort {
         return sorted;
     }
 
-    public static <T extends TopSortItem<T>> List<T> depthFirst(T[] unsorted) {
+    public static <T extends TopSortItem<T>> List<T> depthFirstArray(T[] unsorted) {
         return TopSort.<T>depthFirst(Useful.<T>list(unsorted));
     }
 
-    public static <T extends TopSortItem<T>> List<T> breadthFirst(T[] unsorted) {
+    public static <T extends TopSortItem<T>> List<T> breadthFirstArray(T[] unsorted) {
         return TopSort.<T>breadthFirst(Useful.<T>list(unsorted));
     }
 
