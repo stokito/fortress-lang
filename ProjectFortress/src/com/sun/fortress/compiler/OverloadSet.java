@@ -453,7 +453,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             }
         }
 
-        List<TopSortItemImpl<Type>> specificFirst = TopSort.depthFirst(potypes);
+        List<TopSortItemImpl<Type>> specificFirst = TopSort.depthFirstArray(potypes);
         children = new OverloadSet[specificFirst.size()];
 
         // fill in children.
