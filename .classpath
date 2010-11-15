@@ -32,7 +32,5 @@
 	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyrun.jar"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbytools.jar"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/register.jar"/>
-	<classpathentry kind="lib" path="ProjectFortress/third_party/junit/junit_src.jar"/>
-	<classpathentry kind="lib" path="ProjectFortress/third_party/xtc/xtc_src.jar"/>
 	<classpathentry kind="output" path="ProjectFortress/build"/>
 </classpath>
