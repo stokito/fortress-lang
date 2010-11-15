@@ -178,7 +178,7 @@ public class MacPortsHelper {
                 }
             }
 
-            List<TopSortItemImpl<String>> ordered = TopSort.depthFirst(table
+            List<TopSortItemImpl<String>> ordered = TopSort.<TopSortItemImpl<String>>depthFirst(table
                     .values());
             for (TopSortItemImpl i : ordered) {
                 System.out.println(i.x);
