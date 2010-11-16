@@ -107,7 +107,6 @@ public class ClosureMaker implements Opcodes {
 
         ClassWriter cw = new ClassWriter(0);
         MethodVisitor mv;
-        AnnotationVisitor av0;
 
         cw.visit(V1_5, ACC_PUBLIC + ACC_SUPER, closureClass, null, nativeHelper, null);
 

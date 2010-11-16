@@ -539,10 +539,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String mname;
         String sig;
         if (static_parameters.size() > 0) {
-            List<Param> lp = fnl.parameters();
-            Option<Type> ot = fnl.getReturnType();
-            
-            // mname = genericMethodName(name, typeAndParamsToArrow(NodeUtil.getSpan(name), ot.unwrap(), lp));
             mname = genericMethodName(fnl, selfIndex);
             sig = genericMethodClosureFinderSig;
             arity = 3; // Magic number
@@ -1573,11 +1569,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         initializedStaticFields_TO.add(new InitializedStaticField() {
 
             @Override
-            public void forClinit(MethodVisitor mv) {
-                mv.visitTypeInsn(NEW, table_type);
-                mv.visitInsn(DUP);
-                mv.visitMethodInsn(INVOKESPECIAL, table_type, "<init>", "()V");
-                mv.visitFieldInsn(PUTSTATIC, class_file, table_name, "L"+table_type+";");                
+            public void forClinit(MethodVisitor my_mv) {
+                my_mv.visitTypeInsn(NEW, table_type);
+                my_mv.visitInsn(DUP);
+                my_mv.visitMethodInsn(INVOKESPECIAL, table_type, "<init>", "()V");
+                my_mv.visitFieldInsn(PUTSTATIC, class_file, table_name, "L"+table_type+";");                
             }
 
             @Override
@@ -2624,7 +2620,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Option<MethodInfo> omi = ((ArrowType) arrow).getMethodInfo();
             if (omi.isSome()) {
                 MethodInfo mi = omi.unwrap();
-                int self_i = mi.getSelfPosition();
+                // int self_i = mi.getSelfPosition();
                 Type self_t = mi.getSelfType();
                 if (self_t instanceof TraitSelfType)
                     self_t = ((TraitSelfType)self_t).getNamed();

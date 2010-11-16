@@ -221,8 +221,8 @@ public final class MagicNumbers {
         long xx = array[ls * ls & 1023];
         xx = xx ^ (xx << 29);
         int ff = array[ls & 1023]; // Depends on array being large enough
-        for (int i = 0; i < ls; i++) {
-            int hh = s.charAt(i) * array[i];
+        for (int ii = 0; ii < ls; ii++) {
+            int hh = s.charAt(ii) * array[ii];
             xx = hashStepLong(xx, ff, hh);
         }
         xx = hashStepLong(xx, ff, ls);
@@ -232,8 +232,8 @@ public final class MagicNumbers {
 
     public static void  main(String[] args) {
         String ss[] = { "", "a", "b", "c", "A", "aa", "aaa", "aaaa", "aaaaa", "bbbbb", "bbbbbb", "bbbbbbb", "bbbbbbbb"};
-        for (int i = 0; i < ss.length; i++) {
-            String s = ss[i];
+        for (int ii = 0; ii < ss.length; ii++) {
+            String s = ss[ii];
             long l = MagicNumbers.hashStringLong(s);
             System.err.println(s + " " + l);
         }

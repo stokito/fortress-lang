@@ -269,7 +269,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @param principalMember
      * @return
      */
-    abstract protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName principalMember);
+    abstract protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName _principalMember);
 
     public void split(boolean computeSubsets) {
         /* First determine if there are any overload subsets.
@@ -1020,21 +1020,21 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         return name; // no mangling after all.
     }
 
-    public void generateAnOverloadDefinition(String name, CodeGenClassWriter cv) {
+    public void generateAnOverloadDefinition(String _name, CodeGenClassWriter cv) {
         // System.err.println("Generating "+ name + "\n" +
         //                    "    principalMember "+ principalMember + "\n" + this.toStringR("   "));
-        generateAnOverloadDefinitionInner(name, cv);
+        generateAnOverloadDefinitionInner(_name, cv);
 
         for (Map.Entry<String, OverloadSet> o_entry : getOverloadSubsets().entrySet()) {
             String ss = o_entry.getKey();
             OverloadSet sos = o_entry.getValue();
             if (sos != this) {
-                sos.generateAnOverloadDefinitionInner(name, cv);
+                sos.generateAnOverloadDefinitionInner(_name, cv);
             }
         }
     }
 
-    private void generateAnOverloadDefinitionInner(String name, CodeGenClassWriter cv) {
+    private void generateAnOverloadDefinitionInner(String _name, CodeGenClassWriter cv) {
 
         // "(" anOverloadedArg^N ")" returnType
         // Not sure what to do with return type.
@@ -1056,11 +1056,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         //String astr = (sargs==null)? "" : Useful.listInOxfords(sargs);
         // System.err.println(astr + signature + tstr);
         if (CodeGenerationPhase.debugOverloading)
-            System.err.println("Emitting overload " + name + signature);
+            System.err.println("Emitting overload " + _name + signature);
 
         String PCNOuter = null;
         Pair<String, List<Pair<String, String>>> pslpss = null; 
-        String overloaded_name = oMangle(name);
+        String overloaded_name = oMangle(_name);
         
         if (sargs != null) {
             // Map<String, String> xlation = new HashMap<String, String>();
@@ -1087,10 +1087,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             // that we generate the expected closure class rather than
             // a top-level method.
             String PCN =
-                Naming.genericFunctionPkgClass(packageAndClassName, name,
+                Naming.genericFunctionPkgClass(packageAndClassName, _name,
                                                    sparamsType, genericArrowType);
             PCNOuter =
-                Naming.genericFunctionPkgClass(packageAndClassName, name,
+                Naming.genericFunctionPkgClass(packageAndClassName, _name,
                                                    Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD,
                                                    genericArrowType);
             // System.err.println("Looks generic.\n    signature " + signature +
@@ -1201,9 +1201,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     childTestedIndices, this, t, paramCount);
         }
 
-        protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName principalMember) {
+        protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName _principalMember) {
             OverloadSet subset = new AmongApis(ifNone, name, ta, childLSTSF, paramCount);
-            subset.principalMember = principalMember;
+            subset.principalMember = _principalMember;
             return subset;
         }
 

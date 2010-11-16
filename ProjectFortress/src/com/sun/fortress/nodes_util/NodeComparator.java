@@ -320,7 +320,7 @@ public class NodeComparator {
     }
 
     static int compare(IntArg left, IntArg right) {
-	return subtypeCompareTo(left.getIntVal(), left.getIntVal());
+	return subtypeCompareTo(left.getIntVal(), right.getIntVal());
     }
 
     static int subtypeCompareTo(IntExpr left, IntExpr right) {

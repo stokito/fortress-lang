@@ -107,6 +107,7 @@ public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper {
         assertEquals(n, screwsMap.size());
         for (int i = 0; i < screws.length; i++) {
             boolean b = screwsMap.containsKey(screws[i]);
+            Useful.use(b);
             assertEquals(Integer.valueOf(i), screwsMap.get(screws[i]));
         }
         for (int i = 0; i < animals.length; i++) {
@@ -131,10 +132,12 @@ public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper {
         assertEquals(n, bothMap.size());
         for (int i = 0; i < animals.length; i++) {
             boolean b = bothMap.containsKey(animals[i]);
+            Useful.use(b);
             assertEquals(Integer.valueOf(i), bothMap.get(animals[i]));
         }
         for (int i = 0; i < screws.length; i++) {
             boolean b = bothMap.containsKey(screws[i]);
+            Useful.use(b);
             assertEquals(Integer.valueOf(i), bothMap.get(screws[i]));
         }
         assertEquals(bothMap, bothMap);
@@ -151,6 +154,7 @@ public class TrieMapJUTest extends com.sun.fortress.useful.TestCaseWrapper {
         assertEquals(n, animalsMap.size());
         for (int i = 0; i < animals.length; i++) {
             boolean b = animalsMap.containsKey(animals[i]);
+            Useful.use(b);
             assertEquals(Integer.valueOf(i), animalsMap.get(animals[i]));
         }
         for (int i = 0; i < screws.length; i++) {

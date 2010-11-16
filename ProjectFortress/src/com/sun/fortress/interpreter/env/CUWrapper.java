@@ -127,9 +127,9 @@ public class CUWrapper {
             e.setTopLevel();
             be = (comp.is_native() ? new BuildNativeEnvironment(e, linker) : new BuildTopLevelEnvironments(e, linker));
             List<APIName> component_exports = comp.getExports();
-            for (APIName exp : component_exports) {
-                // TODO work in progress, this might not be the best place
-            }
+//            for (APIName exp : component_exports) {
+//                // TODO work in progress, this might not be the best place
+//            }
 
         }
         catch (IOException ex) {

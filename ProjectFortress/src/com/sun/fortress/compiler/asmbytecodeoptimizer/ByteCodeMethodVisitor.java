@@ -150,8 +150,8 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         addInsn(new TypeInsn(OPCODES[opcode], opcode, type, Integer.toString(index++)));
     }
 
-    public void visitFieldInsn(int opcode, String owner, String name, String desc) {
-        addInsn(new FieldInsn(OPCODES[opcode], opcode, owner, name, desc, Integer.toString(index++)));
+    public void visitFieldInsn(int opcode, String owner, String _name, String desc) {
+        addInsn(new FieldInsn(OPCODES[opcode], opcode, owner, _name, desc, Integer.toString(index++)));
     }
 
     public void visitJumpInsn(int opcode, Label label) {
@@ -188,16 +188,16 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         addInsn(new NotYetImplementedInsn("visitTryCatchBlock", Integer.toString(index++)));
     }
 
-    public void visitLocalVariable(String name, String desc, String sig, Label start, Label end, int _index) {
-        addInsn(new LocalVariableInsn("visitLocalVariable", name, desc, sig, start, end, _index, Integer.toString(index++)));
+    public void visitLocalVariable(String _name, String desc, String sig, Label start, Label end, int _index) {
+        addInsn(new LocalVariableInsn("visitLocalVariable", _name, desc, sig, start, end, _index, Integer.toString(index++)));
     }
 
-    public void visitMultiANewArrayInsn(String name, int i) {
+    public void visitMultiANewArrayInsn(String _name, int i) {
         addInsn(new NotYetImplementedInsn("visitMultiANewArrayInsn", Integer.toString(index++)));
     }
 
-    public void visitMethodInsn(int opcode, String owner, String name, String desc) {
-        addInsn(new MethodInsn(OPCODES[opcode], opcode, owner, name, desc, Integer.toString(index++)));
+    public void visitMethodInsn(int opcode, String owner, String _name, String desc) {
+        addInsn(new MethodInsn(OPCODES[opcode], opcode, owner, _name, desc, Integer.toString(index++)));
     }
 
     public void visitLineNumber(int line, Label start) {

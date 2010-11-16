@@ -94,7 +94,7 @@ public class ReflectGenericArrow extends Reflect {
                 bug("Duplicate NativeApp.init call.");
             }
             this.a = app;
-            int aty = NodeUtil.getParams(app).size();
+            // int aty = NodeUtil.getParams(app).size();
             if (NodeUtil.getReturnType(app) == null || NodeUtil.getReturnType(app).isNone()) {
                 error(app, "Please specify a Fortress return type.");
             }

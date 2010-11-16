@@ -56,35 +56,35 @@ public class ManglingMethodVisitor extends MethodAdapter {
 
 
     @Override
-    public void visitFieldInsn(int opcode, String owner, String name,
+    public void visitFieldInsn(int opcode, String owner, String _name,
             String desc) {
 
         owner = Naming.mangleFortressIdentifier(owner);
-        name = Naming.mangleMemberName(name);
+        _name = Naming.mangleMemberName(_name);
         desc = Naming.mangleFortressDescriptor(desc);
 
-        super.visitFieldInsn(opcode, owner, name, desc);
+        super.visitFieldInsn(opcode, owner, _name, desc);
     }
 
     @Override
-    public void visitLocalVariable(String name, String desc, String signature,
+    public void visitLocalVariable(String _name, String desc, String signature,
             Label start, Label end, int index) {
 
         signature = Naming.mangleFortressIdentifier(signature);
-        name = Naming.mangleMemberName(name);
+        _name = Naming.mangleMemberName(_name);
         desc = Naming.mangleFortressDescriptor(desc);
 
-        super.visitLocalVariable(name, desc, signature, start, end, index);
+        super.visitLocalVariable(_name, desc, signature, start, end, index);
     }
 
     @Override
-    public void visitMethodInsn(int opcode, String owner, String name,
+    public void visitMethodInsn(int opcode, String owner, String _name,
             String desc) {
         owner = Naming.mangleFortressIdentifier(owner);
-        name = Naming.mangleMemberName(name);
+        _name = Naming.mangleMemberName(_name);
         desc = Naming.mangleMethodSignature(desc);
 
-        super.visitMethodInsn(opcode, owner, name, desc);
+        super.visitMethodInsn(opcode, owner, _name, desc);
     }
 
     @Override

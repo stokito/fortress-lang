@@ -98,10 +98,10 @@ class ByteCodeVisitor implements ClassVisitor {
 
         
 
-    public void visit(int version, int access, String name, String sig, String superName, String[] interfaces) {
+    public void visit(int version, int access, String _name, String sig, String superName, String[] interfaces) {
         this.version = version;
         this.access = access;
-        this.name = name;
+        this.name = _name;
         this.sig = sig;
         this.superName = superName;
         this.interfaces = interfaces;
@@ -111,21 +111,21 @@ class ByteCodeVisitor implements ClassVisitor {
         //this.sourceFile = file;
     }
 
-    public void visitOuterClass(String owner, String name, String desc) {
+    public void visitOuterClass(String owner, String _name, String desc) {
     }
 
-    public void visitInnerClass(String name, String outerName, String innerName, int access) {
+    public void visitInnerClass(String _name, String outerName, String innerName, int access) {
     }
 
-    public FieldVisitor visitField(int access, String name, String desc, String sig, Object value) {
-        ByteCodeFieldVisitor bcfv = new ByteCodeFieldVisitor(access, name, desc, sig, value);
-        fieldVisitors.put(name, bcfv);
+    public FieldVisitor visitField(int access, String _name, String desc, String sig, Object value) {
+        ByteCodeFieldVisitor bcfv = new ByteCodeFieldVisitor(access, _name, desc, sig, value);
+        fieldVisitors.put(_name, bcfv);
         return bcfv;
     }
 
-    public MethodVisitor visitMethod(int access, String name, String desc, String sig, String[] exceptions) {
-        ByteCodeMethodVisitor bcmv = new ByteCodeMethodVisitor(access, name, desc, sig, exceptions);
-        methodVisitors.put(name + desc, bcmv);
+    public MethodVisitor visitMethod(int access, String _name, String desc, String sig, String[] exceptions) {
+        ByteCodeMethodVisitor bcmv = new ByteCodeMethodVisitor(access, _name, desc, sig, exceptions);
+        methodVisitors.put(_name + desc, bcmv);
         bcmv.print();
         return bcmv;
     }

@@ -119,8 +119,8 @@ public final class FibTests {
         RecursiveTaskFib() { this.n = 0; }
         public boolean isSeq() { return false; }
         public String toString() { return "RT"; }
-        public long fib(long n) {
-            return pool.invoke(new RecursiveTaskFib(n));
+        public long fib(long nn) {
+            return pool.invoke(new RecursiveTaskFib(nn));
         }
         public Long compute() {
             if (n <= 1) return n;
@@ -138,8 +138,8 @@ public final class FibTests {
         RTNonFinal() { this.n = 0; }
         public boolean isSeq() { return false; }
         public String toString() { return "RTNonFinal"; }
-        public long fib(long n) {
-            return pool.invoke(new RTNonFinal(n));
+        public long fib(long nn) {
+            return pool.invoke(new RTNonFinal(nn));
         }
         public Long compute() {
             if (n <= 1) return n;
@@ -157,8 +157,8 @@ public final class FibTests {
         Boxed() { this.n = null; }
         public boolean isSeq() { return false; }
         public String toString() { return "Boxed"; }
-        public long fib(long n) {
-            return pool.invoke(new Boxed(n));
+        public long fib(long nn) {
+            return pool.invoke(new Boxed(nn));
         }
         public Long compute() {
             if (n <= 1) return n;
@@ -198,8 +198,8 @@ public final class FibTests {
         Unboxed() { this.n = 0; }
         public boolean isSeq() { return false; }
         public String toString() { return "Unboxed"; }
-        public long fib(long n) {
-            Unboxed t = new Unboxed(n);
+        public long fib(long nn) {
+            Unboxed t = new Unboxed(nn);
             pool.invoke(t);
             return t.result;
         }
@@ -222,8 +222,8 @@ public final class FibTests {
         BoxedBoxed() { this.n = null; }
         public boolean isSeq() { return false; }
         public String toString() { return "BoxedBoxed"; }
-        public long fib(long n) {
-            BoxedBoxed t = new BoxedBoxed(n);
+        public long fib(long nn) {
+            BoxedBoxed t = new BoxedBoxed(nn);
             pool.invoke(t);
             return t.result;
         }
@@ -249,8 +249,8 @@ public final class FibTests {
         UnboxedMutual() { this.n = 0; }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedMutual"; }
-        public long fib(long n) {
-            UnboxedMutual t = new UnboxedMutual(n);
+        public long fib(long nn) {
+            UnboxedMutual t = new UnboxedMutual(nn);
             pool.invoke(t);
             return t.result;
         }
@@ -277,8 +277,8 @@ public final class FibTests {
         UnboxedLastInline() { this.n = 0; }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedLastInline"; }
-        public long fib(long n) {
-            UnboxedLastInline t = new UnboxedLastInline(n);
+        public long fib(long nn) {
+            UnboxedLastInline t = new UnboxedLastInline(nn);
             pool.invoke(t);
             return t.result;
         }
@@ -303,8 +303,8 @@ public final class FibTests {
         UnboxedInlineDotted() { this.n = 0; }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedInlineDotted"; }
-        public long fib(long n) {
-            UnboxedInlineDotted t = new UnboxedInlineDotted(n);
+        public long fib(long nn) {
+            UnboxedInlineDotted t = new UnboxedInlineDotted(nn);
             pool.invoke(t);
             return t.result;
         }
@@ -337,8 +337,8 @@ public final class FibTests {
         UnboxedHonest() { this.n = 0; }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedHonest"; }
-        public long fib(long n) {
-            UnboxedHonest t = new UnboxedHonest(n+1);
+        public long fib(long nn) {
+            UnboxedHonest t = new UnboxedHonest(nn+1);
             pool.invoke(t);
             return t.result;
         }
@@ -366,8 +366,8 @@ public final class FibTests {
         UnboxedDeeperInline() { this.n = 0; }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedDeeperInline"; }
-        public long fib(long n) {
-            UnboxedDeeperInline t = new UnboxedDeeperInline(n);
+        public long fib(long nn) {
+            UnboxedDeeperInline t = new UnboxedDeeperInline(nn);
             pool.invoke(t);
             return t.result;
         }
@@ -392,8 +392,8 @@ public final class FibTests {
         UnboxedDeepHonest() { this.n = 0; }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedDeepHonest"; }
-        public long fib(long n) {
-            UnboxedDeepHonest t = new UnboxedDeepHonest(n+2);
+        public long fib(long nn) {
+            UnboxedDeepHonest t = new UnboxedDeepHonest(nn+2);
             pool.invoke(t);
             return t.result;
         }
@@ -418,8 +418,8 @@ public final class FibTests {
         UnboxedDeepHonHelp() { this.n = 0; }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedDeepHonHelp"; }
-        public long fib(long n) {
-            UnboxedDeepHonHelp t = new UnboxedDeepHonHelp(n+2);
+        public long fib(long nn) {
+            UnboxedDeepHonHelp t = new UnboxedDeepHonHelp(nn+2);
             pool.invoke(t);
             return t.result;
         }
@@ -445,8 +445,8 @@ public final class FibTests {
         UnboxedHonHelp() { this.n = 0; }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedHonHelp"; }
-        public long fib(long n) {
-            UnboxedHonHelp t = new UnboxedHonHelp(n+1);
+        public long fib(long nn) {
+            UnboxedHonHelp t = new UnboxedHonHelp(nn+1);
             pool.invoke(t);
             return t.result;
         }
@@ -471,8 +471,8 @@ public final class FibTests {
         UnboxedDeepUnfork() { this.n = 0; }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedDeepUnfork"; }
-        public long fib(long n) {
-            UnboxedDeepUnfork t = new UnboxedDeepUnfork(n+2);
+        public long fib(long nn) {
+            UnboxedDeepUnfork t = new UnboxedDeepUnfork(nn+2);
             pool.invoke(t);
             return t.result;
         }
@@ -507,8 +507,8 @@ public final class FibTests {
         public long getResult() { this.join(); return this.result; }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedDUnforkMeth"; }
-        public long fib(long n) {
-            UnboxedDUnforkMeth t = new UnboxedDUnforkMeth(n+2);
+        public long fib(long nn) {
+            UnboxedDUnforkMeth t = new UnboxedDUnforkMeth(nn+2);
             pool.invoke(t);
             return t.result;
         }
@@ -534,8 +534,8 @@ public final class FibTests {
         UnboxedDUnforkCompute() { this.n = 0; }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedDUnforkCompute"; }
-        public long fib(long n) {
-            UnboxedDUnforkCompute t = new UnboxedDUnforkCompute(n+2);
+        public long fib(long nn) {
+            UnboxedDUnforkCompute t = new UnboxedDUnforkCompute(nn+2);
             pool.invoke(t);
             return t.result;
         }
@@ -564,8 +564,8 @@ public final class FibTests {
         UnboxedUnforkWork() { this.n = 0; }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedUnforkWork"; }
-        public long fib(long n) {
-            UnboxedUnforkWork t = new UnboxedUnforkWork(n+2);
+        public long fib(long nn) {
+            UnboxedUnforkWork t = new UnboxedUnforkWork(nn+2);
             pool.invoke(t);
             return t.result;
         }
@@ -604,8 +604,8 @@ public final class FibTests {
         }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedDUnforkFactory"; }
-        public long fib(long n) {
-            UnboxedDUnforkFactory t = new UnboxedDUnforkFactory(n+2);
+        public long fib(long nn) {
+            UnboxedDUnforkFactory t = new UnboxedDUnforkFactory(nn+2);
             pool.invoke(t);
             return t.result;
         }
@@ -640,8 +640,8 @@ public final class FibTests {
         }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedDUnforkNull"; }
-        public long fib(long n) {
-            UnboxedDUnforkNull t = new UnboxedDUnforkNull(n+2);
+        public long fib(long nn) {
+            UnboxedDUnforkNull t = new UnboxedDUnforkNull(nn+2);
             pool.invoke(t);
             return t.result;
         }
@@ -677,8 +677,8 @@ public final class FibTests {
         }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedDDepth"; }
-        public long fib(long n) {
-            UnboxedDDepth t = new UnboxedDDepth(n+2);
+        public long fib(long nn) {
+            UnboxedDDepth t = new UnboxedDDepth(nn+2);
             pool.invoke(t);
             return t.result;
         }
@@ -719,8 +719,8 @@ public final class FibTests {
         }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedDepth"; }
-        public long fib(long n) {
-            UnboxedDepth t = new UnboxedDepth(n);
+        public long fib(long nn) {
+            UnboxedDepth t = new UnboxedDepth(nn);
             pool.invoke(t);
             return t.result;
         }
@@ -752,8 +752,8 @@ public final class FibTests {
         }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedDDepthFlag"; }
-        public long fib(long n) {
-            UnboxedDDepthFlag t = new UnboxedDDepthFlag(n+2);
+        public long fib(long nn) {
+            UnboxedDDepthFlag t = new UnboxedDDepthFlag(nn+2);
             pool.invoke(t);
             return t.result;
         }
@@ -791,8 +791,8 @@ public final class FibTests {
         }
         public boolean isSeq() { return false; }
         public String toString() { return "BoxedInline"; }
-        public long fib(long n) {
-            return pool.invoke(new BoxedInline(n));
+        public long fib(long nn) {
+            return pool.invoke(new BoxedInline(nn));
         }
         static Long fibb(Long nn) {
             if (nn <= 1) { return nn; }
@@ -824,8 +824,8 @@ public final class FibTests {
         }
         public boolean isSeq() { return false; }
         public String toString() { return "BoxedDepth"; }
-        public long fib(long n) {
-            return pool.invoke(new BoxedDepth(n));
+        public long fib(long nn) {
+            return pool.invoke(new BoxedDepth(nn));
         }
         static Long fibb(Long nn) {
             if (nn <= 1) { return nn; }
@@ -858,8 +858,8 @@ public final class FibTests {
         }
         public boolean isSeq() { return false; }
         public String toString() { return "UnboxedInline"; }
-        public long fib(long n) {
-            UnboxedInline w = new UnboxedInline(n);
+        public long fib(long nn) {
+            UnboxedInline w = new UnboxedInline(nn);
             pool.invoke(w);
             return w.result;
         }

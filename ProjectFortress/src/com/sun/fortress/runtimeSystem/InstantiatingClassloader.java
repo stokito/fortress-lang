@@ -352,8 +352,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         int up_index = tcn.indexOf(Naming.UP_INDEX);
         int envelope = tcn.indexOf(Naming.ENVELOPE); // Preceding char is RIGHT_OXFORD;
         int begin_static_params = tcn.indexOf(Naming.LEFT_OXFORD, up_index);
-        int gear_index = tcn.indexOf(Naming.GEAR);
-        String self_class = tcn.substring(0,gear_index) + tcn.substring(gear_index+1,up_index);
+        // int gear_index = tcn.indexOf(Naming.GEAR);
+        // String self_class = tcn.substring(0,gear_index) + tcn.substring(gear_index+1,up_index);
         
         String class_we_want = tcn.substring(0,begin_static_params+1) + // self_class + ";" +
             sig.substring(1) + tcn.substring(envelope);
@@ -370,8 +370,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         int up_index = tcn.indexOf(Naming.UP_INDEX);
         int envelope = tcn.indexOf(Naming.ENVELOPE); // Preceding char is RIGHT_OXFORD;
         int begin_static_params = tcn.indexOf(Naming.LEFT_OXFORD, up_index);
-        int gear_index = tcn.indexOf(Naming.GEAR);
-        String self_class = tcn.substring(0,gear_index) + tcn.substring(gear_index+1,up_index);
+        // int gear_index = tcn.indexOf(Naming.GEAR);
+        // String self_class = tcn.substring(0,gear_index) + tcn.substring(gear_index+1,up_index);
         
         String class_we_want = tcn.substring(0,begin_static_params+1) + // self_class + ";" +
             Useful.substring(sig,1,-1) + ";" + trait_sig.substring(1) + tcn.substring(envelope);
@@ -489,7 +489,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         FieldVisitor fv;
         MethodVisitor mv;
-        AnnotationVisitor av0;
         String superClass = "Abstract"+ft;
         name = api.replace(".", "/") + '$' + suffix;
         //String desc = "L" + name + ";";
@@ -737,10 +736,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     
     private static byte[] instantiateArrow(String name, List<String> parameters) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
-        FieldVisitor fv;
         
-        AnnotationVisitor av0;
-
         cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE,
                  name, null, "java/lang/Object", null);
 
@@ -775,9 +771,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     private static byte[] instantiateAbstractArrow(String dename, List<String> parameters) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
-        FieldVisitor fv;
         
-        AnnotationVisitor av0;
         /*
          * Special case extensions to plumb tuples
          * correctly in the face of generics instantiated

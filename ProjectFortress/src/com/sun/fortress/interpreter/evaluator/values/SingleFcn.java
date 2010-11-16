@@ -210,7 +210,7 @@ public abstract class SingleFcn extends Fcn implements HasAt {
 
         // Process constraints
         for (StaticParam tp : tpl) {
-            String name = NodeUtil.getName(tp);
+            // String name = NodeUtil.getName(tp);
             if (NodeUtil.isTypeParam(tp)) {
                 String tp_name = NodeUtil.getName(tp);
                 SymbolicInstantiatedType st = (SymbolicInstantiatedType) ge.getLeafType(tp_name); // leaf
