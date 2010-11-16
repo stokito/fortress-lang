@@ -187,11 +187,11 @@ public class MacPortsHelper {
     }
 
     private static void copyRooted(
-            Memo1<String, TopSortItemImpl<String>> table,
+            Memo1<String, TopSortItemImpl<String>> _table,
             Memo1<String, TopSortItemImpl<String>> newTable, String root) {
 
         TopSortItemImpl<String> new_root = newTable.make(root);
-        TopSortItemImpl<String> node = table.make(root);
+        TopSortItemImpl<String> node = _table.make(root);
 
         for (TopSortItemImpl<String> succ : node.succs) {
             String s = succ.x;
@@ -199,15 +199,15 @@ public class MacPortsHelper {
                 continue;
             TopSortItemImpl<String> new_succ = newTable.make(s);
             new_root.edgeTo(new_succ);
-            copyRooted(table, newTable, s);
+            copyRooted(_table, newTable, s);
         }
 
     }
 
     private static Memo1<String, TopSortItemImpl<String>> reverse(
-            Memo1<String, TopSortItemImpl<String>> table) {
+            Memo1<String, TopSortItemImpl<String>> _table) {
         Memo1<String, TopSortItemImpl<String>> newTable = aTable();
-        for (TopSortItemImpl<String> node : table.values()) {
+        for (TopSortItemImpl<String> node : _table.values()) {
             TopSortItemImpl<String> new_node = newTable.make(node.x);
             for (TopSortItemImpl<String> succ : node.succs) {
                 TopSortItemImpl<String> new_succ = newTable.make(succ.x);

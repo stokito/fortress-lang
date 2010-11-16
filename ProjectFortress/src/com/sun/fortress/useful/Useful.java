@@ -45,7 +45,7 @@ public class Useful {
         result.putAll(map);
         return result;
     }
-
+    
     /**
      * Returns a string containing String.valueOf each element of l,
      * separated by commas, all surrounded by parentheses.
@@ -1206,5 +1206,10 @@ public class Useful {
         }
         return s;
     }
+    
+    public static void use(Object o) {}
+    public static void use(int i) {}
+    public static void use(boolean b) {}
+    
 
 }

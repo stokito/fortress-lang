@@ -328,7 +328,7 @@ public final class TrieMap<V> extends AbstractMap<String, V>
                 Trie<V> nless = n.less;
                 Trie<V> nequal = n.equal;
                 Trie<V> ngreater = n.greater;
-                int nch = n.ch;
+                // int nch = n.ch;
                 int ch = safeCharAt(key, i);
                 if (ch == n.ch) {
                     t = new TrieNode<V>(n.ch, nless, t, ngreater);

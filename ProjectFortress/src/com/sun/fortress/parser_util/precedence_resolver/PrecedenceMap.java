@@ -351,7 +351,8 @@ public class PrecedenceMap {
                 break; // case 4
             case '(':
                 if (op.charAt(i++) != '.') return false;
-            case '[':
+                //$FALL-THROUGH$
+            case '[':  
             case '{':
                 c = op.charAt(i++);
                 break;
@@ -403,6 +404,7 @@ public class PrecedenceMap {
                 break;
             case ')':
                 if (op.charAt(--i) != '.') return false;
+              //$FALL-THROUGH$
             case ']':
             case '}':
                 c = op.charAt(--i);

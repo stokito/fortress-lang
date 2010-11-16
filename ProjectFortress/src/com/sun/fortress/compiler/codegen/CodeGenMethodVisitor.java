@@ -108,16 +108,16 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
      * variable to the corresponding VarCodeGen. */
 
     // Non-user-accessible local variable
-    public int createCompilerLocal(String name, String type) {
+    public int createCompilerLocal(String _name, String type) {
         if (localVariableCount != varNames.size()) {
-            throw new CompilerError("Trying to create local " + name +
+            throw new CompilerError("Trying to create local " + _name +
                                        " but current metadata is off\nlocalVariableCount = " +
                                        localVariableCount +
                                        "\nvarNames = " + varNames);
         }
         Debug.debug(Debug.Type.CODEGEN, 1,
-                    "LOCAL create ", localVariableCount, " ", name);
-        varNames.add(name);
+                    "LOCAL create ", localVariableCount, " ", _name);
+        varNames.add(_name);
         varTypes.add(type);
         Label start = new Label();
         visitLabel(start);

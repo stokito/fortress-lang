@@ -757,7 +757,6 @@ public class DesugarerVisitor extends NodeUpdateVisitor implements HasRewrites {
         Option<WhereClause> owc = vre.getWhereClause();
         if (owc.isSome()) {
             WhereClause wc = owc.unwrap();
-            boolean change = false;
             List<WhereBinding> lwb = wc.getBindings();
 
             for (WhereBinding wb : lwb) {
