@@ -4159,7 +4159,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                    "too accurate" which causes a call to an otherwise
                    non-existent static method.
                 */
-                if (true || OverloadSet.functionInstanceofType(f, ty, ta)) {
+                if (true // || OverloadSet.functionInstanceofType(f, ty, ta)
+                        ) {
                     OverloadSet.TaggedFunctionName tagged_f =
                         new OverloadSet.TaggedFunctionName(apiname, f);
                     byCount.putItem(f.parameters().size(), tagged_f);

@@ -59,6 +59,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
+    static class POTFN extends TopSortItemImpl<TaggedFunctionName> {
+        public POTFN(TaggedFunctionName x) {
+            super(x);
+        }
+    }
+
     public static class TaggedFunctionName implements Comparable<TaggedFunctionName> {
         final private APIName tagA;
         final private Function tagF;
@@ -136,6 +142,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
+    private static final boolean OVERLOADS_WITH_GENERICS = false;
+
     /**
      * The set of functions that are less-specific-than-or-equal to the
      * parameters seen so far, so the parameter seen so far would be legal
@@ -145,7 +153,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      */
     final Set<TaggedFunctionName> lessSpecificThanSoFar;
     final IdOrOpOrAnonymousName name;
-
+    
+    /**
+     * The functions, ordered from most to least specific order.
+     * This is used to obtain a dispatch order in the presence
+     * of generics (it also works when there are no generics).
+     */
+    TaggedFunctionName[] specificDispatchOrder;
+    
     /**
      * This overloaded function may have a member whose signature matches
      * the overloaded function's signature.  If so, the principalMember is not
@@ -275,22 +290,41 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         /* First determine if there are any overload subsets.
            This matters because it may affect naming
            of the leaf (single) functions.
-        */
-        if (computeSubsets) {
-            for (TaggedFunctionName f : lessSpecificThanSoFar) {
-                int i = 1; // for self
-                /* Count the number of functions in LSTSF that are more
-                 * specific than or equal to f.
-                 */
-                for (TaggedFunctionName g : lessSpecificThanSoFar) {
-                    if (!(f == g)) {
-                        if (fSuperTypeOfG(f, g)) {
-                            i++;
-                        }
+         */
+
+        TopSortItemImpl<TaggedFunctionName>[] pofuns =
+            new OverloadSet.POTFN[lessSpecificThanSoFar.size()];
+        /* Convert set of dispatch types into something that can be
+       (topologically) sorted. */
+        {
+            int i = 0;   
+
+            for (TaggedFunctionName f : lessSpecificThanSoFar ) {
+                pofuns[i] = new POTFN(f);
+                i++;
+            }
+        }
+
+        for (int fi = 0; fi < pofuns.length; fi++) {
+            TaggedFunctionName f = pofuns[fi].x;
+            int i = 1; // for self
+            /* Count the number of functions in LSTSF that are more
+             * specific than or equal to f.
+             * Also record any more-specific-than relationship encountered.
+             */
+            for (int gi = 0; gi < pofuns.length; gi++) {
+                TaggedFunctionName g = pofuns[gi].x;
+                if (!(f == g)) {
+                    if (fSuperTypeOfG(f, g)) {
+                        i++;
+                        pofuns[gi].edgeTo(pofuns[fi]);
                     }
                 }
+            }
+            if (computeSubsets) {
+
                 if (i > 1) {
-                    
+                    /* There's at least one function more specific than f. */
                     if (i == lessSpecificThanSoFar.size()) {
                         /*
                          * If f is more specific than or equal to every member
@@ -301,7 +335,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         /* TODO work in progress
                          * There are SOME members of the subset that are more
                          * specific than f; identify those, and create that
-                         * subset.
+                         * subset.  f will be the principal member of the
+                         * overloaded function that results.  External (through
+                         * API) references to f, must invoke the overloaded
+                         * function.
                          */
                         HashSet<TaggedFunctionName> subLSTSF =
                             new HashSet<TaggedFunctionName>();
@@ -321,13 +358,17 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     }
                 }
             }
-
+        }
+        
+        List<TopSortItemImpl<TaggedFunctionName>> specificFirst = TopSort.depthFirstArray(pofuns);
+        
+        if (computeSubsets) {
             /*
              * After identifying all the subsets (which have principal
              * members), generate their structure.
              */
             for (OverloadSet subset : overloadSubsets.values()) {
-                subset.splitInternal();
+                subset.splitInternal(specificFirst);
             }
         }
 
@@ -336,162 +377,158 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     name.stringName()+jvmSignatureFor(principalMember), this);
 
         /* Split set into dispatch tree. */
-        splitInternal();
+        splitInternal(specificFirst);
 
     }
 
 
-    public void splitInternal() {
+    public void splitInternal(List<TopSortItemImpl<TaggedFunctionName>> funsInSpecificOrder) {
         if (splitDone)
             return;
 
-        if (lessSpecificThanSoFar.size() == 1) {
+        int l = lessSpecificThanSoFar.size();
+        
+        specificDispatchOrder = new TaggedFunctionName[l];
+        {
+            int i = 0;
+
+            for (TopSortItemImpl<TaggedFunctionName> tsii_f : funsInSpecificOrder) {
+                TaggedFunctionName f = tsii_f.x;
+                if (lessSpecificThanSoFar.contains(f))
+                    specificDispatchOrder[i++] = f;
+            }
+        }
+        
+        if (l == 1) {
             splitDone = true;
             return;
             // If there are no other alternatives, then we are done.
         }
 
-        // Accumulate sets of parameter types.
-        int nargs = paramCount;
+        
+        if (OVERLOADS_WITH_GENERICS) {
+        } else {
 
-        MultiMap<Type, TaggedFunctionName>[] typeSets = new MultiMap[nargs];
-        for (int i = 0; i < nargs; i++) {
-            typeSets[i] = new MultiMap<Type, TaggedFunctionName>();
-        }
 
-        for (TaggedFunctionName f : lessSpecificThanSoFar) {
-            List<Param> parameters = f.tagParameters();
-            
-            for (int i = 0; i < parameters.size(); i++) {
-                if (testedIndices.contains(i)) {
-                    continue;
-                }
-                Function eff = f.getF();
-                Type t = oa.getParamType(eff,i);
-                typeSets[i].putItem(t, f);
+            // Accumulate sets of parameter types.
+            int nargs = paramCount;
 
+            MultiMap<Type, TaggedFunctionName>[] typeSets = new MultiMap[nargs];
+            for (int i = 0; i < nargs; i++) {
+                typeSets[i] = new MultiMap<Type, TaggedFunctionName>();
             }
-            
-//            int i = 0;
-//            for (Param p : parameters) {
-//                if (testedIndices.contains(i)) {
-//                    i++;
-//                    continue;
-//                }
-//                Option<TypeOrPattern> ot = p.getIdType();
-//                Option<Type> ovt = p.getVarargsType();
-//                if (ovt.isSome()) {
-//                    bug("Not ready to handle compilation of overloaded " +
-//                            "varargs yet, function is " + f);
-//                }
-//                if (ot.isNone() || ot.unwrap() instanceof Pattern) {
-//                    bug("Missing type for parameter " + i + " of " + f);
-//                }
-//                Type t = (Type)ot.unwrap();
-//                typeSets[i++].putItem(t, f);
-//            }
-        }
-
-        // Choose parameter index with greatest variation.
-        // Choose parameter index with the smallest largest subset.
-        int besti = -1;
-        int best = 0;
-        boolean greatest_variation = false;
-        for (int i = 0; i < nargs; i++) {
-            if (testedIndices.contains(i))
-                continue;
-            if (greatest_variation) {
-                if (typeSets[i].size() > best) {
-                    best = typeSets[i].size();
-                    besti = i;
-                }
-            } else {
-                MultiMap<Type, TaggedFunctionName> mm = typeSets[i];
-                int largest = 0;
-                for (Set<TaggedFunctionName> sf : mm.values()) {
-                    if (sf.size() > largest)
-                        largest = sf.size();
-                }
-                if (besti == -1 || largest < best) {
-                    besti = i;
-                    best = largest;
-                }
-            }
-        }
-
-        // dispatch on maxi'th parameter.
-        dispatchParameterIndex = besti;
-        Set<Type> dispatchTypes = typeSets[dispatchParameterIndex].keySet();
-
-
-        children = new OverloadSet[best];
-        BASet<Integer> childTestedIndices = testedIndices.putNew(besti);
-
-        int i = 0;
-        TopSortItemImpl<Type>[] potypes =
-                new OverloadSet.POType[dispatchTypes.size()];
-        /* Convert set of dispatch types into something that can be
-           (topologically) sorted. */
-        for (Type t : dispatchTypes) {
-            potypes[i] = new POType(t);
-            i++;
-        }
-
-        /*
-         * Figure out ordering relationship for top sort.  O(N^2) work,
-         * hope N is not too large.
-         */
-        for (i = 0; i < potypes.length; i++) {
-            for (int j = i + 1; j < potypes.length; j++) {
-                Type ti = potypes[i].x;
-                Type tj = potypes[j].x;
-                if (tweakedSubtypeTest(ta, ti, tj)) {
-                    potypes[i].edgeTo(potypes[j]);
-                } else if (tweakedSubtypeTest(ta, tj, ti)) {
-                    potypes[j].edgeTo(potypes[i]);
-                }
-            }
-        }
-
-        List<TopSortItemImpl<Type>> specificFirst = TopSort.depthFirstArray(potypes);
-        children = new OverloadSet[specificFirst.size()];
-
-        // fill in children.
-        for (i = 0; i < specificFirst.size(); i++) {
-            Type t = specificFirst.get(i).x;
-            Set<TaggedFunctionName> childLSTSF =
-                new HashSet<TaggedFunctionName>();
 
             for (TaggedFunctionName f : lessSpecificThanSoFar) {
-//                List<Param> parameters = f.tagParameters();
-//                Param p = parameters.get(dispatchParameterIndex);
-//                if (! (p.getIdType().unwrap() instanceof Type))
-//                    bug("Type is expected: " + p.getIdType().unwrap());
-//                Type pt = (Type)p.getIdType().unwrap();
-                Type pt = oa.getParamType(f.getF(),dispatchParameterIndex);
-                if (tweakedSubtypeTest(ta, t, pt)) {
-                    childLSTSF.add(f);
+                List<Param> parameters = f.tagParameters();
+
+                for (int i = 0; i < parameters.size(); i++) {
+                    if (testedIndices.contains(i)) {
+                        continue;
+                    }
+                    Function eff = f.getF();
+                    Type t = oa.getParamType(eff,i);
+                    typeSets[i].putItem(t, f);
+
                 }
             }
 
-            childLSTSF = thin(childLSTSF, childTestedIndices);
-
-            // ought to not be necessary
-            if (paramCount == childTestedIndices.size()) {
-                // Choose most specific member of lessSpecificThanSoFar
-                childLSTSF = mostSpecificMemberOf(childLSTSF);
-
+            // Choose parameter index with greatest variation.
+            // Choose parameter index with the smallest largest subset.
+            int besti = -1;
+            int best = 0;
+            boolean greatest_variation = false;
+            for (int i = 0; i < nargs; i++) {
+                if (testedIndices.contains(i))
+                    continue;
+                if (greatest_variation) {
+                    if (typeSets[i].size() > best) {
+                        best = typeSets[i].size();
+                        besti = i;
+                    }
+                } else {
+                    MultiMap<Type, TaggedFunctionName> mm = typeSets[i];
+                    int largest = 0;
+                    for (Set<TaggedFunctionName> sf : mm.values()) {
+                        if (sf.size() > largest)
+                            largest = sf.size();
+                    }
+                    if (besti == -1 || largest < best) {
+                        besti = i;
+                        best = largest;
+                    }
+                }
             }
 
-            OverloadSet ch = makeChild(childLSTSF, childTestedIndices, t);
-            ch.overloadSubsets = overloadSubsets;
-            children[i] = ch;
+            // dispatch on maxi'th parameter.
+            dispatchParameterIndex = besti;
+            Set<Type> dispatchTypes = typeSets[dispatchParameterIndex].keySet();
+
+
+            children = new OverloadSet[best];
+            BASet<Integer> childTestedIndices = testedIndices.putNew(besti);
+
+            int i = 0;
+            TopSortItemImpl<Type>[] potypes =
+                new OverloadSet.POType[dispatchTypes.size()];
+            /* Convert set of dispatch types into something that can be
+           (topologically) sorted. */
+            for (Type t : dispatchTypes) {
+                potypes[i] = new POType(t);
+                i++;
+            }
+
+            /*
+             * Figure out ordering relationship for top sort.  O(N^2) work,
+             * hope N is not too large.
+             */
+            for (i = 0; i < potypes.length; i++) {
+                for (int j = i + 1; j < potypes.length; j++) {
+                    Type ti = potypes[i].x;
+                    Type tj = potypes[j].x;
+                    if (tweakedSubtypeTest(ta, ti, tj)) {
+                        potypes[i].edgeTo(potypes[j]);
+                    } else if (tweakedSubtypeTest(ta, tj, ti)) {
+                        potypes[j].edgeTo(potypes[i]);
+                    }
+                }
+            }
+
+            List<TopSortItemImpl<Type>> specificFirst = TopSort.depthFirstArray(potypes);
+            children = new OverloadSet[specificFirst.size()];
+
+            // fill in children.
+            for (i = 0; i < specificFirst.size(); i++) {
+                Type t = specificFirst.get(i).x;
+                Set<TaggedFunctionName> childLSTSF =
+                    new HashSet<TaggedFunctionName>();
+
+                for (TaggedFunctionName f : lessSpecificThanSoFar) {
+                    Type pt = oa.getParamType(f.getF(),dispatchParameterIndex);
+                    if (tweakedSubtypeTest(ta, t, pt)) {
+                        childLSTSF.add(f);
+                    }
+                }
+
+                childLSTSF = thin(childLSTSF, childTestedIndices);
+
+                // ought to not be necessary
+                if (paramCount == childTestedIndices.size()) {
+                    // Choose most specific member of lessSpecificThanSoFar
+                    childLSTSF = mostSpecificMemberOf(childLSTSF);
+
+                }
+
+                OverloadSet ch = makeChild(childLSTSF, childTestedIndices, t);
+                ch.overloadSubsets = overloadSubsets;
+                children[i] = ch;
+
+            }
+            for (OverloadSet child : children) {
+                child.splitInternal(funsInSpecificOrder);
+            }
 
         }
-        for (OverloadSet child : children) {
-            child.splitInternal();
-        }
-
+        
         splitDone = true;
     }
 
@@ -903,46 +940,62 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             return;
         }
 
-        if (lessSpecificThanSoFar.size() == 1) {
-            // Emit casts and call of f.
-            TaggedFunctionName f = lessSpecificThanSoFar.iterator().next();
-
-            String sig = jvmSignatureFor(f);
-
-            int i = firstArgIndex;
-            List<Param> params = f.callParameters();
-
-            for (Param p : params) {
-                mv.visitVarInsn(Opcodes.ALOAD, i);
-
-                TypeOrPattern ty = p.getIdType().unwrap();
-                if (! (ty instanceof Type))
-                    bug("Type is expected: " + ty);
-                InstantiatingClassloader.generalizedCastTo(mv,  NamingCzar.jvmBoxedTypeName((Type)ty, ifNone));
-                // mv.visitTypeInsn(Opcodes.CHECKCAST, NamingCzar.jvmBoxedTypeDesc((Type)ty, ifNone));
-                i++;
-            }
-            if (CodeGenerationPhase.debugOverloading)
-                System.err.println("Emitting call " + f.tagF + sig);
-
-
-            invokeParticularMethod(mv, f, sig);
-            mv.visitInsn(Opcodes.ARETURN);
-
+        if (OVERLOADS_WITH_GENERICS) {
+            
         } else {
-            // Perform instanceof checks on specified parameter to dispatch to children.
-            for (int i = 0; i < children.length; i++) {
-                OverloadSet os = children[i];
-                Label lookahead = new Label();
-                mv.visitVarInsn(Opcodes.ALOAD, dispatchParameterIndex + firstArgIndex);
-                InstantiatingClassloader.generalizedInstanceOf(mv,
-                 NamingCzar.jvmBoxedTypeName(os.selectedParameterType, ifNone));
-                mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
-                os.generateCall(mv, firstArgIndex, failLabel);
-                mv.visitLabel(lookahead);
+
+            if (lessSpecificThanSoFar.size() == 1) {
+                // Emit casts and call of f.
+                TaggedFunctionName f = lessSpecificThanSoFar.iterator().next();
+                generateLeafCall(mv, firstArgIndex, f);
+
+            } else {
+                // Perform instanceof checks on specified parameter to dispatch to children.
+                for (int i = 0; i < children.length; i++) {
+                    OverloadSet os = children[i];
+                    Label lookahead = new Label();
+                    mv.visitVarInsn(Opcodes.ALOAD, dispatchParameterIndex + firstArgIndex);
+                    InstantiatingClassloader.generalizedInstanceOf(mv,
+                            NamingCzar.jvmBoxedTypeName(os.selectedParameterType, ifNone));
+                    mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                    os.generateCall(mv, firstArgIndex, failLabel);
+                    mv.visitLabel(lookahead);
+                }
+                mv.visitJumpInsn(Opcodes.GOTO, failLabel);
             }
-            mv.visitJumpInsn(Opcodes.GOTO, failLabel);
         }
+    }
+
+    /**
+     * Invoke f (it's a forwarding call) with casts inserted as necessary.
+     * 
+     * @param mv
+     * @param firstArgIndex
+     * @param f
+     */
+    private void generateLeafCall(MethodVisitor mv, int firstArgIndex,
+            TaggedFunctionName f) {
+        String sig = jvmSignatureFor(f);
+
+        int i = firstArgIndex;
+        List<Param> params = f.callParameters();
+
+        for (Param p : params) {
+            mv.visitVarInsn(Opcodes.ALOAD, i);
+
+            TypeOrPattern ty = p.getIdType().unwrap();
+            if (! (ty instanceof Type))
+                bug("Type is expected: " + ty);
+            InstantiatingClassloader.generalizedCastTo(mv,  NamingCzar.jvmBoxedTypeName((Type)ty, ifNone));
+            // mv.visitTypeInsn(Opcodes.CHECKCAST, NamingCzar.jvmBoxedTypeDesc((Type)ty, ifNone));
+            i++;
+        }
+        if (CodeGenerationPhase.debugOverloading)
+            System.err.println("Emitting call " + f.tagF + sig);
+
+
+        invokeParticularMethod(mv, f, sig);
+        mv.visitInsn(Opcodes.ARETURN);
     }
 
     /**
@@ -1107,7 +1160,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     signature, // sp.getFortressifiedSignature(),
                     null, // signature, // depends on generics, I think
                     exceptions); // exceptions);
+        
         generateBody(mv);
+        
         if (PCNOuter != null) {
             cv.dumpClass(PCNOuter, pslpss);
         }
