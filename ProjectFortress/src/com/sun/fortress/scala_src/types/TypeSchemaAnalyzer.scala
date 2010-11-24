@@ -58,6 +58,10 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     insertStaticParams(a.getDomain, getStaticParams(a))
   }
   
+  def makeRangeFromArrow(a: ArrowType): Type = {
+    insertStaticParams(a.getRange, getStaticParams(a))
+  }
+  
   def makeParamFromDomain(t: Type, i:Int): Type = t match {
       case (u:TupleType) =>
           insertStaticParams(u.getElements.get(i), getStaticParams(t));
