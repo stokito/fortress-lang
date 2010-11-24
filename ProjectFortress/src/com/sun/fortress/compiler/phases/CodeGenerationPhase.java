@@ -150,7 +150,7 @@ public class CodeGenerationPhase extends Phase {
                 OverloadSet os = new OverloadSet.Local(ai.ast().getName(), name, ta, fs, i);
 
                 os.split(true);
-                String s = os.toString();
+                // String s = os.toString();
                 overloads.add(os);
             }
         }

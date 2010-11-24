@@ -52,6 +52,7 @@ import org.objectweb.asm.Opcodes;
 import scala.collection.JavaConversions;
 
 abstract public class OverloadSet implements Comparable<OverloadSet> {
+    private static final boolean OVERLOADS_WITH_GENERICS = true;
 
     static class POType extends TopSortItemImpl<Type> {
         public POType(Type x) {
@@ -142,7 +143,6 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
-    private static final boolean OVERLOADS_WITH_GENERICS = false;
 
     /**
      * The set of functions that are less-specific-than-or-equal to the
@@ -941,6 +941,40 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
 
         if (OVERLOADS_WITH_GENERICS) {
+            int l = specificDispatchOrder.length;
+            for (int i = 0; i < l; i++) {
+                TaggedFunctionName f = specificDispatchOrder[i];
+                Function eff = f.getF();
+                
+                Label lookahead = null;
+
+                if (i < l-1) {
+                    /* Trust the static checker; no need to verify
+                     * applicability of the last one.
+                     */
+                    // Will need lookahead for the next one.
+                    lookahead = new Label();
+
+                    List<Param> parameters = f.tagParameters();
+                    for (int j = 0; j < parameters.size(); j++) {
+                        Type t = oa.getParamType(eff,j);
+                        
+                        // Load actual parameter
+                        mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
+                        // Check type
+                        InstantiatingClassloader.generalizedInstanceOf(mv,
+                                NamingCzar.jvmBoxedTypeName(t, ifNone));
+                        // Branch ahead if failure
+                        mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                    }
+                }
+                // Come here if we have successfully passed the test.
+                generateLeafCall(mv, firstArgIndex, f);
+
+                if (lookahead != null)
+                    mv.visitLabel(lookahead);
+            }
+            
             
         } else {
 
@@ -992,7 +1026,6 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
         if (CodeGenerationPhase.debugOverloading)
             System.err.println("Emitting call " + f.tagF + sig);
-
 
         invokeParticularMethod(mv, f, sig);
         mv.visitInsn(Opcodes.ARETURN);
@@ -1051,15 +1084,27 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     }
 
     private String toStringR(String indent) {
-        if (lessSpecificThanSoFar.size() == 1) {
-            return indent + lessSpecificThanSoFar.iterator().next().toString();
-        } else {
-            String s = indent + "#" + dispatchParameterIndex + "\n";
-            for (int i = 0; i < children.length; i++) {
-                OverloadSet os = children[i];
-                s += indent + os.selectedParameterType + "->" + os.toStringR(indent + "   ") + "\n";
+        if (OVERLOADS_WITH_GENERICS) {
+            String s = indent;
+            int l = specificDispatchOrder.length;
+            for (int i = 0; i < l; i++) {
+                TaggedFunctionName f = specificDispatchOrder[i];
+                s += f.toString() + "\n";
             }
             return s;
+
+        } else {
+            if (lessSpecificThanSoFar.size() == 1) {
+                return indent + lessSpecificThanSoFar.iterator().next().toString();
+            } else {
+
+                String s = indent + "#" + dispatchParameterIndex + "\n";
+                for (int i = 0; i < children.length; i++) {
+                    OverloadSet os = children[i];
+                    s += indent + os.selectedParameterType + "->" + os.toStringR(indent + "   ") + "\n";
+                }
+                return s;
+            }
         }
     }
 
@@ -1222,9 +1267,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             String ownerName = NamingCzar.apiAndMethodToMethodOwner(f.tagA, f.tagF);
             String mname = NamingCzar.apiAndMethodToMethod(f.tagA, f.tagF);
 
+            // this ought to work better here.
+            if (getOverloadSubsets().containsKey(name.stringName()+sig)) {
+                mname = NamingCzar.mangleAwayFromOverload(mname);
+            }
+            
             if (sargs != null) {
                  genericArrowType =
-                    NamingCzar.makeArrowDescriptor(ifNone, overloadedDomain(), getRange());
+                    NamingCzar.makeArrowDescriptor(ifNone, oa.getDomainType(f.tagF), oa.getRangeType(f.tagF));
                 sparamsType = NamingCzar.genericDecoration(sargs, null, ifNone);
                 ownerName =
                     Naming.genericFunctionPkgClass(ownerName, mname,
@@ -1232,9 +1282,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 mname = Naming.APPLIED_METHOD;
             }
             
-            if (getOverloadSubsets().containsKey(name.stringName()+sig)) {
-                mname = NamingCzar.mangleAwayFromOverload(mname);
-            }
+//            if (getOverloadSubsets().containsKey(name.stringName()+sig)) {
+//                mname = NamingCzar.mangleAwayFromOverload(mname);
+//            }
 
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
         }
