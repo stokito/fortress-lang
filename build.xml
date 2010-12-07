@@ -472,6 +472,10 @@ maintain proper indentation.
     </move>
   </target>
 
+  <target name="generated" depends="compileCommon, makeAST, parser, operatorsGen"
+          description="Create all automatically generated source files">
+  </target>
+
   <target name="compileJava" depends="compileCommon, makeAST, parser, operatorsGen"
           description="Compile all Fortress code written in Java (Scala code is ignored).">
     <depend srcdir="${src}"
