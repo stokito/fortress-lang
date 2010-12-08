@@ -1,0 +1,25 @@
+% \input{exc-intro}
+% \subsection{Constraints and Inference}
+% \input{constraints}
+% \subsection{Exclusion under Constraints}
+% \input{doesnotexclude}
+% %% \subsection{Not BottomType}
+% %% \input{notbottom}
+% \subsection{Subtyping}
+% \input{reduce}
+
+\input{exc-preamble}
+
+\subsection{Exclusion Declaration}
+\label{sec:excdec}
+\input{exc-spec}
+
+% \subsection{Polymorphic Exclusion}
+\input{exc-poly}
+
+\subsection{Exclusion with Constraints}
+\label{sec:constraints}
+\input{exc-constraints}
+
+\subsection{Tying the Knot}
+\input{exc-reduction}
