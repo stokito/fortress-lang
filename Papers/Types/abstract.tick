@@ -1,0 +1,25 @@
+Multiple dynamic dispatch poses many problems for a statically typed
+language with nominal subtyping and multiple inheritance. In
+particular, as Millstein {\it et al}. have observed, there is a tension
+between modularity and extensibility when trying to ensure at compile
+time that each function call results in dispatch to a unique most
+specific definition at run time. We have previously shown how
+requiring that each set of overloaded definitions forms a meet
+semi-lattice, as suggested in 1992 by Castagna {\it et al}., allows one to
+statically ensure the absence of ambiguous function calls while
+maintaining modularity and extensibility.
+
+In this paper, we extend the rules for ensuring safe overloaded
+functions to a type system with parametric polymorphism. We show that
+such an extension can be reduced to the problem of determining
+subtyping relationships between universal and existential
+types. However, because of interactions between multiple inheritance,
+parametric types, type inference, and statically determined
+exclusiveness of types, there are syntactically distinct types
+inhabited by the same sets of values. Work must be done to ensure that
+they are equivalent under subtyping.
+
+Our system has been adopted by the Fortress programming language,
+which includes support for modularity, multiple inheritance, mulitple
+dispatch, and parametric polymorphism. We have implemented this design
+as part of the freely available open source Fortress compiler.
