@@ -38,28 +38,17 @@ declarations that programmers would like to write are actually unsafe due to mul
 
 For example, even though the following function declarations look like
 a valid overloading:
-    %% simple String:String
-    %% simple ZZ:ZZ
-\begin{FortressCode}
- \\
-\2\2\+\VAR{simple}\, \TYP{String}\COLON\TYP{String} \\
-\VAR{simple}\, \mathbb{Z}\COLON\mathbb{Z}\-
-\end{FortressCode}
+`    simple String:String
+    simple ZZ:ZZ`
 they are not, because the Meet Rule is not satisfied. Moreover, in Fortress it is impossible to disambiguate the declarations by providing the meet
 because intersection types are not allowed in the Fortress function declaration syntax. In a language with single inheritance, we would
 be able to infer that these overloadings were safe due to the fact that a class can only have a single superclass. However, due to
 multiple inheritance, we cannot be sure that these types do not have a common subtype no matter what the programmer intends.
 
 Now consider this less trivial set of overloaded functions:
-    %% foo[\X <: Any\]ArrayList[\X\]:ZZ
-    %% foo[\Y<: ZZ\]List[\Y\]:ZZ
-    %% foo[\W<: ZZ\]ArrayList[\W\]:ZZ
-\begin{FortressCode}
- \\
-\2\2\+\VAR{foo}\llbracket{}X \SHORTCUT{<} \TYP{Any}\rrbracket\TYP{ArrayList}\llbracket{}X\rrbracket\COLON\mathbb{Z} \\
-\VAR{foo}\llbracket{}Y\mathord{\SHORTCUT{<}}\: \mathbb{Z}\rrbracket\TYP{List}\llbracket{}Y\rrbracket\COLON\mathbb{Z} \\
-    \VAR{foo}\llbracket{}W\mathord{\SHORTCUT{<}}\: \mathbb{Z}\rrbracket\TYP{ArrayList}\llbracket{}W\rrbracket\COLON\mathbb{Z}\-
-\end{FortressCode}
+`    foo[\X <: Any\]ArrayList[\X\]:ZZ
+    foo[\Y<: ZZ\]List[\Y\]:ZZ
+    foo[\W<: ZZ\]ArrayList[\W\]:ZZ`
 where `ArrayList[\T\] <: List[\T\]` for all types $T$.\footnote{We use this standard declaration for `ArrayList` throughout.}
 The first two declarations are incomparable under specificity---%
 the first declaration applies to all instantiations of type constructor `ArrayList`,
@@ -78,13 +67,8 @@ Consider the type:
 Our meet candidate is not applicable to `BadList`, but the two other definitions of `foo` are, and so the Progress requirement is violated.
 
 The following example does not work either.:
-    %% tail[\X <: Any\]List[\X\]:List[\X\]
-    %% tail[\Y <: Any\]ArrayList[\Y\]:ArrayList[\Y\]
-\begin{FortressCode}
- \\
-\2\2\+\VAR{tail}\llbracket{}X \SHORTCUT{<} \TYP{Any}\rrbracket\TYP{List}\llbracket{}X\rrbracket\COLON\TYP{List}\llbracket{}X\rrbracket \\
-\VAR{tail}\llbracket{}Y \SHORTCUT{<} \TYP{Any}\rrbracket\TYP{ArrayList}\llbracket{}Y\rrbracket\COLON\TYP{ArrayList}\llbracket{}Y\rrbracket\-
-\end{FortressCode}
+`    tail[\X <: Any\]List[\X\]:List[\X\]
+    tail[\Y <: Any\]ArrayList[\Y\]:ArrayList[\Y\]`
 The declarations do not satisfy the Return Type Rule,
 because we can not find a specific type `V <: Any` such that:
 \begin{align*}
@@ -92,16 +76,10 @@ because we can not find a specific type `V <: Any` such that:
 \;&\subtypeof\; `ArrayList[\Y\] CAP List[\X\] -> List[\X\]`
 \end{align*}
 Once again, the type `BadList` proves that this set of overloaded declarations must be rejected. Consider the instance:
-    %% tail List[\ZZ\]:List[\ZZ\]
-\begin{FortressCode}
- \\
-~~~~~~~~\VAR{tail}\, \TYP{List}\llbracket\mathbb{Z}\rrbracket\COLON\TYP{List}\llbracket\mathbb{Z}\rrbracket\-
-\end{FortressCode}
+`    tail List[\ZZ\]:List[\ZZ\]
+`
 of the first declaration. We need to find an instance of the second declaration that is applicable to `BadList`
 and has a return type that is a subtype of `List[\ZZ\]`, but the only instance of the second declaration applicable to `BadList` is:
-    %% tail ArrayList[\String\]:ArrayList[\String\]
-\begin{FortressCode}
- \\
-~~~~~~~~\VAR{tail}\, \TYP{ArrayList}\llbracket\TYP{String}\rrbracket\COLON\TYP{ArrayList}\llbracket\TYP{String}\rrbracket
-\end{FortressCode}
+`    tail ArrayList[\String\]:ArrayList[\String\]
+`
 which violates the Preservation requirement.
