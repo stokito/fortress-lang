@@ -61,14 +61,8 @@ because each of two function definitions
 might be more specific in one argument and not another. 
 For example, 
 consider the following overloaded function definitions:
-    %% f(b:B, a:A)
-    %% f(a:A, b:B)
-\begin{FortressCode}
- \\
-\2\2\+f(b\COLONOP{}B, a\COLONOP{}A) \\
-f(a\COLONOP{}A, b\COLONOP{}B)\-
-\end{FortressCode}
-\noindent
+`    f(b:B, a:A)
+    f(a:A, b:B)`
 If $A$ is a subtype of $B$, 
 to which of these definitions do we dispatch 
 when $f$ is called with two arguments of type $A$? 
@@ -89,23 +83,13 @@ this model of ````an infinite set of ground types''' is adequate for explanatory
 Not so, however, for type-parametric functions.  For quite some time during the
 development of the Fortress language, one of us (Steele) pushed for understanding
 a parametrically polymorphic function definition such as:
-%% append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e
-\begin{FortressCode}
- \\
-\VAR{append}\llbracket{}T\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}T\rrbracket, y\COLON \TYP{List}\llbracket{}T\rrbracket\bigr)\COLON \TYP{List}\llbracket{}T\rrbracket = e
-\end{FortressCode}
+`    append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e
+`
 as if it stood for an infinite set of monomorphic definitions:
-%% append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e
-%% append(x: List[\String\], y: List[\String\]): List[\String\] = e
-%% append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e
-%% ...
-\begin{FortressCode}
- \\
-\VAR{append}\bigl(x\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket, y\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket\bigr)\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket = e \\
-\VAR{append}\bigl(x\COLON \TYP{List}\llbracket\TYP{String}\rrbracket, y\COLON \TYP{List}\llbracket\TYP{String}\rrbracket\bigr)\COLON \TYP{List}\llbracket\TYP{String}\rrbracket = e \\
-\VAR{append}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket, y\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket = e \\
-\ldots
-\end{FortressCode}
+`    append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e
+    append(x: List[\String\], y: List[\String\]): List[\String\] = e
+    append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e
+    ...`
 The intuition was that for any specific function call,
 the usual rule for multimethod
 dispatch would then choose the appropriate most specific
@@ -115,39 +99,21 @@ That intuition worked well enough for a single polymorphic function definition,
 but failed utterly when we considered multiple function definitions.
 It would seem natural for a programmer to want to provide definitions for specific
 monomorphic special cases:
-%% append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
-%% append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2
-\begin{FortressCode}
- \\
-\VAR{append}\llbracket{}T\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}T\rrbracket, y\COLON \TYP{List}\llbracket{}T\rrbracket\bigr)\COLON \TYP{List}\llbracket{}T\rrbracket = e_1 \\
-\VAR{append}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket, y\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket = e_2
-\end{FortressCode}
+`    append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
+    append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
 but if the model is taken seriously, this would be equivalent to:
-%% append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e1
-%% append(x: List[\String\], y: List[\String\]): List[\String\] = e1
-%% append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e1
-%% ...
-%% append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2
-\begin{FortressCode}
- \\
-\VAR{append}\bigl(x\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket, y\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket\bigr)\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket = e_1 \\
-\VAR{append}\bigl(x\COLON \TYP{List}\llbracket\TYP{String}\rrbracket, y\COLON \TYP{List}\llbracket\TYP{String}\rrbracket\bigr)\COLON \TYP{List}\llbracket\TYP{String}\rrbracket = e_1 \\
-\VAR{append}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket, y\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket = e_1 \\
-\ldots \\
-\VAR{append}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket, y\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket = e_2
-\end{FortressCode}
+`    append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e1
+    append(x: List[\String\], y: List[\String\]): List[\String\] = e1
+    append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e1
+    ...
+    append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
 and we can see that there is an ambiguity when the arguments are
 both of type `List[\ZZ\]`.
 
 It only gets worse if the programmer wishes to handle an infinite set
 of cases specially.  It would seem natural to write:
-%% append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
-%% append[\T <: Number\](x: List[\T\], y: List[\T\]): List[\T\] = e2
-\begin{FortressCode}
- \\
-\VAR{append}\llbracket{}T\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}T\rrbracket, y\COLON \TYP{List}\llbracket{}T\rrbracket\bigr)\COLON \TYP{List}\llbracket{}T\rrbracket = e_1 \\
-\VAR{append}\llbracket{}T \SHORTCUT{<} \TYP{Number}\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}T\rrbracket, y\COLON \TYP{List}\llbracket{}T\rrbracket\bigr)\COLON \TYP{List}\llbracket{}T\rrbracket = e_2
-\end{FortressCode}
+`    append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
+    append[\T <: Number\](x: List[\T\], y: List[\T\]): List[\T\] = e2`
 so as to handle specially all cases where `T` is a subtype of `Number`,
 but the model would regard this as an overloading with an infinite
 number of ambiguities.
@@ -179,13 +145,8 @@ How do we compare such functions, and how do we ensure
 that there is always a best overloaded function to dispatch to?
 
 For example, consider the following overloaded function definitions in Fortress:
-    %% combine[\T\](xs: List[\T\], ys: List[\T\]): List[\T\]
-    %% combine[\S,T\](s: Table[\S,T\], t: Table[\S,T\]): Table[\S,T\]
-\begin{FortressCode}
-\2\+\VAR{combine}\llbracket{}T\rrbracket\bigl(\VAR{xs}\COLON \TYP{List}\llbracket{}T\rrbracket, \VAR{ys}\COLON \TYP{List}\llbracket{}T\rrbracket\bigr)\COLON \TYP{List}\llbracket{}T\rrbracket \\
-\VAR{combine}\llbracket{}S,T\rrbracket\bigl(s\COLON \TYP{Table}\llbracket{}S,T\rrbracket, t\COLON \TYP{Table}\llbracket{}S,T\rrbracket\bigr)\COLON \TYP{Table}\llbracket{}S,T\rrbracket\-
-\end{FortressCode}
-\noindent 
+`    combine[\T\](xs: List[\T\], ys: List[\T\]): List[\T\]
+    combine[\S,T\](s: Table[\S,T\], t: Table[\S,T\]): Table[\S,T\]`
 where white square brackets delimit declarations of type parameters 
 on function definitions. The first definition declares a single
 type parameter denoting the types of the elements of the two
