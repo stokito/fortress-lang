@@ -1,7 +1,7 @@
 Following Kennedy and Pierce \cite{kennedy07},
 we define a world of types ranged over by metavariables $S$, $T$, $U$, $V$, and $W$. 
 Types are of four forms: 
-Type variables 
+type variables 
 (ranged over by metavariables $X$, $Y$, and $Z$), 
 constructed types 
 (ranged over by metavariables $K$, $L$, $M$ and $N$, 
@@ -11,7 +11,7 @@ and `T_bar` is a list of types),
 structural types
 (consisting of arrow and tuple types), 
 and compound types 
-(consisting of union and intersection types). 
+(consisting of intersection and union types). 
 Nullary applications are written without brackets; 
 for example, `C[\ \]` is written `C`. 
 In addition, 
@@ -57,7 +57,7 @@ and $\substb{U}{X}M_{ij}$ is $M_{ij}$
 with $U_k$ substituted for every occurrence of $X_k$ in $M_{ij}$ 
 for $1 \leq k \leq |\bar{U}|$),
 and 
-(ii) is a subtype of $\substb{U}{X}N_i$ for $1 \leq i \leq |\bar{N}|$.
+(ii) is a subtype of $\substb{U}{X}N_l$ for $1 \leq l \leq |\bar{N}|$.
 Thus, a set of type constructor declarations, 
 called a \emph{class table},
 induces a (nominal) subtyping relation 
@@ -74,12 +74,13 @@ we allow recursive and mutually recursive references in the class table.
 Class tables are ranged over by metavariable $\T$ and we write
 $T \in \T$ to mean that any constructed type occurring in type $T$
 is well-formed with respect to the class table $\T$.
-A class table $\T'$ is an extension of another class table $\T$ (written $\T' \ctext \T$) if every constructor declaration in $\T'$ is also in $\T$ and if the subtype relation on $\T'$ agrees with that of $\T$. Consequently, if $\T' \ctext \T$ then, for all types $T$, $T \in \T$ implies $T \in \T'$.
+A class table $\T'$ is an extension of another class table $\T$ (written $\T' \ctext \T$)
+if every constructor declaration in $\T$ is also in $\T'$ and if the subtype relation on $\T'$ agrees with that of $\T$. Consequently, if $\T' \ctext \T$ then, for all types $T$, $T \in \T$ implies $T \in \T'$.
 
 For a well-formed application $C\obb{T}$ 
 of the type constructor declaration for $C$ (shown above)
 in a well-formed class table $\T$, 
-we denote the set of its immediate supertypes by
+we denote the set of its immediate supertypes by:
 \[
 \myextends{C\obb{T}} = \{ \bar{\substb{T}{X}N} \}
 \]
@@ -95,7 +96,7 @@ We typically omit the class table when it is understood.
 
 Structural and compound types are \emph{well-formed} (with respect to a class
 table) if their constituent types are well-formed, and we extend the subtyping relation to
-structural and compound types in the usual way:
+structural and compound types in the usual way.
 Arrow types are contravariant in their domain types 
 and covariant in their range types 
 (i.e., $\arrowtype{S}{T} \subtypeof \arrowtype{U}{V}$
@@ -144,7 +145,7 @@ are known.
 \subsection{Values and Ilks}
 
 Types are intended to describe the values that might be produced by
-an expression or passed into a function or method.
+an expression or passed into a function.
 In Fortress, for example, there are three kinds of values: 
 objects, functions, and tuples;
 every object belongs to at least one constructed type,
@@ -182,7 +183,7 @@ we offer the mnemonic retronyms
 and ````intrinsically least kind.'')
 
 The implementation significance of ilks is that it is possible to
-select the dynamically most specific applicable function or method
+select the dynamically most specific applicable function
 from an overload set using only the ilks of the argument values; no
 other information about the arguments is needed.
 
@@ -321,6 +322,10 @@ the instantiated declaration with whatever instantiation we infer
 must be more specific than the instantiated declaration of the
 statically most applicable function declaration with what was inferred
 at compile time.
+The rules on the overloaded function declarations
+introduced in Section~\ref{sec:rules} ensure that
+dynamically inferred types satisfy this requirement.
+
 
 
 Aside from this caveat, our system for checking overloaded declarations 
