@@ -4,8 +4,8 @@ by extending type constructor declarations with two new optional clauses,
 \[
 C\tplist{X}{L} \extends `{N_bar} [ excludes {M_bar} ] [ comprises {K_bar} ]`
 \]
-Omitting an `excludes` clause is equivalent to explicitly writing `excludes { }`, and
-omitting a `comprises` clause is equivalent to explicitly writing `comprises { Any }`.\footnote{For
+Omitting an `excludes` clause is equivalent to have `excludes {}`, and
+omitting a `comprises` clause is equivalent to have `comprises { Any }`.\footnote{For
 the sake of catching likely programming errors, the Fortress language requires that every $K_i$
 in a `comprises` clause for $C\obb{T}$ be a subtype of $C\obb{T}$, but allowing
 `Any` to appear in a `comprises` clause simplifies our presentation here.}
@@ -13,7 +13,7 @@ For an application $C\obb{T}$
 of a declaration with the `excludes` and/or `comprises` clause above, 
 we define the sets of instantiations of the types 
 in these clauses analogously to $\myextends{C\obb{T}}$.
-That is,
+That is,\\[-.2em]
 \[
 \begin{array}{rl}
 \myexcludes{C\obb{T}} =&\hspace*{-2ex} \{ \bar{\substb{T}{X}M} \} \\

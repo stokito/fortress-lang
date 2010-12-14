@@ -9,6 +9,7 @@
     \begin{center}
       \fbox{\textbf{Universal subtyping:} \jqsub{\sigma}{\sigma}}
     \end{center}
+
     \infrule
       {\Delta' = \Delta, \bds{Y}{N}
           \andalso \bar{Y} \cap FV(T) = \emptyset \\
@@ -26,9 +27,7 @@
     %   \syndef &
     %   $\exttype{T}$
     \end{tabularx}
-  
-    \bigskip
-  
+
     %%% DOMAIN SUBTYPING RULE
     \begin{center}
       \fbox{\textbf{Existential subtyping:} \jqsub{\delta}{\delta}}
@@ -45,13 +44,11 @@
     \begin{tabularx}{\textwidth}{RcX}
     $\delta_1 \le \delta_2$ & \syndef & $\jqsub[\emptyset]{\delta_1}{\delta_2}$
     \end{tabularx}
-  
-  \bigskip
   \end{minipage}
-  
+
   %%% RIGHT COLUMN
   &
-  
+
   %% MINIPAGE FOR RIGHT COLUMN
   \begin{minipage}{.45\textwidth}
     %%% APPLICABILITY
@@ -74,8 +71,6 @@
     $f \ni T$ & \syndef & $\japp[\emptyset]{dom(f)}{T}$\\
     \end{tabularx}
 
-    \bigskip
-
     %%% MORE SPECIFIC
     \begin{center}
       \fbox{\textbf{Specificity:} \jms{f}{f}}
@@ -87,20 +82,15 @@
     \begin{tabularx}{\textwidth}{RcX}
     $f_1 \ms f_2$ & \syndef & $\jms[\emptyset]{f_1}{f_2}$
     \end{tabularx}
-  
-  \bigskip
- 
-    
   \end{minipage} \\
   \hline
   \end{tabular}
-  
+
   %%% SECOND ROW
-  
-\bigskip
   \begin{tabular}{c}
   \begin{minipage}{\textwidth}
 %  \begin{center}
+\vspace*{.5em}
     \fbox{\textbf{Existential meet:} \quad $\delta_1 \;\meet\; \delta_2$}
     \[
 \begin{array}{c}
@@ -108,13 +98,17 @@
           \left(\exists\tplist{Y}{N}U\right)
       \quad \syndef \quad
       \exists\ob{\bds{X}{M}, \bds{Y}{N}}(T \cap U)
-\\
-       \text{where} \quad
-        \begin{cases}
-          \bar{X} \cap \bar{Y} \;=\; \emptyset \\
-          \bar{X} \cap FV(U) \;=\; \emptyset \\
-          \bar{Y} \cap FV(T) \;=\; \emptyset
-        \end{cases}
+\\[.5em]
+       %% \text{where} \quad
+       %%  \begin{cases}
+       %%    \bar{X} \cap \bar{Y} \;=\; \emptyset \\
+       %%    \bar{X} \cap FV(U) \;=\; \emptyset \\
+       %%    \bar{Y} \cap FV(T) \;=\; \emptyset
+       %%  \end{cases}
+\text{where}\;
+\bar{X} \cap \bar{Y} \;=\; \emptyset \quad
+\bar{X} \cap FV(U) \;=\; \emptyset \quad
+\bar{Y} \cap FV(T) \;=\; \emptyset
 \end{array}
     \] % \vspace{-1em}
     %     %%% SYNTAX DEF

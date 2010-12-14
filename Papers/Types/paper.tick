@@ -246,9 +246,9 @@ KAIST, Korea\\
 % 
 % \end{thebibliography}
 
-\appendix
-\section{Application to Haskell}
-\label{app:haskell}
-\input{haskell}
+% \appendix
+% \section{Application to Haskell}
+% \label{app:haskell}
+% \input{haskell}
 
 \end{document}
