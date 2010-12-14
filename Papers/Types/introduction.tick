@@ -85,6 +85,7 @@ development of the Fortress language, one of us (Steele) pushed for understandin
 a parametrically polymorphic function definition such as:
 `    append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e
 `
+where white square brackets delimit the declaration of the type parameter,
 as if it stood for an infinite set of monomorphic definitions:
 `    append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e
     append(x: List[\String\], y: List[\String\]): List[\String\] = e
@@ -120,7 +121,7 @@ number of ambiguities.
 
 In order to resolve this problem, we had to develop an alternate
 model and an associated type system that could handle overloaded
-parametrically polymorphic methods in a manner that would accord
+parametrically polymorphic functions in a manner that would accord
 with programmer intuition and support the plausible examples shown above.
 Credit for championing key insights---regarding each polymorphic definition
 as a single definition (rather than an infinite set of definitions)
@@ -129,12 +130,12 @@ to describe them in the type system (an idea reported by
 Bourdoncle and Merz~\cite{bourdoncle97})---and for working out many difficult details
 belongs to two other authors of this paper (Hilburn and Kilpatrick).
 Adopting this new approach has made
-overloaded polymorphic functions (and methods) both tractable and effective
+overloaded polymorphic functions both tractable and effective
 for writing Fortress code.
 
 In this paper, we give rules for ensuring safe overloaded functions in
 a language that supports symmetric multiple dispatch, multiple
-inheritance, and parametric polymorphism (that is, generic traits \emph{and} generic functions).  We do this by
+inheritance, and parametric polymorphism (that is, generic types \emph{and} generic functions).  We do this by
 extending our earlier rules for a core of the Fortress programming language 
 that did not support generics \cite{allen07,fortress}.
 This problem is challenging because a set of overloaded \emph{generic} function definitions might
@@ -147,13 +148,12 @@ that there is always a best overloaded function to dispatch to?
 For example, consider the following overloaded function definitions in Fortress:
 `    combine[\T\](xs: List[\T\], ys: List[\T\]): List[\T\]
     combine[\S,T\](s: Table[\S,T\], t: Table[\S,T\]): Table[\S,T\]`
-where white square brackets delimit declarations of type parameters 
-on function definitions. The first definition declares a single
+The first definition declares a single
 type parameter denoting the types of the elements of the two
 list arguments $xs$ and $ys$. The second definition declares two 
 type parameters corresponding to the domains and ranges of the two
-table arguments $s$ and $t$. But the type parameters of the first
-definition bear no relation to the type parameters of the second.
+table arguments $s$ and $t$. But the type parameter of the first
+definition bears no relation to the type parameters of the second.
 
 In providing rules to ensure 
 that any set of overloaded function definitions 
@@ -166,15 +166,16 @@ Our rules must also be compatible with type inference,
 since instantiation of type parameters at a call site 
 is typically done automatically.
 
-The remainder of this paper is organized thus:
-In Section 2, 
+The remainder of this paper is organized thus.
+In Section 2,
 we define the concepts and notation necessary
-to explain our formal rules for checking overloaded function definitions, 
+to explain our formal rules for checking overloaded function definitions,
 which we present using universal and existential types in Section 3.
-In Section 4, 
+In Section 4,
 we explain why many natural programs are (rightfully) rejected by
 our rules and propose to extend the language with exclusion in
-order to allow them. In Section 5 we formally describe exclusion and 
-use it to augment the subtyping relation for universal and existential types, 
-Finally we discuss related work Section 6 and conclude in section 7.
+order to allow them.
+In Section 5, we formally describe exclusion and
+use it to augment the subtyping relation for universal and existential types.
+Finally, we discuss related work in Section 6 and conclude in Section 7.
 
