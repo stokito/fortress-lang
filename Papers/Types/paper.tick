@@ -156,8 +156,8 @@
 Justin Hilburn\inst{2} \and
 Scott Kilpatrick\inst{3} \and
 Sukyoung Ryu\inst{4} \and\\
-David Chase\inst{1}
-Victor Luchangco\inst{1}
+David Chase\inst{1} \and
+Victor Luchangco\inst{1} \and
 Guy L. Steele Jr.\inst{1}
 }
 %
@@ -165,17 +165,18 @@ Guy L. Steele Jr.\inst{1}
 %% \tocauthor{Ivar Ekeland, Roger Temam, Jeffrey Dean, David Grove,
 %% Craig Chambers, Kim B. Bruce, and Elisa Bertino}
 %
-\institute{Sun Labs / Oracle, USA\\
-\email{\{firstname.lastname, david.r.chase\}@oracle.com}
+\institute{Sun Labs / Oracle, USA
+%\email{\{firstname.lastname, david.r.chase\}@oracle.com}
 \and
-University of Oregon, USA\\
-\email{jrhil47@gmail.com}
+University of Oregon, USA
+%\email{jrhil47@gmail.com}
 \and
-Max Planck Institute for Software Systems, Germany\\
-\email{skilpat@mpi-sws.org}
+Max Planck Institute for Software Systems, Germany
+%\email{skilpat@mpi-sws.org}
 \and
-KAIST, Korea\\
-\email{sryu@cs.kaist.ac.kr}}
+KAIST, Korea
+%\email{sryu@cs.kaist.ac.kr}
+}
 
 \maketitle
 
