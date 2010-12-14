@@ -153,7 +153,7 @@ We intend these rules to be ````minimal''
 in that they should be as unrestrictive as possible 
 while preserving the ability to guarantee safety 
 and be checked in a modular way.
-We took a similar appraoch to guarantee safety 
+We took a similar approach to guarantee safety 
 for overloaded monomorphic functions \cite{allen07}.
 However, 
 handling parametric polymorphism 
@@ -193,7 +193,7 @@ also forms a meet semi-lattice under specificity. As such,
 $\D_W(f)$ must have a least element.
 
 We can phrase this condition more explicitly 
-in the following two rules for a family of overloaded function declarations $\D$ 
+in the following two rules for a collection of overloaded function declarations $\D$ 
 and more-specific-than relation on these declarations 
 by the subtyping relation induced by a class table $\T$:
 \begin{description}
@@ -223,7 +223,7 @@ We must then extend our notion of the ````arrow type of $f$''
 for a generic function declaration $f$,
 but first we need to characterize the type of a generic function.
 In particular, we need a higher-level notion of universally
-quantified types separate from the language types $T$.
+quantified types separate from the language of types $T$.
 
 
 A \emph{universal type} binds type parameter declarations over some type and
@@ -258,7 +258,7 @@ existential types: an existential type $\delta_1 = \exists \ob{\Delta_1} T_1$ is
 subtype of another existential type $\delta_2 = \exists\ob{\Delta_2}T_2$ (written
 $\delta_1 \le \delta_2$) if $T_2$ can be instantiated to a supertype of $T_1$ in the environment $\Delta_1$.
 Figure~\ref{fig:sub} presents the syntactic judgments for these pre-orders and gives an expression
-$\delta_1 \le \delta_2$ for the meet of two existential types under $\le$. With subtyping on existential types,
+$\delta_1 \meet \delta_2$ for the meet of two existential types under $\le$. With subtyping on existential types,
 we can now formalize the notions of applicability and specificity for generic functions, also presented in
 Figure~\ref{fig:sub}.
 
@@ -276,7 +276,7 @@ to prove that $\delta_0$ is a subtype of $\delta_1 \meet \delta_2$.
 \end{proof}
 
 To check the Meet Rule, for every pair of declarations $f_1, f_2 \in \D(f)$,
-we must find a function declaration $f_0$ that is equivalent under specificity to the \emph{computed meet} of $f_1$ and $f_2$, which is a declaration $f_\meet$, not necessarily in $\D(f)$, such that $dom(f_\meet) \equiv dom(f_1) \meet dom(f_2)$\footnote{Note that the computed meet, as defined, is not actually unique since the return type is unspecified. By an abuse of notation we refer to ````the'' computed meet to mean any such computed meet.}. More concretely, we
+we must find a function declaration $f_0 \in \D(f)$ that is equivalent under specificity to the \emph{computed meet} of $f_1$ and $f_2$, which is a declaration $f_\meet$, not necessarily in $\D(f)$, such that $dom(f_\meet) \equiv dom(f_1) \meet dom(f_2)$\footnote{Note that the computed meet, as defined, is not actually unique since the return type is unspecified. By an abuse of notation we refer to ````the'' computed meet to mean any such computed meet.}. More concretely, we
 find an $f_0$ such that: \begin{align*}
   dom(f_0) &\;\le\; dom(f_1) \meet dom(f_2) \\
   dom(f_1) \meet dom(f_2) &\;\le\; dom(f_0)
@@ -306,7 +306,7 @@ that is applicable to $W$ and satisfies $V_1 <: V_2$.
 
 To check the Return Type Rule,
 suppose $f_1 = \hdeclg{f}{\Delta_1}{S_1}{T_1}$ 
-$f_2 = \hdeclg{f}{\Delta_2}{S_2}{T_2}$ such that $f_1 \ms f_2$,
+and $f_2 = \hdeclg{f}{\Delta_2}{S_2}{T_2}$ such that $f_1 \ms f_2$,
 $W$ is a type to which $f_1$ is applicable, 
 and the instance $\decl{f_2'}{S_2'}{T_2'}$ of $f_2$ is applicable to $W$.
 Let $f_\meet = \hdeclg{f}{\Delta_1, \Delta_2}{S_1 \cap S_2}{T_1}$.
