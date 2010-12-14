@@ -199,8 +199,9 @@ by the subtyping relation induced by a class table $\T$:
 \begin{description}
 
 \item[No Duplicates Rule] 
-$\D(f)$ does not contain any two declarations that are equally specific 
-(i.e., each declaration is more specific than the other).
+$\D(f)$ does not contain any two declarations that are equally specific.
+%(i.e., each declaration is more specific than the other).
+In other words, there are no (distinct) declarations $f_1, f_2 \in \D(f)$ such that $f_1 \ms f_2$ and $f_2 \ms f_1$.
 
 \item[Meet Rule]
 For each pair of declarations $f_1, f_2 \in \D(f)$,
