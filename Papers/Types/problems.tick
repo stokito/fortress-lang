@@ -32,15 +32,15 @@
 %  {\Delta \vdash S \nexc T|False}
 %  {\Delta \vdash S \exc T}
 
-While the rules presented in section 3 guarantee the type safety of overloaded generic function declarations,
+While the rules presented in Section 3 guarantee the type safety of overloaded generic function declarations,
 they forbid many sets of overloadings that seem completely ````natural''. Unfortunately, these are not false negatives; many
 declarations that programmers would like to write are actually unsafe due to multiple inheritance.
 
 For example, even though the following function declarations look like
-a valid overloading:
+a valid overloading, they are not because the Meet Rule is not satisfied:
 `    simple String:String
     simple ZZ:ZZ`
-they are not, because the Meet Rule is not satisfied. Moreover, in Fortress it is impossible to disambiguate the declarations by providing the meet
+Moreover, in Fortress it is impossible to disambiguate the declarations by providing the meet
 because intersection types are not allowed in the Fortress function declaration syntax. In a language with single inheritance, we would
 be able to infer that these overloadings were safe due to the fact that a class can only have a single superclass. However, due to
 multiple inheritance, we cannot be sure that these types do not have a common subtype no matter what the programmer intends.
@@ -54,29 +54,32 @@ The first two declarations are incomparable under specificity---%
 the first declaration applies to all instantiations of type constructor `ArrayList`,
 whereas the second declaration applies only to instantiations of
 type constructor `List` with subtypes of type `ZZ`. The third definition,
-which is the obvious candidate to disambiguate the two, is not actually the meet; the domain of the meet candidate is the existential type:
+which is the obvious candidate to disambiguate the two, is not actually the meet; the domain of this meet candidate is the existential type
 `    EXISTS[\W <: ZZ\]ArrayList[\W\]
 `
-and needs to be proven equivalent to the domain of the computed meet:
+and needs to be proven equivalent to the domain of the computed meet
 `    EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])
 `
-which requires that the second be a subtype of the first.
+which requires that the latter be a subtype of the former.
 However, there is no type `W <: ZZ` such that:
 \\[.5em]
 \hspace*{1.5em}
 \jgsub[`X <: Any, Y <: ZZ`]{`ArrayList[\X\] CAP List[\Y\]`}{`List[\W\]`}
 \\[.5em]
 This is not a problem with our definition of the meet: these declarations actually are unsafe.
-Consider the type:
+Consider the (user-defined) constructed type
 `    BadList <: {ArrayList[\String\], List[\ZZ\]}
 `
-Our meet candidate is not applicable to `BadList`, but the two other definitions of `foo` are, and so the Progress requirement is violated.
+Our meet candidate is not applicable to `BadList`, but the two other definitions of `foo` are.
+Since neither of those is more specific than the other, the Progress requirement is violated.
 
-The following example does not work either.:
+The following overloading example,
+in which the second declaration is more specific than the first,
+is also ill-formed.
 `    tail[\X <: Any\]List[\X\]:List[\X\]
     tail[\Y <: Any\]ArrayList[\Y\]:ArrayList[\Y\]`
-The declarations do not satisfy the Return Type Rule,
-because we can not find a specific type `V <: Any` such that:
+The declarations do not satisfy the Return Type Rule
+because we cannot find a specific type `V <: Any` such that
 \\[.8em]
 \begin{tabular}{l}
 %% \jgsub[`X <: Any, Y <: Any`]{`ArrayList[\V\] -> ArrayList[\V\]`}{`ArrayList[\Y\] CAP List[\X\] -> List[\X\]`}
@@ -86,11 +89,11 @@ because we can not find a specific type `V <: Any` such that:
 \\[.8em]
 %% `X <: Any, Y <: Any` \; &\vdash `ArrayList[\V\] -> ArrayList[\V\]` \\
 %% \;&\subtypeof\; `ArrayList[\Y\] CAP List[\X\] -> List[\X\]`
-Once again, the type `BadList` proves that this set of overloaded declarations must be rejected. Consider the instance:
+Once again, the type `BadList` proves that this set of overloaded declarations must be rejected. Consider the instance
 `    tail List[\ZZ\]:List[\ZZ\]
 `
 of the first declaration. We need to find an instance of the second declaration that is applicable to `BadList`
-and has a return type that is a subtype of `List[\ZZ\]`, but the only instance of the second declaration applicable to `BadList` is:
+and has a return type that is a subtype of `List[\ZZ\]`, but the only instance of the second declaration applicable to `BadList` is
 `    tail ArrayList[\String\]:ArrayList[\String\]
 `
 which violates the Preservation requirement.
