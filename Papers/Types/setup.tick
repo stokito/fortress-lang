@@ -36,7 +36,7 @@ a possibly empty sequence of syntactic elements $\emph{A}$ separated by commas):
 A tuple type of length one is synonymous with its element type. 
 A tuple type with any \BottomType\ element 
 is synonymous with \BottomType.
-Compound types are \emph{not} first-class in the Fortress language:
+Compound types---intersection and union types---are \emph{not} first-class in the Fortress language:
 they cannot be written in a program; 
 rather, they are used by the type analyzer during type checking.
 However, type variables may have multiple bounds, 
@@ -239,8 +239,8 @@ When we do not care about $\bar{W}$,
 we just say that $\decl{f}{U}{V}$
 is an \emph{instance} of $f$.
 
-We use the metavariable $\D$ to range over finite families of
-function declarations and write $\D(f)$ for the family in
+We use the metavariable $\D$ for a finite collection of sets of
+function declarations and write $\D(f)$ for the set in
 $\D$ that contains all declarations named $f$.
 
 An instance \decl{f}{U}{V} of a declaration $f$ 
@@ -264,7 +264,7 @@ if and only if, for any type $W \in \T' \ctext \T$  such that $W \neq \BottomTyp
 
 \item[Progress] 
 If some declaration in $\D(f)$ is applicable to $W$
-then there is a unique most specific declaration $f_W$ that is applicable to $W$.
+then there is a unique most specific declaration $f_W \in \D(f)$ that is applicable to $W$.
 
 \item[Preservation] 
 If $\decl{f}{S}{T}$ is an instance of some declaration 

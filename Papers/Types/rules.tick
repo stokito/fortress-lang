@@ -193,7 +193,7 @@ also forms a meet semi-lattice under specificity. As such,
 $\D_W(f)$ must have a least element.
 
 We can phrase this condition more explicitly 
-in the following two rules for a set of overloaded function declarations $\D$ 
+in the following two rules for a family of overloaded function declarations $\D$ 
 and more-specific-than relation on these declarations 
 by the subtyping relation induced by a class table $\T$:
 \begin{description}
@@ -213,7 +213,8 @@ both $f_1$ and $f_2$ are applicable to $T$.
 
 \noindent To check the No Duplicates Rule, we need to determine if two
 declarations are equally specific. For this, we need a way to mechanically
-determine which instantiation of a generic declaration has an instance that is
+%determine which instantiation of a generic declaration has an instance that is
+determine that some instantiation of a generic declaration is
 applicable to a type $T$. With a monomorphic declaration $\decl{f}{U}{V}$,
 we need only check that $T <: dom(f)$, 
 where $dom(f)$ is the domain $U$ of $U \rightarrow V$, 

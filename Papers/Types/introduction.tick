@@ -173,7 +173,7 @@ to explain our formal rules for checking overloaded function definitions,
 which we present using universal and existential types in Section 3.
 In Section 4,
 we explain why many natural programs are (rightfully) rejected by
-our rules and propose to extend the language with exclusion in
+our rules and propose to extend the language with ``nominal exclusion'' in
 order to allow them.
 In Section 5, we formally describe exclusion and
 use it to augment the subtyping relation for universal and existential types.
