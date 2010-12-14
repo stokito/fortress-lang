@@ -34,18 +34,20 @@ We do not list here the full semantics of constraint generation for subtyping. I
 %%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}[htbp]
 \newjudge{Generating constraints for exclusion}{\jexc{T}{T}{\C}}
-\\ \\
+\\\\
   \begin{tabular}{c|c}
-
   %% MINIPAGE FOR LEFT COLUMN
   \begin{minipage}[t]{.45\textwidth}
-
+\vspace*{-3em}
 \textbf{Symmetry}
+\vspace*{-1em}
 \infrule
   {\jexc{T}{S}{\C}}
   {\jexc{S}{T}{\C}}
 
+\vspace*{-1em}
 \textbf{Structural rules}
+\vspace*{-1em}
 \infrule
   {}
   {\jexc{\BottomType}{T}{\TRUE}}
@@ -93,10 +95,14 @@ We do not list here the full semantics of constraint generation for subtyping. I
    \jexc{T}{U}{\C'}}
   {\jexc{S \cup T}{U}{\C \wedge \C'}}
 
-\textbf{Type variables}
+\textbf{Constructed types}
+\vspace*{-1em}
 \infrule
-  {\jexc{\Delta(X)}{T}{\C}}
-  {\jexc{X}{T}{\C}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\exce}{`D[\T_bar\]`}{\C_e} \\
+   \jgconstrtemplate{`C[\S_bar\]`}{\exco}{`D[\T_bar\]`}{\C_o} \\
+   \jgconstrtemplate{`C[\S_bar\]`}{\excc}{`D[\T_bar\]`}{\C_c} \\
+   \jgconstrtemplate{`C[\S_bar\]`}{\excp}{`D[\T_bar\]`}{\C_p}}
+  {\jexc{`C[\S_bar\]`}{`D[\T_bar\]`}{\C_e \vee \C_o \vee \C_c \vee \C_p}}
 
   \end{minipage}
   
@@ -106,94 +112,78 @@ We do not list here the full semantics of constraint generation for subtyping. I
   %% MINIPAGE FOR RIGHT COLUMN
   \begin{minipage}[t]{.53\textwidth}
 
-\textbf{Constructed types}
-\infrule
-  {\jgconstrtemplate{`C[\S_bar\]`}{\exce}{`D[\T_bar\]`}{\C_e} \\
-   \jgconstrtemplate{`C[\S_bar\]`}{\exco}{`D[\T_bar\]`}{\C_o} \\
-   \jgconstrtemplate{`C[\S_bar\]`}{\excc}{`D[\T_bar\]`}{\C_c} \\
-   \jgconstrtemplate{`C[\S_bar\]`}{\excp}{`D[\T_bar\]`}{\C_p}}
-  {\jexc{`C[\S_bar\]`}{`D[\T_bar\]`}{\C_e \vee \C_o \vee \C_c \vee \C_p}}
-
 \infrule
   {\jgconstrtemplate{`C[\S_bar\]`}{\excrx}{`D[\T_bar\]`}{\C} \\
    \jgconstrtemplate{`D[\T_bar\]`}{\excrx}{`C[\S_bar\]`}{\C'}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\exc_{x}}{`D[\T_bar\]`}{\C \vee \C'}}
-\vspace{-2ex}
+%\vspace{-3ex}
 \hfill where $x$ may be ``e', ``o' or ``c'.
+\\[-.5em]
 
 \infrule
   {C = D}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excrx}{`D[\T_bar\]`}{\FALSE}}
-\vspace{-2ex}
+%\vspace{-3ex}
 \hfill where $x$ may be ``e', ``o' or ``c'.
+\\[-.5em]
 
 \infrule
-  {`object`\ C \andalso C \neq D \\
+  {`object`\ C \quad C \neq D \quad
    \jgconstrtemplate{`C[\S_bar\]`}{\not \subtypeof}{`D[\T_bar\]`}{\C}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excro}{`D[\T_bar\]`}{\C}}
+\vspace{2ex}
 
 \infrule
   {\neg(`object`\ C)}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excro}{`D[\T_bar\]`}{\FALSE}}
+\vspace{2ex}
 
 \infrule
   {C \neq D \\
    \forall U \in \ancexcludes(`C[\S_bar\]`).\; \jcsub{`D[\T_bar\]`}{U}{\C_{U}}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excre}{`D[\T_bar\]`}{\bigvee \C_{U}}}
-\vspace{-4.5ex}
+%\vspace{-5ex}
 %\hfill
 \begin{center}
- where\\
+ where\\[-.5em]
  $\ancexcludes(M) = \bigcup_{N \in \ancestors(M)} \myexcludes{N}$
 \end{center}
 
 \infrule
-  {C \neq D \\
-   \forall U \in \mycomprises{`C[\S_bar\]`}.\; \jexc{U}{`D[\T_bar\]`}{\C_U} \\
-   \jgconstrtemplate{`C[\S_bar\]`}{\not \subtypeof}{`D[\T_bar\]`}{\C}}
+  {\forall U \in \mycomprises{`C[\S_bar\]`}.\; \jexc{U}{`D[\T_bar\]`}{\C_U} \\
+   C \neq D \andalso \jgconstrtemplate{`C[\S_bar\]`}{\not \subtypeof}{`D[\T_bar\]`}{\C}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excrc}{`D[\T_bar\]`}{\C \wedge \bigwedge \C_U}}
 
 \infrule
   {\text{$C$ does not have a `comprises` clause}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excrc}{`D[\T_bar\]`}{\FALSE}}
 
-  \end{minipage} \\\\\hline
-  \end{tabular}
-
-  \caption{Generating constraints for exclusion (I)}
-  \label{fig:jexc}
-\end{figure*}
-
-\begin{figure*}[htbp]
-  \begin{tabular}{c}
-  %% MINIPAGE FOR RIGHT COLUMN
-  \begin{minipage}[t]{\textwidth}
 \infrule
-  {\forall U \in \ancestors(`C[\S_bar\]`), V \in \ancestors(`D[\T_bar\]`).\;
+  {\forall U \in \ancestors(`C[\S_bar\]`), V \in \ancestors(`D[\T_bar\]`).\\
      \jgconstrtemplate{U}{\bexc_\textrm{p}}{V}{\C_{U,V}}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\exc_\textrm{p}}{`D[\T_bar\]`}{\bigvee \C_{U,V}}}
-
-\vspace{2ex}
 
 \infrule
   {C = D \andalso \jcnonequiv{\bar{S}}{\bar{T}}{\C}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\bexc_\textrm{p}}{`D[\T_bar\]`}{\C}}
 
-\vspace{2ex}
-
 \infrule
   {C \neq D}
   {\jgconstrtemplate{`C[\S_bar\]`}{\bexc_\textrm{p}}{`D[\T_bar\]`}{\FALSE}}
 
+\textbf{Type variables}
+\infrule
+  {\jexc{\Delta(X)}{T}{\C}}
+  {\jexc{X}{T}{\C}}
+
   \end{minipage} \\\\\hline
   \end{tabular}
 
-  \caption{Generating constraints for exclusion (II)}
-  \label{fig:jexc-helpers}
+  \caption{Generating constraints for exclusion}
+  \label{fig:jexc}
 \end{figure*}
 
-
-The constraint generation judgment for equivalence is defined entirely by the following rule:
+The constraint generation judgment for equivalence is defined entirely by the following rule:\\[-1.5em]
 \infrule
   {\jcsub{S}{T}{\C} \andalso \jcsub{T}{S}{\C'}}
   {\jgconstrtemplate{S}{\equiv}{T}{\C \wedge \C'}}
@@ -203,7 +193,7 @@ the constraint generation for $\subtypeof$ is.
 To define the constraint generation judgment for exclusion, we need to know
 the constraint under which two types are not equivalent and
 one is not a subtype of the other.
-For this, we introduce new forms of primitive constraints to our grammar\\[-.2em]
+For this, we introduce new forms of primitive constraints to our grammar:\\[-.5em]
 \[
 \begin{array}{llll}
 \C &::=& \ldots &\\
@@ -214,14 +204,12 @@ For this, we introduce new forms of primitive constraints to our grammar\\[-.2em
 \\
 which we call {\it negatives};
 we call the original primitive constraints {\it positives}.
-With an even richer language of constraints, we can now define a new judgment for ````not a subtype'' by the rule
-
+With an even richer language of constraints, we can now define a new judgment for ````not a subtype'' by the rule:\\[-1.5em]
 \infrule
   {\jcsub{S}{T}{\C}}
   {\jgconstrtemplate{S}{\not <:}{T}{\neg\C}}
 
-\noindent where $\neg\C$ is the negated constraint formed by applying De Morgan's laws on $\C$. Similarly, we can define ````not equivalent'' by the rule
-
+\noindent where $\neg\C$ is the negated constraint formed by applying De Morgan's laws on $\C$. Similarly, we can define ````not equivalent'' by the rule:\\[-1em]
 \infrule
   {\jcequiv{S}{T}{\C}}
   {\jcnonequiv{S}{T}{\neg\C}}
@@ -240,7 +228,7 @@ These judgements are sound because constraint generation for $\subtypeof$ is com
 \noindent With these additional constraints and judgments, we can now define constraint generation for exclusion. Our algorithm---which formalizes our original definition of exclusion from Section~\ref{sec:excdec}---is presented as inference rules in Figures~\ref{fig:jexc} and \ref{fig:jexc-helpers}. As before, exclusion on constructed types is satisfied when any of the sub-relations from the previous section is satisfied. Each sub-relation checks the conditions described before by recursively generating and propagating constraints. Each sub-relation except $\excrc$ depends only on other constraint generation judgments, meaning the algorithmic checking terminates. The $C\obb{T} \excrc D\obb{U}$ predicate recursively checks exclusion on the comprised types of $C\obb{T}$, but due to the acyclic class table, this process will also terminate. The algorithm is complete and sound if $\subtypeof$ is.
 
 
-For subtyping with constraints, we essentially preserve the semantics of \cite{smith08}, but that system lacks our notion of exclusion. Since we certainly need our subtyping to take advantage of exclusion, we must add an additional rule to the judgment:
+For subtyping with constraints, we essentially preserve the semantics of \cite{smith08}, but that system lacks our notion of exclusion. Since we certainly need our subtyping to take advantage of exclusion, we must add an additional rule to the judgment:\\[-1.5em]
 
 \infrule
   {\jgconstrtemplate{S}{\exc}{T}{\C} \\
@@ -248,16 +236,22 @@ For subtyping with constraints, we essentially preserve the semantics of \cite{s
   {\jcsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
 
 \noindent This new rule states three possibilities for proving that the intersection $S \cap T$ is a subtype of $U$: $S$ and $T$ exclude (which means their intersection is a subtype of \BottomType), $S$ is a subtype of $U$, or $T$ is a subtype of $U$. If any of the constraints needed for these three judgments is satisfied, then $S \cap T$ is a subtype of $U$. Adding this rule should not affect completeness of soundness of constraint generation for $\subtypeof$ (since constraint generation for $\exc$ is complete and sound if constraint generation for $\subtypeof$ is).
- 
-We can recover the usual subtyping judgment and define the exclusion judgment as the following
 
+We can recover the usual subtyping judgment and define the exclusion judgment as the following:\\[1em]
+\begin{tabular}{cc}
+\begin{minipage}{0.45\textwidth}
 \infrule
 {\jcsub{S}{T}{\TRUE}}
 {\jgsub{S}{T}}
-
+\end{minipage}
+&
+\begin{minipage}{0.45\textwidth}
 \infrule
 {\jexc{S}{T}{\TRUE}}
 {\jgtemplate{S}{\exc}{T}}
+\end{minipage}
+\\[1.5em]
+\end{tabular}
 
 \noindent which state that, under assumptions $\Delta$, if the predicate generates the constraint $\TRUE$ (or some constraint that simplifies to $\TRUE$), then that predicate is proved.
 

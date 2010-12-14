@@ -55,15 +55,21 @@ the first declaration applies to all instantiations of type constructor `ArrayLi
 whereas the second declaration applies only to instantiations of
 type constructor `List` with subtypes of type `ZZ`. The third definition,
 which is the obvious candidate to disambiguate the two, is not actually the meet; the domain of the meet candidate is the existential type:
-\[ `EXISTS[\W <: ZZ\]ArrayList[\W\]` \]
+`    EXISTS[\W <: ZZ\]ArrayList[\W\]
+`
 and needs to be proven equivalent to the domain of the computed meet:
-\[ `EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])` \]
+`    EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])
+`
 which requires that the second be a subtype of the first.
 However, there is no type `W <: ZZ` such that:
-\[ \jgsub[`X <: Any, Y <: ZZ`]{`ArrayList[\X\] CAP List[\Y\]`}{`List[\W\]`} \]
+\\[.5em]
+\hspace*{1.5em}
+\jgsub[`X <: Any, Y <: ZZ`]{`ArrayList[\X\] CAP List[\Y\]`}{`List[\W\]`}
+\\[.5em]
 This is not a problem with our definition of the meet: these declarations actually are unsafe.
 Consider the type:
-\[ `BadList <: {ArrayList[\String\], List[\ZZ\]}` \]
+`    BadList <: {ArrayList[\String\], List[\ZZ\]}
+`
 Our meet candidate is not applicable to `BadList`, but the two other definitions of `foo` are, and so the Progress requirement is violated.
 
 The following example does not work either.:
@@ -71,10 +77,15 @@ The following example does not work either.:
     tail[\Y <: Any\]ArrayList[\Y\]:ArrayList[\Y\]`
 The declarations do not satisfy the Return Type Rule,
 because we can not find a specific type `V <: Any` such that:
-\begin{align*}
-`X <: Any, Y <: Any` \; &\vdash `ArrayList[\V\] -> ArrayList[\V\]` \\
-\;&\subtypeof\; `ArrayList[\Y\] CAP List[\X\] -> List[\X\]`
-\end{align*}
+\\[.8em]
+\begin{tabular}{l}
+%% \jgsub[`X <: Any, Y <: Any`]{`ArrayList[\V\] -> ArrayList[\V\]`}{`ArrayList[\Y\] CAP List[\X\] -> List[\X\]`}
+`X <: Any, Y <: Any` $\vdash$ \\
+~~~~~~~~`ArrayList[\V\] -> ArrayList[\V\]` \;$\subtypeof$\; `ArrayList[\Y\] CAP List[\X\] -> List[\X\]`
+\end{tabular}
+\\[.8em]
+%% `X <: Any, Y <: Any` \; &\vdash `ArrayList[\V\] -> ArrayList[\V\]` \\
+%% \;&\subtypeof\; `ArrayList[\Y\] CAP List[\X\] -> List[\X\]`
 Once again, the type `BadList` proves that this set of overloaded declarations must be rejected. Consider the instance:
 `    tail List[\ZZ\]:List[\ZZ\]
 `

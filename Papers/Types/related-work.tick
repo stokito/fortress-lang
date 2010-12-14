@@ -30,6 +30,7 @@ or functions lacking uniform variance in the domain and range\footnote{With the 
 `    bar(x: ZZ): Boolean = (x = 0)
     bar(x: Boolean): ZZ = if x then 1 else 2 end
     bar(x: String): String = x`
-With type classes one can write overloaded functions with identical domain types. Such behavior is consistent with the \emph{static}, \emph{type-based} dispatch of Haskell, but it would lead to irreconcilable ambiguity in the \emph{dynamic}, \emph{value-based} dispatch of our system. In Appendix~\ref{app:haskell}, we present a further discussion of how our overloading resolution differs from that of Haskell and how our system might translate to that language, thereby addressing an existing inconsistency in modern type class extensions.
+With type classes one can write overloaded functions with identical domain types. Such behavior is consistent with the \emph{static}, \emph{type-based} dispatch of Haskell, but it would lead to irreconcilable ambiguity in the \emph{dynamic}, \emph{value-based} dispatch of our system.
+%% In Appendix~\ref{app:haskell}, we present a further discussion of how our overloading resolution differs from that of Haskell and how our system might translate to that language, thereby addressing an existing inconsistency in modern type class extensions.
 
 A broader interpretation of Wadler and Blott's \cite{wadler89} sees type classes as program abstractions that quotient the space of ad-hoc polymorphism into the much smaller space of class methods. Indeed, Wadler and Blott's title suggests that the unrestricted space of ad-hoc polymorphism should be tamed, whereas our work embraces the possible expressivity achieved from mixing ad-hoc and parametric polymorphism by specifying the requisites for determinism and type safety.
