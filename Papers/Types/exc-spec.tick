@@ -16,8 +16,8 @@ in these clauses analogously to $\myextends{C\obb{T}}$.
 That is,\\[-.2em]
 \[
 \begin{array}{rl}
-\myexcludes{C\obb{T}} =&\hspace*{-2ex} \{ \bar{\substb{T}{X}M} \} \\
-\mycomprises{C\obb{T}} =&\hspace*{-2ex} \{ \bar{\substb{T}{X}K} \}
+\myexcludes{C\obb{T}}  =& \{ \bar{\substb{T}{X}M} \} \\
+\mycomprises{C\obb{T}} =& \{ \bar{\substb{T}{X}K} \}
 \end{array}
 \]
 We also allow another form of declaration that is frequently convenient for defining ````leaf types'':
@@ -70,7 +70,7 @@ An intersection type excludes any type excluded by \emph{any} of its constituent
 while a union type excludes any type excluded by \emph{all} of its constituent types.
 $\BottomType$ excludes every type (including itself---it is the only type 
 that excludes itself), 
-and $\Any$ does not exclude any type other than $\BottomType$. (Later in Section~\ref{sec:constraints} we shall define the exclusion relation formally.)
+and $\Any$ does not exclude any type other than $\BottomType$. (Later in Section~\ref{sec:constraints}, we shall define the exclusion relation formally.)
 We augment our notion of a well-formed class table 
 to require that the subtyping and exclusion relations it induces 
 ````respect'' each other.
