@@ -16,6 +16,7 @@ Our grammar for type constraints is defined as follows:\\[-.2em]
 \begin{array}{llll}
 \C &::=& X <: S &\mbox{primitive constraint}\\
 &\mid& S <: X &\mbox{primitive constraint}\\
+&\mid& X \exc S &\mbox{primitive constraint}\\
 &\mid& \C \wedge \C& \mbox{conjunction constraint}\\
 &\mid& \C \vee \C& \mbox{disjunction constraint}\\
 &\mid& \FALSE& \mbox{never satisfied}\\
@@ -23,7 +24,7 @@ Our grammar for type constraints is defined as follows:\\[-.2em]
 \end{array}
 \]
 \\
-A primitive constraint of the form `X <: S` specifies that a type variable $X$ is a subtype of $S$, and likewise for `S <: X`. A conjunction constraint $\C_1 \wedge \C_2$ is satisfied exactly when both $\C_1$ and $\C_2$ are satisfied, and a disjunction constraint $\C_1 \vee \C_2$ is satisfied exactly when one or both of $\C_1$ and $\C_2$ are satisfied. The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always satisfied. We introduce the following syntactic judgments to generate these constraints:
+A primitive constraint of the form `X <: S` specifies that a type variable $X$ is a subtype of $S$, and likewise for `S <: X`. The primitive constraint $X \exc S$ specifies that a type variable $X$ must exclude a type $S$. A conjunction constraint $\C_1 \wedge \C_2$ is satisfied exactly when both $\C_1$ and $\C_2$ are satisfied, and a disjunction constraint $\C_1 \vee \C_2$ is satisfied exactly when one or both of $\C_1$ and $\C_2$ are satisfied. The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always satisfied. We introduce the following syntactic judgments to generate these constraints:
 \[ \jcsub{S}{T}{\C} \quad \jcequiv{S}{T}{\C} \quad \jexc{S}{T}{\C} \]%
 Each judgment indicates that, under assumptions $\Delta$, the respective predicate can be proved if the constraint $\C$ is satisfied. An important point about these judgments is that the predicates $S \subtypeof T$, $S \equiv T$, and $S \;\exc\; T$ should be considered \emph{inputs} to our algorithmic checker, while the constraint $\C$ should be considered its \emph{output}.
 
@@ -173,8 +174,8 @@ We do not list here the full semantics of constraint generation for subtyping. I
 
 \textbf{Type variables}
 \infrule
-  {\jexc{\Delta(X)}{T}{\C}}
-  {\jexc{X}{T}{\C}}
+  {}
+  {\jexc{X}{T}{`X` \exc `T`}}
 
   \end{minipage} \\\\\hline
   \end{tabular}
@@ -199,6 +200,7 @@ For this, we introduce new forms of primitive constraints to our grammar:\\[-.5e
 \C &::=& \ldots &\\
 &\mid& X \not<: S &\mbox{primitive constraint}\\
 &\mid& S \not<: X &\mbox{primitive constraint}\\
+&\mid& X \nexc S &\mbox{primitive constraint}\\
 \end{array}
 \]
 \\
