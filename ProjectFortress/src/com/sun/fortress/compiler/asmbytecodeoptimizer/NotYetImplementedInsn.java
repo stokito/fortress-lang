@@ -23,7 +23,7 @@ public class NotYetImplementedInsn extends Insn {
 
     NotYetImplementedInsn(String name, String index) {
         super(name, index);
-        throw new RuntimeException("Encountered a not yet implemented instruction");
+        throw new RuntimeException("Encountered a not yet implemented instruction: " + name);
     }
 
     public NotYetImplementedInsn copy(String newIndex) {
@@ -35,6 +35,6 @@ public class NotYetImplementedInsn extends Insn {
     }
     
     public void toAsm(MethodVisitor mv) {
-        System.out.println("XXXXXXXX: " + name + " NYI");
+        throw new RuntimeException("Encountered a NYI instruction: " + name);
     }
 }

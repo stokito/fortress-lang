@@ -68,7 +68,6 @@ class ByteCodeVisitor implements ClassVisitor {
 
     public void toAsm(JarOutputStream jos) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES); 
-        //        ClassWriter cw = new ClassWriter(0);
         CheckClassAdapter cca = new CheckClassAdapter(cw);
 
         cca.visit(version, access, name, sig, superName, interfaces);
@@ -92,7 +91,7 @@ class ByteCodeVisitor implements ClassVisitor {
             PrintWriter pw = new PrintWriter(System.out);
             CheckClassAdapter.verify(new ClassReader(bytes), true, pw);
         }
-
+        System.out.println("About to write " + name);
         ByteCodeWriter.writeJarredClass(jos, name, bytes);
     }
 

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.jar.*;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
@@ -31,7 +32,6 @@ import com.sun.fortress.runtimeSystem.Naming;
 
 public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisitor {
 
-    public HashMap labelNames;
     public ArrayList<Insn> insns;
     int access;
     public String name;
@@ -43,6 +43,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     int maxStack;
     int maxLocals;
     boolean changed;
+    HashMap labelDefs;
 
     // Is useful for debugging
 
@@ -55,7 +56,6 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     }
 
     public ByteCodeMethodVisitor(int access, String name, String desc, String sig, String[] exceptions) {
-        this.labelNames = new HashMap();
         this.insns = new ArrayList<Insn>();
         this.access = access;
         this.name = name;
@@ -83,7 +83,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         MethodVisitor mv = cca.visitMethod(access, name, desc, sig, exceptions);
         for (Insn i : insns) {
             i.toAsmWrapper(mv);
-        }
+        } 
     }
 
     public String toString() {
@@ -159,7 +159,6 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     }
 
     public void visitLabel(Label label) {
-        labelNames.put(label.toString(), index);
         addInsn(new LabelInsn("Label", label, Integer.toString(index++)));
     }
 
@@ -181,11 +180,10 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
 
     public void visitMultiNewArrayInsn(String desc, int dims) {
         addInsn(new NotYetImplementedInsn("visitMultiNewArrayInsn", Integer.toString(index++)));
-        index++;
     }
 
     public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
-        addInsn(new NotYetImplementedInsn("visitTryCatchBlock", Integer.toString(index++)));
+        addInsn(new TryCatchBlock("TryCatchBlock", start, end, handler, type, Integer.toString(index++)));
     }
 
     public void visitLocalVariable(String _name, String desc, String sig, Label start, Label end, int _index) {

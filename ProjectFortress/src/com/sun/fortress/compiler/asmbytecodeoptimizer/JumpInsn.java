@@ -20,14 +20,6 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.util.*;
 
-import org.objectweb.asm.*;
-import org.objectweb.asm.util.AbstractVisitor;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.util.*;
-
-
 public class JumpInsn extends Insn {
     int opcode;
     Label label;
@@ -39,7 +31,7 @@ public class JumpInsn extends Insn {
     }
 
     public String toString() { 
-        return "JumpInsn:" +  name + " label = " + label;
+        return "JumpInsn:" +  name + ":::" + index + ":::" + " label = " + label ;
     }
 
     public JumpInsn copy(String newIndex) {

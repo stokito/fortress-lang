@@ -138,9 +138,9 @@ class ByteCodeOptimizer {
             Map.Entry pairs = (Map.Entry)it.next();
             ByteCodeVisitor bcv = (ByteCodeVisitor) pairs.getValue();
             AddString.optimize(bcv);
-            AbstractInterpretation.optimize((String) pairs.getKey(), bcv);
             RemoveLiteralCoercions.optimize(bcv);
             Inlining.optimize(bcv);
+            AbstractInterpretation.optimize((String) pairs.getKey(), bcv);
             //            DefUseChains.optimize(bcv);
         }
     }
