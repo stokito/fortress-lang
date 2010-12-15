@@ -1,7 +1,3 @@
-
-
-
-
 We now augment our subtyping judgment to include \emph{constraints}.
 With constraint-based subtyping, we perform backward reasoning from the desired subtyping assertion to derive constraints on types under which the assertion can be proved---when those constraints are satisfied, the assertion is also satisfied. These constraints on types are generated and gathered first, and then solved later when more information about the environment is known.
 
@@ -14,7 +10,7 @@ With constraint-based subtyping, we perform backward reasoning from the desired 
 Our grammar for type constraints is defined as follows:\\[-.2em]
 \[
 \begin{array}{llll}
-\C &::=& X <: S &\mbox{primitive constraint}\\
+\C &::=& X <: S~~~~ &\mbox{primitive constraint}\\
 &\mid& S <: X &\mbox{primitive constraint}\\
 &\mid& X \exc S &\mbox{primitive constraint}\\
 &\mid& \C \wedge \C& \mbox{conjunction constraint}\\
@@ -25,8 +21,13 @@ Our grammar for type constraints is defined as follows:\\[-.2em]
 \]
 \\
 A primitive constraint of the form `X <: S` specifies that a type variable $X$ is a subtype of $S$, and likewise for `S <: X`. The primitive constraint $X \exc S$ specifies that a type variable $X$ must exclude a type $S$. A conjunction constraint $\C_1 \wedge \C_2$ is satisfied exactly when both $\C_1$ and $\C_2$ are satisfied, and a disjunction constraint $\C_1 \vee \C_2$ is satisfied exactly when one or both of $\C_1$ and $\C_2$ are satisfied. The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always satisfied. We introduce the following syntactic judgments to generate these constraints:
-\[ \jcsub{S}{T}{\C} \quad \jcequiv{S}{T}{\C} \quad \jexc{S}{T}{\C} \]%
-Each judgment indicates that, under assumptions $\Delta$, the respective predicate can be proved if the constraint $\C$ is satisfied. An important point about these judgments is that the predicates $S \subtypeof T$, $S \equiv T$, and $S \;\exc\; T$ should be considered \emph{inputs} to our algorithmic checker, while the constraint $\C$ should be considered its \emph{output}.
+\[ \jcsub{S}{T}{\C} \andalso \jcequiv{S}{T}{\C} \andalso \jexc{S}{T}{\C} \]%
+Each judgment indicates that, under assumptions $\Delta$,
+the respective predicate can be proved if the constraint $\C$ is
+satisfied. An important point about these judgments is that the
+predicates $S \subtypeof T$, $S \equiv T$, and $S \exc T$ should
+be considered \emph{inputs} to our algorithmic checker, while the
+constraint $\C$ should be considered its \emph{output}.
 
 We do not list here the full semantics of constraint generation for subtyping. Instead we refer the reader to the recent work by Smith and Cartwright \cite{smith08} on which our system was based. Smith and Cartwright provide a sound and complete algorithm for generating constraints from the subtyping relation and an algorithm for normalizing constraints to simplify, for example, those involving contradictions or redundancies. We assume that constraints are implicitly simplified in this manner. The soundness of constraint generation entails that the predicate is a logical consequence of the constraint; the completeness of generation entails the opposite.
 
@@ -100,10 +101,10 @@ We do not list here the full semantics of constraint generation for subtyping. I
 \vspace*{-1em}
 \infrule
   {\jgconstrtemplate{`C[\S_bar\]`}{\exce}{`D[\T_bar\]`}{\C_e} \\
-   \jgconstrtemplate{`C[\S_bar\]`}{\exco}{`D[\T_bar\]`}{\C_o} \\
    \jgconstrtemplate{`C[\S_bar\]`}{\excc}{`D[\T_bar\]`}{\C_c} \\
+   \jgconstrtemplate{`C[\S_bar\]`}{\exco}{`D[\T_bar\]`}{\C_o} \\
    \jgconstrtemplate{`C[\S_bar\]`}{\excp}{`D[\T_bar\]`}{\C_p}}
-  {\jexc{`C[\S_bar\]`}{`D[\T_bar\]`}{\C_e \vee \C_o \vee \C_c \vee \C_p}}
+  {\jexc{`C[\S_bar\]`}{`D[\T_bar\]`}{\C_e \vee \C_c \vee \C_o \vee \C_p}}
 
   \end{minipage}
   
@@ -118,26 +119,15 @@ We do not list here the full semantics of constraint generation for subtyping. I
    \jgconstrtemplate{`D[\T_bar\]`}{\excrx}{`C[\S_bar\]`}{\C'}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\exc_{x}}{`D[\T_bar\]`}{\C \vee \C'}}
 %\vspace{-3ex}
-\hfill where $x$ may be ``e', ``o' or ``c'.
-\\[-.5em]
+\hfill where $x$ may be ``e', ``c' or ``o'.
+\\[-.2em]
 
 \infrule
   {C = D}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excrx}{`D[\T_bar\]`}{\FALSE}}
 %\vspace{-3ex}
-\hfill where $x$ may be ``e', ``o' or ``c'.
-\\[-.5em]
-
-\infrule
-  {`object`\ C \quad C \neq D \quad
-   \jgconstrtemplate{`C[\S_bar\]`}{\not \subtypeof}{`D[\T_bar\]`}{\C}}
-  {\jgconstrtemplate{`C[\S_bar\]`}{\excro}{`D[\T_bar\]`}{\C}}
-\vspace{2ex}
-
-\infrule
-  {\neg(`object`\ C)}
-  {\jgconstrtemplate{`C[\S_bar\]`}{\excro}{`D[\T_bar\]`}{\FALSE}}
-\vspace{2ex}
+\hfill where $x$ may be ``e', ``c' or ``o'.
+\\[-.2em]
 
 \infrule
   {C \neq D \\
@@ -149,15 +139,29 @@ We do not list here the full semantics of constraint generation for subtyping. I
  where\\[-.5em]
  $\ancexcludes(M) = \bigcup_{N \in \ancestors(M)} \myexcludes{N}$
 \end{center}
+\vspace{-1ex}
 
 \infrule
-  {\forall U \in \mycomprises{`C[\S_bar\]`}.\; \jexc{U}{`D[\T_bar\]`}{\C_U} \\
-   C \neq D \andalso \jgconstrtemplate{`C[\S_bar\]`}{\not \subtypeof}{`D[\T_bar\]`}{\C}}
+  {C \neq D \\
+\forall U \in \mycomprises{`C[\S_bar\]`}.\; \jexc{U}{`D[\T_bar\]`}{\C_U}
+% \andalso \jgconstrtemplate{`C[\S_bar\]`}{\not \subtypeof}{`D[\T_bar\]`}{\C}
+}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excrc}{`D[\T_bar\]`}{\C \wedge \bigwedge \C_U}}
 
 \infrule
   {\text{$C$ does not have a `comprises` clause}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excrc}{`D[\T_bar\]`}{\FALSE}}
+
+\infrule
+  {`object`\ C \quad C \neq D \quad
+   \jgconstrtemplate{`C[\S_bar\]`}{\not \subtypeof}{`D[\T_bar\]`}{\C}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excro}{`D[\T_bar\]`}{\C}}
+%\vspace{2ex}
+
+\infrule
+  {\neg(`object`\ C)}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excro}{`D[\T_bar\]`}{\FALSE}}
+%\vspace{2ex}
 
 \infrule
   {\forall U \in \ancestors(`C[\S_bar\]`), V \in \ancestors(`D[\T_bar\]`).\\
@@ -198,9 +202,9 @@ For this, we introduce new forms of primitive constraints to our grammar:\\[-.5e
 \[
 \begin{array}{llll}
 \C &::=& \ldots &\\
-&\mid& X \not<: S &\mbox{primitive constraint}\\
+&\mid& X \not<: S~~~~ &\mbox{primitive constraint}\\
 &\mid& S \not<: X &\mbox{primitive constraint}\\
-&\mid& X \nexc S &\mbox{primitive constraint}\\
+%% &\mid& X \nexc S &\mbox{primitive constraint}\\
 \end{array}
 \]
 \\
