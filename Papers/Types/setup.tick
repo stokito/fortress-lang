@@ -317,14 +317,27 @@ type inference is performed statically,
 and the results of that inference 
 are passed to the run-time system 
 to ensure that run-time type inference at a function call is sound.
-For the dynamically most applicable function declaration,
-the instantiated declaration with whatever instantiation we infer
-must be more specific than the instantiated declaration of the
-statically most applicable function declaration with what was inferred
-at compile time.
 The rules on the overloaded function declarations
 introduced in Section~\ref{sec:rules} ensure that
-dynamically inferred types satisfy this requirement.
+the instantiated declaration of the dynamically most applicable function declaration
+with whatever we infer at run time
+is more specific than the instantiated declaration of the statically most applicable
+function declaration with what was inferred at compile time.
+%% For the dynamically most applicable function declaration,
+%% the instantiated declaration with whatever instantiation we infer
+%% must be more specific than the instantiated declaration of the
+%% statically most applicable function declaration with what was inferred
+%% at compile time.
+
+
+%% For the dynamically most applicable function declaration,
+%% the instantiated declaration with whatever instantiation we infer
+%% must be more specific than the instantiated declaration of the
+%% statically most applicable function declaration with what was inferred
+%% at compile time.
+%% The rules on the overloaded function declarations
+%% introduced in Section~\ref{sec:rules} ensure that
+%% dynamically inferred types satisfy this requirement.
 
 
 
