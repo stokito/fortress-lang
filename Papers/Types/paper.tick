@@ -1,5 +1,5 @@
-%\documentclass[runningheads,a4paper]{llncs}
-\documentclass{llncs}
+\documentclass[runningheads,a4paper]{llncs}
+%\documentclass{llncs}
 
 \usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem}
 \setcounter{tocdepth}{3}
@@ -151,6 +151,7 @@
 
 \title{Type-checking Modular Multiple Dispatch with Parametric Polymorphism and
 \mbox{Multiple Inheritance}}
+\titlerunning{Modular Multiple Dispatch with Polymorphism and Multiple Inheritance}
 
 \author{Eric Allen\inst{1} \and
 Justin Hilburn\inst{2} \and
@@ -160,6 +161,7 @@ David Chase\inst{1} \and
 Victor Luchangco\inst{1} \and
 Guy L. Steele Jr.\inst{1}
 }
+\authorrunning{Allen, Hilburn, Kilpatrick, Ryu, Chase, Luchangco, and Steele Jr.}
 %
 %%%% list of authors for the TOC (use if author list has to be modified)
 %% \tocauthor{Ivar Ekeland, Roger Temam, Jeffrey Dean, David Grove,
