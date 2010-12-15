@@ -89,7 +89,9 @@ then there is some constructed type $K$ in the `comprises` clause of $M$
 such that $N \subtypeof K$.
 
 \item
-If the type constructor $C$ is declared as an `object`, then its `comprises` clause must be empty, and there is no other constructed type $N$ such that $N \subtypeof C\obb{T}$ for any types $\bar{T}$.
+If the type constructor $C$ is declared as an `object`, then its `comprises`
+clause must be empty, and there is no other constructed type $N$ such that
+$N \subtypeof C\obb{T}$ for any types $\bar{T}$.
 
 \end{enumerate}
 As with the subtyping relation, 
@@ -100,11 +102,28 @@ must preserve these well-formedness properties.
 
 
 We now return to the example from the previous section, the function $simple$.
-Any reasonable class table $\T$ that declares types `ZZ` and `String` would also declare one to exclude the other, so \hbox{`ZZ` $\exc$ `String`}. However, the Meet Rule still requires a third declaration in $\D(simple)$ that is applicable to every type $T$ if and only if $simple_1$ and $simple_2$ are applicable to $T$. Such a $T$ would necessarily be a subtype of both `ZZ` and `String`, but since these types exclude, no such $T$ exists (in $\T$ or in any extension thereof). We thus augment every family of overloaded function declarations $\D$ such that each $\D(f)$ includes an additional, implicit declaration $\decl{f_\bot}{\BottomType}{\Any}$. This declaration is trivially more specific than any declaration possibly written by a programmer, but it does not conflict with overloading safety since it is only applicable to \BottomType.
+Any reasonable class table $\T$ that declares types `ZZ` and `String` would also
+declare one to exclude the other, so \hbox{`ZZ` $\exc$ `String`}. However, the
+Meet Rule still requires a third declaration in $\D(simple)$ that is applicable
+to every type $T$ if and only if $simple_1$ and $simple_2$ are applicable to $T$.
+Such a $T$ would necessarily be a subtype of both `ZZ` and `String`, but since
+these types exclude, no such $T$ exists (in $\T$ or in any extension thereof).
+We thus augment every collection of overloaded function declarations $\D$ such
+that each $\D(f)$ includes an additional, implicit declaration $\decl{f_\bot}{\BottomType}{\Any}$.
+This declaration is trivially more specific than any declaration possibly written
+by a programmer, but it does not conflict with overloading safety since it is
+only applicable to \BottomType.
 
-With $simple_\bot$ implicitly part of $\D(simple)$, the two `simple` declarations \emph{almost} satisfy the Meet Rule: the checker now must verify that $dom(simple_\bot)$, \BottomType, is equivalent to the computed meet, `String CAP ZZ`. Therefore we augment our judgment for the subtype relation with the rule necessary for constructing this equivalence:
+With $simple_\bot$ implicitly part of $\D(simple)$, the two `simple`
+declarations \emph{almost} satisfy the Meet Rule: the checker now must verify
+that $dom(simple_\bot)$, \BottomType, is equivalent to the computed meet,
+`String CAP ZZ`. Therefore we augment our judgment for the subtype relation
+with the rule necessary for constructing this equivalence:
 \infrule
 {S \;\exc\; T}
 {\Delta \vdash S \cap T <: \BottomType}
-However, as we discussed in the previous section, checking well-formedness of the declarations $\D(tail)$ is trickier. Certainly neither `List` nor `ArrayList` declares an exclusion of the other, so seemingly the exclusion relation does not help us check these declarations.
+However, as we discussed in the previous section, checking well-formedness
+of the declarations $\D(tail)$ is trickier. Certainly neither `List` nor
+`ArrayList` declares an exclusion of the other, so seemingly the exclusion
+relation does not help us check these declarations.
 

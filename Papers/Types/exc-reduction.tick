@@ -57,7 +57,12 @@
 %%%%%%%%%%%%%%% END REDUCTION FIGURE %%%%%%%%%%%%%%%%
 
 
-We now use the non-equivalence judgment to make rigorous our intuition about how polymorphic exclusion affects the mechanical verification of the overloading rules. We define a reduction judgment on existential types in Figure~\ref{fig:exred} which reduces $\delta$ to $\delta'$ such that $T \ni \delta$ if and only if $T \ni \delta$. Furthermore we have that $\delta' \le \delta$. Then we will show how augmenting the $\le$ relation with the rule:\\[-1.5em]
+We now use the non-equivalence judgment to make rigorous our intuition about
+how polymorphic exclusion affects the mechanical verification of the overloading
+rules. We define a reduction judgment on existential types in Figure~\ref{fig:exred}
+which reduces $\delta$ to $\delta'$ such that $T \ni \delta$ if and only if
+$T \ni \delta'$. Furthermore we have that $\delta' \le \delta$. Then we will
+show how augmenting the $\le$ relation with the rule:\\[-1.5em]
 \infrule
   {\jtred{\delta}{\delta'} \andalso \jqsub{\delta'}{T}}
   {\jqsub{\delta}{T}}
