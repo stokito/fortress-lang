@@ -26,7 +26,7 @@ Overloading and multiple dispatch in the context of polymorphism has previously 
 In systems with type classes, overloaded functions must be contained in some type class, and their signatures must vary in exactly the same structural position. This uniformity is necessary for an overloaded function call to admit a principal type; with a principal type for some function call's context, the type checker can determine the constraints under which a correct overloaded definition will be found. Because of this requirement, type classes are ill-suited for fixed, \emph{ad hoc} sets of overloaded functions like:
 `    println(): () = println("")
     println(s: String): () = ...`
-or functions lacking uniform variance in the domain and range\footnote{With the \emph{multi-parameter type class} extension, one could define functions as these. A reference to the method \mono{bar}, however, would require an explicit type annotation like \mono{:: Int -> Bool} to apply to an \mono{Int}.} like the following:
+or functions lacking uniform variance in the domain and range\footnote{With the \emph{multi-parameter type class} extension, one could define functions as these. A reference to the method \mono{bar}, however, would require an explicit type annotation like \mono{:: Int -> Bool} to apply to an \mono{Int}.} like:
 `    bar(x: ZZ): Boolean = (x = 0)
     bar(x: Boolean): ZZ = if x then 1 else 2 end
     bar(x: String): String = x`
