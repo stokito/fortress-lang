@@ -30,7 +30,7 @@ public class VisitLineNumberInsn extends Insn {
     }
 
     public String toString() { 
-        return name + " line = " + line + " start = " + start + " index " + index;
+        return name + " line = " + line + " start = " + start;
     }
     
     public void toAsm(MethodVisitor mv) {

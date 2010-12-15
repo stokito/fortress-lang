@@ -30,9 +30,6 @@ abstract public class Insn {
     String name;
     Object locals[];
     Object stack[];
-    static int inliningThreshold = getInliningThreshold();
-    String[] inliningHistory;
-    int inliningLevel;
 
     // Imagine a function foo which inlines bar which inlines baz which has a label and a goto
     // The indices are after the instruction in parenthesis.
@@ -46,9 +43,10 @@ abstract public class Insn {
     //          label start (1.2.1.1)
     //          goto start (1.1.1.2)
     // end
+    // Our last step after inlining is to rename labels to avoid the duplicate start
+    // label problem above.  When we are generating the ASM for labels, we change
+    // their 
 
-    // Then when we rename label start it will be either start.1.1.1.1 or start.1.2.1.1 and 
-    // this saves us from the duplicate label problem.
     String index;
 
     ArrayList<Insn> inlineExpansionInsns = new ArrayList<Insn>();
@@ -57,8 +55,6 @@ abstract public class Insn {
     Insn(String name, String index) {
         this.name = name;
         this.index = index;
-        this.inliningHistory = index.split("\\.");
-        this.inliningLevel = this.inliningHistory.length;
     }
 
     public String toString() { 
@@ -66,15 +62,6 @@ abstract public class Insn {
             return "Expanded" + " ind = " + index + " " + name;
         else return name + " ind = " + index; 
     }
-
-    static int getInliningThreshold() {
-        String threshold = System.getenv("FORTRESS_INLINING_THRESHOLD");
-        if (threshold != null) 
-            return Integer.parseInt(threshold);
-        else
-            return 4;
-    }
-            
 
     public void setStack(Object stack[]) {this.stack = stack;}
     public void setLocals(Object locals[]) {this.locals = locals;}
@@ -84,13 +71,13 @@ abstract public class Insn {
     public abstract Insn copy(String index);
 
     public void toAsmWrapper(MethodVisitor mv) {
-        if (isExpanded() && inliningLevel < inliningThreshold) {
-            for (int i = 0; i < inlineExpansionInsns.size(); i++)
-                inlineExpansionInsns.get(i).toAsmWrapper(mv);
-        } else {
-            toAsm(mv);
-        }
-    }
+        if (isExpanded()) {
+             for (int i = 0; i < inlineExpansionInsns.size(); i++)
+                 inlineExpansionInsns.get(i).toAsmWrapper(mv);
+         } else {
+             toAsm(mv);
+         }
+     }
 
     public boolean matches(Insn i) {
         return false;

@@ -79,22 +79,27 @@ public class AbstractInterpretationContext {
         }
     }
 
+    void printInsn(Insn i, int pc) {
+        if (noisy) System.out.println("InterpretInsn: pc= " + pc + " insn = " + i + getStackString() + getLocalsString());
+    }        
+
     public void interpretInsn(Insn i, int pc) {
         i.setStack(stack);
         i.setLocals(locals);
-        if (noisy) System.out.println("InterpretInsn: pc= " + pc + " insn = " + i + getStackString() + getLocalsString());
 
-        if (i instanceof FieldInsn) { interpretFieldInsn((FieldInsn) i); }
+        if (i instanceof FieldInsn)      { interpretFieldInsn((FieldInsn) i); }
         else if (i instanceof IincInsn)  { interpretIincInsn((IincInsn) i);}
         else if (i instanceof IntInsn)   { interpretIntInsn((IntInsn) i);}
         else if (i instanceof JumpInsn)  { interpretJumpInsn((JumpInsn) i);}
         else if (i instanceof LabelInsn) { interpretLabelInsn((LabelInsn) i);}
         else if (i instanceof LdcInsn)   { interpretLdcInsn((LdcInsn) i);}
         else if (i instanceof LookupSwitchInsn) { 
+            printInsn(i,pc);
             interpretLookupSwitchInsn((LookupSwitchInsn) i);
         }
-        else if (i instanceof MethodInsn) { interpretMethodInsn((MethodInsn) i);}
-        else if (i instanceof NotYetImplementedInsn) {}
+        else if (i instanceof MethodInsn) { 
+            printInsn(i,pc); interpretMethodInsn((MethodInsn) i);}
+        else if (i instanceof NotYetImplementedInsn) {throw new RuntimeException("NYI"); }
         else if (i instanceof SingleInsn)      { interpretSingleInsn((SingleInsn) i);}
         else if (i instanceof TableSwitchInsn) { interpretTableSwitchInsn((TableSwitchInsn) i);}
         else if (i instanceof TypeInsn) { interpretTypeInsn((TypeInsn) i);}
@@ -107,7 +112,6 @@ public class AbstractInterpretationContext {
         else if (i instanceof VisitFrame) {}
         else if (i instanceof LocalVariableInsn) {}
         else NYI(i);
-        
     }
 
 
@@ -158,7 +162,6 @@ public class AbstractInterpretationContext {
             opcode == Opcodes.INVOKEINTERFACE ||
             opcode == Opcodes.INVOKESPECIAL) {
             List<String> args = NamingCzar.parseArgs(i.desc);
-            if (noisy) System.out.println("interpretMethodInsn " + i + " with " + args.size() + " args:" + args);
             for (int j = 0; j < args.size(); j++)
                 popStack();
             popStack(); // owner
@@ -168,24 +171,30 @@ public class AbstractInterpretationContext {
                 pushStack(result);
         } else if (opcode == Opcodes.INVOKESTATIC ) {
             List<String> args = NamingCzar.parseArgs(i.desc);
-            if (noisy) System.out.println("interpretMethodInsn " + i + " with " + args.size() + " args:" + args);
             for (int j = 0; j < args.size(); j++)
                 popStack();
             String result = NamingCzar.parseResult(i.desc);
             if (noisy) System.out.println("result = " + result);
             if (result.compareTo("V") != 0)
                 pushStack(result);
-        } else { if (noisy) System.out.println("Don't know how to interpret methodInsn " + i.toString()); }
+        } else { 
+            NYI(i);
+        }
     }
 
     void interpretIincInsn(IincInsn i) {}
     void interpretIntInsn(IntInsn i) {}
 
+    int getNext(ByteCodeMethodVisitor bcmv, JumpInsn i) {
+        Integer loc = (Integer) bcmv.labelDefs.get(i.label.toString());
+        return loc.intValue();
+    }
+
     void addNext(JumpInsn i) {
-            Integer nextInsns = (Integer) bcmv.labelNames.get(i.label.toString());
-            AbstractInterpretationContext next = 
-                new AbstractInterpretationContext(ai, bcmv, stack, locals, stackIndex, nextInsns.intValue());
-            ai.instructions.add(next);
+        AbstractInterpretationContext next = 
+            new AbstractInterpretationContext(ai, bcmv, stack, locals, stackIndex, 
+                                              getNext(bcmv, i));
+        ai.instructions.add(next);
     }
 
     void interpretJumpInsn(JumpInsn i) {
@@ -196,10 +205,8 @@ public class AbstractInterpretationContext {
         case Opcodes.IFGE: 
         case Opcodes.IFGT: 
         case Opcodes.IFLE: {
-            Integer next = (Integer) bcmv.labelNames.get(i.label.toString());
             popStack();
             addNext(i);
-            pc = next.intValue();
             break;
         }
         case Opcodes.IF_ICMPEQ:
@@ -210,25 +217,20 @@ public class AbstractInterpretationContext {
         case Opcodes.IF_ICMPLE:
         case Opcodes.IF_ACMPEQ:
         case Opcodes.IF_ACMPNE: {
-            Integer next = (Integer) bcmv.labelNames.get(i.label.toString());
             popStack();
             popStack();
             addNext(i);
-            pc = next.intValue();
             break;
         }
         case Opcodes.GOTO: {
-            Integer next = (Integer) bcmv.labelNames.get(i.label.toString());
-            pc = next.intValue();
+            pc = getNext(bcmv,i);
             break;
         }
         case Opcodes.JSR: NYI(i); break;
         case Opcodes.IFNULL: 
         case Opcodes.IFNONNULL:  {
-            Integer next = (Integer) bcmv.labelNames.get(i.label.toString());
             popStack();
             addNext(i);
-            pc = next.intValue();
             break;
         }
 
@@ -347,7 +349,7 @@ public class AbstractInterpretationContext {
         case Opcodes.ARETURN: popStack(); pc = bcmv.insns.size(); break; 
         case Opcodes.RETURN:  pc = bcmv.insns.size(); break; 
         case Opcodes.ARRAYLENGTH: NYI(i); break; 
-        case Opcodes.ATHROW: popStack(); break; 
+        case Opcodes.ATHROW: popStack(); pc = bcmv.insns.size(); break; 
         case Opcodes.MONITORENTER: NYI(i); break; 
         case Opcodes.MONITOREXIT: NYI(i); break;
         default: 

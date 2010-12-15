@@ -29,18 +29,7 @@ import org.objectweb.asm.util.*;
 
 public class Inlining {
 
-    private static boolean noisy = true;
-
-    public static void fixJumpInsns() {
-        Iterator it = InlinedJumpInsns.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry pairs = (Map.Entry) it.next();
-            JumpInsn ji = (JumpInsn) pairs.getKey();
-            Label l = (Label) pairs.getValue();
-            LabelInsn newLabel = getLabel(l);
-            ji.label = newLabel.label;
-        }
-    }
+    private static boolean noisy = false;
 
     public static void optimize(ByteCodeVisitor bcv) {
         Iterator it = bcv.methodVisitors.entrySet().iterator();
@@ -48,10 +37,8 @@ public class Inlining {
             Map.Entry pairs = (Map.Entry)it.next();
             ByteCodeMethodVisitor bcmv = (ByteCodeMethodVisitor) pairs.getValue();
             String className = (String) pairs.getKey();
-            InlinedMethodLabels = new HashMap();
-            InlinedJumpInsns = new HashMap();
             Inline(bcmv, className);
-            fixJumpInsns();
+            printMethod(bcmv, "After Optimize");
         }
     }
 
@@ -59,10 +46,24 @@ public class Inlining {
         return name.startsWith("fortress/CompilerBuiltin");
     }
 
+    public static boolean isCompilerLibrary(String name) {
+        return name.startsWith("fortress/CompilerLibrary");
+    }
+
     public static boolean isBuiltinStaticMethod(ByteCodeMethodVisitor bcmv, Insn insn) {
         if (insn instanceof MethodInsn) {
             MethodInsn mi = (MethodInsn) insn;
             if ((mi.opcode == Opcodes.INVOKESTATIC) && (isCompilerBuiltin(mi.owner))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isLibraryStaticMethod(ByteCodeMethodVisitor bcmv, Insn insn) {
+        if (insn instanceof MethodInsn) {
+            MethodInsn mi = (MethodInsn) insn;
+            if ((mi.opcode == Opcodes.INVOKESTATIC) && (isCompilerLibrary(mi.owner))) {
                 return true;
             }
         }
@@ -89,6 +90,15 @@ public class Inlining {
         return false;
     }
 
+    public static boolean isLibraryInstanceMethod(ByteCodeMethodVisitor bcmv, Insn insn) {
+        if (insn instanceof MethodInsn) {
+            MethodInsn mi = (MethodInsn) insn;
+            if ((mi.opcode == Opcodes.INVOKEVIRTUAL) && (isCompilerLibrary(mi.owner))) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public static boolean isBoxedNativeInterfaceMethod(String methodName) {
         if (methodName.contains("nativeHelpers") && methodName.startsWith("native"))
@@ -104,116 +114,58 @@ public class Inlining {
     }
 
     private static void printMethod(ByteCodeMethodVisitor method, String when) {
-
         if (noisy) {
             System.out.println("Printing Method: " + method.name + "  " + when + " with maxStack = " + method.maxStack + " and maxLocals = " + method.maxLocals);
-            printInsns(method.insns, " ");
+            printInsns(method.insns, " ", 0);
             System.out.println("End Method: " + method.name);
         }
     }
 
-    private static void printInsns(List<Insn> insns, String header) {
-
-            for (Insn inst : insns) {
-                if (inst.isExpanded()) {
-                    System.out.println(header + "Replaced Bytecode: " + inst);
-                    printInsns(inst.inlineExpansionInsns, header + " ");
-                } else {
-                    System.out.println(header + "Bytecode: " + inst + inst.getStackString() + inst.getLocals());
-                }
-            }
-    }
-
-
-    private static void printInsns(List<Insn> insns, int depth) {
+    private static void printInsns(List<Insn> insns, String header, int counter) {
+        int i = counter;
         for (Insn inst : insns) {
             if (inst.isExpanded()) {
-                System.out.println("(" + depth + ") Replaced Bytecode: " + inst);
-                printInsns(inst.inlineExpansionInsns, depth++);
-            }
-            System.out.println("(" + depth + ") Bytecode: " + inst + inst.getStackString() + inst.getLocals());
-        }
-    }
-
-    public static void recalculateLabels(ByteCodeMethodVisitor method) {
-        method.labelNames = new HashMap();
-        recalculateLabels(method, method.insns, 0);
-    }
-
-    public static void recalculateLabels(ByteCodeMethodVisitor method, List<Insn> insns, int current) {
-
-        for (Insn insn : insns) {
-            if (insn instanceof LabelInsn) {
-                LabelInsn labelInsn = (LabelInsn) insn;
-                method.labelNames.put(labelInsn.label.toString(), new Integer(current++));
-            } else if (insn.isExpanded()) {
-                recalculateLabels(method, insn.inlineExpansionInsns, current);
+                System.out.println(header + "Replaced Bytecode: " + inst + " ::: " + inst.index);
+                printInsns(inst.inlineExpansionInsns, header + " ", i);
             } else {
-                current++;
+                System.out.println(header + "[" + i++ + "]" + "Bytecode: " + inst + ":::" + inst.index + ":::" + inst.getStackString() + inst.getLocals());
             }
         }
     }
 
-    static HashMap InlinedMethodLabels;
-    static HashMap InlinedJumpInsns;
+     public static void recalculateLabels(ByteCodeMethodVisitor method) {
+         method.labelDefs = new HashMap();
+         recalculateLabels(method, method.insns);
+     }
 
-    static void addLabel(Label label, LabelInsn labelInsn) { 
-        InlinedMethodLabels.put(label, labelInsn); 
-    }
+     public static void recalculateLabels(ByteCodeMethodVisitor method, List<Insn> insns) {
+         int count = 0;
+         for (Insn insn : insns) {
+             if (insn instanceof LabelInsn) {
+                 LabelInsn labelInsn = (LabelInsn) insn;
+                 method.labelDefs.put(labelInsn.label.toString(), new Integer(count));
+             } else if (insn.isExpanded()) {
+                 throw new RuntimeException("expanded insns shouldn't get here");
+                 //                     recalculateLabels(method, insn.inlineExpansionInsns);
+               }
+             count++;
+         }
+     }
 
-    static LabelInsn getLabel(Label label) { 
-        LabelInsn result = (LabelInsn) InlinedMethodLabels.get(label); 
-        return result; 
-    }
-
-    static void addJump(JumpInsn JumpInsn, Label label) {
-        InlinedJumpInsns.put(JumpInsn, label);
-    }
 
     static String newIndex(MethodInsn mi, int index) { return mi.index + "." + index;}
 
-    public static List<Insn> convertInsns(MethodInsn mi, List<Insn> insns, int[] args, int _index) {
+    public static List<Insn> convertInsns(MethodInsn mi, List<Insn> insns, int[] args, int _index, Label end) {
         List<Insn> result = new ArrayList<Insn>();
+        HashMap labels = new HashMap();
         int index = _index;
         for (Insn i : insns) {
-            if (i instanceof LabelInsn) {
-                LabelInsn oldLabelInsn = (LabelInsn) i;
-                String newName = oldLabelInsn.name + mi.index;
-                LabelInsn newLabelInsn = new LabelInsn(newName, new Label(), newIndex(mi,index++));
-                addLabel(oldLabelInsn.label, newLabelInsn);
-                result.add(newLabelInsn);
-            } else if (i instanceof JumpInsn)  {
-                JumpInsn oldJumpInsn = (JumpInsn) i; 
-                JumpInsn newJumpInsn = 
-                    new JumpInsn(oldJumpInsn.name, oldJumpInsn.opcode, 
-                                 oldJumpInsn.label, newIndex(mi,index++));
-                addJump(newJumpInsn, oldJumpInsn.label);
-                result.add(newJumpInsn);
-            } else if (i instanceof VisitLineNumberInsn) {
-                VisitLineNumberInsn oldVisitLineNumberInsn = (VisitLineNumberInsn) i;
-                LabelInsn oldLabelInsn = getLabel(oldVisitLineNumberInsn.start);
-                VisitLineNumberInsn newVisitLineNumberInsn =                     
-                    new VisitLineNumberInsn(oldVisitLineNumberInsn.name,
-                                            oldVisitLineNumberInsn.line,
-                                            oldLabelInsn.label,
-                                            newIndex(mi,index++));
-                result.add(newVisitLineNumberInsn);
-            } else if (i instanceof LocalVariableInsn) {
-                LocalVariableInsn oldLocalVariableInsn = (LocalVariableInsn) i;
-                LabelInsn oldStartLabel = getLabel(oldLocalVariableInsn.start);
-                LabelInsn oldEndLabel = getLabel(oldLocalVariableInsn.end);
-                LocalVariableInsn newLocalVariableInsn = 
-                    new LocalVariableInsn(oldLocalVariableInsn.name,
-                                          oldLocalVariableInsn._name,
-                                          oldLocalVariableInsn.desc,
-                                          oldLocalVariableInsn.sig,
-                                          oldStartLabel.label,
-                                          oldEndLabel.label,
-                                          args[oldLocalVariableInsn._index],
-                                          newIndex(mi, index++));
-                result.add(newLocalVariableInsn);
-                
-            } else  if (i instanceof SingleInsn) {
+            if (i.isExpanded()) {
+                MethodInsn expanded = (MethodInsn) i;
+                // This use of end should be OK because all returns should have been removed when inlined before.
+                // What could go wrong?
+                result.addAll(convertInsns(expanded, expanded.inlineExpansionInsns, args, _index, end));
+            } else if (i instanceof SingleInsn) {
                 SingleInsn si = (SingleInsn) i;
                 switch(si.opcode) {
                 case Opcodes.IRETURN:
@@ -221,8 +173,8 @@ public class Inlining {
                 case Opcodes.FRETURN:
                 case Opcodes.DRETURN:
                 case Opcodes.ARETURN:
-                case Opcodes.RETURN:  result.add(new SingleInsn("NOP", Opcodes.NOP, newIndex(mi, index++))); break;
-                default: result.add(i.copy(newIndex(mi, index++)));
+                case Opcodes.RETURN:  result.add(new JumpInsn("RETURN->GOTO", Opcodes.GOTO, end, newIndex(mi, index++))); break;
+                default: result.add(i.copy(newIndex(mi, index++))); 
                 }
             } else if (i instanceof VarInsn) {
                 VarInsn vi = (VarInsn) i;
@@ -243,18 +195,63 @@ public class Inlining {
                 default: result.add(i.copy(newIndex(mi, index++)));
                 }
             } else if (i instanceof VisitMaxs) {
-                result.add(new SingleInsn("NOP", Opcodes.NOP, newIndex(mi, index++)));
             } else if (i instanceof VisitEnd) {
-                result.add(new SingleInsn("NOP", Opcodes.NOP, newIndex(mi, index++)));
             } else if (i instanceof VisitCode) {
-                result.add(new SingleInsn("NOP", Opcodes.NOP, newIndex(mi, index++)));
             } else if (i instanceof VisitFrame) {
-                result.add(new SingleInsn("NOP", Opcodes.NOP, newIndex(mi, index++)));
+            } else if (i instanceof LabelInsn) {
+                LabelInsn li = (LabelInsn) i;
+                if (labels.containsKey(li.label))
+                    result.add(new LabelInsn(li.name,(Label) labels.get(li.label), newIndex(mi, index++)));
+                else {
+                    Label l = new Label();
+                    labels.put(li.label, l);
+                    result.add(new LabelInsn(li.name, l, newIndex(mi, index++)));
+                }
+            } else if (i instanceof JumpInsn) {
+                JumpInsn ji = (JumpInsn) i;
+                if (labels.containsKey(ji.label)) 
+                    result.add(new JumpInsn(ji.name, ji.opcode, (Label) labels.get(ji.label), newIndex(mi, index++)));
+                else {
+                    Label l = new Label();
+                    labels.put(ji.label, l);
+                    result.add(new JumpInsn(ji.name, ji.opcode, l, newIndex(mi, index++)));
+                }
+            } else if (i instanceof VisitLineNumberInsn) {
+                VisitLineNumberInsn vlni = (VisitLineNumberInsn) i;
+                if (labels.containsKey(vlni.start))
+                    result.add(new VisitLineNumberInsn(vlni.name, vlni.line,
+                                                       (Label) labels.get(vlni.start), newIndex(mi,index++)));
+                else {
+                    Label l = new Label();
+                    labels.put(vlni.start, l);
+                    result.add(new VisitLineNumberInsn(vlni.name, vlni.line, l, newIndex(mi, index++)));
+                }
+            } else if (i instanceof LocalVariableInsn) {
+                LocalVariableInsn lvi = (LocalVariableInsn) i;
+                if (labels.containsKey(lvi.start) && labels.containsKey(lvi.end)) {
+                    result.add(new LocalVariableInsn(lvi.name, lvi._name, lvi.desc, lvi.sig, (Label) labels.get(lvi.start), 
+                                                     (Label) labels.get(lvi.end), args[lvi._index], newIndex(mi, index++)));
+                } else throw new RuntimeException("NYI");
+            } else if (i instanceof TryCatchBlock) {
+                TryCatchBlock tcb = (TryCatchBlock) i;
+                if (labels.containsKey(tcb.start) && labels.containsKey(tcb.end) && labels.containsKey(tcb.handler)) {
+                    result.add(new TryCatchBlock(tcb.name, (Label) labels.get(tcb.start), (Label) labels.get(tcb.end),
+                                                 (Label) labels.get(tcb.handler), tcb.type, newIndex(mi, index++)));
+                } else if (!labels.containsKey(tcb.start) && !labels.containsKey(tcb.end) && 
+                           !labels.containsKey(tcb.handler)) {
+                    Label s = new Label();
+                    Label e = new Label();
+                    Label h = new Label();
+                    labels.put(tcb.start, s);
+                    labels.put(tcb.end, e);
+                    labels.put(tcb.handler, h);
+                    result.add(new TryCatchBlock(tcb.name, s, e, h, tcb.type, newIndex(mi, index++)));
+                } else throw new RuntimeException("NYI");
+                // Need to add TableSwitch, LookupSwitch
             } else {
-                    result.add(i.copy(newIndex(mi, index++)));
+                result.add(i.copy(newIndex(mi, index++)));
             }
         }
-
         return result;
     }
 
@@ -282,10 +279,10 @@ public class Inlining {
         for (int i = localsStart-1; i > argsStart; i--)
             offsets[i] = method.maxLocals+i;
 
-        method.maxStack = java.lang.Math.max(method.maxStack, methodToInline.maxStack);
-        method.maxLocals = method.maxLocals + methodToInline.args.size();
+        method.maxStack = method.maxStack + methodToInline.maxStack;
+        method.maxLocals = method.maxLocals + methodToInline.args.size() + methodToInline.maxLocals;
 
-        insns.addAll(convertInsns(mi, methodToInline.insns, offsets, index));
+        insns.addAll(convertInsns(mi, methodToInline.insns, offsets, index, end));
 
         insns.add(new LabelInsn("end_" + mi._name, end, newIndex(mi, insns.size())));
 
@@ -296,13 +293,30 @@ public class Inlining {
 
         mi.inlineExpansionInsns.addAll(insns);
     }
+
+    public static ArrayList<Insn> flatten(ArrayList<Insn> insns) {
+        ArrayList<Insn> fi = new ArrayList<Insn>();
+        for (Insn i : insns) {
+            if (i.isExpanded()) {
+                MethodInsn mi = (MethodInsn) i;
+                fi.addAll(flatten(mi.inlineExpansionInsns));
+            } else {
+                fi.add(i);
+            }
+        }
+        return fi;
+    }
+        
                 
     public static void Inline(ByteCodeMethodVisitor bcmv, String className) {
         ByteCodeOptimizer builtin = new ByteCodeOptimizer();
         builtin.readInJarFile("default_repository/caches/bytecode_cache/fortress.CompilerBuiltin.jar");
+        ByteCodeOptimizer library = new ByteCodeOptimizer();
+        library.readInJarFile("default_repository/caches/bytecode_cache/fortress.CompilerLibrary.jar");
         ByteCodeOptimizer nativeHelpers = new ByteCodeOptimizer();
         nativeHelpers.readInNativeClassFiles();
-        IterateOverInsns(bcmv, className, builtin, nativeHelpers, bcmv.insns, "");
+        IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, bcmv.insns, "");
+        bcmv.insns = flatten(bcmv.insns);
         recalculateLabels(bcmv);
     }
 
@@ -318,9 +332,9 @@ public class Inlining {
             return true;
     }
 
-    static int iterationCount = 0;
     public static void IterateOverInsns(ByteCodeMethodVisitor bcmv, String className, ByteCodeOptimizer builtin, 
-                                        ByteCodeOptimizer nativeHelpers,  ArrayList<Insn> insns, String preamble) {
+                                        ByteCodeOptimizer library, ByteCodeOptimizer nativeHelpers,  
+                                        ArrayList<Insn> insns, String preamble) {
         for (Insn insn : insns) {
             // We have an issue with inlining methods which have already inlined methods with labels.
             // By walking over all of the bytecodes we end up fixing up all of the labels
@@ -334,7 +348,7 @@ public class Inlining {
                                                                                                               mi.desc); 
                         if (methodToInline != null && isNotInParentSet(mi)) {
                             inlineMethodCall(className, bcmv, mi, methodToInline, false);
-                            IterateOverInsns(bcmv, className, builtin, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
+                            IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
                         }
                     } else if (isCompilerBuiltin(mi.owner)) {
                         if (isBuiltinStaticMethod(bcmv, insn)) {
@@ -343,7 +357,18 @@ public class Inlining {
                                                                                                                   mi.desc); 
                             if (methodToInline != null && isNotInParentSet(mi)) {
                                 inlineMethodCall(className, bcmv, mi, methodToInline,true);
-                                IterateOverInsns(bcmv, className, builtin, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
+                                IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
+                            }
+                        } else if (isBuiltinInstanceMethod(bcmv, insn)) {
+                        }
+                    } else if (isCompilerLibrary(mi.owner)) {
+                        if (isLibraryStaticMethod(bcmv, insn)) {
+                            ByteCodeVisitor bcv = (ByteCodeVisitor) library.classes.get(mi.owner + ".class");
+                            ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
+                                                                                                                  mi.desc); 
+                            if (methodToInline != null && isNotInParentSet(mi)) {
+                                inlineMethodCall(className, bcmv, mi, methodToInline,true);
+                                IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
                             }
                         } else if (isBuiltinInstanceMethod(bcmv, insn)) {
                         }
@@ -354,7 +379,7 @@ public class Inlining {
                                                                                                               mi.desc); 
                         if (methodToInline != null) {
                             inlineMethodCall(className, bcmv, mi, methodToInline, true);
-                            IterateOverInsns(bcmv, className, builtin, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
+                            IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
                         }
 
                     } else if (isUnboxedNativeInterfaceMethod(mi.owner)) {
@@ -364,7 +389,7 @@ public class Inlining {
                                                                                                               mi.desc); 
                         if (methodToInline != null) {
                             inlineMethodCall(className, bcmv, mi, methodToInline, true);
-                            IterateOverInsns(bcmv, className, builtin, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
+                            IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
                         }
                     }
             }

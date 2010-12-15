@@ -20,27 +20,29 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.util.*;
 
-public class LabelInsn extends Insn {
-    Label label;
+public class TryCatchBlock extends Insn {
+    Label start;
+    Label end;
+    Label handler;
+    String type;
 
-    LabelInsn(String name , Label label, String index) {
+    TryCatchBlock(String name, Label start, Label end, Label handler, String type, String index){
         super(name, index);
-        this.label = label;
-    }
-
-    public LabelInsn copy(String newIndex) {
-        return new LabelInsn(name, label, newIndex);
+        this.start = start;
+        this.end = end;
+        this.handler = handler;
+        this.type = type;
     }
 
     public String toString() { 
-        return "LabelInsn:" + name + " " + label + ":::" + index;
+        return "TryCatchBlock:::" + index + ":::" + " start = " + start + " end = " + end + " handler = " + handler + " type = " + type ;
+    }
+
+    public TryCatchBlock copy(String newIndex) {
+        return new TryCatchBlock(name, start, end, handler, type, newIndex);
     }
     
     public void toAsm(MethodVisitor mv) { 
-        mv.visitLabel(label);
-    }
-
-    public boolean matches(LabelInsn li) {
-        return true;
+        mv.visitTryCatchBlock(start, end, handler, type);
     }
 }
