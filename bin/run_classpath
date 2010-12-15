@@ -28,6 +28,6 @@ else
 fi
 
 BASIC_CLASS_PATH="`"${FORTRESS_HOME}"/bin/fortress_classpath`"
-CLASSPATH="$FORTRESS_HOME/default_repository/caches/bytecode_cache${SEP}$FORTRESS_HOME/default_repository/caches/bytecode_cache/*${SEP}$FORTRESS_HOME/default_repository/caches/nativewrapper_cache${SEP}/tmp/expanded.jar${SEP}${BASIC_CLASS_PATH}"
+CLASSPATH="$FORTRESS_HOME/default_repository/caches/bytecode_cache${SEP}$FORTRESS_HOME/default_repository/caches/bytecode_cache/*${SEP}$FORTRESS_HOME/default_repository/caches/nativewrapper_cache${SEP}${BASIC_CLASS_PATH}"
 
 echo "$CLASSPATH"
