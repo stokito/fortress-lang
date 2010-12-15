@@ -298,23 +298,36 @@ holds by checking the following rule for each function name $f$:
 For every $f_1, f_2 \in \D(f)$ with $f_1 \ms f_2$, 
 for every type $W$ to which $f_1$ is applicable 
 (and therefore $f_2$ is also applicable)
-and every instance $\decl{f_2'}{U_2}{V_2}$ of $f_2$ 
+and every instance $\decl{f_2'}{S_2'}{T_2'}$ of $f_2$ 
 that is applicable to $W$, 
-there must exist an instance \decl{f_1'}{U_1}{V_1} of $f_1$ 
-that is applicable to $W$ and satisfies $V_1 <: V_2$.
+there must exist an instance \decl{f_1'}{S_1'}{T_1'} of $f_1$ 
+that is applicable to $W$ and satisfies $T_1' <: T_2'$.
 \end{description}
 
-This condition can be checked using the subtype relation on universal types since $f_1 = \hdeclg{f}{\Delta_1}{S_1}{T_1}$ 
+This condition can be checked using the subtype relation on universal types.
+The generic declarations $f_1 = \hdeclg{f}{\Delta_1}{S_1}{T_1}$ 
 and $f_2 = \hdeclg{f}{\Delta_2}{S_2}{T_2}$ with $f_1 \ms f_2$ satisfy the Return Type Rule
-whenever:
-\[ \forall\ob{\Delta_1}S_1 \rightarrow T_1 \; \le \; \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \rightarrow T_2 \]
-To see this, suppose $W$ is a type to which $f_1$ is applicable and the instance $\decl{f_2'}{U_2}{V_2}$ of $f_2$ is also applicable to $W$.
-Let $f_\meet = \hdeclg{f}{\Delta_1, \Delta_2}{S_1 \cap S_2}{T_2}$.
-Clearly, there is an instance 
+whenever
+\renewcommand{\theequation}{\fnsymbol{equation}}
+\begin{equation} \label{eq:rtr}
+  \forall\ob{\Delta_1}S_1 \rightarrow T_1 \; \le \; \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \rightarrow T_2
+\end{equation}
+To see this, suppose $W$ is a type to which $f_1$ is applicable and the instance $\decl{f_2'}{S_2'}{T_2'}$ of $f_2$
+is also applicable to $W$.
+Let $f_\meet = \hdeclg{f}{\Delta_1, \Delta_2}{S_1 \cap S_2}{T_2}$ be the
+computed meet of $f_1$ and $f_2$;
+clearly, there is an instance 
 $\decl{f_\meet'}{U'}{V'}$ of $f_\meet$ 
-that is applicable to $W$ with $V' = V_2$. 
-Therefore, the fact that $arrow(f_1)$ is a subtype of $arrow(f_\meet)$
-tells us that there is an instantiation $\decl{f_1'}{U_1}{V_1}$ of $f_1$
-with $U' <: U_1$ and $V_1 <: V'$ so $f_1$ and $f_2$ satisfy the Return Type Rule.
+that is applicable to $W$ with $V' = T_2'$. 
+If $arrow(f_1) \le arrow(f_\meet)$,
+then there must be an instantiation $\decl{f_1'}{S_1'}{T_1'}$ of $f_1$
+with $U' <: S_1'$ and $T_1' <: V'$. Moreover, since $V'=T_2'$,
+such an $f_1'$ would satisfy the Return Type Rule for $f_1$ and $f_2$.
+Finally, observe that $arrow(f_1) \le arrow(f_\meet)$ is identical to the
+condition (\ref{eq:rtr}), and so the verification of (\ref{eq:rtr}) implies
+the verification of the Return Type Rule.
 
-Just as in our discussion of the Meet Rule, the fact that subtyping is preserved under class table extension lets us be sure that the property that $\D(f)$ satisfies the Return Type Rule is preserved under class table extension. Therefore the Return Type Rule and the rules from the last section are sufficient to ensure safety.
+Just as in our discussion of the Meet Rule, the fact that subtyping is preserved
+under class table extension lets us be sure that the property that $\D(f)$ satisfies
+the Return Type Rule is preserved under class table extension. Therefore the
+Return Type Rule and the rules from the last section are sufficient to ensure safety.

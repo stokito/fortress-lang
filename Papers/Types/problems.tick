@@ -54,7 +54,8 @@ The first two declarations are incomparable under specificity---%
 the first declaration applies to all instantiations of type constructor `ArrayList`,
 whereas the second declaration applies only to instantiations of
 type constructor `List` with subtypes of type `ZZ`. The third definition,
-which is the obvious candidate to disambiguate the two, is not actually the meet; the domain of this meet candidate is the existential type:
+which is the obvious candidate to disambiguate the two, is not actually the meet;
+the domain of this meet candidate is the existential type:
 `    EXISTS[\W <: ZZ\]ArrayList[\W\]
 `
 and needs to be proven equivalent to the domain of the computed meet:
