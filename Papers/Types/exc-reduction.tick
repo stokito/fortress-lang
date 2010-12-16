@@ -47,6 +47,16 @@
 \infrule
   {\bar{T} = \{\phi(\Delta(X)) \;:\; X \in \Delta \;\text{and}\; \phi(X) = Y\}}
   {\phi^{-1}[Y,\Delta] = conjuncts(\bigcap \bar{T})}
+
+%% CONJUNCTS DEF
+\[
+conjuncts(T) \quad \syndef \quad
+  \begin{cases}
+    conjuncts(T_1) \cup conjuncts(T_2) & \text{if } T = T_1 \cap T_2 \\
+    \{ T \} & \text{otherwise}
+  \end{cases}
+\]
+
 \end{minipage}
 \\\\\hline
 \end{tabular}

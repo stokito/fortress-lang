@@ -167,17 +167,18 @@ We do not list here the full semantics of constraint generation for subtyping. I
 %\vspace{2ex}
 
 \infrule
-  {\forall U \in \ancestors(`C[\S_bar\]`), V \in \ancestors(`D[\T_bar\]`).\\
-     \jgconstrtemplate{U}{\bexc_\textrm{p}}{V}{\C_{U,V}}}
-  {\jgconstrtemplate{`C[\S_bar\]`}{\exc_\textrm{p}}{`D[\T_bar\]`}{\bigvee \C_{U,V}}}
+  {\forall U \in \ancestors(`C[\S_bar\]`).\\
+   \forall V \in \ancestors(`D[\T_bar\]`).\\
+     \jgconstrtemplate{U}{\bexcp}{V}{\C_{U,V}}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excp}{`D[\T_bar\]`}{\bigvee \C_{U,V}}}
 
 \infrule
   {C = D \andalso \bar{\jcnonequiv{S}{T}{\C}}}
-  {\jgconstrtemplate{`C[\S_bar\]`}{\bexc_\textrm{p}}{`D[\T_bar\]`}{\bigvee \C_i}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\bexcp}{`D[\T_bar\]`}{\bigvee \C_i}}
 
 \infrule
   {C \neq D}
-  {\jgconstrtemplate{`C[\S_bar\]`}{\bexc_\textrm{p}}{`D[\T_bar\]`}{\FALSE}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\bexcp}{`D[\T_bar\]`}{\FALSE}}
 
 \textbf{Type variables}
 \infrule
