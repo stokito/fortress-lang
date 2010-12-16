@@ -6,8 +6,8 @@ In \emph{single dispatch},
 a particular argument is designated as the \emph{receiver}, 
 and the call is resolved only with respect to that argument.
 In \emph{multiple dispatch}, 
-the runtime types of  all arguments to a function call are used to resolve the call.
-A special case of multiple dispatch is that of \emph{symmetric multiple dispatch}, 
+the runtime types of  all arguments to a call are used to resolve the call.
+A special case of multiple dispatch is \emph{symmetric multiple dispatch}, 
 in which all arguments are considered equally when resolving a call.
 
 Multiple dynamic dispatch provides programmers with a great deal of expressiveness.
@@ -27,7 +27,7 @@ depending on the types of both arguments.
 To preserve type soundness 
 while incorporating multiple dispatch 
 into an object-oriented language with a static semantics, 
-constraints must be placed on the sets of allowable overloaded definitions.
+constraints must be placed on the sets of valid overloaded definitions.
 For example, to avoid ambiguous function calls,
 we must ensure that for every call site 
 (knowing only the static types of the arguments),
@@ -79,7 +79,7 @@ that it represents an infinite set of ground types `List[\Object\]` (lists of ob
 `List[\String\]` (lists of strings), `List[\ZZ\]` (lists of integers), and so on.
 In an actual type checker, it is necessary to have rules
 for working with uninstantiated (non-ground) parametric types, but for many purposes
-this model of ````an infinite set of ground types''' is adequate for explanatory purposes.
+this model of ````an infinite set of ground types'' is adequate for explanatory purposes.
 Not so, however, for type-parametric functions.  For quite some time during the
 development of the Fortress language, one of us (Steele) pushed for understanding
 a parametrically polymorphic function definition such as:

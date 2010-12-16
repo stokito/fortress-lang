@@ -57,7 +57,9 @@ $C\obb{T} \,\excre\, \substb{T}{X}M_i$.
   
   \item The `object` keyword denotes a type constructor whose applications have no non-trivial subtypes; an `object` type constructor is a leaf of the class table. Since such a constructed type `C[\T_bar\]` has no subtypes other than itself and \BottomType, we know that it excludes any type `U` of which it is not a subtype. We write this exclusion sub-relation as $C\obb{T} \,\excro\, U$.
 \end{enumerate}
-Exclusion between constructed types is informally defined as the union of the sub-relations $\excre$, $\excrc$, and $\excro$. (We shall introduce another sub-relation in the next subsection.)
+Exclusion between constructed types is informally defined as the union
+of the sub-relations $\excre$, $\excrc$, and $\excro$. (We shall
+introduce another sub-relation $\excrp$ later in this section.)
 
 The exclusion relation induced by a class table on all its types
 is then the symmetric closure of the relation 
@@ -70,7 +72,9 @@ An intersection type excludes any type excluded by \emph{any} of its constituent
 while a union type excludes any type excluded by \emph{all} of its constituent types.
 $\BottomType$ excludes every type (including itself---it is the only type 
 that excludes itself), 
-and $\Any$ does not exclude any type other than $\BottomType$. (Later in Section~\ref{sec:constraints}, we shall define the exclusion relation formally.)
+and $\Any$ does not exclude any type other than $\BottomType$.
+(Later in Section~\ref{sec:constraints}, we shall define the exclusion
+relation formally in Figure~\ref{fig:jexc}.)
 We augment our notion of a well-formed class table 
 to require that the subtyping and exclusion relations it induces 
 ````respect'' each other.

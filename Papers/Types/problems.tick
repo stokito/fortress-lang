@@ -41,9 +41,12 @@ a valid overloading, they are not because the Meet Rule is not satisfied:
 `    simple String:String
     simple ZZ:ZZ`
 Moreover, in Fortress it is impossible to disambiguate the declarations by providing the meet
-because intersection types are not allowed in the Fortress function declaration syntax. In a language with single inheritance, we would
-be able to infer that these overloadings were safe due to the fact that a class can only have a single superclass. However, due to
-multiple inheritance, we cannot be sure that these types do not have a common subtype no matter what the programmer intends.
+because intersection types are not allowed in the Fortress function declaration syntax.
+In a language with single inheritance, we might infer that these
+overloadings were safe because a class can only have a
+single superclass. However, due to multiple inheritance, we cannot be
+sure that these types do not have a common subtype no matter what the
+programmer intends.
 
 Now consider this less trivial set of overloaded functions:
 `    foo[\X <: Any\]ArrayList[\X\]:ZZ
