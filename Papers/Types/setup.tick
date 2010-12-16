@@ -277,6 +277,11 @@ $\decl{f_W}{U}{V}$ is applicable to $W$ and  $V \extends T$.
 Static checking of these conditions guarantees 
 that there are no ambiguous calls at run time 
 due to a collection of overloaded function declarations.
+\footnote{These conditions do not constitute a definition of
+soundness for a type system in the traditional sense;
+they are for (type) safety for overloaded function declarations.
+%% not for a full type system.
+}
 % We wish to define a system to statically check that a collection of function
 % declarations is well-formed.
 % This check corresponds precisely to the check one needs to perform on programs
@@ -291,6 +296,8 @@ are always subtypes of the static types of the argument expressions
 As a monomorphic function declaration is a special case of a generic function declaration,
 where the sequence of the type parameters is empty,
 these conditions apply also for monomorphic function declarations.
+
+
 
 \subsection{Type Inference}
 

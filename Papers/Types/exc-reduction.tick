@@ -76,11 +76,11 @@ Then we will show how augmenting the $\le$ relation with the rule:\\[-1.5em]
 \infrule
   {\jtred{\delta}{\delta'} \andalso \jqsub{\delta'}{T}}
   {\jqsub{\delta}{T}}
-lets us prove that more sets of overloaded functions satisfy the overloading rules. Reducing an
-existential type in this fashion involves the same 
-kind of type analysis required in other languages 
-for type checking generalized algebraic data 
-types \cite{simonet07,jones09}.
+lets us prove that more sets of overloaded functions satisfy the overloading rules.
+Reducing an existential type in this fashion involves the same kind of
+type analysis required for type checking generalized algebraic data types
+% in other languages
+\cite{simonet07,jones09}.
 
 The reduction judgment $\vdash\delta\eqred\delta',\phi$ says that the existential type $\delta = \exttype{T}$ reduces to $\delta' = \exttype[\Delta']{T'}$ with the substitution $\phi$ (when the substitution is unnecessary we omit it) under the assumption that $T$ is not equivalent to \BottomType; or, if $T$ is equivalent to \BottomType, the reduced existential $\delta'$ is \BottomType. As an example, consider the following instance of reduction:\\[.8em]
 `EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])` $\eqred$
@@ -109,7 +109,7 @@ $\Delta'$ the reduced existential type is simply
 $\exists\ob{\Delta'}\phi(T)$, where $T$ is the constituent type of the
 original existential. In our example, the final, reduced existential
 type is `EXISTS[\W <: ZZ\]ArrayList[\W\]`.
-
+%
 Once we have augmented the subtyping relation with existential
 reduction, we can finally check that the declarations $\D(\mbox{\emph{foo}})$ from
 Section~4 satisfy the Meet Rule.
