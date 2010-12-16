@@ -239,17 +239,17 @@ the \emph{instantiation} of $f$ with $\bar{W}$.
 When we do not care about $\bar{W}$, 
 we just say that $\decl{f}{U}{V}$
 is an \emph{instance} of $f$.
-
+%
 We use the metavariable $\D$ for a finite collection of sets of
-function declarations and write $\D(f)$ for the set in
+function declarations and $\D(f)$ for the set in
 $\D$ that contains all declarations named $f$.
-
+%
 An instance \decl{f}{U}{V} of a declaration $f$ 
 is \emph{applicable} to a type $W$ 
 if and only if $W \subtypeof U$.
 A function declaration is \emph{applicable} to a type 
 if and only if at least one of its instances is.
-
+%
 For any two function declarations $f_1, f_2 \in \D(f)$, 
 $f_1$ is \emph{more specific} than $f_2$ 
 (written $f_1 \ms f_2$)

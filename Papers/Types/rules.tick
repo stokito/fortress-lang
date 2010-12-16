@@ -328,6 +328,6 @@ condition (\ref{eq:rtr}), and so the verification of (\ref{eq:rtr}) implies
 the verification of the Return Type Rule.
 
 Just as in our discussion of the Meet Rule, the fact that subtyping is preserved
-under class table extension lets us be sure that the property that $\D(f)$ satisfies
-the Return Type Rule is preserved under class table extension. Therefore the
+under class table extension makes sure that the property that $\D(f)$ satisfies
+the Return Type Rule is preserved under class table extension. Therefore, the
 Return Type Rule and the rules from the last section are sufficient to ensure safety.
