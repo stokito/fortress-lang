@@ -24,8 +24,13 @@
 \newcommand{\quoted}[1]{\begin{quote}#1\end{quote}}
 \newcommand{\exc}{\mathrel{\lozenge}}
 \newcommand{\nexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\lozenge}}
-\newcommand{\bexc}{\mathrel{\blacklozenge}}
-\newcommand{\bnexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\blacklozenge}}
+\newcommand{\smalllozenge}{\vcenter{\hbox{\scalebox{.5}{$\lozenge$}}}}
+\newcommand{\normallozenge}{\vcenter{\hbox{$\lozenge$}}}
+% \newcommand{\altlozenge}{\ooalign{\hfil$\normallozenge$\hfil\cr\hfil$\smalllozenge$\hfil}}
+\newcommand{\altlozenge}{\ooalign{\hfil$\vcenter{\hbox{$\lozenge$}}$\hfil\cr\hfil$\cdot$\hfil}}
+\newcommand{\bexc}{\mathrel{\altlozenge}}
+\newcommand{\bexcp}{\mathrel{\altlozenge}_\textrm{p}}
+\newcommand{\bnexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\altlozenge}}
 
 \newcommand{\excr}{\triangleright}
 \newcommand{\excl}{\triangleleft}
