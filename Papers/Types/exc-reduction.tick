@@ -24,6 +24,7 @@
   {\jtreds{\exttype{T}}{\exttype[\Delta']{\phi(T)}}{\phi}}
 
 
+\vspace*{-.5em}
 \newjudge{Bounds substitution}{\phi[\Delta] = \Delta}
 \vspace*{-.8em}
 \infrule
@@ -41,12 +42,14 @@
 %       \andalso \C_i \neq \FALSE}
 %   {\phi[\Delta] = \NONE}
 
+\vspace*{-.5em}
 \newjudge{Bounds transfer}{\phi^{-1}[X,\Delta] = \bar{T}}
 \vspace*{-.8em}
 \infrule
   {\{\bar{T}\} = \{\phi(\Delta(X)) \mid X \in dom(\Delta),\; \phi(X) = Y\}}
   {\phi^{-1}[Y,\Delta] = conjuncts(\bigcap \bar{T})}
 
+\vspace*{-.5em}
 %% CONJUNCTS DEF
 \[
 conjuncts(T) \quad \syndef \quad
@@ -76,6 +79,7 @@ Then we will show how augmenting the $\le$ relation with the rule:\\[-1.5em]
 \infrule
   {\jtred{\delta}{\delta'} \andalso \jqsub{\delta'}{T}}
   {\jqsub{\delta}{T}}
+\vspace{-.5em}
 lets us prove that more sets of overloaded functions satisfy the overloading rules.
 Reducing an existential type in this fashion involves the same kind of
 type analysis required for type checking generalized algebraic data types
@@ -115,7 +119,11 @@ reduction, we can finally check that the declarations $\D(\mbox{\emph{foo}})$ fr
 Section~4 satisfy the Meet Rule.
 
 
-A similar analysis shows that if an instance of a universal arrow has the domain `BottomType`, then it is irrelevant for the purposes of guaranteeing Progress. Therefore we can use our reduction rule for existential types to aid in the verification of the Return Type Rule by augmenting the subtype rules for universal arrows:
+A similar analysis shows that if an instance of a universal arrow has
+the domain `BottomType`, then it is irrelevant for the purposes of
+guaranteeing Progress. Therefore we can use our reduction rule for
+existential types to aid in the verification of the Return Type Rule
+by augmenting the subtype rules for universal arrows:
 \\[-1.5em]
 \infrule
   {\jtreds{\exttype[\Delta_1]{T}}{\delta'}{\phi} \andalso
@@ -123,4 +131,12 @@ A similar analysis shows that if an instance of a universal arrow has the domain
   {\jqsub{S}{\unitype[\Delta_1]{\arrowtype{T}{U}}}}
  % {\Delta \vdash S <: reduce(`FORALL[\X_bar <: M_bar\]S \to T`)}
  % {\Delta \vdash S <: `FORALL[\X_bar <: M_bar\]S \to T`}
-It is easy to see from the previous existential reduction instance that this subtype judgment can be proven, thus allowing us to verify the Return Type Rule for the function $\D(tail)$ from Section~4.
+It is easy to see from the previous existential reduction instance that this subtype judgment can be proven,
+thus allowing us to verify the Return Type Rule for the function $\D(tail)$ from Section~4.
+
+%% Because this subtype judgment holds for the previous existential
+%% reduction instance, we can verify the Return Type Rule for the
+%% function $\D(tail)$ from Section~4.
+%% %% It is easy to see from the previous existential reduction instance
+%% %% that this subtype judgment holds, thus allowing us to verify
+%% %% the Return Type Rule for the function $\D(tail)$ from Section~4. 

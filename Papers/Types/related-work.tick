@@ -44,9 +44,14 @@ and link-time checks must be performed to ensure that multimethods are fully
 implemented across modules, which undermines true modularity. Further, ML$_\le$
 allows variance annotations on type constructors --- something we attribute to
 future work.
+Litvinov~\cite{litvinov98} developed a type system for the Cecil language,
+which supports bounded parametric polymorphism and multimethods.
+Because Cecil has a type-erasure semantics, the statically checked
+parametric polymorphism does not have any effects in runtime dispatches.
 
-\subsubsection{Type classes.} Wadler and Blott \cite{wadler89} introduced the
-\emph{type class} construct as a means to specify and implement overloaded
+
+\subsubsection{Type classes.} Wadler and Blott \cite{wadler89} introduced
+\emph{type class} as a means to specify and implement overloaded
 functions like equality and arithmetic operators in Haskell. Other authors
 have translated type classes to languages besides Haskell \cite{dreyer07,siek05,wehr07}.
 Type classes encapsulate overloaded function declarations, with separate
