@@ -246,10 +246,11 @@ These judgements are sound because constraint generation for $\subtypeof$ is com
 % if the constraints $\C$ hold,'' in Figure~\ref{fig:jexc}.
 % With these
 With these additional constraints and judgments, we can now define
-constraint generation for exclusion. Our algorithm --- which
+constraint generation for exclusion.
+Figure~\ref{fig:jexc} presents our algorithm, which
 formalizes our original definition of exclusion in
-Section~\ref{sec:excdec} --- is presented as inference rules in
-Figure~\ref{fig:jexc}. As before, exclusion on constructed types is
+Section~\ref{sec:excdec}.
+As before, exclusion on constructed types is
 satisfied when any of the sub-relations from the previous section is
 satisfied. Each sub-relation checks the conditions described before
 by recursively generating and propagating constraints. Each
@@ -261,10 +262,13 @@ the acyclic class table, this process will also terminate. The
 algorithm is complete and sound if $\subtypeof$ is.
 
 
-For subtyping with constraints, we essentially preserve the semantics of \cite{smith08}, but that system lacks our notion of exclusion. Since we certainly need our subtyping to take advantage of exclusion, we must add an additional rule to the judgment:\\[-1.5em]
+For subtyping with constraints, we essentially preserve the semantics
+of \cite{smith08}, but that system lacks our notion of
+exclusion. Since we need our subtyping to take advantage of
+exclusion, we must add an additional rule to the judgment:\\[-1em] 
 
 \infrule
-  {\jgconstrtemplate{S}{\exc}{T}{\C} \\
+  {\jgconstrtemplate{S}{\exc}{T}{\C} \andalso
    \jcsub{S}{U}{\C'} \andalso\jcsub{T}{U}{\C''}}
   {\jcsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
 
