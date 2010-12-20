@@ -139,7 +139,7 @@ and meet of existential types}
 
 Guaranteeing safety 
 requires constraints on the sets of overloaded function declarations
-that may appear in a legal program \cite{millstein02,millstein03}.
+that are allowed to appear in a legal program \cite{millstein02,millstein03}.
 Some languages require program constructs 
 that encapsulate all overloaded definitions; 
 such constructs essentially guarantee safety ````by construction''.

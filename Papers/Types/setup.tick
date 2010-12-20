@@ -36,7 +36,8 @@ a possibly empty sequence of syntactic elements $\emph{A}$ separated by commas):
 A tuple type of length one is synonymous with its element type. 
 A tuple type with any \BottomType\ element 
 is synonymous with \BottomType.
-Compound types---intersection and union types---are \emph{not} first-class in the Fortress language:
+As in the Fortress language, compound types---intersection and union types---are 
+\emph{not} first-class:
 they cannot be written in a program; 
 rather, they are used by the type analyzer during type checking.
 However, type variables may have multiple bounds, 
@@ -92,7 +93,7 @@ with respect to $\T$ recursively:
    = \{C\obb{T}\} \cup 
      \hspace*{-4ex} \bigcup_{M \in \myextends{C\obb{T}}} \hspace{-4ex} \ancestors_{\T}(M)
 \]
-We typically omit the class table when it is understood.
+We typically omit explicit reference to the class table when it is understood.
 
 Structural and compound types are \emph{well-formed} (with respect to a class
 table) if their constituent types are well-formed, and we extend the subtyping relation to
@@ -102,7 +103,7 @@ and covariant in their range types
 (i.e., $\arrowtype{S}{T} \subtypeof \arrowtype{U}{V}$
 if and only if $U \subtypeof S$ and $T \subtypeof V$).
 One tuple type is a subtype of another 
-if and only if they have the same number of elements, 
+if and only if it has the same number of elements, 
 and each element of the first is a subtype of the corresponding element of the other 
 (i.e., $( \tuple{\bar{S}} ) \subtypeof ( \tuple{\bar{T}} )$
 if and only if $|\bar{S}| = |\bar{T}|$
@@ -279,7 +280,7 @@ that there are no ambiguous calls at run time
 due to a collection of overloaded function declarations.
 \footnote{These conditions do not constitute a definition of
 soundness for a type system in the traditional sense;
-they are for (type) safety for overloaded function declarations.
+they are for (type) safety of overloaded function declarations.
 %% not for a full type system.
 }
 % We wish to define a system to statically check that a collection of function
@@ -292,7 +293,7 @@ The preservation condition ensures that the static type of an application
 is a supertype of the ilk of each value produced by the application at run time,
 provided that the ilks for the argument values in function applications 
 are always subtypes of the static types of the argument expressions
-(as in any language with a sound type system).
+(as they are in any language with a sound type system).
 As a monomorphic function declaration is a special case of a generic function declaration,
 where the sequence of the type parameters is empty,
 these conditions apply also for monomorphic function declarations.

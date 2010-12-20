@@ -4,22 +4,6 @@ by extending type constructor declarations with two new optional clauses,
 \[
 C\tplist{X}{L} \extends `{N_bar} [ excludes {M_bar} ] [ comprises {K_bar} ]`
 \]
-Omitting an `excludes` clause is equivalent to have `excludes {}`, and
-omitting a `comprises` clause is equivalent to have `comprises { Any }`.\footnote{For
-the sake of catching likely programming errors, the Fortress language requires that every $K_i$
-in a `comprises` clause for $C\obb{T}$ be a subtype of $C\obb{T}$, but allowing
-`Any` to appear in a `comprises` clause simplifies our presentation here.}
-For an application $C\obb{T}$ 
-of a declaration with the `excludes` and/or `comprises` clause above, 
-we define the sets of instantiations of the types 
-in these clauses analogously to $\myextends{C\obb{T}}$.
-That is,\\[-.2em]
-\[
-\begin{array}{rl}
-\myexcludes{C\obb{T}}  =& \{ \bar{\substb{T}{X}M} \} \\
-\mycomprises{C\obb{T}} =& \{ \bar{\substb{T}{X}K} \}
-\end{array}
-\]
 We also allow another form of declaration that is frequently convenient for defining ````leaf types'':
 \[
 `object` \; C\tplist{X}{L} \extends `{N_bar}`
@@ -60,13 +44,30 @@ $C\obb{T} \,\excre\, \substb{T}{X}M_i$.
 Exclusion between constructed types is informally defined as the union
 of the sub-relations $\excre$, $\excrc$, and $\excro$. (We shall
 introduce another sub-relation $\excrp$ later in this section.)
+Omitting an `excludes` clause is equivalent to have `excludes {}`, and
+omitting a `comprises` clause is equivalent to have `comprises { Any }`.\footnote{For
+the sake of catching likely programming errors, the Fortress language requires that every $K_i$
+in a `comprises` clause for $C\obb{T}$ be a subtype of $C\obb{T}$, but allowing
+`Any` to appear in a `comprises` clause simplifies our presentation here.}
+For an application $C\obb{T}$ 
+of a declaration with the `excludes` and/or `comprises` clause above, 
+we define the sets of instantiations of the types 
+in these clauses analogously to $\myextends{C\obb{T}}$.
+That is,\\[-.2em]
+\[
+\begin{array}{rl}
+\myexcludes{C\obb{T}}  =& \{ \bar{\substb{T}{X}M} \} \\
+\mycomprises{C\obb{T}} =& \{ \bar{\substb{T}{X}K} \}
+\end{array}
+\]
 
 The exclusion relation induced by a class table on all its types
 is then the symmetric closure of the relation 
 derived from the constructed types as described above, 
 extended to structural and compound types as follows:
 Every arrow type excludes every non-arrow type.
-Every tuple type excludes every non-tuple type 
+Every singleton tuple type excludes exactly those types excluded by its element type.
+Every non-singleton tuple type excludes every non-tuple type 
 and also every tuple type with a different number of element types.
 An intersection type excludes any type excluded by \emph{any} of its constituent types, 
 while a union type excludes any type excluded by \emph{all} of its constituent types.
