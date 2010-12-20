@@ -306,7 +306,7 @@ Here is a simple algorithm which is sound but not complete:
 try to solve each conjunct at a time (take the first one that succeeds).
 \item Split the conjunct into positive and negative parts.
 \item Deduce a set of equivalences from the positive part.
-\item Solve the equivalences using what unification (with subtyping) to get a substitution $\phi$.
+\item Solve the equivalences using unification (with subtyping) to get a substitution $\phi$.
 \item Check whether applying $\phi$ to $\C$ is $\TRUE$.
 \item If so return $`Some`(\phi)$, otherwise return `None`.
 \end{enumerate}
