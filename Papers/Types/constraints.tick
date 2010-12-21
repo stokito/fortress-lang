@@ -46,7 +46,7 @@ the conditions when two types are not equivalent and
 when one type is not a subtype of the other.
 For this, We add the following constraints:\\[-.2em]
 \[
-S \not<: X, X \not<: S
+S \not<: X, X \not<: S, X \nexc S
 \]
 \\
 which we call {\it negatives}.
