@@ -218,7 +218,7 @@ For this, we introduce new forms of primitive constraints to our grammar:\\[-.5e
 \C &::=& \ldots &\\
 &\mid& X \not<: S~~~~ &\mbox{primitive constraint}\\
 &\mid& S \not<: X &\mbox{primitive constraint}\\
-%% &\mid& X \nexc S &\mbox{primitive constraint}\\
+&\mid& X \nexc S &\mbox{primitive constraint}\\
 \end{array}
 \]
 \\
