@@ -781,6 +781,31 @@ maintain proper indentation.
     <fail message="Tests expected to pass are failing!" if="tests.failed"/>
   </target>
 
+  <target name ="testLibrary" depends="cleanCache, compile"
+          description="Test the compiler libraries">
+    <mkdir dir="${test.results}"/>
+    <mkdir dir="${PF}/test-tmp" />
+    <junit printsummary="on"
+           haltonerror="off"
+           haltonfailure="off"
+           showoutput="yes"
+           fork="true"
+           maxmemory="${junitMem}"
+           errorProperty="tests.failed"
+           failureProperty="tests.failed">
+      <classpath refid="compile.classpath"/>
+      <jvmarg value="-Djava.io.tmpdir=${PF}/test-tmp" />
+      <formatter type="plain" usefile="true"/>
+      <batchtest fork="true" todir="${test.results}">
+        <fileset dir="${build}">
+          <include name="**/LibraryJUTest.class"/>
+        </fileset>
+      </batchtest>
+    </junit>
+    <delete dir="${PF}/test-tmp" />
+    <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+  </target>
+
   <target name="testFast"
           description="Run all unit and system tests expected to pass.">
     <mkdir dir="${test.results}"/>
