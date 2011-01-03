@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2010 Sun Microsystems, Inc.,
+    Copyright 2011 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -45,6 +45,9 @@ public class Naming {
         ;
 
     public final static int TUPLE_ORIGIN = 1;
+    public final static int STATIC_PARAMETER_ORIGIN = 1;
+    public final static String STATIC_PARAMETER_GETTER_SIG = "()Ljava/lang/Object;";
+    public final static String STATIC_PARAMETER_FIELD_DESC = "Ljava/lang/Object;";
     
     // Used to indicate translation convention to apply to type parameter.
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA

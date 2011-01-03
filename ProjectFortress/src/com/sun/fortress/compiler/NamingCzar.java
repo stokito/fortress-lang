@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2010 Sun Microsystems, Inc.,
+    Copyright 2011 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -800,6 +800,19 @@ public class NamingCzar {
         args = buf.toString();
         return makeMethodDesc(args, rangeDesc);
     }
+    
+    public static String jvmSignatureForNObjects(int n,
+            String rangeDesc) {
+        // This special case handles single void argument type properly.
+        String args = "";
+        StringBuilder buf = new StringBuilder();
+        for (int i = 0; i < n; i++) {
+            buf.append("Ljava/lang/Object;");
+        }
+        args = buf.toString();
+        return makeMethodDesc(args, rangeDesc);
+    }
+
 
     // CodeGen.forFnDecl
     public static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,

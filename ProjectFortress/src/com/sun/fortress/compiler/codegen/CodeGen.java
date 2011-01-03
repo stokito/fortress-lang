@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2010 Sun Microsystems, Inc.,
+    Copyright 2011 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -46,6 +46,7 @@ import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.HasSelfType;
 import com.sun.fortress.compiler.index.Method;
+import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.compiler.OverloadSet;
@@ -145,6 +146,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @author dr2chase
      */
     static class ClassNameBundle {
+        final Id typeId;
+        
         /** The name of the class. */
         final String className;
         /**
@@ -157,11 +160,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * Same as className for non-generic.
          */
         final String fileName;
+        
         /** No static parameters;
          * the ilk of the generic.
          */
         final String ilkClassName; 
         ClassNameBundle(Id id, String sparams_part, String PCN) {
+            typeId = id;
             className =
                 NamingCzar.jvmClassForToplevelTypeDecl(id,
                         sparams_part,
@@ -177,6 +182,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
     }
 
+    String staticParameterGetterName(Id typename, String default_package_class, int index) {
+        return NamingCzar.jvmClassForToplevelTypeDecl(typename,"",default_package_class) + "#" + index;
+    }
 
     
     // Create a fresh codegen object for a nested scope.  Technically,
@@ -3671,6 +3679,267 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         springBoardClass = null;
         initializedStaticFields_TO = null;
 
+    }
+    
+    private void RttiClassAndInterface(TraitObjectDecl tod, ClassNameBundle cnb) {
+        TraitTypeHeader header = tod.getHeader();
+        List<TraitTypeWhere> extend_s = header.getExtendsClause();
+        IdOrOpOrAnonymousName name = header.getName();
+        List<StaticParam> sparams = header.getStaticParams();
+        
+        HashMap<Id, TraitIndex> transitive_extends =
+            STypesUtil.inheritedTransitiveTraits(extend_s, ta);
+
+        HashMap<Id, TraitIndex> direct_extends =
+            STypesUtil.inheritedTraits(extend_s, ta);
+        
+        int d_e_size = direct_extends.size();
+
+        CodeGenClassWriter prev = cw;
+        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, prev);
+
+        /*
+         * x$RTTIi
+         * extends y$RTTIi for each y in extend_s
+
+         * for each static parameter of x, declares method "asX"#number
+
+         * x$RTTIc
+         * implements x$RTTIi
+
+         * fields
+         * for each y in extend_s, one field, initially null, type y$RttiClass
+         * for each z in static parameters, one field, init in constructor
+
+         * constructor (init method)
+         * parameters for static parameters, if any.
+         * 
+         * if no static parameters, then a static field initialized to the
+         * single value of the type.
+         * if static parameters, then a static field initialized to a map of
+         * some sort, plus a factory receiving static parameters, that checks
+         * the map, and allocates the type as necessary.
+
+         * lazy_init method
+         * for each y in extend_s, field = new y$RTTIc(type parameters).
+         * type parameters take a little thinking about how we put them together.
+         * If extends A[B[T]], should be new A$RTTIc(new B$RTTIc(T))
+         * Seems like a factory would be appropriate, to avoid senseless
+         * duplication of type parameters.
+
+         * methods
+         * for each static parameter #N of each type T in transitive_extends,
+         * there needs to be a method as"T"#N.  For all non-self types, the
+         * method will check lazy_init, and then delegate to the first type
+         * in extend_s that has T in its own transitive_extends.  For T=self,
+         * return the value of the appropriate static parameter.
+
+         */
+        
+        /*
+         * x$RTTIi
+         * extends y$RTTIi for each y in extend_s
+         */
+        
+        String rttiInterfaceName = cnb.ilkClassName + "$RTTIi";
+        String[] superInterfaces = new String[extend_s.size()];
+        
+        Id[] direct_extends_keys = new Id[d_e_size]; // will use in lazyInit
+        int i = 0;
+        for (Id extendee : direct_extends.keySet()) {
+            String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
+            direct_extends_keys[i] = extendee;
+            superInterfaces[i++] = extendeeIlk + "$RTTIi";
+         }
+        
+        cw.visitSource(NodeUtil.getSpan(tod).begin.getFileName(), null);
+        cw.visit( InstantiatingClassloader.JVM_BYTECODE_VERSION,
+                  Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
+                  rttiInterfaceName, null, NamingCzar.internalObject, superInterfaces);
+        
+        /*
+         * for each static parameter of x, declares method "asX"#number
+         */
+        
+        i = Naming.STATIC_PARAMETER_ORIGIN;
+        for (StaticParam sp : sparams) {
+            String method_name = staticParameterGetterName(cnb.typeId, packageAndClassName, i);
+            CodeGenMethodVisitor mv = cw.visitCGMethod(
+                    Opcodes.ACC_ABSTRACT + ACC_PUBLIC,
+                    method_name, Naming.STATIC_PARAMETER_GETTER_SIG, null, null);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            mv.visitEnd();
+            i++;
+        }
+
+        cw.dumpClass( rttiInterfaceName );
+
+        /*
+         * x$RTTIc
+         * implements x$RTTIi
+         */
+
+        superInterfaces = new String[1];
+        superInterfaces[0] = rttiInterfaceName;
+        String rttiClassName =  cnb.ilkClassName + "$RTTIc";
+        cw.visitSource(NodeUtil.getSpan(tod).begin.getFileName(), null);
+        cw.visit( InstantiatingClassloader.JVM_BYTECODE_VERSION,
+                  Opcodes.ACC_PUBLIC,
+                  rttiClassName, null, NamingCzar.internalObject, superInterfaces);
+        
+        /*
+         * fields
+         * for each y in extend_s, one field, initially null, type y$RttiClass
+         * for each z in static parameters, one field, init in constructor
+         */
+        
+        for (Id extendee : direct_extends.keySet()) {
+            String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
+            String field_type = extendeeIlk + "$RTTIc";
+            String tyDesc = "L" + field_type + ";";
+            cw.visitField(Opcodes.ACC_PRIVATE,
+                    extendeeIlk, tyDesc, null, null);
+         }
+ 
+        for (StaticParam sp : sparams) {
+            IdOrOp spn = sp.getName();
+            // not yet this;  sp.getKind();
+           
+            String tyDesc = Naming.STATIC_PARAMETER_FIELD_DESC;
+            cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL,
+                    spn.getText(), tyDesc, null, null);
+        }
+        /*
+         * constructor (init method)
+         * parameters for static parameters, if any.
+         */
+        {
+            String init_sig = NamingCzar.jvmSignatureForNObjects(sparams.size(), "V");
+            mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC, "<init>", init_sig, null, null);
+            mv.visitCode();
+
+            int pno = 1;
+            for (StaticParam sp : sparams) {
+                IdOrOp spn = sp.getName();
+                // not yet this;  sp.getKind();
+                mv.visitVarInsn(Opcodes.ALOAD, 0);
+                mv.visitVarInsn(Opcodes.ALOAD, pno);
+                mv.visitFieldInsn(Opcodes.PUTFIELD, rttiClassName, spn.getText(), Naming.STATIC_PARAMETER_FIELD_DESC);
+                pno++;
+            }
+            
+            mv.visitInsn(Opcodes.RETURN);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            mv.visitEnd();
+        }
+        
+        /*
+         * static or factory.
+         */
+        if (sparams.size() == 0) {
+            // static, initialized to single instance of self
+            cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL,
+                    "ONLY", "L" + rttiClassName + ";", null, null);
+            
+            mv = cw.visitCGMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
+            mv.visitCode();
+            // new
+            mv.visitTypeInsn(Opcodes.NEW, rttiClassName);
+            // init
+            mv.visitInsn(DUP);
+            mv.visitMethodInsn(INVOKESPECIAL, rttiClassName, "<init>", "()V");
+            // store
+            mv.visitFieldInsn(PUTSTATIC, rttiClassName, "ONLY", "L"+rttiClassName+";");                
+
+            mv.visitInsn(Opcodes.RETURN);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            mv.visitEnd();
+        } else {
+            // static, initialized to Map-like thing
+            cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL,
+                    "DICTIONARY", "Ljava/util/Map;", null, null);
+            
+            // factory, consulting map, optionally invoking constructor.
+            mv = cw.visitCGMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
+            mv.visitCode();
+            // new
+            mv.visitTypeInsn(Opcodes.NEW, rttiClassName);
+            // init
+            mv.visitInsn(DUP);
+            mv.visitMethodInsn(INVOKESPECIAL, rttiClassName, "<init>", "()V");
+            // store
+            mv.visitFieldInsn(PUTSTATIC, rttiClassName, "ONLY", "L"+rttiClassName+";");                
+
+            mv.visitInsn(Opcodes.RETURN);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            mv.visitEnd();
+        }
+        
+        /*
+         * lazy_init method
+         * for each y in extend_s, field = new y$RTTIc(type parameters).
+         * type parameters take a little thinking about how we put them together.
+         * If extends A[B[T]], should be new A$RTTIc(new B$RTTIc(T))
+         * Seems like a factory would be appropriate, to avoid senseless
+         * duplication of type parameters.
+         */
+        if (d_e_size > 0)
+        {
+            mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC, "lazyInit", "()V", null, null);
+            mv.visitCode();
+
+            Label do_ret = new Label();
+            Id sentinel = direct_extends_keys[d_e_size-1];
+            getExtendeeField(rttiClassName, sentinel);
+            mv.visitJumpInsn(Opcodes.IFNONNULL, do_ret);
+            // Do the initialization.
+            // Push all the type parameters
+            
+            for (Id extendee : direct_extends_keys) {
+                TraitIndex ti = direct_extends.get(extendee);
+                // allocate new
+                String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
+                String field_type = extendeeIlk + "$RTTIc";
+                mv.visitTypeInsn(Opcodes.NEW, field_type);
+                List<StaticParam> extendee_sp = ti.staticParameters();
+     
+                // init...
+            }
+            
+           
+            mv.visitLabel(do_ret);
+            mv.visitInsn(Opcodes.RETURN);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            mv.visitEnd();
+        }
+    
+        /*
+         * methods
+         * for each static parameter #N of each type T in transitive_extends,
+         * there needs to be a method as"T"#N.  For all non-self types, the
+         * method will check lazy_init, and then delegate to the first type
+         * in extend_s that has T in its own transitive_extends.  For T=self,
+         * return the value of the appropriate static parameter.
+
+         */
+
+        cw.dumpClass( rttiClassName );
+
+        
+        cw = prev;
+    }
+
+
+    /**
+     * @param rttiClassName
+     * @param extendee
+     */
+    private void getExtendeeField(String rttiClassName, Id extendee) {
+        String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
+        String field_type = extendeeIlk + "$RTTIc";
+        String tyDesc = "L" + field_type + ";";
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitFieldInsn(Opcodes.GETFIELD, rttiClassName, extendeeIlk, tyDesc);
     }
 
     public void forVarDecl(VarDecl v) {
