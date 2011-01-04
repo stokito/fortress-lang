@@ -28,6 +28,7 @@ _fr=${FORTRESS_AUTOHOME}/ProjectFortress
 fortress.repository.path=;.fortress;${HOME}/.fortress;${FORTRESS_AUTOHOME}/local_repository;${FORTRESS_AUTOHOME}/default_repository
 #
 fortress.caches=${FORTRESS_REPOSITORY}/caches
+# fortress.caches=/tmp/${user.name}/fortress/caches
 #
 fortress.source.path=;.;${_fr}/LibraryBuiltin;${FORTRESS_AUTOHOME}/Library;${_fr}/test_library
 #

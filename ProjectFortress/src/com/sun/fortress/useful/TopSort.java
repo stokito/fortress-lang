@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2010 Sun Microsystems, Inc.,
+ Copyright 2011 Sun Microsystems, Inc.,
  4150 Network Circle, Santa Clara, California 95054, U.S.A.
  All rights reserved.
 
@@ -67,7 +67,16 @@ public class TopSort {
             }
         }
 
-        if (n != sorted.size()) throw new IllegalArgumentException("No order exists; input contains cycle");
+        if (n != sorted.size()) {
+            ArrayList a = new ArrayList();
+            for (int k=0; k<pending.size(); k++) {
+                if (pending.get(k) != null) {
+                    a.add(pending.get(k));
+                }
+            }
+           
+            throw new CycleInRelation("No topological order exists; input contains cycle", a);
+        }
 
         return sorted;
     }
@@ -112,7 +121,16 @@ public class TopSort {
             }
         }
 
-        if (n != sorted.size()) throw new IllegalArgumentException("No order exists; input contains cycle");
+        if (n != sorted.size()) {
+            ArrayList a = new ArrayList();
+
+            while (pending.size() > 0) {
+                T it = pending.first();
+                pending.remove(it);
+                a.add(it);
+            }
+            throw new CycleInRelation("No topological order exists; input contains cycle", a);
+        }
 
         return sorted;
     }
@@ -145,7 +163,18 @@ public class TopSort {
             j = pending.size();
         }
 
-        if (n != sorted.size()) throw new IllegalArgumentException("No order exists; input contains cycle");
+        if (n != sorted.size()) {
+            ArrayList a = new ArrayList();
+            Iterator<T> q = unsorted.iterator();
+            while (q.hasNext()) {
+                T it = q.next();
+                if (!sorted.contains(it)) {
+                    a.add(it);
+                }
+            }
+            throw new CycleInRelation("No topological order exists; input contains cycle", a);
+            
+        }
 
         return sorted;
     }
