@@ -34,8 +34,8 @@ import com.sun.fortress.scala_src.typechecker.Formula;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.scala_src.types.TypeSchemaAnalyzer;
 import com.sun.fortress.compiler.phases.CodeGenerationPhase;
-import com.sun.fortress.exceptions.CompilerBug;
-import static com.sun.fortress.exceptions.CompilerBug.bug;
+import com.sun.fortress.exceptions.InterpreterBug;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -125,7 +125,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 Param qq = q.get(i);
                 if (! (pp.getIdType().unwrap() instanceof Type &&
                        qq.getIdType().unwrap() instanceof Type) )
-                    CompilerBug.bug("Types are expected.");
+                    InterpreterBug.bug("Types are expected.");
                 Type tp = (Type)pp.getIdType().unwrap();
                 Type tq = (Type)qq.getIdType().unwrap();
                 Class cp = tp.getClass();
@@ -259,7 +259,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             List<Param> parameters = f.tagParameters();
             int this_size = parameters.size();
             if (this_size != paramCount)
-                CompilerBug.bug("Need to handle variable arg dispatch elsewhere " + name);
+                InterpreterBug.bug("Need to handle variable arg dispatch elsewhere " + name);
 
         }
     }
@@ -360,15 +360,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             }
         }
         
-        List<TopSortItemImpl<TaggedFunctionName>> specificFirst;
-        try {
-            specificFirst = TopSort.depthFirstArray(pofuns);
-        } catch (CycleInRelation ex) {
-             bug("The type signatures in the overload set contain a cycle.\n" +
-                 "This suggests a bug in static analysis or its use.  Functions:\n" +
-                      ex.getItems());
-             return; // NOTREACHED
-        }
+        List<TopSortItemImpl<TaggedFunctionName>> specificFirst = TopSort.depthFirstArray(pofuns);
         
         if (computeSubsets) {
             /*
@@ -635,7 +627,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         List<Param> msf_parameters = f.tagParameters();
         List<Param> cand_parameters = g.tagParameters();
         if (msf_parameters.size() != cand_parameters.size()) {
-            CompilerBug.bug("Diff length parameter lists, should not be possible");
+            InterpreterBug.bug("Diff length parameter lists, should not be possible");
         }
                 
         return oa.lteq(g.tagF, f.tagF);
@@ -749,7 +741,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             } else if (type instanceof IntersectionType) {
                 sum += matchingCount((IntersectionType) type, paramCount);
             } else {
-                CompilerBug.bug("Non arrowtype " + type + " in (function) intersection type");
+                InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
             }
         }
         return sum;
@@ -780,7 +772,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             } else if (type instanceof IntersectionType) {
                 r0 = getRange((IntersectionType) type, paramCount, ta);
             } else {
-                CompilerBug.bug("Non arrowtype " + type + " in (function) intersection type");
+                InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
                 return null; // not reached
             }
             typesToJoin.add(r0);
@@ -830,7 +822,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         } else if (type instanceof IntersectionType) {
             r0 = getParamType((IntersectionType) type, i, paramCount, ta);
         } else {
-            r0 = CompilerBug.bug("Non arrowtype " + type + " in (function) intersection type");
+            r0 = InterpreterBug.bug("Non arrowtype " + type + " in (function) intersection type");
             // not reached
         }
         return r0;
@@ -944,7 +936,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     public void generateCall(MethodVisitor mv, int firstArgIndex, Label failLabel) {
         if (!splitDone) {
-            CompilerBug.bug("Must split overload set before generating call(s)");
+            InterpreterBug.bug("Must split overload set before generating call(s)");
             return;
         }
 
@@ -1072,9 +1064,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             if (lsp.size() > 0)
                 params = lsp;
         } else if (fu instanceof Constructor) {
-            CompilerBug.bug("Unimplemented arm of jvm signature " + fu);
+            InterpreterBug.bug("Unimplemented arm of jvm signature " + fu);
         } else {
-            CompilerBug.bug("Unexpected subtype of FunctionalMethod " + fu);
+            InterpreterBug.bug("Unexpected subtype of FunctionalMethod " + fu);
         }
         return params;
     }

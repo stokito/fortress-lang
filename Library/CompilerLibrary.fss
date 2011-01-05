@@ -58,10 +58,6 @@ opr ===(a:Boolean, b:Boolean):Boolean = a<->b
 
 opr NEQV(a:Any, b:Any):Boolean = NOT (a === b)
 
-opr =(a:Any, b:Any):Boolean = (a === b)
-
-opr =/=(a:Any, b:Any):Boolean = NOT (a = b)
-
 (*) For now, we cannot compile `throw`
 fail[\T\](s:String):() = do
     errorPrintln("FAIL: " s)

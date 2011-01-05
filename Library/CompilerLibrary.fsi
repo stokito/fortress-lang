@@ -55,8 +55,6 @@ opr <->(a: Boolean, b:Boolean):Boolean
 
 opr ===(a:Any, b:Any):Boolean
 opr NEQV(a:Any, b:Any):Boolean
-opr =(a:Any, b:Any):Boolean
-opr =/=(a:Any, b:Any):Boolean
 
 fail[\T\](s:String):()
 

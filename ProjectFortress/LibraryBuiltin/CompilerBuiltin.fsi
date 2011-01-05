@@ -135,7 +135,7 @@ end
 
 
 trait Boolean
-    opr =(self, other:Boolean): Boolean
+(*)    opr =(self, other:Boolean): Boolean
 end
 
 true : Boolean
