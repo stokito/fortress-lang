@@ -199,7 +199,7 @@ trait FloatLiteral excludes {RR32, RR64}
 end
 
 trait Boolean
-    opr =(self, other:Boolean): Boolean = jBooleanEqv(self,other)
+(*)    opr =(self, other:Boolean): Boolean = jBooleanEqv(self,other)
 end
 
 true : Boolean = (0=0)
