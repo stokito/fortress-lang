@@ -55,7 +55,7 @@ public class TopSort {
         int j = 0;
         while (j < pending.size()) {
             T it = pending.get(j);
-            pending.set(j, null); // optional, really.
+            pending.set(j, null);
             j++;
             sorted.add(it);
             Iterator<T> iti = it.successors();

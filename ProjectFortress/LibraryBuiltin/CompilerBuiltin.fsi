@@ -19,6 +19,9 @@ api CompilerBuiltin
 import AnyType.{Any}
 
 trait Object extends Any
+    getter asString(): String
+    getter asExprString(): String
+    getter asDebugString(): String
 end Object
 
 nanoTime(): RR64
@@ -41,10 +44,34 @@ object FlatString extends String
 end FlatString
 
 println(s:String):()
-println(x:ZZ32):()
-println(x:ZZ64):()
-(* println(x:RR32):() *)
-println(x:RR64):()
+(*) println(x:Object):()
+(*) println():()
+(*) println(x:Any):()
+(*) println(x:ZZ32):()
+(*) println(x:ZZ64):()
+(*) println(x:RR32):()
+(*) println(x:RR64):()
+(*) println[\A,B\](x: (A,B)):()
+(*) println[\A,B,C\](x: (A,B,C)):()
+(*) println[\A,B,C,D\](x: (A,B,C,D)):()
+(*) println[\A,B,C,D,E\](x: (A,B,C,D,E)):()
+(*) println[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):()
+(*) println[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):()
+
+errorPrintln(s:String):()
+(*) errorPrintln(x:Object):()
+(*) errorPrintln():()
+(*) errorPrintln(x:Any):()
+(*) errorPrintln(x:ZZ32):()
+(*) errorPrintln(x:ZZ64):()
+(*) errorPrintln(x:RR32):()
+(*) errorPrintln(x:RR64):()
+(*) errorPrintln[\A,B\](x: (A,B)):()
+(*) errorPrintln[\A,B,C\](x: (A,B,C)):()
+(*) errorPrintln[\A,B,C,D\](x: (A,B,C,D)):()
+(*) errorPrintln[\A,B,C,D,E\](x: (A,B,C,D,E)):()
+(*) errorPrintln[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):()
+(*) errorPrintln[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):()
 
 strToInt(s:String):ZZ32
 
@@ -131,6 +158,30 @@ end
 
 
 trait Boolean
+  getter holds(): Boolean
+  getter get(): ()
+  getter asString(): String
+  getter asExprString(): String
+  getter size(): ZZ32
+  opr |self| : ZZ32
+
+  opr NOT(self): Boolean
+  opr AND(self, other:Boolean):Boolean
+  opr AND(self, other:()->Boolean):Boolean
+  opr OR(self, other:Boolean):Boolean
+  opr OR(self, other:()->Boolean):Boolean
+  opr XOR(self, other:Boolean):Boolean
+  opr OPLUS(self, other:Boolean):Boolean
+  opr NEQV(self, other:Boolean):Boolean
+  opr EQV(self, other:Boolean):Boolean
+  opr <->(self, other:Boolean):Boolean
+  opr ->(self, other:Boolean):Boolean
+  opr NAND(self, other:Boolean):Boolean
+  opr UPARROW(self, other:Boolean):Boolean    (*) Sheffer stroke
+  opr NOR(self, other:Boolean):Boolean
+  opr DOWNARROW(self, other:Boolean):Boolean  (*) Peirce arrow
+
+  opr =(self, other:Boolean): Boolean
 end
 
 true : Boolean
