@@ -43,12 +43,12 @@ object TestContext(arbitrary:Arbitrary, g:AnySeededRandomGen,
     randomByLevel(level:ZZ32): ZZ32
 end
 
-(** Generates a random test context from given random number generator.
+(** Generates a random test context from a given random number generator.
     See also `genTestContext`. **)
 TestContext(arb:Arbitrary, g:AnySeededRandomGen): TestContext
 
-(** Generates a random test context from given random number generator and
-    given number of maximum tests. **)
+(** Generates a random test context from a given random number generator and
+    a given number of maximum tests. **)
 TestContext(arb:Arbitrary, g:AnySeededRandomGen, numTests:ZZ32): TestContext
 
 (**********************************************************)
@@ -90,8 +90,8 @@ trait Gen[\T\] extends AnyGen
         only on `c`, as the test should be deterministic. **)
     abstract generate(c:TestContext): T
 
-    (** Perturbs a random number generator using given `obj`. It should return
-        a copy of the generator which is independent to `g`, and its return
+    (** Perturbs a random number generator using a given `obj`. It should return
+        a copy of the generator which is independent of `g`, and its return
         should depend on `obj` and `g` only. See `genArrow` test generator for
         the use of this method. **)
     perturb(obj:T, g:AnySeededRandomGen): AnySeededRandomGen
