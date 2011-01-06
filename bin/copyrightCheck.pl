@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # ################################################################################
-#    Copyright 2010 Sun Microsystems, Inc.,
+#    Copyright 2011 Sun Microsystems, Inc.,
 #    4150 Network Circle, Santa Clara, California 95054, U.S.A.
 #    All rights reserved.
 #
@@ -34,7 +34,7 @@ if (!$path) {
 chdir $path;
 
 my $checkRev=4388;	 # Only examine files from versions greater than this.
-my $checkDate = 2010;    # Only examine files in this year.
+my $checkDate = 2011;    # Only examine files in this year.
 my $rootDir = $path;
 my $copyright = "Copyright $checkDate"; # The message to look for.
 my $maxlines = 10; 	 # The message must appear within this many lines of the top of the file.
