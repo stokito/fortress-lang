@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2010 Sun Microsystems, Inc.,
+    Copyright 2011 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -1528,7 +1528,8 @@ public class NodeUtil {
 
     public static void checkAbsMembers(BufferedWriter writer, List<Decl> members) {
         checkMembers(writer, members);
-        absDecls(writer, members);
+        // checked by the parser
+        // absDecls(writer, members);
     }
 
     private static void absDecls(BufferedWriter writer, List<Decl> members) {
