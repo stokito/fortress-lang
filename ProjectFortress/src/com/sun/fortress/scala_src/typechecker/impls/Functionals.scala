@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2010 Sun Microsystems, Inc.,
+    Copyright 2011 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -296,7 +296,10 @@ trait Functionals { self: STypeChecker with Common =>
 
     // Make sure that all the args were checked. If any remain unchecked, gather
     // up all the inference errors into an overloading error.
-    val (newArgs, maybeErrors) = (newArgsAndErrors).unzip
+    val (newArgs, maybeErrors) = arrow.getDomain match {
+          case _:AnyType => (args, None)
+          case _ => (newArgsAndErrors).unzip
+        }
     if (newArgs.count(_.isRight) != 0) {
       Right(makeOverloadingError(originalArrow,
                                  arrow.getDomain,

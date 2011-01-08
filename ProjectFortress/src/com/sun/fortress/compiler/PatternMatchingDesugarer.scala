@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2010 Sun Microsystems, Inc.,
+    Copyright 2011 Sun Microsystems, Inc.,
     4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
@@ -47,6 +47,8 @@ class PatternMatchingDesugarer(component: ComponentIndex,
   def getErrors() = errors
   private def signal(hasAt:HasAt, msg:String) = errors.add(TypeError.make(msg,hasAt))
 
+  private var nested = 0
+
   /** Walk the AST, recursively desugaring any patterns. */
   override def walk(node: Any) = node match {
 
@@ -83,12 +85,12 @@ class PatternMatchingDesugarer(component: ComponentIndex,
 	  val left = desugaredParams.map(_._2)
 
       val new_body = walk(body).asInstanceOf[Expr]
-      if (left.flatten.isEmpty)
+      if (left.flatten.isEmpty) {
         SFnExpr(info, SFnHeader(sps, mods, name, where, throwsC,
                                 walk(contract).asInstanceOf[Option[Contract]],
                                 walk(params).asInstanceOf[List[Param]], returnType),
-                new_body)
-      else {
+                if (nested > 0) adjustTypes(new_body) else new_body)
+      } else {
         val span = NU.getSpan(body)
         val right = desugaredParams.map(_._3)
         val new_decl =
@@ -104,8 +106,12 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                                              desugaredParams.map(_._1), returnType),
                              EF.makeDo(span,
                                        Useful.list(SBlock(info, None, false, true, List(new_decl)))))
-        if (left.flatten.exists(p => isPattern(p.getIdType))) walk(result).asInstanceOf[FnExpr]
-        else result
+        if (left.flatten.exists(p => isPattern(p.getIdType))) {
+          nested += 1
+          val res = walk(result).asInstanceOf[FnExpr]
+          nested -= 1
+          res
+        } else result
       }
 
     case _ => super.walk(node)
@@ -157,7 +163,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                  signal(ty, "The number of patterns to bind should be greater than or equal to " + numParams)
                  return (lv, Nil, Nil)
                }
-             case _ => 
+             case _ =>
                signal(ty, "Type " + ty + " not found.")
                return (lv, Nil, Nil)
           }
@@ -165,7 +171,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           (new_lv, left, right)
         case None => /* pattern.patterns: tuple of patterns */
           val tylist = ps.map(patternBindingToType)
-	      val new_lv = SLValue(i, new_name, mods,
+          val new_lv = SLValue(i, new_name, mods,
                                Some(NF.makeMaybeTupleType(span, toJavaList(tylist))),
                                isMutable)
           val left = ps.map(patternBindingToLValue(_, mods))
@@ -260,11 +266,11 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                    case _ => false
                  }
                }
-              if(ps.filter(! isKeywordPattern(_)).size != numParams){ // error
-                   signal(p, "The number of patterns to bind should be greater than or equal to " + numParams)
-                   return (p, Nil, Nil, (Nil, Nil))
+              if (ps.filter(! isKeywordPattern(_)).size != numParams) { // error
+                signal(p, "The number of patterns to bind should be greater than or equal to " + numParams)
+                return (p, Nil, Nil, (Nil, Nil))
               }
-            case _ => 
+            case _ =>
               signal(ty, "Type " + ty + " not found.")
               return (p, Nil, Nil, (Nil, Nil))
           }
@@ -305,9 +311,12 @@ class PatternMatchingDesugarer(component: ComponentIndex,
         val right = desugaredLValues.map(_._3)
         new_decl :: ((left zip right).map(pair => {
                                                   val added = makeNewVD(pair._1, pair._2)
-                                                  if (pair._1.exists(p => isPattern(p.getIdType)))
-                                                    desugarVar(added)
-                                                  else List(added)
+                                                  if (pair._1.exists(p => isPattern(p.getIdType))) {
+                                                    nested += 1
+                                                    val result = desugarVar(added)
+                                                    nested -= 1
+                                                    result
+                                                  } else List(added)
                                                   }).flatten)
       }
     /* desugar a function declaration with patterns */
@@ -345,7 +354,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
         // make a temporary unambiguousname to identify a desugared FnDecl later
         val ds_unambiname = NF.makeId(span, "Desugared")
         // a new function declaration for the original function
-        val new_Fndecl = 
+        val new_Fndecl =
           if(bindings.map(_._1).flatten.isEmpty)  // No tuple patterns
              SFnDecl(info, SFnHeader(sps, mods, name, where, throwsC, new_contract,
                                      param_list, returnType),
@@ -372,12 +381,43 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                                    SFnHeader(sps, mods, new_FnName, where, throwsC,
                                              new_contract, new_params, returnType),
                                    ds_unambiname, new_body, implement)
-        if(pattern_params.flatten.exists(p => isPattern(p.getIdType))) 
-          desugarVar(added_Fndecl) ::: List(new_Fndecl)
-        else List(added_Fndecl, new_Fndecl) 
+        if(pattern_params.flatten.exists(p => isPattern(p.getIdType))) {
+          nested += 1
+          val result = desugarVar(added_Fndecl) ::: List(new_Fndecl)
+          nested -= 1
+          result
+        } else List(added_Fndecl, new_Fndecl)
       }
-    
+
     case _ => List(walk(decl).asInstanceOf[Decl])
+  }
+
+  def adjustTypes(body: Block): Block = body match {
+    case SBlock(info, loc, isAtomicBlock, isWithinDo, exprs) =>
+      SBlock(info, loc, isAtomicBlock, isWithinDo, exprs.map(adjustTypes))
+  }
+  def adjustTypes(expr: Expr): Expr = expr match {
+    case SLocalVarDecl(info, body, lhs, rhs) =>
+      SLocalVarDecl(info, adjustTypes(body), lhs, adjustTypes(lhs, rhs))
+    case _ => expr
+  }
+  def adjustTypes(lhs: List[LValue], rhs: Option[Expr]): Option[Expr] = rhs match {
+    case Some(STupleExpr(info, exprs, varargs, keywords, isInApp)) if lhs.size == exprs.size =>
+      Some(STupleExpr(info, (lhs zip exprs).map(adjustTypes), varargs, keywords, isInApp))
+    case Some(STupleExpr(info, exprs, varargs, keywords, isInApp)) if lhs.size == 1 =>
+      Some(adjustTypes(lhs.head, rhs.get))
+    case _ => rhs
+  }
+  def adjustTypes(pair: (LValue, Expr)): Expr = {
+    val right = pair._2
+    pair._1 match {
+      case SLValue(i, name, mods, tp, isMutable) if isType(tp) =>
+        val span = NU.getSpan(right)
+        EF.make_RewriteFnApp(EF.makeFnRef(span, NF.makeId(span, "cast"),
+                                          toJavaList(List(NF.makeTypeArg(tp.get.asInstanceOf[Type])))),
+                             right)
+      case _ => right
+    }
   }
 
   def desugarLocal(exp: Expr): Expr = exp match {
@@ -387,20 +427,24 @@ class PatternMatchingDesugarer(component: ComponentIndex,
       val new_rhs = walk(rhs).asInstanceOf[Option[Expr]]
       val new_body = walk(body).asInstanceOf[Block]
       if (left.flatten.isEmpty) {
-        SLocalVarDecl(info, new_body, lhs, new_rhs)
+        SLocalVarDecl(info, if (nested > 0) adjustTypes(new_body) else new_body, lhs, new_rhs)
       } else {
         val right = desugaredLValues.map(_._3)
         val final_body =
             (left zip right).foldRight(new_body)((pair:(List[LValue], List[Expr]), current_body:Block) => {
-                                                 val decl = 
+                                                 val decl =
                                                    SLocalVarDecl(info, current_body, pair._1,
                                                                  Some(EF.makeMaybeTupleExpr(NU.getSpan(exp),
-                                                                 toJavaList(pair._2))))
+                                                                                            toJavaList(pair._2))))
                                                  SBlock(info, None, false, false, List(decl))
                                                  })
         val result = SLocalVarDecl(info, final_body, desugaredLValues.map(_._1), new_rhs)
-        if (left.flatten.exists(p => isPattern(p.getIdType))) desugarLocal(result)
-        else result
+        if (left.flatten.exists(p => isPattern(p.getIdType))) {
+          nested += 1
+          val res = desugarLocal(result)
+          nested -= 1
+          res
+        } else result
       }
     case f @ SLetFn(info, body, fndecl_list) =>
       val new_decls = fndecl_list.foldRight(Nil.asInstanceOf[List[Decl]])((d, r) => desugarVar(d) ::: r)
@@ -410,6 +454,11 @@ class PatternMatchingDesugarer(component: ComponentIndex,
 
   def isPattern(pt: Option[TypeOrPattern]) = pt match {
     case Some(tp) => tp.isInstanceOf[Pattern]
+    case _ => false
+  }
+
+  def isType(pt: Option[TypeOrPattern]) = pt match {
+    case Some(tp) => tp.isInstanceOf[Type]
     case _ => false
   }
 
@@ -463,7 +512,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
       case SPlainPattern(_, _, name, _, Some(idType)) =>
         NF.makeParam(span, mods, name, idType)
       case SPlainPattern(_, _, name, _, None) =>
-        NF.makeParam(span, mods, name, toJavaOption(ty)) 
+        NF.makeParam(span, mods, name, toJavaOption(ty))
       case STypePattern(_, _, typ) =>
         NF.makeParam(span, mods, NF.makeId(span, DU.gensym("temp")), typ)
       case SNestedPattern(_, _, pat) =>
