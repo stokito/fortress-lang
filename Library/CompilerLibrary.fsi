@@ -43,16 +43,6 @@ end
 
 ignore(_:Any):()
 
-opr XOR(a:Boolean, b:Boolean):Boolean
-opr OR(a:Boolean, b:Boolean):Boolean
-opr AND(a:Boolean, b:Boolean):Boolean
-opr OR(a:Boolean, b:()->Boolean):Boolean
-opr AND(a:Boolean, b:()->Boolean):Boolean
-opr NOT(a:Boolean):Boolean
-opr ->(a: Boolean, b:Boolean):Boolean
-opr ->(a: Boolean, b:()->Boolean):Boolean
-opr <->(a: Boolean, b:Boolean):Boolean
-
 opr ===(a:Any, b:Any):Boolean
 opr NEQV(a:Any, b:Any):Boolean
 

@@ -31,6 +31,7 @@ ${STATIC_TESTS_DIR}/Compiled5.ad.fss:21:16-20:\n\
 \ - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
 ${STATIC_TESTS_DIR}/Compiled5.ad.fss:22:6-10:\n\
 \ Could not check call to operator =\n\
+\ - (Boolean, Boolean)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \ - (GeneratorZZ32, GeneratorZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \ - (RR64, RR64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \ - (String, String)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
