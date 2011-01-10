@@ -30,10 +30,10 @@ run(): () =
     elif false = true then fail("false = true")
     elif true = NOT true then fail("true = NOT true")
     elif false = NOT false then fail("false = NOT false")
-    elif true =/= true then fail("true =/= true")
-    elif false =/= false then fail("false =/= false")
-    elif NOT (true =/= false) then fail("NOT (true =/= false)")
-    elif NOT (false =/= true) then fail("NOT (false =/= true)")
+(*)     elif true =/= true then fail("true =/= true")
+(*)     elif false =/= false then fail("false =/= false")
+(*)     elif NOT (true =/= false) then fail("NOT (true =/= false)")
+(*)     elif NOT (false =/= true) then fail("NOT (false =/= true)")
     else println("PASS")
     end
   else fail("true did not succeed") end
