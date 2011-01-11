@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component Comparison.fss
+component Comparison
 export Executable
 
 (*) Test various operators on the type Comparison.
@@ -63,5 +63,6 @@ run(): () = do
   elif NOT(CONVERSE E = E) then fail("Wanted CONVERSE E = E")
   else println("PASS")
   end
+end
 
 end

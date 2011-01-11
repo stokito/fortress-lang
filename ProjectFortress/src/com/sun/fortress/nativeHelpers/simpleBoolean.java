@@ -32,7 +32,7 @@ public class simpleBoolean {
     }
 
     public static boolean booleanEqv(boolean a, boolean b) {
-        return a == b;
+        return !(a ^ b);
     }
 
     public static boolean booleanNot(boolean a) {

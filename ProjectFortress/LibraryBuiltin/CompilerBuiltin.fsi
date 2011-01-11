@@ -178,6 +178,8 @@ trait Boolean
   opr EQV(self, other:Boolean):Boolean
   opr <->(self, other:Boolean):Boolean
   opr ->(self, other:Boolean):Boolean
+  opr NAND(self, other:Boolean):Boolean
+  opr NOR(self, other:Boolean):Boolean
 
   opr =(self, other:Boolean): Boolean
 end

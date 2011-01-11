@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 component ComparisonLibrary
+export ComparisonLibrary
 
 trait Equality[\Self\] comprises Self
     opr =(self, other:Self): Boolean = self SEQV other

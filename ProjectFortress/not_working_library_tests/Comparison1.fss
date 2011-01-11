@@ -16,7 +16,7 @@
  ******************************************************************************)
 
 component Comparison1
-import ComparisonLibrary
+import ComparisonLibrary.{...}
 export Executable
 
 (*) Test various operators on the type Comparison.
