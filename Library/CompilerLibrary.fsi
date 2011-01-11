@@ -46,7 +46,7 @@ ignore(_:Any):()
 opr ===(a:Any, b:Any):Boolean
 opr NEQV(a:Any, b:Any):Boolean
 
-fail[\T\](s:String):()
+fail(s:String):()
 
 (************************************************************
  * Simple Range support

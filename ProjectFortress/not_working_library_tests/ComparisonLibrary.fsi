@@ -15,7 +15,7 @@
     trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************)
 
-component ComparisonLibrary
+api ComparisonLibrary
 
 trait Equality[\Self\] comprises Self
     opr =(self, other:Self): Boolean
@@ -59,7 +59,7 @@ object EqualTo extends TotalComparison end
 (** StandardPartialOrder is partial ordering using the operators
     <, <=, >=, >, =, and CMP.
     This is primarily for floating-point values.
-    Minimal complete definition: CMP or { <,
+    Minimal complete definition: CMP or { <, = }. *)
 trait StandardPartialOrder[\Self\]
         extends { Equality[\Self\] }
         comprises Self
@@ -72,7 +72,7 @@ end
 
 (** SquarePartialOrder is partial ordering using the operators
     SQSUBSET, SQSUBSETEQ, SQSUPSETEQ, SQSUPSET, =, and SQCMP.
-    Minimal complete definition: SQCMP or { SQSUBSET,
+    Minimal complete definition: SQCMP or { SQSUBSET, = }. *)
 trait SquarePartialOrder[\Self\]
         extends { Equality[\Self\] }
         comprises Self
@@ -85,7 +85,7 @@ end
 
 (** SetPartialOrder is partial ordering using the operators
     SUBSET, SUBSETEQ, SUPSETEQ, SUPSET, =, and SETCMP.
-    Minimal complete definition: SETCMP or { SUBSET,
+    Minimal complete definition: SETCMP or { SUBSET, = }. *)
 trait SetPartialOrder[\Self\]
         extends { Equality[\Self\] }
         comprises Self
@@ -98,7 +98,7 @@ end
 
 (** PrecPartialOrder is partial ordering using the operators
     PREC, PRECEQ, SUCCEQ, SUCC, =, and PRECCMP.
-    Minimal complete definition: PRECCMP or { PREC,
+    Minimal complete definition: PRECCMP or { PREC, = }. *)
 trait PrecPartialOrder[\Self\]
         extends { Equality[\Self\] }
         comprises Self
@@ -156,4 +156,5 @@ trait StandardTotalOrder[\Self\]
     opr CMP(self, other:Self): TotalComparison
 end
 
-end
+end ComparisonLibrary
+

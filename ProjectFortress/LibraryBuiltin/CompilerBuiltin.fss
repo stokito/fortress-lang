@@ -25,7 +25,7 @@ import java com.sun.fortress.nativeHelpers.{simpleConcatenate.nativeConcatenate 
 import java com.sun.fortress.nativeHelpers.{simpleBoolean.booleanAnd => jBooleanAnd,
                                             simpleBoolean.booleanOr => jBooleanOr,
                                             simpleBoolean.booleanXor => jBooleanXor,
-                                            simpleBoolean.booleanXor => jBooleanEqv,
+                                            simpleBoolean.booleanEqv => jBooleanEqv,
                                             simpleBoolean.booleanNot => jBooleanNot}
 import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString => jIntToString,
                                             simpleIntArith.intAdd => jIntAdd,
@@ -282,6 +282,8 @@ trait Boolean
   opr EQV(self, other:Boolean):Boolean = jBooleanEqv(self, other)
   opr <->(self, other:Boolean):Boolean = jBooleanEqv(self, other)
   opr ->(self, other:Boolean):Boolean = (NOT self) OR other
+  opr NAND(self, other:Boolean):Boolean = NOT (self AND other)
+  opr NOR(self, other:Boolean):Boolean = NOT (self OR other)
 
   opr =(self, other:Boolean): Boolean = jBooleanEqv(self, other)
 (*)   opr <(self, other:Boolean): Boolean = (NOT self) AND other
