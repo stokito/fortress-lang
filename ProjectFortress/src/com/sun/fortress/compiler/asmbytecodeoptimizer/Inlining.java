@@ -110,7 +110,12 @@ public class Inlining {
         if (methodName.contains("nativeHelpers") && methodName.startsWith("com"))
             return true;
         return false;
+    }
 
+    public static boolean isGenericMethod(String methodOwner) {
+        if (methodOwner.contains("\u27e6"))
+            return true;
+        return false;
     }
 
     private static void printMethod(ByteCodeMethodVisitor method, String when) {
@@ -341,7 +346,10 @@ public class Inlining {
             // For now, throw out other expansions.
             if (insn instanceof MethodInsn) {
                     MethodInsn mi = (MethodInsn) insn;
-                    if (isBuiltinInterfaceMethod(bcmv, insn)) {
+                    if (isGenericMethod(mi.owner)) {
+                        System.out.println("We don't do anything here because it is a generic method " + mi);
+                        // We can't do anything here
+                    } else if (isBuiltinInterfaceMethod(bcmv, insn)) {
                         ByteCodeVisitor bcv = (ByteCodeVisitor) builtin.classes.get(mi.owner + "$DefaultTraitMethods.class");
                         // Revisit this to see how kosher it is. Encoding knowledge of how default methods work.
                         ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
