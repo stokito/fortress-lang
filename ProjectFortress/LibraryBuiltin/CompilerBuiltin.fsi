@@ -16,6 +16,7 @@
  ******************************************************************************)
 
 api CompilerBuiltin
+import CompilerAlgebra.{ Equality }
 import AnyType.{Any}
 
 trait Object extends Any
@@ -159,7 +160,7 @@ trait FloatLiteral excludes {RR32, RR64}
 end
 
 
-trait Boolean
+trait Boolean   (*) extends { Equality[\Boolean\] }
   getter holds(): Boolean
   getter get(): ()
   getter asString(): String
