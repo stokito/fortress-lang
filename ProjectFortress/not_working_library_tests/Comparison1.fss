@@ -58,10 +58,6 @@ run(): () = do
   elif NOT(E SQCAP L = L) then fail("Wanted E SQCAP L = L")
   elif NOT(E SQCAP G = G) then fail("Wanted E SQCAP G = G")
   elif NOT(E SQCAP E = E) then fail("Wanted E SQCAP E = E")
-  elif NOT(CONVERSE U = U) then fail("Wanted CONVERSE U = U")
-  elif NOT(CONVERSE L = G) then fail("Wanted CONVERSE L = G")
-  elif NOT(CONVERSE G = L) then fail("Wanted CONVERSE G = L")
-  elif NOT(CONVERSE E = E) then fail("Wanted CONVERSE E = E")
   else println("PASS")
   end
 end
