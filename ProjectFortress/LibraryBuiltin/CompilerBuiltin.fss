@@ -78,7 +78,7 @@ import java com.sun.fortress.nativeHelpers.{stringOps.compareTo => jCompareTo,
                                             stringOps.charAt => jCharAt}
 
 import AnyType.{Any}
-import CompilerAlgebra.{ Equality }
+(*) import CompilerAlgebra.{ Equality }
 export CompilerBuiltin
 
 nanoTime(): RR64 = jNanoTime()
