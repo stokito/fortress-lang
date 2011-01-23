@@ -353,12 +353,13 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                                              EF.makeMaybeTupleExpr(span, toJavaList(args)))
         // make a temporary unambiguousname to identify a desugared FnDecl later
         val ds_unambiname = NF.makeId(span, "Desugared")
+
         // a new function declaration for the original function
         val new_Fndecl =
           if(bindings.map(_._1).flatten.isEmpty)  // No tuple patterns
              SFnDecl(info, SFnHeader(sps, mods, name, where, throwsC, new_contract,
                                      param_list, returnType),
-                                     ds_unambiname, Some(call_expr), implement)
+                     ds_unambiname, Some(call_expr), implement)
           else {
             val new_decls = 
               bindings.foldRight(call_expr:Expr)((pair, current_expr) => {
@@ -376,11 +377,12 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                     ds_unambiname, Some(final_body), implement)
    
           }
+        val new_span = NF.makeSpan("Patern matching desugarer generated.")
         // a new function declaration
-        val added_Fndecl = SFnDecl(info,
+        val added_Fndecl = SFnDecl(NF.makeSpanInfo(new_span),
                                    SFnHeader(sps, mods, new_FnName, where, throwsC,
                                              new_contract, new_params, returnType),
-                                   ds_unambiname, new_body, implement)
+                                   NF.makeId(new_span, "Desugared"), new_body, implement)
         if(pattern_params.flatten.exists(p => isPattern(p.getIdType))) {
           nested += 1
           val result = desugarVar(added_Fndecl) ::: List(new_Fndecl)
