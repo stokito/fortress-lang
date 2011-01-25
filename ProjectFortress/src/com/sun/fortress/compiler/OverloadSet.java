@@ -33,6 +33,7 @@ import com.sun.fortress.scala_src.overloading.OverloadingOracle;
 import com.sun.fortress.scala_src.typechecker.Formula;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.scala_src.types.TypeSchemaAnalyzer;
+import com.sun.fortress.scala_src.useful.STypesUtil;
 import com.sun.fortress.compiler.phases.CodeGenerationPhase;
 import com.sun.fortress.exceptions.InterpreterBug;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
@@ -661,7 +662,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     public Type getRange() {
         List<Type> typesToJoin = new ArrayList(lessSpecificThanSoFar.size());
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
-            typesToJoin.add(normalizeSelfType(f.getReturnType()));
+            List<StaticParam> sparams = f.tagF.staticParameters();
+            typesToJoin.add(STypesUtil.insertStaticParams(normalizeSelfType(f.getReturnType()), sparams));
         }
         return join(ta,typesToJoin);
     }
@@ -672,8 +674,17 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * TODO: should really erase to concrete least upper bound in type hierarchy,
      * but that requires extending TypeAnalyzer.
      */
-    private static Type join(TypeAnalyzer ta, Iterable<Type> tys) {
-        Type r = ta.join(JavaConversions.asIterable(tys));
+    private static Type join(TypeAnalyzer ta, List<Type> tys) {
+        TypeSchemaAnalyzer tsa = new TypeSchemaAnalyzer(ta);
+
+        int l = tys.size();
+        Type r = tys.get(0);
+        if (l > 1) 
+         for (Type rr : tys.subList(1, l)) {
+             r = tsa.joinED(r, rr);
+         }
+            
+        //    ta.join(JavaConversions.asIterable(tys));
         if (r instanceof UnionType) {
             r = NodeFactory.makeAnyType(r.getInfo().getSpan());
         }
@@ -912,10 +923,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         List<Type> typesToJoin = new ArrayList(lessSpecificThanSoFar.size());
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
             List<Param> params = f.tagParameters();
+            List<StaticParam> sparams = f.tagF.staticParameters();
             Param p = params.get(param);
             if (! (p.getIdType().unwrap() instanceof Type))
                 bug("Type is expected: " + p.getIdType().unwrap());
-            typesToJoin.add(normalizeSelfType((Type)p.getIdType().unwrap()));
+            typesToJoin.add(STypesUtil.insertStaticParams(normalizeSelfType((Type)p.getIdType().unwrap()),sparams));
         }
         return join(ta,typesToJoin);
     }

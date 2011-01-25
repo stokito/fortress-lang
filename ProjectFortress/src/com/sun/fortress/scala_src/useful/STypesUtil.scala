@@ -376,6 +376,23 @@ object STypesUtil {
     paramWalker(typ).asInstanceOf[Type]
   }
 
+  def insertStaticParams(typ: Type, sparams_jl: java.util.List[StaticParam]): Type = {
+    var inserted = false
+    val sparams : List[StaticParam] = toListFromImmutable(sparams_jl);
+    // A walker that adds static params to the outermost type info
+    object paramWalker extends Walker {
+      override def walk(node: Any): Any = node match {
+        case STypeInfo(a, b, Nil, c) =>
+          inserted = true
+          STypeInfo(a, b, sparams, c)
+        case STypeInfo(_, _, _, _) =>
+          bug("cannot overwrite static parameters")
+        case _ => if (!inserted) super.walk(node) else node
+      }
+    }
+    paramWalker(typ).asInstanceOf[Type]
+  }
+
   /**
    * Determine if the given type is an arrow or intersection of arrow types.
    */
@@ -984,6 +1001,31 @@ object STypesUtil {
     }
     allTraits
   }
+
+    def inheritedTraitsArgs(extendedTraits: JList[TraitTypeWhere], analyzer: TypeAnalyzer): java.util.HashMap[Id, java.util.List[StaticArg]] = {
+    val history: HierarchyHistory = new HierarchyHistory()
+    val allTraits = new java.util.HashMap[Id, java.util.List[StaticArg]]
+    var traitsToDo: List[TraitTypeWhere] = toListFromImmutable(extendedTraits)
+    while (!traitsToDo.isEmpty) {
+      val doNow = traitsToDo
+      traitsToDo = List()
+      for (
+        STraitTypeWhere(_, ty: TraitType, _) <- doNow;
+        if history.explore(ty)
+      ) {
+        val STraitType(_, name, trait_args, _) = ty
+        toOption(analyzer.traits.typeCons(name)) match {
+          case Some(ti: TraitIndex) =>
+            val tindex = ti.asInstanceOf[TraitIndex]
+            allTraits.put(name, toJavaList(trait_args))
+          case _ =>
+        }
+
+      }
+    }
+    allTraits
+  }
+
 
   // Invariant: Parameter types of all the methods should exist,
   //            either given or inferred.

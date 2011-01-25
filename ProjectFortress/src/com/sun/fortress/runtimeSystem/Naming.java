@@ -807,5 +807,9 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
     //Asm requires you to call visitMaxs for every method
     // but ignores the arguments.
     public static final int ignoredMaxsParameter = 1;
+
+    public static final String RTTI_CLASS_SUFFIX = "$RTTIc";
+
+    public static final String RTTI_INTERFACE_SUFFIX = "$RTTIi";
     
 }

@@ -53,6 +53,7 @@ import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
 import com.sun.fortress.exceptions.CompilerError;
+import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.*;
@@ -121,6 +122,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private GlobalEnvironment env;
 
     private static final int NO_SELF = -1;
+    private final static String RTTI_MAP_TYPE = "java/lang/Object";
     
     abstract static class InitializedStaticField {
         abstract public void forClinit(MethodVisitor mv);
@@ -2435,7 +2437,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
         cg.cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
 
-        String className = NamingCzar.gensymArrowClassName(Naming.deDot(thisApi().getText()));
+        String className = NamingCzar.gensymArrowClassName(Naming.deDot(thisApi().getText()), x.getInfo().getSpan());
 
         debug("forFnExpr className = ", className, " desc = ", desc);
         List<VarCodeGen> freeVars = getFreeVars(body);
@@ -3693,6 +3695,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         HashMap<Id, TraitIndex> direct_extends =
             STypesUtil.inheritedTraits(extend_s, ta);
         
+        HashMap<Id, List<StaticArg>> direct_extends_args =
+            STypesUtil.inheritedTraitsArgs(extend_s, ta);
+        
         int d_e_size = direct_extends.size();
 
         CodeGenClassWriter prev = cw;
@@ -3741,16 +3746,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * extends y$RTTIi for each y in extend_s
          */
         
-        String rttiInterfaceName = cnb.ilkClassName + "$RTTIi";
+        String rttiInterfaceName = cnb.ilkClassName + Naming.RTTI_INTERFACE_SUFFIX;
         String[] superInterfaces = new String[extend_s.size()];
         
         Id[] direct_extends_keys = new Id[d_e_size]; // will use in lazyInit
+        {
         int i = 0;
         for (Id extendee : direct_extends.keySet()) {
             String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
             direct_extends_keys[i] = extendee;
-            superInterfaces[i++] = extendeeIlk + "$RTTIi";
+            superInterfaces[i++] = extendeeIlk + Naming.RTTI_INTERFACE_SUFFIX;
          }
+        }
         
         cw.visitSource(NodeUtil.getSpan(tod).begin.getFileName(), null);
         cw.visit( InstantiatingClassloader.JVM_BYTECODE_VERSION,
@@ -3760,8 +3767,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         /*
          * for each static parameter of x, declares method "asX"#number
          */
-        
-        i = Naming.STATIC_PARAMETER_ORIGIN;
+        {
+        int i = Naming.STATIC_PARAMETER_ORIGIN;
         for (StaticParam sp : sparams) {
             String method_name = staticParameterGetterName(cnb.typeId, packageAndClassName, i);
             CodeGenMethodVisitor mv = cw.visitCGMethod(
@@ -3770,6 +3777,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
             mv.visitEnd();
             i++;
+        }
         }
 
         cw.dumpClass( rttiInterfaceName );
@@ -3781,7 +3789,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         superInterfaces = new String[1];
         superInterfaces[0] = rttiInterfaceName;
-        String rttiClassName =  cnb.ilkClassName + "$RTTIc";
+        String rttiClassName =  cnb.ilkClassName + Naming.RTTI_CLASS_SUFFIX;
         cw.visitSource(NodeUtil.getSpan(tod).begin.getFileName(), null);
         cw.visit( InstantiatingClassloader.JVM_BYTECODE_VERSION,
                   Opcodes.ACC_PUBLIC,
@@ -3795,7 +3803,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         for (Id extendee : direct_extends.keySet()) {
             String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
-            String field_type = extendeeIlk + "$RTTIc";
+            String field_type = extendeeIlk + Naming.RTTI_CLASS_SUFFIX;
             String tyDesc = "L" + field_type + ";";
             cw.visitField(Opcodes.ACC_PRIVATE,
                     extendeeIlk, tyDesc, null, null);
@@ -3834,7 +3842,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         
         /*
-         * static or factory.
+         * static singleton or static map + factory.
          */
         if (sparams.size() == 0) {
             // static, initialized to single instance of self
@@ -3855,24 +3863,76 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
             mv.visitEnd();
         } else {
+            String RTTI_MAP_NAME = "com/sun/fortress/runtimeSystem/RttiTupleMap";
+            // FIELD
             // static, initialized to Map-like thing
             cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL,
-                    "DICTIONARY", "Ljava/util/Map;", null, null);
+                    "DICTIONARY", "L" + RTTI_MAP_NAME + ";", null, null);
             
+            // CLINIT
             // factory, consulting map, optionally invoking constructor.
             mv = cw.visitCGMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
             mv.visitCode();
             // new
-            mv.visitTypeInsn(Opcodes.NEW, rttiClassName);
+            mv.visitTypeInsn(Opcodes.NEW, RTTI_MAP_NAME);
             // init
             mv.visitInsn(DUP);
-            mv.visitMethodInsn(INVOKESPECIAL, rttiClassName, "<init>", "()V");
+            mv.visitMethodInsn(INVOKESPECIAL, RTTI_MAP_NAME, "<init>", "()V");
             // store
-            mv.visitFieldInsn(PUTSTATIC, rttiClassName, "ONLY", "L"+rttiClassName+";");                
+            mv.visitFieldInsn(PUTSTATIC, rttiClassName, "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
 
             mv.visitInsn(Opcodes.RETURN);
             mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
             mv.visitEnd();
+            
+            // FACTORY
+            String fact_sig = NamingCzar.jvmSignatureForNTypes(sparams.size(), RTTI_MAP_TYPE, rttiClassName);
+            String init_sig = NamingCzar.jvmSignatureForNTypes(sparams.size(), RTTI_MAP_TYPE, "V");
+            String get_sig = NamingCzar.jvmSignatureForNTypes(sparams.size(), RTTI_MAP_TYPE, "L" + RTTI_MAP_TYPE + ";");
+            String put_sig = NamingCzar.jvmSignatureForNTypes(sparams.size()+1, RTTI_MAP_TYPE, "L" + RTTI_MAP_TYPE + ";");
+
+            mv = cw.visitCGMethod(Opcodes.ACC_STATIC, "factory", fact_sig, null, null);
+            mv.visitCode();
+            /* 
+             * rCN x = DICTIONARY.get(args)
+             * if  x == null then
+             *   x = new rCN(args)
+             *   x = DICTIONARY.put(args, x)
+             * end
+             * return x
+             */
+            
+            // object
+            mv.visitFieldInsn(GETSTATIC, rttiClassName, "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
+            // push args
+            int l = sparams.size();
+            pushArgs(1, l);
+            // invoke Dictionary.get
+            mv.visitMethodInsn(INVOKEVIRTUAL, RTTI_MAP_NAME, "get", get_sig);
+            Label not_null = new Label();
+            mv.visitInsn(DUP);
+            mv.visitJumpInsn(IFNONNULL, not_null);
+            mv.visitInsn(POP); // discard dup'd null
+            // doing it all on the stack -- first push the dictionary,
+            // then push the args, then construct the object, then invoke
+            // putIfNew
+            mv.visitFieldInsn(GETSTATIC, rttiClassName, "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
+            pushArgs(1, l);
+            // invoke constructor
+            mv.visitTypeInsn(Opcodes.NEW, rttiClassName);
+            mv.visitInsn(DUP);
+            pushArgs(1, l);
+            mv.visitMethodInsn(INVOKESPECIAL, rttiClassName, "<init>", init_sig);
+            // pass it through the dictionary
+            mv.visitMethodInsn(INVOKEVIRTUAL, RTTI_MAP_NAME, "putIfNew", put_sig);
+            
+            mv.visitLabel(not_null);
+            mv.visitInsn(ARETURN);
+
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            mv.visitEnd();
+            
+            
         }
         
         /*
@@ -3892,20 +3952,31 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Id sentinel = direct_extends_keys[d_e_size-1];
             getExtendeeField(rttiClassName, sentinel);
             mv.visitJumpInsn(Opcodes.IFNONNULL, do_ret);
-            // Do the initialization.
-            // Push all the type parameters
             
-            for (Id extendee : direct_extends_keys) {
-                TraitIndex ti = direct_extends.get(extendee);
-                // allocate new
-                String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
-                String field_type = extendeeIlk + "$RTTIc";
-                mv.visitTypeInsn(Opcodes.NEW, field_type);
-                List<StaticParam> extendee_sp = ti.staticParameters();
-     
-                // init...
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitInsn(MONITORENTER);
+
+            
+            HashSet<String> spns = new HashSet<String>();
+            for (StaticParam sp : sparams) {
+                IdOrOp spn = sp.getName();
+                String s = spn.getText();
+                spns.add(s);
             }
             
+            // Do the initialization.
+            // Push all the type parameters
+           for (Id extendee : direct_extends_keys) {
+                TraitIndex ti = direct_extends.get(extendee);
+                List<StaticArg> ti_args = direct_extends_args.get(extendee);
+                mv.visitVarInsn(Opcodes.ALOAD, 0);
+                // invoke factory method
+                generateTypeReference(mv, rttiClassName, extendee, ti_args, spns);
+                putExtendeeField(rttiClassName, extendee);
+            }
+            
+           mv.visitVarInsn(Opcodes.ALOAD, 0);
+           mv.visitInsn(MONITOREXIT);
            
             mv.visitLabel(do_ret);
             mv.visitInsn(Opcodes.RETURN);
@@ -3922,6 +3993,63 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * return the value of the appropriate static parameter.
 
          */
+        
+        // First map extends to what they transitively extend for delegation
+        
+        HashMap<Id, Map<Id, TraitIndex>> transitive_extends_from_extends = 
+            new HashMap<Id, Map<Id, TraitIndex>>();
+        
+        for (Map.Entry <Id, TraitIndex> entry : direct_extends.entrySet()) {
+            Id te_id = entry.getKey();
+            TraitIndex te_ti = entry.getValue();
+            List<TraitTypeWhere> extends_extends = te_ti.extendsTypes();
+            HashMap<Id, TraitIndex> extends_transitive_extends =
+                STypesUtil.inheritedTransitiveTraits(extends_extends, ta);
+            transitive_extends_from_extends.put(te_id, extends_transitive_extends);
+        }
+        
+        // Future opt: sort by transitive_extends, use largest as class ancestor
+        
+        // For each type in extends list, emit forwarding functions
+        // remove traits from transitive_extends as they are dealt with.
+        
+        // what about "self"?
+        
+        for (Map.Entry <Id, TraitIndex> entry : direct_extends.entrySet()) {
+            if (transitive_extends.size() == 0)
+                break;
+            Id de_id = entry.getKey();
+            TraitIndex de_ti = entry.getValue();
+            Map<Id, TraitIndex> extends_transitive_extends =
+                transitive_extends_from_extends.get(de_id);
+            // 
+            for (Map.Entry <Id, TraitIndex> extends_entry :
+                extends_transitive_extends.entrySet()) {
+                // delegate through field te_id for each static parameter getter.
+                Id te_id = entry.getKey();
+                TraitIndex te_ti = entry.getValue();
+                List<StaticParam> te_sp = te_ti.staticParameters();
+                
+                // emit delegates here
+                // asX#number
+                int i = Naming.STATIC_PARAMETER_ORIGIN;
+                for (StaticParam a_sparam : te_sp) {
+                    String method_name = staticParameterGetterName(te_id, packageAndClassName, i);
+                    
+                    CodeGenMethodVisitor mv = cw.visitCGMethod(ACC_PUBLIC,
+                            method_name, Naming.STATIC_PARAMETER_GETTER_SIG, null, null);
+                    
+                    // invoke delegate
+                    
+                    mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+                    mv.visitEnd();
+                    i++;
+                }
+                
+                transitive_extends.remove(te_id);
+
+            }
+        }
 
         cw.dumpClass( rttiClassName );
 
@@ -3930,16 +4058,117 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
 
+    private void generateTypeReference(CodeGenMethodVisitor mv2, String rttiClassName, Id extendee, List<StaticArg> ti_args,
+            HashSet<String> spns) {
+        String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
+        String field_type = extendeeIlk + Naming.RTTI_CLASS_SUFFIX;
+        
+        if (ti_args.size() == 0) {
+            if (spns.contains(extendeeIlk)) {
+                // reference to a static parameter.  Load from field of same name.
+                mv.visitVarInsn(Opcodes.ALOAD, 0);
+                mv.visitFieldInsn(Opcodes.GETFIELD, rttiClassName, extendee.getText(), Naming.STATIC_PARAMETER_FIELD_DESC);
+            } else {
+                // reference to a non-generic type.  Load from whatever.Only
+                mv.visitFieldInsn(GETSTATIC, field_type, "ONLY", "L"+field_type+";");                
+            }
+        } else {
+            // invoke field_type.factory(args)
+            String fact_sig = NamingCzar.jvmSignatureForNTypes(ti_args.size(),
+                    RTTI_MAP_TYPE, "L" + field_type + ";");
+            
+            for (StaticArg sta : ti_args) {
+                if (sta instanceof TypeArg) {
+                    TypeArg sta_ta = (TypeArg) sta;
+                    Type t = sta_ta.getTypeArg();
+                    if (t instanceof TupleType) {
+                        
+                    } else if (t instanceof ArrowType) {
+                        
+                    } else if (t instanceof SelfType) {
+                        
+                    } else if (t instanceof TraitType) {
+                        TraitType tt = (TraitType) t;
+                        List<StaticArg> tt_sa = tt.getArgs();
+                        Id tt_id = tt.getName();
+                        generateTypeReference(mv2, rttiClassName, tt_id,  tt_sa, spns); 
+                        continue;
+
+                    } else if (t instanceof VarType) {
+                        VarType tt = (VarType) t;
+                        Id tt_id = tt.getName();
+                        generateTypeReference(mv2, rttiClassName, tt_id,  Collections.<StaticArg>emptyList(), spns); 
+                        continue;
+
+                    } else if (t instanceof BottomType) {
+                        
+                    } else if (t instanceof AnyType) {
+                        
+                    } else if (t instanceof AbbreviatedType) {
+                        
+                    } else {
+                        
+                    }
+                    throw new CompilerError("Only handling some static args of generic types in extends clause");
+
+                } else if (sta instanceof BoolArg) {
+                    
+                } else if (sta instanceof DimArg) {
+                    
+                } else if (sta instanceof IntArg) {
+                    
+                } else if (sta instanceof OpArg) {
+                    
+                } else if (sta instanceof UnitArg) {
+                    
+                } else {
+                    
+                }
+                throw new CompilerError("Only emitting RTTI for types right now");
+            }
+            mv.visitMethodInsn(INVOKESTATIC, field_type, "factory", fact_sig);
+
+        }
+        
+    }
+
+
+    /**
+     * @param first_arg
+     * @param n_args
+     */
+    private void pushArgs(int first_arg, int n_args) {
+        for (int arg = 0; arg < n_args; arg++) {
+            mv.visitVarInsn(Opcodes.ALOAD, arg+first_arg);
+        }
+    }
+
+
     /**
      * @param rttiClassName
      * @param extendee
+     * 
+     * Does NOT expect that rttiRef is on stack; returns value of field.
      */
     private void getExtendeeField(String rttiClassName, Id extendee) {
         String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
-        String field_type = extendeeIlk + "$RTTIc";
+        String field_type = extendeeIlk + Naming.RTTI_CLASS_SUFFIX;
         String tyDesc = "L" + field_type + ";";
         mv.visitVarInsn(Opcodes.ALOAD, 0);
         mv.visitFieldInsn(Opcodes.GETFIELD, rttiClassName, extendeeIlk, tyDesc);
+    }
+
+    /**
+     * @param rttiClassName
+     * @param extendee
+     * 
+     * Expects rttiRef and fieldvalue are on stack already, consumes both.
+     */
+    private void putExtendeeField(String rttiClassName, Id extendee) {
+        String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
+        String field_type = extendeeIlk + Naming.RTTI_CLASS_SUFFIX;
+        String tyDesc = "L" + field_type + ";";
+        mv.visitFieldInsn(Opcodes.PUTFIELD, rttiClassName, extendeeIlk, tyDesc);
     }
 
     public void forVarDecl(VarDecl v) {
@@ -4048,6 +4277,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         
     };
+
 
     
     public void forMethodInvocation(MethodInvocation x) {
@@ -4493,7 +4723,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                    String s = name.stringName();
                    String s2 = NamingCzar.apiAndMethodToMethod(api_name, s);
 
-                   os.generateAnOverloadDefinition(s2, cw);
+                   try {
+                       os.generateAnOverloadDefinition(s2, cw);
+                   } catch (InterpreterBug ex) {
+                       String mess = ex.getMessage();
+                       throw ex;
+                     
+                   }
                    if (cg != null) {
                        /* Need to check if the overloaded function happens to match
                         * a name in an API that this component exports; if so,

@@ -230,9 +230,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     List<String> parameters = extractStringParameters(
                                                                            dename, left, right);
                     if (stem.equals("Arrow")) {
+                        // Arrow interface
                         classData = instantiateArrow(dename, parameters);
                         resolve = true;
                     } else if (stem.equals("AbstractArrow")) {
+                        // Arrow boilerplate
                         classData = instantiateAbstractArrow(dename, parameters);
                     } else if (stem.equals("Tuple")) {
                         classData = instantiateTuple(dename, parameters);
