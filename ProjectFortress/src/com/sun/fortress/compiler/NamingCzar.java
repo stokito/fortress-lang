@@ -746,6 +746,10 @@ public class NamingCzar {
         return desc + "$" + "implementation" + implementationCount++;
     }
 
+    public static String gensymArrowClassName(String desc, Span sp) {
+        return desc + "$fn@" + sp.toStringWithoutFiles();
+    }
+
     public static String makeInnerClassName(APIName api, Id id) {
         return makeInnerClassName(javaPackageClassForApi(api), id.getText());
     }
@@ -808,6 +812,19 @@ public class NamingCzar {
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < n; i++) {
             buf.append("Ljava/lang/Object;");
+        }
+        args = buf.toString();
+        return makeMethodDesc(args, rangeDesc);
+    }
+
+    public static String jvmSignatureForNTypes(int n, String type,
+            String rangeDesc) {
+        // This special case handles single void argument type properly.
+        String args = "";
+        String desc = "L" + type + ";";
+        StringBuilder buf = new StringBuilder();
+        for (int i = 0; i < n; i++) {
+            buf.append(desc);
         }
         args = buf.toString();
         return makeMethodDesc(args, rangeDesc);

@@ -172,6 +172,23 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     // Try to reduce this existential type.
     normalizeED(meet)
   }
+  
+    // The meet of two existential types
+  def joinED(x: Type, y: Type): Type = {
+    val ax = alphaRenameTypeSchema(x)
+    val ay = alphaRenameTypeSchema(y)
+    val xp = getStaticParams(ax)
+    val yp = getStaticParams(ay)
+    assert((xp intersect yp).isEmpty)
+    
+    // Create the ugly meet.
+    val join = insertStaticParams(makeUnionType(Set(clearStaticParams(ax), clearStaticParams(ay))),
+                                  xp ++ yp)
+    
+    // Try to reduce this existential type.
+    normalizeED(join)
+  }
+
   // The special arrow that we use when checking the return type rule
   def returnUA(x: ArrowType, y: ArrowType) = (alphaRenameTypeSchema(x), alphaRenameTypeSchema(y)) match {
     case (SArrowType(STypeInfo(s1, p1, sp1, w1), d1, r1, e1, i1, m1), 
