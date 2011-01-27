@@ -251,7 +251,7 @@ trait FloatLiteral excludes {RR32, RR64}
     getter asRR64(): RR64
 end
 
-trait Boolean   (*) extends { Equality[\Boolean\] }
+trait Boolean     (*) extends { Equality[\Boolean\] }
   getter holds(): Boolean = self
   getter get(): () = ()
   getter asString(): String = self.asExprString
