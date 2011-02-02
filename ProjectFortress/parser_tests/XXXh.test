@@ -1,29 +1,23 @@
-#    Copyright 2009 Sun Microsystems, Inc.,
-#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    Copyright 2009, Oracle and/or its affiliates.
 #    All rights reserved.
 #
-#    U.S. Government Rights - Commercial software.
-#    Government users are subject to the Sun Microsystems, Inc. standard
-#    license agreement and applicable provisions of the FAR and its supplements.
 #
 #    Use is subject to license terms.
 #
 #    This distribution may include materials developed by third parties.
 #
-#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 tests=XXXPreparser.h
 PREPARSER_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/parser_tests
 compile
 compile_err_equals=\
-${PREPARSER_TESTS_DIR}/XXXPreparser.h.fss:18:1-8:\n\
+${PREPARSER_TESTS_DIR}/XXXPreparser.h.fss:12:1-8:\n\
 \ Unmatched delimiter \"component\".\n\
-${PREPARSER_TESTS_DIR}/XXXPreparser.h.fss:21:1-4:\n\
+${PREPARSER_TESTS_DIR}/XXXPreparser.h.fss:15:1-4:\n\
 \ Unmatched delimiter \"trait\".\n\
-${PREPARSER_TESTS_DIR}/XXXPreparser.h.fss:21:15-25:3:\n\
+${PREPARSER_TESTS_DIR}/XXXPreparser.h.fss:15:15-19:3:\n\
 \ Unmatched delimiters \"[\\\" and \"end\".\n\
-${PREPARSER_TESTS_DIR}/XXXPreparser.h.fss:21:19-23:2:\n\
+${PREPARSER_TESTS_DIR}/XXXPreparser.h.fss:15:19-17:2:\n\
 \ Unmatched delimiters \"{\" and \"end\".\n\
 File XXXPreparser.h.fss has 4 errors.\n
 compile_out_equals=

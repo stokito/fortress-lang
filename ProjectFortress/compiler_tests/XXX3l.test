@@ -1,26 +1,20 @@
-#    Copyright 2010 Sun Microsystems, Inc.,
-#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    Copyright 2009,2010, Oracle and/or its affiliates.
 #    All rights reserved.
 #
-#    U.S. Government Rights - Commercial software.
-#    Government users are subject to the Sun Microsystems, Inc. standard
-#    license agreement and applicable provisions of the FAR and its supplements.
 #
 #    Use is subject to license terms.
 #
 #    This distribution may include materials developed by third parties.
 #
-#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 tests=Compiled3.l
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled3.l.fss:25:1-21:\n\
-${STATIC_TESTS_DIR}/Compiled3.l.fss:26:1-26:\n\
+${STATIC_TESTS_DIR}/Compiled3.l.fss:19:1-21:\n\
+${STATIC_TESTS_DIR}/Compiled3.l.fss:20:1-26:\n\
 \ Invalid overloading of f:\n\
-\  S[\\String\\] -> () @ ${STATIC_TESTS_DIR}/Compiled3.l.fss:26:1-26\n\
-\ and T[\\()\\] -> () @ ${STATIC_TESTS_DIR}/Compiled3.l.fss:25:1-21\n\
+\  S[\\String\\] -> () @ ${STATIC_TESTS_DIR}/Compiled3.l.fss:20:1-26\n\
+\ and T[\\()\\] -> () @ ${STATIC_TESTS_DIR}/Compiled3.l.fss:19:1-21\n\
 File Compiled3.l.fss has 1 error.\n
 compile_out_equals=

@@ -1,33 +1,27 @@
-#    Copyright 2009 Sun Microsystems, Inc.,
-#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    Copyright 2009, Oracle and/or its affiliates.
 #    All rights reserved.
 #
-#    U.S. Government Rights - Commercial software.
-#    Government users are subject to the Sun Microsystems, Inc. standard
-#    license agreement and applicable provisions of the FAR and its supplements.
 #
 #    Use is subject to license terms.
 #
 #    This distribution may include materials developed by third parties.
 #
-#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 tests=Compiled5.at
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled5.at.fss:22:5-6:\n\
+${STATIC_TESTS_DIR}/Compiled5.at.fss:16:5-6:\n\
 \ Operator declarations are not allowed in block expressions.\n\
-${STATIC_TESTS_DIR}/Compiled5.at.fss:33:21-22:\n\
+${STATIC_TESTS_DIR}/Compiled5.at.fss:27:21-22:\n\
 \ Operator declarations are not allowed in block expressions.\n\
-${STATIC_TESTS_DIR}/Compiled5.at.fss:45:7-8:\n\
+${STATIC_TESTS_DIR}/Compiled5.at.fss:39:7-8:\n\
 \ Operator declarations are not allowed in block expressions.\n\
-${STATIC_TESTS_DIR}/Compiled5.at.fss:51:5-6:\n\
+${STATIC_TESTS_DIR}/Compiled5.at.fss:45:5-6:\n\
 \ Operator declarations are not allowed in block expressions.\n\
-${STATIC_TESTS_DIR}/Compiled5.at.fss:63:5-6:\n\
+${STATIC_TESTS_DIR}/Compiled5.at.fss:57:5-6:\n\
 \ Operator declarations are not allowed in block expressions.\n\
-${STATIC_TESTS_DIR}/Compiled5.at.fss:71:5-6:\n\
+${STATIC_TESTS_DIR}/Compiled5.at.fss:65:5-6:\n\
 \ Operator declarations are not allowed in block expressions.\n\
 File Compiled5.at.fss has 6 errors.\n
 compile_out_equals=

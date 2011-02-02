@@ -1,35 +1,29 @@
-#    Copyright 2011 Sun Microsystems, Inc.,
-#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    Copyright 2009,2011, Oracle and/or its affiliates.
 #    All rights reserved.
 #
-#    U.S. Government Rights - Commercial software.
-#    Government users are subject to the Sun Microsystems, Inc. standard
-#    license agreement and applicable provisions of the FAR and its supplements.
 #
 #    Use is subject to license terms.
 #
 #    This distribution may include materials developed by third parties.
 #
-#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 tests=Compiled5.ad
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled5.ad.fss:21:12-16:\n\
+${STATIC_TESTS_DIR}/Compiled5.ad.fss:15:12-16:\n\
 \ Could not check call to operator <\n\
 \ - (RR64, RR64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \ - (String, String)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \ - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \ - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
-${STATIC_TESTS_DIR}/Compiled5.ad.fss:21:16-20:\n\
+${STATIC_TESTS_DIR}/Compiled5.ad.fss:15:16-20:\n\
 \ Could not check call to operator <\n\
 \ - (RR64, RR64)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
 \ - (String, String)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
 \ - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
 \ - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
-${STATIC_TESTS_DIR}/Compiled5.ad.fss:22:6-10:\n\
+${STATIC_TESTS_DIR}/Compiled5.ad.fss:16:6-10:\n\
 \ Could not check call to operator =\n\
 \ - (Boolean, Boolean)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \ - (GeneratorZZ32, GeneratorZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\

@@ -1,20 +1,14 @@
 #!/usr/bin/perl -w
 use strict;
 ################################################################################
-#    Copyright 2010 Sun Microsystems, Inc.,
-#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    Copyright 2008,2010, Oracle and/or its affiliates.
 #    All rights reserved.
 #
-#    U.S. Government Rights - Commercial software.
-#    Government users are subject to the Sun Microsystems, Inc. standard
-#    license agreement and applicable provisions of the FAR and its supplements.
 #
 #    Use is subject to license terms.
 #
 #    This distribution may include materials developed by third parties.
 #
-#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 ################################################################################
 
 # Generates parser/Unicode.rats and parser_util/IdentifierUtil.java.
@@ -170,16 +164,10 @@ sub ranges2ValidId {
 }
 
 print RATS "/*******************************************************************************\n";
-print RATS "    Copyright 2010 Sun Microsystems, Inc.,\n";
-print RATS "    4150 Network Circle, Santa Clara, California 95054, U.S.A.\n";
+print RATS "    Copyright 2008,2010, Oracle and/or its affiliates.\n";
 print RATS "    All rights reserved.\n\n";
-print RATS "    U.S. Government Rights - Commercial software.\n";
-print RATS "    Government users are subject to the Sun Microsystems, Inc. standard\n";
-print RATS "    license agreement and applicable provisions of the FAR and its supplements.\n\n";
 print RATS "    Use is subject to license terms.\n\n";
 print RATS "    This distribution may include materials developed by third parties.\n\n";
-print RATS "    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered\n";
-print RATS "    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.\n";
 print RATS " ******************************************************************************/\n\n";
 print RATS "/*\n";
 print RATS " * Definition of Fortress Unicode characters.\n";
@@ -196,16 +184,10 @@ ranges2(@codesrest2);
 close RATS;
 
 print UTIL "/*******************************************************************************\n";
-print UTIL "    Copyright 2010 Sun Microsystems, Inc.,\n";
-print UTIL "    4150 Network Circle, Santa Clara, California 95054, U.S.A.\n";
+print UTIL "    Copyright 2008,2010, Oracle and/or its affiliates.\n";
 print UTIL "    All rights reserved.\n\n";
-print UTIL "    U.S. Government Rights - Commercial software.\n";
-print UTIL "    Government users are subject to the Sun Microsystems, Inc. standard\n";
-print UTIL "    license agreement and applicable provisions of the FAR and its supplements.\n\n";
 print UTIL "    Use is subject to license terms.\n\n";
 print UTIL "    This distribution may include materials developed by third parties.\n\n";
-print UTIL "    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered\n";
-print UTIL "    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.\n";
 print UTIL " ******************************************************************************/\n\n";
 print UTIL "/*\n";
 print UTIL " * Utility function for Fortress Identifiers.\n";

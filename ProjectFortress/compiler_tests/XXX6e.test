@@ -1,27 +1,20 @@
-#    Copyright 2009 Sun Microsystems, Inc.,
-#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    Copyright 2009, Oracle and/or its affiliates.
 #    All rights reserved.
 #
-#    U.S. Government Rights - Commercial software.
-#    Government users are subject to the Sun Microsystems, Inc. standard
-#    license agreement and applicable provisions of the FAR and its supplements.
 #
 #    Use is subject to license terms.
 #
 #    This distribution may include materials developed by third parties.
-#
-#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 tests=Compiled6.e
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled6.e.fss:18:11-21:\n\
+${STATIC_TESTS_DIR}/Compiled6.e.fss:12:11-21:\n\
 \ The following declarations in API AbstractDef are not matched\n\
 \ by the declarations in component Compiled6.e.\n\
 \ Unmatched declarations: {\n\
-\     (TraitDecl ShellTrait at ${FORTRESS_AUTOHOME}/ProjectFortress/test_library/AbstractDef.fsi:19.3,\n\
+\     (TraitDecl ShellTrait at ${FORTRESS_AUTOHOME}/ProjectFortress/test_library/AbstractDef.fsi:13.3,\n\
 \      due to missing members of the trait/object in the component)\n\
 \ }\n\
 File Compiled6.e.fss has 1 error.\n

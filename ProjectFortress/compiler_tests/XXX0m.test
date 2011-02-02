@@ -1,29 +1,23 @@
-#    Copyright 2009 Sun Microsystems, Inc.,
-#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    Copyright 2009, Oracle and/or its affiliates.
 #    All rights reserved.
 #
-#    U.S. Government Rights - Commercial software.
-#    Government users are subject to the Sun Microsystems, Inc. standard
-#    license agreement and applicable provisions of the FAR and its supplements.
 #
 #    Use is subject to license terms.
 #
 #    This distribution may include materials developed by third parties.
 #
-#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 tests=Compiled0.m
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled0.m.fss:17:1-8:\n\
+${STATIC_TESTS_DIR}/Compiled0.m.fss:11:1-8:\n\
 \ Unmatched delimiter \"component\".\n\
-${STATIC_TESTS_DIR}/Compiled0.m.fss:20:14:\n\
+${STATIC_TESTS_DIR}/Compiled0.m.fss:14:14:\n\
 \ Unmatched delimiter \"do\".\n\
-${STATIC_TESTS_DIR}/Compiled0.m.fss:21:12-22:3:\n\
+${STATIC_TESTS_DIR}/Compiled0.m.fss:15:12-16:3:\n\
 \ Unmatched delimiters \"\\\"\"\ and \"end\".\n\
-${STATIC_TESTS_DIR}/Compiled0.m.fss:21:26:\n\
+${STATIC_TESTS_DIR}/Compiled0.m.fss:15:26:\n\
 \ Invalid string literal content: \n\
 File Compiled0.m.fss has 4 errors.\n
 compile_out_equals=
