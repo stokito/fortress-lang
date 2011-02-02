@@ -1,18 +1,12 @@
 /*******************************************************************************
-    Copyright 2008 Sun Microsystems, Inc.,
-    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+    Copyright 2008, Oracle and/or its affiliates.
     All rights reserved.
 
-    U.S. Government Rights - Commercial software.
-    Government users are subject to the Sun Microsystems, Inc. standard
-    license agreement and applicable provisions of the FAR and its supplements.
 
     Use is subject to license terms.
 
     This distribution may include materials developed by third parties.
 
-    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 #include <stdio.h>
@@ -123,16 +117,10 @@ int main(int argc, char *argv[]) {
   for (ftemp = fsemihuge; (fhuge + ftemp) != finf; ftemp /= (float) 2.0) fhuge += ftemp;
   for (dtemp = dsemihuge; (dhuge + dtemp) != dinf; dtemp /= 2.0) dhuge += dtemp;
   printf("/*******************************************************************************\n");
-  printf("    Copyright 2008 Sun Microsystems, Inc.,\n");
-  printf("    4150 Network Circle, Santa Clara, California 95054, U.S.A.\n");
+  printf("    Copyright 2008, Oracle and/or its affiliates.\n");
   printf("    All rights reserved.\n\n");
-  printf("    U.S. Government Rights - Commercial software.\n");
-  printf("    Government users are subject to the Sun Microsystems, Inc. standard\n");
-  printf("    license agreement and applicable provisions of the FAR and its supplements.\n\n");
   printf("    Use is subject to license terms.\n\n");
   printf("    This distribution may include materials developed by third parties.\n\n");
-  printf("    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered\n");
-  printf("    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.\n");
   printf(" ******************************************************************************/\n\n");
   printf("// This file is generated automatically by compiling and executing\n");
   printf("// the C program directedtestgen.c .\n");

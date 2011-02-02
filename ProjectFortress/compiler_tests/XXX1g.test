@@ -1,17 +1,11 @@
-#    Copyright 2009 Sun Microsystems, Inc.,
-#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    Copyright 2009, Oracle and/or its affiliates.
 #    All rights reserved.
 #
-#    U.S. Government Rights - Commercial software.
-#    Government users are subject to the Sun Microsystems, Inc. standard
-#    license agreement and applicable provisions of the FAR and its supplements.
 #
 #    Use is subject to license terms.
 #
 #    This distribution may include materials developed by third parties.
 #
-#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 tests=Compiled1.g
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
@@ -19,11 +13,11 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled1.g.fss:22:10-13:\n\
+${STATIC_TESTS_DIR}/Compiled1.g.fss:16:10-13:\n\
 \ Variable Hello is not defined.\n\
-${STATIC_TESTS_DIR}/Compiled1.g.fss:22:17-20:\n\
+${STATIC_TESTS_DIR}/Compiled1.g.fss:16:17-20:\n\
 \ Variable World is not defined.\n\
-${STATIC_TESTS_DIR}/Compiled1.g.fss:22:22:\n\
+${STATIC_TESTS_DIR}/Compiled1.g.fss:16:22:\n\
 \ Operator postfix ! is not defined.\n\
 File Compiled1.g.fss has 3 errors.\n
 

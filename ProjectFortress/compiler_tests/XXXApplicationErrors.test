@@ -1,38 +1,32 @@
-#    Copyright 2009 Sun Microsystems, Inc.,
-#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    Copyright 2009, Oracle and/or its affiliates.
 #    All rights reserved.
 #
-#    U.S. Government Rights - Commercial software.
-#    Government users are subject to the Sun Microsystems, Inc. standard
-#    license agreement and applicable provisions of the FAR and its supplements.
 #
 #    Use is subject to license terms.
 #
 #    This distribution may include materials developed by third parties.
 #
-#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 tests=Compiled7.ApplicationErrors
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:21:13-36:\n\
+${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:15:13-36:\n\
 \ Could not check call to function identity\n\
 \ - [\\T\\]T->T is not applicable to any type of the form _->_.\n\
-${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:24:27-32:\n\
+${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:18:27-32:\n\
 \ No such method IntLiteral.foo.\n\
-\ ${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:24:19-35:\n\
+\ ${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:18:19-35:\n\
 \ Possibly because x: IntLiteral after argument inference\n\
-${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:27:21-38:\n\
+${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:21:21-38:\n\
 \ Could not infer parameter type for function expression.\n\
-${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:27:38-52:\n\
+${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:21:38-52:\n\
 \ Could not infer parameter type for function expression.\n\
-${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:31:14-22:\n\
+${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:25:14-22:\n\
 \ Could not check call to operator *\n\
 \ - (Object->String, ZZ32)->String is not applicable to any type of the form (_->_, IntLiteral).\n\
 \ - (ZZ32->String, ZZ32)->String is not applicable to any type of the form (_->_, IntLiteral).\n\
-${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:37:13-32:\n\
+${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:31:13-32:\n\
 \ Could not check call to function baz\n\
 \ - [\\T\\]T->T is not applicable to any type of the form _->ZZ32.\n\
 File Compiled7.ApplicationErrors.fss has 5 errors.\n

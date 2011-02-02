@@ -1,25 +1,19 @@
-#    Copyright 2009 Sun Microsystems, Inc.,
-#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    Copyright 2009, Oracle and/or its affiliates.
 #    All rights reserved.
 #
-#    U.S. Government Rights - Commercial software.
-#    Government users are subject to the Sun Microsystems, Inc. standard
-#    license agreement and applicable provisions of the FAR and its supplements.
 #
 #    Use is subject to license terms.
 #
 #    This distribution may include materials developed by third parties.
 #
-#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 tests=Compiled6.br
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled6.br.fss:22:10-47:\n\
+${STATIC_TESTS_DIR}/Compiled6.br.fss:16:10-47:\n\
 \ Could not assign an expression of type ZZ32 to variable s of type String.\n\
-${STATIC_TESTS_DIR}/Compiled6.br.fss:22:33-34:\n\
+${STATIC_TESTS_DIR}/Compiled6.br.fss:16:33-34:\n\
 \ Function body has type String, but declared return type is ZZ32.\n\
 File Compiled6.br.fss has 2 errors.\n
 compile_out_equals=

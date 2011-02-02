@@ -1,43 +1,37 @@
-#    Copyright 2010 Sun Microsystems, Inc.,
-#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    Copyright 2009,2010, Oracle and/or its affiliates.
 #    All rights reserved.
 #
-#    U.S. Government Rights - Commercial software.
-#    Government users are subject to the Sun Microsystems, Inc. standard
-#    license agreement and applicable provisions of the FAR and its supplements.
 #
 #    Use is subject to license terms.
 #
 #    This distribution may include materials developed by third parties.
 #
-#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 tests=Compiled10.q
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled10.q.fss:20:13-21:\n\
+${STATIC_TESTS_DIR}/Compiled10.q.fss:14:13-21:\n\
 \ Ill-formed type: Bar[\\S,T\\]\n\
 \ The static argument S does not satisfy the corresponding bound Bar[\\S,T\\].\n\
-${STATIC_TESTS_DIR}/Compiled10.q.fss:20:13-21:\n\
+${STATIC_TESTS_DIR}/Compiled10.q.fss:14:13-21:\n\
 \ Ill-formed type: Bar[\\S,T\\]\n\
 \ The static argument T does not satisfy the corresponding bound Bar[\\S,T\\].\n\
-${STATIC_TESTS_DIR}/Compiled10.q.fss:22:19-27:\n\
+${STATIC_TESTS_DIR}/Compiled10.q.fss:16:19-27:\n\
 \ Types Bar[\\O,P\\] and Bar[\\P,O\\] exclude each other.  O must not extend them.\n\
-${STATIC_TESTS_DIR}/Compiled10.q.fss:22:19-28:\n\
+${STATIC_TESTS_DIR}/Compiled10.q.fss:16:19-28:\n\
 \ Type O excludes Bar but it extends Bar.\n\
-${STATIC_TESTS_DIR}/Compiled10.q.fss:22:32-40:\n\
+${STATIC_TESTS_DIR}/Compiled10.q.fss:16:32-40:\n\
 \ Types Bar[\\P,O\\] and Bar[\\O,P\\] exclude each other.  O must not extend them.\n\
-${STATIC_TESTS_DIR}/Compiled10.q.fss:22:32-41:\n\
+${STATIC_TESTS_DIR}/Compiled10.q.fss:16:32-41:\n\
 \ Type O excludes Bar but it extends Bar.\n\
-${STATIC_TESTS_DIR}/Compiled10.q.fss:23:19-27:\n\
+${STATIC_TESTS_DIR}/Compiled10.q.fss:17:19-27:\n\
 \ Types Bar[\\O,P\\] and Bar[\\P,O\\] exclude each other.  P must not extend them.\n\
-${STATIC_TESTS_DIR}/Compiled10.q.fss:23:19-28:\n\
+${STATIC_TESTS_DIR}/Compiled10.q.fss:17:19-28:\n\
 \ Type P excludes Bar but it extends Bar.\n\
-${STATIC_TESTS_DIR}/Compiled10.q.fss:23:32-40:\n\
+${STATIC_TESTS_DIR}/Compiled10.q.fss:17:32-40:\n\
 \ Types Bar[\\P,O\\] and Bar[\\O,P\\] exclude each other.  P must not extend them.\n\
-${STATIC_TESTS_DIR}/Compiled10.q.fss:23:32-41:\n\
+${STATIC_TESTS_DIR}/Compiled10.q.fss:17:32-41:\n\
 \ Type P excludes Bar but it extends Bar.\n\
 File Compiled10.q.fss has 10 errors.\n
 compile_out_equals=

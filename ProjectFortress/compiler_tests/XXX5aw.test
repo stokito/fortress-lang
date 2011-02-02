@@ -1,41 +1,35 @@
-#    Copyright 2009 Sun Microsystems, Inc.,
-#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    Copyright 2009, Oracle and/or its affiliates.
 #    All rights reserved.
 #
-#    U.S. Government Rights - Commercial software.
-#    Government users are subject to the Sun Microsystems, Inc. standard
-#    license agreement and applicable provisions of the FAR and its supplements.
 #
 #    Use is subject to license terms.
 #
 #    This distribution may include materials developed by third parties.
 #
-#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 tests=Compiled5.aw
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled5.aw.fss:21:3-24:\n\
+${STATIC_TESTS_DIR}/Compiled5.aw.fss:15:3-24:\n\
 \ The object equivalence operator, SEQV, should not be overridden.\n\
-${STATIC_TESTS_DIR}/Compiled5.aw.fss:23:1-42:\n\
+${STATIC_TESTS_DIR}/Compiled5.aw.fss:17:1-42:\n\
 \ An infix/multifix operator declaration must not have any keyword parameters.\n\
-${STATIC_TESTS_DIR}/Compiled5.aw.fss:24:1-18:\n\
+${STATIC_TESTS_DIR}/Compiled5.aw.fss:18:1-18:\n\
 \ The operator, ^, is always an infix operator but it is declared to be postfix.\n\
-${STATIC_TESTS_DIR}/Compiled5.aw.fss:25:1-21:\n\
+${STATIC_TESTS_DIR}/Compiled5.aw.fss:19:1-21:\n\
 \ The operator, ^, is always an infix operator but it is declared to be multifix.\n\
-${STATIC_TESTS_DIR}/Compiled5.aw.fss:26:1-18:\n\
+${STATIC_TESTS_DIR}/Compiled5.aw.fss:20:1-18:\n\
 \ The operator, ^, is always an infix operator but it is declared to be prefix.\n\
-${STATIC_TESTS_DIR}/Compiled5.aw.fss:27:1-12:\n\
+${STATIC_TESTS_DIR}/Compiled5.aw.fss:21:1-12:\n\
 \ The operator, ^, is always an infix operator but it is declared to be nofix.\n\
-${STATIC_TESTS_DIR}/Compiled5.aw.fss:28:1-13:\n\
+${STATIC_TESTS_DIR}/Compiled5.aw.fss:22:1-13:\n\
 \ A postfix operator declaration must have one value parameter.\n\
-${STATIC_TESTS_DIR}/Compiled5.aw.fss:29:1-23:\n\
+${STATIC_TESTS_DIR}/Compiled5.aw.fss:23:1-23:\n\
 \ A postfix operator declaration should not have a keyword parameter or a varargs parameter.\n\
-${STATIC_TESTS_DIR}/Compiled5.aw.fss:30:1-22:\n\
+${STATIC_TESTS_DIR}/Compiled5.aw.fss:24:1-22:\n\
 \ A postfix operator declaration should not have a keyword parameter or a varargs parameter.\n\
-${STATIC_TESTS_DIR}/Compiled5.aw.fss:31:1-28:\n\
+${STATIC_TESTS_DIR}/Compiled5.aw.fss:25:1-28:\n\
 \ A postfix operator declaration must have one value parameter.\n\
 File Compiled5.aw.fss has 10 errors.\n
 compile_out_equals=

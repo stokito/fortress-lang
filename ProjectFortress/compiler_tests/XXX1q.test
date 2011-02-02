@@ -1,29 +1,23 @@
-#    Copyright 2009 Sun Microsystems, Inc.,
-#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    Copyright 2009, Oracle and/or its affiliates.
 #    All rights reserved.
 #
-#    U.S. Government Rights - Commercial software.
-#    Government users are subject to the Sun Microsystems, Inc. standard
-#    license agreement and applicable provisions of the FAR and its supplements.
 #
 #    Use is subject to license terms.
 #
 #    This distribution may include materials developed by third parties.
 #
-#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 tests=Compiled1.q
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled1.q.fss:22:5:\n\
+${STATIC_TESTS_DIR}/Compiled1.q.fss:16:5:\n\
 \ Variable x is not defined.\n\
-${STATIC_TESTS_DIR}/Compiled1.q.fss:23:8:\n\
+${STATIC_TESTS_DIR}/Compiled1.q.fss:17:8:\n\
 \ Variable y is not defined.\n\
-${STATIC_TESTS_DIR}/Compiled1.q.fss:23:15:\n\
+${STATIC_TESTS_DIR}/Compiled1.q.fss:17:15:\n\
 \ Variable z is not defined.\n\
-${STATIC_TESTS_DIR}/Compiled1.q.fss:23:22:\n\
+${STATIC_TESTS_DIR}/Compiled1.q.fss:17:22:\n\
 \ Variable t is not defined.\n\
 File Compiled1.q.fss has 4 errors.\n
 compile_out_equals=

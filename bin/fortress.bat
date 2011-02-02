@@ -1,19 +1,13 @@
 @ECHO OFF
 REM ################################################################################
-REM #    Copyright 2010 Sun Microsystems, Inc.,
-REM #    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+REM #    Copyright 2008,2010, Oracle and/or its affiliates.
 REM #    All rights reserved.
 REM #
-REM #    U.S. Government Rights - Commercial software.
-REM #    Government users are subject to the Sun Microsystems, Inc. standard
-REM #    license agreement and applicable provisions of the FAR and its supplements.
 REM #
 REM #    Use is subject to license terms.
 REM #
 REM #    This distribution may include materials developed by third parties.
 REM #
-REM #    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-REM #    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 REM ################################################################################
 set SV=2.8.0
 ECHO ON

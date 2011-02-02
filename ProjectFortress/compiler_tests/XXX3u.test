@@ -1,23 +1,17 @@
-#    Copyright 2010 Sun Microsystems, Inc.,
-#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    Copyright 2009,2010, Oracle and/or its affiliates.
 #    All rights reserved.
 #
-#    U.S. Government Rights - Commercial software.
-#    Government users are subject to the Sun Microsystems, Inc. standard
-#    license agreement and applicable provisions of the FAR and its supplements.
 #
 #    Use is subject to license terms.
 #
 #    This distribution may include materials developed by third parties.
 #
-#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
-#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
 
 tests=Compiled3.u
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled3.u.fss:21:46-52:\n\
+${STATIC_TESTS_DIR}/Compiled3.u.fss:15:46-52:\n\
 \ Could not check call to operator +\n\
 \ - (RR64, RR64)->RR64 is not applicable to an argument of type (String, String).\n\
 \ - (ZZ32, ZZ32)->ZZ32 is not applicable to an argument of type (String, String).\n\
