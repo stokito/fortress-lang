@@ -341,8 +341,10 @@ Arrow types have the same mapping-relations-to-Java problem that tuple types do,
 
 For a given cast-to arrow type, \verb+T->U+, and a value $f$ of type \verb+S->V+ (S is a supertype of T, U is a supertype of V), the cast is accomplished in the following way:
 \begin{itemize}
-\item $f$'s implemented closure includes an apply method that takes Java Objects and returns a Java Object.  Within that Java object, are the necessary casts.
-\item The \verb+Arrow+\LOBR\verb+T;U+\ROBR\ type provides a static factory that takes an \verb+Arrow+\LOBR\verb+Object;Object+\ROBR\ and returns a new \verb+Arrow+\LOBR\verb+T;U+\ROBR\ instance.  The parameter(s) into the wrapper (which supports apply, etc) are passed to the object-typed parameters; the result is cast to the return type \verb+U+ (this will be a real Java cast that always succeeds, and analysis might discover this).
+\item interface \verb+Arrow+\LOBR\verb+S;V+\ROBR\ extends \verb+Arrow+\LOBR\verb+java/lang/Object;java/lang/Object+\ROBR; thus, any Arrow type can be treated as an untyped arrow.  
+\item class \verb+AbstractArrow+\LOBR\verb+S;V+\ROBR\ extends \verb+ AbstractArrow +\LOBR\verb+java/lang/Object;java/lang/Object+\ROBR.  
+\item \verb+AbstractArrow+\LOBR\verb+S;V+\ROBR\ includes an apply method that takes Java Objects and returns a Java Object.  Within that apply method, are the necessary casts.  {\it Question: will tuples of objects be an issue? }
+\item The \verb+WrappedArrow+\LOBR\verb+T;U+\ROBR\ type provides a consructor that takes an \verb+Arrow+\LOBR\verb+Object;Object+\ROBR\ and returns a new \verb+AbstractArrow+\LOBR\verb+T;U+\ROBR\ instance.  The parameter(s) into the wrapper (which supports apply, etc) are passed to the object-typed parameters; the result is cast to the return type \verb+U+ (this will be a real Java cast that always succeeds, and analysis might discover this).
 \end{itemize}
 
 \section{Overloaded function dispatch including generic functions}
