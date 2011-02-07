@@ -39,10 +39,12 @@ import com.sun.fortress.compiler.codegen.ManglingClassWriter;
 import com.sun.fortress.compiler.codegen.ManglingMethodVisitor;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.FnVoid;
 import com.sun.fortress.useful.FnVoidVoid;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.ProjectedList;
+import com.sun.fortress.useful.Triple;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.VersionMismatch;
 
@@ -733,16 +735,32 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     private static byte[] instantiateArrow(String name, List<String> parameters) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         
-        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE,
-                 name, null, "java/lang/Object", null);
+        // newer boilerplate copied from abstract arrow and wrapped arrow
+        Triple<List<String>, List<String>, String> stuff =
+            normalizeArrowParameters(parameters);
+        
+        List<String> unwrapped_parameters = stuff.getA();
+        List<String> tupled_parameters = stuff.getB();
+        String tuple_type = stuff.getC();
+        List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
+        String obj_sig = stringListToGeneric("Arrow", objectified_parameters);
 
+        boolean is_all_objects = objectified_parameters.equals(unwrapped_parameters);
+        
+        String[] super_interfaces = null;
+        if (!is_all_objects) {
+            super_interfaces = new String[] { obj_sig };
+        }
+        
+        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE,
+                 name, null, "java/lang/Object", super_interfaces);
 
         /* If more than one domain parameter, then also include the tupled apply method. */
         int l = parameters.size();
         if (l > 2) {
-            String tupleType = stringListToTuple(parameters.subList(0, l-1));
-            List<String> tupled_parameters = Useful.<String>list(tupleType,
-                        parameters.get(l-1)  );
+//            String tupleType = stringListToTuple(parameters.subList(0, l-1));
+//            List<String> tupled_parameters = Useful.<String>list(tupleType,
+//                        parameters.get(l-1)  );
            
             String sig = arrowParamsToJVMsig(tupled_parameters);
             if (LOG_LOADS) System.err.println(name+".apply"+sig+" abstract");
@@ -765,7 +783,107 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return cw.toByteArray();
     }
 
-    private static byte[] instantiateAbstractArrow(String dename, List<String> parameters) {
+    static F<String, String> toJLO = new F<String, String>() {
+
+        @Override
+        public String apply(String x) {
+            // TODO Auto-generated method stub
+            return "java/lang/Object";
+        }
+        
+    };
+    
+    private static byte[] instantiateWrappedArrow(String name, List<String> parameters) {
+        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+        /*
+         * extends AbstractArrow[\parameters\]
+         * 
+         * private final Arrow[\Object...Object\] wrappee
+         * 
+         * WrappedArrow[\parameters\](Arrow[\Object...Object\] _wrappee)
+         * 
+         * public range_parameter apply( domain_parameters ) = 
+         *   (range_parameter) wrappee.apply( domain_parameters )
+         */
+        Triple<List<String>, List<String>, String> stuff =
+            normalizeArrowParameters(parameters);
+        
+        List<String> unwrapped_parameters = stuff.getA();
+        List<String> tupled_parameters = stuff.getB();
+        String tupleType = stuff.getC();
+
+
+        String extendsClass = stringListToGeneric("AbstractArrow", unwrapped_parameters);
+        List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
+        String obj_sig = stringListToGeneric("AbstractArrow", objectified_parameters);
+        String wrappee_name = "wrappee";
+        
+        //extends AbstractArrow[\parameters\]
+        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER, name, null,
+                extendsClass, null);
+
+        // private final Arrow[\Object...Object\] wrappee
+        cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, wrappee_name,
+                obj_sig, null /* for non-generic */, null /* instance has no value */);
+
+        // WrappedArrow[\parameters\](Arrow[\Object...Object\] _wrappee)
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+        mv.visitCode();
+        // super()
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitMethodInsn(INVOKESPECIAL, extendsClass, "<init>", "()V");
+        // this.wrappee = wrappee
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitVarInsn(ALOAD, 1);
+        mv.visitFieldInsn(PUTFIELD, name, wrappee_name, "L" + obj_sig + ";");
+        // done
+        mv.visitInsn(RETURN);
+        mv.visitMaxs(1, 1);
+        mv.visitEnd();
+
+        //  public range_parameter apply( domain_parameters ) = 
+        //    (range_parameter) wrappee.apply( domain_parameters )
+
+            // still working on this
+        String unwrapped_apply_sig = arrowParamsToJVMsig(unwrapped_parameters);
+        String obj_apply_sig = arrowParamsToJVMsig(objectified_parameters);
+     
+        mv = cw.visitMethod(ACC_PUBLIC, Naming.APPLY_METHOD,
+                unwrapped_apply_sig,
+                null, null);
+        
+        mv.visitCode();
+
+        // load wrappee for delegation
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitFieldInsn(GETFIELD, name, wrappee_name, "L" + obj_sig + ";");
+        
+        // Push parameters.
+        // i is indexed so that it corresponds to parameters pushed, even though
+        // the types are ignored here (for now).
+        for (int i = 0; i < unwrapped_parameters.size()-1; i++) {
+            String t = unwrapped_parameters.get(i);
+            if (!t.equals(Naming.INTERNAL_SNOWMAN)) {
+                mv.visitVarInsn(ALOAD, i+1);
+            }
+        }
+
+        mv.visitMethodInsn(INVOKEVIRTUAL, obj_sig, Naming.APPLY_METHOD, obj_apply_sig);
+
+        mv.visitTypeInsn(Opcodes.CHECKCAST, parameters.get(parameters.size()-1));
+        
+        // done
+        mv.visitInsn(ARETURN);
+        mv.visitMaxs(1, 1);
+        mv.visitEnd();
+
+        
+        cw.visitEnd();
+
+        return cw.toByteArray();
+
+    }
+    private static byte[] instantiateAbstractArrow(String name, List<String> parameters) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         
         /*
@@ -785,62 +903,74 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
          *   else
          *     unwrap = param
          *     wrap = null
+         *     
+         *  Use unwrapped parameters to generate the all-Objects case
+         *  for casting; check the generated signature against the input
+         *  to see if we are them.
          *   
          */
        
-        List<String> unwrapped_parameters = null;
-        List<String> tupled_parameters = null;
-        String tupleType = null;
-        int l = parameters.size();
-        String[] interfaces;
+        Triple<List<String>, List<String>, String> stuff =
+            normalizeArrowParameters(parameters);
         
-        if (l == 2) {
-            String parameter = parameters.get(0);
-            if (parameter.startsWith(TUPLE_OX)) {
-                /* Unwrap tuple, also. */
-                unwrapped_parameters = extractStringParameters(parameter);
-                unwrapped_parameters.add(parameters.get(1));
-                tupled_parameters = parameters;
-                interfaces = new String[] {
-                        stringListToArrow(unwrapped_parameters),
-                        stringListToArrow(tupled_parameters)
-                };
-                tupleType = parameter;
+        List<String> unwrapped_parameters = stuff.getA();
+        List<String> tupled_parameters = stuff.getB();
+        String tupleType = stuff.getC();
+        
+        List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
+        String obj_sig = stringListToGeneric("AbstractArrow", objectified_parameters);
+        String unwrapped_apply_sig = arrowParamsToJVMsig(unwrapped_parameters);
+        String obj_apply_sig = arrowParamsToJVMsig(objectified_parameters);
+    
+        String[] interfaces = tupled_parameters == null ?
+                  new String[] { stringListToArrow(unwrapped_parameters) }
+                : new String[] { stringListToArrow(unwrapped_parameters),
+                                 stringListToArrow(tupled_parameters) };
 
-            } else {
-                unwrapped_parameters = parameters;
-                interfaces = new String[] {
-                        stringListToArrow(unwrapped_parameters)
-                };
-            }
-            
-        } else {
-            unwrapped_parameters = parameters;
-            tupleType = stringListToTuple(parameters.subList(0, l-1));
-            tupled_parameters = Useful.<String>list(tupleType,
-                        parameters.get(l-1)  );
-            interfaces = new String[] {
-                    stringListToArrow(unwrapped_parameters),
-                    stringListToArrow(tupled_parameters),
-            };
-            
-        }
-
-        // String name = Naming.mangleIdentifier(dename);
-        String name = (dename);
+        boolean is_all_objects = objectified_parameters.equals(unwrapped_parameters);
+                  
+        String _super = is_all_objects ? "java/lang/Object" : obj_sig ;
 
         cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER + ACC_ABSTRACT, name, null,
-                "java/lang/Object", interfaces);
+                _super, interfaces);
 
-        String _super = "java/lang/Object";
         simpleInitMethod(cw, _super);
+        
+        /* */
+        if (! is_all_objects ) {
+            // implement method for the object version.
+            // cast parameters, invoke this.apply on cast parameters, ARETURN
+            
+            // note cut and paste from apply below, work in progress.
+            
+            MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, Naming.APPLY_METHOD,
+                    obj_apply_sig,
+                    null, null);
+            
+            mv.visitVarInsn(Opcodes.ALOAD, 0); // this
+            
+            int unwrapped_l = unwrapped_parameters.size();
+
+            for (int i = 0; i < unwrapped_l-1; i++) {
+                String t = unwrapped_parameters.get(i);
+                if (!t.equals(Naming.INTERNAL_SNOWMAN)) {
+                    mv.visitVarInsn(Opcodes.ALOAD, i+1); // element
+                    mv.visitTypeInsn(CHECKCAST, t);
+                }
+            }
+
+            mv.visitMethodInsn(INVOKEVIRTUAL, name, Naming.APPLY_METHOD, unwrapped_apply_sig);
+            mv.visitInsn(Opcodes.ARETURN);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+       
+            mv.visitEnd();            
+        }
 
         if (tupled_parameters == null) {
             /* Single abstract method */
-            String sig = arrowParamsToJVMsig(unwrapped_parameters);
-            if (LOG_LOADS) System.err.println(name + ".apply" + sig+" abstract for abstract");
+            if (LOG_LOADS) System.err.println(name + ".apply" + unwrapped_apply_sig+" abstract for abstract");
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
-                    sig,
+                    unwrapped_apply_sig,
                     null, null);
             mv.visitEnd();
 
@@ -850,7 +980,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
              * the eventual implementer will break the cycle.
              * 
              */
-            String unwrapped_apply_sig = arrowParamsToJVMsig(unwrapped_parameters);
             String tupled_apply_sig = arrowParamsToJVMsig(tupled_parameters);
 
             {
@@ -871,7 +1000,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     mv.visitMethodInsn(INVOKEINTERFACE, tupleType, TUPLE_TYPED_ELT_PFX + (Naming.TUPLE_ORIGIN + i), "()L" + param + ";");
                 }
                 
-                mv.visitMethodInsn(INVOKEVIRTUAL, dename, "apply", unwrapped_apply_sig);
+                mv.visitMethodInsn(INVOKEVIRTUAL, name, Naming.APPLY_METHOD, unwrapped_apply_sig);
                 mv.visitInsn(Opcodes.ARETURN);
                 mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
 
@@ -899,7 +1028,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 mv.visitMethodInsn(INVOKESTATIC, 
                         stringListToGeneric("ConcreteTuple", tuple_elements), "make", make_sig);
 
-                mv.visitMethodInsn(INVOKEVIRTUAL, dename, "apply", tupled_apply_sig);
+                mv.visitMethodInsn(INVOKEVIRTUAL, name, Naming.APPLY_METHOD, tupled_apply_sig);
                 mv.visitInsn(Opcodes.ARETURN);
                 mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
            
@@ -911,6 +1040,44 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         cw.visitEnd();
 
         return cw.toByteArray();
+    }
+
+    /**
+     * @param parameters
+     * @return
+     */
+    private static Triple<List<String>, List<String>, String> normalizeArrowParameters(
+            List<String> parameters) {
+        Triple<List<String>, List<String>, String> stuff;
+        {
+            int l = parameters.size();
+            List<String> unwrapped_parameters = null;
+            List<String> tupled_parameters = null;
+            String tupleType = null;
+
+            if (l == 2) {
+                String parameter = parameters.get(0);
+                if (parameter.startsWith(TUPLE_OX)) {
+                    /* Unwrap tuple, also. */
+                    unwrapped_parameters = extractStringParameters(parameter);
+                    unwrapped_parameters.add(parameters.get(1));
+                    tupled_parameters = parameters;
+                    tupleType = parameter;
+                } else {
+                    unwrapped_parameters = parameters;
+                }
+
+            } else {
+                unwrapped_parameters = parameters;
+                tupleType = stringListToTuple(parameters.subList(0, l - 1));
+                tupled_parameters = Useful.<String> list(tupleType,
+                        parameters.get(l - 1));
+            }
+
+            stuff = new Triple(unwrapped_parameters, tupled_parameters,
+                    tupleType);
+        }
+        return stuff;
     }
 
     static final String UNTYPED_GETTER_SIG = "()Lfortress/AnyType$Any;";
@@ -1311,6 +1478,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     }
 
     private static String stringListToGeneric(String what, List<String> parameters) {
+        return what + Useful.listInDelimiters(Naming.LEFT_OXFORD, parameters, Naming.RIGHT_OXFORD, ";");
+    }
+
+    private static String stringListToGenericOfObjects(String what, List<String> parameters) {
         return what + Useful.listInDelimiters(Naming.LEFT_OXFORD, parameters, Naming.RIGHT_OXFORD, ";");
     }
 
