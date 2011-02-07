@@ -778,6 +778,14 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                                 null, null);
             mv.visitEnd();
         }
+        {      
+            String sig = "()L"+obj_sig+";";
+            if (LOG_LOADS) System.err.println(name+".getWrappee"+sig+" abstract");
+            MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, getWrappee,
+                                sig,
+                                null, null);
+            mv.visitEnd();
+        }
         cw.visitEnd();
 
         return cw.toByteArray();
@@ -793,12 +801,16 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
     };
     
+    static final String getWrappee = "getWrappee";
+    
     private static byte[] instantiateWrappedArrow(String name, List<String> parameters) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         /*
          * extends AbstractArrow[\parameters\]
          * 
          * private final Arrow[\Object...Object\] wrappee
+         * 
+         * Arrow[\Object...Object\] getWrappee()
          * 
          * WrappedArrow[\parameters\](Arrow[\Object...Object\] _wrappee)
          * 
@@ -815,7 +827,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         String extendsClass = stringListToGeneric("AbstractArrow", unwrapped_parameters);
         List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
-        String obj_sig = stringListToGeneric("AbstractArrow", objectified_parameters);
+        //String obj_sig = stringListToGeneric("AbstractArrow", objectified_parameters);
+        String obj_intf_sig = stringListToGeneric("Arrow", objectified_parameters);
         String wrappee_name = "wrappee";
         
         //extends AbstractArrow[\parameters\]
@@ -824,7 +837,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         // private final Arrow[\Object...Object\] wrappee
         cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, wrappee_name,
-                obj_sig, null /* for non-generic */, null /* instance has no value */);
+                obj_intf_sig, null /* for non-generic */, null /* instance has no value */);
 
         // WrappedArrow[\parameters\](Arrow[\Object...Object\] _wrappee)
         MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
@@ -835,28 +848,39 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // this.wrappee = wrappee
         mv.visitVarInsn(ALOAD, 0);
         mv.visitVarInsn(ALOAD, 1);
-        mv.visitFieldInsn(PUTFIELD, name, wrappee_name, "L" + obj_sig + ";");
+        mv.visitFieldInsn(PUTFIELD, name, wrappee_name, "L" + obj_intf_sig + ";");
         // done
         mv.visitInsn(RETURN);
         mv.visitMaxs(1, 1);
         mv.visitEnd();
 
+        // getWrappee
+        
+        mv = cw.visitMethod(ACC_PUBLIC, getWrappee,
+                "()L"+obj_intf_sig+";",
+                null, null);
+        
+        mv.visitCode();
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitFieldInsn(GETFIELD, name, wrappee_name, "L" + obj_intf_sig + ";");
+        mv.visitInsn(ARETURN);
+        mv.visitMaxs(1, 1);
+        mv.visitEnd();
+
         //  public range_parameter apply( domain_parameters ) = 
         //    (range_parameter) wrappee.apply( domain_parameters )
-
-            // still working on this
+        
         String unwrapped_apply_sig = arrowParamsToJVMsig(unwrapped_parameters);
         String obj_apply_sig = arrowParamsToJVMsig(objectified_parameters);
-     
+  
         mv = cw.visitMethod(ACC_PUBLIC, Naming.APPLY_METHOD,
                 unwrapped_apply_sig,
                 null, null);
-        
         mv.visitCode();
 
         // load wrappee for delegation
         mv.visitVarInsn(ALOAD, 0);
-        mv.visitFieldInsn(GETFIELD, name, wrappee_name, "L" + obj_sig + ";");
+        mv.visitFieldInsn(GETFIELD, name, wrappee_name, "L" + obj_intf_sig + ";");
         
         // Push parameters.
         // i is indexed so that it corresponds to parameters pushed, even though
@@ -868,7 +892,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             }
         }
 
-        mv.visitMethodInsn(INVOKEVIRTUAL, obj_sig, Naming.APPLY_METHOD, obj_apply_sig);
+        mv.visitMethodInsn(INVOKEVIRTUAL, obj_intf_sig, Naming.APPLY_METHOD, obj_apply_sig);
 
         mv.visitTypeInsn(Opcodes.CHECKCAST, parameters.get(parameters.size()-1));
         
@@ -919,6 +943,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
         String obj_sig = stringListToGeneric("AbstractArrow", objectified_parameters);
+        String obj_intf_sig = stringListToGeneric("AbstractArrow", objectified_parameters);
         String unwrapped_apply_sig = arrowParamsToJVMsig(unwrapped_parameters);
         String obj_apply_sig = arrowParamsToJVMsig(objectified_parameters);
     
@@ -966,6 +991,19 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitEnd();            
         }
 
+        // getWrappee
+        {
+            MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, getWrappee,
+                "()L"+obj_intf_sig+";",
+                null, null);
+        
+            mv.visitCode();
+            mv.visitVarInsn(ALOAD, 0);
+            mv.visitInsn(ARETURN);
+            mv.visitMaxs(1, 1);
+            mv.visitEnd(); // return this
+        }
+        
         if (tupled_parameters == null) {
             /* Single abstract method */
             if (LOG_LOADS) System.err.println(name + ".apply" + unwrapped_apply_sig+" abstract for abstract");
