@@ -11,6 +11,7 @@
 
 package com.sun.fortress.scala_src.typechecker
 
+import scala.Option
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.compiler.Types.ANY
