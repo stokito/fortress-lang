@@ -11,7 +11,7 @@
 
 package com.sun.fortress.scala_src.overloading
 
-
+import _root_.java.util.{List => JavaList}
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index._
 import com.sun.fortress.compiler.Types.ANY
@@ -38,7 +38,6 @@ import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.NI
 
-
 class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Functional] {
   
   val sa = new TypeSchemaAnalyzer()
@@ -57,6 +56,20 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
     val fd = sa.makeDomainFromArrow(fa)
     val gd = sa.makeDomainFromArrow(ga)
     sa.subtypeED(fd, gd)
+  }
+  
+  // Convenience function when arrows have been extracted from functionals
+  // already.
+  def lteq(fa: ArrowType, ga: ArrowType): Boolean = {
+    val fd = sa.makeDomainFromArrow(fa)
+    val gd = sa.makeDomainFromArrow(ga)
+    sa.subtypeED(fd, gd)
+  }
+  
+  // Convenience function when domains have been extracted from arrows
+  // already.
+  def lteq(fd: Type, gd: Type) = {
+	  sa.subtypeED(fd, gd)
   }
   
   // Checks when f is more specific than g in a particular parameter.
@@ -96,6 +109,7 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
       sa.subtypeUA(fa, ra)
     }
   }
+
   //Checks whether f is the meet of g and h
   def meet(f: Functional, g: Functional, h: Functional): Boolean = {
     val fa = makeArrowFromFunctional(f).get
@@ -107,4 +121,18 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
     val md = sa.meetED(gd, hd)
     sa.equivalentED(fd, md)
   }
+  
+  def meet(f: ((JavaList[StaticParam],Type,Type,Option[Int]),_),
+           g: ((JavaList[StaticParam],Type,Type,Option[Int]),_),
+           h: ((JavaList[StaticParam],Type,Type,Option[Int]),_)): Boolean = {
+    val fd = insertStaticParams(f._1._2, toList(f._1._1))
+    val gd = insertStaticParams(g._1._2, toList(g._1._1))
+    val hd = insertStaticParams(h._1._2, toList(h._1._1))
+    val fr = insertStaticParams(f._1._3, toList(f._1._1))
+    val gr = insertStaticParams(g._1._3, toList(g._1._1))
+    val hr = insertStaticParams(h._1._3, toList(h._1._1))
+
+    sa.equivalentED(fd, sa.meetED(gd, hd)) && sa.subtypeED(fr, sa.meetED(gr, hr))
+  }
 }
+

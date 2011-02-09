@@ -1,23 +1,31 @@
 /*******************************************************************************
-    Copyright 2010, Oracle and/or its affiliates.
+    Copyright 2010 Sun Microsystems, Inc.,
+    4150 Network Circle, Santa Clara, California 95054, U.S.A.
     All rights reserved.
 
+    U.S. Government Rights - Commercial software.
+    Government users are subject to the Sun Microsystems, Inc. standard
+    license agreement and applicable provisions of the FAR and its supplements.
 
     Use is subject to license terms.
 
     This distribution may include materials developed by third parties.
 
+    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
  ******************************************************************************/
 
 package com.sun.fortress.scala_src.typechecker
 
 import com.sun.fortress.nodes._
+
 import com.sun.fortress.nodes_util.NodeFactory
 import com.sun.fortress.compiler.Types.ANY
 import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.Types.OBJECT
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.scala_src.types.TypeAnalyzer
+import com.sun.fortress.scala_src.types.{TypeAnalyzerUtil => TAU}
 import com.sun.fortress.scala_src.useful.{STypesUtil => TU}
 
 sealed trait CFormula{}
@@ -339,18 +347,55 @@ object Formula{
      */
     case _:And => 
       val (nc, unifier) = unify(c).getOrElse(return None)
+      // println("nc: " + nc)
       nc match {
         case True => Some(unifier)
         case False => None
         case nc@And(ps) =>
-          val sub = TU.killIvars compose Substitution(ps.map{case (k, p@Primitive(pl,nl,pu,nu,pe,ne)) => 
-            (k, ta.join(pl.filterNot(TU.hasInferenceVars)))})
+          val sub = TU.killIvars compose 
+          	Substitution(ps.map{
+          		case (k, p@Primitive(pl,nl,pu,nu,pe,ne)) => {
+          			var uni = ta.join(pl.filterNot(TU.hasInferenceVars))
+          			// Heuristic extension to Dan Smith's algorithm:
+          			// If there is a single lower bound and it is a trait type, 
+          			// try all of its ancestors, searching for one that satisfies
+          			// all upper bounds.
+          			if (pl.size == 1) {
+          				pl.head match {
+          					case tt:TraitType => {
+						     	// println("tt: " + tt)
+          						for (a <- (ta.ancestors(tt) ++ List(uni)).toList.sortWith((a,b) => isTrue(ta.subtype(b,a)))) {
+							       // println("  a: " + a)
+							       if (isTrue(map(nc, TU.killIvars compose Substitution(Map((k,p)).map(_=>(k,a)))))) { 
+							       	  // println ("uni set to " + a)
+							       	  uni = a 
+								}
+							       // if (isTrue(map((k,p), TU.killIvars compose Substitution(Map((k,p)).map(_=>(k,a)))))) { yield uni = a }
+          						/*	if (and(pu.map
+          										(b => isTrue(ta.subtype
+          														(a,TAU.substitute
+          																(List(TypeArg(a.getInfo, false, a)), k, b)))))) 
+          							{
+          								uni = a; break
+          							}
+							*/
+          						}
+          					}
+          					case _ => 0
+          				}
+          			}
+          			(k, uni)
+          		}
+          	}
+          )
           if(isTrue(map(nc, sub)))
             Some(sub compose unifier)
-          else
-            None
+          else {
+               println("sub:" + sub)
+               None
+          }
         // Should never occur
-        case _:Or => bug("Applied a subsitution to an And and got an Or")
+        case _:Or => bug("Applied a substitution to an And and got an Or")
       }      
   }
   

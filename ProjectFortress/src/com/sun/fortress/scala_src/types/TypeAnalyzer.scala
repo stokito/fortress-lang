@@ -46,7 +46,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def lteq(x: Type, y: Type): Boolean =  isTrue(subtype(x, y))
   def meet(x: Type, y: Type): Type = meet(List(x, y))
   def meet(x: Iterable[Type]): Type = normalize(makeIntersectionType(x))
-  def join(x: Type, y: Type): Type = meet(List(x, y))
+  def join(x: Type, y: Type): Type = join(List(x, y))
   def join(x: Iterable[Type]): Type = normalize(makeUnionType(x))
 
   def subtype(x: Type, y: Type): CFormula =
@@ -68,7 +68,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     // Intersection types
     case (s, SIntersectionType(_,ts)) =>
       pAnd(ts.map(pSub(s, _)))
-    case (SIntersectionType(_,ss), t) =>
+    case (SIntersectionType(_,ss), t) => // Note that t is not an SIntersectionType
       pOr(pOr(Pairs.distinctPairsFrom(ss).map(tt => pExc(tt._1, tt._2))),
           pOr(ss.map(pSub(_, t))))
     // Union types
@@ -178,7 +178,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
   /*
    * Given two types x and y this method computes the constraints
-   * under which x and y do not exclude on another. For example if
+   * under which x and y do not exclude one another. For example if
    * we have x=List[\$i\] and y=List[\$k\] then x and y exclude one another
    * unless $i=$j. Note that this method only generates equality constraints.
    */
@@ -205,7 +205,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (s, t: IntersectionType) => exc(t, s)
     case (s@SUnionType(_, elts), t) =>
       pOr(pSub(s, BOTTOM), pAnd(elts.map(pExc(_, t))))
-    case (i: _InferenceVarType, j: _InferenceVarType) => pAnd(pExclusion(i,j), pExclusion(j, i))
+    case (i: _InferenceVarType, j: _InferenceVarType) => pAnd(pExclusion(i,j), pExclusion(j,i))
     case (i: _InferenceVarType, t) => pExclusion(i, t)
     case (s, j: _InferenceVarType) => pExc(j, s)
     case (s, t: UnionType) => exc(t, s)
@@ -404,7 +404,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   
   def ancestors(t: TraitType): Set[BaseType] =
     parents(t).flatMap{
-      case s:TraitType => Set(s) ++ parents(s)
+      case s:TraitType => Set(s) ++ ancestors(s)
       case x => Set(x)
     }
   
