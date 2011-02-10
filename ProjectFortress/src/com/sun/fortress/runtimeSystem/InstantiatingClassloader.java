@@ -55,6 +55,7 @@ import com.sun.fortress.useful.VersionMismatch;
  */
 public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
+    private static final String CAST_TO = "castTo";
     public static final String TUPLE_TYPED_ELT_PFX = "e";
     public static final String TUPLE_OBJECT_ELT_PFX = "o";
     public static final String TUPLE_FIELD_PFX = "f";
@@ -824,7 +825,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         List<String> tupled_parameters = stuff.getB();
         String tupleType = stuff.getC();
 
-
         String extendsClass = stringListToGeneric("AbstractArrow", unwrapped_parameters);
         List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
         //String obj_sig = stringListToGeneric("AbstractArrow", objectified_parameters);
@@ -893,15 +893,15 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         }
 
         mv.visitMethodInsn(INVOKEVIRTUAL, obj_intf_sig, Naming.APPLY_METHOD, obj_apply_sig);
-
-        mv.visitTypeInsn(Opcodes.CHECKCAST, parameters.get(parameters.size()-1));
+        
+        // mv.visitTypeInsn(Opcodes.CHECKCAST, parameters.get(parameters.size()-1));
+        generalizedCastTo(mv, parameters.get(parameters.size()-1));
         
         // done
         mv.visitInsn(ARETURN);
         mv.visitMaxs(1, 1);
         mv.visitEnd();
 
-        
         cw.visitEnd();
 
         return cw.toByteArray();
@@ -943,7 +943,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
         String obj_sig = stringListToGeneric("AbstractArrow", objectified_parameters);
-        String obj_intf_sig = stringListToGeneric("AbstractArrow", objectified_parameters);
+        String obj_intf_sig = stringListToGeneric("Arrow", objectified_parameters);
+        String wrapped_sig = stringListToGeneric("WrappedArrow", unwrapped_parameters);
+        String typed_intf_sig = stringListToGeneric("Arrow", unwrapped_parameters);
         String unwrapped_apply_sig = arrowParamsToJVMsig(unwrapped_parameters);
         String obj_apply_sig = arrowParamsToJVMsig(objectified_parameters);
     
@@ -980,7 +982,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 String t = unwrapped_parameters.get(i);
                 if (!t.equals(Naming.INTERNAL_SNOWMAN)) {
                     mv.visitVarInsn(Opcodes.ALOAD, i+1); // element
-                    mv.visitTypeInsn(CHECKCAST, t);
+                    // mv.visitTypeInsn(CHECKCAST, t);
+                    generalizedCastTo(mv, t);
                 }
             }
 
@@ -989,7 +992,62 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
        
             mv.visitEnd();            
-        }
+        } 
+        
+        // castTo
+        {
+            /*
+             *  If arg0 instanceof typed_intf_sig
+             *     return arg0
+             *  arg0 = arg0.getWrappee()
+             *  if arg0 instanceof typed_intf_sig
+             *     return arg0
+             *  new WrappedArrow
+             *  dup
+             *  push argo
+             *  init
+             *  return tos
+             */         
+            
+            MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, CAST_TO,
+                    "(L" + obj_intf_sig + ";)L" + typed_intf_sig + ";",
+                    null, null);
+
+            Label not_instance1 = new Label();
+            Label not_instance2 = new Label();
+
+            // try bare instanceof
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitTypeInsn(Opcodes.INSTANCEOF, typed_intf_sig);
+            mv.visitJumpInsn(Opcodes.IFEQ, not_instance1);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitInsn(Opcodes.ARETURN);
+            
+            // unwrap
+            mv.visitLabel(not_instance1);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitMethodInsn(INVOKEVIRTUAL, obj_intf_sig, getWrappee, "()L"+ obj_intf_sig + ";");
+            mv.visitVarInsn(Opcodes.ASTORE, 0);
+
+            // try instanceof on unwrapped
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitTypeInsn(Opcodes.INSTANCEOF, typed_intf_sig);
+            mv.visitJumpInsn(Opcodes.IFEQ, not_instance2);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitInsn(Opcodes.ARETURN);
+            
+            // wrap and return
+            mv.visitLabel(not_instance2);
+            mv.visitTypeInsn(NEW, wrapped_sig);
+            mv.visitInsn(DUP);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitMethodInsn(INVOKESPECIAL, wrapped_sig, "<init>", "(L" + obj_intf_sig +";)V");
+            
+            mv.visitInsn(Opcodes.ARETURN);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+       
+            mv.visitEnd();            
+        } 
 
         // getWrappee
         {
@@ -1454,7 +1512,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String sig = "(L" + any_tuple_n + ";)L"+tuple_params+";";
             String make_sig = toJvmSig(parameters, Naming.javaDescForTaggedFortressType(tuple_params));
             
-            MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "castTo", sig, null, null);
+            MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, CAST_TO, sig, null, null);
                         
             // Get the parameters to make, and cast them.
             for (int i = 0; i < n; i++) {
@@ -1550,7 +1608,16 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String any_tuple_n = "AnyTuple" + Naming.LEFT_OXFORD + cast_to_parameters.size() + Naming.RIGHT_OXFORD;
             String sig = "(L" + any_tuple_n + ";)L" + cast_to + ";";
             mv.visitTypeInsn(Opcodes.CHECKCAST, any_tuple_n);
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, "Concrete"+cast_to, "castTo", sig);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, "Concrete"+cast_to, CAST_TO, sig);
+        } else if (cast_to.startsWith(TUPLE_OX)) {
+            List<String> cast_to_parameters = extractStringParameters(cast_to);
+            mv.visitTypeInsn(Opcodes.CHECKCAST, cast_to);
+            
+            String any_tuple_n = "Arrow" + Naming.LEFT_OXFORD + cast_to_parameters.size() + Naming.RIGHT_OXFORD;
+            String sig = "(L" + any_tuple_n + ";)L" + cast_to + ";";
+           // mv.visitTypeInsn(Opcodes.CHECKCAST, any_tuple_n);
+           // mv.visitMethodInsn(Opcodes.INVOKESTATIC, "Concrete"+cast_to, "castTo", sig);
+
         } else {
             mv.visitTypeInsn(Opcodes.CHECKCAST, cast_to);
         }
