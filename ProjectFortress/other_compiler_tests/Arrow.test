@@ -7,7 +7,7 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests=Arrow0 Arrow1
+tests=Arrow0 Arrow1 Arrow2
 link
 run
 run_out_WImatches=Ok!
