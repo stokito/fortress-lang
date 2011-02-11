@@ -233,6 +233,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     } else if (stem.equals("AbstractArrow")) {
                         // Arrow boilerplate
                         classData = instantiateAbstractArrow(dename, parameters);
+                    } else if (stem.equals("WrappedArrow")) {
+                        classData = instantiateWrappedArrow(dename, parameters);
                     } else if (stem.equals("Tuple")) {
                         classData = instantiateTuple(dename, parameters);
                     } else if (stem.equals("ConcreteTuple")) {
@@ -837,10 +839,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         // private final Arrow[\Object...Object\] wrappee
         cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, wrappee_name,
-                obj_intf_sig, null /* for non-generic */, null /* instance has no value */);
+                "L"+obj_intf_sig+";", null /* for non-generic */, null /* instance has no value */);
 
         // WrappedArrow[\parameters\](Arrow[\Object...Object\] _wrappee)
-        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "(L" + obj_intf_sig +";)V", null, null);
         mv.visitCode();
         // super()
         mv.visitVarInsn(ALOAD, 0);
@@ -892,7 +894,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             }
         }
 
-        mv.visitMethodInsn(INVOKEVIRTUAL, obj_intf_sig, Naming.APPLY_METHOD, obj_apply_sig);
+        mv.visitMethodInsn(INVOKEINTERFACE, obj_intf_sig, Naming.APPLY_METHOD, obj_apply_sig);
         
         // mv.visitTypeInsn(Opcodes.CHECKCAST, parameters.get(parameters.size()-1));
         generalizedCastTo(mv, parameters.get(parameters.size()-1));
@@ -1026,7 +1028,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             // unwrap
             mv.visitLabel(not_instance1);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
-            mv.visitMethodInsn(INVOKEVIRTUAL, obj_intf_sig, getWrappee, "()L"+ obj_intf_sig + ";");
+            mv.visitMethodInsn(INVOKEINTERFACE, obj_intf_sig, getWrappee, "()L"+ obj_intf_sig + ";");
             mv.visitVarInsn(Opcodes.ASTORE, 0);
 
             // try instanceof on unwrapped
@@ -1609,14 +1611,22 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String sig = "(L" + any_tuple_n + ";)L" + cast_to + ";";
             mv.visitTypeInsn(Opcodes.CHECKCAST, any_tuple_n);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, "Concrete"+cast_to, CAST_TO, sig);
-        } else if (cast_to.startsWith(TUPLE_OX)) {
+        } else if (cast_to.startsWith(ARROW_OX)) {
             List<String> cast_to_parameters = extractStringParameters(cast_to);
-            mv.visitTypeInsn(Opcodes.CHECKCAST, cast_to);
+            // mv.visitTypeInsn(Opcodes.CHECKCAST, cast_to);
             
-            String any_tuple_n = "Arrow" + Naming.LEFT_OXFORD + cast_to_parameters.size() + Naming.RIGHT_OXFORD;
-            String sig = "(L" + any_tuple_n + ";)L" + cast_to + ";";
-           // mv.visitTypeInsn(Opcodes.CHECKCAST, any_tuple_n);
-           // mv.visitMethodInsn(Opcodes.INVOKESTATIC, "Concrete"+cast_to, "castTo", sig);
+            Triple<List<String>, List<String>, String> stuff =
+                normalizeArrowParameters(cast_to_parameters);
+            
+            List<String> unwrapped_parameters = stuff.getA();
+            List<String> tupled_parameters = stuff.getB();
+            String tupleType = stuff.getC();
+            
+            List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
+            String obj_sig = stringListToGeneric("Arrow", objectified_parameters);
+
+           String sig = "(L" + obj_sig + ";)L" + cast_to + ";";
+           mv.visitMethodInsn(Opcodes.INVOKESTATIC, "Abstract"+cast_to, CAST_TO, sig);
 
         } else {
             mv.visitTypeInsn(Opcodes.CHECKCAST, cast_to);

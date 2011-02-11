@@ -4183,7 +4183,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv = cw.visitCGMethod(Opcodes.ACC_STATIC,
                             "<clinit>", NamingCzar.voidToVoid, null, null);
         exp.accept(this);
-        if (tyName.startsWith(InstantiatingClassloader.TUPLE_OX)) {
+        // Might condition cast-to on inequality of static types
+        if (tyName.startsWith(InstantiatingClassloader.TUPLE_OX) ||
+                tyName.startsWith(InstantiatingClassloader.ARROW_OX)   ) {
             InstantiatingClassloader.generalizedCastTo(mv, tyName);
         }
         mv.visitFieldInsn(Opcodes.PUTSTATIC, classFile,
@@ -4510,16 +4512,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     Type t = arg_tts.get(i);
                     expr.accept(this);
 
-                    if (t instanceof TupleType) {
-                        // insert cast
-                        String cast_to = NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
-                        InstantiatingClassloader.generalizedCastTo(mv, cast_to);
-                    } else if (t instanceof VarType) {
-                        // insert conditional cast (what form does this take?)
-                        // note that generalizedCastTo will make this a bare instanceof.
-                        // watch out for possibility of double-rewrite,
-                        // in case of generic meth of generic trait/object.
-                    }
+                    conditionallyCastParameter(t);
                 }
                 
                 paramCount = l;
@@ -4554,13 +4547,32 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     } else {
                         mv.visitMethodInsn(INVOKEINTERFACE, owner, m, "()"+sig);
                     }
+                    conditionallyCastParameter(t);
                 }
                
             } else if (arg_t instanceof VarType) { 
                 arg.accept(this);
+                conditionallyCastParameter(arg_t);
             } else {
                 arg.accept(this);
             }
+        }
+    }
+
+
+    /**
+     * @param t
+     */
+    private void conditionallyCastParameter(Type t) {
+        if (t instanceof TupleType || t instanceof ArrowType) {
+            // insert cast
+            String cast_to = NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
+            InstantiatingClassloader.generalizedCastTo(mv, cast_to);
+        } else if (t instanceof VarType) {
+            // insert conditional cast (what form does this take?)
+            // note that generalizedCastTo will make this a bare instanceof.
+            // watch out for possibility of double-rewrite,
+            // in case of generic meth of generic trait/object.
         }
     }
 

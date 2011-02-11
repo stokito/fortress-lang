@@ -8,7 +8,7 @@
     This distribution may include materials developed by third parties.
 
  ******************************************************************************)
-\
+
 component ComparisonLibrary
 export ComparisonLibrary
 
