@@ -34,7 +34,7 @@ which defines a Fortress mode for Emacs.  To use this file, load
 it from your .emacs file with the following command:
 
     (load (concat (getenv "FORTRESS_HOME")
-                  "/Emacs/fortress-mode.el"))
+                  "/contrib/Emacs/fortress-mode.el"))
     (push '("\\.fs[si]$" . fortress-mode) auto-mode-alist)
 
 If you wish to use the Fortify package to format Fortress source code

@@ -61,7 +61,9 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   protected def nsub(x: Type, y: Type)(implicit history: Set[hType]): CFormula = 
     pSub(x, y)(true, history)
     
-  protected def pSub(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = (x, y) match {
+  protected def pSub(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
+    (x, y) match {
+ 
     case (s,t) if (s==t) => pTrue()
     case (s: BottomType, _) => pTrue()
     case (s, t: AnyType) => pTrue()
@@ -94,10 +96,13 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       }
     // Trait types
     case (s: TraitType, t: TraitType) if (t==OBJECT) => pTrue()
-    case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (n1==n2) =>
+    case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (typeCons(n1)==typeCons(n2)) =>
+      println("checking " + a1 + " vs " + a2)
       pAnd((a1, a2).zipped.map((a, b) => pEqv(a, b)))
     case (s:TraitType , t: TraitType) =>
+      println("checking " + s + " <: " + t)
       val par = parents(s)
+      println(s + " has parents " + par)
       pOr(par.map(pSub(_, t)))
     case (s: TraitSelfType, t) => pSub(removeSelf(s), t)
     case (t, STraitSelfType(_, named, _)) => pSub(t,removeSelf(named))
@@ -119,7 +124,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (s, t:TupleType) => 
       pSub(s, disjunctFromTuple(t,1))
     case _ => pFalse()
-  }
+  }}
   
   /* This is not yet hooked into pSub
   protected def sub(x: List[KeywordType], y: List[KeywordType]): CFormula = {
@@ -194,7 +199,9 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def anyExclude(ts: Iterable[Type]):CFormula =
     or(Pairs.distinctPairsFrom(ts).map(tt => excludes(tt._1, tt._2)))
   
-  protected def pExc(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = (x, y) match {
+  protected def pExc(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
+	(removeSelf(x), removeSelf(y)) match {
+ 
     case (s, t) if (s==t) => pFalse()
     case (s: BottomType, _) => pTrue()
     case (_, t: BottomType) => pTrue()
@@ -271,6 +278,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       pOr(different, excludes)
     case (s: TupleType, _) => pTrue()
     case (_, t: TupleType) => pTrue()
+  }
   }
   
   protected def removeSelf(x: Type) = {
