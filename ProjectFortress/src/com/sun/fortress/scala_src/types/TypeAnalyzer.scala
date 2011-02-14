@@ -97,12 +97,12 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     // Trait types
     case (s: TraitType, t: TraitType) if (t==OBJECT) => pTrue()
     case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (typeCons(n1)==typeCons(n2)) =>
-      println("checking " + a1 + " vs " + a2)
+      // println("checking " + a1 + " vs " + a2)
       pAnd((a1, a2).zipped.map((a, b) => pEqv(a, b)))
     case (s:TraitType , t: TraitType) =>
-      println("checking " + s + " <: " + t)
+      // println("checking " + s + " <: " + t)
       val par = parents(s)
-      println(s + " has parents " + par)
+      // println(s + " has parents " + par)
       pOr(par.map(pSub(_, t)))
     case (s: TraitSelfType, t) => pSub(removeSelf(s), t)
     case (t, STraitSelfType(_, named, _)) => pSub(t,removeSelf(named))
