@@ -150,7 +150,7 @@ object SNodeUtil {
 	    sp match {
               case SStaticParam(info, name, extendsC, dim, absorbs, k:KindType, lifted) =>
 		sparams ++= List(SStaticParam(info, name,
-					      self_type :: extendsC,
+					      (self_type :: extendsC).distinct,
 					      dim, absorbs, k, lifted))
               case _ => sparams ++= List(sp)
 	    }
