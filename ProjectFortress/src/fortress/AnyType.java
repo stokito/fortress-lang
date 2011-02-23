@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2009, Oracle and/or its affiliates.
+ Copyright 2009,2011, Oracle and/or its affiliates.
  All rights reserved.
 
 
@@ -13,6 +13,6 @@ package fortress;
 
 public class AnyType {
     public static interface Any {
-
+        public Object getRTTI();
     }
 }
