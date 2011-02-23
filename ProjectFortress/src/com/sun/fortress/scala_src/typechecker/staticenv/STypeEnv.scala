@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -122,7 +122,7 @@ object EmptySTypeEnv extends STypeEnv with EmptyStaticEnv[Type]
  * @param parent A type environment that this one extends.
  * @param _bindings A collection of all the bindings in this environment.
  */
-class NestedSTypeEnv protected (protected val parent: STypeEnv,
+class NestedSTypeEnv (protected val parent: STypeEnv,
                                 _bindings: Iterable[TypeBinding])
     extends STypeEnv with NestedStaticEnv[Type] {
 

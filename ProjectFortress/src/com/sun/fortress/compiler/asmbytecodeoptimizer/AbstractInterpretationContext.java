@@ -344,8 +344,8 @@ public class AbstractInterpretationContext {
         case Opcodes.RETURN:  pc = bcmv.insns.size(); break; 
         case Opcodes.ARRAYLENGTH: NYI(i); break; 
         case Opcodes.ATHROW: popStack(); pc = bcmv.insns.size(); break; 
-        case Opcodes.MONITORENTER: NYI(i); break; 
-        case Opcodes.MONITOREXIT: NYI(i); break;
+        case Opcodes.MONITORENTER: popStack(); break; // drc - for now
+        case Opcodes.MONITOREXIT: popStack(); break; // drc  - for now
         default: 
             NYI(i);
         }

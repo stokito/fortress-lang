@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -82,7 +82,7 @@ protected object EmptyKindEnv extends KindEnv with EmptyStaticEnv[StaticParam] {
  * @param parent A kind environment that this one extends.
  * @param _bindings A collection of all the bindings in this environment.
  */
-class NestedKindEnv protected (protected val parent: KindEnv,
+class NestedKindEnv (protected val parent: KindEnv,
                                _bindings: Iterable[KindBinding])
     extends KindEnv with NestedStaticEnv[StaticParam] {
 

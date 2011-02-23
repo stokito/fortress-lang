@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009, Oracle and/or its affiliates.
+    Copyright 2009,2011 Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -11,6 +11,12 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public class FValue {
+public abstract class FValue implements fortress.AnyType.Any {
+
+    @Override
+    public Object getRTTI() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }
