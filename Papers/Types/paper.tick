@@ -1,20 +1,22 @@
-\documentclass[runningheads,a4paper]{llncs}
-%\documentclass{llncs}
-
+\documentclass[10pt]{sigplanconf}
 \usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem}
-\setcounter{tocdepth}{3}
-\newcommand{\keywords}[1]{\par\addvspace\baselineskip
-\noindent\keywordname\enspace\ignorespaces#1}
+\advance \textheight by 4pt
 
+
+%% for llncs
+%\documentclass[runningheads,a4paper]{llncs}
+%\documentclass{llncs}
+%\usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem}
+%\setcounter{tocdepth}{3}
+%\newcommand{\keywords}[1]{\par\addvspace\baselineskip
+%\noindent\keywordname\enspace\ignorespaces#1}
 %% \advance \textheight by 4pt
+%% \newcommand{\mono}[1]{\KWD{#1}}
+
 
 % make a big red TODO label
 \newcommand{\TODO}[1]{\text{\textbf{\emph{\textcolor{red}{TODO}}}: #1}}
 
-% \newcommand{\mono}[1]{%
-%   {\@tempdima = \fontdimen2\font
-%    \texttt{\spaceskip = 1.1\@tempdima #1}}}
-\newcommand{\mono}[1]{\KWD{#1}}
 
 %newcommand
 \newcommand{\ms}{\preceq}
@@ -149,43 +151,83 @@
 \newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
 
 \theorembodyfont{\rm}
-%% \newtheorem{lemma}{Lemma}
-%% \newenvironment{proof}{\noindent \textbf{Proof:} }{\hfill $\Box$}
+\newtheorem{lemma}{Lemma}
+\newenvironment{proof}{\noindent \textbf{Proof:} }{\hfill $\Box$}
 
 \begin{document}
 
-\title{Type-checking Modular Multiple Dispatch with Parametric Polymorphism and
-\mbox{Multiple Inheritance}}
-\titlerunning{Modular Multiple Dispatch with Polymorphism and Multiple Inheritance}
+\conferenceinfo{OOPSLA '11}{October, Portland, Oregon.}
+\copyrightyear{2011}
+\copyrightdata{[to be supplied]}
 
-\author{Eric Allen\inst{1} \and
-Justin Hilburn\inst{2} \and
-Scott Kilpatrick\inst{3} \and
-Sukyoung Ryu\inst{4} \and\\
-David Chase\inst{1} \and
-Victor Luchangco\inst{1} \and
-Guy L. Steele Jr.\inst{1}
-}
-\authorrunning{Allen, Hilburn, Kilpatrick, Ryu, Chase, Luchangco, and Steele Jr.}
-%
-%%%% list of authors for the TOC (use if author list has to be modified)
-%% \tocauthor{Ivar Ekeland, Roger Temam, Jeffrey Dean, David Grove,
-%% Craig Chambers, Kim B. Bruce, and Elisa Bertino}
-%
-\institute{Sun Labs / Oracle, USA
-%\email{\{firstname.lastname, david.r.chase\}@oracle.com}
-\and
-University of Oregon, USA
-%\email{jrhil47@gmail.com}
-\and
-MPI-SWS, Germany
-%\email{skilpat@mpi-sws.org}
-\and
-KAIST, Korea
-%\email{sryu@cs.kaist.ac.kr}
-}
+\titlebanner{draft}        % These are ignored unless
+\preprintfooter{draft}   % 'preprint' option specified.
 
+\title{Type-checking Modular Multiple Dispatch with Parametric Polymorphism and Multiple Inheritance}
+\subtitle{}
+\authorinfo{Eric Allen}{Sun Labs, Oracle}{eric.allen@oracle.com}
+\authorinfo{Justin Hilburn}{Sun Labs, Oracle}{justin.hilburn@oracle.com}
+\authorinfo{Scott Kilpatrick}{University of Texas at Austin}{scottk@cs.utexas.edu}
+\authorinfo{Sukyoung Ryu}{Korea Advanced Institute \\ of Science and Technology}{sryu@cs.kaist.ac.kr}
+\authorinfo{David Chase}{Sun Labs, Oracle}{david.r.chase@oracle.com}
+\authorinfo{Victor Luchangco}{Sun Labs, Oracle}{victor.luchangco@oracle.com}
+\authorinfo{Guy L. Steele Jr.}{Sun Labs, Oracle}{guy.steele@oracle.com}
+
+\makeatletter
+\def \@maketitle {%
+  \begin{center}
+  \@settitlebanner
+  \let \thanks = \titlenote
+  \noindent \LARGE \bfseries \@titletext \par
+  %\vskip 6pt
+  %\noindent \Large \@subtitletext \par
+  \vskip 6pt
+    \noindent \@setauthor{9pc}{i}{\@false}\hspace{1.5pc}%
+              \@setauthor{9pc}{ii}{\@false}\hspace{1.5pc}%
+              \@setauthor{9pc}{iii}{\@false}\hspace{1.5pc}%
+              \@setauthor{9pc}{iv}{\@true}\par
+  \vspace{6pt}
+   \noindent \@setauthor{9pc}{v}{\@false}\hspace{1.5pc}%
+             \@setauthor{9pc}{vi}{\@false}\hspace{1.5pc}%
+             \@setauthor{9pc}{vii}{\@false}\hspace{4.5pc}%
+  \vspace{12pt}
+  \end{center}}
+\makeatother
 \maketitle
+
+%% llncs
+%% \title{Type-checking Modular Multiple Dispatch with Parametric Polymorphism and
+%% \mbox{Multiple Inheritance}}
+%% \titlerunning{Modular Multiple Dispatch with Polymorphism and Multiple Inheritance}
+
+%% \author{Eric Allen\inst{1} \and
+%% Justin Hilburn\inst{2} \and
+%% Scott Kilpatrick\inst{3} \and
+%% Sukyoung Ryu\inst{4} \and\\
+%% David Chase\inst{1} \and
+%% Victor Luchangco\inst{1} \and
+%% Guy L. Steele Jr.\inst{1}
+%% }
+%% \authorrunning{Allen, Hilburn, Kilpatrick, Ryu, Chase, Luchangco, and Steele Jr.}
+%% %
+%% %%%% list of authors for the TOC (use if author list has to be modified)
+%% %% \tocauthor{Ivar Ekeland, Roger Temam, Jeffrey Dean, David Grove,
+%% %% Craig Chambers, Kim B. Bruce, and Elisa Bertino}
+%% %
+%% \institute{Sun Labs / Oracle, USA
+%% %\email{\{firstname.lastname, david.r.chase\}@oracle.com}
+%% \and
+%% University of Oregon, USA
+%% %\email{jrhil47@gmail.com}
+%% \and
+%% MPI-SWS, Germany
+%% %\email{skilpat@mpi-sws.org}
+%% \and
+%% KAIST, Korea
+%% %\email{sryu@cs.kaist.ac.kr}
+%% }
+
+%% \maketitle
 
 \begin{abstract}
 \input{abstract.tex}
