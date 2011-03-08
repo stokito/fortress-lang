@@ -16,15 +16,17 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 abstract public class Insn {
-    String name;
-    Object locals[];
-    Object stack[];
+    protected String name;
+    protected AbstractInterpretationValue stack[];
+    protected AbstractInterpretationValue locals[];
 
+    protected Set<AbstractInterpretationValue> uses;
+    protected Set<AbstractInterpretationValue> defs;
     // Imagine a function foo which inlines bar which inlines baz which has a label and a goto
     // The indices are after the instruction in parenthesis.
     // foo(1)
@@ -41,14 +43,29 @@ abstract public class Insn {
     // label problem above.  When we are generating the ASM for labels, we change
     // their 
 
-    String index;
+    protected String index;
 
-    ArrayList<Insn> inlineExpansionInsns = new ArrayList<Insn>();
-    Insn parentInsn;
+    public String getIndex() { return index;}
+    public void setIndex(String s) {index = s;}
+
+    // newIndex is the new index of this instruction after inlining.
+    protected int newIndex;
+    public int getNewIndex() { return newIndex;}
+    public void setNewIndex(int i) { newIndex = i;}
+
+    protected ArrayList<Insn> inlineExpansionInsns = new ArrayList<Insn>();
+    protected Insn parentInsn;
+
+    public void setParentInsn(Insn p) {parentInsn = p;}
+    public Insn getParentInsn() {return parentInsn;}
+    
 
     Insn(String name, String index) {
         this.name = name;
         this.index = index;
+        this.newIndex = 0;
+        this.uses = new HashSet<AbstractInterpretationValue>();
+        this.defs = new HashSet<AbstractInterpretationValue>();
     }
 
     public String toString() { 
@@ -57,8 +74,20 @@ abstract public class Insn {
         else return name + " ind = " + index; 
     }
 
-    public void setStack(Object stack[]) {this.stack = stack;}
-    public void setLocals(Object locals[]) {this.locals = locals;}
+    public void setStack(AbstractInterpretationValue stack[]) {
+        this.stack = new AbstractInterpretationValue[stack.length];
+        for (int i = 0; i < stack.length; i++) {
+            this.stack[i] = stack[i];
+        }
+    }
+
+    public void setLocals(AbstractInterpretationValue locals[]) {
+        this.locals = new AbstractInterpretationValue[locals.length];
+        for (int i = 0; i < locals.length; i++) {
+            this.locals[i] = locals[i];
+        }
+    }
+        
 
     public abstract void toAsm(MethodVisitor mv);
 
@@ -96,10 +125,71 @@ abstract public class Insn {
     public String getLocals() {
         String result = "{";
         if (locals != null) {
-            for (Object o : locals)
-                result = result + o + " ";
+            for (AbstractInterpretationValue l : locals)
+                result = result + l + " ";
         }
         result = result +"}";
         return result;
     }
+
+    public boolean isCheckCast() {
+        if (this instanceof TypeInsn) {
+            TypeInsn ti = (TypeInsn) this;
+            return ti.isCheckCast();
+        }
+        return false;
+    }
+
+    public boolean isBoxingMethod() {
+        if (this instanceof MethodInsn) {
+            MethodInsn mi = (MethodInsn) this;
+            return mi.isBoxingMethod();
+        }
+        return false;
+    }
+
+    public boolean isUnBoxingMethod() {
+        if (this instanceof MethodInsn) {
+            MethodInsn mi = (MethodInsn) this;
+            return mi.isUnBoxingMethod();
+        }
+        return false;
+    }
+
+    public boolean isAReturn() {
+        if (this instanceof SingleInsn) {
+            SingleInsn si = (SingleInsn) this;
+            return si.isAReturn();
+        }
+        return false;
+    }
+
+    public void addUse(AbstractInterpretationValue v) {
+        uses.add(v);
+    }
+
+    public Set<AbstractInterpretationValue> getUses() {
+        return uses;
+    }
+
+    public boolean hasMultipleUses() {
+        if (uses.size() > 1)
+            return true;
+        else return false;
+    }
+
+    public void addDef(AbstractInterpretationValue v) {
+        if (!defs.contains(v)) defs.add(v);
+    }
+
+    public boolean hasDef() {
+        if (defs.isEmpty())
+            return false;
+        else return true;
+    }
+
+    public Set<AbstractInterpretationValue> getDefs() {
+        return defs;
+    }
 }
+

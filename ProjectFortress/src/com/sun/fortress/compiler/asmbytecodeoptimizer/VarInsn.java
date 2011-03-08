@@ -16,14 +16,29 @@ import org.objectweb.asm.util.*;
 public class VarInsn extends Insn {
     int opcode;
     int var;
+    String addedBy;
 
     VarInsn(String name, int opcode, int var, String index) {
         super(name, index);
         this.opcode = opcode;
         this.var = var;
     }
+
+    VarInsn(String name, int opcode, int var, String index, String addedBy) {
+        super(name, index);
+        this.opcode = opcode;
+        this.var = var;
+        this.addedBy = addedBy;
+    }
+
+    public boolean matches(VarInsn vi) {
+        boolean result = (opcode == vi.opcode) && (var == vi.var);
+        System.out.println("Matching " + vi + " with " + this + "=" + result);
+        return result;
+    }
+
     public String toString() { 
-        return "VarInsn:" +  name + " variable = " + var;
+        return "VarInsn:" +  name + " opcode = " + opcode + " index = " + index + " newIndex = " + newIndex + " variable = " + var;
     }
     
     public VarInsn copy(String newIndex) {

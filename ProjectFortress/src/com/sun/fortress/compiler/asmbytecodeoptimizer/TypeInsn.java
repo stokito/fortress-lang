@@ -33,4 +33,10 @@ public class TypeInsn extends Insn {
     public void toAsm(MethodVisitor mv) { 
         mv.visitTypeInsn(opcode, type);
     }
+
+    public boolean isCheckCast() {
+        if (opcode == Opcodes.CHECKCAST)
+            return true;
+        return false;
+    }
 }

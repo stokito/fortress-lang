@@ -16,13 +16,20 @@ fun(x: RR64): RR64 = x (x x + 1.0)
 
 integrate_fo'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, tol: RR64): RR64 = do
     w = 0.5 (h-l)
+    println(w)
     hw = 0.5 w
+    println(hw)
     m = l + w
+    println(m)
     fm = fun(m)
+    println(fm)
     al = hw (fl + fm)
+    println(al)
     ah = hw (fm + fh)
+    println(ah)
     alh = al + ah
-    alh
+    println(alh)
+    alh 
   end
 
 run(): () = do

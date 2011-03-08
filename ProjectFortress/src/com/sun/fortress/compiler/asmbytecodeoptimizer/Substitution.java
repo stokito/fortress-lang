@@ -41,6 +41,10 @@ public class Substitution {
             return vlni1.matches(vlni2);
         } else if (m1 instanceof VisitCode & m2 instanceof VisitCode) { //fixme
             return true;
+        } else if (m1 instanceof VarInsn & m2 instanceof VarInsn) {
+            VarInsn v1 = (VarInsn) m1;
+            VarInsn v2 = (VarInsn) m2;
+            return v1.matches(v2);
         } else return false;
     }
 

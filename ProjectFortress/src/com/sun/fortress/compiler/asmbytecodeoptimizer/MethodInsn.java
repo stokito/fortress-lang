@@ -36,8 +36,15 @@ public class MethodInsn extends Insn {
     }
 
     public String toString() { 
-        return "MethodInsn:" + id + " " + index + " " +  opcode + " " + owner + " " + _name + " " + desc;
+        return "MethodInsn: " + id + " " + index + " " + opcode + " " + owner + " " + _name + " " + desc;
     }
+
+//         if (def != null && def.needed) {
+//             return "MethodInsn:" + id + " " + index + " " +  opcode + " " + owner + " " + _name + " " + desc + " is used in a definition and is needed";
+//         } else if (def != null) {
+//             return "MethodInsn:" + id + " " + index + " " +  opcode + " " + owner + " " + _name + " " + desc + " is used in a definition, but the definition isn't needed";            
+//         } else return "MethodInsn:" + id + " " + index + " " +  opcode + " " + owner + " " + _name + " " + desc + " is not used in a definition";
+//     }
     
     public void toAsm(MethodVisitor mv) { 
         mv.visitMethodInsn(opcode, owner, _name, desc);
@@ -52,6 +59,58 @@ public class MethodInsn extends Insn {
 
     public boolean matches(MethodInsn mi) {
         return matches(mi.opcode, mi.owner, mi._name, mi.desc);
+    }
+
+    public boolean isBoxingMethod() {
+        boolean result = owner.startsWith("com/sun/fortress/compiler/runtimeValues") &&
+            _name.equals("make");
+        return result;
+    }
+
+    public boolean isFVoidBoxingMethod() {
+        return this.owner.equals("com/sun/fortress/compiler/runtimeValues/FVoid") &&
+            _name.equals("make");
+    }
+
+    public boolean isUnBoxingMethod() {
+        boolean result = owner.startsWith("com/sun/fortress/compiler/runtimeValues") &&
+            _name.equals("getValue");
+
+        return result;
+
+    }
+
+    private boolean needed() {
+        boolean result = false;
+        for (AbstractInterpretationValue def : getDefs())
+            if (def.isNeeded()) 
+                result = true;
+        return result;
+    }
+
+    public boolean isUnNeededBoxingMethod() {
+        if (isBoxingMethod()) {
+            if (!needed())
+                return true;
+        }
+        return false;
+    }
+
+    public boolean isUnNeededUnBoxingMethod() {
+        if (isUnBoxingMethod()) {
+            if (!needed())
+                return true;
+        }
+        return false;
+    }
+
+
+    public boolean isStaticMethod() {
+        return this.opcode == Opcodes.INVOKESTATIC;
+    }
+
+    public boolean isInterfaceMethod() {
+        return this.opcode == Opcodes.INVOKEINTERFACE;
     }
 
     public void interpret(ByteCodeMethodVisitor bcmv) {

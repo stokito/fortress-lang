@@ -23,6 +23,7 @@ import java.util.Set;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
+
 public class AbstractInterpretation {
     AbstractInterpretationContext context;
 
@@ -31,9 +32,10 @@ public class AbstractInterpretation {
 
     AbstractInterpretation(String className, ByteCodeMethodVisitor bcmv) {
         context = new AbstractInterpretationContext(this, bcmv, 
-                                       new Object[bcmv.maxStack],
-                                       new Object[bcmv.maxLocals],
-                                       0, 0); 
+                                                    new AbstractInterpretationValue[bcmv.maxStack],
+                                                    new AbstractInterpretationValue[bcmv.maxLocals],
+                                                    0, 0); 
+        AbstractInterpretationValue.initializeCount();
         instructions = new ArrayList<AbstractInterpretationContext>();
     }
 
@@ -51,17 +53,25 @@ public class AbstractInterpretation {
         AbstractInterpretation ai = new AbstractInterpretation(key, bcmv);
         if (noisy) System.out.println("optimize for key = " + key);
         int localsIndex = 0;
+        Insn insn = bcmv.insns.get(0);        
 
         if (!bcmv.isAbstractMethod()) {
-
-            if (!bcmv.isStaticMethod())
-                ai.context.locals[localsIndex++] = "L" + key.replace(".class", ";");
+            if (!bcmv.isStaticMethod()) {
+                String t = "L" + key.replace(".class", ";");
+                AbstractInterpretationValue val = bcmv.createValue(insn,t);
+                insn.addDef(val);
+                ai.context.locals[localsIndex++] = val;
+            }
         
             for (int i = 0; i < bcmv.args.size(); i++) {
-                ai.context.locals[localsIndex+i] = bcmv.args.get(i);
+                String t = bcmv.args.get(i);
+                AbstractInterpretationValue val = bcmv.createValue(insn,t);
+                insn.addDef(val);
+                ai.context.locals[localsIndex+i] = val;
             }
 
             ai.interpretMethod();
+            bcmv.setAbstractInterpretation(ai);
         }
     }
 
@@ -75,4 +85,9 @@ public class AbstractInterpretation {
             context.interpretMethod();
         }
     }
+
+    public String toString() {
+        return context.toString();
+    }
 }
+

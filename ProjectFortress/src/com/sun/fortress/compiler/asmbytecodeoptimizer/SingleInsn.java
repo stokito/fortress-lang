@@ -33,4 +33,11 @@ public class SingleInsn extends Insn {
     public void toAsm(MethodVisitor mv) { 
         mv.visitInsn(opcode);
     }
+
+    public boolean isAReturn() {
+        if (opcode == Opcodes.ARETURN)
+            return true;
+        return false;
+    }
+
 }

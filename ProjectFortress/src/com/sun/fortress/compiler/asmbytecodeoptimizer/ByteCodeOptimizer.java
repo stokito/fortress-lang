@@ -135,7 +135,7 @@ class ByteCodeOptimizer {
             RemoveLiteralCoercions.optimize(bcv);
             Inlining.optimize(bcv);
             AbstractInterpretation.optimize((String) pairs.getKey(), bcv);
-            //            DefUseChains.optimize(bcv);
+            DefUseChains.optimize(bcv);
         }
     }
         
