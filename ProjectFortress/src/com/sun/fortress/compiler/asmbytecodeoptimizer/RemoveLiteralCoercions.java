@@ -19,6 +19,8 @@ import org.objectweb.asm.util.*;
 
 public class RemoveLiteralCoercions {
 
+    private static boolean noisy = false;
+
     public static void optimize(ByteCodeVisitor bcv) {
         Iterator it = bcv.methodVisitors.entrySet().iterator();
         while (it.hasNext()) {
@@ -71,10 +73,40 @@ public class RemoveLiteralCoercions {
         return new Substitution(matches, replacements);
     }
 
-
-    public static void removeCoercions(ByteCodeMethodVisitor bcmv) {
-        removeIntLiterals(bcmv).makeSubstitution(bcmv);
-        removeFloatLiterals(bcmv).makeSubstitution(bcmv);
+    // Sometimes we use a different idiom in code generation
+    public static Substitution removeFloatLiterals2(ByteCodeMethodVisitor bcmv) {
+        String floatLiteral = "com/sun/fortress/compiler/runtimeValues/FFloatLiteral";
+        String RR64 = "com/sun/fortress/compiler/runtimeValues/FRR64";
+        ArrayList<Insn> matches = new ArrayList<Insn>();
+        matches.add(new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC,
+                                             floatLiteral, 
+                                             "make",
+                                   "(D)L" + floatLiteral + ";", "targetedForRemoval"));
+        matches.add(new VarInsn("ASTORE", Opcodes.ASTORE, 0, "targetedForRemoval"));
+        matches.add(new LabelInsn("LabelInsn", new Label(), "targetedForRemoval"));
+        matches.add(new VisitLineNumberInsn("visitlinenumber", 0, new Label(), "targetedForRemoval"));
+        matches.add(new VarInsn("ALOAD", Opcodes.ALOAD, 0, "targetedForRemoval"));
+        matches.add(new LabelInsn("LabelInsn", new Label(), "targetedForRemoval"));
+        matches.add(new VisitLineNumberInsn("visitlinenumber", 0, new Label(), "targetedForRemoval"));
+        matches.add(new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC, "fortress/CompilerBuiltin", 
+                                             "coerce_RR64", 
+                                   "(Lfortress/CompilerBuiltin$FloatLiteral;)L" + RR64 + ";", "targetedForRemoval"));
+        ArrayList<Insn> replacements = new ArrayList<Insn>();
+        replacements.add(new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC, 
+                                            RR64,
+                                            "make",
+                                        "(D)L" + RR64 + ";", "ReplacementInsn"));
+        return new Substitution(matches, replacements);
     }
 
+
+    public static void removeCoercions(ByteCodeMethodVisitor bcmv) {
+        if (noisy) {
+            System.out.println(" removing Coercions");
+            bcmv.printInsns(bcmv.insns, "removeCoercions");
+        }
+        removeIntLiterals(bcmv).makeSubstitution(bcmv);
+        removeFloatLiterals(bcmv).makeSubstitution(bcmv);
+        removeFloatLiterals2(bcmv).makeSubstitution(bcmv);
+    }
 }

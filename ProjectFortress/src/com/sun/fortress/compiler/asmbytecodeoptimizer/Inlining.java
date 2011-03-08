@@ -265,7 +265,6 @@ public class Inlining {
         int index = 0;
         insns.add(new LabelInsn("start_"+ mi._name, start, newIndex(mi, index++)));
         int[] offsets = new int[methodToInline.maxLocals + 1];
-        int locals = method.maxLocals;
 
     // Static Method start at args.size() - 1, NonStatic Methods start at args.size()
         if (staticMethod) argsStart = argsStart - 1;
@@ -280,13 +279,11 @@ public class Inlining {
 
         method.maxStack = method.maxStack + methodToInline.maxStack;
         method.maxLocals = method.maxLocals + methodToInline.args.size() + methodToInline.maxLocals;
-
         insns.addAll(convertInsns(mi, methodToInline.insns, offsets, index, end));
-
         insns.add(new LabelInsn("end_" + mi._name, end, newIndex(mi, insns.size())));
 
         for (Insn insn : insns) {
-            insn.parentInsn = mi;
+            insn.setParentInsn(mi);
         }
 
 
@@ -320,13 +317,13 @@ public class Inlining {
     }
 
     public static boolean isNotInParentSet(MethodInsn mi) {
-        MethodInsn current = (MethodInsn) mi.parentInsn;
+        MethodInsn current = (MethodInsn) mi.getParentInsn();
 
             while (current != null) {
                 if ((mi._name.equals(current._name) && (mi.desc.equals(current.desc)))) {
                     return false;
                 }
-                current = (MethodInsn) current.parentInsn;
+                current = (MethodInsn) current.getParentInsn();
             }
             return true;
     }
@@ -341,7 +338,6 @@ public class Inlining {
             if (insn instanceof MethodInsn) {
                     MethodInsn mi = (MethodInsn) insn;
                     if (isGenericMethod(mi.owner)) {
-                        System.out.println("We don't do anything here because it is a generic method " + mi);
                         // We can't do anything here
                     } else if (isBuiltinInterfaceMethod(bcmv, insn)) {
                         ByteCodeVisitor bcv = (ByteCodeVisitor) builtin.classes.get(mi.owner + "$DefaultTraitMethods.class");

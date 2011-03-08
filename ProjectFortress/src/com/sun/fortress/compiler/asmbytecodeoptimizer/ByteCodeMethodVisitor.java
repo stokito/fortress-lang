@@ -12,11 +12,13 @@ package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.jar.*;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
@@ -38,6 +40,9 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     int maxLocals;
     boolean changed;
     HashMap labelDefs;
+    AbstractInterpretation ai;
+    private ArrayList<AbstractInterpretationValue> vals;
+    
 
     // Is useful for debugging
 
@@ -59,6 +64,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         this.args = NamingCzar.parseArgs(desc);
         this.result = NamingCzar.parseResult(desc);
         this.index = 0;
+        this.vals = new ArrayList<AbstractInterpretationValue>();
         changed = false;
     }
 
@@ -79,6 +85,41 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
             i.toAsmWrapper(mv);
         } 
     }
+
+    public AbstractInterpretationValue createValue(Insn i, String desc) {
+        AbstractInterpretationValue result = new AbstractInterpretationValue(i, desc);
+        vals.add(result);
+        return result;
+    }
+
+    public AbstractInterpretationBoxedValue createValue(Insn i, String desc, AbstractInterpretationValue v) {
+        AbstractInterpretationBoxedValue result = new AbstractInterpretationBoxedValue(i, desc, v);
+        vals.add(result);
+        return result;
+    }
+
+    public void addValue(AbstractInterpretationValue v)  {
+        vals.add(v);
+    }
+
+    public void sortValues() {
+        AbstractInterpretationValue foo[] = new AbstractInterpretationValue[vals.size() * 2];  // Some Values are double width
+        int max = 0;
+        for (AbstractInterpretationValue v : vals) {
+            if (v != null) {
+                if (v.getValueNumber() > max) max = v.getValueNumber();
+                foo[v.getValueNumber()] = v;
+            }
+        }
+        ArrayList<AbstractInterpretationValue> sortedValues = new ArrayList<AbstractInterpretationValue>();
+        for (int i = 0; i < max; i++) {
+            sortedValues.add(foo[i]);
+        }
+
+        vals = sortedValues;
+    }
+
+    public List<AbstractInterpretationValue> getValues() { return vals;}
 
     public String toString() {
         return "Method " + name + " desc = " + desc + " sig = " + sig;
@@ -204,6 +245,10 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
 
     public void visitEnd() {
         addInsn(new VisitEnd("visitEnd", Integer.toString(index++)));
+    }
+
+    public void setAbstractInterpretation(AbstractInterpretation ai) {
+        this.ai = ai;
     }
 }
 
