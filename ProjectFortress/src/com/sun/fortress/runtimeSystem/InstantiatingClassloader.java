@@ -59,8 +59,19 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     public static final String TUPLE_TYPED_ELT_PFX = "e";
     public static final String TUPLE_OBJECT_ELT_PFX = "o";
     public static final String TUPLE_FIELD_PFX = "f";
-    public static final String ARROW_OX = "Arrow\u27e6";
-    public static final String TUPLE_OX = "Tuple\u27e6";
+    public static final String ARROW_OX = Naming.ARROW_TAG + "\u27e6";
+    public static final String TUPLE_OX = Naming.TUPLE_TAG + "\u27e6";
+    
+    public static final String ABSTRACT_ = "Abstract";
+    public static final String CONCRETE_ = "Concrete";
+    
+    public static final String ABSTRACT_ARROW = ABSTRACT_ + Naming.ARROW_TAG;
+    public static final String WRAPPED_ARROW = "Wrapped" + Naming.ARROW_TAG;
+    
+    public static final String CONCRETE_TUPLE = CONCRETE_ + Naming.TUPLE_TAG;
+    public static final String ANY_CONCRETE_TUPLE = "Any" + CONCRETE_ + Naming.TUPLE_TAG;
+    public static final String ANY_TUPLE = "Any" + Naming.TUPLE_TAG;
+    
     public static final int JVM_BYTECODE_VERSION = Opcodes.V1_6;
 
     
@@ -226,22 +237,22 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     String stem = dename.substring(0,left);
                     List<String> parameters = extractStringParameters(
                                                                            dename, left, right);
-                    if (stem.equals("Arrow")) {
+                    if (stem.equals(Naming.ARROW_TAG)) {
                         // Arrow interface
                         classData = instantiateArrow(dename, parameters);
                         resolve = true;
-                    } else if (stem.equals("AbstractArrow")) {
+                    } else if (stem.equals(ABSTRACT_ARROW)) {
                         // Arrow boilerplate
                         classData = instantiateAbstractArrow(dename, parameters);
-                    } else if (stem.equals("WrappedArrow")) {
+                    } else if (stem.equals(WRAPPED_ARROW)) {
                         classData = instantiateWrappedArrow(dename, parameters);
-                    } else if (stem.equals("Tuple")) {
+                    } else if (stem.equals(Naming.TUPLE_TAG)) {
                         classData = instantiateTuple(dename, parameters);
-                    } else if (stem.equals("ConcreteTuple")) {
+                    } else if (stem.equals(CONCRETE_TUPLE)) {
                         classData = instantiateConcreteTuple(dename, parameters);
-                    } else if (stem.equals("AnyTuple")) {
+                    } else if (stem.equals(ANY_TUPLE)) {
                         classData = instantiateAnyTuple(dename, parameters);
-                    } else if (stem.equals("AnyConcreteTuple")) {
+                    } else if (stem.equals(ANY_CONCRETE_TUPLE)) {
                         classData = instantiateAnyConcreteTuple(dename, parameters);
                     } else {
                         try {
@@ -490,7 +501,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         FieldVisitor fv;
         MethodVisitor mv;
-        String superClass = "Abstract"+ft;
+        String superClass = ABSTRACT_+ft;
         name = api.replace(".", "/") + '$' + suffix;
         //String desc = "L" + name + ";";
         String field_desc = "L" +(ft) + ";";
@@ -827,10 +838,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         List<String> tupled_parameters = stuff.getB();
         String tupleType = stuff.getC();
 
-        String extendsClass = stringListToGeneric("AbstractArrow", unwrapped_parameters);
+        String extendsClass = stringListToGeneric(ABSTRACT_ARROW, unwrapped_parameters);
         List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
         //String obj_sig = stringListToGeneric("AbstractArrow", objectified_parameters);
-        String obj_intf_sig = stringListToGeneric("Arrow", objectified_parameters);
+        String obj_intf_sig = stringListToGeneric(Naming.ARROW_TAG, objectified_parameters);
         String wrappee_name = "wrappee";
         
         //extends AbstractArrow[\parameters\]
@@ -944,10 +955,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String tupleType = stuff.getC();
         
         List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
-        String obj_sig = stringListToGeneric("AbstractArrow", objectified_parameters);
-        String obj_intf_sig = stringListToGeneric("Arrow", objectified_parameters);
-        String wrapped_sig = stringListToGeneric("WrappedArrow", unwrapped_parameters);
-        String typed_intf_sig = stringListToGeneric("Arrow", unwrapped_parameters);
+        String obj_sig = stringListToGeneric(ABSTRACT_ARROW, objectified_parameters);
+        String obj_intf_sig = stringListToGeneric(Naming.ARROW_TAG, objectified_parameters);
+        String wrapped_sig = stringListToGeneric(WRAPPED_ARROW, unwrapped_parameters);
+        String typed_intf_sig = stringListToGeneric(Naming.ARROW_TAG, unwrapped_parameters);
         String unwrapped_apply_sig = arrowParamsToJVMsig(unwrapped_parameters);
         String obj_apply_sig = arrowParamsToJVMsig(objectified_parameters);
     
@@ -1124,7 +1135,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 String make_sig = toJvmSig(tuple_elements,
                                   Naming.javaDescForTaggedFortressType(tupleType));
                 mv.visitMethodInsn(INVOKESTATIC, 
-                        stringListToGeneric("ConcreteTuple", tuple_elements), "make", make_sig);
+                        stringListToGeneric(CONCRETE_TUPLE, tuple_elements), "make", make_sig);
 
                 mv.visitMethodInsn(INVOKEVIRTUAL, name, Naming.APPLY_METHOD, tupled_apply_sig);
                 mv.visitInsn(Opcodes.ARETURN);
@@ -1229,7 +1240,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         final String super_type = "java/lang/Object";
         
         final int n = Integer.parseInt(parameters.get(0));
-        final String any_tuple_n = "AnyTuple" + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
+        final String any_tuple_n = ANY_TUPLE + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
         String[] superInterfaces = { any_tuple_n };
         cw.visit( JVM_BYTECODE_VERSION,
                 Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT,
@@ -1342,7 +1353,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
  
         final int n = parameters.size();
-        final String any_tuple_n = "AnyTuple" + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
+        final String any_tuple_n = ANY_TUPLE + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
         String[] superInterfaces = { any_tuple_n };
         
         cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE, dename, null,
@@ -1374,8 +1385,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         
         final int n = parameters.size();
-        final String any_tuple_n = "AnyTuple" + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
-        final String any_concrete_tuple_n = "AnyConcreteTuple" + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
+        final String any_tuple_n = ANY_TUPLE + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
+        final String any_concrete_tuple_n = ANY_CONCRETE_TUPLE + Naming.LEFT_OXFORD + n + Naming.RIGHT_OXFORD;        
         final String tuple_params = stringListToTuple(parameters);
         
         String[] superInterfaces = { tuple_params };
@@ -1568,11 +1579,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @return
      */
     private static String stringListToTuple(List<String> parameters) {
-        return stringListToGeneric("Tuple", parameters);
+        return stringListToGeneric(Naming.TUPLE_TAG, parameters);
     }
 
     private static String stringListToArrow(List<String> parameters) {
-        return stringListToGeneric("Arrow", parameters);
+        return stringListToGeneric(Naming.ARROW_TAG, parameters);
     }
 
     private static String stringListToGeneric(String what, List<String> parameters) {
@@ -1593,8 +1604,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param cast_to
      */
     public static void generalizedInstanceOf(MethodVisitor mv, String cast_to) {
-        if (cast_to.startsWith("Tuple" + Naming.LEFT_OXFORD)) {
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, "Concrete"+cast_to, "isA", "(Ljava/lang/Object;)Z");
+        if (cast_to.startsWith(Naming.TUPLE_TAG + Naming.LEFT_OXFORD)) {
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, CONCRETE_+cast_to, "isA", "(Ljava/lang/Object;)Z");
         } else {
             mv.visitTypeInsn(Opcodes.INSTANCEOF, cast_to);
         }
@@ -1607,10 +1618,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     public static void generalizedCastTo(MethodVisitor mv, String cast_to) {
         if (cast_to.startsWith(TUPLE_OX)) {
             List<String> cast_to_parameters = extractStringParameters(cast_to);
-            String any_tuple_n = "AnyTuple" + Naming.LEFT_OXFORD + cast_to_parameters.size() + Naming.RIGHT_OXFORD;
+            String any_tuple_n = ANY_TUPLE + Naming.LEFT_OXFORD + cast_to_parameters.size() + Naming.RIGHT_OXFORD;
             String sig = "(L" + any_tuple_n + ";)L" + cast_to + ";";
             mv.visitTypeInsn(Opcodes.CHECKCAST, any_tuple_n);
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, "Concrete"+cast_to, CAST_TO, sig);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, CONCRETE_+cast_to, CAST_TO, sig);
         } else if (cast_to.startsWith(ARROW_OX)) {
             List<String> cast_to_parameters = extractStringParameters(cast_to);
             // mv.visitTypeInsn(Opcodes.CHECKCAST, cast_to);
@@ -1623,10 +1634,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String tupleType = stuff.getC();
             
             List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
-            String obj_sig = stringListToGeneric("Arrow", objectified_parameters);
+            String obj_sig = stringListToGeneric(Naming.ARROW_TAG, objectified_parameters);
 
            String sig = "(L" + obj_sig + ";)L" + cast_to + ";";
-           mv.visitMethodInsn(Opcodes.INVOKESTATIC, "Abstract"+cast_to, CAST_TO, sig);
+           mv.visitMethodInsn(Opcodes.INVOKESTATIC, ABSTRACT_+cast_to, CAST_TO, sig);
 
         } else {
             mv.visitTypeInsn(Opcodes.CHECKCAST, cast_to);

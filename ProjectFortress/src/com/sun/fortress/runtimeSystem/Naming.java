@@ -19,7 +19,6 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.CheapSerializer;
 import com.sun.fortress.useful.Pair;
 
-
 public class Naming {
     
     public final static
@@ -91,6 +90,15 @@ public class Naming {
     public final static char RIGHT_OXFORD_CHAR = '\u27e7';
     public final static String LEFT_OXFORD = "\u27e6";
     public final static String RIGHT_OXFORD = "\u27e7";
+
+    /**
+     * Name for Arrow-interface generic.
+     */
+    public final static String ARROW_TAG="Arrow";
+    /**
+     * Name for Tuple-interface generic.
+     */
+    public final static String TUPLE_TAG="Tuple";
 
     public final static String COMPILER_BUILTIN = "CompilerBuiltin";
     public final static String NATIVE_PREFIX_DOT = "native.";

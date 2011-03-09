@@ -11,7 +11,20 @@
 
 package com.sun.fortress.scala_src.types
 
-import com.sun.fortress.compiler.index._
+// import com.sun.fortress.compiler.index._
+import com.sun.fortress.compiler.index.ApiIndex
+import com.sun.fortress.compiler.index.ComponentIndex
+import com.sun.fortress.compiler.index.Function
+import com.sun.fortress.compiler.index.Functional
+import com.sun.fortress.compiler.index.FunctionalMethod
+import com.sun.fortress.compiler.index.HasSelfType
+import com.sun.fortress.compiler.index.Method
+import com.sun.fortress.compiler.index.TraitIndex
+import com.sun.fortress.compiler.index.TypeConsIndex
+import com.sun.fortress.compiler.index.ObjectTraitIndex
+import com.sun.fortress.compiler.index.ProperTraitIndex
+import com.sun.fortress.compiler.index.TypeAliasIndex
+
 import com.sun.fortress.compiler.Types.ANY
 import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.Types.OBJECT

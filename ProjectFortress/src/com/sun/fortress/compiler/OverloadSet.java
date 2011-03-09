@@ -29,6 +29,7 @@ import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.scala_src.types.TypeSchemaAnalyzer;
 import com.sun.fortress.scala_src.useful.STypesUtil;
 import com.sun.fortress.compiler.phases.CodeGenerationPhase;
+import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.exceptions.InterpreterBug;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import com.sun.fortress.nodes.*;
@@ -940,6 +941,138 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         return string_exceptions;
     }
 
+    
+    
+    /**
+     * 
+     * @author dr2chase
+     */
+    static class TS {
+        String fullname;
+        String stem;
+        TS[] parameters;
+        int localIndex; /* index of local to store corresponding value */
+        int successorIndex;
+        int variance; /* 1 = co, 0 = in, -1 = contra */
+        boolean hasGeneric;
+        
+        public TS(String fullname, String stem, TS[] parameters,
+                int localIndex, int successorIndex, int variance,
+                boolean hasGeneric) {
+            super();
+            this.fullname = fullname;
+            this.stem = stem;
+            this.parameters = parameters;
+            this.localIndex = localIndex;
+            this.successorIndex = successorIndex;
+            this.variance = variance;
+            this.hasGeneric = hasGeneric;
+        }
+    }
+    
+ 
+    TS makeTypeStructure(Type t, Map<String, String> spmap, int variance, int storeAtIndex) {
+        String fullname = NamingCzar.jvmBoxedTypeName(t, ifNone);
+        String stem = null;
+        TS[] parameters = null;
+        int[] variances = null;
+        List<Type> type_elements = null;
+        boolean hasGeneric = false;
+        
+        if (t instanceof TupleType) {
+            stem = Naming.TUPLE_TAG;
+            type_elements = ((TupleType) t).getElements();
+            variances = arrayOfInt(type_elements.size(), variance);
+            
+        } else if (t instanceof ArrowType) {
+            stem = Naming.ARROW_TAG;
+            ArrowType at = ((ArrowType) t);
+            Type range = at.getRange();
+            Type domain = at.getDomain();
+            if (domain instanceof TupleType) {
+                type_elements = Useful.<Type,Type>list(((TupleType) domain).getElements(), range);
+            } else {
+                type_elements = Useful.<Type>list(domain, range);
+            }
+            int l = type_elements.size();
+            variances = arrayOfInt(l, -variance);
+            variances[l-1] = variance;
+            
+        } else if (t instanceof TraitSelfType) {
+            return makeTypeStructure(((TraitSelfType)t).getNamed(), spmap, variance, storeAtIndex);
+            
+        } else if (t instanceof TraitType) {
+            TraitType tt = (TraitType) t;
+            List<StaticArg> tt_sa = tt.getArgs();
+            Id tt_id = tt.getName();
+            stem = NamingCzar.jvmClassForToplevelTypeDecl(tt_id,"",ifNone);
+            if (tt_sa.size() > 0) {
+                // process args into types. Non-type args will be somewhat problematic at first.
+                type_elements = new ArrayList<Type>();
+                // need to figure out how to normalize array length if non-type args.
+                variances = arrayOfInt(tt_sa.size(), 0);
+                int variance_index = 0;
+                for (StaticArg sta : tt_sa) {
+                    if (sta instanceof TypeArg) {
+                        TypeArg sta_ta = (TypeArg) sta;
+                        type_elements.add( sta_ta.getTypeArg() );
+                        // if interesting variance, change it here.
+                    } else {
+                        // unhandled case.
+                        throw new CompilerError("Only handling some static args of generic types");
+                    }
+                    variance_index++;
+                }
+            }
+
+        } else if (t instanceof VarType) {
+            VarType tt = (VarType) t;
+            Id tt_id = tt.getName();
+            hasGeneric = true;
+
+        } else if (t instanceof BottomType) {
+            throw new CompilerError("Not handling Bottom type yet in generic overload dispatch");
+
+        } else if (t instanceof AnyType) {
+            throw new CompilerError("Not handling Any type yet in generic overload dispatch");
+
+        } else if (t instanceof AbbreviatedType) {
+            throw new CompilerError("Not handling Abbreviated type yet in generic overload dispatch");
+
+        } else {
+            throw new CompilerError("Not handling " + t.getClass() + " type yet in generic overload dispatch");
+        }
+        
+        if (type_elements != null) {
+            parameters = new TS[type_elements.size()];
+            int i = 0;
+            int next_index = storeAtIndex+1;
+            for (Type tt : type_elements) {
+                TS ts = makeTypeStructure(tt, spmap, variances[i], next_index);
+                if (ts.hasGeneric)
+                    hasGeneric = true;
+                parameters[i++] = ts;
+                next_index = ts.successorIndex;
+            }
+            // if no generics, then no sub-evaluation
+            if (hasGeneric)
+                next_index = storeAtIndex+1;
+            return new TS(fullname, stem, parameters, storeAtIndex, next_index, variance, hasGeneric);
+        } else {
+            return new TS(fullname, stem, parameters, storeAtIndex, storeAtIndex+1, variance, hasGeneric);
+        }        
+    }
+
+    /**
+     * @param size
+     * @param initial
+     */
+    private int[] arrayOfInt(int size, int initial) {
+        int[] variances = new int[size];
+        Arrays.fill(variances, initial);
+        return variances;
+    }
+    
     public void generateCall(MethodVisitor mv, int firstArgIndex, Label failLabel) {
         if (!splitDone) {
             InterpreterBug.bug("Must split overload set before generating call(s)");
@@ -1152,6 +1285,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         // overloadings under consideration.  [At present this does
         // not always appear to be the case in practice.]
         List<StaticParam> sargs = null;
+        /* Some overloads have static args, but even if they are supplied,
+         * runtime inference is still necessary (so I think) -- drc 2010-02-24
+         */
         if (principalMember != null) {
             sargs = staticParametersOf(principalMember.tagF);
         }
