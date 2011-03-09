@@ -1232,6 +1232,7 @@ public class Useful {
     public static void use(Object o) {}
     public static void use(int i) {}
     public static void use(boolean b) {}
-    
+
+   
 
 }

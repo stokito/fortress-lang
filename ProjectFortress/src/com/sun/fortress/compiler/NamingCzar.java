@@ -1426,6 +1426,15 @@ public class NamingCzar {
         }
         return makeInnerClassName(api, x.getText()+sparams_part);
     }
+    // Variant of above
+    public static String jvmClassForToplevelTypeDecl(IdOrOp x, String sparams_part, APIName api) {
+        Option<APIName> actualApiOpt = x.getApiName();
+        if (actualApiOpt.isSome()) {
+            api = actualApiOpt.unwrap();
+        }
+        String api_string = javaPackageClassForApi(api);
+        return makeInnerClassName(api_string, x.getText()+sparams_part);
+    }
 
     /**
      * The name of a renamed, lifted coercion declaration for the given trait.

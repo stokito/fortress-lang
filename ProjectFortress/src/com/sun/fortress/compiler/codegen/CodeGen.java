@@ -97,7 +97,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private final FreeVariables fv;
     private final Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> topLevelOverloads;
     private final MultiMap<String, Function> exportedToUnambiguous;
-    private Set<String> overloadedNamesAndSigs;
+    private  Set<String> overloadedNamesAndSigs;
 
     // lexEnv does not include the top level or object right now, just
     // args and local vars.  Object fields should have been translated
@@ -179,7 +179,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     String staticParameterGetterName(Id typename, String default_package_class, int index) {
-        return NamingCzar.jvmClassForToplevelTypeDecl(typename,"",default_package_class) + "#" + index;
+        // using __ for separator to ease native/primitive type story.
+        return NamingCzar.jvmClassForToplevelTypeDecl(typename,"",default_package_class) + "__" + index;
     }
 
     
@@ -3465,7 +3466,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         evaluateSubExprsAppropriately(x, args);
 
         op.accept(this);
-
     }
 
     /**
@@ -3555,9 +3555,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             xlationData(Naming.TRAIT_GENERIC_TAG);
 
         String sparams_part = NamingCzar.genericDecoration(original_static_params, pslpss, thisApi());
-
-        //TraitDecl y = x;
-
 
 //       First let's do the interface class
 //        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
