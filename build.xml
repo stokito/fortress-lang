@@ -492,7 +492,7 @@ maintain proper indentation.
       <exclude name="${unicodePackage}/*.java"/>
     </javac>
   </target>
-
+  
   <target name="compileAll" depends="compileCommon, makeAST, parser, operatorsGen"
           description="Compile all Fortress code.">
     <scalac
