@@ -1,0 +1,94 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+import CompilerSystem.args
+export { Executable }
+
+(* This appears to contain a tonne of invalid overloading. *)
+
+trait A extends Object comprises {D,F,A1,D2,F2} end
+trait B extends Object 
+        comprises {D,E,G,H,J,B1,D2,E2,G2,H2,J2,J3,J4,J5,J6,J7} 
+end
+trait C extends Object end
+trait D extends {A,B} end
+trait E extends {B,C} end
+trait F extends {A,C} end
+trait G extends {F,B} end
+trait H extends {B,F} end
+trait I extends {G,H} end
+trait J extends {I,G,B} end
+
+object A1 extends A end
+object B1 extends B end
+object C1 extends C end
+object D1 extends D end
+object E1 extends E end
+object F1 extends F end
+object G1 extends G end
+object H1 extends H end
+object I1 extends I end
+object J1 extends J end
+
+object D2 extends {A,B} end
+object E2 extends {B,C} end
+object F2 extends {A,C} end
+object G2 extends {F,B} end
+object H2 extends {B,F} end
+object I2 extends {G,H} end
+object J2 extends {I,G,B} end
+
+object J3 extends {I,B,G} end
+object J4 extends {G,I,B} end
+object J5 extends {G,B,I} end
+object J6 extends {B,I,G} end
+object J7 extends {B,G,I} end
+
+f(o:Object) = "Object"
+f(a:A) = "A"
+f(b:B) = "B"
+f(c:C) = "C"
+f(d:D) = "D"
+f(e:E) = "E"
+f(ff:F) = "F"
+f(g:G) = "G"
+f(h:H) = "H"
+f(i:I) = "I"
+f(j:J) = "J"
+f(ff:F2) = "F2"
+
+run(): () = do
+  println f(A1)
+  println f(B1)
+  println f(C1)
+  println f(D1)
+  println f(E1)
+  println f(F1)
+  println f(G1)
+  println f(H1)
+  println f(I1)
+  println f(J1)
+
+  println f(D2)
+  println f(E2)
+  println f(F2)
+  println f(G2)
+  println f(H2)
+  println f(I2)
+  println f(J2)
+
+  println f(J3)
+  println f(J4)
+  println f(J5)
+  println f(J6)
+  println f(J7)
+end
+

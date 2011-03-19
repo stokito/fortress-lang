@@ -1,0 +1,437 @@
+Following Kennedy and Pierce \cite{kennedy07},
+we define a world of types ranged over by metavariables $S$, $T$, $U$, $V$, and $W$. 
+Types are of four forms: 
+type variables 
+(ranged over by metavariables $X$, $Y$, and $Z$), 
+constructed types 
+(ranged over by metavariables $K$, $L$, $M$ and $N$, 
+and written `C[\T_bar\]` 
+where `C` is a type constructor 
+and `T_bar` is a list of types), 
+structural types
+(consisting of arrow and tuple types), 
+and compound types 
+(consisting of intersection and union types). 
+Nullary applications are written without brackets; 
+for example, `C[\ \]` is written `C`. 
+In addition, 
+there are two special constructed types, \Any\ and \BottomType, explained below.
+The abstract syntax of types is defined in BNF as follows
+(where $\bar{\emph{A}}$ indicates 
+a possibly empty sequence of syntactic elements $\emph{A}$ separated by commas):
+%and we often abbreviate sequences
+%of larger syntactic constructs such as $T \extends U$ 
+%by writing bars over each variable:
+%$\bar{T \extends U}$.)
+\[
+\begin{array}{lll}
+\emph{Type} &::=& \emph{Id}\\
+&\mid& \emph{Id}\llbracket\bar{\emph{Type}}\rrbracket\\
+&\mid& \emph{Type} \rightarrow \emph{Type}\\
+&\mid& ( \bar{\emph{Type}} )\\
+&\mid& \emph{Type} \cap \emph{Type}\\
+&\mid& \emph{Type} \cup \emph{Type}\\
+\end{array}
+\]
+A tuple type of length one is synonymous with its element type. 
+A tuple type with any \BottomType\ element 
+is synonymous with \BottomType.
+As in the Fortress language, compound types---intersection and union types---are 
+\emph{not} first-class:
+they cannot be written in a program; 
+rather, they are used by the type analyzer during type checking.
+However, type variables may have multiple bounds, 
+so that any valid instantiation of such a variable
+must be a subtype of the intersection of its bounds.
+
+Constructed types (other than \Any\ and \BottomType)
+are applications of \emph{type constructors}.
+A declaration for type constructor $C$ has the following form:
+\[
+C\tplist{X}{M} \extends \{\bar{N}\}
+\]
+indicating that an application $C\obb{U}$ 
+(i) is \emph{well-formed} if and only if
+$U_i \subtypeof \substb{U}{X}M_{ij}$ for each bound $M_{ij}$
+(where $\subtypeof$ is the subtyping relation defined below, 
+and $\substb{U}{X}M_{ij}$ is $M_{ij}$ 
+with $U_k$ substituted for every occurrence of $X_k$ in $M_{ij}$ 
+for $1 \leq k \leq |\bar{U}|$),
+and 
+(ii) is a subtype of $\substb{U}{X}N_l$ for $1 \leq l \leq |\bar{N}|$.
+Thus, a set of type constructor declarations, 
+called a \emph{class table},
+induces a (nominal) subtyping relation 
+over the constructed types, 
+by taking the reflexive and transitive closure 
+of the relation derived from the declarations in the class table.
+In addition, 
+every type is a subtype of \Any\ and a supertype of \BottomType.
+
+A class table is \emph{well-formed} if the resulting subtyping relation 
+on its constructed types is a partial order.
+As usual for languages with nominal subtyping, 
+we allow recursive and mutually recursive references in the class table.
+Class tables are ranged over by metavariable $\T$ and we write
+$T \in \T$ to mean that any constructed type occurring in type $T$
+is well-formed with respect to the class table $\T$.
+A class table $\T'$ is an extension of another class table $\T$ (written $\T' \ctext \T$)
+if every constructor declaration in $\T$ is also in $\T'$ and if the subtype relation on $\T'$ agrees with that of $\T$. Consequently, if $\T' \ctext \T$ then, for all types $T$, $T \in \T$ implies $T \in \T'$.
+
+For a well-formed application $C\obb{T}$ 
+of the type constructor declaration for $C$ (shown above)
+in a well-formed class table $\T$, 
+we denote the set of its immediate supertypes by:
+\[
+\myextends{C\obb{T}} = \{ \bar{\substb{T}{X}N} \}
+\]
+With this, 
+we can derive the set of all ancestors of $C\obb{T}$ 
+with respect to $\T$ recursively:
+\[
+\ancestors_{\T}(C\obb{T}) 
+   = \{C\obb{T}\} \cup 
+     \hspace*{-4ex} \bigcup_{M \in \myextends{C\obb{T}}} \hspace{-4ex} \ancestors_{\T}(M)
+\]
+We typically omit explicit reference to the class table when it is understood.
+
+Structural and compound types are \emph{well-formed} (with respect to a class
+table) if their constituent types are well-formed, and we extend the subtyping relation to
+structural and compound types in the usual way.
+Arrow types are contravariant in their domain types 
+and covariant in their range types 
+(i.e., $\arrowtype{S}{T} \subtypeof \arrowtype{U}{V}$
+if and only if $U \subtypeof S$ and $T \subtypeof V$).
+One tuple type is a subtype of another 
+if and only if it has the same number of elements, 
+and each element of the first is a subtype of the corresponding element of the other 
+(i.e., $( \tuple{\bar{S}} ) \subtypeof ( \tuple{\bar{T}} )$
+if and only if $|\bar{S}| = |\bar{T}|$
+and $S_i \subtypeof T_i$ for all $1 \leq i \leq |\bar{S}|$).
+Intersection types are the most general subtypes of their element types, 
+and union types are the most specific supertypes of their element types.
+
+To extend the subtyping relation to type variables,
+we require  a \emph{type environment}, 
+which maps type variables to bounds:
+\[
+\Delta = \bds{X}{M}
+\]
+In the context of $\Delta$, 
+each type variable $X_i$ is a subtype of each of its bounds $M_{ij}$.
+Note that the type variables $X_i$ may appear within the bounds $M_{ij}$.
+We write $\jgsub{S}{T}$ 
+to indicate the judgment that $S$ is a subtype of $T$ 
+in the context of $\Delta$. When $\Delta$ is understood to be empty, 
+we write this judgment as simply $S \subtypeof T$. The subtype judgment
+can only be made on types $S, T \in \T$, so the judgment takes a class table $\T$ as an implicit parameter.
+The types $S$ and $T$ are said to be \emph{equivalent}, written $S \equiv T$, when $S \subtypeof T$ and $T \subtypeof S$.
+
+To allow separate compilation of program components, 
+we do not assume that the class table is complete;
+there might be declarations yet unknown.
+Specifically, 
+we cannot infer that two constructed types 
+have no common subtype (other than \BottomType) 
+from the lack of any such type in the class table.
+However, we do assume that each declaration is complete, 
+and furthermore, 
+that any type constructor used in the class table 
+(e.g., in a bound or a supertype of another declaration)
+is declared in the table, 
+so that all the supertypes of a constructed type 
+are known.
+
+
+\subsection{Values and Ilks}
+
+Types are intended to describe the values that might be produced by
+an expression or passed into a function.
+In Fortress, for example, there are three kinds of values: 
+objects, functions, and tuples;
+every object belongs to at least one constructed type,
+every function belongs to at least one arrow type,
+and every tuple belongs to at least one tuple type.
+When we say that two types `T` and `U` have \emph{the same extent},
+we mean that for every value `v`, 
+`v` belongs to `T` if and only if `v` belongs to `U`.
+
+We place a requirement on values and on the type system that describes them: 
+While a value may belong to more than one type, 
+for every value `v` there is a unique type `ilk(v)` 
+(the \emph{ilk} of the value) 
+that is \emph{representable in the type system}\footnote{The
+type system presented here satisfies this requirement 
+simply by providing intersection types.  
+The Fortress type system happens to satisfy it in another way as well, 
+which is typical of object-oriented language designs: 
+every object is created as an instance of a single nominal constructed type, 
+and this type is its ilk.} 
+and has the property that for every type `T`, 
+if `v` belongs to `T` then `ilk(v) <: T`;
+moreover, `ilk(v) =/= BottomType`.  
+(This notion of `ilk` corresponds to what is sometimes called the
+````class'' or ````run-time type'' of the value.  We prefer the term
+````ilk'' to ````run-time type'' because the notion---and
+usefulness---of the most specific type to which a value belongs 
+is not confined to run time, and we prefer it to the term ````class,'' 
+which is used in {\it The Java Language Specification}~\cite{JavaSpec}, 
+because not every language uses the term ````class'' 
+or requires that every value belong to a class.  
+For those who like acronyms, 
+we offer the mnemonic retronyms 
+````implementation-level kind'' 
+and ````intrinsically least kind.'')
+
+The implementation significance of ilks is that it is possible to
+select the dynamically most specific applicable function
+from an overload set using only the ilks of the argument values; no
+other information about the arguments is needed.
+
+In a sound type system,
+if an expression is determined by the type system to have type `T`, 
+then every value computed by the expression at run time
+will belong to type `T`; 
+moreover, 
+whenever a function whose ilk is `U->V` is applied to an argument value,
+then the argument value will belong to type `U`.
+
+
+\subsection{Overloaded Functions}
+\label{terms}
+
+A function declaration consists of 
+a name, 
+a sequence of type parameter declarations 
+(enclosed in white square brackets), 
+a type indicating the domain of the function, 
+and a type indicating the range of the function.  
+A type parameter declaration consists of
+a type parameter name and its bounds.
+We omit the white square brackets of a declaration 
+when the sequence of type parameter declarations is empty.
+The abstract syntax of function declarations is as follows:
+\[
+\begin{array}{lll}
+\emph{Decl} &::=& 
+%\emph{Id}\llbracket\bar{\emph{Id}}\SHORTCUT{<}\bar{\emph{Type}}\rrbracket \emph{Type} \COLON \emph{Type}\\
+\declg{\textit{Id}}{\textit{Id}}{\textit{Type}}{\textit{Type}}{\textit{Type}}  \\
+&\mid& 
+%\emph{Id}\ \emph{Type} \COLON \emph{Type}\\
+\decl{\textit{Id}}{\textit{Type}}{\textit{Type}}
+\end{array}
+\]
+
+For example, in the following function declaration:
+
+`    f[\X <: M, Y <: N\](List[\X\], Tree[\Y\]): Map[\X, Y\]
+`the name of the function is `f`, 
+the type parameter declarations are `X <: M` and `Y <: N`, 
+the domain is `(List[\X\], Tree[\Y\])`, which is a tuple type,
+and the range is `Map[\X, Y\]`. We will often abbreviate a function
+as \hdeclg{f}{\Delta}{S}{T} when we do not want to emphasize the bounds (we are abusing notation by letting
+$\Delta$ range over both type environments and bounds definitions).
+
+A function declaration \declg{f}{X}{N}{S}{T}
+may be \emph{instantiated} with type arguments $\bar{W}$ 
+if $W_i \subtypeof \substb{W}{X} N_{ij}$ for all $i$ and $j$;
+we call $\substb{W}{X} \decl{f}{S}{T}$
+the \emph{instantiation} of $f$ with $\bar{W}$. 
+When we do not care about $\bar{W}$, 
+we just say that $\decl{f}{U}{V}$
+is an \emph{instance} of $f$.
+%
+We use the metavariable $\D$ for a finite collection of sets of
+function declarations and $\D(f)$ for the set in
+$\D$ that contains all declarations named $f$.
+%
+An instance \decl{f}{U}{V} of a declaration $f$ 
+is \emph{applicable} to a type $W$ 
+if and only if $W \subtypeof U$.
+A function declaration is \emph{applicable} to a type 
+if and only if at least one of its instances is.
+%
+For any two function declarations $f_1, f_2 \in \D(f)$, 
+$f_1$ is \emph{more specific} than $f_2$ 
+(written $f_1 \ms f_2$)
+if and only if for every type $T$ 
+such that $f_1$ is applicable to $T$, 
+$f_2$ is also applicable to $T$.
+
+We can now formulate the type safety properties required to hold for
+any set of overloaded function declarations as follows:
+We say that $\D(f)$ is \emph{safe with respect to class table $\T$}
+if and only if, for any type $W \in \T' \ctext \T$  such that $W \neq \BottomType$\footnote{All functions are applicable to \BottomType, making the conditions quite trivial in that case. In any programming language that implements the present system, including Fortress, no values would ever have type \BottomType\ and thus no function could ever apply to such a value at run time.}, the following properties hold:
+\begin{description}
+
+\item[Progress] 
+If some declaration in $\D(f)$ is applicable to $W$
+then there is a unique most specific declaration $f_W \in \D(f)$ that is applicable to $W$.
+
+\item[Preservation] 
+If $\decl{f}{S}{T}$ is an instance of some declaration 
+and $\decl{f}{S}{T}$ is applicable to $W$, 
+then there exists some instance $\decl{f_W}{U}{V}$ of $f_W$ such that
+$\decl{f_W}{U}{V}$ is applicable to $W$ and  $V \extends T$.
+
+\end{description}
+Static checking of these conditions guarantees 
+that there are no ambiguous calls at run time 
+due to a collection of overloaded function declarations.
+\footnote{These conditions do not constitute a definition of
+soundness for a type system in the traditional sense;
+they are for (type) safety of overloaded function declarations.
+%% not for a full type system.
+}
+% We wish to define a system to statically check that a collection of function
+% declarations is well-formed.
+% This check corresponds precisely to the check one needs to perform on programs
+% in a statically typed language that allows sets of overloaded function declarations.
+The progress condition ensures that we never get stuck resolving an application;
+every call to a function declaration is unambiguous.
+The preservation condition ensures that the static type of an application 
+is a supertype of the ilk of each value produced by the application at run time,
+provided that the ilks for the argument values in function applications 
+are always subtypes of the static types of the argument expressions
+(as they are in any language with a sound type system).
+As a monomorphic function declaration is a special case of a generic function declaration,
+where the sequence of the type parameters is empty,
+these conditions apply also for monomorphic function declarations.
+
+
+
+\subsection{Type Inference}
+
+Before describing a system for ensuring progress and preservation,
+it is important to discuss some implications of these conditions on
+type inference in a programming language.
+The application of a function declaration to a type requires
+instantiation of the type parameters of the declaration.
+In most programming languages with parametric polymorphism,
+a type inference mechanism automatically instantiates type parameters
+based on the types of the arguments and the enclosing context.
+But note that our progress and preservation conditions do not require
+that the type parameters of the function declaration 
+that is (dynamically) most specific 
+of those applicable to the ilks of the argument values 
+are the same as the type parameters
+of the function declaration that is (statically) most specific 
+to those applicable to the static types of the argument expressions.
+Thus, the results of static type inference do not tell us how to
+instantiate the type parameters of a most specific function
+declaration at run time.  
+In the Fortress programming language,
+type inference is performed statically, 
+and the results of that inference 
+are passed to the run-time system 
+to ensure that run-time type inference at a function call is sound.
+The rules on the overloaded function declarations
+introduced in Section~\ref{sec:rules} ensure that
+the instantiated declaration of the dynamically most applicable function declaration
+with whatever we infer at run time
+is more specific than the instantiated declaration of the statically most applicable
+function declaration with what was inferred at compile time.
+%% For the dynamically most applicable function declaration,
+%% the instantiated declaration with whatever instantiation we infer
+%% must be more specific than the instantiated declaration of the
+%% statically most applicable function declaration with what was inferred
+%% at compile time.
+
+
+%% For the dynamically most applicable function declaration,
+%% the instantiated declaration with whatever instantiation we infer
+%% must be more specific than the instantiated declaration of the
+%% statically most applicable function declaration with what was inferred
+%% at compile time.
+%% The rules on the overloaded function declarations
+%% introduced in Section~\ref{sec:rules} ensure that
+%% dynamically inferred types satisfy this requirement.
+
+
+
+Aside from this caveat, our system for checking overloaded declarations 
+is largely independent of how a specific type inference engine would choose 
+instantiations\footnote{Type inference manifests itself as the choice of instantiation of type variables in existential and universal subtyping; specifically, $\bar{V}$ in the inference rules for subtyping in Figure~\ref{fig:sub}. Mitchell \cite{mitchell88} first showed how type inference interacts with polymorphic subtyping.}. Thus we do not discuss the specific features of a type inference
+system further in this paper.
+
+% Section 2.1 last para: We should comment that this definition of
+% well-formedness agrees with that of the old system. If we view
+% monomorphic function declarations as polymorphic declarations with no
+% type parameters, then for each monomorphic declaration there is
+% exactly one instantiation of it (with an empty vector of type
+% arguments).  Then Preservation specifically says that if (monomorphic)
+% declaration f U: V is applicable to T, then for the most specific
+% declaration that is applicable to T, f' U': V', we have that V' <: V.
+% Thus if the polymorphic well-formedness is satisfied, so is the
+% monomorphic well-formedness.
+
+
+
+%% \begin{figure}
+%%   \begin{minipage}{.462\textwidth}
+    
+%%   \fbox{\textbf{Type equivalence reduction:} \quad \jtred{\Delta}{T}{T}}
+%%   \TODO{rules for flattening/distributing $\cap, \cup$}
+%%   \TODO{is subtype/exclusion judgment in premises ok?}
+  
+%%   % INTERSECTION
+%%   \infrule
+%%     {\jgsub{\Delta}{T}{U}}
+%%     {\jtred{\Delta}{T \cap U}{T}}
+%%   \infrule
+%%     {\jgsub{\Delta}{U}{T}}
+%%     {\jtred{\Delta}{T \cap U}{U}}
+%%   \infrule
+%%     {\jexc{\Delta}{T}{U}}
+%%     {\jtred{\Delta}{T \cap U}{`BottomType`}}
+  
+%%   % UNION
+%%   \infrule
+%%     {\jgsub{\Delta}{T}{U}}
+%%     {\jtred{\Delta}{T \cup U}{U}}
+%%   \infrule
+%%     {\jgsub{\Delta}{U}{T}}
+%%     {\jtred{\Delta}{T \cup U}{T}}
+  
+%%   % ARROW
+%%   % \infrule
+%%   %   {\jtred{\Delta}{T}{T'}}
+%%   %   {\jtred{\Delta}{T \rightarrow U}{T' \rightarrow U}}
+%%   % \infrule
+%%   %   {\jtred{\Delta}{U}{U'}}
+%%   %   {\jtred{\Delta}{T \rightarrow U}{T \rightarrow U'}}
+  
+%%   % TUPLE
+%%   % \infrule
+%%   %   {\jtred{\Delta}{T_i}{T_i'}}
+%%   %   {\jtred{\Delta}{(T_1, \ldots, T_i, \ldots, T_n)}{(T_1, \ldots, T_i', \ldots, T_n)}}
+%%   \infrule
+%%     {T_i = `BottomType`}
+%%     {\jtred{\Delta}{(T_1, \ldots, T_i, \ldots, T_n)}{`BottomType`}}
+  
+%%   % CONSTRUCTED
+%%   % \infrule
+%%   %   {\jtred{\Delta}{T_i}{T_i'}}
+%%   %   {\jtred{\Delta}{C\ob{T_1, \ldots, T_i, \ldots, T_n}}{C\ob{T_1, \ldots, T_i', \ldots, T_n}}}
+  
+%%   % VARIABLE
+%%   \TODO{should be a subtype judgment instead?}
+%%   \infrule
+%%     {`X <: BottomType IN DELTA`}
+%%     {\jtred{\Delta}{X}{`BottomType`}}
+  
+%%   % REDUCTION CONTEXT GRAMMAR
+%%   \newcommand{\OR}{\;|\;}
+%%   \[ E \; ::= \; [] \OR E \rightarrow U \OR T \rightarrow E \]
+%%   \[ \OR (T_1, \ldots, E, \ldots, T_n) \]
+%%   \[ \OR C\ob{T_1, \ldots, E, \ldots, T_n} \]
+  
+%%   % CONGRUENCE
+%%   \infrule
+%%     {\jtred{\Delta}{T}{T'}}
+%%     {\jtred{\Delta}{E[T]}{E[T']}}
+  
+%%   \end{minipage}
+%%   \caption{Type equivalence reduction}
+%%   \label{fig:tred}
+%% \end{figure}

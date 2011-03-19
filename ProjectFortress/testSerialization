@@ -1,0 +1,44 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2008, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+# This script reads a "bunch" of tests (currently, all who name begins
+# with the letter "a"), writes their ASTs to disk, then runs a program that
+# reads ASTs and writes them to disk, and then compares that the twice-written
+# AST does not differ from the once-written AST.  Notice that AST writing itself
+# might omit information, so what this is really testing is AST reading.
+
+if (uname | egrep -q CYGWIN) ; then 
+  CP="build;third_party/junit/junit.jar;third_party/xtc/xtc.jar;third_party/jsr166y/jsr166y.jar;third_party/plt/plt.jar"
+else
+  CP="build:third_party/junit/junit.jar:third_party/xtc/xtc.jar:third_party/jsr166y/jsr166y.jar:third_party/plt/plt.jar"
+fi
+
+A=testSerializationScratch
+
+rm -rf $A
+mkdir $A
+
+for i in tests/a*.fss ; do
+TFSNAME=`basename $i .fss`.tfs
+java -cp "$CP" -Xmx320m -Xms192m \
+com.sun.fortress.interpreter.drivers.fs -parseOnly -ast $i
+  mv $TFSNAME $A
+done
+
+# Tup is an old testing driver that reads ASTs, in bunches, and writes them
+# back to disk, in bunches.
+java -cp "$CP" com.sun.fortress.interpreter.drivers.Tup -fileout=tfs $A/*.tfs
+for i in $A/*.tfs; do
+  diff $i ${i}2
+done
+

@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+  export Executable
+  trait A
+    foo():()
+  end
+  trait B
+    bar():()
+  end
+
+  run():() = ()
+
+  quux(obj: A):() = typecase obj of
+    obj':B => do
+      obj'.foo()
+      obj'.bar()
+    end
+    else => ()
+  end

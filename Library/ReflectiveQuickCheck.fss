@@ -1,0 +1,347 @@
+(*******************************************************************************
+    Copyright 2010 Kang Seonghoon, KAIST
+    All rights reserved.
+ ******************************************************************************)
+
+component ReflectiveQuickCheck
+
+export ReflectiveQuickCheck
+import QuickCheck.{...}
+import Reflect.{...}
+import Random.{...}
+import List.{...}
+import Set.{...}
+import Map.{...}
+import Tuple.{...}
+
+(**********************************************************)
+(* More test generators *)
+
+(** A generator for type objects which are subtypes of given type.
+
+    For now, it is able to generate types that are connected with `comprises`
+    clauses. If the top type doesn't have `comprises` clause at all then
+    it will generate only that type. **)
+object genType(top:Type) extends Gen[\Type\]
+    getter asString(): String = "genType(" top ")"
+
+    (*) TODO: support for generic types as a top type
+    generate(c:TestContext): Type = do
+        if top = anyType then
+            (* Special case: Any doesn't have any comprises clause by definition! *)
+            genAnyType.generate(c)
+        elif subtypes <- top.typeComprises then
+            if subtypes.isEmpty then
+                top
+            else
+                t = c.oneOf[\ObjectOrTraitType\](list set subtypes)
+                genType(t).generate(c)
+            end
+        else
+            top
+            (*)fail("Not supported yet; needs comprises clause.")
+        end
+    end
+end
+
+(** A generator for any type objects. It is equal to genType(anyType), and
+    implemented as a fixed list of possible types for now. **)
+object genAnyType extends Gen[\Type\]
+    getter asString(): String = "genAnyType"
+
+    generate(c:TestContext): Type =
+        case c.random(4) of
+            0 => theType[\Boolean\]()
+            1 => genType(theType[\Number\]()).generate(c)
+            2 => theType[\Char\]()
+            3 => theType[\String\]()
+        end
+end
+
+(** A generator for values of given type or its subtype. It requires the
+    `Arbitrary` object used is reflective, and gathers a random generator
+    via it. **)
+object genAnyOf[\T\] extends Gen[\T\]
+    getter asString(): String = "genAnyOf"
+
+    generate(c:TestContext): T = do
+        arb = c.arbitrary asif ReflectiveArbitrary
+        gentype = genType(theType[\T\]())
+        t = gentype.generate(c)
+        if gent <- arb.genFromType(true, t) then
+            gent.generate(c)
+        else
+            fail("can't find a generator for " t)
+        end
+    end
+end
+
+(** Same as `genAnyOf` but accepts a type object. **)
+object genAnyOf'(top:Type) extends Gen[\Any\]
+    getter asString(): String = "genAnyOf'(" top ")"
+
+    generate(c:TestContext): Any = do
+        arb = c.arbitrary asif ReflectiveArbitrary
+        gentype = genType(top)
+        t = gentype.generate(c)
+        if gent <- arb.genFromType(true, t) then
+            gent.generate(c)
+        else
+            fail("can't find a generator for " t)
+        end
+    end
+end
+
+(** A generator for `Any` type, which is actually a generator for the specific
+    type in disguise. **)
+object genAnyLifted[\T\](gen:Gen[\T\]) extends Gen[\Any\]
+    getter asString(): String = "genAnyLifted(" gen ")"
+    generate(c:TestContext): Any = gen.generate(c)
+end
+
+(**********************************************************)
+(* `ReflectiveArbitrary` instance *)
+
+(** `Arbitrary` factory extended with reflective features. It is capable for
+    returning a generator from staticically given types as well as from run-time
+    type objects. Subclasses of `ReflectiveArbitrary` will want to override
+    `genFromType` method. **)
+trait ReflectiveArbitrary extends DefaultArbitrary
+    (** Calls given constructor with `Gen` instances for given types via
+        `genFromType`. If `genFromType` returns `Nothing` for any types given,
+        it also returns `Nothing`. **)
+    genFromTypeList(def:Boolean, types:Generator[\Type\], ctor:Any->AnyGen):
+            Maybe[\AnyGen\] = do
+        gens = types.map[\Maybe[\AnyGen\]\](
+            fn (t:Type):Maybe[\AnyGen\] => genFromType(def,t))
+        if BIG AND [gen' <- gens] gen'.holds then
+            gens' = tupleFromIndexed[\AnyGen\](gens.map[\AnyGen\](
+                fn (x:Maybe[\AnyGen\]):AnyGen => x.get))
+            Just[\AnyGen\](ctor(gens'))
+        else
+            Nothing[\AnyGen\]
+        end
+    end
+
+    (** Returns a generator for given type object, or `Nothing` if there doesn't
+        exist an appropriate generator. It will try to find out the generator
+        for unknown types as supported by `genAnyOf'` generator when `def` is
+        `true`. **)
+    genFromType(def:Boolean, t:Type): Maybe[\AnyGen\] =
+        typecase t of
+            t':TupleType => case |t'| of
+                0 => Just[\AnyGen\](genVoid)
+                2 => genFromTypeList(def, t', fn (x:Any):AnyGen => genTuple2(x))
+                3 => genFromTypeList(def, t', fn (x:Any):AnyGen => genTuple3(x))
+                4 => genFromTypeList(def, t', fn (x:Any):AnyGen => genTuple4(x))
+                5 => genFromTypeList(def, t', fn (x:Any):AnyGen => genTuple5(x))
+                6 => genFromTypeList(def, t', fn (x:Any):AnyGen => genTuple6(x))
+                else => Nothing[\AnyGen\]
+            end
+            t':ArrowType =>
+                genFromTypeList(def, <| t'.domain, t'.range |>, fn (x:Any):AnyGen => genArrow(x))
+            t':ObjectOrTraitType => case t' SUBTYPEOF of
+                theType[\Boolean\]() => Just[\AnyGen\](genBoolean)
+                (*) The order does matter!
+                theType[\ZZ32\]() => Just[\AnyGen\](genZZ32)
+                theType[\ZZ64\]() => Just[\AnyGen\](genZZ64)
+                theType[\ZZ\]() => Just[\AnyGen\](genZZ)
+                theType[\QQ\]() => Just[\AnyGen\](genQQ)
+                theType[\RR32\]() => Just[\AnyGen\](genRR32 (*genRR32small*))
+                theType[\RR64\]() => Just[\AnyGen\](genRR64 (*genRR64small*))
+                (*) (end of order-dependent types)
+                theType[\Char\]() => Just[\AnyGen\](genChar)
+                theType[\String\]() => Just[\AnyGen\](genString)
+                else => case t'.generic of
+                    theType[\Maybe[\ZZ32\]\]().generic =>
+                        genFromTypeList(def, t'.staticArgs, fn (x:Any):AnyGen => genMaybe(x))
+                    theType[\List[\ZZ32\]\]().generic =>
+                        genFromTypeList(def, t'.staticArgs, fn (x:Any):AnyGen => genList(x))
+                    theType[\Set[\ZZ32\]\]().generic =>
+                        genFromTypeList(def, t'.staticArgs, fn (x:Any):AnyGen => genSet(x))
+                    theType[\Map[\ZZ32,ZZ32\]\]().generic =>
+                        genFromTypeList(def, t'.staticArgs, fn (x:Any):AnyGen => genMap(x))
+                    theType[\Generator[\ZZ32\]\]().generic =>
+                        genFromTypeList(def, t'.staticArgs, fn (x:Any):AnyGen => genGenerator(x))
+                    else =>
+                        if def then
+                            Just[\AnyGen\](genAnyOf'(t))
+                        else
+                            Nothing[\AnyGen\]
+                        end
+                end
+            end
+        end
+
+    (** A wrapper for `genFromType` above. **)
+    gen[\T\](): Gen[\T\] =
+        typecase fn ():T => throw ForbiddenException of
+            ()->Object =>
+                if gen' <- genFromType(false, theType[\T\]()) then
+                    gen' asif Gen[\T\]
+                else
+                    genAnyOf[\T\]
+                end
+            else => gen0[\T\](self)
+        end
+end
+
+(** An instance of `ReflectiveArbitrary`. Intended as a default argument to
+    `checkGeneric` function below. **)
+object reflectiveArbitrary extends ReflectiveArbitrary
+end
+
+(**********************************************************)
+(* Generic properties and testing routines *)
+
+(** Returns a generator for `Type` which is guaranteed to be a subtype of given
+    types, typically in the `extends` clause. For now the algorithm is very
+    simple. **)
+private genTypeFromExtends(ext:Generator[\Type\]): Type =
+    case |ext| of
+        0 => genAnyType
+        1 => genType(ext[0])
+        else => fail("not supported")
+    end
+
+(** Finds a value of type variable T which satisfies `gent SUBTYPEOF Gen[\T\]`. **)
+private findGenType(gent:ObjectOrTraitType): UniqueItem[\Type\] =
+    if gent.generic = theType[\Gen[\ZZ32\]\]().generic then
+        Just[\Type\](gent.staticArgs[0])
+    else
+        BIG SQCUP[\Type\] [t' <- gent.typeExtends] findGenType(t')
+    end
+
+(** Returns a supertype of given type object that has a proper test generator,
+    other than "constructed" one like `genAnyOf`.
+
+    This routine is required for this kind of generic proprety:
+    {{{
+        propSomething[\T\](l:List[\T\], x:T): Boolean
+    }}}
+    If `T` were `Float`, a subtype of `RR64`, then `Arbitrary` factory would
+    return `genRR64` which covers all values of `Float`, but `List[\Float\]` is
+    not type-compatible to `List[\RR64\]` and we will get the unification error.
+    Instead we have to convert every instances of `Float` to `RR64` at the first
+    time --- this routine does so. **)
+private adaptType(arb:ReflectiveArbitrary, t:Type): Type =
+    if gen <- arb.genFromType(false, t) then
+        if t2 <- findGenType(typeOf(gen)) then
+            t2
+        else
+            fail("genFromType returned a non-generator " gen)
+        end
+    else
+        t
+    end
+
+(** A generator for static arguments suitable for given generic type. **)
+private object genStaticArgs(ty:GenericType) extends Gen[\Any\]
+    getter asString(): String = "genStaticArgs"
+
+    generate(c:TestContext): Any = do
+        arb = c.arbitrary asif ReflectiveArbitrary
+        tupleFromIndexed[\Any\](
+            <|[\Any\] adaptType(arb, genTypeFromExtends(ext).generate(c))
+             | (_,ext) <- ty.staticParams |>)
+    end
+end
+
+(** Represents a property which consists of known `self` value and method
+    wrapper from the reflected type object. **)
+private object BoundedProperty(props:GenericProperties, p:(Object,Any...)->Any)
+    extends Testable[\Any\]
+
+    run(args:Any): TestResult = do
+        result = typecase args of
+            (a:Any,b:Any,c:Any,d:Any,e:Any,f:Any) => p(props, a, b, c, d, e, f)
+            (a:Any,b:Any,c:Any,d:Any,e:Any) => p(props, a, b, c, d, e)
+            (a:Any,b:Any,c:Any,d:Any) => p(props, a, b, c, d)
+            (a:Any,b:Any,c:Any) => p(props, a, b, c)
+            (a:Any,b:Any) => p(props, a, b)
+            (a:Any) => p(props, a)
+        end
+        TestResult(result)
+    end
+end
+
+(** Represents a property which consists of known `self` value and method
+    wrapper from the reflected generic type object. **)
+private object BoundedGenericProperty(props:GenericProperties, name:String,
+            ty:GenericArrowType, p:(Object,Any...)->Any, c:TestContext)
+    extends Testable[\Any\]
+
+    run(args:Any): TestResult = do
+        (prop', gen') = props.toProperty((name, ty.apply(args), p(args)), c)
+        prop'.run(gen'.generate(c))
+    end
+end
+
+(** A container of bulk of generic properties. Use `runTests` method or
+    `checkGeneric` routine to test them all.
+
+    Every generic or non-generic properties should have a name starts with
+    `prop`, return a value of type `Boolean`, `TestStatus` or `TestResult`,
+    and their types have to be completely specified. (The last requirement will
+    be relaxed when the Fortress interpreter got a proper type inference,
+    though.) **)
+trait GenericProperties (* extends Testable[\()\] *)
+    (** Returns a list of properties found in the container. **)
+    getter properties(): Generator[\(String,Type,(Object,Any...)->Any)\] =
+        <|[\(String,Type,(Object,Any...)->Any)\] (name, ty, prop.get)
+         | (name, ty, prop) <- typeOf(self).members,
+           instanceOf[\ArrowType\](ty) OR instanceOf[\GenericArrowType\](ty),
+           name[#4] = "prop", NOT (name = "properties"), prop.holds |>
+
+    (** Given a property, returns `Testable` instance and corresponding `Gen`
+        instance that can be readily used for testing. **)
+    toProperty(prop:(String,Type,(Object,Any...)->Any), c:TestContext):
+            (Testable[\Any\],Gen[\Any\]) = do
+        arb = c.arbitrary asif ReflectiveArbitrary
+        (name, ty0, p) = prop
+        typecase ty0 of
+            ty:GenericArrowType =>
+                (BoundedGenericProperty(self, name, ty, p, c), genStaticArgs(ty))
+            ty:ArrowType =>
+                if gen <- arb.genFromType(true, ty.domain) then
+                    (BoundedProperty(self, p), genAnyLifted(gen))
+                else
+                    fail("unable to generate a test generator for " name " of type " ty)
+                end
+        end
+    end
+
+    (*
+    (* While this bears a proper `Testable` interface, using `check` routine
+       will square the number of tests to do. Call it directly, instead. *)
+    run(_:()): TestResult = ...
+    *)
+
+    (** Runs every tests found in the container. **)
+    runTests(c:TestContext): () =
+        for prop <- seq(self.properties) do
+            (name, _, _) = prop
+            println(name ":")
+            (testobj, testgen) = toProperty(prop, c)
+            check(testobj, testgen, c)
+        end
+end
+
+(** Tests a bulk of generic properties by running test generator with given
+    test context. **)
+checkGeneric(props:GenericProperties, c:TestContext): () =
+    do _ = props.runTests(c); () end
+
+(** Same as above but creates a test generator using `Arbitrary` factory. **)
+checkGeneric(props:GenericProperties, arb:ReflectiveArbitrary, numTests:ZZ32): () =
+    checkGeneric(props, TestContext(arb, linearCongruential(), numTests))
+checkGeneric(props:GenericProperties, arb:ReflectiveArbitrary): () =
+    checkGeneric(props, TestContext(arb, linearCongruential()))
+
+(** Same as above but uses `reflectiveArbitrary` factory. **)
+checkGeneric(props:GenericProperties, numTests:ZZ32): () =
+    checkGeneric(props, reflectiveArbitrary, numTests)
+checkGeneric(props:GenericProperties): () =
+    checkGeneric(props, reflectiveArbitrary)
+
+end

@@ -1,0 +1,204 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ComparisonLibrary
+export ComparisonLibrary
+
+(*******
+ Because of compiler deficiencies as of 14 Jan 2011 (soon to be remedied),
+ this code puts all concrete getter down the the leaves (objects) of the type hierarchy.
+ Moreover, uses of algebraic traits that use the self-type idiom are commented out.
+ *******)
+
+trait Equality[\Self\] comprises Self
+    opr =(self, other:Self): Boolean = self SEQV other
+end
+
+opr =/=[\T extends Equality[\T\]\](a: T, b: T) = NOT (a = b)
+
+trait Comparison
+(*)        extends { StandardPartialOrder[\Comparison\] }
+        comprises { Unordered, TotalComparison }
+    (*) Default opr = is suitable for Comparison
+    (** Lexicographic ordering.  An associative operator.
+        Leftmost non-equal comparison dictates result. *)
+    opr LEXICO(self, other:Comparison): Comparison =
+        if self=EqualTo then other else self end
+    opr LEXICO(self, other:()->Comparison): Comparison =
+        if self=EqualTo then other() else self end
+    (** Symmetric comparison (product ordering).  A commutative
+        and associative operator. *)
+    opr SQCAP(self, other:Comparison): Comparison = Unordered
+    opr SQCAP(self, other:()->Comparison): Comparison = self SQCAP other()
+    opr CONVERSE(self): Comparison
+    (*) This stuff ought to be provided by Equality[\Comparison\].
+    opr =(self, other:Comparison): Boolean = (self === other)
+    (*) This stuff ought to be provided by StandardPartialOrder[\Comparison\].
+    opr CMP(self, other:Comparison): Comparison =
+        if self < other then LessThan
+        elif other < self then GreaterThan
+        elif self = other then EqualTo
+        else Unordered
+        end
+    opr <(self, other:Comparison): Boolean
+    opr >(self, other:Comparison): Boolean = (other < self)
+    opr <=(self, other:Comparison): Boolean = (self = other OR: self < other)
+    opr >=(self, other:Comparison): Boolean = (other <= self)
+end
+
+(** Unordered is the outcome of a CMP b when a and b are partially
+    ordered and no ordering relationship exists between them. **)
+object Unordered extends Comparison
+    getter asString(): String = "Unordered"
+    getter asExprString(): String = self.asString
+    getter asDebugString(): String = self.asString
+    opr <(self, other:Comparison): Boolean = false
+    opr SQCAP(self, other:()->Comparison): Comparison = Unordered
+    opr CONVERSE(self): Comparison = Unordered
+end
+
+trait TotalComparison
+(*)     extends { Comparison, StandardTotalOrder[\TotalComparison\] }
+        extends { Comparison }
+        comprises { LessThan, EqualTo, GreaterThan }
+    (* We're both a partial order (including Unordered) and a total
+       order (TotalComparison alone).  Avoid ambiguity between the
+       default definitions of CMP and >=. *)
+    opr CMP(self, other:Unordered): Comparison = Unordered
+    opr CMP(self, other:TotalComparison): TotalComparison =
+        if self < other then LessThan
+        elif other < self then GreaterThan
+        else EqualTo
+        end
+    opr <(self, other:Unordered): Boolean = false
+    opr >=(self, other:Unordered): Boolean = false
+    opr >=(self, other:Comparison): Boolean = NOT (other < self)
+    opr LEXICO(self, other:TotalComparison): TotalComparison =
+        if self=EqualTo then other else self end
+    opr LEXICO(self, other:()->TotalComparison): TotalComparison =
+        if self=EqualTo then other() else self end
+    opr CONVERSE(self): TotalComparison
+end
+
+object LessThan extends TotalComparison
+    getter asString(): String = "LessThan"
+    getter asExprString(): String = self.asString
+    getter asDebugString(): String = self.asString
+    opr CMP(self, other:LessThan): TotalComparison = EqualTo
+    opr CMP(self, other:TotalComparison): TotalComparison = GreaterThan
+    opr <(self, other:LessThan): Boolean = false
+    opr <(self, other:TotalComparison): Boolean = true
+    opr SQCAP(self, other:LessThan): LessThan = LessThan
+    opr SQCAP(self, other:EqualTo): LessThan = LessThan
+    opr CONVERSE(self): GreaterThan = GreaterThan
+end
+
+object GreaterThan extends TotalComparison
+    getter asString(): String = "GreaterThan"
+    getter asExprString(): String = self.asString
+    getter asDebugString(): String = self.asString
+    opr CMP(self, other:GreaterThan): TotalComparison = EqualTo
+    opr CMP(self, other:TotalComparison): TotalComparison = LessThan
+    opr <(self, other:TotalComparison): Boolean = false
+    opr SQCAP(self, other:GreaterThan): GreaterThan = GreaterThan
+    opr SQCAP(self, other:EqualTo): GreaterThan = GreaterThan
+    opr CONVERSE(self): LessThan = LessThan
+end
+
+object EqualTo extends TotalComparison
+    getter asString(): String = "EqualTo"
+    getter asExprString(): String = self.asString
+    getter asDebugString(): String = self.asString
+    opr =(self, other:EqualTo): Boolean = true
+    opr CMP(self, other:TotalComparison): TotalComparison = CONVERSE other
+    opr <(self, other:GreaterThan): Boolean = true
+    opr <(self, other:TotalComparison): Boolean = false
+    opr SQCAP(self, other: Comparison): Comparison = other
+    opr CONVERSE(self): EqualTo = EqualTo
+end
+
+(** StandardPartialOrder is partial ordering using <,>,<=,>=,=, and CMP.
+    Minimal complete definition: CMP or { <, = }. **)
+trait StandardPartialOrder[\Self\]
+        extends { Equality[\Self\] }
+        comprises Self
+    opr CMP(self, other:Self): Comparison =
+        if self < other then LessThan
+        elif other < self then GreaterThan
+        elif self = other then EqualTo
+        else Unordered
+        end
+    opr <(self, other:Self): Boolean = LessThan = (self CMP other)
+    opr >(self, other:Self): Boolean = other < self
+    opr =(self, other:Self): Boolean = EqualTo = (self CMP other)
+    opr <=(self, other:Self): Boolean = other >= self
+    opr >=(self, other:Self): Boolean = (self = other OR: self > other)
+end
+
+(** `StandardMin` is a MIN operator; most types that implement `MIN`
+    will implement a corresponding total order.  It's a separate type
+    to account for the existence of floating point numbers, for which
+    NaN counts as a bottom that is less than anything else but doesn't
+    actually participate in the standard total ordering.  It is
+    otherwise the case that `a MIN b = a` when `a <= b` and that
+    `a MIN b = b MIN a`. **)
+trait StandardMin[\T\] comprises T
+    opr MIN(self, other:T): T
+end
+
+(** `StandardMax` is a MAX operator; most types that implement `MAX`
+    will implement a corresponding total order.  It's a separate type
+    to account for the existence of floating point numbers, for which
+    NaN counts as a bottom that is less than anything else but doesn't
+    actually participate in the standard total ordering.  It is
+    otherwise the case that `a MAX b = a` when `a <= b` and that
+    `a MAX b = b MAX a`. **)
+trait StandardMax[\T\] comprises T
+    opr MAX(self, other:T): T
+end
+
+(** `StandardMinMax` combines MIN and MAX operators, and provides a
+    combined MINMAX operator.  This operator returns both its
+    arguments; if equality is possible, self should be the leftmost
+    result.  This effectively means that `(a MINMAX b)` stably sorts
+    `a` and `b`.  In addition, `a MINMAX b = (a MIN b, a MAX b)` must
+    always hold. **)
+
+trait StandardMinMax[\T\]
+        extends { StandardMin[\T\], StandardMax[\T\] }
+        comprises T
+    opr MINMAX(self, other:T): (T,T)
+    opr MIN(self, other:T): T = do (r,_) = self MINMAX other; r end
+    opr MAX(self, other:T): T = do (_,r) = self MINMAX other; r end
+end
+
+(** StandardTotalOrder is the usual total order using <,>,<=,>=,=, and CMP.
+    Most values that define a comparison should do so using this.
+    Minimal complete definition: either CMP or < (it's advisable to
+    define = in the latter case).  The `MIN` and `MAX` operators
+    respect the total order and are defined in the obvious way. **)
+trait StandardTotalOrder[\Self\]
+        extends { StandardPartialOrder[\Self\], StandardMinMax[\Self\] }
+        comprises Self
+    opr CMP(self, other:Self): TotalComparison =
+        if self < other then LessThan
+        elif other < self then GreaterThan
+        else EqualTo
+        end
+    opr >=(self, other:Self): Boolean = NOT (self < other)
+    opr <=(self, other:Self): Boolean = NOT (other < self)
+    opr MIN(self, other:Self): Self = if other < self then other else self end
+    opr MAX(self, other:Self): Self = if other < self then self else other end
+    opr MINMAX(self, other:Self): (Self,Self) =
+        if other < self then (other, self) else (self, other) end
+end
+
+end
