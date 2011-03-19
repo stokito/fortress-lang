@@ -11,7 +11,7 @@
 #
 ################################################################################
 
-FORTRESS_HOME="`${0%fformat}fortress_home`"
+export FORTRESS_HOME="`${0%fformat}fortress_home`"
 
 # This does the work of rendering a .fss into a cropped pdf and png for other uses.
 
@@ -31,7 +31,7 @@ fi
 dotfss="$1"
 dot="`basename "$dotfss" .fss`"
 
-$FORTRESS_HOME/bin/fortify "$dotfss"
+${FORTRESS_HOME}/bin/fortify "$dotfss"
 
 # Tex includes of file names with space, not so good
 ns_dot=`echo "$dot" | tr " " "_"`
@@ -87,7 +87,7 @@ cat > "${dot}.html" <<EOF
 <title>${dot}</title></head>
 <table>
 <tr><th align="center">ascii</th><th align="center">rendered</th></tr>
-<tr><td align="center">
+<tr><td align="left">
 <pre>
 EOF
 
