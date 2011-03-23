@@ -209,6 +209,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     final int paramCount;
 
     final APIName ifNone;
+    final String packageAndClassName;
 
     /**
      * Which parameter is used to split this set into subsets?
@@ -221,6 +222,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                           Set<OverloadSet.TaggedFunctionName> lessSpecificThanSoFar,
                           BASet<Integer> testedIndices, OverloadSet parent, Type selectedParameterType, int paramCount) {
         this.ifNone = ifNone;
+        this.packageAndClassName = NamingCzar.javaPackageClassForApi(ifNone);
         this.name = name;
         this.ta = ta;
         this.oa = oa;
@@ -952,35 +954,42 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          * that the actual parameter must satisfy,
          * according to the variance.
          */
-        String fullname;
+        final String fullname;
         
         /**
          * If generic, this is the stem; the stem must match, and then
          * the parameters must match appropriately.
          */
-        String stem;
+        final String stem;
         
         /** static type parameters. */
-        TS[] parameters;
+        final TS[] parameters;
         
         /** index of local to store corresponding value */
-        int localIndex;
+        final int localIndex;
         /** next index after this node and all of its descendants. */
-        int successorIndex;
+        final int successorIndex;
         
         /** What variance applies to this node?
          *  1 = co, 0 = in, -1 = contra
          */
-        int variance;
+        final int variance;
         
         /** True if this node or any of its descendants
          *  is generic (is a VarType).
          */
-        boolean hasGeneric;
+        final boolean hasGeneric;
+        
+        /**
+         * If true, then the type in question is an object, and a faster type
+         * check is possible.  This is NYI plumbing for an obvious and probably
+         * helpful optimization.
+         */
+        final boolean isObject;
         
         public TS(String fullname, String stem, TS[] parameters,
                 int localIndex, int successorIndex, int variance,
-                boolean hasGeneric) {
+                boolean hasGeneric, boolean isObject) {
             super();
             this.fullname = fullname;
             this.stem = stem;
@@ -989,6 +998,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             this.successorIndex = successorIndex;
             this.variance = variance;
             this.hasGeneric = hasGeneric;
+            this.isObject = isObject;
         }
         
         void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast) {
@@ -1036,6 +1046,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         List<Type> type_elements = null;
         boolean hasGeneric = false;
         boolean isVarType = false;
+        boolean isObject = false;
         
         if (t instanceof TupleType) {
             stem = Naming.TUPLE_TAG;
@@ -1060,10 +1071,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             return makeTypeStructure(((TraitSelfType)t).getNamed(), spmap, variance, storeAtIndex);
             
         } else if (t instanceof TraitType) {
+            // Would love to inquire if this is an object type
             TraitType tt = (TraitType) t;
             List<StaticArg> tt_sa = tt.getArgs();
             Id tt_id = tt.getName();
-            stem = NamingCzar.jvmClassForToplevelTypeDecl(tt_id,"",ifNone);
+            stem = CodeGen.stemFromId(tt_id,packageAndClassName);
             if (tt_sa.size() > 0) {
                 // process args into types. Non-type args will be somewhat problematic at first.
                 type_elements = new ArrayList<Type>();
@@ -1117,13 +1129,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             // if no generics, then no sub-evaluation
             if (hasGeneric)
                 next_index = storeAtIndex+1;
-            return new TS(fullname, stem, parameters, storeAtIndex, next_index, variance, hasGeneric);
+            return new TS(fullname, stem, parameters, storeAtIndex, next_index, variance, hasGeneric, isObject);
         } else if (isVarType) {
-            TS x = new TS(fullname, null, parameters, storeAtIndex, storeAtIndex+1, variance, hasGeneric);
+            TS x = new TS(fullname, null, parameters, storeAtIndex, storeAtIndex+1, variance, hasGeneric, isObject);
             spmap.putItem(stem, x);
             return x;
         } else { 
-            return new TS(fullname, stem, parameters, storeAtIndex, storeAtIndex+1, variance, hasGeneric);
+            return new TS(fullname, stem, parameters, storeAtIndex, storeAtIndex+1, variance, hasGeneric, isObject);
         }        
     }
 
