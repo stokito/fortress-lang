@@ -1,0 +1,317 @@
+We now augment our subtyping judgment to include \emph{constraints}.
+With constraint-based subtyping, we perform backward reasoning from the
+desired subtyping assertion to derive constraints on types under which the
+assertion can be proved --- when those constraints are satisfied, the assertion
+is also satisfied. These constraints on types are generated and gathered
+first, and then solved later when more information about the environment is known.
+
+% For example, because of polymorphic exclusion,
+% if we need to prove that a given type $S$ is a subtype of two instantiations `C[\T_bar\]` and
+% `C[\U_bar\]` of the same type constructor `C`, we can infer the constraints 
+% `T[i] EQUIV U[i]` for each `T[i] IN T_bar` and `U[i] IN U_bar` as necessary conditions. If these conditions cannot immediately be solved, we can propagate them so that with more information about $\bar{T}$ and $\bar{U}$ we can prove that `S <: C[\T_bar\]` and `S <: C[\U_bar\]`.
+% % More concretely, when we must prove that the two existential types from $foo$ in the previous section are equivalent, we can determine that $S \equiv T$ implies the subtyping judgment we need. We propagate the constraint that $S \equiv T$ because, if it were shown to hold, we could prove the desired subtyping judgment. The equivalence of the computed meet and candidate meet for $foo$ could thus be checked.
+
+Our grammar for type constraints is defined as follows:\\[-.2em]
+\[
+\begin{array}{llll}
+\C &::=& X <: S~~~~ &\mbox{primitive constraint}\\
+&\mid& S <: X &\mbox{primitive constraint}\\
+&\mid& X \exc S &\mbox{primitive constraint}\\
+&\mid& \C \wedge \C& \mbox{conjunction constraint}\\
+&\mid& \C \vee \C& \mbox{disjunction constraint}\\
+&\mid& \FALSE& \mbox{never satisfied}\\
+&\mid& \TRUE& \mbox{always satisfied}\\
+\end{array}
+\]
+\\
+A primitive constraint of the form `X <: S` specifies that a type variable $X$ is a subtype of $S$, and likewise for `S <: X`. The primitive constraint $X \exc S$ specifies that a type variable $X$ must exclude a type $S$. A conjunction constraint $\C_1 \wedge \C_2$ is satisfied exactly when both $\C_1$ and $\C_2$ are satisfied, and a disjunction constraint $\C_1 \vee \C_2$ is satisfied exactly when one or both of $\C_1$ and $\C_2$ are satisfied. The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always satisfied. We introduce the following syntactic judgments to generate these constraints:
+\[ \jcsub{S}{T}{\C} \andalso \jcequiv{S}{T}{\C} \andalso \jexc{S}{T}{\C} \]%
+Each judgment indicates that, under assumptions $\Delta$,
+the respective predicate can be proved if the constraint $\C$ is
+satisfied. An important point about these judgments is that the
+predicates $S \subtypeof T$, $S \equiv T$, and $S \exc T$ should
+be considered \emph{inputs} to our algorithmic checker, while the
+constraint $\C$ should be considered its \emph{output}.
+
+In Figure~\ref{fig:jexc}, we do not list here the full semantics of
+constraint generation for subtyping. Instead, we refer the reader to
+the recent work by Smith and
+Cartwright \cite{smith08} on which our system was based. Smith and
+Cartwright provide a sound and complete algorithm for generating
+constraints from the subtyping relation and an algorithm for
+normalizing constraints to simplify, for example, those involving
+contradictions or redundancies. We assume that constraints are
+implicitly simplified in this manner. The soundness of constraint
+generation entails that the predicate is a logical consequence of the
+constraint; the completeness of generation entails the opposite.
+
+
+
+%%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}[htbp]
+\newjudge{Generating constraints for exclusion}{\jexc{T}{T}{\C}}
+\\\\
+  \begin{tabular}{c|c}
+  %% MINIPAGE FOR LEFT COLUMN
+  \begin{minipage}[t]{.45\textwidth}
+\vspace*{-3em}
+\textbf{Symmetry}
+\vspace*{-1em}
+\infrule
+  {\jexc{T}{S}{\C}}
+  {\jexc{S}{T}{\C}}
+
+\vspace*{-1em}
+\textbf{Structural rules}
+\vspace*{-1em}
+\infrule
+  {}
+  {\jexc{\BottomType}{T}{\TRUE}}
+
+\infrule
+  {\jcsub{T}{\BottomType}{\C}}
+  {\jexc{\Any}{T}{\C}}
+
+\infrule
+  {|\bar{S}| \neq |\bar{T}|}
+  {\jexc{(\bar{S})}{(\bar{T})}{\TRUE}}
+
+\infrule
+  {|\bar{S}|=|\bar{T}|  \andalso
+   %\forall  i \in \{1, \ldots, |\bar{S}| \} . \jexc{S_i}{T_i}{\C_i}}
+   \bar{\jexc{S}{T}{\C}}
+   }
+  {\jexc{(\bar{S})}{(\bar{T})}{\bigvee \C_i}}
+
+\infrule
+  {|\bar{T}| \neq 1}
+  {\jexc{`(S -> R)`}{(\bar{T})}{\TRUE}}
+
+\infrule
+  {C \neq \Any \andalso
+   |\bar{T}| \neq 1}
+  {\jexc{`C[\ S_bar \]`}{(\bar{T})}{\TRUE}}
+
+\infrule
+  {C \neq \Any}
+  {\jexc{`C[\ S_bar \]`}{`(T -> U)`}{\TRUE}}
+
+\infrule
+  {\jexc{S}{U}{\C} \andalso 
+   \jexc{T}{U}{\C'} \\
+   \jexc{S}{T}{\C''}}
+  {\jexc{S \cap T}{U}{\C \vee \C' \vee \C''}}
+
+\infrule
+  {}
+  {\jexc{`(S -> T)`}{`(U -> V)`}{\FALSE}}
+
+\infrule
+  {\jexc{S}{U}{\C}    \andalso 
+   \jexc{T}{U}{\C'}}
+  {\jexc{S \cup T}{U}{\C \wedge \C'}}
+
+\textbf{Constructed types}
+\vspace*{-1em}
+\infrule
+  {\jgconstrtemplate{`C[\S_bar\]`}{\exce}{`D[\T_bar\]`}{\C_e} \\
+   \jgconstrtemplate{`C[\S_bar\]`}{\excc}{`D[\T_bar\]`}{\C_c} \\
+   \jgconstrtemplate{`C[\S_bar\]`}{\exco}{`D[\T_bar\]`}{\C_o} \\
+   \jgconstrtemplate{`C[\S_bar\]`}{\excp}{`D[\T_bar\]`}{\C_p}}
+  {\jexc{`C[\S_bar\]`}{`D[\T_bar\]`}{\C_e \vee \C_c \vee \C_o \vee \C_p}}
+
+  \end{minipage}
+  
+  %%% END LEFT COLUMN
+  &
+  
+  %% MINIPAGE FOR RIGHT COLUMN
+  \begin{minipage}[t]{.53\textwidth}
+
+\infrule
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excrx}{`D[\T_bar\]`}{\C} \\
+   \jgconstrtemplate{`D[\T_bar\]`}{\excrx}{`C[\S_bar\]`}{\C'}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\exc_{x}}{`D[\T_bar\]`}{\C \vee \C'}}
+%\vspace{-3ex}
+\hfill where $x \in \{\mathrm{e,c,o}\}$
+\\[-.2em]
+
+\infrule
+  {C = D}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excrx}{`D[\T_bar\]`}{\FALSE}}
+%\vspace{-3ex}
+\hfill where $x \in \{\mathrm{e,c,o}\}$
+\\[-.2em]
+
+\infrule
+  {C \neq D \andalso A = \ancestors(`C[\S_bar\]`) \\
+   \forall U \in \left(\bigcup_{N \in A} \myexcludes{N}\right). \quad \jcsub{`D[\T_bar\]`}{U}{\C_{U}}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excre}{`D[\T_bar\]`}{\bigvee \C_{U}}}
+%\vspace{-5ex}
+%\hfill
+\begin{center}
+ 
+\end{center}
+\vspace{-2ex}
+
+\infrule
+  {C \neq D \\
+\forall U \in \mycomprises{`C[\S_bar\]`}.\quad \jexc{U}{`D[\T_bar\]`}{\C_U}
+% \andalso \jgconstrtemplate{`C[\S_bar\]`}{\not \subtypeof}{`D[\T_bar\]`}{\C}
+}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excrc}{`D[\T_bar\]`}{\C \wedge \bigwedge \C_U}}
+
+\infrule
+  {\text{$C$ does not have a `comprises` clause}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excrc}{`D[\T_bar\]`}{\FALSE}}
+
+\infrule
+  {`object`\ C \quad C \neq D \quad
+   \jgconstrtemplate{`C[\S_bar\]`}{\not \subtypeof}{`D[\T_bar\]`}{\C}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excro}{`D[\T_bar\]`}{\C}}
+%\vspace{2ex}
+
+\infrule
+  {\neg(`object`\ C)}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excro}{`D[\T_bar\]`}{\FALSE}}
+%\vspace{2ex}
+
+\infrule
+  {\forall U \in \ancestors(`C[\S_bar\]`).\\
+   \forall V \in \ancestors(`D[\T_bar\]`).\\
+     \jgconstrtemplate{U}{\bexcp}{V}{\C_{U,V}}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excp}{`D[\T_bar\]`}{\bigvee \C_{U,V}}}
+
+\infrule
+  {C = D \andalso \bar{\jcnonequiv{S}{T}{\C}}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\bexcp}{`D[\T_bar\]`}{\bigvee \C_i}}
+
+\infrule
+  {C \neq D}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\bexcp}{`D[\T_bar\]`}{\FALSE}}
+
+\textbf{Type variables}
+\infrule
+  {}
+  {\jexc{X}{T}{`X` \exc `T`}}
+
+  \end{minipage} \\\\\hline
+  \end{tabular}
+
+  \caption{Generating constraints for exclusion}
+  \label{fig:jexc}
+\end{figure*}
+
+The constraint generation judgment for equivalence is defined entirely by the following rule:\\[-1.5em]
+\infrule
+  {\jcsub{S}{T}{\C} \andalso \jcsub{T}{S}{\C'}}
+  {\jgconstrtemplate{S}{\equiv}{T}{\C \wedge \C'}}
+Equivalence constraint generation is complete and sound if and only if
+the constraint generation for $\subtypeof$ is.
+
+To define the constraint generation judgment for exclusion, we need to know
+the constraint under which two types are not equivalent and
+one is not a subtype of the other.
+For this, we introduce new forms of primitive constraints to our grammar:\\[-.5em]
+\[
+\begin{array}{llll}
+\C &::=& \ldots &\\
+&\mid& X \not<: S~~~~ &\mbox{primitive constraint}\\
+&\mid& S \not<: X &\mbox{primitive constraint}\\
+&\mid& X \nexc S &\mbox{primitive constraint}\\
+\end{array}
+\]
+\\
+which we call {\it negatives};
+we call the original primitive constraints {\it positives}.
+With an even richer language of constraints, we can now define a new judgment for ````not a subtype'' by the rule:\\[-1.5em]
+\infrule
+  {\jcsub{S}{T}{\C}}
+  {\jgconstrtemplate{S}{\not <:}{T}{\neg\C}}
+
+\noindent where $\neg\C$ is the negated constraint formed by applying De Morgan's laws on $\C$. Similarly, we can define ````not equivalent'' by the rule:\\[-1em]
+\infrule
+  {\jcequiv{S}{T}{\C}}
+  {\jcnonequiv{S}{T}{\neg\C}}
+These judgements are sound because constraint generation for $\subtypeof$ is complete (and complete because $\subtypeof$ is sound).
+
+
+
+
+% We define the following exclusion judgment:\\[-.2em]
+% \[ \jexc{S}{T}{\C} \]
+% \\
+% which states that, under assumptions $\Delta$,
+% which reads as ````the types `S` and `T` exclude each other under the assumptions $\Delta$
+% if the constraints $\C$ hold,'' in Figure~\ref{fig:jexc}.
+% With these
+With these additional constraints and judgments, we can now define
+constraint generation for exclusion.
+Figure~\ref{fig:jexc} presents our algorithm, which
+formalizes our original definition of exclusion in
+Section~\ref{sec:excdec}.
+As before, exclusion on constructed types is
+satisfied when any of the sub-relations from the previous section is
+satisfied. Each sub-relation checks the conditions described before
+by recursively generating and propagating constraints. Each
+sub-relation except $\excrc$ depends only on other constraint
+generation judgments, meaning the algorithmic checking
+terminates. The $C\obb{T} \excrc D\obb{U}$ predicate recursively
+checks exclusion on the comprised types of $C\obb{T}$, but due to
+the acyclic class table, this process will also terminate. The
+algorithm is complete and sound if $\subtypeof$ is.
+
+
+For subtyping with constraints, we essentially preserve the semantics
+of \cite{smith08}, but that system lacks our notion of
+exclusion. Since we need our subtyping to take advantage of
+exclusion, we must add an additional rule to the judgment:\\[-1em] 
+
+\infrule
+  {\jgconstrtemplate{S}{\exc}{T}{\C} \andalso
+   \jcsub{S}{U}{\C'} \andalso\jcsub{T}{U}{\C''}}
+  {\jcsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
+
+\noindent This new rule states three possibilities for proving that the intersection $S \cap T$ is a subtype of $U$: $S$ and $T$ exclude (which means their intersection is a subtype of \BottomType), $S$ is a subtype of $U$, or $T$ is a subtype of $U$. If any of the constraints needed for these three judgments is satisfied, then $S \cap T$ is a subtype of $U$. Adding this rule should not affect completeness of soundness of constraint generation for $\subtypeof$ (since constraint generation for $\exc$ is complete and sound if constraint generation for $\subtypeof$ is).
+
+We can recover the usual subtyping judgment and define the exclusion judgment as follows:\\[1em]
+\begin{tabular}{cc}
+\begin{minipage}{0.45\textwidth}
+\infrule
+{\jcsub{S}{T}{\TRUE}}
+{\jgsub{S}{T}}
+\end{minipage}
+&
+\begin{minipage}{0.45\textwidth}
+\infrule
+{\jexc{S}{T}{\TRUE}}
+{\jgtemplate{S}{\exc}{T}}
+\end{minipage}
+\\[1.5em]
+\end{tabular}
+
+\noindent which state that, under assumptions $\Delta$, if the predicate generates the constraint $\TRUE$ (or some constraint that simplifies to $\TRUE$), then that predicate is proved.
+
+
+Solving constraints
+% We will also need to have the ability to solve constraints.
+% $\Delta \vdash solve(\C)$
+% This
+needs to be sound but not necessarily complete.\footnote{
+Because a failure in solving constraints may just cause us to reject some overloadings that
+were actually safe.}
+Here is a simple algorithm which is sound but not complete:
+\begin{enumerate}
+\item Take $\C$ which is a union of intersection constraints and
+try to solve each conjunct at a time (take the first one that succeeds).
+\item Split the conjunct into positive and negative parts.
+\item Deduce a set of equivalences from the positive part.
+\item Solve the equivalences using unification (with subtyping) to get a substitution $\phi$.
+\item Check whether applying $\phi$ to $\C$ is $\TRUE$.
+\item If so return $`Some`(\phi)$, otherwise return `None`.
+\end{enumerate}
+To get better completeness properties,
+one can iterate constraint solving if $\phi(\C)$ is not false.
+However, this might converge to a fixed point instead of terminating
+because the constraints that are negative or that do not imply an equivalence
+are never used to generate $\phi$.

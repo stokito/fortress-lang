@@ -1,0 +1,118 @@
+A fundamental problem
+with $\D(\mbox{\emph{foo}})$ is that a type such as `BadList` might be a
+subtype
+of multiple instantiations of the type constructor `List` (in this case,
+a subtype of `List[\ZZ\]` directly and of `List[\String\]` via `ArrayList[\String\]`).
+A type hierarchy in which
+some type extends multiple instantiations of the same type constructor is said
+to exhibit \emph{multiple instantiation inheritance} \cite{kennedy07}.
+
+We address this problem by imposing an additional restriction on well-formed class tables,
+which, in effect, adds additional power to the exclusion relation:
+\begin{description}
+\item[Polymorphic Exclusion] 
+A type (other than \BottomType) 
+must not be a subtype of multiple distinct instantiations of a type constructor. 
+\end{description}
+If a type $M$ is a subtype of an application $C\obb{T}$ of type
+constructor $C$, then $M$ excludes all other applications $C\obb{U}$ of $C$. We augment
+our exclusion relation on constructed types with this final sub-relation,
+which we write as $M \,\excrp\, C\obb{U}$.
+This restriction is easy to statically enforce, and it has been shown in practice that
+it is not an onerous restriction.
+Indeed, it is already in the Java\texttrademark\ programming language,
+and for good reason: Kennedy and Pierce showed that multiple instantiation inheritance
+is one of three conditions that lead to the undecidability of
+nominal subtyping with variance \cite{kennedy07}.
+
+With polymorphic exclusion in place, the type `BadList` is no longer well-formed in its class table. However, our subtype judgment still cannot find a type `V <: ZZ` to prove that:
+\begin{align*}
+\jgsub[`X <: Any, Y <: ZZ`]{`ArrayList[\X\] CAP List[\Y\]`}{`ArrayList[\V\]`}
+\end{align*} which is necessary to check the Meet Rule.
+All that is known about $X$ and $Y$ for this subtype check is that
+they are subtypes of `Any` and `ZZ`, respectively.
+If we could somehow equate $X$ and $Y$, transferring $Y$'s tighter
+bound `ZZ` to `X`, then we could use $V = X$ to prove the assertion.
+Syntactically, the types $X$ and $Y$ do not provide enough information
+to prove the subtype assertion, but with additional assumptions about
+their structure (namely, that their extents are equal) we can indeed
+prove the assertion.  Incorporating this kind of deduction into our
+subtyping judgment as described in Section~\ref{sec:constraints}
+allows us to prove that many more sets of
+overloaded function declarations satisfy our rules.
+
+
+
+\begin{comment}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \noindent \textbf{--- scott has not gotten to this line ---}
+% 
+% Polymorphic exclusion lets us determine whether one existential type
+% has the same extent (has the same monomorphic subtypes) as another.
+% For example, using polymorphic exclusion, we know that
+% the following existential type:
+% `
+% (1) EXISTS[\X <: Any, Y <: Foo \] (ArrayList[\X\] CAP List[\Y\])
+% `has the same extent as:
+% `
+% (2) EXISTS[\Z <: Foo\] ArrayList[\Z\]
+% `because, for all ground types `S` and `T`, the intersection type
+% `List[\S\] CAP ArrayList[\T\]` is equivalent to `BottomType`
+% unless `S` is equivalent to `T`.
+% This lets us deduce that `S` (equivalent to`T`)
+% is an appropriate instantiation for `Z`.
+% Therefore, now the following declarations:
+% \begin{FortressCode}
+%  \\
+% \2\2\+h\llbracket{}X \SHORTCUT{<} \TYP{Any}\rrbracket\TYP{ArrayList}\llbracket{}X\rrbracket\COLON\mathbb{Z} \\
+% h\llbracket{}Y\mathord{\SHORTCUT{<}}\: \TYP{Foo}\rrbracket\TYP{List}\llbracket{}Y\rrbracket\COLON\mathbb{Z}\-
+% \end{FortressCode}
+% satisfy the Meet Rule thanks to the following disambiguating declaration:
+% \begin{FortressCode}
+%  \\
+% \2\2\+h\llbracket{}Z \SHORTCUT{<} \TYP{Foo}\rrbracket\TYP{ArrayList}\llbracket{}Z\rrbracket\COLON\mathbb{Z}\-
+% \end{FortressCode}
+% If we incorporate this form of derivation into the subtyping rules for
+% existential and universal types, we can prove that many more sets of
+% overloaded declarations satisfy the overloading rules.
+% 
+% In this section,
+% we extend the exclusion relation to existential and universal types and
+% refine the subtyping rules for them.
+% %
+% %  need to know constraints under which a type is not bottom => need to know when two types don't exclude
+% %  can get regular exclusion from not exclude
+% %
+% We also augment our judgments to include \emph{constraints},
+% which state subtyping among types that we have inferred to hold.
+% For example, because of polymorphic exclusion,
+% if we infer that a given type $S$ is a subtype of two instantiations `C[\T_bar\]` and
+% `C[\U_bar\]` of the same type constructor `C`, we can infer constraints that
+% `T[i] EQUIV U[i]` for each `T[i] IN T_bar` and `U[i] IN U_bar`.
+% We also carry constraints that hold under the supposition
+% that an intersection type is not `BottomType`.
+% For example, when we decide whether two existential types (1) and (2) above have the same extent,
+% if we explore the ramifications of the possibility that
+% `List[\S\] CAP ArrayList[\T\]` is not equivalent to `BottomType`,
+% we need to infer and carry the constraint that `S EQUIV T`.
+% 
+% To augment the rules in this section, we introduce the following notation:
+% \begin{enumerate}
+% 
+% \item 
+% We write $\jcnonequiv{T}{\BottomType}{\C}$
+% to indicate that a type $T$ is not equivalent to \BottomType\ 
+% under the environment $\Delta$ and
+% the assumption that constraints $\C$ hold.
+% 
+% \item 
+% We write  $\jnexc{T}{S}{\C}$ to indicate that
+% $T$ does not exclude $S$ under the environment $\Delta$ and
+% the assumption that constraints $\C$ hold.
+% \end{enumerate}
+% 
+% % How to get all instantiations exclude (written \exc)
+% % \infrule
+% %  {\Delta \vdash S \nexc T|False}
+% %  {\Delta \vdash S \exc T}
+\end{comment}

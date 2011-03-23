@@ -1,0 +1,18 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled10.p
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled10.pAPI.fsi:13:1-20:\n\
+\ Invalid comprises clause: a trait with a comprises ...,\n\
+\ such as Compiled10.pAPI.T, should not be extended.\n\
+File Compiled10.p.fss has 1 error.\n
+compile_out_equals=

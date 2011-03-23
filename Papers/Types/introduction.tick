@@ -1,0 +1,181 @@
+A key feature of object-oriented languages is \emph{dynamic dispatch}: 
+There may be multiple definitions of a function (or method) with the same name, 
+and calls to a function (method) of that name are resolved
+based on the ````runtime types'' (we use the term \emph{ilks}) of some arguments. 
+In \emph{single dispatch}, 
+a particular argument is designated as the \emph{receiver}, 
+and the call is resolved only with respect to that argument.
+In \emph{multiple dispatch}, 
+the runtime types of  all arguments to a call are used to resolve the call.
+A special case of multiple dispatch is \emph{symmetric multiple dispatch}, 
+in which all arguments are considered equally when resolving a call.
+
+Multiple dynamic dispatch provides programmers with a great deal of expressiveness.
+In particular, 
+many mathematical operators such as $+$ and $\leq$ and $\cup$
+and especially $\cdot$ and $\times$
+have different definitions depending on all the arguments
+to an application of the operator
+(even the number of arguments may vary between calls); 
+in a language with multiple dispatch, 
+it is natural to define these operators as overloaded functions. 
+Similarly, 
+many binary operations on collections such as `append` and `zip` 
+have different definitions 
+depending on the types of both arguments. 
+
+To preserve type soundness 
+while incorporating multiple dispatch 
+into an object-oriented language with a static semantics, 
+constraints must be placed on the sets of valid overloaded definitions.
+For example, to avoid ambiguous function calls,
+we must ensure that for every call site 
+(knowing only the static types of the arguments),
+there exists a unique ````best'' function to dispatch to at run time.\footnote{
+In languages with static overloading, such as Scala, C\#, and the Java\texttrademark\
+programming language \cite{JavaSpec}, it is possible to simply reject ambiguous call sites
+of overloaded functions \cite{scala,CSharpSpec,JavaSpec}. However, as Millstein and Chambers have observed, 
+it is impossible to statically forbid ambiguity in the presence of multiple dynamic
+dispatch without imposing constraints at the definition sites of overloaded functions
+\cite{millstein02,millstein03}.}
+
+Castagna {\it et al}. showed how to check overloaded function definitions to
+ensure this property in a language without parametric polymorphism~\cite{castagna92}.
+In particular, the static type system must
+impose a partial order on each set of overloaded definitions.  
+This partial order may be described as: $m_1$ is more
+specific than $m_2$ if and only if for every possible set of arguments,
+if $m_1$ is applicable then $m_2$ is also applicable.
+Every program is required to ensure that, 
+for any two overloaded function definitions,
+if neither is more specific than the other, 
+then there is a third overloaded definition
+that is (1) more specific than both and 
+(2) no more specific than any other definable
+function that is more specific than both. We can think of this property 
+as imposing a
+\emph{meet semi-lattice} on a set of function declarations.
+Ensuring this property is complicated
+in a language with multiple dispatch 
+because each of two function definitions 
+might be more specific in one argument and not another. 
+For example, 
+consider the following overloaded function definitions:
+`    f(b:B, a:A)
+    f(a:A, b:B)`
+If $A$ is a subtype of $B$, 
+to which of these definitions do we dispatch 
+when $f$ is called with two arguments of type $A$? 
+Note that the ambiguity is inherent in these definitions:
+there is a real question as to what behavior the programmer intended
+in this case.
+
+Resolving ambiguous function calls becomes even more important,
+and more difficult, in the presence of parametric polymorphism,
+where both types and functions can be parameterized by type variables.
+One way to think about a parametric type such as `List[\T\]`
+(a list with elements of type `T`) is
+that it represents an infinite set of ground types `List[\Object\]` (lists of objects),
+`List[\String\]` (lists of strings), `List[\ZZ\]` (lists of integers), and so on.
+In an actual type checker, it is necessary to have rules
+for working with uninstantiated (non-ground) parametric types, but for many purposes
+this model of ````an infinite set of ground types'' is adequate for explanatory purposes.
+Not so, however, for type-parametric functions.  For quite some time during the
+development of the Fortress language, one of us (Steele) pushed for understanding
+a parametrically polymorphic function definition such as:
+`    append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e
+`
+where white square brackets delimit the declaration of the type parameter,
+as if it stood for an infinite set of monomorphic definitions:
+`    append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e
+    append(x: List[\String\], y: List[\String\]): List[\String\] = e
+    append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e
+    ...`
+The intuition was that for any specific function call,
+the usual rule for multimethod
+dispatch would then choose the appropriate most specific
+definition for this (infinitely) overloaded function.
+
+That intuition worked well enough for a single polymorphic function definition,
+but failed utterly when we considered multiple function definitions.
+It would seem natural for a programmer to want to provide definitions for specific
+monomorphic special cases:
+`    append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
+    append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
+but if the model is taken seriously, this would be equivalent to:
+`    append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e1
+    append(x: List[\String\], y: List[\String\]): List[\String\] = e1
+    append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e1
+    ...
+    append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
+and we can see that there is an ambiguity when the arguments are
+both of type `List[\ZZ\]`.
+
+It only gets worse if the programmer wishes to handle an infinite set
+of cases specially.  It would seem natural to write:
+`    append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
+    append[\T <: Number\](x: List[\T\], y: List[\T\]): List[\T\] = e2`
+so as to handle specially all cases where `T` is a subtype of `Number`,
+but the model would regard this as an overloading with an infinite
+number of ambiguities.
+
+In order to resolve this problem, we had to develop an alternate
+model and an associated type system that could handle overloaded
+parametrically polymorphic functions in a manner that would accord
+with programmer intuition and support the plausible examples shown above.
+Credit for championing key insights---regarding each polymorphic definition
+as a single definition (rather than an infinite set of definitions)
+competing in the overload set, and using universal and existential types
+to describe them in the type system (an idea reported by
+Bourdoncle and Merz~\cite{bourdoncle97})---and for working out many difficult details
+belongs to two other authors of this paper (Hilburn and Kilpatrick).
+Adopting this new approach has made
+overloaded polymorphic functions both tractable and effective
+for writing Fortress code.
+
+In this paper, we give rules for ensuring safe overloaded functions in
+a language that supports symmetric multiple dispatch, multiple
+inheritance, and parametric polymorphism (that is, generic types \emph{and} generic functions).  We do this by
+extending our earlier rules for a core of the Fortress programming language 
+that did not support generics \cite{allen07,fortress}.
+This problem is challenging because a set of overloaded \emph{generic} function definitions might
+have not only distinct argument types, but also distinct type
+parameters, so the type values of these parameters 
+make sense only in distinct type environments. 
+How do we compare such functions, and how do we ensure
+that there is always a best overloaded function to dispatch to?
+
+For example, consider the following overloaded function definitions in Fortress:
+`    combine[\T\](xs: List[\T\], ys: List[\T\]): List[\T\]
+    combine[\S,T\](s: Table[\S,T\], t: Table[\S,T\]): Table[\S,T\]`
+The first definition declares a single
+type parameter denoting the types of the elements of the two
+list arguments $xs$ and $ys$. The second definition declares two 
+type parameters corresponding to the domains and ranges of the two
+table arguments $s$ and $t$. But the type parameter of the first
+definition bears no relation to the type parameters of the second.
+
+In providing rules to ensure 
+that any set of overloaded function definitions 
+guarantees that there is always a unique function to call at run time, 
+we strive to be maximally permissive: 
+A set of overloaded definitions should be disallowed 
+only if it permits ambiguity
+that cannot be resolved at run time.  
+Our rules must also be compatible with type inference, 
+since instantiation of type parameters at a call site 
+is typically done automatically.
+
+The remainder of this paper is organized thus.
+In Section 2,
+we define the concepts and notation necessary
+to explain our formal rules for checking overloaded function definitions,
+which we present using universal and existential types in Section 3.
+In Section 4,
+we explain why many natural programs are (rightfully) rejected by
+our rules and propose to extend the language with ``nominal exclusion'' in
+order to allow them.
+In Section 5, we formally describe exclusion and
+use it to augment the subtyping relation for universal and existential types.
+Finally, we discuss related work in Section 6 and conclude in Section 7.
+
