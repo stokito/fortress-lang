@@ -160,7 +160,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         /** No static parameters;
          * the ilk of the generic.
          */
-        final String ilkClassName; 
+        final String stemClassName; 
         ClassNameBundle(Id id, String sparams_part, String PCN) {
             typeId = id;
             className =
@@ -171,8 +171,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 NamingCzar.jvmClassForToplevelTypeDecl(id,
                         makeTemplateSParams(sparams_part),
                         PCN);
-            ilkClassName =
-                NamingCzar.jvmClassForToplevelTypeDecl(id,"",PCN);
+            stemClassName =
+                stemFromId(id, PCN);
             
              classDesc = NamingCzar.internalToDesc(className);
         }
@@ -2984,7 +2984,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         ClassNameBundle cnb = new ClassNameBundle(classId, sparams_part, packageAndClassName);
 
         String erasedSuperI = sparams_part.length() > 0 ?
-                cnb.ilkClassName : "";
+                cnb.stemClassName : "";
         String [] superInterfaces =
             NamingCzar.extendsClauseToInterfaces(extendsC, component.getName(), erasedSuperI);
 
@@ -3151,6 +3151,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         inAnObject = savedInAnObject;
         
+        // Needed (above) to embed a reference to the Rtti information for this type.
         RttiClassAndInterface(x,cnb);
     }
 
@@ -3178,7 +3179,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
  
             addStaticVar(new VarCodeGen.StaticBinding(
                     classId, NodeFactory.makeTraitType(classId),
-                    cnb.ilkClassName,
+                    cnb.stemClassName,
                     NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc,
                     splist));
         }
@@ -3199,8 +3200,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
 
     private void emitErasedClassFor(ClassNameBundle cnb, TraitObjectDecl x) {
-        String classFile = cnb.ilkClassName;
-        String classFileOuter = cnb.ilkClassName;
+        String classFile = cnb.stemClassName;
+        String classFileOuter = cnb.stemClassName;
 
         traitOrObjectName = classFile;
         //String classDesc = NamingCzar.internalToDesc(classFile);
@@ -3572,7 +3573,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         ClassNameBundle cnb = new ClassNameBundle(classId, sparams_part, packageAndClassName);
         
-        String erasedSuperI = sparams_part.length() > 0 ? cnb.ilkClassName
+        String erasedSuperI = sparams_part.length() > 0 ? cnb.stemClassName
                 : "";
                 
         if (sparams_part.length() > 0) {
@@ -3728,8 +3729,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * extends y$RTTIi for each y in extend_s
          */
         
-        String rttiInterfaceName = cnb.ilkClassName +
-                                    Naming.RTTI_INTERFACE_SUFFIX;
+        String stemClassName = cnb.stemClassName;
+        String rttiInterfaceName = Naming.stemInterfaceJavaName(stemClassName);
         String[] superInterfaces = new String[d_e_size];
         
         Id[] direct_extends_keys = new Id[d_e_size]; // will use in lazyInit
@@ -3740,7 +3741,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",
                         packageAndClassName);
             direct_extends_keys[i] = extendee;
-            superInterfaces[i++] = extendeeIlk + Naming.RTTI_INTERFACE_SUFFIX;
+            superInterfaces[i++] = Naming.stemInterfaceJavaName(extendeeIlk);
          }
         }
         
@@ -3777,7 +3778,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         superInterfaces = new String[1];
         superInterfaces[0] = rttiInterfaceName;
-        String rttiClassName =  cnb.ilkClassName + Naming.RTTI_CLASS_SUFFIX;
+        String rttiClassName =  Naming.stemClassJavaName(stemClassName);
         cw.visitSource(NodeUtil.getSpan(tod).begin.getFileName(), null);
         cw.visit( InstantiatingClassloader.JVM_BYTECODE_VERSION,
                   ACC_PUBLIC, rttiClassName, null,
@@ -3794,7 +3795,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String extendeeIlk =
                 NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",
                                                        packageAndClassName);
-            String field_type = extendeeIlk + Naming.RTTI_CLASS_SUFFIX;
+            String field_type = Naming.stemClassJavaName(extendeeIlk);
             String tyDesc = "L" + field_type + ";";
             cw.visitField(ACC_PRIVATE + ACC_VOLATILE,
                     extendeeIlk, tyDesc, null, null);
@@ -4084,7 +4085,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     mv.visitVarInsn(ALOAD, 0);
                     getExtendeeField(rttiClassName, te_id);
                     String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(te_id,"",packageAndClassName);
-                    String field_type = extendeeIlk + Naming.RTTI_CLASS_SUFFIX;
+                    String field_type = Naming.stemClassJavaName(extendeeIlk);
                     mv.visitMethodInsn(INVOKEVIRTUAL, field_type, method_name,
                             Naming.STATIC_PARAMETER_GETTER_SIG);
 
@@ -4132,7 +4133,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void generateTypeReference(CodeGenMethodVisitor mv2, String rttiClassName, Id extendee, List<StaticArg> ti_args,
             HashSet<String> spns) {
         String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
-        String field_type = extendeeIlk + Naming.RTTI_CLASS_SUFFIX;
+        String field_type = Naming.stemClassJavaName(extendeeIlk);
         
         if (ti_args.size() == 0) {
             if (spns.contains(extendeeIlk)) {
@@ -4223,7 +4224,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     private void getExtendeeField(String rttiClassName, Id extendee) {
         String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
-        String field_type = extendeeIlk + Naming.RTTI_CLASS_SUFFIX;
+        String field_type = Naming.stemClassJavaName(extendeeIlk);
         String tyDesc = "L" + field_type + ";";
         mv.visitVarInsn(ALOAD, 0);
         mv.visitFieldInsn(GETFIELD, rttiClassName, extendeeIlk, tyDesc);
@@ -4237,7 +4238,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     private void putExtendeeField(String rttiClassName, Id extendee) {
         String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
-        String field_type = extendeeIlk + Naming.RTTI_CLASS_SUFFIX;
+        String field_type = Naming.stemClassJavaName(extendeeIlk);
         String tyDesc = "L" + field_type + ";";
         mv.visitFieldInsn(PUTFIELD, rttiClassName, extendeeIlk, tyDesc);
     }
@@ -4972,6 +4973,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return
             new Pair<String, List<Pair<String, String>>>(tag,
                     new ArrayList<Pair<String, String>>());
+    }
+
+    /**
+     * @param id
+     * @param PCN
+     * @return
+     */
+    public static String stemFromId(Id id, String PCN) {
+        return NamingCzar.jvmClassForToplevelTypeDecl(id,"",PCN);
     }   
     
 }

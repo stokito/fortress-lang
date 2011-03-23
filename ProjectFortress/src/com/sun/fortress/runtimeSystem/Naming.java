@@ -813,5 +813,38 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
     public static final String RTTI_CLASS_SUFFIX = "$RTTIc";
 
     public static final String RTTI_INTERFACE_SUFFIX = "$RTTIi";
+
+
+    /**
+     * Returns the name of the RTTI class for a Fortress type,
+     * given the (Java) name of the stem of the type.
+     * The "stem" is the type name, minus static parameters (in Oxford
+     * brackets) if there are any.
+     * 
+     * This is used to allocate the type names, and in certain instances of
+     * type queries (e.g., for Object types).
+     * 
+     * @param stemClassName
+     * @return
+     */
+    public static String stemClassJavaName(String stemClassName) {
+        return stemClassName + RTTI_CLASS_SUFFIX;
+    }
+
+    /**
+     * Returns the name of the RTTI interface for a Fortress type,
+     * given the (Java) name of the stem of the type.
+     * The "stem" is the type name, minus static parameters (in Oxford
+     * brackets) if there are any.
+     * 
+     * In general, this is what is tested against and cast to in type queries.
+     * 
+     * @param stemClassName
+     * @return
+     */
+    public static String stemInterfaceJavaName(String stemClassName) {
+        return stemClassName +
+                                    RTTI_INTERFACE_SUFFIX;
+    }
     
 }

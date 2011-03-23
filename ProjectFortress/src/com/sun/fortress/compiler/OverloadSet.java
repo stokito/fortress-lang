@@ -948,12 +948,34 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @author dr2chase
      */
     static class TS {
+        /** If not generic, this is the Java type (boxed)
+         * that the actual parameter must satisfy,
+         * according to the variance.
+         */
         String fullname;
+        
+        /**
+         * If generic, this is the stem; the stem must match, and then
+         * the parameters must match appropriately.
+         */
         String stem;
+        
+        /** static type parameters. */
         TS[] parameters;
-        int localIndex; /* index of local to store corresponding value */
+        
+        /** index of local to store corresponding value */
+        int localIndex;
+        /** next index after this node and all of its descendants. */
         int successorIndex;
-        int variance; /* 1 = co, 0 = in, -1 = contra */
+        
+        /** What variance applies to this node?
+         *  1 = co, 0 = in, -1 = contra
+         */
+        int variance;
+        
+        /** True if this node or any of its descendants
+         *  is generic (is a VarType).
+         */
         boolean hasGeneric;
         
         public TS(String fullname, String stem, TS[] parameters,
@@ -968,16 +990,52 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             this.variance = variance;
             this.hasGeneric = hasGeneric;
         }
+        
+        void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast) {
+            if (!hasGeneric) {
+                if (value_cast) {
+                    InstantiatingClassloader.generalizedInstanceOf(mv, fullname);
+                    // Branch ahead if failure
+                    mv.visitJumpInsn(Opcodes.IFEQ, if_fail);
+                } else {
+                    // must check if the type extends the type.
+                    // tricky cases are Arrow and Tuple.
+                }
+            } else {
+                // problem -- value instanceof, vs type instanceof
+                // normalize by getting type initially.
+                /*
+                 * DUP TOS
+                 * INSTANCEOF stem
+                 * IFNE ahead
+                 * POP
+                 * BR if_dail
+                 * ahead:
+                 * CHECKCAST stem
+                 * ST localIndex
+                 * for each parameter
+                 */
+            }
+        }
     }
     
- 
-    TS makeTypeStructure(Type t, Map<String, String> spmap, int variance, int storeAtIndex) {
+    /**
+     * Returns a type decision structure for the given input type.
+     * 
+     * @param t the type to build the structure for.
+     * @param spmap map recording occurrences of static parameter names.
+     * @param variance context -- how must the type match?
+     * @param storeAtIndex after the type test returns, store the result here.
+     * @return
+     */
+    TS makeTypeStructure(Type t, MultiMap<String, TS> spmap, int variance, int storeAtIndex) {
         String fullname = NamingCzar.jvmBoxedTypeName(t, ifNone);
         String stem = null;
         TS[] parameters = null;
         int[] variances = null;
         List<Type> type_elements = null;
         boolean hasGeneric = false;
+        boolean isVarType = false;
         
         if (t instanceof TupleType) {
             stem = Naming.TUPLE_TAG;
@@ -1029,7 +1087,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             VarType tt = (VarType) t;
             Id tt_id = tt.getName();
             hasGeneric = true;
-
+            stem = NamingCzar.jvmClassForToplevelTypeDecl(tt_id,"",ifNone);
+            isVarType = true;
+            
         } else if (t instanceof BottomType) {
             throw new CompilerError("Not handling Bottom type yet in generic overload dispatch");
 
@@ -1058,7 +1118,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             if (hasGeneric)
                 next_index = storeAtIndex+1;
             return new TS(fullname, stem, parameters, storeAtIndex, next_index, variance, hasGeneric);
-        } else {
+        } else if (isVarType) {
+            TS x = new TS(fullname, null, parameters, storeAtIndex, storeAtIndex+1, variance, hasGeneric);
+            spmap.putItem(stem, x);
+            return x;
+        } else { 
             return new TS(fullname, stem, parameters, storeAtIndex, storeAtIndex+1, variance, hasGeneric);
         }        
     }
