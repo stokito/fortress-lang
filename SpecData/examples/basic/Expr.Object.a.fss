@@ -1,0 +1,31 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.Object.a
+
+export Executable
+
+(** EXAMPLE **)
+object O
+  m() = do outer = self
+           object
+             getOuterSelf() = outer      (* outer "self" *)
+             getInnerSelf() = self       (* inner "self" *)
+           end
+        end
+end
+(** END EXAMPLE **)
+
+run() = ()
+
+end

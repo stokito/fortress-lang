@@ -1,0 +1,19 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component han
+export Executable 
+
+가나 : ZZ32 = 1
+
+run () = println(가나)
+
+end
