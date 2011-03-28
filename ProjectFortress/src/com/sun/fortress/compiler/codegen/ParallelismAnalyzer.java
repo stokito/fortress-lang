@@ -19,7 +19,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.useful.Debug;
 
 public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
-    private static final int ARG_THRESHOLD = 2000;
+    private static final int ARG_THRESHOLD = 2;
     private final HashSet<ASTNode> worthy = new HashSet<ASTNode>();
 
     private boolean isComputeIntensiveArg(Expr e) {
