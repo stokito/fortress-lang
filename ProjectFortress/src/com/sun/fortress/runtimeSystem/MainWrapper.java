@@ -53,6 +53,8 @@ public class MainWrapper {
 
 
         try {
+            String cp = System.getProperty("java.class.path");
+            
             // ensure that FortressExecutable is loaded and statically initialized
             // so that there is a task pool before any user code is run.
             ClassLoader icl = InstantiatingClassloader.ONLY;

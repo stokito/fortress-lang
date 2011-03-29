@@ -379,13 +379,11 @@ The third task (for generic targets) is to symbolically instantiate and invoke t
 To infer static parameters, it will be necessary to add additional Fortress-specific type reflection operations.
 For any generic trait or object \verb+TO[\U1, U2, U3\]+, the implemented ``Fortress type" (distinct from the Java class of its implementation) must supply methods to obtain the first, second, and third static parameter types.  The Fortress type must also supply methods, indexed by erased type, of the Fortress types that it extends (these will be constants if the extended type is not generic).  (Implementations of) Fortress objects must supply a method to return their Fortress type.
 
-What methods should all Fortress types support?
+What methods should each Fortress type $T$ support?
 \begin{description}
-\item[getExtends] returns a list/array of Fortress types that this type extends
-\item[isGeneric] 
-\item[getName] 
-\item[getStaticParameters] returns a list/array of the static arguments for this type.  (What's a ``static argument"?  Does this include both parameter name and argument binding?  Note that these are not always types.)
+\item[asSUPER\#N()] For each generic trait {\it SUPER} that $T$ extends, retrieve the type for the $N$th static parameter of {\it SUPER} 
 \end{description}
+Each generic type will include a table-backed static factory called \verb+factory+\ (parameters are Fortress types for the static parameters of the generic).  Non-generic types will have a static member \verb+ONLY+.  
 
 For purposes of dispatch, we need additional methods, and we need a system of naming these types.  Suppose that the function whose contraints we are verifying has this signature, where List and Set are invariant in T.
 \begin{verbatim}
@@ -449,7 +447,7 @@ It appears that the extends list for a type must be initialized lazily, because 
 \subsection{Implementation notes}
 It might be simpler to dispense with the FRTTI base type; if it has no methods, what's the point?
 
-It looks like the names of the interface and class will be derived from the name, followed by ``\$RttiI" and ``\$RttiC".
+It looks like the names of the interface and class will be derived from the name, followed by ``\$RTTIi" and ``\$RTTIc".
 
 The Java class created for each object must include a static member containing the type and instance method returning that type.
 
@@ -474,7 +472,9 @@ ZZ32 extends { BinOp[\ZZ32, PLUS\], BinOp[\ZZ32, TIMES\] }
 \end{verbatim}
 A corollary of this is that it should not be necessary to infer an opr parameter dynamically (because this would be ambiguous, at least using the current approach).  But this means that we need a name mangling that accounts for this.
 
+\subsection{Fortress object getters}
 
+Each Fortress Object (perhaps not Any, meaning not Tuples, not Arrows) will have a method \verb+getRTTI()+.  For an object with type O, this will simply push 
 
 
 \section{Odds and ends}

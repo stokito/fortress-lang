@@ -56,12 +56,41 @@ public class MethodInstantiater implements MethodVisitor {
         mv.visitEnd();
     }
 
+    public static final String FACTORY_SUFFIX =
+        Naming.RIGHT_OXFORD + Naming.RTTI_CLASS_SUFFIX;
+    
     public void visitFieldInsn(int opcode, String owner, String name,
             String desc) {
         owner = xlation.getTypeName(owner);
         name = xlation.getTypeName(name);
         desc = xlation.getFieldDesc(desc);
-        mv.visitFieldInsn(opcode, owner, name, desc);
+        if (owner.endsWith(FACTORY_SUFFIX)) {
+            rttiReference(owner);
+        } else {
+            mv.visitFieldInsn(opcode, owner, name, desc);        
+        }
+    }
+
+    /**
+     * @param owner
+     */
+    public void rttiReference(String owner) {
+        int lox_index = owner.indexOf(Naming.LEFT_OXFORD);
+        if (lox_index != -1) {
+            int rox_index = owner.lastIndexOf(Naming.RIGHT_OXFORD);
+            String stem = owner.substring(0,lox_index);
+            List<String> parameters = InstantiatingClassloader.extractStringParameters(
+                    owner, lox_index, rox_index);
+            for (String parameter : parameters) {
+                rttiReference(Naming.stemClassJavaName(parameter));
+            }
+            String stem_rtti = Naming.stemClassJavaName(stem);
+            String fact_sig = Naming.rttiFactorySig(stem_rtti, parameters.size());
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, stem_rtti, "factory", fact_sig);
+        } else {
+            mv.visitFieldInsn(Opcodes.GETSTATIC, owner, "ONLY", "L" + owner + ";");
+
+        }
     }
 
     public void visitFrame(int type, int nLocal, Object[] local, int nStack,

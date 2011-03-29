@@ -846,5 +846,20 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
         return stemClassName +
                                     RTTI_INTERFACE_SUFFIX;
     }
+
+
+    public final static String RTTI_CONTAINER_TYPE = "java/lang/Object";
+
+
+    /**
+     * @param owner_and_result_class
+     * @param n_static_params
+     * @return
+     */
+    public static String rttiFactorySig(String owner_and_result_class,
+            final int n_static_params) {
+        return NamingCzar.jvmSignatureForNTypes(
+                n_static_params, RTTI_CONTAINER_TYPE, "L" + owner_and_result_class +";");
+    }
     
 }

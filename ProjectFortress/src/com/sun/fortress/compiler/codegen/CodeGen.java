@@ -116,8 +116,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private GlobalEnvironment env;
 
     private static final int NO_SELF = -1;
-    private final static String RTTI_MAP_TYPE = "java/lang/Object";
-    
     abstract static class InitializedStaticField {
         abstract public void forClinit(MethodVisitor mv);
 
@@ -2968,20 +2966,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // Map<String, String> xlation = new HashMap<String, String>();
         List<String> splist = new ArrayList<String>();
-        List<StaticParam> original_static_params = header.getStaticParams();
+        final List<StaticParam> original_static_params = header.getStaticParams();
         Option<List<Param>> original_params = NodeUtil.getParams(x);
         
         Pair<String, List<Pair<String, String>>> pslpss = 
             xlationData(Naming.OBJECT_GENERIC_TAG);
         
-        String sparams_part = NamingCzar.genericDecoration(original_static_params, pslpss, thisApi());
+        final String sparams_part = NamingCzar.genericDecoration(original_static_params, pslpss, thisApi());
 
 
         boolean savedInAnObject = inAnObject;
         inAnObject = true;
         Id classId = NodeUtil.getName(x);
 
-        ClassNameBundle cnb = new ClassNameBundle(classId, sparams_part, packageAndClassName);
+        final ClassNameBundle cnb = new ClassNameBundle(classId, sparams_part, packageAndClassName);
 
         String erasedSuperI = sparams_part.length() > 0 ?
                 cnb.stemClassName : "";
@@ -3128,7 +3126,60 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         dumpMethodChaining(superInterfaces, false);
         dumpErasedMethodChaining(superInterfaces, false);
+        
+        /* RTTI stuff */
+        mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC, // acccess
+                                          "getRTTI", // name
+                                          "()Ljava/lang/Object;", // sig
+                                          null, // generics sig?
+                                          null); // exceptions
+        mv.visitCode();
+        mv.visitFieldInsn(GETSTATIC, cnb.className, "RTTI", "L" + Naming.RTTI_CONTAINER_TYPE + ";");
 
+        areturnEpilogue();
+        
+        initializedStaticFields_TO.add(new InitializedStaticField() {
+
+            @Override
+            public void forClinit(MethodVisitor mv) {
+                /*
+                 * Need to initialize RTTI.
+                 * If there are no static parameters, it is just
+                 * the fortress RTTI type, .only.
+                 * 
+                 * If there ARE static parameters, need to generate a
+                 * factory call.
+                 * 
+                 * NEW PLAN: do it in the rewriting phase during classloading.
+                 * If this object is generic (has static args) it will be
+                 * rewritten.  The reference, rewritten, will be to
+                 * Someclassname LOX static args ROX $ RTTIc
+                 * Therefore, look for:
+                 * FieldInsn
+                 * GETSTATIC
+                 * rttiClassname ends in ROX $ RTTIc
+                 * Extract stem
+                 * Extract parameters
+                 * Emit factory calls.
+                 * 
+                 */
+                    String rttiClassName = Naming.stemClassJavaName(cnb.className);
+                    mv.visitFieldInsn(GETSTATIC, rttiClassName, "ONLY", "L" + rttiClassName + ";");
+                    mv.visitFieldInsn(PUTSTATIC, cnb.className, "RTTI", Naming.STATIC_PARAMETER_FIELD_DESC);
+            }
+
+            @Override
+            public String asmName() {
+                return "RTTI";
+            }
+
+            @Override
+            public String asmSignature() {
+                return "Ljava/lang/Object;";
+            }
+            
+        });
+        
         lexEnv = savedLexEnv;
 
         if (isSingletonObject || initializedStaticFields_TO.size() > 0) {
@@ -3177,11 +3228,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             imv.visitFieldInsn(PUTSTATIC, cnb.className,
                     NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc);
  
+            /* Used to pass splist to the static-parametered form
+             * but it was always empty.  Tests work like that.
+             * Bit of a WTF, keep an eye on this.
+             * Repurpose splist (non-null) for the computation and
+             * caching of RTTI, which also goes in a static.
+             */
             addStaticVar(new VarCodeGen.StaticBinding(
                     classId, NodeFactory.makeTraitType(classId),
                     cnb.stemClassName,
-                    NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc,
-                    splist));
+                    NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc));
         }
         
         for (InitializedStaticField isf : initializedStaticFields_TO) {
@@ -3755,21 +3811,23 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * for each static parameter of x, declares method "asX"#number
          */
         {
-        int i = Naming.STATIC_PARAMETER_ORIGIN;
-        for (StaticParam sp : sparams) {
-            String method_name =
-                staticParameterGetterName(cnb.typeId, packageAndClassName, i);
-            CodeGenMethodVisitor mv = cw.visitCGMethod(
-                    ACC_ABSTRACT + ACC_PUBLIC, method_name,
-                    Naming.STATIC_PARAMETER_GETTER_SIG, null, null);
-            mv.visitMaxs(Naming.ignoredMaxsParameter,
-                         Naming.ignoredMaxsParameter);
-            mv.visitEnd();
-            i++;
-        }
+            int i = Naming.STATIC_PARAMETER_ORIGIN;
+            for (StaticParam sp : sparams) {
+                String method_name =
+                    staticParameterGetterName(cnb.typeId, packageAndClassName, i);
+                mv = cw.visitCGMethod(
+                        ACC_ABSTRACT + ACC_PUBLIC, method_name,
+                        Naming.STATIC_PARAMETER_GETTER_SIG, null, null);
+                mv.visitMaxs(Naming.ignoredMaxsParameter,
+                        Naming.ignoredMaxsParameter);
+                mv.visitEnd();
+                i++;
+            }
         }
 
         cw.dumpClass( rttiInterfaceName );
+        
+        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, prev);
 
         /*
          * x$RTTIc
@@ -3782,7 +3840,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cw.visitSource(NodeUtil.getSpan(tod).begin.getFileName(), null);
         cw.visit( InstantiatingClassloader.JVM_BYTECODE_VERSION,
                   ACC_PUBLIC, rttiClassName, null,
-                  NamingCzar.internalObject, superInterfaces);
+                  Naming.RTTI_CONTAINER_TYPE, superInterfaces);
         
         /*
          * fields
@@ -3818,7 +3876,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             for (StaticParam sp : sparams) {
                 String method_name =
                     staticParameterGetterName(cnb.typeId, packageAndClassName, i);
-                CodeGenMethodVisitor mv = cw.visitCGMethod(
+                mv = cw.visitCGMethod(
                         ACC_PUBLIC, method_name,
                         Naming.STATIC_PARAMETER_GETTER_SIG, null, null);
                 
@@ -3835,12 +3893,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * constructor (init method)
          * parameters for static parameters, if any.
          */
+        final int sparams_size = sparams.size();
         {
+            // BUG, hardwired use of Object here. 
             String init_sig =
-                NamingCzar.jvmSignatureForNObjects(sparams.size(), "V");
+                NamingCzar.jvmSignatureForNObjects(sparams_size, "V");
             mv = cw.visitCGMethod(ACC_PUBLIC, "<init>", init_sig, null, null);
             mv.visitCode();
-
+            
+            mv.visitVarInsn(ALOAD, 0);
+            mv.visitMethodInsn(INVOKESPECIAL, Naming.RTTI_CONTAINER_TYPE, "<init>", "()V");
+            
             int pno = 1;
             for (StaticParam sp : sparams) {
                 IdOrOp spn = sp.getName();
@@ -3861,9 +3924,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         /*
          * static singleton or static map + factory.
          */
-        if (sparams.size() == 0) {
+        if (sparams_size == 0) {
             // static, initialized to single instance of self
-            cw.visitField(ACC_PRIVATE + ACC_STATIC + ACC_FINAL,
+            cw.visitField(ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
                     "ONLY", "L" + rttiClassName + ";", null, null);
             
             mv = cw.visitCGMethod(ACC_STATIC, "<clinit>", "()V", null, null);
@@ -3902,16 +3965,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             voidEpilogue();
             
             // FACTORY
-            String fact_sig = NamingCzar.jvmSignatureForNTypes(
-                    sparams.size(), RTTI_MAP_TYPE, "L" + rttiClassName +";");
+            
+            String fact_sig = Naming.rttiFactorySig(rttiClassName, sparams_size);
             String init_sig = NamingCzar.jvmSignatureForNTypes(
-                    sparams.size(), RTTI_MAP_TYPE, "V");
+                    sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
             String get_sig = NamingCzar.jvmSignatureForNTypes(
-                    sparams.size(), RTTI_MAP_TYPE, "L" + RTTI_MAP_TYPE + ";");
+                    sparams_size, Naming.RTTI_CONTAINER_TYPE, "L" + Naming.RTTI_CONTAINER_TYPE + ";");
             String put_sig = NamingCzar.jvmSignatureForNTypes(
-                    sparams.size()+1, RTTI_MAP_TYPE, "L" + RTTI_MAP_TYPE + ";");
+                    sparams_size+1, Naming.RTTI_CONTAINER_TYPE, "L" + Naming.RTTI_CONTAINER_TYPE + ";");
 
-            mv = cw.visitCGMethod(ACC_STATIC, "factory", fact_sig, null, null);
+            mv = cw.visitCGMethod(ACC_PUBLIC + ACC_STATIC, "factory", fact_sig, null, null);
             mv.visitCode();
             /* 
              * rCN x = DICTIONARY.get(args)
@@ -3926,8 +3989,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitFieldInsn(GETSTATIC, rttiClassName,
                     "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
             // push args
-            int l = sparams.size();
-            pushArgs(1, l);
+            int l = sparams_size;
+            pushArgs(0, l);
             // invoke Dictionary.get
             mv.visitMethodInsn(INVOKEVIRTUAL, RTTI_MAP_NAME, "get", get_sig);
             Label not_null = new Label();
@@ -3939,11 +4002,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // putIfNew
             mv.visitFieldInsn(GETSTATIC, rttiClassName,
                     "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
-            pushArgs(1, l);
+            pushArgs(0, l);
             // invoke constructor
             mv.visitTypeInsn(NEW, rttiClassName);
             mv.visitInsn(DUP);
-            pushArgs(1, l);
+            pushArgs(0, l);
             mv.visitMethodInsn(INVOKESPECIAL, rttiClassName,
                     "<init>", init_sig);
             // pass it through the dictionary
@@ -4072,7 +4135,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     String method_name =
                        staticParameterGetterName(te_id, packageAndClassName, i);
                     
-                    CodeGenMethodVisitor mv = cw.visitCGMethod(ACC_PUBLIC,
+                    mv = cw.visitCGMethod(ACC_PUBLIC,
                             method_name,
                             Naming.STATIC_PARAMETER_GETTER_SIG, null, null);
                     mv.visitCode();
@@ -4147,7 +4210,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         } else {
             // invoke field_type.factory(args)
             String fact_sig = NamingCzar.jvmSignatureForNTypes(ti_args.size(),
-                    RTTI_MAP_TYPE, "L" + field_type + ";");
+                    Naming.RTTI_CONTAINER_TYPE, "L" + field_type + ";");
             
             for (StaticArg sta : ti_args) {
                 if (sta instanceof TypeArg) {

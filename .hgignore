@@ -44,7 +44,9 @@ ProjectFortress/.dependencies/dependencies.txt
 ProjectFortress/*.tfi
 ProjectFortress/*.tfs
 ProjectFortress/bin/
+ProjectFortress/build
 ProjectFortress/build/
+ProjectFortress/build/*
 ProjectFortress/FortressLibrary.ast
 ProjectFortress/FortressLibrary.jst
 ProjectFortress/jrat.output
