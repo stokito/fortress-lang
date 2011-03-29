@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -23,4 +23,7 @@ public final class FZZ32 extends fortress.CompilerBuiltin.ZZ32.DefaultTraitMetho
         return new FZZ32(x);
     }
     public static FZZ32 plus(FZZ32 a, FZZ32 b) {return make(a.getValue() + b.getValue());}
+    public static class RTTIc extends RTTI {
+        public static final RTTIc ONLY = new RTTIc();
+    }
 }

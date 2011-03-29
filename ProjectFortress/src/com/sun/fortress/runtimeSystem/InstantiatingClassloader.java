@@ -694,7 +694,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param rightBracket
      * @return
      */
-    private static List<String> extractStringParameters(String s,
+    static List<String> extractStringParameters(String s,
                                                              int leftBracket, int rightBracket) {
         
         ArrayList<String> parameters = new ArrayList<String>();
