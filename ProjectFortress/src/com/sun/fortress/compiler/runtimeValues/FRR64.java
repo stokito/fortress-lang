@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -20,4 +20,8 @@ public final class FRR64 extends fortress.CompilerBuiltin.RR64.DefaultTraitMetho
     public FString asString() { return new FString(String.valueOf(val)); }
     public double getValue() {return val;}
     public static FRR64 make(double x) {return new FRR64(x);}
+
+    public static class RTTIc extends RTTI {
+        public static final RTTIc ONLY = new RTTIc();
+    }
 }

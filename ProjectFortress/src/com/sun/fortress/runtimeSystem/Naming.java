@@ -99,6 +99,7 @@ public class Naming {
      * Name for Tuple-interface generic.
      */
     public final static String TUPLE_TAG="Tuple";
+    public final static String TUPLE_RTTI_TAG="Tuple,";
 
     public final static String COMPILER_BUILTIN = "CompilerBuiltin";
     public final static String NATIVE_PREFIX_DOT = "native.";
@@ -859,7 +860,7 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
     public static String rttiFactorySig(String owner_and_result_class,
             final int n_static_params) {
         return NamingCzar.jvmSignatureForNTypes(
-                n_static_params, RTTI_CONTAINER_TYPE, "L" + owner_and_result_class +";");
+                n_static_params, RTTI_CONTAINER_TYPE, "L" + RTTI_CONTAINER_TYPE +";");
     }
     
 }

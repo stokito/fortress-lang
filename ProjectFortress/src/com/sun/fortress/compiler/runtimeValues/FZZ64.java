@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -18,4 +18,8 @@ public class FZZ64  extends fortress.CompilerBuiltin.ZZ64.DefaultTraitMethods im
     public String toString() { return "" + val;}
     public long getValue() {return val;}
     public static FZZ64 make(long x) {return new FZZ64(x);}
+    
+    public static class RTTIc extends RTTI {
+        public static final RTTIc ONLY = new RTTIc();
+    }
 }

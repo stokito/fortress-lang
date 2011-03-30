@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -19,4 +19,9 @@ public class FString  extends fortress.CompilerBuiltin.String.DefaultTraitMethod
     public String toString() { return val;}
     public static FString make(String s) { return new FString(s);}
     public static FString concatenate(FString s1, FString s2) { return new FString(s1.toString() + s2.toString());}
+
+    public static class RTTIc extends RTTI {
+        public static final RTTIc ONLY = new RTTIc();
+    }
+
 }

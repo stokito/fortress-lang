@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -19,4 +19,9 @@ implements fortress.CompilerBuiltin.RR32, fortress.CompilerBuiltin.RR64 {
     public String toString() { return "" + val;}
     public float getValue() {return val;}
     public static FRR32 make(float x) {return new FRR32(x);}
+    
+    public static class RTTIc extends RTTI {
+        public static final RTTIc ONLY = new RTTIc();
+    }
+
 }

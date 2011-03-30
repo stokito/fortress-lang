@@ -140,7 +140,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @author dr2chase
      */
     static class ClassNameBundle {
-        final Id typeId;
+       
         
         /** The name of the class. */
         final String className;
@@ -160,7 +160,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         final String stemClassName; 
         ClassNameBundle(Id id, String sparams_part, String PCN) {
-            typeId = id;
+            stemClassName =
+                stemFromId(id, PCN);
+
             className =
                 NamingCzar.jvmClassForToplevelTypeDecl(id,
                         sparams_part,
@@ -169,16 +171,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 NamingCzar.jvmClassForToplevelTypeDecl(id,
                         makeTemplateSParams(sparams_part),
                         PCN);
-            stemClassName =
-                stemFromId(id, PCN);
             
              classDesc = NamingCzar.internalToDesc(className);
         }
     }
 
-    String staticParameterGetterName(Id typename, String default_package_class, int index) {
+    String staticParameterGetterName(String stem_class_name, int index) {
         // using __ for separator to ease native/primitive type story.
-        return NamingCzar.jvmClassForToplevelTypeDecl(typename,"",default_package_class) + "__" + index;
+        return stem_class_name + "__" + index;
     }
 
     
@@ -3814,7 +3814,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             int i = Naming.STATIC_PARAMETER_ORIGIN;
             for (StaticParam sp : sparams) {
                 String method_name =
-                    staticParameterGetterName(cnb.typeId, packageAndClassName, i);
+                    staticParameterGetterName(cnb.stemClassName, i);
                 mv = cw.visitCGMethod(
                         ACC_ABSTRACT + ACC_PUBLIC, method_name,
                         Naming.STATIC_PARAMETER_GETTER_SIG, null, null);
@@ -3875,7 +3875,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             int i = Naming.STATIC_PARAMETER_ORIGIN;
             for (StaticParam sp : sparams) {
                 String method_name =
-                    staticParameterGetterName(cnb.typeId, packageAndClassName, i);
+                    staticParameterGetterName(cnb.stemClassName, i);
                 mv = cw.visitCGMethod(
                         ACC_PUBLIC, method_name,
                         Naming.STATIC_PARAMETER_GETTER_SIG, null, null);
@@ -4125,6 +4125,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 extends_transitive_extends.entrySet()) {
                 // delegate through field te_id for each static parameter getter.
                 Id te_id = entry.getKey();
+                String te_stem = stemFromId(te_id, packageAndClassName);
                 TraitIndex te_ti = entry.getValue();
                 List<StaticParam> te_sp = te_ti.staticParameters();
                 
@@ -4133,7 +4134,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 int i = Naming.STATIC_PARAMETER_ORIGIN;
                 for (StaticParam a_sparam : te_sp) {
                     String method_name =
-                       staticParameterGetterName(te_id, packageAndClassName, i);
+                       staticParameterGetterName(te_stem, i);
                     
                     mv = cw.visitCGMethod(ACC_PUBLIC,
                             method_name,

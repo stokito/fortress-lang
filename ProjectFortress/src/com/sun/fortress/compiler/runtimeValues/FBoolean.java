@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -22,4 +22,9 @@ public final class FBoolean extends fortress.CompilerBuiltin.Boolean.DefaultTrai
     public String toString() { return "" + val;}
     public boolean getValue() {return val;}
     public static FBoolean make(boolean x) {return x ? TRUE : FALSE;}
+
+    public static class RTTIc extends RTTI {
+        public static final RTTIc ONLY = new RTTIc();
+    }
+
 }
