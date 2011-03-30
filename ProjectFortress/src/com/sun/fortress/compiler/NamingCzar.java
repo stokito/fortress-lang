@@ -1412,29 +1412,51 @@ public class NamingCzar {
      */
     // Called from CodeGen
     public static String jvmClassForToplevelDecl(IdOrOp x, String api) {
-        Option<APIName> actualApiOpt = x.getApiName();
-        if (actualApiOpt.isSome()) {
-            api = javaPackageClassForApi(actualApiOpt.unwrap());
-        }
+        api = repairedApiName(x, api);
         return makeInnerClassName(api, x.getText());
     }
 
     public static String jvmClassForToplevelTypeDecl(IdOrOp x, String sparams_part, String api) {
-        Option<APIName> actualApiOpt = x.getApiName();
-        if (actualApiOpt.isSome()) {
-            api = javaPackageClassForApi(actualApiOpt.unwrap());
-        }
+        api = repairedApiName(x, api);
         return makeInnerClassName(api, x.getText()+sparams_part);
+    }
+
+    /**
+     * @param id_or_op
+     * @param default_api
+     * @return
+     */
+    public static String repairedApiName(IdOrOp id_or_op, String default_api) {
+        Option<APIName> actualApiOpt = id_or_op.getApiName();
+        if (actualApiOpt.isSome()) {
+            default_api = javaPackageClassForApi(actualApiOpt.unwrap());
+        }
+        return default_api;
+    }
+    
+    /**
+     * @param id_or_op
+     * @param default_api
+     * @return
+     */
+    public static String repairedApiName(IdOrOp id_or_op, APIName default_api) {
+        Option<APIName> actualApiOpt = id_or_op.getApiName();
+        if (actualApiOpt.isSome()) {
+            default_api = actualApiOpt.unwrap();
+        }
+        String api_string = javaPackageClassForApi(default_api);
+        return api_string;
+    }
+    
+    public static String jvmClassForToplevelTypeDecl(String api, String local, String sparams_part) {
+        return makeInnerClassName(api, local+sparams_part);
     }
     // Variant of above
     public static String jvmClassForToplevelTypeDecl(IdOrOp x, String sparams_part, APIName api) {
-        Option<APIName> actualApiOpt = x.getApiName();
-        if (actualApiOpt.isSome()) {
-            api = actualApiOpt.unwrap();
-        }
-        String api_string = javaPackageClassForApi(api);
+        String api_string = repairedApiName(x, api);
         return makeInnerClassName(api_string, x.getText()+sparams_part);
     }
+
 
     /**
      * The name of a renamed, lifted coercion declaration for the given trait.

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -18,4 +18,9 @@ public class FChar  extends fortress.CompilerBuiltin.Char.DefaultTraitMethods im
     public String toString() { return "" + val;}
     public char getValue() {return val;}
     public static FChar make(char x) {return new FChar(x);}
+
+    public static class RTTIc extends RTTI {
+        public static final RTTIc ONLY = new RTTIc();
+    }
+
 }

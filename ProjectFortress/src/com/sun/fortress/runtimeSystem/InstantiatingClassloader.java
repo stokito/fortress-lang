@@ -202,7 +202,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 //                    throw new ClassNotFoundException("Not yet handling generic functions " + name);
                 //                } else
 
-                if (isGenericFunction) {
+                if (name.startsWith(Naming.TUPLE_RTTI_TAG)) {
+                    classData = instantiateTupleRTTI(name);
+                } else if (isGenericFunction) {
                     // also a closure
                     try {
                     String dename = Naming.dotToSep(name);
@@ -1344,6 +1346,25 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         }
     }
     
+    private static byte[] instantiateTupleRTTI(String name) {
+        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+        // Tuple,N$RTTIc
+        String nstring = name.substring(Naming.TUPLE_RTTI_TAG.length(), name.indexOf('$'));
+        final int n = Integer.parseInt(nstring);
+        String[] superInterfaces = null;
+        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC, name, null,
+                Naming.RTTI_CONTAINER_TYPE, superInterfaces);
+        
+        // init
+        // clinit
+        // dictionary
+        // factory
+        
+        
+        cw.visitEnd();
+        return cw.toByteArray();
+
+    }
     
     private static byte[] instantiateTuple(String dename, List<String> parameters) {
         /*
