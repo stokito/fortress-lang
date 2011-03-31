@@ -863,4 +863,17 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
                 n_static_params, RTTI_CONTAINER_TYPE, "L" + RTTI_CONTAINER_TYPE +";");
     }
     
+    public static String combineStemAndSparams(String stem, String sparams_in_oxfords) {
+        return stem + sparams_in_oxfords;
+    }
+
+    /**
+     * Convert an ASM internal form to a Java descriptor form.
+     * That is, surround a class type with L and ;
+     */
+    // Widely used
+    public static String internalToDesc(String type) {
+        return "L" + type + ";";
+    }
+    
 }

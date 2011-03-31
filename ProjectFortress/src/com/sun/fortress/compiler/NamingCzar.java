@@ -179,7 +179,7 @@ public class NamingCzar {
     public static final String descLong          = org.objectweb.asm.Type.getDescriptor(long.class);
     public static final String descBoolean       = org.objectweb.asm.Type.getDescriptor(boolean.class);
     public static final String descChar          = org.objectweb.asm.Type.getDescriptor(char.class);
-    public static final String descString        = internalToDesc(internalString);
+    public static final String descString        = Naming.internalToDesc(internalString);
     public static final String descVoid          = org.objectweb.asm.Type.getDescriptor(void.class);
     public static final String stringArrayToVoid = makeMethodDesc(makeArrayDesc(descString), descVoid);
     public static final String voidToVoid        = makeMethodDesc("", descVoid);
@@ -196,17 +196,17 @@ public class NamingCzar {
     public static final String internalFortressVoid   = makeFortressInternal("Void");
 
     // fortress interpreter types: type descriptors
-    public static final String descFortressIntLiteral  = internalToDesc(internalFortressIntLiteral);
-    public static final String descFortressFloatLiteral  = internalToDesc(internalFortressFloatLiteral);
-    public static final String descFortressZZ32  = internalToDesc(internalFortressZZ32);
-    public static final String descFortressZZ64  = internalToDesc(internalFortressZZ64);
-    public static final String descFortressRR32  = internalToDesc(internalFortressRR32);
-    public static final String descFortressRR64  = internalToDesc(internalFortressRR64);
-    public static final String descFortressBoolean  = internalToDesc(internalFortressBoolean);
-    public static final String descFortressChar  = internalToDesc(internalFortressChar);
-    public static final String descFortressString = internalToDesc(internalFortressString);
-    public static final String descFortressVoid   = internalToDesc(internalFortressVoid);
-    public static final String descFortressAny        = internalToDesc(fortressAny);
+    public static final String descFortressIntLiteral  = Naming.internalToDesc(internalFortressIntLiteral);
+    public static final String descFortressFloatLiteral  = Naming.internalToDesc(internalFortressFloatLiteral);
+    public static final String descFortressZZ32  = Naming.internalToDesc(internalFortressZZ32);
+    public static final String descFortressZZ64  = Naming.internalToDesc(internalFortressZZ64);
+    public static final String descFortressRR32  = Naming.internalToDesc(internalFortressRR32);
+    public static final String descFortressRR64  = Naming.internalToDesc(internalFortressRR64);
+    public static final String descFortressBoolean  = Naming.internalToDesc(internalFortressBoolean);
+    public static final String descFortressChar  = Naming.internalToDesc(internalFortressChar);
+    public static final String descFortressString = Naming.internalToDesc(internalFortressString);
+    public static final String descFortressVoid   = Naming.internalToDesc(internalFortressVoid);
+    public static final String descFortressAny        = Naming.internalToDesc(fortressAny);
 
     public static final String voidToFortressVoid = makeMethodDesc("", descFortressVoid);
 
@@ -335,14 +335,6 @@ public class NamingCzar {
     // Translate among Java type names
     // (Section 2.1.3 in ASM 3.0: A Java bytecode engineering library)
 
-    /**
-     * Convert an ASM internal form to a Java descriptor form.
-     * That is, surround a class type with L and ;
-     */
-    // Widely used
-    public static String internalToDesc(String type) {
-        return "L" + type + ";";
-    }
     /**
      * Strips L and ; off of type; they are assumed to exist.
      * @param desc
@@ -488,7 +480,7 @@ public class NamingCzar {
     }
 
     private static void b(com.sun.fortress.nodes.Type t, String cl) {
-        specialFortressDescriptors.put(t, internalToDesc(cl));
+        specialFortressDescriptors.put(t, Naming.internalToDesc(cl));
         specialFortressTypes.put(t, cl );
     }
 
@@ -1164,7 +1156,7 @@ public class NamingCzar {
             public String forArrowType(ArrowType t) {
                 String res = makeArrowDescriptor(t, ifNone);
 
-                if (withLSemi) res = internalToDesc(res);
+                if (withLSemi) res = Naming.internalToDesc(res);
                 return res;
             }
             @Override
@@ -1177,7 +1169,7 @@ public class NamingCzar {
                     throw new CompilerError(t,"Can't compile Keyword args yet");
                 if (boxed) {
                     String res = makeTupleDescriptor(t, ifNone);
-                    if (withLSemi) res = internalToDesc(res);
+                    if (withLSemi) res = Naming.internalToDesc(res);
                     return res;
                 } else
                 return jvmTypeDescs(t.getElements(), ifNone, true, true);
@@ -1190,7 +1182,7 @@ public class NamingCzar {
             public String forVarType (VarType t) {
                 //
                 String s = t.getName().getText();
-                if (withLSemi) s = internalToDesc(s);
+                if (withLSemi) s = Naming.internalToDesc(s);
                 return s;
             }
             @Override
@@ -1227,7 +1219,7 @@ public class NamingCzar {
                     result = makeInnerClassName(api,id, forStaticParams(sparams));
 
                 if (withLSemi)
-                    result = internalToDesc(result);
+                    result = Naming.internalToDesc(result);
                 Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
 
                 return result;
@@ -1314,7 +1306,7 @@ public class NamingCzar {
                     throw new CompilerError(id,"no api name given for id");
                 }
                 result = makeInnerClassName(api,id);
-                result = internalToDesc(result);
+                result = Naming.internalToDesc(result);
                 Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t, " = ", result);
 
                 return result;
