@@ -159,24 +159,25 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * the ilk of the generic.
          */
         final String stemClassName; 
-        ClassNameBundle(Id id, String sparams_part, String PCN) {
-            stemClassName =
-                stemFromId(id, PCN);
+        ClassNameBundle(String stem_class_name, String sparams_part) {
+            stemClassName = stem_class_name;
 
             className =
-                NamingCzar.jvmClassForToplevelTypeDecl(id,
-                        sparams_part,
-                        PCN);
+                Naming.combineStemAndSparams(stemClassName, sparams_part);
+                
             fileName =
-                NamingCzar.jvmClassForToplevelTypeDecl(id,
-                        makeTemplateSParams(sparams_part),
-                        PCN);
+                Naming.combineStemAndSparams(stemClassName, makeTemplateSParams(sparams_part));
             
-             classDesc = NamingCzar.internalToDesc(className);
+            classDesc = Naming.internalToDesc(className);
         }
     }
+    
+    static public ClassNameBundle new_ClassNameBundle(Id id, String sparams_part, String PCN) {
+        return new ClassNameBundle(stemFromId(id, PCN), sparams_part);
+    }
 
-    String staticParameterGetterName(String stem_class_name, int index) {
+
+    static public String staticParameterGetterName(String stem_class_name, int index) {
         // using __ for separator to ease native/primitive type story.
         return stem_class_name + "__" + index;
     }
@@ -2979,7 +2980,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         inAnObject = true;
         Id classId = NodeUtil.getName(x);
 
-        final ClassNameBundle cnb = new ClassNameBundle(classId, sparams_part, packageAndClassName);
+        final ClassNameBundle cnb = new_ClassNameBundle(classId, sparams_part, packageAndClassName);
 
         String erasedSuperI = sparams_part.length() > 0 ?
                 cnb.stemClassName : "";
@@ -3468,7 +3469,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             mv.visitInsn(DUP);
             int taskVar = mv.createCompilerLocal(task, // Naming.mangleIdentifier(task),
-                    NamingCzar.internalToDesc(task));
+                    Naming.internalToDesc(task));
             taskVars[i] = taskVar;
             mv.visitVarInsn(ASTORE, taskVar);
             mv.visitMethodInsn(INVOKEVIRTUAL, task, "forkIfProfitable", "()V");
@@ -3627,7 +3628,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         Id classId = NodeUtil.getName(x);
         
-        ClassNameBundle cnb = new ClassNameBundle(classId, sparams_part, packageAndClassName);
+        ClassNameBundle cnb = new_ClassNameBundle(classId, sparams_part, packageAndClassName);
         
         String erasedSuperI = sparams_part.length() > 0 ? cnb.stemClassName
                 : "";
