@@ -181,8 +181,8 @@ public class NamingCzar {
     public static final String descChar          = org.objectweb.asm.Type.getDescriptor(char.class);
     public static final String descString        = Naming.internalToDesc(internalString);
     public static final String descVoid          = org.objectweb.asm.Type.getDescriptor(void.class);
-    public static final String stringArrayToVoid = makeMethodDesc(makeArrayDesc(descString), descVoid);
-    public static final String voidToVoid        = makeMethodDesc("", descVoid);
+    public static final String stringArrayToVoid = Naming.makeMethodDesc(makeArrayDesc(descString), descVoid);
+    public static final String voidToVoid        = Naming.makeMethodDesc("", descVoid);
 
     public static final String internalFortressIntLiteral  = makeFortressInternal("IntLiteral");
     public static final String internalFortressFloatLiteral = makeFortressInternal("FloatLiteral");
@@ -208,7 +208,7 @@ public class NamingCzar {
     public static final String descFortressVoid   = Naming.internalToDesc(internalFortressVoid);
     public static final String descFortressAny        = Naming.internalToDesc(fortressAny);
 
-    public static final String voidToFortressVoid = makeMethodDesc("", descFortressVoid);
+    public static final String voidToFortressVoid = Naming.makeMethodDesc("", descFortressVoid);
 
     public static final String closureFieldName = "closure";
 
@@ -345,27 +345,6 @@ public class NamingCzar {
             return Useful.substring(desc, 1, -1);
         throw new IllegalArgumentException(desc + " did not begin with 'L' and end with ';'");
     }
-    /**
-     * Returns "(" + param + ")" + result ; converts
-     * to JVM method descriptor form.
-     *
-     * @param param
-     * @param result
-     * @return
-     */
-    // Widely used internally, not much outside.
-    public static String makeMethodDesc(String param, String result) {
-        return "(" + param + ")" + result;
-    }
-//    public static String makeMethodDesc(List<String> params, String result) {
-//        String desc ="(";
-//        for (String param : params) {
-//            desc += param;
-//        }
-//        desc += ")" + result;
-//        return desc;
-//    }
-
     // Used once.
     private static String makeArrayDesc(String element) {
         return "[" + element;
@@ -771,7 +750,7 @@ public class NamingCzar {
             String rangeDesc,
             APIName ifNone) {
         // Changing this to do the tuple thing, seems to break "run".  Why?
-        return makeMethodDesc(
+        return Naming.makeMethodDesc(
                 NodeUtil.isVoidType(domain) ? "" : jvmTypeDesc(domain, ifNone),
                         rangeDesc);
     }
@@ -788,7 +767,7 @@ public class NamingCzar {
             buf.append(jvmBoxedTypeDesc((com.sun.fortress.nodes.Type) p.getIdType().unwrap(), ifNone));
         }
         args = buf.toString();
-        return makeMethodDesc(args, rangeDesc);
+        return Naming.makeMethodDesc(args, rangeDesc);
     }
     
     public static String jvmSignatureForNObjects(int n,
@@ -800,22 +779,8 @@ public class NamingCzar {
             buf.append("Ljava/lang/Object;");
         }
         args = buf.toString();
-        return makeMethodDesc(args, rangeDesc);
+        return Naming.makeMethodDesc(args, rangeDesc);
     }
-
-    public static String jvmSignatureForNTypes(int n, String type,
-            String rangeDesc) {
-        // This special case handles single void argument type properly.
-        String args = "";
-        String desc = "L" + type + ";";
-        StringBuilder buf = new StringBuilder();
-        for (int i = 0; i < n; i++) {
-            buf.append(desc);
-        }
-        args = buf.toString();
-        return makeMethodDesc(args, rangeDesc);
-    }
-
 
     // CodeGen.forFnDecl
     public static String jvmSignatureFor(com.sun.fortress.nodes.Type domain,
@@ -846,7 +811,7 @@ public class NamingCzar {
             }
         }
 
-        return makeMethodDesc(args, rangeDesc);
+        return Naming.makeMethodDesc(args, rangeDesc);
     }
 
     private static String jvmSignatureFor(List<com.sun.fortress.nodes.Param> domain,
@@ -1262,8 +1227,8 @@ public class NamingCzar {
             @Override
             public String forArrowType(ArrowType t) {
                 if (NodeUtil.isVoidType(t.getDomain()))
-                    return makeMethodDesc("", jvmTypeDesc(t.getRange(), ifNone, true, true));
-                else return makeMethodDesc(jvmTypeDesc(t.getDomain(), ifNone, true, false),
+                    return Naming.makeMethodDesc("", jvmTypeDesc(t.getRange(), ifNone, true, true));
+                else return Naming.makeMethodDesc(jvmTypeDesc(t.getDomain(), ifNone, true, false),
                                            jvmTypeDesc(t.getRange(), ifNone, true, true));
             }
 

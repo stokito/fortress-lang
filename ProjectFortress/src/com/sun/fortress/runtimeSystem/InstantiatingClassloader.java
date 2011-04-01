@@ -34,10 +34,13 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.compiler.codegen.CodeGen;
+import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
 import com.sun.fortress.compiler.codegen.CodeGenMethodVisitor;
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
 import com.sun.fortress.compiler.codegen.ManglingMethodVisitor;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
+import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.FnVoid;
@@ -1349,17 +1352,48 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     private static byte[] instantiateTupleRTTI(String name) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         // Tuple,N$RTTIc
-        String nstring = name.substring(Naming.TUPLE_RTTI_TAG.length(), name.indexOf('$'));
+        int dollar_at = name.indexOf('$');
+        String stem_name = name.substring(0,dollar_at);
+        String nstring = name.substring(Naming.TUPLE_RTTI_TAG.length(), dollar_at);
         final int n = Integer.parseInt(nstring);
         String[] superInterfaces = null;
         cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC, name, null,
                 Naming.RTTI_CONTAINER_TYPE, superInterfaces);
-        
         // init
-        // clinit
+        {
+        String init_sig =
+            InstantiatingClassloader.jvmSignatureForNTypes(n, Naming.RTTI_CONTAINER_TYPE, "V");
+        MethodVisitor mv = cw.visitCGMethod(ACC_PUBLIC, "<init>", init_sig, null, null);
+        mv.visitCode();
+        
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitMethodInsn(INVOKESPECIAL, Naming.RTTI_CONTAINER_TYPE, "<init>", "()V");
+        
+        int pno = 1;
+        for (int i = Naming.STATIC_PARAMETER_ORIGIN;
+                 i < n+Naming.STATIC_PARAMETER_ORIGIN; i++) {
+            String spn = "T"+i;
+            // not yet this;  sp.getKind();
+            mv.visitVarInsn(ALOAD, 0);
+            mv.visitVarInsn(ALOAD, pno);
+            mv.visitFieldInsn(PUTFIELD, name, spn,
+                              Naming.STATIC_PARAMETER_FIELD_DESC);
+            pno++;
+        }
+        
+        voidEpilogue(mv);
+        }
+
+        // fields and getters
+        for (int i = Naming.STATIC_PARAMETER_ORIGIN;
+             i < n+Naming.STATIC_PARAMETER_ORIGIN; i++) {
+            fieldAndGetterForStaticParameter(cw, stem_name, "T"+i, i);   
+        }
+        
+        // clinit -- part of the dictionary call
         // dictionary
         // factory
-        
+        emitDictionaryAndFactoryForGenericRTTIclass(cw, name, n);
         
         cw.visitEnd();
         return cw.toByteArray();
@@ -1740,7 +1774,160 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     }
 
- 
+    public static String jvmSignatureForNTypes(int n, String type,
+            String rangeDesc) {
+        // This special case handles single void argument type properly.
+        String args = "";
+        StringBuilder buf = new StringBuilder();
+        for (int i = 0; i < n; i++) {
+            buf.append("L");
+            buf.append(type);
+            buf.append(";");
+        }
+        args = buf.toString();
+        return Naming.makeMethodDesc(args, rangeDesc);
+    }
+
+    /**
+     * @param stem_name
+     * @param static_parameter_name
+     * @param i
+     */
+    static public void fieldAndGetterForStaticParameter(ManglingClassWriter cw, String stem_name,
+            String static_parameter_name, int i) {
+        String method_name =
+            CodeGen.staticParameterGetterName(stem_name, i);
+        
+        cw.visitField(ACC_PRIVATE + ACC_FINAL,
+                static_parameter_name, Naming.STATIC_PARAMETER_FIELD_DESC, null, null);
+        
+        MethodVisitor mv = cw.visitCGMethod(
+                ACC_PUBLIC, method_name,
+                Naming.STATIC_PARAMETER_GETTER_SIG, null, null);
+        
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitFieldInsn(GETFIELD, Naming.stemClassJavaName(stem_name), static_parameter_name, Naming.STATIC_PARAMETER_FIELD_DESC);
+    
+        
+        areturnEpilogue(mv);
+    }
+
+    /**
+     * 
+     */
+    static public void voidEpilogue(MethodVisitor mv) {
+        mv.visitInsn(RETURN);
+        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+        mv.visitEnd();
+    }
+
+    /**
+     * 
+     */
+    static public void areturnEpilogue(MethodVisitor mv) {
+        mv.visitInsn(ARETURN);
+    
+        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+        mv.visitEnd();
+    }
+
+    /**
+     * @param first_arg
+     * @param n_args
+     */
+    public static void pushArgs(MethodVisitor mv, int first_arg, int n_args) {
+        for (int arg = 0; arg < n_args; arg++) {
+            mv.visitVarInsn(ALOAD, arg+first_arg);
+        }
+    }
+
+    /**
+     * @param rttiClassName
+     * @param sparams_size
+     */
+    static public void emitDictionaryAndFactoryForGenericRTTIclass(
+            ManglingClassWriter cw,
+            String rttiClassName,
+            final int sparams_size) {
+        String RTTI_MAP_NAME =
+            "com/sun/fortress/runtimeSystem/RttiTupleMap";
+        // FIELD
+        // static, initialized to Map-like thing
+        cw.visitField(ACC_PRIVATE + ACC_STATIC + ACC_FINAL,
+                "DICTIONARY", "L" + RTTI_MAP_NAME + ";", null, null);
+
+        // CLINIT
+        // factory, consulting map, optionally invoking constructor.
+        MethodVisitor mv = cw.visitCGMethod(ACC_STATIC, "<clinit>", "()V", null, null);
+        mv.visitCode();
+        // new
+        mv.visitTypeInsn(NEW, RTTI_MAP_NAME);
+        // init
+        mv.visitInsn(DUP);
+        mv.visitMethodInsn(INVOKESPECIAL, RTTI_MAP_NAME, "<init>", "()V");
+        // store
+        mv.visitFieldInsn(PUTSTATIC, rttiClassName,
+                "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
+
+        mv.visitInsn(RETURN);
+        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+        mv.visitEnd();
+
+        // FACTORY
+
+        String fact_sig = Naming.rttiFactorySig(rttiClassName, sparams_size);
+        String init_sig = InstantiatingClassloader.jvmSignatureForNTypes(
+                sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
+        String get_sig = InstantiatingClassloader.jvmSignatureForNTypes(
+                sparams_size, Naming.RTTI_CONTAINER_TYPE, "L" + Naming.RTTI_CONTAINER_TYPE + ";");
+        String put_sig = InstantiatingClassloader.jvmSignatureForNTypes(
+                sparams_size+1, Naming.RTTI_CONTAINER_TYPE, "L" + Naming.RTTI_CONTAINER_TYPE + ";");
+
+        mv = cw.visitCGMethod(ACC_PUBLIC + ACC_STATIC, "factory", fact_sig, null, null);
+        mv.visitCode();
+        /* 
+         * rCN x = DICTIONARY.get(args)
+         * if  x == null then
+         *   x = new rCN(args)
+         *   x = DICTIONARY.put(args, x)
+         * end
+         * return x
+         */
+
+        // object
+        mv.visitFieldInsn(GETSTATIC, rttiClassName,
+                "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
+        // push args
+        int l = sparams_size;
+        InstantiatingClassloader.pushArgs(mv, 0, l);
+        // invoke Dictionary.get
+        mv.visitMethodInsn(INVOKEVIRTUAL, RTTI_MAP_NAME, "get", get_sig);
+        Label not_null = new Label();
+        mv.visitInsn(DUP);
+        mv.visitJumpInsn(IFNONNULL, not_null);
+        mv.visitInsn(POP); // discard dup'd null
+        // doing it all on the stack -- first push the dictionary,
+        // then push the args, then construct the object, then invoke
+        // putIfNew
+        mv.visitFieldInsn(GETSTATIC, rttiClassName,
+                "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
+        InstantiatingClassloader.pushArgs(mv, 0, l);
+        // invoke constructor
+        mv.visitTypeInsn(NEW, rttiClassName);
+        mv.visitInsn(DUP);
+        InstantiatingClassloader.pushArgs(mv, 0, l);
+        mv.visitMethodInsn(INVOKESPECIAL, rttiClassName,
+                "<init>", init_sig);
+        // pass it through the dictionary
+        mv.visitMethodInsn(INVOKEVIRTUAL, RTTI_MAP_NAME,
+                "putIfNew", put_sig);
+
+        mv.visitLabel(not_null);
+        mv.visitInsn(ARETURN);
+
+        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+        mv.visitEnd();
+    }
 }
 
 /** Figures out whether a class can be loaded by a custom class loader or not. */
