@@ -4015,6 +4015,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             List<TraitTypeWhere> extends_extends = te_ti.extendsTypes();
             HashMap<Id, TraitIndex> extends_transitive_extends =
                 STypesUtil.inheritedTransitiveTraits(extends_extends, ta);
+            extends_transitive_extends.put(te_id, te_ti); // put self in set.
             transitive_extends_from_extends.put(te_id, extends_transitive_extends);
         }
         
@@ -4032,14 +4033,25 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // iterate over all traits transitively extended by delegate (de_)            
             Map<Id, TraitIndex> extends_transitive_extends =
                 transitive_extends_from_extends.get(de_id);
+            Set<Map.Entry <Id, TraitIndex>> entryset =
+                extends_transitive_extends.entrySet();
             for (Map.Entry <Id, TraitIndex> extends_entry :
-                extends_transitive_extends.entrySet()) {
-                // delegate through field te_id for each static parameter getter.
-                Id te_id = entry.getKey();
-                String te_stem = stemFromId(te_id, packageAndClassName);
-                TraitIndex te_ti = entry.getValue();
+                entryset) {
+                    
+                // delegate for extended te_id, if not already done.
+                Id te_id = extends_entry.getKey();
+                if (! transitive_extends.containsKey(te_id))
+                    continue; // already done.
+                else
+                    transitive_extends.remove(te_id);
+
+                TraitIndex te_ti = extends_entry.getValue();
                 List<StaticParam> te_sp = te_ti.staticParameters();
                 
+                if (te_sp.size() == 0)
+                    continue;  // no static parameters to delegate for.
+                
+                String te_stem = stemFromId(te_id, packageAndClassName);
                 // emit delegates here
                 // asX#number
                 int i = Naming.STATIC_PARAMETER_ORIGIN;
@@ -4067,12 +4079,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     areturnEpilogue();
                     i++;
                 }
-                transitive_extends.remove(te_id);
             }
         }
-
         cw.dumpClass( rttiClassName );
-        
         cw = prev;
     }
 
