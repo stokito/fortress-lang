@@ -1246,7 +1246,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitLdcInsn(val);
         mv.visitMethodInsn(INVOKESTATIC,
                            NamingCzar.internalFortressFloatLiteral, NamingCzar.make,
-                           NamingCzar.makeMethodDesc(NamingCzar.descDouble,
+                           Naming.makeMethodDesc(NamingCzar.descDouble,
                                                      NamingCzar.descFortressFloatLiteral));
     }
 
@@ -2396,7 +2396,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void makeTupleOfSpecifiedType(Type t) {
         String tcn =  NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
         String arg_sig = NamingCzar.jvmTypeDesc(t, thisApi(), true, false);
-        String sig = NamingCzar.makeMethodDesc(arg_sig, "L" + tcn + ";");
+        String sig = Naming.makeMethodDesc(arg_sig, "L" + tcn + ";");
         tcn = "Concrete" + tcn;
         mv.visitMethodInsn(INVOKESTATIC,
                 tcn,
@@ -2761,7 +2761,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             addLineNumberInfo(x);
             mv.visitMethodInsn(INVOKEVIRTUAL,
                                NamingCzar.internalFortressBoolean, "getValue",
-                               NamingCzar.makeMethodDesc("", NamingCzar.descBoolean));
+                               Naming.makeMethodDesc("", NamingCzar.descBoolean));
             mv.visitJumpInsn(IFEQ, falseBranch);
 
             // emit code for condition true
@@ -2798,7 +2798,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             mv.visitMethodInsn(INVOKESTATIC,
                     NamingCzar.internalFortressIntLiteral, NamingCzar.make,
-                    NamingCzar.makeMethodDesc(NamingCzar.descInt,
+                    Naming.makeMethodDesc(NamingCzar.descInt,
                                               NamingCzar.descFortressIntLiteral));
         } else if (l <= 64) {
             long yy = bi.longValue();
@@ -2807,7 +2807,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             addLineNumberInfo(x);
             mv.visitMethodInsn(INVOKESTATIC,
                     NamingCzar.internalFortressIntLiteral, NamingCzar.make,
-                    NamingCzar.makeMethodDesc(NamingCzar.descLong,
+                    Naming.makeMethodDesc(NamingCzar.descLong,
                                               NamingCzar.descFortressIntLiteral));
         } else {
             String s = bi.toString();
@@ -2816,7 +2816,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             addLineNumberInfo(x);
             mv.visitMethodInsn(INVOKESTATIC,
                     NamingCzar.internalFortressIntLiteral, NamingCzar.make,
-                    NamingCzar.makeMethodDesc(NamingCzar.descString,
+                    Naming.makeMethodDesc(NamingCzar.descString,
                                               NamingCzar.descFortressIntLiteral));
         }
     }
@@ -3552,7 +3552,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitLdcInsn(x.getText());
         addLineNumberInfo(x);
         mv.visitMethodInsn(INVOKESTATIC, NamingCzar.internalFortressString, NamingCzar.make,
-                           NamingCzar.makeMethodDesc(NamingCzar.descString, NamingCzar.descFortressString));
+                           Naming.makeMethodDesc(NamingCzar.descString, NamingCzar.descFortressString));
     }
 
     public void forSubscriptExpr(SubscriptExpr x) {
@@ -3860,32 +3860,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     extendeeIlk, tyDesc, null, null);
          }
  
-        // Fields for static parameters
-        for (StaticParam sp : sparams) {
-            IdOrOp spn = sp.getName();
-            // not yet this;  sp.getKind();
-           
-            String tyDesc = Naming.STATIC_PARAMETER_FIELD_DESC;
-            cw.visitField(ACC_PRIVATE + ACC_FINAL,
-                    spn.getText(), tyDesc, null, null);
-
-        }
-        
-        // Getters for static parameters
+        // Fields and Getters for static parameters
         {
             int i = Naming.STATIC_PARAMETER_ORIGIN;
             for (StaticParam sp : sparams) {
-                String method_name =
-                    staticParameterGetterName(cnb.stemClassName, i);
-                mv = cw.visitCGMethod(
-                        ACC_PUBLIC, method_name,
-                        Naming.STATIC_PARAMETER_GETTER_SIG, null, null);
-                
-                mv.visitVarInsn(ALOAD, 0);
-                mv.visitFieldInsn(GETFIELD, rttiClassName, sp.getName().getText(), Naming.STATIC_PARAMETER_FIELD_DESC);
-
-                
-                areturnEpilogue();           
+                String spn = sp.getName().getText();
+                String stem_name = cnb.stemClassName;
+                InstantiatingClassloader.fieldAndGetterForStaticParameter(cw, stem_name, spn, i);           
                 i++;
             }
             }
@@ -3896,9 +3877,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         final int sparams_size = sparams.size();
         {
-            // BUG, hardwired use of Object here. 
+            // Variant of this code in InstantiatingClassloader
             String init_sig =
-                NamingCzar.jvmSignatureForNObjects(sparams_size, "V");
+                InstantiatingClassloader.jvmSignatureForNTypes(sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
             mv = cw.visitCGMethod(ACC_PUBLIC, "<init>", init_sig, null, null);
             mv.visitCode();
             
@@ -3907,11 +3888,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
             int pno = 1;
             for (StaticParam sp : sparams) {
-                IdOrOp spn = sp.getName();
+                String spn = sp.getName().getText();
                 // not yet this;  sp.getKind();
                 mv.visitVarInsn(ALOAD, 0);
                 mv.visitVarInsn(ALOAD, pno);
-                mv.visitFieldInsn(PUTFIELD, rttiClassName, spn.getText(),
+                mv.visitFieldInsn(PUTFIELD, rttiClassName, spn,
                                   Naming.STATIC_PARAMETER_FIELD_DESC);
                 pno++;
             }
@@ -3943,79 +3924,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             voidEpilogue();
         } else {
-            String RTTI_MAP_NAME =
-                "com/sun/fortress/runtimeSystem/RttiTupleMap";
-            // FIELD
-            // static, initialized to Map-like thing
-            cw.visitField(ACC_PRIVATE + ACC_STATIC + ACC_FINAL,
-                    "DICTIONARY", "L" + RTTI_MAP_NAME + ";", null, null);
-            
-            // CLINIT
-            // factory, consulting map, optionally invoking constructor.
-            mv = cw.visitCGMethod(ACC_STATIC, "<clinit>", "()V", null, null);
-            mv.visitCode();
-            // new
-            mv.visitTypeInsn(NEW, RTTI_MAP_NAME);
-            // init
-            mv.visitInsn(DUP);
-            mv.visitMethodInsn(INVOKESPECIAL, RTTI_MAP_NAME, "<init>", "()V");
-            // store
-            mv.visitFieldInsn(PUTSTATIC, rttiClassName,
-                    "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
-
-            voidEpilogue();
-            
-            // FACTORY
-            
-            String fact_sig = Naming.rttiFactorySig(rttiClassName, sparams_size);
-            String init_sig = NamingCzar.jvmSignatureForNTypes(
-                    sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
-            String get_sig = NamingCzar.jvmSignatureForNTypes(
-                    sparams_size, Naming.RTTI_CONTAINER_TYPE, "L" + Naming.RTTI_CONTAINER_TYPE + ";");
-            String put_sig = NamingCzar.jvmSignatureForNTypes(
-                    sparams_size+1, Naming.RTTI_CONTAINER_TYPE, "L" + Naming.RTTI_CONTAINER_TYPE + ";");
-
-            mv = cw.visitCGMethod(ACC_PUBLIC + ACC_STATIC, "factory", fact_sig, null, null);
-            mv.visitCode();
-            /* 
-             * rCN x = DICTIONARY.get(args)
-             * if  x == null then
-             *   x = new rCN(args)
-             *   x = DICTIONARY.put(args, x)
-             * end
-             * return x
-             */
-            
-            // object
-            mv.visitFieldInsn(GETSTATIC, rttiClassName,
-                    "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
-            // push args
-            int l = sparams_size;
-            pushArgs(0, l);
-            // invoke Dictionary.get
-            mv.visitMethodInsn(INVOKEVIRTUAL, RTTI_MAP_NAME, "get", get_sig);
-            Label not_null = new Label();
-            mv.visitInsn(DUP);
-            mv.visitJumpInsn(IFNONNULL, not_null);
-            mv.visitInsn(POP); // discard dup'd null
-            // doing it all on the stack -- first push the dictionary,
-            // then push the args, then construct the object, then invoke
-            // putIfNew
-            mv.visitFieldInsn(GETSTATIC, rttiClassName,
-                    "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
-            pushArgs(0, l);
-            // invoke constructor
-            mv.visitTypeInsn(NEW, rttiClassName);
-            mv.visitInsn(DUP);
-            pushArgs(0, l);
-            mv.visitMethodInsn(INVOKESPECIAL, rttiClassName,
-                    "<init>", init_sig);
-            // pass it through the dictionary
-            mv.visitMethodInsn(INVOKEVIRTUAL, RTTI_MAP_NAME,
-                    "putIfNew", put_sig);
-            
-            mv.visitLabel(not_null);
-            areturnEpilogue();           
+            InstantiatingClassloader.emitDictionaryAndFactoryForGenericRTTIclass(cw, rttiClassName,
+                    sparams_size);           
         }
         
         /*
@@ -4168,25 +4078,21 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
 
     /**
-     * 
+     * Finish up a method that returns an Object
      */
     private void areturnEpilogue() {
-        mv.visitInsn(ARETURN);
-
-        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
-        mv.visitEnd();
+        InstantiatingClassloader.areturnEpilogue(mv);
     }
 
 
     /**
-     * 
+     * Finish up a method that returns void
      */
     private void voidEpilogue() {
-        mv.visitInsn(RETURN);
-        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
-        mv.visitEnd();
+        InstantiatingClassloader.voidEpilogue(mv);
     }
-
+    
+    
     /**
      * 
      * @param mv2
@@ -4211,7 +4117,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             }
         } else {
             // invoke field_type.factory(args)
-            String fact_sig = NamingCzar.jvmSignatureForNTypes(ti_args.size(),
+            String fact_sig = InstantiatingClassloader.jvmSignatureForNTypes(ti_args.size(),
                     Naming.RTTI_CONTAINER_TYPE, "L" + field_type + ";");
             
             for (StaticArg sta : ti_args) {
@@ -4267,17 +4173,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         }
         
-    }
-
-
-    /**
-     * @param first_arg
-     * @param n_args
-     */
-    private void pushArgs(int first_arg, int n_args) {
-        for (int arg = 0; arg < n_args; arg++) {
-            mv.visitVarInsn(ALOAD, arg+first_arg);
-        }
     }
 
 
@@ -4387,7 +4282,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     private void pushVoid() {
         mv.visitMethodInsn(INVOKESTATIC, NamingCzar.internalFortressVoid, NamingCzar.make,
-                           NamingCzar.makeMethodDesc("", NamingCzar.descFortressVoid));
+                           Naming.makeMethodDesc("", NamingCzar.descFortressVoid));
     }
 
     public void forVoidLiteralExpr(VoidLiteralExpr x) {

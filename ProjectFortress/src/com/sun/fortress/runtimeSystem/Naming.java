@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.useful.CheapSerializer;
 import com.sun.fortress.useful.Pair;
@@ -39,9 +38,10 @@ public class Naming {
 
     public final static int TUPLE_ORIGIN = 1;
     public final static int STATIC_PARAMETER_ORIGIN = 1;
-    public final static String STATIC_PARAMETER_GETTER_SIG = "()Ljava/lang/Object;";
-    public final static String STATIC_PARAMETER_FIELD_DESC = "Ljava/lang/Object;";
-    
+    public final static String RTTI_CONTAINER_TYPE = "java/lang/Object";
+    public final static String STATIC_PARAMETER_FIELD_DESC = "L" + RTTI_CONTAINER_TYPE + ";";
+    public final static String STATIC_PARAMETER_GETTER_SIG = "()" + STATIC_PARAMETER_FIELD_DESC;
+
     // Used to indicate translation convention to apply to type parameter.
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA
     public final static String NORMAL_TAG = "\u263a"; // smiley face == normal case.
@@ -848,10 +848,6 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
                                     RTTI_INTERFACE_SUFFIX;
     }
 
-
-    public final static String RTTI_CONTAINER_TYPE = "java/lang/Object";
-
-
     /**
      * @param owner_and_result_class
      * @param n_static_params
@@ -859,7 +855,7 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
      */
     public static String rttiFactorySig(String owner_and_result_class,
             final int n_static_params) {
-        return NamingCzar.jvmSignatureForNTypes(
+        return InstantiatingClassloader.jvmSignatureForNTypes(
                 n_static_params, RTTI_CONTAINER_TYPE, "L" + RTTI_CONTAINER_TYPE +";");
     }
     
@@ -875,5 +871,26 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
     public static String internalToDesc(String type) {
         return "L" + type + ";";
     }
+
+    /**
+         * Returns "(" + param + ")" + result ; converts
+         * to JVM method descriptor form.
+         *
+         * @param param
+         * @param result
+         * @return
+         */
+        // Widely used internally, not much outside.
+        public static String makeMethodDesc(String param, String result) {
+            return "(" + param + ")" + result;
+        }
+    //    public static String makeMethodDesc(List<String> params, String result) {
+    //        String desc ="(";
+    //        for (String param : params) {
+    //            desc += param;
+    //        }
+    //        desc += ")" + result;
+    //        return desc;
+    //    }
     
 }
