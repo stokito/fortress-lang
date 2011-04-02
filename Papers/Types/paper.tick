@@ -152,6 +152,7 @@
 
 \theorembodyfont{\rm}
 \newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
 \newenvironment{proof}{\noindent \textbf{Proof:} }{\hfill $\Box$}
 
 \begin{document}
@@ -233,7 +234,7 @@
 \input{abstract.tex}
 \end{abstract}
 
-\section{Introduction}
+\section{Introduction}\label{sec:intro}
 \input{introduction.tex}
 % INTRO
 % Symmetric Multiple Dispatch
@@ -242,7 +243,7 @@
 % Parametric polymorphism
 % Dispatch
 
-\section{Preliminaries}
+\section{Preliminaries}\label{sec:pre}
 \input{setup}
 
 % TYPES
@@ -257,7 +258,7 @@
 % Old Overloading Rules
 % Dispatch: Parametric functions
 
-\section{Overloading Rules}\label{sec:rules}
+\section{Parametrically Polymorphic Overloading}\label{sec:rules}
 \input{rules}
 % GENERALIZED RULES
 % subtyping on domain = more specific for arrows
@@ -269,10 +270,10 @@
 % subtype rule
 % Nothing satisfies them
 
-\section{Examples and Problems}
+\section{Disallowed Valid Overloading}\label{sec:problems}
 \input{problems}
 
-\section{Exclusion Relation}
+\section{More Permissive Overloading}\label{sec:exclusion}
 % EXCLUSION
 % Exclusion on base types
 % Exclusion on parametric types
@@ -280,10 +281,14 @@
 % Powerful for computing meets
 \input{exclusion}
 
-\section{Related Work}
+%\section{Type Safety Properties}\label{sec:safety}
+\section{Overloading Resolution Safety}\label{sec:safety}
+\input{safety}
+
+\section{Related Work}\label{sec:related}
 \input{related-work}
 
-\section{Conclusion and Discussion}
+\section{Conclusion and Discussion}\label{sec:conclusion}
 \input{conclusion}
 
 \bibliographystyle{plain}

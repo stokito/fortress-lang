@@ -1,6 +1,7 @@
-A fundamental problem
-with $\D(\mbox{\emph{foo}})$ is that a type such as `BadList` might be a
-subtype
+Checking the declarations $\D(tail)$ and $\D(foo)$ is trickier.
+Certainly neither `List` nor `ArrayList` declares an exclusion of the other,
+so seemingly the exclusion relation does not help us check these declarations.
+A fundamental problem is that a type such as `BadList` might be a subtype
 of multiple instantiations of the type constructor `List` (in this case,
 a subtype of `List[\ZZ\]` directly and of `List[\String\]` via `ArrayList[\String\]`).
 A type hierarchy in which
@@ -10,7 +11,7 @@ to exhibit \emph{multiple instantiation inheritance} \cite{kennedy07}.
 We address this problem by imposing an additional restriction on well-formed class tables,
 which, in effect, adds additional power to the exclusion relation:
 \begin{description}
-\item[Polymorphic Exclusion] 
+\item[Polymorphic Exclusion Rule] 
 A type (other than \BottomType) 
 must not be a subtype of multiple distinct instantiations of a type constructor. 
 \end{description}
@@ -25,21 +26,35 @@ and for good reason: Kennedy and Pierce showed that multiple instantiation inher
 is one of three conditions that lead to the undecidability of
 nominal subtyping with variance \cite{kennedy07}.
 
-With polymorphic exclusion in place, the type `BadList` is no longer well-formed in its class table. However, our subtype judgment still cannot find a type `V <: ZZ` to prove that:
-\begin{align*}
-\jgsub[`X <: Any, Y <: ZZ`]{`ArrayList[\X\] CAP List[\Y\]`}{`ArrayList[\V\]`}
-\end{align*} which is necessary to check the Meet Rule.
+With polymorphic exclusion in place, the type `BadList` is no longer well-formed in its class table.
+However, our subtype judgment still cannot find a type `W <: ZZ` to prove that:
+\\[.5em]
+\hspace*{.5em}
+%\jgsub[`X <: Any, Y <: ZZ`]{`ArrayList[\X\] CAP List[\Y\]`}{`ArrayList[\W\]`}
+\ensuremath{
+\begin{array}{l}
+{`X <: Any, Y <: ZZ`}\,\vdash
+\\
+\quad\quad\quad\quad
+{`ArrayList[\X\] CAP List[\Y\]`}\;{\subtypeof}\;{`ArrayList[\W\]`}
+\end{array}
+}
+\\[.5em]
+% \begin{align*}
+% \jgsub[`X <: Any, Y <: ZZ`]{`ArrayList[\X\] CAP List[\Y\]`}{`ArrayList[\W\]`}
+% \end{align*}
+which is necessary to satisfy the Meet Rule.
 All that is known about $X$ and $Y$ for this subtype check is that
 they are subtypes of `Any` and `ZZ`, respectively.
 If we could somehow equate $X$ and $Y$, transferring $Y$'s tighter
-bound `ZZ` to `X`, then we could use $V = X$ to prove the assertion.
+bound `ZZ` to `X`, then we could use $W = X$ to prove the assertion.
 Syntactically, the types $X$ and $Y$ do not provide enough information
 to prove the subtype assertion, but with additional assumptions about
 their structure (namely, that their extents are equal) we can indeed
 prove the assertion.  Incorporating this kind of deduction into our
 subtyping judgment as described in Section~\ref{sec:constraints}
-allows us to prove that many more sets of
-overloaded function declarations satisfy our rules.
+allows many more sets of overloaded function declarations
+such as `tail` and `foo` as valid overloadings.
 
 
 

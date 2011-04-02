@@ -61,8 +61,10 @@ because each of two function definitions
 might be more specific in one argument and not another. 
 For example, 
 consider the following overloaded function definitions:
-`    f(b:B, a:A)
-    f(a:A, b:B)`
+\small
+`  f(b:B, a:A)
+  f(a:A, b:B)`
+\normalsize
 If $A$ is a subtype of $B$, 
 to which of these definitions do we dispatch 
 when $f$ is called with two arguments of type $A$? 
@@ -83,14 +85,18 @@ this model of ````an infinite set of ground types'' is adequate for explanatory 
 Not so, however, for type-parametric functions.  For quite some time during the
 development of the Fortress language, one of us (Steele) pushed for understanding
 a parametrically polymorphic function definition such as:
-`    append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e
+\small
+`  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e
 `
+\normalsize
 where white square brackets delimit the declaration of the type parameter,
 as if it stood for an infinite set of monomorphic definitions:
-`    append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e
-    append(x: List[\String\], y: List[\String\]): List[\String\] = e
-    append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e
-    ...`
+\small
+`  append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e
+  append(x: List[\String\], y: List[\String\]): List[\String\] = e
+  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e
+  ...`
+\normalsize
 The intuition was that for any specific function call,
 the usual rule for multimethod
 dispatch would then choose the appropriate most specific
@@ -100,21 +106,27 @@ That intuition worked well enough for a single polymorphic function definition,
 but failed utterly when we considered multiple function definitions.
 It would seem natural for a programmer to want to provide definitions for specific
 monomorphic special cases:
-`    append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
-    append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
+\small
+`  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
+  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
+\normalsize
 but if the model is taken seriously, this would be equivalent to:
-`    append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e1
-    append(x: List[\String\], y: List[\String\]): List[\String\] = e1
-    append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e1
-    ...
-    append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
+\small
+`  append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e1
+  append(x: List[\String\], y: List[\String\]): List[\String\] = e1
+  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e1
+  ...
+  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
+\normalsize
 and we can see that there is an ambiguity when the arguments are
 both of type `List[\ZZ\]`.
 
 It only gets worse if the programmer wishes to handle an infinite set
 of cases specially.  It would seem natural to write:
-`    append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
-    append[\T <: Number\](x: List[\T\], y: List[\T\]): List[\T\] = e2`
+\small
+`  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
+  append[\T <: Number\](x: List[\T\], y: List[\T\]): List[\T\] = e2`
+\normalsize
 so as to handle specially all cases where `T` is a subtype of `Number`,
 but the model would regard this as an overloading with an infinite
 number of ambiguities.
@@ -146,8 +158,10 @@ How do we compare such functions, and how do we ensure
 that there is always a best overloaded function to dispatch to?
 
 For example, consider the following overloaded function definitions in Fortress:
-`    combine[\T\](xs: List[\T\], ys: List[\T\]): List[\T\]
-    combine[\S,T\](s: Table[\S,T\], t: Table[\S,T\]): Table[\S,T\]`
+\small
+`  combine[\T\](xs: List[\T\], ys: List[\T\]): List[\T\]
+  combine[\S,T\](s: Table[\S,T\], t: Table[\S,T\]): Table[\S,T\]`
+\normalsize
 The first definition declares a single
 type parameter denoting the types of the elements of the two
 list arguments $xs$ and $ys$. The second definition declares two 
@@ -167,15 +181,18 @@ since instantiation of type parameters at a call site
 is typically done automatically.
 
 The remainder of this paper is organized thus.
-In Section 2,
-we define the concepts and notation necessary
+In Section~\ref{sec:pre}, we define the concepts and notation necessary
 to explain our formal rules for checking overloaded function definitions,
-which we present using universal and existential types in Section 3.
-In Section 4,
-we explain why many natural programs are (rightfully) rejected by
-our rules and propose to extend the language with ``nominal exclusion'' in
-order to allow them.
-In Section 5, we formally describe exclusion and
-use it to augment the subtyping relation for universal and existential types.
-Finally, we discuss related work in Section 6 and conclude in Section 7.
+which we present using universal and existential types in Section~\ref{sec:rules}.
+In Section~\ref{sec:problems}, we explain why some valid overloadings
+are (rightfully) rejected by our rules and propose to extend the
+language with ````nominal exclusion'' in order to allow them.
+In Section~\ref{sec:exclusion}, we formalize the exclusion
+relation and use it to extend the overloading rules to allow more
+valid overloadings.
+%use it to augment the subtyping relation for universal and existential types.
+Section~\ref{sec:safety} describes that the overloading rules are
+sufficient to guarantee no undefined or ambiguous calls at run time.
+Finally, we discuss related work in Section~\ref{sec:related} and
+conclude in Section~\ref{sec:conclusion}.
 
