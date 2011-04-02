@@ -13,7 +13,7 @@
 %   * HMG(X) (pottier)
 %   * with OOP (russo)
 %
-\subsubsection{Overloading and dynamic dispatch.} Primarily, our system
+\subsection{Overloading and dynamic dispatch.} Primarily, our system
 strictly extends our previous effort \cite{allen07} with parametric polymorphism;
 all previous properties and results remain intact. The inclusion of parametric
 functions and types represents a shift in the research literature on overloading
@@ -50,7 +50,7 @@ Because Cecil has a type-erasure semantics, the statically checked
 parametric polymorphism does not have any effects in runtime dispatches.
 
 
-\subsubsection{Type classes.} Wadler and Blott \cite{wadler89} introduced
+\subsection{Type classes.} Wadler and Blott \cite{wadler89} introduced
 \emph{type class} as a means to specify and implement overloaded
 functions like equality and arithmetic operators in Haskell. Other authors
 have translated type classes to languages besides Haskell \cite{dreyer07,siek05,wehr07}.

@@ -1,8 +1,11 @@
-We define the exclusion relation 
-by extending type constructor declarations with two new optional clauses, 
-`excludes` and `comprises`:
+To provide more expressive power to describe richer type relationships,
+we introduce the \emph{exclusion} relation $\exc$ on types:
+$S \exc T$ asserts that types $S$ and $T$ have no common subtypes other than \BottomType.
+
+We define the exclusion relation by extending type constructor declarations with
+two new optional clauses, `excludes` and `comprises`:
 \[
-C\tplist{X}{L} \extends `{N_bar} [ excludes {M_bar} ] [ comprises {K_bar} ]`
+C\tplist{X}{L} \extends `{N_bar} [excludes {M_bar}] [comprises {K_bar}]`
 \]
 We also allow another form of declaration that is frequently convenient for defining ````leaf types'':
 \[
@@ -105,13 +108,16 @@ must preserve these well-formedness properties.
 
 
 
+\subsection{Overloading Rule with Exclusion}\label{sec:exc-rules}
+If the parameter types of a set of overloaded functions are disjoint,
+the set does not introduce ambiguity: they are never applicable to the same call.
+Therefore, to allow the function `simple` as a valid overloading,
+any reasonable class table $\T$ that declares types `ZZ` and `String` would also
+declare one to exclude the other, so \hbox{`ZZ` $\exc$ `String`}.
 
-We now return to the example from the previous section, the function $simple$.
-Any reasonable class table $\T$ that declares types `ZZ` and `String` would also
-declare one to exclude the other, so \hbox{`ZZ` $\exc$ `String`}. However, the
-Meet Rule still requires a third declaration in $\D(simple)$ that is applicable
+However, the Meet Rule still requires a third declaration in $\D(simple)$ that is applicable
 to every type $T$ if and only if $simple_1$ and $simple_2$ are applicable to $T$.
-Such a $T$ would necessarily be a subtype of both `ZZ` and `String`, but since
+Such $T$ would necessarily be a subtype of both `ZZ` and `String`, but since
 these types exclude, no such $T$ exists (in $\T$ or in any extension thereof).
 We thus augment every collection of overloaded function declarations $\D$ such
 that each $\D(f)$ includes an additional, implicit declaration $\decl{f_\bot}{\BottomType}{\Any}$.
@@ -127,8 +133,4 @@ with the rule necessary for constructing this equivalence:
 \infrule
 {S \;\exc\; T}
 {\Delta \vdash S \cap T <: \BottomType}
-However, as we discussed in the previous section, checking well-formedness
-of the declarations $\D(tail)$ is trickier. Certainly neither `List` nor
-`ArrayList` declares an exclusion of the other, so seemingly the exclusion
-relation does not help us check these declarations.
-
+With these adjustments, $\D(simple)$ is now a valid overloading.

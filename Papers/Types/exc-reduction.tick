@@ -1,9 +1,8 @@
 %%%%%%%%%%%%%%% BEGIN REDUCTION FIGURE %%%%%%%%%%%%%%%%
 \begin{figure}[t]
 \begin{tabular}{c}
-\begin{minipage}{\textwidth}
+\begin{minipage}{.45\textwidth}
 \newjudge{Existential reduction}{\jtreds{\delta}{\delta}{\phi}}
-\vspace*{-1em}
 \infrule
   {\jcequiv{T}{\BottomType}{\TRUE}}
   {\jtreds{\exttype{T}}{\BottomType}{[]}}
@@ -19,18 +18,18 @@
 %   {\jtred{\exttype{T}}{\exttype{T}}}
 
 \infrule
-  {\jcnonequiv{T}{\BottomType}{\C} \andalso
+  {\jcnonequiv{T}{\BottomType}{\C} \\
    \jcsolve{\C}{\phi} \andalso \phi[\Delta] = \Delta'}
   {\jtreds{\exttype{T}}{\exttype[\Delta']{\phi(T)}}{\phi}}
 
 
-\vspace*{-.5em}
+%\vspace*{-.5em}
 \newjudge{Bounds substitution}{\phi[\Delta] = \Delta}
-\vspace*{-.8em}
+%\vspace*{-.8em}
 \infrule
   {\Delta = \bds{X}{M}
       \andalso \phi(\bar{X}) = \bar{Y}, \bar{T}
-      \andalso \bar{\bar{N}} = \bar{\phi^{-1}[Y,\Delta]} \\
+      \andalso \bar{\bar{N}} = \bar{\phi^{-1}[Y,\Delta]} \\[.2em]
     \forall i. \quad \jcsub[\bds{Y}{N}]{\phi(X_i)}{\bar{\phi(M_i)}}{\TRUE}}
   {\phi[\Delta] = \bds{Y}{N}}
 
@@ -42,59 +41,96 @@
 %       \andalso \C_i \neq \FALSE}
 %   {\phi[\Delta] = \NONE}
 
-\vspace*{-.5em}
+%\vspace*{-.5em}
 \newjudge{Bounds transfer}{\phi^{-1}[X,\Delta] = \bar{T}}
-\vspace*{-.8em}
+%\vspace*{-.8em}
 \infrule
   {\{\bar{T}\} = \{\phi(\Delta(X)) \mid X \in dom(\Delta),\; \phi(X) = Y\}}
   {\phi^{-1}[Y,\Delta] = conjuncts(\bigcap \bar{T})}
 
-\vspace*{-.5em}
+\vspace*{-1em}
 %% CONJUNCTS DEF
 \[
-conjuncts(T) \quad \syndef \quad
+\begin{array}{l}
+conjuncts(T)\\
+\syndef
   \begin{cases}
     conjuncts(T_1), conjuncts(T_2)\quad & \text{if } T = T_1 \cap T_2 \\
     T & \text{otherwise}
   \end{cases}
+\end{array}
 \]
-
 \end{minipage}
-\\\\\hline
 \end{tabular}
-
   \caption{Reduction of existential types}
   \label{fig:exred}
 \end{figure}
 %%%%%%%%%%%%%%% END REDUCTION FIGURE %%%%%%%%%%%%%%%%
 
+We can recover the usual subtyping judgment and define the exclusion judgment as follows:\\[1em]
+\begin{tabular}{cc}
+\begin{minipage}{0.23\textwidth}
+\infrule
+{\jcsub{S}{T}{\TRUE}}
+{\jgsub{S}{T}}
+\end{minipage}
+&
+\begin{minipage}{0.23\textwidth}
+\infrule
+{\jexc{S}{T}{\TRUE}}
+{\jgtemplate{S}{\exc}{T}}
+\end{minipage}
+\\[1.5em]
+\end{tabular}
+\noindent which state that, under assumptions $\Delta$, if the predicate generates the constraint $\TRUE$ (or some constraint that simplifies to $\TRUE$), then that predicate is proved.
 
-We now use the non-equivalence judgment to make rigorous our intuition about
-how polymorphic exclusion affects the mechanical verification of the overloading
-rules. We define a reduction judgment on existential types in Figure~\ref{fig:exred}
-which reduces $\delta$ to $\delta'$ such that $T \ni \delta$ if and only if
-$T \ni \delta'$. Furthermore, we have that $\delta' \le \delta$.
-The $solve$ operation is like that defined in Smith and Cartwright~\cite{smith08}.
-Then we will show how augmenting the $\le$ relation with the rule:\\[-1.5em]
+% We now use the non-equivalence judgment to make rigorous our intuition about
+% how polymorphic exclusion affects the mechanical verification of the overloading rules.
+To allow more overloaded functions such as `tail` and `foo` as valid overloadings,
+we adjust the subtype relation to take into account the relationships between type variables:\\[1em]
+%described by the constraints defined in Section~\ref{sec:constraints}:
+\begin{tabular}{c}
+\begin{minipage}{0.45\textwidth}
 \infrule
   {\jtred{\delta}{\delta'} \andalso \jqsub{\delta'}{T}}
   {\jqsub{\delta}{T}}
-\vspace{-.5em}
-lets us prove that more sets of overloaded functions satisfy the overloading rules.
+\end{minipage}
+\\[1.5em]
+\begin{minipage}{0.45\textwidth}
+\infrule
+  {\jtreds{\exttype[\Delta_1]{T}}{\delta'}{\phi} \\[.3em]
+   \jqsub{S}{\unitype[{\phi[\Delta_1]}]{\left(\arrowtype{\phi(T)}{\phi(U)}\right)}}}
+  {\jqsub{S}{\unitype[\Delta_1]{\arrowtype{T}{U}}}}
+\end{minipage}
+\\[2em]
+\end{tabular}
+A reduction judgment on existential types $\vdash\delta\eqred\delta',\phi$
+defined in Figure~\ref{fig:exred} reduces $\delta = \exttype{T}$ to
+$\delta' = \exttype[\Delta']{T'}$ with the substitution $\phi$
+under the assumption that $T$ is not equivalent to \BottomType; or,
+if $T$ is equivalent to \BottomType, the reduced existential $\delta'$ is \BottomType.
+When the substitution is unnecessary we omit it.
+The $solve$ operation is like that defined in Smith and Cartwright~\cite{smith08}.
+In fact, an existential type $\delta$ reduces to $\delta'$
+such that $T \ni \delta$ if and only if $T \ni \delta'$; therefore,
+we have $\delta' \le \delta$.
 Reducing an existential type in this fashion involves the same kind of
 type analysis required for type checking generalized algebraic data types
-% in other languages
 \cite{simonet07,jones09}.
 
-The reduction judgment $\vdash\delta\eqred\delta',\phi$ says that the existential type $\delta = \exttype{T}$ reduces to $\delta' = \exttype[\Delta']{T'}$ with the substitution $\phi$ (when the substitution is unnecessary we omit it) under the assumption that $T$ is not equivalent to \BottomType; or, if $T$ is equivalent to \BottomType, the reduced existential $\delta'$ is \BottomType. As an example, consider the following instance of reduction:\\[.8em]
-`EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])` $\eqred$
-`EXISTS[\W <: ZZ\]ArrayList[\W\]`
+
+
+As an example, consider the following reduction:\\[.8em]
+\begin{tabular}{l}
+$\vdash$ `EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])`\\[.3em]
+\andalso~~~~~~$\eqred$ `EXISTS[\W <: ZZ\]ArrayList[\W\]`
+\end{tabular}
 \\[.8em]
 with substitution $[X/Y]$. We first check under what constraints $\C$
-the intersection `ArrayList[\X\] CAP List[\Y\]` is not equivalent to
-\BottomType: with polymorphic exclusion (specifically, the absence of
-multiple instantiation inheritance) we know that `ArrayList[\X\]`
-excludes `List[\Y\]`, which would make their intersection equivalent
+the intersection `ArrayList[\X\] CAP List[\Y\]` is not equivalent to \BottomType:
+with polymorphic exclusion (specifically, the absence of multiple instantiation inheritance)
+we know that `ArrayList[\X\]` excludes `List[\Y\]`,
+which makes their intersection equivalent
 to \BottomType, unless $X \equiv Y$ is true. Solving the constraint $X
 \equiv Y$ yields a type substitution like $\phi = [W/X,\, W/Y]$. The
 judgment $\phi[\Delta] = \Delta'$ lets us construct reduced bounds
@@ -115,24 +151,56 @@ original existential. In our example, the final, reduced existential
 type is `EXISTS[\W <: ZZ\]ArrayList[\W\]`.
 %
 Once we have augmented the subtyping relation with existential
-reduction, we can finally check that the declarations $\D(\mbox{\emph{foo}})$ from
-Section~4 satisfy the Meet Rule.
+reduction, we can finally check that the declarations $\D(`foo`)$ from
+Section~\ref{sec:problems} satisfy the Meet Rule.
 
 
-A similar analysis shows that if an instance of a universal arrow has
-the domain `BottomType`, then it is irrelevant for the purposes of
-guaranteeing Progress. Therefore we can use our reduction rule for
-existential types to aid in the verification of the Return Type Rule
-by augmenting the subtype rules for universal arrows:
-\\[-1.5em]
-\infrule
-  {\jtreds{\exttype[\Delta_1]{T}}{\delta'}{\phi} \andalso
-   \jqsub{S}{\unitype[{\phi[\Delta_1]}]{\left(\arrowtype{\phi(T)}{\phi(U)}\right)}}}
-  {\jqsub{S}{\unitype[\Delta_1]{\arrowtype{T}{U}}}}
- % {\Delta \vdash S <: reduce(`FORALL[\X_bar <: M_bar\]S \to T`)}
- % {\Delta \vdash S <: `FORALL[\X_bar <: M_bar\]S \to T`}
-It is easy to see from the previous existential reduction instance that this subtype judgment can be proven,
-thus allowing us to verify the Return Type Rule for the function $\D(tail)$ from Section~4.
+Similiarly, to check that the declarations $\D(`tail`)$ from Section~\ref{sec:problems}
+satisfy the Return Type Rule, we need to show the following:\\[.8em]
+\begin{tabular}{l}
+$\vdash$
+`FORALL[\X<:Any\]ArrayList[\X\] -> ArrayList[\X\]`\\
+$\le$
+`FORALL[\X<:Any,Y<:Any\](ArrayList[\X\] CAP List[\Y\])`\\
+\hspace*{11.2em}
+`-> List[\Y\]`
+\end{tabular}
+\\[.8em]
+%EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])
+%\andalso~~~$\eqred$ `EXISTS[\W <: ZZ\]ArrayList[\W\]`
+By the adjusted subtype relation in this section and the rules in Figure~\ref{fig:exred},
+we can show the following:\\[.8em]
+\begin{tabular}{l}
+$\vdash$
+`EXISTS[\X<:Any, Y<:Any\]ArrayList[\X\] CAP List[\Y\]`\\[.3em]
+\andalso~~~$\eqred$ `EXISTS[\W <: Any\]ArrayList[\W\]`
+\end{tabular}
+\\[.8em]
+with substitution $[X/Y]$.  Because the substitution satisfies the following:\\[.8em]
+\begin{tabular}{l}
+$\vdash$
+`FORALL[\X<:Any\]ArrayList[\X\] -> ArrayList[\X\]`\\
+$\le$
+`FORALL[\X<:Any\]ArrayList[\X\] -> List[\X\]`\\
+\end{tabular}
+\\[.8em]
+we can verify that the declarations $\D(`tail`)$ satisfy the Return Type Rule.
+
+
+% A similar analysis shows that if an instance of a universal arrow has
+% the domain `BottomType`, then it is irrelevant for the purposes of
+% guaranteeing Progress. Therefore we can use our reduction rule for
+% existential types to aid in the verification of the Return Type Rule
+% by augmenting the subtype rules for universal arrows:
+% \\[-1.5em]
+% \infrule
+%   {\jtreds{\exttype[\Delta_1]{T}}{\delta'}{\phi} \andalso
+%    \jqsub{S}{\unitype[{\phi[\Delta_1]}]{\left(\arrowtype{\phi(T)}{\phi(U)}\right)}}}
+%   {\jqsub{S}{\unitype[\Delta_1]{\arrowtype{T}{U}}}}
+%  % {\Delta \vdash S <: reduce(`FORALL[\X_bar <: M_bar\]S \to T`)}
+%  % {\Delta \vdash S <: `FORALL[\X_bar <: M_bar\]S \to T`}
+% It is easy to see from the previous existential reduction instance that this subtype judgment can be proven,
+% thus allowing us to verify the Return Type Rule for the function $\D(tail)$ from Section~4.
 
 %% Because this subtype judgment holds for the previous existential
 %% reduction instance, we can verify the Return Type Rule for the

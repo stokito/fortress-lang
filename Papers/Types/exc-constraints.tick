@@ -1,3 +1,4 @@
+\paragraph{Constraints}
 We now augment our subtyping judgment to include \emph{constraints}.
 With constraint-based subtyping, we perform backward reasoning from the
 desired subtyping assertion to derive constraints on types under which the
@@ -14,17 +15,33 @@ first, and then solved later when more information about the environment is know
 Our grammar for type constraints is defined as follows:\\[-.2em]
 \[
 \begin{array}{llll}
-\C &::=& X <: S~~~~ &\mbox{primitive constraint}\\
-&\mid& S <: X &\mbox{primitive constraint}\\
-&\mid& X \exc S &\mbox{primitive constraint}\\
-&\mid& \C \wedge \C& \mbox{conjunction constraint}\\
-&\mid& \C \vee \C& \mbox{disjunction constraint}\\
-&\mid& \FALSE& \mbox{never satisfied}\\
-&\mid& \TRUE& \mbox{always satisfied}\\
+\C &::=& X <: S~~~~ &\\
+&\mid& S <: X &\\
+&\mid& X \exc S &\\
+&\mid& X \not<: S~~~~ &\\
+&\mid& S \not<: X &\\
+&\mid& X \nexc S &\\
+&\mid& \C \wedge \C\\%& \mbox{conjunction constraint}\\
+&\mid& \C \vee \C\\%& \mbox{disjunction constraint}\\
+&\mid& \FALSE\\%& \mbox{never satisfied}\\
+&\mid& \TRUE\\%& \mbox{always satisfied}\\
 \end{array}
 \]
 \\
-A primitive constraint of the form `X <: S` specifies that a type variable $X$ is a subtype of $S$, and likewise for `S <: X`. The primitive constraint $X \exc S$ specifies that a type variable $X$ must exclude a type $S$. A conjunction constraint $\C_1 \wedge \C_2$ is satisfied exactly when both $\C_1$ and $\C_2$ are satisfied, and a disjunction constraint $\C_1 \vee \C_2$ is satisfied exactly when one or both of $\C_1$ and $\C_2$ are satisfied. The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always satisfied. We introduce the following syntactic judgments to generate these constraints:
+A primitive constraint is either {\it positives} or {\it negative}.
+A positive primitive constraint of the form `X <: S` specifies that
+a type variable $X$ is a subtype of $S$, and likewise for `S <: X`.
+The positive primitive constraint $X \exc S$ specifies that a type variable $X$ must exclude a type $S$.
+To generate constraints for exclusion, we also define negative primitive constraints:
+$X \not<: S$, $S \not<: X$, and $X \nexc S$.
+A conjunction constraint $\C_1 \wedge \C_2$ is satisfied exactly
+when both $\C_1$ and $\C_2$ are satisfied,
+and a disjunction constraint $\C_1 \vee \C_2$ is satisfied exactly
+when one or both of $\C_1$ and $\C_2$ are satisfied.
+The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always satisfied.
+
+\paragraph{Constraint Generation}
+We introduce the following syntactic judgments to generate these constraints:
 \[ \jcsub{S}{T}{\C} \andalso \jcequiv{S}{T}{\C} \andalso \jexc{S}{T}{\C} \]%
 Each judgment indicates that, under assumptions $\Delta$,
 the respective predicate can be proved if the constraint $\C$ is
@@ -195,7 +212,7 @@ constraint; the completeness of generation entails the opposite.
   {}
   {\jexc{X}{T}{`X` \exc `T`}}
 
-  \end{minipage} \\\\\hline
+  \end{minipage}
   \end{tabular}
 
   \caption{Generating constraints for exclusion}
@@ -209,22 +226,7 @@ The constraint generation judgment for equivalence is defined entirely by the fo
 Equivalence constraint generation is complete and sound if and only if
 the constraint generation for $\subtypeof$ is.
 
-To define the constraint generation judgment for exclusion, we need to know
-the constraint under which two types are not equivalent and
-one is not a subtype of the other.
-For this, we introduce new forms of primitive constraints to our grammar:\\[-.5em]
-\[
-\begin{array}{llll}
-\C &::=& \ldots &\\
-&\mid& X \not<: S~~~~ &\mbox{primitive constraint}\\
-&\mid& S \not<: X &\mbox{primitive constraint}\\
-&\mid& X \nexc S &\mbox{primitive constraint}\\
-\end{array}
-\]
-\\
-which we call {\it negatives};
-we call the original primitive constraints {\it positives}.
-With an even richer language of constraints, we can now define a new judgment for ````not a subtype'' by the rule:\\[-1.5em]
+With negative constraints, we define a new judgment for ````not a subtype'' by the rule:\\[-1.5em]
 \infrule
   {\jcsub{S}{T}{\C}}
   {\jgconstrtemplate{S}{\not <:}{T}{\neg\C}}
@@ -274,25 +276,7 @@ exclusion, we must add an additional rule to the judgment:\\[-1em]
 
 \noindent This new rule states three possibilities for proving that the intersection $S \cap T$ is a subtype of $U$: $S$ and $T$ exclude (which means their intersection is a subtype of \BottomType), $S$ is a subtype of $U$, or $T$ is a subtype of $U$. If any of the constraints needed for these three judgments is satisfied, then $S \cap T$ is a subtype of $U$. Adding this rule should not affect completeness of soundness of constraint generation for $\subtypeof$ (since constraint generation for $\exc$ is complete and sound if constraint generation for $\subtypeof$ is).
 
-We can recover the usual subtyping judgment and define the exclusion judgment as follows:\\[1em]
-\begin{tabular}{cc}
-\begin{minipage}{0.45\textwidth}
-\infrule
-{\jcsub{S}{T}{\TRUE}}
-{\jgsub{S}{T}}
-\end{minipage}
-&
-\begin{minipage}{0.45\textwidth}
-\infrule
-{\jexc{S}{T}{\TRUE}}
-{\jgtemplate{S}{\exc}{T}}
-\end{minipage}
-\\[1.5em]
-\end{tabular}
-
-\noindent which state that, under assumptions $\Delta$, if the predicate generates the constraint $\TRUE$ (or some constraint that simplifies to $\TRUE$), then that predicate is proved.
-
-
+\paragraph{Constraint Solving}
 Solving constraints
 % We will also need to have the ability to solve constraints.
 % $\Delta \vdash solve(\C)$

@@ -1,3 +1,4 @@
+\subsection{Types}
 Following Kennedy and Pierce \cite{kennedy07},
 we define a world of types ranged over by metavariables $S$, $T$, $U$, $V$, and $W$. 
 Types are of four forms: 
@@ -224,11 +225,11 @@ The abstract syntax of function declarations is as follows:
 
 For example, in the following function declaration:
 
-`    f[\X <: M, Y <: N\](List[\X\], Tree[\Y\]): Map[\X, Y\]
+`  f[\X <: M, Y <: N\](List[\X\], Tree[\Y\]): Map[\X, Y\]
 `the name of the function is `f`, 
 the type parameter declarations are `X <: M` and `Y <: N`, 
-the domain is `(List[\X\], Tree[\Y\])`, which is a tuple type,
-and the range is `Map[\X, Y\]`. We will often abbreviate a function
+the domain type is `(List[\X\], Tree[\Y\])`, which is a tuple type,
+and the range type is `Map[\X, Y\]`. We will often abbreviate a function
 as \hdeclg{f}{\Delta}{S}{T} when we do not want to emphasize the bounds (we are abusing notation by letting
 $\Delta$ range over both type environments and bounds definitions).
 
@@ -257,114 +258,6 @@ $f_1$ is \emph{more specific} than $f_2$
 if and only if for every type $T$ 
 such that $f_1$ is applicable to $T$, 
 $f_2$ is also applicable to $T$.
-
-We can now formulate the type safety properties required to hold for
-any set of overloaded function declarations as follows:
-We say that $\D(f)$ is \emph{safe with respect to class table $\T$}
-if and only if, for any type $W \in \T' \ctext \T$  such that $W \neq \BottomType$\footnote{All functions are applicable to \BottomType, making the conditions quite trivial in that case. In any programming language that implements the present system, including Fortress, no values would ever have type \BottomType\ and thus no function could ever apply to such a value at run time.}, the following properties hold:
-\begin{description}
-
-\item[Progress] 
-If some declaration in $\D(f)$ is applicable to $W$
-then there is a unique most specific declaration $f_W \in \D(f)$ that is applicable to $W$.
-
-\item[Preservation] 
-If $\decl{f}{S}{T}$ is an instance of some declaration 
-and $\decl{f}{S}{T}$ is applicable to $W$, 
-then there exists some instance $\decl{f_W}{U}{V}$ of $f_W$ such that
-$\decl{f_W}{U}{V}$ is applicable to $W$ and  $V \extends T$.
-
-\end{description}
-Static checking of these conditions guarantees 
-that there are no ambiguous calls at run time 
-due to a collection of overloaded function declarations.
-\footnote{These conditions do not constitute a definition of
-soundness for a type system in the traditional sense;
-they are for (type) safety of overloaded function declarations.
-%% not for a full type system.
-}
-% We wish to define a system to statically check that a collection of function
-% declarations is well-formed.
-% This check corresponds precisely to the check one needs to perform on programs
-% in a statically typed language that allows sets of overloaded function declarations.
-The progress condition ensures that we never get stuck resolving an application;
-every call to a function declaration is unambiguous.
-The preservation condition ensures that the static type of an application 
-is a supertype of the ilk of each value produced by the application at run time,
-provided that the ilks for the argument values in function applications 
-are always subtypes of the static types of the argument expressions
-(as they are in any language with a sound type system).
-As a monomorphic function declaration is a special case of a generic function declaration,
-where the sequence of the type parameters is empty,
-these conditions apply also for monomorphic function declarations.
-
-
-
-\subsection{Type Inference}
-
-Before describing a system for ensuring progress and preservation,
-it is important to discuss some implications of these conditions on
-type inference in a programming language.
-The application of a function declaration to a type requires
-instantiation of the type parameters of the declaration.
-In most programming languages with parametric polymorphism,
-a type inference mechanism automatically instantiates type parameters
-based on the types of the arguments and the enclosing context.
-But note that our progress and preservation conditions do not require
-that the type parameters of the function declaration 
-that is (dynamically) most specific 
-of those applicable to the ilks of the argument values 
-are the same as the type parameters
-of the function declaration that is (statically) most specific 
-to those applicable to the static types of the argument expressions.
-Thus, the results of static type inference do not tell us how to
-instantiate the type parameters of a most specific function
-declaration at run time.  
-In the Fortress programming language,
-type inference is performed statically, 
-and the results of that inference 
-are passed to the run-time system 
-to ensure that run-time type inference at a function call is sound.
-The rules on the overloaded function declarations
-introduced in Section~\ref{sec:rules} ensure that
-the instantiated declaration of the dynamically most applicable function declaration
-with whatever we infer at run time
-is more specific than the instantiated declaration of the statically most applicable
-function declaration with what was inferred at compile time.
-%% For the dynamically most applicable function declaration,
-%% the instantiated declaration with whatever instantiation we infer
-%% must be more specific than the instantiated declaration of the
-%% statically most applicable function declaration with what was inferred
-%% at compile time.
-
-
-%% For the dynamically most applicable function declaration,
-%% the instantiated declaration with whatever instantiation we infer
-%% must be more specific than the instantiated declaration of the
-%% statically most applicable function declaration with what was inferred
-%% at compile time.
-%% The rules on the overloaded function declarations
-%% introduced in Section~\ref{sec:rules} ensure that
-%% dynamically inferred types satisfy this requirement.
-
-
-
-Aside from this caveat, our system for checking overloaded declarations 
-is largely independent of how a specific type inference engine would choose 
-instantiations\footnote{Type inference manifests itself as the choice of instantiation of type variables in existential and universal subtyping; specifically, $\bar{V}$ in the inference rules for subtyping in Figure~\ref{fig:sub}. Mitchell \cite{mitchell88} first showed how type inference interacts with polymorphic subtyping.}. Thus we do not discuss the specific features of a type inference
-system further in this paper.
-
-% Section 2.1 last para: We should comment that this definition of
-% well-formedness agrees with that of the old system. If we view
-% monomorphic function declarations as polymorphic declarations with no
-% type parameters, then for each monomorphic declaration there is
-% exactly one instantiation of it (with an empty vector of type
-% arguments).  Then Preservation specifically says that if (monomorphic)
-% declaration f U: V is applicable to T, then for the most specific
-% declaration that is applicable to T, f' U': V', we have that V' <: V.
-% Thus if the polymorphic well-formedness is satisfied, so is the
-% monomorphic well-formedness.
-
 
 
 %% \begin{figure}

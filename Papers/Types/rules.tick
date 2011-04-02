@@ -1,9 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%% BEGIN SUBTYPING %%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}[ht]
+\begin{center}
   \begin{tabular}{c|c}
 
   %% MINIPAGE FOR LEFT COLUMN
-  \begin{minipage}{.55\textwidth}
+  \begin{minipage}{.45\textwidth}
 
     %%% UNIVERSAL SUBTYPING RULE
     \begin{center}
@@ -20,7 +21,7 @@
       {\jqsub{\forall\obb{X <: \bd{M}}T}{\forall\obb{Y <: \bd{N}}U}}
     %%% SYNTAX DEF
     \begin{tabularx}{\textwidth}{RcX}
-    $\sigma_1 \le \sigma_2$ & 
+    $\sigma_1 \le \sigma_2$ &
       \syndef &
       $\jqsub[\emptyset]{\sigma_1}{\sigma_2}$ \\
     % $dom(\unitype{\arrowtype{T}{U}})$ &
@@ -82,13 +83,13 @@
     \begin{tabularx}{\textwidth}{RcX}
     $f_1 \ms f_2$ & \syndef & $\jms[\emptyset]{f_1}{f_2}$
     \end{tabularx}
-  \end{minipage} \\ \\
+  \end{minipage} \\
   \hline
   \end{tabular}
 
   %%% SECOND ROW
   \begin{tabular}{c}
-  \begin{minipage}{\textwidth}
+  \begin{minipage}{0.95\textwidth}
 %  \begin{center}
 \vspace*{.5em}
     \fbox{\textbf{Existential meet:} \quad $\delta_1 \;\meet\; \delta_2$}
@@ -119,8 +120,8 @@
     %     \]
 %  \end{center}
 \end{minipage}
-\\\\\hline
   \end{tabular}
+\end{center}
   \caption{Subtyping on universal and existential types, applicability and specificity on generic function declarations,
 and meet of existential types}
   \label{fig:sub}
@@ -137,174 +138,181 @@ and meet of existential types}
 %   what does this mean for condition 1)
 % Language is call by value
 
-Guaranteeing safety 
-requires constraints on the sets of overloaded function declarations
+Guaranteeing valid overloading requires constraints on the sets of overloaded function declarations
 that are allowed to appear in a legal program \cite{millstein02,millstein03}.
-Some languages require program constructs 
-that encapsulate all overloaded definitions; 
-such constructs essentially guarantee safety ````by construction''.
-Examples in other languages include type classes \cite{wadler89,dreyer07,siek05} 
-and multimethods \cite{millstein02,millstein03,bourdoncle97}. 
-We take a different approach:
-rather than introducing additional language facilities, 
+Some languages require program constructs that encapsulate all overloaded definitions;
+such constructs essentially guarantee valid overloading ````by construction''.
+Examples in other languages include type classes \cite{wadler89,dreyer07,siek05}
+and multimethods \cite{millstein02,millstein03,bourdoncle97}.
+We take a different approach: rather than introducing additional language facilities,
 we impose rules on the function declarations themselves.
 % These aren't necessarily strictly "minimal" though, so:
-We intend these rules to be ````minimal'' 
-in that they should be as unrestrictive as possible 
-while preserving the ability to guarantee safety 
-and be checked in a modular way.
-We took a similar approach to guarantee safety 
-for overloaded monomorphic functions \cite{allen07}.
-However, 
-handling parametric polymorphism 
-and implicit instantiation (i.e., type inference)
+We intend these rules to be ````minimal'' in that they should be as unrestrictive as possible
+while preserving the ability to guarantee valid overloading and be checked in a modular way.
+We took a similar approach to guarantee safety for overloaded monomorphic functions \cite{allen07}.
+However, handling parametric polymorphism and implicit instantiation (i.e., type inference)
 requires more sophisticated type analysis.
-We achieve this analysis 
-by introducing universal and existential quantification 
+We achieve this analysis by introducing universal and existential quantification
 over the ground types defined by class tables.
 
-Specifically, 
-in this section, 
-we define three rules---the \emph{No Duplicates Rule}, 
-\emph{Meet Rule}, 
-and \emph{Return Type Rule}---for sets of overloaded function definitions, 
-and say that such a set
-is \emph{well-formed with respect to a class table} 
-if it satisfies all these rules 
-using the subtyping relation induced by the class table.
-We argue that 
-any well-formed set of overloaded function declarations is safe, 
-and we describe how to mechanically verify these rules 
-in a modular way
-in terms of subtyping relations on universal and existential types.
+Specifically, in this section, we define three rules---the \emph{No Duplicates Rule},
+\emph{Meet Rule}, and \emph{Return Type Rule}---for sets of overloaded function definitions,
+and say that such a set is \emph{well-formed with respect to a class table}
+if it satisfies all these rules using the subtyping relation induced by the class table.
+We describe how to mechanically verify these rules in a modular way
+in terms of subtyping relations on universal and existential types in Section~\ref{sec:checking},
+and we show that any valid set of overloaded function declarations is safe in Section~\ref{sec:safety}.
+
+\subsection{Overloading Rules}\label{sec:threerules}
+In this section, we describe the rules for valid overloading.
+For each function name $f$,
+we determine whether a set of overloaded function declarations $\D(f)$ is valid
+by independently considering every pair of declarations in the set.
+A pair of declarations is a valid overloading if it satisfies one of three rules described below.
+%the more-specific-than relation on these declarations by the subtyping relation induced by a class table $\T$.
 
 
-\subsection{Progress} 
-
-Our proof strategy for satisfying the Progress condition
-makes use of the old idea from Castagna \emph{et al.} \cite{castagna92} that
-for each name $f$ the set of function declarations $\D(f)$ should form a meet
-semi-lattice under the \emph{specificity} order defined in
-Section~\ref{terms}. 
-If a declaration of name $f$ is applicable to a type $W$,
-then the set $\D_W(f) \subseteq \D(f)$
-of all declarations named $f$ and applicable to $W$
-also forms a meet semi-lattice under specificity. As such,
-$\D_W(f)$ must have a least element.
-
-We can phrase this condition more explicitly 
-in the following two rules for a collection of overloaded function declarations $\D$ 
-and more-specific-than relation on these declarations 
-by the subtyping relation induced by a class table $\T$:
+To avoid the obvious ambiguity, $\D(f)$ should not contain equally specific declarations:
+for each pair of overloaded declarations, either one declaration is strictly more specific
+than the other or they are incomparable.
 \begin{description}
-
-\item[No Duplicates Rule] 
+\item[No Duplicates Rule]
 $\D(f)$ does not contain any two declarations that are equally specific.
 %(i.e., each declaration is more specific than the other).
 In other words, there are no (distinct) declarations $f_1, f_2 \in \D(f)$ such that $f_1 \ms f_2$ and $f_2 \ms f_1$.
+\end{description}
 
+
+A pair of declarations is a valid overloading if for any call to which both declarations are applicable,
+there is a {\em disambiguating declaration} (possibly one of the pair)
+that is also applicable to the call and is at least as specific as both declarations.
+Thus, at run time, the disambiguating declaration is chosen over the pair of declarations
+because it is also applicable and and it is more specific than both.
+\begin{description}
 \item[Meet Rule]
 For each pair of declarations $f_1, f_2 \in \D(f)$,
 and for every type $T \in \T$, there should exist a third declaration $f_0 \in \D(f)$
 (possibly one of the pair) such that $f_0$ is applicable to $T$ if and only if
 both $f_1$ and $f_2$ are applicable to $T$.
-
 \end{description}
 
-\noindent To check the No Duplicates Rule, we need to determine if two
-declarations are equally specific. For this, we need a way to mechanically
-%determine which instantiation of a generic declaration has an instance that is
-determine that some instantiation of a generic declaration is
-applicable to a type $T$. With a monomorphic declaration $\decl{f}{U}{V}$,
-we need only check that $T <: dom(f)$, 
-where $dom(f)$ is the domain $U$ of $U \rightarrow V$, 
-the arrow type of $f$.
-We must then extend our notion of the ````arrow type of $f$'' 
-for a generic function declaration $f$,
-but first we need to characterize the type of a generic function.
-In particular, we need a higher-level notion of universally
-quantified types separate from the language of types $T$.
 
 
-A \emph{universal type} binds type parameter declarations over some type and
-can be instantiated by any types valid for those type parameters. We write
-$\forall\tplist{X}{M}T$ to quantify each type variable $X_i$ with bounds
-$\{\bar{M_i}\}$ over the type $T$, and we use the metavariable $\sigma$ to
-range over universal types. Informally, the arrow type of a generic function
-declaration $\hdeclg{f}{\Delta}{U}{V}$ (written $arrow(f)$) is the universal type $\forall\ob{\Delta}U
-\rightarrow V$.
+If one monomorphic declaration is more specific than the other monomorphic one
+then there is no ambiguity between these two declarations:
+for any call to which both are applicable, the first is more specific.
+In the parametrically polymorphic setting,
+if one declaration is more specific than the other,
+we require that for every instance of the second that is applicable to a call,
+there exist an instance of the first that is also applicable to the call.
+As in other object-oriented languages, to ensure type safety in the face of dynamic dispatch,
+we also require that the return type of the latter declaration is a subtype of the return type of the former.
+% We can ensure that the second well-formedness condition for overloading
+% holds by checking the following rule for each function name $f$:
+\begin{description}
+\item[Return Type Rule]
+For every $f_1, f_2 \in \D(f)$ with $f_1 \ms f_2$, for every type $W$ to which $f_1$ is applicable
+(and therefore $f_2$ is also applicable)
+and every instance $\decl{f_2'}{S_2'}{T_2'}$ of $f_2$ that is applicable to $W$,
+there must exist an instance \decl{f_1'}{S_1'}{T_1'} of $f_1$
+that is applicable to $W$ and satisfies \mbox{$T_1' <: T_2'$}.
+\end{description}
 
-We know that $f$ is applicable to $T$ if and only if there exists some instantiation of
-$f$, $\decl{f}{U'}{V'}$ with $\bar{W}$, for which $T$ is a subtype of the
-instantiated domain $U'$. This existential quantification over possible
+
+\subsection{Overloading Rules Checking}\label{sec:checking}
+This section describes how to check three overloading rules described in Section~\ref{sec:threerules} mechanically.
+Because the rules use the notions of applicability and specificity for generic functions,
+we first formalize them which in turn need formalization of
+the ````arrow type of $f$'' for a generic function declaration $f$.
+
+% For a generic function declaration \declg{f}{X}{N}{S}{T},
+% its arrow type (written $arrow(f)$) is
+% the \emph{universal type} $\forall\tplist{X}{N}S \rightarrow T$.
+For a generic function declaration $\hdeclg{f}{\Delta}{S}{T}$,
+its arrow type (written $arrow(f)$) is
+the \emph{universal type} \mbox{$\forall\ob{\Delta}S \rightarrow T$}.
+A universal type binds type parameter declarations over some type and
+can be instantiated by any types valid for those type parameters.
+We write $\forall\tplist{X}{N}T$ to quantify each type variable $X_i$ with bounds
+$\{\bar{N_i}\}$ over the type $T$, and we use the metavariable $\sigma$ to range over universal types.
+
+
+%applicability of a generic function
+A generic function declaration $\hdeclg{f}{\Delta}{S}{T}$ is \emph{applicable} to a type $U$
+if and only if \emph{there exists some instantiation} of $f$,
+$\decl{f}{S'}{T'}$ with $\bar{W}$, that is applicable to $U$.
+A monomorphic function declaration $\decl{f}{S'}{T'}$ is applicable to a type $U$
+if and only if $U <: dom(f)$,
+where $dom(f)$ is the domain $S'$ of $S' \rightarrow T'$, the arrow type of $f$.
+%We must then extend our notion of the ````arrow type of $f$'' for a generic function declaration $f$,
+%but first we need to characterize the type of a generic function.
+% In particular, we need a higher-level notion of universally
+% quantified types separate from the language of types $W$.
+This existential quantification over possible
 instantiations of the domain directly corresponds to an existentially
 quantified type as in \cite{bourdoncle97}. An \emph{existential type}
-$\exists\tplist{X}{M}T$ also binds type parameter declarations over a type, but
+$\exists\tplist{X}{N}T$ also binds type parameter declarations over a type, but
 unlike a universal type, it cannot be instantiated; instead, it represents
 some hidden type instantiation $\bar{W}$ and the corresponding instantiated
-type $\substb{W}{X}T$. Therefore, we say that the domain of the above
-universal arrow type for $f$ (again written $dom(f)$ as an abuse of notation)
-is the existential type $\exists\ob{\Delta}{U}$.
+type $\substb{W}{X}T$. Therefore, we say that the domain of the universal arrow type for $f$,
+$\forall\ob{\Delta}S \rightarrow T$ (again written $dom(f)$ as an abuse of notation),
+is the existential type $\exists\ob{\Delta}{S}$.
 We use the metavariable $\delta$ to range over existential types.
 Note that we abbreviate both the universal type $\forall\ob{}T$ and
 the existential type $\exists\ob{}T$ as simply $T$ when the meaning is clear from context.
+Figure~\ref{fig:sub} presents the formal definition of applicability for a generic function $f$
+to a type $T$, $f \ni T$.
 
-We define a pre-order on universal types corresponding to the subtype relation
-on types as originally given by Mitchell \cite{mitchell88}: roughly, a
-universal type $\sigma_1 = \forall\ob{\Delta_1} T_1$ is a subtype of another universal
-type $\sigma_2 = \forall\ob{\Delta_2} T_2$ (written $\sigma_1 \le \sigma_2$) if
-$T_1$ can be instantiated to a subtype of $T_2$ in the environment $\Delta_2$. We define a dual pre-order on
-existential types: an existential type $\delta_1 = \exists \ob{\Delta_1} T_1$ is a
-subtype of another existential type $\delta_2 = \exists\ob{\Delta_2}T_2$ (written
-$\delta_1 \le \delta_2$) if $T_2$ can be instantiated to a supertype of $T_1$ in the environment $\Delta_1$.
-Figure~\ref{fig:sub} presents the syntactic judgments for these pre-orders and gives an expression
-$\delta_1 \meet \delta_2$ for the meet of two existential types under $\le$. With subtyping on existential types,
-we can now formalize the notions of applicability and specificity for generic functions, also presented in
-Figure~\ref{fig:sub}.
 
-\begin{lemma}
+
+%specificity for a generic function
+A generic function declaration is \emph{more specific} than another generic function declaration
+if and only if the domain of the former is a subtype of the latter as presented in Figure~\ref{fig:sub}.
+Figure~\ref{fig:sub} also presents the subtype relation on existential types
+as originally given by Mitchell \cite{mitchell88}.
+Roughly, an existential type $\delta_1 = \exists \ob{\Delta_1} T_1$ is a
+subtype of another existential type $\delta_2 = \exists\ob{\Delta_2}T_2$
+(written $\delta_1 \le \delta_2$)
+if $T_2$ can be instantiated to a supertype of $T_1$ in the environment $\Delta_1$.
+
+
+Now, we can mechanically check the No Duplicates Rule
+by mechanically determining if two declarations are equally specific.
+To check whether one declaration is more specific than another,
+we check whether the domain of the former is a subtype of the latter.
+Checking whether one existential type is a subtype of another
+is described in Figure~\ref{fig:sub}.
+
+
+To check the Meet Rule, for every pair of declarations $f_1, f_2 \in \D(f)$,
+we must find a function declaration $f_0 \in \D(f)$ that is
+applicable to a type $T$ if and only if both $f_1$ and $f_2$ are applicable to $T$.
+In other words, we need to find $f_0$ that is equivalent under specificity to
+the meet of $f_1$ and $f_2$.
+To mechanically find the meet of two generic function declarations,
+we define the \emph{computed meet} of $f_1$ and $f_2$ as
+a declaration $f_\meet$, not necessarily in $\D(f)$,
+such that $dom(f_\meet) \equiv dom(f_1) \meet dom(f_2)$\footnote{Note that the computed meet, as defined,
+is not actually unique since the return type is unspecified.
+By an abuse of notation, we refer to ````the'' computed meet to mean any such computed meet.}: \begin{align*}
+  dom(f_0) &\;\le\; dom(f_1) \meet dom(f_2) \\
+  dom(f_1) \meet dom(f_2) &\;\le\; dom(f_0)
+\end{align*}
+Figure~\ref{fig:sub} defines the meet of two existential types $\delta_1 \meet \delta_2$,
+which may require alpha renaming on the existential types' parameters.
+The following lemma shows that the definition of the meet of two existential types is correct:
+\begin{lemma}\label{lem:meet}
 $\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\le$.
 \end{lemma}
 \begin{proof}
-That $\delta_1 \meet \delta_2$ is a subtype of both $\delta_1$ and $\delta_2$ 
-is obvious. 
-For any $\delta_0$, 
-if $\bar{U}$ and $\bar{V}$ are instantiations that prove 
-$\delta_0$ is a subtype of $\delta_1$ and $\delta_2$, respectively, 
-then we can use $\bar{U},\bar{V}$ 
-to prove that $\delta_0$ is a subtype of $\delta_1 \meet \delta_2$. 
+That $\delta_1 \meet \delta_2$ is a subtype of both $\delta_1$ and $\delta_2$ is obvious.
+For any $\delta_0$, if $\bar{U}$ and $\bar{V}$ are instantiations that prove
+$\delta_0$ is a subtype of $\delta_1$ and $\delta_2$, respectively,
+then we can use $\bar{U},\bar{V}$ to prove that $\delta_0$ is a subtype of $\delta_1 \meet \delta_2$.
 \end{proof}
 
-To check the Meet Rule, for every pair of declarations $f_1, f_2 \in \D(f)$,
-we must find a function declaration $f_0 \in \D(f)$ that is equivalent under specificity to the \emph{computed meet} of $f_1$ and $f_2$, which is a declaration $f_\meet$, not necessarily in $\D(f)$, such that $dom(f_\meet) \equiv dom(f_1) \meet dom(f_2)$\footnote{Note that the computed meet, as defined, is not actually unique since the return type is unspecified. By an abuse of notation we refer to ````the'' computed meet to mean any such computed meet.}. More concretely, we
-find an $f_0$ such that: \begin{align*}
-  dom(f_0) &\;\le\; dom(f_1) \meet dom(f_2) \\
-  dom(f_1) \meet dom(f_2) &\;\le\; dom(f_0)
-\end{align*} Note that alpha renaming on the existential types' parameters
-might be necessary.
 
-Note that subtyping is preserved under class table extension,
-so if $\D(f)$ satisfies the Meet Rule and the No Duplicates Rule
-with respect to the class table $\T$ then it satisfies them
-with respect to $\T'$ for any $\T' \ctext \T$.
-Therefore, we can be certain that adding more types will not
-invalidate the Progress guarantee.
-
-\subsection{Preservation}
-We can ensure that the second well-formedness condition for overloading
-holds by checking the following rule for each function name $f$:
-\begin{description}
-\item[Return Type Rule] 
-For every $f_1, f_2 \in \D(f)$ with $f_1 \ms f_2$, 
-for every type $W$ to which $f_1$ is applicable 
-(and therefore $f_2$ is also applicable)
-and every instance $\decl{f_2'}{S_2'}{T_2'}$ of $f_2$ 
-that is applicable to $W$, 
-there must exist an instance \decl{f_1'}{S_1'}{T_1'} of $f_1$ 
-that is applicable to $W$ and satisfies $T_1' <: T_2'$.
-\end{description}
-
-This condition can be checked using the subtype relation on universal types.
+We can check the Return Type Rule using the subtype relation on universal types.
 The generic declarations $f_1 = \hdeclg{f}{\Delta_1}{S_1}{T_1}$ 
 and $f_2 = \hdeclg{f}{\Delta_2}{S_2}{T_2}$ with $f_1 \ms f_2$ satisfy the Return Type Rule
 whenever
@@ -326,8 +334,8 @@ such an $f_1'$ would satisfy the Return Type Rule for $f_1$ and $f_2$.
 Finally, observe that $arrow(f_1) \le arrow(f_\meet)$ is identical to the
 condition (\ref{eq:rtr}), and so the verification of (\ref{eq:rtr}) implies
 the verification of the Return Type Rule.
-
-Just as in our discussion of the Meet Rule, the fact that subtyping is preserved
-under class table extension makes sure that the property that $\D(f)$ satisfies
-the Return Type Rule is preserved under class table extension. Therefore, the
-Return Type Rule and the rules from the last section are sufficient to ensure safety.
+Figure~\ref{fig:sub} presents the subtype relation on universal types, again,
+as originally given by Mitchell \cite{mitchell88}.
+Roughly, a universal type $\sigma_1 = \forall\ob{\Delta_1} T_1$ is a subtype of another universal
+type $\sigma_2 = \forall\ob{\Delta_2} T_2$ (written $\sigma_1 \le \sigma_2$) if
+$T_1$ can be instantiated to a subtype of $T_2$ in the environment $\Delta_2$.
