@@ -36,9 +36,11 @@ public class Naming {
                     )
         ;
 
+    public final static String RT_VALUES_PKG = "com/sun/fortress/compiler/runtimeValues/";
+    
     public final static int TUPLE_ORIGIN = 1;
     public final static int STATIC_PARAMETER_ORIGIN = 1;
-    public final static String RTTI_CONTAINER_TYPE = "java/lang/Object";
+    public final static String RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "RTTI";
     public final static String STATIC_PARAMETER_FIELD_DESC = "L" + RTTI_CONTAINER_TYPE + ";";
     public final static String STATIC_PARAMETER_GETTER_SIG = "()" + STATIC_PARAMETER_FIELD_DESC;
 

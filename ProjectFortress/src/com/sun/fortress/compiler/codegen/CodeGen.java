@@ -3131,7 +3131,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         /* RTTI stuff */
         mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC, // acccess
                                           "getRTTI", // name
-                                          "()Ljava/lang/Object;", // sig
+                                          Naming.STATIC_PARAMETER_GETTER_SIG, // sig
                                           null, // generics sig?
                                           null); // exceptions
         mv.visitCode();
@@ -3176,7 +3176,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             @Override
             public String asmSignature() {
-                return "Ljava/lang/Object;";
+                return Naming.STATIC_PARAMETER_FIELD_DESC;
             }
             
         });
@@ -4116,7 +4116,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String field_type = Naming.stemClassJavaName(extendeeIlk);
         
         if (ti_args.size() == 0) {
-            if (spns.contains(extendeeIlk)) {
+            if (spns.contains(extendee.getText())) {
                 // reference to a static parameter.  Load from field of same name.
                 mv.visitVarInsn(ALOAD, 0);
                 mv.visitFieldInsn(GETFIELD, rttiClassName, extendee.getText(), Naming.STATIC_PARAMETER_FIELD_DESC);
