@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ProvokeTypecheckError
+import String.{...}
+export Executable
+
+  run():() = do
+    e = EmptyString
+    stuff = "Hello "
+    more = "World"
+    hw = CatString(stuff, more)
+    assert(|hw|, |stuff| + |more|)
+    assert(hw, "Hello World")
+    assert(hw, CatString("Hell", "o World"))
+    assert(hw[(2 typed ZZ32):(7 typed ZZ32)], "llo Wo")
+    assert(hw[(0 typed ZZ32):(3 typed ZZ32)], "Hell")
+    assert(hw[(5 typed ZZ32):(2 typed ZZ32)], "")
+  end
+
+end
