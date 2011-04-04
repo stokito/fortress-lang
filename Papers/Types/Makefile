@@ -10,7 +10,7 @@
 ################################################################################
 # very basic makefile
 
-TICKS = paper.tick introduction.tick abstract.tick related-work.tick setup.tick rules.tick exclusion.tick conclusion.tick exc-preamble.tick exc-spec.tick exc-poly.tick exc-reduction.tick exc-constraints.tick problems.tick
+TICKS = paper.tick introduction.tick abstract.tick related-work.tick setup.tick rules.tick exclusion.tick conclusion.tick exc-preamble.tick exc-spec.tick exc-poly.tick exc-reduction.tick exc-constraints.tick problems.tick safety.tick
 TEXS = $(TICKS:.tick=.tex)
 
 # path to fortify.sty
