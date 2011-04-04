@@ -1,0 +1,153 @@
+\subsection{Type Inference}
+
+Before describing a system for ensuring progress and preservation,
+it is important to discuss some implications of these conditions on
+type inference in a programming language.
+The application of a function declaration to a type requires
+instantiation of the type parameters of the declaration.
+In most programming languages with parametric polymorphism,
+a type inference mechanism automatically instantiates type parameters
+based on the types of the arguments and the enclosing context.
+But note that our progress and preservation conditions do not require
+that the type parameters of the function declaration 
+that is (dynamically) most specific 
+of those applicable to the ilks of the argument values 
+are the same as the type parameters
+of the function declaration that is (statically) most specific 
+to those applicable to the static types of the argument expressions.
+Thus, the results of static type inference do not tell us how to
+instantiate the type parameters of a most specific function
+declaration at run time.  
+In the Fortress programming language,
+type inference is performed statically, 
+and the results of that inference 
+are passed to the run-time system 
+to ensure that run-time type inference at a function call is sound.
+The rules on the overloaded function declarations
+introduced in Section~\ref{sec:rules} ensure that
+the instantiated declaration of the dynamically most applicable function declaration
+with whatever we infer at run time
+is more specific than the instantiated declaration of the statically most applicable
+function declaration with what was inferred at compile time.
+%% For the dynamically most applicable function declaration,
+%% the instantiated declaration with whatever instantiation we infer
+%% must be more specific than the instantiated declaration of the
+%% statically most applicable function declaration with what was inferred
+%% at compile time.
+
+
+%% For the dynamically most applicable function declaration,
+%% the instantiated declaration with whatever instantiation we infer
+%% must be more specific than the instantiated declaration of the
+%% statically most applicable function declaration with what was inferred
+%% at compile time.
+%% The rules on the overloaded function declarations
+%% introduced in Section~\ref{sec:rules} ensure that
+%% dynamically inferred types satisfy this requirement.
+
+
+
+Aside from this caveat, our system for checking overloaded declarations 
+is largely independent of how a specific type inference engine would choose 
+instantiations\footnote{Type inference manifests itself as the choice of instantiation of type variables in existential and universal subtyping; specifically, $\bar{V}$ in the inference rules for subtyping in Figure~\ref{fig:sub}. Mitchell \cite{mitchell88} first showed how type inference interacts with polymorphic subtyping.}. Thus we do not discuss the specific features of a type inference
+system further in this paper.
+
+% Section 2.1 last para: We should comment that this definition of
+% well-formedness agrees with that of the old system. If we view
+% monomorphic function declarations as polymorphic declarations with no
+% type parameters, then for each monomorphic declaration there is
+% exactly one instantiation of it (with an empty vector of type
+% arguments).  Then Preservation specifically says that if (monomorphic)
+% declaration f U: V is applicable to T, then for the most specific
+% declaration that is applicable to T, f' U': V', we have that V' <: V.
+% Thus if the polymorphic well-formedness is satisfied, so is the
+% monomorphic well-formedness.
+
+\subsection{Modularity}
+To demonstrate the modularity of our design,
+we present a lightweight modeling of program modules,
+and show how applying our rules to each module separately
+suffices to guarantee the soundness of the entire program.
+In our model, a program is a \emph{module}, which may be either \emph{simple} or \emph{compound}.
+A \emph{simple module} consists of (i) a class table and (ii) a collection of function declarations.
+That is, a simple module is just a program as described in the rest of this paper.
+It is well-formed if it satisfies the well-formedness conditions of a whole program,
+as described in previous sections.
+
+A \emph{compound module} combines multiple modules, possibly renaming members of its constituents.
+More precisely, a compound module is a collection of \emph{filters},
+where a filter consists of a module and a complete mapping
+from names (of traits and functions) in the module to names.
+The name of a member that is not renamed is simply mapped to itself.
+
+The semantics of a compound module is the semantics of the simple module
+that results from recursively \emph{flattening} the compound module as follows:
+\begin{itemize}
+
+\item
+Flattening a simple module simply yields the same module.
+
+\item Flattening a compound module `C`
+consisting of filters (module/mapping pairs) $(c_1, m_1), \ldots, (c_N, m_N)$
+yields a simple module whose class table and collection of function declarations
+is the concatenation of the class tables and collections of function declarations
+of $s_1, \ldots, s_N$, where $s_i$ is the simple module resulting from
+first flattening $c_i$ and then renaming all members
+of the resulting simple module according to the mapping $m_i$.
+
+\end{itemize}
+A compound module is well-formed
+if its flattened version is well-formed. Note that this requirement implies that the type hierarchies
+in each constituent component are consistent with the type hierarchy in the flattened version.
+
+We can now use this model of modularity to see that we can separately compile and combine modules.
+
+First let us consider the case of a collection of modules with no overlapping function names,
+and that have been separately checked to ensure
+that the overloaded functions within them satisfy our overloading rules.
+Because the type hierarchies of each constituent of a compound module must be consistent with that of
+the compound module, it must be the case that all overloaded functions in the resulting compound module
+also obey the overloading rules.
+
+Now let us consider the case of a collection of separately checked modules with some overlapping function names.
+When overloaded functions from separate modules are combined, there are three rules that might be violated
+by the resulting overloaded definitions: (1) the Meet Rule, (2) the No Duplicates Rule, (3) the Subtype Rule.
+If the Meet Rule is violated, the programmer need only define yet another module to combine that defines the missing
+meets of the various overloaded definitions. If the No Duplicates Rule or the Subtype Rule is violated, the programmer can
+fix the problem by renaming functions from one or more combined components to avoid the clash; the programmer can then
+define another component with more overloadings of the same function name that dispatch to the various renamed
+functions in the manner the programmer intends.
+
+Consider the following example\footnote{Suggested by an anonymous reviewer of a previous version of this paper.}
+Suppose we have a Number trait in module `A`, with a
+function:
+`
+  add : (Number, Number) -> Number
+`
+Suppose we have two subclasses:
+`
+  BigNum <: Number
+`
+in module `B` and:
+`
+  Rational <: Number
+`
+in module `C`, each:
+`
+  add : (BigNum, BigNum) -> BigNum
+  add : (Rational, Rational) -> Rational
+`
+Each of modules `B` and `C` satisfy the No Duplicates and Meet rules.
+Now, suppose we define two compound modules `D` and `E`, each of which combines
+modules `B` and `C`.
+
+In each of `D` and `E`, we have an ambiguity, since it is now possible to
+call `add(Bignum, Rational)`, and the rules they propose would require
+adding two methods in each module to ensure that dispatch is always
+possible. Now let us suppose we wish to combine `D` and `E` into a compound component `F`.
+Without renaming, this combination would violate the No Duplicates Rule;
+each of `D` and `E` has an implementation of `add(Bignum, Rational)`. In order to resolve
+this conflict, the program can rename `add(Bignum, Rational)` from both `D` and `E`, and
+then define a new `add(Bignum, Rational)` in `F`. This new definition could dispatch
+to either the renamed function from `D` or `E`, or it could do something entirely
+different, depending on the programmer's intent.

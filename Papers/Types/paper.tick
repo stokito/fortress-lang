@@ -285,6 +285,9 @@
 \section{Overloading Resolution Safety}\label{sec:safety}
 \input{safety}
 
+\section{Discussion}\label{sec:discussion}
+\input{discussion}
+
 \section{Related Work}\label{sec:related}
 \input{related-work}
 
