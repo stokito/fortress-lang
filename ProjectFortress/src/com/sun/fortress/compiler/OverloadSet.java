@@ -1008,9 +1008,16 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     // Branch ahead if failure
                     mv.visitJumpInsn(Opcodes.IFEQ, if_fail);
                 } else {
+                    
                     // TOS is a Fortress RTTI
                     // must check if the type extends the target type.
                     // tricky cases are Arrow and Tuple.
+                    // getstatic fullname.RTTI
+                    // swap
+                    // invokevirtual RTTI.argExtendsThis
+                    mv.visitFieldInsn(Opcodes.GETSTATIC, fullname, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
+                    mv.visitInsn(Opcodes.SWAP);
+
                 }
             } else {
                 // problem -- value instanceof, vs type instanceof
