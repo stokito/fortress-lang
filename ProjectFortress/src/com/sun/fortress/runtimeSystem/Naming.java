@@ -40,9 +40,11 @@ public class Naming {
     
     public final static int TUPLE_ORIGIN = 1;
     public final static int STATIC_PARAMETER_ORIGIN = 1;
+    public final static String RTTI_FIELD = "RTTI";
+    public final static String RTTI_GETTER = "getRTTI";
     public final static String RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "RTTI";
-    public final static String STATIC_PARAMETER_FIELD_DESC = "L" + RTTI_CONTAINER_TYPE + ";";
-    public final static String STATIC_PARAMETER_GETTER_SIG = "()" + STATIC_PARAMETER_FIELD_DESC;
+    public final static String RTTI_CONTAINER_DESC = "L" + RTTI_CONTAINER_TYPE + ";";
+    public final static String STATIC_PARAMETER_GETTER_SIG = "()" + RTTI_CONTAINER_DESC;
 
     // Used to indicate translation convention to apply to type parameter.
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA

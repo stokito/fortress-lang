@@ -1377,7 +1377,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitVarInsn(ALOAD, 0);
             mv.visitVarInsn(ALOAD, pno);
             mv.visitFieldInsn(PUTFIELD, name, spn,
-                              Naming.STATIC_PARAMETER_FIELD_DESC);
+                              Naming.RTTI_CONTAINER_DESC);
             pno++;
         }
         
@@ -1799,14 +1799,14 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             CodeGen.staticParameterGetterName(stem_name, i);
         
         cw.visitField(ACC_PRIVATE + ACC_FINAL,
-                static_parameter_name, Naming.STATIC_PARAMETER_FIELD_DESC, null, null);
+                static_parameter_name, Naming.RTTI_CONTAINER_DESC, null, null);
         
         MethodVisitor mv = cw.visitCGMethod(
                 ACC_PUBLIC, method_name,
                 Naming.STATIC_PARAMETER_GETTER_SIG, null, null);
         
         mv.visitVarInsn(ALOAD, 0);
-        mv.visitFieldInsn(GETFIELD, Naming.stemClassJavaName(stem_name), static_parameter_name, Naming.STATIC_PARAMETER_FIELD_DESC);
+        mv.visitFieldInsn(GETFIELD, Naming.stemClassJavaName(stem_name), static_parameter_name, Naming.RTTI_CONTAINER_DESC);
     
         
         areturnEpilogue(mv);
