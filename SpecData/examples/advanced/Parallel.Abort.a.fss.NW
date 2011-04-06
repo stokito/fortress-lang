@@ -1,0 +1,29 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Parallel.Abort.a
+export Executable
+
+f() = do
+(** EXAMPLE **)
+r: ZZ64 := 0
+(a, b) = (atomic if r = 1 then 17 else abort() end,
+          do r := 1; r end)      (* INCORRECT! *)
+(** END EXAMPLE **)
+end
+
+run(args:String...) = do
+  f()
+end
+
+end

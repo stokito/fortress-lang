@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled6.m
+export Executable
+
+trait T
+  f(y:ZZ32): ()
+  g(): String
+end
+
+object O extends T
+  f(y:ZZ32): () = ()
+end
+
+run(): () = ()
+
+end

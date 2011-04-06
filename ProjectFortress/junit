@@ -1,0 +1,23 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2008, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+# Runs junit in a text window, because sometimes, that is what you want.
+
+if (uname | egrep -q CYGWIN) ; then 
+  CP="build;third_party/junit/junit.jar;third_party/xtc/xtc.jar;third_party/jsr166y/jsr166y.jar;third_party/plt/plt.jar"
+else
+  CP="build:third_party/junit/junit.jar:third_party/xtc/xtc.jar:third_party/jsr166y/jsr166y.jar:third_party/plt/plt.jar"
+fi
+
+java -cp "$CP" -Xmx320m -Xms192m \
+junit.textui.TestRunner "$@"
