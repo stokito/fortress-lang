@@ -166,35 +166,36 @@
 
 \title{Type-checking Modular Multiple Dispatch with Parametric Polymorphism and Multiple Inheritance}
 \subtitle{}
-\authorinfo{Eric Allen}{Sun Labs, Oracle}{eric.allen@oracle.com}
-\authorinfo{Justin Hilburn}{Sun Labs, Oracle}{justin.hilburn@oracle.com}
-\authorinfo{Scott Kilpatrick}{University of Texas at Austin}{scottk@cs.utexas.edu}
+\authorinfo{Eric Allen}{Oracle Labs}{eric.allen@oracle.com}
+\authorinfo{Justin Hilburn}{Oracle Labs}{justin.hilburn@oracle.com}
+\authorinfo{Scott Kilpatrick}{University of Texas \\ at Austin}{scottk@cs.utexas.edu}
 \authorinfo{Sukyoung Ryu}{Korea Advanced Institute \\ of Science and Technology}{sryu@cs.kaist.ac.kr}
-\authorinfo{David Chase}{Sun Labs, Oracle}{david.r.chase@oracle.com}
-\authorinfo{Victor Luchangco}{Sun Labs, Oracle}{victor.luchangco@oracle.com}
-\authorinfo{Guy L. Steele Jr.}{Sun Labs, Oracle}{guy.steele@oracle.com}
+\authorinfo{David Chase}{Oracle Labs}{david.r.chase@oracle.com}
+\authorinfo{Victor Luchangco}{Oracle Labs}{victor.luchangco@oracle.com}
+\authorinfo{Guy L. Steele Jr.}{Oracle Labs}{guy.steele@oracle.com}
 
 \makeatletter
 \def \@maketitle {%
-  \begin{center}
-  \@settitlebanner
-  \let \thanks = \titlenote
-  \noindent \LARGE \bfseries \@titletext \par
-  %\vskip 6pt
-  %\noindent \Large \@subtitletext \par
-  \vskip 6pt
-    \noindent \@setauthor{9pc}{i}{\@false}\hspace{1.5pc}%
-              \@setauthor{9pc}{ii}{\@false}\hspace{1.5pc}%
-              \@setauthor{9pc}{iii}{\@false}\hspace{1.5pc}%
-              \@setauthor{9pc}{iv}{\@true}\par
-  \vspace{6pt}
-   \noindent \@setauthor{9pc}{v}{\@false}\hspace{1.5pc}%
-             \@setauthor{9pc}{vi}{\@false}\hspace{1.5pc}%
-             \@setauthor{9pc}{vii}{\@false}\hspace{4.5pc}%
-  \vspace{12pt}
-  \end{center}}
+ \begin{center}
+ \@settitlebanner
+ \let \thanks = \titlenote
+ \noindent \LARGE \bfseries \@titletext \par
+ %\vskip 6pt
+ %\noindent \Large \@subtitletext \par
+ \vskip 6pt
+   \noindent \@setauthor{9pc}{i}{\@false}\hspace{1.5pc}%
+             \@setauthor{9pc}{ii}{\@false}\hspace{1.5pc}%
+             \@setauthor{9pc}{iii}{\@false}\hspace{1.5pc}%
+             \@setauthor{9pc}{iv}{\@true}\par
+ \vspace{14pt}
+  \noindent \@setauthor{9pc}{v}{\@false}\hspace{1.5pc}%
+            \@setauthor{9pc}{vi}{\@false}\hspace{1.5pc}%
+            \@setauthor{9pc}{vii}{\@false}\par
+ \vspace{12pt}
+ \end{center}}
 \makeatother
 \maketitle
+
 
 %% llncs
 %% \title{Type-checking Modular Multiple Dispatch with Parametric Polymorphism and

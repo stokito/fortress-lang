@@ -191,7 +191,7 @@ In Section~\ref{sec:exclusion}, we formalize the exclusion
 relation and use it to extend the overloading rules to allow more
 valid overloadings.
 %use it to augment the subtyping relation for universal and existential types.
-Section~\ref{sec:safety} describes that the overloading rules are
+Section~\ref{sec:safety} explains that the overloading rules are
 sufficient to guarantee no undefined or ambiguous calls at run time.
 Finally, we discuss related work in Section~\ref{sec:related} and
 conclude in Section~\ref{sec:conclusion}.
