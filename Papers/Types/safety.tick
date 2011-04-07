@@ -1,0 +1,56 @@
+\begin{lemma}[Progress]
+\label{lem:progress}
+If some declaration in $\D(f)$ is applicable to $W$
+then there is a unique most specific declaration $f_W \in \D(f)$ that is applicable to $W$.
+\end{lemma}
+\begin{proof}
+Our proof strategy for satisfying the Progress condition
+makes use of the old idea from Castagna \emph{et al.} \cite{castagna92} that
+for each name $f$ the set of function declarations $\D(f)$ should form a meet
+semi-lattice under the \emph{specificity} order defined in
+Section~\ref{terms}.
+If a declaration of name $f$ is applicable to a type $W$,
+then the set $\D_W(f) \subseteq \D(f)$
+of all declarations named $f$ and applicable to $W$
+also forms a meet semi-lattice under specificity. As such,
+$\D_W(f)$ must have a least element.
+\end{proof}
+
+\begin{lemma}[Preservation]
+\label{lem:preservation}
+If $\decl{f}{S}{T}$ is an instance of some declaration 
+and $\decl{f}{S}{T}$ is applicable to $W$, 
+then there exists some instance $\decl{f_W}{U}{V}$ of $f_W$ such that
+$\decl{f_W}{U}{V}$ is applicable to $W$ and  $V \extends T$.
+\end{lemma}
+\begin{proof}
+Note that subtyping is preserved under class table extension,
+so if $\D(f)$ satisfies the No Duplicates Rule and the Meet Rule
+with respect to the class table $\T$ then it satisfies them
+with respect to $\T'$ for any $\T' \ctext \T$.
+Therefore, we can be certain that adding more types will not
+invalidate the Progress guarantee.
+Just as in our discussion of the Meet Rule, the fact that subtyping is preserved
+under class table extension makes sure that the property that $\D(f)$ satisfies
+the Return Type Rule is preserved under class table extension. Therefore, the
+Return Type Rule and the rules from the last section are sufficient to ensure safety.
+\end{proof}
+
+\begin{theorem}[Overloading Resolution Safety]
+\label{thm:safety}
+There exists always a unique function to call at run time among a collection of overloaded function declarations.
+%There are no ambiguous calls at run time due to a collection of overloaded function declarations.
+\end{theorem}
+\begin{proof}
+Lemma~\ref{lem:progress} ensures that we never get stuck resolving an application;
+every call to a function declaration is unambiguous.
+Lemma~\ref{lem:preservation} ensures that the static type of an application
+is a supertype of the ilk of each value produced by the application at run time,
+provided that the ilks for the argument values in function applications 
+are always subtypes of the static types of the argument expressions
+(as they are in any language with a sound type system).
+\end{proof}
+Note that as a monomorphic function declaration is a special case of a generic function declaration,
+where the sequence of the type parameters is empty,
+these conditions apply also for monomorphic function declarations.
+
