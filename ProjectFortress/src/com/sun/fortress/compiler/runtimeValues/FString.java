@@ -21,6 +21,7 @@ public class FString  extends fortress.CompilerBuiltin.String.DefaultTraitMethod
     public static FString concatenate(FString s1, FString s2) { return new FString(s1.toString() + s2.toString());}
 
     public static class RTTIc extends RTTI {
+        private RTTIc() { super(FString.class); };
         public static final RTTIc ONLY = new RTTIc();
     }
 
