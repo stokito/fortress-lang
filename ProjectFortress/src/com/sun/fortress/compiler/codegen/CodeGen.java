@@ -3887,14 +3887,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         {
             // Variant of this code in InstantiatingClassloader
             String init_sig =
-                InstantiatingClassloader.jvmSignatureForNTypes(sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
+                InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class", sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
             mv = cw.visitCGMethod(ACC_PUBLIC, "<init>", init_sig, null, null);
             mv.visitCode();
             
-            mv.visitVarInsn(ALOAD, 0);
-            mv.visitMethodInsn(INVOKESPECIAL, Naming.RTTI_CONTAINER_TYPE, "<init>", "()V");
+            mv.visitVarInsn(ALOAD, 0); // this
+            mv.visitVarInsn(ALOAD, 1); // class
+            mv.visitMethodInsn(INVOKESPECIAL, Naming.RTTI_CONTAINER_TYPE, "<init>", "(Ljava/lang/Class;)V");
             
-            int pno = 1;
+            int pno = 2; // 1 is java class
             for (StaticParam sp : sparams) {
                 String spn = sp.getName().getText();
                 // not yet this;  sp.getKind();
@@ -3925,7 +3926,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitTypeInsn(NEW, rttiClassName);
             // init
             mv.visitInsn(DUP);
-            mv.visitMethodInsn(INVOKESPECIAL, rttiClassName, "<init>", "()V");
+            mv.visitLdcInsn(org.objectweb.asm.Type.getType(cnb.classDesc));
+            mv.visitMethodInsn(INVOKESPECIAL, rttiClassName, "<init>", "(Ljava/lang/Class;)V");
             // store
             mv.visitFieldInsn(PUTSTATIC, rttiClassName,
                     "ONLY", "L"+rttiClassName+";");                

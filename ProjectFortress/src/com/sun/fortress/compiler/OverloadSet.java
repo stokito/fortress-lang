@@ -1006,7 +1006,6 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 if (value_cast) {
                     InstantiatingClassloader.generalizedInstanceOf(mv, fullname);
                     // Branch ahead if failure
-                    mv.visitJumpInsn(Opcodes.IFEQ, if_fail);
                 } else {
                     
                     // TOS is a Fortress RTTI
@@ -1017,9 +1016,16 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     // invokevirtual RTTI.argExtendsThis
                     mv.visitFieldInsn(Opcodes.GETSTATIC, fullname, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
                     mv.visitInsn(Opcodes.SWAP);
-
+                    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, "argExtendsThis", "("+ Naming.RTTI_CONTAINER_TYPE + ")Z");
                 }
+                mv.visitJumpInsn(Opcodes.IFEQ, if_fail);
+
             } else {
+                if (value_cast) {
+                    
+                } else {
+                    
+                }
                 // problem -- value instanceof, vs type instanceof
                 // normalize by getting type initially.
                 /*

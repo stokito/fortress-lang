@@ -22,6 +22,7 @@ public final class FRR64 extends fortress.CompilerBuiltin.RR64.DefaultTraitMetho
     public static FRR64 make(double x) {return new FRR64(x);}
 
     public static class RTTIc extends RTTI {
+        private RTTIc() { super(FRR64.class); };
         public static final RTTIc ONLY = new RTTIc();
     }
 }

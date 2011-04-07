@@ -12,5 +12,14 @@
 package com.sun.fortress.compiler.runtimeValues;
 
 public abstract class RTTI {
-
+    
+    final Class javaRep;
+    
+    public boolean argExtendsThis(RTTI other) {
+        return this == other;
+    }
+    
+    public RTTI(Class javaRep) {
+        this.javaRep = javaRep;
+    }
 }

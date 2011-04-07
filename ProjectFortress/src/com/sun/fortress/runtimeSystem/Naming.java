@@ -853,13 +853,13 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
     }
 
     /**
-     * @param owner_and_result_class
+     * @param owner_and_result_class The java class implementing a (generic) fortress class's RTTI.
      * @param n_static_params
      * @return
      */
     public static String rttiFactorySig(String owner_and_result_class,
             final int n_static_params) {
-        return InstantiatingClassloader.jvmSignatureForNTypes(
+        return InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class",
                 n_static_params, RTTI_CONTAINER_TYPE, "L" + RTTI_CONTAINER_TYPE +";");
     }
     

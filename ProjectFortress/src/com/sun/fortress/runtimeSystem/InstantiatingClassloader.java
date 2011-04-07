@@ -1362,14 +1362,15 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // init
         {
         String init_sig =
-            InstantiatingClassloader.jvmSignatureForNTypes(n, Naming.RTTI_CONTAINER_TYPE, "V");
+            InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class", n, Naming.RTTI_CONTAINER_TYPE, "V");
         MethodVisitor mv = cw.visitCGMethod(ACC_PUBLIC, "<init>", init_sig, null, null);
         mv.visitCode();
         
         mv.visitVarInsn(ALOAD, 0);
-        mv.visitMethodInsn(INVOKESPECIAL, Naming.RTTI_CONTAINER_TYPE, "<init>", "()V");
+        mv.visitVarInsn(ALOAD, 1);
+        mv.visitMethodInsn(INVOKESPECIAL, Naming.RTTI_CONTAINER_TYPE, "<init>", "(Ljava/lang/Class;)V");
         
-        int pno = 1;
+        int pno = 2; // skip the java class parameter
         for (int i = Naming.STATIC_PARAMETER_ORIGIN;
                  i < n+Naming.STATIC_PARAMETER_ORIGIN; i++) {
             String spn = "T"+i;
@@ -1788,6 +1789,23 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return Naming.makeMethodDesc(args, rangeDesc);
     }
 
+    public static String jvmSignatureForOnePlusNTypes(String one, int n, String type,
+            String rangeDesc) {
+        // This special case handles single void argument type properly.
+        String args = "";
+        StringBuilder buf = new StringBuilder();
+        buf.append("L");
+        buf.append(one);
+        buf.append(";");
+        for (int i = 0; i < n; i++) {
+            buf.append("L");
+            buf.append(type);
+            buf.append(";");
+        }
+        args = buf.toString();
+        return Naming.makeMethodDesc(args, rangeDesc);
+    }
+
     /**
      * @param stem_name
      * @param static_parameter_name
@@ -1876,7 +1894,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // FACTORY
 
         String fact_sig = Naming.rttiFactorySig(rttiClassName, sparams_size);
-        String init_sig = InstantiatingClassloader.jvmSignatureForNTypes(
+        String init_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class",
                 sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
         String get_sig = InstantiatingClassloader.jvmSignatureForNTypes(
                 sparams_size, Naming.RTTI_CONTAINER_TYPE, "L" + Naming.RTTI_CONTAINER_TYPE + ";");
@@ -1886,6 +1904,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         mv = cw.visitCGMethod(ACC_PUBLIC + ACC_STATIC, "factory", fact_sig, null, null);
         mv.visitCode();
         /* 
+         * First arg is java class, necessary for creation of type.
+         * 
          * rCN x = DICTIONARY.get(args)
          * if  x == null then
          *   x = new rCN(args)
@@ -1899,7 +1919,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
         // push args
         int l = sparams_size;
-        InstantiatingClassloader.pushArgs(mv, 0, l);
+        InstantiatingClassloader.pushArgs(mv, 1, l);
         // invoke Dictionary.get
         mv.visitMethodInsn(INVOKEVIRTUAL, RTTI_MAP_NAME, "get", get_sig);
         Label not_null = new Label();
@@ -1911,11 +1931,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // putIfNew
         mv.visitFieldInsn(GETSTATIC, rttiClassName,
                 "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
-        InstantiatingClassloader.pushArgs(mv, 0, l);
+        InstantiatingClassloader.pushArgs(mv, 1, l);
         // invoke constructor
         mv.visitTypeInsn(NEW, rttiClassName);
         mv.visitInsn(DUP);
-        InstantiatingClassloader.pushArgs(mv, 0, l);
+        InstantiatingClassloader.pushArgs(mv, 0, l+1);
         mv.visitMethodInsn(INVOKESPECIAL, rttiClassName,
                 "<init>", init_sig);
         // pass it through the dictionary
