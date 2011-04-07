@@ -25,13 +25,13 @@ a possibly empty sequence of syntactic elements $\emph{A}$ separated by commas):
 %by writing bars over each variable:
 %$\bar{T \extends U}$.)
 \[
-\begin{array}{lll}
-\emph{Type} &::=& \emph{Id}\\
-&\mid& \emph{Id}\llbracket\bar{\emph{Type}}\rrbracket\\
-&\mid& \emph{Type} \rightarrow \emph{Type}\\
-&\mid& ( \bar{\emph{Type}} )\\
-&\mid& \emph{Type} \cap \emph{Type}\\
-&\mid& \emph{Type} \cup \emph{Type}\\
+\begin{array}{@{}l@{\;}l@{\;}l@{\;\;\;\;\;\;}l@{}}
+\emph{Type} &::=& \emph{Id} & \hbox{\rm type variable, nullary constructor}\\
+&\mid& \emph{Id}\llbracket\bar{\emph{Type}}\rrbracket & \hbox{\rm constructed type}\\
+&\mid& \emph{Type} \rightarrow \emph{Type} & \hbox{\rm arrow type}\\
+&\mid& ( \bar{\emph{Type}} ) & \hbox{\rm tuple type}\\
+&\mid& \emph{Type} \cap \emph{Type} & \hbox{\rm intersection type}\\
+&\mid& \emph{Type} \cup \emph{Type} & \hbox{\rm union type}\\
 \end{array}
 \]
 A tuple type of length one is synonymous with its element type. 
