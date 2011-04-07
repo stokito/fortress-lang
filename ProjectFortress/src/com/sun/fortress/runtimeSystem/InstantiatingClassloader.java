@@ -205,8 +205,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 //                    throw new ClassNotFoundException("Not yet handling generic functions " + name);
                 //                } else
 
+                boolean expanded = (isGeneric || isGenericFunction || isClosure) ;
+                
                 if (name.startsWith(Naming.TUPLE_RTTI_TAG)) {
                     classData = instantiateTupleRTTI(name);
+                    expanded = true;
                 } else if (isGenericFunction) {
                     // also a closure
                     try {
@@ -286,7 +289,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     classData = getClass(name);
                 }
                 
-                if ((isGeneric || isGenericFunction || isClosure) && SAVE_EXPANDED_JAR != null) {
+                if (expanded && SAVE_EXPANDED_JAR != null) {
                     ByteCodeWriter.writeJarredClass(SAVE_EXPANDED_JAR, name , classData);
                 }
                 
@@ -1358,7 +1361,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         final int n = Integer.parseInt(nstring);
         String[] superInterfaces = null;
         cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC, name, null,
-                Naming.RTTI_CONTAINER_TYPE, superInterfaces);
+                Naming.TUPLE_RTTI_CONTAINER_TYPE, superInterfaces);
         // init
         {
         String init_sig =
@@ -1366,9 +1369,21 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         MethodVisitor mv = cw.visitCGMethod(ACC_PUBLIC, "<init>", init_sig, null, null);
         mv.visitCode();
         
-        mv.visitVarInsn(ALOAD, 0);
-        mv.visitVarInsn(ALOAD, 1);
-        mv.visitMethodInsn(INVOKESPECIAL, Naming.RTTI_CONTAINER_TYPE, "<init>", "(Ljava/lang/Class;)V");
+        mv.visitVarInsn(ALOAD, 0); // this
+        mv.visitVarInsn(ALOAD, 1); // class
+                                   // allocate and init array for next parameter
+        int first_element = 2;
+        // new array
+        mv.visitLdcInsn(new Integer(n));
+        mv.visitTypeInsn(ANEWARRAY, Naming.RTTI_CONTAINER_TYPE);
+        for (int i = 0; i < n; i++) {
+            mv.visitInsn(DUP);
+            mv.visitLdcInsn(new Integer(i));
+            mv.visitVarInsn(ALOAD, first_element + i);
+            mv.visitInsn(AASTORE);
+        }
+        
+        mv.visitMethodInsn(INVOKESPECIAL, Naming.TUPLE_RTTI_CONTAINER_TYPE, "<init>", "(Ljava/lang/Class;[L"+Naming.RTTI_CONTAINER_TYPE+";)V");
         
         int pno = 2; // skip the java class parameter
         for (int i = Naming.STATIC_PARAMETER_ORIGIN;

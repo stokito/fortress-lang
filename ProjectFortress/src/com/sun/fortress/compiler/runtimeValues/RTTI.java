@@ -16,10 +16,13 @@ public abstract class RTTI {
     final Class javaRep;
     
     public boolean argExtendsThis(RTTI other) {
-        return this == other;
+        return this.javaRep.isAssignableFrom( other.javaRep );
     }
     
     public RTTI(Class javaRep) {
         this.javaRep = javaRep;
     }
+    
+    public int hashCode() { return  javaRep.hashCode(); }
+    
 }
