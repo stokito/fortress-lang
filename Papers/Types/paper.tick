@@ -1,4 +1,4 @@
-\documentclass[10pt]{sigplanconf}
+\documentclass[10pt,preprint]{sigplanconf}
 \usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem}
 \advance \textheight by 4pt
 
@@ -187,11 +187,11 @@
              \@setauthor{9pc}{ii}{\@false}\hspace{1.5pc}%
              \@setauthor{9pc}{iii}{\@false}\hspace{1.5pc}%
              \@setauthor{9pc}{iv}{\@true}\par
- \vspace{14pt}
-  \noindent \@setauthor{9pc}{v}{\@false}\hspace{1.5pc}%
-            \@setauthor{9pc}{vi}{\@false}\hspace{1.5pc}%
-            \@setauthor{9pc}{vii}{\@false}\par
- \vspace{12pt}
+\vspace{12pt plus 2pt}
+ \noindent \@setauthor{9pc}{v}{\@false}\hspace{1.5pc}%
+           \@setauthor{9pc}{vi}{\@false}\hspace{1.5pc}%
+           \@setauthor{9pc}{vii}{\@false}\par
+\vspace{10pt plus 2pt}
  \end{center}}
 \makeatother
 \maketitle

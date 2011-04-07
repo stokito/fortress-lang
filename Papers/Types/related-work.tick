@@ -47,7 +47,7 @@ future work.
 Litvinov~\cite{litvinov98} developed a type system for the Cecil language,
 which supports bounded parametric polymorphism and multimethods.
 Because Cecil has a type-erasure semantics, the statically checked
-parametric polymorphism does not have any effects in runtime dispatches.
+parametric polymorphism does not have any effects in run-time dispatches.
 
 
 \subsection{Type classes.} Wadler and Blott \cite{wadler89} introduced
