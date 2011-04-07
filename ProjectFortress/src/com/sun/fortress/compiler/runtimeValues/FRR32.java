@@ -21,6 +21,7 @@ implements fortress.CompilerBuiltin.RR32, fortress.CompilerBuiltin.RR64 {
     public static FRR32 make(float x) {return new FRR32(x);}
     
     public static class RTTIc extends RTTI {
+        private RTTIc() { super(FRR32.class); };
         public static final RTTIc ONLY = new RTTIc();
     }
 
