@@ -2,9 +2,10 @@
 We now augment our subtyping judgment to include \emph{constraints}.
 With constraint-based subtyping, we perform backward reasoning from the
 desired subtyping assertion to derive constraints on types under which the
-assertion can be proved --- when those constraints are satisfied, the assertion
-is also satisfied. These constraints on types are generated and gathered
-first, and then solved later when more information about the environment is known.
+assertion can be proved; 
+when those constraints are satisfied, the assertion is also satisfied. 
+These constraints on types are first generated and gathered, 
+and solved later when more information about the environment is known.
 
 % For example, because of polymorphic exclusion,
 % if we need to prove that a given type $S$ is a subtype of two instantiations `C[\T_bar\]` and
@@ -28,7 +29,7 @@ Our grammar for type constraints is defined as follows:\\[-.2em]
 \end{array}
 \]
 \\
-A primitive constraint is either {\it positives} or {\it negative}.
+A primitive constraint is either {\it positive} or {\it negative}.
 A positive primitive constraint of the form `X <: S` specifies that
 a type variable $X$ is a subtype of $S$, and likewise for `S <: X`.
 The positive primitive constraint $X \exc S$ specifies that a type variable $X$ must exclude a type $S$.
@@ -282,9 +283,10 @@ Solving constraints
 % We will also need to have the ability to solve constraints.
 % $\Delta \vdash \textit{solve}(\C)$
 % This
-needs to be sound but not necessarily complete.\footnote{
-Because a failure in solving constraints may just cause us to reject some overloadings that
-were actually safe.}
+needs to be sound but not necessarily complete.\footnote{A 
+failure in solving constraints may cause us to reject some overloadings that
+were actually safe, 
+but not to allow overloadings that are unsafe.}
 Here is a simple algorithm which is sound but not complete:
 \begin{enumerate}
 \item Take $\C$ which is a union of intersection constraints and

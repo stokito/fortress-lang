@@ -47,8 +47,8 @@ $C\obb{T} \,\excre\, \substb{T}{X}M_i$.
   \item The `object` keyword denotes a type constructor whose applications have no non-trivial subtypes; an `object` type constructor is a leaf of the class hierarchy. Since such a constructed type `C[\T_bar\]` has no subtypes other than itself and \BottomType, we know that it excludes any type `U` of which it is not a subtype. We write this exclusion sub-relation as $C\obb{T} \,\excro\, U$.
 \end{enumerate}
 Exclusion between constructed types is informally defined as the union
-of the sub-relations $\excre$, $\excrc$, and $\excro$. (We shall
-introduce another sub-relation $\excrp$ later in this section.)
+of the sub-relations $\excre$, $\excrc$, and $\excro$. 
+(We introduce another sub-relation $\excrp$ in Section~\ref{sec:exc-polyrules}.)
 Omitting an `excludes` clause is equivalent to having `excludes {}`, and
 omitting a `comprises` clause is equivalent to having `comprises { Any }`.\footnote{For
 the sake of catching likely programming errors, the Fortress language requires that every $K_i$
@@ -117,8 +117,8 @@ Therefore, to allow the function `simple` as a valid overloading,
 any ````reasonable" class table $\T$ that declares types `ZZ` and `String` would also
 declare one to exclude the other, so \hbox{`ZZ` $\exc$ `String`}.
 
-However, the Meet Rule still requires a third declaration in $\D(simple)$ that is applicable
-to every type $T$ if and only if $simple_1$ and $simple_2$ are applicable to $T$.
+However, the Meet Rule still requires a third declaration in $\D(`simple`)$ that is applicable
+to every type $T$ if and only if $`simple`_1$ and $`simple`_2$ are applicable to $T$.
 Such $T$ would necessarily be a subtype of both `ZZ` and `String`, but since
 these types exclude, no such $T$ exists (in $\T$ or in any extension thereof).
 We thus augment every collection of overloaded function declarations $\D$ such
@@ -127,12 +127,12 @@ This declaration is trivially more specific than any declaration possibly writte
 by a programmer, but it does not conflict with overloading safety since it is
 only applicable to \BottomType.
 
-With $simple_\bot$ implicitly part of $\D(simple)$, the two `simple`
+With $`simple`_\bot$ implicitly part of $\D(`simple`)$, the two `simple`
 declarations \emph{almost} satisfy the Meet Rule: the checker now must verify
-that $dom(simple_\bot)$, \BottomType, is equivalent to the computed meet,
+that $\textit{dom}(`simple`_\bot)$, \BottomType, is equivalent to the computed meet,
 `String CAP ZZ`. Therefore we augment our judgment for the subtype relation
 with the rule necessary for constructing this equivalence:
 \infrule
 {S \;\exc\; T}
 {\Delta \vdash S \cap T <: \BottomType}
-With these adjustments, $\D(simple)$ is now a valid overloading.
+With these adjustments, $\D(`simple`)$ is now a valid overloading.
