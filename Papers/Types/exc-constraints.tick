@@ -149,16 +149,16 @@ constraint; the completeness of generation entails the opposite.
   {\jgconstrtemplate{`C[\S_bar\]`}{\excrx}{`D[\T_bar\]`}{\C} \\
    \jgconstrtemplate{`D[\T_bar\]`}{\excrx}{`C[\S_bar\]`}{\C'}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\exc_{x}}{`D[\T_bar\]`}{\C \vee \C'}}
-%\vspace{-3ex}
 \hfill where $x \in \{\mathrm{e,c,o}\}$
-\\[-.2em]
+\\%[-.2em]
 
 \infrule
-  {C = D}
-  {\jgconstrtemplate{`C[\S_bar\]`}{\excrx}{`D[\T_bar\]`}{\FALSE}}
+  %{C = D}
+  {}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excrx}{`C[\T_bar\]`}{\FALSE}}
 %\vspace{-3ex}
 \hfill where $x \in \{\mathrm{e,c,o}\}$
-\\[-.2em]
+\\%[-.2em]
 
 \infrule
   {C \neq D \andalso A = \ancestors(`C[\S_bar\]`) \\
@@ -200,8 +200,9 @@ constraint; the completeness of generation entails the opposite.
   {\jgconstrtemplate{`C[\S_bar\]`}{\excp}{`D[\T_bar\]`}{\bigvee \C_{U,V}}}
 
 \infrule
-  {C = D \andalso \bar{\jcnonequiv{S}{T}{\C}}}
-  {\jgconstrtemplate{`C[\S_bar\]`}{\bexcp}{`D[\T_bar\]`}{\bigvee \C_i}}
+  %{C = D \andalso \bar{\jcnonequiv{S}{T}{\C}}}
+  {\bar{\jcnonequiv{S}{T}{\C}}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\bexcp}{`C[\T_bar\]`}{\bigvee \C_i}}
 
 \infrule
   {C \neq D}

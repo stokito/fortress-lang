@@ -14,7 +14,7 @@ that is (dynamically) most specific
 of those applicable to the ilks of the argument values 
 are the same as the type parameters
 of the function declaration that is (statically) most specific 
-to those applicable to the static types of the argument expressions.
+of those applicable to the static types of the argument expressions.
 Thus, the results of static type inference do not tell us how to
 instantiate the type parameters of a most specific function
 declaration at run time.  
@@ -23,12 +23,12 @@ type inference is performed statically,
 and the results of that inference 
 are passed to the run-time system 
 to ensure that run-time type inference at a function call is sound.
-The rules on the overloaded function declarations
+The rules for overloaded function declarations
 introduced in Section~\ref{sec:rules} ensure that
-the instantiated declaration of the dynamically most applicable function declaration
-with whatever we infer at run time
-is more specific than the instantiated declaration of the statically most applicable
-function declaration with what was inferred at compile time.
+the declaration of the dynamically most applicable function declaration,
+when instantiated with with whatever we infer at run time,
+is more specific than the declaration of the statically most applicable
+function declaration, instantiated with what was inferred at compile time.
 %% For the dynamically most applicable function declaration,
 %% the instantiated declaration with whatever instantiation we infer
 %% must be more specific than the instantiated declaration of the
