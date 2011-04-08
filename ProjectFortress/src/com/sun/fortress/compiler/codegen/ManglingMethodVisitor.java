@@ -116,4 +116,16 @@ public class ManglingMethodVisitor extends MethodAdapter {
         super.visitEnd();
     }
 
+    @Override
+    public void visitLdcInsn(Object cst) {
+        if (cst instanceof Type) {
+            Type type = (Type) cst;
+            String desc = type.getDescriptor();
+            // this fails because Asm Type.getType fails for generic types
+            // desc = Naming.mangleFortressDescriptor(desc);
+            cst = Type.getType(desc);
+        }
+        super.visitLdcInsn(cst);
+    }
+
 }
