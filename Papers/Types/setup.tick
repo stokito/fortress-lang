@@ -41,7 +41,7 @@ As in the Fortress language, compound types---intersection and union types---are
 \emph{not} first-class:
 they cannot be written in a program; 
 rather, they are used by the type analyzer during type checking.
-However, type variables may have multiple bounds, 
+For example, type variables may have multiple bounds, 
 so that any valid instantiation of such a variable
 must be a subtype of the intersection of its bounds.
 
@@ -52,7 +52,7 @@ A declaration for type constructor $C$ has the following form:
 C\tplist{X}{M} \extends \{\bar{N}\}
 \]
 indicating that an application $C\obb{U}$ 
-(i) is \emph{well-formed} if and only if
+(i) is \emph{well-formed} if and only if $|\bar{U}| = |\bar{X}|$ and
 $U_i \subtypeof \substb{U}{X}M_{ij}$ for each bound $M_{ij}$
 (where $\subtypeof$ is the subtyping relation defined below, 
 and $\substb{U}{X}M_{ij}$ is $M_{ij}$ 
@@ -65,7 +65,7 @@ called a \emph{class table},
 induces a (nominal) subtyping relation 
 over the constructed types, 
 by taking the reflexive and transitive closure 
-of the relation derived from the declarations in the class table.
+of the subtyping relation derived from the declarations in the class table.
 In addition, 
 every type is a subtype of \Any\ and a supertype of \BottomType.
 
@@ -76,15 +76,15 @@ we allow recursive and mutually recursive references in the class table.
 Class tables are ranged over by metavariable $\T$ and we write
 $T \in \T$ to mean that any constructed type occurring in type $T$
 is well-formed with respect to the class table $\T$.
-A class table $\T'$ is an extension of another class table $\T$ (written $\T' \ctext \T$)
+A class table $\T'$ is an \emph{extension} of another class table $\T$ (written $\T' \ctext \T$)
 if every constructor declaration in $\T$ is also in $\T'$ and if the subtype relation on $\T'$ agrees with that of $\T$. Consequently, if $\T' \ctext \T$ then, for all types $T$, $T \in \T$ implies $T \in \T'$.
 
 For a well-formed application $C\obb{T}$ 
 of the type constructor declaration for $C$ (shown above)
 in a well-formed class table $\T$, 
-we denote the set of its immediate supertypes by:
+we denote the set of its explicitly or implicitly declared supertypes by:
 \[
-\myextends{C\obb{T}} = \{ \bar{\substb{T}{X}N} \}
+\myextends{C\obb{T}} = \{ \bar{\substb{T}{X}N}, \Any \}
 \]
 With this, 
 we can derive the set of all ancestors of $C\obb{T}$ 
@@ -109,8 +109,12 @@ and each element of the first is a subtype of the corresponding element of the o
 (i.e., $( \tuple{\bar{S}} ) \subtypeof ( \tuple{\bar{T}} )$
 if and only if $|\bar{S}| = |\bar{T}|$
 and $S_i \subtypeof T_i$ for all $1 \leq i \leq |\bar{S}|$).
-Intersection types are the most general subtypes of their element types, 
-and union types are the most specific supertypes of their element types.
+An intersection type is by definition the most general type that is a subtype
+of each of its element types: $(A \cap B) <: A$, $(A \cap B) <: B$, and for all types $T$,
+if $T <: A$ and $T <: B$ then $T <: (A \cap B)$.
+Similarly, a union type is by definition the most general type that is a supertype
+of each of its element types: $A <: (A \cup B)$, $B <: (A \cup B)$, and for all types $T$,
+if $A <: T$ and $B <: T$ then $(A \cup B) <: T$.
 
 To extend the subtyping relation to type variables,
 we require  a \emph{type environment}, 
@@ -235,12 +239,13 @@ $\Delta$ range over both type environments and bounds definitions).
 
 A function declaration \declg{f}{X}{N}{S}{T}
 may be \emph{instantiated} with type arguments $\bar{W}$ 
-if $W_i \subtypeof \substb{W}{X} N_{ij}$ for all $i$ and $j$;
+if $|\bar{W}| = |\bar{X}|$ and $W_i \subtypeof \substb{W}{X} N_{ij}$ for all $i$ and $j$;
 we call $\substb{W}{X} \decl{f}{S}{T}$
 the \emph{instantiation} of $f$ with $\bar{W}$. 
 When we do not care about $\bar{W}$, 
 we just say that $\decl{f}{U}{V}$
-is an \emph{instance} of $f$.
+is an \emph{instance} of $f$ (and it is understood that $U=\substb{W}{X}S$
+and $V=\substb{W}{X}T$ for some (unstated) $\bar{W}$).
 %
 We use the metavariable $\D$ for a finite collection of sets of
 function declarations and $\D(f)$ for the set in

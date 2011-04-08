@@ -186,8 +186,7 @@ In other words, there are no (distinct) declarations $f_1, f_2 \in \D(f)$ such t
 A pair of declarations is a valid overloading if for any call to which both declarations are applicable,
 there is a {\em disambiguating declaration} (possibly one of the pair)
 that is also applicable to the call and is at least as specific as both declarations.
-Thus, at run time, the disambiguating declaration is chosen over the pair of declarations
-because it is also applicable and and it is more specific than both.
+Thus, at run time, the disambiguating declaration is preferred.
 \begin{description}
 \item[Meet Rule]
 For each pair of declarations $f_1, f_2 \in \D(f)$,
@@ -198,15 +197,15 @@ both $f_1$ and $f_2$ are applicable to $T$.
 
 
 
-If one monomorphic declaration is more specific than the other monomorphic one
+If one monomorphic declaration is more specific than another monomorphic one
 then there is no ambiguity between these two declarations:
 for any call to which both are applicable, the first is more specific.
 In the parametrically polymorphic setting,
-if one declaration is more specific than the other,
+if one declaration is to be regarded as more specific than another,
 we require that for every instance of the second that is applicable to a call,
 there exist an instance of the first that is also applicable to the call.
 As in other object-oriented languages, to ensure type safety in the face of dynamic dispatch,
-we also require that the return type of the latter declaration is a subtype of the return type of the former.
+we also require that the return type of the latter declaration be a subtype of the return type of the former.
 % We can ensure that the second well-formedness condition for overloading
 % holds by checking the following rule for each function name $f$:
 \begin{description}
@@ -235,7 +234,7 @@ A universal type binds type parameter declarations over some type and
 can be instantiated by any types valid for those type parameters.
 We write $\forall\tplist{X}{N}T$ to quantify each type variable $X_i$ with bounds
 $\{\bar{N_i}\}$ over the type $T$, and we use the metavariable $\sigma$ to range over universal types.
-
+The meta-level function `FV` maps a type to all free variables contained in that type. 
 
 %applicability of a generic function
 A generic function declaration $\hdeclg{f}{\Delta}{S}{T}$ is \emph{applicable} to a type $U$
