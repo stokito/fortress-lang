@@ -74,16 +74,16 @@ constraint; the completeness of generation entails the opposite.
   \begin{tabular}{c|c}
   %% MINIPAGE FOR LEFT COLUMN
   \begin{minipage}[t]{.45\textwidth}
-\vspace*{-3em}
+%\vspace*{-3em}
 \textbf{Symmetry}
 \vspace*{-1em}
 \infrule
   {\jexc{T}{S}{\C}}
   {\jexc{S}{T}{\C}}
 
-\vspace*{-1em}
+\vspace*{3ex}
 \textbf{Structural rules}
-\vspace*{-1em}
+%\vspace*{-1em}
 \infrule
   {}
   {\jexc{\BottomType}{T}{\TRUE}}
@@ -131,6 +131,19 @@ constraint; the completeness of generation entails the opposite.
    \jexc{T}{U}{\C'}}
   {\jexc{S \cup T}{U}{\C \wedge \C'}}
 
+\vspace*{3ex}
+\textbf{Type variables}
+\infrule
+  {}
+  {\jexc{X}{T}{`X` \exc `T`}}
+
+  \end{minipage}
+  
+  %%% END LEFT COLUMN
+  &
+  
+  %% MINIPAGE FOR RIGHT COLUMN
+  \begin{minipage}[t]{.53\textwidth}
 \textbf{Constructed types}
 \vspace*{-1em}
 \infrule
@@ -140,39 +153,28 @@ constraint; the completeness of generation entails the opposite.
    \jgconstrtemplate{`C[\S_bar\]`}{\excp}{`D[\T_bar\]`}{\C_p}}
   {\jexc{`C[\S_bar\]`}{`D[\T_bar\]`}{\C_e \vee \C_c \vee \C_o \vee \C_p}}
 
-  \end{minipage}
-  
-  %%% END LEFT COLUMN
-  &
-  
-  %% MINIPAGE FOR RIGHT COLUMN
-  \begin{minipage}[t]{.53\textwidth}
-
 \infrule
   {\jgconstrtemplate{`C[\S_bar\]`}{\excrx}{`D[\T_bar\]`}{\C} \\
    \jgconstrtemplate{`D[\T_bar\]`}{\excrx}{`C[\S_bar\]`}{\C'}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\exc_{x}}{`D[\T_bar\]`}{\C \vee \C'}}
+\vspace{-3ex}
 \hfill where $x \in \{\mathrm{e,c,o}\}$
 \\%[-.2em]
 
+\vspace*{-1em}
 \infrule
   %{C = D}
   {}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excrx}{`C[\T_bar\]`}{\FALSE}}
-%\vspace{-3ex}
+\vspace{-3ex}
 \hfill where $x \in \{\mathrm{e,c,o}\}$
 \\%[-.2em]
+\vspace*{-1ex}
 
 \infrule
   {C \neq D \andalso A = \ancestors(`C[\S_bar\]`) \\
    \forall U \in \left(\bigcup_{N \in A} \myexcludes{N}\right). \quad \jcsub{`D[\T_bar\]`}{U}{\C_{U}}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excre}{`D[\T_bar\]`}{\bigvee \C_{U}}}
-%\vspace{-5ex}
-%\hfill
-\begin{center}
- 
-\end{center}
-\vspace{-2ex}
 
 \infrule
   {C \neq D \\
@@ -210,11 +212,6 @@ constraint; the completeness of generation entails the opposite.
 \infrule
   {C \neq D}
   {\jgconstrtemplate{`C[\S_bar\]`}{\bexcp}{`D[\T_bar\]`}{\FALSE}}
-
-\textbf{Type variables}
-\infrule
-  {}
-  {\jexc{X}{T}{`X` \exc `T`}}
 
   \end{minipage}
   \end{tabular}
