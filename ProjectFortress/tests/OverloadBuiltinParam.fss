@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component OverloadBuiltinParam
+
+export Executable
+
+(* similar to wrapZZ, but tests overloading of built-in operators,
+   which are currently represented as top-level functions rather than
+   as functional methods. *)
+
+object WrapZZ[\A\](n : ZZ32, a:A)
+end
+
+opr +[\ T extends Number, nat n, nat m \]
+     (s:WrapZZ[\T\], o:WrapZZ[\T\]) = WrapZZ[\T\](s.n + o.n,s.a)
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p \]
+     (s:WrapZZ[\T\], o:WrapZZ[\T\]) = WrapZZ[\T\](s.n o.n,s.a)
+
+run():() = do
+  x : WrapZZ[\RR64\] = WrapZZ[\RR64\](5,17.0)
+  y : WrapZZ[\RR64\] = WrapZZ[\RR64\](7,23.0)
+  z = x y
+  w = x + y
+  println("z = " z.n // "w = " w.n)
+  if z.n =/= 35 OR w.n =/= 12 then
+    println("FAIL: EXPECTED 35 and 12")
+  end
+end
+
+end

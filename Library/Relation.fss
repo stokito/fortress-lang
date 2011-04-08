@@ -1,0 +1,289 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Relation
+import Containment.{...}
+import Map.{...} except { opr BIG UNION }
+import Set.{...}
+(* import SetClosure.{...} *)
+export Relation
+
+(* TODO:
+ * - have version with explicit domain/codomain sets?
+ *)
+
+object Relation[\T\](rel: Map[\T,Set[\T\]\]) extends ContainmentBySubset[\Relation[\T\]\]
+
+  getter asString(): String = "Relation " || rel.asString
+  dom(self): Set[\T\] = dom(rel)
+
+  range(self): Set[\T\] = BIG UNION[\T\][(k,v) <- rel] v
+
+  pairs(): Generator[\(T,T)\] =
+    rel.nest[\T\](fn (k,v) => v.map[\(T,T)\](fn ve => (k,ve)))
+
+  image(x:T): Set[\T\] =
+    rel.member(x, set[\T\]())
+
+  preimage(y:T): Set[\T\] =
+    {[\T\] x | (x,ys) <- rel, y IN ys }
+
+  compose(other:Relation[\T\]):Relation[\T\] =
+    Relation[\T\](relationCompose[\T\](rel, other.rel))
+
+(*
+  opr INVERSE(self): Relation[\T\] =
+    BIG RELATION[\T\][(x,y) <- self.pairs()] (y,x)
+*)
+  opr INVERSE(self): Relation[\T\] =
+    BIG RELATION[\T\][p <- self.pairs()] do (x:T,y:T) = p; (y,x) end
+
+  opr UNION(self, other:Relation[\T\]): Relation[\T\] =
+    Relation[\T\](relationUnion(self.rel, other.rel))
+
+  opr INTERSECTION(self, other:Relation[\T\]): Relation[\T\] =
+    Relation[\T\](relationIntersection(self.rel, other.rel))
+
+  opr DIFFERENCE(self, other:Relation[\T\]): Relation[\T\] =
+    Relation[\T\](relationDifference(self.rel, other.rel))
+
+  opr =(self, other: Relation[\T\]): Boolean =
+    (self.rel = other.rel)
+
+  opr IN(p:(T,T), self): Boolean = do
+    (k,v) = p
+    if values <- rel.member(k) then v IN values else false end
+  end
+
+  (* Relation predicates *)
+
+  opr SUBSETEQ(self, other:Relation[\T\]): Boolean =
+    BIG AND[(key,values1) <- rel]
+      if values2 <- other.rel.member(key) then
+        values1 SUBSETEQ values2
+      else
+        false
+      end
+
+  opr SUBSET(self, other:Relation[\T\]): Boolean =
+    (self SUBSETEQ other) AND: NOT(self = other)
+
+  opr SUPSET(self, other:Relation[\T\]): Boolean =
+    other SUBSET self
+
+  opr SUPSETEQ(self, other:Relation[\T\]): Boolean =
+    other SUBSETEQ self
+
+  (* Closure predicates *)
+
+  isSymmetric(): Boolean =
+    BIG AND[p <- pairs()] do (x,y) = p; (y,x) IN self end
+
+  isTransitive(): Boolean =
+    BIG AND[(x, onesteps) <- rel, onestep <- onesteps, twosteps <- rel.member(onestep)]
+      twosteps SUBSETEQ onesteps
+
+  isReflexive(): Boolean =
+    BIG AND[x <- dom(self) UNION range(self)] (x,x) IN self
+
+  isFunctional(): Boolean =
+    BIG AND[(key, values) <- rel] |values| = 1
+
+  isIrreflexive(): Boolean =
+    BIG AND[(key, values) <- rel] NOT(key IN values)
+
+  isEquivalence(): Boolean =
+    isSymmetric() AND: isReflexive() AND: isTransitive()
+
+  (* Closure operations *)
+
+  symmetricClosure(): Relation[\T\] =
+    self UNION (INVERSE self)
+
+  reflexiveClosure(): Relation[\T\] =
+    Relation[\T\](relationUnion[\T\](self.rel, {[\T,Set[\T\]\] x |-> {[\T\] x}
+                                            | x <- dom(self) UNION range(self)}))
+
+  transitiveClosure(): Relation[\T\] =
+    Relation[\T\](transitiveLoop[\T\](rel, rel))
+
+  symmetricTransitiveClosure(): Relation[\T\] =
+    self.symmetricClosure().transitiveClosure()
+
+end
+
+relation[\T\]():Relation[\T\] =
+  Relation[\T\]({[\T,Set[\T\]\]})
+
+relation[\T\](domain: Set[\T\], f: T -> Set[\T\]): Relation[\T\] =
+  Relation[\T\] {[\T,Set[\T\]\] key |-> f(key) | key <- domain }
+
+relation[\T\](rel: Map[\T,Set[\T\]\]): Relation[\T\] =
+  Relation[\T\] {[\T,Set[\T\]\] key |-> vals | (key, vals) <- rel, NOT vals.isEmpty }
+
+relation[\T\](pairs: Generator[\(T,T)\]): Relation[\T\] =
+  BIG RELATION[\T\][p <- pairs] p
+
+opr BIG RELATION[\T\](): Comprehension[\(T,T), Relation[\T\], Map[\T,Set[\T\]\], Map[\T,Set[\T\]\]\] =
+  Comprehension[\(T,T), Relation[\T\], Map[\T,Set[\T\]\], Map[\T,Set[\T\]\]\](
+    Relation[\T\],
+    RelationReduction[\T\],
+    fn(k:T,v:T):Map[\T,Set[\T\]\] => {[\T,Set[\T\]\] k |-> {[\T\] v } })
+
+opr BIG RELATION[\T\](g: Generator[\(T,T)\]):Relation[\T\] =
+  __bigOperatorSugar[\(T,T),Relation[\T\],Map[\T,Set[\T\]\],Map[\T,Set[\T\]\]\](BIG RELATION[\T\](), g)
+
+object RelationReduction[\T\] extends CommutativeMonoidReduction[\Map[\T,Set[\T\]\]\]
+  getter asString():String = "Relation reduction"
+  empty():Map[\T,Set[\T\]\] = {[\T,Set[\T\]\]}
+  join(left: Map[\T,Set[\T\]\], right: Map[\T,Set[\T\]\]):Map[\T,Set[\T\]\] =
+    relationUnion(left, right)
+end
+
+(* Helpers *)
+
+transitiveLoop[\T\](accum:Map[\T,Set[\T\]\], working:Map[\T,Set[\T\]\]):Map[\T,Set[\T\]\] =
+  if working.isEmpty then accum else
+    generated = relationCompose[\T\](working, accum)
+    newAccum = relationUnion[\T\](accum, generated)
+    newWorking = relationDifference[\T\](newAccum, accum)
+    transitiveLoop[\T\](newAccum, newWorking)
+  end
+
+relationUnion[\T\](a:Map[\T,Set[\T\]\], b:Map[\T,Set[\T\]\]): Map[\T,Set[\T\]\] =
+  a.union( fn(k, left, right) => left UNION right, b)
+
+relationCompose[\T\](a:Map[\T,Set[\T\]\], b:Map[\T,Set[\T\]\]): Map[\T,Set[\T\]\] =
+  {[\T,Set[\T\]\] key |-> vals
+   | (key, valuesA) <- a,
+     vals <- Just(BIG UNION[\T\][x <- valuesA] relationImage[\T\](b, x)),
+     NOT vals.isEmpty}
+
+relationImage[\T\](a:Map[\T,Set[\T\]\], x:T): Map[\T,Set[\T\]\] =
+  a.member(x, set[\T\]())
+
+relationDifference[\T\](a:Map[\T,Set[\T\]\], b:Map[\T,Set[\T\]\]):Map[\T,Set[\T\]\] =
+  {[\T,Set[\T\]\] key |-> vals
+   | (key, valsA) <- a,
+     valsB <- Just(b.member(key, set[\T\]())),
+     vals <- Just(valsA DIFFERENCE valsB),
+     NOT vals.isEmpty}
+
+relationIntersection[\T\](a:Map[\T,Set[\T\]\], b:Map[\T,Set[\T\]\]): Map[\T,Set[\T\]\] =
+  {[\T,Set[\T\]\] key |-> vals
+   | (key, valsA) <- a,
+     valsB <- Just(b.member(key, set[\T\]())),
+     vals <- Just(valsA INTERSECTION valsB),
+     NOT vals.isEmpty}
+
+(* Tests *)
+
+test testRelationUtilities():() = do
+  zzs(x:ZZ32):Set[\ZZ32\] = {[\ZZ32\] x }
+  underlying = {[\ZZ32,Set[\ZZ32\]\] 0 |-> zzs(0), 1 |-> zzs(-1), 2 |-> zzs(-2) }
+  rel = Relation[\ZZ32\](underlying)
+
+  assert(rel UNION (Relation[\ZZ32\]({[\ZZ32,Set[\ZZ32\]\] -1 |-> zzs(1) })),
+         Relation[\ZZ32\]({[\ZZ32,Set[\ZZ32\]\] -1 |-> zzs(1), 0 |-> zzs(0), 1 |-> zzs(-1), 2 |-> zzs(-2) }))
+
+  f(x:ZZ32):Set[\ZZ32\] = {[\ZZ32\] -x }
+  universe = {[\ZZ32\] x | x <- 0:2 }
+
+  relByF = relation[\ZZ32\](universe, f)
+  assert(relByF, rel)
+
+  relByComp = BIG RELATION[\ZZ32\][x <- 0:2] (x, -x)
+  assert(relByComp, rel)
+
+  relByPairs = relation[\ZZ32\]({[\(ZZ32,ZZ32)\] (0,0), (1,-1), (2,-2)})
+  assert(relByPairs, rel)
+
+  assert({[\(ZZ32,ZZ32)\] p | p <- rel.pairs() },
+         {[\(ZZ32,ZZ32)\] (0,0), (1,-1), (2,-2) })
+
+  assert(dom(rel),
+         {[\ZZ32\] 0,1,2})
+
+  assert(range(rel),
+         {[\ZZ32\] 0, -1, -2})
+end
+
+(*
+test testRelationClosuresViaSets():() = do
+  tconnect[\T\](p1, p2):Set[\(T,T)\] = do
+    (xa, ya) = p1
+    (xb, yb) = p2
+    if (ya = xb) then {[\T\] (xa,yb)} else set[\T\]() end
+  end
+  dumbTransitiveClosure[\T\](rel:Relation[\T\]) = do
+    pairSet = {[\(T,T)\] p | p <- rel.pairs()}
+    tclosedPairSet = closure2(pairSet, tconnect[\T\])
+    BIG RELATION[\T\][p <- tclosedPairSet] p
+  end
+
+  universe = {[\ZZ32\] x | x <- 1:8 }
+  rel = relation[\ZZ32\](universe, fn(n) => {[\ZZ32\] n-1})
+
+  assert(rel.transitiveClosure(), dumbTransitiveClosure[\ZZ32\](rel))
+  println("Transitive closure via sets passed")
+end
+*)
+
+test testRelationClosures():() = do
+  universe = {[\ZZ32\] x | x <- 1:8 }
+  rel = relation[\ZZ32\](universe, fn(n) => {[\ZZ32\] n-1})
+
+(*
+  println ("Relation is " || rel)
+  println ("Inverse is " || INVERSE rel)
+  println ("Symmetric closure is " || rel.symmetricClosure())
+  println ("Reflexive closure is " || rel.reflexiveClosure())
+  println ("Transitive closure is " || rel.transitiveClosure())
+*)
+
+  assert(NOT rel.isReflexive())
+  assert(NOT rel.isSymmetric())
+  assert(NOT rel.isTransitive())
+
+  lessThan = Relation[\ZZ32\]({[\ZZ32,Set[\ZZ32\]\] x |-> {[\ZZ32\] y | y <- 0:x-1 } | x <- 1:8 })
+  assert(rel.transitiveClosure(), lessThan)
+
+  sym = rel.symmetricClosure()
+  assert(rel SUBSETEQ sym)
+  assert(sym.isSymmetric())
+
+  neighbors = rel UNION (relation[\ZZ32\]({[\ZZ32\] x | x <- 0:7}, fn(n) => {[\ZZ32\] n+1}))
+  assert(rel.symmetricClosure(), neighbors)
+
+  symTrans = rel.symmetricTransitiveClosure()
+  assert(rel SUBSETEQ symTrans)
+  assert(symTrans.isSymmetric())
+  assert(symTrans.isTransitive())
+
+  complete = Relation[\ZZ32\]({[\ZZ32,Set[\ZZ32\]\] x |-> {[\ZZ32\] y | y <- 0:8} | x <- 0:8 })
+  assert(rel.symmetricTransitiveClosure(), complete)
+
+  refl = rel.reflexiveClosure()
+  assert(rel SUBSETEQ refl)
+  assert(refl.isReflexive())
+
+  symRefl = rel.symmetricClosure().reflexiveClosure()
+  assert(rel SUBSETEQ symRefl)
+  assert(symRefl.isSymmetric())
+  assert(symRefl.isReflexive())
+
+  reflTrans = rel.reflexiveClosure().transitiveClosure()
+  assert(rel SUBSETEQ reflTrans)
+  assert(reflTrans.isReflexive())
+  assert(reflTrans.isTransitive())
+end
+
+end

@@ -1,0 +1,92 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+LiteralExpr =
+     <VOID> VoidLiteralExpr
+   / <NUMERICAL> NumericLiteralExpr
+   / <CHAR> CharLiteralExpr
+   / <STRING> StringLiteralExpr
+
+VoidLiteralExpr =
+     <FIRST> openparen w closeparen
+
+IntLiteralExpr =
+     <FIRST> a1:NumericLiteralExpr &{ (a1 instanceof IntLiteralExpr) }
+
+NumericLiteralExpr =
+     NumericLiteralWithRadix
+   / a1:NumericWord RestNumericWord* &{ Character.isDigit(a1.charAt(0)) }
+
+NumericLiteralWithRadix =
+     NumericWord RestNumericWord* "_" RadixSpecifier
+
+NumericWord =
+     NumericCharacter+
+NumericCharacter = [0-9a-zA-Z]
+
+RestNumericWord =
+    NumericSeparator NumericWord
+
+NumericSeparator = NumericSpace / "."
+NumericSpace = "'" / "\u202f"
+
+RadixSpecifier =
+     a1:DigitString !([a-zA-Z]) &{ NodeUtil.validRadix(writer, createSpan(yyStart,yyCount), a1) }
+   / RadixNames
+
+DigitString = [0-9]+
+
+RadixNames =
+     "SIXTEEN"
+   / "FIFTEEN"
+   / "FOURTEEN"
+   / "THIRTEEN"
+   / "TWELVE"
+   / "ELEVEN"
+   / "TEN"
+   / "NINE"
+   / "EIGHT"
+   / "SEVEN"
+   / "SIX"
+   / "FIVE"
+   / "FOUR"
+   / "THREE"
+   / "TWO"
+
+CharLiteralExpr =
+     <FIRST> "'" CharLiteralContent "'"
+   / "`" CharLiteralContent "'"
+   / "\u2018" CharLiteralContent "\u2019"
+   / <ErrorProduction1> "'" CharLiteralContent "\u2019"
+   / <ErrorProduction2> "`" CharLiteralContent "\u2019"
+   / <ErrorProduction3> "\u2018" CharLiteralContent "'"
+
+StringLiteralExpr =
+     <FIRST> ["] StringLiteralContent* ["]
+   / "\u201c" StringLiteralContent* "\u201d"
+   / <ErrorProduction1> ["] StringLiteralContent* "\u201d"
+   / <ErrorProduction2> "\u201c" StringLiteralContent* ["]
+StringLiteralContent =
+     EscapeSequence
+   / (!InvalidStringLiteralContent _)
+
+InvalidStringLiteralContent =
+     ["\u201c\u201d]
+   / [\\]
+   / [\n\f\r\u0009\u000b\u001c\u001d\u001e\u001f\u2028\u2029]
+   / c:_ &{ Character.getType(c) == Character.CONTROL }
+
+EscapeSequence =
+     '\\' [btnfr"\\]
+   / '\\' [\u201c]
+   / '\\' [\u201d]
+\end{verbatim}

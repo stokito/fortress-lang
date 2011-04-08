@@ -1,0 +1,163 @@
+(*******************************************************************************
+    Copyright 2010 Joonsoo Jeon, KAIST
+    All rights reserved.
+ ******************************************************************************)
+
+(*******************************************************************************
+    NAS Parallel Benchmark FT
+ ******************************************************************************)
+
+export Executable
+
+(*) NAS Parallel Benchmark Pseudo-Random Number Generator
+object NPBRandom(seed:ZZ64)
+  a:ZZ64 = 5^13
+  base:RR64 = 2.0^46
+  var last:ZZ64 = widen seed
+  multiply(a0:ZZ64, b0:ZZ64):ZZ64 = do
+    a1 = a0 RSHIFT 23
+    a2 = a0 - (a1 LSHIFT 23)
+    b1 = b0 RSHIFT 23
+    b2 = b0 - (b1 LSHIFT 23)
+    t1 = a1 b2 + a2 b1
+    t2 = t1 RSHIFT 23
+    t3 = t1 - (t2 LSHIFT 23)
+    t4 = (t3 LSHIFT 23) + a2 b2
+    t5 = t4 RSHIFT 46
+    t4 - (t5 LSHIFT 46)
+  end
+  generate():RR64 = do
+    last := multiply(a, last)
+    last / base
+  end
+end NPBRandom
+
+(*) Complex number object
+object Complex(r:RR64, i:RR64) extends Number
+  getter asString() = r "+" i "i"
+  getter real() = r
+  getter imag() = i
+  opr |self| :RR64 = SQRT (r^2 + i^2)
+  opr -(self) = Complex(-r, -i)
+  opr =(self, b:Complex) = (r = b.real) AND (i = b.imag)
+  opr +(self, b:Complex) = Complex(r+b.real, i+b.imag)
+  opr +(self, b:RR64) = Complex(r+b, i)
+  opr +(b:RR64, self) = self+b
+  opr -(self, b:Complex) = Complex(r-b.real, i-b.imag)
+  opr juxtaposition(self, b:Complex) = 
+    Complex(r b.real - i b.imag, i b.real + r b.imag)
+  opr juxtaposition(self, b:RR64) = Complex(r b, i b)
+  opr juxtaposition(b:RR64, self) = self b
+  opr /(self, b:RR64) = Complex(r/b, i/b)
+end
+
+e: RR64 = 2.71828182845904523536
+pi: RR64 = 3.14159265358979323846
+i:Complex = Complex(0, 1)
+eix(x:RR64) = Complex(cos x, sin x)
+
+(*) 1-D FFT and Inverse FFT
+fft1core(u, n1, offset, skip, sgn, tmp) = 
+  if n1 = 1 then u
+  else
+    n1' = n1 DIV 2
+    (fft1core(u, n1', offset, 2 skip, sgn, tmp), 
+     fft1core(u, n1', offset + skip, 2 skip, sgn, tmp))
+    for k<-0:n1'-1 do
+      k' = offset + 2 k skip
+      tmp[offset + skip k] := u[k'] + eix(sgn 2 pi k / n1) u[k' + skip]
+      tmp[offset + skip (k + n1')] := u[k'] - eix(sgn 2 pi k / n1) u[k' + skip]
+    end
+    for k<-0:n1-1 do
+      k' = offset + skip k
+      u[k'] := tmp[k']
+    end
+    u
+  end
+fft1(u, n1) = fft1core(u, n1, 0, 1, -1, array[\Complex\](n1))
+ifft1(u, n1) = fft1core(u, n1, 0, 1, 1, array[\Complex\](n1)).map[\Complex\](fn (src) => src / n1)
+
+(*) 3-D FFT and Inverse FFT
+fft3core(u, n1, n2, n3, f1) = do
+  var r:Array[\Complex, (ZZ32, ZZ32, ZZ32)\] = u.copy()
+  for k<-0:n2-1 do
+    for l<-0:n3-1 do
+      line = array[\Complex\](n1).fill(fn(n) => r[n, k, l])
+      rline = f1(line, n1)
+      for j<-0:n1-1 do r[j, k, l] := rline[j] end
+    end
+  end
+  for j<-0:n1-1 do
+    for l<-0:n3-1 do
+      line = array[\Complex\](n2).fill(fn(n) => r[j, n, l])
+      rline = f1(line, n2)
+      for k<-0:n2-1 do r[j, k, l] := rline[k] end
+    end
+  end
+  for j<-0:n1-1 do
+    for k<-0:n2-1 do
+      line = array[\Complex\](n3).fill(fn(n) => r[j, k, n])
+      rline = f1(line, n3)
+      for l<-0:n3-1 do r[j, k, l] := rline[l] end
+    end
+  end
+  r
+end
+fft3(u, n1, n2, n3) = fft3core(u, n1, n2, n3, fft1)
+ifft3(u, n1, n2, n3) = fft3core(u, n1, n2, n3, ifft1)
+
+(*) Benchmark codes
+checksum(X, n1, n2, n3) =
+  SUM [j<-0:1023] X[j MOD n1, (3 j) MOD n2, (5 j) MOD n3]
+
+dobenchmark(n1, n2, n3, N) = do
+  U = array[\Complex\](n1, n2, n3)
+  rand = NPBRandom(314159265)
+  (*) Initialize U
+  println "Initializing U..."
+  for l<-seq(0:n3-1) atomic do
+    for k<-seq(0:n2-1) atomic do
+      for j<-seq(0:n1-1) atomic do
+        real = rand.generate()
+        imag = rand.generate()
+        U[j, k, l] := Complex(real, imag)
+      end
+    end
+  end
+  println "Calculating FT..."
+  V = fft3(U, n1, n2, n3)
+  var t:ZZ32 = 1
+  alpha = 10^(-6)
+  while t<=N do
+    bar2(x, n) = if 0 <= x < (n DIV 2) then x^2 else (x-n)^2 end
+    barsum(j, k, l) = bar2(j, n1)+bar2(k, n2)+bar2(l, n3)
+    println "Calculating W..."
+    W = array[\Complex\](n1, n2, n3).fill(fn (j, k, l) => 
+      e^(-4 alpha pi^2 barsum(j, k, l) t) V[j, k, l])
+    println "Calculating IFT..."
+    X = ifft3(W, n1, n2, n3)
+    println "Calculating Checksum..."
+    println "  Checksum " t " : " checksum(X, n1, n2, n3)
+    t += 1
+  end
+end
+
+(*) run function
+run() = do
+  println "Class T Problem"
+  dobenchmark(2, 4, 4, 1)
+(*
+  println "Class S Problem"
+  dobenchmark(64, 64, 64, 6)
+  println "Class W Problem"
+  dobenchmark(128, 128, 32, 6)
+  println "Class A Problem"
+  dobenchmark(256, 256, 128, 6)
+  println "Class B Problem"
+  dobenchmark(512, 256, 256, 20)
+  (*) println "Class C Problem"
+  (*) dobenchmark(512, 512, 512, 20)
+  (*) println "Class D Problem"
+  (*) dobenchmark(2048, 1024, 1024, 25)
+*)
+end
