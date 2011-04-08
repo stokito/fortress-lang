@@ -15,8 +15,9 @@ and compound types,
 consisting of intersection and union types. 
 In addition, 
 there are two special constructed types, \Any\ and \BottomType, explained below.
-Nullary applications are written without brackets; 
-for example, `C[\ \]` is written `C`. 
+(To reduce clutter, 
+nullary applications are written without brackets; 
+for example, `C[\ \]` is written `C`.) 
 The abstract syntax of types is defined in BNF as follows
 (where $\bar{\emph{A}}$ indicates 
 a possibly empty sequence of syntactic elements $\emph{A}$ separated by commas):
@@ -32,6 +33,8 @@ a possibly empty sequence of syntactic elements $\emph{A}$ separated by commas):
 &\mid& ( \bar{\emph{Type}} ) & \hbox{\rm tuple type}\\
 &\mid& \emph{Type} \cap \emph{Type} & \hbox{\rm intersection type}\\
 &\mid& \emph{Type} \cup \emph{Type} & \hbox{\rm union type}\\
+%&\mid& \Any \\
+%&\mid& \BottomType \\
 \end{array}
 \]
 A tuple type of length one is synonymous with its element type. 
@@ -84,12 +87,12 @@ and the subtype relation on $\T'$ agrees with that of $\T$.
 Consequently, if $\T' \ctext \T$ then, for all types $T$, $T \in \T$ implies $T \in \T'$.
 We typically omit explicit reference to the class table when it is understood.
 
-Given the type constructor declaration for $C$ above 
-in a well-formed class table, 
+Given a well-formed class table 
+containing the type constructor declaration for $C$ above 
 and a well-formed application $C\obb{T}$,
 we denote the set of its explicitly declared supertypes by
 \[
-\myextends{C\obb{T}} = \{ \bar{\substb{T}{X}N}, \}
+\myextends{C\obb{T}} = \{ \bar{\substb{T}{X}N} \}
 \]
 and the set of ancestors of $C\obb{T}$ 
 (defined recursively) by
