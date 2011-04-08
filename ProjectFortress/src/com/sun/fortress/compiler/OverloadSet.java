@@ -995,8 +995,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             throw new CompilerError("Not handling Bottom type yet in generic overload dispatch");
 
         } else if (t instanceof AnyType) {
-            throw new CompilerError("Not handling Any type yet in generic overload dispatch");
-
+            // throw new CompilerError("Not handling Any type yet in generic overload dispatch");
+            // might need to init "stem"
         } else if (t instanceof AbbreviatedType) {
             throw new CompilerError("Not handling Abbreviated type yet in generic overload dispatch");
 
@@ -1046,6 +1046,22 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
          {
             int l = specificDispatchOrder.length;
+            
+            // experimentally create type structures for parameter types.
+            for (int i = 0; i < l; i++) {
+                TaggedFunctionName f = specificDispatchOrder[i];
+                Function eff = f.getF();
+                List<Param> parameters = f.tagParameters();
+                MultiMap<String, TS> spmap = new MultiMap<String, TS>();
+                // this, plus parameters
+                int storeAtIndex = parameters.size() + 1;
+                for (int j = 0; j < parameters.size(); j++) {
+                    Type t = oa.getParamType(eff,j);
+                    TS type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex);
+                    storeAtIndex = type_structure.successorIndex;
+                }
+            }
+            
             for (int i = 0; i < l; i++) {
                 TaggedFunctionName f = specificDispatchOrder[i];
                 Function eff = f.getF();
