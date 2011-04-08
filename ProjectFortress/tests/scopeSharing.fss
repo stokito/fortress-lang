@@ -1,0 +1,55 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component scopeSharing
+export Executable
+
+trait T
+  getshred():ZZ32
+  setshred(x:ZZ32):()
+  getSerial():ZZ32
+end
+
+shredMaker():(()->T) = do
+  var shred:ZZ32 = 0
+  var serial:ZZ32 = 0
+
+  fn():T => do serial += 1;
+     mySerial = serial (* Capture in this function invocation *)
+     object extends T
+       getshred() = shred
+       setshred(x:ZZ32) = do shred := x; end
+       getSerial() = mySerial
+     end
+  end
+end
+
+check(x:Boolean) = do
+  println(if x then "PASS" else "FAIL")
+end
+
+run():()=do
+
+m1 = shredMaker()
+m2 = shredMaker()
+
+t11 = m1()
+t12 = m1()
+t21 = m2()
+
+t11.setshred(17)
+check(t11.getSerial() = 1)
+check(t12.getSerial() = 2)
+check(t12.getshred() = 17)
+
+end
+
+end

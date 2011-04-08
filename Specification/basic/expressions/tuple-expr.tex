@@ -1,0 +1,24 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Tuple Expressions}
+\seclabel{tuple-expr}
+
+\begin{Grammar}
+\emph{TupleExpr} &::=& \texttt( (\emph{Expr}\EXP{,})$^+$ \emph{Expr} \texttt)\\
+\end{Grammar}
+
+A tuple expression is an ordered sequence of expressions separated by commas
+and enclosed in parentheses.  There must be at least two element expressions.
+The type of a tuple expression
+is a tuple type (as discussed in \secref{tuple-types}).
+Each element of a tuple is evaluated in parallel in a separate implicit thread (see
+\secref{threads-parallelism}).

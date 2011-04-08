@@ -1,0 +1,52 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Memory and Memory Operations}
+\seclabel{memory-ops}
+
+\note{Check for \emph{initializing write} is not yet supported.}
+
+In this specification,
+the term \emph{memory} refers to a set of abstract \emph{locations};
+the memory is used to model sharing and mutation.
+A location has an associated type,
+and \emph{contains} a value of that type
+(i.e., the type of the value is a subtype of the type of the location).
+Locations can have non-object trait types; by contrast, a value always has an object type.
+
+There are three operations that can be performed on memory:
+\emph{allocation}, \emph{read}, and \emph{write}.
+Reads and writes are collectively called \emph{memory accesses}.
+Intuitively,
+a read operation takes a location
+and returns the value contained in that location,
+and a write operation takes a location and a value of the location's type
+and changes the contents of the location
+so the location contains the given value.
+Accesses need not take place in the order in which they occur in the program text; a detailed account of memory behavior appears in \chapref{memory-model}.
+
+Allocation creates a new location of a given type.
+Allocation occurs when a mutable variable is declared, or when a
+reference object is constructed.  In the latter case, a new location
+is allocated for each field of the object.
+Abstractly, locations are never reclaimed;
+in practice, memory reclamation is handled by garbage collection.
+
+A freshly allocated location is \emph{uninitialized}.
+The type system and memory model in Fortress guarantee that an
+\emph{initializing write} is performed to every location if it is ever read,
+and that this write occurs before any read of the location.
+Any location whose value can be written after initialization is
+\emph{mutable}.  Mutable locations consist of
+mutable variables and mutable fields of reference objects.
+Any location whose value cannot be written after
+initialization is \emph{immutable}.
+Immutable locations are the non-\KWD{settable} immutable fields of a reference object.
