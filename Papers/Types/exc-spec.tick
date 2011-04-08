@@ -1,6 +1,8 @@
 To provide more expressive power to describe richer type relationships,
-we introduce the \emph{exclusion} relation $\exc$ on types:
+we augment our formalism with an \emph{exclusion} relation $\exc$ on types:
 $S \exc T$ asserts that types $S$ and $T$ have no common subtypes other than \BottomType.
+This allows us to describe explicitly what is typically only implicit in single-inheritance
+class hierarchies.
 
 We define the exclusion relation by extending type constructor declarations with
 two new optional clauses, `excludes` and `comprises`:
@@ -29,9 +31,9 @@ We also allow another form of declaration that is frequently convenient for defi
 % Thus, if a type excludes `[T_bar / X_bar]K[i]` for each $i$, then it
 % also necessarily excludes `C[\T_bar\]`.
 %
-The exclusion relation on constructed types can then be informally described as the combination of
-more precise sub-relations on those types that each corresponds to a certain
-reason, or proof, of exclusion:
+The exclusion relation on constructed types can then be described in terms of
+more precise sub-relations on those types, each of which corresponds to a certain
+reason for (or proof of) exclusion:
 \begin{enumerate}
   \item The `excludes` clause explicitly states that
 the constructed type `C[\T_bar\]`
@@ -42,13 +44,13 @@ $C\obb{T} \,\excre\, \substb{T}{X}M_i$.
 
   \item The `comprises` clause stipulates that any subtype of `C[\T_bar\]` \emph{must} be a subtype of `[T_bar / X_bar]K[i]` for some `K[i]` in `K_bar`. Then if every `[T_bar / X_bar]K[i]` in `K_bar` excludes some type $U$, `C[\T_bar\]` must also exclude $U$. We write this exclusion sub-relation as $C\obb{T} \,\excrc\, U$.
   
-  \item The `object` keyword denotes a type constructor whose applications have no non-trivial subtypes; an `object` type constructor is a leaf of the class table. Since such a constructed type `C[\T_bar\]` has no subtypes other than itself and \BottomType, we know that it excludes any type `U` of which it is not a subtype. We write this exclusion sub-relation as $C\obb{T} \,\excro\, U$.
+  \item The `object` keyword denotes a type constructor whose applications have no non-trivial subtypes; an `object` type constructor is a leaf of the class hierarchy. Since such a constructed type `C[\T_bar\]` has no subtypes other than itself and \BottomType, we know that it excludes any type `U` of which it is not a subtype. We write this exclusion sub-relation as $C\obb{T} \,\excro\, U$.
 \end{enumerate}
 Exclusion between constructed types is informally defined as the union
 of the sub-relations $\excre$, $\excrc$, and $\excro$. (We shall
 introduce another sub-relation $\excrp$ later in this section.)
-Omitting an `excludes` clause is equivalent to have `excludes {}`, and
-omitting a `comprises` clause is equivalent to have `comprises { Any }`.\footnote{For
+Omitting an `excludes` clause is equivalent to having `excludes {}`, and
+omitting a `comprises` clause is equivalent to having `comprises { Any }`.\footnote{For
 the sake of catching likely programming errors, the Fortress language requires that every $K_i$
 in a `comprises` clause for $C\obb{T}$ be a subtype of $C\obb{T}$, but allowing
 `Any` to appear in a `comprises` clause simplifies our presentation here.}
@@ -70,14 +72,14 @@ derived from the constructed types as described above,
 extended to structural and compound types as follows:
 Every arrow type excludes every non-arrow type.
 Every singleton tuple type excludes exactly those types excluded by its element type.
-Every non-singleton tuple type excludes every non-tuple type 
-and also every tuple type with a different number of element types.
-An intersection type excludes any type excluded by \emph{any} of its constituent types, 
+Every non-singleton tuple type excludes every non-tuple type.
+Tuple type $(\bar{V})$ excludes $(\bar{W})$ if either $|\bar{V}| \neq |\bar{W}|$
+or $V_i$ excludes $W_I$ for some $i$. An intersection type excludes any type excluded by \emph{any} of its constituent types, 
 while a union type excludes any type excluded by \emph{all} of its constituent types.
 $\BottomType$ excludes every type (including itself---it is the only type 
 that excludes itself), 
 and $\Any$ does not exclude any type other than $\BottomType$.
-(Later in Section~\ref{sec:constraints}, we shall define the exclusion
+(Later, in Section~\ref{sec:constraints}, we shall define the exclusion
 relation formally in Figure~\ref{fig:jexc}.)
 We augment our notion of a well-formed class table 
 to require that the subtyping and exclusion relations it induces 
@@ -112,7 +114,7 @@ must preserve these well-formedness properties.
 If the parameter types of a set of overloaded functions are disjoint,
 the set does not introduce ambiguity: they are never applicable to the same call.
 Therefore, to allow the function `simple` as a valid overloading,
-any reasonable class table $\T$ that declares types `ZZ` and `String` would also
+any ````reasonable" class table $\T$ that declares types `ZZ` and `String` would also
 declare one to exclude the other, so \hbox{`ZZ` $\exc$ `String`}.
 
 However, the Meet Rule still requires a third declaration in $\D(simple)$ that is applicable

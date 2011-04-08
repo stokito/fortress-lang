@@ -9,10 +9,10 @@ makes use of the old idea from Castagna \emph{et al.} \cite{castagna92} that
 for each name $f$ the set of function declarations $\D(f)$ should form a meet
 semi-lattice under the \emph{specificity} order defined in
 Section~\ref{terms}.
-If a declaration of name $f$ is applicable to a type $W$,
+If any declaration of name $f$ is applicable to a type $W$,
 then the set $\D_W(f) \subseteq \D(f)$
 of all declarations named $f$ and applicable to $W$
-also forms a meet semi-lattice under specificity. As such,
+also forms a nonempty meet semi-lattice under specificity. Therefore
 $\D_W(f)$ must have a least element.
 \end{proof}
 
