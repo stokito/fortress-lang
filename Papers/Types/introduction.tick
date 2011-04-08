@@ -71,7 +71,7 @@ when $f$ is called with two arguments of type $A$?
 Note that the ambiguity is inherent in these definitions:
 there is a real question as to what behavior the programmer intended
 in this case.  The solution of Castagna {\it et~al}.\ is to require the programmer
- to provide a third overloading
+ to provide a third overloading:
  \small
  `
  f(a:A,a':A)

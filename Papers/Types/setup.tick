@@ -26,7 +26,7 @@ a possibly empty sequence of syntactic elements $\emph{A}$ separated by commas):
 %$\bar{T \extends U}$.)
 \[
 \begin{array}{@{}l@{\;}l@{\;}l@{\;\;\;\;\;\;}l@{}}
-\emph{Type} &::=& \emph{Id} & \hbox{\rm type variable, nullary constructor}\\
+\emph{Type} &::=& \emph{Id} & \hbox{\rm type variable}\\
 &\mid& \emph{Id}\llbracket\bar{\emph{Type}}\rrbracket & \hbox{\rm constructed type}\\
 &\mid& \emph{Type} \rightarrow \emph{Type} & \hbox{\rm arrow type}\\
 &\mid& ( \bar{\emph{Type}} ) & \hbox{\rm tuple type}\\
