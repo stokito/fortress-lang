@@ -51,7 +51,9 @@ predicates $S \subtypeof T$, $S \equiv T$, and $S \exc T$ should
 be considered \emph{inputs} to our algorithmic checker, while the
 constraint $\C$ should be considered its \emph{output}.
 
-In Figure~\ref{fig:jexc}, we do not list here the full semantics of
+We do not give 
+%in Figure~\ref{fig:jexc} 
+the full semantics of
 constraint generation for subtyping. Instead, we refer the reader to
 the recent work by Smith and
 Cartwright \cite{smith08} on which our system was based. Smith and
@@ -262,8 +264,8 @@ sub-relation except $\excrc$ depends only on other constraint
 generation judgments, meaning the algorithmic checking
 terminates. The $C\obb{T} \excrc D\obb{U}$ predicate recursively
 checks exclusion on the comprised types of $C\obb{T}$, but due to
-the acyclic class table, this process will also terminate. The
-algorithm is complete and sound if $\subtypeof$ is.
+the acyclic class table, this process will also terminate. 
+Thus, the algorithm is complete and sound if $\subtypeof$ is.
 
 
 For subtyping with constraints, we essentially preserve the semantics
