@@ -280,7 +280,7 @@ exclusion, we must add an additional rule to the judgment:\\[-1em]
 \paragraph{Constraint Solving}
 Solving constraints
 % We will also need to have the ability to solve constraints.
-% $\Delta \vdash solve(\C)$
+% $\Delta \vdash \textit{solve}(\C)$
 % This
 needs to be sound but not necessarily complete.\footnote{
 Because a failure in solving constraints may just cause us to reject some overloadings that

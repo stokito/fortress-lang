@@ -24,7 +24,7 @@
     $\sigma_1 \le \sigma_2$ &
       \syndef &
       $\jqsub[\emptyset]{\sigma_1}{\sigma_2}$ \\
-    % $dom(\unitype{\arrowtype{T}{U}})$ &
+    % $\textit{dom}(\unitype{\arrowtype{T}{U}})$ &
     %   \syndef &
     %   $\exttype{T}$
     \end{tabularx}
@@ -69,7 +69,7 @@
 
     \begin{tabularx}{\textwidth}{RcX}
     $\delta \ni T$ & \syndef & $\japp[\emptyset]{\delta}{T}$ \\
-    $f \ni T$ & \syndef & $\japp[\emptyset]{dom(f)}{T}$\\
+    $f \ni T$ & \syndef & $\japp[\emptyset]{\textit{dom}(f)}{T}$\\
     \end{tabularx}
 
     %%% MORE SPECIFIC
@@ -77,7 +77,7 @@
       \fbox{\textbf{Specificity:} \jms{f}{f}}
     \end{center}
     \infrule
-      {\jqsub{dom(f_1)}{dom(f_2)}}
+      {\jqsub{\textit{dom}(f_1)}{\textit{dom}(f_2)}}
       {\jms{f_1}{f_2}}
     %%% SYNTAX DEF
     \begin{tabularx}{\textwidth}{RcX}
@@ -116,7 +116,7 @@
     %     \[
     %       f_1 \;\meet\; f_2
     %       \quad \syndef \quad
-    %       dom(f_1) \;\meet\; dom(f_2)
+    %       \textit{dom}(f_1) \;\meet\; \textit{dom}(f_2)
     %     \]
 %  \end{center}
 \end{minipage}
@@ -225,10 +225,10 @@ we first formalize them which in turn need formalization of
 the ````arrow type of $f$'' for a generic function declaration $f$.
 
 % For a generic function declaration \declg{f}{X}{N}{S}{T},
-% its arrow type (written $arrow(f)$) is
+% its arrow type (written $\textit{arrow}(f)$) is
 % the \emph{universal type} $\forall\tplist{X}{N}S \rightarrow T$.
 For a generic function declaration $\hdeclg{f}{\Delta}{S}{T}$,
-its arrow type (written $arrow(f)$) is
+its arrow type (written $\textit{arrow}(f)$) is
 the \emph{universal type} \mbox{$\forall\ob{\Delta}S \rightarrow T$}.
 A universal type binds type parameter declarations over some type and
 can be instantiated by any types valid for those type parameters.
@@ -241,8 +241,8 @@ A generic function declaration $\hdeclg{f}{\Delta}{S}{T}$ is \emph{applicable} t
 if and only if \emph{there exists some instantiation} of $f$,
 $\decl{f}{S'}{T'}$ with $\bar{W}$, that is applicable to $U$.
 A monomorphic function declaration $\decl{f}{S'}{T'}$ is applicable to a type $U$
-if and only if $U <: dom(f)$,
-where $dom(f)$ is the domain $S'$ of $S' \rightarrow T'$, the arrow type of $f$.
+if and only if $U <: \textit{dom}(f)$,
+where $\textit{dom}(f)$ is the domain $S'$ of $S' \rightarrow T'$, the arrow type of $f$.
 %We must then extend our notion of the ````arrow type of $f$'' for a generic function declaration $f$,
 %but first we need to characterize the type of a generic function.
 % In particular, we need a higher-level notion of universally
@@ -254,7 +254,7 @@ $\exists\tplist{X}{N}T$ also binds type parameter declarations over a type, but
 unlike a universal type, it cannot be instantiated; instead, it represents
 some hidden type instantiation $\bar{W}$ and the corresponding instantiated
 type $\substb{W}{X}T$. Therefore, we say that the domain of the universal arrow type for $f$,
-$\forall\ob{\Delta}S \rightarrow T$ (again written $dom(f)$ as an abuse of notation),
+$\forall\ob{\Delta}S \rightarrow T$ (again written $\textit{dom}(f)$ as an abuse of notation),
 is the existential type $\exists\ob{\Delta}{S}$.
 We use the metavariable $\delta$ to range over existential types.
 Note that we abbreviate both the universal type $\forall\ob{}T$ and
@@ -291,11 +291,11 @@ the meet of $f_1$ and $f_2$.
 To mechanically find the meet of two generic function declarations,
 we define the \emph{computed meet} of $f_1$ and $f_2$ as
 a declaration $f_\meet$, not necessarily in $\D(f)$,
-such that $dom(f_\meet) \equiv dom(f_1) \meet dom(f_2)$\footnote{Note that the computed meet, as defined,
+such that $\textit{dom}(f_\meet) \equiv \textit{dom}(f_1) \meet \textit{dom}(f_2)$\footnote{Note that the computed meet, as defined,
 is not actually unique since the return type is unspecified.
 By an abuse of notation, we refer to ````the'' computed meet to mean any such computed meet.}: \begin{align*}
-  dom(f_0) &\;\le\; dom(f_1) \meet dom(f_2) \\
-  dom(f_1) \meet dom(f_2) &\;\le\; dom(f_0)
+  \textit{dom}(f_0) &\;\le\; \textit{dom}(f_1) \meet \textit{dom}(f_2) \\
+  \textit{dom}(f_1) \meet \textit{dom}(f_2) &\;\le\; \textit{dom}(f_0)
 \end{align*}
 Figure~\ref{fig:sub} defines the meet of two existential types $\delta_1 \meet \delta_2$,
 which may require alpha renaming on the existential types' parameters.
@@ -326,11 +326,11 @@ computed meet of $f_1$ and $f_2$;
 clearly, there is an instance 
 $\decl{f_\meet'}{U'}{V'}$ of $f_\meet$ 
 that is applicable to $W$ with $V' = T_2'$. 
-If $arrow(f_1) \le arrow(f_\meet)$,
+If $\textit{arrow}(f_1) \le \textit{arrow}(f_\meet)$,
 then there must be an instantiation $\decl{f_1'}{S_1'}{T_1'}$ of $f_1$
 with $U' <: S_1'$ and $T_1' <: V'$. Moreover, since $V'=T_2'$,
 such an $f_1'$ would satisfy the Return Type Rule for $f_1$ and $f_2$.
-Finally, observe that $arrow(f_1) \le arrow(f_\meet)$ is identical to the
+Finally, observe that $\textit{arrow}(f_1) \le \textit{arrow}(f_\meet)$ is identical to the
 condition (\ref{eq:rtr}), and so the verification of (\ref{eq:rtr}) implies
 the verification of the Return Type Rule.
 Figure~\ref{fig:sub} presents the subtype relation on universal types, again,

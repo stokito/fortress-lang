@@ -45,17 +45,17 @@
 \newjudge{Bounds transfer}{\phi^{-1}[X,\Delta] = \bar{T}}
 %\vspace*{-.8em}
 \infrule
-  {\{\bar{T}\} = \{\phi(\Delta(X)) \mid X \in dom(\Delta),\; \phi(X) = Y\}}
-  {\phi^{-1}[Y,\Delta] = conjuncts(\bigcap \bar{T})}
+  {\{\bar{T}\} = \{\phi(\Delta(X)) \mid X \in \textit{dom}(\Delta),\; \phi(X) = Y\}}
+  {\phi^{-1}[Y,\Delta] = \textit{conjuncts}(\bigcap \bar{T})}
 
 \vspace*{-1em}
 %% CONJUNCTS DEF
 \[
 \begin{array}{l}
-conjuncts(T)\\
+\textit{conjuncts}(T)\\
 \syndef
   \begin{cases}
-    conjuncts(T_1), conjuncts(T_2)\quad & \text{if } T = T_1 \cap T_2 \\
+    \textit{conjuncts}(T_1), \textit{conjuncts}(T_2)\quad & \text{if } T = T_1 \cap T_2 \\
     T & \text{otherwise}
   \end{cases}
 \end{array}

@@ -141,7 +141,7 @@
 % equivalence
 \newcommand{\jcequiv}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\equiv}{#3}{#4}}
 % constraint solving
-\newcommand{\jcsolve}[3][\Delta]{\ensuremath{{#1}\,\vdash\,solve({#2})\,=\,{#3}}}
+\newcommand{\jcsolve}[3][\Delta]{\ensuremath{{#1}\,\vdash\,\textit{solve}({#2})\,=\,{#3}}}
 % type reduction
 \newcommand{\jtred}[2]{\ensuremath{\vdash\,{#1} \eqred {#2}}}
 \newcommand{\jtreds}[3]{\ensuremath{\vdash\,{#1} \eqred {#2}\,,\;{#3}}}
