@@ -179,8 +179,8 @@ the named position in the trait hierarchy.  In addition to objects
 \emph{arrow types} `D->R` (the types of functions) and \emph{tuples}
 written as `(e1, e2, ..., e[n])` whose types form a partial order
 in the usual conjunctive elementwise manner:
-`(T_[1], T_[2], ..., T_[m]) NORMAL_SUBGROUP_OF_OR_EQUAL_TO (U_[1], U_[2], .., U_[n])` if and only if
-`m=n` and, for all `1<=k<=m`, `T_[k] NORMAL_SUBGROUP_OF_OR_EQUAL_TO U_[k]`.  Objects, functions, and tuples
+`(T[1], T[2], ..., T[m]) NORMAL_SUBGROUP_OF_OR_EQUAL_TO (U[1], U[2], .., U[n])` if and only if
+`m=n` and, for all `1<=k<=m`, `T[k] NORMAL_SUBGROUP_OF_OR_EQUAL_TO U[k]`.  Objects, functions, and tuples
 are all \emph{values}, and they all have type `Any`.
 
 Like C++~\cite{C-PLUS-PLUS} (and unlike the Java language~\cite{JLS1}
@@ -191,7 +191,7 @@ top-level or local to a block.  (Note, by the way, that we use the term
 \emph{definition} to refer to a syntactic construct that defines a variable, function,
 or method, and furthermore contains an executable expression to supply
 the value of the variable, invoked function, or invoked method.
-We use the term \emph{declaration} when such an expression is not present.)
+The term \emph{declaration} applies whether or not such an expression is present.)
 
 As in many previous languages, both functions and methods may be
 \emph{overloaded}; that is, there may be many methods within an
@@ -411,7 +411,7 @@ is construed as implicitly declaring abstract getter methods:
 `
 \end{codeexamplesize}
 and a field access expression such as `p.x` is construed to mean `p.x()`
-if `x` names a getter function.  Field declarations in objects,
+if `x` names a getter method.  Field declarations in objects,
 as opposed to traits, \emph{do} declare actual fields, and furthermore
 implicitly declare concrete getter methods that will fetch the values of
 those fields.)
@@ -446,6 +446,8 @@ As a result, the functional method `equal` may correctly be called with
 any mixture of `Point` and `ColorPoint` arguments; if both arguments are
 colored points, then the definition in `ColorPoint` will be used,
 and otherwise the definition in `Point` will be used.
+Therefore Fortress solves the classic `ColorPoint` ````binary method problem''
+as presented in Bruce~et~al.
 
 Second: Using the definitions just shown,
 `equal(p,cp)` will simply ignore the color of `cp` when
@@ -453,12 +455,12 @@ comparing point `p` to colored point `cp`.
 We might want to control this behavior more finely by providing
 explicit method definitions for
 the cases where a point is compared with a colored point---for example,
-to treat an ordinary point as if it its color were `Purple`.
-This is easily done with Fortress functional methods,
-and without having to modify the definition of `Point`:
+to treat an ordinary point as if its color were `Purple`.
+We might try to do it this way, using functional methods and
+without having to modify the definition of `Point`:
 \begin{codeexamplesize}
 `
-trait ColorPoint extends Point
+trait ColorPoint extends Point   (*) incorrect example
   c: Color
   equal(self, other: ColorPoint): Boolean =
     (x = other.x) AND (y = other.y) AND (c = other.c)
@@ -472,10 +474,18 @@ The third definition of `equal` in `ColorPoint`
 has the `self` keyword in the second parameter position,
 and therefore is considered applicable to invocations that have
 an argument of type `ColoredPoint` in the second argument position
-(and an argument of type `Point` in the first position).
+(and an argument of type `Point` in the first position)---so far, so good.
+The problem is that the Meet Rule in Fortress must statically forbid overloadings
+in which there are two functional methods, neither more specific than the other
+and neither excluding the other, in which the `self` parameter appears in different
+argument positions.  (The problem is that the compiler needs to decide statically
+which argument position to treat as the receiver, without knowing the precise set
+of dynamically available overloadings.)  As a result, the current design of
+Fortress does \emph{not} solve this particular extended version of the binary method
+problem, and we regard this as an area for future research.
 
-It might be that other traits, completely unrelated to points
-and colored points, also define functional methods
+We furthermore observe that other traits, completely unrelated to points
+and colored points, might also define functional methods
 named `equal`, and it might also be that there are top-level
 definitions of functions named `equal`.  All these are considered
 to be one large overload set, and as long as the Meet Rule
@@ -528,7 +538,7 @@ matrix-matrix multiplication but also matrix-vector multiplication and vector-ma
 all without modifying the existing `Vector` trait.  Moreover,
 unlike the example of `Point` and `ColorPoint`, it is not
 appropriate for `Matrix` to be a subtrait of `Vector`.
-If we simply write
+If we simply write:
 \begin{codeexamplesize}
 \begin{tabbing}
 \EXP{\KWD{trait} \TYP{Matrix}} \\
@@ -554,6 +564,31 @@ so that no such object can exist:
 \EXP{\KWD{end}}
 \end{tabbing}
 \end{codeexamplesize}
+Thus, while Fortress cannot currently solve the extended `ColorPoint`
+example (because `ColorPoint` inherits from `Point` and therefore does
+not exclude it), it handles the `Vector`/`Matrix` version of the
+binary method problem quite nicely (because `Matrix` excludes `Vector`).
+This suggests a partial solution to the extended `ColorPoint` problem:
+if we know about a particular other trait, say `InvisiblePoint`,
+that extends `Point`, and is known not to have any instances in
+common with `ColorPoint`, then we can write `equal` methods in `ColorPoint`
+to handle all comparisons with `InvisiblePoint` without having to modify `InvisiblePoint`:
+\begin{codeexamplesize}
+`
+trait ColorPoint extends Point excludes { InvisiblePoint }
+  c: Color
+  equal(self, other: ColorPoint): Boolean =
+    (x = other.x) AND (y = other.y) AND (c = other.c)
+  equal(self, other: InvisiblePoint): Boolean =
+    (x = other.x) AND (y = other.y) AND (c = Purple)
+  equal(other: InvisiblePoint, self): Boolean =
+    equal(self, other)
+end
+`
+\end{codeexamplesize}
+This overloading of `equal` satisfies the Meet Rule because the signature
+`(ColorPoint,InvisiblePoint)` and the signature `(InvisiblePoint,ColorPoint)` exclude
+each other.
 
 In our early report \cite{FORTRESS-MODULAR-MULTIPLE-DISPATCH}, Fortress allowed functions to be overloaded with other
 functions and functional methods to be overloaded with other functional methods.
@@ -595,7 +630,7 @@ dotted methods, and functional methods.  Here is a simple example
 of an API:
 \begin{codeexamplesize}
 `
-API Geometry
+api Geometry
 
 trait Point
   x: RR
@@ -626,9 +661,9 @@ end
 
 makePoint(x: RR, y: RR) = CartesianPoint(x, y)
 
-object CartesianPoint(x: RR, y: RR) end
+object CartesianPoint(x: RR, y: RR) extends Point end
 
-object PolarPoint(rho: RR, theta: RR)
+object PolarPoint(rho: RR, theta: RR) extends Point
   getter x() = rho cos theta
   getter y() = rho sin theta
 end
@@ -665,7 +700,9 @@ trait ColorPoint extends Point
   equal(other: Point, self): Boolean = equal(self, other)
 end
 
-object ColorPointObject(x: RR, y: RR, c: Color) end
+object ColorPointObject(x: RR, y: RR, c: Color)
+      extends Point
+end
 
 makeColorPoint(x: RR, y: RR, c: Color) =
   ColorPointObject(x, y, c)
@@ -691,13 +728,13 @@ the use of components and APIs in Fortress, we need to
 bring out an important interaction between the component
 (namespace control) mechanism and overloading.
 
-Let the names and `ZZ` and `NN` name the types
+Let the names `ZZ` and `NN` name the types
 ````integers'' and ````natural numbers''
 (as they normally do in Fortress), where `NN` is a subtype of `ZZ`.
 Then consider this API:
 \begin{codeexamplesize}
 `
-API IntegerToString
+api IntegerToString
 
 trait ZZ
   getter asString(): String
@@ -742,7 +779,7 @@ because the one in `NN` is not applicable.  Both definitions
 are part of the intended algorithm for converting
 a value of type `ZZ` to a string.
 
-But the API mentions only trait `ZZ` and its one declaation of `asString`, so only
+But the API mentions only trait `ZZ` and its one declaration of `asString`, so only
 one declaration of `asString` is exported from component `IntegerToString`.
 If that exported declaration is to be meaningful,
 it must somehow carry with it the implementation functionality
@@ -756,17 +793,17 @@ taken into account in comparing method signatures).
 So this example should be completely unsurprising so far.
 
 But now let us consider the same example using top-level
-functions rather than dotted methods.  The API is
+functions rather than dotted methods.  The API is:
 \begin{codeexamplesize}
 `
-API IntegerToStringFunction
+api IntegerToStringFunction
 
 asString(x: ZZ): String
 
 end IntegerToStringFunction
 `
 \end{codeexamplesize}
-and the component is
+and the component is:
 \begin{codeexamplesize}
 `
 component IntegerToStringFunction
@@ -801,7 +838,7 @@ consider this importing component:
 `
 component TrickyUser
 import IntegerToStringFunction.{ asString }
-export executable
+export Executable
 
 asString(x: NN) = "+" || asString(x asif ZZ)
 
@@ -816,13 +853,13 @@ within the component that accepts natural numbers and one imported from the
 `IntegerToStringFunction` API that accepts any integer.
 The first definition handles natural numbers by asking the
 imported definition to convert the number to a string and
-then prepending a plus sign (the `asif` keyword indicates that
+then prepending a plus sign (the `asif` keyword indicates
 that the function invocation `asString(x asif ZZ)` should treat the
 argument as having type `ZZ` rather than `NN` for dispatch purposes).
 That is all well and good; the real point is that it is very important
 that this local definition of `asString` in component `TrickyUser`
 mustn't somehow override the second definition of `asString` in
-component `IntegerToStringFunction`, because that would completelt
+component `IntegerToStringFunction`, because that would completely
 destroy the modularity that components are intended to provide.
 Therefore a model that says,
 ````Component `IntegerToStringFunction` exports a generic function named `asString`
@@ -838,10 +875,10 @@ applicable to the arguments received,
 and more specific than the function or method actually called.
 
 Let us revisit the example one more more time, but using functional methods
-rather than dotted methods or top-level functions.  The API is
+rather than dotted methods or top-level functions.  The API is:
 \begin{codeexamplesize}
 `
-API IntegerToStringFunctionalMethod
+api IntegerToStringFunctionalMethod
 
 trait ZZ
   asString(self): String
@@ -850,7 +887,7 @@ end
 end IntegerToStringFunctionalMethod
 `
 \end{codeexamplesize}
-and the component is
+and the component is:
 \begin{codeexamplesize}
 `
 component IntegerToStringFunctionalMethod
@@ -901,45 +938,45 @@ also works for functional methods.
 \leavevmode\parshape 7 0in 2.5in 0in 2.5in 0in 2.5in 0in 2.5in 0in 2.5in 0in 2.5in 0in \hsize
 \hbox to 0pt{\hskip 2.3in\vbox to 0pt{\vskip-10pt\includegraphics[width=1in,bb=0 0 228 228]{hierarchy-cropped.png}\vss}\hss}\relax
 Consider a set of eight overloaded method (or function) definitions,
-which for convenience we will call m1 through m8 even though
-they all actually define the same name `m`.  Now suppose that m2, m3, and m4
-are each more specific than m1; m5 is more specific than m2 and m3;
-m6 more specific than m3; m7 more specific than m6;
-and m8 more specific than m6 and m8 (see figure).
+which for convenience we will call \emph{m1} through \emph{m8} even though
+they all actually define the same name \emph{m}.  Now suppose that \emph{m2}, \emph{m3}, and \emph{m4}
+are each more specific than \emph{m1};\emph{ m5} is more specific than \emph{m2} and \emph{m3};
+\emph{m6} more specific than \emph{m3}; \emph{m7} more specific than \emph{m6};
+and \emph{m8} more specific than \emph{m6} and \emph{m4} (see figure).
 The complete ````more specific'' relation is of course the transitive closure
-of the states relationships, so that, for example, m8 is also more specific
-than m1 and m3.
+of the stated relationships, so that, for example,\emph{m8} is also more specific
+than \emph{m1} and \emph{m3}.
 
-The idea behind our implementation strategy is that if, for a given invocation of `m`,
-the compiler determines that m1 is the statically most specific definition,
-then at run time m1 must defer to more specific definitions.  The key insight is that,
-while it is \emph{correct} for m1 to consider deferring to each of m2 thrugh m8,
-it is \emph{sufficient} for m1 to defer only to m2, m3, and m4, because each of them
-has the same obligation to defer.  Moreover, if m1 has more than one choice,
+The idea behind our implementation strategy is that if, for a given invocation of \emph{m},
+the compiler determines that \emph{m1} is the statically most specific definition,
+then at run time \emph{m1} must defer to more specific definitions.  The key insight is that,
+while it is \emph{correct} for m1 to consider deferring to each of \emph{m2} through \emph{m8},
+it is \emph{sufficient} for \emph{m1} to defer only to \emph{m2}, \emph{m3}, and \emph{m4}, because each of them
+has the same obligation to defer.  Moreover, if \emph{m1} has more than one choice,
 the choice does not matter, thanks to the Meet Rule.  For example, suppose that
-at run time m8 is actually the dynamically most specific applicable definition;
-then m2 must not be applicable, and m3 and m4 must be applicable.  It does not matter
-whether m1 hands off responsibility to m3 or m4; if the eventual correct choice is m8,
-then repeated deferral will eventually transfer control down the lattice to m8.
+at run time \emph{m8} is actually the dynamically most specific applicable definition;
+then \emph{m2} must not be applicable, and \emph{m3} and \emph{m4} must be applicable.  It does not matter
+whether \emph{m1} hands off responsibility to \emph{m3} or \emph{m4}; if the eventual correct choice is \emph{m8},
+then repeated deferral will eventually transfer control down the lattice to \emph{m8}.
 
 Therefore our strategy is to rewrite each function or method definition into two:
 the extra function is considered the primary entry point and implements the lattice deferral strategy.
-For example, m1 is augmented with a primary entry point m1entry that has roughly this structure:
+For example, \emph{m1} is augmented with a primary entry point \emph{m1entry} that has roughly this structure:
 \begin{tabbing}
-m1entry: \= if m2 is applicable then call m2entry \\
-\>else if m3 is applicable then call m3entry \\
-\>else if m4 is applicable then call m4entry \\
-\>else call m1
+\emph{m1entry}: \= if \emph{m2} is applicable then call \emph{m2entry} \\
+\>else if \emph{m3} is applicable then call \emph{m3entry} \\
+\>else if \emph{m4} is applicable then call \emph{m4entry} \\
+\>else call \emph{m1}
 \end{tabbing}
-Similarly, m3 is augmented with m3entry:
+Similarly, \emph{m3} is augmented with \emph{m3entry}:
 \begin{tabbing}
-m3entry: \= if m5 is applicable then call m5entry \\
-\>else if m6 is applicable then call m6entry \\
-\>else call m3
+\emph{m3entry}: \= if \emph{m5} is applicable then call \emph{m5entry} \\
+\>else if \emph{m6} is applicable then call \emph{m6entry} \\
+\>else call \emph{m3}
 \end{tabbing}
-For the sake of uniformity, m7 is augmented with m7entry:
+For the sake of uniformity, \emph{m7} is augmented with \emph{m7entry}:
 \begin{tabbing}
-m7entry: call m7
+\emph{m7entry}: call \emph{m7}
 \end{tabbing}
 Routine inlining optimizes away such trivial entry points.
 
@@ -1313,8 +1350,9 @@ then \VAR{w\$j\$dispatch} stands for the identifier \VAR{foo\$\mathrm{3}\$dispat
 The purpose of this section is to explain some of the detailed semantics
 of the source language outlined in \secref{source} by showing
 how to translate it into the much simpler target language outlined
-in \secref{target}.  To summarize, the source language has
-these features of interest:
+in \secref{target}.
+
+To summarize, the source language has these features of interest:
 \begin{trivlist}\leftskip=1em \itemindent=-\leftskip
 \item[] a static type system;
 \item[] traits and objects can extend multiple traits;
