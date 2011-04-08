@@ -1,0 +1,123 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009,2010, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+DelimitedExpr =
+     ArgExpr
+   / Parenthesized
+   / object (w ExtendsWhere)? (w GoInAnObject)? w end
+   / Do
+   / label w IdOrOpName w BlockElems w end w IdOrOpName
+   / while w GeneratorClause w Do
+   / for w GeneratorClauseList w DoFront w end
+   / if w GeneratorClause w then w BlockElems (w Elifs)? (w Else)? w end
+   / if w GeneratorClause w then w BlockElems (w Elifs)? w Else
+     (w end)? &(w closeparen)
+   / openparen w if w GeneratorClause w then w BlockElems (w Elifs)?
+     w Else (w end)? w closeparen
+   / case w Expr (w (Encloser / Op))? w (of / do / in) w CaseClauses
+     (br CaseElse)? w end
+   / case w most w (Encloser / Op) w (of / do / in) w CaseClauses w end
+   / typecase w TypecaseBindings w (of / do / in) w TypecaseClauses
+     (br CaseElse)? w end
+   / <ErrorProduction>
+     typecase w self w (of / do / in) w TypecaseClauses (br CaseElse)? w end
+   / <TRY> try w BlockElems (w Catch)? (w forbid w TraitTypes)?
+     (w finally w BlockElems)? w end
+
+Do = (DoFront w also w)* DoFront w end
+
+DoFront =
+     (at w Expr w)? (atomic w)? do (w BlockElems)?
+
+ArgExpr =
+     openparen w (Expr w comma w)* (Expr w ellipses w comma w)?
+     KeywordExpr (w comma w KeywordExpr)* w closeparen
+   / openparen w (Expr w comma w)* Expr w ellipses w closeparen
+   / TupleExpr
+
+TupleExpr =
+     openparen w (Expr w comma w)+ Expr w closeparen
+
+KeywordExpr = BindId w equals w Expr
+
+Parenthesized =
+     openparen w Expr w closeparen
+
+Elifs = Elif (w Elif)*
+
+Elif = elif w GeneratorClause w then w BlockElems
+
+Else = else w BlockElems
+
+CaseClauses = CaseClause (br CaseClause)*
+
+CaseElse = else w match w BlockElems
+
+TypecaseBindings =
+     BindIdOrBindIdTuple w equals w Expr &(w of)
+   / BindIdOrBindIdTuple &(w of)
+   / <ErrorProduction> Expr
+
+TypecaseClauses =
+     TypecaseClause (br TypecaseClause)*
+
+TypecaseClause =
+     TypecaseTypes w match w BlockElems
+
+TypecaseTypes =
+     openparen w TypeList w closeparen
+   / Type
+
+Catch = catch w BindId w CatchClauses
+
+CatchClauses = CatchClause (br CatchClause)*
+
+CatchClause = TraitType w match w BlockElems
+
+MapExpr =
+     LeftEncloser (w StaticArgs)? w EntryList w RightEncloser
+
+Comprehension =
+     (BIG w)? opensquare (w StaticArgs)? w ArrayComprehensionClause
+     (br ArrayComprehensionClause)* w closesquare
+   / (BIG w)? LeftEncloser (w StaticArgs)? w Entry wr bar wr
+     GeneratorClauseList w RightEncloser
+   / (BIG w)? LeftEncloser (w StaticArgs)? w Expr wr bar wr
+     GeneratorClauseList w RightEncloser
+
+mapstoOp =
+     !("|->" w Expr (w mapsto / wr bar / w closecurly / w comma)) "|->"
+
+leftarrowOp = !("<-" w Expr (w leftarrow / w comma)) "<-"
+
+Entry = Expr w mapsto w Expr
+
+ArrayComprehensionLeft =
+     IdOrInt w mapsto w Expr
+   / openparen w IdOrInt w comma w IdOrIntList w closeparen w mapsto w
+     Expr
+   / openparen w IdOrInt w IdOrIntList w closeparen w mapsto w
+     Expr
+
+IdOrInt =
+     Id
+   / IntLiteralExpr
+
+IdOrIntList =
+     IdOrInt (w comma w IdOrInt)+
+   / IdOrInt (w commaOrNot w IdOrInt)+
+   / IdOrInt
+
+ExprList = Expr (w comma w Expr)*
+
+EntryList = Entry (w comma w Entry)*
+\end{verbatim}

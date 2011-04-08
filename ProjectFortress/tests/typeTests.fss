@@ -1,0 +1,68 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component typeTests
+export Executable
+
+object Error extends Exception end
+
+run() = do
+  a: ZZ32->String
+  b: ZZ32 Length/Time
+  b': ZZ32^3
+  b'': ZZ32 Length^3
+(* Rightly rejected
+  c: ZZ32 Length -> String Time / Length
+  d: ZZ32 Length -> String Time DOT Length DOT Mass
+ *)
+  d': ZZ32 Length -> (String Time DOT Length DOT Mass)
+  d'': ZZ32 Length -> (String Time Length Mass)
+(* Rightly rejected
+  d''': ZZ32 Length -> (String Time per Length per Mass)
+ *)
+  e: ZZ32->String throws Error
+  f: ZZ32 Length -> (String Time / Length) throws Error
+(* Rightly rejected
+  f': ZZ32 Length -> String Time / Length throws Error
+  g: ZZ32 Length -> String Time DOT Length DOT Mass throws Error
+ *)
+  g': ZZ32 Length -> (String Time DOT Length DOT Mass) throws Error
+  h: ZZ32 Length in meter
+(* Rightly rejected
+  i: ZZ32 Length^3^5
+  i': ZZ32^3^5
+  i'': ZZ32^3[5]
+  j: ZZ32[3][5]
+  j': ZZ32[3]^5
+ *)
+  k: ZZ32[3](Length)
+  l: ZZ32 Length (Time)squared
+(* Rightly rejected
+  l': ZZ32 Length Time squared
+ *)
+  l'': ZZ32 (Length Time)squared
+(* Rightly rejected
+  m: ZZ32 square Length
+ *)
+  n : ZZ32 (Length/Time)Mass
+  n' : ZZ32 (Length / Time Mass)
+  o: ZZ32(Length)^3(Meter)
+  o': ZZ32(Length)^3(Meter / Second)
+  p: ZZ32(square Length)
+(* Rightly rejected
+  q: x+4 meter
+  r: ZZ32 (Length / Mass per Time)
+  r': ZZ32 (Length per Mass / Time)
+  r'': ZZ32 (Length per Mass/Time)
+ *)
+end
+
+end
