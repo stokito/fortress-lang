@@ -90,7 +90,8 @@ public class AbstractInterpretationContext {
      public void interpretMethod() {
          if (noisy) System.out.println("interpretMethod: pc = " + pc);
          while (pc < bcmv.insns.size()) {
-             interpretInsn(bcmv.insns.get(pc), pc++);
+             interpretInsn(bcmv.insns.get(pc), pc);
+             pc++;
          }
          bcmv.sortValues();
      }
@@ -152,15 +153,25 @@ public class AbstractInterpretationContext {
     }
 
     void interpretLoad(VarInsn i, int opcode, String expected, AbstractInterpretationValue val) {
-        if (!val.getType().startsWith(expected))
-            System.out.println(" Op " + Opcodes.opcNames[opcode] + " expected " + expected + " but got " + val.getType());            
+        checkExpectedType(opcode, expected, val);            
         pushStack(i, val);
+    }
+
+    /**
+     * @param opcode
+     * @param expected
+     * @param val
+     */
+    public void checkExpectedType(int opcode, String expected,
+            AbstractInterpretationValue val) {
+        char c = val.getType().charAt(0);
+        if (expected.indexOf(c) == -1)
+            System.out.println(" Op " + Opcodes.opcNames[opcode] + " expected " + expected + " but got " + val.getType());
     }
 
     void interpretStore(VarInsn i, int opcode, String expected) {
         AbstractInterpretationValue val = popStack(i);
-        if (!val.getType().startsWith(expected)) 
-            System.out.println(" Op " + Opcodes.opcNames[opcode] + " expected " + expected + " but got " + val.getType());            
+        checkExpectedType(opcode, expected, val);            
         locals[i.var] = val;
     }
             
@@ -173,12 +184,12 @@ public class AbstractInterpretationContext {
         case Opcodes.LLOAD:  interpretLoad(i, opcode, "J", val); break;
         case Opcodes.FLOAD:  interpretLoad(i, opcode, "F", val); break;
         case Opcodes.DLOAD:  interpretLoad(i, opcode, "D", val); break;
-        case Opcodes.ALOAD:  interpretLoad(i, opcode, "L", val); break;
+        case Opcodes.ALOAD:  interpretLoad(i, opcode, "L[", val); break;
         case Opcodes.ISTORE: interpretStore(i, opcode, "I");     break;
         case Opcodes.LSTORE: interpretStore(i, opcode, "J");     break;
         case Opcodes.FSTORE: interpretStore(i, opcode, "F");     break;
         case Opcodes.DSTORE: interpretStore(i, opcode, "D");     break;
-        case Opcodes.ASTORE: interpretStore(i, opcode, "L");     break;
+        case Opcodes.ASTORE: interpretStore(i, opcode, "L[");     break;
         default: throw new RuntimeException("Unknown VarInsn Opcode= " + opcode);
         }
     }
@@ -336,7 +347,11 @@ public class AbstractInterpretationContext {
         else if (o instanceof Long) pushStackDefinition(i, bcmv.createValue(i, "J"));
         else if (o instanceof Float) pushStackDefinition(i, bcmv.createValue(i, "F"));
         else if (o instanceof Double) pushStackDefinition(i, bcmv.createValue(i, "D"));
-        else pushStackDefinition(i, bcmv.createValue(i, "L"+ o.getClass().getName().replace(".", "/") + ";"));
+        else {
+            // Is this right? dr2chase - 2011-04-08
+            String cl = o.getClass().getName().replace(".", "/");
+            pushStackDefinition(i, bcmv.createValue(i, "L"+ cl + ";"));
+        }
     }
 
     void interpretLookupSwitchInsn(LookupSwitchInsn i) {}
