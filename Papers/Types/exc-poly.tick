@@ -15,18 +15,28 @@ which, in effect, adds additional power to the exclusion relation:
 A type (other than \BottomType) 
 must not be a subtype of multiple distinct instantiations of a type constructor. 
 \end{description}
-If a type $M$ is a subtype of an application $C\obb{T}$ of type
-constructor $C$, then $M$ excludes all other applications $C\obb{U}$ of $C$. We augment
-our exclusion relation on constructed types with this final sub-relation,
-which we write as $M \,\excrp\, C\obb{U}$.
-This restriction is easy to statically enforce, and it has been shown in practice that
-it is not an onerous restriction.
-Indeed, it is already in the Java\texttrademark\ programming language,
-and for good reason: Kennedy and Pierce showed that multiple instantiation inheritance
+Thus,
+distinct well-formed applications $C\obb{T}$ and $C\obb{U}$ 
+of a type constructor $C$ exclude each other; 
+we use $\bexcp$ for this relation.
+Furthermore, 
+if $M$ is a subtype of $C\obb{T}$ 
+and $N$ is a subtype of $C\obb{U}$, 
+then $M$ and $N$ also exclude each other;
+we use $\excp$ for this relation, 
+and we add it to the other exclusion sub-relations 
+whose union forms the exclusion relation over constructed types.
+
+Polymorphic exclusion is easy to statically enforce, 
+and practice suggests that it is not onerous: 
+it is already in the Java\texttrademark\ programming language.
+Furthermore, there is good reason to enforce it:
+Kennedy and Pierce have shown that multiple instantiation inheritance
 is one of three conditions that lead to the undecidability of
 nominal subtyping with variance \cite{kennedy07}.
 
-With polymorphic exclusion in place, the type `BadList` is no longer well-formed in its class table.
+With polymorphic exclusion in place, 
+the type `BadList` is no longer well-formed in its class table.
 However, our subtype judgment still cannot find a type `W <: ZZ` to prove that:
 \\[.5em]
 \hspace*{.5em}
