@@ -1,7 +1,7 @@
 A key feature of object-oriented languages is \emph{dynamic dispatch}: 
 There may be multiple definitions of a function (or method) with the same name, 
 and calls to a function (method) of that name are resolved
-based on the ````run-time types'' (we use the term \emph{ilks}) of some arguments. 
+based on the ````run-time types''---we use the term \emph{ilks}---of the arguments. 
 In \emph{single dispatch}, 
 a particular argument is designated as the \emph{receiver}, 
 and the call is resolved only with respect to that argument.
@@ -10,11 +10,11 @@ the run-time types of  all arguments to a call are used to resolve the call.
 A special case of multiple dispatch is \emph{symmetric multiple dispatch}, 
 in which all arguments are considered equally when resolving a call.
 
-Multiple dynamic dispatch provides programmers with a great deal of expressiveness.
+Multiple dynamic dispatch provides programmers with a great expressivity.
 In particular, 
-many mathematical operators such as $+$ and $\leq$ and $\cup$
+mathematical operators such as $+$ and $\leq$ and $\cup$
 and especially $\cdot$ and $\times$
-have different definitions depending on the types of all the arguments
+have different definitions depending on the types of the arguments
 to an application of the operator
 (even the number of arguments may vary between calls); 
 in a language with multiple dispatch, 
@@ -33,8 +33,8 @@ we must ensure that for every call site
 (knowing only the static types of the arguments),
 there exists a unique ````best'' function to dispatch to at run time.\footnote{
 In languages with static overloading, such as Scala, C\#, and the Java\texttrademark\
-programming language \cite{JavaSpec}, it is possible to simply reject ambiguous call sites
-of overloaded functions \cite{scala,CSharpSpec,JavaSpec}. However, as Millstein and Chambers have observed, 
+programming language \cite{scala,CSharpSpec,JavaSpec}, it is possible to simply reject ambiguous call sites
+of overloaded functions. However, as Millstein and Chambers have observed, 
 it is impossible to statically forbid ambiguity in the presence of multiple dynamic
 dispatch without imposing constraints at the definition sites of overloaded functions
 \cite{millstein02,millstein03}.}
@@ -194,7 +194,7 @@ In Section~\ref{sec:pre}, we define the concepts and notation necessary
 to explain our formal rules for checking overloaded function definitions,
 which we present using universal and existential types in Section~\ref{sec:rules}.
 In Section~\ref{sec:problems}, we explain why some apparently valid overloadings
-are (rightfully) rejected by our rules and why a multiple-inheritance language
+are (correctly) rejected by our rules and why a multiple-inheritance language
 should include features for ````nominal exclusion'' (as Fortress does)
 to improve expressiveness and accommodate such overloadings.
 In Section~\ref{sec:exclusion}, we formalize the exclusion

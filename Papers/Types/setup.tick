@@ -3,20 +3,20 @@ Following Kennedy and Pierce \cite{kennedy07},
 we define a world of types ranged over by metavariables $S$, $T$, $U$, $V$, and $W$. 
 Types are of four forms: 
 type variables 
-(ranged over by metavariables $X$, $Y$, and $Z$), 
+(ranged over by metavariables $X$, $Y$, and $Z$);
 constructed types 
-(ranged over by metavariables $K$, $L$, $M$ and $N$, 
-and written `C[\T_bar\]` 
+(ranged over by metavariables $K$, $L$, $M$ and $N$), 
+written `C[\T_bar\]` 
 where `C` is a type constructor 
-and `T_bar` is a list of types), 
-structural types
-(consisting of arrow and tuple types), 
-and compound types 
-(consisting of intersection and union types). 
-Nullary applications are written without brackets; 
-for example, `C[\ \]` is written `C`. 
+and `T_bar` is a list of types; 
+structural types,
+consisting of arrow and tuple types;
+and compound types,
+consisting of intersection and union types. 
 In addition, 
 there are two special constructed types, \Any\ and \BottomType, explained below.
+Nullary applications are written without brackets; 
+for example, `C[\ \]` is written `C`. 
 The abstract syntax of types is defined in BNF as follows
 (where $\bar{\emph{A}}$ indicates 
 a possibly empty sequence of syntactic elements $\emph{A}$ separated by commas):
@@ -47,58 +47,63 @@ must be a subtype of the intersection of its bounds.
 
 Constructed types (other than \Any\ and \BottomType)
 are applications of \emph{type constructors}.
-A declaration for type constructor $C$ has the following form:
+A \emph{class table} $\T$
+is a set of type constructor declarations 
+(at most one declaration for each type constructor) 
+of the following form:
 \[
 C\tplist{X}{M} \extends \{\bar{N}\}
 \]
-indicating that an application $C\obb{U}$ 
-(i) is \emph{well-formed} if and only if $|\bar{U}| = |\bar{X}|$ and
+This declaration indicates that an application $C\obb{U}$ 
+(i) is \emph{well-formed} (with respect to $\T$)
+if and only if $|\bar{U}| = |\bar{X}|$ and
 $U_i \subtypeof \substb{U}{X}M_{ij}$ for each bound $M_{ij}$
 (where $\subtypeof$ is the subtyping relation defined below, 
 and $\substb{U}{X}M_{ij}$ is $M_{ij}$ 
 with $U_k$ substituted for every occurrence of $X_k$ in $M_{ij}$ 
-for $1 \leq k \leq |\bar{U}|$),
+for $1 \leq k \leq |\bar{U}|$);
 and 
 (ii) is a subtype of $\substb{U}{X}N_l$ for $1 \leq l \leq |\bar{N}|$.
-Thus, a set of type constructor declarations, 
-called a \emph{class table},
-induces a (nominal) subtyping relation 
-over the constructed types, 
+Thus, a class table induces 
+a (nominal) \emph{subtyping relation} over the constructed types 
 by taking the reflexive and transitive closure 
 of the subtyping relation derived from the declarations in the class table.
 In addition, 
 every type is a subtype of \Any\ and a supertype of \BottomType.
 
-A class table is \emph{well-formed} if the resulting subtyping relation 
+A class table $\T$ is \emph{well-formed} if the resulting subtyping relation 
 on its constructed types is a partial order.
 As usual for languages with nominal subtyping, 
-we allow recursive and mutually recursive references in the class table.
-Class tables are ranged over by metavariable $\T$ and we write
-$T \in \T$ to mean that any constructed type occurring in type $T$
-is well-formed with respect to the class table $\T$.
-A class table $\T'$ is an \emph{extension} of another class table $\T$ (written $\T' \ctext \T$)
-if every constructor declaration in $\T$ is also in $\T'$ and if the subtype relation on $\T'$ agrees with that of $\T$. Consequently, if $\T' \ctext \T$ then, for all types $T$, $T \in \T$ implies $T \in \T'$.
-
-For a well-formed application $C\obb{T}$ 
-of the type constructor declaration for $C$ (shown above)
-in a well-formed class table $\T$, 
-we denote the set of its explicitly or implicitly declared supertypes by:
-\[
-\myextends{C\obb{T}} = \{ \bar{\substb{T}{X}N}, \Any \}
-\]
-With this, 
-we can derive the set of all ancestors of $C\obb{T}$ 
-with respect to $\T$ recursively:
-\[
-\ancestors_{\T}(C\obb{T}) 
-   = \{C\obb{T}\} \cup 
-     \hspace*{-4ex} \bigcup_{M \in \myextends{C\obb{T}}} \hspace{-4ex} \ancestors_{\T}(M)
-\]
+we allow recursive and mutually recursive references in $\T$.
+We write $T \in \T$ to mean that 
+any constructed type occurring in type $T$
+is well-formed with respect to $\T$.
+A class table $\T'$ is an \emph{extension} of $\T$ (written $\T' \ctext \T$)
+if every constructor declaration in $\T$ is also in $\T'$ 
+and the subtype relation on $\T'$ agrees with that of $\T$. 
+Consequently, if $\T' \ctext \T$ then, for all types $T$, $T \in \T$ implies $T \in \T'$.
 We typically omit explicit reference to the class table when it is understood.
 
-Structural and compound types are \emph{well-formed} (with respect to a class
-table) if their constituent types are well-formed, and we extend the subtyping relation to
-structural and compound types in the usual way.
+Given the type constructor declaration for $C$ above 
+in a well-formed class table, 
+and a well-formed application $C\obb{T}$,
+we denote the set of its explicitly declared supertypes by
+\[
+\myextends{C\obb{T}} = \{ \bar{\substb{T}{X}N}, \}
+\]
+and the set of ancestors of $C\obb{T}$ 
+(defined recursively) by
+\[
+\ancestors(C\obb{T}) 
+   = \{C\obb{T}\} \cup 
+     \hspace*{-4ex} \bigcup_{M \in \myextends{C\obb{T}}} \hspace{-4ex} \ancestors(M).
+\]
+
+Structural and compound types are \emph{well-formed} 
+(with respect to a class table) 
+if their constituent types are well-formed. 
+We extend the subtyping relation to
+structural and compound types in the usual way:
 Arrow types are contravariant in their domain types 
 and covariant in their range types 
 (i.e., $\arrowtype{S}{T} \subtypeof \arrowtype{U}{V}$
@@ -162,7 +167,7 @@ we mean that for every value `v`,
 `v` belongs to `T` if and only if `v` belongs to `U`.
 
 We place a requirement on values and on the type system that describes them: 
-While a value may belong to more than one type, 
+Although a value may belong to more than one type, 
 for every value `v` there is a unique type `ilk(v)` 
 (the \emph{ilk} of the value) 
 that is \emph{representable in the type system}\footnote{The
@@ -176,17 +181,19 @@ and has the property that for every type `T`,
 if `v` belongs to `T` then `ilk(v) <: T`;
 moreover, `ilk(v) =/= BottomType`.  
 (This notion of `ilk` corresponds to what is sometimes called the
-````class'' or ````run-time type'' of the value.  We prefer the term
-````ilk'' to ````run-time type'' because the notion---and
-usefulness---of the most specific type to which a value belongs 
-is not confined to run time, and we prefer it to the term ````class,'' 
+````class'' or ````run-time type'' of the value.\footnote{%
+We prefer the term ````ilk'' to ````run-time type'' 
+because the notion---and usefulness---of 
+the most specific type to which a value belongs 
+is not confined to run time.
+We prefer it to the term ````class,'' 
 which is used in {\it The Java Language Specification}~\cite{JavaSpec}, 
 because not every language uses the term ````class'' 
 or requires that every value belong to a class.  
 For those who like acronyms, 
 we offer the mnemonic retronyms 
 ````implementation-level kind'' 
-and ````intrinsically least kind.'')
+and ````intrinsically least kind.''})
 
 The implementation significance of ilks is that it is possible to
 select the dynamically most specific applicable function
