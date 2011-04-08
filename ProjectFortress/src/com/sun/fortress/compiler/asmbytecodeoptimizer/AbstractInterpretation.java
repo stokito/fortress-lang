@@ -68,6 +68,10 @@ public class AbstractInterpretation {
                 AbstractInterpretationValue val = bcmv.createValue(insn,t);
                 insn.addDef(val);
                 ai.context.locals[localsIndex+i] = val;
+                // Skip the second local, for dual-word values.
+                char c = t.charAt(0);
+                if (c == 'J' || c == 'D')
+                    localsIndex++;
             }
 
             ai.interpretMethod();
