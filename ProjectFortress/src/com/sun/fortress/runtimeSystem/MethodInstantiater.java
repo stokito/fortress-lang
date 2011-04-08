@@ -18,9 +18,11 @@ import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.Useful;
 import com.sun.org.apache.bcel.internal.generic.INVOKEINTERFACE;
 
 public class MethodInstantiater implements MethodVisitor {
@@ -59,6 +61,8 @@ public class MethodInstantiater implements MethodVisitor {
     public static final String FACTORY_SUFFIX =
         Naming.RIGHT_OXFORD + Naming.RTTI_CLASS_SUFFIX;
     
+    public final static int FACTORY_SUFFIX_LENGTH = FACTORY_SUFFIX.length();
+    
     public void visitFieldInsn(int opcode, String owner, String name,
             String desc) {
         owner = xlation.getTypeName(owner);
@@ -87,6 +91,10 @@ public class MethodInstantiater implements MethodVisitor {
                 stem = "Tuple," + parameters.size();
             }
             
+            String javaClassDesc = Useful.substring(owner, 0, 1-FACTORY_SUFFIX_LENGTH);
+            // bug in getType, cannot cope with embedded semicolons!
+            mv.visitLdcInsn(Type.getType(Naming.mangleFortressDescriptor("L" + javaClassDesc + ";")));
+            
             for (String parameter : parameters) {
                 rttiReference(Naming.stemClassJavaName(parameter));
             }
@@ -95,7 +103,6 @@ public class MethodInstantiater implements MethodVisitor {
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, stem_rtti, "factory", fact_sig);
         } else {
             mv.visitFieldInsn(Opcodes.GETSTATIC, owner, "ONLY", "L" + owner + ";");
-
         }
     }
 

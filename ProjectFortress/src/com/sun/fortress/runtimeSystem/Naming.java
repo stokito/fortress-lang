@@ -36,11 +36,16 @@ public class Naming {
                     )
         ;
 
+    public final static String RT_VALUES_PKG = "com/sun/fortress/compiler/runtimeValues/";
+    
     public final static int TUPLE_ORIGIN = 1;
     public final static int STATIC_PARAMETER_ORIGIN = 1;
-    public final static String RTTI_CONTAINER_TYPE = "java/lang/Object";
-    public final static String STATIC_PARAMETER_FIELD_DESC = "L" + RTTI_CONTAINER_TYPE + ";";
-    public final static String STATIC_PARAMETER_GETTER_SIG = "()" + STATIC_PARAMETER_FIELD_DESC;
+    public final static String RTTI_FIELD = "RTTI";
+    public final static String RTTI_GETTER = "getRTTI";
+    public final static String RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "RTTI";
+    public final static String TUPLE_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "TupleRTTI";
+    public final static String RTTI_CONTAINER_DESC = "L" + RTTI_CONTAINER_TYPE + ";";
+    public final static String STATIC_PARAMETER_GETTER_SIG = "()" + RTTI_CONTAINER_DESC;
 
     // Used to indicate translation convention to apply to type parameter.
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA
@@ -849,13 +854,13 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
     }
 
     /**
-     * @param owner_and_result_class
+     * @param owner_and_result_class The java class implementing a (generic) fortress class's RTTI.
      * @param n_static_params
      * @return
      */
     public static String rttiFactorySig(String owner_and_result_class,
             final int n_static_params) {
-        return InstantiatingClassloader.jvmSignatureForNTypes(
+        return InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class",
                 n_static_params, RTTI_CONTAINER_TYPE, "L" + RTTI_CONTAINER_TYPE +";");
     }
     
