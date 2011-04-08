@@ -140,7 +140,7 @@ so as to handle specially all cases where `T` is a subtype of `Number`,
 but the model would regard this as an overloading with an infinite
 number of ambiguities.
 
-In order to resolve this problem, we had to develop an alternate
+To resolve this problem, we had to develop an alternate
 model and an associated type system that could handle overloaded
 parametrically polymorphic functions in a manner that would accord
 with programmer intuition and support the plausible examples shown above.
@@ -154,18 +154,37 @@ Adopting this new approach has made
 overloaded polymorphic functions both tractable and effective
 for writing Fortress code.
 
-In this paper, we give rules for ensuring safe overloaded functions in
-a language that supports symmetric multiple dispatch, multiple
-inheritance, and parametric polymorphism (that is, generic types \emph{and} generic functions).  We do this by
-extending our earlier rules for a core of the Fortress programming language 
-that did not support generics \cite{allen07,fortress}.
-This problem is challenging because a set of overloaded \emph{generic} function definitions might
-have not only distinct argument types, but also distinct type
-parameters, so the type values of these parameters 
-make sense only in distinct type environments. 
-How do we compare such functions, and how do we ensure
-that there is always a best overloaded function to dispatch to?
+In this paper, 
+we give rules for ensuring safe overloaded functions 
+in a language that supports symmetric multiple dispatch, 
+multiple inheritance, and parametric polymorphism 
+(that is, generic types \emph{and} generic functions),
+and we prove that these rules guarantee 
+that there are no ambiguous calls at run time 
+(see Section~\ref{sec:safety}).
+We do this by extending our earlier rules 
+for a core of the Fortress programming language 
+that did not support generics \cite{allen07,fortress},
+for which we proved the analogous theorem.
+To minimize syntactic overhead 
+and avoid having to translate 
+between a concrete language syntax 
+and a formal semantics, 
+we present these rules (see Section~\ref{sec:rules}) 
+in the context of a straightforward formalization 
+of a type system supporting multiple inheritance 
+and parametric polymorphism, 
+which we define in Section~\ref{sec:pre}.
 
+The problem of dynamic dispatch 
+in the presence of overloaded \emph{generic} functions 
+is challenging 
+because the overloaded definitions
+might have not only distinct argument types, 
+but also distinct type parameters 
+(even different numbers of type parameters), 
+so the type values of these parameters 
+make sense only in distinct type environments. 
 For example, consider the following overloaded function definitions in Fortress:
 \small
 `  combine[\T\](xs: List[\T\], ys: List[\T\]): List[\T\]
@@ -177,6 +196,14 @@ list arguments $xs$ and $ys$. The second definition declares two
 type parameters corresponding to the domains and ranges of the two
 table arguments $s$ and $t$. But the type parameter of the first
 definition bears no relation to the type parameters of the second.
+How should we compare such function definitions 
+to determine which is the best to dispatch to?
+How can we ensure that there even always is a best one?
+Furthermore, the rules must be compatible with type inference, 
+since instantiation of type parameters at a call site 
+is typically done automatically.
+So even determining which definitions are applicable 
+to a particular call is not always obvious.
 
 In providing rules to ensure 
 that any valid set of overloaded function definitions 
@@ -185,24 +212,47 @@ we strive to be maximally permissive:
 A set of overloaded definitions should be disallowed 
 only if it permits ambiguity
 that cannot be resolved at run time.  
-Our rules must also be compatible with type inference, 
-since instantiation of type parameters at a call site 
-is typically done automatically.
+Nonetheless, 
+we show in Section~\ref{sec:problems} 
+that some seemingly valid sets of overloaded functions are rejected by our rules, 
+and rightly so: 
+although intuitively appealing, 
+these overloaded functions admit ambiguous calls.
 
-The remainder of this paper is organized thus:
-In Section~\ref{sec:pre}, we define the concepts and notation necessary
-to explain our formal rules for checking overloaded function definitions,
-which we present using universal and existential types in Section~\ref{sec:rules}.
-In Section~\ref{sec:problems}, we explain why some apparently valid overloadings
-are (correctly) rejected by our rules and why a multiple-inheritance language
-should include features for ````nominal exclusion'' (as Fortress does)
-to improve expressiveness and accommodate such overloadings.
-In Section~\ref{sec:exclusion}, we formalize the exclusion
-relation and use it to extend the overloading rules of Section~\ref{sec:rules}.
-%use it to augment the subtyping relation for universal and existential types.
-Section~\ref{sec:safety} explains that the overloading rules are
-sufficient to guarantee no undefined or ambiguous calls at run time.
+Many of these overloaded functions can, 
+and we believe should, 
+be allowed 
+if the type system supports an \emph{exclusion relation},
+which asserts that two types have no common instances.
+If the domains of two function definitions exclude each other, 
+then these definitions can never be applicable to the same call,
+and so no ambiguity can arise between them.
+Fortress enables programmers to declare ````nominal exclusion''
+in addition to determining many exclusions implicitly, 
+and in Section~\ref{sec:exclusion}, 
+we formalize how Fortress does this, 
+and show how this exclusion relation is used 
+to improve expressivity 
+by accommodating overloadings that would otherwise be rejected.
+The proof of safety in Section~\ref{sec:safety} 
+covers the rules under this extended type system.
+
+% The remainder of this paper is organized thus:
+% In Section~\ref{sec:pre}, we define the concepts and notation necessary
+% to explain our formal rules for checking overloaded function definitions,
+% which we present using universal and existential types in Section~\ref{sec:rules}.
+% In Section~\ref{sec:problems}, 
+% we explain why some apparently valid overloadings
+% are (correctly) rejected by our rules 
+% and why a multiple-inheritance language
+% should include features for ````nominal exclusion'' (as Fortress does)
+% to improve expressiveness and accommodate such overloadings.
+% In Section~\ref{sec:exclusion}, we formalize the exclusion
+% relation and use it to extend the overloading rules of Section~\ref{sec:rules}.
+% %use it to augment the subtyping relation for universal and existential types.
+% Section~\ref{sec:safety} explains that the overloading rules are
+% sufficient to guarantee no undefined or ambiguous calls at run time.
 In Section~\ref{sec:discussion}, we discuss type inference and modularity.
-Finally, we discuss related work in Section~\ref{sec:related} and
+We discuss related work in Section~\ref{sec:related} and
 conclude in Section~\ref{sec:conclusion}.
 
