@@ -165,7 +165,7 @@ to think of a Fortress object declaration as a Java final class.
 Fortress objects inherit only from traits, not other objects,
 and fields are not inherited.  Both traits and objects may contain
 (concrete) method definitions, and may inherit method definitions
-from multiple supertraits (that is, traits that they \emph{extend}).
+from multiple supertraits (traits that they \emph{extend}).
 Traits may also contain (abstract) method declarations, which impose
 upon objects that inherit them (directly or indirectly)
 the requirement to provide matching concrete definitions.
@@ -181,13 +181,13 @@ written as `(e1, e2, ..., e[n])` whose types form a partial order
 in the usual conjunctive elementwise manner:
 `(T[1], T[2], ..., T[m]) NORMAL_SUBGROUP_OF_OR_EQUAL_TO (U[1], U[2], .., U[n])` if and only if
 `m=n` and, for all `1<=k<=m`, `T[k] NORMAL_SUBGROUP_OF_OR_EQUAL_TO U[k]`.  Objects, functions, and tuples
-are all \emph{values}, and they all have type `Any`.
+are all \emph{values} and have type `Any`.
 
 Like C++~\cite{C-PLUS-PLUS} (and unlike the Java language~\cite{JLS1}
 and C\#~\cite{CSHARP-ECMA-334-2001}), Fortress provides not
 only methods associated with objects but also functions not associated with
 any object; moreover, Fortress function definitions and declarations may be either
-top-level or local to a block.  (Note, by the way, that we use the term
+top-level or local to a block.  (We use the term
 \emph{definition} to refer to a syntactic construct that defines a variable, function,
 or method, and furthermore contains an executable expression to supply
 the value of the variable, invoked function, or invoked method.
@@ -347,7 +347,7 @@ or choose to direct control to one of the inherited definitions:
 %\EXP{\KWD{end}}
 \end{tabbing}
 \end{codeexamplesize}
-or might even make use of more than one of the inherited definitions:
+or might even use more than one of the inherited definitions:
 \begin{codeexamplesize}
 \begin{tabbing}
 %\EXP{\KWD{trait}\; \mathrm{C}\; \KWD{extends} \lbrace\,\mathrm{A}, \mathrm{B}\,\rbrace} \\
@@ -450,13 +450,13 @@ Therefore Fortress solves the classic `ColorPoint` ````binary method problem''
 as presented in Bruce~et~al.
 
 Second: Using the definitions just shown,
-`equal(p,cp)` will simply ignore the color of `cp` when
+`equal(p,cp)` simply ignores the color of `cp` when
 comparing point `p` to colored point `cp`.
 We might want to control this behavior more finely by providing
 explicit method definitions for
 the cases where a point is compared with a colored point---for example,
 to treat an ordinary point as if its color were `Purple`.
-We might try to do it this way, using functional methods and
+We might try using functional methods this way,
 without having to modify the definition of `Point`:
 \begin{codeexamplesize}
 `
@@ -486,16 +486,16 @@ problem, and we regard this as an area for future research.
 
 We furthermore observe that other traits, completely unrelated to points
 and colored points, might also define functional methods
-named `equal`, and it might also be that there are top-level
-definitions of functions named `equal`.  All these are considered
-to be one large overload set, and as long as the Meet Rule
+named `equal`, and there might also be top-level
+definitions of functions named `equal`.  All these constitute
+one large overload set, and as long as the Meet Rule
 and the Result Subtype Rule (governing consistency of return types
 when one definition is more specific than another) are satisfied,
 overloading ambiguity will not occur.
 
 To guarantee this lack of ambiguity, sometimes it is necessary
-to declare explicitly that two traits \emph{exclude} each other,
-which implies that no object can belong to both traits.
+to declare that two traits \emph{exclude}
+each other---that is, no object can belong to both traits).
 To see this, consider the example that originally motivated
 the introduction of functional methods into Fortress.
 We have a `Vector` trait that implements typical mathematical vector operations
@@ -821,10 +821,10 @@ asString(x: NN) =
 end IntegerToStringFunction
 `
 \end{codeexamplesize}
-When another component imports the API, it is importing
+When another component imports the API, it imports
 only a declaration of `asString` that accepts arguments
-of type `ZZ`, but it is clear that the functionality
-exported must somehow include both definitions.
+of type `ZZ`, but clearly the functionality
+exported should somehow include both definitions.
 So it won't do to say glibly ````only the first definition
 is exported''; a deeper explanation is required.
 It is this: every function definition and every method definition is, in effect,
@@ -987,7 +987,6 @@ deferring dotted methods, but the basic idea of deferral down the lattice
 of the ````more specific'' relation applies to both dotted methods
 and top-level functions; the details differ because of the differing visibility
 rules for methods and functions.
-
 On the other hand, functional methods are handled by first rewriting them
 into a collection of top-level functions and dotted methods.
 
@@ -1228,7 +1227,7 @@ definition of a mutable variable (in which case `var` may optionally appear).
 As a convenience, within a statement list, a tuple of simple variable names may be bound to the
 respective elements of a tuple value.
 
-A type may be the name of a trait or object, a parenthesized type, a
+A type may be the declared name of a trait or object, a parenthesized type, a
 tuple of types, or an arrow type.  (The interesting issue of what is the
 precise type of an overloaded function name when used as a value
 is beyond the scope of this paper.)
@@ -1287,7 +1286,7 @@ Here we summarize the features of the target language that differ from those of 
 
 A target-language program consists of a set of definitions of interfaces, classes, top-level functions,
 and top-level variables.  There are no components or APIs.  A target-language program
-is intended to be reminiscent of a Java compilation unit.
+is much like a single Java compilation unit.
 
 Interface declarations contain only dotted method declarations;
 there is no executable code in an interface.
@@ -1380,8 +1379,7 @@ and the target language has these features and limitations:
 \item[] field access occurs only within the dotted methods of the declaring class;
 \item[] dotted methods need dispatch only on the receiver;
 \item[] top-level functions and local functions are not overloaded and therefore require no dispatch;
-\item[] one global namespace;
-\item[] no separate compilation;
+\item[] one global namespace and no separate compilation;
 \item[] the minimal reflective ability to obtain a ````type object'' representing either
 an arbitrary type or the ilk (run-time type) of an object, and to inquire of
 two such type objects whether one represents a subtype of the other.
@@ -1503,7 +1501,7 @@ components, relying only on information imported from APIs.
 
 \subsection{Create Object Constructors}
 
-If an object declaration with name `U_` has a \NT{ParameterList}, say:
+If an object declaration with name `U_` has a \NT{ParameterList}
 \begin{codeexamplesize}
 \begin{tabbing}
 `(p[1]: T_[1], p[2]: T_[2], ..., p[n]: T_[n])`   
@@ -1532,8 +1530,8 @@ then add this top-level function definition to the component:
 \end{tabbing}
 \end{codeexamplesize}
 
-If an object declaration with name `U_` has no \NT{ParameterList},
-then it is a singleton object, and it is implemented using the
+If an object declaration named `U_` has no \NT{ParameterList},
+then it is a singleton object, implemented using the
 %singleton pattern~\cite{DESIGN-PATTERNS}.
 singleton pattern.
 Add to the object declaration this constructor:
@@ -1602,7 +1600,7 @@ can be eliminated by rewriting them to dotted methods and dotted method invocati
 % in the source language are rewritten into declarations and invocations of dotted methods.
 In the resulting target language code, field declarations appear only within objects,
 and field accesses and assignments occur only locally within the definition
-of the object (and, indeed, only within the one or two dotted methods associated with
+of the object (indeed, only within the one or two dotted methods associated with
 that field by the rewriting).
 This transformation is conventional; for lack of space, we do not present the details.
 
@@ -1764,7 +1762,7 @@ delete every `import` declaration in component $C$.
 \subsection{Copy Inherited Methods and Assign Unique Integers}
 \seclabel{assign-integers}
 
-Note that the scope of a top-level function declaration or definition
+The scope of a top-level function declaration or definition
 is the entire component or API that contains it, while the scope of
 a local function declaration or definition is a block.
 
@@ -1787,7 +1785,7 @@ form a partition of the set of all function declarations and definitions.)
 Within each API, for each trait declaration `U_`, copy into
 `U_` each dotted method declaration inherited (and not overridden) by
 `U_` from its immediate supertraits.  Then for each maximal set of
-dotted method definitions in `U_` that have the same name, assign a
+dotted method definitions in `U_` with the same name, assign a
 distinct integer to each definition in the set.
 
 Within each component $C$, for each trait or object declaration `U_`,
@@ -1839,15 +1837,17 @@ until the linking step described in \secref{linking}:
 \(\2\)\EXP{\KWD{self}.\VAR{C\$m\$k\$dispatchHook}(\tau_{0}, p_{1}, \tau_{1}, p_{2}, \tau_{2}, \ldots, p_{n}, \tau_{n})}
 \end{tabbing}
 \end{codeexamplesize}
-(This dotted method definition will overrride a definition that will be provided,
-as we shall see, by the component that implements API $A$.)
+%(This dotted method definition will overrride a definition that will be provided,
+%as we shall see, by the component that implements API $A$.)
+(This dotted method definition will overrride a definition provided
+by the component implementing API $A$.)
 
 
 \subsection{Rewrite Function Calls}
 \seclabel{rewrite-function-calls}
 
-For every component $C$, consider each function call expression
-that occurs within it.  If the function call occurs within a trait
+Within every component $C$, consider every function call expression.
+If the call occurs within a trait
 or object declaration that has or inherits a definition or declaration
 of a dotted method with the same name, then the function call
 is rewritten into a dotted method call by adding `self.` to the front.
@@ -2487,7 +2487,7 @@ But in fact it suffices to test the extracted ilks from covariant positions agai
 \end{codeexamplesize}
 
 In general, determining applicability involves deciding whether a set of type constraints
-is satisfiable.  But note that the testing of applicability at run time is substantially less complicated
+is satisfiable.  But the testing of applicability at run time is less complicated
 than one might think when one considers that (a) the methods have already been statically
 checked for type correctness, and (b) it is not necessary to explicitly construct or identify
 types for the type parameters, but only to prove their existence.
@@ -2495,7 +2495,7 @@ types for the type parameters, but only to prove their existence.
 \section{Related Work}
 \seclabel{related}
 
-We have already made comparisons in passing between aspects of our work
+We have already made comparisons between our work
 and features of CLOS~\cite{ECOOP87-CLOS,CLOS-SPECIFICATION,CLTL2,CACM-CLOS}, Java~\cite{JLS1},
 MultiJava~\cite{MULTIJAVA-OOPSLA-2000,MULTIJAVA-TOPLAS-2006},
 Scala~\cite{SCALA-ABSTRACTIONS},
@@ -2518,8 +2518,8 @@ in a module),
 whereas Fortress APIs and import declarations allow fine-grained selective export and import
 of only parts of a component---in particular, it is possible to export only selected
 methods of a trait, rather than all methods.
-Two other languages from the same research group that are similarly closely related
-to the present work are Cecil~\cite{CECIL-MULTIMETHODS,CECIL-REPORT-1993,CECIL-REPORT-2004}
+Two other languages from the same research group that are also closely related
+to the our work are Cecil~\cite{CECIL-MULTIMETHODS,CECIL-REPORT-1993,CECIL-REPORT-2004}
 and EML~\cite{TOPLAS-EML-MODULAR-TYPECHECKING}.
 
 
