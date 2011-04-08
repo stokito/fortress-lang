@@ -1,0 +1,71 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Identifier References}
+\seclabel{idn-ref}
+
+\begin{Grammar}
+\emph{Primary}
+&::=& \emph{VarOrFnRef}\\
+&$|$& \KWD{self} \\
+
+\emph{VarOrFnRef} &::=& \emph{Id} \option{\emph{StaticArgs}}\\
+
+\end{Grammar}
+
+A name that is not an operator name appearing in an expression context is called
+  an \emph{identifier reference}.
+It evaluates to the value of the name in the enclosing scope in the value
+  namespace.  The type of an identifier reference is the declared type of
+  the name.
+See \chapref{names} for a discussion of names.
+An identifier reference performs a memory read operation.
+\marginnote{Is this true even for immutable variables?}
+If a name is not in scope,
+it is a static error (as described in \secref{shadowing}).
+
+An identifier reference which denotes a polymorphic function
+may include explicit static arguments
+(described in \chapref{functions})
+but most identifier references do not include them.; the static arguments
+are statically inferred from the context of the function call
+(as described in \chapref{type-inference}).
+For example,
+%double[\String\]
+\EXP{\VAR{double}\llbracket\TYP{String}\rrbracket} is an identifier
+reference with an explicit static argument where the function
+\VAR{double} is defined as follows:
+\input{\home/basic/examples/Expr.VarRef.tex}
+
+The special name \KWD{self} is declared as a parameter of a method.
+When a dotted method is invoked, its receiver is bound to
+the \KWD{self} parameter; the value of \KWD{self} is the receiver.
+When a functional method is invoked, the corresponding argument is bound to
+the \KWD{self} parameter; the value of \KWD{self} is the argument passed to it.
+The type of \KWD{self} is the type of the trait or object being declared by
+the innermost enclosing trait or object declaration or object expression.
+\marginnote{I thought that for object expressions, the type of \EXP{\mathord{\KWD{self}}}
+was the intersection of the traits it lists in its \KWD{extends} clause.
+In particular, if it includes a ``method declaration'' with a new name \VAR{m}
+(not one inherited from one of its supertypes), we cannot invoke \EXP{\mathord{\KWD{self}}.m},
+because \VAR{m} isn't really a new method--just a local function declaration.
+(There are other distinctions between the type of an object expression and
+the intersection of the traits it extends, so we should think about this issue more carefully.)
+}
+% The new self-type idiom
+If the innermost enclosing such construct is a trait declaration (for a trait called,
+say, `\EXP{T}'), and that trait declaration has a \KWD{comprises} clause,
+and `\EXP{U_1}', `\EXP{U_2}', ..., `\EXP{U_n}' are the traits mentioned in
+the \KWD{comprises} clause, then the type of \KWD{self} is instead
+``\EXP{T \cap (U_{\mathrm{1}} \cup U_{\mathrm{2}}
+\cup \ldots \cup U_{\mathrm{n}})}''.
+%
+See \secref{methods} for details about \KWD{self} parameters.

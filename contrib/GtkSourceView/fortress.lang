@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--  Fortress language definition for GtkSourceView
+
+      Copyright 2010 James Cranch (jdc41[at]cam.ac.uk)
+   
+      Redistribution and use in source and binary forms, with or without
+      modification, are permitted provided that the following conditions
+      are met:
+   
+      1. Redistributions of source code must retain the above copyright
+         notice, this list of conditions and the following disclaimer.
+   
+      2. Redistributions in binary form must reproduce the above copyright
+         notice, this list of conditions and the following disclaimer in the
+         documentation and/or other materials provided with the distribution.
+   
+      3. Neither the name of the authors nor the names of its contributors
+         may be used to endorse or promote products derived from this
+         software without specific prior written permission.
+   
+      THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+      "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+      LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+      A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+      OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+      SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+      TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+      PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+      LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+      NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+      SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. -->
+
+
+<!--  What does it do?
+
+It does syntax highlighting in the gedit text editor for GNOME, and anything
+else that uses GtkSourceView.
+
+
+      How do I use it?
+
+To use it as a single user, save it as
+  ~/.local/share/gtksourceview-2.0/language-specs/fortress.lang
+
+Then (for example) gedit will have an option:
+  View / Highlight Mode / Sources / Fortress.
+
+
+      Where can I find more information?
+
+Try looking at
+  http://live.gnome.org/Gedit/NewLanguage
+or
+  http://live.gnome.org/GtkSourceView
+or
+  http://projects.gnome.org/gtksourceview/        -->
+
+
+<language id="fortress" _name="Fortress" version="2.0" _section="Sources">
+
+  <metadata>
+    <property name="mimetypes">text/x-fortress</property>
+    <property name="globs">*.fss;*.fsi</property>
+    <property name="line-comment-start">(*)</property>
+    <property name="block-comment-start">(*</property>
+    <property name="block-comment-end">*)</property>
+  </metadata>
+
+  <styles>
+    <style id="import-export"     _name="Module Handler"              map-to="def:preprocessor"/>
+    <style id="comment"           _name="Comment"                     map-to="def:comment"/>
+    <style id="string"            _name="String"                      map-to="def:string"/>
+    <style id="escape"            _name="Escaped Character"           map-to="def:special-char"/>
+    <style id="declaration"       _name="Declaration"                 map-to="def:type"/>
+    <style id="character"         _name="Character"                   map-to="def:character"/>
+    <style id="keyword"           _name="Keyword"                     map-to="def:keyword"/>
+    <style id="boolean"           _name="Boolean value"               map-to="def:boolean"/>
+    <style id="number"            _name="Number"                      map-to="def:decimal"/>
+    <style id="reserved"          _name="Future Reserved Keywords"    map-to="def:error"/>
+    <style id="type"              _name="Data Type"                   map-to="def:type"/>
+  </styles>
+
+  <definitions>
+
+
+    <context id="oxford-bracket" style-ref="type">
+      <start>\[\\</start>
+      <end>\\\]</end>
+      <include>
+        <context ref="oxford-bracket" />
+      </include>
+    </context>
+
+
+    <context id="character-literal" style-ref="character">
+      <match>'\\?.'</match>
+    </context>
+
+
+    <context id="string-literal" style-ref="string" end-at-line-end="true">
+      <start>"</start>
+      <end>"</end>
+      <include>
+        <context ref="escaped-char"/>
+      </include>
+    </context>
+
+
+    <context id="line-comment" style-ref="comment" end-at-line-end="true">
+      <start>\(\*\)</start>
+      <include>
+        <context ref="def:in-line-comment"/>
+      </include>
+    </context>
+
+
+    <context id="block-comment" style-ref="comment">
+      <start>\(\*</start>
+      <end>\*\)</end>
+      <include>
+        <context ref="def:in-comment"/>
+      </include>
+    </context>
+
+
+    <context id="escaped-char" style-ref="escape">
+      <match>\\.</match>
+    </context>
+
+
+    <context id="externals" style-ref="import-export">
+      <keyword>import</keyword>
+      <keyword>export</keyword>
+      <keyword>component</keyword>
+    </context>
+
+
+    <context id="keywords" style-ref="keyword">
+      <keyword>BIG</keyword>           <keyword>FORALL</keyword>        <keyword>SI_unit</keyword>
+      <keyword>absorbs</keyword>       <keyword>abstract</keyword>      <keyword>also</keyword>
+      <keyword>api</keyword>           <keyword>as</keyword>            <keyword>asif</keyword>
+      <keyword>at</keyword>            <keyword>atomic</keyword>        <keyword>bool</keyword>
+      <keyword>case</keyword>          <keyword>catch</keyword>         <keyword>coerce</keyword>
+      <keyword>coerces</keyword>       <keyword>comprises</keyword>     <keyword>default</keyword>
+      <keyword>dim</keyword>           <keyword>do</keyword>            <keyword>elif</keyword>
+      <keyword>else</keyword>          <keyword>end</keyword>           <keyword>ensures</keyword>
+      <keyword>except</keyword>        <keyword>excludes</keyword>      <keyword>exit</keyword>
+      <keyword>extends</keyword>       <keyword>finally</keyword>       <keyword>fn</keyword>
+      <keyword>for</keyword>           <keyword>forbid</keyword>        <keyword>from</keyword>
+      <keyword>getter</keyword>        <keyword>hidden</keyword>        <keyword>if</keyword>           
+      <keyword>int</keyword>           <keyword>invariant</keyword>     <keyword>io</keyword>
+      <keyword>juxtaposition</keyword> <keyword>label</keyword>         <keyword>most</keyword>
+      <keyword>nat</keyword>           <keyword>native</keyword>        <keyword>object</keyword>
+      <keyword>of</keyword>            <keyword>opr</keyword>           <keyword>or</keyword>
+      <keyword>override</keyword>      <keyword>private</keyword>       <keyword>property</keyword>
+      <keyword>provided</keyword>      <keyword>requires</keyword>      <keyword>self</keyword>
+      <keyword>settable</keyword>      <keyword>setter</keyword>        <keyword>spawn</keyword>
+      <keyword>syntax</keyword>        <keyword>test</keyword>          <keyword>then</keyword>
+      <keyword>throw</keyword>         <keyword>throws</keyword>        <keyword>trait</keyword>
+      <keyword>transient</keyword>     <keyword>try</keyword>           <keyword>tryatomic</keyword>
+      <keyword>type</keyword>          <keyword>typecase</keyword>      <keyword>unit</keyword>
+      <keyword>value</keyword>         <keyword>var</keyword>           <keyword>where</keyword>
+      <keyword>while</keyword>         <keyword>widens</keyword>        <keyword>with</keyword>
+      <keyword>wrapped</keyword>
+    </context>
+
+
+    <context id="reserved-words" style-ref="reserved">
+      <keyword>goto</keyword>
+      <keyword>idiom</keyword>
+      <keyword>public</keyword>
+      <keyword>pure</keyword>
+      <keyword>reciprocal</keyword>
+      <keyword>static</keyword>
+    </context>
+
+
+    <context id="boolean" style-ref="boolean">
+      <keyword>false</keyword>
+      <keyword>true</keyword>
+    </context>
+
+
+    <context id="fortress">
+      <include>
+        <context ref="oxford-bracket" />
+        <context ref="character-literal" />
+        <context ref="string-literal" />
+        <context ref="line-comment" />
+        <context ref="block-comment" />
+        <context ref="externals" />
+        <context ref="keywords" />
+        <context ref="reserved-words" />
+        <context ref="boolean" />
+      </include>
+    </context>
+
+  </definitions>
+</language>

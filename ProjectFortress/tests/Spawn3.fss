@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Spawn3
+export Executable
+
+
+run():()=do
+   var x : ZZ32 = 0
+   var y : ZZ32 = 0
+   pt:Thread[\Any\] = spawn do y := 1; while (x = 0) do end end
+   x:=1
+   pt.wait()
+   assert(y=1,"Spawned thread never saw parent thread's update")
+   pt.stop()
+end
+end

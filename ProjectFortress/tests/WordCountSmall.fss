@@ -1,0 +1,118 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component WordCountSmall
+import File.{...}
+import FileSupport.{...}
+import List.{...}
+import Map.{...}
+import System.{getProperty}
+
+export Executable
+
+isDelimiter(c:Char):Boolean =   c IN " ,.?"
+
+(*
+maybeAddWord(word:String,database:Map[\String,ZZ32\]):Map[\String,ZZ32\]= do
+    occurs = database.member(word,0)
+    if occurs > 0 then
+        database.update(word,occurs+1)
+    else
+        database.add(word,1)
+    end
+end
+*)
+
+maybeAddWord(word:String,database:Map[\String,ZZ32\]):Map[\String,ZZ32\]=
+    database.updateWith(
+        fn (mv:Maybe[\ZZ32\]): Just[\ZZ32\] => Just[\ZZ32\](mv.getDefault(0)+1),
+        word)
+
+getWords(s:String):Map[\String, ZZ32\] = do
+    var database:Map[\String,ZZ32\] := {[\String,ZZ32\]}
+    var count:ZZ32 := 1
+    var current:ZZ32 := 0
+    var start:ZZ32 := 0
+
+    while (current < s.size) do
+        if isDelimiter(s[current]) then
+           count := count - 1
+           if count >= 1 then
+               word:String = s[start#count]
+               database := maybeAddWord(word, database)
+           end
+           start := current + 1
+           count := 0
+        end
+        count += 1
+        current += 1
+    end
+    count := count - 1
+    if count >= 1 then
+        word:String = s[start#count]
+        database := maybeAddWord(word,database)
+    end
+    database
+end
+
+makeInv(x:String,y:ZZ32):Map[\ZZ32, List[\String\]\] = do
+    var database:Map[\ZZ32,List[\String\]\] := {[\ZZ32,List[\String\]\]}
+    database := database.add(y, <|[\String\] x |>)
+    database
+end
+
+opr UNIONSUM(a:Map[\String,ZZ32\], b:Map[\String,ZZ32\]):Map[\String,ZZ32\] = a.union(fn(k,x,y)=>x+y, b)
+
+opr BIG UNIONSUM(): BigReduction[\Map[\String,ZZ32\],
+                                 Map[\String,ZZ32\]\] =
+    embiggen[\Map[\String,ZZ32\]\](fn (a,b) => a UNIONSUM b, {[\String,ZZ32\]})
+
+opr UNIONUNION(a:Map[\ZZ32,List[\String\]\], b:Map[\ZZ32, List[\String\]\]):Map[\ZZ32,List[\String\]\] =
+    a.union(fn(k,x,y) => x || y, b)
+
+opr BIG UNIONUNION(): BigReduction[\Map[\ZZ32, List[\String\]\],Map[\ZZ32, List[\String\]\]\] =
+    embiggen[\Map[\ZZ32, List[\String\]\]\](fn(a,b) => a UNIONUNION b, {[\ZZ32,List[\String\]\]})
+
+processFile(name:String):() = do
+    time(str:String,s,f): () = println(str " in " ((f-s)/10.0^6) "ms")
+    println("Processing file " name)
+    var rs:FileReadStream = FileReadStream(name)
+    start = nanoTime()
+    database:Map[\String, ZZ32\] = BIG UNIONSUM [l<-rs.lines()] (getWords(l))
+    rs.close()
+    acq = nanoTime()
+    time("Acquired words",start,acq)
+    var invDatabase:Map[\ZZ32,List[\String\]\] = BIG UNIONUNION [(x,y) <-database] (makeInv(x,y))
+    inv = nanoTime()
+    time("Inverted database",acq,inv)
+    expected = <| (6,1),(4,2),(3,1),(2,13),(1,154) |>
+    try
+        for (ce,me) <- seq(expected) do
+            (c,m,newinv) = invDatabase.extractMaximum().get
+            invDatabase := newinv
+            println(m ": " c " times")
+            assert(c,ce," expected occurrences mismatched")
+            assert(|m|,me," expected number of words mismatched")
+        end
+    catch e
+            NotFound => fail("ended too early!")
+    end
+    assert(|invDatabase|, 0, "Still entries in invDatabase ", invDatabase)
+    finish = nanoTime()
+    time("Output", inv, finish)
+    time("Total run", start, finish)
+end
+
+
+run()= do
+    processFile(getProperty("fortress.autohome", ".") "/ProjectFortress/tests/presidents")
+end
+end

@@ -1,0 +1,180 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Components and APIs}
+\chaplabel{lib:api-components}
+
+We define a special \EXP{\TYP{Fortress}.\TYP{Components}} \apiN\ that provides
+handles on components and \apisN, 
+and operations on them, for use by components themselves (e.g., development
+environments), allowing components to build and maintain other components,
+manipulate projects and components as objects,
+compile projects into components, link components together,
+deploy components on specific sites over the internet, etc.
+This \apiN\ is also used by the \upgapi\ and \instapi\ \apisN.
+A component implementing this \apiN\ is installed along with 
+\library\ on every fortress.
+
+Note that \TYP{Component}s and \TYP{Api}s 
+can be constructed only from the factory functions provided in the \apiN.
+The components and \apisN\ so constructed are also installed and 
+accessible via \VAR{getComponent}, \VAR{preferences} (which returns a list of components
+implementing a given \apiN, in order of preference), and \VAR{getAPI}.
+Calling \VAR{preferences} on an \apiN\ in \library\
+returns a non-empty list of components. In particular,
+\EXP{\VAR{preferences}(\TYP{Fortress}.\TYP{Components})} returns a non-empty 
+list whose first element is the very component on which the call to \VAR{preferences} was made.
+Conceptually, this component serves as a handle on the enclosing fortress, which might be necessary
+for the purposes of certain development tools.  
+
+The operations on a fortress provided in this \apiN\ take components and \apisN\
+as arguments directly, rather than names of components and \apisN\ as the corresponding
+shell operations are described. This decision is done for the sake of convenience. Note, however,
+that a component name may be rebound on a fortress, or even uninstalled, while some process $p$
+keeps a reference to a corresponding \TYP{Component} object. This possibility is not
+problematic because the component corresponding to this object may be simply kept by the fortress
+until the object is freed in $p$. Also, note that \shellcommand{upgrade} operations
+on a compound component are purely
+functional: they produce new compound components as a result. Thus, the structure of a component
+as viewed through a \TYP{Component} object does not became stale in the face of upgrades.
+
+We include a method
+\VAR{getSourceFile} on components that returns the source file the component was compiled from.
+Source files can be included with simple components during compilation as a compiler option.
+Doing so allows development tools such as graphical debuggers to easily display the 
+locations of errors
+without the possibility that source code would not be synchronized with compiled code, as can 
+happen in conventional programming models where compiled code is stored in nonencapsulated object
+files.
+
+%api Fortress.Components
+%import File from Fortress.IO
+%import { List, Set, Date } from Fortress.Util
+%
+%trait Fortress
+%  fortressName: Name
+%  birthDate: Date
+%  getComponent(componentName: Name): Component
+%  getAPI(apiName: Name): Api
+%  preferences(ofAPI: Api): \langle Component \rangle
+%  compile(file: File): SimpleComponent
+%  install(file: File): Component
+%  install(file: File, prereqs: Set[\Api\]): Component
+%  upgradeAll(componentName: Name, that: Component): ()
+%
+%  isValidLink(constituents: \langle Component\rangle, exports = Set[\Api\], hide = Set[\Api\]): Boolean
+%
+%  link(result: Name, constituents: \langle Component \rangle, exports = Set[\Api\], hide = Set[\Api\]): Component
+%    requires { isValidLink(constituents, exports, hide) }
+%end
+%
+%object EnclosingFortress extends { Fortress } end
+%  
+%trait FortressElement
+%  elementName: Name
+%  vendor: String
+%  owner: Fortress
+%  timeStamp: Date
+%  version: Version
+%  uninstall(): ()
+%end
+%
+%trait Component extends FortressElement
+%  imports: Set[\Api\]
+%  exports: Set[\Api\]
+%  provides: Set[\Api\]
+%  visibles: Set[\Api\]
+%  constituents: Set[\Component\]
+%  run(args: String...): ()
+%  constrain(destination: Name, apis: Set[\Api\]): Component
+%  hide(destination: Name, apis: Set[\Api\]): Component
+%  extract(prereqs: Set[\Api\]): File
+%  isValidUpgrade(that: Component): Boolean
+%  abstract upgrade(result: Name, that: Component): Component
+%    requires { self.isValidUpgrade(that) }
+%  sourceIsAvailable: Boolean
+%  getSourceFile(): File 
+%    requires { sourceIsAvailable }
+%  runTests(inclusive = Boolean): ()
+%end
+%
+%trait Api extends FortressElement
+%  uses: Set[\Api\]
+%  extraction: File
+%end
+%
+%trait SimpleComponent extends Component end
+%
+%trait Name end
+%
+%trait Version
+%  major: NN
+%  minor: NN
+%end
+%
+%end
+\begin{Fortress}
+\(\KWD{api} \TYP{Fortress}.\TYP{Components}\)\\
+\(\KWD{import} \TYP{File} \KWD{from} \TYP{Fortress}.\TYP{IO}\)\\
+\(\KWD{import} \{\,\TYP{List}, \TYP{Set}, \TYP{Date}\,\} \KWD{from} \TYP{Fortress}.\TYP{Util}\)\\[4pt]
+\(\KWD{trait} \TYP{Fortress}\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{fortressName}\COLON \TYP{Name}\)\\
+\(  \VAR{birthDate}\COLON \TYP{Date}\)\\
+\(  \VAR{getComponent}(\VAR{componentName}\COLON \TYP{Name})\COLON \TYP{Component}\)\\
+\(  \VAR{getAPI}(\VAR{apiName}\COLON \TYP{Name})\COLON \TYP{Api}\)\\
+\(  \VAR{preferences}(\VAR{ofAPI}\COLON \TYP{Api})\COLON \langle \TYP{Component} \rangle\)\\
+\(  \VAR{compile}(\VAR{file}\COLON \TYP{File})\COLON \TYP{SimpleComponent}\)\\
+\(  \VAR{install}(\VAR{file}\COLON \TYP{File})\COLON \TYP{Component}\)\\
+\(  \VAR{install}(\VAR{file}\COLON \TYP{File}, \VAR{prereqs}\COLON \TYP{Set}\llbracket\TYP{Api}\rrbracket)\COLON \TYP{Component}\)\\
+\(  \VAR{upgradeAll}(\VAR{componentName}\COLON \TYP{Name}, \VAR{that}\COLON \TYP{Component})\COLON ()\)\\[4pt]
+\(  \VAR{isValidLink}(\VAR{constituents}\COLON \langle \TYP{Component}\rangle, \VAR{exports} = \TYP{Set}\llbracket\TYP{Api}\rrbracket, \VAR{hide} = \TYP{Set}\llbracket\TYP{Api}\rrbracket)\COLON \TYP{Boolean}\)\\[4pt]
+\(  \VAR{link}(\VAR{result}\COLON \TYP{Name}, \VAR{constituents}\COLON \langle \TYP{Component} \rangle, \VAR{exports} = \TYP{Set}\llbracket\TYP{Api}\rrbracket, \VAR{hide} = \TYP{Set}\llbracket\TYP{Api}\rrbracket)\COLON \TYP{Component}\)\\
+{\tt~~}\pushtabs\=\+\(    \KWD{requires} \{\, \VAR{isValidLink}(\VAR{constituents}, \VAR{exports}, \VAR{hide})\,\}\)\-\-\\\poptabs\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{object} \TYP{EnclosingFortress} \KWD{extends} \{\,\TYP{Fortress}\,\} \KWD{end}\)\\[4pt]
+\(\KWD{trait} \TYP{FortressElement}\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{elementName}\COLON \TYP{Name}\)\\
+\(  \VAR{vendor}\COLON \TYP{String}\)\\
+\(  \VAR{owner}\COLON \TYP{Fortress}\)\\
+\(  \VAR{timeStamp}\COLON \TYP{Date}\)\\
+\(  \VAR{version}\COLON \TYP{Version}\)\\
+\(  \VAR{uninstall}()\COLON ()\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{trait} \TYP{Component} \KWD{extends} \TYP{FortressElement}\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{imports}\COLON \TYP{Set}\llbracket\TYP{Api}\rrbracket\)\\
+\(  \VAR{exports}\COLON \TYP{Set}\llbracket\TYP{Api}\rrbracket\)\\
+\(  \VAR{provides}\COLON \TYP{Set}\llbracket\TYP{Api}\rrbracket\)\\
+\(  \VAR{visibles}\COLON \TYP{Set}\llbracket\TYP{Api}\rrbracket\)\\
+\(  \VAR{constituents}\COLON \TYP{Set}\llbracket\TYP{Component}\rrbracket\)\\
+\(  \VAR{run}(\VAR{args}\COLON \TYP{String}\ldots)\COLON ()\)\\
+\(  \VAR{constrain}(\VAR{destination}\COLON \TYP{Name}, \VAR{apis}\COLON \TYP{Set}\llbracket\TYP{Api}\rrbracket)\COLON \TYP{Component}\)\\
+\(  \VAR{hide}(\VAR{destination}\COLON \TYP{Name}, \VAR{apis}\COLON \TYP{Set}\llbracket\TYP{Api}\rrbracket)\COLON \TYP{Component}\)\\
+\(  \VAR{extract}(\VAR{prereqs}\COLON \TYP{Set}\llbracket\TYP{Api}\rrbracket)\COLON \TYP{File}\)\\
+\(  \VAR{isValidUpgrade}(\VAR{that}\COLON \TYP{Component})\COLON \TYP{Boolean}\)\\
+\(  \KWD{abstract} \VAR{upgrade}(\VAR{result}\COLON \TYP{Name}, \VAR{that}\COLON \TYP{Component})\COLON \TYP{Component}\)\\
+{\tt~~}\pushtabs\=\+\(    \KWD{requires} \{\, \mathord{\KWD{self}}.\VAR{isValidUpgrade}(\VAR{that})\,\}\)\-\\\poptabs
+\(  \VAR{sourceIsAvailable}\COLON \TYP{Boolean}\)\\
+\(  \VAR{getSourceFile}()\COLON \TYP{File} \)\\
+{\tt~~}\pushtabs\=\+\(    \KWD{requires} \{\, \VAR{sourceIsAvailable}\,\}\)\-\\\poptabs
+\(  \VAR{runTests}(\VAR{inclusive} = \TYP{Boolean})\COLON ()\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{trait} \TYP{Api} \KWD{extends} \TYP{FortressElement}\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{uses}\COLON \TYP{Set}\llbracket\TYP{Api}\rrbracket\)\\
+\(  \VAR{extraction}\COLON \TYP{File}\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{trait} \TYP{Name} \KWD{end}\)\\[4pt]
+\(\KWD{trait} \TYP{SimpleComponent} \KWD{extends} \TYP{Component} \KWD{end}\)\\[4pt]
+\(\KWD{trait} \TYP{Version}\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{major}\COLON \mathbb{N}\)\\
+\(  \VAR{minor}\COLON \mathbb{N}\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{end}\)
+\end{Fortress}

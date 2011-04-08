@@ -1,0 +1,59 @@
+/*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+package com.sun.fortress.compiler.runtimeValues;
+
+public final class FFloatLiteral extends fortress.CompilerBuiltin.FloatLiteral.DefaultTraitMethods
+        implements fortress.CompilerBuiltin.FloatLiteral {
+
+    private String val;
+
+    private FFloatLiteral(String val) {
+        this.val = val;
+    }
+
+    private FFloatLiteral(double val) {
+        this(new Double(val).toString());
+    }
+
+    public static FFloatLiteral make(float x) {
+        return new FFloatLiteral((double)x);
+    }
+
+    public static FFloatLiteral make(double x) {
+        return new FFloatLiteral(x);
+    }
+
+    public static FFloatLiteral make(String s) {
+        return new FFloatLiteral(s);
+    }
+
+    public String toString() {
+        return val;
+    }
+
+    public String asString() {
+        return this.toString();
+    }
+
+    public Error outOfRange(String t) {
+        return new Error("Not in range for "+t+": "+this);
+    }
+
+    public FRR64 asRR64() {
+        return FRR64.make(Double.valueOf(val));
+    }
+
+
+    public FRR32 asRR32() {
+        return FRR32.make(Float.valueOf(val));
+    }
+}

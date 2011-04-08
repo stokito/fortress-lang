@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component UnnamedParam
+export Executable
+
+(* LISTS *)
+trait Foo[\T\]
+  bar(T): ZZ64
+end
+
+object Bar[\T\] extends Foo[\T\]
+  bar(x: T): ZZ64 = println x
+end
+
+run()= do
+  Bar[\ZZ64\].bar(42)
+end
+
+end

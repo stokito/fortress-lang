@@ -1,0 +1,24 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled2.c
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+
+compile
+
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled2.c.fss:15:1-20:\n\
+\ Cyclic type hierarchy: Type A transitively extends itself.\n\
+${STATIC_TESTS_DIR}/Compiled2.c.fss:16:1-20:\n\
+\ Cyclic type hierarchy: Type B transitively extends itself.\n\
+${STATIC_TESTS_DIR}/Compiled2.c.fss:17:1-20:\n\
+\ Cyclic type hierarchy: Type C transitively extends itself.\n\
+File Compiled2.c.fss has 3 errors.\n\
+
+compile_out_equals=
