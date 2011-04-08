@@ -235,6 +235,12 @@
 \input{abstract.tex}
 \end{abstract}
 
+\category{D.3.3}{Programming Languages}{Language Constructs and Features---classes and objects, inheritance, modules, packages, polymorphism}
+
+\terms{Languages}
+
+\keywords{object-oriented programming, traits, multiple dispatch, symmetric dispatch, multiple inheritance, overloading, modularity, methods, multimethods, functional methods, static types, run-time types, ilks, components, separate compilation, Fortress, meet rule}
+
 \section{Introduction}\label{sec:intro}
 \input{introduction.tex}
 % INTRO
