@@ -1,4 +1,4 @@
-Checking the declarations $\D(tail)$ and $\D(foo)$ is trickier.
+Checking the declarations $\D(`tail`)$ and $\D(`foo`)$ is trickier.
 Certainly neither `List` nor `ArrayList` declares an exclusion of the other,
 so seemingly the exclusion relation does not help us check these declarations.
 A fundamental problem is that a type such as `BadList` might be a subtype
