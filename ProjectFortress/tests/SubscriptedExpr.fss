@@ -1,0 +1,37 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SubscriptedExpr
+
+export Executable
+
+object O
+  myRound: ZZ32[5] = array1[\ZZ32,5\]().fill(2)
+  flat : ZZ32[5] = array1[\ZZ32,5\]().fill(1)
+  opr(./i:ZZ32/.): ZZ32 = myRound[i]
+  opr(./i:ZZ32/.):=(v:ZZ32) = myRound[i] := v
+  opr[i:ZZ32]  : ZZ32 = flat[i]
+  opr[i:ZZ32]  :=(v:ZZ32) = flat[i] := v
+end
+
+run() =
+  if O[0] = O(./0/.) then
+    println "FAIL!"
+    println O[0]
+    println O(./0/.)
+  else
+    O(./2/.) := 11
+    O[2] := 12
+    assert(O(./2/.),11,"O(./2/.) wrong")
+    assert(O[2],12,"O[2] wrong")
+  end
+
+end

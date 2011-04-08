@@ -1,0 +1,303 @@
+(*******************************************************************************
+    Copyright 2008,2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component CompilerBuiltin
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrint => jPrint,
+                                            simplePrintln.nativePrintln => jPrintln,
+                                            simplePrintln.nativeErrorPrint => jErrorPrint,
+                                            simplePrintln.nativeErrorPrintln => jErrorPrintln}
+import java com.sun.fortress.nativeHelpers.{simpleConcatenate.nativeConcatenate => jConcatenate,
+                                            simpleConcatenate.nativeStrlen => jStrlen}
+import java com.sun.fortress.nativeHelpers.{simpleBoolean.booleanAnd => jBooleanAnd,
+                                            simpleBoolean.booleanOr => jBooleanOr,
+                                            simpleBoolean.booleanXor => jBooleanXor,
+                                            simpleBoolean.booleanEqv => jBooleanEqv,
+                                            simpleBoolean.booleanNot => jBooleanNot}
+import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString => jIntToString,
+                                            simpleIntArith.intAdd => jIntAdd,
+                                            simpleIntArith.intSub => jIntSub,
+                                            simpleIntArith.intMul => jIntMul,
+                                            simpleIntArith.intDiv => jIntDiv,
+                                            simpleIntArith.intLT => jIntLT,
+                                            simpleIntArith.intLE => jIntLE,
+                                            simpleIntArith.intGT => jIntGT,
+                                            simpleIntArith.intGE => jIntGE,
+                                            simpleIntArith.intEQ => jIntEQ,
+                                            simpleIntArith.intNeg => jIntNeg,
+                                            simpleIntArith.parseInt => jParseInt,
+                                            simpleIntArith.intAbs => jIntAbs,
+                                            simpleIntArith.longToInt => jLongToInt}
+import java com.sun.fortress.nativeHelpers.{simpleLongArith.longToString => jLongToString,
+                                            simpleLongArith.longAdd => jLongAdd,
+                                            simpleLongArith.longSub => jLongSub,
+                                            simpleLongArith.longMul => jLongMul,
+                                            simpleLongArith.longDiv => jLongDiv,
+                                            simpleLongArith.longLT => jLongLT,
+                                            simpleLongArith.longLE => jLongLE,
+                                            simpleLongArith.longGT => jLongGT,
+                                            simpleLongArith.longGE => jLongGE,
+                                            simpleLongArith.longEQ => jLongEQ,
+                                            simpleLongArith.longNeg => jLongNeg,
+                                            simpleLongArith.parseLong => jParseLong,
+                                            simpleLongArith.longAbs => jLongAbs,
+                                            simpleLongArith.intToLong => jIntToLong}
+import java com.sun.fortress.nativeHelpers.{simpleDoubleArith.floatToDouble => jFloatToDouble,
+                                            simpleDoubleArith.doubleToString => jDoubleToString,
+                                            simpleDoubleArith.doubleAdd => jDoubleAdd,
+                                            simpleDoubleArith.doubleSub => jDoubleSub,
+                                            simpleDoubleArith.doubleMul => jDoubleMul,
+                                            simpleDoubleArith.doubleDiv => jDoubleDiv,
+                                            simpleDoubleArith.doubleLT => jDoubleLT,
+                                            simpleDoubleArith.doubleLE => jDoubleLE,
+                                            simpleDoubleArith.doubleGT => jDoubleGT,
+                                            simpleDoubleArith.doubleGE => jDoubleGE,
+                                            simpleDoubleArith.doubleEQ => jDoubleEQ,
+                                            simpleDoubleArith.doubleNeg => jDoubleNeg,
+                                            simpleDoubleArith.parseDouble => jParseDouble,
+                                            simpleDoubleArith.doubleAbs => jDoubleAbs,
+                                            simpleDoubleArith.doublePow => jDoublePow,
+                                            simpleDoubleArith.doubleNanoTime => jNanoTime}
+import java com.sun.fortress.nativeHelpers.{LocalRandom.localRandomDouble => jRandomDouble,
+                                            LocalRandom.localRandomInt => jRandomInt }
+import java com.sun.fortress.nativeHelpers.{stringOps.compareTo => jCompareTo,
+                                            stringOps.substring => jSubstring,
+                                            stringOps.charAt => jCharAt}
+
+import AnyType.{Any}
+(*) import CompilerAlgebra.{ Equality }
+export CompilerBuiltin
+
+nanoTime(): RR64 = jNanoTime()
+
+trait Object extends Any
+(*)     getter asString(): String = "<Object>"
+(*)     getter asExprString(): String = "no expression for "  self.asString
+(*)     getter asDebugString(): String  = do  (* for debugging; may contain more information *)
+(*)         ilk = self.ilkName
+(*)         firstChar = ilk[0]
+(*)         article = if firstChar = 'a' OR: firstChar = 'e' OR: firstChar = 'i' OR: firstChar = 'o' then "an " else "a " end
+(*)         article ilk ": " self.asString
+(*)         self.asString
+(*) end
+end Object
+
+trait String
+    getter isEmpty(): Boolean = (jStrlen(self) = 0)
+    getter asString(): String = self
+    opr |self| : ZZ32 = jStrlen(self)
+    opr <(self, b: String) = (jCompareTo(self, b) < 0)
+    opr =(self, b: String) = (jCompareTo(self, b) = 0)
+    opr ||(self, b:String): String =  jConcatenate(self, b)
+    opr juxtaposition(self, b:String): String = jConcatenate(self, b)
+    opr [i:ZZ32] : ZZ32 = jCharAt(self, i)
+    substring(lo:ZZ32, hi:ZZ32):String = jSubstring(self, lo, hi)
+end
+
+object FlatString extends String
+end FlatString
+
+println(s:String):() = jPrintln(s)
+(*) println(x:Object): () = jPrintln(x.asString)
+(*) println():() = jPrintln("")
+(*) println(x:Any):() = jPrintln("<big tuple>")
+
+println(x:ZZ32):() = jPrintln(x.asString)
+println(x:ZZ64):() = jPrintln(x.asString)
+(*) println(x:RR32):() = jPrintln(x.asString)
+println(x:RR64):() = jPrintln(x.asString)
+(*) println[\A,B\](x: (A,B)):() = jPrintln(str(x))
+(*) println[\A,B,C\](x: (A,B,C)):() = jPrintln(str(x))
+(*) println[\A,B,C,D\](x: (A,B,C,D)):() = jPrintln(str(x))
+(*) println[\A,B,C,D,E\](x: (A,B,C,D,E)):() = jPrintln(str(x))
+(*) println[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):() = jPrintln(str(x))
+(*) println[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):() = jPrintln(str(x))
+
+errorPrintln(s:String):() = jErrorPrintln(s)
+(*) errorPrintln(x:Object): () = jErrorPrintln(x.asString)
+(*) errorPrintln():() = jErrorPrintln("")
+(*) errorPrintln(x:Any):() = jErrorPrintln("<big tuple>")
+
+errorPrintln(x:ZZ32):() = jErrorPrintln(x.asString)
+errorPrintln(x:ZZ64):() = jErrorPrintln(x.asString)
+(*) errorPrintln(x:RR32):() = jErrorPrintln(x.asString)
+errorPrintln(x:RR64):() = jErrorPrintln(x.asString)
+(*) errorPrintln[\A,B\](x: (A,B)):() = jErrorPrintln(str(x))
+(*) errorPrintln[\A,B,C\](x: (A,B,C)):() = jErrorPrintln(str(x))
+(*) errorPrintln[\A,B,C,D\](x: (A,B,C,D)):() = jErrorPrintln(str(x))
+(*) errorPrintln[\A,B,C,D,E\](x: (A,B,C,D,E)):() = jErrorPrintln(str(x))
+(*) errorPrintln[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):() = jErrorPrintln(str(x))
+(*) errorPrintln[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):() = jErrorPrintln(str(x))
+
+(*) Utility routine for converting tuples to strings
+(*) private str(x:Any):String = "<big tuple>"
+(*) private str(x: Object):String = x.asString
+(*) private str():String = "()"
+(*) private str[\A,B\](x: (A,B)):String = do (a,b) = x; "(" str(a) ", " str(b) ")" end
+(*) private str[\A,B,C\](x: (A,B,C)):String = do (a,b,c) = x; "(" str(a) ", " str(b) ", " str(c) ")" end
+(*) private str[\A,B,C,D\](x: (A,B,C,D)):String = do (a,b,c,d) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ")" end
+(*) private str[\A,B,C,D,E\](x: (A,B,C,D,E)):String = do (a,b,c,d,e) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ")" end
+(*) private str[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):String = do (a,b,c,d,e,f) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ", " str(f) ")" end
+(*) private str[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):String = do (a,b,c,d,e,f,g) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ", " str(f) ", " str(g) ")" end
+
+strToInt(s:String):ZZ32 = jParseInt(s)
+
+trait Number excludes { String }
+    getter asString(): String
+end
+
+trait ZZ64 extends Number excludes { RR64 }
+    coerce(x: IntLiteral) = x.asZZ64
+    coerce(x: ZZ32) = jIntToLong(x)
+    getter asZZ32(): ZZ32 = jLongToInt(self)
+    getter asString(): String = jLongToString(self)
+    opr |self| : ZZ64 = jLongAbs(self)
+    opr -(self): ZZ64 = jLongNeg(self)
+    opr +(self, other:ZZ64): ZZ64 = jLongAdd(self,other)
+    opr -(self, other:ZZ64): ZZ64 = jLongSub(self,other)
+    opr <(self, other:ZZ64): Boolean = jLongLT(self,other)
+    opr <=(self, other:ZZ64): Boolean = jLongLE(self,other)
+    opr >(self, other:ZZ64): Boolean = jLongGT(self,other)
+    opr >=(self, other:ZZ64): Boolean = jLongGE(self,other)
+    opr =(self, other:ZZ64): Boolean = jLongEQ(self,other)
+    opr juxtaposition(self, other:ZZ64): ZZ64 = jLongMul(self,other)
+    opr DOT(self, other:ZZ64): ZZ64 = jLongMul(self,other)
+    opr DIV(self, other:ZZ64): ZZ64 = jLongDiv(self,other)
+end
+
+trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
+    coerce(x: IntLiteral) = x.asZZ32
+    getter asZZ32(): ZZ32 = self
+    getter asString(): String = jIntToString(self)
+    opr |self| : ZZ32 = jIntAbs(self)
+    opr -(self): ZZ32 = jIntNeg(self)
+    opr +(self, other:ZZ32): ZZ32 = jIntAdd(self,other)
+    opr -(self, other:ZZ32): ZZ32 = jIntSub(self,other)
+    opr <(self, other:ZZ32): Boolean = jIntLT(self,other)
+    opr <=(self, other:ZZ32): Boolean = jIntLE(self,other)
+    opr >(self, other:ZZ32): Boolean = jIntGT(self,other)
+    opr >=(self, other:ZZ32): Boolean = jIntGE(self,other)
+    opr =(self, other:ZZ32): Boolean = jIntEQ(self,other)
+    opr juxtaposition(self, other:ZZ32): ZZ32 = jIntMul(self,other)
+    opr DOT(self, other:ZZ32): ZZ32 = jIntMul(self,other)
+    opr DIV(self, other:ZZ32): ZZ32 = jIntDiv(self,other)
+end
+
+trait IntLiteral excludes {ZZ32, ZZ64}
+    getter asZZ32(): ZZ32
+    getter asZZ64(): ZZ64
+(*
+    getter asNN32(): NN32
+    getter asZZ(): ZZ
+    getter asRR32(): RR32
+*)
+    getter asRR64(): RR64
+end
+
+trait RR64 extends Number excludes ZZ64
+    coerce(x: FloatLiteral) = x.asRR64
+    coerce(x: RR32) = jFloatToDouble(x)
+    getter asString(): String = jDoubleToString(self)
+    opr |self| : RR64 = jDoubleAbs(self)
+    opr -(self): RR64 = jDoubleNeg(self)
+    opr +(self, other:RR64): RR64 = jDoubleAdd(self,other)
+    opr -(self, other:RR64): RR64 = jDoubleSub(self,other)
+    opr <(self, other:RR64): Boolean = jDoubleLT(self,other)
+    opr <=(self, other:RR64): Boolean = jDoubleLE(self,other)
+    opr >(self, other:RR64): Boolean = jDoubleGT(self,other)
+    opr >=(self, other:RR64): Boolean = jDoubleGE(self,other)
+    opr =(self, other:RR64): Boolean = jDoubleEQ(self,other)
+    opr juxtaposition(self, other:RR64): RR64 = jDoubleMul(self,other)
+    opr DOT(self, other:RR64): RR64 = jDoubleMul(self,other)
+    opr /(self, other:RR64): RR64 = jDoubleDiv(self,other)
+    opr ^(self, other:RR64): RR64 = jDoublePow(self,other)
+    opr ^(self, other:ZZ32): RR64 =
+        if other > 2 then
+            mid = other DIV 2
+            if (mid + mid) = other then
+                (self self)^mid
+            else
+                self (self self)^mid
+            end
+        elif other = 2 then self self
+        elif other = 1 then self
+        elif other = 0 then 1.0
+        elif other = -other then
+          (* Screw case of most negative `ZZ32` value *)
+          1.0 / (self^(-(other DIV 2)))^2
+        else (* other < 0 then *) 1.0 / (self^(-other))
+        end
+end
+
+trait RR32 extends Number excludes { ZZ64, ZZ32, RR64 }
+    coerce(x: FloatLiteral) = x.asRR32
+end
+
+trait FloatLiteral excludes {RR32, RR64}
+    getter asRR32(): RR32
+    getter asRR64(): RR64
+end
+
+trait Boolean     (*) extends { Equality[\Boolean\] }
+  getter holds(): Boolean = self
+  getter get(): () = ()
+  getter asString(): String = self.asExprString
+  getter asExprString(): String = if self then "true" else "false" end
+  getter size(): ZZ32 = |self|
+  opr |self| : ZZ32 = if self then 1 else 0 end
+(*)   cond[\R\](t:()->R, e:()->R) : R = if self then t() else e() end
+(*)   generate[\R\](r:Reduction[\R\],b:()->R): R =
+(*)       if self then b() else r.empty() end
+(*)   map[\G\](f: ()->G): Maybe[\G\] =
+(*)       if self then Just[\G\](f()) else Nothing[\G\] end
+(*)   cross[\G\](g: Generator[\G\]): Generator[\((),G)\] =
+(*)       if self
+(*)       then g.map[\((),G)\](fn (e:G):((),G) => ((),e))
+(*)       else Nothing[\((),G)\] end
+
+(*)   mapReduce[\R\](b: ()->R, _:(R,R)->R, z:R): R =
+(*)       if self then b() else z end
+(*)   loop(f:()->()): () = if self then f() end
+
+  opr NOT(self):Boolean = jBooleanNot(self)
+  opr AND(self, other:Boolean):Boolean = jBooleanAnd(self, other)
+  opr AND(self, other:()->Boolean):Boolean = if self then other() else self end
+  opr OR(self, other:Boolean):Boolean = jBooleanOr(self, other)
+  opr OR(self, other:()->Boolean):Boolean = if self then self else other() end
+  opr XOR(self, other:Boolean):Boolean = jBooleanXor(self, other)
+  opr OPLUS(self, other:Boolean):Boolean = jBooleanXor(self, other)
+  opr NEQV(self, other:Boolean):Boolean = jBooleanXor(self, other)
+  opr EQV(self, other:Boolean):Boolean = jBooleanEqv(self, other)
+  opr <->(self, other:Boolean):Boolean = jBooleanEqv(self, other)
+  opr ->(self, other:Boolean):Boolean = (NOT self) OR other
+  opr NAND(self, other:Boolean):Boolean = NOT (self AND other)
+  opr NOR(self, other:Boolean):Boolean = NOT (self OR other)
+
+  opr =(self, other:Boolean): Boolean = jBooleanEqv(self, other)
+(*)   opr <(self, other:Boolean): Boolean = (NOT self) AND other
+(*)   opr CMP(self, other:Boolean): TotalComparison =
+(*)       if self then
+(*) 	  if other then EqualTo else GreaterThan end
+(*)       else
+(*) 	  if other then LessThan else EqualTo end
+(*)       end
+end
+
+true: Boolean = (0=0)
+false: Boolean = (0=1)
+
+(************************************************************
+* Random numbers
+************************************************************)
+
+random(i:RR64): RR64 = jRandomDouble(i)
+randomZZ32(x:ZZ32): ZZ32 = jRandomInt(0,x)
+
+end

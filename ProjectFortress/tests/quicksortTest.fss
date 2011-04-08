@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component quicksortTest
+import QuickSort.{...}
+import Timing.{...}
+export Executable
+
+sorted(a:Array[\ZZ32,ZZ32\]): () =
+    for i <- a.indices, i > a.indices.lower, a[i-1] > a[i] do
+        println("FAIL: a[" (i-1) "]=" a[i-1] ", a[" i "]=" a[i] )
+    end
+
+run() = do
+  arr0: ZZ32[5] = [ 5 29 10 -3 8 ]
+  expected : ZZ32[5] = [ -3 5 8 10 29 ]
+  quicksort[\ZZ32\](fn (x:ZZ32, y:ZZ32) => x < y, arr0, 0, 4)
+  assert(arr0, expected, " arr0 and expected don't match")
+  arr = array[\ZZ32\](1000)
+  "random fill" PRINTTIME: (do arr[i] := narrow(|\ random(|arr|) /|), i <- arr.indices end)
+  "sort" PRINTTIME: quicksort(arr)
+  sorted(arr)
+  "sort sorted" PRINTTIME: quicksort(arr)
+  sorted(arr)
+  "one fill" PRINTTIME: arr.fill(1)
+  "sort ones" PRINTTIME: quicksort(arr)
+  sorted(arr)
+end
+
+end

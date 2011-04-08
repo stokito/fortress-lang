@@ -1,0 +1,1413 @@
+@string{ACM = "ACM "}
+@string{IEEE = "IEEE "}
+@string{SIGPLAN = "SIGPLAN "}
+@string{Proc = "Proceedings of the "}
+@string{Trans = "Transactions on "}
+@string{Jour = "Journal of "}
+@string{Conf = "Conference on "}
+@string{Symp = "Symposium on "}
+@string{Work = "Workshop on "}
+@string{Func = "Functional "}
+@string{Prog = "Programming "}
+@string{Lang = "Language "}
+@string{Langs = "Languages "}
+@string{Intl = "International "}
+@string{OSs = "Operating Systems "}
+@string{DI = "Design and Implementation"}
+@string{CS = "Computer Science "}
+@string{Lab = "Laboratory "}
+@string{MIT = "MIT "}
+@string{CSG = "Computation Structures Group "}
+@string{LCS = Lab#"for "#CS}
+@string{FP = Func#Prog}
+@string{FLs = Func#Langs}
+@string{FPLs = Func#Prog#Langs}
+@string{FPCA = Conf # FPLs # "and Computer Architecture"}
+@string{CSGMemo = MIT # CSG # "Memo"}
+@string{TheoCS = "Theoretical "#CS}
+@string{LFP = Proc # ACM # Symp # "LISP and " # FP}
+@string{ICFP = ACM # "SIGPLAN " # Intl # Conf # FP}
+@string{IFL = Proc # Work # "Implementation of " # FLs}
+@string{MathStruc = "Mathematical Structure in "#CS}
+@string{TOPLAS = ACM # Trans # Prog # Langs #"and Systems"}
+@string{JACM = Jour # "the Association for Computing Machinery"}
+@string{PLDI = Proc # ACM # Conf # Prog # Lang # DI}
+@string{POPL = Proc # ACM # Symp # "Principles of " # Prog # Langs}
+@string{LICS = IEEE # Symp # "Logic in " # CS}
+@string{LSC = Jour # "LISP and Symbolic Computation"}
+@string{LNCS = "Lecture Notes in " # CS}
+@string{SV = "Springer-Verlag"}
+@string{OSDI = Symp # OSs # DI}
+@string{SOSP = Symp # OSs # "Principles"}
+@string{JFP = Jour # FP}
+@string{PD = "Parallel and Distributed "}
+@string{PEPM = Proc # Symp # 
+               "Partial Evaluation and Semantics Based Program Manipulation"}
+@string{ISCA = Intl # Symp # "Computer Architecture"}
+@string{IPPS = Intl # "Parallel Processing Symposium"}
+@string{SPAA = ACM # Symp # "Parallel Algorithms and Architectures"}
+@string{LCPC = Proc # Work # "Languages and Compilers for Parallel Computing"}
+@string{JourProgLang = Jour # "Programming Languages"}
+@string{IEEETransSoftEng = IEEE # Trans # "Software Engineering"}
+@string{ACMTransSoftEng = ACM # Trans # "Software Engineering and Methodology"}
+@string{CMU = "Carnegie Mellon University"}
+@string{PASTE = ACM # "SIGPLAN-SIGSOFT" # Work # 
+                "Program Analysis for Software Tools and Engineering"}
+@string{SAS = "Static Analysis Symposium"}
+
+@InProceedings{CilkSched,
+  booktitle=PLDI,
+  address={Montreal, Canada},
+  month={17--19~} # jun,
+  year=1998,
+  Publisher={SIGPLAN Notices},
+  organization = ACM,
+  title={Cilk: An Efficient Multithreaded Run-Time System},
+  author={Robert D. Blumofe and Christopher F. Joerg and Charles E. Leiserson and Keith H. Randall and Yuli Zhou},
+  pages={132--141},
+  url="\url{ftp://theory.lcs.mit.edu/pub/cilk/PPoPP95.ps.Z}"
+}
+
+@inproceedings{MethodContracts,
+	author = {Findler, Robert  B.  and Latendresse, Mario   and Felleisen, Matthias  },
+	booktitle = {ESEC/FSE-9: Proceedings of the 8th European software engineering conference held jointly with 9th ACM SIGSOFT international symposium on Foundations of software engineering},
+	citeulike-article-id = {4865},
+	doi = {10.1145/503209.503240},
+	isbn = {1581133901},
+	keywords = {contracts semantics},
+	month = {September},
+	pages = {229--236},
+	publisher = {ACM Press},
+	title = {Behavioral contracts and behavioral subtyping},
+	url = {http://dx.doi.org/10.1145/503209.503240},
+	year = {2001}}
+
+@inproceedings{ blumofe,
+    author = "R. Blumofe and C. Leiserson",
+    title = "Scheduling multithreaded computations by work stealing",
+    booktitle = "Proceedings of the 35th Annual Symposium on Foundations
+      of Computer Science, Santa Fe, New Mexico.",
+    pages="356--368",
+    year = "1994",
+    month = nov
+}
+
+@techreport{ lazyTask,
+    author = "Eric Mohr and David A. Kranz and Halstead, Jr., Robert H.",
+    title = "LAZY TASK CREATION: A TECHNIQUE FOR INCREASING THE GRANULARITY OF PARALLEL PROGRAMS",
+    institution = "MIT/LCS",
+    number = "TM-449",
+    pages = "22",
+    year = "1991",
+    url = "\url{citeseer.ist.psu.edu/mohr90lazy.html}" }
+
+@Article{LazyThreads,
+  author = 	 {Seth C. Goldstein and Klaus E. Schauser and Dave E. Culler},
+  title = 	 {{Lazy Threads: Implementing a Fast Parallel Call}},
+  journal = 	 {Journal of Parallel and Distributed Computing},
+  year = 	 1996,
+  volume =	 37,
+  number =	 1,
+  month =	 aug
+}
+
+@book{Unicode,
+	Year = {2003},
+	Title = {The Unicode Standard, Version 4.0},
+	Author = {The Unicode Consortium},
+	Publisher = {Addison-Wesley},
+	ISBN = {0-321=18578-1},
+	city = {Boston, MA},}
+	
+@book{Self,
+	Year = {2000},
+	Title = {The Self Programmer's Reference Manual},
+	Author = {Ole Agesen and
+			Lars Bak and
+			Craig Chambers and
+			Bay-Wei Chang and
+			Urs Hölzle and
+			John Maloney and
+			Randall B. Smith and
+			David Ungar and
+			Mario Wolczko},
+	Publisher = "\url{http://research.sun.com/self/release_4.0/Self-4.0/manuals/Self-4.1-Pgmers-Ref.pdf}"}
+	
+@book{Haskell,
+	Year = {2003},
+	Title = {Haskell 98 Language and Libraries},
+	Publisher = {Cambridge University Press},
+	Author = {Simon Peyton-Jones}}
+	
+@book{Scala,
+	Year = {2004},
+	Title = {The Scala Language Specification},
+	Author = {Martin Odersky and
+			Philippe Altherr and
+			Vincent Cremet and
+			Burak Emir and
+			Stéphane Micheloud and
+			Nikolay Mihaylov and
+			Michel Schinz and
+			Erik Stenman and
+			Matthias Zenger},
+	 publisher = "\url{http://scala.epfl.ch/docu/files/ScalaReference.pdf}"
+}
+
+@inproceedings{vObj,
+          Year = {2003},
+          Title = {A Nominal Theory of Objects with Dependent Types},
+          Author = {Martin Odersky and 
+                        Vincent Cremet and
+                        Christine R{\"o}ckl and
+                        Matthias Zenger},
+          month = jul,
+          booktitle = {Proceedings of the 17th European Conference on Object-Oriented Programming},
+}
+
+@techreport{Scaletta,
+         year = 2005,
+         month = mar,
+         title = {Inner Classes and Virtual Types},
+         author = {Philippe Altherr and Vincent Cremet},
+         institution = {EPFL},
+         note = "\url{http://scala.epfl.ch/docu/files/IC_TECH_REPORT_2005013.pdf}"
+}
+	 
+@article{Scheme,
+    author = "Richard Kelsey and William Clinger and Jonathan Rees",
+    title = "Revised$^{5}$ Report on the Algorithmic Language {Scheme}",
+    journal = "ACM SIGPLAN Notices",
+    volume = "33",
+    number = "9",
+    pages = "26--76",
+    year = "1998",
+    url = "citeseer.csail.mit.edu/article/kelsey98revised.html" }
+
+@book{SML,
+	Author ={Robin Milner and Mads Tofte and Robert Harper and David MacQueen},
+	Title = {The Definition of Standard ML (Revised)},
+	Year = {1997},
+	Publisher = "The MIT Press"
+}
+	
+@book{ OCaml,
+	Author ={Xavier Leroy and
+			Damien Doligez and
+			Jacques Garrigue and
+			Didier Rémy and 
+			Jérôme Vouillon},
+	Title = {The Objective Caml System, release 3.08},
+	Year = {2004},
+	Publisher = "\url{http://caml.inria.fr/distrib/ocaml-3.08/ocaml-3.08-refman.pdf}"}
+	
+@inproceedings{traits,
+  author = "Nathanael Sch{\"a}rli and St\'ephane Ducasse and Oscar Nierstrasz and Andrew Black",
+  title = "Traits: {C}omposable Units of Behavior",
+  month = jul,
+  year = 2003,
+  booktitle = {Proceedings of the 17th European Conference on Object-Oriented Programming},
+  publisher = "Springer",
+  url = "sherry.ifi.unizh.ch/566972.html" 
+}
+
+@inproceedings{traitsOOPSLA04,
+ author = {Emerson R. Murphy-Hill and Andrew P. Black},
+ title = {Traits: {E}xperience with a language feature},
+ booktitle = {OOPSLA '04: Companion to the 19th annual ACM SIGPLAN conference on Object-oriented programming systems, languages, and applications},
+ year = {2004},
+ isbn = {1-58113-833-4},
+ pages = {275--282},
+ location = {Vancouver, BC, CANADA},
+ doi = {http://doi.acm.org/10.1145/1028664.1028771},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@book{Eiffel,
+	Year = {1988},
+	Title = {Object-Oriented Software Construction},
+	Publisher = {Prentice Hall},
+	Author = {B. Meyer}}
+
+@inproceedings{POOL,
+ author = {Pierre America and Frank van der Linden},
+ title = {A parallel object-oriented language with inheritance and subtyping},
+ booktitle = {OOPSLA/ECOOP '90},
+ year = {1990},
+ isbn = {0-201-52430-X},
+ pages = {161--168},
+ location = {Ottawa, Canada},
+ doi = {http://doi.acm.org/10.1145/97945.97966},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@inproceedings{Strongtalk,
+ author = "Gilad Bracha",
+ title = "{The Strongtalk type system for Smalltalk}",
+ booktitle = {Proceedings of the OOPSLA'96 Workshop on Extending the Smalltalk Language},
+ year = {1996},
+ location = {San Jose, CA},
+ note = "{Also available electronically through \url{http://bracha.org/nwst.html}}"
+ }
+
+@inproceedings{Jiazzi,
+	Year = {2001},
+	Title = {Jiazzi: New Age Components for Old Fashioned {J}ava},
+	Booktitle = {OOPSLA},
+	Author = {S. McDirmid and M. Flatt and W. Hsieh}}
+
+@book{OpenMP,
+  title = "{OpenMP} {Fortran} Application Program Interface Version 2.0",
+  year = 2000,
+  month = nov,
+  author="{OpenMP Architecture Review Board}",
+  publisher = "\url{http://www.openmp.org/specs/mp-documents/fspec20_bars.pdf}"
+}
+
+@inproceedings{telescoping,
+    author = "Ken Kennedy",
+    booktitle = { In Proceedings of International Parallel and Distributed Processing Symposium 2000 (IPDPS 2000)},
+    title = "Telescoping Languages: {A} Compiler Strategy for Implementation of High-level Domain-specific Programming Systems",
+    pages = "297--304",
+    month = "May",
+    year = "2000",
+    url = "\url{http://citeseer.ist.psu.edu/kennedy00telescoping.html}"
+}	
+	
+
+@inproceedings{cca,
+	abstract = {Describes work in progress to develop a standard for interoperability among high-performance scientific components. This research stems from the growing recognition that the scientific community needs to better manage the complexity of multidisciplinary simulations and better address scalable performance issues on parallel and distributed architectures. The driving force for this is the need for fast connections among components that perform numerically intensive work and for parallel collective interactions among components that use multiple processes or threads. This paper focuses on the areas we believe are most crucial in this context, namely an interface definition language that supports scientific abstractions for specifying component interfaces and a port connection model for specifying component interactions},
+	author = {Armstrong, R.  and Gannon, D.  and Geist, A.  and Keahey, K.  and Kohn, S.  and McInnes, L.  and Parker, S.  and Smolinski, B. },
+	citeulike-article-id = {113635},
+	journal = {High Performance Distributed Computing, 1999. Proceedings. The Eighth International Symposium on},
+	keywords = {components hpc oopsla-paper},
+	pages = {115--124},
+	title = {Toward a common component architecture for high-performance scientific computing},
+	url = "\url{http://ieeexplore.ieee.org/xpls/abs_all.jsp?arNumber=805289}",
+	year = {1999}
+}
+
+
+
+@article{feldman79,
+	abstract = {In a programming project, it is easy to lose track of which files need to be reprocessed or recompiled after a change is made in some part of the source. Make provides a simple mechanism for maintaining up-to-date versions of programs that result from many operations on a number of files. It is possible to tell Make the sequence of commands that create certain files, and the list of files that require other files to be current before the operations can be done. Whenever a change is made in any...},
+	author = {Feldman, Stuart  I. },
+	citeulike-article-id = {113479},
+	issue = {4},
+	journal = {Software - Practice and Experience},
+	keywords = {configuration-management oopsla-paper},
+	pages = {255--65},
+	title = {Make-{A Program for Maintaining Computer Programs}},
+	url = "\url{http://citeseer.ist.psu.edu/feldman79make.html}",
+	volume = {9},
+	year = {1979}
+}
+
+
+
+@techreport{vesta02,
+	author = {Mann, Timothy   and Yu, Yuan   and Levin, Roy   and Heydon, Allan  },
+	citeulike-article-id = {113384},
+	institution = {Compaq Systems Research Center},
+	keywords = {configuration-management oopsla-paper},
+	month = {January},
+	title = {{The Vesta Software Configuration Management System}},
+	url = "\url{http://gatekeeper.research.compaq.com/pub/DEC/SRC/research-reports/abstracts/src-rr-177.html}",
+	year = {2002}
+}
+
+
+@misc{Skolem,
+        title = "Skolem Normal Form",
+        howpublished = "\url{http://en.wikipedia.org/wiki/Skolem_normal_form}"
+}
+
+@misc{planet-website,
+	author = {  Matthews, Jacob and Findler, Robby   },
+	citeulike-article-id = {113356},
+	comment = {Ask Jacob how to cite PLaneT.},
+	keywords = {oopsla-paper plt scheme},
+	title = {{PLaneT}},
+	note = "\url{http://planet.plt-scheme.org/}"
+}
+
+
+
+@book{java98,
+	author = {Arnold, Ken   and Gosling, James  },
+	citeulike-article-id = {113355},
+	isbn = {0201310066},
+	keywords = {java oopsla-paper},
+	publisher = {ACM Press/Addison-Wesley Publishing Co.},
+	title = {The Java programming language (2nd ed.)},
+	url = "\url{http://portal.acm.org/citation.cfm?id=291374}",
+	year = {1998}
+}
+
+
+
+@inproceedings{moby99,
+	author = {Reppy, John   and Fisher, Kathleen  },
+	booktitle = {PLDI '99: Proceedings of the ACM SIGPLAN 1999 Conference on Programming Language Design and Implementation},
+	citeulike-article-id = {113354},
+	doi = {10.1145/301618.301638},
+	issn = {0362-1340},
+	issue = {5},
+	keywords = {ml oopsla-paper},
+	month = {May},
+	pages = {37--49},
+	publisher = {ACM Press},
+	title = {The design of a class mechanism for Moby},
+	url = "\url{http://dx.doi.org/10.1145/301618.301638}",
+	volume = {34},
+	year = {1999}
+}
+
+@inproceedings{mobyTraits,
+ author = "Kathleen Fisher and John Reppy",
+ title = "Statically typed traits",
+ booktitle = "Proceedings of FOOL 11",
+ year = 2004,
+ month = jan,
+ organization = "ACM",
+ howpublished = "http://www.cs.uchicago.edu/research/publications/techreports/TR-2003-13"
+ }
+
+@article{r5rs,
+	abstract = {Programming languages should be designed not by piling feature on top of feature, but by removing the weaknesses and restrictions that make additional features appear necessary. Scheme demonstrates that a very small number of rules for forming expressions, with no restrictions on how they are composed, suffice to form a practical and efficient programming language that is flexible enough to support most of the major programming paradigms in use today.},
+	author = {(Editors), Jonathan  R.  and Kelsey, Richard   and Clinger, William  },
+	citeulike-article-id = {4855},
+	issue = {9},
+	journal = {ACM SIGPLAN Notices},
+	keywords = {oopsla-paper scheme},
+	pages = {26--76},
+	title = {Revised$^5$ Report on the Algorithmic Language Scheme},
+	url = "\url{http://citeseer.ist.psu.edu/kelsey98revised.html}",
+	volume = {33},
+	year = {1998}
+}
+
+
+
+@book{JLS,
+	author = {Bracha, Gilad   and Steele, Guy   and Joy, Bill   and Gosling, James  },
+	citeulike-article-id = {113341},
+	howpublished = {Paperback},
+	isbn = {0321246780},
+	keywords = {java oopsla-paper},
+	month = {July},
+	publisher = {Addison-Wesley Professional},
+	title = {Java$^{\mbox{TM}}$ Language Specification, The 3rd Edition (Java Series)},
+	url = "\url{http://www.amazon.fr/exec/obidos/ASIN/0321246780/citeulike04-21}",
+	year = {2005}
+}
+
+
+
+@misc{debian,
+	citeulike-article-id = {113340},
+	howpublished = "\url{http://www.debian.org}",
+	keywords = {components oopsla-paper},
+	title = {Debian},
+author = {The Debian Project},
+}
+
+@misc{javaAPI,
+	key = "zzz Java{(TM) 2 Platform Standard Edition 6.0 API Specification}",
+	howpublished = "\url{http://www.java.net/download/doc/api/}",
+	title = {Java{(TM) 2 Platform Standard Edition 6.0 API Specification}},
+}
+
+
+
+@book{SML97,
+	abstract = {Standard ML is a general-purpose programming language designed for large projects. This book provides a formal definition of Standard ML for the benefit of all concerned with the language, including users and implementers. Because computer programs are increasingly required to withstand rigorous analysis, it is all the more important that the language in which they are written be defined with full rigor.<br /> <br /> One purpose of a language definition is to establish a theory of meanings upon which the understanding of particular programs may rest. To properly define a programming language, it is necessary to use some form of notation other than a programming language. Given a concern for rigor, mathematical notation is an obvious choice. The authors have defined their semantic objects in mathematical notation that is completely independent of Standard ML.<br /> <br /> In defining a language one must also define the rules of evaluation precisely--that is, define what meaning results from evaluating any phrase of the language. The definition thus constitutes a formal specification for an implementation. The authors have developed enough of their theory to give sense to their rules of evaluation.<br /> <br /> <I>The Definition of Standard ML</I> is the essential point of reference for Standard ML. Since its publication in 1990, the implementation technology of the language has advanced enormously and the number of users has grown. The revised edition includes a number of new features, omits little-used features, and corrects mistakes of definition.},
+	author = {Milner, Robin   and Harper, Robert   and MacQueen, David   and Tofte, Mads  },
+	citeulike-article-id = {113339},
+	howpublished = {Paperback},
+	isbn = {0262631814},
+	keywords = {components oopsla-paper},
+	month = {May},
+	publisher = {The MIT Press},
+	title = {The Definition of Standard ML - Revised},
+	url = "\url{http://www.amazon.fr/exec/obidos/ASIN/0262631814/citeulike04-21}",
+	year = {1997}
+}
+
+
+
+@misc{CORBA,
+	citeulike-article-id = {113313},
+	keywords = {components oopsla-paper},
+	title = {{CORBA}},
+author = {Object Management Group},
+	note = "\url{http://www.corba.org/}"
+}
+
+
+
+@book{RPM,
+	abstract = {{<UL><LI>RPM is the Linux industry standard for making application installation easy and its use is gaining mindshare amongst users and administrators of other Unix platforms    <LI>Offers insight and examples to creating applications that rely upon or enhance RPM, enabling users to package and deploy software in RPM format    <LI>Discusses the use of RPM to manage software and examines the tools provided for user control    <LI>Book will be technically reviewed by the key RPM programmer at Red Hat</UL>RED HAT PRESS(TM)<br>   Linux Solutions from the Experts at Red Hat<br>   Red Hat-the world's leading Linux company-presents a series of unrivaled guides that are reviewed and approved by the experts at Red Hat. Each book is packed with invaluable tips and techniques that are ideal for everyone from beginning to advanced network and systems professionals, as well as home and small businesses.}},
+	author = {Foster-Johnson, Eric  },
+	citeulike-article-id = {113312},
+	comment = {A book on RPM, the redhat package manager.},
+	howpublished = {Paperback},
+	isbn = {0764549650},
+	keywords = {components oopsla-paper rpm},
+	month = {March},
+	publisher = {{Red Hat}},
+	title = {Red Hat RPM Guide},
+	url = "\url{http://www.amazon.fr/exec/obidos/ASIN/0764549650/citeulike04-21}",
+	year = {2003}
+}
+
+
+
+@book{szyperski97,
+	author = {Szyperski, Clemens  },
+	citeulike-article-id = {113266},
+	howpublished = {Hardcover},
+	isbn = {0201178885},
+	keywords = {components oopsla-paper},
+	month = dec,
+	publisher = {{Addison-Wesley Professional}},
+	title = {Component Software: Beyond Object-Oriented Programming},
+	url = "\url{http://www.amazon.fr/exec/obidos/ASIN/0201178885/citeulike04-21}",
+	year = {1997}
+}
+
+
+
+@inproceedings{jiazzi01,
+	abstract = {We present Jiazzi, a system that enables the construction of largescale binary components in Java. Jiazzi components can be thought of as generalizations of Java packages with added support for external linking and separate compilation. Jiazzi components are practical because they are constructed out of standard Java source code. Jiazzi requires neither extensions to the Java language nor special conventions for writing Java source code that will go inside a component. Our components are...},
+	author = {Hsieh, Wilson   and Flatt, Matthew   and McDirmid, Sean  },
+	booktitle = {Proc. of OOPSLA},
+	citeulike-article-id = {4863},
+	keywords = {components oopsla-paper plt},
+	month = {October},
+	title = {{Jiazzi: New-Age Components for Old-Fashioned Java}},
+	url = "\url{http://citeseer.ist.psu.edu/mcdirmid01jiazzi.html}",
+	year = {2001}
+}
+
+
+
+@inproceedings{mj03,
+	author = {Bacon, David  F.  and Grove, David   and Murthy, Chet   and Corwin, John  },
+	booktitle = {OOPSLA '03: Proceedings of the 18th Annual ACM SIGPLAN Conference on Object-Oriented Programming, Systems, Languages, and Applications},
+	citeulike-article-id = {84629},
+	doi = {10.1145/949305.949326},
+	issn = {0362-1340},
+	issue = {11},
+	keywords = {components oopsla-paper},
+	month = {October},
+	pages = {241--254},
+	publisher = {ACM Press},
+	title = {{MJ}: A Rational Module System for {Java} and its Applications},
+	url = "\url{http://dx.doi.org/10.1145/949305.949326}",
+	volume = {38},
+	year = {2003}
+}
+
+
+
+@inproceedings{flatt98units,
+	author = {Felleisen, Matthias   and Flatt, Matthew  },
+	booktitle = {Proceedings of the ACM SIGPLAN 1998 conference on Programming language design and implementation},
+	citeulike-article-id = {1379},
+	doi = {10.1145/277650.277730},
+	issn = {0362-1340},
+	issue = {5},
+	keywords = {modules oopsla-paper plt scheme},
+	month = {May},
+	pages = {236--248},
+	publisher = {ACM Press},
+	title = {Units: Cool Modules for {HOT} Languages},
+	url = "\url{http://portal.acm.org/citation.cfm?id=277650.277730}",
+	volume = {33},
+	year = {1998}
+}
+
+
+
+@inproceedings{flatt02,
+	author = {Flatt, Matthew  },
+	booktitle = {Proceedings of the seventh ACM SIGPLAN international conference on Functional programming},
+	citeulike-article-id = {1164},
+	doi = {10.1145/581478.581486},
+	issn = {0362-1340},
+	issue = {9},
+	keywords = {macros modules oopsla-paper plt scheme},
+	month = {September},
+	pages = {72--83},
+	publisher = {ACM Press},
+	title = {Composable and compilable macros: you want it when?},
+	url = "\url{http://portal.acm.org/citation.cfm?id=581478.581486}",
+	volume = {37},
+	year = {2002}
+}
+
+@inproceedings{mccamant,
+ author = {Stephen McCamant and Michael D. Ernst},
+ title = {Predicting Problems Caused by Component Upgrades},
+ booktitle = {ESEC/FSE-11: Proceedings of the 9th European software engineering conference held jointly with 11th ACM SIGSOFT international symposium on Foundations of software engineering},
+ year = {2003},
+ isbn = {1-58113-743-5},
+ pages = {287--296},
+ location = {Helsinki, Finland},
+ doi = "\url{http://doi.acm.org/10.1145/940071.940110}",
+ publisher = {ACM Press}
+ }
+
+
+
+
+@inproceedings{macqueen84,
+ author = {David MacQueen},
+ title = {Modules for Standard {ML}},
+ booktitle = {LFP '84: Proceedings of the 1984 ACM Symposium on LISP and functional programming},
+ year = {1984},
+ isbn = {0-89791-142-3},
+ pages = {198--207},
+ location = {Austin, Texas, United States},
+ publisher = {ACM Press}
+ }
+
+@misc{SystemRestore,
+author = {Microsoft Corp.},
+title = {{Using System Restore}},
+note = "\url{http://msdn.microsoft.com/library/en-us/sr/sr/using_system_restore.asp}"
+}
+
+@misc{chatr,
+author = {Hewlett-Packard Corp.},
+title = {{\tt chatr} Manual},
+note = "\url{http://docs.hp.com/en/B2355-60103/chatr.1.html}"
+}
+
+
+@misc{appcert,
+author = {Becky S. Chu},
+year = {2001},
+month = {June},
+title = {appcert: A Static Application Checking Tool},
+note = "\url{http://developers.sun.com/solaris/articles/appcert.html}"
+}
+
+	
+@book{libtool,	
+	author = {Vaughan, Gary  V.  and Elliston, Ben   and Tromey, Tom   and Taylor, Ian  L. },
+	citeulike-article-id = {130549},
+	howpublished = {Paperback},
+	isbn = {1578701902},
+	keywords = {oopsla-paper},
+	month = {October},
+	publisher = {{Pearson Education}},
+	title = {GNU Autoconf, Automake, and Libtool},
+	url = "\url{http://www.amazon.fr/exec/obidos/ASIN/1578701902/citeulike04-21}",
+	year = {2000}
+}
+
+@inproceedings{mcilroy69,
+author = {M. D. McIlroy}, 
+title = {Mass Produced Software Components}, 
+booktitle = {Proc. Nato Software Eng. Conf.}, 
+location = {Garmisch, Germany},
+year = {1968},
+pages = {138--155}
+}
+
+@misc{COM,
+author = {Microsoft Corp.},
+title = {{COM: Component Object Model Technologies}},
+note = "\url{http://www.microsoft.com/com/}"
+}
+
+@techreport{.NET,
+title = {{Common Language Infrastructure (CLI)}},
+author = {{ECMA International}},
+year = {2002},
+month = dec
+}
+
+@techreport{EJB,
+author = {Linda G. DeMichiel},
+title = {{Enterprise {JavaBeans}$^{\mbox{TM}}$ Specification}},
+year = {2003},
+month = "November",
+day = "12",
+howpublished = "\url{http://java.sun.com/products/ejb/docs.html}"
+}
+
+@inproceedings{macros-that-work,
+	author = {Clinger, William  },
+	booktitle = POPL,
+	pages = {155--162},
+	publisher = {ACM Press},
+	title = {Macros that work},
+	url = "\url{http://portal.acm.org/citation.cfm?id=99607}",
+	year = {1991}
+}
+
+
+@article{dybvig-93-syntactic,
+ author = {R. Kent Dybvig and Robert Hieb and Carl Bruggeman},
+ title = {Syntactic abstraction in Scheme},
+ journal = LSC,
+ volume = {5},
+ number = {4},
+ year = {1992},
+ issn = {0892-4635},
+ pages = {295--326},
+ publisher = {Kluwer Academic Publishers},
+ address = {Hingham, MA, USA}
+ }
+
+@techreport{kahan,
+  author = "William Kahan and J. W. Thomas",
+  title  = "Augmenting a programming language with complex arithmetic",
+  year = 1991,
+  month = dec,
+  institution = "University of California at Berkeley",
+  number = "UCB/CSD 91/667"
+}
+
+@misc{allen-05-components,
+ author = "Eric Allen and Victor Luchangco and Sam Tobin-Hochstadt",
+ title = "{Encapsulated Upgradable Components}",
+ year = "2005",
+ month = mar,
+ institution = "Sun Microsystems, Inc.",
+ number = "2005-0156"
+}
+
+@inproceedings{fgj,
+    author = "Atshushi Igarashi and Benjamin Pierce and Philip Wadler",
+    title = "{Featherweight Java}: {A} Minimal Core Calculus for {Java} and {GJ}",
+    booktitle = "Proceedings of the 1999 {ACM} {SIGPLAN} Conference on Object-Oriented Programming, Systems, Languages {\&} Applications ({OOPSLA}`99)",
+    volume = "34(10)",
+    address = "N. Y.",
+    editor = "Loren Meissner",
+    pages = "132--146",
+    year = "1999",
+    url = "citeseer.ist.psu.edu/igarashi99featherweight.html" 
+}
+
+@article{fgj-toplas,
+ author = "Atsushi Igarashi and Benjamin Pierce and Philip Wadler",
+ title  = "{Featherweight Java: A Minimal Core Calculus for Java and GJ}",
+ journal = TOPLAS,
+ volume  = 23,
+ number  = 3,
+ year    = 2001,
+ month   = may,
+ pages   = "396--450",
+ note    = "A preliminary summary appeared in Proceedings of ACM Conference on Object-Oriented Programing, Systems, Languages, and Applications (OOPSLA), ACM SIGPLAN Notices, volume 34, number 10, pages 132-146, Denver, CO, October 1999."
+ }
+
+@InProceedings{MFFF-RTA04,
+  author =       "J. Matthews and R. B. Findler and M. Flatt and M.
+                 Felleisen",
+  title =        "{A Visual Environment for Developing Context-Sensitive
+                 Term Rewriting Systems (system description)}",
+  pages =        "301--311",
+  year =         "2004",
+  month =        jun # "~3-5,",
+  editor =       "V. van Oostrom",
+  booktitle =    "{Rewriting Techniques and Applications, 15th
+                 International Conference, RTA-04}",
+  address =      "Valencia, Spain",
+  series =       "LNCS 3091",
+  ISBN =         "3-540-22153-0",
+  publisher =    "Springer",
+}
+
+@techreport{morton,
+  author = "G. M. Morton",
+  title = "A computer oriented geodetic data base and a new technique in file sequencing",
+  institution = "IBM Ltd.",
+  month = mar,
+  year = 1966
+}
+
+@InProceedings{Chai,
+  author    = {Charles Smith and Sophia Drossopoulou},
+  title     = {Chai: Traits for Java-like Languages},
+  month     = jul,
+  booktitle = {ECOOP 2005 - Object-Oriented Programming, 19th European
+               Conference},
+  address   = "Glasgow, UK",
+  publisher = {Springer},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {3586},
+  year      = {2005}
+}
+
+@inproceedings{MixGen,
+ author = {Eric Allen and Jonathan Bannet and Robert Cartwright},
+ title = {A first-class approach to genericity},
+ booktitle = {Proceedings of the 2003 ACM SIGPLAN conference on Object-Oriented Programming, Systems, Languages, and Applications},
+ year = {2003},
+ isbn = {1-58113-712-5},
+ pages = {96--114},
+ location = {Anaheim, California},
+ doi = {http://doi.acm.org/10.1145/949305.949316},
+ publisher = {ACM Press}
+ }
+
+@InProceedings{Smalltalk,
+  title =        "A Type System for {Smalltalk}",
+  author =       "Justin O. Graver and Ralph E. Johnson",
+  booktitle =    "Conference Record of the Seventeenth Annual ACM
+                 Symposium on Principles of Programming Languages",
+  address =      "San Francisco, California",
+  year =         "1990",
+  month =        jan,
+  pages =        "136--150",
+}
+
+@misc{Fortress,
+ author = "Eric Allen and David Chase and J.J. Hallett and Victor Luchangco and Jan-Willem Maessen and Sukyoung Ryu and Steele Jr., Guy L. and Sam Tobin-Hochstadt",
+ title = "{The Fortress Language Specification Version 1.0 $\alpha$}",
+ year = "2006",
+ month = sep,
+ institution = "Sun Microsystems, Inc."
+}
+
+@article{felleisenSyntactic,
+    author = "Andrew K. Wright and Matthias Felleisen",
+    title = "A Syntactic Approach to Type Soundness",
+    journal = "Information and Computation",
+    volume = "115",
+    number = "1",
+    pages = "38-94",
+    year = "1994"
+}
+
+@misc{tr-where,
+    author = "J.J. Hallett and Sukyoung Ryu",
+    title = "Formal Semantics for {CFWC}",
+    institution = "Sun Microsystems, Inc.",
+    year = "2006",
+    month = jan,
+    howpublished = "\url{http://research.sun.com/projects/plrg/2006-0131.pdf}" }
+
+
+@misc{more-where,
+    author = "Eric Allen and J.J. Hallett and Victor Luchangco and Sukyoung Ryu and Sam Tobin-Hochstadt",
+    title = "First-Class Hidden Types",
+    institution = "Sun Microsystems, Inc.",
+    year = "2006",
+    month = mar,
+    howpublished = "\url{http://research.sun.com/projects/plrg/2006-0137.pdf}" 
+}
+
+
+@misc{java1.5,
+  author = "Gilad Bracha",
+  title = "Generics in the Java Programming Language",
+  year = 2004,
+  month = jul,
+  institution = "Sun Microsystems, Inc.",
+  url = "\url{http://java.sun.com/j2se/1.5/pdf/generics-tutorial.pdf}"
+}
+
+@misc{flowVariance,
+  author = "Wei-Ngan Chin and Florin Craciun and Siau-Cheng Khoo and Corneliu Popeea",
+  title = "Flow Analysis for Variant Parametric Type System",
+  year = 2005,
+  month = oct,
+  institution = "National University of Singapore",
+  url = "\url{http://www.comp.nus.edu.sg/~chinwn/papers/flowjava.ps}"
+}
+
+@article{igarashiVariance-toplas,
+ author = "Atsushi Igarashi and Mirko Viroli",
+ title  = "Variant Parametric Types: A Flexible Subtyping Scheme for Generics",
+ journal = TOPLAS,
+ year    = "To appear.",
+ note = "{Preliminary version in Proceedings of the 16th European Conference on Object-Oriented Programming (ECOOP2002), Springer LNCS 2374, pages 441-469, 
+M$\acute{\mbox{a}}$laga, Spain, June 2002.}"
+}
+
+@inproceedings{viroliVariance,
+ author = {Giovanni Rimassa and Mirko Viroli},
+ title = "{Understanding access restriction of variant parametric types and Java wildcards}",
+ booktitle = {SAC '05: Proceedings of the 2005 ACM symposium on Applied computing},
+ year = {2005},
+ isbn = {1-58113-964-0},
+ pages = {1390--1397},
+ location = {Santa Fe, New Mexico},
+ doi = {http://doi.acm.org/10.1145/1066677.1066993},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@article{palsbergVariance,
+ author = {Jens Palsberg and Tian Zhao and Trevor Jim},
+ title = {Automatic discovery of covariant read-only fields},
+ journal = {ACM Trans. Program. Lang. Syst.},
+ volume = {27},
+ number = {1},
+ year = {2005},
+ issn = {0164-0925},
+ pages = {126--162},
+ doi = {http://doi.acm.org/10.1145/1053468.1053472},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@inproceedings{wildfj,
+ author = "Mads Torgersen and Erik Ernst and Christian Plesner Hansen",
+ title = "{Wild FJ}",
+ booktitle = "Proceedings of FOOL 12",
+ year = 2005,
+ month = jan,
+ organization = "ACM",
+ address = "Long Beach, California, USA",
+ url = "\url{http://homepages.inf.ed.ac.uk/wadler/fool/}"
+ }
+
+@techreport{ftj,
+    author = "Luigi Liquori and Arnaud Spiwack",
+    title = "Featherweight-Trait Java A Trait-based Extension for FJ",
+    institution = "INRIA",
+    number = "5247",
+    year = "2004",
+    month = jun,
+    NOTE = {\url{http://www-sop.inria.fr/mirho/Luigi.Liquori/PAPERS/ftj.ps.gz}}
+}
+
+%% FJ extensions
+%% wildfjFOOL
+%% ftj
+
+@inproceedings{metaclasses,
+ author = "Sam Tobin-Hochstadt and Eric Allen",
+ title = "A Core Calculus of metaclasses",
+ booktitle = "Proceedings of FOOL 12",
+ year = 2005,
+ month = jan,
+ organization = "ACM",
+ address = "Long Beach, California, USA",
+ url = "\url{http://homepages.inf.ed.ac.uk/wadler/fool/}"
+ }
+
+@article{palsbergInlining,
+ author = {Jens Palsberg and Neal Glew},
+ title = "{Method inlining, dynamic class loading, and type soundness}",
+ journal = "Journal of Object Technology",
+ volume = 4,
+ number = 8,
+ year = {2005},
+ pages = {33--53},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ note = "Preliminary version in the Sixth Workshop on Formal Techniques for Java-like Programs, Oslo, Norway, June 2004."
+ }
+
+@inproceedings{aliasOopsla02,
+ author = {Jonathan Aldrich and Valentin Kostadinov and Craig Chambers},
+ title = {Alias annotations for program understanding},
+ booktitle = {OOPSLA '02: Proceedings of the 17th ACM SIGPLAN conference on Object-oriented programming, systems, languages, and applications},
+ year = {2002},
+ isbn = {1-58113-471-1},
+ pages = {311--330},
+ location = {Seattle, Washington, USA},
+ doi = {http://doi.acm.org/10.1145/582419.582448},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@article{regionOopsla04,
+ author = {Wei-Ngan Chin and Florin Craciun and Shengchao Qin and Martin Rinard},
+ title = {Region inference for an object-oriented language},
+ journal = {SIGPLAN Not.},
+ volume = {39},
+ number = {6},
+ year = {2004},
+ issn = {0362-1340},
+ pages = {243--254},
+ doi = {http://doi.acm.org/10.1145/996893.996871},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@inproceedings{principalPopl04,
+ author = {Davide Ancona and Elena Zucca},
+ title = {Principal typings for Java-like languages},
+ booktitle = {POPL '04: Proceedings of the 31st ACM SIGPLAN-SIGACT symposium on Principles of programming languages},
+ year = {2004},
+ isbn = {1-58113-729-X},
+ pages = {306--317},
+ location = {Venice, Italy},
+ doi = {http://doi.acm.org/10.1145/964001.964027},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+%%
+%% Theta
+%%
+@techreport{thetaManual,
+    author = "Barbara Liskov and Dorothy Curtis and Mark Day and Sanjay Ghemawat and Robert Gruber and Paul Johnson and Andrew C. Myers",
+    title = "{Theta} Reference Manual",
+    institution = "MIT/LCS",
+    number = "TR-668",
+    year = "1995",
+    month = feb,
+    NOTE = {\url{http://www.lcs.mit.edu/publications/pubs/pdf/MIT-LCS-TR-668.pdf}}
+}
+
+@inproceedings{thetaOOPSLA95,
+ author = {Mark Day and Robert Gruber and Barbara Liskov and Andrew C. Myers},
+ title = {Subtypes vs. where clauses: constraining parametric polymorphism},
+ booktitle = {OOPSLA '95},
+ year = {1995},
+ isbn = {0-89791-703-0},
+ pages = {156--168},
+ location = {Austin, Texas, United States},
+ doi = {http://doi.acm.org/10.1145/217838.217852},
+ publisher = {ACM Press},
+ address = {New York, USA},
+ }
+
+@article{clu,
+ author = {Barbara Liskov and Alan Snyder and Russell Atkinson and Craig Schaffert},
+ title = "{Abstraction mechanisms in CLU}",
+ journal = {Commun. ACM},
+ volume = {20},
+ number = {8},
+ year = {1977},
+ issn = {0001-0782},
+ pages = {564--576},
+ doi = {http://doi.acm.org/10.1145/359763.359789},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@inproceedings{fBoundedQuant,
+ author = {Peter Canning and William Cook and Walter Hill and Walter Olthoff and John C. Mitchell},
+ title = {F-bounded polymorphism for object-oriented programming},
+ booktitle = {FPCA '89},
+ year = {1989},
+ isbn = {0-89791-328-0},
+ pages = {273--280},
+ location = {Imperial College, London, United Kingdom},
+ doi = {http://doi.acm.org/10.1145/99370.99392},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@inproceedings{thetaPOPL97,
+ author = {Joseph A. Bank and Andrew C. Myers and Barbara Liskov},
+ title = "{Parameterized types for Java}",
+ booktitle = {POPL '97},
+ year = {1997},
+ isbn = {0-89791-853-3},
+ pages = {132--145},
+ location = {Paris, France},
+ doi = {http://doi.acm.org/10.1145/263699.263714},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+%%
+%% Rapide
+%%
+@misc{rapide,
+  author = "Program Analysis and Verification Group",
+  title = "{The Stanford Rapide$^{\mbox{TM}}$ Project}",
+  institution = "Stanford University",
+  howpublished = "\url{http://pavg.stanford.edu/rapide/}"
+}
+
+@inproceedings{rapidePOPL94,
+ author = {Dinesh Katiyar and David Luckham and John Mitchell},
+ title = {A type system for prototyping languages},
+ booktitle = {POPL '94: Proceedings of the 21st ACM SIGPLAN-SIGACT symposium on Principles of programming languages},
+ year = {1994},
+ isbn = {0-89791-636-0},
+ pages = {138--150},
+ location = {Portland, Oregon, United States},
+ doi = {http://doi.acm.org/10.1145/174675.177838},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@inproceedings{rapideOOPSLA97,
+ author = {Ole Agesen and Stephen N. Freund and John C. Mitchell},
+ title = {Adding type parameterization to the Java language},
+ booktitle = {OOPSLA '97},
+ year = {1997},
+ isbn = {0-89791-908-4},
+ pages = {49--65},
+ location = {Atlanta, Georgia, United States},
+ doi = {http://doi.acm.org/10.1145/263698.263720},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@article{rapideSigplanNotices94,
+ author = {Dinesh Katiyar and David Luckham and John Mitchell},
+ title = {Polymorphism and subtyping in interface},
+ journal = {SIGPLAN Not.},
+ volume = {29},
+ number = {8},
+ year = {1994},
+ issn = {0362-1340},
+ pages = {22--34},
+ doi = {http://doi.acm.org/10.1145/185087.185098},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+%% Pizza
+@inproceedings{pizza,
+ author = {Martin Odersky and Philip Wadler},
+ title = "{Pizza into Java: translating theory into practice}",
+ booktitle = {POPL '97: Proceedings of the 24th ACM SIGPLAN-SIGACT symposium on Principles of programming languages},
+ year = {1997},
+ isbn = {0-89791-853-3},
+ pages = {146--159},
+ location = {Paris, France},
+ doi = {http://doi.acm.org/10.1145/263699.263715},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+%% NextGen
+@inproceedings{NextGen,
+ author = {Robert Cartwright and Guy L. Steele, Jr.},
+ title = "{Compatible genericity with run-time types for the Java Programming Language}",
+ booktitle = {OOPSLA '98},
+ year = {1998},
+ isbn = {1-58113-005-8},
+ pages = {201--215},
+ location = {Vancouver, British Columbia, Canada},
+ doi = {http://doi.acm.org/10.1145/286936.286958},
+ publisher = {ACM Press},
+ address = {New York, USA}
+ }
+
+%% GJ
+@inproceedings{gj,
+ author = {Gilad Bracha and Martin Odersky and David Stoutamire and Philip Wadler},
+ title = "{Making the future safe for the past: adding genericity to the Java Programming Language}",
+ booktitle = {OOPSLA '98},
+ year = {1998},
+ isbn = {1-58113-005-8},
+ pages = {183--200},
+ location = {Vancouver, British Columbia, Canada},
+ doi = {http://doi.acm.org/10.1145/286936.286957},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@article{cardelli85,
+ author = {Luca Cardelli and Peter Wegner},
+ title = {On understanding types, data abstraction, and polymorphism},
+ journal = {ACM Comput. Surv.},
+ volume = {17},
+ number = {4},
+ year = {1985},
+ issn = {0360-0300},
+ pages = {471--523},
+ doi = {http://doi.acm.org/10.1145/6041.6042},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@incollection{plotkin94subtyping,
+    author = "Gordon Plotkin and Mart\'{\i}n Abadi and Luca Cardelli",
+    title = "Subtyping and Parametricity",
+    booktitle = "Proc.\ of 9th Ann.\ {IEEE} Symp.\ on Logic in Computer Science, {LICS}'94, Paris, France, 4--7 July 1994",
+    publisher = "IEEE Computer Society Press",
+    address = "Los Alamitos, CA",
+    pages = "310--319",
+    year = "1994",
+    url = "citeseer.ist.psu.edu/plotkin93subtyping.html" }
+
+@inproceedings{virtualtypesECOOP99,
+ author = {Kresten Krab Thorup and Mads Torgersen},
+ title = {Unifying Genericity - Combining the Benefits of Virtual Types and Parameterized Classes},
+ booktitle = {Proceedings of the 13th European Conference on Object-Oriented Programming},
+ year = {1999},
+ isbn = {3-540-66156-5},
+ pages = {186--204},
+ publisher = {Springer-Verlag},
+ address = {London, UK},
+ }
+
+@inproceedings{wildcardsSAC04,
+ author = {Mads Torgersen and Christian Plesner Hansen and Erik Ernst and
+ Peter von der Ah$\acute{\mbox{e}}$ and Gilad Bracha and Neal Gafter},
+ title = "{Adding wildcards to the Java Programming Language}",
+ booktitle = {SAC '04: Proceedings of the 2004 ACM symposium on Applied computing},
+ year = {2004},
+ isbn = {1-58113-812-1},
+ pages = {1289--1296},
+ location = {Nicosia, Cyprus},
+ doi = {http://doi.acm.org/10.1145/967900.968162},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@PhdThesis{VassThesis,
+  author = "Vasily Litvinov",
+  title = "Constraint-Bounded Polymorphism: an Expressive and Practical Type System for Object-Oriented Languages",
+  school = "University of Washington",
+  year = 2003
+}
+
+
+@PhdThesis{Dimensions,
+  author = "Andrew Kennedy",
+  title  = "Programming Languages and Dimensions",
+  school = "University of Cambridge Computer Laboratory",
+  year   = 1996,
+  month  = apr,
+  note   = "Published as Technical Report No. 391"
+}
+
+@inproceedings{dimensionsFortress,
+ author = {Eric Allen and David Chase and Victor Luchangco and Jan-Willem Maessen and Guy L. Steele, Jr.},
+ title = {Object-oriented units of measurement},
+ booktitle = {OOPSLA '04},
+ year = {2004},
+ isbn = {1-58113-831-9},
+ pages = {384--403},
+ location = {Vancouver, BC, Canada},
+ doi = {http://doi.acm.org/10.1145/1028976.1029008},
+ publisher = {ACM Press},
+ address = {New York, USA},
+ }
+
+@inproceedings{existential,
+ author = {John C. Mitchell and Gordon D. Plotkin},
+ title = {Abstract types have existential types},
+ booktitle = {POPL '85: Proceedings of the 12th ACM SIGACT-SIGPLAN symposium on Principles of programming languages},
+ year = {1985},
+ isbn = {0-89791-147-4},
+ pages = {37--51},
+ location = {New Orleans, Louisiana, United States},
+ doi = {http://doi.acm.org/10.1145/318593.318606},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@Unpublished{pollack:implicit,
+  author        = "Randy Pollack",
+  title         = "Implicit Syntax",
+  note          = "{An earlier version of this paper appeared in
+the Proceedings of the First Workshop on Logical Frameworks}",
+  year          = 1990,
+  OPTmonth         = may
+}
+
+@book{Pierce,
+	Year = {2002},
+	Title = {Types and Programming Languages},
+	Publisher = {MIT Press},
+	Author = {B. Pierce}}
+
+@techreport{cecil-manual,
+  author={Craig Chambers},
+  title={The {Cecil} Language: Specification and Rationale},
+  number={\#93-03-05},
+  institution={Department of Computer Science and Engineering,
+               University of Washington},
+  month=mar,
+  year=1993,
+  note={Latest version available at 
+     \url{http://www.cs.washington.edu/research/projects/cecil/www/Release/index.html}},
+}
+
+@inproceedings{cecil-oopsla98,
+ author = {Vassily Litvinov},
+ title = {Constraint-Based Polymorphism in Cecil: Towards a Practical and Static Type System},
+ booktitle = {OOPSLA '98},
+ year = {1998},
+ location = {Vancouver, British Columbia, Cananda},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@PhdThesis{cecil-phd,
+  author = "Vassily Litvinov",
+  title  = "Constraint-Bounded Polymorphism: an Expressive and Practical Type System for Object-Oriented Languages",
+  school = "University of Washington",
+  year   = 2003,
+}
+
+
+@Misc{GrowingALanguage,
+  author = "Guy L. Steele, Jr.",
+  title = "Growing a Language",
+  year = "1998",
+  howpublished = "Keynote talk, OOPSLA",
+  note={Also published at \emph{Higher-Order and Symbolic Computation} 12, 221--236, 1999.}
+}
+
+
+@inproceedings{kennedy-oopsla05,
+ author = {Andrew Kennedy and Claudio V. Russo},
+ title = {Generalized Algebraic Data Types and Object-Oriented Programming},
+ booktitle = {OOPSLA '05},
+ year = {2005},
+ location = {San Diego, California, USA},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@inproceedings{xi-popl03,
+ author = {H. Xi. and C. Chen and and G. Chen},
+ title = {Guarded recursive datatype constructors},
+ booktitle = {POPL '03},
+ year = {2003},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@techreport{phantomTypes,
+    author = "J. Cheney and R. Hinze",
+    title = "First-class phantom types",
+    institution = "Cornell University",
+    number = "TR-1901",
+    year = "2003",
+    }
+
+@inproceedings{peyton-jones-icfp06,
+ author = {Simon Peyton Jones and Dimitrios Vytiniotis and Stephanie Weirich and Geoffrey Washburn},
+ title = {Simple Unification-based Type Inference for GADTs},
+ booktitle = {ICFP '06},
+ year = {2006},
+ publisher = {ACM Press},
+ address = {New York, NY, USA},
+ }
+
+@inproceedings{CaseForNextGen,
+    Year = {2002},
+    Title = {The Case for Run-time Types in Generic Java},
+    Booktitle = {Principles and Practice of Programming in Java},
+    Author = {E. Allen and R. Cartwright}
+} 
+
+@InProceedings{scala:mfcs06,
+  author = {Vincent Cremet and Fran\c{c}ois Garillot and Sergue\"i Lenglet and Martin Odersky},
+  title = {A Core Calculus for Scala Type Checking},
+  booktitle = {Proc. MFCS},
+  year = 2006,
+  month = sep,
+  series = {Springer LNCS}
+}
+
+
+@article{MillsteinChambers,
+  author={Todd Millstein and Craig Chambers},
+  title={Modular Statically Typed Multimethods},
+  journal={Information and Computation},
+  volume=175,
+  number=1,
+  pages={76-118},
+  month=may,
+  year=2002,
+}
+
+@phdthesis{MillsteinThesis,
+  author={Todd Millstein},
+  title={Reconciling Software Extensibility with Modular Program Reasoning},
+  school={University of Washington},
+  year=2003,
+}
+
+@article{EML,
+  author={Todd Millstein and Colin Bleckner and Craig Chambers},
+  title={Modular typechecking for hierarchically extensible datatypes and functions},
+  journal={ACM Transactions on Programming Languages and Systems},
+  volume=26,
+  number=5,
+  pages={836-889},
+  month=sep,
+  year=2004,
+}
+
+@inproceedings{FEML,
+ author = {Keunwoo Lee and Craig Chambers},
+ title = {Parameterized Modules for Classes and Extensible Functions},
+ booktitle = {Proceedings of the 20th European Conference on Object-Oriented Programming},
+ year = {2006},
+ publisher = {Springer-Verlag},
+ url = {http://wasp.cs.washington.edu/pubs/feml-ecoop-2006.pdf},
+ }
+
+@Book{GangOfFour,
+  author =       "Erich Gamma and Richard Helm and Ralph Johnson and
+                 John Vlissides",
+  title =        "Design Patterns: Elements of Reusable Object-Oriented
+                 Software",
+  publisher =    "Addison Wesley",
+  address =      "Reading, Massachusetts",
+  year =         "1994"
+}
+
+@Article{MultiJava,
+  key = {Clifton, {\em et al.}},
+  author =	 {Curtis Clifton and Todd Millstein and 
+  			  Gary T. Leavens and Craig Chambers},
+  title = {{MultiJava}: Design Rationale, Compiler Implementation, and Applications},
+  journal = TOPLAS,
+  volume = 28,
+  number = 3,
+  month = May,
+  URL = {\url{ftp://ftp.cs.iastate.edu/pub/techreports/TR04-01/TR.pdf}},
+  year = {2006},
+  annote = {80 references}
+}
+
+@inproceedings{RelaxedMultiJava,
+  author    = {Todd D. Millstein and
+               Mark Reay and
+               Craig Chambers},
+  title     = {Relaxed MultiJava: balancing extensibility and modular typechecking.},
+  booktitle = {OOPSLA},
+  year      = {2003},
+  pages     = {224-240},
+  ee        = {http://doi.acm.org/10.1145/949305.949325},
+  crossref  = {DBLP:conf/oopsla/2003p},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+@proceedings{DBLP:conf/oopsla/2003p,
+  editor    = {Ron Crocker and
+               Guy L. Steele Jr.},
+  title     = {Proceedings of the 2003 ACM SIGPLAN Conference on Object-Oriented
+               Programming Systems, Languages and Applications, OOPSLA
+               2003, October 26-30, 2003, Anaheim, CA, USA},
+  booktitle = {OOPSLA},
+  publisher = {ACM},
+  year      = {2003},
+  isbn      = {1-58113-712-5},
+  bibsource = {DBLP, http://dblp.uni-trier.de}
+}
+
+@Article{CLOS,
+  author = "D. G. Bobrow and L. G. DiMichiel and R. P. Gabriel and S. E. Keene and G. Kiczales and D. A. Moon",
+  title = "Common Lisp Object System Specification",
+  journal = "ACM SIGPLAN Notices",
+  volume = 23,
+  month = sep,
+  year = 1988
+}
+
+@article{covar-contravar,
+    author = "Giuseppe Castagna",
+    title = "Covariance and Contravariance: Conflict Without A Cause",
+    journal = "ACM Transactions on Programming Languages and Systems",
+    volume = "17",
+    number = "3",
+    pages = "431--447",
+    year = "1995"}
+}
