@@ -20,6 +20,7 @@ public class FZZ64  extends fortress.CompilerBuiltin.ZZ64.DefaultTraitMethods im
     public static FZZ64 make(long x) {return new FZZ64(x);}
     
     public static class RTTIc extends RTTI {
+        private RTTIc() { super(FZZ64.class); };
         public static final RTTIc ONLY = new RTTIc();
     }
 }

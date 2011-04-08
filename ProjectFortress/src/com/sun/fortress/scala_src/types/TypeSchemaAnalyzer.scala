@@ -286,7 +286,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     val e = insertStaticParams(ta.extend(spd, None).normalize(clearStaticParams(ed)), spd)
     val sp = getStaticParams(e)
     val ia = sp.map(s => NF.make_InferenceVarType(NU.getSpan(s)))
-    val temp = (ia, sp).zip.flatMap{
+    val temp = (ia, sp).zipped.flatMap{
       case (i, SStaticParam(info, n, _, _, _, _, _)) =>
         Some((i, NF.makeVarType(info.getSpan, n.asInstanceOf[Id])))
       case _ => None
@@ -297,7 +297,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     // Check under what conditions ie is (possibly) not equivalent to Bottom
     // Note that the notEquivalent method in ta is neccessarily not equivalent and is not the same
     // Add bounds (even if we can't use them very well yet)
-    val ub = and((ia, sp).zip.flatMap{
+    val ub = and((ia, sp).zipped.flatMap{
       case (i, SStaticParam(_, _, p, _, _, _:KindType, _)) =>
         Some(upperBound(i, ta.meet(p.map(vi))))
       case _ => None

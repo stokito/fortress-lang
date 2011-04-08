@@ -64,11 +64,7 @@ ProjectFortress/testFile.txt
 ProjectFortress/third_party/asm/asm-3.1
 ProjectFortress/third_party/asm/asm-3.2
 ProjectFortress/third_party/asm/ow_util_ant_tasks_1.3.2
-ProjectFortress/third_party/scala/scala-2.8.0.Beta1-prerelease
-ProjectFortress/third_party/scala/scala-2.8.0.r17517-b20090416021636
-ProjectFortress/third_party/scala/scala-2.8.0.r21304-b20100331111621
-ProjectFortress/third_party/scala/scala-2.8.0.RC1
-ProjectFortress/third_party/scala/scala-2.8.1.final
+ProjectFortress/third_party/scala/scala-2.9.0.RC1
 ProjectFortress/third_party/xtc/xtc
 SvnStats/
 test-tmp/
