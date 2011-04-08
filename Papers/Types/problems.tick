@@ -47,7 +47,7 @@ because intersection types are not allowed in the Fortress syntax.
 In a language with single inheritance, we might infer that these
 overloadings were safe because a class can only have a single superclass.
 However, due to multiple inheritance, we cannot be sure that these types
-do not have a common subtype no matter what the programmer intends.
+do not have a common subtype, no matter what the programmer intends.
 
 Now consider this less trivial set of overloaded functions:
 `  foo[\X <: Any\]ArrayList[\X\]:ZZ
@@ -58,7 +58,7 @@ The first two declarations are incomparable under specificity---%
 the first declaration applies to all instantiations of type constructor `ArrayList`,
 whereas the second declaration applies only to instantiations of
 type constructor `List` with subtypes of type `ZZ`. The third definition,
-which is the obvious candidate to disambiguate the two, is not actually the meet;
+which is the ````obvious" candidate to disambiguate the two, is not actually the meet;
 the domain of this meet candidate is the existential type:
 `  EXISTS[\W <: ZZ\]ArrayList[\W\]
 `
@@ -79,7 +79,7 @@ However, there is no type `W <: ZZ` such that:
 \end{array}
 }
 \\[.5em]
-This is not a problem with our definition of the meet: these declarations actually are unsafe.
+Our definition of the meet is not faulty: these declarations actually are unsafe.
 Consider the (user-defined) constructed type:
 `  BadList <: {ArrayList[\String\], List[\ZZ\]}
 `

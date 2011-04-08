@@ -112,7 +112,7 @@ and $S_i \subtypeof T_i$ for all $1 \leq i \leq |\bar{S}|$).
 An intersection type is by definition the most general type that is a subtype
 of each of its element types: $(A \cap B) <: A$, $(A \cap B) <: B$, and for all types $T$,
 if $T <: A$ and $T <: B$ then $T <: (A \cap B)$.
-Similarly, a union type is by definition the most general type that is a supertype
+Similarly, a union type is by definition the most specific type that is a supertype
 of each of its element types: $A <: (A \cup B)$, $B <: (A \cup B)$, and for all types $T$,
 if $A <: T$ and $B <: T$ then $(A \cup B) <: T$.
 
