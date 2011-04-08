@@ -109,7 +109,7 @@ and covariant in their range types
 (i.e., $\arrowtype{S}{T} \subtypeof \arrowtype{U}{V}$
 if and only if $U \subtypeof S$ and $T \subtypeof V$).
 One tuple type is a subtype of another 
-if and only if it has the same number of elements, 
+if and only if they have the same number of elements, 
 and each element of the first is a subtype of the corresponding element of the other 
 (i.e., $( \tuple{\bar{S}} ) \subtypeof ( \tuple{\bar{T}} )$
 if and only if $|\bar{S}| = |\bar{T}|$
