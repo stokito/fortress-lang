@@ -22,8 +22,8 @@ else
   SEP=":"
 fi
 TP="$FORTRESS_HOME/ProjectFortress/third_party"
-SV=2.9.0RC1
-# SV=2.8.0
+# SV=2.9.0RC1
+SV=2.8.0
 
 CLASSPATH="$FORTRESS_HOME/ProjectFortress/build${SEP}${TP}/junit/junit.jar${SEP}${TP}/asm/asm-all-3.1.jar${SEP}${TP}/xtc/xtc.jar${SEP}${TP}/jsr166y/jsr166y.jar${SEP}${TP}/plt/plt.jar${SEP}$JAVA_HOME/lib/tools.jar${SEP}${TP}/unsigned/unsigned.jar${SEP}${TP}/astgen/astgen.jar${SEP}${TP}/scala/scala-compiler-${SV}.jar${SEP}${TP}/scala/scala-library-${SV}.jar${SEP}$FORTRESS_HOME/default_repository/caches/bytecode_cache${SEP}$CLASSPATH"
 
