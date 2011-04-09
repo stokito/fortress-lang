@@ -12,6 +12,7 @@ package com.sun.fortress.runtimeSystem;
 
 import java.util.HashMap;
 
+import com.sun.fortress.compiler.runtimeValues.RTTI;
 import com.sun.fortress.useful.MagicNumbers;
 
 final public class RttiTupleMap {
@@ -21,51 +22,51 @@ final public class RttiTupleMap {
     }
     
     static class Node {
-        final Object a[];
+        final RTTI a[];
         final int k;
         
-        public Node(Object o1) {
-            Object[] b = { o1 };
+        public Node(RTTI o1) {
+            RTTI[] b = { o1 };
             a = b;
             k = h(b);
         }
 
-        public Node(Object o1, Object o2) {
-            Object[] b = { o1, o2 };
-            a = b;
-            k = h(b);
-
-        }
-
-        public Node(Object o1, Object o2, Object o3) {
-            Object[] b = { o1, o2, o3 };
+        public Node(RTTI o1, RTTI o2) {
+            RTTI[] b = { o1, o2 };
             a = b;
             k = h(b);
 
         }
 
-        public Node(Object o1, Object o2, Object o3, Object o4) {
-            Object[] b = { o1, o2, o3, o4 };
+        public Node(RTTI o1, RTTI o2, RTTI o3) {
+            RTTI[] b = { o1, o2, o3 };
             a = b;
             k = h(b);
 
         }
 
-        public Node(Object o1, Object o2, Object o3, Object o4, Object o5) {
-            Object[] b = { o1, o2, o3, o4, o5 };
+        public Node(RTTI o1, RTTI o2, RTTI o3, RTTI o4) {
+            RTTI[] b = { o1, o2, o3, o4 };
             a = b;
             k = h(b);
 
         }
 
-        public Node(Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
-            Object[] b = { o1, o2, o3, o4, o5, o6 };
+        public Node(RTTI o1, RTTI o2, RTTI o3, RTTI o4, RTTI o5) {
+            RTTI[] b = { o1, o2, o3, o4, o5 };
             a = b;
             k = h(b);
 
         }
 
-        static int h(Object[] a) {
+        public Node(RTTI o1, RTTI o2, RTTI o3, RTTI o4, RTTI o5, RTTI o6) {
+            RTTI[] b = { o1, o2, o3, o4, o5, o6 };
+            a = b;
+            k = h(b);
+
+        }
+
+        static int h(RTTI[] a) {
             return MagicNumbers.hashArray(a);
         }
         
@@ -76,7 +77,7 @@ final public class RttiTupleMap {
         public boolean equals(Object other) {
             if (other == this)
                 return true;
-            Object[] oa = ((Node)other).a;
+            RTTI[] oa = ((Node)other).a;
             if (oa.length != a.length)
                 return false;
             for (int i = 0; i < a.length; i++)
@@ -86,40 +87,40 @@ final public class RttiTupleMap {
         }
     }
     
-    final HashMap<Node, Object> hm = new HashMap<Node, Object>();
+    final HashMap<Node, RTTI> hm = new HashMap<Node, RTTI>();
      
-    public Object get(Object o1) {
+    public RTTI get(RTTI o1) {
         Node n = new Node(o1);
         synchronized (hm) {
            return hm.get(n);
         }
     }
     
-    public Object putIfNew(Object o1, Object value) {
+    public RTTI putIfNew(RTTI o1, RTTI value) {
         Node n = new Node(o1);
         return putIfNewHelper(n, value);
      }
     
-    public Object get(Object o1, Object o2) {
+    public RTTI get(RTTI o1, RTTI o2) {
         Node n = new Node(o1,o2);
         synchronized (hm) {
            return hm.get(n);
         }
     }
     
-    public Object putIfNew(Object o1, Object o2, Object value) {
+    public RTTI putIfNew(RTTI o1, RTTI o2, RTTI value) {
         Node n = new Node(o1,o2);
         return putIfNewHelper(n, value);
      }
 
-    public Object get(Object o1, Object o2, Object o3) {
+    public RTTI get(RTTI o1, RTTI o2, RTTI o3) {
         Node n = new Node(o1,o2,o3);
         synchronized (hm) {
            return hm.get(n);
         }
     }
     
-    public Object putIfNew(Object o1, Object o2, Object o3, Object value) {
+    public RTTI putIfNew(RTTI o1, RTTI o2, RTTI o3, RTTI value) {
         Node n = new Node(o1,o2,o3);
         return putIfNewHelper(n, value);
      }
@@ -129,9 +130,9 @@ final public class RttiTupleMap {
      * @param value
      * @return
      */
-    private Object putIfNewHelper(Node n, Object value) {
+    private RTTI putIfNewHelper(Node n, RTTI value) {
         synchronized (hm) {
-            Object o = hm.get(n);
+            RTTI o = hm.get(n);
             if (o == null) {
                 hm.put(n, value);
                 o = value;
@@ -140,38 +141,38 @@ final public class RttiTupleMap {
         }
     }
 
-    public Object get(Object o1, Object o2, Object o3, Object o4) {
+    public RTTI get(RTTI o1, RTTI o2, RTTI o3, RTTI o4) {
         Node n = new Node(o1,o2,o3, o4);
         synchronized (hm) {
            return hm.get(n);
         }
     }
     
-    public Object putIfNew(Object o1, Object o2, Object o3, Object o4, Object value) {
+    public RTTI putIfNew(RTTI o1, RTTI o2, RTTI o3, RTTI o4, RTTI value) {
         Node n = new Node(o1,o2,o3,o4);
         return putIfNewHelper(n, value);
      }
   
-    public Object get(Object o1, Object o2, Object o3, Object o4, Object o5) {
+    public RTTI get(RTTI o1, RTTI o2, RTTI o3, RTTI o4, RTTI o5) {
         Node n = new Node(o1,o2,o3,o4,o5);
         synchronized (hm) {
            return hm.get(n);
         }
     }
     
-    public Object putIfNew(Object o1, Object o2, Object o3, Object o4, Object o5, Object value) {
+    public RTTI putIfNew(RTTI o1, RTTI o2, RTTI o3, RTTI o4, RTTI o5, RTTI value) {
         Node n = new Node(o1,o2,o3,o4,o5);
         return putIfNewHelper(n, value);
      }
   
-    public Object get(Object o1, Object o2, Object o3, Object o4, Object o5, Object o6) {
+    public RTTI get(RTTI o1, RTTI o2, RTTI o3, RTTI o4, RTTI o5, RTTI o6) {
         Node n = new Node(o1,o2,o3,o4,o5,o6);
         synchronized (hm) {
            return hm.get(n);
         }
     }
     
-    public Object putIfNew(Object o1, Object o2, Object o3, Object o4, Object o5, Object o6, Object value) {
+    public RTTI putIfNew(RTTI o1, RTTI o2, RTTI o3, RTTI o4, RTTI o5, RTTI o6, RTTI value) {
         Node n = new Node(o1,o2,o3,o4,o5,o6);
         return putIfNewHelper(n, value);
      }
