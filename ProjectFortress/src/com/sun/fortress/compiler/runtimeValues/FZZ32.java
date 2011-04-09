@@ -24,6 +24,7 @@ public final class FZZ32 extends fortress.CompilerBuiltin.ZZ32.DefaultTraitMetho
     }
     public static FZZ32 plus(FZZ32 a, FZZ32 b) {return make(a.getValue() + b.getValue());}
     public static class RTTIc extends RTTI {
+        private RTTIc() { super(FZZ32.class); };
         public static final RTTIc ONLY = new RTTIc();
     }
 }

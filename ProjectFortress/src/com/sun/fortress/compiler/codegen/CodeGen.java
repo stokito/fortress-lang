@@ -3130,15 +3130,43 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         /* RTTI stuff */
         mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC, // acccess
-                                          "getRTTI", // name
-                                          "()Ljava/lang/Object;", // sig
+                                          Naming.RTTI_GETTER, // name
+                                          Naming.STATIC_PARAMETER_GETTER_SIG, // sig
                                           null, // generics sig?
                                           null); // exceptions
         mv.visitCode();
-        mv.visitFieldInsn(GETSTATIC, cnb.className, "RTTI", "L" + Naming.RTTI_CONTAINER_TYPE + ";");
+        mv.visitFieldInsn(GETSTATIC, cnb.className, Naming.RTTI_FIELD, "L" + Naming.RTTI_CONTAINER_TYPE + ";");
 
         areturnEpilogue();
         
+        emitRttiField(cnb);
+        
+        lexEnv = savedLexEnv;
+
+        optionalStaticsAndClassInitForTO(classId, cnb, isSingletonObject);
+        
+        if (sparams_part.length() > 0) {
+            cw.dumpClass( cnb.fileName, pslpss );
+        } else {
+            cw.dumpClass( cnb.className );
+        }
+        cw = prev;
+        initializedStaticFields_TO = null;
+        currentTraitObjectDecl = null;
+        
+        traitOrObjectName = null;
+
+        inAnObject = savedInAnObject;
+        
+        // Needed (above) to embed a reference to the Rtti information for this type.
+        RttiClassAndInterface(x,cnb);
+    }
+
+
+    /**
+     * @param cnb
+     */
+    public void emitRttiField(final ClassNameBundle cnb) {
         initializedStaticFields_TO.add(new InitializedStaticField() {
 
             @Override
@@ -3166,61 +3194,38 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  */
                     String rttiClassName = Naming.stemClassJavaName(cnb.className);
                     mv.visitFieldInsn(GETSTATIC, rttiClassName, "ONLY", "L" + rttiClassName + ";");
-                    mv.visitFieldInsn(PUTSTATIC, cnb.className, "RTTI", Naming.STATIC_PARAMETER_FIELD_DESC);
+                    mv.visitFieldInsn(PUTSTATIC, cnb.className, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
             }
 
             @Override
             public String asmName() {
-                return "RTTI";
+                return Naming.RTTI_FIELD;
             }
 
             @Override
             public String asmSignature() {
-                return "Ljava/lang/Object;";
+                return Naming.RTTI_CONTAINER_DESC;
             }
             
         });
-        
-        lexEnv = savedLexEnv;
-
-        if (isSingletonObject || initializedStaticFields_TO.size() > 0) {
-            
-            optionalStaticsAndClassInitForTO(splist, classId, cnb,
-                    isSingletonObject);
-
-        }
-        
-        if (sparams_part.length() > 0) {
-            cw.dumpClass( cnb.fileName, pslpss );
-        } else {
-            cw.dumpClass( cnb.className );
-        }
-        cw = prev;
-        initializedStaticFields_TO = null;
-        currentTraitObjectDecl = null;
-        
-        traitOrObjectName = null;
-
-        inAnObject = savedInAnObject;
-        
-        // Needed (above) to embed a reference to the Rtti information for this type.
-        RttiClassAndInterface(x,cnb);
     }
 
     /**
-     * @param splist
      * @param classId
      * @param cnb
      * @param isSingletonObject
      */
-    private void optionalStaticsAndClassInitForTO(List<String> splist,
-            Id classId, ClassNameBundle cnb, boolean isSingletonObject) {
+    private void optionalStaticsAndClassInitForTO(Id classId, ClassNameBundle cnb, boolean isSingletonObject) {
+        if (initializedStaticFields_TO.size() ==  0 && !isSingletonObject)
+            return;
+
         MethodVisitor imv = cw.visitMethod(ACC_STATIC,
                                            "<clinit>",
                                            NamingCzar.voidToVoid,
                                            null,
                                            null);
 
+        
         if (isSingletonObject) {
             imv.visitTypeInsn(NEW, cnb.className);
             imv.visitInsn(DUP);
@@ -3661,6 +3666,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                   ACC_PUBLIC | ACC_ABSTRACT | ACC_INTERFACE,
                   cnb.className, null, NamingCzar.internalObject, superInterfaces);
         dumpSigs(header.getDecls());
+        initializedStaticFields_TO = new ArrayList<InitializedStaticField>();
+        
+        emitRttiField(cnb);
+        
+        optionalStaticsAndClassInitForTO(classId, cnb, false);
+
         if (sparams_part.length() > 0 ) {
             cw.dumpClass( cnb.fileName, pslpss );
         } else {
@@ -3685,11 +3696,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         dumpTraitDecls(header.getDecls());
         dumpMethodChaining(superInterfaces, true);
         dumpErasedMethodChaining(superInterfaces, true);
-        
-        if (initializedStaticFields_TO.size() > 0) {      
-            optionalStaticsAndClassInitForTO(splist, classId, cnb,
-                    false);
-        }
+                
+        optionalStaticsAndClassInitForTO(classId, cnb, false);
  
         debug("Finished dumpDecls ", springBoardClass);
         if (sparams_part.length() > 0 ) {
@@ -3879,21 +3887,22 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         {
             // Variant of this code in InstantiatingClassloader
             String init_sig =
-                InstantiatingClassloader.jvmSignatureForNTypes(sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
+                InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class", sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
             mv = cw.visitCGMethod(ACC_PUBLIC, "<init>", init_sig, null, null);
             mv.visitCode();
             
-            mv.visitVarInsn(ALOAD, 0);
-            mv.visitMethodInsn(INVOKESPECIAL, Naming.RTTI_CONTAINER_TYPE, "<init>", "()V");
+            mv.visitVarInsn(ALOAD, 0); // this
+            mv.visitVarInsn(ALOAD, 1); // class
+            mv.visitMethodInsn(INVOKESPECIAL, Naming.RTTI_CONTAINER_TYPE, "<init>", "(Ljava/lang/Class;)V");
             
-            int pno = 1;
+            int pno = 2; // 1 is java class
             for (StaticParam sp : sparams) {
                 String spn = sp.getName().getText();
                 // not yet this;  sp.getKind();
                 mv.visitVarInsn(ALOAD, 0);
                 mv.visitVarInsn(ALOAD, pno);
                 mv.visitFieldInsn(PUTFIELD, rttiClassName, spn,
-                                  Naming.STATIC_PARAMETER_FIELD_DESC);
+                                  Naming.RTTI_CONTAINER_DESC);
                 pno++;
             }
             
@@ -3917,7 +3926,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitTypeInsn(NEW, rttiClassName);
             // init
             mv.visitInsn(DUP);
-            mv.visitMethodInsn(INVOKESPECIAL, rttiClassName, "<init>", "()V");
+            mv.visitLdcInsn(org.objectweb.asm.Type.getType(cnb.classDesc));
+            mv.visitMethodInsn(INVOKESPECIAL, rttiClassName, "<init>", "(Ljava/lang/Class;)V");
             // store
             mv.visitFieldInsn(PUTSTATIC, rttiClassName,
                     "ONLY", "L"+rttiClassName+";");                
@@ -4116,10 +4126,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String field_type = Naming.stemClassJavaName(extendeeIlk);
         
         if (ti_args.size() == 0) {
-            if (spns.contains(extendeeIlk)) {
+            if (spns.contains(extendee.getText())) {
                 // reference to a static parameter.  Load from field of same name.
                 mv.visitVarInsn(ALOAD, 0);
-                mv.visitFieldInsn(GETFIELD, rttiClassName, extendee.getText(), Naming.STATIC_PARAMETER_FIELD_DESC);
+                mv.visitFieldInsn(GETFIELD, rttiClassName, extendee.getText(), Naming.RTTI_CONTAINER_DESC);
             } else {
                 // reference to a non-generic type.  Load from whatever.Only
                 mv.visitFieldInsn(GETSTATIC, field_type, "ONLY", "L"+field_type+";");                

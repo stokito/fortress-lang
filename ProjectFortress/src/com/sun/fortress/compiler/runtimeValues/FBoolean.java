@@ -24,6 +24,7 @@ public final class FBoolean extends fortress.CompilerBuiltin.Boolean.DefaultTrai
     public static FBoolean make(boolean x) {return x ? TRUE : FALSE;}
 
     public static class RTTIc extends RTTI {
+        private RTTIc() { super(FBoolean.class); };
         public static final RTTIc ONLY = new RTTIc();
     }
 
