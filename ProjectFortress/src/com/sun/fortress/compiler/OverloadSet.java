@@ -854,6 +854,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          *  is generic (is a VarType).
          */
         final boolean hasGeneric;
+        final boolean hasVariantGeneric;
         
         /**
          * If true, then the type in question is an object, and a faster type
@@ -864,7 +865,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         
         public TS(String fullname, String stem, TS[] parameters,
                 int localIndex, int successorIndex, int variance,
-                boolean hasGeneric, boolean isObject) {
+                boolean hasGeneric, boolean hasVariantGeneric, boolean isObject) {
             super();
             this.fullname = fullname;
             this.stem = stem;
@@ -873,33 +874,30 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             this.successorIndex = successorIndex;
             this.variance = variance;
             this.hasGeneric = hasGeneric;
+            this.hasVariantGeneric = hasVariantGeneric;
             this.isObject = isObject;
         }
         
         void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast) {
             if (!hasGeneric) {
-                if (value_cast) {
-                    InstantiatingClassloader.generalizedInstanceOf(mv, fullname);
-                    // Branch ahead if failure
-                } else {
-                    
-                    // TOS is a Fortress RTTI
-                    // must check if the type extends the target type.
-                    // tricky cases are Arrow and Tuple.
-                    // getstatic fullname.RTTI
-                    // swap
-                    // invokevirtual RTTI.argExtendsThis
-                    mv.visitFieldInsn(Opcodes.GETSTATIC, fullname, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
-                    mv.visitInsn(Opcodes.SWAP);
-                    mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, "argExtendsThis", "("+ Naming.RTTI_CONTAINER_TYPE + ")Z");
-                }
-                mv.visitJumpInsn(Opcodes.IFEQ, if_fail);
+                emitInstanceOfNG(mv, if_fail, value_cast);
 
-            } else {
+            } else if (!hasVariantGeneric) {
+                /*
+                 *  Note that in cases where all instances of the generic are
+                 *  invariant, the inferred type is the answer, and simple
+                 *  instantiation is all that is needed.
+                 */
+                emitInstanceOfNG(mv, if_fail, value_cast);
+
+            } else { // has generic
+                
                 if (value_cast) {
-                    
+                    throw new CompilerError("unimplemented overloaded dispatch case");
+
                 } else {
-                    
+                    throw new CompilerError("unimplemented overloaded dispatch case");
+
                 }
                 // problem -- value instanceof, vs type instanceof
                 // normalize by getting type initially.
@@ -908,13 +906,38 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                  * INSTANCEOF stem
                  * IFNE ahead
                  * POP
-                 * BR if_dail
+                 * BR if_fail
                  * ahead:
                  * CHECKCAST stem
                  * ST localIndex
                  * for each parameter
                  */
             }
+        }
+
+        /**
+         * @param mv
+         * @param if_fail
+         * @param value_cast
+         */
+        public void emitInstanceOfNG(MethodVisitor mv, Label if_fail,
+                boolean value_cast) {
+            if (value_cast) {
+                InstantiatingClassloader.generalizedInstanceOf(mv, fullname);
+                // Branch ahead if failure
+            } else {
+                
+                // TOS is a Fortress RTTI
+                // must check if the type extends the target type.
+                // tricky cases are Arrow and Tuple.
+                // getstatic fullname.RTTI
+                // swap
+                // invokevirtual RTTI.argExtendsThis
+                mv.visitFieldInsn(Opcodes.GETSTATIC, fullname, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
+                mv.visitInsn(Opcodes.SWAP);
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, "argExtendsThis", "("+ Naming.RTTI_CONTAINER_TYPE + ")Z");
+            }
+            mv.visitJumpInsn(Opcodes.IFEQ, if_fail);
         }
     }
     
@@ -934,6 +957,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         int[] variances = null;
         List<Type> type_elements = null;
         boolean hasGeneric = false;
+        boolean hasVariantGeneric = false;
         boolean isVarType = false;
         boolean isObject = false;
         
@@ -988,6 +1012,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             VarType tt = (VarType) t;
             Id tt_id = tt.getName();
             hasGeneric = true;
+            if (variance != 0)
+                hasVariantGeneric = true;
             stem = NamingCzar.jvmClassForToplevelTypeDecl(tt_id,"",ifNone);
             isVarType = true;
             
@@ -1012,19 +1038,21 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 TS ts = makeTypeStructure(tt, spmap, variances[i], next_index);
                 if (ts.hasGeneric)
                     hasGeneric = true;
+                if (ts.hasVariantGeneric)
+                    hasVariantGeneric = true;
                 parameters[i++] = ts;
                 next_index = ts.successorIndex;
             }
             // if no generics, then no sub-evaluation
-            if (hasGeneric)
+            if (! hasGeneric)
                 next_index = storeAtIndex+1;
-            return new TS(fullname, stem, parameters, storeAtIndex, next_index, variance, hasGeneric, isObject);
+            return new TS(fullname, stem, parameters, storeAtIndex, next_index, variance, hasGeneric, hasVariantGeneric, isObject);
         } else if (isVarType) {
-            TS x = new TS(fullname, null, parameters, storeAtIndex, storeAtIndex+1, variance, hasGeneric, isObject);
+            TS x = new TS(fullname, null, parameters, storeAtIndex, storeAtIndex+1, variance, hasGeneric, hasVariantGeneric, isObject);
             spmap.putItem(stem, x);
             return x;
         } else { 
-            return new TS(fullname, stem, parameters, storeAtIndex, storeAtIndex+1, variance, hasGeneric, isObject);
+            return new TS(fullname, stem, parameters, storeAtIndex, storeAtIndex+1, variance, hasGeneric, hasVariantGeneric, isObject);
         }        
     }
 
@@ -1047,24 +1075,33 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          {
             int l = specificDispatchOrder.length;
             
-            // experimentally create type structures for parameter types.
+            //  create type structures for parameter types.
+            
+            TS[][] type_structures = new TS[l][];
+            MultiMap[] spmaps = new MultiMap[l];
             for (int i = 0; i < l; i++) {
                 TaggedFunctionName f = specificDispatchOrder[i];
                 Function eff = f.getF();
                 List<Param> parameters = f.tagParameters();
                 MultiMap<String, TS> spmap = new MultiMap<String, TS>();
-                // this, plus parameters
-                int storeAtIndex = parameters.size() + 1;
+                spmaps[i] = spmap;
+                // skip parameters -- no 'this' for ordinary functions
+                int storeAtIndex = parameters.size();
+                TS[] f_type_structures = new TS[parameters.size()];
+                type_structures[i] = f_type_structures;
+                
                 for (int j = 0; j < parameters.size(); j++) {
                     Type t = oa.getParamType(eff,j);
                     TS type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex);
+                    f_type_structures[j] = type_structure;
                     storeAtIndex = type_structure.successorIndex;
                 }
             }
             
             for (int i = 0; i < l; i++) {
                 TaggedFunctionName f = specificDispatchOrder[i];
-                Function eff = f.getF();
+                TS[] f_type_structures = type_structures[i];
+//                Function eff = f.getF();
                 
                 Label lookahead = null;
 
@@ -1075,17 +1112,20 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     // Will need lookahead for the next one.
                     lookahead = new Label();
 
-                    List<Param> parameters = f.tagParameters();
-                    for (int j = 0; j < parameters.size(); j++) {
-                        Type t = oa.getParamType(eff,j);
+//                    List<Param> parameters = f.tagParameters();
+                    for (int j = 0; j < f_type_structures.length; j++) {
+//                        Type t = oa.getParamType(eff,j);
                         
                         // Load actual parameter
                         mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
-                        // Check type
-                        InstantiatingClassloader.generalizedInstanceOf(mv,
-                                NamingCzar.jvmBoxedTypeName(t, ifNone));
-                        // Branch ahead if failure
-                        mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                        
+                        f_type_structures[j].emitInstanceOf(mv, lookahead, true);
+                        
+//                        // Check type
+//                        InstantiatingClassloader.generalizedInstanceOf(mv,
+//                                NamingCzar.jvmBoxedTypeName(t, ifNone));
+//                        // Branch ahead if failure
+//                        mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
                     }
                 }
                 // Come here if we have successfully passed the test.
