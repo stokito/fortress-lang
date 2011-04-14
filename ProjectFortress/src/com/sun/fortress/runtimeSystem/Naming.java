@@ -20,6 +20,45 @@ import com.sun.fortress.useful.Pair;
 
 public class Naming {
     
+    /**
+     * Generates the popular variants of the class name for a
+     * Fortress trait or object.
+     * 
+     * @author dr2chase
+     */
+    public static class ClassNameBundle {
+    
+        
+        /** The name of the class. */
+        public final String className;
+        /**
+         * Descriptor form of the class name.  ( L ... ; )
+         */
+        public final String classDesc;
+    
+        /** Template file naming convention so 
+         * generic expander can locate it.
+         * Same as className for non-generic.
+         */
+        public final String fileName;
+        
+        /** No static parameters;
+         * the ilk of the generic.
+         */
+        public final String stemClassName; 
+        public ClassNameBundle(String stem_class_name, String sparams_part) {
+            stemClassName = stem_class_name;
+    
+            className =
+                combineStemAndSparams(stemClassName, sparams_part);
+                
+            fileName =
+                combineStemAndSparams(stemClassName, Naming.makeTemplateSParams(sparams_part));
+            
+            classDesc = internalToDesc(className);
+        }
+    }
+
     public final static
     
     CheapSerializer.PAIR<
@@ -889,13 +928,17 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
         public static String makeMethodDesc(String param, String result) {
             return "(" + param + ")" + result;
         }
-    //    public static String makeMethodDesc(List<String> params, String result) {
-    //        String desc ="(";
-    //        for (String param : params) {
-    //            desc += param;
-    //        }
-    //        desc += ")" + result;
-    //        return desc;
-    //    }
+
+        /**
+         * Returns the mangling of the static parameter list appropriate for
+         * use in a template file name.
+         */
+        
+    public static String makeTemplateSParams(String sparamsPart) {
+        if (sparamsPart.length() == 0)
+            return "";
+        else
+            return LEFT_OXFORD + RIGHT_OXFORD;
+    }
     
 }
