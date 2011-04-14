@@ -58,6 +58,14 @@ import com.sun.fortress.useful.VersionMismatch;
  */
 public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
+    abstract static public class InitializedStaticField {
+        abstract public void forClinit(MethodVisitor mv);
+    
+        abstract public String asmName();
+    
+        abstract public String asmSignature();
+    }
+
     private static final String CAST_TO = "castTo";
     public static final String TUPLE_TYPED_ELT_PFX = "e";
     public static final String TUPLE_OBJECT_ELT_PFX = "o";
@@ -435,7 +443,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     private static byte[] instantiateClosure(String name) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
 
-        closureClassPrefix(name, cw, null, null, true, null);
+        ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
+        
+        closureClassPrefix(name, cw, null, null, true, null, isf_list);
+        
+        optionalStaticsAndClassInitForTO(isf_list, cw);
+        
         cw.visitEnd();
 
         return cw.toByteArray();
@@ -468,8 +481,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             ManglingClassWriter cw,
             String staticClass,
             String sig,
-            String forceCastParam0) {
-        return closureClassPrefix(name, cw, staticClass, sig, false, forceCastParam0);
+            String forceCastParam0,
+            List<InitializedStaticField> statics) {
+        return closureClassPrefix(name, cw, staticClass, sig, false, forceCastParam0, statics);
         
     }
         public static String closureClassPrefix(String name,
@@ -477,7 +491,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                                           String staticClass,
                                           String sig,
                                           boolean is_forwarding_closure,
-                                          String forceCastParam0) {
+                                          String forceCastParam0,
+                                          List<InitializedStaticField> statics) {
         int env_loc = name.indexOf(Naming.ENVELOPE);
         int last_dot = name.substring(0,env_loc).lastIndexOf('$');
 
@@ -511,26 +526,41 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         MethodVisitor mv;
         String superClass = ABSTRACT_+ft;
         name = api.replace(".", "/") + '$' + suffix;
+        final String final_name = name;
+        
         //String desc = "L" + name + ";";
-        String field_desc = "L" +(ft) + ";";
+        final String field_desc = "L" +(ft) + ";";
         // Begin with a class
         cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER, name, null, superClass, null);
 
-        // Static field closure of appropriate arrow type.
-        fv = cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, "closure", field_desc, null, null);
-        fv.visitEnd();
+//        // Static field closure of appropriate arrow type.
+//        fv = cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, "closure", field_desc, null, null);
+//        fv.visitEnd();
 
         // Class init allocates a singleton and initializes previous field
-        mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
-        mv.visitCode();
-        mv.visitTypeInsn(NEW, name);
-        mv.visitInsn(DUP);
-        mv.visitMethodInsn(INVOKESPECIAL, name, "<init>", "()V");
-        mv.visitFieldInsn(PUTSTATIC, name, "closure", field_desc);
-        mv.visitInsn(RETURN);
-        mv.visitMaxs(2, 0);
-        mv.visitEnd();
+//        mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
+//        mv.visitCode();
+        
+        statics.add(new InitializedStaticField() {
 
+            @Override
+            public void forClinit(MethodVisitor init_mv) {
+                init_mv.visitTypeInsn(NEW, final_name);
+                init_mv.visitInsn(DUP);
+                init_mv.visitMethodInsn(INVOKESPECIAL, final_name, "<init>", "()V");
+                init_mv.visitFieldInsn(PUTSTATIC, final_name, "closure", field_desc);
+            }
+
+            @Override
+            public String asmName() {
+                return "closure";
+            }
+
+            @Override
+            public String asmSignature() {
+                return field_desc;
+            }});
+ 
         // Instance init does nothing special
         mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
         mv.visitCode();
@@ -684,17 +714,19 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         for (int i = 0; i < nparamsIncludingSelf; i++) {
             if (i==selfIndex) continue;
             String one_param = parsed_args.get(parsed_arg_cursor++);
-            int load_op = sp.asm_loadop(one_param);
+            int load_op = SignatureParser.asm_loadop(one_param);
             mv.visitVarInsn(load_op, i + i_bump);
             // TODO Need to get counting right here.  P0 is "really" P1
             if (i == 1 && forceCastParam0 != null) {
                 mv.visitTypeInsn(CHECKCAST, forceCastParam0);
             }
             // if one_param is long or double, increment i_bump to account for the extra slot.
-            i_bump += sp.width(one_param) - 1;
+            i_bump += SignatureParser.width(one_param) - 1;
         }
     }
 
+    
+    
 
     /**
      * @param s
@@ -1789,6 +1821,33 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return pslpss;
 
     }
+
+    public static void optionalStaticsAndClassInitForTO(
+               List<InitializedStaticField> isf_list,
+               ManglingClassWriter cw) {
+           if (isf_list.size() ==  0)
+               return;
+    
+           MethodVisitor imv = cw.visitMethod(ACC_STATIC,
+                                              "<clinit>",
+                                              NamingCzar.voidToVoid,
+                                              null,
+                                              null);
+    
+                  
+           for (InitializedStaticField isf : isf_list) {
+               isf.forClinit(imv);
+               cw.visitField(
+                       ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
+                       isf.asmName(), isf.asmSignature(),
+                       null /* for non-generic */, null /* instance has no value */);
+               // DRC-WIP
+           }
+           
+           imv.visitInsn(RETURN);
+           imv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+           imv.visitEnd();
+       }
 
     public static String jvmSignatureForNTypes(int n, String type,
             String rangeDesc) {

@@ -37,6 +37,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
+import com.sun.fortress.runtimeSystem.InstantiatingClassloader.InitializedStaticField;
 import com.sun.fortress.useful.*;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -1287,6 +1288,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         Pair<String, List<Pair<String, String>>> pslpss = null; 
         String overloaded_name = oMangle(_name);
         
+        ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
+        
         if (sargs != null) {
             // Map<String, String> xlation = new HashMap<String, String>();
             pslpss = CodeGen.xlationData(Naming.FUNCTION_GENERIC_TAG);
@@ -1324,7 +1327,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             //                    "\n    PCN " + PCN +
             //                    "\n    PCNOuter " + PCNOuter);
             cv = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cv);
-            overloaded_name = InstantiatingClassloader.closureClassPrefix(PCN, cv, PCN, signature, null);
+            
+            overloaded_name = InstantiatingClassloader.closureClassPrefix(PCN, cv, PCN, signature, null, isf_list);
         }
         MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC
                     + Opcodes.ACC_STATIC, // access,
@@ -1336,6 +1340,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         generateBody(mv);
         
         if (PCNOuter != null) {
+            InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cv);
             cv.dumpClass(PCNOuter, pslpss);
         }
     }

@@ -54,6 +54,7 @@ import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.runtimeSystem.BAlongTree;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
+import com.sun.fortress.runtimeSystem.InstantiatingClassloader.InitializedStaticField;
 import com.sun.fortress.syntax_abstractions.ParserMaker.Mangler;
 import com.sun.fortress.useful.BA2Tree;
 import com.sun.fortress.useful.BASet;
@@ -116,14 +117,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private GlobalEnvironment env;
 
     private static final int NO_SELF = -1;
-    abstract static class InitializedStaticField {
-        abstract public void forClinit(MethodVisitor mv);
-
-        abstract public String asmName();
-
-        abstract public String asmSignature();
-    }
-
+    
     /**
      * Some traits and objects end up with initialized static fields as part of
      * their implementation.  They accumulate here, and their initialization
@@ -131,49 +125,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * 
      * Null if not in a trait or object scope.
      */
-    private List<InitializedStaticField> initializedStaticFields_TO;
+    private List<InstantiatingClassloader.InitializedStaticField> initializedStaticFields_TO;
     
-    /**
-     * Generates the popular variants of the class name for a
-     * Fortress trait or object.
-     * 
-     * @author dr2chase
-     */
-    static class ClassNameBundle {
-       
-        
-        /** The name of the class. */
-        final String className;
-        /**
-         * Descriptor form of the class name.  ( L ... ; )
-         */
-        final String classDesc;
-
-        /** Template file naming convention so 
-         * generic expander can locate it.
-         * Same as className for non-generic.
-         */
-        final String fileName;
-        
-        /** No static parameters;
-         * the ilk of the generic.
-         */
-        final String stemClassName; 
-        ClassNameBundle(String stem_class_name, String sparams_part) {
-            stemClassName = stem_class_name;
-
-            className =
-                Naming.combineStemAndSparams(stemClassName, sparams_part);
-                
-            fileName =
-                Naming.combineStemAndSparams(stemClassName, makeTemplateSParams(sparams_part));
-            
-            classDesc = Naming.internalToDesc(className);
-        }
-    }
-    
-    static public ClassNameBundle new_ClassNameBundle(Id id, String sparams_part, String PCN) {
-        return new ClassNameBundle(stemFromId(id, PCN), sparams_part);
+    static public Naming.ClassNameBundle new_ClassNameBundle(Id id, String sparams_part, String PCN) {
+        return new Naming.ClassNameBundle(stemFromId(id, PCN), sparams_part);
     }
 
 
@@ -1342,15 +1297,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         String PCN_for_file =
             Naming.genericFunctionPkgClass(packageAndClassName, mname,
-                        makeTemplateSParams(sparams_part) , generic_arrow_type);
+                        Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
 
         // System.err.println(PCN);
 
         CodeGen cg = new CodeGen(this);
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
 
+        ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
+
         // This creates the closure bits
-        String applied_method = InstantiatingClassloader.closureClassPrefix(PCN_for_class, cg.cw, PCN_for_class, sig, forceCastParam0InApply);
+        String applied_method = InstantiatingClassloader.closureClassPrefix(PCN_for_class, cg.cw, PCN_for_class, sig, forceCastParam0InApply, isf_list);
 
         // Code below cribbed from top-level/functional/ordinary method
         int modifiers = ACC_PUBLIC | ACC_STATIC ;
@@ -1365,6 +1322,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         cg.generateActualMethodCode(modifiers, applied_method, modified_sig, params, selfIndex,
                                     selfIndex != NO_SELF, body);
+
+        InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cg.cw);
 
         cg.cw.dumpClass(PCN_for_file, pslpss);
         
@@ -1561,7 +1520,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         final String table_name = method_name + Naming.HEAVY_X + "table";
         final String table_type = "com/sun/fortress/runtimeSystem/BAlongTree";
         
-        initializedStaticFields_TO.add(new InitializedStaticField() {
+        initializedStaticFields_TO.add(new InstantiatingClassloader.InitializedStaticField() {
 
             @Override
             public void forClinit(MethodVisitor my_mv) {
@@ -2200,15 +2159,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                                    sparams_part, generic_arrow_type);
             String PCNOuter =
                 Naming.genericFunctionPkgClass(packageAndClassName, mname,
-                            makeTemplateSParams(sparams_part) , generic_arrow_type);
+                            Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
             // System.err.println(PCN);
 
             CodeGen cg = new CodeGen(this);
             cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
+            
+            ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
 
             // This creates the closure bits
             String forwarding_method_name =
-                InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig, null);
+                InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig, null, isf_list);
 
             // Need to invoke a generic method
             cg.mv = cg.cw.visitCGMethod(modifiers, forwarding_method_name, sig, null, null);
@@ -2268,6 +2229,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
             cg.mv.visitMaxs(2, 3);
             cg.mv.visitEnd();
+            
+            InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cg.cw);
             
             cg.cw.dumpClass(PCNOuter, pslpss);
 
@@ -2331,15 +2294,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                                sparams_part, generic_arrow_type);
         String PCNOuter =
             Naming.genericFunctionPkgClass(packageAndClassName, mname,
-                        makeTemplateSParams(sparams_part) , generic_arrow_type);
+                        Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
         // System.err.println(PCN);
 
         CodeGen cg = new CodeGen(this);
         cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
+        
+        ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
 
         // This creates the closure bits
         String forwarding_method_name =
-            InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig, null);
+            InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig, null, isf_list);
 
         InstantiatingClassloader.forwardingMethod(cg.cw, forwarding_method_name, modifiers,
                 selfIndex,
@@ -2348,6 +2313,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 dottedName, invocation, sig, sig,
                 params.size(), true, null);
 
+        InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cg.cw);
+        
         cg.cw.dumpClass(PCNOuter, pslpss);
     }
 
@@ -2980,7 +2947,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         inAnObject = true;
         Id classId = NodeUtil.getName(x);
 
-        final ClassNameBundle cnb = new_ClassNameBundle(classId, sparams_part, packageAndClassName);
+        final Naming.ClassNameBundle cnb = new_ClassNameBundle(classId, sparams_part, packageAndClassName);
 
         String erasedSuperI = sparams_part.length() > 0 ?
                 cnb.stemClassName : "";
@@ -3017,6 +2984,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             CodeGen cg = this;
             String PCN = null;
             String PCNOuter = null;
+            
+            ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();           
 
             if (sparams_part.length() > 0) {
                 ArrowType at =
@@ -3032,7 +3001,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                                        sparams_part, generic_arrow_type);
                 PCNOuter =
                     Naming.genericFunctionPkgClass(packageAndClassName, mname,
-                                makeTemplateSParams(sparams_part) , generic_arrow_type);
+                                Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
 
 
                 cg = new CodeGen(this);
@@ -3040,7 +3009,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
                 // This creates the closure bits
                 // The name is disambiguated by the class in which it appears.
-                mname = InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig, null);
+                mname = InstantiatingClassloader.closureClassPrefix(PCN, cg.cw, PCN, sig, null, isf_list);
             } else {
                 mname = nonCollidingSingleName(x.getHeader().getName(), sig, "");
             }
@@ -3071,6 +3040,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitEnd();
 
             if (sparams_part.length() > 0) {
+                InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cg.cw);
+
                 cg.cw.dumpClass(PCNOuter, pslpss.setA(Naming.FUNCTION_GENERIC_TAG));
             }
 
@@ -3083,7 +3054,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         /* Yuck, ought to allocate a new codegen here. */
         
-        initializedStaticFields_TO = new ArrayList<InitializedStaticField>();
+        initializedStaticFields_TO = new ArrayList<InstantiatingClassloader.InitializedStaticField>();
         
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
@@ -3095,10 +3066,47 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 cnb.className, null, abstractSuperclass, superInterfaces);
 
         if (isSingletonObject) {
-            // Singleton; generate field in class to hold sole instance.
-            cw.visitField(ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
-                          NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc,
-                          null /* for non-generic */, null /* instance has no value */);
+            
+            initializedStaticFields_TO.add(new InstantiatingClassloader.InitializedStaticField() {
+
+                @Override
+                public void forClinit(MethodVisitor imv) {
+                    imv.visitTypeInsn(NEW, cnb.className);
+                    imv.visitInsn(DUP);
+                    imv.visitMethodInsn(INVOKESPECIAL, cnb.className,
+                            "<init>", NamingCzar.voidToVoid);
+                    imv.visitFieldInsn(PUTSTATIC, cnb.className,
+                            NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc);                    
+                }
+
+                @Override
+                public String asmName() {
+                    return NamingCzar.SINGLETON_FIELD_NAME;
+                }
+
+                @Override
+                public String asmSignature() {
+                    return cnb.classDesc;
+                }
+           
+            });
+            
+            
+            /* Used to pass splist to the static-parametered form
+             * but it was always empty.  Tests work like that.
+             * Bit of a WTF, keep an eye on this.
+             * Repurpose splist (non-null) for the computation and
+             * caching of RTTI, which also goes in a static.
+             */
+            addStaticVar(new VarCodeGen.StaticBinding(
+                    classId, NodeFactory.makeTraitType(classId),
+                    cnb.stemClassName,
+                    NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc));
+            
+//            // Singleton; generate field in class to hold sole instance.
+//            cw.visitField(ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
+//                          NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc,
+//                          null /* for non-generic */, null /* instance has no value */);
         }
 
         // Emit fields here, one per parameter.
@@ -3166,8 +3174,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     /**
      * @param cnb
      */
-    public void emitRttiField(final ClassNameBundle cnb) {
-        initializedStaticFields_TO.add(new InitializedStaticField() {
+    public void emitRttiField(final Naming.ClassNameBundle cnb) {
+        initializedStaticFields_TO.add(new InstantiatingClassloader.InitializedStaticField() {
 
             @Override
             public void forClinit(MethodVisitor mv) {
@@ -3215,7 +3223,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param cnb
      * @param isSingletonObject
      */
-    private void optionalStaticsAndClassInitForTO(Id classId, ClassNameBundle cnb, boolean isSingletonObject) {
+   private void optionalStaticsAndClassInitForTO(Id classId, Naming.ClassNameBundle cnb, boolean isSingletonObject) {
         if (initializedStaticFields_TO.size() ==  0 && !isSingletonObject)
             return;
 
@@ -3226,27 +3234,28 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                            null);
 
         
-        if (isSingletonObject) {
-            imv.visitTypeInsn(NEW, cnb.className);
-            imv.visitInsn(DUP);
-            imv.visitMethodInsn(INVOKESPECIAL, cnb.className,
-                    "<init>", NamingCzar.voidToVoid);
-            imv.visitFieldInsn(PUTSTATIC, cnb.className,
-                    NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc);
- 
-            /* Used to pass splist to the static-parametered form
-             * but it was always empty.  Tests work like that.
-             * Bit of a WTF, keep an eye on this.
-             * Repurpose splist (non-null) for the computation and
-             * caching of RTTI, which also goes in a static.
-             */
-            addStaticVar(new VarCodeGen.StaticBinding(
-                    classId, NodeFactory.makeTraitType(classId),
-                    cnb.stemClassName,
-                    NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc));
-        }
+        // This is boneheaded, and ought to be factored into another initialized static field
+//        if (isSingletonObject) {
+//            imv.visitTypeInsn(NEW, cnb.className);
+//            imv.visitInsn(DUP);
+//            imv.visitMethodInsn(INVOKESPECIAL, cnb.className,
+//                    "<init>", NamingCzar.voidToVoid);
+//            imv.visitFieldInsn(PUTSTATIC, cnb.className,
+//                    NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc);
+// 
+//            /* Used to pass splist to the static-parametered form
+//             * but it was always empty.  Tests work like that.
+//             * Bit of a WTF, keep an eye on this.
+//             * Repurpose splist (non-null) for the computation and
+//             * caching of RTTI, which also goes in a static.
+//             */
+//            addStaticVar(new VarCodeGen.StaticBinding(
+//                    classId, NodeFactory.makeTraitType(classId),
+//                    cnb.stemClassName,
+//                    NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc));
+//        }
         
-        for (InitializedStaticField isf : initializedStaticFields_TO) {
+        for (InstantiatingClassloader.InitializedStaticField isf : initializedStaticFields_TO) {
             isf.forClinit(imv);
             cw.visitField(
                     ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
@@ -3260,8 +3269,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         imv.visitEnd();
     }
 
-
-    private void emitErasedClassFor(ClassNameBundle cnb, TraitObjectDecl x) {
+   private void emitErasedClassFor(Naming.ClassNameBundle cnb, TraitObjectDecl x) {
         String classFile = cnb.stemClassName;
         String classFileOuter = cnb.stemClassName;
 
@@ -3288,13 +3296,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
 
 
-    }
-
-    private static String makeTemplateSParams(String sparamsPart) {
-        if (sparamsPart.length() == 0)
-            return "";
-        else
-            return Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD;
     }
 
     // This returns a list rather than a set because the order matters;
@@ -3633,7 +3634,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         Id classId = NodeUtil.getName(x);
         
-        ClassNameBundle cnb = new_ClassNameBundle(classId, sparams_part, packageAndClassName);
+        Naming.ClassNameBundle cnb = new_ClassNameBundle(classId, sparams_part, packageAndClassName);
         
         String erasedSuperI = sparams_part.length() > 0 ? cnb.stemClassName
                 : "";
@@ -3666,7 +3667,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                   ACC_PUBLIC | ACC_ABSTRACT | ACC_INTERFACE,
                   cnb.className, null, NamingCzar.internalObject, superInterfaces);
         dumpSigs(header.getDecls());
-        initializedStaticFields_TO = new ArrayList<InitializedStaticField>();
+        initializedStaticFields_TO = new ArrayList<InstantiatingClassloader.InitializedStaticField>();
         
         emitRttiField(cnb);
         
@@ -3691,7 +3692,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                     Collections.<Param>emptyList());
         debug("Finished init method ", springBoardClass);
 
-        initializedStaticFields_TO = new ArrayList<InitializedStaticField>();
+        initializedStaticFields_TO = new ArrayList<InstantiatingClassloader.InitializedStaticField>();
 
         dumpTraitDecls(header.getDecls());
         dumpMethodChaining(superInterfaces, true);
@@ -3731,7 +3732,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
     
     private void RttiClassAndInterface(TraitObjectDecl tod,
-                                       ClassNameBundle cnb) {
+                                       Naming.ClassNameBundle cnb) {
         TraitTypeHeader header = tod.getHeader();
         List<TraitTypeWhere> extend_s = header.getExtendsClause();
         IdOrOpOrAnonymousName name = header.getName();
