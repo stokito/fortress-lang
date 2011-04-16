@@ -180,10 +180,7 @@ public class NamingCzar {
     public static final String descBoolean       = org.objectweb.asm.Type.getDescriptor(boolean.class);
     public static final String descChar          = org.objectweb.asm.Type.getDescriptor(char.class);
     public static final String descString        = Naming.internalToDesc(internalString);
-    public static final String descVoid          = org.objectweb.asm.Type.getDescriptor(void.class);
-    public static final String stringArrayToVoid = Naming.makeMethodDesc(makeArrayDesc(descString), descVoid);
-    public static final String voidToVoid        = Naming.makeMethodDesc("", descVoid);
-
+    public static final String stringArrayToVoid = Naming.makeMethodDesc(makeArrayDesc(descString), Naming.descVoid);
     public static final String internalFortressIntLiteral  = makeFortressInternal("IntLiteral");
     public static final String internalFortressFloatLiteral = makeFortressInternal("FloatLiteral");
     public static final String internalFortressZZ32  = makeFortressInternal("ZZ32");

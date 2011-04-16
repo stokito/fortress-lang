@@ -10,11 +10,16 @@
 ******************************************************************************/
 package com.sun.fortress.runtimeSystem;
 
+/* NOTE: this should NOT depend on any part of the main compiler, because this
+ * is used as part of the runtime system.  There's some refactoring of single
+ * sources for important names, that still has to be moved into here.
+ */
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.fortress.nodes_util.NodeFactory;
+import org.objectweb.asm.Type;
+
 import com.sun.fortress.useful.CheapSerializer;
 import com.sun.fortress.useful.Pair;
 
@@ -75,12 +80,18 @@ public class Naming {
                     )
         ;
 
+    /* 
+     * Refactoring note, there may be other defs of these names, that should
+     * refer to here instead.
+     */
     public final static String RT_VALUES_PKG = "com/sun/fortress/compiler/runtimeValues/";
+    public final static String ANY_TYPE_CLASS = "fortress/AnyType$Any";
     
     public final static int TUPLE_ORIGIN = 1;
     public final static int STATIC_PARAMETER_ORIGIN = 1;
     public final static String RTTI_FIELD = "RTTI";
     public final static String RTTI_GETTER = "getRTTI";
+    public final static String RTTI_GETTER_CLASS = ANY_TYPE_CLASS;
     public final static String RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "RTTI";
     public final static String TUPLE_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "TupleRTTI";
     public final static String RTTI_CONTAINER_DESC = "L" + RTTI_CONTAINER_TYPE + ";";
@@ -487,7 +498,8 @@ public class Naming {
                 i = mangleFortressIdentifier(s, i+1, sb);
                 break;
             default:
-                throw new Error("Was not expecting to see character " + ch + " in " + s);
+                Error e = new Error("Was not expecting to see character " + ch + " in " + s);
+                throw e;
             }
         }
         return sb.toString();
@@ -940,5 +952,15 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
         else
             return LEFT_OXFORD + RIGHT_OXFORD;
     }
+
+        static public String staticParameterGetterName(String stem_class_name, int index) {
+            // using __ for separator to ease native/primitive type story.
+            return stem_class_name + "__" + index;
+        }
+
+        public static final String descVoid          = org.objectweb.asm.Type.getDescriptor(void.class);
+
+        public static final String voidToVoid        = makeMethodDesc("", Naming.descVoid);
+
     
 }
