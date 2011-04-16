@@ -10,8 +10,6 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.nativeInterface;
 
-import com.sun.fortress.compiler.NamingCzar;
-import com.sun.fortress.interpreter.evaluator.values.*;
 import com.sun.fortress.runtimeSystem.Naming;
 
 import java.util.ArrayList;

@@ -132,12 +132,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
 
-    static public String staticParameterGetterName(String stem_class_name, int index) {
-        // using __ for separator to ease native/primitive type story.
-        return stem_class_name + "__" + index;
-    }
-
-    
     // Create a fresh codegen object for a nested scope.  Technically,
     // we ought to be able to get by with a single lexEnv, because
     // variables ought to be unique by location etc.  But in practice
@@ -327,7 +321,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitTypeInsn(NEW, packageAndClassName);
         mv.visitInsn(DUP);
         mv.visitMethodInsn(INVOKESPECIAL, packageAndClassName, "<init>",
-                           NamingCzar.voidToVoid);
+                           Naming.voidToVoid);
 
         // .runExecutable(args)
         mv.visitVarInsn(ALOAD, 0);
@@ -339,7 +333,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         voidEpilogue();
 
         mv = cw.visitCGMethod(ACC_PUBLIC, "compute",
-                            NamingCzar.voidToVoid, null, null);
+                            Naming.voidToVoid, null, null);
         mv.visitCode();
         // Call through to static run method in this component.
         mv.visitMethodInsn(INVOKESTATIC, packageAndClassName, "run",
@@ -366,7 +360,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv = cw.visitCGMethod(ACC_PUBLIC, "<init>", init_sig, null, null);
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0);
-        mv.visitMethodInsn(INVOKESPECIAL, superClass, "<init>", NamingCzar.voidToVoid);
+        mv.visitMethodInsn(INVOKESPECIAL, superClass, "<init>", Naming.voidToVoid);
 
         // Initialize fields.
         int pno = 1;
@@ -3074,7 +3068,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     imv.visitTypeInsn(NEW, cnb.className);
                     imv.visitInsn(DUP);
                     imv.visitMethodInsn(INVOKESPECIAL, cnb.className,
-                            "<init>", NamingCzar.voidToVoid);
+                            "<init>", Naming.voidToVoid);
                     imv.visitFieldInsn(PUTSTATIC, cnb.className,
                             NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc);                    
                 }
@@ -3229,7 +3223,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         MethodVisitor imv = cw.visitMethod(ACC_STATIC,
                                            "<clinit>",
-                                           NamingCzar.voidToVoid,
+                                           Naming.voidToVoid,
                                            null,
                                            null);
 
@@ -3339,7 +3333,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Call superclass constructor
         mv.visitVarInsn(ALOAD, mv.getThis());
         mv.visitMethodInsn(INVOKESPECIAL, baseClass,
-                              "<init>", NamingCzar.voidToVoid);
+                              "<init>", Naming.voidToVoid);
         // mv.visitVarInsn(ALOAD, mv.getThis());
 
         // Stash away free variables Warning: freeVars contains
@@ -3824,7 +3818,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             int i = Naming.STATIC_PARAMETER_ORIGIN;
             for (StaticParam sp : sparams) {
                 String method_name =
-                    staticParameterGetterName(cnb.stemClassName, i);
+                    Naming.staticParameterGetterName(cnb.stemClassName, i);
                 mv = cw.visitCGMethod(
                         ACC_ABSTRACT + ACC_PUBLIC, method_name,
                         Naming.STATIC_PARAMETER_GETTER_SIG, null, null);
@@ -4068,7 +4062,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 int i = Naming.STATIC_PARAMETER_ORIGIN;
                 for (StaticParam a_sparam : te_sp) {
                     String method_name =
-                       staticParameterGetterName(te_stem, i);
+                       Naming.staticParameterGetterName(te_stem, i);
                     
                     mv = cw.visitCGMethod(ACC_PUBLIC,
                             method_name,
@@ -4239,7 +4233,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cw.visitField(ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
                       NamingCzar.SINGLETON_FIELD_NAME, tyDesc, null, null);
         mv = cw.visitCGMethod(ACC_STATIC,
-                            "<clinit>", NamingCzar.voidToVoid, null, null);
+                            "<clinit>", Naming.voidToVoid, null, null);
         exp.accept(this);
         // Might condition cast-to on inequality of static types
         if (tyName.startsWith(InstantiatingClassloader.TUPLE_OX) ||

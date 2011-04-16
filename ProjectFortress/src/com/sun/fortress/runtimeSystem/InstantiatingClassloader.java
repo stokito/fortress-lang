@@ -15,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -33,15 +34,11 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.util.TraceClassVisitor;
 
-import com.sun.fortress.compiler.NamingCzar;
-import com.sun.fortress.compiler.codegen.CodeGen;
-import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
-import com.sun.fortress.compiler.codegen.CodeGenMethodVisitor;
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
 import com.sun.fortress.compiler.codegen.ManglingMethodVisitor;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
-import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.repository.ProjectProperties;
+
 import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.FnVoid;
 import com.sun.fortress.useful.FnVoidVoid;
@@ -1533,7 +1530,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", init_sig, null, null);
             mv.visitCode();
             mv.visitVarInsn(Opcodes.ALOAD, 0);
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, any_concrete_tuple_n, "<init>", NamingCzar.voidToVoid);
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, any_concrete_tuple_n, "<init>", Naming.voidToVoid);
 
             for (int i = 0; i < n; i++) {
                 String f = TUPLE_FIELD_PFX + (i + Naming.TUPLE_ORIGIN);
@@ -1830,7 +1827,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     
            MethodVisitor imv = cw.visitMethod(ACC_STATIC,
                                               "<clinit>",
-                                              NamingCzar.voidToVoid,
+                                              Naming.voidToVoid,
                                               null,
                                               null);
     
@@ -1888,7 +1885,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     static public void fieldAndGetterForStaticParameter(ManglingClassWriter cw, String stem_name,
             String static_parameter_name, int i) {
         String method_name =
-            CodeGen.staticParameterGetterName(stem_name, i);
+            Naming.staticParameterGetterName(stem_name, i);
         
         cw.visitField(ACC_PRIVATE + ACC_FINAL,
                 static_parameter_name, Naming.RTTI_CONTAINER_DESC, null, null);

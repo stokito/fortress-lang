@@ -888,20 +888,21 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                  *  Note that in cases where all instances of the generic are
                  *  invariant, the inferred type is the answer, and simple
                  *  instantiation is all that is needed.
+                 *  
+                 *  A looser test works -- if all the static parameters of this
+                 *  generic occur at least once in invariant context any where
+                 *  in the function signature, then the inferred type, is the
+                 *  type.  Looser test not yet implemented. 
                  */
                 emitInstanceOfNG(mv, if_fail, value_cast);
 
             } else { // has generic
                 
                 if (value_cast) {
-                    throw new CompilerError("unimplemented overloaded dispatch case");
-
-                } else {
-                    throw new CompilerError("unimplemented overloaded dispatch case");
-
+                    // convert value to its type.
+                    // invokeinterface Any.getRTTI()
+                    mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Naming.ANY_TYPE_CLASS, Naming.RTTI_GETTER, Naming.STATIC_PARAMETER_GETTER_SIG);
                 }
-                // problem -- value instanceof, vs type instanceof
-                // normalize by getting type initially.
                 /*
                  * DUP TOS
                  * INSTANCEOF stem
@@ -912,7 +913,33 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                  * CHECKCAST stem
                  * ST localIndex
                  * for each parameter
+                 * ...
                  */
+                
+                Label ahead = new Label();
+                mv.visitInsn(Opcodes.DUP);
+                mv.visitTypeInsn(Opcodes.INSTANCEOF, stem);
+                mv.visitJumpInsn(Opcodes.IFNE, ahead);
+                mv.visitInsn(Opcodes.POP);
+                mv.visitJumpInsn(Opcodes.GOTO, if_fail);
+                mv.visitLabel(ahead);
+                mv.visitTypeInsn(Opcodes.CHECKCAST, stem);
+                mv.visitVarInsn(Opcodes.ASTORE, localIndex);
+                int i = Naming.STATIC_PARAMETER_ORIGIN;
+                for (TS p : parameters) {
+                    mv.visitVarInsn(Opcodes.ALOAD, localIndex);
+                    String method_name =
+                        Naming.staticParameterGetterName(stem, i);
+                    mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, stem, method_name, Naming.STATIC_PARAMETER_GETTER_SIG);
+                    // get parameter
+                    p.emitInstanceOf(mv, if_fail, false);
+                    i++;
+                }
+
+                throw new CompilerError("unimplemented overloaded dispatch case");
+
+                // problem -- value instanceof, vs type instanceof
+                // normalize by getting type initially.
             }
         }
 
