@@ -18,11 +18,11 @@ export ComparisonLibrary
  Moreover, uses of algebraic traits that use the self-type idiom are commented out.
  *******)
 
-trait Equality[\Self\] comprises Self
-    opr =(self, other:Self): Boolean = self SEQV other
-end
+(*) trait Equality[\Self\] comprises Self
+(*)     opr =(self, other:Self): Boolean = self SEQV other
+(*) end
 
-opr =/=[\T extends Equality[\T\]\](a: T, b: T) = NOT (a = b)
+(*) opr =/=[\T extends Equality[\T\]\](a: T, b: T) = NOT (a = b)
 
 trait Comparison
 (*)        extends { StandardPartialOrder[\Comparison\] }
@@ -125,80 +125,5 @@ object EqualTo extends TotalComparison
     opr CONVERSE(self): EqualTo = EqualTo
 end
 
-(** StandardPartialOrder is partial ordering using <,>,<=,>=,=, and CMP.
-    Minimal complete definition: CMP or { <, = }. **)
-trait StandardPartialOrder[\Self\]
-        extends { Equality[\Self\] }
-        comprises Self
-    opr CMP(self, other:Self): Comparison =
-        if self < other then LessThan
-        elif other < self then GreaterThan
-        elif self = other then EqualTo
-        else Unordered
-        end
-    opr <(self, other:Self): Boolean = LessThan = (self CMP other)
-    opr >(self, other:Self): Boolean = other < self
-    opr =(self, other:Self): Boolean = EqualTo = (self CMP other)
-    opr <=(self, other:Self): Boolean = other >= self
-    opr >=(self, other:Self): Boolean = (self = other OR: self > other)
-end
-
-(** `StandardMin` is a MIN operator; most types that implement `MIN`
-    will implement a corresponding total order.  It's a separate type
-    to account for the existence of floating point numbers, for which
-    NaN counts as a bottom that is less than anything else but doesn't
-    actually participate in the standard total ordering.  It is
-    otherwise the case that `a MIN b = a` when `a <= b` and that
-    `a MIN b = b MIN a`. **)
-trait StandardMin[\T\] comprises T
-    opr MIN(self, other:T): T
-end
-
-(** `StandardMax` is a MAX operator; most types that implement `MAX`
-    will implement a corresponding total order.  It's a separate type
-    to account for the existence of floating point numbers, for which
-    NaN counts as a bottom that is less than anything else but doesn't
-    actually participate in the standard total ordering.  It is
-    otherwise the case that `a MAX b = a` when `a <= b` and that
-    `a MAX b = b MAX a`. **)
-trait StandardMax[\T\] comprises T
-    opr MAX(self, other:T): T
-end
-
-(** `StandardMinMax` combines MIN and MAX operators, and provides a
-    combined MINMAX operator.  This operator returns both its
-    arguments; if equality is possible, self should be the leftmost
-    result.  This effectively means that `(a MINMAX b)` stably sorts
-    `a` and `b`.  In addition, `a MINMAX b = (a MIN b, a MAX b)` must
-    always hold. **)
-
-trait StandardMinMax[\T\]
-        extends { StandardMin[\T\], StandardMax[\T\] }
-        comprises T
-    opr MINMAX(self, other:T): (T,T)
-    opr MIN(self, other:T): T = do (r,_) = self MINMAX other; r end
-    opr MAX(self, other:T): T = do (_,r) = self MINMAX other; r end
-end
-
-(** StandardTotalOrder is the usual total order using <,>,<=,>=,=, and CMP.
-    Most values that define a comparison should do so using this.
-    Minimal complete definition: either CMP or < (it's advisable to
-    define = in the latter case).  The `MIN` and `MAX` operators
-    respect the total order and are defined in the obvious way. **)
-trait StandardTotalOrder[\Self\]
-        extends { StandardPartialOrder[\Self\], StandardMinMax[\Self\] }
-        comprises Self
-    opr CMP(self, other:Self): TotalComparison =
-        if self < other then LessThan
-        elif other < self then GreaterThan
-        else EqualTo
-        end
-    opr >=(self, other:Self): Boolean = NOT (self < other)
-    opr <=(self, other:Self): Boolean = NOT (other < self)
-    opr MIN(self, other:Self): Self = if other < self then other else self end
-    opr MAX(self, other:Self): Self = if other < self then self else other end
-    opr MINMAX(self, other:Self): (Self,Self) =
-        if other < self then (other, self) else (self, other) end
-end
 
 end
