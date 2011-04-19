@@ -250,5 +250,12 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     public void setAbstractInterpretation(AbstractInterpretation ai) {
         this.ai = ai;
     }
+
+    // removed for backwards compatibility @Override
+//    public void visitInvokeDynamicInsn(String name, String desc,
+//            MethodHandle bsm, Object... bsmArgs) {
+//        throw new Error("InvokeDynamic not yet handled");
+//        
+//    }
 }
 
