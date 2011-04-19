@@ -1,0 +1,39 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009,2010, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+MdDecl =
+     MdDef
+   / Mods? AbsMdHeaderFront FnHeaderClause
+
+MdDef =
+     Mods? MdHeaderFront FnHeaderClause w equals w NoNewlineExpr
+
+MdHeaderFront =
+     NamedMdHeaderFront
+   / OpHeaderFront
+
+AbsMdHeaderFront =
+     AbsNamedMdHeaderFront
+   / AbsOpHeaderFront
+
+NamedMdHeaderFront =
+     Id (w StaticParams)? w ValParam
+
+AbsNamedMdHeaderFront =
+     Id (w StaticParams)? w AbsValParam
+
+Coercion =
+     coerce (w StaticParams)? w openparen w BindId (w IsType)? w closeparen
+     FnClauses (w widens)? (w equals w NoNewlineExpr)?
+   / coerce (w StaticParams)? w ValParam (w IsType)?
+     FnClauses (w widens)? (w equals w NoNewlineExpr)?
+\end{verbatim}
