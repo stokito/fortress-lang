@@ -2345,7 +2345,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forTupleExpr(TupleExpr x) {
         List<Expr> exprs = x.getExprs();
         Type t = x.getInfo().getExprType().unwrap();
-        evaluateSubExprsAppropriately(x, exprs);
+        evaluateSubExprsAppropriately(x, t, exprs);
         // Invoke Tuple[\ whatever \].make(Object;Object;Object;etc)
         makeTupleOfSpecifiedType(t);
 
@@ -2796,6 +2796,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         int n = lhs.size();
         List<VarCodeGen> vcgs = new ArrayList(n);
+        List<Type> lhs_types = new ArrayList(n);
         for (LValue v : lhs) {
             if (v.isMutable()) {
                 throw sayWhat(d, "Can't yet generate code for mutable variable declarations.");
@@ -2808,7 +2809,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Type ty = (Type)v.getIdType().unwrap();
             VarCodeGen vcg = new VarCodeGen.LocalVar(v.getName(), ty, this);
             vcgs.add(vcg);
+            lhs_types.add(ty);
         }
+        
+        Type lhs_type = lhs_types.size() == 1 ? lhs_types.get(0) : NodeFactory.makeTupleType(lhs_types);
 
         // Compute rhs
         List<Expr> rhss = null;
@@ -2857,9 +2861,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitInsn(POP);
 
         } else if (pa.worthParallelizing(rhs)) {
-            forExprsParallel(rhss, vcgs);
+            forExprsParallel(rhss, lhs_type, vcgs);
         } else {
-            forExprsSerial(rhss,vcgs);
+            forExprsSerial(rhss, lhs_type, vcgs);
         }
 
         // Evaluate rest of block with binding in scope
@@ -3432,9 +3436,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     // level where we can't ask the qustion here?)
     // Leave the results (in the order given) on the stack when vcgs==null;
     // otherwise use the provided vcgs to bind corresponding values.
-    public void forExprsParallel(List<? extends Expr> args, List<VarCodeGen> vcgs) {
+    public void forExprsParallel(List<? extends Expr> args, Type domain_type, List<VarCodeGen> vcgs) {
         final int n = args.size();
         if (n <= 0) return;
+        
+        List<Type> domain_types;
+        if (args.size() != 1 && domain_type instanceof TupleType) {
+            TupleType tdt = (TupleType) domain_type;
+            domain_types = tdt.getElements();
+        } else {
+            domain_types = Collections.singletonList(domain_type);
+        }
+        
         String [] tasks = new String[n];
         String [] results = new String[n];
         int [] taskVars = new int[n];
@@ -3477,6 +3490,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // arg 0 gets compiled in place, rather than turned into work.
         if (vcgs != null) vcgs.get(0).prepareAssignValue(mv);
         args.get(0).accept(this);
+        conditionallyCastParameter(domain_types.get(0));
         if (vcgs != null) vcgs.get(0).assignValue(mv);
 
         // join / perform work locally left to right, leaving results on stack.
@@ -3489,6 +3503,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String task = tasks[i];
             mv.visitMethodInsn(INVOKEVIRTUAL, task, "joinOrRun", "()V");
             mv.visitFieldInsn(GETFIELD, task, "result", results[i]);
+            conditionallyCastParameter(domain_types.get(i));
             if (vcgs != null) vcgs.get(i).assignValue(mv);
         }
     }
@@ -3496,10 +3511,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     // Evaluate args serially, from left to right.
     // Leave the results (in the order given) on the stack when vcgs==null;
     // otherwise use the provided vcgs to bind corresponding values.
-    public void forExprsSerial(List<? extends Expr> args, List<VarCodeGen> vcgs) {
+    public void forExprsSerial(List<? extends Expr> args, Type domain_type, List<VarCodeGen> vcgs) {
+        
+        List<Type> domain_types;
+        if (args.size() != 1 && domain_type instanceof TupleType) {
+            TupleType tdt = (TupleType) domain_type;
+            domain_types = tdt.getElements();
+        } else {
+            domain_types = Collections.singletonList(domain_type);
+        }
         if (vcgs == null) {
+            int i = 0;
             for (Expr arg : args) {
                 arg.accept(this);
+                conditionallyCastParameter(domain_types.get(i++));
             }
         } else {
             int n = args.size();
@@ -3510,6 +3535,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 VarCodeGen vcg = vcgs.get(i);
                 vcg.prepareAssignValue(mv);
                 args.get(i).accept(this);
+                conditionallyCastParameter(domain_types.get(i++));
                 vcg.assignValue(mv);
             }
         }
@@ -3521,7 +3547,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         FunctionalRef op = x.getOp();
         List<Expr> args = x.getArgs();
 
-        evaluateSubExprsAppropriately(x, args);
+        Type domain_type = ((ArrowType)(op.getInfo().getExprType().unwrap())).getDomain();
+        
+        evaluateSubExprsAppropriately(x, domain_type, args);
 
         op.accept(this);
     }
@@ -3530,12 +3558,22 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param x
      * @param args
      */
-    private void evaluateSubExprsAppropriately(ASTNode x, List<Expr> args) {
+    private void evaluateSubExprsAppropriately(ASTNode x, Type domain_type, List<Expr> args) {
         if (pa.worthParallelizing(x)) {
-            forExprsParallel(args, null);
+            forExprsParallel(args, domain_type, null);
         } else {
+            List<Type> domain_types;
+            if (args.size() != 1 && domain_type instanceof TupleType) {
+                TupleType tdt = (TupleType) domain_type;
+                domain_types = tdt.getElements();
+            } else {
+                domain_types = Collections.singletonList(domain_type);
+            }
+            int i = 0;
             for (Expr arg : args) {
                 arg.accept(this);
+                conditionallyCastParameter(domain_types.get(i));
+                i++;
             }
         }
     }
@@ -4614,10 +4652,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param t
      */
     private void conditionallyCastParameter(Type t) {
-        if (t instanceof TupleType || t instanceof ArrowType) {
+        if (t instanceof ArrowType) {
             // insert cast
             String cast_to = NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
             InstantiatingClassloader.generalizedCastTo(mv, cast_to);
+        } else if ((t instanceof TupleType) && ((TupleType)t).getElements().size() > 0) {
+                // insert cast
+                String cast_to = NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
+                InstantiatingClassloader.generalizedCastTo(mv, cast_to);
         } else if (t instanceof VarType) {
             // insert conditional cast (what form does this take?)
             // note that generalizedCastTo will make this a bare instanceof.
