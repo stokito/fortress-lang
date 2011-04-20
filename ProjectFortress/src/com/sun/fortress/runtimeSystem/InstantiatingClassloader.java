@@ -954,6 +954,17 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String t = unwrapped_parameters.get(i);
             if (!t.equals(Naming.INTERNAL_SNOWMAN)) {
                 mv.visitVarInsn(ALOAD, i+1);
+            } else {
+                /* we are calling the object-interface version of this,
+                 * we need something on the stack, or else it will fail.
+                 * 
+                 * This is also a naming/refactoring FAIL; this information
+                 * needs to come from somewhere else.
+                */
+                mv.visitInsn(Opcodes.ACONST_NULL);
+//                mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+//                        Naming.runtimeValues + "FVoid", "make",
+//                        "()L" + Naming.runtimeValues + "FVoid" + ";");
             }
         }
 

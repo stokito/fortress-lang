@@ -37,10 +37,10 @@ G.~Castagna, G.~Ghelli, and G.~Longo.
 \newblock In {\em LFP '92: Proc. 1992 ACM Conference on LISP and Functional
   Programming}, pages 182--192, New York, NY, USA, 1992. ACM.
 
-\bibitem{CHAMBERLAIN-2007-CHAPEL-PARALLEL-PROGRAMMABILITY}
-B.~L. Chamberlain, D.~Callahan, and H.~P. Zima.
-\newblock Parallel programmability and the {Chapel} language.
-\newblock {\em Int. J. High Perform. Comput. Appl.}, 21(3):291--312, 2007.
+% \bibitem{CHAMBERLAIN-2007-CHAPEL-PARALLEL-PROGRAMMABILITY}
+% B.~L. Chamberlain, D.~Callahan, and H.~P. Zima.
+% \newblock Parallel programmability and the {Chapel} language.
+% \newblock {\em Int. J. High Perform. Comput. Appl.}, 21(3):291--312, 2007.
 
 \bibitem{CECIL-MULTIMETHODS}
 C.~Chambers.
@@ -128,12 +128,12 @@ M.~Odersky and M.~Zenger.
   Object-Oriented Programming, Systems, Languages, and Applications}, pages
   41--57, New York, NY, USA, 2005. ACM.
 
-\bibitem{PPOPP-2007-X10}
-V.~A. Saraswat, V.~Sarkar, and C.~von Praun.
-\newblock X10: {Concurrent} programming for modern architectures.
-\newblock In {\em PPoPP '07: Proc. 12th ACM SIGPLAN symposium on Principles and
-  Practice of Parallel Programming}, pages 271--271, New York, NY, USA, 2007.
-  ACM.
+% \bibitem{PPOPP-2007-X10}
+% V.~A. Saraswat, V.~Sarkar, and C.~von Praun.
+% \newblock X10: {Concurrent} programming for modern architectures.
+% \newblock In {\em PPoPP '07: Proc. 12th ACM SIGPLAN symposium on Principles and
+%   Practice of Parallel Programming}, pages 271--271, New York, NY, USA, 2007.
+%   ACM.
 
 \bibitem{traits}
 N.~Sch{\"a}rli, S.~Ducasse, O.~Nierstrasz, and A.~Black.
@@ -141,10 +141,10 @@ N.~Sch{\"a}rli, S.~Ducasse, O.~Nierstrasz, and A.~Black.
 \newblock In {\em Proceedings of the 17th European Conference on
   Object-Oriented Programming}. Springer, July 2003.
 
-\bibitem{GROWING-A-LANGUAGE}
-G.~L. {Steele Jr.}
-\newblock Growing a language.
-\newblock {\em Higher Order Symbol. Comput.}, 12(3):221--236, 1999.
+% \bibitem{GROWING-A-LANGUAGE}
+% G.~L. {Steele Jr.}
+% \newblock Growing a language.
+% \newblock {\em Higher Order Symbol. Comput.}, 12(3):221--236, 1999.
 
 \bibitem{CLTL2}
 G.~L. {Steele Jr.}, S.~E. Fahlman, R.~P. Gabriel, D.~A. Moon, D.~L. Weinreb,
