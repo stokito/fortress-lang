@@ -3535,7 +3535,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 VarCodeGen vcg = vcgs.get(i);
                 vcg.prepareAssignValue(mv);
                 args.get(i).accept(this);
-                conditionallyCastParameter(domain_types.get(i++));
+                conditionallyCastParameter(domain_types.get(i));
                 vcg.assignValue(mv);
             }
         }
