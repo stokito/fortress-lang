@@ -838,7 +838,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          */
         final String stem;
         
-        /** static type parameters. */
+        /** static type parameters.
+         *  IF NULL, this is a VarType node, to be stored when evaluated.
+         */
         final TS[] parameters;
         
         /** index of local to store corresponding value */
@@ -875,11 +877,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             this.variantGenericsContained = variantGenericsContained;
             this.isObject = isObject;
         }
-        void emitInstanceOf(MethodVisitor mv, Label if_fail) {
-            emitInstanceOf(mv, if_fail, true, invariantGenericsContained);
-        }
-        void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast, Set<String> top_level_invariants) {
-            invariantGenericsContained.removeAll(top_level_invariants);
+        void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast, Set<String> top_level_invariants) {            
+            variantGenericsContained.removeAll(top_level_invariants);
             if (variantGenericsContained.size() == 0) {
                 /*
                  *  Note that in cases where all instances of the generic are
@@ -900,37 +899,44 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     // invokeinterface Any.getRTTI()
                     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Naming.ANY_TYPE_CLASS, Naming.RTTI_GETTER, Naming.STATIC_PARAMETER_GETTER_SIG);
                 }
-                /*
-                 * DUP TOS
-                 * INSTANCEOF stem
-                 * IFNE ahead
-                 * POP
-                 * BR if_fail
-                 * ahead:
-                 * CHECKCAST stem
-                 * ST localIndex
-                 * for each parameter
-                 * ...
-                 */
                 
-                Label ahead = new Label();
-                mv.visitInsn(Opcodes.DUP);
-                mv.visitTypeInsn(Opcodes.INSTANCEOF, stem);
-                mv.visitJumpInsn(Opcodes.IFNE, ahead);
-                mv.visitInsn(Opcodes.POP);
-                mv.visitJumpInsn(Opcodes.GOTO, if_fail);
-                mv.visitLabel(ahead);
-                mv.visitTypeInsn(Opcodes.CHECKCAST, stem);
-                mv.visitVarInsn(Opcodes.ASTORE, localIndex);
-                int i = Naming.STATIC_PARAMETER_ORIGIN;
-                for (TS p : parameters) {
-                    mv.visitVarInsn(Opcodes.ALOAD, localIndex);
-                    String method_name =
-                        Naming.staticParameterGetterName(stem, i);
-                    mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, stem, method_name, Naming.STATIC_PARAMETER_GETTER_SIG);
-                    // get parameter
-                    p.emitInstanceOf(mv, if_fail, false, top_level_invariants);
-                    i++;
+                if (parameters == null) {
+                    mv.visitVarInsn(Opcodes.ASTORE, localIndex);
+
+                } else {
+                    /*
+                     * DUP TOS
+                     * INSTANCEOF stem
+                     * IFNE ahead
+                     * POP
+                     * BR if_fail
+                     * ahead:
+                     * CHECKCAST stem
+                     * ST localIndex
+                     * for each parameter
+                     * ...
+                     */
+
+
+                    Label ahead = new Label();
+                    mv.visitInsn(Opcodes.DUP);
+                    mv.visitTypeInsn(Opcodes.INSTANCEOF, stem);
+                    mv.visitJumpInsn(Opcodes.IFNE, ahead);
+                    mv.visitInsn(Opcodes.POP);
+                    mv.visitJumpInsn(Opcodes.GOTO, if_fail);
+                    mv.visitLabel(ahead);
+                    mv.visitTypeInsn(Opcodes.CHECKCAST, stem);
+                    mv.visitVarInsn(Opcodes.ASTORE, localIndex);
+                    int i = Naming.STATIC_PARAMETER_ORIGIN;
+                    for (TS p : parameters) {
+                        mv.visitVarInsn(Opcodes.ALOAD, localIndex);
+                        String method_name =
+                            Naming.staticParameterGetterName(stem, i);
+                        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, stem, method_name, Naming.STATIC_PARAMETER_GETTER_SIG);
+                        // get parameter
+                        p.emitInstanceOf(mv, if_fail, false, top_level_invariants);
+                        i++;
+                    }
                 }
 
                 throw new CompilerError("unimplemented overloaded dispatch case");
@@ -1037,11 +1043,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             VarType tt = (VarType) t;
             Id tt_id = tt.getName();
             if (variance != 0) {
-                variantGenericsContained = Collections.<String>singleton(tt_id.getText());
+                variantGenericsContained = Useful.set(tt_id.getText());
             } else {
-                invariantGenericsContained = Collections.<String>singleton(tt_id.getText());
+                invariantGenericsContained = Useful.set(tt_id.getText());
             }
-            stem = NamingCzar.jvmClassForToplevelTypeDecl(tt_id,"",ifNone);
+            stem = tt_id.getText(); // DO NOT API-ANNOTATE!
             isVarType = true;
             
         } else if (t instanceof BottomType) {
@@ -1093,7 +1099,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 next_index = storeAtIndex+1;
             return new TS(fullname, stem, parameters, storeAtIndex, next_index, variance, invariantGenericsContained, variantGenericsContained, isObject);
         } else if (isVarType) {
-            TS x = new TS(fullname, null, parameters, storeAtIndex, storeAtIndex+1, variance, invariantGenericsContained, variantGenericsContained, isObject);
+            TS x = new TS(fullname, stem, parameters, storeAtIndex, storeAtIndex+1, variance, invariantGenericsContained, variantGenericsContained, isObject);
             spmap.putItem(stem, x);
             return x;
         } else { 
@@ -1158,13 +1164,17 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     lookahead = new Label();
 
 //                    List<Param> parameters = f.tagParameters();
+                    Set<String> top_level_invariants = new HashSet<String>();
+                    for (int j = 0; j < f_type_structures.length; j++) {
+                        top_level_invariants.addAll(f_type_structures[j].invariantGenericsContained);
+                    }
                     for (int j = 0; j < f_type_structures.length; j++) {
 //                        Type t = oa.getParamType(eff,j);
                         
                         // Load actual parameter
                         mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
                         
-                        f_type_structures[j].emitInstanceOf(mv, lookahead);
+                        f_type_structures[j].emitInstanceOf(mv, lookahead, true, top_level_invariants);
                         
 //                        // Check type
 //                        InstantiatingClassloader.generalizedInstanceOf(mv,
