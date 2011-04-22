@@ -1035,7 +1035,13 @@ object STypesUtil {
   // It'd be nice to abbreviate the type of the Relation somehow.
   def inheritedMethods(extendedTraits: List[TraitTypeWhere],
     methods: Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)],
-    analyzer: TypeAnalyzer): Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
+    analyzer: TypeAnalyzer): Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = 
+      inheritedMethods(extendedTraits, methods, analyzer, false)
+      
+  def inheritedMethods(extendedTraits: List[TraitTypeWhere],
+    methods: Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)],
+    analyzer: TypeAnalyzer,
+    skipFirstTraitMethods : Boolean): Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
     // System.err.println("inheritedMethods " + extendedTraits.map(_.getBaseType))
     val history: HierarchyHistory = new HierarchyHistory()
     val allMethods =
@@ -1048,6 +1054,7 @@ object STypesUtil {
       allMethods.addBinding(methodName, (paramTy, selfIndex, sparams, f, r, tt))
     }
     var traitsToDo: List[TraitTypeWhere] = extendedTraits
+    var skip:Boolean = skipFirstTraitMethods
     while (!traitsToDo.isEmpty) {
       val doNow = traitsToDo
       traitsToDo = List()
@@ -1062,6 +1069,7 @@ object STypesUtil {
             // Instantiate methods with static args
             val paramsToArgs = new StaticTypeReplacer(ti.staticParameters,
               toJavaList(trait_args))
+            if (!skip) {
             def oneMethod(methodName: IdOrOp, methodFunc: Functional) = {
               val (paramTy, selfIndex, sparams) =
                 paramTyWithoutSelf(methodName, methodFunc, paramsToArgs)
@@ -1119,12 +1127,14 @@ object STypesUtil {
             ti.functionalMethods.foreach(onePair)
             ti.getters.entrySet.foreach(oneMapping)
             ti.setters.entrySet.foreach(oneMapping)
+            }
             val instantiated_extends_types =
               toListFromImmutable(ti.extendsTypes).map(_.accept(paramsToArgs)
                 .asInstanceOf[TraitTypeWhere])
             traitsToDo ++= instantiated_extends_types
           case _ =>
         }
+        skip = false
       }
     }
     for (
@@ -1147,6 +1157,16 @@ object STypesUtil {
     analyzer: TypeAnalyzer): Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] =
     inheritedMethods(toListFromImmutable(extendedTraits),
       analyzer)
+
+  /**
+   * Returns a relation for the methods that are inherited 
+   */
+  def properlyInheritedMethods(tt: TraitType,
+    analyzer: TypeAnalyzer): Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
+    val methods =
+      new IndexedRelation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)](false)
+    inheritedMethods(List(NF.makeTraitTypeWhere(tt)), methods, analyzer, true)
+  }
 
   def allMethods(tt: TraitType, analyzer: TypeAnalyzer): Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] =
     inheritedMethods(List(NF.makeTraitTypeWhere(tt)),
