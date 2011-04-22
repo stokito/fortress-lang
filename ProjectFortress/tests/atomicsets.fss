@@ -1,0 +1,31 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component atomicsets
+
+import Set.{...}
+export Executable
+
+initialSet():Set[\ZZ32\] = do
+   init:Set[\ZZ32\] := set[\ZZ32\]()
+   for i<-1#100 do
+      atomic do
+         init := init.add(i)
+      end
+   end
+   init
+end
+
+run():()=do
+   init:Set[\ZZ32\] = initialSet()
+   assert(i IN init,true,i," NOTIN ",init), i <- 1#100
+end
+end

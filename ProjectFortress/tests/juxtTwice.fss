@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component juxtTwice
+import Constants.{ pi }
+export Executable
+
+(* It looks like the first component of a loose juxtaposition is being
+   run twice!  That's clearly wrong, even if writing code which will
+   notice is fairly naughty. *)
+
+object O(x : RR64)
+  f(a:RR64):RR64 = a x
+end
+
+run():() = do
+  v : ZZ32 := 0
+  x = pi / 4
+  y = 4.0
+  f(a:ZZ32):ZZ32 = atomic do v += a; v end
+  n = (f(1)) (f(1))
+  if n=/=2 then
+    println("FAIL: Multiple evaluation set n to " n)
+  end
+  u = n (n+1) sin 3 n x log log y
+  w = (n (n+1)) (sin (3 n x)) (log (log y))
+  if u=/=w then
+    println("FAIL: " u " =/= parenthesized equivalent " w)
+  end
+end
+
+end

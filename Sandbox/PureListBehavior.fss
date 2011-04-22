@@ -1,0 +1,38 @@
+component PureListBehavior
+    import PureList.{...}
+    export Executable
+    
+    var FailCount: ZZ32 = 0
+    var PassCount: ZZ32 = 0
+    
+    ensureEqual(left: Any, right: Any, failureMessage: String...) = do
+        if (left ≠ right) then
+            tallyFail()
+            println("Fail: ", left, " ≠ ", right, " ", failureMessage)
+        else
+            tallyPass()
+        end
+    end
+    
+    tallyFail() = FailCount := FailCount + 1
+    
+    tallyPass() = PassCount := PassCount + 1
+    
+    
+    test leftShouldBeFirst = do
+        l1 = singleton("apple")
+        l2 = l1.addLeft("orange")
+        ensureEqual(l1.left, "apple")
+        ensureEqual(l2.left, "orange")
+        ensureEqual(l1.left, "apple", "PureLists appear to suffer from side-effects")
+    end
+    
+    run() = 
+    do
+        println "Checking PureListBehavior"
+        l = <| 2, 3, 5, 7 |> 
+        println l
+        L = <| i^2 | i <- 1#10 |>
+        println L
+    end
+end

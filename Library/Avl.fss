@@ -1,0 +1,428 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Avl
+import List.{...}
+export Executable
+
+trait Avl[\K extends StandardTotalOrder[\K\],V\]
+        comprises { AvlEmpty[\K,V\], AvlNode[\K,V\] }
+    getter depth() : ZZ32
+    getter asDebugStriing(): AvlDump[\K,V\] = AvlDump[\K,V\](self)
+    check(root:Avl[\K,V\]): ZZ32
+    check(mn:K,root:Avl[\K,V\]): ZZ32
+    check(root:Avl[\K,V\],mx:K): ZZ32
+    check(mn:K,root:Avl[\K,V\],mx:K): ZZ32
+    opr |self| : ZZ32
+    (** left subtree, value (if any) at kk, right subtree, original depth *)
+    splitAt(kk:K):(AvlWithDepth[\K,V\],Maybe[\V\],AvlWithDepth[\K,V\],ZZ32)
+    lookup(kk:K): Maybe[\V\] = label done
+        t : Avl[\K,V\] = self
+        while true do
+            tt = t
+            typecase t of
+                tt':AvlNode[\K,V\] =>
+                    typecase kk CMP tt'.key() of
+                        LessThan => t := tt'.left
+                        EqualTo => exit done with Just[\V\](tt'.val())
+                        GreaterThan => t := tt'.right
+                    end
+                else => exit done with Nothing[\V\]
+            end
+        end
+      end done
+    (** modified subtree, original depth *)
+    actOnKey(kk:K, action:Maybe[\V\]->Maybe[\V\]): (AvlWithDepth[\K,V\],ZZ32)
+end
+
+value object AvlDump[\K extends StandardTotalOrder[\K\],V\](t:Avl[\K,V\])
+    getter asString(): String = d(t)
+    d(s:Avl[\K,V\]): String =
+        typecase s of
+            AvlEmpty[\K,V\] => "."
+            s':LeftHigh[\K,V\] =>
+               "(" d(s'.left) "<" s'.key() "," s'.val() "<" d(s'.right) ")"
+            s':Balanced[\K,V\] =>
+               "(" d(s'.left) "=" s'.key() "," s'.val() "=" d(s'.right) ")"
+            s':RightHigh[\K,V\] =>
+               "(" d(s'.left) ">" s'.key() "," s'.val() ">" d(s'.right) ")"
+        end
+end
+
+value object AvlWithDepth[\K extends StandardTotalOrder[\K\],V\](t:Avl[\K,V\], d: ZZ32)
+    getter depth() : ZZ32 = d
+    getter tree(): ZZ32 = t
+    getter asDebugString(): String = t.asDebugStriing
+    opr |self| : ZZ32 = |t|
+    check(): () = do
+        dd = t.check(t)
+        assert(dd,d,"AvlWithDepth depths don't match for ",t.asDebugStriing)
+      end
+end
+
+object AvlEmpty[\K extends StandardTotalOrder[\K\],V\] extends Avl[\K,V\]
+    getter depth() : ZZ32 = 0
+    check(root:Avl[\K,V\]): ZZ32 = 0
+    check(mn:K,root:Avl[\K,V\]): ZZ32 = 0
+    check(root:Avl[\K,V\],mx:K): ZZ32 = 0
+    check(mn:K,root:Avl[\K,V\],mx:K): ZZ32 = 0
+    opr |self| : ZZ32 = 0
+    splitAt(kk:K):(AvlWithDepth[\K,V\],Maybe[\V\],AvlWithDepth[\K,V\],ZZ32) = do
+        lr = AvlWithDepth[\K,V\](self,0)
+        (lr,Nothing[\V\],lr,0)
+      end
+    lookup(k:K): Maybe[\V\] = Nothing[\V\]
+    actOnKey(kk:K, action:Maybe[\V\]->Maybe[\V\]): (AvlWithDepth[\K,V\],ZZ32) =
+        if r <- action(Nothing[\V\]) then
+            (singleton[\K,V\](kk,r),0)
+        else
+            (AvlWithDepth[\K,V\](self,0),0)
+        end
+end
+
+trait AvlNode[\K extends StandardTotalOrder[\K\],V\] extends Avl[\K,V\]
+        comprises { LeftHigh[\K,V\], Balanced[\K,V\], RightHigh[\K,V\] }
+    getter left() : Avl[\K,V\]
+    getter right() : Avl[\K,V\]
+    getter key(): K
+    getter val(): V
+    chk(root:Avl[\K,V\], ld:ZZ32, rd:ZZ32): ZZ32 = do
+        assert(ld2rd(ld),rd,"Mismatched depth and skew in ",asDebugStriing,
+               "\nroot ",root.asDebugStriing)
+        ld2d(ld)
+      end
+    check(root:Avl[\K,V\]): ZZ32 =
+        chk(root,self.left.check(root,key()),self.right.check(key(),root))
+    check(mn:K,root:Avl[\K,V\]): ZZ32 = do
+        k = key()
+        assert(mn < k, true, "Key too small")
+        chk(root,self.left.check(mn,root,k),self.right.check(k,root))
+      end
+    check(root:Avl[\K,V\],mx:K): ZZ32 = do
+        k = key()
+        assert(k < mx, true, "Key too large")
+        chk(root,self.left.check(root,k),self.right.check(k,root,mx))
+      end
+    check(mn:K,root:Avl[\K,V\],mx:K): ZZ32 = do
+        k = key()
+        assert(mn < k, true, "Key too small")
+        assert(k < mx, true, "Key too large")
+        chk(root,self.left.check(mn,root,k),self.right.check(k,root,mx))
+      end
+    ld2rd(ld:ZZ32): ZZ32
+    rd2ld(rd:ZZ32): ZZ32
+    ld2d(ld:ZZ32): ZZ32
+    rd2d(rd:ZZ32): ZZ32
+    d2ld(d:ZZ32): ZZ32
+    d2rd(d:ZZ32): ZZ32
+    replaceValue(vv:V): AvlNode[\K,V\]
+    extractLargest():(AvlWithDepth[\K,V\],K,V,ZZ32) = do
+        r = self.right
+        typecase r of
+            r':AvlNode[\K,V\] =>
+                (rr,kk,vv,rd) = r'.extractLargest()
+                (nodeWithDepth[\K,V\](AvlWithDepth[\K,V\](self.left,rd2ld(rd)),key(),val(),rr),
+                 kk,vv,rd2d(rd))
+            else => (AvlWithDepth[\K,V\](self.left,rd2ld(0)),key(),val(),rd2d(0))
+        end
+    end
+    remove(): (AvlWithDepth[\K,V\],ZZ32) = do
+        (l,r) = (self.left,self.right)
+        typecase (l,r) of
+            (l':AvlNode[\K,V\],r':AvlNode[\K,V\]) =>
+                (ll,k,v,ld) = l'.extractLargest()
+                (nodeWithDepth[\K,V\](ll,k,v,AvlWithDepth[\K,V\](r',ld2rd(ld))),ld2d(ld))
+            (l':AvlNode[\K,V\],r':Avl[\K,V\]) => (AvlWithDepth[\K,V\](l',rd2ld(0)),rd2d(0))
+            else => (AvlWithDepth[\K,V\](r,ld2rd(0)),ld2d(0))
+        end
+    end
+    splitAt(kk:K):(AvlWithDepth[\K,V\],Maybe[\V\],AvlWithDepth[\K,V\],ZZ32) =
+        typecase kk CMP key() of
+            LessThan =>
+                (ll,m,rr,ld) = self.left.splitAt(kk)
+                (rr',_) = rr.tree().actOnKey(key(),
+                                             fn(_:Maybe[\V\]):Maybe[\V\] => Just[\V\](val()))
+                (ll,m,append[\K,V\](rr',AvlWithDepth[\K,V\](self.right,ld2rd(ld))),
+                 ld2d(ld))
+            EqualTo =>
+                d = depth()
+                (AvlWithDepth[\K,V\](self.left,d2ld(d)),Just[\V\](val()),
+                 AvlWithDepth[\K,V\](self.right,d2rd(d)),d)
+            GreaterThan =>
+                (ll,m,rr,rd) = self.right.splitAt(kk)
+                (ll',_) = ll.tree().actOnKey(key(),
+                                             fn(_:Maybe[\V\]):Maybe[\V\] => Just[\V\](val()))
+                (append[\K,V\](AvlWithDepth[\K,V\](self.left,rd2ld(rd)),ll'),
+                 m,rr,rd2d(rd))
+        end
+    actOnKey(kk:K, action:Maybe[\V\]->Maybe[\V\]): (AvlWithDepth[\K,V\],ZZ32) =
+        typecase kk CMP key() of
+            LessThan =>
+                (ll,ld) = self.left.actOnKey(kk, action)
+                (nodeWithDepth[\K,V\](ll,key(),val(),
+                                    AvlWithDepth[\K,V\](self.right,ld2rd(ld))),
+                 ld2d(ld))
+            EqualTo =>
+                if vv <- action(Just[\V\](val())) then
+                    v = val()
+                    d = depth()
+                    if v SEQV vv then
+                        (self,d)
+                    else
+                        (replaceValue(v),d)
+                    end
+                else
+                    remove()
+                end
+            GreaterThan =>
+                (rr,rd) = self.right.actOnKey(kk, action)
+                (nodeWithDepth[\K,V\](AvlWithDepth[\K,V\](self.left,rd2ld(rd)),
+                                    key(),val(),rr),
+                 rd2d(rd))
+        end
+    rightRotation(d:ZZ32,kk:K,vv:V,rr:Avl[\K,V\]): AvlWithDepth[\K,V\]
+    leftRotation(d:ZZ32,ll:Avl[\K,V\],kk:K,vv:V): AvlWithDepth[\K,V\]
+    doubleRotation(d:ZZ32,ll:Avl[\K,V\],kl:K,vl:V,kk:K,vv:V,rr:Avl[\K,V\]): AvlWithDepth[\K,V\]
+end
+
+object LeftHigh[\K extends StandardTotalOrder[\K\],V\](l:AvlNode[\K,V\],k:K,v:V,r:Avl[\K,V\])
+        extends AvlNode[\K,V\]
+    sz : ZZ32 = 1 + |l| + |r|
+    getter left() : AvlNode[\K,V\] = l
+    getter right() : Avl[\K,V\] = r
+    getter key(): K = k
+    getter val(): V = v
+    getter depth() : ZZ32 = 2+r.depth()
+    opr |self| : ZZ32 = sz
+    ld2rd(ld:ZZ32): ZZ32 = ld-1
+    rd2ld(rd:ZZ32): ZZ32 = rd+1
+    ld2d(ld:ZZ32): ZZ32 = ld+1
+    rd2d(rd:ZZ32): ZZ32 = rd+2
+    d2ld(d:ZZ32): ZZ32 = d-1
+    d2rd(d:ZZ32): ZZ32 = d-2
+    replaceValue(vv:V): AvlNode[\K,V\] = LeftHigh[\K,V\](l,k,vv,r)
+    rightRotation(d:ZZ32,kk:K,vv:V,rr:Avl[\K,V\]): AvlWithDepth[\K,V\] =
+        AvlWithDepth[\K,V\](Balanced[\K,V\](l,k,v,Balanced[\K,V\](r,kk,vv,rr)),d)
+    leftRotation(d:ZZ32,ll:Avl[\K,V\],kk:K,vv:V): AvlWithDepth[\K,V\] =
+        l.doubleRotation(d,ll,kk,vv,k,v,r)
+    doubleRotation(d:ZZ32,ll:Avl[\K,V\],kl:K,vl:V,kk:K,vv:V,rr:Avl[\K,V\]):
+            AvlWithDepth[\K,V\] =
+        AvlWithDepth[\K,V\](Balanced[\K,V\](Balanced[\K,V\](ll,kl,vl,l),k,v,
+                                       RightHigh[\K,V\](r,kk,vv,rr)),
+                          d)
+end
+
+object Balanced[\K extends StandardTotalOrder[\K\],V\](l:Avl[\K,V\],k:K,v:V,r:Avl[\K,V\])
+        extends AvlNode[\K,V\]
+    sz : ZZ32 = 1 + |l| + |r|
+    getter left() : Avl[\K,V\] = l
+    getter right() : Avl[\K,V\] = r
+    getter key(): K = k
+    getter val(): V = v
+    getter depth() : ZZ32 = 1+r.depth()
+    opr |self| : ZZ32 = sz
+    ld2rd(ld:ZZ32): ZZ32 = ld
+    rd2ld(rd:ZZ32): ZZ32 = rd
+    ld2d(ld:ZZ32): ZZ32 = ld+1
+    rd2d(rd:ZZ32): ZZ32 = rd+1
+    d2ld(d:ZZ32): ZZ32 = d-1
+    d2rd(d:ZZ32): ZZ32 = d-1
+    replaceValue(vv:V): AvlNode[\K,V\] = Balanced[\K,V\](l,k,vv,r)
+    rightRotation(d:ZZ32,kk:K,vv:V,rr:Avl[\K,V\]): AvlWithDepth[\K,V\] =
+        AvlWithDepth[\K,V\](RightHigh[\K,V\](l,k,v,LeftHigh[\K,V\](r,kk,vv,rr)),d+1)
+    leftRotation(d:ZZ32,ll:Avl[\K,V\],kk:K,vv:V): AvlWithDepth[\K,V\] =
+        AvlWithDepth[\K,V\](LeftHigh[\K,V\](RightHigh[\K,V\](ll,kk,vv,l),k,v,r),d+1)
+    doubleRotation(d:ZZ32,ll:Avl[\K,V\],kk:K,vv:V,kr:K,vr:V,rr:Avl[\K,V\]):
+            AvlWithDepth[\K,V\] =
+        AvlWithDepth[\K,V\](Balanced[\K,V\](Balanced[\K,V\](ll,kk,vv,l),k,v,
+                                       Balanced[\K,V\](r,kr,vr,rr)),
+                          d)
+end
+
+object RightHigh[\K extends StandardTotalOrder[\K\],V\](l:Avl[\K,V\],k:K,v:V,r:AvlNode[\K,V\])
+        extends AvlNode[\K,V\]
+    sz : ZZ32 = 1 + |l| + |r|
+    getter left() : Avl[\K,V\] = l
+    getter right() : AvlNode[\K,V\] = r
+    getter key(): K = k
+    getter val(): V = v
+    getter depth() : ZZ32 = 1+r.depth()
+    opr |self| : ZZ32 = sz
+    ld2rd(ld:ZZ32): ZZ32 = ld+1
+    rd2ld(rd:ZZ32): ZZ32 = rd-1
+    ld2d(ld:ZZ32): ZZ32 = ld+2
+    rd2d(rd:ZZ32): ZZ32 = rd+1
+    d2ld(d:ZZ32): ZZ32 = d-2
+    d2rd(d:ZZ32): ZZ32 = d-1
+    replaceValue(vv:V): AvlNode[\K,V\] = RightHigh[\K,V\](l,k,vv,r)
+    rightRotation(d:ZZ32,kk:K,vv:V,rr:Avl[\K,V\]): AvlWithDepth[\K,V\] =
+        r.doubleRotation(d,l,k,v,kk,vv,rr)
+    leftRotation(d:ZZ32,ll:Avl[\K,V\],kk:K,vv:V): AvlWithDepth[\K,V\] =
+        AvlWithDepth[\K,V\](Balanced[\K,V\](Balanced[\K,V\](ll,kk,vv,l),k,v,r),d)
+    doubleRotation(d:ZZ32,ll:Avl[\K,V\],kl:K,vl:V,kk:K,vv:V,rr:Avl[\K,V\]):
+            AvlWithDepth[\K,V\] =
+        AvlWithDepth[\K,V\](Balanced[\K,V\](LeftHigh[\K,V\](ll,kl,vl,l),k,v,
+                                       Balanced[\K,V\](r,kk,vv,rr)),
+                          d)
+end
+
+singleton[\K,V\](k:K,v:V): AvlWithDepth[\K,V\] =
+    AvlWithDepth[\K,V\](Balanced[\K,V\](AvlEmpty[\K,V\],k,v,AvlEmpty[\K,V\]),1)
+
+empty[\K,V\](): AvlWithDepth[\K,V\] =
+    AvlWithDepth[\K,V\](AvlEmpty[\K,V\],0)
+
+nodeWithDepth[\K,V\](l0:AvlWithDepth[\K,V\],k:K,v:V,r0:AvlWithDepth[\K,V\]):
+  AvlWithDepth[\K,V\] = do
+    l = l0.tree()
+    r = r0.tree()
+    ld = l0.depth()
+    rd = r0.depth()
+    limbalance = ld - rd
+    case limbalance of
+        0 => AvlWithDepth[\K,V\](Balanced[\K,V\](l,k,v,r),ld+1)
+        -1 => AvlWithDepth[\K,V\](RightHigh[\K,V\](l,k,v,r),rd+1)
+        1 => AvlWithDepth[\K,V\](LeftHigh[\K,V\](l,k,v,r),ld+1)
+        -2 => r.leftRotation(rd,l,k,v)
+        2 => l.rightRotation(ld,k,v,r)
+        else =>
+            if limbalance > 0 then
+                fail("Too far to push left " limbalance
+                     " nwd(" l0 "," k "," v "," r0 ")")
+            else
+                fail("Too far to push right " limbalance
+                     " nwd(" l0 "," k "," v "," r0 ")")
+            end
+    end
+  end
+
+append[\K,V\](l0:AvlWithDepth[\K,V\], r0:AvlWithDepth[\K,V\]): AvlWithDepth[\K,V\] = do
+    ld = l0.depth()
+    rd = r0.depth()
+    if ld = 0 then
+        r0
+    elif rd = 0 then
+        l0
+    elif ld=rd then
+        l = l0.tree()
+        (ll,k,v,_) = l.extractLargest()
+        nodeWithDepth[\K,V\](ll,k,v,r0)
+    elif ld < rd then
+        r = r0.tree()
+        typecase r of
+            r':AvlNode[\K,V\] =>
+                nodeWithDepth[\K,V\](
+                    append[\K,V\](l0,AvlWithDepth[\K,V\](r'.left,r'.d2ld(rd))),
+                    r'.key(),r'.val(),
+                    AvlWithDepth[\K,V\](r'.right,r'.d2rd(rd)))
+        end
+    else
+        l = l0.tree()
+        typecase l of
+            l':AvlNode[\K,V\] =>
+                nodeWithDepth[\K,V\](
+                    AvlWithDepth[\K,V\](l'.left,l'.d2ld(ld)),
+                    l'.key(),l'.val(),
+                    append[\K,V\](AvlWithDepth[\K,V\](l'.right,l'.d2rd(ld)),r0))
+        end
+    end
+  end
+
+simpleInsDel(elts:List[\RR64\]):() = do
+    r : AvlWithDepth[\RR64,RR64\] = empty[\RR64,RR64\]()
+    (* Step 1: progressive insertion *)
+    for i <- seq(elts) do
+        (r_new,_) = r.tree().actOnKey(i, fn (_): Maybe[\RR64\] => Just[\RR64\](1.0 i))
+        try
+            r_new.check()
+        catch x
+            FailCalled =>
+                fail(x.s " generated by " elts[ # |r_new| ] )
+        end
+        r := r_new
+    end
+    assert( |r|, |elts|, "Size mismatch between ", r, " and ", elts)
+    print(".")
+    (* Step 2: Presence via lookup *)
+    for i <- elts do
+        l = r.tree().lookup(i)
+        assert(i IN l, true, "Bad key/value mapping ",l," for ",i,"\ncreated by ",elts)
+    end
+    (* Step 3: Absence via lookup *)
+    for _ <- 0 : |elts| do
+        k = random |elts|
+        l = r.tree().lookup(k)
+        assert(k IN l AND: NOT (k IN elts),false,
+               "Spurious key ",k," found in ",r,"\ncreated by ",elts)
+    end
+    (* Step 4: Presence via splitting, re-appending *)
+    rDepth = r.depth()
+    for i <- elts do
+        (ll,mv,rr,d) = r.tree().splitAt(i)
+        assert(d,rDepth," split depth wrong")
+        assert(i IN mv, true,"Split at ",i," without discovery ",(ll,mv,rr))
+        ll.check()
+        rr.check()
+        append(ll,rr).check()
+    end
+    (* Step 5: Absence via splitting, re-appending *)
+    for _ <- 0 : |elts| do
+        k = random |elts|
+        (ll,mv,rr,d) = r.tree().splitAt(k)
+        assert(d,rDepth," split depth wrong")
+        assert(k IN mv AND: NOT (k IN elts),false,
+               "Spurious key ",k," found in split ",(ll,mv,rr))
+        ll.check()
+        rr.check()
+        append(ll,rr).check()
+    end
+    (* Step n: Progressive deletion *)
+    for i <- seq(elts) do
+        (r_new,_) = r.tree().actOnKey(i, fn(x:Maybe[\RR64\]):Maybe[\RR64\] => Nothing[\RR64\])
+        try
+            r_new.check()
+        catch x
+            FailCalled =>
+                fail(x.s // " generated by " elts //
+                     " and then removing " elts[ #(|elts| - |r_new|) ] //
+                     " last removal from " r)
+        end
+        r := r_new
+    end
+    assert( |r|, 0, "Non-empty ", r, " after deletion of ", elts)
+  end
+
+test withOrderedData():() = do
+    simpleInsDel( <|[\RR64\] |>)
+    simpleInsDel( <|[\RR64\] 17.0 |> )
+    simpleInsDel( <|[\RR64\] 1.0, 2.0|> )
+    simpleInsDel( <|[\RR64\] 1.0, 2.0, 3.0|> )
+    simpleInsDel( <|[\RR64\] 1.0, 2.0, 3.0, 4.0, 5.0|> )
+    simpleInsDel( <|[\RR64\] 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0|> )
+  end
+
+test withReversedData():() = do
+    simpleInsDel( <|[\RR64\] 7.0, 6.0|> )
+    simpleInsDel( <|[\RR64\] 7.0, 6.0, 5.0|> )
+    simpleInsDel( <|[\RR64\] 7.0, 6.0, 5.0, 4.0, 3.0|> )
+    simpleInsDel( <|[\RR64\] 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0|> )
+  end
+
+test withRandomData():() =
+    for n <- <|3,5,7|> do
+        for t <- 0#(2 n) do
+            simpleInsDel( <|[\RR64\] random(n) | i <- 0#n |> )
+        end
+    end
+
+run():() = ()
+
+end
