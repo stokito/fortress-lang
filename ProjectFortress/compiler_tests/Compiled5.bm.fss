@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled5.bm
+export Executable
+
+f() = g()
+g() = 0
+i() = Foo.m1()
+j() = Foo.m2()
+k() = m3(Foo)
+
+object Foo
+  m1() = f()
+  m2() = 0
+  m3(self) = f()
+end
+
+run() = ()
+
+end

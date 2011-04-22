@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+
+  foo() : () = do
+    var o : ZZ32
+
+    o := (object extends { ZZ32 }
+            foo() : ZZ32 = self + self
+          end).foo() (* Should fail. o has ZZ32 type, not anonymous  *)
+
+  end
+
+  run():() = ()

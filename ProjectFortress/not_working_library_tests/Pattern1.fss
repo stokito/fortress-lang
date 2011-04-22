@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Pattern1
+export Executable
+
+(*) Test pattern matching
+
+foo(x:(y:ZZ32, z:ZZ32)): ZZ32 = y+z
+
+run(): () = do
+  println(foo((3,4)))
+end
+
+end

@@ -1,0 +1,88 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Regions}
+\seclabel{regions}
+
+Every thread (either explicit or implicit) and every object in Fortress,
+and every element of a Fortress array (the physical storage for that array
+element), has an associated \emph{region}.
+The Fortress libraries provide a function \VAR{region}
+which returns the region in which a given object resides.
+Regions abstractly describe the structure of
+the machine on which a Fortress program is running.  They are
+organized hierarchically to form a tree, the \emph{region hierarchy},
+reflecting in an abstract way the degree of locality which those
+regions share.  The distinguished region \TYP{Global} represents the root
+of the region hierarchy.\footnote{Note: the initial implementation of the Fortress language assumes a single machine with shared memory and exposes only the \TYP{Global} region.}
+The different levels of this tree reflect underlying
+machine structure, such as execution engines within a CPU, memory
+shared by a group of processors, or resources distributed across the
+entire machine.  The function \EXP{\VAR{here}()} returns the region in which execution is currently occurring.  Objects which reside in regions near the leaves of
+the tree are local entities; those which reside at higher levels of
+the region tree are logically spread out.
+The method call
+\EXP{r.\VAR{isLocalTo}(s)} returns \VAR{true} if \VAR{r} is contained
+within the region tree rooted at \VAR{s}.
+
+It is important to understand that regions and the structures
+(such as distributions, \secref{distributions})
+ built on top of them exist
+purely for performance purposes.  The placement of a thread or an
+object does not have any semantic effect on the meaning of a program;
+it is simply an aid to enable the implementation to make informed
+decisions about data placement.
+
+It might not be possible for an object or a thread to reside in a given
+region.  Threads of execution reside at the \emph{execution level} of
+the region hierarchy, generally the bottommost level in the region
+tree.  Each thread is generally associated with some region at the
+execution level, indicating where it will preferentially be run.
+The programmer can affect the choice of region by using an \KWD{at}
+expression (\secref{parallelism-fundamentals}) when the thread is
+created.  A thread may have an associated region which is not at
+the execution level of the region hierarchy, either because a higher
+region was requested with an \KWD{at} expression or because scheduling
+decisions permit the thread to run in several possible execution
+regions.  The region to which a thread is assigned may also change
+over time due to scheduling decisions.
+For the object associated with a spawned thread,
+the \VAR{region} function provided by the Fortress libraries
+returns the region of the associated thread.
+
+
+The \emph{memory level} of the region hierarchy is where individual
+reference objects reside; on a machine with nodes composed of multiple
+processor cores sharing a single memory, this generally will not be a
+leaf of the region hierarchy.
+Imagine a constructor for a reference
+object is called by a thread residing in region \VAR{r}, yielding an
+object \VAR{o}.  Except in very rare circumstances (for example when a
+local node is out of memory) either
+%r.isLocalTo(region(o))
+\EXP{r.\VAR{isLocalTo}(\VAR{region}(o))} or
+%region(o).isLocalTo(r)
+\EXP{\VAR{region}(o).\VAR{isLocalTo}(r)} ought to hold: data is
+allocated locally to the thread which runs the constructor.  For a value object
+\VAR{v} being manipulated by a thread residing in region \VAR{r} either
+%region(v).isLocalTo(r)
+\EXP{\VAR{region}(v).\VAR{isLocalTo}(r)} or
+%r.isLocalTo(region(v))
+\EXP{r.\VAR{isLocalTo}(\VAR{region}(v))}
+(value objects always appear to be local).
+
+Note that \VAR{region} is a top-level function provided by the Fortress libraries
+and can be overridden by any functional method.
+The chief example of this is arrays, which are
+generally composed from many reference objects; the \VAR{region} function
+can be
+overridden to return the location of the array as a
+whole---the region which contains all of its constituent reference objects.

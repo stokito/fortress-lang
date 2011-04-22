@@ -1,0 +1,33 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\note{This sticks out like a sore thumb in this chapter.  Can we find a
+ happier home for it?  It seems like it really belongs in the
+ introductory material.}
+
+Different implicit threads (even different iterations of the same loop
+body) may execute in very different amounts of time.  A naively
+parallelized loop will cause processors to idle until every iteration
+finishes.  The simplest way to mitigate this delay is to expose
+substantially more parallel work than the number of underlying
+processors available to run them.  Load balancing can move the
+resulting (smaller) units of work onto idle processors to balance
+load.
+
+The ratio between available work and number of threads is called
+\emph{parallel slack}~\cite{blumofe,CilkSched}.
+With support for very lightweight
+threading and load balancing, 
+slack in hundreds or thousands (or more) proves beneficial; 
+very slack computations easily adapt to differences in the
+number of available processors.  Slack is a desirable property, and
+the Fortress programmer should endeavor to expose parallelism where
+possible.

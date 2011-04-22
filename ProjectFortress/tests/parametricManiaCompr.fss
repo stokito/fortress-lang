@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component parametricManiaCompr
+import PrefixSet.{...}
+import List.{...}
+export Executable
+
+(* Checks for comprehension parsing bug caught by James Cranch, that caused
+   failure specifically on bracketmania brackets. *)
+
+trait A extends StandardTotalOrder[\A\]
+    opr =(self, other:A): Boolean = true
+    opr <(self, other:A): Boolean = false
+end
+object B extends A end
+
+foo(xs: PrefixSet[\A,List[\A\]\]) = ()
+
+run() = do
+    xs = <|<|[\A\]|>, <|[\A\] B|>, <|[\A\] B, B|>|>
+    ps = {/[\A,List[\A\]\] x | x <- xs /}
+    foo(ps)
+    assert(|ps|, 3)
+  end
+
+end
