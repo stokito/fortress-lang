@@ -10,7 +10,7 @@
 	<classpathentry kind="lib" path="ProjectFortress/third_party/ant/ant.jar"/>
 	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="ProjectFortress/third_party/asm/asm-all-3.1.jar" sourcepath="ProjectFortress/third_party/asm/asm-3.1.src.zip"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/asm/asm-all-3.1.jar" sourcepath="ProjectFortress/third_party/asm/asm-src-3.1.zip"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/ant/ant-junit.jar"/>
 	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derby.jar"/>

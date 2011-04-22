@@ -530,14 +530,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // Begin with a class
         cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER, name, null, superClass, null);
 
-//        // Static field closure of appropriate arrow type.
-//        fv = cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, "closure", field_desc, null, null);
-//        fv.visitEnd();
-
-        // Class init allocates a singleton and initializes previous field
-//        mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
-//        mv.visitCode();
-        
         statics.add(new InitializedStaticField() {
 
             @Override
@@ -783,6 +775,29 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         mv.visitEnd();
     }
     
+    /**
+     * Creates the interface for an Arrow type.  An Arrow interface includes
+     * 2 or 3 methods.  One is the simple domain-to-range "apply", where domain
+     * is the determined by the parameters of the generic, taken as is.
+     * The next "apply" method replaces all types in the domain and range
+     * with java/lang/Object, for use in certain contexts (coerced arrows
+     * for casts, also for dynamically instantiated generic functions).  The
+     * third apply method is generated if there is more than parameter to the
+     * function, in which case the parameters are wrapped in a tuple.
+     * For example, Arrow[\T;U;V\] will have the apply methods (ignore
+     * both Fortress and JVM dangerous characters mangling issues for now):
+     * 
+     * apply(LT;LU;)LV;
+     * 
+     * apply(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     * 
+     * apply(LTuple[\T;U\];)LV
+     * 
+     * @param name
+     * @param parameters
+     * @return
+     */
+    
     private static byte[] instantiateArrow(String name, List<String> parameters) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         
@@ -939,6 +954,17 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String t = unwrapped_parameters.get(i);
             if (!t.equals(Naming.INTERNAL_SNOWMAN)) {
                 mv.visitVarInsn(ALOAD, i+1);
+            } else {
+                /* we are calling the object-interface version of this,
+                 * we need something on the stack, or else it will fail.
+                 * 
+                 * This is also a naming/refactoring FAIL; this information
+                 * needs to come from somewhere else.
+                */
+                mv.visitInsn(Opcodes.ACONST_NULL);
+//                mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+//                        Naming.runtimeValues + "FVoid", "make",
+//                        "()L" + Naming.runtimeValues + "FVoid" + ";");
             }
         }
 

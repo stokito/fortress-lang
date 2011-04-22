@@ -851,11 +851,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          */
         final int variance;
         
-        /** True if this node or any of its descendants
-         *  is generic (is a VarType).
-         */
-        final boolean hasGeneric;
-        final boolean hasVariantGeneric;
+        final Set<String> variantGenericsContained;
+        final Set<String> invariantGenericsContained;
         
         /**
          * If true, then the type in question is an object, and a faster type
@@ -866,7 +863,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         
         public TS(String fullname, String stem, TS[] parameters,
                 int localIndex, int successorIndex, int variance,
-                boolean hasGeneric, boolean hasVariantGeneric, boolean isObject) {
+                Set<String> invariantGenericsContained, Set<String> variantGenericsContained, boolean isObject) {
             super();
             this.fullname = fullname;
             this.stem = stem;
@@ -874,16 +871,16 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             this.localIndex = localIndex;
             this.successorIndex = successorIndex;
             this.variance = variance;
-            this.hasGeneric = hasGeneric;
-            this.hasVariantGeneric = hasVariantGeneric;
+            this.invariantGenericsContained = invariantGenericsContained;
+            this.variantGenericsContained = variantGenericsContained;
             this.isObject = isObject;
         }
-        
-        void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast) {
-            if (!hasGeneric) {
-                emitInstanceOfNG(mv, if_fail, value_cast);
-
-            } else if (!hasVariantGeneric) {
+        void emitInstanceOf(MethodVisitor mv, Label if_fail) {
+            emitInstanceOf(mv, if_fail, true, invariantGenericsContained);
+        }
+        void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast, Set<String> top_level_invariants) {
+            invariantGenericsContained.removeAll(top_level_invariants);
+            if (variantGenericsContained.size() == 0) {
                 /*
                  *  Note that in cases where all instances of the generic are
                  *  invariant, the inferred type is the answer, and simple
@@ -932,7 +929,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         Naming.staticParameterGetterName(stem, i);
                     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, stem, method_name, Naming.STATIC_PARAMETER_GETTER_SIG);
                     // get parameter
-                    p.emitInstanceOf(mv, if_fail, false);
+                    p.emitInstanceOf(mv, if_fail, false, top_level_invariants);
                     i++;
                 }
 
@@ -984,8 +981,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         TS[] parameters = null;
         int[] variances = null;
         List<Type> type_elements = null;
-        boolean hasGeneric = false;
-        boolean hasVariantGeneric = false;
+        Set<String> invariantGenericsContained = Collections.<String>emptySet();
+        Set<String> variantGenericsContained = Collections.<String>emptySet();
         boolean isVarType = false;
         boolean isObject = false;
         
@@ -1039,9 +1036,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         } else if (t instanceof VarType) {
             VarType tt = (VarType) t;
             Id tt_id = tt.getName();
-            hasGeneric = true;
-            if (variance != 0)
-                hasVariantGeneric = true;
+            if (variance != 0) {
+                variantGenericsContained = Collections.<String>singleton(tt_id.getText());
+            } else {
+                invariantGenericsContained = Collections.<String>singleton(tt_id.getText());
+            }
             stem = NamingCzar.jvmClassForToplevelTypeDecl(tt_id,"",ifNone);
             isVarType = true;
             
@@ -1062,25 +1061,43 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             parameters = new TS[type_elements.size()];
             int i = 0;
             int next_index = storeAtIndex+1;
+            HashSet<String> temp_var = new HashSet<String>();
+            HashSet<String> temp_invar = new HashSet<String>();
             for (Type tt : type_elements) {
                 TS ts = makeTypeStructure(tt, spmap, variances[i], next_index);
-                if (ts.hasGeneric)
-                    hasGeneric = true;
-                if (ts.hasVariantGeneric)
-                    hasVariantGeneric = true;
+                temp_var.addAll(ts.variantGenericsContained);
+                temp_invar.addAll(ts.invariantGenericsContained);
                 parameters[i++] = ts;
                 next_index = ts.successorIndex;
             }
             // if no generics, then no sub-evaluation
+            boolean hasGeneric = false;
+            
+            /* BECAUSE OF STATIC CHECKING, an invariant use of a static
+             * parameter guarantees that we know the type -- no inference
+             * will be necessary. (do we really believe this?)
+             * 
+             * Removing invariants from the set gives us an approximation of
+             * what we will need to dynamically compute, or not.  Other context
+             * may remove other things.
+             */
+            temp_var.removeAll(temp_invar);
+            if (temp_var.size() > 0) {
+                variantGenericsContained = temp_var;
+                hasGeneric = true;
+            }
+            if (temp_invar.size() > 0) {
+                invariantGenericsContained = temp_invar;
+            }
             if (! hasGeneric)
                 next_index = storeAtIndex+1;
-            return new TS(fullname, stem, parameters, storeAtIndex, next_index, variance, hasGeneric, hasVariantGeneric, isObject);
+            return new TS(fullname, stem, parameters, storeAtIndex, next_index, variance, invariantGenericsContained, variantGenericsContained, isObject);
         } else if (isVarType) {
-            TS x = new TS(fullname, null, parameters, storeAtIndex, storeAtIndex+1, variance, hasGeneric, hasVariantGeneric, isObject);
+            TS x = new TS(fullname, null, parameters, storeAtIndex, storeAtIndex+1, variance, invariantGenericsContained, variantGenericsContained, isObject);
             spmap.putItem(stem, x);
             return x;
         } else { 
-            return new TS(fullname, stem, parameters, storeAtIndex, storeAtIndex+1, variance, hasGeneric, hasVariantGeneric, isObject);
+            return new TS(fullname, stem, parameters, storeAtIndex, storeAtIndex+1, variance, invariantGenericsContained, variantGenericsContained, isObject);
         }        
     }
 
@@ -1147,7 +1164,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         // Load actual parameter
                         mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
                         
-                        f_type_structures[j].emitInstanceOf(mv, lookahead, true);
+                        f_type_structures[j].emitInstanceOf(mv, lookahead);
                         
 //                        // Check type
 //                        InstantiatingClassloader.generalizedInstanceOf(mv,
