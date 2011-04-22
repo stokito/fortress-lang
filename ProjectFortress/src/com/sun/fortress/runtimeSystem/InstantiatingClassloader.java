@@ -90,9 +90,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     public static JarOutputStream SAVE_EXPANDED_JAR = null;
     static {
         try {
-            SAVE_EXPANDED_JAR = new JarOutputStream(new BufferedOutputStream( new FileOutputStream(SAVE_EXPANDED_DIR + "/" + "expanded.jar")));
+            if (SAVE_EXPANDED_DIR != null)
+                SAVE_EXPANDED_JAR = new JarOutputStream(new BufferedOutputStream( new FileOutputStream(SAVE_EXPANDED_DIR + "/" + "expanded.jar")));
         } catch (IOException ex) {
-            
+            System.err.println("Failed to open jar file in " + SAVE_EXPANDED_DIR + " for expanded bytecodes");
         }
     }
     
@@ -101,7 +102,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             try {
                 SAVE_EXPANDED_JAR.close();
             } catch (IOException e) {
-                System.err.println("Failed to close jar file for expanded bytecodes");
+                System.err.println("Failed to close jar file in " + SAVE_EXPANDED_DIR + " for expanded bytecodes");
             }
         }
     }
