@@ -589,7 +589,30 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     }
 
-    /** Create forwarding method that re-pushes its arguments and
+    /**
+     * Emits a forwarding method.
+     * 
+     * Cases:
+     * apply static, target static
+     * apply instance, target static
+     * apply instance, target instance
+     * 
+     * @param cw Classwriter that will write the forwarding method
+     * @param thisName       name of the generated (forwarding) method
+     * @param thisModifiers  modifiers for the generated (forwarding) method
+     * @param selfIndex      index of the self parameter, if any
+     * @param fwdClass       class for the target method
+     * @param fwdName        name of the target method
+     * @param fwdOp          the appropriate INVOKE opcode for the forward
+     * @param maximalSig     the signature of the generated (forwarding) method
+     * @param selfCastSig    a full signature containing self at selfIndex
+     * @param nparamsIncludingSelf number of parameters, including self (if any)
+     * @param pushSelf       if true, push self first, using selfIndex to find it
+     * @param forceCastParam0 cast param 0, even if it is not self.  This is for
+     *                        implementation of generic methods.  It may need
+     *                        to be generalized to all params, not entirely sure.
+     * 
+     * Create forwarding method that re-pushes its arguments and
      * chains to another method in another class.
      * When selfIndex == -1, all arguments are pushed exactly in the order given,
      * and the input and output signatures are assumed to be the same (so this can
@@ -642,8 +665,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                                         int nparamsIncludingSelf, boolean pushSelf, String forceCastParam0) {
         String selfSig = null;
         if (pushSelf) {
-            selfSig = Naming.nthSigParameter(selfCastSig, selfIndex);
-            selfSig = selfSig.substring(1, selfSig.length()-1);
+            if (selfCastSig != null) {
+                selfSig = Naming.nthSigParameter(selfCastSig, selfIndex);
+                selfSig = selfSig.substring(1, selfSig.length()-1);
+            }
             if ((thisModifiers & ACC_STATIC) != 0) {
                 if (fwdOp != INVOKESTATIC) {
                     // receiver has explicit self, fwd is dotted.
@@ -673,7 +698,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         if (pushSelf) {
             mv.visitVarInsn(ALOAD, selfIndex);
-            mv.visitTypeInsn(CHECKCAST, selfSig);
+            if (selfSig != null)
+                mv.visitTypeInsn(CHECKCAST, selfSig);
             if (fwdOp == INVOKESTATIC)
                 parsed_arg_cursor++;
         }
