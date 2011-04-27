@@ -11,6 +11,8 @@
 
 package com.sun.fortress.scala_src.types
 
+import _root_.java.util.{List => JavaList}
+import _root_.edu.rice.cs.plt.tuple.{Option => JavaOption}
 // import com.sun.fortress.compiler.index._
 import com.sun.fortress.compiler.index.ApiIndex
 import com.sun.fortress.compiler.index.ComponentIndex
@@ -453,6 +455,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def extend(params: List[StaticParam], where: Option[WhereClause]) =
     new TypeAnalyzer(traits, env.extend(params, where))
   
+  def extendJ(params: JavaList[StaticParam], where: JavaOption[WhereClause]) =
+      new TypeAnalyzer(traits, env.extend(toList(params), toOption(where)))
   
   def pTrue()(implicit negate: Boolean) = 
     if (negate) False else True
