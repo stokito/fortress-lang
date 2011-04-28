@@ -194,6 +194,12 @@ public class StaticChecker {
                     return new TypeCheckerResult(ast,errors);
             }
 
+            // Pass 'false' argument to TypeNormalizer constructor to indicate that 
+            // additional bounds should not be added to naked type parameters that also 
+            // appear naked in the comprises clause. (That conversion is now done in
+            // PreDisambiguationDesugarPhase, in order to correct a bug in checking
+            // that static arguments satisfy the corresponding parameters' bounds.
+            // EricAllen 4/27/2011
             ast = (CompilationUnit)ast.accept(new TypeNormalizer());
             index = buildIndex(ast, isApi);
 
@@ -238,6 +244,12 @@ public class StaticChecker {
                 }
                 index = componentIndex;
             }
+            // Pass 'false' argument to TypeNormalizer constructor to indicate that 
+            // additional bounds should not be added to naked type parameters that also 
+            // appear naked in the comprises clause. (That conversion is now done in
+            // PreDisambiguationDesugarPhase, in order to correct a bug in checking
+            // that static arguments satisfy the corresponding parameters' bounds.
+            // EricAllen 4/27/2011
             result.setAst(result.ast().accept(new TypeNormalizer()));
             // There should be no Inference vars left at this point
             if( errors.isEmpty() && STypesUtil.assertAfterTypeChecking(result.ast()) )

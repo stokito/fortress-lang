@@ -355,4 +355,9 @@ random(i:RR64): RR64 = jRandomDouble(i)
 randomZZ32(x:ZZ32): ZZ32 = jRandomInt(0,x)
 *)
 
+(************************************************************
+* Matrices (stub)
+************************************************************)
+trait Matrix[\T, nat s0, nat s1\] extends Object end
+
 end

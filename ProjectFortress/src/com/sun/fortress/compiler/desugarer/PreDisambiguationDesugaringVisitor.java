@@ -26,6 +26,8 @@ import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.compiler.WellKnownNames;
+import com.sun.fortress.compiler.typechecker.TypeNormalizer;
+import com.sun.fortress.compiler.typechecker.SelfTypeBoundsInserter;
 import com.sun.fortress.useful.Iter;
 import com.sun.fortress.useful.Useful;
 
@@ -68,6 +70,9 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                                       ExprInfo info,
                                       TraitTypeHeader header,
                                       Option<SelfType> selfType) {
+    	SelfTypeBoundsInserter bi = new SelfTypeBoundsInserter();
+    	that = (ObjectExpr)that.accept(bi);
+    	header = (TraitTypeHeader)header.accept(bi);
         Span span = NodeUtil.getSpan(that);
         List<TraitTypeWhere> extendsClause = rewriteExtendsClause(that, header.getExtendsClause());
         header = NodeFactory.makeTraitTypeHeader(NodeFactory.makeId(span,"_"),
@@ -78,6 +83,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
 
     @Override
         public Node forTraitDecl(TraitDecl that) {
+    	that = (TraitDecl)that.accept(new SelfTypeBoundsInserter());
         TraitTypeHeader header_result = (TraitTypeHeader) recur(that.getHeader());
         List<BaseType> excludesClause_result = recurOnListOfBaseType(that.getExcludesClause());
         Option<List<NamedType>> comprisesClause_result = recurOnOptionOfListOfNamedType(that.getComprisesClause());
@@ -95,6 +101,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
 
     @Override
         public Node forObjectDecl(ObjectDecl that) {
+    	that = (ObjectDecl)that.accept(new SelfTypeBoundsInserter());
         TraitTypeHeader header_result = (TraitTypeHeader) recur(that.getHeader());
         Option<List<Param>> params_result = recurOnOptionOfListOfParam(NodeUtil.getParams(that));
         header_result = NodeFactory.makeTraitTypeHeader(header_result,
