@@ -18,15 +18,17 @@ export ComparisonLibrary
  Moreover, uses of algebraic traits that use the self-type idiom are commented out.
  *******)
 
-(*) trait Equality[\Self\] comprises Self
-(*)     opr =(self, other:Self): Boolean = self SEQV other
-(*) end
+trait SnerdEquality[\Self\] comprises Self
+    opr =(self, other:Self): Boolean = self SEQV other
+end
 
-(*) opr =/=[\T extends Equality[\T\]\](a: T, b: T) = NOT (a = b)
+opr =/=[\T extends SnerdEquality[\T\]\](a: T, b: T) = NOT (a = b)
 
 trait Comparison
 (*)        extends { StandardPartialOrder[\Comparison\] }
+          extends { SnerdEquality[\Comparison\] }
         comprises { Unordered, TotalComparison }
+    getter asString(): String = "Comparison"
     (*) Default opr = is suitable for Comparison
     (** Lexicographic ordering.  An associative operator.
         Leftmost non-equal comparison dictates result. *)
@@ -38,9 +40,9 @@ trait Comparison
         and associative operator. *)
     opr SQCAP(self, other:Comparison): Comparison = Unordered
     opr SQCAP(self, other:()->Comparison): Comparison = self SQCAP other()
-    opr CONVERSE(self): Comparison
+    opr CONVERSE(self): Comparison = Unordered
     (*) This stuff ought to be provided by Equality[\Comparison\].
-    opr =(self, other:Comparison): Boolean = (self === other)
+(*)    opr =(self, other:Comparison): Boolean = (self === other)
     (*) This stuff ought to be provided by StandardPartialOrder[\Comparison\].
     opr CMP(self, other:Comparison): Comparison =
         if self < other then LessThan
@@ -69,6 +71,7 @@ trait TotalComparison
 (*)     extends { Comparison, StandardTotalOrder[\TotalComparison\] }
         extends { Comparison }
         comprises { LessThan, EqualTo, GreaterThan }
+    getter asString(): String = "TotalComparison"
     (* We're both a partial order (including Unordered) and a total
        order (TotalComparison alone).  Avoid ambiguity between the
        default definitions of CMP and >=. *)
@@ -85,7 +88,7 @@ trait TotalComparison
         if self=EqualTo then other else self end
     opr LEXICO(self, other:()->TotalComparison): TotalComparison =
         if self=EqualTo then other() else self end
-    opr CONVERSE(self): TotalComparison
+    opr CONVERSE(self): TotalComparison = EqualTo
 end
 
 object LessThan extends TotalComparison

@@ -193,8 +193,8 @@ maintain proper indentation.
                    compileCommon, compileCommonLint, compileLint, doc,
                    grammarCoverage, help, init, interpreter-jar,
                    makeAST, operatorsGen, fortressparser, preparser,
-                   parser, reportNotPassing, systemProperties, test,
-                   testAll, testDemos, testSystem, testOnly
+                   parser, reportNotPassing, systemProperties, test, testAll,
+                   testCompiler, testDemos, testSystem, testOnly, testOtherCompiler,
                    -DtestPattern='some pattern', testCruiseControl"/>
     <echo message="If you are building Fortress, you want ant compile or ant test."/>
   </target>
@@ -767,6 +767,31 @@ maintain proper indentation.
       <batchtest fork="true" todir="${test.results}">
         <fileset dir="${build}">
           <include name="**/CompilerJUTest.class"/>
+          <include name="**/OtherCompilerJUTest.class"/>
+        </fileset>
+      </batchtest>
+    </junit>
+    <delete dir="${PF}/test-tmp" />
+    <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+  </target>
+
+  <target name ="testOtherCompiler" depends="cleanCache, compile"
+          description="Test the native code generator on other_compiler_tests">
+    <mkdir dir="${test.results}"/>
+    <mkdir dir="${PF}/test-tmp" />
+    <junit printsummary="on"
+           haltonerror="off"
+           haltonfailure="off"
+           showoutput="yes"
+           fork="true"
+           maxmemory="${junitMem}"
+           errorProperty="tests.failed"
+           failureProperty="tests.failed">
+      <classpath refid="compile.classpath"/>
+      <jvmarg value="-Djava.io.tmpdir=${PF}/test-tmp" />
+      <formatter type="plain" usefile="true"/>
+      <batchtest fork="true" todir="${test.results}">
+        <fileset dir="${build}">
           <include name="**/OtherCompilerJUTest.class"/>
         </fileset>
       </batchtest>

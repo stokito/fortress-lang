@@ -11,9 +11,17 @@
 
 api ComparisonLibrary
 
+trait SnerdEquality[\Self\] comprises Self
+    opr =(self, other:Self): Boolean
+end
+
+opr =/=[\T extends SnerdEquality[\T\]\](a: T, b: T): Boolean
+
 trait Comparison
 (*)        extends { StandardPartialOrder[\Comparison\] }
+           extends { SnerdEquality[\Comparison\] }
         comprises { Unordered, TotalComparison }
+    getter asString(): String
     (** Lexicographic ordering.  An associative operator.
         Leftmost non-equal comparison dictates result. *)
     opr LEXICO(self, other:Comparison): Comparison
@@ -24,7 +32,7 @@ trait Comparison
     opr SQCAP(self, other:()->Comparison): Comparison
     opr CONVERSE(self): Comparison
     (*) This stuff ought to be provided by Equality[\Comparison\].
-    opr =(self, other:Comparison): Boolean
+(*)    opr =(self, other:Comparison): Boolean
     (*) This stuff ought to be provided by StandardPartialOrder.
     opr CMP(self, other:Comparison): Comparison
     opr <(self, other:Comparison): Boolean
@@ -41,6 +49,7 @@ trait TotalComparison
 (*)     extends { Comparison, StandardTotalOrder[\TotalComparison\] }
         extends { Comparison }
         comprises { LessThan, EqualTo, GreaterThan }
+    getter asString(): String
     opr LEXICO(self, other:TotalComparison): TotalComparison
     opr LEXICO(self, other:()->TotalComparison): TotalComparison
     opr CMP(self, other:TotalComparison): TotalComparison
