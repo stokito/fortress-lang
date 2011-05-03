@@ -1,0 +1,36 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2008,2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+TP=third_party
+SCALAVER=2.7.4
+
+if (uname | egrep -q CYGWIN) ; then
+  CP="build;$TP/junit/junit.jar;$TP/unsigned/unsigned.jar;$TP/asm/asm-all-3.1.jar;$TP/xtc/xtc.jar;$TP/jsr166y/jsr166y.jar;$TP/plt/plt.jar;$TP/astgen/astgen.jar;$TP/scala/scala-library-$SCALAVER.jar"
+else
+  CP="build:$TP/junit/junit.jar:$TP/unsigned/unsigned.jar:$TP/asm/asm-all-3.1.jar:$TP/xtc/xtc.jar:$TP/jsr166y/jsr166y.jar:$TP/plt/plt.jar:$TP/astgen/astgen.jar:$TP/scala/scala-library-$SCALAVER.jar"
+fi
+echo classpath=$CP
+
+TEST=com.sun.fortress.tests.unit_tests.SystemJUTest
+
+if [ $# -ge 1 ] ; then
+  TEST="$1"
+  TEST=`echo "$TEST" | sed -e '1,\$s?/?.?g'`
+  echo Testing "$TEST"
+  java -cp "$CP" -Xmx800m -Xms400m \
+  junit.swingui.TestRunner "$TEST" >& test.log
+
+else
+  java -cp "$CP" -Xmx800m -Xms400m \
+  junit.swingui.TestRunner "$TEST" >& test.log
+fi

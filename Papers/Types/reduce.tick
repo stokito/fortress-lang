@@ -1,0 +1,119 @@
+We can use this non-equivalence judgement to define a reduction on existential
+types. The reduction judgment (defined in Figure~\ref{fig:exred}) replaces an
+existential type with an equivalent one (under subtyping) that
+hopefully binds fewer type parameters over the constituent type. Reducing an
+existential type by analyzing its binding type parameters involves the same 
+kind of type analysis required in other languages 
+for type checking generalized algebraic data 
+types \cite{simonet07,jones09}.
+
+Then, with existential reduction, we can add the following subtyping rule for
+existential types in order to take advantage of polymorphic exclusion
+information.
+\infrule
+  {\jtred{\delta}{\delta'} \andalso \jqsub{\delta'}{T}}
+  {\jqsub{\delta}{T}}
+
+Then, with existential reduction, we can add the following subtyping rule for
+existential types in order to take advantage of polymorphic exclusion
+information.
+\infrule
+  {\jtred{\delta}{\delta'} \andalso \jqsub{\delta'}{T}}
+  {\jqsub{\delta}{T}}
+
+The reduction judgment $\;\jtreds{\delta}{\delta'}{\phi}\;$ says that the existential type $\delta = \exttype{T}$ reduces to $\delta' = \exttype[\Delta']{T'}$ with the substitution $\phi$ (when the substitution is unnecessary we omit it) under the assumption that $T$ is not equivalent to \BottomType; or, if $T$ is equivalent to \BottomType, the reduced existential $\delta'$ is \BottomType. As an example, consider the following instance of reduction %
+\[ `EXISTS[\X <: String, Y <: Any\](ArrayList[\X\] CAP List[\Y\])` \]
+\[ \eqred \]
+\[ `EXISTS[\Z <: String\]ArrayList[\Z\]` \] %
+with substitution $[X/Y]$. We first check under what constraints $\C$ the intersection `ArrayList[\X\] CAP List[\Y\]` is not equivalent to \BottomType: with polymorphic exclusion (specifically, the absence of multiple instantiation inheritance) we know that `ArrayList[\X\]` excludes `List[\Y\]`, which would make their intersection equivalent to \BottomType, unless $X \equiv Y$ is true. Solving the constraint $X \equiv Y$ yields a type substitution like $\phi = [Z/X,\, Z/Y]$. The judgment $\phi(\Delta) = \Delta'$ lets us construct reduce bounds from $\phi$ and the old bounds. To do this we first partition $\phi(\Delta)$ into list of type variables $\bar{Y}$ and a list of other types $\bar{U}$. In our example $\phi(X, Y) = Z$ gets partitioned into $Z$ and nothing. Then we need to construct a new bound $\phi^{-1}(Y_i, \Delta)$ for each $Y_i$ in $\bar{Y}$ by conjoining the bounds for every type variable in $\varphi^{-1}(Y)$. In our example $X$ and $Y$ map to $Z$ so the bound for $Z$ is $Any, String$. This everything we need to construct a new bounds environment $\Delta'$. To be sure that we haven't lost any information we need to be sure that $\Delta' \vdash \phi(\bar{X}) <: \phi{\bar{M}}$. In our example $Z <: String, Any$ easily proves that $Z <: String$ and $Z <: Any$. After we have $\Delta'$ the reduced existential type is just $\exists\ob{\Delta}\phi(T)$ where $T$ is the constituent type of the original existential. In our example we get `EXISTS[\Z <: String\]ArrayList[\Z\]`.
+
+Once we have augmented the rules in this way we can prove the overloadings
+
+from the last section satisfy the meet rule.
+
+
+%%%%%%%%%%%%%%% BEGIN REDUCTION FIGURE %%%%%%%%%%%%%%%%
+\begin{figure}
+
+\newjudge{Existential reduction}{\jtreds{\delta}{\delta}{\phi}}
+\infrule
+  {\jcequiv{T}{\BottomType}{\TRUE}}
+  {\jtreds{\exttype{T}}{\BottomType}{[]}}
+
+% \infrule
+%   {\jcnonequiv{T}{\BottomType}{\C} \\
+%    \jcsolve{\C}{\NONE}}
+%   {\jtred{\exttype{T}}{\exttype{T}}}
+% 
+% \infrule
+%   {\jcnonequiv{T}{\BottomType}{\C} \\
+%    \jcsolve{\C}{\phi} \andalso \phi[\Delta] = \NONE}
+%   {\jtred{\exttype{T}}{\exttype{T}}}
+
+\infrule
+  {\jcnonequiv{T}{\BottomType}{\C} \\
+   \jcsolve{\C}{\phi} \andalso \phi[\Delta] = \Delta'}
+  {\jtreds{\exttype{T}}{\exttype[\Delta']{\phi(T)}}{\phi}}
+
+
+% \newjudge{Universal reduction}{\jtred{\omega}{\omega}}
+% \infrule
+%   {\jtred{\exttype{T}}{\BottomType}}
+%   {\jtred{\unitype{\arrowtype{T}{U}}}{\unitype{\arrowtype{T}{\BottomType}}}}
+% 
+% % \TODO{next one necessary?}
+% % \infrule
+% %   {\jtred{\exttype{T}}{\exttype{T}}}
+% %   {\jtred{\unitype{\arrowtype{T}{U}}}{\unitype{\arrowtype{T}{U}}}}
+% 
+% \infrule
+%   {\jcnonequiv{T}{\BottomType}{\C} \\
+%     \jcsolve{\C}{\phi} \andalso \phi[\Delta] = \Delta'}
+%   {\jtred{\unitype{\arrowtype{T}{U}}}{\unitype[\Delta']{\arrowtype{\phi(T)}{\phi(U)}}}}
+  
+
+
+\newjudge{Bounds substitution}{\phi[\Delta] = \Delta}
+\infrule
+  {\Delta = \bds{X}{M}
+      \andalso \phi(\bar{X}) = \bar{Y} \sqcup \bar{T}
+      \andalso \bar{N} = \phi^{-1}[\bar{Y},\Delta] \\
+    \forall i. \quad \jcsub[\bds{Y}{N}]{\phi(X_i)}{\bd{\phi(M_i)}}{\C_i}
+      \andalso \C_i = \TRUE}
+  {\phi[\Delta] = \bds{Y}{N}}
+
+% \infrule
+%   {\Delta = \bds{X}{M}
+%       \andalso \phi(\bar{X}) = \bar{Y} \sqcup \bar{T}
+%       \andalso \bar{N} = \phi^{-1}[\bar{Y},\Delta] \\
+%     \exists i. \quad \jcsub[\bds{Y}{N}]{\phi(X_i)}{\bd{\phi(M_i)}}{\C_i}
+%       \andalso \C_i \neq \FALSE}
+%   {\phi[\Delta] = \NONE}
+
+\newjudge{Bounds transfer}{\phi^{-1}[X,\Delta] = \bar{T}}
+\infrule
+  {\bar{T} = \{\phi(\Delta(X)) \;:\; X \in \Delta \;\text{and}\; \phi(X) = Y\}}
+  {\phi^{-1}[Y,\Delta] = conjuncts(\bigcap \bar{T})}
+
+  \caption{Reduction of existential types}
+  \label{fig:exred}
+\end{figure}
+%%%%%%%%%%%%%%% END REDUCTION FIGURE %%%%%%%%%%%%%%%%
+
+
+\TODO{Meet rule fixed by changes to existential subtyping} \\
+\TODO{Use machinery to fix computation of return type rule} \\
+\TODO{Show list, arraylist works}
+
+For the purposes of the progress rule: if the domain of an arrow is bottomtype we don't care what the range is. Therefore we can compute a reduced universal arrow for checking the return type rule using an algorithm just like reduce for existentials.
+
+Could augment subtype rule for universal arrows.  Not sure whether this is a good idea it basically is the same as filtering all the bottom domained arrows out of the set of instances. Makes sense for progress and doesn't affect preservation. But is kind of weird. PLUS SIDE: don't have to change statement of return type rule algorithm at all. If you choose this path move this section in with the existential reduce.
+
+\infrule
+  {\jtreds{\exttype[\Delta_1]{T}}{\delta'}{\phi} \\
+   \jqsub{S}{\unitype[{\phi[\Delta_1]}]{\left(\arrowtype{\phi(T)}{\phi(U)}\right)}}}
+  {\jqsub{S}{\unitype[\Delta_1]{\arrowtype{T}{U}}}}
+ % {\Delta \vdash S <: reduce(`FORALL[\X_bar <: M_bar\]S \to T`)}
+ % {\Delta \vdash S <: `FORALL[\X_bar <: M_bar\]S \to T`}
+
+Otherwise change the algorithm for checking the subtype rule to use the reduced arrow instead of the one we were using before.

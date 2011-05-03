@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="ProjectFortress/src"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/xtc/xtc.jar" sourcepath="ProjectFortress/third_party/xtc/xtc_src.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/junit/junit.jar" sourcepath="third_party/junit/junit_src.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/plt/plt.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/jsr166y/jsr166y.jar" sourcepath="third_party/jsr166y/jsr166/src"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/asm/asm-3.1.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/astgen/astgen.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/unsigned/unsigned.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/ant/ant.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="ch.epfl.lamp.sdt.launching.SCALA_CONTAINER" />
+	<classpathentry kind="output" path="ProjectFortress/build"/>
+</classpath>

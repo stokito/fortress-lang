@@ -1,0 +1,28 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component ConditionalOps
+import FortressBuiltin.{Boolean}
+
+export Executable
+
+(** EXAMPLE **)
+opr  OR(a:Boolean, b:Boolean):Boolean = if a then true else b end
+opr AND(a:Boolean, b:Boolean):Boolean = if a then b else false end
+opr  OR(a:Boolean, b:()->Boolean):Boolean = if a then true else b() end
+opr AND(a:Boolean, b:()->Boolean):Boolean = if a then b() else false end
+(** END EXAMPLE **)
+
+run() = ()
+
+end

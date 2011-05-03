@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXPreparser.al
+export Executable
+
+run() = do
+        k = label placed
+                for j <- seq(i:1:-1) do
+                    if xs[j-1] <= v then
+                        exit placed with j
+                    end
+                    xs[j] := xs[j-1]
+                end
+                0
+            end
+        xs[k] := v
+end
+
+end

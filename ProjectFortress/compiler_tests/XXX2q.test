@@ -1,0 +1,22 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled2.q
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+
+compile
+
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled2.q.fss:12:1-13:21:\n\
+\ Unmatched delimiters \"component\" and \"}\".\n\
+${STATIC_TESTS_DIR}/Compiled2.q.fss:20:1-3:\n\
+\ Unmatched delimiter \"end\".\n\
+File Compiled2.q.fss has 2 errors.\n\
+
+compile_out_equals=
