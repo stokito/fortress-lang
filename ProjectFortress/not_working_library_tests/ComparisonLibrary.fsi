@@ -19,7 +19,7 @@ opr =/=[\T extends SnerdEquality[\T\]\](a: T, b: T): Boolean
 
 trait Comparison
 (*)        extends { StandardPartialOrder[\Comparison\] }
-           extends { SnerdEquality[\Comparison\] }
+(*)           extends { SnerdEquality[\Comparison\] }
         comprises { Unordered, TotalComparison }
     getter asString(): String
     (** Lexicographic ordering.  An associative operator.
@@ -32,7 +32,7 @@ trait Comparison
     opr SQCAP(self, other:()->Comparison): Comparison
     opr CONVERSE(self): Comparison
     (*) This stuff ought to be provided by Equality[\Comparison\].
-(*)    opr =(self, other:Comparison): Boolean
+    opr =(self, other:Comparison): Boolean
     (*) This stuff ought to be provided by StandardPartialOrder.
     opr CMP(self, other:Comparison): Comparison
     opr <(self, other:Comparison): Boolean
