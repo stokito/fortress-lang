@@ -90,6 +90,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private static final boolean DEBUG_OVERLOADED_METHOD_CHAINING =
         ProjectProperties.getBoolean("fortress.debug.overloaded.methods", false);
     
+    private static final boolean EMIT_ERASED_GENERICS = false;
+    
     CodeGenClassWriter cw;
     CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
     final String packageAndClassName;
@@ -493,10 +495,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     private void generateForwardingFor(Functional from_fnl, StaticTypeReplacer inst,
             TraitType fromTrait, TraitType toTrait) {
-        generateForwardingFor(from_fnl, from_fnl, inst, fromTrait, toTrait, false);
+        generateForwardingFor(from_fnl, from_fnl, false, inst, fromTrait, toTrait, false);
     }
-    private void generateForwardingFor(Functional from_fnl, Functional to_fnl, StaticTypeReplacer inst,
-                                       TraitType fromTrait, TraitType toTrait, boolean narrowing) {
+    private void generateForwardingFor(Functional from_fnl, Functional to_fnl, boolean forward_to_non_overload,
+            StaticTypeReplacer inst, TraitType fromTrait, TraitType toTrait, boolean narrowing) {
         IdOrOp name = from_fnl.name();
         if (!(from_fnl instanceof HasSelfType))
             throw sayWhat(name, " method "+from_fnl+" doesn't appear to have self type.");
@@ -505,6 +507,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<Param> from_params = from_fnl.parameters();
         List<Param> to_params = to_fnl.parameters();
         int arity = from_params.size();
+        
         
         String receiverClass = NamingCzar.jvmTypeDesc(toTrait, component.getName(), false) +
         NamingCzar.springBoard;
@@ -537,14 +540,25 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mname = genericMethodName(from_fnl, selfIndex);
             String sig = genericMethodClosureFinderSig;
             arity = 3; // Magic number
-            InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
+            // TODO This could be bogus, but for now, let's try it.
+            String from_name = forward_to_non_overload ? NamingCzar.mangleAwayFromOverload(mname): mname;
+            InstantiatingClassloader.forwardingMethod(cw, from_name, ACC_PUBLIC, 0,
                     receiverClass, mname + Naming.GENERIC_METHOD_FINDER_SUFFIX_IN_TRAIT, INVOKESTATIC,
                     sig, sig, arity, false, null);
         } else {
-            Type fromReturnType = inst.replaceIn(from_fnl.getReturnType().unwrap());
-            Type toReturnType = inst.replaceIn(to_fnl.getReturnType().unwrap());
-            Type fromParamType = inst.replaceIn(NodeUtil.getParamType(from_params, NodeUtil.getSpan(name)));
-            Type toParamType = inst.replaceIn(NodeUtil.getParamType(to_params, NodeUtil.getSpan(name)));
+            Type fromReturnType = (from_fnl.getReturnType().unwrap());
+            Type toReturnType =   (to_fnl.getReturnType().unwrap());
+            Type fromParamType =  (NodeUtil.getParamType(from_params, NodeUtil.getSpan(name)));
+            Type toParamType =    (NodeUtil.getParamType(to_params, NodeUtil.getSpan(name)));
+            
+            // Think inst is unnecessary for self-forwarding
+            if (inst != null) {
+                fromReturnType =inst.replaceIn(fromReturnType);
+                toReturnType = inst.replaceIn(toReturnType);
+                fromParamType = inst.replaceIn(fromParamType);
+                toParamType = inst.replaceIn(toParamType);
+            }
+            
             String from_sig = NamingCzar.jvmSignatureFor(
                     fromParamType,
                     NamingCzar.jvmTypeDesc(fromReturnType, component.getName()),
@@ -558,17 +572,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     narrowing ? -1 : 0,
                     toTrait,
                     component.getName());
-
+            
             if (selfIndex != NO_SELF) {
                 // TODO Buggy if narrowing self and not-self
                 from_sig = Naming.removeNthSigParameter(from_sig, narrowing ? selfIndex : selfIndex+1);
                 to_sig = Naming.removeNthSigParameter(to_sig, narrowing ? selfIndex : selfIndex+1);
                 mname = fmDottedName(singleName(name), selfIndex);
             } else {
-                mname = nonCollidingSingleName(name, from_sig,""); // What about static params?
+                mname = singleName(name); // What about static params?
                 arity++;
             }
-            InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
+            String from_name = forward_to_non_overload ? NamingCzar.mangleAwayFromOverload(mname): mname;
+            InstantiatingClassloader.forwardingMethod(cw, from_name, ACC_PUBLIC, 0,
                     receiverClass, mname, narrowing ? (isObject ? INVOKEVIRTUAL : INVOKEINTERFACE ): INVOKESTATIC,
                     from_sig, to_sig, narrowing ? null : from_sig, arity, true, null);
         }
@@ -675,7 +690,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             /* If defined in the current trait. */
             if (tupTrait.equals(currentTraitObjectType)) {
                 if (includeCurrent) {
+                    // Trait, not object
                     generateForwardingFor(fnl, inst, currentTraitObjectType, tupTrait); // swapped
+                    generateForwardingFor(fnl, fnl, true, inst, currentTraitObjectType, tupTrait, false); // swapped
                 }
                 continue;
             }
@@ -705,6 +722,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 continue;
             }
             generateForwardingFor(fnl, inst, currentTraitObjectType, tupTrait); // swapped
+            generateForwardingFor(fnl, fnl, true, inst, currentTraitObjectType, tupTrait, false); // swapped
         }
     }
 
@@ -932,7 +950,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 if (shadowed)
                     continue;
                 if (narrowed) {
-                    generateForwardingFor(super_func, narrowed_func, inst, currentTraitObjectType, currentTraitObjectType, true); // swapped
+                    generateForwardingFor(super_func, narrowed_func, false, inst, currentTraitObjectType, currentTraitObjectType, true); // swapped
                     // TODO emit the forwarding method
                     continue;
                 }
@@ -1179,7 +1197,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         overloadedNamesAndSigs = generateTopLevelOverloads(thisApi(), topLevelOverloads, typeAnalyzer, cw, this);
 
         /* Need wrappers for the API, too. */
-        generateUnambiguousWrappersForApi();
 
         // Must process top-level values next to make sure fields end up in scope.
         for (Decl d : x.getDecls()) {
@@ -1667,16 +1684,32 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // TODO different collision rules for top-level and for
         // methods.
         String mname;
-        //int n = params.size();
+        int n = params.size();
         if (selfIndex != NO_SELF) {
             sig = Naming.removeNthSigParameter(sig, selfIndex+1);
             mname = fmDottedName(singleName(name), selfIndex);
         } else {
-            mname = nonCollidingSingleName(name, sig, ""); // static params?
-            //n++;
+            mname = singleName(name); // static params?
+            n++;
         }
 
+        
+        
         CodeGen cg = new CodeGen(this);
+/*
+ * Don't forward in the default methods after all -- do all duplication
+ * in the inherited trait default class spine and in the object.
+ */
+        // IF NO OVERLOAD, EMIT FORWARDING METHOD from mname -> disambig_mname
+        // Test omitted for now.
+        // context -- trait defaultmethod.
+        // need a static type replacer?  See if we can skip it for now
+//        String disambiguated_mname = NamingCzar.mangleAwayFromOverload(mname);
+//        InstantiatingClassloader.forwardingMethod(cg.cw, mname, ACC_PUBLIC, 0,
+//                springBoardClass, disambiguated_mname, INVOKESTATIC,
+//                sig, sig, null, n, true, null);
+//        mname = disambiguated_mname;
+        
         cg.generateActualMethodCode(modifiers, mname, sig, params, selfIndex,
                                     true, body);
 
@@ -1717,6 +1750,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                                 returnType, component.getName());
 
         String mname;
+        
+        int n = params.size();
 
         // TODO different collision rules for top-level and for
         // methods. (choice of mname)
@@ -1724,11 +1759,25 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (selfIndex != NO_SELF) {
             sig = Naming.removeNthSigParameter(sig, selfIndex);
             mname = fmDottedName(singleName(name), selfIndex);
+            n--;
+        } else if (savedInAnObject) {
+            mname = singleName(name);
         } else {
             mname = nonCollidingSingleName(name, sig,""); // static params?
         }
 
-        if (!savedInAnObject) {
+        CodeGen cg = new CodeGen(this);
+        
+        if (savedInAnObject) {
+            // TODO if no overload, also emit forwarding method, mutilate "mname"
+            String mangled_mname = NamingCzar.mangleAwayFromOverload(mname);
+
+            InstantiatingClassloader.forwardingMethod(cg.cw, mname, ACC_PUBLIC, 0,
+                    traitOrObjectName, mangled_mname, INVOKEVIRTUAL,
+                    sig, sig, null, n+1, true, null);
+            
+            mname = mangled_mname;
+        } else {
             // trait default OR top level.
             // DO NOT special case run() here and make it non-static
             // (that used to happen), as that's wrong. It's
@@ -1736,41 +1785,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             modifiers |= ACC_STATIC;
         }
 
-        CodeGen cg = new CodeGen(this);
         cg.generateActualMethodCode(modifiers, mname, sig, params, selfIndex,
                                     inAMethod, body);
 
-        generateAllWrappersForFn(x, params, sig, modifiers, mname);
     }
 
-
-    /**
-     * @param x
-     * @param params
-     * @param selfIndex
-     * @param sig
-     * @param modifiers
-     * @param mname
-     */
-    private void generateAllWrappersForFn(FnDecl x, List<Param> params,
-            String sig, int modifiers,
-            String mname) {
-        /* This code generates forwarding wrappers for
-         * the (local) unambiguous name of the function.
-         */
-    }
-
-
-    /**
-     * @param params
-     * @param sig
-     * @param modifiers
-     * @param mname
-     * @param cg
-     * @param sf
-     */
-    private void generateUnambiguousWrappersForApi() {
-    }
 
     /** Generate an actual Java method and body code from an Expr.
      *  Should be done within a nested codegen as follows:
@@ -2018,7 +2037,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 if (! sparams.isEmpty()) {
                     if (inAMethod) {
                         // A generic method in a trait or object.
-
+                        // TODO no overload-disambiguation yet
                         generateGenericMethod(x, (IdOrOp)name,
                                 selfIndex, savedInATrait, inAMethod);
                         // throw sayWhat(x, "Generic methods not yet implemented.");
@@ -2992,12 +3011,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         final Naming.ClassNameBundle cnb = new_ClassNameBundle(classId, sparams_part, packageAndClassName);
 
-        String erasedSuperI = sparams_part.length() > 0 ?
+        String erasedSuperI = (EMIT_ERASED_GENERICS && (sparams_part.length() > 0)) ?
                 cnb.stemClassName : "";
         String [] superInterfaces =
             NamingCzar.extendsClauseToInterfaces(extendsC, component.getName(), erasedSuperI);
 
-        if (sparams_part.length() > 0) {
+        if (EMIT_ERASED_GENERICS && (sparams_part.length() > 0)) {
             emitErasedClassFor(cnb, (TraitObjectDecl) x);
         }
 
@@ -3008,10 +3027,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             abstractSuperclass = NamingCzar.internalObject;
         }
         
-        
         traitOrObjectName = cnb.className;
         debug("forObjectDeclPrePass ",x," classFile = ", traitOrObjectName);
-
 
         boolean isSingletonObject = NodeUtil.getParams(x).isNone();
         List<Param> params;
@@ -3714,13 +3731,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         Naming.ClassNameBundle cnb = new_ClassNameBundle(classId, sparams_part, packageAndClassName);
         
-        String erasedSuperI = sparams_part.length() > 0 ? cnb.stemClassName
+        String erasedSuperI = EMIT_ERASED_GENERICS && (sparams_part.length() > 0) ? cnb.stemClassName
                 : "";
                 
-        if (sparams_part.length() > 0) {
+        if (EMIT_ERASED_GENERICS && (sparams_part.length() > 0)) {
            emitErasedClassFor(cnb, (TraitObjectDecl) x);
         }
-
 
         inATrait = true;
         currentTraitObjectDecl = x;
@@ -3744,7 +3760,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cw.visit( InstantiatingClassloader.JVM_BYTECODE_VERSION,
                   ACC_PUBLIC | ACC_ABSTRACT | ACC_INTERFACE,
                   cnb.className, null, NamingCzar.internalObject, superInterfaces);
+        
         dumpSigs(header.getDecls());
+
         initializedStaticFields_TO = new ArrayList<InstantiatingClassloader.InitializedStaticField>();
         
         emitRttiField(cnb);
@@ -3775,7 +3793,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Doing this to get a an extended type analyzer for overloaded method chaining.
         CodeGen newcg = new CodeGen(this,
                 typeAnalyzer.extendJ(header.getStaticParams(), header.getWhereClause()));
-        MultiMap<IdOrOpOrAnonymousName, Functional> overloads = newcg.dumpOverloadedMethodChaining(superInterfaces, true);
+        
+        // Overloads will tell us which methods need forwarding,
+        // but they don't yet.
+        MultiMap<IdOrOpOrAnonymousName, Functional> overloads =
+            newcg.dumpOverloadedMethodChaining(superInterfaces, true);
+        
         dumpTraitDecls(header.getDecls());
         dumpMethodChaining(superInterfaces, true);
         // dumpErasedMethodChaining(superInterfaces, true);
@@ -5002,14 +5025,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             boolean  functionalMethod = selfIndex != NO_SELF;
 
             if (sparams.size() > 0) {
-                
+                // Not handling overload-based name-forwarding of generic methods yet.
                 String method_name = genericMethodName(f, selfIndex);
                 CodeGenMethodVisitor mv = cw.visitCGMethod(ACC_ABSTRACT + ACC_PUBLIC, method_name, genericMethodClosureFinderSig, null, null);
                 mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
                 mv.visitEnd();
             } else {
-            
-
                 IdOrOpOrAnonymousName xname = h.getName();
                 IdOrOp name = (IdOrOp) xname;
 
@@ -5021,16 +5042,26 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 // TODO what about overloading collisions in an interface?
                 // it seems wrong to publicly mangle.
                 String mname = functionalMethod ? fmDottedName(
-                        singleName(name), selfIndex) : nonCollidingSingleName(
-                                name, desc, ""); // static params?
-
-                CodeGenMethodVisitor mv = cw.visitCGMethod(ACC_ABSTRACT + ACC_PUBLIC,
-                                mname, desc, null, null);
-
-                mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
-                mv.visitEnd();
+                        singleName(name), selfIndex) : singleName(name); 
+                abstractMethod(desc, mname);
+                // provide both overloaded and single names in abstract decl.
+                mname = NamingCzar.mangleAwayFromOverload(mname);
+                abstractMethod(desc, mname);
             }
         }
+    }
+
+
+    /**
+     * @param desc
+     * @param mname
+     */
+    public void abstractMethod(String desc, String mname) {
+        CodeGenMethodVisitor mv = cw.visitCGMethod(ACC_ABSTRACT + ACC_PUBLIC,
+                        mname, desc, null, null);
+
+        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+        mv.visitEnd();
     }
     
     public static Pair<String, List<Pair<String, String>>> xlationData(String tag) {
