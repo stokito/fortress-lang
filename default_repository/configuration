@@ -45,6 +45,7 @@ fortress.source.path=;.;${_fr}/LibraryBuiltin;${FORTRESS_AUTOHOME}/Library;${_fr
 #
 #fortress.test.typecheck=true
 #
+#
 # useful runtime properties
 fortress.bytecode.list=false
 fortress.bytecode.verify=false
