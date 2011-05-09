@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -18,6 +18,7 @@ import org.objectweb.asm.*;
 
 import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
 import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.exceptions.InterpreterBug;
@@ -35,7 +36,7 @@ public class FortressTransformer {
     @SuppressWarnings("unchecked")
     public static void transform(String inputClassName,
             APIName api_name,
-            Map<IdOrOpOrAnonymousName,MultiMap<Integer, Function>> size_partitioned_overloads,
+            Map<IdOrOpOrAnonymousName,MultiMap<Integer, Functional>> size_partitioned_overloads,
             TypeAnalyzer ta) {
         try {
             ClassReader cr = new ClassReader(inputClassName);

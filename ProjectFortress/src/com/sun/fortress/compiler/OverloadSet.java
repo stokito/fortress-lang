@@ -20,7 +20,6 @@ import com.sun.fortress.compiler.codegen.CodeGen;
 import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
 import com.sun.fortress.compiler.index.Constructor;
 import com.sun.fortress.compiler.index.DeclaredFunction;
-import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.scala_src.overloading.OverloadingOracle;
@@ -64,14 +63,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     public static class TaggedFunctionName implements Comparable<TaggedFunctionName> {
         final private APIName tagA;
-        final private Function tagF;
+        final private Functional tagF;
 
-        public TaggedFunctionName(APIName a, Function f) {
+        public TaggedFunctionName(APIName a, Functional f) {
             this.tagF = f;
             this.tagA = a;
         }
 
-        public Function getF() {
+        public Functional getF() {
             return tagF;
         }
         
@@ -240,12 +239,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 null, null, paramCount);
     }
 
-    protected OverloadSet(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, OverloadingOracle oa, Set<Function> defs, int n) {
+    protected OverloadSet(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, OverloadingOracle oa, Set<Functional> defs, int n) {
 
-        this(name, ta, oa, Useful.applyToAll(defs, new F<Function, TaggedFunctionName>() {
+        this(name, ta, oa, Useful.applyToAll(defs, new F<Functional, TaggedFunctionName>() {
 
             @Override
-            public TaggedFunctionName apply(Function f) {
+            public TaggedFunctionName apply(Functional f) {
                 return new TaggedFunctionName(apiname, f);
             }
         }), n, apiname);
@@ -293,7 +292,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         TopSortItemImpl<TaggedFunctionName>[] pofuns =
             new OverloadSet.POTFN[lessSpecificThanSoFar.size()];
         /* Convert set of dispatch types into something that can be
-       (topologically) sorted. */
+         * (topologically) sorted. */
         {
             int i = 0;   
 
@@ -404,87 +403,6 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
         
         splitDone = true;
-    }
-
-    private Set<TaggedFunctionName> thin(Set<TaggedFunctionName> childLSTSF, final Set<Integer> childTestedIndices) {
-        /*
-         * Hashes together functions that are equal in their unexamined parameter lists.
-         */
-        Hasher<TaggedFunctionName> hasher = new Hasher<TaggedFunctionName>() {
-
-            @Override
-            public boolean equiv(TaggedFunctionName x, TaggedFunctionName y) {
-                List<Param> px = x.tagParameters();
-                List<Param> py = y.tagParameters();
-                for (int i = 0; i < px.size(); i++) {
-                    if (childTestedIndices.contains(i))
-                        continue;
-                    TypeOrPattern tx = px.get(i).getIdType().unwrap();
-                    TypeOrPattern ty = py.get(i).getIdType().unwrap();
-                    if (! (tx instanceof Type && ty instanceof Type))
-                        bug("Types are expected.");
-                    if (!((Type)tx).equals((Type)ty))
-                        return false;
-                }
-                return true;
-            }
-
-            @Override
-            public long hash(TaggedFunctionName x) {
-                int h = MagicNumbers.T;
-
-                List<Param> px = x.tagParameters();
-                for (int i = 0; i < px.size(); i++) {
-                    if (childTestedIndices.contains(i))
-                        continue;
-                    h = h * MagicNumbers.t + px.get(i).getIdType().unwrap().hashCode();
-                }
-                return h;
-            }
-
-        };
-
-        /*
-         * Creates map from (some) functions to the
-         * equivalence sets to which they are members.
-         */
-        GMultiMap<TaggedFunctionName, TaggedFunctionName> eqSetMap = new GMultiMap<TaggedFunctionName, TaggedFunctionName>(hasher);
-        for (TaggedFunctionName f : childLSTSF)
-            eqSetMap.putItem(f, f);
-
-        Set<TaggedFunctionName> tmp = new HashSet<TaggedFunctionName>();
-
-        /*
-         * Take the most specific member of each equivalence set, and union
-         * those together.
-         */
-        for (Set<TaggedFunctionName> sf : eqSetMap.values())
-            tmp.addAll(mostSpecificMemberOf(sf));
-
-        return tmp;
-    }
-
-    /**
-     * Returns the most specific member (least generally applicable) 
-     * member of a set of tagged function names, if any exists.
-     * (So, return a singleton or empty.)
-     */
-    private Set<TaggedFunctionName> mostSpecificMemberOf(Set<TaggedFunctionName> set) {
-        TaggedFunctionName msf = null;
-        for (TaggedFunctionName candidate : set) {
-            if (msf == null)
-                msf = candidate;
-            else {
-                boolean cand_better = fSuperTypeOfG(msf, candidate);
-                if (cand_better)
-                    msf = candidate;
-
-            }
-        }
-        if (msf == null)
-            return Collections.<TaggedFunctionName>emptySet();
-        else
-            return Collections.singleton(msf);
     }
 
     /**
@@ -1132,7 +1050,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             MultiMap[] spmaps = new MultiMap[l];
             for (int i = 0; i < l; i++) {
                 TaggedFunctionName f = specificDispatchOrder[i];
-                Function eff = f.getF();
+                Functional eff = f.getF();
                 List<Param> parameters = f.tagParameters();
                 MultiMap<String, TS> spmap = new MultiMap<String, TS>();
                 spmaps[i] = spmap;
@@ -1244,7 +1162,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @param fu
      * @return
      */
-    private static List<StaticParam> staticParametersOf(Function fu) {
+    private static List<StaticParam> staticParametersOf(Functional fu) {
         List<StaticParam> params = null;
         if (fu instanceof FunctionalMethod) {
             List<StaticParam> lsp = ((FunctionalMethod) fu).traitStaticParameters();
@@ -1423,11 +1341,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     }
 
     static public class Local extends AmongApis {
-        public Local(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Function> defs, int n) {
-            super(apiname, name, ta, Useful.applyToAll(defs, new F<Function, TaggedFunctionName>() {
+        public Local(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Functional> defs, int n) {
+            super(apiname, name, ta, Useful.applyToAll(defs, new F<Functional, TaggedFunctionName>() {
 
                 @Override
-                public TaggedFunctionName apply(Function f) {
+                public TaggedFunctionName apply(Functional f) {
                     return new TaggedFunctionName(apiname, f);
                 }
             }), n);
@@ -1517,7 +1435,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     public boolean notGeneric() {
         // TODO Auto-generated method stub
         for (TaggedFunctionName tfn: lessSpecificThanSoFar) {
-            Function f = tfn.getF();
+            Functional f = tfn.getF();
             List<StaticParam> lsp = f.staticParameters();
             if (lsp.size() > 0)
                 return false;

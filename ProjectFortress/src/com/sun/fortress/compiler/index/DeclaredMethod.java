@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008,2010, Oracle and/or its affiliates.
+    Copyright 2008,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -120,6 +120,10 @@ public class DeclaredMethod extends Method {
         return (IdOrOp) NodeUtil.getName(_ast);
     }
     
+    public IdOrOpOrAnonymousName toUndecoratedName() {
+        return ast().getHeader().getName();
+    }
+
     public IdOrOp unambiguousName() {
         return (IdOrOp) _ast.getUnambiguousName();
     }

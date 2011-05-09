@@ -104,9 +104,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private final TypeAnalyzer typeAnalyzer;
     private final ParallelismAnalyzer pa;
     private final FreeVariables fv;
-    private final Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> topLevelOverloads;
+    private final Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> topLevelOverloads;
     private final MultiMap<String, Function> exportedToUnambiguous;
-    private  Set<String> overloadedNamesAndSigs;
+    private  Set<String> topLevelOverloadedNamesAndSigs;
 
     // lexEnv does not include the top level or object right now, just
     // args and local vars.  Object fields should have been translated
@@ -157,7 +157,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.fv = c.fv;
         this.topLevelOverloads = c.topLevelOverloads;
         this.exportedToUnambiguous = c.exportedToUnambiguous;
-        this.overloadedNamesAndSigs = c.overloadedNamesAndSigs;
+        this.topLevelOverloadedNamesAndSigs = c.topLevelOverloadedNamesAndSigs;
 
         this.lexEnv = new BATree<String,VarCodeGen>(c.lexEnv);
 
@@ -187,7 +187,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.fv = c.fv;
         this.topLevelOverloads = c.topLevelOverloads;
         this.exportedToUnambiguous = c.exportedToUnambiguous;
-        this.overloadedNamesAndSigs = c.overloadedNamesAndSigs;
+        this.topLevelOverloadedNamesAndSigs = c.topLevelOverloadedNamesAndSigs;
 
         this.lexEnv = new BATree<String,VarCodeGen>(c.lexEnv);
 
@@ -266,7 +266,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.topLevelOverloads =
             sizePartitionedOverloads(ci.functions());
 
-        this.overloadedNamesAndSigs = new HashSet<String>();
+        this.topLevelOverloadedNamesAndSigs = new HashSet<String>();
         this.lexEnv = new BATree<String,VarCodeGen>(StringHashComparer.V);
         this.env = env;
 
@@ -763,11 +763,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @return 
      */
     
-    private MultiMap<IdOrOpOrAnonymousName, Functional> dumpOverloadedMethodChaining(String [] superInterfaces, boolean includeCurrent) {
-        MultiMap<IdOrOpOrAnonymousName, Functional> overloadedMethods =
-            new MultiMap<IdOrOpOrAnonymousName, Functional>();        
+    private Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> dumpOverloadedMethodChaining(String [] superInterfaces, boolean includeCurrent) {
+        Map<IdOrOpOrAnonymousName, MultiMap<Integer,Functional>> overloadedMethods =
+            new HashMap<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>>();
 
-        
         /*
          * If the number of supertraits is 0, there is nothing to override.
          */
@@ -876,7 +875,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Set<Functional> funcs = ent.getValue();
             
             // initial set of potential overloads is this trait/object's methods
-            Set<Functional> perhapsOverloaded = new HashSet<Functional>(funcs);
+            Set<Functional> perhapsOverloaded = new HashSet<Functional>();
+            for (Functional fu : funcs)
+                perhapsOverloaded.add(fu); // Thanks, Java generics!
 
             for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> overridden :
                 toConsider.matchFirst(name)) {
@@ -959,8 +960,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             }
 
             // need to refine the overloaded methods check because of exclusion
-            if (perhapsOverloaded.size() > 1 ) {
-                overloadedMethods.put(name, perhapsOverloaded);
+            MultiMap<Integer, Functional> partitionedByArgCount = partitionByArgCount(perhapsOverloaded);
+
+            if (partitionedByArgCount.size() > 0 ) {
+                
+                overloadedMethods.put(name, partitionedByArgCount);
                 if (DEBUG_OVERLOADED_METHOD_CHAINING)
                     System.err.println(" Method "+ name + " has overloads " + perhapsOverloaded);
             }
@@ -1194,7 +1198,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // determineOverloadedNames(x.getDecls() );
 
         // Must do this first, to get local decls right.
-        overloadedNamesAndSigs = generateTopLevelOverloads(thisApi(), topLevelOverloads, typeAnalyzer, cw, this);
+        topLevelOverloadedNamesAndSigs = generateTopLevelOverloads(thisApi(), topLevelOverloads, typeAnalyzer, cw, this);
 
         /* Need wrappers for the API, too. */
 
@@ -2491,7 +2495,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     private String nonCollidingSingleName(IdOrOpOrAnonymousName name, String sig, String schema) {
         String mname = singleName(name);
-        if (overloadedNamesAndSigs.contains(mname+sig+schema)) {
+        if (topLevelOverloadedNamesAndSigs.contains(mname+sig+schema)) {
             mname = NamingCzar.mangleAwayFromOverload(mname);
         }
         return mname;
@@ -3193,7 +3197,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // This does not work yet.
             d.accept(this);
         }
-        MultiMap<IdOrOpOrAnonymousName, Functional> overloads = dumpOverloadedMethodChaining(superInterfaces, false);
+        Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> overloads = dumpOverloadedMethodChaining(superInterfaces, false);
         dumpMethodChaining(superInterfaces, false);
         // dumpErasedMethodChaining(superInterfaces, false);
         
@@ -3796,7 +3800,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         // Overloads will tell us which methods need forwarding,
         // but they don't yet.
-        MultiMap<IdOrOpOrAnonymousName, Functional> overloads =
+        Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> overloads =
             newcg.dumpOverloadedMethodChaining(superInterfaces, true);
         
         dumpTraitDecls(header.getDecls());
@@ -4860,22 +4864,22 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * and generated in the normal visits.
      */
     public static Set<String> generateTopLevelOverloads(APIName api_name,
-            Map<IdOrOpOrAnonymousName,MultiMap<Integer, Function>> size_partitioned_overloads,
+            Map<IdOrOpOrAnonymousName,MultiMap<Integer, Functional>> size_partitioned_overloads,
             TypeAnalyzer ta,
             CodeGenClassWriter cw, CodeGen cg
             ) {
 
         Set<String> overloaded_names_and_sigs = new HashSet<String>();
 
-        for (Map.Entry<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> entry1 :
+        for (Map.Entry<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> entry1 :
                  size_partitioned_overloads.entrySet()) {
             IdOrOpOrAnonymousName  name = entry1.getKey();
-            MultiMap<Integer, Function> partitionedByArgCount = entry1.getValue();
+            MultiMap<Integer, Functional> partitionedByArgCount = entry1.getValue();
 
-            for (Map.Entry<Integer, Set<Function>> entry :
+            for (Map.Entry<Integer, Set<Functional>> entry :
                      partitionedByArgCount.entrySet()) {
                int i = entry.getKey();
-               Set<Function> fs = entry.getValue();
+               Set<Functional> fs = entry.getValue();
 
                OverloadSet os =
                    new OverloadSet.Local(api_name, name,
@@ -4934,33 +4938,44 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return overloaded_names_and_sigs;
     }
 
-    public static Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>>
-       sizePartitionedOverloads(Relation<IdOrOpOrAnonymousName, Function> fns) {
+    public static Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>>
+       sizePartitionedOverloads(Relation<IdOrOpOrAnonymousName, ? extends Function> fns) {
 
-        Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> result =
-            new HashMap<IdOrOpOrAnonymousName, MultiMap<Integer, Function>>();
+        Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> result =
+            new HashMap<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>>();
 
         for (IdOrOpOrAnonymousName name : fns.firstSet()) {
-            Set<Function> defs = fns.matchFirst(name);
+            Set<? extends Functional> defs = fns.matchFirst(name);
             if (defs.size() <= 1) continue;
 
-            MultiMap<Integer, Function> partitionedByArgCount =
-                new MultiMap<Integer, Function>();
-
-            for (Function d : defs) {
-                partitionedByArgCount.putItem(d.parameters().size(), d);
-            }
-
-            for (Function d : defs) {
-                Set<Function> sf = partitionedByArgCount.get(d.parameters().size());
-                if (sf != null && sf.size() <= 1)
-                    partitionedByArgCount.remove(d.parameters().size());
-            }
+            MultiMap<Integer, Functional> partitionedByArgCount = partitionByArgCount(defs);
             if (partitionedByArgCount.size() > 0)
                 result.put(name, partitionedByArgCount);
         }
 
         return result;
+    }
+
+
+    /**
+     * @param defs
+     * @return
+     */
+    public static MultiMap<Integer,  Functional> partitionByArgCount(
+            Set<? extends Functional> defs) {
+        MultiMap<Integer, Functional> partitionedByArgCount =
+            new MultiMap<Integer, Functional>();
+
+        for (Functional d : defs) {
+            partitionedByArgCount.putItem(d.parameters().size(), d);
+        }
+
+        for (Functional d : defs) {
+            Set<Functional> sf = partitionedByArgCount.get(d.parameters().size());
+            if (sf != null && sf.size() <= 1)
+                partitionedByArgCount.remove(d.parameters().size());
+        }
+        return partitionedByArgCount;
     }
 
     private List<Decl> topSortDeclsByDependencies(List<Decl> decls) {
