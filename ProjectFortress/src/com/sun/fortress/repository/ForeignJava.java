@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008,2010, Oracle and/or its affiliates.
+    Copyright 2008,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -14,6 +14,7 @@ package com.sun.fortress.repository;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.nativeInterface.FortressTransformer;
 import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
@@ -740,18 +741,18 @@ public class ForeignJava {
      */
     public void generateWrappersForApi(APIName name,
             Set<OverloadSet> overloads, Map<IdOrOpOrAnonymousName,
-            MultiMap<Integer, Function>> size_partitioned_overloads,
+            MultiMap<Integer, Functional>> size_partitioned_overloads,
             TypeAnalyzer ta) {
         foreignApisNeedingCompilation.remove(name);
 
         Set<Type> classes = classesIncludedInForeignAPI.get(name);
 
-        MapOfMap<String, IdOrOpOrAnonymousName, MultiMap<Integer, Function>>
+        MapOfMap<String, IdOrOpOrAnonymousName, MultiMap<Integer, Functional>>
             class_size_partitioned_overloads =
-                new MapOfMap<String, IdOrOpOrAnonymousName, MultiMap<Integer, Function>>();
+                new MapOfMap<String, IdOrOpOrAnonymousName, MultiMap<Integer, Functional>>();
 
        for(Map.Entry<IdOrOpOrAnonymousName,
-            MultiMap<Integer, Function>> entry : size_partitioned_overloads.entrySet()) {
+            MultiMap<Integer, Functional>> entry : size_partitioned_overloads.entrySet()) {
            String n = entry.getKey().stringName();
            int i = n.indexOf('.');
            if (i == -1)

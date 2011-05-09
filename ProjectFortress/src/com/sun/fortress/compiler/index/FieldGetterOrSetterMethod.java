@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -115,6 +115,10 @@ abstract public class FieldGetterOrSetterMethod extends Method {
         return _ast.getName();
     }
     
+    public IdOrOpOrAnonymousName toUndecoratedName() {
+        return ast().getName();
+    }
+
     public IdOrOp unambiguousName() {
         return name();
     }

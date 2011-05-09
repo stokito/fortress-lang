@@ -1,5 +1,5 @@
  /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -19,6 +19,7 @@ import org.objectweb.asm.commons.EmptyVisitor;
 import com.sun.fortress.compiler.codegen.CodeGen;
 import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
 import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
@@ -97,7 +98,7 @@ public class FortressMethodAdapter extends ClassAdapter {
     private HashMap conversionTable;
 
     private APIName apiName;
-    private Map<IdOrOpOrAnonymousName,MultiMap<Integer, Function>> sizePartitionedOverloads;
+    private Map<IdOrOpOrAnonymousName,MultiMap<Integer, Functional>> sizePartitionedOverloads;
     private TypeAnalyzer ta;
     private CodeGenClassWriter cw;
     private Set<String> overloadedNamesAndSigs;
@@ -148,7 +149,7 @@ public class FortressMethodAdapter extends ClassAdapter {
             String inputClassName,
             String outputClassName,
             APIName api_name,
-            Map<IdOrOpOrAnonymousName,MultiMap<Integer, Function>> size_partitioned_overloads,
+            Map<IdOrOpOrAnonymousName,MultiMap<Integer, Functional>> size_partitioned_overloads,
             TypeAnalyzer ta) {
         super(cv);
         this.cw = cv;

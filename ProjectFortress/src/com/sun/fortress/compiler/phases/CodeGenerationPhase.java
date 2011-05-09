@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008,2010, Oracle and/or its affiliates.
+    Copyright 2008,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -20,6 +20,7 @@ import com.sun.fortress.compiler.codegen.FreeVariables;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
@@ -67,7 +68,7 @@ public class CodeGenerationPhase extends Phase {
                 TypeAnalyzer ta = newTypeAnalyzer(new TraitTable(ai, apiEnv));
 
                 Relation<IdOrOpOrAnonymousName, Function> fns = ai.functions();
-                Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>>
+                Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>>
                 size_partitioned_overloads = CodeGen.sizePartitionedOverloads(fns);
                 Set<OverloadSet> overloads = new BASet<OverloadSet>(DefaultComparator.<OverloadSet>normal());
 
@@ -131,15 +132,15 @@ public class CodeGenerationPhase extends Phase {
         // Woo-hoo, an overloaded function.
         if (debugOverloading) System.err.println("Found an overloaded function " + name);
 
-        MultiMap<Integer, Function> partitionedByArgCount = new MultiMap<Integer, Function>();
+        MultiMap<Integer, Functional> partitionedByArgCount = new MultiMap<Integer, Functional>();
 
         for (Function d : defs) {
             partitionedByArgCount.putItem(d.parameters().size(), d);
         }
 
-        for (Map.Entry<Integer, Set<Function>> entry : partitionedByArgCount.entrySet()) {
+        for (Map.Entry<Integer, Set<Functional>> entry : partitionedByArgCount.entrySet()) {
             int i = entry.getKey();
-            Set<Function> fs = entry.getValue();
+            Set<Functional> fs = entry.getValue();
             if (fs.size() > 1) {
                 OverloadSet os = new OverloadSet.Local(ai.ast().getName(), name, ta, fs, i);
 
