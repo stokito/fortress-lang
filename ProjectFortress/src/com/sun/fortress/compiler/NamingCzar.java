@@ -22,6 +22,7 @@ import java.util.Map;
 
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.Function;
+import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.optimization.Unbox.Contains;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.BoolArg;
@@ -516,7 +517,7 @@ public class NamingCzar {
      * generated code.
      */
     // Only called from OverloadSet.AmongApis
-    public static String apiAndMethodToMethodOwner(APIName name, Function method) {
+    public static String apiAndMethodToMethodOwner(APIName name, Functional method) {
         String m = method.toUndecoratedName().toString();
         return apiAndMethodToMethodOwner(name, m);
     }
@@ -551,7 +552,7 @@ public class NamingCzar {
      * @return
      */
     // Only called from OverloadSet.AmongApis
-    public static String apiAndMethodToMethod(APIName name, Function method) {
+    public static String apiAndMethodToMethod(APIName name, Functional method) {
         String m = method.toUndecoratedName().toString();
         return apiAndMethodToMethod(name, m);
     }
@@ -818,7 +819,7 @@ public class NamingCzar {
     }
 
     // OverloadSet.jvmSignatureFor
-    public static String jvmSignatureFor(Function f, APIName ifNone) {
+    public static String jvmSignatureFor(Functional f, APIName ifNone) {
         com.sun.fortress.nodes.Type range = f.getReturnType().unwrap();
         return jvmSignatureFor(f.parameters(), range, ifNone);
     }
