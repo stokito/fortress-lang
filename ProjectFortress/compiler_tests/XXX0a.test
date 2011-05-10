@@ -1,0 +1,19 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled0.a
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled0.a.fss:11:11-15:\n\
+\ Component/API names must match their enclosing file names.\n\
+\ File name: ${STATIC_TESTS_DIR}/Compiled0.a.fss\n\
+\ Component/API name: Hello\n\
+Turn on \"-debug interpreter\" for Java-level stack trace.\n
+compile_out_equals=
