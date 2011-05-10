@@ -1,0 +1,46 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Exception
+export Executable
+
+object Scooby extends CheckedException
+   getter asString(): String = "ScoobyDoobyDoo"
+end
+
+object Shaggy extends CheckedException
+   getter asString() : String = "RuhRohRaggy"
+end
+
+test1():() = do
+   throw Scooby
+end
+
+test2():() = do
+   try
+      throw Scooby
+      println("fail throw")
+   catch e
+      Shaggy => println("fail catch")
+      Scooby => println("good catch")
+   end
+   ()
+end
+
+
+run():()=do
+   println("test 1")
+(*   test1() *)
+   println("test 2")
+   test2()
+   ()
+end
+end

@@ -52,8 +52,8 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.runtimeSystem.BAlongTree;
-import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
+import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader.InitializedStaticField;
 import com.sun.fortress.syntax_abstractions.ParserMaker.Mangler;
 import com.sun.fortress.useful.BA2Tree;
@@ -1198,6 +1198,148 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                            Naming.makeMethodDesc(NamingCzar.descDouble,
                                                      NamingCzar.descFortressFloatLiteral));
     }
+
+    public void forThrow(Throw x) {
+        debug("forThrow ", x);
+        Expr e = x.getExpr();
+
+        mv.visitTypeInsn(NEW, "com/sun/fortress/compiler/runtimeValues/FException");
+        mv.visitInsn(DUP);
+        e.accept(this);
+        mv.visitMethodInsn(INVOKESPECIAL, "com/sun/fortress/compiler/runtimeValues/FException",
+                           "<init>",
+                           "(Ljava/lang/Object;)V");
+        mv.visitInsn(ATHROW);
+    }
+
+    public void forTry(Try x) {
+         Label l0 = new Label();
+         Label l1 = new Label();
+         Label l2 = new Label();
+         Label lfinally = new Label();
+         Block body = x.getBody();
+         Option<Catch> catchClauses = x.getCatchClause();
+         List<BaseType> forbid = x.getForbidClause();
+         Option<Block> finallyClause = x.getFinallyClause();
+         if (!forbid.isEmpty())
+             throw new RuntimeException("NYI: Forbid clauses are not yet implemented");
+         
+         mv.visitTryCatchBlock(l0,l1,l2, "com/sun/fortress/compiler/runtimeValues/FException");
+         mv.visitLabel(l0);
+         body.accept(this);
+         mv.visitLabel(l1);
+         mv.visitJumpInsn(GOTO, lfinally);
+         mv.visitLabel(l2);
+         // We really should have desugared this into typecase, but for now...
+         
+         mv.visitFrame(Opcodes.F_SAME1, 0, null, 1, new Object[] {"com/sun/fortress/compiler/runtimeValues/FException"});
+
+         
+         if (catchClauses.isSome()) {
+             Catch _catch = catchClauses.unwrap();
+             Id name = _catch.getName();
+
+             Label done = new Label();
+             List<CatchClause> clauses = _catch.getClauses();
+             for (CatchClause clause : clauses) {
+                 Label next = new Label();
+                 Label end = new Label();
+                 BaseType match = clause.getMatchType();
+                 
+                 
+                 mv.visitInsn(DUP);
+                 mv.visitMethodInsn(INVOKEVIRTUAL, "com/sun/fortress/compiler/runtimeValues/FException", 
+                                    "getValue","()Ljava/lang/Object;");
+
+                 InstantiatingClassloader.generalizedInstanceOf(mv, NamingCzar.jvmBoxedTypeName(match, thisApi()));
+                 mv.visitJumpInsn(IFNE, next);
+                 mv.visitJumpInsn(GOTO, end);
+                 mv.visitLabel(next);
+                 mv.visitInsn(POP);
+                 clause.getBody().accept(this);
+                 mv.visitJumpInsn(GOTO, done);
+                 mv.visitLabel(end);
+             }
+             mv.visitInsn(POP);
+             mv.visitMethodInsn(INVOKESTATIC,
+                            NamingCzar.internalFortressVoid, NamingCzar.make,
+                            NamingCzar.voidToFortressVoid);
+             mv.visitLabel(done);
+         }
+         mv.visitLabel(lfinally);
+         if (finallyClause.isSome()) {
+             finallyClause.unwrap().accept(this);
+         }
+    }
+
+    private Type getType(TypeOrPattern t) {
+        if (t instanceof Type) return (Type)t;
+        else {
+            Pattern p = (Pattern)t;
+            if (p.getName().isSome()) return p.getName().unwrap();
+            else {
+                List<Type> types = new ArrayList<Type>();
+                for (PatternBinding pb : p.getPatterns().getPatterns()) {
+                    if (pb instanceof PlainPattern &&
+                        ((PlainPattern)pb).getIdType().isSome()) {
+                        types.add(getType(((PlainPattern)pb).getIdType().unwrap()));
+                    } else if (pb instanceof TypePattern) {
+                        types.add(((TypePattern)pb).getTyp());
+                    } else 
+                        //                        return error("typecase match failure!");
+                        throw new RuntimeException("typcase match failure!");
+                }
+                return NodeFactory.makeTupleType(types);
+            }
+        }
+    }
+
+    // May be useful for debugging expr types.  chf
+    private void printExprAndClassInfo(Expr expr) {
+        mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+        mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
+        mv.visitInsn(DUP);
+        mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V");
+        mv.visitLdcInsn("Object = ");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;");
+        expr.accept(this);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/Object;)Ljava/lang/StringBuilder;");
+        mv.visitLdcInsn(" of class ");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;");
+        expr.accept(this);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Object", "getClass", "()Ljava/lang/Class;");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/Object;)Ljava/lang/StringBuilder;");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
+    }
+
+    public void forTypecase(Typecase x) {
+        Expr expr = x.getBindExpr();
+
+        Label done = new Label();
+        for (TypecaseClause c : x.getClauses()) {
+            Label next = new Label();
+            Label end = new Label();
+            TypeOrPattern match = c.getMatchType();
+            Type typ = getType(match);
+            expr.accept(this);
+            InstantiatingClassloader.generalizedInstanceOf(mv, NamingCzar.jvmBoxedTypeName(typ, thisApi()));
+            mv.visitJumpInsn(IFNE, next);
+            mv.visitJumpInsn(GOTO, end);
+            mv.visitLabel(next);
+            c.getBody().accept(this);
+            mv.visitJumpInsn(GOTO, done);
+            mv.visitLabel(end);
+         }
+
+         mv.visitMethodInsn(INVOKESTATIC,
+                            NamingCzar.internalFortressVoid, NamingCzar.make,
+                            NamingCzar.voidToFortressVoid);
+
+         mv.visitLabel(done);
+
+    }
+
 
     /**
      * Generate the closure class for a generic function.  Also used to create
