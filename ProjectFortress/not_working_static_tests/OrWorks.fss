@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component OrWorks
+  export Executable
+
+  (* Make sure the OR operator works. At times it has
+     been parsed as a multi-fix operator, but no
+     multi-fix OR is defined in the libraries. *)
+  res(cur:Char, newlineOK:Boolean):Boolean =
+    cur=' ' OR cur='\t' OR (newlineOK AND cur='\t')
+
+  run():() = ()
+end

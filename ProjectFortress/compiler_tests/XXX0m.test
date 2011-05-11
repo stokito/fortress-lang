@@ -1,0 +1,23 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled0.m
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled0.m.fss:11:1-8:\n\
+\ Unmatched delimiter \"component\".\n\
+${STATIC_TESTS_DIR}/Compiled0.m.fss:14:14:\n\
+\ Unmatched delimiter \"do\".\n\
+${STATIC_TESTS_DIR}/Compiled0.m.fss:15:12-16:3:\n\
+\ Unmatched delimiters \"\\\"\"\ and \"end\".\n\
+${STATIC_TESTS_DIR}/Compiled0.m.fss:15:26:\n\
+\ Invalid string literal content: \n\
+File Compiled0.m.fss has 4 errors.\n
+compile_out_equals=

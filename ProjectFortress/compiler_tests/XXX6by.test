@@ -1,0 +1,23 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled6.by
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled6.by.fss:24:13-19:\n\
+\ No such method O.z.\n\
+${STATIC_TESTS_DIR}/Compiled6.by.fss:32:13-19:\n\
+\ No such method O.y.\n\
+${STATIC_TESTS_DIR}/Compiled6.by.fss:40:11-14:\n\
+\ No such method O.z.\n\
+${STATIC_TESTS_DIR}/Compiled6.by.fss:42:11-14:\n\
+\ No such method O.y.\n\
+File Compiled6.by.fss has 4 errors.\n
+compile_out_equals=
