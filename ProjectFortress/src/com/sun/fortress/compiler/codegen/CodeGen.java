@@ -3193,11 +3193,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         currentTraitObjectDecl = x;
+        Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> overloads = dumpOverloadedMethodChaining(superInterfaces, false);
+        
         for (Decl d : header.getDecls()) {
             // This does not work yet.
             d.accept(this);
         }
-        Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> overloads = dumpOverloadedMethodChaining(superInterfaces, false);
+        
         dumpMethodChaining(superInterfaces, false);
         // dumpErasedMethodChaining(superInterfaces, false);
         
@@ -3779,35 +3781,41 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             cw.dumpClass( cnb.fileName );
         }
 
-        // Now let's do the springboard inner class that implements this interface.
-        cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, prev);
-        cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
-        // Springboard *must* be abstract if any methods / fields are abstract!
-        // In general Springboard must not be directly instantiable.
-        cw.visit(InstantiatingClassloader.JVM_BYTECODE_VERSION, ACC_PUBLIC | ACC_ABSTRACT, springBoardClass,
-                 null, abstractSuperclass, new String[] { cnb.className } );
-        debug("Start writing springboard class ",
-              springBoardClass);
-        generateFieldsAndInitMethod(springBoardClass, abstractSuperclass,
-                                    Collections.<Param>emptyList());
-        debug("Finished init method ", springBoardClass);
-
-        initializedStaticFields_TO = new ArrayList<InstantiatingClassloader.InitializedStaticField>();
-
-        // Doing this to get a an extended type analyzer for overloaded method chaining.
         CodeGen newcg = new CodeGen(this,
                 typeAnalyzer.extendJ(header.getStaticParams(), header.getWhereClause()));
+
+        // Now let's do the springboard inner class that implements this interface.
+        newcg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, prev);
+        newcg.cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
+        // Springboard *must* be abstract if any methods / fields are abstract!
+        // In general Springboard must not be directly instantiable.
+        newcg.cw.visit(InstantiatingClassloader.JVM_BYTECODE_VERSION, ACC_PUBLIC | ACC_ABSTRACT, springBoardClass,
+                 null, abstractSuperclass, new String[] { cnb.className } );
         
+        debug("Start writing springboard class ",
+              springBoardClass);
+
+        newcg.generateFieldsAndInitMethod(springBoardClass, abstractSuperclass,
+                                    Collections.<Param>emptyList());
+        
+        debug("Finished init method ", springBoardClass);
+
+
+        // Doing this to get a an extended type analyzer for overloaded method chaining.
+        
+
+        newcg.initializedStaticFields_TO = new ArrayList<InstantiatingClassloader.InitializedStaticField>();
+
         // Overloads will tell us which methods need forwarding,
         // but they don't yet.
         Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> overloads =
             newcg.dumpOverloadedMethodChaining(superInterfaces, true);
         
-        dumpTraitDecls(header.getDecls());
-        dumpMethodChaining(superInterfaces, true);
+        newcg.dumpTraitDecls(header.getDecls());
+        newcg.dumpMethodChaining(superInterfaces, true);
         // dumpErasedMethodChaining(superInterfaces, true);
                 
-        optionalStaticsAndClassInitForTO(classId, cnb, false);
+        newcg.optionalStaticsAndClassInitForTO(classId, cnb, false);
  
         debug("Finished dumpDecls ", springBoardClass);
         if (sparams_part.length() > 0 ) {
@@ -3816,10 +3824,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              * generic context (how????) it is in fact a class, so it needs
              * INVOKEVIRTUAL.
              */
-            cw.dumpClass( springBoardClassOuter, pslpss.setA(Naming.OBJECT_GENERIC_TAG) );
+            newcg.cw.dumpClass( springBoardClassOuter, pslpss.setA(Naming.OBJECT_GENERIC_TAG) );
         } else {
-            cw.dumpClass( springBoardClassOuter );
+            newcg.cw.dumpClass( springBoardClassOuter );
         }
+        
         // Now lets dump out the functional methods at top level.
         cw = prev;
 
