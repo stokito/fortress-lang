@@ -52,39 +52,39 @@ opr ===(a:Boolean, b:Boolean):Boolean = a<->b
 
 opr NEQV(a:Any, b:Any):Boolean = NOT (a === b)
 
-(*) For now, we cannot compile `throw`
-fail(s:String):() = do
+(*) For now, fail returns () rather than any type at all
+fail[\T extends Any\](s: String): T = do
     errorPrintln("FAIL: " s)
-(*)    throw FailCalled(s)
-  end
+    throw FailCalled(s)
+end
 
-(*
+
 (** Assertion *)
-assert(flag:Boolean): () =
+assert(flag: Boolean): () =
     if NOT flag then
-        fail("Assertion failed!")
+        fail[\ () \]("Assertion failed!")
     end
 
 assert(flag: Boolean, failMsg: String): () =
     if NOT flag then
-        fail(failMsg)
+        fail[\ () \](failMsg)
     end
 
-
-assert(x:Any, y:Any, failMsg: Any...): () =
+(*
+assert(x: Any, y: Any, failMsg: Any...): () =
     if x =/= y then
         msg = x.asDebugString " =/= " y.asDebugString "; " (BIG || failMsg)  (* use || here instead of loose juxt *)
         fail(msg)
     end
 *)
 
-(*
-deny(flag:Boolean): () = assert(NOT flag)
+
+deny(flag: Boolean): () = assert(NOT flag)
 
 deny(flag: Boolean, failMsg: String): () = assert(NOT flag, failMsg)
 
-
-deny(x:Any, y:Any, failMsg: Any...): () =
+(*
+deny(x: Any, y: Any, failMsg: Any...): () =
     if x = y then
         msg = x.asDebugString " = " y.asDebugString "; " (BIG || failMsg)
         fail(msg)
@@ -102,10 +102,11 @@ end
 trait UncheckedException extends Exception excludes CheckedException
 end
 
-(*
 object FailCalled(s:String) extends UncheckedException
     getter asString(): String = "FAIL: " s
 end
+
+(*
 
 object DivisionByZero extends UncheckedException
     getter asString(): String = "Division by zero"
