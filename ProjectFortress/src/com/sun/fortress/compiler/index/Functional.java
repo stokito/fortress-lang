@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008,2010, Oracle and/or its affiliates.
+    Copyright 2008,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -38,6 +38,11 @@ public abstract class Functional extends InferredTypeIndex {
     public abstract Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor);
 
     public abstract IdOrOp name();
+
+    /* Added this to help with overloading; wish I knew what it meant,
+     * beyond "overloading uses it".
+     */
+    public abstract IdOrOpOrAnonymousName toUndecoratedName();
 
     public abstract IdOrOp unambiguousName();
 
