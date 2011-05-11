@@ -344,6 +344,8 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
             }
             APIName realApi = realApiOpt.unwrap();
             Id newN;
+            //System.err.println("original " + originalApi);
+            //System.err.println("realApi: " + realApi);
             if (originalApi == realApi) {
                 newN = n;
             } else {
@@ -377,7 +379,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                 }
                 Id qname = IterUtil.first(typeConses);
                 Type result = typeConsHandler.value(qname);
-
+                //System.err.println("result type: " + result);
                 return result;
             }
         }

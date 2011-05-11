@@ -97,4 +97,9 @@ random(i:RR64): RR64
 randomZZ32(x:ZZ32): ZZ32
 *)
 
+(************************************************************
+* Matrices (stub)
+************************************************************)
+trait Matrix[\T, nat s0, nat s1\] extends Object end
+
 end

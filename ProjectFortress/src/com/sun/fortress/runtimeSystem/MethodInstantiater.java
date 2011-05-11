@@ -16,6 +16,7 @@ import java.util.Map;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Label;
+// import org.objectweb.asm.MethodHandle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -238,4 +239,12 @@ public class MethodInstantiater implements MethodVisitor {
     public void visitVarInsn(int opcode, int var) {
         mv.visitVarInsn(opcode, var);
     }
+    
+    // removed for backwards compatibility @Override
+//    public void visitInvokeDynamicInsn(String name, String desc,
+//            MethodHandle bsm, Object... bsmArgs) {
+//        throw new Error("InvokeDynamic not yet handled");
+//        
+//    }
+
 }

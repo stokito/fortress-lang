@@ -22,8 +22,7 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
 
 /**
- * This class is responsible for simplifying types and
- * the comprises clauses of self-type idioms:
+ * This class is responsible for simplifying types:
  *  - ArrayType
  *   = 1-dimensional ArrayType is desugared to FortressLibrary.Array1.
  *   = 2-dimensional ArrayType is desugared to FortressLibrary.Array2.
@@ -34,38 +33,11 @@ import static com.sun.fortress.exceptions.ProgramError.error;
  *   = Other MatrixType throws an exception.
  *  - IntersectionType of a single type is desugared to the single type.
  *  - UnionType of a single type is desugared to the single type.
- *  - For each naked type variable V in a trait T's comprises clause
- *    the instance of T by using all its static parameter names as
- *      corresponding static arguments to the trait is implicitly
- *      regarded as one of the bounds on that static parameter V
- *      (in addition to any other bounds it might have).
- *    (checked by SNodeUtil.checkSparams)
  */
 public class TypeNormalizer extends NodeUpdateVisitor {
-    public static Type normalize(Type t) {
-	return (Type)t.accept(new TypeNormalizer());
-    }
-
-    public Node forTraitDeclOnly(TraitDecl that,
-				 ASTNodeInfo info,
-				 TraitTypeHeader header,
-				 Option<SelfType> selfType,
-				 List<BaseType> excludesClause,
-				 Option<List<NamedType>> comprises) {
-	Id name = (Id)header.getName();
-	List<StaticParam> sparams = header.getStaticParams();
-	sparams = SNodeUtil.checkSparams(name, sparams, comprises);
-	return new TraitDecl(info,
-			     new TraitTypeHeader(sparams, header.getMods(), name,
-						 header.getWhereClause(),
-						 header.getThrowsClause(),
-						 header.getContract(),
-						 header.getExtendsClause(),
-                                                 header.getParams(),
-						 header.getDecls()),
-			     selfType, excludesClause, comprises,
-			     that.isComprisesEllipses());
-    }
+	public static Type normalize(Type ty) {
+		return (Type)ty.accept(new TypeNormalizer());
+	}
 
     /**
      *    ArrayType ::= Type [ ExtentRange(, ExtentRange)* ]

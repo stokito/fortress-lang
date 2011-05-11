@@ -9,17 +9,17 @@
 
  ***************************************************************************** *)
 
-component Comparison2
-import ComparisonLibrary.{...}
+component TestComparison2
+import TestComparisonLibrary.{...}
 export Executable
 
 (*) Test short-circuit operators on the type Comparison.
 
 run(): () = do
-  U = Unordered
-  L = LessThan
-  G = GreaterThan
-  E = EqualTo
+  U = TestUnordered
+  L = TestLessThan
+  G = TestGreaterThan
+  E = TestEqualTo
   if NOT((U LEXICO: U) = U) then fail("Wanted (U LEXICO: U) = U")
   elif NOT((U LEXICO: L) = U) then fail("Wanted (U LEXICO: L) = U")
   elif NOT((U LEXICO: G) = U) then fail("Wanted (U LEXICO: G) = U")

@@ -9,17 +9,17 @@
 
  ******************************************************************************)
 
-component Comparison3
-import ComparisonLibrary.{...}
+component TestComparison3
+import TestComparisonLibrary.{...}
 export Executable
 
 (*) Test various operators on the type Comparison.
 
 run(): () = do
-  U = Unordered
-  L = LessThan
-  G = GreaterThan
-  E = EqualTo
+  U = TestUnordered
+  L = TestLessThan
+  G = TestGreaterThan
+  E = TestEqualTo
   if NOT(CONVERSE U = U) then fail("Wanted CONVERSE U = U but got " (CONVERSE U).asString)
   elif NOT(CONVERSE L = G) then fail("Wanted CONVERSE L = G but got " (CONVERSE L).asString)
   elif NOT(CONVERSE G = L) then fail("Wanted CONVERSE G = L but got " (CONVERSE G).asString)

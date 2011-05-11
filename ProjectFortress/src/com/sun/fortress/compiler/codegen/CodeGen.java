@@ -32,9 +32,11 @@ import edu.rice.cs.plt.tuple.Option;
 import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.scala_src.overloading.OverloadingOracle;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.index.DeclaredMethod;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
@@ -51,6 +53,7 @@ import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.*;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.BAlongTree;
 import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
@@ -84,6 +87,9 @@ import scala.collection.JavaConversions;
 // shout out.
 public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
+    private static final boolean DEBUG_OVERLOADED_METHOD_CHAINING =
+        ProjectProperties.getBoolean("fortress.debug.overloaded.methods", false);
+    
     CodeGenClassWriter cw;
     CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
     final String packageAndClassName;
@@ -93,7 +99,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     // traitsAndObjects appears to be dead code.
     // private final Map<String, ClassWriter> traitsAndObjects =
     //     new BATree<String, ClassWriter>(DefaultComparator.normal());
-    private final TypeAnalyzer ta;
+    private final TypeAnalyzer typeAnalyzer;
     private final ParallelismAnalyzer pa;
     private final FreeVariables fv;
     private final Map<IdOrOpOrAnonymousName, MultiMap<Integer, Function>> topLevelOverloads;
@@ -144,7 +150,37 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.traitOrObjectName = c.traitOrObjectName;
         this.springBoardClass = c.springBoardClass;
 
-        this.ta = c.ta;
+        this.typeAnalyzer = c.typeAnalyzer;
+        this.pa = c.pa;
+        this.fv = c.fv;
+        this.topLevelOverloads = c.topLevelOverloads;
+        this.exportedToUnambiguous = c.exportedToUnambiguous;
+        this.overloadedNamesAndSigs = c.overloadedNamesAndSigs;
+
+        this.lexEnv = new BATree<String,VarCodeGen>(c.lexEnv);
+
+        this.inATrait = c.inATrait;
+        this.inAnObject = c.inAnObject;
+        this.inABlock = c.inABlock;
+        this.emittingFunctionalMethodWrappers = c.emittingFunctionalMethodWrappers;
+        this.currentTraitObjectDecl = c.currentTraitObjectDecl;
+        
+        this.initializedStaticFields_TO = c.initializedStaticFields_TO;
+      
+        this.component = c.component;
+        this.ci = c.ci;
+        this.env = c.env;
+
+    }
+
+    private CodeGen(CodeGen c, TypeAnalyzer new_ta) {
+        this.cw = c.cw;
+        this.mv = c.mv;
+        this.packageAndClassName = c.packageAndClassName;
+        this.traitOrObjectName = c.traitOrObjectName;
+        this.springBoardClass = c.springBoardClass;
+
+        this.typeAnalyzer = new_ta;
         this.pa = c.pa;
         this.fv = c.fv;
         this.topLevelOverloads = c.topLevelOverloads;
@@ -181,7 +217,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        this.ta = ta;
+        this.typeAnalyzer = ta;
         this.pa = pa;
         this.fv = fv;
         this.ci = ci;
@@ -287,7 +323,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * 
          * FOR NOW, guess INVOKEINTERFACE.
          */
-        if (receiverType instanceof VarType || ta.typeCons(((TraitType)receiverType).getName()).ast() instanceof TraitDecl &&
+        if (receiverType instanceof VarType || typeAnalyzer.typeCons(((TraitType)receiverType).getName()).ast() instanceof TraitDecl &&
                 !NamingCzar.fortressTypeIsSpecial(receiverType)) {
             opcode = INVOKEINTERFACE;
         } else {
@@ -450,67 +486,91 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * Generate a an instance method forwarding calls from fromTrait.fnl to
      * the static method toTrait.fnl.
      * 
-     * @param fnl
+     * @param from_fnl
      * @param inst
      * @param toTrait
      * @param fromTrait
      */
-    private void generateForwardingFor(Functional fnl, StaticTypeReplacer inst,
-                                       TraitType toTrait, TraitType fromTrait) {
-        IdOrOp name = fnl.name();
-        if (!(fnl instanceof HasSelfType))
-            throw sayWhat(name, " method "+fnl+" doesn't appear to have self type.");
-        HasSelfType st = (HasSelfType)fnl;
+    private void generateForwardingFor(Functional from_fnl, StaticTypeReplacer inst,
+            TraitType fromTrait, TraitType toTrait) {
+        generateForwardingFor(from_fnl, from_fnl, inst, fromTrait, toTrait, false);
+    }
+    private void generateForwardingFor(Functional from_fnl, Functional to_fnl, StaticTypeReplacer inst,
+                                       TraitType fromTrait, TraitType toTrait, boolean narrowing) {
+        IdOrOp name = from_fnl.name();
+        if (!(from_fnl instanceof HasSelfType))
+            throw sayWhat(name, " method "+from_fnl+" doesn't appear to have self type.");
+        HasSelfType st = (HasSelfType)from_fnl;
         int selfIndex = st.selfPosition();
-        List<Param> params = fnl.parameters();
-        int arity = params.size();
-
-
+        List<Param> from_params = from_fnl.parameters();
+        List<Param> to_params = to_fnl.parameters();
+        int arity = from_params.size();
+        
         String receiverClass = NamingCzar.jvmTypeDesc(toTrait, component.getName(), false) +
         NamingCzar.springBoard;
-        if (toTrait.equals(fromTrait)) receiverClass = springBoardClass;
+        
+        boolean isObject = springBoardClass == null;
+        
+        if (toTrait.equals(fromTrait)) {
+            receiverClass = springBoardClass;                
+            if (narrowing) {
+                // Might be wrong for traits
+                receiverClass = NamingCzar.jvmTypeDesc(toTrait, component.getName(), false);
+            }
+        }
 
         List<StaticParam> static_parameters;
-        if (fnl instanceof FunctionalMethod) {
-            FunctionalMethod fm = (FunctionalMethod) fnl;
-            List<StaticParam> trait_and_method_sparams = fnl.staticParameters();
+        if (from_fnl instanceof FunctionalMethod) {
+            FunctionalMethod fm = (FunctionalMethod) from_fnl;
+            List<StaticParam> trait_and_method_sparams = from_fnl.staticParameters();
             static_parameters = fm.declaredStaticParameters();
             // This may be exposed, eventually
             List<StaticParam> trait_static_parameters =
                 trait_and_method_sparams.subList(0,
                   trait_and_method_sparams.size() - static_parameters.size());
         } else {
-            static_parameters = fnl.staticParameters();
+            static_parameters = from_fnl.staticParameters();
         }
         String mname;
-        String sig;
         if (static_parameters.size() > 0) {
-            mname = genericMethodName(fnl, selfIndex);
-            sig = genericMethodClosureFinderSig;
+            // TODO must check this name for the narrowing case
+            mname = genericMethodName(from_fnl, selfIndex);
+            String sig = genericMethodClosureFinderSig;
             arity = 3; // Magic number
             InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
                     receiverClass, mname + Naming.GENERIC_METHOD_FINDER_SUFFIX_IN_TRAIT, INVOKESTATIC,
                     sig, sig, arity, false, null);
         } else {
-            Type returnType = inst.replaceIn(fnl.getReturnType().unwrap());
-            Type paramType = inst.replaceIn(NodeUtil.getParamType(params, NodeUtil.getSpan(name)));
-            sig = NamingCzar.jvmSignatureFor(
-                    paramType,
-                    NamingCzar.jvmTypeDesc(returnType, component.getName()),
-                    0,
+            Type fromReturnType = inst.replaceIn(from_fnl.getReturnType().unwrap());
+            Type toReturnType = inst.replaceIn(to_fnl.getReturnType().unwrap());
+            Type fromParamType = inst.replaceIn(NodeUtil.getParamType(from_params, NodeUtil.getSpan(name)));
+            Type toParamType = inst.replaceIn(NodeUtil.getParamType(to_params, NodeUtil.getSpan(name)));
+            String from_sig = NamingCzar.jvmSignatureFor(
+                    fromParamType,
+                    NamingCzar.jvmTypeDesc(fromReturnType, component.getName()),
+                    narrowing ? -1 : 0,
+                    toTrait, // TODO should this be fromTrait?  It worked when it was not.
+                    component.getName());
+            
+            String to_sig = NamingCzar.jvmSignatureFor(
+                    toParamType,
+                    NamingCzar.jvmTypeDesc(toReturnType, component.getName()),
+                    narrowing ? -1 : 0,
                     toTrait,
                     component.getName());
 
             if (selfIndex != NO_SELF) {
-                sig = Naming.removeNthSigParameter(sig, selfIndex+1);
+                // TODO Buggy if narrowing self and not-self
+                from_sig = Naming.removeNthSigParameter(from_sig, narrowing ? selfIndex : selfIndex+1);
+                to_sig = Naming.removeNthSigParameter(to_sig, narrowing ? selfIndex : selfIndex+1);
                 mname = fmDottedName(singleName(name), selfIndex);
             } else {
-                mname = nonCollidingSingleName(name, sig,""); // What about static params?
+                mname = nonCollidingSingleName(name, from_sig,""); // What about static params?
                 arity++;
             }
             InstantiatingClassloader.forwardingMethod(cw, mname, ACC_PUBLIC, 0,
-                    receiverClass, mname, INVOKESTATIC,
-                    sig, sig, arity, true, null);
+                    receiverClass, mname, narrowing ? (isObject ? INVOKEVIRTUAL : INVOKEINTERFACE ): INVOKESTATIC,
+                    from_sig, to_sig, narrowing ? null : from_sig, arity, true, null);
         }
         
     }
@@ -578,7 +638,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 new IndexedRelation<IdOrOpOrAnonymousName,
                              scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>();
         } else {
-            alreadyIncluded = STypesUtil.inheritedMethods(extendsClause.subList(0,1), ta);
+            alreadyIncluded = STypesUtil.inheritedMethods(extendsClause.subList(0,1), typeAnalyzer);
         }
 
         /*
@@ -595,27 +655,27 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * extends clause, then it needs to be disambiguated in this type).
          */
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
-            toConsider = STypesUtil.allMethods(currentTraitObjectType, ta);
-        // System.err.println("Considering chains for "+tt);
+            toConsider = STypesUtil.allMethods(currentTraitObjectType, typeAnalyzer);
+        //System.err.println("Considering chains for "+currentTraitObjectType);
         for (edu.rice.cs.plt.tuple.Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
                  assoc : toConsider) {
             scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tup = assoc.second();
             TraitType tupTrait = tup._3();
             StaticTypeReplacer inst = tup._2();
             Functional fnl = tup._1();
-            // System.err.println("  "+assoc.first()+" "+tupTrait+" "+fnl);
+            //System.err.println("  "+assoc.first()+" "+tupTrait+" "+fnl);
             /* Skip non-definitions. */
-            if (!fnl.body().isSome()) continue;
+            if (!fnl.body().isSome()) {
+                // need to worry about tighter definitions in implementing types.
+                continue;
+            }
 
             List<StaticParam> static_parameters = fnl.staticParameters();
-            if (static_parameters.size() > 0) {
-                static_parameters = static_parameters;
-            }
             
             /* If defined in the current trait. */
             if (tupTrait.equals(currentTraitObjectType)) {
                 if (includeCurrent) {
-                    generateForwardingFor(fnl, inst, tupTrait, currentTraitObjectType);
+                    generateForwardingFor(fnl, inst, currentTraitObjectType, tupTrait); // swapped
                 }
                 continue;
             }
@@ -636,16 +696,267 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tupAlready :
                      alreadyIncluded.matchFirst(assoc.first())) {
                 if (tupAlready._3().equals(tupTrait)) {
-                    // System.err.println("    " + fnl + " already imported by first supertrait.");
+                    //System.err.println("    " + fnl + " already imported by first supertrait.");
                     alreadyThere = true;
                     break;
                 }
             }
-            if (alreadyThere) continue;
-            generateForwardingFor(fnl, inst, tupTrait, currentTraitObjectType);
+            if (alreadyThere) {
+                continue;
+            }
+            generateForwardingFor(fnl, inst, currentTraitObjectType, tupTrait); // swapped
         }
     }
 
+    /**
+     * 
+     * Deals with overloading and narrowed signatures in the mapping
+     * from Fortress methods to Java methods.
+     * 
+     * The problem comes, e.g., if
+     * trait T 
+     *   m(T):T
+     * end
+     * 
+     * object O extends T
+     *   m(T):O
+     * end
+     * 
+     * In the translation to Java, O's m has a different return type from T's m,
+     * thus it has a different signature, thus it does not properly override it
+     * in the generated bytecodes.  This has to be detected, and a forwarding 
+     * method for O.(T):T has to be created so that calls to T.m(T):T will
+     * arrive at O.(T):O.
+     * 
+     * There are variants of this problem created when T defines a non-abstract
+     * m(T), and O defines m(O) -- in that case, there needs to be O.m(x:T) that
+     * performs the overloading.
+     * 
+     *   if (x instanceof O)
+     *   then O.m((O)x)
+     *   else T.m(x)
+     *   Note that because the overloading is only valid in the case
+     *   that T defined a method with a body, T.m(x) is expressed as
+     *   T$defaultTraitMethods(self, x).
+     * 
+     * 
+     * @param superInterfaces
+     * @param includeCurrent
+     */
+    
+    private void dumpOverloadedMethodChaining(String [] superInterfaces, boolean includeCurrent) {
+        /*
+         * If the number of supertraits is 0, there is nothing to override.
+         */
+        if (superInterfaces.length < 1) return;
+        
+        TraitType currentTraitObjectType = STypesUtil.declToTraitType(currentTraitObjectDecl);
+        List<TraitTypeWhere> extendsClause = NodeUtil.getExtendsClause(currentTraitObjectDecl);
+        
+        OverloadingOracle oa =  new OverloadingOracle(typeAnalyzer);
+        
+        Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+            alreadyIncluded;
+        /*
+         * Initialize alreadyIncluded to empty, or to the inherited methods
+         * from the first t
+         */
+        if (extendsClause.size() == 0) {
+            alreadyIncluded =
+                new IndexedRelation<IdOrOpOrAnonymousName,
+                             scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>();
+        } else {
+            alreadyIncluded = STypesUtil.inheritedMethods(extendsClause.subList(0,1), typeAnalyzer);
+        }
+
+        /*
+         * Apparently allMethods returns the transitive closure of all methods
+         * declared in a particular trait or object and the types it extends.
+         * Iterate over all of them, noting the ones with bodies, that are not
+         * already defined in this type or the first extending type (those
+         * defined in this type are conditional on includeCurrent).
+         *
+         * Note that extends clauses should be minimal by this point, or at
+         * least as-if minimal; we don't want to be dealing with duplicated
+         * methods that would not trigger overriding by the meet rule (if the
+         * extends clause is minimal, and a method is defined twice in the
+         * extends clause, then it needs to be disambiguated in this type).
+         */
+        Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+            toConsider = STypesUtil.properlyInheritedMethods(currentTraitObjectType, typeAnalyzer);
+        
+        if (DEBUG_OVERLOADED_METHOD_CHAINING)
+        System.err.println("Considering overloads for "+currentTraitObjectType);
+        
+        TraitIndex ti = (TraitIndex) typeAnalyzer.traits().typeCons(currentTraitObjectType.getName()).unwrap();
+        
+        MultiMap<IdOrOpOrAnonymousName, Functional> nameToFSets =
+            new MultiMap<IdOrOpOrAnonymousName, Functional>();
+        
+        // Sort defined methods into map from single names to sets of defs
+        for (Map.Entry<Id, Method> ent: ti.getters().entrySet()) {
+            nameToFSets.putItem(ent.getKey(), ent.getValue());
+        }
+        for (Map.Entry<Id, Method> ent: ti.setters().entrySet()) {
+            nameToFSets.putItem(ent.getKey(), ent.getValue());
+        }
+        for (edu.rice.cs.plt.tuple.Pair<IdOrOpOrAnonymousName, FunctionalMethod> ent : ti.functionalMethods()) {
+            nameToFSets.putItem(ent.first(), ent.second());
+        }
+        for (edu.rice.cs.plt.tuple.Pair<IdOrOpOrAnonymousName, DeclaredMethod> ent : ti.dottedMethods()) {
+            nameToFSets.putItem(ent.first(), ent.second());
+        }
+        
+        /*
+         * The subtype-defined methods can overlap in several ways.
+         * Classified by D->R (Domain, Range), the following relationships are
+         * possible:
+         * 
+         * EQ -> EQ means Java dispatch works. (shadowed)
+         * 
+         * EQ -> LT means that the name is wrong;
+         *          the EQ->EQ method must be included.
+         *          (EQ->EQ cannot exist in subtype)
+         *          
+         * LT -> EQ means that there is an overloading.
+         *          (EQ -> LT cannot exist in subtype; EQ->EQ can)
+         *          
+         * LT -> LT means that there is an overloading.
+         *          EQ -> LT or EQ -> EQ can exist in subtype;
+         *          LT -> EQ can exist in super, if it does,
+         *          then it is covered in a diff relationship by EQ -> LT above.
+         *          
+         * EX -> ... means there is an excluding overloading
+         *          
+         * 
+         * There may also be overloadings present in
+         * the methods defined by this trait or object.
+         * 
+         * Forwarded methods are those that are in EQ -> LT relationship
+         * with some super method.
+         * 
+         * Overload sets contain all methods in the subtype plus all the 
+         * unshadowed, unforwarded methods from super.
+         * 
+         * As overloads, these are similar to function overloads, except that
+         * the parameters come in 1-n instead of 0-(n-1), and the invocation
+         * varies -- supertype invocation dispatches to the default-methods
+         * class, subtype invocation goes, where? (to the static, if subtype
+         * is a trait, otherwise, we need to dance the name out of the way).
+         * 
+         */
+        
+        MultiMap<IdOrOpOrAnonymousName, Functional> overloadedMethods =
+            new MultiMap<IdOrOpOrAnonymousName, Functional>();        
+
+        for(Map.Entry<IdOrOpOrAnonymousName, Set<Functional>> ent : nameToFSets.entrySet())  {
+            IdOrOpOrAnonymousName name = ent.getKey();
+            Set<Functional> funcs = ent.getValue();
+            
+            // initial set of potential overloads is this trait/object's methods
+            Set<Functional> perhapsOverloaded = new HashSet<Functional>(funcs);
+
+            for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> overridden :
+                toConsider.matchFirst(name)) {
+                Functional super_func = overridden._1();
+                StaticTypeReplacer inst = overridden._2();
+                TraitType ot = overridden._3();
+                if (ot.equals(currentTraitObjectType))
+                    continue;
+                
+                boolean shadowed = false;  // EQ -> EQ seen
+                boolean narrowed = false;  // EQ -> LT seen
+                Functional narrowed_func = null;
+                
+                Type super_ret = oa.getRangeType(super_func);
+                int super_self_index = selfParameterIndex(super_func.parameters());
+                Type super_noself_dom = selfEditedDomainType(super_func, super_self_index);
+
+                for (Functional func : funcs) {
+                    Type ret = oa.getRangeType(func);
+                    int self_index = selfParameterIndex(func.parameters());
+                    Type noself_dom = selfEditedDomainType(func, self_index);
+
+                    if (self_index != super_self_index) {
+                        /*
+                         * Not sure we see this ever; it is a bit of a mistake,
+                         * and will require further tinkering when we sort out
+                         * the overloads.  We DON'T want to attempt a type
+                         * comparison of dissimilar-selfed functions.
+                         */
+                        continue; 
+                    }
+                        
+                    // Classify potential override
+
+                    /*
+                     * Funny business with "self_index" --
+                     *   the overloading oracle / type analyzer believes that
+                     *   subtype_SELF more specific than supertype_SELF.
+                     *   
+                     *   This is not what we want for purposes of spotting
+                     *   shadowing and collisions.
+                     *  
+                     */
+                    boolean d_a_le_b = oa.lteq(noself_dom, super_noself_dom) ;
+                    boolean d_b_le_a = oa.lteq(super_noself_dom, noself_dom) ;
+                    
+                    boolean r_a_le_b = oa.lteq(ret, super_ret);
+                    boolean r_b_le_a = oa.lteq(super_ret, ret);
+                    
+                    if (d_a_le_b && d_b_le_a) {
+                        // equal domains
+                        if (r_a_le_b) { // sub is LE
+                            if (r_b_le_a) {
+                                // eq
+                                shadowed = true; // could "continue" here
+                                if (DEBUG_OVERLOADED_METHOD_CHAINING)
+                                    System.err.println("  "+ func + " shadows " + super_func);
+
+                            } else {
+                                // lt
+                                narrowed = true;
+                                narrowed_func = func;
+                                if (DEBUG_OVERLOADED_METHOD_CHAINING)
+                                    System.err.println("  "+ func + " narrows " + super_func);
+
+                            }
+                        }
+                    }
+                }
+
+                if (shadowed)
+                    continue;
+                if (narrowed) {
+                    generateForwardingFor(super_func, narrowed_func, inst, currentTraitObjectType, currentTraitObjectType, true); // swapped
+                    // TODO emit the forwarding method
+                    continue;
+                }
+                
+                perhapsOverloaded.add(super_func);
+            }
+
+            if (perhapsOverloaded.size() > 1 ) {
+                if (DEBUG_OVERLOADED_METHOD_CHAINING)
+                    System.err.println(" Method "+ name + " has overloads " + perhapsOverloaded);
+            }
+
+            // TODO now emit necessary overloads, if any.
+            
+        }
+    }
+
+
+    /**
+     * @param super_func
+     * @param super_self_index
+     * @return
+     */
+    public Type selfEditedDomainType(Functional super_func, int super_self_index) {
+        return STypesUtil.insertStaticParams(fndeclToType(super_func, super_self_index).getDomain(), super_func.staticParameters());
+    }
+
+    
     /**
      * Similar to dumpMethodChaining, except that this generates
      * the erased versions of methods from generic traits and objects.
@@ -695,11 +1006,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 new IndexedRelation<IdOrOpOrAnonymousName,
                              scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>();
         } else {
-            fromFirst = STypesUtil.inheritedMethods(extendsClause.subList(0,1), ta);
+            fromFirst = STypesUtil.inheritedMethods(extendsClause.subList(0,1), typeAnalyzer);
         }
 
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
-        fromSelf = STypesUtil.inheritedMethods(Useful.list(NodeFactory.makeTraitTypeWhere(tt)), ta);
+        fromSelf = STypesUtil.inheritedMethods(Useful.list(NodeFactory.makeTraitTypeWhere(tt)), typeAnalyzer);
 
         /* Need to filter alreadyIncluded to contain only those methods that come
          * from generics -- we don't want a non-generic to shadow a generic.
@@ -720,7 +1031,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * extends clause, then it needs to be disambiguated in this type).
          */
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
-            toConsider = STypesUtil.allMethods(tt, ta);
+            toConsider = STypesUtil.allMethods(tt, typeAnalyzer);
         // System.err.println("Considering chains for "+tt);
 
         for (edu.rice.cs.plt.tuple.Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
@@ -993,7 +1304,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             methodName = OverloadSet.actuallyOverloaded(it, paramCount) ?
                     OverloadSet.oMangle(methodName) : methodName;
 
-            signature = OverloadSet.getSignature(it, paramCount, ta);
+            signature = OverloadSet.getSignature(it, paramCount, typeAnalyzer);
 
         } else {
                 throw sayWhat( x, "Neither arrow nor intersection type: " + arrow );
@@ -1135,7 +1446,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // determineOverloadedNames(x.getDecls() );
 
         // Must do this first, to get local decls right.
-        overloadedNamesAndSigs = generateTopLevelOverloads(thisApi(), topLevelOverloads, ta, cw, this);
+        overloadedNamesAndSigs = generateTopLevelOverloads(thisApi(), topLevelOverloads, typeAnalyzer, cw, this);
 
         /* Need wrappers for the API, too. */
         generateUnambiguousWrappersForApi();
@@ -1143,8 +1454,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Must process top-level values next to make sure fields end up in scope.
         for (Decl d : x.getDecls()) {
             if (d instanceof ObjectDecl) {
-                CodeGen newcg = new CodeGen(this);
-                newcg.forObjectDeclPrePass((ObjectDecl) d);
+                ObjectDecl od = (ObjectDecl) d;
+                TraitTypeHeader tth = od.getHeader();
+                CodeGen newcg = new CodeGen(this,
+                        typeAnalyzer.extendJ(tth.getStaticParams(), tth.getWhereClause()));
+                newcg.forObjectDeclPrePass(od);
             } else if (d instanceof VarDecl) {
                 this.forVarDeclPrePass((VarDecl)d);
             }
@@ -2150,14 +2464,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Type rt = fh.getReturnType().unwrap();
         List<Param> lp = fh.getParams();
         if (selfIndex != NO_SELF)
-            lp = new DeletedList(lp, selfIndex);
+            lp = new DeletedList<Param>(lp, selfIndex);
         return typeAndParamsToArrow(x.getInfo().getSpan(), rt, lp);
     }
+    
     private ArrowType fndeclToType(Functional x, int selfIndex) {
         Type rt = x.getReturnType().unwrap();
         List<Param> lp = x.parameters();
         if (selfIndex != NO_SELF)
-            lp = new DeletedList(lp, selfIndex);
+            lp = new DeletedList<Param>(lp, selfIndex);
         return typeAndParamsToArrow(x.getSpan(), rt, lp);
     }
 
@@ -2487,7 +2802,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forTupleExpr(TupleExpr x) {
         List<Expr> exprs = x.getExprs();
         Type t = x.getInfo().getExprType().unwrap();
-        evaluateSubExprsAppropriately(x, exprs);
+        evaluateSubExprsAppropriately(x, t, exprs);
         // Invoke Tuple[\ whatever \].make(Object;Object;Object;etc)
         makeTupleOfSpecifiedType(t);
 
@@ -2938,6 +3253,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         int n = lhs.size();
         List<VarCodeGen> vcgs = new ArrayList(n);
+        List<Type> lhs_types = new ArrayList(n);
         for (LValue v : lhs) {
             if (v.isMutable()) {
                 throw sayWhat(d, "Can't yet generate code for mutable variable declarations.");
@@ -2950,7 +3266,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Type ty = (Type)v.getIdType().unwrap();
             VarCodeGen vcg = new VarCodeGen.LocalVar(v.getName(), ty, this);
             vcgs.add(vcg);
+            lhs_types.add(ty);
         }
+        
+        Type lhs_type = lhs_types.size() == 1 ? lhs_types.get(0) : NodeFactory.makeTupleType(lhs_types);
 
         // Compute rhs
         List<Expr> rhss = null;
@@ -2999,9 +3318,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitInsn(POP);
 
         } else if (pa.worthParallelizing(rhs)) {
-            forExprsParallel(rhss, vcgs);
+            forExprsParallel(rhss, lhs_type, vcgs);
         } else {
-            forExprsSerial(rhss,vcgs);
+            forExprsSerial(rhss, lhs_type, vcgs);
         }
 
         // Evaluate rest of block with binding in scope
@@ -3270,6 +3589,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             d.accept(this);
         }
         dumpMethodChaining(superInterfaces, false);
+        dumpOverloadedMethodChaining(superInterfaces, false);
         dumpErasedMethodChaining(superInterfaces, false);
         
         /* RTTI stuff */
@@ -3574,9 +3894,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     // level where we can't ask the qustion here?)
     // Leave the results (in the order given) on the stack when vcgs==null;
     // otherwise use the provided vcgs to bind corresponding values.
-    public void forExprsParallel(List<? extends Expr> args, List<VarCodeGen> vcgs) {
+    public void forExprsParallel(List<? extends Expr> args, Type domain_type, List<VarCodeGen> vcgs) {
         final int n = args.size();
         if (n <= 0) return;
+        
+        List<Type> domain_types;
+        if (args.size() != 1 && domain_type instanceof TupleType) {
+            TupleType tdt = (TupleType) domain_type;
+            domain_types = tdt.getElements();
+        } else {
+            domain_types = Collections.singletonList(domain_type);
+        }
+        
         String [] tasks = new String[n];
         String [] results = new String[n];
         int [] taskVars = new int[n];
@@ -3619,6 +3948,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // arg 0 gets compiled in place, rather than turned into work.
         if (vcgs != null) vcgs.get(0).prepareAssignValue(mv);
         args.get(0).accept(this);
+        conditionallyCastParameter(domain_types.get(0));
         if (vcgs != null) vcgs.get(0).assignValue(mv);
 
         // join / perform work locally left to right, leaving results on stack.
@@ -3631,6 +3961,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String task = tasks[i];
             mv.visitMethodInsn(INVOKEVIRTUAL, task, "joinOrRun", "()V");
             mv.visitFieldInsn(GETFIELD, task, "result", results[i]);
+            conditionallyCastParameter(domain_types.get(i));
             if (vcgs != null) vcgs.get(i).assignValue(mv);
         }
     }
@@ -3638,10 +3969,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     // Evaluate args serially, from left to right.
     // Leave the results (in the order given) on the stack when vcgs==null;
     // otherwise use the provided vcgs to bind corresponding values.
-    public void forExprsSerial(List<? extends Expr> args, List<VarCodeGen> vcgs) {
+    public void forExprsSerial(List<? extends Expr> args, Type domain_type, List<VarCodeGen> vcgs) {
+        
+        List<Type> domain_types;
+        if (args.size() != 1 && domain_type instanceof TupleType) {
+            TupleType tdt = (TupleType) domain_type;
+            domain_types = tdt.getElements();
+        } else {
+            domain_types = Collections.singletonList(domain_type);
+        }
         if (vcgs == null) {
+            int i = 0;
             for (Expr arg : args) {
                 arg.accept(this);
+                conditionallyCastParameter(domain_types.get(i++));
             }
         } else {
             int n = args.size();
@@ -3652,6 +3993,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 VarCodeGen vcg = vcgs.get(i);
                 vcg.prepareAssignValue(mv);
                 args.get(i).accept(this);
+                conditionallyCastParameter(domain_types.get(i));
                 vcg.assignValue(mv);
             }
         }
@@ -3663,7 +4005,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         FunctionalRef op = x.getOp();
         List<Expr> args = x.getArgs();
 
-        evaluateSubExprsAppropriately(x, args);
+        Type domain_type = ((ArrowType)(op.getInfo().getExprType().unwrap())).getDomain();
+        
+        evaluateSubExprsAppropriately(x, domain_type, args);
 
         op.accept(this);
     }
@@ -3672,12 +4016,22 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param x
      * @param args
      */
-    private void evaluateSubExprsAppropriately(ASTNode x, List<Expr> args) {
+    private void evaluateSubExprsAppropriately(ASTNode x, Type domain_type, List<Expr> args) {
         if (pa.worthParallelizing(x)) {
-            forExprsParallel(args, null);
+            forExprsParallel(args, domain_type, null);
         } else {
+            List<Type> domain_types;
+            if (args.size() != 1 && domain_type instanceof TupleType) {
+                TupleType tdt = (TupleType) domain_type;
+                domain_types = tdt.getElements();
+            } else {
+                domain_types = Collections.singletonList(domain_type);
+            }
+            int i = 0;
             for (Expr arg : args) {
                 arg.accept(this);
+                conditionallyCastParameter(domain_types.get(i));
+                i++;
             }
         }
     }
@@ -3830,8 +4184,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         initializedStaticFields_TO = new ArrayList<InstantiatingClassloader.InitializedStaticField>();
 
+        // Doing this to get a an extended type analyzer for overloaded method chaining.
+        CodeGen newcg = new CodeGen(this,
+                typeAnalyzer.extendJ(header.getStaticParams(), header.getWhereClause()));
         dumpTraitDecls(header.getDecls());
         dumpMethodChaining(superInterfaces, true);
+        newcg.dumpOverloadedMethodChaining(superInterfaces, true);
         dumpErasedMethodChaining(superInterfaces, true);
                 
         optionalStaticsAndClassInitForTO(classId, cnb, false);
@@ -3875,13 +4233,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<StaticParam> sparams = header.getStaticParams();
         
         HashMap<Id, TraitIndex> transitive_extends =
-            STypesUtil.inheritedTransitiveTraits(extend_s, ta);
+            STypesUtil.inheritedTransitiveTraits(extend_s, typeAnalyzer);
 
         HashMap<Id, TraitIndex> direct_extends =
-            STypesUtil.inheritedTraits(extend_s, ta);
+            STypesUtil.inheritedTraits(extend_s, typeAnalyzer);
         
         HashMap<Id, List<StaticArg>> direct_extends_args =
-            STypesUtil.inheritedTraitsArgs(extend_s, ta);
+            STypesUtil.inheritedTraitsArgs(extend_s, typeAnalyzer);
         
         int d_e_size = direct_extends.size();
 
@@ -4161,7 +4519,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             TraitIndex te_ti = entry.getValue();
             List<TraitTypeWhere> extends_extends = te_ti.extendsTypes();
             HashMap<Id, TraitIndex> extends_transitive_extends =
-                STypesUtil.inheritedTransitiveTraits(extends_extends, ta);
+                STypesUtil.inheritedTransitiveTraits(extends_extends, typeAnalyzer);
             extends_transitive_extends.put(te_id, te_ti); // put self in set.
             transitive_extends_from_extends.put(te_id, extends_transitive_extends);
         }
@@ -4465,8 +4823,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         
     };
-
-
     
     public void forMethodInvocation(MethodInvocation x) {
         debug("forMethodInvocation ", x,
@@ -4756,10 +5112,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param t
      */
     private void conditionallyCastParameter(Type t) {
-        if (t instanceof TupleType || t instanceof ArrowType) {
+        if (t instanceof ArrowType) {
             // insert cast
             String cast_to = NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
             InstantiatingClassloader.generalizedCastTo(mv, cast_to);
+        } else if ((t instanceof TupleType) && ((TupleType)t).getElements().size() > 0) {
+                // insert cast
+                String cast_to = NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
+                InstantiatingClassloader.generalizedCastTo(mv, cast_to);
         } else if (t instanceof VarType) {
             // insert conditional cast (what form does this take?)
             // note that generalizedCastTo will make this a bare instanceof.
@@ -4871,7 +5231,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Set<OverloadSet.TaggedFunctionName> fs = entry.getValue();
             if (fs.size() > 1) {
                 OverloadSet os = new OverloadSet.AmongApis(thisApi(), name,
-                                                           ta, fs, i);
+                                                           typeAnalyzer, fs, i);
 
                 os.split(false);
                 os.generateAnOverloadDefinition(name.stringName(), cw);

@@ -61,6 +61,8 @@ ProjectFortress/src/com/sun/fortress/parser/templateparser/TemplateParser.java
 ProjectFortress/src/com/sun/fortress/scala_src/nodes/FortressAst.scala
 ProjectFortress/TEST-RESULTS/*
 ProjectFortress/testFile.txt
+ProjectFortress/third_party/asm/org
+ProjectFortress/third_party/asm/asm-4.0_RC1
 ProjectFortress/third_party/asm/asm-3.1
 ProjectFortress/third_party/asm/asm-3.2
 ProjectFortress/third_party/asm/ow_util_ant_tasks_1.3.2

@@ -90,9 +90,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     public static JarOutputStream SAVE_EXPANDED_JAR = null;
     static {
         try {
-            SAVE_EXPANDED_JAR = new JarOutputStream(new BufferedOutputStream( new FileOutputStream(SAVE_EXPANDED_DIR + "/" + "expanded.jar")));
+            if (SAVE_EXPANDED_DIR != null)
+                SAVE_EXPANDED_JAR = new JarOutputStream(new BufferedOutputStream( new FileOutputStream(SAVE_EXPANDED_DIR + "/" + "expanded.jar")));
         } catch (IOException ex) {
-            
+            System.err.println("Failed to open jar file in " + SAVE_EXPANDED_DIR + " for expanded bytecodes");
         }
     }
     
@@ -101,7 +102,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             try {
                 SAVE_EXPANDED_JAR.close();
             } catch (IOException e) {
-                System.err.println("Failed to close jar file for expanded bytecodes");
+                System.err.println("Failed to close jar file in " + SAVE_EXPANDED_DIR + " for expanded bytecodes");
             }
         }
     }
@@ -530,14 +531,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // Begin with a class
         cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER, name, null, superClass, null);
 
-//        // Static field closure of appropriate arrow type.
-//        fv = cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, "closure", field_desc, null, null);
-//        fv.visitEnd();
-
-        // Class init allocates a singleton and initializes previous field
-//        mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
-//        mv.visitCode();
-        
         statics.add(new InitializedStaticField() {
 
             @Override
@@ -596,7 +589,30 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     }
 
-    /** Create forwarding method that re-pushes its arguments and
+    /**
+     * Emits a forwarding method.
+     * 
+     * Cases:
+     * apply static, target static
+     * apply instance, target static
+     * apply instance, target instance
+     * 
+     * @param cw Classwriter that will write the forwarding method
+     * @param thisName       name of the generated (forwarding) method
+     * @param thisModifiers  modifiers for the generated (forwarding) method
+     * @param selfIndex      index of the self parameter, if any
+     * @param fwdClass       class for the target method
+     * @param fwdName        name of the target method
+     * @param fwdOp          the appropriate INVOKE opcode for the forward
+     * @param maximalSig     the signature of the generated (forwarding) method
+     * @param selfCastSig    a full signature containing self at selfIndex
+     * @param nparamsIncludingSelf number of parameters, including self (if any)
+     * @param pushSelf       if true, push self first, using selfIndex to find it
+     * @param forceCastParam0 cast param 0, even if it is not self.  This is for
+     *                        implementation of generic methods.  It may need
+     *                        to be generalized to all params, not entirely sure.
+     * 
+     * Create forwarding method that re-pushes its arguments and
      * chains to another method in another class.
      * When selfIndex == -1, all arguments are pushed exactly in the order given,
      * and the input and output signatures are assumed to be the same (so this can
@@ -649,8 +665,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                                         int nparamsIncludingSelf, boolean pushSelf, String forceCastParam0) {
         String selfSig = null;
         if (pushSelf) {
-            selfSig = Naming.nthSigParameter(selfCastSig, selfIndex);
-            selfSig = selfSig.substring(1, selfSig.length()-1);
+            if (selfCastSig != null) {
+                selfSig = Naming.nthSigParameter(selfCastSig, selfIndex);
+                selfSig = selfSig.substring(1, selfSig.length()-1);
+            }
             if ((thisModifiers & ACC_STATIC) != 0) {
                 if (fwdOp != INVOKESTATIC) {
                     // receiver has explicit self, fwd is dotted.
@@ -680,7 +698,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         if (pushSelf) {
             mv.visitVarInsn(ALOAD, selfIndex);
-            mv.visitTypeInsn(CHECKCAST, selfSig);
+            if (selfSig != null)
+                mv.visitTypeInsn(CHECKCAST, selfSig);
             if (fwdOp == INVOKESTATIC)
                 parsed_arg_cursor++;
         }
@@ -782,6 +801,29 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         mv.visitMaxs(1, 1);
         mv.visitEnd();
     }
+    
+    /**
+     * Creates the interface for an Arrow type.  An Arrow interface includes
+     * 2 or 3 methods.  One is the simple domain-to-range "apply", where domain
+     * is the determined by the parameters of the generic, taken as is.
+     * The next "apply" method replaces all types in the domain and range
+     * with java/lang/Object, for use in certain contexts (coerced arrows
+     * for casts, also for dynamically instantiated generic functions).  The
+     * third apply method is generated if there is more than parameter to the
+     * function, in which case the parameters are wrapped in a tuple.
+     * For example, Arrow[\T;U;V\] will have the apply methods (ignore
+     * both Fortress and JVM dangerous characters mangling issues for now):
+     * 
+     * apply(LT;LU;)LV;
+     * 
+     * apply(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+     * 
+     * apply(LTuple[\T;U\];)LV
+     * 
+     * @param name
+     * @param parameters
+     * @return
+     */
     
     private static byte[] instantiateArrow(String name, List<String> parameters) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
@@ -939,6 +981,17 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String t = unwrapped_parameters.get(i);
             if (!t.equals(Naming.INTERNAL_SNOWMAN)) {
                 mv.visitVarInsn(ALOAD, i+1);
+            } else {
+                /* we are calling the object-interface version of this,
+                 * we need something on the stack, or else it will fail.
+                 * 
+                 * This is also a naming/refactoring FAIL; this information
+                 * needs to come from somewhere else.
+                */
+                mv.visitInsn(Opcodes.ACONST_NULL);
+//                mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+//                        Naming.runtimeValues + "FVoid", "make",
+//                        "()L" + Naming.runtimeValues + "FVoid" + ";");
             }
         }
 
