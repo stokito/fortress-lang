@@ -100,7 +100,7 @@ public class Naming {
     // Used to indicate translation convention to apply to type parameter.
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA
     public final static String NORMAL_TAG = "\u263a"; // smiley face == normal case.
-    public final static String INTERNAL_TAG = "\u26a0"; // warning sign -- internal use only (fortress.)
+    // public final static String INTERNAL_TAG = "\u26a0"; // warning sign -- internal use only (fortress.)
 
     public final static String ENVELOPE = "\u2709"; // Signals necessary closure
     public final static String SNOWMAN = "\u2603"; // for empty tuple, sigh.
@@ -125,11 +125,11 @@ public class Naming {
 
     public static final String ENTER = "\u2386";
 
-    public static final String INTERNAL_SNOWMAN = INTERNAL_TAG + SNOWMAN;
+    public static final String INTERNAL_SNOWMAN = SNOWMAN;
 
     public final static char FOREIGN_TAG_CHAR = FOREIGN_TAG.charAt(0);
     public final static char NORMAL_TAG_CHAR = NORMAL_TAG.charAt(0);
-    public final static char INTERNAL_TAG_CHAR = INTERNAL_TAG.charAt(0);
+    // public final static char INTERNAL_TAG_CHAR = INTERNAL_TAG.charAt(0);
     public static final char BALLOT_BOX_WITH_CHECK_CHAR = BALLOT_BOX_WITH_CHECK.charAt(0);
     public static final char SCALES_CHAR = SCALES.charAt(0);
     public static final char MUSIC_SHARP_CHAR = MUSIC_SHARP.charAt(0);

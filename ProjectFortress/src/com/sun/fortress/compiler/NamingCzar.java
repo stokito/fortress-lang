@@ -1052,7 +1052,7 @@ public class NamingCzar {
 
     private static String makeGenericParameterDescriptor(TupleType t, final APIName ifNone) {
         if ( NodeUtil.isVoidType(t) )
-            return Naming.INTERNAL_TAG + Naming.SNOWMAN;
+            return Naming.SNOWMAN;
         if (t.getVarargs().isSome())
             throw new CompilerError(t,"Can't compile VarArgs yet");
         if (!t.getKeywords().isEmpty())
