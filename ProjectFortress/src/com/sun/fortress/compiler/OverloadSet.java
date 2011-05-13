@@ -1040,74 +1040,58 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             InterpreterBug.bug("Must split overload set before generating call(s)");
             return;
         }
+        int l = specificDispatchOrder.length;
 
-         {
-            int l = specificDispatchOrder.length;
-            
-            //  create type structures for parameter types.
-            
-            TS[][] type_structures = new TS[l][];
-            MultiMap[] spmaps = new MultiMap[l];
-            for (int i = 0; i < l; i++) {
-                TaggedFunctionName f = specificDispatchOrder[i];
-                Functional eff = f.getF();
-                List<Param> parameters = f.tagParameters();
-                MultiMap<String, TS> spmap = new MultiMap<String, TS>();
-                spmaps[i] = spmap;
-                // skip parameters -- no 'this' for ordinary functions
-                int storeAtIndex = parameters.size();
-                TS[] f_type_structures = new TS[parameters.size()];
-                type_structures[i] = f_type_structures;
-                
-                for (int j = 0; j < parameters.size(); j++) {
-                    Type t = oa.getParamType(eff,j);
-                    TS type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex);
-                    f_type_structures[j] = type_structure;
-                    storeAtIndex = type_structure.successorIndex;
+        //  create type structures for parameter types.
+        TS[][] type_structures = new TS[l][];
+        MultiMap[] spmaps = new MultiMap[l];
+        for (int i = 0; i < l; i++) {
+            TaggedFunctionName f = specificDispatchOrder[i];
+            Functional eff = f.getF();
+            List<Param> parameters = f.tagParameters();
+            MultiMap<String, TS> spmap = new MultiMap<String, TS>();
+            spmaps[i] = spmap;
+            // skip parameters -- no 'this' for ordinary functions
+            int storeAtIndex = parameters.size();
+            TS[] f_type_structures = new TS[parameters.size()];
+            type_structures[i] = f_type_structures;
+
+            for (int j = 0; j < parameters.size(); j++) {
+                Type t = oa.getParamType(eff,j);
+                TS type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex);
+                f_type_structures[j] = type_structure;
+                storeAtIndex = type_structure.successorIndex;
+            }
+        }
+
+        for (int i = 0; i < l; i++) {
+            TaggedFunctionName f = specificDispatchOrder[i];
+            TS[] f_type_structures = type_structures[i];                
+            Label lookahead = null;
+
+            if (i < l-1) {
+                /* Trust the static checker; no need to verify
+                 * applicability of the last one.
+                 */
+                // Will need lookahead for the next one.
+                lookahead = new Label();
+
+                Set<String> top_level_invariants = new HashSet<String>();
+                for (int j = 0; j < f_type_structures.length; j++) {
+                    top_level_invariants.addAll(f_type_structures[j].invariantGenericsContained);
+                }
+                for (int j = 0; j < f_type_structures.length; j++) {
+                    // Load actual parameter
+                    mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
+                    f_type_structures[j].emitInstanceOf(mv, lookahead, true, top_level_invariants);
                 }
             }
-            
-            for (int i = 0; i < l; i++) {
-                TaggedFunctionName f = specificDispatchOrder[i];
-                TS[] f_type_structures = type_structures[i];
-//                Function eff = f.getF();
-                
-                Label lookahead = null;
+            // Come here if we have successfully passed the test.
+            generateLeafCall(mv, firstArgIndex, f);
 
-                if (i < l-1) {
-                    /* Trust the static checker; no need to verify
-                     * applicability of the last one.
-                     */
-                    // Will need lookahead for the next one.
-                    lookahead = new Label();
-
-//                    List<Param> parameters = f.tagParameters();
-                    Set<String> top_level_invariants = new HashSet<String>();
-                    for (int j = 0; j < f_type_structures.length; j++) {
-                        top_level_invariants.addAll(f_type_structures[j].invariantGenericsContained);
-                    }
-                    for (int j = 0; j < f_type_structures.length; j++) {
-//                        Type t = oa.getParamType(eff,j);
-                        
-                        // Load actual parameter
-                        mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
-                        
-                        f_type_structures[j].emitInstanceOf(mv, lookahead, true, top_level_invariants);
-                        
-//                        // Check type
-//                        InstantiatingClassloader.generalizedInstanceOf(mv,
-//                                NamingCzar.jvmBoxedTypeName(t, ifNone));
-//                        // Branch ahead if failure
-//                        mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
-                    }
-                }
-                // Come here if we have successfully passed the test.
-                generateLeafCall(mv, firstArgIndex, f);
-
-                if (lookahead != null)
-                    mv.visitLabel(lookahead);
-            }
-        } 
+            if (lookahead != null)
+                mv.visitLabel(lookahead);
+        }
     }
 
     /**
@@ -1146,16 +1130,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @return
      */
     String jvmSignatureFor(TaggedFunctionName f) {
-        /*
-        Function fu = f.tagF;
-        List<StaticParam> params = staticParametersOf(fu);
-        TypeAnalyzer eta = ta;
-        if (params != null) {
-            eta = ta.extend(params, Option.<WhereClause>none());
-        }
-        */
-
-        return NamingCzar.jvmSignatureFor(f.tagF, f.tagA); // eta
+        return NamingCzar.jvmSignatureFor(f.tagF, f.tagA); 
     }
 
     /**
@@ -1245,14 +1220,19 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         List<StaticParam> sargs = null;
         /* Some overloads have static args, but even if they are supplied,
          * runtime inference is still necessary (so I think) -- drc 2010-02-24
+         * 
+         * Not quite so -- if each static parameter is mentioned in any
+         * invariant occurrence, then the supplied type is exact.
+         * Runtime inference is only necessary when the occurrences are
+         * ALL in variant context.  Static analysis can also supply 
+         * no-more-precise-than information that it learns from context.
+         * If no-less and no-more precise information are equal, then
+         * again, dynamic inference is not needed.
          */
         if (principalMember != null) {
             sargs = staticParametersOf(principalMember.tagF);
         }
 
-        //String tstr = (exceptions.length==0) ? "" : (" throws " + Useful.list(exceptions));
-        //String astr = (sargs==null)? "" : Useful.listInOxfords(sargs);
-        // System.err.println(astr + signature + tstr);
         if (CodeGenerationPhase.debugOverloading)
             System.err.println("Emitting overload " + _name + signature);
 
@@ -1317,7 +1297,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
-    private void generateBody(MethodVisitor mv) {
+    protected void generateBody(MethodVisitor mv) {
         mv.visitCode();
         Label fail = new Label();
 
@@ -1353,7 +1333,44 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     }
 
-    static public class AmongApis extends OverloadSet {
+    static public class ForTraitOrObject extends AmongApis {
+        public ForTraitOrObject(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Functional> defs, int n) {
+            super(apiname, name, ta, Useful.applyToAll(defs, new F<Functional, TaggedFunctionName>() {
+
+                @Override
+                public TaggedFunctionName apply(Functional f) {
+                    return new TaggedFunctionName(apiname, f);
+                }
+            }), n);
+        }
+        
+        public ForTraitOrObject(APIName ifNone, IdOrOpOrAnonymousName name,
+                TypeAnalyzer ta,
+                OverloadingOracle oa,
+                Set<TaggedFunctionName> childLSTSF,
+                BASet<Integer> childTestedIndices, ForTraitOrObject parent,
+                Type t, int paramCount) {
+            super(ifNone, name, ta, oa, childLSTSF, childTestedIndices, parent, t, paramCount);
+        }
+
+        public ForTraitOrObject(APIName ifNone, IdOrOpOrAnonymousName name,
+                TypeAnalyzer ta,
+                Set<TaggedFunctionName> childLSTSF,
+                int paramCount, boolean this_disambiguates_the_erasure) {
+            super(ifNone, name, ta, childLSTSF, paramCount);
+        }
+
+        protected OverloadSet makeChild(Set<TaggedFunctionName> childLSTSF, BASet<Integer> childTestedIndices, Type t) {
+            return new ForTraitOrObject(ifNone, name, ta, oa, childLSTSF,
+                    childTestedIndices, this, t, paramCount);
+        }
+
+        protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName _principalMember) {
+            OverloadSet subset = new ForTraitOrObject(ifNone, name, ta, childLSTSF, paramCount, true);
+            subset.principalMember = _principalMember;
+            return subset;
+        }
+
         /**
          * Emit the invocation for a particular type of overloaded functions.
          *
@@ -1363,11 +1380,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          */
         protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
                                               String sig) {
-
             List<StaticParam> sargs = staticParametersOf(f.tagF);
             String sparamsType = "";
             String genericArrowType = "";
-            
             String ownerName = NamingCzar.apiAndMethodToMethodOwner(f.tagA, f.tagF);
             String mname = NamingCzar.apiAndMethodToMethod(f.tagA, f.tagF);
 
@@ -1385,11 +1400,90 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                                                        sparamsType, genericArrowType);
                 mname = Naming.APPLIED_METHOD;
             }
-            
-//            if (getOverloadSubsets().containsKey(name.stringName()+sig)) {
-//                mname = NamingCzar.mangleAwayFromOverload(mname);
-//            }
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
+        }
+        
+        /*
+         * See super implementation for comparison and comments.
+         * 
+         * @param _name
+         * @param cv
+         */
+        
+        protected void generateAnOverloadDefinitionInner(String _name, CodeGenClassWriter cv) {
 
+            // "(" anOverloadedArg^N ")" returnType
+            // Not sure what to do with return type.
+            String signature = getSignature();
+            String[] exceptions = getExceptions();
+
+          
+            List<StaticParam> sargs = null;
+            
+            if (principalMember != null) {
+                sargs = staticParametersOf(principalMember.tagF);
+            }
+            
+            if (sargs != null) {
+                // Not yet prepared for overloaded GENERIC methods!
+                InterpreterBug.bug("Not yet ready for overloaded generic methods " + this);
+
+            }
+
+            if (CodeGenerationPhase.debugOverloading)
+                System.err.println("Emitting overloaded method " + _name + signature);
+
+            String PCNOuter = null;
+            Pair<String, List<Pair<String, String>>> pslpss = null; 
+            String overloaded_name = oMangle(_name);
+            
+            ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
+            
+            MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC, // access,
+                        overloaded_name, // name,
+                        signature, // sp.getFortressifiedSignature(),
+                        null, // signature, // depends on generics, I think
+                        exceptions); // exceptions);
+            
+            generateBody(mv);
+            
+            if (PCNOuter != null) {
+                InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cv);
+                cv.dumpClass(PCNOuter, pslpss);
+            }
+        }
+    }
+
+    static public class AmongApis extends OverloadSet {
+        /**
+         * Emit the invocation for a particular type of overloaded functions.
+         *
+         * @param mv
+         * @param f
+         * @param sig
+         */
+        protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
+                                              String sig) {
+            List<StaticParam> sargs = staticParametersOf(f.tagF);
+            String sparamsType = "";
+            String genericArrowType = "";
+            String ownerName = NamingCzar.apiAndMethodToMethodOwner(f.tagA, f.tagF);
+            String mname = NamingCzar.apiAndMethodToMethod(f.tagA, f.tagF);
+
+            // this ought to work better here.
+            if (getOverloadSubsets().containsKey(name.stringName()+sig)) {
+                mname = NamingCzar.mangleAwayFromOverload(mname);
+            }
+            
+            if (sargs != null) {
+                 genericArrowType =
+                    NamingCzar.makeArrowDescriptor(ifNone, oa.getDomainType(f.tagF), oa.getRangeType(f.tagF));
+                sparamsType = NamingCzar.genericDecoration(sargs, null, ifNone);
+                ownerName =
+                    Naming.genericFunctionPkgClass(ownerName, mname,
+                                                       sparamsType, genericArrowType);
+                mname = Naming.APPLIED_METHOD;
+            }
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
         }
 
