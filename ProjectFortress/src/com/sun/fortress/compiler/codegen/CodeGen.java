@@ -5028,53 +5028,48 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             MultiMap<Integer, Functional> partitionedByArgCount = entry1.getValue();
 
             for (Map.Entry<Integer, Set<Functional>> entry :
-                     partitionedByArgCount.entrySet()) {
-               int i = entry.getKey();
-               Set<Functional> fs = entry.getValue();
+                partitionedByArgCount.entrySet()) {
+                int i = entry.getKey();
+                Set<Functional> fs = entry.getValue();
 
-               OverloadSet os =
-                   new OverloadSet.Local(api_name, name,
-                                         ta, fs, i);
+                OverloadSet os =
+                    new OverloadSet.Local(api_name, name,
+                            ta, fs, i);
 
-               if (true || os.notGeneric()) {
-                   /*
-                    * Temporarily, do not generate code for generic
-                    * overloads.  Many of them are statically resolved,
-                    * and this includes the cases necessary for reduction.
-                    */
-                   os.split(true);
+                /*
+                 * Temporarily, do not generate code for generic
+                 * overloads.  Many of them are statically resolved,
+                 * and this includes the cases necessary for reduction.
+                 */
+                os.split(true);
 
-                   String s = name.stringName();
-                   String s2 = NamingCzar.apiAndMethodToMethod(api_name, s);
+                String s = name.stringName();
+                String s2 = NamingCzar.apiAndMethodToMethod(api_name, s);
 
-                   try {
-                       os.generateAnOverloadDefinition(s2, cw);
-                   } catch (InterpreterBug ex) {
-                       String mess = ex.getMessage();
-                       throw ex;
-                     
-                   }
-                   if (cg != null) {
-                       /* Need to check if the overloaded function happens to match
-                        * a name in an API that this component exports; if so,
-                        * generate a forwarding wrapper from the
-                        */
-                   }
+                try {
+                    os.generateAnOverloadDefinition(s2, cw);
+                } catch (InterpreterBug ex) {
+                    String mess = ex.getMessage();
+                    throw ex;
 
-                   for (Map.Entry<String, OverloadSet> o_entry : os.getOverloadSubsets().entrySet()) {
-                       String ss = o_entry.getKey();
-                       OverloadSet o_s = o_entry.getValue();
-                       ss = // s +
-                           ss + o_s.genericSchema;
-                       // Need to add Schema to the end of ss for generic overloads.
-                       // System.err.println("Adding "+s+" : "+ss);
-                       overloaded_names_and_sigs.add(ss);
-                   }
-               } else {
-                   System.err.println("Punting on generic overload " + os);
-                   os.split(true);
+                }
+                if (cg != null) {
+                    /* Need to check if the overloaded function happens to match
+                     * a name in an API that this component exports; if so,
+                     * generate a forwarding wrapper from the
+                     */
+                }
 
-               }
+                for (Map.Entry<String, OverloadSet> o_entry : os.getOverloadSubsets().entrySet()) {
+                    String ss = o_entry.getKey();
+                    OverloadSet o_s = o_entry.getValue();
+                    ss = // s +
+                        ss + o_s.genericSchema;
+                    // Need to add Schema to the end of ss for generic overloads.
+                    // System.err.println("Adding "+s+" : "+ss);
+                    overloaded_names_and_sigs.add(ss);
+                }
+
            }
         }
         // StringBuilder sb = new StringBuilder("api ");

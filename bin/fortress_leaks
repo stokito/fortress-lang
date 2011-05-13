@@ -19,7 +19,7 @@ else
   SEP=":"
 fi
 TP="$FORTRESS_HOME/ProjectFortress/third_party"
-SV=2.9.0RC1
+SV=2.9.0
 #SV=2.8.0
 
 CP="$FORTRESS_HOME/ProjectFortress/build${SEP}$FORTRESS_HOME/ProjectFortress/third_party/junit/junit.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/asm/asm-3.1.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/xtc/xtc.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/jsr166y/jsr166y.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/plt/plt.jar${SEP}$JAVA_HOME/lib/tools.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/unsigned/unsigned.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/astgen/astgen.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/scala/scala-compiler-${SV}.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/scala/scala-library-${SV}.jar${SEP}$CP"
