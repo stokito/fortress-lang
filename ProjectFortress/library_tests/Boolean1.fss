@@ -17,14 +17,14 @@ export Executable
 
 run(): () =
   if true then
-    if NOT true then fail("NOT true")
-    elif false then fail("false")
-    elif NOT (NOT false) then fail("NOT (NOT false)")
-    elif true = false then fail("true = false")
-    elif false = true then fail("false = true")
-    elif true = NOT true then fail("true = NOT true")
-    elif false = NOT false then fail("false = NOT false")
+    if NOT true then fail[\()\]("NOT true")
+    elif false then fail[\()\]("false")
+    elif NOT (NOT false) then fail[\()\]("NOT (NOT false)")
+    elif true = false then fail[\()\]("true = false")
+    elif false = true then fail[\()\]("false = true")
+    elif true = NOT true then fail[\()\]("true = NOT true")
+    elif false = NOT false then fail[\()\]("false = NOT false")
     else println("PASS")
     end
-  else fail("true did not succeed") end
+  else fail[\()\]("true did not succeed") end
 end
