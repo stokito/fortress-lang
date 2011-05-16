@@ -58,17 +58,17 @@ public class InstantiationMapJUTest extends TestCase {
 
     public void testMaybeBareVar() {
         StringBuilder b = new StringBuilder();
-        int i = map.maybeBareVar("A", 0, b, false);
+        int i = map.maybeBareVar("A", 0, b, false, false);
         assertEquals(1, i);
         assertEquals("ant", b.toString());
  
         b = new StringBuilder();
-        i = map.maybeBareVar("B;", 0, b, false);
+        i = map.maybeBareVar("B;", 0, b, false, false);
         assertEquals(1, i);
         assertEquals("bat", b.toString());
 
         b = new StringBuilder();
-        i = map.maybeBareVar("CC;", 0, b, false);
+        i = map.maybeBareVar("CC;", 0, b, false, false);
         assertEquals(2, i);
         assertEquals("CC", b.toString());
 

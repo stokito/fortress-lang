@@ -42,7 +42,7 @@ public class InstantiationMap  {
             return s;
         s = Naming.demangleFortressIdentifier(s);
         StringBuilder b = new StringBuilder();
-        maybeBareVar(s, 0, b, false);
+        maybeBareVar(s, 0, b, false, false);
         
         s = b.toString();
        
@@ -56,7 +56,7 @@ public class InstantiationMap  {
             return s;
         s = Naming.demangleFortressIdentifier(s);
         StringBuilder b = new StringBuilder();
-        maybeBareVar(s, 0, b, false);
+        maybeBareVar(s, 0, b, false, false);
         
         s =  b.toString();
 
@@ -229,7 +229,7 @@ public class InstantiationMap  {
         ArrayList<String> params = new ArrayList<String>();
         while (true) {
             StringBuilder one_accum = new StringBuilder();
-            int at = maybeBareVar(input, begin, one_accum, true);
+            int at = maybeBareVar(input, begin, one_accum, true, false);
             char ch = input.charAt(at++);
         
             if (ch == ';') {
@@ -280,7 +280,7 @@ public class InstantiationMap  {
      * @param accum
      */
      int maybeVarInLSemi(String input, int begin, StringBuilder accum) {
-        int at = maybeBareVar(input, begin, accum, false);
+        int at = maybeBareVar(input, begin, accum, false, true);
         char ch = input.charAt(at++);
         if (ch != ';')
             throw new Error("Expected semicolon, saw " + ch +
@@ -307,9 +307,10 @@ public class InstantiationMap  {
      * @param begin
      * @param accum
      * @param inOxfords
+     * @param xlate_specials
      * @return
      */
-    int maybeBareVar(String input, int begin, StringBuilder accum, boolean inOxfords) {
+    int maybeBareVar(String input, int begin, StringBuilder accum, boolean inOxfords, boolean xlate_specials) {
         int at = begin;
         char ch = input.charAt(at++);
         boolean maybeVar = true;
@@ -351,6 +352,9 @@ public class InstantiationMap  {
             if (ch != '=') {
                 String t = p.get(s); // (inOxfords ? q : p).get(s);
                 if (t != null) {
+                    if (xlate_specials && t.equals(Naming.SNOWMAN)) {
+                        t = Naming.specialFortressTypes.get(t);
+                    }
                     accum.append(t);
                     //accum.append(inOxfords ? t : t.substring(1));
                 } else {
