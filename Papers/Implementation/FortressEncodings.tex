@@ -50,7 +50,7 @@ Some of these manglings include what can only be called silly artifacts of the F
 \begin{tabular}{|r|c|l|}
 left oxford&\LOBR&begin generic parameters (can nest)\\
 right oxford&\ROBR&end generic parameters (can nest)\\
-danger snowman&\DNGR\SNOW&void; used in Arrow types\\
+snowman&\SNOW&void; used in Arrow types\\
 heavy x&\HVYX&schema marker; blocks subsequent rewriting\\
 gear&\GEAR&generic function marker\\
 up index&\UNDX&self type within generic methods\\
@@ -98,7 +98,7 @@ At run time, any reference to one of these generic-encoding classes triggers spe
 When a greater variety of generic parameters are supported (nat, bool, opr, dimension, unit), the information in the .xlation files will be extended to keep track of the parameter category.  This may lead to different context-sensitive rewriting, but given the infrastructure already in place, this should not be difficult.
 
 \section{Arrow types}
-An arrow type is both a string appearing within other identifiers, and a type in its own right.  A Fortress function with domain {\it domain} and range {\it range} will have corresponding Java type $\mbox{Arrow}\LOBR{}\widehat{\mbox{\it domain}};\widehat{\mbox{\it range}}\ROBR$\ in the generated code, where $\widehat{\mbox{\it domain}}$ is the Java class/interface (tuple) encoding for the Fortress domain (tuple), and $\widehat{\mbox{\it range}}$ is the class or interface for the Fortress result type.  If the Fortress type is void (``()"), then the encoded type is \DNGR\SNOW; if it is a singleton, then it is just the encoding of that type; if the domain type is a tuple, then the encoded elements of the tuple type, separated by semicolons.  Note that tupled result types are not unwrapped, and appear as a encoded Tuple type (not yet implemented, but trivially $\mbox{Tuple}\LOBR{}\widehat{\mbox{\it element1}};\widehat{\mbox{\it element2};...}\ROBR$).
+An arrow type is both a string appearing within other identifiers, and a type in its own right.  A Fortress function with domain {\it domain} and range {\it range} will have corresponding Java type $\mbox{Arrow}\LOBR{}\widehat{\mbox{\it domain}};\widehat{\mbox{\it range}}\ROBR$\ in the generated code, where $\widehat{\mbox{\it domain}}$ is the Java class/interface (tuple) encoding for the Fortress domain (tuple), and $\widehat{\mbox{\it range}}$ is the class or interface for the Fortress result type.  If the Fortress type is void (``()"), then the encoded type is \SNOW; if it is a singleton, then it is just the encoding of that type; if the domain type is a tuple, then the encoded elements of the tuple type, separated by semicolons.  Note that tupled result types are not unwrapped, and appear as a encoded Tuple type (not yet implemented, but trivially $\mbox{Tuple}\LOBR{}\widehat{\mbox{\it element1}};\widehat{\mbox{\it element2};...}\ROBR$).
 
 \section{Closures}
 
@@ -117,14 +117,14 @@ printlnZZ(n:ZZ32):()
 \end{verbatim}
 defined in component C6 results in a load of static field ``closure" from
 \begin{center}
-\small{\verb+C6$printlnZZ+\NVLP\verb+$Arrow⟦com/sun/fortress/compiler/runtimeValues/FZZ32;+\DNGR\SNOW\ROBR}
+\small{\verb+C6$printlnZZ+\NVLP\verb+$Arrow⟦com/sun/fortress/compiler/runtimeValues/FZZ32;+\SNOW\ROBR}
 \end{center}
 Dangerous-characters-mangled, this is
 \begin{center}
-\small{\verb+C6$printlnZZ+\NVLP\verb+$\=Arrow⟦com\|sun\|fortress\|compiler\|runtimeValues\|FZZ32\?+\DNGR\SNOW\ROBR}
+\small{\verb+C6$printlnZZ+\NVLP\verb+$\=Arrow⟦com\|sun\|fortress\|compiler\|runtimeValues\|FZZ32\?+\SNOW\ROBR}
 \end{center}
 Here, the package is empty (top level) because the Api name is undotted.  The class name is ``C6'', and the function name is ``println''.
-``com/sun/fortress/compiler/runtimeValues/ZZ32" is the Java/JVM type for Fortress ZZ32, and the function returns void, so the range is ``\DNGR\SNOW".
+``com/sun/fortress/compiler/runtimeValues/ZZ32" is the Java/JVM type for Fortress ZZ32, and the function returns void, so the range is ``\SNOW".
 
 The Fortress classloader checks for an occurrence of ``\NVLP" in a requested class, and if one is found, then a closure class is synthesized based on the information in the name itself.
 

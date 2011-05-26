@@ -106,7 +106,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private final FreeVariables fv;
     private final Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> topLevelOverloads;
     private final MultiMap<String, Function> exportedToUnambiguous;
+    /**
+     * Name+sigs that have been "taken" by overloaded functions already emitted.
+     * 
+     */
     private  Set<String> topLevelOverloadedNamesAndSigs;
+    /**
+     * Names+sigs that have been "taken" by overloaded methods already emitted.
+     * This is separate because in the case of functional methods, both may be
+     * relevant.
+     */
+    private  Set<String> typeLevelOverloadedNamesAndSigs;
 
     // lexEnv does not include the top level or object right now, just
     // args and local vars.  Object fields should have been translated
@@ -146,33 +156,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     // I'm not assuming we have a unique handle for any variable,
     // so we get a fresh CodeGen for each scope to avoid collisions.
     private CodeGen(CodeGen c) {
-        this.cw = c.cw;
-        this.mv = c.mv;
-        this.packageAndClassName = c.packageAndClassName;
-        this.traitOrObjectName = c.traitOrObjectName;
-        this.springBoardClass = c.springBoardClass;
-
-        this.typeAnalyzer = c.typeAnalyzer;
-        this.pa = c.pa;
-        this.fv = c.fv;
-        this.topLevelOverloads = c.topLevelOverloads;
-        this.exportedToUnambiguous = c.exportedToUnambiguous;
-        this.topLevelOverloadedNamesAndSigs = c.topLevelOverloadedNamesAndSigs;
-
-        this.lexEnv = new BATree<String,VarCodeGen>(c.lexEnv);
-
-        this.inATrait = c.inATrait;
-        this.inAnObject = c.inAnObject;
-        this.inABlock = c.inABlock;
-        this.emittingFunctionalMethodWrappers = c.emittingFunctionalMethodWrappers;
-        this.currentTraitObjectDecl = c.currentTraitObjectDecl;
-        
-        this.initializedStaticFields_TO = c.initializedStaticFields_TO;
-      
-        this.component = c.component;
-        this.ci = c.ci;
-        this.env = c.env;
-
+        this(c, c.typeAnalyzer);
     }
 
     private CodeGen(CodeGen c, TypeAnalyzer new_ta) {
@@ -186,8 +170,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.pa = c.pa;
         this.fv = c.fv;
         this.topLevelOverloads = c.topLevelOverloads;
+        this.typeLevelOverloadedNamesAndSigs = c.typeLevelOverloadedNamesAndSigs;
         this.exportedToUnambiguous = c.exportedToUnambiguous;
         this.topLevelOverloadedNamesAndSigs = c.topLevelOverloadedNamesAndSigs;
+        this.typeLevelOverloadedNamesAndSigs = c.typeLevelOverloadedNamesAndSigs;
 
         this.lexEnv = new BATree<String,VarCodeGen>(c.lexEnv);
 
@@ -838,11 +824,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * EQ -> EQ means Java dispatch works. (shadowed)
          * 
          * EQ -> LT means that the name is wrong;
-         *          the EQ->EQ method must be included.
-         *          (EQ->EQ cannot exist in subtype)
+         *          the (Java) EQ->EQ method must be included.
+         *          (EQ->EQ cannot exist in (Fortress) subtype)
          *          
          * LT -> EQ means that there is an overloading.
-         *          (EQ -> LT cannot exist in subtype; EQ->EQ can)
+         *          (EQ -> LT cannot exist in (Fortress) subtype; EQ->EQ can)
          *          
          * LT -> LT means that there is an overloading.
          *          EQ -> LT or EQ -> EQ can exist in subtype;
@@ -875,16 +861,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Set<Functional> funcs = ent.getValue();
             
             // initial set of potential overloads is this trait/object's methods
-            Set<Functional> perhapsOverloaded = new HashSet<Functional>();
-            for (Functional fu : funcs)
-                perhapsOverloaded.add(fu); // Thanks, Java generics!
-
+            Set<Functional> perhapsOverloaded = new HashSet<Functional>(funcs);
+            
             for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> overridden :
                 toConsider.matchFirst(name)) {
                 Functional super_func = overridden._1();
                 StaticTypeReplacer inst = overridden._2();
-                TraitType ot = overridden._3();
-                if (ot.equals(currentTraitObjectType))
+                TraitType traitDeclaringMethod = overridden._3();
+                if (traitDeclaringMethod.equals(currentTraitObjectType))
                     continue;
                 
                 boolean shadowed = false;  // EQ -> EQ seen
@@ -893,13 +877,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 
                 Type super_ret = oa.getRangeType(super_func);
                 int super_self_index = selfParameterIndex(super_func.parameters());
-                Type super_noself_dom = selfEditedDomainType(super_func, super_self_index);
+                Type super_noself_domain = selfEditedDomainType(super_func, super_self_index);
 
                 for (Functional func : funcs) {
                     Type ret = oa.getRangeType(func);
                     int self_index = selfParameterIndex(func.parameters());
-                    Type noself_dom = selfEditedDomainType(func, self_index);
-
                     if (self_index != super_self_index) {
                         /*
                          * Not sure we see this ever; it is a bit of a mistake,
@@ -910,6 +892,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         continue; 
                     }
                         
+                    Type noself_domain = selfEditedDomainType(func, self_index);
+
                     // Classify potential override
 
                     /*
@@ -921,8 +905,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                      *   shadowing and collisions.
                      *  
                      */
-                    boolean d_a_le_b = oa.lteq(noself_dom, super_noself_dom) ;
-                    boolean d_b_le_a = oa.lteq(super_noself_dom, noself_dom) ;
+                    boolean d_a_le_b = oa.lteq(noself_domain, super_noself_domain) ;
+                    boolean d_b_le_a = oa.lteq(super_noself_domain, noself_domain) ;
                     
                     boolean r_a_le_b = oa.lteq(ret, super_ret);
                     boolean r_b_le_a = oa.lteq(super_ret, ret);
@@ -976,6 +960,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
 
     /**
+     * Returns the "Type" for the domain of a method, with self removed from
+     * the parameter list, and the static parameters of the method itself
+     * propagated onto the type (necessary for meaningful generic type
+     * queries).
+     * 
      * @param super_func
      * @param super_self_index
      * @return
@@ -992,6 +981,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
 
     /**
+     * Returns a list of parameter types, doing appropriate detupling of the
+     * parameter type.
+     * 
      * @param paramType
      * @return
      */
@@ -2212,6 +2204,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private ArrowType fndeclToType(FnDecl x) {
         return fndeclToType(x, NO_SELF);
     }
+    
+    /**
+     * Returns the ArrowType of a method where the self parameter (if any)
+     * has been removed from the domain.  This is used to create signatures
+     * for the method part of a functional method.
+     * 
+     * @param x
+     * @param selfIndex
+     * @return
+     */
     private ArrowType fndeclToType(FnDecl x, int selfIndex) {
         FnHeader fh = x.getHeader();
         Type rt = fh.getReturnType().unwrap();
@@ -2221,6 +2223,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return typeAndParamsToArrow(x.getInfo().getSpan(), rt, lp);
     }
     
+    /**
+     * Returns the ArrowType of a method where the self parameter (if any)
+     * has been removed from the domain.  This is used to create signatures
+     * for the method part of a functional method.
+     * 
+     * @param x
+     * @param selfIndex
+     * @return
+     */
     private ArrowType fndeclToType(Functional x, int selfIndex) {
         Type rt = x.getReturnType().unwrap();
         List<Param> lp = x.parameters();
@@ -3909,7 +3920,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                   ACC_PUBLIC | ACC_ABSTRACT | ACC_INTERFACE,
                   cnb.className, null, NamingCzar.internalObject, superInterfaces);
         
-        dumpSigs(header.getDecls());
+        dumpTraitMethodSigs(header.getDecls());
 
         initializedStaticFields_TO = new ArrayList<InstantiatingClassloader.InitializedStaticField>();
         
@@ -5048,15 +5059,19 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
                 try {
                     os.generateAnOverloadDefinition(s2, cw);
-                } catch (InterpreterBug ex) {
+                } catch (Error ex) {
                     String mess = ex.getMessage();
-                    throw ex;
-
+                    throw ex; // good place for a breakpoint
+                } catch (RuntimeException ex) {
+                    String mess = ex.getMessage();
+                    throw ex; // good place for a breakpoint
                 }
                 if (cg != null) {
                     /* Need to check if the overloaded function happens to match
                      * a name in an API that this component exports; if so,
                      * generate a forwarding wrapper from the
+                     * 
+                     * ????
                      */
                 }
 
@@ -5085,7 +5100,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     public static Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>>
-       sizePartitionedOverloads(Relation<IdOrOpOrAnonymousName, ? extends Function> fns) {
+       sizePartitionedOverloads(Relation<IdOrOpOrAnonymousName, ? extends Functional> fns) {
 
         Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> result =
             new HashMap<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>>();
@@ -5170,7 +5185,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      *
      * @param decls
      */
-    private void dumpSigs(List<Decl> decls) {
+    private void dumpTraitMethodSigs(List<Decl> decls) {
         debug("dumpSigs", decls);
         for (Decl d : decls) {
             debug("dumpSigs decl =", d);

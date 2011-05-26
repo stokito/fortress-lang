@@ -276,7 +276,7 @@ public class ForeignJava {
              * "classiest" answer.
              */
             ClassNode imported_class = null;
-            Debug.debug(Debug.Type.REPOSITORY, 1,
+            Debug.debug(Debug.Type.REPOSITORY, 2,
                         "Hunting for java match for ", pkg_name_string, ".", suffix);
             String candidate_suffix = suffix;
             ArrayList<String> trials = new ArrayList<String>();
@@ -284,7 +284,7 @@ public class ForeignJava {
                  candidate_suffix = candidate_suffix.substring(0, last_dot);
                  String candidate_class = pkg_name_string + "." +
                                   Useful.replace(candidate_suffix, ".", "$");
-                Debug.debug(Debug.Type.REPOSITORY, 1,
+                Debug.debug(Debug.Type.REPOSITORY, 2,
                             "Looking for java class ", candidate_class);
                 try {
                     trials.add(candidate_class);
@@ -655,11 +655,17 @@ public class ForeignJava {
         Map<Type, Long> oldmap = classesImportedByOld.get(node_name);
         Map<Type, Long> newmap = classesImportedByNew.get(node_name);
 
-        if (oldmap == null || newmap == null) return true;
+        boolean result; 
+        if (oldmap == null || newmap == null) {
+            result = true;
+        } else {
+            Debug.debug(Debug.Type.REPOSITORY, 1, "dependence changed?, ", oldmap, newmap);
+            result = !oldmap.equals(newmap);
 
+        }
+        
         // need to implement proper test.
-
-        return !oldmap.equals(newmap);
+        return result;
     }
 
     public void writeDependenceDataForAST(GraphNode node) {
@@ -673,6 +679,12 @@ public class ForeignJava {
             dependenceSerializer.write(o, classesImportedByNew.get(node.getName()));
 
             o.close();
+            
+            // Update local copy, too, in case we are running tests.
+            Map<APIName, Map<org.objectweb.asm.Type, Long>> classesImportedByOld =
+                (node instanceof ApiGraphNode) ? classesImportedByAPIOld : classesImportedByCompOld;
+
+            classesImportedByOld.put(node.getName(), classesImportedByNew.get(node.getName()));
         }
         catch (IOException ex) {
 

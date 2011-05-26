@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -17,24 +17,13 @@ import java.util.List;
 import java.util.Map;
 
 public class InstantiationMap  {
-    
     private final static InstantiationMap EMPTY = new InstantiationMap(new HashMap<String, String>());
     
     Map<String, String> p;
-    Map<String, String> q;
 
     public InstantiationMap(Map<String, String> p) {
         this.p = p;
-        // Copy tags to front, makes it easier to do tag replacement.
-        q = new HashMap<String,String>();
-        for (Map.Entry<String, String> e : p.entrySet()) {
-            String k = e.getKey();
-            String v = e.getValue();
-            q.put(v.substring(0,1)+k, v);
-            
-        }
     }
-    
     
     public String getName(String s) {
         // TODO will need to rewrite into type, desc, and method variants.
@@ -207,21 +196,6 @@ public class InstantiationMap  {
      * previous string is a variable, if it has not been disqualified.
      */
     int maybeVarInOxfords(String input, int begin, StringBuilder accum) {
-//         int at = maybeBareVar(input, begin, accum, true);
-//         char ch = input.charAt(at++);
-//         
-//         if (ch == ';' || ch == '=') {
-//             accum.append(ch);
-//             /* This recursion will never be very deep, so it does not
-//              * need a tail-call, though golly, that would be nice.
-//              */
-//             return maybeVarInOxfords(input, at, accum);
-//         } else if (ch == Naming.RIGHT_OXFORD_CHAR) {
-//             accum.append(ch);
-//             return at;
-//         } else {
-//             throw new Error();
-//         }
         return mVIO(input, "", begin, accum);
      }
     
@@ -462,8 +436,6 @@ public class InstantiationMap  {
     public static String canonicalizeStaticParameters(String name, int left_oxford,
             int right_oxford, ArrayList<String> sargs) throws Error {
         
-        
-        
         String template_start = name.substring(0,left_oxford+1);
         String template_end = name.substring(right_oxford);
         // Note include trailing oxford to simplify loop termination.
@@ -475,6 +447,4 @@ public class InstantiationMap  {
                    template_end;
         return s;
     }
-    
-    
 }
