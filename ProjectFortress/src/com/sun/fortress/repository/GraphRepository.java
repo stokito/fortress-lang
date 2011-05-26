@@ -1,5 +1,5 @@
  /*******************************************************************************
-    Copyright 2008,2010, Oracle and/or its affiliates.
+    Copyright 2008,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -222,7 +222,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                  * in refreshGraph
                  */
                 long cache_date = getCacheDate(node);
-                if (cache_date > getApiFileDate(node)) {
+                if (cache_date >= getApiFileDate(node)) {
                     Debug.debug(Debug.Type.REPOSITORY, 2, "Found cached version of ", node);
                     node.setApi(cache.getApi(name, node.getSourcePath()), cache_date);
                 }
@@ -261,7 +261,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                  * in refreshGraph
                  */
                 long cache_date = getCacheDate(node);
-                if (cache_date > getComponentFileDate(node)) {
+                if (cache_date >= getComponentFileDate(node)) {
                     Debug.debug(Debug.Type.REPOSITORY, 2, "Found cached version of ", node);
                     node.setComponent(cache.getComponent(name, node.getSourcePath()), cache_date);
                 }
@@ -551,6 +551,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                     // no date information here; need to look for the dependence
                     // info for this node.
                     if (foreignJava.dependenceChanged(node, next)) {
+                        Debug.debug(Debug.Type.REPOSITORY, 1, "" + node + " added to foreign change by change in " + next);
                         foreignChange.add(node);
                     }
                 }
@@ -574,18 +575,26 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 return staleOrDependsOnStale.get(node);
             }
 
-            boolean stale = youngestSourceDependedOn.get(node) > getCacheDate(node) || foreignChange.contains(node);
-
+            boolean stale1 = youngestSourceDependedOn.get(node) > getCacheDate(node);
+            boolean stale2 = foreignChange.contains(node);
+            boolean stale = stale1 || stale2;
+            
             // If anything depended on has source that is younger than our compiled code,
             // then this is stale.
             if (stale) {
-                Debug.debug(Debug.Type.REPOSITORY,
+                if (stale1)
+                    Debug.debug(Debug.Type.REPOSITORY,
                             1,
                             node,
-                            "or dependent is newer ",
+                            " or dependent is newer ",
                             youngestSourceDependedOn.get(node),
                             " than the cache ",
                             getCacheDate(node));
+                if (stale2)
+                    Debug.debug(Debug.Type.REPOSITORY,
+                            1,
+                            node, " is in foreign change ", foreignChange);
+                    
             }
 
             staleOrDependsOnStale.put(node, stale);

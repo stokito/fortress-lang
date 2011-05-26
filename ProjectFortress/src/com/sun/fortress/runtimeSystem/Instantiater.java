@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -78,7 +78,7 @@ public class Instantiater extends ClassAdapter {
             String signature, Object value) {
         // TODO Auto-generated method stub
         desc = types.getFieldDesc(desc);
-        name = types.getName(name);
+        name = types.getName(name);  // ? do we rewrite the name of a field?
         return super.visitField(access, name, desc, signature, value);
     }
 

@@ -249,8 +249,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     int left = dename.indexOf(Naming.LEFT_OXFORD);
                     int right = dename.lastIndexOf(Naming.RIGHT_OXFORD);
                     String stem = dename.substring(0,left);
-                    List<String> parameters = extractStringParameters(
-                                                                           dename, left, right);
+                    List<String> parameters = extractStringParameters(dename, left, right);
                     if (stem.equals(Naming.ARROW_TAG)) {
                         // Arrow interface
                         classData = instantiateArrow(dename, parameters);
@@ -271,14 +270,15 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     } else {
                         try {
                         ArrayList<String> sargs = new ArrayList<String>();
-                        String template_name = genericTemplateName(dename, sargs);
+                        String template_name = genericTemplateName(dename, sargs); // empty sargs
                         byte[] templateClassData = readResource(template_name);
                         Pair<String, List<Pair<String, String>>> pslpss =
                             Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
                         
                         List<String> xl = extractStaticParameterNames(pslpss);
                         Map<String, String> xlation = Useful.map(xl, sargs);
-                        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+                        ManglingClassWriter cw =
+                            new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
                         ClassReader cr = new ClassReader(templateClassData);
                         ClassVisitor cvcw = LOG_FUNCTION_EXPANSION ?
                             new TraceClassVisitor((ClassVisitor) cw, new PrintWriter(System.err)) :

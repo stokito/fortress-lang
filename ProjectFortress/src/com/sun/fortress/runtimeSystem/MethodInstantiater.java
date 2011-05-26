@@ -169,7 +169,8 @@ public class MethodInstantiater implements MethodVisitor {
             } else if (op.equals(Naming.stringMethod)) {
                 mv.visitLdcInsn(s);
             } else {
-                throw new Error("Invocation of magic class Method '"+oname+"' ('"+name+"') seen, but op is not recognized.");
+                throw new Error("Invocation of magic class Method '"+oname+
+                          "' ('"+name+"') seen, but op is not recognized.");
             }
         } else {
             String new_owner = xlation.getTypeName(owner);  // demangled.
