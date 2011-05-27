@@ -306,10 +306,14 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    */
   protected def getTypeFromName(name: Name): Option[Type] =
     getRealName(name, toListFromImmutable(current.ast.getImports)) match {
-      case id@SIdOrOp(_, Some(api), _) => getEnvFromApi(api).getType(id)
-      case id:IdOrOp => env.getType(id) match {
-        case Some(ty) => Some(ty)
-        case None => analyzer.env.getType(id)
+      case id@SIdOrOp(_, Some(api), _) =>
+        getEnvFromApi(api).getType(id)
+      case id:IdOrOp =>
+        env.getType(id) match {
+        case Some(ty) =>
+          Some(ty)
+        case None =>
+          analyzer.env.getType(id)
       }
       case _ => None
     }

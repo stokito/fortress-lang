@@ -26,7 +26,8 @@ public class DeclaredVariable extends Variable {
 
     protected final LValue _lvalue;
     protected int _position;
-
+    protected boolean _isEntireLHS; // necessary when assigning a tuple expr to a singleton
+    
     public DeclaredVariable(LValue lvalue, VarDecl decl) {
         _lvalue = lvalue;
 
@@ -41,6 +42,8 @@ public class DeclaredVariable extends Variable {
             }
             ++i;
         }
+        
+        _isEntireLHS = (decl.getLhs().size() == 1);
 
         Option<TypeOrPattern> tp = _lvalue.getIdType();
         if (tp.isSome() && tp.unwrap() instanceof Type)
@@ -57,6 +60,10 @@ public class DeclaredVariable extends Variable {
 
     public boolean mutable() {
         return _lvalue.isMutable();
+    }
+    
+    public boolean isEntireLHS() {
+        return _isEntireLHS;
     }
 
     public int position() {

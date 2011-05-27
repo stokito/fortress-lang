@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008,2010, Oracle and/or its affiliates.
+    Copyright 2008,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -19,8 +19,8 @@ import com.sun.fortress.useful.VarArgs;
 
 import java.util.*;
 
-/* The following file is the automatially-generated list of operator
- * sets and equivalences.  This fils is used as the primary data
+/* The following file is the automatically-generated list of operator
+ * sets and equivalences.  This file is used as the primary data
  * source for the PrecedenceMap. */
 
 /**

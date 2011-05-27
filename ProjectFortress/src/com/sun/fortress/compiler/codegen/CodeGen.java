@@ -866,7 +866,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> overridden :
                 toConsider.matchFirst(name)) {
                 Functional super_func = overridden._1();
-                StaticTypeReplacer inst = overridden._2();
+                StaticTypeReplacer super_inst = overridden._2();
                 TraitType traitDeclaringMethod = overridden._3();
                 if (traitDeclaringMethod.equals(currentTraitObjectType))
                     continue;
@@ -875,9 +875,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 boolean narrowed = false;  // EQ -> LT seen
                 Functional narrowed_func = null;
                 
-                Type super_ret = oa.getRangeType(super_func);
+                Type super_ret = super_inst.replaceIn(oa.getRangeType(super_func));
                 int super_self_index = selfParameterIndex(super_func.parameters());
-                Type super_noself_domain = selfEditedDomainType(super_func, super_self_index);
+                Type super_noself_domain = super_inst.replaceIn(selfEditedDomainType(super_func, super_self_index));
 
                 for (Functional func : funcs) {
                     Type ret = oa.getRangeType(func);
@@ -935,7 +935,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 if (shadowed)
                     continue;
                 if (narrowed) {
-                    generateForwardingFor(super_func, narrowed_func, false, inst, currentTraitObjectType, currentTraitObjectType, true); // swapped
+                    generateForwardingFor(super_func, narrowed_func, false, super_inst, currentTraitObjectType, currentTraitObjectType, true); // swapped
                     // TODO emit the forwarding method
                     continue;
                 }
