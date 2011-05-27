@@ -24,9 +24,9 @@ object O extends T
 end
 
 run() =do
-  o = O
-  a = O.f[\ZZ32\]()        (*) 0
-  b = O.g[\ZZ32,String\]() (*) 5
+  o:T = O
+  a = o.f[\ZZ32\]()        (*) 0
+  b = o.g[\ZZ32,String\]() (*) 5
   c = O.f[\String\]()      (*) 0
   d = O.g[\String,ZZ32\]() (*) 5
 

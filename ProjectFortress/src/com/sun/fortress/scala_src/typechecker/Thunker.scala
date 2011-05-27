@@ -199,7 +199,9 @@ object Thunker {
 
             // Get this variable's type out of the RHS type.
             rhsType match {
-              case Some(t:TupleType) => some(t.getElements.get(index.position))
+              // This is not general enough, could have ( a, (b, c)) = expr
+              // isEntireLHS handles Compiled17e, declaration t34 = (3,4)
+              case Some(t:TupleType) => some(if (index.isEntireLHS) { t } else {t.getElements.get(index.position)})
               case Some(t) => some(t)
               case None => none[Type]
             }
