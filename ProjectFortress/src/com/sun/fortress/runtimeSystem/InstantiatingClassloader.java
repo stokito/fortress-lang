@@ -228,7 +228,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
                     
                     List<String> xl = extractStaticParameterNames(pslpss);
-                    
+                   
                     Map<String, String> xlation  = Useful.map(xl, sargs);
                     ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
                     ClassReader cr = new ClassReader(templateClassData);
@@ -1731,7 +1731,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param parameters
      * @return
      */
-    private static String stringListToTuple(List<String> parameters) {
+    static String stringListToTuple(List<String> parameters) {
         return stringListToGeneric(Naming.TUPLE_TAG, parameters);
     }
 
@@ -1819,7 +1819,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param parameters
      * @return
      */
-    private static String toJvmSig(List<String> parameters, String rt) {
+    static String toJvmSig(List<String> parameters, String rt) {
         String sig = "(";
 
         int l = parameters.size();
