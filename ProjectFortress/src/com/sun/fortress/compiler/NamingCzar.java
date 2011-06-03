@@ -815,7 +815,7 @@ public class NamingCzar {
     private static String jvmSignatureFor(List<com.sun.fortress.nodes.Param> domain,
             com.sun.fortress.nodes.Type range,
             APIName ifNone) {
-        return jvmSignatureFor(domain, jvmTypeDesc(range, ifNone), ifNone);
+        return jvmSignatureFor(domain, jvmBoxedTypeDesc(range, ifNone), ifNone);
     }
 
     // OverloadSet.jvmSignatureFor
@@ -827,6 +827,7 @@ public class NamingCzar {
     // Codegen.dumpSigs
     public static String jvmSignatureFor(FnDecl f, APIName ifNone) {
         FnHeader h = f.getHeader();
+        // needs to box tuple results
         return jvmSignatureFor(h.getParams(), h.getReturnType().unwrap(), ifNone);
     }
 
