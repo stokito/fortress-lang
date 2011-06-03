@@ -420,7 +420,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @return
      */
     public String getSignature() {
-        return overloadedDomainSig() + NamingCzar.jvmTypeDesc(getRange(), ifNone);
+        return getSignature(-1);
+    }
+    public String getSignature(int param_to_skip) {
+        return overloadedDomainSig(param_to_skip) + NamingCzar.jvmTypeDesc(getRange(), ifNone);
     }
 
     public Type getRange() {
@@ -668,11 +671,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         return buf.toString();
     }
 
-    private String overloadedDomainSig() {
+    private String overloadedDomainSig(int param_to_skip) {
         StringBuilder buf = new StringBuilder();
         buf.append("(");
+        int i = 0;
         for (Type t : overloadedDomain()) {
-            buf.append(NamingCzar.jvmTypeDesc(t, ifNone));
+            if (i != param_to_skip)
+                buf.append(NamingCzar.jvmTypeDesc(t, ifNone));
+            i++;
         }
         buf.append(")");
         return buf.toString();
@@ -1324,8 +1330,38 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     }
 
+    static public abstract class Factory {
+        abstract public OverloadSet make(final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Functional> defs, int n);
+    }
+    
+    static public final Factory localFactory = new Factory() {
+
+        @Override
+        public OverloadSet make(APIName apiname, IdOrOpOrAnonymousName name,
+                TypeAnalyzer ta, Set<Functional> defs, int n) {
+            return new Local(apiname, name, ta, defs, n);
+        }
+        
+    };
+    
+    static public final Factory traitOrObjectFactory = new Factory() {
+
+        @Override
+        public OverloadSet make(APIName apiname, IdOrOpOrAnonymousName name,
+                TypeAnalyzer ta, Set<Functional> defs, int n) {
+            return new ForTraitOrObject(apiname, name, ta, defs, n);
+        }
+        
+    };
+    
     static public class ForTraitOrObject extends AmongApis {
-        public ForTraitOrObject(
+        /**
+         * Indicates, in the Functional representation of the methods,
+         * which parameter will not be present.
+         */
+        final int selfIndex;
+        
+        ForTraitOrObject(
                 final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Functional> defs, int n) {
             super(apiname, name, ta, Useful.applyToAll(defs, new F<Functional, TaggedFunctionName>() {
 
@@ -1334,6 +1370,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     return new TaggedFunctionName(apiname, f);
                 }
             }), n);
+            
+            Functional one_func = defs.iterator().next();
+            selfIndex = one_func instanceof FunctionalMethod ? ((FunctionalMethod) one_func).selfPosition() : 0;
         }
         
 //        public ForTraitOrObject(APIName ifNone,
@@ -1346,17 +1385,19 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 //            super(ifNone, name, ta, oa, childLSTSF, parent, paramCount);
 //        }
 
-        public ForTraitOrObject(APIName ifNone,
+        ForTraitOrObject(APIName ifNone,
                 IdOrOpOrAnonymousName name,
                 TypeAnalyzer ta,
                 Set<TaggedFunctionName> childLSTSF,
                 int paramCount,
-                boolean this_disambiguates_the_erasure) {
+                boolean this_disambiguates_the_erasure,
+                int self_index) {
             super(ifNone, name, ta, childLSTSF, paramCount);
+            selfIndex = self_index;
         }
 
         protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName _principalMember) {
-            OverloadSet subset = new ForTraitOrObject(ifNone, name, ta, childLSTSF, paramCount, true);
+            OverloadSet subset = new ForTraitOrObject(ifNone, name, ta, childLSTSF, paramCount, true, selfIndex);
             subset.principalMember = _principalMember;
             return subset;
         }
@@ -1404,7 +1445,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
             // "(" anOverloadedArg^N ")" returnType
             // Not sure what to do with return type.
-            String signature = getSignature();
+            String signature = getSignature(selfIndex);
             String[] exceptions = getExceptions();
 
           

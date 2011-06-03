@@ -176,7 +176,8 @@ public class FortressMethodAdapter extends ClassAdapter {
          */
 
         overloadedNamesAndSigs = CodeGen.generateTopLevelOverloads(apiName,
-                sizePartitionedOverloads, ta, cw, /* cg= */null);
+                sizePartitionedOverloads, ta, cw, /* cg= */null,
+                OverloadSet.localFactory);
     }
 
     private Set<String> getOverloadedNamesAndSigs() {

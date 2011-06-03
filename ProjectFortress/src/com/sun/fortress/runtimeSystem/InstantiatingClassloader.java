@@ -55,6 +55,8 @@ import com.sun.fortress.useful.VersionMismatch;
  */
 public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
+    public static final String IS_A = "isA";
+
     abstract static public class InitializedStaticField {
         abstract public void forClinit(MethodVisitor mv);
     
@@ -1464,7 +1466,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitVarInsn(ALOAD, first_element + i);
             mv.visitInsn(AASTORE);
         }
-        
+       
+        // invoke super.<init>
         mv.visitMethodInsn(INVOKESPECIAL, Naming.TUPLE_RTTI_CONTAINER_TYPE, "<init>", "(Ljava/lang/Class;[L"+Naming.RTTI_CONTAINER_TYPE+";)V");
         
         int pno = 2; // skip the java class parameter
@@ -1623,7 +1626,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // is instance method -- takes an Object
         {
             String sig = "(Ljava/lang/Object;)Z";
-            MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "isA", sig, null, null);
+            MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, IS_A, sig, null, null);
             
             Label fail = new Label();
             
@@ -1633,7 +1636,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitTypeInsn(Opcodes.CHECKCAST, any_tuple_n);
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, dename,  "isA", "(L"+any_tuple_n+";)Z");
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, dename,  IS_A, "(L"+any_tuple_n+";)Z");
             mv.visitInsn(Opcodes.IRETURN);
             
             mv.visitLabel(fail);
@@ -1647,7 +1650,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // is instance method -- takes an AnyTuple[\N\]
         {
             String sig = "(L" + any_tuple_n + ";)Z";
-            MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "isA", sig, null, null);
+            MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, IS_A, sig, null, null);
             
             Label fail = new Label();
             
@@ -1758,7 +1761,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      */
     public static void generalizedInstanceOf(MethodVisitor mv, String cast_to) {
         if (cast_to.startsWith(Naming.TUPLE_TAG + Naming.LEFT_OXFORD)) {
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, CONCRETE_+cast_to, "isA", "(Ljava/lang/Object;)Z");
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, CONCRETE_+cast_to, IS_A, "(Ljava/lang/Object;)Z");
         } else {
             mv.visitTypeInsn(Opcodes.INSTANCEOF, cast_to);
         }
