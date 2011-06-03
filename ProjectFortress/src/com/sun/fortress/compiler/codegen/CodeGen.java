@@ -91,6 +91,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         ProjectProperties.getBoolean("fortress.debug.overloaded.methods", false);
     
     private static final boolean EMIT_ERASED_GENERICS = false;
+    private static final boolean OVERLOADED_METHODS = false;
     
     CodeGenClassWriter cw;
     CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
@@ -134,8 +135,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private final ComponentIndex ci;
     private GlobalEnvironment env;
 
-    private static final int NO_SELF = -1;
-    
     /**
      * Some traits and objects end up with initialized static fields as part of
      * their implementation.  They accumulate here, and their initialization
@@ -559,11 +558,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     toTrait,
                     component.getName());
             
-            if (selfIndex != NO_SELF) {
+            if (selfIndex != Naming.NO_SELF) {
                 // TODO Buggy if narrowing self and not-self
                 from_sig = Naming.removeNthSigParameter(from_sig, narrowing ? selfIndex : selfIndex+1);
                 to_sig = Naming.removeNthSigParameter(to_sig, narrowing ? selfIndex : selfIndex+1);
-                mname = fmDottedName(singleName(name), selfIndex);
+                mname = Naming.fmDottedName(singleName(name), selfIndex);
             } else {
                 mname = singleName(name); // What about static params?
                 arity++;
@@ -809,6 +808,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         for (Map.Entry<Id, Method> ent: ti.setters().entrySet()) {
             nameToFSets.putItem(ent.getKey(), ent.getValue());
         }
+        /*
+         *  There's a glitch here, with the names of functional methods,
+         *  vs their names as implemented methods.  Static anayzer works with
+         *  names-as-written; code generation wishes to mangle them.
+         */
         for (edu.rice.cs.plt.tuple.Pair<IdOrOpOrAnonymousName, FunctionalMethod> ent : ti.functionalMethods()) {
             nameToFSets.putItem(ent.first(), ent.second());
         }
@@ -1190,7 +1194,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // determineOverloadedNames(x.getDecls() );
 
         // Must do this first, to get local decls right.
-        topLevelOverloadedNamesAndSigs = generateTopLevelOverloads(thisApi(), topLevelOverloads, typeAnalyzer, cw, this);
+        topLevelOverloadedNamesAndSigs = generateTopLevelOverloads(thisApi(), topLevelOverloads, typeAnalyzer, cw, this, OverloadSet.localFactory);
 
         /* Need wrappers for the API, too. */
 
@@ -1466,9 +1470,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // TODO different collision rules for top-level and for
         // methods. (choice of mname)
 
-        if (selfIndex != NO_SELF) {
+        if (selfIndex != Naming.NO_SELF) {
             sig = Naming.removeNthSigParameter(sig, selfIndex);
-            mname = fmDottedName(singleName(name), selfIndex);
+            mname = Naming.fmDottedName(singleName(name), selfIndex);
         } else {
             mname = nonCollidingSingleName(name, sig, generic_arrow_type);
         }
@@ -1514,7 +1518,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         cg.generateActualMethodCode(modifiers, applied_method, modified_sig, params, selfIndex,
-                                    selfIndex != NO_SELF, body);
+                                    selfIndex != Naming.NO_SELF, body);
 
         InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cg.cw);
 
@@ -1584,7 +1588,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Bug here, not getting the type name right.
         Id gfid = NodeFactory.makeId(sp_span, TO_method_name);
         String template_class_name = 
-            generateGenericFunctionClass(new_fndecl, gfid, NO_SELF, traitOrObjectName);
+            generateGenericFunctionClass(new_fndecl, gfid, Naming.NO_SELF, traitOrObjectName);
         
         String method_name = genericMethodName(x, self_index);
         
@@ -1616,7 +1620,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 this.currentTraitObjectDecl.getHeader().getStaticParams());
         
         Param new_param = NodeFactory.makeParam(p_name, NodeFactory.makeVarType(sp_span, sp_name));
-        List<Param> new_params = new InsertedList((self_index != NO_SELF ? new DeletedList(params, self_index) : params), 0, new_param);
+        List<Param> new_params = new InsertedList((self_index != Naming.NO_SELF ? new DeletedList(params, self_index) : params), 0, new_param);
         Option<Expr> body = x.getBody();
         
         FnDecl new_fndecl = NodeFactory.makeFnDecl(sp_span, xh.getMods(), xh.getName(),
@@ -1636,7 +1640,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         IdOrOp name = (IdOrOp) (x.getHeader().getName());
         ArrowType at = fndeclToType(x, selfIndex);
-        String possiblyDottedName = fmDottedName(singleName(name), selfIndex);
+        String possiblyDottedName = Naming.fmDottedName(singleName(name), selfIndex);
         
         return genericMethodName(possiblyDottedName, at);    
     }
@@ -1645,7 +1649,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         IdOrOp name = x.name();
         ArrowType at = fndeclToType(x, selfIndex);
-        String possiblyDottedName = fmDottedName(singleName(name), selfIndex);
+        String possiblyDottedName = Naming.fmDottedName(singleName(name), selfIndex);
         
         return genericMethodName(possiblyDottedName, at);    
     }
@@ -1801,7 +1805,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                             List<Param> params,
                                             int selfIndex,
                                             Type returnType,
-                                            boolean inAMethod,
                                             Expr body) {
         int modifiers = ACC_PUBLIC | ACC_STATIC;
 
@@ -1823,9 +1826,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // methods.
         String mname;
         int n = params.size();
-        if (selfIndex != NO_SELF) {
+        if (selfIndex != Naming.NO_SELF) {
             sig = Naming.removeNthSigParameter(sig, selfIndex+1);
-            mname = fmDottedName(singleName(name), selfIndex);
+            mname = Naming.fmDottedName(singleName(name), selfIndex);
         } else {
             mname = singleName(name); // static params?
             n++;
@@ -1894,11 +1897,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // TODO different collision rules for top-level and for
         // methods. (choice of mname)
 
-        if (selfIndex != NO_SELF) {
+        if (selfIndex != Naming.NO_SELF) {
             sig = Naming.removeNthSigParameter(sig, selfIndex);
-            mname = fmDottedName(singleName(name), selfIndex);
+            mname = Naming.fmDottedName(singleName(name), selfIndex);
             n--;
-        } else if (savedInAnObject) {
+        } else if (inAMethod ) { // savedInAnObject) {
             mname = singleName(name);
         } else {
             mname = nonCollidingSingleName(name, sig,""); // static params?
@@ -2004,7 +2007,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<VarCodeGen> paramsGen = new ArrayList<VarCodeGen>(params.size());
         int index = 0;
         
-        if (params.size() == 1 && selfIndex == NO_SELF && 
+        if (params.size() == 1 && selfIndex == Naming.NO_SELF && 
                 (params.get(0).getIdType().unwrap() instanceof TupleType) ) {
             Param p0 = params.get(0);
             TupleType tuple_type = ((TupleType) p0.getIdType().unwrap());
@@ -2104,7 +2107,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         //IdOrOp uaname = (IdOrOp) x.getUnambiguousName();
 
         if (emittingFunctionalMethodWrappers) {
-            if (selfIndex==NO_SELF)
+            if (selfIndex==Naming.NO_SELF)
                 return; // Not functional = no wrapper needed.
         }
 
@@ -2185,7 +2188,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     }
                  } else if (savedInATrait) {
                     generateTraitDefaultMethod(x, (IdOrOp)name,
-                            params, selfIndex, returnType, inAMethod, body);
+                            params, selfIndex, returnType, body);
                 } else {
                     generateFunctionalBody(x, (IdOrOp)name,
                             params, selfIndex, returnType, inAMethod,
@@ -2202,7 +2205,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     private ArrowType fndeclToType(FnDecl x) {
-        return fndeclToType(x, NO_SELF);
+        return fndeclToType(x, Naming.NO_SELF);
     }
     
     /**
@@ -2218,7 +2221,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         FnHeader fh = x.getHeader();
         Type rt = fh.getReturnType().unwrap();
         List<Param> lp = fh.getParams();
-        if (selfIndex != NO_SELF)
+        if (selfIndex != Naming.NO_SELF)
             lp = new DeletedList<Param>(lp, selfIndex);
         return typeAndParamsToArrow(x.getInfo().getSpan(), rt, lp);
     }
@@ -2235,7 +2238,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private ArrowType fndeclToType(Functional x, int selfIndex) {
         Type rt = x.getReturnType().unwrap();
         List<Param> lp = x.parameters();
-        if (selfIndex != NO_SELF)
+        if (selfIndex != Naming.NO_SELF)
             lp = new DeletedList<Param>(lp, selfIndex);
         return typeAndParamsToArrow(x.getSpan(), rt, lp);
     }
@@ -2311,7 +2314,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<StaticParam> trait_sparams = trait_header.getStaticParams();
         //String uaname = NamingCzar.idOrOpToString(x.getUnambiguousName());
 
-        String dottedName = fmDottedName(singleName(name), selfIndex);
+        String dottedName = Naming.fmDottedName(singleName(name), selfIndex);
 
         FnHeader header = x.getHeader();
         List<Param> params = header.getParams();
@@ -2551,7 +2554,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @return
      */
     private int selfParameterIndex(List<Param> params) {
-        int selfIndex = NO_SELF;
+        int selfIndex = Naming.NO_SELF;
         int i = 0;
         for (Param p : params) {
             if (p.getName().getText() == "self") {
@@ -2627,7 +2630,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Since we call this virtually we need a slot for the arrow implementation of this object.
         cg.mv.reserveSlot0();
         
-        cg.addParams(params, NO_SELF);
+        cg.addParams(params, Naming.NO_SELF);
         
         body.accept(cg);
 
@@ -2665,21 +2668,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String mname = nameString; // Naming.mangleIdentifier(nameString);
         return mname;
     }
-
-    // belongs in Naming perhaps
-    private static String fmDottedName(String name, int selfIndex) {
-        // HACK.  Need to be able to express some fmDotteds in Java source code
-        // thus, must transmogrify everything that is not A-Z to something else.
-
-//        if (!isBoring(name)) {
-//            name = makeBoring(name);
-//        }
-        //
-        if (selfIndex != NO_SELF)
-            name = name + Naming.INDEX + selfIndex;
-        return name;
-    }
-
 
     private static boolean isBoring(String name) {
         for (int i = 0; i < name.length(); i++) {
@@ -3347,7 +3335,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         currentTraitObjectDecl = x;
         Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> overloads = dumpOverloadedMethodChaining(superInterfaces, false);
-        
+        if (OVERLOADED_METHODS)
+            typeLevelOverloadedNamesAndSigs =
+                generateTopLevelOverloads(thisApi(), overloads, typeAnalyzer, cw, this, OverloadSet.traitOrObjectFactory);
+       
         for (Decl d : header.getDecls()) {
             // This does not work yet.
             d.accept(this);
@@ -3934,7 +3925,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             cw.dumpClass( cnb.fileName );
         }
 
-        CodeGen newcg = new CodeGen(this,
+        // Doing this to get an extended type analyzer for overloaded method chaining.
+                CodeGen newcg = new CodeGen(this,
                 typeAnalyzer.extendJ(header.getStaticParams(), header.getWhereClause()));
 
         // Now let's do the springboard inner class that implements this interface.
@@ -3953,10 +3945,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         debug("Finished init method ", springBoardClass);
 
-
-        // Doing this to get a an extended type analyzer for overloaded method chaining.
-        
-
         newcg.initializedStaticFields_TO = new ArrayList<InstantiatingClassloader.InitializedStaticField>();
 
         // Overloads will tell us which methods need forwarding,
@@ -3964,6 +3952,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> overloads =
             newcg.dumpOverloadedMethodChaining(superInterfaces, true);
         
+        if (OVERLOADED_METHODS)
+            newcg.typeLevelOverloadedNamesAndSigs =
+                generateTopLevelOverloads(thisApi(), overloads, newcg.typeAnalyzer, newcg.cw, newcg, OverloadSet.traitOrObjectFactory);
+                
         newcg.dumpTraitDecls(header.getDecls());
         newcg.dumpMethodChaining(superInterfaces, true);
         // dumpErasedMethodChaining(superInterfaces, true);
@@ -5018,7 +5010,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     }
 
-
+    static String implMethodName(Functional f) {
+        String s = f.name().getText();
+        if (f instanceof FunctionalMethod) {
+            return Naming.fmDottedName(s, ((FunctionalMethod)f).selfPosition());
+        } else {
+            return s;
+        }
+    }
+    
     /**
      * Creates overloaded functions for any overloads present at the top level
      * of this component.  Top level overloads are those that might be exported;
@@ -5028,7 +5028,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public static Set<String> generateTopLevelOverloads(APIName api_name,
             Map<IdOrOpOrAnonymousName,MultiMap<Integer, Functional>> size_partitioned_overloads,
             TypeAnalyzer ta,
-            CodeGenClassWriter cw, CodeGen cg
+            CodeGenClassWriter cw,
+            CodeGen cg,
+            OverloadSet.Factory overload_factory
             ) {
 
         Set<String> overloaded_names_and_sigs = new HashSet<String>();
@@ -5042,9 +5044,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 partitionedByArgCount.entrySet()) {
                 int i = entry.getKey();
                 Set<Functional> fs = entry.getValue();
+                Functional one_f = fs.iterator().next();
 
-                OverloadSet os =
-                    new OverloadSet.Local(api_name, name,
+                OverloadSet os = overload_factory.make(api_name, name,
                             ta, fs, i);
 
                 /*
@@ -5198,7 +5200,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             List<Param> params = h.getParams();
             int selfIndex = selfParameterIndex(params);
-            boolean  functionalMethod = selfIndex != NO_SELF;
+            boolean  functionalMethod = selfIndex != Naming.NO_SELF;
 
             if (sparams.size() > 0) {
                 // Not handling overload-based name-forwarding of generic methods yet.
@@ -5217,7 +5219,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
                 // TODO what about overloading collisions in an interface?
                 // it seems wrong to publicly mangle.
-                String mname = functionalMethod ? fmDottedName(
+                String mname = functionalMethod ? Naming.fmDottedName(
                         singleName(name), selfIndex) : singleName(name); 
                 abstractMethod(desc, mname);
                 // provide both overloaded and single names in abstract decl.

@@ -962,5 +962,16 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
 
         public static final String voidToVoid        = makeMethodDesc("", Naming.descVoid);
 
+
+        // belongs in Naming perhaps
+        public static String fmDottedName(String name, int selfIndex) {
+            if (selfIndex != Naming.NO_SELF)
+                name = name + INDEX + selfIndex;
+            return name;
+        }
+
+
+        public static final int NO_SELF = -1;
+
     
 }
