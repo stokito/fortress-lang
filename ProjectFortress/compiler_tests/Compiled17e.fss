@@ -27,4 +27,4 @@ end
 
 
 run():() = println(
-   G[\(ZZ32,ZZ32), String\](pluString).app(t34) )
+   if "7" = G[\(ZZ32,ZZ32), String\](pluString).app(t34) then "34" else "FAIL" end)
