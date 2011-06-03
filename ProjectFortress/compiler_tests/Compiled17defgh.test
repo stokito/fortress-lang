@@ -7,7 +7,7 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests= Compiled17d  Compiled17h  Compiled17i
+tests= Compiled17d  Compiled17e Compiled17h  Compiled17i
 compile
 link
 run
