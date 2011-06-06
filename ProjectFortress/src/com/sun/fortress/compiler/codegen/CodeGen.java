@@ -546,14 +546,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
             String from_sig = NamingCzar.jvmSignatureFor(
                     fromParamType,
-                    NamingCzar.jvmTypeDesc(fromReturnType, component.getName()),
+                    NamingCzar.jvmBoxedTypeDesc(fromReturnType, component.getName()),
                     narrowing ? -1 : 0,
                     toTrait, // TODO should this be fromTrait?  It worked when it was not.
                     component.getName());
             
             String to_sig = NamingCzar.jvmSignatureFor(
                     toParamType,
-                    NamingCzar.jvmTypeDesc(toReturnType, component.getName()),
+                    NamingCzar.jvmBoxedTypeDesc(toReturnType, component.getName()),
                     narrowing ? -1 : 0,
                     toTrait,
                     component.getName());
@@ -3926,7 +3926,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         // Doing this to get an extended type analyzer for overloaded method chaining.
-                CodeGen newcg = new CodeGen(this,
+        CodeGen newcg = new CodeGen(this,
                 typeAnalyzer.extendJ(header.getStaticParams(), header.getWhereClause()));
 
         // Now let's do the springboard inner class that implements this interface.

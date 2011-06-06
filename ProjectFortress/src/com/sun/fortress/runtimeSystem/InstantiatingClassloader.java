@@ -710,6 +710,14 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 sp, parsed_arg_cursor);
         
         mv.visitMethodInsn(fwdOp, fwdClass, fwdName, fwdSig);
+        // optional CAST here for tuple and arrow
+        String tyName = Naming.sigRet(thisSig);
+        if (tyName.startsWith(InstantiatingClassloader.TUPLE_OX) ||
+                tyName.startsWith(InstantiatingClassloader.ARROW_OX)   ) {
+            String tyNameFrom = Naming.sigRet(fwdSig);
+            InstantiatingClassloader.generalizedCastTo(mv, tyName);
+        }
+
         mv.visitInsn(ARETURN);
 
         mv.visitMaxs(2, 3);
