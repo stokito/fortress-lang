@@ -817,18 +817,19 @@ public class Naming {
      * @param selfIndex
      * @return
      */
-public static String replaceNthSigParameter(String sig, int selfIndex, String newParamDesc) {
-    // start, end, are inclusive bounds of nth parameter in sig.
-    int start = 1;
-    int end = sig.indexOf(';');
-    for (int i = 0; i < selfIndex; i++) {
-        start = end+1;
-        end = sig.indexOf(';', start);
+    public static String replaceNthSigParameter(String sig, int selfIndex, String newParamDesc) {
+        // start, end, are inclusive bounds of nth parameter in sig.
+        int start = 1;
+        int end = sig.indexOf(';');
+        for (int i = 0; i < selfIndex; i++) {
+            start = end+1;
+            end = sig.indexOf(';', start);
+        }
+
+        return sig.substring(0,start) + newParamDesc + sig.substring(end+1);
     }
 
-    return sig.substring(0,start) + newParamDesc + sig.substring(end+1);
-}
-
+    // This seems wrong if applied to non-mangled generics.
     public static String nthSigParameter(String sig, int selfIndex) {
         // start, end, are inclusive bounds of nth parameter in sig.
         int start = 1;
@@ -839,6 +840,13 @@ public static String replaceNthSigParameter(String sig, int selfIndex, String ne
         }
 
         return sig.substring(start,end+1);
+    }
+    public static String sigRet(String sig) {
+        // start, end, are inclusive bounds of nth parameter in sig.
+        int start = sig.indexOf(')');
+        int end = sig.length();
+        // lose the L;
+        return sig.substring(start+2, end-1);
     }
 
     public static String dotToSep(String name) {
