@@ -1,0 +1,33 @@
+Now that we have spent a whole bunch of time defining what doesn't work we'll show you a smattering that do work.
+
+Comprises Gives Exhaustive Pattern Match
+`
+append[\X\](Nil[\X\], Nil[\X\]):List[\X\]
+append[\X\](Nil[\X\],Cons[\X\]):List[\X\]
+append[\X\](Cons[\X\], Nil[\X\]):List[\X\]
+append[\X\](Cons[\X\], Cons[\X\]):List[\X\]
+`
+
+Type classy
+overlapping instances (note that dynamic dispatch could save a lot of time)
+`
+search[\X <: Ordered[\X\]\](X, Set[\X\]): Boolean
+search[\X <: Comparable[\X\]\](X, Set[\X\]): Boolean
+`
+
+
+
+Specialization, Tuple Rules
+`
+f[\X ,Y\](List[\X\], ArrayList[\X\] ):X 
+f[\X\](ArrayList[\X\], List[\X\]):X
+f[\X\](ArrayList[\X\], ArrayList[\X\]): X
+f[\ \](ArrayList[\ZZ\], ArrayList[\ZZ\]):ZZ
+f[\ \](String): String
+`
+
+Fails subtype rule
+`
+g[\X<:Any\]T:T
+g[\X<:Any\]List[\X\]:List[\X\]
+`

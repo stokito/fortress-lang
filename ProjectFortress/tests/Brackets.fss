@@ -1,0 +1,80 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Brackets
+export Executable
+
+opr <| x:RR64 |>:String = "<|" x "|>"
+opr <<| x:RR64 |>>:String = "<<|" x "|>>"
+(* opr |/ x:RR64 \| : String = "|/" x "\\|" *)
+(* opr |\ x:RR64 /| : String = "|\\" x  "/|" *)
+opr {\ x:RR64 \}:String = "{\\" x "\\}"
+opr {/ x:RR64 /}:String = "{/" x "/}"
+opr [/ x:RR64 /]:String = "[/" x "/]"
+opr [// x:RR64 //]:String = "[//" x "//]"
+opr {*/ x:RR64 /*}:String = "{*/" x "/*}"
+opr [*/ x:RR64 /*]:String = "[*/" x "/*]"
+opr (.\ x:RR64 \.):String = "(.\\" x "\\.)"
+opr </ x:RR64 \>:String = "</" x "\\>"
+opr <</ x:RR64 \>>:String = "<</" x "\\>>"
+
+(* The absolute value and norm operators are defined in the library. *)
+(* opr | x:RR64 |:String = "|" x "|"
+opr || x:RR64 ||:String = "||" x "||" *)
+opr ||| x:RR64 |||:String = "|||" x "|||"
+
+tst(a:Any, b:Any, msg:String): () =
+    if a =/= b then
+        assert(a,b,msg)
+    else
+        println(b msg)
+    end
+
+run() = do
+  tst(<|2.5|>,"<|2.5|>","")
+  tst(<<|2.5|>>,"<<|2.5|>>","")
+
+(*
+  tst(⟨2.5⟩,"⟨2.5⟩","")
+  tst(⟪2.5⟫,"⟪2.5⟫","")
+*)
+
+  tst(|/2.5\|,3," ceiling")
+  tst(|\2.5/|,2," floor")
+
+(*
+  tst(⌈2.5⌉,"⌈2.5⌉","")
+  tst(⌊2.5⌋,"⌊2.5⌋","")
+*)
+
+  tst({\2.5\},"{\\2.5\\}","")
+  tst({/2.5/},"{/2.5/}","")
+
+  tst([/2.5/],"[/2.5/]","")
+  tst([//2.5//] ,"[//2.5//]","")
+
+  tst({*/2.5/*},"{*/2.5/*}","")
+  tst([*/2.5/*],"[*/2.5/*]","")
+
+
+  tst((.\2.5\.),"(.\\2.5\\.)","")
+
+  tst(</2.5\>,"</2.5\\>","")
+  tst(<</2.5\>>,"<</2.5\\>>","")
+
+  tst(|-2.5|, 2.5, " abs")
+  y : RR64[2] = [ -2.5 0.0 ]
+  tst(||y||, 2.5, " vector length")
+  tst(|||2.5|||,"|||2.5|||","")
+
+end
+
+end

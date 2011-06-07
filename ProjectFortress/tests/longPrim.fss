@@ -1,0 +1,47 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component longPrim
+export Executable
+
+tst(s:String,a:Boolean):() = assert(a,s)
+
+tstEq(s:String, a:ZZ64, b:ZZ64):() = assert(a,b,s)
+
+run() = do
+    a:ZZ64 = 0
+    tstEq("Minimum", a.minimum - 1, a.maximum)
+    tstEq("Maximum", a.maximum + 1, a.minimum)
+    tstEq("Add",  widen(124867) + -(234597), widen(-109730) )
+    tstEq("Sub",  widen(124867) -  234597, widen(-109730) )
+    tstEq("Mul1", widen(5872)  8124,  widen(47704128) )
+    tstEq("Mul2", widen(5872) (-(8124)), widen(-47704128) )
+    tstEq("Div1", widen(65536) DIV 35, widen(1872))
+    tstEq("Rem1", widen(65536) REM 35, widen(16))
+    tstEq("Mod1", widen(65536) MOD 35, widen(16))
+    tstEq("Div2", widen(-65536) DIV 35, widen(-1872))
+    tstEq("Rem2", widen(-65536) REM 35, widen(-16))
+    tstEq("Mod2", widen(-65536) MOD 35, widen(19))
+    tst("Divides1", 256 DIVIDES widen(65536))
+    tst("Divides2", NOT(17 DIVIDES widen(65536)))
+    tstEq("Gcd", widen(65535) GCD 32769, widen(3))
+    tstEq("Lcm", widen(65535) LCM 32769, widen(715838805))
+    tstEq("Choose", widen(23) CHOOSE 14, widen(817190) )
+    tstEq("And", widen(5) BITAND 6, widen(4))
+    tstEq("Or", widen(5) BITOR 6, widen(7))
+    tstEq("Xor", widen(5) BITXOR 6, widen(3))
+    tstEq("Not", BITNOT widen(6), widen(-7))
+    tstEq("Lsh", widen(-3) LSHIFT 3, widen(-24))
+    tstEq("Rsh", widen(-24) RSHIFT 3, widen(-3))
+    tst("LT", widen(-3425234) <= widen(23145))
+end
+
+end
