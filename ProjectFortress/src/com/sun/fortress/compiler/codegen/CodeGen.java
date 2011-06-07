@@ -1282,7 +1282,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String task = delegate(arg, tDesc, init, freeVars);
             tasks[i] = task;
             results[i] = tDesc;
-            System.out.println("ARG = " + arg + " freeVars = " + freeVars + " init = " + init + " task = " + task);
             constructWithFreeVars(task, freeVars, init);
 
             mv.visitInsn(DUP);
@@ -1374,6 +1373,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          Label l1 = new Label();
          Label l2 = new Label();
          Label lfinally = new Label();
+
          Block body = x.getBody();
          Option<Catch> catchClauses = x.getCatchClause();
          List<BaseType> forbid = x.getForbidClause();
@@ -1426,6 +1426,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          mv.visitLabel(lfinally);
          if (finallyClause.isSome()) {
              finallyClause.unwrap().accept(this);
+             popAll(1);
          }
     }
 
