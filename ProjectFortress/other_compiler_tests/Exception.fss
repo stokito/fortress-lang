@@ -21,10 +21,6 @@ object Shaggy extends CheckedException
 end
 
 test1():() = do
-   throw Scooby
-end
-
-test2():() = do
    try
       throw Scooby
       println("fail throw")
@@ -35,10 +31,44 @@ test2():() = do
    ()
 end
 
+bar():ZZ32 = do
+   try
+      for i <- 1#1000 do
+         if i = 237 then throw Scooby end
+      end
+      1
+   catch e
+      Shaggy => 2
+      Scooby => 3
+   finally 7
+   end
+end
+
+baz():ZZ32 = do
+   try
+      throw Scooby
+   catch e
+      Shaggy => 2
+      Scooby => 3
+   finally 7
+   end
+end
+
+   
+test2():() = do
+(* Wish we had case statements *)
+   x = baz()
+   if (x = 1) then println("Fail: We finished loop despite throw") 
+   elif (x = 2) then println("Fail: We caught the wrong exception") 
+   elif (x = 3) then println("Success") 
+   elif (x = 7) then println("We didn't catch the exception we should have") 
+   else println("OOPS") end
+end
+
 
 run():()=do
    println("test 1")
-(*   test1() *)
+   test1() 
    println("test 2")
    test2()
    ()
