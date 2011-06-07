@@ -79,6 +79,7 @@ import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ForeignJava;
 import com.sun.fortress.repository.GraphRepository;
@@ -553,7 +554,7 @@ public class NamingCzar {
      */
     // Only called from OverloadSet.AmongApis
     public static String apiAndMethodToMethod(APIName name, Functional method) {
-        String m = method.toUndecoratedName().toString();
+        String m = NodeUtil.nameSuffixString(method.toUndecoratedName());// .toString();
         return apiAndMethodToMethod(name, m);
     }
 
@@ -1426,9 +1427,7 @@ public class NamingCzar {
      * @return
      */
     public static String idOrOpToString(IdOrOp fnName) {
-        if (true)
-            return NodeUtil.nameString(fnName);
-        // likely busted.
+      
         if (fnName instanceof Op)
             return NamingCzar.opToString((Op) fnName);
         else if (fnName instanceof Id)
@@ -1443,6 +1442,9 @@ public class NamingCzar {
      * @return
      */
     public static String opToString(Op op) {
+        if (true) 
+            return OprUtil.fixityDecorator(op.getFixity(), op.getText());
+       // Conflicts with above!
         Fixity fixity = op.getFixity();
         if (fixity instanceof PreFixity) {
             return op.getText() + Naming.BOX;
