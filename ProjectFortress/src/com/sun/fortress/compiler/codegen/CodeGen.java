@@ -1233,17 +1233,114 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         throw sayWhat(x, "Can't handle decl class "+x.getClass().getName());
     }
 
+    // ForDoParallel is just like forExprsParallel except we need to clear the stack
+    // of those pesky FVoids for the arms of the DO.
 
-    public void forDo(Do x) {
-        // TODO: these ought to occur in parallel!
-        debug("forDo ", x);
-        int onStack = 0;
-        for ( Block b : x.getFronts() ) {
-            popAll(onStack);
-            b.accept(this);
-            onStack = 1;
+    public void forDoParallel(List<? extends Expr> args, Type domain_type, List<VarCodeGen> vcgs) {
+        final int n = args.size();
+        if (n <= 0) return;
+        
+        List<Type> domain_types;
+        if (NodeUtil.isVoidType(domain_type)) {
+            domain_types = new ArrayList<Type>();
+            for (int i = 0; i < n; i++)
+                domain_types.add(domain_type);
+        } else if (args.size() != 1 && domain_type instanceof TupleType) {
+            TupleType tdt = (TupleType) domain_type;
+            domain_types = tdt.getElements();
+        } else {
+            domain_types = Collections.singletonList(domain_type);
+        }
+        
+        String [] tasks = new String[n];
+        String [] results = new String[n];
+        int [] taskVars = new int[n];
+
+        if (vcgs != null && vcgs.size() != n) {
+            System.out.println("vcgs size = " + vcgs.size() + " n = " + n);
+            throw sayWhat(args.get(0), "Internal error: number of args does not match number of consumers.");
+        }
+
+        // Push arg tasks from right to left, so
+        // that local evaluation of args will proceed left to right.
+        // IMPORTANT: ALWAYS fork and join stack fashion,
+        // ie always join with the most recent fork first.
+        for (int i = n-1; i > 0; i--) {
+            Expr arg = args.get(i);
+            // Make sure arg has type info (we'll need it to generate task)
+            Option<Type> ot = NodeUtil.getExprType(arg);
+            if (!ot.isSome())
+                throw sayWhat(arg, "Missing type information for argument " + arg);
+            Type t = ot.unwrap();
+            String tDesc = NamingCzar.jvmBoxedTypeDesc(t, component.getName());
+            // Find free vars of arg
+            List<VarCodeGen> freeVars = getFreeVars(arg);
+
+            // Generate descriptor for init method of task
+            String init = taskConstructorDesc(freeVars);
+
+            String task = delegate(arg, tDesc, init, freeVars);
+            tasks[i] = task;
+            results[i] = tDesc;
+            System.out.println("ARG = " + arg + " freeVars = " + freeVars + " init = " + init + " task = " + task);
+            constructWithFreeVars(task, freeVars, init);
+
+            mv.visitInsn(DUP);
+            int taskVar = mv.createCompilerLocal(task, // Naming.mangleIdentifier(task),
+                    Naming.internalToDesc(task));
+            taskVars[i] = taskVar;
+            mv.visitVarInsn(ASTORE, taskVar);
+            mv.visitMethodInsn(INVOKEVIRTUAL, task, "forkIfProfitable", "()V");
+        }
+        // arg 0 gets compiled in place, rather than turned into work.
+        if (vcgs != null) vcgs.get(0).prepareAssignValue(mv);
+        args.get(0).accept(this);
+        conditionallyCastParameter(domain_types.get(0));
+        if (vcgs != null) vcgs.get(0).assignValue(mv);
+        popAll(0);  // URGH!!!  look into better stack management...
+
+
+        // join / perform work locally left to right, leaving results on stack.
+        for (int i = 1; i < n; i++) {
+            if (vcgs != null) vcgs.get(i).prepareAssignValue(mv);
+            int taskVar = taskVars[i];
+            mv.visitVarInsn(ALOAD, taskVar);
+            mv.disposeCompilerLocal(taskVar);
+            mv.visitInsn(DUP);
+            String task = tasks[i];
+            mv.visitMethodInsn(INVOKEVIRTUAL, task, "joinOrRun", "()V");
+            mv.visitFieldInsn(GETFIELD, task, "result", results[i]);
+            conditionallyCastParameter(domain_types.get(i));
+            if (vcgs != null) vcgs.get(i).assignValue(mv);
+            popAll(1);  // URGH!!!  look into better stack management...            
         }
     }
+
+
+    public void forDo(Do x) {
+        debug("forDo ", x);
+        int n = x.getFronts().size();
+        popAll(0);
+        System.out.println("forDo: n = " + n + " x = " + x + " freevars = " + getFreeVars(x));
+
+        if (n > 1) {
+            forDoParallel(x.getFronts(), NodeFactory.makeVoidType(x.getInfo().getSpan()), null);
+        } else { 
+            x.getFronts().get(0).accept(this);
+        }
+    }
+
+
+//     public void forDo(Do x) {
+//         // TODO: these ought to occur in parallel!
+//         debug("forDo ", x);
+//         int onStack = 0;
+//         for ( Block b : x.getFronts() ) {
+//             popAll(onStack);
+//             b.accept(this);
+//             onStack = 1;
+//         }
+//     }
 
     // TODO: arbitrary-precision version of FloatLiteralExpr, correct
     // handling of types other than double (float should probably just
@@ -1988,7 +2085,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         try {
             exitMethodScope(selfIndex, selfVar, paramsGen);
         } catch (Throwable t) {
-            throw new Error("\n"+NodeUtil.getSpan(body)+": Error trying to close method scope.",t);
+              throw new Error("\n"+NodeUtil.getSpan(body)+": Error trying to close method scope.\n" + mv.getText(),t);
         }
     }
 
@@ -3654,7 +3751,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (n <= 0) return;
         
         List<Type> domain_types;
-        if (args.size() != 1 && domain_type instanceof TupleType) {
+        if (NodeUtil.isVoidType(domain_type)) {
+            domain_types = new ArrayList<Type>();
+            for (int i = 0; i < n; i++)
+                domain_types.add(domain_type);
+        } else if (args.size() != 1 && domain_type instanceof TupleType) {
             TupleType tdt = (TupleType) domain_type;
             domain_types = tdt.getElements();
         } else {
@@ -3666,6 +3767,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         int [] taskVars = new int[n];
 
         if (vcgs != null && vcgs.size() != n) {
+            System.out.println("vcgs size = " + vcgs.size() + " n = " + n);
             throw sayWhat(args.get(0), "Internal error: number of args does not match number of consumers.");
         }
 
@@ -3690,7 +3792,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String task = delegate(arg, tDesc, init, freeVars);
             tasks[i] = task;
             results[i] = tDesc;
-
+            System.out.println("ARG = " + arg + " freeVars = " + freeVars + " init = " + init + " task = " + task);
             constructWithFreeVars(task, freeVars, init);
 
             mv.visitInsn(DUP);
@@ -3705,6 +3807,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         args.get(0).accept(this);
         conditionallyCastParameter(domain_types.get(0));
         if (vcgs != null) vcgs.get(0).assignValue(mv);
+
 
         // join / perform work locally left to right, leaving results on stack.
         for (int i = 1; i < n; i++) {
