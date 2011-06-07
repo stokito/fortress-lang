@@ -7,8 +7,7 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests= Compiled17ddd  Compiled17dddd Compiled17ddddd
+tests= pfo1
 link
 run
-run_out_equals=12345678910\n\
-10987654321\n
+
