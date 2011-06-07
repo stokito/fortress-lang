@@ -1321,7 +1321,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         debug("forDo ", x);
         int n = x.getFronts().size();
         popAll(0);
-        System.out.println("forDo: n = " + n + " x = " + x + " freevars = " + getFreeVars(x));
 
         if (n > 1) {
             forDoParallel(x.getFronts(), NodeFactory.makeVoidType(x.getInfo().getSpan()), null);
@@ -3792,7 +3791,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String task = delegate(arg, tDesc, init, freeVars);
             tasks[i] = task;
             results[i] = tDesc;
-            System.out.println("ARG = " + arg + " freeVars = " + freeVars + " init = " + init + " task = " + task);
             constructWithFreeVars(task, freeVars, init);
 
             mv.visitInsn(DUP);
