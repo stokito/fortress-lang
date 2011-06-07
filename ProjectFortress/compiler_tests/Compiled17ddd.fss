@@ -44,7 +44,7 @@ end
 
 cat(x:String, y:String):String = do
   (*) println("cat " x " " y )
-  x || " " || y
+  x || y
 end
 
 rcat(x:String, y:String):String = y || x
@@ -58,6 +58,7 @@ somebody(x:ZZ32):String = do
 end
 
 run():() = do
-  s = G[\ZZ32\](ZCollection(1,100)).reduce[\String\](somebody, cat)
+  s = G[\ZZ32\](ZCollection(1,10)).reduce[\String\](somebody, cat)
   println s
+  println G[\ZZ32\](ZCollection(1,10)).reduce[\String\](somebody, rcat)
 end

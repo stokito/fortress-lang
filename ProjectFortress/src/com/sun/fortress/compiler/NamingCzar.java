@@ -1426,6 +1426,9 @@ public class NamingCzar {
      * @return
      */
     public static String idOrOpToString(IdOrOp fnName) {
+        if (true)
+            return NodeUtil.nameString(fnName);
+        // likely busted.
         if (fnName instanceof Op)
             return NamingCzar.opToString((Op) fnName);
         else if (fnName instanceof Id)

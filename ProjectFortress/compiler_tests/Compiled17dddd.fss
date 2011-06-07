@@ -57,4 +57,5 @@ end
 run():() = do
   s = ZCollection(1,10).reduce[\String\](somebody, cat)
   println s
+  println ZCollection(1,10).reduce[\String\](somebody, rcat)
 end

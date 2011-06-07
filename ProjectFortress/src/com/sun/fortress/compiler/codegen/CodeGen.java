@@ -3927,7 +3927,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         debug("ForSubscriptExpr  ", x, "obj = ", obj,
               " subs = ", subs, " op = ", op, " static args = ", staticArgs,
-              " varRef = ", NamingCzar.idToString(id));
+              " varRef = ", NamingCzar.idOrOpToString(id));
 
         var.accept(this);
 
@@ -3939,7 +3939,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitMethodInsn(INVOKEVIRTUAL,
                            NamingCzar.makeInnerClassName(id),
                            // Naming.mangleIdentifier(opToString(op)),
-                           NamingCzar.opToString(op),
+                           NamingCzar.idOrOpToString(op),
                            "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)Lcom/sun/fortress/compiler/runtimeValues/FString;");
     }
 
