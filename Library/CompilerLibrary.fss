@@ -280,14 +280,16 @@ object SeqGenZZ32(g: GeneratorZZ32) extends SeqGeneratorZZ32
     filter(f: ZZ32 -> Boolean): SeqGeneratorZZ32 = seq(g.filter(f))
 end
 
-opr PAR(a:(), b:()): () = ()
-
 parloop(lo:ZZ32, hi:ZZ32, p:ZZ32->Boolean, body:ZZ32->()): () =
     if lo=hi then
         if p(lo) then body(lo) end
     else
         mid = (lo+hi) DIV 2
-        parloop(lo, mid, p, body) PAR parloop(mid+1, hi, p, body)
+        do
+           parloop(lo, mid, p, body)  
+        also do
+           parloop(mid+1, hi, p, body)
+        end
     end
 
 countedseqloop(lo:ZZ32, hi:ZZ32, p:ZZ32->Boolean, body:ZZ32->()): () =
