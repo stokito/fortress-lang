@@ -853,6 +853,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String[] super_interfaces = null;
         if (!is_all_objects) {
             super_interfaces = new String[] { obj_sig };
+        } else {
+            super_interfaces = new String[] { "fortress/AnyType$Any" };
         }
         
         cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE,
