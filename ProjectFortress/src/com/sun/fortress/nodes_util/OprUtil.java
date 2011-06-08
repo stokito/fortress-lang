@@ -124,6 +124,13 @@ public final class OprUtil {
         });
     }
 
+    /** Return a new operator with the fixity prepended to the text. */
+    public static Op decorateOperator(Op o) {
+        return NodeFactory.makeOp(NodeUtil.getSpan(o), Option.<APIName>none(),
+                      fixityDecorator(o.getFixity(), o.getText()),
+                      o.getFixity(), o.isEnclosing());
+    }
+    
     public static boolean equal(Fixity l, Fixity r) {
         return ((l instanceof    InFixity && r instanceof    InFixity) ||
                 (l instanceof   PreFixity && r instanceof   PreFixity) ||

@@ -300,7 +300,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                          */
                         principalMember = f;
                     } else {
-                        /* TODO work in progress
+                        /* 
                          * There are SOME members of the subset that are more
                          * specific than f; identify those, and create that
                          * subset.  f will be the principal member of the
@@ -400,7 +400,6 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     @Override
     public int compareTo(OverloadSet o) {
-        // TODO Auto-generated method stub
         return name.stringName().compareTo(o.name.stringName());
     }
 
@@ -1049,15 +1048,33 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             MultiMap<String, TypeStructure> spmap = new MultiMap<String, TypeStructure>();
             spmaps[i] = spmap;
             // skip parameters -- no 'this' for ordinary functions
-            int storeAtIndex = parameters.size();
-            TypeStructure[] f_type_structures = new TypeStructure[parameters.size()];
-            type_structures[i] = f_type_structures;
-
-            for (int j = 0; j < parameters.size(); j++) {
-                Type t = oa.getParamType(eff,j);
-                TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex);
-                f_type_structures[j] = type_structure;
-                storeAtIndex = type_structure.successorIndex;
+            
+            if (parameters.size() == 1 && oa.getDomainType(eff) instanceof TupleType) {
+                TupleType tt = (TupleType) oa.getDomainType(eff);
+                List<Type> tl = tt.getElements();
+                int storeAtIndex = tl.size();
+                TypeStructure[] f_type_structures = new TypeStructure[storeAtIndex];
+                type_structures[i] = f_type_structures;
+                
+                for (int j = 0; j < tl.size(); j++) {
+                    Type t = STypesUtil.insertStaticParams(tl.get(j), tt.getInfo().getStaticParams());
+                    TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex);
+                    f_type_structures[j] = type_structure;
+                    storeAtIndex = type_structure.successorIndex;
+                }
+                
+            } else {
+            
+                int storeAtIndex = parameters.size();
+                TypeStructure[] f_type_structures = new TypeStructure[storeAtIndex];
+                type_structures[i] = f_type_structures;
+    
+                for (int j = 0; j < parameters.size(); j++) {
+                    Type t = oa.getParamType(eff,j);
+                    TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex);
+                    f_type_structures[j] = type_structure;
+                    storeAtIndex = type_structure.successorIndex;
+                }
             }
         }
 
@@ -1084,7 +1101,18 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 }
             }
             // Come here if we have successfully passed the test.
-            generateLeafCall(mv, firstArgIndex, f);
+            // generateLeafCall(mv, firstArgIndex, f);
+            for (int j = 0; j < f_type_structures.length; j++) {
+                // Load actual parameter
+                mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
+                InstantiatingClassloader.generalizedCastTo(mv, 
+                        f_type_structures[j].fullname);
+            }
+            
+            String sig = jvmSignatureFor(f);
+
+            invokeParticularMethod(mv, f, sig);
+            mv.visitInsn(Opcodes.ARETURN);
 
             if (lookahead != null)
                 mv.visitLabel(lookahead);
@@ -1104,7 +1132,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         int i = firstArgIndex;
         List<Param> params = f.getParameters();
-
+        
         for (Param p : params) {
             mv.visitVarInsn(Opcodes.ALOAD, i);
 
@@ -1354,6 +1382,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         
     };
     
+    // TODO if it is a functional method, need to whack the name, too.
     static public class ForTraitOrObject extends AmongApis {
         /**
          * Indicates, in the Functional representation of the methods,
@@ -1434,7 +1463,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
         }
         
-        /*
+        String jvmSignatureFor(TaggedFunctionName f) {
+            // TODO need to skip selfIndex in f.
+            return NamingCzar.jvmSignatureFor(f.tagF, f.tagA); 
+        }
+        
+       /*
          * See super implementation for comparison and comments.
          * 
          * @param _name
@@ -1553,7 +1587,6 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
    }
 
     public boolean notGeneric() {
-        // TODO Auto-generated method stub
         for (TaggedFunctionName tfn: lessSpecificThanSoFar) {
             Functional f = tfn.getF();
             List<StaticParam> lsp = f.staticParameters();

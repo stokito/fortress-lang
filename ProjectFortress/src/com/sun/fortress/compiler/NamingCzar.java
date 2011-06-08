@@ -1007,7 +1007,7 @@ public class NamingCzar {
     }
 
     private static String makeGenericParameterDescriptor(AnyType t, final APIName ifNone) {
-        return "Object_";
+        return Naming.ANY_TYPE_CLASS;
     }
 
     private static String makeGenericParameterDescriptor(TraitType t, final APIName ifNone) {
