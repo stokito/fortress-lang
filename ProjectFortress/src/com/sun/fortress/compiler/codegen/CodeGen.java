@@ -3456,6 +3456,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         areturnEpilogue();
         
         emitRttiField(cnb);
+        /* end RTTI stuff */
         
         lexEnv = savedLexEnv;
 
