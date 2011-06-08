@@ -881,7 +881,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 // invokevirtual RTTI.argExtendsThis
                 mv.visitFieldInsn(Opcodes.GETSTATIC, fullname, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
                 mv.visitInsn(Opcodes.SWAP);
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, "argExtendsThis", "("+ Naming.RTTI_CONTAINER_TYPE + ")Z");
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, "argExtendsThis", "(L"+ Naming.RTTI_CONTAINER_TYPE + ";)Z");
             }
             mv.visitJumpInsn(Opcodes.IFEQ, if_fail);
         }

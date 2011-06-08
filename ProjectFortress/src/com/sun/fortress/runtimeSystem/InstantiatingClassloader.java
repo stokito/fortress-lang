@@ -218,6 +218,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 if (name.startsWith(Naming.TUPLE_RTTI_TAG)) {
                     classData = instantiateTupleRTTI(name);
                     expanded = true;
+                } else if (name.startsWith(Naming.ARROW_RTTI_TAG)) {
+                	classData = instantiateArrowRTTI(name);
+                	expanded = true;
                 } else if (isGenericFunction) {
                     // also a closure
                     try {
@@ -854,7 +857,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         if (!is_all_objects) {
             super_interfaces = new String[] { obj_sig };
         } else {
-            super_interfaces = new String[] { "fortress/AnyType$Any" };
+        	super_interfaces = new String[] { "fortress/AnyType$Any" };
         }
         
         cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE,
@@ -1251,6 +1254,71 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         cw.visitEnd();
 
         return cw.toByteArray();
+    }
+    
+    private static byte[] instantiateArrowRTTI(String name) {
+        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+        // Tuple,N$RTTIc
+        int dollar_at = name.indexOf('$');
+        String stem_name = name.substring(0,dollar_at);
+        String nstring = name.substring(Naming.ARROW_RTTI_TAG.length(), dollar_at);
+        final int n = Integer.parseInt(nstring);
+        String[] superInterfaces = null;
+        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC, name, null,
+                Naming.ARROW_RTTI_CONTAINER_TYPE, superInterfaces);
+        // init
+        {
+        String init_sig =
+            InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class", n, Naming.RTTI_CONTAINER_TYPE, "V");
+        MethodVisitor mv = cw.visitCGMethod(ACC_PUBLIC, "<init>", init_sig, null, null);
+        mv.visitCode();
+        
+        mv.visitVarInsn(ALOAD, 0); // this
+        mv.visitVarInsn(ALOAD, 1); // class
+                                   // allocate and init array for next parameter
+        int first_element = 2;
+        // new array
+        mv.visitLdcInsn(new Integer(n));
+        mv.visitTypeInsn(ANEWARRAY, Naming.RTTI_CONTAINER_TYPE);
+        for (int i = 0; i < n; i++) {
+            mv.visitInsn(DUP);
+            mv.visitLdcInsn(new Integer(i));
+            mv.visitVarInsn(ALOAD, first_element + i);
+            mv.visitInsn(AASTORE);
+        }
+       
+        // invoke super.<init>
+        mv.visitMethodInsn(INVOKESPECIAL, Naming.ARROW_RTTI_CONTAINER_TYPE, "<init>", "(Ljava/lang/Class;[L"+Naming.RTTI_CONTAINER_TYPE+";)V");
+        
+        int pno = 2; // skip the java class parameter
+        for (int i = Naming.STATIC_PARAMETER_ORIGIN;
+                 i < n+Naming.STATIC_PARAMETER_ORIGIN; i++) {
+            String spn = "T"+i;
+            // not yet this;  sp.getKind();
+            mv.visitVarInsn(ALOAD, 0);
+            mv.visitVarInsn(ALOAD, pno);
+            mv.visitFieldInsn(PUTFIELD, name, spn,
+                              Naming.RTTI_CONTAINER_DESC);
+            pno++;
+        }
+        
+        voidEpilogue(mv);
+        }
+
+        // fields and getters
+        for (int i = Naming.STATIC_PARAMETER_ORIGIN;
+             i < n+Naming.STATIC_PARAMETER_ORIGIN; i++) {
+            fieldAndGetterForStaticParameter(cw, stem_name, "T"+i, i);   
+        }
+        
+        // clinit -- part of the dictionary call
+        // dictionary
+        // factory
+        emitDictionaryAndFactoryForGenericRTTIclass(cw, name, n);
+        
+        cw.visitEnd();
+        return cw.toByteArray();
+
     }
 
     /**

@@ -29,6 +29,7 @@ final public class RttiTupleMap {
             RTTI[] b = { o1 };
             a = b;
             k = h(b);
+            
         }
 
         public Node(RTTI o1, RTTI o2) {
@@ -64,6 +65,11 @@ final public class RttiTupleMap {
             a = b;
             k = h(b);
 
+        }
+        
+        public Node(RTTI[] args) {
+        	a = args;
+        	k = h(args);
         }
 
         static int h(RTTI[] a) {
