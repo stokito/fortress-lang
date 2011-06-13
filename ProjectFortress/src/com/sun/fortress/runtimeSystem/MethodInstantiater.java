@@ -87,9 +87,11 @@ public class MethodInstantiater implements MethodVisitor {
             List<String> parameters = InstantiatingClassloader.extractStringParameters(
                     owner, lox_index, rox_index);
             
-            // special case hack for tuples, and later, for arrows
-            if (stem.equals("Tuple")) {
-                stem = "Tuple," + parameters.size();
+            // special case hack for tuples, and arrows
+            if (stem.equals(Naming.TUPLE_TAG)) {
+                stem = Naming.TUPLE_RTTI_TAG + parameters.size();
+            } else if (stem.equals(Naming.ARROW_TAG)) {
+            	stem = Naming.ARROW_RTTI_TAG + parameters.size();
             }
             
             String javaClassDesc = Useful.substring(owner, 0, 1-FACTORY_SUFFIX_LENGTH);
