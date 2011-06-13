@@ -1,0 +1,40 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Parallel.Abort.b
+export Executable
+
+object UnreachableCode extends Exception end
+
+f() = do
+body = ()
+(** EXAMPLE **)
+label AtomicBlock
+  while true do
+    try
+      result = tryatomic body
+      exit AtomicBlock with result
+    catch e
+      TryAtomicFailure => () (* continue execution *)
+    end
+  end
+  throw UnreachableCode (* inserted for type correctness *)
+end AtomicBlock
+(** END EXAMPLE **)
+end
+
+run() = do
+  f()
+end
+
+end

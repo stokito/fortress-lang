@@ -1,0 +1,24 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled5.Elif
+export Executable
+
+(* Parallelism. Should execute recursive calls to fib in parallel. *)
+
+fib(n: ZZ32): ZZ32 =
+    if n=0 then 0
+    elif n=1 then 1
+    else fib(n-1) + fib(n-2) end
+
+run(): () = println(fib 20)
+
+end

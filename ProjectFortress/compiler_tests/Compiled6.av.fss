@@ -1,0 +1,46 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+  export Executable
+
+  foo(a:Any):() = do
+    var b:String
+
+    b := typecase a of
+      a':String => a'
+      else => "Nothin"
+    end
+
+    ()
+  end
+
+  trait Ty1 end
+  trait Ty2 end
+
+  bar(t:Ty1) : () = do
+    typecase t of
+      t':Ty2 => do
+          var t1 : Ty1
+          var t2 : Ty2
+          t1 := t'
+          t2 := t'
+      end
+    end
+  end
+
+  quux(tup:(Any,Any)) : () = do
+    var s : String
+
+    s := typecase tup of
+      (a:String,String) => a
+    end
+  end
+
+  run() : () = ()

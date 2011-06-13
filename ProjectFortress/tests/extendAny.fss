@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component extendAny
+
+export Executable
+
+(* We ought to be able to extend the builtin type Any. *)
+
+object Infinity extends Any
+  getter asString()="Infinity"
+end
+
+run():() = do
+  println(Infinity)
+end
+
+end
