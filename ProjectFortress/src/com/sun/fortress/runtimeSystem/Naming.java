@@ -94,6 +94,7 @@ public class Naming {
     public final static String RTTI_GETTER_CLASS = ANY_TYPE_CLASS;
     public final static String RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "RTTI";
     public final static String TUPLE_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "TupleRTTI";
+    public final static String ARROW_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "ArrowRTTI";
     public final static String RTTI_CONTAINER_DESC = "L" + RTTI_CONTAINER_TYPE + ";";
     public final static String STATIC_PARAMETER_GETTER_SIG = "()" + RTTI_CONTAINER_DESC;
 
@@ -150,6 +151,7 @@ public class Naming {
      * Name for Arrow-interface generic.
      */
     public final static String ARROW_TAG="Arrow";
+    public final static String ARROW_RTTI_TAG = "Arrow,";
     /**
      * Name for Tuple-interface generic.
      */
@@ -980,6 +982,8 @@ public class Naming {
 
 
         public static final int NO_SELF = -1;
+
+		
 
     
 }

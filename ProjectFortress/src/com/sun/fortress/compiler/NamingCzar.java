@@ -11,6 +11,8 @@
 
 package com.sun.fortress.compiler;
 
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -20,11 +22,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.objectweb.asm.Type;
+
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
-import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Functional;
-import com.sun.fortress.compiler.optimization.Unbox.Contains;
 import com.sun.fortress.exceptions.CompilerError;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AnyType;
+import com.sun.fortress.nodes.ArrowType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.BoolArg;
 import com.sun.fortress.nodes.BoolBase;
 import com.sun.fortress.nodes.BoolBinaryOp;
@@ -32,9 +38,12 @@ import com.sun.fortress.nodes.BoolExpr;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.BoolUnaryOp;
 import com.sun.fortress.nodes.DimArg;
-import com.sun.fortress.nodes.DimExpr;
 import com.sun.fortress.nodes.Fixity;
+import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnHeader;
 import com.sun.fortress.nodes.FunctionalRef;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IntArg;
 import com.sun.fortress.nodes.IntBase;
 import com.sun.fortress.nodes.IntBinaryOp;
@@ -48,23 +57,12 @@ import com.sun.fortress.nodes.KindOp;
 import com.sun.fortress.nodes.KindType;
 import com.sun.fortress.nodes.KindUnit;
 import com.sun.fortress.nodes.Node;
-import com.sun.fortress.nodes.APIName;
-import com.sun.fortress.nodes.AnyType;
-import com.sun.fortress.nodes.ArrowType;
-import com.sun.fortress.nodes.BaseType;
-import com.sun.fortress.nodes.BottomType;
-import com.sun.fortress.nodes.FnDecl;
-import com.sun.fortress.nodes.FnHeader;
-import com.sun.fortress.nodes.Id;
-import com.sun.fortress.nodes.IdOrOp;
-import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
-import com.sun.fortress.nodes.NamedType;
+import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes.Op;
 import com.sun.fortress.nodes.OpArg;
 import com.sun.fortress.nodes.Param;
 import com.sun.fortress.nodes.PostFixity;
 import com.sun.fortress.nodes.PreFixity;
-import com.sun.fortress.nodes.SelfType;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.StaticParamKind;
@@ -74,34 +72,20 @@ import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes.UnitArg;
-import com.sun.fortress.nodes.UnitExpr;
 import com.sun.fortress.nodes.VarType;
-import com.sun.fortress.nodes.NodeAbstractVisitor;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.OprUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ForeignJava;
-import com.sun.fortress.repository.GraphRepository;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.Naming;
-
-import com.sun.fortress.scala_src.useful.STypesUtil;
-
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
-import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
-// import edu.rice.cs.plt.tuple.Pair;
-
-import org.objectweb.asm.Type;
-
-import static com.sun.fortress.exceptions.InterpreterBug.bug;
-import static com.sun.fortress.exceptions.ProgramError.error;
-import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
 public class NamingCzar {
     private NamingCzar() { super(); }
