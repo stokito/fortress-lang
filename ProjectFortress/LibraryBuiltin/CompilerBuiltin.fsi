@@ -14,9 +14,9 @@ api CompilerBuiltin
 import AnyType.{Any}
 
 trait Object extends Any
+    getter asString(): String
 end Object
 
-(*)     getter asString(): String
 (*)     getter asExprString(): String
 (*)     getter asDebugString(): String
 

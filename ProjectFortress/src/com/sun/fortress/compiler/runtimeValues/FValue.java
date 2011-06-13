@@ -15,8 +15,11 @@ public abstract class FValue implements fortress.AnyType.Any {
 
     @Override
     public Object getRTTI() {
-        // TODO Auto-generated method stub
         return null;
+    }
+    
+    public FString asString() {
+        return null; /* replaced in generated code; necessary for primitive hierarchy */
     }
 
 }

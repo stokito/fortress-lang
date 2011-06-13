@@ -1,5 +1,5 @@
 /*******************************************************************************
- Copyright 2010, Oracle and/or its affiliates.
+ Copyright 2011, Oracle and/or its affiliates.
  All rights reserved.
 
 
@@ -25,5 +25,9 @@ public class stringOps {
     
     public static int charAt(String s, int at) {
         return s.charAt(at);
+    }
+    
+    public static String asString(fortress.AnyType.Any a) {
+        return "<" + a.getClass() + ">";
     }
 }
