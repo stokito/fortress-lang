@@ -69,7 +69,8 @@ import java com.sun.fortress.nativeHelpers.{LocalRandom.localRandomDouble => jRa
                                             LocalRandom.localRandomInt => jRandomInt }
 import java com.sun.fortress.nativeHelpers.{stringOps.compareTo => jCompareTo,
                                             stringOps.substring => jSubstring,
-                                            stringOps.charAt => jCharAt}
+                                            stringOps.charAt => jCharAt,
+                                            stringOps.asString => jAsString}
 
 import AnyType.{Any}
 (*) import CompilerAlgebra.{ Equality }
@@ -78,7 +79,7 @@ export CompilerBuiltin
 nanoTime(): RR64 = jNanoTime()
 
 trait Object extends Any
-(*)     getter asString(): String = "<Object>"
+   getter asString(): String = jAsString(self)
 (*)     getter asExprString(): String = "no expression for "  self.asString
 (*)     getter asDebugString(): String  = do  (* for debugging; may contain more information *)
 (*)         ilk = self.ilkName

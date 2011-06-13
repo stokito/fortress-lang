@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2010, Oracle and/or its affiliates.
+    Copyright 2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -40,8 +40,8 @@ public final class FFloatLiteral extends fortress.CompilerBuiltin.FloatLiteral.D
         return val;
     }
 
-    public String asString() {
-        return this.toString();
+    public FString asString() {
+        return null; /* replaced in generated code; necessary for primitive hierarchy */
     }
 
     public Error outOfRange(String t) {

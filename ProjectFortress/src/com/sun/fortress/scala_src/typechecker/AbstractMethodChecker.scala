@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -129,7 +129,9 @@ class AbstractMethodChecker(component: ComponentIndex,
             empty
       }
       SFnDecl(_,SFnHeader(_,mods,name,_,_,_,_,_),_,body,_) <- single(decl)
-      if (mods.isAbstract || (! body.isDefined && name.getApiName.isNone))
+      /* BUGFIX: http://java.net/jira/browse/PROJECTFORTRESS-3 -- it's the trait
+       * that should have no associated API, NOT the method name. */
+      if (mods.isAbstract || (! body.isDefined && tt.getName.getApiName.isNone) ) 
     } yield (tt,decl)
   }
 
