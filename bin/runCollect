@@ -1,0 +1,39 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+# This script is still in development.
+# Use at your own risk.  
+# Minor special-case acceleration here.
+if [ -z "$FORTRESS_HOME" ]; then
+   export FORTRESS_HOME="`${0%run}fortress_home`"
+fi
+
+CP="`"$FORTRESS_HOME"/bin/run_classpath`"
+# echo $CP
+if [ -z "$JAVA_HOME" ] ; then
+  JAVACMD=java
+else
+  JAVACMD="$JAVA_HOME/bin/java"
+fi
+
+if [ -z "$JAVA_FLAGS" ] ; then
+  JAVA_FLAGS="-Xmx768m -Xss10m"
+fi
+
+JAVA_FLAGS=" $JAVA_FLAGS  -Dfile.encoding=UTF-8 -Xfuture"
+
+# echo "$JAVACMD" $JAVA_FLAGS "-Xbootclasspath/p:$CP" "$@"
+
+# echo $JAVA_FLAGS
+
+collect -d /tmp -F on -j on -p 1.0 "$JAVACMD" $JAVA_FLAGS -cp "$CP" com.sun.fortress.runtimeSystem.MainWrapper "$@"

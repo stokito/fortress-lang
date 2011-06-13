@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component arrayArgs
+export Executable
+
+f(a : RR64[3]) = a[2]
+
+run():() = do
+  (* This works *)
+  a : RR64[3] = [1.1 2.2 3.3]
+  f(a)
+  (* This breaks *)
+  f([1.1 2.2 3.3])
+end
+
+
+end

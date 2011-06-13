@@ -1,0 +1,52 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component rightOverload
+export Executable
+
+(* This ought to succeed in the opposite way from wrongOverload. *)
+
+trait Sparse[\N extends Number, nat n, nat m\]
+  extends Array2[\N,0,n,0,m\]
+    get(t1:(ZZ32,ZZ32)) = fail("Sparse get")
+    put(t1:(ZZ32,ZZ32), v:N) = fail("Sparse put")
+    init0(t1:(ZZ32,ZZ32), v:N) = fail("Sparse init")
+    replica[\U\]() = fail("Sparse replica")
+    mapReduce[\R\](f:N->R, j:(R,R)->R, z:R):R =
+          fail("Sparse mapReduce")
+end
+
+object Csr[\N extends Number, nat n, nat m\]()
+  extends Sparse[\N,n,m\]
+    t() = Csc[\N,m,n\]()
+end
+
+object Csc[\N extends Number, nat n, nat m\]()
+  extends Sparse[\N,n,m\]
+    t() = Csr[\N,m,n\]()
+end
+
+opr DOT[\ T extends Number, nat n, nat m, nat p\]
+       (me:Csr[\T,n,m\], other:Csc[\T,m,p\]):Csr[\T,n,p\] = do
+  println("OK: Csr DOT Csc")
+  me
+end
+
+mkMatrix[\nat n\]() : RR64[n,n] = do
+end
+
+run(): () = do
+  l = Csr[\RR64,1,1\]()
+  l DOT l.t()
+  ()
+end
+
+end

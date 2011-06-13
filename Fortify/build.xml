@@ -1,0 +1,59 @@
+<?xml version="1.0" ?>
+
+<!--
+Copyright 2008,2009, Oracle and/or its affiliates.
+All rights reserved.
+
+
+Use is subject to license terms.
+
+This distribution may include materials developed by third parties.
+
+-->
+
+<project name="Fortify" default="test">
+    <description>
+      The Fortress specification, written in LaTeX.
+    </description>
+
+    <property environment="env"/>
+    <property name="fortress.home" value="${env.FORTRESS_HOME}"/>
+    <property name="interpreter.home" value="${fortress.home}/ProjectFortress"/>
+    <property name="library.home" value="${fortress.home}/StandardLibrary"/>
+    <property name="interpreter.classpath"
+	      value="${interpreter.home}/build:${interpreter.home}/third_party/xtc/xtc.jar:${interpreter.home}/third_party/jsr166y/jsr166y.jar:${interpreter.home}/third_party/plt/plt.jar:${interpreter.home}/third_party/junit/junit.jar"/>
+
+    <taskdef name="fortex"
+	     classname="com.sun.fortress.ant_tasks.FortexTask"
+	     classpath="${interpreter.classpath}"/>
+
+    <taskdef name="foreg"
+	     classname="com.sun.fortress.ant_tasks.ForegTask"
+	     classpath="${interpreter.classpath}"/>
+
+    <taskdef name="fortify"
+	     classname="com.sun.fortress.ant_tasks.FortifyTask"
+	     classpath="${interpreter.classpath}"/>
+
+    <target name="fortress.home">
+      <echo message="${fortress.home}"/>
+    </target>
+
+    <target name="test">
+      <fortify>
+	<fileset dir="${library.home}">
+	  <include name="**/*.fsi"/>
+	</fileset>
+      </fortify>
+      <fortex>
+	<fileset dir="${library.home}">
+	  <include name="**/*.fsi"/>
+	</fileset>
+      </fortex>
+      <foreg>
+	<fileset dir="${library.home}">
+	  <include name="**/*.fsi"/>
+	</fileset>
+      </foreg>
+    </target>
+</project>

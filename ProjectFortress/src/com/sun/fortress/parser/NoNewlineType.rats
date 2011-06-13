@@ -1,0 +1,107 @@
+/*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress types that do not include any newlines.
+ */
+module com.sun.fortress.parser.NoNewlineType(Type, NoNewlineExpr,
+                                             Keyword, Symbol, Spacing);
+
+modify Type;
+import NoNewlineExpr;
+import Keyword;
+import Symbol;
+import Spacing;
+
+private Type Type := ... ;
+private TupleType TupleType := ... ;
+TupleType NoNewlineTupleType = TupleType ;
+private ExtentRange ExtentRange := ... ;
+ExtentRange NoNewlineExtentRange = ExtentRange ;
+
+/* NoNewlineType ::= NoNewlineTypePrimary (w in w NoNewlineExpr)? */
+Type NoNewlineType =
+     !(one) (io w)? a1:TypePrimary a2:(w void:in w NoNewlineExpr)?
+     { Type ty = TypeResolver.resolveOps(a1);
+       if (a2 == null)
+           yyValue = ty;
+       else {
+           if (ty instanceof TaggedDimType) {
+               TaggedDimType _ty = (TaggedDimType)ty;
+               yyValue = NodeFactory.makeTaggedDimType(NodeUtil.getSpan(_ty),
+                                                       false, _ty.getElemType(),
+                                                       _ty.getDimExpr(),
+                                                       Option.<Expr>some(a2));
+           } else {
+               log(NodeUtil.getSpan(ty), "A dimension type is expected.");
+               yyValue = ty;
+           }
+       }
+     };
+
+/* NoNewlineTypePrimary ::=
+     TypePrimaryFront NoNewlineTightInfixPostfix
+   | TypePrimaryFront sr NoNewlineTypePrimary
+   | TypePrimaryFront sr NoNewlineLooseInfix
+   | TypePrimaryFront
+ */
+PureList<PostfixOpExpr> TypePrimary := ...
+   / <LooseJuxt> a1:TypePrimaryFront sr a2:TypePrimary
+     { yyValue = a2.cons(new RealType(a1)); }
+   / <LooseInfix> a1:TypePrimaryFront sr a2:LooseInfix
+     { yyValue = a2.cons(new RealType(a1)); };
+
+/* NoNewlineTypePrefix ::=
+     DimPrefixOp NoNewlineTypePrimary
+   | DimPrefixOp NoNewlineTypePrefix
+   | DimPrefixOp sr NoNewlineTypePrimary
+   | DimPrefixOp sr NoNewlineTypePrefix
+ */
+PureList<PostfixOpExpr> TypePrefix := ...
+   / <Prefix> a1:DimPrefixOp sr a2:TypePrimary
+     { yyValue = a2.cons((PostfixOpExpr)new LoosePrefix(a1)); }
+   / <PrePrefix> a1:DimPrefixOp sr a2:TypePrefix
+     { yyValue = a2.cons((PostfixOpExpr)new LoosePrefix(a1)); };
+
+/* NoNewlineTightInfixPostfix ::=
+     TypeInfixOp NoNewlineTypePrimary (s Throws)?
+   | TypeInfixOp NoNewlineTypePrefix (s Throws)?
+   | DimInfixOp NoNewlineTypePrimary
+   | DimInfixOp NoNewlineTypePrefix
+   | DimPostfixOp sr NoNewlineTypePrimary
+   | DimPostfixOp sr NoNewlineTypePrefix
+   | DimPostfixOp
+ */
+PureList<PostfixOpExpr> TightInfixPostfix := ...
+   / <Arrow> a1:TypeInfixOp a2:TypePrimary a3:(s Throws)?
+     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, NodeFactory.makeEffect(Option.<List<Type>>wrap(a3)))); }
+   / <ArrowPrefix> a1:TypeInfixOp a2:TypePrefix a3:(s Throws)?
+     { yyValue = a2.cons((PostfixOpExpr)new TightInfix(a1, NodeFactory.makeEffect(Option.<List<Type>>wrap(a3)))); }
+   / <Postfix> a1:DimPostfixOp sr a2:TypePrimary
+     { yyValue = a2.cons((PostfixOpExpr)new Postfix(a1)); }
+   / <PostPrefix> a1:DimPostfixOp sr a2:TypePrefix
+     { yyValue = a2.cons((PostfixOpExpr)new Postfix(a1)); };
+
+/* NoNewlineLooseInfix ::=
+     TypeInfixOp sr NoNewlineTypePrimary (s Throws)?
+   | TypeInfixOp sr NoNewlineTypePrefix (s Throws)?
+   | DimInfixOp sr NoNewlineTypePrimary
+   | DimInfixOp sr NoNewlineTypePrefix
+ */
+PureList<PostfixOpExpr> LooseInfix := ...
+   / <Arrow> a1:TypeInfixOp sr a2:TypePrimary a3:(s Throws)?
+     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, NodeFactory.makeEffect(Option.<List<Type>>wrap(a3)))); }
+   / <ArrowPrefix> a1:TypeInfixOp sr a2:TypePrefix a3:(s Throws)?
+     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1, NodeFactory.makeEffect(Option.<List<Type>>wrap(a3)))); }
+   / <Infix> a1:DimInfixOp sr a2:TypePrimary
+     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1)); }
+   / <InPrefix> a1:DimInfixOp sr a2:TypePrefix
+     { yyValue = a2.cons((PostfixOpExpr)new LooseInfix(a1)); };
