@@ -181,12 +181,12 @@ transient WhereBinding WhereBinding =
                                               new KindType());
      };
 
-/* FnHeaderClause ::= (w NoNewlineIsType)? FnClauses */
-FnHeaderClause FnHeaderClause = a1:(w NoNewlineIsType)? a2:FnClauses
+/* FnHeaderClause ::= (w NoNewlineIsTypeOrThrow)? FnClauses */
+FnHeaderClause FnHeaderClause = a1:(w NoNewlineIsTypeOrNone)? a2:FnClauses
      { NodeUtil.checkWhereClauses(writer, a2.getWhereClause());
        yyValue = new FnHeaderClause(a2.getThrowsClause(), a2.getWhereClause(),
                                     a2.getContractClause(), Option.<Type>wrap(a1));
-     };
+     } ;
 
 /* FnClauses ::= (w Throws)? (w Where)? Contract */
 /* Contract ::= (w Requires)? (w Ensures)? (w Invariant)? */

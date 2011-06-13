@@ -20,10 +20,10 @@ run(): () = do
   L = TestLessThan
   G = TestGreaterThan
   E = TestEqualTo
-  if NOT(CONVERSE U = U) then fail[\()\]("Wanted CONVERSE U = U but got " (CONVERSE U).asString)
-  elif NOT(CONVERSE L = G) then fail[\()\]("Wanted CONVERSE L = G but got " (CONVERSE L).asString)
-  elif NOT(CONVERSE G = L) then fail[\()\]("Wanted CONVERSE G = L but got " (CONVERSE G).asString)
-  elif NOT(CONVERSE E = E) then fail[\()\]("Wanted CONVERSE E = E but got " (CONVERSE E).asString)
+  if NOT(CONVERSE U = U) then fail("Wanted CONVERSE U = U but got " (CONVERSE U).asString)
+  elif NOT(CONVERSE L = G) then fail("Wanted CONVERSE L = G but got " (CONVERSE L).asString)
+  elif NOT(CONVERSE G = L) then fail("Wanted CONVERSE G = L but got " (CONVERSE G).asString)
+  elif NOT(CONVERSE E = E) then fail("Wanted CONVERSE E = E but got " (CONVERSE E).asString)
   else println("PASS")
   end
 end

@@ -121,12 +121,12 @@ trait Misc { self: STypeChecker with Common =>
   /**
    * @TODO: Look over this method.
    */
-  protected def handleIfClause(c: IfClause) = c match {
+  protected def handleIfClause(c: IfClause, expected: Option[Type]) = c match {
     case SIfClause(info, testClause, body) =>
       // For generalized 'if' we must introduce new bindings.
       val (newTestClause, bindings) = generatorClauseGetBindings(testClause, true)
       // Check body with new bindings
-      val newBody = this.extend(bindings).checkExpr(body).asInstanceOf[Block]
+      val newBody = this.extend(bindings).checkExpr(body, expected).asInstanceOf[Block]
       SIfClause(info, newTestClause, newBody)
   }
 
@@ -523,9 +523,9 @@ trait Misc { self: STypeChecker with Common =>
     // An if expression with an else.
     case SIf(SExprInfo(span,parenthesized,_), clauses, Some(elseClause)) => {
       // Check all the clauses.
-      val checkedClauses = clauses.map( handleIfClause )
+      val checkedClauses = clauses.map(c => handleIfClause(c, expected) )
       val clauseTypes = checkedClauses.flatMap(c => getType(c.getBody))
-      val checkedElse = checkExpr(elseClause).asInstanceOf[Block]
+      val checkedElse = checkExpr(elseClause, expected).asInstanceOf[Block]
       val elseType = getType(checkedElse).getOrElse(return expr)
 
       val allClauses = checkedElse :: checkedClauses.map(_.getBody)
@@ -578,7 +578,7 @@ trait Misc { self: STypeChecker with Common =>
 
     // An if expression without an else.
     case SIf(SExprInfo(span,parenthesized,_), clauses, None) => {
-      val checkedClauses = clauses.map( handleIfClause )
+      val checkedClauses = clauses.map(c => handleIfClause(c, None))
       val clauseTypes = checkedClauses.flatMap(c => getType(c.getBody))
 
       // Check that each if/elif clause has void type

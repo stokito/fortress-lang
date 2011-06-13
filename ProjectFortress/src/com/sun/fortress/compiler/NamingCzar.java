@@ -37,6 +37,7 @@ import com.sun.fortress.nodes.BoolBinaryOp;
 import com.sun.fortress.nodes.BoolExpr;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.BoolUnaryOp;
+import com.sun.fortress.nodes.BottomType;
 import com.sun.fortress.nodes.DimArg;
 import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.FnDecl;
@@ -1139,6 +1140,10 @@ public class NamingCzar {
 
                 if (withLSemi) res = Naming.internalToDesc(res);
                 return res;
+            }
+            @Override
+            public String forBottomType(BottomType t) {
+                    return descFortressVoid;
             }
             @Override
             public String forTupleType(TupleType t) {
