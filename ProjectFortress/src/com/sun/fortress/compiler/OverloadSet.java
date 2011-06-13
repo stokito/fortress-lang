@@ -32,6 +32,7 @@ import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader.InitializedStaticField;
@@ -420,6 +421,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      */
     public String getSignature() {
         return getSignature(-1);
+    }
+    protected int selfIndex() {
+        return -1;
     }
     public String getSignature(int param_to_skip) {
         return overloadedDomainSig(param_to_skip) + NamingCzar.jvmTypeDesc(getRange(), ifNone);
@@ -1070,10 +1074,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 type_structures[i] = f_type_structures;
     
                 for (int j = 0; j < parameters.size(); j++) {
-                    Type t = oa.getParamType(eff,j);
-                    TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex);
-                    f_type_structures[j] = type_structure;
-                    storeAtIndex = type_structure.successorIndex;
+                    if (j != selfIndex()) {
+                        Type t = oa.getParamType(eff,j);
+                        TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex);
+                        f_type_structures[j] = type_structure;
+                        storeAtIndex = type_structure.successorIndex;
+                    }
                 }
             }
         }
@@ -1092,21 +1098,28 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
                 Set<String> top_level_invariants = new HashSet<String>();
                 for (int j = 0; j < f_type_structures.length; j++) {
-                    top_level_invariants.addAll(f_type_structures[j].invariantGenericsContained);
+                    if (j != selfIndex())
+                        top_level_invariants.addAll(f_type_structures[j].invariantGenericsContained);
                 }
                 for (int j = 0; j < f_type_structures.length; j++) {
                     // Load actual parameter
-                    mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
-                    f_type_structures[j].emitInstanceOf(mv, lookahead, true, top_level_invariants);
+                    if (j != selfIndex()) {
+                        mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
+                        f_type_structures[j].emitInstanceOf(mv, lookahead, true, top_level_invariants);
+                    }
                 }
             }
             // Come here if we have successfully passed the test.
             // generateLeafCall(mv, firstArgIndex, f);
+            loadThisForMethods(mv);
+            
             for (int j = 0; j < f_type_structures.length; j++) {
                 // Load actual parameter
+                if (j != selfIndex()) {
                 mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
                 InstantiatingClassloader.generalizedCastTo(mv, 
                         f_type_structures[j].fullname);
+                }
             }
             
             String sig = jvmSignatureFor(f);
@@ -1117,6 +1130,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             if (lookahead != null)
                 mv.visitLabel(lookahead);
         }
+    }
+
+    protected void loadThisForMethods(MethodVisitor mv) {
+        // default does nothing
     }
 
     /**
@@ -1218,15 +1235,21 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     public void generateAnOverloadDefinition(String _name, CodeGenClassWriter cv) {
         // System.err.println("Generating "+ name + "\n" +
         //                    "    principalMember "+ principalMember + "\n" + this.toStringR("   "));
-        generateAnOverloadDefinitionInner(_name, cv);
+        String filtered_name = chooseName(_name, NodeUtil.nameSuffixString(name));
+        generateAnOverloadDefinitionInner(filtered_name, cv);
 
         for (Map.Entry<String, OverloadSet> o_entry : getOverloadSubsets().entrySet()) {
             String ss = o_entry.getKey();
             OverloadSet sos = o_entry.getValue();
             if (sos != this) {
-                sos.generateAnOverloadDefinitionInner(_name, cv);
+                sos.generateAnOverloadDefinitionInner(filtered_name, cv);
             }
         }
+    }
+
+    protected String chooseName(String callers_name,
+            String nameSuffixString) {
+        return callers_name;
     }
 
     protected void generateAnOverloadDefinitionInner(String _name, CodeGenClassWriter cv) {
@@ -1326,7 +1349,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         mv.visitCode();
         Label fail = new Label();
 
-        generateCall(mv, 0, fail); // Guts of overloaded method
+        generateCall(mv, 0 /* firstArg() */, fail); // Guts of overloaded method
 
         // Emit failure case
         mv.visitLabel(fail);
@@ -1343,6 +1366,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     public BATree<String, OverloadSet> getOverloadSubsets() {
         return overloadSubsets;
+    }
+    
+    protected int firstArg() {
+        return 0;
     }
 
     static public class Local extends AmongApis {
@@ -1372,12 +1399,35 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         
     };
     
-    static public final Factory traitOrObjectFactory = new Factory() {
+    static public class  TraitOrObjectFactory extends Factory {
+        
+        final int invokeOpcode;
+        final Naming.ClassNameBundle cnb;
+        
+        public TraitOrObjectFactory(int invoke_opcode, Naming.ClassNameBundle cnb) {
+            this.invokeOpcode = invoke_opcode;
+            this.cnb = cnb;
+        }
 
         @Override
         public OverloadSet make(APIName apiname, IdOrOpOrAnonymousName name,
                 TypeAnalyzer ta, Set<Functional> defs, int n) {
-            return new ForTraitOrObject(apiname, name, ta, defs, n);
+            
+            Functional one_func = defs.iterator().next();
+            int self_index = 0;
+            if (one_func instanceof FunctionalMethod) {
+                self_index = ((FunctionalMethod) one_func).selfPosition();
+                String new_name = Naming.fmDottedName(NodeUtil.nameSuffixString(name), self_index);
+                if (name instanceof Id)
+                    name = NodeFactory.makeId((Id)name, new_name);
+                else if (name instanceof Op)
+                    name = NodeFactory.makeOp((Op)name, new_name);
+                else 
+                    throw new CompilerError("Was not expecting an overloaded anonymous name.");
+
+            }
+            
+            return new ForTraitOrObject(apiname, name, ta, defs, n, self_index, cnb, invokeOpcode);
         }
         
     };
@@ -1389,9 +1439,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          * which parameter will not be present.
          */
         final int selfIndex;
+        final int invokeOpcode;
+        final Naming.ClassNameBundle cnb;
         
         ForTraitOrObject(
-                final APIName apiname, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<Functional> defs, int n) {
+                final APIName apiname, IdOrOpOrAnonymousName name,
+                TypeAnalyzer ta, Set<Functional> defs, int n,
+                int self_index, Naming.ClassNameBundle cnb, int invoke_opcode) {
             super(apiname, name, ta, Useful.applyToAll(defs, new F<Functional, TaggedFunctionName>() {
 
                 @Override
@@ -1400,35 +1454,45 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 }
             }), n);
             
-            Functional one_func = defs.iterator().next();
-            selfIndex = one_func instanceof FunctionalMethod ? ((FunctionalMethod) one_func).selfPosition() : 0;
+            selfIndex = self_index;
+            this.cnb = cnb;
+            this.invokeOpcode = invoke_opcode;
         }
         
-//        public ForTraitOrObject(APIName ifNone,
-//                IdOrOpOrAnonymousName name,
-//                TypeAnalyzer ta,
-//                OverloadingOracle oa,
-//                Set<TaggedFunctionName> childLSTSF,
-//                ForTraitOrObject parent,
-//                int paramCount) {
-//            super(ifNone, name, ta, oa, childLSTSF, parent, paramCount);
-//        }
-
         ForTraitOrObject(APIName ifNone,
                 IdOrOpOrAnonymousName name,
                 TypeAnalyzer ta,
                 Set<TaggedFunctionName> childLSTSF,
                 int paramCount,
                 boolean this_disambiguates_the_erasure,
-                int self_index) {
+                int self_index, Naming.ClassNameBundle cnb, int invoke_opcode) {
             super(ifNone, name, ta, childLSTSF, paramCount);
             selfIndex = self_index;
+            this.cnb = cnb;
+            this.invokeOpcode = invoke_opcode;
         }
 
         protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName _principalMember) {
-            OverloadSet subset = new ForTraitOrObject(ifNone, name, ta, childLSTSF, paramCount, true, selfIndex);
+            OverloadSet subset = new ForTraitOrObject(ifNone, name, ta, childLSTSF, paramCount, true, selfIndex, cnb, invokeOpcode);
             subset.principalMember = _principalMember;
             return subset;
+        }
+
+        protected void loadThisForMethods(MethodVisitor mv) {
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+        }
+
+        protected String chooseName(String callers_name,
+                String nameSuffixString) {
+            return nameSuffixString;
+        }
+
+        protected int firstArg() {
+            return 1;
+        }
+
+        protected int selfIndex() {
+            return selfIndex;
         }
 
         /**
@@ -1443,11 +1507,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             List<StaticParam> sargs = staticParametersOf(f.tagF);
             String sparamsType = "";
             String genericArrowType = "";
-            String ownerName = NamingCzar.apiAndMethodToMethodOwner(f.tagA, f.tagF);
-            String mname = NamingCzar.apiAndMethodToMethod(f.tagA, f.tagF);
+            //String ownerName = NamingCzar.apiAndMethodToMethodOwner(f.tagA, f.tagF);
+            String mname = NodeUtil.nameSuffixString(name);
+            // NamingCzar.apiAndMethodToMethod(f.tagA, f.tagF);
 
             // this ought to work better here.
-            if (getOverloadSubsets().containsKey(name.stringName()+sig)) {
+            // Why is this not "mname" instead of name.stringName?
+            if (getOverloadSubsets().containsKey(mname+sig)) {
                 mname = NamingCzar.mangleAwayFromOverload(mname);
             }
             
@@ -1455,17 +1521,17 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                  genericArrowType =
                     NamingCzar.makeArrowDescriptor(ifNone, oa.getDomainType(f.tagF), oa.getRangeType(f.tagF));
                 sparamsType = NamingCzar.genericDecoration(sargs, null, ifNone);
-                ownerName =
-                    Naming.genericFunctionPkgClass(ownerName, mname,
-                                                       sparamsType, genericArrowType);
+//                ownerName =
+//                    Naming.genericFunctionPkgClass(ownerName, mname,
+//                                                       sparamsType, genericArrowType);
                 mname = Naming.APPLIED_METHOD;
             }
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
+            mv.visitMethodInsn(invokeOpcode, cnb.className, mname, sig);
         }
         
         String jvmSignatureFor(TaggedFunctionName f) {
             // TODO need to skip selfIndex in f.
-            return NamingCzar.jvmSignatureFor(f.tagF, f.tagA); 
+            return NamingCzar.jvmSignatureFor(f.tagF, selfIndex, f.tagA); 
         }
         
        /*

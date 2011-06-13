@@ -974,9 +974,25 @@ public class NodeFactory {
     }
 
     public static TraitType makeTraitType(Span span, boolean parenthesized,
-                                          Id name, List<StaticArg> sargs,
-                                          List<StaticParam> sparams) {
-        TypeInfo info = makeTypeInfo(span, parenthesized);
+            Id name, List<StaticArg> sargs,
+            List<StaticParam> sparams) {
+TypeInfo info = makeTypeInfo(span, parenthesized);
+return new TraitType(info, name, sargs, sparams);
+}
+
+    /**
+     * Non-standard -- stashes the params into the type-info, leaving the
+     * sparams field empty.  (or maybe not)
+     * 
+     * @param name
+     * @param sargs
+     * @param sparams
+     * @return
+     */
+    public static TraitType makeTraitType(
+            Id name, List<StaticArg> sargs,
+            List<StaticParam> sparams) {
+        TypeInfo info = makeTypeInfo(NodeUtil.getSpan(name), false, sparams, Option.<WhereClause>none());
         return new TraitType(info, name, sargs, sparams);
     }
 
@@ -989,7 +1005,12 @@ public class NodeFactory {
     public static VarType makeVarType(Span span, Id id) {
         return makeVarType(span, false, id, lexicalDepth);
     }
-
+    
+    public static VarType makeVarType(Span span, Id id, List<StaticParam> lsp) {
+        TypeInfo info =   makeTypeInfo(span, false, lsp, Option.<WhereClause>none());
+        return new VarType(info, id, lexicalDepth);
+    }
+    
     public static VarType makeVarType(Span span, Id id, int depth) {
         return makeVarType(span, false, id, depth);
     }

@@ -291,6 +291,21 @@ object STypesUtil {
       case _ => bug("Unexpected static parameter kind")
     }
   }
+  
+  def staticParamToArgEnhanced(p: StaticParam, lsp: JList[StaticParam]): StaticArg = {
+    val span = NU.getSpan(p)
+    (p.getName, p.getKind) match {
+      case (id: Id, _: KindBool) => NF.makeBoolArg(span, NF.makeBoolRef(span, id), p.isLifted)
+      case (id: Id, _: KindDim) => NF.makeDimArg(span, NF.makeDimRef(span, id), p.isLifted)
+      case (id: Id, _: KindInt) => NF.makeIntArg(span, NF.makeIntRef(span, id), p.isLifted)
+      case (id: Id, _: KindNat) => NF.makeIntArg(span, NF.makeIntRef(span, id), p.isLifted)
+      case (id: Id, _: KindType) =>
+        NF.makeTypeArg(span, NF.makeVarType(span, id, lsp), p.isLifted)
+      case (id: Id, _: KindUnit) => NF.makeUnitArg(span, NF.makeUnitRef(span, false, id), p.isLifted)
+      case (op: Op, _: KindOp) => NF.makeOpArg(span, EF.makeOpRef(op), p.isLifted)
+      case _ => bug("Unexpected static parameter kind")
+    }
+  }
 
   /**
    * Convert  list of static parameters to corresponding list of static args.
@@ -298,10 +313,25 @@ object STypesUtil {
   def staticParamsToArgs(p: JList[StaticParam]): JList[StaticArg] =
     toJavaList(toListFromImmutable(p).map(staticParamToArg))
 
+  def staticParamsToArgsEnhanced(p: JList[StaticParam]): JList[StaticArg] = {
+    val l =  new java.util.ArrayList[StaticArg]
+    for (sp <- p) {
+        val ar = staticParamToArgEnhanced(sp,p)
+        l.add(ar)
+    }
+    l
+  }
+
   def declToTraitType(d: TraitObjectDecl): TraitType = {
     val tid = d.getHeader.getName.asInstanceOf[Id]
     val tparam = d.getHeader.getStaticParams
     NF.makeTraitType(tid, staticParamsToArgs(tparam))
+  }
+
+  def declToTraitTypeEnhanced(d: TraitObjectDecl): TraitType = {
+    val tid = d.getHeader.getName.asInstanceOf[Id]
+    val tparam = d.getHeader.getStaticParams
+    NF.makeTraitType(tid, staticParamsToArgsEnhanced(tparam), tparam)
   }
 
   /**
