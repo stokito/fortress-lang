@@ -204,3 +204,12 @@ LValue NoNewlineVarWType = a1:BindId s a2:NoNewlineIsType
 
 /* NoNewlineIsType ::= : w NoNewlineType */
 Type NoNewlineIsType = void:colon w NoNewlineType ;
+
+/* NoNewlineIsTypeOrNone ::= : w NoNewlineTypeOrNone */
+Type NoNewlineIsTypeOrNone = void:colon w NoNewlineTypeOrNone ;
+
+/* NoNewlineTypeOrNone ::= NoNewlineType | None */
+Type NoNewlineTypeOrNone =
+     NoNewlineType
+   / None
+     { yyValue = NodeFactory.makeBottomType(createSpan(yyStart,yyCount)); };

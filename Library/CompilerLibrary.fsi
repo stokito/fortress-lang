@@ -40,7 +40,7 @@ ignore(_:Any):()
 opr ===(a:Any, b:Any):Boolean
 opr NEQV(a:Any, b:Any):Boolean
 
-fail[\T extends Any\](s: String): T
+fail(s: String): None
 
 assert(flag: Boolean): ()
 assert(flag: Boolean, failMsg: String): ()

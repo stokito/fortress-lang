@@ -52,8 +52,7 @@ opr ===(a:Boolean, b:Boolean):Boolean = a<->b
 
 opr NEQV(a:Any, b:Any):Boolean = NOT (a === b)
 
-(*) For now, fail returns () rather than any type at all
-fail[\T extends Any\](s: String): T = do
+fail(s: String): None = do
     errorPrintln("FAIL: " s)
     throw FailCalled(s)
 end
@@ -62,12 +61,12 @@ end
 (** Assertion *)
 assert(flag: Boolean): () =
     if NOT flag then
-        fail[\ () \]("Assertion failed!")
+        fail("Assertion failed!")
     end
 
 assert(flag: Boolean, failMsg: String): () =
     if NOT flag then
-        fail[\ () \](failMsg)
+        fail(failMsg)
     end
 
 (*
