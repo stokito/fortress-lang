@@ -895,7 +895,12 @@ public class Naming {
      * @return
      */
     public static String stemClassJavaName(String stemClassName) {
-        return stemClassName + RTTI_CLASS_SUFFIX;
+        if (stemClassName.startsWith("ConcreteTuple")) {
+        	//concrete tuples n-ary use the RTTI class Tuple,<n>$RTTIc
+        	int n = InstantiatingClassloader.extractStringParameters(stemClassName).size();
+        	return TUPLE_RTTI_TAG + n + RTTI_CLASS_SUFFIX;
+        }
+    	return stemClassName + RTTI_CLASS_SUFFIX;
     }
 
     /**
@@ -922,7 +927,7 @@ public class Naming {
     public static String rttiFactorySig(String owner_and_result_class,
             final int n_static_params) {
         return InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class",
-                n_static_params, RTTI_CONTAINER_TYPE, "L" + RTTI_CONTAINER_TYPE +";");
+                n_static_params, RTTI_CONTAINER_TYPE, internalToDesc(RTTI_CONTAINER_TYPE));
     }
     
     public static String combineStemAndSparams(String stem, String sparams_in_oxfords) {

@@ -37,6 +37,7 @@ import org.objectweb.asm.util.TraceClassVisitor;
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
 import com.sun.fortress.compiler.codegen.ManglingMethodVisitor;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.repository.ProjectProperties;
 
 import com.sun.fortress.useful.F;
@@ -769,7 +770,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         ArrayList<String> parameters = new ArrayList<String>();
         return InstantiationMap.extractStringParameters(s, leftBracket, rightBracket, parameters);
     }
-    private static List<String> extractStringParameters(String s) {
+    public static List<String> extractStringParameters(String s) {
         int leftBracket = s.indexOf(Naming.LEFT_OXFORD);
         int rightBracket = InstantiationMap.templateClosingRightOxford(s);
         return extractStringParameters(s, leftBracket, rightBracket);
@@ -1636,6 +1637,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // init method
         
         // factory method
+          
+ 		// getRTTI method
         
         // is instance method -- takes an Object
 
@@ -1699,6 +1702,60 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitInsn(Opcodes.ARETURN);
             mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
             mv.visitEnd();
+        }
+        
+        // getRTTI method/field and static initialization
+        {
+        	final String classname = dename;
+        	MethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC, // acccess
+                     Naming.RTTI_GETTER, // name
+                     Naming.STATIC_PARAMETER_GETTER_SIG, // sig
+                     null, // generics sig?
+                     null); // exceptions
+        	mv.visitCode();
+        	mv.visitFieldInsn(GETSTATIC, classname, Naming.RTTI_FIELD, "L" + Naming.RTTI_CONTAINER_TYPE + ";");
+
+        	areturnEpilogue(mv);
+        	
+            MethodVisitor imv = cw.visitMethod(ACC_STATIC,
+                    "<clinit>",
+                    Naming.voidToVoid,
+                    null,
+                    null);
+            //taken from codegen.emitRttiField	
+            InstantiatingClassloader.InitializedStaticField isf = new InstantiatingClassloader.InitializedStaticField() {
+
+                @Override
+                public void forClinit(MethodVisitor mv) {
+                	MethodInstantiater mi = new MethodInstantiater(mv, null, null);
+                	mi.rttiReference(classname + Naming.RTTI_CLASS_SUFFIX);
+                		//String rttiClassName = Naming.stemClassJavaName(classname); //Tuple,<n>$RTTIc
+                        //int numParams = Integer.parseInt("" + rttiClassName.charAt(rttiClassName.indexOf(",") + 1));
+                        //mv.visitMethodInsn(INVOKEVIRTUAL, rttiClassName, "factory", "");
+                        //mv.visitFieldInsn(GETSTATIC, rttiClassName, "ONLY", "L" + rttiClassName + ";");
+                        //mv.visitFieldInsn(PUTSTATIC, classname, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
+                }
+
+                @Override
+                public String asmName() {
+                    return Naming.RTTI_FIELD;
+                }
+
+                @Override
+                public String asmSignature() {
+                    return Naming.RTTI_CONTAINER_DESC;
+                }
+                
+            };
+            isf.forClinit(imv);
+            cw.visitField(ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
+            		isf.asmName(), isf.asmSignature(),
+            		null /* for non-generic */, null /* instance has no value */);
+
+            imv.visitInsn(RETURN);
+            imv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            imv.visitEnd();
+        	
         }
         
         // is instance method -- takes an Object
