@@ -993,7 +993,7 @@ return new TraitType(info, name, sargs, sparams);
             Id name, List<StaticArg> sargs,
             List<StaticParam> sparams) {
         TypeInfo info = makeTypeInfo(NodeUtil.getSpan(name), false, sparams, Option.<WhereClause>none());
-        return new TraitType(info, name, sargs, sparams);
+        return new TraitType(info, name, sargs, Collections.<StaticParam>emptyList()); // sparams);
     }
 
     // used in testing, and in makeLValue and makeTypeParam (in this file)
@@ -2234,7 +2234,7 @@ return new TraitType(info, name, sargs, sparams);
             }
             public Type forTraitType(TraitType t) {
                 return makeTraitType(NodeUtil.getSpan(t), true, t.getName(),
-                                     t.getArgs(), t.getStaticParams());
+                                     t.getArgs(), t.getTraitStaticParams());
             }
             public Type forTupleType(TupleType t) {
                 return makeTupleType(NodeUtil.getSpan(t), true, t.getElements(),
@@ -2293,7 +2293,7 @@ return new TraitType(info, name, sargs, sparams);
                                  NodeUtil.isParenthesized(_type),
                                  makeId(api, _type.getName()),
                                  _type.getArgs(),
-                                 _type.getStaticParams());
+                                 _type.getTraitStaticParams());
         }
     }
 

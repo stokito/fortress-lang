@@ -678,7 +678,7 @@ public class NodeUtil {
     }
 
     public static boolean isGenericSingletonType(TraitType t) {
-        return (! t.getStaticParams().isEmpty());
+        return (! t.getTraitStaticParams().isEmpty());
     }
 
     public static boolean isUnderscore(Id id) {

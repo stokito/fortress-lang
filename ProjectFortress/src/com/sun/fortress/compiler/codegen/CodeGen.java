@@ -3938,6 +3938,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forTraitDecl(TraitDecl x) {
         debug("forTraitDecl", x);
         TraitTypeHeader header = x.getHeader();
+        Id traitname = (Id) header.getName();
+        String traitname_string = traitname.getText();
+        if (traitname_string.equals("Any") &&
+                traitname.getApiName().isNone()) {
+            String api_stringname = thisApi().getText();
+            if (api_stringname.equals("AnyType")) 
+                return;
+        }
         TraitTypeHeader original_header = x.getHeader();
         List<TraitTypeWhere> extendsC = header.getExtendsClause();
         boolean canCompile =
