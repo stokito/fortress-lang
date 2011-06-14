@@ -1193,7 +1193,7 @@ public class NamingCzar {
                 if (api == null) {
                     throw new CompilerError(id,"no api name given for id");
                 }
-                List<StaticParam> sparams = t.getStaticParams();
+                List<StaticParam> sparams = t.getTraitStaticParams();
                 List<StaticArg> sargs = t.getArgs();
 
                 // TODO work in progress -- need to expand with StaticArg if those are available.

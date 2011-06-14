@@ -1069,7 +1069,7 @@ interface Node() extends HasAt;
                          * used during static checking
                          */
                         TraitType(List<StaticArg> args,
-                                  List<StaticParam> staticParams);
+                                  List<StaticParam> traitStaticParams);
                     /**
                      * abbreviated type
                      */
