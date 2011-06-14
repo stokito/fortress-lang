@@ -95,8 +95,10 @@ public class Naming {
     public final static String RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "RTTI";
     public final static String TUPLE_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "TupleRTTI";
     public final static String ARROW_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "ArrowRTTI";
+    public final static String JAVA_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "JavaRTTI";
     public final static String RTTI_CONTAINER_DESC = "L" + RTTI_CONTAINER_TYPE + ";";
     public final static String STATIC_PARAMETER_GETTER_SIG = "()" + RTTI_CONTAINER_DESC;
+    public final static String VOID_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "VoidRTTI";
 
     // Used to indicate translation convention to apply to type parameter.
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA
@@ -146,7 +148,7 @@ public class Naming {
     public final static char RIGHT_OXFORD_CHAR = '\u27e7';
     public final static String LEFT_OXFORD = "\u27e6";
     public final static String RIGHT_OXFORD = "\u27e7";
-
+    
     /**
      * Name for Arrow-interface generic.
      */
@@ -895,7 +897,12 @@ public class Naming {
      * @return
      */
     public static String stemClassJavaName(String stemClassName) {
-        return stemClassName + RTTI_CLASS_SUFFIX;
+        if (stemClassName.startsWith("ConcreteTuple")) {
+        	//concrete tuples n-ary use the RTTI class Tuple,<n>$RTTIc
+        	int n = InstantiatingClassloader.extractStringParameters(stemClassName).size();
+        	return TUPLE_RTTI_TAG + n + RTTI_CLASS_SUFFIX;
+        }
+    	return stemClassName + RTTI_CLASS_SUFFIX;
     }
 
     /**
@@ -922,7 +929,7 @@ public class Naming {
     public static String rttiFactorySig(String owner_and_result_class,
             final int n_static_params) {
         return InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class",
-                n_static_params, RTTI_CONTAINER_TYPE, "L" + RTTI_CONTAINER_TYPE +";");
+                n_static_params, RTTI_CONTAINER_TYPE, internalToDesc(RTTI_CONTAINER_TYPE));
     }
     
     public static String combineStemAndSparams(String stem, String sparams_in_oxfords) {

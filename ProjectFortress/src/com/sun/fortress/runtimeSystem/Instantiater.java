@@ -121,7 +121,7 @@ public class Instantiater extends ClassAdapter {
         															 InstantiationMap.templateClosingRightOxford(newParams), 
         															 new ArrayList<String>());			
         		    String rawParams = "";
-        		    for (String p : paramList) rawParams = rawParams + "L" +  p + ";"; //TODO: is there a principled way to get the "L"?
+        		    for (String p : paramList) rawParams = rawParams + Naming.internalToDesc(p);
         		    final String altDesc = newDesc.substring(0,newDesc.indexOf("(")+1) + 
         		    						rawParams + 
         		    						newDesc.substring(newDesc.indexOf(")"), newDesc.length());        		    

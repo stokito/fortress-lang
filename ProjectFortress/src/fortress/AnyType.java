@@ -15,7 +15,7 @@ import com.sun.fortress.compiler.runtimeValues.RTTI;
 
 public class AnyType {
     public static interface Any {
-        public Object getRTTI();
+        public RTTI getRTTI();
         
         public static class RTTIc extends RTTI implements RTTIi {
             public RTTIc(Class javaRep) {

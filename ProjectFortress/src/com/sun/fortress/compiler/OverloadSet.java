@@ -839,7 +839,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
                     Label ahead = new Label();
                     mv.visitInsn(Opcodes.DUP);
-                    mv.visitTypeInsn(Opcodes.INSTANCEOF, stem);
+                    if (stem.startsWith("Arrow")) { //use isA instead
+                    	mv.visitMethodInsn(Opcodes.INVOKESTATIC, stem, InstantiatingClassloader.IS_A, "(Ljava/lang/Object;)Z");
+                    	//mv.visitTypeInsn(Opcodes.INSTANCEOF, stem);
+                    } else {
+                    	mv.visitTypeInsn(Opcodes.INSTANCEOF, stem);
+                    }
                     mv.visitJumpInsn(Opcodes.IFNE, ahead);
                     mv.visitInsn(Opcodes.POP);
                     mv.visitJumpInsn(Opcodes.GOTO, if_fail);

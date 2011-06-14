@@ -32,11 +32,13 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
 import com.sun.fortress.compiler.codegen.ManglingMethodVisitor;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
+import com.sun.fortress.nodes.Id;
 import com.sun.fortress.repository.ProjectProperties;
 
 import com.sun.fortress.useful.F;
@@ -55,7 +57,7 @@ import com.sun.fortress.useful.VersionMismatch;
  */
 public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
-    public static final String IS_A = "isA";
+	public static final String IS_A = "isA";
 
     abstract static public class InitializedStaticField {
         abstract public void forClinit(MethodVisitor mv);
@@ -86,7 +88,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     
     // TODO make this depends on properties/env w/o dragging in all of the world.
-    private static final boolean LOG_LOADS = false;
+    private static final boolean LOG_LOADS = true;
     private static final boolean LOG_FUNCTION_EXPANSION = false;
     public final static String SAVE_EXPANDED_DIR = ProjectProperties.getDirectory("fortress.bytecodes.expanded.directory", null);
     public static JarOutputStream SAVE_EXPANDED_JAR = null;
@@ -214,7 +216,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 //                } else
 
                 boolean expanded = (isGeneric || isGenericFunction || isClosure) ;
-                
                 if (name.startsWith(Naming.TUPLE_RTTI_TAG)) {
                     classData = instantiateTupleRTTI(name);
                     expanded = true;
@@ -450,6 +451,18 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         closureClassPrefix(name, cw, null, null, true, null, isf_list);
         
+//        //RTTI getter
+//        {
+//        	MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, Naming.RTTI_GETTER,
+//                    "()" + Naming.RTTI_CONTAINER_DESC,
+//                    null, null);
+//        	mv.visitCode();
+//        	mv.visitFieldInsn(GETSTATIC, name, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
+//        	mv.visitInsn(ARETURN);
+//        	mv.visitMaxs(1, 1);
+//        	mv.visitEnd();
+//        }
+        
         optionalStaticsAndClassInitForTO(isf_list, cw);
         
         cw.visitEnd();
@@ -534,7 +547,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         //String desc = "L" + name + ";";
         final String field_desc = "L" +(ft) + ";";
         // Begin with a class
-        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER, name, null, superClass, null);
+        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER, name, null, superClass, new String[] { Naming.ANY_TYPE_CLASS });
 
         statics.add(new InitializedStaticField() {
 
@@ -555,6 +568,26 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             public String asmSignature() {
                 return field_desc;
             }});
+        
+        //RTTI field
+//        statics.add(new InitializedStaticField() {
+//
+//            @Override
+//            public void forClinit(MethodVisitor init_mv) {
+//            	MethodInstantiater mi = new MethodInstantiater(init_mv, null, null);
+//            	mi.rttiReference(final_name + Naming.RTTI_CLASS_SUFFIX);
+//            	init_mv.visitFieldInsn(PUTSTATIC, final_name, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
+//            }
+//
+//            @Override
+//            public String asmName() {
+//                return Naming.RTTI_FIELD;
+//            }
+//
+//            @Override
+//            public String asmSignature() {
+//                return Naming.RTTI_CONTAINER_DESC;
+//            }});
  
         // Instance init does nothing special
         mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
@@ -769,7 +802,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         ArrayList<String> parameters = new ArrayList<String>();
         return InstantiationMap.extractStringParameters(s, leftBracket, rightBracket, parameters);
     }
-    private static List<String> extractStringParameters(String s) {
+    public static List<String> extractStringParameters(String s) {
         int leftBracket = s.indexOf(Naming.LEFT_OXFORD);
         int rightBracket = InstantiationMap.templateClosingRightOxford(s);
         return extractStringParameters(s, leftBracket, rightBracket);
@@ -1020,6 +1053,23 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         mv.visitMaxs(1, 1);
         mv.visitEnd();
 
+        //getRTTI - forwards to wrapped arrow
+        {
+        	mv = cw.visitMethod(ACC_PUBLIC, Naming.RTTI_GETTER,
+                    "()" + Naming.RTTI_CONTAINER_DESC,
+                    null, null);
+        	mv.visitCode();
+        	// load wrappee for delegation
+            mv.visitVarInsn(ALOAD, 0);
+            mv.visitFieldInsn(GETFIELD, name, wrappee_name, "L" + obj_intf_sig + ";");
+            
+            //invoke interface getRTTI method
+            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Naming.ANY_TYPE_CLASS, Naming.RTTI_GETTER, Naming.STATIC_PARAMETER_GETTER_SIG);
+            mv.visitInsn(ARETURN);
+            mv.visitMaxs(1, 1);
+            mv.visitEnd();
+        
+        }
         cw.visitEnd();
 
         return cw.toByteArray();
@@ -1110,7 +1160,76 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
        
             mv.visitEnd();            
-        } 
+        }
+        
+        // is instance method -- takes an Object
+        {
+            String sig = "(Ljava/lang/Object;)Z";
+        	MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, IS_A, sig, null, null);
+            
+            Label fail = new Label();
+            
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitTypeInsn(Opcodes.INSTANCEOF, Naming.ANY_TYPE_CLASS);
+            mv.visitJumpInsn(Opcodes.IFEQ, fail);
+            
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitTypeInsn(Opcodes.CHECKCAST,Naming.ANY_TYPE_CLASS);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, name,  IS_A, "(L"+Naming.ANY_TYPE_CLASS+";)Z");
+            mv.visitInsn(Opcodes.IRETURN);
+            
+            mv.visitLabel(fail);
+            mv.visitIntInsn(BIPUSH, 0);
+            mv.visitInsn(Opcodes.IRETURN);
+            
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            mv.visitEnd();
+        }
+        
+        // is instance method -- takes an Any
+        {
+            String sig = "(L" + Naming.ANY_TYPE_CLASS + ";)Z";
+            MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, IS_A, sig, null, null);
+            Label fail = new Label();
+            
+//            {	//testing - remove later
+//            	Label strange = new Label();
+//            	String temp = "arrowRTTI$gs" + Naming.ENVELOPE + "$Arrow" + Naming.LEFT_OXFORD + "arrowRTTI$General;arrowRTTI$Specific" + Naming.RIGHT_OXFORD;
+//            	mv.visitVarInsn(Opcodes.ALOAD, 0);
+//            	mv.visitTypeInsn(INSTANCEOF,temp);
+//            	mv.visitJumpInsn(Opcodes.IFEQ, strange);
+//            	
+//            	mv.visitVarInsn(Opcodes.ALOAD, 0);
+//            	mv.visitTypeInsn(CHECKCAST, temp);
+//            	mv.visitMethodInsn(INVOKEVIRTUAL, temp, Naming.RTTI_GETTER, "()" + Naming.RTTI_CONTAINER_DESC);
+//            	mv.visitInsn(POP);
+//            	mv.visitJumpInsn(GOTO, fail);
+//            	mv.visitLabel(strange);
+//            }
+
+            
+            
+            //get RTTI to compare to
+            mv.visitFieldInsn(GETSTATIC, name, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
+            //get RTTI of object
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitMethodInsn(INVOKEINTERFACE, Naming.ANY_TYPE_CLASS, Naming.RTTI_GETTER, "()" + Naming.RTTI_CONTAINER_DESC );
+           // mv.visitJumpInsn(IFNONNULL, fail);
+            mv.visitMethodInsn(INVOKEVIRTUAL,Naming.RTTI_CONTAINER_TYPE , "argExtendsThis", "(" + Naming.internalToDesc(Naming.RTTI_CONTAINER_TYPE) + ")Z");
+            
+            //mv.visitIntInsn(BIPUSH, 0);
+            mv.visitJumpInsn(Opcodes.IFEQ, fail);
+
+            mv.visitIntInsn(BIPUSH, 1);
+            mv.visitInsn(Opcodes.IRETURN);
+            
+            mv.visitLabel(fail);
+            mv.visitIntInsn(BIPUSH, 0);
+            mv.visitInsn(Opcodes.IRETURN);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            mv.visitEnd();
+        }
+        
         
         // castTo
         {
@@ -1251,8 +1370,67 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             
 
         }
-        cw.visitEnd();
-
+        
+        //RTTI comparison field
+       
+		final String final_name = name;
+		ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
+		if (!parameters.contains("java/lang/Object")) {
+		    
+		    isf_list.add(new InitializedStaticField() {
+		
+		        @Override
+		        public void forClinit(MethodVisitor init_mv) {
+		        	MethodInstantiater mi = new MethodInstantiater(init_mv, null, null);
+		        	mi.rttiReference(final_name + Naming.RTTI_CLASS_SUFFIX);
+		        	init_mv.visitFieldInsn(PUTSTATIC, final_name, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
+		        }
+		
+		        @Override
+		        public String asmName() {
+		            return Naming.RTTI_FIELD;
+		        }
+		
+		        @Override
+		        public String asmSignature() {
+		            return Naming.RTTI_CONTAINER_DESC;
+		        }});
+        } else {
+		    isf_list.add(new InitializedStaticField() {
+				
+		        @Override
+		        public void forClinit(MethodVisitor init_mv) {
+		        	init_mv.visitTypeInsn(NEW, Naming.JAVA_RTTI_CONTAINER_TYPE);
+		        	init_mv.visitInsn(DUP);
+		        	init_mv.visitLdcInsn(Type.getType(Naming.mangleFortressDescriptor("Ljava/lang/Object;")));
+		        	init_mv.visitMethodInsn(INVOKESPECIAL, Naming.JAVA_RTTI_CONTAINER_TYPE, "<init>", "(Ljava/lang/Class;)V");
+		        	init_mv.visitFieldInsn(PUTSTATIC, final_name, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
+		        }
+		
+		        @Override
+		        public String asmName() {
+		            return Naming.RTTI_FIELD;
+		        }
+		
+		        @Override
+		        public String asmSignature() {
+		            return Naming.RTTI_CONTAINER_DESC;
+		        }});
+		}
+		cw.visitEnd();
+//      //RTTI getter
+      {
+      	MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, Naming.RTTI_GETTER,
+                  "()" + Naming.RTTI_CONTAINER_DESC,
+                  null, null);
+      	mv.visitCode();
+      	mv.visitFieldInsn(GETSTATIC, name, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
+      	mv.visitInsn(ARETURN);
+      	mv.visitMaxs(1, 1);
+      	mv.visitEnd();
+      }
+		
+		optionalStaticsAndClassInitForTO(isf_list, cw);
         return cw.toByteArray();
     }
     
@@ -1636,6 +1814,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // init method
         
         // factory method
+          
+ 		// getRTTI method
         
         // is instance method -- takes an Object
 
@@ -1701,10 +1881,60 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitEnd();
         }
         
+        // getRTTI method/field and static initialization
+        {
+        	final String classname = dename;
+        	MethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC, // acccess
+                     Naming.RTTI_GETTER, // name
+                     Naming.STATIC_PARAMETER_GETTER_SIG, // sig
+                     null, // generics sig?
+                     null); // exceptions
+        	mv.visitCode();
+        	mv.visitFieldInsn(GETSTATIC, classname, Naming.RTTI_FIELD, "L" + Naming.RTTI_CONTAINER_TYPE + ";");
+
+        	areturnEpilogue(mv);
+        	
+            MethodVisitor imv = cw.visitMethod(ACC_STATIC,
+                    "<clinit>",
+                    Naming.voidToVoid,
+                    null,
+                    null);
+            //taken from codegen.emitRttiField	
+            InstantiatingClassloader.InitializedStaticField isf = new InstantiatingClassloader.InitializedStaticField() {
+
+                @Override
+                public void forClinit(MethodVisitor mv) {
+                	MethodInstantiater mi = new MethodInstantiater(mv, null, null);
+                	mi.rttiReference(classname + Naming.RTTI_CLASS_SUFFIX);	
+                    mv.visitFieldInsn(PUTSTATIC, classname, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
+                }
+
+                @Override
+                public String asmName() {
+                    return Naming.RTTI_FIELD;
+                }
+
+                @Override
+                public String asmSignature() {
+                    return Naming.RTTI_CONTAINER_DESC;
+                }
+                
+            };
+            isf.forClinit(imv);
+            cw.visitField(ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
+            		isf.asmName(), isf.asmSignature(),
+            		null /* for non-generic */, null /* instance has no value */);
+
+            imv.visitInsn(RETURN);
+            imv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+            imv.visitEnd();
+        	
+        }
+        
         // is instance method -- takes an Object
         {
             String sig = "(Ljava/lang/Object;)Z";
-            MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, IS_A, sig, null, null);
+        	MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, IS_A, sig, null, null);
             
             Label fail = new Label();
             
@@ -1840,6 +2070,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     public static void generalizedInstanceOf(MethodVisitor mv, String cast_to) {
         if (cast_to.startsWith(Naming.TUPLE_TAG + Naming.LEFT_OXFORD)) {
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, CONCRETE_+cast_to, IS_A, "(Ljava/lang/Object;)Z");
+        } else if (cast_to.startsWith(Naming.ARROW_TAG + Naming.LEFT_OXFORD)) {
+        	mv.visitMethodInsn(Opcodes.INVOKESTATIC, ABSTRACT_+cast_to, IS_A,"(Ljava/lang/Object;)Z");
         } else {
             mv.visitTypeInsn(Opcodes.INSTANCEOF, cast_to);
         }

@@ -14,7 +14,7 @@ package com.sun.fortress.compiler.runtimeValues;
 public abstract class FValue implements fortress.AnyType.Any {
 
     @Override
-    public Object getRTTI() {
+    public RTTI getRTTI() {
         return null;
     }
     

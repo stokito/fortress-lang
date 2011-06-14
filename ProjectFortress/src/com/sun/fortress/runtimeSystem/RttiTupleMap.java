@@ -15,6 +15,15 @@ import java.util.HashMap;
 import com.sun.fortress.compiler.runtimeValues.RTTI;
 import com.sun.fortress.useful.MagicNumbers;
 
+/**
+ * 
+ * @author drc, kbn
+ * maps tuples of RTTIs representing instantiations of type parameters
+ * for generic classes, tuples, or functions to their actual RTTI values
+ * (in other words, it is not used just for tuples)	
+ *
+ */
+
 final public class RttiTupleMap {
     
     public RttiTupleMap() {

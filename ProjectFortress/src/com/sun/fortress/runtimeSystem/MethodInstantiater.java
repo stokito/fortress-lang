@@ -64,8 +64,7 @@ public class MethodInstantiater implements MethodVisitor {
     
     public final static int FACTORY_SUFFIX_LENGTH = FACTORY_SUFFIX.length();
     
-    public void visitFieldInsn(int opcode, String owner, String name,
-            String desc) {
+    public void visitFieldInsn(int opcode, String owner, String name, String desc) {
         owner = xlation.getTypeName(owner);
         name = xlation.getTypeName(name);
         desc = xlation.getFieldDesc(desc);
@@ -88,12 +87,13 @@ public class MethodInstantiater implements MethodVisitor {
                     owner, lox_index, rox_index);
             
             // special case hack for tuples, and arrows
-            if (stem.equals(Naming.TUPLE_TAG)) {
+            if (stem.equals(Naming.TUPLE_TAG) || stem.equals("ConcreteTuple")) {
                 stem = Naming.TUPLE_RTTI_TAG + parameters.size();
-            } else if (stem.equals(Naming.ARROW_TAG)) {
+            } else if (stem.equals(Naming.ARROW_TAG) || stem.equals(InstantiatingClassloader.ABSTRACT_ +Naming.ARROW_TAG )) {
+            	stem = Naming.ARROW_RTTI_TAG + parameters.size();
+            } else if (stem.contains(Naming.ENVELOPE)  && stem.endsWith(Naming.ARROW_TAG)) {
             	stem = Naming.ARROW_RTTI_TAG + parameters.size();
             }
-            
             String javaClassDesc = Useful.substring(owner, 0, 1-FACTORY_SUFFIX_LENGTH);
             // bug in getType, cannot cope with embedded semicolons!
             mv.visitLdcInsn(Type.getType(Naming.mangleFortressDescriptor("L" + javaClassDesc + ";")));
@@ -105,7 +105,11 @@ public class MethodInstantiater implements MethodVisitor {
             String fact_sig = Naming.rttiFactorySig(stem_rtti, parameters.size());
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, stem_rtti, "factory", fact_sig);
         } else {
-            mv.visitFieldInsn(Opcodes.GETSTATIC, owner, "ONLY", "L" + owner + ";");
+           
+        	if (owner.startsWith(Naming.SNOWMAN)) {
+            	owner = Naming.VOID_RTTI_CONTAINER_TYPE; 
+            }
+        	mv.visitFieldInsn(Opcodes.GETSTATIC, owner, "ONLY", "L" + Naming.RTTI_CONTAINER_TYPE + ";");
         }
     }
 
