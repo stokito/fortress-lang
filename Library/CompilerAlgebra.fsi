@@ -13,8 +13,7 @@ api CompilerAlgebra
 
 trait Equality[\Self\] comprises Self
     opr =(self, other:Self): Boolean
+    opr =/=(self, other:Self): Boolean
 end
-
-opr =/=[\T extends Equality[\T\]\](a: T, b: T): Boolean
 
 end
