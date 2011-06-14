@@ -14,8 +14,7 @@ export CompilerAlgebra
 
 trait Equality[\Self\] comprises Self
     opr =(self, other:Self): Boolean = self SEQV other
+    opr =/=(self, other:Self): Boolean = NOT (self = other)
 end
-
-opr =/=[\T extends Equality[\T\]\](a: T, b: T) = NOT (a = b)
 
 end
