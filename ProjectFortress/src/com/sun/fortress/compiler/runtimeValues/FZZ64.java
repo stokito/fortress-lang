@@ -19,8 +19,11 @@ public class FZZ64  extends fortress.CompilerBuiltin.ZZ64.DefaultTraitMethods im
     public long getValue() {return val;}
     public static FZZ64 make(long x) {return new FZZ64(x);}
     
+    @Override
+    public RTTI getRTTI() { return RTTIc.ONLY; }
+    
     public static class RTTIc extends RTTI {
         private RTTIc() { super(FZZ64.class); };
-        public static final RTTIc ONLY = new RTTIc();
+        public static final RTTI ONLY = new RTTIc();
     }
 }

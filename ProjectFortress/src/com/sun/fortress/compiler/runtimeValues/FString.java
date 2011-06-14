@@ -20,9 +20,12 @@ public class FString  extends fortress.CompilerBuiltin.String.DefaultTraitMethod
     public static FString make(String s) { return new FString(s);}
     public static FString concatenate(FString s1, FString s2) { return new FString(s1.toString() + s2.toString());}
 
+    @Override
+    public RTTI getRTTI() { return RTTIc.ONLY; }
+    
     public static class RTTIc extends RTTI {
         private RTTIc() { super(FString.class); };
-        public static final RTTIc ONLY = new RTTIc();
+        public static final RTTI ONLY = new RTTIc();
     }
 
 }

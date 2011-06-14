@@ -88,7 +88,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     
     // TODO make this depends on properties/env w/o dragging in all of the world.
-    private static final boolean LOG_LOADS = true;
+    private static final boolean LOG_LOADS = false;
     private static final boolean LOG_FUNCTION_EXPANSION = false;
     public final static String SAVE_EXPANDED_DIR = ProjectProperties.getDirectory("fortress.bytecodes.expanded.directory", null);
     public static JarOutputStream SAVE_EXPANDED_JAR = null;

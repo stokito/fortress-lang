@@ -19,9 +19,12 @@ public class FChar  extends fortress.CompilerBuiltin.Char.DefaultTraitMethods im
     public char getValue() {return val;}
     public static FChar make(char x) {return new FChar(x);}
 
+    @Override
+    public RTTI getRTTI() { return RTTIc.ONLY; }
+    
     public static class RTTIc extends RTTI {
         private RTTIc() { super(FChar.class); };
-        public static final RTTIc ONLY = new RTTIc();
+        public static final RTTI ONLY = new RTTIc();
     }
 
 }

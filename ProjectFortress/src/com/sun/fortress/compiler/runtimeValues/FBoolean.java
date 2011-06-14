@@ -23,9 +23,12 @@ public final class FBoolean extends fortress.CompilerBuiltin.Boolean.DefaultTrai
     public boolean getValue() {return val;}
     public static FBoolean make(boolean x) {return x ? TRUE : FALSE;}
 
+    @Override
+    public RTTI getRTTI() { return RTTIc.ONLY; }
+    
     public static class RTTIc extends RTTI {
         private RTTIc() { super(FBoolean.class); };
-        public static final RTTIc ONLY = new RTTIc();
+        public static final RTTI ONLY = new RTTIc();
     }
 
 }
