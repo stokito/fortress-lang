@@ -20,9 +20,12 @@ implements fortress.CompilerBuiltin.RR32, fortress.CompilerBuiltin.RR64 {
     public float getValue() {return val;}
     public static FRR32 make(float x) {return new FRR32(x);}
     
+    @Override
+    public RTTI getRTTI() { return RTTIc.ONLY; }
+    
     public static class RTTIc extends RTTI {
         private RTTIc() { super(FRR32.class); };
-        public static final RTTIc ONLY = new RTTIc();
+        public static final RTTI ONLY = new RTTIc();
     }
 
 }

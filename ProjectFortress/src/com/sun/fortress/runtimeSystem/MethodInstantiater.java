@@ -107,7 +107,7 @@ public class MethodInstantiater implements MethodVisitor {
         } else {
            
         	if (owner.startsWith(Naming.SNOWMAN)) {
-            	owner = Naming.VOID_RTTI_CONTAINER_TYPE; 
+            	owner = owner.replaceFirst(Naming.SNOWMAN, Naming.RT_VALUES_PKG + "FVoid"); 
             }
         	mv.visitFieldInsn(Opcodes.GETSTATIC, owner, "ONLY", "L" + Naming.RTTI_CONTAINER_TYPE + ";");
         }
