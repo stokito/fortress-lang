@@ -3510,7 +3510,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  * 
                  */
                     String rttiClassName = Naming.stemClassJavaName(cnb.className);
-                    mv.visitFieldInsn(GETSTATIC, rttiClassName, "ONLY", "L" + rttiClassName + ";");
+                    mv.visitFieldInsn(GETSTATIC, rttiClassName, "ONLY", Naming.RTTI_CONTAINER_DESC);
                     mv.visitFieldInsn(PUTSTATIC, cnb.className, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
             }
 
@@ -4285,7 +4285,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (sparams_size == 0) {
             // static, initialized to single instance of self
             cw.visitField(ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
-                    "ONLY", "L" + rttiClassName + ";", null, null);
+                    "ONLY", Naming.RTTI_CONTAINER_DESC, null, null);
             
             mv = cw.visitCGMethod(ACC_STATIC, "<clinit>", "()V", null, null);
             mv.visitCode();
@@ -4297,7 +4297,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitMethodInsn(INVOKESPECIAL, rttiClassName, "<init>", "(Ljava/lang/Class;)V");
             // store
             mv.visitFieldInsn(PUTSTATIC, rttiClassName,
-                    "ONLY", "L"+rttiClassName+";");                
+                    "ONLY", Naming.RTTI_CONTAINER_DESC);                
 
             voidEpilogue();
         } else {
@@ -4348,6 +4348,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 mv.visitVarInsn(ALOAD, 0); // this ptr for store.
                 // invoke factory method for value to store.
                 generateTypeReference(mv, rttiClassName, extendee, ti_args, spns);
+                //putExtendeeField(rttiClassName, extendee);
                 putExtendeeField(rttiClassName, extendee);
             }
            
@@ -4499,7 +4500,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 mv.visitFieldInsn(GETFIELD, rttiClassName, extendee.getText(), Naming.RTTI_CONTAINER_DESC);
             } else {
                 // reference to a non-generic type.  Load from whatever.Only
-                mv.visitFieldInsn(GETSTATIC, field_type, "ONLY", "L"+field_type+";");                
+                mv.visitFieldInsn(GETSTATIC, field_type, "ONLY", Naming.RTTI_CONTAINER_DESC);                
             }
         } else {
             // invoke field_type.factory(args)
@@ -4584,9 +4585,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     private void putExtendeeField(String rttiClassName, Id extendee) {
         String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
-        String field_type = Naming.stemClassJavaName(extendeeIlk);
-        String tyDesc = "L" + field_type + ";";
-        mv.visitFieldInsn(PUTFIELD, rttiClassName, extendeeIlk, tyDesc);
+//        String field_type = Naming.stemClassJavaName(extendeeIlk);
+//        String tyDesc = "L" + field_type + ";";
+        mv.visitFieldInsn(PUTFIELD, rttiClassName, extendeeIlk, Naming.RTTI_CONTAINER_DESC);
     }
 
     public void forVarDecl(VarDecl v) {

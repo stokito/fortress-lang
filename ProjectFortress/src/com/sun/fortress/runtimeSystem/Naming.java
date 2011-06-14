@@ -95,8 +95,10 @@ public class Naming {
     public final static String RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "RTTI";
     public final static String TUPLE_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "TupleRTTI";
     public final static String ARROW_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "ArrowRTTI";
+    public final static String JAVA_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "JavaRTTI";
     public final static String RTTI_CONTAINER_DESC = "L" + RTTI_CONTAINER_TYPE + ";";
     public final static String STATIC_PARAMETER_GETTER_SIG = "()" + RTTI_CONTAINER_DESC;
+    public final static String VOID_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "VoidRTTI";
 
     // Used to indicate translation convention to apply to type parameter.
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA
@@ -146,7 +148,7 @@ public class Naming {
     public final static char RIGHT_OXFORD_CHAR = '\u27e7';
     public final static String LEFT_OXFORD = "\u27e6";
     public final static String RIGHT_OXFORD = "\u27e7";
-
+    
     /**
      * Name for Arrow-interface generic.
      */
