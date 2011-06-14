@@ -758,25 +758,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (superInterfaces.length < 1)
             return overloadedMethods;
         
+        // TraitType currentTraitObjectType = STypesUtil.declToTraitTypeEnhanced(currentTraitObjectDecl);
         TraitType currentTraitObjectType = STypesUtil.declToTraitType(currentTraitObjectDecl);
         List<TraitTypeWhere> extendsClause = NodeUtil.getExtendsClause(currentTraitObjectDecl);
         
         OverloadingOracle oa =  new OverloadingOracle(typeAnalyzer);
         
-        Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
-            alreadyIncluded;
-        /*
-         * Initialize alreadyIncluded to empty, or to the inherited methods
-         * from the first t
-         */
-        if (extendsClause.size() == 0) {
-            alreadyIncluded =
-                new IndexedRelation<IdOrOpOrAnonymousName,
-                             scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>();
-        } else {
-            alreadyIncluded = STypesUtil.inheritedMethods(extendsClause.subList(0,1), typeAnalyzer);
-        }
-
         /*
          * Apparently allMethods returns the transitive closure of all methods
          * declared in a particular trait or object and the types it extends.
@@ -810,7 +797,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         /*
          *  There's a glitch here, with the names of functional methods,
-         *  vs their names as implemented methods.  Static anayzer works with
+         *  vs their names as implemented methods.  Static analyzer works with
          *  names-as-written; code generation wishes to mangle them.
          */
         for (edu.rice.cs.plt.tuple.Pair<IdOrOpOrAnonymousName, FunctionalMethod> ent : ti.functionalMethods()) {
@@ -879,7 +866,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 boolean narrowed = false;  // EQ -> LT seen
                 Functional narrowed_func = null;
                 
-                Type super_ret = super_inst.replaceIn(oa.getRangeType(super_func));
+                Type raw_super_ret = oa.getRangeType(super_func);
+                Type super_ret = super_inst.replaceIn(raw_super_ret);
                 int super_self_index = selfParameterIndex(super_func.parameters());
                 Type super_noself_domain = super_inst.replaceIn(selfEditedDomainType(super_func, super_self_index));
 
@@ -915,6 +903,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     boolean r_a_le_b = oa.lteq(ret, super_ret);
                     boolean r_b_le_a = oa.lteq(super_ret, ret);
                     
+                    if (DEBUG_OVERLOADED_METHOD_CHAINING) {
+                        System.err.println("" + func + " ?? " + super_func + " " + d_a_le_b + d_b_le_a + r_a_le_b + r_b_le_a);
+                    }
+                    
                     if (d_a_le_b && d_b_le_a) {
                         // equal domains
                         if (r_a_le_b) { // sub is LE
@@ -943,12 +935,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     // TODO emit the forwarding method
                     continue;
                 }
-                
                 perhapsOverloaded.add(super_func);
             }
 
             // need to refine the overloaded methods check because of exclusion
-            MultiMap<Integer, Functional> partitionedByArgCount = partitionByArgCount(perhapsOverloaded);
+            MultiMap<Integer, Functional> partitionedByArgCount = partitionByMethodArgCount(oa, perhapsOverloaded);
 
             if (partitionedByArgCount.size() > 0 ) {
                 
@@ -3434,7 +3425,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> overloads = dumpOverloadedMethodChaining(superInterfaces, false);
         if (OVERLOADED_METHODS)
             typeLevelOverloadedNamesAndSigs =
-                generateTopLevelOverloads(thisApi(), overloads, typeAnalyzer, cw, this, OverloadSet.traitOrObjectFactory);
+                generateTopLevelOverloads(thisApi(), overloads, typeAnalyzer, cw,
+                        this, new OverloadSet.TraitOrObjectFactory(Opcodes.INVOKEVIRTUAL, cnb));
        
         for (Decl d : header.getDecls()) {
             // This does not work yet.
@@ -3946,6 +3938,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forTraitDecl(TraitDecl x) {
         debug("forTraitDecl", x);
         TraitTypeHeader header = x.getHeader();
+        Id traitname = (Id) header.getName();
+        String traitname_string = traitname.getText();
+        if (traitname_string.equals("Any") &&
+                traitname.getApiName().isNone()) {
+            String api_stringname = thisApi().getText();
+            if (api_stringname.equals("AnyType")) 
+                return;
+        }
         TraitTypeHeader original_header = x.getHeader();
         List<TraitTypeWhere> extendsC = header.getExtendsClause();
         boolean canCompile =
@@ -4057,7 +4057,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         if (OVERLOADED_METHODS)
             newcg.typeLevelOverloadedNamesAndSigs =
-                generateTopLevelOverloads(thisApi(), overloads, newcg.typeAnalyzer, newcg.cw, newcg, OverloadSet.traitOrObjectFactory);
+                generateTopLevelOverloads(thisApi(), overloads, newcg.typeAnalyzer, newcg.cw, newcg,
+                        new OverloadSet.TraitOrObjectFactory(Opcodes.INVOKEINTERFACE, cnb));
                 
         newcg.dumpTraitDecls(header.getDecls());
         newcg.dumpMethodChaining(superInterfaces, true);
@@ -5229,6 +5230,24 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @return
      */
     public static MultiMap<Integer,  Functional> partitionByArgCount(
+            Set<? extends Functional> defs) {
+        MultiMap<Integer, Functional> partitionedByArgCount =
+            new MultiMap<Integer, Functional>();
+
+        for (Functional d : defs) {
+            partitionedByArgCount.putItem(d.parameters().size(), d);
+        }
+
+        for (Functional d : defs) {
+            Set<Functional> sf = partitionedByArgCount.get(d.parameters().size());
+            if (sf != null && sf.size() <= 1)
+                partitionedByArgCount.remove(d.parameters().size());
+        }
+        return partitionedByArgCount;
+    }
+
+    public static MultiMap<Integer,  Functional> partitionByMethodArgCount(
+            OverloadingOracle oa, 
             Set<? extends Functional> defs) {
         MultiMap<Integer, Functional> partitionedByArgCount =
             new MultiMap<Integer, Functional>();

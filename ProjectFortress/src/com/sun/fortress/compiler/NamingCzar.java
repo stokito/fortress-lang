@@ -37,6 +37,7 @@ import com.sun.fortress.nodes.BoolBinaryOp;
 import com.sun.fortress.nodes.BoolExpr;
 import com.sun.fortress.nodes.BoolRef;
 import com.sun.fortress.nodes.BoolUnaryOp;
+import com.sun.fortress.nodes.BottomType;
 import com.sun.fortress.nodes.DimArg;
 import com.sun.fortress.nodes.Fixity;
 import com.sun.fortress.nodes.FnDecl;
@@ -753,6 +754,32 @@ public class NamingCzar {
         return Naming.makeMethodDesc(args, rangeDesc);
     }
     
+    /**
+     * Ultimately used for overloaded methods with self parameters in their list.
+     * @param domain
+     * @param self_index_to_skip
+     * @param rangeDesc
+     * @param ifNone
+     * @return
+     */
+    public static String jvmSignatureFor(List<com.sun.fortress.nodes.Param> domain,
+            int self_index_to_skip, 
+            String rangeDesc, APIName ifNone) {
+        // This special case handles single void argument type properly.
+        if (domain.size() == 1)
+            return jvmSignatureFor(NodeUtil.optTypeOrPatternToType(domain.get(0).getIdType()).unwrap(), rangeDesc, ifNone);
+        String args = "";
+        StringBuilder buf = new StringBuilder();
+        int i = 0;
+        for (Param p : domain) {
+            if (i != self_index_to_skip)
+                buf.append(jvmBoxedTypeDesc((com.sun.fortress.nodes.Type) p.getIdType().unwrap(), ifNone));
+            i++;
+        }
+        args = buf.toString();
+        return Naming.makeMethodDesc(args, rangeDesc);
+    }
+    
     public static String jvmSignatureForNObjects(int n,
             String rangeDesc) {
         // This special case handles single void argument type properly.
@@ -807,6 +834,12 @@ public class NamingCzar {
     public static String jvmSignatureFor(Functional f, APIName ifNone) {
         com.sun.fortress.nodes.Type range = f.getReturnType().unwrap();
         return jvmSignatureFor(f.parameters(), range, ifNone);
+    }
+
+    // OverloadSet.jvmSignatureFor (method case, no AP
+    public static String jvmSignatureFor(Functional f, int self_index_to_skip, APIName ifNone) {
+        com.sun.fortress.nodes.Type range = f.getReturnType().unwrap();
+        return jvmSignatureFor(f.parameters(), self_index_to_skip, jvmBoxedTypeDesc(range, ifNone), ifNone);
     }
 
     // Codegen.dumpSigs
@@ -1109,6 +1142,10 @@ public class NamingCzar {
                 return res;
             }
             @Override
+            public String forBottomType(BottomType t) {
+                    return descFortressVoid;
+            }
+            @Override
             public String forTupleType(TupleType t) {
                 if ( NodeUtil.isVoidType(t) )
                     return descFortressVoid;
@@ -1156,7 +1193,7 @@ public class NamingCzar {
                 if (api == null) {
                     throw new CompilerError(id,"no api name given for id");
                 }
-                List<StaticParam> sparams = t.getStaticParams();
+                List<StaticParam> sparams = t.getTraitStaticParams();
                 List<StaticArg> sargs = t.getArgs();
 
                 // TODO work in progress -- need to expand with StaticArg if those are available.

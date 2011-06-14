@@ -9,12 +9,13 @@
 
  ******************************************************************************)
 
-component CompilerAlgebra
-export CompilerAlgebra
+component ThrowTest2a
+export ThrowTest2a
 
-trait Equality[\Self\] comprises Self
-    opr =(self, other:Self): Boolean = self SEQV other
-    opr =/=(self, other:Self): Boolean = NOT (self = other)
+object TestFailCalled(s:String) extends UncheckedException
+    getter asString(): String = s
 end
+
+testFail(s:String): None = throw TestFailCalled(s)
 
 end

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -51,8 +51,8 @@ public final class FIntLiteral extends fortress.CompilerBuiltin.IntLiteral.Defau
         return Long.toString(smallerVal);
     }
 
-    public String asString() {
-        return this.toString();
+    public FString asString() {
+        return null; /* replaced in generated code; necessary for primitive hierarchy */
     }
 
     public Error outOfRange(String t) {

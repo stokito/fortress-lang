@@ -9,12 +9,15 @@
 
  ******************************************************************************)
 
-component CompilerAlgebra
-export CompilerAlgebra
+component ThrowTest2
+import ThrowTest2a.{...}
+export Executable
 
-trait Equality[\Self\] comprises Self
-    opr =(self, other:Self): Boolean = self SEQV other
-    opr =/=(self, other:Self): Boolean = NOT (self = other)
-end
+run() = try
+    testFail("Fooey!")
+    println "FAIL"
+  catch e
+    TestFailCalled => println "PASS"
+  end
 
 end
