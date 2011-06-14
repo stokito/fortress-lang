@@ -17,4 +17,7 @@ public class FVoid  extends FValue {
     public String toString() { return "()";}
     public FVoid getValue() {return V;}
     public static FVoid make() {return V;}
+    
+    @Override
+    public RTTI getRTTI() { return VoidRTTI.ONLY; }
 }

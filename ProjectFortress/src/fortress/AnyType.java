@@ -11,8 +11,10 @@
 
 package fortress;
 
+import com.sun.fortress.compiler.runtimeValues.RTTI;
+
 public class AnyType {
     public static interface Any {
-        public Object getRTTI();
+        public RTTI getRTTI();
     }
 }
