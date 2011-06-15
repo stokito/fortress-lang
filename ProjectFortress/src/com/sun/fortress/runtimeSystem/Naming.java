@@ -804,7 +804,10 @@ public class Naming {
          * @return
          */
     public static String removeNthSigParameter(String sig, int selfIndex) {
+        if (selfIndex == NO_SELF)
+            return sig;
         // start, end, are inclusive bounds of nth parameter in sig.
+        // This probably needs to parse Oxford brackets, else we will be sorry.
         int start = 1;
         int end = sig.indexOf(';');
         for (int i = 0; i < selfIndex; i++) {

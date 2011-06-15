@@ -91,7 +91,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         ProjectProperties.getBoolean("fortress.debug.overloaded.methods", false);
     
     private static final boolean EMIT_ERASED_GENERICS = false;
-    private static final boolean OVERLOADED_METHODS = false;
+    private static final boolean OVERLOADED_METHODS = true;
     
     CodeGenClassWriter cw;
     CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
@@ -568,9 +568,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 arity++;
             }
             String from_name = forward_to_non_overload ? NamingCzar.mangleAwayFromOverload(mname): mname;
-            InstantiatingClassloader.forwardingMethod(cw, from_name, ACC_PUBLIC, 0,
-                    receiverClass, mname, narrowing ? (isObject ? INVOKEVIRTUAL : INVOKEINTERFACE ): INVOKESTATIC,
-                    from_sig, to_sig, narrowing ? null : from_sig, arity, true, null);
+            String actual_from_sig = Naming.removeNthSigParameter(from_sig, selfIndex);
+            boolean already_emitted_as_overload = typeLevelOverloadedNamesAndSigs != null &&
+                typeLevelOverloadedNamesAndSigs.contains(mname+actual_from_sig+"" ) ;
+            
+            if (! already_emitted_as_overload)          
+                InstantiatingClassloader.forwardingMethod(cw, from_name, ACC_PUBLIC, 0,
+                        receiverClass, mname, narrowing ? (isObject ? INVOKEVIRTUAL : INVOKEINTERFACE ): INVOKESTATIC,
+                                from_sig, to_sig, narrowing ? null : from_sig, arity, true, null);
         }
         
     }
@@ -758,8 +763,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (superInterfaces.length < 1)
             return overloadedMethods;
         
-        // TraitType currentTraitObjectType = STypesUtil.declToTraitTypeEnhanced(currentTraitObjectDecl);
-        TraitType currentTraitObjectType = STypesUtil.declToTraitType(currentTraitObjectDecl);
+        TraitType currentTraitObjectType = STypesUtil.declToTraitTypeEnhanced(currentTraitObjectDecl);
+        // TraitType currentTraitObjectType = STypesUtil.declToTraitType(currentTraitObjectDecl);
         List<TraitTypeWhere> extendsClause = NodeUtil.getExtendsClause(currentTraitObjectDecl);
         
         OverloadingOracle oa =  new OverloadingOracle(typeAnalyzer);
@@ -872,7 +877,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 Type super_noself_domain = super_inst.replaceIn(selfEditedDomainType(super_func, super_self_index));
 
                 for (Functional func : funcs) {
-                    Type ret = oa.getRangeType(func);
+                    /* I think this is the wrong instantiater,
+                     * but lacking generic methods and overloads,
+                     * it is not far wrong.
+                     */
+                    Type ret = super_inst.replaceIn(oa.getRangeType(func));
                     int self_index = selfParameterIndex(func.parameters());
                     if (self_index != super_self_index) {
                         /*
@@ -883,8 +892,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                          */
                         continue; 
                     }
-                        
-                    Type noself_domain = selfEditedDomainType(func, self_index);
+                    
+                    /*
+                     * See above comment -- I think this is the wrong instantiater,
+                     * but it is not far wrong.
+                     */
+                    Type noself_domain = super_inst.replaceIn(selfEditedDomainType(func, self_index));
 
                     // Classify potential override
 
@@ -1985,6 +1998,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // TODO different collision rules for top-level and for
         // methods. (choice of mname)
 
+        String schema = ""; // static params?
+        
         if (selfIndex != Naming.NO_SELF) {
             sig = Naming.removeNthSigParameter(sig, selfIndex);
             mname = Naming.fmDottedName(singleName(name), selfIndex);
@@ -1992,7 +2007,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         } else if (inAMethod ) { // savedInAnObject) {
             mname = singleName(name);
         } else {
-            mname = nonCollidingSingleName(name, sig,""); // static params?
+            mname = nonCollidingSingleName(name, sig,schema); 
         }
 
         CodeGen cg = new CodeGen(this);
@@ -2001,9 +2016,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // TODO if no overload, also emit forwarding method, mutilate "mname"
             String mangled_mname = NamingCzar.mangleAwayFromOverload(mname);
 
+            
+            if (! typeLevelOverloadedNamesAndSigs.contains(mname+sig+schema)) {
+            
             InstantiatingClassloader.forwardingMethod(cg.cw, mname, ACC_PUBLIC, 0,
                     traitOrObjectName, mangled_mname, INVOKEVIRTUAL,
                     sig, sig, null, n+1, true, null);
+            }
             
             mname = mangled_mname;
         } else {
