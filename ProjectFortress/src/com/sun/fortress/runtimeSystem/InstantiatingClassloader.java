@@ -547,7 +547,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         //String desc = "L" + name + ";";
         final String field_desc = "L" +(ft) + ";";
         // Begin with a class
-        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER, name, null, superClass, new String[] { Naming.ANY_TYPE_CLASS });
+        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER, name, null, superClass, null);
 
         statics.add(new InitializedStaticField() {
 
