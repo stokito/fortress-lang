@@ -20,6 +20,8 @@ import com.sun.fortress.compiler.codegen.CodeGen;
 import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
 import com.sun.fortress.compiler.index.Constructor;
 import com.sun.fortress.compiler.index.DeclaredFunction;
+import com.sun.fortress.compiler.index.DeclaredMethod;
+import com.sun.fortress.compiler.index.FieldGetterOrSetterMethod;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.scala_src.overloading.OverloadingOracle;
@@ -1193,6 +1195,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         } else if (fu instanceof DeclaredFunction) {
             DeclaredFunction df = (DeclaredFunction) fu;
             List<StaticParam> lsp = df.staticParameters();
+            if (lsp.size() > 0)
+                params = lsp;
+        } else if (fu instanceof DeclaredMethod) {
+            List<StaticParam> lsp = fu.staticParameters();
+            if (lsp.size() > 0)
+                params = lsp;
+        } else if (fu instanceof FieldGetterOrSetterMethod) {
+            List<StaticParam> lsp = fu.staticParameters();
             if (lsp.size() > 0)
                 params = lsp;
         } else if (fu instanceof Constructor) {
