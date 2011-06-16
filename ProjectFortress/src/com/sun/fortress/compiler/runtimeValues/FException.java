@@ -17,15 +17,15 @@ public class FException extends java.lang.Exception {
 
     static HashMap exceptions = new HashMap();
 
-    final Object error;
+    final FValue error;
     
-    public FException(Object o) { 
-        super("Fortress Exception: " + o.toString());
-        error = o;
-        exceptions.put(o, this);
+    public FException(FValue v) { 
+        super("Fortress Exception: " + v.asString());
+        error = v;
+        exceptions.put(v, this);
     }
 
-    public String toString() { return error.toString();}
+    public String toString() { return error.asString().getValue();}
     public Object getValue() { return error; }
 
 }

@@ -11,6 +11,7 @@
 
 package fortress;
 
+import com.sun.fortress.compiler.runtimeValues.FValue;
 import com.sun.fortress.compiler.runtimeValues.RTTI;
 
 public class AnyType {
@@ -25,6 +26,6 @@ public class AnyType {
             public static final RTTI ONLY = new RTTIc(AnyType.Any.class);
         }
         public static interface RTTIi { }
-        public abstract static class DefaultTraitMethods { }
+        public abstract static class DefaultTraitMethods extends FValue{ }
     }
 }

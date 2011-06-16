@@ -1355,7 +1355,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         e.accept(this);
         mv.visitMethodInsn(INVOKESPECIAL, "com/sun/fortress/compiler/runtimeValues/FException",
                            "<init>",
-                           "(Ljava/lang/Object;)V");
+                           "(Lcom/sun/fortress/compiler/runtimeValues/FValue;)V");
         mv.visitInsn(ATHROW);
     }
 
