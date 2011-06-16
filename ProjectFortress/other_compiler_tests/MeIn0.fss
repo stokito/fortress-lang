@@ -10,6 +10,8 @@
 export Executable
 (* testing overlap and coverage of method signatures and returns *)
 
+(* This file has a bug in it -- the overloading is not valid. *)
+
 trait T
   ee(T):T
   el(T):T
@@ -48,6 +50,7 @@ trait X extends {U,V}
 end
 
 object O extends {X, W}
+  s():String = "O"
   ee(x:T):T = ot("Oee")
   
   el(x:T):O = O
@@ -58,17 +61,16 @@ object O extends {X, W}
   ll(x:T):T = ot("Oll")
   ll(x:U):U = x
 
-  s():String = "O"
 end
 
 run() = do
   t1:T = O
   t2:T = ot("foobarbaz")
-  println(t1.ee(t2).s()) (* O.ee(T) = ot("Oee") .s() == "Oee"*)
-  println(t1.el(t2).s()) (* O.el(T) = O .s() == "O"*)
-  println(t1.le(t2).s()) (* O.le(T) = ot("OTle") .s() == "OTle" *)
-  println(t1.le(t1).s()) (* O.le(W) = ot("OWle") .s() == "OWle" *)
-  println(t1.ll(t2).s()) (* O.ll(T) = ot("Oll") .s() == "Oll" *)
-  println(t1.ll(t1).s()) (* O.ll(U) = t1 = O .s() == "O" *)
+  println(t1.ee(t2).s()) 
+  println(t1.el(t2).s()) 
+  println(t1.le(t2).s()) 
+  println(t1.le(t1).s()) 
+  println(t1.ll(t2).s()) 
+  println(t1.ll(t1).s()) 
 end
 
