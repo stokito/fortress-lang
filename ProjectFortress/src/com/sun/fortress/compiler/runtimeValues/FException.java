@@ -25,7 +25,7 @@ public class FException extends java.lang.Exception {
         exceptions.put(v, this);
     }
 
-    public String toString() { return error.asString().getValue();}
+    public String toString() { return "FortressException: " + error.getClass() + " with string " + error.asString().getValue();}
     public Object getValue() { return error; }
 
 }
