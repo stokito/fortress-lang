@@ -1364,7 +1364,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         mv.visitCode();
         Label fail = new Label();
 
-        generateCall(mv, 0 /* firstArg() */, fail); // Guts of overloaded method
+        generateCall(mv, firstArg(), fail); // Guts of overloaded method
 
         // Emit failure case
         mv.visitLabel(fail);
@@ -1503,7 +1503,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
 
         protected int firstArg() {
-            return 1;
+            return selfIndex() == Naming.NO_SELF ? 1 : 0;
         }
 
         protected int selfIndex() {

@@ -568,14 +568,19 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 arity++;
             }
             String from_name = forward_to_non_overload ? NamingCzar.mangleAwayFromOverload(mname): mname;
-            String actual_from_sig = Naming.removeNthSigParameter(from_sig, selfIndex);
+            String actual_from_sig =
+                Naming.removeNthSigParameter(from_sig, st instanceof DeclaredMethod ? 0 : selfIndex);
             boolean already_emitted_as_overload = typeLevelOverloadedNamesAndSigs != null &&
-                typeLevelOverloadedNamesAndSigs.contains(mname+actual_from_sig+"" ) ;
+                typeLevelOverloadedNamesAndSigs.contains(from_name+actual_from_sig+"" ) ;
             
-            if (! already_emitted_as_overload)          
-                InstantiatingClassloader.forwardingMethod(cw, from_name, ACC_PUBLIC, 0,
-                        receiverClass, mname, narrowing ? (isObject ? INVOKEVIRTUAL : INVOKEINTERFACE ): INVOKESTATIC,
-                                from_sig, to_sig, narrowing ? null : from_sig, arity, true, null);
+            if (already_emitted_as_overload) {
+                from_name = NamingCzar.mangleAwayFromOverload(from_name);
+            }
+            else
+            InstantiatingClassloader.forwardingMethod(cw, from_name, ACC_PUBLIC, 0,
+                    receiverClass, mname, narrowing ? (isObject ? INVOKEVIRTUAL : INVOKEINTERFACE ): INVOKESTATIC,
+                            from_sig, to_sig, narrowing ? null : from_sig, arity, true, null);
+
         }
         
     }
