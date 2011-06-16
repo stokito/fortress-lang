@@ -11,6 +11,8 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
+import com.sun.fortress.compiler.runtimeValues.FIntLiteral.RTTIc;
+
 public final class FFloatLiteral extends fortress.CompilerBuiltin.FloatLiteral.DefaultTraitMethods
         implements fortress.CompilerBuiltin.FloatLiteral {
 
@@ -56,4 +58,13 @@ public final class FFloatLiteral extends fortress.CompilerBuiltin.FloatLiteral.D
     public FRR32 asRR32() {
         return FRR32.make(Float.valueOf(val));
     }
+    
+    @Override
+    public RTTI getRTTI() { return RTTIc.ONLY; }
+    
+    public static class RTTIc extends RTTI {
+        private RTTIc() { super(FFloatLiteral.class); };
+        public static final RTTI ONLY = new RTTIc();
+    }
+    
 }

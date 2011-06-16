@@ -3909,6 +3909,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         forFunctionalRef(x);
    }
 
+    public void forCharLiteralExpr(CharLiteralExpr x) {
+        // This is cheating, but the best we can do for now.
+        // We make a FString and push it on the stack.
+        debug("forCharLiteral ", x);
+        addLineNumberInfo(x);
+        mv.visitLdcInsn(x.getCharVal());
+        addLineNumberInfo(x);
+        mv.visitMethodInsn(INVOKESTATIC, NamingCzar.internalFortressChar, NamingCzar.make,
+                           Naming.makeMethodDesc(NamingCzar.descChar, NamingCzar.descFortressChar));
+    }
+    
     public void forStringLiteralExpr(StringLiteralExpr x) {
         // This is cheating, but the best we can do for now.
         // We make a FString and push it on the stack.
