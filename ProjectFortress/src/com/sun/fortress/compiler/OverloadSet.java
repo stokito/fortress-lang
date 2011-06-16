@@ -1429,7 +1429,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 TypeAnalyzer ta, Set<Functional> defs, int n) {
             
             Functional one_func = defs.iterator().next();
-            int self_index = 0;
+            int self_index = Naming.NO_SELF;
             if (one_func instanceof FunctionalMethod) {
                 self_index = ((FunctionalMethod) one_func).selfPosition();
                 String new_name = Naming.fmDottedName(NodeUtil.nameSuffixString(name), self_index);
