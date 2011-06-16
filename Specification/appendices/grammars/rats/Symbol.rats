@@ -1,0 +1,198 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+Encloser = encloser
+
+LeftEncloser = !(opendoublesquare) leftEncloser
+
+RightEncloser = rightEncloser
+
+ExponentOp = exponentOp
+
+EncloserPair =
+     (LeftEncloser / Encloser) (w DOT)? w (RightEncloser / Encloser)
+
+bar = &("|" wr GeneratorClauseList closingComprehension) "|"
+closingComprehension =
+     w rightEncloser
+   / w closecurly
+   / w closeangle
+   / br ArrayComprehensionClause
+   / w closesquare
+sd = [*.]?
+bars = "|" (sd "|")*
+slashes = "/" (sd "/")*
+                                 / "\\" (sd "\\")*
+lesses = "<" (sd "<")*
+greaters = ">" (sd ">")*
+
+encloser =
+     !(bar) bars !([*.>/\\] / "->")
+   / "\u2016"
+   / "\u2af4"
+
+leftEncloser =
+     leftEncloserMulti &{PrecedenceMap.ONLY.isLeft(yyValue)}
+   / c:_ &{c != '|' && PrecedenceMap.ONLY.isLeft(""+c)}
+
+leftEncloserMulti =
+     "(." ("/"+ / "\\"+)
+   / "[/\\/\\/" / "[/\\/"
+   / "[" (sd slashes)
+   / "{" (sd slashes)
+   / lesses sd (slashes / bars)
+   / bars sd slashes
+   / "{*" /  "[*"
+   / "((.>" / "(.<"
+
+rightEncloser =
+     rightEncloserMulti &{ PrecedenceMap.ONLY.isRight(yyValue) }
+   / c:_ &{c != '|' && PrecedenceMap.ONLY.isRight(""+c)}
+
+rightEncloserMulti =
+     "/"+ ".)"
+   / "\\"+ ".)"
+   / slashes sd (greaters / bars / [\]}])
+   / bars sd greaters
+   / "*]" / "*}"
+   / "]" / "}"
+   / ">.)" / "<.))"
+   / "/\\/\\/]" / "/\\/]"
+
+exponentOp =
+     "^T"
+   / "^" (encloser / op)
+
+OpName =
+     opn:id &{NodeUtil.validOp(opn) }
+
+Op =
+    (condOp / op !(equalsOp) / compOp) !(Symbol)
+   / Symbols
+
+Symbols =
+     Symbol+
+
+Symbol = [+]
+
+compOp =
+     "==="
+   / "=/="
+   / "<="
+   / ">="
+
+condOp =
+     <ErrorProduction> ":::"
+   / ":" (encloser / op) colon
+   / (encloser / op) colon
+
+multiOp =
+     "-/->"
+   / "<-/-"
+   / "-->"
+   / "==>"
+   / ">>>"
+   / mapstoOp
+   / "<<<"
+   / "<->"
+   / leftarrowOp
+   / "<=>"
+   / "->"
+   / doublerightarrow
+   / ">>"
+   / "<<"
+   / "!!"
+   / "::"
+   / !(rightEncloserMulti) "///"
+   / !(rightEncloserMulti) "//"
+
+singleOp =
+     !(encloser / leftEncloser / rightEncloser / multiOp / compOp / match)
+     a1:_ !("*") &{ PrecedenceMap.ONLY.isOperator("" + a1) }
+
+op =
+     OpName
+   / multiOp
+   / singleOp
+
+CompoundOp =
+     (encloser / op) equalsOp
+
+doublerightarrow = "=>" &(w BlockElems w match)
+
+crossOp = "BY":OpName &(w ExtentRange) / "\u2a2f":singleOp
+
+leftarrow = "<-" / "\u2190"
+
+caret = "^" !("T")
+colonequals = ":=" / "\u2254"
+equals = "=" (!op)
+equalsOp = "=":singleOp / "\u003d":singleOp
+semicolon = ";"
+one = "1"
+
+colon = ":" (!op)
+colonOp = ":":singleOp / "\u003a":singleOp
+closecurly = "}"
+opencurly = !(leftEncloserMulti) "{":leftEncloser
+closesquare = "]"
+opensquare = !(opendoublesquare) "[":leftEncloser
+ellipses = "..."
+
+lessthanequal    = "<=":op / "LE":op / "\u2264":op
+lessthan         = "<":op  / "LT":op / "\u003c":op
+greaterthanequal = ">=":op / "GE":op / "\u2265":op
+greaterthan      = ">":op  / "GT":op / "\u003e":op
+
+NOT     = "NOT":op / "\u00ac":op
+OR      = "OR":op / "\u2228":op
+AND     = "AND":op / "\u2227":op
+IMPLIES = "IMPLIES":op / "\u2192":op
+
+DOT = "DOT":OpName / "\u00b7":op
+slash = "/":singleOp / "\u002f":singleOp
+rightarrow = "->" / "\u2192"
+underscore = "_"
+
+closeangle = "|>" / "\u27e9"
+closedoublesquare = "\\]" / "\u27e7"
+closeparen = ")"
+cross = "BY" / "\u2a2f"
+mapsto = "|->" / "\u21a6"
+match = "=>" / "\u21d2"
+minus = "-":singleOp / "\u2212":singleOp
+openangle = "<|":leftEncloser / "\u27e8":leftEncloser
+opendoublesquare = "[\\" / "\u27e6"
+openparen = !(leftEncloser) "("
+plus = "+":singleOp / "\u002b":singleOp
+pound = "#":singleOp / "\u0023":singleOp
+star = !("**") "*":singleOp
+
+comma = ","
+commaOrNot = "," / w
+dot   = "."
+
+AssignOp =
+     colonequals
+   / CompoundOp
+
+SUM = "SUM"
+PROD = "PROD"
+
+Accumulator =
+     SUM
+   / PROD
+   / BIG w (Encloser / Op)
+
+ArrayComprehensionClause =
+     ArrayComprehensionLeft wr bar wr GeneratorClauseList
+\end{verbatim}

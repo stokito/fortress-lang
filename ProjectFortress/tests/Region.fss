@@ -1,0 +1,44 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Region
+export Executable
+
+run():()=do
+    all = array1[\Any,7\]()
+    all[0] := Nothing[\ZZ32\]
+    all[1] := Nothing[\RR64\]
+    all[2] := Just[\ZZ32\](5)
+    all[3] := Just[\RR64\](17)
+    all[4] := 5
+    all[5] := false
+    all[6] := "Howdy"
+    assert(region(all).isLocalTo(Global))
+    for (i,v) <- all.indexValuePairs do
+        assert(all.region(i).isLocalTo(region(all)))
+        assert(region(v).isLocalTo(Global))
+        assert(isShared(v),isShared(all))
+        assert(region(localize(v)).isLocalTo(here()))
+        assert(NOT isShared(v) ->: NOT isShared(localize(v)))
+        at region(v) do
+            println(v " at " region(v) "; here = " here())
+        end
+    end
+    try
+        at (throw NotFound) do
+            fail("Running block of flaky region computation!")
+        end
+    catch x
+        NotFound => println("OK")
+    end
+end
+
+end

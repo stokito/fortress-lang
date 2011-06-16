@@ -1,0 +1,60 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2008,2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+if [ $# -lt 1 ] ; then
+  echo forzip directory-and-zipfile-name
+  exit 1
+fi
+
+ourname="$1"
+
+ver=`svnversion`
+
+if ( echo $ver | egrep -q '^[0-9]+$' ) ; then
+echo "Cleaning"
+./ant clean compile
+echo "Echo zipping version ${ver}, logged in zip_${ver}.log"
+ln -s `pwd` ../${ourname}
+( cd .. ; find -L ${ourname} \( -name .svn -o \
+           -name "fortress_*.zip" -o \
+           -name .hg -o \
+           -name tmp -o \
+           -name .manager -o \
+           -name test-tmp -o \
+           -name SvnStats -o \
+           -name "*.log" -o \
+           -name "*.bin" -o \
+           -name "*~" -o \
+           -name .dependencies -o \
+           -name "TEST-RESULTS" \) -prune -o -print | \
+           zip -9 fortress_${ver}.zip '-@' \
+  > zip_${ver}.log )
+
+else
+  reason="none"
+  if ( echo $ver | egrep -q 'M') ; then
+    echo "Please commit local changes in $ver"
+    reason="M"
+  fi
+  if ( echo $ver | egrep -q 'S') ; then
+    echo "Please be sure $ver is not switched"
+    reason="S"
+  fi
+  if ( echo $ver | egrep -q ':') ; then
+    echo "Please update at top level to get a consistent version, not $ver"
+    reason=":"
+  fi
+  if [ ${reason} == "none" ]; then
+    echo "An svnversion '${ver}' not expected by the author of this script is causing confusion."
+  fi
+fi
