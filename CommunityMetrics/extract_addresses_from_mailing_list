@@ -1,0 +1,24 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+# Takes as input a sequence of lines, each containing, somewhere, 
+# non_empty_user_name@non_empty_host
+# if there is more than one @ on the line, results are not so good.
+# The three sed lines are, roughly:
+#  trim off leading gunk, up to non_empty@
+#  trim off trailing gunk, possibly leaving some trailing whitespace
+#  trim off trailing whitespace
+
+sed -E -e '1,$s/^([ 	]*)([^ 	@]+[ 	]+)*<?//g' |
+sed -E -e '1,$s/>?([ 	]+[^ 	@]+)*$//g' |
+sed -E -e '1,$s/[ 	]+$//g'

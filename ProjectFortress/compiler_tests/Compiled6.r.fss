@@ -1,0 +1,33 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait A[\X extends String\]
+  x: A[\X\]
+  y: X
+end
+
+object O(x:A[\String\]) extends A[\String\] 
+  getter y():String = "hello"
+end
+
+object P extends A[\String\]
+  getter x():A[\String\] = O(P)
+  getter y():String = self.x.y
+  getter z():A[\String\] = self.x
+end
+
+run(): () = do
+  println P.y
+  (*) z (*) Intentional static error, to avoid tripping up codegen
+end
+
