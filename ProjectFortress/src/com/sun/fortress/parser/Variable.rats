@@ -1,0 +1,122 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress variable declarations.
+ */
+module com.sun.fortress.parser.Variable(NoNewlineHeader, MayNewlineHeader,
+                                        NoNewlineType, NoNewlineExpr,
+                                        Identifier, Keyword, Symbol, Spacing);
+
+import NoNewlineHeader;
+import MayNewlineHeader;
+import NoNewlineType;
+import NoNewlineExpr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* VarDecl ::=
+     Mods? VarMayTypes w InitVal
+   | Mods? BindIdOrBindIdTuple w = w NoNewlineExpr
+   | Mods? BindIdOrBindIdTuple w : w NoNewlineType w ... w InitVal
+   | Mods? BindIdOrBindIdTuple w : w NoNewlineTupleType w InitVal
+ */
+VarDecl VarDecl =
+     a1:Mods? a2:VarMayTypes w a3:InitVal
+     { a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), a3.getB());
+       yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), a2,
+                                         Option.<Expr>some(a3.getA()));
+     }
+   / a1:Mods? a2:BindIdOrBindIdTuple w equals w a3:NoNewlineExpr
+     { List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
+                                              Option.<Modifiers>wrap(a1),
+                                              Option.<TypeOrPattern>none(), false);
+       yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount),
+                                         lvs, Option.<Expr>some(a3));
+     }
+   / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses w
+     a4:InitVal
+     { List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
+                                              Option.<Modifiers>wrap(a1),
+                                              Option.<TypeOrPattern>some(a3), a4.getB());
+       yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), lvs,
+                                         Option.<Expr>some(a4.getA()));
+     }
+   / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineTupleType w a4:InitVal
+     { Span span = createSpan(yyStart,yyCount);
+       List<Type> tys = a3.getElements();
+       if (a2.size() != tys.size())
+           log(span, "Mismatched numbers of variables and types.");
+       List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
+                                              Option.<Modifiers>wrap(a1),
+                                              tys, a4.getB());
+       yyValue = NodeFactory.makeVarDecl(writer, span, lvs,
+                                         Option.<Expr>some(a4.getA()));
+     };
+
+/* VarMayTypes ::=
+     VarMayType
+   | ( w VarMayType (w , w VarMayType)+ w )
+ */
+List<LValue> VarMayTypes =
+     a1:VarMayType
+     { yyValue = Useful.list(a1); }
+   / openparen w a1:VarMayType a2s:(w comma w VarMayType)+ w closeparen
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / openparen w a1:VarMayType a2s:(w commaOrNot w VarMayType)+ w closeparen
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     };
+
+/* VarMayType ::= BindId (w IsTypeOrPattern)? */
+LValue VarMayType = a1:BindId a2:(w IsTypeOrPattern)?
+     { if (a2 == null)
+           yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1);
+       else
+           yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2);
+     };
+
+/* InitVal ::= (=|:=) w NoNewlineExpr */
+com.sun.fortress.useful.Pair<Expr,Boolean> InitVal =
+     a1:(equals / colonequals) w a2:NoNewlineExpr
+     { boolean isMutable = a1.equals(":=") || a1.equals("\u2254");
+       yyValue = new com.sun.fortress.useful.Pair<Expr,Boolean>(a2, isMutable);
+     };
+
+/* AbsVarDecl ::=
+     Mods? NoNewlineVarWTypes
+   | Mods? BindIdOrBindIdTuple w : w NoNewlineType w ...
+   | Mods? BindIdOrBindIdTuple w : w NoNewlineTupleType
+ */
+VarDecl AbsVarDecl =
+     a1:Mods? a2:NoNewlineVarWTypes
+     { a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), false);
+       yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount), a2,
+                                         Option.<Expr>none());
+     }
+   / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineType w ellipses
+     { List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
+                                              Option.<Modifiers>wrap(a1),
+                                              Option.<TypeOrPattern>some(a3), false);
+       yyValue = NodeFactory.makeVarDecl(writer, createSpan(yyStart,yyCount),
+                                         lvs, Option.<Expr>none());
+     }
+   / a1:Mods? a2:BindIdOrBindIdTuple w colon w a3:NoNewlineTupleType
+     { Span span = createSpan(yyStart,yyCount);
+       List<Type> tys = a3.getElements();
+       if (a2.size() != tys.size())
+           log(span, "Mismatched numbers of variables and types.");
+       List<LValue> lvs = NodeFactory.makeLvs(writer, NodeFactory.ids2Lvs(a2),
+                                              Option.<Modifiers>wrap(a1), tys, false);
+       yyValue = NodeFactory.makeVarDecl(writer, span, lvs, Option.<Expr>none());
+     };

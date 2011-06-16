@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait T
+  opr SEQV(self):() = ()
+end
+opr OP(x:ZZ32, y:ZZ32..., z:ZZ32 = 0) = ()
+opr (y:ZZ32)^ = ()
+opr ^(y:ZZ32...) = ()
+opr ^(y:ZZ32) = ()
+opr ^() = ()
+opr ()OP = ()
+opr (x:ZZ32 = 0)OP = ()
+opr (x:ZZ32...)OP = ()
+opr (x:ZZ32, y:ZZ32)OP = ()
+
+run():() = ()

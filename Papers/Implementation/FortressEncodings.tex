@@ -1,0 +1,485 @@
+\documentclass[11pt]{article}
+
+% THIS REQUIRES XELATEX OR LUATEX, AND SOME FONTS.
+
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+%\usepackage{graphicx}
+%\usepackage{amssymb}
+%\usepackage{epstopdf}
+\usepackage{fontspec}
+%\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+\title{Fortress function/method/type encodings}
+
+\def\LOBR{\mbox{\fontspec{Code2000}⟦}}
+\def\ROBR{\mbox{\fontspec{Code2000}⟧}}
+\def\SNOW{\mbox{\fontspec{Code2000}☃}}
+\def\HVYX{\mbox{\fontspec{Zapf Dingbats}✖}}
+\def\GEAR{\mbox{\fontspec{Apple Symbols}⚙}}
+\def\UNDX{\mbox{\fontspec{Apple Symbols}☝}}
+\def\RNDX{\mbox{\fontspec{Zapf Dingbats}☞}}
+\def\NVLP{\mbox{\fontspec{STIXGeneral}✉}}
+\def\DNGR{\mbox{\fontspec{STIXGeneral}⚠}}
+\def\RARW{\mbox{\fontspec{STIXGeneral}→}}
+\def\CPYRT{\mbox{\fontspec{STIXGeneral}©}} % \copyright blank in luatex, why???
+\def\SELF{\mbox{\it self}}
+
+\author{David Chase}
+%\date{}                                           % Activate to display a given date or no date
+%\setmainfont{Georgia}
+\begin{document}
+\maketitle
+%\section{}
+%\subsection{}
+
+
+This note describes the manglings applied to various Fortress entities in their translation to the JVM.
+An outline of the classloader behavior triggered by these encodings (if any) is also included.
+Some of these manglings include what can only be called silly artifacts of the Fortress compiler's implementation history; some of these may be fixed over time.
+
+% Footnote hack from http://www.latex-community.org/forum/viewtopic.php?f=5&t=2768
+\makeatletter{\renewcommand*{\@makefnmark}{}
+\footnotetext{Copyright {\normalsize\CPYRT}\ 2010, 2011 Sun Microsystems, Inc.}\makeatother}
+
+\section{Special characters}
+\begin{table}[htdp]
+\caption{Special characters used in generated code.}
+\begin{center}
+\begin{tabular}{|r|c|l|}
+left oxford&\LOBR&begin generic parameters (can nest)\\
+right oxford&\ROBR&end generic parameters (can nest)\\
+snowman&\SNOW&void; used in Arrow types\\
+heavy x&\HVYX&schema marker; blocks subsequent rewriting\\
+gear&\GEAR&generic function marker\\
+up index&\UNDX&self type within generic methods\\
+right index&\RNDX&index indicator for functional method forwarders\\
+envelope&\NVLP&closure indicator
+\end{tabular}
+\end{center}
+\label{default}
+\end{table}%
+
+\section{Dangerous characters and basic name encoding}
+
+{\it Important note: at this stage of the Fortress implementation, there is no linker, and thus with the exception of Executable, components are expected to have the same name as the api that they export.  This will change.}
+
+A Fortress component or api name containing at least one dot is encoded as a package and class; a name with no dots is encoded as a class with no package.  For example, ``\verb+a.b.c+" encodes as package ``\verb+a.b+'', class ``\verb+c+".  Within the JVM, this name would appear as ``\verb+a/b/c+".
+
+Non-generic top-level functions of an api or component appear as static functions of the class for the api/component in which they appear.  Their names may be further mangled.
+
+Objects of an api or component appear as if they were inner (final) classes of the class for the api/component in which they appear.  Their names may be further mangled in certain cases.  For example, object O within ``\verb+a.b.c+" has the JVM name ``\verb+a/b/c$O+".  Their constructors appear as static methods of the component, as if declared with the same name (in the absence of other manglings).  Singleton objects appear as static final fields of the api/component class, with no constructor (or rather, the constructor name is mangled and only referenced in the static init of the class).  This story is somewhat complicated by generics.
+
+Traits of an api or component appear as an inner interface and inner abstract class (two names) of the class for the api/component in which they appear.  The interface describes the methods of the trait, and the abstract class extends the interface, provides static methods implementing any default methods of the trait, and also provides forwarding (instance) methods to those defaults for convenient inheritance whenever the trait appears in first position of an extends clause.  The abstract class for a trait, extends the abstract class for the first trait that the trait itself extends.  Like objects, the name of the interface can be the same as the Fortress name -- for example, trait T within ``\verb+a.b.c+" has the JVM name ``\verb+a/b/c$T+".  The abstract class is encoded as if it were an inner class of the trait's encoded interface, with name ``DefaultTraitMethods".  Extending the example, ``\verb+a/b/c$T$DefaultTraitMethods+".  This encoding was chosen primarily because it eased bootstrapping; traits and objects for primitive types could be hand-coded in Java and then compiled to bytecodes.
+
+Throughout this description of the name encoding, dangerous characters appear.  All names and descriptors are subject to a special mangling that removes dangerous characters.  The official dangerous characters transformation is described at John Rose's blog (\verb+http://blogs.sun.com/jrose/entry/symbolic_freedom_in_the_vm+), but it is not applied blindly.  At the top-level of a name (outside of encoded type parameter lists) dangerous-characters mangling is applied to \$-separated segments; within generic parameter lists, it is applied to the entire list, including any \$, /, or ; that may appear in the names there.
+
+\section{Generic traits and objects}
+
+A reference to a Fortress generic trait or object is encoded as the encoded trait name, followed by a left oxford bracket (\LOBR), then a semicolon-separated list of the encoded static type arguments, and then a right oxford bracket (\ROBR).  For example, within Fortress component ``hi" containing generics 
+\verb+C+\LOBR\verb+T,U+\ROBR\ and \verb+bo+\LOBR\verb+T+\ROBR\ and trait A, 
+a reference to \verb+C+\LOBR\verb+A,bo+\LOBR\verb+A++\ROBR\ROBR\ is encoded as
+\begin{center}
+\verb+hi$C+\LOBR\verb+hi$A;hi$bo+\LOBR\verb+hi$A+\ROBR\ROBR
+\end{center}
+which after dangerous-characters mangling becomes
+\begin{center}
+\verb+hi$\=C+\LOBR\verb+hi\%A\?hi\%bo+\LOBR\verb+hi\%A+\ROBR\ROBR
+\end{center}
+
+At compile time, each generic trait is converted to a template class, with the name of the generic trait equal to the stem followed by left Oxford, semicolon-separated static parameter names, and right Oxford.  The template it stored in a ``.class'' file with a different name, that keeps the Oxford brackets but omits the static parameter names.  Accompanying that file is a second file with suffix ``.xlation" containing the names of the static parameters.  The parameters are stored as a list  using an extremely simple serialization protocol.  For ``hi.C\LOBR{}T,U\ROBR'' in the example above, the template file is named \verb+hi$C+\LOBR\ROBR\verb+.class+ and contains (dangerous-mangled) class
+\verb+hi$\=C+\LOBR\verb+T\?U+\ROBR.  The accompanying file \verb+hi$C+\LOBR\ROBR\verb+.xlation+ contains (exactly) ``\verb+LIST_1.0 STRING_1.0 2 1 T 1 U+", indicating version 1.0 of the list and string serializations, a List of 2 items, a String of 1 character T, a String of 1 character U.
+
+For generic traits, the DefaultTraitMethods is encoded as if it were an inner class of the generic, and thus also appears as if it were generic.  For trait ``C" in this example, the corresponding class is \verb+hi$\=C+\LOBR\verb+T\?U+\ROBR\verb+$DefaultTraitMethods.class+ stored in \verb+hi$C+\LOBR\ROBR\verb+$DefaultTraitMethods.class+ and the static parameter information is stored in \verb+hi$C+\LOBR\ROBR\verb+$DefaultTraitMethods.xlation+
+
+At run time, any reference to one of these generic-encoding classes triggers special behavior in the Fortress class loader.  The static arguments in the reference are stripped out, to yield the basename of the template file and the .xlation file.  Those files are read as resources, not classes.  The names of the static parameters and values (text) of the static arguments are paired up in a map, and then the ``bytecodes" in the template are processed with ASM to perform a context-sensitive replacement of parameters with arguments.  The result is the class that is actually loaded.  The loaded class may contain additional generic references, which are in turn expanded.  {\it Interesting to consider, could we ever accidentally deadlock our classloader from two threads? }
+
+When a greater variety of generic parameters are supported (nat, bool, opr, dimension, unit), the information in the .xlation files will be extended to keep track of the parameter category.  This may lead to different context-sensitive rewriting, but given the infrastructure already in place, this should not be difficult.
+
+\section{Arrow types}
+An arrow type is both a string appearing within other identifiers, and a type in its own right.  A Fortress function with domain {\it domain} and range {\it range} will have corresponding Java type $\mbox{Arrow}\LOBR{}\widehat{\mbox{\it domain}};\widehat{\mbox{\it range}}\ROBR$\ in the generated code, where $\widehat{\mbox{\it domain}}$ is the Java class/interface (tuple) encoding for the Fortress domain (tuple), and $\widehat{\mbox{\it range}}$ is the class or interface for the Fortress result type.  If the Fortress type is void (``()"), then the encoded type is \SNOW; if it is a singleton, then it is just the encoding of that type; if the domain type is a tuple, then the encoded elements of the tuple type, separated by semicolons.  Note that tupled result types are not unwrapped, and appear as a encoded Tuple type (not yet implemented, but trivially $\mbox{Tuple}\LOBR{}\widehat{\mbox{\it element1}};\widehat{\mbox{\it element2};...}\ROBR$).
+
+\section{Closures}
+
+Closures, meaning, function values derived from the naming of a top-level function, are compiled into a reference to an oddly-named class, which triggers code generation when the class is loaded.
+
+The general form of the class name is $\mbox{\it packageClass}\,\$\mbox{\it function}\,\NVLP\$\mbox{Arrow}\LOBR{}\widehat{\mbox{\it domain}};\widehat{\mbox{\it range}}\ROBR$ where
+\begin{itemize}
+\item {\it packageClass} is the Java package and class derived from the Api or Component containing the top level function.
+\item {\it function} is the name of the function itself.
+\item $\widehat{\mbox{\it domain}}$ is the translation of the function's domain
+\item $\widehat{\mbox{\it range}}$ is the translation of the function's range
+\end{itemize}
+For example, a non-call reference to
+\begin{verbatim}
+printlnZZ(n:ZZ32):()
+\end{verbatim}
+defined in component C6 results in a load of static field ``closure" from
+\begin{center}
+\small{\verb+C6$printlnZZ+\NVLP\verb+$Arrow⟦com/sun/fortress/compiler/runtimeValues/FZZ32;+\SNOW\ROBR}
+\end{center}
+Dangerous-characters-mangled, this is
+\begin{center}
+\small{\verb+C6$printlnZZ+\NVLP\verb+$\=Arrow⟦com\|sun\|fortress\|compiler\|runtimeValues\|FZZ32\?+\SNOW\ROBR}
+\end{center}
+Here, the package is empty (top level) because the Api name is undotted.  The class name is ``C6'', and the function name is ``println''.
+``com/sun/fortress/compiler/runtimeValues/ZZ32" is the Java/JVM type for Fortress ZZ32, and the function returns void, so the range is ``\SNOW".
+
+The Fortress classloader checks for an occurrence of ``\NVLP" in a requested class, and if one is found, then a closure class is synthesized based on the information in the name itself.
+
+\section{Generic functions}
+Generic function references are also compiled into references to an oddly named class.  The generic function class is also a closure.
+The form of the generated name is \begin{center}
+{\it packageClass}\,\GEAR\${\it function}\,\LOBR{\it static\_arguments}\ROBR\NVLP\$\HVYX{}Arrow\LOBR{}{\it domain};{\it range}\ROBR
+\end{center}
+Unlike closures, the class resulting from a reference is not synthesized from just its name, but is instead created by expanding a template ``class" where the static parameters appear in the place of the static arguments (just the names, no extends annotations). 
+The template is stored in a ``.class" file with basename 
+\begin{center}
+{\it packageClass}\,\GEAR\${\it function}\,\LOBR\ROBR\NVLP\$\HVYX{}Arrow\LOBR{}{\it domain};{\it range}\ROBR
+\end{center}
+Note the lack of static parameters in the signature; this is actually a lurking bug, once we implement overloading of generic functions.  The expansion of a generic function proceeds exactly the same as the expansion of a generic trait or object.
+
+The packageClass and function are the same as in closures; the static parameters are those supplied in the definition of the function.
+The schema serves to disambiguate different generic functions overloading the same name; currently it is just the arrow type of the generic function, as declared (but this is not sufficient, that is the lurking bug).  The \HVYX\ character serves a special purpose; it blocks further translation within a name occurring with a template that is expanded by the classloader.
+
+The purpose of the oddly named container file and the non-rewritten schema is to help work around the lack of a linker in the current implementation, and to simplify linking when one is finally needed.  Ideally (for the code generator and classloader, if not for error reporting and humans trying to read generated code) static parameter names would be normalized at both declaration and reference, but currently they are not.  Lacking that, the Fortress classloader needs a way to find the template for a given generic function.  It does this by stripping out the static parameters and using the name that results, together with the schema for the function.  The schema is not rewritten, and thus matches between definition and use sites (assuming some consistency in static parameter names between the api's declaration and the components definition of the same generic function).  Note that the schema has no particular semantic meaning; it merely serves to disambiguate multiple generic functions with the same name, and it could in principle be the source location in the api declaring the function (or component, if it is not exported to an api).
+
+The Fortress classloader checks for an occurrence of ``\GEAR'' to detect generic functions.  This check occurs before the closure test.
+
+For example, the generic function \verb+g[\T extends ZZ32, S\](x:T):ZZ32+ in component C11 generates .class and .proto files with the mangled basename
+\begin{center}
+\verb+C11+\GEAR\verb+$g+\LOBR\ROBR\NVLP\verb+$\=+\HVYX\verb+Arrow+\LOBR\verb+T\?com\|sun\|fortress\|compiler\|runtimeValues\|FZZ32+\ROBR
+\end{center}
+which unmangles to
+\begin{center}
+\verb+C11+\GEAR\verb+$g+\LOBR\ROBR\NVLP\verb+$+\HVYX\verb+Arrow+\LOBR\verb+T;com/sun/fortress/compiler/runtimeValues/FZZ32+\ROBR
+\end{center}
+
+Note that closure bits for the generic function are not synthesized at run time, but instead come from part of the generic template.
+(However, the same code stamps out templates and synthesizes closures, it is simply called from different contexts).
+
+\subsection{Modifications to incorporate overloading of generics}
+When an overloaded function includes dispatch to (and instantiation of) a generic function, that will require two things.  First, there will need to be (1) a symbolic instantiator (similar to what is done for generic methods), (2) a dispatch cache for the particular function (like generic methods), and (3) the generic that is instantiated must include an entrypoint in which type parameters have been erased, followed by casts to the instantiated types.  This is so because the symbolic reference, being symbolic, cannot include a cast to a non-constant (symbolic) type.
+
+\section{Functional methods}
+
+A functional method in a trait or object is promoted to a top-level trampoline function, and the method name is rewritten by appending $\mbox{\RNDX}K$, where $K$ is the index of \SELF\ in the parameter list of the functional method.  For example, the method f in trait T below
+\begin{verbatim}
+trait T
+  f(x:String, self, y:ZZ32):String
+end
+\end{verbatim}
+is rewritten to the new method \verb+f+\RNDX\verb+2(x:String, y:ZZ32):String+ and the top level function is almost-as-if\\
+\\
+\verb+f(x:String, renamed_self:T, y:ZZ32):String = renamed_self.f+\RNDX\verb+2(x,y)+\\
+
+What prevents this from being the exact translation, is the possibility of Fortress ASIF being applied to arguments to the functional method; for dispatch purposes, this alters the apparent type of a value, but the alteration only lasts for a ``single" dispatch.  In the case of functional methods, the altered type is in force until the body of the final method (after any method overloading) is reached.
+
+\section{Renaming of overloaded functions}
+
+Within any component, there may be overloaded functions.  In some cases, the overloaded function may have the same domain as one of the functions in the overload.  When this occurs, the overloaded function gets the canonical name that the function will be known by if it is exported, and the name of the function in the overload that clashes is mangled by appending \$SINGLE to its name.  It is correct, though not necessarily efficient, to refer to the overloaded function even when it is known that only the single function is applicable, because dispatch will still arrive at the proper place.  Within the overloaded dispatch itself, however, the distinction matters.
+
+Note that, because no top-level function in an overloading is allowed to be more specific than a functional method, this single-mangling will never apply to a trampoline function for a functional method.  (The overloading can be resolved at the method level.)  {\bf
+This is not true for the new overloading story; this needs to be corrected.}
+
+{\it Note that there may be a problem with methods and ASIF, if we lazily generate dispatch code for ASIF references, because we cannot lazily add methods to a class. }
+
+\section{Functional methods of generic traits and objects}
+
+
+
+
+\section{Generic methods}
+
+Generic methods are compiled very differently from ordinary methods, and also have a different calling convention.
+Because the JVM does not allow new methods to be added to an already-loaded class, these cannot be template-expanded as methods.
+Instead, each generic method leads to the creation of a lookup method, a generic top-level function, and a static lookup table.  The lookup method has the same name as the generic method, but always takes two parameters, the first a hashcode of a string, and the second parameter that string, a representation of the static arguments to the generic method instantiation.
+
+The lookup data structure and sample code are as if they were compiled from this Java:
+\begin{verbatim}
+private static BAlongTree sampleLookupTable = new BAlongTree();
+public Object sampleLookup(long hashcode, String signature) {
+    Object o = sampleLookupTable.get(hashcode);
+    if (o == null) 
+         o = InstantiatingClassloader.
+             findGenericMethodClosure(
+                  hashcode,
+                  sampleLookupTable,
+                  "template_class_name",
+                  signature);
+    return o;
+}
+\end{verbatim}
+
+The generic top level function has an additional first parameter for self; after it is instantiated, it is returned and called as if it were a top-level function.  The static arguments passed to the lookup function and used to instantiate the top level function are modified to include a type argument describing the static type of self at the call site.  This is necessary because of limitations of the JVM and its type system.  The Object returned from the lookup method must be cast to an Arrow type so it can be invoked.  However, which Arrow type is it?  Recall that function types (Arrows, in this context) are contravariant in their domain type, and this cannot easily be encoded directly into the JVM's type system (Integer extends Number extends Object, but Object\RARW... extends Number\RARW... extends Integer\RARW...; it requires global knowledge to figure out the upside-down Arrow hierarchy, and most of the casts are probably never performed).  Therefore, by convention, Fortress Arrow types are invariant in their domains {\it when regarded as Java types, which is what matters for JVM verification}, and an actual Fortress subtype test will be open-coded to check the domains for appropriate relationships.  This means that the static type of self and the type of the self parameter in the returned closure must match.  {\it Strictly speaking, could be assignable-to, but the upper bound of all the traits declaring the generic method might not be representable, therefore this route was not pursued.}  By providing a type parameter to specify the exact self type for the Arrow, a match can be ensured.  {\it Note that this means that casting of arrow types may result in generation of wrapper code to both make the JVM happy and to apply the appropriate casts to the arguments when they are passed in.}
+
+The generated closure is slightly modified from the usual, because its ``apply" method contains a downcast to the known actual type of the trait or object defining the generic method.
+
+The calling convention for a generic method closure is as follows:
+\begin{enumerate}
+\item evaluate the object expression
+\item DUP the object value
+\item push the hashcode and string for the static-self-prepended generic arguments.  Note that in a generic context, these generic arguments may mention arguments bound in an outer instantiation; in that case special methods are used that are replaced with the appropriate instructions when the outer generic is template-instantiated.
+\item invoke {\it object}.{\it methodName}
+\item cast the returned Java Object to the appropriate Arrow type (same as original method signature, but with static self prepended.
+\item SWAP closure and object
+\item evaluate arguments
+\item invoke closure
+\end{enumerate}
+
+There is a naming convention for the closure that provides the body of the generic method, but the name is not directly exposed to referencing code.  The compiler and the \verb+findGenericMethodClosure+ method of \verb+InstantiatingClassloader+ are the producer and consumer of the name.  As an example, suppose that component \verb+C16+ contains a trait \verb+T+ with a generic method \verb+f+\LOBR\verb+S+\ROBR\ mapping \verb+S+ to \verb+Foo+.
+\begin{verbatim}
+component C16
+trait Foo end
+trait T
+  f[\S\](s:S):Foo
+end
+\end{verbatim}
+The closure name is 
+\\
+\verb+C16+\GEAR\verb+$T+\UNDX\verb+f+\LOBR\UNDX\verb+;S+\ROBR\NVLP\verb+$+\HVYX\verb+Arrow+\LOBR\verb+S;C16/Foo+\ROBR
+\\
+or with dangerous-characters mangling
+\\
+\verb+C16+\GEAR\verb+$T+\UNDX\verb+f+\LOBR\UNDX\verb+\?S+\ROBR\NVLP\verb+$\=+\HVYX\verb+Arrow+\LOBR\verb+S\?C16\|Foo+\ROBR
+
+{\it This would be a great place for an example invocation.}
+
+\section{Special methods}
+
+Certain methods are rewritten to loads of long and String constants when the templates containing them are instantiated.  This is necessary to correctly rewrite invocations of generic methods occurring in a template (generic) class.
+
+These are encoded by use of a magic class name (``CONST'') and whatever constant encodings we decide we need; in principle, we could embed a Lisp interpreter here.  Currently, the encoded method names are \verb+String.+{\it stringValue} and \verb+hash.+{\it stringValue} (yes, the capitalization is inconsistent, sigh).
+
+\section{Generic methods of generic traits and objects}
+
+The calling convention for a generic method of a generic trait/object is the same as the convention for calling a generic method of a plain trait/object.  It has to be, since a generic trait could extend or be extended by a non-generic trait supplying the same generic method.  The (generic) trait provides a lookup method, and the lookup method provides an appropriate closure, which must be cast in the same way before invocation.
+
+The only interesting difference is that the generated closure will have a concatenated set of generic parameters; first the static self type, then the method static parameters, finally the trait static parameters (this is different from the order used for functional method declarations in a double-generic context, the goal is to cut down on annoying parsing of generic parameter lists).  The hash code and generic method parameters passed to the lookup method will be the same, so the extra static parameter concatenation occurs within an extended closure lookup method.
+
+\begin{verbatim}
+private static BAlongTree sampleLookupTable = new BAlongTree();
+public Object sampleLookup(long hashcode, String signature) {
+    Object o = sampleLookupTable.get(hashcode);
+    if (o == null) 
+         o = InstantiatingClassloader.
+             findGenericMethodClosure(
+                  hashcode,
+                  sampleLookupTable,
+                  "template_class_name",
+                  signature,
+                  trait_signature);
+    return o;
+}
+\end{verbatim}
+
+Note that the hashcode and index strings do not depend on the trait signature; it is used only in locating the correct closure template to instantiate.
+
+\section{Functional generic methods}
+
+The forwarding function created for a functional generic method is itself a generic function, following the same naming conventions for a top level generic function of that name.  The dotted method invocation within the forwarding function, follows the recipe for invocation of a dotted generic method.
+
+{\it It appears that the code generator, as of revision 4668, is failing to add the finger-index annotation to generic functional methods.}
+
+\section{Tuples (and casting)}
+
+In the normal case, fortress tuples used as ``arguments to function calls'' will not result in heap allocation, but it can be handy to return tuples, and they may appear in certain generic situations.  One problem with tuples is that it is not practical to encode all possible tuple subtype relationships into Java classes or interfaces, because there will be so many.  For example, if the $N$ elements of an $N$-tuple each have $K$ transitive supertypes (including themselves), then there are $K^N$ transitive supertypes of the tuple.
+
+This means that, though Fortress type checking will be happy with 
+\begin{verbatim}
+  a:ZZ32 = 1
+  x:(Number, Number, Number) = (a,a,a)
+\end{verbatim}
+the naively compiled Java will not pass verification,
+because \verb+Tuple\=+\LOBR\verb+ZZ32\?ZZ32\?ZZ32+\ROBR\ will not extend
+\verb+Tuple\=+\LOBR\verb+Number\?Number\?Number+\ROBR.
+
+To deal with this, Fortress Tuple types provide the following:
+\begin{itemize}
+
+\item (shared) An abstract root class \verb+Tuple+ providing a method for determining its size and a method for getting its elements by index.  Ideally, this would be an instance of Java \verb+List+; this works as long as we are not unboxing carelessly (Fortress integers are not, naively, ``int").  This might extend Java \verb+AbstractList+ (it also has to be a Fortress \verb+Any+ type, Java interface \verb+Fortress$AnyType$Any+).  {\it This type seems to do nothing more interesting than ordinary \verb+AbstractList+, so for now, it will be \verb+AbstractList+.}
+
+\item (shared) A super interface \verb+AnyTuple+$N$ (mangling TBD) where $N$ is the number of elements in the tuple type.  \verb+AnyTuple+$N$ declares methods \verb+o+$1$ through \verb+o+$N$ returning \verb+Fortress$AnyType$Any+ for accessing the elements without knowing their types.  Note that in the bytecodes, these will appear as instance methods, with signature ``\verb+()LFortress$AnyType$Any;+".
+
+\verb+AnyTuple+$N$ extends \verb+java.util.List+.
+
+\item (shared) A super class \verb+AnyConcreteTuple+$N$ (mangling TBD) where $N$ is the number of elements in the tuple type.
+\verb+AnyConcreteTuple+$N$ supplies methods \verb+o+$1$ through \verb+o+$N$ returning \verb+Fortress$AnyType$Any+ for accessing the elements without knowing their types.
+Note that in the bytecodes, these will appear as instance methods, with signature ``\verb+()LFortress$AnyType$Any;+".
+\verb+AnyConcreteTuple+$N$ extends \verb+AbstractList+ and implements \verb+AnyTuple+$N$
+\verb+AnyConcreteTuple+$N$ provides implementations for \verb+AbstractList+'s size() and get() methods.
+
+\item An interface \verb+Tuple...+ parameterized appropriately.  This implements \verb+AnyTuple+$N$, ande declares
+accessors for the elements, \verb+e+$1$ through \verb+e+$N$.  Note that these will be properly typed and will therefore have signatures that depend on the element types.
+
+\item An implementation class \verb+ConcreteTuple...+ parameterized appropriately.
+It extends the appropriate \verb+AnyConcreteTuple+$N$ as well as the \verb+Tuple...+ interface with matching parameters.
+
+\begin{itemize}
+
+  \item A static factory method \verb+make+\ taking $N$ properly-typed elements, invoking the constructor.
+
+  \item A static factory-as-needed method \verb+cast+\ for converting another tuple whose elements subtype (respectively) the elements of this tuple type, into this tuple type.  This is accomplished by first checking for subtype and returning the same if it exists, otherwise invoking the constructor on the cast elements.  This can throw ClassCastException; it is assumed that the caller knows what they are doing.
+
+  \item A static boolean method \verb+isA+ determining if another tuple could successfully be cast to this one.
+
+  \item Accessors for the elements, \verb+e+$1$ through \verb+e+$N$.  Note that these will be properly typed and will therefore have signatures that depend on the element types.
+
+  \item Implementation for accessors defined in \verb+Tuple+$N$, \verb+o+$1$ through \verb+o+$N$.
+
+  \item A constructor taking the (properly typed) elements as parameters.
+  \end{itemize}
+
+\end{itemize}
+
+Tuples are cast by invoking the \verb+cast+\ method of the cast-to type; either the cast in place, or the tuple is effectively coerced (which is ok, since it is a value type).
+
+\section{Casting Arrows}
+
+Arrow types have the same mapping-relations-to-Java problem that tuple types do, only worse, because of contravariance.  A function with type \verb+Any->()+ is a subtype of all other function types returning (); this cannot be statically encoded in the JVM type system, since new types can appear as generics are instantianted, and the JVM requires a fixed set of supertypes for any type.
+
+For a given cast-to arrow type, \verb+T->U+, and a value $f$ of type \verb+S->V+ (S is a supertype of T, U is a supertype of V), the cast is accomplished in the following way:
+\begin{itemize}
+
+\item interface \verb+Arrow+\LOBR\verb+S;V+\ROBR\ extends \verb+Arrow+\LOBR\verb+java/lang/Object;java/lang/Object+\ROBR; thus, any Arrow type can be treated as an untyped arrow.  
+
+\item class \verb+AbstractArrow+\LOBR\verb+S;V+\ROBR\ extends \verb+ AbstractArrow +\LOBR\verb+java/lang/Object;java/lang/Object+\ROBR.  
+
+\item \verb+AbstractArrow+\LOBR\verb+S;V+\ROBR\ includes an apply instance method that takes Java Objects and returns a Java Object.  Within that apply method, are the necessary casts.  {\it Question: will tuples of objects be an issue? }
+
+\item \verb+AbstractArrow+\LOBR\verb+T;U+\ROBR\ includes a static castTo method that takes an \verb+Arrow+\LOBR\verb+Object;Object+\ROBR\ and returns a \verb+Arrow+\LOBR\verb+T;U+\ROBR\, either by casting if possible, or by wrapping.
+
+\item The \verb+WrappedArrow+\LOBR\verb+T;U+\ROBR\ type provides a consructor that takes an \verb+Arrow+\LOBR\verb+Object;Object+\ROBR\ and returns a new \verb+AbstractArrow+\LOBR\verb+T;U+\ROBR\ instance.  The parameter(s) into the wrapper (which supports apply, etc) are passed to the object-typed parameters; the result is cast to the return type \verb+U+ (this will be a real Java cast that always succeeds, and analysis might discover this).
+
+\item As an optimization (to prevent onion-like wrapping) AbstractArrow provides a method ``getWrappee" which returns "this", and WrappedArrow instead returns the wrapped arrow.
+
+\end{itemize}
+
+\section{Overloaded function dispatch including generic functions}
+
+Initially, the (revised) model for overloaded function dispatch is to topologically sort the member functions from more-to-less specific, and iteratively attempt to match the functions, choosing the first winner.  Static analysis ensures that the last function in the list needs no testing; it must match.  This approach is taken so that the details of ``more specific than" are centralized in static analysis.  The first attempts to optimize this will merely look for CSEs among the constraint checks, and perhaps modify the order of constraint checking in order to perform common tests first.
+
+The generated code for an overloaded function must perform three subtasks.  First, it must verify constraints.  This is one place where mistakes can be made; the code generator needs to be sure that no constraint is overlooked.  In this overloading, the first function is more specific.  
+\begin{verbatim}
+f[\T, U extends ZZ32\](t:T, u:U):U
+f[\T, U \](t:T, u:U):U
+\end{verbatim}
+This can get more complex.  Consider this overloading
+\begin{verbatim}
+f[\T, U extends ZZ32\](t1:T, t2:T, u1:U, u2:U):U
+f[\T, U \](t1:T, t2:T, u1:U, u2:U):U
+\end{verbatim}
+Here, T is the join (more general) of t1 and t2, and U is the join of u1 and u2.  The first function applies whenever the second (U) join is more-specific-than-or-equal to \verb+ZZ32+.  Note, however, that determining applicability does not require computing the joins; if the types of u1 and u2 are both extensions of ZZ32, then their join is also an extension of ZZ32.
+
+The second task (itself a subtask of the first, sometimes) is to infer static parameters.  Different contexts will be either invariant, covariant, or contravariant; invariant is easiest (if a parameter x has declared type \verb+Invar[\T\]+, then if x is some sort of \verb+Invar+, then T must be exactly that \verb+Invar+'s static parameter).  Top level parameter types are covariant, arrow ranges are covariant, and arrow domains are contravariant.
+
+The third task (for generic targets) is to symbolically instantiate and invoke the targeted generic.  This is similar to the technique used for generic methods, but slightly different.  Generic function implementations must be enhanced in two ways; they must provide an entrypoint supporting symbolic instantiation with type parameters and hashcode (similar to generic methods), and the closure returned must supply an apply method where the type parameters of the function have been erased (because the invoking can only cast as far as the erased type).  That apply method will contain the necessary casts, forwarding to the ``real" apply method.
+
+To infer static parameters, it will be necessary to add additional Fortress-specific type reflection operations.
+For any generic trait or object \verb+TO[\U1, U2, U3\]+, the implemented ``Fortress type" (distinct from the Java class of its implementation) must supply methods to obtain the first, second, and third static parameter types.  The Fortress type must also supply methods, indexed by erased type, of the Fortress types that it extends (these will be constants if the extended type is not generic).  (Implementations of) Fortress objects must supply a method to return their Fortress type.
+
+What methods should each Fortress type $T$ support?
+\begin{description}
+\item[asSUPER\#N()] For each generic trait {\it SUPER} that $T$ extends, retrieve the type for the $N$th static parameter of {\it SUPER} 
+\end{description}
+Each generic type will include a table-backed static factory called \verb+factory+\ (parameters are Fortress types for the static parameters of the generic).  Non-generic types will have a static member \verb+ONLY+.  
+
+For purposes of dispatch, we need additional methods, and we need a system of naming these types.  Suppose that the function whose contraints we are verifying has this signature, where List and Set are invariant in T.
+\begin{verbatim}
+f[\T extends Number\](l:List[\Set[\T\]\], a:T, b:T):List[\T\]
+\end{verbatim}
+Assuming that the arguments l, a, and b have actual types L, A, and B, the following conditions must all be satisfied:
+\begin{itemize}
+\item \verb+L <: List[\?\]+
+\item \verb+L.asList#1() = Set[\?\]+
+\item \verb+T <: Number+ where \verb+T = L.asList#1().asSet#1()+
+\item \verb+A <: T+ where \verb+T = L.asList#1().asSet#1()+
+\item \verb+B <: T+ where \verb+T = L.asList#1().asSet#1()+
+\end{itemize}
+One problem here is that this sequence of tests does not follow obviously from the signature.
+If the first (l) parameter were missing, the constraint on T is that it be equal to the join of A and B; however, because the first parameter produces an invariant constraint, we know the type that T must be.  Note that the actual constraints are that both A and B extend T, and that T be the most-specific type with this property.
+
+To compile the queries, note that sometimes no value of a type is available for querying in the style of Java \verb+instanceof+ (this is the motivation for \verb+List[\Set[\...\]\]+ -- it is possible to ask parameter l if it is an instance of List-something, but to what should the instance-of-Set-something query be directed?)
+
+Another thing to note is that if we pursue this implementation, it bakes in the restriction that a generic stem can only appear once in the transitive-extends of a class.  If \verb+asList#1+ returns a single type instead of a set of types, then \verb+List+ can only appear once in the transitive extends.
+
+Use of instanceof for stem queries suggests that the type system will take the form of two parallel interface and interface-implementation type hierarchies.
+
+For sake of example, suppose that \verb+Array[\T\]+ extends both \verb+Map[\NN, T\]+ and \verb+List[\T\]+.  In the generated Java, the run-time type information will include three interfaces
+\begin{description}
+\item[Array\_I] Extends FRTTI, Map\_I and List\_I. Declares methods:\\
+\verb+asArray#1+
+\item[Map\_I] Extends FRTTI.  Declares methods:\\
+\verb+asMap#1+\\
+\verb+asMap#2+
+\item[List\_I] Extends FRTTI.  Declares methods\\
+\verb+asList#1+
+\end{description}
+
+and three interface implementations
+\begin{description}
+\item[Array\_C] implements Array\_I
+\begin{verbatim}
+constructor and fields Array_C(t1 FRRTI)
+asArray#1() = t1
+final Map_C map = new Map_C(ZZ32_C.only(), t1);
+final List_C list = List_C(t1);
+asMap#1() = map.asMap#1()
+asMap#2() = map.asMap#2()
+asList#1() = list.asList#1()
+\end{verbatim}
+\item[Map\_C] implements Map\_I
+\begin{verbatim}
+constructor and fields Map\_C(t1 FRRTI, t2 FRTTI)
+asMap#1=t1
+asMap#2=t2
+\end{verbatim}
+\item[List\_C] implements List\_I
+\begin{verbatim}
+constructor and fields List\_C(t1 FRRTI)
+asList#1() = t1
+\end{verbatim}
+\end{description}
+
+It appears that the extends list for a type must be initialized lazily, because the type itself can appear there, and also that each generic type instantiation must be unique (because of cycles through the extends list).  All of this may occur in a multi-threaded context, so (in order to obey Java memory model rules) some of these fields (in particular, the extends items) must be volatile so that double-checked locking will work for initialization, and no locking will work for reading.
+
+\subsection{Implementation notes}
+It might be simpler to dispense with the FRTTI base type; if it has no methods, what's the point?
+
+It looks like the names of the interface and class will be derived from the name, followed by ``\$RTTIi" and ``\$RTTIc".
+
+The Java class created for each object must include a static member containing the type and instance method returning that type.
+
+What do we do about self types?  We need to be sure that cycles are ok.  Consider
+\begin{verbatim}
+ZZ32 extends BinOp[\ZZ32, PLUS\]
+\end{verbatim}
+What this means is that the naively specified constructors simply will not work; the constructor needs to take a thunk that will evaluate to a type, instead.  Or, the type needs to defer creation of its supertypes.
+\begin{verbatim}
+class ZZ32.RttiC implements ZZ32.RttiI {
+  static public ZZ32.RttiC only = new ZZ32.RttiC();
+  Map.RttiC _BinOp;
+  Map.RttiC asBinOp() {
+     if 
+  }
+}
+\end{verbatim}
+
+Note, also, that we think we DO allow extension of multiple instantiations of the same generic with different opr parameters, for example
+\begin{verbatim}
+ZZ32 extends { BinOp[\ZZ32, PLUS\], BinOp[\ZZ32, TIMES\] }
+\end{verbatim}
+A corollary of this is that it should not be necessary to infer an opr parameter dynamically (because this would be ambiguous, at least using the current approach).  But this means that we need a name mangling that accounts for this.
+
+\subsection{Fortress object getters}
+
+Each Fortress Object (perhaps not Any, meaning not Tuples, not Arrows) will have a method \verb+getRTTI()+.  For an object with type O, this will simply push 
+
+
+\section{Odds and ends}
+
+One thing to be aware of is that covariant type relationships (not part of Fortress yet except for Arrow and Tuple types) may be costly if mapped directly onto Java types.  Covariant generics with Any-bounded static parameters (for example,  \verb+AnyList[\ T extends Any \]+ will create special headaches because Tuple and Arrow type relationions are far too large to encode into the Java type system.  One possibility will simply be to forbid that case; otherwise, it can be implemented by wrapping values, and using a method to implement strict equality, not just a pointer comparison. 
+
+\end{document}
+

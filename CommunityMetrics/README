@@ -1,0 +1,61 @@
+These files are associated with measuring community activity.
+All this info is publicly available, though some of it is tedious
+to collect.  Please don't use the information here to game the system.
+
+1) 
+
+SvnStats.tgz contains tar-gzipped per-commit line information (adds, deletes).
+This information is obtained, slowly, by running (and it is slow)
+  bin/svnlines START END
+in the top level directory, which fills in directory SvnStats.
+START END are revision numbers; information will be obtained for
+START through END, inclusive.
+
+If you are computing metrics from scratch, first unpack the current list
+of line counts -- in the top level directory,
+  tar xfz CommunityMetrics/SvnStats.tgz
+
+to update it, in the top-level directory,
+  tar cfz CommunityMetrics/SvnStats.tgz SvnStats
+
+2)
+
+ExternalContributors.ods is a spreadsheet using that information to compute the
+"external lines committed" metric.  Rows to add are obtained by running
+
+  svn log | awk -f bin/svnmetric.awk > scratch.txt
+
+and pasting all of scratch.txt (opened in BBEdit or some other appropriate
+editor) into the spreadsheet, REPLACING the columns under the BRIGHT GREEN
+HEADER.
+
+The columns keeping track of external committers (PALE YELLOW)  will then
+be too short (scroll to the bottom) must be filled down to keep up with the
+new rows.
+
+The calculation of who has committed what (LIGHT BLUE)
+must be updated in the uppermost row to count the newly added
+rows, and then to recalculate all.  The total commits should
+be two fewer than the number of populated rows (e.g., 3279 total,
+last row is 3281) to account for the header and blank row at the
+top.
+
+External commiters need to be identified by hand,
+and added as columns to the appropriate part of the
+spread sheet.
+
+There are missing revisions (e.g., 3577); those are on branches other than
+"trunk".  Perhaps those should be counted, too, but they are currently not,
+so we at least have a consistent count, even if it is not complete.
+
+3) 
+
+Scrape (by hand) member lists from majordomo and trac, save those in some
+directory D, with names
+  trac, announce, implementation, language
+then run (in this directory)
+
+  ./member_metrics D
+  
+It will created D/all.sorted, which contains the cleaned list of external
+members.
