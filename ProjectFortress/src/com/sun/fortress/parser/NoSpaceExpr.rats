@@ -1,0 +1,81 @@
+/*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress expressions within array expressions.
+ */
+module com.sun.fortress.parser.NoSpaceExpr(Expr, Keyword, Symbol, Spacing);
+
+modify Expr;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* NoSpaceExpr ::=
+     NoSpaceAssignExpr
+   | NoSpaceOpExpr
+   | DelimitedExpr
+ */
+Expr ExprFront -= <Flow> , <Fn1> , <Fn2> ;
+Expr NoSpaceExpr = ExprFront ;
+
+/* NoSpaceOpExpr ::=
+     NoSpaceOpExprNoEnc
+   | NoSpaceOpExprLeftEncloser
+   | Encloser
+   NoSpaceOpExprNoEnc ::=
+     NoSpaceOpExprPrimary
+   | NoSpaceOpExprPrefix
+   | Op
+   TightInfixRight ::=
+     Encloser OpExprPrimary
+   | Encloser OpExprPrefix
+   | Encloser
+ */
+Expr OpExpr :=
+     a1:OpExprNoEnc
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = Resolver.resolveOpsNoSpace(writer, span, a1);
+     }
+   / a1:OpExprLeftEncloser
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = Resolver.resolveOpsNoSpace(writer, span, a1);
+     }
+   / a1:Encloser
+     { Span span = createSpan(yyStart,yyCount);
+       PrecedenceOpExpr e = new RealExpr(ASTUtil.nofix(NodeUtil.getSpan(a1), a1));
+       yyValue = Resolver.resolveOpsNoSpace(writer, span, PureList.make(e));
+     };
+
+PureList<PrecedenceOpExpr> TightInfixRight -= <Primary>, <Loose>, <LeftLoose> ;
+
+/* NoSpaceOpExprLeftEncloser ::= Encloser NoSpaceOpExprNoEnc
+   NoSpaceOpExprPrimary ::=
+     Primary NoSpaceTightInfixPostfix
+   | Primary NoSpaceTightInfixRight
+   | Primary
+ */
+PureList<PrecedenceOpExpr> OpExprPrimary -= <Primary>, <Loose>, <LeftLoose> ;
+
+/* NoSpaceOpExprPrefix ::=
+     Op NoSpaceOpExprPrimary
+   | Op NoSpaceOpExprPrefix
+   | Op NoSpaceOpExprLeftEncloser
+ */
+PureList<PrecedenceOpExpr> OpExprPrefix -= <Primary>, <Prefix>, <Left> ;
+
+/* NoSpaceTightInfixPostfix ::=
+     Op NoSpaceOpExprPrimary
+   | Op NoSpaceOpExprPrefix
+   | Op NoSpaceOpExprLeftEncloser
+   | Op
+ */
+PureList<PrecedenceOpExpr> TightInfixPostfix -= <Primary>, <Prefix>, <Left> ;

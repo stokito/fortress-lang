@@ -1,0 +1,32 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component BoolMethodParamBug
+export Executable
+
+(** Attempting to isolate #104 *)
+
+(* this is ok *)
+d[\bool b\]() = b
+
+object Thing[\bool b\]
+  getter asString() = "thing " b
+  (* this is not ok *)
+  g[\bool a\]() = b
+
+end
+
+run() = do
+  println d[\true\]()
+  println Thing[\true\]
+end
+
+end
