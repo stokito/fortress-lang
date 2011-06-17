@@ -88,11 +88,11 @@ public class MethodInstantiater implements MethodVisitor {
             
             // special case hack for tuples, and arrows
             if (stem.equals(Naming.TUPLE_TAG) || stem.equals("ConcreteTuple")) {
-                stem = Naming.TUPLE_RTTI_TAG + parameters.size();
+                stem = Naming.tupleRTTIclass(parameters.size());
             } else if (stem.equals(Naming.ARROW_TAG) || stem.equals(InstantiatingClassloader.ABSTRACT_ +Naming.ARROW_TAG )) {
-            	stem = Naming.ARROW_RTTI_TAG + parameters.size();
+            	stem = Naming.arrowRTTIclass(parameters.size());
             } else if (stem.contains(Naming.ENVELOPE)  && stem.endsWith(Naming.ARROW_TAG)) {
-            	stem = Naming.ARROW_RTTI_TAG + parameters.size();
+            	stem = Naming.arrowRTTIclass(parameters.size());
             }
             String javaClassDesc = Useful.substring(owner, 0, 1-FACTORY_SUFFIX_LENGTH);
             // bug in getType, cannot cope with embedded semicolons!
