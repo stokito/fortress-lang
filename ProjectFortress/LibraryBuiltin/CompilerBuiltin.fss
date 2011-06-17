@@ -65,6 +65,12 @@ import java com.sun.fortress.nativeHelpers.{simpleDoubleArith.floatToDouble => j
                                             simpleDoubleArith.doubleAbs => jDoubleAbs,
                                             simpleDoubleArith.doublePow => jDoublePow,
                                             simpleDoubleArith.doubleNanoTime => jNanoTime}
+import java com.sun.fortress.nativeHelpers.{simpleChar.charToString => jCharToString,
+                                            simpleChar.charLT => jCharLT,
+                                            simpleChar.charLE => jCharLE,
+                                            simpleChar.charGT => jCharGT,
+                                            simpleChar.charGE => jCharGE,
+                                            simpleChar.charEQ => jCharEQ}
 import java com.sun.fortress.nativeHelpers.{LocalRandom.localRandomDouble => jRandomDouble,
                                             LocalRandom.localRandomInt => jRandomInt }
 import java com.sun.fortress.nativeHelpers.{stringOps.compareTo => jCompareTo,
@@ -106,6 +112,7 @@ object FlatString extends String
 end FlatString
 
 println(s:String):() = jPrintln(s)
+println(c:Char):() = jPrintln(c.asString)
 (*) println(x:Object): () = jPrintln(x.asString)
 (*) println():() = jPrintln("")
 (*) println(x:Any):() = jPrintln("<big tuple>")
@@ -122,6 +129,7 @@ println(x:RR64):() = jPrintln(x.asString)
 (*) println[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):() = jPrintln(str(x))
 
 errorPrintln(s:String):() = jErrorPrintln(s)
+errorPrintln(c:Char):() = jErrorPrintln(c.asString)
 (*) errorPrintln(x:Object): () = jErrorPrintln(x.asString)
 (*) errorPrintln():() = jErrorPrintln("")
 (*) errorPrintln(x:Any):() = jErrorPrintln("<big tuple>")
@@ -294,7 +302,14 @@ end
 true: Boolean = (0=0)
 false: Boolean = (0=1)
 
-trait Char end
+trait Char excludes { String, Number }
+    getter asString() : String = jCharToString(self)
+    opr <(self, other:Char): Boolean = jCharLT(self,other)
+    opr <=(self, other:Char): Boolean = jCharLE(self,other)
+    opr >(self, other:Char): Boolean = jCharGT(self,other)
+    opr >=(self, other:Char): Boolean = jCharGE(self,other)
+    opr =(self, other:Char): Boolean = jCharEQ(self,other)
+end
 
 (************************************************************
 * Random numbers
