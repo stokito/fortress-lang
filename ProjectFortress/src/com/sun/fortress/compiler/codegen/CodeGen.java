@@ -3285,7 +3285,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         boolean isSingletonObject = NodeUtil.getParams(x).isNone();
         List<Param> params;
         if (!isSingletonObject) {
-            params = NodeUtil.getParams(x).unwrap();
+            params = NodeUtil.getParams(x).unwrap();				//TUPLE CONSTRUCTOR PROBLEM
             String init_sig = NamingCzar.jvmSignatureFor(params, "V", thisApi());
 
              // Generate the factory method
@@ -3339,11 +3339,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // iterate, pushing parameters, beginning at zero.
            // TODO actually handle N>0 parameters.
 
-            int stack_offset = 0;
-            for (Param p : params) {
+            int numParams = params.size();
+            //if only a single parameter which is a tuple, signature will give them individually
+            if (numParams == 1 && (params.get(0).getIdType().unwrap() instanceof TupleType)) {
+            	Param p0 = params.get(0);
+                TupleType tuple_type = ((TupleType) p0.getIdType().unwrap());
+                List<Type> tuple_types = tuple_type.getElements();
+                numParams = tuple_types.size();
+            }
+            for (int stack_offset = 0; stack_offset < numParams; stack_offset++) {
                 // when we unbox, this will be type-dependent
                 mv.visitVarInsn(ALOAD, stack_offset);
-                stack_offset++;
             }
 
             mv.visitMethodInsn(INVOKESPECIAL, cnb.className, "<init>", init_sig);
@@ -4519,46 +4525,86 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param ti_args
      * @param spns
      */
-    private void generateTypeReference(CodeGenMethodVisitor mv2, String rttiClassName, Id extendee, List<StaticArg> ti_args,
-            HashSet<String> spns) {
+    private void generateTypeReference(CodeGenMethodVisitor mv2, 
+    								   String rttiClassName, 
+    								   Id extendee, 
+    								   List<StaticArg> ti_args,
+    								   HashSet<String> spns)
+    {	
         String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
         String field_type = Naming.stemClassJavaName(extendeeIlk);
         
         if (ti_args.size() == 0) {
             if (spns.contains(extendee.getText())) {
                 // reference to a static parameter.  Load from field of same name.
-                mv.visitVarInsn(ALOAD, 0);
-                mv.visitFieldInsn(GETFIELD, rttiClassName, extendee.getText(), Naming.RTTI_CONTAINER_DESC);
+                mv2.visitVarInsn(ALOAD, 0);
+                mv2.visitFieldInsn(GETFIELD, rttiClassName, extendee.getText(), Naming.RTTI_CONTAINER_DESC);
             } else {
                 // reference to a non-generic type.  Load from whatever.Only
-                mv.visitFieldInsn(GETSTATIC, field_type, "ONLY", Naming.RTTI_CONTAINER_DESC);                
+                mv2.visitFieldInsn(GETSTATIC, field_type, "ONLY", Naming.RTTI_CONTAINER_DESC);                
             }
         } else {
             // invoke field_type.factory(args)
             String fact_sig = InstantiatingClassloader.jvmSignatureForNTypes(ti_args.size(),
-                    Naming.RTTI_CONTAINER_TYPE, "L" + field_type + ";");
+                    Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_CONTAINER_DESC);
             
             for (StaticArg sta : ti_args) {
                 if (sta instanceof TypeArg) {
                     TypeArg sta_ta = (TypeArg) sta;
                     Type t = sta_ta.getTypeArg();
                     if (t instanceof TupleType) {
-                        
+                    	TupleType tt = (TupleType) t;
+                        List<Type> tupleElts = tt.getElements();
+                    	
+                        for (Type it : tupleElts) {
+                        	if (it instanceof TraitType) {
+                        		generateTraitTypeReference(mv2,(TraitType) it, rttiClassName, spns);
+                        	} else if (it instanceof VarType) {
+                        		generateVarTypeReference(mv2,(VarType) it, rttiClassName, spns);
+                        	} else {
+                        		generateTypeReference(mv2,rttiClassName, null, Collections.<StaticArg>emptyList(), spns);
+                        	}
+                        }
+                        String rttiClass = Naming.tupleRTTIclass(tupleElts.size());
+                        String tupleFactorySig = InstantiatingClassloader.jvmSignatureForNTypes(tupleElts.size(),
+                                Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_CONTAINER_DESC); 
+                        mv.visitMethodInsn(INVOKESTATIC, rttiClass, "factory", tupleFactorySig);
+                        continue;
                     } else if (t instanceof ArrowType) {
+                        ArrowType at = (ArrowType) t;
+                        Type dom = at.getDomain();
+                        
+                        //upack the tuple input since RTTI counts each part of the tuple as a separate input
+                        List<Type> arrowTypeParts = new ArrayList<Type>();
+                        if (dom instanceof TupleType)
+                        	arrowTypeParts.addAll(((TupleType) dom).getElements());
+                        else
+                        	arrowTypeParts.add(dom);
+                        arrowTypeParts.add(at.getRange());
+                        
+                        for (Type it : arrowTypeParts) {
+                        	if (it instanceof TraitType) {
+                        		generateTraitTypeReference(mv2,(TraitType) it, rttiClassName, spns);
+                        	} else if (it instanceof VarType) {
+                        		generateVarTypeReference(mv2,(VarType) it, rttiClassName, spns);
+                        	} else {
+                        		generateTypeReference(mv2,rttiClassName, null, Collections.<StaticArg>emptyList(), spns);
+                        	}
+                        }
+                        String rttiClass = Naming.arrowRTTIclass(arrowTypeParts.size());
+                        String arrowFactorySig = InstantiatingClassloader.jvmSignatureForNTypes(arrowTypeParts.size(),
+                                Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_CONTAINER_DESC); 
+                        mv.visitMethodInsn(INVOKESTATIC, rttiClass, "factory", arrowFactorySig);
+                        continue;
                         
                     } else if (t instanceof SelfType) {
                         
                     } else if (t instanceof TraitType) {
-                        TraitType tt = (TraitType) t;
-                        List<StaticArg> tt_sa = tt.getArgs();
-                        Id tt_id = tt.getName();
-                        generateTypeReference(mv2, rttiClassName, tt_id,  tt_sa, spns); 
+                    	generateTraitTypeReference(mv2,(TraitType) t, rttiClassName, spns);
                         continue;
 
                     } else if (t instanceof VarType) {
-                        VarType tt = (VarType) t;
-                        Id tt_id = tt.getName();
-                        generateTypeReference(mv2, rttiClassName, tt_id,  Collections.<StaticArg>emptyList(), spns); 
+                        generateVarTypeReference(mv2,(VarType) t, rttiClassName, spns);
                         continue;
 
                     } else if (t instanceof BottomType) {
@@ -4587,10 +4633,21 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 }
                 throw new CompilerError("Only emitting RTTI for types right now");
             }
-            mv.visitMethodInsn(INVOKESTATIC, field_type, "factory", fact_sig);
+            mv2.visitMethodInsn(INVOKESTATIC, field_type, "factory", fact_sig);
 
         }
         
+    }
+    
+    private void generateTraitTypeReference(CodeGenMethodVisitor mv2, TraitType tt, String rttiClassName, HashSet<String> spns) {
+        List<StaticArg> tt_sa = tt.getArgs();
+        Id tt_id = tt.getName();
+        generateTypeReference(mv2, rttiClassName, tt_id,  tt_sa, spns); 
+    }
+    
+    private void generateVarTypeReference(CodeGenMethodVisitor mv2, VarType tt, String rttiClassName, HashSet<String> spns) {
+    	Id tt_id = tt.getName();
+        generateTypeReference(mv2, rttiClassName, tt_id,  Collections.<StaticArg>emptyList(), spns); 
     }
 
 

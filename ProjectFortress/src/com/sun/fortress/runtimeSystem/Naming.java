@@ -154,11 +154,18 @@ public class Naming {
      */
     public final static String ARROW_TAG="Arrow";
     public final static String ARROW_RTTI_TAG = "Arrow,";
+    public static String arrowRTTIclass(int n) {
+    	return ARROW_RTTI_TAG + n;
+    }
+    
     /**
      * Name for Tuple-interface generic.
      */
     public final static String TUPLE_TAG="Tuple";
     public final static String TUPLE_RTTI_TAG="Tuple,";
+    public static String tupleRTTIclass(int n) {
+    	return TUPLE_RTTI_TAG + n;
+    }
 
     public final static String COMPILER_BUILTIN = "CompilerBuiltin";
     public final static String NATIVE_PREFIX_DOT = "native.";
