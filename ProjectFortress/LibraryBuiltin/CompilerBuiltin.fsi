@@ -41,6 +41,7 @@ object FlatString extends String
 end FlatString
 
 println(s:String):()
+println(c:Char):()
 (*) println(x:Object): ()
 (*) println():()
 (*) println(x:Any):()
@@ -56,6 +57,7 @@ println(x:RR64):()
 (*) println[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):()
 
 errorPrintln(s:String):()
+errorPrintln(c:Char):()
 (*) errorPrintln(x:Object): ()
 (*) errorPrintln():()
 (*) errorPrintln(x:Any):()
@@ -182,7 +184,14 @@ end
 true: Boolean
 false: Boolean
 
-trait Char end
+trait Char excludes { String, Number } 
+    getter asString() : String
+    opr <(self, other:Char): Boolean
+    opr <=(self, other:Char): Boolean
+    opr >(self, other:Char): Boolean
+    opr >=(self, other:Char): Boolean
+    opr =(self, other:Char): Boolean
+end
 
 (************************************************************
 * Random numbers
