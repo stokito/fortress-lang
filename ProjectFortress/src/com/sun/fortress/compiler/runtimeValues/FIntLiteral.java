@@ -13,6 +13,8 @@ package com.sun.fortress.compiler.runtimeValues;
 
 import java.math.BigInteger;
 
+import com.sun.fortress.compiler.runtimeValues.FZZ32.RTTIc;
+
 public final class FIntLiteral extends fortress.CompilerBuiltin.IntLiteral.DefaultTraitMethods
         implements fortress.CompilerBuiltin.IntLiteral {
     // Using a store-the-relevant-form-in-one-field trick
@@ -89,5 +91,13 @@ public final class FIntLiteral extends fortress.CompilerBuiltin.IntLiteral.Defau
     public FRR32 asRR32() {
         if (largerVal == null) return FRR32.make((float)smallerVal);
         return FRR32.make(Float.valueOf(largerVal));
+    }
+    
+    @Override
+    public RTTI getRTTI() { return RTTIc.ONLY; }
+    
+    public static class RTTIc extends RTTI {
+        private RTTIc() { super(FIntLiteral.class); };
+        public static final RTTI ONLY = new RTTIc();
     }
 }

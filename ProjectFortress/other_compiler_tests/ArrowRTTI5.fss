@@ -46,8 +46,10 @@ run() : () = do
     y : Any = sg
     a1 : Any = A1o
     a2 : Any = A2o
-    println(f(a1,x)) (*) A1gs
-    println(f(a1,y)) (*) A1sg
-    println(f(a2,x)) (*) A1sg 
-    println(f(a2,y)) (*) A2gs
+    if NOT(f(a1,x) = "A1gs") then println("fail")
+        elif NOT(f(a1,y) = "A1sg") then println("fail")
+        elif NOT(f(a2,x) = "A2gs") then println("fail")
+        elif NOT(f(a2,y) = "A1sg") then println("fail")
+        else println("ok")
+    end
 end

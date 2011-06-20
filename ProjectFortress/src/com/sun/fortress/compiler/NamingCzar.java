@@ -375,6 +375,8 @@ public class NamingCzar {
         s(Object.class, anyLib, "Any");
         s(String.class, fortLib, "String");
         s(BigInteger.class, fortLib, "ZZ");
+        s(Type.CHAR_TYPE,fortLib, "Char");
+        s(Character.class,fortLib, "Char");
         specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
      }
     

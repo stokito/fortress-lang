@@ -41,21 +41,17 @@ gs(g : General) : S = S
 run() : () = do
     x : Any = gs
     y : Any = sg
-    println(f(x,sg))
-    println(f(y,sg))
-    println(f(1,y))
-    println(f(y,1.0))
-    println(f(x,x))
-    println(f(x,()))
-    println(f(x,true))
     z : ZZ32 = 1
-    println(f(true,z))
     z2 : ZZ64 = 1
-    println(f(true,z2))
     r : RR32 = 3.1459
-    println(f(true,r))    
     r2 : RR64 = 3.1459
-    println(f(true,r2))
-    println(f(true,'c'))  (*) Problem with static analysis and chars
-    println(f(x,(y,y)))
+   
+    result = f(x,sg) || f(y,sg) || f(1,y) || f(y,1.0) || f(x,x) || f(x,()) || f(x,true) || f(true,z) || f(true,z2) || f(true,r) || f(true,r2) || f(true,"test") || f(true,'c') || f(x,(y,y))
+    
+    expected = "gssg" || "sgsg" || "asg" || "sga" || "gsgs" || "sga" || "sga" || "ai" || "any" || "any" || "any" || "any" || "any" || "sga"
+    
+    if (result = expected) 
+        then println("ok")
+        else println("fail")
+    end
 end

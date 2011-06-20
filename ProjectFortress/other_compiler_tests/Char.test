@@ -7,8 +7,8 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests=ArrowRTTI ArrowRTTI2 ArrowRTTI4 ArrowRTTI5
+tests=Char
 link
 run
-run_out_equals=ok\n
+run_out_equals=a\n
 

@@ -29,6 +29,10 @@ gs(g : General) : Specific = S
 run() : () = do
     x : Any = gs
     y : Any = sg
-    println(f(x))
-    println(f(y))
+    result : String = f(x) || f(y)
+    
+    if (result = "gssg") 
+        then println("ok")
+        else println("fail")
+    end
 end
