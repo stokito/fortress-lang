@@ -49,7 +49,7 @@ import org.objectweb.asm.Opcodes;
 import scala.collection.JavaConversions;
 
 abstract public class OverloadSet implements Comparable<OverloadSet> {
-
+    
     static class POType extends TopSortItemImpl<Type> {
         public POType(Type x) {
             super(x);
@@ -262,6 +262,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
            This matters because it may affect naming
            of the leaf (single) functions.
          */
+        if (CodeGenerationPhase.debugOverloading)
+            System.err.println(" Split " + this);
+
 
         TopSortItemImpl<TaggedFunctionName>[] pofuns =
             new OverloadSet.POTFN[lessSpecificThanSoFar.size()];
@@ -287,6 +290,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 TaggedFunctionName g = pofuns[gi].x;
                 if (!(f == g)) {
                     if (fLessSpecThanG(f, g)) {
+                        if (CodeGenerationPhase.debugOverloading)
+                            System.err.println(g.toString() + " is <= " + f.toString());
                         i++;
                         pofuns[gi].edgeTo(pofuns[fi]);
                     }
@@ -1364,7 +1369,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         mv.visitCode();
         Label fail = new Label();
 
-        generateCall(mv, 0 /* firstArg() */, fail); // Guts of overloaded method
+        generateCall(mv, firstArg(), fail); // Guts of overloaded method
 
         // Emit failure case
         mv.visitLabel(fail);
@@ -1503,7 +1508,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
 
         protected int firstArg() {
-            return 1;
+            return selfIndex() == Naming.NO_SELF ? 1 : 0;
         }
 
         protected int selfIndex() {

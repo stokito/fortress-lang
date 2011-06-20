@@ -52,6 +52,8 @@ import com.sun.fortress.scala_src.typechecker._
 
 object STypesUtil {
 
+  final val debugInheritedMethods = false
+  
   // Make sure we don't infinitely explore supertraits that are cyclic
   class HierarchyHistory {
     var explored = Set[Type]()
@@ -1072,7 +1074,8 @@ object STypesUtil {
     methods: Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)],
     analyzer: TypeAnalyzer,
     skipFirstTraitMethods : Boolean): Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
-    // System.err.println("inheritedMethods " + extendedTraits.map(_.getBaseType))
+    if (debugInheritedMethods)
+      System.err.println("inheritedMethods " + extendedTraits.map(_.getBaseType))
     val history: HierarchyHistory = new HierarchyHistory()
     val allMethods =
       new HashMap[IdOrOpOrAnonymousName, MSet[(Type, Int, List[StaticParam], Functional, StaticTypeReplacer, TraitType)]] with MultiMap[IdOrOpOrAnonymousName, (Type, Int, List[StaticParam], Functional, StaticTypeReplacer, TraitType)]
@@ -1100,6 +1103,7 @@ object STypesUtil {
             val paramsToArgs = new StaticTypeReplacer(ti.staticParameters,
               toJavaList(trait_args))
             if (!skip) {
+              
             def oneMethod(methodName: IdOrOp, methodFunc: Functional) = {
               val (paramTy, selfIndex, sparams) =
                 paramTyWithoutSelf(methodName, methodFunc, paramsToArgs)
@@ -1113,6 +1117,8 @@ object STypesUtil {
                 // have a methodFunc with a different name() and no body.
                 // System.err.println("   oneMethod: "+ methodFunc+" named "+methodName);
               } else {
+                if (debugInheritedMethods)
+                    System.err.println("   oneMethod: "+ methodFunc+" named "+methodName);
                 var isOverridden = false
                 val newOverloadings =
                   new HashSet[(Type, Int, List[StaticParam], Functional, StaticTypeReplacer, TraitType)]()
@@ -1121,31 +1127,60 @@ object STypesUtil {
                   tup@(paramTyX, selfIndexX, sps, f, s, tyX) <- overloadings
                 ) {
                   // ty.methodName(paramTy) vs tyX.methodName(paramTyX)
-                  // ty > tyX  paramTy <= paramTyX    tyX overrides new ty
+                  // ty > tyX  paramTy <= paramTyX    existing tyX overrides new ty
                   // ty < tyX  paramTy >= paramTyX    ty overrides extant tyX
                   // otherwise no relation.
+                  if (debugInheritedMethods)
+                      System.err.println("    "+methodFunc+" comparing "+f)
+
                   new_analyzer = new_analyzer.extend(sps, None)
-                  if (new_analyzer.lteq(tyX, ty)) {
-                    if (!isOverridden) {
-                      isOverridden = selfIndex == selfIndexX && new_analyzer.lteq(paramTy, paramTyX)
-                      // if (isOverridden) System.err.println("    "+methodFunc+" overridden by "+f)
+                  
+                  val tyX_le_ty = new_analyzer.lteq(tyX, ty)
+                  val ty_le_tyX = new_analyzer.lteq(ty, tyX)
+                  
+                  if (tyX_le_ty) {
+                    if (! ty_le_tyX) {
+                        /*
+                         * old receiver is strictly more specific
+                         */
+                        if (!isOverridden) {
+                            isOverridden = selfIndex == selfIndexX &&
+                                           new_analyzer.lteq(paramTy, paramTyX)
+                            if (debugInheritedMethods && isOverridden)
+                                System.err.println("    "+methodFunc+" overridden by "+f)
+                        }
                     }
-                    newOverloadings += tup
-                  } else if (new_analyzer.lteq(ty, tyX) && selfIndex == selfIndexX &&
-                    new_analyzer.lteq(paramTyX, paramTy)) {
-                    // Extant is overridden, so skip.
-                    // System.err.println("      dropped " + f)
+                    if (debugInheritedMethods)
+                         System.err.println("      overload " + f)
+                    newOverloadings += tup // keep old overloading
+                    
+                  } else if (ty_le_tyX &&
+                             selfIndex == selfIndexX &&
+                             new_analyzer.lteq(paramTy, paramTyX)) {
+                    /*
+                     * New receiver is more specific
+                     */
+                    // new overrides old, so do not include old.
+                    if (debugInheritedMethods)
+                         System.err.println("      dropped " + f)
                   } else {
+                    // no relation to old, keep old.
+                    if (debugInheritedMethods)
+                         System.err.println("      overload " + f)
                     newOverloadings += tup
                   }
                   new_analyzer = first_analyzer
                 }
                 if (!isOverridden) {
-                  // System.err.println("      added.")
+                  if (debugInheritedMethods)
+                         System.err.println("      added.")
                   newOverloadings += ((paramTy, selfIndex, sparams, methodFunc, paramsToArgs, ty))
                 }
+                
                 allMethods += ((methodName, newOverloadings))
-              }
+                if (debugInheritedMethods)
+                         System.err.println("     allMethods=" +allMethods)
+               }
             }
             def onePair[T <: Functional](t: Pair[IdOrOpOrAnonymousName, T]) =
               t.first match {

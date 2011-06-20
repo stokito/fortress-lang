@@ -92,6 +92,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     
     private static final boolean EMIT_ERASED_GENERICS = false;
     private static final boolean OVERLOADED_METHODS = true;
+
+    private static final F<TraitTypeWhere, String> TTWtoString = new F<TraitTypeWhere, String>() {
+
+        @Override
+        public String apply(TraitTypeWhere x) {
+            if (x.getWhereClause().isSome()) {
+                return x.getBaseType().toString() + " where " + x.getWhereClause().unwrap();
+            }
+            return x.getBaseType().toString();
+        }
+        
+    };
     
     CodeGenClassWriter cw;
     CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
@@ -568,14 +580,19 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 arity++;
             }
             String from_name = forward_to_non_overload ? NamingCzar.mangleAwayFromOverload(mname): mname;
-            String actual_from_sig = Naming.removeNthSigParameter(from_sig, selfIndex);
+            String actual_from_sig =
+                Naming.removeNthSigParameter(from_sig, st instanceof DeclaredMethod ? 0 : selfIndex);
             boolean already_emitted_as_overload = typeLevelOverloadedNamesAndSigs != null &&
-                typeLevelOverloadedNamesAndSigs.contains(mname+actual_from_sig+"" ) ;
+                typeLevelOverloadedNamesAndSigs.contains(from_name+actual_from_sig+"" ) ;
             
-            if (! already_emitted_as_overload)          
-                InstantiatingClassloader.forwardingMethod(cw, from_name, ACC_PUBLIC, 0,
-                        receiverClass, mname, narrowing ? (isObject ? INVOKEVIRTUAL : INVOKEINTERFACE ): INVOKESTATIC,
-                                from_sig, to_sig, narrowing ? null : from_sig, arity, true, null);
+            if (already_emitted_as_overload) {
+                from_name = NamingCzar.mangleAwayFromOverload(from_name);
+            }
+            else
+            InstantiatingClassloader.forwardingMethod(cw, from_name, ACC_PUBLIC, 0,
+                    receiverClass, mname, narrowing ? (isObject ? INVOKEVIRTUAL : INVOKEINTERFACE ): INVOKESTATIC,
+                            from_sig, to_sig, narrowing ? null : from_sig, arity, true, null);
+
         }
         
     }
@@ -782,11 +799,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * extends clause is minimal, and a method is defined twice in the
          * extends clause, then it needs to be disambiguated in this type).
          */
+        if (DEBUG_OVERLOADED_METHOD_CHAINING)
+            System.err.println("Considering overloads for "+currentTraitObjectType +
+                    ", extended=" + Useful.listTranslatedInDelimiters("[", extendsClause, "]", ",", TTWtoString));
+            
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
             toConsider = STypesUtil.properlyInheritedMethods(currentTraitObjectType, typeAnalyzer);
         
         if (DEBUG_OVERLOADED_METHOD_CHAINING)
-        System.err.println("Considering overloads for "+currentTraitObjectType);
+        System.err.println("properlyInheritedMethods=" + toConsider);
         
         TraitIndex ti = (TraitIndex) typeAnalyzer.traits().typeCons(currentTraitObjectType.getName()).unwrap();
         
