@@ -47,6 +47,10 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
     /** Map parameter name to the static argument bound to it. */
     private final Map<IdOrOpOrAnonymousName, StaticArg> parameterMap;
 
+    public String toString() {
+        return parameterMap.toString();
+    }
+    
     /** Assume params.size() == args.size() */
     public StaticTypeReplacer(List<StaticParam> params, List<StaticArg> args) {
         assert(params.size() == args.size());
