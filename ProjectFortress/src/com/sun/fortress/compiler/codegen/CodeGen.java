@@ -92,6 +92,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     
     private static final boolean EMIT_ERASED_GENERICS = false;
     private static final boolean OVERLOADED_METHODS = true;
+
+    private static final F<TraitTypeWhere, String> TTWtoString = new F<TraitTypeWhere, String>() {
+
+        @Override
+        public String apply(TraitTypeWhere x) {
+            if (x.getWhereClause().isSome()) {
+                return x.getBaseType().toString() + " where " + x.getWhereClause().unwrap();
+            }
+            return x.getBaseType().toString();
+        }
+        
+    };
     
     CodeGenClassWriter cw;
     CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
@@ -787,11 +799,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * extends clause is minimal, and a method is defined twice in the
          * extends clause, then it needs to be disambiguated in this type).
          */
+        if (DEBUG_OVERLOADED_METHOD_CHAINING)
+            System.err.println("Considering overloads for "+currentTraitObjectType +
+                    ", extended=" + Useful.listTranslatedInDelimiters("[", extendsClause, "]", ",", TTWtoString));
+            
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
             toConsider = STypesUtil.properlyInheritedMethods(currentTraitObjectType, typeAnalyzer);
         
         if (DEBUG_OVERLOADED_METHOD_CHAINING)
-        System.err.println("Considering overloads for "+currentTraitObjectType);
+        System.err.println("properlyInheritedMethods=" + toConsider);
         
         TraitIndex ti = (TraitIndex) typeAnalyzer.traits().typeCons(currentTraitObjectType.getName()).unwrap();
         

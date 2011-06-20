@@ -133,12 +133,12 @@ public class Useful {
         return sb.toString();
     }
 
-    public static <T> String listTranslatedInDelimiters(String left, Iterable<T> l, String right, String sep, F<Object, String> foreach) {
+    public static <T> String listTranslatedInDelimiters(String left, Iterable<T> l, String right, String sep, F<T, String> foreach) {
         StringBuilder sb = new StringBuilder();
         sb.append(left);
         boolean first = true;
         if (l != null) 
-            for (Object x : l) {
+            for (T x : l) {
             if (first) first = false;
             else sb.append(sep);
             sb.append(foreach.apply(x));
