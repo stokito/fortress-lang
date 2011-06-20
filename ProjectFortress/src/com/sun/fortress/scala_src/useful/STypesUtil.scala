@@ -1134,18 +1134,32 @@ object STypesUtil {
                       System.err.println("    "+methodFunc+" comparing "+f)
 
                   new_analyzer = new_analyzer.extend(sps, None)
-                  if (new_analyzer.lteq(tyX, ty)) {
-                    // old overrides new (maybe)
-                    if (!isOverridden) {
-                      isOverridden = selfIndex == selfIndexX && new_analyzer.lteq(paramTy, paramTyX)
-                      if (debugInheritedMethods && isOverridden)
-                        System.err.println("    "+methodFunc+" overridden by "+f)
+                  
+                  val tyX_le_ty = new_analyzer.lteq(tyX, ty)
+                  val ty_le_tyX = new_analyzer.lteq(ty, tyX)
+                  
+                  if (tyX_le_ty) {
+                    if (! ty_le_tyX) {
+                        /*
+                         * old receiver is strictly more specific
+                         */
+                        if (!isOverridden) {
+                            isOverridden = selfIndex == selfIndexX &&
+                                           new_analyzer.lteq(paramTy, paramTyX)
+                            if (debugInheritedMethods && isOverridden)
+                                System.err.println("    "+methodFunc+" overridden by "+f)
+                        }
                     }
                     if (debugInheritedMethods)
                          System.err.println("      overload " + f)
                     newOverloadings += tup // keep old overloading
-                  } else if (new_analyzer.lteq(ty, tyX) && selfIndex == selfIndexX &&
-                    new_analyzer.lteq(paramTyX, paramTy)) {
+                    
+                  } else if (ty_le_tyX &&
+                             selfIndex == selfIndexX &&
+                             new_analyzer.lteq(paramTy, paramTyX)) {
+                    /*
+                     * New receiver is more specific
+                     */
                     // new overrides old, so do not include old.
                     if (debugInheritedMethods)
                          System.err.println("      dropped " + f)
