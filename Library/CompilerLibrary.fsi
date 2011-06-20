@@ -85,24 +85,6 @@ object FloatingComparisonError extends UncheckedException end
 
 trait CheckedException extends Exception excludes UncheckedException end
 
-object CastError extends CheckedException end
-
-object IOFailure extends CheckedException end
-
-object MatchFailure extends CheckedException end
-
-(* SetsNotDisjoint? *)
-object DisjointUnionError extends CheckedException end
-
-object APIMissing extends CheckedException end
-
-object APINameCollision extends CheckedException end
-
-object ExportedAPIMissing extends CheckedException end
-
-object HiddenAPIMissing extends CheckedException end
-
-object TryAtomicFailure extends CheckedException end
 
 (************************************************************
  * Simple Range support
