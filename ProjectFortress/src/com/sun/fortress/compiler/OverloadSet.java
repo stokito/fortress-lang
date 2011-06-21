@@ -252,10 +252,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * Creates a subset overload set; one that can be named independently as an overloaded function.
      *
      * @param childLSTSF
+     * @param parent TODO
      * @param principalMember
      * @return
      */
-    abstract protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName _principalMember);
+    abstract protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName _principalMember, OverloadSet parent);
 
     public void split(boolean computeSubsets) {
         /* First determine if there are any overload subsets.
@@ -326,7 +327,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                                 }
                             }
                         }
-                        OverloadSet subset = makeSubset(subLSTSF, f);
+                        OverloadSet subset = makeSubset(subLSTSF, f, this);
                         subset.overloadSubsets = overloadSubsets;
 
                             // I don't think this key is right for generics.
@@ -1327,6 +1328,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
              * do not use exactly the same handshake.
              */
             genericSchema = genericArrowType;
+            if (parent != null && parent.genericSchema.equals(genericArrowType)) return; //prevent duplication
             
             String packageAndClassName = NamingCzar.javaPackageClassForApi(ifNone);
             // If we have static arguments, then our caller must be
@@ -1447,7 +1449,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
             }
             
-            return new ForTraitOrObject(apiname, name, ta, defs, n, self_index, cnb, invokeOpcode);
+            return new ForTraitOrObject(apiname, name, ta, defs, null, n, self_index, cnb, invokeOpcode);
         }
         
     };
@@ -1464,7 +1466,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         
         ForTraitOrObject(
                 final APIName apiname, IdOrOpOrAnonymousName name,
-                TypeAnalyzer ta, Set<Functional> defs, int n,
+                TypeAnalyzer ta, Set<Functional> defs, OverloadSet parent, int n,
                 int self_index, Naming.ClassNameBundle cnb, int invoke_opcode) {
             super(apiname, name, ta, Useful.applyToAll(defs, new F<Functional, TaggedFunctionName>() {
 
@@ -1483,7 +1485,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 IdOrOpOrAnonymousName name,
                 TypeAnalyzer ta,
                 Set<TaggedFunctionName> childLSTSF,
-                int paramCount,
+                OverloadSet parent, int paramCount,
                 boolean this_disambiguates_the_erasure,
                 int self_index, Naming.ClassNameBundle cnb, int invoke_opcode) {
             super(ifNone, name, ta, childLSTSF, paramCount);
@@ -1492,8 +1494,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             this.invokeOpcode = invoke_opcode;
         }
 
-        protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName _principalMember) {
-            OverloadSet subset = new ForTraitOrObject(ifNone, name, ta, childLSTSF, paramCount, true, selfIndex, cnb, invokeOpcode);
+        protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName _principalMember, OverloadSet parent) {
+            OverloadSet subset = new ForTraitOrObject(ifNone, name, ta, childLSTSF, parent, paramCount, true, selfIndex, cnb, invokeOpcode);
             subset.principalMember = _principalMember;
             return subset;
         }
@@ -1649,9 +1651,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         public AmongApis(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<TaggedFunctionName> defs, int n) {
             super(name, ta, new OverloadingOracle(ta), defs, n, ifNone);
         }
+        
+        protected AmongApis(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta, Set<TaggedFunctionName> defs, OverloadSet parent, int n) {
+            super(ifNone, name, ta, new OverloadingOracle(ta), defs, parent, n);
+        }
 
-        protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName _principalMember) {
-            OverloadSet subset = new AmongApis(ifNone, name, ta, childLSTSF, paramCount);
+		protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName _principalMember, OverloadSet parent) {
+            OverloadSet subset = new AmongApis(ifNone, name, ta, new OverloadingOracle(ta), childLSTSF, parent, paramCount);
             subset.principalMember = _principalMember;
             return subset;
         }
