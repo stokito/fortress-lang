@@ -7,8 +7,7 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests= Compiled13
-compile
+tests= Compiled13 Compiled13a Compiled13b
 link
 run
 run_out_equals=pass\n

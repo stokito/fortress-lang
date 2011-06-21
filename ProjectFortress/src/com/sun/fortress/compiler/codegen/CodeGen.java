@@ -811,6 +811,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         TraitIndex ti = (TraitIndex) typeAnalyzer.traits().typeCons(currentTraitObjectType.getName()).unwrap();
         
+        // This is used to fix the type annotation in type_info; it lacks
+        // constraints on static parameters.
+        StaticTypeReplacer local_inst =
+            new StaticTypeReplacer(ti.staticParameters(),
+                    STypesUtil.staticParamsToArgsEnhanced(ti.staticParameters()));
+        
         MultiMap<IdOrOpOrAnonymousName, Functional> nameToFSets =
             new MultiMap<IdOrOpOrAnonymousName, Functional>();
         
@@ -898,11 +904,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 Type super_noself_domain = super_inst.replaceIn(selfEditedDomainType(super_func, super_self_index));
 
                 for (Functional func : funcs) {
-                    /* I think this is the wrong instantiater,
-                     * but lacking generic methods and overloads,
-                     * it is not far wrong.
-                     */
-                    Type ret = super_inst.replaceIn(oa.getRangeType(func));
+                    Type ret = local_inst.replaceIn(oa.getRangeType(func));
                     int self_index = selfParameterIndex(func.parameters());
                     if (self_index != super_self_index) {
                         /*
