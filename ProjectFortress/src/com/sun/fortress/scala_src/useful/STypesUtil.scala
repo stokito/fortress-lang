@@ -49,6 +49,7 @@ import com.sun.fortress.scala_src.useful.SExprUtil._
 import com.sun.fortress.useful.HasAt
 import com.sun.fortress.useful.NI
 import com.sun.fortress.scala_src.typechecker._
+import com.sun.fortress.useful.Useful
 
 object STypesUtil {
 
@@ -114,15 +115,26 @@ object STypesUtil {
     }
   }
 
+  /*
+   * Note that this is a HACK to get past not knowing what the type
+   * analyzer might be in all contexts in our static analysis code.
+   * It only matters for methods of generic traits/objects, and
+   * perhaps those contexts don't deal with this case.
+   */
+  def makeArrowFromFunctional(f: Functional): Option[ArrowType] = 
+            makeArrowFromFunctional(f, None)
+
+  def makeArrowFromFunctional(f: Functional, analyzer: TypeAnalyzer): Option[ArrowType] = 
+            makeArrowFromFunctional(f, Some(analyzer))
+
   /**
    *  Return the arrow type of the given Functional index.
    */
-  def makeArrowFromFunctional(f: Functional): Option[ArrowType] = {
+  def makeArrowFromFunctional(f: Functional, analyzer: Option[TypeAnalyzer]): Option[ArrowType] = {
     val returnType = toOption(f.getReturnType).getOrElse(return None)
     val params = toListFromImmutable(f.parameters).map(NU.getParamType)
     val argType = makeArgumentType(params)
-    val sparamsJava = f.staticParameters
-    val sparams = toListFromImmutable(sparamsJava)
+
     val effect = NF.makeEffect(f.thrownTypes)
     val where = f match {
       case f: Constructor => f.where
@@ -131,10 +143,28 @@ object STypesUtil {
     val info = f match {
       case m: HasSelfType if m.selfType.isNone =>
         bug("No selfType on functional %s".format(f))
-      case m: HasSelfType =>
+      case m: HasSelfType => 
         Some(SMethodInfo(m.selfType.get, m.selfPosition))
       case _ => None
     }
+    /* This next bit is supposed to deal with dueling static parameters,
+     * on trait and on method.  Both can supply constraints on static
+     * parameters that might matter to type comparison and overloading
+     * analysis.
+     */
+     val sparamsJava = f.staticParameters
+//       f match {
+//       /* What about functional methods? */
+//       case m: DeclaredMethod => analyzer match {
+//         case ta : Some[TypeAnalyzer] => {
+//           val ti = ta.get.typeCons(m.declaringTrait())
+//           Useful.concat(f.staticParameters, ti.staticParameters) }
+//         case _ => f.staticParameters
+//         }
+//       case _ => f.staticParameters
+//     }
+
+    
     Some(NF.makeArrowType(NF.typeSpan,
       false,
       argType,
