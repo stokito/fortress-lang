@@ -976,7 +976,7 @@ object STypesUtil {
   def rewriteApplicand(fn: Expr, candidates: List[AppCandidate])(implicit analyzer: TypeAnalyzer): Expr = {
 
     // Pull out the info for the winning candidate.
-    val sma@AppCandidate(bestArrow, bestSargs, _, _) = candidates.head
+    val sma@AppCandidate(bestArrow, bestSargs, _, bestOverloading) = candidates.head
 
     fn match {
       case fn: FunctionalRef =>
@@ -995,6 +995,8 @@ object STypesUtil {
 
         // Add in the filtered overloadings, the inferred static args,
         // and the statically most applicable arrow to the fn.
+        
+        // WHAT IF OVERLOADINGS IS EMPTY?  IT IS, for CoerceBug1.
         addType(
           addStaticArgs(
             addOverloadings(fn, overloadings),

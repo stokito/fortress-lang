@@ -7,7 +7,7 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests= Compiled16a Compiled16b Compiled16c Compiled16d Compiled16e Compiled16
+tests= Compiled16a Compiled16b Compiled16c Compiled16d Compiled16e Compiled16f Compiled16
 compile
 link
 run
