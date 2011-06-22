@@ -157,6 +157,7 @@ end
 
 
 trait Boolean   (*) extends { Equality[\Boolean\] }
+    excludes { String, Number } 
   getter holds(): Boolean
   getter get(): ()
   getter asString(): String
@@ -184,13 +185,52 @@ end
 true: Boolean
 false: Boolean
 
-trait Char excludes { String, Number } 
+trait Char excludes { String, Number, Boolean } 
     getter asString() : String
     opr <(self, other:Char): Boolean
     opr <=(self, other:Char): Boolean
     opr >(self, other:Char): Boolean
     opr >=(self, other:Char): Boolean
     opr =(self, other:Char): Boolean
+    opr =/=(self, other:Char): Boolean
+
+    opr LNSIM(self, other:Char): Boolean
+    opr LESSSIM(self, other:Char): Boolean
+    opr GNSIM(self, other:Char): Boolean
+    opr GTRSIM(self, other:Char): Boolean
+    opr SIMEQ(self, other:Char): Boolean
+    opr NSIMEQ(self, other:Char): Boolean
+
+    getDirectionality(self): ZZ32
+    getNumericValue(self): ZZ32
+    getType(self): ZZ32
+    isDefined(self): Boolean
+    isDigit(self): Boolean
+    isFortressIdentifierPart(self): Boolean
+    isFortressIdentifierStart(self): Boolean
+    isHighSurrogate(self): Boolean
+    isIdentifierIgnorable(self): Boolean
+    isISOControl(self): Boolean
+    isJavaIdentifierPart(self): Boolean
+    isJavaIdentifierStart(self): Boolean
+    isLetter(self): Boolean
+    isLetterOrDigit(self): Boolean
+    isLowerCase(self): Boolean
+    isLowSurrogate(self): Boolean
+    isMirrored(self): Boolean
+    isSpaceChar(self): Boolean
+    isSupplementaryCodePoint(self): Boolean
+    isSurrogatePair(self, low: Char): Boolean
+    isTitleCase(self): Boolean
+    isUnicodeIdentifierPart(self): Boolean
+    isUnicodeIdentifierStart(self): Boolean
+    isUpperCase(self): Boolean
+    isValidCodePoint(self): Boolean
+    isWhitespace(self): Boolean
+    javaDigit(self, radix: ZZ32): ZZ32
+    toLowerCase(self): Char
+    toTitleCase(self): Char
+    toUpperCase(self): Char
 end
 
 (************************************************************

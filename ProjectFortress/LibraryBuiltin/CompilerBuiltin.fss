@@ -70,7 +70,44 @@ import java com.sun.fortress.nativeHelpers.{simpleChar.charToString => jCharToSt
                                             simpleChar.charLE => jCharLE,
                                             simpleChar.charGT => jCharGT,
                                             simpleChar.charGE => jCharGE,
-                                            simpleChar.charEQ => jCharEQ}
+                                            simpleChar.charEQ => jCharEQ,
+                                            simpleChar.charNE => jCharNE,
+                                            simpleChar.charLessNotSim => jCharLessNotSim,
+                                            simpleChar.charLessSim => jCharLessSim,
+                                            simpleChar.charGreaterNotSim => jCharGreaterNotSim,
+                                            simpleChar.charGreaterSim => jCharGreaterSim,
+                                            simpleChar.charSimEq => jCharSimEq,
+                                            simpleChar.charNotSimEq => jCharNotSimEq,
+                                            simpleChar.charGetDirectionality => jCharGetDirectionality,
+                                            simpleChar.charGetNumericValue => jCharGetNumericValue,
+                                            simpleChar.charGetType => jCharGetType,
+                                            simpleChar.charIsDefined => jCharIsDefined,
+                                            simpleChar.charIsDigit => jCharIsDigit,
+                                            simpleChar.charIsFortressIdentifierPart => jCharIsFortressIdentifierPart,
+                                            simpleChar.charIsFortressIdentifierStart => jCharIsFortressIdentifierStart,
+                                            simpleChar.charIsHighSurrogate => jCharIsHighSurrogate,
+                                            simpleChar.charIsIdentifierIgnorable => jCharIsIdentifierIgnorable,
+                                            simpleChar.charIsISOControl => jCharIsISOControl,
+                                            simpleChar.charIsJavaIdentifierPart => jCharIsJavaIdentifierPart,
+                                            simpleChar.charIsJavaIdentifierStart => jCharIsJavaIdentifierStart,
+                                            simpleChar.charIsLetter => jCharIsLetter,
+                                            simpleChar.charIsLetterOrDigit => jCharIsLetterOrDigit,
+                                            simpleChar.charIsLowerCase => jCharIsLowerCase,
+                                            simpleChar.charIsLowSurrogate => jCharIsLowSurrogate,
+                                            simpleChar.charIsMirrored => jCharIsMirrored,
+                                            simpleChar.charIsSpaceChar => jCharIsSpaceChar,
+                                            simpleChar.charIsSupplementaryCodePoint => jCharIsSupplementaryCodePoint,
+                                            simpleChar.charIsSurrogatePair => jCharIsSurrogatePair,
+                                            simpleChar.charIsTitleCase => jCharIsTitleCase,
+                                            simpleChar.charIsUnicodeIdentifierPart => jCharIsUnicodeIdentifierPart,
+                                            simpleChar.charIsUnicodeIdentifierStart => jCharIsUnicodeIdentifierStart,
+                                            simpleChar.charIsUpperCase => jCharIsUpperCase,
+                                            simpleChar.charIsValidCodePoint => jCharIsValidCodePoint,
+                                            simpleChar.charIsWhitespace => jCharIsWhitespace,
+                                            simpleChar.charJavaDigit => jCharJavaDigit,
+                                            simpleChar.charToLowerCase => jCharToLowerCase,
+                                            simpleChar.charToTitleCase => jCharToTitleCase,
+                                            simpleChar.charToUpperCase => jCharToUpperCase}
 import java com.sun.fortress.nativeHelpers.{LocalRandom.localRandomDouble => jRandomDouble,
                                             LocalRandom.localRandomInt => jRandomInt }
 import java com.sun.fortress.nativeHelpers.{stringOps.compareTo => jCompareTo,
@@ -241,6 +278,7 @@ trait RR64 extends Number excludes ZZ64
         elif other = -other then
           (* Screw case of most negative `ZZ32` value *)
           1.0 / (self^(-(other DIV 2)))^2
+
         else (* other < 0 then *) 1.0 / (self^(-other))
         end
 end
@@ -255,6 +293,7 @@ trait FloatLiteral excludes {RR32, RR64}
 end
 
 trait Boolean     (*) extends { Equality[\Boolean\] }
+    excludes { String, Number }
   getter holds(): Boolean = self
   getter get(): () = ()
   getter asString(): String = self.asExprString
@@ -293,22 +332,61 @@ trait Boolean     (*) extends { Equality[\Boolean\] }
 (*)   opr <(self, other:Boolean): Boolean = (NOT self) AND other
 (*)   opr CMP(self, other:Boolean): TotalComparison =
 (*)       if self then
-(*) 	  if other then EqualTo else GreaterThan end
+(*)           if other then EqualTo else GreaterThan end
 (*)       else
-(*) 	  if other then LessThan else EqualTo end
+(*)           if other then LessThan else EqualTo end
 (*)       end
 end
 
 true: Boolean = (0=0)
 false: Boolean = (0=1)
 
-trait Char excludes { String, Number }
+trait Char excludes { String, Number, Boolean }
     getter asString() : String = jCharToString(self)
     opr <(self, other:Char): Boolean = jCharLT(self,other)
     opr <=(self, other:Char): Boolean = jCharLE(self,other)
     opr >(self, other:Char): Boolean = jCharGT(self,other)
     opr >=(self, other:Char): Boolean = jCharGE(self,other)
     opr =(self, other:Char): Boolean = jCharEQ(self,other)
+    opr =/=(self, other:Char): Boolean = jCharNE(self,other)
+
+    opr LNSIM(self, other:Char): Boolean = jCharLessNotSim(self, other)
+    opr LESSSIM(self, other:Char): Boolean = jCharLessSim(self, other)
+    opr GNSIM(self, other:Char): Boolean = jCharGreaterNotSim(self, other)
+    opr GTRSIM(self, other:Char): Boolean = jCharGreaterSim(self, other)
+    opr SIMEQ(self, other:Char): Boolean = jCharSimEq(self, other)
+    opr NSIMEQ(self, other:Char): Boolean = jCharNotSimEq(self, other)
+
+    getDirectionality(self): ZZ32 = jCharGetDirectionality(self)
+    getNumericValue(self): ZZ32 = jCharGetNumericValue(self)
+    getType(self): ZZ32 = jCharGetType(self)
+    isDefined(self): Boolean = jCharIsDefined(self)
+    isDigit(self): Boolean = jCharIsDigit(self)
+    isFortressIdentifierPart(self): Boolean = jCharIsFortressIdentifierPart(self)
+    isFortressIdentifierStart(self): Boolean = jCharIsFortressIdentifierStart(self)
+    isHighSurrogate(self): Boolean = jCharIsHighSurrogate(self)
+    isIdentifierIgnorable(self): Boolean = jCharIsIdentifierIgnorable(self)
+    isISOControl(self): Boolean = jCharIsISOControl(self)
+    isJavaIdentifierPart(self): Boolean = jCharIsJavaIdentifierPart(self)
+    isJavaIdentifierStart(self): Boolean = jCharIsJavaIdentifierStart(self)
+    isLetter(self): Boolean = jCharIsLetter(self)
+    isLetterOrDigit(self): Boolean = jCharIsLetterOrDigit(self)
+    isLowerCase(self): Boolean = jCharIsLowerCase(self)
+    isLowSurrogate(self): Boolean = jCharIsLowSurrogate(self)
+    isMirrored(self): Boolean = jCharIsMirrored(self)
+    isSpaceChar(self): Boolean = jCharIsSpaceChar(self)
+    isSupplementaryCodePoint(self): Boolean = jCharIsSupplementaryCodePoint(self)
+    isSurrogatePair(self, low: Char): Boolean = jCharIsSurrogatePair(self, low)
+    isTitleCase(self): Boolean = jCharIsTitleCase(self)
+    isUnicodeIdentifierPart(self): Boolean = jCharIsUnicodeIdentifierPart(self)
+    isUnicodeIdentifierStart(self): Boolean = jCharIsUnicodeIdentifierStart(self)
+    isUpperCase(self): Boolean = jCharIsUpperCase(self)
+    isValidCodePoint(self): Boolean = jCharIsValidCodePoint(self)
+    isWhitespace(self): Boolean = jCharIsWhitespace(self)
+    javaDigit(self, radix: ZZ32): ZZ32 = jCharJavaDigit(self, radix)
+    toLowerCase(self): Char = jCharToLowerCase(self)
+    toTitleCase(self): Char = jCharToTitleCase(self)
+    toUpperCase(self): Char = jCharToUpperCase(self)
 end
 
 (************************************************************
