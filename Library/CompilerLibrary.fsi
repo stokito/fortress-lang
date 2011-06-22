@@ -12,22 +12,6 @@
 api CompilerLibrary
 
 (************************************************************
-* \subsection*{Exception hierarchy}
-************************************************************)
-trait Exception comprises { UncheckedException, CheckedException }
-end
-
-(* Exceptions which are not checked *)
-
-trait UncheckedException extends Exception excludes CheckedException
-end
-
-(* Checked Exceptions *)
-
-trait CheckedException extends Exception excludes UncheckedException
-end
-
-(************************************************************
  * Value bindings
  ************************************************************)
 
@@ -46,6 +30,61 @@ assert(flag: Boolean): ()
 assert(flag: Boolean, failMsg: String): ()
 deny(flag: Boolean): ()
 deny(flag: Boolean, failMsg: String): ()
+
+(************************************************************
+* \subsection*{Exception hierarchy}
+************************************************************)
+trait Exception comprises { UncheckedException, CheckedException }
+end
+
+(* Exceptions which are not checked *)
+
+trait UncheckedException extends Exception excludes CheckedException end
+
+object FailCalled(s:String) extends UncheckedException end
+
+object DivisionByZero extends UncheckedException end
+
+object UnpastingError extends UncheckedException end
+
+object CallerViolation extends UncheckedException end
+
+object CalleeViolation extends UncheckedException end
+
+object LabelException extends UncheckedException end
+
+object TestFailure extends UncheckedException end
+
+object ContractHierarchyViolation extends UncheckedException end
+
+object NoEqualityOnFunctions extends UncheckedException end
+
+object InvalidRange extends UncheckedException end
+
+object ForbiddenException(chain : Exception) extends UncheckedException end
+
+(* Should this be called "IndexNotFound" instead? *)
+object NotFound extends UncheckedException end
+
+(*
+object IndexOutOfBounds[\I\](range:Range[\I\],index:I) extends UncheckedException end
+*)
+
+object EmptyReduction extends UncheckedException end
+
+object NegativeLength extends UncheckedException end
+
+object IntegerOverflow extends UncheckedException end
+
+object RationalComparisonError extends UncheckedException end
+
+object FloatingComparisonError extends UncheckedException end
+
+
+(* Checked Exceptions *)
+
+trait CheckedException extends Exception excludes UncheckedException end
+
 
 (************************************************************
  * Simple Range support

@@ -155,17 +155,18 @@ public class NamingCzar {
     public static final String internalDouble     = org.objectweb.asm.Type.getInternalName(double.class);
     public static final String internalLong       = org.objectweb.asm.Type.getInternalName(long.class);
     public static final String internalBoolean    = org.objectweb.asm.Type.getInternalName(boolean.class);
-    public static final String internalChar       = org.objectweb.asm.Type.getInternalName(char.class);
+    public static final String internalChar       = org.objectweb.asm.Type.getInternalName(int.class);
     public static final String internalObject     = org.objectweb.asm.Type.getInternalName(Object.class);
     public static final String internalString     = org.objectweb.asm.Type.getInternalName(String.class);
     public static final String internalSingleton  = internalObject;
 
+    // If you change these, you may also need to change items in file FortressMethodAdapter.java
     public static final String descFloat         = org.objectweb.asm.Type.getDescriptor(float.class);
     public static final String descInt           = org.objectweb.asm.Type.getDescriptor(int.class);
     public static final String descDouble        = org.objectweb.asm.Type.getDescriptor(double.class);
     public static final String descLong          = org.objectweb.asm.Type.getDescriptor(long.class);
     public static final String descBoolean       = org.objectweb.asm.Type.getDescriptor(boolean.class);
-    public static final String descChar          = org.objectweb.asm.Type.getDescriptor(char.class);
+    public static final String descChar          = org.objectweb.asm.Type.getDescriptor(int.class);
     public static final String descString        = Naming.internalToDesc(internalString);
     public static final String stringArrayToVoid = Naming.makeMethodDesc(makeArrayDesc(descString), Naming.descVoid);
     public static final String internalFortressIntLiteral  = makeFortressInternal("IntLiteral");

@@ -118,15 +118,16 @@ public class FortressMethodAdapter extends ClassAdapter {
 
     private void initializeTables() {
         conversionTable = new HashMap();
-        initializeEntry("FZZ32",   "getValue", "()I", "make", "(I)L" + prefix + "FZZ32;");
-        initializeEntry("FZZ64",   "getValue", "()J", "make", "(J)L" + prefix + "FZZ64;");
-        initializeEntry("FRR32",   "getValue", "()F", "make", "(F)L" + prefix + "FRR32;");
-        initializeEntry("FRR64",   "getValue", "()D", "make", "(D)L" + prefix + "FRR64;");
-        initializeEntry("FBoolean",   "getValue", "()Z", "make", "(Z)L" + prefix + "FBoolean;");
-        initializeEntry("FVoid",   "getValue", "()",  "make", "()L" + prefix + "FVoid;");
-        initializeEntry("FString", "getValue", "()Ljava/lang/String;", "make", "(Ljava/lang/String;)L" +
-                        prefix + "FString;");
-        initializeEntry("FChar",	"getValue",	"()C",	"make",	"(C)L" + prefix + "FChar;");
+	// If you change these, you may also need to change items in file NamingCzar.java
+        initializeEntry("FZZ32",    "getValue", "()I", "make", "(I)L" + prefix + "FZZ32;");
+        initializeEntry("FZZ64",    "getValue", "()J", "make", "(J)L" + prefix + "FZZ64;");
+        initializeEntry("FRR32",    "getValue", "()F", "make", "(F)L" + prefix + "FRR32;");
+        initializeEntry("FRR64",    "getValue", "()D", "make", "(D)L" + prefix + "FRR64;");
+        initializeEntry("FBoolean", "getValue", "()Z", "make", "(Z)L" + prefix + "FBoolean;");
+        initializeEntry("FVoid",    "getValue", "()",  "make", "()L" + prefix + "FVoid;");
+        initializeEntry("FString",  "getValue", "()Ljava/lang/String;",
+                                    "make", "(Ljava/lang/String;)L" + prefix + "FString;");
+        initializeEntry("FChar",    "getValue",	"()I", "make", "(I)L" + prefix + "FChar;");
     }
 
     // Strip off the leading L + prefix, and trailing ;"
