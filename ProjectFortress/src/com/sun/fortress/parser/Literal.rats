@@ -47,10 +47,12 @@ NumberLiteralExpr NumericLiteralExpr =
        for (String n: a2s.list()) buf.append(n);
        numeral = buf.toString();
        Span span = createSpan(yyStart,yyCount);
-       NodeUtil.validNumericLiteral(writer, span, numeral);
-       if ( NodeUtil.validIntLiteral(numeral) )
-           yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
-       else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);
+       if ( NodeUtil.validNumericLiteral(writer, span, numeral) ) {
+           if ( NodeUtil.validIntLiteral(numeral) )
+               yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
+           else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);
+       }
+       else yyValue = ExprFactory.makeIntLiteralExpr(span, "0");
      };
 
 private NumberLiteralExpr NumericLiteralWithRadix =
@@ -61,11 +63,13 @@ private NumberLiteralExpr NumericLiteralWithRadix =
        for (String n: a2s.list()) buf.append(n);
        numeral = buf.toString();
        Span span = createSpan(yyStart,yyCount);
-       NodeUtil.validNumericLiteral(writer, span, numeral, a3);
-       numeral += "_"+NodeUtil.radix2Number(a3);
-       if ( NodeUtil.validIntLiteral(numeral) )
-           yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
-       else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);
+       if ( NodeUtil.validNumericLiteral(writer, span, numeral, a3) ) {
+           numeral += "_"+NodeUtil.radix2Number(a3);
+           if ( NodeUtil.validIntLiteral(numeral) )
+               yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
+           else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);
+       }
+       else yyValue = ExprFactory.makeIntLiteralExpr(span, "0");
      };
 
 private transient String NumericWord =
@@ -181,6 +185,7 @@ private String EscapeSequence =
 
 private String CharLiteralContent =
      EscapeSequence
+   / UnicodeCharLiteralContent
    / "ALPHA" { yyValue = "\u0391"; }
    / "BETA" { yyValue = "\u0392"; }
    / "GAMMA" { yyValue = "\u0393"; }
@@ -196,15 +201,15 @@ private String CharLiteralContent =
    / "NU" { yyValue = "\u039D"; }
    / "XI" { yyValue = "\u039E"; }
    / "OMICRON" { yyValue = "\u039F"; }
-   / "PI" { yyValue = "\u0400"; }
-   / "RHO" { yyValue = "\u0401"; }
-   / "SIGMA" { yyValue = "\u0403"; }
-   / "TAU" { yyValue = "\u0404"; }
-   / "UPSILON" { yyValue = "\u0405"; }
-   / "PHI" { yyValue = "\u0406"; }
-   / "CHI" { yyValue = "\u0407"; }
-   / "PSI" { yyValue = "\u0408"; }
-   / "OMEGA" { yyValue = "\u0409"; }
+   / "PI" { yyValue = "\u03A0"; }
+   / "RHO" { yyValue = "\u03A1"; }
+   / "SIGMA" { yyValue = "\u03A3"; }
+   / "TAU" { yyValue = "\u03A4"; }
+   / "UPSILON" { yyValue = "\u03A5"; }
+   / "PHI" { yyValue = "\u03A6"; }
+   / "CHI" { yyValue = "\u03A7"; }
+   / "PSI" { yyValue = "\u03A8"; }
+   / "OMEGA" { yyValue = "\u03A9"; }
    / "alpha" { yyValue = "\u03B1"; }
    / "beta" { yyValue = "\u03B2"; }
    / "gamma" { yyValue = "\u03B3"; }
@@ -429,6 +434,32 @@ private String CharLiteralContent =
    / "XOR" { yyValue = "\u22BB"; }
    / a1:(!InvalidCharLiteralContent _) { yyValue = String.valueOf(a1); }
    ;
+
+private String UnicodeCharLiteralContent =
+     UnicodeHexChar
+   / "U+" a1:UnicodeHexChar { yyValue = a1; };
+
+private String UnicodeHexChar =
+     [0-9A-F] [0-9A-F] [0-9A-F] [0-9A-F] [0-9A-F]?
+   / [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f]?
+   / "10" [0-9A-F] [0-9A-F] [0-9A-F] [0-9A-F]
+   / "10" [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f] 
+   / <ErrorProduction1> ( [0-9A-F] [0-9A-F] [0-9A-F] [0-9A-F] [0-9A-F] [0-9A-F]+
+                        / [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f]+ )
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Syntax Error: a hexadecimal character literal " +
+                 "has a value larger than 10FFFF.");
+     }
+   / <ErrorProduction2> ( [0-9A-F] [0-9A-F] [0-9A-F]? / [0-9a-f] [0-9a-f] [0-9a-f]? )
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Syntax Error: a hexadecimal character literal " +
+                 "has fewer than four hexadecimal digits.");
+     }
+   / <ErrorProduction3> [0-9A-Fa-f][0-9A-Fa-f]+
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Syntax Error: a hexadecimal character literal " +
+                 "contains both uppercase and lowercase letters.");
+     };
 
 private String InvalidCharLiteralContent =
      a1:[\\\n\f\r\u0009\u000b\u001c\u001d\u001e\u001f"\u201c\u201d\u2028\u2029]
