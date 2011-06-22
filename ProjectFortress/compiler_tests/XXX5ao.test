@@ -1,0 +1,23 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled5.ao
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.ao.fss:14:22:\n\
+\ Type variable X must not appear in the extends clause of a trait or object declaration.\n\
+${STATIC_TESTS_DIR}/Compiled5.ao.fss:15:13:\n\
+\ A wrapped field x must not have a naked type variable X.\n\
+${STATIC_TESTS_DIR}/Compiled5.ao.fss:17:25:\n\
+\ A wrapped field x must not have a naked type variable Y.\n\
+${STATIC_TESTS_DIR}/Compiled5.ao.fss:17:36:\n\
+\ Type variable Y must not appear in the extends clause of a trait or object declaration.\n\
+File Compiled5.ao.fss has 4 errors.\n
+compile_out_equals=

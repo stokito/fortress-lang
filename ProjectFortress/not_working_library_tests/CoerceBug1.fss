@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component CoerceBug1
+export Executable
+
+value object NothingObject[\T\]
+     coerce(_: Nothing) = NothingObject[\T\]
+end
+
+object Nothing end
+
+run(): () = do x: NothingObject[\ZZ32\] = Nothing; if x SEQV x then println "PASS" end end
+
+end

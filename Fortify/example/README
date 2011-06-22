@@ -1,0 +1,21 @@
+
+I wrote this example for people that just want to try the tool without having a preexisting document.
+
+I used the fortify tool to generate latex for the run method in buffons.fss.
+
+I added the following header:
+
+\documentclass{article}
+\usepackage{fortify}
+
+\begin{document}
+
+and the following footer:
+
+
+\end{document}
+
+and saved the file in buffons.tex.  
+
+I copied ../fortify.sty to this directory and then ran pdflatex on buffons.tex to generate buffons.pdf.
+

@@ -1,0 +1,44 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component LogFib
+export Executable
+
+(** Log-time fibonacci using only integer arithmetic.
+    This is "faster" than repeated addition!
+ **)
+
+fib(n: ZZ): ZZ = do
+    (fib_n1, fib_n) = logFib(n)
+    fib_n
+  end
+
+logFib(n: ZZ): (ZZ, ZZ) =
+    if n < 2 then
+        (1-n, n)
+    else
+        h = n DIV 2
+        (fib_h1, fib_h) = logFib(h)
+        fib_n1 = fib_h1^2 + fib_h^2
+        fib_n = fib_h (2 fib_h1 + fib_h)
+        if even n then
+            (fib_n1, fib_n)
+        else
+            (fib_n, fib_n1 + fib_n)
+        end
+    end
+
+run(): () = do
+    println(fib big(i)), i <- seq(0:100)
+  end
+
+end
+

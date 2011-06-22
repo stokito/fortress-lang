@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component contraUnification
+export Executable
+
+trait T
+  m():ZZ32 = 0
+end
+
+object A extends T
+  m():ZZ32 = 1
+end
+
+object B extends T
+  m():ZZ32 = 2
+end
+
+f[\V\](a:V):V = a
+
+g(x: T, o: T->T): T = o(x)
+
+run():() = do
+  print(g(B,f).m())
+end
+
+end

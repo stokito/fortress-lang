@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled4.b
+import CompilerSystem.args
+export { Executable }
+
+opr (n:ZZ32)! = if n <= 1 then 1 else n (n - 1)! 
+
+run(): () = do
+  println(strToInt(args[0]!))
+end
+
+end
