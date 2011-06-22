@@ -2454,6 +2454,14 @@ return new TraitType(info, name, sargs, sparams);
         return new _RewriteFunctionalMethodDecl(makeSpanInfo(span), names);
     }
 
+    public static Overloading makeOverloading(
+            ASTNodeInfo in_info, IdOrOp in_unambiguousName,
+            IdOrOpOrAnonymousName in_originalName,  Option<ArrowType> in_type,
+            Option<ArrowType> in_schema) {
+        return new Overloading (in_info, in_unambiguousName, (IdOrOp) in_originalName,
+                in_type, in_schema);
+    }
+
     public static List<LValue> ids2Lvs(List<Id> ids) {
         List<LValue> lvs = new ArrayList<LValue>(ids.size());
         for (Id id : ids) {

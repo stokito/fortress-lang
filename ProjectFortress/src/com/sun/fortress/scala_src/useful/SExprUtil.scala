@@ -122,9 +122,16 @@ object SExprUtil {
   def addOverloadings(fnRef: FunctionalRef,
                       overs: List[Overloading])
                      (implicit ta: TypeAnalyzer): FunctionalRef = {
-    val (typs,schms) = overs.map {
-      case SOverloading(_, _, _, typ, schma) => (typ.get,schma.get)
-    }.unzip
+    if (false && overs == Nil) {
+            fnRef
+    } else {
+    val typs = overs.map {
+      case SOverloading(_, _, _, typ, schma) => (typ.get)
+    }
+    // Try Schema from old (this seems necessary).  whoops, no
+    val schms = overs.map { // toListFromImmutable(fnRef.getNewOverloadings).map {
+      case SOverloading(_, _, _, typ, schma) => (schma.get)
+    }
     val tsa = new TypeSchemaAnalyzer()
     val ityps = tsa.duplicateFreeIntersection(typs)
     val ischms = tsa.duplicateFreeIntersection(schms)
@@ -132,6 +139,7 @@ object SExprUtil {
       case SFnRef(a, b, c, d, e, f, _, _, _) => SFnRef(a, b, c, d, e, f, overs, Some(ityps), Some(ischms))
       case SOpRef(a, b, c, d, e, f, _, _, _) => SOpRef(a, b, c, d, e, f, overs, Some(ityps), Some(ischms))
       case _ => NI.nyi()
+    }
     }
   }
 

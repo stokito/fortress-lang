@@ -61,8 +61,10 @@ class ExclusionOracle(errors: ErrorLog)(implicit typeAnalyzer: TypeAnalyzer) {
    *     Unit
    * TupleType's with varargs parameters or keyword parameters are not supprted.
    */
-  def excludes(first: Type, second: Type): Boolean =
-    ( typeAnalyzer.normalize(first), typeAnalyzer.normalize(second) ) match {
+  def excludes(first: Type, second: Type): Boolean = {
+    val a_temporary_I_can_see_in_my_debugger =
+      ( typeAnalyzer.normalize(first), typeAnalyzer.normalize(second) )
+    a_temporary_I_can_see_in_my_debugger match {
       case (SBottomType(_), _) => true
       case (_, SBottomType(_)) => true
       case (SAnyType(_), _) => false
@@ -144,6 +146,8 @@ class ExclusionOracle(errors: ErrorLog)(implicit typeAnalyzer: TypeAnalyzer) {
       case (_:TupleType ,_) => true
       case (_, _:TupleType) => true
       case (f:TraitSelfType, s:TraitSelfType) => excludes(f.getNamed, s.getNamed)
+      case (f:TraitType, s:TraitSelfType) => excludes(f, s.getNamed)
+      case (f:TraitSelfType, s:TraitType) => excludes(f.getNamed, s)
       case (f:ObjectExprType, s:ObjectExprType) => true
       case (f:TraitType, s:TraitType) =>
         ( toOption(typeAnalyzer.traits.typeCons(f.getName)),
@@ -175,7 +179,8 @@ class ExclusionOracle(errors: ErrorLog)(implicit typeAnalyzer: TypeAnalyzer) {
         }
       case _ => false
     }
-
+  }
+  
   private def transitivelyExcludes(tIndex: ProperTraitIndex): Set[TraitType] = {
     var result = toSet(tIndex.excludesTypes)
     for ( t <- toListFromImmutable(tIndex.extendsTypes) ) {

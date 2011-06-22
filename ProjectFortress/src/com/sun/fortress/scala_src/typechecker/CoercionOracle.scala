@@ -209,12 +209,21 @@ class CoercionOracle(traits: TraitTable,
     val argSpan = NU.getSpan(arg)
 
     // Build app candidates and sort them to find the SMA.
-    val candidates = coercionsAndArgs.map { caa =>
+    val candidates = coercionsAndArgs.map { caa => {
       AppCandidate(caa._2, caa._3, List(arg), None)
+      // Trying to fake an overloading to see if we can get the schema right
+      // val caa_ast = caa._1.ast
+      // AppCandidate(caa._2, caa._3, List(arg),
+      //      Some(NF.makeOverloading(caa_ast.getInfo,
+      //                 caa_ast.getUnambiguousName,
+      //                 caa_ast.getHeader.getName,
+      //                 Some(caa._2),
+      //                 Some(caa._4))))
+      }
     }.toList.sortWith { (c1, c2) =>
       moreSpecificCandidate(c1, c2)(this)
     }
-    val AppCandidate(bestArrow, bestSargs, _, _) = candidates.head
+    val AppCandidate(bestArrow, bestSargs, _, bestOverload) = candidates.head
     val coercionId = makeCoercionId(u)
     
     // Make an overloading for each lifted coercion to U.

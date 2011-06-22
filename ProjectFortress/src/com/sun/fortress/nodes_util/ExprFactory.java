@@ -414,6 +414,18 @@ public class ExprFactory {
                         .<Type> none());
     }
 
+    public static FnRef makeFnRefHelpScala(Span span, boolean isParenthesized,  Id name,
+            List<StaticArg> sargs,
+            List<Overloading> interp_overloadings,
+            List<Overloading> newOverloadings,
+            Option<Type> type,
+            Option<Type> schema) {
+        return makeFnRef(span,
+                isParenthesized, Option
+                .<Type> none(), sargs, defaultLexicalDepth,
+                name, Collections.<IdOrOp>emptyList(), interp_overloadings, newOverloadings, type, schema);
+    }
+
     public static FnRef makeFnRef(Span span, boolean parenthesized,
             Option<Type> ty,
             List<StaticArg> staticArgs,
