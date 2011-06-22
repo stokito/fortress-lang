@@ -98,7 +98,7 @@ stateful void Token =
    / a1:Opening  { yyState.left(createSpan(yyStart,yyCount), a1); }
    / a1:Closing  { yyState.right(createSpan(yyStart,yyCount), a1); }
    / a1:["] { yyState.quote(createSpan(yyStart,yyCount), "\\\""); }
-   / a1:['] { yyState.quote(createSpan(yyStart,yyCount), "'"); } // '
+//   / a1:['] { yyState.quote(createSpan(yyStart,yyCount), "'"); } // '
    / Numbers
    / OtherKeywords
    / OtherSymbols
