@@ -646,8 +646,20 @@ public class ExprFactory {
     }
 
     public static CharLiteralExpr makeCharLiteralExpr(Span span, String s) {
-        return makeCharLiteralExpr(span, false, Option.<Type>none(),
-                                   s, s.charAt(0));
+        int n = s.length();
+        if (n == 0) {
+	    // If parser gave us no character (because of a syntax error),
+	    // use U+FFFD REPLACEMENT CHARACTER.
+	    return makeCharLiteralExpr(span, false, Option.<Type>none(),
+				       s, 0xFFFD);
+	} else if (n == 1) {
+	    return makeCharLiteralExpr(span, false, Option.<Type>none(),
+				       s, s.charAt(0));
+	} else {
+	    // If not a single character, then it should be a hex string
+	    return makeCharLiteralExpr(span, false, Option.<Type>none(),
+				       s, Integer.parseInt(s, 16));
+	}
     }
 
     public static CharLiteralExpr makeCharLiteralExpr(Span span,
