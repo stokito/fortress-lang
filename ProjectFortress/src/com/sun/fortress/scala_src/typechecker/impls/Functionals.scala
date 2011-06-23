@@ -641,7 +641,7 @@ trait Functionals { self: STypeChecker with Common =>
       // Make the intersection type of all the overloadings.
       val overloadingTypes = checkedOverloadings.map(_.getType.unwrap)
       val intersectionType = NF.makeMaybeIntersectionType(toJavaList(overloadingTypes))
-      addType(addOverloadings(fn, checkedOverloadings), intersectionType)
+      addType(addOverloadings(fn, checkedOverloadings, false), intersectionType)
     }
 
     case app @ S_RewriteFnApp(SExprInfo(span, paren, _), fn, arg) => {
@@ -662,7 +662,7 @@ trait Functionals { self: STypeChecker with Common =>
 
       // Rewrite the applicand to include the arrow and unlifted static args
       // and update the application.
-      val newFn = rewriteApplicand(checkedFn, candidates)
+      val newFn = rewriteApplicand(checkedFn, candidates, false)
       val info = SExprInfo(span, paren, Some(bestArrow.getRange))
 
       newFn match {
@@ -704,7 +704,7 @@ trait Functionals { self: STypeChecker with Common =>
 
       // Rewrite the applicand to include the arrow and static args
       // and update the application.
-      val newOp = rewriteApplicand(checkedOp, candidates).asInstanceOf[FunctionalRef]
+      val newOp = rewriteApplicand(checkedOp, candidates, false).asInstanceOf[FunctionalRef]
       SOpExpr(SExprInfo(span, paren, Some(bestArrow.getRange)), newOp, bestArgs)
     }
 
@@ -787,7 +787,7 @@ trait Functionals { self: STypeChecker with Common =>
 
                 // Rewrite the applicand to include the arrow and static args
                 // and update the application.
-                rewriteApplicand(op, candidates).asInstanceOf[FunctionalRef]
+                rewriteApplicand(op, candidates, false).asInstanceOf[FunctionalRef]
               }
               newCompare match {
                 // If compare is some, we use that operator

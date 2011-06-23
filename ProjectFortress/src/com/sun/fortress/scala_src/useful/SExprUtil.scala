@@ -118,13 +118,16 @@ object SExprUtil {
 
   /**
    * Replaces the overloadings in a FunctionalRef with the given overloadings
+   * 
+   * When called from coercion code, skipOverloads is true, because the
+   * list of overloads is empty (by construction) and thus the type and 
+   * schema will be Any, which is not the right answer.  Instead, use the one
+   * supplied in the fnRef, which is precalculated to be correct (apparently).
    */
   def addOverloadings(fnRef: FunctionalRef,
-                      overs: List[Overloading])
+                      overs: List[Overloading],
+                      skipOverloads : Boolean)
                      (implicit ta: TypeAnalyzer): FunctionalRef = {
-    if (false && overs == Nil) {
-            fnRef
-    } else {
     val typs = overs.map {
       case SOverloading(_, _, _, typ, schma) => (typ.get)
     }
@@ -135,12 +138,19 @@ object SExprUtil {
     val tsa = new TypeSchemaAnalyzer()
     val ityps = tsa.duplicateFreeIntersection(typs)
     val ischms = tsa.duplicateFreeIntersection(schms)
+    if (skipOverloads) 
     fnRef match {
-      case SFnRef(a, b, c, d, e, f, _, _, _) => SFnRef(a, b, c, d, e, f, overs, Some(ityps), Some(ischms))
-      case SOpRef(a, b, c, d, e, f, _, _, _) => SOpRef(a, b, c, d, e, f, overs, Some(ityps), Some(ischms))
+      case SFnRef(a, b, c, d, e, f, _, g, h) => SFnRef(a, b, c, d, e, f, overs, g, h)
+      case SOpRef(a, b, c, d, e, f, _, g, h) => SOpRef(a, b, c, d, e, f, overs, g, h)
       case _ => NI.nyi()
     }
+    else
+    fnRef match {
+      case SFnRef(a, b, c, d, e, f, _, _, g) => SFnRef(a, b, c, d, e, f, overs, Some(ityps), Some(ischms))
+      case SOpRef(a, b, c, d, e, f, _, _, g) => SOpRef(a, b, c, d, e, f, overs, Some(ityps), Some(ischms))
+      case _ => NI.nyi()
     }
+      
   }
 
   /**
