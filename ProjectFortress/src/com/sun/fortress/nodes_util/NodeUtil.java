@@ -1123,28 +1123,38 @@ public class NodeUtil {
         return true;
     }
 
-    public static void validNumericLiteral(BufferedWriter writer,
+    public static boolean validNumericLiteral(BufferedWriter writer,
                                            Span span, String numeral) {
+	boolean result = true;
         int numberOfDots = 0;
         for (int index = 0; index < numeral.length(); index++) {
             char c = numeral.charAt(index);
-            if (Character.isLetter(c))
+            if (Character.isLetter(c)) {
                 log(writer, span, "Syntax Error: a numeral contains " +
                     "letters and does not have a radix specifier.");
+		result = false;
+		break;
+	    }
             if (c == '.') numberOfDots++;
         }
-        if (numberOfDots > 1)
+        if (numberOfDots > 1) {
             log(writer, span, "Syntax Error: a numeral contains more " +
                 "than one `.' character.");
+	    result = false;
+	}
+	return result;
     }
 
-    public static void validNumericLiteral(BufferedWriter writer,
+    public static boolean validNumericLiteral(BufferedWriter writer,
                                            Span span, String numeral,
                                            String radix) {
+	boolean result = true;
         int radixNumber = radix2Number(radix);
-        if (radixNumber == -1)
+        if (radixNumber == -1) {
             log(writer, span, "Syntax Error: the radix of " +
                 "a numeral should be an integer from 2 to 16.");
+	    result = false;
+	}
         boolean sawUpperCase = false;
         boolean sawLowerCase = false;
         boolean sawAb = false;
@@ -1154,34 +1164,43 @@ public class NodeUtil {
             char c = numeral.charAt(index);
             if (c == '.') numberOfDots++;
             if (Character.isUpperCase(c)) {
-                if (sawLowerCase)
+                if (sawLowerCase) {
                     log(writer, span, "Syntax Error: a numeral " +
                         "contains both uppercase and lowercase letters.");
+		    result = false;
+		}
                 else sawUpperCase = true;
             } else if (Character.isLowerCase(c)) {
-                if (sawUpperCase)
+                if (sawUpperCase) {
                     log(writer, span, "Syntax Error: a numeral " +
                         "contains both uppercase and lowercase letters.");
+		    result = false;
+		}
                 else sawLowerCase = true;
             }
             if (radixNumber == 12) {
                 if (!validDigitOrLetterIn12(c)
                     && c != '.' && c != '\'' && c != '\u202F') {
-    log(writer, span, "Syntax Error: a numeral " +
+		    log(writer, span, "Syntax Error: a numeral " +
                         "has radix 12 and contains letters other " +
                         "than A, B, X, E, a, b, x or e.");
+		    result = false;
                 }
                 if (c == 'A' || c == 'a' || c == 'B' || c == 'b') {
-                    if (sawXe)
+                    if (sawXe) {
                         log(writer, span, "Syntax Error: a numeral " +
                             "has radix 12 and contains at least one " +
                             "A, B, a or b and at least one X, E, x or e.");
+			result = false;
+		    }
                     else sawAb = true;
                 } else if (c == 'X' || c == 'x' || c == 'E' || c == 'e') {
-                    if (sawAb)
+                    if (sawAb) {
                         log(writer, span, "Syntax Error: a numeral " +
                             "has radix 12 and contains at least one " +
                             "A, B, a or b and at least one X, E, x or e.");
+			result = false;
+		    }
                     else sawXe = true;
                 }
             }
@@ -1192,11 +1211,15 @@ public class NodeUtil {
                     "specifier and contains a digit or letter that " +
                     "denotes a value greater than or equal to the " +
                     "numeral's radix.");
+		result = false;
             }
         }
-        if (numberOfDots > 1)
+        if (numberOfDots > 1) {
             log(writer, span, "Syntax Error: a numeral contains more " +
                 "than one `.' character.");
+	    result = false;
+	}
+	return result;
     }
 
     public static int radix2Number(String radix) {

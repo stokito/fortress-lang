@@ -105,8 +105,6 @@ object FailCalled(s:String) extends UncheckedException
     getter asString(): String = "FAIL: " s
 end
 
-(*
-
 object DivisionByZero extends UncheckedException
     getter asString(): String = "Division by zero"
 end
@@ -152,9 +150,11 @@ object NotFound extends UncheckedException
     getter asString(): String = "Not found"
 end
 
+(*
 object IndexOutOfBounds[\I\](range:Range[\I\],index:I) extends UncheckedException
     getter asString(): String = index " is outside the range " range
 end
+*)
 
 object EmptyReduction extends UncheckedException
     getter asString(): String = "EmptyReduction: no identity, no elements"
@@ -175,7 +175,7 @@ end
 object FloatingComparisonError extends UncheckedException
     getter asString(): String = "Floating comparison error"
 end
-*)
+
 
 (* Checked Exceptions *)
 
