@@ -1,0 +1,44 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component MoreOverload
+
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+
+import java com.sun.fortress.nativeHelpers.{simpleOverload.foo => jFoo}
+
+export Executable
+
+jFoo(a:ZZ64, b:ZZ64, c:ZZ64, d:ZZ64):() = do
+  jPrintln("LLLL local1!")
+end
+
+jFoo(a:String, b:String, c:String, d:String):() = do
+  jPrintln("LLLL local2!")
+end
+
+u(x:Any, y:Any):Any = x
+v(x:Any):() = ()
+
+t(i:ZZ64, l:ZZ64):() = do
+  jFoo(i,i,i,i)
+  jFoo(i,i,l,i)
+  jFoo(i,i,i,l)
+  jFoo(l,l,l,l)
+end
+
+run():() = do
+   t(9, 100000000000)
+   v u(u(1,2),u("cat", "dog"))
+   jFoo("a", "b", "c", "d")
+   end
+
+end
