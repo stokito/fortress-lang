@@ -1146,12 +1146,12 @@ public class NamingCzar {
             }
             @Override
             public String forBottomType(BottomType t) {
-                    return descFortressVoid;
+                    return withLSemi ? descFortressVoid : internalFortressVoid;
             }
             @Override
             public String forTupleType(TupleType t) {
                 if ( NodeUtil.isVoidType(t) )
-                    return descFortressVoid;
+                    return withLSemi ? descFortressVoid : internalFortressVoid;
                 if (t.getVarargs().isSome())
                     throw new CompilerError(t,"Can't compile VarArgs yet");
                 if (!t.getKeywords().isEmpty())

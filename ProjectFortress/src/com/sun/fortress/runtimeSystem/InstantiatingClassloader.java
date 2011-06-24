@@ -524,6 +524,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         int left = ft.indexOf(Naming.LEFT_OXFORD);
         int right = ft.lastIndexOf(Naming.RIGHT_OXFORD);
         List<String> parameters = extractStringParameters(ft, left, right);
+        if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
+        	parameters = parameters.subList(1,2);
 
         if (sig == null)
             sig = arrowParamsToJVMsig(parameters);
@@ -606,14 +608,15 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         if (LOG_LOADS) System.err.println(name + ".apply" + sig + " concrete\nparams = " + parameters);
 
+        // KBN 06/2011 handled above now
         // Monkey business to deal with case of "void" args.
-        int sz = parameters.size();
+        //int sz = parameters.size();
         // Last parameter is actually result type!
         // But we need to include an extra arg in sz to represent the closure itself (this).
-        if (sz==2 && Naming.INTERNAL_SNOWMAN.equals(parameters.get(0))) {
+       // if (sz==2 && Naming.INTERNAL_SNOWMAN.equals(parameters.get(0))) {
             // Arity 1 (sz 2) with void parameter should actually be arity 0 (sz 1).
-            sz = 1;
-        }
+        //    sz = 1;
+        //}
 
         // Emit a method with well-known name ("apply", most likely)
         // to forward calls from the instance to the static, which our
@@ -621,7 +624,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // different class.
         forwardingMethod(cw, Naming.APPLY_METHOD, ACC_PUBLIC, 0,
                 staticClass, fn, INVOKESTATIC,
-                sig, sig, sz, false, forceCastParam0);
+                sig, sig, parameters.size(), false, forceCastParam0);
         
         return fn;
 
@@ -912,7 +915,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         }
         
         {      
-            String sig = arrowParamsToJVMsig(parameters);
+            String sig;
+            if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
+            	sig = arrowParamsToJVMsig(parameters.subList(1,2));
+            else
+            	sig = arrowParamsToJVMsig(unwrapped_parameters);
             if (LOG_LOADS) System.err.println(name+".apply"+sig+" abstract");
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
                                 sig,
@@ -1010,7 +1017,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         //  public range_parameter apply( domain_parameters ) = 
         //    (range_parameter) wrappee.apply( domain_parameters )
         
-        String unwrapped_apply_sig = arrowParamsToJVMsig(unwrapped_parameters);
+        String unwrapped_apply_sig;
+        if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
+        	unwrapped_apply_sig = arrowParamsToJVMsig(parameters.subList(1,2));
+        else
+        	unwrapped_apply_sig= arrowParamsToJVMsig(unwrapped_parameters);
+       
         String obj_apply_sig = arrowParamsToJVMsig(objectified_parameters);
   
         mv = cw.visitMethod(ACC_PUBLIC, Naming.APPLY_METHOD,
@@ -1114,7 +1126,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String obj_intf_sig = stringListToGeneric(Naming.ARROW_TAG, objectified_parameters);
         String wrapped_sig = stringListToGeneric(WRAPPED_ARROW, unwrapped_parameters);
         String typed_intf_sig = stringListToGeneric(Naming.ARROW_TAG, unwrapped_parameters);
-        String unwrapped_apply_sig = arrowParamsToJVMsig(unwrapped_parameters);
+        String unwrapped_apply_sig;
+        if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
+        	unwrapped_apply_sig = arrowParamsToJVMsig(parameters.subList(1,2));
+        else
+        	unwrapped_apply_sig= arrowParamsToJVMsig(unwrapped_parameters);
+        
         String obj_apply_sig = arrowParamsToJVMsig(objectified_parameters);
     
         String[] interfaces = tupled_parameters == null ?
@@ -2145,8 +2162,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String s = parameters.get(i);
             if (! s.equals(Naming.INTERNAL_SNOWMAN))
                 buf.append(Naming.javaDescForTaggedFortressType(parameters.get(i)));
-            //else
-            //	buf.append(Naming.javaDescForTaggedFortressType(Naming.specialFortressTypes.get(Naming.INTERNAL_SNOWMAN)));
+            else
+            	buf.append(Naming.javaDescForTaggedFortressType(Naming.specialFortressTypes.get(Naming.INTERNAL_SNOWMAN)));
         }
         sig = buf.toString();
         sig += ")";
