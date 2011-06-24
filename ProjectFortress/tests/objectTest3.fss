@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component objectTest3
+export Executable
+
+object A(i:ZZ32, j:ZZ32)
+  id():A = self
+  getI():ZZ32 = self.i
+  getZ():ZZ32 = j
+end
+
+run():()=do
+  a:A = A(3,4);
+  println(
+  if (a.id().getI() + a.id().getZ() = 7) then "pass" else "fail" end
+  )
+end
+
+end
