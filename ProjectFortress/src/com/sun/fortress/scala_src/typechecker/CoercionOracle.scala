@@ -210,15 +210,19 @@ class CoercionOracle(traits: TraitTable,
 
     // Build app candidates and sort them to find the SMA.
     val candidates = coercionsAndArgs.map { caa => {
-      AppCandidate(caa._2, caa._3, List(arg), None)
-      // Trying to fake an overloading to see if we can get the schema right
-      // val caa_ast = caa._1.ast
-      // AppCandidate(caa._2, caa._3, List(arg),
-      //      Some(NF.makeOverloading(caa_ast.getInfo,
-      //                 caa_ast.getUnambiguousName,
-      //                 caa_ast.getHeader.getName,
-      //                 Some(caa._2),
-      //                 Some(caa._4))))
+      if (false) {
+          AppCandidate(caa._2, caa._3, List(arg), None)
+      } else {
+          // Trying to fake an overloading to see if we can get the schema right
+          // So far this breaks things, but why?
+          val caa_ast = caa._1.ast
+          AppCandidate(caa._2, caa._3, List(arg),
+                  Some(NF.makeOverloading(caa_ast.getInfo,
+                       caa_ast.getUnambiguousName,
+                       caa_ast.getHeader.getName,
+                       Some(caa._2),
+                       Some(caa._4))))
+          }
       }
     }.toList.sortWith { (c1, c2) =>
       moreSpecificCandidate(c1, c2)(this)
@@ -243,15 +247,17 @@ class CoercionOracle(traits: TraitTable,
     }
 
     // Make a dummy functional ref.
-    val fnRef = EF.makeFnRef(argSpan,
+    val fnRef = EF.makeFnRefHelpScala(argSpan,
                              false,
                              coercionId,
                              toJavaList(Nil),
                              toJavaList(overloadings),
-                             toJavaList(overloadings))
+                             toJavaList(overloadings),
+                             bestOverload.get.getType,
+                             bestOverload.get.getSchema)
 
     // Rewrite the FnRef so that it filters out dynamically unapplicable arrows.
-    val newFnRef = rewriteApplicand(fnRef, candidates).asInstanceOf[FnRef]
+    val newFnRef = rewriteApplicand(fnRef, candidates, true).asInstanceOf[FnRef]
 
     // Make the coercion invocation!
     Some(Some(STraitCoercionInvocation(SExprInfo(argSpan, false, Some(u)), arg, u, newFnRef)))

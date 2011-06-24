@@ -164,7 +164,6 @@ object STypesUtil {
 //       case _ => f.staticParameters
 //     }
 
-    
     Some(NF.makeArrowType(NF.typeSpan,
       false,
       argType,
@@ -973,7 +972,9 @@ object STypesUtil {
    * updated with the dynamically applicable overloadings, arrow type, and
    * static args.
    */
-  def rewriteApplicand(fn: Expr, candidates: List[AppCandidate])(implicit analyzer: TypeAnalyzer): Expr = {
+  def rewriteApplicand(fn: Expr,
+            candidates: List[AppCandidate],
+            skipOverloads: Boolean)(implicit analyzer: TypeAnalyzer): Expr = {
 
     // Pull out the info for the winning candidate.
     val sma@AppCandidate(bestArrow, bestSargs, _, bestOverloading) = candidates.head
@@ -984,14 +985,20 @@ object STypesUtil {
         // Get the unlifted static args.
         val (liftedSargs, unliftedSargs) = bestSargs.partition(_.isLifted)
 
+        
         // Get the dynamically applicable overloadings. Any time this method is
         // called, the candidates would have been created with corresponding
         // Overloading nodes; so use those instead of the ones on fn.
-        val overloadings = pruneMethodCandidates(candidates, sma).flatMap { c =>
+        val pruned = pruneMethodCandidates(candidates, sma)
+        val overloadings = if (skipOverloads)  Nil else pruned.flatMap { c =>
           c.overloading.flatMap { o =>
             isDynamicallyApplicable(o, bestArrow, unliftedSargs, liftedSargs)
           }
         }
+//        System.err.println("Candidates=" + candidates)
+//        System.err.println("Pruned=" + pruned)
+//        System.err.println("Overloadings=" + overloadings)
+
 
         // Add in the filtered overloadings, the inferred static args,
         // and the statically most applicable arrow to the fn.
@@ -999,7 +1006,7 @@ object STypesUtil {
         // WHAT IF OVERLOADINGS IS EMPTY?  IT IS, for CoerceBug1.
         addType(
           addStaticArgs(
-            addOverloadings(fn, overloadings),
+            addOverloadings(fn, overloadings, skipOverloads),
             unliftedSargs),
           bestArrow)
 

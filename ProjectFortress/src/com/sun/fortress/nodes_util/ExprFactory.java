@@ -418,8 +418,14 @@ public class ExprFactory {
             List<StaticArg> sargs,
             List<Overloading> interp_overloadings,
             List<Overloading> newOverloadings,
-            Option<Type> type,
-            Option<Type> schema) {
+            Option<ArrowType> arrow_type,
+            Option<ArrowType> arrow_schema) {
+        Option<Type> schema = arrow_schema.isSome() ?
+                Option.<Type>some(arrow_schema.unwrap()) :
+            Option.<Type>none();
+        Option<Type> type = arrow_type.isSome() ?
+                Option.<Type>some(arrow_type.unwrap()) :
+                    Option.<Type>none();
         return makeFnRef(span,
                 isParenthesized, Option
                 .<Type> none(), sargs, defaultLexicalDepth,
