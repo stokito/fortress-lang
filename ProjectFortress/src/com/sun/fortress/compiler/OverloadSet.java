@@ -908,7 +908,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * Returns a type decision structure for the given input type.
      * 
      * @param t the type to build the structure for.
-     * @param spmap map recording occurrences of static parameter names.
+     * @param spmap map recording occurrences of static parameter names. 
+     *         Can be null for return types; these are not looked up at run time
      * @param variance context -- how must the type match?
      * @param storeAtIndex after the type test returns, store the result here.
      * @return
@@ -1032,7 +1033,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             return new TypeStructure(fullname, stem, parameters, storeAtIndex, next_index, variance, invariantGenericsContained, variantGenericsContained, isObject);
         } else if (isVarType) {
             TypeStructure x = new TypeStructure(fullname, stem, parameters, storeAtIndex, storeAtIndex+1, variance, invariantGenericsContained, variantGenericsContained, isObject);
-            spmap.putItem(stem, x);
+            if (spmap != null)
+                spmap.putItem(stem, x);
             return x;
         } else { 
             return new TypeStructure(fullname, stem, parameters, storeAtIndex, storeAtIndex+1, variance, invariantGenericsContained, variantGenericsContained, isObject);
@@ -1058,14 +1060,20 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         //  create type structures for parameter types.
         TypeStructure[][] type_structures = new TypeStructure[l][];
         MultiMap[] spmaps = new MultiMap[l];
+        TypeStructure[] return_type_structures = new TypeStructure[l];
+        
         for (int i = 0; i < l; i++) {
             TaggedFunctionName f = specificDispatchOrder[i];
             Functional eff = f.getF();
             List<Param> parameters = f.getParameters();
             MultiMap<String, TypeStructure> spmap = new MultiMap<String, TypeStructure>();
             spmaps[i] = spmap;
-            // skip parameters -- no 'this' for ordinary functions
             
+            Type rt = oa.getRangeType(eff);
+            return_type_structures[i] = makeTypeStructure(rt,null, 1, 0);
+            
+            // skip parameters -- no 'this' for ordinary functions
+ 
             if (parameters.size() == 1 && oa.getDomainType(eff) instanceof TupleType) {
                 TupleType tt = (TupleType) oa.getDomainType(eff);
                 List<Type> tl = tt.getElements();
@@ -1097,6 +1105,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             }
         }
 
+        
+        
         for (int i = 0; i < l; i++) {
             TaggedFunctionName f = specificDispatchOrder[i];
             TypeStructure[] f_type_structures = type_structures[i];                
@@ -1110,6 +1120,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 lookahead = new Label();
 
                 Set<String> top_level_invariants = new HashSet<String>();
+                top_level_invariants.addAll(return_type_structures[i].invariantGenericsContained);
+                
                 for (int j = 0; j < f_type_structures.length; j++) {
                     if (j != selfIndex())
                         top_level_invariants.addAll(f_type_structures[j].invariantGenericsContained);
