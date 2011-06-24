@@ -362,4 +362,70 @@ randomZZ32(x:ZZ32): ZZ32 = jRandomInt(0,x)
 ************************************************************)
 trait Matrix[\T, nat s0, nat s1\] extends Object end
 
+(************************************************************
+* Character properties
+************************************************************)
+
+characterMinCodePoint: ZZ32 = 0
+characterMaxCodePoint: ZZ32 = 1114111
+characterMinSupplementaryCodePoint: ZZ32 = 65536
+characterMinRadix: ZZ32 = 2
+characterMaxRadix: ZZ32 = 36
+
+(*) Character categories
+characterUnassigned: ZZ32 = 0
+characterUppercaseLetter: ZZ32 = 1
+characterLowercaseLetter: ZZ32 = 2
+characterTitlecaseLetter: ZZ32 = 3
+characterModifierLetter: ZZ32 = 4
+characterOtherLetter: ZZ32 = 5
+characterNonSpacingMark: ZZ32 = 6
+characterEnclosingMark: ZZ32 = 7
+characterCombiningSpacingMark: ZZ32 = 8
+characterDecimalDigitNumber: ZZ32 = 9
+characterLetterNumber: ZZ32 = 10
+characterOtherNumber: ZZ32 = 11
+characterSpaceSeparator: ZZ32 = 12
+characterLineSeparator: ZZ32 = 13
+characterParagraphSeparator: ZZ32 = 14
+characterControl: ZZ32 = 15
+characterFormat: ZZ32 = 16
+(*) There is no category 17
+characterPrivateUse: ZZ32 = 18
+characterSurrogate: ZZ32 = 19
+characterDashPunctuation: ZZ32 = 20
+characterStartPunctuation: ZZ32 = 21
+characterEndPunctuation: ZZ32 = 22
+characterConnectorPunctuation: ZZ32 = 23
+characterOtherPunctuation: ZZ32 = 24
+characterMathSymbol: ZZ32 = 25
+characterCurrencySymbol: ZZ32 = 26
+characterModifierSymbol: ZZ32 = 27
+characterOtherSymbol: ZZ32 = 28
+characterInitialQuotePunctuation: ZZ32 = 29
+characterFinalQuotePunctuation: ZZ32 = 30
+
+(*) Character directionality
+characterDirectionalityUndefined: ZZ32 = -1
+characterDirectionalityLeftToRight: ZZ32 = 0
+characterDirectionalityRightToLeft: ZZ32 = 1
+characterDirectionalityRightToLeftArabic: ZZ32 = 2
+characterDirectionalityEuropeanNumber: ZZ32 = 3
+characterDirectionalityEuropeanNumberSeparator: ZZ32 = 4
+characterDirectionalityEuropeanNumberTerminator: ZZ32 = 5
+characterDirectionalityArabicNumber: ZZ32 = 6
+characterDirectionalityCommonNumberSeparator: ZZ32 = 7
+characterDirectionalityNonspacingMark: ZZ32 = 8
+characterDirectionalityBoundaryNeutral: ZZ32 = 9
+characterDirectionalityParagraphSeparator: ZZ32 = 10
+characterDirectionalitySegmentSeparator: ZZ32 = 11
+characterDirectionalityWhitespace: ZZ32 = 12
+characterDirectionalityOtherNeutrals: ZZ32 = 13
+characterDirectionalityLeftToRightEmbedding: ZZ32 = 14
+characterDirectionalityLeftToRightOverride: ZZ32 = 15
+characterDirectionalityRightToLeftEmbedding: ZZ32 = 16
+characterDirectionalityRightToLeftOverride: ZZ32 = 17
+characterDirectionalityPopDirectionalFormat: ZZ32 = 18
+
+
 end
