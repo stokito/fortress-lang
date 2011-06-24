@@ -953,7 +953,7 @@ public class Naming {
      */
     // Widely used
     public static String internalToDesc(String type) {
-        //if (type.equals(INTERNAL_SNOWMAN)) type = specialFortressTypes.get(type);
+        if (type.equals(INTERNAL_SNOWMAN)) type = specialFortressTypes.get(type);
     	return "L" + type + ";";
     }
 

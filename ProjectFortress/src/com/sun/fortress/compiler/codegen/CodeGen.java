@@ -2017,6 +2017,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String mname;
         
         int n = params.size();
+        if (n == 1 && params.get(0).getIdType().unwrap() instanceof TupleType) {
+        	Param p0 = params.get(0);
+            TupleType tuple_type = ((TupleType) p0.getIdType().unwrap());
+            if (tuple_type.getElements().size() == 0) n = 0;  //single void argument not used
+        }
 
         // TODO different collision rules for top-level and for
         // methods. (choice of mname)
@@ -2142,6 +2147,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Param p0 = params.get(0);
             TupleType tuple_type = ((TupleType) p0.getIdType().unwrap());
             List<Type> tuple_types = tuple_type.getElements();
+            if (tuple_types.size() == 0) return new ArrayList<VarCodeGen>(); //actually a single void parameter - don't pass it
             Id tuple_name = p0.getName();
             String tuple_name_string = tuple_name.getText();
                         
