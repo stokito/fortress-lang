@@ -28,6 +28,5 @@ run():() = do
   y = P[\ (O,()) \]("Cat", ( O("World!"), () ) )
   z : (O,()) = y.asTpl()
   (a,b) = z
-  (*) println "Foo returned"
   println( "Hello " || a.asString )
 end

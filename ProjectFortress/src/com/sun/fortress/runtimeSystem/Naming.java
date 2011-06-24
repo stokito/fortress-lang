@@ -275,7 +275,7 @@ public class Naming {
         if (tx != null) {
             return tx; // Should be correct by construction
         }
-        return "L" + (ft) + ";";
+        return internalToDesc(ft);
 
 //        else if (ch == NORMAL_TAG_CHAR) {
 //            //return "L" + mangleFortressIdentifier(ft) + ";";
@@ -949,10 +949,12 @@ public class Naming {
     /**
      * Convert an ASM internal form to a Java descriptor form.
      * That is, surround a class type with L and ;
+     * Special case for snowman - use FVoid type
      */
     // Widely used
     public static String internalToDesc(String type) {
-        return "L" + type + ";";
+        //if (type.equals(INTERNAL_SNOWMAN)) type = specialFortressTypes.get(type);
+    	return "L" + type + ";";
     }
 
     /**

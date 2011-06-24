@@ -365,7 +365,7 @@ public class TopLevelEnvGen {
 
         Label endFunction = new Label();
         mv.visitLabel(endFunction);
-        mv.visitLocalVariable("this", "L" + className + ";", null, beginFunction, endFunction, 0);
+        mv.visitLocalVariable("this",Naming.internalToDesc(className), null, beginFunction, endFunction, 0);
         mv.visitLocalVariable("queryString", "Ljava/lang/String;", null, beginFunction, endFunction, 1);
         mv.visitLocalVariable("queryHashCode", "I", null, beginLoop, endFunction, 2);
         // See comment above on ClassWriter.COMPUTE_FRAMES
@@ -434,7 +434,7 @@ public class TopLevelEnvGen {
         mv.visitInsn(Opcodes.RETURN);
         Label endFunction = new Label();
         mv.visitLabel(endFunction);
-        mv.visitLocalVariable("this", "L" + className + ";", null, beginFunction, endFunction, 0);
+        mv.visitLocalVariable("this",Naming.internalToDesc(className), null, beginFunction, endFunction, 0);
         mv.visitLocalVariable("queryString", STRING_DESCRIPTOR, null, beginFunction, endFunction, 1);
         mv.visitLocalVariable("value", environmentClass.descriptor(), null, beginFunction, endFunction, 2);
         mv.visitLocalVariable("queryHashCode", "I", null, beginLoop, endFunction, 3);
@@ -489,7 +489,7 @@ public class TopLevelEnvGen {
         mv.visitInsn(Opcodes.ARETURN);
         Label l1 = new Label();
         mv.visitLabel(l1);
-        mv.visitLocalVariable("this", "L" + className + ";", null, l0, l1, 0);
+        mv.visitLocalVariable("this",Naming.internalToDesc(className), null, l0, l1, 0);
         mv.visitLocalVariable("str", "Ljava/lang/String;", null, l0, l1, 1);
         // See comment above on ClassWriter.COMPUTE_FRAMES
         mv.visitMaxs(1, 2);
@@ -504,7 +504,7 @@ public class TopLevelEnvGen {
         mv.visitInsn(Opcodes.RETURN);
         Label l1 = new Label();
         mv.visitLabel(l1);
-        mv.visitLocalVariable("this", "L" + className + ";", null, l0, l1, 0);
+        mv.visitLocalVariable("this",Naming.internalToDesc(className), null, l0, l1, 0);
         mv.visitLocalVariable("str", "Ljava/lang/String;", null, l0, l1, 1);
         mv.visitLocalVariable("f2", "Ljava/lang/Number;", null, l0, l1, 2);
         // See comment above on ClassWriter.COMPUTE_FRAMES
@@ -526,7 +526,7 @@ public class TopLevelEnvGen {
         mv.visitInsn(Opcodes.RETURN);
         Label l2 = new Label();
         mv.visitLabel(l2);
-        mv.visitLocalVariable("this", "L" + className + ";", null, l0, l2, 0);
+        mv.visitLocalVariable("this",Naming.internalToDesc(className), null, l0, l2, 0);
         mv.visitLocalVariable("name", "Ljava/lang/String;", null, l0, l2, 1);
         // See comment above on ClassWriter.COMPUTE_FRAMES
         mv.visitMaxs(3, 2);
@@ -595,7 +595,7 @@ public class TopLevelEnvGen {
         mv.visitInsn(Opcodes.ARETURN);
         Label l9 = new Label();
         mv.visitLabel(l9);
-        mv.visitLocalVariable("this", "L" + className + ";", null, l0, l9, 0);
+        mv.visitLocalVariable("this",Naming.internalToDesc(className), null, l0, l9, 0);
         mv.visitLocalVariable("a", "Ljava/lang/Appendable;", null, l0, l9, 1);
         // See comment above on ClassWriter.COMPUTE_FRAMES
         mv.visitMaxs(2, 2);
