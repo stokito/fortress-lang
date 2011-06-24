@@ -332,10 +332,12 @@ public class ForeignJava {
      * @param imported_type
      */
     private com.sun.fortress.nodes.Type recurOnOpaqueClass(APIName importing_package,
-                                                           org.objectweb.asm.Type imported_type) {
+                                                           org.objectweb.asm.Type imported_type,
+							   String simpleMethodName,
+							   boolean isResultType) {
         // Need to special-case for primitives, String, Object, void.
         // Also, not a bijection.
-        com.sun.fortress.nodes.Type t = NamingCzar.fortressTypeForForeignJavaType(imported_type);
+        com.sun.fortress.nodes.Type t = NamingCzar.fortressTypeForForeignJavaType(imported_type, simpleMethodName, isResultType);
         if (t != null) return t;
 
         String internal_name = imported_type.getInternalName();
@@ -486,17 +488,18 @@ public class ForeignJava {
 
     private FnDecl recurOnMethod(APIName importing_package, ClassNode cl, MethodNode m, boolean is_static) {
         String methodKey = methodName(cl, m);
+	String simpleMethodName = getName(m);
         if (methodToDecl.containsKey(methodKey)) return methodToDecl.get(methodKey);
 
         Type rt = returnType(m);
         Type[] pts = argumentTypes(m);
         // To construct a FnDecl, need to get names for all the other types
-        com.sun.fortress.nodes.Type return_type = recurOnOpaqueClass(importing_package, rt);
+        com.sun.fortress.nodes.Type return_type = recurOnOpaqueClass(importing_package, rt, simpleMethodName, true);
 
         List<Param> params = new ArrayList<Param>(pts.length);
         int i = 0;
         for (Type pt : pts) {
-            com.sun.fortress.nodes.Type type = recurOnOpaqueClass(importing_package, pt);
+            com.sun.fortress.nodes.Type type = recurOnOpaqueClass(importing_package, pt, simpleMethodName, false);
             Span param_span = NodeFactory.makeSpan(span(methodKey) + " p#" + i);
             Id id = NodeFactory.makeId(param_span, "p" + (i++));
             Param p = NodeFactory.makeParam(id, type);

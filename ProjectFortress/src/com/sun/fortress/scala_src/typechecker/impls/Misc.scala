@@ -463,7 +463,7 @@ trait Misc { self: STypeChecker with Common =>
       SStringLiteralExpr(SExprInfo(span,parenthesized,Some(Types.STRING)), text)
 
     case SCharLiteralExpr(SExprInfo(span,parenthesized,_), text, charVal) =>
-      SCharLiteralExpr(SExprInfo(span,parenthesized,Some(Types.CHAR)),
+      SCharLiteralExpr(SExprInfo(span,parenthesized,Some(Types.CHARACTER)),
                        text, charVal)
 
     case SIntLiteralExpr(SExprInfo(span,parenthesized,_), text, intVal) =>

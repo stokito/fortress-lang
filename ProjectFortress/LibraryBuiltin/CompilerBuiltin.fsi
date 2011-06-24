@@ -41,7 +41,7 @@ object FlatString extends String
 end FlatString
 
 println(s:String):()
-println(c:Char):()
+println(c:Character):()
 (*) println(x:Object): ()
 (*) println():()
 (*) println(x:Any):()
@@ -57,7 +57,7 @@ println(x:RR64):()
 (*) println[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):()
 
 errorPrintln(s:String):()
-errorPrintln(c:Char):()
+errorPrintln(c:Character):()
 (*) errorPrintln(x:Object): ()
 (*) errorPrintln():()
 (*) errorPrintln(x:Any):()
@@ -185,21 +185,26 @@ end
 true: Boolean
 false: Boolean
 
-trait Char excludes { String, Number, Boolean } 
-    getter asString() : String
-    opr <(self, other:Char): Boolean
-    opr <=(self, other:Char): Boolean
-    opr >(self, other:Char): Boolean
-    opr >=(self, other:Char): Boolean
-    opr =(self, other:Char): Boolean
-    opr =/=(self, other:Char): Boolean
+makeCharacter(n: ZZ32): Character
 
-    opr LNSIM(self, other:Char): Boolean
-    opr LESSSIM(self, other:Char): Boolean
-    opr GNSIM(self, other:Char): Boolean
-    opr GTRSIM(self, other:Char): Boolean
-    opr SIMEQ(self, other:Char): Boolean
-    opr NSIMEQ(self, other:Char): Boolean
+trait Character excludes { String, Number, Boolean } 
+    getter asString() : String
+    getter asExprString() : String
+    getter codePoint(): ZZ32
+
+    opr <(self, other:Character): Boolean
+    opr <=(self, other:Character): Boolean
+    opr >(self, other:Character): Boolean
+    opr >=(self, other:Character): Boolean
+    opr =(self, other:Character): Boolean
+    opr =/=(self, other:Character): Boolean
+
+    opr LNSIM(self, other:Character): Boolean
+    opr LESSSIM(self, other:Character): Boolean
+    opr GNSIM(self, other:Character): Boolean
+    opr GTRSIM(self, other:Character): Boolean
+    opr SIMEQ(self, other:Character): Boolean
+    opr NSIMEQ(self, other:Character): Boolean
 
     getDirectionality(self): ZZ32
     getNumericValue(self): ZZ32
@@ -220,7 +225,7 @@ trait Char excludes { String, Number, Boolean }
     isMirrored(self): Boolean
     isSpaceChar(self): Boolean
     isSupplementaryCodePoint(self): Boolean
-    isSurrogatePair(self, low: Char): Boolean
+    isSurrogatePair(self, low: Character): Boolean
     isTitleCase(self): Boolean
     isUnicodeIdentifierPart(self): Boolean
     isUnicodeIdentifierStart(self): Boolean
@@ -228,9 +233,9 @@ trait Char excludes { String, Number, Boolean }
     isValidCodePoint(self): Boolean
     isWhitespace(self): Boolean
     javaDigit(self, radix: ZZ32): ZZ32
-    toLowerCase(self): Char
-    toTitleCase(self): Char
-    toUpperCase(self): Char
+    toLowerCase(self): Character
+    toTitleCase(self): Character
+    toUpperCase(self): Character
 end
 
 (************************************************************

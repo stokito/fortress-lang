@@ -432,6 +432,12 @@ private String CharLiteralContent =
    / "NOTIN" { yyValue = "\u2209"; }
    / "NOT" { yyValue = "\u00AC"; }
    / "XOR" { yyValue = "\u22BB"; }
+   / a1:(!InvalidCharLiteralContent _) " " a2:UnicodeCharLiteralContent &{ Integer.parseInt(a2, 16) == ((int) a1) }
+     { yyValue = a1 + " " + a2; }
+   / <ErrorProduction1> a1:_ " " a2:UnicodeCharLiteralContent
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Syntax Error: The character in a redundant character literal is invalid or does not match the given hexadecimal codepoint.");
+       yyValue = ""; }
    / a1:(!InvalidCharLiteralContent _) { yyValue = String.valueOf(a1); }
    ;
 

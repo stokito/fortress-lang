@@ -62,7 +62,7 @@ public final class Types {
     public static final TraitType INT_LITERAL = makeTraitType(span, fortressBuiltin(), "IntLiteral");
     public static final TraitType ZZ32 = makeTraitType(span, fortressLibrary(), "ZZ32");
     public static final TraitType BOOLEAN = makeTraitType(span, fortressBuiltin(), "Boolean");
-    public static final TraitType CHAR = makeTraitType(span, fortressBuiltin(), "Char");
+    public static final TraitType CHARACTER = makeTraitType(span, fortressBuiltin(), "Character");
     public static TraitType STRING = makeTraitType(span, fortressLibrary(), "String");
     public static final TraitType REGION = makeTraitType(span, fortressLibrary(), "Region");
     public static final TraitType EXCEPTION = makeTraitType(span, fortressLibrary(), "Exception");

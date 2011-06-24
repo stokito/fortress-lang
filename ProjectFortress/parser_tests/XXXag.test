@@ -11,7 +11,7 @@ tests=XXXPreparser.ag
 PREPARSER_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/parser_tests
 compile
 compile_err_equals=\
-${PREPARSER_TESTS_DIR}/XXXPreparser.ag.fss:15:19:
-\ Syntax Error
+${PREPARSER_TESTS_DIR}/XXXPreparser.ag.fss:15:19:\n\
+\ Syntax Error\n\
 File XXXPreparser.ag.fss has 1 error.\n
 compile_out_equals=

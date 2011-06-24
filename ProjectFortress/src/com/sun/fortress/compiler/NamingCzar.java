@@ -155,7 +155,7 @@ public class NamingCzar {
     public static final String internalDouble     = org.objectweb.asm.Type.getInternalName(double.class);
     public static final String internalLong       = org.objectweb.asm.Type.getInternalName(long.class);
     public static final String internalBoolean    = org.objectweb.asm.Type.getInternalName(boolean.class);
-    public static final String internalChar       = org.objectweb.asm.Type.getInternalName(int.class);
+    public static final String internalCharacter  = org.objectweb.asm.Type.getInternalName(int.class);
     public static final String internalObject     = org.objectweb.asm.Type.getInternalName(Object.class);
     public static final String internalString     = org.objectweb.asm.Type.getInternalName(String.class);
     public static final String internalSingleton  = internalObject;
@@ -166,7 +166,7 @@ public class NamingCzar {
     public static final String descDouble        = org.objectweb.asm.Type.getDescriptor(double.class);
     public static final String descLong          = org.objectweb.asm.Type.getDescriptor(long.class);
     public static final String descBoolean       = org.objectweb.asm.Type.getDescriptor(boolean.class);
-    public static final String descChar          = org.objectweb.asm.Type.getDescriptor(int.class);
+    public static final String descCharacter          = org.objectweb.asm.Type.getDescriptor(int.class);
     public static final String descString        = Naming.internalToDesc(internalString);
     public static final String stringArrayToVoid = Naming.makeMethodDesc(makeArrayDesc(descString), Naming.descVoid);
     public static final String internalFortressIntLiteral  = makeFortressInternal("IntLiteral");
@@ -176,7 +176,7 @@ public class NamingCzar {
     public static final String internalFortressRR32  = makeFortressInternal("RR32");
     public static final String internalFortressRR64  = makeFortressInternal("RR64");
     public static final String internalFortressBoolean  = makeFortressInternal("Boolean");
-    public static final String internalFortressChar  = makeFortressInternal("Char");
+    public static final String internalFortressCharacter  = makeFortressInternal("Character");
     public static final String internalFortressString = makeFortressInternal("String");
     public static final String internalFortressVoid   = makeFortressInternal("Void");
 
@@ -188,7 +188,7 @@ public class NamingCzar {
     public static final String descFortressRR32  = Naming.internalToDesc(internalFortressRR32);
     public static final String descFortressRR64  = Naming.internalToDesc(internalFortressRR64);
     public static final String descFortressBoolean  = Naming.internalToDesc(internalFortressBoolean);
-    public static final String descFortressChar  = Naming.internalToDesc(internalFortressChar);
+    public static final String descFortressCharacter  = Naming.internalToDesc(internalFortressCharacter);
     public static final String descFortressString = Naming.internalToDesc(internalFortressString);
     public static final String descFortressVoid   = Naming.internalToDesc(internalFortressVoid);
     public static final String descFortressAny        = Naming.internalToDesc(fortressAny);
@@ -256,7 +256,7 @@ public class NamingCzar {
      *
      */
 
-    static private Span span = NodeFactory.makeSpan("Internally generated library name , in source code NamingCzar. ");
+    static private Span span = NodeFactory.makeSpan("Internally generated library name, in source code NamingCzar.");
 
     static APIName fortLib =
         NodeFactory.makeAPIName(span, WellKnownNames.fortressBuiltin());
@@ -289,16 +289,15 @@ public class NamingCzar {
      * null is returned.
      */
     // One reference, from ForeignJava.recurOnOpaqueClass
-    public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(Type t) {
+    public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(Type t, String method_name, boolean isResultType) {
         String s = t.getDescriptor();
-        com.sun.fortress.nodes.Type y =  fortressTypeForForeignJavaType(t.getDescriptor());
+        com.sun.fortress.nodes.Type y = fortressTypeForForeignJavaType(t.getDescriptor(), method_name, isResultType);
         if (y == null) {
             if (jvmTypeExtendsAny(s)) {
                 // Special case for now, will generalize later.
-                if (s.equals("Lfortress/AnyType$Any;"))
-                    return
-                    NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, anyLib, "Any"));
-                throw new Error("Unhandled case in import of native method dealing in implementation types, native type is " + s);
+                if (s.equals("Lfortress/AnyType$Any;")) {
+                    return NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, anyLib, "Any"));
+                } else throw new Error("Unhandled case in import of native method dealing in implementation types, native type is " + s);
             }
         }
         return y;
@@ -312,9 +311,21 @@ public class NamingCzar {
      * If it is not defined in the current foreign interface implementation,
      * null is returned.
      */
-    // Used in this class, in test, and in FortressMethodAdapter.toImplFFFF
-    public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(String s) {
-        return specialForeignJavaTranslations.get(s);
+    // Used in this class, in test, in FortressMethodAdapter.toImplFFFF,
+    // and in ForeignJava.recurOnOpaqueClass
+        public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(String s) {
+            return specialForeignJavaTranslations.get(s);
+        }
+
+
+    // The following version is needed to hack the methods "jMakeCharacter" and "jCodePoint".
+    // If other methods also need to be hacked, then this mechanism should be generalized.
+    public static com.sun.fortress.nodes.Type fortressTypeForForeignJavaType(String s, String method_name, boolean isResultType) {
+	if (isResultType && method_name.equals("charMakeCharacterWithSpecialCompilerHackForCharacterResultType") && s.equals("I")) {
+	    return fortressCharacterType;
+	} else if ((!isResultType) && method_name.equals("charCodePointWithSpecialCompilerHackForCharacterArgumentType") && s.equals("I")) {
+	    return fortressCharacterType;
+	} else return specialForeignJavaTranslations.get(s);
     }
 
     // Translate among Java type names
@@ -358,8 +369,11 @@ public class NamingCzar {
     }
 
     private static void s(String cl, APIName api, String str) {
-        specialForeignJavaTranslations.put(cl,
-                NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, api, str))); /* api was commented out before... */
+        specialForeignJavaTranslations.put(cl, ss(api, str));
+    }
+
+    private static TraitType ss(APIName api, String str) {
+	return NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, api, str));
     }
 
     static {
@@ -376,10 +390,16 @@ public class NamingCzar {
         s(Object.class, anyLib, "Any");
         s(String.class, fortLib, "String");
         s(BigInteger.class, fortLib, "ZZ");
-        s(Type.CHAR_TYPE,fortLib, "Char");
-        s(Character.class,fortLib, "Char");
         specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
+	// You would think the following would be correct, but it's not, because
+	// we actually use Java int values to represent Fortress Character values.
+	//        s(Type.CHAR_TYPE,fortLib, "Character");
+	//        s(Character.class,fortLib, "Character");
+	// Instead, we need a specially coded hack in method fortressTypeForForeignJavaType,
+	// and it relies on the following static field definition.
      }
+    private static TraitType fortressCharacterType = ss(fortLib, "Character");
+
     
     /**
      * Package prefix for runtime values
@@ -456,7 +476,7 @@ public class NamingCzar {
          * except that it deals only in strings.
          */
         bl(fortLib, "Boolean", "FBoolean");
-        bl(fortLib, "Char", "FChar");
+        bl(fortLib, "Character", "FCharacter");
         bl(fortLib, "RR32", "FRR32");
         bl(fortLib, "RR64", "FRR64");
         bl(fortLib, "ZZ32", "FZZ32");

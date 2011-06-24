@@ -3945,8 +3945,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         addLineNumberInfo(x);
         mv.visitLdcInsn(x.getCharVal());
         addLineNumberInfo(x);
-        mv.visitMethodInsn(INVOKESTATIC, NamingCzar.internalFortressChar, NamingCzar.make,
-                           Naming.makeMethodDesc(NamingCzar.descChar, NamingCzar.descFortressChar));
+        mv.visitMethodInsn(INVOKESTATIC, NamingCzar.internalFortressCharacter, NamingCzar.make,
+                           Naming.makeMethodDesc(NamingCzar.descCharacter, NamingCzar.descFortressCharacter));
     }
     
     public void forStringLiteralExpr(StringLiteralExpr x) {

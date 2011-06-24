@@ -215,7 +215,7 @@ public class Naming {
          * except that it deals only in strings.
          */
         bl(COMPILER_BUILTIN, "$Boolean", "FBoolean");
-        bl(COMPILER_BUILTIN, "$Char", "FChar");
+        bl(COMPILER_BUILTIN, "$Char", "FCharacter");
         bl(COMPILER_BUILTIN, "$RR32", "FRR32");
         bl(COMPILER_BUILTIN, "$RR64", "FRR64");
         bl(COMPILER_BUILTIN, "$ZZ32", "FZZ32");
