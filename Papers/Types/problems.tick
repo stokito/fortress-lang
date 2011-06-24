@@ -1,0 +1,119 @@
+% Outline for this section
+
+% Many programs that users would like to write are unsafe
+% Undefinable meets
+%  ex1: String, ZZ example
+%  ex2: [\X <: Any\]ArrayList[\X\], [\Y<: Foo\]List[\Y\] ([\X <: Foo\]ArrayList[\X\] doesn't work)
+% Don't meet the subtype rule
+%  ex3: ArrayList[\T\], List[\T\]
+
+% Solution
+% 1) Exclusion Relation
+%  symmetric, irreflexive
+%  change subtyping to ensure that the intersection of two excluding types is bottom
+%  to lift to existential type schema: all instantiations exclude
+%  we want same behavior when type checking programs with type variables
+% 2) Outlaw multiple instance inheritance
+%  lets us add a new kind of exclusion
+%  can use that to reason that ex2 is safe
+%  need to build this reasoning into subtyping for existential types
+%  same machinery will help us fix ex3 in the next section
+
+% What we will do in this section 
+%  need to know constraints under which a type is not bottom => need to know when two types don't exclude
+%  can get regular exclusion from not exclude
+
+% Helpful notation
+% Not Bottom \[\Delta \vdash T \not\equiv `BottomType`|\C\]
+% Don't exclude under constraints \[\Delta \vdash T  \nexc S | \C\]
+
+% How to get all instantiations exclude (written \exc)
+% \infrule
+%  {\Delta \vdash S \nexc T|False}
+%  {\Delta \vdash S \exc T}
+
+While the rules presented in Section~\ref{sec:rules} allow programmers to
+write valid sets of overloaded generic function declarations,
+they sometimes reject ````seemingly'' valid overloadings.
+In fact, these are not false negatives;
+many declarations that programmers would like to write are actually unsafe due to multiple inheritance.
+
+For example, even though the following function declarations look like
+a valid overloading, they are not because the Meet Rule is not satisfied:
+`  simple String:String
+  simple ZZ:ZZ`
+Moreover, in Fortress it is impossible to disambiguate the declarations by providing the meet
+because intersection types are not allowed in the Fortress syntax.
+In a language with single inheritance, we might infer that these
+overloadings were safe because a class can only have a single superclass.
+However, due to multiple inheritance, we cannot be sure that these types
+do not have a common subtype, no matter what the programmer intends.
+
+Now consider this less trivial set of overloaded functions:
+`  foo[\X <: Any\]ArrayList[\X\]:ZZ
+  foo[\Y<: ZZ\]List[\Y\]:ZZ
+  foo[\W<: ZZ\]ArrayList[\W\]:ZZ`
+where `ArrayList[\T\] <: List[\T\]` for all types $T$.\footnote{We use this standard declaration for `ArrayList` throughout.}
+The first two declarations are incomparable under specificity---%
+the first declaration applies to all instantiations of type constructor `ArrayList`,
+whereas the second declaration applies only to instantiations of
+type constructor `List` with subtypes of type `ZZ`. The third definition,
+which is the ````obvious" candidate to disambiguate the two, is not actually the meet;
+the domain of this meet candidate is the existential type:
+`  EXISTS[\W <: ZZ\]ArrayList[\W\]
+`
+and needs to be proven equivalent to the domain of the computed meet:
+`  EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])
+`
+which requires that the latter be a subtype of the former.
+However, there is no type `W <: ZZ` such that:
+\\[.5em]
+\hspace*{.5em}
+%\jgsub[`X <: Any, Y <: ZZ`]{`ArrayList[\X\] CAP List[\Y\]`}{`ArrayList[\W\]`}
+\ensuremath{
+\begin{array}{l}
+{`X <: Any, Y <: ZZ`}\,\vdash
+\\
+\quad\quad\quad\quad
+{`ArrayList[\X\] CAP List[\Y\]`}\;{\subtypeof}\;{`ArrayList[\W\]`}
+\end{array}
+}
+\\[.5em]
+Our definition of the meet is not faulty: these declarations actually are unsafe.
+Consider the (user-defined) constructed type:
+`  BadList <: {ArrayList[\String\], List[\ZZ\]}
+`
+Our meet candidate is not applicable to `BadList`, but the two other definitions of `foo` are.
+Since neither of those is more specific than the other,
+this set of overloaded declarations must be rejected.
+
+
+
+The following overloading example,
+in which the second declaration is more specific than the first,
+is also ill-formed:
+`  tail[\X <: Any\]List[\X\]:List[\X\]
+  tail[\Y <: Any\]ArrayList[\Y\]:ArrayList[\Y\]`
+The declarations do not satisfy the Return Type Rule
+because we cannot find a specific type `V <: Any` such that:
+\\[.8em]
+\begin{tabular}{lr}
+%% \jgsub[`X <: Any, Y <: Any`]{`ArrayList[\V\] -> ArrayList[\V\]`}{`ArrayList[\Y\] CAP List[\X\] -> List[\X\]`}
+\multicolumn{2}{l}{`X <: Any, Y <: Any` $\vdash$} \\
+\quad\quad\quad\quad\quad\quad
+&`ArrayList[\V\] -> ArrayList[\V\]` \\
+&$\subtypeof$ `ArrayList[\Y\] CAP List[\X\] -> List[\X\]`
+\end{tabular}
+\\[.8em]
+%% `X <: Any, Y <: Any` \; &\vdash `ArrayList[\V\] -> ArrayList[\V\]` \\
+%% \;&\subtypeof\; `ArrayList[\Y\] CAP List[\X\] -> List[\X\]`
+Once again, the type `BadList` proves that this set of overloaded declarations must be rejected. Consider the instance:
+`  tail List[\ZZ\]:List[\ZZ\]
+`
+of the first declaration. We need to find an instance of the second declaration that is applicable to `BadList`
+and has a return type that is a subtype of `List[\ZZ\]`,
+but the only instance of the second declaration applicable to `BadList` is:
+`  tail ArrayList[\String\]:ArrayList[\String\]
+`
+whose return type is not a subtype of `List[\ZZ\]`.
+Therefore, this set of overloaded declarations must be rejected.

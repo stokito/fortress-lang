@@ -1,0 +1,31 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component atomicArrayOps
+
+export Executable
+
+run():()=do
+   a: Array[\ZZ32,ZZ32\] := array[\ZZ32\](100)
+   for i<-0#100 do
+      atomic do
+         a[i] := i
+      end
+   end
+
+   for i<-0#100 do
+      if a[i]=/=i then
+      println("Fail: array operations not atomic")
+      end
+   end
+
+end
+end

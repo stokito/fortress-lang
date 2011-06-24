@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component VarNYITest
+export Executable
+
+private x: ZZ32 = 0
+test y: ZZ32 = 1
+var z: ZZ32 = 5
+private v = 0
+test w = 1
+
+run() = ()
+
+end

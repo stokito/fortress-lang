@@ -1,0 +1,651 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% General macros %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\basiccore}{Basic Core Fortress}
+\newcommand{\acffdcore}{Acyclic Core Fortress with Field Definitions}
+\newcommand{\infracore}{Core Fortress with New Infrastructure}
+\newcommand{\wherecore}{Core Fortress with Where Clauses}
+\newcommand{\overloadingcore}{Core Fortress with Overloading}
+\newcommand{\acffd}{ACFFD}
+\newcommand{\cfwc}{CFWC}
+\newcommand{\wc}{\KWD{where} clauses}
+\newcommand{\cfo}{CFO}
+
+\newcommand{\delete}[1]{}
+\newcommand{\me}[1]{\mbox{\emph{#1}}}
+\newcommand{\mt}[1]{\mbox{\texttt{#1}}}
+\newcommand{\code}[1]{\KWD{#1}}
+\newcommand{\cend}{\code{end}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% Syntax macros %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\prm}[1]{\ensuremath{#1'}}
+\newcommand{\sub}[2]{\ensuremath{#1_#2}}
+\renewcommand{\sup}[2]{\ensuremath{#1^#2}}
+
+\newcommand{\seq}[1]{\ensuremath{\overrightarrow{\mbox{\ensuremath{#1}}}}}
+\newcommand{\more}{\ensuremath{\cdots}}
+\renewcommand{\colon}{\code{:}}
+\newcommand{\semicolon}{\code{;}}
+\newcommand{\comma}{\code{,}}
+\newcommand{\dom}[1]{\ensuremath{\mathit{dom}\parens{#1}}}
+\newcommand{\rng}[1]{\ensuremath{\mathit{rng}\parens{#1}}}
+
+\newcommand{\tname}{\ensuremath{T}}
+\newcommand{\oname}{\ensuremath{O}}
+\newcommand{\cname}{\ensuremath{C}}
+\newcommand{\cnameP}{\ensuremath{\cname'}}
+\newcommand{\cnamePP}{\ensuremath{\cname''}}
+\newcommand{\fname}{\ensuremath{f}}
+\newcommand{\vname}{\ensuremath{x}}
+\newcommand{\vtwo}{\ensuremath{y}}
+\newcommand{\vars}{\seq\vname}
+\newcommand{\vtwos}{\seq\vtwo}
+\newcommand{\prog}  {\ensuremath{p}}
+\renewcommand{\exp}  {\ensuremath{e}}
+\newcommand{\iexp}  {\ensuremath{\epsilon}}
+\newcommand{\expP}  {\ensuremath{\exp'}}
+\newcommand{\expPP}  {\ensuremath{\expP'}}
+\newcommand{\expPPP}  {\ensuremath{\expPP'}}
+\newcommand{\exps}  {\ensuremath{\seq\exp}}
+\newcommand{\iexps}  {\ensuremath{\seq\iexp}}
+\newcommand{\iexpsP}  {\ensuremath{\seq{\iexp'}}}
+\newcommand{\exptwo}  {\ensuremath{\exp'}}
+\newcommand{\fd}  {\ensuremath{\mathit{fd}}}
+\newcommand{\vd}  {\ensuremath{\mathit{vd}}}
+\newcommand{\td}  {\ensuremath{\mathit{td}}}
+\newcommand{\od}  {\ensuremath{\mathit{od}}}
+\renewcommand{\d} {\ensuremath{d}}
+\newcommand{\pgm} {\ensuremath{p}}
+\newcommand{\inp} {\ensuremath{\in\pgm}}
+
+\newcommand{\ty}{\ensuremath{\tau}}
+\newcommand{\tyP}{\ensuremath{\ty'}}
+\newcommand{\tyPP}{\ensuremath{\prm\tyP}}
+\newcommand{\tyPPP}{\ensuremath{\prm\tyPP}}
+\newcommand{\tyPPPP}{\ensuremath{\prm\tyPPP}}
+\newcommand{\tya}{\ensuremath{\ty^{a}}}
+\newcommand{\tyaP}{\ensuremath{\ty^{\prm{a}}}}
+\newcommand{\tyaPP}{\ensuremath{\ty^{\prm{\prm{a}}}}}
+\newcommand{\tyaPPP}{\ensuremath{\ty^{\prm{\prm{\prm{a}}}}}}
+\newcommand{\tyb}{\ensuremath{\ty^\tvtwo}}
+\newcommand{\tybP}{\ensuremath{\ty^{\tvtwo'}}}
+\newcommand{\tybPP}{\ensuremath{\ty^{\tvtwo''}}}
+\newcommand{\tyn}[1]{\ensuremath{\sub{\ty}{#1}}}
+\newcommand{\tys}{\ensuremath{\seq\ty}}
+\newcommand{\tysP}{\ensuremath{\seq\tyP}}
+\newcommand{\tysPP}{\ensuremath{\seq\tyPP}}
+\newcommand{\tysPPP}{\ensuremath{\seq\tyPPP}}
+\newcommand{\tysPPPP}{\ensuremath{\seq\tyPPPP}}
+\newcommand{\tyas}{\ensuremath{\seq\tya}}
+\newcommand{\tyasP}{\ensuremath{\seq\tyaP}}
+\newcommand{\argty}{\ensuremath{\ty^a}}
+\newcommand{\resty}{\ensuremath{\ty^r}}
+\newcommand{\restyP}{\ensuremath{\ty^{r'}}}
+\newcommand{\restyPP}{\ensuremath{\ty^{r''}}}
+\newcommand{\restytwo}{\ensuremath{\ty^{r'}}}
+\newcommand{\restythree}{\ensuremath{\ty^{r''}}}
+
+\newcommand{\tynontv}{\ensuremath{\sigma}}
+\newcommand{\tvone}{\ensuremath{\alpha}}
+\newcommand{\tvoneP}{\ensuremath{\alpha'}}
+\newcommand{\tvonePP}{\ensuremath{\alpha''}}
+\newcommand{\tvtwo}{\ensuremath{\beta}}
+\newcommand{\tvtwos}{\mbox{\ensuremath{\beta}s}}
+\newcommand{\tvtwoP}{\ensuremath{\beta'}}
+\newcommand{\tvthree}{\ensuremath{\gamma}}
+\newcommand{\tvfour}{\ensuremath{\delta}}
+
+\newcommand{\tappone}{\ensuremath{N}}
+\newcommand{\tapptwo}{\ensuremath{M}}
+\newcommand{\tappthree}{\ensuremath{L}}
+\newcommand{\tappfour}{\ensuremath{K}}
+
+\newcommand{\obj}{\TYP{Object}}
+\newcommand{\botty}{\TYP{BottomType}}
+\newcommand{\self}{\code{self}}
+\newcommand{\trait}{\code{trait}\:}
+\newcommand{\object}{\code{object}\:}
+\newcommand{\equal}{\:\code{=}\:}
+
+%% \newcommand{\extends}{\ensuremath{\:\triangleleft\:}}
+\newcommand{\extends}{\:\KWD{extends}\:}
+%% \newcommand{\ignore} {\ensuremath{\:\_\:}}
+\newcommand{\ignore} {\ensuremath{\:\rule{.5em}{.1ex}\:}}
+
+\newcommand{\tapp}{\ensuremath{\tname\targs}}
+\newcommand{\tappI}{\ensuremath{\tname\targsI}}
+\newcommand{\oapp}{\ensuremath{\oname\targs\!}}
+\newcommand{\oappP}{\ensuremath{\oname\targsP\!}}
+\newcommand{\oappPP}{\ensuremath{\oname\targsPP\!}}
+\newcommand{\oappPPP}{\ensuremath{\oname\targsPPP\!}}
+\newcommand{\capp}{\ensuremath{\cname\targs}}
+\newcommand{\cappP}{\ensuremath{\cname\targsP}}
+\newcommand{\cappPP}{\ensuremath{\cname\targsPP}}
+\newcommand{\cappI}{\ensuremath{\cname\targsI}}
+\newcommand{\tyc}{\ensuremath{\ty^c}}
+\newcommand{\targsc}{\ensuremath{\bsTP{\seq{\tyc}}}}
+\newcommand{\cappc}{\ensuremath{\cname\targsc}}
+\newcommand{\cappcP}{\ensuremath{\cnameP\targscP}}
+\newcommand{\cappcPP}{\ensuremath{\cnamePP\targscPP}}
+\newcommand{\cappcPPP}{\ensuremath{\cname\targscPPP}}
+\newcommand{\cappcPS}{\ensuremath{\cnameP\targscPS}}
+\newcommand{\cappcPSS}{\ensuremath{\cnameP\targscPSS}}
+\newcommand{\ctapp}{\ensuremath{\cname\bsTP{\seq\tvone}}}
+\newcommand{\cPapp}{\ensuremath{\cnameP\targsaPP}}
+\newcommand{\cPPapp}{\ensuremath{\cname\targsPPPP}}
+
+\newcommand{\eargs}{\ensuremath{\parens{\exps}}}
+\newcommand{\iargs}{\ensuremath{\parens{\iexps}}}
+\newcommand{\iargsP}{\ensuremath{\parens{\iexpsP}}}
+\newcommand{\receiver}{\ensuremath{\exp\code.}}
+\newcommand{\ireceiver}{\ensuremath{\iexp\code.}}
+\newcommand{\fldacc}{\ensuremath{\receiver\vname}}
+\newcommand{\ifldacc}{\ensuremath{\ireceiver\vname}}
+
+\newcommand{\super}{\ensuremath{\tappone}}
+\newcommand{\supertwo}{\ensuremath{\tapptwo}}
+\newcommand{\supers}{\ensuremath{\seq{\tappone}}}
+\newcommand{\superstwo}{\ensuremath{\seq{\tapptwo}}}
+\newcommand{\supersthree}{\ensuremath{\seq{\tappthree}}}
+\newcommand{\supersfour}{\ensuremath{\seq{\tappfour}}}
+\newcommand{\supersfourP}{\ensuremath{\seq{\tappfour'}}}
+\newcommand{\supersfourPP}{\ensuremath{\seq{\tappfour''}}}
+\newcommand{\isTy}{\ensuremath{\colon\ty}}
+\newcommand{\isTyP}{\ensuremath{\colon\tyP}}
+\newcommand{\isTyPP}{\ensuremath{\colon\tyPP}}
+\newcommand{\isTyaP}{\ensuremath{\colon\tyaP}}
+\newcommand{\isTytwo}{\ensuremath{\isTyP}}
+\newcommand{\isTythree}{\ensuremath{\isTyPP}}
+\newcommand{\fds}{\ensuremath{\seq{\fd}}}
+\newcommand{\fdsP}{\ensuremath{\seq{\fd'}}}
+\newcommand{\vparam}{\ensuremath{\vname\isTy}}
+\newcommand{\vparamP}{\ensuremath{\vname'\isTyP}}
+\newcommand{\vparamPP}{\ensuremath{\vname'\isTyaP}}
+\newcommand{\vparamPPP}{\ensuremath{\vname''\isTyPP}}
+\newcommand{\tparams}{\ensuremath{\bsTP{\seq{\bound}}}}
+\newcommand{\tparamstwo}{\ensuremath{\bsTP{\seq{\boundtwo}}}}
+\newcommand{\tparamstwoP}{\ensuremath{\bsTP{\seq{\boundtwoP}}}}
+\newcommand{\tparamstwoPP}{\ensuremath{\bsTP{\seq{\boundtwoPP}}}}
+\newcommand{\tparamsWH}{\ensuremath{\bsWH{\seq{\bound}}}}
+\newcommand{\tparamstwoWH}{\ensuremath{\bsWH{\seq{\boundtwo}}}}
+\newcommand{\tparamstwoPWH}{\ensuremath{\bsWH{\seq{\boundtwoP}}}}
+\newcommand{\tparamstwoPPWH}{\ensuremath{\bsWH{\seq{\boundtwoPP}}}}
+\newcommand{\tparamsP}   {\ensuremath{\bsTP{\seq{\boundP}}}}
+\newcommand{\tparamsPP}  {\ensuremath{\bsTP{\seq{\boundPP}}}}
+\newcommand{\tparamsPPP} {\ensuremath{\bsTP{\seq{\boundPPP}}}}
+\newcommand{\tparamsPPPP}{\ensuremath{\bsTP{\seq{\boundPPPP}}}}
+\newcommand{\tparamsPPPPP}{\ensuremath{\bsTP{\seq{\boundPPPPP}}}}
+\newcommand{\tparamsC}{\ensuremath{\bsTP{\seq{\boundC}}}}
+\newcommand{\tparamstwoC}{\ensuremath{\bsTP{\seq{\boundtwoC}}}}
+\newcommand{\vparams}{\ensuremath{\parens{\seq{\vparam}}}}
+\newcommand{\vparamsP}{\ensuremath{\parens{\seq{\vparamP}}}}
+\newcommand{\vparamsPP}{\ensuremath{\parens{\seq{\vparamPP}}}}
+\newcommand{\vparamsPPP}{\ensuremath{\parens{\seq{\vparamPPP}}}}
+\newcommand{\fdsyntax}{\ensuremath{\fname\tparams\vparams\isTy \equal \exp}}
+\newcommand{\vdsyntax}{\ensuremath{\vname\isTy \equal \exp}}
+\newcommand{\pd}{\ensuremath{\seq{\d}\ \exp}}
+
+%% \newcommand{\where}{\:\ensuremath{\mathrel{\big\vert}}\:}
+%% \newcommand{\where}{\:\ensuremath{\mathrel{\rule[-.7ex]{.5mm}{2.5ex}}}\:}
+\newcommand{\where}{\:\KWD{where}\:}
+
+\newcommand{\bind}{\ensuremath{b}}
+\newcommand{\binds}{\ensuremath{\seq\bind}}
+\newcommand{\binding}[2]{#1\equal#2}
+\newcommand{\bindings}[2]{\ensuremath{\seq{\binding{#1}{#2}}\:}}
+\newcommand{\doendb}[2]{\code{do}\:#1\semicolon\:#2\:\code{end}}
+\newcommand{\doend}[3]{\doendb{\binding{#1}{#2}}{#3}}
+\newcommand{\dobinding}[3]{\doendb{\binding{#1}{#2},\:\bindings{\var}{\exp}}{#3}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% Dynamic semantics macros %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\pltredex}{PLT Redex}
+
+\newcommand{\val}{\ensuremath{v}}
+\newcommand{\valP}{\ensuremath{\val'}}
+\newcommand{\context}{\ensuremath{E}}
+\newcommand{\icontext}{\ensuremath{I}}
+\newcommand{\redex}{\ensuremath{R}}
+\newcommand{\ans}{\ensuremath{a}}
+
+\newcommand{\notcaptured}[2]{\ensuremath{#1 \not\in \mathrm{FV}(#2)}}
+
+\newcommand{\vals}{\ensuremath{\seq\val}}
+\newcommand{\vargs} {\ensuremath{\parens{\seq{\val}}}}
+\newcommand{\vargsP}{\ensuremath{\parens{\seq{\val'}}}}
+\newcommand{\vargsPP}{\ensuremath{\parens{\seq{\val''}}}}
+\newcommand{\xargs} {\ensuremath{\parens{\seq{\vname}}}}
+\newcommand{\xargsP}{\ensuremath{\parens{\seq{\vname'}}}}
+\newcommand{\vtwoargs}{\ensuremath{\parens{\seq{\vtwo}}}}
+\newcommand{\vtwoargsP}{\ensuremath{\parens{\seq{\vtwo'}}}}
+\newcommand{\objval}{\ensuremath{\oapp\vargs}}
+\newcommand{\fieldsenv}{\ensuremath{\set{\seq{\vname\mapsto\val};}}}
+\newcommand{\fieldsenvP}{\ensuremath{\set{\seq{\vname'\mapsto\val'}}}}
+\newcommand{\fieldsenvPP}{\ensuremath{\set{\seq{\vname''\mapsto\val''}}}}
+\newcommand{\objvalval}{\ensuremath{\oapp\fieldsenv}}
+\newcommand{\objvalvalP}{\ensuremath{\oapp\fieldsenvP}}
+\newcommand{\objvalvalPP}{\ensuremath{\oapp\fieldsenvPP}}
+\newcommand{\objvalexp}{\ensuremath{\oapp\eargs}}
+\newcommand{\objvalP}{\ensuremath{\oapp\vargsP}}
+\newcommand{\objvalPP}{\ensuremath{\oapp\vargsPP}}
+\newcommand{\objvar}{\ensuremath{\oapp\xargs}}
+\newcommand{\objvarP}{\ensuremath{\oapp\xargsP}}
+\newcommand{\objvtwo}{\ensuremath{\oapp\vtwoargs}}
+\newcommand{\objPPvalPP}{\ensuremath{\oappPP\vargsPP}}
+\newcommand{\objPPval}{\ensuremath{\oappPP\vargs}}
+\newcommand{\hole}{\ensuremath{\Box}}
+\newcommand{\partialvargs}{\ensuremath{\parens{\seq{\val}\context\exps}}}
+\newcommand{\partialvargsI}{\ensuremath{\parens{\seq{\val}\context\iexps}}}
+\newcommand{\partialfields}{\ensuremath{\vargs
+\set{\seq{\vname\mapsto\val}\ \context\ \seq{\vname\mapsto\exp}}}}
+\newcommand{\manycontext}{\ensuremath{\exps\context\:\exps}}
+\newcommand{\manyicontext}{\ensuremath{\exps\icontext\:\exps}}
+\newcommand{\argscontext}{\ensuremath{\parens{\manycontext}}}
+\newcommand{\anarg}[1]{\ensuremath{\parens{\exps #1 \exps}}}
+
+\newcommand{\invoke}[2]{\ensuremath{{#1}\code.{#2}}}
+\newcommand{\expArrow}{\ensuremath\longrightarrow}
+\newcommand{\ctxt}[1]{\ensuremath{\context\!\brackets{#1}}}
+\newcommand{\ictxt}[1]{\ensuremath{\icontext\!\brackets{#1}}}
+\newcommand{\reduce}[2]{\ensuremath{\pgm\vdash\ctxt{#1} \expArrow \ctxt{#2}}}
+\newcommand{\reduceNoContext}[2]{\ensuremath{\pgm\vdash{#1} \expArrow {#2}}}
+\newcommand{\red}[2]{\ensuremath{\pgm\vdash \:#1 \expArrow #2}}
+\newcommand{\ruleLabel}[1]{\mbox{\bfseries \sc \hspace{0cm} [#1]}}
+\newcommand{\newfrac}[2] {
+        \frac
+                {#1}
+                {#2 \rule{0pt}{11pt}}
+}
+\newcommand{\newrule}[2] {
+    {#2} &
+  \ensuremath {
+    {#1}
+}}
+\newcommand{\newinfrule}[3] {
+  \newrule
+  { \newfrac
+    {\displaystyle #1}
+    {\displaystyle #2}
+  }
+  {#3}
+}
+\newcommand{\newinfruleTwo}[4]
+{
+  \newinfrule
+      {
+        \begin{array}{c}
+          {#1}
+          \\
+            {#2}
+        \end{array}
+      }
+      {#3}
+      {#4}
+}
+
+\newcommand{\smallrulesep}{\ensuremath{\quad}}
+\newcommand{\rulesep}{\ensuremath{\quad\quad}}
+\newcommand{\isTyL}{\ensuremath{\colon\ignore}}
+\newcommand{\isTyR}{\ensuremath{\colon\tyP}}
+\newcommand{\isTyZPP}{\ensuremath{\colon\ty_0''}}
+\newcommand{\vparamL}{\ensuremath{\prm\vname\isTyL}}
+\newcommand{\vparamLN}{\ensuremath{\vname\isTyL}}
+\newcommand{\vparamR}{\ensuremath{\ignore\isTyR}}
+\newcommand{\tparamsL}{\ensuremath{\bsTP{\seq{\boundL}}}}
+\newcommand{\tparamsLP}{\ensuremath{\bsTP{\seq{\boundLP}}}}
+\newcommand{\vparamsL}{\ensuremath{\parens{\seq{\vparamL}}}}
+\newcommand{\vparamsLN}{\ensuremath{\parens{\seq{\vparamLN}}}}
+\newcommand{\vparamsR}{\ensuremath{\parens{\seq{\vparamR}}}}
+\newcommand{\evdL}{\ensuremath{\vname\isTyL \equal \exp}}
+\newcommand{\evdLP}{\ensuremath{\vname'\isTyL \equal \exp}}
+\newcommand{\evdLPP}{\ensuremath{\vname''\isTyL \equal \exp}}
+\newcommand{\odsyntaxRF}{\ensuremath{\object \oname\tparamsL\vparamsL
+\ignore\ \seq{\evdL}\ \ignore\ \code{end}}}
+\newcommand{\odsyntaxRFNew}{\ensuremath{\object \oname\ignore\ \seq{\evdL}\ \ignore}}
+\newcommand{\odsyntaxRFP}{\ensuremath{\object \oname\ignore\ \vparamsLN
+\ignore}}
+\newcommand{\odsyntaxRO}{\ensuremath{\object \oname\ignore\
+\seq{\evdL}\ \ignore}}
+
+\newcommand{\vparamsRMS}{\ensuremath{\parens{\seq{\vname\isTyL}}}}
+\newcommand{\odsyntaxRMS}{\ensuremath{\object \oname\ignore\ \vparamsRMS
+\extends \braces\supers \ignore}}%%\ \fds\ \ignore}}
+\newcommand{\odsyntaxRMI}{\ensuremath{\object \oname\ignore\ \vparamsRMS
+\ignore\ \fds\ \ignore}}
+\newcommand{\odsyntaxRMO}{\ensuremath{\object \oname\tparamsL \vparamsRMS
+\ignore\ \fds\ \ignore}}
+\newcommand{\vparamsRMO}{\ensuremath{\parens{\seq{\vname'\colon\ty^{\vname'}}}}}
+\newcommand{\fdsyntaxRMO}{\ensuremath{
+\fname\tparamsLP\vparamsRMO\colon\retty \equal \exp}}
+\newcommand{\tparamsRMO}{\ensuremath{\bsTP{\seq{\tvone''\extends\ignore}}}}
+\newcommand{\tdsyntaxRMO}{\ensuremath{
+\trait \tname \tparamsRMO \ignore\ \fdsP\ \ignore}}
+\newcommand{\vparamsPRMO}{\ensuremath{\parens{\seq{\ignore\colon\ty'''}}}}
+\newcommand{\tparamsPRMO}{\ensuremath{\bsTP{\seq{\tvone'''\extends\ignore}}}}
+\newcommand{\fdsyntaxPRMO}{\ensuremath{\fname
+\tparamsPRMO\vparamsPRMO\colon\retty''' \ignore}}
+
+\newcommand{\dsyntaxMB}{\ensuremath{
+\ignore\ \cname \tparamsL \ignore\ \fds\ \ignore}}
+
+\newcommand{\tyAsc}{\ensuremath{\KWD{as}}}
+\newcommand{\srec}{\ensuremath{\tyAsc\ \cappc}}
+\newcommand{\ownerParams}{\ensuremath{<\oname\bsTP{\seq\tvone}>}}
+\newcommand{\ownerParamsPP}{\ensuremath{<\tname\bsTP{\seq{\tvone''}}>}}
+\newcommand{\fdefName}{\ensuremath{\fname^{\ownerParams}}}
+\newcommand{\fdefNamePP}{\ensuremath{\fname^{\ownerParamsPP}}}
+
+\newcommand{\emptysubst}{\ensuremath{[\:]}}
+\newcommand{\subst}[2]{\ensuremath{[{#1}/{#2}]}}
+\newcommand{\substseq}[2]{\ensuremath{[\seq{{#1}}/\seq{{#2}}]}}
+\newcommand{\targs}   {\ensuremath{\bsTP{\seq{\ty}}}}
+\newcommand{\targsP}  {\ensuremath{\bsTP{\seq{\ty'}}}}
+\newcommand{\targsPP} {\ensuremath{\bsTP{\seq{\ty''}}}}
+\newcommand{\targsPPP}{\ensuremath{\bsTP{\seq{\ty'''}}}}
+\newcommand{\targsPPPP}{\ensuremath{\bsTP{\seq{\tvone'}}}}
+\newcommand{\targsa}  {\ensuremath{\bsTP{\seq{\tya}\seq{\tyaP}}}}
+\newcommand{\targsaPP}{\ensuremath{\bsTP{\seq{\tvonePP}}}}
+\newcommand{\targscP}{\ensuremath{\bsTP{\seq{\tycP}}}}
+\newcommand{\targscPP}{\ensuremath{\bsTP{\seq{\tycPP}}}}
+\newcommand{\targscPPP}{\ensuremath{\bsTP{\seq{\tycPPP}}}}
+\newcommand{\targscPS}{\ensuremath{\bsTP{\seq{\tycPS}}}}
+\newcommand{\targscPSS}{\ensuremath{\bsTP{\seq{\tycPSS}}}}
+\newcommand{\targsI}   {\ensuremath{\bsTP{\ignore}}}
+\newcommand{\ownerArgs}{\ensuremath{<\cname\bsTP{\seq\tyP}>}}
+\newcommand{\ftapp}   {\ensuremath{\fappName\targs\!}}
+\newcommand{\ftappP}  {\ensuremath{\fappName\targsP\!}}
+\newcommand{\ftappPP} {\ensuremath{\fappName\targsPP\!}}
+\newcommand{\ftappPPP}{\ensuremath{\fappName\targsPPP\!}}
+\newcommand{\ftappa}  {\ensuremath{\fappName\targsa\!}}
+
+\newcommand{\Fname} {\ensuremath{\mathit{Fname}}}
+\newcommand{\Vname} {\ensuremath{\mathit{Vname}}}
+\newcommand{\mbody} {\ensuremath{\mathit{mbody}_p}}
+\newcommand{\mbodyF}[2]{\ensuremath{\mbody({#1}, {#2})}}
+\newcommand{\mbodyFNew}[3]{\ensuremath{\mbody({#1},{#2},{#3})}}
+\newcommand{\mthbody} {\ensuremath{\parens{\vars}\rightarrow \exp}}
+\newcommand{\mthbodyP}{\ensuremath{\parens{\seq{\prm\vname}}\rightarrow \exp}}
+\newcommand{\mkmthbody}[2]{\ensuremath{\parens{\seq{#1}}\rightarrow {#2}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% Static semantics macros %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\tyenv}{\ensuremath{\Gamma}}
+\newcommand{\tvenv}{\ensuremath{\Delta}}
+\newcommand{\emptyenv}{\ensuremath{\emptyset}}
+\newcommand{\subtype}{\ensuremath{\:<:\:}}
+\newcommand{\notsubtype}{\ensuremath{\:\not<:\:}}
+
+\newcommand{\ok}{\mbox{\ensuremath{\mathsf{ok}}}}
+
+\newcommand{\proves}[2]{\ensuremath {{#1} \vdash {#2}}}
+\newcommand{\provesP}[2]{\proves{}{#1 : #2}}
+\newcommand{\provesD}[1]{\ensuremath{\pgm \vdash {#1}~\ok}}
+%expression typing(delta, gamma, exp, ty)
+\newcommand{\provesE}[4]{\ensuremath{\pgm; {#1}; {#2} \vdash {#3} : {#4}}}
+%expression typing(exp, ty)
+\newcommand{\provesEd}[2]{\ensuremath{\pgm; \tvenv; \tyenv \vdash {#1} : {#2}}}
+%expression typing under empty environments(exp, ty)
+\newcommand{\provesEE}[2]{\ensuremath{\pgm; \emptyset; \emptyset \vdash {#1} : {#2}}}
+%well-formed(type)
+\newcommand{\provesW}[1]{\ensuremath{\pgm; \tvenv \vdash {#1}~\ok}}
+%well-formed(domain, type)
+\newcommand{\provesWD}[2]{\ensuremath{\pgm; {#1} \vdash {#2}~\ok}}
+\newcommand{\provesM}[3]{\ensuremath{\pgm; \tvenv; {#1}; {#2} \vdash {#3}~\ok}}
+\newcommand{\provesMD}[4]{\ensuremath{\pgm; {#1}; {#2}; {#3} \vdash {#4}~\ok}}
+%subtyping(ty1, ty2)
+\newcommand{\provesS}[2]{\ensuremath{\pgm; \tvenv \vdash {#1} \subtype {#2}}}
+%subtyping under empty environment(ty1, ty2)
+\newcommand{\provesSE}[2]{\ensuremath{\pgm; \emptyset \vdash {#1} \subtype {#2}}}
+%subtyping(delta, ty1, ty2)
+\newcommand{\provesSD}[3]{\ensuremath{\pgm; {#1} \vdash {#2} \subtype {#3}}}
+\newcommand{\provesSI}[2]{\ensuremath{\ignore \vdash {#1} \not \subtype {#2}}}
+\newcommand{\provesNSD}[3]{\ensuremath{\pgm; {#1} \vdash {#2} \not\!\subtype {#3}}}
+
+\newcommand{\fdsyntaxP}{\ensuremath{\fname\tparamsP\vparamsPP\isTyZPP
+         \equal \expPPP}}
+\newcommand{\fdsyntaxMD}{\ensuremath{\fname\tparams\vparams\colon\sub\ty 0 \equal \exp}}
+\newcommand{\fdsyntaxMTB}{\ensuremath{\fname\tparamstwo\vparamsR\colon\rettytwo \equal \exp}}
+\newcommand{\dsyntaxWB}{\ensuremath{\ignore\ \cname \tparams \ignore}}
+
+\newcommand{\retty}{\ensuremath{\sub\ty 0}}
+\newcommand{\rettytwo}{\ensuremath{\prm{\sub\ty 0}}}
+\newcommand{\rettythree}{\ensuremath{\prm{\prm{\sub\ty 0}}}}
+\newcommand{\mkftnty}[2]{\ensuremath{\seq{#1}\rightarrow{#2}}}
+\newcommand{\ftntyTemplate}{\ensuremath{\tparams~\mkftnty\ty\ty}}
+\newcommand{\ftnty}{\ensuremath{\tparams~\mkftnty\ty\retty}}
+\newcommand{\ftntyone}{\ensuremath{\tparams~\mkftnty{\prm\ty}\rettytwo}}
+\newcommand{\ftntytwo}{\ensuremath{\tparamstwo~\mkftnty{\prm\ty}\rettytwo}}
+
+\newcommand{\boundF}{\ensuremath{\mathit{bound}_\tvenv}}
+\newcommand{\boundFD}[2]{\ensuremath{\mathit{bound}_{#1}(#2)}}
+\newcommand{\mtype}{\ensuremath{\mathit{mtype}_p}}
+\newcommand{\mtypeF}[1]{\ensuremath{\mtype(\fname, {#1})}}
+\newcommand{\mtypeFD}[2]{\ensuremath{\mtype(\fname, {#1}, {#2})}}
+\newcommand{\ownerF}[1]{\ensuremath{\mathit{owner}_p(\fname, {#1})}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% Rule names %%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\FTV}{\ensuremath{\mathit{FTV}}}
+\newcommand{\error}{\code{throw Error}}
+
+\newcommand{\rec}[2]{\ensuremath{\mathit{receiver}_\pgm}({#1}, {#2})}
+\newcommand{\wit}[2]{\ensuremath{\mathit{witness}_\pgm}({#1}, {#2})}
+\newcommand{\witness}{\ensuremath{\mathit{match}}}
+\newcommand{\recv}{\ensuremath{\mathit{witness}_\pgm}}
+\newcommand{\oneOwner}{\ensuremath{\pgm\vdash \mathit{oneOwner}}}
+\newcommand{\validWhere}{\ensuremath{\pgm\vdash \mathit{validWhere}}}
+\newcommand{\validWhereN}{\ensuremath{\mathit{validWhere}}}
+\newcommand{\validWitness}{\ensuremath{\pgm\vdash \mathit{validWitness}}}
+\newcommand{\validWitnessN}{\ensuremath{\mathit{validWitness}}}
+\newcommand{\visible}{\ensuremath{\mathit{visible}_\pgm}}
+\newcommand{\statrecv}{\ensuremath{\mathit{receiver}_\pgm}}
+\newcommand{\overriden}{\ensuremath{\mathit{overriden}_\pgm}}
+\newcommand{\isdefined}{\ensuremath{\mathit{isDefined}_\pgm}}
+\newcommand{\visibleFrom}{\ensuremath{\mathit{visibleFrom}_\pgm}}
+\newcommand{\defined}{\ensuremath{\mathit{defined}_\pgm}}
+\newcommand{\defining}{\ensuremath{\mathit{defining}_\pgm}}
+\newcommand{\inherited}{\ensuremath{\mathit{inherited}_\pgm}}
+\newcommand{\overriding}{\ensuremath{\mathit{overriding}_\pgm}}
+\newcommand{\newMethod}{\ensuremath{\mathit{newMethod}_\pgm}}
+\newcommand{\validMI}{\ensuremath{\pgm\vdash \mathit{validMultipleInheritance}}}
+\newcommand{\validHTV}{\ensuremath{\mathit{validHTV}_\pgm}}
+\newcommand{\crossover}{\ensuremath{\mathit{onePath}_\pgm}}
+\newcommand{\typeF}{\ensuremath{\mathit{type}}}
+
+\newcommand{\rObjectRule}{\ruleLabel{R-Object}}
+\newcommand{\rObjectFieldRule}{\ruleLabel{R-Object-Field}}
+\newcommand{\rFieldRule}{\ruleLabel{R-Field}}
+\newcommand{\rMethodRule}{\ruleLabel{R-Method}}
+\newcommand{\rTypecaseRule}{\ruleLabel{R-Typecase}}
+\newcommand{\rTypecaseElseRule}{\ruleLabel{R-TypecaseElse}}
+\newcommand{\rMethodInheritanceRule}{\ruleLabel{R-MthInhheritance}}
+\newcommand{\rMethodSimpleRule}{\ruleLabel{R-MthSimple}}
+\newcommand{\rMethodOverridingRule}{\ruleLabel{R-MthOverr}}
+\newcommand{\rThrowRule}{\ruleLabel{R-Throw}}
+\newcommand{\rInstantiate}{\ruleLabel{R-Instantiate}}
+
+\newcommand{\sGC}{\ruleLabel{S-Garbage}}
+\newcommand{\sNameCon}{\ruleLabel{S-NameCon}}
+\newcommand{\sNameMeth}{\ruleLabel{S-NameMethod}}
+\newcommand{\sNameField}{\ruleLabel{S-NameField}}
+\newcommand{\sVar}{\ruleLabel{S-Var}}
+\newcommand{\sLift}{\ruleLabel{S-Lift}}
+
+\newcommand{\mbBothRule}{\ruleLabel{Mb-Self}}
+\newcommand{\mbWitnessRule}{\ruleLabel{Mb-Witness}}
+\newcommand{\mbSuperRule}{\ruleLabel{Mb-Super}}
+\newcommand{\mbSuperStatRule}{\ruleLabel{Mb-Static}}
+\newcommand{\mbObjRule}{\ruleLabel{Mb-Obj}}
+
+\newcommand{\tProgramRule}{\ruleLabel{T-Program}}
+\newcommand{\tTraitDefRule}{\ruleLabel{T-TraitDef}}
+\newcommand{\tObjectDefRule}{\ruleLabel{T-ObjectDef}}
+\newcommand{\tFieldDefRule}{\ruleLabel{T-FieldDef}}
+\newcommand{\tMethodDefRule}{\ruleLabel{T-MethodDef}}
+\newcommand{\nonoverrideRule}{\ruleLabel{NonOverride}}
+\newcommand{\overrideRule}{\ruleLabel{Override}}
+\newcommand{\acyclicRule}{\ruleLabel{Acyclic}}
+\newcommand{\validMIRule}{\ruleLabel{ValidMI}}
+\newcommand{\oneOwnerRule}{\ruleLabel{OneOwner}}
+\newcommand{\validWitnessRule}{\ruleLabel{ValidWitness}}
+\newcommand{\validWhereRule}{\ruleLabel{ValidWhere}}
+\newcommand{\tVarRule}{\ruleLabel{T-Var}}
+\newcommand{\tThrowRule}{\ruleLabel{T-Throw}}
+\newcommand{\tSelfRule}{\ruleLabel{T-Self}}
+\newcommand{\tObjectRule}{\ruleLabel{T-Object}}
+\newcommand{\tIObjectRule}{\ruleLabel{T-Int-Object}}
+\newcommand{\tFieldRule}{\ruleLabel{T-Field}}
+\newcommand{\tInvkRule}{\ruleLabel{T-Method}}
+\newcommand{\tTypecaseRule}{\ruleLabel{T-Typecase}}
+\newcommand{\meetRule}{\ruleLabel{Meet}}
+
+\newcommand{\sObjRule}{\ruleLabel{S-Obj}}
+\newcommand{\sBotRule}{\ruleLabel{S-Bot}}
+\newcommand{\sReflRule}{\ruleLabel{S-Refl}}
+\newcommand{\sTransRule}{\ruleLabel{S-Trans}}
+\newcommand{\sVarRule}{\ruleLabel{S-Var}}
+\newcommand{\sBothRule}{\ruleLabel{S-Tapp}}
+\newcommand{\nsObjRule}{\ruleLabel{NS-Obj}}
+\newcommand{\nsVarLRule}{\ruleLabel{NS-VarLeft}}
+\newcommand{\nsVarRRule}{\ruleLabel{NS-VarRight}}
+\newcommand{\nsBothRule}{\ruleLabel{NS-Tapp}}
+\newcommand{\wObjRule}{\ruleLabel{W-Obj}}
+\newcommand{\wBotRule}{\ruleLabel{W-Bot}}
+\newcommand{\wVarRule}{\ruleLabel{W-Var}}
+\newcommand{\wBothRule}{\ruleLabel{W-Tapp}}
+\newcommand{\mtBothRule}{\ruleLabel{Mt-Self}}
+\newcommand{\mtSuperRule}{\ruleLabel{Mt-Super}}
+\newcommand{\mtObjRule}{\ruleLabel{Mt-Obj}}
+\newcommand{\mtDBothRule}{\ruleLabel{MD-Self}}
+\newcommand{\mtDSuperRule}{\ruleLabel{MD-Super}}
+\newcommand{\mtUBothRule}{\ruleLabel{MU-Self}}
+\newcommand{\mtUSuperRule}{\ruleLabel{MU-Super}}
+\newcommand{\oBothRule}{\ruleLabel{O-Self}}
+\newcommand{\oSuperRule}{\ruleLabel{O-Super}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% Soundness proof macros %%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\subcase}[1]{\item[Subcase {#1}:]}
+\newcommand{\expEval}[2]{\ensuremath{\pgm \vdash {#1} \expArrow {#2}}}
+\newcommand{\proofcase}[1]{\item[Case {#1}:]}
+\newcommand{\fdInvkVal}{\ensuremath{\invoke\objval{\vname_i}}}
+\newcommand{\mdInvkVal}{\ensuremath{\invoke\objval{\ftappP\vargsP}}}
+\newcommand{\typeBounds}[2]{\ensuremath{\seq{{#1}\subtype{#2}}}}
+\newcommand{\typeArgsBounds}[2]{\ensuremath{\bsTP{\seq{{#1}\extends{#2}}}}}
+\newcommand{\funAppExpPrime}{\fname\bsTP{\seq{\ty'''}}\eargs}
+\newcommand{\fdsyntaxMTlem}{\ensuremath{
+\fname\bsTP{\seq{\tvtwo\extends\tappthree}}
+\parens{\seq{\vname\colon\ty''}}\colon\rettytwo \equal \exp}}
+\newcommand{\odsyntaxTSlemMth}{\ensuremath{\object \oname\tparamstwo\vparamsP
+\extends\{\supersthree\}\ \seq{\vname:\tyPPP = \exp}\ \ignore}}
+\newcommand{\odsyntaxTSlemMthNew}{\ensuremath{\object \oname\tparamstwo\vparamsP
+\extends\{\supersthree\}\ \seq{\vname'':\tyPP = \exp}\ \ignore}}
+
+\newcommand{\objexp}{\ensuremath{\oapp\eargs}}
+\newcommand{\provesV}[2]{\ensuremath{\pgm; \tvenv; {#1} \vdash {#2}~\ok}}
+\newcommand{\provesVD}[3]{\ensuremath{\pgm; {#1}; {#2} \vdash {#3}~\ok}}
+\newcommand{\fappName}{\ensuremath{\fname}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% basic calculus macros %%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 
+%% Sukyoung 01/18/06:
+%% Some latex class files have conflicts with other latex class/style files.
+%% For example, IEEEtrans.cls has conflicts with amsthm.sty
+%% and llncs.cls has conflicts with THIS file! 
+%% In such cases, we need to save and then undefine the conflicting command.
+%% Please take a look at Fortress/papers/where-clauses/ecoop06.tex
+%% for an example.
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+
+\newcommand{\override}{\ensuremath{{\pgm;\tvenv}\vdash \mathit{override}}}
+\newcommand{\acyclic}[1]{\ensuremath{\mathit{acyclic}(#1)}}
+\newcommand{\overrideTemplate}{\ensuremath{\override(
+\fname, \set{\seq{\tappone}}, \tparams~\mkftnty\ty\ty)}}
+\newcommand{\overrideD}{\ensuremath{\override(
+\fname, \set{\seq{\tappthree}}, \tparams~\mkftnty\ty{\sub\ty 0})}}
+\newcommand{\overrideDW}{\ensuremath{\override(\fname, \cname,
+\tparams~\mkftnty\ty{\sub\ty 0})}}
+
+\newcommand{\bound}{\ensuremath{\tvone\extends\super}}
+\newcommand{\boundtwo}{\ensuremath{\tvtwo\extends\supertwo}}
+\newcommand{\boundtwoP}{\ensuremath{\tvtwo\extends\supertwo'}}
+\newcommand{\boundP} {\ensuremath{\tvone'\extends\super'}}
+\newcommand{\boundPP}{\ensuremath{\tvone''\extends\super''}}
+\newcommand{\boundPPP}{\ensuremath{\tvone'''\extends\super'''}}
+\newcommand{\boundPPPP}{\ensuremath{\tvone''''\extends\set{\seq{\super''''}}}}
+\newcommand{\boundPPPPP}{\ensuremath{\tvone'''''\extends\super'''''}}
+\newcommand{\boundL} {\ensuremath{\tvone\extends\ignore}}
+\newcommand{\boundLP}{\ensuremath{\prm\tvone\extends\ignore}}
+
+\newcommand{\mthinvk}{\ensuremath{\receiver\fname\targs\eargs}}
+\newcommand{\imthinvk}{\ensuremath{\ireceiver\fname\targs\iargs}}
+\newcommand{\tdsyntax}{\ensuremath{
+\trait \tname\tparams\extends\{\supers\}\ \fds\ \code{end}}}
+\newcommand{\tdsyntaxTD}{\ensuremath{
+\trait \tname\tparams\extends\{\superstwo\}\ \fds\ \cend}}
+\newcommand{\odsyntax}{\ensuremath{\object \oname\tparams\vparams
+\extends\{\supers\}\ \fds\ \code{end}}}
+\newcommand{\odsyntaxRM}{\ensuremath{\object \oname\ignore\
+\vparamsRMS\ignore\ \cend}}
+\newcommand{\odsyntaxRMNew}{\ensuremath{\object\oname\ignore\ 
+\parens{\seq{\vname\isTyL}}\ignore\ \seq{\vname'\isTyL}\ignore}}
+\newcommand{\odsyntaxOD}{\ensuremath{\object \oname\tparams\vparams
+\extends\{\superstwo\}\ \fds\ \cend}}
+\newcommand{\odsyntaxObj}{\ensuremath{\object\oname\tparamsL
+\vparamsR\ignore\ \cend}}
+\newcommand{\odsyntaxIObj}{\ensuremath{\object\oname\tparamsL
+\vparamsP\ignore\ \seq{\vname''\isTy'' \equal \ignore}\ \ignore\ \cend}}
+ \newcommand{\odsyntaxFld}{\ensuremath{\object \oname\tparamsL\vparams
+ \ignore\ \cend}}
+ \newcommand{\odsyntaxSRthm}{\ensuremath{\object \oname\tparamsL\vparams\
+ \ignore\ \cend}}
+\newcommand{\odsyntaxSRthmMth}{\ensuremath{\object \oname\tparams\vparams
+\extends\{\superstwo\}\ \seq{\vd}\ \seq{\fd}\ \cend}}
+\newcommand{\odsyntaxSRthmMthNew}{\ensuremath{\object \oname\tparams\vparamsPPP
+\extends\{\superstwo\}\ \seq{\vname'''\colon\ty''''\equal\ignore}\ \seq{\fd}\ \cend}}
+\newcommand{\csyntaxSRthmMthNew}{\ensuremath{\ignore \cname\tparamsP\ignore\ \fds \ \ignore}}
+\newcommand{\odsyntaxTSlemObj}{\ensuremath{\object \oname\tparamstwo\vparamsP
+\extends\{\supersthree\}\ \ignore}}
+\newcommand{\dsyntaxMS}{\ensuremath{\ignore\ \cname \tparamsL
+\ignore\ \extends \braces\supers\ignore\ \fds\ \ignore}}
+\newcommand{\dsyntaxMT}{\ensuremath{
+\ignore\ \cname \ignore\ \extends \braces\superstwo\ignore}}
+\newcommand{\dsyntaxA}{\ensuremath{\ignore\ \cname \tparams \ignore\ 
+\extends \braces{\supertwo_1 \ldots \capp \ldots \supertwo_n}\ignore}}
+\newcommand{\dsyntaxSB}{\ensuremath{
+\ignore\ \cname \tparamsL \ignore\ \extends \braces\supers\ \ignore}}
+\newcommand{\dsyntaxSBlem}{\ensuremath{
+\ignore\ \cname \tparamsL \ignore\ \extends \braces\superstwo\ \ignore}}
+\newcommand{\dsyntaxOVER}{\ensuremath{
+\ignore\ \cname \ignore \extends \set{\seq\tappone}\ignore}}
+\newcommand{\fdsyntaxMB}{\ensuremath{
+\fname\tparamsLP\vparamsL\ignore\ \equal \exp}}
+\newcommand{\fdsyntaxNew}{\ensuremath{\fname\tparamstwoP\vparamsPP : \ty_0' \equal \exp'}}
+
+\newcommand{\evd}{\ensuremath{\vname\isTytwo \equal \exp}}
+\newcommand{\tvenvone}{\ensuremath{\seq{\tvone\subtype\tappone}}}
+\newcommand{\tvenvoneP}{\ensuremath{\seq{\tvone'\subtype\tappone'}}}
+\newcommand{\tvenvtwo}{\ensuremath{\seq{\tvtwo\subtype\tapptwo}}}
+\newcommand{\funAppValPrime}{\fname\bsTP{\seq{\ty'}}\parens{\seq{\val'}}}
+\newcommand{\vparamRP}{\ensuremath{\vname\isTyP}}
+\newcommand{\vparamsRP}{\ensuremath{\parens{\seq{\vparamRP}}}}

@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component neOperator
+export Executable
+
+ok() = println("OK")
+not() = println("FAIL")
+
+run() = do
+  if 0 = 1 then not() else ok() end
+  if 0+0 = 1+1 then not() else ok() end
+  if 0 0 = 1 1 then not() else ok() end
+  if (0 = 0) = (0 = 1) then not() else ok() end
+
+(*  if 0 EQ q then 1/0; () end
+  if 0+0 EQ 1+1 then 1/0; () end
+  if 0 0 EQ 1 1 then 1/0; () end
+  if (0 EQ 0) NE (0 NE 1) then 1/0; () end
+
+  if 0 NE 1 then 1/0; () end
+  if 0+0 NE 1+1 then 1/0; () end
+  if 0 0 NE 1 1 then 1/0; () end
+  if (0 NE 0) NE (0 NE 1) then 1/0; () end *)
+
+  if 0 =/= 1 then ok() else not() end
+  if (0+0) =/= (1+1) then ok() else not() end
+  if 0 0 =/= 1 1 then ok() else not() end
+  if (0 =/= 0) =/= (0 =/= 1) then ok() else not() end
+end
+
+end

@@ -1,0 +1,133 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Static Expressions}
+\seclabel{static-expr}
+
+\note{Static expressions are not yet supported.}
+
+\emph{Static expressions} denote \emph{static values}.  Conceptually,
+a static expression is not evaluated while a program is running, and
+thus its evaluation
+cannot complete abruptly.  Given instantiations of all static
+parameters (described in \chapref{trait-parameters}) in scope of a
+static expression, the value of the static expression can be
+determined statically.  Static expressions which use a restricted subset of operations can occur as
+\emph{static arguments} which instantiate static parameters and
+\KWD{where}-clause constraints (described in \secref{where-clauses}).
+We define the set of static
+expressions by first defining the types of static expressions, and
+distinguishing static values from the closely related literal values.
+We then describe the expressions that evaluate to the various kinds of
+static values.
+
+
+\subsection{Types of Static Expressions}
+
+There are three groups of traits that describe literals
+and static expressions:
+\begin{enumerate}
+\item The \emph{literal} traits, which describe boolean,
+  character, string, and numerals.  For example, the literal \VAR{true} has
+  trait \EXP{\TYP{BooleanLiteral}\llbracket\VAR{true}\rrbracket} and a
+  character literal has trait \TYP{Character}.
+See \secref{literals} for a discussion of Fortress literals.
+
+\item The \emph{constant} traits, which describe values denoted by
+expressions composed from literals and operators (described in
+\secref{constant-values});
+the type of a constant expression encodes the value of the expression.
+For example, the type of a constant expression \EXP{3+5},
+%IntegerConstant[\false, 3+5\]
+\EXP{\TYP{IntegerConstant}\llbracket\VAR{false}, 3+5\rrbracket},
+encodes the value of the expression; the operator \EXP{+} is
+used in the static arguments.  When an operator is not supported in static
+arguments, \library\ can still encode the value of the expression by
+providing a specific constant trait such as
+\EXP{\TYP{RationalValueTimesPi}\llbracket\VAR{false},1,1\rrbracket}
+(described in \secref{pi}).
+
+
+
+\item The \emph{static} traits, which describe values denoted by
+expressions composed from literals, operators (described in
+\secref{constant-values}), and \KWD{bool}, \KWD{nat},
+and \KWD{int} parameters; here the type
+does not encode the value of the expression, but the value of the
+expression can nevertheless be known statically if specific
+values are specified for the static parameters.  Also, in situations
+where the type of an expression composed solely from literals and
+operators nevertheless cannot be described by a constant trait, then a
+static trait may be used to describe it instead.
+For example, a static expression \EXP{2(3+m)} where \VAR{m} is a
+\KWD{nat} parameter has trait \TYP{NaturalStatic}.
+\end{enumerate}
+
+
+The only operation on literals that produces a new literal (as opposed
+to a constant) is concatenation by using the operator \EXP{\|}.
+One may concatenate mixed string and
+character literals, producing a string literal.
+For example, ``\txt{foo}''\EXP{\|}''\txt{bar}'' yields ``\txt{foobar}''.
+One may also concatenate two natural numerals
+of the same radix, producing a new natural numeral of that radix.
+For example, \EXP{\mathtt{deadc}_{16} \| \mathtt{0de}_{16}} yields \EXP{\mathtt{deadc0de}_{16}}.
+
+Every literal trait extends an appropriate constant trait, and every
+constant trait extends an appropriate static trait.  So every
+literal is also a constant expression, and every constant expression
+is a static expression.
+
+
+
+
+\subsection{Static Expressions and Values}
+\seclabel{constant-values}
+
+Static parameters are static expressions.
+A \KWD{nat} parameter denotes a value that has type \TYP{NaturalStatic}
+(which extends \TYP{IntegerStatic}).
+An \KWD{int} parameter denotes a value that has type \TYP{IntegerStatic}.
+A \KWD{bool} parameter denotes a value that has type \TYP{BooleanStatic}.
+
+
+Boolean static expressions may be combined using the operators
+\EXP{\wedge}, \EXP{\vee}, \EXP{\oplus},
+\EXP{\equiv}, \EXP{\leftrightarrow}, \OPR{NAND}, \OPR{NOR}, \EXP{=},
+\EXP{\neq}, and \EXP{\rightarrow} (See \appref{operator-precedence} for a
+discussion of Fortress operators.)
+to produce other static expressions denoting boolean static expressions.
+If both operands are boolean constant expressions, then the result is also
+a boolean constant expression.
+
+Character static expressions may be compared using the operators \EXP{<},
+\EXP{\leq}, \EXP{\geq}, \EXP{>},
+\EXP{=}, and \EXP{\neq} to produce boolean static expressions.  If both
+operands are character constant expressions, then the result is a boolean
+constant expression.
+
+Numeric static expressions may be compared using the operators \EXP{<},
+\EXP{\leq}, \EXP{\geq}, \EXP{>},
+\EXP{=}, and \EXP{\neq} to produce boolean static expressions.  If both
+operands are numeric constant expressions, then the result is a boolean
+constant expression.
+
+Numeric static expressions may be combined using the operators and
+functions \EXP{+},
+\EXP{-}, \EXP{\times}, \EXP{\cdot}, \EXP{/}, \EXP{!}, \OPR{MIN}, \OPR{MAX},
+\EXP{\surd}, \VAR{floor}, \VAR{ceiling},
+\VAR{hyperfloor}, \VAR{hyperceiling}, \EXP{\gcd}, \TYP{lcm}, \EXP{\sin},
+\EXP{\cos}, \EXP{\tan}, \EXP{\arcsin}, \EXP{\arccos}, and \EXP{\arctan}
+to produce new numeric static expressions.  If the result is indeed
+a numeric static expression, and both operands are numeric constant
+expressions, then the result is also a numeric constant expression
+as long as the constant traits provided by \library\ can encode the value
+of the expression.

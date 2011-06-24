@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+
+  (* Tests that LetFn correctly binds the two local function definitions over its
+   * enclosing Block. *)
+
+  run():() = do
+    f(x:RR64):IntLiteral = 23
+    g(x:Any, y:Any):IntLiteral = 42
+    ignore(g(f, g))
+    ()
+  end

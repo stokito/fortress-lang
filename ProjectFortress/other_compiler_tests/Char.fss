@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+******************************************************************************)
+
+export Executable
+
+run():() = do
+    a = 'a'
+    b = 'b'
+    c = 'c'
+    d = 'd'
+    otherC = 'c'
+    
+    if NOT(a < b) then println("fail NOT(a < b)")
+    elif b < a then println("fail")
+    elif a < a then println("fail b < a")
+    elif NOT(c = otherC) then println("fail NOT(c = otherC)")
+    elif NOT(c = c) then println("fail NOT(c = c)")
+    elif c = d then println("fail c = d")
+    elif NOT(c <= c) then println("fail NOT(c <= c)")
+    elif NOT(c <= d) then println("fail NOT(c <= d)")
+    elif d <= c then println("fail d <=c ")
+    elif a > b then println("fail a > b")
+    elif a > a then println("fail  a > a")
+    elif NOT(b > a) then println("fail NOT(b > a)")
+    elif NOT(c >= c) then println("fail NOT(c >= c)")
+    elif NOT(d >= c) then println("fail NOT(d >= c)")
+    elif c >= d then println("fail c >= d")
+    else println(a)
+    end    
+end

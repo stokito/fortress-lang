@@ -1,0 +1,32 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Fun.App.a
+
+export Executable
+
+arctan(x,y) = 0
+f() = do
+  pi = 3.141592
+  y = 1
+  x = 0
+(** EXAMPLE **)
+  sin(pi)
+  arctan(y, x)
+(** END EXAMPLE **)
+  println "OK"
+end
+
+run() = f()
+
+end

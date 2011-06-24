@@ -1,0 +1,49 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Fortress.Convenience
+
+(* Casting *)
+cast[\T extends Any\](x: Any): T =
+  typecase x of
+    T => x
+    else => printTaskTrace(); throw CastException
+  end
+
+(* Instanceof Testing *)
+instanceOf[\T extends Any\](x: Any): Boolean =
+  typecase x of
+    T => true
+    else => false
+  end
+
+(* Ignoring Values *)
+ignore(_: Any) = ()
+
+(* Enforcing Tuples *)
+tuple[\T extends Tuple\](x: T) = x
+
+(* Identity *)
+identity[\T extends Any\](x: T) = x
+
+(* Coercion *)
+coerce_[\T\](x: T): = x
+
+(* Optional Values *)
+trait Maybe[\T\] comprises { Nothing, Just[\T\] }
+  isNothing: Boolean
+end
+object Nothing extends Maybe[\T\] excludes Just[\T\] where {T extends Object}
+  isNothing = true
+end
+object Just[\T\](just: T) extends Maybe[\T\]
+  isNothing = false
+end
