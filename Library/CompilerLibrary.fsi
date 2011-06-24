@@ -146,4 +146,68 @@ randomZZ32(x:ZZ32): ZZ32
 ************************************************************)
 trait Matrix[\T, nat s0, nat s1\] extends Object end
 
+(************************************************************
+* Character properties
+************************************************************)
+
+characterMinCodePoint: ZZ32
+characterMaxCodePoint: ZZ32
+characterMinSupplementaryCodePoint: ZZ32
+characterMinRadix: ZZ32
+characterMaxRadix: ZZ32
+
+(*) Character categories
+characterCombiningSpacingMark: ZZ32
+characterConnectorPunctuation: ZZ32
+characterControl: ZZ32
+characterCurrencySymbol: ZZ32
+characterDashPunctuation: ZZ32
+characterDecimalDigitNumber: ZZ32
+characterEnclosingMark: ZZ32
+characterEndPunctuation: ZZ32
+characterFinalQuotePunctuation: ZZ32
+characterFormat: ZZ32
+characterInitialQuotePunctuation: ZZ32
+characterLetterNumber: ZZ32
+characterLineSeparator: ZZ32
+characterLowercaseLetter: ZZ32
+characterMathSymbol: ZZ32
+characterModifierLetter: ZZ32
+characterModifierSymbol: ZZ32
+characterNonSpacingMark: ZZ32
+characterOtherLetter: ZZ32
+characterOtherNumber: ZZ32
+characterOtherPunctuation: ZZ32
+characterOtherSymbol: ZZ32
+characterParagraphSeparator: ZZ32
+characterPrivateUse: ZZ32
+characterSpaceSeparator: ZZ32
+characterStartPunctuation: ZZ32
+characterSurrogate: ZZ32
+characterTitlecaseLetter: ZZ32
+characterUnassigned: ZZ32
+characterUppercaseLetter: ZZ32
+
+(*) Character directionality
+characterDirectionalityArabicNumber: ZZ32
+characterDirectionalityBoundaryNeutral: ZZ32
+characterDirectionalityCommonNumberSeparator: ZZ32
+characterDirectionalityEuropeanNumber: ZZ32
+characterDirectionalityEuropeanNumberSeparator: ZZ32
+characterDirectionalityEuropeanNumberTerminator: ZZ32
+characterDirectionalityLeftToRight: ZZ32
+characterDirectionalityLeftToRightEmbedding: ZZ32
+characterDirectionalityLeftToRightOverride: ZZ32
+characterDirectionalityNonspacingMark: ZZ32
+characterDirectionalityOtherNeutrals: ZZ32
+characterDirectionalityParagraphSeparator: ZZ32
+characterDirectionalityPopDirectionalFormat: ZZ32
+characterDirectionalityRightToLeft: ZZ32
+characterDirectionalityRightToLeftArabic: ZZ32
+characterDirectionalityRightToLeftEmbedding: ZZ32
+characterDirectionalityRightToLeftOverride: ZZ32
+characterDirectionalitySegmentSeparator: ZZ32
+characterDirectionalityUndefined: ZZ32
+characterDirectionalityWhitespace: ZZ32
+
 end
