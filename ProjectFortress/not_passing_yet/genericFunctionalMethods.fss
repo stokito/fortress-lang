@@ -1,0 +1,32 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component genericFunctionalMethods
+export Executable
+
+(** Initialization of generic functional methods in the interpreter is
+    failing, signaling that the generic parameter is unbound.
+    Commenting out the declaration and use of bar allows execution of
+    the equivalent dotted method to succeed. **)
+object O
+    foo[\T\](x:T): T = x
+(*
+    bar[\T\](self, y:T): T = y
+*)
+end
+
+run():() = do
+    assert(O.foo[\ZZ32\](17),17)
+    assert(bar[\ZZ32\](O,17),17)
+    println("OK")
+end
+
+end

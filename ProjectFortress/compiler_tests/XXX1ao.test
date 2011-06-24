@@ -1,0 +1,19 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled1.ao
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled1.ao.fss:12:11-22:\n\
+\ Component Compiled1.ao exports API DXXmatchingFnDecls\n\
+\ but does not define all declarations in DXXmatchingFnDecls.\n\
+\ Missing declarations: {f:String->() at ${STATIC_TESTS_DIR}/DXXmatchingFnDecls.fsi:13:3-18}\n\
+File Compiled1.ao.fss has 1 error.\n
+compile_out_equals=

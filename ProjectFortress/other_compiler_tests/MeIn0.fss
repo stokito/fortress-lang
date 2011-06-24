@@ -1,0 +1,76 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+ ******************************************************************************)
+
+export Executable
+(* testing overlap and coverage of method signatures and returns *)
+
+(* This file has a bug in it -- the overloading is not valid. *)
+
+trait T
+  ee(T):T
+  el(T):T
+  le(T):T
+  ll(T):T
+  s():String
+end
+
+trait U extends T
+  ee(T):T
+  el(T):U
+  le(x:U):T = x
+  ll(U):U
+end
+
+trait V extends T
+end
+
+trait W extends T
+  ee(T):T
+  el(T):W
+  le(W):T
+  ll(x:W):W = x
+end
+
+object ot(ss:String) extends T
+  ee(x:T):T = x
+  el(x:T):T = x
+  le(x:T):T = x
+  ll(x:T):T = x
+  s():String = ss
+end
+
+trait X extends {U,V}
+  ee(x:T):T = ot("Xee")
+end
+
+object O extends {X, W}
+  s():String = "O"
+  ee(x:T):T = ot("Oee")
+  
+  el(x:T):O = O
+
+  le(x:T):T = ot("OTle")
+  le(x:W):T = ot("OWle")
+
+  ll(x:T):T = ot("Oll")
+  ll(x:U):U = x
+
+end
+
+run() = do
+  t1:T = O
+  t2:T = ot("foobarbaz")
+  println(t1.ee(t2).s()) 
+  println(t1.el(t2).s()) 
+  println(t1.le(t2).s()) 
+  println(t1.le(t1).s()) 
+  println(t1.ll(t2).s()) 
+  println(t1.ll(t1).s()) 
+end
+

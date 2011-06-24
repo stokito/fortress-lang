@@ -1,0 +1,89 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Early Termination of Threads}
+\seclabel{early-termination}
+
+As noted in \secref{threads-parallelism}, an implicit thread
+can be terminated if its group is going to throw an exception.
+Similarly, a spawned thread \VAR{t} may be terminated by calling
+\EXP{t.\VAR{stop}()}.  A successful attempt to terminate a thread causes the
+thread to complete asynchronously.  There is no guarantee that
+termination attempts will be prompt, or that they will occur at all;
+the implementation will make its best effort.  If a thread completes
+normally or exceptionally before an attempt to terminate it succeeds,
+the result is retained and the termination attempt is simply dropped.
+
+At present stopping a thread immediately causes it to cease execution;
+no outstanding \KWD{finally} blocks are run and the thread is not
+considered to return a result.
+
+\note{From here till the end of this section, copied from F1.0$\beta$.}
+
+A termination attempt acts as if a special hidden \emph{stop
+  exception} is thrown in that thread.  This exception cannot be
+thrown by \KWD{throw} or caught by \KWD{catch}; however, \KWD{finally}
+clauses are run as with any other exception.  If the stopped thread
+was in the middle of an \KWD{atomic} expression, the effects of that
+expression are rolled back just as with an ordinary \KWD{throw}.  A
+special wrapper around every spawned thread is provided by the
+Fortress implementation; it catches the stop exception and transforms
+it into a deferred \TYP{Stopped} exception.  This is visible to the
+programmer and should be caught by invoking the \VAR{val} method on
+the thread object.  Implicit threads are terminated only if another
+thread in the group completes abruptly, and the threads that are
+terminated are ignored for the purposes of the completion of the
+group.
+
+Typical code for stopping a thread looks something like the following
+example:
+%x : ZZ64 := 0
+%t = spawn do
+%      try
+%        atomic if x=0 then abort() else () end
+%      finally
+%        x := 1
+%      end
+%    end
+%t.stop()
+%try
+%  t.val()
+%catch s
+%  Stopped => x += 2; x
+%end
+\begin{Fortress}
+\(x \mathrel{\mathtt{:}} \mathbb{Z}64 \ASSIGN 0\)\\
+\(t = \null\)\pushtabs\=\+\(\KWD{spawn}\;\;\KWD{do}\)\\
+{\tt~~~~~~}\pushtabs\=\+\(      \KWD{try}\)\\
+{\tt~~}\pushtabs\=\+\(        \KWD{atomic}\;\;\KWD{if} x=0 \KWD{then} \VAR{abort}() \KWD{else} () \KWD{end}\)\-\\\poptabs
+\(      \KWD{finally}\)\\
+{\tt~~}\pushtabs\=\+\(        x \ASSIGN 1\)\-\\\poptabs
+\(      \KWD{end}\)\-\\\poptabs
+\(    \KWD{end}\)\-\\\poptabs
+\(t.\VAR{stop}()\)\\
+\(\KWD{try}\)\\
+{\tt~~}\pushtabs\=\+\(  t.\VAR{val}()\)\-\\\poptabs
+\(\KWD{catch} s\)\\
+{\tt~~}\pushtabs\=\+\(  \TYP{Stopped} \Rightarrow x \mathrel{+}= 2; x\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+Here the spawned thread \VAR{t} blocks until it is killed by the call
+to \EXP{\VAR{t}.\VAR{stop}()}; it sets \VAR{x} to 1 in the
+\KWD{finally} clause before exiting.  In this case, the call to
+\EXP{\VAR{t}.\VAR{val}()} will throw \TYP{Stopped}, which is caught,
+causing 2 to be added to \VAR{x} and returning 3.
+
+Note that there is a race in the above code, so the \KWD{try} block in
+\VAR{t} may not have been entered when \EXP{\VAR{t}.\VAR{stop}()} is
+called, causing $x$ to be 2 at the end of execution.  Note also that
+the call to \EXP{\VAR{t}.\VAR{stop}()} occurs asynchronously; in the
+absence of the call to \EXP{\VAR{t}.\VAR{val}()}, the spawning thread
+would not have waited for \VAR{t} to complete.

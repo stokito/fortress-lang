@@ -1,0 +1,122 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Subscripting Operator Method Declarations}
+\seclabel{subscripting-ops}
+
+A subscripting operator method declaration has
+\KWD{opr} where a method declaration would have an identifier.
+The value parameter list, rather than being surrounded by parentheses,
+is surrounded by a pair of brackets.  A subscripting operator method
+declaration may have any number of value parameters, keyword parameters,
+and varargs  parameters in that
+value parameter list.  Static parameters may also be present, between
+\KWD{opr} and the left bracket.  Any paired
+Unicode brackets may be so defined \emph{except} ordinary
+parentheses and white square brackets; in particular, the square
+brackets ordinarily used for indexing may be used.
+
+An expression consisting of a subexpression immediately
+followed (with no intervening whitespace) by zero or more
+comma-separated expressions surrounded by brackets will
+invoke a subscripting operator method declaration.  Methods
+for the expression preceding the bracketed expression list are
+considered.  The compiler considers all subscripting operator method
+declarations that are both accessible and applicable, and the most
+specific method declaration is chosen according to the usual overloading
+rules.  For example, the expression \EXP{\VAR{foo}_p} might invoke the
+following subscripting method declaration because expressions in the square
+brackets are rendered as subscripts:
+\input{\home/advanced/examples/OprDecl.Subscripting.tex}
+
+
+
+\section{Subscripted Assignment Operator Method Declarations}
+\seclabel{subscripted-assignment}
+
+A subscripted assignment operator method declaration has
+\KWD{opr} where a method declaration would have an identifier.  The value
+parameter list, rather than being surrounded by parentheses, is
+surrounded by a pair of brackets; this is then followed by the
+operator \txt{:=} and then a second value parameter list in parentheses,
+which must contain exactly one non-keyword
+value parameter.  A subscripted
+assignment operator method declaration may have any number of value
+parameters within the brackets; these value parameters may include
+keyword parameters and
+varargs parameters.  A result type
+may appear after the second value parameter list, but it must be \TYP{()}.
+Static parameters may also be present, between \KWD{opr}
+and the left bracket.  Any paired Unicode brackets may be so
+defined \emph{except} ordinary parentheses and white square brackets; in
+particular, the square brackets ordinarily used for indexing may
+be used.
+
+An assignment expression consisting of an expression immediately
+followed (with no intervening whitespace) by zero or more
+comma-separated expressions surrounded by brackets, followed by the
+assignment operator \txt{:=}, followed by another expression, will
+invoke a subscripted assignment operator method declaration.  Methods
+for the expression preceding the bracketed expression list are
+considered.  The compiler considers all subscript operator method
+declarations that are both accessible and applicable, and the most
+specific method declaration is chosen according to the usual overloading
+rules.  When a compound assignment operator (described in
+\secref{operator-app-expr}) is used with a subscripting operator and
+a subscripted assignment operator, for example \EXP{a_{3} \mathrel{+}= k},
+both a subscripting operator declaration and a subscripted assignment
+operator declaration are required.
+For example, the assignment \EXP{\VAR{foo}_p \ASSIGN \VAR{myWidget}} might
+invoke the following subscripted assignment method declaration:
+\input{\home/advanced/examples/OprDecl.SubscriptedAssignment.tex}
+
+
+
+
+\section{Conditional Operator Declarations}
+\seclabel{conditional-operators-impl}
+
+A \emph{conditional operator} is a binary operator (other than `\txt{:}' and
+`\txt{::}') that
+is immediately followed by `\txt{:}'; see \secref{conditional-operators}.
+A conditional operator expression \EXP{x@\COLONOP{}y} is syntactic sugar for
+\EXP{x@(\KWD{fn} () \Rightarrow y)}; that is, the right-hand operand
+is converted to a ``thunk''
+(zero-parameter function) that then becomes the right-hand operand of the
+corresponding unconditional operator.  Therefore a conditional
+operator is simply implemented as an overloading of the operator that
+accepts a thunk.
+
+
+It is also permitted for a conditional operator to have a preceding as
+well as a following colon.  A conditional operator expression
+\EXP{x\COLONOP@\COLONOP{}y} is syntactic sugar for \EXP{(\KWD{fn} ()
+  \Rightarrow x)@(\KWD{fn} () \Rightarrow y)};
+that is, each operand is converted to a thunk.  This mechanism  is
+used, for example, to define the results-comparison operator
+\txt{:$\sim$:}, which takes exceptions into account.
+
+
+The conditional $\wedge$ and $\vee$ operators for
+boolean values, for example, are implemented as follows:
+\input{\home/library/examples/ConditionalOps.tex}
+
+
+
+\section{Big Operator Declarations}
+\seclabel{big-operators-impl}
+
+A \emph{big operator} such as $\sum$ or $\prod$ is declared as a usual
+operator declaration.
+See \secref{defining-generators} for an example declaration of a big operator.
+A big operator application is either a \emph{reduction expression}
+described in \secref{reduction-expr} or a \emph{comprehension}
+described in \secref{comprehensions}.

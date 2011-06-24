@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component OverloadedFunctions
+  export Executable
+
+  (* NEB: I had to rewrite this one a bit because of int literals *)
+  foo(i:ZZ32) : () = do
+    (* has vararg, has keyword *)
+    (* not supported yet
+    f(x: ZZ32, y: String, z: Boolean..., t: ZZ32 = 5, u: Boolean = true): IntLiteral = 0
+    *)
+
+    (* has vararg, no keyword *)
+    f(x: ZZ32, y: String, z: Boolean, t: Any...): IntLiteral = 1
+
+    (* no vararg, has keyword *)
+    (* not supported yet
+    f(x: ZZ32, y: String, z: Boolean, t: ZZ32 = 3, u: Boolean = false, v: String = ""): IntLiteral = 2
+    *)
+
+    (* no vararg, no keyword *)
+    f(x: ZZ32, y: String): IntLiteral = 3
+
+    ignore(f(i, "hello"))
+    ignore(f(i, "hello", true))
+    ignore(f(i, "hello", true, 4))
+    ignore(f(i, "hello", true, 1, 2))
+    (*f(0, "hello", true, t=3, u=false)*)
+    ignore(f(i, "hello", true, false))
+  end
+
+  run():() = ()
+
+end

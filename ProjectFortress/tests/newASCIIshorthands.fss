@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component newASCIIshorthands
+import List.{...}
+export Executable
+
+opr (.<  x:ZZ32 >.)  = "(.<" x ">.)"
+opr ((.> x:ZZ32 <.)) = "((.>" x "<.))"
+opr (.\  x:ZZ32 \.)  = "(.\\" x "\\.)"
+opr (./  x:ZZ32 /.)  = "(./" x "/.)"
+
+run() = do
+  println(<|1,2, 3|>)
+  assert("(.<3>.)"  , (.<3>.))
+  assert("((.>5<.))", ((.>5<.)))
+  assert("(.\\7\\.)"  , (.\7\.))
+  assert("(./8/.)"  , (./8/.))
+end
+
+end
