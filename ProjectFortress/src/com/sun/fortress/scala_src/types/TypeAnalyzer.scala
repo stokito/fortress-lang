@@ -107,7 +107,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         val nHistory = history + hEntry
         val sParam = staticParam(id)
         val supers = meet(toListFromImmutable(sParam.getExtendsClause))
-        if (negate) pExc(supers, t)(!negate, nHistory) else pSub(supers, t)(negate, nHistory)
+        if (negate) pExc(supers, t)(!negate, nHistory)
+        else pSub(supers, t)(negate, nHistory)
       }
     // Trait types
     case (s: TraitType, t: TraitType) if (t==OBJECT) => pTrue()
@@ -296,13 +297,43 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   }
   }
   
+  def isSelfTypeIdiom(t:TraitSelfType) = {
+      t.getNamed match {
+      case named:TraitType => 
+      if (t.getComprised.size == 1)
+          t.getComprised.get(0) match {
+          case comp:VarType => {
+              val sargs = named.getArgs
+              if (sargs.size == 1) 
+                  sargs.get(0) match {
+                  case ty_arg: TypeArg => ty_arg.getTypeArg match {
+                    case arg:VarType => {
+                         val comprised_name = comp.getName()
+                          val static_name = arg.getName()
+                          static_name == comprised_name                      
+                    }
+                    case _ => false
+                  }
+                  case _ => false
+              }
+              else false
+          }
+          case _ => false
+      }
+      else false
+      case _ => false
+      }
+  }
+  
   protected def removeSelf(x: Type) = {
     object remover extends Walker {
       override def walk(y: Any): Any = y match {
         case t:TraitSelfType =>
           if (t.getComprised.isEmpty) t.getNamed
+          // else if (isSelfTypeIdiom(t)) t.getNamed // will this work?
           else NF.makeIntersectionType(t.getNamed,
-                                       NF.makeMaybeUnionType(t.getComprised))
+               NF.makeMaybeUnionType(t.getComprised))
+        
         case t:ObjectExprType => NF.makeMaybeIntersectionType(t.getExtended)
         case _ => super.walk(y)
       }
