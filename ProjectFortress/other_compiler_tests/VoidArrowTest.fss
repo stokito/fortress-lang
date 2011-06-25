@@ -24,10 +24,16 @@ object P[\TT extends Any\](s:String, tpl:TT ) extends T
   asTpl():TT = tpl
 end
 
+hello() : String = "Hello"
+world(): String = "World"
+
 run():() = do
   y = P[\ (O,()) \]("Cat", ( O("World!"), () ) )
   z : (O,()) = y.asTpl()
   (a,b) = z
-  println( "Hello")
+  m = P[\ () -> String \]("Bar", hello)
+  n = m.asTpl()
+  (*) println "Foo returned"
+  println( n() ) 
   println( a.asString )
 end
