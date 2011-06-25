@@ -657,8 +657,15 @@ public class ExprFactory {
 				       s, s.charAt(0));
 	} else {
 	    // If not a single character, then it should be a hex string
-	    return makeCharLiteralExpr(span, false, Option.<Type>none(),
-				       s, Integer.parseInt(s, 16));
+	    // or a character, a space, and a hex string (which have already
+	    // been checked by the parser to see that they match).
+	    if (s.charAt(1) == ' ') {
+		return makeCharLiteralExpr(span, false, Option.<Type>none(),
+					   s, s.charAt(0));
+	    } else {
+		return makeCharLiteralExpr(span, false, Option.<Type>none(),
+					   s, Integer.parseInt(s, 16));
+	    }
 	}
     }
 

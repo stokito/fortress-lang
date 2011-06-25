@@ -11,12 +11,12 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public class FChar  extends fortress.CompilerBuiltin.Char.DefaultTraitMethods implements fortress.CompilerBuiltin.Char {
+public class FCharacter  extends fortress.CompilerBuiltin.Character.DefaultTraitMethods implements fortress.CompilerBuiltin.Character {
     // Fortress chars are not equivalent to Java chars.
     // Fortress supports 21-bit Unicode, so we use int to represent char instead of just Java char.
     final int val;
 
-    FChar(int x) { val = x; }
+    FCharacter(int x) { val = x; }
 
     public String toString() {
 	if (0 <= val && val <= 0xFFFF) return String.valueOf((char) val);
@@ -25,13 +25,13 @@ public class FChar  extends fortress.CompilerBuiltin.Char.DefaultTraitMethods im
     }
 
     public int getValue() {return val;}
-    public static FChar make(int x) {return new FChar(x);}
+    public static FCharacter make(int x) {return new FCharacter(x);}
 
     @Override
     public RTTI getRTTI() { return RTTIc.ONLY; }
     
     public static class RTTIc extends RTTI {
-        private RTTIc() { super(FChar.class); };
+        private RTTIc() { super(FCharacter.class); };
         public static final RTTI ONLY = new RTTIc();
     }
 

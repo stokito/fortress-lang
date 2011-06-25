@@ -28,7 +28,7 @@ public class CompilerBuiltin {
     public static class RR64 implements Number {}
     public static class ZZ32 implements Number {}
     public static class ZZ64 implements Number {}
-    public static class Char implements Object {}
+    public static class Character implements Object {}
 
     public static com.sun.fortress.compiler.runtimeValues.FVoid println(FString s) {
         simplePrintln.nativePrintln(s.toString());

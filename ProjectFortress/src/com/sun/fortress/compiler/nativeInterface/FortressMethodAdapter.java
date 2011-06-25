@@ -127,7 +127,7 @@ public class FortressMethodAdapter extends ClassAdapter {
         initializeEntry("FVoid",    "getValue", "()",  "make", "()L" + prefix + "FVoid;");
         initializeEntry("FString",  "getValue", "()Ljava/lang/String;",
                                     "make", "(Ljava/lang/String;)L" + prefix + "FString;");
-        initializeEntry("FChar",    "getValue",	"()I", "make", "(I)L" + prefix + "FChar;");
+        initializeEntry("FCharacter",    "getValue",	"()I", "make", "(I)L" + prefix + "FCharacter;");
     }
 
     // Strip off the leading L + prefix, and trailing ;"
@@ -221,8 +221,8 @@ public class FortressMethodAdapter extends ClassAdapter {
      * @param arg_desc
      * @return
      */
-    private SignatureAndConverter toImplFFFF(String jvmArgType, String method_name) {
-        com.sun.fortress.nodes.Type ftype = NamingCzar.fortressTypeForForeignJavaType(jvmArgType);
+    private SignatureAndConverter toImplFFFF(String jvmArgType, String method_name, boolean isResultType) {
+        com.sun.fortress.nodes.Type ftype = NamingCzar.fortressTypeForForeignJavaType(jvmArgType, method_name, isResultType);
         if (ftype == null) {
             // Perhaps this type is in the Fortress implementation hierarchy.
             if (NamingCzar.jvmTypeExtendsAny(jvmArgType))
@@ -262,14 +262,14 @@ public class FortressMethodAdapter extends ClassAdapter {
         buf.append(fsig);
         for (String s : desc_args) {
              
-            SignatureAndConverter s_a_c = toImplFFFF(s, name);
+            SignatureAndConverter s_a_c = toImplFFFF(s, name, false);
             buf.append(s_a_c.signature);
             fortress_args.add(s_a_c.signature);
             
             convert_args.add(s_a_c.converter);
         }
         fsig = buf.toString();
-        SignatureAndConverter s_a_c = toImplFFFF(desc_result, name);
+        SignatureAndConverter s_a_c = toImplFFFF(desc_result, name, true);
         fsig = fsig + ")" + s_a_c.signature;
         
         fortressConverter convert_result = s_a_c.converter;

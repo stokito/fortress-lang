@@ -50,8 +50,8 @@ public class CompilerBuiltin {
         public static abstract class DefaultTraitMethods extends FValue implements String {}
     }
 
-    public static interface Char extends fortress.CompilerBuiltin.Object {
-        public static abstract class DefaultTraitMethods extends FValue implements Char {}
+    public static interface Character extends fortress.CompilerBuiltin.Object {
+        public static abstract class DefaultTraitMethods extends FValue implements Character {}
     }
 
     public static interface Object extends fortress.AnyType.Any {
