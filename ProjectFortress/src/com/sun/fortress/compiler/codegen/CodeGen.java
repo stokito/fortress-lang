@@ -1637,7 +1637,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<Param> params = header.getParams();
         String modified_sig = sig;
         if (forceCastParam0InApply != null) {
-            modified_sig = Naming.replaceNthSigParameter(sig, 0, "L" + forceCastParam0InApply + ";");
+            modified_sig = Naming.replaceNthSigParameter(sig, 0, Naming.internalToDesc(forceCastParam0InApply));
             // Ought to rewrite params for better debugging info, but yuck, it is hard.
         }
 
@@ -1848,7 +1848,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 my_mv.visitTypeInsn(NEW, table_type);
                 my_mv.visitInsn(DUP);
                 my_mv.visitMethodInsn(INVOKESPECIAL, table_type, "<init>", "()V");
-                my_mv.visitFieldInsn(PUTSTATIC, class_file, table_name, "L"+table_type+";");                
+                my_mv.visitFieldInsn(PUTSTATIC, class_file, table_name, Naming.internalToDesc(table_type));
             }
 
             @Override
@@ -1858,7 +1858,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             @Override
             public String asmSignature() {
-                return "L"+table_type+";";
+                return Naming.internalToDesc(table_type);
             }
             
         });
@@ -1878,7 +1878,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Label l0 = new Label();
         mv.visitLabel(l0);
         //mv.visitLineNumber(1331, l0);
-        mv.visitFieldInsn(GETSTATIC, class_file, table_name, "L"+table_type+";");
+        mv.visitFieldInsn(GETSTATIC, class_file, table_name, Naming.internalToDesc(table_type));
         mv.visitVarInsn(LLOAD, hashOff);
         mv.visitMethodInsn(INVOKEVIRTUAL, table_type, "get", "(J)Ljava/lang/Object;");
         mv.visitVarInsn(ASTORE, tmpOff);
@@ -1892,7 +1892,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitLabel(l3);
         //mv.visitLineNumber(1333, l3);
         mv.visitVarInsn(LLOAD, hashOff);
-        mv.visitFieldInsn(GETSTATIC, class_file, table_name,"L"+table_type+";");
+        mv.visitFieldInsn(GETSTATIC, class_file, table_name,Naming.internalToDesc(table_type));
         mv.visitLdcInsn(template_class_name);
         mv.visitVarInsn(ALOAD, stringOff);
         // if in a generic trait/object, need to call different method and include one more parameter.
@@ -1915,7 +1915,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitLabel(l4);
         
         if (!savedInATrait)
-            mv.visitLocalVariable("this", "L"+class_file+";", null, l0, l4, 0);
+            mv.visitLocalVariable("this", Naming.internalToDesc(class_file), null, l0, l4, 0);
         
         mv.visitLocalVariable("hashcode", "J", null, l0, l4, hashOff);
         mv.visitLocalVariable("signature", "Ljava/lang/String;", null, l0, l4, stringOff);
@@ -2017,6 +2017,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String mname;
         
         int n = params.size();
+        if (n == 1 && params.get(0).getIdType().unwrap() instanceof TupleType) {
+        	Param p0 = params.get(0);
+            TupleType tuple_type = ((TupleType) p0.getIdType().unwrap());
+            if (tuple_type.getElements().size() == 0) n = 0;  //single void argument not used
+        }
 
         // TODO different collision rules for top-level and for
         // methods. (choice of mname)
@@ -2142,6 +2147,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Param p0 = params.get(0);
             TupleType tuple_type = ((TupleType) p0.getIdType().unwrap());
             List<Type> tuple_types = tuple_type.getElements();
+            if (tuple_types.size() == 0) return new ArrayList<VarCodeGen>(); //actually a single void parameter - don't pass it
             Id tuple_name = p0.getName();
             String tuple_name_string = tuple_name.getText();
                         
@@ -2711,7 +2717,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void makeTupleOfSpecifiedType(Type t) {
         String tcn =  NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
         String arg_sig = NamingCzar.jvmTypeDesc(t, thisApi(), true, false);
-        String sig = Naming.makeMethodDesc(arg_sig, "L" + tcn + ";");
+        String sig = Naming.makeMethodDesc(arg_sig,Naming.internalToDesc(tcn));
         tcn = "Concrete" + tcn;
         mv.visitMethodInsn(INVOKESTATIC,
                 tcn,
@@ -3192,7 +3198,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  */
                 mv.visitInsn(SWAP);
                 // extract i'th member from tuple.
-                mv.visitMethodInsn(INVOKEINTERFACE, rhs_type_desc, InstantiatingClassloader.TUPLE_TYPED_ELT_PFX+(Naming.TUPLE_ORIGIN+i), "()L"+rhs_element_type_descs[i]+";");
+                mv.visitMethodInsn(INVOKEINTERFACE, rhs_type_desc, InstantiatingClassloader.TUPLE_TYPED_ELT_PFX+(Naming.TUPLE_ORIGIN+i), "()" + Naming.internalToDesc(rhs_element_type_descs[i]));
                 
                 vcg.assignValue(mv);
             }
@@ -3491,7 +3497,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                           null, // generics sig?
                                           null); // exceptions
         mv.visitCode();
-        mv.visitFieldInsn(GETSTATIC, cnb.className, Naming.RTTI_FIELD, "L" + Naming.RTTI_CONTAINER_TYPE + ";");
+        mv.visitFieldInsn(GETSTATIC, cnb.className, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
 
         areturnEpilogue();
         
@@ -4290,7 +4296,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",
                                                        packageAndClassName);
             String field_type = Naming.stemClassJavaName(extendeeIlk);
-            String tyDesc = "L" + field_type + ";";
+            String tyDesc = Naming.internalToDesc(field_type);
             cw.visitField(ACC_PRIVATE + ACC_VOLATILE,
                     extendeeIlk, tyDesc, null, null);
          }
@@ -4683,7 +4689,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void getExtendeeField(String rttiClassName, Id extendee) {
         String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
         String field_type = Naming.stemClassJavaName(extendeeIlk);
-        String tyDesc = "L" + field_type + ";";
+        String tyDesc = Naming.internalToDesc(field_type);
         mv.visitVarInsn(ALOAD, 0);
         mv.visitFieldInsn(GETFIELD, rttiClassName, extendeeIlk, tyDesc);
     }
@@ -4697,7 +4703,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void putExtendeeField(String rttiClassName, Id extendee) {
         String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
 //        String field_type = Naming.stemClassJavaName(extendeeIlk);
-//        String tyDesc = "L" + field_type + ";";
+//        String tyDesc = Naming.internalToDesc( field_type );
         mv.visitFieldInsn(PUTFIELD, rttiClassName, extendeeIlk, Naming.RTTI_CONTAINER_DESC);
     }
 
@@ -4709,7 +4715,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     /** Supposed to be called with nested codegen context. */
     private void generateVarDeclInnerClass(VarDecl x, String classFile, String tyName, Expr exp) {
-        String tyDesc = "L" + tyName + ";";
+        String tyDesc = Naming.internalToDesc(tyName);
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
         cw.visit( InstantiatingClassloader.JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER + ACC_FINAL,
@@ -4754,7 +4760,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         addStaticVar(
             new VarCodeGen.StaticBinding(var, ty, classFile,
-                                         NamingCzar.SINGLETON_FIELD_NAME, "L" + tyName + ";"));
+                                         NamingCzar.SINGLETON_FIELD_NAME, Naming.internalToDesc(tyName)));
     }
 
     public void forVarRef(VarRef v) {

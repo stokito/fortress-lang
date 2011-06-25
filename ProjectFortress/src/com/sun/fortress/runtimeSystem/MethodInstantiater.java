@@ -96,7 +96,7 @@ public class MethodInstantiater implements MethodVisitor {
             }
             String javaClassDesc = Useful.substring(owner, 0, 1-FACTORY_SUFFIX_LENGTH);
             // bug in getType, cannot cope with embedded semicolons!
-            mv.visitLdcInsn(Type.getType(Naming.mangleFortressDescriptor("L" + javaClassDesc + ";")));
+            mv.visitLdcInsn(Type.getType(Naming.mangleFortressDescriptor(Naming.internalToDesc(javaClassDesc))));
             
             for (String parameter : parameters) {
                 rttiReference(Naming.stemClassJavaName(parameter));
@@ -109,7 +109,7 @@ public class MethodInstantiater implements MethodVisitor {
         	if (owner.startsWith(Naming.SNOWMAN)) {
             	owner = owner.replaceFirst(Naming.SNOWMAN, Naming.RT_VALUES_PKG + "FVoid"); 
             }
-        	mv.visitFieldInsn(Opcodes.GETSTATIC, owner, "ONLY", "L" + Naming.RTTI_CONTAINER_TYPE + ";");
+        	mv.visitFieldInsn(Opcodes.GETSTATIC, owner, "ONLY", Naming.RTTI_CONTAINER_DESC);
         }
     }
 

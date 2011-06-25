@@ -524,6 +524,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         int left = ft.indexOf(Naming.LEFT_OXFORD);
         int right = ft.lastIndexOf(Naming.RIGHT_OXFORD);
         List<String> parameters = extractStringParameters(ft, left, right);
+        if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
+        	parameters = parameters.subList(1,2);
 
         if (sig == null)
             sig = arrowParamsToJVMsig(parameters);
@@ -544,8 +546,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         name = api.replace(".", "/") + '$' + suffix;
         final String final_name = name;
         
-        //String desc = "L" + name + ";";
-        final String field_desc = "L" +(ft) + ";";
+        //String desc = Naming.internalToDesc(name);
+        final String field_desc = Naming.internalToDesc(ft);
         // Begin with a class
         cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER, name, null, superClass, null);
 
@@ -606,14 +608,15 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         if (LOG_LOADS) System.err.println(name + ".apply" + sig + " concrete\nparams = " + parameters);
 
+        // KBN 06/2011 handled above now
         // Monkey business to deal with case of "void" args.
-        int sz = parameters.size();
+        //int sz = parameters.size();
         // Last parameter is actually result type!
         // But we need to include an extra arg in sz to represent the closure itself (this).
-        if (sz==2 && Naming.INTERNAL_SNOWMAN.equals(parameters.get(0))) {
+       // if (sz==2 && Naming.INTERNAL_SNOWMAN.equals(parameters.get(0))) {
             // Arity 1 (sz 2) with void parameter should actually be arity 0 (sz 1).
-            sz = 1;
-        }
+        //    sz = 1;
+        //}
 
         // Emit a method with well-known name ("apply", most likely)
         // to forward calls from the instance to the static, which our
@@ -621,7 +624,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // different class.
         forwardingMethod(cw, Naming.APPLY_METHOD, ACC_PUBLIC, 0,
                 staticClass, fn, INVOKESTATIC,
-                sig, sig, sz, false, forceCastParam0);
+                sig, sig, parameters.size(), false, forceCastParam0);
         
         return fn;
 
@@ -721,7 +724,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         }
         
         if (forceCastParam0 != null) {
-            fwdSig = Naming.replaceNthSigParameter(fwdSig, 0, "L" + forceCastParam0 + ";");
+            fwdSig = Naming.replaceNthSigParameter(fwdSig, 0, Naming.internalToDesc(forceCastParam0));
         }
         
         // System.err.println("Forwarding "+thisName+":"+thisSig+
@@ -912,7 +915,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         }
         
         {      
-            String sig = arrowParamsToJVMsig(parameters);
+            String sig;
+            if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
+            	sig = arrowParamsToJVMsig(parameters.subList(1,2));
+            else
+            	sig = arrowParamsToJVMsig(unwrapped_parameters);
             if (LOG_LOADS) System.err.println(name+".apply"+sig+" abstract");
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
                                 sig,
@@ -920,7 +927,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitEnd();
         }
         {      
-            String sig = "()L"+obj_sig+";";
+            String sig = "()"+Naming.internalToDesc(obj_sig);
             if (LOG_LOADS) System.err.println(name+".getWrappee"+sig+" abstract");
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, getWrappee,
                                 sig,
@@ -977,10 +984,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         // private final Arrow[\Object...Object\] wrappee
         cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, wrappee_name,
-                "L"+obj_intf_sig+";", null /* for non-generic */, null /* instance has no value */);
+                Naming.internalToDesc(obj_intf_sig), null /* for non-generic */, null /* instance has no value */);
 
         // WrappedArrow[\parameters\](Arrow[\Object...Object\] _wrappee)
-        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "(L" + obj_intf_sig +";)V", null, null);
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "(" + Naming.internalToDesc(obj_intf_sig) + ")V", null, null);
         mv.visitCode();
         // super()
         mv.visitVarInsn(ALOAD, 0);
@@ -988,7 +995,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // this.wrappee = wrappee
         mv.visitVarInsn(ALOAD, 0);
         mv.visitVarInsn(ALOAD, 1);
-        mv.visitFieldInsn(PUTFIELD, name, wrappee_name, "L" + obj_intf_sig + ";");
+        mv.visitFieldInsn(PUTFIELD, name, wrappee_name, Naming.internalToDesc(obj_intf_sig));
         // done
         mv.visitInsn(RETURN);
         mv.visitMaxs(1, 1);
@@ -997,12 +1004,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // getWrappee
         
         mv = cw.visitMethod(ACC_PUBLIC, getWrappee,
-                "()L"+obj_intf_sig+";",
+                "()"+Naming.internalToDesc(obj_intf_sig),
                 null, null);
         
         mv.visitCode();
         mv.visitVarInsn(ALOAD, 0);
-        mv.visitFieldInsn(GETFIELD, name, wrappee_name, "L" + obj_intf_sig + ";");
+        mv.visitFieldInsn(GETFIELD, name, wrappee_name, Naming.internalToDesc(obj_intf_sig));
         mv.visitInsn(ARETURN);
         mv.visitMaxs(1, 1);
         mv.visitEnd();
@@ -1010,7 +1017,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         //  public range_parameter apply( domain_parameters ) = 
         //    (range_parameter) wrappee.apply( domain_parameters )
         
-        String unwrapped_apply_sig = arrowParamsToJVMsig(unwrapped_parameters);
+        String unwrapped_apply_sig;
+        if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
+        	unwrapped_apply_sig = arrowParamsToJVMsig(parameters.subList(1,2));
+        else
+        	unwrapped_apply_sig= arrowParamsToJVMsig(unwrapped_parameters);
+       
         String obj_apply_sig = arrowParamsToJVMsig(objectified_parameters);
   
         mv = cw.visitMethod(ACC_PUBLIC, Naming.APPLY_METHOD,
@@ -1020,7 +1032,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         // load wrappee for delegation
         mv.visitVarInsn(ALOAD, 0);
-        mv.visitFieldInsn(GETFIELD, name, wrappee_name, "L" + obj_intf_sig + ";");
+        mv.visitFieldInsn(GETFIELD, name, wrappee_name, Naming.internalToDesc(obj_intf_sig));
         
         // Push parameters.
         // i is indexed so that it corresponds to parameters pushed, even though
@@ -1039,7 +1051,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 mv.visitInsn(Opcodes.ACONST_NULL);
 //                mv.visitMethodInsn(Opcodes.INVOKESTATIC,
 //                        Naming.runtimeValues + "FVoid", "make",
-//                        "()L" + Naming.runtimeValues + "FVoid" + ";");
+//                        "()" + Naming.internalToDesc(Naming.runtimeValues + "FVoid"));
             }
         }
 
@@ -1061,7 +1073,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         	mv.visitCode();
         	// load wrappee for delegation
             mv.visitVarInsn(ALOAD, 0);
-            mv.visitFieldInsn(GETFIELD, name, wrappee_name, "L" + obj_intf_sig + ";");
+            mv.visitFieldInsn(GETFIELD, name, wrappee_name, Naming.internalToDesc(obj_intf_sig));
             
             //invoke interface getRTTI method
             mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, Naming.ANY_TYPE_CLASS, Naming.RTTI_GETTER, Naming.STATIC_PARAMETER_GETTER_SIG);
@@ -1114,7 +1126,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String obj_intf_sig = stringListToGeneric(Naming.ARROW_TAG, objectified_parameters);
         String wrapped_sig = stringListToGeneric(WRAPPED_ARROW, unwrapped_parameters);
         String typed_intf_sig = stringListToGeneric(Naming.ARROW_TAG, unwrapped_parameters);
-        String unwrapped_apply_sig = arrowParamsToJVMsig(unwrapped_parameters);
+        String unwrapped_apply_sig;
+        if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
+        	unwrapped_apply_sig = arrowParamsToJVMsig(parameters.subList(1,2));
+        else
+        	unwrapped_apply_sig= arrowParamsToJVMsig(unwrapped_parameters);
+        
         String obj_apply_sig = arrowParamsToJVMsig(objectified_parameters);
     
         String[] interfaces = tupled_parameters == null ?
@@ -1175,7 +1192,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitTypeInsn(Opcodes.CHECKCAST,Naming.ANY_TYPE_CLASS);
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, name,  IS_A, "(L"+Naming.ANY_TYPE_CLASS+";)Z");
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, name,  IS_A, "("+Naming.internalToDesc(Naming.ANY_TYPE_CLASS)+")Z");
             mv.visitInsn(Opcodes.IRETURN);
             
             mv.visitLabel(fail);
@@ -1188,7 +1205,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         // is instance method -- takes an Any
         {
-            String sig = "(L" + Naming.ANY_TYPE_CLASS + ";)Z";
+            String sig = "(" + Naming.internalToDesc( Naming.ANY_TYPE_CLASS) + ")Z";
             MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, IS_A, sig, null, null);
             Label fail = new Label();
             
@@ -1247,7 +1264,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
              */         
             
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, CAST_TO,
-                    "(L" + obj_intf_sig + ";)L" + typed_intf_sig + ";",
+                    "(" + Naming.internalToDesc(obj_intf_sig) + ")" + Naming.internalToDesc(typed_intf_sig),
                     null, null);
 
             Label not_instance1 = new Label();
@@ -1263,7 +1280,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             // unwrap
             mv.visitLabel(not_instance1);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
-            mv.visitMethodInsn(INVOKEINTERFACE, obj_intf_sig, getWrappee, "()L"+ obj_intf_sig + ";");
+            mv.visitMethodInsn(INVOKEINTERFACE, obj_intf_sig, getWrappee, "()"+ Naming.internalToDesc(obj_intf_sig));
             mv.visitVarInsn(Opcodes.ASTORE, 0);
 
             // try instanceof on unwrapped
@@ -1278,7 +1295,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitTypeInsn(NEW, wrapped_sig);
             mv.visitInsn(DUP);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
-            mv.visitMethodInsn(INVOKESPECIAL, wrapped_sig, "<init>", "(L" + obj_intf_sig +";)V");
+            mv.visitMethodInsn(INVOKESPECIAL, wrapped_sig, "<init>", "(" + Naming.internalToDesc(obj_intf_sig) +")V");
             
             mv.visitInsn(Opcodes.ARETURN);
             mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
@@ -1289,7 +1306,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // getWrappee
         {
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, getWrappee,
-                "()L"+obj_intf_sig+";",
+                "()"+Naming.internalToDesc(obj_intf_sig),
                 null, null);
         
             mv.visitCode();
@@ -1330,7 +1347,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 for (int i = 0; i < unwrapped_l-1; i++) {
                     String param = unwrapped_parameters.get(i);
                     mv.visitVarInsn(Opcodes.ALOAD, 1); // tuple
-                    mv.visitMethodInsn(INVOKEINTERFACE, tupleType, TUPLE_TYPED_ELT_PFX + (Naming.TUPLE_ORIGIN + i), "()L" + param + ";");
+                    mv.visitMethodInsn(INVOKEINTERFACE, tupleType, TUPLE_TYPED_ELT_PFX + (Naming.TUPLE_ORIGIN + i), "()" + Naming.internalToDesc(param));
                 }
                 
                 mv.visitMethodInsn(INVOKEVIRTUAL, name, Naming.APPLY_METHOD, unwrapped_apply_sig);
@@ -1466,7 +1483,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         }
        
         // invoke super.<init>
-        mv.visitMethodInsn(INVOKESPECIAL, Naming.ARROW_RTTI_CONTAINER_TYPE, "<init>", "(Ljava/lang/Class;[L"+Naming.RTTI_CONTAINER_TYPE+";)V");
+        mv.visitMethodInsn(INVOKESPECIAL, Naming.ARROW_RTTI_CONTAINER_TYPE, "<init>", "(Ljava/lang/Class;["+Naming.RTTI_CONTAINER_DESC+")V");
         
         int pno = 2; // skip the java class parameter
         for (int i = Naming.STATIC_PARAMETER_ORIGIN;
@@ -1724,7 +1741,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         }
        
         // invoke super.<init>
-        mv.visitMethodInsn(INVOKESPECIAL, Naming.TUPLE_RTTI_CONTAINER_TYPE, "<init>", "(Ljava/lang/Class;[L"+Naming.RTTI_CONTAINER_TYPE+";)V");
+        mv.visitMethodInsn(INVOKESPECIAL, Naming.TUPLE_RTTI_CONTAINER_TYPE, "<init>", "(Ljava/lang/Class;["+Naming.RTTI_CONTAINER_DESC+")V");
         
         int pno = 2; // skip the java class parameter
         for (int i = Naming.STATIC_PARAMETER_ORIGIN;
@@ -1774,7 +1791,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         for (int i = 0; i < n; i++) {
             String m = TUPLE_TYPED_ELT_PFX + (i + Naming.TUPLE_ORIGIN);
-            String sig = "()L" + parameters.get(i) + ";";
+            String sig = "()" + Naming.internalToDesc(parameters.get(i));
             interfaceMethod(cw, m, sig);
         }
 
@@ -1833,7 +1850,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         {
             for (int i = 0; i < n; i++) {
                 String f = TUPLE_FIELD_PFX + (i + Naming.TUPLE_ORIGIN);
-                String sig = "L" + parameters.get(i) + ";";
+                String sig = Naming.internalToDesc(parameters.get(i));
                 cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, f,
                         sig, null /* for non-generic */, null /* instance has no value */);
             }
@@ -1848,7 +1865,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
             for (int i = 0; i < n; i++) {
                 String f = TUPLE_FIELD_PFX + (i + Naming.TUPLE_ORIGIN);
-                String sig = "L" + parameters.get(i) + ";";
+                String sig = Naming.internalToDesc(parameters.get(i));
                 
                 mv.visitVarInsn(Opcodes.ALOAD, 0);
                 mv.visitVarInsn(Opcodes.ALOAD, i+1);
@@ -1890,7 +1907,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                      null, // generics sig?
                      null); // exceptions
         	mv.visitCode();
-        	mv.visitFieldInsn(GETSTATIC, classname, Naming.RTTI_FIELD, "L" + Naming.RTTI_CONTAINER_TYPE + ";");
+        	mv.visitFieldInsn(GETSTATIC, classname, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
 
         	areturnEpilogue(mv);
         	
@@ -1944,7 +1961,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitTypeInsn(Opcodes.CHECKCAST, any_tuple_n);
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, dename,  IS_A, "(L"+any_tuple_n+";)Z");
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, dename,  IS_A, "("+Naming.internalToDesc(any_tuple_n)+")Z");
             mv.visitInsn(Opcodes.IRETURN);
             
             mv.visitLabel(fail);
@@ -1957,7 +1974,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         // is instance method -- takes an AnyTuple[\N\]
         {
-            String sig = "(L" + any_tuple_n + ";)Z";
+            String sig = "(" + Naming.internalToDesc(any_tuple_n) + ")Z";
             MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, IS_A, sig, null, null);
             
             Label fail = new Label();
@@ -1986,7 +2003,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         // cast method
         {
-            String sig = "(L" + any_tuple_n + ";)L"+tuple_params+";";
+            String sig = "(" + Naming.internalToDesc(any_tuple_n) + ")"+Naming.internalToDesc(tuple_params);
             String make_sig = toJvmSig(parameters, Naming.javaDescForTaggedFortressType(tuple_params));
             
             MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, CAST_TO, sig, null, null);
@@ -2013,7 +2030,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String typed = TUPLE_TYPED_ELT_PFX + (Naming.TUPLE_ORIGIN + i);
             String field = TUPLE_FIELD_PFX + (Naming.TUPLE_ORIGIN + i);
             String param_type = parameters.get(i);
-            String param_desc = "L" + param_type + ";";
+            String param_desc = Naming.internalToDesc(param_type);
             {
                 MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC , untyped, UNTYPED_GETTER_SIG, null, null);
                 mv.visitVarInsn(Opcodes.ALOAD, 0);
@@ -2073,7 +2090,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         } else if (cast_to.startsWith(Naming.ARROW_TAG + Naming.LEFT_OXFORD)) {
         	mv.visitMethodInsn(Opcodes.INVOKESTATIC, ABSTRACT_+cast_to, IS_A,"(Ljava/lang/Object;)Z");
         } else {
-            mv.visitTypeInsn(Opcodes.INSTANCEOF, cast_to);
+        	String type = cast_to.equals(Naming.INTERNAL_SNOWMAN) ? Naming.specialFortressTypes.get(Naming.INTERNAL_SNOWMAN) : cast_to;
+            mv.visitTypeInsn(Opcodes.INSTANCEOF, type);
         }
     }
 
@@ -2085,7 +2103,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         if (cast_to.startsWith(TUPLE_OX)) {
             List<String> cast_to_parameters = extractStringParameters(cast_to);
             String any_tuple_n = ANY_TUPLE + Naming.LEFT_OXFORD + cast_to_parameters.size() + Naming.RIGHT_OXFORD;
-            String sig = "(L" + any_tuple_n + ";)L" + cast_to + ";";
+            String sig = "(" + Naming.internalToDesc(any_tuple_n) + ")L" + cast_to + ";";
             mv.visitTypeInsn(Opcodes.CHECKCAST, any_tuple_n);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, CONCRETE_+cast_to, CAST_TO, sig);
         } else if (cast_to.startsWith(ARROW_OX)) {
@@ -2106,7 +2124,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
            mv.visitMethodInsn(Opcodes.INVOKESTATIC, ABSTRACT_+cast_to, CAST_TO, sig);
 
         } else {
-            mv.visitTypeInsn(Opcodes.CHECKCAST, cast_to);
+            String type = cast_to.equals(Naming.INTERNAL_SNOWMAN) ? Naming.specialFortressTypes.get(Naming.INTERNAL_SNOWMAN) : cast_to;
+        	mv.visitTypeInsn(Opcodes.CHECKCAST, type);
         }
     }
 
@@ -2143,6 +2162,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String s = parameters.get(i);
             if (! s.equals(Naming.INTERNAL_SNOWMAN))
                 buf.append(Naming.javaDescForTaggedFortressType(parameters.get(i)));
+            else
+            	buf.append(Naming.javaDescForTaggedFortressType(Naming.specialFortressTypes.get(Naming.INTERNAL_SNOWMAN)));
         }
         sig = buf.toString();
         sig += ")";
@@ -2309,7 +2330,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // FIELD
         // static, initialized to Map-like thing
         cw.visitField(ACC_PRIVATE + ACC_STATIC + ACC_FINAL,
-                "DICTIONARY", "L" + RTTI_MAP_NAME + ";", null, null);
+                "DICTIONARY", Naming.internalToDesc(RTTI_MAP_NAME), null, null);
 
         // CLINIT
         // factory, consulting map, optionally invoking constructor.
@@ -2322,7 +2343,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         mv.visitMethodInsn(INVOKESPECIAL, RTTI_MAP_NAME, "<init>", "()V");
         // store
         mv.visitFieldInsn(PUTSTATIC, rttiClassName,
-                "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
+                "DICTIONARY", Naming.internalToDesc(RTTI_MAP_NAME));                
 
         mv.visitInsn(RETURN);
         mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
@@ -2334,9 +2355,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String init_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class",
                 sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
         String get_sig = InstantiatingClassloader.jvmSignatureForNTypes(
-                sparams_size, Naming.RTTI_CONTAINER_TYPE, "L" + Naming.RTTI_CONTAINER_TYPE + ";");
+                sparams_size, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_CONTAINER_DESC);
         String put_sig = InstantiatingClassloader.jvmSignatureForNTypes(
-                sparams_size+1, Naming.RTTI_CONTAINER_TYPE, "L" + Naming.RTTI_CONTAINER_TYPE + ";");
+                sparams_size+1, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_CONTAINER_DESC);
 
         mv = cw.visitCGMethod(ACC_PUBLIC + ACC_STATIC, "factory", fact_sig, null, null);
         mv.visitCode();
@@ -2353,7 +2374,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         // object
         mv.visitFieldInsn(GETSTATIC, rttiClassName,
-                "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
+                "DICTIONARY", Naming.internalToDesc(RTTI_MAP_NAME));                
         // push args
         int l = sparams_size;
         InstantiatingClassloader.pushArgs(mv, 1, l);
@@ -2367,7 +2388,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // then push the args, then construct the object, then invoke
         // putIfNew
         mv.visitFieldInsn(GETSTATIC, rttiClassName,
-                "DICTIONARY", "L"+RTTI_MAP_NAME+";");                
+                "DICTIONARY", Naming.internalToDesc(RTTI_MAP_NAME));                
         InstantiatingClassloader.pushArgs(mv, 1, l);
         // invoke constructor
         mv.visitTypeInsn(NEW, rttiClassName);
