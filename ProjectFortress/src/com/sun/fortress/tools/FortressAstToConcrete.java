@@ -2213,7 +2213,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-    public String for_InferenceVarTypeOnly(_InferenceVarType that, String info) {
+    public String for_InferenceVarTypeOnly(_InferenceVarType that, String bogus, String info) {
         return "(* _InferenceVarType *)";
     }
 

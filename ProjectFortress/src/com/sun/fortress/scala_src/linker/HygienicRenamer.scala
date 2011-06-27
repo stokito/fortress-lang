@@ -269,8 +269,8 @@ class HygienicRenamer(constituent: APIName,
              SWhile(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ExprInfo], walk(getTestExpr).asInstanceOf[com.sun.fortress.nodes.GeneratorClause], walk(getBody).asInstanceOf[com.sun.fortress.nodes.Do])
          case SWhitespaceSymbol(getInfo, getS) =>
              SWhitespaceSymbol(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getS).asInstanceOf[String])
-         case S_InferenceVarType(getInfo, getId) =>
-             S_InferenceVarType(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.TypeInfo], walk(getId).asInstanceOf[_root_.java.lang.Object])
+         case S_InferenceVarType(getInfo, getName, getId) =>
+             S_InferenceVarType(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.TypeInfo], walk(getName).asInstanceOf[com.sun.fortress.nodes.Id], walk(getId).asInstanceOf[_root_.java.lang.Object])
          case S_RewriteFnApp(getInfo, getFunction, getArgument) =>
              S_RewriteFnApp(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ExprInfo], walk(getFunction).asInstanceOf[com.sun.fortress.nodes.Expr], walk(getArgument).asInstanceOf[com.sun.fortress.nodes.Expr])
          case S_RewriteFnOverloadDecl(getInfo, getName, getFns, getType) =>
