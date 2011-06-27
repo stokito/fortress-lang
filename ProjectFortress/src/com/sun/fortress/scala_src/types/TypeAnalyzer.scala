@@ -77,6 +77,13 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     pSub(x, y)(true, history)
     
   protected def pSub(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
+     
+     val rval =  pSubInner(x,y)
+     // System.err.println("psub (" + x + ", " + y + ") RETURNS " + rval)
+     rval
+  }
+
+  protected def pSubInner(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
     (x, y) match {
  
     case (s,t) if (s==t) => pTrue()

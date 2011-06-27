@@ -1135,7 +1135,9 @@ return new TraitType(info, name, sargs, sparams);
 
     public static _InferenceVarType make_InferenceVarType(Span span, boolean parenthesized, Object id) {
         TypeInfo info = makeTypeInfo(span, parenthesized);
-        return new _InferenceVarType(info, id);
+        // Doing this so we can dodge a type error at the Scala/Java interface.
+        Id bogus = makeId(span, id.toString());
+        return new _InferenceVarType(info, bogus, id);
     }
 
     public static TaggedUnitType makeTaggedUnitType(TaggedUnitType t, Type s) {

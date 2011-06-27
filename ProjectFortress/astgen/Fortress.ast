@@ -1052,6 +1052,11 @@ interface Node() extends HasAt;
                      */
                     abstract NamedType(Id name);
                         /**
+                         * inferred type
+                         * Used internally for type analysis
+                         */
+                        _InferenceVarType(Object id) implements OutAfterTypeChecking, TypeVariable;
+                        /**
                          * a type variable
                          * TraitType ::= QualifiedName
                          * e.g.) T
@@ -1138,11 +1143,6 @@ interface Node() extends HasAt;
                           Effect effect,
                           boolean io,
                           Option<MethodInfo> methodInfo = Option.<MethodInfo>none());
-                /**
-                 * inferred type
-                 * Used internally for type analysis
-                 */
-                _InferenceVarType(Object id) implements OutAfterTypeChecking, TypeVariable;
                 /**
                  * An intersection or union.
                  */
