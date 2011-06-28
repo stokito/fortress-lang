@@ -474,9 +474,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void dumpTraitDecls(List<Decl> decls) {
         debug("dumpDecls", decls);
         for (Decl d : decls) {
-            if (!(d instanceof FnDecl))
+            if (d instanceof FnDecl) d.accept(this);
+            else if (!(d instanceof VarDecl))
                 throw sayWhat(d);
-            d.accept(this);
         }
     }
 
@@ -3458,16 +3458,37 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // Emit fields here, one per parameter.
         generateFieldsAndInitMethod(cnb.className, abstractSuperclass, params);
-
+        
+        List<Binding> fieldsForEnv = new ArrayList<Binding>();
+        fieldsForEnv.addAll(params);
+        
+        //generate fields for non-parameter declared fields and add to local environment
+        for (Decl d : header.getDecls()) {
+           if (d instanceof VarDecl) {
+        	   // TODO need to spot for "final" fields.  Right now we assume final.
+               VarDecl vd = (VarDecl) d;
+        	   for( LValue l : vd.getLhs()) {
+        		   String pn = l.getName().getText();
+        		   Type pt = (Type)l.getIdType().unwrap();
+        		   //generate field for class
+        		   cw.visitField(ACC_PUBLIC + ACC_FINAL, pn,
+                       NamingCzar.jvmBoxedTypeDesc(pt, thisApi()), null /* for non-generic */, null /* instance has no value */);
+        		   //add field to environment
+        		   fieldsForEnv.add(l);
+        	   }
+           }
+        }
+        
+        
          BATree<String, VarCodeGen> savedLexEnv = lexEnv.copy();
 
         // need to add locals to the environment.
         // each one has name, mangled with a preceding "$"
-        for (Param p : params) {
-            Type param_type = (Type)p.getIdType().unwrap();
-            String objectFieldName = p.getName().getText();
+        for (Binding b : fieldsForEnv) {
+            Type param_type = (Type)b.getIdType().unwrap();
+            String objectFieldName = b.getName().getText();
             Id id =
-               NodeFactory.makeId(NodeUtil.getSpan(p.getName()), objectFieldName);
+               NodeFactory.makeId(NodeUtil.getSpan(b.getName()), objectFieldName);
             addStaticVar(new VarCodeGen.FieldVar(id,
                     param_type,
                     cnb.className,
@@ -3475,6 +3496,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     NamingCzar.jvmBoxedTypeDesc(param_type, component.getName())));
         }
 
+       
+        
+        
         currentTraitObjectDecl = x;
         Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> overloads = dumpOverloadedMethodChaining(superInterfaces, false);
         if (OVERLOADED_METHODS)
