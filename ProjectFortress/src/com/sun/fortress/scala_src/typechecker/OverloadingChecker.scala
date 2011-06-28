@@ -354,8 +354,20 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     private def validOverloading(first: ((JavaList[StaticParam],Type,Type,Option[Int]),Span),
                                  second: ((JavaList[StaticParam],Type,Type,Option[Int]),Span),
                                  set: List[((JavaList[StaticParam],Type,Type,Option[Int]),Span)]) =
-        subtype(first, second) || subtype(second, first) ||
-        exclusion(first, second) || meet(first, second, set)
+        subtype(first, second) ||
+        subtype(second, first) ||
+        exclusion(first, second) ||
+        meet(first, second, set)
+
+        // work in progress, need to explain an overloading failure
+    private def invalidOverloadingReason(first: ((JavaList[StaticParam],Type,Type,Option[Int]),Span),
+                                 second: ((JavaList[StaticParam],Type,Type,Option[Int]),Span),
+                                 set: List[((JavaList[StaticParam],Type,Type,Option[Int]),Span)]) = {
+        val s12 = subtype(first, second)
+        val s21 = subtype(second, first)
+        val x = exclusion(first, second)
+        val m = meet(first, second, set)
+      }
 
     /* Checks the overloading rule: subtype */
     private def subtype(sub_type: Type, super_type: Type): Boolean =

@@ -35,6 +35,8 @@ import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory.typeSpan
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
+import com.sun.fortress.repository.ProjectProperties
+
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker._
 import com.sun.fortress.scala_src.typechecker.Formula._
@@ -51,6 +53,8 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.NI
 
 class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLattice[Type]{
+  
+  private final val debugSubtype = ProjectProperties.getBoolean("fortress.debug.analyzer.subtype", false)
   
   type hType = (Boolean, Boolean, Type, Type)
   implicit val ta: TypeAnalyzer = this
@@ -76,10 +80,23 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   protected def nsub(x: Type, y: Type)(implicit history: Set[hType]): CFormula = 
     pSub(x, y)(true, history)
     
+  private val pSubMemo = new scala.collection.mutable.HashMap[(Type, Type, Boolean), CFormula]()
+    
   protected def pSub(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
-     
-     val rval =  pSubInner(x,y)
-     // System.err.println("psub (" + x + ", " + y + ") RETURNS " + rval)
+
+     if (debugSubtype)
+         System.err.println("psub > (" + x + ", " + y + ", " + negate + ")" )
+     val rval =  if (x == y)
+         pTrue()
+         else pSubMemo.get((x, y, negate)) match {
+            case Some(v) => v
+            case _ => 
+              val result = pSubInner(x,y)
+              pSubMemo += ((x, y, negate) -> result)
+              result
+         }
+     if (debugSubtype)
+         System.err.println("psub < (" + x + ", " + y + ", " + negate + ") RETURNS " + rval)
      rval
   }
 
@@ -114,7 +131,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         val nHistory = history + hEntry
         val sParam = staticParam(id)
         val supers = meet(toListFromImmutable(sParam.getExtendsClause))
-        if (negate) pExc(supers, t)(!negate, nHistory)
+        if (negate)
+          pExc(supers, t)(!negate, nHistory)
         else pSub(supers, t)(negate, nHistory)
       }
     // Trait types
