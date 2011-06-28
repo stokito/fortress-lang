@@ -119,7 +119,7 @@ import java com.sun.fortress.nativeHelpers.{stringOps.compareTo => jCompareTo,
                                             stringOps.asString => jAsString}
 
 import AnyType.{Any}
-(*) import CompilerAlgebra.{ Equality }
+import CompilerAlgebra.{ Equality }
 export CompilerBuiltin
 
 nanoTime(): RR64 = jNanoTime()
@@ -295,7 +295,7 @@ trait FloatLiteral excludes {RR32, RR64}
     getter asRR64(): RR64
 end
 
-trait Boolean     (*) extends { Equality[\Boolean\] }
+trait Boolean      extends { Equality[\Boolean\] }
     excludes { String, Number }
   getter holds(): Boolean = self
   getter get(): () = ()

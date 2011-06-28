@@ -10,6 +10,7 @@
  ******************************************************************************)
 
 component ComparisonLibrary
+import CompilerAlgebra.{ Equality, opr = }
 export ComparisonLibrary
 
 (*******
@@ -18,16 +19,19 @@ export ComparisonLibrary
  Moreover, uses of algebraic traits that use the self-type idiom are commented out.
  *******)
 
-trait SnerdEquality[\Self\] comprises Self
-    opr =(self, other:Self): Boolean = self SEQV other
-end
 
-opr =/=[\T extends SnerdEquality[\T\]\](a: T, b: T) = NOT (a = b)
+(*) trait SnerdEquality[\Self\] comprises Self
+(*)     opr =(self, other:Self): Boolean = self SEQV other
+(*) end
+
+(*) opr =/=[\T extends SnerdEquality[\T\]\](a: T, b: T) = NOT (a = b)
 
 trait Comparison
 (*)        extends { StandardPartialOrder[\Comparison\] }
 (*)          extends { SnerdEquality[\Comparison\] }
+        extends { Equality[\Comparison\] }
         comprises { Unordered, TotalComparison }
+        excludes { Number, Boolean, Character, String }
     getter asString(): String = "Comparison"
     (*) Default opr = is suitable for Comparison
     (** Lexicographic ordering.  An associative operator.
@@ -42,7 +46,7 @@ trait Comparison
     opr SQCAP(self, other:()->Comparison): Comparison = self SQCAP other()
     opr CONVERSE(self): Comparison = Unordered
     (*) This stuff ought to be provided by Equality[\Comparison\].
-    opr =(self, other:Comparison): Boolean = (self === other)
+(*)    opr =(self, other:Comparison): Boolean = (self === other)
     (*) This stuff ought to be provided by StandardPartialOrder[\Comparison\].
     opr CMP(self, other:Comparison): Comparison =
         if self < other then LessThan
@@ -120,7 +124,7 @@ object EqualTo extends TotalComparison
     getter asString(): String = "EqualTo"
     getter asExprString(): String = self.asString
     getter asDebugString(): String = self.asString
-    opr =(self, other:EqualTo): Boolean = true
+(*)    opr =(self, other:EqualTo): Boolean = true
     opr CMP(self, other:TotalComparison): TotalComparison = CONVERSE other
     opr <(self, other:GreaterThan): Boolean = true
     opr <(self, other:TotalComparison): Boolean = false
