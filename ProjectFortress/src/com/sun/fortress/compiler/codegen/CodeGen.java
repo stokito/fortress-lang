@@ -156,6 +156,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     private List<InstantiatingClassloader.InitializedStaticField> initializedStaticFields_TO;
     
+    
+    /**
+     * Collections object instance fields. Their initialization
+     * is packed into the init method.
+     * 
+     * Null if not in an object scope.
+     */
+    private List<InstantiatingClassloader.InitializedInstanceField> initializedInstanceFields_TO;
+    
     static public Naming.ClassNameBundle new_ClassNameBundle(Id id, String sparams_part, String PCN) {
         return new Naming.ClassNameBundle(stemFromId(id, PCN), sparams_part);
     }
@@ -195,6 +204,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.currentTraitObjectDecl = c.currentTraitObjectDecl;
         
         this.initializedStaticFields_TO = c.initializedStaticFields_TO;
+        this.initializedInstanceFields_TO = c.initializedInstanceFields_TO;
       
         this.component = c.component;
         this.ci = c.ci;
@@ -3456,28 +3466,106 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 //                          null /* for non-generic */, null /* instance has no value */);
         }
 
-        // Emit fields here, one per parameter.
-        generateFieldsAndInitMethod(cnb.className, abstractSuperclass, params);
-        
+        initializedInstanceFields_TO = new ArrayList<InstantiatingClassloader.InitializedInstanceField>();
         List<Binding> fieldsForEnv = new ArrayList<Binding>();
-        fieldsForEnv.addAll(params);
+
+        for (Decl d : header.getDecls()) {
+            if (d instanceof VarDecl) {
+         	   // TODO need to spot for "final" fields.  Right now we assume final.
+               final VarDecl vd = (VarDecl) d;
+               final CodeGen cg = this;
+         	   for( LValue l : vd.getLhs()) {
+         		   final String pn = l.getName().getText();
+         		   Type pt = (Type)l.getIdType().unwrap();
+         		   final String typeDesc = NamingCzar.jvmBoxedTypeDesc(pt, thisApi());
+         		   initializedInstanceFields_TO.add(new InstantiatingClassloader.InitializedInstanceField() {
+					
+         			   @Override
+         			   public boolean isParam() {
+         				   return false;
+         			   }
+					
+         			   @Override
+         			   public void forInit(MethodVisitor mvi) {
+         				   if (vd.getInit().isSome()) {
+         					   Expr init = vd.getInit().unwrap();
+         					   mv.visitVarInsn(ALOAD, 0);
+         					   init.accept(cg);
+         					   mv.visitFieldInsn(PUTFIELD, cnb.className, this.asmName(), this.asmSignature());
+         				   }
+         			   }
+					
+         			   @Override
+         			   public String asmSignature() {
+         				   return typeDesc;
+         			   }
+					
+         			   @Override
+         			   public String asmName() {
+         				   return pn;
+         			   }
+         		   });
+         		   //add field to environment
+         		   fieldsForEnv.add(l);
+         	   }
+            }
+         }
+        
+        for (int i = 0; i < params.size(); i++) {
+        	final int paramNum = i + 1;
+        	Param p = params.get(i);
+        	
+        	final String pn = p.getName().getText();
+   		   	Type pt = (Type)p.getIdType().unwrap();
+   		   	final String typeDesc = NamingCzar.jvmBoxedTypeDesc(pt, thisApi());
+   		   	initializedInstanceFields_TO.add(new InstantiatingClassloader.InitializedInstanceField() {
+				
+   			   @Override
+   			   public boolean isParam() {
+   				   return true;
+   			   }
+				
+   			   @Override
+   			   public void forInit(MethodVisitor mvi) {
+   				   mv.visitVarInsn(ALOAD, 0);
+   				   mv.visitVarInsn(ALOAD, paramNum);
+   				   mv.visitFieldInsn(PUTFIELD, cnb.className, this.asmName(),
+   	                    this.asmSignature());
+   			   }
+				
+   			   @Override
+   			   public String asmSignature() {
+   				   return typeDesc;
+   			   }
+				
+   			   @Override
+   			   public String asmName() {
+   				   return pn;
+   			   }
+   		   	});
+   		   	//add params to environment
+   		   	fieldsForEnv.add(p);
+        }
+        
+        // Emit fields here, one per parameter.
+       // generateFieldsAndInitMethod(cnb.className, abstractSuperclass, params);
         
         //generate fields for non-parameter declared fields and add to local environment
-        for (Decl d : header.getDecls()) {
-           if (d instanceof VarDecl) {
-        	   // TODO need to spot for "final" fields.  Right now we assume final.
-               VarDecl vd = (VarDecl) d;
-        	   for( LValue l : vd.getLhs()) {
-        		   String pn = l.getName().getText();
-        		   Type pt = (Type)l.getIdType().unwrap();
-        		   //generate field for class
-        		   cw.visitField(ACC_PUBLIC + ACC_FINAL, pn,
-                       NamingCzar.jvmBoxedTypeDesc(pt, thisApi()), null /* for non-generic */, null /* instance has no value */);
-        		   //add field to environment
-        		   fieldsForEnv.add(l);
-        	   }
-           }
-        }
+//        for (Decl d : header.getDecls()) {
+//           if (d instanceof VarDecl) {
+//        	   // TODO need to spot for "final" fields.  Right now we assume final.
+//               VarDecl vd = (VarDecl) d;
+//        	   for( LValue l : vd.getLhs()) {
+//        		   String pn = l.getName().getText();
+//        		   Type pt = (Type)l.getIdType().unwrap();
+//        		   //generate field for class
+//        		   cw.visitField(ACC_PUBLIC + ACC_FINAL, pn,
+//                       NamingCzar.jvmBoxedTypeDesc(pt, thisApi()), null /* for non-generic */, null /* instance has no value */);
+//        		   //add field to environment
+//        		   fieldsForEnv.add(l);
+//        	   }
+//           }
+//        }
         
         
          BATree<String, VarCodeGen> savedLexEnv = lexEnv.copy();
@@ -3496,9 +3584,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     NamingCzar.jvmBoxedTypeDesc(param_type, component.getName())));
         }
 
-       
-        
-        
         currentTraitObjectDecl = x;
         Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> overloads = dumpOverloadedMethodChaining(superInterfaces, false);
         if (OVERLOADED_METHODS)
@@ -3510,6 +3595,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // This does not work yet.
             d.accept(this);
         }
+        
+        instanceInitForObject(abstractSuperclass, params);
         
         dumpMethodChaining(superInterfaces, false);
         // dumpErasedMethodChaining(superInterfaces, false);
@@ -3538,6 +3625,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             cw.dumpClass( cnb.className );
         }
         cw = prev;
+        initializedInstanceFields_TO = null;
         initializedStaticFields_TO = null;
         currentTraitObjectDecl = null;
         
@@ -3611,29 +3699,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                            Naming.voidToVoid,
                                            null,
                                            null);
-
-        
-        // This is boneheaded, and ought to be factored into another initialized static field
-//        if (isSingletonObject) {
-//            imv.visitTypeInsn(NEW, cnb.className);
-//            imv.visitInsn(DUP);
-//            imv.visitMethodInsn(INVOKESPECIAL, cnb.className,
-//                    "<init>", NamingCzar.voidToVoid);
-//            imv.visitFieldInsn(PUTSTATIC, cnb.className,
-//                    NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc);
-// 
-//            /* Used to pass splist to the static-parametered form
-//             * but it was always empty.  Tests work like that.
-//             * Bit of a WTF, keep an eye on this.
-//             * Repurpose splist (non-null) for the computation and
-//             * caching of RTTI, which also goes in a static.
-//             */
-//            addStaticVar(new VarCodeGen.StaticBinding(
-//                    classId, NodeFactory.makeTraitType(classId),
-//                    cnb.stemClassName,
-//                    NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc));
-//        }
-        
         for (InstantiatingClassloader.InitializedStaticField isf : initializedStaticFields_TO) {
             isf.forClinit(imv);
             cw.visitField(
@@ -3647,6 +3712,36 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         imv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
         imv.visitEnd();
     }
+   
+   /**
+    * @param classId
+    * @param cnb
+    * @param isSingletonObject
+    */
+  private void instanceInitForObject(String superClass, List<Param> params) {
+
+	  String init_sig = NamingCzar.jvmSignatureFor(params, "V", thisApi());
+
+      mv = cw.visitCGMethod(ACC_PUBLIC,
+                            "<init>",
+                            init_sig,
+                            null,
+                            null);
+      mv.visitCode();
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitMethodInsn(INVOKESPECIAL, superClass, "<init>", Naming.voidToVoid);
+      
+      for (InstantiatingClassloader.InitializedInstanceField isf : initializedInstanceFields_TO) {
+           isf.forInit(mv);
+           cw.visitField(
+                   ACC_PUBLIC + ACC_FINAL,
+                   isf.asmName(), isf.asmSignature(),
+                   null /* for non-generic */, null /* instance has no value */);
+           // DRC-WIP
+       }
+       
+       voidEpilogue();
+   }
 
    private void emitErasedClassFor(Naming.ClassNameBundle cnb, TraitObjectDecl x) {
         String classFile = cnb.stemClassName;
@@ -4106,6 +4201,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         dumpTraitMethodSigs(header.getDecls());
 
         initializedStaticFields_TO = new ArrayList<InstantiatingClassloader.InitializedStaticField>();
+        //no instance fields for traits
         
         emitRttiField(cnb);
         
