@@ -12,8 +12,7 @@
 api CompilerAlgebra
 
 trait Equality[\Self\] comprises Self
-    opr =(self, other:Self): Boolean
-    opr =/=(self, other:Self): Boolean
+    abstract opr =(self, other:Self): Boolean
 end
 
 end
