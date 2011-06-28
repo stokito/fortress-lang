@@ -147,7 +147,8 @@ public final class Debug {
     public static void debug(Type type, Object... msgs) {
         if (type.isOn() && Debug.level == MAX_LEVEL) {
             StringBuilder buf = new StringBuilder();
-            buf.append("[" + type.toString() + "] ");
+            buf.append("[" + type.toString() + "] " + java.text.DateFormat.getTimeInstance().format(new java.util.Date()) + " ");
+	    //            buf.append("[" + type.toString() + "] ");
             for (Object s : msgs) {
                 buf.append(s.toString());
             }
@@ -162,7 +163,8 @@ public final class Debug {
     public static void debug(Type type, int level, Object... msgs) {
         if (type.isOn() && level <= Debug.level) {
             StringBuilder buf = new StringBuilder();
-            buf.append("[" + type.toString() + "] ");
+            buf.append("[" + type.toString() + "] " + java.text.DateFormat.getTimeInstance().format(new java.util.Date()) + " ");
+	    //            buf.append("[" + type.toString() + "] ");
             for (Object s : msgs) {
                 buf.append(s.toString());
             }
