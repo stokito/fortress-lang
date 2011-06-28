@@ -55,6 +55,7 @@ import com.sun.fortress.useful.NI
 class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLattice[Type]{
   
   private final val debugSubtype = ProjectProperties.getBoolean("fortress.debug.analyzer.subtype", false)
+  private final val cacheSubtypes = ProjectProperties.getBoolean("fortress.analyzer.subtype.cache", true)
   
   type hType = (Boolean, Boolean, Type, Type)
   implicit val ta: TypeAnalyzer = this
@@ -88,13 +89,15 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
          System.err.println("psub > (" + x + ", " + y + ", " + negate + ")" )
      val rval =  if (x == y)
          pTrue()
-         else pSubMemo.get((x, y, negate)) match {
+         else if (cacheSubtypes)
+           pSubMemo.get((x, y, negate)) match {
             case Some(v) => v
             case _ => 
               val result = pSubInner(x,y)
               pSubMemo += ((x, y, negate) -> result)
               result
-         }
+           }
+         else pSubInner(x,y)
      if (debugSubtype)
          System.err.println("psub < (" + x + ", " + y + ", " + negate + ") RETURNS " + rval)
      rval
@@ -103,7 +106,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   protected def pSubInner(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
     (x, y) match {
  
-    case (s,t) if (s==t) => pTrue()
+    // case (s,t) if (s==t) => pTrue() // moved up before cache for speed
     case (s: BottomType, _) => pTrue()
     case (s, t: AnyType) => pTrue()
     // Intersection types
