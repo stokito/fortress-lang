@@ -1,0 +1,32 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component OprDecl.Multifix
+
+export Executable
+
+object SumRed extends Reduction[\ZZ32\]
+  empty(): ZZ32 = 0
+  join(a:ZZ32,b:ZZ32): ZZ32 = a+b
+end
+
+(** EXAMPLE **)
+opr SUM(xs: ZZ32...) = xs.reduce(SumRed)
+(** END EXAMPLE **)
+
+run(args:String...) = do
+  assert(SUM(1,2,3,4,5),15,"SUM(1,2,3,4,5)")
+  println("OprDecl.Multifix.fss passed.")
+end
+
+end

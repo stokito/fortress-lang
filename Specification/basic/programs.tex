@@ -1,0 +1,93 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Programs}
+\chaplabel{programs}
+
+\note{Unicode synonyms and most of the ASCII encodings of Unicode characters
+are not yet supported.}
+
+A \emph{program} consists of a finite sequence of \unicode\
+abstract characters.
+(Fortress does not distinguish between
+different code-point encodings of the same character.)
+In order to more closely approximate
+mathematical notation, certain sequences of characters are rendered
+as subscripts or superscripts, italicized or boldface text, or text in
+special fonts, according to the rules in \appref{app-rendering}.
+For the purposes of entering program text, ASCII encodings of Unicode
+characters are also provided in \appref{ascii-unicode}.
+ Although much
+of the program text in this specification is rendered as formatted Unicode,
+some text is presented unformatted, or in its ASCII encoding,
+to aid in exposition.
+
+A program is \emph{valid} if it satisfies all \emph{static constraints}
+stipulated in this specification.  Failure to satisfy a static constraint
+is a \emph{static error}.  Only valid programs can be \emph{executed}; the
+validity of a program must be checked before it is executed.
+
+Executing a valid Fortress program
+consists of \emph{evaluating expressions}.
+Evaluation of an expression may modify the \emph{program state}
+yielding a \emph{result}.
+A result is either a \emph{value}, or an \emph{abrupt completion}.
+
+
+The characters of a valid program determine
+a sequence of \emph{input elements}.
+In turn,
+the input elements of a program
+determine the \emph{program constructs}.
+Some program constructs may contain other program constructs.
+The two most common kinds of constructs in Fortress are
+\emph{declarations} and \emph{expressions}.
+We explain the structure of input elements, and of each program construct,
+in turn, along with accompanying static constraints.
+We also explain how the outcome of a program execution is determined from
+the sequence of constructs in the program.
+
+Programs are developed, compiled and deployed
+as \emph{encapsulated upgradable components}
+as described in \chapref{components}.
+
+Fortress is block-structured:  A Fortress program
+consists of nested \emph{blocks} of code.  The entire program is a
+single block.  Each component is a block.
+Any top-level declaration is a block, as is any function
+declaration.  Several
+expressions are also blocks, or have blocks as parts of the
+expression, or both (e.g., a \KWD{while} expression is a
+block, and its body is a different block).
+See \chapref{expressions} for a discussion of
+expressions in Fortress.
+In addition, a local declaration begins a block that
+continues to the end of the smallest enclosing block unless
+it is a local function declaration
+and is immediately preceded by another local function declaration.
+(This exception allows
+overloaded and mutually recursive local function declarations.)
+Because Fortress is block-structured, and
+because the entire program is a block, the smallest block
+that syntactically contains a program construct is always well defined.
+
+
+Fortress is expression-oriented:
+What are often called ``statements'' in other languages
+are just expressions with type \TYP{()} in Fortress.
+They do not evaluate to an interesting value,
+and are typically evaluated solely for their effects.
+
+
+Fortress is whitespace-sensitive:
+Fortress has different contexts influencing the
+whitespace-sensitivity of expressions as described in
+\appref{concrete-syntax}.

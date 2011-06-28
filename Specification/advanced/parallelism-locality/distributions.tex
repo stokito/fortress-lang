@@ -1,0 +1,127 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Distributions}
+\seclabel{distributions}
+
+\note{Distributions are not yet supported.
+Examples in this section are not tested.}
+
+Most of the heavy lifting in mapping threads and arrays to regions is performed
+by \emph{distributions}.  An instance of the trait
+\TYP{Distribution} describes the parallel structure of ranges and
+other numeric generators (such as the generators for the index space
+of an array), and provides for the allocation and distribution of
+arrays on the machine:
+%trait Distribution
+%  distribute[\E, B extends ArrayIndex\](Range[\B\]):Range[\B\]
+%  distribute[\E, B extends ArrayIndex\](a:Array[\E,B\]):Array[\E,B\] =
+%    distributeFromTo[\E,B\](a,a.distribution,self)
+%end
+\begin{Fortress}
+\(\KWD{trait}\mskip 4mu plus 4mu\TYP{Distribution}\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{distribute}\llbracket{}E, B \KWD{extends}\mskip 4mu plus 4mu\TYP{ArrayIndex}\rrbracket(\TYP{Range}\llbracket{}B\rrbracket)\COLONOP\TYP{Range}\llbracket{}B\rrbracket\)\\
+\(  \VAR{distribute}\llbracket{}E, B \KWD{extends}\mskip 4mu plus 4mu\TYP{ArrayIndex}\rrbracket(a\COLONOP\TYP{Array}\llbracket{}E,B\rrbracket)\COLONOP\TYP{Array}\llbracket{}E,B\rrbracket =\)\\
+{\tt~~}\pushtabs\=\+\(    \VAR{distributeFromTo}\llbracket{}E,B\rrbracket(a,a.\VAR{distribution},\KWD{self})\)\-\-\\\poptabs\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+Abstractly, a \TYP{Distribution} acts as a transducer for generators
+and arrays.  The \VAR{distribute} method applied to a multidimensional
+\TYP{Range} organizes its indices into the leaves of a tree whose
+inner nodes correspond to potential levels of parallelism and locality
+in the underlying computation, producing a fresh \TYP{Range} whose
+behavior as a \TYP{Generator} may differ from that of the passed-in
+\TYP{Range}.  The \VAR{distribute} method applied to an array creates
+a copy of that array distributed according to the given distribution.
+This is specified in terms of a call to the overloaded function
+\VAR{distributeFromTo}.  This permits the definition of specialized
+versions of this function for particular pairs of distributions.
+
+The intention of distributions is to separate the task of data
+distribution and program correctness.  That is, it should be possible
+to write and debug a perfectly acceptable parallel program using only
+the default data distribution provided by the system.  Imposing a
+distribution on particular computations, or designing and implementing
+distributions from scratch, is a task best left for performance
+tuning, and one which should not affect the correctness of a working
+program.
+
+There is a \TYP{DefaultDistribution} which is defined by the
+underlying system.  This distribution is designed to be reasonably
+adaptable to different system scales and architectures, at the cost of
+some runtime efficiency.  Arrays and generators that are not
+explicitly allocated through a distribution are given the
+\TYP{DefaultDistribution}.
+
+There is a generator, \VAR{indices},
+associated with every array.  This generator is distributed in the
+same way as the array itself.  When we re-distribute an array, we also
+re-distribute the generator; thus
+\EXP{d.\VAR{distribute}(a.\VAR{indices})} is equivalent to
+\EXP{(d.\VAR{distribute}(a)).\VAR{indices}}.
+
+There are a number of built-in distributions:
+\begin{tabbing}
+\begin{tabular}{ll}
+\TYP{DefaultDistribution}        &       Name for distribution chosen by system. \\
+\TYP{Sequential}
+&       Sequential distribution.
+       Arrays are allocated in one contiguous piece of memory. \\
+\TYP{Local}          &       Equivalent to \TYP{Sequential}. \\
+\TYP{Par}            &       Blocked into chunks of size 1. \\
+\TYP{Blocked}        &       Blocked into roughly equal chunks. \\
+\EXP{\TYP{Blocked}(n)}   &   Blocked into \VAR{n} roughly equal chunks. \\
+\TYP{Subdivided}     &       Chopped into $2^k$-sized chunks, recursively. \\
+\EXP{\TYP{Interleaved}(d_{1}, d_{2},\ldots d_{n})}
+&       The first \VAR{n} dimensions are distributed according to \EXP{d_{1} \ldots d_{n}}, \\
+&       with subdivision alternating among
+dimensions. \\
+\EXP{\TYP{Joined}(d_{1}, d_{2},\ldots d_{n})}
+&       The first \VAR{n} dimensions are distributed according to \EXP{d_{1} \ldots d_{n}}, \\
+&       subdividing completely in each
+dimension before proceeding to the next.
+\end{tabular}
+\end{tabbing}
+From these, a number of composed distributions are provided:
+\begin{tabbing}
+\begin{tabular}{ll}
+\EXP{\TYP{Morton}}
+&       Bit-interleaved Morton order~\cite{morton}, recursive subdivision
+       in all dimensions.\\
+\EXP{\TYP{Blocked}(x_{1}, x_{2}, \ldots x_{n})}
+&       Blocked in \VAR{n} dimensions into chunks of size \EXP{x_{i}} in dimension \VAR{i}; \\
+&       remaining dimensions (if any) are local.
+\end{tabular}
+\end{tabbing}
+
+To allocate an array which is local to a single thread (and most
+likely allocated in contiguous storage), the \TYP{Local}
+distribution can be used:
+%a = Local.distribute [ 1 0 0 ; 0 1 0 ; 0 0 1 ]
+\begin{Fortress}
+\(a = \TYP{Local}.\VAR{distribute} [\,1\;0\;0 ; 0\;1\;0 ; 0\;0\;1\,]\)
+\end{Fortress}
+Other distributions can be requested in a similar way.
+
+
+Distributions can be constructed and given names:
+%spatialDist = Blocked(n,n,1)     (* Pencils along the $z$ axis *)
+\begin{Fortress}
+\(\VAR{spatialDist} = \TYP{Blocked}(n,n,1)     \mathtt{(*}\;\hbox{\rm  Pencils along the $z$ axis \unskip}\;\mathtt{*)}\)
+\end{Fortress}
+The system will lay out arrays with the same distribution in the same
+way in memory (as much as this is feasible), and will run loops with
+the same distribution in the same way (as much as this is feasible).
+By contrast, if we replace every occurrence of \VAR{spatialDist} by
+\EXP{\TYP{Blocked}(n,n,1)}, this code will likely divide up arrays and
+ranges into the same-sized pieces as above, but these pieces need not
+be collocated.

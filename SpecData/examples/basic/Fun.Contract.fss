@@ -1,0 +1,39 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Fun.Contract
+
+export Executable
+
+trait List end
+object Cons extends List end
+object Empty extends List end
+sorted(x: List) = true
+first(x: List) = Empty
+rest(x: List) = Empty
+(** EXAMPLE **)
+factorial(n: ZZ64) requires { n >= 0 } =
+  if n = 0 then 1
+  else n factorial(n - 1)
+  end
+
+mangle(input: List) ensures { sorted(outcome) provided sorted(input) } =
+  if input =/= Empty
+  then mangle(first(input))
+       mangle(rest(input))
+  end
+(** END EXAMPLE **)
+
+run() = ()
+
+end

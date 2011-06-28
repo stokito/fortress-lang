@@ -1,0 +1,1550 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Lexical Structure}
+\chaplabel{lexical-structure}
+
+\note{Unicode synonyms, \txt{SUBSTITUTE}, some forbidden and restricted characters,
+connecting punctuation, \txt{LINE SEPARATOR}, \txt{PARAGRAPH SEPARATOR},
+most of the ASCII Conversion,
+and dimensions and units are not yet supported.}
+
+\note{
+\begin{itemize}
+\item Towards eliminating transformation expressions in the syntax abstraction mechanism (07/14/08)
+  \begin{itemize}
+\item Jan's desugaring generated expressions requires a non-Fortress syntax: invoking a big operator declaration with a usual functional call syntax (\txt{BIG OPLUS()}) instead of a usual big-operator application syntax ( reductions or comprehensions ).
+\item It is ambiguous because \txt{BIG Op Expr} is a syntactic sugar for \txt{BIG Op [x <- Expr] x}.
+\item In order to eliminate transformation expressions from the syntax abstraction mechanism, we need to be able to write the desugaring in Fortress.
+\item So, we are proposing to eliminate that syntactic sugar and allow a usual functional call syntax for invoking a big operator declaration.
+\item {\bf Fortress syntax for using big operators}:
+  \begin{itemize}
+\item \txt{BIG Op [ GeneratorClauseList ] Expr}:
+reduction; desugared into the call to the \txt{BIG Op} declaration
+\item \txt{BIG Op Expr}: call to the \txt{BIG Op} declaration; not desugared
+\item \txt{BIG? LeftEncloser Expr | GeneratorClauseList RightEncloser}: comprehension; desugared into the call to the \txt{BIG LeftEncloser RightEncloser} declaration
+\item \txt{BIG LeftEncloser RightEncloser Expr}: call to the \txt{BIG LeftEncloser RightEncloser} declaration; not desugared
+  \end{itemize}
+
+\item {\bf Syntactic sugar}: \txt{BIG Op Expr} ( for \txt{BIG Op [x <- Expr] x} )
+Supports it as a call to yet another \txt{BIG Op} declaration. The body of the declaration would be a call to the usual \txt{BIG Op} declaration.
+
+  \end{itemize}
+\item Incorporate Stix fonts
+\end{itemize}
+}
+
+\note{
+  \begin{itemize}
+\item Identifier rendering (12/10/07)
+\txt{a''}, \txt{a'\_prime}, \txt{a\_prime'}, \txt{a\_prime\_prime} are rendered identically and they are meant to denote the same identifier.
+Victor proposed to treat them as we treat synonym operators: a single definition for one is for all the other names.
+\item No special rendering after the keyword \KWD{opr}. (06/18/07)
+  \end{itemize}
+}
+
+\note{Victor:
+  \begin{itemize}
+\item  NEXT LINE (0085)?  (Is this a line terminator?)
+\item  Is : an operator?  (Does this work with parsing?)
+\item  New ``preprocessing'' story--not preprocessing any more
+\item  How should $a^+b$ be interpreted?  Should be a static error!
+\item  In operators section, note that some words that would be operators
+  are not actually possible because of preprocessing, e.g., ALPHA.
+  (Also true for character literals, and there they may show up as
+  escape sequences in string literals.)
+\item  Are true and false not reserved?
+  \end{itemize}}
+
+A Fortress program consists of a finite sequence
+of \unicode\ abstract characters~\cite{Unicode}.
+Every character in a program is part of an input element.
+The partitioning of the character sequence into input elements
+is uniquely determined by the characters themselves.
+In this chapter,
+we explain how the sequence of input elements of a program is determined
+from a program's character sequence.
+
+This chapter also describes standard ways
+to \emph{render} (that is, \emph{display}) individual input elements
+in order to approximate conventional mathematical notation more closely.
+Other rules, presented in later chapters, govern the rendering of
+certain \emph{sequences} of input elements; for example,
+the sequence of three input elements
+\VAR{a}, \STR{{\char'136}}, and \VAR{b} may be rendered \EXP{a^{b}}.
+The rules of rendering are ``merely'' a convenience intended
+to make programs more readable.  Alternatively, the reader may prefer
+to think of the rendered presentation of a program as its ``true form''
+and to think of the underlying sequence of Unicode characters
+as ``merely'' a convenient way of encoding mathematical
+notation for keyboarding purposes.
+
+Most of the program text in this specification
+is shown in rendered presentation form.
+However, sometimes, particularly in this chapter,
+unformatted code is presented to aid in exposition.
+In many cases, the unformatted form is shown alongside
+the rendered form in a table,
+or following the rendered form in parentheses.
+\note{Victor: removed the following example;
+  it is a case of ASCII conversion, not rendering:
+
+as an example, consider the operator \EXP{\oplus} (\STR{OPLUS}).}
+
+\section{Characters}
+\seclabel{characters}
+
+A \unicode\ abstract character is the smallest element
+of a Fortress program.
+\footnote{Note that
+a single Unicode abstract character may have multiple encodings.
+Fortress does not distinguish between different encodings
+of the same character that may be used in representing source code,
+and it treats canonically equivalent characters as identical.
+See the Unicode Standard~\cite{Unicode} for a full discussion
+of encoding and canonical equivalence.}
+Many characters have standard \emph{glyphs},
+which are how these characters are most commonly depicted.
+However,
+more than one character may be represented by the same glyph.
+Thus,
+\unicode\ specifies a representation for each character
+as a sequence of \emph{code points}.
+Fortress programs are not permitted to contain characters
+that map to multiple code points, or to sequences of code
+points of length greater than 1.
+Thus, every character in a Fortress program is associated with a
+single code point,
+designated by a hexadecimal numeral preceded by ``U+''.
+Unicode also specifies a name for each character;\footnote{There are
+sixty-five ``control characters'',
+which do not have proper names.
+However, many of them have \emph{Unicode 1.0 names},
+or other standard names specified in the Unicode Character Database,
+which we use instead.}
+when introducing a character,
+we specify its code point and name,
+and sometimes the glyph we use to represent it in this specification.
+In some cases,
+we use such glyphs without explicitly introducing the characters
+(as, for example, with the simple upper- and lowercase letters
+of the Latin and Greek alphabets).
+When the character represented by a glyph is unclear
+and the distinction is important,
+we specify the code point or the name (or both).
+The Unicode Standard~\cite{Unicode} specifies
+a \emph{general category} for each character,
+which we use to describe sets of characters below.
+
+We partition the \unicode\ character set
+into the following (disjoint) classes:
+\note{
+The Unicode general categories are:
+
+Lu, Ll, Lt, Lm, and Lo (upercase, lowercase, titlecase, modifier, other)
+
+Mn, Mc, Me (``marks'': nonspacing, spacing combining, enclosing)
+
+Nd, Nl, No (numbers: decimal, letter, or other)
+
+Zs, Zl, Zp (separators: space, line, and paragraph)
+
+Cc, Cf, Cs, Co, Cn (``control'' characters:
+   control, format, surrogate, private use, unassigned)
+
+Pc, Pd, Ps, Pe, Pi, Pf and Po  (punctuation:
+   connector, dash, open, close, initial quote, final quote, other);
+
+ Sm, Sc, Sk, So (symbols: math, currency, modifier, other).
+
+ Note however, that these are designations for Unicode \emph{codepoints},
+ not abstract characters.
+ I'm going to talk as if these are the same right now,
+ because I don't know how to characterize abstract characters.
+ However, I'm not sure that ``letter modifiers'' and ``format characters''
+ for example, should be considered abstract characters.}
+\begin{itemize}
+
+\item
+\emph{special non-operator characters},
+which are:
+
+\begin{tabular}{lll@{\hspace{3em}}lll@{\hspace{3em}}lll}
+U+0026 & \txt{AMPERSAND} & \& &
+U+0027 & \txt{APOSTROPHE} & \txt{'} & \\
+U+0028 & \txt{LEFT PARENTHESIS} & ( &
+U+0029 & \txt{RIGHT PARENTHESIS} & ) \\
+U+002C & \txt{COMMA} & , &
+U+002E & \txt{FULL STOP} & . \\
+U+0038 & \txt{SEMICOLON} & ; &
+U+005C & \txt{REVERSE SOLIDUS} & $\backslash$ \\
+U+2026 & \txt{HORIZONTAL ELLIPSIS} & \ldots \\
+U+2200 & \txt{FOR ALL} & $\forall$ &
+U+2203 & \txt{THERE EXISTS} & $\exists$ \\
+U+2254 & \txt{COLON EQUALS} & $:=$ \\
+U+27E6 & \multicolumn{5}{l}{\txt{MATHEMATICAL LEFT WHITE SQUARE BRACKET\ }\quad  $[\![$} \\
+U+27E7 & \multicolumn{5}{l}{\txt{MATHEMATICAL RIGHT WHITE SQUARE BRACKET}\quad $]\!]$}
+\end{tabular}
+
+\item
+\emph{special operator characters},
+which are
+
+\begin{tabular}{lll@{\hspace{3em}}lll@{\hspace{3em}}lll}
+U+002A & \txt{ASTERISK} & * &
+U+002F & \txt{SOLIDUS} & / \\
+U+003A & \txt{COLON} & : &
+U+003C & \txt{LESS-THAN SIGN} & $<$ \\
+U+003D & \txt{EQUALS SIGN} & $=$ &
+U+003E & \txt{GREATER-THAN SIGN} & $>$ \\
+U+005B & \txt{LEFT SQUARE BRACKET} & $[$ &
+U+005D & \txt{RIGHT SQUARE BRACKET} & $]$ \\
+U+005E & \txt{CIRCUMFLEX ACCENT} & \verb+^+ &
+U+007B & \txt{LEFT CURLY BRACKET} & $\{$ \\
+U+007C & \txt{VERTICAL LINE} & $|$ &
+U+007D & \txt{RIGHT CURLY BRACKET} & $\}$ \\
+U+2192 & \txt{RIGHTWARDS ARROW} & $\rightarrow$ &
+U+21A6 & \txt{RIGHTWARDS ARROW FROM BAR} & $\mapsto$ \\
+U+21D2 & \txt{RIGHTWARDS DOUBLE ARROW} & $\Rightarrow$ \\
+\end{tabular}
+
+\note{
+1) SOLIDUS (U+002F) was an ordinary operator character in 1.0b but it is a special operator character in 1.0.  Why is it so?
+
+When I compiled the list of special characters for F1.0beta, I was only thinking about those characters that had special meaning by themselves.  However, when rethinking about this for F1.0, I thought that didn't make sense, since this information used by the ``scanner''.  So I included as special, any character that I could think really had some special use.  This included all characters that combine to form multicharacter enclosing operators.  Hence the inclusion of *, <, >, and of course, /, on that list.  That said, / should probably have been listed as special anyway, as it is handled specially in the parsing of expressions (i.e., we need to distinguish ``tight fractions'' from ``loose'' ones).
+
+This classification of ``special'' is somewhat arbitrary.  Basically, the way I thought about it is that a character is special if it shows up directly in the grammar, and not in some group that we've otherwise distinguished (e.g., string literal delimiters), or if it has different uses in different contexts (e.g., : and ->).  I thought about creating a class of ``combining characters for multicharacter enclosers'', but all those characters have other purposes too, so I just listed them all as special.}
+
+\item
+\emph{letters},
+which are characters with Unicode general category Lu, Ll, Lt, Lm or Lo---%
+those with Unicode general category Lu are \emph{uppercase letters}---%
+and the following \emph{honorary letters}:
+
+\begin{tabular}{lll@{\hspace{3em}}lll@{\hspace{3em}}lll}
+U+221E & \txt{INFINITY} & $\infty$ &
+U+22A4 & \txt{DOWN TACK} & $\top$  &
+U+22A5 & \txt{UP TACK} & $\bot$
+\end{tabular}
+
+\item \emph{connecting punctuation}
+(Unicode general category Pc);
+
+\item \emph{digits} (Unicode general category Nd);
+
+\item
+\emph{prime characters},
+which are:
+
+\begin{tabular}{ll@{\hspace{3em}}ll@{\hspace{3em}}ll}
+U+2032 & \txt{PRIME} &
+U+2033 & \txt{DOUBLE PRIME} \\
+U+2034 & \txt{TRIPLE PRIME} &
+U+2035 & \txt{REVERSED PRIME} \\
+U+2036 & \txt{REVERSED DOUBLE PRIME} &
+U+2037 & \txt{REVERSED TRIPLE PRIME}
+\end{tabular}
+
+\item
+\emph{whitespace characters}, which are
+ \emph{spaces} (Unicode general category Zs)
+and the following characters:
+
+\begin{tabular}{ll@{\hspace{3em}}ll}
+U+0009 & \txt{CHARACTER TABULATION} &
+U+000A & \txt{LINE FEED} \\
+U+000B & \txt{LINE TABULATION} &
+U+000C & \txt{FORM FEED} \\
+U+000D & \txt{CARRIAGE RETURN} \\
+U+001C & \txt{INFORMATION SEPARATOR FOUR} &
+U+001D & \txt{INFORMATION SEPARATOR THREE} \\
+U+001E & \txt{INFORMATION SEPARATOR TWO} &
+U+001F & \txt{INFORMATION SEPARATOR ONE} \\
+U+0020 & \txt{SPACE} \\
+U+2028 & \txt{LINE SEPARATOR} &
+U+2029 & \txt{PARAGRAPH SEPARATOR} \\
+\end{tabular}
+
+\note{Victor: All the characters listed above are control characters (Cc)
+  except U+2028 and U+2029, which have general category Zl and Zp respectively
+  and indeed are the only characters in those categories (in Unicode 5.0).}
+
+\item
+\emph{character literal delimiters},
+which are:
+
+\begin{tabular}{lll@{\hspace{3em}}lll@{\hspace{3em}}lll}
+U+0060 & \txt{GRAVE ACCENT} & \txt{`} \\
+U+2018 & \txt{LEFT SINGLE QUOTATION MARK} & ` \\
+U+2019 & \txt{RIGHT SINGLE QUOTATION MARK} & ' \\
+\end{tabular}
+
+\item
+\emph{string literal delimiters},
+which are:
+
+\begin{tabular}{lll@{\hspace{3em}}lll@{\hspace{3em}}lll}
+U+0022 & \txt{QUOTATION MARK} & \txt{"} \\
+U+201C & \txt{LEFT DOUBLE QUOTATION MARK} & `` \\
+U+201D & \txt{RIGHT DOUBLE QUOTATION MARK} & '' \\
+\end{tabular}
+
+\item
+\emph{ordinary operator characters},
+enumerated (along with the special operator characters)
+in \appref{operator-precedence},
+which include the following characters with code points
+less than U+007F:
+
+\begin{tabular}{lll@{\hspace{3em}}lll@{\hspace{3em}}lll}
+U+0021 & \txt{EXCLAMATION MARK} & ! &
+U+0023 & \txt{NUMBER SIGN} & \# \\
+U+0024 & \txt{DOLLAR SIGN} & \$ &
+U+0025 & \txt{PERCENT SIGN} & \% \\
+U+002B & \txt{PLUS SIGN} & $+$ &
+U+002D & \txt{HYPHEN-MINUS} & $-$ \\
+U+003F & \txt{QUESTION MARK} & ? &
+U+0040 & \txt{COMMERCIAL AT} & @ \\
+U+007E & \txt{TILDE} & \verb+~+ \\
+\end{tabular}
+
+and most Unicode characters specified to be \emph{mathematical operators}
+(i.e., characters with code points in the range 2200-22FF)
+are operators in Fortress,
+but there are some exceptions
+(e.g., $\forall$, $\exists$ and $:=$).
+
+\item
+\emph{other characters}
+
+\end{itemize}
+
+Some other classes of characters,
+which overlap with the ones above,
+are useful to distinguish:
+\begin{itemize}
+
+\item
+\emph{control characters} are those with Unicode general category Cc
+(i.e., characters with code points from U+0000 to U+001F,
+or from U+007F to U+009F);
+
+\item
+\emph{ASCII characters} are those with code points U+007F and below;
+
+\item
+\emph{protected characters}
+are the ASCII characters,
+control characters,
+and string literal delimiters;
+
+\item
+\emph{word characters}
+are letters, digits, connecting punctuation, prime characters,
+and apostrophe;
+
+\item
+\emph{restricted-word characters}
+are ASCII letters, ASCII digits, and the underscore character
+(i.e., ASCII word characters other than apostrophe);
+
+\item
+\emph{hexadecimal digits}
+are the digits
+and the ASCII letters \txt{A}, \txt{B}, \txt{C}, \txt{D}, \txt{E}, \txt{F},
+\txt{a}, \txt{b}, \txt{c}, \txt{d}, \txt{e} and \txt{f};
+
+\item
+the \emph{digit-group separator} is
+\txt{NARROW NO-BREAK SPACE} (U+202F);
+
+\item
+\emph{operator characters}
+are special operator characters
+and ordinary operator characters;
+
+\item
+\emph{special characters}
+are special non-operator characters
+and special operator characters;
+
+\item
+\emph{enclosing characters}
+are the enclosing operator characters
+enumerated in \secref{bracket-pairs},
+left and right parenthesis characters,
+and mathematical left and right white square brackets;
+
+\end{itemize}
+
+
+\subsection*{Forbidden and Restricted Characters}
+
+It is a static error for a Fortress program
+to contain any control character
+other than the above-listed whitespace characters,
+except that the character \txt{SUBSTITUTE}
+(U+001A; also known as ``control-Z'')
+is allowed and ignored
+if it is the last character of a program.
+
+
+It is a static error for the following characters
+to occur outside a comment:
+
+\begin{tabular}{ll@{\hspace{3em}}ll@{\hspace{3em}}ll}
+U+0009 & \txt{CHARACTER TABULATION} &
+U+000B & \txt{LINE TABULATION} \\
+U+001C & \txt{INFORMATION SEPARATOR FOUR} &
+U+001D & \txt{INFORMATION SEPARATOR THREE} \\
+U+001E & \txt{INFORMATION SEPARATOR TWO} &
+U+001F & \txt{INFORMATION SEPARATOR ONE} \\
+\end{tabular}
+
+Thus, \txt{LINE FEED}, \txt{FORM FEED} and \txt{CARRIAGE RETURN}
+are the only control characters---and
+the only whitespace characters other than spaces,
+\txt{LINE SEPARATOR}, and \txt{PARAGRAPH SEPARATOR}---outside of comments
+in a valid Fortress program.
+
+It is a static error for any of the following characters
+to appear outside of comments and string and character literals:
+\begin{itemize}
+
+\item
+\txt{REVERSE SOLIDUS} (`$\backslash$';U+005C),
+
+\item
+any connecting punctuation
+other than \txt{LOW LINE}
+(`\_'; U+005F, also known as \txt{SPACING UNDERSCORE}),
+
+\item
+any character in the ``other characters'' class above,
+or
+
+\item
+any of the following spaces:
+
+\begin{tabular}{ll@{\hspace{3em}}ll@{\hspace{3em}}ll}
+U+2000 & \txt{EN QUAD} & U+2003 & \txt{EM SPACE}  & U+2006 & \txt{SIX-PER-EM SPACE} \\
+U+2001 & \txt{EM QUAD} & U+2004 & \txt{THREE-PER-EM SPACE} & U+2007 & \txt{FIGURE SPACE} \\
+U+2002 & \txt{EN SPACE} & U+2005 & \txt{FOUR-PER-EM SPACE} & U+2008 & \txt{PUNCTUATION SPACE}
+\end{tabular}
+
+\end{itemize}
+
+\section{Words and Chunks}
+\seclabel{words}
+
+In a sequence of characters,
+a \emph{chunk} is a nonempty contiguous subsequence.
+A \emph{word} is a maximal chunk consisting of only word characters
+(letters, digits, underscore,
+connecting punctuation,
+prime characters, and apostrophe);
+that is, a word is one or more consecutive word characters
+delimited by characters other than word characters
+(or the beginning or end of the entire sequence).
+A \emph{restricted word} is
+a maximal chunk that has only restricted-word characters
+(ASCII letters and digits and underscore characters).
+Note that a restricted word is \emph{not} a word
+if it is delimited by word characters.
+
+For example, in the sequence
+\input{\home/basic/examples/LexStr.Words.tex}
+there are three words (\txt{A'bc\_123}, \txt{def} and \txt{$\phi$456}),
+and four restricted words (\txt{A}, \txt{bc\_123}, \txt{def} and \txt{456}).
+
+
+\section{Lines, Pages and Position}
+\seclabel{position}
+
+The characters in a Fortress program
+are partitioned into \emph{lines} and into \emph{pages},
+delimited by \emph{line terminators} and \emph{page terminators}
+respectively.
+A \emph{page terminator}
+is an occurrence of the character \verb$FORM_FEED$.
+A \emph{line terminator} is an occurrence of any of the following:
+\begin{itemize}
+
+\item
+\txt{LINE FEED},
+
+\item
+\txt{CARRIAGE RETURN} not immediately followed by \txt{LINE FEED},
+
+\item
+\txt{LINE SEPARATOR}, or
+
+\item
+\txt{PARAGRAPH SEPARATOR}.
+
+\end{itemize}
+
+A character is on page $n$
+(respectively line $n$) of a program
+if exactly $n-1$ page terminators (respectively line terminators)
+precede that character in the program.
+Thus, for example,
+the $n$th line terminator of a program
+is the last character on line $n$.
+A character is on line $k$ of page $n$
+if it is on page $n$
+and is preceded by exactly $k-1$ line terminators on page $n$.
+A character is at line position $k$ on line $n$
+if it is preceded by exactly $k-1$ characters on line $n$
+other than page terminators.
+Note that a page terminator does \emph{not} terminate a line;
+thus, the character immediately following a page terminator
+need not be at line position 1.
+
+Before any other processing,
+a Fortress program undergoes \emph{ASCII conversion}
+(see \secref{ascii-conversion}),
+which may replace chunks of ASCII characters
+with single (typically non-ASCII) characters
+and remove some other characters.
+We expect that IDEs will typically display a program
+by rendering the converted sequence of characters
+rather than the actual input sequence.
+Thus, a program may appear to have fewer (and different) characters
+than it actually does.
+Nonetheless,
+the page, line and position of a character
+is based on the program before conversion.\footnote{Of course,
+an IDE may actually do the conversion
+and manipulate the converted program,
+in which case,
+the page, line and position of characters will reflect the conversion.
+}
+
+If a character (or any other syntactic entity) $x$
+precedes another character $y$ in the program,
+we say that $x$ is \emph{to the left of} $y$
+and that $y$ is \emph{to the right of} $x$,
+regardless of how they may appear
+in a typical rendered display of the program.
+Thus, it is always meaningful to speak,
+for example,
+of the left-hand and right-hand operands of a binary operator,
+or the left-hand side of an assignment expression.
+
+
+\section{ASCII Conversion}
+\seclabel{ascii-conversion}
+
+To aid in program entry and facilitate interaction with legacy tools,
+Fortress provides an ASCII encoding for programs.
+To support this encoding,
+a Fortress program undergoes \emph{ASCII conversion},
+which takes a program
+and yields an equivalent program.\footnote{See
+\appref{ascii-unicode} for the precise notion of equivalence
+guaranteed by ASCII conversion.}
+Unless otherwise specified,
+all constraints and properties of Fortress programs
+stipulated in this specification
+apply to the programs after ASCII conversion.
+
+
+ASCII conversion consists of three steps.
+The first step consists of ``pasting'' words across line terminators,
+so that long identifiers and numerals can be split across lines.
+Identifiers may be very long
+because non-ASCII Unicode characters may be encoded
+by long chunks of ASCII characters
+(the actual conversion of such chunks is done in the next step).
+Roughly speaking,
+two consecutive lines are pasted together
+if the first ends with an ampersand
+that is immediately preceded by a word character,
+and the second begins with an ampersand
+that is immediately followed by a word character.
+
+The second step replaces certain restricted words,
+and sequences of operator and special characters,
+with single Unicode characters.
+Roughly speaking,
+if a restricted word is
+either the official \unicode\ name
+with underscores in place of spaces and hyphens,
+or a specified alternative name, of some character
+other than a protected character
+(i.e., an ASCII or control character, or a string literal delimiter),
+then the restricted word is replaced by that character.
+In some cases,
+even a fragment of a restricted word may be replaced by a single character
+(most commonly a Greek letter).
+Some multicharacter sequences of ASCII operator and special characters
+are also replaced by non-ASCII operator or special characters;
+we call such sequences \emph{ASCII shorthand}.
+However,
+within string literals,
+neither restricted words
+nor ASCII shorthand is converted.
+Instead, we provide \emph{escape sequences}
+to get non-ASCII characters within strings
+(see \secref{preprocessing-string-literals}).
+
+The third step replaces apostrophes
+that appear within what would otherwise be numerals
+with digit-group separators.
+
+Precise descriptions of these steps are
+given in \appref{ascii-unicode},
+including the rules for replacing fragments of restricted words
+and the specification of alternative names and ASCII shorthand
+for non-operator characters.
+Alternative names and ASCII shorthand for operator characters
+are given in \appref{operators}.
+
+\note{Is the following true?}
+ASCII conversion (all three steps taken together) is idempotent:
+converting a program resulting from ASCII conversion
+yields the same program.
+The ampersand is particularly important
+in this process,
+and its use is severely restricted in the converted program
+to preserve the idempotence of ASCII conversion
+(see \secref{whitespace}).
+
+
+\section{Input Elements and Scanning}
+\seclabel{scanning}
+
+After ASCII conversion, a
+Fortress program is partitioned into
+\emph{input elements}
+by a process called \emph{scanning}.
+\footnote{Fortress has a facility for defining new syntax,
+discussed in \chapref{syntax-expanders}.
+However, except for that chapter, this specification
+describes the Fortress language
+only for programs that use the standard Fortress syntax
+without using this facility.}
+Scanning transforms a Fortress program
+from a sequence of Unicode characters
+to a sequence of input elements.
+Input elements are always chunks:
+the characters that comprise an input element
+always appear contiguously in the program.
+Input elements are either
+\emph{whitespace elements}
+(including \emph{comments})
+or \emph{tokens}.
+A token is
+a \emph{reserved word},
+a \emph{literal},
+an \emph{identifier},
+an \emph{operator token},
+or a \emph{special token}.
+There are five kinds of literals:
+boolean literals,
+character literals,
+string literals,
+the void literal,
+and numerals (i.e., numeric literals).
+
+Conceptually,
+we can think of scanning as follows:
+First, the comments,
+character literals and string literals
+are identified.
+Then the remaining characters are partitioned into
+words
+(i.e., maximal chunks of
+letters, digits, connecting punctuation,
+underscore, primes, and apostrophes),
+whitespace characters,
+and other characters.
+In some cases,
+words separated by a single `\EXP{.}'
+or digit-group separator (and no other characters)
+are joined to form a single numeral
+(see \secref{numerals}).
+Words that are not so joined
+are classified as reserved words,
+boolean literals, numerals, identifiers, or operator tokens,
+as described in later sections in this chapter.
+It is a static error
+if any word in a Fortress program
+is not part of one of the input elements described above.
+All remaining whitespace characters,
+together with the comments,
+form whitespace elements,
+which may be \emph{line-breaking}.
+Finally,
+chunks of symbols
+(and a few other special cases)
+are checked to see whether they form
+void literals (see \secref{void-literal})
+or multicharacter operator tokens
+(see \secref{lexical-operators}).
+Every other character is a token by itself,
+either a special token
+(if it is a special character)
+or an operator token.
+
+
+\section{Comments}
+\seclabel{comments}
+
+\note{Describe to-the-end-of-line comments. (06/23/08)}
+
+When not within string literals,
+occurrences of ``\EXP{(*}'' and ``\EXP{*)}''
+are \emph{opening comment delimiters}
+and \emph{closing comment delimiters}, respectively.
+In a valid program,
+every opening comment delimiter
+is balanced by a closing comment delimiter;
+it is a static error if comment delimiters are not properly balanced.
+All the characters between a balanced pair of comment delimiters,
+including the comment delimiters themselves,
+comprise a \emph{comment}.
+Comments may be nested.
+For example, the following illustrates three comments,
+one of which is nested:
+\begin{quote}
+(* This is a comment. *)  (* As is this (* nested *) \\ comment *)
+\end{quote}
+
+
+\section{Whitespace Elements}
+\seclabel{whitespace}
+
+A whitespace element is a maximal chunk
+consisting of comments,
+whitespace characters
+that are not within string or character literals
+or numerals, and ampersands (U+0026)
+that are not within string or character literals.
+
+We distinguish \emph{line-breaking whitespace}
+from \emph{non-line-breaking whitespace}
+using the following terminology:
+\begin{itemize}
+
+\item
+A \emph{line-terminating comment}
+is a comment that encloses one or more line terminators.
+All other comments are called \emph{spacing comments}.
+
+\item
+\emph{Spacing}
+refers to any chunk of spaces,
+\txt{FORM FEED} characters,
+whitespace characters other than line terminators,
+and spacing comments.
+
+\item
+A \emph{line break} is a line terminator
+or nonnested line-terminating comment
+that is not immediately preceded by an ampersand,
+possibly with intervening spacing.
+
+\item
+\emph{Whitespace} refers to any nonempty sequence of spacing,
+ampersands,
+line terminators, and line-terminating comments.
+
+\item \emph{Line-breaking whitespace} is whitespace that
+contains at least one line break.
+\end{itemize}
+
+It is a static error if an ampersand occurs in a program
+(after ASCII conversion) unless
+it is within a character or string literal or a comment,
+or it is immediately followed by a line terminator
+or line-terminating comment
+(possibly with intervening spacing).
+
+\section{Reserved Words}
+\seclabel{reserved-words}
+
+The following tokens are \emph{reserved words}:\\
+\input{\home/fortress/fortress-keywords.tex}
+
+\note{Victor: I don't think ``or'' should be reserved.
+  It is only so for its occurrence in ``widens or coerces''
+  but we can recognize it specially in that context,
+  which is never ambiguous because ``widens'' and ``coerces'' are reserved.}
+
+The following operators on units are also reserved words:\\
+\input{\home/fortress/fortress-unitOperators.tex}
+
+To avoid confusion, Fortress reserves the following tokens:\\
+\input{\home/fortress/fortress-specialReservedWords.tex}
+
+They do not have any special meanings but they cannot be used as
+identifiers.
+
+\note{Victor: Some other words we might want to reserve:
+  subtype, subtypes, is, coercion, function, exception, match}
+
+
+\section{Character Literals}
+\seclabel{preprocessing-character-literals}
+
+A character literal consists of
+one or more characters enclosed in single quotation marks.
+The character that begins a character literal
+is called the literal's \emph{opening mark};
+the character that ends it is its \emph{closing mark}.
+For convenience,
+the marks may be true typographical ``curly'' single quotation marks
+(U+2018 and U+2019),
+a pair of apostrophe characters (U+0027),
+or a ``backquote'' character (U+0060) and an apostrophe character.
+It is a static error if the opening and closing marks do not match:
+a character literal beginning with a left single quotation mark
+must end with a right single quotation mark;
+one beginning with either an apostrophe or a backquote
+must end with an apostrophe.
+As discussed in \secref{literals},
+a character literal evaluates to a value of type \TYP{Char},
+which represents an abstract Unicode character.
+
+A left single quotation mark (U+2018) or a backquote
+begins a character literal
+unless it is within a comment, another character literal,
+or a string literal.
+\note{What if it is preceded by a backslash? (should be illegal?)}
+An apostrophe (U+2018)
+begins a character literal
+unless it is within a comment, another character literal,
+or a string literal,
+or it is immediately preceded by a word character
+(i.e., a letter, digit, connecting punctuation,
+underline, prime, or apostrophe).
+\note{ What if it is preceded by a backslash? (should be illegal)}
+In either case,
+the character literal ends
+with the nearest apostrophe or right single quotation mark
+\emph{after} the first character following the opening mark.
+In particular,
+an apostrophe or right single quotation mark
+immediately following the opening mark of a character literal
+is \emph{not} a closing mark.
+Thus,
+for example,
+the sequence \txt{'''} is a single character literal
+with one enclosed character \txt{'}.
+
+It is a static error
+if any of the enclosed characters of a character literal is a
+line feed, form feed, carriage return,
+line separator, paragraph separator,
+or any character forbidden outside comments in a Fortress program
+(see \secref{characters}),
+or if there is exactly one enclosed character
+and it is a backslash (U+005C).
+It is also a static error if any of the enclosed characters
+is a string literal delimiter
+that is not immediately preceded by a backslash
+(i.e., an \emph{unescaped} string literal delimiter).
+This last restriction is necessary to prevent ASCII conversion
+from changing the boundaries of string literals
+(see \appref{ascii-unicode}).
+
+The sequence of enclosed characters may be
+a single character
+(e.g., `\txt{a}', \txt{'\$'}, `\txt{$\alpha$}', \txt{`$\oplus$'}),
+a sequence of four or more hexadecimal digits
+identifying the code point of a Unicode character
+(e.g., `\txt{001C}', \txt{`FBAB'}, `\txt{1D11E}'),
+one of \txt{TAB}, \txt{NEWLINE} or \txt{RETURN},
+a sequence of ASCII characters
+that would be converted by the second step of ASCII conversion
+to a single Unicode character
+(see~\secref{preprocessing-unicode-names}),
+the official \unicode\ name or an alternative name
+of a Unicode character
+with spaces and hyphens intact
+(e.g., `\txt{PLUS-MINUS SIGN}'),
+or
+a \emph{character-literal escape sequence}.
+The character-literal escape sequences,
+and the characters such character literals evaluate to,
+are:
+
+\begin{tabular}{lll}
+\txt{{\char'134}b} & U+0008 & \txt{BACKSPACE}  \\
+\txt{{\char'134}t} & U+0009 & \txt{CHARACTER TABULATION} \\
+\txt{{\char'134}n} & U+000A & \txt{LINE FEED}  \\
+\txt{{\char'134}f} & U+000C & \txt{FORM FEED} \\
+\txt{{\char'134}r} & U+000D & \txt{CARRIAGE RETURN}  \\
+\txt{{\char'134}"} & U+0022 & \txt{QUOTATION MARK}  \\
+\txt{{\char'134}{\char'134}} & U+005C & \txt{REVERSE SOLIDUS}  \\
+\txt{{\char'134}{\rm ``}} & U+201C & \txt{LEFT DOUBLE QUOTATION MARK}  \\
+\txt{{\char'134}{\rm ''}} & U+201D & \txt{RIGHT DOUBLE QUOTATION MARK}  \\
+\end{tabular}
+
+\note{ Victor: What about 'BACKQUOTE'?}
+
+It is a static error if
+the sequence of enclosed characters is not
+one of the kinds listed above.
+In particular,
+it is a static error if the hexadecimal digits enclosed
+do not correspond to the code point of a \unicode\ abstract character.
+
+Note that ASCII conversion is performed within character literals.
+Thus a character literal written as
+\begin{quote}
+\txt{'GREEK\_CAPITAL\_LETTER\_LAMBDA'}
+\end{quote}
+is equivalent to a character literal written as
+\begin{quote}
+\txt{'$\Lambda$'}
+\end{quote}
+
+Although names for control and other protected characters
+are \emph{not} converted during ASCII conversion,
+they \emph{are} permitted within character literals.
+Both the standard form of such names
+(i.e., with spaces and hyphens)
+and the form with spaces and hyphens replaced by underscore characters
+are permitted.
+Thus, for example,
+the literals \txt{'BACKSPACE'}, \txt{'{\char'134}b'} and \txt{'0008'}
+all evaluate to the \txt{BACKSPACE} character.
+
+
+\section{String Literals}
+\seclabel{preprocessing-string-literals}
+
+A string literal is a sequence of characters
+enclosed in double quotation marks
+(for example, \txt{"Hello, world!"} or
+``\txt{$\pi$\thinspace r$^2$}'').
+The character that begins a string literal
+is the literal's \emph{opening mark};
+the character that ends it is its \emph{closing mark}.
+For convenience,
+the opening and closing marks of a string literal may be either
+true typographical ``curly'' double quotation marks (U+201C and U+201D)
+or a pair of ``neutral'' double-quote characters.
+It is a static error
+if the opening and closing marks of a string literal
+do not ``match'',
+that is, if one is ``curly''
+and the other ``neutral''.
+As discussed in \secref{literals},
+a string literal evaluates to a value of type \TYP{String},
+which represents a finite sequence of abstract Unicode characters.
+
+A left double quotation mark (U+201C)
+or ``neutral'' quotation mark (U+0022)
+begins a string literal
+unless it is within a comment, a character literal,
+or another string literal.
+\note{ What if it is preceded by a backslash? (should be illegal)}
+It ends with the nearest following unescaped
+(i.e., not immediately preceded by an unescaped backslash)
+right double quotation mark or ``neutral'' quotation mark.
+Therefore, it is not possible for a string literal
+to include an unescaped right double quotation mark
+or ``neutral'' quotation mark
+as an enclosed character.
+In addition,
+it is a static error for an unescaped
+left double quotation mark
+to be an enclosed character of a string literal.
+
+Within a string literal,
+a backslash introduces an \emph{escape sequence},
+unless it is immediately preceded by an odd number of backslashes,
+in which case the backslash is itself escaped.
+There are three kinds of escape sequences
+recognized within a string literal:
+the character-literal escape sequences
+(see \secref{preprocessing-character-literals}),
+\emph{restricted-word escape sequences},
+and \emph{quoted-character escape sequences}.
+
+A restricted-word escape sequence
+consists of an unescaped backslash
+immediately followed by a restricted word
+not beginning with a lowercase letter.
+It is a static error if enclosing the restricted word
+in single quotes
+does not result in a valid character literal.
+
+A quoted-character escape sequence
+consists of an unescaped backslash immediately followed by an apostrophe
+and the sequence of characters immediately following the apostrophe
+up to and including the next apostrophe.
+\note{ Victor: Should we allow any character literal
+  (e.g., one delimited by ``curly'' quotes)?}
+Note that this kind of escape sequence
+looks just like a backslash followed by a character literal.
+It is a static error if such a sequence
+with the initial backslash removed
+would not be a valid character literal
+(see \secref{preprocessing-character-literals}).
+%
+Quoted-character escape sequences are useful
+for ASCII ``shorthands''
+that begin with a lowercase letter
+or are not restricted words,
+and when the escape sequence is immediately followed in the string
+by a letter, digit, or underscore.
+For example,
+\txt{"{\char'134}beta"} evaluates to a string
+containing a backspace character (indicated by \txt{{\char'134}b})
+followed by the letters \txt{e}, \txt{t}, and \txt{a},
+but \txt{"{\char'134}'beta'"} evaluates to a string
+containing the single letter $\beta$.
+As another example,
+\txt{"x{\char'134}AND{\char'134}'NOT'y"} becomes \txt{"x$\land\neg$y"},
+but \txt{"x{\char'134}AND{\char'134}NOTy"} is a static error,
+because the name ``\txt{NOTy}'' does not correspond to a Unicode character.
+Also,
+the string \txt{"Foo{\char'134}'[{\char'134}'T{\char'134}'{\char'134}]'"}
+becomes \txt{"Foo$\llbracket$T$\rrbracket$"}.
+
+It is a static error
+if any of the enclosed characters of a string literal is a
+line feed, form feed, carriage return,
+line separator, paragraph separator,
+or any character forbidden outside comments in a Fortress program
+(see \secref{characters}).
+It is also a static error if an unescaped backslash
+is immediately followed by a character other than another backslash or,
+an apostrophe,
+a string literal delimiter, or a restricted-word character.
+In addition,
+it is also a static error
+if an unescaped backslash within a string literal
+is followed by any lowercase letter
+other than `\txt{b}', `\txt{t}', `\txt{n}', `\txt{f}' or `\txt{r}'.
+This rule preserves a certain level of compatibility
+with the C and Java programming languages.
+
+Unlike elsewhere in a program,
+the enclosed characters of a string literal
+are \emph{not} subject to the second or third step of ASCII conversion
+(word pasting across line terminators
+still occurs within string literals).
+Also, the formatting of identifiers and numerals
+described in \secref{rendering}
+is not performed within string literals.
+
+
+\section{Boolean Literals}
+The boolean literals are \VAR{false} and \VAR{true}.
+
+\section{The Void Literal}
+\seclabel{void-literal}
+The void literal is \EXP{()} (pronounced ``void'').
+
+\section{Numerals}
+\seclabel{numerals}
+
+A numeric literal,
+or \emph{numeral},
+in Fortress is a maximal chunk
+consisting one or more words
+(and the intervening characters)
+satisfying the following properties:
+\begin{itemize}
+
+\item
+each word consists of only digits and letters,
+except that the last word may have one underscore
+as part of a \emph{radix specifier},
+defined below;
+
+\item
+consecutive words are separated by exactly one character,
+either a digit-group separator or
+ a `\EXP{.}' character;
+and
+
+\item
+either
+the first word begins with a digit.
+or the last word has a radix specifier.
+
+\end{itemize}
+
+A \emph{radix specifier}
+is a word suffix consisting of
+an underscore and then
+either by a sequence of one or more digits
+or by the English name in all uppercase ASCII letters
+of an integer from 2 to 16.
+The \emph{radix} of a numeral with a radix specifier
+is the number
+denoted by the sequence of digits
+(interpreted in base 10)
+or named by the ASCII letters of the radix specifier.
+It is a static error
+if the radix of a numeral is not an integer from 2 to 16.
+It is also a static error if any of the following conditions hold:
+\begin{itemize}
+
+\item
+the numeral contains letters and does not have a radix specifier;
+
+\item
+the numeral contains letters other than
+\txt{A}, \txt{B}, \txt{C}, \txt{D}, \txt{E}, \txt{F},
+\txt{a}, \txt{b}, \txt{c}, \txt{d}, \txt{e} or \txt{f},
+and has a radix other than 12;
+
+\item
+the numeral has radix 12 and contains letters other than
+\txt{A}, \txt{B}, \txt{X}, \txt{E}
+\txt{a}, \txt{b}, \txt{x} or \txt{e},
+or contains at least one \txt{A}, \txt{B}, \txt{a} or \txt{b}
+and at least one \txt{X}, \txt{E}, \txt{x} or \txt{e};
+
+\item
+the numeral has a radix specifier
+and contains a digit or letter that denotes a value
+greater than or equal to the numeral's radix;\footnote{The
+value denoted by a digit is specified
+by the Unicode Standard~\cite{Unicode}.
+The value denoted by the letters are as follows:
+\txt{A} or \txt{a}: 10;
+\txt{B} or \txt{b}: 11;
+\txt{C} or \txt{c}: 12;
+\txt{D} or \txt{d}: 13;
+\txt{E} or \txt{e}: 11 if the radix is 12, 14 otherwise;
+\txt{F} or \txt{f}: 15;
+\txt{X} or \txt{x}: 10.
+}
+or
+
+\item
+the numeral contains both uppercase and lowercase letters.
+
+\end{itemize}
+
+A numeral is \emph{simple} if it does not contain a `.' character;
+otherwise, the number is \emph{compound}.
+It is a static error if a numeral contains
+more than one `.' character.
+
+
+Here are some examples of valid numerals, shown in unformatted form:
+\begin{verbatim}
+17   7fff_16   0fff_SIXTEEN   10101101_2   XE_12   3.14159265   DEAD.BEEF_16
+\end{verbatim}
+On the other hand, the following would be classified as numerals
+but then rejected as static errors:
+\begin{verbatim}
+0.a  0x6A35    FF_EIGHT       12.52.23     57_50   PI_FIFTEEN   dead.BEEF_16
+\end{verbatim}
+
+\note{ Victor: Are FF\_EIGHT and PI\_FIFTEEN numerals or operator tokens?}
+
+
+\section{Operator Tokens}
+\seclabel{lexical-operators}
+
+In this section,
+we describe how to determine the operator tokens of a program.
+Because operator tokens do not occur
+within comments, string literals and character literals,
+we henceforth in this section
+consider only characters that are outside
+these constructs.
+
+An \emph{operator word} of a program
+is a word that is not reserved,
+consists only of uppercase letters and underscores
+(no digits or non-uppercase letters),
+does not begin or end with an underscore,
+and has at least two different letters.
+
+A \emph{base operator} is an ordinary operator character
+(described \secref{characters}),
+an operator word,
+a (contiguous) sequence of two or more vertical-line characters (U+007C),
+or a multicharacter enclosing operator,
+as defined in \secref{multichar-enclosers}.
+A base operator is \emph{maximal} in a program
+if it is not contained
+within any other base operator of that program.
+It is a static error if two maximal base operators overlap
+(which is only possible if both are multicharacter enclosing operators).
+A \emph{simple operator} is a maximal base operator
+that is an operator character
+or an operator word.
+
+A maximal base operator is an operator token
+unless it is a simple operator
+other than an enclosing or vertical-line operator character,
+and it is immediately preceded by `{\char'136}'
+or immediately followed by `$=$'.
+Such an operator is an \emph{enclosing operator}
+if it is an enclosing operator character
+(see \secref{bracket-pairs})
+or a multicharacter enclosing operator;
+it is a \emph{vertical-line operator}
+if it has only vertical-line operator characters
+(see \secref{vertical-line-ops});
+otherwise, it is an \emph{ordinary operator}.
+
+If a simple operator is immediately preceded by `{\char'136}'
+then the `{\char'136}' and the simple operator together
+comprise a single operator token;
+such an operator token is called a \emph{superscripted postfix operator}.
+In addition,
+``\EXP{\txt{\char'136}T}''
+is also a superscripted postfix operator
+provided that it is not immediately followed by a word character.
+It is a static error for a superscripted postfix operator
+to be immediately followed by a word character
+other than apostrophe.
+
+Finally,
+if a simple operator is not immediately preceded by `{\char'136}'
+and is immediately followed by `$=$'
+then the simple operator and the `$=$' together
+comprise an operator token;
+such an operator token is called
+a \emph{compound assignment operator}.
+\note{ Can't be simple assignment because COLON is special.}
+
+
+\subsection{Multicharacter Enclosing Operators}
+\seclabel{multichar-enclosers}
+
+The following multicharacter sequences
+(in which there must be no other characters, and particularly no whitespace)
+can be used as paired enclosing tokens as described below:
+\begin{enumerate}
+
+\item
+Any chunk of vertical-line characters
+is a vertical-line operator.
+Such an operator can be used in an enclosing pair matching itself.
+
+
+\item
+A `(' may be immediately followed
+by a `.' and then one or more `\texttt{/}' characters
+or one or more `\texttt{\char'134}' characters.
+Such a token is a left encloser,
+and it is matched by the multicharacter token
+consisting of the same number and kind
+of `\texttt{/}' or `\texttt{\char'134}' characters
+followed immediately by a `.' and then a `)';
+Thus, for example,
+``\texttt{(.////}'' and ``\texttt{////.)}''
+are matching left and right enclosers, respectively.
+(In the future,
+we may allow tokens with mixtures of `\texttt{/}' and `\texttt{\char'134}',
+in which case the character sequences must match from the outside in.
+But for now, such tokens are simply illegal.)
+
+\item
+Either `[' or `\{'
+may be immediately followed
+by one or more `\texttt{/}' characters
+or by one or more `\texttt{\char'134}' characters.
+Such a token is a left encloser,
+and it is matched by the multicharacter token
+consisting of the same number and kind
+of `\texttt{/}' or `\texttt{\char'134}' characters
+followed immediately by a matching `]' or `\}',
+as appropriate.
+Thus, for example,
+``\texttt{[////}'' and ``\texttt{////]}''
+are matching left and right enclosers respectively.
+(In the future,
+we may allow tokens with mixtures of `\texttt{/}' and `\texttt{\char'134}',
+in which case the character sequences must match from outside in.
+But for now, such tokens are simply illegal.)
+
+Exceptions to this rule are the multicharacter sequences \texttt{[{\char'134}}
+and \texttt{{\char'134}]}, which are ASCII shorthand for the special non-operator
+characters \EXP{\llbracket} and \EXP{\rrbracket}; these are used to enclose static type
+parameters and arguments but are not considered \emph{operators}.
+
+
+\item
+One or more `\texttt{<}' characters may be followed immediately
+by one or more `\texttt{|}' characters.
+Such a token is a left encloser,
+and it is matched by the multicharacter token
+consisting of the same number of `\texttt{|}' characters
+followed by as many `\texttt{>}' characters
+as there are `\texttt{<}' characters in the left encloser.
+
+\item
+One or more `\texttt{<}' characters,
+or one or more `\texttt{|}' characters,
+may be followed immediately
+by one or more `\texttt{/}' characters
+or by one or more `\texttt{\char'134}' characters.
+Such a token is a left encloser,
+and it is matched by the multicharacter token
+consisting of the same number and \emph{opposite} kind
+of `\texttt{/}' or `\texttt{\char'134}' characters
+followed immediately by as many matching `\texttt{>}' or `\texttt{|}'
+characters as appropriate.
+Thus, for example,
+``\texttt{<<//}'' matches ``\texttt{{\char'134}{\char'134}>>}',
+and ``\texttt{|{\char'134}{\char'134}{\char'134}}'' matches ``\texttt{///|}''.
+(In the future,
+we may allow tokens with mixtures of `\texttt{/}' and `\texttt{\char'134}',
+in which case the character sequences must ``opposite-match'' from outside in.
+But for now, such tokens are simply illegal.)
+
+\item
+Finally,
+any number of `\texttt{*}' (U+002A)
+or `\texttt{.}' (U+002E) characters may be placed
+within any of the above multicharacter sequences,
+except those that contain `(' or `)',
+as long as no `\texttt{*}' or `\texttt{.}'
+is the first or last character in the sequence,
+and no `\texttt{*}' or `\texttt{.}' character is adjacent
+to another `\texttt{*}' or `\texttt{.}' character.
+(Thus \texttt{[**/} and \texttt{[../} and \texttt{[.*/} are
+all improper.)
+The rule for matching is as above,
+except that in addition,
+the positions of the `\texttt{*}' and the `\texttt{.}' characters
+must match from the outside in.  (For example, \texttt{[*/./} matches
+\texttt{/./*]}, and \texttt{<*/./} matches
+\texttt{{\char'134}.{\char'134}*>}.)
+
+Note that some of these multicharacter sequences are considered to
+be ASCII shorthand for certain single Unicode characters.  Note also
+that four other multicharacter sequences not covered by the rules
+given here (the matched pair \texttt{(.<} and \texttt{>.)}, and the
+matched pair \texttt{((.>} and \texttt{<.))}) are also considered to
+be ASCII shorthand for certain single Unicode characters.
+See \secref{bracket-pairs}.
+
+
+
+\end{enumerate}
+
+Note that some of the character sequences described above
+cannot occur in programs after ASCII conversion.
+For example,
+``\texttt{||}'' is converted to `$\|$' (U+2016).
+Note also that \txt{[{\char'134}~~{\char'134}]}
+(which are converted to $\bsTP{~~}$) are not operators;
+they play a special role in the syntax of Fortress,
+and their behavior cannot be redefined by a library.
+
+\subsection{Special Operators}
+Note that in the preceding discussion,
+a single operator character can be an operator token
+only if it is an ordinary operator character.
+In some cases,
+some of the special operator characters
+(and even some special non-operator characters)
+form part of an operator token.
+However,
+most of the special operator characters
+cannot be determined to be operators
+before parsing the program
+because they are also used for various parts of Fortress syntax.
+The one exception is `{\char'136}':
+if an occurrence of this character is not part of
+a superscripted postfix operator,
+then it is an operator token by itself:
+the special \emph{superscripting operator}.
+This operator is always an infix operator,
+and it is a static error
+if it appears in a context in which a prefix or postfix operator is expected.
+
+Every other special operator character,
+when not part of an operator token,
+is a special token
+that may be used as an operator.
+There is also a special \KWD{juxtaposition} operator
+(described in \secref{juxtameaning}),
+but this operator is a reserved word
+rather than an operator token.
+Occurrences of this operator are determined by the Fortress grammar.
+The reserved words \KWD{in},
+\TYP{cubed},
+\TYP{cubic},
+\TYP{in},
+\TYP{inverse},
+\TYP{per},
+\TYP{square}, and
+\TYP{squared}, are used as operators on units.
+
+\section{Identifiers}
+\seclabel{lexical-identifiers}
+
+A word is an identifier
+if it begins with a letter or an underscore
+and is not a reserved word, an operator,
+or all or part of a numeral.
+
+\section{Special Tokens}
+\seclabel{special-tokens}
+
+Every special character (operator or non-operator)
+that is not part of a token (or within a comment)
+as described above
+is a \emph{special token} by itself.
+The special operator characters
+may be operators in the appropriate context.
+
+\section{Rendering of Fortress Programs}
+\seclabel{rendering}
+
+In order to more closely approximate mathematical notation,
+Fortress mandates standard rendering for various input elements,
+particularly for numerals and identifiers,
+as specified in this section.
+In the remainder of this specification,
+programs are presented formatted unless stated otherwise.
+
+
+\subsection{Fonts}
+
+Throughout this section,
+we refer to different fonts or styles
+in which certain characters are rendered,
+with names suggestive of their appearance.
+\begin{itemize}
+
+\item
+roman
+
+\item
+italic
+
+\item
+math (often identical to italic)
+
+\item
+script
+
+\item
+fraktur
+
+\item
+sans-serif
+
+\item
+italic sans-serif
+
+\item
+monospace
+
+\item
+double-struck
+
+\end{itemize}
+
+Additionally,
+the following fonts may be specified to be bold:
+roman, italic, script, fraktur, sans-serif, italic sans-serif.
+
+However,
+a particular environment may substitute different fonts
+either because of local practice
+or because the desired fonts are not available.
+
+
+\subsection{Numerals}
+
+\label{numeralsRadix}
+A numeral is rendered in roman type,
+with the radix, if present, as a subscript.
+
+\begin{tabular}{rcl}
+        \txt{27} & \emph{is rendered as} & $27$ \\
+        %% WRONG: \txt{7FFF\_16} & \emph{is rendered as} & \EXP{\mathtt{7FFF}_{16}} \\
+        %% \txt{7FFF\_16} & \emph{is rendered as} & 7FFF$_{16}$ \\
+        \txt{10101101\_TWO} & \emph{is rendered as} & \EXP{{10101101}_{\,\hbox{\small\sc two}}} \\
+        %% WRONG: \txt{37X8E2\_12} & \emph{is rendered as} & \EXP{37X8E2_12} \\
+        %% \txt{37X8E2\_12} & \emph{is rendered as} & 37X8E2$_{12}$ \\
+        %% WRONG: \txt{deadbeef\_SIXTEEN} & \emph{is rendered as} & \EXP{\mathtt{deadbeef}_{\,\hbox{\small\sc sixteen}}} \\
+        %% \txt{deadbeef\_SIXTEEN} & \emph{is rendered as} & deadbeef$_{\hbox{\sc sixteen}}$ \\
+        %% WRONG: \txt{dead.beef\_16} & \emph{is rendered as} & \EXP{\mathtt{dead.beef}_{16}} \\
+        %% \txt{dead.beef\_16} & \emph{is rendered as} & dead.beef$_{16}$ \\
+        \txt{3.143159265} & \emph{is rendered as} & $3.143159265$ \\
+        \txt{3.11037552\_8} & \emph{is rendered as} & \EXP{{3.11037552}_{\,8}} \\
+        %% WRONG: \txt{3.243f6b\_16} & \emph{is rendered as} & \EXP{\mathtt{3.243f6b}_{16}} \\
+        %% \txt{3.243f6b\_16} & \emph{is rendered as} & 3.243f6b$_{16}$ \\
+        \txt{11.001001000011111101101010\_2} & \emph{is rendered as} & \EXP{{11.001001000011111101101010}_{\,2}}
+\end{tabular}
+
+Note: the elegant way to write Avogadro's number is \verb|6.02 TIMES 10^23|,
+which is not a single token but is a constant expression;
+its rendered form is \EXP{6.02 \times 10^{23}}.
+
+
+
+\subsection{Identifiers}
+\seclabel{render-identifiers}
+
+Fortress has rather complicated rules for rendering an identifier;
+as in other parts of Fortress, the rules are complicated so that
+the simple cases will be very simple, but also so that difficult
+cases of interest will be possible.
+
+It is conventional in mathematical notation to make use of variables,
+particularly single-letter variables, in a number of different fonts or styles,
+with italic being the most common, then boldface, and roman:
+\VAR{a}, \EXP{\mathbf{b}}, \EXP{\mathrm{c}}.  Frequently such variables
+are also decorated with accents and subscripts:
+\EXP{\bar{\VAR{p}}}, \EXP{q'}, \EXP{\hat{\VAR{r}}}, \EXP{T_{\mathrm{max}}}, \EXP{\vec{\mathbf{u}}},
+\EXP{\mathbf{v}_{\mathrm{x}}}, \EXP{w_{17}}, \EXP{\bar{\VAR{z}}_{17}'}.
+Fortress provides conventions for typing such variables using
+plain ASCII characters: for example, the unformatted presentations of these same
+variables are \STR{a}, \STR{{\char'137}b}, \STR{c{\char'137}},
+\STR{p{\char'137}bar}, \STR{q'} or \STR{q{\char'137}prime}, \STR{r{\char'137}hat},
+\STR{T{\char'137}max}, \STR{{\char'137}u{\char'137}vec},
+\STR{{\char'137}v{\char'137}x}, \STR{w17},
+and \STR{z17{\char'137}bar'}.  The rules are also intended to accommodate
+the typical use of multicharacter variable names for computer programming,
+such as \VAR{count}, \VAR{isUpperCase}, and \TYP{Boolean}.
+
+The most important rules of thumb are that simple variables are usually italic \VAR{z} (\STR{z}),
+a leading underscore usually means boldface font \EXP{\mathbf{z}} (\STR{{\char'137}z}),
+a trailing underscore usually means roman font \EXP{\mathrm{z}} (\STR{z{\char'137}}),
+and a doubled capital letter means double-struck (or ``blackboard bold'') font \EXP{\mathbb{Z}} (\STR{ZZ}).
+However, mixed-case variable names that begin with a capital letter,
+which are usually used as names of types, are rendered in roman font
+even if there is no trailing underscore.
+
+The detailed rules are described in \secref{rendering-identifiers}.
+
+
+\subsection{Other Rendering Rules}
+
+\label{otherRendering}
+Reserved words are rendered in monospace, except that the reserved words
+that are used as operators on units, namely
+\TYP{cubed},
+\TYP{cubic},
+\TYP{in},
+\TYP{inverse},
+\TYP{per},
+\TYP{square}, and
+\TYP{squared}, are rendered in roman type.
+Operator words are rendered in monospace.
+Comments are rendered in roman font.
+Any character within a character literal or string literal is
+rendered in monospace if possible.
+
+The detailed rules for rendering other constructions
+are described in \secref{rendering-other}.
