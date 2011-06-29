@@ -73,8 +73,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         abstract public String asmName();
     
         abstract public String asmSignature();
-        
-        abstract public boolean isParam();
     }
 
     private static final String CAST_TO = "castTo";
