@@ -33,6 +33,7 @@ public class WellKnownNames {
     }
 
     private static String _compilerLibrary = "CompilerLibrary";
+    private static String _compilerAlgebra = "CompilerAlgebra";
     private static String _compilerBuiltin = com.sun.fortress.runtimeSystem.Naming.COMPILER_BUILTIN;
     private static String _fortressLibrary = "FortressLibrary";
     private static String _fortressBuiltin = "FortressBuiltin";
@@ -74,6 +75,7 @@ public class WellKnownNames {
     public final static String calleeViolationException = "CalleeViolation";
     public final static String labelException = "LabelException";
 
+    public static String compilerAlgebra() { return _compilerAlgebra; }
     public static String fortressLibrary() { return _fortressLibrary; }
     public static String fortressBuiltin() { return _fortressBuiltin; }
     public static String anyTypeLibrary() { return _anyTypeLibrary; }
@@ -103,7 +105,7 @@ public class WellKnownNames {
         // These libraries are processed in order by the GraphRepository, so keep
         // them listed in the order they are.
         _defaultLibrary =
-            new String[] { fortressLibrary(), fortressBuiltin(), anyTypeLibrary() };
+            new String[] { fortressLibrary(), fortressBuiltin(), compilerAlgebra(), anyTypeLibrary() };
     }
 
     public static void useFortressLibraries() {
