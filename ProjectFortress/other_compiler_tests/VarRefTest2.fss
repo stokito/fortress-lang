@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component VarRefTest2
+export Executable
+
+object Bar(x : ZZ32) end
+
+object Foo
+  x: ZZ32 = 42
+end
+
+run(): () = do
+  b = Bar(42)
+  f = Foo
+  if b.x = f.x then println("PASS") else println("FAIL") end
+end
+
+end

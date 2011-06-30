@@ -66,6 +66,14 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     
         abstract public String asmSignature();
     }
+    
+    abstract static public class InitializedInstanceField {
+        abstract public void forInit(MethodVisitor mv);
+    
+        abstract public String asmName();
+    
+        abstract public String asmSignature();
+    }
 
     private static final String CAST_TO = "castTo";
     public static final String TUPLE_TYPED_ELT_PFX = "e";
