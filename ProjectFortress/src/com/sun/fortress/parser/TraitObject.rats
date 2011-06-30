@@ -159,7 +159,7 @@ ObjectDecl ObjectDecl =
      };
 
 /* ObjectHeader ::=
-    object w Id (w StaticParams)? (w ObjectValParam)? (w ExtendsWhere)? FnClauses
+    object w Id (w StaticParams)? (s ObjectValParam)? (w ExtendsWhere)? FnClauses
  */
 private ObjectHeader ObjectHeader =
      <ErrorProduction>
