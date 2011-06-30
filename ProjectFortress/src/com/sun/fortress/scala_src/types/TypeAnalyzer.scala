@@ -109,22 +109,27 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     // case (s,t) if (s==t) => pTrue() // moved up before cache for speed
     case (s: BottomType, _) => pTrue()
     case (s, t: AnyType) => pTrue()
+    
     // Intersection types
     case (s, SIntersectionType(_,ts)) =>
       pAnd(ts.map(pSub(s, _)))
+      
     case (SIntersectionType(_,ss), t) => // Note that t is not an SIntersectionType
       pOr(pOr(Pairs.distinctPairsFrom(ss).map(tt => pExc(tt._1, tt._2))),
           pOr(ss.map(pSub(_, t))))
+
     // Union types
     case (SUnionType(_,ss), t) =>
       pAnd(ss.map(pSub(_, t)))
     case (s, SUnionType(_, ts)) =>
       pOr(ts.map(pSub(s, _)))
+      
     // Inference variables
     case (s: _InferenceVarType, t: _InferenceVarType) =>
       pAnd(pUpperBound(s, t), pLowerBound(t,s))
     case (s: _InferenceVarType, t) => pUpperBound(s,t)
     case (s, t: _InferenceVarType) => pLowerBound(t,s)
+    
     // Type variables
     case (s@SVarType(_, id, _), t) =>
       val hEntry = (negate, true, s, t)
@@ -138,6 +143,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
           pExc(supers, t)(!negate, nHistory)
         else pSub(supers, t)(negate, nHistory)
       }
+      
     // Trait types
     case (s: TraitType, t: TraitType) if (t==OBJECT) => pTrue()
     case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (typeCons(n1)==typeCons(n2)) =>
@@ -148,6 +154,19 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       val par = parents(s)
       // println(s + " has parents " + par)
       pOr(par.map(pSub(_, t)))
+    
+    /* Trait self type.  I think this "removeSelf" is wrong,
+     * because there it is a subtype test -- intersecting in
+     * the comprises clause is pointless.
+     * 
+     * I think, also, that the when a traitselftype matches a traitselftype,
+     * that there needs to be some sort of rebinding going on; if one
+     * basetype is a subtype of the other basetype (under the substitution
+     * made in the extends clauses) then that substitution must be propagated
+     * forward into additional inferences.
+     * 
+     * Or maybe this occurs sooner.
+     */
     case (s: TraitSelfType, t) => pSub(removeSelf(s), t)
     case (t, STraitSelfType(_, named, _)) => pSub(t,removeSelf(named))
     case (s: ObjectExprType, t) => pSub(removeSelf(s), t)
@@ -362,6 +381,21 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
           else NF.makeIntersectionType(t.getNamed,
                NF.makeMaybeUnionType(t.getComprised))
         
+        case t:ObjectExprType => NF.makeMaybeIntersectionType(t.getExtended)
+        case _ => super.walk(y)
+      }
+    }
+    remover(x).asInstanceOf[Type]
+  }
+  /*
+   * For is-subtype queries, it makes no sense to stir in the comprised types;
+   * if this is a subtype, then so are they
+   * (unless they are declared to exclude -- but does that matter?) 
+   */
+  protected def removeSelfAsSubtype(x: Type) = {
+    object remover extends Walker {
+      override def walk(y: Any): Any = y match {
+        case t:TraitSelfType => t.getNamed
         case t:ObjectExprType => NF.makeMaybeIntersectionType(t.getExtended)
         case _ => super.walk(y)
       }
