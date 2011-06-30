@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+component unicodeTest
+
+export Executable
+
+류:ZZ32 ≔ 3
+
+run() = do
+  류 += 5
+  println 류
+end
+
+end

@@ -1,0 +1,116 @@
+\setlength{\unitlength}{0.00083333in}
+%
+\begingroup\makeatletter\ifx\SetFigFont\undefined%
+\gdef\SetFigFont#1#2#3#4#5{%
+  \reset@font\fontsize{#1}{#2pt}%
+  \fontfamily{#3}\fontseries{#4}\fontshape{#5}%
+  \selectfont}%
+\fi\endgroup%
+{\renewcommand{\dashlinestretch}{30}
+\begin{picture}(6286,6000)(0,800)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% CoolCryptoApp.3.0 box
+\path(6162,550)(12,550)(12,5712)
+	(6162,5712)(6162,550)
+\path(12,5412)(6162,5412)
+%% exports of CoolCryptoApp.3.0
+\path(5842,5568)(5992,6093)
+\blacken\thicklines
+\path(6008.483,5932.288)(5992.000,6093.000)(5893.100,5965.255)(6008.483,5932.288)
+\put( 162,5487){\makebox(0,0)[lb]{\TYP{CoolCryptoApp.3.0}}}
+\put(5300,6612){\makebox(0,0)[lb]{\TYP{Fortress.IO}}}
+\put(5112,6387){\makebox(0,0)[lb]{\TYP{Fortress.Crypto}}}
+\put(4962,6162){\makebox(0,0)[lb]{\TYP{Fortress.Security}}}
+
+%% NewSecurity box
+\path(212,3612)(2000,3612)(2000,1462)
+	  (212,1462)( 212,3612)
+\path(212,3312)(2000,3312)
+%% exports of NewSecurity
+\thinlines
+\path(1652,3471)(1802,3996)
+\blacken\thicklines
+\path(1818.483,3835.288)(1802.000,3996.000)(1703.100,3868.255)(1818.483,3835.288)
+\put( 462,3387){\makebox(0,0)[lb]{\TYP{NewSecurity}}}
+\put( 700,4062){\makebox(0,0)[lb]{\TYP{Fortress.Security}}}
+
+%% IOSecurity box
+\path(462,2437)(1737,2437)(1737,1612)
+	  (462,1612)(462,2437)
+\path(1737,2137)(462,2137)
+%% exports of IOSecurity
+\thinlines
+\path(1522,2284)(1672,2809)
+\blacken\thicklines
+\path(1688.483,2648.288)(1672.000,2809.000)(1573.100,2681.255)(1688.483,2648.288)
+\put( 537,2212){\makebox(0,0)[lb]{\TYP{IOSecurity}}}
+%% no fortress.IO
+\path(900,3140)(1800,3140)
+\put(1000,3100){\makebox(0,0)[lb]{\TYP{Fortress.IO}}}
+\put(570,2887){\makebox(0,0)[lb]{\TYP{Fortress.Security}}}
+
+%% Ironlink-upgrade box
+\path(2187,4637)(5862,4637)(5862,1212)
+	(2187,1212)(2187,4637)
+\path(2187,4262)(5862,4262)
+%% imports of IronLink-upgrade
+\thinlines
+\path(3837,837)(3837,1212)
+\blacken\path(3897.000,1062.000)(3837.000,1212.000)(3777.000,1062.000)(3897.000,1062.000)
+%% exports of IronLink-upgrade
+\thinlines
+\path(5562,4412)(5712,4937)
+\blacken\thicklines
+\path(5728.483,4776.288)(5712.000,4937.000)(5613.100,4809.255)(5728.483,4776.288)
+\put(2337,4337){\makebox(0,0)[lb]{\TYP{IronLink-upgrade}}}
+\put(5100,5237){\makebox(0,0)[lb]{\TYP{Fortress.IO}}}
+\put(4800,5012){\makebox(0,0)[lb]{\TYP{Fortress.Crypto}}}
+\put(3000, 687){\makebox(0,0)[lb]{\TYP{Fortress.Security}}}
+
+%% NewIO box
+\path(2350,3612)(4100,3612)(4100,1462)
+	  (2350,1462)(2350,3612)
+\path(2350,3312)(4100,3312)
+%% exports of NewIO
+\thinlines
+\path(3732,3471)(3882,3996)
+\blacken\thicklines
+\path(3898.483,3835.288)(3882.000,3996.000)(3783.100,3868.255)(3898.483,3835.288)
+\put(2500,3387){\makebox(0,0)[lb]{\TYP{NewIO}}}
+\put(3300,4062){\makebox(0,0)[lb]{\TYP{Fortress.IO}}}
+
+%% IOSecurity box
+\path(2562,2437)(3837,2437)(3837,1612)
+	  (2562,1612)(2562,2437)
+\path(3837,2137)(2562,2137)
+%% exports of IOSecurity
+\thinlines
+\path(3622,2284)(3772,2809)
+\blacken\thicklines
+\path(3788.483,2648.288)(3772.000,2809.000)(3673.100,2681.255)(3788.483,2648.288)
+\put(2637,2212){\makebox(0,0)[lb]{\TYP{IOSecurity}}}
+\put(3100,3100){\makebox(0,0)[lb]{\TYP{Fortress.IO}}}
+%% no fortress.Security
+\path(2650,2962)(3850,2962)
+\put(2700,2887){\makebox(0,0)[lb]{\TYP{Fortress.Security}}}
+
+%% IronCrypto box
+\path(4212,3312)(5562,3312)(5562,2487)
+	(4212,2487)(4212,3312)
+\path(4212,3012)(5562,3012)
+%% imports IronCrypto
+\path(4887,2112)(4887,2487)
+\blacken\path(4947.000,2337.000)(4887.000,2487.000)(4827.000,2337.000)(4947.000,2337.000)
+%% exports of IronCrypto
+\thinlines
+\path(5347,3159)(5497,3684)
+\blacken\thicklines
+\path(5513.483,3523.288)(5497.000,3684.000)(5398.100,3556.255)(5513.483,3523.288)
+\put(4300,3087){\makebox(0,0)[lb]{\TYP{IronCrypto}}}
+\put(4600,3762){\makebox(0,0)[lb]{\TYP{Fortress.Crypto}}}
+\put(4587,1962){\makebox(0,0)[lb]{\TYP{Fortress.IO}}}
+\put(4150,1737){\makebox(0,0)[lb]{\TYP{Fortress.Security}}}
+
+\end{picture}
+}

@@ -1,0 +1,36 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Trait.Method.b
+
+export Executable
+
+object T end
+object S end
+e1 = 1
+e2 = 2
+object A
+   f(self, t:T) = e1
+   f(s:S, self) = e2
+end
+h() = do
+a = A
+t = T
+(** EXAMPLE **)
+f(a, t)
+(** END EXAMPLE **)
+end
+
+run() = println h()
+
+end

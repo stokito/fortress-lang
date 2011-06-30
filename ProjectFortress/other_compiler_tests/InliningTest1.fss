@@ -1,0 +1,19 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component InliningTest1
+export Executable
+
+run(): () = do
+   foo = 3 + 2
+   println(foo)
+end
+end

@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ColonOperator
+
+export Executable
+
+f(x: ZZ32[3#2,2#3]) = ()
+
+opr :(left: String, right:String): () = println left ":" right
+
+run() = do
+  println "seq(0#3)"
+  for i <- seq(0#3) do
+    println i
+  end
+  println "seq(0:3)"
+  for i <- seq(0:3) do
+    println i
+  end
+  (fn (x:ZZ32):() => println x) 8
+  x: ZZ32 = 5
+  println 5
+  "left":"right"
+end
+
+end
