@@ -381,8 +381,9 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         staticParameters.addAll(sub_type._1._1)
         staticParameters.addAll(super_type._1._1)
         typeAnalyzer = typeAnalyzer.extend(toListFromImmutable(staticParameters), None)
-        val result = subtype(sub_type._1._2, super_type._1._2) &&
-                     subtype(sub_type._1._3, super_type._1._3)
+        val domain_result = subtype(sub_type._1._2, super_type._1._2)
+        val range_result =  subtype(sub_type._1._3, super_type._1._3)
+        val result = domain_result && range_result
         typeAnalyzer = oldTypeAnalyzer
         result
     }
