@@ -56,6 +56,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   
   private final val debugSubtype = ProjectProperties.getBoolean("fortress.debug.analyzer.subtype", false)
   private final val cacheSubtypes = ProjectProperties.getBoolean("fortress.analyzer.subtype.cache", true)
+  private final val cacheExcludes = ProjectProperties.getBoolean("fortress.analyzer.excludes.cache", true)
+  private final val cacheNormalize = ProjectProperties.getBoolean("fortress.analyzer.normalize.cache", true)
   
   type hType = (Boolean, Boolean, Type, Type)
   implicit val ta: TypeAnalyzer = this
@@ -80,21 +82,20 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   
   protected def nsub(x: Type, y: Type)(implicit history: Set[hType]): CFormula = 
     pSub(x, y)(true, history)
-    
-  private val pSubMemo = new scala.collection.mutable.HashMap[(Type, Type, Boolean), CFormula]()
+
+  private val pSubMemo = new scala.collection.mutable.HashMap[(Type, Type, Boolean, Set[hType]), CFormula]()
     
   protected def pSub(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
-
      if (debugSubtype)
          System.err.println("psub > (" + x + ", " + y + ", " + negate + ")" )
-     val rval =  if (x == y)
-         pTrue()
+     val rval = if (x == y)
+           pTrue()
          else if (cacheSubtypes)
-           pSubMemo.get((x, y, negate)) match {
+           pSubMemo.get((x, y, negate, history)) match {
             case Some(v) => v
             case _ => 
               val result = pSubInner(x,y)
-              pSubMemo += ((x, y, negate) -> result)
+              pSubMemo += ((x, y, negate, history) -> result)
               result
            }
          else pSubInner(x,y)
@@ -105,31 +106,25 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
   protected def pSubInner(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
     (x, y) match {
- 
-    // case (s,t) if (s==t) => pTrue() // moved up before cache for speed
+     // case (s,t) if (s==t) => pTrue() // moved up before cache for speed
     case (s: BottomType, _) => pTrue()
     case (s, t: AnyType) => pTrue()
-    
     // Intersection types
     case (s, SIntersectionType(_,ts)) =>
       pAnd(ts.map(pSub(s, _)))
-      
     case (SIntersectionType(_,ss), t) => // Note that t is not an SIntersectionType
       pOr(pOr(Pairs.distinctPairsFrom(ss).map(tt => pExc(tt._1, tt._2))),
           pOr(ss.map(pSub(_, t))))
-
     // Union types
     case (SUnionType(_,ss), t) =>
       pAnd(ss.map(pSub(_, t)))
     case (s, SUnionType(_, ts)) =>
       pOr(ts.map(pSub(s, _)))
-      
     // Inference variables
     case (s: _InferenceVarType, t: _InferenceVarType) =>
       pAnd(pUpperBound(s, t), pLowerBound(t,s))
     case (s: _InferenceVarType, t) => pUpperBound(s,t)
     case (s, t: _InferenceVarType) => pLowerBound(t,s)
-    
     // Type variables
     case (s@SVarType(_, id, _), t) =>
       val hEntry = (negate, true, s, t)
@@ -143,7 +138,6 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
           pExc(supers, t)(!negate, nHistory)
         else pSub(supers, t)(negate, nHistory)
       }
-      
     // Trait types
     case (s: TraitType, t: TraitType) if (t==OBJECT) => pTrue()
     case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (typeCons(n1)==typeCons(n2)) =>
@@ -154,19 +148,6 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       val par = parents(s)
       // println(s + " has parents " + par)
       pOr(par.map(pSub(_, t)))
-    
-    /* Trait self type.  I think this "removeSelf" is wrong,
-     * because there it is a subtype test -- intersecting in
-     * the comprises clause is pointless.
-     * 
-     * I think, also, that the when a traitselftype matches a traitselftype,
-     * that there needs to be some sort of rebinding going on; if one
-     * basetype is a subtype of the other basetype (under the substitution
-     * made in the extends clauses) then that substitution must be propagated
-     * forward into additional inferences.
-     * 
-     * Or maybe this occurs sooner.
-     */
     case (s: TraitSelfType, t) => pSub(removeSelf(s), t)
     case (t, STraitSelfType(_, named, _)) => pSub(t,removeSelf(named))
     case (s: ObjectExprType, t) => pSub(removeSelf(s), t)
@@ -261,10 +242,27 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   
   def anyExclude(ts: Iterable[Type]):CFormula =
     or(Pairs.distinctPairsFrom(ts).map(tt => excludes(tt._1, tt._2)))
-  
+
+
+  private val pExcMemo = new scala.collection.mutable.HashMap[(Type, Type, Boolean, Set[hType]), CFormula]()
+    
   protected def pExc(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
+     val rval = if (x == y)
+           pFalse()
+         else if (cacheExcludes)
+           pExcMemo.get((x, y, negate, history)) match {
+            case Some(v) => v
+            case _ => 
+              val result = pExcInner(x,y)
+              pExcMemo += ((x, y, negate, history) -> result)
+              result
+           }
+         else pExcInner(x,y)
+     rval
+  }
+
+  protected def pExcInner(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
 	(removeSelf(x), removeSelf(y)) match {
- 
     case (s, t) if (s==t) => pFalse()
     case (s: BottomType, _) => pTrue()
     case (_, t: BottomType) => pTrue()
@@ -403,19 +401,15 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     remover(x).asInstanceOf[Type]
   }
   
+
+  private val normalizeSimpleTraitMemo = new scala.collection.mutable.HashMap[(Id, List[Type]), Any]()
+
   def normalize(x: Type): Type = {
     object normalizer extends Walker {
       override def walk(y: Any): Any = y match {
-        case t@STraitType(_, n, a, _) =>
-          val index = typeCons(n)
-          index match {
-            case ti: TypeAliasIndex =>
-              val params = toListFromImmutable(ti.staticParameters)
-              walk(substitute(a, params, ti.ast.getTypeDef))
-            case _ => super.walk(t)
-          }
+        case t: TraitType => walkSTraitType(t)
         //ToDo: Handle keywords
-        case t:TupleType => super.walk(t) match {
+        case t: TupleType => super.walk(t) match {
           case STupleType(i, e, Some(v: BottomType), k) => STupleType(i, e, None, k)
           case STupleType(i, e, vt, k) if e.contains(bottom) => bottom
           case _ => t
@@ -429,6 +423,30 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
           makeUnionType(normDisjunct(ps))
         case _ => super.walk(y)
       }
+    def walkSTraitType(t: TraitType) = {
+      t match { case STraitType(_, n, a, _) =>
+          if (cacheNormalize && a.forall(s => s.isInstanceOf[TypeArg]))
+	    // For now, no attempt to handle static args other than type args
+            normalizeSimpleTraitMemo.get((n, a.map(s => s.asInstanceOf[TypeArg].getTypeArg))) match {
+              case Some(v) => v
+              case _ =>
+                walkSTraitTypeInner(t, n, a) match {
+                  case result@STraitType(_, _, aa, _) =>
+                     normalizeSimpleTraitMemo += ((n, aa.map(s => s.asInstanceOf[TypeArg].getTypeArg)) -> result)
+                     result
+                }
+            }
+          else walkSTraitTypeInner(t, n, a)
+      }
+    }
+    def walkSTraitTypeInner(t: TraitType, n: Id, a: List[StaticArg]) = {
+      typeCons(n) match {
+	case ti: TypeAliasIndex =>
+	  val params = toListFromImmutable(ti.staticParameters)
+	  walk(substitute(a, params, ti.ast.getTypeDef))
+	case _ => super.walk(t)
+      }
+    }
     }
     normalizer(x).asInstanceOf[Type]
   }

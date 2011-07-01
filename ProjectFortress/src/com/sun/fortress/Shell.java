@@ -1224,6 +1224,7 @@ public final class Shell {
         Phase ph = 
             PhaseOrder.makePhaseOrder(finalPhaseOrder, repository, env, apis, components, lastModified);
         AnalyzeResult result = ph.run();
+        Debug.debug(Debug.Type.FORTRESS, 1, "All phases done");
         return result;
     }
 
