@@ -1,0 +1,31 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component undefinedAbstractMethod
+export Executable
+
+object newKindOfString(me: String) extends String
+    (*
+        We inherit the obligation to provide the getter size, method
+        writeOn(s: WriteStream): (),  opr || (String, String), etc.
+        but fail to do so.  The problem is that the error message
+        is not generated until the missing method is called, and even then,
+        there is no indication of the ilk of the receiver.
+    *)
+
+end newKindOfString
+
+run() = do
+    n = newKindOfString("Hello, World!")
+    println(n)
+end
+
+end

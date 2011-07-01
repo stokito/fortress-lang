@@ -1,0 +1,82 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+ ******************************************************************************)
+
+export Executable
+(* testing overlap and coverage of method signatures and returns *)
+
+trait T
+  getter s():String = "default"
+  m(x:T):T = O
+  m(o1):T
+  m(o2):T
+  m(x:X):T = o1("T.X")
+end
+
+object o1(ss:String) extends T
+  getter s():String = "o1's " ss
+  m(x:o1):T = o1("o1.o1")
+  m(x:o2):T = o1("o1.o2")
+
+end
+object o2(s:String) extends T
+  m(x:o1):T = o1("o2.o1")
+  m(x:o2):T = o1("o2.o2")
+end
+object o3(s:String) extends T
+  m(x:o1):T = o1("o3.o1")
+  m(x:o2):T = o1("o3.o2")
+end
+
+trait U extends T 
+  m(x:o2):T = o1("X.o2")
+end
+
+trait V extends T
+  m(x:o1):T = o1("X.o1")
+end
+
+trait W extends T
+end
+
+trait X extends {U,V}
+end
+
+object O extends {X, W}
+
+end
+
+run() = do
+t1:T = o1("a")
+t2:T = o2("b")
+t3:T = o3("c")
+t:T = O
+
+println(t1.m(t1).s)
+println(t1.m(t2).s)
+println(t1.m(t3).s)
+println(t1.m(t).s)
+
+println(t2.m(t1).s)
+println(t2.m(t2).s)
+println(t2.m(t3).s)
+println(t2.m(t).s)
+
+println(t3.m(t1).s)
+println(t3.m(t2).s)
+println(t3.m(t3).s)
+println(t3.m(t).s)
+
+println(t.m(t1).s)
+println(t.m(t2).s)
+println(t.m(t3).s)
+println(t.m(t).s)
+
+
+end
+

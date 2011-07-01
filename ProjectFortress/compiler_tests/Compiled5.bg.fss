@@ -1,0 +1,18 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+  trait foo
+    doIt():String = "blah"
+  end
+  object bar extends foo
+  end
+  run():() = ignore(bar.doIt())

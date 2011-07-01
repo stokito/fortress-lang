@@ -1,0 +1,112 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component objectCC_staticParams
+export Executable
+
+trait T[\X\]
+    x():ZZ32
+    y():ZZ32
+    z():Boolean
+    a():X
+end
+
+trait Y
+    getX():String
+    getS():String
+    getZ():ZZ32
+end
+
+object O[\X extends String, bool b, nat n\](var v:ZZ32, s:X)
+    foo():ZZ32 = 3
+    (* After we move checking of method calls to be after
+       type inference, remove the explicit return type T. *)
+    bar():T[\X\] = object extends T[\X\]
+                x():ZZ32 = foo()
+                y():ZZ32 = quack()
+                z():ZZ32 = do
+                    o = O[\X, b, 3\](v, s)
+                    if b then n else (n-1) end
+                end
+                a():X = s
+            end
+    quack():ZZ32 = self.v
+    name():X = s
+end
+
+(* Referring to var with static type param, when the static type is not
+   explitictly referred in object expression body; if the closure conversion
+   works correctly, the unparse output should type check *)
+object O2[\X extends String, Z, ZObj extends Z\](var v:ZZ32, s:X, s2:ZObj)
+    foo():ZZ32 = 3
+    bar():T[\X\] = object extends T[\X\]
+                x():ZZ32 = foo()
+                y():ZZ32 = quack()
+                z() = s2
+                a():X = s
+            end
+    quack():ZZ32 = self.v
+    name():X = s
+end
+
+(* Nested FnDecls within the object decl which declares more static params *)
+(* Local functions with generatics are not supported at the moment;
+   remove the comments when they are.
+object O3[\X extends String, S extends String\](x:X, s:S)
+    foo[\Z1 extends ZZ32\](z1:Z1):Y = object extends Y
+        getX():String = x
+        getS():String = s
+        getZ():ZZ32 = z1
+        end
+end *)
+
+(* Nested FnDecls within the object decl which declares more static params *)
+(* Local functions with generatics are not supported at the moment;
+   remove the comments when they are.
+object O4[\X extends String, S extends String\](x:X, s:S)
+    foo[\Z1 extends ZZ32\](z1:Z1):Y = do
+        nested[\Z2 extends ZZ32\](z2:Z2):Y = object extends Y
+            getX():String = x
+            getS():String = s
+            getZ():ZZ32 = z1 + z2
+            end
+        nested[\ZZ32\](3)
+        end
+end *)
+
+run():() = do
+    o1:O[\String, true, 7\] = O[\String, true, 7\](4, "Hello");
+    o1.v := o1.v + 1
+    t:T[\String\] = o1.bar()
+    assert( o1.foo(), t.x(), "t.x() failed." )
+    assert( o1.quack(), t.y(), "t.y() failed." )
+    assert( 7, t.z(), "t.z() failed." )
+    assert( o1.s, t.a(), "t.a() failed." )
+
+(* Local functions with generatics are not supported at the moment;
+   remove the comments when they are.
+
+    o3:O3[\String, String\] = O3[\String, String\]("str1", "str2")
+    y1:Y = o3.foo[\ZZ32\](7)
+
+    assert( y1.getX(), "str1", "y1.getX() failed." )
+    assert( y1.getS(), "str2", "y1.getS() failed." )
+    assert( y1.getZ(), 7, "y1.getZ() failed." )
+
+    o4:O4[\String, String\] = O4[\String, String\]("str3", "str4")
+    y2:Y = o4.foo[\ZZ32\](7)
+
+    assert( y2.getX(), "str1", "y2.getX() failed." )
+    assert( y2.getS(), "str2", "y2.getS() failed." )
+    assert( y2.getZ(), 10, "y2.getZ() failed." ) *)
+end
+
+end
