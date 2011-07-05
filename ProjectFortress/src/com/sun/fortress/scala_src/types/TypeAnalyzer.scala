@@ -57,7 +57,11 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   private final val debugSubtype = ProjectProperties.getBoolean("fortress.debug.analyzer.subtype", false)
   private final val cacheSubtypes = ProjectProperties.getBoolean("fortress.analyzer.subtype.cache", true)
   private final val cacheExcludes = ProjectProperties.getBoolean("fortress.analyzer.excludes.cache", true)
-  private final val cacheNormalize = ProjectProperties.getBoolean("fortress.analyzer.normalize.cache", true)
+  private final val cacheNormalizeTrait = ProjectProperties.getBoolean("fortress.analyzer.normalize.trait.cache", true)
+  private final val cacheNormalizeVar = ProjectProperties.getBoolean("fortress.analyzer.normalize.var.cache", true)
+  private final val cacheNormalizeTuple = ProjectProperties.getBoolean("fortress.analyzer.normalize.tuple.cache", true)
+  private final val cacheNormalizeArrow = ProjectProperties.getBoolean("fortress.analyzer.normalize.arrow.cache", true)
+  private final val cacheNormalizeOther = ProjectProperties.getBoolean("fortress.analyzer.normalize.Other.cache", true)
   
   type hType = (Boolean, Boolean, Type, Type)
   implicit val ta: TypeAnalyzer = this
@@ -402,52 +406,126 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   }
   
 
-  private val normalizeSimpleTraitMemo = new scala.collection.mutable.HashMap[(Id, List[Type]), Any]()
+  private val normalizeVarTypeMemo = new scala.collection.mutable.HashMap[Id, Any]()
+  private val normalizeTraitTypeMemo = new scala.collection.mutable.HashMap[(Id, List[Type]), Any]()
+  private val normalizeTupleTypeMemo = new scala.collection.mutable.HashMap[(List[Type], Option[Type]), Any]()
+  private val normalizeArrowTypeMemo = new scala.collection.mutable.HashMap[(Type, Type, Effect, Boolean), Any]()
+  private val normalizeOtherTypeMemo = new scala.collection.mutable.HashMap[Any, Any]()
 
   def normalize(x: Type): Type = {
     object normalizer extends Walker {
       override def walk(y: Any): Any = y match {
-        case t: TraitType => walkSTraitType(t)
+        case t: VarType => walkVarType(t)
+        case t: TraitType => walkTraitType(t)
+        case t: TupleType => walkTupleType(t)
+        case t: ArrowType => walkArrowType(t)
+        case _ => walkOtherType(y)
+      }
+      def walkVarType(t: VarType) = {
+	t match { case SVarType(_, n, _) =>
+	    if (cacheNormalizeVar)
+	      normalizeVarTypeMemo.get(n) match {
+		case Some(v) => v
+		case _ =>
+		  val result = walkVarTypeInner(t, n)
+		  normalizeVarTypeMemo += (n -> result)
+		  result
+	      }
+	    else walkVarTypeInner(t, n)
+	}
+      }
+      def walkVarTypeInner(t: VarType, n: Id) = super.walk(t)
+      def walkTraitType(t: TraitType) = {
+	t match { case STraitType(_, n, a, _) =>
+	    if (cacheNormalizeTrait && a.forall(s => s.isInstanceOf[TypeArg])) {
+	      // For now, no attempt to handle static args other than type args
+              val args = a.map(s => s.asInstanceOf[TypeArg].getTypeArg)
+	      normalizeTraitTypeMemo.get((n, args)) match {
+		case Some(v) => v
+		case _ =>
+		  walkTraitTypeInner(t, n, a) match {
+		    case result@STraitType(_, _, aa, _) =>
+		       normalizeTraitTypeMemo += ((n, args) -> result)
+		       normalizeTraitTypeMemo += ((n, aa.map(s => s.asInstanceOf[TypeArg].getTypeArg)) -> result)
+		       result
+		  }
+	      }
+            }
+	    else walkTraitTypeInner(t, n, a)
+	}
+      }
+      def walkTraitTypeInner(t: TraitType, n: Id, a: List[StaticArg]) = {
+	typeCons(n) match {
+	  case ti: TypeAliasIndex =>
+	    val params = toListFromImmutable(ti.staticParameters)
+	    walk(substitute(a, params, ti.ast.getTypeDef))
+	  case _ => super.walk(t)
+	}
+      }
+      def walkTupleType(t: TupleType) = {
+	if (cacheNormalizeTuple)
+	  t match { case STupleType(_, e, vt, _) =>
+	      normalizeTupleTypeMemo.get((e, vt)) match {
+		case Some(v) => v
+		case _ =>
+		  walkTupleTypeInner(t) match {
+                    case result@STupleType(_, ee, vtx, _) =>
+		      normalizeTupleTypeMemo += ((e, vt) -> result)
+		      normalizeTupleTypeMemo += ((ee, vtx) -> result)
+		      result
+                  }
+              }
+	  }
+        else walkTupleTypeInner(t)
+      }
+      def walkTupleTypeInner(t: TupleType) = {
         //ToDo: Handle keywords
-        case t: TupleType => super.walk(t) match {
+        super.walk(t) match {
           case STupleType(i, e, Some(v: BottomType), k) => STupleType(i, e, None, k)
           case STupleType(i, e, vt, k) if e.contains(bottom) => bottom
           case _ => t
         }
+      }
+      def walkArrowType(t: ArrowType) = {
+	if (cacheNormalizeArrow)
+	  t match { case SArrowType(_, d, r, e, i, _) =>
+	      normalizeArrowTypeMemo.get((d, r, e, i)) match {
+		case Some(v) => v
+		case _ =>
+		  walkArrowTypeInner(t) match {
+                    case result@SArrowType(_, dd, rr, ee, ii, _) =>
+		      normalizeArrowTypeMemo += ((d, r, e, i) -> result)
+		      normalizeArrowTypeMemo += ((dd, rr, ee, ii) -> result)
+		      result
+                  }
+              }
+	  }
+        else walkArrowTypeInner(t)
+      }
+      def walkArrowTypeInner(t: ArrowType) = super.walk(t)
+      def walkOtherType(t: Any) = {
+	if (cacheNormalizeOther)
+	  normalizeOtherTypeMemo.get(t) match {
+	    case Some(v) => v
+	    case _ =>
+	      val result = walkOtherTypeInner(t)
+              normalizeOtherTypeMemo += (t -> result)
+              result
+	  }
+        else walkOtherTypeInner(t)
+      }
+      def walkOtherTypeInner(t: Any) = t match {
         case u@SUnionType(_, e) =>
-          val ps = e.flatMap(y => disjuncts(walk(y).asInstanceOf[Type]))
+          val ps = e.flatMap(t => disjuncts(walk(t).asInstanceOf[Type]))
           makeUnionType(normDisjunct(ps))
-        case i@SIntersectionType(info, e) =>
-          val sop = cross(e.map(y => disjuncts(walk(y).asInstanceOf[Type])))
-          val ps = sop.map(y => makeIntersectionType(normConjunct(y.flatMap(disjuncts))))
+        case i@SIntersectionType(_, e) =>
+          val sop = cross(e.map(t => disjuncts(walk(t).asInstanceOf[Type])))
+          val ps = sop.map(t => makeIntersectionType(normConjunct(t.flatMap(disjuncts))))
           makeUnionType(normDisjunct(ps))
-        case _ => super.walk(y)
-      }
-    def walkSTraitType(t: TraitType) = {
-      t match { case STraitType(_, n, a, _) =>
-          if (cacheNormalize && a.forall(s => s.isInstanceOf[TypeArg]))
-	    // For now, no attempt to handle static args other than type args
-            normalizeSimpleTraitMemo.get((n, a.map(s => s.asInstanceOf[TypeArg].getTypeArg))) match {
-              case Some(v) => v
-              case _ =>
-                walkSTraitTypeInner(t, n, a) match {
-                  case result@STraitType(_, _, aa, _) =>
-                     normalizeSimpleTraitMemo += ((n, aa.map(s => s.asInstanceOf[TypeArg].getTypeArg)) -> result)
-                     result
-                }
-            }
-          else walkSTraitTypeInner(t, n, a)
+        case _ => super.walk(t)
       }
     }
-    def walkSTraitTypeInner(t: TraitType, n: Id, a: List[StaticArg]) = {
-      typeCons(n) match {
-	case ti: TypeAliasIndex =>
-	  val params = toListFromImmutable(ti.staticParameters)
-	  walk(substitute(a, params, ti.ast.getTypeDef))
-	case _ => super.walk(t)
-      }
-    }
-    }
+    // Here's the body: walk the type, and make sure it's a type when finished
     normalizer(x).asInstanceOf[Type]
   }
 
