@@ -238,10 +238,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     ArrayList<String> sargs = new ArrayList<String>();
                     String template_name = functionTemplateName(dename, sargs);
                     byte[] templateClassData = readResource(template_name);
-                    Naming.XlationData pslpss =
+                    Naming.XlationData xldata =
                         Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
                     
-                    List<String> xl = pslpss.staticParameterNames();
+                    List<String> xl = xldata.staticParameterNames();
                    
                     Map<String, String> xlation  = Useful.map(xl, sargs);
                     ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
@@ -286,10 +286,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         ArrayList<String> sargs = new ArrayList<String>();
                         String template_name = genericTemplateName(dename, sargs); // empty sargs
                         byte[] templateClassData = readResource(template_name);
-                        Naming.XlationData pslpss =
+                        Naming.XlationData xldata =
                             Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
                         
-                        List<String> xl = pslpss.staticParameterNames();
+                        List<String> xl = xldata.staticParameterNames();
                         Map<String, String> xlation = Useful.map(xl, sargs);
                         ManglingClassWriter cw =
                             new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
@@ -2178,12 +2178,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     Naming.XlationData xlationForGeneric(String t) {
         String template_name = genericTemplateName(t, null);
 
-        Naming.XlationData pslpss = stemToXlation.get(template_name);
+        Naming.XlationData xldata = stemToXlation.get(template_name);
         
-        if (pslpss != null) return pslpss;
+        if (xldata != null) return xldata;
         
         try {
-            pslpss =
+            xldata =
                 Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
         } catch (VersionMismatch e) {
             throw new Error("Read stale serialized data for " + template_name + ", recommend you delete the Fortress bytecode cache and relink", e);
@@ -2193,11 +2193,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         synchronized(stemToXlation) {
             if (stemToXlation.get(template_name) == null) {
-                stemToXlation.put(template_name, pslpss);
+                stemToXlation.put(template_name, xldata);
             }
         }
         
-        return pslpss;
+        return xldata;
 
     }
 

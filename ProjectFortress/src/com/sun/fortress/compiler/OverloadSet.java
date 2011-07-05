@@ -1318,16 +1318,16 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             System.err.println("Emitting overload " + _name + signature);
 
         String PCNOuter = null;
-        Naming.XlationData pslpss = null; 
+        Naming.XlationData xldata = null; 
         String overloaded_name = oMangle(_name);
         
         ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
         
         if (sargs != null) {
             // Map<String, String> xlation = new HashMap<String, String>();
-            pslpss = CodeGen.xlationData(Naming.FUNCTION_GENERIC_TAG);
+            xldata = CodeGen.xlationData(Naming.FUNCTION_GENERIC_TAG);
                         
-            String sparamsType = NamingCzar.genericDecoration(sargs, pslpss, ifNone);
+            String sparamsType = NamingCzar.genericDecoration(sargs, xldata, ifNone);
             // TODO: which signature is which?  One needs to not have generics info in it.
             String genericArrowType =
                 NamingCzar.makeArrowDescriptor(ifNone, overloadedDomain(), getRange());
@@ -1380,7 +1380,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         
         if (PCNOuter != null) {
             InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cv);
-            cv.dumpClass(PCNOuter, pslpss);
+            cv.dumpClass(PCNOuter, xldata);
         }
     }
 
@@ -1604,7 +1604,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 System.err.println("Emitting overloaded method " + _name + signature);
 
             String PCNOuter = null;
-            Naming.XlationData pslpss = null; 
+            Naming.XlationData xldata = null; 
             String overloaded_name = oMangle(_name);
             
             ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
@@ -1619,7 +1619,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             
             if (PCNOuter != null) {
                 InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cv);
-                cv.dumpClass(PCNOuter, pslpss);
+                cv.dumpClass(PCNOuter, xldata);
             }
         }
     }
