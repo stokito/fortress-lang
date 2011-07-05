@@ -67,7 +67,7 @@ public class Naming {
         }
     }
 
-    public final static
+    private final static
     
     CheapSerializer.PAIR<
         String,
@@ -110,7 +110,7 @@ public class Naming {
                         new Pair.GetB<String, String>());
             return xl;
         }
-        public XlationData setA(String tag) {
+        public XlationData setTraitObjectTag(String tag) {
             data.setA(tag);
             return this;
         }

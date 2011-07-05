@@ -1708,14 +1708,14 @@ public class NamingCzar {
      * @return
      */
     public static String genericDecoration(List<StaticParam> sparams,
-            Naming.XlationData pslpss,
+            Naming.XlationData xldata,
             APIName ifMissing
             ) {
-        return genericDecoration(null, sparams, pslpss, ifMissing);
+        return genericDecoration(null, sparams, xldata, ifMissing);
     }
     
     public static String genericDecoration(com.sun.fortress.nodes.Type receiverType, List<StaticParam> sparams,
-            Naming.XlationData pslpss,
+            Naming.XlationData xldata,
             APIName ifMissing
             ) {
         if (sparams.size() == 0)
@@ -1728,8 +1728,8 @@ public class NamingCzar {
         buf.append(frag);
         if (receiverType != null) {
             Pair<String, String> s = receiverType.accept(spkTagger);
-            if (pslpss != null)
-                pslpss.addSortAndValueToStaticParams(s);
+            if (xldata != null)
+                xldata.addSortAndValueToStaticParams(s);
             buf.append(s.getB() + ";");
         }
         for (StaticParam sp : sparams) {
@@ -1738,8 +1738,8 @@ public class NamingCzar {
             
             IdOrOp spn = sp.getName();
             String s = spn.getText();
-            if (pslpss != null)
-                pslpss.addSortAndValueToStaticParams(k,s);
+            if (xldata != null)
+                xldata.addSortAndValueToStaticParams(k,s);
             buf.append(s + ";");
         }
         frag = buf.toString();

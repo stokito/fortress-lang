@@ -184,9 +184,9 @@ public class MethodInstantiater implements MethodVisitor {
                 if (new_owner.contains(Naming.LEFT_OXFORD)) {
                     if (! new_owner.startsWith(InstantiatingClassloader.ARROW_OX) &&
                         ! new_owner.startsWith(InstantiatingClassloader.TUPLE_OX)   ) {
-                        Naming.XlationData pslpss =
+                        Naming.XlationData xldata =
                             icl.xlationForGeneric(new_owner);
-                        String stem_sort = pslpss.first();
+                        String stem_sort = xldata.first();
                         if (stem_sort.equals(Naming.OBJECT_GENERIC_TAG))
                             opcode = Opcodes.INVOKEVIRTUAL;
                         else {
