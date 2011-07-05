@@ -127,8 +127,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     private final Vector<String> history = new Vector<String>();
 
-    private final Hashtable<String, Pair<String, List<Pair<String, String>>>>
-       stemToXlation = new Hashtable<String, Pair<String, List<Pair<String, String>>>>();
+    private final Hashtable<String,  Naming.XlationData>
+       stemToXlation = new Hashtable<String, Naming.XlationData>();
     
     private InstantiatingClassloader() {
         throw new Error(); // Really do not call this.
@@ -238,10 +238,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     ArrayList<String> sargs = new ArrayList<String>();
                     String template_name = functionTemplateName(dename, sargs);
                     byte[] templateClassData = readResource(template_name);
-                    Pair<String, List<Pair<String, String>>> pslpss =
-                        Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
+                    Naming.XlationData pslpss =
+                        Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
                     
-                    List<String> xl = extractStaticParameterNames(pslpss);
+                    List<String> xl = pslpss.staticParameterNames();
                    
                     Map<String, String> xlation  = Useful.map(xl, sargs);
                     ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
@@ -286,10 +286,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         ArrayList<String> sargs = new ArrayList<String>();
                         String template_name = genericTemplateName(dename, sargs); // empty sargs
                         byte[] templateClassData = readResource(template_name);
-                        Pair<String, List<Pair<String, String>>> pslpss =
-                            Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
+                        Naming.XlationData pslpss =
+                            Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
                         
-                        List<String> xl = extractStaticParameterNames(pslpss);
+                        List<String> xl = pslpss.staticParameterNames();
                         Map<String, String> xlation = Useful.map(xl, sargs);
                         ManglingClassWriter cw =
                             new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
@@ -350,19 +350,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         }
 
         return clazz;
-    }
-
-    /**
-     * @param pslpss
-     * @return
-     */
-    public static List<String> extractStaticParameterNames(
-            Pair<String, List<Pair<String, String>>> pslpss) {
-        List<String> xl =
-            new ProjectedList<Pair<String, String>, String>(
-                    pslpss.getB(),
-                    new Pair.GetB<String, String>());
-        return xl;
     }
 
     private String functionTemplateName(String name, ArrayList<String> sargs) {
@@ -2188,16 +2175,16 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return (left != -1 && right != -1 && left < right);
     }
     
-    Pair<String, List<Pair<String, String>>> xlationForGeneric(String t) {
+    Naming.XlationData xlationForGeneric(String t) {
         String template_name = genericTemplateName(t, null);
 
-        Pair<String, List<Pair<String, String>>> pslpss = stemToXlation.get(template_name);
+        Naming.XlationData pslpss = stemToXlation.get(template_name);
         
         if (pslpss != null) return pslpss;
         
         try {
             pslpss =
-                Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
+                Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
         } catch (VersionMismatch e) {
             throw new Error("Read stale serialized data for " + template_name + ", recommend you delete the Fortress bytecode cache and relink", e);
         } catch (IOException e) {

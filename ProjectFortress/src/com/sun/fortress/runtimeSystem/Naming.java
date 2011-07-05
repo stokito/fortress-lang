@@ -14,6 +14,7 @@ package com.sun.fortress.runtimeSystem;
  * is used as part of the runtime system.  There's some refactoring of single
  * sources for important names, that still has to be moved into here.
  */
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,8 @@ import org.objectweb.asm.Type;
 
 import com.sun.fortress.useful.CheapSerializer;
 import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.ProjectedList;
+import com.sun.fortress.useful.VersionMismatch;
 
 public class Naming {
     
@@ -79,6 +82,49 @@ public class Naming {
                             )
                     )
         ;
+    
+    public final static class XlationData {
+        Pair<String, List<Pair<String, String>>> data;
+        
+        public XlationData(String tag) {
+            data = new Pair<String, List<Pair<String, String>>>(tag,
+                    new ArrayList<Pair<String, String>>());
+        }
+        
+        private XlationData(byte[] bytes)  throws VersionMismatch {
+            data = xlationSerializer.fromBytes(bytes);
+        }
+        
+        static public XlationData fromBytes(byte[] bytes) throws VersionMismatch {
+            return new XlationData(bytes);
+        }
+        
+        public byte[] toBytes() {
+            return Naming.xlationSerializer.toBytes(data);
+        }
+        
+        public List<String> staticParameterNames() {
+            List<String> xl =
+                new ProjectedList<Pair<String, String>, String>(
+                        data.getB(),
+                        new Pair.GetB<String, String>());
+            return xl;
+        }
+        public XlationData setA(String tag) {
+            data.setA(tag);
+            return this;
+        }
+        public String first() {
+            return data.first();
+        }
+        
+        public void addSortAndValueToStaticParams(Pair<String, String> p) {
+            data.getB().add(p);
+        }
+        public void addSortAndValueToStaticParams(String sort, String value) {
+            data.getB().add(new Pair<String, String>(sort, value));
+        }
+    }
 
     /* 
      * Refactoring note, there may be other defs of these names, that should
