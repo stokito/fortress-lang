@@ -93,9 +93,9 @@ public class CodeGenClassWriter extends ManglingClassWriter {
         dumpClass1();
     }
 
-    public void dumpClass( String unmangledFileName, Pair<String,List<Pair<String, String>>> splist) {
+    public void dumpClass( String unmangledFileName, Naming.XlationData splist) {
         String file = dumpClass0( unmangledFileName );
-        ByteCodeWriter.writeJarredFile(jos, file, "xlation", Naming.xlationSerializer.toBytes(splist));
+        ByteCodeWriter.writeJarredFile(jos, file, "xlation", splist.toBytes());
         Debug.debug(Debug.Type.CODEGEN,1,"Wrote generic class ", file);
         dumpClass1();
     }

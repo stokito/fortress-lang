@@ -1318,7 +1318,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             System.err.println("Emitting overload " + _name + signature);
 
         String PCNOuter = null;
-        Pair<String, List<Pair<String, String>>> pslpss = null; 
+        Naming.XlationData pslpss = null; 
         String overloaded_name = oMangle(_name);
         
         ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
@@ -1604,7 +1604,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 System.err.println("Emitting overloaded method " + _name + signature);
 
             String PCNOuter = null;
-            Pair<String, List<Pair<String, String>>> pslpss = null; 
+            Naming.XlationData pslpss = null; 
             String overloaded_name = oMangle(_name);
             
             ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();

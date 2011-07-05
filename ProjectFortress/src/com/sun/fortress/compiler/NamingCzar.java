@@ -1708,30 +1708,28 @@ public class NamingCzar {
      * @return
      */
     public static String genericDecoration(List<StaticParam> sparams,
-            Pair<String, List<Pair<String, String>>> pslpss,
+            Naming.XlationData pslpss,
             APIName ifMissing
             ) {
         return genericDecoration(null, sparams, pslpss, ifMissing);
     }
     
     public static String genericDecoration(com.sun.fortress.nodes.Type receiverType, List<StaticParam> sparams,
-            Pair<String, List<Pair<String, String>>> pslpss,
+            Naming.XlationData pslpss,
             APIName ifMissing
             ) {
         if (sparams.size() == 0)
             return "";
 
         NodeAbstractVisitor<Pair<String,String>> spkTagger = spkTagger(ifMissing);
-
-        List<Pair<String, String>> splist = pslpss == null ? null : pslpss.getB();
         
         String frag = Naming.LEFT_OXFORD;
         StringBuilder buf = new StringBuilder();
         buf.append(frag);
         if (receiverType != null) {
             Pair<String, String> s = receiverType.accept(spkTagger);
-            if (splist != null)
-                splist.add(s);
+            if (pslpss != null)
+                pslpss.addSortAndValueToStaticParams(s);
             buf.append(s.getB() + ";");
         }
         for (StaticParam sp : sparams) {
@@ -1740,8 +1738,8 @@ public class NamingCzar {
             
             IdOrOp spn = sp.getName();
             String s = spn.getText();
-            if (splist != null)
-                splist.add(p(k,s));
+            if (pslpss != null)
+                pslpss.addSortAndValueToStaticParams(k,s);
             buf.append(s + ";");
         }
         frag = buf.toString();

@@ -1545,7 +1545,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * circumstances.
          */
 
-        Pair<String, List<Pair<String, String>>> pslpss = 
+        Naming.XlationData pslpss = 
             xlationData(Naming.FUNCTION_GENERIC_TAG);
 
         String sparams_part = genericDecoration(x, pslpss);
@@ -2381,7 +2381,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
 
-    private String genericDecoration(FnDecl x, Pair<String, List<Pair<String, String>>> pslpss) {
+    private String genericDecoration(FnDecl x, Naming.XlationData pslpss) {
         List<StaticParam> sparams = x.getHeader().getStaticParams();
         return NamingCzar.genericDecoration(sparams, pslpss, thisApi());
     }
@@ -2458,7 +2458,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              * Step 3: call the appropriate, returned, closure.
              */
             
-            Pair<String, List<Pair<String, String>>> pslpss = 
+            Naming.XlationData pslpss = 
                 xlationData(Naming.FUNCTION_GENERIC_TAG);
             
             String sparams_part = NamingCzar.genericDecoration(f_method_static_params,
@@ -2580,7 +2580,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         } else {
 
-            Pair<String, List<Pair<String, String>>> pslpss = 
+            Naming.XlationData pslpss = 
                 xlationData(Naming.FUNCTION_GENERIC_TAG);
             
             String sparams_part = NamingCzar.genericDecoration(trait_sparams,
@@ -2616,7 +2616,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void functionalMethodOfGenericTraitObjectWrapper(String mname,
             String sparams_part, String sig, String generic_arrow_type,
             int invocation, String dottedName, int selfIndex,
-            List<Param> params, int modifiers, Pair<String, List<Pair<String, String>>> pslpss) {
+            List<Param> params, int modifiers, Naming.XlationData pslpss) {
         String PCN =
             Naming.genericFunctionPkgClass(packageAndClassName, mname,
                                                sparams_part, generic_arrow_type);
@@ -3254,7 +3254,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         final List<StaticParam> original_static_params = header.getStaticParams();
         Option<List<Param>> original_params = NodeUtil.getParams(x);
         
-        Pair<String, List<Pair<String, String>>> pslpss = 
+        Naming.XlationData pslpss = 
             xlationData(Naming.OBJECT_GENERIC_TAG);
         
         final String sparams_part = NamingCzar.genericDecoration(original_static_params, pslpss, thisApi());
@@ -4094,7 +4094,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<String> splist = new ArrayList<String>();
         List<StaticParam> original_static_params = header.getStaticParams();
         
-        Pair<String, List<Pair<String, String>>> pslpss = 
+        Naming.XlationData pslpss = 
             xlationData(Naming.TRAIT_GENERIC_TAG);
 
         String sparams_part = NamingCzar.genericDecoration(original_static_params, pslpss, thisApi());
@@ -5547,10 +5547,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitEnd();
     }
     
-    public static Pair<String, List<Pair<String, String>>> xlationData(String tag) {
+    public static Naming.XlationData xlationData(String tag) {
         return
-            new Pair<String, List<Pair<String, String>>>(tag,
-                    new ArrayList<Pair<String, String>>());
+            new Naming.XlationData(tag);
     }
 
     /**
