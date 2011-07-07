@@ -473,6 +473,9 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 		      normalizeTupleTypeMemo += ((e, vt) -> result)
 		      normalizeTupleTypeMemo += ((ee, vtx) -> result)
 		      result
+                    case b:BottomType =>
+                      normalizeTupleTypeMemo += ((e, vt) -> bottom)
+                      bottom
                   }
               }
 	  }
