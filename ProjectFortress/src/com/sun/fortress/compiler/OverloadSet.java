@@ -1596,7 +1596,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             
             if (sargs != null) {
                 // Not yet prepared for overloaded GENERIC methods!
-                throw new CompilerError("Not yet ready for overloaded generic methods " + this);
+                throw new CompilerError("Not yet ready for overloaded generic methods:\n" + this);
 
             }
 
