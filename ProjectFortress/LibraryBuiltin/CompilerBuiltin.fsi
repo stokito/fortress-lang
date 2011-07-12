@@ -15,11 +15,9 @@ import AnyType.{Any}
 
 trait Object extends Any
     getter asString(): String
+    getter asExprString(): String
+    getter asDebugString(): String
 end Object
-
-(*)     getter asExprString(): String
-(*)     getter asDebugString(): String
-
 
 nanoTime(): RR64
 
@@ -27,7 +25,6 @@ trait String
 (*)    coerce(n: ZZ32) 
 (*)    coerce(n: ZZ64) 
     getter isEmpty(): Boolean
-    getter asString(): String
     opr <(self, b:String): Boolean
     opr =(self, b: String): Boolean
     opr |self| : ZZ32
@@ -49,9 +46,9 @@ println(x:ZZ32):()
 println(x:ZZ64):()
 (*) println(x:RR32):()
 println(x:RR64):()
-(*) println[\A,B\](x: (A,B)):()
-(*) println[\A,B,C\](x: (A,B,C)):()
-(*) println[\A,B,C,D\](x: (A,B,C,D)):()
+(*) println(x: (Any, Any)):()
+(*) println(x: (Any, Any, Any)):()
+(*) println(x: (Any, Any, Any, Any)):()
 (*) println[\A,B,C,D,E\](x: (A,B,C,D,E)):()
 (*) println[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):()
 (*) println[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):()
@@ -75,14 +72,12 @@ errorPrintln(x:RR64):()
 strToInt(s:String):ZZ32
 
 trait Number excludes { String }
-    abstract getter asString(): String
 end
 
 trait ZZ64 extends Number excludes RR64
     coerce(x: IntLiteral)
     coerce(x: ZZ32) 
     getter asZZ32(): ZZ32 
-    getter asString(): String 
     opr |self| : ZZ64
     opr -(self): ZZ64
     opr +(self, other:ZZ64): ZZ64
@@ -100,7 +95,6 @@ end
 trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
     coerce(x: IntLiteral)
     getter asZZ32(): ZZ32
-    getter asString(): String
     opr |self| : ZZ32
     opr -(self): ZZ32
     opr +(self, other:ZZ32): ZZ32
@@ -129,7 +123,6 @@ end
 trait RR64 extends Number excludes ZZ64
     coerce(x: FloatLiteral)
     coerce(x: RR32)
-    getter asString(): String
     opr |self| : RR64
     opr -(self): RR64
     opr +(self, other:RR64): RR64
@@ -160,8 +153,6 @@ trait Boolean   extends { Equality[\Boolean\] }
     excludes { String, Number } 
   getter holds(): Boolean
   getter get(): ()
-  getter asString(): String
-  getter asExprString(): String
   getter size(): ZZ32
   opr |self| : ZZ32
 
@@ -188,8 +179,6 @@ false: Boolean
 makeCharacter(n: ZZ32): Character
 
 trait Character excludes { String, Number, Boolean } 
-    getter asString() : String
-    getter asExprString() : String
     getter codePoint(): ZZ32
 
     opr <(self, other:Character): Boolean
@@ -237,6 +226,28 @@ trait Character excludes { String, Number, Boolean }
     toTitleCase(self): Character
     toUpperCase(self): Character
 end
+
+
+trait JavaBufferedReader excludes { String, Number, Boolean, Character }
+  getter asString(): String
+  read(): Character
+  readLine(): String
+  ready(): Boolean
+  close(): ()
+end
+
+makeJavaBufferedReader(s: String): JavaBufferedReader
+
+trait JavaBufferedWriter excludes { String, Number, Boolean, Character, JavaBufferedReader }
+  getter asString(): String
+  write(c: Character): ()
+  write(s: String): ()
+  newLine(): ()
+  flush(): ()
+  close(): ()
+end
+
+makeJavaBufferedWriter(s: String): JavaBufferedWriter
 
 (************************************************************
 * Random numbers

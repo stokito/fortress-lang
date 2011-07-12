@@ -128,6 +128,10 @@ public class FortressMethodAdapter extends ClassAdapter {
         initializeEntry("FString",  "getValue", "()Ljava/lang/String;",
                                     "make", "(Ljava/lang/String;)L" + prefix + "FString;");
         initializeEntry("FCharacter",    "getValue",	"()I", "make", "(I)L" + prefix + "FCharacter;");
+        initializeEntry("FJavaBufferedReader", "getValue", "()Ljava/io/BufferedReader;",
+                                    "make", "(Ljava/io/BufferedReader;)L" + prefix + "FJavaBufferedReader;");
+        initializeEntry("FJavaBufferedWriter", "getValue", "()Ljava/io/BufferedWriter;",
+                                    "make", "(Ljava/io/BufferedWriter;)L" + prefix + "FJavaBufferedWriter;");
     }
 
     // Strip off the leading L + prefix, and trailing ;"

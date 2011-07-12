@@ -24,7 +24,6 @@ trait Comparison
         extends { Equality[\Comparison\] }
         comprises { Unordered, TotalComparison }
         excludes { Number, Boolean, Character, String }
-    getter asString(): String
     (** Lexicographic ordering.  An associative operator.
         Leftmost non-equal comparison dictates result. *)
     opr LEXICO(self, other:Comparison): Comparison
@@ -52,7 +51,6 @@ trait TotalComparison
 (*)     extends { Comparison, StandardTotalOrder[\TotalComparison\] }
         extends { Comparison }
         comprises { LessThan, EqualTo, GreaterThan }
-    getter asString(): String
     opr LEXICO(self, other:TotalComparison): TotalComparison
     opr LEXICO(self, other:()->TotalComparison): TotalComparison
     opr CMP(self, other:TotalComparison): TotalComparison
