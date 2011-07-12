@@ -117,6 +117,20 @@ import java com.sun.fortress.nativeHelpers.{stringOps.compareTo => jCompareTo,
                                             stringOps.substring => jSubstring,
                                             stringOps.charAt => jCharAt,
                                             stringOps.asString => jAsString}
+import java com.sun.fortress.nativeHelpers.{fileOps.jbrOpen => jJavaBufferedReaderOpen,
+                                            fileOps.jbrAsString => jJavaBufferedReaderAsString,
+                                            fileOps.jbrRead => jJavaBufferedReaderRead,
+                                            fileOps.jbrReadLine => jJavaBufferedReaderReadLine,
+                                            fileOps.jbrReady => jJavaBufferedReaderReady,
+                                            fileOps.jbrClose => jJavaBufferedReaderClose,
+                                            fileOps.jbwOpen => jJavaBufferedWriterOpen,
+                                            fileOps.jbwAsString => jJavaBufferedWriterAsString,
+                                            fileOps.jbwWriteChar => jJavaBufferedWriterWriteChar,
+                                            fileOps.jbwWriteString => jJavaBufferedWriterWriteString,
+                                            fileOps.jbwNewLine => jJavaBufferedWriterNewLine,
+                                            fileOps.jbwFlush => jJavaBufferedWriterFlush,
+                                            fileOps.jbwClose => jJavaBufferedWriterClose }
+
 
 import AnyType.{Any}
 import CompilerAlgebra.{ Equality }
@@ -126,7 +140,8 @@ nanoTime(): RR64 = jNanoTime()
 
 trait Object extends Any
    getter asString(): String = jAsString(self)
-(*)     getter asExprString(): String = "no expression for "  self.asString
+   getter asExprString(): String = "[no expression for "  self.asString "]"
+   getter asDebugString(): String = self.asString
 (*)     getter asDebugString(): String  = do  (* for debugging; may contain more information *)
 (*)         ilk = self.ilkName
 (*)         firstChar = ilk[0]
@@ -155,15 +170,15 @@ println(s:String):() = jPrintln(s)
 println(c:Character):() = jPrintln(c.asString)
 (*) println(x:Object): () = jPrintln(x.asString)
 (*) println():() = jPrintln("")
-(*) println(x:Any):() = jPrintln("<big tuple>")
+(*) println(x:Any):() = jPrintln("<any>")
 
 println(x:ZZ32):() = jPrintln(x.asString)
 println(x:ZZ64):() = jPrintln(x.asString)
 (*) println(x:RR32):() = jPrintln(x.asString)
 println(x:RR64):() = jPrintln(x.asString)
-(*) println[\A,B\](x: (A,B)):() = jPrintln(str(x))
-(*) println[\A,B,C\](x: (A,B,C)):() = jPrintln(str(x))
-(*) println[\A,B,C,D\](x: (A,B,C,D)):() = jPrintln(str(x))
+(*) println(x: (Any, Any)):() = jPrintln(str(x))
+(*) println(x: (Any, Any, Any)):() = jPrintln(str(x))
+(*) println(x: (Any, Any, Any, Any)):() = jPrintln(str(x))
 (*) println[\A,B,C,D,E\](x: (A,B,C,D,E)):() = jPrintln(str(x))
 (*) println[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):() = jPrintln(str(x))
 (*) println[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):() = jPrintln(str(x))
@@ -189,9 +204,9 @@ errorPrintln(x:RR64):() = jErrorPrintln(x.asString)
 (*) private str(x:Any):String = "<big tuple>"
 (*) private str(x: Object):String = x.asString
 (*) private str():String = "()"
-(*) private str[\A,B\](x: (A,B)):String = do (a,b) = x; "(" str(a) ", " str(b) ")" end
-(*) private str[\A,B,C\](x: (A,B,C)):String = do (a,b,c) = x; "(" str(a) ", " str(b) ", " str(c) ")" end
-(*) private str[\A,B,C,D\](x: (A,B,C,D)):String = do (a,b,c,d) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ")" end
+(*) private str(x: (Any, Any)):String = do (a,b) = x; "(" str(a) ", " str(b) ")" end
+(*) private str(x: (Any, Any, Any)):String = do (a,b,c) = x; "(" str(a) ", " str(b) ", " str(c) ")" end
+(*) private str(x: (Any, Any, Any, Any)):String = do (a,b,c,d) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ")" end
 (*) private str[\A,B,C,D,E\](x: (A,B,C,D,E)):String = do (a,b,c,d,e) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ")" end
 (*) private str[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):String = do (a,b,c,d,e,f) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ", " str(f) ")" end
 (*) private str[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):String = do (a,b,c,d,e,f,g) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ", " str(f) ", " str(g) ")" end
@@ -199,7 +214,6 @@ errorPrintln(x:RR64):() = jErrorPrintln(x.asString)
 strToInt(s:String):ZZ32 = jParseInt(s)
 
 trait Number excludes { String }
-    getter asString(): String
 end
 
 trait ZZ64 extends Number excludes { RR64 }
@@ -396,6 +410,28 @@ trait Character excludes { String, Number, Boolean }
     toTitleCase(self): Character = jMakeCharacter(jCharToTitleCase(jCodePoint(self)))
     toUpperCase(self): Character = jMakeCharacter(jCharToUpperCase(jCodePoint(self)))
 end
+
+trait JavaBufferedReader excludes { String, Number, Boolean, Character }
+  getter asString(): String = jJavaBufferedReaderAsString(self)
+  read(): Character = jMakeCharacter(jJavaBufferedReaderRead(self))
+  readLine(): String = jJavaBufferedReaderReadLine(self)
+  ready(): Boolean = jJavaBufferedReaderReady(self)
+  close(): () = jJavaBufferedReaderClose(self)
+end
+
+makeJavaBufferedReader(s: String): JavaBufferedReader = jJavaBufferedReaderOpen(s)
+
+trait JavaBufferedWriter excludes { String, Number, Boolean, Character, JavaBufferedReader }
+  getter asString(): String = jJavaBufferedWriterAsString(self)
+  write(c: Character): () = jJavaBufferedWriterWriteChar(self, jCodePoint(c))
+  write(s: String): () = jJavaBufferedWriterWriteString(self, s)
+  newLine(): () = jJavaBufferedWriterNewLine(self)
+  flush(): () = jJavaBufferedWriterFlush(self)
+  close(): () = jJavaBufferedWriterClose(self)
+end
+
+makeJavaBufferedWriter(s: String): JavaBufferedWriter = jJavaBufferedWriterOpen(s)
+
 
 (************************************************************
 * Random numbers
