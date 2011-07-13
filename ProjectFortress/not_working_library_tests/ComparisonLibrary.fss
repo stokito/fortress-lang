@@ -32,7 +32,7 @@ trait Comparison
         extends { Equality[\Comparison\] }
         comprises { Unordered, TotalComparison }
         excludes { Number, Boolean, Character, String }
-    getter asString(): String = "Comparison"
+    getter asExprString(): String = self.asString
     (*) Default opr = is suitable for Comparison
     (** Lexicographic ordering.  An associative operator.
         Leftmost non-equal comparison dictates result. *)
@@ -64,8 +64,6 @@ end
     ordered and no ordering relationship exists between them. **)
 object Unordered extends Comparison
     getter asString(): String = "Unordered"
-    getter asExprString(): String = self.asString
-    getter asDebugString(): String = self.asString
     opr <(self, other:Comparison): Boolean = false
     opr SQCAP(self, other:()->Comparison): Comparison = Unordered
     opr CONVERSE(self): Comparison = Unordered
@@ -75,7 +73,6 @@ trait TotalComparison
 (*)     extends { Comparison, StandardTotalOrder[\TotalComparison\] }
         extends { Comparison }
         comprises { LessThan, EqualTo, GreaterThan }
-    getter asString(): String = "TotalComparison"
     (* We're both a partial order (including Unordered) and a total
        order (TotalComparison alone).  Avoid ambiguity between the
        default definitions of CMP and >=. *)
@@ -97,8 +94,6 @@ end
 
 object LessThan extends TotalComparison
     getter asString(): String = "LessThan"
-    getter asExprString(): String = self.asString
-    getter asDebugString(): String = self.asString
     opr CMP(self, other:LessThan): TotalComparison = EqualTo
     opr CMP(self, other:TotalComparison): TotalComparison = GreaterThan
     opr <(self, other:LessThan): Boolean = false
@@ -110,8 +105,6 @@ end
 
 object GreaterThan extends TotalComparison
     getter asString(): String = "GreaterThan"
-    getter asExprString(): String = self.asString
-    getter asDebugString(): String = self.asString
     opr CMP(self, other:GreaterThan): TotalComparison = EqualTo
     opr CMP(self, other:TotalComparison): TotalComparison = LessThan
     opr <(self, other:TotalComparison): Boolean = false
@@ -122,8 +115,6 @@ end
 
 object EqualTo extends TotalComparison
     getter asString(): String = "EqualTo"
-    getter asExprString(): String = self.asString
-    getter asDebugString(): String = self.asString
 (*)    opr =(self, other:EqualTo): Boolean = true
     opr CMP(self, other:TotalComparison): TotalComparison = CONVERSE other
     opr <(self, other:GreaterThan): Boolean = true
