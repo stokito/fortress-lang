@@ -606,7 +606,7 @@ object STypesUtil {
       case sarg: TypeArg => sarg.getTypeArg
       case sarg: IntArg => sarg.getIntVal
       case sarg: BoolArg => sarg.getBoolArg
-      case sarg: OpArg => sarg.getName
+      case sarg: OpArg => sarg.getName.get
       case sarg: DimArg => sarg.getDimArg
       case sarg: UnitArg => sarg.getUnitArg
       case _ => bug("unexpected kind of static arg")
@@ -619,7 +619,8 @@ object STypesUtil {
     object staticReplacer extends Walker {
       override def walk(node: Any): Any = node match {
         case n: VarType => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-        case n: OpArg => paramMap.get(n.getName.getOriginalName).getOrElse(n)
+        // OpArgs that are not inference variables have names
+        case n: OpArg => paramMap.get(n.getName.get.getOriginalName).getOrElse(n)
         case n: IntRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
         case n: BoolRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
         case n: DimRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)

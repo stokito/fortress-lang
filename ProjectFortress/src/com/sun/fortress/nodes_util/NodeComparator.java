@@ -348,7 +348,7 @@ public class NodeComparator {
     }
 
     static int compare(OpArg left, OpArg right) {
-	return compare(left.getName().getOriginalName(), right.getName().getOriginalName());
+	return compare(left.getName().unwrap().getOriginalName(), right.getName().unwrap().getOriginalName());
     }
 
     static int compare(TraitSelfType left, TraitSelfType right) {

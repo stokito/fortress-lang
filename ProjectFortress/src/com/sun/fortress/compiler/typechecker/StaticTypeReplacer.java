@@ -75,7 +75,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
                 @Override public Node forTypeArg(TypeArg arg) { return arg.getTypeArg(); }
                 @Override public Node forIntArg(IntArg arg) { return arg.getIntVal(); }
                 @Override public Node forBoolArg(BoolArg arg) { return arg.getBoolArg(); }
-                @Override public Node forOpArg(OpArg arg) { return arg.getName(); }
+                @Override public Node forOpArg(OpArg arg) { return arg.getName().unwrap(); }
                 @Override public Node forDimArg(DimArg arg) { return arg.getDimArg(); }
                 @Override public Node forUnitArg(UnitArg arg) { return arg.getUnitArg(); }
             });
@@ -93,7 +93,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 
     @Override
     public Node forOpArg(OpArg that) {
-        StaticArg arg = parameterMap.get(that.getName().getOriginalName());
+        StaticArg arg = parameterMap.get(that.getName().unwrap().getOriginalName());
         //System.err.printf("forOpArg lookup: %s %s\n", that, arg);
         return arg == null ? that : arg;
     }

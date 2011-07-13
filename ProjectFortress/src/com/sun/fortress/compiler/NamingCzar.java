@@ -1679,7 +1679,7 @@ public class NamingCzar {
 
         @Override
         public Pair<String,String> forOpArg(OpArg that) {
-            FunctionalRef arg = that.getName();
+            FunctionalRef arg = that.getName().unwrap();
             // TODO what about static args here?
             IdOrOp name = arg.getNames().get(0);
             return p("op", name.getText());

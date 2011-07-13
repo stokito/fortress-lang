@@ -2309,8 +2309,8 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-    public String forOpArgOnly(OpArg that, String info, String name_result) {
-        return name_result;
+    public String forOpArgOnly(OpArg that, String info, Option<String> name_result) {
+        return name_result.unwrap(that.getInfId().toString());
     }
 
     @Override
