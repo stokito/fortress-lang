@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait A[\T\] end
+object O extends A[\O\] end
+object P extends A[\P\] end
+
+anA():A = O
+f[\T\](o:O):() = println("O")
+f[\T\](a:A[\T\]):() = println("FAIL WITH A")
+f[\T\](p:P):() = println("FAIL WITH P")
+
+run():() = f(anA())
