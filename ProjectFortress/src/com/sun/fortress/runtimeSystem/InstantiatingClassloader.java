@@ -1211,24 +1211,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String sig = "(" + Naming.internalToDesc( Naming.ANY_TYPE_CLASS) + ")Z";
             MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, IS_A, sig, null, null);
             Label fail = new Label();
-            
-//            {	//testing - remove later
-//            	Label strange = new Label();
-//            	String temp = "arrowRTTI$gs" + Naming.ENVELOPE + "$Arrow" + Naming.LEFT_OXFORD + "arrowRTTI$General;arrowRTTI$Specific" + Naming.RIGHT_OXFORD;
-//            	mv.visitVarInsn(Opcodes.ALOAD, 0);
-//            	mv.visitTypeInsn(INSTANCEOF,temp);
-//            	mv.visitJumpInsn(Opcodes.IFEQ, strange);
-//            	
-//            	mv.visitVarInsn(Opcodes.ALOAD, 0);
-//            	mv.visitTypeInsn(CHECKCAST, temp);
-//            	mv.visitMethodInsn(INVOKEVIRTUAL, temp, Naming.RTTI_GETTER, "()" + Naming.RTTI_CONTAINER_DESC);
-//            	mv.visitInsn(POP);
-//            	mv.visitJumpInsn(GOTO, fail);
-//            	mv.visitLabel(strange);
-//            }
-
-            
-            
+                        
             //get RTTI to compare to
             mv.visitFieldInsn(GETSTATIC, name, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
             //get RTTI of object
@@ -1305,45 +1288,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
        
             mv.visitEnd();            
         } 
-        
-//        //Alternate castTo
-//        //needed when instantiating generics with a function that has a tuple
-//        //as the argument.  The abstract arrow will implement interfaces
-//        //for both a tuple-parameter and a n-parameter version
-//        //This takes the tuple-parameter version and forwards to the n-parameter version
-//        {
-//        	if (parameters.size() == 2 && parameters.get(0).startsWith(TUPLE_OX)) {
-//        		List<String> alt_objectified_parameters = Useful.applyToAll(parameters, toJLO);
-//        		
-//        		String alt_obj_intf_sig = stringListToGeneric(Naming.ARROW_TAG, alt_objectified_parameters);
-//        		MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, CAST_TO,
-//                         "(" + Naming.internalToDesc(alt_obj_intf_sig) + ")" + Naming.internalToDesc(typed_intf_sig),
-//                         null, null);
-//        	
-//        		Label not_instance = new Label();
-//        		 mv.visitVarInsn(Opcodes.ALOAD, 0);
-//                 mv.visitTypeInsn(Opcodes.INSTANCEOF, obj_intf_sig);
-//                 mv.visitJumpInsn(Opcodes.IFEQ, not_instance);
-//                 mv.visitVarInsn(Opcodes.ALOAD, 0);
-//                 mv.visitMethodInsn(INVOKESTATIC, name, CAST_TO, 
-//                		 			"(" + Naming.internalToDesc(obj_intf_sig) + ")" + Naming.internalToDesc(typed_intf_sig));
-//                 mv.visitInsn(Opcodes.ARETURN);
-//                 
-//                 // wrap and return
-//                 mv.visitLabel(not_instance);
-//                 mv.visitTypeInsn(NEW, wrapped_sig);
-//                 mv.visitInsn(DUP);
-//                 mv.visitVarInsn(Opcodes.ALOAD, 0);
-//                 mv.visitMethodInsn(INVOKESPECIAL, wrapped_sig, "<init>", "(" + Naming.internalToDesc(obj_intf_sig) +")V");
-//                 
-//                 mv.visitInsn(Opcodes.ARETURN);
-//                 mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
-//            
-//                 mv.visitEnd();         	
-//        	}
-//        	
-//        
-//        }
 
         if (typed_tupled_intf_sig != null && !typed_tupled_intf_sig.equals(typed_intf_sig))
         {
