@@ -139,6 +139,7 @@ public class Naming {
     public final static String RTTI_GETTER = "getRTTI";
     public final static String RTTI_GETTER_CLASS = ANY_TYPE_CLASS;
     public final static String RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "RTTI";
+    public final static String RTTI_SINGLETON = "ONLY";
     public final static String TUPLE_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "TupleRTTI";
     public final static String ARROW_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "ArrowRTTI";
     public final static String JAVA_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "JavaRTTI";
@@ -152,6 +153,7 @@ public class Naming {
     // public final static String INTERNAL_TAG = "\u26a0"; // warning sign -- internal use only (fortress.)
 
     public final static String ENVELOPE = "\u2709"; // Signals necessary closure
+    public final static String CLOSURE_FIELD_NAME = ENVELOPE; // Name of closure field
     public final static String SNOWMAN = "\u2603"; // for empty tuple, sigh.
     public final static String INDEX = "\u261e";  // "__"; // "\u261e"; // white right point index (for dotted of functional methods)
     public final static String BOX = "\u2610"; // ballot box, used to indicate prefix or postfix.

@@ -2845,7 +2845,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 Naming.genericFunctionPkgClass(pc_and_m.first(), pc_and_m.second(),
                                                    decoration, arrow_type);
             
-            mv.visitFieldInsn(GETSTATIC, PCN, NamingCzar.closureFieldName, arrow_desc);
+            mv.visitFieldInsn(GETSTATIC, PCN, Naming.CLOSURE_FIELD_NAME, arrow_desc);
 
         } else { // not generic reference.
 
@@ -2873,7 +2873,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              * must generate code for the class with a method apply, that
              * INVOKE_STATICs prefix.functionName .
              */
-            mv.visitFieldInsn(GETSTATIC, PCN, NamingCzar.closureFieldName, arrow_desc);
+            mv.visitFieldInsn(GETSTATIC, PCN, Naming.CLOSURE_FIELD_NAME, arrow_desc);
         }
     }
 
@@ -3613,7 +3613,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  * 
                  */
                     String rttiClassName = Naming.stemClassJavaName(cnb.className);
-                    mv.visitFieldInsn(GETSTATIC, rttiClassName, "ONLY", Naming.RTTI_CONTAINER_DESC);
+                    mv.visitFieldInsn(GETSTATIC, rttiClassName, Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);
                     mv.visitFieldInsn(PUTSTATIC, cnb.className, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
             }
 
@@ -4417,7 +4417,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (sparams_size == 0) {
             // static, initialized to single instance of self
             cw.visitField(ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
-                    "ONLY", Naming.RTTI_CONTAINER_DESC, null, null);
+                    Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC, null, null);
             
             mv = cw.visitCGMethod(ACC_STATIC, "<clinit>", "()V", null, null);
             mv.visitCode();
@@ -4429,7 +4429,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitMethodInsn(INVOKESPECIAL, rttiClassName, "<init>", "(Ljava/lang/Class;)V");
             // store
             mv.visitFieldInsn(PUTSTATIC, rttiClassName,
-                    "ONLY", Naming.RTTI_CONTAINER_DESC);                
+                    Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);                
 
             voidEpilogue();
         } else {
@@ -4636,7 +4636,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 mv2.visitFieldInsn(GETFIELD, rttiClassName, extendee.getText(), Naming.RTTI_CONTAINER_DESC);
             } else {
                 // reference to a non-generic type.  Load from whatever.Only
-                mv2.visitFieldInsn(GETSTATIC, field_type, "ONLY", Naming.RTTI_CONTAINER_DESC);                
+                mv2.visitFieldInsn(GETSTATIC, field_type, Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);                
             }
         } else {
             // invoke field_type.factory(args)

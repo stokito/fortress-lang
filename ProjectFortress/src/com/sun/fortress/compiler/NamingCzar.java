@@ -195,8 +195,6 @@ public class NamingCzar {
 
     public static final String voidToFortressVoid = Naming.makeMethodDesc("", descFortressVoid);
 
-    public static final String closureFieldName = "closure";
-
     private static final List<String> extendsObject =
         Collections.singletonList(internalObject);
 

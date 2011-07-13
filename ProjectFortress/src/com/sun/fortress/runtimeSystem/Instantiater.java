@@ -47,14 +47,14 @@ public class Instantiater extends ClassAdapter {
             String superName, String[] interfaces) {
         // TODO Auto-generated method stub
         this.access_flags = access;  //save access for use in generating methods for flattened tuples
-    	String[] new_interfaces = new String[interfaces.length];
+        String[] new_interfaces = new String[interfaces.length];
         for (int i = 0; i < interfaces.length; i++) {
             new_interfaces[i] = types.getTypeName(interfaces[i]);
         }
         super.visit(version, access,
-        types.getTypeName(name),
-        // instanceName, 
-        signature,
+                types.getTypeName(name),
+                // instanceName, 
+                signature,
                 types.getTypeName(superName), new_interfaces);
     }
 
@@ -77,12 +77,22 @@ public class Instantiater extends ClassAdapter {
     }
 
     @Override
-    public FieldVisitor visitField(int access, String name, String desc,
+    public FieldVisitor visitField(int access, String orig_name, String orig_desc,
             String signature, Object value) {
         // TODO Auto-generated method stub
-        desc = types.getFieldDesc(desc);
-        name = types.getName(name);  // ? do we rewrite the name of a field?
-        return super.visitField(access, name, desc, signature, value);
+        String desc_flat = types.getFieldDesc(orig_desc, true);
+        String desc_wrapped = types.getFieldDesc(orig_desc, false);
+        String name = types.getName(orig_name);  // ? do we rewrite the name of a field?
+        FieldVisitor fv;
+        if (name.equals(Naming.CLOSURE_FIELD_NAME) && 
+            ! desc_flat.equals(desc_wrapped)) {
+            fv =  super.visitField(access, name, desc_wrapped, signature, value);
+            if (fv != null)
+                fv.visitEnd();
+        }
+            
+        fv =  super.visitField(access, name, desc_flat, signature, value);
+        return fv;
     }
 
     @Override
