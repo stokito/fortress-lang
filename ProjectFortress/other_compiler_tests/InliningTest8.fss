@@ -1,0 +1,61 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component InliningTest8
+export Executable
+
+
+dummy_abs(x:RR64):RR64 =  |x|
+
+dummy_lte(x:RR64, y:RR64): Boolean = do
+   x <= y
+end
+
+dummy_lt(x:RR64, y:RR64): Boolean = do
+   x < y
+end
+
+dummy_mult(x:RR64, y:RR64): RR64 = do
+   x y 
+end
+
+dummy_sub(x:RR64, y:RR64) : RR64 = do
+   x - y
+end
+
+dummy_if4(x:RR64, y:RR64) : Boolean = do
+   |x| <= |x| OR: false
+end
+
+(*
+dummy_if3(x:RR64, y:RR64) : Boolean = do
+   |x| <= |x| OR: x < y
+end
+
+dummy_if2(x:RR64, y:RR64) : Boolean = do
+   |(x - y)| <= |x| OR: x < y
+end
+*)
+dummy_if(x:RR64, y:RR64) : Boolean = do
+   |(x - y)| <= |x| y OR: x < y
+end
+
+
+run(): () = do
+       a = 1.0
+       b = 2.0
+       if dummy_if(a,b) then
+         println("true")
+      else
+        println("false") 
+      end
+end
+end

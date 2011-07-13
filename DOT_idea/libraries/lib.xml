@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="lib">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/distribution/FORTRESS/lib/shell.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/distribution/FORTRESS/lib/interpreter.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/distribution/FORTRESS/lib/ant-launcher.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

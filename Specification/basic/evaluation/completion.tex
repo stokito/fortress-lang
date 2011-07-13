@@ -1,0 +1,52 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Normal and Abrupt Completion of Evaluation}
+\seclabel{eval-completion}
+
+\note{Victor:
+
+What happens when a thread completes abruptly?
+What happens if the program completes abruptly?}
+
+Conceptually, an expression is evaluated until it \emph{completes}.
+Evaluation of an expression may \emph{complete normally}, resulting in
+a value, or it may \emph{complete abruptly}.  Each abrupt completion
+has an associated value, either
+an exception value that is thrown and uncaught
+or the \KWD{with} clause value of an \KWD{exit} expression (described in
+\secref{label-expr}).
+  In addition to programmer-defined exceptions
+thrown explicitly by a \KWD{throw} expression (described in
+\secref{throw-expr}), there are predefined exceptions thrown by
+\library.  For example, dividing an integer by zero (using the \EXP{/}
+operator) causes a \TYP{DivisionByZero} to be thrown.
+
+When an expression completes abruptly, control passes to the
+dynamically immediately enclosing expression.
+This continues until the abrupt completion is handled
+either
+by a \KWD{try} expression (described in \secref{try-expr})
+if an exception is being thrown
+or by an appropriately tagged \KWD{label} expression
+(described in \secref{label-expr})
+if an \KWD{exit} expression was evaluated.
+If abrupt completion is not handled within a thread
+and its outermost expression completes abruptly,
+the thread itself completes abruptly.
+If the main thread of a program completes abruptly,
+the program as a whole also completes abruptly.
+
+\note{Jan: abrupt completion only causes the thread to complete abruptly.
+A program completes abruptly if its initial thread completes
+abruptly.
+ Pointer to discussion of abrupt completion of threads, or pull that
+ discussion here.}
