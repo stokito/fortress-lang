@@ -266,7 +266,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   }
 
   protected def pExcInner(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
-	(removeSelf(x), removeSelf(y)) match {
+        (removeSelf(x), removeSelf(y)) match {
     case (s, t) if (s==t) => pFalse()
     case (s: BottomType, _) => pTrue()
     case (_, t: BottomType) => pTrue()
@@ -422,63 +422,63 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         case _ => walkOtherType(y)
       }
       def walkVarType(t: VarType) = {
-	t match { case SVarType(_, n, _) =>
-	    if (cacheNormalizeVar)
-	      normalizeVarTypeMemo.get(n) match {
-		case Some(v) => v
-		case _ =>
-		  val result = walkVarTypeInner(t, n)
-		  normalizeVarTypeMemo += (n -> result)
-		  result
-	      }
-	    else walkVarTypeInner(t, n)
-	}
+        t match { case SVarType(_, n, _) =>
+            if (cacheNormalizeVar)
+              normalizeVarTypeMemo.get(n) match {
+                case Some(v) => v
+                case _ =>
+                  val result = walkVarTypeInner(t, n)
+                  normalizeVarTypeMemo += (n -> result)
+                  result
+              }
+            else walkVarTypeInner(t, n)
+        }
       }
       def walkVarTypeInner(t: VarType, n: Id) = super.walk(t)
       def walkTraitType(t: TraitType) = {
-	t match { case STraitType(_, n, a, _) =>
-	    if (cacheNormalizeTrait && a.forall(s => s.isInstanceOf[TypeArg])) {
-	      // For now, no attempt to handle static args other than type args
+        t match { case STraitType(_, n, a, _) =>
+            if (cacheNormalizeTrait && a.forall(s => s.isInstanceOf[TypeArg])) {
+              // For now, no attempt to handle static args other than type args
               val args = a.map(s => s.asInstanceOf[TypeArg].getTypeArg)
-	      normalizeTraitTypeMemo.get((n, args)) match {
-		case Some(v) => v
-		case _ =>
-		  walkTraitTypeInner(t, n, a) match {
-		    case result@STraitType(_, _, aa, _) =>
-		       normalizeTraitTypeMemo += ((n, args) -> result)
-		       normalizeTraitTypeMemo += ((n, aa.map(s => s.asInstanceOf[TypeArg].getTypeArg)) -> result)
-		       result
-		  }
-	      }
-            }
-	    else walkTraitTypeInner(t, n, a)
-	}
-      }
-      def walkTraitTypeInner(t: TraitType, n: Id, a: List[StaticArg]) = {
-	typeCons(n) match {
-	  case ti: TypeAliasIndex =>
-	    val params = toListFromImmutable(ti.staticParameters)
-	    walk(substitute(a, params, ti.ast.getTypeDef))
-	  case _ => super.walk(t)
-	}
-      }
-      def walkTupleType(t: TupleType) = {
-	if (cacheNormalizeTuple)
-	  t match { case STupleType(_, e, vt, _) =>
-	      normalizeTupleTypeMemo.get((e, vt)) match {
-		case Some(v) => v
-		case _ =>
-		  walkTupleTypeInner(t) match {
-                    case result@STupleType(_, ee, vtx, _) =>
-		      normalizeTupleTypeMemo += ((e, vt) -> result)
-		      normalizeTupleTypeMemo += ((ee, vtx) -> result)
-		      result
-                    case result: BottomType =>
-		      normalizeTupleTypeMemo += ((e, vt) -> result)
-		      result
+              normalizeTraitTypeMemo.get((n, args)) match {
+                case Some(v) => v
+                case _ =>
+                  walkTraitTypeInner(t, n, a) match {
+                    case result@STraitType(_, _, aa, _) =>
+                       normalizeTraitTypeMemo += ((n, args) -> result)
+                       normalizeTraitTypeMemo += ((n, aa.map(s => s.asInstanceOf[TypeArg].getTypeArg)) -> result)
+                       result
                   }
               }
-	  }
+            }
+            else walkTraitTypeInner(t, n, a)
+        }
+      }
+      def walkTraitTypeInner(t: TraitType, n: Id, a: List[StaticArg]) = {
+        typeCons(n) match {
+          case ti: TypeAliasIndex =>
+            val params = toListFromImmutable(ti.staticParameters)
+            walk(substitute(a, params, ti.ast.getTypeDef))
+          case _ => super.walk(t)
+        }
+      }
+      def walkTupleType(t: TupleType) = {
+        if (cacheNormalizeTuple)
+          t match { case STupleType(_, e, vt, _) =>
+              normalizeTupleTypeMemo.get((e, vt)) match {
+                case Some(v) => v
+                case _ =>
+                  walkTupleTypeInner(t) match {
+                    case result@STupleType(_, ee, vtx, _) =>
+                      normalizeTupleTypeMemo += ((e, vt) -> result)
+                      normalizeTupleTypeMemo += ((ee, vtx) -> result)
+                      result
+                    case result: BottomType =>
+                      normalizeTupleTypeMemo += ((e, vt) -> result)
+                      result
+                  }
+              }
+          }
         else walkTupleTypeInner(t)
       }
       def walkTupleTypeInner(t: TupleType) = {
@@ -490,31 +490,31 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         }
       }
       def walkArrowType(t: ArrowType) = {
-	if (cacheNormalizeArrow)
-	  t match { case SArrowType(_, d, r, e, i, _) =>
-	      normalizeArrowTypeMemo.get((d, r, e, i)) match {
-		case Some(v) => v
-		case _ =>
-		  walkArrowTypeInner(t) match {
+        if (cacheNormalizeArrow)
+          t match { case SArrowType(_, d, r, e, i, _) =>
+              normalizeArrowTypeMemo.get((d, r, e, i)) match {
+                case Some(v) => v
+                case _ =>
+                  walkArrowTypeInner(t) match {
                     case result@SArrowType(_, dd, rr, ee, ii, _) =>
-		      normalizeArrowTypeMemo += ((d, r, e, i) -> result)
-		      normalizeArrowTypeMemo += ((dd, rr, ee, ii) -> result)
-		      result
+                      normalizeArrowTypeMemo += ((d, r, e, i) -> result)
+                      normalizeArrowTypeMemo += ((dd, rr, ee, ii) -> result)
+                      result
                   }
               }
-	  }
+          }
         else walkArrowTypeInner(t)
       }
       def walkArrowTypeInner(t: ArrowType) = super.walk(t)
       def walkOtherType(t: Any) = {
-	if (cacheNormalizeOther)
-	  normalizeOtherTypeMemo.get(t) match {
-	    case Some(v) => v
-	    case _ =>
-	      val result = walkOtherTypeInner(t)
+        if (cacheNormalizeOther)
+          normalizeOtherTypeMemo.get(t) match {
+            case Some(v) => v
+            case _ =>
+              val result = walkOtherTypeInner(t)
               normalizeOtherTypeMemo += (t -> result)
               result
-	  }
+          }
         else walkOtherTypeInner(t)
       }
       def walkOtherTypeInner(t: Any) = t match {
