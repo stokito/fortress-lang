@@ -2061,11 +2061,11 @@ return new TraitType(info, name, sargs, sparams);
     }
 
     public static OpArg makeOpArg(Span span, FunctionalRef op) {
-        return new OpArg(makeSpanInfo(span), op);
+        return new OpArg(makeSpanInfo(span), Option.some(op), Option.none());
     }
 
     public static OpArg makeOpArg(Span span, FunctionalRef op, boolean lifted) {
-        return new OpArg(makeSpanInfo(span), lifted, op);
+        return new OpArg(makeSpanInfo(span), lifted, Option.some(op), Option.none());
     }
 
     public static VarDecl makeVarDecl(List<LValue> lvalues) {

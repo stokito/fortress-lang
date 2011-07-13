@@ -1284,7 +1284,7 @@ interface Node() extends HasAt;
                  * StaticArg ::= Op
                  * e.g.) +
                  */
-                OpArg(FunctionalRef name);
+                OpArg(Option<FunctionalRef> name, Option<Object> infId);
                 /**
                  * dimension used as static argument
                  * StaticArg ::= Type

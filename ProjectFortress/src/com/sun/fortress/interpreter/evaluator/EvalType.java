@@ -314,7 +314,7 @@ public class EvalType extends NodeAbstractVisitor<FType> {
     }
 
     public FType forOpArg(OpArg b) {
-	return FTypeOpr.make(NodeUtil.nameString(b.getName().getOriginalName()));
+	return FTypeOpr.make(NodeUtil.nameString(b.getName().unwrap().getOriginalName()));
     }
 
     /* (non-Javadoc)
