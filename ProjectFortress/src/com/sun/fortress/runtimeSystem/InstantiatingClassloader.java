@@ -127,8 +127,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     private final Vector<String> history = new Vector<String>();
 
-    private final Hashtable<String, Pair<String, List<Pair<String, String>>>>
-       stemToXlation = new Hashtable<String, Pair<String, List<Pair<String, String>>>>();
+    private final Hashtable<String,  Naming.XlationData>
+       stemToXlation = new Hashtable<String, Naming.XlationData>();
     
     private InstantiatingClassloader() {
         throw new Error(); // Really do not call this.
@@ -238,10 +238,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     ArrayList<String> sargs = new ArrayList<String>();
                     String template_name = functionTemplateName(dename, sargs);
                     byte[] templateClassData = readResource(template_name);
-                    Pair<String, List<Pair<String, String>>> pslpss =
-                        Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
+                    Naming.XlationData xldata =
+                        Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
                     
-                    List<String> xl = extractStaticParameterNames(pslpss);
+                    List<String> xl = xldata.staticParameterNames();
                    
                     Map<String, String> xlation  = Useful.map(xl, sargs);
                     ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
@@ -286,10 +286,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         ArrayList<String> sargs = new ArrayList<String>();
                         String template_name = genericTemplateName(dename, sargs); // empty sargs
                         byte[] templateClassData = readResource(template_name);
-                        Pair<String, List<Pair<String, String>>> pslpss =
-                            Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
+                        Naming.XlationData xldata =
+                            Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
                         
-                        List<String> xl = extractStaticParameterNames(pslpss);
+                        List<String> xl = xldata.staticParameterNames();
                         Map<String, String> xlation = Useful.map(xl, sargs);
                         ManglingClassWriter cw =
                             new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
@@ -350,19 +350,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         }
 
         return clazz;
-    }
-
-    /**
-     * @param pslpss
-     * @return
-     */
-    public static List<String> extractStaticParameterNames(
-            Pair<String, List<Pair<String, String>>> pslpss) {
-        List<String> xl =
-            new ProjectedList<Pair<String, String>, String>(
-                    pslpss.getB(),
-                    new Pair.GetB<String, String>());
-        return xl;
     }
 
     private String functionTemplateName(String name, ArrayList<String> sargs) {
@@ -566,12 +553,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 init_mv.visitTypeInsn(NEW, final_name);
                 init_mv.visitInsn(DUP);
                 init_mv.visitMethodInsn(INVOKESPECIAL, final_name, "<init>", "()V");
-                init_mv.visitFieldInsn(PUTSTATIC, final_name, "closure", field_desc);
+                init_mv.visitFieldInsn(PUTSTATIC, final_name, Naming.CLOSURE_FIELD_NAME, field_desc);
             }
 
             @Override
             public String asmName() {
-                return "closure";
+                return Naming.CLOSURE_FIELD_NAME;
             }
 
             @Override
@@ -1135,6 +1122,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String wrapped_sig = stringListToGeneric(WRAPPED_ARROW, unwrapped_parameters);
         String typed_intf_sig = stringListToGeneric(Naming.ARROW_TAG, unwrapped_parameters);
         String unwrapped_apply_sig;
+
         if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
         	unwrapped_apply_sig = arrowParamsToJVMsig(parameters.subList(1,2));
         else
@@ -1146,6 +1134,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                   new String[] { stringListToArrow(unwrapped_parameters) }
                 : new String[] { stringListToArrow(unwrapped_parameters),
                                  stringListToArrow(tupled_parameters) };
+                  
+        String typed_tupled_intf_sig = tupled_parameters == null ? null :
+            stringListToGeneric(Naming.ARROW_TAG, tupled_parameters);
+        String objectified_tupled_intf_sig =
+            tupled_parameters == null ? null :
+            stringListToGeneric(Naming.ARROW_TAG,
+                        Useful.applyToAll(tupled_parameters, toJLO));
 
         boolean is_all_objects = objectified_parameters.equals(unwrapped_parameters);
                   
@@ -1350,6 +1345,61 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 //        
 //        }
 
+        if (typed_tupled_intf_sig != null && !typed_tupled_intf_sig.equals(typed_intf_sig))
+        {
+            /*
+             *  If arg0 instanceof typed_intf_sig
+             *     return arg0
+             *  arg0 = arg0.getWrappee()
+             *  if arg0 instanceof typed_intf_sig
+             *     return arg0
+             *  new WrappedArrow
+             *  dup
+             *  push argo
+             *  init
+             *  return tos
+             */         
+            
+            MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, CAST_TO,
+                    "(" + Naming.internalToDesc(objectified_tupled_intf_sig) + ")" + Naming.internalToDesc(typed_intf_sig),
+                    null, null);
+
+            Label not_instance1 = new Label();
+            Label not_instance2 = new Label();
+
+            // try bare instanceof
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitTypeInsn(Opcodes.INSTANCEOF, typed_intf_sig);
+            mv.visitJumpInsn(Opcodes.IFEQ, not_instance1);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitInsn(Opcodes.ARETURN);
+            
+            // unwrap
+            mv.visitLabel(not_instance1);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitMethodInsn(INVOKEINTERFACE, objectified_tupled_intf_sig, getWrappee, "()"+ Naming.internalToDesc(objectified_tupled_intf_sig));
+            mv.visitVarInsn(Opcodes.ASTORE, 0);
+
+            // try instanceof on unwrapped
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitTypeInsn(Opcodes.INSTANCEOF, typed_intf_sig);
+            mv.visitJumpInsn(Opcodes.IFEQ, not_instance2);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitInsn(Opcodes.ARETURN);
+            
+            // wrap and return - untupled should be okay here, since it subtypes
+            mv.visitLabel(not_instance2);
+            mv.visitTypeInsn(NEW, wrapped_sig);
+            mv.visitInsn(DUP);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitMethodInsn(INVOKESPECIAL, wrapped_sig, "<init>", "(" + Naming.internalToDesc(obj_intf_sig) +")V");
+            
+            mv.visitInsn(Opcodes.ARETURN);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+       
+            mv.visitEnd();            
+        }
+        
         // getWrappee
         {
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, getWrappee,
@@ -2227,16 +2277,16 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return (left != -1 && right != -1 && left < right);
     }
     
-    Pair<String, List<Pair<String, String>>> xlationForGeneric(String t) {
+    Naming.XlationData xlationForGeneric(String t) {
         String template_name = genericTemplateName(t, null);
 
-        Pair<String, List<Pair<String, String>>> pslpss = stemToXlation.get(template_name);
+        Naming.XlationData xldata = stemToXlation.get(template_name);
         
-        if (pslpss != null) return pslpss;
+        if (xldata != null) return xldata;
         
         try {
-            pslpss =
-                Naming.xlationSerializer.fromBytes(readResource(template_name, "xlation"));
+            xldata =
+                Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
         } catch (VersionMismatch e) {
             throw new Error("Read stale serialized data for " + template_name + ", recommend you delete the Fortress bytecode cache and relink", e);
         } catch (IOException e) {
@@ -2245,11 +2295,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         synchronized(stemToXlation) {
             if (stemToXlation.get(template_name) == null) {
-                stemToXlation.put(template_name, pslpss);
+                stemToXlation.put(template_name, xldata);
             }
         }
         
-        return pslpss;
+        return xldata;
 
     }
 

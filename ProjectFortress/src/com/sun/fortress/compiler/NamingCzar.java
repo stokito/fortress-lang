@@ -13,6 +13,8 @@ package com.sun.fortress.compiler;
 
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -156,6 +158,8 @@ public class NamingCzar {
     public static final String internalLong       = org.objectweb.asm.Type.getInternalName(long.class);
     public static final String internalBoolean    = org.objectweb.asm.Type.getInternalName(boolean.class);
     public static final String internalCharacter  = org.objectweb.asm.Type.getInternalName(int.class);
+    public static final String internalJavaBufferedReader = org.objectweb.asm.Type.getInternalName(BufferedReader.class);
+    public static final String internalJavaBufferedWriter = org.objectweb.asm.Type.getInternalName(BufferedWriter.class);
     public static final String internalObject     = org.objectweb.asm.Type.getInternalName(Object.class);
     public static final String internalString     = org.objectweb.asm.Type.getInternalName(String.class);
     public static final String internalSingleton  = internalObject;
@@ -167,6 +171,8 @@ public class NamingCzar {
     public static final String descLong          = org.objectweb.asm.Type.getDescriptor(long.class);
     public static final String descBoolean       = org.objectweb.asm.Type.getDescriptor(boolean.class);
     public static final String descCharacter          = org.objectweb.asm.Type.getDescriptor(int.class);
+    public static final String descJavaBufferedReader = Naming.internalToDesc(internalJavaBufferedReader);
+    public static final String descJavaBufferedWriter = Naming.internalToDesc(internalJavaBufferedWriter);
     public static final String descString        = Naming.internalToDesc(internalString);
     public static final String stringArrayToVoid = Naming.makeMethodDesc(makeArrayDesc(descString), Naming.descVoid);
     public static final String internalFortressIntLiteral  = makeFortressInternal("IntLiteral");
@@ -177,6 +183,8 @@ public class NamingCzar {
     public static final String internalFortressRR64  = makeFortressInternal("RR64");
     public static final String internalFortressBoolean  = makeFortressInternal("Boolean");
     public static final String internalFortressCharacter  = makeFortressInternal("Character");
+    public static final String internalFortressJavaBufferedReader = makeFortressInternal("JavaBufferedReader");
+    public static final String internalFortressJavaBufferedWriter = makeFortressInternal("JavaBufferedWriter");
     public static final String internalFortressString = makeFortressInternal("String");
     public static final String internalFortressVoid   = makeFortressInternal("Void");
 
@@ -189,13 +197,13 @@ public class NamingCzar {
     public static final String descFortressRR64  = Naming.internalToDesc(internalFortressRR64);
     public static final String descFortressBoolean  = Naming.internalToDesc(internalFortressBoolean);
     public static final String descFortressCharacter  = Naming.internalToDesc(internalFortressCharacter);
+    public static final String descFortressJavaBufferedReader  = Naming.internalToDesc(internalFortressJavaBufferedReader);
+    public static final String descFortressJavaBufferedWriter  = Naming.internalToDesc(internalFortressJavaBufferedWriter);
     public static final String descFortressString = Naming.internalToDesc(internalFortressString);
     public static final String descFortressVoid   = Naming.internalToDesc(internalFortressVoid);
     public static final String descFortressAny        = Naming.internalToDesc(fortressAny);
 
     public static final String voidToFortressVoid = Naming.makeMethodDesc("", descFortressVoid);
-
-    public static final String closureFieldName = "closure";
 
     private static final List<String> extendsObject =
         Collections.singletonList(internalObject);
@@ -389,6 +397,8 @@ public class NamingCzar {
         s(Type.DOUBLE_TYPE, fortLib, "RR64");
         s(Object.class, anyLib, "Any");
         s(String.class, fortLib, "String");
+        s(BufferedReader.class, fortLib, "JavaBufferedReader");
+        s(BufferedWriter.class, fortLib, "JavaBufferedWriter");
         s(BigInteger.class, fortLib, "ZZ");
         specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
 	// You would think the following would be correct, but it's not, because
@@ -477,6 +487,8 @@ public class NamingCzar {
          */
         bl(fortLib, "Boolean", "FBoolean");
         bl(fortLib, "Character", "FCharacter");
+        bl(fortLib, "JavaBufferedReader", "FJavaBufferedReader");
+        bl(fortLib, "JavaBufferedWriter", "FJavaBufferedWriter");
         bl(fortLib, "RR32", "FRR32");
         bl(fortLib, "RR64", "FRR64");
         bl(fortLib, "ZZ32", "FZZ32");
@@ -1708,30 +1720,28 @@ public class NamingCzar {
      * @return
      */
     public static String genericDecoration(List<StaticParam> sparams,
-            Pair<String, List<Pair<String, String>>> pslpss,
+            Naming.XlationData xldata,
             APIName ifMissing
             ) {
-        return genericDecoration(null, sparams, pslpss, ifMissing);
+        return genericDecoration(null, sparams, xldata, ifMissing);
     }
     
     public static String genericDecoration(com.sun.fortress.nodes.Type receiverType, List<StaticParam> sparams,
-            Pair<String, List<Pair<String, String>>> pslpss,
+            Naming.XlationData xldata,
             APIName ifMissing
             ) {
         if (sparams.size() == 0)
             return "";
 
         NodeAbstractVisitor<Pair<String,String>> spkTagger = spkTagger(ifMissing);
-
-        List<Pair<String, String>> splist = pslpss == null ? null : pslpss.getB();
         
         String frag = Naming.LEFT_OXFORD;
         StringBuilder buf = new StringBuilder();
         buf.append(frag);
         if (receiverType != null) {
             Pair<String, String> s = receiverType.accept(spkTagger);
-            if (splist != null)
-                splist.add(s);
+            if (xldata != null)
+                xldata.addSortAndValueToStaticParams(s);
             buf.append(s.getB() + ";");
         }
         for (StaticParam sp : sparams) {
@@ -1740,8 +1750,8 @@ public class NamingCzar {
             
             IdOrOp spn = sp.getName();
             String s = spn.getText();
-            if (splist != null)
-                splist.add(p(k,s));
+            if (xldata != null)
+                xldata.addSortAndValueToStaticParams(k,s);
             buf.append(s + ";");
         }
         frag = buf.toString();

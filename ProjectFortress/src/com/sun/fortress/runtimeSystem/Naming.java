@@ -14,6 +14,7 @@ package com.sun.fortress.runtimeSystem;
  * is used as part of the runtime system.  There's some refactoring of single
  * sources for important names, that still has to be moved into here.
  */
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,8 @@ import org.objectweb.asm.Type;
 
 import com.sun.fortress.useful.CheapSerializer;
 import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.ProjectedList;
+import com.sun.fortress.useful.VersionMismatch;
 
 public class Naming {
     
@@ -64,7 +67,7 @@ public class Naming {
         }
     }
 
-    public final static
+    private final static
     
     CheapSerializer.PAIR<
         String,
@@ -79,6 +82,49 @@ public class Naming {
                             )
                     )
         ;
+    
+    public final static class XlationData {
+        Pair<String, List<Pair<String, String>>> data;
+        
+        public XlationData(String tag) {
+            data = new Pair<String, List<Pair<String, String>>>(tag,
+                    new ArrayList<Pair<String, String>>());
+        }
+        
+        private XlationData(byte[] bytes)  throws VersionMismatch {
+            data = xlationSerializer.fromBytes(bytes);
+        }
+        
+        static public XlationData fromBytes(byte[] bytes) throws VersionMismatch {
+            return new XlationData(bytes);
+        }
+        
+        public byte[] toBytes() {
+            return Naming.xlationSerializer.toBytes(data);
+        }
+        
+        public List<String> staticParameterNames() {
+            List<String> xl =
+                new ProjectedList<Pair<String, String>, String>(
+                        data.getB(),
+                        new Pair.GetB<String, String>());
+            return xl;
+        }
+        public XlationData setTraitObjectTag(String tag) {
+            data.setA(tag);
+            return this;
+        }
+        public String first() {
+            return data.first();
+        }
+        
+        public void addSortAndValueToStaticParams(Pair<String, String> p) {
+            data.getB().add(p);
+        }
+        public void addSortAndValueToStaticParams(String sort, String value) {
+            data.getB().add(new Pair<String, String>(sort, value));
+        }
+    }
 
     /* 
      * Refactoring note, there may be other defs of these names, that should
@@ -93,6 +139,7 @@ public class Naming {
     public final static String RTTI_GETTER = "getRTTI";
     public final static String RTTI_GETTER_CLASS = ANY_TYPE_CLASS;
     public final static String RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "RTTI";
+    public final static String RTTI_SINGLETON = "ONLY";
     public final static String TUPLE_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "TupleRTTI";
     public final static String ARROW_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "ArrowRTTI";
     public final static String JAVA_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "JavaRTTI";
@@ -106,6 +153,7 @@ public class Naming {
     // public final static String INTERNAL_TAG = "\u26a0"; // warning sign -- internal use only (fortress.)
 
     public final static String ENVELOPE = "\u2709"; // Signals necessary closure
+    public final static String CLOSURE_FIELD_NAME = ENVELOPE; // Name of closure field
     public final static String SNOWMAN = "\u2603"; // for empty tuple, sigh.
     public final static String INDEX = "\u261e";  // "__"; // "\u261e"; // white right point index (for dotted of functional methods)
     public final static String BOX = "\u2610"; // ballot box, used to indicate prefix or postfix.
@@ -215,7 +263,9 @@ public class Naming {
          * except that it deals only in strings.
          */
         bl(COMPILER_BUILTIN, "$Boolean", "FBoolean");
-        bl(COMPILER_BUILTIN, "$Char", "FCharacter");
+        bl(COMPILER_BUILTIN, "$Character", "FCharacter");
+        bl(COMPILER_BUILTIN, "$JavaBufferedReader", "FJavaBufferedReader");
+        bl(COMPILER_BUILTIN, "$JavaBufferedWriter", "FJavaBufferedWriter");
         bl(COMPILER_BUILTIN, "$RR32", "FRR32");
         bl(COMPILER_BUILTIN, "$RR64", "FRR64");
         bl(COMPILER_BUILTIN, "$ZZ32", "FZZ32");

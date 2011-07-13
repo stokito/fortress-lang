@@ -1665,10 +1665,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * circumstances.
          */
 
-        Pair<String, List<Pair<String, String>>> pslpss = 
+        Naming.XlationData xldata = 
             xlationData(Naming.FUNCTION_GENERIC_TAG);
 
-        String sparams_part = genericDecoration(x, pslpss);
+        String sparams_part = genericDecoration(x, xldata);
 
         FnHeader header = x.getHeader();
         Type returnType = header.getReturnType().unwrap();
@@ -1740,7 +1740,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cg.cw);
 
-        cg.cw.dumpClass(PCN_for_file, pslpss);
+        cg.cw.dumpClass(PCN_for_file, xldata);
         
         return PCN_for_class;
     }
@@ -2501,9 +2501,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
 
-    private String genericDecoration(FnDecl x, Pair<String, List<Pair<String, String>>> pslpss) {
+    private String genericDecoration(FnDecl x, Naming.XlationData xldata) {
         List<StaticParam> sparams = x.getHeader().getStaticParams();
-        return NamingCzar.genericDecoration(sparams, pslpss, thisApi());
+        return NamingCzar.genericDecoration(sparams, xldata, thisApi());
     }
 
 
@@ -2578,11 +2578,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              * Step 3: call the appropriate, returned, closure.
              */
             
-            Pair<String, List<Pair<String, String>>> pslpss = 
+            Naming.XlationData xldata = 
                 xlationData(Naming.FUNCTION_GENERIC_TAG);
             
             String sparams_part = NamingCzar.genericDecoration(f_method_static_params,
-                    pslpss, thisApi());
+                    xldata, thisApi());
 
             ArrowType at = fndeclToType(x); // type schema from old
             String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
@@ -2680,7 +2680,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
             InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cg.cw);
             
-            cg.cw.dumpClass(PCNOuter, pslpss);
+            cg.cw.dumpClass(PCNOuter, xldata);
 
 
 
@@ -2700,11 +2700,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         } else {
 
-            Pair<String, List<Pair<String, String>>> pslpss = 
+            Naming.XlationData xldata = 
                 xlationData(Naming.FUNCTION_GENERIC_TAG);
             
             String sparams_part = NamingCzar.genericDecoration(trait_sparams,
-                    pslpss, thisApi());
+                    xldata, thisApi());
 
             ArrowType at = fndeclToType(x); // type schema from old
             String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
@@ -2714,7 +2714,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             functionalMethodOfGenericTraitObjectWrapper(mname, sparams_part,
                     sig, generic_arrow_type, invocation, dottedName, selfIndex,
-                    params, modifiers, pslpss);
+                    params, modifiers, xldata);
 
         }
         }
@@ -2736,7 +2736,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private void functionalMethodOfGenericTraitObjectWrapper(String mname,
             String sparams_part, String sig, String generic_arrow_type,
             int invocation, String dottedName, int selfIndex,
-            List<Param> params, int modifiers, Pair<String, List<Pair<String, String>>> pslpss) {
+            List<Param> params, int modifiers, Naming.XlationData xldata) {
         String PCN =
             Naming.genericFunctionPkgClass(packageAndClassName, mname,
                                                sparams_part, generic_arrow_type);
@@ -2763,7 +2763,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cg.cw);
         
-        cg.cw.dumpClass(PCNOuter, pslpss);
+        cg.cw.dumpClass(PCNOuter, xldata);
     }
 
 
@@ -2965,7 +2965,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 Naming.genericFunctionPkgClass(pc_and_m.first(), pc_and_m.second(),
                                                    decoration, arrow_type);
             
-            mv.visitFieldInsn(GETSTATIC, PCN, NamingCzar.closureFieldName, arrow_desc);
+            mv.visitFieldInsn(GETSTATIC, PCN, Naming.CLOSURE_FIELD_NAME, arrow_desc);
 
         } else { // not generic reference.
 
@@ -2993,7 +2993,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              * must generate code for the class with a method apply, that
              * INVOKE_STATICs prefix.functionName .
              */
-            mv.visitFieldInsn(GETSTATIC, PCN, NamingCzar.closureFieldName, arrow_desc);
+            mv.visitFieldInsn(GETSTATIC, PCN, Naming.CLOSURE_FIELD_NAME, arrow_desc);
         }
     }
 
@@ -3374,10 +3374,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         final List<StaticParam> original_static_params = header.getStaticParams();
         Option<List<Param>> original_params = NodeUtil.getParams(x);
         
-        Pair<String, List<Pair<String, String>>> pslpss = 
+        Naming.XlationData xldata = 
             xlationData(Naming.OBJECT_GENERIC_TAG);
         
-        final String sparams_part = NamingCzar.genericDecoration(original_static_params, pslpss, thisApi());
+        final String sparams_part = NamingCzar.genericDecoration(original_static_params, xldata, thisApi());
 
 
         boolean savedInAnObject = inAnObject;
@@ -3483,7 +3483,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             if (sparams_part.length() > 0) {
                 InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cg.cw);
 
-                cg.cw.dumpClass(PCNOuter, pslpss.setA(Naming.FUNCTION_GENERIC_TAG));
+                cg.cw.dumpClass(PCNOuter, xldata.setTraitObjectTag(Naming.FUNCTION_GENERIC_TAG));
             }
 
 
@@ -3680,7 +3680,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         optionalStaticsAndClassInitForTO(classId, cnb, isSingletonObject);
         
         if (sparams_part.length() > 0) {
-            cw.dumpClass( cnb.fileName, pslpss );
+            cw.dumpClass( cnb.fileName, xldata );
         } else {
             cw.dumpClass( cnb.className );
         }
@@ -3727,7 +3727,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  * 
                  */
                     String rttiClassName = Naming.stemClassJavaName(cnb.className);
-                    mv.visitFieldInsn(GETSTATIC, rttiClassName, "ONLY", Naming.RTTI_CONTAINER_DESC);
+                    mv.visitFieldInsn(GETSTATIC, rttiClassName, Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);
                     mv.visitFieldInsn(PUTSTATIC, cnb.className, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
             }
 
@@ -4246,10 +4246,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<String> splist = new ArrayList<String>();
         List<StaticParam> original_static_params = header.getStaticParams();
         
-        Pair<String, List<Pair<String, String>>> pslpss = 
+        Naming.XlationData xldata = 
             xlationData(Naming.TRAIT_GENERIC_TAG);
 
-        String sparams_part = NamingCzar.genericDecoration(original_static_params, pslpss, thisApi());
+        String sparams_part = NamingCzar.genericDecoration(original_static_params, xldata, thisApi());
 
 //       First let's do the interface class
 //        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
@@ -4307,7 +4307,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         optionalStaticsAndClassInitForTO(classId, cnb, false);
 
         if (sparams_part.length() > 0 ) {
-            cw.dumpClass( cnb.fileName, pslpss );
+            cw.dumpClass( cnb.fileName, xldata );
         } else {
             cw.dumpClass( cnb.fileName );
         }
@@ -4357,7 +4357,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              * generic context (how????) it is in fact a class, so it needs
              * INVOKEVIRTUAL.
              */
-            newcg.cw.dumpClass( springBoardClassOuter, pslpss.setA(Naming.OBJECT_GENERIC_TAG) );
+            newcg.cw.dumpClass( springBoardClassOuter, xldata.setTraitObjectTag(Naming.OBJECT_GENERIC_TAG) );
         } else {
             newcg.cw.dumpClass( springBoardClassOuter );
         }
@@ -4570,7 +4570,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (sparams_size == 0) {
             // static, initialized to single instance of self
             cw.visitField(ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
-                    "ONLY", Naming.RTTI_CONTAINER_DESC, null, null);
+                    Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC, null, null);
             
             mv = cw.visitCGMethod(ACC_STATIC, "<clinit>", "()V", null, null);
             mv.visitCode();
@@ -4582,7 +4582,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitMethodInsn(INVOKESPECIAL, rttiClassName, "<init>", "(Ljava/lang/Class;)V");
             // store
             mv.visitFieldInsn(PUTSTATIC, rttiClassName,
-                    "ONLY", Naming.RTTI_CONTAINER_DESC);                
+                    Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);                
 
             voidEpilogue();
         } else {
@@ -4789,7 +4789,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 mv2.visitFieldInsn(GETFIELD, rttiClassName, extendee.getText(), Naming.RTTI_CONTAINER_DESC);
             } else {
                 // reference to a non-generic type.  Load from whatever.Only
-                mv2.visitFieldInsn(GETSTATIC, field_type, "ONLY", Naming.RTTI_CONTAINER_DESC);                
+                mv2.visitFieldInsn(GETSTATIC, field_type, Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);                
             }
         } else {
             // invoke field_type.factory(args)
@@ -5700,10 +5700,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitEnd();
     }
     
-    public static Pair<String, List<Pair<String, String>>> xlationData(String tag) {
+    public static Naming.XlationData xlationData(String tag) {
         return
-            new Pair<String, List<Pair<String, String>>>(tag,
-                    new ArrayList<Pair<String, String>>());
+            new Naming.XlationData(tag);
     }
 
     /**

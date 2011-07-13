@@ -20,6 +20,7 @@ import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory.typeSpan
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
+import com.sun.fortress.repository.ProjectProperties
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
@@ -47,7 +48,8 @@ import com.sun.fortress.useful.NI
  */
 
 class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
-  
+  private final val cacheSchemaSubtypes = ProjectProperties.getBoolean("fortress.schema.subtype.cache", true)
+
   def makeDomainFromArrow(a: ArrowType): Type = {
     insertStaticParams(a.getDomain, getStaticParams(a))
   }
@@ -62,9 +64,26 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
       case _ =>
           t
   }
-  
+
+  private val subtypeUAMemo = new scala.collection.mutable.HashMap[(ArrowType, ArrowType), Boolean]()
+    
+  def subtypeUA(x: ArrowType, y: ArrowType): Boolean = {
+     val rval = if (x == y)
+           true
+         else if (cacheSchemaSubtypes)
+           subtypeUAMemo.get((x, y)) match {
+            case Some(v) => v
+            case _ => 
+              val result = subtypeUAInner(x,y)
+              subtypeUAMemo += ((x, y) -> result)
+              result
+           }
+         else subtypeUAInner(x,y)
+     rval
+  }
+
   // Subtyping on universal arrows
-  def subtypeUA(s: ArrowType, t: ArrowType): Boolean =
+  private def subtypeUAInner(s: ArrowType, t: ArrowType): Boolean =
     subUA(normalizeUA(alphaRenameTypeSchema(s).asInstanceOf[ArrowType]),
           normalizeUA(alphaRenameTypeSchema(t).asInstanceOf[ArrowType]))
   
@@ -89,9 +108,25 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     case (s, t) => ta.lteq(s, t)
   }
   
+  private val subtypeEDMemo = new scala.collection.mutable.HashMap[(Type, Type), Boolean]()
+    
+  def subtypeED(x: Type, y: Type): Boolean = {
+     val rval = if (x == y)
+           true
+         else if (cacheSchemaSubtypes)
+           subtypeEDMemo.get((x, y)) match {
+            case Some(v) => v
+            case _ => 
+              val result = subtypeEDInner(x,y)
+              subtypeEDMemo += ((x, y) -> result)
+              result
+           }
+         else subtypeEDInner(x,y)
+     rval
+  }
 
   // Subtyping for existential domains
-  def subtypeED(s: Type, t: Type) = 
+  private def subtypeEDInner(s: Type, t: Type) = 
     subED(normalizeED(alphaRenameTypeSchema(s)), normalizeED(alphaRenameTypeSchema(t)))
   
   private def subED(s: Type, t: Type): Boolean = (s,t) match {
