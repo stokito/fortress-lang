@@ -11,103 +11,100 @@
 
 package com.sun.fortress.nativeHelpers;
 
+import com.sun.fortress.compiler.runtimeValues.FException;
+import com.sun.fortress.compiler.runtimeValues.FortressBufferedReader;
+import com.sun.fortress.compiler.runtimeValues.FortressBufferedWriter;
+import com.sun.fortress.compiler.runtimeValues.Utility;
+
+import java.lang.reflect.Constructor;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.StringBufferInputStream;
+
 import java.nio.charset.Charset;
 
 public class fileOps {
 
-    public static BufferedReader jbrOpen(String name) {
+    public static FortressBufferedReader jbrOpen(String name) throws FException {
 	try {
-	    return new BufferedReader(new InputStreamReader(new FileInputStream(name), Charset.forName("UTF-8")));
+	    return new FortressBufferedReader(name, new BufferedReader(new InputStreamReader(new FileInputStream(name), Charset.forName("UTF-8"))));
 	} catch (FileNotFoundException e) {
-	    return new BufferedReader(new InputStreamReader(new StringBufferInputStream(""), Charset.forName("UTF-8")));
+	    throw Utility.makeFortressException("fortress.CompilerBuiltin$FileNotFoundException", e);
 	}
     }
 
-    public static String jbrAsString(BufferedReader r) {
+    public static String jbrAsString(FortressBufferedReader r) {
 	return "[buffered reader " + r.toString() + "]";
     }
 
-    public static int jbrRead(BufferedReader r) {
-	try {
-	    return r.read();
-	} catch (IOException e) {
-	    return 0xFFFF;
-	}
+    public static int jbrRead(FortressBufferedReader r) throws FException {
+	return r.read();
     }
 
-    public static String jbrReadLine(BufferedReader r) {
-	try {
-	    return r.readLine();
-	} catch (IOException e) {
-	    return "";
-	}
+    public static String jbrReadLine(FortressBufferedReader r) throws FException {
+	return r.readLine();
     }
 
-    public static boolean jbrReady(BufferedReader r) {
-	try {
-	    return r.ready();
-	} catch (IOException e) {
-	    return false;
-	}
+    public static String jbrReadk(FortressBufferedReader r, int k) throws FException {
+	return r.readk(k);
     }
 
-    public static void jbrClose(BufferedReader r) {
-	try {
-	    r.close();
-	} catch (IOException e) { }
+    public static boolean jbrEof(FortressBufferedReader r) {
+	return r.eof();
+    }
+
+    public static boolean jbrReady(FortressBufferedReader r) throws FException {
+	return r.ready();
+    }
+
+    public static void jbrClose(FortressBufferedReader r) throws FException {
+	r.close();
+    }
+
+    public static void jbrWhenUnconsumed(FortressBufferedReader r) throws FException {
+	r.whenUnconsumed();
+    }
+
+    public static void jbrConsume(FortressBufferedReader r) throws FException {
+	r.consume();
     }
 
 
-    public static BufferedWriter jbwOpen(String name) {
+    public static FortressBufferedWriter jbwOpen(String name) throws FException {
 	try {
-	    return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(name), Charset.forName("UTF-8")));
+	    return new FortressBufferedWriter(name, new BufferedWriter(new OutputStreamWriter(new FileOutputStream(name), Charset.forName("UTF-8"))));
 	} catch (FileNotFoundException e) {
-	    return new BufferedWriter(new OutputStreamWriter(new ByteArrayOutputStream(), Charset.forName("UTF-8")));
+	    throw Utility.makeFortressException("fortress.CompilerBuiltin$FileNotFoundException", e);
 	}
     }
 
-    public static String jbwAsString(BufferedWriter w) {
+    public static String jbwAsString(FortressBufferedWriter w) {
         return "[buffered writer " + w.toString() + "]";
     }
 
-    public static void jbwWriteChar(BufferedWriter w, int c) {
-        try {
-	    w.write(c);
-	} catch (IOException e) { }
+    public static void jbwWriteChar(FortressBufferedWriter w, int c) throws FException {
+	w.write(c);
     }
 
-    public static void jbwWriteString(BufferedWriter w, String s) {
-	try {
-	    w.write(s, 0, s.length());
-	} catch (IOException e) { }
+    public static void jbwWriteString(FortressBufferedWriter w, String s) throws FException {
+	w.write(s);
     }
 
-    public static void jbwNewLine(BufferedWriter w) {
-	try {
-	    w.newLine();
-	} catch (IOException e) { }
+    public static void jbwNewLine(FortressBufferedWriter w) throws FException {
+	w.newLine();
     }
 
-    public static void jbwFlush(BufferedWriter w) {
-	try {
-	    w.flush();
-	} catch (IOException e) { }
+    public static void jbwFlush(FortressBufferedWriter w) throws FException {
+	w.flush();
     }
 
-    public static void jbwClose(BufferedWriter w) {
-	try {
-	    w.close();
-	} catch (IOException e) { }
+    public static void jbwClose(FortressBufferedWriter w) throws FException {
+	w.close();
     }
 
 }

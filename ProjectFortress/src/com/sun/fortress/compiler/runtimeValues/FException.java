@@ -13,7 +13,7 @@ package com.sun.fortress.compiler.runtimeValues;
 
 import java.util.HashMap;
 
-public class FException extends java.lang.Exception {
+public class FException extends java.lang.Error {
 
     static HashMap exceptions = new HashMap();
 
@@ -26,6 +26,9 @@ public class FException extends java.lang.Exception {
     }
 
     public String toString() { return "FortressException: " + error.getClass() + " with string " + error.asString().getValue();}
-    public Object getValue() { return error; }
+
+    // Codegen.java knows about the return type of this getValue method.
+    public FValue getValue() { return error; }
+    public FException make(FValue x) { return new FException(x); }
 
 }

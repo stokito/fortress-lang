@@ -11,21 +11,21 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-import java.io.BufferedWriter;
+import com.sun.fortress.compiler.runtimeValues.FortressBufferedWriter;
 
 public class FJavaBufferedWriter extends fortress.CompilerBuiltin.JavaBufferedWriter.DefaultTraitMethods implements fortress.CompilerBuiltin.JavaBufferedWriter {
     // This is a temporary hack until we get a full-blown theory of automatically importing all Java libraries.
     // We need to have some basic file I/O in order to implement the BirdCount benchmark.
-    final BufferedWriter val;
+    final FortressBufferedWriter val;
 
-    FJavaBufferedWriter(BufferedWriter x) { val = x; }
+    FJavaBufferedWriter(FortressBufferedWriter x) { val = x; }
 
     public String toString() {
 	return "[buffered reader " + val + "]";
     }
 
-    public BufferedWriter getValue() {return val;}
-    public static FJavaBufferedWriter make(BufferedWriter x) {return new FJavaBufferedWriter(x);}
+    public FortressBufferedWriter getValue() {return val;}
+    public static FJavaBufferedWriter make(FortressBufferedWriter x) {return new FJavaBufferedWriter(x);}
 
     @Override
     public RTTI getRTTI() { return RTTIjbw.ONLY; }

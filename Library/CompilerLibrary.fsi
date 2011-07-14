@@ -11,6 +11,8 @@
 
 api CompilerLibrary
 
+import CompilerBuiltin.{...}
+
 (************************************************************
  * Value bindings
  ************************************************************)
@@ -34,12 +36,6 @@ deny(flag: Boolean, failMsg: String): ()
 (************************************************************
 * \subsection*{Exception hierarchy}
 ************************************************************)
-trait Exception comprises { UncheckedException, CheckedException }
-end
-
-(* Exceptions which are not checked *)
-
-trait UncheckedException extends Exception excludes CheckedException end
 
 object FailCalled(s:String) extends UncheckedException end
 
@@ -79,11 +75,6 @@ object IntegerOverflow extends UncheckedException end
 object RationalComparisonError extends UncheckedException end
 
 object FloatingComparisonError extends UncheckedException end
-
-
-(* Checked Exceptions *)
-
-trait CheckedException extends Exception excludes UncheckedException end
 
 
 (************************************************************

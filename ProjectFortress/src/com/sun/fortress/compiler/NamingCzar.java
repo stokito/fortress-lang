@@ -13,8 +13,6 @@ package com.sun.fortress.compiler;
 
 import static com.sun.fortress.exceptions.ProgramError.errorMsg;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -28,6 +26,8 @@ import org.objectweb.asm.Type;
 
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.Functional;
+import com.sun.fortress.compiler.runtimeValues.FortressBufferedReader;
+import com.sun.fortress.compiler.runtimeValues.FortressBufferedWriter;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AnyType;
@@ -158,8 +158,8 @@ public class NamingCzar {
     public static final String internalLong       = org.objectweb.asm.Type.getInternalName(long.class);
     public static final String internalBoolean    = org.objectweb.asm.Type.getInternalName(boolean.class);
     public static final String internalCharacter  = org.objectweb.asm.Type.getInternalName(int.class);
-    public static final String internalJavaBufferedReader = org.objectweb.asm.Type.getInternalName(BufferedReader.class);
-    public static final String internalJavaBufferedWriter = org.objectweb.asm.Type.getInternalName(BufferedWriter.class);
+    public static final String internalJavaBufferedReader = org.objectweb.asm.Type.getInternalName(FortressBufferedReader.class);
+    public static final String internalJavaBufferedWriter = org.objectweb.asm.Type.getInternalName(FortressBufferedWriter.class);
     public static final String internalObject     = org.objectweb.asm.Type.getInternalName(Object.class);
     public static final String internalString     = org.objectweb.asm.Type.getInternalName(String.class);
     public static final String internalSingleton  = internalObject;
@@ -399,8 +399,8 @@ public class NamingCzar {
         s(Type.DOUBLE_TYPE, fortLib, "RR64");
         s(Object.class, anyLib, "Any");
         s(String.class, fortLib, "String");
-        s(BufferedReader.class, fortLib, "JavaBufferedReader");
-        s(BufferedWriter.class, fortLib, "JavaBufferedWriter");
+        s(FortressBufferedReader.class, fortLib, "JavaBufferedReader");
+        s(FortressBufferedWriter.class, fortLib, "JavaBufferedWriter");
         s(BigInteger.class, fortLib, "ZZ");
         specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
 	// You would think the following would be correct, but it's not, because
