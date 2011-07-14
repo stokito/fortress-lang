@@ -15,24 +15,24 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.jar.JarOutputStream;
 
-import org.objectweb.asm.*;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.util.*;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
-import edu.rice.cs.plt.collect.CollectUtil;
-import edu.rice.cs.plt.collect.PredicateSet;
-import edu.rice.cs.plt.collect.Relation;
-import edu.rice.cs.plt.collect.IndexedRelation;
-import edu.rice.cs.plt.tuple.Option;
-// import edu.rice.cs.plt.tuple.Pair;
-
-import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.NamingCzar;
-import com.sun.fortress.scala_src.overloading.OverloadingOracle;
+import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
@@ -45,26 +45,108 @@ import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
-import com.sun.fortress.compiler.OverloadSet;
-import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
 import com.sun.fortress.exceptions.CompilerError;
-import com.sun.fortress.exceptions.InterpreterBug;
-import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.ASTNode;
+import com.sun.fortress.nodes.AbbreviatedType;
+import com.sun.fortress.nodes.AnyType;
+import com.sun.fortress.nodes.ArrowType;
+import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.Block;
+import com.sun.fortress.nodes.BoolArg;
+import com.sun.fortress.nodes.BottomType;
+import com.sun.fortress.nodes.Catch;
+import com.sun.fortress.nodes.CatchClause;
+import com.sun.fortress.nodes.ChainExpr;
+import com.sun.fortress.nodes.CharLiteralExpr;
+import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.Decl;
+import com.sun.fortress.nodes.DimArg;
+import com.sun.fortress.nodes.Do;
+import com.sun.fortress.nodes.Expr;
+import com.sun.fortress.nodes.Fixity;
+import com.sun.fortress.nodes.FloatLiteralExpr;
+import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.FnExpr;
+import com.sun.fortress.nodes.FnHeader;
+import com.sun.fortress.nodes.FnRef;
+import com.sun.fortress.nodes.FunctionalRef;
+import com.sun.fortress.nodes.GeneratorClause;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.If;
+import com.sun.fortress.nodes.IfClause;
+import com.sun.fortress.nodes.Import;
+import com.sun.fortress.nodes.ImportNames;
+import com.sun.fortress.nodes.ImportStar;
+import com.sun.fortress.nodes.IntArg;
+import com.sun.fortress.nodes.IntLiteralExpr;
+import com.sun.fortress.nodes.IntersectionType;
+import com.sun.fortress.nodes.LValue;
+import com.sun.fortress.nodes.Link;
+import com.sun.fortress.nodes.LocalVarDecl;
+import com.sun.fortress.nodes.MethodInfo;
+import com.sun.fortress.nodes.MethodInvocation;
+import com.sun.fortress.nodes.NamedType;
+import com.sun.fortress.nodes.Node;
+import com.sun.fortress.nodes.NodeAbstractVisitor_void;
+import com.sun.fortress.nodes.ObjectDecl;
+import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.OpArg;
+import com.sun.fortress.nodes.OpExpr;
+import com.sun.fortress.nodes.OpRef;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.Pattern;
+import com.sun.fortress.nodes.PatternBinding;
+import com.sun.fortress.nodes.PlainPattern;
+import com.sun.fortress.nodes.SelfType;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.StringLiteralExpr;
+import com.sun.fortress.nodes.SubscriptExpr;
+import com.sun.fortress.nodes.Throw;
+import com.sun.fortress.nodes.TraitDecl;
+import com.sun.fortress.nodes.TraitObjectDecl;
+import com.sun.fortress.nodes.TraitSelfType;
+import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.TraitTypeHeader;
+import com.sun.fortress.nodes.TraitTypeWhere;
+import com.sun.fortress.nodes.Try;
+import com.sun.fortress.nodes.TupleExpr;
+import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
-import com.sun.fortress.nodes_util.*;
+import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.TypeOrPattern;
+import com.sun.fortress.nodes.TypePattern;
+import com.sun.fortress.nodes.Typecase;
+import com.sun.fortress.nodes.TypecaseClause;
+import com.sun.fortress.nodes.UnitArg;
+import com.sun.fortress.nodes.VarDecl;
+import com.sun.fortress.nodes.VarRef;
+import com.sun.fortress.nodes.VarType;
+import com.sun.fortress.nodes.VoidLiteralExpr;
+import com.sun.fortress.nodes._RewriteFnApp;
+import com.sun.fortress.nodes._RewriteFnOverloadDecl;
+import com.sun.fortress.nodes_util.ExprFactory;
+import com.sun.fortress.nodes_util.Modifiers;
+import com.sun.fortress.nodes_util.NodeFactory;
+import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.SourceLoc;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.BAlongTree;
-import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader.InitializedStaticField;
-import com.sun.fortress.syntax_abstractions.ParserMaker.Mangler;
-import com.sun.fortress.useful.BA2Tree;
+import com.sun.fortress.runtimeSystem.Naming;
+import com.sun.fortress.scala_src.overloading.OverloadingOracle;
+import com.sun.fortress.scala_src.types.TypeAnalyzer;
+import com.sun.fortress.scala_src.useful.STypesUtil;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.ConcatenatedList;
 import com.sun.fortress.useful.Debug;
-import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.DeletedList;
 import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.Fn;
@@ -78,8 +160,10 @@ import com.sun.fortress.useful.TopSort;
 import com.sun.fortress.useful.TopSortItemImpl;
 import com.sun.fortress.useful.Useful;
 
-import com.sun.fortress.scala_src.useful.STypesUtil;
-import scala.collection.JavaConversions;
+import edu.rice.cs.plt.collect.IndexedRelation;
+import edu.rice.cs.plt.collect.PredicateSet;
+import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.tuple.Option;
 
 // Note we have a name clash with org.objectweb.asm.Type
 // and com.sun.fortress.nodes.Type.  If anyone has a better
@@ -164,6 +248,41 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * Null if not in an object scope.
      */
     private List<InstantiatingClassloader.InitializedInstanceField> initializedInstanceFields_O;
+    private InstanceFields instanceFields;
+    
+    private class InstanceFields {
+    	private List<VarCodeGen> fields;
+    	private List<Type> fieldTypes;
+    	private List<Expr> fieldInitializers;
+    	
+    	public InstanceFields() {
+    		fields = new ArrayList<VarCodeGen>();
+    		fieldTypes = new ArrayList<Type>();
+    		fieldInitializers = new ArrayList<Expr>();
+    	}
+    	
+    	public int size() {
+    		return fields.size();
+    	}
+    	
+    	public void put(VarCodeGen field, Expr init) {
+    		fields.add(field);
+    		fieldTypes.add(field.fortressType);
+    		fieldInitializers.add(init);
+    	}
+
+		public List<VarCodeGen> getFields() {
+			return Collections.unmodifiableList(fields);
+		}
+
+		public List<Type> getFieldTypes() {
+			return Collections.unmodifiableList(fieldTypes);
+		}
+
+		public List<Expr> getFieldInitializers() {
+			return Collections.unmodifiableList(fieldInitializers);
+		}
+    }
     
     static public Naming.ClassNameBundle new_ClassNameBundle(Id id, String sparams_part, String PCN) {
         return new Naming.ClassNameBundle(stemFromId(id, PCN), sparams_part);
@@ -289,13 +408,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         debug( "Compile: Compiling ", packageAndClassName );
 
         // Always generate the init method
-        instanceInitForObject( extendedJavaClass, Collections.<Param>emptyList());
+        basicInitMethod(extendedJavaClass);
         // If this component exports an executable API,
         // generate a main method.
         if ( exportsExecutable ) {
             generateMainMethod();
         }
     }
+    
 
 
     // We need to expose this because nobody else helping CodeGen can
@@ -2846,7 +2966,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 Naming.genericFunctionPkgClass(pc_and_m.first(), pc_and_m.second(),
                                                    decoration, arrow_type);
             
-            mv.visitFieldInsn(GETSTATIC, PCN, NamingCzar.closureFieldName, arrow_desc);
+            mv.visitFieldInsn(GETSTATIC, PCN, Naming.CLOSURE_FIELD_NAME, arrow_desc);
 
         } else { // not generic reference.
 
@@ -2874,7 +2994,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              * must generate code for the class with a method apply, that
              * INVOKE_STATICs prefix.functionName .
              */
-            mv.visitFieldInsn(GETSTATIC, PCN, NamingCzar.closureFieldName, arrow_desc);
+            mv.visitFieldInsn(GETSTATIC, PCN, Naming.CLOSURE_FIELD_NAME, arrow_desc);
         }
     }
 
@@ -3430,54 +3550,101 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 //                          NamingCzar.SINGLETON_FIELD_NAME, cnb.classDesc,
 //                          null /* for non-generic */, null /* instance has no value */);
         }
+    	
+        currentTraitObjectDecl = x;
+        //create CodeGen for init method
+        // has different set of parameter variables in scope
+        CodeGen initCodeGen = initializeInitMethod(params);
+        
+        initCodeGen.initializedInstanceFields_O = new ArrayList<InstantiatingClassloader.InitializedInstanceField>();
+//        List<Binding> fieldsForEnv = new ArrayList<Binding>();
+        initCodeGen.instanceFields = new InstanceFields();
 
-        initializedInstanceFields_O = new ArrayList<InstantiatingClassloader.InitializedInstanceField>();
-        List<Binding> fieldsForEnv = new ArrayList<Binding>();
-
+        
+        BATree<String, VarCodeGen> savedLexEnv = lexEnv.copy();
+        
+        // for each parameter
+        // 1) add field to the class
+        // 2) add field along with initializer to list of instance fields to put in the constructor
+        // 3) add parameter to local scope of init method
+        // 4) add field to scope for use in methods
+        for (int i = 0; i < params.size(); i++) {
+        	Param p = params.get(i);
+        	
+        	String paramName = p.getName().getText();
+   		   	Type paramType = (Type)p.getIdType().unwrap();
+   		   	String typeDesc = NamingCzar.jvmBoxedTypeDesc(paramType, thisApi());
+   		   	Id id = NodeFactory.makeId(NodeUtil.getSpan(p.getName()), paramName);
+   		   	VarCodeGen vcg = new VarCodeGen.FieldVar(id,
+               paramType,
+               cnb.className,
+               paramName,
+               typeDesc);
+   		   	
+   		   	//1) add field to class
+   		   	cw.visitField(
+               ACC_PUBLIC + ACC_FINAL,
+               paramName, typeDesc,
+               null /* for non-generic */, null /* instance has no value */);
+   		   	
+   		   	//2) add field with initializer as a refernce to the parameter
+   		   	initCodeGen.instanceFields.put(vcg, ExprFactory.makeVarRef(id));
+   		   	
+   		   	//3) add param to scope for init method only
+   		   	initCodeGen.addStaticVar(new VarCodeGen.ParamVar(id, paramType, initCodeGen));
+   		   	
+   		   	//4) add field to scope for method codegen
+   		   	addStaticVar(vcg);
+        }   
+        
+        // find declared fields in the list of decls and
+        // 1) add field to the class
+        // 2) add field along with initializer to list of instance fields to put in the constructor
+        // 3) add field to scope for use in methods
         for (Decl d : header.getDecls()) {
             if (d instanceof VarDecl) {
          	   // TODO need to spot for "final" fields.  Right now we assume final.
                final VarDecl vd = (VarDecl) d;
                final CodeGen cg = this;
-         	   for( LValue l : vd.getLhs()) {
-         		   String pn = l.getName().getText();
-         		   Type pt = (Type)l.getIdType().unwrap();
-         		   String typeDesc = NamingCzar.jvmBoxedTypeDesc(pt, thisApi());
-         		   generateObjectFieldInit(cnb.className, vd, cg, pn, typeDesc);
-         		   //add field to environment
-         		   fieldsForEnv.add(l);
-         	   }
+         	   int numDecls = vd.getLhs().size();
+               for(int i = 0; i < numDecls; i++) {
+         		   LValue l = vd.getLhs().get(i);
+         		   String fieldName = l.getName().getText();
+         		   Type fieldType = (Type)l.getIdType().unwrap();
+         		   String typeDesc = NamingCzar.jvmBoxedTypeDesc(fieldType, thisApi());
+         		   Id id = NodeFactory.makeId(NodeUtil.getSpan(l.getName()), fieldName);
+         		   VarCodeGen fieldVcg = new VarCodeGen.FieldVar(id,
+                         fieldType,
+                         cnb.className,
+                         fieldName,
+                         typeDesc);
+        		   
+         		   //1) add field to class
+         		   cw.visitField(
+         	             ACC_PUBLIC + ACC_FINAL,
+         	             fieldName, typeDesc,
+         	             null /* for non-generic */, null /* instance has no value */);
+         		   
+         		   //2) set up initializer
+         		   if (vd.getInit().isNone()) sayWhat(vd, "no initializer for declared field(s)");
+         		   Expr init = vd.getInit().unwrap();
+         		   
+         		   if (numDecls != 1 && init instanceof TupleExpr) {
+         			   List<Expr> tupleExprs = ((TupleExpr)init).getExprs();
+         			   if ( tupleExprs.size() != numDecls)
+         				   sayWhat(vd, "incorrect initialization for declared fields tuple");
+         			   init = tupleExprs.get(i);
+         		   }
+         		   initCodeGen.instanceFields.put(fieldVcg, init);
+         		   
+         		   //3) add field to scope for method codegen
+         		   addStaticVar(fieldVcg);
+                }
             }
          }
         
-        for (int i = 0; i < params.size(); i++) {
-        	Param p = params.get(i);
-        	
-        	String pn = p.getName().getText();
-   		   	Type pt = (Type)p.getIdType().unwrap();
-   		   	String typeDesc = NamingCzar.jvmBoxedTypeDesc(pt, thisApi());
-   		   	generateObjectParameterInit(cnb.className, i+1, pn, typeDesc);
-   		   	//add params to environment
-   		   	fieldsForEnv.add(p);
-        }        
+            
         
-        BATree<String, VarCodeGen> savedLexEnv = lexEnv.copy();
-
-        // need to add locals to the environment.
-        // each one has name, mangled with a preceding "$"
-        for (Binding b : fieldsForEnv) {
-            Type param_type = (Type)b.getIdType().unwrap();
-            String objectFieldName = b.getName().getText();
-            Id id =
-               NodeFactory.makeId(NodeUtil.getSpan(b.getName()), objectFieldName);
-            addStaticVar(new VarCodeGen.FieldVar(id,
-                    param_type,
-                    cnb.className,
-                    objectFieldName,
-                    NamingCzar.jvmBoxedTypeDesc(param_type, component.getName())));
-        }
-
-        currentTraitObjectDecl = x;
         Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> overloads = dumpOverloadedMethodChaining(superInterfaces, false);
         if (OVERLOADED_METHODS)
             typeLevelOverloadedNamesAndSigs =
@@ -3489,7 +3656,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             d.accept(this);
         }
         
-        instanceInitForObject(abstractSuperclass, params);
+        initCodeGen.instanceInitForObject(abstractSuperclass);
+        
         
         dumpMethodChaining(superInterfaces, false);
         // dumpErasedMethodChaining(superInterfaces, false);
@@ -3530,60 +3698,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         RttiClassAndInterface(x,cnb);
     }
 
-
-	private void generateObjectParameterInit(final String className,
-			final int paramNum, final String pn, final String typeDesc) {
-		initializedInstanceFields_O.add(new InstantiatingClassloader.InitializedInstanceField() {
-			
-		   @Override
-		   public void forInit(MethodVisitor mvi) {
-			   mv.visitVarInsn(ALOAD, 0);
-			   mv.visitVarInsn(ALOAD, paramNum);
-			   mv.visitFieldInsn(PUTFIELD, className, this.asmName(),
-		            this.asmSignature());
-		   }
-			
-		   @Override
-		   public String asmSignature() {
-			   return typeDesc;
-		   }
-			
-		   @Override
-		   public String asmName() {
-			   return pn;
-		   }
-		});
-	}
-
-
-	private void generateObjectFieldInit(
-			final String className, final VarDecl vd,
-			final CodeGen cg, final String pn, final String typeDesc) {
-		initializedInstanceFields_O.add(new InstantiatingClassloader.InitializedInstanceField() {
-			
-			   @Override
-			   public void forInit(MethodVisitor mvi) {
-				   if (vd.getInit().isSome()) {
-					   Expr init = vd.getInit().unwrap();
-					   mv.visitVarInsn(ALOAD, 0);
-					   init.accept(cg);
-					   mv.visitFieldInsn(PUTFIELD, className, this.asmName(), this.asmSignature());
-				   }
-			   }
-			
-			   @Override
-			   public String asmSignature() {
-				   return typeDesc;
-			   }
-			
-			   @Override
-			   public String asmName() {
-				   return pn;
-			   }
-		   });
-	}
-
-
     /**
      * @param cnb
      */
@@ -3614,7 +3728,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  * 
                  */
                     String rttiClassName = Naming.stemClassJavaName(cnb.className);
-                    mv.visitFieldInsn(GETSTATIC, rttiClassName, "ONLY", Naming.RTTI_CONTAINER_DESC);
+                    mv.visitFieldInsn(GETSTATIC, rttiClassName, Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);
                     mv.visitFieldInsn(PUTSTATIC, cnb.className, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
             }
 
@@ -3660,35 +3774,73 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
    
    /**
+    * Creates a basic initialization method that just calls the superclass constructor
+    * with no parameters
+    * 
+    * @param extendedJavaClass - superclass constructor to be called
+    */
+   private void basicInitMethod(String extendedJavaClass) {
+	   CodeGen initMethodCg = initializeInitMethod(Collections.<Param>emptyList());
+       initMethodCg.instanceInitForObject( extendedJavaClass );
+   }
+
+   /**
+    * sets up a CodeGen in which to create a initialization method for an object
+    * 
+    * @param params - input parameters to init function.  If empty, don't need to
+    * 					add a self parameter either (might not be able to if not for an object/trait)
+    * 					Note that this is needed to put stack parameters into the method scope
+    * 					for the inputs.
+    * @return
+    */
+   private CodeGen initializeInitMethod(List<Param> params) {
+	   CodeGen initCodeGen = new CodeGen(this);
+	   String init_sig = NamingCzar.jvmSignatureFor(params, "V", thisApi());
+
+	   initCodeGen.mv = initCodeGen.cw.visitCGMethod(ACC_PUBLIC,
+	                            "<init>",
+	                            init_sig,
+	                            null,
+	                            null);
+	   if (params.size() > 0 ) initCodeGen.addSelf();
+	   return initCodeGen;
+   }
+   
+   /**
+    * Writes the code for the init method for a fortress object.  Pulls
+    * from instanceFields to find VarCodeGen for fields and associated
+    * initialization expressions which it might run in parallel 
+    * 
     * @param classId
     * @param cnb
     * @param isSingletonObject
     */
-  private void instanceInitForObject(String superClass, List<Param> params) {
-
-	  String init_sig = NamingCzar.jvmSignatureFor(params, "V", thisApi());
-
-      mv = cw.visitCGMethod(ACC_PUBLIC,
-                            "<init>",
-                            init_sig,
-                            null,
-                            null);
+  private void instanceInitForObject(String superClass) {
+  
       mv.visitCode();
       mv.visitVarInsn(ALOAD, 0);
       mv.visitMethodInsn(INVOKESPECIAL, superClass, "<init>", Naming.voidToVoid);
-      
-      if (initializedInstanceFields_O != null) {
-	      for (InstantiatingClassloader.InitializedInstanceField isf : initializedInstanceFields_O) {
-	           isf.forInit(mv);
-	           cw.visitField(
-	                   ACC_PUBLIC + ACC_FINAL,
-	                   isf.asmName(), isf.asmSignature(),
-	                   null /* for non-generic */, null /* instance has no value */);
-	           // DRC-WIP
-	       }
-       }
        
-       voidEpilogue();
+      	if (instanceFields != null && instanceFields.size() > 0) {
+      		
+      		List<VarCodeGen> vcgs = instanceFields.getFields();
+      		List<Type> types = instanceFields.getFieldTypes();
+      		List<Expr> initializers = instanceFields.getFieldInitializers();
+      		Type type = types.size() == 1 ? types.get(0) : NodeFactory.makeTupleType(types);
+      		
+      		
+      		if (pa.worthParallelizing(
+      				ExprFactory.makeTupleExpr(
+      						NodeFactory.internalSpan,
+      						initializers))) {
+                forExprsParallel(initializers, type, vcgs);
+            } else {
+                forExprsSerial(initializers, type, vcgs);
+            }
+      		
+      	}
+      
+      	voidEpilogue();
    }
 
    private void emitErasedClassFor(Naming.ClassNameBundle cnb, TraitObjectDecl x) {
@@ -4176,7 +4328,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         debug("Start writing springboard class ",
               springBoardClass);
 
-        newcg.instanceInitForObject(abstractSuperclass, Collections.<Param>emptyList());
+        // simple init method
+        newcg.basicInitMethod(abstractSuperclass);
         
         debug("Finished init method ", springBoardClass);
 
@@ -4418,7 +4571,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (sparams_size == 0) {
             // static, initialized to single instance of self
             cw.visitField(ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
-                    "ONLY", Naming.RTTI_CONTAINER_DESC, null, null);
+                    Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC, null, null);
             
             mv = cw.visitCGMethod(ACC_STATIC, "<clinit>", "()V", null, null);
             mv.visitCode();
@@ -4430,7 +4583,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitMethodInsn(INVOKESPECIAL, rttiClassName, "<init>", "(Ljava/lang/Class;)V");
             // store
             mv.visitFieldInsn(PUTSTATIC, rttiClassName,
-                    "ONLY", Naming.RTTI_CONTAINER_DESC);                
+                    Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);                
 
             voidEpilogue();
         } else {
@@ -4637,7 +4790,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 mv2.visitFieldInsn(GETFIELD, rttiClassName, extendee.getText(), Naming.RTTI_CONTAINER_DESC);
             } else {
                 // reference to a non-generic type.  Load from whatever.Only
-                mv2.visitFieldInsn(GETSTATIC, field_type, "ONLY", Naming.RTTI_CONTAINER_DESC);                
+                mv2.visitFieldInsn(GETSTATIC, field_type, Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);                
             }
         } else {
             // invoke field_type.factory(args)

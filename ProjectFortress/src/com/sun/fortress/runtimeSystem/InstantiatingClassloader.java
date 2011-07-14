@@ -553,12 +553,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 init_mv.visitTypeInsn(NEW, final_name);
                 init_mv.visitInsn(DUP);
                 init_mv.visitMethodInsn(INVOKESPECIAL, final_name, "<init>", "()V");
-                init_mv.visitFieldInsn(PUTSTATIC, final_name, "closure", field_desc);
+                init_mv.visitFieldInsn(PUTSTATIC, final_name, Naming.CLOSURE_FIELD_NAME, field_desc);
             }
 
             @Override
             public String asmName() {
-                return "closure";
+                return Naming.CLOSURE_FIELD_NAME;
             }
 
             @Override
@@ -1122,6 +1122,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String wrapped_sig = stringListToGeneric(WRAPPED_ARROW, unwrapped_parameters);
         String typed_intf_sig = stringListToGeneric(Naming.ARROW_TAG, unwrapped_parameters);
         String unwrapped_apply_sig;
+
         if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
         	unwrapped_apply_sig = arrowParamsToJVMsig(parameters.subList(1,2));
         else
@@ -1133,6 +1134,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                   new String[] { stringListToArrow(unwrapped_parameters) }
                 : new String[] { stringListToArrow(unwrapped_parameters),
                                  stringListToArrow(tupled_parameters) };
+                  
+        String typed_tupled_intf_sig = tupled_parameters == null ? null :
+            stringListToGeneric(Naming.ARROW_TAG, tupled_parameters);
+        String objectified_tupled_intf_sig =
+            tupled_parameters == null ? null :
+            stringListToGeneric(Naming.ARROW_TAG,
+                        Useful.applyToAll(tupled_parameters, toJLO));
 
         boolean is_all_objects = objectified_parameters.equals(unwrapped_parameters);
                   
@@ -1203,24 +1211,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String sig = "(" + Naming.internalToDesc( Naming.ANY_TYPE_CLASS) + ")Z";
             MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, IS_A, sig, null, null);
             Label fail = new Label();
-            
-//            {	//testing - remove later
-//            	Label strange = new Label();
-//            	String temp = "arrowRTTI$gs" + Naming.ENVELOPE + "$Arrow" + Naming.LEFT_OXFORD + "arrowRTTI$General;arrowRTTI$Specific" + Naming.RIGHT_OXFORD;
-//            	mv.visitVarInsn(Opcodes.ALOAD, 0);
-//            	mv.visitTypeInsn(INSTANCEOF,temp);
-//            	mv.visitJumpInsn(Opcodes.IFEQ, strange);
-//            	
-//            	mv.visitVarInsn(Opcodes.ALOAD, 0);
-//            	mv.visitTypeInsn(CHECKCAST, temp);
-//            	mv.visitMethodInsn(INVOKEVIRTUAL, temp, Naming.RTTI_GETTER, "()" + Naming.RTTI_CONTAINER_DESC);
-//            	mv.visitInsn(POP);
-//            	mv.visitJumpInsn(GOTO, fail);
-//            	mv.visitLabel(strange);
-//            }
-
-            
-            
+                        
             //get RTTI to compare to
             mv.visitFieldInsn(GETSTATIC, name, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
             //get RTTI of object
@@ -1298,6 +1289,61 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitEnd();            
         } 
 
+        if (typed_tupled_intf_sig != null && !typed_tupled_intf_sig.equals(typed_intf_sig))
+        {
+            /*
+             *  If arg0 instanceof typed_intf_sig
+             *     return arg0
+             *  arg0 = arg0.getWrappee()
+             *  if arg0 instanceof typed_intf_sig
+             *     return arg0
+             *  new WrappedArrow
+             *  dup
+             *  push argo
+             *  init
+             *  return tos
+             */         
+            
+            MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, CAST_TO,
+                    "(" + Naming.internalToDesc(objectified_tupled_intf_sig) + ")" + Naming.internalToDesc(typed_intf_sig),
+                    null, null);
+
+            Label not_instance1 = new Label();
+            Label not_instance2 = new Label();
+
+            // try bare instanceof
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitTypeInsn(Opcodes.INSTANCEOF, typed_intf_sig);
+            mv.visitJumpInsn(Opcodes.IFEQ, not_instance1);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitInsn(Opcodes.ARETURN);
+            
+            // unwrap
+            mv.visitLabel(not_instance1);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitMethodInsn(INVOKEINTERFACE, objectified_tupled_intf_sig, getWrappee, "()"+ Naming.internalToDesc(objectified_tupled_intf_sig));
+            mv.visitVarInsn(Opcodes.ASTORE, 0);
+
+            // try instanceof on unwrapped
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitTypeInsn(Opcodes.INSTANCEOF, typed_intf_sig);
+            mv.visitJumpInsn(Opcodes.IFEQ, not_instance2);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitInsn(Opcodes.ARETURN);
+            
+            // wrap and return - untupled should be okay here, since it subtypes
+            mv.visitLabel(not_instance2);
+            mv.visitTypeInsn(NEW, wrapped_sig);
+            mv.visitInsn(DUP);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitMethodInsn(INVOKESPECIAL, wrapped_sig, "<init>", "(" + Naming.internalToDesc(obj_intf_sig) +")V");
+            
+            mv.visitInsn(Opcodes.ARETURN);
+            mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
+       
+            mv.visitEnd();            
+        }
+        
         // getWrappee
         {
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, getWrappee,

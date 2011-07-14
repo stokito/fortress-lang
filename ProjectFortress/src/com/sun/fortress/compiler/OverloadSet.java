@@ -815,7 +815,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             
             if (variantGenericsContained.size() == 0) {
                 /* easy case, no inference */
-                emitInstanceOfNG(mv, if_fail, value_cast);
+                if (top_level_invariants.size() > 0)
+                    emitInstanceOfNG(mv, if_fail, value_cast); // helpful for debugging
+                else 
+                    emitInstanceOfNG(mv, if_fail, value_cast);
 
             } else { // has generic
                 
