@@ -30,18 +30,18 @@ public class InstantiationMapJUTest extends TestCase {
     
     public void testMaybeVarInOxfords() {
         StringBuilder b = new StringBuilder();
-        int i = map.maybeVarInOxfords("A"+Naming.RIGHT_OXFORD, 0, b);
+        int i = map.maybeVarInOxfords("A"+Naming.RIGHT_OXFORD, 0, b, true);
   
         assertEquals(2, i);
         assertEquals("ant"+Naming.RIGHT_OXFORD, b.toString());
  
         b = new StringBuilder();
-        i = map.maybeVarInOxfords("BB"+Naming.RIGHT_OXFORD, 0, b);
+        i = map.maybeVarInOxfords("BB"+Naming.RIGHT_OXFORD, 0, b, true);
         assertEquals(3, i);
         assertEquals("BB"+Naming.RIGHT_OXFORD, b.toString());
 
         b = new StringBuilder();
-        i = map.maybeVarInOxfords("C;D"+Naming.RIGHT_OXFORD, 0, b);
+        i = map.maybeVarInOxfords("C;D"+Naming.RIGHT_OXFORD, 0, b, true);
         assertEquals(4, i);
         assertEquals("cat;dog"+Naming.RIGHT_OXFORD, b.toString());
         
@@ -58,17 +58,17 @@ public class InstantiationMapJUTest extends TestCase {
 
     public void testMaybeBareVar() {
         StringBuilder b = new StringBuilder();
-        int i = map.maybeBareVar("A", 0, b, false, false);
+        int i = map.maybeBareVar("A", 0, b, false, false, true);
         assertEquals(1, i);
         assertEquals("ant", b.toString());
  
         b = new StringBuilder();
-        i = map.maybeBareVar("B;", 0, b, false, false);
+        i = map.maybeBareVar("B;", 0, b, false, false, true);
         assertEquals(1, i);
         assertEquals("bat", b.toString());
 
         b = new StringBuilder();
-        i = map.maybeBareVar("CC;", 0, b, false, false);
+        i = map.maybeBareVar("CC;", 0, b, false, false, true);
         assertEquals(2, i);
         assertEquals("CC", b.toString());
 

@@ -64,12 +64,27 @@ public class MethodInstantiater implements MethodVisitor {
     
     public final static int FACTORY_SUFFIX_LENGTH = FACTORY_SUFFIX.length();
     
-    public void visitFieldInsn(int opcode, String owner, String name, String desc) {
+    public void visitFieldInsn(int opcode, String owner, String name, String orig_desc) {
         owner = xlation.getTypeName(owner);
         name = xlation.getTypeName(name);
-        desc = xlation.getFieldDesc(desc);
-        if (owner.endsWith(FACTORY_SUFFIX)) {
+        String desc = xlation.getFieldDesc(orig_desc);
+        if (owner.endsWith(FACTORY_SUFFIX) && name.equals(Naming.RTTI_SINGLETON)) {
             rttiReference(owner);
+        } else if (opcode ==  Opcodes.PUTSTATIC && name.equals(Naming.CLOSURE_FIELD_NAME)) {
+            String unwrapped_desc = xlation.getFieldDesc(orig_desc, true);
+            String wrapped_desc = xlation.getFieldDesc(orig_desc, false);
+            if (! wrapped_desc.equals(unwrapped_desc)) {
+                /* This is a hack; when a closure looks different depending on
+                 * how its descriptor translates (wrapped vs not), that means that
+                 * there will be a second closure field, and it needs to be initialized.
+                 */
+                mv.visitFieldInsn(Opcodes.PUTSTATIC, owner, name, unwrapped_desc); 
+                mv.visitFieldInsn(Opcodes.GETSTATIC, owner, name, unwrapped_desc); 
+                mv.visitFieldInsn(Opcodes.PUTSTATIC, owner, name, wrapped_desc); 
+                
+            } else {
+                mv.visitFieldInsn(opcode, owner, name, desc); 
+            }
         } else {
             mv.visitFieldInsn(opcode, owner, name, desc);        
         }
@@ -109,7 +124,7 @@ public class MethodInstantiater implements MethodVisitor {
         	if (owner.startsWith(Naming.SNOWMAN)) {
             	owner = owner.replaceFirst(Naming.SNOWMAN, Naming.RT_VALUES_PKG + "FVoid"); 
             }
-        	mv.visitFieldInsn(Opcodes.GETSTATIC, owner, "ONLY", Naming.RTTI_CONTAINER_DESC);
+        	mv.visitFieldInsn(Opcodes.GETSTATIC, owner, Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);
         }
     }
 

@@ -19,6 +19,9 @@ import java.util.Map;
 public class InstantiationMap  {
     private final static InstantiationMap EMPTY = new InstantiationMap(new HashMap<String, String>());
     
+    /* Controls expansion of tuple types occurring in */
+    private final static boolean DEFAULT_TUPLE_FLATTENING = true;
+    
     Map<String, String> p;
 
     public InstantiationMap(Map<String, String> p) {
@@ -31,7 +34,7 @@ public class InstantiationMap  {
             return s;
         s = Naming.demangleFortressIdentifier(s);
         StringBuilder b = new StringBuilder();
-        maybeBareVar(s, 0, b, false, false);
+        maybeBareVar(s, 0, b, false, false, true);
         
         s = b.toString();
        
@@ -39,13 +42,18 @@ public class InstantiationMap  {
     }
     
     public String getTypeName(String s) {
+        return getTypeName(s, DEFAULT_TUPLE_FLATTENING);
+    }
+     
+   public String getTypeName(String s,
+            boolean unwrap_expanded_tuples_in_arrows) {
         // TODO will need to rewrite into type, desc, and method variants.
         String t = s;
         if (s == null)
             return s;
         s = Naming.demangleFortressIdentifier(s);
         StringBuilder b = new StringBuilder();
-        maybeBareVar(s, 0, b, false, false);
+        maybeBareVar(s, 0, b, false, false, unwrap_expanded_tuples_in_arrows);
         
         s =  b.toString();
 
@@ -72,6 +80,19 @@ public class InstantiationMap  {
 
         StringBuilder b = new StringBuilder();
         maybeVarInTypeDesc(s, 0, b);
+
+        s = b.toString();
+       
+        return s;
+        }
+
+    public String getFieldDesc(String s, boolean flattening_tuples) {           
+        if (s == null)
+            return s;        
+        s = Naming.demangleFortressDescriptor(s);
+
+        StringBuilder b = new StringBuilder();
+        maybeVarInTypeDesc(s, 0, b, flattening_tuples);
 
         s = b.toString();
        
@@ -195,15 +216,27 @@ public class InstantiationMap  {
      * unnested right Oxford is seen.  At semicolons, check to see if the
      * previous string is a variable, if it has not been disqualified.
      */
-    int maybeVarInOxfords(String input, int begin, StringBuilder accum) {
-        return mVIO(input, "", begin, accum);
+    int maybeVarInOxfords(String input, int begin, StringBuilder accum,
+            boolean unwrap_expanded_tuples_in_arrows) {
+        return mVIO(input, "", begin, accum, unwrap_expanded_tuples_in_arrows);
      }
-    
-    int mVIO(String input, String tag, int begin, StringBuilder accum) {
+    /**
+     * 
+     * @param input
+     * @param tag
+     * @param begin
+     * @param accum
+     * @param unwrap_expanded_tuples_in_arrows If Arrow[\T;U\] expands to
+     *        Arrow[\Tuple[\X;Y\];U\], flatten out the tuple, to Arrow[\X;Y;U\]
+     * @return
+     */
+    int mVIO(String input, String tag, int begin, StringBuilder accum,
+            boolean unwrap_expanded_tuples_in_arrows) {
+        int original_begin = begin;
         ArrayList<String> params = new ArrayList<String>();
         while (true) {
             StringBuilder one_accum = new StringBuilder();
-            int at = maybeBareVar(input, begin, one_accum, true, false);
+            int at = maybeBareVar(input, begin, one_accum, true, false, unwrap_expanded_tuples_in_arrows);
             char ch = input.charAt(at++);
         
             if (ch == ';') {
@@ -223,8 +256,11 @@ public class InstantiationMap  {
                  */
                 if (tag.equals("Arrow") && params.size() == 2) {
                      String domain = params.get(0);
-                     if (domain.startsWith("Tuple" + Naming.LEFT_OXFORD)) {
-                         params.set(0, domain.substring(6, domain.length()-1));
+                     if (domain.startsWith(InstantiatingClassloader.TUPLE_OX)) {
+                         String in_pat = input.substring(original_begin);
+                         if (unwrap_expanded_tuples_in_arrows ||
+                             in_pat.startsWith(InstantiatingClassloader.TUPLE_OX))
+                             params.set(0, domain.substring(6, domain.length()-1));
                      }
                 }
                 
@@ -253,8 +289,9 @@ public class InstantiationMap  {
      * @param at
      * @param accum
      */
-     int maybeVarInLSemi(String input, int begin, StringBuilder accum) {
-        int at = maybeBareVar(input, begin, accum, false, true);
+     int maybeVarInLSemi(String input, int begin, StringBuilder accum,
+             boolean unwrap_expanded_tuples_in_arrows) {
+        int at = maybeBareVar(input, begin, accum, false, true, unwrap_expanded_tuples_in_arrows);
         char ch = input.charAt(at++);
         if (ch != ';')
             throw new Error("Expected semicolon, saw " + ch +
@@ -284,7 +321,9 @@ public class InstantiationMap  {
      * @param xlate_specials
      * @return
      */
-    int maybeBareVar(String input, int begin, StringBuilder accum, boolean inOxfords, boolean xlate_specials) {
+    int maybeBareVar(String input, int begin, StringBuilder accum,
+            boolean inOxfords, boolean xlate_specials,
+            boolean unwrap_expanded_tuples_in_arrows) {
         int at = begin;
         char ch = input.charAt(at++);
         boolean maybeVar = true;
@@ -309,7 +348,7 @@ public class InstantiationMap  {
             } 
             
             if (ch == Naming.LEFT_OXFORD_CHAR) {
-                at = (disabled ? EMPTY: this).mVIO(input, input.substring(begin, at-1), at, accum);
+                at = (disabled ? EMPTY: this).mVIO(input, input.substring(begin, at-1), at, accum, unwrap_expanded_tuples_in_arrows);
             }
             
             if (at >= input.length()) {
@@ -341,7 +380,10 @@ public class InstantiationMap  {
         return at;
     }
     
-     int maybeVarInMethodSig(String input, int begin, StringBuilder accum) {
+    int maybeVarInMethodSig(String input, int begin, StringBuilder accum) {
+        return maybeVarInMethodSig(input, begin, accum, DEFAULT_TUPLE_FLATTENING);
+    }
+        int maybeVarInMethodSig(String input, int begin, StringBuilder accum, boolean unwrap_expanded_tuples_in_arrows) {
          int at = begin;
          char ch = input.charAt(at++);
          // Begin with "("
@@ -355,7 +397,7 @@ public class InstantiationMap  {
          while (ch != ')') {
              accum.append(ch);
              if (ch == 'L') {
-                 at = maybeVarInLSemi(input, at, accum);
+                 at = maybeVarInLSemi(input, at, accum, unwrap_expanded_tuples_in_arrows);
              }
              ch = input.charAt(at++);
          }
@@ -371,12 +413,17 @@ public class InstantiationMap  {
      * @param at
      * @return
      */
-    private int maybeVarInTypeDesc(String input, int at, StringBuilder accum) {
+     private int maybeVarInTypeDesc(String input, int at, StringBuilder accum) {
+         return maybeVarInTypeDesc(input, at, accum, DEFAULT_TUPLE_FLATTENING);
+     }
+
+     private int maybeVarInTypeDesc(String input, int at, StringBuilder accum,
+            boolean unwrap_expanded_tuples_in_arrows) {
         char ch;
         ch = input.charAt(at++);
          accum.append(ch);
          if (ch == 'L') {
-             at = maybeVarInLSemi(input, at, accum);
+             at = maybeVarInLSemi(input, at, accum, unwrap_expanded_tuples_in_arrows);
          }
          return at;
     }

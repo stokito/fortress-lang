@@ -9,16 +9,20 @@
 
  ******************************************************************************)
 
-component VarRefTest2
+component VarRefTest3
 export Executable
 
-object Foo extends Object
-  (x :ZZ32, y : ZZ32 ) = (42,42)
+object Foo(x : ZZ32) extends Object
+    y : ZZ32 = 21
+    
+    doubleY() : ZZ32 = 2 y
+    
 end
 
 run(): () = do
-  f = Foo
-  if f.x = f.y then println("PASS") else println("FAIL") end
+  (x,y,z) = (42,42,42)
+  f = Foo(42)
+  if f.x = f.doubleY() then println("PASS") else println("FAIL") end
 end
 
 end
