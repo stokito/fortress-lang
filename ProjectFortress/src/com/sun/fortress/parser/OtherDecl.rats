@@ -1,0 +1,152 @@
+/*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress dimension, unit, type alias, test, and property
+ * declarations.
+ */
+module com.sun.fortress.parser.OtherDecl(Param, Header, NoNewlineType,
+                                         NoNewlineExpr, Identifier, Keyword,
+                                         Symbol, Spacing);
+
+import Param;
+import Header;
+import NoNewlineType;
+import NoNewlineExpr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* DimUnitDecl ::=
+     dim w Id (w = w NoNewlineType)? s (unit | SI_unit) w Id (wr Id)*
+         (w = w NoNewlineExpr)?
+   | dim w Id (w = w NoNewlineType)? (w default w Id)?
+   | (unit | SI_unit) w Id (wr Id)* (w : w NoNewlineType)? (w = w NoNewlineExpr)?
+ */
+List<DimUnitDecl> DimUnitDecl =
+     dim w a1:IdOrOpName a2:(w void:equals w NoNewlineType)? s a3:(unit / SI_unit) w
+     a4:IdOrOpName a5s:(wr Id)* a6:(w void:equals w NoNewlineExpr)?
+     { Span span = createSpan(yyStart,yyCount);
+       DimDecl dim;
+       Type ty;
+       boolean si_unit = (a3.equals("SI_unit")) ? true : false;
+       List<Id> ids = new ArrayList<Id>();
+       for (Id a5Elt : a5s.list()) ids.add(a5Elt);
+       if ( a1 instanceof Id ) {
+           dim = NodeFactory.makeDimDecl(span, (Id)a1, Option.<Type>wrap(a2));
+           ty = NodeFactory.makeVarType(NodeUtil.getSpan(a1), (Id)a1);
+       } else {
+           log(span, a1 + " is not a valid dimension name.");
+           Id id = NodeFactory.bogusId(span);
+           dim = NodeFactory.makeDimDecl(span, id, Option.<Type>wrap(a2));
+           ty = NodeFactory.makeVarType(NodeUtil.getSpan(a1), id);
+       }
+       if ( a4 instanceof Id ) {
+           ids.add((Id)a4);
+       } else {
+           log(span, a4 + " is not a valid unit name.");
+           ids.add(NodeFactory.bogusId(span));
+       }
+       UnitDecl unit = NodeFactory.makeUnitDecl(span, si_unit, ids,
+                                                Option.<Type>some(ty),
+                                                Option.<Expr>wrap(a6));
+       yyValue = Useful.list(dim, unit);
+     }
+   / dim w a1:IdOrOpName a2:(w void:equals w NoNewlineType)?
+     a3:(w default w IdOrOpName)?
+     { Span span = createSpan(yyStart,yyCount);
+       Id dimId;
+       if ( a1 instanceof Id ) {
+           dimId = (Id)a1;
+       } else {
+           log(span, a1 + " is not a valid dimension name.");
+           dimId = NodeFactory.bogusId(span);
+       }
+       Id unitId;
+       if ( a3 instanceof Id ) {
+           unitId = (Id)a3;
+       } else {
+           log(span, a3 + " is not a valid unit name.");
+           unitId = NodeFactory.bogusId(span);
+       }
+       yyValue = Useful.list((DimUnitDecl)NodeFactory.makeDimDecl(span, dimId,
+                                                                  Option.<Type>wrap(a2),
+                                                                  Option.<Id>wrap(unitId)));
+     }
+   / a1:(unit / SI_unit) w a2:IdOrOpName a3s:(wr Id)*
+     a4:(w void:colon w NoNewlineType)? a5:(w void:equals w NoNewlineExpr)?
+     { Span span = createSpan(yyStart,yyCount);
+       boolean si_unit = (a1.equals("SI_unit")) ? true : false;
+       List<Id> ids = new ArrayList<Id>();
+       if ( a2 instanceof Id )
+           ids.add((Id)a2);
+       else {
+           log(span, a2 + " is not a valid unit name.");
+           ids.add(NodeFactory.bogusId(span));
+       }
+       for (Id a3Elt : a3s.list()) ids.add(a3Elt);
+       yyValue = Useful.list((DimUnitDecl)NodeFactory.makeUnitDecl(span, si_unit, ids,
+                                                                   Option.<Type>wrap(a4),
+                                                                   Option.<Expr>wrap(a5)));
+     };
+
+/* TypeAlias ::= type w Id (w StaticParams)? w = w NoNewlineType */
+TypeAlias TypeAlias =
+     type w a1:IdOrOpName a2:(w StaticParams)? w equals w a3:NoNewlineType
+     { Span span = createSpan(yyStart,yyCount);
+       if (a2 == null) a2 = Collections.<StaticParam>emptyList();
+       Id id;
+       if ( a1 instanceof Id )
+           id = (Id)a1;
+       else {
+           log(span, a1 + " is not a valid type name.");
+           id = NodeFactory.bogusId(span);
+       }
+       yyValue = NodeFactory.makeTypeAlias(span, id, a2, a3);
+     };
+
+/* TestDecl ::= test w Id w [ w GeneratorClauseList w ] w = w NoNewlineExpr */
+TestDecl TestDecl =
+     test w a1:IdOrOpName w opensquare w a2:GeneratorClauseList w closesquare w
+     equals w a3:NoNewlineExpr
+     { Span span = createSpan(yyStart,yyCount);
+       Id id;
+       if ( a1 instanceof Id )
+           id = (Id)a1;
+       else {
+           log(span, a1 + " is not a valid test name.");
+           id = NodeFactory.bogusId(span);
+       }
+       yyValue = NodeFactory.makeTestDecl(span, id, a2, a3);
+     };
+
+/* PropertyDecl ::=
+     property (w Id w =)? (w FORALL w ValParam)? w NoNewlineExpr
+ */
+PropertyDecl PropertyDecl =
+     property a1:(w IdOrOpName w void:equals)? a2:(w FORALL w ValParam)? w
+     a3:NoNewlineExpr
+     { Span span = createSpan(yyStart,yyCount);
+       Option<Id> id;
+       if ( a1 == null )
+           id = Option.<Id>none();
+       else {
+           if ( a1 instanceof Id )
+               id = Option.<Id>some((Id)a1);
+           else {
+               log(span, a1 + " is not a valid test name.");
+               id = Option.<Id>none();
+           }
+       }
+       if (a2 == null) a2 = Collections.<Param>emptyList();
+       yyValue = NodeFactory.makePropertyDecl(span, id, a2, a3);
+     };

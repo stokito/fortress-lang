@@ -1,0 +1,38 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{While Loops}
+\seclabel{while-expr}
+
+\begin{Grammar}
+\emph{DelimitedExpr} &::=&
+\KWD{while} \emph{GeneratorClause} \emph{Do} \\
+
+\end{Grammar}
+
+A \KWD{while} loop consists of a generator clause
+(discussed in \secref{generators}) followed by a simple \KWD{do} expression
+(see \secref{block-expr}).
+An iteration of a \KWD{while} loop evaluates the expression of its generator
+clause (\emph{condition expression}).  If the generator clause is a generator
+binding, the type of the condition expression must be a subtype of
+\EXP{\TYP{Condition}\llbracket{}E\rrbracket} for some \VAR{E}
+and the type of the identifiers bound in the clause must be a subtype of \VAR{E}.
+A \TYP{Condition} is a generator that generates 0 or 1 element.
+Otherwise, the generator clause must be an expression of type \TYP{Boolean}.
+Note in particular that \VAR{true} is a \TYP{Boolean} value yielding \EXP{()}
+exactly once, while \VAR{false} is a \TYP{Boolean} value that yields no elements.
+If the evaluation of the condition expression completes normally and generates
+exactly one element, the body expression is evaluated.
+When one iteration completes a new one is run until either an iteration
+completes abruptly (in which case the evaluation of the \KWD{while} expression
+completes abruptly), or the condition expression generates no elements
+(in which case the \KWD{while} loop completes normally with value \EXP{()}).

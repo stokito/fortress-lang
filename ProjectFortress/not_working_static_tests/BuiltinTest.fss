@@ -1,0 +1,77 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component BuiltinTest
+  export Executable
+
+(* This test mimics a piece of the FortressLibrary that was
+   giving the typechecker fits. *)
+
+trait SweetZZ32
+    getter zero(): ZZ32 = 0
+    getter one(): ZZ32 = 1
+    getter minimum(): ZZ32 = -2147483647 - 1 (* This was the hard line! *)
+    getter maximum(): ZZ32 = 2147483647
+
+    opr |self| : SweetZZ32 = if 1>=0 then self else -self end
+    opr =(self, b:SweetZZ32):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Eq")
+    opr <(self, b:SweetZZ32):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Less")
+
+    opr -(self):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Negate")
+    opr +(self,b:SweetZZ32):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Add")
+    opr -(self,b:SweetZZ32):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Sub")
+    opr DOT(self,b:SweetZZ32):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
+    opr TIMES(self,b:SweetZZ32):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
+    opr juxtaposition(self,b:SweetZZ32):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
+    opr DIV(self,b:SweetZZ32):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Div")
+    opr REM(self,b:SweetZZ32):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Rem")
+    opr MOD(self,b:SweetZZ32):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mod")
+    opr GCD(self,b:SweetZZ32):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Gcd")
+    opr LCM(self,b:SweetZZ32):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Lcm")
+    opr CHOOSE(self,b:SweetZZ32):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Choose")
+    opr BITAND(self,b:SweetZZ32):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitAnd")
+    opr BITOR(self,b:SweetZZ32):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitOr")
+    opr BITXOR(self,b:SweetZZ32):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitXor")
+    opr LSHIFT(self,b:ZZ64):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$LShift")
+    opr RSHIFT(self,b:ZZ64):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$RShift")
+    opr BITNOT(self):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitNot")
+    opr ^(self, b:AnyIntegral):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Pow")
+    widen(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$ToLong")
+    partitionL(self):SweetZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Partition")
+    unsigned(self):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.SweetZZ32$ToNN32")
+end
+
+  run():() = ()
+end
