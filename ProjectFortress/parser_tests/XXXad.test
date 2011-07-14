@@ -1,0 +1,19 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=XXXPreparser.ad
+PREPARSER_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/parser_tests
+compile
+compile_err_equals=\
+${PREPARSER_TESTS_DIR}/XXXPreparser.ad.fss:12:1-8:\n\
+\ Unmatched delimiter \"component\".\n\
+${PREPARSER_TESTS_DIR}/XXXPreparser.ad.fss:15:9-17:3:\n\
+\ Unmatched delimiters \"<|\" and \"end\".\n\
+File XXXPreparser.ad.fss has 2 errors.\n
+compile_out_equals=

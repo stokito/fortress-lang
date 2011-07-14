@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="asm">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/asm/asm-all-3.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/asm/asm-src-3.1.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

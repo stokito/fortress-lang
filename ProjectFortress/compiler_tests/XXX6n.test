@@ -1,0 +1,23 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled6.n
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled6.n.fss:16:3-17:7:\n\
+\ A coercion declaration should have exactly one parameter.\n\
+${STATIC_TESTS_DIR}/Compiled6.n.fss:16:3-17:7:\n\
+\ A coercion declaration should not have an explicitly declared return type.\n\
+${STATIC_TESTS_DIR}/Compiled6.n.fss:16:3-17:7:\n\
+\ The coercion body is required.\n\
+${STATIC_TESTS_DIR}/Compiled6.n.fss:17:3-18:\n\
+\ A coercion declaration should explicitly declare its parameter type.\n\
+File Compiled6.n.fss has 4 errors.\n
+compile_out_equals=

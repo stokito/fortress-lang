@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component HatOps
+export Executable
+
+object A
+end
+
+run():() = do
+  a = A^T
+  b = A^TH
+  c = A^TT
+  d = A^(Tx)
+  e = A^*
+  f = A^n
+end
+
+end

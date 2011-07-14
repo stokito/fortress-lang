@@ -1,0 +1,246 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ \section{Advanced Features of Fortress Operations}
+\seclabel{advancedops}
+
+The system we have described thus far
+provides much of the desired functionality of a component system.
+However it has a few significant weaknesses:
+\begin{enumerate}
+
+\item
+It exposes to everyone all the \apisN\ used
+in the development of a project.
+
+\item
+By allowing access to these \apisN,
+it inhibits significant cross-component optimization.
+
+\item
+It prevents components that use two different implementations of the same
+\apiN\ from being linked,
+even if they never actually pass references to that \apiN\
+between each other.
+
+\item
+It restricts the upgradability of compound components,
+as described earlier.
+
+\end{enumerate}
+
+We can mitigate all these shortcomings
+by providing two simple operations,
+\shellcommand{hide} and \shellcommand{constrain}.
+Informally,
+\shellcommand{hide} makes \apisN\ no longer visible from outside the component
+so that they cannot be upgraded,
+and \shellcommand{constrain} merely prevents them from being exported.
+An \apiN\ that is constrained but not hidden
+can still be upgraded.
+There are other subtle consequences of this distinction,
+which we discuss as they arise.
+
+Some of the properties about the \apisN\ exported by a component
+discussed in \secref{basicops}
+are actually properties of \apisN\ that are visible or provided by a component.
+For example,
+\apisN\ visible in a component cannot be imported by that component,
+even if they are not exported.
+Other properties are really properties only of the exported \apisN.
+Most importantly,
+components that do not export any common \apisN\ can be linked,
+as can components that share only visible \apisN.
+
+\paragraph{Constrain}
+
+A \shellcommand{constrain} operation takes
+a component name of an installed component,
+a new component name, and a set of \apisN,
+and produces a new component that does not export any of the \apisN\ specified.
+Syntactically, we write:
+
+%constrain(source:String, destination = source, apis:Set[\String\]):()
+{\small\verb+constrain(source:String, destination = source, apis:Set[\String\]):()+}
+
+If no \shellcommand{destination} name is provided, the name of the \shellcommand{source}
+is used.
+
+The set of \apisN\ provided must be a subset of the \apisN\ exported
+by the component.
+Also, recall that every \apiN\ used by an \apiN\ exported by a component
+must be imported or exported by that component.
+Thus, if we constrain an \apiN\ that is used by any other \apiN\ exported
+by the component,
+then we must also constrain that other \apiN.
+
+If the component is a simple component,
+we first link it by itself,
+and then apply \shellcommand{constrain} to the result.
+
+\paragraph{Hide}
+
+A \shellcommand{hide} operation is like a \shellcommand{constrain} operation,
+except that the given set of \apisN\ is subtracted from
+the visible and provided \apisN, along with the exported \apisN,
+in the resulting component.
+
+%hide(source:String, destination = source, apis:Set[\String\]):()
+{\small\verb+hide(source:String, destination = source, apis:Set[\String\]):()+}
+
+The requirement of \apisN\ being imported or exported whenever
+an \apiN\ using them is exported
+also applies to visible \apisN.
+Thus, if we hide an \apiN\ used by another exported \apiN,
+we must hide that other \apiN\ as well.
+
+\paragraph{Link}
+
+With constrained \apisN,
+there is a new restriction on link:
+Any \apiN\ visible in one constituent and imported by another
+must be exported by some constituent.
+This restriction is necessary
+because an \apiN\ visible in a component cannot be imported by that component.
+Thus, if one of the component's constituents imports that \apiN,
+then the \apiN\ must be provided by some other constituent.
+Other than that,
+the \shellcommand{link} operation is largely unchanged:
+the visible \apisN\ are just all the \apisN\ visible in any constituent,
+and the provided \apisN\ are just those exported by any constituent.
+There is a subtle additional restriction
+on how linked components can be upgraded,
+which we discuss below.
+
+Rather than requiring users and developers
+to call \shellcommand{constrain} and \shellcommand{hide} directly,
+we provide optional parameters to the \shellcommand{link} operation
+to do these operations immediately.
+The \shellcommand{link} operation has the following type:
+
+%link(result:String, constituents:String..., exports = {}, hide = {}):()
+{\small\verb+link(result:String, constituents:String..., exports = {}, hide = {}):()+}
+
+If the \shellcommand{exports} clause is present,
+only those \apisN\ listed in the set following \shellcommand{exports}
+are exported;
+the others are constrained.
+If the \shellcommand{hide} clause is present,
+those \apisN\ listed in the set following \shellcommand{hide} are hidden.
+An exception is thrown if the \shellcommand{exports} clause
+contains any \apiN\ not exported by any constituent,
+or if the \shellcommand{hide} clause contains any \apiN\ not visible in any
+constituent. 
+
+Hiding enables us to handle the rare case
+in which programmers want to link multiple components
+that implement the same \apiN\
+without upgrading them to use the same implementation.
+Before linking,
+the programmer simply hides (or constrains) the \apiN\
+in every component that exports it
+except the one that should provide the implementation
+for the new compound component.
+
+For example, suppose we wish to link the following two components:
+\begin{itemize}
+\item A component \TYP{NetApp} that imports
+\TYP{Fortress.IO} and exports the
+\TYP{Fortress.Net} \apiN.
+
+\item A component \TYP{EditApp} that imports
+\TYP{Fortress.IO} and exports the
+\TYP{Fortress.Swing.Textrf} \apiN.
+\end{itemize}
+We want to link these two components to use in building
+an application for editing messages
+and sending them over a network. But
+we want to use different implementations of \TYP{Fortress.IO}
+(e.g., \TYP{IOApp1} and \TYP{IOApp2} for the two components).
+We simply perform the following operations:
+
+%link(temp1, NetApp, IOApp1, exports = { Fortress.Net },          hide = { Fortress.IO })
+%link(temp2, EditApp,IOApp2, exports = { Fortress.Swing.Textrf }, hide = { Fortress.IO })
+%link(NetEdit, temp1, temp2)
+\shellcommand{link(temp1, NetApp, IOApp1, exports = \{Fortress.Net\},          hide = \{Fortress.IO\})}\\
+\shellcommand{link(temp2, EditApp,IOApp2, exports = \{Fortress.Swing.Textrf\}, hide = \{Fortress.IO\})}\\
+\shellcommand{link(NetEdit, temp1, temp2)}
+
+In this case,
+the \TYP{NetEdit} component does not export,
+or even make visible,
+\TYP{Fortress.IO} at all.
+
+
+\paragraph{Upgrade}
+
+\begin{figure*}
+\begin{center}
+\input{\home/basic/components/newcrypto.eepic}
+\end{center}
+\caption{Upgrading with hidden \apisN: Crossed out \apisN\ are hidden.}
+\figlabel{newcrypto}
+\end{figure*}
+
+For the \shellcommand{upgrade} operation,
+there is no change at all in the semantics.
+However,
+because hiding and constraining \apisN\ allow us
+to change the \apisN\ exported by a component,
+it is possible to do some upgrades
+that are not possible without these operations.
+
+For example,
+suppose we have a component \secio\
+that exports \TYP{Fortress.IO} and \TYP{Fortress.Security},
+and we want to upgrade \coolcrypto\ with \secio.
+As discussed above, we cannot use \secio\ directly
+because \ironlink\ exports \TYP{Fortress.IO} but not \TYP{Fortress.Security}.
+We can get around this restriction by doing two upgrades,
+one with \TYP{Fortress.Security}\ hidden
+and the other with \TYP{Fortress.IO}\ hidden.
+
+%hide(IOSecurity, NewIO,       {Fortress.Security})
+%hide(IOSecurity, NewSecurity, {Fortress.IO})
+%upgrade(CoolCryptoApp,      NewSecurity, temp1)
+%upgrade(CoolCryptoApp.3.0, temp1,       NewIO)
+\shellcommand{hide(IOSecurity, NewIO,       {Fortress.Security})}\\
+\shellcommand{hide(IOSecurity, NewSecurity, {Fortress.IO})}\\
+\shellcommand{upgrade(CoolCryptoApp,      NewSecurity, temp1)}\\
+\shellcommand{upgrade(CoolCryptoApp.3.0, temp1,       NewIO)}
+
+The resulting component is shown in \figref{newcrypto}.
+
+The interplay between imported, exported, visible and provided \apisN\
+introduces subtleties that not present in our discussion above.
+In particular,
+the last of the three conditions imposed for well-formedness of upgrades
+is modified to state
+that for any constituent that is not subsumed by a replacement component,
+either it can be upgraded with the replacement,
+or its \emph{visible} \apisN\ are disjoint
+from the \apisN\ exported by the replacement
+(i.e., it is unaffected by the upgrade).
+To maintain the invariant that no two constituents export
+the same \apiN,
+we need another condition,
+which was implied by the previous condition
+when no \apisN\ were constrained or hidden:
+if the replacement subsumes any constituents of the target,
+then its exported \apisN\ must exactly match
+the exported \apisN\ of some subset of the constituents of the target.
+In practice, this restriction is rarely a problem;
+in most cases, a user wishes to upgrade a target
+with a new version of a single constituent component,
+where the \apisN\ exported by the old and new versions
+are either an exact match,
+or there are new \apisN\ introduced by the new component
+that have no implementation in the target.
