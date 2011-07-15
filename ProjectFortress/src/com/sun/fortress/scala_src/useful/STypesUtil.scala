@@ -318,7 +318,7 @@ object STypesUtil {
       case (id: Id, _: KindNat) => NF.makeIntArg(span, NF.makeIntRef(span, id), p.isLifted)
       case (id: Id, _: KindType) => NF.makeTypeArg(span, NF.makeVarType(span, id), p.isLifted)
       case (id: Id, _: KindUnit) => NF.makeUnitArg(span, NF.makeUnitRef(span, false, id), p.isLifted)
-      case (op: Op, _: KindOp) => NF.makeOpArg(span, EF.makeOpRef(op), p.isLifted)
+      case (op: Op, _: KindOp) => NF.makeOpArg(span, op)
       case _ => bug("Unexpected static parameter kind")
     }
   }
@@ -333,7 +333,7 @@ object STypesUtil {
       case (id: Id, _: KindType) =>
         NF.makeTypeArg(span, NF.makeVarType(span, id, lsp), p.isLifted)
       case (id: Id, _: KindUnit) => NF.makeUnitArg(span, NF.makeUnitRef(span, false, id), p.isLifted)
-      case (op: Op, _: KindOp) => NF.makeOpArg(span, EF.makeOpRef(op), p.isLifted)
+      case (op: Op, _: KindOp) => NF.makeOpArg(span, op)
       case _ => bug("Unexpected static parameter kind")
     }
   }
@@ -507,12 +507,12 @@ object STypesUtil {
     case _: KindType => {
       // Create a new inference var type.
       val t = NF.make_InferenceVarType(NU.getSpan(sparam))
-      NF.makeTypeArg(NF.makeSpan(t), t, sparam.isLifted)
+      NF.makeTypeArg(NU.getSpan(sparam), t, sparam.isLifted)
     }
     case _: KindInt => NI.nyi()
     case _: KindBool => NI.nyi()
     case _: KindDim => NI.nyi()
-    case _: KindOp => NI.nyi()
+    case _: KindOp => NF.makeOpArg(NU.getSpan(sparam), NF.make_InferenceVarOp(NU.getSpan(sparam)))
     case _: KindUnit => NI.nyi()
     case _: KindNat => NI.nyi()
     case _ => bug("unexpected kind of static parameter")
@@ -606,7 +606,7 @@ object STypesUtil {
       case sarg: TypeArg => sarg.getTypeArg
       case sarg: IntArg => sarg.getIntVal
       case sarg: BoolArg => sarg.getBoolArg
-      case sarg: OpArg => sarg.getName.get
+      case sarg: OpArg => sarg.getId
       case sarg: DimArg => sarg.getDimArg
       case sarg: UnitArg => sarg.getUnitArg
       case _ => bug("unexpected kind of static arg")
@@ -620,7 +620,7 @@ object STypesUtil {
       override def walk(node: Any): Any = node match {
         case n: VarType => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
         // OpArgs that are not inference variables have names
-        case n: OpArg => paramMap.get(n.getName.get.getOriginalName).getOrElse(n)
+        case n: OpArg => paramMap.get(n.getId).getOrElse(n)
         case n: IntRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
         case n: BoolRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
         case n: DimRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)

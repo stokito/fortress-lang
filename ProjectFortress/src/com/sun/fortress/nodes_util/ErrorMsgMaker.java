@@ -179,10 +179,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forOpArg(OpArg node) {
-        if(node.getName().isSome())
-            return node.getName().unwrap().accept(this);
-        else
-            return node.getInfId().unwrap().toString();
+        return node.getId().accept(this);
     }
 
     public String forDimRef(DimRef node) {

@@ -40,7 +40,7 @@ object TypeAnalyzerUtil {
       case SBoolArg(_, _, v) => v
       case SDimArg(_, _, v) => v
       case SUnitArg(_, _, v) => v
-      case SOpArg(_, _, v, _) => v.get
+      case SOpArg(_, _, v, _) => v
     }
     val subst = Map((params, args).zipped.map
                     ((p, a) => (p.getName, a)):_*)
@@ -48,7 +48,7 @@ object TypeAnalyzerUtil {
       override def walk(node: Any) = node match {
         case n:VarType => subst.get(n.getName).map(getVal).getOrElse(n)
         // OpArgs that are not inference variables have names
-        case n:OpArg => subst.get(n.getName.get.getOriginalName).getOrElse(n)
+        case n:OpArg => subst.get(n.getId).getOrElse(n)
         case n:IntRef => subst.get(n.getName).map(getVal).getOrElse(n)
         case n:BoolRef => subst.get(n.getName).map(getVal).getOrElse(n)
         case n:DimRef => subst.get(n.getName).map(getVal).getOrElse(n)
