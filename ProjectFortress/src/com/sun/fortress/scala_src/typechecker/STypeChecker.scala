@@ -136,7 +136,7 @@ class STypeCheckerImpl(current: CompilationUnitIndex,
 /**
  * The abstract base class for a type checker. This class contains all the
  * basic functionality for use in type checking, including helper methods that
- * are widely used for many different cases. Use the `STypeChecker` class
+ * are widely used for many different cases. Use the `STypeCheckerImpl` class
  * instead for a fully implemented type checker.
  *
  * The actual type checking is defined abstractly; concrete subclasses or mixed-

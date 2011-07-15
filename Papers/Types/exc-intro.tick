@@ -100,7 +100,7 @@ which violates progress.
 To enable these kinds of overloaded functions to be defined, 
 we introduce the \emph{exclusion} relation (written $\exc$) on types,
 which asserts that two types have no common subtypes other than \BottomType.
-We define the exclusion relation 
+We define exclusion relation 
 by extending class declarations with two new clauses: 
 `excludes` and `comprises`:\\[-.2em]
 \[
