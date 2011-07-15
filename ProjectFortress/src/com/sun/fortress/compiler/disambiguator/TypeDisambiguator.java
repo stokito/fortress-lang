@@ -702,7 +702,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
 
                     @Override
                     public StaticArg forKindOp(KindOp that) {
-                        return NodeFactory.makeOpArg(NodeUtil.getSpan(arg), ExprFactory.makeOpRef((Op) name));
+                        return NodeFactory.makeOpArg(NodeUtil.getSpan(arg), (Op) name);
                     }
                 };
                 return param.unwrap().getKind().accept(v);

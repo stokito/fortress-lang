@@ -41,9 +41,8 @@ case object False extends CFormula with EFormula {
 
 case class And(cnjcts: Map[_InferenceVarType, Primitive]) extends CFormula {}
 
-
 case class Primitive(pl: Set[Type], nl: Set[Type], pu: Set[Type], nu: Set[Type], pe: Set[Type], ne: Set[Type]){}
-                    
+
 case class Or(conjuncts: Set[And]) extends CFormula {}
 
 case class Conjuncts(eq: Set[Set[Type]]) extends EFormula {}
@@ -353,41 +352,27 @@ object Formula{
         case False => None
         case nc@And(ps) =>
           val sub = TU.killIvars compose 
-          	Substitution(ps.map{
-          		case (k, p@Primitive(pl,nl,pu,nu,pe,ne)) => {
-          			var uni = ta.join(pl.filterNot(TU.hasInferenceVars))
-          			// Heuristic extension to Dan Smith's algorithm:
-          			// If there is a single lower bound and it is a trait type, 
-          			// try all of its ancestors, searching for one that satisfies
-          			// all upper bounds.
-          			if (pl.size == 1) {
-          				pl.head match {
-          					case tt:TraitType => {
-						     	// println("tt: " + tt)
-          						for (a <- (ta.ancestors(tt) ++ List(uni)).toList.sortWith((a,b) => isTrue(ta.subtype(b,a)))) {
-							       // println("  a: " + a)
-							       if (isTrue(map(nc, TU.killIvars compose Substitution(Map((k,p)).map(_=>(k,a)))))) { 
-							       	  // println ("uni set to " + a)
-							       	  uni = a 
-								}
-							       // if (isTrue(map((k,p), TU.killIvars compose Substitution(Map((k,p)).map(_=>(k,a)))))) { yield uni = a }
-          						/*	if (and(pu.map
-          										(b => isTrue(ta.subtype
-          														(a,TAU.substitute
-          																(List(TypeArg(a.getInfo, false, a)), k, b)))))) 
-          							{
-          								uni = a; break
-          							}
-							*/
-          						}
-          					}
-          					case _ => 0
-          				}
-          			}
-          			(k, uni)
-          		}
-          	}
-          )
+            Substitution(ps.map{
+              case (k, p@Primitive(pl,nl,pu,nu,pe,ne)) => {
+                var uni = ta.join(pl.filterNot(TU.hasInferenceVars))
+                // Heuristic extension to Dan Smith's algorithm:
+                // If there is a single lower bound and it is a trait type, 
+                // try all of its ancestors, searching for one that satisfies
+                // all upper bounds.
+                if (pl.size == 1) {
+                  pl.head match {
+                    case tt:TraitType =>
+                      for (a <- (ta.ancestors(tt) ++ List(uni)).toList.sortWith((a,b) => isTrue(ta.subtype(b,a)))) {
+                        if (isTrue(map(nc, TU.killIvars compose Substitution(Map((k,p)).map(_=>(k,a)))))) {
+                          uni = a 
+                        }
+                      }
+                    case _ => 0
+                  }
+                }
+                (k, uni)
+              }
+            })
           if(isTrue(map(nc, sub)))
             Some(sub compose unifier)
           else {
