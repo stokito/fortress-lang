@@ -1132,12 +1132,17 @@ return new TraitType(info, name, sargs, sparams);
     public static _InferenceVarType make_InferenceVarType(Span s) {
         return make_InferenceVarType(s, false, new Object());
     }
+    
 
     public static _InferenceVarType make_InferenceVarType(Span span, boolean parenthesized, Object id) {
         TypeInfo info = makeTypeInfo(span, parenthesized);
         // Doing this so we can dodge a type error at the Scala/Java interface.
         Id bogus = makeId(span, id.toString());
         return new _InferenceVarType(info, bogus, id);
+    }
+    
+    public static _InferenceVarOp make_InferenceVarOp(Span span) {
+        return new _InferenceVarOp(makeASTNodeInfo(span), Option.<APIName>none(), "Inference", unknownFix, false, new Object());
     }
 
     public static TaggedUnitType makeTaggedUnitType(TaggedUnitType t, Type s) {
@@ -1735,7 +1740,15 @@ return new TraitType(info, name, sargs, sparams);
     public static DimArg makeDimArg(Span span, DimExpr d, boolean lifted) {
         return new DimArg(makeSpanInfo(span), lifted, d);
     }
-
+    
+    public static OpArg makeOpArg(Span span, Op op){
+        return new OpArg(makeSpanInfo(span), false, op, Option.<FunctionalRef>none());
+    }
+    
+    public static OpArg makeOpArg(Span span, String text){
+        return new OpArg(makeSpanInfo(span), false, makeOp(span, text), Option.<FunctionalRef>none());
+    }
+    
     public static UnitArg makeUnitArg(UnitExpr s) {
         return makeUnitArg(NodeUtil.getSpan(s), s);
     }
@@ -2056,6 +2069,7 @@ return new TraitType(info, name, sargs, sparams);
         return new IntArg(makeSpanInfo(span), lifted, i);
     }
 
+/*
     public static OpArg makeOpArg(Span span, String string) {
         return makeOpArg(span, ExprFactory.makeOpRef(makeOp(span, string)));
     }
@@ -2067,7 +2081,7 @@ return new TraitType(info, name, sargs, sparams);
     public static OpArg makeOpArg(Span span, FunctionalRef op, boolean lifted) {
         return new OpArg(makeSpanInfo(span), lifted, Option.some(op), Option.none());
     }
-
+*/
     public static VarDecl makeVarDecl(List<LValue> lvalues) {
         return makeVarDecl(NodeUtil.spanAll(lvalues), lvalues, Option.<Expr>none());
     }

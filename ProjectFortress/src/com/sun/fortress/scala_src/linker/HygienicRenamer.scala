@@ -138,8 +138,8 @@ class HygienicRenamer(constituent: APIName,
              SObjectExpr(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ExprInfo], walk(getHeader).asInstanceOf[com.sun.fortress.nodes.TraitTypeHeader], walk(getSelfType).asInstanceOf[Option[com.sun.fortress.nodes.SelfType]])
          case SOp(getInfo, getApiName, getText, getFixity, isEnclosing) =>
              SOp(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getApiName).asInstanceOf[Option[com.sun.fortress.nodes.APIName]], walk(getText).asInstanceOf[String], walk(getFixity).asInstanceOf[com.sun.fortress.nodes.Fixity], walk(isEnclosing).asInstanceOf[Boolean])
-         case SOpArg(getInfo, isLifted, getName, getInfId) =>
-             SOpArg(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(isLifted).asInstanceOf[Boolean], walk(getName).asInstanceOf[Option[com.sun.fortress.nodes.FunctionalRef]], walk(getInfId).asInstanceOf[Option[_root_.java.lang.Object]])
+         case SOpArg(getInfo, isLifted, getId, getName) =>
+             SOpArg(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(isLifted).asInstanceOf[Boolean], walk(getId).asInstanceOf[com.sun.fortress.nodes.Op], walk(getName).asInstanceOf[Option[com.sun.fortress.nodes.FunctionalRef]])
          case SOpExpr(getInfo, getOp, getArgs) =>
              SOpExpr(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ExprInfo], walk(getOp).asInstanceOf[com.sun.fortress.nodes.FunctionalRef], walk(getArgs).asInstanceOf[List[com.sun.fortress.nodes.Expr]])
          case SOpRef(getInfo, getStaticArgs, getLexicalDepth, getOriginalName, getNames, getInterpOverloadings, getNewOverloadings, getOverloadingType, getOverloadingSchema) =>
