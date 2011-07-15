@@ -119,7 +119,7 @@ define another component with more overloadings of the same function name that d
 functions in the manner the programmer intends.
 
 Consider the following example\footnote{Suggested by an anonymous reviewer of a previous version of this paper.}
-Suppose we have a Number trait in module `A`, with a
+Suppose we have a trait Number in module `A`, with a
 function:
 `
   add : (Number, Number) -> Number

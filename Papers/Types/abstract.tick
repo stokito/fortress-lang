@@ -14,7 +14,7 @@ In this paper, we extend the rules for ensuring safe overloaded functions
 to a type system with parametric polymorphism.  
 We show that such an extension can be reduced to the problem of determining
 subtyping relationships between universal and existential types.
-We also show some seemingly valid overloaded functions 
+We also show that some seemingly valid overloaded functions 
 are correctly rejected by our rules, 
 and explain how they can be accommodated 
 in a language like Fortress, 
