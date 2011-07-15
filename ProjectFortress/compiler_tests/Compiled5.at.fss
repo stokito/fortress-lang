@@ -1,0 +1,67 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+f() =
+  label id
+    opr LOCALOP(x: ZZ32) = ()
+    LOCALOP(3)
+  end id
+
+g() = do
+  object
+    opr LOCALOP(x: ZZ32) = ()
+    LOCALOP(3)
+  end id
+end
+
+h() = (if true then opr LOCALOP(x: ZZ32) = ()
+                    LOCALOP(3)
+               else 1)
+
+i() =
+  case true of
+    true =>
+      object
+        opr LOCALOP(x: ZZ32) = ()
+        LOCALOP(3)
+      end
+    false =>
+      opr LOCALOP(x: ZZ32) = ()
+      LOCALOP(3)
+  end
+
+j() =
+  try
+    opr LOCALOP(x: ZZ32) = ()
+    LOCALOP(3)
+  finally
+    object
+      opr LOCALOP(x: ZZ32) = ()
+      LOCALOP(3)
+    end
+  end
+
+run():() =
+  if true
+  then
+    opr LOCALOP(x: ZZ32) = ()
+    LOCALOP(3)
+  elif 3 = 5
+    object
+      opr LOCALOP(x: ZZ32) = ()
+      LOCALOP(3)
+    end
+  else
+    opr LOCALOP(x: ZZ32) = ()
+    LOCALOP(3)
+  end

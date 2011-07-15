@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component RecB
+  import RecA.{...}
+  export RecB
+
+  trait Even
+    getter anOdd(): Odd
+  end
+
+  even(x:ZZ32): Boolean =
+    if x = 0 then true
+    elif x > 0 then odd(x-1)
+    elif x < 0 then odd(x+1)
+    end
+
+end

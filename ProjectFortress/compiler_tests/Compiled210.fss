@@ -1,0 +1,31 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Simple typecase (no generics).  *)
+
+trait A end
+object O extends A end
+object P extends A end
+
+anA(): A = O
+
+run():() = do
+  typecase anA() of
+    O => ()
+    else => println("FAIL")
+  end
+  typecase anA() of
+    P => println "FAIL"
+    else => println "pass"
+  end
+end

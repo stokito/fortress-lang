@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ToTheEOLComment
+export Executable
+
+run():()= do
+  println "test1" (*) to-the-end of line comment
+  println "test2" (*) nested (*) to-the-end of line comment
+  println "test3" (*) with (* enclosed comment *) test
+  (* to-the-end of line comment (*) inside an enclosing comment
+   *)
+end
+
+end

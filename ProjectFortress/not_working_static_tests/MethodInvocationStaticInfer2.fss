@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component MethodInvocationStaticInfer2
+  export Executable
+
+  trait Foo
+    doIt[\T\](t1:T, t2:ZZ32):T
+    doIt[\S,T\](t1:T,t2:Generator[\S\]):T
+  end
+
+  foo(a:ZZ32, g:Generator[\String\], f:Foo) : () = do
+    var a2 : ZZ32
+    a2 := f.doIt(a,a)
+    a2 := f.doIt(a,g)
+  end
+
+  run():() = ()
+end

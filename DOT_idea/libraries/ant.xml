@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="ant">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/ant/ant-junit.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/ant/ant.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
