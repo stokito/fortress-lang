@@ -1,0 +1,30 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXflatTest
+export Executable
+
+two(x:ZZ32) = (x, x+x)
+ident():() = ()
+
+(* Full-fledged recursive tuple flattening is no longer a part of the
+ * language, and the interpreter has been fixed accordingly. *)
+
+takesFour(w:ZZ32, x:ZZ32, y:ZZ32, z:ZZ32):ZZ32 =
+  w+x+y+z
+
+t(b:Boolean) = println (if b then "pass" else "fail")
+
+run():()=do
+  t(( 9=takesFour( ident(), two(1), ident(), two(2), ident() ) ))
+end
+
+end

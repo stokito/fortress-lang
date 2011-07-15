@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled12.a0
+export Executable
+
+object O[\T extends Object\]
+  m():String = "PASS"
+end
+
+run():() = do
+  println("PASS")
+end
+end

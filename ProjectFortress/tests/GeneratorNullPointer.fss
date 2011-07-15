@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component GeneratorNullPointer
+
+
+import Set.{...}
+export Executable
+
+f(x: Generator[\Char\]): ZZ32 = 0
+f[\A,B\](x: A -> B): ZZ32 = 1
+f(x: Any): ZZ32 = 1000
+
+run() = do
+    (* println(f(("The").seq)) There is no .seq getter! *)
+    println(f(seq("The")))
+end
+
+end

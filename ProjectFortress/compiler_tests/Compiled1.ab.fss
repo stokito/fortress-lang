@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled1.ab
+export Executable
+
+run():() = do
+  atomic do
+    if true then 34
+    elif
+      label foo
+        z
+      end foo
+      then 49
+    else 88 end
+  end
+end
+
+end

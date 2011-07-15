@@ -1,0 +1,39 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Default Libraries}
+\chaplabel{default-libraries}
+
+Two sets of libraries are imported into every Fortress program by
+default.  The first, \TYP{FortressLibrary} (\secref{FortressLibrary}),
+implements the high-level functionality that will be used by most
+Fortress programmers.  It will eventually be possible to selectively
+exclude portions of this library from a component if desired.  By
+contrast, the second set of libraries are the \emph{builtins}
+(\secref{builtins}).  These libraries are intended to encompass
+primitive functionality that must be visible in every Fortress
+component.
+
+\section{FortressLibrary}
+\seclabel{FortressLibrary}
+\input{\home/library/apis/FortressLibrary.tex}
+
+\section{Builtins}
+\seclabel{builtins}
+
+There is a single library containing builtins:
+\TYP{FortressBuiltin} (\secref{FortressBuiltin}).
+Every Fortress API and component will unconditionally see the names
+exported by this builtin API.
+
+\subsection{FortressBuiltin}
+\seclabel{FortressBuiltin}
+\input{\home/library/apis/FortressBuiltin.tex}

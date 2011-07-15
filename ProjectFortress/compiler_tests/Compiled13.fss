@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Generic object with generic methods extending a generic trait.
+    Both functional and dotted methods.
+    Single inheritance.
+   No overloading with top level.
+ *)
+
+f'(x: ZZ32): ZZ32 = x
+g(x: String) = println x
+
+trait T[\S extends ZZ32\]
+  f(self):S
+  g():S
+end
+
+object O[\S extends ZZ32\](x: S) extends T[\S\]
+  f(self):S = x
+  g():S = f(self)
+end
+
+run() =do
+  o = O[\ZZ32\](3)
+  a = f(o)            (*) 3
+  b = o.g()           (*) 3
+  c = f'(4)           (*) 4
+
+  println(
+  if (a=3 AND b=3 AND c=4)
+     then "pass" else "fail" end
+  )
+end

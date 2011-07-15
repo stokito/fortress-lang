@@ -1,0 +1,37 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+component OpenRangeCase
+export Executable
+
+(* Test: Does case work on open or semi-open ranges? *)
+
+tst(rng:Range[\ZZ32\], isin:ZZ32, notin:ZZ32):() = do
+    case isin of
+        rng => print(".")
+        else => fail(isin " NOTIN " rng)
+    end
+    case notin of
+        rng => fail(notin " IN " rng)
+        else => print(".")
+    end
+  end
+
+run():() = do
+    tst(10:20, 17, 3)
+    tst(10:, 17, 3)
+    tst(:10, 3, 17)
+    case 44 of
+        : => print("OK")
+        else => fail("Open range is still dubious")
+    end
+  end
+
+end
