@@ -12,29 +12,19 @@
 api ComparisonLibrary
 import CompilerAlgebra.{ Equality, opr = }
 
-(*) trait SnerdEquality[\Self\] comprises Self
-(*)     opr =(self, other:Self): Boolean
-(*) end
-
-(*) opr =/=[\T extends SnerdEquality[\T\]\](a: T, b: T): Boolean
-
 trait Comparison
 (*)        extends { StandardPartialOrder[\Comparison\] }
 (*)           extends { SnerdEquality[\Comparison\] }
         extends { Equality[\Comparison\] }
         comprises { Unordered, TotalComparison }
         excludes { Number, Boolean, Character, String }
-    (** Lexicographic ordering.  An associative operator.
-        Leftmost non-equal comparison dictates result. *)
     opr LEXICO(self, other:Comparison): Comparison
     opr LEXICO(self, other:()->Comparison): Comparison
-    (** Symmetric comparison (product ordering).  A commutative
-        and associative operator. *)
     opr SQCAP(self, other:Comparison): Comparison
     opr SQCAP(self, other:()->Comparison): Comparison
     opr CONVERSE(self): Comparison
     (*) This stuff ought to be provided by Equality[\Comparison\].
-(*)    opr =(self, other:Comparison): Boolean
+    opr =(self, other:Comparison): Boolean
     (*) This stuff ought to be provided by StandardPartialOrder.
     opr CMP(self, other:Comparison): Comparison
     opr <(self, other:Comparison): Boolean
@@ -43,8 +33,6 @@ trait Comparison
     opr >=(self, other:Comparison): Boolean
 end
 
-(** Unordered is the outcome of a CMP b when a and b are partially
-    ordered and no ordering relationship exists between them. **)
 object Unordered extends Comparison end
 
 trait TotalComparison
