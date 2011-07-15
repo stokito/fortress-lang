@@ -74,6 +74,7 @@ import com.sun.fortress.nodes.TraitType;
 import com.sun.fortress.nodes.TraitTypeWhere;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.UnionType;
 import com.sun.fortress.nodes.UnitArg;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeFactory;
@@ -969,7 +970,7 @@ public class NamingCzar {
         int n = types.size();
         String[] res = new String[n];
         for (int i = 0; i<n; i ++) {
-            res[i] = makeGenericParameterDescriptor(types.get(i), ifNone);
+            res[i] = makeBoxedTypeName(types.get(i), ifNone);
         }
           
         return res;
@@ -987,7 +988,7 @@ public class NamingCzar {
 //
 //    }
 
-    private static String makeGenericParameterDescriptor(ArrowType t, final APIName ifNone) {
+    private static String makeBoxedArrowName(ArrowType t, final APIName ifNone) {
         return // Naming.NORMAL_TAG +
         makeArrowDescriptor(t,ifNone);
     }
@@ -1014,14 +1015,14 @@ public class NamingCzar {
             StringBuilder buf = new StringBuilder();
             buf.append(result);
             for (com.sun.fortress.nodes.Type t : params) {
-                buf.append(makeGenericParameterDescriptor(t, ifNone) + ";");
+                buf.append(makeBoxedTypeName(t, ifNone) + ";");
             }
             result = buf.toString();
         } else {
             result = result + Naming.INTERNAL_SNOWMAN + ";";
         }
 
-        result = result + makeGenericParameterDescriptor(rt, ifNone) + Naming.RIGHT_OXFORD;
+        result = result + makeBoxedTypeName(rt, ifNone) + Naming.RIGHT_OXFORD;
         return result;
     }
 
@@ -1047,7 +1048,8 @@ public class NamingCzar {
             APIName ifNone,
             com.sun.fortress.nodes.Type params,
             com.sun.fortress.nodes.Type rt) {
-        List<com.sun.fortress.nodes.Type> list_of_type = (params instanceof TupleType) ? ((TupleType) params).getElements() : Useful.list(params);
+        List<com.sun.fortress.nodes.Type> list_of_type =
+            (params instanceof TupleType) ? ((TupleType) params).getElements() : Useful.list(params);
         return makeAnArrowDescriptor(list_of_type, rt, ifNone, "Arrow");
     }
 
@@ -1058,11 +1060,11 @@ public class NamingCzar {
         return makeArrowDescriptor(ifNone, paramsToTypes(params), rt);
     }
 
-    private static String makeGenericParameterDescriptor(AnyType t, final APIName ifNone) {
+    private static String makeBoxedAnyName(AnyType t, final APIName ifNone) {
         return Naming.ANY_TYPE_CLASS;
     }
 
-    private static String makeGenericParameterDescriptor(TraitType t, final APIName ifNone) {
+    private static String makeBoxedTraitName(TraitType t, final APIName ifNone) {
         //Id id = t.getName();
         //APIName apiName = id.getApiName().unwrap(ifNone);
         //String tag = "";
@@ -1088,7 +1090,7 @@ public class NamingCzar {
         }
     }
 
-    private static String makeGenericParameterDescriptor(VarType t, final APIName ifNone) {
+    private static String makeBoxedVarName(VarType t, final APIName ifNone) {
         Id id = t.getName();
         String s = id.getText();
 
@@ -1104,7 +1106,7 @@ public class NamingCzar {
     }
 
 
-    private static String makeGenericParameterDescriptor(TupleType t, final APIName ifNone) {
+    private static String makeBoxedTupleName(TupleType t, final APIName ifNone) {
         if ( NodeUtil.isVoidType(t) )
             return Naming.SNOWMAN;
         if (t.getVarargs().isSome())
@@ -1124,22 +1126,52 @@ public class NamingCzar {
         String res = "";
         StringBuilder buf = new StringBuilder();
         for (com.sun.fortress.nodes.Type ty : t.getElements()) {
-            buf.append(makeGenericParameterDescriptor(ty, ifNone) +  ';');
+            buf.append(makeBoxedTypeName(ty, ifNone) +  ';');
         }
         res = buf.toString();
         return Useful.substring(res, 0, -1);
     }
 
-    public static String makeGenericParameterDescriptor(com.sun.fortress.nodes.Type t, final APIName ifNone) {
-        if (t instanceof TupleType) return makeGenericParameterDescriptor((TupleType) t, ifNone);
-        else if (t instanceof TraitSelfType) return makeGenericParameterDescriptor(((TraitSelfType) t).getNamed(), ifNone);
-        else if (t instanceof TraitType) return makeGenericParameterDescriptor((TraitType) t, ifNone);
-        else if (t instanceof AnyType) return makeGenericParameterDescriptor((AnyType) t, ifNone);
-        else if (t instanceof ArrowType) return makeGenericParameterDescriptor((ArrowType) t, ifNone);
-        else if (t instanceof VarType) return makeGenericParameterDescriptor((VarType) t, ifNone);
+    public static String makeBoxedTypeName(com.sun.fortress.nodes.Type t, final APIName ifNone) {
+        if (t instanceof TupleType) return makeBoxedTupleName((TupleType) t, ifNone);
+        else if (t instanceof TraitSelfType) return makeBoxedTypeName(((TraitSelfType) t).getNamed(), ifNone);
+        else if (t instanceof TraitType) return makeBoxedTraitName((TraitType) t, ifNone);
+        else if (t instanceof AnyType) return makeBoxedAnyName((AnyType) t, ifNone);
+        else if (t instanceof ArrowType) return makeBoxedArrowName((ArrowType) t, ifNone);
+        else if (t instanceof VarType) return makeBoxedVarName((VarType) t, ifNone);
+        else if (t instanceof UnionType) {
+            UnionType ut = (UnionType) t;
+            return makeBoxedUnionName(ut, ifNone);
+        }
         else
             throw new CompilerError(t, " How did we get here? type = " +
                                      t + " of class " + t.getClass());
+    }
+
+    /**
+     * @param ut
+     * @param ifNone
+     * @return
+     */
+    private static String makeBoxedUnionName(UnionType ut,
+            final APIName ifNone) {
+        return makeBoxedThingName("Union", ut.getElements(), ifNone);
+    }
+    
+    private static String makeBoxedThingName(String thing,
+            List<com.sun.fortress.nodes.Type> lt,
+            final APIName ifNone) {
+        StringBuilder buf = new StringBuilder();
+        buf.append(thing);
+        buf.append(Naming.LEFT_OXFORD);
+        String prepend = "";
+        for (com.sun.fortress.nodes.Type ty : lt) {
+            buf.append(prepend);
+            prepend = ";";
+            buf.append(makeBoxedTypeName(ty, ifNone) +  ';');
+        }
+        buf.append(Naming.RIGHT_OXFORD);
+        return buf.toString();
     }
 
     private static String jvmTypeDescs(List<com.sun.fortress.nodes.Type> types,
@@ -1179,6 +1211,11 @@ public class NamingCzar {
             @Override
             public String forBottomType(BottomType t) {
                     return withLSemi ? descFortressVoid : internalFortressVoid;
+            }
+            @Override
+            public String forUnionType(UnionType t) {
+                String s = makeBoxedUnionName(t, ifNone);
+                return withLSemi ? "L" + s + ";" : s;
             }
             @Override
             public String forTupleType(TupleType t) {
@@ -1689,7 +1726,7 @@ public class NamingCzar {
         public Pair<String,String> forTypeArg(TypeArg that) {
             com.sun.fortress.nodes.Type arg = that.getTypeArg();
             // Pretagged with type information
-            String s =  makeGenericParameterDescriptor(arg, ifMissing);
+            String s =  makeBoxedTypeName(arg, ifMissing);
             return p("type", s);
         }
 
@@ -1707,7 +1744,7 @@ public class NamingCzar {
 
         @Override
         public Pair<String,String> forTraitType(TraitType that) {
-            String s =  makeGenericParameterDescriptor(that, ifMissing);
+            String s =  makeBoxedTraitName(that, ifMissing);
             return p("type", s);
         }
 
