@@ -1,0 +1,44 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component objectCC_mutVar2
+export Executable
+
+trait T
+    inc():ZZ32
+    dec():ZZ32
+end
+
+object O(var v:ZZ32)
+    x:ZZ32 = 1
+    foo():ZZ32 = v
+    bar():T = object extends T
+                  inc():ZZ32 = do v := v + x; v end
+                  dec():ZZ32 = do v := v - x; v end
+              end
+end
+
+run():() = do
+    println "Testing mix use of mutable and immutable VarRefs declared in enclosing ObjectDecl."
+    o:O = O(3);
+    assert(3, o.foo(), "o.foo() failed: returns ", o.foo(), " instead of 3.")
+    t:T = o.bar()
+    var r1:ZZ32 = t.inc()
+    r1 := t.inc()
+    assert(5, r1, "t.inc() failed: returns ", r1, " instead of 5.")
+    assert(5, o.foo(), "o.foo() failed: returns ", o.foo(), " instead of 5.")
+    r2:ZZ32 = t.dec()
+    assert(4, r2, "t.dec() failed: returns ", r2, " instead of 4.")
+    assert(4, o.foo(), "o.foo() failed: returns ", o.foo(), " instead of 4.")
+    println "Passed."
+end
+
+end

@@ -1,0 +1,22 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled5.a
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.a.fss:12:11-21:\n\
+\ The following declarations in API Compiled5.a are not matched\n\
+\ by the declarations in component Compiled5.a.\n\
+\ Unmatched declarations: {\n\
+\ (TraitDecl T at ${FORTRESS_AUTOHOME}/ProjectFortress/test_library/Compiled5.a.fsi:20.1,\n\
+\ due to different method n @ ${FORTRESS_AUTOHOME}/ProjectFortress/test_library/Compiled5.a.fsi:22:3-23:1)\n\
+\ }\n\
+File Compiled5.a.fss has 1 error.\n
+compile_out_equals=

@@ -1,0 +1,68 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait MyTree(item:Object) comprises { Node, Leaf } end
+object Node(left:MyTree, item:Object, right:MyTree) extends MyTree end
+object Leaf(item:Object) extends MyTree end
+
+(* first version
+*)
+rotate(x:MyTree): MyTree
+rotate(x:Node(y:Node(p,q,r), s, t)) = Node(p, q, Node(r,s,t))
+rotate(x:Node(Leaf,_,_)) = x
+rotate(x:Leaf) = x
+
+(* second version
+rotate(x:MyTree): MyTree =
+  typecase x of
+    Node(y:Node(p,q,r), s, t) => Node(p, q, Node(r,s,t))
+    Node(Leaf, _, _) => x
+    Leaf => x
+  end
+*)
+
+(* third version
+rotate(x:MyTree): MyTree =
+  typecase x of
+    Node(y, s, t) =>
+      typecase y of
+        Node(p,q,r) => Node(p, q, Node(r,s,t))
+        Node(Leaf, _, _) => x
+      end
+    Leaf => x
+  end
+*)
+
+(* with errors
+rotate(x:MyTree): MyTree =
+  typecase x of
+    Node(y, s, t) =>
+      typecase y of
+        Node(p,q,r) => Node(p, q, Node(r,s,t)) (* not exhaustive branch *)
+      end
+    Node(Leaf, _, _) => x (* unreachable branch *)
+    Leaf => x
+  end
+*)
+
+run():() = do
+  tree1 = Leaf
+  tree2 = Node(tree1, 3, tree1)
+  tree3 = Node(tree2, 8, tree1)
+  tree4 = Node(tree1, 8, tree3)
+
+  assert(rotate(tree1), tree1)
+  assert(rotate(tree2).right, tree1)
+  assert(rotate(tree3).left, tree1)
+  assert(rotate(tree4).left, tree1)
+end
