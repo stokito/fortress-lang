@@ -404,69 +404,74 @@ public class TopLevelEnv extends NameEnv {
         return result;
     }
 
-    public Set<IdOrOp> explicitFunctionNames(IdOrOp name) {
-        Set<IdOrOp> result = Collections.emptySet();
-
-        // Add fns/ops from this component
-        if (_current.functions().containsFirst(name)) {
-            // Only qualify name with an API if we are indeed inside of an API
-            IdOrOp result_id;
-            if (_current instanceof ApiIndex) {
-                if (name instanceof Id) result_id = NodeFactory.makeId(_current.ast().getName(),
-                                                                       (Id) name,
-                                                                       NodeUtil.getSpan(name));
-                else result_id = NodeFactory.makeOp(_current.ast().getName(), (Op) name);
-            } else result_id = name;
-            result = CollectUtil.union(result, Collections.<IdOrOp>singleton(result_id));
-        } else if (name instanceof Op) {
-            for (IdOrOpOrAnonymousName f : _current.functions().firstSet()) {
-                if (f instanceof Op && ((Op)f).getText().equals(((Op)name).getText())) {
-                    Op result_op = NodeFactory.makeOp(_current.ast().getName(), (Op) name);
-                    result = CollectUtil.union(result, Collections.<IdOrOp>singleton(result_op));
-                }
+    
+    // Function that gets an unambiguous name out of a Function.
+    private Lambda<Function,IdOrOp> unambiguousNameFromFunction = new Lambda<Function, IdOrOp>() {
+        @Override public IdOrOp value(Function fn) {
+            return fn.unambiguousName();
+        }
+    };
+    
+    // Qualifies the given name with the given API. Create normal Lambdas
+    // by binding an API.
+    private Lambda2<APIName, IdOrOp, IdOrOp> addApi = new Lambda2<APIName, IdOrOp, IdOrOp>() {
+        @Override
+        public IdOrOp value(APIName api, IdOrOp name) {
+            if (name instanceof Id) {
+                return NodeFactory.makeId(Option.some(api), (Id) name);
+            } else {
+                return NodeFactory.makeOp(Option.some(api), (Op) name);
             }
         }
+    };
+    
+    private Lambda<ParametricOperator, IdOrOp> getExplicitParametricOpName = new Lambda<ParametricOperator, IdOrOp>() {
+        @Override
+        public IdOrOp value(ParametricOperator p){
+            return p.unambiguousName();
+        }
+    };
 
+    private Lambda<ParametricOperator, IdOrOp> getUnambiguousParametricOpName = new Lambda<ParametricOperator, IdOrOp>() {
+        @Override
+        public IdOrOp value(ParametricOperator p){
+            return p.unambiguousName();
+        }
+    };
+    
+    Lambda<Pair<ApiIndex,ParametricOperator>, ParametricOperator> second = new Lambda<Pair<ApiIndex,ParametricOperator>, ParametricOperator>(){
+        @Override
+        public ParametricOperator value(Pair<ApiIndex, ParametricOperator> p) {
+            return p.second();
+        }
+    };
+
+    
+    public Set<IdOrOp> explicitFunctionNames(IdOrOp name) {
+        // Add fns/ops from this component
+        Set<IdOrOp> current = (_current.functions().containsFirst(name)) ?
+                                   Collections.<IdOrOp>singleton((_current instanceof ApiIndex) ? addApi.value(_current.ast().getName(), name) : name) :
+                                   CollectUtil.<IdOrOp>emptySet();
         // Also add imports
-        result = CollectUtil.union(result, this.onDemandFunctionNames(name));
-
-        if (_aliases.containsKey(name))
-            result = CollectUtil.union(result,
-                                       explicitFunctionNames((IdOrOp) _aliases.get(name)));
-
-        return result;
+        Set<IdOrOp> imports = (Set<IdOrOp>) this.onDemandFunctionNames(name);
+        // Add aliases
+        Set<IdOrOp> aliases = (_aliases.containsKey(name)) ? explicitFunctionNames((IdOrOp) _aliases.get(name)) : CollectUtil.<IdOrOp>emptySet();
+        // Add parametric operators
+        Set<IdOrOp> parametric = (name instanceof Op)?
+                                     CollectUtil.asSet(IterUtil.compose(IterUtil.map(_current.parametricOperators(), getExplicitParametricOpName),
+                                                                        IterUtil.map(onDemandParametricOps(), LambdaUtil.compose(second, getExplicitParametricOpName)))):
+                                     CollectUtil.<IdOrOp>emptySet();
+        // Union and return
+        return CollectUtil.union(CollectUtil.union(CollectUtil.union(current, imports), aliases), parametric);
     }
 
     public Set<IdOrOp> unambiguousFunctionNames(final IdOrOp name) {
-
-        // Function that gets an unambiguous name out of a Function.
-        Lambda<Function, IdOrOp> unambiguousNameFromFunction = new Lambda<Function, IdOrOp>() {
-            @Override public IdOrOp value(Function fn) {
-                return fn.unambiguousName();
-            }
-        };
-
-        // Qualifies the given name with the given API. Create normal Lambdas
-        // by binding an API.
-        Lambda2<APIName, IdOrOp, IdOrOp> addApi = new Lambda2<APIName, IdOrOp, IdOrOp>() {
-            @Override
-            public IdOrOp value(APIName api, IdOrOp name) {
-                if (name instanceof Id) {
-                    return NodeFactory.makeId(Option.some(api), (Id) name);
-                } else {
-                    return NodeFactory.makeOp(Option.some(api), (Op) name);
-                }
-            }
-        };
-        
         // If this name is qualified, then lookup names only in that API.
         if (name.getApiName().isSome()) {
             APIName api = name.getApiName().unwrap();
-            
             // Get the functions from this api with this name.
             Set<? extends Function> functions =
                 _onDemandImportedApis.get(api).functions().matchFirst(name);
-            
             // Return their unambiguous names, qualified.
             Lambda<IdOrOp, IdOrOp> addThisApi = LambdaUtil.bindFirst(addApi, api);
             return CollectUtil.asSet(IterUtil.map(functions,
@@ -481,7 +486,6 @@ public class TopLevelEnv extends NameEnv {
         // Loop over all the imported APIs.
         for (final ApiIndex api : _onDemandImportedApis.values()) {
             Lambda<IdOrOp, IdOrOp> addThisApi = LambdaUtil.bindFirst(addApi, api.ast().getName());
-
             // Get all the declarations from this API and qualify the names.
             functions = api.functions().matchFirst(name);
             results = IterUtil.compose(results,
@@ -496,12 +500,16 @@ public class TopLevelEnv extends NameEnv {
             results = IterUtil.compose(results,
                                        unambiguousFunctionNames((IdOrOp) _aliases.get(name)));
         }
+        
+        // Add Parametric Ops
+        if(name instanceof Op){
+            results = IterUtil.compose(results, IterUtil.map(_current.parametricOperators(),
+                                                         getUnambiguousParametricOpName));
+            results = IterUtil.compose(results, IterUtil.map(onDemandParametricOps(),
+                                                         LambdaUtil.compose(second, getUnambiguousParametricOpName)));
+        }
 
         return CollectUtil.asSet(results);
-    }
-
-    public Set<ParametricOperator> explicitParametricOperators(IdOrOp name) {
-        return _current.parametricOperators();
     }
 
     @Override

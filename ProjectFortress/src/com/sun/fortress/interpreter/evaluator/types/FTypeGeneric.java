@@ -136,8 +136,7 @@ public class FTypeGeneric extends FTraitOrObjectOrGeneric implements Factory1P<L
 
         @Override
         public StaticArg forStaticParam(StaticParam that) {
-            if (NodeUtil.isOpParam(that)) return NodeFactory.makeOpArg(NodeUtil.getSpan(that),
-                                                                       ExprFactory.makeOpRef((Op) that.getName()));
+            if (NodeUtil.isOpParam(that)) return NodeFactory.makeOpArg(NodeUtil.getSpan(that), (Op) that.getName());
             else return idNameToTypeArg((Id) that.getName());
         }
     }
