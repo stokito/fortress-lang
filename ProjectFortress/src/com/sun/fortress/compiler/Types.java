@@ -64,19 +64,24 @@ public final class Types {
     public static final TraitType BOOLEAN = makeTraitType(span, fortressBuiltin(), "Boolean");
     public static final TraitType CHARACTER = makeTraitType(span, fortressBuiltin(), "Character");
     public static TraitType STRING = makeTraitType(span, fortressLibrary(), "String");
+    public static TraitType EXCEPTION = makeTraitType(span, fortressLibrary(), "Exception");
+    public static TraitType CHECKED_EXCEPTION = makeTraitType(span, fortressLibrary(), "CheckedException");
     public static final TraitType REGION = makeTraitType(span, fortressLibrary(), "Region");
-    public static final TraitType EXCEPTION = makeTraitType(span, fortressLibrary(), "Exception");
-    public static final TraitType CHECKED_EXCEPTION = makeTraitType(span, fortressLibrary(), "CheckedException");
 
     /**
      * It's necessary to set STRING when using the compiler libraries because the location of String
      * in the compiler libraries differs from its location in the full libraries.
+     * Similarly for Exception and CheckedException.
      */
     public static void useCompilerLibraries() {
         STRING = makeTraitType(span, fortressBuiltin(), "String");
+        EXCEPTION = makeTraitType(span, fortressBuiltin(), "Exception");
+        CHECKED_EXCEPTION = makeTraitType(span, fortressBuiltin(), "CheckedException");
     }
     public static void useFortressLibraries() {
         STRING = makeTraitType(span, fortressLibrary(), "String");
+        EXCEPTION = makeTraitType(span, fortressLibrary(), "Exception");
+        CHECKED_EXCEPTION = makeTraitType(span, fortressLibrary(), "CheckedException");
     }
 
     public static void useTypeCheckerLibraries() {

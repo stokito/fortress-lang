@@ -1527,7 +1527,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  
                  mv.visitInsn(DUP);
                  mv.visitMethodInsn(INVOKEVIRTUAL, "com/sun/fortress/compiler/runtimeValues/FException", 
-                                    "getValue","()Ljava/lang/Object;");
+                                    "getValue","()Lcom/sun/fortress/compiler/runtimeValues/FValue;");
 
                  InstantiatingClassloader.generalizedInstanceOf(mv, NamingCzar.jvmBoxedTypeName(match, thisApi()));
                  mv.visitJumpInsn(IFNE, next);
@@ -2365,12 +2365,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<StaticParam> sparams = header.getStaticParams();
 
         boolean canCompile =
-            
-        header.getWhereClause().isNone() && // no where clause
-        header.getThrowsClause().isNone() && // no throws clause
-        header.getContract().isNone() && // no contract
-        fnDeclCompilableModifiers.containsAll(header.getMods()) && // no unhandled modifiers
-        !inABlock; // no local functions
+	    header.getWhereClause().isNone() && // no where clause
+	    // 14 Jul 2011: I think we can now handle throw properly, and throws clauses as such,
+	    // once type-checked, do not require any special handling at the low (Java) level.  --Guy
+	    //	    header.getThrowsClause().isNone() && // no throws clause
+	    header.getContract().isNone() && // no contract
+	    fnDeclCompilableModifiers.containsAll(header.getMods()) && // no unhandled modifiers
+	    !inABlock; // no local functions
 
         if (!canCompile)
             throw sayWhat(x, "Don't know how to compile this kind of FnDecl.");

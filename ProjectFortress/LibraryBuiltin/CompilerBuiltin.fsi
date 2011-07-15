@@ -230,24 +230,52 @@ end
 
 trait JavaBufferedReader excludes { String, Number, Boolean, Character }
   getter asString(): String
-  read(): Character
-  readLine(): String
-  ready(): Boolean
-  close(): ()
+  read(): Character throws IOException
+  readLine(): String throws IOException
+  readk(k: ZZ32): String throws IOException
+  eof(): Boolean
+  ready(): Boolean throws IOException
+  close(): () throws IOException
+  whenUnconsumed(): () throws IOException
+  consume(): () throws IOException
 end
 
-makeJavaBufferedReader(s: String): JavaBufferedReader
+makeJavaBufferedReader(s: String): JavaBufferedReader throws FileNotFoundException
 
 trait JavaBufferedWriter excludes { String, Number, Boolean, Character, JavaBufferedReader }
   getter asString(): String
-  write(c: Character): ()
-  write(s: String): ()
-  newLine(): ()
-  flush(): ()
-  close(): ()
+  write(c: Character): () throws IOException
+  write(s: String): () throws IOException
+  newLine(): () throws IOException
+  flush(): () throws IOException
+  close(): () throws IOException
 end
 
-makeJavaBufferedWriter(s: String): JavaBufferedWriter
+makeJavaBufferedWriter(s: String): JavaBufferedWriter throws FileNotFoundException
+
+(************************************************************
+* Exception hierarchy
+************************************************************)
+
+trait Exception comprises { UncheckedException, CheckedException }
+end
+
+trait UncheckedException extends Exception excludes CheckedException
+end
+
+trait CheckedException extends Exception excludes UncheckedException
+end
+
+trait IOException extends CheckedException
+end
+
+object IOFailure(s: String) extends IOException
+    getter asString(): String
+end
+
+object FileNotFoundException(s: String) extends IOException
+    getter asString(): String
+end
 
 (************************************************************
 * Random numbers

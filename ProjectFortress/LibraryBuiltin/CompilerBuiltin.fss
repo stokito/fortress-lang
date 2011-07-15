@@ -121,8 +121,12 @@ import java com.sun.fortress.nativeHelpers.{fileOps.jbrOpen => jJavaBufferedRead
                                             fileOps.jbrAsString => jJavaBufferedReaderAsString,
                                             fileOps.jbrRead => jJavaBufferedReaderRead,
                                             fileOps.jbrReadLine => jJavaBufferedReaderReadLine,
+                                            fileOps.jbrReadk => jJavaBufferedReaderReadk,
+                                            fileOps.jbrEof => jJavaBufferedReaderEof,
                                             fileOps.jbrReady => jJavaBufferedReaderReady,
                                             fileOps.jbrClose => jJavaBufferedReaderClose,
+                                            fileOps.jbrWhenUnconsumed => jJavaBufferedReaderWhenUnconsumed,
+                                            fileOps.jbrConsume => jJavaBufferedReaderConsume,
                                             fileOps.jbwOpen => jJavaBufferedWriterOpen,
                                             fileOps.jbwAsString => jJavaBufferedWriterAsString,
                                             fileOps.jbwWriteChar => jJavaBufferedWriterWriteChar,
@@ -413,24 +417,53 @@ end
 
 trait JavaBufferedReader excludes { String, Number, Boolean, Character }
   getter asString(): String = jJavaBufferedReaderAsString(self)
-  read(): Character = jMakeCharacter(jJavaBufferedReaderRead(self))
-  readLine(): String = jJavaBufferedReaderReadLine(self)
-  ready(): Boolean = jJavaBufferedReaderReady(self)
-  close(): () = jJavaBufferedReaderClose(self)
+  read(): Character throws IOException = jMakeCharacter(jJavaBufferedReaderRead(self))
+  readLine(): String throws IOException = jJavaBufferedReaderReadLine(self)
+  readk(k: ZZ32): String throws IOException = jJavaBufferedReaderReadk(self, k)
+  eof(): Boolean = jJavaBufferedReaderEof(self)
+  ready(): Boolean throws IOException = jJavaBufferedReaderReady(self)
+  close(): () throws IOException = jJavaBufferedReaderClose(self)
+  whenUnconsumed(): () throws IOException = jJavaBufferedReaderWhenUnconsumed(self)
+  consume(): () = jJavaBufferedReaderConsume(self)
 end
 
-makeJavaBufferedReader(s: String): JavaBufferedReader = jJavaBufferedReaderOpen(s)
+makeJavaBufferedReader(s: String): JavaBufferedReader throws FileNotFoundException = jJavaBufferedReaderOpen(s)
 
 trait JavaBufferedWriter excludes { String, Number, Boolean, Character, JavaBufferedReader }
   getter asString(): String = jJavaBufferedWriterAsString(self)
-  write(c: Character): () = jJavaBufferedWriterWriteChar(self, jCodePoint(c))
-  write(s: String): () = jJavaBufferedWriterWriteString(self, s)
-  newLine(): () = jJavaBufferedWriterNewLine(self)
-  flush(): () = jJavaBufferedWriterFlush(self)
-  close(): () = jJavaBufferedWriterClose(self)
+  write(c: Character): () throws IOException = jJavaBufferedWriterWriteChar(self, jCodePoint(c))
+  write(s: String): () throws IOException = jJavaBufferedWriterWriteString(self, s)
+  newLine(): () throws IOException = jJavaBufferedWriterNewLine(self)
+  flush(): () throws IOException = jJavaBufferedWriterFlush(self)
+  close(): () throws IOException = jJavaBufferedWriterClose(self)
 end
 
-makeJavaBufferedWriter(s: String): JavaBufferedWriter = jJavaBufferedWriterOpen(s)
+makeJavaBufferedWriter(s: String): JavaBufferedWriter throws FileNotFoundException = jJavaBufferedWriterOpen(s)
+
+
+(************************************************************
+* Exception hierarchy
+************************************************************)
+
+trait Exception comprises { UncheckedException, CheckedException }
+end
+
+trait UncheckedException extends Exception excludes CheckedException
+end
+
+trait CheckedException extends Exception excludes UncheckedException
+end
+
+trait IOException extends CheckedException
+end
+
+object IOFailure(s: String) extends IOException
+    getter asString(): String = "[I/O failure: " s "]"
+end
+
+object FileNotFoundException(s: String) extends IOException
+    getter asString(): String = "[File not found: " s "]"
+end
 
 
 (************************************************************
