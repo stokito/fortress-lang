@@ -263,7 +263,7 @@ trait Comparison
 (*)           extends { SnerdEquality[\Comparison\] }
         extends { Equality[\Comparison\] }
         comprises { Unordered, TotalComparison }
-        excludes { Number, Boolean, Character, String }
+        excludes { String, Number, Boolean, Character, JavaBufferedReader, JavaBufferedWriter }
     opr LEXICO(self, other:Comparison): Comparison
     opr LEXICO(self, other:()->Comparison): Comparison
     opr SQCAP(self, other:Comparison): Comparison
