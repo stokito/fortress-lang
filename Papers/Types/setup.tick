@@ -78,7 +78,8 @@ A class table $\T$ is \emph{well-formed} if the resulting subtyping relation
 on its constructed types is a partial order.
 As usual for languages with nominal subtyping, 
 we allow recursive and mutually recursive references in $\T$.
-We write $T \in \T$ to mean that 
+For any type $T$ (of any form),
+we write $T \in \T$ to mean that 
 any constructed type occurring in type $T$
 is well-formed with respect to $\T$.
 A class table $\T'$ is an \emph{extension} of $\T$ (written $\T' \ctext \T$)
@@ -145,7 +146,7 @@ we do not assume that the class table is complete;
 there might be declarations yet unknown.
 Specifically, 
 we cannot infer that two constructed types 
-have no common subtype (other than \BottomType) 
+have no common constructed subtype (other than \BottomType) 
 from the lack of any such type in the class table.
 However, we do assume that each declaration is complete, 
 and furthermore, 
@@ -262,8 +263,8 @@ function declarations and $\D(f)$ for the set in
 $\D$ that contains all declarations named $f$.
 %
 An instance \decl{f}{U}{V} of a declaration $f$ 
-is \emph{applicable} to a type $W$ 
-if and only if $W \subtypeof U$.
+is \emph{applicable} to a type $T$ 
+if and only if $T \subtypeof U$.
 A function declaration is \emph{applicable} to a type 
 if and only if at least one of its instances is.
 %
