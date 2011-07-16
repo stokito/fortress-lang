@@ -126,7 +126,7 @@ $\vdash$ `EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])`\\[.3em]
 \andalso~~~~~~$\eqred$ `EXISTS[\W <: ZZ\]ArrayList[\W\]`
 \end{tabular}
 \\[.8em]
-with substitution $[X/Y]$. We first check under what constraints $\C$
+with substitution $[W/X,\, W/Y]$. We first check under what constraints $\C$
 the intersection `ArrayList[\X\] CAP List[\Y\]` is not equivalent to \BottomType:
 with polymorphic exclusion (specifically, the absence of multiple instantiation inheritance)
 we know that `ArrayList[\X\]` excludes `List[\Y\]`,
@@ -176,7 +176,7 @@ $\vdash$
 \andalso~~~$\eqred$ `EXISTS[\W <: Any\]ArrayList[\W\]`
 \end{tabular}
 \\[.8em]
-with substitution $[X/Y]$.  Because the substitution satisfies the following:\\[.8em]
+with substitution $[W/X, W/Y]$.  Because the substitution satisfies the following:\\[.8em]
 \begin{tabular}{l}
 $\vdash$
 `FORALL[\X<:Any\]ArrayList[\X\] -> ArrayList[\X\]`\\

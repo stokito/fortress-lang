@@ -261,7 +261,7 @@ sub-relation except $\excrc$ depends only on other constraint
 generation judgments, meaning the algorithmic checking
 terminates. The $C\obb{T} \excrc D\obb{U}$ predicate recursively
 checks exclusion on the comprised types of $C\obb{T}$, but due to
-the acyclic class table, this process will also terminate. 
+the acyclic nature of the class table, this process will also terminate. 
 Thus, the algorithm is complete and sound if $\subtypeof$ is.
 
 
@@ -275,7 +275,7 @@ exclusion, we must add an additional rule to the judgment:\\[-1em]
    \jcsub{S}{U}{\C'} \andalso\jcsub{T}{U}{\C''}}
   {\jcsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
 
-\noindent This new rule states three possibilities for proving that the intersection $S \cap T$ is a subtype of $U$: $S$ and $T$ exclude (which means their intersection is a subtype of \BottomType), $S$ is a subtype of $U$, or $T$ is a subtype of $U$. If any of the constraints needed for these three judgments is satisfied, then $S \cap T$ is a subtype of $U$. Adding this rule should not affect completeness of soundness of constraint generation for $\subtypeof$ (since constraint generation for $\exc$ is complete and sound if constraint generation for $\subtypeof$ is).
+\noindent This new rule states three possibilities for proving that the intersection $S \cap T$ is a subtype of $U$: $S$ and $T$ exclude (which means their intersection is a subtype of \BottomType), $S$ is a subtype of $U$, or $T$ is a subtype of $U$. If any of the constraints needed for these three judgments is satisfied, then $S \cap T$ is a subtype of $U$. Adding this rule should not affect completeness or soundness of constraint generation for $\subtypeof$ (since constraint generation for $\exc$ is complete and sound if constraint generation for $\subtypeof$ is).
 
 \paragraph{Constraint Solving}
 Solving constraints
@@ -286,14 +286,16 @@ needs to be sound but not necessarily complete.\footnote{A
 failure in solving constraints may cause us to reject some overloadings that
 were actually safe, 
 but not to allow overloadings that are unsafe.}
-Here is a simple algorithm which is sound but not complete:
+Here is a simple algorithm which is sound but not complete. (We assume that all
+constraints are kept in disjunctive normal form.)
 \begin{enumerate}
 \item Take $\C$ which is a union of intersection constraints and
 try to solve each conjunct at a time (take the first one that succeeds).
 \item Split the conjunct into positive and negative parts.
 \item Deduce a set of equivalences from the positive part.
 \item Solve the equivalences using unification (with subtyping) to get a substitution $\phi$.
-\item Check whether applying $\phi$ to $\C$ is $\TRUE$.
+\item Check whether applying $\phi$ to $\C$ reduces $\C$ to the trivial constraint 
+$\TRUE$.
 \item If so return $`Some`(\phi)$, otherwise return `None`.
 \end{enumerate}
 To get better completeness properties,
