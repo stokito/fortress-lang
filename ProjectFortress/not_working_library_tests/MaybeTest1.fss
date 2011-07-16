@@ -28,7 +28,7 @@ value trait Maybe[\T extends Equality[\T\]\]
 end
 
 value object Just[\T extends Equality[\T\]\](x: T) extends Maybe[\T\]
-    getter size()=1
+    getter size(): ZZ32 = 1
     getter asString(): String = "Just(" x.asString ")"
 (*)    getter get() = x
     opr |self| : ZZ32 = 1
