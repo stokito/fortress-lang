@@ -13,18 +13,25 @@ component ComparisonLibrary
 import CompilerAlgebra.{ Equality, opr = }
 export ComparisonLibrary
 
-(*******
- Because of compiler deficiencies as of 14 Jan 2011 (soon to be remedied),
- this code puts all concrete getter down the the leaves (objects) of the type hierarchy.
- Moreover, uses of algebraic traits that use the self-type idiom are commented out.
- *******)
+(*
+  The four values of type `Comparison` are `LessThan`, `EqualTo`, `GreaterThan`, and `Unordered`;
+  they are used as the results of comparison operators such as `CMP` and `SQCMP`.
 
+  The comparison operators `<` and `<=` and `>=` and `>` treat these four values themselves as
+  being totally ordered in the order just given.
 
-(*) trait SnerdEquality[\Self\] comprises Self
-(*)     opr =(self, other:Self): Boolean = self SEQV other
-(*) end
+  The combining operator `LEXICO` combines two comparison values in a manner that is convenient
+  for computing lexicographic order between two tuples:
+    `((a, b, c) CMP (d, e, f)) = ((a CMP d) LEXICO (b CMP e) LEXICO (c CMP f))`
 
-(*) opr =/=[\T extends SnerdEquality[\T\]\](a: T, b: T) = NOT (a = b)
+  The combining operator `SQCAP` combines two comparison values in a manner that is convenient
+  for computing product order between two tuples:
+    `((a, b, c) SQCMP (d, e, f)) = ((a CMP d) SQCAP (b CMP e) SQCAP (c CMP f))`
+
+  The unary operator `CONVERSE` converts a comparison result to the result that would have
+  occurred with the operands switched:
+    `CONVERSE (a CMP b) = (b CMP a)`
+ *)
 
 trait Comparison
 (*)        extends { StandardPartialOrder[\Comparison\] }
@@ -46,7 +53,7 @@ trait Comparison
     opr SQCAP(self, other:()->Comparison): Comparison = self SQCAP other()
     opr CONVERSE(self): Comparison = Unordered
     (*) This stuff ought to be provided by Equality[\Comparison\].
-(*)    opr =(self, other:Comparison): Boolean = (self === other)
+    opr =(self, other:Comparison): Boolean = (self === other)
     (*) This stuff ought to be provided by StandardPartialOrder[\Comparison\].
     opr CMP(self, other:Comparison): Comparison =
         if self < other then LessThan
@@ -103,6 +110,15 @@ object LessThan extends TotalComparison
     opr CONVERSE(self): GreaterThan = GreaterThan
 end
 
+object EqualTo extends TotalComparison
+    getter asString(): String = "EqualTo"
+    opr CMP(self, other:TotalComparison): TotalComparison = CONVERSE other
+    opr <(self, other:GreaterThan): Boolean = true
+    opr <(self, other:TotalComparison): Boolean = false
+    opr SQCAP(self, other: Comparison): Comparison = other
+    opr CONVERSE(self): EqualTo = EqualTo
+end
+
 object GreaterThan extends TotalComparison
     getter asString(): String = "GreaterThan"
     opr CMP(self, other:GreaterThan): TotalComparison = EqualTo
@@ -111,16 +127,6 @@ object GreaterThan extends TotalComparison
     opr SQCAP(self, other:GreaterThan): GreaterThan = GreaterThan
     opr SQCAP(self, other:EqualTo): GreaterThan = GreaterThan
     opr CONVERSE(self): LessThan = LessThan
-end
-
-object EqualTo extends TotalComparison
-    getter asString(): String = "EqualTo"
-(*)    opr =(self, other:EqualTo): Boolean = true
-    opr CMP(self, other:TotalComparison): TotalComparison = CONVERSE other
-    opr <(self, other:GreaterThan): Boolean = true
-    opr <(self, other:TotalComparison): Boolean = false
-    opr SQCAP(self, other: Comparison): Comparison = other
-    opr CONVERSE(self): EqualTo = EqualTo
 end
 
 

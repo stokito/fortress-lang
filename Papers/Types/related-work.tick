@@ -33,21 +33,23 @@ defined in other functors. For a more detailed comparison of modularity and
 dispatch between our system and these, we refer to the related work section of
 our previous paper \cite{allen07}.
 
+% I took out discussion of modularity here; it's charged and unnecessary
+% in order to distinguish our work. EricAllen 7/15/2011
 Overloading and multiple dispatch in the context of polymorphism has previously
 been studied by Bourdoncle and Merz \cite{bourdoncle97}. Their system, ML$_\le$,
 integrates parametric polymorphism, class-based object orientation, and multimethods,
-but lacks multiple inheritance and true modularity. Each multimethod (overloaded set)
+but lacks multiple inheritance. Each multimethod (overloaded set)
 requires a unique specification (principal type), which prevents overloaded
 functions defined on disjoint domains; the domains of the multimethod branches
 must partition the specification domain, which eliminates subtype-based specialization;
-and link-time checks must be performed to ensure that multimethods are fully
-implemented across modules, which undermines true modularity. Further, ML$_\le$
+and link-time checks are performed to ensure that multimethods are fully
+implemented across modules. On the other hand, ML$_\le$
 allows variance annotations on type constructors --- something we attribute to
 future work.
 Litvinov~\cite{litvinov98} developed a type system for the Cecil language,
 which supports bounded parametric polymorphism and multimethods.
-Because Cecil has a type-erasure semantics, the statically checked
-parametric polymorphism does not have any effects in run-time dispatches.
+Because Cecil has a type-erasure semantics, statically checked
+parametric polymorphism does not have any effect on run-time dispatch.
 
 
 \subsection{Type classes.} Wadler and Blott \cite{wadler89} introduced
