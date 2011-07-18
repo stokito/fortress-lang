@@ -105,7 +105,10 @@ public class WellKnownNames {
         // These libraries are processed in order by the GraphRepository, so keep
         // them listed in the order they are.
         _defaultLibrary =
-            new String[] { fortressLibrary(), fortressBuiltin(), compilerAlgebra(), anyTypeLibrary() };
+            new String[] { fortressLibrary(),
+			   fortressBuiltin(),
+			   //			   compilerAlgebra(),
+			   anyTypeLibrary() };
     }
 
     public static void useFortressLibraries() {

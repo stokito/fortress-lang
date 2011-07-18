@@ -10,7 +10,7 @@ the run-time types of  all arguments to a call are used to resolve the call.
 A special case of multiple dispatch is \emph{symmetric multiple dispatch}, 
 in which all arguments are considered equally when resolving a call.
 
-Multiple dynamic dispatch provides programmers with a great expressivity.
+Multiple dynamic dispatch provides programmers with great expressivity.
 In particular, 
 mathematical operators such as $+$ and $\leq$ and $\cup$
 and especially $\cdot$ and $\times$
@@ -56,7 +56,6 @@ function that is more specific than both. We can think of this property
 as imposing a
 \emph{meet semi-lattice} on a set of function declarations.
 Ensuring this property is complicated
-in a language with multiple dispatch 
 because each of two function definitions 
 might be more specific in one argument and not another. 
 For example, 
@@ -198,7 +197,7 @@ table arguments $s$ and $t$. But the type parameter of the first
 definition bears no relation to the type parameters of the second.
 How should we compare such function definitions 
 to determine which is the best to dispatch to?
-How can we ensure that there even always is a best one?
+How can we ensure that there even is a best one in all cases?
 Furthermore, the rules must be compatible with type inference, 
 since instantiation of type parameters at a call site 
 is typically done automatically.
@@ -227,6 +226,9 @@ which asserts that two types have no common instances.
 If the domains of two function definitions exclude each other, 
 then these definitions can never be applicable to the same call,
 and so no ambiguity can arise between them.
+Many languages provide a way of declaring some exclusion relations
+implicitly. For example, single inheritance ensures that, for any 
+two types, if one is not a subtype of the other, then the two types exclude each other.
 Fortress enables programmers to declare ````nominal exclusion''
 in addition to determining many exclusions implicitly, 
 and in Section~\ref{sec:exclusion}, 

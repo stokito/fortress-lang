@@ -144,7 +144,7 @@ Some languages require program constructs that encapsulate all overloaded defini
 such constructs essentially guarantee valid overloading ````by construction''.
 Examples in other languages include type classes \cite{wadler89,dreyer07,siek05}
 and multimethods \cite{millstein02,millstein03,bourdoncle97}.
-We take a different approach: rather than introducing additional language facilities,
+We take a different approach: Rather than introducing additional language facilities,
 we impose rules on the function declarations themselves.
 % These aren't necessarily strictly "minimal" though, so:
 We intend these rules to be ````minimal'' in that they should be as unrestrictive as possible
@@ -312,9 +312,15 @@ then we can use $\bar{U},\bar{V}$ to prove that $\delta_0$ is a subtype of $\del
 
 
 We can check the Return Type Rule using the subtype relation on universal types.
+Figure~\ref{fig:sub} presents the subtype relation on universal types, again,
+as originally given by Mitchell \cite{mitchell88}.
+Roughly, a universal type $\sigma_1 = \forall\ob{\Delta_1} T_1$ is a subtype of another universal
+type $\sigma_2 = \forall\ob{\Delta_2} T_2$ (written $\sigma_1 \le \sigma_2$) if
+$T_1$ can be instantiated to a subtype of $T_2$ in the environment $\Delta_2$.
+
 The generic declarations $f_1 = \hdeclg{f}{\Delta_1}{S_1}{T_1}$ 
 and $f_2 = \hdeclg{f}{\Delta_2}{S_2}{T_2}$ with $f_1 \ms f_2$ satisfy the Return Type Rule
-whenever
+whenever:
 \renewcommand{\theequation}{\fnsymbol{equation}}
 \begin{equation} \label{eq:rtr}
   \forall\ob{\Delta_1}S_1 \rightarrow T_1 \; \le \; \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \rightarrow T_2
@@ -333,8 +339,3 @@ such an $f_1'$ would satisfy the Return Type Rule for $f_1$ and $f_2$.
 Finally, observe that $\textit{arrow}(f_1) \le \textit{arrow}(f_\meet)$ is identical to the
 condition (\ref{eq:rtr}), and so the verification of (\ref{eq:rtr}) implies
 the verification of the Return Type Rule.
-Figure~\ref{fig:sub} presents the subtype relation on universal types, again,
-as originally given by Mitchell \cite{mitchell88}.
-Roughly, a universal type $\sigma_1 = \forall\ob{\Delta_1} T_1$ is a subtype of another universal
-type $\sigma_2 = \forall\ob{\Delta_2} T_2$ (written $\sigma_1 \le \sigma_2$) if
-$T_1$ can be instantiated to a subtype of $T_2$ in the environment $\Delta_2$.
