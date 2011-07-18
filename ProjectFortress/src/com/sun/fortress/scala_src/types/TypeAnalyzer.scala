@@ -211,7 +211,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (a,b) if (a==b) => pTrue()
     case (STypeArg(_, _, s), STypeArg(_, _, t)) => pEqv(s, t)
     // Not handling all static args properly yet
-    case (_: OpArg, _: OpArg) => pTrue()
+    case (SOpArg(_, _, a:_InferenceVarOp, _), b: OpArg) => pTrue()
+    case (a: OpArg, SOpArg(_, _, b: _InferenceVarOp, _)) => pTrue()
     case (_: IntArg, _: IntArg) => pTrue()
     case (_: BoolArg, _: BoolArg) => pTrue()
     case (_: DimArg, _: DimArg) => pTrue()

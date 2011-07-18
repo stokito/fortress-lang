@@ -504,11 +504,9 @@ object STypesUtil {
    * inference variable.
    */
   def makeInferenceArg(sparam: StaticParam): StaticArg = sparam.getKind match {
-    case _: KindType => {
-      // Create a new inference var type.
-      val t = NF.make_InferenceVarType(NU.getSpan(sparam))
-      NF.makeTypeArg(NU.getSpan(sparam), t, sparam.isLifted)
-    }
+    case _: KindType => 
+      NF.makeTypeArg(NU.getSpan(sparam), NF.make_InferenceVarType(NU.getSpan(sparam)),
+                     sparam.isLifted)
     case _: KindInt => NI.nyi()
     case _: KindBool => NI.nyi()
     case _: KindDim => NI.nyi()
