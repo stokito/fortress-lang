@@ -1155,7 +1155,8 @@ public class NamingCzar {
      */
     private static String makeBoxedUnionName(UnionType ut,
             final APIName ifNone) {
-        return makeBoxedThingName("Union", ut.getElements(), ifNone);
+        String s = makeBoxedThingName("Union", ut.getElements(), ifNone);
+        return s;
     }
     
     private static String makeBoxedThingName(String thing,
@@ -1168,7 +1169,7 @@ public class NamingCzar {
         for (com.sun.fortress.nodes.Type ty : lt) {
             buf.append(prepend);
             prepend = ";";
-            buf.append(makeBoxedTypeName(ty, ifNone) +  ';');
+            buf.append(makeBoxedTypeName(ty, ifNone));
         }
         buf.append(Naming.RIGHT_OXFORD);
         return buf.toString();

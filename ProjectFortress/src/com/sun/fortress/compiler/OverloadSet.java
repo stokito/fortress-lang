@@ -404,7 +404,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             throw new CompilerError("Diff length parameter lists, should not be possible");
         }
                 
-        return oa.lteq(g.tagF, f.tagF);
+        boolean result =  oa.lteq(g.tagF, f.tagF);
+        return result;
     }
 
     @Override
@@ -434,16 +435,23 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         return -1;
     }
     public String getSignature(int param_to_skip) {
+        if (principalMember != null)
+            return jvmSignatureFor(principalMember);
         return overloadedDomainSig(param_to_skip) + NamingCzar.jvmTypeDesc(getRange(), ifNone);
     }
 
     public Type getRange() {
+        if (principalMember != null) {
+            TaggedFunctionName f = principalMember;
+            return STypesUtil.insertStaticParams(normalizeSelfType(f.getReturnType()), f.tagF.staticParameters());
+        } else {
         List<Type> typesToJoin = new ArrayList(lessSpecificThanSoFar.size());
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
             List<StaticParam> sparams = f.tagF.staticParameters();
             typesToJoin.add(STypesUtil.insertStaticParams(normalizeSelfType(f.getReturnType()), sparams));
         }
         return join(ta,typesToJoin);
+        }
     }
 
     /**
@@ -697,10 +705,29 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     protected List<Type> overloadedDomain() {
         List<Type> res = new ArrayList<Type>(paramCount);
-        for (int i = 0; i < paramCount; i++) {
+        if (principalMember != null) {
+            List<Param> params = principalMember.getParameters();
+            List<StaticParam> sparams = principalMember.tagF.staticParameters();
+            for (int i = 0; i < paramCount; i++) {
+                Param p = params.get(i);
+                res.add(sParamTaggedTypeFromParam(p, sparams));
+                
+            }
+        } else  for (int i = 0; i < paramCount; i++) {      
             res.add(overloadedParamType(i));
-        }
+        }       
         return res;
+    }
+
+    /**
+     * @param p
+     * @param sparams
+     * @return
+     */
+    public Type sParamTaggedTypeFromParam(Param p, List<StaticParam> sparams) {
+        return STypesUtil.insertStaticParams(
+                normalizeSelfType((Type)p.getIdType().unwrap()),
+                sparams);
     }
 
     private Type overloadedParamType(int param) {
@@ -712,8 +739,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             if (! (p.getIdType().unwrap() instanceof Type))
                 throw new CompilerError("Type is expected: " + p.getIdType().unwrap());
             typesToJoin.add(
-                    STypesUtil.insertStaticParams(normalizeSelfType((Type)p.getIdType().unwrap()),
-                                                  sparams));
+                    sParamTaggedTypeFromParam(p, sparams));
         }
         return join(ta,typesToJoin);
     }
@@ -874,7 +900,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     }
                 }
 
-                throw new CompilerError("unimplemented overloaded dispatch case");
+                InstantiatingClassloader.fail(mv, "Unimplemented dispatch case");
+                
+                // throw new CompilerError("unimplemented overloaded dispatch case");
 
                 // problem -- value instanceof, vs type instanceof
                 // normalize by getting type initially.

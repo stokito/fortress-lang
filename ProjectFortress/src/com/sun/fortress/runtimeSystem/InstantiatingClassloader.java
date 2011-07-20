@@ -216,12 +216,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             byte[] classData = null;
             try {
                 boolean isClosure = name.contains(Naming.ENVELOPE);
-                boolean isGeneric = isExpanded(name);
                 boolean isGenericFunction = name.contains(Naming.GEAR);
-                //                if (isClosure && isGeneric) {
-                //                    // A generic function, or so we think.
-                //                    throw new ClassNotFoundException("Not yet handling generic functions " + name);
-                //                } else
+                boolean isGeneric = isExpanded(name);
 
                 boolean expanded = (isGeneric || isGenericFunction || isClosure) ;
                 if (name.startsWith(Naming.TUPLE_RTTI_TAG)) {
@@ -358,6 +354,67 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         String s = InstantiationMap.canonicalizeStaticParameters(name, left_oxford,
                 right_oxford, sargs);
+
+        return Naming.mangleFortressIdentifier(s);
+    }
+
+    /**
+     * Parses a method/function name (which can in certain cases also be a 
+     * class name,for instance, closures and generics) into the "name" of the 
+     * method, and 
+     * @param name
+     * @param tag
+     * @param sargs
+     * @return
+     */
+    private String functionTemplateNameDetailed(String name, StringBuffer tag, ArrayList<String> sargs) {
+        int leftBracket = name.indexOf(Naming.LEFT_OXFORD);
+        int rightBracket = name.indexOf(Naming.ENVELOPE) - 1; // right oxford
+
+        int depth = 0;
+        
+        {
+            int i = 0;
+            while (true) {
+                char ch = name.charAt(i);
+                if (ch == Naming.RIGHT_OXFORD_CHAR) {
+                    
+                } else if (ch == Naming.LEFT_OXFORD_CHAR) {
+                    
+                } else if (ch == Naming.RIGHT_PAREN_ORNAMENT_CHAR) {
+                    
+                } else if (ch == Naming.LEFT_PAREN_ORNAMENT_CHAR) {
+                    
+                } else {
+                    break;
+                }
+            }
+        }
+        
+        
+        int pbegin = leftBracket+1;
+        for (int i = leftBracket+1; i <= rightBracket; i++) {
+            char ch = name.charAt(i);
+    
+            if ((ch == ';' || ch == Naming.RIGHT_OXFORD_CHAR) && depth == 1) {
+                String parameter = name.substring(pbegin,i);
+                if (sargs != null)
+                    sargs.add(parameter);
+                pbegin = i+1;
+            } else {
+                if (ch == Naming.LEFT_OXFORD_CHAR) {
+                    depth++;
+                } else if (ch == Naming.RIGHT_OXFORD_CHAR) {
+                    depth--;
+                } else {
+    
+                }
+            }
+        }
+        
+        
+        String s = InstantiationMap.canonicalizeStaticParameters(name, leftBracket,
+                rightBracket, sargs);
 
         return Naming.mangleFortressIdentifier(s);
     }
@@ -814,6 +871,18 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      public static void eep(String s) {
          System.err.println(s);
      }
+     
+     public static void fail(MethodVisitor mv, String s) {
+         System.err.println("Warning, emitting fail case for '" + s + "'");
+         mv.visitLdcInsn(s);
+         mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "fail", "(Ljava/lang/String;)Ljava/lang/Error;");
+         mv.visitInsn(ATHROW);
+     }     
+     
+     static Error error(String s) {
+         return new Error(s);
+     }
+
      
     /**
      * Generates an interface method (public, abstract) with specified name
@@ -2498,4 +2567,5 @@ class ClassLoadChecker {
             return true;
         }
     }
+    
 }
