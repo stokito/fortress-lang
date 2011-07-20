@@ -11,28 +11,31 @@ tests=Compiled5.ad
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled5.ad.fss:15:12-16:\n\
-\ Could not check call to operator <\n\
-\ - (Character, Character)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
-\ - (RR64, RR64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
-\ - (String, String)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
-\ - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
-\ - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
-${STATIC_TESTS_DIR}/Compiled5.ad.fss:15:16-20:\n\
-\ Could not check call to operator <\n\
-\ - (Character, Character)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
-\ - (RR64, RR64)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
-\ - (String, String)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
-\ - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
-\ - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
-${STATIC_TESTS_DIR}/Compiled5.ad.fss:16:6-10:\n\
-\ Could not check call to operator =\n\
-\ - (Boolean, Boolean)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
-\ - (Character, Character)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
-\ - (GeneratorZZ32, GeneratorZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
-\ - (RR64, RR64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
-\ - (String, String)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
-\ - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
-\ - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
-File Compiled5.ad.fss has 3 errors.\n
+\${STATIC_TESTS_DIR}/Compiled5.ad.fss:15:12-16:\n\
+\    Could not check call to operator <\n\
+\    - ((Comparison & {Unordered, TotalComparison}), Comparison)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (Character, Character)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (RR64, RR64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (String, String)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\${STATIC_TESTS_DIR}/Compiled5.ad.fss:15:16-20:\n\
+\    Could not check call to operator <\n\
+\    - ((Comparison & {Unordered, TotalComparison}), Comparison)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (Character, Character)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (RR64, RR64)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (String, String)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\${STATIC_TESTS_DIR}/Compiled5.ad.fss:16:6-10:\n\
+\    Could not check call to operator =\n\
+\    - ((Comparison & {Unordered, TotalComparison}), Comparison)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (Boolean, Boolean)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (Character, Character)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (GeneratorZZ32, GeneratorZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (RR64, RR64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (String, String)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\File Compiled5.ad.fss has 3 errors.\n
 compile_out_equals=
