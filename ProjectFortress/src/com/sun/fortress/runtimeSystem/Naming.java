@@ -192,8 +192,10 @@ public class Naming {
 
     public final static String GEAR = "\u2699";
 
-    public final static char LEFT_OXFORD_CHAR = '\u27e6';
-    public final static char RIGHT_OXFORD_CHAR = '\u27e7';
+    public final static char LEFT_OXFORD_CHAR = '\u27e6'; // generic
+    public final static char RIGHT_OXFORD_CHAR = '\u27e7'; // generic
+    public final static char LEFT_PAREN_ORNAMENT_CHAR = '\u2768'; // sig disambig tag
+    public final static char RIGHT_PAREN_ORNAMENT_CHAR = '\u2769'; // sig disambig tag
     public final static String LEFT_OXFORD = "\u27e6";
     public final static String RIGHT_OXFORD = "\u27e7";
     
