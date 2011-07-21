@@ -762,7 +762,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         String[] string_exceptions = new String[exceptions.size()];
         int i = 0;
         for (Type e : exceptions) {
-            string_exceptions[i++] = NamingCzar.jvmTypeDesc(e, ifNone);
+            string_exceptions[i++] = NamingCzar.jvmTypeDesc(e, ifNone, false, false);
         }
         return string_exceptions;
     }

@@ -11,6 +11,7 @@
 package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
 import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.useful.MagicNumbers;
 
 
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import org.objectweb.asm.util.*;
 
 
 public class AbstractInterpretationContext {
+    
     AbstractInterpretation ai;
     ByteCodeMethodVisitor bcmv;
     AbstractInterpretationValue stack[];
@@ -37,6 +39,25 @@ public class AbstractInterpretationContext {
 
     private int defCount = 0;
 
+    public int hashCode() {
+        return MagicNumbers.p * pc + MagicNumbers.s * stackIndex + MagicNumbers.d * defCount;
+    }
+    
+    public boolean equals(Object o) {
+        if (! (o instanceof AbstractInterpretationContext))
+            return false;
+        AbstractInterpretationContext aic = (AbstractInterpretationContext) o;
+        return aic.pc == pc &&
+        aic.stackIndex == stackIndex &&
+        aic.defCount == defCount &&
+        aic.ai == ai &&
+        aic.bcmv == bcmv &&
+        aic.stack == stack &&
+        aic.locals == locals &&
+        aic.defs == defs &&
+        aic.uses == uses;
+    }
+    
     // 
     void pushStackDefinition(Insn i, AbstractInterpretationValue s) {
         i.addDef(s);
