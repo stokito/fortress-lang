@@ -429,7 +429,7 @@ end
 
 makeJavaBufferedReader(s: String): JavaBufferedReader throws FileNotFoundException = jJavaBufferedReaderOpen(s)
 
-trait JavaBufferedWriter excludes { String, Number, Boolean, Character, JavaBufferedReader }
+trait   JavaBufferedWriter excludes { String, Number, Boolean, Character, JavaBufferedReader }
   getter asString(): String = jJavaBufferedWriterAsString(self)
   write(c: Character): () throws IOException = jJavaBufferedWriterWriteChar(self, jCodePoint(c))
   write(s: String): () throws IOException = jJavaBufferedWriterWriteString(self, s)

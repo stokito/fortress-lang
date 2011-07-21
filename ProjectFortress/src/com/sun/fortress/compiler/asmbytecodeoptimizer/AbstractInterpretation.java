@@ -11,6 +11,7 @@
 package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
 import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.useful.ArrayQueueList;
 
 
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ import org.objectweb.asm.util.*;
 public class AbstractInterpretation {
     AbstractInterpretationContext context;
 
-    static List<AbstractInterpretationContext> instructions;
+    static Set<AbstractInterpretationContext> instructions;
     private final static boolean noisy = false;
 
     AbstractInterpretation(String className, ByteCodeMethodVisitor bcmv) {
@@ -36,7 +37,7 @@ public class AbstractInterpretation {
                                                     new AbstractInterpretationValue[bcmv.maxLocals],
                                                     0, 0); 
         AbstractInterpretationValue.initializeCount();
-        instructions = new ArrayList<AbstractInterpretationContext>();
+        instructions = new HashSet<AbstractInterpretationContext>();
     }
 
     public static void optimize(String key, ByteCodeVisitor bcv) {
@@ -44,6 +45,7 @@ public class AbstractInterpretation {
 
          while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry) it.next();
+            // System.err.println(key + " " + pairs.getKey());
             ByteCodeMethodVisitor bcmv = (ByteCodeMethodVisitor) pairs.getValue();
             optimizeMethod(key, bcmv);
          }
@@ -51,7 +53,7 @@ public class AbstractInterpretation {
 
     public static void optimizeMethod(String key, ByteCodeMethodVisitor bcmv) {
         AbstractInterpretation ai = new AbstractInterpretation(key, bcmv);
-        if (noisy) System.out.println("optimize for key = " + key);
+        // if (noisy) System.out.println("optimize for key = " + key);
         int localsIndex = 0;
         Insn insn = bcmv.insns.get(0);        
 
@@ -80,14 +82,33 @@ public class AbstractInterpretation {
     }
 
     public void interpretMethod() {
-        if (noisy) System.out.println("Interpreting method " + context.bcmv.name + " with access " + context.bcmv.access + " Opcodes.static = " + Opcodes.ACC_STATIC + " bcmv.maxStack = " + context.bcmv.maxStack + " maxLocals = " + context.bcmv.maxLocals);
+        long startTime = 0;
+        if (noisy) {
+            System.out.println("Interpreting method " + context.bcmv.name + " with access " + context.bcmv.access + " Opcodes.static = " + Opcodes.ACC_STATIC + " bcmv.maxStack = " + context.bcmv.maxStack + " maxLocals = " + context.bcmv.maxLocals);
+            System.out.flush();
+            startTime = System.currentTimeMillis();
+        }
 
         context.interpretMethod();
      
         while (!instructions.isEmpty()) {
-            context = instructions.remove(0);
+            int size = instructions.size();
+            
+            context = removeOne(instructions);
             context.interpretMethod();
         }
+        
+        if (noisy) {
+            System.out.println("Finished method " + context.bcmv.name + " in " + (System.currentTimeMillis() - startTime) + " ms");
+        }
+
+    }
+
+    private AbstractInterpretationContext removeOne(
+            Set<AbstractInterpretationContext> insts) {
+        AbstractInterpretationContext inst = insts.iterator().next();
+        insts.remove(inst);
+        return inst;
     }
 
     public String toString() {
