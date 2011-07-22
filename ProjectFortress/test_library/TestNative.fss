@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+native component TestNative
+export TestNative
+
+private language="java"
+private package="com.sun.fortress.interpreter.glue.test"
+
+object TNFoo[\nat n\](s:String)
+  bar():String = "" doit()
+  doit():String = builtinPrimitive("com.sun.fortress.interpreter.glue.test.TNFoo$bar")
+end
+
+end

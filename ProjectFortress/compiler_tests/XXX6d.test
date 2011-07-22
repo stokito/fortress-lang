@@ -1,0 +1,18 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled6.d
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled6.d.fss:13:8-45:\n\
+\ Attempt to import Foo from the API XXXExplicitImportOfNonExistingName\n\
+\ which does not declare Foo.\n\
+File Compiled6.d.fss has 1 error.\n
+compile_out_equals=

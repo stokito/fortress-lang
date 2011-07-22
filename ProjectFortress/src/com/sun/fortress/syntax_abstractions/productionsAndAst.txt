@@ -1,0 +1,127 @@
+
+
+Productions you may extend in syntax definitions:
+   (Only those marked "x" can be extended currently)
+   Fortress name               Rats! production
+   -------------------------------
+   Expr                      --> ExprFront
+   OpExpr
+x DelimitedExpr
+   FlowExpr
+   
+   AssignLefts
+   SubscriptAssign???????
+
+   OpExprNoEnc
+   OpExprLeftEncloser
+   Encloser
+   OpExprPrimary
+   OpExprPrefix
+   Op
+   ExponentOp
+
+   (Primary)
+   PrimaryFront
+   PrimaryTail
+   BaseExpr
+   SubscriptExpr
+   MethodInvocation
+   FieldSelection
+   ExponentExpr
+   TaggedUnitExpr
+   TightJuxtaposition
+
+   (UnitExpr)
+   UnitExprFront
+   UnitExprTail
+
+x BlockElems
+  
+x Literal
+
+Productions you may use in syntax definitions:
+   (all should be able to be used, "x", means verified)
+   Fortress name               Rats! production
+   -------------------------------
+   Expr                      --> ExprFront
+   OpExpr
+x DelimitedExpr
+   FlowExpr
+   
+   AssignLefts
+   SubscriptAssign???????
+
+   OpExprNoEnc
+   OpExprLeftEncloser
+   Encloser
+   OpExprPrimary
+   OpExprPrefix
+   Op
+   ExponentOp
+   TightInfixRight
+   LeftLooseInfix
+   TightInfixPostfix
+   LooseInfix
+
+   (Primary)
+   PrimaryFront
+   PrimaryTail
+   BaseExpr
+   SubscriptExpr
+   MethodInvocation
+   FieldSelection
+   ExponentExpr
+   TaggedUnitExpr
+   TightJuxtaposition
+
+   (UnitExpr)
+   UnitExprFront
+   UnitExprTail
+
+   ProductUnit
+   QuotientUnit
+   ExponentUnit
+   OpUnit
+ 
+   AtomicBack
+
+   TupleExpr
+   Parenthesized
+   DoFront
+   NoKeyTuple
+   Elifs
+   Elif
+   Else
+   CaseClauses
+   CaseElse
+   TypecaseBindings
+   BindingList
+   Binding
+   TypecaseClauses
+   TypecaseClause
+   TypecaseTypes
+   Catch
+   CatchClauses
+   CatchClause
+   mapstoOp
+   Entry
+   IdOrInt
+
+   Aggregate
+
+   ExprList
+
+   NoSpaceExpr
+   OpExprPrimary
+   OpExprPrefix
+   TightInfixPostfix
+
+   NoNewlineExpr
+
+
+
+X BlockElems
+   QualifiedName  
+X Literal
+
+  All keywords

@@ -1,0 +1,31 @@
+% \input{exc-intro}
+% \subsection{Constraints and Inference}
+% \input{constraints}
+% \subsection{Exclusion under Constraints}
+% \input{doesnotexclude}
+% %% \subsection{Not BottomType}
+% %% \input{notbottom}
+% \subsection{Subtyping}
+% \input{reduce}
+
+To allow more overloaded functions such as `simple`, `tail`, and `foo`
+described in Section~\ref{sec:problems},
+we extend the overloading rules using \emph{exclusion} relations on types.
+
+\subsection{Type Exclusion}\label{sec:excdec}
+\input{exc-spec}
+
+
+
+
+% \subsection{Polymorphic Exclusion}
+\subsection{Overloading Rule with Polymorphic Exclusion}\label{sec:exc-polyrules}
+\input{exc-poly}
+
+\subsection{Exclusion with Constraints}\label{sec:constraints}
+\input{exc-constraints}
+
+%\subsection{Polymorphic Exclusion Checking}
+%\subsection{Overloading with Polymorphic Exclusion, Again}
+\subsection{Incorporating Constraints into Subtyping}
+\input{exc-reduction}
