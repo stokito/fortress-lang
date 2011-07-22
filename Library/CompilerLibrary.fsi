@@ -68,10 +68,6 @@ object IndexOutOfBounds[\I\](range:Range[\I\],index:I) extends UncheckedExceptio
 
 object EmptyReduction extends UncheckedException end
 
-object NegativeLength extends UncheckedException end
-
-object IntegerOverflow extends UncheckedException end
-
 object RationalComparisonError extends UncheckedException end
 
 object FloatingComparisonError extends UncheckedException end
@@ -141,8 +137,6 @@ trait Matrix[\T, nat s0, nat s1\] extends Object end
 * Character properties
 ************************************************************)
 
-characterMinCodePoint: ZZ32
-characterMaxCodePoint: ZZ32
 characterMinSupplementaryCodePoint: ZZ32
 characterMinRadix: ZZ32
 characterMaxRadix: ZZ32

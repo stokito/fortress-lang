@@ -161,14 +161,6 @@ object EmptyReduction extends UncheckedException
     getter asString(): String = "EmptyReduction: no identity, no elements"
 end
 
-object NegativeLength extends UncheckedException
-    getter asString(): String = "Negative length"
-end
-
-object IntegerOverflow extends UncheckedException
-    getter asString(): String = "Integer Overflow"
-end
-
 object RationalComparisonError extends UncheckedException
     getter asString(): String = "Rational comparison error"
 end
@@ -360,8 +352,6 @@ trait Matrix[\T, nat s0, nat s1\] extends Object end
 * Character properties
 ************************************************************)
 
-characterMinCodePoint: ZZ32 = 0
-characterMaxCodePoint: ZZ32 = 1114111
 characterMinSupplementaryCodePoint: ZZ32 = 65536
 characterMinRadix: ZZ32 = 2
 characterMaxRadix: ZZ32 = 36

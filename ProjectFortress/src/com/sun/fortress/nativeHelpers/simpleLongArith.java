@@ -68,4 +68,21 @@ public class simpleLongArith {
     public static long intToLong(int i) {
 	return (long)i;
     }
+
+    public static long longBitNot(long a) {
+        return ~a;
+    }
+
+    public static long longBitAnd(long a, long b) {
+        return a & b;
+    }
+
+    public static long longBitOr(long a, long b) {
+        return a | b;
+    }
+
+    public static long longBitXor(long a, long b) {
+        return a ^ b;
+    }
+
 }

@@ -16,11 +16,11 @@ export Executable
  * do not work. *)
 
 run():() = do
-  odd(x:ZZ32):Boolean = if x = 1 then true else even(x-1) end
-  odd(5)
+  testOdd(x:ZZ32):Boolean = if x = 1 then true else testEven(x-1) end
+  testOdd(5)
   f(x:ZZ32):ZZ32 = 0
-  even(x:ZZ32):Boolean = if x = 0 then true else odd(x-1) end
-  even(5)
+  testEven(x:ZZ32):Boolean = if x = 0 then true else testOdd(x-1) end
+  testEven(5)
 end
 
 end

@@ -73,4 +73,20 @@ public class simpleIntArith {
         return (int)l;
     }
 
+    public static int intBitNot(int a) {
+        return ~a;
+    }
+
+    public static int intBitAnd(int a, int b) {
+        return a & b;
+    }
+
+    public static int intBitOr(int a, int b) {
+        return a | b;
+    }
+
+    public static int intBitXor(int a, int b) {
+        return a ^ b;
+    }
+    
 }

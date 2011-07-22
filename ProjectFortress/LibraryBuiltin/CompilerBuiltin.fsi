@@ -33,6 +33,7 @@ trait String
     opr juxtaposition(self, b:String): String
     opr[i:ZZ32] : ZZ32
     substring(lo:ZZ32, hi:ZZ32):String
+    opr ^(self, n: ZZ32): String
 end
 
 object FlatString extends String
@@ -91,6 +92,15 @@ trait ZZ64 extends Number excludes RR64
     opr juxtaposition(self, other:ZZ64): ZZ64
     opr DOT(self, other:ZZ64): ZZ64 
     opr DIV(self, other:ZZ64): ZZ64
+    opr BITNOT(self): ZZ64 
+    opr BITAND(self, other:ZZ64): ZZ64 
+    opr BITOR(self, other:ZZ64): ZZ64 
+    opr BITXOR(self, other:ZZ64): ZZ64
+    opr MIN(self, other:ZZ64): ZZ64 
+    opr MAX(self, other:ZZ64): ZZ64 
+    opr MINMAX(self, other:ZZ64): (ZZ64, ZZ64) 
+    even(self): Boolean
+    odd(self): Boolean
 end
 
 trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
@@ -108,6 +118,15 @@ trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
     opr juxtaposition(self, other:ZZ32): ZZ32
     opr DOT(self, other:ZZ32): ZZ32
     opr DIV(self, other:ZZ32): ZZ32
+    opr BITNOT(self): ZZ32 
+    opr BITAND(self, other:ZZ32): ZZ32 
+    opr BITOR(self, other:ZZ32): ZZ32 
+    opr BITXOR(self, other:ZZ32): ZZ32
+    opr MIN(self, other:ZZ32): ZZ32 
+    opr MAX(self, other:ZZ32): ZZ32 
+    opr MINMAX(self, other:ZZ32): (ZZ32, ZZ32) 
+    even(self): Boolean
+    odd(self): Boolean
 end
 
 trait IntLiteral excludes {ZZ32, ZZ64}
@@ -124,6 +143,7 @@ end
 trait RR64 extends Number excludes ZZ64
     coerce(x: FloatLiteral)
     coerce(x: RR32)
+    getter isNaN(): Boolean 
     opr |self| : RR64
     opr -(self): RR64
     opr +(self, other:RR64): RR64
@@ -136,6 +156,12 @@ trait RR64 extends Number excludes ZZ64
     opr juxtaposition(self, other:RR64): RR64
     opr DOT(self, other:RR64): RR64
     opr /(self, other:RR64): RR64
+    opr MIN(self, other:RR64): RR64 
+    opr MAX(self, other:RR64): RR64 
+    opr MINNUM(self, other:RR64): RR64 
+    opr MAXNUM(self, other:RR64): RR64 
+    opr MINNUMMAX(self, other:RR64): (RR64, RR64) 
+    opr MINMAXNUM(self, other:RR64): (RR64, RR64) 
     opr ^(self, other:RR64): RR64
     opr ^(self, other:ZZ32): RR64
 end
@@ -258,43 +284,43 @@ makeJavaBufferedWriter(s: String): JavaBufferedWriter throws FileNotFoundExcepti
 * Comparison values
 ************************************************************)
 
-trait Comparison
-(*)        extends { StandardPartialOrder[\Comparison\] }
-(*)           extends { SnerdEquality[\Comparison\] }
-        extends { Equality[\Comparison\] }
-        comprises { Unordered, TotalComparison }
-        excludes { String, Number, Boolean, Character, JavaBufferedReader, JavaBufferedWriter }
-    opr LEXICO(self, other:Comparison): Comparison
-    opr LEXICO(self, other:()->Comparison): Comparison
-    opr SQCAP(self, other:Comparison): Comparison
-    opr SQCAP(self, other:()->Comparison): Comparison
-    opr CONVERSE(self): Comparison
-    (*) This stuff ought to be provided by Equality[\Comparison\].
-    opr =(self, other:Comparison): Boolean
-    (*) This stuff ought to be provided by StandardPartialOrder.
-    opr CMP(self, other:Comparison): Comparison
-    opr <(self, other:Comparison): Boolean
-    opr >(self, other:Comparison): Boolean
-    opr <=(self, other:Comparison): Boolean
-    opr >=(self, other:Comparison): Boolean
-end
+(*) trait Comparison
+(*) (*)        extends { StandardPartialOrder[\Comparison\] }
+(*) (*)           extends { SnerdEquality[\Comparison\] }
+(*)         extends { Equality[\Comparison\] }
+(*)         comprises { Unordered, TotalComparison }
+(*)         excludes { String, Number, Boolean, Character, JavaBufferedReader, JavaBufferedWriter }
+(*)     opr LEXICO(self, other:Comparison): Comparison
+(*)     opr LEXICO(self, other:()->Comparison): Comparison
+(*)     opr SQCAP(self, other:Comparison): Comparison
+(*)     opr SQCAP(self, other:()->Comparison): Comparison
+(*)     opr CONVERSE(self): Comparison
+(*)     (*) This stuff ought to be provided by Equality[\Comparison\].
+(*)     opr =(self, other:Comparison): Boolean
+(*)     (*) This stuff ought to be provided by StandardPartialOrder.
+(*)     opr CMP(self, other:Comparison): Comparison
+(*)     opr <(self, other:Comparison): Boolean
+(*)     opr >(self, other:Comparison): Boolean
+(*)     opr <=(self, other:Comparison): Boolean
+(*)     opr >=(self, other:Comparison): Boolean
+(*) end
 
-object Unordered extends Comparison end
+(*) object Unordered extends Comparison end
 
-trait TotalComparison
-(*)     extends { Comparison, StandardTotalOrder[\TotalComparison\] }
-        extends { Comparison }
-        comprises { LessThan, EqualTo, GreaterThan }
-    opr LEXICO(self, other:TotalComparison): TotalComparison
-    opr LEXICO(self, other:()->TotalComparison): TotalComparison
-    opr CMP(self, other:TotalComparison): TotalComparison
-end
+(*) trait TotalComparison
+(*) (*)     extends { Comparison, StandardTotalOrder[\TotalComparison\] }
+(*)         extends { Comparison }
+(*)         comprises { LessThan, EqualTo, GreaterThan }
+(*)     opr LEXICO(self, other:TotalComparison): TotalComparison
+(*)     opr LEXICO(self, other:()->TotalComparison): TotalComparison
+(*)     opr CMP(self, other:TotalComparison): TotalComparison
+(*) end
 
-object LessThan extends TotalComparison end
+(*) object LessThan extends TotalComparison end
 
-object GreaterThan extends TotalComparison end
+(*) object GreaterThan extends TotalComparison end
 
-object EqualTo extends TotalComparison end
+(*) object EqualTo extends TotalComparison end
 
 (************************************************************
 * Exception hierarchy
@@ -305,6 +331,10 @@ end
 
 trait UncheckedException extends Exception excludes CheckedException
 end
+
+object NegativeLength extends UncheckedException end
+
+object IntegerOverflow extends UncheckedException end
 
 trait CheckedException extends Exception excludes UncheckedException
 end
@@ -326,5 +356,12 @@ end
 
 random(i:RR64): RR64
 randomZZ32(x:ZZ32): ZZ32
+
+(************************************************************
+* Character properties
+************************************************************)
+
+characterMinCodePoint: ZZ32
+characterMaxCodePoint: ZZ32
 
 end

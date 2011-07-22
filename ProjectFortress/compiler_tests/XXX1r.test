@@ -12,6 +12,6 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled1.r.fss:19:49-51:\n\
-\ Variable even is not defined.\n\
+\ Variable testEven is not defined.\n\
 File Compiled1.r.fss has 1 error.\n
 compile_out_equals=

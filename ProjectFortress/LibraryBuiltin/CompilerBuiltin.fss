@@ -34,7 +34,11 @@ import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString => jIntTo
                                             simpleIntArith.intNeg => jIntNeg,
                                             simpleIntArith.parseInt => jParseInt,
                                             simpleIntArith.intAbs => jIntAbs,
-                                            simpleIntArith.longToInt => jLongToInt}
+                                            simpleIntArith.longToInt => jLongToInt,
+                                            simpleIntArith.intBitNot => jIntBitNot,
+                                            simpleIntArith.intBitAnd => jIntBitAnd,
+                                            simpleIntArith.intBitOr => jIntBitOr,
+                                            simpleIntArith.intBitXor => jIntBitXor}
 import java com.sun.fortress.nativeHelpers.{simpleLongArith.longToString => jLongToString,
                                             simpleLongArith.longAdd => jLongAdd,
                                             simpleLongArith.longSub => jLongSub,
@@ -48,7 +52,11 @@ import java com.sun.fortress.nativeHelpers.{simpleLongArith.longToString => jLon
                                             simpleLongArith.longNeg => jLongNeg,
                                             simpleLongArith.parseLong => jParseLong,
                                             simpleLongArith.longAbs => jLongAbs,
-                                            simpleLongArith.intToLong => jIntToLong}
+                                            simpleLongArith.intToLong => jIntToLong,
+                                            simpleLongArith.longBitNot => jLongBitNot,
+                                            simpleLongArith.longBitAnd => jLongBitAnd,
+                                            simpleLongArith.longBitOr => jLongBitOr,
+                                            simpleLongArith.longBitXor => jLongBitXor}
 import java com.sun.fortress.nativeHelpers.{simpleDoubleArith.floatToDouble => jFloatToDouble,
                                             simpleDoubleArith.doubleToString => jDoubleToString,
                                             simpleDoubleArith.doubleAdd => jDoubleAdd,
@@ -165,6 +173,13 @@ trait String
     opr juxtaposition(self, b:String): String = jConcatenate(self, b)
     opr [i:ZZ32] : ZZ32 = jCharAt(self, i)
     substring(lo:ZZ32, hi:ZZ32):String = jSubstring(self, lo, hi)
+    opr ^(self, n: ZZ32): String =
+      if n <= 1 then
+        if n=1 then self elif n=0 then "" else throw NegativeLength end
+      else
+        x = (self || self)^(n DIV 2)
+        if odd n then x || self else x end
+      end
 end
 
 object FlatString extends String
@@ -229,14 +244,23 @@ trait ZZ64 extends Number excludes { RR64 }
     opr -(self): ZZ64 = jLongNeg(self)
     opr +(self, other:ZZ64): ZZ64 = jLongAdd(self,other)
     opr -(self, other:ZZ64): ZZ64 = jLongSub(self,other)
+    opr DOT(self, other:ZZ64): ZZ64 = jLongMul(self,other)
+    opr DIV(self, other:ZZ64): ZZ64 = jLongDiv(self,other)
     opr <(self, other:ZZ64): Boolean = jLongLT(self,other)
     opr <=(self, other:ZZ64): Boolean = jLongLE(self,other)
     opr >(self, other:ZZ64): Boolean = jLongGT(self,other)
     opr >=(self, other:ZZ64): Boolean = jLongGE(self,other)
     opr =(self, other:ZZ64): Boolean = jLongEQ(self,other)
     opr juxtaposition(self, other:ZZ64): ZZ64 = jLongMul(self,other)
-    opr DOT(self, other:ZZ64): ZZ64 = jLongMul(self,other)
-    opr DIV(self, other:ZZ64): ZZ64 = jLongDiv(self,other)
+    opr BITNOT(self): ZZ64 = jLongBitNot(self)
+    opr BITAND(self, other:ZZ64): ZZ64 = jLongBitAnd(self,other)
+    opr BITOR(self, other:ZZ64): ZZ64 = jLongBitOr(self,other)
+    opr BITXOR(self, other:ZZ64): ZZ64 = jLongBitXor(self,other)
+    opr MIN(self, other:ZZ64): ZZ64 = if self <= other then self else other end
+    opr MAX(self, other:ZZ64): ZZ64 = if self >= other then self else other end
+    opr MINMAX(self, other:ZZ64): (ZZ64, ZZ64) = if self <= other then (self, other) else (other, self) end
+    even(self): Boolean = ((self BITAND 1) = 0)
+    odd(self): Boolean = NOT (even self)
 end
 
 trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
@@ -247,14 +271,23 @@ trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
     opr -(self): ZZ32 = jIntNeg(self)
     opr +(self, other:ZZ32): ZZ32 = jIntAdd(self,other)
     opr -(self, other:ZZ32): ZZ32 = jIntSub(self,other)
+    opr DOT(self, other:ZZ32): ZZ32 = jIntMul(self,other)
+    opr DIV(self, other:ZZ32): ZZ32 = jIntDiv(self,other)
     opr <(self, other:ZZ32): Boolean = jIntLT(self,other)
     opr <=(self, other:ZZ32): Boolean = jIntLE(self,other)
     opr >(self, other:ZZ32): Boolean = jIntGT(self,other)
     opr >=(self, other:ZZ32): Boolean = jIntGE(self,other)
     opr =(self, other:ZZ32): Boolean = jIntEQ(self,other)
     opr juxtaposition(self, other:ZZ32): ZZ32 = jIntMul(self,other)
-    opr DOT(self, other:ZZ32): ZZ32 = jIntMul(self,other)
-    opr DIV(self, other:ZZ32): ZZ32 = jIntDiv(self,other)
+    opr BITNOT(self): ZZ32 = jIntBitNot(self)
+    opr BITAND(self, other:ZZ32): ZZ32 = jIntBitAnd(self,other)
+    opr BITOR(self, other:ZZ32): ZZ32 = jIntBitOr(self,other)
+    opr BITXOR(self, other:ZZ32): ZZ32 = jIntBitXor(self,other)
+    opr MIN(self, other:ZZ32): ZZ32 = if self <= other then self else other end
+    opr MAX(self, other:ZZ32): ZZ32 = if self >= other then self else other end
+    opr MINMAX(self, other:ZZ32): (ZZ32, ZZ32) = if self <= other then (self, other) else (other, self) end
+    even(self): Boolean = ((self BITAND 1) = 0)
+    odd(self): Boolean = NOT (even self)
 end
 
 trait IntLiteral excludes {ZZ32, ZZ64}
@@ -272,6 +305,7 @@ trait RR64 extends Number excludes ZZ64
     coerce(x: FloatLiteral) = x.asRR64
     coerce(x: RR32) = jFloatToDouble(x)
     getter asString(): String = jDoubleToString(self)
+    getter isNaN(): Boolean = NOT (self = self)
     opr |self| : RR64 = jDoubleAbs(self)
     opr -(self): RR64 = jDoubleNeg(self)
     opr +(self, other:RR64): RR64 = jDoubleAdd(self,other)
@@ -284,6 +318,12 @@ trait RR64 extends Number excludes ZZ64
     opr juxtaposition(self, other:RR64): RR64 = jDoubleMul(self,other)
     opr DOT(self, other:RR64): RR64 = jDoubleMul(self,other)
     opr /(self, other:RR64): RR64 = jDoubleDiv(self,other)
+    opr MIN(self, other:RR64): RR64 = if self <= other then self elif other <= self then other elif self.isNaN then self else other end
+    opr MAX(self, other:RR64): RR64 = if self >= other then self elif other >= self then other elif self.isNaN then self else other end
+    opr MINNUM(self, other:RR64): RR64 = if self <= other then self elif other <= self then other elif self.isNaN then other else self end
+    opr MAXNUM(self, other:RR64): RR64 = if self >= other then self elif other >= self then other elif self.isNaN then other else self end
+    opr MINNUMMAX(self, other:RR64): (RR64, RR64) = if self <= other then (self, other) elif other <= self then (other, self) elif other.isNaN then (self, other) else (other, self) end
+    opr MINMAXNUM(self, other:RR64): (RR64, RR64) = if self <= other then (self, other) elif other <= self then (other, self) elif self.isNaN then (self, other) else (other, self) end
     opr ^(self, other:RR64): RR64 = jDoublePow(self,other)
     opr ^(self, other:ZZ32): RR64 =
         if other > 2 then
@@ -362,7 +402,11 @@ end
 true: Boolean = (0=0)
 false: Boolean = (0=1)
 
-makeCharacter(n: ZZ32): Character = jMakeCharacter(n)
+makeCharacter(n: ZZ32): Character =
+    if characterMinCodePoint <= n <= characterMaxCodePoint
+    then jMakeCharacter(n)
+    else throw IntegerOverflow   (*) Really should be IndexOutOfRange
+    end
 
 trait Character excludes { String, Number, Boolean }
     getter asString() : String = jCharToString(jCodePoint(self))
@@ -445,122 +489,7 @@ makeJavaBufferedWriter(s: String): JavaBufferedWriter throws FileNotFoundExcepti
 * Comparison values
 ************************************************************)
 
-
-(*
-  The four values of type `Comparison` are `LessThan`, `EqualTo`, `GreaterThan`, and `Unordered`;
-  they are used as the results of comparison operators such as `CMP` and `SQCMP`.
-
-  The comparison operators `<` and `<=` and `>=` and `>` treat these four values themselves as
-  being totally ordered in the order just given.
-
-  The combining operator `LEXICO` combines two comparison values in a manner that is convenient
-  for computing lexicographic order between two tuples:
-    `((a, b, c) CMP (d, e, f)) = ((a CMP d) LEXICO (b CMP e) LEXICO (c CMP f))`
-
-  The combining operator `SQCAP` combines two comparison values in a manner that is convenient
-  for computing product order between two tuples:
-    `((a, b, c) SQCMP (d, e, f)) = ((a CMP d) SQCAP (b CMP e) SQCAP (c CMP f))`
-
-  The unary operator `CONVERSE` converts a comparison result to the result that would have
-  occurred with the operands switched:
-    `CONVERSE (a CMP b) = (b CMP a)`
- *)
-
-trait Comparison
-(*)        extends { StandardPartialOrder[\Comparison\] }
-(*)          extends { SnerdEquality[\Comparison\] }
-        extends { Equality[\Comparison\] }
-        comprises { Unordered, TotalComparison }
-        excludes { String, Number, Boolean, Character, JavaBufferedReader, JavaBufferedWriter }
-    getter asExprString(): String = self.asString
-    (*) Default opr = is suitable for Comparison
-    (** Lexicographic ordering.  An associative operator.
-        Leftmost non-equal comparison dictates result. *)
-    opr LEXICO(self, other:Comparison): Comparison =
-        if self=EqualTo then other else self end
-    opr LEXICO(self, other:()->Comparison): Comparison =
-        if self=EqualTo then other() else self end
-    (** Symmetric comparison (product ordering).  A commutative
-        and associative operator. *)
-    opr SQCAP(self, other:Comparison): Comparison = Unordered
-    opr SQCAP(self, other:()->Comparison): Comparison = self SQCAP other()
-    opr CONVERSE(self): Comparison = Unordered
-    (*) This stuff ought to be provided by Equality[\Comparison\].
-    opr =(self, other:Comparison): Boolean = (self === other)
-    (*) This stuff ought to be provided by StandardPartialOrder[\Comparison\].
-    opr CMP(self, other:Comparison): Comparison =
-        if self < other then LessThan
-        elif other < self then GreaterThan
-        elif self = other then EqualTo
-        else Unordered
-        end
-    opr <(self, other:Comparison): Boolean
-    opr >(self, other:Comparison): Boolean = (other < self)
-    opr <=(self, other:Comparison): Boolean = (self = other OR: self < other)
-    opr >=(self, other:Comparison): Boolean = (other <= self)
-end
-
-(** Unordered is the outcome of a CMP b when a and b are partially
-    ordered and no ordering relationship exists between them. **)
-object Unordered extends Comparison
-    getter asString(): String = "Unordered"
-    opr <(self, other:Comparison): Boolean = false
-    opr SQCAP(self, other:()->Comparison): Comparison = Unordered
-    opr CONVERSE(self): Comparison = Unordered
-end
-
-trait TotalComparison
-(*)     extends { Comparison, StandardTotalOrder[\TotalComparison\] }
-        extends { Comparison }
-        comprises { LessThan, EqualTo, GreaterThan }
-    (* We're both a partial order (including Unordered) and a total
-       order (TotalComparison alone).  Avoid ambiguity between the
-       default definitions of CMP and >=. *)
-    opr CMP(self, other:Unordered): Comparison = Unordered
-    opr CMP(self, other:TotalComparison): TotalComparison =
-        if self < other then LessThan
-        elif other < self then GreaterThan
-        else EqualTo
-        end
-    opr <(self, other:Unordered): Boolean = false
-    opr >=(self, other:Unordered): Boolean = false
-    opr >=(self, other:Comparison): Boolean = NOT (other < self)
-    opr LEXICO(self, other:TotalComparison): TotalComparison =
-        if self=EqualTo then other else self end
-    opr LEXICO(self, other:()->TotalComparison): TotalComparison =
-        if self=EqualTo then other() else self end
-    opr CONVERSE(self): TotalComparison = EqualTo
-end
-
-object LessThan extends TotalComparison
-    getter asString(): String = "LessThan"
-    opr CMP(self, other:LessThan): TotalComparison = EqualTo
-    opr CMP(self, other:TotalComparison): TotalComparison = GreaterThan
-    opr <(self, other:LessThan): Boolean = false
-    opr <(self, other:TotalComparison): Boolean = true
-    opr SQCAP(self, other:LessThan): LessThan = LessThan
-    opr SQCAP(self, other:EqualTo): LessThan = LessThan
-    opr CONVERSE(self): GreaterThan = GreaterThan
-end
-
-object EqualTo extends TotalComparison
-    getter asString(): String = "EqualTo"
-    opr CMP(self, other:TotalComparison): TotalComparison = CONVERSE other
-    opr <(self, other:GreaterThan): Boolean = true
-    opr <(self, other:TotalComparison): Boolean = false
-    opr SQCAP(self, other: Comparison): Comparison = other
-    opr CONVERSE(self): EqualTo = EqualTo
-end
-
-object GreaterThan extends TotalComparison
-    getter asString(): String = "GreaterThan"
-    opr CMP(self, other:GreaterThan): TotalComparison = EqualTo
-    opr CMP(self, other:TotalComparison): TotalComparison = LessThan
-    opr <(self, other:TotalComparison): Boolean = false
-    opr SQCAP(self, other:GreaterThan): GreaterThan = GreaterThan
-    opr SQCAP(self, other:EqualTo): GreaterThan = GreaterThan
-    opr CONVERSE(self): LessThan = LessThan
-end
+(*) Material not present for now.  See CompilerBuiltinComparison.txt
 
 
 (************************************************************
@@ -571,6 +500,14 @@ trait Exception comprises { UncheckedException, CheckedException }
 end
 
 trait UncheckedException extends Exception excludes CheckedException
+end
+
+object NegativeLength extends UncheckedException
+    getter asString(): String = "Negative length"
+end
+
+object IntegerOverflow extends UncheckedException
+    getter asString(): String = "Integer overflow"
 end
 
 trait CheckedException extends Exception excludes UncheckedException
@@ -594,5 +531,13 @@ end
 
 random(i:RR64): RR64 = jRandomDouble(i)
 randomZZ32(x:ZZ32): ZZ32 = jRandomInt(0,x)
+
+
+(************************************************************
+* Character properties
+************************************************************)
+
+characterMinCodePoint: ZZ32 = 0
+characterMaxCodePoint: ZZ32 = 1114111
 
 end

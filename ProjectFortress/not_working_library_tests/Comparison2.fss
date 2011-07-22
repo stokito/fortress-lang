@@ -1,43 +1,111 @@
-(* ******************************************************************************
+(*******************************************************************************
     Copyright 2011, Oracle and/or its affiliates.
     All rights reserved.
 
- 
+
     Use is subject to license terms.
 
     This distribution may include materials developed by third parties.
 
- ***************************************************************************** *)
+ ******************************************************************************)
 
 component Comparison2
-import ComparisonLibrary.{...}
 export Executable
 
-(*) Test short-circuit operators on the type Comparison.
+(*) Test comparison operators on the type Comparison.
 
 run(): () = do
-  U = Unordered
   L = LessThan
-  G = GreaterThan
   E = EqualTo
-  if NOT((U LEXICO: U) = U) then fail("Wanted (U LEXICO: U) = U")
-  elif NOT((U LEXICO: L) = U) then fail("Wanted (U LEXICO: L) = U")
-  elif NOT((U LEXICO: G) = U) then fail("Wanted (U LEXICO: G) = U")
-  elif NOT((U LEXICO: E) = U) then fail("Wanted (U LEXICO: E) = U")
-  elif NOT((L LEXICO: U) = L) then fail("Wanted (L LEXICO: U) = L")
-  elif NOT((L LEXICO: L) = L) then fail("Wanted (L LEXICO: L) = L")
-  elif NOT((L LEXICO: G) = L) then fail("Wanted (L LEXICO: G) = L")
-  elif NOT((L LEXICO: E) = L) then fail("Wanted (L LEXICO: E) = L")
-  elif NOT((G LEXICO: U) = G) then fail("Wanted (G LEXICO: U) = G")
-  elif NOT((G LEXICO: L) = G) then fail("Wanted (G LEXICO: L) = G")
-  elif NOT((G LEXICO: G) = G) then fail("Wanted (G LEXICO: G) = G")
-  elif NOT((G LEXICO: E) = G) then fail("Wanted (G LEXICO: E) = G")
-  elif NOT((E LEXICO: U) = U) then fail("Wanted (E LEXICO: U) = U")
-  elif NOT((E LEXICO: L) = L) then fail("Wanted (E LEXICO: L) = L")
-  elif NOT((E LEXICO: G) = G) then fail("Wanted (E LEXICO: G) = G")
-  elif NOT((E LEXICO: E) = E) then fail("Wanted (E LEXICO: E) = E")
-  else println("PASS")
-  end
+  G = GreaterThan
+  U = Unordered
+
+  assert((L CMP L) = E)
+  assert((L CMP E) = L)
+  assert((L CMP G) = L)
+  assert((L CMP U) = L)
+  assert((E CMP L) = G)
+  assert((E CMP E) = E)
+  assert((E CMP G) = L)
+  assert((E CMP U) = L)
+  assert((G CMP L) = G)
+  assert((G CMP E) = G)
+  assert((G CMP G) = E)
+  assert((G CMP U) = L)
+  assert((U CMP L) = G)
+  assert((U CMP E) = G)
+  assert((U CMP G) = G)
+  assert((U CMP U) = E)
+
+  deny(L < L)
+  assert(L < E)
+  assert(L < G)
+  assert(L < U)
+  deny(E < L)
+  deny(E < E)
+  assert(E < G)
+  assert(E < U)
+  deny(G < L)
+  deny(G < E)
+  deny(G < G)
+  assert(G < U)
+  deny(U < L)
+  deny(U < E)
+  deny(U < G)
+  deny(U < U)
+
+  assert(L <= L)
+  assert(L <= E)
+  assert(L <= G)
+  assert(L <= U)
+  deny(E <= L)
+  assert(E <= E)
+  assert(E <= G)
+  assert(E <= U)
+  deny(G <= L)
+  deny(G <= E)
+  assert(G <= G)
+  assert(G <= U)
+  deny(U <= L)
+  deny(U <= E)
+  deny(U <= G)
+  assert(U <= U)
+
+  assert(L >= L)
+  deny(L >= E)
+  deny(L >= G)
+  deny(L >= U)
+  assert(E >= L)
+  assert(E >= E)
+  deny(E >= G)
+  deny(E >= U)
+  assert(G >= L)
+  assert(G >= E)
+  assert(G >= G)
+  deny(G >= U)
+  assert(U >= E)
+  assert(U >= L)
+  assert(U >= G)
+  assert(U >= U)
+
+  deny(L > L)
+  deny(L > E)
+  deny(L > G)
+  deny(L > U)
+  assert(E > L)
+  deny(E > E)
+  deny(E > G)
+  deny(E > U)
+  assert(G > L)
+  assert(G > E)
+  deny(G > G)
+  deny(G > U)
+  assert(U > E)
+  assert(U > L)
+  assert(U > G)
+  deny(U > U)
+
+  println("PASS")
 end
 
 end
