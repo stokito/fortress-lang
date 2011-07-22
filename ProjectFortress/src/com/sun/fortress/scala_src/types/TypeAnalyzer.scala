@@ -210,13 +210,23 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   protected def pEqv(x: StaticArg, y: StaticArg)(implicit negate: Boolean, history: Set[hType]): CFormula = (x,y) match {
     case (a,b) if (a==b) => pTrue()
     case (STypeArg(_, _, s), STypeArg(_, _, t)) => pEqv(s, t)
+    case (SOpArg(_, _, o, _), SOpArg(_, _, p, _)) => pEqv(o, p)
     // Not handling all static args properly yet
-    case (SOpArg(_, _, a:_InferenceVarOp, _), b: OpArg) => pTrue()
-    case (a: OpArg, SOpArg(_, _, b: _InferenceVarOp, _)) => pTrue()
     case (_: IntArg, _: IntArg) => pTrue()
     case (_: BoolArg, _: BoolArg) => pTrue()
     case (_: DimArg, _: DimArg) => pTrue()
     case (_: UnitArg, _: UnitArg) => pTrue()
+    case _ => pFalse()
+  }
+  
+  def equivalent(x: Op, y: Op): CFormula = pEqv(x, y)(false)
+  def notEquivalent(x: Op, y: Op): CFormula = pEqv(x, y)(true)
+  
+  protected def pEqv(x: Op, y: Op)(implicit negate: Boolean): CFormula = (x, y) match {
+    case (a, b) if (a==b) => pTrue()
+    case (a: _InferenceVarOp, b: _InferenceVarOp) => and(pEquivalent(a, b), pEquivalent(b, a))
+    case (a: _InferenceVarOp, b) => pEquivalent(a, b)
+    case (a, b: _InferenceVarOp) => pEquivalent(b, a)
     case _ => pFalse()
   }
   
@@ -642,6 +652,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def pExclusion(i: _InferenceVarType, t: Type)(implicit negate: Boolean) = 
     if (negate) notExclusion(i, t) else exclusion(i, t)
   def pFromBoolean(b: Boolean)(implicit negate: Boolean) = fromBoolean(negate != b)
+  def pEquivalent(i: _InferenceVarOp, o: Op)(implicit negate: Boolean) =
+    if (negate) oEquivalent(i, o) else oNotEquivalent(i, o)
 }
 
 object TypeAnalyzer {

@@ -232,7 +232,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
    */
   private def inBounds(substitutions: Map[_InferenceVarType,Type],bounds: Map[_InferenceVarType,Type]): Boolean = {
     val pred = (ivar: _InferenceVarType) => {
-      val theta = STypesUtil.liftTypeSubstitution(substitutions)
+      val theta: Type=> Type = STypesUtil.liftSubstitution(substitutions)
       val newBound = theta(bounds(ivar))
       substitutions.get(ivar) match {
         case None => ta.lteq(BOTTOM, newBound)

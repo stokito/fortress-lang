@@ -326,8 +326,8 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
         Some((i, NF.makeVarType(info.getSpan, n.asInstanceOf[Id])))
       case _ => None
     }
-    val iv = liftTypeSubstitution(Map(temp.toSeq:_*))
-    val vi = liftTypeSubstitution(Map(temp.map(x =>(x._2, x._1)).toSeq:_*))
+    val iv: Type => Type = liftSubstitution(Map[_InferenceVarType, Type](temp.toSeq:_*))
+    val vi: Type => Type = liftSubstitution(Map[VarType, Type](temp.map(x =>(x._2, x._1)).toSeq:_*))
     val ie = vi(clearStaticParams(e))
     // Check under what conditions ie is (possibly) not equivalent to Bottom
     // Note that the notEquivalent method in ta is neccessarily not equivalent and is not the same
