@@ -505,18 +505,22 @@ object IndexBuilder {
         val m = new JavaFunctionalMethod(ast, traitDecl, enclosingParams)
         functionalMethods.add(name, m)
         topLevelFunctions.add(name, m)
-
         functionalMethods.add(uaname, m)
         topLevelFunctions.add(uaname, m)
 
       } else if (functional && operator) {
         var parametric = false
         for (p <- enclosingParams) {
-          if (NU.getName(ast).equals(NU.getName(p)))
+          // this seems very brittle
+          if (NU.getName(ast).toString == NU.getName(p))
             parametric = true
         }
-        if (parametric)
-            parametricOperators.add(new ParametricOperator(ast, traitDecl, enclosingParams))
+        if (parametric){
+            val po = new ParametricOperator(ast, traitDecl, enclosingParams)
+            parametricOperators.add(po)
+            topLevelFunctions.add(name, po)
+            topLevelFunctions.add(uaname, po)
+        }
         else {
           val m = new JavaFunctionalMethod(ast, traitDecl, enclosingParams)
           functionalMethods.add(name, m)
