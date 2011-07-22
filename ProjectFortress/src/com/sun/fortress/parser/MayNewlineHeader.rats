@@ -464,7 +464,7 @@ List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
 StaticArg StaticArg =
      a1:Op &(w comma / w closedoublesquare)
      { yyValue = NodeFactory.makeOpArg(NodeUtil.getSpan(a1),
-                                       ExprFactory.makeOpRef(a1));
+                                       a1);
      }
    / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
                       w opendoublesquare / w opensquare / w rightarrow /

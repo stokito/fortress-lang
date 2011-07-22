@@ -309,7 +309,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
   }
   
   
-  
+  //TODO: FIX OP Params
   /**
    * Reduce the existential type `exType` to another existential type. For
    * more details, see Section 5.3 of our paper and the "Existential
@@ -338,11 +338,11 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
       case _ => None
     })
     val c = and(negate(ta.equivalent(ie, BOTTOM)), ub)
-    val (nc, s) = unify(c).getOrElse(return None)
-    val nub = map(ub, s)
+    val (nc, ts, os) = unify(c).getOrElse(return None)
+    val nub = cMap(ub, ts, os)
     if(implies(nub, nc)){
       // Need conjugate s by the map that sends static args to inference variables
-      val sub = iv compose s compose vi
+      val sub = iv compose ts compose vi
       val nsp = boundsSubstitution(sub, sp).getOrElse{return None}
       // Make a new existential type.
       Some((insertStaticParams(ta.extend(nsp, None).normalize(sub(clearStaticParams(e))), nsp), sub))
@@ -356,6 +356,8 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
    * params. For more details, see the "Bounds substitution" definition
    * on pg. 10 of our paper.
    */
+  
+  //TODO: FIX THIS FOR OPS
   protected def boundsSubstitution(phi: Type => Type,
                                    sparams: List[StaticParam])
                                    : Option[List[StaticParam]] = {

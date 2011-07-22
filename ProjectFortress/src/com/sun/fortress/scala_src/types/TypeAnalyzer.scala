@@ -208,14 +208,16 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     pEqv(x, y)(true, history)
   
   protected def pEqv(x: StaticArg, y: StaticArg)(implicit negate: Boolean, history: Set[hType]): CFormula = (x,y) match {
+    case (a,b) if (a==b) => pTrue()
     case (STypeArg(_, _, s), STypeArg(_, _, t)) => pEqv(s, t)
-    /* Not handling all static params yet
-    case (SIntArg(_, _, a), SIntArg(_, _, b)) => fromBoolean(a==b)
-    case (SBoolArg(_, _, a), SBoolArg(_, _, b)) => fromBoolean(a==b)
-    case (SOpArg(_, _, a), SOpArg(_, _, b)) => fromBoolean(a==b)
-    case (SDimArg(_, _, a), SDimArg(_, _, b)) => fromBoolean(a==b)
-    case (SUnitArg(_, _, a), SUnitArg(_, _, b)) => fromBoolean(a==b) */
-    case _ => pTrue()
+    // Not handling all static args properly yet
+    case (SOpArg(_, _, a:_InferenceVarOp, _), b: OpArg) => pTrue()
+    case (a: OpArg, SOpArg(_, _, b: _InferenceVarOp, _)) => pTrue()
+    case (_: IntArg, _: IntArg) => pTrue()
+    case (_: BoolArg, _: BoolArg) => pTrue()
+    case (_: DimArg, _: DimArg) => pTrue()
+    case (_: UnitArg, _: UnitArg) => pTrue()
+    case _ => pFalse()
   }
   
   def excludes(x: Type, y: Type): CFormula =
@@ -346,43 +348,14 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   }
   }
   
-  def isSelfTypeIdiom(t:TraitSelfType) = {
-      t.getNamed match {
-      case named:TraitType => 
-      if (t.getComprised.size == 1)
-          t.getComprised.get(0) match {
-          case comp:VarType => {
-              val sargs = named.getArgs
-              if (sargs.size == 1) 
-                  sargs.get(0) match {
-                  case ty_arg: TypeArg => ty_arg.getTypeArg match {
-                    case arg:VarType => {
-                         val comprised_name = comp.getName()
-                          val static_name = arg.getName()
-                          static_name == comprised_name                      
-                    }
-                    case _ => false
-                  }
-                  case _ => false
-              }
-              else false
-          }
-          case _ => false
-      }
-      else false
-      case _ => false
-      }
-  }
-  
   protected def removeSelf(x: Type) = {
     object remover extends Walker {
       override def walk(y: Any): Any = y match {
         case t:TraitSelfType =>
-          if (t.getComprised.isEmpty) t.getNamed
-          // else if (isSelfTypeIdiom(t)) t.getNamed // will this work?
-          else NF.makeIntersectionType(t.getNamed,
-               NF.makeMaybeUnionType(t.getComprised))
-        
+          if (t.getComprised.isEmpty)
+            t.getNamed
+          else
+            NF.makeIntersectionType(t.getNamed, NF.makeMaybeUnionType(t.getComprised))
         case t:ObjectExprType => NF.makeMaybeIntersectionType(t.getExtended)
         case _ => super.walk(y)
       }
