@@ -34,14 +34,14 @@ class FormulaJUTest extends TestCase {
     assertTrue(False==and(True.asInstanceOf[CFormula], False.asInstanceOf[CFormula]))
     assertTrue(True==and(True.asInstanceOf[CFormula], True.asInstanceOf[CFormula]))
     //Test that And(Empty,Empty) acts like True
-    val alternateTrue = And(Map())
+    val alternateTrue = And(Map(), Map())
     assertTrue(isTrue(alternateTrue))
     assertTrue(and(alternateTrue, True)==True)
     assertTrue(and(alternateTrue, False)==False)
     assertTrue(and(True, alternateTrue)==True)
     assertTrue(and(False, alternateTrue)==False)
     //Test that Or(And(Empty,Empty)) acts like True
-    val alternateTrue2 = Or(Set(And(Map())))
+    val alternateTrue2 = Or(Set(alternateTrue))
     assertTrue(isTrue(alternateTrue2))
     assertTrue(and(alternateTrue2, True)==True)
     assertTrue(and(alternateTrue2, False)==False)
@@ -74,7 +74,7 @@ class FormulaJUTest extends TestCase {
     assertTrue(True==or(True.asInstanceOf[CFormula], False.asInstanceOf[CFormula]))
     assertTrue(True==or(True.asInstanceOf[CFormula], True.asInstanceOf[CFormula]))
     //Test that And(Empty,Empty) acts like True
-    val alternateTrue = And(Map())
+    val alternateTrue = And(Map(), Map())
     assertTrue(or(alternateTrue, True)==True)
     assertTrue(or(alternateTrue, False)==True)
     assertTrue(or(True, alternateTrue)==True)
@@ -113,7 +113,7 @@ class FormulaJUTest extends TestCase {
       assertTrue(!implies(True.asInstanceOf[CFormula], False.asInstanceOf[CFormula]))
       assertTrue(implies(True.asInstanceOf[CFormula], True.asInstanceOf[CFormula]))
       //Test that And(Empty,Empty) is equivalent to True
-      val alternateTrue = And(Map())
+      val alternateTrue = And(Map(), Map())
       assertTrue(isTrue(alternateTrue))
       //Test that And(Empty,Empty) is equivalent to True
       val alternateTrue2 = Or(Set(alternateTrue))
@@ -132,21 +132,21 @@ class FormulaJUTest extends TestCase {
       val typec = Set(typ("Cc"))
       val typed = Set(typ("Dd"))
       //Test that unsatisfiable formulas are equivalent to False
-      val c1b = And(Map(ivar1 -> Primitive(typeb, Set(), typec, Set(), Set(), Set())))
+      val c1b = And(Map(ivar1 -> TPrimitive(typeb, Set(), typec, Set(), Set(), Set())), Map())
       assertTrue(isFalse(c1b))
       //Test that a satisfiable formula is not false
-      val b1a = And(Map(ivar1 -> Primitive(typeb, Set(), typea, Set(), Set(), Set())))
+      val b1a = And(Map(ivar1 -> TPrimitive(typeb, Set(), typea, Set(), Set(), Set())), Map())
       assertTrue(!isFalse(b1a))
       //Test that implication works for conjunctions and disjunctions
-      val bot1b = And(Map(ivar1 -> Primitive(Set(), Set(), typeb, Set(), Set(), Set())))
-      val bot1a = And(Map(ivar1 -> Primitive(Set(), Set(), typea, Set(), Set(), Set())))
+      val bot1b = And(Map(ivar1 -> TPrimitive(Set(), Set(), typeb, Set(), Set(), Set())), Map())
+      val bot1a = And(Map(ivar1 -> TPrimitive(Set(), Set(), typea, Set(), Set(), Set())), Map())
       assertTrue(implies(bot1b, bot1a))
-      val a1any = And(Map(ivar1 -> Primitive(typea, Set(), Set(), Set(), Set(), Set())))
-      val b1any = And(Map(ivar1 -> Primitive(typeb, Set(), Set(), Set(), Set(), Set())))
+      val a1any = And(Map(ivar1 -> TPrimitive(typea, Set(), Set(), Set(), Set(), Set())), Map())
+      val b1any = And(Map(ivar1 -> TPrimitive(typeb, Set(), Set(), Set(), Set(), Set())), Map())
       assertTrue(implies(a1any, b1any))
-      val a2any = And(Map(ivar2 -> Primitive(typea, Set(), Set(), Set(), Set(), Set())))
+      val a2any = And(Map(ivar2 -> TPrimitive(typea, Set(), Set(), Set(), Set(), Set())), Map())
       assertTrue(!implies(a1any, a2any))
-      val b2any = And(Map(ivar2 -> Primitive(typeb, Set(), Set(), Set(), Set(), Set())))
+      val b2any = And(Map(ivar2 -> TPrimitive(typeb, Set(), Set(), Set(), Set(), Set())), Map())
       val a1anyAnda2any = and(a1any, a2any)
       val b1anyAndb2any = and(b1any, b2any)
       assertTrue(implies(a1anyAnda2any, b1anyAndb2any))
@@ -163,8 +163,10 @@ class FormulaJUTest extends TestCase {
     {
       implicit val ta = typeAnalyzer("{}")
       val ivar = make_InferenceVarType(typeSpan)
-      assertTrue(reduce(And(Map(ivar -> Primitive(Set(ivar), Set(), Set(), Set(), Set(), Set()))))==True)
-      assertTrue(reduce(And(Map(ivar -> Primitive(Set(), Set(), Set(ivar), Set(), Set(), Set()))))==True)
+      val alternateTrue = And(Map(ivar -> TPrimitive(Set(ivar), Set(), Set(), Set(), Set(), Set())), Map())
+      assertTrue(reduce(alternateTrue)==True)
+      val alternateTrue2 = And(Map(ivar -> TPrimitive(Set(), Set(), Set(ivar), Set(), Set(), Set())), Map())
+      assertTrue(reduce(alternateTrue2)==True)
     }
   }
   
@@ -172,10 +174,12 @@ class FormulaJUTest extends TestCase {
   def testSolve() = {
     {
       implicit val analyzer = typeAnalyzer("{ }")
-      val tans = Some(Substitution(Map()))
+      val tEmptySub = TSubstitution(Map())
+      val oEmptySub = OSubstitution(Map())
+      val tans = Some((tEmptySub, oEmptySub))
       assertTrue(solve(False) == None)
       assertTrue(solve(True) ==  tans)
-      val alternateTrue = And(Map())
+      val alternateTrue = And(Map(), Map())
       val alternateTrue2 = Or(Set(alternateTrue))
       val alternateFalse = Or(Set())
       val t = solve(alternateFalse)
@@ -195,17 +199,20 @@ class FormulaJUTest extends TestCase {
       assertTrue(analyzer.equiv(typea, typea)) 
       // Check that unification works
       val id = (x: Type) => x
-      assertTrue(solve(And(Map(ivar1 -> Primitive(Set(typea), Set(), Set(typea), Set(), Set(), Set())))).getOrElse(id)(ivar1) == typea)
-      val b1a = And(Map(ivar1 -> Primitive(Set(typeb), Set(), Set(typea), Set(), Set(), Set())))
+      val a1 = And(Map(ivar1 -> TPrimitive(Set(typea), Set(), Set(typea), Set(), Set(), Set())), Map())
+      assertTrue(solve(a1).map(_._1).getOrElse(id)(ivar1) == typea)
+      val b1a = And(Map(ivar1 -> TPrimitive(Set(typeb), Set(), Set(typea), Set(), Set(), Set())), Map())
       //Check that solving a contradictory formula gives you nothing
-      val c1b = And(Map(ivar1 -> Primitive(Set(typec), Set(), Set(typeb), Set(), Set(), Set())))
+      val c1b = And(Map(ivar1 -> TPrimitive(Set(typec), Set(), Set(typeb), Set(), Set(), Set())), Map())
       //Check that solving a constraint with no bounds works
       assertTrue(solve(c1b) == None)
-      assertTrue(solve(b1a).getOrElse(id)(ivar1) == typeb)
+      assertTrue(solve(b1a).map(_._1).getOrElse(id)(ivar1) == typeb)
       //Check that if the solution to a constraint is out of bounds it fails
-      assertTrue(solve(and(b1a, And(Map(ivar1 -> Primitive(Set(), Set(), Set(typec), Set(), Set(), Set()))))) == None)
+      val outOfBounds = and(b1a, And(Map(ivar1 -> TPrimitive(Set(), Set(), Set(typec), Set(), Set(), Set())), Map()))
+      assertTrue(solve(outOfBounds) == None)
       //Check that if the solution to a constraint is in bounds it succeeds
-      assertTrue(solve(and(b1a, And(Map(ivar1 -> Primitive(Set(), Set(), Set(typea), Set(), Set(), Set()))))).getOrElse(id)(ivar1) == typeb)
+      val inBounds = and(b1a, And(Map(ivar1 -> TPrimitive(Set(), Set(), Set(typea), Set(), Set(), Set())), Map()))
+      assertTrue(solve(inBounds).map(_._1).getOrElse(id)(ivar1) == typeb)
     }
     {
       val ivar1 = make_InferenceVarType(typeSpan)
@@ -224,7 +231,7 @@ class FormulaJUTest extends TestCase {
       val c = analyzer.equivalent(typea, typeb)
       val sc = solve(c)
       assertTrue(!sc.isEmpty)
-      val s = sc.get
+      val s = sc.get._1
       assertTrue(s(typea) == s(typeb))
     }
   } 

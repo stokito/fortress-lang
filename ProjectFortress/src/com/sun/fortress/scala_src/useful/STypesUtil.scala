@@ -244,8 +244,8 @@ object STypesUtil {
 
     // Get the substitution resulting from params :> expectedDomain
     val paramsDomain = makeDomainType(params).get
-    solve(analyzer.subtype(expectedDomain, paramsDomain)) map { subst =>
-      params.map {
+    solve(analyzer.subtype(expectedDomain, paramsDomain)).map{ case (tSub, oSub) =>
+      params.map{
         case SParam(info, name, mods, Some(idType), defaultExpr, None) =>
           idType match {
             case p@SPattern(_, _, _) => bug("Pattern should be desugared away: " + p)
@@ -253,7 +253,7 @@ object STypesUtil {
               SParam(info,
                 name,
                 mods,
-                Some(subst(t)),
+                Some(tSub(t)),
                 defaultExpr,
                 None)
           }
@@ -617,7 +617,6 @@ object STypesUtil {
     object staticReplacer extends Walker {
       override def walk(node: Any): Any = node match {
         case n: VarType => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
-        // OpArgs that are not inference variables have names
         case n: OpArg => paramMap.get(n.getId).getOrElse(n)
         case n: IntRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
         case n: BoolRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
@@ -782,6 +781,8 @@ object STypesUtil {
     if (itr.hasNext) Some(itr.next) else None
   }
 
+  
+  //TODO: Make constraint for op name
   /**
    * Checks whether an arrow type is applicable to the given args. If so, then
    * the [possiblly instantiated] arrow type along with any inferred static
@@ -856,25 +857,27 @@ object STypesUtil {
         insertStaticParams(t, sparams),
         applyLifted = inferLifted,
         applyUnlifted = inferUnlifted)
-    }.map(t => Primitive(Set(), Set(), Set(t), Set(), Set(), Set()))
-    val bounds = And(Map(infVars.zip(sparamBounds): _*))
+    }.map(t => TPrimitive(Set(), Set(), Set(t), Set(), Set(), Set()))
+    val bounds = And(Map(infVars.zip(sparamBounds): _*), Map())
 
     // 6. solve C to yield a substitution S' = [$T_i -> U_i]
-    val subst = solve(and(constraint, bounds)).getOrElse(return None)
+    val (tSub, oSub) = solve(and(constraint, bounds)).getOrElse(return None)
 
     // 7. instantiate infArrow with [U_i] to get resultArrow
-    val resultTyp = analyzer.normalize(subst(infTyp)).asInstanceOf[T]
+    val resultTyp = analyzer.normalize(tSub(infTyp)).asInstanceOf[T]
 
     // 8. return (resultArrow,StaticArgs([U_i]))
     val resultArgs = sargs.map {
-      case STypeArg(info, lifted, typ) =>
-        NF.makeTypeArg(info.getSpan, subst(typ), lifted)
+      case STypeArg(info, lifted, typ) =>  STypeArg(info, lifted, tSub(typ))
+      case SOpArg(info, lifted, op, fn) => SOpArg(info, lifted, oSub(op), fn)
       case sarg => sarg
     }
 
     Some((resultTyp, resultArgs))
   }
 
+  
+  //TODO: Make op constraint
   def inferLiftedStaticParams(fnType: ArrowType,
     argType: Type)(implicit analyzer: TypeAnalyzer): Option[(ArrowType, List[StaticArg])] = {
 
