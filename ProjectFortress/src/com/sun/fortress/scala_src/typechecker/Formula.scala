@@ -28,48 +28,81 @@ import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.types.{TypeAnalyzerUtil => TAU}
 import com.sun.fortress.scala_src.useful.{STypesUtil => TU}
 
+/* CFormulas express inequalities and negations of inequalities involving 
+ * inference variables (so far we have type and arg variables)
+ */
 sealed trait CFormula{}
+/* EFormulas express equalities involving inference variables
+ */
 sealed trait EFormula{}
 
+// The vacuously true formula
 case object True extends CFormula with EFormula {
   override def toString = "True"
 }
 
+// A contradiction
 case object False extends CFormula with EFormula {
   override def toString = "False"
 }
 
-case class And(cnjcts: Map[_InferenceVarType, Primitive]) extends CFormula {}
+// A conjunction of primitve type and operator constraints (one for each inference variables).
+case class And(ts: Map[_InferenceVarType, TPrimitive], os: Map[_InferenceVarOp, OPrimitive]) extends CFormula {}
 
-case class Primitive(pl: Set[Type], nl: Set[Type], pu: Set[Type], nu: Set[Type], pe: Set[Type], ne: Set[Type]){}
+/* A primitive type constraint.
+ * So far we have: lower bound, not lower bound, upper bound, not lower bound, excludes, does not exclude
+ */
+case class TPrimitive(pl: Set[Type], nl: Set[Type], pu: Set[Type], nu: Set[Type], pe: Set[Type], ne: Set[Type]){}
 
+/* A primitive op constraint
+ * So far we have equals and not equals
+ */
+case class OPrimitive(pe: Set[Op], ne: Set[Op])
+
+// A disjunction of conjunctions
 case class Or(conjuncts: Set[And]) extends CFormula {}
 
-case class Conjuncts(eq: Set[Set[Type]]) extends EFormula {}
+// A conjunction of equality constraints (represented as cliques)
+case class Conjuncts(eq: Set[Set[Type]], ops: Set[Set[Op]]) extends EFormula {}
 
+// A disjunction of conjunctions
 case class Disjuncts(es: Set[Conjuncts]) extends EFormula {}
 
-case class Substitution(m: Map[_InferenceVarType, Type]) extends (Type => Type) {
+// The result of type inference
+case class TSubstitution(tmap: Map[_InferenceVarType, Type]) extends (Type => Type) {
   // Cache the lifted type substitution.
-  protected val liftedSubstitution: Type => Type = TU.liftTypeSubstitution(m)
+  protected val liftedSubstitution: Type => Type = TU.liftTypeSubstitution(tmap)
   override def apply(t: Type): Type = liftedSubstitution(t)
+}
+
+case class OSubstitution(tmap: Map[_InferenceVarOp, Op]) extends (Op => Op) {
+  override def apply(o: Op): Op = o
 }
 
 object Formula{
 
-  private def merge(a: Map[_InferenceVarType, Primitive],
-                    b: Map[_InferenceVarType, Primitive]): Map[_InferenceVarType, Primitive] =
-    Map((a.keySet ++ b.keySet).map(k => (k, merge(get(k, a), get(k, b)))).toSeq:_*)
+  private val tUnit = TPrimitive(Set(), Set(), Set(), Set(), Set(), Set())
+  private val oUnit = OPrimitive(Set(),Set())
+  private val oEmptySub: Op => Op = OSubstitution(Map()) 
+  private val tEmptySub: Type => Type = TSubstitution(Map())
+  private def oEq(a: Op, b: Op) = a==b
   
-  private def merge(p: Primitive, q: Primitive): Primitive = {
-    val Primitive(pl1, nl1, pu1, nu1, pe1, ne1) = p
-    val Primitive(pl2, nl2, pu2, nu2, pe2, ne2) = q
-    Primitive(pl1 ++ pl2, nl1 ++ nl2, pu1 ++ pu2, nu1 ++ nu2, pe1 ++ pe2, ne1 ++ ne2)
+  private def merge[S,T](a: Map[S, T], b: Map[S,T], bin: (T,T) => T, unit: T): Map[S, T] =
+    Map((a.keySet ++ b.keySet).map(k => 
+      (k, bin(a.getOrElse(k, unit), b.getOrElse(k, unit)))).toSeq:_*)
+  
+  private def tMerge(p: TPrimitive, q:TPrimitive): TPrimitive = {
+    val TPrimitive(pl1, nl1, pu1, nu1, pe1, ne1) = p
+    val TPrimitive(pl2, nl2, pu2, nu2, pe2, ne2) = q
+    TPrimitive(pl1 ++ pl2, nl1 ++ nl2, pu1 ++ pu2, nu1 ++ nu2, pe1 ++ pe2, ne1 ++ ne2)
+  }
+  private def oMerge(p: OPrimitive, q: OPrimitive): OPrimitive = {
+    val OPrimitive(a1, b1) = p
+    val OPrimitive(a2, b2) = q
+    OPrimitive(a1 ++ a2, b1 ++ b2)
   }
   
-  private def get(k: _InferenceVarType, m: Map[_InferenceVarType, Primitive]) = 
-    m.getOrElse(k, Primitive(Set(), Set(), Set(), Set(), Set(), Set()))
-   
+  
   def and(cs: Iterable[CFormula])(implicit ta: TypeAnalyzer): CFormula =
     cs.foldLeft(True.asInstanceOf[CFormula])(and)
   
@@ -79,7 +112,8 @@ object Formula{
   def and(c1: CFormula, c2: CFormula)(implicit ta: TypeAnalyzer): CFormula = (c1, c2) match {
     case (True, _) => reduce(c2)
     case (False, _) => False
-    case (And(ps), And(qs)) => reduce(And(merge(ps, qs)))
+    case (And(as, os), And(bs, ps)) =>
+      reduce(And(merge(as, bs, tMerge, tUnit), merge(os, ps, oMerge, oUnit)))
     case (Or(cs), Or(ds)) =>
       dis(for(c <- cs; d <- ds) yield and(c,d))
     case (c1: Or, c2: And) => and(c1, Or(Set(c2)))
@@ -89,7 +123,7 @@ object Formula{
   def and(e1: EFormula, e2: EFormula)(implicit ta: TypeAnalyzer): EFormula = (e1, e2) match {
     case (True, _) => reduce(e2)
     case (False, _) => False
-    case (Conjuncts(eq1), Conjuncts(eq2)) => reduce(Conjuncts(eq1 ++ eq2))
+    case (Conjuncts(as, os), Conjuncts(bs, ps)) => reduce(Conjuncts(as ++ bs, os ++ ps))
     case (Disjuncts(e1), Disjuncts(e2)) => 
       dis(for(c <- e1; d <- e2) yield and(c,d))
     case (e1: Disjuncts, e2: Conjuncts) => and(e1, Disjuncts(Set(e2)))
@@ -120,6 +154,10 @@ object Formula{
     case _ => or(e2, e1)
   }
   
+  def implies[T](as: Set[Set[T]], bs: Set[Set[T]], eq: (T, T)=>Boolean): Boolean = {
+    bs.forall{b => as.exists(a => b.forall(x => a.exists(eq(x, _))))}
+  }
+  
   def implies(c1: CFormula, c2: CFormula)(implicit ta: TypeAnalyzer) =
     imp(reduce(c1), reduce(c2))
     
@@ -129,22 +167,31 @@ object Formula{
     case (_, True) => true
     case (True, _) => false
     // Checks whether every constraint in c2 is in c1
-    case (And(ps), And(qs)) =>
-      def prim(p: Primitive, q: Primitive): Boolean = {
-        val Primitive(pl1, nl1, pu1, nu1, pe1, ne1) = p
-        val Primitive(pl2, nl2, pu2, nu2, pe2, ne2) = q
-        ta.lteq(ta.join(pl2), ta.join(pl1)) &&
-        nl2.forall(n2 => nl1.exists(ta.lteq(n2,_)) || pe1.exists(p1 => ta.definitelyExcludes(p1, n2)) || pu1.exists(p1 => isFalse(ta.subtype(n2, p1)))) &&
-        ta.lteq(ta.meet(pu1), ta.meet(pu2)) &&
-        nu2.forall(n2 => nu1.exists(ta.lteq(_,n2)) || pe1.exists(p1 => ta.definitelyExcludes(p1, n2)) || pl1.exists(p1 => isFalse(ta.subtype(p1, n2)))) &&
+    case (And(as, os), And(bs, ps)) =>
+      def tImplies(p: TPrimitive, q: TPrimitive): Boolean = {
+        val TPrimitive(pl1, nl1, pu1, nu1, pe1, ne1) = p
+        val TPrimitive(pl2, nl2, pu2, nu2, pe2, ne2) = q
+        val pls = ta.lteq(ta.join(pl2), ta.join(pl1))
+        val nls = nl2.forall(n2 => nl1.exists(ta.lteq(n2,_)) || pe1.exists(p1 => ta.definitelyExcludes(p1, n2)) || pu1.exists(p1 => isFalse(ta.subtype(n2, p1))))
+        val pus = ta.lteq(ta.meet(pu1), ta.meet(pu2))
+        val nus = nu2.forall(n2 => nu1.exists(ta.lteq(_,n2)) || pe1.exists(p1 => ta.definitelyExcludes(p1, n2)) || pl1.exists(p1 => isFalse(ta.subtype(p1, n2))))
         // ToDo: Figure out whether using a recursive implies here will terminate
-        pe2.forall(e2 => pe1.exists(ta.lteq(e2, _)) || pu1.exists(t1 => imp(c1, ta.excludes(e2, t1)))) &&
-        ne2.forall(n2 => pu1.exists(ta.lteq(_, n2)) || pl1.exists(p1 => isFalse(ta.excludes(p1, n2))))
+        val pes = pe2.forall(e2 => pe1.exists(ta.lteq(e2, _)) || pu1.exists(t1 => imp(c1, ta.excludes(e2, t1))))
+        val nes = ne2.forall(n2 => pu1.exists(ta.lteq(_, n2)) || pl1.exists(p1 => isFalse(ta.excludes(p1, n2))))
+        pls && nls && pls && pus && nus && pes && nes
      }
-     (ps.keySet ++ qs.keySet).forall(k => prim(get(k, ps), get(k, qs)))
+     def oImplies(p: OPrimitive, q: OPrimitive): Boolean = {
+       val OPrimitive(p1s, n1s) = p
+       val OPrimitive(p2s, n2s) = q
+       p2s.forall(p2 => p1s.exists(_==p2)) && n2s.forall(n2 => n1s.exists(_==n2))
+     }
+     forall(as, bs, tImplies, tUnit) && forall(ps, os, oImplies, oUnit)
     case (c1, Or(cs)) => cs.exists(imp(c1, _))
     case (Or(cs), c2) => cs.forall(imp(_, c2))
   }
+  
+  private def forall[S, T](as: Map[S, T], bs: Map[S,T], pred: (T, T) => Boolean, unit: T): Boolean = 
+    (as.keySet ++ bs.keySet).forall(k => pred(as.getOrElse(k, unit), bs.getOrElse(k, unit)))
   
   def implies(e1: EFormula, e2: EFormula)(implicit ta: TypeAnalyzer) =
     imp(reduce(e1), reduce(e2))
@@ -154,8 +201,8 @@ object Formula{
     case (_, False) => false
     case (_, True) => true
     case (True, _) => false
-    case (Conjuncts(eq1), Conjuncts(eq2)) =>
-      eq2.forall{e2 => eq1.exists(e1 => e2.forall(e => e1.exists(ta.equiv(e, _))))}
+    case (Conjuncts(as, os), Conjuncts(bs, ps)) =>
+      implies(as, bs, ta.equiv) && implies(os, ps, oEq)
     case (_, Disjuncts(es)) => es.exists(imp(e1, _))
     case (Disjuncts(es), _) => es.forall(imp(_, e2))
   }
@@ -194,23 +241,24 @@ object Formula{
   }
 
   def reduce(c: CFormula)(implicit ta: TypeAnalyzer): CFormula =  c match {
-    case And(ps) =>
-      def simplify(ip: (_InferenceVarType,Primitive)): Option[(_InferenceVarType, Primitive)] = ip match {
-        case (i, Primitive(pl,nl,pu,nu,pe,ne)) 
+    case And(ts, os) =>
+      def tSimplify(ip: (_InferenceVarType, TPrimitive)): Option[(_InferenceVarType, TPrimitive)] = ip match {
+        // catch trivial contradictions 
+        case (i, TPrimitive(pl,nl,pu,nu,pe,ne)) 
           if (nl.contains(i) || nu.contains(i) || pe.contains(i) || 
               nl.contains(BOTTOM)|| ne.contains(BOTTOM) || nu.contains(ANY)) =>
             None
-        case (i, Primitive(pl,nl,pu,nu,pe,ne))
+        case (i, TPrimitive(pl,nl,pu,nu,pe,ne))
           if (pe.contains(ANY)) =>
-            simplify(i, Primitive(pl, nl, Set(BOTTOM), nu, Set(), ne))
-        case (i, Primitive(pl,nl,pu,nu,pe,ne)) =>
-          Some((i, Primitive(maxTypes(pl.filter(_!=i)), minTypes(nl) ++ nl.filter(_==ANY), 
+            tSimplify(i, TPrimitive(pl, nl, Set(BOTTOM), nu, Set(), ne))
+        case (i, TPrimitive(pl,nl,pu,nu,pe,ne)) =>
+          Some((i, TPrimitive(maxTypes(pl.filter(_!=i)), minTypes(nl) ++ nl.filter(_==ANY), 
                                       minTypes(pu.filter(_!=i)) , maxTypes(nu) ++ nu.filter(_==BOTTOM), 
                                       maxTypes(pe), minTypes(ne) ++ ne.filter(_==ANY))))
       }
       // Comprises means there are more of these
-      def contradiction(ip: (_InferenceVarType, Primitive)) = {
-        val Primitive(pl,nl,pu,nu,pe,ne) = ip._2
+      def tContradiction(ip: (_InferenceVarType, TPrimitive)) = {
+        val TPrimitive(pl,nl,pu,nu,pe,ne) = ip._2
         if(isFalse(ta.subtype(ta.join(pl), ta.meet(pu))) ||
            nl.exists(n => pl.exists(ta.lteq(n, _))) ||
            nu.exists(n => pu.exists(ta.lteq(_, n))) ||
@@ -222,30 +270,45 @@ object Formula{
         else
           Some(ip)
       }
-      def redundant(ip: (_InferenceVarType, Primitive)) = {
-        val Primitive(pl,nl,pu,nu,pe,ne) = ip._2
-        Some((ip._1, Primitive(pl,
-                      nl.filterNot(n => pu.exists(p => isFalse(ta.subtype(n, p)))).
-                         filterNot(n => pe.exists(ta.definitelyExcludes(n, _))),
-                      pu,
-                      nu.filterNot(n => pl.exists(p => isFalse(ta.subtype(p, n)))).
-                         filterNot(n => pe.exists(ta.definitelyExcludes(n, _))),
-                      pe.filterNot(p => pu.exists(ta.definitelyExcludes(p, _))),
-                      ne.filterNot(n => pu.exists(ta.lteq(_, n))).
-                         filterNot(n => pl.exists(p => isFalse(ta.excludes(p, n)))))))
+      def tRedundant(ip: (_InferenceVarType, TPrimitive)) = {
+        val TPrimitive(pl,nl,pu,nu,pe,ne) = ip._2
+        Some((ip._1, TPrimitive(pl,
+                       nl.filterNot(n => pu.exists(p => isFalse(ta.subtype(n, p)))).
+                          filterNot(n => pe.exists(ta.definitelyExcludes(n, _))),
+                       pu,
+                       nu.filterNot(n => pl.exists(p => isFalse(ta.subtype(p, n)))).
+                          filterNot(n => pe.exists(ta.definitelyExcludes(n, _))),
+                       pe.filterNot(p => pu.exists(ta.definitelyExcludes(p, _))),
+                       ne.filterNot(n => pu.exists(ta.lteq(_, n))).
+                          filterNot(n => pl.exists(p => isFalse(ta.excludes(p, n)))))))
       }
-      def trivial(ip: (_InferenceVarType, Primitive)) = {
-        val Primitive(pl,nl,pu,nu,pe,ne) = ip._2
+      def tTrivial(ip: (_InferenceVarType, TPrimitive)) = {
+        val TPrimitive(pl,nl,pu,nu,pe,ne) = ip._2
         pl.isEmpty && nl.isEmpty && pu.isEmpty && nu.isEmpty && pe.isEmpty && ne.isEmpty
       }
-      val sps = ps.map(c => simplify(c))
-      val cps = sps.map(_.flatMap(contradiction))
-      val rps = cps.map(_.flatMap(redundant))
-      val nps = rps.map(_.getOrElse(return False)).filterNot(trivial)
-      if (nps.isEmpty)
+      def oSimplify(ip: (_InferenceVarOp, OPrimitive)) = {
+        val (i, OPrimitive(ps, ns)) = ip
+        val sps = removeDups(ps - i, oEq)
+        val sns = removeDups(ns, oEq)
+        (i, OPrimitive(sps, sns))
+      }
+      def oContradiction(ip: (_InferenceVarOp, OPrimitive)) = {
+        val (i, OPrimitive(ps, ns)) = ip
+        if(ns.contains(i) || ps.exists(p => ns.contains(p)) || ps.filterNot(_.isInstanceOf[_InferenceVarOp]).size > 1)
+          None
+        else
+          Some(ip)
+      }
+      def oTrivial(ip: (_InferenceVarOp, OPrimitive)) = {
+        val (i, OPrimitive(ps, ns)) = ip
+        ps.isEmpty || ns.isEmpty
+      }
+      val nts = ts.map(tSimplify).map(_.flatMap(tContradiction)).map(_.flatMap(tRedundant)).map(_.getOrElse(return False)).filterNot(tTrivial)
+      val nos = os.map(oSimplify).map(oContradiction).map(_.getOrElse(return False)).filterNot(oTrivial)
+      if (nts.isEmpty && nos.isEmpty)
         return True
       else
-        And(Map(nps.toSeq: _*)) 
+        And(Map(nts.toSeq: _*), Map(nos.toSeq: _*)) 
     case Or(cs) =>
       val rcs = cs.map(reduce(_))
       if(rcs.contains(True))
@@ -268,19 +331,19 @@ object Formula{
       TU.disjuncts(ta.join(s))
   
   def reduce(e: EFormula)(implicit ta: TypeAnalyzer): EFormula = e match {
-    case Conjuncts(eq) => 
-      def isContradictory(eq: Set[Set[Type]])(implicit ta: TypeAnalyzer) =
-        eq.forall{e =>  !e.isEmpty && e.tail.foldLeft((e.head, false)){ case ((s, b), t) =>
-                          (t, isFalse(ta.equivalent(s,t)) || b)}._2
-      }
-      val req = merge(eq).map{e => removeDups(e, (a: Type, b: Type) => ta.equiv(a, b))}.
+    case Conjuncts(as, os) => 
+      val ras = reduce(as, ta.equiv).map{x => removeDups(x, (a: Type, b: Type) => ta.equiv(a, b))}.
         filter{_.size > 1}
-      if(req.isEmpty)
+      val ros = reduce(os, (a: Op, b: Op) => a==b).map{
+        x => removeDups(x, (a: Op, b: Op) => a==b)}.
+        filter{_.size > 1}
+      if(ras.isEmpty && ros.isEmpty)
         True
-      else if(isContradictory(req))
+      else if(isContradictory(ras, (s: Type, t: Type) => isFalse(ta.equivalent(s,t)))
+              || isContradictory(ros, (a: Op, b: Op) => a!=b))
         False
       else
-        Conjuncts(req)  
+        Conjuncts(ras, ros)  
     case True => True
     case False => False
     case Disjuncts(es) => 
@@ -291,24 +354,26 @@ object Formula{
         case _ => Disjuncts(nes.asInstanceOf[Set[Conjuncts]])
       }
   }
-
+  
+  private def isContradictory[T](as: Set[Set[T]], neq: (T,T) => Boolean): Boolean =
+    !as.isEmpty && as.forall{a =>  !a.isEmpty && a.tail.foldLeft((a.head, false)){case ((s, b), t) => (t, neq(s,t) || b)}._2}
   /*
-   * Given a set of sets of types that are supposed to represent
+   * Given a set of sets of Ts that are supposed to represent
    * equivalence classes, this method merges together any classes
-   * that share a type to give a reduced set of sets of types.
+   * that share a T to give a reduced set of sets of Ts.
    */
   
-  private def merge(es: Set[Set[Type]])(implicit ta: TypeAnalyzer): Set[Set[Type]] = {
-    def binMerge(e1: Set[Type], es: Set[Set[Type]])(implicit ta: TypeAnalyzer): Set[Set[Type]] =
+  private def reduce[T](es: Set[Set[T]], eq: (T,T)=>Boolean): Set[Set[T]] = {
+    def binReduce(e1: Set[T], es: Set[Set[T]]): Set[Set[T]] = 
       if(es.isEmpty)
         Set(e1)
       else {
         // Since es is reduced there will be 0 or 1 matches
-        val e2 = es.filter(e => e.exists(a => e1.exists(ta.equiv(_, a)))).headOption
-        val nes = es.filterNot(e => e.exists(a => e1.exists(ta.equiv(_, a))))
+        val e2 = es.filter(e => e.exists(a => e1.exists(eq(_, a)))).headOption
+        val nes = es.filterNot(e => e.exists(a => e1.exists(eq(_, a))))
         Set(e2.getOrElse(Set()) ++ e1) ++ nes
       }
-    es.foldLeft(Set[Set[Type]]()){(a, b) => binMerge(b, a)}
+    es.foldLeft(Set[Set[T]]()){(a, b) => binReduce(b, a)}
   }
   
   /*
@@ -319,14 +384,14 @@ object Formula{
    * point it would be a good idea to replace this with a smarter algorithm.
    */
   
-  def solve(c: CFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] = 
+  def solve(c: CFormula)(implicit ta: TypeAnalyzer): Option[(Type => Type, Op => Op)] = 
     slv(reduce(c))
   
-  private def slv(c: CFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] = c match {
+  private def slv(c: CFormula)(implicit ta: TypeAnalyzer): Option[(Type => Type, Op => Op)] = c match {
     // False cannot be solved
     case False => None
     // True has the trivial solution
-    case True => Some(Substitution(Map()))
+    case True => Some((tEmptySub, oEmptySub))
     // We solve an Or by solving one of its branches
     case Or(cs) => 
       for (e <- cs) {
@@ -345,15 +410,16 @@ object Formula{
      * 5) Return S composed with U
      */
     case _:And => 
-      val (nc, unifier) = unify(c).getOrElse(return None)
+      val (newCon, tUnifier, oUnifier) = unify(c).getOrElse(return None)
       // println("nc: " + nc)
-      nc match {
-        case True => Some(unifier)
+      newCon match {
+        case True => Some((tUnifier, oUnifier))
         case False => None
-        case nc@And(ps) =>
+        case nc@And(ts, os) =>
+          assert(os.isEmpty)
           val sub = TU.killIvars compose 
-            Substitution(ps.map{
-              case (k, p@Primitive(pl,nl,pu,nu,pe,ne)) => {
+            TSubstitution(ts.map{
+              case (k, p@TPrimitive(pl,nl,pu,nu,pe,ne)) => {
                 var uni = ta.join(pl.filterNot(TU.hasInferenceVars))
                 // Heuristic extension to Dan Smith's algorithm:
                 // If there is a single lower bound and it is a trait type, 
@@ -363,7 +429,7 @@ object Formula{
                   pl.head match {
                     case tt:TraitType =>
                       for (a <- (ta.ancestors(tt) ++ List(uni)).toList.sortWith((a,b) => isTrue(ta.subtype(b,a)))) {
-                        if (isTrue(map(nc, TU.killIvars compose Substitution(Map((k,p)).map(_=>(k,a)))))) {
+                        if (isTrue(cMap(nc, TU.killIvars compose TSubstitution(Map((k,p)).map(_=>(k,a)))))) {
                           uni = a 
                         }
                       }
@@ -373,8 +439,8 @@ object Formula{
                 (k, uni)
               }
             })
-          if(isTrue(map(nc, sub)))
-            Some(sub compose unifier)
+          if(isTrue(cMap(newCon, sub)))
+            Some((sub compose tUnifier, oUnifier))
           else {
                println("sub:" + sub)
                None
@@ -384,10 +450,9 @@ object Formula{
       }      
   }
   
-  def unify(c: CFormula)(implicit ta: TypeAnalyzer): Option[(CFormula, Type => Type)] = {
+  def unify(c: CFormula)(implicit ta: TypeAnalyzer): Option[(CFormula, Type => Type, Op => Op)] = {
       val eq = getEquality(c)
-      val uni = un(eq).getOrElse(return None)
-      Some((map(c, uni), uni))
+      un(eq).map{case (ts, os) => (cMap(c, ts, os), ts, os)}
   }
   
   /*
@@ -396,21 +461,26 @@ object Formula{
    * "Java Type Inference is Broken" paper.
    */
   
-  def getEquality(c: CFormula)(implicit ta: TypeAnalyzer): EFormula = reduce(c) match {
+  private def getEquality(c: CFormula)(implicit ta: TypeAnalyzer): EFormula = reduce(c) match {
     case False => False
     case True => True
-    case And(ps) =>
-      val teq = ps.map{case (k, p@Primitive(pl,nl,pu,nu,pe,ne))  =>
-        pl.filter(a => pu.exists(b => ta.equiv(a, b))) ++ Set(k) ++ pu.filter(a => pl.exists(b => ta.equiv(a, b)))
-      }.toSet
-      reduce(Conjuncts(teq))
+    case And(ts, os) =>
+      val teq = getCliques[Type, TPrimitive, _InferenceVarType](ts, 
+          {case TPrimitive(pl,nl,pu,nu,pe,ne) => pl.filter(a => pu.exists(b => ta.equiv(a, b))) ++ pu.filter(a => pl.exists(b => ta.equiv(a, b)))})
+      val oeq = getCliques[Op, OPrimitive, _InferenceVarOp](os,
+          {case OPrimitive(ps, ns) => ps})
+      reduce(Conjuncts(teq, oeq))
     case Or(cs) => 
       val eq = cs.map(getEquality)
       dis(eq)
   }
   
+  private def getCliques[S,T, U <: S](xs: Map[U, T], makeClique: T => Set[S]): Set[Set[S]] = {
+    xs.map{case (a, b) => makeClique(b) ++ Set(a)}.toSet
+  }
+  
   private def dis(eq: Set[EFormula])(implicit ta: TypeAnalyzer): EFormula = {
-    if (eq.contains(True))
+    if (eq.exists(isTrue(_)))
       True
     else
       reduce(Disjuncts(eq.filter(_.isInstanceOf[Conjuncts]).asInstanceOf[Set[Conjuncts]]))
@@ -429,64 +499,93 @@ object Formula{
    */
   
   
-  def unify(e: EFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] =
+  def unify(e: EFormula)(implicit ta: TypeAnalyzer): Option[(Type => Type, Op => Op)] =
     un(reduce(e))
   
-  private def un(e: EFormula)(implicit ta: TypeAnalyzer): Option[Type => Type] = e match {
+    
+  // TODO: Use the OP => Op in the Type => Type
+  private def un(e: EFormula)(implicit ta: TypeAnalyzer): Option[(Type => Type, Op => Op)] = e match {
     case False => None
-    case True => Some(Substitution(Map()))
-    case e@Conjuncts(eq) =>
-      val split = eq.map{e => e.partition(_.isInstanceOf[_InferenceVarType])}
-      if(split.forall{case (a, b) => b.flatMap(TU.getInferenceVars).exists(i => a.contains(i))})
-        return None
-      val (ivars, nivars) = split.unzip.asInstanceOf[(Set[Set[_InferenceVarType]], Set[Set[Type]])]
-      /* Gets all equivalence classes with more than two inference variables and 
-       * creates substitutions to unify them.
-       */
-      val subs = ivars.filter{_.size > 1}.map{x => Substitution(Map(x.tail.map((x.head, _)).toSeq:_*))}
-      // If there were any inference variables to be unified, then recurse
-      if(!subs.isEmpty) {
-        val sub = subs.tail.foldRight(subs.head.asInstanceOf[Type => Type])((a, b) => a compose b)
-        return un(map(e, sub)).map(_ compose sub)
+    case True => Some((tEmptySub, oEmptySub))
+    case e@Conjuncts(teq, oeq) =>
+      // Makes sure we don't have to use fixed point types
+      def tError(x: (Set[_InferenceVarType], Set[Type])) = x match {
+        case (a, b) => b.flatMap(TU.getInferenceVars).exists(a.contains(_))
       }
-      /* Gets all equivalence classes with more than two non inference variables and computes the 
+      // Takes a set of more than one inference variable and creates a substitution to unify them
+      def tMake(x: Set[_InferenceVarType]) = TSubstitution(Map(x.tail.map((x.head, _)).toSeq:_*))
+      val (tSub, tSplit, tVars, tReg) = makeSub(teq, tError, tMake).getOrElse(return None)
+      // No errors possible
+      def oError(x: (Set[_InferenceVarOp], Set[Op])) = false
+      def oMake(x: Set[_InferenceVarOp]) = OSubstitution(Map(x.tail.map((x.head, _)).toSeq:_*)) 
+      val (oSub, oSplit, oVars, oReg) = makeSub(oeq, oError, oMake).getOrElse(return None)
+      // If there were any inference variables to be unified, then recurse
+      (tSub, oSub) match{
+        case (Some(ts), Some(os)) => return un(eMap(e, ts, os)).map{case (t, o) => (t compose ts, o compose os)}
+        case (Some(ts), None) => return un(eMap(e, ts)).map{case (t, o) => (t compose ts, o)}
+        case (None, Some(os)) => return un(eMap(e, oSub = os)).map{case (t, o) => (t, o compose os)}
+        case (None, None) => ()
+      }
+      /* Gets all equivalence classes with more than two non inference variable types and computes the 
        * constraints under which they are equivalent.
        */
-      val neqs = nivars.filter{_.size > 1}.map{e => e.tail.foldLeft((e.head, True.asInstanceOf[EFormula]))
+      val tNewCons = tReg.filter{_.size > 1}.map{e => e.tail.foldLeft((e.head, True.asInstanceOf[EFormula]))
         {case ((s, c), t) => (t, and(c, getEquality(ta.equivalent(s, t))))}._2}
       // If there were any non inference variables to be unified, then recurse
-      if(!neqs.isEmpty) {
-        val neq = and(neqs)
-        val oeq = split.map{case (iv, niv) => iv ++ Set(niv.head)}
-        return un(and(neq, Conjuncts(oeq)))
+      if(!tNewCons.isEmpty) {
+        val tNewCon = and(tNewCons)
+        val tOrig = tSplit.map{case (iv, niv) => iv ++ Set(niv.head)}
+        return un(and(tNewCon, Conjuncts(tOrig, oeq)))
       }
       /* Now each equivalence class must consist of one inference variable 
        * and one non inference variable. Unify them.
        */
-      Some(Substitution(Map(split.map{case (iv, niv) => 
-        (iv.head.asInstanceOf[_InferenceVarType], niv.head)}.toSeq:_*)))
-    case Disjuncts(es) => None
+      Some((TSubstitution(Map(tSplit.map{case (iv, ts) => (iv.head, ts.head)}.toSeq:_*)),
+            OSubstitution(Map(oSplit.map{case (iv, ts) => (iv.head, ts.head)}.toSeq:_*))))
+    case Disjuncts(es) =>
+      for(e <- es) {
+        val solved = un(e)
+        if(solved.isDefined) return solved
+      }
+      None
   }
   
-  def map(c: CFormula, s: Type => Type)(implicit ta: TypeAnalyzer): CFormula = c match {
-    case And(ps) =>
-      and(ps.map{
-        case (k, Primitive(pl,nl,pu,nu,pe,ne)) =>
-          val sk = s(k)
-          and(ta.subtype(s(ta.join(pl)), sk), and(
-              and(nl.map(t => ta.notSubtype(s(t),sk))), and(
-              ta.subtype(sk, s(ta.meet(pu))), and(
-              and(nu.map(t => ta.notSubtype(sk, s(t)))), and(
-              and(pe.map(t => ta.excludes(sk,s(t)))),
-              and(ne.map(t => ta.notExcludes(sk, s(t)))))))))})
-    case Or(cs) => dis(cs.map(map(_, s)))
-    case _ => c
+  // Have to use a manifest due to erasure
+  private def makeSub[T, U <: T](xss: Set[Set[T]], error: ((Set[U], Set[T])) => Boolean , makeS: Set[U] => (T => T))(implicit m: scala.reflect.Manifest[U]): Option[(Option[T => T], Set[(Set[U], Set[T])], Set[Set[U]], Set[Set[T]])] = {
+    val split = xss.map{_.partition(m.erasure.isInstance(_))}.asInstanceOf[Set[(Set[U], Set[T])]]
+    if(split.exists(error))
+      None
+    else {
+      val (us, ts) = split.unzip
+      Some(us.filter{_.size > 1}.map(makeS).reduceRightOption((a, b) => a compose b), split, us, ts)
+    }
   }
   
-  def map(e: EFormula, s: Type => Type)(implicit ta: TypeAnalyzer): EFormula = e match {
-    case Conjuncts(eq) => reduce(Conjuncts(eq.map(ts => ts.map(s))))
-    case Disjuncts(es) => dis(es.map(map(_, s)))
-    case _ => e
+  def cMap(form: CFormula, tSub: Type => Type = tEmptySub, oSub: Op => Op = oEmptySub)(implicit ta: TypeAnalyzer): CFormula = form match {
+    case And(ts, os) =>
+      val tForm = and(ts.map{
+        case (k, TPrimitive(pl,nl,pu,nu,pe,ne)) =>
+          val sk = tSub(k)
+          and(ta.subtype(tSub(ta.join(pl)), sk), and(
+              and(nl.map(t => ta.notSubtype(tSub(t),sk))), and(
+              ta.subtype(sk, tSub(ta.meet(pu))), and(
+              and(nu.map(t => ta.notSubtype(sk, tSub(t)))), and(
+              and(pe.map(t => ta.excludes(sk,tSub(t)))),
+              and(ne.map(t => ta.notExcludes(sk, tSub(t)))))))))})
+      val oForm = and(os.map{
+        case (k, OPrimitive(po, no)) =>
+          //TODO: Write Something here
+          True.asInstanceOf[CFormula]
+      })
+      and(tForm, oForm)
+    case Or(cs) => dis(cs.map(cMap(_, tSub, oSub)))
+    case _ => form
+  }
+  
+  def eMap(form: EFormula, tSub: Type => Type = tEmptySub, oSub: Op => Op = oEmptySub)(implicit ta: TypeAnalyzer): EFormula = form match {
+    case Conjuncts(ts, os) => reduce(Conjuncts(ts.map(_.map(tSub)), os.map(_.map(oSub))))
+    case Disjuncts(es) => dis(es.map(eMap(_, tSub, oSub)))
+    case _ => form
   }
   
   def negate(c: CFormula)(implicit ta: TypeAnalyzer): CFormula = neg(reduce(c))
@@ -495,9 +594,9 @@ object Formula{
     case True => False
     case False => True
     case Or(cs) => and(cs.map(negate))
-    case And(ps) =>
-      def neg(ip: (_InferenceVarType, Primitive))(implicit ta: TypeAnalyzer): CFormula = ip match {
-        case (i, Primitive(pl, nl, pu, nu, pe, ne)) =>
+    case And(ts, os) =>
+      def tNeg(ip: (_InferenceVarType, TPrimitive))(implicit ta: TypeAnalyzer): CFormula = ip match {
+        case (i, TPrimitive(pl, nl, pu, nu, pe, ne)) =>
           or(or(pl.map(t => notLowerBound(i, t))), or(
              or(nl.map(t => lowerBound(i, t))), or(
              or(pu.map(t => notUpperBound(i, t))), or(
@@ -505,26 +604,28 @@ object Formula{
              or(pe.map(t => notExclusion(i, t))),
              or(ne.map(t => exclusion(i, t))))))))
       }
-      or(ps.map(neg))
+      // TODO: WRITE SOMETHING
+      def oNeg(ip: (_InferenceVarOp, OPrimitive)): CFormula = True
+      or(or(ts.map(tNeg)), or(os.map(oNeg)))
   }
     
   def upperBound(i: _InferenceVarType, t: Type): CFormula =
-    And(Map(i -> Primitive(Set(), Set(), Set(t), Set(), Set(), Set())))
+    And(Map(i -> TPrimitive(Set(), Set(), Set(t), Set(), Set(), Set())), Map())
   
   def notUpperBound(i: _InferenceVarType, t: Type): CFormula = 
-    And(Map(i -> Primitive(Set(), Set(), Set(), Set(t), Set(), Set())))
+    And(Map(i -> TPrimitive(Set(), Set(), Set(), Set(t), Set(), Set())), Map())
   
   def lowerBound(i: _InferenceVarType, t: Type): CFormula =
-    And(Map(i -> Primitive(Set(t), Set(), Set(), Set(), Set(), Set())))
+    And(Map(i -> TPrimitive(Set(t), Set(), Set(), Set(), Set(), Set())), Map())
     
   def notLowerBound(i: _InferenceVarType, t: Type): CFormula =
-    And(Map(i -> Primitive(Set(), Set(t), Set(), Set(), Set(), Set())))
+    And(Map(i -> TPrimitive(Set(), Set(t), Set(), Set(), Set(), Set())), Map())
     
   def exclusion(i: _InferenceVarType, t: Type): CFormula = 
-    And(Map(i -> Primitive(Set(), Set(), Set(), Set(), Set(t), Set())))
+    And(Map(i -> TPrimitive(Set(), Set(), Set(), Set(), Set(t), Set())), Map())
   
   def notExclusion(i: _InferenceVarType, t: Type): CFormula = 
-    And(Map(i -> Primitive(Set(), Set(), Set(), Set(), Set(), Set(t))))
+    And(Map(i -> TPrimitive(Set(), Set(), Set(), Set(), Set(), Set(t))), Map())
     
   def fromBoolean(x: Boolean) = if (x) True else False
   
