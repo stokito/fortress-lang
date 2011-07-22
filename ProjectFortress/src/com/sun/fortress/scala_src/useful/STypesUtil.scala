@@ -1454,7 +1454,7 @@ object STypesUtil {
    * that type. Note that for any statically known class type, its Manifest
    * exists and will be implicitly passed at the call site.
    */
-  def liftTypeSubstitution[T <: TypeVariable](subst: PartialFunction[T, Type])(implicit m: scala.reflect.Manifest[T]): Type => Type = {
+  def liftSubstitution[T, U, V](subst: PartialFunction[U, T])(implicit m: scala.reflect.Manifest[U]): V => V = {
 
     // Get the runtime Class object for T so that we can be sure whether subst
     // is defined on it or not.
@@ -1464,16 +1464,16 @@ object STypesUtil {
     // within an AST.
     object replacer extends Walker {
       override def walk(node: Any): Any = node match {
-        case x: T if tClass.isInstance(x) && subst.isDefinedAt(x) => subst(x)
+        case x: U if tClass.isInstance(x) && subst.isDefinedAt(x) => subst(x)
         case _ => super.walk(node)
       }
     }
 
     // Create the resulting closure that simply applies the walker.
-    (t: Type) => replacer(t).asInstanceOf[Type]
+    (t: V) => replacer(t).asInstanceOf[V]
   }
 
-  def killIvars = liftTypeSubstitution(new PartialFunction[_InferenceVarType, Type] {
+  def killIvars: Type => Type = liftSubstitution(new PartialFunction[_InferenceVarType, Type] {
     def apply(y: _InferenceVarType) = BOTTOM
     def isDefinedAt(y: _InferenceVarType) = true
   })
