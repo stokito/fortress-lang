@@ -205,7 +205,7 @@ public class TopLevelEnv extends NameEnv {
             }
 
             @Override
-            public Op forOp(Op that) {
+            public Op forNamedOp(NamedOp that) {
                 return NodeFactory.makeOp(NodeUtil.getSpan(that),
                                           Option.some(api),
                                           that.getText(),

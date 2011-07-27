@@ -635,7 +635,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             }
 
             @Override
-            public String forOp(final Op opThat) {
+            public String forNamedOp(final NamedOp opThat) {
                 final String oper = opThat.getText();
                 if (opThat.isEnclosing()) {
                     String left = oper.split(" ")[0];
@@ -1833,7 +1833,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
 
         s.append(thatOpExpr.getOp().getOriginalName().accept(new NodeDepthFirstVisitor<String>() {
             @Override
-            public String forOp(final Op opThat) {
+            public String forNamedOp(final NamedOp opThat) {
                 final String oper = canonicalOp(opThat.getText());
                 if (opThat.isEnclosing()) {
                     String op = opThat.getText();
@@ -2309,7 +2309,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-    public String forOpArgOnly(OpArg that, String info, String id_result, Option<String> name_result) {
+    public String forOpArgOnly(OpArg that, String info, String id_result) {
         return id_result;
     }
 

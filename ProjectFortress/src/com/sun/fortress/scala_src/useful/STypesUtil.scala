@@ -870,7 +870,7 @@ object STypesUtil {
     // 8. return (resultArrow,StaticArgs([U_i]))
     val resultArgs = sargs.map {
       case STypeArg(info, lifted, typ) =>  STypeArg(info, lifted, tSub(typ))
-      case SOpArg(info, lifted, op, fn) => SOpArg(info, lifted, oSub(op), fn)
+      case SOpArg(info, lifted, op) => SOpArg(info, lifted, oSub(op))
       case sarg => sarg
     }
 

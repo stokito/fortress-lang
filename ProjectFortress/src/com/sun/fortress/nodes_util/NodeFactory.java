@@ -1742,11 +1742,11 @@ return new TraitType(info, name, sargs, sparams);
     }
     
     public static OpArg makeOpArg(Span span, Op op){
-        return new OpArg(makeSpanInfo(span), false, op, Option.<FunctionalRef>none());
+        return new OpArg(makeSpanInfo(span), false, op);
     }
     
     public static OpArg makeOpArg(Span span, String text){
-        return new OpArg(makeSpanInfo(span), false, makeOp(span, text), Option.<FunctionalRef>none());
+        return new OpArg(makeSpanInfo(span), false, makeOp(span, text));
     }
     
     public static UnitArg makeUnitArg(UnitExpr s) {
@@ -1811,7 +1811,7 @@ return new TraitType(info, name, sargs, sparams);
 
     public static Op makeOp(Span span, Option<APIName> api,
                             String text, Fixity fixity, boolean b) {
-        return new Op(makeSpanInfo(span), api, text, fixity, b);
+        return new NamedOp(makeSpanInfo(span), api, text, fixity, b);
     }
 
     // All of these should go away, except for the gross overhead of allocating separate items.
@@ -2770,7 +2770,7 @@ return new TraitType(info, name, sargs, sparams);
         return new Id(fn.getInfo(), Option.<APIName>none(), fn.getText());
     }
     public static Op makeLocalOp(Op fn) {
-        return new Op(fn.getInfo(), Option.<APIName>none(), fn.getText(), fn.getFixity(), fn.isEnclosing());
+        return new NamedOp(fn.getInfo(), Option.<APIName>none(), fn.getText(), fn.getFixity(), fn.isEnclosing());
     }
     public static IdOrOp makeLocalIdOrOp(IdOrOp fn) {
         if (fn instanceof Id)

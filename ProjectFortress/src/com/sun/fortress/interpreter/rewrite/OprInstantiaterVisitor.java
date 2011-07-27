@@ -35,7 +35,7 @@ public class OprInstantiaterVisitor extends NodeUpdateVisitor {
     }
 
     @Override
-    public Node forOp(Op op) {
+    public Node forNamedOp(NamedOp op) {
         // Replace instance ofs Op with substitution.
         String repl = subst.get(op.getText());
         if (repl == null) return op;
