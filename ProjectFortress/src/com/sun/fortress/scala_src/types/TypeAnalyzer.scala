@@ -210,7 +210,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   protected def pEqv(x: StaticArg, y: StaticArg)(implicit negate: Boolean, history: Set[hType]): CFormula = (x,y) match {
     case (a,b) if (a==b) => pTrue()
     case (STypeArg(_, _, s), STypeArg(_, _, t)) => pEqv(s, t)
-    case (SOpArg(_, _, o, _), SOpArg(_, _, p, _)) => pEqv(o, p)
+    case (SOpArg(_, _, o), SOpArg(_, _, p)) => pEqv(o, p)
     // Not handling all static args properly yet
     case (_: IntArg, _: IntArg) => pTrue()
     case (_: BoolArg, _: BoolArg) => pTrue()

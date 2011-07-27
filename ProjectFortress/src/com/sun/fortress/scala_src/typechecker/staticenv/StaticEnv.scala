@@ -79,8 +79,8 @@ trait StaticEnv[T] {
   /** Strip the API out of the given name. */
   protected def stripApi(x: Name): Name = x match {
     case SId(info, Some(api), text) => SId(info, None, text)
-    case SOp(info, Some(api), text, fix, enc) =>
-      SOp(info, None, text, fix, enc)
+    case SNamedOp(info, Some(api), text, fix, enc) =>
+      SNamedOp(info, None, text, fix, enc)
     case x:AnonymousFnName => NF.makeAnonymousFnName(NU.getSpan(x), none[APIName])
     case x:ConstructorFnName =>
       NF.makeConstructorFnName(NU.getSpan(x), none[APIName], x.getConstructor)

@@ -75,7 +75,7 @@ object SNodeUtil {
   /** Given a name return the same name without an API. */
   def unqualifiedName(name: Name): Name = name match {
     case SId(info, _, text) => SId(info, None, text)
-    case SOp(info, _, text, fix, enc) => SOp(info, None, text, fix, enc)
+    case SNamedOp(info, _, text, fix, enc) => SNamedOp(info, None, text, fix, enc)
     case SAnonymousFnName(info, _) => SAnonymousFnName(info, None)
     case SConstructorFnName(info, _, ctor) => SConstructorFnName(info, None, ctor)
     case _ => name
@@ -84,7 +84,7 @@ object SNodeUtil {
   /** Given a name return the same name qualified with the given API. */
   def qualifiedName(name: Name, api: APIName): Name = name match {
     case SId(info, _, text) => SId(info, Some(api), text)
-    case SOp(info, _, text, fix, enc) => SOp(info, Some(api), text, fix, enc)
+    case SNamedOp(info, _, text, fix, enc) => SNamedOp(info, Some(api), text, fix, enc)
     case SAnonymousFnName(info, _) => SAnonymousFnName(info, Some(api))
     case SConstructorFnName(info, _, ctor) => SConstructorFnName(info, Some(api), ctor)
     case _ => name
@@ -320,7 +320,7 @@ object SNodeUtil {
       // Create an Id or Op with this name, depending on what x is.
       x match {
         case SId(info, _, _) => SId(info, None, s)
-        case SOp(info, _, _, f, e) => SOp(info, None, s, f, e)
+        case SNamedOp(info, _, _, f, e) => SNamedOp(info, None, s, f, e)
         case _ => null // never matches
       }
     }

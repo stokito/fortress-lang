@@ -40,7 +40,7 @@ object TypeAnalyzerUtil {
       case SBoolArg(_, _, v) => v
       case SDimArg(_, _, v) => v
       case SUnitArg(_, _, v) => v
-      case SOpArg(_, _, v, _) => v
+      case SOpArg(_, _, v) => v
     }
     val subst = Map((params, args).zipped.map
                     ((p, a) => (p.getName, a)):_*)

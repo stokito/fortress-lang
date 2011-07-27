@@ -628,7 +628,9 @@ public class ScalaAstGenerator extends CodeGenerator {
         writer.println("   def apply(node:Any):Any = walk(node)");
         writer.println("   def walk(node:Any):Any = {");
         writer.println("       node match {");
-        for (NodeClass c : sort(ast.classes())) {
+        List<NodeClass> cList = mkList(ast.classes());
+        Collections.reverse(cList);
+        for (NodeClass c : cList) {
             if (ignoreClass(c.name())) {
                 continue;
             }
