@@ -1,0 +1,52 @@
+/*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress expressions.
+ */
+module com.sun.fortress.parser.templateparser.Expression(Param, NoNewlineHeader,
+                                                         MayNewlineHeader, Type, DelimitedExpr,
+                                                         Literal, NoSpaceLiteral, Identifier,
+                                                         Keyword, Symbol, Spacing, Gaps);
+
+import Param;
+import NoNewlineHeader;
+import MayNewlineHeader;
+import Type;
+import DelimitedExpr;
+import Literal;
+import NoSpaceLiteral;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+import Gaps;
+
+modify com.sun.fortress.parser.Expression(Param, NoNewlineHeader,
+MayNewlineHeader, Type, DelimitedExpr, Literal, NoSpaceLiteral, Identifier, Keyword,
+Symbol, Spacing);
+
+
+Expr ExprFront +=
+     ExprGap
+   / LooseJuxtGap
+   / FnExprGap
+   / <Fn1> ... ;
+
+Action<Expr> ExprTail += EllipsesExpr / <As> ...;
+
+constant inline Action<Expr> EllipsesExpr =
+	w DoubleStar
+	{ yyValue = new Action<Expr>() {
+		public Expr run(Expr base) {
+                    return new _EllipsesExpr(NodeFactory.makeExprInfo(createSpan(yyStart,yyCount)), base);
+		}};
+	};

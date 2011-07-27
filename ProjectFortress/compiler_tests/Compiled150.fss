@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled150
+export Executable
+
+(* Intended to test array aggregates.
+   Could probably use PROD here, but we're proceeding by baby steps. *)
+
+run():() = do
+  a:ZZ32[5] = [1 2 3 4 5 6]
+  prod:ZZ32 := 1
+
+  for i <- a do
+    prod TIMES= i
+  end
+  if prod = 720 then println "pass" else println "FAIL" end
+end
+
+end

@@ -1,0 +1,115 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component wordcount
+import CaseInsensitiveString.{...}
+import File.{...}
+import FileSupport.{...}
+import List.{...}
+import Map.{...}
+import System.{getProperty}
+
+export Executable
+
+delimiters : String= " ,.?*\t-/[]"
+delimMap : Map[\Char,Boolean\] = { c |-> true | c <- delimiters }
+isDelimiter(c:Char):Boolean = delimMap.member(c,false)
+(*
+This is much slower, even for the relatively short string above.
+isDelimiter(c:Char):Boolean = c IN delimiters
+*)
+
+maybeAddWord(word:String,
+             database:Map[\CaseInsensitiveString,ZZ32\]):Map[\CaseInsensitiveString,ZZ32\]=
+    database.updateWith(fn (mx) => Just[\ZZ32\](mx.getDefault(0)+1),
+                        CaseInsensitiveString(word))
+
+getWords(s:String):Map[\CaseInsensitiveString, ZZ32\] = do
+    var database:Map[\CaseInsensitiveString,ZZ32\] := {[\CaseInsensitiveString,ZZ32\]}
+    var count:ZZ32 := 1
+    var current:ZZ32 := 0
+    var start:ZZ32 := 0
+
+    while (current < s.size) do
+        if isDelimiter(s[current]) then
+           count := count - 1
+           if count >= 1 then
+               word:String = s[start#count]
+               database := maybeAddWord(word, database)
+           end
+           start := current + 1
+           count := 0
+        end
+        count += 1
+        current += 1
+    end
+    count := count - 1
+    if count >= 1 then
+        word:String = s[start#count]
+        database := maybeAddWord(word,database)
+    end
+    database
+end
+
+makeInv(x:String,y:ZZ32):Map[\ZZ32, List[\String\]\] = do
+    var database:Map[\ZZ32,List[\String\]\] := {[\ZZ32,List[\String\]\]}
+    database := database.add(y, <|[\String\] x |>)
+    database
+end
+
+opr UNIONSUM(a:Map[\CaseInsensitiveString,ZZ32\],
+             b:Map[\CaseInsensitiveString,ZZ32\]):Map[\CaseInsensitiveString,ZZ32\] =
+        a.union(fn(_,x,y)=>x+y, b)
+
+opr BIG UNIONSUM(): BigReduction[\Map[\CaseInsensitiveString,ZZ32\],
+                                 Map[\CaseInsensitiveString,ZZ32\]\] =
+    embiggen[\Map[\CaseInsensitiveString,ZZ32\]\](
+        fn (a,b) => a UNIONSUM b, {[\CaseInsensitiveString,ZZ32\]})
+
+opr UNIONUNION(a:Map[\ZZ32,List[\String\]\], b:Map[\ZZ32, List[\String\]\]):Map[\ZZ32,List[\String\]\] =
+    a.union(fn(k,x,y) => x || y, b)
+
+opr BIG UNIONUNION(): BigReduction[\Map[\ZZ32, List[\String\]\],Map[\ZZ32, List[\String\]\]\] =
+    embiggen[\Map[\ZZ32, List[\String\]\]\](fn(a,b) => a UNIONUNION b, {[\ZZ32,List[\String\]\]})
+
+processFile(name:String):() = do
+    time(str:String,s,f): () = println(str " in " ((f-s)/10.0^6) "ms")
+    println("Processing file " name)
+    var rs:FileReadStream = FileReadStream(name)
+    start = nanoTime()
+    database:Map[\CaseInsensitiveString, ZZ32\] =
+        BIG UNIONSUM [l<-rs.lines()] getWords(l)
+    rs.close()
+    acq = nanoTime()
+    time("Acquired words",start,acq)
+    var invDatabase:Map[\ZZ32,List[\String\]\] =
+        BIG UNIONUNION [(x,y) <-database] makeInv(x.asString,y)
+    inv = nanoTime()
+    time("Inverted database",acq,inv)
+    try
+        for i <- seq(1#100) do
+            (c,m,newinv) = invDatabase.extractMaximum().get
+            invDatabase := newinv
+            println(m ": " c " times")
+        end
+    catch e
+            NotFound => println("end")
+    end
+    finish = nanoTime()
+    time("Outputted",inv,finish)
+    time("Total run",start,finish)
+end
+
+
+run() = do
+    processFile(getProperty("fortress.autohome", ".") "/ProjectFortress/demos/hamlet")
+end
+end
