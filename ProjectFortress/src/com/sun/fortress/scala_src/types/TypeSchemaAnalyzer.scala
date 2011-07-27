@@ -102,7 +102,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
       /* Try and infer an instantiation sigma of s such that 
        * sigma(s) <: t */
       val sparams = getStaticParams(s)
-      def constraintMaker(ss: Type) = ta.subtype(ss, t)
+      def constraintMaker(ss: Type, m: Map[StaticParam, StaticArg]) = ta.subtype(ss, t)
       !inferStaticParamsHelper(s, constraintMaker, true, true).isEmpty
     // neither has static parameters; use normal subtyping
     case (s, t) => ta.lteq(s, t)
@@ -143,7 +143,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
       /* Try and infer an instantiation sigma of t such that 
        * s <: sigma(t) */
       val sparams = getStaticParams(t)
-      def constraintMaker(tt: Type) = ta.subtype(s, tt)
+      def constraintMaker(tt: Type, m: Map[StaticParam, StaticArg]) = ta.subtype(s, tt)
       !inferStaticParamsHelper(t, constraintMaker, true, true).isEmpty
     // neither has static parameters; use normal subtyping
     case (s,t) => ta.lteq(s, t)

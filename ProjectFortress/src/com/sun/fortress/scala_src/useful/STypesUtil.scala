@@ -498,6 +498,12 @@ object STypesUtil {
         Some(NF.makeIntersectionType(sparam.getExtendsClause))
       case _ => None
     }
+  
+    // Get an inference variable type out of a static arg.
+    def staticArgType(sarg: StaticArg): Option[_InferenceVarType] = sarg match {
+      case sarg: TypeArg => Some(sarg.getTypeArg.asInstanceOf[_InferenceVarType])
+      case _ => None
+    }
 
   /**
    * Given a static parameters, returns a static arg containing a fresh
@@ -793,7 +799,7 @@ object STypesUtil {
     context: Option[Type])(implicit analyzer: TypeAnalyzer): Option[(ArrowType, List[StaticArg])] = {
 
     // Builds a constraint given the arrow with inference variables.
-    def makeConstraint(infArrow: ArrowType): CFormula = {
+    def makeConstraint(infArrow: ArrowType, map: Map[StaticParam, StaticArg]): CFormula = {
 
       // argType <:? dom(infArrow) yields a constraint, C1
       val domainConstraint = checkSubtype(argType, infArrow.getDomain)
@@ -825,7 +831,7 @@ object STypesUtil {
    *     that instantiated it.
    */
   def inferStaticParamsHelper[T <: Type](typ: T,
-    constraintMaker: T => CFormula,
+    constraintMaker: (T, Map[StaticParam, StaticArg]) => CFormula,
     inferLifted: Boolean = true,
     inferUnlifted: Boolean = true)(implicit analyzer: TypeAnalyzer): Option[(T, List[StaticArg])] = {
 
@@ -837,18 +843,13 @@ object STypesUtil {
       (s.isLifted && inferLifted) || (!s.isLifted && inferUnlifted)
     }
     val sargs = sparams.map(makeInferenceArg)
+    val paramToArg = Map((sparams.zip(sargs)):_*)
     val infTyp = staticInstantiation(sargs,
       typ,
       applyLifted = inferLifted,
       applyUnlifted = inferUnlifted).
       getOrElse(return None).asInstanceOf[T]
-    val constraint = constraintMaker(infTyp)
-
-    // Get an inference variable type out of a static arg.
-    def staticArgType(sarg: StaticArg): Option[_InferenceVarType] = sarg match {
-      case sarg: TypeArg => Some(sarg.getTypeArg.asInstanceOf[_InferenceVarType])
-      case _ => None
-    }
+    val constraint = constraintMaker(infTyp, paramToArg)
 
     // 5. build bounds map B = [$T_i -> S(UB(T_i))]
     val infVars = sargs.flatMap(staticArgType)
@@ -878,14 +879,14 @@ object STypesUtil {
 
   
   //TODO: Make op constraint
-  def inferLiftedStaticParams(fnType: ArrowType,
-    argType: Type)(implicit analyzer: TypeAnalyzer): Option[(ArrowType, List[StaticArg])] = {
+  def inferLiftedStaticParams(fnType: ArrowType, argType: Type,
+      mOps: Option[(Op,Op)])(implicit analyzer: TypeAnalyzer): Option[(ArrowType, List[StaticArg])] = {
 
     val sparams = getStaticParams(fnType).filter(_.isLifted)
     if (sparams.isEmpty || fnType.getMethodInfo.isNone) return Some((fnType, Nil))
 
     // Builds a constraint given the arrow with inference variables.
-    def makeConstraint(infArrow: ArrowType): CFormula = {
+    def makeConstraint(infArrow: ArrowType, map: Map[StaticParam, StaticArg]): CFormula = {
 
       // Get the type of the `self` arg and form selfArg <:? selfType
       val SMethodInfo(selfType, selfPosition) = infArrow.getMethodInfo.unwrap

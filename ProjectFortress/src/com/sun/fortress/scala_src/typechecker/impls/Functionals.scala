@@ -122,7 +122,8 @@ trait Functionals { self: STypeChecker with Common =>
    */
   def checkApplicable(preCandidate: PreAppCandidate,
                       context: Option[Type],
-                      args: List[Either[Expr, FnExpr]])
+                      args: List[Either[Expr, FnExpr]],
+                      mOpName: Option[Op])
                      (implicit errorFactory: ApplicationErrorFactory)
                       : Either[AppCandidate, OverloadingError] = {
     val arrow = preCandidate.arrow
@@ -136,9 +137,19 @@ trait Functionals { self: STypeChecker with Common =>
 
     // Infer lifted static params.
     val argType = getArgType(args)
-    val temp =  inferLiftedStaticParams(arrow, argType)
+    /* If we are checking an operator we need to get the name of the overloading in order
+     * to check if it is a parametric operator
+     */
+    val mOpNames = mOpName match {
+      case Some(opName) => 
+        // If we are checking an operator the overloading in preCandidate should be some
+        val PreAppCandidate(_, Some(ovName)) = preCandidate
+        Some((opName, ovName.getOriginalName.asInstanceOf[Op]))
+      case None => None
+    }
+    // The op parameter corresponding to a parametric operator must be lifted
     val (liftedArrow, liftedSargs) =
-     temp.getOrElse {
+      inferLiftedStaticParams(arrow, argType, mOpNames).getOrElse{
         return Right(errorFactory.makeNotApplicableError(arrow, args))
       }
 
@@ -413,7 +424,8 @@ trait Functionals { self: STypeChecker with Common =>
    */
   def checkApplication(preCandidates: List[PreAppCandidate],
                        iargs: List[Expr],
-                       context: Option[Type])
+                       context: Option[Type],
+                       mOpName: Option[Op] = None)
                       (implicit errorFactory: ApplicationErrorFactory)
                        : Option[List[AppCandidate]] = {
 
@@ -421,7 +433,7 @@ trait Functionals { self: STypeChecker with Common =>
     val args = partitionArgs(iargs).getOrElse(return None)
 
     // Filter the overloadings that are applicable.
-    val es = preCandidates.map(pc => checkApplicable(pc, context, args))
+    val es = preCandidates.map(pc => checkApplicable(pc, context, args, mOpName))
     val (candidates, overloadingErrors) =
         (for (Left(x) <- es) yield x, for (Right(x) <- es) yield x)
 
@@ -694,12 +706,14 @@ trait Functionals { self: STypeChecker with Common =>
     }
 
     case app @ SOpExpr(SExprInfo(span, paren, _), op, args) => {
-      val checkedOp = checkExpr(op)
+      val checkedOp = checkExpr(op).asInstanceOf[FunctionalRef]
       val preCandidates = getCandidatesForFunction(checkedOp, expr).getOrElse(return expr)
+      val opName = checkedOp.getOriginalName.asInstanceOf[Op]
       implicit val errorFactory = new ApplicationErrorFactory(expr, None, preCandidates.length > 1)
 
       // Type check the application.
-      val candidates = checkApplication(preCandidates, args, expected).getOrElse(return expr)
+      val candidates = checkApplication(preCandidates, args, expected, Some(opName)).
+                         getOrElse(return expr)
       val AppCandidate(bestArrow, bestSargs, bestArgs, _) = candidates.head
 
       // Rewrite the applicand to include the arrow and static args
