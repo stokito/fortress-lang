@@ -425,20 +425,6 @@ public class TopLevelEnv extends NameEnv {
         }
     };
     
-    private Lambda<ParametricOperator, IdOrOp> getExplicitParametricOpName = new Lambda<ParametricOperator, IdOrOp>() {
-        @Override
-        public IdOrOp value(ParametricOperator p){
-            return p.unambiguousName();
-        }
-    };
-
-    private Lambda<ParametricOperator, IdOrOp> getUnambiguousParametricOpName = new Lambda<ParametricOperator, IdOrOp>() {
-        @Override
-        public IdOrOp value(ParametricOperator p){
-            return p.unambiguousName();
-        }
-    };
-    
     Lambda<Pair<ApiIndex,ParametricOperator>, ParametricOperator> second = new Lambda<Pair<ApiIndex,ParametricOperator>, ParametricOperator>(){
         @Override
         public ParametricOperator value(Pair<ApiIndex, ParametricOperator> p) {
@@ -456,13 +442,9 @@ public class TopLevelEnv extends NameEnv {
         Set<IdOrOp> imports = (Set<IdOrOp>) this.onDemandFunctionNames(name);
         // Add aliases
         Set<IdOrOp> aliases = (_aliases.containsKey(name)) ? explicitFunctionNames((IdOrOp) _aliases.get(name)) : CollectUtil.<IdOrOp>emptySet();
-        // Add parametric operators
-        Set<IdOrOp> parametric = (name instanceof Op)?
-                                     CollectUtil.asSet(IterUtil.compose(IterUtil.map(_current.parametricOperators(), getExplicitParametricOpName),
-                                                                        IterUtil.map(onDemandParametricOps(), LambdaUtil.compose(second, getExplicitParametricOpName)))):
-                                     CollectUtil.<IdOrOp>emptySet();
+        
         // Union and return
-        return CollectUtil.union(CollectUtil.union(CollectUtil.union(current, imports), aliases), parametric);
+        return CollectUtil.union(CollectUtil.union(current, imports), aliases);
     }
 
     public Set<IdOrOp> unambiguousFunctionNames(final IdOrOp name) {
@@ -500,18 +482,22 @@ public class TopLevelEnv extends NameEnv {
             results = IterUtil.compose(results,
                                        unambiguousFunctionNames((IdOrOp) _aliases.get(name)));
         }
-        
-        // Add Parametric Ops
-        if(name instanceof Op){
-            results = IterUtil.compose(results, IterUtil.map(_current.parametricOperators(),
-                                                         getUnambiguousParametricOpName));
-            results = IterUtil.compose(results, IterUtil.map(onDemandParametricOps(),
-                                                         LambdaUtil.compose(second, getUnambiguousParametricOpName)));
-        }
 
         return CollectUtil.asSet(results);
     }
 
+    @Override
+    public Set<Pair<Op, Op>> getParametricOperators() {
+        Iterable<ParametricOperator> pOps = IterUtil.compose(_current.parametricOperators(), IterUtil.map(onDemandParametricOps(), second));
+        Iterable<Pair<Op,Op>> pairs = IterUtil.map(pOps, new Lambda<ParametricOperator, Pair<Op, Op>>(){
+            @Override
+            public Pair<Op, Op> value(ParametricOperator p) {
+                return Pair.make(p.name(), (Op) p.unambiguousName());
+            }
+        });
+        return CollectUtil.asSet(pairs);
+    }
+    
     @Override
     public Set<Id> explicitGrammarNames(String name) {
         // TODO: imports

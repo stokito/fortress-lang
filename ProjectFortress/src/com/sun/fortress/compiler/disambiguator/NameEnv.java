@@ -14,6 +14,7 @@ package com.sun.fortress.compiler.disambiguator;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.Op;
+import edu.rice.cs.plt.tuple.Pair;
 
 import java.util.List;
 import java.util.Set;
@@ -45,6 +46,11 @@ public abstract class NameEnv extends TypeNameEnv {
      * given, possibly qualified function name.  
      */
     public abstract Set<IdOrOp> unambiguousFunctionNames(IdOrOp name);
+    
+    /**
+     * Produces the set of tuples of qualified and unambiguous names for parametric operators
+     */
+    public abstract Set<Pair<Op, Op>> getParametricOperators();
 
     /**
      * Produce the set of unaliased qualified names available via on-demand imports
