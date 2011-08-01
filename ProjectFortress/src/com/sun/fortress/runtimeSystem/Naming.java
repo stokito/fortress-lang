@@ -920,6 +920,11 @@ public class Naming {
         return name;
     }
 
+    public static String sepToDot(String name) {
+        name = name.replace('/', '.');
+        return name;
+    }
+
     /**
      * Returns the package+class name for the class generated for the closure
      * implementing a generic method.  Includes GEAR  (generic function),

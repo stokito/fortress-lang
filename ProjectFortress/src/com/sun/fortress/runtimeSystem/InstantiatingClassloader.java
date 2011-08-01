@@ -15,12 +15,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 import java.util.jar.JarOutputStream;
 
@@ -84,6 +87,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     
     public static final String ABSTRACT_ = "Abstract";
     public static final String CONCRETE_ = "Concrete";
+    public static final String UNION = "Union";
     
     public static final String ABSTRACT_ARROW = ABSTRACT_ + Naming.ARROW_TAG;
     public static final String WRAPPED_ARROW = "Wrapped" + Naming.ARROW_TAG;
@@ -137,8 +141,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     private InstantiatingClassloader(ClassLoader parent) {
         super(parent);
         // System.err.println("I am the one true class loader!");
-        if (ONLY != null)
-            throw new Error();
+        String p = System.getProperty("I_can_haz_classloader");
+        if (p != null)
+            throw new Error("Second classloader detected!!");
+        System.setProperty("I_can_haz_classloader", "initialized");
     }
 
     public static String dotToSlash(String s) {
@@ -277,6 +283,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         classData = instantiateAnyTuple(dename, parameters);
                     } else if (stem.equals(ANY_CONCRETE_TUPLE)) {
                         classData = instantiateAnyConcreteTuple(dename, parameters);
+                    } else if (stem.equals(UNION)) {
+                        classData = instantiateUnion(dename, parameters);
                     } else {
                         try {
                         ArrayList<String> sargs = new ArrayList<String>();
@@ -1883,7 +1891,72 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return cw.toByteArray();
 
     }
+   
+    /**
+     * A union type.  Iterate over the members of the union
+     * 
+     * @param dename
+     * @param parameters
+     * @return
+     */
+    private static byte[] instantiateUnion(String dename, List<String> parameters) {
+        /*
+         */
+        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+ 
+        final int n = parameters.size();
+        String[] superInterfaces = {  };
+        
+        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC, dename, null,
+                 "java/lang/Object", superInterfaces);
+
+        HashSet<Class> intersected_tc_ifs = null;
+        for (String member: parameters) {
+            String for_loading = Naming.sepToDot(Naming.mangleFortressIdentifier(member));
+            Class cl = null;
+            try {
+                cl = Class.forName(for_loading);
+            } catch (ClassNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            HashSet<Class> tc_ifs = new HashSet<Class> ();
+            addTransitiveImplements(cl, tc_ifs);
+            if (intersected_tc_ifs == null)
+                intersected_tc_ifs = tc_ifs;
+            else
+                intersected_tc_ifs.retainAll(tc_ifs);
+        }
+
+        for (Class an_if : intersected_tc_ifs) {
+            // emit a forwarding method for each method in an_if
+            if (an_if.isInterface()) {
+                Method[] methods = an_if.getDeclaredMethods();
+                for (Method m : methods) {
+                    String nm = m.getName();
+                    Class[] pts = m.getParameterTypes();
+                    Class rt = m.getReturnType();
+                    rt.getAnnotation(arg0)
+                }
+            }
+            
+        }
+        
+
+        cw.visitEnd();
+
+        return cw.toByteArray();
+    }
     
+    static void addTransitiveImplements(Class cl, Set<Class> tc_ifs) {
+        tc_ifs.add(cl);
+        Class[] ifs = cl.getInterfaces();
+
+        for (Class an_if : ifs) 
+            if (! tc_ifs.contains(an_if)) 
+                addTransitiveImplements(an_if, tc_ifs);
+    }
+
     private static byte[] instantiateTuple(String dename, List<String> parameters) {
         /*
          * interface implements AnyTuple[\ N \]
