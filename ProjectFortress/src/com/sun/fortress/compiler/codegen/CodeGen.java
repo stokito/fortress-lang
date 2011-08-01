@@ -137,8 +137,9 @@ import com.sun.fortress.nodes_util.SourceLoc;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.BAlongTree;
+import com.sun.fortress.runtimeSystem.InitializedInstanceField;
+import com.sun.fortress.runtimeSystem.InitializedStaticField;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
-import com.sun.fortress.runtimeSystem.InstantiatingClassloader.InitializedStaticField;
 import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.scala_src.overloading.OverloadingOracle;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
@@ -238,7 +239,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * 
      * Null if not in a trait or object scope.
      */
-    private List<InstantiatingClassloader.InitializedStaticField> initializedStaticFields_TO;
+    private List<InitializedStaticField> initializedStaticFields_TO;
     
     
     /**
@@ -247,7 +248,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * 
      * Null if not in an object scope.
      */
-    private List<InstantiatingClassloader.InitializedInstanceField> initializedInstanceFields_O;
+    private List<InitializedInstanceField> initializedInstanceFields_O;
     private InstanceFields instanceFields;
     
     private class InstanceFields {
@@ -1970,7 +1971,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         final String table_name = method_name + Naming.HEAVY_X + "table";
         final String table_type = "com/sun/fortress/runtimeSystem/BAlongTree";
         
-        initializedStaticFields_TO.add(new InstantiatingClassloader.InitializedStaticField() {
+        initializedStaticFields_TO.add(new InitializedStaticField() {
 
             @Override
             public void forClinit(MethodVisitor my_mv) {
@@ -3535,7 +3536,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         /* Yuck, ought to allocate a new codegen here. */
         
-        initializedStaticFields_TO = new ArrayList<InstantiatingClassloader.InitializedStaticField>();
+        initializedStaticFields_TO = new ArrayList<InitializedStaticField>();
         
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
         cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
@@ -3548,7 +3549,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         if (isSingletonObject) {
             
-            initializedStaticFields_TO.add(new InstantiatingClassloader.InitializedStaticField() {
+            initializedStaticFields_TO.add(new InitializedStaticField() {
 
                 @Override
                 public void forClinit(MethodVisitor imv) {
@@ -3595,7 +3596,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // has different set of parameter variables in scope
         CodeGen initCodeGen = initializeInitMethod(params);
         
-        initCodeGen.initializedInstanceFields_O = new ArrayList<InstantiatingClassloader.InitializedInstanceField>();
+        initCodeGen.initializedInstanceFields_O = new ArrayList<InitializedInstanceField>();
 //        List<Binding> fieldsForEnv = new ArrayList<Binding>();
         initCodeGen.instanceFields = new InstanceFields();
 
@@ -3741,7 +3742,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param cnb
      */
     public void emitRttiField(final Naming.ClassNameBundle cnb) {
-        initializedStaticFields_TO.add(new InstantiatingClassloader.InitializedStaticField() {
+        initializedStaticFields_TO.add(new InitializedStaticField() {
 
             @Override
             public void forClinit(MethodVisitor mv) {
@@ -3798,7 +3799,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                            Naming.voidToVoid,
                                            null,
                                            null);
-        for (InstantiatingClassloader.InitializedStaticField isf : initializedStaticFields_TO) {
+        for (InitializedStaticField isf : initializedStaticFields_TO) {
             isf.forClinit(imv);
             cw.visitField(
                     ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
@@ -4339,7 +4340,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         dumpTraitMethodSigs(header.getDecls());
 
-        initializedStaticFields_TO = new ArrayList<InstantiatingClassloader.InitializedStaticField>();
+        initializedStaticFields_TO = new ArrayList<InitializedStaticField>();
         //no instance fields for traits
         
         emitRttiField(cnb);
@@ -4372,7 +4373,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         debug("Finished init method ", springBoardClass);
 
-        newcg.initializedStaticFields_TO = new ArrayList<InstantiatingClassloader.InitializedStaticField>();
+        newcg.initializedStaticFields_TO = new ArrayList<InitializedStaticField>();
 
         // Overloads will tell us which methods need forwarding,
         // but they don't yet.
