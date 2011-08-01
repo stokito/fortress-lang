@@ -11,9 +11,15 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
+import com.sun.fortress.runtimeSystem.Naming;
+
 public abstract class RTTI {
     
+    private static long snCount = 0;
+    
     final Class javaRep;
+    
+    private final long serialNumber;
     
     public boolean argExtendsThis(RTTI other) {
         return this.javaRep.isAssignableFrom( other.javaRep );
@@ -21,8 +27,21 @@ public abstract class RTTI {
     
     public RTTI(Class javaRep) {
         this.javaRep = javaRep;
+        this.serialNumber = snCount++;
     }
     
-    public int hashCode() { return  javaRep.hashCode(); }
+    public int hashCode() { return javaRep.hashCode(); }
+    
+    public String className() {
+        String className = javaRep.getCanonicalName();
+        String deMangle = Naming.demangleFortressIdentifier(className);
+        String noDots = Naming.dotToSep(deMangle);
+        return noDots;
+        
+    }
+    
+    public long getSN() {
+        return this.serialNumber;
+    }
     
 }

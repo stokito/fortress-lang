@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2010,2011 Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -13,6 +13,7 @@ package com.sun.fortress.compiler.nativeInterface;
 import com.sun.fortress.runtimeSystem.Naming;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -165,15 +166,32 @@ public class SignatureParser implements Opcodes {
 
   
 
-    public List<String> getJVMArguments() { return arguments;}
+    public List<String> getJVMArguments() { return Collections.unmodifiableList(arguments);}
     public String getJVMResult() {return result;}
-
-   
-        
+  
     String getSignature() {
         return signature;
     }
 
+    public String removeNthParameter(int i) {
+        StringBuilder ret = new StringBuilder("(");
+        for( int j = 0; j < this.arguments.size(); j++) 
+            if (i != j) ret.append(this.arguments.get(j));
+        ret.append(")");
+        ret.append(this.result);
+        return ret.toString();
+    }
+    
+    public String replaceNthParameter(int i, String newDesc) {
+        StringBuilder ret = new StringBuilder("(");
+        for( int j = 0; j < this.arguments.size(); j++) 
+            if (i != j) ret.append(this.arguments.get(j));
+            else ret.append(newDesc);
+        ret.append(")");
+        ret.append(this.result);
+        return ret.toString();
+    }
+    
     static void error(String s) {throw new RuntimeException("Bad Signature " + s);}
 
     public static int width(String oneParam) {

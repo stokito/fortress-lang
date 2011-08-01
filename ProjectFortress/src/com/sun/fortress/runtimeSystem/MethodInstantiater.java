@@ -109,22 +109,23 @@ public class MethodInstantiater implements MethodVisitor {
             } else if (stem.contains(Naming.ENVELOPE)  && stem.endsWith(Naming.ARROW_TAG)) {
             	stem = Naming.arrowRTTIclass(parameters.size());
             }
-            String javaClassDesc = Useful.substring(owner, 0, 1-FACTORY_SUFFIX_LENGTH);
-            // bug in getType, cannot cope with embedded semicolons!
-            mv.visitLdcInsn(Type.getType(Naming.mangleFortressDescriptor(Naming.internalToDesc(javaClassDesc))));
             
+            //recursive call
             for (String parameter : parameters) {
-                rttiReference(Naming.stemClassJavaName(parameter));
+                rttiReference(parameter);  
             }
-            String stem_rtti = Naming.stemClassJavaName(stem);
+            
+            //call the factory
+            String stem_rtti = Naming.stemClassToRTTIclass(stem);
             String fact_sig = Naming.rttiFactorySig(stem_rtti, parameters.size());
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, stem_rtti, "factory", fact_sig);
         } else {
-           
-        	if (owner.startsWith(Naming.SNOWMAN)) {
-            	owner = owner.replaceFirst(Naming.SNOWMAN, Naming.RT_VALUES_PKG + "FVoid"); 
+            //just get the field
+            String ownerRTTIc = Naming.stemClassToRTTIclass(owner);
+        	if (ownerRTTIc.startsWith(Naming.SNOWMAN)) {
+        	    ownerRTTIc = ownerRTTIc.replaceFirst(Naming.SNOWMAN, Naming.RT_VALUES_PKG + "FVoid"); 
             }
-        	mv.visitFieldInsn(Opcodes.GETSTATIC, owner, Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);
+        	mv.visitFieldInsn(Opcodes.GETSTATIC, ownerRTTIc, Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);
         }
     }
 
