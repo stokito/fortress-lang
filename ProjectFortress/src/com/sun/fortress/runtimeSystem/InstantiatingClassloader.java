@@ -15,10 +15,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 import java.util.jar.JarOutputStream;
 
@@ -29,7 +32,6 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
@@ -51,23 +53,7 @@ import com.sun.fortress.useful.VersionMismatch;
  */
 public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
-	public static final String IS_A = "isA";
-
-    abstract static public class InitializedStaticField {
-        abstract public void forClinit(MethodVisitor mv);
-    
-        abstract public String asmName();
-    
-        abstract public String asmSignature();
-    }
-    
-    abstract static public class InitializedInstanceField {
-        abstract public void forInit(MethodVisitor mv);
-    
-        abstract public String asmName();
-    
-        abstract public String asmSignature();
-    }
+     public static final String IS_A = "isA";
 
     private static final String CAST_TO = "castTo";
     public static final String TUPLE_TYPED_ELT_PFX = "e";
@@ -78,6 +64,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     
     public static final String ABSTRACT_ = "Abstract";
     public static final String CONCRETE_ = "Concrete";
+    public static final String UNION = "Union";
     
     public static final String ABSTRACT_ARROW = ABSTRACT_ + Naming.ARROW_TAG;
     public static final String WRAPPED_ARROW = "Wrapped" + Naming.ARROW_TAG;
@@ -90,6 +77,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     
     // TODO make this depends on properties/env w/o dragging in all of the world.
+    private static final boolean LOG_LOAD_CHOICES = false;
     private static final boolean LOG_LOADS = false;
     private static final boolean LOG_FUNCTION_EXPANSION = false;
     public final static String SAVE_EXPANDED_DIR = ProjectProperties.getDirectory("fortress.bytecodes.expanded.directory", null);
@@ -131,8 +119,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     private InstantiatingClassloader(ClassLoader parent) {
         super(parent);
         // System.err.println("I am the one true class loader!");
-        if (ONLY != null)
-            throw new Error();
+        String p = System.getProperty("I_can_haz_classloader");
+        if (p != null)
+            new Error("Second classloader detected!!");
+        System.setProperty("I_can_haz_classloader", "initialized");
     }
 
     /**
@@ -190,6 +180,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         Class clazz;
    
         if (history.contains(name)) { 
+            if (LOG_LOAD_CHOICES)
+                System.err.println("Cached load for " + name);
             Class c = this.findLoadedClass(name);
             return c;
         }
@@ -205,9 +197,16 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         //     throw new Error("HEY!!! LOADING LocalRandom!!!!!");
         // }
         if (_classLoadChecker.mustUseSystemLoader(name)) {
+            if (LOG_LOAD_CHOICES)
+                System.err.println("System loader for " + name);
             clazz = findSystemClass(name);
         } else {
             history.add(name);
+            if (LOG_LOAD_CHOICES)
+                System.err.println("Custom load for " + name);
+            if (name.equals("com.sun.fortress.runtimeSystem.InstantiatingClassloader"))
+                 new Error(); // why are we here?
+            
             byte[] classData = null;
             try {
                 boolean isClosure = name.contains(Naming.ENVELOPE);
@@ -272,6 +271,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         classData = instantiateAnyTuple(dename, parameters);
                     } else if (stem.equals(ANY_CONCRETE_TUPLE)) {
                         classData = instantiateAnyConcreteTuple(dename, parameters);
+                    } else if (stem.equals(UNION)) {
+                        classData = instantiateUnion(dename, parameters);
                     } else {
                         try {
                         ArrayList<String> sargs = new ArrayList<String>();
@@ -653,25 +654,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // Begin with a class
         cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER, name, null, superClass, null);
 
-        statics.add(new InitializedStaticField() {
-
-            @Override
-            public void forClinit(MethodVisitor init_mv) {
-                init_mv.visitTypeInsn(NEW, final_name);
-                init_mv.visitInsn(DUP);
-                init_mv.visitMethodInsn(INVOKESPECIAL, final_name, "<init>", "()V");
-                init_mv.visitFieldInsn(PUTSTATIC, final_name, Naming.CLOSURE_FIELD_NAME, field_desc);
-            }
-
-            @Override
-            public String asmName() {
-                return Naming.CLOSURE_FIELD_NAME;
-            }
-
-            @Override
-            public String asmSignature() {
-                return field_desc;
-            }});
+        statics.add(new InitializedStaticField.StaticForClosureField(field_desc, final_name));
         
         //RTTI field
 //        statics.add(new InitializedStaticField() {
@@ -1563,45 +1546,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 		ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
 		if (!parameters.contains("java/lang/Object")) {
 		    
-		    isf_list.add(new InitializedStaticField() {
-		
-		        @Override
-		        public void forClinit(MethodVisitor init_mv) {
-		        	MethodInstantiater mi = new MethodInstantiater(init_mv, null, null);
-		        	mi.rttiReference(final_name + Naming.RTTI_CLASS_SUFFIX);
-		        	init_mv.visitFieldInsn(PUTSTATIC, final_name, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
-		        }
-		
-		        @Override
-		        public String asmName() {
-		            return Naming.RTTI_FIELD;
-		        }
-		
-		        @Override
-		        public String asmSignature() {
-		            return Naming.RTTI_CONTAINER_DESC;
-		        }});
+		    isf_list.add(new InitializedStaticField.StaticForUsualRttiField(final_name));
         } else {
-		    isf_list.add(new InitializedStaticField() {
-				
-		        @Override
-		        public void forClinit(MethodVisitor init_mv) {
-		        	init_mv.visitTypeInsn(NEW, Naming.JAVA_RTTI_CONTAINER_TYPE);
-		        	init_mv.visitInsn(DUP);
-		        	init_mv.visitLdcInsn(Type.getType(Naming.mangleFortressDescriptor("Ljava/lang/Object;")));
-		        	init_mv.visitMethodInsn(INVOKESPECIAL, Naming.JAVA_RTTI_CONTAINER_TYPE, "<init>", "(Ljava/lang/Class;)V");
-		        	init_mv.visitFieldInsn(PUTSTATIC, final_name, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
-		        }
-		
-		        @Override
-		        public String asmName() {
-		            return Naming.RTTI_FIELD;
-		        }
-		
-		        @Override
-		        public String asmSignature() {
-		            return Naming.RTTI_CONTAINER_DESC;
-		        }});
+		    isf_list.add(new InitializedStaticField.StaticForJLOParameterizedRttiField(final_name));
 		}
 		cw.visitEnd();
 //      //RTTI getter
@@ -1942,7 +1889,71 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return cw.toByteArray();
 
     }
+   
+    /**
+     * A union type.  Iterate over the members of the union
+     * 
+     * @param dename
+     * @param parameters
+     * @return
+     */
+    private static byte[] instantiateUnion(String dename, List<String> parameters) {
+        /*
+         */
+        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+ 
+        final int n = parameters.size();
+        String[] superInterfaces = {  };
+        
+        cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC, dename, null,
+                 "java/lang/Object", superInterfaces);
+
+        HashSet<Class> intersected_tc_ifs = null;
+        for (String member: parameters) {
+            String for_loading = Naming.sepToDot(Naming.mangleFortressIdentifier(member));
+            Class cl = null;
+            try {
+                cl = Class.forName(for_loading);
+            } catch (ClassNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            HashSet<Class> tc_ifs = new HashSet<Class> ();
+            addTransitiveImplements(cl, tc_ifs);
+            if (intersected_tc_ifs == null)
+                intersected_tc_ifs = tc_ifs;
+            else
+                intersected_tc_ifs.retainAll(tc_ifs);
+        }
+
+        for (Class an_if : intersected_tc_ifs) {
+            // emit a forwarding method for each method in an_if
+            if (an_if.isInterface()) {
+                Method[] methods = an_if.getDeclaredMethods();
+                for (Method m : methods) {
+                    String nm = m.getName();
+                    Class[] pts = m.getParameterTypes();
+                    Class rt = m.getReturnType();
+                }
+            }
+            
+        }
+        
+
+        cw.visitEnd();
+
+        return cw.toByteArray();
+    }
     
+    static void addTransitiveImplements(Class cl, Set<Class> tc_ifs) {
+        tc_ifs.add(cl);
+        Class[] ifs = cl.getInterfaces();
+
+        for (Class an_if : ifs) 
+            if (! tc_ifs.contains(an_if)) 
+                addTransitiveImplements(an_if, tc_ifs);
+    }
+
     private static byte[] instantiateTuple(String dename, List<String> parameters) {
         /*
          * interface implements AnyTuple[\ N \]
@@ -2086,26 +2097,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     null,
                     null);
             //taken from codegen.emitRttiField	
-            InstantiatingClassloader.InitializedStaticField isf = new InstantiatingClassloader.InitializedStaticField() {
-
-                @Override
-                public void forClinit(MethodVisitor mv) {
-                	MethodInstantiater mi = new MethodInstantiater(mv, null, null);
-                	mi.rttiReference(classname + Naming.RTTI_CLASS_SUFFIX);	
-                    mv.visitFieldInsn(PUTSTATIC, classname, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
-                }
-
-                @Override
-                public String asmName() {
-                    return Naming.RTTI_FIELD;
-                }
-
-                @Override
-                public String asmSignature() {
-                    return Naming.RTTI_CONTAINER_DESC;
-                }
-                
-            };
+            InitializedStaticField isf = new InitializedStaticField.StaticForRttiFieldOfTuple(classname);
             isf.forClinit(imv);
             cw.visitField(ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
             		isf.asmName(), isf.asmSignature(),
@@ -2569,14 +2561,16 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         mv.visitTypeInsn(NEW, rttiClassName);
         mv.visitInsn(DUP);
         
-        // 3) create class for this objet
+        // 3) create class for this object
         String stem = Naming.rttiClassToBaseClass(rttiClassName);
         mv.visitLdcInsn(stem);
         InstantiatingClassloader.pushArgs(mv, 0, l);
         String getClass_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/String",
                 l, Naming.RTTI_CONTAINER_TYPE, Naming.internalToDesc("java/lang/Class"));
+        //(mv, "before getRTTIclass");
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "getRTTIclass", getClass_sig);
-        
+        //eep(mv, "after getRTTIclass");
+
         // 4) init RTTI object
         InstantiatingClassloader.pushArgs(mv, 0, l);
         mv.visitMethodInsn(INVOKESPECIAL, rttiClassName,
@@ -2657,8 +2651,21 @@ class ClassLoadChecker {
         // If name begins with java., must use System loader. This
         // is regardless of the security manager.
         // javax. too, though this is not documented
-        if (name.startsWith("java.") || name.startsWith("javax.")
-            || name.startsWith("sun.") || (name.startsWith("com.sun.") && ! name.startsWith("com.sun.fortress."))) {
+        if (name.startsWith("java.")
+                || name.startsWith("javax.")
+            || name.startsWith("jsr166y.")
+            || name.startsWith("sun.")
+            || name.startsWith("com.sun.fortress.runtimeSystem.InitializedStaticField")
+            || name.startsWith("com.sun.fortress.compiler.codegen.ManglingClassWriter")
+            || name.startsWith("com.sun.fortress.repository.ProjectProperties")
+            || name.startsWith("com.sun.fortress.useful.")
+            || name.startsWith("org.objectweb.asm.")
+            || name.startsWith("com.sun.fortress.compiler.runtimeValues.RTTI") 
+            || name.startsWith("com.sun.fortress.compiler.runtimeValues.ArrowRTTI") 
+            || name.startsWith("com.sun.fortress.compiler.runtimeValues.JavaRTTI") 
+            || name.startsWith("com.sun.fortress.runtimeSystem.RttiTupleMap") 
+            || name.startsWith("com.sun.fortress.runtimeSystem.Naming") 
+            || (name.startsWith("com.sun.") && ! name.startsWith("com.sun.fortress."))) {
             return true;
         }
 
