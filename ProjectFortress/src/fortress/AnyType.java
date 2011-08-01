@@ -13,6 +13,7 @@ package fortress;
 
 import com.sun.fortress.compiler.runtimeValues.FValue;
 import com.sun.fortress.compiler.runtimeValues.RTTI;
+import com.sun.fortress.runtimeSystem.Naming;
 
 public class AnyType {
     public static interface Any {
@@ -22,7 +23,14 @@ public class AnyType {
             public RTTIc(Class javaRep) {
                 super(javaRep);
             }
-
+            
+            public String className() {
+                String className = "fortress.AnyType$Any";
+                String deMangle = Naming.demangleFortressIdentifier(className);
+                String noDots = Naming.dotToSep(deMangle);
+                return noDots;  
+            } 
+            
             public static final RTTI ONLY = new RTTIc(AnyType.Any.class);
         }
         public static interface RTTIi { }

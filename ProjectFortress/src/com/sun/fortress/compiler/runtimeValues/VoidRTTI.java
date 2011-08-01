@@ -1,5 +1,7 @@
 package com.sun.fortress.compiler.runtimeValues;
 
+import com.sun.fortress.runtimeSystem.Naming;
+
 public class VoidRTTI extends RTTI {
 	
 	public static final RTTI ONLY = new VoidRTTI(VoidRTTI.class);
@@ -12,5 +14,9 @@ public class VoidRTTI extends RTTI {
         if (other instanceof VoidRTTI) return true;
 		return false;
     }
+	
+	public String className() {
+	    return Naming.SNOWMAN;
+	}
 
 }

@@ -50,6 +50,7 @@ import scala.collection.JavaConversions;
 
 abstract public class OverloadSet implements Comparable<OverloadSet> {
     
+    
     static class POType extends TopSortItemImpl<Type> {
         public POType(Type x) {
             super(x);
@@ -804,6 +805,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          *  1 = co, 0 = in, -1 = contra
          */
         final int variance;
+        public static final int COVARIANT = 1;
+        public static final int INVARIANT = 0;
+        public static final int CONTRAVARIANT = -1;
+        
         
         final Set<String> variantGenericsContained;
         final Set<String> invariantGenericsContained;
@@ -836,15 +841,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
              *  result of static analysis, and runtime influence is superfluous.
              *  This thins the set of static parameters to those that are
              *  truly variant.
+             *  
+             *  The above is not true as example other_compiler_tests/IGO1.fss shows
              */
-            variantGenericsContained.removeAll(top_level_invariants);
             
-            if (variantGenericsContained.size() == 0) {
+            if (invariantGenericsContained.size() == 0 && variantGenericsContained.size() == 0) {
                 /* easy case, no inference */
-                if (top_level_invariants.size() > 0)
-                    emitInstanceOfNG(mv, if_fail, value_cast); // helpful for debugging
-                else 
-                    emitInstanceOfNG(mv, if_fail, value_cast);
+                emitInstanceOfNG(mv, if_fail, value_cast); // helpful for debugging
 
             } else { // has generic
                 
@@ -860,52 +863,38 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     mv.visitVarInsn(Opcodes.ASTORE, localIndex);
 
                 } else {
-                    /*
-                     * DUP TOS
-                     * INSTANCEOF stem
-                     * IFNE ahead
-                     * POP
-                     * BR if_fail
-                     * ahead:
-                     * CHECKCAST stem
-                     * ST localIndex
-                     * for each parameter
-                     * ...
-                     */
-
-
+                    //RTTI on the top of the stack
+                    String RTTIinterface = stem + Naming.RTTI_INTERFACE_SUFFIX;
                     Label ahead = new Label();
+                    
+                    //DUP RTTI
                     mv.visitInsn(Opcodes.DUP);
-                    if (stem.startsWith("Arrow")) { //use isA instead
-                    	mv.visitMethodInsn(Opcodes.INVOKESTATIC, stem, InstantiatingClassloader.IS_A, "(Ljava/lang/Object;)Z");
-                    	//mv.visitTypeInsn(Opcodes.INSTANCEOF, stem);
-                    } else {
-                    	mv.visitTypeInsn(Opcodes.INSTANCEOF, stem);
-                    }
+                    
+                    //check that the RTTI matches what we're looking for
+                    mv.visitTypeInsn(Opcodes.INSTANCEOF, RTTIinterface);
+                    
+                    //if not, pop and try the next match
                     mv.visitJumpInsn(Opcodes.IFNE, ahead);
                     mv.visitInsn(Opcodes.POP);
                     mv.visitJumpInsn(Opcodes.GOTO, if_fail);
+                    
+                    //if so, store the RTTI for possible inferences
                     mv.visitLabel(ahead);
-                    mv.visitTypeInsn(Opcodes.CHECKCAST, stem);
+                    mv.visitTypeInsn(Opcodes.CHECKCAST, RTTIinterface);
                     mv.visitVarInsn(Opcodes.ASTORE, localIndex);
+                    
+                    //recursive check on static parameters
                     int i = Naming.STATIC_PARAMETER_ORIGIN;
                     for (TypeStructure p : staticParameters) {
                         mv.visitVarInsn(Opcodes.ALOAD, localIndex);
                         String method_name =
                             Naming.staticParameterGetterName(stem, i);
-                        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, stem, method_name, Naming.STATIC_PARAMETER_GETTER_SIG);
+                        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, RTTIinterface, method_name, Naming.STATIC_PARAMETER_GETTER_SIG);
                         // get parameter
                         p.emitInstanceOf(mv, if_fail, false, top_level_invariants);
                         i++;
                     }
                 }
-
-                InstantiatingClassloader.fail(mv, "Unimplemented dispatch case");
-                
-                // throw new CompilerError("unimplemented overloaded dispatch case");
-
-                // problem -- value instanceof, vs type instanceof
-                // normalize by getting type initially.
             }
         }
 
@@ -1045,7 +1034,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             
             /* BECAUSE OF STATIC CHECKING, an invariant use of a static
              * parameter guarantees that we know the type -- no inference
-             * will be necessary. (do we really believe this?)
+             * will be necessary. (do we really believe this?) - NO WE DON"T - rip this out I think
              * 
              * Removing invariants from the set gives us an approximation of
              * what we will need to dynamically compute, or not.  Other context
@@ -1059,8 +1048,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             if (temp_invar.size() > 0) {
                 invariantGenericsContained = temp_invar;
             }
-            if (! hasGeneric)
-                next_index = storeAtIndex+1;
+            //if (! hasGeneric) - KBN - should not be reseting next index counter
+            //   next_index = storeAtIndex+1;
             return new TypeStructure(fullname, stem, parameters, storeAtIndex, next_index, variance, invariantGenericsContained, variantGenericsContained, isObject);
         } else if (isVarType) {
             TypeStructure x = new TypeStructure(fullname, stem, parameters, storeAtIndex, storeAtIndex+1, variance, invariantGenericsContained, variantGenericsContained, isObject);
@@ -1142,10 +1131,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             TaggedFunctionName f = specificDispatchOrder[i];
             TypeStructure[] f_type_structures = type_structures[i];                
             Label lookahead = null;
+            boolean infer = false;
 
             if (i < l-1) {
                 /* Trust the static checker; no need to verify
                  * applicability of the last one.
+                 * Also, static parameters will be provided by static checker for the last one
                  */
                 // Will need lookahead for the next one.
                 lookahead = new Label();
@@ -1162,25 +1153,151 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     if (j != selfIndex()) {
                         mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
                         f_type_structures[j].emitInstanceOf(mv, lookahead, true, top_level_invariants);
+                        if (f_type_structures[j].invariantGenericsContained.size() > 0 ||
+                            f_type_structures[j].variantGenericsContained.size() > 0)
+                                infer = true;
                     }
                 }
             }
-            // Come here if we have successfully passed the test.
-            // generateLeafCall(mv, firstArgIndex, f);
-            loadThisForMethods(mv);
             
-            for (int j = 0; j < f_type_structures.length; j++) {
-                // Load actual parameter
-                if (j != selfIndex()) {
-                mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
-                InstantiatingClassloader.generalizedCastTo(mv, 
-                        f_type_structures[j].fullname);
+            //Do I need to infer any static parameters at runtime?
+            if (infer) {
+                List<StaticParam> staticParams = f.getF().staticParameters();
+                @SuppressWarnings("unchecked")
+                MultiMap<String,TypeStructure> staticTss = spmaps[i];
+                
+                //load template name
+                String arrow = NamingCzar.makeArrowDescriptor(f.getParameters(), f.getReturnType(),f.tagA);
+                String owner = Naming.dotToSep(f.tagA.getText()) + Naming.GEAR + "$" + f.tagF.name().getText() +
+                                Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD + Naming.ENVELOPE + "$" + Naming.HEAVY_X + arrow;
+                
+                mv.visitLdcInsn(owner);
+                
+                //infer and load RTTIs
+                for (StaticParam sp : staticParams) {
+                    Set<TypeStructure> instances = staticTss.get(sp.getName().getText());
+                    if (instances.size() > 1) {
+                        
+                        //sort static parameters by their variance and put into
+                        //arrays using their local variable number
+                        List<Integer> invariantInstances = new ArrayList<Integer>();
+                        List<Integer> covariantInstances = new ArrayList<Integer>();
+                        List<Integer> contravariantInstances = new ArrayList<Integer>();
+                        for (TypeStructure ts: instances) {
+                            switch (ts.variance) {
+                            case TypeStructure.INVARIANT:
+                                  invariantInstances.add(ts.localIndex);
+                                  break;
+                            case TypeStructure.CONTRAVARIANT:
+                                  contravariantInstances.add(ts.localIndex);
+                                  break;
+                            case TypeStructure.COVARIANT:
+                                  covariantInstances.add(ts.localIndex);
+                                  break;
+                            default:
+                                throw new CompilerError("Unexpected Variance on TypeStructure during " +
+                                		"generic instantiation analysis for overload dispatch");
+                            }
+                        }
+                        
+                        // if any invariant instances, we must use that RTTI and check that 
+                        //1) any other invariant instances are the same type (each subtypes the other)
+                        //2) any covariant instances are subtypes of the invariant instance
+                        //3) any contravariant instances are supertypes of the invariant instance
+                        if (invariantInstances.size() > 0) {
+                            Label popLabel = new Label();
+                            Label proceedLabel = new Label();
+                            
+                            
+                            int RTTItoUse = invariantInstances.get(0);
+                            for (int k = 1; k < invariantInstances.size(); k++) {
+                                int RTTIcompare = invariantInstances.get(k);
+                                mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
+                                mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
+                                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
+                                mv.visitJumpInsn(Opcodes.IFEQ, popLabel);
+                                mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
+                                mv.visitVarInsn(Opcodes.ALOAD, RTTItoUse);
+                                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
+                                mv.visitJumpInsn(Opcodes.IFEQ, popLabel);
+                            }
+                            for (int RTTIcompare : covariantInstances) {
+                                mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
+                                mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
+                                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
+                                mv.visitJumpInsn(Opcodes.IFEQ, popLabel);
+                            }
+                            for (int RTTIcompare : contravariantInstances) {
+                                mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
+                                mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
+                                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
+                                mv.visitJumpInsn(Opcodes.IFEQ, popLabel);
+                            }
+                            
+                            //checks out, so load the RTTI we will use
+                            mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
+                            mv.visitJumpInsn(Opcodes.GOTO, proceedLabel);
+                            mv.visitLabel(popLabel);
+                            mv.visitInsn(Opcodes.POP);
+                            mv.visitJumpInsn(Opcodes.GOTO, failLabel);
+                            mv.visitLabel(proceedLabel);
+                            
+                        } else { //otherwise, we might need to do inference which is not implemented yet
+                            throw new CompilerError("non-invariant inference for multiple instances of static parameters not implemented");
+                        }
+                    } else if (instances.size() == 1) { //easy case
+                        int offset = ((TypeStructure) instances.toArray()[0]).localIndex;
+                        mv.visitVarInsn(Opcodes.ALOAD,offset);
+                    }
                 }
+                
+                //load the function
+                String ic_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes(NamingCzar.internalString, staticParams.size(), 
+                        Naming.RTTI_CONTAINER_TYPE, 
+                        Naming.internalToDesc(NamingCzar.internalObject));
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "loadClosureClass", ic_sig);
+                
+                //cast to object arrow
+                int numParams = f.getParameters().size();
+                String objectAbstractArrow = objectAbstractArrowTypeForNParams(numParams);
+                InstantiatingClassloader.generalizedCastTo(mv, objectAbstractArrow);
+                
+                
+                //load parameters
+                for (int j = 0; j < f_type_structures.length; j++) {
+                    // Load actual parameter
+                    if (j != selfIndex()) {
+                        mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
+                        //no cast needed here - done by apply method
+                    }
+                }
+                
+                //call apply method
+                String objectArrow = objectArrowTypeForNParams(numParams);
+                String applySig = InstantiatingClassloader.jvmSignatureForNTypes(numParams, NamingCzar.internalObject, Naming.internalToDesc(NamingCzar.internalObject));
+                mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, objectArrow, Naming.APPLY_METHOD, applySig);
+                
+                //cast to correct return type
+                String returnType = NamingCzar.makeBoxedTypeName(f.getReturnType(),f.tagA);
+                InstantiatingClassloader.generalizedCastTo(mv, returnType);
+            } else {
+            
+                //no inferences needed
+                loadThisForMethods(mv);
+    
+                for (int j = 0; j < f_type_structures.length; j++) {
+                    // Load actual parameter
+                    if (j != selfIndex()) {
+                        mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
+                        InstantiatingClassloader.generalizedCastTo(mv, f_type_structures[j].fullname);
+                    }
+                }
+           
+                String sig = jvmSignatureFor(f);
+
+                invokeParticularMethod(mv, f, sig);
             }
             
-            String sig = jvmSignatureFor(f);
-
-            invokeParticularMethod(mv, f, sig);
             mv.visitInsn(Opcodes.ARETURN);
 
             if (lookahead != null)
@@ -1188,9 +1305,25 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
+    private String objectAbstractArrowTypeForNParams(int numParams) {
+        StringBuilder ret = new StringBuilder("AbstractArrow" + Naming.LEFT_OXFORD);
+        for (int i = 0; i < numParams; i++) ret.append(NamingCzar.internalObject + ";"); // params
+        ret.append(NamingCzar.internalObject + Naming.RIGHT_OXFORD); // return
+        return ret.toString();
+    }
+    
+    private String objectArrowTypeForNParams(int numParams) {
+        StringBuilder ret = new StringBuilder("Arrow" + Naming.LEFT_OXFORD);
+        for (int i = 0; i < numParams; i++) ret.append(NamingCzar.internalObject + ";"); // params
+        ret.append(NamingCzar.internalObject + Naming.RIGHT_OXFORD); // return
+        return ret.toString();
+    }
+    
     protected void loadThisForMethods(MethodVisitor mv) {
         // default does nothing
     }
+    
+    
 
     /**
      * Invoke f (it's a forwarding call) with casts inserted as necessary.
