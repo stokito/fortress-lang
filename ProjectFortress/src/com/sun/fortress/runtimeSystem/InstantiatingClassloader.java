@@ -15,16 +15,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.jar.JarOutputStream;
 
-import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -36,16 +33,13 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
-import com.sun.fortress.compiler.codegen.ManglingMethodVisitor;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
-import com.sun.fortress.nodes.Id;
+import com.sun.fortress.compiler.runtimeValues.RTTI;
 import com.sun.fortress.repository.ProjectProperties;
-
 import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.FnVoid;
 import com.sun.fortress.useful.FnVoidVoid;
 import com.sun.fortress.useful.Pair;
-import com.sun.fortress.useful.ProjectedList;
 import com.sun.fortress.useful.Triple;
 import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.VersionMismatch;
@@ -141,10 +135,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             throw new Error();
     }
 
-    public static String dotToSlash(String s) {
-        return s.replace('.', '/');
-    }
-
     /**
      * Gets the bytes for a "resource". Resources can include classfiles on the
      * classpath, which is handy.
@@ -165,7 +155,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // file, this works perfectly. It will find the class in any place in
         // the classpath, and it doesn't force us to search the classpath
         // ourselves.
-        String fileName = dotToSlash(className) + "." + suffix;
+        String fileName = Naming.dotToSep(className) + "." + suffix;
 
         InputStream origStream = getResourceAsStream(fileName);
         if (origStream == null) {
@@ -198,6 +188,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     protected Class loadClass(String name, boolean resolve)
         throws ClassNotFoundException {
         Class clazz;
+   
+        if (history.contains(name)) { 
+            Class c = this.findLoadedClass(name);
+            return c;
+        }
 
         /*
          * We want to actually load the class ourselves, if security allows us
@@ -306,7 +301,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 }
                 
                 if (expanded && SAVE_EXPANDED_JAR != null) {
+
                     ByteCodeWriter.writeJarredClass(SAVE_EXPANDED_JAR, name , classData);
+
                 }
                 
                 clazz = defineClass(name, classData, 0, classData.length);
@@ -429,6 +426,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return Naming.mangleFortressIdentifier(s);
     }
 
+    //generic method in non-generic trait
     static public Object findGenericMethodClosure(long l, BAlongTree t, String tcn, String sig) {
         if (LOG_LOADS)
             System.err.println("findGenericMethodClosure("+l+", t, " + tcn +", " + sig +")");
@@ -445,6 +443,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return loadClosureClass(l, t, class_we_want);
     }
 
+    //generic method in generic trait
     static public Object findGenericMethodClosure(long l, BAlongTree t,
             String tcn, String sig, String trait_sig) {
         if (LOG_LOADS)
@@ -483,19 +482,70 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 return o;
             }
         } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (InstantiationException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IllegalAccessException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         
         throw new Error("Not supposed to happen; some template class must be missing.");
     }
+    
+    public static Object loadClosureClass(String stem, RTTI[] params) {
+        StringBuilder paramList = new StringBuilder(Naming.LEFT_OXFORD);
+        for (int i = 0; i < params.length-1; i++) paramList.append(params[i].className() + ",");
+        paramList.append(params[params.length-1].className() + Naming.RIGHT_OXFORD);
+        int insertLoc = stem.indexOf(Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD);
+        String className = stem.substring(0,insertLoc) + paramList.toString() + stem.substring(insertLoc+2);
+        String class_we_want = Naming.sepToDot(Naming.mangleFortressIdentifier(className));
+        Class cl;
+        try {
+            cl = Class.forName(class_we_want); //ONLY.loadClass(Naming.sepToDot(class_we_want), false);
+            return cl.newInstance();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            throw new RuntimeException("class " + class_we_want + " failed to load");
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        
+        throw new Error("Not supposed to happen; some template class must be missing.");
+    }
+    
+    public static Object loadClosureClass(String stem, RTTI param1) {
+        RTTI[] params = { param1 };
+        Object cclass = loadClosureClass(stem, params); 
+        return cclass;
+    }
 
+    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2) {
+        RTTI[] params = { param1, param2 };
+        return loadClosureClass(stem, params);
+    }
+
+    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2, RTTI param3) {
+        RTTI[] params = { param1, param2, param3 };
+        return loadClosureClass(stem, params);
+    }
+
+    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4) {
+        RTTI[] params = { param1, param2, param3, param4 };
+        return loadClosureClass(stem, params);
+    }
+
+    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5) {
+        RTTI[] params = { param1, param2, param3, param4, param5 };
+        return loadClosureClass(stem, params);
+    }
+
+    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5, RTTI param6) {
+        RTTI[] params = { param1, param2, param3, param4, param5, param6 };
+        return loadClosureClass(stem, params);
+    }
+    
     private static byte[] instantiateClosure(String name) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
 
@@ -872,12 +922,21 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
          System.err.println(s);
      }
      
+     public static void eep(MethodVisitor mv) {
+         mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "eep", "(Ljava/lang/Throwable;)V");
+     } 
+
      public static void fail(MethodVisitor mv, String s) {
          System.err.println("Warning, emitting fail case for '" + s + "'");
          mv.visitLdcInsn(s);
          mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "fail", "(Ljava/lang/String;)Ljava/lang/Error;");
          mv.visitInsn(ATHROW);
      }     
+
+     public static void eep(Throwable t) {
+         t.printStackTrace();
+
+     }
      
      static Error error(String s) {
          return new Error(s);
@@ -2392,7 +2451,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 Naming.STATIC_PARAMETER_GETTER_SIG, null, null);
         
         mv.visitVarInsn(ALOAD, 0);
-        mv.visitFieldInsn(GETFIELD, Naming.stemClassJavaName(stem_name), static_parameter_name, Naming.RTTI_CONTAINER_DESC);
+        mv.visitFieldInsn(GETFIELD, Naming.stemClassToRTTIclass(stem_name), static_parameter_name, Naming.RTTI_CONTAINER_DESC);
     
         
         areturnEpilogue(mv);
@@ -2487,26 +2546,42 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 "DICTIONARY", Naming.internalToDesc(RTTI_MAP_NAME));                
         // push args
         int l = sparams_size;
-        InstantiatingClassloader.pushArgs(mv, 1, l);
+        InstantiatingClassloader.pushArgs(mv, 0, l);
         // invoke Dictionary.get
         mv.visitMethodInsn(INVOKEVIRTUAL, RTTI_MAP_NAME, "get", get_sig);
         Label not_null = new Label();
         mv.visitInsn(DUP);
         mv.visitJumpInsn(IFNONNULL, not_null);
         mv.visitInsn(POP); // discard dup'd null
-        // doing it all on the stack -- first push the dictionary,
-        // then push the args, then construct the object, then invoke
-        // putIfNew
+        // doing it all on the stack -- 
+        // 1) first push the dictionary and args 
+        // 2) create new RTTI object
+        // 3) push args again and create the class for this object
+        // 4) push the args again to init RTTI object
+        // 5) add to dictionary
+        
+        //1)
         mv.visitFieldInsn(GETSTATIC, rttiClassName,
                 "DICTIONARY", Naming.internalToDesc(RTTI_MAP_NAME));                
-        InstantiatingClassloader.pushArgs(mv, 1, l);
-        // invoke constructor
+        InstantiatingClassloader.pushArgs(mv, 0, l);
+
+        // 2) invoke constructor
         mv.visitTypeInsn(NEW, rttiClassName);
         mv.visitInsn(DUP);
-        InstantiatingClassloader.pushArgs(mv, 0, l+1);
+        
+        // 3) create class for this objet
+        String stem = Naming.rttiClassToBaseClass(rttiClassName);
+        mv.visitLdcInsn(stem);
+        InstantiatingClassloader.pushArgs(mv, 0, l);
+        String getClass_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/String",
+                l, Naming.RTTI_CONTAINER_TYPE, Naming.internalToDesc("java/lang/Class"));
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "getRTTIclass", getClass_sig);
+        
+        // 4) init RTTI object
+        InstantiatingClassloader.pushArgs(mv, 0, l);
         mv.visitMethodInsn(INVOKESPECIAL, rttiClassName,
                 "<init>", init_sig);
-        // pass it through the dictionary
+        // 5) add to dictionary
         mv.visitMethodInsn(INVOKEVIRTUAL, RTTI_MAP_NAME,
                 "putIfNew", put_sig);
 
@@ -2516,7 +2591,58 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
         mv.visitEnd();
     }
+    
+    static public Class getRTTIclass(String stem, RTTI[] params) {
+  
+        StringBuilder classNameBuf = new StringBuilder(stem + Naming.LEFT_OXFORD);
+        for (int i = 0; i < params.length - 1; i++) {
+            classNameBuf.append(params[i].className() + ";");
+        }
+        classNameBuf.append(params[params.length-1].className() + Naming.RIGHT_OXFORD);
+        
+        String mangledClassName = Naming.mangleFortressIdentifier(classNameBuf.toString());
+        String mangledDots = Naming.sepToDot(mangledClassName);
+        
+        try {
+            return Class.forName(mangledDots); //ONLY.loadClass(Naming.sepToDot(mangledClassName), false);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            throw new RuntimeException("class " + mangledClassName.toString() + " failed to load");
+        }
+    }
+    
+    static public Class getRTTIclass(String stem, RTTI param1) {
+        RTTI[] params = { param1 };
+        return getRTTIclass(stem, params);
+    }
+    
+    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2) {
+        RTTI[] params = { param1, param2 };
+        return getRTTIclass(stem, params);
+    }
+    
+    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2, RTTI param3) {
+        RTTI[] params = { param1, param2, param3 };
+        return getRTTIclass(stem, params);
+    }
+    
+    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4) {
+        RTTI[] params = { param1, param2, param3, param4 };
+        return getRTTIclass(stem, params);
+    }
+    
+    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5) {
+        RTTI[] params = { param1, param2, param3, param4, param5 };
+        return getRTTIclass(stem, params);
+    }
+
+    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5, RTTI param6) {
+        RTTI[] params = { param1, param2, param3, param4, param5, param6 };
+        return getRTTIclass(stem, params);
+    }
 }
+
+
 
 /** Figures out whether a class can be loaded by a custom class loader or not. */
 class ClassLoadChecker {

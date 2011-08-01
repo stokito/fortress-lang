@@ -10,6 +10,8 @@
 ******************************************************************************/
 package com.sun.fortress.compiler.runtimeValues;
 
+import com.sun.fortress.runtimeSystem.Naming;
+
 public abstract class ArrowRTTI extends RTTI {
 
 	 final RTTI[] inputsRTTI;
@@ -23,9 +25,9 @@ public abstract class ArrowRTTI extends RTTI {
 			 this.outputRTTI = params[params.length-1];
 		 } else { //TODO: when we know how to handle void types, we can put something here, or bomb, or something
 			 if (params.length == 1) this.outputRTTI = params[0];
-			 else this.outputRTTI = null;
+			 else this.outputRTTI = VoidRTTI.ONLY;
 			 
-			 this.inputsRTTI = null;
+			 this.inputsRTTI = new RTTI[0];
 		 }
 	 }
 	 
@@ -55,4 +57,12 @@ public abstract class ArrowRTTI extends RTTI {
 	     return true;
 	 }
 	
+	 public String className() {
+	     StringBuilder ret = new StringBuilder("AbstractArrow" + Naming.LEFT_OXFORD);
+	     for (RTTI input : this.inputsRTTI)
+	         ret.append(input.className() + ";");
+	     ret.append(outputRTTI.className() + Naming.RIGHT_OXFORD);
+	     return ret.toString();
+	 }
+	 
 }
