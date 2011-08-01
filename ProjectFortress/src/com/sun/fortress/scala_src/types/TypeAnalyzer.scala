@@ -55,7 +55,7 @@ import com.sun.fortress.useful.NI
 class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLattice[Type]{
   
   private final val debugSubtype = ProjectProperties.getBoolean("fortress.debug.analyzer.subtype", false)
-  private final val cacheSubtypes = ProjectProperties.getBoolean("fortress.analyzer.subtype.cache", true)
+  private final val cacheSubtypes = ProjectProperties.getBoolean("fortress.analyzer.subtype.cache", false)
   private final val cacheExcludes = ProjectProperties.getBoolean("fortress.analyzer.excludes.cache", true)
   private final val cacheNormalizeTrait = ProjectProperties.getBoolean("fortress.analyzer.normalize.trait.cache", true)
   private final val cacheNormalizeVar = ProjectProperties.getBoolean("fortress.analyzer.normalize.var.cache", true)
@@ -653,7 +653,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     if (negate) notExclusion(i, t) else exclusion(i, t)
   def pFromBoolean(b: Boolean)(implicit negate: Boolean) = fromBoolean(negate != b)
   def pEquivalent(i: _InferenceVarOp, o: Op)(implicit negate: Boolean) =
-    if (negate) oEquivalent(i, o) else oNotEquivalent(i, o)
+    if (negate) oNotEquivalent(i, o) else oEquivalent(i, o)
 }
 
 object TypeAnalyzer {

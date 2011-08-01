@@ -174,8 +174,6 @@ class FormulaJUTest extends TestCase {
   def testSolve() = {
     {
       implicit val analyzer = typeAnalyzer("{ }")
-      val tEmptySub = tSubstitution(Map())
-      val oEmptySub = oSubstitution(Map())
       val tans = Some((tEmptySub, oEmptySub))
       assertTrue(solve(False) == None)
       assertTrue(solve(True) ==  tans)

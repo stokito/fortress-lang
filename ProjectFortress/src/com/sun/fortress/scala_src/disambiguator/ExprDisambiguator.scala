@@ -17,6 +17,7 @@ import _root_.java.util.{Set => JSet}
 import edu.rice.cs.plt.collect.CollectUtil
 import edu.rice.cs.plt.iter.IterUtil
 import edu.rice.cs.plt.tuple.{Option => JOption}
+import edu.rice.cs.plt.tuple.{Pair => JPair}
 import com.sun.fortress.compiler.NamingCzar
 import com.sun.fortress.compiler.disambiguator.LocalFnEnv
 import com.sun.fortress.compiler.disambiguator.LocalVarEnv
@@ -33,6 +34,7 @@ import com.sun.fortress.nodes_util.Span
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
+import com.sun.fortress.scala_src.useful.Pairs._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.HasAt
@@ -862,18 +864,24 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
   private def opRefHelper(op: FunctionalRef) = op match {
     case SOpRef(info, sargs, depth, _, names, oldOvl, overloadings, _, _) =>
       val op_name = names.head.asInstanceOf[Op]
-      val ops: JSet[IdOrOp] = env.explicitFunctionNames(op_name)
-      if (ops.isEmpty) None
+      val parametric_ops: Set[(IdOrOp, IdOrOp)] = 
+        toSet(env.getParametricOperators).map(toPair(_))
+      val explicit_ops: List[(IdOrOp, IdOrOp)] = 
+        setToList(toSet(env.explicitFunctionNames(op_name)).map((op_name, _)) ++
+          parametric_ops.map{case (a, b) => (a, a)})
+      val unambiguous_ops: List[(IdOrOp, IdOrOp)] =
+        setToList(toSet(env.unambiguousFunctionNames(op_name)).map((op_name, _)) ++
+          parametric_ops)
+      if (explicit_ops.isEmpty && unambiguous_ops.isEmpty)
+        None
       else {
-        val new_ops = setToList[IdOrOp](toSet(ops))
-        val unambiguous_ops = setToList[IdOrOp](toSet(env.unambiguousFunctionNames(op_name)))
-        // Create a list of overloadings for this OpRef from the matching
-        // operator names.
-        Some(SOpRef(info, sargs, depth, op_name, new_ops,
-                    new_ops.map(SOverloading(info, _, op_name, None, None)),
-                    unambiguous_ops.map(SOverloading(info, _, op_name, None, None)), None, None))
+        Some(SOpRef(info, sargs, depth, op_name,
+                    explicit_ops.map(_._1),
+                    explicit_ops.map{case (a,b) => SOverloading(info, b, a, None, None)},
+                    unambiguous_ops.map{case (a,b) => SOverloading(info, b, a, None, None)},
+                    None, None))
       }
-    case _ => None
+      case _ => None
   }
 
   private def bindInListGenClauses(gens: List[GeneratorClause]) =

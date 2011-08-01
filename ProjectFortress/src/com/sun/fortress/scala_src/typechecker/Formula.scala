@@ -72,8 +72,8 @@ object Formula{
 
   private val tUnit = TPrimitive(Set(), Set(), Set(), Set(), Set(), Set())
   private val oUnit = OPrimitive(Set(),Set())
-  private val oEmptySub = oSubstitution(Map()) 
-  private val tEmptySub = tSubstitution(Map())
+  val oEmptySub = oSubstitution(Map()) 
+  val tEmptySub = tSubstitution(Map())
   private def oEq(a: Op, b: Op) = a==b
   
   def tSubstitution(tmap: Map[_InferenceVarType, Type]): Type => Type = TU.liftSubstitution(tmap)
@@ -295,7 +295,7 @@ object Formula{
       }
       def oTrivial(ip: (_InferenceVarOp, OPrimitive)) = {
         val (i, OPrimitive(ps, ns)) = ip
-        ps.isEmpty || ns.isEmpty
+        ps.isEmpty && ns.isEmpty
       }
       val nts = ts.map(tSimplify).map(_.flatMap(tContradiction)).map(_.flatMap(tRedundant)).map(_.getOrElse(return False)).filterNot(tTrivial)
       val nos = os.map(oSimplify).map(oContradiction).map(_.getOrElse(return False)).filterNot(oTrivial)

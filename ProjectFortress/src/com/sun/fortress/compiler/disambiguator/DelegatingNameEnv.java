@@ -15,6 +15,7 @@ import com.sun.fortress.compiler.index.GrammarIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.nodes.*;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Pair;
 
 import java.util.Collections;
 import java.util.List;
@@ -111,6 +112,11 @@ public abstract class DelegatingNameEnv extends NameEnv {
     @Override
     public Option<GrammarIndex> grammarIndex(Id name) {
         return Option.none();
+    }
+    
+    @Override
+    public Set<Pair<Op,Op>> getParametricOperators() {
+        return _parent.getParametricOperators(); 
     }
 
 }
