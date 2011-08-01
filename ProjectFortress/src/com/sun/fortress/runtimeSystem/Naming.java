@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.objectweb.asm.Type;
 
+import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.useful.CheapSerializer;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.ProjectedList;
@@ -146,6 +147,8 @@ public class Naming {
     public final static String RTTI_CONTAINER_DESC = "L" + RTTI_CONTAINER_TYPE + ";";
     public final static String STATIC_PARAMETER_GETTER_SIG = "()" + RTTI_CONTAINER_DESC;
     public final static String VOID_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "VoidRTTI";
+    public final static String RTTI_SUBTYPE_METHOD_SIG = "(" + RTTI_CONTAINER_DESC + ")Z";
+    public final static String RTTI_SUBTYPE_METHOD_NAME = "argExtendsThis";
 
     // Used to indicate translation convention to apply to type parameter.
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA
@@ -867,14 +870,8 @@ public class Naming {
             return sig;
         // start, end, are inclusive bounds of nth parameter in sig.
         // This probably needs to parse Oxford brackets, else we will be sorry.
-        int start = 1;
-        int end = sig.indexOf(';');
-        for (int i = 0; i < selfIndex; i++) {
-            start = end+1;
-            end = sig.indexOf(';', start);
-        }
-
-        return sig.substring(0,start) + sig.substring(end+1);
+        SignatureParser parsedSig = new SignatureParser(sig);
+        return parsedSig.removeNthParameter(selfIndex);
     }
 
     /**
@@ -884,35 +881,25 @@ public class Naming {
      * @return
      */
     public static String replaceNthSigParameter(String sig, int selfIndex, String newParamDesc) {
+        if (selfIndex == NO_SELF)
+            return sig;
         // start, end, are inclusive bounds of nth parameter in sig.
-        int start = 1;
-        int end = sig.indexOf(';');
-        for (int i = 0; i < selfIndex; i++) {
-            start = end+1;
-            end = sig.indexOf(';', start);
-        }
-
-        return sig.substring(0,start) + newParamDesc + sig.substring(end+1);
+        // This probably needs to parse Oxford brackets, else we will be sorry.
+        SignatureParser parsedSig = new SignatureParser(sig);
+        return parsedSig.replaceNthParameter(selfIndex, newParamDesc);
     }
 
     // This seems wrong if applied to non-mangled generics.
     public static String nthSigParameter(String sig, int selfIndex) {
-        // start, end, are inclusive bounds of nth parameter in sig.
-        int start = 1;
-        int end = sig.indexOf(';');
-        for (int i = 0; i < selfIndex; i++) {
-            start = end+1;
-            end = sig.indexOf(';', start);
-        }
-
-        return sig.substring(start,end+1);
+        SignatureParser parsedSig = new SignatureParser(sig);
+        return parsedSig.getJVMArguments().get(selfIndex);
     }
+    
     public static String sigRet(String sig) {
-        // start, end, are inclusive bounds of nth parameter in sig.
-        int start = sig.indexOf(')');
-        int end = sig.length();
+        SignatureParser parsedSig = new SignatureParser(sig);
+        String ret = parsedSig.getJVMResult();
         // lose the L;
-        return sig.substring(start+2, end-1);
+        return ret.substring(1,ret.length()-1);
     }
 
     public static String dotToSep(String name) {
@@ -920,6 +907,11 @@ public class Naming {
         return name;
     }
 
+    public static String sepToDot(String name) {
+        name = name.replace('/', '.');
+        return name;
+    }
+    
     /**
      * Returns the package+class name for the class generated for the closure
      * implementing a generic method.  Includes GEAR  (generic function),
@@ -958,7 +950,7 @@ public class Naming {
      * @param stemClassName
      * @return
      */
-    public static String stemClassJavaName(String stemClassName) {
+    public static String stemClassToRTTIclass(String stemClassName) {
         if (stemClassName.startsWith("ConcreteTuple")) {
         	//concrete tuples n-ary use the RTTI class Tuple,<n>$RTTIc
         	int n = InstantiatingClassloader.extractStringParameters(stemClassName).size();
@@ -978,9 +970,13 @@ public class Naming {
      * @param stemClassName
      * @return
      */
-    public static String stemInterfaceJavaName(String stemClassName) {
-        return stemClassName +
-                                    RTTI_INTERFACE_SUFFIX;
+    public static String stemInterfaceToRTTIinterface(String stemClassName) {
+        if (stemClassName.startsWith("ConcreteTuple")) {
+            //concrete tuples n-ary use the RTTI class Tuple,<n>$RTTIc
+            int n = InstantiatingClassloader.extractStringParameters(stemClassName).size();
+            return TUPLE_RTTI_TAG + n + RTTI_INTERFACE_SUFFIX;
+        }
+        return stemClassName + RTTI_INTERFACE_SUFFIX;
     }
 
     /**
@@ -990,12 +986,24 @@ public class Naming {
      */
     public static String rttiFactorySig(String owner_and_result_class,
             final int n_static_params) {
-        return InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class",
+        return InstantiatingClassloader.jvmSignatureForNTypes(
+                //n_static_params, RTTI_CONTAINER_TYPE, internalToDesc(owner_and_result_class));
                 n_static_params, RTTI_CONTAINER_TYPE, internalToDesc(RTTI_CONTAINER_TYPE));
     }
     
     public static String combineStemAndSparams(String stem, String sparams_in_oxfords) {
         return stem + sparams_in_oxfords;
+    }
+    
+    public static String rttiClassToBaseClass(String rttiClass) {
+        if (rttiClass.startsWith("Arrow,")) {
+            return "AbstractArrow";
+        } else if (rttiClass.startsWith("Tuple,")) {
+            return "ConcreteTuple";
+        } else {
+            return rttiClass.substring(0,rttiClass.length() - Naming.RTTI_CLASS_SUFFIX.length());
+        }
+        
     }
 
     /**

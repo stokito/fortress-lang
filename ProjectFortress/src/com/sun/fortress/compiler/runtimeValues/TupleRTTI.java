@@ -11,6 +11,8 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
+import com.sun.fortress.runtimeSystem.Naming;
+
 public abstract class TupleRTTI extends RTTI {
 
     final RTTI[] elementRTTI;
@@ -38,5 +40,11 @@ public abstract class TupleRTTI extends RTTI {
         return true;
     }
 
-    
+    public String className() {
+        StringBuilder ret = new StringBuilder("ConcreteTuple" + Naming.LEFT_OXFORD);
+        for (int i = 0; i < this.elementRTTI.length -1; i++)
+            ret.append(this.elementRTTI[i].className() + ";");
+        ret.append(this.elementRTTI[this.elementRTTI.length-1].className() + Naming.RIGHT_OXFORD);
+        return ret.toString();
+    }
 }
