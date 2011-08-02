@@ -911,7 +911,7 @@ public class Naming {
         name = name.replace('/', '.');
         return name;
     }
-    
+
     /**
      * Returns the package+class name for the class generated for the closure
      * implementing a generic method.  Includes GEAR  (generic function),
@@ -1061,6 +1061,7 @@ public class Naming {
 
 
         public static final int NO_SELF = -1;
+        public static final String RT_HELPERS = "com/sun/fortress/runtimeSystem/RTHelpers";
 
 		
 
