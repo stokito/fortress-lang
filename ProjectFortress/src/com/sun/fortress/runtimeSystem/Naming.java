@@ -1061,6 +1061,7 @@ public class Naming {
 
 
         public static final int NO_SELF = -1;
+        public static final String RT_HELPERS = "com/sun/fortress/runtimeSystem/RTHelpers";
 
 		
 
