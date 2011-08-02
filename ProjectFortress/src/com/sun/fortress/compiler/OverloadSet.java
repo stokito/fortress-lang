@@ -1255,7 +1255,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 String ic_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes(NamingCzar.internalString, staticParams.size(), 
                         Naming.RTTI_CONTAINER_TYPE, 
                         Naming.internalToDesc(NamingCzar.internalObject));
-                mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "loadClosureClass", ic_sig);
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.RT_HELPERS, "loadClosureClass", ic_sig);
                 
                 //cast to object arrow
                 int numParams = f.getParameters().size();

@@ -36,7 +36,6 @@ import org.objectweb.asm.util.TraceClassVisitor;
 
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
-import com.sun.fortress.compiler.runtimeValues.RTTI;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.FnVoid;
@@ -78,7 +77,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     
     // TODO make this depends on properties/env w/o dragging in all of the world.
     private static final boolean LOG_LOAD_CHOICES = false;
-    private static final boolean LOG_LOADS = false;
+    static final boolean LOG_LOADS = false;
     private static final boolean LOG_FUNCTION_EXPANSION = false;
     public final static String SAVE_EXPANDED_DIR = ProjectProperties.getDirectory("fortress.bytecodes.expanded.directory", null);
     public static JarOutputStream SAVE_EXPANDED_JAR = null;
@@ -121,7 +120,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // System.err.println("I am the one true class loader!");
         String p = System.getProperty("I_can_haz_classloader");
         if (p != null)
-            new Error("Second classloader detected!!");
+            throw new Error("Second classloader detected!!");
         System.setProperty("I_can_haz_classloader", "initialized");
     }
 
@@ -427,126 +426,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return Naming.mangleFortressIdentifier(s);
     }
 
-    //generic method in non-generic trait
-    static public Object findGenericMethodClosure(long l, BAlongTree t, String tcn, String sig) {
-        if (LOG_LOADS)
-            System.err.println("findGenericMethodClosure("+l+", t, " + tcn +", " + sig +")");
-
-        int up_index = tcn.indexOf(Naming.UP_INDEX);
-        int envelope = tcn.indexOf(Naming.ENVELOPE); // Preceding char is RIGHT_OXFORD;
-        int begin_static_params = tcn.indexOf(Naming.LEFT_OXFORD, up_index);
-        // int gear_index = tcn.indexOf(Naming.GEAR);
-        // String self_class = tcn.substring(0,gear_index) + tcn.substring(gear_index+1,up_index);
-        
-        String class_we_want = tcn.substring(0,begin_static_params+1) + // self_class + ";" +
-            sig.substring(1) + tcn.substring(envelope);
-        class_we_want = Naming.mangleFortressIdentifier(class_we_want);
-        return loadClosureClass(l, t, class_we_want);
-    }
-
-    //generic method in generic trait
-    static public Object findGenericMethodClosure(long l, BAlongTree t,
-            String tcn, String sig, String trait_sig) {
-        if (LOG_LOADS)
-            System.err.println("findGenericMethodClosure("+l+", t, " + tcn +
-                    ", " + sig +", " + trait_sig + ")");
-
-        int up_index = tcn.indexOf(Naming.UP_INDEX);
-        int envelope = tcn.indexOf(Naming.ENVELOPE); // Preceding char is RIGHT_OXFORD;
-        int begin_static_params = tcn.indexOf(Naming.LEFT_OXFORD, up_index);
-        // int gear_index = tcn.indexOf(Naming.GEAR);
-        // String self_class = tcn.substring(0,gear_index) + tcn.substring(gear_index+1,up_index);
-        
-        String class_we_want = tcn.substring(0,begin_static_params+1) + // self_class + ";" +
-            Useful.substring(sig,1,-1) + ";" + trait_sig.substring(1) + tcn.substring(envelope);
-        class_we_want = Naming.mangleFortressIdentifier(class_we_want);
-        return loadClosureClass(l, t, class_we_want);
-    } 
-
-    /**
-     * @param l
-     * @param t
-     * @param class_we_want
-     * @throws Error
-     */
-    private static Object loadClosureClass(long l, BAlongTree t,
-            String class_we_want) throws Error {
-        Class cl;
-        try {
-            cl = Class.forName(class_we_want);
-            synchronized (t) {
-                Object o = t.get(l);
-                if (o == null) {
-                    o = cl.newInstance();
-                    t.put(l,o);
-                }
-                return o;
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        
-        throw new Error("Not supposed to happen; some template class must be missing.");
-    }
-    
-    public static Object loadClosureClass(String stem, RTTI[] params) {
-        StringBuilder paramList = new StringBuilder(Naming.LEFT_OXFORD);
-        for (int i = 0; i < params.length-1; i++) paramList.append(params[i].className() + ",");
-        paramList.append(params[params.length-1].className() + Naming.RIGHT_OXFORD);
-        int insertLoc = stem.indexOf(Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD);
-        String className = stem.substring(0,insertLoc) + paramList.toString() + stem.substring(insertLoc+2);
-        String class_we_want = Naming.sepToDot(Naming.mangleFortressIdentifier(className));
-        Class cl;
-        try {
-            cl = Class.forName(class_we_want); //ONLY.loadClass(Naming.sepToDot(class_we_want), false);
-            return cl.newInstance();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException("class " + class_we_want + " failed to load");
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        
-        throw new Error("Not supposed to happen; some template class must be missing.");
-    }
-    
-    public static Object loadClosureClass(String stem, RTTI param1) {
-        RTTI[] params = { param1 };
-        Object cclass = loadClosureClass(stem, params); 
-        return cclass;
-    }
-
-    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2) {
-        RTTI[] params = { param1, param2 };
-        return loadClosureClass(stem, params);
-    }
-
-    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2, RTTI param3) {
-        RTTI[] params = { param1, param2, param3 };
-        return loadClosureClass(stem, params);
-    }
-
-    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4) {
-        RTTI[] params = { param1, param2, param3, param4 };
-        return loadClosureClass(stem, params);
-    }
-
-    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5) {
-        RTTI[] params = { param1, param2, param3, param4, param5 };
-        return loadClosureClass(stem, params);
-    }
-
-    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5, RTTI param6) {
-        RTTI[] params = { param1, param2, param3, param4, param5, param6 };
-        return loadClosureClass(stem, params);
-    }
-    
     private static byte[] instantiateClosure(String name) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
 
@@ -2568,7 +2447,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String getClass_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/String",
                 l, Naming.RTTI_CONTAINER_TYPE, Naming.internalToDesc("java/lang/Class"));
         //(mv, "before getRTTIclass");
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "getRTTIclass", getClass_sig);
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.RT_HELPERS, "getRTTIclass", getClass_sig);
         //eep(mv, "after getRTTIclass");
 
         // 4) init RTTI object
@@ -2586,54 +2465,54 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         mv.visitEnd();
     }
     
-    static public Class getRTTIclass(String stem, RTTI[] params) {
-  
-        StringBuilder classNameBuf = new StringBuilder(stem + Naming.LEFT_OXFORD);
-        for (int i = 0; i < params.length - 1; i++) {
-            classNameBuf.append(params[i].className() + ";");
-        }
-        classNameBuf.append(params[params.length-1].className() + Naming.RIGHT_OXFORD);
-        
-        String mangledClassName = Naming.mangleFortressIdentifier(classNameBuf.toString());
-        String mangledDots = Naming.sepToDot(mangledClassName);
-        
-        try {
-            return Class.forName(mangledDots); //ONLY.loadClass(Naming.sepToDot(mangledClassName), false);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException("class " + mangledClassName.toString() + " failed to load");
-        }
-    }
-    
-    static public Class getRTTIclass(String stem, RTTI param1) {
-        RTTI[] params = { param1 };
-        return getRTTIclass(stem, params);
-    }
-    
-    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2) {
-        RTTI[] params = { param1, param2 };
-        return getRTTIclass(stem, params);
-    }
-    
-    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2, RTTI param3) {
-        RTTI[] params = { param1, param2, param3 };
-        return getRTTIclass(stem, params);
-    }
-    
-    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4) {
-        RTTI[] params = { param1, param2, param3, param4 };
-        return getRTTIclass(stem, params);
-    }
-    
-    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5) {
-        RTTI[] params = { param1, param2, param3, param4, param5 };
-        return getRTTIclass(stem, params);
-    }
-
-    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5, RTTI param6) {
-        RTTI[] params = { param1, param2, param3, param4, param5, param6 };
-        return getRTTIclass(stem, params);
-    }
+//    static public Class getRTTIclass(String stem, RTTI[] params) {
+//  
+//        StringBuilder classNameBuf = new StringBuilder(stem + Naming.LEFT_OXFORD);
+//        for (int i = 0; i < params.length - 1; i++) {
+//            classNameBuf.append(params[i].className() + ";");
+//        }
+//        classNameBuf.append(params[params.length-1].className() + Naming.RIGHT_OXFORD);
+//        
+//        String mangledClassName = Naming.mangleFortressIdentifier(classNameBuf.toString());
+//        String mangledDots = Naming.sepToDot(mangledClassName);
+//        
+//        try {
+//            return Class.forName(mangledDots); //ONLY.loadClass(Naming.sepToDot(mangledClassName), false);
+//        } catch (ClassNotFoundException e) {
+//            e.printStackTrace();
+//            throw new RuntimeException("class " + mangledClassName.toString() + " failed to load");
+//        }
+//    }
+//    
+//    static public Class getRTTIclass(String stem, RTTI param1) {
+//        RTTI[] params = { param1 };
+//        return getRTTIclass(stem, params);
+//    }
+//    
+//    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2) {
+//        RTTI[] params = { param1, param2 };
+//        return getRTTIclass(stem, params);
+//    }
+//    
+//    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2, RTTI param3) {
+//        RTTI[] params = { param1, param2, param3 };
+//        return getRTTIclass(stem, params);
+//    }
+//    
+//    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4) {
+//        RTTI[] params = { param1, param2, param3, param4 };
+//        return getRTTIclass(stem, params);
+//    }
+//    
+//    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5) {
+//        RTTI[] params = { param1, param2, param3, param4, param5 };
+//        return getRTTIclass(stem, params);
+//    }
+//
+//    static public Class getRTTIclass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5, RTTI param6) {
+//        RTTI[] params = { param1, param2, param3, param4, param5, param6 };
+//        return getRTTIclass(stem, params);
+//    }
 }
 
 
@@ -2656,6 +2535,7 @@ class ClassLoadChecker {
             || name.startsWith("jsr166y.")
             || name.startsWith("sun.")
             || name.startsWith("com.sun.fortress.runtimeSystem.InitializedStaticField")
+            || name.startsWith("com.sun.fortress.runtimeSystem.BAlongTree")
             || name.startsWith("com.sun.fortress.compiler.codegen.ManglingClassWriter")
             || name.startsWith("com.sun.fortress.repository.ProjectProperties")
             || name.startsWith("com.sun.fortress.useful.")

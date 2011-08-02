@@ -2027,13 +2027,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitVarInsn(ALOAD, stringOff);
         // if in a generic trait/object, need to call different method and include one more parameter.
         if (to_sparams.size() == 0) {
-            mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "findGenericMethodClosure", "(JLcom/sun/fortress/runtimeSystem/BAlongTree;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
+            mv.visitMethodInsn(INVOKESTATIC, Naming.RT_HELPERS, "findGenericMethodClosure", "(JLcom/sun/fortress/runtimeSystem/BAlongTree;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
         } else {
             // Need to use the substitute-at-load string operation.
             String string_sargs = NamingCzar.genericDecoration(null, to_sparams, null, thisApi());
             String loadString = Naming.opForString(Naming.stringMethod, string_sargs);
             mv.visitMethodInsn(INVOKESTATIC, Naming.magicInterpClass, loadString, "()Ljava/lang/String;");
-            mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "findGenericMethodClosure", "(JLcom/sun/fortress/runtimeSystem/BAlongTree;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
+            mv.visitMethodInsn(INVOKESTATIC, Naming.RT_HELPERS, "findGenericMethodClosure", "(JLcom/sun/fortress/runtimeSystem/BAlongTree;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
         }
         mv.visitVarInsn(ASTORE, tmpOff);
         mv.visitLabel(l2);
