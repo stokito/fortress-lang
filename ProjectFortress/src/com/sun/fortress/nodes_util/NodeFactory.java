@@ -1815,14 +1815,14 @@ return new TraitType(info, name, sargs, sparams);
     }
 
     // All of these should go away, except for the gross overhead of allocating separate items.
-    private static Fixity infix = new InFixity();
-    private static Fixity prefix = new PreFixity();
-    private static Fixity postfix = new PostFixity();
-    private static Fixity nofix = new NoFixity();
-    private static Fixity multifix = new MultiFixity();
-    private static Fixity enclosing = new EnclosingFixity();
-    private static Fixity big = new BigFixity();
-    private static Fixity unknownFix = new UnknownFixity();
+    public static Fixity infix = new InFixity();
+    public static Fixity prefix = new PreFixity();
+    public static Fixity postfix = new PostFixity();
+    public static Fixity nofix = new NoFixity();
+    public static Fixity multifix = new MultiFixity();
+    public static Fixity enclosing = new EnclosingFixity();
+    public static Fixity big = new BigFixity();
+    public static Fixity unknownFix = new UnknownFixity();
 
     public static Op makeOp(Span span, String name) {
         return makeOp(span, Option.<APIName>none(),

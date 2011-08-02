@@ -899,7 +899,7 @@ object STypesUtil {
       }
       val oConstraint = mOps match {
         case Some((op, ov_op)) => 
-          analyzer.equivalent(op, map.getOrElse(ov_op, ov_op))
+          analyzer.equivalent(op, map.getOrElse(analyzer.normalize(ov_op), ov_op))
         case None => True
       }
       and(tConstraint, oConstraint)

@@ -78,8 +78,7 @@ object Formula{
   
   def tSubstitution(tmap: Map[_InferenceVarType, Type]): Type => Type = TU.liftSubstitution(tmap)
   def oSubstitution(omap: Map[_InferenceVarOp, Op]): Op => Op = TU.liftSubstitution(omap)
-  def insertOps(omap: Op => Op): Type => Type = TU.liftSubstitution(funToPartial(omap))
-  private def funToPartial[T, U](f: T => U): PartialFunction[T, U] = {case x => f(x)}
+  def insertOps(omap: Op => Op): Type => Type = TU.liftSubstitution[Op, Op, Type]{case x:Op => omap(x)}
   
   private def merge[S,T](a: Map[S, T], b: Map[S,T], bin: (T,T) => T, unit: T): Map[S, T] =
     Map((a.keySet ++ b.keySet).map(k => 
@@ -334,7 +333,7 @@ object Formula{
       if(ras.isEmpty && ros.isEmpty)
         True
       else if(isContradictory(ras, (s: Type, t: Type) => isFalse(ta.equivalent(s,t)))
-              || isContradictory(ros, (a: Op, b: Op) => a!=b))
+              || isContradictory(ros, definitelyNotEqual))
         False
       else
         Conjuncts(ras, ros)  
@@ -347,6 +346,12 @@ object Formula{
         case 1 => nes.head
         case _ => Disjuncts(nes.asInstanceOf[Set[Conjuncts]])
       }
+  }
+  
+  private def definitelyNotEqual(a: Op, b: Op): Boolean = (a, b) match {
+    case (_: _InferenceVarOp, _) => false
+    case (_, _:_InferenceVarOp) => false
+    case _ => a!=b
   }
   
   private def isContradictory[T](as: Set[Set[T]], neq: (T,T) => Boolean): Boolean =
@@ -538,8 +543,9 @@ object Formula{
       /* Now each equivalence class must consist of one inference variable 
        * and one non inference variable. Unify them.
        */
-      Some((tSubstitution(Map(tSplit.map{case (iv, ts) => (iv.head, ts.head)}.toSeq:_*)),
-            oSubstitution(Map(oSplit.map{case (iv, ts) => (iv.head, ts.head)}.toSeq:_*))))
+      val tSub = tSubstitution(Map(tSplit.map{case (iv, ts) => (iv.head, ts.head)}.toSeq:_*))
+      val oSub = oSubstitution(Map(oSplit.map{case (iv, ts) => (iv.head, ts.head)}.toSeq:_*))
+      Some((insertOps(oSub) compose tSub, oSub))
     case Disjuncts(es) =>
       for(e <- es) {
         val solved = un(e)

@@ -219,8 +219,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case _ => pFalse()
   }
   
-  def equivalent(x: Op, y: Op): CFormula = pEqv(x, y)(false)
-  def notEquivalent(x: Op, y: Op): CFormula = pEqv(x, y)(true)
+  def equivalent(x: Op, y: Op): CFormula = pEqv(normalize(x), normalize(y))(false)
+  def notEquivalent(x: Op, y: Op): CFormula = pEqv(normalize(x), normalize(y))(true)
   
   protected def pEqv(x: Op, y: Op)(implicit negate: Boolean): CFormula = (x, y) match {
     case (a, b) if (a==b) => pTrue()
@@ -390,7 +390,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   
 
   private val normalizeVarTypeMemo = new scala.collection.mutable.HashMap[Id, Any]()
-  private val normalizeTraitTypeMemo = new scala.collection.mutable.HashMap[(Id, List[Type]), Any]()
+  private val normalizeTraitTypeMemo = new scala.collection.mutable.HashMap[(Id, List[StaticArg]), Any]()
   private val normalizeTupleTypeMemo = new scala.collection.mutable.HashMap[(List[Type], Option[Type]), Any]()
   private val normalizeArrowTypeMemo = new scala.collection.mutable.HashMap[(Type, Type, Effect, Boolean), Any]()
   private val normalizeOtherTypeMemo = new scala.collection.mutable.HashMap[Any, Any]()
@@ -420,16 +420,14 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       def walkVarTypeInner(t: VarType, n: Id) = super.walk(t)
       def walkTraitType(t: TraitType) = {
         t match { case STraitType(_, n, a, _) =>
-            if (cacheNormalizeTrait && a.forall(s => s.isInstanceOf[TypeArg])) {
-              // For now, no attempt to handle static args other than type args
-              val args = a.map(s => s.asInstanceOf[TypeArg].getTypeArg)
-              normalizeTraitTypeMemo.get((n, args)) match {
+            if (cacheNormalizeTrait) {
+              normalizeTraitTypeMemo.get((n, a)) match {
                 case Some(v) => v
                 case _ =>
                   walkTraitTypeInner(t, n, a) match {
                     case result@STraitType(_, _, aa, _) =>
-                       normalizeTraitTypeMemo += ((n, args) -> result)
-                       normalizeTraitTypeMemo += ((n, aa.map(s => s.asInstanceOf[TypeArg].getTypeArg)) -> result)
+                       normalizeTraitTypeMemo += ((n, a) -> result)
+                       normalizeTraitTypeMemo += ((n, aa) -> result)
                        result
                   }
               }
@@ -508,13 +506,14 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
           val sop = cross(e.map(t => disjuncts(walk(t).asInstanceOf[Type])))
           val ps = sop.map(t => makeIntersectionType(normConjunct(t.flatMap(disjuncts))))
           makeUnionType(normDisjunct(ps))
+        case o:Op => normalize(o)
         case _ => super.walk(t)
       }
     }
     // Here's the body: walk the type, and make sure it's a type when finished
     normalizer(x).asInstanceOf[Type]
   }
-
+  
   protected def normConjunct(x: Iterable[Type]): List[Type] = {
     implicit val h = Set[hType]()
     if(x.exists(y => x.exists(z => dExc(y, z))))
@@ -559,6 +558,12 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         val l2 = l.filter(x => !isTrue(sub(x,a)))
         l2 ++ (if (l2.exists(x => isTrue(sub(a,x)))) Nil else List(a))
       })
+  }
+  
+  // Operators that appear in OpArgs should just be unqualified names
+  def normalize(x: Op): Op = x match {
+    case SNamedOp(a, b, c, d, e) => SNamedOp(a, None, c, NF.unknownFix, e)
+    case _ => x
   }
 
   protected def cross[T](x: Iterable[Iterable[T]]): Iterable[Iterable[T]] = {
