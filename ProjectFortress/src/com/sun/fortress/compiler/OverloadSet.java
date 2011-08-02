@@ -35,9 +35,9 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.runtimeSystem.InitializedStaticField;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
-import com.sun.fortress.runtimeSystem.InstantiatingClassloader.InitializedStaticField;
 import com.sun.fortress.useful.*;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -1255,7 +1255,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 String ic_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes(NamingCzar.internalString, staticParams.size(), 
                         Naming.RTTI_CONTAINER_TYPE, 
                         Naming.internalToDesc(NamingCzar.internalObject));
-                mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "loadClosureClass", ic_sig);
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.RT_HELPERS, "loadClosureClass", ic_sig);
                 
                 //cast to object arrow
                 int numParams = f.getParameters().size();
