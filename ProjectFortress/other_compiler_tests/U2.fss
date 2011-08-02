@@ -1,0 +1,48 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(*
+
+ Attempt at a generic of union types resulting in similarly
+ named methods with union interiors.
+
+ *)
+
+trait X excludes Z
+  xmethod() = "PA"
+end
+
+trait Z excludes X
+  zmethod() = "SS"
+end
+
+object A[\ T extends X,  V extends Z\] (x:T,  z:V)
+  f(t:T) = t.xmethod()
+  f(v:V) = z.zmethod()
+end
+
+object O1 extends X end
+object O2 extends X end
+object P1 extends Z end
+object P2 extends Z end
+
+(*) aiming for T=union(O1,O2), V=union(P1,P2)
+ 
+b():Boolean = true
+oq = if b() then O1 else O2 end
+qp = if b() then P1 else P2 end
+
+run() = do
+  tricksy = A(oq,  qp)
+  println(tricksy.f(O1) tricksy.f(P2) ) (*) "PASS", if we're lucky
+end

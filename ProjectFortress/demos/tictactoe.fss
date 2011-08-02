@@ -1,0 +1,273 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(* This is an interactive demo where you can play tic-tac-toe versus
+ * a computer player. It uses a hack of reading /dev/stdin, so this demo
+ * won't work on Windows. When Fortress gets proper stdin reading that
+ * should be used instead.
+ *)
+
+component tictactoe
+import List.{...}
+import Map.{...}
+import Set.{...}
+import File.{...}
+export Executable
+
+boardSize = 3
+playerOne = "X"
+playerTwo = "O"
+
+object IllegalMove(n) extends Exception
+    getter asString() = "Illegal move at " n
+end
+
+(* Returns a string copied x times *)
+opr juxtaposition(x:Number, y:String) = BIG ||[n <- 0#x] y
+
+(*
+opr [n:ZZ32](z:List) =
+    z.take(n).drop(n-1).left.get
+*)
+
+(* Returns nth element of a list *)
+element(z:List[\ZZ32\], n:ZZ32) =
+    z.take(n+1).right.get
+
+(* Replaces the index-th element with val *)
+update(z:List[\ZZ32\], index:ZZ32, val:ZZ32) =
+    z.take(index).addRight(val) || z.drop(index+1)
+
+(* Converts an id to a string *)
+player(id) =
+    case id of
+        1 => playerOne
+        2 => playerTwo
+    end
+
+(* Represents the tic-tac-toe board *)
+object Board(rows)
+    getter asString() = do
+        var all:String = ""
+        for y <- seq(0#boardSize) do
+            for x <- seq(0#boardSize) do
+                id = element(rows, y boardSize + x)
+                if id = 0 then
+                    index = y boardSize + x
+                    all := all (index + 1)
+                else
+                    all := all player(element(rows, y boardSize + x))
+                end
+                if x < boardSize - 1 then
+                    all := all "|"
+                end
+            end
+            all := all "\n"
+            if y < boardSize - 1 then
+                all := all ((2 boardSize - 1) "-") "\n"
+            end
+        end
+        all
+    end
+
+    private winnerHorizontal(row) = do
+        head = element(rows,row boardSize)
+        all = BIG AND[i <- 0#boardSize] element(rows,row boardSize + i) = head
+        if all then
+            head
+        else
+            0
+        end
+    end
+
+    private winnerVertical(column) = do
+        head = element(rows, column)
+        all = BIG AND[i <- 0#boardSize] element(rows,i boardSize + column) = head
+        if all then
+            head
+        else
+            0
+        end
+    end
+
+    private winnerLeftDiagonal() = do
+        head = element(rows, 0)
+        all = BIG AND[i <- 0#boardSize] element(rows, i boardSize + i) = head
+        if all then
+            head
+        else
+            0
+        end
+    end
+
+    private winnerRightDiagonal() = do
+        head = element(rows, boardSize - 1)
+        all = BIG AND[i <- 0#boardSize] element(rows, i boardSize + boardSize - i - 1) = head
+        if all then
+            head
+        else
+            0
+        end
+    end
+
+    (* If the board is full it's probably a tie *)
+    isFull() =
+        BIG AND[i <- 0#(boardSize boardSize)] element(rows, i) > 0
+
+    isGameOver() = do
+        (BIG OR[i <- 0#boardSize] winnerHorizontal(i) > 0) OR:
+        (BIG OR[i <- 0#boardSize] winnerVertical(i) > 0) OR:
+        winnerLeftDiagonal() > 0 OR:
+        winnerRightDiagonal() > 0 OR:
+        isFull()
+    end
+
+    (* returns a list of indexes that are empty in the board *)
+    emptySquares() = do
+        var squares:List[\ZZ32\] = <|[\ZZ32\] |>
+        for i <- seq(0#(boardSize boardSize)) do
+            if element(rows, i) = 0 then
+                squares := squares.addRight(i)
+            end
+        end
+        squares
+    end
+
+    (* returns the winner, 0 for a tie, 1 for player 1, 2 for player 2 *)
+    winner() = do
+        all = (<| winnerHorizontal(i) | i <- 0#boardSize |> ||
+              <| winnerVertical(i) | i <- 0#boardSize |> ||
+              <| winnerLeftDiagonal() |> ||
+              <| winnerRightDiagonal() |>)
+        who = all.filter(fn i => i =/= 0)
+        if |who| > 0 then
+            who.left.get
+        else
+            0
+        end
+    end
+
+    (* true if the move is legal, false otherwise *)
+    isLegal(position) =
+        position >= 0 AND:
+        position < boardSize boardSize AND:
+        element(rows, position) = 0
+
+    (* set the position to the players id and return a new board *)
+    move(position, id) = do
+        if NOT isLegal(position-1) then
+            throw IllegalMove(position)
+        end
+        Board(update(rows, position - 1, id))
+    end
+end
+
+dumbAi(board) = do
+    if board.isGameOver() then
+        board
+    else
+        empty = board.emptySquares()
+        index = narrow(truncate(random(|empty|)))
+        move = element(empty, index) + 1
+        board.move(move, 2)
+    end
+end
+
+(* Computer player. Returns a move. *)
+smartAi(board) = do
+    label answer
+        if board.isGameOver() then
+            exit answer with board
+        end
+
+        for i <- board.emptySquares() do
+            if board.move(i+1,2).winner() = 2 then
+                exit answer with board.move(i + 1, 2)
+            end
+        end
+
+        for i <- board.emptySquares() do
+            if board.move(i+1,1).winner() = 1 then
+                exit answer with board.move(i + 1, 2)
+            end
+        end
+        dumbAi(board)
+    end answer
+end
+
+(* Blank tic-tac-toe board *)
+emptyBoard() = do
+    rows = <|[\ZZ32\] 0 | n <- seq(0#(boardSize boardSize)) |>
+    Board(rows)
+end
+
+(* Hack to read user input.  Only works in unix. *)
+readLine() = do
+    input = FileReadStream("/dev/stdin")
+    input.readLine()
+end
+
+isNo(x) = (x = "no")
+
+(* Plays the game *)
+playGame(name) = do
+
+    label quit
+
+    play(board) = do
+        if board.isGameOver() then
+            println board
+            case board.winner() of
+                0 => println "It's a tie!"
+                1 => println "You win!"
+                2 => println "You lose!"
+            end
+        else
+            try
+                println board
+                println "Your turn " name
+                line = readLine()
+                if (|line| = 0)
+                then
+                    println "Invalid response."
+                    exit quit with false
+                else
+                    pos = strToInt(line)
+                    play(smartAi(board.move(pos, 1)))
+                end
+            catch e
+                IllegalMove => do
+                    println "You cannot move there. Choose again."
+                    play(board)
+                end
+            end
+        end
+    end
+
+    println play(emptyBoard())
+
+    println "Do you want to play again? Type 'no' to quit or anything else for yes"
+    NOT isNo(readLine())
+
+    end quit
+end
+
+run() = do
+    println "Welcome to Tic Tac Toe!"
+    println "What's your name, friend?"
+    name = readLine()
+    while playGame(name) do
+        println ""
+    end
+    println "Bye"
+end
+
+end tictactoe

@@ -1,0 +1,92 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Object Expressions}
+\seclabel{object-expr}
+
+\note{Property declarations and \KWD{where} clauses are not yet supported.
+
+No naked type variables in \KWD{extends} clause.
+
+The type (tag?) of the {\bf object} resulting from evaluating an object expression is
+this anonymous object trait type, but is the static type of the object expression that?
+
+No new functional methods within object expressions.
+}
+
+\begin{Grammar}
+\emph{DelimitedExpr} &::=&
+\KWD{object} \option{\emph{ExtendsWhere}} \option{\emph{GoInAnObject}} \KWD{end} \\
+
+\end{Grammar}
+
+Object expressions denote object values.  Syntactically, they start
+with \KWD{object}, followed by an optional \KWD{extends} clause, a
+series of field declarations, method declarations,
+or property declarations,
+and finally \KWD{end}.  The type of an object expression
+is an anonymous object expression type that extends the traits listed in the
+\KWD{extends} clause of the object expression.  The object expression type does
+not include the methods introduced by the object expression (i.e.,
+those methods not provided by any supertraits of the object expression).
+Each object expression type is associated with a program location;
+every evaluation of a given object expression has the same
+object expression type.  Two object expressions at different program locations
+have different object expression types.
+
+
+Unlike object declarations (described in \chapref{objects}),
+object expressions are not allowed to include
+modifiers,
+value parameters,
+static parameters, or
+\KWD{where} clauses (described in \chapref{trait-parameters}).
+Object expressions may include free static variables
+unlike object declarations, which must
+not include any free static variables (i.e., each static variable in
+an object declaration must occur
+either as a static parameter
+or as a \KWD{where}-clause variable).
+An object expression is not allowed to declare ``new''
+functional methods; it can provide a functional method
+only with a name that is already declared by one of its supertraits.
+Field initializers and methods may refer to any
+variables that are in scope in the context in which the object
+expression occurs.  As with object declarations, initializers are evaluated
+in textual program order and may refer to previous fields; the object
+being constructed might not be referred to in any way.
+
+
+In an object expression,
+any declaration of \KWD{self} (including implicit declarations)
+and any declaration which declares a name of a field or dotted method provided
+(declared or inherited) by the object expression
+in a block enclosing the expression is shadowed
+unless the declaration is a method declaration
+of a trait extended by the object expression.
+In order for an object to be referred to within a nested object expression,
+the outer object must be renamed before the object expression
+because \EXP{\mathord{\KWD{self}}} declared in the outer object
+is shadowed in the object expression:
+\input{\home/basic/examples/Expr.Object.a.tex}
+
+
+
+For example, the following object expression:
+\input{\home/basic/examples/Expr.Object.b.tex}
+has a static variable \VAR{T} that is not its static parameter
+nor its \KWD{where}-clause variable.
+
+
+
+The following example expression evaluates to a new object extending
+trait \TYP{Tree}:
+\input{\home/basic/examples/Expr.Object.c.tex}
