@@ -46,7 +46,7 @@ public class FieldGetterMethod extends FieldGetterOrSetterMethod {
     /**
      * Copy another FieldGetterMethod, performing a substitution with the visitor.
      */
-    public FieldGetterMethod(FieldGetterMethod that, NodeUpdateVisitor visitor) {
+    private FieldGetterMethod(FieldGetterMethod that, NodeUpdateVisitor visitor) {
         super(that, visitor);
     }
 
