@@ -1,0 +1,33 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component builtinPrimTest
+export Executable
+
+object MyChar(val:Char)
+    myJavaDigit(self, radix:ZZ32): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$JavaDigit")
+    myDigit(self, radix:ZZ32): Maybe[\ZZ32\] = do
+        x:ZZ32 = myJavaDigit(self, radix)
+        if(x = -1) then
+             Nothing[\ZZ32\]
+        else
+             Just[\ZZ32\](x)
+        end
+    end
+end
+
+run():() = do
+    c = MyChar('5')
+    myDigit(c, 10)
+end
+
+end

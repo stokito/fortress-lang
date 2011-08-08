@@ -1,0 +1,31 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+component disp0
+export Executable
+
+(* Test: Careful examination of dispatch rules *)
+
+trait A
+  f(self, other:ZZ32):String = "f FAIL"
+  g(other:ZZ32):String = "g FAIL"
+end
+
+object B extends A
+ override   f(self, other:Number):String = "f PASS"
+ override   g(other:Number):String = "g PASS"
+end
+
+run():()= do
+   println(f(B, 17))
+   println(B.g(17))
+   end
+
+end

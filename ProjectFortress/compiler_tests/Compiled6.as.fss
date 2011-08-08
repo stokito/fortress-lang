@@ -1,0 +1,21 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(*) Test ordinary tuple assignments.
+
+  export Executable
+
+  run() = do
+
+    var t: (ZZ32, String) = (4, "hello")
+    t := (5, "world")
+    
+  end

@@ -1,0 +1,14 @@
+component ThrowTest3
+export Executable
+
+object TestFailCalled(s:String) extends UncheckedException
+    getter asString(): String =  s
+end
+
+testFail(s:String) = throw TestFailCalled(s)
+
+run() = do testFail("Fooey!"); println "Fail" end
+
+end
+
+
