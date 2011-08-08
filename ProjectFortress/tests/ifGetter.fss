@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ifGetter
+export Executable
+
+trait T
+  getter foo(): Boolean  = true
+end
+
+trait U extends T
+  getter bar(): Boolean = do
+     if self.foo then false else false end
+  end
+end
+
+object O extends U
+  getter obar(): Boolean = do
+     if self.foo then false else false end
+  end
+end
+
+run() = do
+  t:T = O;
+  println(if O.obar then "obar true" else "obar false" end)
+  println(if t.foo then "foo true" else "foo false" end)
+  println(if O.bar then "bar true" else "bar false" end)
+
+end
+
+end

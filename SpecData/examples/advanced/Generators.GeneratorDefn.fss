@@ -1,0 +1,50 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Generators.GeneratorDefn
+import List.{...}
+export Executable
+
+(** EXAMPLE **)
+object BlockedRange(lo: ZZ64, hi: ZZ64, b: ZZ64) extends Generator[\ZZ64\]
+  size : ZZ64 = hi - lo + 1
+  seq(self): SequentialGenerator[\ZZ64\] = seq(lo:hi)
+  generate[\R\](reduction: Reduction[\R\], body: ZZ64->R): R =
+    if size <= (b MAX 1) then
+      (* Blocks smaller than b run sequentially *)
+      r : R := reduction.empty()
+      i : ZZ64 := lo
+      while i <= hi do
+        v : R = body(i)
+        r := reduction.join(r,v)
+        i += 1
+      end
+      r
+    else
+      (* Blocks larger than b are split in half and generated in parallel. *)
+      mid = |\ (lo+hi)/2 /|
+      reduction.join(BlockedRange(lo,mid,b).generate[\R\](reduction,body),
+                     BlockedRange(mid+1,hi,b).generate[\R\](reduction,body))
+    end
+end
+
+f() = <| 2 x | x <- BlockedRange(1,10,3) |>
+(** END EXAMPLE **)
+
+run() = do
+    x = f()
+    println(x)
+    assert(x,<|2,4,6,8,10,12,14,16,18,20|>,"Unexpected list")
+  end
+
+end

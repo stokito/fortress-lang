@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component natInference0
+export Executable
+
+trait T[\nat n\]
+  f() = println("n is " n)
+end
+
+object O extends T[\3\] end
+object P extends T[\4\] end
+
+g[\nat m\](x:T[\m\], y:T[\m\]) = do
+  x.f();
+  y.f();
+end
+
+run() = do
+  println "Hello, World!"
+    g(O,O);
+    g(P,P);
+    (* g(O,P); this one is supposed to fail *)
+  end
+test testHello() = assert(true)
+
+end

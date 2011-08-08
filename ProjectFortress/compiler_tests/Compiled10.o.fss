@@ -1,0 +1,29 @@
+(********************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+********************************************************************************)
+export Executable
+
+trait Foo[\T\] comprises {T, Hoo[\T\]} end
+trait Bar extends Foo[\Bar\] end
+object Goo extends Bar end
+object Hoo[\S extends Foo[\S\]\] extends Foo[\S\] end
+object Baz end
+
+f(x: Bar) = ()
+g(x: Foo[\Bar\]) = ()
+
+run() = do
+  f(Goo)
+  f(Hoo[\Bar\])
+  f(Hoo[\Baz\])
+  g(Goo)
+  g(Hoo[\Bar\])
+  g(Hoo[\Baz\])
+end

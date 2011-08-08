@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXillegalShadowing
+export Executable
+
+trait T
+  getI():ZZ32
+  setI(newI:ZZ32):ZZ32
+end
+
+object A(var i:ZZ32) extends T
+    getI():ZZ32 = i
+    setI(newI:ZZ32):ZZ32 = i (* don't actually set it *)
+
+    b():T = object extends T
+                getI():ZZ32 = i
+                setI(newI:ZZ32):ZZ32 = do
+                    i = newI (* binding, not assignment, should be illegal *)
+                    i
+                end
+            end
+end
+
+
+run():()=do
+  a:A = A(1)
+  b:T = a.b()
+  println("a.getI() = " a.getI())
+  println("b.getI() = " b.getI())
+  println("b.setI(3) = " b.setI(3))
+  println("a.getI() = " a.getI())
+end
+
+end
