@@ -856,7 +856,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             this.variantGenericsContained = variantGenericsContained;
             this.isObject = isObject;
         }
-        void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast, Set<String> top_level_invariants) {            
+        void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast,
+                            Set<String> top_level_invariants) {            
             /*
              *  If a static parameter is used anywhere in the signature
              *  in an invariant context, then its value is fixed to the
@@ -954,9 +955,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      *         Can be null for return types; these are not looked up at run time
      * @param variance context -- how must the type match?
      * @param storeAtIndex after the type test returns, store the result here.
+     * @param staticParams the static parameters for this arm of the dispatch.
      * @return
      */
-    TypeStructure makeTypeStructure(Type t, MultiMap<String, TypeStructure> spmap, int variance, int storeAtIndex) {
+    TypeStructure makeTypeStructure(Type t, MultiMap<String, TypeStructure> spmap,
+            int variance, int storeAtIndex,
+            List<StaticParam> staticParams) {
         String fullname = NamingCzar.jvmBoxedTypeName(t, ifNone);
         String stem = null;
         TypeStructure[] parameters = null;
@@ -987,7 +991,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             variances[l-1] = variance;
             
         } else if (t instanceof TraitSelfType) {
-            return makeTypeStructure(((TraitSelfType)t).getNamed(), spmap, variance, storeAtIndex);
+            return makeTypeStructure(((TraitSelfType)t).getNamed(), spmap,
+                    variance, storeAtIndex, staticParams);
             
         } else if (t instanceof TraitType) {
             // Would love to inquire if this is an object type
@@ -1017,14 +1022,28 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         } else if (t instanceof VarType) {
             VarType tt = (VarType) t;
             Id tt_id = tt.getName();
-            if (variance != 0) {
-                variantGenericsContained = Useful.set(tt_id.getText());
-            } else {
-                invariantGenericsContained = Useful.set(tt_id.getText());
-            }
             stem = tt_id.getText(); // DO NOT API-ANNOTATE!
-            isVarType = true;
             
+            // If the overload arm has no static parameters, or if they
+            // come from an enclosing scope (from a trait type, if this is
+            // a method), then we do not care about them, they are effectively
+            // type constants.
+            
+            if (staticParams != null) {
+                for (StaticParam sp : staticParams) {
+                    IdOrOp spn = sp.getName();
+                    if (spn.getText().equals(stem)) {
+                        if (variance != 0) {
+                            variantGenericsContained = Useful.set(tt_id.getText());
+                        } else {
+                            invariantGenericsContained = Useful.set(tt_id.getText());
+                        }
+                        isVarType = true;
+                    }
+                    break;
+                }
+            }
+
         } else if (t instanceof BottomType) {
             throw new CompilerError("Not handling Bottom type yet in generic overload dispatch");
 
@@ -1045,7 +1064,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             HashSet<String> temp_var = new HashSet<String>();
             HashSet<String> temp_invar = new HashSet<String>();
             for (Type tt : type_elements) {
-                TypeStructure ts = makeTypeStructure(tt, spmap, variances[i], next_index);
+                TypeStructure ts = makeTypeStructure(tt, spmap, variances[i], next_index, staticParams);
                 temp_var.addAll(ts.variantGenericsContained);
                 temp_invar.addAll(ts.invariantGenericsContained);
                 parameters[i++] = ts;
@@ -1110,10 +1129,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             List<Param> parameters = f.getParameters();
             MultiMap<String, TypeStructure> spmap = new MultiMap<String, TypeStructure>();
             spmaps[i] = spmap;
-            
+            List<StaticParam> staticParams = staticParametersOf(f.getF());
+
             Type rt = oa.getRangeType(eff);
-            return_type_structures[i] = makeTypeStructure(rt,null, 1, 0);
-            
+            return_type_structures[i] = makeTypeStructure(rt,null, 1, 0, staticParams);
+
             // skip parameters -- no 'this' for ordinary functions
  
             if (parameters.size() == 1 && oa.getDomainType(eff) instanceof TupleType) {
@@ -1125,7 +1145,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 
                 for (int j = 0; j < tl.size(); j++) {
                     Type t = STypesUtil.insertStaticParams(tl.get(j), tt.getInfo().getStaticParams());
-                    TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex);
+                    TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex, staticParams);
                     f_type_structures[j] = type_structure;
                     storeAtIndex = type_structure.successorIndex;
                 }
@@ -1139,7 +1159,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 for (int j = 0; j < parameters.size(); j++) {
                     if (j != selfIndex()) {
                         Type t = oa.getParamType(eff,j);
-                        TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex);
+                        TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex, staticParams);
                         f_type_structures[j] = type_structure;
                         storeAtIndex = type_structure.successorIndex;
                     }
@@ -1155,6 +1175,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             Label lookahead = null;
             boolean infer = false;
 
+            List<StaticParam> staticParams = staticParametersOf(f.getF());
+            
             if (i < l-1) {
                 /* Trust the static checker; no need to verify
                  * applicability of the last one.
@@ -1164,17 +1186,20 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 lookahead = new Label();
 
                 Set<String> top_level_invariants = new HashSet<String>();
+                
                 top_level_invariants.addAll(return_type_structures[i].invariantGenericsContained);
                 
                 for (int j = 0; j < f_type_structures.length; j++) {
                     if (j != selfIndex())
                         top_level_invariants.addAll(f_type_structures[j].invariantGenericsContained);
                 }
+                
                 for (int j = 0; j < f_type_structures.length; j++) {
                     // Load actual parameter
                     if (j != selfIndex()) {
                         mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
-                        f_type_structures[j].emitInstanceOf(mv, lookahead, true, top_level_invariants);
+                        f_type_structures[j].emitInstanceOf(mv, lookahead, true,
+                                            top_level_invariants);
                         if (f_type_structures[j].invariantGenericsContained.size() > 0 ||
                             f_type_structures[j].variantGenericsContained.size() > 0)
                                 infer = true;
@@ -1184,7 +1209,6 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             
             //Do I need to infer any static parameters at runtime?
             if (infer) {
-                List<StaticParam> staticParams = staticParametersOf(f.getF());
                 @SuppressWarnings("unchecked")
                 MultiMap<String,TypeStructure> staticTss = spmaps[i];
                 
