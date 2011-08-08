@@ -307,7 +307,7 @@ object STypeEnv extends StaticEnvCompanion[Type] {
       // Create a lazy computation for the type of the whole overloaded
       // function named x.
       val ambiguousThunk = new TypeThunk {
-        def maff(f:Functional) = makeArrowFromFunctional(f, None)
+        def maff(f:Functional) = makeArrowFromFunctional(f)
         def apply: Option[Type] = {
           val oTypes = fns.flatMap(maff)
           if (oTypes.isEmpty)

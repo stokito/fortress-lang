@@ -614,18 +614,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             }
         }
 
-        List<StaticParam> static_parameters;
-        if (from_fnl instanceof FunctionalMethod) {
-            FunctionalMethod fm = (FunctionalMethod) from_fnl;
-            List<StaticParam> trait_and_method_sparams = from_fnl.staticParameters();
-            static_parameters = fm.declaredStaticParameters();
-            // This may be exposed, eventually
-            List<StaticParam> trait_static_parameters =
-                trait_and_method_sparams.subList(0,
-                  trait_and_method_sparams.size() - static_parameters.size());
-        } else {
-            static_parameters = from_fnl.staticParameters();
-        }
+        List<StaticParam> static_parameters = from_fnl.staticParameters();
         String mname;
         if (static_parameters.size() > 0) {
             // TODO must check this name for the narrowing case
@@ -1666,11 +1655,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * circumstances.
          */
 
-        Naming.XlationData xldata = 
-            xlationData(Naming.FUNCTION_GENERIC_TAG);
 
-        String sparams_part = genericDecoration(x, xldata);
-
+        List<StaticParam> static_params = x.getHeader().getStaticParams();
+        
         FnHeader header = x.getHeader();
         Type returnType = header.getReturnType().unwrap();
 
@@ -1684,17 +1671,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * names.  In rare cases, this might lead to a problem.
          */
         String generic_arrow_type = NamingCzar.jvmTypeDesc(fndeclToType(x), thisApi(), false);
-        String mname;
 
         // TODO different collision rules for top-level and for
         // methods. (choice of mname)
 
         if (selfIndex != Naming.NO_SELF) {
             sig = Naming.removeNthSigParameter(sig, selfIndex);
-            mname = Naming.fmDottedName(singleName(name), selfIndex);
-        } else {
-            mname = nonCollidingSingleName(name, sig, generic_arrow_type);
-        }
+        } 
         
         // TODO refactor, this is computed in another place.
         
@@ -1707,13 +1690,19 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * point, given the use of metadata) to omit the parameters from the
          * container's file name.
          */
-        String PCN_for_class =
-            Naming.genericFunctionPkgClass(packageAndClassName, mname,
-                                               sparams_part, generic_arrow_type);
+//        String PCN_for_class =
+//            Naming.genericFunctionPkgClass(packageAndClassName, mname,
+//                                               sparams_part, generic_arrow_type);
+//        
+//        String PCN_for_file =
+//            Naming.genericFunctionPkgClass(packageAndClassName, mname,
+//                        Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
+        PCNforClosure pair = nonCollidingClosureName(x, selfIndex, name,
+                static_params);
         
-        String PCN_for_file =
-            Naming.genericFunctionPkgClass(packageAndClassName, mname,
-                        Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
+        String PCN_for_class = pair.PCN;
+        String PCN_for_file = pair.PCNOuter;
+        Naming.XlationData xldata = pair.xldata;
 
         // System.err.println(PCN);
 
@@ -2564,6 +2553,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         methodReturnAndFinish();
     }
 
+    static class PCNforClosure {
+        PCNforClosure() {
+        }
+        
+        String PCN;
+        String PCNOuter;
+        Naming.XlationData xldata;
+    }
+    
     /**
      * @param x
      * @param params
@@ -2615,36 +2613,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              * Step 3: call the appropriate, returned, closure.
              */
             
-            Naming.XlationData xldata = 
-                xlationData(Naming.FUNCTION_GENERIC_TAG);
+            PCNforClosure pair = nonCollidingClosureName(x, Naming.NO_SELF, name,
+                    f_method_static_params);
             
-            String sparams_part = NamingCzar.genericDecoration(f_method_static_params,
-                    xldata, thisApi());
-
-            ArrowType at = fndeclToType(x); // type schema from old
-            String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
-                       false);
-
-            /* What's going on here, is that the method name needs to ignore the
-               self parameter (it has to override from trait to object, etc.)
-               But the class name for the closure has to be qualified to avoid
-               collisions. */
-            
-            ArrowType method_at = fndeclToType(x, selfIndex); // type schema from old
-            String method_generic_arrow_type = NamingCzar.jvmTypeDesc(method_at, thisApi(),
-                       false);
-
-            String mname = nonCollidingSingleName(name, sig, method_generic_arrow_type);
-
-            // This is not quite general enough, yet -- need to be clear on
-            // where the static parameters go in the generic-generic case.
-            
-            String PCN =
-                Naming.genericFunctionPkgClass(packageAndClassName, mname,
-                                                   sparams_part, generic_arrow_type);
-            String PCNOuter =
-                Naming.genericFunctionPkgClass(packageAndClassName, mname,
-                            Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
+            String PCN = pair.PCN;
+            String PCNOuter = pair.PCNOuter;
+            Naming.XlationData xldata = pair.xldata;
+                        
             // System.err.println(PCN);
 
             CodeGen cg = new CodeGen(this);
@@ -2737,25 +2712,79 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         } else {
 
-            Naming.XlationData xldata = 
-                xlationData(Naming.FUNCTION_GENERIC_TAG);
-            
-            String sparams_part = NamingCzar.genericDecoration(trait_sparams,
-                    xldata, thisApi());
+       
+           
 
-            ArrowType at = fndeclToType(x); // type schema from old
-            String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
-                       false);
-
-            String mname = nonCollidingSingleName(name, sig, generic_arrow_type);
-
-            functionalMethodOfGenericTraitObjectWrapper(mname, sparams_part,
-                    sig, generic_arrow_type, invocation, dottedName, selfIndex,
-                    params, modifiers, xldata);
+            functionalMethodOfGenericTraitObjectWrapper(x, trait_sparams,
+                    sig, invocation, dottedName, selfIndex,
+                    params, modifiers);
 
         }
         }
 
+    }
+
+
+    /**
+     * @param x
+     * @param name
+     * @param f_method_static_params
+     * @return
+     */
+    public PCNforClosure nonCollidingClosureName(FnDecl x, int self_index, IdOrOp name,
+            List<StaticParam> f_method_static_params) {
+        ArrowType at = fndeclToType(x); // type schema from old
+        String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
+                   false);
+        return nonCollidingClosureName(generic_arrow_type, self_index, name, f_method_static_params);
+    }
+    /**
+     * @param generic_arrow_type
+     * @param name
+     * @param f_method_static_params
+     * @return
+     */
+    public PCNforClosure nonCollidingClosureName(String generic_arrow_type, int self_index, IdOrOp name,
+                List<StaticParam> f_method_static_params) {
+        PCNforClosure pair = new PCNforClosure();
+        
+        pair.xldata = 
+            xlationData(Naming.FUNCTION_GENERIC_TAG);
+        
+        String sparams_part = NamingCzar.genericDecoration(f_method_static_params,
+                pair.xldata, thisApi());
+
+
+        /* What's going on here, is that the method name needs to ignore the
+           self parameter (it has to override from trait to object, etc.)
+           But the class name for the closure has to be qualified to avoid
+           collisions. */
+         
+        String mname = self_index == Naming.NO_SELF ?
+                singleName(name) :
+                Naming.fmDottedName(singleName(name), self_index);
+        
+        // This is not quite general enough, yet -- need to be clear on
+        // where the static parameters go in the generic-generic case.
+        
+        
+        pair.PCN =
+            Naming.genericFunctionPkgClass(packageAndClassName, mname,
+                                               sparams_part, generic_arrow_type);
+        pair.PCNOuter =
+            Naming.genericFunctionPkgClass(packageAndClassName, mname,
+                        Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
+        
+        if (topLevelOverloadedNamesAndSigs.contains(pair.PCN)) {
+            mname = NamingCzar.mangleAwayFromOverload(mname);
+            pair.PCN =
+                Naming.genericFunctionPkgClass(packageAndClassName, mname,
+                                                   sparams_part, generic_arrow_type);
+            pair.PCNOuter =
+                Naming.genericFunctionPkgClass(packageAndClassName, mname,
+                            Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
+        }
+        return pair;
     }
 
 
@@ -2770,16 +2799,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param params
      * @param modifiers
      */
-    private void functionalMethodOfGenericTraitObjectWrapper(String mname,
-            String sparams_part, String sig, String generic_arrow_type,
+    private void functionalMethodOfGenericTraitObjectWrapper(
+            FnDecl x,
+            List<StaticParam> static_params, String sig, 
             int invocation, String dottedName, int selfIndex,
-            List<Param> params, int modifiers, Naming.XlationData xldata) {
-        String PCN =
-            Naming.genericFunctionPkgClass(packageAndClassName, mname,
-                                               sparams_part, generic_arrow_type);
-        String PCNOuter =
-            Naming.genericFunctionPkgClass(packageAndClassName, mname,
-                        Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
+            List<Param> params, int modifiers) {
+                
+        PCNforClosure pair = nonCollidingClosureName(x, Naming.NO_SELF,
+                (IdOrOp) x.getHeader().getName(),
+                static_params);
+        
+        String PCN = pair.PCN;
+        String PCNOuter = pair.PCNOuter;
+        Naming.XlationData xldata = pair.xldata;
+
         // System.err.println(PCN);
 
         CodeGen cg = new CodeGen(this);
@@ -3471,14 +3504,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                     original_params.unwrap());
                 String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
                 
-                mname = nonCollidingSingleName(x.getHeader().getName(), sig, generic_arrow_type);
-                PCN =
-                    Naming.genericFunctionPkgClass(packageAndClassName, mname,
-                                                       sparams_part, generic_arrow_type);
-                PCNOuter =
-                    Naming.genericFunctionPkgClass(packageAndClassName, mname,
-                                Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
+//                mname = nonCollidingSingleName(x.getHeader().getName(), sig, generic_arrow_type);
+//                PCN =
+//                    Naming.genericFunctionPkgClass(packageAndClassName, mname,
+//                                                       sparams_part, generic_arrow_type);
+//                PCNOuter =
+//                    Naming.genericFunctionPkgClass(packageAndClassName, mname,
+//                                Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
 
+                PCNforClosure pair = nonCollidingClosureName(generic_arrow_type, Naming.NO_SELF, (IdOrOp) x.getHeader().getName(),
+                        original_static_params);
+                
+                PCN = pair.PCN;
+                PCNOuter = pair.PCNOuter;
+                xldata = pair.xldata;
 
                 cg = new CodeGen(this);
                 cg.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, cw);
@@ -5610,8 +5649,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 for (Map.Entry<String, OverloadSet> o_entry : os.getOverloadSubsets().entrySet()) {
                     String ss = o_entry.getKey();
                     OverloadSet o_s = o_entry.getValue();
-                    ss = // s +
-                        ss + o_s.genericSchema;
                     // Need to add Schema to the end of ss for generic overloads.
                     // System.err.println("Adding "+s+" : "+ss);
                     overloaded_names_and_sigs.add(ss);

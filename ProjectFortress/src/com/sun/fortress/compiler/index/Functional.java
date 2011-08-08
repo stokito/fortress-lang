@@ -14,6 +14,7 @@ package com.sun.fortress.compiler.index;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.Modifiers;
 import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.lambda.Lambda;
 import edu.rice.cs.plt.tuple.Option;
 
 import java.util.List;
@@ -82,4 +83,11 @@ public abstract class Functional extends InferredTypeIndex {
     public boolean hasExplicitType() {
         return hasDeclaredReturnType();
     }
+    
+    // Copy a static parameter but make it lifted.
+    static final protected Lambda<StaticParam, StaticParam> liftStaticParam = new Lambda<StaticParam, StaticParam>() {
+        public StaticParam value(StaticParam that) {
+            return new StaticParam(that.getInfo(), that.getName(), that.getExtendsClause(), that.getDimParam(), that.isAbsorbsParam(), that.getKind(), true);
+        }
+    };
 }

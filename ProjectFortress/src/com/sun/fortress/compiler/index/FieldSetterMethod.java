@@ -53,7 +53,7 @@ public class FieldSetterMethod extends FieldGetterOrSetterMethod {
     /**
      * Copy another FieldSetterMethod, performing a substitution with the visitor.
      */
-    public FieldSetterMethod(FieldSetterMethod that, NodeUpdateVisitor visitor) {
+    private FieldSetterMethod(FieldSetterMethod that, NodeUpdateVisitor visitor) {
         super(that, visitor);
         _param = (Param) that._param.accept(visitor);
     }
