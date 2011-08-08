@@ -9,7 +9,7 @@
 
  ******************************************************************************)
 
-component EqualityBug5
+component EqualityTest5
 export Executable
 
 trait EqualityFoo[\Selfquux\] comprises Selfquux
