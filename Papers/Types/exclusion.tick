@@ -15,7 +15,8 @@ we extend the overloading rules using \emph{exclusion} relations on types.
 \subsection{Type Exclusion}\label{sec:excdec}
 \input{exc-spec}
 
-% \subsection{Polymorphic Exclusion}
-\subsection{Overloading Rule with Polymorphic Exclusion}\label{sec:exc-polyrules}
+% \subsection{Overloading Rule with Polymorphic Exclusion}
+\subsection{Polymorphic Exclusion}
+\label{sec:exc-polyrules}
 \input{exc-poly}
 
