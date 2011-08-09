@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="xtc">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/xtc/xtc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/xtc/xtc_src.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

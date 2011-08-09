@@ -1,0 +1,298 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress local declarations.
+ */
+module com.sun.fortress.parser.LocalDecl(Variable, NoNewlineHeader, MayNewlineHeader, NoNewlineType,
+                                         NoNewlineExpr, DelimitedExpr, Identifier,
+                                         Keyword, Symbol, Spacing);
+import Variable;
+import NoNewlineHeader;
+import MayNewlineHeader;
+import NoNewlineType;
+import NoNewlineExpr;
+import DelimitedExpr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* BlockElems ::=
+     BlockElem br BlockElems
+   | BlockElem (w ;)?
+ */
+Block BlockElems =
+     a1:BlockElemCollection
+     { yyValue = ExprFactory.doBlock(writer, a1); };
+
+private List<Expr> BlockElemCollection =
+     a1:BlockElem br a2:BlockElemCollection
+     { yyValue = Useful.cons(a1, a2); }
+   / a1:BlockElem w semicolon
+     &(w elif / w also / w end / w catch / w forbid / w finally / w closeparen)
+     { yyValue = Useful.list(a1); }
+   / a1:BlockElem
+     &(w elif / w also / w end / w catch / w forbid / w finally / w closeparen)
+     { yyValue = Useful.list(a1); }
+   / a1:BlockElem &(w Else / br CaseClause / br (Id w colon w)? TypeOrPattern / br CaseElse)
+     { yyValue = Useful.list(a1); }
+   / a1:BlockElem w semicolon  &(w Else)
+     { yyValue = Useful.list(a1); };
+
+/* BlockElem ::=
+     LocalVarFnDecl
+   | NoNewlineExpr (s , w NoNewlineGeneratorClauseList)?
+ */
+private Expr BlockElem =
+     LocalVarFnDecl
+   / a1:NoNewlineExpr a2:(s comma w NoNewlineGeneratorClauseList)?
+     { if (a2 == null) yyValue = a1;
+       else yyValue = ExprFactory.makeFor(createSpan(yyStart,yyCount),
+                                          a2, ExprFactory.makeBlock(a1));
+     };
+
+/* LocalVarFnDecl ::=
+     LocalFnDecl (br LocalFnDecl)*
+   | LocalVarDecl
+ */
+private LetExpr LocalVarFnDecl =
+     a1:LocalFnDecl a2s:(br LocalFnDecl)*
+     { yyValue = ExprFactory.makeLetFn(createSpan(yyStart,yyCount),
+                                       Collections.<Expr>emptyList(),
+                                       Useful.cons(a1, a2s.list()));
+     }
+   / LocalVarDecl ;
+
+/* LocalFnDecl ::= Mods? Id (w StaticParams)? w ValParam FnHeaderClause w = w NoNewlineExpr */
+private FnDecl LocalFnDecl =
+     a1:Mods? a2:Id a3:(w StaticParams)? w a4:ValParam a5:FnHeaderClause w equals
+     w a6:NoNewlineExpr
+     { if (a1 == null) a1 = Modifiers.None;
+       if (a3 == null) a3 = Collections.<StaticParam>emptyList();
+       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), a1,
+                                      new FnHeaderFront(a2, a3, a4), a5, a6);
+     };
+
+/* ValParam ::=
+     ( (w Params)? )
+   | BindId
+ */
+transient List<Param> ValParam =
+     openparen a1:(w Params)? w closeparen
+     { if (a1 == null) yyValue = Collections.<Param>emptyList();
+       else            yyValue = a1;
+     }
+   / a1:BindId
+     { yyValue = Useful.list(NodeFactory.makeParam(a1)); };
+
+/* Params ::=
+     (Param w , w)* (Varargs w , w)? Keyword (w , w Keyword)*
+   | (Param w , w)*  Varargs
+   |  Param (w , w Param)*
+ */
+transient List<Param> Params =
+     <ErrorProduction1>
+     (Param w comma w)+ (Keyword w comma w)+ Varargs
+     { log(createSpan(yyStart,yyCount),
+           "Varargs parameters should come before keyword parameters.");
+       yyValue = Collections.<Param>emptyList();
+     }
+   / <ErrorProduction2>
+     Varargs w comma w (Keyword w comma w)+ Param (w comma w Param)*
+     { log(createSpan(yyStart,yyCount),
+           "Normal parameters should come before varargs parameters and keyword parameters.");
+       yyValue = Collections.<Param>emptyList();
+     }
+   / <ErrorProduction3>
+     Varargs (w comma w Param)+ (w comma w Keyword)*
+     { log(createSpan(yyStart,yyCount),
+           "Normal parameters should come before varargs parameters.");
+       yyValue = Collections.<Param>emptyList();
+     }
+   / a1s:(Param w comma w)* a2:(Varargs w comma w)? a3:Keyword
+     a4s:(w comma w Keyword)*
+     { yyValue = Useful.list(a1s.list());
+       if (a2 != null) yyValue.add(a2);
+       yyValue.add(a3);
+       yyValue.addAll(a4s.list());
+     }
+   / a1s:(Param w comma w)* a2:Varargs
+     { yyValue = Useful.list(a1s.list(), a2); }
+   / a1:Param a2s:(w comma w Param)*
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* Param ::= BindId (s : s NoNewlineIsTypeOrPattern)? */
+transient Param Param =
+     a1:BindId s void:colon s a2:Pattern
+     { yyValue = NodeFactory.makeParam(a1, a2); }
+   / a1:BindId s void:colon s a2:NoNewlineType
+     { yyValue = NodeFactory.makeParam(a1, a2); }
+   / a1:BindId
+     { yyValue = NodeFactory.makeParam(a1); };
+
+/* Varargs ::= BindId s : s NoNewlineType s ... */
+transient Param Varargs = a1:BindId s colon s a2:NoNewlineType s ellipses
+     { yyValue = NodeFactory.makeVarargsParam(a1, a2); };
+
+/* Keyword ::= Param s = w NoNewlineExpr */
+transient Param Keyword = a1:Param s equals w a2:NoNewlineExpr
+     { yyValue = NodeFactory.makeParam(a1, a2); };
+
+/* LocalVarDecl ::=
+     (var w)? VarMayTypes s = w NoNewlineExpr
+   | (var w)? NoNewlineVarWTypeOrPatterns s := w NoNewlineExpr
+   | (var w)? NoNewlineVarWTypes
+   |          VarWoTypes s = w NoNewlineExpr
+   | (var w)? VarWoTypes s : s NoNewlineType s ... (s InitVal)?
+   | (var w)? VarWoTypes s : s NoNewlineTupleType (s InitVal)?
+ */
+LocalVarDecl LocalVarDecl =
+     a1:Mods? a2:VarMayTypes s equals w a3:NoNewlineExpr
+     { a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), false);
+       yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2, a3);
+     }
+   / a1:Mods? a2:NoNewlineVarWTypeOrPatterns s colonequals w a3:NoNewlineExpr
+     { a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), true);
+       yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2, a3);
+     }
+   / a1:Mods? a2:NoNewlineVarWTypes
+     { a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), false);
+       yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2);
+     }
+   / a1:VarWoTypes s equals w a2:NoNewlineExpr
+     { yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount),a1,a2); }
+   / a1:Mods? a2:VarWoTypes s colon s a3:NoNewlineType s ellipses a4:(s InitVal)?
+     { Option<Expr> init;
+       if ( a4 != null ) {
+           init = Option.<Expr>some(a4.getA());
+           a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1),
+                                    Option.<TypeOrPattern>some(a3), a4.getB());
+       } else {
+           init = Option.<Expr>none();
+           a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1),
+                                    Option.<TypeOrPattern>some(a3), false);
+       }
+       yyValue = ExprFactory.makeLocalVarDecl(createSpan(yyStart,yyCount), a2,
+                                             init);
+     }
+   / a1:Mods? a2:VarWoTypes s colon s a3:NoNewlineTupleType a4:(s InitVal)?
+     { Span span = createSpan(yyStart,yyCount);
+       List<Type> tys = a3.getElements();
+       if (a2.size() != tys.size())
+           log(span, "Mismatched numbers of variables and types.");
+       Option<Expr> init;
+       if ( a4 != null ) {
+           init = Option.<Expr>some(a4.getA());
+           a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), tys, a4.getB());
+       } else {
+           init = Option.<Expr>none();
+           a2 = NodeFactory.makeLvs(writer, a2, Option.<Modifiers>wrap(a1), tys, false);
+       }
+       yyValue = ExprFactory.makeLocalVarDecl(span, a2, init);
+     };
+
+/* VarMayTypes ::=
+     VarMayType
+   | ( w VarMayType (w , w VarMayType)+ w )
+ */
+List<LValue> VarMayTypes =
+     a1:VarMayType
+     { yyValue = Useful.list(a1); }
+   / openparen w a1:VarMayType a2s:(w comma w VarMayType)+ w closeparen
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* VarMayType ::= BindId (s : s (NoNewlinePattern | NoNewlineType))? */
+LValue VarMayType =
+     a1:BindId s void:colon s a2:NoNewlinePattern
+     { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2); }
+   / a1:BindId s void:colon s a2:NoNewlineType
+     { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2); }
+   / a1:BindId
+     { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1); };
+
+/* VarWoTypes ::=
+     VarWoType
+   | ( w VarWoType (w , w VarWoType)+ w )
+ */
+List<LValue> VarWoTypes =
+     a1:VarWoType
+     { yyValue = Useful.list(a1); }
+   / openparen w a1:VarWoType a2s:(w comma w VarWoType)+ w closeparen
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* VarWoType ::=
+     BindId
+   | Unpasting
+ */
+LValue VarWoType =
+     a1:BindId
+     { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount), a1); }
+   / Unpasting
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Matrix unpasting is not yet implemented.");
+       yyValue = NodeFactory.makeLValue(span, NodeFactory.makeId(span, "_"));
+     };
+
+/* NoNewlineVarWTypeOrPatterns ::=
+     NoNewlineVarWTypeOrPattern
+   | ( w NoNewlineVarWTypeOrPattern (w , w NoNewlineVarWTypeOrPattern)+ w )
+ */
+List<LValue> NoNewlineVarWTypeOrPatterns =
+     a1:NoNewlineVarWTypeOrPattern
+     { yyValue = Useful.list(a1); }
+   / openparen w a1:NoNewlineVarWTypeOrPattern a2s:(w comma w NoNewlineVarWTypeOrPattern)+ w
+     closeparen
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* NoNewlineVarWTypeOrPattern ::= BindId s NoNewlineIsTypeOrPattern */
+LValue NoNewlineVarWTypeOrPattern = a1:BindId s a2:NoNewlineIsTypeOrPattern
+     { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2); };
+
+/* NoNewlineIsTypeOrPattern ::=
+     : w Pattern
+   | : w NoNewlineType
+ */
+TypeOrPattern NoNewlineIsTypeOrPattern =
+     void:colon w NoNewlinePattern
+   / void:colon w NoNewlineType ;
+
+/* Unpasting ::= [ w UnpastingElems w ] */
+private void Unpasting =
+     void:opensquare w UnpastingElems w void:closesquare ;
+
+/* UnpastingElems ::=
+     UnpastingElem RectSeparator UnpastingElems
+   | UnpastingElem
+ */
+private void UnpastingElems =
+     UnpastingElem RectSeparator UnpastingElems
+   / UnpastingElem ;
+
+/* UnpastingElem ::=
+     BindId ([ w UnpastingDim w ])?
+   | Unpasting
+ */
+private void UnpastingElem =
+     BindId (void:opensquare w UnpastingDim w void:closesquare)?
+   / Unpasting ;
+
+// NoNewlineExtentRange instead of ExtnetRange
+// due to the Rats! module system
+/* UnpastingDim ::= NoNewlineExtentRange (w BY w NoNewlineExtentRange)+  */
+private void UnpastingDim =
+     NoNewlineExtentRange (w cross w NoNewlineExtentRange)+ ;
+
+/* CaseClause ::= NoNewlineExpr w => w BlockElems */
+CaseClause CaseClause = a1:NoNewlineExpr w match w a2:BlockElems
+     { yyValue = NodeFactory.makeCaseClause(createSpan(yyStart,yyCount), a1, a2,
+                                            Option.<FunctionalRef>none());
+     };

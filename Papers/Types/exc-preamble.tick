@@ -1,0 +1,3 @@
+To enable overloaded functions of the sort described in the previous section to be defined, 
+we introduce the \emph{exclusion} relation $\exc$ on types:
+$S \exc T$ asserts that types $S$ and $T$ have no common subtypes other than \BottomType.
