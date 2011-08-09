@@ -45,7 +45,7 @@ the existential type $\exists\ob{}T$ as simply $T$ when the meaning is clear fro
 Figure~\ref{fig:sub} presents the formal definition of applicability for a generic function $f$
 to a type $T$, $f \ni T$.
 
-\input{fig-exclusion}
+\input{fig-existential}
 
 %specificity for a generic function
 A generic function declaration is \emph{more specific} than another generic function declaration
