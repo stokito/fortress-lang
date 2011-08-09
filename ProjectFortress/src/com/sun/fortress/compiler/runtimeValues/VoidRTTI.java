@@ -10,7 +10,7 @@ public class VoidRTTI extends RTTI {
 		super(javaRep);
 	}
 	
-	public boolean argExtendsThis(RTTI other) {
+	public boolean runtimeSupertypeOf(RTTI other) {
         if (other instanceof VoidRTTI) return true;
 		return false;
     }

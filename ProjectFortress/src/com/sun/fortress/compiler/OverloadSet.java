@@ -809,7 +809,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          * If generic, this is the stem; the stem must match, and then
          * the parameters must match appropriately.
          */
-        final String stem;
+        final String rttiStem;
         
         /** static type parameters.
          *  IF NULL, this is a VarType node, to be stored in local localIndex
@@ -847,7 +847,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 Set<String> invariantGenericsContained, Set<String> variantGenericsContained, boolean isObject) {
             super();
             this.fullname = fullname;
-            this.stem = stem;
+            this.rttiStem = stem;
             this.staticParameters = parameters;
             this.localIndex = localIndex;
             this.successorIndex = successorIndex;
@@ -887,7 +887,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
                 } else {
                     //RTTI on the top of the stack
-                    String RTTIinterface = stem + Naming.RTTI_INTERFACE_SUFFIX;
+                    String RTTIinterface = Naming.stemInterfaceToRTTIinterface(this.rttiStem); //might actually be a class in cases of Arrow and Tuple RTTIs
                     Label ahead = new Label();
                     
                     //DUP RTTI
@@ -911,8 +911,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     for (TypeStructure p : staticParameters) {
                         mv.visitVarInsn(Opcodes.ALOAD, localIndex);
                         String method_name =
-                            Naming.staticParameterGetterName(stem, i);
-                        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, RTTIinterface, method_name, Naming.STATIC_PARAMETER_GETTER_SIG);
+                            Naming.staticParameterGetterName(rttiStem, i);
+                        if (RTTIinterface.endsWith(Naming.RTTI_INTERFACE_SUFFIX))
+                            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, RTTIinterface, method_name, Naming.STATIC_PARAMETER_GETTER_SIG);
+                        else // ends in RTTI_CLASS_SUFFIX - invoke virtual
+                            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, RTTIinterface, method_name, Naming.STATIC_PARAMETER_GETTER_SIG);
                         // get parameter
                         p.emitInstanceOf(mv, if_fail, false, top_level_invariants);
                         i++;
@@ -938,10 +941,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 // tricky cases are Arrow and Tuple.
                 // getstatic fullname.RTTI
                 // swap
-                // invokevirtual RTTI.argExtendsThis
+                // invokevirtual RTTI.runtimeSupertypeOf
                 mv.visitFieldInsn(Opcodes.GETSTATIC, fullname, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
                 mv.visitInsn(Opcodes.SWAP);
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, "argExtendsThis", "("+ Naming.RTTI_CONTAINER_DESC + ")Z");
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
             }
             mv.visitJumpInsn(Opcodes.IFEQ, if_fail);
         }
@@ -962,7 +965,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             int variance, int storeAtIndex,
             List<StaticParam> staticParams) {
         String fullname = NamingCzar.jvmBoxedTypeName(t, ifNone);
-        String stem = null;
+        String rttiStem = null;
         TypeStructure[] parameters = null;
         int[] variances = null;
         List<Type> type_elements = null;
@@ -972,12 +975,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         boolean isObject = false;
         
         if (t instanceof TupleType) {
-            stem = Naming.TUPLE_TAG;
             type_elements = ((TupleType) t).getElements();
-            variances = arrayOfInt(type_elements.size(), variance);
+            int numStaticArgs = type_elements.size();
+            variances = arrayOfInt(numStaticArgs, variance);
+            rttiStem = Naming.TUPLE_RTTI_TAG + numStaticArgs;
             
         } else if (t instanceof ArrowType) {
-            stem = Naming.ARROW_TAG;
+            
             ArrowType at = ((ArrowType) t);
             Type range = at.getRange();
             Type domain = at.getDomain();
@@ -989,6 +993,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             int l = type_elements.size();
             variances = arrayOfInt(l, -variance);
             variances[l-1] = variance;
+            rttiStem = Naming.ARROW_RTTI_TAG + l;
             
         } else if (t instanceof TraitSelfType) {
             return makeTypeStructure(((TraitSelfType)t).getNamed(), spmap,
@@ -999,7 +1004,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             TraitType tt = (TraitType) t;
             List<StaticArg> tt_sa = tt.getArgs();
             Id tt_id = tt.getName();
-            stem = CodeGen.stemFromId(tt_id,packageAndClassName);
+            rttiStem = CodeGen.stemFromId(tt_id,packageAndClassName);
             if (tt_sa.size() > 0) {
                 // process args into types. Non-type args will be somewhat problematic at first.
                 type_elements = new ArrayList<Type>();
@@ -1022,7 +1027,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         } else if (t instanceof VarType) {
             VarType tt = (VarType) t;
             Id tt_id = tt.getName();
-            stem = tt_id.getText(); // DO NOT API-ANNOTATE!
+            rttiStem = tt_id.getText(); // DO NOT API-ANNOTATE!
             
             // If the overload arm has no static parameters, or if they
             // come from an enclosing scope (from a trait type, if this is
@@ -1032,7 +1037,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             if (staticParams != null) {
                 for (StaticParam sp : staticParams) {
                     IdOrOp spn = sp.getName();
-                    if (spn.getText().equals(stem)) {
+                    if (spn.getText().equals(rttiStem)) {
                         if (variance != 0) {
                             variantGenericsContained = Useful.set(tt_id.getText());
                         } else {
@@ -1091,14 +1096,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             }
             //if (! hasGeneric) - KBN - should not be reseting next index counter
             //   next_index = storeAtIndex+1;
-            return new TypeStructure(fullname, stem, parameters, storeAtIndex, next_index, variance, invariantGenericsContained, variantGenericsContained, isObject);
+            return new TypeStructure(fullname, rttiStem, parameters, storeAtIndex, next_index, variance, invariantGenericsContained, variantGenericsContained, isObject);
         } else if (isVarType) {
-            TypeStructure x = new TypeStructure(fullname, stem, parameters, storeAtIndex, storeAtIndex+1, variance, invariantGenericsContained, variantGenericsContained, isObject);
+            TypeStructure x = new TypeStructure(fullname, rttiStem, parameters, storeAtIndex, storeAtIndex+1, variance, invariantGenericsContained, variantGenericsContained, isObject);
             if (spmap != null)
-                spmap.putItem(stem, x);
+                spmap.putItem(rttiStem, x);
             return x;
         } else { 
-            return new TypeStructure(fullname, stem, parameters, storeAtIndex, storeAtIndex+1, variance, invariantGenericsContained, variantGenericsContained, isObject);
+            return new TypeStructure(fullname, rttiStem, parameters, storeAtIndex, storeAtIndex+1, variance, invariantGenericsContained, variantGenericsContained, isObject);
         }        
     }
 
@@ -1207,7 +1212,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 }
             }
             
-            //Do I need to infer any static parameters at runtime?
+            //Runtime inference for some cases
             if (infer) {
                 @SuppressWarnings("unchecked")
                 MultiMap<String,TypeStructure> staticTss = spmaps[i];
@@ -1254,28 +1259,43 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                             Label popLabel = new Label();
                             Label proceedLabel = new Label();
                             
+                            //a valid instantiation must use the runtime type
+                            //of all invariant instances (which must all be the same)
+                            //thus, wlog, we can use the first invariant instance
+                            int RTTItoUse = invariantInstances.get(0); 
                             
-                            int RTTItoUse = invariantInstances.get(0);
+                            //1) for each other invariant instance, they must be the same
+                            //which we test by checking that each subtypes the other
                             for (int k = 1; k < invariantInstances.size(); k++) {
                                 int RTTIcompare = invariantInstances.get(k);
+                                //RTTItoUse.runtimeSupertypeOf(RTTIcompare)
                                 mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
                                 mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
                                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
                                 mv.visitJumpInsn(Opcodes.IFEQ, popLabel);
+                                //RTTIcompare.runtimeSupertypeOf(RTTItoUse)
                                 mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
                                 mv.visitVarInsn(Opcodes.ALOAD, RTTItoUse);
                                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
                                 mv.visitJumpInsn(Opcodes.IFEQ, popLabel);
                             }
+                            
+                            //2) for each covariant instance, the runtime type (RTTIcompare) must be a
+                            // subtype of the instantiated type (RTTItoUse)
                             for (int RTTIcompare : covariantInstances) {
-                                mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
+                                //RTTItoUse.runtimeSupertypeOf(RTTIcompare)
                                 mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
+                                mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
                                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
                                 mv.visitJumpInsn(Opcodes.IFEQ, popLabel);
                             }
+                            
+                            //3) for each contravariant instances, the instantiated type (RTTItoUse) must be a 
+                            // subtype of the runtime type (RTTIcompare)
                             for (int RTTIcompare : contravariantInstances) {
-                                mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
+                                //RTTIcompare.runtimeSupertypeOf(RTTItoUse)
                                 mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
+                                mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
                                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
                                 mv.visitJumpInsn(Opcodes.IFEQ, popLabel);
                             }
@@ -1283,9 +1303,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                             //checks out, so load the RTTI we will use
                             mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
                             mv.visitJumpInsn(Opcodes.GOTO, proceedLabel);
+                            
+                            //if we failed pop from top of statck and try the next possible function definition
                             mv.visitLabel(popLabel);
                             mv.visitInsn(Opcodes.POP);
-                            mv.visitJumpInsn(Opcodes.GOTO, failLabel);
+                            mv.visitJumpInsn(Opcodes.GOTO, lookahead);
+                            
+                            //success - call this function
                             mv.visitLabel(proceedLabel);
                             
                         } else { //otherwise, we might need to do inference which is not implemented yet
