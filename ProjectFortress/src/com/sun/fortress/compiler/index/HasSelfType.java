@@ -12,8 +12,9 @@
 package com.sun.fortress.compiler.index;
 
 import com.sun.fortress.nodes.SelfType;
-import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.*;
 import edu.rice.cs.plt.tuple.Option;
+import java.util.List;
 
 /**
  * A Functional index that occurs in a trait. We need to be able to get the
@@ -23,4 +24,5 @@ public interface HasSelfType {
     public Id declaringTrait();
     public Option<SelfType> selfType();
     public int selfPosition();
+    public List<StaticParam> traitStaticParameters();
 }

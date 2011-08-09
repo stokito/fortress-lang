@@ -98,7 +98,8 @@ public class FunctionalMethod extends Function implements HasSelfType {
     public Id declaringTrait() {
         return _declaringTrait;
     }
-
+    
+    @Override
     public List<StaticParam> traitStaticParameters() {
         return _traitParams;
     }
@@ -130,13 +131,6 @@ public class FunctionalMethod extends Function implements HasSelfType {
      */
     @Override
     public List<StaticParam> staticParameters() {
-        return CollectUtil.makeList(IterUtil.compose(_traitParams, NodeUtil.getStaticParams(_ast)));
-    }
-
-    /**
-     * Get only the explicitly declared static parameters for this method.
-     */
-    public List<StaticParam> declaredStaticParameters() {
         return NodeUtil.getStaticParams(_ast);
     }
 

@@ -21,11 +21,5 @@ import edu.rice.cs.plt.lambda.Lambda;
 public abstract class Function extends Functional {
 
     public abstract IdOrOpOrAnonymousName toUndecoratedName();
-
-    // Copy a static parameter but make it lifted.
-    static final protected Lambda<StaticParam, StaticParam> liftStaticParam = new Lambda<StaticParam, StaticParam>() {
-        public StaticParam value(StaticParam that) {
-            return new StaticParam(that.getInfo(), that.getName(), that.getExtendsClause(), that.getDimParam(), that.isAbsorbsParam(), that.getKind(), true);
-        }
-    };
+    
 }
