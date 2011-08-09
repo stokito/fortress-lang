@@ -121,5 +121,5 @@
   \end{tabular}
   
   \caption{Generating constraints for subtyping}
-  \label{fig:jexc}
+  \label{fig:jcsub}
 \end{figure*}
