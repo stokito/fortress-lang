@@ -1,3 +1,10 @@
+\TODO{Intro comments}
+Here is where we give the rules to derive the exclusion relation.
+We use constraint-based reasoning to do it.
+(All the rules should here, rather than being spread around.)
+We also have rules for constraint-based derivation of subtyping, 
+and those are in an appendix.
+
 \paragraph{Constraints}
 We now augment our subtyping judgment to include \emph{constraints}.
 With constraint-based subtyping, we perform backward reasoning from the

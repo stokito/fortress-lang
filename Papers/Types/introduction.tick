@@ -88,16 +88,16 @@ in the context of a type system
 without parametric polymorphism or multiple inheritance
 by requiring every pair of overloaded function definitions 
 to satisfy the following properties:
-(\emph{i}) whenever the parameter type of one 
-is a subtype of the parameter type of the other, 
+(\emph{i}) whenever the domain type of one 
+is a subtype of the domain type of the other, 
 the return type of the first
 must also be a subtype of the return type of the second; 
 and 
-(\emph{ii}) whenever the parameter types of the two definitions 
+(\emph{ii}) whenever the domain types of the two definitions 
 have a common lower bound (i.e., nontrivial subtype), 
 there is a unique definition for the same function 
-whose parameter type is the greatest lower bound 
-of the parameter types of the two definitions.
+whose domain type is the greatest lower bound 
+of the domain types of the two definitions.
 Thus, for the example above, 
 % the solution of Castagna {\it et~al}.\ is to require the programmer to
 the programmer must provide a third definition
@@ -110,11 +110,11 @@ to satisfy the latter property:
 
 This latter property is equivalent to requiring
 that the definitions for each overloaded function form a meet semilattice 
-partially ordered by the subtype relation on their parameter types.
+partially ordered by the subtype relation on their domain types.
 We call this partial order the \emph{more specific than} relation,\!\footnote{%
 Despite its name,
 this relation, like the subtype relation, is reflexive: 
-two function definitions with the same parameter type 
+two function definitions with the same domain type 
 are each more specific than the other.
 In that case, we say the definitions are equally specific.}
 and we call the property the \emph{meet rule}.
@@ -133,7 +133,7 @@ for a core of the Fortress programming language
 that did not support generics \cite{allen07,Fortress},
 for which we proved the analogous theorems.
 
-
+\TODO{Move most of next few paragraphs to related work.}
 
 The type system considered by Castagna \emph{et al.} 
 assumed knowledge of the entire type hierarchy 
@@ -156,7 +156,7 @@ and because Fortress supports multiple inheritance,
 two types may have a common nontrivial subtype 
 even if no declared type extends them both.
 Thus,
-for any pair of overloaded function definitions with incomparable parameter types
+for any pair of overloaded function definitions with incomparable domain types
 (i.e., neither definition is more specific than the other),
 the meet rule requires some other definition to resolve the potential ambiguity.
 Because explicit intersection types cannot be expressed in Fortress, 
@@ -164,16 +164,16 @@ it is not always possible to provide such a function definition.
 However, 
 Fortress defines an \emph{exclusion relation} on types, 
 such that types related by exclusion must have no common nontrivial subtypes,
-and thus definitions with such types as parameter types 
+and thus definitions with such types as domain types 
 need not be disambiguated.
 
-In this paper, we extend our prior rules 
-to handle parametric polymorphism, 
-where both types and functions may be parameterized by type variables, 
-which Fortress also supports.
-To do so, 
-it is helpful to have an interpretation for parametric types 
-and type-parametric functions.
+% In this paper, we extend our prior rules 
+% to handle parametric polymorphism, 
+% where both types and functions may be parameterized by type variables, 
+% which Fortress also supports.
+% To do so, 
+% it is helpful to have an interpretation for parametric types 
+% and type-parametric functions.
 
 One way to think about a parametric type such as `List[\T\]`
 (a list with elements of type `T`---type parameter lists 
@@ -245,6 +245,7 @@ to handle specially all cases where `T` is a subtype of `Number`.
 But the model would regard this as an overloading 
 with an infinite number of ambiguities.
 
+\TODO{Reword the following paragraph.}
 
 To resolve this problem, 
 we had to develop an alternate model 
@@ -252,13 +253,6 @@ and an associated type system
 that could handle overloaded type-parametric functions 
 in a manner that would accord with programmer intuition 
 and support the plausible examples shown above.
-
-Two other authors of this paper 
-
-
-The key insight 
-
-
 Credit for championing key insights---regarding each polymorphic definition
 as a single definition (rather than an infinite set of definitions)
 competing in the overload set, and using universal and existential types
@@ -269,18 +263,6 @@ Adopting this new approach has made
 overloaded polymorphic functions both tractable and effective
 for writing Fortress code.
 
-In this paper, 
-we give rules for ensuring safe overloaded functions 
-in a language that supports symmetric multiple dispatch, 
-multiple inheritance, and parametric polymorphism 
-(that is, generic types \emph{and} generic functions),
-and we prove that these rules guarantee 
-that there are no ambiguous calls at run time 
-(see Section~\ref{sec:safety}).
-We do this by extending our earlier rules 
-for a core of the Fortress programming language 
-that did not support generics \cite{allen07,Fortress},
-for which we proved the analogous theorem.
 To minimize syntactic overhead 
 and avoid having to translate 
 between a concrete language syntax 

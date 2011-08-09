@@ -155,7 +155,7 @@
 \titlebanner{draft}        % These are ignored unless
 \preprintfooter{draft}     % 'preprint' option specified.
 
-\title{Type-checking Modular Multiple Dispatch with Parametric Polymorphism and Multiple Inheritance}
+\title{Type Checking Modular Multiple Dispatch with Parametric Polymorphism and Multiple Inheritance}
 \subtitle{}
 \authorinfo{Eric Allen}{Oracle Labs}{eric.allen@oracle.com}
 \authorinfo{Justin Hilburn}{Oracle Labs}{justin.hilburn@oracle.com}
@@ -274,10 +274,14 @@ components, separate compilation, Fortress, meet rule}
 \subsection{Overloading Resolution Safety}\label{sec:safety}
 \input{safety}
 
-\section{Disallowed Valid Overloading}\label{sec:problems}
+% \section{Disallowed Valid Overloading}
+\section{Exclusion}
+\label{sec:problems}
 \input{problems}
 
-\section{More Permissive Overloading}\label{sec:exclusion}
+%\section{More Permissive Overloading}
+
+\label{sec:exclusion}
 % EXCLUSION
 % Exclusion on base types
 % Exclusion on parametric types
@@ -285,7 +289,7 @@ components, separate compilation, Fortress, meet rule}
 % Powerful for computing meets
 \input{exclusion}
 
-\subsection{Exclusion with Constraints}\label{sec:constraints}
+\section{Exclusion with Constraints}\label{sec:constraints}
 \input{exc-constraints}
 
 %\subsection{Polymorphic Exclusion Checking}
