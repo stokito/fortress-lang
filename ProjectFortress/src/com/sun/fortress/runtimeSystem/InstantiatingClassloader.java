@@ -1208,7 +1208,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitMethodInsn(INVOKEINTERFACE, Naming.ANY_TYPE_CLASS, Naming.RTTI_GETTER, "()" + Naming.RTTI_CONTAINER_DESC );
            // mv.visitJumpInsn(IFNONNULL, fail);
-            mv.visitMethodInsn(INVOKEVIRTUAL,Naming.RTTI_CONTAINER_TYPE , "argExtendsThis", "(" + Naming.internalToDesc(Naming.RTTI_CONTAINER_TYPE) + ")Z");
+            mv.visitMethodInsn(INVOKEVIRTUAL,Naming.RTTI_CONTAINER_TYPE , Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
             
             //mv.visitIntInsn(BIPUSH, 0);
             mv.visitJumpInsn(Opcodes.IFEQ, fail);
