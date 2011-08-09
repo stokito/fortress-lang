@@ -115,7 +115,7 @@ trait Functionals { self: STypeChecker with Common =>
 
   /**
    * Given an arrow type, an expected type context, and a list of partitioned args (where Left is
-   * checked and Right is an unchecked arg), determine if the arrow is applicable to these args.
+   * checked and Right is an unchecked arg (usually an anonymous function)), determine if the arrow is applicable to these args.
    * This method will infer static arguments on the arrow and parameter types on any FnExpr args.
    * The result is an AppCandidate, which contains the inferred arrow type, the list of static
    * args that were inferred, and the checked arguments.
@@ -288,7 +288,7 @@ trait Functionals { self: STypeChecker with Common =>
         }
 
       // For each unchecked FnExpr arg, try to infer its parameter type and
-      // check it.
+      // check it. We don't need to add coercions because arrow types don't have them.
       case (Right(unchecked), paramType:ArrowType) =>
         inferFnExprParams(unchecked, paramType, true).
           fold(checked => (Left(checked), None),
