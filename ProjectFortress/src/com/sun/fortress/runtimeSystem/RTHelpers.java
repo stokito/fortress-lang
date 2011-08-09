@@ -113,10 +113,13 @@ public class RTHelpers {
                 return o;
             }
         } catch (ClassNotFoundException e) {
+            System.err.println("Class " + class_we_want + " failed to load (class not found).");
             e.printStackTrace();
         } catch (InstantiationException e) {
+            System.err.println("Class " + class_we_want + " failed to load (instantiation exception).");
             e.printStackTrace();
         } catch (IllegalAccessException e) {
+            System.err.println("Class " + class_we_want + " failed to load (illegal access).");
             e.printStackTrace();
         }
         

@@ -20,6 +20,9 @@ import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes_util.Modifiers;
 import com.sun.fortress.nodes_util.NodeUtil;
 
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.iter.IterUtil;
+
 import java.util.List;
 
 /**

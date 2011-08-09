@@ -7,7 +7,7 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests= EqualityTest9
+tests= MaybeTest7 MaybeTest8
 link
 run
 run_out_contains=PASS

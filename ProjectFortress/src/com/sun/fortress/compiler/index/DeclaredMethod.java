@@ -16,6 +16,9 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeFactory;
+
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.SimpleBox;
 import edu.rice.cs.plt.lambda.Thunk;
 import edu.rice.cs.plt.tuple.Option;
@@ -28,6 +31,7 @@ public class DeclaredMethod extends Method {
     private final FnDecl _ast;
     private final Id _declaringTrait;
     private final Option<SelfType> _selfType;
+    private final List<StaticParam> _traitParams;
     private final Method _originalMethod;
     
     public DeclaredMethod(FnDecl ast, TraitObjectDecl traitDecl) {
@@ -35,6 +39,7 @@ public class DeclaredMethod extends Method {
         _ast = ast;
         _declaringTrait = NodeUtil.getName(traitDecl);
         _selfType = traitDecl.getSelfType();
+        _traitParams = CollectUtil.makeList(IterUtil.map(NodeUtil.getStaticParams(traitDecl), liftStaticParam));
         if (NodeUtil.getReturnType(_ast).isSome())
             _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
@@ -42,11 +47,13 @@ public class DeclaredMethod extends Method {
     /**
      * Copy another DeclaredMethod, performing a substitution with the visitor.
      */
-    public DeclaredMethod(DeclaredMethod that, NodeUpdateVisitor visitor) {
+    private DeclaredMethod(DeclaredMethod that, NodeUpdateVisitor visitor) {
         _originalMethod = that.originalMethod();
         _ast = (FnDecl) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
         _selfType = visitor.recurOnOptionOfSelfType(that._selfType);
+        // Static instantiation clears params
+        _traitParams = CollectUtil.emptyList();
         _thunk = that._thunk;
         _thunkVisitors = that._thunkVisitors;
         pushVisitor(visitor);
@@ -131,5 +138,10 @@ public class DeclaredMethod extends Method {
     @Override
     public boolean hasDeclaredReturnType() {
         return NodeUtil.getReturnType(_ast).isSome();
+    }
+    
+    @Override
+    public List<StaticParam> traitStaticParameters() {
+        return _traitParams;
     }
 }
