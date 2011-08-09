@@ -1,0 +1,125 @@
+%%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}[htbp]
+\newjudge{Generating constraints for subtyping}{\jcsub{T}{T}{\C}}
+\\\\
+  \begin{tabular}{c|c}
+  %% MINIPAGE FOR LEFT COLUMN
+  \begin{minipage}[t]{.45\textwidth}
+  
+\textbf{Logical rules}
+%\vspace*{-1em}
+
+\infrule
+  {}
+  {\jcsub{\BottomType}{T}{\TRUE}}
+
+\infrule
+  {}
+  {\jcsub{T}{\Any}{\TRUE}}
+
+\infrule
+  {\jcsub{S}{T}{\C} \andalso \jcsub{S}{U}{\C'}}
+  {\jcsub{S}{T \cap U}{\C \wedge \C'}}
+
+\infrule
+  {\jcsub{S}{U}{\C} \andalso \jcsub{T}{U}{\C'} \\
+   \jexc{S}{T}{\C''}}
+  {\jcsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
+  
+\infrule
+  {\jcsub{S}{T}{\C} \andalso \jcsub{S}{U}{\C'}}
+  {\jcsub{S}{T \cup U}{\C \vee \C'}}
+  
+\infrule
+  {\jcsub{S}{U}{\C} \andalso \jcsub{T}{U}{\C'}}
+  {\jcsub{S \cup T}{U}{\C \wedge \C'}}
+
+\vspace*{3ex}
+\textbf{Variables}
+%\vspace*{-1em}
+
+\infrule
+  {}
+  {\jcsub{I}{I}{\TRUE}}
+
+\infrule
+  {}
+  {\jcsub{I}{T}{`I` \subtypeof `T`}}
+ 
+\infrule
+  {}
+  {\jcsub{S}{I}{`S` \subtypeof `I`}}
+ 
+\infrule
+  {}
+  {\jcsub{X}{X}{\TRUE}}
+
+\infrule
+  {\jcsub{\Delta(X)}{T}{\C}}
+  {\jcsub{X}{T}{\C}}
+
+\infrule
+  {\jcsub{S}{\BottomType}{\C}}
+  {\jcsub{S}{X}{\C}}
+
+  \end{minipage}
+  
+  %%% END LEFT COLUMN
+  &
+  
+  %% MINIPAGE FOR RIGHT COLUMN
+  \begin{minipage}[t]{.53\textwidth}
+\textbf{Structural rules}
+%\vspace*{-1em}
+
+\infrule
+  {|\bar{S}|=|\bar{T}| \andalso \forall  i . \jcsub{S_i}{T_i}{\C_i} \\
+   \forall  i . \jcsub{S_i}{\BottomType}{\D_i}}
+  {\jcsub{(\bar{S})}{(\bar{T})}{\bigwedge \C_i \vee \bigvee D_i}}
+
+\infrule
+  {\forall  i . \jcsub{S_i}{\BottomType}{\D_i}}
+  {\jcsub{(\bar{S})}{T}{\bigvee \D_i}}
+
+\infrule
+  {\jcsub{U}{S}{\C} \andalso \jcsub{T}{V}{\C'}}
+  {\jcsub{`S -> T`}{`U -> V`}{\C \wedge \C'}}
+  
+\infrule
+  {|\bar{U}| \neq 1}
+  {\jcsub{`S -> T`}{(\bar{U})}{\FALSE}}
+  
+\infrule
+  {|\bar{T}| \neq 1}
+  {\jcsub{M}{(\bar{T})}{\FALSE}}
+
+\infrule
+  {}
+  {\jcsub{`S -> T`}{M}{\FALSE}}
+
+\infrule
+  {}
+  {\jcsub{M}{`S -> T`}{\FALSE}}
+
+\vspace*{3ex}
+\textbf{Constructed types}
+\vspace*{-1em}
+
+\infrule
+  {\forall M \in \ancestors(`C[\S_bar\]`). \jgconstrtemplate{M}{\sim}{`D[\T_bar\]`}{\C_M}}
+  {\jcsub{`C[\S_bar\]`}{`D[\T_bar\]`}{\bigvee \C_M}}
+
+\infrule
+  {C \neq D}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\sim}{`D[\T_bar\]`}{\FALSE}}
+  
+  \infrule
+  {\forall i . \jcequiv{S_i}{T_i}{C_i}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\sim}{`C[\T_bar\]`}{\bigwedge \C_i}}
+
+  \end{minipage}
+  \end{tabular}
+  
+  \caption{Generating constraints for subtyping}
+  \label{fig:jexc}
+\end{figure*}

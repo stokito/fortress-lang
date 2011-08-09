@@ -50,7 +50,7 @@ case object False extends CFormula with EFormula {
 case class And(ts: Map[_InferenceVarType, TPrimitive], os: Map[_InferenceVarOp, OPrimitive]) extends CFormula {}
 
 /* A primitive type constraint.
- * So far we have: lower bound, not lower bound, upper bound, not lower bound, excludes, does not exclude
+ * So far we have: lower bound, not lower bound, upper bound, not upper bound, excludes, does not exclude
  */
 case class TPrimitive(pl: Set[Type], nl: Set[Type], pu: Set[Type], nu: Set[Type], pe: Set[Type], ne: Set[Type]){}
 
@@ -415,6 +415,7 @@ object Formula{
         case True => Some((tUnifier, oUnifier))
         case False => None
         case nc@And(ts, os) =>
+          // Operators only have equality constraints so they should always be solved by unification
           assert(os.isEmpty)
           val sub = TU.killIvars compose 
             tSubstitution(ts.map{
