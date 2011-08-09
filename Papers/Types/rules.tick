@@ -7,39 +7,49 @@
 %   what does this mean for condition 1)
 % Language is call by value
 
-Guaranteeing valid overloading requires constraints on the sets of overloaded function declarations
-that are allowed to appear in a legal program \cite{millstein02,millstein03}.
-Some languages require program constructs that encapsulate all overloaded definitions;
-such constructs essentially guarantee valid overloading ````by construction''.
-Examples in other languages include type classes \cite{wadler89,dreyer07,siek05}
-and multimethods \cite{millstein02,millstein03,bourdoncle97}.
-We take a different approach: Rather than introducing additional language facilities,
-we impose rules on the function declarations themselves.
-% These aren't necessarily strictly "minimal" though, so:
-We intend these rules to be ````minimal'' in that they should be as unrestrictive as possible
-while preserving the ability to guarantee valid overloading and be checked in a modular way.
-We took a similar approach to guarantee safety for overloaded monomorphic functions \cite{allen07}.
-However, handling parametric polymorphism and implicit instantiation (i.e., type inference)
-requires more sophisticated type analysis.
-We achieve this analysis by introducing universal and existential quantification
-over the ground types defined by class tables.
+% Guaranteeing valid overloading requires constraints 
+% on the sets of overloaded function declarations
+% that are allowed to appear in a legal program \cite{millstein02,millstein03}.
+% Some languages require program constructs that encapsulate all overloaded definitions;
+% such constructs essentially guarantee valid overloading ````by construction''.
+% Examples in other languages include type classes \cite{wadler89,dreyer07,siek05}
+% and multimethods \cite{millstein02,millstein03,bourdoncle97}.
+% We take a different approach: Rather than introducing additional language facilities,
+% we impose rules on the function declarations themselves.
+% % These aren't necessarily strictly "minimal" though, so:
+% We intend these rules to be ````minimal'' in that they should be as unrestrictive as possible
+% while preserving the ability to guarantee valid overloading and be checked in a modular way.
+% We took a similar approach to guarantee safety for overloaded monomorphic functions \cite{allen07}.
+% However, handling parametric polymorphism and implicit instantiation (i.e., type inference)
+% requires more sophisticated type analysis.
+% We achieve this analysis by introducing universal and existential quantification
+% over the ground types defined by class tables.
 
-Specifically, in this section, we define three rules---the \emph{No Duplicates Rule},
-\emph{Meet Rule}, and \emph{Return Type Rule}---for sets of overloaded function definitions,
-and say that such a set is \emph{well-formed with respect to a class table}
-if it satisfies all these rules using the subtyping relation induced by the class table.
+In this section, 
+we define three rules---%
+the \emph{No Duplicates Rule}, 
+\emph{Meet Rule}, 
+and \emph{Return Type Rule}---%
+for sets of overloaded function definitions.
+Such a set is \emph{well-formed with respect to a class table}
+if it satisfies all these rules using the subtyping relation 
+induced by the class table.
+\TODO{Discuss intended minimality of these rules?}
 We describe how to mechanically verify these rules in a modular way
-in terms of subtyping relations on universal and existential types in Section~\ref{sec:checking},
-and we show that any valid set of overloaded function declarations is safe in Section~\ref{sec:safety}.
+in terms of subtyping relations on universal and existential types 
+in Section~\ref{sec:checking},
+and we show that any valid set of overloaded function declarations is safe 
+in Section~\ref{sec:safety}.
 
-\subsection{Overloading Rules}\label{sec:threerules}
+\subsection{Overloading Rules}
+\label{sec:threerules}
+
 In this section, we describe the rules for valid overloading.
 For each function name $f$,
 we determine whether a set of overloaded function declarations $\D(f)$ is valid
 by independently considering every pair of declarations in the set.
-A pair of declarations is a valid overloading if it satisfies one of three rules described below.
-%the more-specific-than relation on these declarations by the subtyping relation induced by a class table $\T$.
-
+A pair of declarations is a valid overloading 
+if it satisfies the three rules described below.
 
 To avoid the obvious ambiguity, $\D(f)$ should not contain equally specific declarations:
 for each pair of overloaded declarations, either one declaration is strictly more specific
@@ -50,7 +60,6 @@ $\D(f)$ does not contain any two declarations that are equally specific.
 %(i.e., each declaration is more specific than the other).
 In other words, there are no (distinct) declarations $f_1, f_2 \in \D(f)$ such that $f_1 \ms f_2$ and $f_2 \ms f_1$.
 \end{description}
-
 
 A pair of declarations is a valid overloading if for any call to which both declarations are applicable,
 there is a {\em disambiguating declaration} (possibly one of the pair)
@@ -64,6 +73,8 @@ and for every type $T \in \T$, there should exist a third declaration $f_0 \in \
 both $f_1$ and $f_2$ are applicable to $T$.
 \end{description}
 
+\TODO{Discuss what types $T$ we must consider, 
+and relevance to extensibility.}
 
 
 If one monomorphic declaration is more specific than another monomorphic one
@@ -72,7 +83,7 @@ for any call to which both are applicable, the first is more specific.
 In the parametrically polymorphic setting,
 if one declaration is to be regarded as more specific than another,
 we require that for every instance of the second that is applicable to a call,
-there exist an instance of the first that is also applicable to the call.
+there exists an instance of the first that is also applicable to the call.
 As in other object-oriented languages, to ensure type safety in the face of dynamic dispatch,
 we also require that the return type of the latter declaration be a subtype of the return type of the former.
 % We can ensure that the second well-formedness condition for overloading
