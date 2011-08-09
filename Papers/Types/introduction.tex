@@ -2,7 +2,7 @@ A key feature of object-oriented languages is \emph{dynamic dispatch}:
 there may be multiple definitions of a function (or method) with the same name---%
 we say the function is \emph{overloaded}---%
 and a call to a function of that name is resolved
-based on the ````run-time types''---we use the term \emph{ilks}---of the arguments. 
+based on the ``run-time types''---we use the term \emph{ilks}---of the arguments. 
 With \emph{single dispatch}, 
 a particular argument is designated as the \emph{receiver}, 
 and the call is resolved only with respect to that argument.
@@ -21,7 +21,7 @@ to an application of the operator
 in a language with multiple dispatch, 
 it is natural to define these operators as overloaded functions. 
 Similarly, 
-many binary operations on collections such as `append` and `zip` 
+many binary operations on collections such as \VAR{append} and \VAR{zip} 
 have different definitions 
 depending on the types of both arguments. 
 \TODO{Add (reference to) argument for symmetric multiple dispatch?}
@@ -39,7 +39,7 @@ depending on the types of both arguments.
 % which mostly mimics the abstract, but with a bit more elaboration,
 % and I would probably leave the discussion of our prior work till later.
 % We may want to mention Fortress early as a context for this work.
-% Then have a long ````background'' section 
+% Then have a long ``background'' section 
 % containing the discussion starting from Castagna to Bourdoncle and Merz,
 % and including the discussion of our prior work and former thoughts.}
 
@@ -50,7 +50,7 @@ depending on the types of both arguments.
 % For example, to avoid ambiguous function calls,
 % we must ensure that for every call site 
 % (knowing only the static types of the arguments),
-% there exists a unique ````best'' function to dispatch to at run time.\footnote{
+% there exists a unique ``best'' function to dispatch to at run time.\footnote{
 % In languages with static overloading, 
 % such as Scala, C\#, and the Java\texttrademark\ programming language 
 % \cite{scala,CSharpSpec,JavaSpec}, 
@@ -70,10 +70,12 @@ and avoid ambiguous function calls.
 For example, 
 consider the following overloaded function definitions:
 \small
-`  f(b:B, a:A): ZZ = 1
-  f(a:A, b:B): ZZ = 2`
+\begin{FortressCode}
+{\tt ~~}\+f(b\COLONOP{}B, a\COLONOP{}A)\COLON \mathbb{Z} = 1 \\
+  f(a\COLONOP{}A, b\COLONOP{}B)\COLON \mathbb{Z} = 2\-
+\end{FortressCode}
 \normalsize
-If $A$ is a subtype of $B$ (we write this as `A <: B`),
+If $A$ is a subtype of $B$ (we write this as \EXP{A \SHORTCUT{<} B}),
 to which of these definitions do we dispatch 
 when $f$ is called with two arguments of type $A$? 
 % Note that the ambiguity is inherent in these definitions:
@@ -100,9 +102,9 @@ Thus, for the example above,
 the programmer must provide a third definition
 to satisfy the latter property:
  \small
-`
-  f(a:A,a':A): ZZ = ...
-`
+\begin{FortressCode}
+{\tt ~~}\+f(a\COLONOP{}A,a'\COLONOP{}A)\COLON \mathbb{Z} = \ldots\-
+\end{FortressCode}
  \normalsize
 
 This latter property is equivalent to requiring
@@ -172,17 +174,17 @@ To do so,
 it is helpful to have an interpretation for parametric types 
 and type-parametric functions.
 
-One way to think about a parametric type such as `List[\T\]`
-(a list with elements of type `T`---type parameter lists 
+One way to think about a parametric type such as \EXP{\TYP{List}\llbracket{}T\rrbracket}
+(a list with elements of type \VAR{T}---type parameter lists 
 in Fortress are delimited by white square brackets) 
 is that it represents an infinite set of ground types 
-`List[\Object\]` (lists of objects),
-`List[\String\]` (lists of strings), 
-`List[\ZZ\]` (lists of integers), 
+\EXP{\TYP{List}\llbracket\TYP{Object}\rrbracket} (lists of objects),
+\EXP{\TYP{List}\llbracket\TYP{String}\rrbracket} (lists of strings), 
+\EXP{\TYP{List}\llbracket\mathbb{Z}\rrbracket} (lists of integers), 
 and so on.
 An actual type checker must have rules 
 for working with uninstantiated (non-ground) parametric types, 
-but for many purposes this model of ````an infinite set of ground types'' 
+but for many purposes this model of ``an infinite set of ground types'' 
 is adequate for explanatory purposes.
 Not so, however, for type-parametric functions.  
 
@@ -191,19 +193,22 @@ one of us (Steele) pushed for an interpretation of type-parametric functions
 analogous to the one above for parametric types;
 that is, 
 that the type-parametric function definition\footnote{%
-The first pair of white square brackets delimits the declaration of a type parameter `T`,
+The first pair of white square brackets delimits the declaration of a type parameter \VAR{T},
 but the other pairs of white brackets indicate 
-that this type variable `T` is the static argument to the parametric type `List`.}
+that this type variable \VAR{T} is the static argument to the parametric type \TYP{List}.}
 \small
-`  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e
-`
+\begin{FortressCode}
+{\tt ~~}\+\VAR{append}\llbracket{}T\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}T\rrbracket, y\COLON \TYP{List}\llbracket{}T\rrbracket\bigr)\COLON \TYP{List}\llbracket{}T\rrbracket = e\-
+\end{FortressCode}
 \normalsize
 should be understood as if it stood for an infinite set of monomorphic definitions:
 \small
-`  append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e
-  append(x: List[\String\], y: List[\String\]): List[\String\] = e
-  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e
-  ...`
+\begin{FortressCode}
+{\tt ~~}\+\VAR{append}\bigl(x\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket, y\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket\bigr)\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket = e \\
+  \VAR{append}\bigl(x\COLON \TYP{List}\llbracket\TYP{String}\rrbracket, y\COLON \TYP{List}\llbracket\TYP{String}\rrbracket\bigr)\COLON \TYP{List}\llbracket\TYP{String}\rrbracket = e \\
+  \VAR{append}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket, y\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket = e \\
+  \ldots\-
+\end{FortressCode}
 \normalsize
 The intuition was that for any specific function call,
 the usual rule for dispatch would then choose 
@@ -217,28 +222,34 @@ For example,
 a programmer might want to provide definitions 
 for specific monomorphic special cases, as in:
 \small
-`  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
-  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
+\begin{FortressCode}
+{\tt ~~}\+\VAR{append}\llbracket{}T\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}T\rrbracket, y\COLON \TYP{List}\llbracket{}T\rrbracket\bigr)\COLON \TYP{List}\llbracket{}T\rrbracket = e_1 \\
+  \VAR{append}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket, y\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket = e_2\-
+\end{FortressCode}
 \normalsize
 But if the interpretation above is taken seriously, 
 this would be equivalent to:
 \small
-`  append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e1
-  append(x: List[\String\], y: List[\String\]): List[\String\] = e1
-  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e1
-  ...
-  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
+\begin{FortressCode}
+{\tt ~~}\+\VAR{append}\bigl(x\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket, y\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket\bigr)\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket = e_1 \\
+  \VAR{append}\bigl(x\COLON \TYP{List}\llbracket\TYP{String}\rrbracket, y\COLON \TYP{List}\llbracket\TYP{String}\rrbracket\bigr)\COLON \TYP{List}\llbracket\TYP{String}\rrbracket = e_1 \\
+  \VAR{append}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket, y\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket = e_1 \\
+  \ldots \\
+  \VAR{append}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket, y\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket = e_2\-
+\end{FortressCode}
 \normalsize
 and we can see that there is an ambiguity 
-when the arguments are both of type `List[\ZZ\]`.
+when the arguments are both of type \EXP{\TYP{List}\llbracket\mathbb{Z}\rrbracket}.
 
 It gets worse if the programmer wishes to handle an infinite set of cases specially.  
 It would seem natural to write
 \small
-`  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
-  append[\T <: Number\](x: List[\T\], y: List[\T\]): List[\T\] = e2`
+\begin{FortressCode}
+{\tt ~~}\+\VAR{append}\llbracket{}T\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}T\rrbracket, y\COLON \TYP{List}\llbracket{}T\rrbracket\bigr)\COLON \TYP{List}\llbracket{}T\rrbracket = e_1 \\
+  \VAR{append}\llbracket{}T \SHORTCUT{<} \TYP{Number}\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}T\rrbracket, y\COLON \TYP{List}\llbracket{}T\rrbracket\bigr)\COLON \TYP{List}\llbracket{}T\rrbracket = e_2\-
+\end{FortressCode}
 \normalsize
-to handle specially all cases where `T` is a subtype of `Number`.
+to handle specially all cases where \VAR{T} is a subtype of \TYP{Number}.
 But the model would regard this as an overloading 
 with an infinite number of ambiguities.
 
@@ -299,8 +310,10 @@ so the type values of these parameters
 make sense only in distinct type environments. 
 For example, consider the following overloaded function definitions in Fortress:
 \small
-`  combine[\T\](xs: List[\T\], ys: List[\T\]): List[\T\]
-  combine[\S,T\](s: Table[\S,T\], t: Table[\S,T\]): Table[\S,T\]`
+\begin{FortressCode}
+{\tt ~~}\+\VAR{combine}\llbracket{}T\rrbracket\bigl(\VAR{xs}\COLON \TYP{List}\llbracket{}T\rrbracket, \VAR{ys}\COLON \TYP{List}\llbracket{}T\rrbracket\bigr)\COLON \TYP{List}\llbracket{}T\rrbracket \\
+  \VAR{combine}\llbracket{}S,T\rrbracket\bigl(s\COLON \TYP{Table}\llbracket{}S,T\rrbracket, t\COLON \TYP{Table}\llbracket{}S,T\rrbracket\bigr)\COLON \TYP{Table}\llbracket{}S,T\rrbracket\-
+\end{FortressCode}
 \normalsize
 The first definition declares a single
 type parameter denoting the types of the elements of the two
@@ -342,7 +355,7 @@ and so no ambiguity can arise between them.
 Many languages provide a way of declaring some exclusion relations
 implicitly. For example, single inheritance ensures that, for any 
 two types, if one is not a subtype of the other, then the two types exclude each other.
-Fortress enables programmers to declare ````nominal exclusion''
+Fortress enables programmers to declare ``nominal exclusion''
 in addition to determining many exclusions implicitly, 
 and in Section~\ref{sec:exclusion}, 
 we formalize how Fortress does this, 
@@ -360,7 +373,7 @@ covers the rules under this extended type system.
 % we explain why some apparently valid overloadings
 % are (correctly) rejected by our rules 
 % and why a multiple-inheritance language
-% should include features for ````nominal exclusion'' (as Fortress does)
+% should include features for ``nominal exclusion'' (as Fortress does)
 % to improve expressiveness and accommodate such overloadings.
 % In Section~\ref{sec:exclusion}, we formalize the exclusion
 % relation and use it to extend the overloading rules of Section~\ref{sec:rules}.

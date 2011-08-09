@@ -7,9 +7,9 @@ Types are of four forms:
 (ranged over by metavariables $X$, $Y$, and $Z$);
 \emph{constructed types} 
 (ranged over by metavariables $K$, $L$, $M$ and $N$), 
-written `C[\T_bar\]` 
-where `C` is a type constructor 
-and `T_bar` is a list of types; 
+written \EXP{C\llbracket\bar{T}\rrbracket} 
+where \VAR{C} is a type constructor 
+and \EXP{\bar{T}} is a list of types; 
 \emph{structural types},
 consisting of arrow and tuple types;
 and \emph{compound types},
@@ -22,9 +22,9 @@ there are two special constructed types, \Any\ and \BottomType, explained below.
 % (represented by metavariable $X$, $Y$, or $Z$);
 % \emph{constructed types} 
 % (represented by metavariable $K$, $L$, $M$ or $N$), 
-% which is either a type constructor application `C[\T_bar\]`,  
-% where `C` is a type constructor 
-% and `T_bar` is a list of types, 
+% which is either a type constructor application \EXP{C\llbracket\bar{T}\rrbracket},  
+% where \VAR{C} is a type constructor 
+% and \EXP{\bar{T}} is a list of types, 
 % or the special constructed type \Any;
 % a \emph{structural type},
 % which is either an arrow type or a tuple type;
@@ -77,8 +77,8 @@ For example, type variables may have multiple bounds,
 so that any valid instantiation of such a variable
 must be a subtype of the intersection of its bounds.
 
-% All type checking \TODO{Do we prefer ````type-checking'',
-% ````type checking'', or ````typechecking''?)
+% All type checking \TODO{Do we prefer ``type-checking'',
+% ``type checking'', or ``typechecking''?)
 % is done within the context of a \emph{class table} $\T$, 
 % which is a set of type constructor declarations 
 % (at most one declaration for each type constructor) 
@@ -125,7 +125,7 @@ A class table $\T$ is \emph{well-formed} if the resulting subtyping relation
 on its constructed types is a partial order.
 As usual for languages with nominal subtyping, 
 we allow recursive and mutually recursive references in $\T$.
-\TODO{What does ````recursive and mutually recursive references'' mean?}
+\TODO{What does ``recursive and mutually recursive references'' mean?}
 A class table $\T'$ is an \emph{extension} of $\T$ (written $\T' \ctext \T$)
 if every constructor declaration in $\T$ is also in $\T'$ 
 and the subtype relation on $\T'$ agrees with that of $\T$. 
@@ -149,14 +149,13 @@ and the set of ancestors of $C\obb{T}$
 \]
 (To reduce clutter, 
 nullary applications are written without brackets; 
-for example, `C[\ \]` is written `C`.) 
+for example, \EXP{C\llbracket\,\rrbracket} is written \VAR{C}.) 
 \TODO{Other for \Any\ and \BottomType, 
 do we actually do this?}
 
 Structural and compound types are \emph{well-formed} 
 (with respect to a class table) 
 if their constituent types are well-formed. 
-\TODO{Is this different from $T \in \T$ above?}
 We extend the subtyping relation to
 structural and compound types in the usual way:
 Arrow types are contravariant in their domain types 
@@ -217,13 +216,13 @@ objects, functions, and tuples;
 every object belongs to at least one constructed type,
 every function belongs to at least one arrow type,
 and every tuple belongs to at least one tuple type.
-When we say that two types `T` and `U` have \emph{the same extent},
-we mean that for every value `v`, 
-`v` belongs to `T` if and only if `v` belongs to `U`.
+When we say that two types \VAR{T} and \VAR{U} have \emph{the same extent},
+we mean that for every value \VAR{v}, 
+\VAR{v} belongs to \VAR{T} if and only if \VAR{v} belongs to \VAR{U}.
 
 We place a requirement on values and on the type system that describes them: 
 Although a value may belong to more than one type, 
-for every value `v` there is a unique type `ilk(v)` 
+for every value \VAR{v} there is a unique type \EXP{\VAR{ilk}(v)} 
 (the \emph{ilk} of the value) 
 that is \emph{representable in the type system}\footnote{The
 type system presented here satisfies this requirement 
@@ -232,23 +231,23 @@ The Fortress type system happens to satisfy it in another way as well,
 which is typical of object-oriented language designs: 
 every object is created as an instance of a single nominal constructed type, 
 and this type is its ilk.} 
-and has the property that for every type `T`, 
-if `v` belongs to `T` then `ilk(v) <: T`;
-moreover, `ilk(v) =/= BottomType`.  
-(This notion of `ilk` corresponds to what is sometimes called the
-````class'' or ````run-time type'' of the value.\footnote{%
-We prefer the term ````ilk'' to ````run-time type'' 
+and has the property that for every type \VAR{T}, 
+if \VAR{v} belongs to \VAR{T} then \EXP{\VAR{ilk}(v) \SHORTCUT{<} T};
+moreover, \EXP{\VAR{ilk}(v) \neq \TYP{BottomType}}.  
+(This notion of \VAR{ilk} corresponds to what is sometimes called the
+``class'' or ``run-time type'' of the value.\footnote{%
+We prefer the term ``ilk'' to ``run-time type'' 
 because the notion---and usefulness---of 
 the most specific type to which a value belongs 
 is not confined to run time.
-We prefer it to the term ````class,'' 
+We prefer it to the term ``class,'' 
 which is used in {\it The Java Language Specification}~\cite{JavaSpec}, 
-because not every language uses the term ````class'' 
+because not every language uses the term ``class'' 
 or requires that every value belong to a class.  
 For those who like acronyms, 
 we offer the mnemonic retronyms 
-````implementation-level kind'' 
-and ````intrinsically least kind.''})
+``implementation-level kind'' 
+and ``intrinsically least kind.''})
 
 The implementation significance of ilks is that it is possible to
 select the dynamically most specific applicable function
@@ -256,12 +255,12 @@ from an overload set using only the ilks of the argument values; no
 other information about the arguments is needed.
 
 In a sound type system,
-if an expression is determined by the type system to have type `T`, 
+if an expression is determined by the type system to have type \VAR{T}, 
 then every value computed by the expression at run time
-will belong to type `T`; 
+will belong to type \VAR{T}; 
 moreover, 
-whenever a function whose ilk is `U->V` is applied to an argument value,
-then the argument value will belong to type `U`.
+whenever a function whose ilk is \EXP{U\rightarrow{}V} is applied to an argument value,
+then the argument value will belong to type \VAR{U}.
 
 
 \subsection{Overloaded Functions}
@@ -291,11 +290,13 @@ The abstract syntax of function declarations is as follows:
 
 For example, in the following function declaration:
 
-`  f[\X <: M, Y <: N\](List[\X\], Tree[\Y\]): Map[\X, Y\]
-`the name of the function is `f`, 
-the type parameter declarations are `X <: M` and `Y <: N`, 
-the domain type is `(List[\X\], Tree[\Y\])`, which is a tuple type,
-and the range type is `Map[\X, Y\]`. We will often abbreviate a function
+\begin{FortressCode}
+{\tt ~~}\+f\llbracket{}X \SHORTCUT{<} M, Y \SHORTCUT{<} N\rrbracket\bigl(\TYP{List}\llbracket{}X\rrbracket, \TYP{Tree}\llbracket{}Y\rrbracket\bigr)\COLON \TYP{Map}\llbracket{}X, Y\rrbracket\-
+\end{FortressCode}
+the name of the function is \VAR{f}, 
+the type parameter declarations are \EXP{X \SHORTCUT{<} M} and \EXP{Y \SHORTCUT{<} N}, 
+the domain type is \EXP{\bigl(\TYP{List}\llbracket{}X\rrbracket, \TYP{Tree}\llbracket{}Y\rrbracket\bigr)}, which is a tuple type,
+and the range type is \EXP{\TYP{Map}\llbracket{}X, Y\rrbracket}. We will often abbreviate a function
 as \hdeclg{f}{\Delta}{S}{T} when we do not want to emphasize the bounds (we are abusing notation by letting
 $\Delta$ range over both type environments and bounds definitions).
 
@@ -343,7 +344,7 @@ $f_2$ is also applicable to $T$.
 %%     {\jtred{\Delta}{T \cap U}{U}}
 %%   \infrule
 %%     {\jexc{\Delta}{T}{U}}
-%%     {\jtred{\Delta}{T \cap U}{`BottomType`}}
+%%     {\jtred{\Delta}{T \cap U}{\TYP{BottomType}}}
   
 %%   % UNION
 %%   \infrule
@@ -366,8 +367,8 @@ $f_2$ is also applicable to $T$.
 %%   %   {\jtred{\Delta}{T_i}{T_i'}}
 %%   %   {\jtred{\Delta}{(T_1, \ldots, T_i, \ldots, T_n)}{(T_1, \ldots, T_i', \ldots, T_n)}}
 %%   \infrule
-%%     {T_i = `BottomType`}
-%%     {\jtred{\Delta}{(T_1, \ldots, T_i, \ldots, T_n)}{`BottomType`}}
+%%     {T_i = \TYP{BottomType}}
+%%     {\jtred{\Delta}{(T_1, \ldots, T_i, \ldots, T_n)}{\TYP{BottomType}}}
   
 %%   % CONSTRUCTED
 %%   % \infrule
@@ -377,8 +378,8 @@ $f_2$ is also applicable to $T$.
 %%   % VARIABLE
 %%   \TODO{should be a subtype judgment instead?}
 %%   \infrule
-%%     {`X <: BottomType IN DELTA`}
-%%     {\jtred{\Delta}{X}{`BottomType`}}
+%%     {\EXP{X \SHORTCUT{<} \TYP{BottomType} \in \Delta}}
+%%     {\jtred{\Delta}{X}{\TYP{BottomType}}}
   
 %%   % REDUCTION CONTEXT GRAMMAR
 %%   \newcommand{\OR}{\;|\;}

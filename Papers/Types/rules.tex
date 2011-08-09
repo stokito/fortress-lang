@@ -10,13 +10,13 @@
 Guaranteeing valid overloading requires constraints on the sets of overloaded function declarations
 that are allowed to appear in a legal program \cite{millstein02,millstein03}.
 Some languages require program constructs that encapsulate all overloaded definitions;
-such constructs essentially guarantee valid overloading ````by construction''.
+such constructs essentially guarantee valid overloading ``by construction''.
 Examples in other languages include type classes \cite{wadler89,dreyer07,siek05}
 and multimethods \cite{millstein02,millstein03,bourdoncle97}.
 We take a different approach: Rather than introducing additional language facilities,
 we impose rules on the function declarations themselves.
 % These aren't necessarily strictly "minimal" though, so:
-We intend these rules to be ````minimal'' in that they should be as unrestrictive as possible
+We intend these rules to be ``minimal'' in that they should be as unrestrictive as possible
 while preserving the ability to guarantee valid overloading and be checked in a modular way.
 We took a similar approach to guarantee safety for overloaded monomorphic functions \cite{allen07}.
 However, handling parametric polymorphism and implicit instantiation (i.e., type inference)

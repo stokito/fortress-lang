@@ -5,46 +5,46 @@ This allows us to describe explicitly what is typically only implicit in single-
 class hierarchies.
 
 We define the exclusion relation by extending type constructor declarations with
-two new optional clauses, `excludes` and `comprises`:
+two new optional clauses, \KWD{excludes} and \KWD{comprises}:
 \[
-C\tplist{X}{L} \extends `{N_bar} [excludes {M_bar}] [comprises {K_bar}]`
+C\tplist{X}{L} \extends \EXP{\lbrace\bar{N}\rbrace\, \bigl[\KWD{excludes} \lbrace\bar{M}\rbrace\bigr]\, \bigl[\KWD{comprises} \lbrace\bar{K}\rbrace\bigr]}
 \]
-We also allow another form of declaration that is frequently convenient for defining ````leaf types'':
+We also allow another form of declaration that is frequently convenient for defining ``leaf types'':
 \[
-`object` \; C\tplist{X}{L} \extends `{N_bar}`
+\KWD{object} \; C\tplist{X}{L} \extends \EXP{\lbrace\bar{N}\rbrace}
 \]
 
-% The `excludes` clause explicitly states that
-% the intersection of any application `C[\T_bar\]` of type constructor `C`
-% and any of `M_bar` is `BottomType` 
+% The \KWD{excludes} clause explicitly states that
+% the intersection of any application \EXP{C\llbracket\bar{T}\rrbracket} of type constructor \VAR{C}
+% and any of \EXP{\bar{M}} is \TYP{BottomType} 
 % (i.e., 
-% `C[\T_bar\] CAP [T_bar / X_bar]M[i] EQUIV BottomType` 
-% for any `T_bar` and for each `M[i]` in `M_bar`).
+% \EXP{C\llbracket\bar{T}\rrbracket \cap [\bar{T} / \bar{X}]M_{i} \equiv \TYP{BottomType}} 
+% for any \EXP{\bar{T}} and for each \EXP{M_{i}} in \EXP{\bar{M}}).
 % This implies, of course, 
-% that any subtype of `C[\T_bar\]` also excludes 
-% `[T_bar / X_bar] M[i]`.
-% The `comprises` clause stipulates that
-% an application of type constructor `C` with `T_bar`
-% consists of exactly the types in `K_bar` that are instantiated with `T_bar`
+% that any subtype of \EXP{C\llbracket\bar{T}\rrbracket} also excludes 
+% \EXP{[\bar{T} / \bar{X}]\, M_{i}}.
+% The \KWD{comprises} clause stipulates that
+% an application of type constructor \VAR{C} with \EXP{\bar{T}}
+% consists of exactly the types in \EXP{\bar{K}} that are instantiated with \EXP{\bar{T}}
 % (i.e., 
-% `C[\T_bar\] EQUIV [T_bar / X_bar]K[1]` $\cup \ldots \cup$ `[T_bar / X_bar] K[n]`).
-% Thus, if a type excludes `[T_bar / X_bar]K[i]` for each $i$, then it
-% also necessarily excludes `C[\T_bar\]`.
+% \EXP{C\llbracket\bar{T}\rrbracket \equiv [\bar{T} / \bar{X}]K_{1}} $\cup \ldots \cup$ \EXP{[\bar{T} / \bar{X}]\, K_{n}}).
+% Thus, if a type excludes \EXP{[\bar{T} / \bar{X}]K_{i}} for each $i$, then it
+% also necessarily excludes \EXP{C\llbracket\bar{T}\rrbracket}.
 %
 The exclusion relation on constructed types can then be described in terms of
 more precise sub-relations on those types, each of which corresponds to a certain
 reason for (or proof of) exclusion:
 \begin{enumerate}
-  \item The `excludes` clause explicitly states that
-the constructed type `C[\T_bar\]`
+  \item The \KWD{excludes} clause explicitly states that
+the constructed type \EXP{C\llbracket\bar{T}\rrbracket}
 excludes $\substb{T}{X}M_i$ for each $M_i$ in $\bar{M}$, which
-implies that any subtype of `C[\T_bar\]` also excludes
+implies that any subtype of \EXP{C\llbracket\bar{T}\rrbracket} also excludes
 each $\substb{T}{X}M_i$. We write this exclusion sub-relation as
 $C\obb{T} \,\excre\, \substb{T}{X}M_i$.
 
-  \item The `comprises` clause stipulates that any subtype of `C[\T_bar\]` \emph{must} be a subtype of `[T_bar / X_bar]K[i]` for some `K[i]` in `K_bar`. Then if every `[T_bar / X_bar]K[i]` in `K_bar` excludes some type $U$, `C[\T_bar\]` must also exclude $U$. We write this exclusion sub-relation as $C\obb{T} \,\excrc\, U$.
+  \item The \KWD{comprises} clause stipulates that any subtype of \EXP{C\llbracket\bar{T}\rrbracket} \emph{must} be a subtype of \EXP{[\bar{T} / \bar{X}]K_{i}} for some \EXP{K_{i}} in \EXP{\bar{K}}. Then if every \EXP{[\bar{T} / \bar{X}]K_{i}} in \EXP{\bar{K}} excludes some type $U$, \EXP{C\llbracket\bar{T}\rrbracket} must also exclude $U$. We write this exclusion sub-relation as $C\obb{T} \,\excrc\, U$.
   
-  \item The `object` keyword denotes a type constructor whose applications have no non-trivial subtypes; an `object` type constructor is a leaf of the class hierarchy. Since such a constructed type `C[\T_bar\]` has no subtypes other than itself and \BottomType, we know that it excludes any type `U` of which it is not a subtype. We write this exclusion sub-relation as $C\obb{T} \,\excro\, U$.
+  \item The \KWD{object} keyword denotes a type constructor whose applications have no non-trivial subtypes; an \KWD{object} type constructor is a leaf of the class hierarchy. Since such a constructed type \EXP{C\llbracket\bar{T}\rrbracket} has no subtypes other than itself and \BottomType, we know that it excludes any type \VAR{U} of which it is not a subtype. We write this exclusion sub-relation as $C\obb{T} \,\excro\, U$.
 \end{enumerate}
 We take the symmetric closure of each of these relations 
 to get the relations $\exce$, $\excc$ and $\exco$.
@@ -68,7 +68,7 @@ in Section~\ref{sec:constraints}.)
 
 We augment our notion of a well-formed class table 
 to require that the subtyping and exclusion relations it induces 
-````respect'' each other.
+``respect'' each other.
 That is, for all constructed types $M$ and $N$ other than \BottomType, 
 \begin{enumerate}
 \item  If $M$ excludes $N$ then $M$ must not be a subtype of $N$.
@@ -79,12 +79,12 @@ That is, for all constructed types $M$ and $N$ other than \BottomType,
 % Leaving this for now, but we should fix it.
 
 \item 
-If $N \subtypeof M$ and $M$ has a `comprises` clause,
-then there is some constructed type $K$ in the `comprises` clause of $M$
+If $N \subtypeof M$ and $M$ has a \KWD{comprises} clause,
+then there is some constructed type $K$ in the \KWD{comprises} clause of $M$
 such that $N \subtypeof K$.
 
 \item
-If the type constructor $C$ is declared as an `object`, then its `comprises`
+If the type constructor $C$ is declared as an \KWD{object}, then its \KWD{comprises}
 clause must be empty, and there is no other constructed type $N$ such that
 $N \subtypeof C\obb{T}$ for any types $\bar{T}$.
 
@@ -94,14 +94,14 @@ a valid extension to a class table $\T$
 must preserve these well-formedness properties.
 
 For convenience, 
-we allow the `excludes` and `comprises` clauses to be omitted.
-Omitting an `excludes` clause is equivalent to having `excludes {}`, and
-omitting a `comprises` clause is equivalent to having `comprises { Any }`.\footnote{For
+we allow the \KWD{excludes} and \KWD{comprises} clauses to be omitted.
+Omitting an \KWD{excludes} clause is equivalent to having \EXP{\KWD{excludes} \lbrace\ultrathin\rbrace}, and
+omitting a \KWD{comprises} clause is equivalent to having \EXP{\KWD{comprises} \lbrace\,\TYP{Any}\,\rbrace}.\footnote{For
 the sake of catching likely programming errors, the Fortress language requires that every $K_i$
-in a `comprises` clause for $C\obb{T}$ be a subtype of $C\obb{T}$, but allowing
-`Any` to appear in a `comprises` clause simplifies our presentation here.}
+in a \KWD{comprises} clause for $C\obb{T}$ be a subtype of $C\obb{T}$, but allowing
+\TYP{Any} to appear in a \KWD{comprises} clause simplifies our presentation here.}
 For an application $C\obb{T}$ 
-of a declaration with the `excludes` and/or `comprises` clause above, 
+of a declaration with the \KWD{excludes} and/or \KWD{comprises} clause above, 
 we define the sets of instantiations of the types 
 in these clauses analogously to $\myextends{C\obb{T}}$.
 That is,\\[-.2em]
@@ -114,13 +114,13 @@ That is,\\[-.2em]
 \subsection{Overloading Rule with Exclusion}\label{sec:exc-rules}
 If the parameter types of a set of overloaded functions are disjoint,
 the set does not introduce ambiguity: they are never applicable to the same call.
-Therefore, to allow the function `simple` as a valid overloading,
-any ````reasonable" class table $\T$ that declares types `ZZ` and `String` would also
-declare one to exclude the other, so \hbox{`ZZ` $\exc$ `String`}.
+Therefore, to allow the function \VAR{simple} as a valid overloading,
+any ``reasonable" class table $\T$ that declares types \EXP{\mathbb{Z}} and \TYP{String} would also
+declare one to exclude the other, so \hbox{\EXP{\mathbb{Z}} $\exc$ \TYP{String}}.
 
-However, the Meet Rule still requires a third declaration in $\D(`simple`)$ that is applicable
-to every type $T$ if and only if $`simple`_1$ and $`simple`_2$ are applicable to $T$.
-Such $T$ would necessarily be a subtype of both `ZZ` and `String`, but since
+However, the Meet Rule still requires a third declaration in $\D(\VAR{simple})$ that is applicable
+to every type $T$ if and only if $\VAR{simple}_1$ and $\VAR{simple}_2$ are applicable to $T$.
+Such $T$ would necessarily be a subtype of both \EXP{\mathbb{Z}} and \TYP{String}, but since
 these types exclude, no such $T$ exists (in $\T$ or in any extension thereof).
 We thus augment every collection of overloaded function declarations $\D$ such
 that each $\D(f)$ includes an additional, implicit declaration $\decl{f_\bot}{\BottomType}{\Any}$.
@@ -128,12 +128,12 @@ This declaration is trivially more specific than any declaration possibly writte
 by a programmer, but it does not conflict with overloading safety since it is
 only applicable to \BottomType.
 
-With $`simple`_\bot$ implicitly part of $\D(`simple`)$, the two `simple`
+With $\VAR{simple}_\bot$ implicitly part of $\D(\VAR{simple})$, the two \VAR{simple}
 declarations \emph{almost} satisfy the Meet Rule: the checker now must verify
-that $\textit{dom}(`simple`_\bot)$, \BottomType, is equivalent to the computed meet,
-`String CAP ZZ`. Therefore we augment our judgment for the subtype relation
+that $\textit{dom}(\VAR{simple}_\bot)$, \BottomType, is equivalent to the computed meet,
+\EXP{\TYP{String} \cap \mathbb{Z}}. Therefore we augment our judgment for the subtype relation
 with the rule necessary for constructing this equivalence:
 \infrule
 {S \;\exc\; T}
 {\Delta \vdash S \cap T <: \BottomType}
-With these adjustments, $\D(`simple`)$ is now a valid overloading.
+With these adjustments, $\D(\VAR{simple})$ is now a valid overloading.
