@@ -15,6 +15,8 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 
+import edu.rice.cs.plt.collect.CollectUtil;
+import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +32,7 @@ abstract public class FieldGetterOrSetterMethod extends Method {
     protected final Binding _ast;
     protected final Id _declaringTrait;
     protected final Option<SelfType> _selfType;
+    protected final List<StaticParam> _traitParams;
     protected final Option<FnDecl> _fnDecl;
     protected final Method _originalMethod;
 
@@ -38,6 +41,7 @@ abstract public class FieldGetterOrSetterMethod extends Method {
         _ast = b;
         _declaringTrait = NodeUtil.getName(traitDecl);
         _selfType = traitDecl.getSelfType();
+        _traitParams = CollectUtil.makeList(IterUtil.map(NodeUtil.getStaticParams(traitDecl), liftStaticParam));
         _fnDecl = Option.<FnDecl>none();
         _originalMethod = this;
     }
@@ -47,6 +51,7 @@ abstract public class FieldGetterOrSetterMethod extends Method {
         _ast = b;
         _declaringTrait = NodeUtil.getName(traitDecl);
         _selfType = traitDecl.getSelfType();
+        _traitParams = CollectUtil.makeList(IterUtil.map(NodeUtil.getStaticParams(traitDecl), liftStaticParam));
         _fnDecl = Option.some(f);
         _originalMethod = this;
     }
@@ -54,10 +59,12 @@ abstract public class FieldGetterOrSetterMethod extends Method {
     /**
      * Copy another getter/setter, performing a substitution with the visitor.
      */
-    public FieldGetterOrSetterMethod(FieldGetterOrSetterMethod that, NodeUpdateVisitor visitor) {
+    protected FieldGetterOrSetterMethod(FieldGetterOrSetterMethod that, NodeUpdateVisitor visitor) {
         _ast = (Binding) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
         _selfType = visitor.recurOnOptionOfSelfType(that._selfType);
+        // Static instantiation clears params
+        _traitParams = CollectUtil.emptyList();
         if (that._fnDecl.isSome()) {
             _fnDecl = Option.some((FnDecl) that._fnDecl.unwrap().accept(visitor));
         } else {
@@ -121,5 +128,10 @@ abstract public class FieldGetterOrSetterMethod extends Method {
 
     public IdOrOp unambiguousName() {
         return name();
+    }
+    
+    @Override
+    public List<StaticParam> traitStaticParameters() {
+        return _traitParams;
     }
 }

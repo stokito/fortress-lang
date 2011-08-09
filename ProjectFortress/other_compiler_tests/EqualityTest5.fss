@@ -9,12 +9,19 @@
 
  ******************************************************************************)
 
-api EqualityBug9a
+component EqualityTest5
+export Executable
 
-trait Equality[\Self\] comprises Self
-    opr =(self, other:Self): Boolean
+trait EqualityFoo[\Selfquux\] comprises Selfquux
+    opr =(self, other:Selfquux): Boolean = self SEQV other
 end
 
-opr =/=[\T extends Equality[\T\]\](a: T, b: T): Boolean
+opr FOONE[\T extends EqualityFoo[\T\]\](a: T, b: T): Boolean = NOT (a = b)
+
+trait Foo extends EqualityFoo[\Foo\] end
+
+object Baz extends Foo end
+
+run(): () = println(if Baz FOONE Baz then "FAIL" else "PASS" end)
 
 end

@@ -203,6 +203,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      */
     OverloadSet[] children;
     boolean splitDone;
+    
+    /* in the event that the overloaded function is generic, these will be non-null after "split" */
+    List<StaticParam> static_parameters = null;
+    Naming.XlationData xldata = null; 
+    String PCN = null;
 
     protected OverloadSet(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta, OverloadingOracle oa,
                           Set<OverloadSet.TaggedFunctionName> lessSpecificThanSoFar,
@@ -330,10 +335,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         }
                         OverloadSet subset = makeSubset(subLSTSF, f, this);
                         subset.overloadSubsets = overloadSubsets;
-
+                        String overload_name = subset.compute_overload_name(f);
                             // I don't think this key is right for generics.
-                        overloadSubsets.put(
-                                name.stringName()+jvmSignatureFor(f), subset);
+                        overloadSubsets.put(overload_name , subset);
                     }
                 }
             }
@@ -352,15 +356,33 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
 
         // I don't think this key is right for generics.
-        if (principalMember != null)
-            overloadSubsets.put(
-                    name.stringName()+jvmSignatureFor(principalMember), this);
+        if (principalMember != null) {
+            String overload_name = compute_overload_name(principalMember);
+            overloadSubsets.put(overload_name, this);
+        }
 
         /* Split set into dispatch tree. */
         splitInternal(specificFirst);
 
     }
 
+
+    private String compute_overload_name(TaggedFunctionName f) {
+        String filtered_name = chooseName(name.stringName(), NodeUtil.nameSuffixString(name));
+        static_parameters = staticParametersOf(f.tagF);
+        if (static_parameters != null) {
+            xldata = CodeGen.xlationData(Naming.FUNCTION_GENERIC_TAG);
+            String sparamsType = NamingCzar.genericDecoration(static_parameters, xldata, ifNone);
+            genericSchema =
+                NamingCzar.makeArrowDescriptor(ifNone, overloadedDomain(), getRange());
+            String packageAndClassName = NamingCzar.javaPackageClassForApi(ifNone);
+            PCN =
+                Naming.genericFunctionPkgClass(packageAndClassName, filtered_name,
+                                                   sparamsType, genericSchema);
+            return PCN;
+        } 
+        return name.stringName()+jvmSignatureFor(f);
+    }
 
     private void splitInternal(List<TopSortItemImpl<TaggedFunctionName>> funsInSpecificOrder) {
         if (splitDone)
@@ -834,7 +856,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             this.variantGenericsContained = variantGenericsContained;
             this.isObject = isObject;
         }
-        void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast, Set<String> top_level_invariants) {            
+        void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast,
+                            Set<String> top_level_invariants) {            
             /*
              *  If a static parameter is used anywhere in the signature
              *  in an invariant context, then its value is fixed to the
@@ -932,9 +955,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      *         Can be null for return types; these are not looked up at run time
      * @param variance context -- how must the type match?
      * @param storeAtIndex after the type test returns, store the result here.
+     * @param staticParams the static parameters for this arm of the dispatch.
      * @return
      */
-    TypeStructure makeTypeStructure(Type t, MultiMap<String, TypeStructure> spmap, int variance, int storeAtIndex) {
+    TypeStructure makeTypeStructure(Type t, MultiMap<String, TypeStructure> spmap,
+            int variance, int storeAtIndex,
+            List<StaticParam> staticParams) {
         String fullname = NamingCzar.jvmBoxedTypeName(t, ifNone);
         String stem = null;
         TypeStructure[] parameters = null;
@@ -965,7 +991,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             variances[l-1] = variance;
             
         } else if (t instanceof TraitSelfType) {
-            return makeTypeStructure(((TraitSelfType)t).getNamed(), spmap, variance, storeAtIndex);
+            return makeTypeStructure(((TraitSelfType)t).getNamed(), spmap,
+                    variance, storeAtIndex, staticParams);
             
         } else if (t instanceof TraitType) {
             // Would love to inquire if this is an object type
@@ -995,14 +1022,28 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         } else if (t instanceof VarType) {
             VarType tt = (VarType) t;
             Id tt_id = tt.getName();
-            if (variance != 0) {
-                variantGenericsContained = Useful.set(tt_id.getText());
-            } else {
-                invariantGenericsContained = Useful.set(tt_id.getText());
-            }
             stem = tt_id.getText(); // DO NOT API-ANNOTATE!
-            isVarType = true;
             
+            // If the overload arm has no static parameters, or if they
+            // come from an enclosing scope (from a trait type, if this is
+            // a method), then we do not care about them, they are effectively
+            // type constants.
+            
+            if (staticParams != null) {
+                for (StaticParam sp : staticParams) {
+                    IdOrOp spn = sp.getName();
+                    if (spn.getText().equals(stem)) {
+                        if (variance != 0) {
+                            variantGenericsContained = Useful.set(tt_id.getText());
+                        } else {
+                            invariantGenericsContained = Useful.set(tt_id.getText());
+                        }
+                        isVarType = true;
+                    }
+                    break;
+                }
+            }
+
         } else if (t instanceof BottomType) {
             throw new CompilerError("Not handling Bottom type yet in generic overload dispatch");
 
@@ -1023,7 +1064,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             HashSet<String> temp_var = new HashSet<String>();
             HashSet<String> temp_invar = new HashSet<String>();
             for (Type tt : type_elements) {
-                TypeStructure ts = makeTypeStructure(tt, spmap, variances[i], next_index);
+                TypeStructure ts = makeTypeStructure(tt, spmap, variances[i], next_index, staticParams);
                 temp_var.addAll(ts.variantGenericsContained);
                 temp_invar.addAll(ts.invariantGenericsContained);
                 parameters[i++] = ts;
@@ -1088,10 +1129,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             List<Param> parameters = f.getParameters();
             MultiMap<String, TypeStructure> spmap = new MultiMap<String, TypeStructure>();
             spmaps[i] = spmap;
-            
+            List<StaticParam> staticParams = staticParametersOf(f.getF());
+
             Type rt = oa.getRangeType(eff);
-            return_type_structures[i] = makeTypeStructure(rt,null, 1, 0);
-            
+            return_type_structures[i] = makeTypeStructure(rt,null, 1, 0, staticParams);
+
             // skip parameters -- no 'this' for ordinary functions
  
             if (parameters.size() == 1 && oa.getDomainType(eff) instanceof TupleType) {
@@ -1103,7 +1145,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 
                 for (int j = 0; j < tl.size(); j++) {
                     Type t = STypesUtil.insertStaticParams(tl.get(j), tt.getInfo().getStaticParams());
-                    TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex);
+                    TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex, staticParams);
                     f_type_structures[j] = type_structure;
                     storeAtIndex = type_structure.successorIndex;
                 }
@@ -1117,7 +1159,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 for (int j = 0; j < parameters.size(); j++) {
                     if (j != selfIndex()) {
                         Type t = oa.getParamType(eff,j);
-                        TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex);
+                        TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex, staticParams);
                         f_type_structures[j] = type_structure;
                         storeAtIndex = type_structure.successorIndex;
                     }
@@ -1133,6 +1175,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             Label lookahead = null;
             boolean infer = false;
 
+            List<StaticParam> staticParams = staticParametersOf(f.getF());
+            
             if (i < l-1) {
                 /* Trust the static checker; no need to verify
                  * applicability of the last one.
@@ -1142,17 +1186,20 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 lookahead = new Label();
 
                 Set<String> top_level_invariants = new HashSet<String>();
+                
                 top_level_invariants.addAll(return_type_structures[i].invariantGenericsContained);
                 
                 for (int j = 0; j < f_type_structures.length; j++) {
                     if (j != selfIndex())
                         top_level_invariants.addAll(f_type_structures[j].invariantGenericsContained);
                 }
+                
                 for (int j = 0; j < f_type_structures.length; j++) {
                     // Load actual parameter
                     if (j != selfIndex()) {
                         mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
-                        f_type_structures[j].emitInstanceOf(mv, lookahead, true, top_level_invariants);
+                        f_type_structures[j].emitInstanceOf(mv, lookahead, true,
+                                            top_level_invariants);
                         if (f_type_structures[j].invariantGenericsContained.size() > 0 ||
                             f_type_structures[j].variantGenericsContained.size() > 0)
                                 infer = true;
@@ -1162,7 +1209,6 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             
             //Do I need to infer any static parameters at runtime?
             if (infer) {
-                List<StaticParam> staticParams = f.getF().staticParameters();
                 @SuppressWarnings("unchecked")
                 MultiMap<String,TypeStructure> staticTss = spmaps[i];
                 
@@ -1371,7 +1417,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     private static List<StaticParam> staticParametersOf(Functional fu) {
         List<StaticParam> params = null;
         if (fu instanceof FunctionalMethod) {
-            List<StaticParam> lsp = ((FunctionalMethod) fu).traitStaticParameters();
+            List<StaticParam> ltsp = ((FunctionalMethod) fu).traitStaticParameters();
+            List<StaticParam> lfsp = ((FunctionalMethod) fu).staticParameters();
+            List<StaticParam> lsp = Useful.concat(ltsp, lfsp);
             if (lsp.size() > 0)
                 params = lsp;
         } else if (fu instanceof DeclaredFunction) {
@@ -1493,7 +1541,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         
             String sparamsType = NamingCzar.genericDecoration(sargs, xldata, ifNone);
             // TODO: which signature is which?  One needs to not have generics info in it.
-            String genericArrowType =
+            genericSchema =
                 NamingCzar.makeArrowDescriptor(ifNone, overloadedDomain(), getRange());
             
             /* Save this for later, to forestall collisions with
@@ -1503,13 +1551,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
              * types within the overload itself?  I think it might be, if we
              * do not use exactly the same handshake.
              */
-            genericSchema = genericArrowType;
             // temporary fix to problems with type analysis.  Check to make sure
             // that we don't generate a generic function class that was already
             // generated by our parent
             // A more complete fix would delve into the type checker
             // see bug PROJECTFORTRESS-19 (not_working_library_tests/MaybeTest2.fss)
-            if (parent != null && parent.genericSchema.equals(genericArrowType)) return; //prevent duplication
+            if (parent != null && parent.genericSchema.equals(genericSchema)) return; //prevent duplication
             
             String packageAndClassName = NamingCzar.javaPackageClassForApi(ifNone);
             // If we have static arguments, then our caller must be
@@ -1519,11 +1566,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             // a top-level method.
             String PCN =
                 Naming.genericFunctionPkgClass(packageAndClassName, _name,
-                                                   sparamsType, genericArrowType);
+                                                   sparamsType, genericSchema);
             PCNOuter =
                 Naming.genericFunctionPkgClass(packageAndClassName, _name,
                                                    Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD,
-                                                   genericArrowType);
+                                                   genericSchema);
             // System.err.println("Looks generic.\n    signature " + signature +
             //                    "\n    gArrType " + genericArrowType +
             //                    "\n    sparamsType " + sparamsType +
@@ -1723,11 +1770,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             if (sargs != null) {
                  genericArrowType =
                     NamingCzar.makeArrowDescriptor(ifNone, oa.getDomainType(f.tagF), oa.getRangeType(f.tagF));
-                sparamsType = NamingCzar.genericDecoration(sargs, null, ifNone);
+                 sparamsType = NamingCzar.genericDecoration(sargs, null, ifNone);
 //                ownerName =
 //                    Naming.genericFunctionPkgClass(ownerName, mname,
 //                                                       sparamsType, genericArrowType);
-                mname = Naming.APPLIED_METHOD;
+                 mname = Naming.APPLIED_METHOD;
             }
             mv.visitMethodInsn(invokeOpcode, cnb.className, mname, sig);
         }
@@ -1799,26 +1846,46 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         protected void invokeParticularMethod(MethodVisitor mv, TaggedFunctionName f,
                                               String sig) {
             List<StaticParam> sargs = staticParametersOf(f.tagF);
-            String sparamsType = "";
-            String genericArrowType = "";
             String ownerName = NamingCzar.apiAndMethodToMethodOwner(f.tagA, f.tagF);
             String mname = NamingCzar.apiAndMethodToMethod(f.tagA, f.tagF);
 
             // this ought to work better here.
-            if (getOverloadSubsets().containsKey(name.stringName()+sig)) {
-                mname = NamingCzar.mangleAwayFromOverload(mname);
-            }
             
             if (sargs != null) {
-                 genericArrowType =
-                    NamingCzar.makeArrowDescriptor(ifNone, oa.getDomainType(f.tagF), oa.getRangeType(f.tagF));
-                sparamsType = NamingCzar.genericDecoration(sargs, null, ifNone);
-                ownerName =
-                    Naming.genericFunctionPkgClass(ownerName, mname,
-                                                       sparamsType, genericArrowType);
+                String trial_owner_name = closureClassNameForGenericOverloadArm(f, sargs,
+                        ownerName, mname);
+                if (getOverloadSubsets().containsKey(trial_owner_name)) {
+                    trial_owner_name = closureClassNameForGenericOverloadArm(f, sargs,
+                            ownerName, NamingCzar.mangleAwayFromOverload(mname));
+                }
                 mname = Naming.APPLIED_METHOD;
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, trial_owner_name, mname, sig);
+            } else {
+                if (getOverloadSubsets().containsKey(name.stringName()+sig)) {
+                    mname = NamingCzar.mangleAwayFromOverload(mname);
+                }
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
+                
             }
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, ownerName, mname, sig);
+        }
+
+        /**
+         * @param f
+         * @param sargs
+         * @param ownerName
+         * @param mname
+         * @return
+         */
+        public String closureClassNameForGenericOverloadArm(
+                TaggedFunctionName f, List<StaticParam> sargs,
+                String ownerName, String mname) {
+            String genericArrowType = 
+                NamingCzar.makeArrowDescriptor(ifNone, oa.getDomainType(f.tagF), oa.getRangeType(f.tagF));
+            String sparamsType = NamingCzar.genericDecoration(sargs, null, ifNone);
+            ownerName =
+                Naming.genericFunctionPkgClass(ownerName, mname,
+                                                   sparamsType, genericArrowType);
+            return ownerName;
         }
 
         /* Boilerplate follows, because this is a subtype. */
@@ -1862,7 +1929,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     public boolean notGeneric() {
         for (TaggedFunctionName tfn: lessSpecificThanSoFar) {
             Functional f = tfn.getF();
-            List<StaticParam> lsp = f.staticParameters();
+            List<StaticParam> lsp = staticParametersOf(f);
             if (lsp.size() > 0)
                 return false;
             
