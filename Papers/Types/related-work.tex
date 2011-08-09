@@ -83,15 +83,19 @@ admit a principal type; with a principal type for some function call's context,
 the type checker can determine the constraints under which a correct overloaded
 definition will be found. Because of this requirement, type classes are ill-suited
 for fixed, \emph{ad hoc} sets of overloaded functions like:
-`    println(): () = println("")
-    println(s: String): () = ...`
+\begin{FortressCode}
+{\tt ~~~~}\+\VAR{println}(\ultrathin)\COLON (\ultrathin) = \VAR{println}(\hbox{\rm\usefont{T1}{ptm}{m}{n}``\verythin''}) \\
+    \VAR{println}(s\COLON \TYP{String})\COLON (\ultrathin) = \ldots\-
+\end{FortressCode}
 or functions lacking uniform variance in the domain and range\footnote{With the
 \emph{multi-parameter type class} extension, one could define functions as these.
 A reference to the method \mono{bar}, however, would require an explicit type
 annotation like \mono{:: Int -> Bool} to apply to an \mono{Int}.} like:
-`    bar(x: ZZ): Boolean = (x = 0)
-    bar(x: Boolean): ZZ = if x then 1 else 2 end
-    bar(x: String): String = x`
+\begin{FortressCode}
+{\tt ~~~~}\+\VAR{bar}(x\COLON \mathbb{Z})\COLON \TYP{Boolean} = (x = 0) \\
+    \VAR{bar}(x\COLON \TYP{Boolean})\COLON \mathbb{Z} =\; \KWD{if} x \KWD{then} 1 \KWD{else} 2 \KWD{end} \\
+    \VAR{bar}(x\COLON \TYP{String})\COLON \TYP{String} = x\-
+\end{FortressCode}
 With type classes one can write overloaded functions with identical domain
 types. Such behavior is consistent with the \emph{static}, \emph{type-based}
 dispatch of Haskell, but it would lead to irreconcilable ambiguity in the
