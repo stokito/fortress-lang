@@ -1,3 +1,7 @@
+\TODO{Add introductory paragraph.}
+
+\TODO{Make class table explicit in lemmas.}
+
 \begin{lemma}[Progress]
 \label{lem:progress}
 If some declaration in $\D(f)$ is applicable to $W$

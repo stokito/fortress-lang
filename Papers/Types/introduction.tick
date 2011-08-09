@@ -62,6 +62,9 @@ depending on the types of both arguments.
 % \cite{millstein02,millstein03}.
 % \TODO{Is this true for asymmetric multiple dispatch?}}
 
+\TODO{Removing footnote eliminated C\# reference.
+Do we need to restore it?}
+
 In an object-oriented language with symmetric multiple dispatch,
 some restrictions must be placed on overloaded function definitions
 to guarantee type soundness 

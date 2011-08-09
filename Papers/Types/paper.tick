@@ -258,7 +258,7 @@ components, separate compilation, Fortress, meet rule}
 % Old Overloading Rules
 % Dispatch: Parametric functions
 
-\section{Parametrically Polymorphic Overloading}\label{sec:rules}
+\section{Overloading Rules and Resolution}\label{sec:rules}
 \input{rules}
 % GENERALIZED RULES
 % subtyping on domain = more specific for arrows
@@ -270,7 +270,7 @@ components, separate compilation, Fortress, meet rule}
 % subtype rule
 % Nothing satisfies them
 
-\section{Overloading Resolution Safety}\label{sec:safety}
+\subsection{Overloading Resolution Safety}\label{sec:safety}
 \input{safety}
 
 \section{Disallowed Valid Overloading}\label{sec:problems}

@@ -150,7 +150,7 @@ and the set of ancestors of $C\obb{T}$
 (To reduce clutter, 
 nullary applications are written without brackets; 
 for example, `C[\ \]` is written `C`.) 
-\TODO{Other for \Any\ and \BottomType, 
+\TODO{Other than for \Any\ and \BottomType, 
 do we actually do this?}
 
 Structural and compound types are \emph{well-formed} 
@@ -191,8 +191,9 @@ in the context of $\Delta$. When $\Delta$ is understood to be empty,
 we write this judgment as simply $S \subtypeof T$. The subtype judgment
 can only be made on types $S, T \in \T$, so the judgment takes a class table $\T$ as an implicit parameter.
 The types $S$ and $T$ are said to be \emph{equivalent}, written $S \equiv T$, when $S \subtypeof T$ and $T \subtypeof S$.
+\TODO{Define well-formedness for types with type variables.}
 
-To allow separate compilation of program components, 
+To enable separate compilation of program components, 
 we do not assume that the class table is complete;
 there might be declarations yet unknown.
 Specifically, 
@@ -206,7 +207,7 @@ that any type constructor used in the class table
 is declared in the table, 
 so that all the supertypes of a constructed type 
 are known.
-
+\TODO{Expand on this?}
 
 \subsection{Values and Ilks}
 

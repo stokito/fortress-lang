@@ -22,6 +22,7 @@ strictly extends our previous effort \cite{allen07} with parametric polymorphism
 all previous properties and results remain intact. The inclusion of parametric
 functions and types represents a shift in the research literature on overloading
 and multiple dynamic dispatch.
+\TODO{Explain differences in rules?}
 
 Millstein and Chambers \cite{millstein02,millstein03} devised the language
 Dubious to study overloaded functions with symmetric multiple dynamic dispatch
