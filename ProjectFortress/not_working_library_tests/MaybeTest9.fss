@@ -1,0 +1,76 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component MaybeTest9
+export Executable
+
+trait Equality[\Self\] comprises Self
+    opr =(self, other:Self): Boolean = self SEQV other
+end
+
+object Baz extends Equality[\Baz\]
+  getter asString() = "Baz"
+end
+
+value trait Maybe[\T extends Equality[\T\]\] extends { Equality[\Maybe[\T\]\] }
+        comprises { NothingObject[\T\], Just[\T\] }
+    getter asString(): String
+    getter size(): ZZ32
+    getter get(): T
+    getter holds(): Boolean
+    opr |self| : ZZ32
+    getDefault(_: T): T
+    opr IN(y:T, self): Boolean
+    opr SQCAP(self, o: Maybe[\T\]): Maybe[\T\]
+end
+
+value object Just[\U extends Equality[\U\]\](x: U) extends Maybe[\U\]
+    getter asString(): String = "Just(" x.asString ")"
+    getter size(): ZZ32 = 1
+    getter get() = x
+    getter holds() = true
+    opr |self| : ZZ32 = 1
+    getDefault(_: U): U = x
+    opr IN(y:U, self): Boolean = (x=y)
+    opr =(self,other:Just[\U\]): Boolean = (x = other.x)
+    opr SQCAP(self, other:Just[\U\]): Maybe[\U\] = if other.x = x then self else NothingObject[\U\] end
+end
+
+value object NothingObject[\V extends Equality[\V\]\] extends Maybe[\V\]
+    getter asString():String = "Nothing"
+    getter size(): ZZ32 = 0
+    getter get() = throw NotFound
+    getter holds() = false
+    opr |self| : ZZ32 = 0
+    getDefault(defaultValue: V):V = defaultValue
+    opr IN(x:V, self): Boolean = false
+    opr SQCAP(self, other: Maybe[\V\]): NothingObject[\V\] = self
+end
+
+run(): () = do
+    assert(Just(Baz).getDefault(Baz) = Baz, "getDefault")
+    assert(Just(Baz).asString = "Just(Baz)", "asString")
+    assert(NothingObject[\Baz\].asString = "Nothing", "asString")
+    assert(Just(Baz).size = 1)
+    assert(NothingObject[\Baz\].size = 0)
+    assert(|Just(Baz)| = 1)
+    assert(|NothingObject[\Baz\]| = 0)
+    assert(Just(Baz).get = Baz)
+    assert(Baz IN Just(Baz))
+    deny(Baz IN NothingObject[\Baz\])
+    assert((Just(Baz) SQCAP Just(Baz)).asString = "Just(Baz)")
+    assert((Just(Baz) SQCAP NothingObject[\Baz\]).asString = "Nothing")
+    assert((NothingObject[\Baz\] SQCAP Just(Baz)).asString = "Nothing")
+    assert((NothingObject[\Baz\] SQCAP NothingObject[\Baz\]).asString = "Nothing")
+    println "PASS"
+end
+
+end

@@ -15,3 +15,4 @@ ${STATIC_TESTS_DIR}/Compiled1.r.fss:19:53-59:\n\
 \ Variable testEven is not defined.\n\
 File Compiled1.r.fss has 1 error.\n
 compile_out_equals=
+  
