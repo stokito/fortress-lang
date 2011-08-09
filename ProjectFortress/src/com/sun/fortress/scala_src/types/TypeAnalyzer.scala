@@ -55,7 +55,7 @@ import com.sun.fortress.useful.NI
 class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLattice[Type]{
   
   private final val debugSubtype = ProjectProperties.getBoolean("fortress.debug.analyzer.subtype", false)
-  private final val cacheSubtypes = ProjectProperties.getBoolean("fortress.analyzer.subtype.cache", false)
+  private final val cacheSubtypes = ProjectProperties.getBoolean("fortress.analyzer.subtype.cache", true)
   private final val cacheExcludes = ProjectProperties.getBoolean("fortress.analyzer.excludes.cache", true)
   private final val cacheNormalizeTrait = ProjectProperties.getBoolean("fortress.analyzer.normalize.trait.cache", true)
   private final val cacheNormalizeVar = ProjectProperties.getBoolean("fortress.analyzer.normalize.var.cache", true)
@@ -108,28 +108,36 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
      rval
   }
 
-  protected def pSubInner(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
-    (x, y) match {
-     // case (s,t) if (s==t) => pTrue() // moved up before cache for speed
+  protected def pSubInner(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = (x, y) match {
+    // case (s,t) if (s==t) => pTrue() // moved up before cache for speed
     case (s: BottomType, _) => pTrue()
     case (s, t: AnyType) => pTrue()
     // Intersection types
     case (s, SIntersectionType(_,ts)) =>
-      pAnd(ts.map(pSub(s, _)))
-    case (SIntersectionType(_,ss), t) => // Note that t is not an SIntersectionType
-      pOr(pOr(Pairs.distinctPairsFrom(ss).map(tt => pExc(tt._1, tt._2))),
-          pOr(ss.map(pSub(_, t))))
+      pAnd(ts.map(pSub(s, _)))  
+    case (SIntersectionType(_,ss), t) => 
+      pOr(pOr(ss.map(pSub(_, t))),
+          pOr(Pairs.distinctPairsFrom(ss).map(tt => pExc(tt._1, tt._2)))) // The second constraint is the only time exclusion is called during subtype checking
     // Union types
     case (SUnionType(_,ss), t) =>
       pAnd(ss.map(pSub(_, t)))
     case (s, SUnionType(_, ts)) =>
       pOr(ts.map(pSub(s, _)))
+    // We need to eliminate trait self types before making constraints  
+    case (s: TraitSelfType, t) => pSub(removeSelf(s), t)
+    case (s, STraitSelfType(_, named, _)) => pSub(s,named)
     // Inference variables
     case (s: _InferenceVarType, t: _InferenceVarType) =>
       pAnd(pUpperBound(s, t), pLowerBound(t,s))
     case (s: _InferenceVarType, t) => pUpperBound(s,t)
-    case (s, t: _InferenceVarType) => pLowerBound(t,s)
-    // Type variables
+    case (s, t: _InferenceVarType) => pOr(pLowerBound(t,s), pSub(s, BOTTOM))
+    /* Type variables are special for several reasons
+     *  1) Getting the bound out of a type variable is the only place where a type can increase in size during type checking.
+     *     We use the history to ensure termination.
+     *  2) They are the only place where you cannot negate using de Morgan's. There is actually a hidden modality. Subtype
+     *     should be interpreted as "definitely subtype" and not subtype should be interpreted as "definitely not subtype".
+     *     If you negate using de Morgan's you get "possibly not subtype" and "possibly subtype" respectively.
+     */ 
     case (s@SVarType(_, id, _), t) =>
       val hEntry = (negate, true, s, t)
       if (history.contains(hEntry))
@@ -140,8 +148,11 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         val supers = meet(toListFromImmutable(sParam.getExtendsClause))
         if (negate)
           pExc(supers, t)(!negate, nHistory)
-        else pSub(supers, t)(negate, nHistory)
+        else
+          pSub(supers, t)(negate, nHistory)
       }
+    // Need to figure out the negation
+    case (s, t: VarType) => pSub(s, BOTTOM)
     // Trait types
     case (s: TraitType, t: TraitType) if (t==OBJECT) => pTrue()
     case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (typeCons(n1)==typeCons(n2)) =>
@@ -152,8 +163,6 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       val par = parents(s)
       // println(s + " has parents " + par)
       pOr(par.map(pSub(_, t)))
-    case (s: TraitSelfType, t) => pSub(removeSelf(s), t)
-    case (t, STraitSelfType(_, named, _)) => pSub(t,removeSelf(named))
     case (s: ObjectExprType, t) => pSub(removeSelf(s), t)
     // Arrow types
     case (SArrowType(_, d1, r1, e1, i1, _), SArrowType(_, d2, r2, e2, i2, _)) =>
@@ -172,7 +181,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (s, t:TupleType) => 
       pSub(s, disjunctFromTuple(t,1))
     case _ => pFalse()
-  }}
+  }
   
   /* This is not yet hooked into pSub
   protected def sub(x: List[KeywordType], y: List[KeywordType]): CFormula = {
@@ -263,23 +272,18 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   private val pExcMemo = new scala.collection.mutable.HashMap[(Type, Type, Boolean, Set[hType]), CFormula]()
     
   protected def pExc(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
-     val rval = if (x == y)
-           pFalse()
-         else if (cacheExcludes)
-           pExcMemo.get((x, y, negate, history)) match {
-            case Some(v) => v
-            case _ => 
-              val result = pExcInner(x,y)
-              pExcMemo += ((x, y, negate, history) -> result)
-              result
-           }
-         else pExcInner(x,y)
-     rval
+    if (cacheExcludes)
+      pExcMemo.get((x, y, negate, history)) match {
+        case Some(v) => v
+        case _ => 
+          val result = pExcInner(x,y)
+          pExcMemo += ((x, y, negate, history) -> result)
+          result
+      }
+    else pExcInner(x,y)
   }
 
-  protected def pExcInner(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
-        (removeSelf(x), removeSelf(y)) match {
-    case (s, t) if (s==t) => pFalse()
+  protected def pExcInner(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = (removeSelf(x), removeSelf(y)) match {
     case (s: BottomType, _) => pTrue()
     case (_, t: BottomType) => pTrue()
     case (s: AnyType, t) => pSub(t, BOTTOM)
@@ -288,11 +292,13 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       pOr(pSub(s, BOTTOM), pOr(elts.map(pExc(_, t))))
     case (s, t: IntersectionType) => exc(t, s)
     case (s@SUnionType(_, elts), t) =>
-      pOr(pSub(s, BOTTOM), pAnd(elts.map(pExc(_, t))))
+      pAnd(elts.map(pExc(_, t)))
+    case (s, t: UnionType) => exc(t, s)
+    case (i: _InferenceVarType, j: _InferenceVarType) if i==j => pFalse()
     case (i: _InferenceVarType, j: _InferenceVarType) => pAnd(pExclusion(i,j), pExclusion(j,i))
     case (i: _InferenceVarType, t) => pExclusion(i, t)
     case (s, j: _InferenceVarType) => pExc(j, s)
-    case (s, t: UnionType) => exc(t, s)
+    case (s: VarType, t: VarType) if (s==t) => pFalse()
     case (s@SVarType(_, id, _), t) =>
       val hEntry = (negate, false, s, t)
       if (history.contains(hEntry))
@@ -304,6 +310,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         if (negate) pFalse()(!negate) else pExc(supers, t)(negate, nHistory)
       }
     case (s, t:VarType) => exc(t, s)
+    // TODO: Check what happens when stem s = stem t
     case (s: TraitType, t: TraitType) =>
       def checkEC(s: TraitType, t: TraitType): CFormula = {
         def cEC(s: TraitType, t: TraitType) = pOr(excludesClause(s).map(pSub(t, _)))
@@ -355,7 +362,6 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       pOr(different, excludes)
     case (s: TupleType, _) => pTrue()
     case (_, t: TupleType) => pTrue()
-  }
   }
   
   protected def removeSelf(x: Type) = {
