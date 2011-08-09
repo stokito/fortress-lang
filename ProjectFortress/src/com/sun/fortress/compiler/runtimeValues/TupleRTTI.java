@@ -25,8 +25,8 @@ public abstract class TupleRTTI extends RTTI {
     /**
      * Tupled covariant extension-of test.
      */
-    public boolean argExtendsThis(RTTI other) {
-        if (super.argExtendsThis(other))
+    public boolean runtimeSupertypeOf(RTTI other) {
+        if (super.runtimeSupertypeOf(other))
             return true;
         if (! (other instanceof TupleRTTI))
             return false;
@@ -34,7 +34,7 @@ public abstract class TupleRTTI extends RTTI {
         if (otherRTTI.length != elementRTTI.length)
             return false;
         for (int i = 0; i < elementRTTI.length; i++) {
-            if (! elementRTTI[i].argExtendsThis(otherRTTI[i]))
+            if (! elementRTTI[i].runtimeSupertypeOf(otherRTTI[i]))
                 return false;
         }
         return true;

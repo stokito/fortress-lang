@@ -148,7 +148,7 @@ public class Naming {
     public final static String STATIC_PARAMETER_GETTER_SIG = "()" + RTTI_CONTAINER_DESC;
     public final static String VOID_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "VoidRTTI";
     public final static String RTTI_SUBTYPE_METHOD_SIG = "(" + RTTI_CONTAINER_DESC + ")Z";
-    public final static String RTTI_SUBTYPE_METHOD_NAME = "argExtendsThis";
+    public final static String RTTI_SUBTYPE_METHOD_NAME = "runtimeSupertypeOf";
 
     // Used to indicate translation convention to apply to type parameter.
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA
@@ -944,6 +944,12 @@ public class Naming {
      * The "stem" is the type name, minus static parameters (in Oxford
      * brackets) if there are any.
      * 
+     * For Arrows and Tuples, the stem should already be in RTTI form:
+     *  Tuple,# - where # is the length of the tuple
+     *  Arrow,# - where # is the number of arguments plus 1 for the return type
+     *      (note that a single tuple argument would be un-tupled while a tupled
+     *       return type will not)
+     * 
      * This is used to allocate the type names, and in certain instances of
      * type queries (e.g., for Object types).
      * 
@@ -951,11 +957,12 @@ public class Naming {
      * @return
      */
     public static String stemClassToRTTIclass(String stemClassName) {
-        if (stemClassName.startsWith("ConcreteTuple")) {
-        	//concrete tuples n-ary use the RTTI class Tuple,<n>$RTTIc
-        	int n = InstantiatingClassloader.extractStringParameters(stemClassName).size();
-        	return TUPLE_RTTI_TAG + n + RTTI_CLASS_SUFFIX;
-        }
+//        if (stemClassName.startsWith("ConcreteTuple")) {
+//            java.lang.System.err.println("stemClassToRTTIclass called with ConcreteTuple - FIX");
+//            //concrete tuples n-ary use the RTTI class Tuple,<n>$RTTIc
+//        	int n = InstantiatingClassloader.extractStringParameters(stemClassName).size();
+//        	return TUPLE_RTTI_TAG + n + RTTI_CLASS_SUFFIX;
+//        }
     	return stemClassName + RTTI_CLASS_SUFFIX;
     }
 
@@ -965,17 +972,28 @@ public class Naming {
      * The "stem" is the type name, minus static parameters (in Oxford
      * brackets) if there are any.
      * 
+     * For Arrows and Tuples, the stem should already be in RTTI form:
+     *  Tuple,# - where # is the length of the tuple
+     *  Arrow,# - where # is the number of arguments plus 1 for the return type
+     *      (note that a single tuple argument would be un-tupled while a tupled
+     *       return type will not)
+     * Since we don't have interfaces for these RTTI types, we just use the class
+     * 
      * In general, this is what is tested against and cast to in type queries.
      * 
      * @param stemClassName
      * @return
      */
     public static String stemInterfaceToRTTIinterface(String stemClassName) {
-        if (stemClassName.startsWith("ConcreteTuple")) {
-            //concrete tuples n-ary use the RTTI class Tuple,<n>$RTTIc
-            int n = InstantiatingClassloader.extractStringParameters(stemClassName).size();
-            return TUPLE_RTTI_TAG + n + RTTI_INTERFACE_SUFFIX;
-        }
+//        if (stemClassName.startsWith("ConcreteTuple")) {
+//            java.lang.System.err.println("stemInterfaceToRTTIinterface called with ConcreteTuple - FIX");
+//            //concrete tuples n-ary use the RTTI class Tuple,<n>$RTTIc
+//            int n = InstantiatingClassloader.extractStringParameters(stemClassName).size();
+//            return TUPLE_RTTI_TAG + n + RTTI_INTERFACE_SUFFIX;
+//        }
+        if (stemClassName.startsWith(TUPLE_RTTI_TAG) || stemClassName.startsWith(ARROW_RTTI_TAG) )
+            return stemClassName + RTTI_CLASS_SUFFIX;
+        
         return stemClassName + RTTI_INTERFACE_SUFFIX;
     }
 

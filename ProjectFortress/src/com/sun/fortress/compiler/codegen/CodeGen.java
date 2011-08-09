@@ -2445,11 +2445,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  } else if (savedInATrait) {
                     generateTraitDefaultMethod(x, (IdOrOp)name,
                             params, selfIndex, returnType, body);
-                } else {
+                 } else {
                     generateFunctionalBody(x, (IdOrOp)name,
                             params, selfIndex, returnType, inAMethod,
                             savedInAnObject, body);
-                }
+                 }
             }
 
         } finally {
