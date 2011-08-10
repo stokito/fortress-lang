@@ -42,15 +42,15 @@ is the existential type $\exists\ob{\Delta}{S}$.
 We use the metavariable $\delta$ to range over existential types.
 Note that we abbreviate both the universal type $\forall\ob{}T$ and
 the existential type $\exists\ob{}T$ as simply $T$ when the meaning is clear from context.
-Figure~\ref{fig:sub} presents the formal definition of applicability for a generic function $f$
+Figure~\ref{fig:application} presents the formal definition of applicability for a generic function $f$
 to a type $T$, $f \ni T$.
 
-\input{fig-existential}
+\input{fig-application}
 
 %specificity for a generic function
 A generic function declaration is \emph{more specific} than another generic function declaration
-if and only if the domain of the former is a subtype of the latter as presented in Figure~\ref{fig:sub}.
-Figure~\ref{fig:sub} also presents the subtype relation on existential types
+if and only if the domain of the former is a subtype of the latter as presented in Figure~\ref{fig:application}.
+Figure~\ref{fig:existential} presents the subtype relation on existential types
 as originally given by Mitchell \cite{mitchell88}.
 Roughly, an existential type $\delta_1 = \exists \ob{\Delta_1} T_1$ is a
 subtype of another existential type $\delta_2 = \exists\ob{\Delta_2}T_2$
@@ -63,8 +63,9 @@ by mechanically determining if two declarations are equally specific.
 To check whether one declaration is more specific than another,
 we check whether the domain of the former is a subtype of the latter.
 Checking whether one existential type is a subtype of another
-is described in Figure~\ref{fig:sub}.
+is described in Figure~\ref{fig:existential}.
 
+\input{fig-existential}
 
 To check the Meet Rule, for every pair of declarations $f_1, f_2 \in \D(f)$,
 we must find a function declaration $f_0 \in \D(f)$ that is
@@ -80,7 +81,7 @@ By an abuse of notation, we refer to ````the'' computed meet to mean any such co
   \textit{dom}(f_0) &\;\le\; \textit{dom}(f_1) \meet \textit{dom}(f_2) \\
   \textit{dom}(f_1) \meet \textit{dom}(f_2) &\;\le\; \textit{dom}(f_0)
 \end{align*}
-Figure~\ref{fig:sub} defines the meet of two existential types $\delta_1 \meet \delta_2$,
+Figure~\ref{fig:meet} defines the meet of two existential types $\delta_1 \meet \delta_2$,
 which may require alpha renaming on the existential types' parameters.
 The following lemma shows that the definition of the meet of two existential types is correct:
 \begin{lemma}\label{lem:meet}
@@ -93,9 +94,10 @@ $\delta_0$ is a subtype of $\delta_1$ and $\delta_2$, respectively,
 then we can use $\bar{U},\bar{V}$ to prove that $\delta_0$ is a subtype of $\delta_1 \meet \delta_2$.
 \end{proof}
 
+\input{fig-meet}
 
 We can check the Return Type Rule using the subtype relation on universal types.
-Figure~\ref{fig:sub} presents the subtype relation on universal types, again,
+Figure~\ref{fig:existential} presents the subtype relation on universal types, again,
 as originally given by Mitchell \cite{mitchell88}.
 Roughly, a universal type $\sigma_1 = \forall\ob{\Delta_1} T_1$ is a subtype of another universal
 type $\sigma_2 = \forall\ob{\Delta_2} T_2$ (written $\sigma_1 \le \sigma_2$) if

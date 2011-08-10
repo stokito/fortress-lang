@@ -2,12 +2,11 @@
 \begin{figure*}[htbp]
 \newjudge{Generating constraints for subtyping}{\jcsub{T}{T}{\C}}
 \\\\
-  \begin{tabular}{c|c}
-  %% MINIPAGE FOR LEFT COLUMN
-  \begin{minipage}[t]{.45\textwidth}
-  
+\begin{minipage}[t]{.5\textwidth}
+\centering
+
 \textbf{Logical rules}
-%\vspace*{-1em}
+\vspace*{-1em}
 
 \infrule
   {}
@@ -36,19 +35,23 @@
 
 \vspace*{3ex}
 \textbf{Variables}
-%\vspace*{-1em}
+\vspace*{-1em}
 
 \infrule
   {}
   {\jcsub{I}{I}{\TRUE}}
+  
+\infrule
+  {I  \neq J}
+  {\jcsub{I}{J}{TODO}}
 
 \infrule
   {}
   {\jcsub{I}{T}{`I` \subtypeof `T`}}
  
 \infrule
-  {}
-  {\jcsub{S}{I}{`S` \subtypeof `I`}}
+  {\jcsub{S}{\BottomType}{\C}}
+  {\jcsub{S}{I}{`S` \subtypeof `I` \vee \C}}
  
 \infrule
   {}
@@ -62,15 +65,11 @@
   {\jcsub{S}{\BottomType}{\C}}
   {\jcsub{S}{X}{\C}}
 
-  \end{minipage}
-  
-  %%% END LEFT COLUMN
-  &
-  
-  %% MINIPAGE FOR RIGHT COLUMN
-  \begin{minipage}[t]{.53\textwidth}
+\end{minipage}%
+\begin{minipage}[t]{.5\textwidth}
+\centering
 \textbf{Structural rules}
-%\vspace*{-1em}
+\vspace*{-1em}
 
 \infrule
   {|\bar{S}|=|\bar{T}| \andalso \forall  i . \jcsub{S_i}{T_i}{\C_i} \\
@@ -117,9 +116,8 @@
   {\forall i . \jcequiv{S_i}{T_i}{C_i}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\sim}{`C[\T_bar\]`}{\bigwedge \C_i}}
 
-  \end{minipage}
-  \end{tabular}
-  
+\end{minipage}
+
   \caption{Generating constraints for subtyping}
   \label{fig:jcsub}
 \end{figure*}
