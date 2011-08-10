@@ -68,7 +68,7 @@ system further in this paper.
 To demonstrate the modularity of our design,
 we present a lightweight modeling of program modules,
 and show how applying our rules to each module separately
-suffices to guarantee the soundness of the entire program.
+suffices to guarantee the safety of the entire program.
 In our model, 
 a program is a \emph{module}, which may be either \emph{simple} or \emph{compound}.
 A \emph{simple module} consists of 

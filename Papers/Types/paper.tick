@@ -51,6 +51,8 @@
 \newcommand{\subtypeof}{\ensuremath{<:}}
 \newcommand{\supertypeof}{\ensuremath{:>}}
 
+\newcommand{\alphaequiv}{\ensuremath{\stackrel{\alpha}{\sim}}}
+
 \newcommand{\arrowtype}[2]{\mbox{\ensuremath{{#1} \rightarrow {#2}}}}
 \newcommand{\tuple}[1]{\ensuremath{#1}}
 
@@ -274,13 +276,12 @@ components, separate compilation, Fortress, meet rule}
 \subsection{Overloading Resolution Safety}\label{sec:safety}
 \input{safety}
 
-% \section{Disallowed Valid Overloading}
-\section{Exclusion}
+\section{Valid and Invalid Overloaded Functions}
 \label{sec:problems}
 \input{problems}
 
 %\section{More Permissive Overloading}
-
+\section{Exclusion}
 \label{sec:exclusion}
 % EXCLUSION
 % Exclusion on base types
