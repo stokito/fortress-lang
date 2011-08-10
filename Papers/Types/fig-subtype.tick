@@ -105,16 +105,16 @@
 % \vspace*{-1em}
 
 \infrule
-  {\forall M \in \ancestors(`C[\S_bar\]`). \jgconstrtemplate{M}{\alphaequiv}{`D[\T_bar\]`}{\C_M}}
+  {\forall M \in \ancestors(`C[\S_bar\]`). \jgconstrtemplate{M}{\cequiv}{`D[\T_bar\]`}{\C_M}}
   {\jcsub{`C[\S_bar\]`}{`D[\T_bar\]`}{\bigvee \C_M}}
 
 \infrule
   {C \neq D}
-  {\jgconstrtemplate{`C[\S_bar\]`}{\alphaequiv}{`D[\T_bar\]`}{\FALSE}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\cequiv}{`D[\T_bar\]`}{\FALSE}}
   
   \infrule
   {\forall i . \jcequiv{S_i}{T_i}{C_i}}
-  {\jgconstrtemplate{`C[\S_bar\]`}{\alphaequiv}{`C[\T_bar\]`}{\bigwedge \C_i}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\cequiv}{`C[\T_bar\]`}{\bigwedge \C_i}}
 
 \end{minipage}
 
