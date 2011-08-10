@@ -52,6 +52,7 @@
 \newcommand{\supertypeof}{\ensuremath{:>}}
 
 \newcommand{\alphaequiv}{\ensuremath{\stackrel{\alpha}{\sim}}}
+\newcommand{\cequiv}{\ensuremath{\sim}}
 
 \newcommand{\arrowtype}[2]{\mbox{\ensuremath{{#1} \rightarrow {#2}}}}
 \newcommand{\tuple}[1]{\ensuremath{#1}}
