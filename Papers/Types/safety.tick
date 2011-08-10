@@ -1,3 +1,7 @@
+\TODO{Add introductory paragraph.}
+
+\TODO{Make class table explicit in lemmas.}
+
 \begin{lemma}[Progress]
 \label{lem:progress}
 If some declaration in $\D(f)$ is applicable to $W$
@@ -5,14 +9,14 @@ then there is a unique most specific declaration $f_W \in \D(f)$ that is applica
 \end{lemma}
 \begin{proof}
 Our proof strategy for satisfying the Progress condition
-makes use of the old idea from Castagna \emph{et al.} \cite{castagna92} that
+makes use of the old idea from Castagna \emph{et al.} \cite{castagna95} that
 for each name $f$ the set of function declarations $\D(f)$ should form a meet
-semi-lattice under the \emph{specificity} order defined in
+semilattice under the \emph{specificity} order defined in
 Section~\ref{terms}.
 If any declaration of name $f$ is applicable to a type $W$,
 then the set $\D_W(f) \subseteq \D(f)$
 of all declarations named $f$ and applicable to $W$
-also forms a nonempty meet semi-lattice under specificity. Therefore
+also forms a nonempty meet semilattice under specificity. Therefore
 $\D_W(f)$ must have a least element.
 \end{proof}
 

@@ -1,52 +1,94 @@
 \subsection{Types}
+
 Following Kennedy and Pierce \cite{kennedy07},
 we define a world of types ranged over by metavariables $S$, $T$, $U$, $V$, and $W$. 
 Types are of four forms: 
-type variables 
+\emph{type variables} 
 (ranged over by metavariables $X$, $Y$, and $Z$);
-constructed types 
+\emph{constructed types} 
 (ranged over by metavariables $K$, $L$, $M$ and $N$), 
 written `C[\T_bar\]` 
 where `C` is a type constructor 
 and `T_bar` is a list of types; 
-structural types,
+\emph{structural types},
 consisting of arrow and tuple types;
-and compound types,
+and \emph{compound types},
 consisting of intersection and union types. 
 In addition, 
 there are two special constructed types, \Any\ and \BottomType, explained below.
-(To reduce clutter, 
-nullary applications are written without brackets; 
-for example, `C[\ \]` is written `C`.) 
+\TODO{Make \BottomType\ special, not a constructed type.}
+% A type is of one of five forms:
+% a \emph{type variable} 
+% (represented by metavariable $X$, $Y$, or $Z$);
+% \emph{constructed types} 
+% (represented by metavariable $K$, $L$, $M$ or $N$), 
+% which is either a type constructor application `C[\T_bar\]`,  
+% where `C` is a type constructor 
+% and `T_bar` is a list of types, 
+% or the special constructed type \Any;
+% a \emph{structural type},
+% which is either an arrow type or a tuple type;
+% a \emph{compound type},
+% which is either an intersection or union type; 
+% or the special type \BottomType, 
+% which represents the uninhabited type 
+% (i.e., no value belongs to \BottomType).
 The abstract syntax of types is defined in BNF as follows
 (where $\bar{\emph{A}}$ indicates 
-a possibly empty sequence of syntactic elements $\emph{A}$ separated by commas):
+a possibly empty comma-separated sequence of syntactic elements $\emph{A}$):
 %and we often abbreviate sequences
 %of larger syntactic constructs such as $T \extends U$ 
 %by writing bars over each variable:
 %$\bar{T \extends U}$.)
 \[
 \begin{array}{@{}l@{\;}l@{\;}l@{\;\;\;\;\;\;}l@{}}
-\emph{Type} &::=& \emph{Id} & \hbox{\rm type variable}\\
-&\mid& \emph{Id}\llbracket\bar{\emph{Type}}\rrbracket & \hbox{\rm constructed type}\\
-&\mid& \emph{Type} \rightarrow \emph{Type} & \hbox{\rm arrow type}\\
-&\mid& ( \bar{\emph{Type}} ) & \hbox{\rm tuple type}\\
-&\mid& \emph{Type} \cap \emph{Type} & \hbox{\rm intersection type}\\
-&\mid& \emph{Type} \cup \emph{Type} & \hbox{\rm union type}\\
-%&\mid& \Any \\
-%&\mid& \BottomType \\
+\emph{T} &::=& \emph{X} & \hbox{\rm type variable}\\
+&\mid& \emph{C}\llbracket\bar{\emph{T}}\rrbracket & \hbox{\rm type constructor application}\\
+&\mid& \emph{T} \rightarrow \emph{T} & \hbox{\rm arrow type}\\
+&\mid& ( \bar{\emph{T}} ) & \hbox{\rm tuple type}\\
+&\mid& \emph{T} \cap \emph{T} & \hbox{\rm intersection type}\\
+&\mid& \emph{T} \cup \emph{T} & \hbox{\rm union type}\\
+&\mid& \Any \\
+&\mid& \BottomType \\
 \end{array}
 \]
+% \[
+% \begin{array}{@{}l@{\;}l@{\;}l@{\;\;\;\;\;\;}l@{}}
+% \emph{Type} &::=& \emph{Id} & \hbox{\rm type variable}\\
+% &\mid& \emph{Id}\llbracket\bar{\emph{Type}}\rrbracket & \hbox{\rm constructed type}\\
+% &\mid& \emph{Type} \rightarrow \emph{Type} & \hbox{\rm arrow type}\\
+% &\mid& ( \bar{\emph{Type}} ) & \hbox{\rm tuple type}\\
+% &\mid& \emph{Type} \cap \emph{Type} & \hbox{\rm intersection type}\\
+% &\mid& \emph{Type} \cup \emph{Type} & \hbox{\rm union type}\\
+% %&\mid& \Any \\
+% %&\mid& \BottomType \\
+% \end{array}
+% \]
+
 A tuple type of length one is synonymous with its element type. 
 A tuple type with any \BottomType\ element 
 is synonymous with \BottomType.
-As in the Fortress language, compound types---intersection and union types---are 
-\emph{not} first-class:
+As in Fortress, 
+compound types---intersection and union types---and \BottomType\ 
+are \emph{not} first-class:
 they cannot be written in a program; 
 rather, they are used by the type analyzer during type checking.
 For example, type variables may have multiple bounds, 
 so that any valid instantiation of such a variable
 must be a subtype of the intersection of its bounds.
+
+% All type checking \TODO{Do we prefer ````type-checking'',
+% ````type checking'', or ````typechecking''?)
+% is done within the context of a \emph{class table} $\T$, 
+% which is a set of type constructor declarations 
+% (at most one declaration for each type constructor) 
+% of the following form:
+% \[
+% C\tplist{X}{M} \extends \{\bar{N}\}
+% \]
+
+\TODO{Only considering ground types at first.
+(Define ground types.)}
 
 Constructed types (other than \Any\ and \BottomType)
 are applications of \emph{type constructors}.
@@ -58,35 +100,38 @@ of the following form:
 C\tplist{X}{M} \extends \{\bar{N}\}
 \]
 This declaration indicates that an application $C\obb{U}$ 
-(i) is \emph{well-formed} (with respect to $\T$)
+(\emph{i}) is \emph{well-formed} (with respect to $\T$)
 if and only if $|\bar{U}| = |\bar{X}|$ and
+for all $i$ and $j$, 
 $U_i \subtypeof \substb{U}{X}M_{ij}$ for each bound $M_{ij}$
 (where $\subtypeof$ is the subtyping relation defined below, 
 and $\substb{U}{X}M_{ij}$ is $M_{ij}$ 
-with $U_k$ substituted for every occurrence of $X_k$ in $M_{ij}$ 
+with $U_k$ substituted for each occurrence of $X_k$ in $M_{ij}$ 
 for $1 \leq k \leq |\bar{U}|$);
 and 
-(ii) is a subtype of $\substb{U}{X}N_l$ for $1 \leq l \leq |\bar{N}|$.
+(\emph{ii}) is a subtype of $\substb{U}{X}N_l$ for $1 \leq l \leq |\bar{N}|$.
 Thus, a class table induces 
 a (nominal) \emph{subtyping relation} over the constructed types 
 by taking the reflexive and transitive closure 
 of the subtyping relation derived from the declarations in the class table.
 In addition, 
 every type is a subtype of \Any\ and a supertype of \BottomType.
+For any type $T$ (of any form),
+we write $T \in \T$ to mean that 
+any constructed type occurring in type $T$
+is well-formed with respect to $\T$.
 
 A class table $\T$ is \emph{well-formed} if the resulting subtyping relation 
 on its constructed types is a partial order.
 As usual for languages with nominal subtyping, 
 we allow recursive and mutually recursive references in $\T$.
-For any type $T$ (of any form),
-we write $T \in \T$ to mean that 
-any constructed type occurring in type $T$
-is well-formed with respect to $\T$.
+\TODO{What does ````recursive and mutually recursive references'' mean?}
 A class table $\T'$ is an \emph{extension} of $\T$ (written $\T' \ctext \T$)
 if every constructor declaration in $\T$ is also in $\T'$ 
 and the subtype relation on $\T'$ agrees with that of $\T$. 
 Consequently, if $\T' \ctext \T$ then, for all types $T$, $T \in \T$ implies $T \in \T'$.
-We typically omit explicit reference to the class table when it is understood.
+We typically omit explicit reference to the class table when it is understood, 
+and we assume that the class table is well-formed.
 
 Given a well-formed class table 
 containing the type constructor declaration for $C$ above 
@@ -102,10 +147,16 @@ and the set of ancestors of $C\obb{T}$
    = \{C\obb{T}\} \cup 
      \hspace*{-4ex} \bigcup_{M \in \myextends{C\obb{T}}} \hspace{-4ex} \ancestors(M).
 \]
+(To reduce clutter, 
+nullary applications are written without brackets; 
+for example, `C[\ \]` is written `C`.) 
+\TODO{Other than for \Any\ and \BottomType, 
+do we actually do this?}
 
 Structural and compound types are \emph{well-formed} 
 (with respect to a class table) 
 if their constituent types are well-formed. 
+\TODO{Is this different from $T \in \T$ above?}
 We extend the subtyping relation to
 structural and compound types in the usual way:
 Arrow types are contravariant in their domain types 
@@ -140,8 +191,9 @@ in the context of $\Delta$. When $\Delta$ is understood to be empty,
 we write this judgment as simply $S \subtypeof T$. The subtype judgment
 can only be made on types $S, T \in \T$, so the judgment takes a class table $\T$ as an implicit parameter.
 The types $S$ and $T$ are said to be \emph{equivalent}, written $S \equiv T$, when $S \subtypeof T$ and $T \subtypeof S$.
+\TODO{Define well-formedness for types with type variables.}
 
-To allow separate compilation of program components, 
+To enable separate compilation of program components, 
 we do not assume that the class table is complete;
 there might be declarations yet unknown.
 Specifically, 
@@ -155,7 +207,7 @@ that any type constructor used in the class table
 is declared in the table, 
 so that all the supertypes of a constructed type 
 are known.
-
+\TODO{Expand on this?}
 
 \subsection{Values and Ilks}
 

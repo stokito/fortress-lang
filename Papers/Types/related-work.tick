@@ -13,11 +13,16 @@
 %   * HMG(X) (pottier)
 %   * with OOP (russo)
 %
-\subsection{Overloading and dynamic dispatch.} Primarily, our system
+\subsection{Overloading and dynamic dispatch.} 
+
+\TODO{Add discussion of Castagna et al.\ here?}
+
+Primarily, our system
 strictly extends our previous effort \cite{allen07} with parametric polymorphism;
 all previous properties and results remain intact. The inclusion of parametric
 functions and types represents a shift in the research literature on overloading
 and multiple dynamic dispatch.
+\TODO{Explain differences in rules?}
 
 Millstein and Chambers \cite{millstein02,millstein03} devised the language
 Dubious to study overloaded functions with symmetric multiple dynamic dispatch
@@ -35,22 +40,24 @@ our previous paper \cite{allen07}.
 
 % I took out discussion of modularity here; it's charged and unnecessary
 % in order to distinguish our work. EricAllen 7/15/2011
-Overloading and multiple dispatch in the context of polymorphism has previously
-been studied by Bourdoncle and Merz \cite{bourdoncle97}. Their system, ML$_\le$,
-integrates parametric polymorphism, class-based object orientation, and multimethods,
-but lacks multiple inheritance. Each multimethod (overloaded set)
-requires a unique specification (principal type), which prevents overloaded
-functions defined on disjoint domains; the domains of the multimethod branches
-must partition the specification domain, which eliminates subtype-based specialization;
+Overloading and multiple dispatch in the context of polymorphism 
+has previously been studied by Bourdoncle and Merz \cite{bourdoncle97}. 
+Their system, ML$_\le$, integrates parametric polymorphism, 
+class-based object orientation, and multimethods,
+but lacks multiple inheritance. 
+Each multimethod (overloaded set) requires a unique specification (principal type), 
+which prevents overloaded functions defined on disjoint domains; 
+% the domains of the multimethod branches must partition the specification domain, 
+% which eliminates subtype-based specialization;
 and link-time checks are performed to ensure that multimethods are fully
-implemented across modules. On the other hand, ML$_\le$
-allows variance annotations on type constructors --- something we attribute to
-future work.
+implemented across modules. 
+On the other hand, ML$_\le$ allows variance annotations on type constructors---% 
+something we attribute to future work.
+
 Litvinov~\cite{litvinov98} developed a type system for the Cecil language,
 which supports bounded parametric polymorphism and multimethods.
-Because Cecil has a type-erasure semantics, statically checked
-parametric polymorphism does not have any effect on run-time dispatch.
-
+Because Cecil has a type-erasure semantics, 
+statically checked parametric polymorphism has no effect on run-time dispatch.
 
 \subsection{Type classes.} Wadler and Blott \cite{wadler89} introduced
 \emph{type class} as a means to specify and implement overloaded

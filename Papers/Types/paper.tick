@@ -2,21 +2,8 @@
 \usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem}
 \advance \textheight by 4pt
 
-
-%% for llncs
-%\documentclass[runningheads,a4paper]{llncs}
-%\documentclass{llncs}
-%\usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem}
-%\setcounter{tocdepth}{3}
-%\newcommand{\keywords}[1]{\par\addvspace\baselineskip
-%\noindent\keywordname\enspace\ignorespaces#1}
-%% \advance \textheight by 4pt
-%% \newcommand{\mono}[1]{\KWD{#1}}
-
-
 % make a big red TODO label
-\newcommand{\TODO}[1]{\text{\textbf{\emph{\textcolor{red}{TODO}}}: #1}}
-
+\newcommand{\TODO}[1]{\text{\textbf{\emph{\textcolor{red}{TODO}}}: \textsf{\footnotesize #1}}}
 
 %newcommand
 \newcommand{\ms}{\preceq}
@@ -33,6 +20,8 @@
 \newcommand{\bexc}{\mathrel{\altlozenge}}
 \newcommand{\bexcp}{\mathrel{\altlozenge}_\textrm{p}}
 \newcommand{\bnexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\altlozenge}}
+
+\newcommand{\fresh}[1]{\textit{fresh}({#1})}
 
 \newcommand{\excr}{\triangleright}
 \newcommand{\excl}{\triangleleft}
@@ -158,21 +147,21 @@
 
 \begin{document}
 
-\conferenceinfo{OOPSLA '11}{October, Portland, Oregon.}
-\copyrightyear{2011}
-\copyrightdata{[to be supplied]}
+\conferenceinfo{OOPSLA '11}{October 22--27, 2011, Portland, Oregon, USA.}
+\CopyrightYear{2011}
+\copyrightdata{978-1-4503-0940-0/11/10}
 
 \titlebanner{draft}        % These are ignored unless
-\preprintfooter{draft}   % 'preprint' option specified.
+\preprintfooter{draft}     % 'preprint' option specified.
 
 \title{Type-checking Modular Multiple Dispatch with Parametric Polymorphism and Multiple Inheritance}
 \subtitle{}
 \authorinfo{Eric Allen}{Oracle Labs}{eric.allen@oracle.com}
 \authorinfo{Justin Hilburn}{Oracle Labs}{justin.hilburn@oracle.com}
 \authorinfo{Scott Kilpatrick}{University of Texas \\ at Austin}{scottk@cs.utexas.edu}
+\authorinfo{Victor Luchangco}{Oracle Labs}{victor.luchangco@oracle.com}
 \authorinfo{Sukyoung Ryu}{KAIST}{sryu@cs.kaist.ac.kr}
 \authorinfo{David Chase}{Oracle Labs}{david.r.chase@oracle.com}
-\authorinfo{Victor Luchangco}{Oracle Labs}{victor.luchangco@oracle.com}
 \authorinfo{Guy L. Steele Jr.}{Oracle Labs}{guy.steele@oracle.com}
 
 \makeatletter
@@ -240,7 +229,10 @@
 
 \terms{Languages}
 
-\keywords{object-oriented programming, traits, multiple dispatch, symmetric dispatch, multiple inheritance, overloading, modularity, methods, multimethods, functional methods, static types, run-time types, ilks, components, separate compilation, Fortress, meet rule}
+\keywords{object-oriented programming, multiple dispatch, 
+symmetric dispatch, multiple inheritance, overloading, modularity, methods, 
+multimethods, static types, run-time types, ilks, 
+components, separate compilation, Fortress, meet rule}
 
 \section{Introduction}\label{sec:intro}
 \input{introduction.tex}
@@ -266,7 +258,7 @@
 % Old Overloading Rules
 % Dispatch: Parametric functions
 
-\section{Parametrically Polymorphic Overloading}\label{sec:rules}
+\section{Overloading Rules and Resolution}\label{sec:rules}
 \input{rules}
 % GENERALIZED RULES
 % subtyping on domain = more specific for arrows
@@ -277,6 +269,9 @@
 % exclusion rule
 % subtype rule
 % Nothing satisfies them
+
+\subsection{Overloading Resolution Safety}\label{sec:safety}
+\input{safety}
 
 \section{Disallowed Valid Overloading}\label{sec:problems}
 \input{problems}
@@ -289,9 +284,17 @@
 % Powerful for computing meets
 \input{exclusion}
 
-%\section{Type Safety Properties}\label{sec:safety}
-\section{Overloading Resolution Safety}\label{sec:safety}
-\input{safety}
+\subsection{Exclusion with Constraints}\label{sec:constraints}
+\input{exc-constraints}
+
+%\subsection{Polymorphic Exclusion Checking}
+%\subsection{Overloading with Polymorphic Exclusion, Again}
+
+\input{overloading-check}
+
+\subsection{Incorporating Constraints into Subtyping}
+\input{exc-reduction}
+
 
 \section{Discussion}\label{sec:discussion}
 \input{discussion}

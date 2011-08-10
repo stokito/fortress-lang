@@ -58,12 +58,12 @@ Every arrow type excludes every non-arrow type.
 Every singleton tuple type excludes exactly those types excluded by its element type.
 Every non-singleton tuple type excludes every non-tuple type.
 Tuple type $(\bar{V})$ excludes $(\bar{W})$ if either $|\bar{V}| \neq |\bar{W}|$
-or $V_i$ excludes $W_I$ for some $i$. An intersection type excludes any type excluded by \emph{any} of its constituent types, 
+or $V_i$ excludes $W_i$ for some $i$. An intersection type excludes any type excluded by \emph{any} of its constituent types, 
 while a union type excludes any type excluded by \emph{all} of its constituent types.
 $\BottomType$ excludes every type (including itself---it is the only type 
 that excludes itself), 
 and $\Any$ does not exclude any type other than $\BottomType$.
-(We define the exclusion formally in Figure~\ref{fig:jexc}
+(We define the exclusion relation formally in Figure~\ref{fig:jexc}
 in Section~\ref{sec:constraints}.)
 
 We augment our notion of a well-formed class table 

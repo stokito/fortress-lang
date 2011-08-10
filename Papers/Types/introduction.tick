@@ -1,16 +1,17 @@
 A key feature of object-oriented languages is \emph{dynamic dispatch}: 
-There may be multiple definitions of a function (or method) with the same name, 
-and calls to a function (method) of that name are resolved
+there may be multiple definitions of a function (or method) with the same name---%
+we say the function is \emph{overloaded}---%
+and a call to a function of that name is resolved
 based on the ````run-time types''---we use the term \emph{ilks}---of the arguments. 
-In \emph{single dispatch}, 
+With \emph{single dispatch}, 
 a particular argument is designated as the \emph{receiver}, 
 and the call is resolved only with respect to that argument.
-In \emph{multiple dispatch}, 
+With \emph{multiple dispatch}, 
 the run-time types of  all arguments to a call are used to resolve the call.
-A special case of multiple dispatch is \emph{symmetric multiple dispatch}, 
+\emph{Symmetric multiple dispatch} is a special case of multiple dispatch 
 in which all arguments are considered equally when resolving a call.
 
-Multiple dynamic dispatch provides programmers with great expressivity.
+Multiple dispatch provides great expressivity.
 In particular, 
 mathematical operators such as $+$ and $\leq$ and $\cup$
 and especially $\cdot$ and $\times$
@@ -23,81 +24,184 @@ Similarly,
 many binary operations on collections such as `append` and `zip` 
 have different definitions 
 depending on the types of both arguments. 
+\TODO{Add (reference to) argument for symmetric multiple dispatch?}
 
-To preserve type soundness 
-while incorporating multiple dispatch 
-into an object-oriented language with a static semantics, 
-constraints must be placed on the sets of valid overloaded definitions.
-For example, to avoid ambiguous function calls,
-we must ensure that for every call site 
-(knowing only the static types of the arguments),
-there exists a unique ````best'' function to dispatch to at run time.\footnote{
-In languages with static overloading, such as Scala, C\#, and the Java\texttrademark\
-programming language \cite{scala,CSharpSpec,JavaSpec}, it is possible to simply reject ambiguous call sites
-of overloaded functions. However, as Millstein and Chambers have observed, 
-it is impossible to statically forbid ambiguity in the presence of multiple dynamic
-dispatch without imposing constraints at the definition sites of overloaded functions
-\cite{millstein02,millstein03}.}
+% \TODO{Do we want something like the following paragraph here?}
+% In this paper,
+% we present rules for defining overloaded functions 
+% to ensure type soundness and non-ambiguity of function calls
+% under symmetric multiple dispatch
+% in an object-oriented language 
+% that supports parametric polymorphism and multiple inheritance.
+% \TODO{If we do, trim text on next page.}
 
-Castagna {\it et al}. showed how to check overloaded function definitions to
-ensure this property in a language without parametric polymorphism~\cite{castagna92}.
-In particular, the static type system must
-impose a partial order on each set of overloaded definitions.  
-This partial order may be described as: $m_1$ is more
-specific than $m_2$ if and only if for every possible set of arguments,
-if $m_1$ is applicable then $m_2$ is also applicable.
-Every program is required to ensure that, 
-for any two overloaded function definitions,
-if neither is more specific than the other, 
-then there is a third overloaded definition
-that is (1) more specific than both and 
-(2) no more specific than any other definable
-function that is more specific than both. We can think of this property 
-as imposing a
-\emph{meet semi-lattice} on a set of function declarations.
-Ensuring this property is complicated
-because each of two function definitions 
-might be more specific in one argument and not another. 
+% \TODO{Alternative is to have a shorter intro, 
+% which mostly mimics the abstract, but with a bit more elaboration,
+% and I would probably leave the discussion of our prior work till later.
+% We may want to mention Fortress early as a context for this work.
+% Then have a long ````background'' section 
+% containing the discussion starting from Castagna to Bourdoncle and Merz,
+% and including the discussion of our prior work and former thoughts.}
+
+% To preserve type soundness and avoid ambiguous function calls 
+% while incorporating multiple dispatch 
+% into an object-oriented language with a static semantics, 
+% the sets of valid overloaded definitions must be restricted.
+% For example, to avoid ambiguous function calls,
+% we must ensure that for every call site 
+% (knowing only the static types of the arguments),
+% there exists a unique ````best'' function to dispatch to at run time.\footnote{
+% In languages with static overloading, 
+% such as Scala, C\#, and the Java\texttrademark\ programming language 
+% \cite{scala,CSharpSpec,JavaSpec}, 
+% it is possible to simply reject ambiguous call sites of overloaded functions.
+% However, as Millstein and Chambers have observed, 
+% it is impossible to statically forbid ambiguity 
+% in the presence of multiple dynamic dispatch 
+% without imposing constraints at the definition sites of overloaded functions
+% \cite{millstein02,millstein03}.
+% \TODO{Is this true for asymmetric multiple dispatch?}}
+
+\TODO{Removing footnote eliminated C\# reference.
+Do we need to restore it?}
+
+In an object-oriented language with symmetric multiple dispatch,
+some restrictions must be placed on overloaded function definitions
+to guarantee type soundness 
+and avoid ambiguous function calls.
+% \cite{castagna95,millstein02,millstein03}.
 For example, 
 consider the following overloaded function definitions:
 \small
-`  f(b:B, a:A)
-  f(a:A, b:B)`
+`  f(b:B, a:A): ZZ = 1
+  f(a:A, b:B): ZZ = 2`
 \normalsize
- If $A$ is a subtype of $B$ (we write this as `A <: B`),
+If $A$ is a subtype of $B$ (we write this as `A <: B`),
 to which of these definitions do we dispatch 
 when $f$ is called with two arguments of type $A$? 
-Note that the ambiguity is inherent in these definitions:
-there is a real question as to what behavior the programmer intended
-in this case.  The solution of Castagna {\it et~al}.\ is to require the programmer
- to provide a third overloading:
+% Note that the ambiguity is inherent in these definitions:
+% there is a real question as to what behavior the programmer intended
+% in this case.  
+
+Castagna \textit{et al.} \cite{castagna95} address this problem 
+in the context of a type system 
+without parametric polymorphism or multiple inheritance
+by requiring every pair of overloaded function definitions 
+to satisfy the following properties:
+(\emph{i}) whenever the parameter type of one 
+is a subtype of the parameter type of the other, 
+the return type of the first
+must also be a subtype of the return type of the second; 
+and 
+(\emph{ii}) whenever the parameter types of the two definitions 
+have a common lower bound (i.e., nontrivial subtype), 
+there is a unique definition for the same function 
+whose parameter type is the greatest lower bound 
+of the parameter types of the two definitions.
+Thus, for the example above, 
+% the solution of Castagna {\it et~al}.\ is to require the programmer to
+the programmer must provide a third definition
+to satisfy the latter property:
  \small
- `
- f(a:A,a':A)
- `
+`
+  f(a:A,a':A): ZZ = ...
+`
  \normalsize
 
-Resolving ambiguous function calls becomes even more important,
-and more difficult, in the presence of parametric polymorphism,
-where both types and functions can be parameterized by type variables.
+This latter property is equivalent to requiring
+that the definitions for each overloaded function form a meet semilattice 
+partially ordered by the subtype relation on their parameter types.
+We call this partial order the \emph{more specific than} relation,\!\footnote{%
+Despite its name,
+this relation, like the subtype relation, is reflexive: 
+two function definitions with the same parameter type 
+are each more specific than the other.
+In that case, we say the definitions are equally specific.}
+and we call the property the \emph{meet rule}.
+We call the first property above the \emph{return type rule} or \emph{subtype rule}.
+
+In this paper, 
+we give variants of these rules for ensuring safe overloaded functions 
+in a language that supports symmetric multiple dispatch, 
+multiple inheritance, and parametric polymorphism 
+(that is, generic types \emph{and} generic functions).
+We prove that these rules guarantee type soundness
+and that there are no ambiguous calls at run time 
+(see Section~\ref{sec:safety}).
+We do this by extending our earlier rules 
+for a core of the Fortress programming language 
+that did not support generics \cite{allen07,Fortress},
+for which we proved the analogous theorems.
+
+
+
+The type system considered by Castagna \emph{et al.} 
+assumed knowledge of the entire type hierarchy 
+(to determine whether two types have a common subtype), 
+and the type hierarchy was assumed to be a meet semilattice 
+(to ensure that any two types have a greatest lower bound).
+In previous work~\cite{allen07},
+we applied variants of the meet and return type rules
+to a simplified version of the Fortress programming language~\cite{Fortress}, 
+which supports multiple inheritance 
+and does not require that types have expressible meets 
+(i.e., the types that can be expressed in the language 
+need not form a meet semilattice).
+We showed that we could check these rules in a modular way, 
+so that the type hierarchy could be extended safely by new modules
+without rechecking old modules.
+
+Because the type hierarchy defined by a module may be extended,
+and because Fortress supports multiple inheritance,
+two types may have a common nontrivial subtype 
+even if no declared type extends them both.
+Thus,
+for any pair of overloaded function definitions with incomparable parameter types
+(i.e., neither definition is more specific than the other),
+the meet rule requires some other definition to resolve the potential ambiguity.
+Because explicit intersection types cannot be expressed in Fortress, 
+it is not always possible to provide such a function definition.
+However, 
+Fortress defines an \emph{exclusion relation} on types, 
+such that types related by exclusion must have no common nontrivial subtypes,
+and thus definitions with such types as parameter types 
+need not be disambiguated.
+
+In this paper, we extend our prior rules 
+to handle parametric polymorphism, 
+where both types and functions may be parameterized by type variables, 
+which Fortress also supports.
+To do so, 
+it is helpful to have an interpretation for parametric types 
+and type-parametric functions.
+
 One way to think about a parametric type such as `List[\T\]`
-(a list with elements of type `T`) is
-that it represents an infinite set of ground types `List[\Object\]` (lists of objects),
-`List[\String\]` (lists of strings), `List[\ZZ\]` (lists of integers), and so on.
-In an actual type checker, it is necessary to have rules
-for working with uninstantiated (non-ground) parametric types, but for many purposes
-this model of ````an infinite set of ground types'' is adequate for explanatory purposes.
-Not so, however, for type-parametric functions.  For quite some time during the
-development of the Fortress language, one of us (Steele) pushed for understanding
-a parametrically polymorphic function definition such as:
+(a list with elements of type `T`---type parameter lists 
+in Fortress are delimited by white square brackets) 
+is that it represents an infinite set of ground types 
+`List[\Object\]` (lists of objects),
+`List[\String\]` (lists of strings), 
+`List[\ZZ\]` (lists of integers), 
+and so on.
+An actual type checker must have rules 
+for working with uninstantiated (non-ground) parametric types, 
+but for many purposes this model of ````an infinite set of ground types'' 
+is adequate for explanatory purposes.
+Not so, however, for type-parametric functions.  
+
+For some time during the development of Fortress, 
+one of us (Steele) pushed for an interpretation of type-parametric functions
+analogous to the one above for parametric types;
+that is, 
+that the type-parametric function definition\footnote{%
+The first pair of white square brackets delimits the declaration of a type parameter `T`,
+but the other pairs of white brackets indicate 
+that this type variable `T` is the static argument to the parametric type `List`.}
 \small
 `  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e
 `
 \normalsize
-(where the first pair of white square brackets delimits the declaration of a type parameter `T`,
- but the other pairs of white brackets indicate that this type variable `T` is the static
- argument to the parametric type `List`)
- as if that polymorphic definition stood for an infinite set of monomorphic definitions:
+should be understood as if it stood for an infinite set of monomorphic definitions:
 \small
 `  append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e
   append(x: List[\String\], y: List[\String\]): List[\String\] = e
@@ -105,19 +209,22 @@ a parametrically polymorphic function definition such as:
   ...`
 \normalsize
 The intuition was that for any specific function call,
-the usual rule for multimethod
-dispatch would then choose the appropriate most specific
-definition for this (infinitely) overloaded function.
+the usual rule for dispatch would then choose 
+the appropriate most specific definition 
+for this (infinitely) overloaded function.
 
-That intuition worked well enough for a single polymorphic function definition,
-but failed utterly when we considered multiple function definitions.
-It would seem natural for a programmer to want to provide definitions for specific
-monomorphic special cases:
+Although that intuition worked well enough 
+for a single polymorphic function definition,
+it failed utterly when we considered multiple function definitions.
+For example, 
+a programmer might want to provide definitions 
+for specific monomorphic special cases, as in:
 \small
 `  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
   append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
 \normalsize
-but if the model is taken seriously, this would be equivalent to:
+But if the interpretation above is taken seriously, 
+this would be equivalent to:
 \small
 `  append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e1
   append(x: List[\String\], y: List[\String\]): List[\String\] = e1
@@ -125,29 +232,38 @@ but if the model is taken seriously, this would be equivalent to:
   ...
   append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
 \normalsize
-and we can see that there is an ambiguity (two definitions with the same signature)
-when the arguments are
-both of type `List[\ZZ\]`.
+and we can see that there is an ambiguity 
+when the arguments are both of type `List[\ZZ\]`.
 
-It only gets worse if the programmer wishes to handle an infinite set
-of cases specially.  It would seem natural to write:
+It gets worse if the programmer wishes to handle an infinite set of cases specially.  
+It would seem natural to write
 \small
 `  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
   append[\T <: Number\](x: List[\T\], y: List[\T\]): List[\T\] = e2`
 \normalsize
-so as to handle specially all cases where `T` is a subtype of `Number`,
-but the model would regard this as an overloading with an infinite
-number of ambiguities.
+to handle specially all cases where `T` is a subtype of `Number`.
+But the model would regard this as an overloading 
+with an infinite number of ambiguities.
 
-To resolve this problem, we had to develop an alternate
-model and an associated type system that could handle overloaded
-parametrically polymorphic functions in a manner that would accord
-with programmer intuition and support the plausible examples shown above.
+
+To resolve this problem, 
+we had to develop an alternate model 
+and an associated type system 
+that could handle overloaded type-parametric functions 
+in a manner that would accord with programmer intuition 
+and support the plausible examples shown above.
+
+Two other authors of this paper 
+
+
+The key insight 
+
+
 Credit for championing key insights---regarding each polymorphic definition
 as a single definition (rather than an infinite set of definitions)
 competing in the overload set, and using universal and existential types
 to describe them in the type system (an idea reported by
-Bourdoncle and Merz~\cite{bourdoncle97})---and for working out many difficult details
+Bourdoncle and Merz~\cite{bourdoncle97})---%
 belongs to two other authors of this paper (Hilburn and Kilpatrick).
 Adopting this new approach has made
 overloaded polymorphic functions both tractable and effective
@@ -163,7 +279,7 @@ that there are no ambiguous calls at run time
 (see Section~\ref{sec:safety}).
 We do this by extending our earlier rules 
 for a core of the Fortress programming language 
-that did not support generics \cite{allen07,fortress},
+that did not support generics \cite{allen07,Fortress},
 for which we proved the analogous theorem.
 To minimize syntactic overhead 
 and avoid having to translate 
