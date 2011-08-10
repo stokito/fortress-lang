@@ -115,6 +115,12 @@ object STypesUtil {
     }
   }
 
+  def getStaticParameters(f: Functional, lifted: Boolean): JList[StaticParam] = f match {
+      case f: HasSelfType if (lifted) => 
+        toJavaList(toList(f.traitStaticParameters()) ++ toList(f.staticParameters()))
+      case _ => f.staticParameters()
+  }
+  
   def makeArrowFromFunctional(f: Functional): Option[ArrowType] = f match {
     case _: FunctionalMethod => makeArrowFromFunctional(f, true)
     case _ => makeArrowFromFunctional(f, false)
@@ -123,7 +129,7 @@ object STypesUtil {
   /**
    *  Return the arrow type of the given Functional index.
    */
-  def makeArrowFromFunctional(f: Functional, lift: Boolean): Option[ArrowType] = {
+  def makeArrowFromFunctional(f: Functional, lifted: Boolean): Option[ArrowType] = {
     val returnType = toOption(f.getReturnType).getOrElse(return None)
     val params = toListFromImmutable(f.parameters).map(NU.getParamType)
     val argType = makeArgumentType(params)
@@ -141,13 +147,7 @@ object STypesUtil {
       case _ => None
     }
 
-     val sparamsJava = f match {
-       case m: HasSelfType if m.selfType.isNone =>
-         bug("No selfType on functional %s".format(f))
-       case m: HasSelfType if lift => 
-         toJavaList((m.traitStaticParameters ++ m.staticParameters).toList)
-       case _ => f.staticParameters()
-     }
+     val sparamsJava = getStaticParameters(f, lifted)
 
     Some(NF.makeArrowType(NF.typeSpan,
       false,
