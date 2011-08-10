@@ -15,7 +15,24 @@
 %
 \subsection{Overloading and dynamic dispatch.} 
 
-\TODO{Add discussion of Castagna et al.\ here?}
+\TODO{This needs editing}
+
+The type system considered by Castagna \emph{et al.} 
+assumed knowledge of the entire type hierarchy 
+(to determine whether two types have a common subtype), 
+and the type hierarchy was assumed to be a meet semilattice 
+(to ensure that any two types have a greatest lower bound).
+In previous work~\cite{allen07},
+we applied variants of the meet and return type rules
+to a simplified version of the Fortress programming language~\cite{Fortress}, 
+which supports multiple inheritance 
+and does not require that types have expressible meets 
+(i.e., the types that can be expressed in the language 
+need not form a meet semilattice).
+We showed that we could check these rules in a modular way, 
+so that the type hierarchy could be extended safely by new modules
+without rechecking old modules.
+
 
 Primarily, our system
 strictly extends our previous effort \cite{allen07} with parametric polymorphism;

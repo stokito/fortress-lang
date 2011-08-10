@@ -32,6 +32,30 @@
 %  {\Delta \vdash S \nexc T|False}
 %  {\Delta \vdash S \exc T}
 
+\TODO{Some stuff to mention?}
+In a single-inheritance language (without parametric polymorphism?), 
+the constructed types trivially form a meet semilattice: 
+two types have a common nontrivial subtype 
+only if one is a subtype of the other.
+Thus, the tuple types and constructed types form a meet semilattice.
+(But arrow types don't: 
+the meet of `S->T` and `U->V` is \emph{not} an arrow type.)
+
+Also, reconsider example of overloading `append` 
+with one generic definition and one monomorphic one.
+This example is still not allowed 
+(but the one with two generic definitions is).
+The problem is that `ZZ` may have a subtype `NN`.
+In that case, 
+both definitions are applicable 
+a call to `append` on two arguments of type `List[\NN\]` 
+but the return type of the more specific monomorphic definition is `ZZ`, 
+but the return type of the best instantiation of the generic definition is `NN`.
+
+
+
+
+
 While the rules presented in Section~\ref{sec:rules} allow programmers to
 write valid sets of overloaded generic function declarations,
 they sometimes reject ````seemingly'' valid overloadings.

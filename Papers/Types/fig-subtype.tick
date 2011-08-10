@@ -6,7 +6,7 @@
 \centering
 
 \textbf{Logical rules}
-\vspace*{-1em}
+% \vspace*{-1em}
 
 \infrule
   {}
@@ -17,8 +17,8 @@
   {\jcsub{T}{\Any}{\TRUE}}
 
 \infrule
-  {\jcsub{S}{T}{\C} \andalso \jcsub{S}{U}{\C'}}
-  {\jcsub{S}{T \cap U}{\C \wedge \C'}}
+  {\jcsub{T}{U}{\C} \andalso \jcsub{T}{V}{\C'}}
+  {\jcsub{T}{U \cap V}{\C \wedge \C'}}
 
 \infrule
   {\jcsub{S}{U}{\C} \andalso \jcsub{T}{U}{\C'} \\
@@ -26,8 +26,8 @@
   {\jcsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
   
 \infrule
-  {\jcsub{S}{T}{\C} \andalso \jcsub{S}{U}{\C'}}
-  {\jcsub{S}{T \cup U}{\C \vee \C'}}
+  {\jcsub{T}{U}{\C} \andalso \jcsub{T}{V}{\C'}}
+  {\jcsub{T}{U \cup V}{\C \vee \C'}}
   
 \infrule
   {\jcsub{S}{U}{\C} \andalso \jcsub{T}{U}{\C'}}
@@ -35,7 +35,7 @@
 
 \vspace*{3ex}
 \textbf{Variables}
-\vspace*{-1em}
+% \vspace*{-1em}
 
 \infrule
   {}
@@ -43,7 +43,7 @@
   
 \infrule
   {I  \neq J}
-  {\jcsub{I}{J}{TODO}}
+  {\jcsub{I}{J}{\TODO{}}}
 
 \infrule
   {}
@@ -51,7 +51,7 @@
  
 \infrule
   {\jcsub{S}{\BottomType}{\C}}
-  {\jcsub{S}{I}{`S` \subtypeof `I` \vee \C}}
+  {\jcsub{S}{I}{\C \vee `S` \subtypeof `I`}}
  
 \infrule
   {}
@@ -69,7 +69,7 @@
 \begin{minipage}[t]{.5\textwidth}
 \centering
 \textbf{Structural rules}
-\vspace*{-1em}
+% \vspace*{-1em}
 
 \infrule
   {|\bar{S}|=|\bar{T}| \andalso \forall  i . \jcsub{S_i}{T_i}{\C_i} \\
@@ -102,19 +102,19 @@
 
 \vspace*{3ex}
 \textbf{Constructed types}
-\vspace*{-1em}
+% \vspace*{-1em}
 
 \infrule
-  {\forall M \in \ancestors(`C[\S_bar\]`). \jgconstrtemplate{M}{\sim}{`D[\T_bar\]`}{\C_M}}
+  {\forall M \in \ancestors(`C[\S_bar\]`). \jgconstrtemplate{M}{\alphaequiv}{`D[\T_bar\]`}{\C_M}}
   {\jcsub{`C[\S_bar\]`}{`D[\T_bar\]`}{\bigvee \C_M}}
 
 \infrule
   {C \neq D}
-  {\jgconstrtemplate{`C[\S_bar\]`}{\sim}{`D[\T_bar\]`}{\FALSE}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\alphaequiv}{`D[\T_bar\]`}{\FALSE}}
   
   \infrule
   {\forall i . \jcequiv{S_i}{T_i}{C_i}}
-  {\jgconstrtemplate{`C[\S_bar\]`}{\sim}{`C[\T_bar\]`}{\bigwedge \C_i}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\alphaequiv}{`C[\T_bar\]`}{\bigwedge \C_i}}
 
 \end{minipage}
 
