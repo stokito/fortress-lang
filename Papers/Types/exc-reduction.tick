@@ -22,7 +22,7 @@ we adjust the subtype relation to take into account the relationships between ty
 %described by the constraints defined in Section~\ref{sec:constraints}:
 
 A reduction judgment on existential types $\vdash\delta\eqred\delta',\phi$
-defined in Figure~\ref{fig:exred} reduces $\delta = \exttype{T}$ to
+defined in Figure~\ref{fig:existential} reduces $\delta = \exttype{T}$ to
 $\delta' = \exttype[\Delta']{T'}$ with the substitution $\phi$
 under the assumption that $T$ is not equivalent to \BottomType; or,
 if $T$ is equivalent to \BottomType, the reduced existential $\delta'$ is \BottomType.
@@ -85,7 +85,7 @@ $\le$
 \\[.8em]
 %EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])
 %\andalso~~~$\eqred$ `EXISTS[\W <: ZZ\]ArrayList[\W\]`
-By the adjusted subtype relation in this section and the rules in Figure~\ref{fig:exred},
+By the adjusted subtype relation in this section and the rules in Figure~\ref{fig:existential},
 we can show the following:\\[.8em]
 \begin{tabular}{l}
 $\vdash$

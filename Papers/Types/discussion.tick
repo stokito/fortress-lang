@@ -49,7 +49,7 @@ function declaration, instantiated with what was inferred at compile time.
 
 Aside from this caveat, our system for checking overloaded declarations 
 is largely independent of how a specific type inference engine would choose 
-instantiations\footnote{Type inference manifests itself as the choice of instantiation of type variables in existential and universal subtyping; specifically, $\bar{V}$ in the inference rules for subtyping in Figure~\ref{fig:sub}. Mitchell \cite{mitchell88} first showed how type inference interacts with polymorphic subtyping.}. Thus we do not discuss the specific features of a type inference
+instantiations\footnote{Type inference manifests itself as the choice of instantiation of type variables in existential and universal subtyping; specifically, $\bar{V}$ in the inference rules for subtyping in Figure~\ref{fig:existential}. Mitchell \cite{mitchell88} first showed how type inference interacts with polymorphic subtyping.}. Thus we do not discuss the specific features of a type inference
 system further in this paper.
 
 % Section 2.1 last para: We should comment that this definition of
