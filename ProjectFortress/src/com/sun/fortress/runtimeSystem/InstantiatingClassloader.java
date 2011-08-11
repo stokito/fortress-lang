@@ -34,6 +34,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.util.TraceClassVisitor;
 
+import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.repository.ProjectProperties;
@@ -2356,6 +2357,16 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitVarInsn(ALOAD, arg+first_arg);
         }
     }
+    
+    public static void pushArgsIntoArray(MethodVisitor mv, int first_arg, int n_args, int array_offset) {
+        for (int arg = 0; arg < n_args; arg++) {
+            mv.visitVarInsn(Opcodes.ALOAD, array_offset);
+            mv.visitLdcInsn(arg); //index is the static param number
+            mv.visitVarInsn(Opcodes.ALOAD, arg+first_arg);
+            mv.visitInsn(Opcodes.AASTORE);
+        }
+        mv.visitVarInsn(ALOAD, array_offset);
+    }
 
     /**
      * @param rttiClassName
@@ -2365,25 +2376,24 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             ManglingClassWriter cw,
             String rttiClassName,
             final int sparams_size) {
-        String RTTI_MAP_NAME =
-            "com/sun/fortress/runtimeSystem/RttiTupleMap";
+        
         // FIELD
         // static, initialized to Map-like thing
         cw.visitField(ACC_PRIVATE + ACC_STATIC + ACC_FINAL,
-                "DICTIONARY", Naming.internalToDesc(RTTI_MAP_NAME), null, null);
+                "DICTIONARY", Naming.RTTI_MAP_DESC, null, null);
 
         // CLINIT
         // factory, consulting map, optionally invoking constructor.
         MethodVisitor mv = cw.visitCGMethod(ACC_STATIC, "<clinit>", "()V", null, null);
         mv.visitCode();
         // new
-        mv.visitTypeInsn(NEW, RTTI_MAP_NAME);
+        mv.visitTypeInsn(NEW, Naming.RTTI_MAP_TYPE);
         // init
         mv.visitInsn(DUP);
-        mv.visitMethodInsn(INVOKESPECIAL, RTTI_MAP_NAME, "<init>", "()V");
+        mv.visitMethodInsn(INVOKESPECIAL, Naming.RTTI_MAP_TYPE, "<init>", "()V");
         // store
         mv.visitFieldInsn(PUTSTATIC, rttiClassName,
-                "DICTIONARY", Naming.internalToDesc(RTTI_MAP_NAME));                
+                "DICTIONARY", Naming.RTTI_MAP_DESC);                
 
         mv.visitInsn(RETURN);
         mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
@@ -2391,13 +2401,30 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         // FACTORY
 
+        boolean useSparamsArray = sparams_size > 6;
+        int sparamsArrayIndex = sparams_size;
+        
         String fact_sig = Naming.rttiFactorySig(rttiClassName, sparams_size);
         String init_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class",
                 sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
-        String get_sig = InstantiatingClassloader.jvmSignatureForNTypes(
+        String get_sig;
+        String put_sig;
+        String getClass_sig;
+        if (useSparamsArray) {
+            get_sig = Naming.makeMethodDesc(Naming.RTTI_CONTAINER_ARRAY_DESC, 
+                                            Naming.RTTI_CONTAINER_DESC);
+            put_sig = Naming.makeMethodDesc(Naming.RTTI_CONTAINER_ARRAY_DESC + Naming.RTTI_CONTAINER_DESC, 
+                                            Naming.RTTI_CONTAINER_DESC);
+            getClass_sig = Naming.makeMethodDesc(NamingCzar.descString + Naming.RTTI_CONTAINER_ARRAY_DESC,
+                                                 NamingCzar.descClass);
+        } else {
+            get_sig = InstantiatingClassloader.jvmSignatureForNTypes(
                 sparams_size, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_CONTAINER_DESC);
-        String put_sig = InstantiatingClassloader.jvmSignatureForNTypes(
-                sparams_size+1, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_CONTAINER_DESC);
+            put_sig = InstantiatingClassloader.jvmSignatureForNTypes(
+                    sparams_size+1, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_CONTAINER_DESC);
+            getClass_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes(NamingCzar.internalString,
+                    sparams_size, Naming.RTTI_CONTAINER_TYPE, NamingCzar.descClass);
+        }
 
         mv = cw.visitCGMethod(ACC_PUBLIC + ACC_STATIC, "factory", fact_sig, null, null);
         mv.visitCode();
@@ -2414,27 +2441,39 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         // object
         mv.visitFieldInsn(GETSTATIC, rttiClassName,
-                "DICTIONARY", Naming.internalToDesc(RTTI_MAP_NAME));                
+                "DICTIONARY", Naming.RTTI_MAP_DESC);                
         // push args
         int l = sparams_size;
-        InstantiatingClassloader.pushArgs(mv, 0, l);
+        if (useSparamsArray) {
+            mv.visitLdcInsn(sparams_size);
+            mv.visitTypeInsn(Opcodes.ANEWARRAY, Naming.RTTI_CONTAINER_TYPE);
+            mv.visitVarInsn(Opcodes.ASTORE, sparamsArrayIndex);
+            InstantiatingClassloader.pushArgsIntoArray(mv, 0, l, sparamsArrayIndex);
+        } else {
+            InstantiatingClassloader.pushArgs(mv, 0, l);
+        }
         // invoke Dictionary.get
-        mv.visitMethodInsn(INVOKEVIRTUAL, RTTI_MAP_NAME, "get", get_sig);
+        mv.visitMethodInsn(INVOKEVIRTUAL, Naming.RTTI_MAP_TYPE, "get", get_sig);
         Label not_null = new Label();
         mv.visitInsn(DUP);
         mv.visitJumpInsn(IFNONNULL, not_null);
         mv.visitInsn(POP); // discard dup'd null
-        // doing it all on the stack -- 
-        // 1) first push the dictionary and args 
+        // doing it all on the stack -- (unless too many static params, then use an array for human coded stuff)
+        // 1) first push the dictionary and args (array if used) 
         // 2) create new RTTI object
-        // 3) push args again and create the class for this object
-        // 4) push the args again to init RTTI object
+        // 3) push args again (array if used) and create the class for this object
+        // 4) push the args again (never array) to init RTTI object
         // 5) add to dictionary
         
         //1)
         mv.visitFieldInsn(GETSTATIC, rttiClassName,
-                "DICTIONARY", Naming.internalToDesc(RTTI_MAP_NAME));                
-        InstantiatingClassloader.pushArgs(mv, 0, l);
+                "DICTIONARY", Naming.RTTI_MAP_DESC);                
+        
+        if (useSparamsArray) {
+            mv.visitVarInsn(ALOAD, sparamsArrayIndex);
+        } else {
+            InstantiatingClassloader.pushArgs(mv, 0, l);
+        }
 
         // 2) invoke constructor
         mv.visitTypeInsn(NEW, rttiClassName);
@@ -2443,19 +2482,22 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // 3) create class for this object
         String stem = Naming.rttiClassToBaseClass(rttiClassName);
         mv.visitLdcInsn(stem);
-        InstantiatingClassloader.pushArgs(mv, 0, l);
-        String getClass_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/String",
-                l, Naming.RTTI_CONTAINER_TYPE, Naming.internalToDesc("java/lang/Class"));
+        if (useSparamsArray) {
+            mv.visitVarInsn(ALOAD, sparamsArrayIndex);
+        } else {
+            InstantiatingClassloader.pushArgs(mv, 0, l);
+        }
+        
         //(mv, "before getRTTIclass");
         mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.RT_HELPERS, "getRTTIclass", getClass_sig);
         //eep(mv, "after getRTTIclass");
 
-        // 4) init RTTI object
+        // 4) init RTTI object (do not use array)
         InstantiatingClassloader.pushArgs(mv, 0, l);
         mv.visitMethodInsn(INVOKESPECIAL, rttiClassName,
                 "<init>", init_sig);
         // 5) add to dictionary
-        mv.visitMethodInsn(INVOKEVIRTUAL, RTTI_MAP_NAME,
+        mv.visitMethodInsn(INVOKEVIRTUAL, Naming.RTTI_MAP_TYPE,
                 "putIfNew", put_sig);
 
         mv.visitLabel(not_null);

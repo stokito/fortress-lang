@@ -44,4 +44,8 @@ public abstract class RTTI {
         return this.serialNumber;
     }
     
+    public String toString() {
+        return serialNumber + ":" + javaRep.getSimpleName();
+    }
+    
 }

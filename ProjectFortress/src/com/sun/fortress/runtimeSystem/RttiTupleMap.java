@@ -190,6 +190,18 @@ final public class RttiTupleMap {
     public RTTI putIfNew(RTTI o1, RTTI o2, RTTI o3, RTTI o4, RTTI o5, RTTI o6, RTTI value) {
         Node n = new Node(o1,o2,o3,o4,o5,o6);
         return putIfNewHelper(n, value);
-     }
+    }
+    
+    public RTTI get(RTTI[] o) {
+        Node n = new Node(o);
+        synchronized (hm) {
+           return hm.get(n);
+        }
+    }
+    
+    public RTTI putIfNew(RTTI[] o, RTTI value) {
+        Node n = new Node(o);
+        return putIfNewHelper(n, value);
+    }
   
 }
