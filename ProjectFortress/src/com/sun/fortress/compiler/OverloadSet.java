@@ -1044,8 +1044,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                             invariantGenericsContained = Useful.set(tt_id.getText());
                         }
                         isVarType = true;
+                        break;
                     }
-                    break;
+                    
                 }
             }
 
@@ -1158,7 +1159,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             } else {
             
                 int storeAtIndex = parameters.size();
-                TypeStructure[] f_type_structures = new TypeStructure[storeAtIndex];
+                TypeStructure[] f_type_structures = new TypeStructure[parameters.size()];
                 type_structures[i] = f_type_structures;
     
                 for (int j = 0; j < parameters.size(); j++) {
@@ -1217,15 +1218,28 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 @SuppressWarnings("unchecked")
                 MultiMap<String,TypeStructure> staticTss = spmaps[i];
                 
-                //load template name
+                //load instance cache table to avoid classloader when possible
+                String tableName = Naming.cacheTableName(f.tagF.unambiguousName().getText());
+                String tableOwner = Naming.dotToSep(f.tagA.getText());
+                mv.visitFieldInsn(Opcodes.GETSTATIC, tableOwner, tableName, Naming.CACHE_TABLE_DESC);
+                
+                //load template class name
                 String arrow = NamingCzar.makeArrowDescriptor(f.getParameters(), f.getReturnType(),f.tagA);
                 String owner = Naming.dotToSep(f.tagA.getText()) + Naming.GEAR + "$" + f.tagF.name().getText() +
                                 Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD + Naming.ENVELOPE + "$" + Naming.HEAVY_X + arrow;
-                
                 mv.visitLdcInsn(owner);
                 
+                boolean useRTTIarray = staticParams.size() > 6;
+                int rttiArrayIndex = f_type_structures[f_type_structures.length-1].successorIndex; //if needed
+                if (useRTTIarray) { //store into position after last RTTI
+                    mv.visitLdcInsn(staticParams.size());
+                    mv.visitTypeInsn(Opcodes.ANEWARRAY, Naming.RTTI_CONTAINER_TYPE);
+                    mv.visitVarInsn(Opcodes.ASTORE, rttiArrayIndex);
+                }
+                
                 //infer and load RTTIs
-                for (StaticParam sp : staticParams) {
+                for (int j = 0; j < staticParams.size(); j++) {
+                    StaticParam sp = staticParams.get(j);
                     Set<TypeStructure> instances = staticTss.get(sp.getName().getText());
                     if (instances.size() > 1) {
                         
@@ -1301,12 +1315,20 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                             }
                             
                             //checks out, so load the RTTI we will use
-                            mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
+                            if(useRTTIarray) { //if using an array, store it into the correct index
+                                mv.visitVarInsn(Opcodes.ALOAD, rttiArrayIndex);
+                                mv.visitLdcInsn(j); //index is the static param number
+                                mv.visitVarInsn(Opcodes.ALOAD, RTTItoUse);
+                                mv.visitInsn(Opcodes.AASTORE);
+                            } else { //just load
+                                mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
+                            }
                             mv.visitJumpInsn(Opcodes.GOTO, proceedLabel);
                             
                             //if we failed pop from top of statck and try the next possible function definition
                             mv.visitLabel(popLabel);
-                            mv.visitInsn(Opcodes.POP);
+                            mv.visitInsn(Opcodes.POP); //string
+                            mv.visitInsn(Opcodes.POP); //table
                             mv.visitJumpInsn(Opcodes.GOTO, lookahead);
                             
                             //success - call this function
@@ -1317,14 +1339,33 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         }
                     } else if (instances.size() == 1) { //easy case
                         int offset = ((TypeStructure) instances.toArray()[0]).localIndex;
-                        mv.visitVarInsn(Opcodes.ALOAD,offset);
+                        
+                        if(useRTTIarray) { //if using an array, store it into the correct index
+                            mv.visitVarInsn(Opcodes.ALOAD, rttiArrayIndex);
+                            mv.visitLdcInsn(j); //index is the static param number
+                            mv.visitVarInsn(Opcodes.ALOAD, offset);
+                            mv.visitInsn(Opcodes.AASTORE);
+                        } else { //just load
+                            mv.visitVarInsn(Opcodes.ALOAD,offset);
+                        }
                     }
                 }
                 
-                //load the function
-                String ic_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes(NamingCzar.internalString, staticParams.size(), 
+                String ic_sig;
+                if (useRTTIarray) { //signature different depending on number of static parameters
+                   //load the function: RThelpers.loadClosureClass:(BAlongTree,String,RTTI[])
+                   String paramList = Naming.CACHE_TABLE_DESC + NamingCzar.descString + Naming.RTTI_CONTAINER_ARRAY_DESC;
+                   ic_sig = Naming.makeMethodDesc(paramList, Naming.internalToDesc(NamingCzar.internalObject));
+                   
+                   mv.visitVarInsn(Opcodes.ALOAD,rttiArrayIndex); //also load the array
+                   
+                } else {
+                    //load the function: RTHelpers.loadClosureClass:(BAlongTree,String,RTTI^n)Object
+                    ic_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes(Naming.CACHE_TABLE_TYPE + ";L" + NamingCzar.internalString, staticParams.size(), 
                         Naming.RTTI_CONTAINER_TYPE, 
                         Naming.internalToDesc(NamingCzar.internalObject));
+                    
+                }
                 mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.RT_HELPERS, "loadClosureClass", ic_sig);
                 
                 //cast to object arrow
