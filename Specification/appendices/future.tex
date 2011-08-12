@@ -1,0 +1,756 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Proposed Features}
+\applabel{future}
+
+This section includes the technical issues that are proposed but not yet
+fully discussed.
+
+\subsection{Syntax and Evaluation}
+\begin{itemize}
+\item Extension of Bracketmania for multiset notation
+
+Guy's email from 11/05/09 titled ``Technical proposal: small extension of Bracketmania''
+
+\item Mathematical notation for alternatives
+
+Victor's email from 03/27/07 15:34
+titled ``More mathematical syntax''
+
+\item Jan's short note \#82: ``Unboxed Types: the design space'' (07/24/07)
+ \begin{itemize}
+\item Only heap objects have a notion of object identity, and for heap objects
+\TYP{SEQUIV} is object identity. All types have a notion of strict equivalence, which can be based upon content.
+\item What do we mean by the \KWD{value} modifier? Do we mean an ``unboxed type'' with the \KWD{value} modifier? Do we mean an ``immutable object'' with the \KWD{value} modifier? We mean an ``unboxed type'' with the \KWD{value} modifier.
+\item Flattened representation
+\item Copying semantics
+\item A fixed-size representation
+\item Header-freedom: If we have a field or array of unboxed object type, the representation should not need to carry around header or type information as part of the representation.
+\item Immutability: It is not necessary for unboxed objects to be immutable.
+\item Object identity: No object identity. Strict equivalence is defined recursively for value objects, based upon content.
+\item Unboxed traits: What happens when we have a field or an array element whose type is a trait type, one of whose instances is an unboxed type? Box the object or similar techniques.
+\item Size of an unboxed object which is recursively defined with unboxed traits. Forbid recursive definitions in value objects.
+\item Do we want to permit arrays of fixed bounds to be unboxed? No. Unboxed arrays are a different other thing. Among other things, an array of fixed bounds may be a segment of another array.
+\item What happens if we mutate a LinearSequence? Only initializing writes are permitted and the sequence is then frozen.
+\item Guy's email titled ``Re: value vs unboxed'' on September 3, 2008
+ \end{itemize}
+
+\item Mutual recursion in value objects (08/02/07)
+ \begin{itemize}
+\item Eric: There's a technical problem with our decision to forbid recursive definitions in value objects. What if there is mutual recursion spanning component boundaries, and the recursion isn't evident via the APIs? If there's an error for recursive value objects in components but no error for recursive value objects spanning component boundaries, it doesn't look like consistent.
+\item Jan: Module recursion is a bad idea.
+\item David: Would it make sense, after all, to mandate some ordering of APIs?
+\item Dan: How about just forcing a value object to declare its contents explicitly in the API?
+\item Eric: Value objects should be layed out in APIs.
+\item David: Link-time error.
+\item If there is no cycle in value objects spanning component boundaries, the programmers can get precise size information. If there is a cycle, linker will have a way to break the cycle but, in this case, there is no size guarantee.
+Contingent upon Eric's agreement.
+\item Guy's email titled ``More on value objects'' on September 4, 2008
+ \end{itemize}
+ \end{itemize}
+
+\subsection{Types}
+\begin{itemize}
+\item Guy's proposal for making tensors the principal user-level indexed aggregate type in Fortress (06/27/07)
+
+Guy's email titled ``Arrays, matrices, and tensors (short)'' on 12/15/06
+
+We discussed the ``story \#1: Arrays''.  Among others,
+we discussed how we would require that ``it is forbidden for a subscript on the left-hand-side of an assignment to generate the same integer twice.''
+There were three options: 1) require extending a \TYP{NoDuplicate} trait;
+2) give an undefined semantics; and 3) give some operational semantics.
+Jan and Guy were for the option 3).
+We decided to continue the discussion of the ``story \#1: Arrays'' after Guy's detailed write up.
+Meanwhile Jan may work on a semantics for the option 3) and all may discuss syntax issues via emails.  Other stories will be discussed after story \#1.
+
+\item More powerful type aliases
+
+For floating-point numbers, Fortress supports types {$\mathbb{R}$32} and
+{$\mathbb{R}$64}
+to be 32 and 64-bit IEEE 754 floating-point numbers respectively,
+and defines two functions on types:
+\EXP{\TYP{Double}\bsTP{F}} is a floating-point type twice the size of the
+floating-point type \EXP{F}, and \EXP{\TYP{Extended}\bsTP{F}} is a
+floating-point
+type sufficiently larger than the floating-point type \EXP{F} to
+perform summations of ``reasonable'' size.\footnote{
+This formulation of floating-point types follows a proposal under
+consideration by the IEEE 754 committee.}
+
+% type Double[\F extends FloatNumber[\e, s, ...\]\] where { nat e, nat s, ... }
+%    = FloatNumber[\e+3, 2 s - 6, ... \]
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{type}\:\TYP{Double}\llbracket{}F \KWD{extends}\:\TYP{FloatNumber}\llbracket{}e, s, \ldots\rrbracket\rrbracket \KWD{where} \{\,\KWD{nat}\:e, \KWD{nat}\:s, \ldots\,\}\)\\
+{\tt~~~}\pushtabs\=\+\(    = \TYP{FloatNumber}\llbracket{}e+3, 2 s - 6, \ldots\,\rrbracket\)\-\-\\\poptabs\poptabs
+\end{Fortress}
+
+\item \ignore
+
+We're considering supporting \ignore\ (pronounced ``whatever'') not only for
+variables but also for type variables.
+
+We have several use cases for this:
+ \begin{enumerate}
+ \item Eric doesn't need to define extra trait \TYP{List} in addition to
+        \EXP{\TYP{List}\llbracket{}T\rrbracket}.
+ \item Jan can use \EXP{\TYP{List}\llbracket\,\_\,\rrbracket} in a
+     \KWD{typecase} expression.
+ \item Jan can use \ignore\ for redundant static parameters (required by
+     overloading restrictions) for overloaded methods.
+ \item We have several proposals for supporting some forms of pattern
+        matching including David and Sam's and Eric's.
+ \end{enumerate}
+
+   This requires extending the left-hand-sides of \KWD{typecase} clauses to
+   be binding places of type variables.
+
+   There are several problems:
+ \begin{enumerate}
+     \item It's unclear whether
+     \EXP{\TYP{List}\llbracket\TYP{String}\rrbracket} is a binding place or
+     a     reference        of \TYP{String} in a \KWD{typecase} expression.
+     \item Using \ignore in any place where a type variable can occur would
+        have
+        the same power with ``wildcards'' in Java.
+     \item Restricting occurences of \ignore\ seems to be ad hoc.
+ \end{enumerate}
+
+Jan's new example:
+
+% g(x:A[\T\]) where { T extends Object } =
+%     typecase x of
+%       A[\U\] where { U extends Object } => ...
+%       ...
+%     end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( g(x\COLONOP{}A\llbracket{}T\rrbracket) \KWD{where} \{\,T \KWD{extends}\:\TYP{Object}\,\} =\)\\
+{\tt~~~~}\pushtabs\=\+\(     \KWD{typecase}\:x \KWD{of}\)\\
+{\tt~~}\pushtabs\=\+\(       A\llbracket{}U\rrbracket \KWD{where} \{\,U \KWD{extends}\:\TYP{Object}\,\} \Rightarrow \ldots\)\\
+\(       \ldots\)\-\\\poptabs
+\(     \KWD{end}\)\-\-\\\poptabs\poptabs
+\end{Fortress}
+And the interesting question is to what extent we're allowed to use \VAR{U}
+(or not) given the existence of stuff like \TYP{Empty}.
+My hope had been that we could do stuff like type-equality tests this way,
+but that hope may have been a vain one.  And this syntax is just a pipe dream
+which I'm faking using overloading (and the dreaded \TYP{\_\_Proxy} type)
+for the moment.
+
+\end{itemize}
+
+\subsection{Traits and Objects}
+ \begin{itemize}
+\item overriding (05/23/07)
+
+Victor's email titled ``Re: Method dispatch and overriding'' sent on 05/22/07
+
+\item overriding (03/10/08)
+
+% trait A
+%   m(x:ZZ) = 3
+% end
+% trait B extends A
+%   override m(x: Object) = 4
+% end
+% trait C extends B
+%   m(x: Number) = 6
+% end
+% trait D extends {A, B} end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:A\)\\
+{\tt~~}\pushtabs\=\+\(   m(x\COLONOP\mathbb{Z}) = 3\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{trait}\:B \KWD{extends}\:A\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{override}\:m(x\COLON \TYP{Object}) = 4\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{trait}\:C \KWD{extends}\:B\)\\
+{\tt~~}\pushtabs\=\+\(   m(x\COLON \TYP{Number}) = 6\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{trait}\:D \KWD{extends} \{A, B\} \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+The method declaration in \VAR{A} is not inherited in \VAR{C} because it is overriden in
+\VAR{B}.
+
+Do we want to allow to have \KWD{override} when the parameter types of the two declarations are the same?
+
+\item Array indexing
+% trait Indexed[\E, I\] extends Generator[\E\]
+%  opr[i: I]: E
+%  opr[r:Range[\I\]]: Indexed[\E, I\]
+%  ...
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:\TYP{Indexed}\llbracket{}E, I\rrbracket \KWD{extends}\:\TYP{Generator}\llbracket{}E\rrbracket\)\\
+{\tt~}\pushtabs\=\+\(  \KWD{opr}[i\COLON I]\COLON E\)\\
+\(  \KWD{opr}[r\COLONOP\TYP{Range}\llbracket{}I\rrbracket]\COLON \TYP{Indexed}\llbracket{}E, I\rrbracket\)\\
+\(  \ldots\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+The above overloaded declarations are not really a valid overloading.
+We want to say that the type variable \VAR{I} extends a type, say,
+\TYP{Index} which either excludes \EXP{\TYP{Range}\llbracket{}I\rrbracket}
+or is a supertype of \EXP{\TYP{Range}\llbracket{}I\rrbracket}.
+However, we cannot say that because when we invoke that subscripting method,
+we write \EXP{a[1, 2, 3]} where the arguments are passed as a tuple,
+\EXP{(1, 2, 3)}.  If we want to use \TYP{Index},
+we need a magic to convert that tuple argument expression to something of type \TYP{Index}.
+
+\item Do we want to allow object trait types to appear in \KWD{extends} clauses?
+(Jan's email titled ``Re: Question about not\_passing\_yet/extendsParam.fss'' sent
+on 14 Nov 2007)
+\item Type variables in \KWD{excludes} clauses
+
+%% trait Indexed [\I extends Equality\] excludes Indexed[\U\] where [\U\]{I excludes U}
+%%   ...
+%% end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{Indexed} \llbracket{}I \KWD{extends}\:\TYP{Equality}\rrbracket \KWD{excludes}\:\TYP{Indexed}\llbracket{}U\rrbracket \KWD{where} \llbracket{}U\rrbracket\{I \KWD{excludes}\:U\}\)\\
+{\tt~~}\pushtabs\=\+\(  \ldots\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+\end{itemize}
+
+\subsection{Functions and Overloading}
+\begin{itemize}
+\item %% \secref{functional-applicability}
+Applicability to Named Functional Calls
+
+whether a ``named functional call'' is rewritten to a ``dotted method call''
+only if the function name is the name of a method provided by the enclosing
+trait/object declaration or object expression (this requires a slight rewriting
+of the relevant paragraph).
+%% in \secref{functional-applicability}).
+
+\item Relaxing restrictions on static parameters of overloaded functionals
+ or replace static parameters with where clauses as much as possible
+  \begin{itemize}
+  \item Jan's email titled ``Re: Issues related to ``spec'' vs ``nice'' overloading of generics'' on 05/21/07
+  \item Jan's email titled ``Another overloading conundrum'' on 04/06/07
+  \item Jan's example
+%% array1[\T extends Object, nat s0\]():Array1[\T,0,s0\] = __DefaultArray1[\T,0,s0\]()
+%% array1[\T extends Number, nat s0\]():Vector[\T,s0\] = vector[\T,s0\]()
+\begin{Fortress}
+\({array}_{1}\llbracket{}T \KWD{extends}\:\TYP{Object}, \KWD{nat}\:s_{0}\rrbracket()\COLONOP\TYP{Array1}\llbracket{}T,0,s_{0}\rrbracket = \_\_DefaultArray1\llbracket{}T,0,s_{0}\rrbracket()\)\\
+\({array}_{1}\llbracket{}T \KWD{extends}\:\TYP{Number}, \KWD{nat}\:s_{0}\rrbracket()\COLONOP\TYP{Vector}\llbracket{}T,s_{0}\rrbracket = \VAR{vector}\llbracket{}T,s_{0}\rrbracket()\)
+\end{Fortress}
+
+  \item Marc's example
+%% conjugate[\T extends Number\](x:Complex[\T\]):Complex[\T\]
+%% conjugate[\T extends RealNumber\](x:T):T
+\begin{Fortress}
+\(\VAR{conjugate}\llbracket{}T \KWD{extends}\:\TYP{Number}\rrbracket(x\COLONOP\TYP{Complex}\llbracket{}T\rrbracket)\COLONOP\TYP{Complex}\llbracket{}T\rrbracket\)\\
+\(\VAR{conjugate}\llbracket{}T \KWD{extends}\:\TYP{RealNumber}\rrbracket(x\COLONOP{}T)\COLONOP{}T\)
+\end{Fortress}
+  \end{itemize}
+\item Overloaded functionals with different \KWD{throws} clauses
+
+\item Overloading with static parameters
+\begin{itemize}
+\item David's ``nice'' overloading proposal (His email titled ``Comparison of generic overloading rules'' sent on 05/18/07)
+\item Victor's email titled ``Re: Overloading and the open world assumption''
+sent on 11/08/07
+\item What is the exclusion rule for a pair of overloaded declarations with different static parameters?
+\item Do we want to consider only the exclusion between ground types or also the exclusion between the bounds of static parameters?
+
+\end{itemize}
+
+\item Identifying the intersection of any two types with \KWD{comprises} clauses with the union of their common subtypes
+
+%% trait S comprises {U, V} end
+%% trait T comprises {V, W} end
+%% trait U extends S excludes W end
+%% trait V extends {S, T} end
+%% trait W extends T end
+\begin{Fortress}
+\(\KWD{trait}\:S \KWD{comprises} \{U, V\} \KWD{end}\)\\
+\(\KWD{trait}\:T \KWD{comprises} \{V, W\} \KWD{end}\)\\
+\(\KWD{trait}\:U \KWD{extends}\:S \KWD{excludes}\:W \KWD{end}\)\\
+\(\KWD{trait}\:V \KWD{extends} \{S, T\} \KWD{end}\)\\
+\(\KWD{trait}\:W \KWD{extends}\:T \KWD{end}\)
+\end{Fortress}
+
+\txt{S\&T} \verb+~~+ \txt{V}
+We agreed to revise the Meet rule to address this with the coverage check.
+
+  \item overloading in multiple scopes
+  \item overloading with different static parameters
+  \item exporting partial overloading
+
+I'm hoping we export all of an overloading, or none of it. -- Jan
+
+This a reasonable restriction that I'm happy to back, unless someone
+has both a use case and a soundness proof for a less restrictive
+rule. :-) -- Eric
+
+The use case I have in mind is that within a component, you might
+manipulate internal data types, and use overloading on those types
+with methods that are also exported.  I don't have a specific example
+in mind, but this seems like a useful and natural feature to have.  So
+I'd like to revisit this issue sometime, but not before 1.0. :) -- Victor
+
+\end{itemize}
+
+
+\subsection{Expressions}
+\begin{itemize}
+\item Pattern matching (06/18/09)
+
+\item Generator clauses
+%inferenceRules = constructiveRules UNION { lawOfExcludedMiddle | classicalLogic = true }
+\begin{Fortress}
+\(\VAR{inferenceRules} = \VAR{constructiveRules} \cup \{\,\VAR{lawOfExcludedMiddle} \mid \VAR{classicalLogic} = \VAR{true}\,\}\)
+\end{Fortress}
+\begin{itemize}
+\item Status quo: must begin with a generator binding
+\item Proposal: allow a list of filter expressions (Guy's email ``Re: comprehension confusion'' on 09/10/08)
+\item Question: simple syntax for generator clause lists
+\end{itemize}
+
+\item Comprehension syntax (Steve)
+  \begin{itemize}
+\item ``What I really want is a different comprehension syntax,
+analogous to \EXP{\OPR{BIG}\,} syntax, more aligned with causality,
+and similar to the way programmers write loops:
+% genParaffins (n:ZZ32) =
+%    <| [radList <- genRadicals(n-1)]
+%      quotient <| [r <- radList] Paraffin (H, H, H, r) |>
+%    |>
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \VAR{genParaffins} (n\COLONOP\mathbb{Z}32) =\)\\
+{\tt~~~}\pushtabs\=\+\(    \langle\,[\VAR{radList} \leftarrow \VAR{genRadicals}(n-1)]\)\\
+{\tt~~}\pushtabs\=\+\(      \VAR{quotient} \langle\,[r \leftarrow \VAR{radList}]\:\TYP{Paraffin} (H, H, H, r)\,\rangle\)\-\\\poptabs
+\(   \,\rangle\)\-\-\\\poptabs\poptabs
+\end{Fortress}
+      In case I haven't already gotten myself into hot water,
+we can have both I suppose, unifying comprehension syntax and \EXP{\OPR{BIG}\,} syntax:
+% BIG [generators and filters] expression | more generators and filters end
+% <| [generators and filters] expression | more generators and filters |>
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \OPR{BIG} [\VAR{generators}\:\VAR{and}\:\VAR{filters}]\:\VAR{expression} \mid \VAR{more}\:\VAR{generators}\:\VAR{and}\:\VAR{filters} \KWD{end}\)\\
+\( \langle\,[\VAR{generators}\:\VAR{and}\:\VAR{filters}]\:\VAR{expression} \mid \VAR{more}\:\VAR{generators}\:\VAR{and}\:\VAR{filters}\,\rangle\)\-\\\poptabs
+\end{Fortress}
+      I think I prefer just having generator and filters in \EXP{[\,]} to the left.''
+\item Guy comments: Because expressions and generators have mutually exclusive syntax,
+it should in principle be trivial to allow either
+\EXP{\{\,\VAR{expression} \mid \VAR{generators}\,\}} or
+\EXP{\{\,\VAR{generators} \mid \VAR{expression}\,\}} to be
+recognized as a comprehension. However, in practice, people might find it confusing.
+Taking a cue from Python, I wonder if we could support both
+\EXP{\{\,\VAR{expression} \mid \VAR{generators}\,\}} and
+\EXP{\{\,\KWD{for}\:\VAR{generators} \mid \VAR{expression}\,\}}?
+
+\item Proposals
+  \begin{itemize}
+\item \EXP{\{\,\VAR{generators} \mid \VAR{expression}\,\}}
+\item \EXP{\{\,\KWD{for}\:\VAR{generators} \mid \VAR{expression}\,\}}
+\item \EXP{\{\,\KWD{for}\:\VAR{generators}\:\VAR{collect}\:\VAR{expression}\,\}}
+\item \EXP{  \KWD{for}\:\VAR{generators}\:\VAR{collect} \{\,\VAR{expression}\,\}}
+  \end{itemize}
+  \end{itemize}
+
+\item Exiting from a function expression
+
+Jan's email from 06/05/08 12:01
+titled ``Re: cleaning up exceptions hierarchy''
+
+Eric proposed to statically disallow it.
+
+\item Types of branch expressions:
+We discussed propagation of the type information around the expression to the subexpressions of a branch expression. We may want to include this propagation later.
+%% z: ZZ32
+%% if p then z else 0 end
+%% if p then z else Identity[\+\] end
+%% if p then 0 else Identity[\+\] end
+
+%% a: ZZ32 = if p then z else FFFF0000FFFF_16 end
+\begin{Fortress}
+\(z\COLON \mathbb{Z}32\)\\
+\(\KWD{if}\:p \KWD{then}\:z \KWD{else} 0 \KWD{end}\)\\
+\(\KWD{if}\:p \KWD{then}\:z \KWD{else}\:\TYP{Identity}\llbracket+\rrbracket \KWD{end}\)\\
+\(\KWD{if}\:p \KWD{then} 0 \KWD{else}\:\TYP{Identity}\llbracket+\rrbracket \KWD{end}\)\\[4pt]
+\(a\COLON \mathbb{Z}32 = \;\KWD{if}\:p \KWD{then}\:z \KWD{else} \mathtt{FFFF0000FFFF}_{16} \KWD{end}\)
+\end{Fortress}
+
+\end{itemize}
+
+\subsection{Operators and Coercions}
+\begin{itemize}
+\item \verb+BIG AND:+ (Jan's email titled ``Re: BIG AND:'' on August 25, 2008)
+\item Conditional chaining operators (Victor's email titled ``Re: Conditional chaining operators?'' on August 19, 2009)
+
+\item Surprising behavior with coercion (Victor's email titled ``Overloading rules and a proposed ``change'''')
+
+\end{itemize}
+
+\subsection{Exceptions}
+\begin{itemize}
+\item Exception behavior of \KWD{atomic} expressions in Fortress
+  \begin{itemize}
+  \item Checked exceptions must be caught before they escape from the \KWD{atomic} expression, or it is a static error.  If necessary, programmers can be wrap a checked exception in an unchecked exception to get it out of the transaction.
+  \item There is some syntax which says which checked exceptions are allowed to escape from an \KWD{atomic} expression.
+  \item They propagate to the context of the \KWD{atomic}, as above.  This is the de facto behavior in the absence of a story about checked exceptions, since it's the same as the behavior for unchecked exceptions. (the status quo)
+  \end{itemize}
+\item Naked type variables in a throws clause or in a catch clause.
+
+Since a \KWD{throws} clause is a set, for full generality, we would
+probably need expressible union types at the call site,
+or a variable representing a ``set'' of types.
+
+\item When we have our \TYP{StackTraceElement} trait,
+add the following methods to the \TYP{Exception} trait:
+\begin{itemize}
+\item \EXP{\VAR{fillInStackTrace}()\COLON \TYP{Exception}}:
+Called to initialize the stack trace data in a newly created exception.
+This method can be called more than once.
+\item \EXP{\VAR{getStackTrace}()\COLON \TYP{StackTraceElement}[]}
+\item \EXP{\VAR{setStackTrace}(\VAR{stackTrace}\COLON \TYP{StackTraceElement}[])\COLON ()}:
+\end{itemize}
+
+\item light-weight exceptions
+\item interaction between exceptions and transactions
+\item interaction between exceptions and multithreads
+
+\item syntactic sugar for expand/wrap/catch/unwrap idiom
+
+It occurs to me that we could have a very concise form of syntactic  sugar
+for this expand/wrap/catch/unwrap idiom via a syntax expander  (or maybe
+just primitive syntactic sugar if necessary), which I'll  call ``handle''.
+This expander eta expands every function argument  (promoting every checked
+exception of the function that is not  anticipated by the callee), and
+wraps the whole function call in a  \KWD{try}/\KWD{catch} block that
+unwraps the exceptions. For example, with the  above definition of \VAR{f},
+and the following function \VAR{g}:
+
+% g(ZZ):ZZ throws {IOFailure, SQLError} = ...
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( g(\mathbb{Z})\COLONOP\mathbb{Z} \KWD{throws} \{\TYP{IOFailure}, \TYP{SQLError}\} = \ldots\)\-\\\poptabs
+\end{Fortress}
+
+the expression:
+
+% handle[ f[\ZZ,ZZ,3\](g) ]
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \VAR{handle}\llbracket,f\llbracket\mathbb{Z},\mathbb{Z},3\rrbracket(g)\,]\)\-\\\poptabs
+\end{Fortress}
+
+expands to:
+
+% try
+%   f[\ZZ,ZZ,3\]
+%     (fn n =>
+%       try g n
+%       catch e
+%         SQLError => throw WrappedException(e)
+%       end)
+% catch e
+%   WrappedException[\SQLError\] => throw e.inner
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{try}\)\\
+{\tt~~}\pushtabs\=\+\(   f\llbracket\VAR{null}\)\pushtabs\=\+\(\ZZ,\mathbb{Z},3\rrbracket\)\\
+\(     (\KWD{fn} n \Rightarrow\)\\
+{\tt~~}\pushtabs\=\+\(       \KWD{try} g n\)\\
+\(       \KWD{catch} e\)\\
+{\tt~~}\pushtabs\=\+\(         \TYP{SQLError} \Rightarrow \KWD{throw} \TYP{WrappedException}(e)\)\-\\\poptabs
+\(       \KWD{end})\)\-\-\-\\\poptabs\poptabs\poptabs
+\( \KWD{catch} e\)\\
+{\tt~~}\pushtabs\=\+\(   \TYP{WrappedException}\llbracket\TYP{SQLError}\rrbracket \Rightarrow \KWD{throw} e.\VAR{inner}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+Now, the context of the call site must deal with a thrown
+\TYP{SQLError}, or
+a static error is signaled. Moreover, without  ``handle'' the call
+
+% f[\ZZ,ZZ,3\](g)
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( f\llbracket\mathbb{Z},\mathbb{Z},3\rrbracket(g)\)\-\\\poptabs
+\end{Fortress}
+
+will result in a static error.
+
+-- Eric
+
+\item \KWD{throws} clauses with naked type variables
+
+\item Inference for \KWD{throws} clauses
+
+No, and we shouldn't. \KWD{throws} clauses are documentation that a
+programmer should provide in a function's header.  -- Eric
+
+Okay, but I thought Jan wanted to do this.  I thought Sukyoung did too,
+actually.  Only for ``internal'' functions though.  Probably I
+misunderstood what they were saying--it was related to that talk at OOPSLA
+last year.  Anyway, I don't think we should worry about this too much until
+we get type inference for function/method calls worked out. -- Victor
+
+\end{itemize}
+
+\subsection{Components and APIs}
+\begin{itemize}
+\item Top-level expressions
+
+\item APIs (Victor)
+
+Jan's email ``Re: Correct API syntax for object type without constructor''
+July 9, 2007 8:14:09 AM
+
+\item Namespace of APIs (Victor)
+
+Because API names consist of one or more identifiers separated by dots, and ``field access'' (i.e., getter and setter invocations) may produce similar sequences, we need some rule here. One possibility is to forbid the declaration of any (simple) name in a component from being the same as the first identifier of any name of an imported API.
+
+% api A.B
+%  f():()
+% end
+
+% component C
+%  export Executable
+%  import A.B
+%  object O
+%    f() = ()
+%  end
+%  object A
+%    B: T = O
+%  end
+%  run(args) = A.B.f()
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{api}\:A.B\)\\
+{\tt~}\pushtabs\=\+\(  f()\COLONOP()\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{component}\:C\)\\
+{\tt~}\pushtabs\=\+\(  \KWD{export}\:\TYP{Executable}\)\\
+\(  \KWD{import}\:A.B\)\\
+\(  \KWD{object}\:O\)\\
+{\tt~~}\pushtabs\=\+\(    f() = ()\)\-\\\poptabs
+\(  \KWD{end}\)\\
+\(  \KWD{object}\:A\)\\
+{\tt~~}\pushtabs\=\+\(    B\COLON T = O\)\-\\\poptabs
+\(  \KWD{end}\)\\
+\(  \VAR{run}(\VAR{args}) = A.B.f()\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+We agreed on the high-level idea but the details should be worked out more.
+%Refer \secref{qualified-names}.
+
+\item Automatically imported APIs (Victor's email titled
+``Automatically imported APIs (was: Dan's unresolved issues)'' on 08/31/07)
+
+  \item \secref{basicops} {\bf Extract and Install}
+
+``The set of APIs must be closed under imports.'' What if standard
+  lib APIs are imported?
+  \item \secref{advancedops} {\bf Constrain}
+
+ ``If we constrain an
+  API that is used by any other API exported by the component, then we must
+  also constrain that other API.'' This seems problematic. Suppose that two
+  components both export a standard lib. Is there any way to link them?
+
+(Possible solution: Perhaps we should provide a facility for ``flipping''
+an API export to an import. A flipped API, when linked, could upgrade its
+constituent.)
+
+  \item Exact matching between components and APIs
+    \begin{itemize}
+    \item
+% api A
+%   trait T end
+%   trait V extends T end
+% end
+%
+% component C
+% export A
+%   trait T end
+%   trait U extends T end
+%   trait V extends U end
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{api} A\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{trait} T \KWD{end}\)\\
+\(   \KWD{trait} V \KWD{extends} T \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{component} C\)\\
+\( \KWD{export} A\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{trait} T \KWD{end}\)\\
+\(   \KWD{trait} U \KWD{extends} T \KWD{end}\)\\
+\(   \KWD{trait} V \KWD{extends} U \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+    \item
+% trait A end
+% private trait B end
+% trait C extends {A,B} end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait} A \KWD{end}\)\\
+\( \KWD{private}\;\;\KWD{trait} B \KWD{end}\)\\
+\( \KWD{trait} C \KWD{extends} \{A,B\} \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+    \end{itemize}
+
+  \item Exporting multiple APIs with overlapping names
+% api A
+%   e():ZZ32
+%   trait T
+%     f(): T
+%   end
+% end
+% api B
+%   e():ZZ32
+%   trait T
+%     g(): ZZ32
+%   end
+% end
+% component G
+%   export {A, B}
+%   e() = 42
+%   trait A.T
+%     f() = self
+%   end
+%   trait B.T
+%     g() = 13
+%   end
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{api} A\)\\
+{\tt~~}\pushtabs\=\+\(   e()\COLONOP\mathbb{Z}32\)\\
+\(   \KWD{trait} T\)\\
+{\tt~~}\pushtabs\=\+\(     f()\COLON T\)\-\\\poptabs
+\(   \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{api} B\)\\
+{\tt~~}\pushtabs\=\+\(   e()\COLONOP\mathbb{Z}32\)\\
+\(   \KWD{trait} T\)\\
+{\tt~~}\pushtabs\=\+\(     g()\COLON \mathbb{Z}32\)\-\\\poptabs
+\(   \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{component} G\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{export} \{A, B\}\)\\
+\(   e() = 42\)\\
+\(   \KWD{trait} A.T\)\\
+{\tt~~}\pushtabs\=\+\(     f() = \mathord{\KWD{self}}\)\-\\\poptabs
+\(   \KWD{end}\)\\
+\(   \KWD{trait} B.T\)\\
+{\tt~~}\pushtabs\=\+\(     g() = 13\)\-\\\poptabs
+\(   \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+
+  \item Why not allow components to import and export the same API, but
+  prevent cyclic component linking (except for a special
+  \shellcommand{linkCyclic} command)?
+
+  \item Subtyping of APIs  (Is this just imports?  No.)
+%component C extends A (* an API *)
+\begin{Fortress}
+\(\KWD{component} C \KWD{extends} A \mathtt{(*}\;\hbox{\rm  an API \unskip}\;\mathtt{*)}\)
+\end{Fortress}
+  \item Coercion of APIs?  Widening?
+  \item Deprecation of API members in new versions?
+\item Component/API names with the URL of the development team and the time stamp
+
+\end{itemize}
+
+\subsection{Others}
+\begin{itemize}
+\item Properties (Eric's email titled ``Properties, concurrency'' on 07/30/07)
+
+\item The reflection story for Fortress (Guy's email titled ``Re: do you like object expression?'' on August 26, 2008)
+
+\item Native stuff (Victor's email titled ``Re: Thinking about native stuff some more'' on 08/21/07)
+  \begin{itemize}
+  \item foreign function interface
+  \item reflection mechanism
+  \end{itemize}
+
+\item Purity and ``sandbox''
+  \begin{itemize}
+  \item How about a ``sandbox'' function that executes a function for its
+  value, throwing away all effects?  It is a call site annotation to call
+  a non-pure function in a pure context.
+  \item What do we want we purity?  What semantics can programmers exploit?
+  \item Is purity a part of the type?
+  \item purity for enabling CSE?
+  \item purity for David's example?
+  \end{itemize}
+
+\item \KWD{idiom}
+
+Guy's email titled ``Notes on today's meeting'' on 12/12/05
+
+Idioms are like properties but they are hints to compilers.  Like
+properties, idioms describe that the left-hand-side and right-hand-side of
+$\Rightarrow$ are same.  Unlike properties, idioms instruct compilers to
+replace any occurrence of the left-hand-side of $\Rightarrow$ to the
+right-hand-side of $\Rightarrow$.  For example,
+%idiom FORALL (x: ZZ, y : ZZ) floor(x/y) => floordiv(x,y)
+%idiom x/N (log2 N=k) => x >> k
+%idiom floor(x/(MAXINT-1)) => 0
+%test data[] = { -MAXINT-1, -MAXINT, -MAXINT+1, -2, -1, 0, 1, 2, MAXINT-1, MAXINT, 43 }
+\begin{Fortress}
+\(\KWD{idiom} \forall (x\COLON \mathbb{Z}, y \mathrel{\mathtt{:}} \mathbb{Z})\; \VAR{floor}(x/y) \Rightarrow \VAR{floordiv}(x,y)\)\\
+\(\KWD{idiom} x/N ({log}_{2} N=k) \Rightarrow x \gg k\)\\
+\(\KWD{idiom} \VAR{floor}(x/(\OPR{MAXINT}-1)) \Rightarrow 0\)\\
+\(\KWD{test} \VAR{data}[] = \{\,-\OPR{MAXINT}-1, -\OPR{MAXINT}, -\OPR{MAXINT}+1, -2, -1, 0, 1, 2, \OPR{MAXINT}-1, \OPR{MAXINT}, 43\,\} \)
+\end{Fortress}
+[The last two idioms were by David, intended as illustrations
+of screw cases.]
+a unit testing framework should check that
+$floor(x/y)$ and $floordiv(x,y)$ are same and the compiler should replace
+any occurrence of $floor(x/y)$ to $floordiv(x,y)$.
+
+\item Compliant Implementation Chapter
+
+I suppose it might help clarify things if we include a new chapter  that
+states the properties that must hold for a ``compliant  implementation''.
+For example, we could say things like ``A compliant  implementation
+provides a ``compile'' procedure that takes a sequence  of Unicode
+characters as input.  If this input is not a valid Fortress  program, it is
+a static error.  Otherwise...'' -- Eric
+
+\item Rewriting inheritance in terms of implicit declarations so that they
+  are not parts of the ``inner theory core''.
+
+\item Equivalence and equality:
+  Equivalence $\equiv$ ought to be built in (ie automagically overridden by every trait / object declaration).
+  Equality $=$ is overridable and should be for apples-to-apples comparisons.  By default equality is equivalence.  It may be its own trait, with equivalence as the default definition.
+  Right now equivalence on reference objects is pointer equality, and equivalence on value objects is equality of content.  Equality on functions (and thus on value objects with function-typed fields) throws an exception.  The first bone of contention is equivalence on immutable reference objects, with the following options:
+  \begin{itemize}
+     \item Always return False.  This makes the default definition of equality junk, and is strictly less expressive than equivalence on mutable reference objects.  It seems bad, but was considered.
+     \item As any mutable reference object, using pointer equality (current semantics).  This explicitly rules out combining indistinguishable instances of immutable reference objects---they can still be distinguished by $\equiv$ and thus must be kept distinct.  Thus, for example, a string constant mentioned in the body of a loop must be copied at each loop iteration.  This permits us to give a deterministic semantics.
+     \item If mutable reference objects would be considered equivalent, immutable reference objects would be considered equivalent.  If immutable reference objects are equivalent, they must be otherwise semantically indistinguishable.  This is \emph{ad hoc} and lies between the previous solution and the next one.
+     \item By content, except that if any field has function type (or perhaps if equivalence checking of fields throws that exception, since subtyping may make this ambiguous) we treat it like a mutable reference object.  This would rule out pointer equality unless we did hash consing, so immutable reference objects would become more expensive than their mutable counterparts (either equivalence checks would get more expensive, or allocation would become more expensive).
+     \item By content.  This causes equivalence on immutable reference objects to fail if they contain functions, even when an equivalent mutable reference object would not.  This may encourage programmers to throw in gratuitous unused mutable fields, and is thus probably a bad idea.
+  \end{itemize}
+  The second bone of contention is function equality.  Note that changing the definition of function equality may make some of the choices above more or less usable.
+  \begin{itemize}
+     \item Always return false.  Less bad than for objects, but still deceptive.  Would mean that equality on value objects with function-typed fields always returns false, too.
+     \item Always throw an exception (current semantics).  Equality on value objects with function-typed fields always throws the same exception.
+     \item When $f\equiv g$ the functions must be semantically interchangeable.  Otherwise the functions may or may not be semantically interchangeable.  Note that always returning false is a valid implementation of this semantics, and that there is non-determinism here.
+  \end{itemize}
+A final issue to settle is what happens when we compare functions to other objects.  Do we throw an exception, or just return ``false''?
+
+\end{itemize}
+
+\subsection{Tools}
+\begin{itemize}
+\item The \KWD{api} tool
+
+Problem: The extracted APIs do not include comments.
+
+Two nodes: maintenance vs development
+
+\end{itemize}

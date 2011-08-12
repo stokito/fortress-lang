@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+opr BIG ||(): StringConcatenation = StringConcatenation
+
+run(): () = do
+    println(__bigOperator(StringConcatenation,
+                          fn (r, b) => (0:100).generate(r, fn(n) => b((2 n + 1).asString))))
+    println(BIG ||[n <- 0:100] (2 n + 1).asString)
+    println(BIG ||[n <- 0:10, m <- 0:10, n < m] (n+m).asString)
+    println(BIG ||[n <- 0:10, m <- 0:10, n < m, m < 3 n] (n+m).asString)
+  end
