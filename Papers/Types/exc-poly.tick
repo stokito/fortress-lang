@@ -19,6 +19,7 @@ Thus,
 distinct well-formed applications $C\obb{T}$ and $C\obb{U}$ 
 of a type constructor $C$ exclude each other; 
 we use $\bexcp$ for this relation.
+\TODO{Don't mention $\bexcp$ here.}
 Furthermore, 
 if $M$ is a subtype of $C\obb{T}$ 
 and $N$ is a subtype of $C\obb{U}$, 

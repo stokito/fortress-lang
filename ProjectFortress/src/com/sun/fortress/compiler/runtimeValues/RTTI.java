@@ -21,7 +21,7 @@ public abstract class RTTI {
     
     private final long serialNumber;
     
-    public boolean argExtendsThis(RTTI other) {
+    public boolean runtimeSupertypeOf(RTTI other) {
         return this.javaRep.isAssignableFrom( other.javaRep );
     }
     

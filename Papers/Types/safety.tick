@@ -2,17 +2,20 @@
 
 \TODO{Make class table explicit in lemmas.}
 
+\TODO{This section generally needs to be polished.}
+
 \begin{lemma}[Progress]
 \label{lem:progress}
 If some declaration in $\D(f)$ is applicable to $W$
-then there is a unique most specific declaration $f_W \in \D(f)$ that is applicable to $W$.
+then there is a unique most specific declaration $d_W \in \D(f)$ 
+that is applicable to $W$.
 \end{lemma}
 \begin{proof}
 Our proof strategy for satisfying the Progress condition
-makes use of the old idea from Castagna \emph{et al.} \cite{castagna95} that
-for each name $f$ the set of function declarations $\D(f)$ should form a meet
-semilattice under the \emph{specificity} order defined in
-Section~\ref{terms}.
+makes use of the old idea from Castagna \emph{et al.} \cite{castagna95} 
+that for each name $f$ the set of function declarations $\D(f)$
+should form a meet semilattice under the \emph{more specific than} order 
+defined in Section~\ref{terms}.
 If any declaration of name $f$ is applicable to a type $W$,
 then the set $\D_W(f) \subseteq \D(f)$
 of all declarations named $f$ and applicable to $W$
@@ -22,10 +25,12 @@ $\D_W(f)$ must have a least element.
 
 \begin{lemma}[Preservation]
 \label{lem:preservation}
-If $\decl{f}{S}{T}$ is an instance of some declaration 
-and $\decl{f}{S}{T}$ is applicable to $W$, 
-then there exists some instance $\decl{f_W}{U}{V}$ of $f_W$ such that
-$\decl{f_W}{U}{V}$ is applicable to $W$ and  $V \extends T$.
+If $\decl{f}{S}{T}$ is an instance of some declaration $d$
+that is applicable to $W$, 
+then there exists some instance $\decl{f}{U}{V}$ 
+of declaration $d_W$ from the previous lemma 
+such that $\decl{f}{U}{V}$ is applicable to $W$ 
+and  $V \extends T$.
 \end{lemma}
 \begin{proof}
 Note that subtyping is preserved under class table extension,

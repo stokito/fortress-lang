@@ -1,45 +1,45 @@
+\TODO{Something about how this is all standard;
+we are just establishing terminology/notation}
+
 \subsection{Types}
 
 Following Kennedy and Pierce \cite{kennedy07},
 we define a world of types ranged over by metavariables $S$, $T$, $U$, $V$, and $W$. 
-Types are of four forms: 
-\emph{type variables} 
-(ranged over by metavariables $X$, $Y$, and $Z$);
-\emph{constructed types} 
-(ranged over by metavariables $K$, $L$, $M$ and $N$), 
-written `C[\T_bar\]` 
-where `C` is a type constructor 
-and `T_bar` is a list of types; 
-\emph{structural types},
-consisting of arrow and tuple types;
-and \emph{compound types},
-consisting of intersection and union types. 
-In addition, 
-there are two special constructed types, \Any\ and \BottomType, explained below.
-\TODO{Make \BottomType\ special, not a constructed type.}
-% A type is of one of five forms:
-% a \emph{type variable} 
-% (represented by metavariable $X$, $Y$, or $Z$);
+% Types are of four forms: 
+% \emph{type variables} 
+% (ranged over by metavariables $X$, $Y$, and $Z$);
 % \emph{constructed types} 
-% (represented by metavariable $K$, $L$, $M$ or $N$), 
-% which is either a type constructor application `C[\T_bar\]`,  
+% (ranged over by metavariables $K$, $L$, $M$ and $N$), 
+% written `C[\T_bar\]` 
 % where `C` is a type constructor 
-% and `T_bar` is a list of types, 
-% or the special constructed type \Any;
-% a \emph{structural type},
-% which is either an arrow type or a tuple type;
-% a \emph{compound type},
-% which is either an intersection or union type; 
-% or the special type \BottomType, 
-% which represents the uninhabited type 
-% (i.e., no value belongs to \BottomType).
+% and `T_bar` is a list of types; 
+% \emph{structural types},
+% consisting of arrow and tuple types;
+% and \emph{compound types},
+% consisting of intersection and union types. 
+% In addition, 
+% there are two special constructed types, \Any\ and \BottomType, explained below.
+A type is of one of five forms:
+a \emph{type variable}; 
+a \emph{constructed type}, 
+which is either a type constructor application `C[\T_bar\]`,  
+where `C` is a type constructor 
+and `T_bar` is a list of types, 
+or the special constructed type \Any;
+a \emph{structural type},
+which is either an arrow type or a tuple type;
+a \emph{compound type},
+which is either an intersection or union type; 
+or the special type \BottomType, 
+which represents the uninhabited type 
+(i.e., no value belongs to \BottomType).
+We use metavariables $X$, $Y$ and $Z$ 
+to range over type variables, 
+and metavariables $K$, $L$, $M$ and $N$ 
+to range over constructed types.
 The abstract syntax of types is defined in BNF as follows
 (where $\bar{\emph{A}}$ indicates 
 a possibly empty comma-separated sequence of syntactic elements $\emph{A}$):
-%and we often abbreviate sequences
-%of larger syntactic constructs such as $T \extends U$ 
-%by writing bars over each variable:
-%$\bar{T \extends U}$.)
 \[
 \begin{array}{@{}l@{\;}l@{\;}l@{\;\;\;\;\;\;}l@{}}
 \emph{T} &::=& \emph{X} & \hbox{\rm type variable}\\
@@ -52,18 +52,6 @@ a possibly empty comma-separated sequence of syntactic elements $\emph{A}$):
 &\mid& \BottomType \\
 \end{array}
 \]
-% \[
-% \begin{array}{@{}l@{\;}l@{\;}l@{\;\;\;\;\;\;}l@{}}
-% \emph{Type} &::=& \emph{Id} & \hbox{\rm type variable}\\
-% &\mid& \emph{Id}\llbracket\bar{\emph{Type}}\rrbracket & \hbox{\rm constructed type}\\
-% &\mid& \emph{Type} \rightarrow \emph{Type} & \hbox{\rm arrow type}\\
-% &\mid& ( \bar{\emph{Type}} ) & \hbox{\rm tuple type}\\
-% &\mid& \emph{Type} \cap \emph{Type} & \hbox{\rm intersection type}\\
-% &\mid& \emph{Type} \cup \emph{Type} & \hbox{\rm union type}\\
-% %&\mid& \Any \\
-% %&\mid& \BottomType \\
-% \end{array}
-% \]
 
 A tuple type of length one is synonymous with its element type. 
 A tuple type with any \BottomType\ element 
@@ -77,33 +65,25 @@ For example, type variables may have multiple bounds,
 so that any valid instantiation of such a variable
 must be a subtype of the intersection of its bounds.
 
-% All type checking \TODO{Do we prefer ````type-checking'',
-% ````type checking'', or ````typechecking''?)
-% is done within the context of a \emph{class table} $\T$, 
-% which is a set of type constructor declarations 
-% (at most one declaration for each type constructor) 
-% of the following form:
-% \[
-% C\tplist{X}{M} \extends \{\bar{N}\}
-% \]
-
 \TODO{Only considering ground types at first.
 (Define ground types.)}
 
-Constructed types (other than \Any\ and \BottomType)
-are applications of \emph{type constructors}.
-A \emph{class table} $\T$
-is a set of type constructor declarations 
+Type checking is done in the context of a \emph{class table} $\T$, 
+which is a set of type constructor declarations 
 (at most one declaration for each type constructor) 
 of the following form:
 \[
 C\tplist{X}{M} \extends \{\bar{N}\}
 \]
-This declaration indicates that an application $C\obb{U}$ 
+where the only type variables that appear in $\bar{\bar{M}}$ and $\bar{N}$ 
+are those in $\bar{X}$.
+This declaration indicates that a type constructor application $C\obb{U}$ 
 (\emph{i}) is \emph{well-formed} (with respect to $\T$)
 if and only if $|\bar{U}| = |\bar{X}|$ and
-for all $i$ and $j$, 
-$U_i \subtypeof \substb{U}{X}M_{ij}$ for each bound $M_{ij}$
+$U_i \subtypeof \substb{U}{X}M_{ij}$ 
+for $1 \leq i |\bar{U}|$ and $1 \leq j \leq |\bar{M_i}|$, 
+% for each bound $M_{ij}$
+for $1 \leq i |\bar{U}|$ and $1 \leq j \leq |\bar{M_i}|$, 
 (where $\subtypeof$ is the subtyping relation defined below, 
 and $\substb{U}{X}M_{ij}$ is $M_{ij}$ 
 with $U_k$ substituted for each occurrence of $X_k$ in $M_{ij}$ 
@@ -118,7 +98,7 @@ In addition,
 every type is a subtype of \Any\ and a supertype of \BottomType.
 For any type $T$ (of any form),
 we write $T \in \T$ to mean that 
-any constructed type occurring in type $T$
+every constructed type occurring in type $T$
 is well-formed with respect to $\T$.
 
 A class table $\T$ is \emph{well-formed} if the resulting subtyping relation 
@@ -129,9 +109,18 @@ we allow recursive and mutually recursive references in $\T$.
 A class table $\T'$ is an \emph{extension} of $\T$ (written $\T' \ctext \T$)
 if every constructor declaration in $\T$ is also in $\T'$ 
 and the subtype relation on $\T'$ agrees with that of $\T$. 
-Consequently, if $\T' \ctext \T$ then, for all types $T$, $T \in \T$ implies $T \in \T'$.
+\TODO{Doesn't the subtype agreement follow from declaration inclusion?}
+Consequently, if $\T' \ctext \T$ then 
+$T \in \T$ implies $T \in \T'$ for any type $T$.
 We typically omit explicit reference to the class table when it is understood, 
 and we assume that the class table is well-formed.
+
+To reduce clutter, 
+nullary applications are written without brackets; 
+for example, `C[\ \]` is written `C`, 
+We also elide the braces delimiting 
+a singleton list of bounds of a type parameter 
+or supertypes of a class in a type constructor declaration.
 
 Given a well-formed class table 
 containing the type constructor declaration for $C$ above 
@@ -147,11 +136,6 @@ and the set of ancestors of $C\obb{T}$
    = \{C\obb{T}\} \cup 
      \hspace*{-4ex} \bigcup_{M \in \myextends{C\obb{T}}} \hspace{-4ex} \ancestors(M).
 \]
-(To reduce clutter, 
-nullary applications are written without brackets; 
-for example, `C[\ \]` is written `C`.) 
-\TODO{Other than for \Any\ and \BottomType, 
-do we actually do this?}
 
 Structural and compound types are \emph{well-formed} 
 (with respect to a class table) 
@@ -160,7 +144,7 @@ if their constituent types are well-formed.
 We extend the subtyping relation to
 structural and compound types in the usual way:
 Arrow types are contravariant in their domain types 
-and covariant in their range types 
+and covariant in their return types 
 (i.e., $\arrowtype{S}{T} \subtypeof \arrowtype{U}{V}$
 if and only if $U \subtypeof S$ and $T \subtypeof V$).
 One tuple type is a subtype of another 
@@ -169,11 +153,13 @@ and each element of the first is a subtype of the corresponding element of the o
 (i.e., $( \tuple{\bar{S}} ) \subtypeof ( \tuple{\bar{T}} )$
 if and only if $|\bar{S}| = |\bar{T}|$
 and $S_i \subtypeof T_i$ for all $1 \leq i \leq |\bar{S}|$).
-An intersection type is by definition the most general type that is a subtype
-of each of its element types: $(A \cap B) <: A$, $(A \cap B) <: B$, and for all types $T$,
+An intersection type is by definition 
+the most general type that is a subtype of each of its element types: 
+$(A \cap B) <: A$, $(A \cap B) <: B$, and for all types $T$,
 if $T <: A$ and $T <: B$ then $T <: (A \cap B)$.
-Similarly, a union type is by definition the most specific type that is a supertype
-of each of its element types: $A <: (A \cup B)$, $B <: (A \cup B)$, and for all types $T$,
+Similarly, a union type is by definition 
+the most specific type that is a supertype of each of its element types: 
+$A <: (A \cup B)$, $B <: (A \cup B)$, and for all types $T$,
 if $A <: T$ and $B <: T$ then $(A \cup B) <: T$.
 
 To extend the subtyping relation to type variables,
@@ -188,17 +174,25 @@ Note that the type variables $X_i$ may appear within the bounds $M_{ij}$.
 We write $\jgsub{S}{T}$ 
 to indicate the judgment that $S$ is a subtype of $T$ 
 in the context of $\Delta$. When $\Delta$ is understood to be empty, 
-we write this judgment as simply $S \subtypeof T$. The subtype judgment
-can only be made on types $S, T \in \T$, so the judgment takes a class table $\T$ as an implicit parameter.
-The types $S$ and $T$ are said to be \emph{equivalent}, written $S \equiv T$, when $S \subtypeof T$ and $T \subtypeof S$.
+we write this judgment as simply $S \subtypeof T$.
+% The subtype judgment can only be made on types $S, T \in \T$, 
+% so the judgment takes a class table $\T$ as an implicit parameter.
+The types $S$ and $T$ are \emph{equivalent}, written $S \equiv T$, 
+when $S \subtypeof T$ and $T \subtypeof S$.
 \TODO{Define well-formedness for types with type variables.}
 
-To enable separate compilation of program components, 
+\TODO{Give class table with declarations for `ZZ`, `String`, `List` and `ArrayList`.}
+
+\subsection{Extensibility}
+
+\TODO{Move definition of class table extension here?}
+
+To enable modular type checking and compilation, 
 we do not assume that the class table is complete;
 there might be declarations yet unknown.
 Specifically, 
 we cannot infer that two constructed types 
-have no common constructed subtype (other than \BottomType) 
+have no common constructed subtype 
 from the lack of any such type in the class table.
 However, we do assume that each declaration is complete, 
 and furthermore, 
@@ -207,6 +201,7 @@ that any type constructor used in the class table
 is declared in the table, 
 so that all the supertypes of a constructed type 
 are known.
+
 \TODO{Expand on this?}
 
 \subsection{Values and Ilks}
@@ -218,24 +213,24 @@ objects, functions, and tuples;
 every object belongs to at least one constructed type,
 every function belongs to at least one arrow type,
 and every tuple belongs to at least one tuple type.
-When we say that two types `T` and `U` have \emph{the same extent},
-we mean that for every value `v`, 
-`v` belongs to `T` if and only if `v` belongs to `U`.
+We say that two types `T` and `U` have \emph{the same extent}
+if every value `v` belongs to `T` if and only if `v` belongs to `U`.
+No value belongs to \BottomType.
 
 We place a requirement on values and on the type system that describes them: 
 Although a value may belong to more than one type, 
-for every value `v` there is a unique type `ilk(v)` 
+every value `v` belongs to a unique type `ilk(v)` 
 (the \emph{ilk} of the value) 
 that is \emph{representable in the type system}\footnote{The
 type system presented here satisfies this requirement 
 simply by providing intersection types.  
-The Fortress type system happens to satisfy it in another way as well, 
-which is typical of object-oriented language designs: 
+Fortress satisfies it in another way as well, 
+which is typical of object-oriented languages: 
 every object is created as an instance of a single nominal constructed type, 
 and this type is its ilk.} 
 and has the property that for every type `T`, 
-if `v` belongs to `T` then `ilk(v) <: T`;
-moreover, `ilk(v) =/= BottomType`.  
+if `v` belongs to `T` then `ilk(v) <: T`.
+% moreover, `ilk(v) =/= BottomType`.  
 (This notion of `ilk` corresponds to what is sometimes called the
 ````class'' or ````run-time type'' of the value.\footnote{%
 We prefer the term ````ilk'' to ````run-time type'' 
@@ -255,6 +250,8 @@ The implementation significance of ilks is that it is possible to
 select the dynamically most specific applicable function
 from an overload set using only the ilks of the argument values; no
 other information about the arguments is needed.
+\TODO{Context could be relevant.
+We use return type rule to ensure it's not.}
 
 In a sound type system,
 if an expression is determined by the type system to have type `T`, 
@@ -262,10 +259,10 @@ then every value computed by the expression at run time
 will belong to type `T`; 
 moreover, 
 whenever a function whose ilk is `U->V` is applied to an argument value,
-then the argument value will belong to type `U`.
+then the argument value must belong to type `U`.
 
 
-\subsection{Overloaded Functions}
+\subsection{Generic Function Declarations}
 \label{terms}
 
 A function declaration consists of 
@@ -273,59 +270,67 @@ a name,
 a sequence of type parameter declarations 
 (enclosed in white square brackets), 
 a type indicating the domain of the function, 
-and a type indicating the range of the function.  
+and a type indicating the codomain of the function
+(i.e., the return type).  
 A type parameter declaration consists of
 a type parameter name and its bounds.
-We omit the white square brackets of a declaration 
-when the sequence of type parameter declarations is empty.
-The abstract syntax of function declarations is as follows:
-\[
-\begin{array}{lll}
-\emph{Decl} &::=& 
-%\emph{Id}\llbracket\bar{\emph{Id}}\SHORTCUT{<}\bar{\emph{Type}}\rrbracket \emph{Type} \COLON \emph{Type}\\
-\declg{\textit{Id}}{\textit{Id}}{\textit{Type}}{\textit{Type}}{\textit{Type}}  \\
-&\mid& 
-%\emph{Id}\ \emph{Type} \COLON \emph{Type}\\
-\decl{\textit{Id}}{\textit{Type}}{\textit{Type}}
-\end{array}
-\]
+To reduce clutter,
+we omit the white square brackets of a declaration 
+when the sequence of type parameter declarations is empty, 
+and elide braces around singleton lists of bounds.
+% The abstract syntax of function declarations is as follows:
+% \[
+% \begin{array}{lll}
+% \emph{Decl} &::=& 
+% %\emph{Id}\llbracket\bar{\emph{Id}}\SHORTCUT{<}\bar{\emph{Type}}\rrbracket \emph{Type} \COLON \emph{Type}\\
+% \declg{\textit{Id}}{\textit{Id}}{\textit{Type}}{\textit{Type}}{\textit{Type}}  \\
+% &\mid& 
+% %\emph{Id}\ \emph{Type} \COLON \emph{Type}\\
+% \decl{\textit{Id}}{\textit{Type}}{\textit{Type}}
+% \end{array}
+% \]
 
 For example, in the following function declaration:
 
 `  f[\X <: M, Y <: N\](List[\X\], Tree[\Y\]): Map[\X, Y\]
 `the name of the function is `f`, 
 the type parameter declarations are `X <: M` and `Y <: N`, 
-the domain type is `(List[\X\], Tree[\Y\])`, which is a tuple type,
-and the range type is `Map[\X, Y\]`. We will often abbreviate a function
-as \hdeclg{f}{\Delta}{S}{T} when we do not want to emphasize the bounds (we are abusing notation by letting
-$\Delta$ range over both type environments and bounds definitions).
+the domain type is the tuple type `(List[\X\], Tree[\Y\])`, 
+and the return type is `Map[\X, Y\]`.
+We abbreviate a function declaration as \hdeclg{f}{\Delta}{S}{T} 
+when we do not want to emphasize the bounds.
+% (we are abusing notation by letting
+% $\Delta$ range over both type environments and bounds definitions).
 
-A function declaration \declg{f}{X}{N}{S}{T}
+A function declaration $d = \declg{f}{X}{N}{S}{T}$
 may be \emph{instantiated} with type arguments $\bar{W}$ 
-if $|\bar{W}| = |\bar{X}|$ and $W_i \subtypeof \substb{W}{X} N_{ij}$ for all $i$ and $j$;
+if $|\bar{W}| = |\bar{X}|$ 
+and $W_i \subtypeof \substb{W}{X} N_{ij}$ for all $i$ and $j$;
 we call $\substb{W}{X} \decl{f}{S}{T}$
-the \emph{instantiation} of $f$ with $\bar{W}$. 
+the \emph{instantiation} of $d$ with $\bar{W}$. 
 When we do not care about $\bar{W}$, 
 we just say that $\decl{f}{U}{V}$
-is an \emph{instance} of $f$ (and it is understood that $U=\substb{W}{X}S$
+is an \emph{instance} of $d$ 
+(and it is understood that $U=\substb{W}{X}S$
 and $V=\substb{W}{X}T$ for some (unstated) $\bar{W}$).
 %
-We use the metavariable $\D$ for a finite collection of sets of
-function declarations and $\D(f)$ for the set in
-$\D$ that contains all declarations named $f$.
+We use the metavariable $\D$ 
+to range over finite collections of sets of function declarations 
+and $\D(f)$ for the subset of $\D$ 
+that contains all declarations of name $f$.
 %
-An instance \decl{f}{U}{V} of a declaration $f$ 
+An instance \decl{f}{U}{V} of a declaration $d$ 
 is \emph{applicable} to a type $T$ 
 if and only if $T \subtypeof U$.
 A function declaration is \emph{applicable} to a type 
 if and only if at least one of its instances is.
 %
-For any two function declarations $f_1, f_2 \in \D(f)$, 
-$f_1$ is \emph{more specific} than $f_2$ 
-(written $f_1 \ms f_2$)
+For any two function declarations $_1, d_2 \in \D(f)$, 
+$d_1$ is \emph{more specific} than $d_2$ 
+(written $d_1 \ms d_2$)
 if and only if for every type $T$ 
-such that $f_1$ is applicable to $T$, 
-$f_2$ is also applicable to $T$.
+such that $d_1$ is applicable to $T$, 
+$d_2$ is also applicable to $T$.
 
 
 %% \begin{figure}
