@@ -117,12 +117,12 @@ We call this property \emph{multiple instantiation exclusion}.
 
 Multiple inheritance exclusion is easy to statically enforce, 
 and practice suggests that it is not onerous: 
-it is already in the Java\texttrademark\ programming language.
+it is already in Java.
 Also, 
 Kennedy and Pierce have shown that 
 nominal subtyping is decidable 
 in systems that enforce multiple instantiation exclusion, 
-(along with some technical restrictions)~\cite{kennedy07}.!\footnote{%
+(along with some technical restrictions)~\cite{kennedy07}.\!\footnote{%
 They also show that forbidding contravariant type parameters 
 results in decidable nominal subtyping, 
 so subtyping in our type system is decidable in any case.}
