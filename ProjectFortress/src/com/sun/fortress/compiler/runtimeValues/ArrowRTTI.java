@@ -40,8 +40,8 @@ public abstract class ArrowRTTI extends RTTI {
 	 /**
 	  * Arrow extension-of test - contravariant in inputs, covariant in output 
 	  */
-	 public boolean argExtendsThis(RTTI other) {
-		 if (super.argExtendsThis(other))
+	 public boolean runtimeSupertypeOf(RTTI other) {
+		 if (super.runtimeSupertypeOf(other))
 			 return true;
 	     if (! (other instanceof ArrowRTTI))
 	    	 return false;
@@ -49,10 +49,10 @@ public abstract class ArrowRTTI extends RTTI {
 	     if (otherInputsRTTI.length != inputsRTTI.length)
 	    	 return false;
 	     for (int i = 0; i < inputsRTTI.length; i++) {
-	    	 if (! otherInputsRTTI[i].argExtendsThis(inputsRTTI[i])) //contravariant in inputs
+	    	 if (! otherInputsRTTI[i].runtimeSupertypeOf(inputsRTTI[i])) //contravariant in inputs
 	    		 return false;
 	     }
-	     if (! outputRTTI.argExtendsThis(((ArrowRTTI) other).outputRTTI)) //covariant in output
+	     if (! outputRTTI.runtimeSupertypeOf(((ArrowRTTI) other).outputRTTI)) //covariant in output
 	    	 return false;
 	     return true;
 	 }

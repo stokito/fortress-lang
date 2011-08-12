@@ -8,7 +8,7 @@ public class JavaRTTI extends RTTI {
 	}
 
     //@Override
-    public boolean argExtendsThis(RTTI other) {
+    public boolean runtimeSupertypeOf(RTTI other) {
         return false;
     }
 	

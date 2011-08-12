@@ -34,12 +34,13 @@ for sets of overloaded function definitions.
 Such a set is \emph{well-formed with respect to a class table}
 if it satisfies all these rules using the subtyping relation 
 induced by the class table.
-\TODO{Discuss intended minimality of these rules?}
 We describe how to mechanically verify these rules in a modular way
 in terms of subtyping relations on universal and existential types 
 in Section~\ref{sec:checking},
 and we show that any valid set of overloaded function declarations is safe 
 in Section~\ref{sec:safety}.
+
+\TODO{Discuss intended minimality of these rules?}
 
 \subsection{Overloading Rules}
 \label{sec:threerules}
@@ -51,26 +52,35 @@ by independently considering every pair of declarations in the set.
 A pair of declarations is a valid overloading 
 if it satisfies the three rules described below.
 
-To avoid the obvious ambiguity, $\D(f)$ should not contain equally specific declarations:
-for each pair of overloaded declarations, either one declaration is strictly more specific
+\TODO{We broke up meet rule in intro into two rules here.}
+
+To avoid the obvious ambiguity, 
+$\D(f)$ should not contain equally specific declarations:
+for each pair of overloaded declarations, 
+either one declaration is strictly more specific
 than the other or they are incomparable.
 \begin{description}
 \item[No Duplicates Rule]
 $\D(f)$ does not contain any two declarations that are equally specific.
 %(i.e., each declaration is more specific than the other).
-In other words, there are no (distinct) declarations $f_1, f_2 \in \D(f)$ such that $f_1 \ms f_2$ and $f_2 \ms f_1$.
+In other words, 
+there are no (distinct) declarations $d_1, d_2 \in \D(f)$ 
+such that $d_1 \ms d_2$ and $d_2 \ms d_1$.
 \end{description}
 
-A pair of declarations is a valid overloading if for any call to which both declarations are applicable,
+A pair of declarations is a valid overloading 
+if for any call to which both declarations are applicable,
 there is a {\em disambiguating declaration} (possibly one of the pair)
 that is also applicable to the call and is at least as specific as both declarations.
+\TODO{This is not sufficient: they must also satisfy return type rule.}
 Thus, at run time, the disambiguating declaration is preferred.
 \begin{description}
 \item[Meet Rule]
-For each pair of declarations $f_1, f_2 \in \D(f)$,
-and for every type $T \in \T$, there should exist a third declaration $f_0 \in \D(f)$
-(possibly one of the pair) such that $f_0$ is applicable to $T$ if and only if
-both $f_1$ and $f_2$ are applicable to $T$.
+For each pair of declarations $d_1, d_2 \in \D(f)$,
+and for every type $T \in \T$, 
+there should exist a declaration $d_0 \in \D(f)$ (possibly one of the pair) 
+such that $d_0$ is applicable to $T$ 
+if and only if both $d_1$ and $d_2$ are applicable to $T$.
 \end{description}
 
 \TODO{Discuss what types $T$ we must consider, 
@@ -90,9 +100,10 @@ we also require that the return type of the latter declaration be a subtype of t
 % holds by checking the following rule for each function name $f$:
 \begin{description}
 \item[Return Type Rule]
-For every $f_1, f_2 \in \D(f)$ with $f_1 \ms f_2$, for every type $W$ to which $f_1$ is applicable
-(and therefore $f_2$ is also applicable)
-and every instance $\decl{f_2'}{S_2'}{T_2'}$ of $f_2$ that is applicable to $W$,
-there must exist an instance \decl{f_1'}{S_1'}{T_1'} of $f_1$
-that is applicable to $W$ and satisfies \mbox{$T_1' <: T_2'$}.
+For every $d_1, d_2 \in \D(f)$ with $d_1 \ms d_2$, 
+every type $W$ to which $d_1$ is applicable
+(and therefore $d_2$ is also applicable)
+and every instance $\decl{f}{S_2}{T_2}$ of $d_2$ that is applicable to $W$,
+there must exist an instance \decl{f}{S_1}{T_1} of $d_1$
+that is applicable to $W$ and satisfies \mbox{$T_1 <: T_2$}.
 \end{description}
