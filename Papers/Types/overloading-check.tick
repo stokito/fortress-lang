@@ -5,13 +5,13 @@ This section describes how to mechanically check
 the three overloading rules described in Section~\ref{sec:threerules}.
 Because the rules use the notions of applicability and specificity for generic functions,
 we first formalize them which in turn need formalization of
-the ````arrow type of $f$'' for a generic function declaration $f$.
+the ````arrow type of $d$'' for a generic function declaration $d$.
 
-% For a generic function declaration \declg{f}{X}{N}{S}{T},
-% its arrow type (written $\textit{arrow}(f)$) is
+% For a generic function declaration $d = \declg{f}{X}{N}{S}{T}$,
+% its arrow type (written $\textit{arrow}(d)$) is
 % the \emph{universal type} $\forall\tplist{X}{N}S \rightarrow T$.
-For a generic function declaration $\hdeclg{f}{\Delta}{S}{T}$,
-its arrow type (written $\textit{arrow}(f)$) is
+For a generic function declaration $d = \hdeclg{f}{\Delta}{S}{T}$,
+its arrow type (written $\textit{arrow}(d)$) is
 the \emph{universal type} \mbox{$\forall\ob{\Delta}S \rightarrow T$}.
 A universal type binds type parameter declarations over some type and
 can be instantiated by any types valid for those type parameters.
@@ -22,34 +22,40 @@ The meta-level function `FV` maps a type to all free variables contained in that
 %applicability of a generic function
 Recall that a generic function declaration $\hdeclg{f}{\Delta}{S}{T}$ 
 is applicable to a type $U$
-if and only if some instance of $f$ is applicable to $U$.
-A monomorphic function declaration $\decl{f}{S'}{T'}$ is applicable to a type $U$
-if and only if $U <: \textit{dom}(f)$,
-where $\textit{dom}(f)$ is the domain $S'$ of $S' \rightarrow T'$, the arrow type of $f$.
-%We must then extend our notion of the ````arrow type of $f$'' for a generic function declaration $f$,
+if and only if some instance of $d$ is applicable to $U$.
+A monomorphic function declaration $d = \decl{f}{S'}{T'}$ is applicable to a type $U$
+if and only if $U <: \textit{dom}(d)$,
+where $\textit{dom}(d)$ is the domain $S'$ of $S' \rightarrow T'$, 
+the arrow type of $d$.
+%We must then extend our notion of 
+% the ````arrow type of $f$'' for a generic function declaration $d$,
 %but first we need to characterize the type of a generic function.
 % In particular, we need a higher-level notion of universally
 % quantified types separate from the language of types $W$.
-This existential quantification over possible
-instantiations of the domain directly corresponds to an existentially
-quantified type as in \cite{bourdoncle97}. An \emph{existential type}
-$\exists\tplist{X}{N}T$ also binds type parameter declarations over a type, but
-unlike a universal type, it cannot be instantiated; instead, it represents
-some hidden type instantiation $\bar{W}$ and the corresponding instantiated
-type $\substb{W}{X}T$. Therefore, we say that the domain of the universal arrow type for $f$,
-$\forall\ob{\Delta}S \rightarrow T$ (again written $\textit{dom}(f)$ as an abuse of notation),
+This existential quantification over possible instantiations of the domain 
+directly corresponds to an existentially quantified type \cite{bourdoncle97}. 
+An \emph{existential type} $\exists\tplist{X}{N}T$ 
+also binds type parameter declarations over a type, 
+but unlike a universal type, it cannot be instantiated; 
+instead, it represents some hidden type instantiation $\bar{W}$ 
+and the corresponding instantiated type $\substb{W}{X}T$. 
+Therefore, we say that the domain of the universal arrow type for $d$,
+$\forall\ob{\Delta}S \rightarrow T$ 
+(again written $\textit{dom}(d)$ as an abuse of notation),
 is the existential type $\exists\ob{\Delta}{S}$.
 We use the metavariable $\delta$ to range over existential types.
 Note that we abbreviate both the universal type $\forall\ob{}T$ and
 the existential type $\exists\ob{}T$ as simply $T$ when the meaning is clear from context.
-Figure~\ref{fig:application} presents the formal definition of applicability for a generic function $f$
-to a type $T$, $f \ni T$.
+Figure~\ref{fig:application} presents the formal definition of applicability 
+for a generic function declaration $d$ to a type $T$, $f \ni T$.
 
 \input{fig-application}
 
 %specificity for a generic function
-A generic function declaration is \emph{more specific} than another generic function declaration
-if and only if the domain of the former is a subtype of the latter as presented in Figure~\ref{fig:application}.
+A generic function declaration is \emph{more specific} than 
+another generic function declaration
+if and only if the domain of the former is a subtype of the latter, 
+as presented in Figure~\ref{fig:application}.
 Figure~\ref{fig:existential} presents the subtype relation on existential types
 as originally given by Mitchell \cite{mitchell88}.
 Roughly, an existential type $\delta_1 = \exists \ob{\Delta_1} T_1$ is a
@@ -67,19 +73,21 @@ is described in Figure~\ref{fig:existential}.
 
 \input{fig-existential}
 
-To check the Meet Rule, for every pair of declarations $f_1, f_2 \in \D(f)$,
-we must find a function declaration $f_0 \in \D(f)$ that is
-applicable to a type $T$ if and only if both $f_1$ and $f_2$ are applicable to $T$.
-In other words, we need to find $f_0$ that is equivalent under specificity to
-the meet of $f_1$ and $f_2$.
+To check the Meet Rule, for every pair of declarations $d_1, d_2 \in \D(f)$,
+we must find a function declaration $d_0 \in \D(f)$ that is
+applicable to a type $T$ if and only if both $d_1$ and $d_2$ are applicable to $T$.
+In other words, we need to find $d_0$ that is equivalent under specificity to
+the meet of $d_1$ and $d_2$.
 To mechanically find the meet of two generic function declarations,
-we define the \emph{computed meet} of $f_1$ and $f_2$ as
-a declaration $f_\meet$, not necessarily in $\D(f)$,
-such that $\textit{dom}(f_\meet) \equiv \textit{dom}(f_1) \meet \textit{dom}(f_2)$\footnote{Note that the computed meet, as defined,
+we define the \emph{computed meet} of $d_1$ and $d_2$ as
+a declaration $d_\meet$, not necessarily in $\D(f)$,
+such that $\textit{dom}(d_\meet) \equiv \textit{dom}(d_1) \meet \textit{dom}(d_2)$\footnote{%
+Note that the computed meet, as defined,
 is not actually unique since the return type is unspecified.
-By an abuse of notation, we refer to ````the'' computed meet to mean any such computed meet.}: \begin{align*}
-  \textit{dom}(f_0) &\;\le\; \textit{dom}(f_1) \meet \textit{dom}(f_2) \\
-  \textit{dom}(f_1) \meet \textit{dom}(f_2) &\;\le\; \textit{dom}(f_0)
+By an abuse of notation, we refer to ````the'' computed meet 
+to mean any such computed meet.}: \begin{align*}
+  \textit{dom}(d_0) &\;\le\; \textit{dom}(d_1) \meet \textit{dom}(d_2) \\
+  \textit{dom}(d_1) \meet \textit{dom}(d_2) &\;\le\; \textit{dom}(d_0)
 \end{align*}
 Figure~\ref{fig:meet} defines the meet of two existential types $\delta_1 \meet \delta_2$,
 which may require alpha renaming on the existential types' parameters.
@@ -103,25 +111,27 @@ Roughly, a universal type $\sigma_1 = \forall\ob{\Delta_1} T_1$ is a subtype of 
 type $\sigma_2 = \forall\ob{\Delta_2} T_2$ (written $\sigma_1 \le \sigma_2$) if
 $T_1$ can be instantiated to a subtype of $T_2$ in the environment $\Delta_2$.
 
-The generic declarations $f_1 = \hdeclg{f}{\Delta_1}{S_1}{T_1}$ 
-and $f_2 = \hdeclg{f}{\Delta_2}{S_2}{T_2}$ with $f_1 \ms f_2$ satisfy the Return Type Rule
+The generic declarations $d_1 = \hdeclg{f}{\Delta_1}{S_1}{T_1}$ 
+and $d_2 = \hdeclg{f}{\Delta_2}{S_2}{T_2}$ 
+with $d_1 \ms d_2$ satisfy the Return Type Rule
 whenever:
 \renewcommand{\theequation}{\fnsymbol{equation}}
 \begin{equation} \label{eq:rtr}
   \forall\ob{\Delta_1}S_1 \rightarrow T_1 \; \le \; \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \rightarrow T_2
 \end{equation}
-To see this, suppose $W$ is a type to which $f_1$ is applicable and the instance $\decl{f_2'}{S_2'}{T_2'}$ of $f_2$
-is also applicable to $W$.
-Let $f_\meet = \hdeclg{f}{\Delta_1, \Delta_2}{S_1 \cap S_2}{T_2}$ be the
-computed meet of $f_1$ and $f_2$;
-clearly, there is an instance 
-$\decl{f_\meet'}{U'}{V'}$ of $f_\meet$ 
+To see this, suppose $W$ is a type to which $d_1$ is applicable 
+and the instance $\decl{f}{S_2'}{T_2'}$ of $d_2$ is also applicable to $W$.
+Let $d_\meet = \hdeclg{f}{\Delta_1, \Delta_2}{S_1 \cap S_2}{T_2}$ be the
+computed meet of $d_1$ and $d_2$;
+clearly, there is an instance $\decl{f}{U'}{V'}$ of $d_\meet$ 
 that is applicable to $W$ with $V' = T_2'$. 
-If $\textit{arrow}(f_1) \le \textit{arrow}(f_\meet)$,
-then there must be an instantiation $\decl{f_1'}{S_1'}{T_1'}$ of $f_1$
-with $U' <: S_1'$ and $T_1' <: V'$. Moreover, since $V'=T_2'$,
-such an $f_1'$ would satisfy the Return Type Rule for $f_1$ and $f_2$.
-Finally, observe that $\textit{arrow}(f_1) \le \textit{arrow}(f_\meet)$ is identical to the
-condition (\ref{eq:rtr}), and so the verification of (\ref{eq:rtr}) implies
+If $\textit{arrow}(d_1) \le \textit{arrow}(d_\meet)$,
+then there must be an instantiation $\decl{f}{S_1'}{T_1'}$ of $d_1$
+with $U' <: S_1'$ and $T_1' <: V'$. 
+Moreover, since $V'=T_2'$, such an instantiation 
+would satisfy the Return Type Rule for $d_1$ and $d_2$.
+Finally, observe that $\textit{arrow}(d_1) \le \textit{arrow}(d_\meet)$ 
+is identical to the condition (\ref{eq:rtr}), 
+and so the verification of (\ref{eq:rtr}) implies
 the verification of the Return Type Rule.
 

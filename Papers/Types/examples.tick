@@ -1,36 +1,91 @@
-% Outline for this section
+We now reconsider the overloaded generic function definitions from the introduction, 
+and also some new ones, 
+to see whether they are permitted by the rules in Section~\ref{sec:rules}.
+In this section, 
+we simply argue informally why each set of overloaded definitions is valid or not.
+We give a formal system and algorithm for doing these checks 
+in Section~\ref{sec:checking}.
 
-% Many programs that users would like to write are unsafe
-% Undefinable meets
-%  ex1: String, ZZ example
-%  ex2: [\X <: Any\]ArrayList[\X\], [\Y<: Foo\]List[\Y\] ([\X <: Foo\]ArrayList[\X\] doesn't work)
-% Don't meet the subtype rule
-%  ex3: ArrayList[\T\], List[\T\]
+First, we consider the overloaded generic functions 
+from the introduction (in reverse order):
 
-% Solution
-% 1) Exclusion Relation
-%  symmetric, irreflexive
-%  change subtyping to ensure that the intersection of two excluding types is bottom
-%  to lift to existential type schema: all instantiations exclude
-%  we want same behavior when type checking programs with type variables
-% 2) Outlaw multiple instance inheritance
-%  lets us add a new kind of exclusion
-%  can use that to reason that ex2 is safe
-%  need to build this reasoning into subtyping for existential types
-%  same machinery will help us fix ex3 in the next section
+\small
+`  foo[\X <: Object\](x: X, y: Object): ZZ = 1
+  foo[\Y <: Number\](x: Number, y: Y): ZZ = 2`
+\normalsize
+This overloading is valid: 
+The second definition is strictly more specific than the first 
+because the first definition is applicable to a pair of arguments 
+exactly if the type of each argument is a subtype of `Object`, 
+whereas the second is applicable to a pair of arguments exactly if
+the type of each argumet is a subtype of `Number`.
+Thus, these definitions satisfy the no duplicates rule 
+and the meet rule.
+And they satisfy the subtype rule 
+because the return type of both definitions is always `ZZ`.
 
-% What we will do in this section 
-%  need to know constraints under which a type is not bottom => need to know when two types don't exclude
-%  can get regular exclusion from not exclude
+\small
+`  append[\X\](x: List[\X\], y: List[\X\]): List[\X\] = e1
+  append[\X <: Number\](x: List[\X\], y: List[\X\]): List[\X\] = e3`
+\normalsize
+This overloading is also valid:
+The first definition is applicable to any pair of arguments 
+whose types are both `List[\T\]` for any well-formed type `T`, 
+whereas the second is applicable to any such pair 
+if and only if `T <: Number`.
+Thus, the second definition is strictly more specific than the first, 
+so the no duplicates rule and meet rule are satisfied.
 
-% Helpful notation
-% Not Bottom \[\Delta \vdash T \not\equiv `BottomType`|\C\]
-% Don't exclude under constraints \[\Delta \vdash T  \nexc S | \C\]
+\TODO{The following argument is wrong.}
+To see that the subtype rule is satisfied, 
+consider any pair of arguments to which the second definition is applicable.
+It must be of type `(List[\T\],List[\T\])` for some `T <: Number`, 
+and the return type is also type `List[\T\]`.
+Because type constructors are invariant in their type parameters,\!\footnote{%
+This overloading would also be valid if `List` were covariant, 
+but such consideration is beyond the scope of this paper.}
+the only instance of the first definition that is applicable to this argument 
+is the instantiation with `T`, 
+which also has return type `List[\T\]`.
+\TODO{The return type rule is not satisfied without polymorphic exclusion.}
 
-% How to get all instantiations exclude (written \exc)
-% \infrule
-%  {\Delta \vdash S \nexc T|False}
-%  {\Delta \vdash S \exc T}
+
+\small
+`  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
+  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
+\normalsize
+Although the second definition is strictly more specific than the first, 
+this overloading is invalid:
+it fails to satisfy the return type rule!
+To see this, 
+suppose `append` is called on an argument of type `List[\NN\]`, 
+where `NN` is a subtype of `ZZ`.
+In that case, 
+both definitions are applicable, 
+as is `append (List[\NN\], List[\NN\]): List[\NN\]`, 
+the instantiation of the first definition with `NN`.
+Thus, the return type rule is not satisfied 
+since `append (List[\ZZ\], List[\ZZ\]): List[\ZZ\]` 
+is the only instance of the second defintion, 
+and `List[\ZZ\]` is not a subtype of `List[\NN\]`.\!\footnote{%
+The type system described in this paper does not support covariance, 
+so `List` is \emph{invariant} in its type parameter.
+However, even if `List` were covariant,
+this overloading would be invalid 
+because `ZZ` is not a subtype of `NN`.}
+This might be surprising at first, 
+but a little thought shows that it is necessary to reject this overloading:
+the function 
+
+
+The second definition is strictly more specific than 
+both the first and the third definitions: 
+it is applicable only when the arguments are both of type `List[\ZZ\]`.
+(But they don't satisfy the return type rule 
+without polymorphic exclusion.)
+
+
+
 
 \TODO{Some stuff to mention?}
 In a single-inheritance language (without parametric polymorphism?), 
@@ -40,6 +95,8 @@ only if one is a subtype of the other.
 Thus, the tuple types and constructed types form a meet semilattice.
 (But arrow types don't: 
 the meet of `S->T` and `U->V` is \emph{not} an arrow type.)
+
+\TODO{Go over examples in intro, say which are valid and why.}
 
 Also, reconsider example of overloading `append` 
 with one generic definition and one monomorphic one.

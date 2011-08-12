@@ -65,18 +65,17 @@ to guarantee type safety.
 % \cite{castagna95,millstein02,millstein03}.
 For example, 
 consider the following overloaded function definitions:
+
 \small
-`  f(b:B, a:A): ZZ = 1
-  f(a:A, b:B): ZZ = 2`
+`  f(a: Object, b: ZZ): ZZ = 1
+  f(a: ZZ, b: Object): ZZ = 2`
 \normalsize
-If $A$ is a subtype of $B$ (we write this as `A <: B`),
-to which of these definitions do we dispatch 
-when $f$ is called with two arguments of type $A$? 
+To which of these definitions ought we dispatch 
+when $f$ is called with two arguments of type `ZZ` 
+(assuming `ZZ` is a subtype of `Object`---we write this `ZZ <: Object`)?
 % Note that the ambiguity is inherent in these definitions:
 % there is a real question as to what behavior the programmer intended
 % in this case.  
-
-\TODO{Perhaps discussion of Castagna should move to related work.}
 
 Castagna \textit{et al.} \cite{castagna95} address this problem 
 in the context of a type system 
@@ -93,14 +92,14 @@ have a common lower bound (i.e., a common nontrivial subtype),
 there is a unique definition for the same function 
 whose domain type is the greatest lower bound 
 of the domain types of the two definitions.
-Thus, for the example above, 
-% the solution of Castagna {\it et~al}.\ is to require the programmer to
-the programmer must provide a third definition
-to satisfy the latter property:
+Thus, 
+to satisfy the latter property for the example above, 
+the programmer must provide a third definition, such as:
+
 \small
+`  f(a: ZZ, b ZZ): ZZ = 3
 `
-  f(a:A,a':A): ZZ = ...
-`\normalsize
+\normalsize
 
 We call this latter property the \emph{meet rule} 
 because it is equivalent to requiring
@@ -116,14 +115,14 @@ The meet rule guarantees
 that there are no ambiguous function calls at run time.
 
 We call the first property above the \emph{return type rule} or \emph{subtype rule}.
-It is needed to ensure type preservation 
+It ensures type preservation 
 % when the most specific function definition dynamically applicable to the arguments 
 % (i.e., based on their ilks) 
 % is more specific than the most specific definition statically applicable
 % (i.e., based on the types of the expressions).
 when a function call is resolved at run time 
 (based on the ilks of the argument values) 
-to a different (necessarily more specific) definition 
+to a different (and more specific) definition 
 than the most specific one that could be determined at compile time 
 (based on the types of the argument expressions).
 
@@ -134,7 +133,7 @@ in a language that supports symmetric multiple dispatch,
 multiple inheritance, 
 and parametric polymorphism for both types and functions
 (i.e., generic types and generic functions), 
-as the Fortress language we are developing does \cite{Fortress}.
+as does the Fortress language we are developing \cite{Fortress}.
 We prove that these rules guarantee type safety.
 % (see Section~\ref{sec:safety}).
 This extends previous work \cite{allen07} 
@@ -142,14 +141,14 @@ in which we gave analogous rules,
 and proved the analogous result,
 for a core of Fortress that does not support generics.
 
-\TODO{Move next several paragaphs into a background section?}
+\TODO{Move next several paragraphs into a background section?}
 
 To handle parametric polymorphism,
-it is helpful to have an interpretation for generic types and functions.
+it is helpful to have an intuitive interpretation for generic types and functions.
 One way to think about a generic type such as `List[\T\]`
 (a list with elements of type `T`---type parameter lists 
 in Fortress are delimited by white square brackets) 
-is that it represents an infinite set of ground types 
+is that it represents an infinite set of ground types: 
 `List[\Object\]` (lists of objects),
 `List[\String\]` (lists of strings), 
 `List[\ZZ\]` (lists of integers), 
@@ -160,51 +159,18 @@ but for many purposes this model of ````an infinite set of ground types''
 is adequate for explanatory purposes.
 Not so, however, for generic functions.  
 
-One challenge in defining dynamic dispatch 
-in the presence of overloaded generic functions 
-is that the overloaded definitions
-might have not only distinct argument types, 
-but also distinct type parameters 
-(even different numbers of type parameters), 
-so the type values of these parameters 
-make sense only in distinct type environments. 
-For example, 
-consider the following overloaded function definitions:
-\small
-`  combine[\T\](xs: List[\T\], ys: List[\T\]): List[\T\]
-  combine[\S,T\](s: Table[\S,T\], t: Table[\S,T\]): Table[\S,T\]`
-\normalsize
-The first definition has a single type parameter `T`
-(declared in the first pair of white square brackets)
-denoting the types of the elements of the two list arguments $xs$ and $ys$
-(occurences of `T` in the other pairs of white square brackets 
-indicate that `T` is the type argument to the generic type `List`). 
-The second definition has two type parameters 
-corresponding to the domains and ranges of the two table arguments $s$ and $t$.
-But the type parameter of the first definition 
-bears no relation to the type parameters of the second.
-How should we compare such function definitions 
-to determine which is the best to dispatch to?
-How can we ensure that there even is a best one in all cases?
-Furthermore, the rules must be compatible with type inference, 
-since instantiation of type parameters at a call site 
-is typically done automatically.
-So even determining which definitions are applicable 
-to a particular call is not always obvious.
-
-
 For some time during the development of Fortress, 
 one of us (Steele) pushed for 
 % we considered 
 an interpretation of generic functions
 analogous to the one above for generic types;
 that is, 
-that the generic function definition
-% \footnote{%
-% The first pair of white square brackets in each definition 
-% delimits the type parameter declarations, 
-% but the other pairs of white brackets 
-% provide the type arguments to the generic types `List` and `Table`.}
+the generic function definition\footnote{%
+The first pair of white square brackets 
+delimits the type parameter declarations, 
+but the other pairs of white brackets 
+provide the type arguments to the generic type `List`.}
+
 \small
 `  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e
 `
@@ -240,63 +206,97 @@ this would be equivalent to:
   ...
   append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
 \normalsize
-and we can see that there is an ambiguity 
-when the arguments are of type `List[\ZZ\]`.
+which is ambiguous for calls in which the arguments are of type `List[\ZZ\]`.
 
 It gets worse if the programmer wishes to handle an infinite set of cases specially.  
 It would seem natural to write
 \small
 `  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
-  append[\T <: Number\](x: List[\T\], y: List[\T\]): List[\T\] = e2`
+  append[\T <: Number\](x: List[\T\], y: List[\T\]): List[\T\] = e3`
 \normalsize
 to handle specially all cases where `T` is a subtype of `Number`.
 But the model would regard this as an overloaded function
 with an infinite number of ambiguities.
 
+It does not suffice to  ````break ties''
+by choosing the instantiation of the more specific generic definition.
+Indeed, it is not always obvious 
+which function definition is the most specific one 
+applicable to a particular call
+in the presence of overloaded generic functions: 
+the overloaded definitions might have not only distinct argument types, 
+but also distinct type parameters 
+(even different numbers of type parameters), 
+so the type values of these parameters 
+make sense only in distinct type environments. 
+For example, 
+consider the following overloaded function definitions:
+
+\small
+`  foo[\X <: Object\](x: X, y: Object): ZZ = 1
+  foo[\Y <: Number\](x: Number, y: Y): ZZ = 2`
+\normalsize
+The type parameter of the first definition
+denotes the type of the first argument, 
+and the type parameter of the second definition 
+denotes the type of the second argument;
+they bear no relation to each other.
+How should we compare such function definitions 
+to determine which is the best to dispatch to?
+How can we ensure that there even is a best one in all cases?
+\TODO{Eliminate rest of this paragraph?}
+Furthermore, the rules must be compatible with type inference, 
+since instantiation of type parameters at a call site 
+is typically done automatically.
+So even determining which definitions are applicable 
+to a particular call is not always obvious.
+
+% For example, 
+% consider the following overloaded function definitions:
+% \small
+%   combine[\T\](xs: List[\T\], ys: List[\T\]): List[\T\]
+%   combine[\S,T\](s: Table[\S,T\], t: Table[\S,T\]): Table[\S,T\]
+% \normalsize
+% The first definition has a single type parameter `T`
+% denoting the types of the elements of the two list arguments $xs$ and $ys$.
+% The second definition has two type parameters 
+% corresponding to the domains and ranges of the two table arguments $s$ and $t$.
+% But the type parameter of the first definition 
+% bears no relation to the type parameters of the second.
+
+Under the ````infinite set of monomorphic definitions'' interpretation, 
+these definitions would be equivalent to:
+\small`  foo(x: Object, y: Object): ZZ = 1
+  foo(x: Number, y: Object): ZZ = 1
+  foo(x: ZZ, y: Object): ZZ = 1
+  ...
+  foo(x: Number, y: Number): ZZ = 2
+  foo(x: Number, y: ZZ): ZZ = 2
+  ...
+`
+\normalsize
+When `foo` is called on two arguments of type `ZZ`, 
+both `foo(ZZ, Object)` and `foo(Number, ZZ)` are applicable
+(assuming `ZZ <: Number <: Object`),
+but they have no meet.
+
 Two authors of this paper (Hilburn and Kilpatrick) 
 proposed to avoid these ambiguities 
-by adopting an alternate model for generic functions 
+by adopting an alternate model for generic functions, 
 similar to one proposed by Bourdoncle and Merz~\cite{bourdoncle97},
 in which each function definition 
 is regarded as a single definition whose domain type is an existential type, 
-rather than as an infinite set of definitions
-(a monomorphic definition is regarded as a degenerate generic one).
+rather than as an infinite set of definitions.
+(A monomorphic definition is regarded as a degenerate generic one.)
 In this model, 
 overloaded function definitions are (partially) ordered 
-by the subtype relation on existential types, 
-and dispatch and the meet rule 
-can be adapted straightforwardly to use this new order.
-The return type rule is somewhat more complicated 
+by the subtype relation on existential types.
+Adapting dispatch and the meet rule to use this new order is straightforward.
+Adapting the return type rule is somewhat more complicated 
 but checking it similarly reduces to checking subtyping relationships 
 between universal types.
 Adopting this model has made overloaded generic functions in Fortress
 both tractable and effective.
-
-An important desideratum for our overloading rules 
-is that they support modularity and extensibility.
-In particular, 
-
-
-We require extensibility.
-Within that constraint, we want to be as permissive as possible.
-
-
-Because the type hierarchy defined by a module may be extended,
-and because Fortress supports multiple inheritance,
-two types may have a common nontrivial subtype 
-even if no declared type extends them both.
-Thus,
-for any pair of overloaded function definitions with incomparable domain types
-(i.e., neither definition is more specific than the other),
-the meet rule requires some other definition to resolve the potential ambiguity.
-Because explicit intersection types cannot be expressed in Fortress, 
-it is not always possible to provide such a function definition.
-However, 
-Fortress defines an \emph{exclusion relation} on types, 
-such that types related by exclusion must have no common nontrivial subtypes,
-and thus definitions with such types as domain types 
-need not be disambiguated.
-
 
 In providing rules to ensure 
 that any valid set of overloaded function definitions 
@@ -305,24 +305,67 @@ we strive to be maximally permissive:
 A set of overloaded definitions should be disallowed 
 only if it permits ambiguity
 that cannot be resolved at run time.  
-Nonetheless, 
-we show in Section~\ref{sec:problems} 
-that some seemingly valid sets of overloaded functions are rejected by our rules, 
-and rightly so: 
-although intuitively appealing, 
-these overloaded functions admit ambiguous calls.
+Unfortunately, this goal is in tension with another requirement, 
+to support modularity and extensibility.
+In particular, 
+we assume the program will be composed of several modules, 
+and that types defined in one module 
+may be extended by types defined in other modules.
+We want to be able to check the rules separately for each module, 
+and not have to recheck a module 
+when some other module extends its types.
 
-Many of these overloaded functions can, 
-and we believe should, 
-be allowed 
-if the type system supports an \emph{exclusion relation},
-which asserts that two types have no common instances.
+% In our prior work on Fortress without generics~\cite{allen07},
+% we showed that we could check the overloading rules in a modular way
+% so that the type hierarchy could be extended safely by new modules 
+% without rechecking old modules.
+
+The difficulty is due to multiple inheritance: 
+Because the type hierarchy defined by a module may be extended 
+by types in other modules, 
+two types may have a common nontrival subtype 
+even if no type declared in the module 
+% (or in any module it extends) 
+extends them both.
+Thus,
+for any pair of overloaded function definitions with incomparable domain types
+(i.e., neither definition is more specific than the other),
+the meet rule requires some other definition to resolve the potential ambiguity.
+Because explicit intersection types cannot be expressed in Fortress, 
+it is not always possible to provide such a function definition.
+
+Consider, for example, the following overloaded function definitions:
+
+\small
+`  print(s: String):() 
+  print(i: ZZ):()
+`
+\normalsize
+Although this overloading may seem intuitively to be valid,
+in a multiple-inheritance type system 
+that allows any type to be extended by some other module, 
+one could define a type `StringOrInteger` 
+that extends both `String` and `ZZ`.
+In that case,
+a call to `print` with an argument of type `StringOrInteger` 
+would be ambiguous, 
+so this overloading would be rejected by our overloading rules.
+
+To address this problem,
+Fortress defines an \emph{exclusion relation} on types, 
+such that types related by exclusion must have no common nontrivial subtypes,
+and thus definitions with such types as domain types 
+need not be disambiguated.
 If the domains of two function definitions exclude each other, 
-then these definitions can never be applicable to the same call,
+then these definitions are never applicable to the same call,
 and so no ambiguity can arise between them.
-Many languages provide a way of declaring some exclusion relations
-implicitly. For example, single inheritance ensures that, for any 
-two types, if one is not a subtype of the other, then the two types exclude each other.
+In the example above,
+if `String` and `ZZ` exclude each other,
+then the overloaded definitions of `print` above are valid.
+
+Many languages enforce and exploit some exclusion relations implicitly. 
+For example, single inheritance ensures that
+any two incomparable types exclude each other. 
 Fortress enables programmers to declare ````nominal exclusion''
 in addition to determining many exclusions implicitly, 
 and in Section~\ref{sec:exclusion}, 
@@ -332,6 +375,21 @@ to improve expressivity
 by accommodating overloadings that would otherwise be rejected.
 The proof of safety in Section~\ref{sec:safety} 
 covers the rules under this extended type system.
+
+% Nonetheless, 
+% we show in Section~\ref{sec:problems} 
+% that some seemingly valid sets of overloaded functions are rejected by our rules, 
+% and rightly so: 
+% although intuitively appealing, 
+% these overloaded functions admit ambiguous calls.
+
+% Many of these overloaded functions can, 
+% and we believe should, 
+% be allowed 
+% if the type system supports an \emph{exclusion relation},
+% which asserts that two types have no common instances.
+
+\TODO{Remove following paragraph (put in next section)?}
 
 To minimize syntactic overhead 
 and avoid having to translate 

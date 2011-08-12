@@ -8,15 +8,133 @@
 % \subsection{Subtyping}
 % \input{reduce}
 
-To allow more overloaded functions such as `simple`, `tail`, and `foo`
-described in Section~\ref{sec:problems},
-we extend the overloading rules using \emph{exclusion} relations on types.
+Although the rules in Section~\ref{sec:rules} 
+allow programmers to write valid sets 
+of overloaded generic function declarations,
+they sometimes reject overloaded definitions 
+that might seem to be valid.
+For example, 
+given the type system as described thus far,
+the overloaded `append` function from the introduction 
+would be rejected by the overloading rules.
 
-\subsection{Type Exclusion}\label{sec:excdec}
+These are not false negatives:
+multiple inheritance can introduce ambiguities 
+by extending two incomparable types 
+as discussed in the introduction.
+Because we allow class tables to be extended by unknown modules, 
+we cannot generally infer that two types have no common nontrivial subtype 
+from the lack of any such declared type.
+Therefore, 
+the meet rule requires the programmer 
+to provide a disambiguating definition 
+for any pair of overloaded definitions whose domain types are incomparable.
+\TODO{Is it okay to use ````domain types'' here, 
+when we have not yet introduced existential types?}
+
+This problem is not new with parametric polymorphism, 
+as the `print` example in the introduction shows.
+To address the problem, 
+Fortress defines an \emph{exclusion relation} $\exc$ over types
+such that two types that exclude each other 
+have no common nontrivial subtypes;
+that is, 
+if $T \exc U$ then $T \cap U$ is synonymous with \BottomType.
+Thus, overloaded definitions whose domain types exclude each other
+trivially satisfy the meet rule: 
+there are no types (other than \BottomType) 
+to which both definitions are applicable.
+In our previous work on Fortress without generics~\cite{allen07}, 
+we provide a special rule---the \emph{exclusion rule}---%
+to exploit this information.
+However, 
+the exclusion rule can also be viewed, 
+as we do in this paper, 
+as a special case of the meet rule, 
+where there are no nontrivial types 
+to which both definitions are applicable.
+
+Fortress provides three mechanisms to explicitly declare exclusion \cite{Fortress}:
+an `object` declaration, a `comprises` clause and an `excludes` clause.
+We describe these precisely in Section~\ref{sec:exc-spec}, 
+but for now, we simply note that 
+they do not help with the overloaded `append` function.
+That is, 
+even with these exclusion mechanisms, 
+we cannot define `List` 
+so that the definitions for `append` satisfy the return type rule.
+
+To see this, 
+suppose that we have the following type constructor declaration:
+
+\small
+`  BadList <: { List[\ZZ\], List[\String\] }
+`
+\normalsize
+and consider the first pair of overloaded definitions
+
+\small
+`  append[\T\](x: List[\T\], y: List[\T\]): List[\T\]
+  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\]
+`
+\normalsize
+and the type `(BadList, BadList)`.
+Both definitions are applicable to this type 
+and the monomorphic one is more specific.
+Two instances of the generic definition are applicable to this type:
+
+\small
+`  append(List[\ZZ\],List[\ZZ\]): List[\ZZ\]
+  append(List[\String\],List[\String\]): List[\String\]
+`
+\normalsize
+The return type rule requires that 
+the return type of each of these instances 
+be a supertype of the return type of the monomorphic definition
+(the monomorphic definition is its only one instance); 
+that is, it requires 
+`List[\ZZ\] <: List[\ZZ\]` 
+and `List[\ZZ\] <: List[\String\]`.
+The latter is clearly false.
+
+Intuitively, we might say that the problem with the above example 
+is not with the definition of `append`, 
+but with the definition of `BadList`, 
+that a value can belong to `List[\ZZ\]` or `List[\String\]` 
+but not to both.
+More generally, 
+we can impose a rule that forbids 
+\emph{multiple instantiation inheritance} \cite{kennedy07}, 
+in which a type (other than \BottomType) 
+is a subtype of distinct applications of a type constructor.\!\footnote{%
+This definition suffices for the type system described in this paper, 
+in which all type parameters are invariant.
+It is straightforward, 
+but beyond the scope of this paper, 
+to extend this definition to systems 
+that support covariant and contravariant type parameters.}
+We call this property \emph{multiple instantiation exclusion}.
+
+Multiple inheritance exclusion is easy to statically enforce, 
+and practice suggests that it is not onerous: 
+it is already in Java.
+Also, 
+Kennedy and Pierce have shown that 
+nominal subtyping is decidable 
+in systems that enforce multiple instantiation exclusion, 
+(along with some technical restrictions)~\cite{kennedy07}.\!\footnote{%
+They also show that forbidding contravariant type parameters 
+results in decidable nominal subtyping, 
+so subtyping in our type system is decidable in any case.}
+
+
+\subsection{Well-Formed Class Tables with Exclusion}
+\label{sec:exc-spec}
 \input{exc-spec}
 
+
 % \subsection{Overloading Rule with Polymorphic Exclusion}
-\subsection{Polymorphic Exclusion}
-\label{sec:exc-polyrules}
-\input{exc-poly}
+% \subsection{Polymorphic Exclusion}
+% \label{sec:exc-polyrules}
+% \input{exc-poly}
 

@@ -59,8 +59,8 @@ a possibly empty comma-separated sequence of syntactic elements $\emph{A}$):
 \end{array}
 \]
 
-A type may have multiple syntactic forms.\!\footnote{We abuse terminology here 
-by not distinguishing syntactic type terms from semantic types.}
+A type may have multiple syntactic forms.\!\footnote{We abuse terminology 
+by not distinguishing type terms and types.}
 In particular,
 a tuple type of length one is synonymous with its element type, 
 and a tuple type with any \BottomType\ element 
@@ -87,7 +87,35 @@ C\tplist{X}{M} \extends \{\bar{N}\}
 \]
 where the only type variables that appear in $\bar{\bar{M}}$ and $\bar{N}$ 
 are those in $\bar{X}$.
-This declaration indicates that a type constructor application $C\obb{U}$ 
+This declares the type constructor $C$, 
+and each $X_i$ is a \emph{type parameter} of $C$ 
+with \emph{bounds} $\bar{M_i}$.
+As usual for languages with nominal subtyping, 
+we allow recursive and mutually recursive references in $\T$ 
+(i.e., a type constructor can be mentioned 
+in the bounds and supertypes of its own and other type constructors' declarations).
+We say that $C$ \emph{extends} a type constructor $D$ 
+if $N_i = D\obb{T}$ for some $N_i$ and $\bar{T}$.
+A class table is \emph{well-formed} 
+if every type constructor that appears in the table is declared by the table
+and the extends relation over type constructors is acyclic.
+
+% Victor: Given our restricted setting (i.e., no mix-ins), 
+% I believe that the above definition (of well-formedness for class tables)
+% is equivalent to the definition in Kennedy and Pierce, 
+% whereas the following definition (from earlier versions of the paper)
+% is too weak:
+
+% A class table $\T$ is \emph{well-formed} if the resulting subtyping relation 
+% on its constructed types is a partial order.
+
+% Victor: For example, I believe this definition permits the following class table:
+%  A[\X\]
+%  B[\Y\] <: C[\A[\Y\]\]
+%  C[\Z\] <: B[\A[\Z\]\]
+
+The type constructor declaration above 
+indicates that the constructed type $C\obb{U}$ 
 (\emph{i}) is \emph{well-formed} (with respect to $\T$)
 if and only if $|\bar{U}| = |\bar{X}|$ and
 $U_i \subtypeof \substb{U}{X}M_{ij}$ 
@@ -100,7 +128,7 @@ for $1 \leq k \leq |\bar{U}|$);
 and 
 (\emph{ii}) is a subtype of $\substb{U}{X}N_l$ for $1 \leq l \leq |\bar{N}|$.
 Thus, a class table induces 
-a (nominal) \emph{subtyping relation} over the constructed types 
+a (nominal) \emph{subtyping relation} $\subtypeof$ over the constructed types 
 by taking the reflexive and transitive closure 
 of the subtyping relation derived from the declarations in the class table.
 In addition, 
@@ -113,11 +141,6 @@ we write $T \in \T$ to mean that
 every constructed type occurring in type $T$
 is well-formed with respect to $\T$.
 
-A class table $\T$ is \emph{well-formed} if the resulting subtyping relation 
-on its constructed types is a partial order.
-As usual for languages with nominal subtyping, 
-we allow recursive and mutually recursive references in $\T$.
-\TODO{What does ````recursive and mutually recursive references'' mean?}
 A class table $\T'$ is an \emph{extension} of $\T$ (written $\T' \ctext \T$)
 if every constructor declaration in $\T$ is also in $\T'$ 
 and the subtype relation on $\T'$ agrees with that of $\T$. 
@@ -185,13 +208,18 @@ each type variable $X_i$ is a subtype of each of its bounds $M_{ij}$.
 Note that the type variables $X_i$ may appear within the bounds $M_{ij}$.
 We write $\jgsub{S}{T}$ 
 to indicate the judgment that $S$ is a subtype of $T$ 
-in the context of $\Delta$. When $\Delta$ is understood to be empty, 
-we write this judgment as simply $S \subtypeof T$.
-% The subtype judgment can only be made on types $S, T \in \T$, 
-% so the judgment takes a class table $\T$ as an implicit parameter.
+in the context of $\Delta$.
+Henceforth, 
+given a type environment, 
+we consider only types whose (free) type variables 
+are bound in the type environment.
+When $\Delta$ is understood to be empty, 
+we write this judgment simply as $S \subtypeof T$.
+
 The types $S$ and $T$ are \emph{equivalent}, written $S \equiv T$, 
 when $S \subtypeof T$ and $T \subtypeof S$.
-\TODO{Define well-formedness for types with type variables.}
+
+\TODO{Mention that we only support invariant parameters for now?}
 
 \TODO{Give class table with declarations for `ZZ`, `String`, `List` and `ArrayList`.}
 
@@ -215,6 +243,8 @@ so that all the supertypes of a constructed type
 are known.
 
 \TODO{Expand on this?}
+
+\TODO{Or perhaps move it to intro.}
 
 \subsection{Values and Ilks}
 
