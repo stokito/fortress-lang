@@ -8,11 +8,51 @@
 % \subsection{Subtyping}
 % \input{reduce}
 
-To allow more overloaded functions such as `simple`, `tail`, and `foo`
-described in Section~\ref{sec:problems},
-we extend the overloading rules using \emph{exclusion} relations on types.
+Although the rules in Section~\ref{sec:rules} 
+allow programmers to write valid sets 
+of overloaded generic function declarations,
+they sometimes reject overloaded definitions 
+that might seem to be valid.
+These are not false negatives:
+multiple inheritance can introduce ambiguities 
+by extending two incomparable types 
+as discussed in the introduction.
 
-\subsection{Type Exclusion}\label{sec:excdec}
+This problem is not new with parametric polymorphism, 
+as the `print` example in the introduction shows.
+To address the problem, 
+Fortress defines an \emph{exclusion relation} $\exc$ over types
+such that two types that exclude each other 
+have no common nontrivial subtypes;
+that is, 
+if $T \exc U$ then $T \cap U$ is synonymous with \BottomType.
+Thus, overloaded definitions whose domain types exclude each other
+trivially satisfy the meet rule: 
+there are no types (other than \BottomType) 
+to which both definitions are applicable.
+In our previous work on Fortress without generics~\cite{allen07}, 
+we provide a special rule---the \emph{exclusion rule}---%
+to exploit this information.
+
+Fortress provides three mechanisms to declare exclusion \cite{Fortress}:
+an `object` declaration, a `comprises` clause and an `excludes` clause.
+We describe these precisely in Section~\ref{sec:exc-spec}, 
+but it suffices to note for now that 
+
+
+multiple inheritance 
+
+many declarations that programmers would like to write are actually unsafe due to multiple inheritance.
+While the rules in Section~\ref{sec:rules} ensure type safety 
+for overloaded functions (including generic functions)
+
+
+% To allow more overloaded functions such as `simple`, `tail`, and `foo`
+% described in Section~\ref{sec:problems},
+% we extend the overloading rules using \emph{exclusion} relations on types.
+
+\subsection{Type Exclusion}
+\label{sec:exc-spec}
 \input{exc-spec}
 
 % \subsection{Overloading Rule with Polymorphic Exclusion}

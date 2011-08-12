@@ -277,9 +277,9 @@ components, separate compilation, Fortress, meet rule}
 \subsection{Overloading Resolution Safety}\label{sec:safety}
 \input{safety}
 
-\section{Valid and Invalid Overloaded Functions}
-\label{sec:problems}
-\input{problems}
+% \section{Valid and Invalid Overloaded Functions}
+% \label{sec:problems}
+% \input{examples}
 
 %\section{More Permissive Overloading}
 \section{Exclusion}

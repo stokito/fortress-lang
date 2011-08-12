@@ -5,8 +5,8 @@ A fundamental problem is that a type such as `BadList` might be a subtype
 of multiple instantiations of the type constructor `List` (in this case,
 a subtype of `List[\ZZ\]` directly and of `List[\String\]` via `ArrayList[\String\]`).
 A type hierarchy in which
-some type extends multiple instantiations of the same type constructor is said
-to exhibit \emph{multiple instantiation inheritance} \cite{kennedy07}.
+some type is a subtype of multiple instantiations of the same type constructor is said
+to exhibit \emph{multiple-instantiation inheritance} \cite{kennedy07}.
 
 We address this problem by imposing an additional restriction on well-formed class tables,
 which, in effect, adds additional power to the exclusion relation:
