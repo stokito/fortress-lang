@@ -36,6 +36,7 @@ import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
+import com.sun.fortress.compiler.index.DeclaredFunction;
 import com.sun.fortress.compiler.index.DeclaredMethod;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Functional;
@@ -1324,13 +1325,63 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // Static initializer for this class.
         // Since all top-level fields and singleton objects are singleton inner classes,
-        // this does nothing.
+        // this does nothing for these.
         mv = cw.visitCGMethod(ACC_STATIC,
                 "<clinit>",
                 "()V",
                 null,
                 null);
 
+        /*
+         * Dynamic inference caching tables
+         * 
+         * Any top-level overloaded function that is generic (either from its own
+         * definition or its defining trait in the case of functional methods)
+         * may be dynamically instantiated.  
+         * 
+         * In the declaring component, we keep tables with instances of the
+         * instantiated generic function to avoid always invoking the
+         * classloader.  Because of variance, we cannot
+         * necessarily make assumptions based on the static types, even
+         * from instantiated traits/objects, which is why even tables for functional
+         * methods are put at the Component level
+         */
+        
+        // tables to cache dynamic instantiations of generic functions
+        for(MultiMap<Integer,Functional> overloadDefns : this.topLevelOverloads.values()) {
+            for (Set<Functional> paramDefns : overloadDefns.values()) {
+                for (Functional def : paramDefns) {
+                    if (def.staticParameters().size() > 0 ||                              //if method generic
+                            ( def instanceof FunctionalMethod &&                          //or if it is a functional method
+                              ((FunctionalMethod) def).traitStaticParameters().size() > 0 //and the defining trait is generic
+                            )                                                             //then need a cache for instantiations
+                       ) {
+                        
+                        //table name built off the unambiguous name for the function definition (includes line numbers)
+                        String tableName = Naming.cacheTableName(def.unambiguousName().getText());
+                        
+                        //owning class is the component class
+                        String className =  Naming.dotToSep(x.getName().getText());
+                        
+                        //A) declare static field
+                        //B) in static initializer:
+                        //   1) new table
+                        //   2) call constructor
+                        //   3) store into static field
+                        
+                        cw.visitField(ACC_PUBLIC + ACC_STATIC + ACC_FINAL,   //A)
+                                      tableName, 
+                                      Naming.CACHE_TABLE_DESC,
+                                      null, null);
+                        mv.visitTypeInsn(NEW, Naming.CACHE_TABLE_TYPE); //B.1)
+                        mv.visitInsn(DUP);
+                        mv.visitMethodInsn(INVOKESPECIAL, Naming.CACHE_TABLE_TYPE, "<init>", "()V"); //B.2)
+                        mv.visitFieldInsn(PUTSTATIC, className, tableName, Naming.CACHE_TABLE_DESC); //B.3)
+                    }
+                }
+            }
+        }
+        
         voidEpilogue();
 
         for ( Decl d : x.getDecls() ) {

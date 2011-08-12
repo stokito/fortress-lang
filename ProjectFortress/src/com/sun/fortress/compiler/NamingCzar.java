@@ -164,6 +164,7 @@ public class NamingCzar {
     public static final String internalObject     = org.objectweb.asm.Type.getInternalName(Object.class);
     public static final String internalString     = org.objectweb.asm.Type.getInternalName(String.class);
     public static final String internalSingleton  = internalObject;
+    public static final String internalClass      = org.objectweb.asm.Type.getInternalName(Class.class);
 
     // If you change these, you may also need to change items in file FortressMethodAdapter.java
     public static final String descFloat         = org.objectweb.asm.Type.getDescriptor(float.class);
@@ -175,6 +176,8 @@ public class NamingCzar {
     public static final String descJavaBufferedReader = Naming.internalToDesc(internalJavaBufferedReader);
     public static final String descJavaBufferedWriter = Naming.internalToDesc(internalJavaBufferedWriter);
     public static final String descString        = Naming.internalToDesc(internalString);
+    public static final String descObject        = Naming.internalToDesc(internalObject);
+    public static final String descClass        = Naming.internalToDesc(internalClass);
     public static final String stringArrayToVoid = Naming.makeMethodDesc(makeArrayDesc(descString), Naming.descVoid);
     public static final String internalFortressIntLiteral  = makeFortressInternal("IntLiteral");
     public static final String internalFortressFloatLiteral = makeFortressInternal("FloatLiteral");

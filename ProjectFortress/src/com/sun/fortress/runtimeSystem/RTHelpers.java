@@ -5,6 +5,7 @@
 package com.sun.fortress.runtimeSystem;
 
 import com.sun.fortress.compiler.runtimeValues.RTTI;
+import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.Useful;
 
 public class RTHelpers {
@@ -126,57 +127,58 @@ public class RTHelpers {
         throw new Error("Not supposed to happen; some template class must be missing.");
     }
 
-    public static Object loadClosureClass(String stem, RTTI[] params) {
+    public static Object loadClosureClass(BAlongTree t, String stem, RTTI[] params) {
+        //compute hashed key from RTTIs
+        long hash = 0;
+        for(int i = 0; i < params.length; i++) {
+            hash = hash + params[i].getSN()*MagicNumbers.a(i);
+        }
+        
+        //look in tree
+        Object o = t.get(hash);
+        if (o != null) 
+            return o;
+        
+        //otherwise, get new instance by building class to get
         StringBuilder paramList = new StringBuilder(Naming.LEFT_OXFORD);
-        for (int i = 0; i < params.length-1; i++) paramList.append(params[i].className() + ",");
+        for (int i = 0; i < params.length-1; i++) paramList.append(params[i].className() + ";");
         paramList.append(params[params.length-1].className() + Naming.RIGHT_OXFORD);
         int insertLoc = stem.indexOf(Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD);
         String className = stem.substring(0,insertLoc) + paramList.toString() + stem.substring(insertLoc+2);
         String class_we_want = Naming.sepToDot(Naming.mangleFortressIdentifier(className));
-        Class cl;
-        try {
-            cl = Class.forName(class_we_want); //ONLY.loadClass(Naming.sepToDot(class_we_want), false);
-            return cl.newInstance();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException("class " + class_we_want + " failed to load");
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
         
-        throw new Error("Not supposed to happen; some template class must be missing.");
+        //load closure class and save into table
+        return loadClosureClass(hash,t,class_we_want);   
     }
 
-    public static Object loadClosureClass(String stem, RTTI param1) {
+    public static Object loadClosureClass(BAlongTree t, String stem, RTTI param1) {
         RTTI[] params = { param1 };
-        Object cclass = loadClosureClass(stem, params); 
+        Object cclass = loadClosureClass(t, stem, params); 
         return cclass;
     }
 
-    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2) {
+    public static Object loadClosureClass(BAlongTree t, String stem, RTTI param1, RTTI param2) {
         RTTI[] params = { param1, param2 };
-        return loadClosureClass(stem, params);
+        return loadClosureClass(t, stem, params);
     }
 
-    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2, RTTI param3) {
+    public static Object loadClosureClass(BAlongTree t, String stem, RTTI param1, RTTI param2, RTTI param3) {
         RTTI[] params = { param1, param2, param3 };
-        return loadClosureClass(stem, params);
+        return loadClosureClass(t, stem, params);
     }
 
-    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4) {
+    public static Object loadClosureClass(BAlongTree t, String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4) {
         RTTI[] params = { param1, param2, param3, param4 };
-        return loadClosureClass(stem, params);
+        return loadClosureClass(t, stem, params);
     }
 
-    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5) {
+    public static Object loadClosureClass(BAlongTree t, String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5) {
         RTTI[] params = { param1, param2, param3, param4, param5 };
-        return loadClosureClass(stem, params);
+        return loadClosureClass(t, stem, params);
     }
 
-    public static Object loadClosureClass(String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5, RTTI param6) {
+    public static Object loadClosureClass(BAlongTree t, String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5, RTTI param6) {
         RTTI[] params = { param1, param2, param3, param4, param5, param6 };
-        return loadClosureClass(stem, params);
+        return loadClosureClass(t, stem, params);
     }
 }

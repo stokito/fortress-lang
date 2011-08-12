@@ -29,7 +29,7 @@ value trait TestMaybe[\T extends Equality[\T\]\] extends { Equality[\TestMaybe[\
     opr |self| : ZZ32
     getDefault(_: T): T
     opr IN(y:T, self): Boolean
-    opr SQCAP(self, o: TestMaybe[\T\]): TestMaybe[\T\]
+    opr SQCAP(self, other: TestMaybe[\T\]): TestMaybe[\T\] = other
 end
 
 value object TestJust[\U extends Equality[\U\]\](x: U) extends TestMaybe[\U\]

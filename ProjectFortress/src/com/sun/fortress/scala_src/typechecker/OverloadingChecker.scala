@@ -30,6 +30,7 @@ import com.sun.fortress.compiler.index.{Functional => JavaFunctional}
 import com.sun.fortress.compiler.index.{FunctionalMethod => JavaFunctionalMethod}
 import com.sun.fortress.compiler.index.{Method => JavaMethod}
 import com.sun.fortress.compiler.index.{Variable => JavaVariable}
+import com.sun.fortress.compiler.index.{HasSelfType => JavaHasSelfType}
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.exceptions.InterpreterBug.bug
@@ -96,7 +97,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                              : Set[((JavaList[StaticParam],Type,Type,Option[Int]), Span)] =
       set.filter(s => isFunction(s) &&
                       (!onlyConcrete || s.asInstanceOf[JavaFunctional].body.isSome))
-         .map(f => ((f.staticParameters,
+         .map(f => ((getStaticParameters(f, true),
                      paramsToType(f.parameters, f.getSpan),
                      f.getReturnType.unwrap,
                      if (isFunctionalMethod(f))
@@ -110,7 +111,8 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
       set.filter(p => isFunctionalMethod(p._1) && p._1.asInstanceOf[JavaFunction].body.isSome)
          .map(p => {
               val (f, replacer) = p
-              ((f.staticParameters,
+              //TODO: Figure out whether I should get the lifted parameters or not. The original code did.
+              ((getStaticParameters(f, true),
                 replacer.replaceIn(paramsToType(f.parameters, f.getSpan)),
                 replacer.replaceIn(f.getReturnType.unwrap),
                 Some(p._1.asInstanceOf[JavaFunctionalMethod].selfPosition)),
@@ -122,12 +124,13 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
       set.filter(p => isDeclaredMethod(p._1))
          .map(p => {
               val (f, replacer) = p
-              ((f.staticParameters,
+              ((getStaticParameters(f, false),
                 replacer.replaceIn(paramsToType(f.selfType.unwrap, f.parameters, f.getSpan)),
                 replacer.replaceIn(f.getReturnType.unwrap),
                 None),
                f.getSpan)})
-
+               
+               
     /* Called by com.sun.fortress.compiler.StaticChecker.checkComponent
      *       and com.sun.fortress.compiler.StaticChecker.checkApi
      */

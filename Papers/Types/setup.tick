@@ -1,5 +1,14 @@
-\TODO{Something about how this is all standard;
-we are just establishing terminology/notation}
+In this section, 
+we describe the standard parts of the type system 
+we consider in this paper, 
+and establish terminology and notation 
+for entities in this system.
+To minimize the syntactic overhead, 
+we avoid introducing a new language 
+and instead give a straightforward formalization of the type system.
+Novel parts of the type system, 
+including the rules for type checking overloaded function declarations, 
+are described in later sections.
 
 \subsection{Types}
 
@@ -19,54 +28,55 @@ we define a world of types ranged over by metavariables $S$, $T$, $U$, $V$, and 
 % consisting of intersection and union types. 
 % In addition, 
 % there are two special constructed types, \Any\ and \BottomType, explained below.
-A type is of one of five forms:
-a \emph{type variable}; 
-a \emph{constructed type}, 
-which is either a type constructor application `C[\T_bar\]`,  
+Types are of five forms:
+\emph{type variables} (ranged over by metavariables $X$, $Y$, and $Z$);
+\emph{constructed types} (ranged over by metavariables $K$, $L$, $M$ and $N$), 
+consisting of the special constructed type \Any\ 
+and type constructor applications, 
+written `C[\T_bar\]`, 
 where `C` is a type constructor 
-and `T_bar` is a list of types, 
-or the special constructed type \Any;
-a \emph{structural type},
-which is either an arrow type or a tuple type;
-a \emph{compound type},
-which is either an intersection or union type; 
-or the special type \BottomType, 
+and `T_bar` is a list of types;
+\emph{structural types},
+consisting of arrow types and tuple types;
+\emph{compound types}, 
+consisting of intersection types and union types;
+and the special type \BottomType, 
 which represents the uninhabited type 
 (i.e., no value belongs to \BottomType).
-We use metavariables $X$, $Y$ and $Z$ 
-to range over type variables, 
-and metavariables $K$, $L$, $M$ and $N$ 
-to range over constructed types.
 The abstract syntax of types is defined in BNF as follows
 (where $\bar{\emph{A}}$ indicates 
 a possibly empty comma-separated sequence of syntactic elements $\emph{A}$):
 \[
 \begin{array}{@{}l@{\;}l@{\;}l@{\;\;\;\;\;\;}l@{}}
 \emph{T} &::=& \emph{X} & \hbox{\rm type variable}\\
+&\mid& \Any \\
 &\mid& \emph{C}\llbracket\bar{\emph{T}}\rrbracket & \hbox{\rm type constructor application}\\
 &\mid& \emph{T} \rightarrow \emph{T} & \hbox{\rm arrow type}\\
 &\mid& ( \bar{\emph{T}} ) & \hbox{\rm tuple type}\\
 &\mid& \emph{T} \cap \emph{T} & \hbox{\rm intersection type}\\
 &\mid& \emph{T} \cup \emph{T} & \hbox{\rm union type}\\
-&\mid& \Any \\
 &\mid& \BottomType \\
 \end{array}
 \]
 
-A tuple type of length one is synonymous with its element type. 
-A tuple type with any \BottomType\ element 
+A type may have multiple syntactic forms.\!\footnote{We abuse terminology here 
+by not distinguishing syntactic type terms from semantic types.}
+In particular,
+a tuple type of length one is synonymous with its element type, 
+and a tuple type with any \BottomType\ element 
 is synonymous with \BottomType.
+In addition, 
+any types that are provably equivalent as defined below 
+are also synonymous.
+
 As in Fortress, 
 compound types---intersection and union types---and \BottomType\ 
 are \emph{not} first-class:
-they cannot be written in a program; 
+these forms of types cannot be written in a program; 
 rather, they are used by the type analyzer during type checking.
 For example, type variables may have multiple bounds, 
 so that any valid instantiation of such a variable
 must be a subtype of the intersection of its bounds.
-
-\TODO{Only considering ground types at first.
-(Define ground types.)}
 
 Type checking is done in the context of a \emph{class table} $\T$, 
 which is a set of type constructor declarations 
@@ -81,9 +91,8 @@ This declaration indicates that a type constructor application $C\obb{U}$
 (\emph{i}) is \emph{well-formed} (with respect to $\T$)
 if and only if $|\bar{U}| = |\bar{X}|$ and
 $U_i \subtypeof \substb{U}{X}M_{ij}$ 
-for $1 \leq i |\bar{U}|$ and $1 \leq j \leq |\bar{M_i}|$, 
 % for each bound $M_{ij}$
-for $1 \leq i |\bar{U}|$ and $1 \leq j \leq |\bar{M_i}|$, 
+for $1 \leq i \leq |\bar{U}|$ and $1 \leq j \leq |\bar{M_i}|$ 
 (where $\subtypeof$ is the subtyping relation defined below, 
 and $\substb{U}{X}M_{ij}$ is $M_{ij}$ 
 with $U_k$ substituted for each occurrence of $X_k$ in $M_{ij}$ 
@@ -96,6 +105,9 @@ by taking the reflexive and transitive closure
 of the subtyping relation derived from the declarations in the class table.
 In addition, 
 every type is a subtype of \Any\ and a supertype of \BottomType.
+
+
+
 For any type $T$ (of any form),
 we write $T \in \T$ to mean that 
 every constructed type occurring in type $T$
@@ -253,7 +265,7 @@ other information about the arguments is needed.
 \TODO{Context could be relevant.
 We use return type rule to ensure it's not.}
 
-In a sound type system,
+In a safe type system,
 if an expression is determined by the type system to have type `T`, 
 then every value computed by the expression at run time
 will belong to type `T`; 
