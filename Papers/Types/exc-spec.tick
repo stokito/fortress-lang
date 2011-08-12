@@ -4,7 +4,7 @@ $S \exc T$ asserts that types $S$ and $T$ have no common subtypes other than \Bo
 This allows us to describe explicitly what is typically only implicit in single-inheritance
 class hierarchies.
 
-We define the exclusion relation by extending type constructor declarations with
+We define the exclusion relation by augmenting type constructor declarations with
 two new optional clauses, `excludes` and `comprises`:
 \[
 C\tplist{X}{M} \extends `{N_bar} [excludes {L_bar}] [comprises {K_bar}]`
@@ -117,7 +117,7 @@ That is,
 for an application $C\obb{T}$ 
 of a declaration with the `excludes` and/or `comprises` clause above,\\[-.2em]
 \begin{align*}
-\myexcludes{C\obb{T}}  &= \{ \bar{\substb{T}{X}M} \} \\
+\myexcludes{C\obb{T}}  &= \{ \bar{\substb{T}{X}L} \} \\
 \mycomprises{C\obb{T}} &= \{ \bar{\substb{T}{X}K} \}
 \end{align*}
 

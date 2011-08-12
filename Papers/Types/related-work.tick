@@ -71,6 +71,31 @@ implemented across modules.
 On the other hand, ML$_\le$ allows variance annotations on type constructors---% 
 something we attribute to future work.
 
+\TODO{Some other things to possibly mention about Bourdoncle and Merz:}
+\begin{itemize}
+
+\item
+They have a principal type, 
+which makes the return type rule easy, 
+because we don't need to compute a meet:
+we can just compare against the given return type.
+
+\item
+They don't have exclusion.
+
+\item 
+They restrict their ````patterns'' so that each type variable 
+can occur at most once.
+Also, the type of each parameter must either be a single type variable 
+or a constructed type whose arguments are type variables.
+The latter restriction avoids dealing with complicated ML patterns.
+I think the former serves the same purpose, actually.
+I'm not sure offhand what the implication of an analogous restriction 
+in our system would be.
+I think it may make unification trivial.
+
+\end{itemize}
+
 Litvinov~\cite{litvinov98} developed a type system for the Cecil language,
 which supports bounded parametric polymorphism and multimethods.
 Because Cecil has a type-erasure semantics, 
