@@ -34,11 +34,11 @@ for sets of overloaded function definitions.
 Such a set is \emph{well-formed with respect to a class table}
 if it satisfies all these rules using the subtyping relation 
 induced by the class table.
+In Section~\ref{sec:safety},
+we show that any well-formed set of overloaded function declarations is safe.
 We describe how to mechanically verify these rules in a modular way
 in terms of subtyping relations on universal and existential types 
-in Section~\ref{sec:checking},
-and we show that any valid set of overloaded function declarations is safe 
-in Section~\ref{sec:safety}.
+in Section~\ref{sec:checking}.
 
 \TODO{Discuss intended minimality of these rules?}
 
@@ -54,6 +54,10 @@ if it satisfies the three rules described below.
 
 \TODO{We broke up meet rule in intro into two rules here.}
 
+The meet rule of Castagna imposed two conditions:
+the existence of a meet and its uniqueness.
+We split these into two rules.
+
 To avoid the obvious ambiguity, 
 $\D(f)$ should not contain equally specific declarations:
 for each pair of overloaded declarations, 
@@ -67,6 +71,8 @@ In other words,
 there are no (distinct) declarations $d_1, d_2 \in \D(f)$ 
 such that $d_1 \ms d_2$ and $d_2 \ms d_1$.
 \end{description}
+
+\TODO{Phrase the no duplicates rule as about a pair of definitions?}
 
 A pair of declarations is a valid overloading 
 if for any call to which both declarations are applicable,
@@ -83,9 +89,15 @@ such that $d_0$ is applicable to $T$
 if and only if both $d_1$ and $d_2$ are applicable to $T$.
 \end{description}
 
+\TODO{Mention implicit `BottomType` definition?}
+
 \TODO{Discuss what types $T$ we must consider, 
 and relevance to extensibility.}
 
+\TODO{Note the following ````lemma'':}
+If one overloaded definition is strictly more specific than another 
+then that pair of definitions satisfies the no duplicates rule 
+and the meet rule.
 
 If one monomorphic declaration is more specific than another monomorphic one
 then there is no ambiguity between these two declarations:
