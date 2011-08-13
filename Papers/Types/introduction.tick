@@ -172,7 +172,7 @@ but the other pairs of white brackets
 provide the type arguments to the generic type `List`.}
 
 \small
-`  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e
+`  append[\X\](x: List[\X\], y: List[\X\]): List[\X\] = e
 `
 \normalsize
 should be understood as if it stood for an infinite set of monomorphic definitions:
@@ -194,7 +194,7 @@ For example,
 a programmer might want to provide definitions 
 for specific monomorphic special cases, as in:
 \small
-`  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
+`  append[\X\](x: List[\X\], y: List[\X\]): List[\X\] = e1
   append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
 \normalsize
 If the interpretation above is taken seriously, 
@@ -211,10 +211,10 @@ which is ambiguous for calls in which the arguments are of type `List[\ZZ\]`.
 It gets worse if the programmer wishes to handle an infinite set of cases specially.  
 It would seem natural to write
 \small
-`  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
-  append[\T <: Number\](x: List[\T\], y: List[\T\]): List[\T\] = e3`
+`  append[\X\](x: List[\X\], y: List[\X\]): List[\X\] = e1
+  append[\X <: Number\](x: List[\X\], y: List[\X\]): List[\X\] = e3`
 \normalsize
-to handle specially all cases where `T` is a subtype of `Number`.
+to handle specially all cases where `X` is a subtype of `Number`.
 But the model would regard this as an overloaded function
 with an infinite number of ambiguities.
 
@@ -293,7 +293,7 @@ overloaded function definitions are (partially) ordered
 by the subtype relation on existential types.
 Adapting dispatch and the meet rule to use this new order is straightforward.
 Adapting the return type rule is somewhat more complicated 
-but checking it similarly reduces to checking subtyping relationships 
+but checking it reduces to checking subtyping relationships 
 between universal types.
 Adopting this model has made overloaded generic functions in Fortress
 both tractable and effective.
@@ -344,12 +344,12 @@ Consider, for example, the following overloaded function definitions:
 Although this overloading may seem intuitively to be valid,
 in a multiple-inheritance type system 
 that allows any type to be extended by some other module, 
-one could define a type `StringOrInteger` 
+one could define a type `StringAndInteger` 
 that extends both `String` and `ZZ`.
 In that case,
-a call to `print` with an argument of type `StringOrInteger` 
-would be ambiguous, 
-so this overloading would be rejected by our overloading rules.
+a call to `print` with an argument of type `StringAndInteger` 
+would be ambiguous.
+Thus, this overloading would be rejected by our overloading rules.
 
 To address this problem,
 Fortress defines an \emph{exclusion relation} on types, 
@@ -375,6 +375,8 @@ to improve expressivity
 by accommodating overloadings that would otherwise be rejected.
 The proof of safety in Section~\ref{sec:safety} 
 covers the rules under this extended type system.
+
+\TODO{Mention multiple instantiation exclusion?}
 
 % Nonetheless, 
 % we show in Section~\ref{sec:problems} 

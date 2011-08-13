@@ -65,21 +65,20 @@ we cannot define `List`
 so that the definitions for `append` satisfy the return type rule.
 
 To see this, 
-suppose that we have the following type constructor declaration:
-
-\small
-`  BadList <: { List[\ZZ\], List[\String\] }
-`
-\normalsize
-and consider the first pair of overloaded definitions
+consider the following overloaded definitions (from the introduction):
 
 \small
 `  append[\T\](x: List[\T\], y: List[\T\]): List[\T\]
   append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\]
 `
 \normalsize
-and the type `(BadList, BadList)`.
-Both definitions are applicable to this type 
+and suppose that we have the following type constructor declaration:
+
+\small
+`  BadList <: { List[\ZZ\], List[\String\] }
+`
+\normalsize
+Both definitions are applicable to the type `(BadList, BadList)`,
 and the monomorphic one is more specific.
 Two instances of the generic definition are applicable to this type:
 

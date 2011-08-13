@@ -1,3 +1,7 @@
+\TODO{Polish this section, add examples, 
+and fix it so that it comes after the exclusion section 
+rather than before.}
+
 We now reconsider the overloaded generic function definitions from the introduction, 
 and also some new ones, 
 to see whether they are permitted by the rules in Section~\ref{sec:rules}.

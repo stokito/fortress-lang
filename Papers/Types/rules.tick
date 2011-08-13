@@ -94,6 +94,9 @@ if and only if both $d_1$ and $d_2$ are applicable to $T$.
 \TODO{Discuss what types $T$ we must consider, 
 and relevance to extensibility.}
 
+\TODO{Explain motivation for intersection types (i.e., as meet).
+Perhaps this belongs in Types section.}
+
 \TODO{Note the following ````lemma'':}
 If one overloaded definition is strictly more specific than another 
 then that pair of definitions satisfies the no duplicates rule 

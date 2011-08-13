@@ -277,10 +277,6 @@ components, separate compilation, Fortress, meet rule}
 \subsection{Overloading Resolution Safety}\label{sec:safety}
 \input{safety}
 
-% \section{Valid and Invalid Overloaded Functions}
-% \label{sec:problems}
-% \input{examples}
-
 %\section{More Permissive Overloading}
 \section{Exclusion}
 \label{sec:exclusion}
@@ -290,6 +286,10 @@ components, separate compilation, Fortress, meet rule}
 %   restriction in kennedy-pierce paper
 % Powerful for computing meets
 \input{exclusion}
+
+\section{Valid and Invalid Overloaded Functions}
+\label{sec:examples}
+\input{examples}
 
 \section{Exclusion with Constraints}\label{sec:constraints}
 \input{exc-constraints}
