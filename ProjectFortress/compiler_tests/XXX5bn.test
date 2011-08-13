@@ -1,0 +1,19 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled5.bn
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.bn.fss:16:1-14:\n\
+\ Cannot infer type for function g() because it has reference cycle: g(), Foo.m1(), Foo.m2(), Foo.m3(self:Foo), f(), g()\n\
+${STATIC_TESTS_DIR}/Compiled5.bn.fss:16:7-13:\n\
+\ The return type for m1 could not be inferred\n\
+File Compiled5.bn.fss has 2 errors.\n
+compile_out_equals=

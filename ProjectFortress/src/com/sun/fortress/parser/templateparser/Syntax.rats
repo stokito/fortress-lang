@@ -1,0 +1,31 @@
+/*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress macro language.
+ */
+module com.sun.fortress.parser.templateparser.Syntax(Identifier, Keyword, Spacing, Symbol, Expr,
+                                      DelimitedExpr, LocalDecl, Unicode, Header,
+                                      Type);
+
+import Identifier;
+import Keyword;
+import Spacing;
+import Symbol;
+import Expr;
+import DelimitedExpr;
+import LocalDecl;
+import Unicode;
+import Header;
+import Type;
+
+modify com.sun.fortress.parser.Syntax(Identifier, Keyword,
+Spacing, Symbol, Expr, DelimitedExpr, LocalDecl, Unicode, Header, Type);

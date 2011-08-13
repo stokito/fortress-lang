@@ -1,0 +1,72 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component simpleBig
+import List.{...}
+export Executable
+
+opr BIG STAR[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
+    Comprehension[\T,Number,Number,Number\](fn x => x, SumReduction, cast[\Number\])
+
+opr BIG STAR[\T extends Number\](g: Generator[\T\]): T =
+    __bigOperatorSugar[\T,Number,Number,Number\](BIG STAR[\T\](), g)
+
+run():() = do
+    body(x:ZZ32): RR64 = if x MOD 2 = 0 then x else 1.0 x end
+
+    p8 : List[\ZZ32\] = <|[\ZZ32\] x + y | x <- 1#10, y<-1#x |>
+    println(p8)
+    assert(SUM p8, 605, "SUM p8")
+
+    p6 : List[\ZZ32\] = BIG <|[\ZZ32\] x + y | x <- 1#10, y<-1#x |>
+    println(p6)
+    assert(SUM p6, 605, "SUM p6")
+
+    p7 : List[\RR64\] = <| body(x + y) | x <- 1#10, y<-1#x |>
+    println(p7)
+    assert(SUM p7, 605.0, "SUM p7")
+
+    p0 = BIG STAR[\ZZ32\] [x<-0#10] x
+    println(p0)
+    assert(p0,45,"BIG STAR [x<-0#10] x")
+
+    p9 = BIG STAR [x<-0#10] x
+    println(p0)
+    assert(p9,45,"BIG STAR [x<-0#10] x")
+
+    p1 = BIG STAR [x<-0#10] 2 x + 1
+    println(p1)
+    assert(p1,100,"BIG STAR [x <- 0#10] 2x+1")
+
+    p2 = BIG STAR (0#10)
+    println(p2)
+    assert(p2,45,"BIG STAR (0#10)")
+
+    p3 = BIG STAR (5#0)
+    println(p3)
+    assert(p3,0,"BIG STAR (5#0)")
+
+    p4 = BIG STAR [x<-0#10] body(3 x + 1)
+    println(p4)
+    assert(p4,145.0,"BIG STAR [x<-0#10] body(3x+1)")
+
+    s : ZZ32 := 0
+    s += x + y, x <- seq(1#10), y <- seq(1#x)
+    println(s)
+    assert(s,605,"loop x,y")
+
+    p5 = BIG STAR [x<-1#10, y<-1#x] (x+y)
+    println(p5)
+    assert(p5,605,"BIG STAR [x<-1#10, y<-1#x] (x+y)")
+
+  end
+
+end
