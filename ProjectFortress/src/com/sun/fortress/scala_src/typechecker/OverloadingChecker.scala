@@ -82,7 +82,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                               onlyConcrete)
       if ( index.variables.keySet.contains(f) )
         index.variables.get(f) match {
-          case DeclaredVariable(lvalue)
+          case SDeclaredVariable(lvalue)
                if lvalue.getIdType.unwrap.isInstanceOf[ArrowType] =>
             val ty = lvalue.getIdType.unwrap.asInstanceOf[ArrowType]
             fns.+(((new ArrayList[StaticParam](), ty.getDomain, ty.getRange, None),
@@ -542,10 +542,10 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         result = result + f
       }
       result = result.filter {
-        case DeclaredFunction(_) => true
+        case SDeclaredFunction(_) => true
         case _ => false
       }
-      result.map { case DeclaredFunction(fd) => fd }
+      result.map { case SDeclaredFunction(fd) => fd }
     }
 
     private def coveredBy(f: JavaFunction, set: Set[JavaFunction]): Boolean = {
@@ -604,24 +604,24 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     }
 
     def isDeclaredMethod(f: JavaFunctional) = f match {
-        case DeclaredMethod(_,_) => true
+        case SDeclaredMethod(_,_) => true
         case _ => false
     }
 
     def isFunction(f: JavaFunctional) = f match {
-        case DeclaredFunction(_) => true
-        case FunctionalMethod(_,_) => true
-        case Constructor(_,_,_,_,_) => true
+        case SDeclaredFunction(_) => true
+        case SFunctionalMethod(_,_) => true
+        case SConstructor(_,_,_,_,_) => true
         case _ => false
     }
 
     def isFunctionalMethod(f: JavaFunctional) = f match {
-        case FunctionalMethod(_,_) => true
+        case SFunctionalMethod(_,_) => true
         case _ => false
     }
 
     def isDeclaredVariable(v: JavaVariable) = v match {
-        case DeclaredVariable(_) => true
+        case SDeclaredVariable(_) => true
         case _ => false
     }
 

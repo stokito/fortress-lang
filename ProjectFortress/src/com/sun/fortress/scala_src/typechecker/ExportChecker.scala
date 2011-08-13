@@ -17,7 +17,6 @@ import _root_.java.util.{Set => JavaSet}
 import edu.rice.cs.plt.collect.CollectUtil
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.tuple.{Option => JavaOption}
-
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index.ApiIndex
 import com.sun.fortress.compiler.index.ComponentIndex
@@ -222,8 +221,8 @@ object ExportChecker {
         // v should be in this component
         if ( vsInComp.contains(v) ) {
           (api.variables.get(v), component.variables.get(v)) match {
-            case (DeclaredVariable(lvalueInAPI),
-                  DeclaredVariable(lvalueInComp)) =>
+            case (SDeclaredVariable(lvalueInAPI),
+                  SDeclaredVariable(lvalueInComp)) =>
               val ltopt = NodeUtil.optTypeOrPatternToType(lvalueInAPI.getIdType)
               val rtopt = NodeUtil.optTypeOrPatternToType(lvalueInComp.getIdType)
               // should be with the same type and the same mutability
@@ -241,7 +240,7 @@ object ExportChecker {
           }
         } else {
           api.variables.get(v) match {
-            case DeclaredVariable(lvalue) =>
+            case SDeclaredVariable(lvalue) =>
               // possibly abstract function declarations
               if ( lvalue.getIdType.unwrap.isInstanceOf[ArrowType] &&
                    component.functions.firstSet.contains(v) ) {
@@ -280,7 +279,7 @@ object ExportChecker {
         } else {
           for ( d <- toSet(fnsInAPI.matchFirst(f)) ) {
             d match {
-              case DeclaredFunction(fd) =>
+              case SDeclaredFunction(fd) =>
                 missingDecls = fd :: missingDecls
               case _ =>
             }
@@ -746,81 +745,4 @@ object ExportChecker {
 
   private def toOptList[T](ol: JavaOption[JavaList[T]]): Option[List[T]] =
     if (ol.isNone) None else Some(toListFromImmutable(ol.unwrap))
-}
-
-/* Extractor Objects
- * In order to use pattern matching over Java classes,
- * the following extractor objects are defined.
- */
-/* com.sun.fortress.compiler.index.Variable
- *     comprises { DeclaredVariable, ParamVariable, SingletonVariable }
- */
-object DeclaredVariable {
-  def unapply(variable:JavaDeclaredVariable) = Some(variable.ast)
-  def apply(lvalue:LValue, decl:VarDecl) = new JavaDeclaredVariable(lvalue, decl)
-}
-
-object ParamVariable {
-  def unapply(variable:JavaParamVariable) = Some(variable.ast)
-  def apply(param:Param) = new JavaParamVariable(param)
-}
-
-object SingletonVariable {
-  def unapply(variable:JavaSingletonVariable) = Some(variable.declaringTrait)
-  def apply(id:Id) = new JavaSingletonVariable(id)
-}
-
-/* com.sun.fortress.compiler.index.Functional
- *     comprises { Function, Method }
- * Function
- *     comprises { Constructor, DeclaredFunction, FunctionalMethod }
- * Method
- *     comprises { DeclaredMethod, FieldGetterMethod, FieldSetterMethod }
- * FunctionalMethod
- *     comprises { ParametricOperator }
- */
-object Constructor {
-  def unapply(function:JavaConstructor) =
-    Some((function.declaringTrait, function.staticParameters,
-          JavaOption.wrap(function.parameters),
-          JavaOption.wrap(function.thrownTypes),
-          function.where))
-  def apply(id:Id, staticParams: JavaList[StaticParam],
-            params: JavaOption[JavaList[Param]],
-            throwsClause: JavaOption[JavaList[Type]],
-            where: JavaOption[WhereClause]) =
-    new JavaConstructor(id, staticParams, params, throwsClause, where)
-}
-
-object DeclaredFunction {
-  def unapply(function:JavaDeclaredFunction) = Some(function.ast)
-  def apply(fndecl:FnDecl) = new JavaDeclaredFunction(fndecl)
-}
-
-object FunctionalMethod {
-  def unapply(function:JavaFunctionalMethod) =
-    Some((function.ast, function.declaringTrait))
-  def apply(fndecl:FnDecl, tdecl:TraitObjectDecl, traitParams:JavaList[StaticParam]) =
-    new JavaFunctionalMethod(fndecl, tdecl, traitParams)
-}
-
-object DeclaredMethod {
-  def unapply(method:JavaDeclaredMethod) =
-    Some((method.ast, method.declaringTrait))
-  def apply(fndecl:FnDecl, tdecl:TraitObjectDecl) =
-    new JavaDeclaredMethod(fndecl, tdecl)
-}
-
-object FieldGetterMethod {
-  def unapply(method:JavaFieldGetterMethod) =
-    Some((method.ast, method.declaringTrait))
-  def apply(binding:Binding, tdecl:TraitObjectDecl) =
-    new JavaFieldGetterMethod(binding, tdecl)
-}
-
-object FieldSetterMethod {
-  def unapply(method:JavaFieldSetterMethod) =
-    Some((method.ast, method.declaringTrait))
-  def apply(binding:Binding, tdecl:TraitObjectDecl) =
-    new JavaFieldSetterMethod(binding, tdecl)
 }

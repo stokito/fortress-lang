@@ -6,7 +6,7 @@
 \centering
 
 \textbf{Logical rules}
-% \vspace*{-1em}
+\vspace*{-1em}
 
 \infrule
   {}
@@ -14,7 +14,20 @@
 
 \infrule
   {}
+  {\jcsub{M}{\BottomType}{\FALSE}}
+  
+\infrule
+  {}
+  {\jcsub{`S -> T`}{\BottomType}{\FALSE}}
+  
+\infrule
+  {}
   {\jcsub{T}{\Any}{\TRUE}}
+
+\infrule
+  {}
+  {\jcsub{\Any}{`S -> T`}{\FALSE}}
+
 
 \infrule
   {\jcsub{T}{U}{\C} \andalso \jcsub{T}{V}{\C'}}
@@ -33,25 +46,21 @@
   {\jcsub{S}{U}{\C} \andalso \jcsub{T}{U}{\C'}}
   {\jcsub{S \cup T}{U}{\C \wedge \C'}}
 
-\vspace*{3ex}
+\vspace*{2ex}
 \textbf{Variables}
-% \vspace*{-1em}
+\vspace*{-1em}
 
 \infrule
   {}
   {\jcsub{I}{I}{\TRUE}}
-  
-\infrule
-  {I  \neq J}
-  {\jcsub{I}{J}{\TODO{}}}
 
 \infrule
   {}
   {\jcsub{I}{T}{`I` \subtypeof `T`}}
  
 \infrule
-  {\jcsub{S}{\BottomType}{\C}}
-  {\jcsub{S}{I}{\C \vee `S` \subtypeof `I`}}
+  {}
+  {\jcsub{S}{I}{`S` \subtypeof `I`}}
  
 \infrule
   {}
@@ -72,13 +81,13 @@
 % \vspace*{-1em}
 
 \infrule
-  {|\bar{S}|=|\bar{T}| \andalso \forall  i . \jcsub{S_i}{T_i}{\C_i} \\
-   \forall  i . \jcsub{S_i}{\BottomType}{\D_i}}
-  {\jcsub{(\bar{S})}{(\bar{T})}{\bigwedge \C_i \vee \bigvee D_i}}
+  {|\bar{S}| = |\bar{T}| \andalso \forall  i . \quad \jcsub{S_i}{T_i}{\C_i} \\
+   \forall i . \quad \jcsub{S_i}{\BottomType}{\D_i}}
+  {\jcsub{(\bar{S})}{(\bar{T})}{(\bigwedge \C_i) \vee (\bigvee \D_i)}}
 
 \infrule
-  {\forall  i . \jcsub{S_i}{\BottomType}{\D_i}}
-  {\jcsub{(\bar{S})}{T}{\bigvee \D_i}}
+  {|\bar{S}| \neq 1 \andalso \forall i . \quad \jcsub{S_i}{\BottomType}{\C_i}}
+  {\jcsub{(\bar{S})}{T}{\bigvee \C_i}}
 
 \infrule
   {\jcsub{U}{S}{\C} \andalso \jcsub{T}{V}{\C'}}
@@ -100,21 +109,17 @@
   {}
   {\jcsub{M}{`S -> T`}{\FALSE}}
 
-\vspace*{3ex}
+\vspace*{2ex}
 \textbf{Constructed types}
 % \vspace*{-1em}
 
 \infrule
-  {\forall M \in \ancestors(`C[\S_bar\]`). \jgconstrtemplate{M}{\cequiv}{`D[\T_bar\]`}{\C_M}}
+  {C \neq D \andalso \forall M \in `C[\S_bar\]`.extends. \quad \jcsub{M}{`D[\T_bar\]`}{\C_M}}
   {\jcsub{`C[\S_bar\]`}{`D[\T_bar\]`}{\bigvee \C_M}}
 
 \infrule
-  {C \neq D}
-  {\jgconstrtemplate{`C[\S_bar\]`}{\cequiv}{`D[\T_bar\]`}{\FALSE}}
-  
-  \infrule
-  {\forall i . \jcequiv{S_i}{T_i}{C_i}}
-  {\jgconstrtemplate{`C[\S_bar\]`}{\cequiv}{`C[\T_bar\]`}{\bigwedge \C_i}}
+  {\forall i . \quad \jcequiv{S_i}{T_i}{C_i}}
+  {\jcsub{`C[\S_bar\]`}{`C[\T_bar\]`}{\bigwedge C_i}}
 
 \end{minipage}
 
