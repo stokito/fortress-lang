@@ -130,7 +130,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (s: _InferenceVarType, t: _InferenceVarType) =>
       pAnd(pUpperBound(s, t), pLowerBound(t,s))
     case (s: _InferenceVarType, t) => pUpperBound(s,t)
-    case (s, t: _InferenceVarType) => pOr(pLowerBound(t,s), pSub(s, BOTTOM))
+    case (s, t: _InferenceVarType) => pLowerBound(t,s)
     /* Type variables are special for several reasons
      *  1) Getting the bound out of a type variable is the only place where a type can increase in size during type checking.
      *     We use the history to ensure termination.
@@ -151,8 +151,19 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         else
           pSub(supers, t)(negate, nHistory)
       }
-    // Need to figure out the negation
-    case (s, t: VarType) => pSub(s, BOTTOM)
+    case (s, t@SVarType(_, id, _)) =>
+      val hEntry = (negate, true, s, t)
+      if (history.contains(hEntry))
+        False
+      else {
+        val nHistory = history + hEntry
+        val sParam = staticParam(id)
+        val supers = meet(toListFromImmutable(sParam.getExtendsClause))
+        if (negate)
+          pSub(s, supers)(negate, nHistory)
+        else
+          pSub(s, BOTTOM)
+      }
     // Trait types
     case (s: TraitType, t: TraitType) if (t==OBJECT) => pTrue()
     case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (typeCons(n1)==typeCons(n2)) =>

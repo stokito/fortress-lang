@@ -22,6 +22,7 @@ import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeUtil
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.useful._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
@@ -87,21 +88,21 @@ class ApiTypeExtractor(component: ComponentIndex,
           if ( tindex.dottedMethods.firstSet.contains(name) )
             for ( g <- toSet(tindex.dottedMethods.matchFirst(name)) ) {
               g match {
-                case DeclaredMethod(fd,_) => return reportFnDecl(api, fd)
+                case SDeclaredMethod(fd,_) => return reportFnDecl(api, fd)
                 case _ =>
               }
             }
           if ( tindex.functionalMethods.firstSet.contains(name) )
             for ( g <- toSet(tindex.functionalMethods.matchFirst(name)) ) {
               g match {
-                case FunctionalMethod(fd,_) => return reportFnDecl(api, fd)
+                case SFunctionalMethod(fd,_) => return reportFnDecl(api, fd)
                 case _ =>
               }
             }
           if ( NodeUtil.isObject(typeConses.get(owner)) &&
                typeConses.get(owner).asInstanceOf[ObjectTraitIndex].fields.keySet.contains(name) )
             typeConses.get(owner).asInstanceOf[ObjectTraitIndex].fields.get(name) match {
-              case DeclaredVariable(lvalue) => return reportLValue(api, lvalue)
+              case SDeclaredVariable(lvalue) => return reportLValue(api, lvalue)
               case _ =>
             }
         }
@@ -113,14 +114,14 @@ class ApiTypeExtractor(component: ComponentIndex,
         if ( functions.firstSet.contains(name) )
           for ( g <- toSet(functions.matchFirst(name)) ) {
             g match {
-              case DeclaredFunction(fd) => return reportFnDecl(api, fd)
+              case SDeclaredFunction(fd) => return reportFnDecl(api, fd)
               case _ =>
             }
           }
         // Check abstract function declarations of the form of variable declarations
         if ( variables.keySet.contains(name) )
           variables.get(name) match {
-            case DeclaredVariable(lvalue) => return reportLValue(api, lvalue)
+            case SDeclaredVariable(lvalue) => return reportLValue(api, lvalue)
             case _ =>
           }
       }
@@ -159,7 +160,7 @@ class ApiTypeExtractor(component: ComponentIndex,
               val tindex = typeConses.get(owner).asInstanceOf[ObjectTraitIndex]
               if ( tindex.fields.keySet.contains(name) )
                 tindex.fields.get(name) match {
-                  case DeclaredVariable(lvalue) =>
+                  case SDeclaredVariable(lvalue) =>
                     return SLValue(info, name, mods, lvalue.getIdType, mutable)
                 }
             }
@@ -170,7 +171,7 @@ class ApiTypeExtractor(component: ComponentIndex,
             val variables = exports.get(api).get.variables
             if ( variables.keySet.contains(name) )
               variables.get(name) match {
-                case DeclaredVariable(vInAPI) =>
+                case SDeclaredVariable(vInAPI) =>
                   return SLValue(info, name, mods, vInAPI.getIdType, mutable)
               }
           }
