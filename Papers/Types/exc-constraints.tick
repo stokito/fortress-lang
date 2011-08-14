@@ -18,26 +18,10 @@ when those constraints are satisfied, the assertion is also satisfied.
 These constraints on types are first generated and gathered, 
 and solved later when more information about the environment is known.
 
-% For example, because of polymorphic exclusion,
-% if we need to prove that a given type $S$ is a subtype of two instantiations `C[\T_bar\]` and
-% `C[\U_bar\]` of the same type constructor `C`, we can infer the constraints 
-% `T[i] EQUIV U[i]` for each `T[i] IN T_bar` and `U[i] IN U_bar` as necessary conditions. If these conditions cannot immediately be solved, we can propagate them so that with more information about $\bar{T}$ and $\bar{U}$ we can prove that `S <: C[\T_bar\]` and `S <: C[\U_bar\]`.
-% % More concretely, when we must prove that the two existential types from $foo$ in the previous section are equivalent, we can determine that $S \equiv T$ implies the subtyping judgment we need. We propagate the constraint that $S \equiv T$ because, if it were shown to hold, we could prove the desired subtyping judgment. The equivalence of the computed meet and candidate meet for $foo$ could thus be checked.
+Our grammar for type constraints is defined as follows:
 
-Our grammar for type constraints is defined as follows:\\[-.2em]
-\[
-\begin{array}{lll}
-\C &::=& S <: T \\
-&\mid& S \exc T \\
-&\mid& S \not<: T \\
-&\mid& S \nexc T \\
-&\mid& \C \wedge \C \\
-&\mid& \C \vee \C \\
-&\mid& \FALSE \\
-&\mid& \TRUE \\
-\end{array}
-\]
-\\
+\input{fig-constraints}
+
 A primitive constraint is either {\it positive} or {\it negative}.
 A positive primitive constraint of the form `X <: S` specifies that
 a type variable $X$ is a subtype of $S$, and likewise for `S <: X`.
@@ -52,7 +36,9 @@ The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always
 
 \paragraph{Constraint Generation}
 We introduce the following syntactic judgments to generate these constraints:
-\[ \jsub{S}{T}{\C} \andalso \jequiv{S}{T}{\C} \andalso \jexc{S}{T}{\C} \]%
+
+\input{fig-judgements}
+
 Each judgment indicates that, under assumptions $\Delta$,
 the respective predicate can be proved if the constraint $\C$ is
 satisfied. An important point about these judgments is that the

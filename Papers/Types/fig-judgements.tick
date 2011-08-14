@@ -1,0 +1,58 @@
+%%%%%%%%%%%%%%% BEGIN JUDGEMENT FIGURE %%%%%%%%%%%%%%%
+\begin{figure*}[htbp]
+\begin{minipage}[t]{.33\textwidth}
+\centering
+
+\jsub{S}{T}{\C}
+
+\jnsub{S}{T}{\C}
+
+\infrule
+  {\jsub{S}{T}{\C} \andalso \jsub{T}{S}{\C'}}
+  {\jequiv{S}{T}{\C \wedge \C'}}
+  
+\infrule
+  {\jsub{S}{T}{\C} \andalso \jsub{T}{S}{\C'}}
+  {\jnequiv{S}{T}{\C \vee \C'}}
+
+\end{minipage}%
+\begin{minipage}[t]{.33\textwidth}
+\centering
+
+\infrule
+  {\jnsub{S}{T}{\C}}
+  {\jcsub{S}{T}{\neg \C}}
+
+\infrule
+  {\jsub{S}{T}{\C}}
+  {\jcnsub{S}{T}{\neg \C}}
+
+\infrule
+  {\jnequiv{S}{T}{\C}}
+  {\jcequiv{S}{T}{\neg \C}}
+
+\infrule
+  {\jequiv{S}{T}{\C}}
+  {\jcnequiv{S}{T}{\neg \C}}
+
+\end{minipage}%
+\begin{minipage}[t]{.33\textwidth}
+\centering
+
+\jexc{S}{T}{\C}
+
+\jnexc{S}{T}{\C}
+
+\infrule
+  {\jnexc{S}{T}{\C}}
+  {\jcexc{S}{T}{\neg \C}}
+
+\infrule
+  {\jexc{S}{T}{\C}}
+  {\jcnexc{S}{T}{\neg \C}}
+
+\end{minipage}
+  \caption{Typing Judgements}
+  \label{fig:judge}
+\end{figure*}
+%%%%%%%%%%%%%%% END JUDGEMENT FIGURE %%%%%%%%%%%%%%%%%

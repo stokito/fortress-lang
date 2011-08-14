@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}[htbp]
-\newjudge{Generating constraints for subtyping}{\jsub{T}{T}{\C}}
+\newjudge{Constraints that imply subtyping}{\jsub{T}{T}{\C}}
 \\\\
 \begin{minipage}[t]{.5\textwidth}
 \centering

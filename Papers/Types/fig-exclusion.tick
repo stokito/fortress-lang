@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}[htbp]
-\newjudge{Generating constraints for exclusion}{\jexc{T}{T}{\C}}
+\newjudge{Constraints that imply exclusion}{\jexc{T}{T}{\C}}
 \\\\
 \begin{minipage}[t]{.5\textwidth}
 \centering  
@@ -122,7 +122,7 @@
 
 \infrule
   {C \neq D \andalso `object`\ C \andalso
-   \jgconstrtemplate{`C[\S_bar\]`}{\not \subtypeof}{`D[\T_bar\]`}{\C}}
+   \jnsub{`C[\S_bar\]`}{`D[\T_bar\]`}{\C}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excro}{`D[\T_bar\]`}{\C}}
 
 \infrule

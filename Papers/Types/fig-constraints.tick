@@ -1,8 +1,9 @@
-%%%%%%%%%%%%%%% BEGIN APPLICABLE FIGURE %%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%% BEGIN CONSTRAINT FIGURE %%%%%%%%%%%%%%%
 \begin{figure}
 \begin{minipage}{.45\textwidth}
 \centering
 
+\[
 \begin{array}{lll}
 \C &::=& S <: T \\
 &\mid& S \exc T \\
@@ -13,9 +14,10 @@
 &\mid& \FALSE \\
 &\mid& \TRUE \\
 \end{array}
+\]
 
 \end{minipage}
   \caption{Constraints}
-  \label{fig:application}
+  \label{fig:constraints}
 \end{figure}
-%%%%%%%%%%%%%%% END APPLICABLE FIGURE %%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%% END CONSTRAINT FIGURE %%%%%%%%%%%%%%%%%
