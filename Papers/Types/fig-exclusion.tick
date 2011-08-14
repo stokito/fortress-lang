@@ -12,13 +12,13 @@
   {\jexc{\BottomType}{T}{\TRUE}}
 
 \infrule
-  {\jcsub{T}{\BottomType}{\C}}
+  {\jsub{T}{\BottomType}{\C}}
   {\jexc{\Any}{T}{\C}}
 
 \infrule
   {\jexc{S}{U}{\C} \andalso 
    \jexc{T}{U}{\C'} \\
-   \jcsub{S \cap T}{\BottomType}{\C''}}
+   \jsub{S \cap T}{\BottomType}{\C''}}
   {\jexc{S \cap T}{U}{\C \vee \C' \vee \C''}}
 
 \infrule
@@ -107,7 +107,7 @@
 
 \infrule
   {C \neq D \andalso A = \ancestors(`C[\S_bar\]`) \\
-   \forall N \in \left(\bigcup_{M \in A} \myexcludes{M}\right). \quad \jcsub{`D[\T_bar\]`}{N}{\C_{N}}}
+   \forall N \in \left(\bigcup_{M \in A} \myexcludes{M}\right). \quad \jsub{`D[\T_bar\]`}{N}{\C_{N}}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excre}{`D[\T_bar\]`}{\bigvee \C_{N}}}
 
 \infrule
@@ -136,7 +136,7 @@
   {\jgconstrtemplate{`C[\S_bar\]`}{\excp}{`D[\T_bar\]`}{\bigvee \C_{M,N}}}
 
 \infrule
-  {\forall i .\jcnonequiv{S_i}{T_i}{\C_i}}
+  {\forall i .\jnequiv{S_i}{T_i}{\C_i}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\bexcp}{`C[\T_bar\]`}{\bigvee \C_i}}
 
 \infrule
