@@ -157,8 +157,19 @@
 % specificity between fndecls
 \newcommand{\jms}[3][\Delta]{\jgtemplate[#1]{#2}{\ms}{#3}}
 
-% constraint solving
-\newcommand{\jsolve}[3][\Delta]{\ensuremath{{#1}\,\vdash\,\textit{solve}({#2})\,=\,{#3}}}
+% constraints
+% convert a bound environment into a constraint
+\newcommand{\toConstraint}[2]{\ensuremath{\textit{toConstraint}({#1})\,=\,{#2}}}
+% convert a constraint into a bound environment
+\newcommand{\toBound}[2]{\ensuremath{\textit{toBound}({#1})\,=\,{#2}}}
+
+% apply substitution to constraint
+\newcommand{\japply}[4][\Delta]{\ensuremath{{#1}\,\vdash\,\textit{apply}({#2}, {#3})\,=\,{#4}}}
+% solve constraint to get a substitution and the residual constraints
+\newcommand{\jsolve}[4][\Delta]{\ensuremath{{#1}\,\vdash\,\textit{unify}({#2})\,=\,{#3}\,,\;{#4}}}
+
+
+
 % type reduction
 \newcommand{\jtred}[2]{\ensuremath{\Delta \vdash\,{#1} \eqred {#2}}}
 \newcommand{\jtreds}[3]{\ensuremath{\Delta \vdash\,{#1} \eqred {#2}\,,\;{#3}}}
@@ -238,7 +249,7 @@
 %% %\email{\{firstname.lastname, david.r.chase\}@oracle.com}
 %% \and
 %% University of Oregon, USA
-%% %\email{jrhil47@gmail.com}
+%% %\email{jhilburn@uoregon.edu}
 %% \and
 %% MPI-SWS, Germany
 %% %\email{skilpat@mpi-sws.org}
