@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%% BEGIN CONSTRAINT FIGURE %%%%%%%%%%%%%%%
 \begin{figure}
-\begin{minipage}{.45\textwidth}
+\begin{minipage}{.5\textwidth}
 \centering
 
 \[
@@ -15,6 +15,12 @@
 &\mid& \TRUE \\
 \end{array}
 \]
+
+\toConstraint{\Delta}{\C} \\
+\toBound{\C}{\Delta} \\
+
+\japply{\C}{\phi}{\C'} \\
+\jsolve{\C}{\phi}{\C'} \\
 
 \end{minipage}
   \caption{Constraints}
