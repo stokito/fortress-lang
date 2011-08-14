@@ -13,7 +13,8 @@
 TICKS = paper.tick introduction.tick abstract.tick related-work.tick setup.tick rules.tick \
         exclusion.tick conclusion.tick exc-preamble.tick exc-spec.tick exc-poly.tick exc-reduction.tick \
         exc-constraints.tick examples.tick safety.tick discussion.tick fig-exclusion.tick fig-subtype.tick \
-        overloading-check.tick fig-existential.tick fig-meet.tick fig-application.tick
+        overloading-check.tick fig-existential.tick fig-meet.tick fig-application.tick fig-constraints.tick \
+        fig-judgements.tick
 
 TEXS = $(TICKS:.tick=.tex)
 

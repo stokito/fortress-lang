@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}[htbp]
-\newjudge{Generating constraints for subtyping}{\jcsub{T}{T}{\C}}
+\newjudge{Generating constraints for subtyping}{\jsub{T}{T}{\C}}
 \\\\
 \begin{minipage}[t]{.5\textwidth}
 \centering
@@ -10,41 +10,41 @@
 
 \infrule
   {}
-  {\jcsub{\BottomType}{T}{\TRUE}}
+  {\jsub{\BottomType}{T}{\TRUE}}
 
 \infrule
   {}
-  {\jcsub{M}{\BottomType}{\FALSE}}
+  {\jsub{M}{\BottomType}{\FALSE}}
   
 \infrule
   {}
-  {\jcsub{`S -> T`}{\BottomType}{\FALSE}}
+  {\jsub{`S -> T`}{\BottomType}{\FALSE}}
   
 \infrule
   {}
-  {\jcsub{T}{\Any}{\TRUE}}
+  {\jsub{T}{\Any}{\TRUE}}
 
 \infrule
   {}
-  {\jcsub{\Any}{`S -> T`}{\FALSE}}
+  {\jsub{\Any}{`S -> T`}{\FALSE}}
 
 
 \infrule
-  {\jcsub{T}{U}{\C} \andalso \jcsub{T}{V}{\C'}}
-  {\jcsub{T}{U \cap V}{\C \wedge \C'}}
+  {\jsub{T}{U}{\C} \andalso \jsub{T}{V}{\C'}}
+  {\jsub{T}{U \cap V}{\C \wedge \C'}}
 
 \infrule
-  {\jcsub{S}{U}{\C} \andalso \jcsub{T}{U}{\C'} \\
+  {\jsub{S}{U}{\C} \andalso \jsub{T}{U}{\C'} \\
    \jexc{S}{T}{\C''}}
-  {\jcsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
+  {\jsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
   
 \infrule
-  {\jcsub{T}{U}{\C} \andalso \jcsub{T}{V}{\C'}}
-  {\jcsub{T}{U \cup V}{\C \vee \C'}}
+  {\jsub{T}{U}{\C} \andalso \jsub{T}{V}{\C'}}
+  {\jsub{T}{U \cup V}{\C \vee \C'}}
   
 \infrule
-  {\jcsub{S}{U}{\C} \andalso \jcsub{T}{U}{\C'}}
-  {\jcsub{S \cup T}{U}{\C \wedge \C'}}
+  {\jsub{S}{U}{\C} \andalso \jsub{T}{U}{\C'}}
+  {\jsub{S \cup T}{U}{\C \wedge \C'}}
 
 \vspace*{2ex}
 \textbf{Variables}
@@ -52,27 +52,27 @@
 
 \infrule
   {}
-  {\jcsub{I}{I}{\TRUE}}
+  {\jsub{I}{I}{\TRUE}}
 
 \infrule
   {}
-  {\jcsub{I}{T}{`I` \subtypeof `T`}}
+  {\jsub{I}{T}{`I` \subtypeof `T`}}
  
 \infrule
   {}
-  {\jcsub{S}{I}{`S` \subtypeof `I`}}
+  {\jsub{S}{I}{`S` \subtypeof `I`}}
  
 \infrule
   {}
-  {\jcsub{X}{X}{\TRUE}}
+  {\jsub{X}{X}{\TRUE}}
 
 \infrule
-  {\jcsub{\Delta(X)}{T}{\C}}
-  {\jcsub{X}{T}{\C}}
+  {\jsub{\Delta(X)}{T}{\C}}
+  {\jsub{X}{T}{\C}}
 
 \infrule
-  {\jcsub{S}{\BottomType}{\C}}
-  {\jcsub{S}{X}{\C}}
+  {\jsub{S}{\BottomType}{\C}}
+  {\jsub{S}{X}{\C}}
 
 \end{minipage}%
 \begin{minipage}[t]{.5\textwidth}
@@ -81,48 +81,48 @@
 % \vspace*{-1em}
 
 \infrule
-  {|\bar{S}| = |\bar{T}| \andalso \forall  i . \quad \jcsub{S_i}{T_i}{\C_i} \\
-   \forall i . \quad \jcsub{S_i}{\BottomType}{\D_i}}
-  {\jcsub{(\bar{S})}{(\bar{T})}{(\bigwedge \C_i) \vee (\bigvee \D_i)}}
+  {|\bar{S}| = |\bar{T}| \andalso \forall  i . \quad \jsub{S_i}{T_i}{\C_i} \\
+   \forall i . \quad \jsub{S_i}{\BottomType}{\D_i}}
+  {\jsub{(\bar{S})}{(\bar{T})}{(\bigwedge \C_i) \vee (\bigvee \D_i)}}
 
 \infrule
-  {|\bar{S}| \neq 1 \andalso \forall i . \quad \jcsub{S_i}{\BottomType}{\C_i}}
-  {\jcsub{(\bar{S})}{T}{\bigvee \C_i}}
+  {|\bar{S}| \neq 1 \andalso \forall i . \quad \jsub{S_i}{\BottomType}{\C_i}}
+  {\jsub{(\bar{S})}{T}{\bigvee \C_i}}
 
 \infrule
-  {\jcsub{U}{S}{\C} \andalso \jcsub{T}{V}{\C'}}
-  {\jcsub{`S -> T`}{`U -> V`}{\C \wedge \C'}}
+  {\jsub{U}{S}{\C} \andalso \jsub{T}{V}{\C'}}
+  {\jsub{`S -> T`}{`U -> V`}{\C \wedge \C'}}
   
 \infrule
   {|\bar{U}| \neq 1}
-  {\jcsub{`S -> T`}{(\bar{U})}{\FALSE}}
+  {\jsub{`S -> T`}{(\bar{U})}{\FALSE}}
   
 \infrule
   {|\bar{T}| \neq 1}
-  {\jcsub{M}{(\bar{T})}{\FALSE}}
+  {\jsub{M}{(\bar{T})}{\FALSE}}
 
 \infrule
   {}
-  {\jcsub{`S -> T`}{M}{\FALSE}}
+  {\jsub{`S -> T`}{M}{\FALSE}}
 
 \infrule
   {}
-  {\jcsub{M}{`S -> T`}{\FALSE}}
+  {\jsub{M}{`S -> T`}{\FALSE}}
 
 \vspace*{2ex}
 \textbf{Constructed types}
 % \vspace*{-1em}
 
 \infrule
-  {C \neq D \andalso \forall M \in `C[\S_bar\]`.extends. \quad \jcsub{M}{`D[\T_bar\]`}{\C_M}}
-  {\jcsub{`C[\S_bar\]`}{`D[\T_bar\]`}{\bigvee \C_M}}
+  {C \neq D \andalso \forall M \in `C[\S_bar\]`.extends. \quad \jsub{M}{`D[\T_bar\]`}{\C_M}}
+  {\jsub{`C[\S_bar\]`}{`D[\T_bar\]`}{\bigvee \C_M}}
 
 \infrule
-  {\forall i . \quad \jcequiv{S_i}{T_i}{C_i}}
-  {\jcsub{`C[\S_bar\]`}{`C[\T_bar\]`}{\bigwedge C_i}}
+  {\forall i . \quad \jequiv{S_i}{T_i}{C_i}}
+  {\jsub{`C[\S_bar\]`}{`C[\T_bar\]`}{\bigwedge C_i}}
 
 \end{minipage}
 
   \caption{Generating constraints for subtyping}
-  \label{fig:jcsub}
+  \label{fig:jsub}
 \end{figure*}

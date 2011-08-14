@@ -2,7 +2,7 @@ We can recover the usual subtyping judgment and define the exclusion judgment as
 \begin{tabular}{cc}
 \begin{minipage}{0.23\textwidth}
 \infrule
-{\jcsub{S}{T}{\TRUE}}
+{\jsub{S}{T}{\TRUE}}
 {\jgsub{S}{T}}
 \end{minipage}
 &
