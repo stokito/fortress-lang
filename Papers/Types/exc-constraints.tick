@@ -52,7 +52,7 @@ The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always
 
 \paragraph{Constraint Generation}
 We introduce the following syntactic judgments to generate these constraints:
-\[ \jcsub{S}{T}{\C} \andalso \jcequiv{S}{T}{\C} \andalso \jexc{S}{T}{\C} \]%
+\[ \jsub{S}{T}{\C} \andalso \jequiv{S}{T}{\C} \andalso \jexc{S}{T}{\C} \]%
 Each judgment indicates that, under assumptions $\Delta$,
 the respective predicate can be proved if the constraint $\C$ is
 satisfied. An important point about these judgments is that the
@@ -78,20 +78,20 @@ constraint; the completeness of generation entails the opposite.
 
 The constraint generation judgment for equivalence is defined entirely by the following rule:\\[-1.5em]
 \infrule
-  {\jcsub{S}{T}{\C} \andalso \jcsub{T}{S}{\C'}}
+  {\jsub{S}{T}{\C} \andalso \jsub{T}{S}{\C'}}
   {\jgconstrtemplate{S}{\equiv}{T}{\C \wedge \C'}}
 Equivalence constraint generation is complete and sound if and only if
 the constraint generation for $\subtypeof$ is.
 
 With negative constraints, we define a new judgment for ````not a subtype'' by the rule:\\[-1.5em]
 \infrule
-  {\jcsub{S}{T}{\C}}
+  {\jsub{S}{T}{\C}}
   {\jgconstrtemplate{S}{\not <:}{T}{\neg\C}}
 
 \noindent where $\neg\C$ is the negated constraint formed by applying De Morgan's laws on $\C$. Similarly, we can define ````not equivalent'' by the rule:\\[-1em]
 \infrule
-  {\jcequiv{S}{T}{\C}}
-  {\jcnonequiv{S}{T}{\neg\C}}
+  {\jequiv{S}{T}{\C}}
+  {\jnequiv{S}{T}{\neg\C}}
 These judgements are sound because constraint generation for $\subtypeof$ is complete (and complete because $\subtypeof$ is sound).
 
 
@@ -128,8 +128,8 @@ exclusion, we must add an additional rule to the judgment:\\[-1em]
 
 \infrule
   {\jgconstrtemplate{S}{\exc}{T}{\C} \andalso
-   \jcsub{S}{U}{\C'} \andalso\jcsub{T}{U}{\C''}}
-  {\jcsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
+   \jsub{S}{U}{\C'} \andalso\jsub{T}{U}{\C''}}
+  {\jsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
 
 \noindent This new rule states three possibilities for proving that the intersection $S \cap T$ is a subtype of $U$: $S$ and $T$ exclude (which means their intersection is a subtype of \BottomType), $S$ is a subtype of $U$, or $T$ is a subtype of $U$. If any of the constraints needed for these three judgments is satisfied, then $S \cap T$ is a subtype of $U$. Adding this rule should not affect completeness or soundness of constraint generation for $\subtypeof$ (since constraint generation for $\exc$ is complete and sound if constraint generation for $\subtypeof$ is).
 

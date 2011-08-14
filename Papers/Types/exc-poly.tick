@@ -126,7 +126,7 @@ such as `tail` and `foo` as valid overloadings.
 % \begin{enumerate}
 % 
 % \item 
-% We write $\jcnonequiv{T}{\BottomType}{\C}$
+% We write $\jnequiv{T}{\BottomType}{\C}$
 % to indicate that a type $T$ is not equivalent to \BottomType\ 
 % under the environment $\Delta$ and
 % the assumption that constraints $\C$ hold.
