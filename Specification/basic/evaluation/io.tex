@@ -1,0 +1,39 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Input and Output Actions}
+\seclabel{io-actions}
+
+\note{Check for I/O actions is not yet supported.}
+
+Certain functionals in Fortress perform primitive input/output (I/O)
+actions.  These actions have an externally visible effect.
+Any functional which may perform an I/O action---either
+because it is a primitive action or because it invokes other
+functionals which perform I/O actions---must be declared
+with the \KWD{io} modifier.
+
+Any primitive I/O action may take many internal steps; each step may
+read or write any memory locations referred to either directly or
+transitively by object references passed as arguments to the action.
+Each I/O action is free to complete either normally or abruptly.
+I/O actions may block and be prevented from taking a step until any
+necessary external conditions are fulfilled (input is available, data
+has been written to disk, and so forth).
+
+Each I/O action taken by an expression is considered part of that
+expression's effects.  The steps taken by an I/O action are considered
+part of the context in which an expression evaluates, in much the same
+way as effects of simultaneously-executing threads must be considered
+when describing the behavior of an expression.  For example, we cannot
+consider two functionals to be equivalent unless the possible I/O
+actions they take are the same, given identical internal steps by each
+I/O action.

@@ -1,0 +1,35 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.Try.a
+
+export Executable
+
+read(x) = x
+write(x,y) = x+y
+
+f() = do
+  file = 0
+  newFile = file
+(** EXAMPLE **)
+try
+  inp = read(file)
+  write(inp, newFile)
+forbid IOFailure
+end
+(** END EXAMPLE **)
+end
+
+run() = println f()
+
+end

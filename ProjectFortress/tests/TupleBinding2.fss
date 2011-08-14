@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component TupleBinding2
+
+export Executable
+
+tupleVar = ("test", 8)
+(key, val):(String, ZZ32) = tupleVar
+
+run() = do
+   println("Key=" key)
+   println("Val=" val)
+   assert(key, "test", "Key not test")
+   assert(val, 8, "Val not 8")
+end
+
+end

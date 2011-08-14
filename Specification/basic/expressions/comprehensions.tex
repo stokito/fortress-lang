@@ -1,0 +1,114 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Comprehensions}
+\seclabel{comprehensions}
+
+\note{Array comprehensions are not yet supported.
+
+Array comprehensions do not have to be comprehensive --
+may not define a value for every cell.
+When an unitialized array cell is accessed, an uncaught exception is raised.}
+
+\begin{Grammar}
+\emph{Comprehension}
+&::=&
+\option{\KWD{BIG}} \texttt{[} \option{\emph{StaticArgs}}
+\emph{ArrayComprehensionClause}$^+$ \texttt{]}\\
+&$|$&
+\option{\KWD{BIG}} \{ \option{\emph{StaticArgs}}
+\emph{Entry} \texttt{|} \emph{GeneratorClauseList} \} \\
+&$|$& \option{\KWD{BIG}} \emph{LeftEncloser} \option{\emph{StaticArgs}}
+\emph{Expr} \texttt{|} \emph{GeneratorClauseList} \emph{RightEncloser} \\
+
+\emph{Entry} &::=& \emph{Expr} \ensuremath{\mapsto} \emph{Expr} \\
+
+\emph{ArrayComprehensionClause} &::=&
+\emph{ArrayComprehensionLeft} \texttt{|} \emph{GeneratorClauseList}\\
+
+\emph{ArrayComprehensionLeft} &::=&
+\emph{IdOrInt} \ensuremath{\mapsto} \emph{Expr}\\
+&$|$& \texttt( \emph{IdOrInt}\EXP{,} \emph{IdOrIntList} \texttt) \ensuremath{\mapsto} \emph{Expr}\\
+
+\emph{IdOrInt} &::=& \emph{Id}\\
+&$|$& \emph{IntLiteralExpr}\\
+
+\emph{IdOrIntList} &::=& \emph{IdOrInt}(\EXP{,} \emph{IdOrInt})$^*$ \\
+\end{Grammar}
+
+Fortress provides \emph{comprehension} syntax, in which a generator clause list
+binds values used in the body expression on the left-hand side of the
+token \EXP{|}.  As described in \secref{generators}, each iteration of
+the body expression must be assumed to execute in its own implicit
+thread.  Comprehensions evaluate to aggregate values and have
+corresponding aggregate types.  The rules for evaluation of a
+comprehension are similar to those for a reduction expression (see
+\secref{reduction-expr}).
+
+The relationship between a comprehension and an aggregate expression (\secref{aggregate-expr}) is similar to the relationship between a reduction expression (\secref{reduction-expr}) and the corresponding infix operator application (\secref{operator-app-expr}).  The language does not enforce an explicit connection between comprehension syntax and the corresponding aggregate syntax, but in practice libraries that provide definitions for aggregate expressions are expected to define a corresponding comprehension and \emph{vice versa}.  As with reduction expressions, a comprehension using a particular set of enclosers corresponds to a call to a \emph{big bracketing operator}.  Thus the definition of set comprehensions is given by a function with the following signature:
+%% opr BIG {[\T\] g:(Reduction[\R0\],T->R0)->R0}: Set[\T\]
+\begin{Fortress}
+\(\KWD{opr} \mathord{\OPR{BIG}} \{\llbracket{}T\rrbracket g\COLONOP(\TYP{Reduction}\llbracket{}R_{0}\rrbracket,T\rightarrow{}R_{0})\rightarrow{}R_{0}\}\COLON \TYP{Set}\llbracket{}T\rrbracket\)
+\end{Fortress}
+This is almost identical to the signature required to define a reduction
+expression \EXP{\OPR{BIG}\:\emph{Op}}, shown in \secref{reduction-expr}.
+Further information on defining comprehensions are described
+in \secref{defining-generators}.
+
+A set comprehension is enclosed in braces, with a left-hand body
+separated by the token \EXP{|} from a generator clause list.
+For example, the comprehension:
+\input{\home/basic/examples/Expr.SetComp.tex}
+evaluates to the set
+\begin{Fortress}
+\(\{0, 4, 16\}\)
+\end{Fortress}
+
+Map comprehensions are like set comprehensions,
+except that the left-hand body must be of the form
+\EXP{e_{1} \mapsto e_{2}}.
+If \EXP{e_{1}} produces the same value but \EXP{e_{2}} a different value on more
+than one iteration of the generator list,
+a \TYP{KeyOverlap} exception is thrown.
+For example:
+\input{\home/basic/examples/Expr.MapComp.tex}
+evaluates to the map
+\begin{Fortress}
+\(\{0 \mapsto 0, 4 \mapsto 8, 16 \mapsto 64\}\)
+\end{Fortress}
+
+
+List comprehensions are like set comprehensions,
+except that they are syntactically enclosed in angle brackets.
+For example:
+\input{\home/basic/examples/Expr.ListComp.tex}
+evaluates to the list
+\begin{Fortress}
+\(\langle 0, 4, 16 \rangle\)
+\end{Fortress}
+Note that the order of elements in the resulting list corresponds to
+the \emph{natural order} of the generators in the generator clause
+list (see \secref{defining-generators}).
+
+Array comprehensions are like set comprehensions, except that they are
+syntactically enclosed in brackets, and the left-hand body must be of
+the form \txt{($\mathit{index}_1$, $\mathit{index}_2$, \ldots,
+  $\mathit{index}_n$) $\mapsto$ $\mathit{e}$}.  Moreover an array
+comprehension may have multiple clauses separated by semicolons or
+line breaks.  Each clause conceptually corresponds to an independent loop.
+Clauses are run in order.  The result is an $n$-dimensional array.
+For example:
+\begin{Fortress}
+\(a = [\null\)\pushtabs\=\+\((x,y,1) \mapsto 0.0   \mid x \gets 1\COLONOP\VAR{xSize}, y \gets 1\COLONOP\VAR{ySize}\)\\
+\(      (1,y,z) \mapsto 0.0   \mid y \gets 1\COLONOP\VAR{ySize}, z \gets 2\COLONOP\VAR{zSize}\)\\
+\(      (x,1,z) \mapsto 0.0   \mid x \gets 2\COLONOP\VAR{xSize}, z \gets 2\COLONOP\VAR{zSize}\)\\
+\(      (x,y,z) \mapsto x+y\cdot z \mid x \gets 2\COLONOP\VAR{xSize}, y \gets 2\COLONOP\VAR{ySize}, z \gets 2\COLONOP\VAR{zSize}\,]\)\-\\\poptabs
+\end{Fortress}

@@ -1,0 +1,81 @@
+%%%%%%%%%%%%%%% BEGIN EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%
+\begin{figure*}[ht]
+\begin{minipage}{.5\textwidth}
+\centering
+\newjudge{Universal subtyping}{\jqsub{\sigma}{\sigma}}
+
+\infrule
+  {\jtreds{\exttype[\Delta_1]{T}}{\delta'}{\phi} \\[.3em]
+   \jqsubinner{\sigma}{\unitype[{\phi[\Delta_1]}]{\left(\arrowtype{\phi(T)}{\phi(U)}\right)}}}
+  {\jqsub{\sigma}{\unitype[\Delta_1]{\arrowtype{T}{U}}}}
+  
+\infrule
+  {\Delta' = \Delta, \bds{Y}{N} \\
+   \jgsub[\Delta']{\substb{V}{X}T}{U} \andalso
+   \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{X}\bd{M_i}}
+  }
+  {\jqsubinner{\forall\obb{X <: \bd{M}}T}{\forall\obb{Y <: \bd{N}}U}}
+
+\begin{tabularx}{\textwidth}{RcX}
+  $\sigma_1 \le \sigma_2$ & \syndef & $\jqsub[\emptyset]{\sigma_1}{\sigma_2}$ \\
+\end{tabularx}
+
+\newjudge{Existential subtyping}{\jqsub{\delta}{\delta}}
+\infrule
+  {\jtred{\delta}{\delta''} \andalso \jqsubinner{\delta''}{\delta'}}
+  {\jqsub{\delta}{\delta'}}
+
+\infrule
+  {\Delta' = \Delta, \bds{X}{M} \\
+   \jgsub[\Delta']{T}{\substb{V}{Y}U} \andalso \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{Y}\bd{N_i}}
+  }
+  {\jqsubinner{\exists\obb{X <: \bd{M}}T}{\exists\obb{Y <: \bd{N}}U}}
+  
+\begin{tabularx}{\textwidth}{RcX}
+  $\delta_1 \le \delta_2$ & \syndef & $\jqsub[\emptyset]{\delta_1}{\delta_2}$
+\end{tabularx}
+
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+\centering
+\newjudge{Existential reduction}{\jtreds{\delta}{\delta}{\phi}}
+\infrule
+  {\jequiv{T}{\BottomType}{\TRUE}}
+  {\jtreds{\exttype[\Delta']{T}}{\exttype[ ]{\BottomType}}{[]}}
+
+\infrule
+  {\jnequiv{T}{\BottomType}{\C} \\
+   \jsolve{\neg \C}{\phi} \andalso \phi[\Delta] = \Delta'}
+  {\jtreds{\exttype{T}}{\exttype[\Delta']{\phi(T)}}{\phi}}
+
+\newjudge{Bounds substitution}{\phi[\Delta] = \Delta}
+
+\infrule
+  {\phi(\bar{X}) = \bar{Y}, \bar{T} \andalso \bar{\bar{N}} = \bar{\phi^{-1}[Y,\Delta]} \\[.2em]
+   \forall i. \quad \jsub[\bds{Y}{N}]{\phi(X_i)}{\bar{\phi(M_i)}}{\TRUE}}
+  {\phi[\bds{X}{M}] = \bds{Y}{N}}
+
+\newjudge{Bounds transfer}{\phi^{-1}[X,\Delta] = \bar{T}}
+
+\infrule
+  {\{\bar{T}\} = \{\phi(\Delta(X)) \mid X \in \textit{dom}(\Delta),\; \phi(X) = Y\}}
+  {\phi^{-1}[Y,\Delta] = \textit{conjuncts}(\bigcap \bar{T})}
+
+
+%% CONJUNCTS DEF
+\[
+\begin{array}{l}
+\textit{conjuncts}(T)\\
+\syndef
+  \begin{cases}
+    \textit{conjuncts}(T_1), \textit{conjuncts}(T_2)\quad & \text{if } T = T_1 \cap T_2 \\
+    T & \text{otherwise}
+  \end{cases}
+\end{array}
+\]
+
+\end{minipage}
+  \caption{Subtyping and reduction of existential types}
+  \label{fig:existential}
+\end{figure*}
+%%%%%%%%%%%%%%% END EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%
