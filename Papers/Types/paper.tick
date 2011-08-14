@@ -111,33 +111,41 @@
 %%% NEW SYNTACTIC JUDGMENT
 \newcommand{\newjudge}[2]{\fbox{\textbf{#1:} \quad \ensuremath{#2}}}
 
-% generic
+% non constrained judgements
 \newcommand{\jgtemplate}[4][\Delta]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}}}
-% constrained judgments
-\newcommand{\jgconstrtemplate}[5][\Delta]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}}\;|\,{#5}}
 % ground subtyping
 \newcommand{\jgsub}[3][\Delta]{\jgtemplate[#1]{#2}{\subtypeof}{#3}}
+
+% constrained judgments
+\newcommand{\jgconstrtemplate}[5][\Delta]{\ensuremath{{#1}\,\vdash\,{#5}\,\Rightarrow\,{#2}\;{#3}\;{#4}}}
 % ground subtyping with constraints
-\newcommand{\jcsub}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\subtypeof}{#3}{#4}}
+\newcommand{\jsub}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\subtypeof}{#3}{#4}}
 % subtyping on quantified types
 \newcommand{\jqsub}[3][\Delta]{\jgtemplate[#1]{#2}{\le}{#3}}
 % type exclusion
+\newcommand{\jqsubinner}[3][\Delta]{\jgtemplate[#1]{#2}{\preceq}{#3}}
 \newcommand{\jexc}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\exc}{#3}{#4}}
 % type non-exclusion
 \newcommand{\jnexc}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\nexc}{#3}{#4}}
+% nonequivalence
+\newcommand{\jnequiv}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\not\equiv}{#3}{#4}}
+% equivalence
+\newcommand{\jequiv}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\equiv}{#3}{#4}}
+
+% contrapositive judgements
+\newcommand{\jgcontratemplate}[5][\Delta]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}\,\RightArrow\,{#5}}}
+
+
 % applicability of a domain or fndecl to a type
 \newcommand{\japp}[3][\Delta]{\jgtemplate[#1]{#2}{\ni}{#3}}
 % specificity between fndecls
 \newcommand{\jms}[3][\Delta]{\jgtemplate[#1]{#2}{\ms}{#3}}
-% nonequivalence
-\newcommand{\jcnonequiv}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\not\equiv}{#3}{#4}}
-% equivalence
-\newcommand{\jcequiv}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\equiv}{#3}{#4}}
+
 % constraint solving
-\newcommand{\jcsolve}[3][\Delta]{\ensuremath{{#1}\,\vdash\,\textit{solve}({#2})\,=\,{#3}}}
+\newcommand{\jsolve}[3][\Delta]{\ensuremath{{#1}\,\vdash\,\textit{solve}({#2})\,=\,{#3}}}
 % type reduction
-\newcommand{\jtred}[2]{\ensuremath{\vdash\,{#1} \eqred {#2}}}
-\newcommand{\jtreds}[3]{\ensuremath{\vdash\,{#1} \eqred {#2}\,,\;{#3}}}
+\newcommand{\jtred}[2]{\ensuremath{\Delta \vdash\,{#1} \eqred {#2}}}
+\newcommand{\jtreds}[3]{\ensuremath{\Delta \vdash\,{#1} \eqred {#2}\,,\;{#3}}}
 
 
 % for tabularx environments to have a right-aligned, stretched col

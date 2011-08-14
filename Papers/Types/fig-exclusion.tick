@@ -12,13 +12,13 @@
   {\jexc{\BottomType}{T}{\TRUE}}
 
 \infrule
-  {\jcsub{T}{\BottomType}{\C}}
+  {\jsub{T}{\BottomType}{\C}}
   {\jexc{\Any}{T}{\C}}
 
 \infrule
   {\jexc{S}{U}{\C} \andalso 
    \jexc{T}{U}{\C'} \\
-   \jcsub{S \cap T}{\BottomType}{\C''}}
+   \jsub{S \cap T}{\BottomType}{\C''}}
   {\jexc{S \cap T}{U}{\C \vee \C' \vee \C''}}
 
 \infrule
@@ -32,49 +32,44 @@
 
 \infrule
   {}
+  {\jexc{I}{I}{\FALSE}}
+  
+\infrule
+  {}
+  {\jexc{I}{T}{`I` \exc `T`}}
+
+\infrule
+  {}
   {\jexc{X}{X}{\FALSE}}
 
 \infrule
   {\jexc{\Delta(X)}{T}{C}}
   {\jexc{X}{T}{C}}
 
-\infrule
-  {}
-  {\jexc{I}{I}{\FALSE}}
-
-\infrule
-  {I \neq J}
-  {\jexc{I}{J}{TODO}}
-  
-\infrule
-  {}
-  {\jexc{I}{T}{`I` \exc `T`}}
-
 \vspace*{2ex}
 \textbf{Structural rules}
 \vspace*{-1em}
+
+\infrule
+  {|\bar{S}|=|\bar{T}|  \andalso \forall  i . \jexc{S_i}{T_i}{\C_i}}
+  {\jexc{(\bar{S})}{(\bar{T})}{\bigvee \C_i}}
 
 \infrule
   {|\bar{S}| \neq |\bar{T}|}
   {\jexc{(\bar{S})}{(\bar{T})}{\TRUE}}
 
 \infrule
-  {|\bar{S}|=|\bar{T}|  \andalso
-   \forall  i . \jexc{S_i}{T_i}{\C_i}}
-  {\jexc{(\bar{S})}{(\bar{T})}{\bigvee \C_i}}
-
-\infrule
-  {}
-  {\jexc{`S -> T`}{`U -> V`}{\FALSE}}
+  {M \neq \Any \andalso
+   |\bar{T}| \neq 1}
+  {\jexc{M}{(\bar{T})}{\TRUE}}
 
 \infrule
   {|\bar{T}| \neq 1}
   {\jexc{`S -> R`}{(\bar{T})}{\TRUE}}
 
 \infrule
-  {M \neq \Any \andalso
-   |\bar{T}| \neq 1}
-  {\jexc{M}{(\bar{T})}{\TRUE}}
+  {}
+  {\jexc{`S -> T`}{`U -> V`}{\FALSE}}
 
 \infrule
   {M \neq \Any}
@@ -112,7 +107,7 @@
 
 \infrule
   {C \neq D \andalso A = \ancestors(`C[\S_bar\]`) \\
-   \forall N \in \left(\bigcup_{M \in A} \myexcludes{M}\right). \quad \jcsub{`D[\T_bar\]`}{N}{\C_{N}}}
+   \forall N \in \left(\bigcup_{M \in A} \myexcludes{M}\right). \quad \jsub{`D[\T_bar\]`}{N}{\C_{N}}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excre}{`D[\T_bar\]`}{\bigvee \C_{N}}}
 
 \infrule
@@ -141,7 +136,7 @@
   {\jgconstrtemplate{`C[\S_bar\]`}{\excp}{`D[\T_bar\]`}{\bigvee \C_{M,N}}}
 
 \infrule
-  {\forall i .\jcnonequiv{S_i}{T_i}{\C_i}}
+  {\forall i .\jnequiv{S_i}{T_i}{\C_i}}
   {\jgconstrtemplate{`C[\S_bar\]`}{\bexcp}{`C[\T_bar\]`}{\bigvee \C_i}}
 
 \infrule
