@@ -46,9 +46,9 @@ must also be a subtype of $\substb{T}{X}K_i$ for some $K_i$ in $\bar{K}$.
 For convenience, 
 we allow the `excludes` and `comprises` clauses to be omitted.
 Omitting an `excludes` clause is equivalent to having `excludes {}`;
-omitting a `comprises` clause is equivalent to having `comprises { Any }`.\footnote{For
-the sake of catching likely programming errors, 
-the Fortress language requires that 
+omitting a `comprises` clause is equivalent to having `comprises { Any }`.\footnote{%
+To catch likely programming errors, 
+Fortress requires that 
 every $K_i$ in a `comprises` clause for $C\obb{T}$ be a subtype of $C\obb{T}$, 
 but allowing `Any` to appear in a `comprises` clause simplifies our presentation here.}
 We define the sets of instantiations of the types 
@@ -82,7 +82,7 @@ have no common subtype other than \BottomType.
 
 To define well-formedness for class tables with exclusion 
 (including multiple instantiation exclusion),
-we define an \emph{exclusion relation} $\exc$ over well-formed types.
+we define an \emph{exclusion relation} $\exc$ over well-formed types:
 $S \exc T$ asserts that 
 types $S$ and $T$ have no common subtypes other than \BottomType.
 For constructed types $C\obb{T}$ and $D\obb{U}$, 
@@ -124,10 +124,10 @@ if $M \exc N$ then no well-formed constructed type
 is a subtype of both $M$ and $N$.
 As with the subtyping relation, 
 a valid extension to a class table $\T$ 
-must preserve these well-formedness properties.
+must preserve this well-formedness property.
 
 Except for the imposition of multiple instantation exclusion, 
-these changes are generalizations of the standard type system 
+these changes generalize the standard type system 
 described in Section~\ref{sec:pre}: 
 A class table that does not use any of the new features 
 is well-formed in this augmented system 
@@ -175,14 +175,17 @@ might not be well-formed under multiple instantiation exclusion.
 
 We can extend the exclusion relation 
 to structural and compound types as follows:
-Every arrow type excludes every non-arrow type.
-Every singleton tuple type excludes exactly those types excluded by its element type.
-Every non-singleton tuple type excludes every non-tuple type.
+Every arrow type excludes every non-arrow type other than \Any.
+Every non-singleton tuple type excludes every non-tuple type other than \Any.
+(A singleton tuple type is synonymous with its element type, 
+and so excludes exactly those types excluded by its element type.)
+% Every singleton tuple type excludes exactly those types excluded by its element type.
 Tuple type $(\bar{V})$ excludes $(\bar{W})$ if either $|\bar{V}| \neq |\bar{W}|$
-or $V_i$ excludes $W_i$ for some $i$. An intersection type excludes any type excluded by \emph{any} of its constituent types, 
-while a union type excludes any type excluded by \emph{all} of its constituent types.
-$\BottomType$ excludes every type (including itself---it is the only type 
-that excludes itself), 
+or $V_i$ excludes $W_i$ for some $i$.
+An intersection type excludes any type excluded by \emph{any} of its constituent types;
+a union type excludes any type excluded by \emph{all} of its constituent types.
+$\BottomType$ excludes every type 
+(including itself---it is the only type that excludes itself), 
 and $\Any$ does not exclude any type other than $\BottomType$.
 (We define the exclusion relation formally in Figure~\ref{fig:jexc}
 in Section~\ref{sec:constraints}.)

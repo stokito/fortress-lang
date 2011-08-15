@@ -116,7 +116,7 @@ It is straightforward,
 but beyond the scope of this paper, 
 to extend this definition to systems 
 that support covariant and contravariant type parameters.}
-We call this property \emph{multiple instantiation exclusion}.
+We call this rule \emph{multiple instantiation exclusion}.
 
 Multiple instantiation exclusion is easy to statically enforce, 
 and experience suggests that it is not onerous in practice: 
