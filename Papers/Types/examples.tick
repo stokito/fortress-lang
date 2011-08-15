@@ -1,14 +1,23 @@
-\TODO{Polish this section, add examples, 
-and fix it so that it comes after the exclusion section 
-rather than before.}
-
 We now reconsider the overloaded generic function definitions from the introduction, 
 and also some new ones, 
 to see whether they are permitted by the rules in Section~\ref{sec:rules}.
 In this section, 
 we simply argue informally why each set of overloaded definitions is valid or not.
+We also point out explicitly where multiple instantiation exclusion is required.
 We give a formal system and algorithm for doing these checks 
 in Section~\ref{sec:checking}.
+Throughout this section, 
+we assume the following class table:
+
+\small
+`  Object
+  Number <: Object
+  ZZ <: Number
+  String <: Object excludes Number
+  List[\X\] <: Object
+  ArrayList[\X\] <: List[\X\]
+`
+\normalsize
 
 First, we consider the overloaded generic functions 
 from the introduction (in reverse order):
@@ -22,10 +31,10 @@ The second definition is strictly more specific than the first
 because the first definition is applicable to a pair of arguments 
 exactly if the type of each argument is a subtype of `Object`, 
 whereas the second is applicable to a pair of arguments exactly if
-the type of each argumet is a subtype of `Number`.
+the type of each argument is a subtype of `Number`.
 Thus, these definitions satisfy the no duplicates rule 
 and the meet rule.
-And they satisfy the subtype rule 
+And they satisfy the return type rule 
 because the return type of both definitions is always `ZZ`.
 
 \small
@@ -39,6 +48,47 @@ whereas the second is applicable to any such pair
 if and only if `T <: Number`.
 Thus, the second definition is strictly more specific than the first, 
 so the no duplicates rule and meet rule are satisfied.
+
+
+Now consider the `min` example from Section~\ref{sec:exclusion}:
+
+\small
+`  min[\X <: Number, Y <: ZZ\](p: Pair[\X,Y\]): Number
+  min[\X <: ZZ, Y <: Number\](p: Pair[\X,Y\]): Number
+  min[\X <: ZZ, Y <: ZZ\](p: Pair[\X,Y\]): ZZ
+`
+\normalsize
+Any argument to which the first two definitions are both applicable 
+must be of type $\TYP{Pair}\ob{X_1,Y_1} \cap \TYP{Pair}\ob{X_2,Y_2}$
+for some $X_1 \subtypeof \TYP{Number}$, 
+$Y_1 \subtypeof `ZZ`$, 
+$X_2 \subtypeof `ZZ`$, 
+and $Y_2 \subtypeof \TYP{Number}$.
+By multiple instantiation exclusion,
+\[
+\TYP{Pair}\ob{X_1,Y_1} \cap \TYP{Pair}\ob{X_2,Y_2} = \BottomType
+\]
+unless $X_1 = X_2$ and $Y_1 = Y_2$.
+Thus, 
+the argument must be of type $\TYP{Pair}\ob{X_1,Y_1}$, 
+where $X_1 \subtypeof \TYP{Number} \cap `ZZ` = `ZZ`$
+and $Y_1 \subtypeof `ZZ` \cap \TYP{Number} = `ZZ`$, 
+so the third definition is applicable to it.
+And since the third definition is more specific than the first two,
+it satisfies the requirement of the meet rule.
+
+\TODO{Polish this section, add examples, 
+and fix it so that it comes after the exclusion section 
+rather than before.}
+
+
+\small
+`  bar[\X\](x: X): ZZ = 1
+  bar(x: Number): ZZ = 2
+`
+\normalsize
+What do you get if you call `bar(2)`?
+
 
 \TODO{The following argument is wrong.}
 To see that the subtype rule is satisfied, 
@@ -134,16 +184,17 @@ overloadings were safe because a class can only have a single superclass.
 However, due to multiple inheritance, we cannot be sure that these types
 do not have a common subtype, no matter what the programmer intends.
 
-Now consider this less trivial set of overloaded functions:
-`  foo[\X <: Any\]ArrayList[\X\]:ZZ
-  foo[\Y<: ZZ\]List[\Y\]:ZZ
-  foo[\W<: ZZ\]ArrayList[\W\]:ZZ`
-where `ArrayList[\T\] <: List[\T\]` for all types $T$.\footnote{We use this standard declaration for `ArrayList` throughout.}
+
+`  foo[\X <: Any\]ArrayList[\X\]: ZZ
+  foo[\Y <: ZZ\]List[\Y\]: ZZ
+  foo[\Z <: ZZ\]ArrayList[\Z\]: ZZ`
 The first two declarations are incomparable under specificity---%
-the first declaration applies to all instantiations of type constructor `ArrayList`,
-whereas the second declaration applies only to instantiations of
-type constructor `List` with subtypes of type `ZZ`. The third definition,
-which is the ````obvious" candidate to disambiguate the two, is not actually the meet;
+the first declaration applies to applications of `ArrayList` to any type,
+the second to applications of `List` with subtypes of type `ZZ`.
+The third definition,
+which is the ````obvious'' candidate to disambiguate the two, 
+
+is not actually the meet;
 the domain of this meet candidate is the existential type:
 `  EXISTS[\W <: ZZ\]ArrayList[\W\]
 `

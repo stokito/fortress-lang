@@ -360,8 +360,13 @@ would be ambiguous.
 Thus, this overloading would be rejected by our overloading rules.
 
 To address this problem,
-Fortress defines an \emph{exclusion relation} on types, 
-such that types related by exclusion must have no common nontrivial subtype.
+Fortress enables programmers to declare ````nominal exclusion'', 
+restricting how type constructors may be extended, 
+and uses this to derive an \emph{exclusion relation} on types.
+Types related by exclusion must not have any nontrivial subtype in common.
+Many languages enforce and exploit exclusion implicitly. 
+For example, single inheritance ensures that
+incomparable types exclude each other. 
 If the domains of two overloaded function definitions exclude each other, 
 then these definitions are never applicable to the same call,
 and so no ambiguity can arise between them.
@@ -369,20 +374,27 @@ In the example above,
 if `String` and `ZZ` exclude each other,
 then the overloaded definitions of `print` above are valid.
 
-Many languages enforce and exploit some exclusion relations implicitly. 
-For example, single inheritance ensures that
-any two incomparable types exclude each other. 
-Fortress enables programmers to declare ````nominal exclusion''
-in addition to determining many exclusions implicitly. 
-In Section~\ref{sec:exclusion}, 
-we formalize this 
-and we show how the exclusion relation is used 
-to improve expressivity 
-by accommodating overloadings that would otherwise be rejected.
-The proof of safety in Section~\ref{sec:safety} 
-covers the rules under this extended type system.
+We already exploited exclusion 
+in our prior work on Fortress without generics, 
+but the constructs Fortress provides for explicitly declaring exclusion 
+are insufficient for allowing 
+some intuitively appealing overloaded functions involving generic types.
+In particular, 
+we could not guarantee type safety 
+when a type extends multiple instantiations of a generic type.
+Implicitly forbidding such extension---%
+a property we call \emph{multiple instantiation exclusion}---%
+allows these intuitively appealing overloaded functions.
 
-\TODO{Mention multiple instantiation exclusion?}
+
+% In Section~\ref{sec:exclusion},
+% we formalize this 
+% and we show how the exclusion relation is used 
+% to improve expressivity 
+% by accommodating overloadings that would otherwise be rejected.
+% The proof of safety in Section~\ref{sec:safety} 
+% covers the rules under this extended type system.
+
 
 % Nonetheless, 
 % we show in Section~\ref{sec:problems} 
