@@ -15,7 +15,7 @@ they sometimes reject overloaded definitions
 that might seem to be valid.
 For example, 
 given the type system as described thus far,
-the overloaded `append` function from the introduction 
+the overloaded `tail` function from the introduction 
 would be rejected by the overloading rules.
 
 These are not false negatives:
@@ -59,33 +59,33 @@ Fortress provides three mechanisms to explicitly declare exclusion \cite{Fortres
 an `object` declaration, a `comprises` clause and an `excludes` clause.
 We describe these precisely in Section~\ref{sec:exc-spec}, 
 but for now, we simply note that 
-they do not help with the overloaded `append` function.
-That is, 
+they do not help with the overloaded `tail` function.
+Specifically,
 even with these exclusion mechanisms, 
 we cannot define `List` 
-so that the definitions for `append` satisfy the return type rule.
+so that the definitions for `tail` satisfy the return type rule.
 
 To see this, 
 consider the following overloaded definitions (from the introduction):
 
 \small
-`  append[\T\](x: List[\T\], y: List[\T\]): List[\T\]
-  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\]
+`  tail[\T\](x: List[\T\]): List[\T\]
+  tail(x: List[\ZZ\]): List[\ZZ\]
 `
 \normalsize
-and suppose that we have the following type constructor declaration:
+and the following type constructor declaration:
 
 \small
 `  BadList <: { List[\ZZ\], List[\String\] }
 `
 \normalsize
-Both definitions are applicable to the type `(BadList, BadList)`,
+Both definitions of `tail` are applicable to the type `BadList`,
 and the monomorphic one is more specific.
 Two instances of the generic definition are applicable to this type:
 
 \small
-`  append(List[\ZZ\],List[\ZZ\]): List[\ZZ\]
-  append(List[\String\],List[\String\]): List[\String\]
+`  tail(List[\ZZ\]): List[\ZZ\]
+  tail(List[\String\]): List[\String\]
 `
 \normalsize
 The return type rule requires that 
@@ -96,8 +96,11 @@ that is, it requires
 `List[\ZZ\] <: List[\ZZ\]` 
 and `List[\ZZ\] <: List[\String\]`.
 The latter is clearly false.
+\TODO{Explain why we must not allow the overloading?
+That is, currently we simply say it doesn't satisfy the return type rule, 
+but we don't explain why we should want it to do so.}
 
-A somewhat more subtle issue arises 
+A similar issue arises 
 when trying to satisfy the meet rule 
 by providing a disambiguating definition 
 for two incomparable definitions, 
@@ -128,10 +131,10 @@ The first two definitions of `min` are both applicable to `BadPair`
 but the third is not.
 
 We might say that the problem with the above examples 
-is not with the definitions of `append` and `min`, 
+is not with the definitions of `tail` and `min`, 
 but with the definitions of `BadList` and `BadPair`, 
-that a value can belong to `List[\ZZ\]` or `List[\String\]`, 
-or to `Pair[\ZZ,Number\]` or `Pair[\Number,ZZ\]`, 
+that a value may belong to `List[\ZZ\]` or `List[\String\]`---%
+or to `Pair[\ZZ,Number\]` or `Pair[\Number,ZZ\]`---%
 but not to both.
 More generally, 
 we can impose a rule that forbids 

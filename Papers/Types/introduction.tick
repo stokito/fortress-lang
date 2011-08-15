@@ -176,14 +176,15 @@ but the other pairs of white brackets
 provide the type arguments to the generic type `List`.}
 
 \small
-`  append[\X\](x: List[\X\], y: List[\X\]): List[\X\] = e
+`  tail[\X\](x: List[\X\]): List[\X\] = e
 `
 \normalsize
 should be understood as if it denoted an infinite set of monomorphic definitions:
+
 \small
-`  append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e
-  append(x: List[\String\], y: List[\String\]): List[\String\] = e
-  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e
+`  tail(x: List[\Object\]): List[\Object\] = e
+  tail(x: List[\String\]): List[\String\] = e
+  tail(x: List[\ZZ\]): List[\ZZ\] = e
   ...`
 \normalsize
 The intuition was that for any specific function call,
@@ -197,26 +198,29 @@ it failed utterly when we considered multiple function definitions.
 For example, 
 a programmer might want to provide definitions 
 for specific monomorphic special cases, as in:
+
 \small
-`  append[\X\](x: List[\X\], y: List[\X\]): List[\X\] = e1
-  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
+`  tail[\X\](x: List[\X\]): List[\X\] = e1
+  tail(x: List[\ZZ\]): List[\ZZ\] = e2`
 \normalsize
 If the interpretation above is taken seriously, 
 this would be equivalent to:
+
 \small
-`  append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e1
-  append(x: List[\String\], y: List[\String\]): List[\String\] = e1
-  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e1
+`  tail(x: List[\Object\]): List[\Object\] = e1
+  tail(x: List[\String\]): List[\String\] = e1
+  tail(x: List[\ZZ\]): List[\ZZ\] = e1
   ...
-  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
+  tail(x: List[\ZZ\]): List[\ZZ\] = e2`
 \normalsize
-which is ambiguous for calls in which the arguments are of type `List[\ZZ\]`.
+which is ambiguous for calls in which the argument is of type `List[\ZZ\]`.
 
 It gets worse if the programmer wishes to handle an infinite set of cases specially.  
 It would seem natural to write
+
 \small
-`  append[\X\](x: List[\X\], y: List[\X\]): List[\X\] = e1
-  append[\X <: Number\](x: List[\X\], y: List[\X\]): List[\X\] = e3`
+`  tail[\X\](x: List[\X\]): List[\X\] = e1
+  tail[\X <: Number\](x: List[\X\]): List[\X\] = e3`
 \normalsize
 to handle specially all cases where `X` is a subtype of `Number`.
 But the model would regard this as an overloaded function
@@ -257,6 +261,7 @@ to a particular call is not always obvious.
 
 % For example, 
 % consider the following overloaded function definitions:
+
 % \small
 %   combine[\T\](xs: List[\T\], ys: List[\T\]): List[\T\]
 %   combine[\S,T\](s: Table[\S,T\], t: Table[\S,T\]): Table[\S,T\]
@@ -270,6 +275,7 @@ to a particular call is not always obvious.
 
 Under the ````infinite set of monomorphic definitions'' interpretation, 
 these definitions would be equivalent to:
+
 \small`  foo(x: Object, y: Object): ZZ = 1
   foo(x: Number, y: Object): ZZ = 1
   foo(x: ZZ, y: Object): ZZ = 1
