@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component DoFrontWithSpawn
+export Executable
+
+  (* A spawn is allowed in a do front without atomic. *)
+
+  run():() = do
+    var s:String
+    atomic do
+      s:= "Can't spawn here."
+    also do
+      ignore(spawn "But I can here!")
+    end
+    ()
+
+  end
+
+end

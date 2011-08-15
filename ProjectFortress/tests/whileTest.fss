@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component whileTest
+
+export Executable
+
+neqOrMaybe(a: ReadableArray[\ZZ32,ZZ32\], i:ZZ32): Maybe[\(ZZ32,ZZ32)\] =
+    if i NOTIN a.bounds OR: a[i] =/= i+7 then
+        Nothing[\(ZZ32,ZZ32)\]
+    else
+        Just[\(ZZ32,ZZ32)\](a[i],i+7)
+    end
+
+run():()=do
+    iters = 47
+    i : ZZ32 := 0
+    j : ZZ32 := 7
+    a = immutableArray[\ZZ32\](iters-7)
+    while (i < j < iters) do
+        a.init(i,j)
+        i := i + 1
+        j := j + 1
+    end
+    assert(i,iters-7,"i =/= iters")
+    assert(j,iters,"j =/= iters+7")
+    i := 0
+    while (x,y) <- neqOrMaybe(a,i) do
+        println("a[" i "] = " x " = " y)
+        i += 1
+    end
+    assert(i,iters-7,"bad element [", i-1, "] = ", a[i-1], ", expected ", i+6)
+  end
+
+end

@@ -1,0 +1,21 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled10.j
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled10.j.fss:16:1-41:\n\
+\ Invalid comprises clause: Foo has a comprises clause\n\
+\ but its immediate subtype Doo is not eligible to extend it.\n\
+${STATIC_TESTS_DIR}/Compiled10.j.fss:16:20-27:\n\
+\ Ill-formed type: Foo[\\Baz\\]\n\
+\ The static argument Baz does not satisfy the corresponding bound Foo[\\Baz\\].\n\
+File Compiled10.j.fss has 2 errors.\n
+compile_out_equals=
