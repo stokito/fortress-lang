@@ -4,28 +4,28 @@ we say the function is \emph{overloaded}---%
 and a call to a function of that name is resolved
 based on the ````run-time types''---we use the term \emph{ilks}---of the arguments, 
 using the most specific definition 
-that is applicable to arguments of their ilks.
+for the arguments' ilks.
 With \emph{single dispatch}, 
 a particular argument is designated as the \emph{receiver}, 
 and the call is resolved only with respect to that argument.
 With \emph{multiple dispatch}, 
-the run-time types of  all arguments to a call are used to resolve the call.
+the ilks of  all arguments to a call are used to resolve the call.
 \emph{Symmetric multiple dispatch} is a special case of multiple dispatch 
 in which all arguments are considered equally when resolving a call.
 
-Multiple dispatch provides great expressivity.
+Multiple dispatch provides a level of expressivity that closely models
+standard mathematical notation.
 In particular, 
 mathematical operators such as $+$ and $\leq$ and $\cup$
 and especially $\cdot$ and $\times$
-have different definitions depending on the types of the arguments
-to an application of the operator
-(even the number of arguments may vary between calls); 
+have different definitions depending on the ````types'' (or even the number)
+of their operands; 
 in a language with multiple dispatch, 
 it is natural to define these operators as overloaded functions. 
 Similarly, 
 many binary operations on collections such as `append` and `zip` 
 have different definitions 
-depending on the types of both arguments. 
+depending on the ilks of both arguments. 
 \TODO{Add (reference to) argument for symmetric multiple dispatch?}
 
 % \TODO{Alternative is to have a shorter intro, 
@@ -71,8 +71,8 @@ consider the following overloaded function definitions:
   f(a: ZZ, b: Object): ZZ = 2`
 \normalsize
 To which of these definitions ought we dispatch 
-when $f$ is called with two arguments of type `ZZ` 
-(assuming `ZZ` is a subtype of `Object`---we write this `ZZ <: Object`)?
+when $f$ is called with two arguments of ilk `ZZ`?
+(We assume that `ZZ` is a subtype of `Object`, written `ZZ <: Object`.)
 % Note that the ambiguity is inherent in these definitions:
 % there is a real question as to what behavior the programmer intended
 % in this case.  
@@ -82,7 +82,11 @@ in the context of a type system
 without parametric polymorphism or multiple inheritance
 by requiring every pair of overloaded function definitions 
 to satisfy the following properties:
-(\emph{i}) whenever the domain type of one 
+(\emph{i}) whenever the domain type%
+\footnote{The ````domain type'' of a function definition is the type of its
+parameter. Hereafter we consider every function to have a single parameter;
+the appearance of multiple parameters denotes a single tuple parameter.}
+of one 
 is a subtype of the domain type of the other, 
 the return type of the first
 must also be a subtype of the return type of the second; 
@@ -97,7 +101,7 @@ to satisfy the latter property for the example above,
 the programmer must provide a third definition, such as:
 
 \small
-`  f(a: ZZ, b ZZ): ZZ = 3
+`  f(a: ZZ, b: ZZ): ZZ = 3
 `
 \normalsize
 
@@ -175,7 +179,7 @@ provide the type arguments to the generic type `List`.}
 `  append[\X\](x: List[\X\], y: List[\X\]): List[\X\] = e
 `
 \normalsize
-should be understood as if it stood for an infinite set of monomorphic definitions:
+should be understood as if it denoted an infinite set of monomorphic definitions:
 \small
 `  append(x: List[\Object\], y: List[\Object\]): List[\Object\] = e
   append(x: List[\String\], y: List[\String\]): List[\String\] = e
@@ -285,14 +289,15 @@ proposed to avoid these ambiguities
 by adopting an alternate model for generic functions, 
 similar to one proposed by Bourdoncle and Merz~\cite{bourdoncle97},
 in which each function definition 
-is regarded as a single definition whose domain type is an existential type, 
+is regarded as a single definition whose domain type is
+existentially quantified over its type parameters,
 rather than as an infinite set of definitions.
 (A monomorphic definition is regarded as a degenerate generic one.)
 In this model, 
 overloaded function definitions are (partially) ordered 
 by the subtype relation on existential types.
 Adapting dispatch and the meet rule to use this new order is straightforward.
-Adapting the return type rule is somewhat more complicated 
+Adapting the return type rule is somewhat more complicated, 
 but checking it reduces to checking subtyping relationships 
 between universal types.
 Adopting this model has made overloaded generic functions in Fortress
@@ -323,8 +328,11 @@ when some other module extends its types.
 The difficulty is due to multiple inheritance: 
 Because the type hierarchy defined by a module may be extended 
 by types in other modules, 
-two types may have a common nontrival subtype 
-even if no type declared in the module 
+two types may have a common nontrival%
+\footnote{A type is a nontrivial subtype of another type if it is not the
+trivial ````bottom'' type defined in the next section.}
+subtype 
+even if no type declared in this module 
 % (or in any module it extends) 
 extends them both.
 Thus,
@@ -353,10 +361,8 @@ Thus, this overloading would be rejected by our overloading rules.
 
 To address this problem,
 Fortress defines an \emph{exclusion relation} on types, 
-such that types related by exclusion must have no common nontrivial subtypes,
-and thus definitions with such types as domain types 
-need not be disambiguated.
-If the domains of two function definitions exclude each other, 
+such that types related by exclusion must have no common nontrivial subtype.
+If the domains of two overloaded function definitions exclude each other, 
 then these definitions are never applicable to the same call,
 and so no ambiguity can arise between them.
 In the example above,
@@ -367,10 +373,10 @@ Many languages enforce and exploit some exclusion relations implicitly.
 For example, single inheritance ensures that
 any two incomparable types exclude each other. 
 Fortress enables programmers to declare ````nominal exclusion''
-in addition to determining many exclusions implicitly, 
-and in Section~\ref{sec:exclusion}, 
-we formalize how Fortress does this, 
-and show how this exclusion relation is used 
+in addition to determining many exclusions implicitly. 
+In Section~\ref{sec:exclusion}, 
+we formalize this 
+and we show how the exclusion relation is used 
 to improve expressivity 
 by accommodating overloadings that would otherwise be rejected.
 The proof of safety in Section~\ref{sec:safety} 
@@ -391,10 +397,10 @@ covers the rules under this extended type system.
 % if the type system supports an \emph{exclusion relation},
 % which asserts that two types have no common instances.
 
-\TODO{Remove following paragraph (put in next section)?}
+\TODO{Remove following paragraph (put in next section)? Repeated phrase ````minimize syntactic overhead.''}
 
 To minimize syntactic overhead 
-and avoid having to translate 
+and to avoid needing to translate 
 between a concrete language syntax 
 and a formal semantics, 
 we present these rules (see Section~\ref{sec:rules}) 
