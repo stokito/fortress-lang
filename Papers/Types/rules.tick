@@ -31,7 +31,7 @@ the \emph{No Duplicates Rule},
 \emph{Meet Rule}, 
 and \emph{Return Type Rule}---%
 for sets of overloaded function definitions.
-Such a set is \emph{well-formed with respect to a class table}
+Such a set is \emph{valid with respect to a class table}
 if it satisfies all these rules using the subtyping relation 
 induced by the class table.
 In Section~\ref{sec:safety},
@@ -50,11 +50,15 @@ For each function name $f$,
 we determine whether a set of overloaded function declarations $\D(f)$ is valid
 by independently considering every pair of declarations in the set.
 A pair of declarations is a valid overloading 
-if it satisfies the three rules described below.
+if it satisfies the three rules described below with respect to a class
+table $\T$, and a set $\D(f)$ is valid
+with respect to $\T$ if every pair of declarations in the set is valid with
+respect to $\T$. \TODO{Mention that we will later show that the
+rules are preserved by class table extension?}
 
 \TODO{We broke up meet rule in intro into two rules here.}
 
-The meet rule of Castagna imposed two conditions:
+The meet rule of Castagna et al. imposes two conditions:
 the existence of a meet and its uniqueness.
 We split these into two rules.
 
@@ -74,11 +78,10 @@ such that $d_1 \ms d_2$ and $d_2 \ms d_1$.
 
 \TODO{Phrase the no duplicates rule as about a pair of definitions?}
 
-A pair of declarations is a valid overloading 
+A pair of declarations is unambiguous
 if for any call to which both declarations are applicable,
 there is a {\em disambiguating declaration} (possibly one of the pair)
 that is also applicable to the call and is at least as specific as both declarations.
-\TODO{This is not sufficient: they must also satisfy return type rule.}
 Thus, at run time, the disambiguating declaration is preferred.
 \begin{description}
 \item[Meet Rule]
@@ -94,14 +97,14 @@ and tuple types with different numbers of arguments
 have no common subtype other than \BottomType,
 this rule technically requires that 
 an overloaded function with definitions that take different numbers of arguments 
-has a definition that applicable only to \BottomType.
+has a definition applicable only to \BottomType.
 Because \BottomType\ is not first-class in Fortress, 
 such a definition cannot be written, 
-and in any case, it would, of course, never be applied
+and in any case it would, of course, never be applied
 because no value belongs to \BottomType.
 To avoid this technicality, 
 we implicitly augment the set $\D(f)$ of overloaded function definitions with name $f$ 
-with a declaration $\decl{f_\bot}{\BottomType}{\BottomType}$.
+with a declaration $\decl{f}{\BottomType}{\BottomType}$.
 Because this declaration is strictly more specific 
 than any declaration that a programmer can write, 
 it trivially satisfies the meet rule (and the no duplicates rule).
@@ -121,7 +124,7 @@ If one overloaded definition is strictly more specific than another
 then that pair of definitions satisfies the no duplicates rule 
 and the meet rule.}
 
-If one monomorphic declaration is more specific than another monomorphic one
+If one monomorphic declaration is more specific than another monomorphic one,
 then there is no ambiguity between these two declarations:
 for any call to which both are applicable, the first is more specific.
 In the parametrically polymorphic setting,
@@ -135,9 +138,9 @@ we also require that the return type of the latter declaration be a subtype of t
 \begin{description}
 \item[Return Type Rule]
 For every $d_1, d_2 \in \D(f)$ with $d_1 \ms d_2$, 
-every type $W$ to which $d_1$ is applicable
-(and therefore $d_2$ is also applicable)
-and every instance $\decl{f}{S_2}{T_2}$ of $d_2$ that is applicable to $W$,
+for every type $W$ to which $d_1$ is applicable
+(and therefore $d_2$ is also applicable),
+and for every instance $\decl{f}{S_2}{T_2}$ of $d_2$ that is applicable to $W$,
 there must exist an instance \decl{f}{S_1}{T_1} of $d_1$
 that is applicable to $W$ and satisfies \mbox{$T_1 <: T_2$}.
 \end{description}
