@@ -1,0 +1,110 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Ranges}
+\seclabel{ranges}
+
+\note{Static expressions, static range types, and some range operations are not yet supported.}
+
+\begin{Grammar}
+\emph{Range} &::=& \option{\emph{Expr}}\EXP{:}\option{\emph{Expr}}\options{\EXP{:}\option{\emph{Expr}}}\\
+&$|$& \emph{Expr}\EXP{\#}\emph{Expr}
+\end{Grammar}
+
+%% :
+%% ::
+%% ::c
+%% :e
+%% :e:
+%% :e:e
+%%
+%% e:
+%% e::
+%% e::e
+%% e:e
+%% e:e:
+%% e:e:e
+
+
+A \emph{range expression} is used to create a special kind of \TYP{Generator} for
+a set of integers, called a \TYP{Range}, useful
+for indexing an array or controlling a \KWD{for} loop.  Generators in
+general are discussed further in \secref{generators}.
+
+An \emph{explicit range}
+is self-contained and completely describes a set of integers.  Assume that
+$a$, $b$, and $c$ are expressions that produce integer values.
+
+\begin{itemize}
+\item The range \EXP{a\COLONOP{}b} is the set of $n=\max(0,b-a+1)$ integers $\{a, a+1, a+2, \ldots, b-2, b-1, b\}$.
+This is a \emph{nonstrided} range.
+If \VAR{a} and \VAR{b} are both static expressions
+(described in \secref{static-expr}),
+then it is a \emph{static range} of type \EXP{\TYP{StaticRange}\llbracket{}a,n,1\rrbracket}
+and therefore also a \emph{range of static size} of type \EXP{\TYP{RangeOfStaticSize}\llbracket{}n\rrbracket}.
+
+\item The range \EXP{a\COLONOP{}b\COLONOP{}c} is
+the set of $n=\max\left(0, \left\lfloor {b-a+c \over c} \right\rfloor \right)$ integers
+$\{a, a+c, a+2c, \ldots, a + \left\lfloor {b-a \over c} \right\rfloor c\}$,
+unless $c$ is zero, in which case it throws an exception.
+(If $c$ is a static expression, then it is a static error if $c$ is zero.)
+This is a \emph{strided} range.
+If \VAR{a}, \VAR{b}, and \VAR{c} are all static expressions,
+then it is a \emph{static range} of type \EXP{\TYP{StaticRange}\llbracket{}a,n,c\rrbracket}
+and therefore also a \emph{range of static size} of type \EXP{\TYP{RangeOfStaticSize}\llbracket{}n\rrbracket}.
+
+\item The range \EXP{a\mathinner{\hbox{\tt\char'43}}n} is the set of
+\EXP{\max(0,n)} integers $\{a, a+1, a+2, \ldots, a+n-3, a+n-2, a+n-1\}$.
+This is a \emph{nonstrided} range.
+If \VAR{a} and \VAR{n} are both static expressions,
+then it is a \emph{static range} of type \EXP{\TYP{StaticRange}\llbracket{}a,n,1\rrbracket}
+If \VAR{n} is a static expression, then it is a \emph{range of static size}
+of type \EXP{\TYP{RangeOfStaticSize}\llbracket{}n\rrbracket},
+even if \VAR{a} is not a static expression.
+\end{itemize}
+
+Non-static components of a range expression are computed in separate
+implicit threads.  The range is constructed when all components have
+completed normally.
+
+An \emph{implicit range} may be used only in certain contexts, such as array subscripts,
+that can supply implicit information.  Suppose an implicit range is used as a subscript
+for an axis of an array for which the lower bound is $l$ and the upper bound is $u$.
+\begin{itemize}
+\item The implicit range \EXP{\COLONOP} is treated as \EXP{l\COLONOP{}u}.
+\item The implicit range \EXP{\COLONOP\mathrel{\mathtt{:}}c} is
+  treated as \EXP{l\COLONOP{}u\COLONOP{}c}.
+\item The implicit range \EXP{\COLONOP{}b} is treated as \EXP{l\COLONOP{}b}.
+\item The implicit range \EXP{\COLONOP{}b\COLONOP{}c} is treated as
+\EXP{l\COLONOP{}b\COLONOP{}c}.
+\item The implicit range \EXP{a\COLONOP} and \EXP{a\mathinner{\hbox{\tt\char'43}}} are treated as \EXP{a\COLONOP{}u}.
+\item The implicit range \EXP{a\COLONOP\mathrel{\mathtt{:}}c} is treated as
+\EXP{a\COLONOP{}u\COLONOP{}c}.
+\item The implicit range \EXP{\mathinner{\hbox{\tt\char'43}}s} is treated as \EXP{l\mathinner{\hbox{\tt\char'43}}s}.
+\end{itemize}
+
+One may test whether an integer is in a range by using the operator $\in$:
+\input{\home/basic/examples/Expr.Range.tex}
+
+Ranges may be compared as if they were sets of integers by using
+\EXP{\subset} (\STR{SUBSET}) and \EXP{\subseteq} (\STR{SUBSETEQ})
+and \EXP{=} and \EXP{\supseteq} (\STR{SUPSETEQ}) and \EXP{\supset} (\STR{SUPSET}).
+
+Ranges may be intersected using the operator \EXP{\cap} (\STR{INTERSECTION}).
+
+The size of a range (the number of integers in the set)
+may be found by using the set-cardinality operator
+\EXP{\left|\ldots\right|}.  For example, the value of \EXP{\left|3\COLONOP{}7\right|} is \EXP{5}
+and the value of \EXP{\left|1\COLONOP{}100\COLONOP{}2\right|} is \EXP{50}.
+
+Note that a range is very different from an interval with integer endpoints.
+The range \EXP{3\COLONOP{}5} contains only the values 3, 4, and 5,
+whereas the interval \EXP{[3,5]} contains all real numbers \VAR{x} such that \EXP{3\leq{}x\leq{}5}.

@@ -1,0 +1,31 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component testDupInit
+export Executable
+
+testVar : ZZ32[10] = do println("Re-initializing testVar"); array1[\ZZ32,10\]() end
+
+test t0(): () = ()
+
+test t1(): () = ()
+
+test t2(): () = ()
+
+run():() = do
+    println("Please run in test mode!!")
+    tv1 = testVar
+    tv2 = testVar
+    ()
+  end
+
+
+end

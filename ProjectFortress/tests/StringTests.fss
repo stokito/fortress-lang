@@ -1,0 +1,308 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component StringTests
+import String.{...}
+import FlatString.{...}
+import Set.{...}
+import List.{...}
+export Executable
+
+test testDepth(): () = do
+  words = ⟨"Hello ", "world, ", "it's ", "a ", "bright ", "new ", "day."⟩
+  var result: String = EmptyString
+  for w ← seq(words) do result := CatString(result, w) end
+  assert(result, "Hello world, it's a bright new day.")
+  result.verify()
+  assert(result.depth, 7)
+end
+
+test testindexing(): () = do
+  words = ⟨"The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog."⟩
+  var testString: String = EmptyString
+  for w ← seq(words) do testString := CatString(testString, w) end
+  referenceString = "Thequickbrownfoxjumpedoverthelazydog."
+  assert(testString, referenceString)
+  for i ← ⟨ 0, 5, 7, 8, 9, 36, 23, 35 ⟩ do
+      assert(testString[i], referenceString[i])
+  end
+  for i ← ⟨ -1, -5, 37, 38, 109 ⟩ do
+      shouldRaise⟦IndexOutOfBounds⟦ZZ32⟧⟧ (fn() => testString[i])
+  end
+end
+
+
+test testSubString(): () = do
+  words = ⟨"The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog."⟩
+  var testString: String = EmptyString
+  for w ← seq(words) do testString := CatString(testString, w) end
+  referenceString = "Thequickbrownfoxjumpedoverthelazydog."
+  assert(testString, referenceString)
+  for i ← ⟨ 0, 5, 7, 8, 9, 36, 23, 35 ⟩,
+          j ← ⟨ 0, 5, 7, 8, 9, 36, 23, 35 ⟩ do
+      assert(testString[i:j], referenceString[i:j])
+  end
+end
+
+test testSubStringSimplification():() = do
+  testString = catStringFrom("The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog.")
+  testString.verify()
+  typecase testString[34:36] of
+      FlatString => assert(true)
+      sub1:String => do
+                          println sub1.asDebugString
+                          fail "sub1=" sub1 " is not a FlatString"
+                        end
+  end
+end
+
+
+validatesplitWithOffsets(subject: String, division): () = do
+  var len: ZZ32 = 0
+  var accum: String = ""
+  for (start, str) ← division do
+       assert(start, len, str)
+       len := len + |str|
+       accum := accum || str
+  end
+    assert(len, |subject|)
+    assert(accum, subject)
+end
+
+test testIlk() = do
+  hello = "Hello"
+  assert(hello.ilkName, "FlatString")
+  hw = CatString(hello, " World")
+  assert(hw.ilkName, "CatString")
+end
+
+
+test testCatStringGet() = do
+  cat = CatString("@ab", "cdef")
+  assert(cat.get(1), 'a')
+  assert(cat.get(4), 'd')
+end
+
+test testSubstringGet() = do
+  cat = CatString("@ab", "cdefg")
+  subC = cat[2#4]
+  assert(subC.ilkName, "SubString", subC, " is not a SubString")
+  subC.verify()
+  assert(cat[2], 'b')
+  assert(subC[0], 'b')
+  assert(subC[1], 'c')
+  assert(subC[2], 'd')
+  assert(subC[3], 'e')
+  shouldRaise⟦IndexOutOfBounds⟦ZZ32⟧⟧ (fn() ⇒ subC[4])
+end
+
+test testFlatStringification() = do
+  e = EmptyString
+  assert(e.asFlatString, "", "EmptyString.javaString")
+  c = CatString("abcd", "efgh")
+  c.verify
+  assert(c.asFlatString, "abcdefgh", "CatString.javaString")
+  s = c[2:5]
+  s.verify()
+  assert(s.asFlatString, "cdef", "SubString.javaString")
+  ss = s[1:2]
+  ss.verify()
+  assert(ss.asFlatString, "de", "Substring of SubString.javaString")
+  lss = s[0:1]
+  lss.verify()
+  assert(lss.asDebugString, "J2/0:cd")
+  assert(lss.asFlatString, "cd", "left Substring of SubString.javaString")
+end
+
+test testIN() = do
+  e = EmptyString
+  deny('x' IN e)
+  c = CatString("abcd", "efgh")
+  assert('a' IN c)
+  assert('f' IN c)
+  deny('j' IN c)
+  s = c[2:5]
+  deny('a' IN s)
+  assert('d' IN s)
+  assert('f' IN s)
+  ss = s[1:2]
+  assert('e' IN ss)
+  assert('d' IN ss)
+  deny('f' IN ss)
+  lss = s[0:1]
+  assert('c' IN lss)
+  deny('e' IN lss)
+  assert('d' IN lss)
+end
+
+
+test testsplitWithOffsets():() = do
+  subject = CatString("abcd", "efgh")
+  substr1 = subject[2:6]
+  validatesplitWithOffsets(substr1, seq(substr1.splitWithOffsets()))
+
+  substr2 = subject[4:6]
+  assert(substr2.splitWithOffsets().isEmpty, "subject[4:6].splitWithOffsets is not empty!")
+
+  substr3 = subject[0:5]
+  validatesplitWithOffsets(substr3, seq(substr3.splitWithOffsets()))
+
+
+  subC = (CatString("@ab", "cdefg"))[2#4]
+  validatesplitWithOffsets(subC, seq(subC.splitWithOffsets()))
+end
+
+
+test testComparison():() = do
+  smaller = catStringFrom("The", "quick", "brown", "fox", "jumped", "over", "the", "lazy", "dog.")
+  bigger = catStringFrom("The", "quick", "brown", "jumped", "fox", "over", "the", "lazy", "doggie.")
+  smallerFlat = smaller.asFlatString
+  biggerFlat = bigger.asFlatString
+  smaller.verify
+  bigger.verify
+  assert(smaller < bigger)
+  assert(smallerFlat < bigger)
+  assert(smallerFlat < biggerFlat)
+  assert(bigger > smaller)
+  assert(smaller[10:] < bigger[10:])
+  assert(bigger[12:] > smaller[12:])
+  assert(biggerFlat[12:] > smaller[12:])
+  a = smaller[30:36]
+  b = bigger[30:36]
+  a.verify
+  b.verify
+  assert(smaller[30#6], bigger[30:35], smaller[30#6] " is not = to " bigger[30:35])
+  assert(smallerFlat[30#6], bigger[30:35], smallerFlat[30#6] " is not = to " bigger[30:35])
+end
+
+
+test testCIComparison():() = do
+  smaller = catStringFrom("The", "quick", "BROWN", "fox", "jumped", "over", "the", "lazy", "dog.")
+  bigger = catStringFrom("The", "QUICK", "brown", "JUMPED", "fox", "over", "the", "lazy", "doggie.")
+  smallerFlat = smaller.asFlatString
+  biggerFlat = bigger.asFlatString
+  smaller.verify
+  bigger.verify
+  assert(smaller CASE_INSENSITIVE_CMP bigger, LessThan)
+  assert(smallerFlat CASE_INSENSITIVE_CMP bigger, LessThan)
+  assert(smallerFlat CASE_INSENSITIVE_CMP biggerFlat, LessThan)
+  assert(bigger CASE_INSENSITIVE_CMP smaller, GreaterThan)
+  assert(smaller[10:] CASE_INSENSITIVE_CMP bigger[10:], LessThan)
+  assert(bigger[12:] CASE_INSENSITIVE_CMP smaller[12:], GreaterThan)
+  assert(biggerFlat[12:] CASE_INSENSITIVE_CMP smaller[12:], GreaterThan)
+end
+
+object CatStringReduction extends MonoidReduction[\String\]
+  getter asString() = "CatString Reduction"
+  empty(): String = EmptyString
+  join(a:String, b:String):String = CatString(a, b)
+end
+
+catStringFrom(args: String...): String =
+  seq(args).generate⟦String⟧(CatStringReduction, fn(x) => x)
+
+
+test testNonEmptyConcat(): () =  do
+  stuff = "Hello "
+  more = "World"
+  hw = CatString(stuff, more)
+  assert(|hw|, |stuff| + |more|)
+  assert(hw, "Hello World")
+  assert(hw, CatString("Hell", "o World"))
+end
+
+test testEmptyConcat(): () = do
+  e = EmptyString
+  assert(|e|, 0)
+  assert(e.isEmpty)
+  stuff = "Hello "
+  more = "World"
+  h = CatString(stuff, e)
+  assert(|h|, |stuff|)
+  assert(stuff || e, stuff)
+end
+
+test testCharConcat(): () =  do
+  var result: String = EmptyString
+  hw = "Hello World"
+  for c <- seq(hw) do
+      result := result || c
+  end
+  assert(result, hw)
+end
+
+test testParallelGenerator(): () = do
+  chars = "abcdefghijklmnopqrstuvwxyz"
+  var result: Set⟦Char⟧ = set⟦Char⟧()
+  for c ← chars atomic do result := result.add(c) end
+  assert(|result|, |chars|)
+  for c ← result do assert(c ∈ chars) end
+end
+
+test testSequentialGenerator(): () = do
+  chars = "abcdefghijklmnopqrstuvwxyz"
+  var result: List⟦Char⟧ = emptyList⟦Char⟧(26)
+  for c ← seq(chars) do result := result.addRight(c) end
+  assert(|result|, |chars|)
+  for i ← result.bounds do assert(result[i] , chars[i]) end
+end
+
+test testEquality() = do
+  subJ = "bcdefg"[1#4]
+  subC = (CatString("@ab", "cdefg"))[2#4]
+  assert(subJ > subC, "cdef not > bcde")
+  assert("abcdefg"[1#4], subC)
+end
+
+test testStringification() = do
+  str = CatString("The word \"test\"", " is overused")
+  ran = 1:20:2
+  assert(str.asString, str)
+  assert(str.asExprString, "\"The word \\\"test\\\" is overused\"")
+  assert(str.asDebugString, "BC27/1:"//
+    "        J15/0:The word \"test\""//
+    "        J12/0: is overused")
+  assert((CatString(str[#11], str[13:])).asExprString, "\"The word \\\"tt\\\" is overused\"")
+  assert(ran.asString, "[1,3,5,7,... 19]")
+  assert(ran.asExprString, "1:19:2")
+  assert(ran.asDebugString, "StridedFullParScalarRange(1,19,2)")
+end
+
+test testRegExpSplit() = do
+   str = "How much wood would a woodchuck chuck if a woodchuck could chuck wood?"
+   assert(str.javaRegExpSplit("wood", 0), "How much ", "Test RegExpSplit failed" );
+   assert(str.javaRegExpSplit("wood", 100), "", "Should return empty string")
+end
+
+run():() = do
+  testStringification()
+  testDepth()
+  testindexing()
+  testSubString()
+  testSubStringSimplification()
+  testIlk()
+  testFlatStringification()
+  testsplitWithOffsets()
+  testIN()
+  testComparison()
+  testCIComparison()
+  testNonEmptyConcat()
+  testEmptyConcat()
+  testCharConcat()
+  testParallelGenerator()
+  testSequentialGenerator()
+  testCatStringGet()
+  testSubstringGet()
+  testEquality()
+  testRegExpSplit()
+end
+
+end StringTests
