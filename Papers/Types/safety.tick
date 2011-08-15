@@ -1,6 +1,4 @@
-
-
-\begin{theorem}[Overloading resolution safety]
+\begin{theorem}
 \label{thm:safety}
 Suppose $D(f)$ is well formed with respect to the class table $\T$,
 then for any type $S \in \T' \ctext \T$. There exists a unique most specific declaration $d_{S} \in \D(f)$ applicable to $S$.
@@ -8,29 +6,33 @@ Furthermore for any declaration $d \in \D(f)$ and instance $\decl{f}{T}{U}$ of $
 $\decl{f}{V}{W}$ of $d_{S}$ that is applicable to $S$ and has $W \subtypeof U$.
 \end{theorem}
 
+Before proving the theorem we will need to establish two lemmas. The first is the most critical, it shows that you cannot invalidate a well formed set of overloaded function declaration by extending the class
+table. The second is a simple consequence of the meet rule.
+
 \begin{lemma}[Modularity Lemma]
 \label{lem:mod}
 If $\D(f)$ is well formed with respect to the class table $\T$,
 then $\D(f)$ is well formed with respect to any extension $\T'$ of $\T$.
 \end{lemma}
-
 \begin{psketch}
-In Section \ref{sec:checking} we show that checking whether $\D(f)$ is well formed can be reduced to examining subtype relationships
+In Section \ref{sec:checking} we will show that checking whether $\D(f)$ is well formed can be reduced to examining subtype relationships
 between existential and universal types that are constructed solely from types appearing in $\D(f)$ and hence $\T$. Extension of the class table
 preserves subtype relationships between types in $\T$ and hence preserves well formedness of $\D(f)$.
 \end{psketch}
 
-\begin{lemma}
-\label{lem:prog}
+\begin{lemma}[No Ambiguity Lemma]
 If $\D(f)$ satisfies the overloading rules with respect to a class table $\T$,
 then for any type $T \in \T$ there is a unique most specific declaration $d_{T} \in \D(f)$ applicable to $T$.
 \end{lemma}
-
-\begin{plemma}
-Let $\D(f)(T)$ denote the set of declaration in $\D(f)$ that are applicable to $T$. The meet rule implies that $\D(f)(T)$ is a meet semi-lattice and any
+\begin{proof}
+Let $\D(f)(T)$ denote the set of declaration in $\D(f)$ that are applicable to $T$. The meet and no duplicate rules imply that $\D(f)(T)$ is a meet semi-lattice and any
 finite meet semi-lattice has a minimal element.
-\end{plemma}
+\end{proof}
 
-\begin{ptheorem}
-Lemma \ref{lem:mod} lets us reduce to the case when $\T' = \T$. Now Lemma \ref{lem:mod} shows that $d_{S}$ exists. Finally apply the return type rule. 
-\end{ptheorem}
+\vspace*{2ex}
+\noindent The proof of the theorem follows easily. 
+\vspace*{2ex}
+
+\begin{proof}
+The modularity lemma lets us reduce to the case when $\T' = \T$. Now the no ambiguity lemma shows that $d_{S}$ exists. Finally apply the return type rule. 
+\end{proof}
