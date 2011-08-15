@@ -1,32 +1,36 @@
-\TODO{Add introductory paragraph.}
-
-\TODO{Make class table explicit in lemmas.}
-
-\TODO{This section generally needs to be polished.}
 
 
-\begin{theorem}[Overloading Resolution Safety]
+\begin{theorem}[Overloading resolution safety]
 \label{thm:safety}
-Suppose $D(f)$ satisfies the overloading rules with respect to a class table $\T$,
+Suppose $D(f)$ is well formed with respect to the class table $\T$,
+then for any type $S \in \T' \ctext \T$. There exists a unique most specific declaration $d_{S} \in \D(f)$ applicable to $S$.
+Furthermore for any declaration $d \in \D(f)$ and instance $\decl{f}{T}{U}$ of $d$ applicable to $S$, there exists an instance
+$\decl{f}{V}{W}$ of $d_{S}$ that is applicable to $S$ and has $W \subtypeof U$.
 \end{theorem}
 
-\begin{lemma}[Progress]
-\label{lem:progress}
-If $\D(f)$ satisfies the overloading rules with respect to a class table $\T$,
-then for any type $T \in \T$ with $T \neq \BottomType$ there is a most specific declaration $d_{T} \in \D(f)$ applicable to $T$.
+\begin{lemma}[Modularity Lemma]
+\label{lem:mod}
+If $\D(f)$ is well formed with respect to the class table $\T$,
+then $\D(f)$ is well formed with respect to any extension $\T'$ of $\T$.
 \end{lemma}
 
-\begin{lemma}[Preservation]
-\label{lem:preservation}
+\begin{psketch}
+In Section \ref{sec:checking} we show that checking whether $\D(f)$ is well formed can be reduced to examining subtype relationships
+between existential and universal types that are constructed solely from types appearing in $\D(f)$ and hence $\T$. Extension of the class table
+preserves subtype relationships between types in $\T$ and hence preserves well formedness of $\D(f)$.
+\end{psketch}
+
+\begin{lemma}
+\label{lem:prog}
 If $\D(f)$ satisfies the overloading rules with respect to a class table $\T$,
-then for any type $S \in \T$ with $S \neq \BottomType$, declaration $d \in \D(f)$, and instance $\decl{f}{T}{U}$
-there exists an instance $\decl{f}{V}{W}$ of $d_{S}$ such that $\decl{f}{V}{W}$ is applicable to $S$ and $W$ is a subtype of $U$. 
+then for any type $T \in \T$ there is a unique most specific declaration $d_{T} \in \D(f)$ applicable to $T$.
 \end{lemma}
 
-\begin{lemma}[Extension Lemma]
-If $\D(f)$ satisfies the overloading rules with respect to a class table $\T$,
-then $\D(f)$ satisfies the overloading rules with respect to any extension $\T'$ of $\T$.
-\end{lemma}
+\begin{plemma}
+Let $\D(f)(T)$ denote the set of declaration in $\D(f)$ that are applicable to $T$. The meet rule implies that $\D(f)(T)$ is a meet semi-lattice and any
+finite meet semi-lattice has a minimal element.
+\end{plemma}
 
-
-
+\begin{ptheorem}
+Lemma \ref{lem:mod} lets us reduce to the case when $\T' = \T$. Now Lemma \ref{lem:mod} shows that $d_{S}$ exists. Finally apply the return type rule. 
+\end{ptheorem}
