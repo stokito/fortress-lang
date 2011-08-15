@@ -60,7 +60,7 @@ an `object` declaration, a `comprises` clause and an `excludes` clause.
 We describe these precisely in Section~\ref{sec:exc-spec}, 
 but for now, we simply note that 
 they do not help with the overloaded `append` function.
-That is, 
+Specifically,
 even with these exclusion mechanisms, 
 we cannot define `List` 
 so that the definitions for `append` satisfy the return type rule.
@@ -73,7 +73,7 @@ consider the following overloaded definitions (from the introduction):
   append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\]
 `
 \normalsize
-and suppose that we have the following type constructor declaration:
+and suppose we have the following type constructor declaration:
 
 \small
 `  BadList <: { List[\ZZ\], List[\String\] }
@@ -97,7 +97,7 @@ that is, it requires
 and `List[\ZZ\] <: List[\String\]`.
 The latter is clearly false.
 
-A somewhat more subtle issue arises 
+A similar issue arises 
 when trying to satisfy the meet rule 
 by providing a disambiguating definition 
 for two incomparable definitions, 
@@ -130,8 +130,8 @@ but the third is not.
 We might say that the problem with the above examples 
 is not with the definitions of `append` and `min`, 
 but with the definitions of `BadList` and `BadPair`, 
-that a value can belong to `List[\ZZ\]` or `List[\String\]`, 
-or to `Pair[\ZZ,Number\]` or `Pair[\Number,ZZ\]`, 
+that a value may belong to `List[\ZZ\]` or `List[\String\]`---%
+or to `Pair[\ZZ,Number\]` or `Pair[\Number,ZZ\]`---%
 but not to both.
 More generally, 
 we can impose a rule that forbids 

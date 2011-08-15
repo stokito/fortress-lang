@@ -43,14 +43,15 @@ must also be a subtype of $\substb{T}{X}K_i$ for some $K_i$ in $\bar{K}$.
 % Thus, if a type excludes `[T_bar / X_bar]K[i]` for each $i$, then it
 % also necessarily excludes `C[\T_bar\]`.
 
-For convenience, 
-we allow the `excludes` and `comprises` clauses to be omitted.
+% For convenience, 
+% we allow the `excludes` and `comprises` clauses to be omitted.
 Omitting an `excludes` clause is equivalent to having `excludes {}`;
-omitting a `comprises` clause is equivalent to having `comprises { Any }`.\footnote{%
+omitting a `comprises` clause is equivalent to having `comprises { Any }`.\!\footnote{%
 To catch likely programming errors, 
 Fortress requires that 
 every $K_i$ in a `comprises` clause for $C\obb{T}$ be a subtype of $C\obb{T}$, 
 but allowing `Any` to appear in a `comprises` clause simplifies our presentation here.}
+
 We define the sets of instantiations of the types 
 in these clauses analogously to $\myextends{C\obb{T}}$.
 That is, 
@@ -73,8 +74,8 @@ Although the declaration has no `excludes` or `comprises` clause,
 this condition implies that `D[\T_bar\]` 
 excludes any type other than its supertypes.
 
-As mentioned previously, 
-multiple instantiation exclusion 
+% As mentioned previously, 
+Multiple instantiation exclusion 
 further restricts generic types: 
 Two distinct instantiations of a generic type 
 (i.e., distinct applications of a type constructor) 
@@ -173,7 +174,7 @@ might not be well-formed under multiple instantiation exclusion.
 % of these symmetric relations.
 % (We introduce another sub-relation $\excp$ in Section~\ref{sec:exc-polyrules}.)
 
-We can extend the exclusion relation 
+We extend the exclusion relation 
 to structural and compound types as follows:
 Every arrow type excludes every non-arrow type other than \Any.
 Every non-singleton tuple type excludes every non-tuple type other than \Any.
