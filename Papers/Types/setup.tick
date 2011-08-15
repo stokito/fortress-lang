@@ -97,19 +97,20 @@ in the bounds and supertypes of its own and other type constructors' declaration
 We say that $C$ \emph{extends} a type constructor $D$ 
 if $N_i = D\obb{T}$ for some $N_i$ and $\bar{T}$.
 A class table is \emph{well-formed} 
-if every type constructor that appears in the table is declared by the table
+if every type that appears in it is well-formed,
+as defined below, 
 and the extends relation over type constructors is acyclic.
 
-% Victor: Given our restricted setting (i.e., no mix-ins), 
-% I believe that the above definition (of well-formedness for class tables)
-% is equivalent to the definition in Kennedy and Pierce, 
-% whereas the following definition (from earlier versions of the paper)
-% is too weak:
+\TODO{Mention that given our restricted setting (i.e., no mixins), 
+the above definition (for well-formedness of class tables) 
+is equivalent to the one in Kennedy and Pierce?  
+(The one we had before was too weak: 
+see comment in source file for example.)}
 
 % A class table $\T$ is \emph{well-formed} if the resulting subtyping relation 
 % on its constructed types is a partial order.
 
-% Victor: For example, I believe this definition permits the following class table:
+% Victor: This definition permits the following class table, which we want to disallow:
 %  A[\X\]
 %  B[\Y\] <: C[\A[\Y\]\]
 %  C[\Z\] <: B[\A[\Z\]\]
@@ -123,48 +124,36 @@ $U_i \subtypeof \substb{U}{X}M_{ij}$
 for $1 \leq i \leq |\bar{U}|$ and $1 \leq j \leq |\bar{M_i}|$ 
 (where $\subtypeof$ is the subtyping relation defined below, 
 and $\substb{U}{X}M_{ij}$ is $M_{ij}$ 
-with $U_k$ substituted for each occurrence of $X_k$ in $M_{ij}$ 
+with $U_k$ substituted 
+for each occurrence of $X_k$ in $M_{ij}$ 
 for $1 \leq k \leq |\bar{U}|$);
 and 
 (\emph{ii}) is a subtype of $\substb{U}{X}N_l$ for $1 \leq l \leq |\bar{N}|$.
-Thus, a class table induces 
+The class table induces 
 a (nominal) \emph{subtyping relation} $\subtypeof$ over the constructed types 
 by taking the reflexive and transitive closure 
 of the subtyping relation derived from the declarations in the class table.
 In addition, 
+% \Any\ and \BottomType\ are well-formed with respect to any class table, and 
 every type is a subtype of \Any\ and a supertype of \BottomType.
 
+We say that a type $T$ (of any form) is \emph{well-formed} 
+with respect to $\T$, 
+and write $T \in \T$, 
+if every constructed type occurring in $T$ is well-formed with respect to $\T$.
+\TODO{Should this be restricted to ground types?}
+Typically, the class table is fixed and implicit, 
+and we assume it is well-formed 
+and often omit explicit reference to it.
 
-
-For any type $T$ (of any form),
-we write $T \in \T$ to mean that 
-every constructed type occurring in type $T$
-is well-formed with respect to $\T$.
-
-A class table $\T'$ is an \emph{extension} of $\T$ (written $\T' \ctext \T$)
-if every constructor declaration in $\T$ is also in $\T'$ 
-and the subtype relation on $\T'$ agrees with that of $\T$. 
-\TODO{Doesn't the subtype agreement follow from declaration inclusion?}
-Consequently, if $\T' \ctext \T$ then 
-$T \in \T$ implies $T \in \T'$ for any type $T$.
-We typically omit explicit reference to the class table when it is understood, 
-and we assume that the class table is well-formed.
-
-To reduce clutter, 
-nullary applications are written without brackets; 
-for example, `C[\ \]` is written `C`, 
-We also elide the braces delimiting 
-a singleton list of bounds of a type parameter 
-or supertypes of a class in a type constructor declaration.
-
-Given a well-formed class table 
-containing the type constructor declaration for $C$ above 
-and a well-formed application $C\obb{T}$,
-we denote the set of its explicitly declared supertypes by
+Given % a class table with 
+the type constructor declaration above, 
+we denote the set of explicitly declared supertypes 
+of the constructed type $C\obb{T}$ by
 \[
 \myextends{C\obb{T}} = \{ \bar{\substb{T}{X}N} \}
 \]
-and the set of ancestors of $C\obb{T}$ 
+and the set of \emph{ancestors} of $C\obb{T}$ 
 (defined recursively) by
 \[
 \ancestors(C\obb{T}) 
@@ -172,30 +161,38 @@ and the set of ancestors of $C\obb{T}$
      \hspace*{-4ex} \bigcup_{M \in \myextends{C\obb{T}}} \hspace{-4ex} \ancestors(M).
 \]
 
-Structural and compound types are \emph{well-formed} 
-(with respect to a class table) 
-if their constituent types are well-formed. 
-\TODO{Is this different from $T \in \T$ above?}
+To reduce clutter, 
+nullary applications are written without brackets; 
+for example, `C[\ \]` is written `C`. 
+We also elide the braces delimiting 
+a singleton list of bounds of a type parameter 
+or supertypes of a class in a type constructor declaration.
+
 We extend the subtyping relation to
 structural and compound types in the usual way:
 Arrow types are contravariant in their domain types 
-and covariant in their return types 
-(i.e., $\arrowtype{S}{T} \subtypeof \arrowtype{U}{V}$
-if and only if $U \subtypeof S$ and $T \subtypeof V$).
+and covariant in their return types. 
+% (i.e., $\arrowtype{S}{T} \subtypeof \arrowtype{U}{V}$
+% if and only if $U \subtypeof S$ and $T \subtypeof V$).
 One tuple type is a subtype of another 
 if and only if they have the same number of elements, 
-and each element of the first is a subtype of the corresponding element of the other 
-(i.e., $( \tuple{\bar{S}} ) \subtypeof ( \tuple{\bar{T}} )$
-if and only if $|\bar{S}| = |\bar{T}|$
-and $S_i \subtypeof T_i$ for all $1 \leq i \leq |\bar{S}|$).
-An intersection type is by definition 
-the most general type that is a subtype of each of its element types: 
-$(A \cap B) <: A$, $(A \cap B) <: B$, and for all types $T$,
-if $T <: A$ and $T <: B$ then $T <: (A \cap B)$.
-Similarly, a union type is by definition 
-the most specific type that is a supertype of each of its element types: 
-$A <: (A \cup B)$, $B <: (A \cup B)$, and for all types $T$,
-if $A <: T$ and $B <: T$ then $(A \cup B) <: T$.
+and each element of the first is a subtype of the corresponding element of the other. 
+% (i.e., $( \tuple{\bar{S}} ) \subtypeof ( \tuple{\bar{T}} )$
+% if and only if $|\bar{S}| = |\bar{T}|$
+% and $S_i \subtypeof T_i$ for all $1 \leq i \leq |\bar{S}|$).
+By definition, 
+an intersection type is the most general type 
+that is a subtype of each of its element types, 
+and a union type is the most specific type 
+that is a supertype of each of its element types.
+% An intersection type is by definition 
+% the most general type that is a subtype of each of its element types: 
+% $(A \cap B) <: A$, $(A \cap B) <: B$, and for all types $T$,
+% if $T <: A$ and $T <: B$ then $T <: (A \cap B)$.
+% Similarly, a union type is by definition 
+% the most specific type that is a supertype of each of its element types: 
+% $A <: (A \cup B)$, $B <: (A \cup B)$, and for all types $T$,
+% if $A <: T$ and $B <: T$ then $(A \cup B) <: T$.
 
 To extend the subtyping relation to type variables,
 we require  a \emph{type environment}, 
@@ -225,8 +222,6 @@ when $S \subtypeof T$ and $T \subtypeof S$.
 
 \subsection{Extensibility}
 
-\TODO{Move definition of class table extension here?}
-
 To enable modular type checking and compilation, 
 we do not assume that the class table is complete;
 there might be declarations yet unknown.
@@ -242,9 +237,19 @@ is declared in the table,
 so that all the supertypes of a constructed type 
 are known.
 
+A class table $\T'$ is an \emph{extension} of $\T$ (written $\T' \ctext \T$)
+if every declaration in $\T$ is also in $\T'$.
+From this, 
+it follows that 
+for any well-formed extension $\T'$ of a well-formed class table $\T$, 
+any type that is well-formed with respect to $\T$ 
+is well-formed with respect to $\T'$ 
+and the subtyping relation on $\T'$ agrees with that of $\T$. 
+That is, $T \in \T$ implies $T \in \T'$ and 
+$T \subtypeof U$ in $\T$ implies $T \subtypeof U$ in $\T'$.
+
 \TODO{Expand on this?}
 
-\TODO{Or perhaps move it to intro.}
 
 \subsection{Values and Ilks}
 
@@ -269,7 +274,13 @@ simply by providing intersection types.
 Fortress satisfies it in another way as well, 
 which is typical of object-oriented languages: 
 every object is created as an instance of a single nominal constructed type, 
-and this type is its ilk.} 
+and this type is its ilk.
+\TODO{This doesn't show that functions have ilks.
+And indeed, if generic functions were values, 
+we would need to extend the type system to include express their ilks.
+However, as long as generic functions aren't values, 
+we can represent the ilk of a function 
+by the intersection of arrow types.}} 
 and has the property that for every type `T`, 
 if `v` belongs to `T` then `ilk(v) <: T`.
 % moreover, `ilk(v) =/= BottomType`.  
@@ -293,7 +304,11 @@ select the dynamically most specific applicable function
 from an overload set using only the ilks of the argument values; no
 other information about the arguments is needed.
 \TODO{Context could be relevant.
-We use return type rule to ensure it's not.}
+We use return type rule to ensure it's not.
+So perhaps this paragraph should really be expressing a desideratum:
+we want a system in which it is possible to select 
+the dynamically most specific applicable function 
+based only on the ilks.}
 
 In a safe type system,
 if an expression is determined by the type system to have type `T`, 
@@ -306,6 +321,8 @@ then the argument value must belong to type `U`.
 
 \subsection{Generic Function Declarations}
 \label{terms}
+
+\TODO{Make consistent use of ````declarations'' vs.\ ````definitions''.}
 
 A function declaration consists of 
 a name, 

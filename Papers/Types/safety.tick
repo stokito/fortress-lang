@@ -20,13 +20,13 @@ then for any type $T \in \T$ with $T \neq \BottomType$ there is a most specific 
 \label{lem:preservation}
 If $\D(f)$ satisfies the overloading rules with respect to a class table $\T$,
 then for any type $S \in \T$ with $S \neq \BottomType$, declaration $d \in \D(f)$, and instance $\decl{f}{T}{U}$
-there exists an instance $\decl{f}{V}{W}$ of $\d_{S}$ such that $\decl{f}{V}{W}$ is applicable to $S$ and $W$ is a subtype of $U$. 
+there exists an instance $\decl{f}{V}{W}$ of $d_{S}$ such that $\decl{f}{V}{W}$ is applicable to $S$ and $W$ is a subtype of $U$. 
 \end{lemma}
 
 \begin{lemma}[Extension Lemma]
 If $\D(f)$ satisfies the overloading rules with respect to a class table $\T$,
 then $\D(f)$ satisfies the overloading rules with respect to any extension $\T'$ of $\T$.
-\end{theorem}
+\end{lemma}
 
 
 
