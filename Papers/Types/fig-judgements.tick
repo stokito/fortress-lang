@@ -1,0 +1,30 @@
+%%%%%%%%%%%%%%% BEGIN JUDGEMENT FIGURE %%%%%%%%%%%%%%%
+\begin{figure}
+\begin{minipage}[t]{.5\textwidth}
+\centering
+
+\jsub{S}{T}{\C}
+
+\jnsub{S}{T}{\C}
+
+\jexc{S}{T}{\C}
+
+\jnexc{S}{T}{\C}
+
+\infrule
+  {\jsub{S}{T}{\C} \andalso \jsub{T}{S}{\C'}}
+  {\jequiv{S}{T}{\C \wedge \C'}}
+  
+\infrule
+  {\jsub{S}{T}{\C} \andalso \jsub{T}{S}{\C'}}
+  {\jnequiv{S}{T}{\C \vee \C'}}
+  
+\infrule
+  {\jequiv{S}{T}{\C}}
+  {\jcnequiv{S}{T}{\neg \C}}
+
+\end{minipage}
+  \caption{Typing Judgements}
+  \label{fig:judge}
+\end{figure}
+%%%%%%%%%%%%%%% END JUDGEMENT FIGURE %%%%%%%%%%%%%%%%%

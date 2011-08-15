@@ -1,0 +1,96 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+native component File
+import FlatString.FlatString
+import FileSupport.{...}
+export File
+
+private language="java"
+private package="com.sun.fortress.interpreter.glue.prim"
+
+FileReadStream(filename: String): FileReadStream = FileReadStream(filename.asFlatString)
+
+object FileReadStream(filename: FlatString)
+        extends { ReadStream, FileStream }
+    getter fileName():String =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$fileName")
+
+    getter asString():String =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$toString")
+
+    getter eof():Boolean =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$eof")
+
+    getter ready():Boolean =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$ready")
+
+    whenUnconsumed():() =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$whenUnconsumed")
+    consume():() =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$consume")
+
+    uncheckedReadLine():String =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$readLine")
+
+    uncheckedReadChar():ZZ32 =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$readChar")
+
+    uncheckedRead(k:ZZ32):String =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$readk")
+
+    close():() =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileReadStream$close")
+end
+
+FileWriteStream(fileName:String):FileWriteStream = FileWriteStream(fileName.asFlatString)
+
+object FileWriteStream(fileName:FlatString) extends { FileStream }
+    getter fileName(): String =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileWriteStream$fileName")
+    getter asString(): String =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileWriteStream$toString")
+    write(s:FlatString):() =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileWriteStream$write")
+    write(c:Char):() =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileWriteStream$write")
+    write(x:String):() = x.writeOn(self)
+    write(x:Any): () = write("" x)
+    writes(x:Generator[\Any\], r:String):() =
+        write((BIG ||[e <- x]
+                   typecase e of
+                        e':FlatString => e'
+                        e':String => e'.asFlatString
+                        else   => ("" e).asFlatString
+                   end) r)
+    writes(x:Generator[\Any\]):() = writes(x,"")
+    print(x:Any...):() = writes(x)
+    println(x:Any...):() = writes(x,"\n")
+    close():() =
+      builtinPrimitive(
+        "com.sun.fortress.interpreter.glue.prim.FileWriteStream$close")
+end
+
+end

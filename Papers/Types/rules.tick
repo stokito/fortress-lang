@@ -1,0 +1,124 @@
+% Stuff needed in set up
+% intersection and union types
+%   can be structural types
+%   distribute over structural types (tuples, arrows, intersection, union)
+% Extensions of the class table
+%   what does it mean for an extension to be well formed
+%   what does this mean for condition 1)
+% Language is call by value
+
+% Guaranteeing valid overloading requires constraints 
+% on the sets of overloaded function declarations
+% that are allowed to appear in a legal program \cite{millstein02,millstein03}.
+% Some languages require program constructs that encapsulate all overloaded definitions;
+% such constructs essentially guarantee valid overloading ````by construction''.
+% Examples in other languages include type classes \cite{wadler89,dreyer07,siek05}
+% and multimethods \cite{millstein02,millstein03,bourdoncle97}.
+% We take a different approach: Rather than introducing additional language facilities,
+% we impose rules on the function declarations themselves.
+% % These aren't necessarily strictly "minimal" though, so:
+% We intend these rules to be ````minimal'' in that they should be as unrestrictive as possible
+% while preserving the ability to guarantee valid overloading and be checked in a modular way.
+% We took a similar approach to guarantee safety for overloaded monomorphic functions \cite{allen07}.
+% However, handling parametric polymorphism and implicit instantiation (i.e., type inference)
+% requires more sophisticated type analysis.
+% We achieve this analysis by introducing universal and existential quantification
+% over the ground types defined by class tables.
+
+In this section, 
+we define three rules---%
+the \emph{No Duplicates Rule}, 
+\emph{Meet Rule}, 
+and \emph{Return Type Rule}---%
+for sets of overloaded function definitions.
+Such a set is \emph{well-formed with respect to a class table}
+if it satisfies all these rules using the subtyping relation 
+induced by the class table.
+In Section~\ref{sec:safety},
+we show that any well-formed set of overloaded function declarations is safe.
+We describe how to mechanically verify these rules in a modular way
+in terms of subtyping relations on universal and existential types 
+in Section~\ref{sec:checking}.
+
+\TODO{Discuss intended minimality of these rules?}
+
+\subsection{Overloading Rules}
+\label{sec:threerules}
+
+In this section, we describe the rules for valid overloading.
+For each function name $f$,
+we determine whether a set of overloaded function declarations $\D(f)$ is valid
+by independently considering every pair of declarations in the set.
+A pair of declarations is a valid overloading 
+if it satisfies the three rules described below.
+
+\TODO{We broke up meet rule in intro into two rules here.}
+
+The meet rule of Castagna imposed two conditions:
+the existence of a meet and its uniqueness.
+We split these into two rules.
+
+To avoid the obvious ambiguity, 
+$\D(f)$ should not contain equally specific declarations:
+for each pair of overloaded declarations, 
+either one declaration is strictly more specific
+than the other or they are incomparable.
+\begin{description}
+\item[No Duplicates Rule]
+$\D(f)$ does not contain any two declarations that are equally specific.
+%(i.e., each declaration is more specific than the other).
+In other words, 
+there are no (distinct) declarations $d_1, d_2 \in \D(f)$ 
+such that $d_1 \ms d_2$ and $d_2 \ms d_1$.
+\end{description}
+
+\TODO{Phrase the no duplicates rule as about a pair of definitions?}
+
+A pair of declarations is a valid overloading 
+if for any call to which both declarations are applicable,
+there is a {\em disambiguating declaration} (possibly one of the pair)
+that is also applicable to the call and is at least as specific as both declarations.
+\TODO{This is not sufficient: they must also satisfy return type rule.}
+Thus, at run time, the disambiguating declaration is preferred.
+\begin{description}
+\item[Meet Rule]
+For each pair of declarations $d_1, d_2 \in \D(f)$,
+and for every type $T \in \T$, 
+there should exist a declaration $d_0 \in \D(f)$ (possibly one of the pair) 
+such that $d_0$ is applicable to $T$ 
+if and only if both $d_1$ and $d_2$ are applicable to $T$.
+\end{description}
+
+\TODO{Mention implicit `BottomType` definition?}
+
+\TODO{Discuss what types $T$ we must consider, 
+and relevance to extensibility.}
+
+\TODO{Explain motivation for intersection types (i.e., as meet).
+Perhaps this belongs in Types section.}
+
+\TODO{Note the following ````lemma'':}
+If one overloaded definition is strictly more specific than another 
+then that pair of definitions satisfies the no duplicates rule 
+and the meet rule.
+
+If one monomorphic declaration is more specific than another monomorphic one
+then there is no ambiguity between these two declarations:
+for any call to which both are applicable, the first is more specific.
+In the parametrically polymorphic setting,
+if one declaration is to be regarded as more specific than another,
+we require that for every instance of the second that is applicable to a call,
+there exists an instance of the first that is also applicable to the call.
+As in other object-oriented languages, to ensure type safety in the face of dynamic dispatch,
+we also require that the return type of the latter declaration be a subtype of the return type of the former.
+% We can ensure that the second well-formedness condition for overloading
+% holds by checking the following rule for each function name $f$:
+\begin{description}
+\item[Return Type Rule]
+For every $d_1, d_2 \in \D(f)$ with $d_1 \ms d_2$, 
+every type $W$ to which $d_1$ is applicable
+(and therefore $d_2$ is also applicable)
+and every instance $\decl{f}{S_2}{T_2}$ of $d_2$ that is applicable to $W$,
+there must exist an instance \decl{f}{S_1}{T_1} of $d_1$
+that is applicable to $W$ and satisfies \mbox{$T_1 <: T_2$}.
+\end{description}

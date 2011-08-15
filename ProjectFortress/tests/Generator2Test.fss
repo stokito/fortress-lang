@@ -1,0 +1,84 @@
+(*******************************************************************************
+  Generator-of-Generators Library is copyrighted free software by Kento Emoto
+  <emoto[at]ipl.t.u-tokyo.ac.jp> developed under the collaborative
+  research on Fortress Programming Language between Sun Microsystems,
+  Inc. and the University of Tokyo.
+
+  You can redistribute it and/or modify it under the following
+  BSD-style license or the Sun Contributor Agreement that Kento Emoto signed.
+
+
+  Copyright 2009 by Kento Emoto
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+      * Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+      * Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer
+        in the documentation and/or other materials provided with the
+        distribution.
+      * Neither the name of Kento Emoto nor the names of its
+        contributors may be used to endorse or promote products derived
+        from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+ ******************************************************************************)
+
+component Generator2Test
+
+import List.{...}
+import Generator2.{...}
+export Executable
+
+
+
+run() : () = do
+
+  xs : Number[10] = [ 1 3 4 2 5 1 7 6 8 9 ]
+  p1 = relationalPredicate[\Number\](fn (a, b) => |a-b| < 4)
+  p2 = relationalPredicate[\Number\](fn (a, b) => a < b)
+
+  do
+    pre = <|[\Number\] SUM[\Number\] xs[0:i] | i <- (0#(|xs|)) |>
+    res = BIG MAX[\Number\] pre
+    ggres = BIG MAX[\Number\] <|[\Number\] SUM[\Number\] ys | ys <- inits xs |>
+    println("res = " res ", ggres = " ggres)
+    assert(res,ggres, "maximum prefix sum with gg doesn't match the naive execution")
+  end
+
+  do
+    pre = <|[\Number\] SUM[\Number\] xs[0:i] | i <- (0#(|xs|)), p1 xs[0:i] |>
+    res = BIG MAX[\Number\] pre
+    ggres = BIG MAX[\Number\] <|[\Number\] SUM[\Number\] ys | ys <- inits xs, p1 ys|>
+    println("res = " res ", ggres = " ggres)
+    assert(res,ggres, "maximum p1-prefix sum with gg doesn't match the naive execution")
+  end
+
+  do
+    pre = <|[\Number\] SUM[\Number\] xs[0:i] | i <- (0#(|xs|)), p1 xs[0:i], p2 xs[0:i] |>
+    res = BIG MAX[\Number\] pre
+    ggres = BIG MAX[\Number\] <|[\Number\] SUM[\Number\] ys | ys <- inits xs, p1 ys, p2 ys |>
+    println("res = " res ", ggres = " ggres)
+    assert(res,ggres, "maximum p1-p2-prefix sum with gg doesn't match the naive execution")
+  end
+
+end
+
+
+end

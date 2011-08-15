@@ -1,0 +1,52 @@
+%%%%%%%%%%%%%%% BEGIN EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%
+\begin{figure}[ht]
+\begin{minipage}{.5\textwidth}
+\centering
+\newjudge{Universal subtyping}{\jqsub{\sigma}{\sigma}}
+
+\infrule
+  {\jtreds{\exttype[\Delta_1]{T}}{\delta'}{\phi} \\[.3em]
+   \jqsubinner{\sigma}{\unitype[{\phi[\Delta_1]}]{\left(\arrowtype{\phi(T)}{\phi(U)}\right)}}}
+  {\jqsub{\sigma}{\unitype[\Delta_1]{\arrowtype{T}{U}}}}
+  
+\infrule
+  {\Delta' = \Delta, \bds{Y}{N} \\
+   \jgsub[\Delta']{\substb{V}{X}T}{U} \andalso
+   \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{X}\bd{M_i}}
+  }
+  {\jqsubinner{\forall\obb{X <: \bd{M}}T}{\forall\obb{Y <: \bd{N}}U}}
+
+\begin{tabularx}{\textwidth}{RcX}
+  $\sigma_1 \le \sigma_2$ & \syndef & $\jqsub[\emptyset]{\sigma_1}{\sigma_2}$ \\
+\end{tabularx}
+
+\newjudge{Existential subtyping}{\jqsub{\delta}{\delta}}
+\infrule
+  {\jtred{\delta}{\delta''} \andalso \jqsubinner{\delta''}{\delta'}}
+  {\jqsub{\delta}{\delta'}}
+
+\infrule
+  {\Delta' = \Delta, \bds{X}{M} \\
+   \jgsub[\Delta']{T}{\substb{V}{Y}U} \andalso \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{Y}\bd{N_i}}
+  }
+  {\jqsubinner{\exists\obb{X <: \bd{M}}T}{\exists\obb{Y <: \bd{N}}U}}
+  
+\begin{tabularx}{\textwidth}{RcX}
+  $\delta_1 \le \delta_2$ & \syndef & $\jqsub[\emptyset]{\delta_1}{\delta_2}$
+\end{tabularx}
+
+\newjudge{Existential reduction}{\jtreds{\delta}{\delta}{\phi}}
+\infrule
+  {\jcnequiv{T}{\BottomType}{\C} \andalso \toConstraint{\Delta'}{\C'} \\
+   \jsolve{\neg \C \wedge \C'}{\phi}{\D} \andalso \toBound{\D}{\Delta''}}
+  {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta'']{\phi(T)}}{\phi}}
+
+\infrule
+  {}
+  {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta']{T}}{\subst{}{}}}
+
+\end{minipage}
+  \caption{Subtyping and reduction of existential types}
+  \label{fig:existential}
+\end{figure}
+%%%%%%%%%%%%%%% END EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%

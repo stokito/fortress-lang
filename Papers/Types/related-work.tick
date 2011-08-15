@@ -1,0 +1,149 @@
+% * multiple dispatch
+%   * fortress
+%   * CLOS
+%   * multijava
+%   * cecil
+% * type classes
+%   * wadler 89
+%   * qualified types (mpj)
+%   * concepts (siek)
+%   * inability to add ad-hoc overloaded functions
+% * GADTs
+%   * GADT inference (spj)
+%   * HMG(X) (pottier)
+%   * with OOP (russo)
+%
+\subsection{Overloading and dynamic dispatch.} 
+
+\TODO{This needs editing}
+
+The type system considered by Castagna \emph{et al.} 
+assumed knowledge of the entire type hierarchy 
+(to determine whether two types have a common subtype), 
+and the type hierarchy was assumed to be a meet semilattice 
+(to ensure that any two types have a greatest lower bound).
+In previous work~\cite{allen07},
+we applied variants of the meet and return type rules
+to a simplified version of the Fortress programming language~\cite{Fortress}, 
+which supports multiple inheritance 
+and does not require that types have expressible meets 
+(i.e., the types that can be expressed in the language 
+need not form a meet semilattice).
+We showed that we could check these rules in a modular way, 
+so that the type hierarchy could be extended safely by new modules
+without rechecking old modules.
+
+
+Primarily, our system
+strictly extends our previous effort \cite{allen07} with parametric polymorphism;
+all previous properties and results remain intact. The inclusion of parametric
+functions and types represents a shift in the research literature on overloading
+and multiple dynamic dispatch.
+\TODO{Explain differences in rules?}
+
+Millstein and Chambers \cite{millstein02,millstein03} devised the language
+Dubious to study overloaded functions with symmetric multiple dynamic dispatch
+(\emph{multimethods}), and with Clifton and Leavens they developed MultiJava
+\cite{multijava}, an extension of Java with Dubious' semantics for multimethods.
+In \cite{feml}, Lee and Chambers presented F(E\textsc{ml}), a language with
+classes, symmetric multiple dispatch, and parameterized modules, but without
+parametricity at the level of functions or types. None of these systems support
+polymorphic functions or types. F(E\textsc{ml})'s parameterized modules
+(\emph{functors}) constitute a form of parametricity but they cannot be implicitly
+applied; the functions defined therein cannot be \emph{overloaded} with those
+defined in other functors. For a more detailed comparison of modularity and
+dispatch between our system and these, we refer to the related work section of
+our previous paper \cite{allen07}.
+
+% I took out discussion of modularity here; it's charged and unnecessary
+% in order to distinguish our work. EricAllen 7/15/2011
+Overloading and multiple dispatch in the context of polymorphism 
+has previously been studied by Bourdoncle and Merz \cite{bourdoncle97}. 
+Their system, ML$_\le$, integrates parametric polymorphism, 
+class-based object orientation, and multimethods,
+but lacks multiple inheritance. 
+Each multimethod (overloaded set) requires a unique specification (principal type), 
+which prevents overloaded functions defined on disjoint domains; 
+% the domains of the multimethod branches must partition the specification domain, 
+% which eliminates subtype-based specialization;
+and link-time checks are performed to ensure that multimethods are fully
+implemented across modules. 
+On the other hand, ML$_\le$ allows variance annotations on type constructors---% 
+something we attribute to future work.
+
+\TODO{Some other things to possibly mention about Bourdoncle and Merz:}
+\begin{itemize}
+
+\item
+They have a principal type, 
+which makes the return type rule easy, 
+because we don't need to compute a meet:
+we can just compare against the given return type.
+
+\item
+They don't have exclusion.
+
+\item 
+They restrict their ````patterns'' so that each type variable 
+can occur at most once.
+Also, the type of each parameter must either be a single type variable 
+or a constructed type whose arguments are type variables.
+The latter restriction avoids dealing with complicated ML patterns.
+I think the former serves the same purpose, actually.
+I'm not sure offhand what the implication of an analogous restriction 
+in our system would be.
+I think it may make unification trivial.
+
+\end{itemize}
+
+Litvinov~\cite{litvinov98} developed a type system for the Cecil language,
+which supports bounded parametric polymorphism and multimethods.
+Because Cecil has a type-erasure semantics, 
+statically checked parametric polymorphism has no effect on run-time dispatch.
+
+\subsection{Type classes.} Wadler and Blott \cite{wadler89} introduced
+\emph{type class} as a means to specify and implement overloaded
+functions like equality and arithmetic operators in Haskell. Other authors
+have translated type classes to languages besides Haskell \cite{dreyer07,siek05,wehr07}.
+Type classes encapsulate overloaded function declarations, with separate
+\emph{instances} that define the behavior of those functions (called \emph{class methods})
+for any particular type schema. Parametric polymorphism is then augmented to
+express type class constraints, providing a way to quantify a type variable --- and
+thus a function definition --- over all types that instantiate the type class. 
+
+% In his thesis \cite{jonesbook} Jones generalized Haskell's underlying type
+% system as \emph{qualified types}, in which the satisfaction of type predicates
+% must be proved with constructed \emph{evidence}. Qualified type systems (such
+% as Haskell) exhibit the \emph{principal types} property necessary for full
+% Damas-Milner style type inference \cite{dm82,jonesbook}; our system conservatively
+% assumes only \emph{local type inference} \cite{pierce00} --- implicit type
+% instantiation for polymorphic function calls.
+
+In systems with type classes, overloaded functions must be contained in some
+type class, and their signatures must vary in exactly the same structural
+position. This uniformity is necessary for an overloaded function call to
+admit a principal type; with a principal type for some function call's context,
+the type checker can determine the constraints under which a correct overloaded
+definition will be found. Because of this requirement, type classes are ill-suited
+for fixed, \emph{ad hoc} sets of overloaded functions like:
+`    println(): () = println("")
+    println(s: String): () = ...`
+or functions lacking uniform variance in the domain and range\footnote{With the
+\emph{multi-parameter type class} extension, one could define functions as these.
+A reference to the method \mono{bar}, however, would require an explicit type
+annotation like \mono{:: Int -> Bool} to apply to an \mono{Int}.} like:
+`    bar(x: ZZ): Boolean = (x = 0)
+    bar(x: Boolean): ZZ = if x then 1 else 2 end
+    bar(x: String): String = x`
+With type classes one can write overloaded functions with identical domain
+types. Such behavior is consistent with the \emph{static}, \emph{type-based}
+dispatch of Haskell, but it would lead to irreconcilable ambiguity in the
+\emph{dynamic}, \emph{value-based} dispatch of our system.
+%% In Appendix~\ref{app:haskell}, we present a further discussion of how our overloading resolution differs from that of Haskell and how our system might translate to that language, thereby addressing an existing inconsistency in modern type class extensions.
+
+A broader interpretation of Wadler and Blott's \cite{wadler89} sees type
+classes as program abstractions that quotient the space of ad-hoc polymorphism
+into the much smaller space of class methods. Indeed, Wadler and Blott's title
+suggests that the unrestricted space of ad-hoc polymorphism should be tamed,
+whereas our work embraces the possible expressivity achieved from mixing ad-hoc
+and parametric polymorphism by specifying the requisites for determinism and type safety.

@@ -1,0 +1,14 @@
+#    Copyright 2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests= Compiled16a Compiled16b Compiled16c Compiled16d Compiled16e Compiled16f Compiled16
+compile
+link
+run
+run_out_equals=pass\n
