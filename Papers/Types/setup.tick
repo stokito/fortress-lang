@@ -384,7 +384,7 @@ if and only if $T \subtypeof U$.
 A function declaration is \emph{applicable} to a type 
 if and only if at least one of its instances is.
 %
-For any two function declarations $_1, d_2 \in \D(f)$, 
+For any two function declarations $d_1, d_2 \in \D(f)$, 
 $d_1$ is \emph{more specific} than $d_2$ 
 (written $d_1 \ms d_2$)
 if and only if for every type $T$ 
