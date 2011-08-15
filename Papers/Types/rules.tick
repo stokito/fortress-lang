@@ -89,7 +89,26 @@ such that $d_0$ is applicable to $T$
 if and only if both $d_1$ and $d_2$ are applicable to $T$.
 \end{description}
 
-\TODO{Mention implicit `BottomType` definition?}
+Since $\BottomType$ is well-formed with respect to any class table, 
+and tuple types with different numbers of arguments 
+have no common subtype other than \BottomType,
+this rule technically requires that 
+an overloaded function with definitions that take different numbers of arguments 
+has a definition that applicable only to \BottomType.
+Because \BottomType\ is not first-class in Fortress, 
+such a definition cannot be written, 
+and in any case, it would, of course, never be applied
+because no value belongs to \BottomType.
+To avoid this technicality, 
+we implicitly augment the set $\D(f)$ of overloaded function definitions with name $f$ 
+with a declaration $\decl{f_\bot}{\BottomType}{\BottomType}$.
+Because this declaration is strictly more specific 
+than any declaration that a programmer can write, 
+it trivially satisfies the meet rule (and the no duplicates rule).
+And, because its return type is \BottomType, 
+it also trivially satisfies the return type rule below.
+
+
 
 \TODO{Discuss what types $T$ we must consider, 
 and relevance to extensibility.}
@@ -97,10 +116,10 @@ and relevance to extensibility.}
 \TODO{Explain motivation for intersection types (i.e., as meet).
 Perhaps this belongs in Types section.}
 
-\TODO{Note the following ````lemma'':}
+\TODO{Note the following ````lemma'':
 If one overloaded definition is strictly more specific than another 
 then that pair of definitions satisfies the no duplicates rule 
-and the meet rule.
+and the meet rule.}
 
 If one monomorphic declaration is more specific than another monomorphic one
 then there is no ambiguity between these two declarations:
