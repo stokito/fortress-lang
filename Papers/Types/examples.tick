@@ -1,13 +1,15 @@
-We now reconsider the overloaded generic function definitions from the introduction, 
-and also some new ones, 
-to see whether they are permitted by the rules in Section~\ref{sec:rules}.
+We now consider whether several overloaded generic functions
+are permitted by the rules in Section~\ref{sec:rules}.
 In this section, 
-we simply argue informally why each set of overloaded definitions is valid or not.
-We also point out explicitly where multiple instantiation exclusion is required.
+we simply argue informally why each set of overloaded definitions is valid or not,
+and point out where multiple instantiation exclusion is required.
 We give a formal system and algorithm for doing these checks 
 in Section~\ref{sec:checking}.
+
 Throughout this section, 
 we assume the following class table:
+\TODO{Make sure this table is up-to-date.
+Possibly put in a figure}
 
 \small
 `  Object
@@ -38,8 +40,8 @@ And they satisfy the return type rule
 because the return type of both definitions is always `ZZ`.
 
 \small
-`  append[\X\](x: List[\X\], y: List[\X\]): List[\X\] = e1
-  append[\X <: Number\](x: List[\X\], y: List[\X\]): List[\X\] = e3`
+`  tail[\X\](x: List[\X\]): List[\X\] = e1
+  tail[\X <: Number\](x: List[\X[\X\]): List[\X\] = e3`
 \normalsize
 This overloading is also valid:
 The first definition is applicable to any pair of arguments 
@@ -105,21 +107,21 @@ which also has return type `List[\T\]`.
 
 
 \small
-`  append[\T\](x: List[\T\], y: List[\T\]): List[\T\] = e1
-  append(x: List[\ZZ\], y: List[\ZZ\]): List[\ZZ\] = e2`
+`  tail[\T\](x: List[\T\]): List[\T\] = e1
+  tail(x: List[\ZZ\]): List[\ZZ\] = e2`
 \normalsize
 Although the second definition is strictly more specific than the first, 
 this overloading is invalid:
 it fails to satisfy the return type rule!
 To see this, 
-suppose `append` is called on an argument of type `List[\NN\]`, 
+suppose `tail` is called on an argument of type `List[\NN\]`, 
 where `NN` is a subtype of `ZZ`.
 In that case, 
 both definitions are applicable, 
-as is `append (List[\NN\], List[\NN\]): List[\NN\]`, 
+as is `tail(List[\NN\]): List[\NN\]`, 
 the instantiation of the first definition with `NN`.
 Thus, the return type rule is not satisfied 
-since `append (List[\ZZ\], List[\ZZ\]): List[\ZZ\]` 
+since `tail(List[\ZZ\]): List[\ZZ\]` 
 is the only instance of the second defintion, 
 and `List[\ZZ\]` is not a subtype of `List[\NN\]`.\!\footnote{%
 The type system described in this paper does not support covariance, 
@@ -152,14 +154,14 @@ the meet of `S->T` and `U->V` is \emph{not} an arrow type.)
 
 \TODO{Go over examples in intro, say which are valid and why.}
 
-Also, reconsider example of overloading `append` 
+Also, reconsider example of overloading `tail` 
 with one generic definition and one monomorphic one.
 This example is still not allowed 
 (but the one with two generic definitions is).
 The problem is that `ZZ` may have a subtype `NN`.
 In that case, 
 both definitions are applicable 
-a call to `append` on two arguments of type `List[\NN\]` 
+a call to `tail` on an argument of type `List[\NN\]` 
 but the return type of the more specific monomorphic definition is `ZZ`, 
 but the return type of the best instantiation of the generic definition is `NN`.
 
