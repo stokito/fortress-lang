@@ -30,7 +30,8 @@ the meet rule requires the programmer
 to provide a disambiguating definition 
 for any pair of overloaded definitions whose domain types are incomparable.
 \TODO{Is it okay to use ````domain types'' here, 
-when we have not yet introduced existential types?}
+when we have not yet introduced existential types? Note: SK added footnote
+to broadly define domain types in intro.}
 
 This problem is not new with parametric polymorphism, 
 as the `print` example in the introduction shows.
