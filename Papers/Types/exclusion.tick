@@ -44,6 +44,9 @@ Thus, overloaded definitions whose domain types exclude each other
 trivially satisfy the meet rule: 
 there are no types (other than \BottomType) 
 to which both definitions are applicable.
+Exclusion allows us to describe explicitly what is 
+typically implicit in single-inheritance class hierarchies.
+
 In our previous work on Fortress without generics~\cite{allen07}, 
 we provide a special rule---the \emph{exclusion rule}---%
 to exploit this information.
@@ -96,7 +99,7 @@ that is, it requires
 and `List[\ZZ\] <: List[\String\]`.
 The latter is clearly false.
 
-Intuitively, we might say that the problem with the above example 
+We might say that the problem with the above example 
 is not with the definition of `append`, 
 but with the definition of `BadList`, 
 that a value can belong to `List[\ZZ\]` or `List[\String\]` 
@@ -114,14 +117,14 @@ to extend this definition to systems
 that support covariant and contravariant type parameters.}
 We call this property \emph{multiple instantiation exclusion}.
 
-Multiple inheritance exclusion is easy to statically enforce, 
-and practice suggests that it is not onerous: 
-it is already in Java.
+Multiple instantiation exclusion is easy to statically enforce, 
+and experience suggests that it is not onerous in practice: 
+it is already required in Java, for example~\cite{JavaSpec}.
 Also, 
 Kennedy and Pierce have shown that 
-nominal subtyping is decidable 
-in systems that enforce multiple instantiation exclusion, 
-(along with some technical restrictions)~\cite{kennedy07}.\!\footnote{%
+in systems that enforce multiple instantiation exclusion 
+(along with some technical restrictions),
+nominal subtyping is decidable~\cite{kennedy07}.\!\footnote{%
 They also show that forbidding contravariant type parameters 
 results in decidable nominal subtyping, 
 so subtyping in our type system is decidable in any case.}
