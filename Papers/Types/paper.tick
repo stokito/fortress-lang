@@ -183,7 +183,10 @@
 \newtheorem{lemma}{Lemma}
 \newtheorem{theorem}{Theorem}
 % Our proofs are more like proof sketches!! EricAllen 7/15/2011
-\newenvironment{proof}{\noindent \textbf{Proof Sketch:} }{\hfill $\Box$}
+\newenvironment{plemma}{\noindent \textbf{Proof of lemma:} }{\hfill $\Box$}
+\newenvironment{ptheorem}{\noindent \textbf{Proof of theorem:} }{\hfill $\Box$}
+\newenvironment{psketch}{\noindent \textbf{Proof sketch:} }{\hfill $\Box$}
+
 
 \begin{document}
 

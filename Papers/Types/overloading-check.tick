@@ -95,12 +95,12 @@ The following lemma shows that the definition of the meet of two existential typ
 \begin{lemma}\label{lem:meet}
 $\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\le$.
 \end{lemma}
-\begin{proof}
+\begin{psketch}
 That $\delta_1 \meet \delta_2$ is a subtype of both $\delta_1$ and $\delta_2$ is obvious.
 For any $\delta_0$, if $\bar{U}$ and $\bar{V}$ are instantiations that prove
 $\delta_0$ is a subtype of $\delta_1$ and $\delta_2$, respectively,
 then we can use $\bar{U},\bar{V}$ to prove that $\delta_0$ is a subtype of $\delta_1 \meet \delta_2$.
-\end{proof}
+\end{psketch}
 
 \input{fig-meet}
 
