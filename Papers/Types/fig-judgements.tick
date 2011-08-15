@@ -3,13 +3,23 @@
 \begin{minipage}[t]{.5\textwidth}
 \centering
 
+\newjudge{Primitive Judgements}{\jgconstrtemplate{T}{\ast}{T}{\C}}
+
+\vspace{\afterruleskip}
 \jsub{S}{T}{\C}
+\vspace{\afterruleskip}
 
 \jnsub{S}{T}{\C}
+\vspace{\afterruleskip}
 
 \jexc{S}{T}{\C}
+\vspace{\afterruleskip}
 
 \jnexc{S}{T}{\C}
+\vspace{\afterruleskip}
+
+\vspace*{2ex}
+\newjudge{Derived Judgements}{\jgconstrtemplate{T}{\ast}{T}{\C}}
 
 \infrule
   {\jsub{S}{T}{\C} \andalso \jsub{T}{S}{\C'}}
@@ -18,6 +28,9 @@
 \infrule
   {\jsub{S}{T}{\C} \andalso \jsub{T}{S}{\C'}}
   {\jnequiv{S}{T}{\C \vee \C'}}
+
+\vspace*{2ex}
+\newjudge{Derived Judgements}{\jgcontratemplate{T}{\ast}{T}{\C}}
   
 \infrule
   {\jequiv{S}{T}{\C}}

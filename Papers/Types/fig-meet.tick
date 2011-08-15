@@ -3,7 +3,7 @@
 \begin{minipage}{0.95\textwidth}
 \centering
 \vspace*{.5em}
-    \fbox{\textbf{Existential meet:} \quad $\delta_1 \;\meet\; \delta_2$}
+    \newjudge{Existential meet}{\delta_1 \;\meet\; \delta_2}
     \[
 \begin{array}{c}
       \left(\exists\tplist{X}{M}T\right) \; \meet \;

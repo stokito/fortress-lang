@@ -3,6 +3,7 @@
 \begin{minipage}{.5\textwidth}
 \centering
 
+\fbox{\textbf{Constraint Grammar}}
 \[
 \begin{array}{lll}
 \C &::=& S <: T \\
@@ -16,14 +17,21 @@
 \end{array}
 \]
 
-\toConstraint{\Delta}{\C} \\
-\toBound{\C}{\Delta} \\
+\vspace*{2ex}
+\fbox{\textbf{Constraint Utilities}}
 
-\japply{\C}{\phi}{\C'} \\
+\vspace{\afterruleskip}
+\toConstraint{\Delta}{\C} \\
+\vspace{\afterruleskip}
+
+\toBound{\C}{\Delta} \\
+\vspace{\afterruleskip}
+
 \jsolve{\C}{\phi}{\C'} \\
+\vspace{\afterruleskip}
 
 \end{minipage}
-  \caption{Constraints}
+  \caption{Constraints. Note that \textit{unify} and \textit{toBounds} are partial functions.}
   \label{fig:constraints}
 \end{figure}
 %%%%%%%%%%%%%%% END CONSTRAINT FIGURE %%%%%%%%%%%%%%%%%

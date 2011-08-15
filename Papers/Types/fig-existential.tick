@@ -5,9 +5,9 @@
 \newjudge{Universal subtyping}{\jqsub{\sigma}{\sigma}}
 
 \infrule
-  {\jtreds{\exttype[\Delta_1]{T}}{\delta'}{\phi} \\[.3em]
-   \jqsubinner{\sigma}{\unitype[{\phi[\Delta_1]}]{\left(\arrowtype{\phi(T)}{\phi(U)}\right)}}}
-  {\jqsub{\sigma}{\unitype[\Delta_1]{\arrowtype{T}{U}}}}
+  {\jtreds{\exttype[\Delta']{S}}{\exttype[\Delta'']{U}}{\phi} \\[.3em]
+   \jqsubinner{\sigma}{\unitype[\Delta'']{\left(\arrowtype{U}{\phi(T)}\right)}}}
+  {\jqsub{\sigma}{\unitype[\Delta']{\arrowtype{S}{T}}}}
   
 \infrule
   {\Delta' = \Delta, \bds{Y}{N} \\
@@ -20,6 +20,7 @@
   $\sigma_1 \le \sigma_2$ & \syndef & $\jqsub[\emptyset]{\sigma_1}{\sigma_2}$ \\
 \end{tabularx}
 
+\vspace*{2ex}
 \newjudge{Existential subtyping}{\jqsub{\delta}{\delta}}
 \infrule
   {\jtred{\delta}{\delta''} \andalso \jqsubinner{\delta''}{\delta'}}
@@ -35,6 +36,7 @@
   $\delta_1 \le \delta_2$ & \syndef & $\jqsub[\emptyset]{\delta_1}{\delta_2}$
 \end{tabularx}
 
+\vspace*{2ex}
 \newjudge{Existential reduction}{\jtreds{\delta}{\delta}{\phi}}
 \infrule
   {\jcnequiv{T}{\BottomType}{\C} \andalso \toConstraint{\Delta'}{\C'} \\
@@ -46,7 +48,7 @@
   {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta']{T}}{\subst{}{}}}
 
 \end{minipage}
-  \caption{Subtyping and reduction of existential types}
+  \caption{Subtyping and reduction of existential types. Note that we can always use alpha renaming to avoid the free variable checks.}
   \label{fig:existential}
 \end{figure}
 %%%%%%%%%%%%%%% END EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%

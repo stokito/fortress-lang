@@ -22,6 +22,7 @@
 \newcommand{\bnexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\altlozenge}}
 
 \newcommand{\fresh}[1]{\textit{fresh}({#1})}
+\newcommand{\freeVar}[1]{\textit{freeVars({#1})}}
 
 \newcommand{\excr}{\triangleright}
 \newcommand{\excl}{\triangleleft}

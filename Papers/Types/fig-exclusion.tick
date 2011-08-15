@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}[htbp]
-\newjudge{Constraints that imply exclusion}{\jexc{T}{T}{\C}}
+\newjudge{Exclusion Rules}{\jexc{T}{T}{\C}}
 \\\\
 \begin{minipage}[t]{.5\textwidth}
 \centering  
@@ -27,7 +27,7 @@
   {\jexc{S \cup T}{U}{\C \wedge \C'}}
 
 \vspace*{2ex}
-\textbf{Variables}
+\textbf{Inference Variables}
 \vspace*{-1em}
 
 \infrule
@@ -37,6 +37,10 @@
 \infrule
   {}
   {\jexc{I}{T}{`I` \exc `T`}}
+
+\vspace*{2ex}
+\textbf{Bound Variables}
+\vspace*{-1em}
 
 \infrule
   {}
@@ -144,6 +148,6 @@
   {\jgconstrtemplate{`C[\S_bar\]`}{\bexcp}{`D[\T_bar\]`}{\FALSE}}
 
 \end{minipage}
-  \caption{Generating constraints for exclusion}
+  \caption{Algorithm for generating exclusion constraints. Each rule is symmetric, apply the first one that matches.}
   \label{fig:jexc}
 \end{figure*}

@@ -20,6 +20,7 @@
   $f \ni T$ & \syndef & $\japp[\emptyset]{\textit{dom}(f)}{T}$\\
 \end{tabularx}
 
+\vspace*{2ex}
 \newjudge{Specificity}{\jms{f}{f}}
 
 \infrule

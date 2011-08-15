@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}[htbp]
-\newjudge{Constraints that imply subtyping}{\jsub{T}{T}{\C}}
+\newjudge{Subtyping Rules}{\jsub{T}{T}{\C}}
 \\\\
 \begin{minipage}[t]{.5\textwidth}
 \centering
@@ -47,7 +47,7 @@
   {\jsub{S \cup T}{U}{\C \wedge \C'}}
 
 \vspace*{2ex}
-\textbf{Variables}
+\textbf{Inference Variables}
 \vspace*{-1em}
 
 \infrule
@@ -61,6 +61,10 @@
 \infrule
   {}
   {\jsub{S}{I}{`S` \subtypeof `I`}}
+ 
+\vspace*{2ex}
+\textbf{Bound Variables}
+\vspace*{-1em}
  
 \infrule
   {}
@@ -123,6 +127,6 @@
 
 \end{minipage}
 
-  \caption{Generating constraints for subtyping}
+  \caption{Algorithm for generating subtyping constraints. Apply the first rule that matches.}
   \label{fig:jsub}
 \end{figure*}
