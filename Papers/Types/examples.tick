@@ -129,39 +129,76 @@ except that rather than having each of the two definitions
 being more restrictive on a type parameter, 
 one uses a more specific type constructor.
 
-Finally, we consider three examples do not involve generic types.
-First consider the following declarations:
+Finally, 
+we consider three examples that do not involve generic types,
+beginning with the following declarations:
 
 \small
-`  bar[\X\](x: X): X
-  bar(x: ZZ): ZZ
+`  baz[\X\](x: X): X
+  baz(x: ZZ): ZZ
 `
 \normalsize
-This pair of overloaded declarations is \emph{not} valid.
-The second is strictly more specific, 
-so the declarations satisfy the no duplicates and meet rules.
-But they do \emph{not} satisfy the return type rule.
+This pair is \emph{not} valid: 
+it does not satisfy the return type rule.
+% The second is strictly more specific, 
+% so the declarations satisfy the no duplicates and meet rules.
 Consider, for example, 
 an argument of type `NN <: ZZ`.
-The second declaration
+The second declaration, 
+which is more specific than the first,
 and the instantiation of the first declaration with `NN`
 are both applicable to this argument,
 but the return type `ZZ` of the second declaration 
 is not a subtype of the return type `NN` of the instance of the first declaration.
+This rejection by the return type rule is not gratuitous: 
+`baz` may be called with a argument of type `NN` 
+in a context that expects an `NN` in return.
+
+We can fix this example by making the second declaration generic:
 
 \small
-`  bar[\X\](x: X): ZZ = 1
-  bar(x: Number): ZZ = 2
+`  baz[\X\](x: X): X
+  baz[\X <: ZZ\](x: X): X
 `
 \normalsize
-What do you get if you call `bar(2)`?
+This pair is valid: 
+the second declaration is strictly more specific than the first, 
+so the no duplicates and meet rules are satisfied.
+To see that the return type rule is satisfied, 
+consider any type `W NEQUIV Bottom` to which the second declaration is applicable---%
+so `W <: ZZ`---%
+and any instantiation of the first with some type $T$ that is applicable to $W$---% 
+so `W <: T`.
+Then the instantiation of the second declaration with $W$ 
+has return type $W$, which is a subtype of the return type $T$ 
+of the instance of the first declaration under consideration.
 
+Finally,
+consider the following overloaded definitions:
 
 \small
-`  bar[\X\](x: X): X
-  bar[\X <: ZZ\](x: X): X
+`  quux[\X\](x: X): ZZ = 1
+  quux(x: ZZ): ZZ = 2
 `
 \normalsize
+This pair is valid 
+because the second definition is strictly more specific than the first---%
+so the no duplicates and meet rules are satisfied---%
+and the return types of both is always just `ZZ`,
+so the return type rule is satisfied.
+The call `quux(x)` evaluates to 2 whenever the ilk of $x$ is a subtype of `ZZ`, 
+and to 1 otherwise,
+which we believe is the behavior a programmer would expect.
+
+In contrast, 
+under the ````infinite set of monomorphic definitions'' interpretation,
+supposing that we could avoid or resolve the ambiguities described in the introduction,
+the call `quux(x)` when $x$ has type `NN <: ZZ` would evaluate to 1 
+because the most specific monomorphic definition 
+would be the the instantiation of the generic definition with `NN`.
+
+
+
 
 
 
