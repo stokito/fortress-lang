@@ -94,7 +94,7 @@ and replacing the rules for var types with.
 
 \subsection{Unification}
 Suppose that $\C$ is a conjunction of type equivalences. A \emph{unifier} of $\C$ is a substitution
-$\phi$ of types for inference type variables such that $\phi(\C) = \true$. We say that a unifier $\phi$ is more general that a unifier $\psi$ if there exists a subsitution $\tau$
+$\phi$ of types for inference type variables such that $\phi(\C) = \TRUE$. We say that a unifier $\phi$ is more general that a unifier $\psi$ if there exists a subsitution $\tau$
 such that $\tau \circ \phi \equiv \psi$. In other words $\phi$ is more general than $\psi$ if $\psi$ factors throught $phi$.
 
 We can extend the notion of a unifier to an arbitrary conjunction $\C$ by noting that $\C$ can be factor a conjunction $\C' \wedge \C$
