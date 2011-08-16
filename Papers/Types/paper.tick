@@ -1,5 +1,5 @@
 \documentclass[10pt,preprint]{sigplanconf}
-\usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem}
+\usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem,xifthen}
 \advance \textheight by 4pt
 
 % make a big red TODO label
@@ -55,12 +55,17 @@
 \newcommand{\subtypeof}{\ensuremath{<:}}
 \newcommand{\nsubtypeof}{\not \subtypeof}
 \newcommand{\supertypeof}{\ensuremath{:>}}
+\newcommand{\subtypeofinner}{\ensuremath{\lesssim}}
 
 \newcommand{\alphaequiv}{\ensuremath{\stackrel{\alpha}{\sim}}}
 \newcommand{\cequiv}{\ensuremath{\sim}}
 
 \newcommand{\arrowtype}[2]{\mbox{\ensuremath{{#1} \rightarrow {#2}}}}
 \newcommand{\tuple}[1]{\ensuremath{#1}}
+
+\newcommand{\dom}{\ensuremath{\mathit{dom}}}
+\newcommand{\arrow}{\ensuremath{\mathit{arrow}}}
+\newcommand{\FV}{\ensuremath{\mathit{FV}}}
 
 % indented code block
 \newenvironment{ttquote}%
@@ -123,7 +128,7 @@
 
 % subtyping on quantified types
 \newcommand{\jqsub}[3][\Delta]{\jgtemplate[#1]{#2}{\le}{#3}}
-\newcommand{\jqsubinner}[3][\Delta]{\jgtemplate[#1]{#2}{\preceq}{#3}}
+\newcommand{\jqsubinner}[3][\Delta]{\jgtemplate[#1]{#2}{\subtypeofinner}{#3}}
 
 % constrained judgments
 \newcommand{\jgconstrtemplate}[5][\Delta]{\ensuremath{{#1}\,\vdash\,{#5}\,\Rightarrow\,{#2}\;{#3}\;{#4}}}

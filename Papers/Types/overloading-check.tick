@@ -2,66 +2,129 @@
 \label{sec:checking}
 
 This section describes how to mechanically check 
-the three overloading rules described in Section~\ref{sec:threerules}.
-Because the rules use the notions of applicability and specificity for generic functions,
-we first formalize them which in turn need formalization of
-the ````arrow type of $d$'' for a generic function declaration $d$.
+the three overloading rules described in Section~\ref{sec:rules}.
+Previously the notions of applicability and specificity for generic
+declarations required an existential quantification over instances thereof.
+We rephrase these definitions in terms of universal and existential types,
+the generalizations of ````arrow type'' and ````domain type'' of generic
+declarations, in the same manner as \cite{bourdoncle97}.
+
 
 % For a generic function declaration $d = \declg{f}{X}{N}{S}{T}$,
 % its arrow type (written $\textit{arrow}(d)$) is
 % the \emph{universal type} $\forall\tplist{X}{N}S \rightarrow T$.
 For a generic function declaration $d = \hdeclg{f}{\Delta}{S}{T}$,
-its arrow type (written $\textit{arrow}(d)$) is
+its arrow type of $d$, written $\arrow(d)$, is
 the \emph{universal type} \mbox{$\forall\ob{\Delta}S \rightarrow T$}.
 A universal type binds type parameter declarations over some type and
-can be instantiated by any types valid for those type parameters.
-We write $\forall\tplist{X}{N}T$ to quantify each type variable $X_i$ with bounds
+can be instantiated by any types fitting the type parameters' bounds.
+We write $\forall\tplist{X}{N}T$ to bind each type variable $X_i$ with bounds
 $\{\bar{N_i}\}$ over the type $T$, and we use the metavariable $\sigma$ to range over universal types.
-The meta-level function `FV` maps a type to all free variables contained in that type. 
 
-%applicability of a generic function
-Recall that a generic function declaration $\hdeclg{f}{\Delta}{S}{T}$ 
-is applicable to a type $U$
-if and only if some instance of $d$ is applicable to $U$.
-A monomorphic function declaration $d = \decl{f}{S'}{T'}$ is applicable to a type $U$
-if and only if $U <: \textit{dom}(d)$,
-where $\textit{dom}(d)$ is the domain $S'$ of $S' \rightarrow T'$, 
-the arrow type of $d$.
-%We must then extend our notion of 
-% the ````arrow type of $f$'' for a generic function declaration $d$,
-%but first we need to characterize the type of a generic function.
-% In particular, we need a higher-level notion of universally
-% quantified types separate from the language of types $W$.
-This existential quantification over possible instantiations of the domain 
-directly corresponds to an existentially quantified type \cite{bourdoncle97}. 
-An \emph{existential type} $\exists\tplist{X}{N}T$ 
+
+Moreover, for the same $d$, its domain type, written $\dom(d)$, is the
+\emph{existential type} $\exists\ob{\Delta}{S}$. An \emph{existential type}
 also binds type parameter declarations over a type, 
 but unlike a universal type, it cannot be instantiated; 
-instead, it represents some hidden type instantiation $\bar{W}$ 
-and the corresponding instantiated type $\substb{W}{X}T$. 
-Therefore, we say that the domain of the universal arrow type for $d$,
-$\forall\ob{\Delta}S \rightarrow T$ 
-(again written $\textit{dom}(d)$ as an abuse of notation),
-is the existential type $\exists\ob{\Delta}{S}$.
-We use the metavariable $\delta$ to range over existential types.
-Note that we abbreviate both the universal type $\forall\ob{}T$ and
-the existential type $\exists\ob{}T$ as simply $T$ when the meaning is clear from context.
-Figure~\ref{fig:application} presents the formal definition of applicability 
-for a generic function declaration $d$ to a type $T$, $f \ni T$.
+instead, it represents some hidden type instantiation 
+and the corresponding instantiated type. We write
+$\exists\tplist{X}{N}T$ to bind each type variable $X_i$ with bounds
+$\{\bar{N_i}\}$ over the type $T$, and we use the metavariable $\delta$ to
+range over existential types.
 
-\input{fig-application}
+Note that universal and existential types are not actually \emph{types} in
+our system. To distinguish between the different notions, we refer to types
+$T$ as \emph{simple types} and the original subtyping relation $\subtypeof$ as
+\emph{simple subtyping}. When the meaning is clear from context, we equate
+both $\forall\ob{}T$ and $\exists\ob{}T$ with the simple type $T$. 
 
-%specificity for a generic function
-A generic function declaration is \emph{more specific} than 
-another generic function declaration
-if and only if the domain of the former is a subtype of the latter, 
-as presented in Figure~\ref{fig:application}.
-Figure~\ref{fig:existential} presents the subtype relation on existential types
-as originally given by Mitchell \cite{mitchell88}.
-Roughly, an existential type $\delta_1 = \exists \ob{\Delta_1} T_1$ is a
-subtype of another existential type $\delta_2 = \exists\ob{\Delta_2}T_2$
-(written $\delta_1 \le \delta_2$)
-if $T_2$ can be instantiated to a supertype of $T_1$ in the environment $\Delta_1$.
+% %applicability of a generic function
+% Recall that a generic function declaration $\hdeclg{f}{\Delta}{S}{T}$ 
+% is applicable to a type $U$
+% if and only if some instance of $d$ is applicable to $U$.
+% A monomorphic function declaration $d = \decl{f}{S'}{T'}$ is applicable to a type $U$
+% if and only if $U \subtypeof \dom(d)$,
+% where $\dom(d)$ is the domain $S'$ of $S' \rightarrow T'$, 
+% the arrow type of $d$.
+% %We must then extend our notion of 
+% % the ````arrow type of $f$'' for a generic function declaration $d$,
+% %but first we need to characterize the type of a generic function.
+% % In particular, we need a higher-level notion of universally
+% % quantified types separate from the language of types $W$.
+% This existential quantification over possible instantiations of the domain 
+% directly corresponds to an existentially quantified type,
+% as observed in \cite{bourdoncle97}. 
+% An \emph{existential type} $\exists\tplist{X}{N}T$ 
+% also binds type parameter declarations over a type, 
+% but unlike a universal type, it cannot be instantiated; 
+% instead, it represents some hidden type instantiation $\bar{W}$ 
+% and the corresponding instantiated type $\substb{W}{X}T$. 
+% Therefore, we say that the domain $\dom(d)$ of the generic declaration $d$
+% is the existential type $\exists\ob{\Delta}{S}$, where $\arrow(d) = \forall\ob{\Delta}S \rightarrow T$.
+% We use the metavariable $\delta$ to range over existential types.
+% Note that we abbreviate both the universal type $\forall\ob{}T$ and
+% the existential type $\exists\ob{}T$ as simply $T$ when the meaning is clear from context.
+% % Figure~\ref{fig:application} presents the formal definition of applicability 
+% % for a generic function declaration $d$ to a type $T$, $f \ni T$.
+
+% \input{fig-application}
+
+%%%%%%%%%%%%%%%%%%%%%%
+% INTRODUCE SUBTYPING!
+\subsection{Universal and Existential Subtyping}
+We define subtyping judgments for universal types and for existential types,
+which we utilize in checking the overloading rules. We actually define inner
+and outer subtyping judgments on universals and existentials; the former
+corresponds to a relatively standard interpretation of each (which
+resembles those defined in \cite{bourdoncle97}), while the latter
+incorporates \emph{existential reduction}, defined in \TODO{ref}.
+
+
+\input{fig-existential}
+
+The inner subtyping judgment on universals defined in
+Figure~\ref{fig:existential}, 
+% $$ \jqsubinner{\sigma_1}{\sigma_2} \quad \text{and} \quad
+%    \jqsubinner{\delta_1}{\delta_2}, $$
+$\jqsubinner{\sigma_1}{\sigma_2}$, stems from the notion of ````generic
+instances'' from Hindley-Milner type systems \cite{damas82},
+augmented with F-bounded quantification \cite{canning89,baldan99} to account
+for type parameters that may appear in their bounds. The single rule
+states that $\sigma_1$ is a subtype
+of $\sigma_2$ if, in the environment extended by $\sigma_2$'s type parameters,
+there exists an instantiation $\bar{V}$ of $\sigma_1$ such that the
+constituent type of $\sigma_1$ is a (simple) subtype of the constituent type
+of $\sigma_2$; in other words, $\sigma_1$ must be instantiated in $\sigma_2$'s
+environment to a simple subtype of $\sigma_2$'s type.
+
+The inner subtyping judgment on existentials also defined in
+Figure~\ref{fig:existential}, $\jqsubinner{\delta_1}{\delta_2}$, is the
+logical dual of that for universals. The rule states that $\delta_1$ is
+a subtype of $\delta_2$ if $\delta_2$'s type parameters can be instantiated
+in $\delta_1$'s environment such that its instantiated type is a simple
+supertype of $\delta_1$'s type.
+
+These subtyping judgments offer a nice interpretation of applicability and
+specificity of generic function declarations. Recall that a generic
+function declaration $d = \hdeclg{f}{\Delta}{S}{T}$ is applicable to a type
+$T$ if there is some instance $d'$ such that $T \subtypeof \dom(d')$.
+Note the existential quantification over instances of the generic function
+declaration. With our extended notion of domain type, we lift this
+criterion to the level of existential types; observe the same existential
+quantification over type instantiations $\bar{V}$ in the definition of
+existential subtyping. Now we cleanly interpret the fact that a generic
+function declaration $d$ is applicable to a type $T$ with the existential
+subtyping assertion $\vdash T \subtypeofinner \dom(d)$. 
+% \footnote{Such as with simple subtyping, as an abuse of notation we write
+% $\sigma_1 \subtypeofinner \sigma_2$ when we do not care about the enclosing
+% type environment; likewise for $\delta_1 \subtypeofinner \delta_2$.}
+Furthermore, we interpret the fact that $d_1$ is more specific than
+$d_2$ with the existential subtyping assertion
+$\vdash \dom(d_1) \subtypeofinner \dom(d_2)$. (As we will see shortly,
+however, these interpretations are still not strong enough. We will need the
+richer judgment $\jqsub{\delta}{\delta}$.)
+
+\TODO{Scott left off here. Will continue.}
 
 
 Now, we can mechanically check the No Duplicates Rule
@@ -70,8 +133,6 @@ To check whether one declaration is more specific than another,
 we check whether the domain of the former is a subtype of the latter.
 Checking whether one existential type is a subtype of another
 is described in Figure~\ref{fig:existential}.
-
-\input{fig-existential}
 
 To check the Meet Rule, for every pair of declarations $d_1, d_2 \in \D(f)$,
 we must find a function declaration $d_0 \in \D(f)$ that is
