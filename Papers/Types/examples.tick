@@ -58,7 +58,7 @@ are satisfied for each pair of definitions.
 
 To see that the return type rule is satisfied 
 by the first two definitions, 
-consider any type `W NEQUIV BottomType` 
+consider any type `W NEQUIV Bottom` 
 to which the second definition is applicable,
 and any instantiation of the first definition with type $U$ 
 that is applicable to $W$.
@@ -66,10 +66,10 @@ Then `W <: List[\T\]` for some `T <: Number`
 and `W <: List[\U\]`, 
 so `W <: List[\T\] CAP List[\U\]`.
 By multiple instantiation exclusion,
-`List[\T\] CAP List[\U\] EQUIV BottomType`
+`List[\T\] CAP List[\U\] EQUIV Bottom`
 unless $T \equiv U$.
 Therefore, 
-since $W \not\equiv \BottomType$, 
+since $W \not\equiv \Bottom$, 
 we have $T \equiv U$,
 so $W \subtypeof \TYP{List}\ob{U}$ 
 with $U \subtypeof \TYP{Number}$.
@@ -110,7 +110,7 @@ and $Y_2 \subtypeof \TYP{Number}$.
 Multiple instantiation exclusion 
 implies that $X_1 = X_2$ and $Y_1 = Y_2$,
 % \[
-% \TYP{Pair}\ob{X_1,Y_1} \cap \TYP{Pair}\ob{X_2,Y_2} = \BottomType
+% \TYP{Pair}\ob{X_1,Y_1} \cap \TYP{Pair}\ob{X_2,Y_2} = \Bottom
 % \]
 % unless 
 so the argument must be of type $\TYP{Pair}\ob{X_1,Y_1}$, 
@@ -120,9 +120,6 @@ so the third definition is applicable to it.
 And since the third definition is more specific than the first two,
 it satisfies the requirement of the meet rule.
 
-\TODO{Polish this section, add examples, 
-and fix it so that it comes after the exclusion section 
-rather than before.}
 
 
 \small
@@ -133,53 +130,11 @@ rather than before.}
 What do you get if you call `bar(2)`?
 
 
-\TODO{The following argument is wrong.}
-To see that the subtype rule is satisfied, 
-consider any pair of arguments to which the second definition is applicable.
-It must be of type `(List[\T\],List[\T\])` for some `T <: Number`, 
-and the return type is also type `List[\T\]`.
-Because type constructors are invariant in their type parameters,\!\footnote{%
-This overloading would also be valid if `List` were covariant, 
-but such consideration is beyond the scope of this paper.}
-the only instance of the first definition that is applicable to this argument 
-is the instantiation with `T`, 
-which also has return type `List[\T\]`.
-\TODO{The return type rule is not satisfied without polymorphic exclusion.}
-
-
 \small
-`  tail[\T\](x: List[\T\]): List[\T\] = e1
-  tail(x: List[\ZZ\]): List[\ZZ\] = e2`
+`  bar[\X\](x: X): X
+  bar(x: ZZ): ZZ
+`
 \normalsize
-Although the second definition is strictly more specific than the first, 
-this overloading is invalid:
-it fails to satisfy the return type rule!
-To see this, 
-suppose `tail` is called on an argument of type `List[\NN\]`, 
-where `NN` is a subtype of `ZZ`.
-In that case, 
-both definitions are applicable, 
-as is `tail(List[\NN\]): List[\NN\]`, 
-the instantiation of the first definition with `NN`.
-Thus, the return type rule is not satisfied 
-since `tail(List[\ZZ\]): List[\ZZ\]` 
-is the only instance of the second defintion, 
-and `List[\ZZ\]` is not a subtype of `List[\NN\]`.\!\footnote{%
-The type system described in this paper does not support covariance, 
-so `List` is \emph{invariant} in its type parameter.
-However, even if `List` were covariant,
-this overloading would be invalid 
-because `ZZ` is not a subtype of `NN`.}
-This might be surprising at first, 
-but a little thought shows that it is necessary to reject this overloading:
-the function 
-
-
-The second definition is strictly more specific than 
-both the first and the third definitions: 
-it is applicable only when the arguments are both of type `List[\ZZ\]`.
-(But they don't satisfy the return type rule 
-without polymorphic exclusion.)
 
 
 
@@ -193,39 +148,9 @@ Thus, the tuple types and constructed types form a meet semilattice.
 (But arrow types don't: 
 the meet of `S->T` and `U->V` is \emph{not} an arrow type.)
 
-\TODO{Go over examples in intro, say which are valid and why.}
-
-Also, reconsider example of overloading `tail` 
-with one generic definition and one monomorphic one.
-This example is still not allowed 
-(but the one with two generic definitions is).
-The problem is that `ZZ` may have a subtype `NN`.
-In that case, 
-both definitions are applicable 
-a call to `tail` on an argument of type `List[\NN\]` 
-but the return type of the more specific monomorphic definition is `ZZ`, 
-but the return type of the best instantiation of the generic definition is `NN`.
 
 
 
-
-
-While the rules presented in Section~\ref{sec:rules} allow programmers to
-write valid sets of overloaded generic function declarations,
-they sometimes reject ````seemingly'' valid overloadings.
-In fact, these are not false negatives;
-many declarations that programmers would like to write are actually unsafe due to multiple inheritance.
-
-For example, even though the following function declarations look like
-a valid overloading, they are not because the Meet Rule is not satisfied:
-`  simple String:String
-  simple ZZ:ZZ`
-Moreover, in Fortress it is impossible to disambiguate the declarations by providing the meet
-because intersection types are not allowed in the Fortress syntax.
-In a language with single inheritance, we might infer that these
-overloadings were safe because a class can only have a single superclass.
-However, due to multiple inheritance, we cannot be sure that these types
-do not have a common subtype, no matter what the programmer intends.
 
 
 `  foo[\X <: Any\]ArrayList[\X\]: ZZ

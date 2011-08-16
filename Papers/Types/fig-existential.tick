@@ -39,7 +39,7 @@
 \vspace*{2ex}
 \newjudge{Existential reduction}{\jtreds{\delta}{\delta}{\phi}}
 \infrule
-  {\jcnequiv{T}{\BottomType}{\C} \andalso \toConstraint{\Delta'}{\C'} \\
+  {\jcnequiv{T}{\Bottom}{\C} \andalso \toConstraint{\Delta'}{\C'} \\
    \jsolve{\neg \C \wedge \C'}{\phi}{\D} \andalso \toBound{\D}{\Delta''}}
   {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta'']{\phi(T)}}{\phi}}
 

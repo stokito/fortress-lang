@@ -3,7 +3,7 @@
 % \input{constraints}
 % \subsection{Exclusion under Constraints}
 % \input{doesnotexclude}
-% %% \subsection{Not BottomType}
+% %% \subsection{Not Bottom}
 % %% \input{notbottom}
 % \subsection{Subtyping}
 % \input{reduce}
@@ -37,10 +37,10 @@ Fortress defines an \emph{exclusion relation} $\exc$ over types
 such that two types that exclude each other 
 have no common nontrivial subtypes;
 that is, 
-if $T \exc U$ then $T \cap U$ is synonymous with \BottomType.
+if $T \exc U$ then $T \cap U$ is synonymous with \Bottom.
 Thus, overloaded definitions whose domain types exclude each other
 trivially satisfy the meet rule: 
-there are no types (other than \BottomType) 
+there are no types (other than \Bottom) 
 to which both definitions are applicable.
 Exclusion allows us to describe explicitly what is 
 typically implicit in single-inheritance class hierarchies.
@@ -139,7 +139,7 @@ but not to both.
 More generally, 
 we can impose a rule that forbids 
 \emph{multiple instantiation inheritance} \cite{kennedy07}, 
-in which a type (other than \BottomType) 
+in which a type (other than \Bottom) 
 is a subtype of distinct applications of a type constructor.\!\footnote{%
 This definition suffices for the type system described in this paper, 
 in which all type parameters are invariant.

@@ -27,7 +27,7 @@ we define a world of types ranged over by metavariables $S$, $T$, $U$, $V$, and 
 % and \emph{compound types},
 % consisting of intersection and union types. 
 % In addition, 
-% there are two special constructed types, \Any\ and \BottomType, explained below.
+% there are two special constructed types, \Any\ and \Bottom, explained below.
 Types are of five forms:
 \emph{type variables} (ranged over by metavariables $X$, $Y$, and $Z$);
 \emph{constructed types} (ranged over by metavariables $K$, $L$, $M$ and $N$), 
@@ -40,9 +40,9 @@ and `T_bar` is a list of types;
 consisting of arrow types and tuple types;
 \emph{compound types}, 
 consisting of intersection types and union types;
-and the special type \BottomType, 
+and the special type \Bottom, 
 which represents the uninhabited type 
-(i.e., no value belongs to \BottomType).
+(i.e., no value belongs to \Bottom).
 The abstract syntax of types is defined in BNF as follows
 (where $\bar{\emph{A}}$ indicates 
 a possibly empty comma-separated sequence of syntactic elements $\emph{A}$):
@@ -55,7 +55,7 @@ a possibly empty comma-separated sequence of syntactic elements $\emph{A}$):
 &\mid& ( \bar{\emph{T}} ) & \hbox{\rm tuple type}\\
 &\mid& \emph{T} \cap \emph{T} & \hbox{\rm intersection type}\\
 &\mid& \emph{T} \cup \emph{T} & \hbox{\rm union type}\\
-&\mid& \BottomType \\
+&\mid& \Bottom \\
 \end{array}
 \]
 
@@ -63,14 +63,14 @@ A type may have multiple syntactic forms.\!\footnote{We abuse terminology
 by not distinguishing type terms and types.}
 In particular,
 a tuple type of length one is synonymous with its element type, 
-and a tuple type with any \BottomType\ element 
-is synonymous with \BottomType.
+and a tuple type with any \Bottom\ element 
+is synonymous with \Bottom.
 In addition, 
 any types that are provably equivalent as defined below 
 are also synonymous.
 
 As in Fortress, 
-compound types---intersection and union types---and \BottomType\ 
+compound types---intersection and union types---and \Bottom\ 
 are \emph{not} first-class:
 these forms of types cannot be written in a program; 
 rather, they are used by the type analyzer during type checking.
@@ -134,8 +134,8 @@ a (nominal) \emph{subtyping relation} $\subtypeof$ over the constructed types
 by taking the reflexive and transitive closure 
 of the subtyping relation derived from the declarations in the class table.
 In addition, 
-% \Any\ and \BottomType\ are well-formed with respect to any class table, and 
-every type is a subtype of \Any\ and a supertype of \BottomType.
+% \Any\ and \Bottom\ are well-formed with respect to any class table, and 
+every type is a subtype of \Any\ and a supertype of \Bottom.
 
 We say that a type $T$ (of any form) is \emph{well-formed} 
 with respect to $\T$, 
@@ -262,7 +262,7 @@ every function belongs to at least one arrow type,
 and every tuple belongs to at least one tuple type.
 We say that two types `T` and `U` have \emph{the same extent}
 if every value `v` belongs to `T` if and only if `v` belongs to `U`.
-No value belongs to \BottomType.
+No value belongs to \Bottom.
 
 We place a requirement on values and on the type system that describes them: 
 Although a value may belong to more than one type, 
@@ -283,7 +283,7 @@ we can represent the ilk of a function
 by the intersection of arrow types.}} 
 and has the property that for every type `T`, 
 if `v` belongs to `T` then `ilk(v) <: T`.
-% moreover, `ilk(v) =/= BottomType`.  
+% moreover, `ilk(v) =/= Bottom`.  
 (This notion of `ilk` corresponds to what is sometimes called the
 ````class'' or ````run-time type'' of the value.\footnote{%
 We prefer the term ````ilk'' to ````run-time type'' 
@@ -414,7 +414,7 @@ in $\D(f)$ that are applicable to $T$.
 %%     {\jtred{\Delta}{T \cap U}{U}}
 %%   \infrule
 %%     {\jexc{\Delta}{T}{U}}
-%%     {\jtred{\Delta}{T \cap U}{`BottomType`}}
+%%     {\jtred{\Delta}{T \cap U}{`Bottom`}}
   
 %%   % UNION
 %%   \infrule
@@ -437,8 +437,8 @@ in $\D(f)$ that are applicable to $T$.
 %%   %   {\jtred{\Delta}{T_i}{T_i'}}
 %%   %   {\jtred{\Delta}{(T_1, \ldots, T_i, \ldots, T_n)}{(T_1, \ldots, T_i', \ldots, T_n)}}
 %%   \infrule
-%%     {T_i = `BottomType`}
-%%     {\jtred{\Delta}{(T_1, \ldots, T_i, \ldots, T_n)}{`BottomType`}}
+%%     {T_i = `Bottom`}
+%%     {\jtred{\Delta}{(T_1, \ldots, T_i, \ldots, T_n)}{`Bottom`}}
   
 %%   % CONSTRUCTED
 %%   % \infrule
@@ -448,8 +448,8 @@ in $\D(f)$ that are applicable to $T$.
 %%   % VARIABLE
 %%   \TODO{should be a subtype judgment instead?}
 %%   \infrule
-%%     {`X <: BottomType IN DELTA`}
-%%     {\jtred{\Delta}{X}{`BottomType`}}
+%%     {`X <: Bottom IN DELTA`}
+%%     {\jtred{\Delta}{X}{`Bottom`}}
   
 %%   % REDUCTION CONTEXT GRAMMAR
 %%   \newcommand{\OR}{\;|\;}

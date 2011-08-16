@@ -9,16 +9,16 @@
 
 \infrule
   {}
-  {\jexc{\BottomType}{T}{\TRUE}}
+  {\jexc{\Bottom}{T}{\TRUE}}
 
 \infrule
-  {\jsub{T}{\BottomType}{\C}}
+  {\jsub{T}{\Bottom}{\C}}
   {\jexc{\Any}{T}{\C}}
 
 \infrule
   {\jexc{S}{U}{\C} \andalso 
    \jexc{T}{U}{\C'} \\
-   \jsub{S \cap T}{\BottomType}{\C''}}
+   \jsub{S \cap T}{\Bottom}{\C''}}
   {\jexc{S \cap T}{U}{\C \vee \C' \vee \C''}}
 
 \infrule

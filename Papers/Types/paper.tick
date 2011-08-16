@@ -99,7 +99,7 @@
 %%%%% Any and Bottom %%%%
 
 \newcommand{\Any}{\TYP{Any}}
-\newcommand{\BottomType}{\TYP{BottomType}}
+\newcommand{\Bottom}{\TYP{Bottom}}
 
 \newcommand{\FALSE}{\textrm{false}}
 \newcommand{\TRUE}{\textrm{true}}
