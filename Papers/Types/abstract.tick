@@ -1,5 +1,3 @@
-\TODO{Describe result first, say it extends previous work after (if at all)?}
-
 In previous work,
 we presented rules for defining overloaded functions 
 that ensure type safety under symmetric multiple dispatch 

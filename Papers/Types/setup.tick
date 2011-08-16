@@ -101,11 +101,11 @@ if every type that appears in it is well-formed,
 as defined below, 
 and the extends relation over type constructors is acyclic.
 
-\TODO{Mention that given our restricted setting (i.e., no mixins), 
-the above definition (for well-formedness of class tables) 
-is equivalent to the one in Kennedy and Pierce?  
-(The one we had before was too weak: 
-see comment in source file for example.)}
+%% \TODO{Mention that given our restricted setting (i.e., no mixins), 
+%% the above definition (for well-formedness of class tables) 
+%% is equivalent to the one in Kennedy and Pierce?  
+%% (The one we had before was too weak: 
+%% see comment in source file for example.)}
 
 % A class table $\T$ is \emph{well-formed} if the resulting subtyping relation 
 % on its constructed types is a partial order.
@@ -141,7 +141,7 @@ We say that a type $T$ (of any form) is \emph{well-formed}
 with respect to $\T$, 
 and write $T \in \T$, 
 if every constructed type occurring in $T$ is well-formed with respect to $\T$.
-\TODO{Should this be restricted to ground types?}
+%% \TODO{Should this be restricted to ground types?}
 Typically, the class table is fixed and implicit, 
 and we assume it is well-formed 
 and often omit explicit reference to it.
@@ -149,12 +149,12 @@ and often omit explicit reference to it.
 Given % a class table with 
 the type constructor declaration above, 
 we denote the set of explicitly declared supertypes 
-of the constructed type $C\obb{T}$ by
+of the constructed type $C\obb{T}$ by:
 \[
 \myextends{C\obb{T}} = \{ \bar{\substb{T}{X}N} \}
 \]
 and the set of \emph{ancestors} of $C\obb{T}$ 
-(defined recursively) by
+(defined recursively) by:
 \[
 \ancestors(C\obb{T}) 
    = \{C\obb{T}\} \cup 
@@ -223,9 +223,9 @@ the set of free type variables of $T$, written $\FV(T)$, is defined as
 the set of all type variables syntactically occurring within $T$.
 
 
-\TODO{Mention that we only support invariant parameters for now?}
+%% \TODO{Mention that we only support invariant parameters for now?}
 
-\TODO{Give class table with declarations for `ZZ`, `String`, `List` and `ArrayList`.}
+%% \TODO{Give class table with declarations for `ZZ`, `String`, `List` and `ArrayList`.}
 
 \subsection{Extensibility}
 
@@ -255,7 +255,7 @@ and the subtyping relation on $\T'$ agrees with that of $\T$.
 That is, $T \in \T$ implies $T \in \T'$ and 
 $T \subtypeof U$ in $\T$ implies $T \subtypeof U$ in $\T'$.
 
-\TODO{Expand on this?}
+%% \TODO{Expand on this?}
 
 
 \subsection{Values and Ilks}
@@ -278,16 +278,17 @@ every value `v` belongs to a unique type `ilk(v)`
 that is \emph{representable in the type system}\footnote{The
 type system presented here satisfies this requirement 
 simply by providing intersection types.  
-Fortress satisfies it in another way as well, 
-which is typical of object-oriented languages: 
-every object is created as an instance of a single nominal constructed type, 
-and this type is its ilk.
-\TODO{This doesn't show that functions have ilks.
-And indeed, if generic functions were values, 
-we would need to extend the type system to include express their ilks.
-However, as long as generic functions aren't values, 
-we can represent the ilk of a function 
-by the intersection of arrow types.}} 
+%% Fortress satisfies it in another way as well, 
+%% which is typical of object-oriented languages: 
+%% every object is created as an instance of a single nominal constructed type, 
+%% and this type is its ilk.
+%% \TODO{This doesn't show that functions have ilks.
+%% And indeed, if generic functions were values, 
+%% we would need to extend the type system to include express their ilks.
+%% However, as long as generic functions aren't values, 
+%% we can represent the ilk of a function 
+%% by the intersection of arrow types.}
+} 
 and has the property that for every type `T`, 
 if `v` belongs to `T` then `ilk(v) <: T`.
 % moreover, `ilk(v) =/= Bottom`.  
@@ -310,12 +311,12 @@ The implementation significance of ilks is that it is possible to
 select the dynamically most specific applicable function
 from an overload set using only the ilks of the argument values; no
 other information about the arguments is needed.
-\TODO{Context could be relevant.
-We use return type rule to ensure it's not.
-So perhaps this paragraph should really be expressing a desideratum:
-we want a system in which it is possible to select 
-the dynamically most specific applicable function 
-based only on the ilks.}
+%% \TODO{Context could be relevant.
+%% We use return type rule to ensure it's not.
+%% So perhaps this paragraph should really be expressing a desideratum:
+%% we want a system in which it is possible to select 
+%% the dynamically most specific applicable function 
+%% based only on the ilks.}
 
 In a safe type system,
 if an expression is determined by the type system to have type `T`, 
@@ -329,7 +330,7 @@ then the argument value must belong to type `U`.
 \subsection{Generic Function Declarations}
 \label{terms}
 
-\TODO{Make consistent use of ````declarations'' vs.\ ````definitions''.}
+%% \TODO{Make consistent use of ````declarations'' vs.\ ````definitions''.}
 
 A function declaration consists of 
 a name, 
@@ -378,7 +379,7 @@ When we do not care about $\bar{W}$,
 we just say that $\decl{f}{U}{V}$
 is an \emph{instance} of $d$ 
 (and it is understood that $U=\substb{W}{X}S$
-and $V=\substb{W}{X}T$ for some (unstated) $\bar{W}$).
+and $V=\substb{W}{X}T$ for some $\bar{W}$).
 %
 We use the metavariable $\D$ 
 to range over finite collections of sets of function declarations 

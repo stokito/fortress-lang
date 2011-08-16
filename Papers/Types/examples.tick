@@ -19,9 +19,9 @@ because the first definition is applicable to a pair of arguments
 exactly if the type of each is a subtype of `Object`, 
 whereas the second is applicable to a pair of arguments exactly if
 the type of each is a subtype of `Number`.
-Thus, these definitions satisfy the no duplicates rule 
-and the meet rule.
-And they satisfy the return type rule 
+Thus, these definitions satisfy the No Duplicates Rule 
+and the Meet Rule.
+And they satisfy the Return Type Rule 
 because the return type of both definitions is always `ZZ`.
 
 The overloaded definitions for `tail` are also valid:
@@ -39,10 +39,10 @@ and the third is applicable to an argument
 of type `List[\ZZ\]`.
 Thus, 
 each definition is strictly more specific than the preceding one, 
-so the no duplicates rule and meet rule 
+so the No Duplicates Rule and Meet Rule 
 are satisfied for each pair of definitions.
 
-To see that the return type rule is satisfied 
+To see that the Return Type Rule is satisfied 
 by the first two definitions, 
 consider any type `W NEQUIV Bottom` 
 to which the second definition is applicable---%
@@ -64,7 +64,7 @@ which is also the return type
 of the instantiation of the first definition 
 under consideration.
 
-The return type rule is also satisfied by the third definition 
+The Return Type Rule is also satisfied by the third definition 
 and either of the first two 
 because the third definition is applicable 
 only to arguments of type `List[\ZZ\]`,
@@ -78,7 +78,7 @@ which is also the return type of the third definition.
 The `min` example from Section~\ref{sec:exclusion} is also valid 
 under multiple instantiation exclusion,
 which is necessary in this case 
-to satisfy the meet rule rather than the return type rule:
+to satisfy the Meet Rule rather than the Return Type Rule:
 
 \small
 `  min[\X <: RR, Y <: ZZ\](p: Pair[\X,Y\]): RR
@@ -99,7 +99,7 @@ where $X_1 \subtypeof `RR` \cap `ZZ` = `ZZ`$
 and $Y_1 \subtypeof `ZZ` \cap `RR` = `ZZ`$, 
 so the third definition is applicable to it.
 And since the third definition is more specific than the first two,
-it satisfies the requirement of the meet rule.
+it satisfies the requirement of the Meet Rule.
 
 The following set of overloaded declarations is also valid 
 (given the declaration `ArrayList[\X\] <: List[\X\]`):
@@ -122,7 +122,7 @@ is \Bottom\ unless $T \equiv U$,
 in which case,
 `ArrayList[\T\] CAP List[\U\] EQUIV ArrayList[\U\]`.
 This is exactly the type to which the third declaration is applicable, 
-so the meet rule is satisfied.
+so the Meet Rule is satisfied.
 
 Note that this example is similar to the previous one with `min`
 except that rather than having each of the two definitions 
@@ -139,9 +139,9 @@ beginning with the following declarations:
 `
 \normalsize
 This pair is \emph{not} valid: 
-it does not satisfy the return type rule.
+it does not satisfy the Return Type Rule.
 % The second is strictly more specific, 
-% so the declarations satisfy the no duplicates and meet rules.
+% so the declarations satisfy the No Duplicates and Meet Rules.
 Consider, for example, 
 an argument of type `NN <: ZZ`.
 The second declaration, 
@@ -150,7 +150,7 @@ and the instantiation of the first declaration with `NN`
 are both applicable to this argument,
 but the return type `ZZ` of the second declaration 
 is not a subtype of the return type `NN` of the instance of the first declaration.
-This rejection by the return type rule is not gratuitous: 
+This rejection by the Return Type Rule is not gratuitous: 
 `baz` may be called with a argument of type `NN` 
 in a context that expects an `NN` in return.
 
@@ -163,8 +163,8 @@ We can fix this example by making the second declaration generic:
 \normalsize
 This pair is valid: 
 the second declaration is strictly more specific than the first, 
-so the no duplicates and meet rules are satisfied.
-To see that the return type rule is satisfied, 
+so the No Duplicates and Meet Rules are satisfied.
+To see that the Return Type Rule is satisfied, 
 consider any type `W NEQUIV Bottom` to which the second declaration is applicable---%
 so `W <: ZZ`---%
 and any instantiation of the first with some type $T$ that is applicable to $W$---% 
@@ -183,9 +183,9 @@ consider the following overloaded definitions:
 \normalsize
 This pair is valid 
 because the second definition is strictly more specific than the first---%
-so the no duplicates and meet rules are satisfied---%
+so the No Duplicates and Meet Rules are satisfied---%
 and the return types of both is always just `ZZ`---%
-so the return type rule is satisfied.
+so the Return Type Rule is satisfied.
 The call `quux(x)` evaluates to 2 whenever the ilk of $x$ is a subtype of `ZZ`, 
 and to 1 otherwise,
 which we believe is the behavior a programmer would expect.

@@ -26,7 +26,7 @@ Similarly,
 many binary operations on collections such as `append` and `zip` 
 have different definitions 
 depending on the ilks of both arguments. 
-\TODO{Add (reference to) argument for symmetric multiple dispatch?}
+%% \TODO{Add (reference to) argument for symmetric multiple dispatch?}
 
 % \TODO{Alternative is to have a shorter intro, 
 % which mostly mimics the abstract, but with a bit more elaboration,
@@ -55,8 +55,8 @@ depending on the ilks of both arguments.
 % \cite{millstein02,millstein03}.
 % \TODO{Is this true for asymmetric multiple dispatch?}}
 
-\TODO{Removing footnote eliminated C\# reference.
-Do we need to restore it?}
+%% \TODO{Removing footnote eliminated C\# reference.
+%% Do we need to restore it?}
 
 In an object-oriented language with symmetric multiple dispatch,
 some restrictions must be placed on overloaded function definitions
@@ -92,7 +92,10 @@ the return type of the first
 must also be a subtype of the return type of the second; 
 and 
 (\emph{ii}) whenever the domain types of the two definitions 
-have a common lower bound (i.e., a common nontrivial subtype), 
+have a common lower bound (i.e., a common nontrivial%
+\footnote{A type is a nontrivial subtype of another type if it is not the
+trivial ````bottom'' type defined in the next section.}
+ subtype), 
 there is a unique definition for the same function 
 whose domain type is the greatest lower bound 
 of the domain types of the two definitions.
@@ -105,7 +108,7 @@ the programmer must provide a third definition, such as:
 `
 \normalsize
 
-We call this latter property the \emph{meet rule} 
+We call this latter property the \emph{Meet Rule} 
 because it is equivalent to requiring
 that the definitions for each overloaded function form a meet semilattice 
 partially ordered by the subtype relation on their domain types, 
@@ -115,10 +118,11 @@ this relation, like the subtype relation, is reflexive:
 two function definitions with the same domain type 
 are each more specific than the other.
 In that case, we say the definitions are equally specific.}
-The meet rule guarantees 
+The Meet Rule guarantees 
 that there are no ambiguous function calls at run time.
 
-We call the first property above the \emph{return type rule} or \emph{subtype rule}.
+We call the first property above the \emph{Return Type Rule}
+(or \emph{Subtype Rule}).
 It ensures type preservation 
 % when the most specific function definition dynamically applicable to the arguments 
 % (i.e., based on their ilks) 
@@ -131,7 +135,7 @@ than the most specific one that could be determined at compile time
 (based on the types of the argument expressions).
 
 In this paper, 
-we give new meet and return type rules 
+we give new Meet and Return Type Rules 
 that ensure safe overloaded functions 
 in a language that supports symmetric multiple dispatch, 
 multiple inheritance, 
@@ -145,7 +149,7 @@ in which we gave analogous rules,
 and proved the analogous result,
 for a core of Fortress that does not support generics.
 
-\TODO{Move next several paragraphs into a background section?}
+%% \TODO{Move next several paragraphs into a background section?}
 
 To handle parametric polymorphism,
 it is helpful to have an intuitive interpretation for generic types and functions.
@@ -164,8 +168,8 @@ is adequate for explanatory purposes.
 Not so, however, for generic functions.  
 
 For some time during the development of Fortress, 
-one of us (Steele) pushed for 
-% we considered 
+%% one of us (Steele) pushed for 
+we considered 
 an interpretation of generic functions
 analogous to the one above for generic types;
 that is, 
@@ -173,7 +177,7 @@ the generic function definition\footnote{%
 The first pair of white square brackets 
 delimits the type parameter declarations, 
 but the other pairs of white brackets 
-provide the type arguments to the generic type `List`.}
+provide the type arguments to the generic type `List`.}:
 
 \small
 `  tail[\X\](x: List[\X\]): List[\X\] = e
@@ -216,7 +220,7 @@ this would be equivalent to:
 which is ambiguous for calls in which the argument is of type `List[\ZZ\]`.
 
 It gets worse if the programmer wishes to handle an infinite set of cases specially.  
-It would seem natural to write
+It would seem natural to write:
 
 \small
 `  tail[\X\](x: List[\X\]): List[\X\] = e1
@@ -228,6 +232,23 @@ with an infinite number of ambiguities.
 
 It does not suffice to  ````break ties''
 by choosing the instantiation of the more specific generic definition.
+Consider the following overloaded definitions:
+
+\small
+`  quux[\X\](x: X): ZZ = 1
+  quux(x: ZZ): ZZ = 2
+`
+\normalsize
+Intuitively, we would expect that
+the call `quux(x)` evaluates to 2 whenever the ilk of $x$ is a subtype of `ZZ`,
+and to 1 otherwise.
+However,
+under the ````infinite set of monomorphic definitions'' interpretation,
+the call `quux(x)` when $x$ has type `NN <: ZZ` would evaluate to 1
+because the most specific monomorphic definition
+would be the the instantiation of the generic definition with `NN`.
+
+
 Indeed, it is not always obvious 
 which function definition is the most specific one 
 applicable to a particular call
@@ -252,12 +273,12 @@ they bear no relation to each other.
 How should we compare such function definitions 
 to determine which is the best to dispatch to?
 How can we ensure that there even is a best one in all cases?
-\TODO{Eliminate rest of this paragraph?}
-Furthermore, the rules must be compatible with type inference, 
-since instantiation of type parameters at a call site 
-is typically done automatically.
-So even determining which definitions are applicable 
-to a particular call is not always obvious.
+%% \TODO{Eliminate rest of this paragraph?}
+%% Furthermore, the rules must be compatible with type inference, 
+%% since instantiation of type parameters at a call site 
+%% is typically done automatically.
+%% So even determining which definitions are applicable 
+%% to a particular call is not always obvious.
 
 % For example, 
 % consider the following overloaded function definitions:
@@ -290,8 +311,8 @@ both `foo(ZZ, Object)` and `foo(Number, ZZ)` are applicable
 (assuming `ZZ <: Number <: Object`),
 but they have no meet.
 
-Two authors of this paper (Hilburn and Kilpatrick) 
-proposed to avoid these ambiguities 
+%% Two authors of this paper (Hilburn and Kilpatrick) 
+We propose to avoid these ambiguities 
 by adopting an alternate model for generic functions, 
 similar to one proposed by Bourdoncle and Merz~\cite{bourdoncle97},
 in which each function definition 
@@ -302,8 +323,8 @@ rather than as an infinite set of definitions.
 In this model, 
 overloaded function definitions are (partially) ordered 
 by the subtype relation on existential types.
-Adapting dispatch and the meet rule to use this new order is straightforward.
-Adapting the return type rule is somewhat more complicated, 
+Adapting dispatch and the Meet Rule to use this new order is straightforward.
+Adapting the Return Type Rule is somewhat more complicated, 
 but checking it reduces to checking subtyping relationships 
 between universal types.
 Adopting this model has made overloaded generic functions in Fortress
@@ -334,17 +355,14 @@ when some other module extends its types.
 The difficulty is due to multiple inheritance: 
 Because the type hierarchy defined by a module may be extended 
 by types in other modules, 
-two types may have a common nontrival%
-\footnote{A type is a nontrivial subtype of another type if it is not the
-trivial ````bottom'' type defined in the next section.}
-subtype 
+two types may have a common nontrivial subtype 
 even if no type declared in this module 
 % (or in any module it extends) 
 extends them both.
 Thus,
 for any pair of overloaded function definitions with incomparable domain types
 (i.e., neither definition is more specific than the other),
-the meet rule requires some other definition to resolve the potential ambiguity.
+the Meet Rule requires some other definition to resolve the potential ambiguity.
 Because explicit intersection types cannot be expressed in Fortress, 
 it is not always possible to provide such a function definition.
 
@@ -415,17 +433,17 @@ allows these intuitively appealing overloaded functions.
 % if the type system supports an \emph{exclusion relation},
 % which asserts that two types have no common instances.
 
-\TODO{Remove following paragraph (put in next section)? Repeated phrase ````minimize syntactic overhead.''}
+%% \TODO{Remove following paragraph (put in next section)? Repeated phrase ````minimize syntactic overhead.''}
 
-To minimize syntactic overhead 
-and to avoid needing to translate 
-between a concrete language syntax 
-and a formal semantics, 
-we present these rules (see Section~\ref{sec:rules}) 
-in the context of a straightforward formalization 
-of a type system supporting multiple inheritance 
-and parametric polymorphism, 
-which we define in Section~\ref{sec:pre}.
+%% To minimize syntactic overhead 
+%% and to avoid needing to translate 
+%% between a concrete language syntax 
+%% and a formal semantics, 
+%% we present these rules (see Section~\ref{sec:rules}) 
+%% in the context of a straightforward formalization 
+%% of a type system supporting multiple inheritance 
+%% and parametric polymorphism, 
+%% which we define in Section~\ref{sec:pre}.
 
 
 % The remainder of this paper is organized thus:

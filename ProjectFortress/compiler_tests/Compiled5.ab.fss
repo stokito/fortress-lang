@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2009, Oracle and/or its affiliates.
+    Copyright 2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -13,7 +13,9 @@ component Compiled5.ab
 export Executable
 
 run():() = do
-  o = object f(x:ZZ32): () end
+  o = object
+        f(x:ZZ32): ()
+      end
   o.f(0)
 end
 
