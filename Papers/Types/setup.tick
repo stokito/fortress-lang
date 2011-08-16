@@ -390,6 +390,12 @@ $d_1$ is \emph{more specific} than $d_2$
 if and only if for every type $T$ 
 such that $d_1$ is applicable to $T$, 
 $d_2$ is also applicable to $T$.
+%
+For any type $T$, the set $\D(f)(T)$ contains precisely those declarations
+in $\D(f)$ that are applicable to $T$.
+%
+% When we restrict analysis of overloaded functions $\D(f)$ to those
+% applicable to a type $T$, we write this subset as $\D(f)(T)$.
 
 
 %% \begin{figure}
