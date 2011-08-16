@@ -184,7 +184,7 @@ consider the following overloaded definitions:
 This pair is valid 
 because the second definition is strictly more specific than the first---%
 so the no duplicates and meet rules are satisfied---%
-and the return types of both is always just `ZZ`,
+and the return types of both is always just `ZZ`---%
 so the return type rule is satisfied.
 The call `quux(x)` evaluates to 2 whenever the ilk of $x$ is a subtype of `ZZ`, 
 and to 1 otherwise,
