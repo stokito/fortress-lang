@@ -28,6 +28,7 @@ import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.runtimeValues.FortressBufferedReader;
 import com.sun.fortress.compiler.runtimeValues.FortressBufferedWriter;
+import com.sun.fortress.compiler.runtimeValues.FVector;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.AnyType;
@@ -309,6 +310,8 @@ public class NamingCzar {
                 // Special case for now, will generalize later.
                 if (s.equals("Lfortress/AnyType$Any;")) {
                     return NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, anyLib, "Any"));
+                } else if (s.equals("Lcom/sun/fortress/compiler/runtimeValues/FVector;")) {
+            return NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, fortLib, "Vector"));
                 } else throw new Error("Unhandled case in import of native method dealing in implementation types, native type is " + s);
             }
         }
@@ -337,6 +340,8 @@ public class NamingCzar {
 	    return fortressCharacterType;
 	} else if ((!isResultType) && method_name.equals("charCodePointWithSpecialCompilerHackForCharacterArgumentType") && s.equals("I")) {
 	    return fortressCharacterType;
+    } else if (s.equals("[I")) {
+        return fortressVectorType;
 	} else return specialForeignJavaTranslations.get(s);
     }
 
@@ -413,6 +418,7 @@ public class NamingCzar {
 	// and it relies on the following static field definition.
      }
     private static TraitType fortressCharacterType = ss(fortLib, "Character");
+    private static TraitType fortressVectorType = ss(fortLib, "Vector");
 
     
     /**
@@ -498,6 +504,7 @@ public class NamingCzar {
         bl(fortLib, "ZZ32", "FZZ32");
         bl(fortLib, "ZZ64", "FZZ64");
         bl(fortLib, "String", "FString");
+        bl(fortLib, "Vector", "FVector");
         bl(NodeFactory.makeVoidType(span), "FVoid");
     }
 

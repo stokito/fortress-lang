@@ -142,7 +142,9 @@ import java com.sun.fortress.nativeHelpers.{fileOps.jbrOpen => jJavaBufferedRead
                                             fileOps.jbwNewLine => jJavaBufferedWriterNewLine,
                                             fileOps.jbwFlush => jJavaBufferedWriterFlush,
                                             fileOps.jbwClose => jJavaBufferedWriterClose }
-
+import java com.sun.fortress.nativeHelpers.{simpleIntVector.getIndexedValue => jIntVectorGet,
+                                            simpleIntVector.putIndexedValue => jIntVectorPut,
+                                            simpleIntVector.make => jIntVectorMake }
 
 import AnyType.{Any}
 import CompilerAlgebra.{ Equality }
@@ -458,6 +460,13 @@ trait Character excludes { String, Number, Boolean }
     toTitleCase(self): Character = jMakeCharacter(jCharToTitleCase(jCodePoint(self)))
     toUpperCase(self): Character = jMakeCharacter(jCharToUpperCase(jCodePoint(self)))
 end
+
+trait Vector 
+   getValue(i:ZZ32) = jIntVectorGet(self, i)
+   putValue(i:ZZ32, v:ZZ32) = jIntVectorPut(self, i, v)
+end
+
+makeVector(i:ZZ32) : Vector = jIntVectorMake(i)
 
 trait JavaBufferedReader excludes { String, Number, Boolean, Character }
   getter asString(): String = jJavaBufferedReaderAsString(self)
