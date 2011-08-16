@@ -382,7 +382,7 @@ and $V=\substb{W}{X}T$ for some (unstated) $\bar{W}$).
 %
 We use the metavariable $\D$ 
 to range over finite collections of sets of function declarations 
-and $\D(f)$ for the subset of $\D$ 
+and $\Df$ for the subset of $\D$ 
 that contains all declarations of name $f$.
 %
 An instance \decl{f}{U}{V} of a declaration $d$ 
@@ -391,18 +391,18 @@ if and only if $T \subtypeof U$.
 A function declaration is \emph{applicable} to a type 
 if and only if at least one of its instances is.
 %
-For any two function declarations $d_1, d_2 \in \D(f)$, 
+For any two function declarations $d_1, d_2 \in \Df$, 
 $d_1$ is \emph{more specific} than $d_2$ 
 (written $d_1 \ms d_2$)
 if and only if for every type $T$ 
 such that $d_1$ is applicable to $T$, 
 $d_2$ is also applicable to $T$.
 %
-For any type $T$, the set $\D(f)(T)$ contains precisely those declarations
-in $\D(f)$ that are applicable to $T$.
+For any type $T$, the set $\Df(T)$ contains precisely those declarations
+in $\Df$ that are applicable to $T$.
 %
-% When we restrict analysis of overloaded functions $\D(f)$ to those
-% applicable to a type $T$, we write this subset as $\D(f)(T)$.
+% When we restrict analysis of overloaded functions $\Df$ to those
+% applicable to a type $T$, we write this subset as $\Df(T)$.
 
 
 %% \begin{figure}
