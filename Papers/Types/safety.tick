@@ -10,7 +10,7 @@ three important properties:
   has a (possibly different) unique most specific meaning at run time, and
   \item its ilk at run time will be a subtype of its type at compile time.
 \end{itemize}
-\TODO{Relate these properties to prior work?}
+%% \TODO{Relate these properties to prior work?}
 
 We formulate the Overloading Safety Theorem in terms of class table extension
 to generalize (while also making precise) the notion that ````run time''

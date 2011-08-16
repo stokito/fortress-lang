@@ -26,7 +26,7 @@ Because we allow class tables to be extended by unknown modules,
 we cannot generally infer that two types have no common nontrivial subtype 
 from the lack of any such declared type.
 Therefore, 
-the meet rule requires the programmer 
+the Meet Rule requires the programmer 
 to provide a disambiguating definition 
 for any pair of overloaded definitions whose domain types are incomparable.
 
@@ -39,19 +39,19 @@ have no common nontrivial subtypes;
 that is, 
 if $T \exc U$ then $T \cap U$ is synonymous with \Bottom.
 Thus, overloaded definitions whose domain types exclude each other
-trivially satisfy the meet rule: 
+trivially satisfy the Meet Rule: 
 there are no types (other than \Bottom) 
 to which both definitions are applicable.
 Exclusion allows us to describe explicitly what is 
 typically implicit in single-inheritance class hierarchies.
 
 In our previous work on Fortress without generics~\cite{allen07}, 
-we provide a special rule---the \emph{exclusion rule}---%
+we provide a special rule---the \emph{Exclusion Rule}---%
 to exploit this information.
 However, 
-the exclusion rule can also be viewed, 
+the Exclusion Rule can also be viewed, 
 as we do in this paper, 
-as a special case of the meet rule, 
+as a special case of the Meet Rule, 
 where there are no nontrivial types 
 to which both definitions are applicable.
 
@@ -63,7 +63,7 @@ they do not help with the overloaded `tail` function.
 Specifically,
 even with these exclusion mechanisms, 
 we cannot define `List` 
-so that the definitions for `tail` satisfy the return type rule.
+so that the definitions for `tail` satisfy the Return Type Rule.
 
 To see this, 
 consider the following overloaded definitions (from the introduction):
@@ -88,7 +88,7 @@ Two instances of the generic definition are applicable to this type:
   tail(List[\String\]): List[\String\]
 `
 \normalsize
-The return type rule requires that 
+The Return Type Rule requires that 
 the return type of each of these instances 
 be a supertype of the return type of the monomorphic definition
 (the monomorphic definition is its only one instance); 
@@ -96,12 +96,12 @@ that is, it requires
 `List[\ZZ\] <: List[\ZZ\]` 
 and `List[\ZZ\] <: List[\String\]`.
 The latter is clearly false.
-\TODO{Explain why we must not allow the overloading?
-That is, currently we simply say it doesn't satisfy the return type rule, 
-but we don't explain why we should want it to do so.}
+%% \TODO{Explain why we must not allow the overloading?
+%% That is, currently we simply say it doesn't satisfy the Return Type Rule, 
+%% but we don't explain why we should want it to do so.}
 
 A similar issue arises 
-when trying to satisfy the meet rule 
+when trying to satisfy the Meet Rule 
 by providing a disambiguating definition 
 for incomparable definitions, 
 as in the following example 

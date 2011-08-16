@@ -31,7 +31,7 @@ import Spacing;
 /* DelimitedExpr ::=
      ArgExpr
    | Parenthesized
-   | object (w ExtendsWhere)? (w GoInAnObject)? w end
+   | object (w ExtendsWhere)? (nl GoInAnObject)? w end
    | Do
    | label w Id w BlockElems w end w Id
    | while w GeneratorClause w Do
@@ -47,7 +47,7 @@ import Spacing;
 Expr DelimitedExpr =
      ArgExpr
    / Parenthesized
-   / object a1:(w ExtendsWhere)? a2:(w GoInAnObject)? w end
+   / object a1:(w ExtendsWhere)? a2:(nl GoInAnObject)? w end
      { if (a1 == null) a1 = Collections.<TraitTypeWhere>emptyList();
        if (a2 == null) a2 = Collections.<Decl>emptyList();
        yyValue = ExprFactory.makeObjectExpr(createSpan(yyStart,yyCount),

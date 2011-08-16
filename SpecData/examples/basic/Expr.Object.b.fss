@@ -1,6 +1,6 @@
 (** COPYRIGHT **)
 (*******************************************************************************
-    Copyright 2008,2009, Oracle and/or its affiliates.
+    Copyright 2008,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -16,7 +16,9 @@ component Expr.Object.b
 export Executable
 
 (** EXAMPLE **)
-f[\T\](x: T) = object f': T = x end
+f[\T\](x: T) = object
+              f': T = x
+            end
 (** END EXAMPLE **)
 
 run() = ()

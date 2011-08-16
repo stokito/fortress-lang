@@ -40,7 +40,7 @@ We later describe how to mechanically verify these rules in a modular way
 in terms of subtyping relations on universal and existential types 
 in Section~\ref{sec:checking}.
 
-\TODO{Discuss intended minimality of these rules?}
+%% \TODO{Discuss intended minimality of these rules?}
 
 \subsection{Overloading Rules}
 \label{sec:threerules}
@@ -55,7 +55,7 @@ table $\T$, and a set $\Df$ is valid
 with respect to $\T$ if every pair of declarations in the set is valid with
 respect to $\T$.
 
-The meet rule of Castagna et al. imposes two conditions:
+The meet rule of Castagna \emph{et al.} imposes two conditions:
 the existence of a meet and its uniqueness.
 We split these into two rules.
 
@@ -85,16 +85,16 @@ for every type $T \in \T$, $d_0$ is applicable to $T$
 if and only if both $d_1$ and $d_2$ are applicable to $T$.
 \end{description}
 
-\TODO{Discuss what types $T$ we must consider, 
-and relevance to extensibility.}
+%% \TODO{Discuss what types $T$ we must consider, 
+%% and relevance to extensibility.}
 
-\TODO{Explain motivation for intersection types (i.e., as meet).
-Perhaps this belongs in Types section.}
+%% \TODO{Explain motivation for intersection types (i.e., as meet).
+%% Perhaps this belongs in Types section.}
 
-\TODO{Note the following ````lemma'':
-If one overloaded declaration is strictly more specific than another 
-then that pair of declarations satisfies the no duplicates rule 
-and the meet rule.}
+%% \TODO{Note the following ````lemma'':
+%% If one overloaded declaration is strictly more specific than another 
+%% then that pair of declarations satisfies the No Duplicates Rule 
+%% and the Meet Rule.}
 
 If one monomorphic declaration is more specific than another monomorphic one,
 then there is no ambiguity between these two declarations:
@@ -104,7 +104,7 @@ if one declaration is to be regarded as more specific than another,
 we require that for every instance of the second that is applicable to a type,
 there exists an instance of the first that is also applicable to the type.
 As in other object-oriented languages, to ensure type safety in the face of dynamic dispatch,
-we also require that the return type of the latter declaration be a subtype of the return type of the former.
+we also require that the return type of the first declaration be a subtype of the return type of the second.
 % We can ensure that the second well-formedness condition for overloading
 % holds by checking the following rule for each function name $f$:
 \begin{description}
@@ -120,7 +120,7 @@ that is applicable to $W$ and satisfies \mbox{$T_1 <: T_2$}.
 Since $\Bottom$ is well-formed with respect to any class table, 
 and tuple types with different numbers of arguments 
 have no common subtype other than \Bottom,
-the meet rule technically requires that 
+the Meet Rule technically requires that 
 an overloaded function with declarations that take different numbers of arguments 
 has a declaration applicable only to \Bottom.
 Because \Bottom\ is not first-class in Fortress, 
@@ -139,8 +139,6 @@ declaration in $\Df$.
 \subsection{Properties of Overloaded Functions}
 With the rules for valid overloading laid out, we now describe some useful
 properties of valid overloaded sets and of the rules themselves.
-
-\TODO{Evaluate the necessity of this section. Useful for proofs?}
 
 \begin{lemma}
 \label{lem:strictms}

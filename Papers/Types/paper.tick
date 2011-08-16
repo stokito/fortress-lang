@@ -1,4 +1,4 @@
-\documentclass[10pt,preprint]{sigplanconf}
+\documentclass[10pt]{sigplanconf}
 \usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem,xifthen}
 \advance \textheight by 4pt
 
@@ -222,7 +222,7 @@
 \authorinfo{Justin Hilburn}{Oracle Labs}{justin.hilburn@oracle.com}
 \authorinfo{Scott Kilpatrick}{University of Texas \\ at Austin}{scottk@cs.utexas.edu}
 \authorinfo{Victor Luchangco}{Oracle Labs}{victor.luchangco@oracle.com}
-\authorinfo{Sukyoung Ryu}{KAIST}{sryu@cs.kaist.ac.kr}
+\authorinfo{Sukyoung Ryu}{KAIST}{sryu.cs@kaist.ac.kr}
 \authorinfo{David Chase}{Oracle Labs}{david.r.chase@oracle.com}
 \authorinfo{Guy L. Steele Jr.}{Oracle Labs}{guy.steele@oracle.com}
 
@@ -369,6 +369,11 @@ components, separate compilation, Fortress, meet rule}
 
 \section{Conclusion and Discussion}\label{sec:conclusion}
 \input{conclusion}
+
+\section*{Acknowledgments}
+This work is supported in part by the Engineering Research Center of Excellence Program of Korea Ministry of Education,
+Science and Technology(MEST) / National Research Foundation of Korea(NRF)
+(Grant 2011-0000974).
 
 \bibliographystyle{plain}
 % The bibliography should be embedded for final submission.
