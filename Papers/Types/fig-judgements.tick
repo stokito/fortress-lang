@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%% BEGIN JUDGEMENT FIGURE %%%%%%%%%%%%%%%
 \begin{figure}
-\begin{minipage}[t]{.5\textwidth}
+\begin{minipage}[ht]{.5\textwidth}
 \centering
 
 \newjudge{Primitive Judgements}{\jgconstrtemplate{T}{\ast}{T}{\C}}
