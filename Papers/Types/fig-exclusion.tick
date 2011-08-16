@@ -95,9 +95,9 @@
 \infrule
   {\jgconstrtemplate{`C[\S_bar\]`}{\excrx}{`D[\T_bar\]`}{\C} \\
    \jgconstrtemplate{`D[\T_bar\]`}{\excrx}{`C[\S_bar\]`}{\C'}}
-  {\jgconstrtemplate{`C[\S_bar\]`}{\exc_{x}}{`D[\T_bar\]`}{\C \vee \C'}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excx}{`D[\T_bar\]`}{\C \vee \C'}}
 \vspace{-3ex}
-\hfill where $x \in \{\mathrm{e,c,o}\}$
+\hfill where $* \in \{\mathrm{x,c,o}\}$
 \\%[-.2em]
 
 \vspace*{-1em}
@@ -105,7 +105,7 @@
   {}
   {\jgconstrtemplate{`C[\S_bar\]`}{\excrx}{`C[\T_bar\]`}{\FALSE}}
 \vspace{-3ex}
-\hfill where $x \in \{\mathrm{e,c,o}\}$
+\hfill where $* \in \{\mathrm{x,c,o}\}$
 \\%[-.2em]
 \vspace*{-1ex}
 

@@ -18,7 +18,7 @@
 % \newcommand{\altlozenge}{\ooalign{\hfil$\normallozenge$\hfil\cr\hfil$\smalllozenge$\hfil}}
 \newcommand{\altlozenge}{\ooalign{\hfil$\vcenter{\hbox{$\lozenge$}}$\hfil\cr\hfil$\cdot$\hfil}}
 \newcommand{\bexc}{\mathrel{\altlozenge}}
-\newcommand{\bexcp}{\mathrel{\altlozenge}_\textrm{p}}
+\newcommand{\bexcp}{\mathrel{\altlozenge}_\textrm{m}}
 \newcommand{\bnexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\altlozenge}}
 
 \newcommand{\fresh}[1]{\textit{fresh}({#1})}
@@ -26,21 +26,22 @@
 
 \newcommand{\excr}{\triangleright}
 \newcommand{\excl}{\triangleleft}
-\newcommand{\excre}{\excr_\textrm{e}}
-\newcommand{\excle}{\excl_\textrm{e}}
+\newcommand{\excre}{\excr_\textrm{x}}
+\newcommand{\excle}{\excl_\textrm{x}}
 \newcommand{\excrc}{\excr_\textrm{c}}
 \newcommand{\exclc}{\excl_\textrm{c}}
 \newcommand{\excro}{\excr_\textrm{o}}
 \newcommand{\exclo}{\excl_\textrm{o}}
-\newcommand{\excrp}{\excr_\textrm{p}}
-\newcommand{\exclp}{\excl_\textrm{p}}
-\newcommand{\excrx}{\excr_x}
-\newcommand{\exclx}{\excl_x}
+% \newcommand{\excrp}{\excr_\textrm{m}}
+% \newcommand{\exclp}{\excl_\textrm{m}}
+\newcommand{\excrx}{\excr_*}
+\newcommand{\exclx}{\excl_*}
+\newcommand{\excx}{\exc_*}
 
-\newcommand{\exce}{\exc_\textrm{e}}
+\newcommand{\exce}{\exc_\textrm{x}}
 \newcommand{\excc}{\exc_\textrm{c}}
 \newcommand{\exco}{\exc_\textrm{o}}
-\newcommand{\excp}{\exc_\textrm{p}}
+\newcommand{\excp}{\exc_\textrm{m}}
 
 \newcommand{\ancestors}{\textit{ancestors}}
 \newcommand{\ancexcludes}{\textit{excludes}^*}
@@ -326,7 +327,7 @@ components, separate compilation, Fortress, meet rule}
 % Powerful for computing meets
 \input{exclusion}
 
-\section{Valid and Invalid Overloaded Functions}
+\section{Examples}
 \label{sec:examples}
 \input{examples}
 
