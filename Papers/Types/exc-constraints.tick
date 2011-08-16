@@ -9,19 +9,21 @@ and solved later when more information about the environment is known.
 
 \subsection{Typing Judgments}
 \input{fig-judgements}
-Until now we have only considered types in environments that bound all of their free variables. We will now relax this restriction. We will continue
+Until now we have only considered types in environments that bind all of their free variables. We will now relax this restriction. We will continue
 to use the metavariables $X$ and $Y$ to range over bound type variables and will use the metavariables $I$ and $J$ to range over unbound or \emph{inference}
  type variables. Intuitively, we have no control over the constraints on a bound type variable (they are fixed by $\Delta$) but we may place constraints on an inference variable. 
 
 In Figure \ref{fig:judge} we list the judgments that will be used for generating constraints. Each judgment of the form
 \[\jgconstrtemplate{S}{\ast}{T}{\C}\]
-states that under the assumptions $\Delta$, the constraint $\C$ on the inference variables imply the proposition $S\,\ast\,T$.
-If $S$ and $T$ contain no inference variables the judgment behaves like an unconditional judgment (ie, it only produces the constraints $\TRUE$ or $\FALSE$).
+states that under the assumptions $\Delta$, the constraint $\C$ on the inference variables imply the proposition $S \propop T$,
+where $\ast$ ranges over $\subtypeof$, $\nsubtypeof$, $\exc$, $\nexc$,
+$\equiv$, and $\not\equiv$.
+If $S$ and $T$ contain no inference variables the judgment behaves like an unconditional judgment (i.e., it only produces the constraints $\TRUE$ or $\FALSE$).
 
 Similarly, a judgement of the form
 \[\jgcontratemplate{S}{\ast}{T}{\C}\]
-states that under the assumptions $\Delta$, if the proposition $S\,\ast\,T$ holds, then $\C$ must be true of the inference variables. In
-particular when $\C$ holds of the inference variables $S\,\ast\,T$ does not have to hold for every valid instantiation of the bound type variables.
+states that under the assumptions $\Delta$, if the proposition $S \propop T$ holds, then $\C$ must be true of the inference variables. In
+particular when $\C$ holds of the inference variables, $S \propop T$ does not have to hold for every valid instantiation of the bound type variables.
 
 An important point about both kinds of judgments is that the types $S$ and $T$ should be considered \emph{inputs} and the
 constraint $\C$ should be considered an \emph{output}.
@@ -30,9 +32,9 @@ constraint $\C$ should be considered an \emph{output}.
 \input{fig-constraints}
 Our grammar for type constraints is defined in Figure \ref{fig:constraints}.
 A primitive constraint is either {\it positive} or {\it negative}. We define
-positive primitive constraints of the forms: `S <: T`  which specifies that
-a type $T$ is a subtype of $S$ and $S \exc T$ which specifies that a type $S$ must exclude a type $T$.
-Similarly, we define negative primitive constraints: $S \nsubtypeof T$ and $S \nexc T$.
+positive primitive constraints: $S \subtypeof T$ specifies that
+a $S$ is a subtype of $T$, and $S \exc T$ specifies that $S$ must exclude $T$.
+Similarly, we define negative primitive constraints: $S \nsubtypeof T$ and $S \nexc T$ with the obvious interpretations.
 A conjunction constraint $\C_1 \wedge \C_2$ is satisfied exactly
 when both $\C_1$ and $\C_2$ are satisfied,
 and a disjunction constraint $\C_1 \vee \C_2$ is satisfied exactly
@@ -41,40 +43,49 @@ The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always
 
 As in the work of Smith and Cartwright \cite{smith08}, on which we based our constraint
 generation rules, we normalize all constraint formulas into disjunctive normal form
-and simply away obvious contradictions and redundancies.
+and simply away obvious contradictions and redundancies. We further make use
+of some auxiliary functions in the metalanguage
+\TODO{(Is that the right term?)}, defined in Figure~\ref{fig:constraints},
+and implicit expansion of metalanguage equalities. \TODO{````implicit expansion?''}
 
-We define the negation $\neg \C$ of a constraint $\C$ using de Morgan's law.
-
-Clearly any bounds environment $\Delta = \bds{X}{M}$ naturally defines a constraint $\textit{toConstraint}(\Delta)$. This conversion
-has a partial inverse $\textit{toBound}(\C)$ that is defined whenever $\C$ can be written as a conjunction of constraints of the form `X <: M`. Both of these
-operations will prove very convenient in Section \ref{sec:checking}.
+We define the negation
+$\neg \C$ of a constraint $\C$ using a standard de Morgan interpretation.
+Each bounds environment $\Delta = \bds{X}{M}$ naturally defines a constraint
+which we donate $\textit{toConstraint}(\Delta)$. This conversion
+has a partial inverse $\textit{toBound}(\C)$ that is defined whenever $\C$ can be written as a conjunction of constraints of the form $X \subtypeof M$. (Both of these
+operations will prove very convenient in Section \ref{sec:checking}.)
+\TODO{Briefly explain unify.}
 
 \subsection{Subtyping}
 In \cite{smith08} Smith and Cartwright provide a sound and complete algorithm for generating constraints from the
-Java subtyping relation. We essentially preserve the semantics of \cite{smith08} (see the appendix for details) but our system has two distinct differences.
+Java subtyping relation. We essentially preserve their semantics
+(see \cite[Appendix]{smith08} for details) with two notable differences.
 
-First, we need to augment to the rule for tuple types to account for the fact
-that any tuple with an argument that is equivalent to $\Bottom$ is itself
+First, we need to augment the subtyping rule for tuple types to account for the fact
+that any tuple with a constituent type that is equivalent to $\Bottom$ is itself
 equivalent to $\Bottom$.
 \TODO{Tuple Rule}
-Second, we need to augment the rule for intersection types to account for exclusion. Note that this
-makes the exclusion and subtyping rules mutually recursive.
+Second, we need to augment the rule for intersection types to account for
+exclusion since the intersection of excluding types is equivalent to
+$\Bottom$. (Note that this extension
+makes the exclusion and subtyping rules mutually dependent.)
 \TODO{Intersection Rule}
 
 
 \subsection{Exclusion}
 \input{fig-exclusion}
 Figure~\ref{fig:jexc} presents our exclusion rules, which formalize our original definition of exclusion in
-Section~\ref{sec:excdec}. To make our rules algorithmic we needed to break the exclusion relation on constructed
+Section~\ref{sec:exc-spec}. To make our rules algorithmic we needed to break the exclusion relation on constructed
 types into four subrelations $\exce$, $\excc$, $\exco$, and $\excp$. The first three relations are then reduced
 to checking the asymmetric relations $\excre$, $\excrc$, and $\excro$.
 \begin{enumerate}
 \item `C[\ S_bar \]`\,$\excre$\,`D[\ T_bar \]` determines whether `D[\ T_bar \]` has a super type $N$ such that $N$ appears in the excludes clause of an ancestor of `C[\ S_bar \]`.
 \item `C[\ S_bar \]`\,$\excrc$\,`D[\ T_bar \]` determines whether `D[\ T_bar \]` excludes every type in the (nontrivial) comprises clause of `C[\ S_bar \]`.
-\item `C[\ S_bar \]`\,$\excrc$\,`D[\ T_bar \]` determines whether `C[\ S_bar \]` is an object and `D[\ T_bar \]` is not a supertype of `C[\ S_bar \]`.
+\item `C[\ S_bar \]`\,$\excro$\,`D[\ T_bar \]` determines whether `C[\ S_bar \]` is an object and `D[\ T_bar \]` is not a supertype of `C[\ S_bar \]`.
 \item `C[\ S_bar \]`\,$\excp$\,`D[\ T_bar \]` determines whether there is a pair of types $(M, N)$ such that $M$ is an ancestor of `C[\ S_bar \]`, $N$ is an ancestor of `D[\ T_bar \]`, and
 $M$ and $N$ are distinct applications of the same type constructor.
 \end{enumerate}
+
 
 \subsection{Negation and Contrapositive}
 When

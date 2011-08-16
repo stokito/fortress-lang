@@ -5,18 +5,25 @@
 
 \newjudge{Primitive Judgements}{\jgconstrtemplate{T}{\ast}{T}{\C}}
 
-\vspace{\afterruleskip}
-\jsub{S}{T}{\C}
-\vspace{\afterruleskip}
+% \vspace{\afterruleskip}
+% \jsub{S}{T}{\C}
+% \vspace{\afterruleskip}
+% 
+% \jnsub{S}{T}{\C}
+% \vspace{\afterruleskip}
+% 
+% \jexc{S}{T}{\C}
+% \vspace{\afterruleskip}
+% 
+% \jnexc{S}{T}{\C}
+% \vspace{\afterruleskip}
 
-\jnsub{S}{T}{\C}
-\vspace{\afterruleskip}
-
-\jexc{S}{T}{\C}
-\vspace{\afterruleskip}
-
-\jnexc{S}{T}{\C}
-\vspace{\afterruleskip}
+$$
+\begin{array}{l@{\hspace{2em}}l}
+\jsub{S}{T}{\C}  & \jexc{S}{T}{\C} \\[.5em]
+\jnsub{S}{T}{\C} & \jnexc{S}{T}{\C} \\
+\end{array}
+$$
 
 \vspace*{2ex}
 \newjudge{Derived Judgements}{\jgconstrtemplate{T}{\ast}{T}{\C}}
@@ -26,8 +33,9 @@
   {\jequiv{S}{T}{\C \wedge \C'}}
   
 \infrule
-  {\jsub{S}{T}{\C} \andalso \jsub{T}{S}{\C'}}
+  {\jnsub{S}{T}{\C} \andalso \jnsub{T}{S}{\C'}}
   {\jnequiv{S}{T}{\C \vee \C'}}
+\TODO{Double check the premises on this one, which used to be $\subtypeof$ instead of $\nsubtypeof$.}
 
 \vspace*{2ex}
 \newjudge{Derived Judgements}{\jgcontratemplate{T}{\ast}{T}{\C}}
