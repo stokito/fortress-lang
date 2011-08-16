@@ -50,7 +50,7 @@
 \newjudge{Existential Reduction}{\jtreds{\delta}{\delta}{\phi}}
 \infrule
   {\jcnequiv{T}{\Bottom}{\C} \andalso \toConstraint{\Delta'}{\C'} \\
-   \jsolve{\neg \C \wedge \C'}{\phi}{\D} \andalso \toBound{\D}{\Delta''}}
+   \jsolve{\C \wedge \C'}{\phi}{\D} \andalso \toBound{\D}{\Delta''}}
   {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta'']{\phi(T)}}{\phi}}
 
 \infrule
