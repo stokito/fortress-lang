@@ -147,7 +147,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         val sParam = staticParam(id)
         val supers = meet(toListFromImmutable(sParam.getExtendsClause))
         if (negate)
-          pExc(supers, t)(!negate, nHistory)
+          pFalse()(!negate)
         else
           pSub(supers, t)(negate, nHistory)
       }
@@ -309,7 +309,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (i: _InferenceVarType, j: _InferenceVarType) => pAnd(pExclusion(i,j), pExclusion(j,i))
     case (i: _InferenceVarType, t) => pExclusion(i, t)
     case (s, j: _InferenceVarType) => pExc(j, s)
-    case (s: VarType, t: VarType) if (s==t) => pFalse()
+    case (s: VarType, t: VarType) if (s==t) => pOr(pSub(s, BOTTOM), pSub(t, BOTTOM))
     case (s@SVarType(_, id, _), t) =>
       val hEntry = (negate, false, s, t)
       if (history.contains(hEntry))
