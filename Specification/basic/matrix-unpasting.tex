@@ -1,0 +1,242 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Matrix Unpasting}
+\seclabel{unpasting}
+
+\note{Matrix unpasting is not yet supported.}
+
+\note{We should add a static check for an unpasting to avoid runtime unpasting exceptions.}
+
+\begin{Grammar}
+\emph{Unpasting} &::=& \texttt{[} \emph{UnpastingElems} \texttt{]} \\
+
+\emph{UnpastingElems}
+&::=& \emph{UnpastingElem} \emph{RectSeparator} \emph{UnpastingElems} \\
+&$|$& \emph{UnpastingElem} \\
+
+\emph{UnpastingElem}
+&::=& \emph{BindId} \options{\texttt{[} \emph{UnpastingDim} \texttt{]}} \\
+&$|$& \emph{Unpasting} \\
+
+\emph{UnpastingDim} &::=& \emph{ExtentRange} (\BY\ \emph{ExtentRange})$^+$ \\
+
+\emph{ExtentRange}
+&::=& \option{\emph{StaticArg}}\EXP{\mathinner{\hbox{\tt\char'43}}}
+\option{\emph{StaticArg}}\\
+&$|$& \option{\emph{StaticArg}}\KWD:\option{\emph{StaticArg}}\\
+&$|$& \emph{StaticArg} \\
+
+\emph{RectSeparator} &::=& \EXP{;}+\\
+&$|$& \emph{Whitespace}\\
+\end{Grammar}
+
+Matrix unpasting is an extension of local variable declaration syntax as a
+shorthand for breaking a matrix into parts.  On the left-hand side of
+a declaration, what looks like a matrix pasting of unbound variables
+is actually a declaration of several new variables.
+This syntax
+serves to break the right-hand side into pieces and bind the pieces to
+the variables.  Matrix unpastings are concise, eliminate several
+opportunities for fencepost errors, guarantee unaliased parts, and
+avoid overspecification of how the matrix should be taken apart.
+
+The motivating example for matrix unpasting is cache-oblivious
+matrix multiplication.  The general plan in a cache oblivious
+algorithm is to break the input apart on its largest dimension,
+and recursively attack the resulting smaller and more compact
+problems.
+
+\note{
+Several bugs in the emacs tool for the code in this section.
+ - superscripts were too complicated for the tool
+ - left-hand bracket for the array was wrong
+}
+%% mm[\nat m, nat n, nat p\](left  :RR^{m \times n}, right :RR^{n \times p}, result:RR^{m \times p}):() =
+%%   case largest of
+%%     1 \Rightarrow result[0,0] += (left[0,0] right[0,0])
+%%     m \Rightarrow [ lefttop
+%%                     leftbottom   ] = left
+%%                   [ resulttop
+%%                     resultbottom ] = result
+%%         t1 = spawn mm(lefttop, right, resulttop)
+%%         mm(leftbottom, right, resultbottom)
+%%         t1.wait()
+%%     p \Rightarrow [ rightleft  rightright  ] = right
+%%                   [ resultleft resultright ] = result
+%%         t1 = spawn mm(left, rightleft, resultleft)
+%%         mm(left, rightright, resultright)
+%%         t1.wait()
+%%     n \Rightarrow [ leftleft leftright ] = left
+%%          [ righttop
+%%            rightbottom ] = right
+%%          mm(leftleft , righttop   , result)
+%%          mm(leftright, rightbottom, result)
+%%   end
+\begin{Fortress}
+\(\VAR{mm}\llbracket\KWD{nat} m, \KWD{nat} n, \KWD{nat} p\rrbracket(\VAR{left}  \mathrel{\mathtt{:}}\mathbb{R}^{m \times n}, \VAR{right} \mathrel{\mathtt{:}}\mathbb{R}^{n \times p}, \VAR{result}\COLONOP\mathbb{R}^{m \times p})\COLONOP() =\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{case}\;\;\KWD{largest}\;\;\KWD{of}\)\\
+{\tt~~}\pushtabs\=\+\(    1 \Rightarrow \VAR{result}_{0,0} \mathrel{+}= (\VAR{left}_{0,0} \VAR{right}_{0,0})\)\\
+\(    m \Rightarrow \null\)\pushtabs\=\+\([\,\null\)\pushtabs\=\+\(\VAR{lefttop}\)\\
+\(                    \VAR{leftbottom}  \,] = \VAR{left}\)\-\\\poptabs
+\(                  [\,\null\)\pushtabs\=\+\(\VAR{resulttop} \)\\
+\(                    \VAR{resultbottom}\,] = \VAR{result}\)\-\-\\\poptabs\poptabs
+{\tt~~~~}\pushtabs\=\+\(        t_{1} = \;\KWD{spawn} \VAR{mm}(\VAR{lefttop}, \VAR{right}, \VAR{resulttop})\)\\
+\(        \VAR{mm}(\VAR{leftbottom}, \VAR{right}, \VAR{resultbottom})\)\\
+\(        t_{1}.\VAR{wait}()\)\-\\\poptabs
+\(    p \Rightarrow \null\)\pushtabs\=\+\([\,\VAR{rightleft}\mskip 4mu plus 4mu\VAR{rightright} \,] = \VAR{right}\)\\
+\(                  [\,\VAR{resultleft}\mskip 4mu plus 4mu\VAR{resultright}\,] = \VAR{result}\)\-\\\poptabs
+{\tt~~~}\pushtabs\=\+\(        t_{1} = \;\KWD{spawn} \VAR{mm}(\VAR{left}, \VAR{rightleft}, \VAR{resultleft})\)\\
+\(        \VAR{mm}(\VAR{left}, \VAR{rightright}, \VAR{resultright})\)\\
+\(        t_{1}.\VAR{wait}()\)\-\\\poptabs
+\(    n \Rightarrow [\,\VAR{leftleft}\mskip 4mu plus 4mu\VAR{leftright}\,] = \VAR{left}\)\\
+{\tt\;~~~}\pushtabs\=\+\(         [\,\null\)\pushtabs\=\+\(\VAR{righttop}\)\\
+\(           \VAR{rightbottom}\,] = \VAR{right}\)\-\\\poptabs
+\(         \VAR{mm}(\VAR{leftleft} , \VAR{righttop}   , \VAR{result})\)\\
+\(         \VAR{mm}(\VAR{leftright}, \VAR{rightbottom}, \VAR{result})\)\-\-\\\poptabs\poptabs
+\(  \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+In unpasting, the element syntax is slightly enhanced both to
+permit some specification of the split location and to
+receive information about the split that was performed.  For
+example, perhaps only the upper left square of a matrix is
+interesting.  The programmer can annotate bounds to the
+square unpasted element:
+\note{
+I manually edited superscripts, subscripts, and the left square bracket.}
+%% foo[\nat m, nat n\](A:RR^{m \times n}):() =
+%%   if   m < n then
+%%        [ squareShape_{m \times m} rest ] = A
+%%        ...
+%%   elif m > n then
+%%        [ squareShape_{n \times n}
+%%          rest                     ] = A
+%%        ...
+%%   else (* A already square *)
+%%        squareShape = A
+%%        ...
+%%   end
+\begin{Fortress}
+\(\VAR{foo}\llbracket\KWD{nat} m, \KWD{nat} n\rrbracket(A\COLONOP\mathbb{R}^{m \times n})\COLONOP() =\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{if}   \null\)\pushtabs\=\+\(m < n \KWD{then}\)\\
+\(       [\,\VAR{squareShape}_{m \times m} \VAR{rest}\,] = A\)\\
+\(       \ldots\)\-\\\poptabs
+\(  \KWD{elif} \null\)\pushtabs\=\+\(m > n \KWD{then}\)\\
+\(       [\,\null\)\pushtabs\=\+\(\VAR{squareShape}_{n \times n}\)\\
+\(         \VAR{rest}                    \,] = A\)\-\\\poptabs
+\(       \ldots\)\-\\\poptabs
+\(  \KWD{else} \null\)\pushtabs\=\+\(\mathtt{(*}\;\hbox{\rm  A already square \unskip}\;\mathtt{*)}\)\\
+\(       \VAR{squareShape} = A\)\\
+\(       \ldots\)\-\\\poptabs
+\(  \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+The types of the elements of the newly declared matrix variables on the left-hand side
+of an unpasting are inferred (trivially) to be the type of the elements on the right-hand side.
+
+If an unpasting into explicitly sized pieces does not
+exactly cover the right-hand-side matrix, an \TYP{UnpastingError}
+is thrown.
+
+Each element of the left-hand-side of unpasting
+includes an optional \emph{extent specification}.
+An extent specification
+\EXP{\VAR{low}\mathinner{\hbox{\tt\char'43}}\VAR{num}}
+describes the indexing and the size of the given part of the matrix.
+The lower extent must be bound, either before
+the unpasting, or earlier (left-or-above) in the unpasting.
+For example, suppose that an algorithm
+chooses to break a matrix into 4 pieces,
+but retain the original indices for each piece:
+%% bar[\nat p, nat q\](X:RR^{r0#p \times c0#q}):() = do
+%%    [ A_{r0#m~~~~~\times c0#n} B_{r0#m~~~~~\times c0+n#q-n}
+%%      C_{r0+m#p-m \times c0#n} D_{r0+m#p-m \times c0+n#q-n} ] = X
+%%    ...
+%% end
+\begin{Fortress}
+\(\VAR{bar}\llbracket\KWD{nat} p, \KWD{nat} q\rrbracket(X\COLONOP\mathbb{R}^{r_0\mathinner{\hbox{\tt\char'43}}p \times c_{0}\mathinner{\hbox{\tt\char'43}}q})\COLONOP() = \;\KWD{do}\)\\
+{\tt~~~}\pushtabs\=\+\(
+[\,\null\)\pushtabs\=\+\(\mathrm{A}_{r_0\mathinner{\hbox{\tt\char'43}}m~~~~~~~~~\times
+         c_{0}\mathinner{\hbox{\tt\char'43}}n}~~\mathrm{B}_{r_0\mathinner{\hbox{\tt\char'43}}m~~~~~~~~~~\times c_{0}+n\mathinner{\hbox{\tt\char'43}}q-n}\)\\
+\(     \mathrm{C}_{r_0+m\mathinner{\hbox{\tt\char'43}}p-m \times c_{0}\mathinner{\hbox{\tt\char'43}}n}~~\mathrm{D}_{r_0+m\mathinner{\hbox{\tt\char'43}}p-m \times c_{0}+n\mathinner{\hbox{\tt\char'43}}q-n}\,] = X\)\-\\\poptabs
+\(   \ldots\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+Unpasting does not directly support non-uniform
+decomposition, and does not provide any sort of constraint
+satisfaction between the extents of the parts.  For example, the following
+decomposition is not legal because it constrains the split sizes to be
+equal with respect to unbound \KWD{nat} parameters:
+
+%% (* Not allowed! *)
+%% fubar[\nat m, nat n\](X:RR^{m \times n}):() = do
+%%   (* p and q unbound *)
+%%   [ A_{p \times q} B_{p \times q}
+%%     C_{p \times q} D_{p \times q} ] = X
+%%   ...
+%% end
+\begin{Fortress}
+\(\mathtt{(*}\;\hbox{\rm  Not allowed! \unskip}\;\mathtt{*)}\)\\
+\(\VAR{fubar}\llbracket\KWD{nat} m, \KWD{nat} n\rrbracket(X\COLONOP\mathbb{R}^{m \times n})\COLONOP() = \;\KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(  \mathtt{(*}\;\hbox{\rm  p and q unbound \unskip}\;\mathtt{*)}\)\\
+\(  [\,\null\)\pushtabs\=\+\(\mathrm{A}_{p \times q}~~ \mathrm{B}_{p \times q}\)\\
+\(    \mathrm{C}_{p \times q}~~ \mathrm{D}_{p \times q}\,] = X\)\-\\\poptabs
+\(  \ldots\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+To get this effect, the programmer should compute the constrained values:
+%% fubar[\nat m, nat n\](X:RR^{2m \times 2n}):() = do
+%%   [ A_{m \times n} B_{m \times n}
+%%     C_{m \times n} D_{m \times n} ] = X
+%%   ...
+%% end
+\begin{Fortress}
+\(\VAR{fubar}\llbracket\KWD{nat} m, \KWD{nat} n\rrbracket(X\COLONOP\mathbb{R}^{2m \times 2n})\COLONOP() = \;\KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(  [\,\null\)\pushtabs\=\+\(\mathrm{A}_{m \times n}~~ \mathrm{B}_{m \times n}\)\\
+\(    \mathrm{C}_{m \times n}~~ \mathrm{D}_{m \times n}\,] = X\)\-\\\poptabs
+\(  \ldots\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+Some non-uniform unpastings can be obtained with composition,
+which can be expressed either by repeated unpasting:
+%% unequalRows[\nat m, nat n\](X:R^{4m \times 2n}) = do
+%%     [ c1_{4m \times n} \  c2_{4m \times n} ] = X
+%%     [ A_{m \times n}
+%%       C_{3m \times n} ] = c1
+%%     [ B_{3m \times n}
+%%       D_{m \times n} ] = c2
+%%     ...
+%% end
+\begin{Fortress}
+\(\VAR{unequalRows}\llbracket\KWD{nat} m, \KWD{nat} n\rrbracket(X\COLONOP{}R^{4m \times 2n}) = \;\KWD{do}\)\\
+{\tt~~~~}\pushtabs\=\+\(    [\,c1_{4m \times n} \  c2_{4m \times n}\,] = X\)\\
+\(    [\,\null\)\pushtabs\=\+\(\mathrm{A}_{m \times n}\)\\
+\(      \mathrm{C}_{3m \times n}\,] = c1\)\-\\\poptabs
+\(    [\,\null\)\pushtabs\=\+\(\mathrm{B}_{3m \times n}\)\\
+\(      \mathrm{D}_{m \times n}\,] = c2\)\-\\\poptabs
+\(    \ldots\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+or simply by nesting matrices in the unpasting:
+%% unequalRows[\nat m, nat n\](X:R^{2m \times 4n}) = do
+%%   [ [ A_{m \times n}  B_{m \times 3n}]
+%%     [ C_{m \times 3n} D_{m \times n} ]  ] = X
+%%   ...
+%% end
+\begin{Fortress}
+\(\VAR{unequalRows}\llbracket\KWD{nat} m, \KWD{nat} n\rrbracket(X\COLONOP{}R^{2m \times 4n}) = \;\KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(  [\,\null\)\pushtabs\=\+\([\,\mathrm{A}_{m \times n}  \mathrm{B}_{m \times 3n}]\)\\
+\(    [\,\mathrm{C}_{m \times 3n} \mathrm{D}_{m \times n}\,] \,] = X\)\-\\\poptabs
+\(  \ldots\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}

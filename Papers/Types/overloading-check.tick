@@ -1,0 +1,222 @@
+\section{Overloading Rules Checking}
+\label{sec:checking}
+
+This section describes how to mechanically check 
+the three overloading rules described in Section~\ref{sec:rules}. The
+algorithm we describe does not check every possible valid set of overloaded
+functions (according to the rule definitions), but it does accept
+many desired overloadings, including all of the (valid) example overloadings
+provided so far. \TODO{Does it??}
+Thus we provide a sound but incomplete algorithm for determining that a
+set of overloaded function declarations is valid.
+
+
+Previously the notions of applicability and specificity for generic
+declarations required an existential quantification over instances thereof.
+We rephrase these definitions in terms of universal and existential types,
+the generalizations of ````arrow type'' and ````domain type'' of generic
+declarations, in the same manner as \cite{bourdoncle97}.
+
+
+% For a generic function declaration $d = \declg{f}{X}{N}{S}{T}$,
+% its arrow type (written $\textit{arrow}(d)$) is
+% the \emph{universal type} $\forall\tplist{X}{N}S \rightarrow T$.
+For a generic function declaration $d = \hdeclg{f}{\Delta}{S}{T}$,
+its arrow type, written $\arrow(d)$, is
+the \emph{universal type} \mbox{$\forall\ob{\Delta}S \rightarrow T$}.
+A universal type binds type parameter declarations over some type and
+can be instantiated by any types fitting the type parameters' bounds.
+We write $\forall\tplist{X}{N}T$ to bind each type variable $X_i$ with bounds
+$\{\bar{N_i}\}$ over the type $T$, and we use the metavariable $\sigma$ to range over universal types.
+
+
+Moreover, for the same $d$, its domain type, written $\dom(d)$, is the
+\emph{existential type} $\exists\ob{\Delta}{S}$. An \emph{existential type}
+also binds type parameter declarations over a type, 
+but unlike a universal type, it cannot be instantiated; 
+instead, it represents some hidden type instantiation 
+and the corresponding instantiated type. We write
+$\exists\tplist{X}{N}T$ to bind each type variable $X_i$ with bounds
+$\{\bar{N_i}\}$ over the type $T$, and we use the metavariable $\delta$ to
+range over existential types.
+
+Note that universal and existential types are not actually \emph{types} in
+our system. To distinguish between the different notions, we refer to types
+$T$ as \emph{simple types} and the original subtyping relation $\subtypeof$ as
+\emph{simple subtyping}. When the meaning is clear from context, we equate
+both $\forall\ob{}T$ and $\exists\ob{}T$ with the simple type $T$. 
+
+% %applicability of a generic function
+% Recall that a generic function declaration $\hdeclg{f}{\Delta}{S}{T}$ 
+% is applicable to a type $U$
+% if and only if some instance of $d$ is applicable to $U$.
+% A monomorphic function declaration $d = \decl{f}{S'}{T'}$ is applicable to a type $U$
+% if and only if $U \subtypeof \dom(d)$,
+% where $\dom(d)$ is the domain $S'$ of $S' \rightarrow T'$, 
+% the arrow type of $d$.
+% %We must then extend our notion of 
+% % the ````arrow type of $f$'' for a generic function declaration $d$,
+% %but first we need to characterize the type of a generic function.
+% % In particular, we need a higher-level notion of universally
+% % quantified types separate from the language of types $W$.
+% This existential quantification over possible instantiations of the domain 
+% directly corresponds to an existentially quantified type,
+% as observed in \cite{bourdoncle97}. 
+% An \emph{existential type} $\exists\tplist{X}{N}T$ 
+% also binds type parameter declarations over a type, 
+% but unlike a universal type, it cannot be instantiated; 
+% instead, it represents some hidden type instantiation $\bar{W}$ 
+% and the corresponding instantiated type $\substb{W}{X}T$. 
+% Therefore, we say that the domain $\dom(d)$ of the generic declaration $d$
+% is the existential type $\exists\ob{\Delta}{S}$, where $\arrow(d) = \forall\ob{\Delta}S \rightarrow T$.
+% We use the metavariable $\delta$ to range over existential types.
+% Note that we abbreviate both the universal type $\forall\ob{}T$ and
+% the existential type $\exists\ob{}T$ as simply $T$ when the meaning is clear from context.
+% % Figure~\ref{fig:application} presents the formal definition of applicability 
+% % for a generic function declaration $d$ to a type $T$, $f \ni T$.
+
+% \input{fig-application}
+
+%%%%%%%%%%%%%%%%%%%%%%
+% INTRODUCE SUBTYPING!
+\subsection{Universal and Existential Subtyping}
+We define subtyping judgments for universal types and for existential types,
+which we utilize in checking the overloading rules. We actually define inner
+and outer subtyping judgments on universals and existentials; the former
+corresponds to a relatively standard interpretation of each (which
+resembles those defined in \cite{bourdoncle97}), while the latter
+incorporates \emph{existential reduction}, defined in \TODO{ref}.
+
+
+\input{fig-existential}
+
+The inner subtyping judgment on universals defined in
+Figure~\ref{fig:existential}, 
+% $$ \jqsubinner{\sigma_1}{\sigma_2} \quad \text{and} \quad
+%    \jqsubinner{\delta_1}{\delta_2}, $$
+$\jqsubinner{\sigma_1}{\sigma_2}$, stems from the notion of ````generic
+instances'' from Hindley-Milner type systems \cite{damas82},
+augmented with F-bounded quantification \cite{canning89,baldan99} to account
+for type parameters that may appear in their bounds. The single rule
+states that $\sigma_1$ is a subtype
+of $\sigma_2$ if, in the environment extended by $\sigma_2$'s type parameters,
+there exists an instantiation $\bar{V}$ of $\sigma_1$ such that the
+constituent type of $\sigma_1$ is a (simple) subtype of the constituent type
+of $\sigma_2$; in other words, $\sigma_1$ must be instantiated in $\sigma_2$'s
+environment to a simple subtype of $\sigma_2$'s type.
+
+The inner subtyping judgment on existentials also defined in
+Figure~\ref{fig:existential}, $\jqsubinner{\delta_1}{\delta_2}$, is the
+logical dual of that for universals. The rule states that $\delta_1$ is
+a subtype of $\delta_2$ if $\delta_2$'s type parameters can be instantiated
+in $\delta_1$'s environment such that its instantiated type is a simple
+supertype of $\delta_1$'s type.
+
+These subtyping judgments offer a nice interpretation of applicability and
+specificity of generic function declarations. Recall that a generic
+function declaration $d = \hdeclg{f}{\Delta}{S}{T}$ is applicable to a type
+$T$ if there is some instance $d'$ such that $T \subtypeof \dom(d')$.
+Note the existential quantification over instances of the generic function
+declaration. With our extended notion of domain type, we lift this
+criterion to the level of existential types; observe the same existential
+quantification over type instantiations $\bar{V}$ in the definition of
+existential subtyping. Now we cleanly interpret the fact that a generic
+function declaration $d$ is applicable to a type $T$ with the existential
+subtyping assertion $\vdash T \subtypeofinner \dom(d)$. 
+% \footnote{Such as with simple subtyping, as an abuse of notation we write
+% $\sigma_1 \subtypeofinner \sigma_2$ when we do not care about the enclosing
+% type environment; likewise for $\delta_1 \subtypeofinner \delta_2$.}
+Furthermore, we interpret the fact that $d_1$ is more specific than
+$d_2$ with the existential subtyping assertion
+$\vdash \dom(d_1) \subtypeofinner \dom(d_2)$. (As we will see shortly,
+however, these interpretations are still not strong enough. We will need the
+richer judgment $\jqsub{\delta}{\delta}$.)
+
+\subsection{Incorporating Existential Reduction}
+
+
+
+\subsection{Mechanically Checking the Rules}
+With our interpretations of applicability and specificity into existential
+subtyping, we now describe the process of checking the validity of a set of 
+overloaded declarations $\D(f)$ according to the rules in
+Section~\ref{sec:rules}. Recall that validity of $\D(f)$ (with respect to
+class table $\T$) is defined as the pairwise quantification of the validity
+of all pairs of declarations from $\D(f)$. Moreover, because we defined each
+rule as a property of such a pair, for each rule, we simply describe the
+process of checking an arbitrary pair of declarations.
+
+We can check the No Duplicates Rule for $d_1, d_2$ by verifying that
+if $d_1 \neq d_2$ implies both 
+
+\TODO{Scott left off here.}
+
+Now, we can mechanically check the No Duplicates Rule
+by mechanically determining if two declarations are equally specific.
+To check whether one declaration is more specific than another,
+we check whether the domain of the former is a subtype of the latter.
+Checking whether one existential type is a subtype of another
+is described in Figure~\ref{fig:existential}.
+
+To check the Meet Rule, for every pair of declarations $d_1, d_2 \in \D(f)$,
+we must find a function declaration $d_0 \in \D(f)$ that is
+applicable to a type $T$ if and only if both $d_1$ and $d_2$ are applicable to $T$.
+In other words, we need to find $d_0$ that is equivalent under specificity to
+the meet of $d_1$ and $d_2$.
+To mechanically find the meet of two generic function declarations,
+we define the \emph{computed meet} of $d_1$ and $d_2$ as
+a declaration $d_\meet$, not necessarily in $\D(f)$,
+such that $\textit{dom}(d_\meet) \equiv \textit{dom}(d_1) \meet \textit{dom}(d_2)$\footnote{%
+Note that the computed meet, as defined,
+is not actually unique since the return type is unspecified.
+By an abuse of notation, we refer to ````the'' computed meet 
+to mean any such computed meet.}: \begin{align*}
+  \textit{dom}(d_0) &\;\le\; \textit{dom}(d_1) \meet \textit{dom}(d_2) \\
+  \textit{dom}(d_1) \meet \textit{dom}(d_2) &\;\le\; \textit{dom}(d_0)
+\end{align*}
+Figure~\ref{fig:meet} defines the meet of two existential types $\delta_1 \meet \delta_2$,
+which may require alpha renaming on the existential types' parameters.
+The following lemma shows that the definition of the meet of two existential types is correct:
+\begin{lemma}\label{lem:meet}
+$\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\le$.
+\end{lemma}
+\begin{psketch}
+That $\delta_1 \meet \delta_2$ is a subtype of both $\delta_1$ and $\delta_2$ is obvious.
+For any $\delta_0$, if $\bar{U}$ and $\bar{V}$ are instantiations that prove
+$\delta_0$ is a subtype of $\delta_1$ and $\delta_2$, respectively,
+then we can use $\bar{U},\bar{V}$ to prove that $\delta_0$ is a subtype of $\delta_1 \meet \delta_2$.
+\end{psketch}
+
+\input{fig-meet}
+
+We can check the Return Type Rule using the subtype relation on universal types.
+Figure~\ref{fig:existential} presents the subtype relation on universal types, again,
+as originally given by Mitchell \cite{mitchell88}.
+Roughly, a universal type $\sigma_1 = \forall\ob{\Delta_1} T_1$ is a subtype of another universal
+type $\sigma_2 = \forall\ob{\Delta_2} T_2$ (written $\sigma_1 \le \sigma_2$) if
+$T_1$ can be instantiated to a subtype of $T_2$ in the environment $\Delta_2$.
+
+The generic declarations $d_1 = \hdeclg{f}{\Delta_1}{S_1}{T_1}$ 
+and $d_2 = \hdeclg{f}{\Delta_2}{S_2}{T_2}$ 
+with $d_1 \ms d_2$ satisfy the Return Type Rule
+whenever:
+\renewcommand{\theequation}{\fnsymbol{equation}}
+\begin{equation} \label{eq:rtr}
+  \forall\ob{\Delta_1}S_1 \rightarrow T_1 \; \le \; \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \rightarrow T_2
+\end{equation}
+To see this, suppose $W$ is a type to which $d_1$ is applicable 
+and the instance $\decl{f}{S_2'}{T_2'}$ of $d_2$ is also applicable to $W$.
+Let $d_\meet = \hdeclg{f}{\Delta_1, \Delta_2}{S_1 \cap S_2}{T_2}$ be the
+computed meet of $d_1$ and $d_2$;
+clearly, there is an instance $\decl{f}{U'}{V'}$ of $d_\meet$ 
+that is applicable to $W$ with $V' = T_2'$. 
+If $\textit{arrow}(d_1) \le \textit{arrow}(d_\meet)$,
+then there must be an instantiation $\decl{f}{S_1'}{T_1'}$ of $d_1$
+with $U' <: S_1'$ and $T_1' <: V'$. 
+Moreover, since $V'=T_2'$, such an instantiation 
+would satisfy the Return Type Rule for $d_1$ and $d_2$.
+Finally, observe that $\textit{arrow}(d_1) \le \textit{arrow}(d_\meet)$ 
+is identical to the condition (\ref{eq:rtr}), 
+and so the verification of (\ref{eq:rtr}) implies
+the verification of the Return Type Rule.
+

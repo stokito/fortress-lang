@@ -1,0 +1,25 @@
+(********************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+********************************************************************************)
+
+component postfixTest
+export Executable
+
+opr (s: String)MYOPR = "postfix operator"
+opr (s: String)† = "Now, dagger (U+2020) is a valid Fortress operator."
+opr (s: String)‡ = "Now, double dagger (U+2021) is a valid Fortress operator."
+
+run() = do
+  assert(""MYOPR, "postfix operator")
+  assert(""†, "Now, dagger (U+2020) is a valid Fortress operator.")
+  assert(""‡, "Now, double dagger (U+2021) is a valid Fortress operator.")
+end
+
+end

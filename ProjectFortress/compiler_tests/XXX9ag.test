@@ -1,0 +1,27 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled9.ag.fss
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled9.ag.fss:15:3-43:\n\
+\ Invalid comprises clause: CompilerBuiltin.Exception has a comprises clause\n\
+\ but its immediate subtype SomethingElse is not eligible to extend it.\n\
+${STATIC_TESTS_DIR}/Compiled9.ag.fss:15:32-39:\n\
+\ Type SomethingElse excludes CompilerBuiltin.Exception but it extends CompilerBuiltin.Exception.\n\
+${STATIC_TESTS_DIR}/Compiled9.ag.fss:16:3-36:\n\
+\ Invalid comprises clause: CompilerBuiltin.Exception has a comprises clause\n\
+\ but its immediate subtype FooExn is not eligible to extend it.\n\
+${STATIC_TESTS_DIR}/Compiled9.ag.fss:16:25-32:\n\
+\ Type FooExn excludes CompilerBuiltin.Exception but it extends CompilerBuiltin.Exception.\n\
+${STATIC_TESTS_DIR}/Compiled9.ag.fss:25:14-21:\n\
+\ All types in 'forbids' clause must be subtypes of Exception type, but Something is not.\n\
+File Compiled9.ag.fss has 5 errors.\n
+compile_out_equals=

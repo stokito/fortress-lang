@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component tupleTest3
+
+export Executable
+
+fib(x:ZZ32) = do
+if (x <= 1) then 1 else fib(x-1) + fib(x-2) end
+end
+
+run():()=do
+    n = 12
+
+    (a,b,c,d,e,f,g,h,i,j,k,l) = (fib n, fib n, fib n, fib n,
+                    fib n, fib n, fib n, fib n,
+                    fib n, fib n, fib n, fib n)
+end
+end

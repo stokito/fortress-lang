@@ -1,0 +1,19 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled1.b
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled1.b.fss:12:11-21:\n\
+\ Component Compiled1.b exports API Compiled1.b\n\
+\ but does not define all declarations in Compiled1.b.\n\
+\ Missing declarations: {f(x':String):String at ${FORTRESS_AUTOHOME}/ProjectFortress/test_library/Compiled1.b.fsi:13:3-22}\n\
+File Compiled1.b.fss has 1 error.\n
+compile_out_equals=
