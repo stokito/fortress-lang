@@ -91,11 +91,6 @@ and relevance to extensibility.}
 \TODO{Explain motivation for intersection types (i.e., as meet).
 Perhaps this belongs in Types section.}
 
-\TODO{Note the following ````lemma'':
-If one overloaded definition is strictly more specific than another 
-then that pair of definitions satisfies the no duplicates rule 
-and the meet rule.}
-
 If one monomorphic declaration is more specific than another monomorphic one,
 then there is no ambiguity between these two declarations:
 for any type to which both are applicable, the first is more specific.
