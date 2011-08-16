@@ -30,10 +30,10 @@ we define three rules---%
 the \emph{No Duplicates Rule}, 
 \emph{Meet Rule}, 
 and \emph{Return Type Rule}---%
-for sets of overloaded function definitions.
-Such a set is \emph{valid with respect to a class table}
-if it satisfies all these rules using the subtyping relation 
-induced by the class table.
+for pairs of overloaded function definitions.
+A set of overloaded function definitions is \emph{valid with respect to a class table}
+if it pairwise satisfies all these rules using the subtyping relation 
+induced by that class table.
 In Section~\ref{sec:safety},
 we show that any valid set of overloaded function declarations is safe.
 We later describe how to mechanically verify these rules in a modular way
@@ -136,7 +136,39 @@ type is \BottomType,
 it trivially satisfies all three rules when checked with any other
 declaration in $\D(f)$.
 
-\subsection{Overloaded Functions as Meet-Semilattices}
+\subsection{Properties of Overloaded Functions}
+With the rules for valid overloading laid out, we now describe some useful
+properties of valid overloaded sets and of the rules themselves.
+
+\TODO{Evaluate the necessity of this section. Useful for proofs?}
+
+\begin{lemma}
+\label{lem:strictms}
+If $d_1$ and $d_2$ are declarations in $\D(f)$ such that
+$d_1 \ms d_2$ and $d_2 \not\ms d_1$, then the pair $(d_1, d_2)$ satisfies the
+No Duplicates Rule and the Meet Rule.
+\end{lemma}
+\begin{proof}
+The No Duplicates Rule is vacuously satisfied, and the Meet Rule is satisfied
+with $d_0 = d_1$ since $d_1 \ms d_2$ implies that $d_1$ is applicable to a type $T$ if and only if both $d_1$ and $d_2$ are applicable to $T$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:subsetvalid}
+For every type $T \in \T$, if $\D(f)$ is a valid set with respect to $\T$ then
+so is $\D(f)(T)$.
+\end{lemma}
+\begin{proof}
+The No Duplicates Rule and Return Type Rule are straightforward applications
+of the respective rules on $\D(f)$.
+
+Let $d_1, d_2$ be declarations in $\D(f)(T)$ and let $d_0 \in \D(f)$ be its
+disambiguating declaration guaranteed by the Meet Rule on $\D(f)$. Then $d_0$ is applicable to exactly those types $U$ to which $d_1$ and $d_2$ are
+both applicable. Since $d_1$ and $d_2$ are by definition both applicable
+to $T$, $d_0$ must also be applicable to $T$, and hence $d_0 \in \D(f)(T)$.
+Therefore the Meet Rule on $\D(f)(T)$ is satisfied.
+\end{proof}
+
 To further characterize valid sets of overloaded definitions and the
 more specific relation $\ms$, we interpret them as
 meet-semilattices. A partially ordered set $(A, \sqsubseteq)$ forms a
@@ -178,3 +210,15 @@ meet-semilattices (antisymmetry and the existence of meets,
 respectively), while the Return Type
 Rule guarantees that this interpretation is consistent with the
 semantics of multiple dynamic dispatch.
+
+\begin{lemma}
+\label{lem:leastelement}
+A valid set of overloaded function declarations $\D(f)(S)$ has a unique
+most specific declaration.
+\end{lemma}
+\begin{psketch}
+The set $\D(f)(S)$ forms a meet-semilattice by the previous lemma and moreover
+it is clearly finite. By straightforward induction a finite meet-semilattice
+has a least element, so there exists a unique declaration in $\D(f)(S)$ that
+is more specific than all others.
+\end{psketch}
