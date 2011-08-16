@@ -18,83 +18,58 @@ A conjunction constraint $\C_1 \wedge \C_2$ is satisfied exactly
 when both $\C_1$ and $\C_2$ are satisfied,
 and a disjunction constraint $\C_1 \vee \C_2$ is satisfied exactly
 when one or both of $\C_1$ and $\C_2$ are satisfied.
-The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always satisfied.
+The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always satisfied. 
+
+As in the work of Smith and Cartwright \cite{smith08}, on which we based our constraint
+generation rules, we normalize all constraint formulas into disjunctive normal form
+and simply away obvious contradictions and redundancies.
 
 We define the negation $\neg \C$ of a constraint $\C$ using de Morgan's law.
 
-Clearly any bounds environment $\Delta = \bds{X}{M}$ naturally defines a constraint $\toConstraint{\Delta}. This conversion
-has a partial inverse $\toBound{\C}$ that is defined whenever $\C$ can be written as a conjunction of constraints of the form `X <: M`. Both of these
+Clearly any bounds environment $\Delta = \bds{X}{M}$ naturally defines a constraint $\textit{toConstraint}(\Delta)$. This conversion
+has a partial inverse $\textit{toBound}(\C)$ that is defined whenever $\C$ can be written as a conjunction of constraints of the form `X <: M`. Both of these
 operations will prove very convenient in Section \ref{sec:checking}.
 
 
 
-\subsection{Judgments}
+\subsection{Typing Judgments}
 \input{fig-judgements}
-In Figure \ref{fig:judgements} we list the judgments that will be used for generating constraints. Each judgment of the form
+Until now we have only considered types in environments that bound all of their free variables. We will now relax this restriction. We will continue
+to use the metavariables $X$ and $Y$ to range over bound type variables and will use the metavariables $I$ and $J$ to range over unbound or \emph{inference}
+ type variables. Intuitively, we have no control over the constraints on a bound type variable (they are fixed by $\Delta$) but we may place constraints on an inference variable. 
 
-indicates that, under assumptions $\Delta$, the constraint $\C$ implies the predicate
+In Figure \ref{fig:judge} we list the judgments that will be used for generating constraints. Each judgment of the form
+\[\jgconstrtemplate{S}{\ast}{T}{\C}\]
+states that under the assumptions $\Delta$, the constraint $\C$ on the inference variables imply the proposition $S\,\ast\,T$.
+If $S$ and $T$ contain no inference variables the judgment behaves like an unconditional judgment (ie, it only produces the constraints $\TRUE$ or $\FALSE$).
 
-. The judgment
+Similarly, a judgement of the form
+\[\jgcontratemplate{S}{\ast}{T}{\C}\]
+states that under the assumptions $\Delta$, if the proposition $S\,\ast\,T$ holds, then $\C$ must be true of the inference variables. In
+particular when $\C$ holds of the inference variables $S\,\ast\,T$ does not have to hold for every valid instantiation of the bound type variables.
 
-is the contrapositive of the judgment
-
-and indicates that if the predicate
-
-holds the constraints must hold as well. 
-
-An important point about both kinds of judgments is that the types
-$S$ and $T$ should be considered \emph{inputs} and
-constraint $\C$ should be considered \emph{output}.
-
-Note that
-
-is not the same judgment as
-
-. They treat bound type variables quite differently.
+An important point about both kinds of judgments is that the types $S$ and $T$ should be considered \emph{inputs} and the
+constraint $\C$ should be considered an \emph{output}.
 
 \subsection{Subtype}
+In \cite{smith08} Smith and Cartwright provide a sound and complete algorithm for generating constraints from the
+Java subtyping relation. We essentially preserve the semantics of \cite{smith08} (see the appendix for details) but our system has two distinct differences.
 
-Smith and
-Cartwright \cite{smith08} on which our system was based. Smith and
-Cartwright provide a sound and complete algorithm for generating
-constraints from the subtyping relation and an algorithm for
-normalizing constraints to simplify, for example, those involving
-contradictions or redundancies. We assume that constraints are
-implicitly simplified in this manner. The soundness of constraint
-generation entails that the predicate is a logical consequence of the
-constraint; the completeness of generation entails the opposite.
-
-For subtyping with constraints, we essentially preserve the semantics
-of \cite{smith08}, but that system lacks our notion of
-exclusion. Since we need our subtyping to take advantage of
-exclusion, we must add an additional rule to the judgment:\\[-1em] 
-
-\infrule
-  {\jgconstrtemplate{S}{\exc}{T}{\C} \andalso
-   \jsub{S}{U}{\C'} \andalso\jsub{T}{U}{\C''}}
-  {\jsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
-
-\noindent This new rule states three possibilities for proving that the intersection $S \cap T$ is a subtype of $U$: $S$ and $T$ exclude (which means their intersection is a subtype of \BottomType), $S$ is a subtype of $U$, or $T$ is a subtype of $U$. If any of the constraints needed for these three judgments is satisfied, then $S \cap T$ is a subtype of $U$. Adding this rule should not affect completeness or soundness of constraint generation for $\subtypeof$ (since constraint generation for $\exc$ is complete and sound if constraint generation for $\subtypeof$ is).
+First, we need to augment to the rule for tuple types to account for the fact
+that any tuple with an argument that is equivalent to $\BottomType$ is itself
+equivalent to $\BottomType$.
+\TODO{Tuple Rule}
+Second, we need to augment the rule for intersection types to account for exclusion. Note that this
+makes the exclusion and subtyping rules mutually recursive.
+\TODO{Intersection Rule}
 
 
 \subsection{Exclusion}
 \input{fig-exclusion}
+Figure~\ref{fig:jexc} presents our exclusion rules, which formalize our original definition of exclusion in
+Section~\ref{sec:excdec}. To make our rules algorithmic we needed to break the exclusion relation.
 
-With these additional constraints and judgments, we can now define
-constraint generation for exclusion.
-Figure~\ref{fig:jexc} presents our algorithm, which
-formalizes our original definition of exclusion in
-Section~\ref{sec:excdec}.
-As before, exclusion on constructed types is
-satisfied when any of the sub-relations from the previous section is
-satisfied. Each sub-relation checks the conditions described before
-by recursively generating and propagating constraints. Each
-sub-relation except $\excrc$ depends only on other constraint
-generation judgments, meaning the algorithmic checking
-terminates. The $C\obb{T} \excrc D\obb{U}$ predicate recursively
-checks exclusion on the comprised types of $C\obb{T}$, but due to
-the acyclic nature of the class table, this process will also terminate. 
-Thus, the algorithm is complete and sound if $\subtypeof$ is.
+
 
 \subsection{Negation}
 
