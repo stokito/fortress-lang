@@ -2,7 +2,15 @@
 \label{sec:checking}
 
 This section describes how to mechanically check 
-the three overloading rules described in Section~\ref{sec:rules}.
+the three overloading rules described in Section~\ref{sec:rules}. The
+algorithm we describe does not check every possible valid set of overloaded
+functions (according to the rule definitions), but it does accept
+many desired overloadings, including all of the (valid) example overloadings
+provided so far. \TODO{Does it??}
+Thus we provide a sound but incomplete algorithm for determining that a
+set of overloaded function declarations is valid.
+
+
 Previously the notions of applicability and specificity for generic
 declarations required an existential quantification over instances thereof.
 We rephrase these definitions in terms of universal and existential types,
@@ -14,7 +22,7 @@ declarations, in the same manner as \cite{bourdoncle97}.
 % its arrow type (written $\textit{arrow}(d)$) is
 % the \emph{universal type} $\forall\tplist{X}{N}S \rightarrow T$.
 For a generic function declaration $d = \hdeclg{f}{\Delta}{S}{T}$,
-its arrow type of $d$, written $\arrow(d)$, is
+its arrow type, written $\arrow(d)$, is
 the \emph{universal type} \mbox{$\forall\ob{\Delta}S \rightarrow T$}.
 A universal type binds type parameter declarations over some type and
 can be instantiated by any types fitting the type parameters' bounds.
@@ -124,8 +132,24 @@ $\vdash \dom(d_1) \subtypeofinner \dom(d_2)$. (As we will see shortly,
 however, these interpretations are still not strong enough. We will need the
 richer judgment $\jqsub{\delta}{\delta}$.)
 
-\TODO{Scott left off here. Will continue.}
+\subsection{Incorporating Existential Reduction}
 
+
+
+\subsection{Mechanically Checking the Rules}
+With our interpretations of applicability and specificity into existential
+subtyping, we now describe the process of checking the validity of a set of 
+overloaded declarations $\D(f)$ according to the rules in
+Section~\ref{sec:rules}. Recall that validity of $\D(f)$ (with respect to
+class table $\T$) is defined as the pairwise quantification of the validity
+of all pairs of declarations from $\D(f)$. Moreover, because we defined each
+rule as a property of such a pair, for each rule, we simply describe the
+process of checking an arbitrary pair of declarations.
+
+We can check the No Duplicates Rule for $d_1, d_2$ by verifying that
+if $d_1 \neq d_2$ implies both 
+
+\TODO{Scott left off here.}
 
 Now, we can mechanically check the No Duplicates Rule
 by mechanically determining if two declarations are equally specific.
