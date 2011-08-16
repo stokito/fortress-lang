@@ -91,6 +91,14 @@ and relevance to extensibility.}
 \TODO{Explain motivation for intersection types (i.e., as meet).
 Perhaps this belongs in Types section.}
 
+<<<<<<< local
+\TODO{Note the following ````lemma'':
+If one overloaded declaration is strictly more specific than another 
+then that pair of declarations satisfies the no duplicates rule 
+and the meet rule.}
+
+=======
+>>>>>>> other
 If one monomorphic declaration is more specific than another monomorphic one,
 then there is no ambiguity between these two declarations:
 for any type to which both are applicable, the first is more specific.
@@ -115,15 +123,15 @@ that is applicable to $W$ and satisfies \mbox{$T_1 <: T_2$}.
 Since $\BottomType$ is well-formed with respect to any class table, 
 and tuple types with different numbers of arguments 
 have no common subtype other than \BottomType,
-this rule technically requires that 
+the meet rule technically requires that 
 an overloaded function with declarations that take different numbers of arguments 
 has a declaration applicable only to \BottomType.
 Because \BottomType\ is not first-class in Fortress, 
-such a definition cannot be written, 
+such a declaration cannot be written, 
 and in any case it would, of course, never be applied
-because no value has ilk \BottomType.
+because no value belongs to \BottomType.
 To avoid this technicality, 
-we implicitly augment the set $\D(f)$ of overloaded function definitions with name $f$ 
+we implicitly augment the set $\D(f)$ of overloaded function declarations with name $f$ 
 with a declaration $\decl{f}{\BottomType}{\BottomType}$.
 Because this declaration is strictly more specific 
 than any declaration that a programmer can write, and because its return
@@ -131,6 +139,10 @@ type is \BottomType,
 it trivially satisfies all three rules when checked with any other
 declaration in $\D(f)$.
 
+<<<<<<< local
+\subsection{Overloaded Functions as Meet Semilattices}
+To further characterize valid sets of overloaded declarations and the
+=======
 \subsection{Properties of Overloaded Functions}
 With the rules for valid overloading laid out, we now describe some useful
 properties of valid overloaded sets and of the rules themselves.
@@ -165,17 +177,18 @@ Therefore the Meet Rule on $\D(f)(T)$ is satisfied.
 \end{proof}
 
 To further characterize valid sets of overloaded definitions and the
+>>>>>>> other
 more specific relation $\ms$, we interpret them as
-meet-semilattices. A partially ordered set $(A, \sqsubseteq)$ forms a
-\emph{meet-semilattice} if, for every pair of elements $a,b \in A$, their
+meet semilattices. A partially ordered set $(A, \sqsubseteq)$ forms a
+\emph{meet semilattice} if, for every pair of elements $a,b \in A$, their
 greatest lower bound, or \emph{meet}, is also in $A$.
 \begin{lemma}
 \label{lem:meetsemilattice}
-A valid set of overloaded function declarations forms a meet-semilattice with
+A valid set of overloaded function declarations forms a meet semilattice with
 the more specific relation.
 \end{lemma}
 \begin{proof}
-Suppose $\D(f)$ is a valid set of overloaded function definitions
+Suppose $\D(f)$ is a valid set of overloaded function declarations
 with respect to class table $\T$.
 First, $(\D(f), \ms)$ forms a partially ordered set: clearly $\ms$ is
 reflexive and transitive, and antisymmetry is a direct corollary of the
@@ -201,7 +214,7 @@ applicable to $T$ and $d_0' \ms d_0$.
 
 The No Duplicates Rule and the Meet Rule each
 corresponds to a defining property of
-meet-semilattices (antisymmetry and the existence of meets,
+meet semilattices (antisymmetry and the existence of meets,
 respectively), while the Return Type
 Rule guarantees that this interpretation is consistent with the
 semantics of multiple dynamic dispatch.
