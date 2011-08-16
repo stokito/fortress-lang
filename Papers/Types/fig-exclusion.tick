@@ -1,7 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}[htbp]
-\newjudge{Exclusion Rules}{\jexc{T}{T}{\C}}
-\\\\
+\centering
+\newjudge{Exclusion}{\jexc{T}{T}{\C}}
+\vspace*{1em}
+
 \begin{minipage}[t]{.5\textwidth}
 \centering  
 \textbf{Logical rules}

@@ -1,43 +1,53 @@
 %%%%%%%%%%%%%%% BEGIN EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%
-\begin{figure}[ht]
+\begin{figure}[t]
 \begin{minipage}{.5\textwidth}
 \centering
-\newjudge{Universal subtyping}{\jqsub{\sigma}{\sigma}}
+\newjudge{Universal Subtyping}{\jqsubinner{\sigma}{\sigma}\quad\jqsub{\sigma}{\sigma}}
+  
+\infrule
+  {\Delta' = \Delta, \bds{Y}{N}
+   \andalso
+   \bar{Y} \cap (\FV(T) \cup \FV(\bar{M})) = \emptyset
+   \\
+   \jgsub[\Delta']{\substb{V}{X}T}{U}
+   \andalso
+   \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{X}\bd{M_i}}
+  }
+  {\jqsubinner{\forall\obb{X <: \bd{M}}T}{\forall\obb{Y <: \bd{N}}U}}
 
 \infrule
   {\jtreds{\exttype[\Delta']{S}}{\exttype[\Delta'']{U}}{\phi} \\[.3em]
    \jqsubinner{\sigma}{\unitype[\Delta'']{\left(\arrowtype{U}{\phi(T)}\right)}}}
   {\jqsub{\sigma}{\unitype[\Delta']{\arrowtype{S}{T}}}}
-  
-\infrule
-  {\Delta' = \Delta, \bds{Y}{N} \\
-   \jgsub[\Delta']{\substb{V}{X}T}{U} \andalso
-   \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{X}\bd{M_i}}
-  }
-  {\jqsubinner{\forall\obb{X <: \bd{M}}T}{\forall\obb{Y <: \bd{N}}U}}
 
-\begin{tabularx}{\textwidth}{RcX}
-  $\sigma_1 \le \sigma_2$ & \syndef & $\jqsub[\emptyset]{\sigma_1}{\sigma_2}$ \\
-\end{tabularx}
+% \begin{tabularx}{\textwidth}{RcX}
+%   $\sigma_1 \le \sigma_2$ & \syndef & $\jqsub[\emptyset]{\sigma_1}{\sigma_2}$ \\
+% \end{tabularx}
 
 \vspace*{2ex}
-\newjudge{Existential subtyping}{\jqsub{\delta}{\delta}}
+\newjudge{Existential Subtyping}{\jqsubinner{\delta}{\delta}\quad\jqsub{\delta}{\delta}}
+
+\infrule
+  {\Delta' = \Delta, \bds{X}{M}
+   \andalso
+   \bar{X} \cap (\FV(U) \cup \FV(\bar{N})) = \emptyset
+   \\
+   \jgsub[\Delta']{T}{\substb{V}{Y}U}
+   \andalso
+   \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{Y}\bd{N_i}}
+  }
+  {\jqsubinner{\exists\obb{X <: \bd{M}}T}{\exists\obb{Y <: \bd{N}}U}}
+
 \infrule
   {\jtred{\delta}{\delta''} \andalso \jqsubinner{\delta''}{\delta'}}
   {\jqsub{\delta}{\delta'}}
-
-\infrule
-  {\Delta' = \Delta, \bds{X}{M} \\
-   \jgsub[\Delta']{T}{\substb{V}{Y}U} \andalso \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{Y}\bd{N_i}}
-  }
-  {\jqsubinner{\exists\obb{X <: \bd{M}}T}{\exists\obb{Y <: \bd{N}}U}}
   
-\begin{tabularx}{\textwidth}{RcX}
-  $\delta_1 \le \delta_2$ & \syndef & $\jqsub[\emptyset]{\delta_1}{\delta_2}$
-\end{tabularx}
+% \begin{tabularx}{\textwidth}{RcX}
+%   $\delta_1 \le \delta_2$ & \syndef & $\jqsub[\emptyset]{\delta_1}{\delta_2}$
+% \end{tabularx}
 
 \vspace*{2ex}
-\newjudge{Existential reduction}{\jtreds{\delta}{\delta}{\phi}}
+\newjudge{Existential Reduction}{\jtreds{\delta}{\delta}{\phi}}
 \infrule
   {\jcnequiv{T}{\Bottom}{\C} \andalso \toConstraint{\Delta'}{\C'} \\
    \jsolve{\neg \C \wedge \C'}{\phi}{\D} \andalso \toBound{\D}{\Delta''}}

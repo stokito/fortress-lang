@@ -206,15 +206,22 @@ Note that the type variables $X_i$ may appear within the bounds $M_{ij}$.
 We write $\jgsub{S}{T}$ 
 to indicate the judgment that $S$ is a subtype of $T$ 
 in the context of $\Delta$.
+When $\Delta$ is understood to be empty, 
+we write this judgment simply as $S \subtypeof T$.
+And we say that the types $S$ and $T$ are \emph{equivalent},
+written $S \equiv T$, 
+when $S \subtypeof T$ and $T \subtypeof S$.
+
 Henceforth, 
 given a type environment, 
 we consider only types whose (free) type variables 
 are bound in the type environment.
-When $\Delta$ is understood to be empty, 
-we write this judgment simply as $S \subtypeof T$.
+Because our type language does not involve any type variable binding---%
+type variables are only bound by generic type constructor or function
+declarations---%
+the set of free type variables of $T$, written $\FV(T)$, is defined as
+the set of all type variables syntactically occurring within $T$.
 
-The types $S$ and $T$ are \emph{equivalent}, written $S \equiv T$, 
-when $S \subtypeof T$ and $T \subtypeof S$.
 
 \TODO{Mention that we only support invariant parameters for now?}
 
