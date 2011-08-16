@@ -24,8 +24,8 @@ we adjust the subtype relation to take into account the relationships between ty
 A reduction judgment on existential types $\vdash\delta\eqred\delta',\phi$
 defined in Figure~\ref{fig:existential} reduces $\delta = \exttype{T}$ to
 $\delta' = \exttype[\Delta']{T'}$ with the substitution $\phi$
-under the assumption that $T$ is not equivalent to \BottomType; or,
-if $T$ is equivalent to \BottomType, the reduced existential $\delta'$ is \BottomType.
+under the assumption that $T$ is not equivalent to \Bottom; or,
+if $T$ is equivalent to \Bottom, the reduced existential $\delta'$ is \Bottom.
 When the substitution is unnecessary we omit it.
 The $solve$ operation is like that defined in Smith and Cartwright~\cite{smith08}.
 In fact, an existential type $\delta$ reduces to $\delta'$
@@ -44,11 +44,11 @@ $\vdash$ `EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])`\\[.3em]
 \end{tabular}
 \\[.8em]
 with substitution $[W/X,\, W/Y]$. We first check under what constraints $\C$
-the intersection `ArrayList[\X\] CAP List[\Y\]` is not equivalent to \BottomType:
+the intersection `ArrayList[\X\] CAP List[\Y\]` is not equivalent to \Bottom:
 with polymorphic exclusion (specifically, the absence of multiple instantiation inheritance)
 we know that `ArrayList[\X\]` excludes `List[\Y\]`,
 which makes their intersection equivalent
-to \BottomType, unless $X \equiv Y$ is true. Solving the constraint $X
+to \Bottom, unless $X \equiv Y$ is true. Solving the constraint $X
 \equiv Y$ yields a type substitution like $\phi = [W/X,\, W/Y]$. The
 judgment $\phi[\Delta] = \Delta'$ lets us construct reduced bounds
 from $\phi$ and the original bounds $\Delta$. To do this, we first
@@ -105,7 +105,7 @@ we can verify that the declarations $\D(`tail`)$ satisfy the Return Type Rule.
 
 
 % A similar analysis shows that if an instance of a universal arrow has
-% the domain `BottomType`, then it is irrelevant for the purposes of
+% the domain `Bottom`, then it is irrelevant for the purposes of
 % guaranteeing Progress. Therefore we can use our reduction rule for
 % existential types to aid in the verification of the Return Type Rule
 % by augmenting the subtype rules for universal arrows:

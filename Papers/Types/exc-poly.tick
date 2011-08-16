@@ -12,7 +12,7 @@ We address this problem by imposing an additional restriction on well-formed cla
 which, in effect, adds additional power to the exclusion relation:
 \begin{description}
 \item[Polymorphic Exclusion Rule] 
-A type (other than \BottomType) 
+A type (other than \Bottom) 
 must not be a subtype of multiple distinct instantiations of a type constructor. 
 \end{description}
 Thus,
@@ -83,7 +83,7 @@ such as `tail` and `foo` as valid overloadings.
 % `
 % (2) EXISTS[\Z <: Foo\] ArrayList[\Z\]
 % `because, for all ground types `S` and `T`, the intersection type
-% `List[\S\] CAP ArrayList[\T\]` is equivalent to `BottomType`
+% `List[\S\] CAP ArrayList[\T\]` is equivalent to `Bottom`
 % unless `S` is equivalent to `T`.
 % This lets us deduce that `S` (equivalent to`T`)
 % is an appropriate instantiation for `Z`.
@@ -116,18 +116,18 @@ such as `tail` and `foo` as valid overloadings.
 % `C[\U_bar\]` of the same type constructor `C`, we can infer constraints that
 % `T[i] EQUIV U[i]` for each `T[i] IN T_bar` and `U[i] IN U_bar`.
 % We also carry constraints that hold under the supposition
-% that an intersection type is not `BottomType`.
+% that an intersection type is not `Bottom`.
 % For example, when we decide whether two existential types (1) and (2) above have the same extent,
 % if we explore the ramifications of the possibility that
-% `List[\S\] CAP ArrayList[\T\]` is not equivalent to `BottomType`,
+% `List[\S\] CAP ArrayList[\T\]` is not equivalent to `Bottom`,
 % we need to infer and carry the constraint that `S EQUIV T`.
 % 
 % To augment the rules in this section, we introduce the following notation:
 % \begin{enumerate}
 % 
 % \item 
-% We write $\jnequiv{T}{\BottomType}{\C}$
-% to indicate that a type $T$ is not equivalent to \BottomType\ 
+% We write $\jnequiv{T}{\Bottom}{\C}$
+% to indicate that a type $T$ is not equivalent to \Bottom\ 
 % under the environment $\Delta$ and
 % the assumption that constraints $\C$ hold.
 % 

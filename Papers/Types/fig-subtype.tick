@@ -10,15 +10,15 @@
 
 \infrule
   {}
-  {\jsub{\BottomType}{T}{\TRUE}}
+  {\jsub{\Bottom}{T}{\TRUE}}
 
 \infrule
   {}
-  {\jsub{M}{\BottomType}{\FALSE}}
+  {\jsub{M}{\Bottom}{\FALSE}}
   
 \infrule
   {}
-  {\jsub{`S -> T`}{\BottomType}{\FALSE}}
+  {\jsub{`S -> T`}{\Bottom}{\FALSE}}
   
 \infrule
   {}
@@ -75,7 +75,7 @@
   {\jsub{X}{T}{\C}}
 
 \infrule
-  {\jsub{S}{\BottomType}{\C}}
+  {\jsub{S}{\Bottom}{\C}}
   {\jsub{S}{X}{\C}}
 
 \end{minipage}%
@@ -86,11 +86,11 @@
 
 \infrule
   {|\bar{S}| = |\bar{T}| \andalso \forall  i . \quad \jsub{S_i}{T_i}{\C_i} \\
-   \forall i . \quad \jsub{S_i}{\BottomType}{\D_i}}
+   \forall i . \quad \jsub{S_i}{\Bottom}{\D_i}}
   {\jsub{(\bar{S})}{(\bar{T})}{(\bigwedge \C_i) \vee (\bigvee \D_i)}}
 
 \infrule
-  {|\bar{S}| \neq 1 \andalso \forall i . \quad \jsub{S_i}{\BottomType}{\C_i}}
+  {|\bar{S}| \neq 1 \andalso \forall i . \quad \jsub{S_i}{\Bottom}{\C_i}}
   {\jsub{(\bar{S})}{T}{\bigvee \C_i}}
 
 \infrule
