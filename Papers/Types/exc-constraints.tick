@@ -49,7 +49,7 @@ Clearly any bounds environment $\Delta = \bds{X}{M}$ naturally defines a constra
 has a partial inverse $\textit{toBound}(\C)$ that is defined whenever $\C$ can be written as a conjunction of constraints of the form `X <: M`. Both of these
 operations will prove very convenient in Section \ref{sec:checking}.
 
-\subsection{Subtype}
+\subsection{Subtyping}
 In \cite{smith08} Smith and Cartwright provide a sound and complete algorithm for generating constraints from the
 Java subtyping relation. We essentially preserve the semantics of \cite{smith08} (see the appendix for details) but our system has two distinct differences.
 
@@ -66,17 +66,18 @@ makes the exclusion and subtyping rules mutually recursive.
 \input{fig-exclusion}
 Figure~\ref{fig:jexc} presents our exclusion rules, which formalize our original definition of exclusion in
 Section~\ref{sec:excdec}. To make our rules algorithmic we needed to break the exclusion relation on constructed
-types into four subrelations:
-\begin{description}
-\item[$\exce$] a 
-\item[$\excc$] a
-\item[$\exco$] a
-\item[$\excp$] a
-\end{description}
-
+types into four subrelations $\exce$, $\excc$, $\exco$, and $\excp$. The first three relations are then reduced
+to checking the asymmetric relations $\excre$, $\excrc$, and $\excro$.
+\begin{enumerate}
+\item `C[\ S_bar \]`\,$\excre$\,`D[\ T_bar \]` determines whether `D[\ T_bar \]` has a super type $N$ such that $N$ appears in the excludes clause of an ancestor of `C[\ S_bar \]`.
+\item `C[\ S_bar \]`\,$\excrc$\,`D[\ T_bar \]` determines whether `D[\ T_bar \]` excludes every type in the (nontrivial) comprises clause of `C[\ S_bar \]`.
+\item `C[\ S_bar \]`\,$\excrc$\,`D[\ T_bar \]` determines whether `C[\ S_bar \]` is an object and `D[\ T_bar \]` is not a supertype of `C[\ S_bar \]`.
+\item `C[\ S_bar \]`\,$\excp$\,`D[\ T_bar \]` determines whether there is a pair of types $(M, N)$ such that $M$ is an ancestor of `C[\ S_bar \]`, $N$ is an ancestor of `D[\ T_bar \]`, and
+$M$ and $N$ are distinct applications of the same type constructor.
+\end{enumerate}
 
 \subsection{Negation and Contrapositive}
-
+When
 
 \subsection{Constraint Solving}
 Solving constraints
