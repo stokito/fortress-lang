@@ -43,6 +43,8 @@
 \newcommand{\exco}{\exc_\textrm{o}}
 \newcommand{\excp}{\exc_\textrm{m}}
 
+\newcommand{\propop}{\ensuremath{\mathrel{\ast}}}
+
 \newcommand{\ancestors}{\textit{ancestors}}
 \newcommand{\ancexcludes}{\textit{excludes}^*}
 \newcommand{\myexcludes}[1]{{#1}.\textit{excludes}}
@@ -188,6 +190,15 @@
 \newenvironment{proof}{\noindent \textbf{Proof:} }{\hfill $\Box$}
 \newenvironment{psketch}{\noindent \textbf{Proof sketch:} }{\hfill $\Box$}
 
+\newcommand{\infrulefrac}[3][]{%
+  \vspace{0.5ex}
+  \frac{\begin{array}{@{}c@{}}#2\end{array}}%
+       {#3}%
+  \ifthenelse{\isempty{#1}}%
+             {}%
+             {\hspace{1ex}\rlap{(\textsc{#1})}}%
+  \vspace{0.5ex}
+}
 
 \begin{document}
 
