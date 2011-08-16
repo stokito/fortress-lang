@@ -67,8 +67,8 @@ equivalent to $\Bottom$.
 
 \infrule
   {|\bar{S}| = |\bar{T}| \andalso \forall  i . \quad \jsub{S_i}{T_i}{\C_i} \\
-   \forall i . \quad \jsub{S_i}{\Bottom}{\D_i}}
-  {\jsub{(\bar{S})}{(\bar{T})}{(\bigwedge \C_i) \vee (\bigvee \D_i)}}
+   \forall i . \quad \jsub{S_i}{\Bottom}{\C'_i}}
+  {\jsub{(\bar{S})}{(\bar{T})}{(\bigwedge \C_i) \vee (\bigvee \C'_i)}}
 
 \infrule
   {|\bar{S}| \neq 1 \andalso \forall i . \quad \jsub{S_i}{\Bottom}{\C_i}}
