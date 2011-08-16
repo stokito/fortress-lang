@@ -2,7 +2,7 @@
 \begin{figure}[t]
 \begin{minipage}{.5\textwidth}
 \centering
-\newjudge{Universal Subtyping}{\jqsubinner{\sigma}{\sigma}\quad\jqsub{\sigma}{\sigma}}
+\newjudge{Universal Subtyping}{\jqsubinner{\sigma}{\sigma} \quad \jqsub{\sigma}{\sigma}}
   
 \infrule
   {\Delta' = \Delta, \bds{Y}{N}
@@ -25,7 +25,7 @@
 % \end{tabularx}
 
 \vspace*{2ex}
-\newjudge{Existential Subtyping}{\jqsubinner{\delta}{\delta}\quad\jqsub{\delta}{\delta}}
+\newjudge{Existential Subtyping}{\jqsubinner{\delta}{\delta} \quad \jqsub{\delta}{\delta}}
 
 \infrule
   {\Delta' = \Delta, \bds{X}{M}
