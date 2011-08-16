@@ -1,12 +1,10 @@
-\section{Overloading Rules Checking}
-\label{sec:checking}
 
-This section describes how to mechanically check 
-the three overloading rules described in Section~\ref{sec:rules}. The
+In this section we describe how to mechanically check 
+the three overloading rules from Section~\ref{sec:rules}. The
 algorithm we describe does not check every possible valid set of overloaded
 functions (according to the rule definitions), but it does accept
 many desired overloadings, including all of the (valid) example overloadings
-provided so far. \TODO{Does it??}
+provided so far.
 Thus we provide a sound but incomplete algorithm for determining that a
 set of overloaded function declarations is valid.
 
@@ -85,7 +83,7 @@ which we utilize in checking the overloading rules. We actually define inner
 and outer subtyping judgments on universals and existentials; the former
 corresponds to a relatively standard interpretation of each (which
 resembles those defined in \cite{bourdoncle97}), while the latter
-incorporates \emph{existential reduction}, defined in \TODO{ref}.
+incorporates \emph{existential reduction}, defined in the next section.
 
 
 \input{fig-existential}
@@ -132,7 +130,11 @@ $\vdash \dom(d_1) \subtypeofinner \dom(d_2)$. (As we will see shortly,
 however, these interpretations are still not strong enough. We will need the
 richer judgment $\jqsub{\delta}{\delta}$.)
 
-\subsection{Incorporating Existential Reduction}
+In these judgments we make use of a simple subtyping judgment $\jgsub{T}{T}$. Simple subtyping behaves as described in Section~\ref{sec:pre}, but we have
+not yet defined an algorithm that decides it. For that we need a notion of
+constraint solving, which we will introduce in Section~\ref{sec:constraints}.
+
+\subsection{Strengthening}
 
 
 

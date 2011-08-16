@@ -63,6 +63,15 @@ has return type `List[\U\]`,
 which is also the return type 
 of the instantiation of the first definition 
 under consideration.
+(In Section~\ref{sec:}\TODO{???} we will
+incorporate this sort of reasoning about validity into our algorithmic
+checking of the overloading rules.)
+% In the justification that these two declarations satisfy the return type rule,
+% we employed a sort of intensional type analysis. Through backward reasoning
+% we determined that the constraint $T \equiv U$ must hold in order for these
+% declarations to be valid. In Section~\ref{sec:}\TODO{???} we will
+% incorporate this methodology into our algorithmic checking of the overloading
+% rules.
 
 The Return Type Rule is also satisfied by the third definition 
 and either of the first two 

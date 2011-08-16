@@ -349,17 +349,21 @@ components, separate compilation, Fortress, meet rule}
 \label{sec:examples}
 \input{examples}
 
+
+\section{Overloading Rules Checking}
+\label{sec:checking}
+\input{overloading-check}
+
 \section{Exclusion with Constraints}\label{sec:constraints}
 \input{exc-constraints}
 
 %\subsection{Polymorphic Exclusion Checking}
 %\subsection{Overloading with Polymorphic Exclusion, Again}
 
-\input{overloading-check}
-
 \subsection{Incorporating Constraints into Subtyping}
 \input{exc-reduction}
 
+\input{fig-subtype}
 
 \section{Discussion}\label{sec:discussion}
 \input{discussion}
@@ -385,11 +389,8 @@ Science and Technology(MEST) / National Research Foundation of Korea(NRF)
 % 
 % \end{thebibliography}
 
-\appendix
-% \section{Application to Haskell}
-% \label{app:haskell}
-% \input{haskell}
-\section{Subtyping Rules}
-\input{fig-subtype}
+% \appendix
+% \section{Subtyping Rules}
+% \input{fig-subtype}
 
 \end{document}
