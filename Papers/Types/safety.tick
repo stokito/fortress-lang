@@ -33,7 +33,7 @@ table for which it was proved valid. Effectively the second lemma states that
 there is always a single best choice for the meaning of a function
 application.
 
-\begin{lemma}[Modularity]
+\begin{lemma}[Extensibility]
 \label{lem:mod}
 If $\D(f)$ is valid with respect to the class table $\T$,
 then $\D(f)$ is valid with respect to any extension $\T'$ of $\T$.
@@ -63,6 +63,6 @@ declaration by Lemma~\ref{lem:leastelement}.
 \vspace*{2ex}
 
 \begin{proof}
-The Modularity Lemma lets us consider only the case when $\T' = \T$. Now the Determinism Lemma entails that such a $d_{S}$ exists, and the Return Type Rule
+The Extensibility Lemma lets us consider only the case when $\T' = \T$. Now the Determinism Lemma entails that such a $d_{S}$ exists, and the Return Type Rule
 entails the rest.
 \end{proof}
