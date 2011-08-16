@@ -1,56 +1,60 @@
-\TODO{Intro comments}
-Here is where we give the rules to derive the exclusion relation.
-We use constraint-based reasoning to do it.
-(All the rules should here, rather than being spread around.)
-We also have rules for constraint-based derivation of subtyping, 
-and those are in an appendix.
-This constraint-solving approach is necessary 
-(or at least we use it) 
-because of parametric exclusion.
-
-
-\paragraph{Constraints}
-We now augment our subtyping judgment to include \emph{constraints}.
-With constraint-based subtyping, we perform backward reasoning from the
-desired subtyping assertion to derive constraints on types under which the
+\TODO{Tie this in with one of the examples}
+We now augment our subtyping and exclusion judgment to include \emph{constraints}.
+With constraint-based typing, we perform backward reasoning from the
+desired typing assertion to derive constraints on types under which the
 assertion can be proved; 
 when those constraints are satisfied, the assertion is also satisfied. 
 These constraints on types are first generated and gathered, 
 and solved later when more information about the environment is known.
 
-Our grammar for type constraints is defined as follows:
-
+\subsection{Constraints}
 \input{fig-constraints}
-
-A primitive constraint is either {\it positive} or {\it negative}.
-A positive primitive constraint of the form `X <: S` specifies that
-a type variable $X$ is a subtype of $S$, and likewise for `S <: X`.
-The positive primitive constraint $X \exc S$ specifies that a type variable $X$ must exclude a type $S$.
-To generate constraints for exclusion, we also define negative primitive constraints:
-$X \not<: S$, $S \not<: X$, and $X \nexc S$.
+Our grammar for type constraints is defined in Figure \ref{fig:constraints}.
+A primitive constraint is either {\it positive} or {\it negative}. We define
+positive primitive constraints of the forms: `S <: T`  which specifies that
+a type $T$ is a subtype of $S$ and $S \exc T$ which specifies that a type $S$ must exclude a type $T$.
+Similarly, we define negative primitive constraints: $S \nsubtypeof T$ and $S \nexc T$.
 A conjunction constraint $\C_1 \wedge \C_2$ is satisfied exactly
 when both $\C_1$ and $\C_2$ are satisfied,
 and a disjunction constraint $\C_1 \vee \C_2$ is satisfied exactly
 when one or both of $\C_1$ and $\C_2$ are satisfied.
 The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always satisfied.
 
-\paragraph{Constraint Generation}
-We introduce the following syntactic judgments to generate these constraints:
+We define the negation $\neg \C$ of a constraint $\C$ using de Morgan's law.
 
+Clearly any bounds environment $\Delta = \bds{X}{M}$ naturally defines a constraint $\toConstraint{\Delta}. This conversion
+has a partial inverse $\toBound{\C}$ that is defined whenever $\C$ can be written as a conjunction of constraints of the form `X <: M`. Both of these
+operations will prove very convenient in Section \ref{sec:checking}.
+
+
+
+\subsection{Judgments}
 \input{fig-judgements}
+In Figure \ref{fig:judgements} we list the judgments that will be used for generating constraints. Each judgment of the form
 
-Each judgment indicates that, under assumptions $\Delta$,
-the respective predicate can be proved if the constraint $\C$ is
-satisfied. An important point about these judgments is that the
-predicates $S \subtypeof T$, $S \equiv T$, and $S \exc T$ should
-be considered \emph{inputs} to our algorithmic checker, while the
-constraint $\C$ should be considered its \emph{output}.
+indicates that, under assumptions $\Delta$, the constraint $\C$ implies the predicate
 
-We do not give 
-%in Figure~\ref{fig:jexc} 
-the full semantics of
-constraint generation for subtyping. Instead, we refer the reader to
-the recent work by Smith and
+. The judgment
+
+is the contrapositive of the judgment
+
+and indicates that if the predicate
+
+holds the constraints must hold as well. 
+
+An important point about both kinds of judgments is that the types
+$S$ and $T$ should be considered \emph{inputs} and
+constraint $\C$ should be considered \emph{output}.
+
+Note that
+
+is not the same judgment as
+
+. They treat bound type variables quite differently.
+
+\subsection{Subtype}
+
+Smith and
 Cartwright \cite{smith08} on which our system was based. Smith and
 Cartwright provide a sound and complete algorithm for generating
 constraints from the subtyping relation and an algorithm for
@@ -60,36 +64,22 @@ implicitly simplified in this manner. The soundness of constraint
 generation entails that the predicate is a logical consequence of the
 constraint; the completeness of generation entails the opposite.
 
+For subtyping with constraints, we essentially preserve the semantics
+of \cite{smith08}, but that system lacks our notion of
+exclusion. Since we need our subtyping to take advantage of
+exclusion, we must add an additional rule to the judgment:\\[-1em] 
+
+\infrule
+  {\jgconstrtemplate{S}{\exc}{T}{\C} \andalso
+   \jsub{S}{U}{\C'} \andalso\jsub{T}{U}{\C''}}
+  {\jsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
+
+\noindent This new rule states three possibilities for proving that the intersection $S \cap T$ is a subtype of $U$: $S$ and $T$ exclude (which means their intersection is a subtype of \BottomType), $S$ is a subtype of $U$, or $T$ is a subtype of $U$. If any of the constraints needed for these three judgments is satisfied, then $S \cap T$ is a subtype of $U$. Adding this rule should not affect completeness or soundness of constraint generation for $\subtypeof$ (since constraint generation for $\exc$ is complete and sound if constraint generation for $\subtypeof$ is).
+
+
+\subsection{Exclusion}
 \input{fig-exclusion}
 
-The constraint generation judgment for equivalence is defined entirely by the following rule:\\[-1.5em]
-\infrule
-  {\jsub{S}{T}{\C} \andalso \jsub{T}{S}{\C'}}
-  {\jgconstrtemplate{S}{\equiv}{T}{\C \wedge \C'}}
-Equivalence constraint generation is complete and sound if and only if
-the constraint generation for $\subtypeof$ is.
-
-With negative constraints, we define a new judgment for ````not a subtype'' by the rule:\\[-1.5em]
-\infrule
-  {\jsub{S}{T}{\C}}
-  {\jgconstrtemplate{S}{\not <:}{T}{\neg\C}}
-
-\noindent where $\neg\C$ is the negated constraint formed by applying De Morgan's laws on $\C$. Similarly, we can define ````not equivalent'' by the rule:\\[-1em]
-\infrule
-  {\jequiv{S}{T}{\C}}
-  {\jnequiv{S}{T}{\neg\C}}
-These judgements are sound because constraint generation for $\subtypeof$ is complete (and complete because $\subtypeof$ is sound).
-
-
-
-
-% We define the following exclusion judgment:\\[-.2em]
-% \[ \jexc{S}{T}{\C} \]
-% \\
-% which states that, under assumptions $\Delta$,
-% which reads as ````the types `S` and `T` exclude each other under the assumptions $\Delta$
-% if the constraints $\C$ hold,'' in Figure~\ref{fig:jexc}.
-% With these
 With these additional constraints and judgments, we can now define
 constraint generation for exclusion.
 Figure~\ref{fig:jexc} presents our algorithm, which
@@ -106,20 +96,11 @@ checks exclusion on the comprised types of $C\obb{T}$, but due to
 the acyclic nature of the class table, this process will also terminate. 
 Thus, the algorithm is complete and sound if $\subtypeof$ is.
 
+\subsection{Negation}
 
-For subtyping with constraints, we essentially preserve the semantics
-of \cite{smith08}, but that system lacks our notion of
-exclusion. Since we need our subtyping to take advantage of
-exclusion, we must add an additional rule to the judgment:\\[-1em] 
+\subsection{Contrapositive}
 
-\infrule
-  {\jgconstrtemplate{S}{\exc}{T}{\C} \andalso
-   \jsub{S}{U}{\C'} \andalso\jsub{T}{U}{\C''}}
-  {\jsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
-
-\noindent This new rule states three possibilities for proving that the intersection $S \cap T$ is a subtype of $U$: $S$ and $T$ exclude (which means their intersection is a subtype of \BottomType), $S$ is a subtype of $U$, or $T$ is a subtype of $U$. If any of the constraints needed for these three judgments is satisfied, then $S \cap T$ is a subtype of $U$. Adding this rule should not affect completeness or soundness of constraint generation for $\subtypeof$ (since constraint generation for $\exc$ is complete and sound if constraint generation for $\subtypeof$ is).
-
-\paragraph{Constraint Solving}
+\subsection{Constraint Solving}
 Solving constraints
 % We will also need to have the ability to solve constraints.
 % $\Delta \vdash \textit{solve}(\C)$

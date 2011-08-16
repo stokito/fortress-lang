@@ -50,6 +50,7 @@
 
 \newcommand{\extends}{\ensuremath{<:}}
 \newcommand{\subtypeof}{\ensuremath{<:}}
+\newcommand{\nsubtypeof}{\not \subtypeof}
 \newcommand{\supertypeof}{\ensuremath{:>}}
 
 \newcommand{\alphaequiv}{\ensuremath{\stackrel{\alpha}{\sim}}}

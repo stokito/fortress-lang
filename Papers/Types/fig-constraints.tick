@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%% BEGIN CONSTRAINT FIGURE %%%%%%%%%%%%%%%
-\begin{figure}
+\begin{figure}[htb]
 \begin{minipage}{.5\textwidth}
 \centering
 
@@ -21,13 +21,16 @@
 \fbox{\textbf{Constraint Utilities}}
 
 \vspace{\afterruleskip}
+$\neg \C = \C$
+\vspace{\afterruleskip}
+
 \toConstraint{\Delta}{\C} \\
 \vspace{\afterruleskip}
 
 \toBound{\C}{\Delta} \\
 \vspace{\afterruleskip}
 
-\jsolve{\C}{\phi}{\C'} \\
+\jsolve{\C}{\phi}{\C} \\
 \vspace{\afterruleskip}
 
 \end{minipage}
