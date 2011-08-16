@@ -201,7 +201,7 @@ for specific monomorphic special cases, as in:
 
 \small
 `  tail[\X\](x: List[\X\]): List[\X\] = e1
-  tail(x: List[\ZZ\]): List[\ZZ\] = e2`
+  tail(x: List[\ZZ\]): List[\ZZ\] = e3`
 \normalsize
 If the interpretation above is taken seriously, 
 this would be equivalent to:
@@ -211,7 +211,7 @@ this would be equivalent to:
   tail(x: List[\String\]): List[\String\] = e1
   tail(x: List[\ZZ\]): List[\ZZ\] = e1
   ...
-  tail(x: List[\ZZ\]): List[\ZZ\] = e2`
+  tail(x: List[\ZZ\]): List[\ZZ\] = e3`
 \normalsize
 which is ambiguous for calls in which the argument is of type `List[\ZZ\]`.
 
@@ -220,7 +220,7 @@ It would seem natural to write
 
 \small
 `  tail[\X\](x: List[\X\]): List[\X\] = e1
-  tail[\X <: Number\](x: List[\X\]): List[\X\] = e3`
+  tail[\X <: Number\](x: List[\X\]): List[\X\] = e2`
 \normalsize
 to handle specially all cases where `X` is a subtype of `Number`.
 But the model would regard this as an overloaded function

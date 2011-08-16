@@ -6,23 +6,23 @@ and point out where multiple instantiation exclusion is required.
 We give a formal system and algorithm for doing these checks 
 in Section~\ref{sec:checking}.
 
-Throughout this section, 
-we assume the following class table:
-\TODO{Make sure this table is up-to-date.
-Possibly put in a figure}
+% Throughout this section, 
+% we assume the following class table:
+% \TODO{Make sure this table is up-to-date.
+% Possibly put in a figure}
 
-\small
-`  Object
-  Number <: Object
-  ZZ <: Number
-  String <: Object excludes Number
-  List[\X\] <: Object
-  ArrayList[\X\] <: List[\X\]
-`
-\normalsize
+% \small
+%   Object
+%   Number <: Object
+%   ZZ <: Number
+%   String <: Object excludes Number
+%   List[\X\] <: Object
+%   ArrayList[\X\] <: List[\X\]
+% 
+% \normalsize
 
-First, we consider the overloaded generic functions 
-from the introduction (in reverse order):
+First, consider the function `foo`
+from the introduction:
 
 \small
 `  foo[\X <: Object\](x: X, y: Object): ZZ = 1
@@ -39,20 +39,61 @@ and the meet rule.
 And they satisfy the return type rule 
 because the return type of both definitions is always `ZZ`.
 
+The overloaded definitions for `tail` are also valid:
 \small
 `  tail[\X\](x: List[\X\]): List[\X\] = e1
-  tail[\X <: Number\](x: List[\X[\X\]): List[\X\] = e3`
+  tail[\X <: Number\](x: List[\X\]): List[\X\] = e2
+  tail(x: List[\ZZ\]): List[\ZZ\] = e3`
 \normalsize
-This overloading is also valid:
-The first definition is applicable to any pair of arguments 
-whose types are both `List[\T\]` for any well-formed type `T`, 
-whereas the second is applicable to any such pair 
-if and only if `T <: Number`.
-Thus, the second definition is strictly more specific than the first, 
-so the no duplicates rule and meet rule are satisfied.
+The first definition is applicable to any argument 
+of type `List[\T\]` for any well-formed type `T`, 
+the second is applicable to an argument 
+of type `List[\T\]` when `T <: Number`, 
+and the third is applicable to an argument 
+of type `List[\ZZ\]`.
+Thus, 
+each definition is strictly more specific than the preceding one, 
+so the no duplicates rule and meet rule 
+are satisfied for each pair of definitions.
 
+To see that the return type rule is satisfied 
+by the first two definitions, 
+consider any type `W NEQUIV BottomType` 
+to which the second definition is applicable,
+and any instantiation of the first definition with type $U$ 
+that is applicable to $W$.
+Then `W <: List[\T\]` for some `T <: Number` 
+and `W <: List[\U\]`, 
+so `W <: List[\T\] CAP List[\U\]`.
+By multiple instantiation exclusion,
+`List[\T\] CAP List[\U\] EQUIV BottomType`
+unless $T \equiv U$.
+Therefore, 
+since $W \not\equiv \BottomType$, 
+we have $T \equiv U$,
+so $W \subtypeof \TYP{List}\ob{U}$ 
+with $U \subtypeof \TYP{Number}$.
+Then the instantiation of the second definition with $U$ 
+has return type `List[\U\]`, 
+which is also the return type 
+of the instantiation of the first definition 
+under consideration.
 
-Now consider the `min` example from Section~\ref{sec:exclusion}:
+Similarly, 
+the return type rule is satisfied by the third definition 
+and either of the first two 
+because the third definition is applicable 
+only to arguments of type `List[\ZZ\]`,
+and because of multiple instantiation exclusion, 
+the only instantiation of either the first or second definition 
+that is applicable to such an argument 
+is its instantiation with `ZZ`.
+That instantiation has return type `List[\ZZ\]`, 
+which is also the return type of the third definition.
+
+The `min` example from Section~\ref{sec:exclusion} is similar, 
+except we need multiple instantiation exclusion 
+to satisfy the meet rule rather than the return type rule:
 
 \small
 `  min[\X <: Number, Y <: ZZ\](p: Pair[\X,Y\]): Number
@@ -66,13 +107,13 @@ for some $X_1 \subtypeof \TYP{Number}$,
 $Y_1 \subtypeof `ZZ`$, 
 $X_2 \subtypeof `ZZ`$, 
 and $Y_2 \subtypeof \TYP{Number}$.
-By multiple instantiation exclusion,
-\[
-\TYP{Pair}\ob{X_1,Y_1} \cap \TYP{Pair}\ob{X_2,Y_2} = \BottomType
-\]
-unless $X_1 = X_2$ and $Y_1 = Y_2$.
-Thus, 
-the argument must be of type $\TYP{Pair}\ob{X_1,Y_1}$, 
+Multiple instantiation exclusion 
+implies that $X_1 = X_2$ and $Y_1 = Y_2$,
+% \[
+% \TYP{Pair}\ob{X_1,Y_1} \cap \TYP{Pair}\ob{X_2,Y_2} = \BottomType
+% \]
+% unless 
+so the argument must be of type $\TYP{Pair}\ob{X_1,Y_1}$, 
 where $X_1 \subtypeof \TYP{Number} \cap `ZZ` = `ZZ`$
 and $Y_1 \subtypeof `ZZ` \cap \TYP{Number} = `ZZ`$, 
 so the third definition is applicable to it.
