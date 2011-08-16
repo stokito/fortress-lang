@@ -50,7 +50,7 @@ validity of $\D(f)$.
 
 \begin{lemma}[Determinism]
 If $\D(f)$ is valid with respect to the class table $\T$,
-then for every type $T \in \T$ such that $\D(f)(T)$ is nonempty, there is a unique most specific declaration $\D(f)(T)$.
+then for every type $T \in \T$ such that $\D(f)(T)$ is nonempty, there is a unique most specific declaration in $\D(f)(T)$.
 \end{lemma}
 \begin{proof}
 Let $T \in \T$ be a type such that $\D(f)(T)$ is nonempty. This set is valid
