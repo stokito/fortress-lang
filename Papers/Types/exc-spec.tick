@@ -1,19 +1,17 @@
 To incorporate exclusion into our type system, 
-we make two kinds of changes.
-First, we augment type constructor declarations 
-with two additional (optional) clauses, 
-the `excludes` clause and the `comprises` clause, 
-and we add a new kind of type constructor declaration, 
+we first augment type constructor declarations 
+with two (optional) clauses---%
+the `excludes` and `comprises` clauses---%
+and add a new kind of type constructor declaration---%
 the `object` declaration.
-Second, 
-we change the definition of well-formed class tables 
+We then change the definition of well-formed class tables 
 to reflect the new features, 
 and to enforce multiple instantiation exclusion.
 
-A type constructor declaration has two optional clauses, 
-an `excludes` clause and a `comprises` clause, 
-each of which specifies a list of types.
-The new syntax is as follows:
+The syntax for a type constructor declaration
+with the optional `excludes` and `comprises` clauses, 
+each of which specifies a list of types,
+is:
 \[
 C\tplist{X}{M} \extends `{N_bar} [excludes {L_bar}] [comprises {K_bar}]`
 \]
@@ -45,15 +43,15 @@ must also be a subtype of $\substb{T}{X}K_i$ for some $K_i$ in $\bar{K}$.
 
 % For convenience, 
 % we allow the `excludes` and `comprises` clauses to be omitted.
-Omitting an `excludes` clause is equivalent to having `excludes {}`;
-omitting a `comprises` clause is equivalent to having `comprises { Any }`.\!\footnote{%
+Omitting the `excludes` clause is equivalent to having `excludes {}`;
+omitting the `comprises` clause is equivalent to having `comprises { Any }`.\!\footnote{%
 To catch likely programming errors, 
 Fortress requires that 
 every $K_i$ in a `comprises` clause for $C\obb{T}$ be a subtype of $C\obb{T}$, 
 but allowing `Any` to appear in a `comprises` clause simplifies our presentation here.}
 
-We define the sets of instantiations of the types 
-in these clauses analogously to $\myextends{C\obb{T}}$.
+We define the sets of instantiations of types 
+in `excludes` and `comprises` clauses analogously to $\myextends{C\obb{T}}$.
 That is, 
 for an application $C\obb{T}$ 
 of the declaration above,\\[-.2em]
@@ -77,7 +75,7 @@ excludes any type other than its supertypes.
 % As mentioned previously, 
 Multiple instantiation exclusion 
 further restricts generic types: 
-Two distinct instantiations of a generic type 
+Distinct instantiations of a generic type 
 (i.e., distinct applications of a type constructor) 
 have no common subtype other than \Bottom.
 
@@ -85,7 +83,7 @@ To define well-formedness for class tables with exclusion
 (including multiple instantiation exclusion),
 we define an \emph{exclusion relation} $\exc$ over well-formed types:
 $S \exc T$ asserts that 
-types $S$ and $T$ have no common subtypes other than \Bottom.
+$S$ and $T$ have no common subtypes other than \Bottom.
 For constructed types $C\obb{T}$ and $D\obb{U}$, 
 $C\obb{T} \exc D\obb{U}$ if 
 \begin{itemize}
@@ -123,9 +121,8 @@ That is,
 for all well-formed constructed types $M$ and $N$, 
 if $M \exc N$ then no well-formed constructed type 
 is a subtype of both $M$ and $N$.
-As with the subtyping relation, 
-a valid extension to a class table $\T$ 
-must preserve this well-formedness property.
+A well-formed extension to a class table $\T$ 
+must preserve this property.
 
 Except for the imposition of multiple instantation exclusion, 
 these changes generalize the standard type system 

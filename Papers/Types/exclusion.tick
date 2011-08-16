@@ -103,19 +103,20 @@ but we don't explain why we should want it to do so.}
 A similar issue arises 
 when trying to satisfy the meet rule 
 by providing a disambiguating definition 
-for two incomparable definitions, 
-as in the following example:
+for incomparable definitions, 
+as in the following example 
+(where `ZZ <: RR`):
 
 \small
-`  min[\X <: Number, Y <: ZZ\](p: Pair[\X,Y\]): Number
-  min[\X <: ZZ, Y <: Number\](p: Pair[\X,Y\]): Number
+`  min[\X <: RR, Y <: ZZ\](p: Pair[\X,Y\]): RR
+  min[\X <: ZZ, Y <: RR\](p: Pair[\X,Y\]): RR
   min[\X <: ZZ, Y <: ZZ\](p: Pair[\X,Y\]): ZZ
 `
 \normalsize
 The first definition is applicable to exactly those arguments 
-of type `Pair[\X,Y\]` for some `X <: Number` and `Y <: ZZ`;
+of type `Pair[\X,Y\]` for some `X <: RR` and `Y <: ZZ`;
 the second to exactly those arguments
-of type `Pair[\X,Y\]` for some `X <: ZZ` and `Y <: Number`.
+of type `Pair[\X,Y\]` for some `X <: ZZ` and `Y <: RR`.
 So we might think that both definitions are applicable 
 to exactly those arguments of type `Pair[\X,Y\]` for some `X <: ZZ` and `Y <: ZZ`, 
 which is exactly when the third definition is applicable.
@@ -124,7 +125,7 @@ this is not true!
 We could, for example, have the following type constructor declaration:
 
 \small
-`  BadPair <: { Pair[\Number,ZZ\], Pair[\ZZ,Number\] }
+`  BadPair <: { Pair[\RR,ZZ\], Pair[\ZZ,RR\] }
 `
 \normalsize
 The first two definitions of `min` are both applicable to `BadPair` 
@@ -134,7 +135,7 @@ We might say that the problem with the above examples
 is not with the definitions of `tail` and `min`, 
 but with the definitions of `BadList` and `BadPair`, 
 that a value may belong to `List[\ZZ\]` or `List[\String\]`---%
-or to `Pair[\ZZ,Number\]` or `Pair[\Number,ZZ\]`---%
+or to `Pair[\ZZ,RR\]` or `Pair[\RR,ZZ\]`---%
 but not to both.
 More generally, 
 we can impose a rule that forbids 

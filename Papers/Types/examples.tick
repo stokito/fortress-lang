@@ -1,25 +1,10 @@
-We now consider whether several overloaded generic functions
-are permitted by the rules in Section~\ref{sec:rules}.
-In this section, 
-we simply argue informally why each set of overloaded definitions is valid or not,
-and point out where multiple instantiation exclusion is required.
+We now consider several sets of overloaded generic function declarations, 
+and argue informally why they are 
+(or are not, in one case) 
+permitted by the rules in Section~\ref{sec:rules}, 
+paying particular attention to where multiple instantiation exclusion is required.
 We give a formal system and algorithm for doing these checks 
 in Section~\ref{sec:checking}.
-
-% Throughout this section, 
-% we assume the following class table:
-% \TODO{Make sure this table is up-to-date.
-% Possibly put in a figure}
-
-% \small
-%   Object
-%   Number <: Object
-%   ZZ <: Number
-%   String <: Object excludes Number
-%   List[\X\] <: Object
-%   ArrayList[\X\] <: List[\X\]
-% 
-% \normalsize
 
 First, consider the function `foo`
 from the introduction:
@@ -31,15 +16,16 @@ from the introduction:
 This overloading is valid: 
 The second definition is strictly more specific than the first 
 because the first definition is applicable to a pair of arguments 
-exactly if the type of each argument is a subtype of `Object`, 
+exactly if the type of each is a subtype of `Object`, 
 whereas the second is applicable to a pair of arguments exactly if
-the type of each argument is a subtype of `Number`.
+the type of each is a subtype of `Number`.
 Thus, these definitions satisfy the no duplicates rule 
 and the meet rule.
 And they satisfy the return type rule 
 because the return type of both definitions is always `ZZ`.
 
 The overloaded definitions for `tail` are also valid:
+
 \small
 `  tail[\X\](x: List[\X\]): List[\X\] = e1
   tail[\X <: Number\](x: List[\X\]): List[\X\] = e2
@@ -59,28 +45,26 @@ are satisfied for each pair of definitions.
 To see that the return type rule is satisfied 
 by the first two definitions, 
 consider any type `W NEQUIV Bottom` 
-to which the second definition is applicable,
+to which the second definition is applicable---%
+so `W <: List[\T\]` for some `T <: Number`---%
 and any instantiation of the first definition with type $U$ 
-that is applicable to $W$.
-Then `W <: List[\T\]` for some `T <: Number` 
-and `W <: List[\U\]`, 
-so `W <: List[\T\] CAP List[\U\]`.
+that is applicable to $W$---so `W <: List[\U\]`.
+Then 
+`W <: List[\T\] CAP List[\U\]`.
 By multiple instantiation exclusion,
 `List[\T\] CAP List[\U\] EQUIV Bottom`
 unless $T \equiv U$.
-Therefore, 
-since $W \not\equiv \Bottom$, 
+Since $W \not\equiv \Bottom$, 
 we have $T \equiv U$,
 so $W \subtypeof \TYP{List}\ob{U}$ 
 with $U \subtypeof \TYP{Number}$.
-Then the instantiation of the second definition with $U$ 
+Thus, the instantiation of the second definition with $U$ 
 has return type `List[\U\]`, 
 which is also the return type 
 of the instantiation of the first definition 
 under consideration.
 
-Similarly, 
-the return type rule is satisfied by the third definition 
+The return type rule is also satisfied by the third definition 
 and either of the first two 
 because the third definition is applicable 
 only to arguments of type `List[\ZZ\]`,
@@ -91,36 +75,79 @@ is its instantiation with `ZZ`.
 That instantiation has return type `List[\ZZ\]`, 
 which is also the return type of the third definition.
 
-The `min` example from Section~\ref{sec:exclusion} is similar, 
-except we need multiple instantiation exclusion 
+The `min` example from Section~\ref{sec:exclusion} is also valid 
+under multiple instantiation exclusion,
+which is necessary in this case 
 to satisfy the meet rule rather than the return type rule:
 
 \small
-`  min[\X <: Number, Y <: ZZ\](p: Pair[\X,Y\]): Number
-  min[\X <: ZZ, Y <: Number\](p: Pair[\X,Y\]): Number
+`  min[\X <: RR, Y <: ZZ\](p: Pair[\X,Y\]): RR
+  min[\X <: ZZ, Y <: RR\](p: Pair[\X,Y\]): RR
   min[\X <: ZZ, Y <: ZZ\](p: Pair[\X,Y\]): ZZ
 `
 \normalsize
 Any argument to which the first two definitions are both applicable 
 must be of type $\TYP{Pair}\ob{X_1,Y_1} \cap \TYP{Pair}\ob{X_2,Y_2}$
-for some $X_1 \subtypeof \TYP{Number}$, 
+for some $X_1 \subtypeof `RR`$, 
 $Y_1 \subtypeof `ZZ`$, 
 $X_2 \subtypeof `ZZ`$, 
-and $Y_2 \subtypeof \TYP{Number}$.
+and $Y_2 \subtypeof `RR`$.
 Multiple instantiation exclusion 
 implies that $X_1 = X_2$ and $Y_1 = Y_2$,
-% \[
-% \TYP{Pair}\ob{X_1,Y_1} \cap \TYP{Pair}\ob{X_2,Y_2} = \Bottom
-% \]
-% unless 
 so the argument must be of type $\TYP{Pair}\ob{X_1,Y_1}$, 
-where $X_1 \subtypeof \TYP{Number} \cap `ZZ` = `ZZ`$
-and $Y_1 \subtypeof `ZZ` \cap \TYP{Number} = `ZZ`$, 
+where $X_1 \subtypeof `RR` \cap `ZZ` = `ZZ`$
+and $Y_1 \subtypeof `ZZ` \cap `RR` = `ZZ`$, 
 so the third definition is applicable to it.
 And since the third definition is more specific than the first two,
 it satisfies the requirement of the meet rule.
 
+The following set of overloaded declarations is also valid 
+(given the declaration `ArrayList[\X\] <: List[\X\]`):
 
+\small
+`  bar[\X\]ArrayList[\X\]: ZZ
+  bar[\Y <: ZZ\]List[\Y\]: ZZ
+  bar[\Z <: ZZ\]ArrayList[\Z\]: ZZ`
+\normalsize
+The first two declarations are incomparable:
+the first is applicable to `ArrayList[\T\]` for any type `T`,
+the second to `List[\U\]` for `U <: ZZ`.
+Thus, both declarations are applicable to any argument 
+of type `ArrayList[\T\] CAP List[\U\]` 
+for any `T` and `U <: ZZ`.
+Since `ArrayList[\T\] <: List[\T\]`, 
+this type is a subtype of `List[\T\] CAP List[\U\]`, 
+which, because of multiple instantiation exclusion, 
+is \Bottom\ unless $T \equiv U$,
+in which case,
+`ArrayList[\T\] CAP List[\U\] EQUIV ArrayList[\U\]`.
+This is exactly the type to which the third declaration is applicable, 
+so the meet rule is satisfied.
+
+Note that this example is similar to the previous one with `min`
+except that rather than having each of the two definitions 
+being more restrictive on a type parameter, 
+one uses a more specific type constructor.
+
+Finally, we consider three examples do not involve generic types.
+First consider the following declarations:
+
+\small
+`  bar[\X\](x: X): X
+  bar(x: ZZ): ZZ
+`
+\normalsize
+This pair of overloaded declarations is \emph{not} valid.
+The second is strictly more specific, 
+so the declarations satisfy the no duplicates and meet rules.
+But they do \emph{not} satisfy the return type rule.
+Consider, for example, 
+an argument of type `NN <: ZZ`.
+The second declaration
+and the instantiation of the first declaration with `NN`
+are both applicable to this argument,
+but the return type `ZZ` of the second declaration 
+is not a subtype of the return type `NN` of the instance of the first declaration.
 
 \small
 `  bar[\X\](x: X): ZZ = 1
@@ -132,7 +159,7 @@ What do you get if you call `bar(2)`?
 
 \small
 `  bar[\X\](x: X): X
-  bar(x: ZZ): ZZ
+  bar[\X <: ZZ\](x: X): X
 `
 \normalsize
 
@@ -151,73 +178,3 @@ the meet of `S->T` and `U->V` is \emph{not} an arrow type.)
 
 
 
-
-
-`  foo[\X <: Any\]ArrayList[\X\]: ZZ
-  foo[\Y <: ZZ\]List[\Y\]: ZZ
-  foo[\Z <: ZZ\]ArrayList[\Z\]: ZZ`
-The first two declarations are incomparable under specificity---%
-the first declaration applies to applications of `ArrayList` to any type,
-the second to applications of `List` with subtypes of type `ZZ`.
-The third definition,
-which is the ````obvious'' candidate to disambiguate the two, 
-
-is not actually the meet;
-the domain of this meet candidate is the existential type:
-`  EXISTS[\W <: ZZ\]ArrayList[\W\]
-`
-and needs to be proven equivalent to the domain of the computed meet:
-`  EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])
-`
-which requires that the latter be a subtype of the former.
-However, there is no type `W <: ZZ` such that:
-\\[.5em]
-\hspace*{.5em}
-%\jgsub[`X <: Any, Y <: ZZ`]{`ArrayList[\X\] CAP List[\Y\]`}{`ArrayList[\W\]`}
-\ensuremath{
-\begin{array}{l}
-{`X <: Any, Y <: ZZ`}\,\vdash
-\\
-\quad\quad\quad\quad
-{`ArrayList[\X\] CAP List[\Y\]`}\;{\subtypeof}\;{`ArrayList[\W\]`}
-\end{array}
-}
-\\[.5em]
-Our definition of the meet is not faulty: these declarations actually are unsafe.
-Consider the (user-defined) constructed type:
-`  BadList <: {ArrayList[\String\], List[\ZZ\]}
-`
-Our meet candidate is not applicable to `BadList`, but the two other definitions of `foo` are.
-Since neither of those is more specific than the other,
-this set of overloaded declarations must be rejected.
-
-
-
-The following overloading example,
-in which the second declaration is more specific than the first,
-is also ill-formed:
-`  tail[\X <: Any\]List[\X\]:List[\X\]
-  tail[\Y <: Any\]ArrayList[\Y\]:ArrayList[\Y\]`
-The declarations do not satisfy the Return Type Rule
-because we cannot find a specific type `V <: Any` such that:
-\\[.8em]
-\begin{tabular}{lr}
-%% \jgsub[`X <: Any, Y <: Any`]{`ArrayList[\V\] -> ArrayList[\V\]`}{`ArrayList[\Y\] CAP List[\X\] -> List[\X\]`}
-\multicolumn{2}{l}{`X <: Any, Y <: Any` $\vdash$} \\
-\quad\quad\quad\quad\quad\quad
-&`ArrayList[\V\] -> ArrayList[\V\]` \\
-&$\subtypeof$ `ArrayList[\Y\] CAP List[\X\] -> List[\X\]`
-\end{tabular}
-\\[.8em]
-%% `X <: Any, Y <: Any` \; &\vdash `ArrayList[\V\] -> ArrayList[\V\]` \\
-%% \;&\subtypeof\; `ArrayList[\Y\] CAP List[\X\] -> List[\X\]`
-Once again, the type `BadList` proves that this set of overloaded declarations must be rejected. Consider the instance:
-`  tail List[\ZZ\]:List[\ZZ\]
-`
-of the first declaration. We need to find an instance of the second declaration that is applicable to `BadList`
-and has a return type that is a subtype of `List[\ZZ\]`,
-but the only instance of the second declaration applicable to `BadList` is:
-`  tail ArrayList[\String\]:ArrayList[\String\]
-`
-whose return type is not a subtype of `List[\ZZ\]`.
-Therefore, this set of overloaded declarations must be rejected.
