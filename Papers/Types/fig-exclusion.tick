@@ -45,10 +45,6 @@
 \vspace*{-1em}
 
 \infrule
-  {}
-  {\jexc{X}{X}{\FALSE}}
-
-\infrule
   {\jexc{\Delta(X)}{T}{C}}
   {\jexc{X}{T}{C}}
 
