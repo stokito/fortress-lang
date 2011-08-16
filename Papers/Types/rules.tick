@@ -91,14 +91,11 @@ and relevance to extensibility.}
 \TODO{Explain motivation for intersection types (i.e., as meet).
 Perhaps this belongs in Types section.}
 
-<<<<<<< local
 \TODO{Note the following ````lemma'':
 If one overloaded declaration is strictly more specific than another 
 then that pair of declarations satisfies the no duplicates rule 
 and the meet rule.}
 
-=======
->>>>>>> other
 If one monomorphic declaration is more specific than another monomorphic one,
 then there is no ambiguity between these two declarations:
 for any type to which both are applicable, the first is more specific.
@@ -139,10 +136,6 @@ type is \BottomType,
 it trivially satisfies all three rules when checked with any other
 declaration in $\D(f)$.
 
-<<<<<<< local
-\subsection{Overloaded Functions as Meet Semilattices}
-To further characterize valid sets of overloaded declarations and the
-=======
 \subsection{Properties of Overloaded Functions}
 With the rules for valid overloading laid out, we now describe some useful
 properties of valid overloaded sets and of the rules themselves.
@@ -177,7 +170,6 @@ Therefore the Meet Rule on $\D(f)(T)$ is satisfied.
 \end{proof}
 
 To further characterize valid sets of overloaded definitions and the
->>>>>>> other
 more specific relation $\ms$, we interpret them as
 meet semilattices. A partially ordered set $(A, \sqsubseteq)$ forms a
 \emph{meet semilattice} if, for every pair of elements $a,b \in A$, their
