@@ -47,11 +47,11 @@ in Section~\ref{sec:checking}.
 
 In this section, we describe the rules for valid overloading.
 For each function name $f$,
-we determine whether a set of overloaded function declarations $\D(f)$ is valid
+we determine whether a set of overloaded function declarations $\Df$ is valid
 by independently considering every pair of declarations in the set.
 A pair of declarations is a valid overloading 
 if it satisfies the three rules described below with respect to a class
-table $\T$, and a set $\D(f)$ is valid
+table $\T$, and a set $\Df$ is valid
 with respect to $\T$ if every pair of declarations in the set is valid with
 respect to $\T$.
 
@@ -60,15 +60,15 @@ the existence of a meet and its uniqueness.
 We split these into two rules.
 
 To avoid the obvious ambiguity, 
-$\D(f)$ should not contain equally specific declarations:
+$\Df$ should not contain equally specific declarations:
 for each pair of overloaded declarations, 
 either one declaration is strictly more specific
 than the other or they are incomparable.
 \begin{description}
 \item[No Duplicates Rule]
-For every $d_1, d_2 \in \D(f)$, if $d_1 \ms d_2$ and $d_2 \ms d_1$ then $d_1$
+For every $d_1, d_2 \in \Df$, if $d_1 \ms d_2$ and $d_2 \ms d_1$ then $d_1$
 and $d_2$ denote the same declaration. In other words, there are no two
-distinct declarations in $\D(f)$ that are equally specific.
+distinct declarations in $\Df$ that are equally specific.
 \end{description}
 
 A pair of declarations is unambiguous
@@ -78,8 +78,8 @@ that is also applicable to that type and is more specific than both declarations
 both of the others are applicable.
 \begin{description}
 \item[Meet Rule]
-For every $d_1, d_2 \in \D(f)$,
-there should exist a declaration $d_0 \in \D(f)$ (possibly one of the pair) 
+For every $d_1, d_2 \in \Df$,
+there should exist a declaration $d_0 \in \Df$ (possibly one of the pair) 
 such that,
 for every type $T \in \T$, $d_0$ is applicable to $T$ 
 if and only if both $d_1$ and $d_2$ are applicable to $T$.
@@ -109,7 +109,7 @@ we also require that the return type of the latter declaration be a subtype of t
 % holds by checking the following rule for each function name $f$:
 \begin{description}
 \item[Return Type Rule]
-For every $d_1, d_2 \in \D(f)$ with $d_1 \ms d_2$, 
+For every $d_1, d_2 \in \Df$ with $d_1 \ms d_2$, 
 for every type $W$ to which $d_1$ is applicable
 (and therefore $d_2$ is also applicable),
 and for every instance $\decl{f}{S_2}{T_2}$ of $d_2$ that is applicable to $W$,
@@ -128,13 +128,13 @@ such a declaration cannot be written,
 and in any case it would, of course, never be applied
 because no value belongs to \Bottom.
 To avoid this technicality, 
-we implicitly augment the set $\D(f)$ of overloaded function declarations with name $f$ 
+we implicitly augment the set $\Df$ of overloaded function declarations with name $f$ 
 with a declaration $\decl{f}{\Bottom}{\Bottom}$.
 Because this declaration is strictly more specific 
 than any declaration that a programmer can write, and because its return
 type is \Bottom,
 it trivially satisfies all three rules when checked with any other
-declaration in $\D(f)$.
+declaration in $\Df$.
 
 \subsection{Properties of Overloaded Functions}
 With the rules for valid overloading laid out, we now describe some useful
@@ -144,7 +144,7 @@ properties of valid overloaded sets and of the rules themselves.
 
 \begin{lemma}
 \label{lem:strictms}
-If $d_1$ and $d_2$ are declarations in $\D(f)$ such that
+If $d_1$ and $d_2$ are declarations in $\Df$ such that
 $d_1 \ms d_2$ and $d_2 \not\ms d_1$, then the pair $(d_1, d_2)$ satisfies the
 No Duplicates Rule and the Meet Rule.
 \end{lemma}
@@ -155,18 +155,18 @@ with $d_0 = d_1$ since $d_1 \ms d_2$ implies that $d_1$ is applicable to a type 
 
 \begin{lemma}
 \label{lem:subsetvalid}
-For every type $T \in \T$, if $\D(f)$ is a valid set with respect to $\T$ then
-so is $\D(f)(T)$.
+For every type $T \in \T$, if $\Df$ is a valid set with respect to $\T$ then
+so is $\Df(T)$.
 \end{lemma}
 \begin{proof}
 The No Duplicates Rule and Return Type Rule are straightforward applications
-of the respective rules on $\D(f)$.
+of the respective rules on $\Df$.
 
-Let $d_1, d_2$ be declarations in $\D(f)(T)$ and let $d_0 \in \D(f)$ be its
-disambiguating declaration guaranteed by the Meet Rule on $\D(f)$. Then $d_0$ is applicable to exactly those types $U$ to which $d_1$ and $d_2$ are
+Let $d_1, d_2$ be declarations in $\Df(T)$ and let $d_0 \in \Df$ be its
+disambiguating declaration guaranteed by the Meet Rule on $\Df$. Then $d_0$ is applicable to exactly those types $U$ to which $d_1$ and $d_2$ are
 both applicable. Since $d_1$ and $d_2$ are by definition both applicable
-to $T$, $d_0$ must also be applicable to $T$, and hence $d_0 \in \D(f)(T)$.
-Therefore the Meet Rule on $\D(f)(T)$ is satisfied.
+to $T$, $d_0$ must also be applicable to $T$, and hence $d_0 \in \Df(T)$.
+Therefore the Meet Rule on $\Df(T)$ is satisfied.
 \end{proof}
 
 To further characterize valid sets of overloaded definitions and the
@@ -180,25 +180,25 @@ A valid set of overloaded function declarations forms a meet semilattice with
 the more specific relation.
 \end{lemma}
 \begin{proof}
-Suppose $\D(f)$ is a valid set of overloaded function declarations
+Suppose $\Df$ is a valid set of overloaded function declarations
 with respect to class table $\T$.
-First, $(\D(f), \ms)$ forms a partially ordered set: clearly $\ms$ is
+First, $(\Df, \ms)$ forms a partially ordered set: clearly $\ms$ is
 reflexive and transitive, and antisymmetry is a direct corollary of the
 No Duplicates Rule.
 
 Second, we must
-show that (i) for every $d_1, d_2 \in \D(f)$ there exists a $d_0 \in \D(f)$
+show that (i) for every $d_1, d_2 \in \Df$ there exists a $d_0 \in \Df$
 such that $d_0 \ms d_1$ and $d_0 \ms d_2$ and (ii) if there exists a
-$d_0' \in \D(f)$ such that $d_0' \ms d_1$ and $d_0' \ms d_2$ then
+$d_0' \in \Df$ such that $d_0' \ms d_1$ and $d_0' \ms d_2$ then
 $d_0' \ms d_0$.
 
-Let $d_1$ and $d_2$ be declarations in $\D(f)$. By the Meet Rule, there
-exists a declaration $d_0 \in \D(f)$ that is applicable to a type $T \in \T$
+Let $d_1$ and $d_2$ be declarations in $\Df$. By the Meet Rule, there
+exists a declaration $d_0 \in \Df$ that is applicable to a type $T \in \T$
 if and only if both $d_1$ and $d_2$ are too. Since for every $T$ to which
 $d_0$ is applicable we have that $d_1$ and $d_2$ are also applicable to it,
 we know that $d_0 \ms d_1$ and $d_0 \ms d_2$.
 
-Now let $d_0' \in \D(f)$ be more specific than both $d_1$ and $d_2$.
+Now let $d_0' \in \Df$ be more specific than both $d_1$ and $d_2$.
 Then for every type $T \in \T$ such that $d_0'$ is applicable
 to $T$, $d_1$ and $d_2$ are also applicable to $T$; thus $d_0$ is
 applicable to $T$ and $d_0' \ms d_0$.
@@ -213,12 +213,12 @@ semantics of multiple dynamic dispatch.
 
 \begin{lemma}
 \label{lem:leastelement}
-A valid set of overloaded function declarations $\D(f)(S)$ has a unique
+A valid set of overloaded function declarations $\Df(S)$ has a unique
 most specific declaration.
 \end{lemma}
 \begin{psketch}
-The set $\D(f)(S)$ forms a meet-semilattice by the previous lemma and moreover
+The set $\Df(S)$ forms a meet-semilattice by the previous lemma and moreover
 it is clearly finite. By straightforward induction a finite meet-semilattice
-has a least element, so there exists a unique declaration in $\D(f)(S)$ that
+has a least element, so there exists a unique declaration in $\Df(S)$ that
 is more specific than all others.
 \end{psketch}

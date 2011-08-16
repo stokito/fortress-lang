@@ -99,6 +99,8 @@
 \newcommand{\ctext}{\ensuremath{\supseteq}}
 % a declaration set D
 \newcommand{\D}{\ensuremath{\mathcal{D}}}
+% a declaration set restricted to a function name
+\newcommand{\Df}[1][f]{\D_{\!#1}}
 % existential type
 \newcommand{\exttype}[2][\Delta]{\ensuremath{\exists\ob{#1}{#2}}}
 % universal type

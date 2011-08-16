@@ -18,10 +18,10 @@ describes a world that consistently extends that of ````compile time.''
 
 \begin{theorem}[Overloading Safety]
 \label{thm:safety}
-Suppose $D(f)$ is valid with respect to the class table $\T$.
+Suppose $\Df$ is valid with respect to the class table $\T$.
 Then for any type $S \in \T' \ctext \T$,
-if $\D(f)(S)$ is nonempty then there exists a unique most specific declaration $d_{S} \in \D(f)(S)$.
-Furthermore for any declaration $d \in \D(f)(S)$ and instance $\decl{f}{T}{U}$
+if $\Df(S)$ is nonempty then there exists a unique most specific declaration $d_{S} \in \Df(S)$.
+Furthermore for any declaration $d \in \Df(S)$ and instance $\decl{f}{T}{U}$
 of $d$, there exists an instance
 $\decl{f}{V}{W}$ of $d_{S}$ that is applicable to $S$ such that $W \subtypeof U$.
 \end{theorem}
@@ -35,25 +35,25 @@ application.
 
 \begin{lemma}[Extensibility]
 \label{lem:mod}
-If $\D(f)$ is valid with respect to the class table $\T$,
-then $\D(f)$ is valid with respect to any extension $\T'$ of $\T$.
+If $\Df$ is valid with respect to the class table $\T$,
+then $\Df$ is valid with respect to any extension $\T'$ of $\T$.
 \end{lemma}
 \begin{psketch}
 In Section~\ref{sec:checking} we will show that checking the validity of
-$\D(f)$ can be reduced to examining subtype relationships
+$\Df$ can be reduced to examining subtype relationships
 between existential and universal types, which are constructed solely from
 types
-appearing in $\D(f)$ and hence $\T$. Extension of the class table
+appearing in $\Df$ and hence $\T$. Extension of the class table
 preserves subtype relationships between types in $\T$ and hence preserves
-validity of $\D(f)$.
+validity of $\Df$.
 \end{psketch}
 
 \begin{lemma}[Determinism]
-If $\D(f)$ is valid with respect to the class table $\T$,
-then for every type $T \in \T$ such that $\D(f)(T)$ is nonempty, there is a unique most specific declaration in $\D(f)(T)$.
+If $\Df$ is valid with respect to the class table $\T$,
+then for every type $T \in \T$ such that $\Df(T)$ is nonempty, there is a unique most specific declaration in $\Df(T)$.
 \end{lemma}
 \begin{proof}
-Let $T \in \T$ be a type such that $\D(f)(T)$ is nonempty. This set is valid
+Let $T \in \T$ be a type such that $\Df(T)$ is nonempty. This set is valid
 by Lemma~\ref{lem:subsetvalid} and thus contains a unique most specific
 declaration by Lemma~\ref{lem:leastelement}.
 \end{proof}
