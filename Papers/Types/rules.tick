@@ -211,12 +211,12 @@ semantics of multiple dynamic dispatch.
 
 \begin{lemma}
 \label{lem:leastelement}
-A valid set of overloaded function declarations $\Df(S)$ has a unique
+A valid set of overloaded function declarations $\Df(T)$ has a unique
 most specific declaration.
 \end{lemma}
 \begin{psketch}
-The set $\Df(S)$ forms a meet-semilattice by the previous lemma and moreover
-it is clearly finite. By straightforward induction a finite meet-semilattice
-has a least element, so there exists a unique declaration in $\Df(S)$ that
+The set $\Df(T)$ forms a meet semilattice by the previous lemma and moreover
+it is clearly finite. By straightforward induction a finite meet semilattice
+has a least element, so there exists a unique declaration in $\Df(T)$ that
 is more specific than all others.
 \end{psketch}
