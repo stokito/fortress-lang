@@ -45,7 +45,7 @@ $$
   {\jcnequiv{S}{T}{\neg \C}}
 
 \end{minipage}
-  \caption{Typing Judgements}
+  \caption{Constraint-based judgement forms.}
   \label{fig:judge}
 \end{figure}
 %%%%%%%%%%%%%%% END JUDGEMENT FIGURE %%%%%%%%%%%%%%%%%

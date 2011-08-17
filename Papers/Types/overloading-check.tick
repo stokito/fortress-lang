@@ -152,7 +152,7 @@ or Return Type Rule), an existentially quantified intersection type
 naturally arises as the necessary supertype of $W$.
 Intersection types $S \cap T$ in our type system naturally fall into two
 distinct cases: either $S \nexc T$, or $S \exc T$ in which case the 
-intersection has the same extent \TODO{(still have this lingo?)} as \Bottom.
+intersection has the same extent as \Bottom.
 In the second case, the intersection is trivial and $W$, as
 a subtype of the intersection, must also be trivial.
 Moreover, because the argument type $W$ to which both declarations must be applicable
