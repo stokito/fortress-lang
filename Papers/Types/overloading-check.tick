@@ -76,7 +76,7 @@ a subtype of $\delta_2$ if $\delta_2$'s type parameters can be instantiated
 in $\delta_1$'s environment such that its instantiated type is a simple
 supertype of $\delta_1$'s type.
 
-The outer subtyping judgments incorporate a single step of \emph{existential reduction} (Section~\ref{sec:exred}). Reduction on an existential type preserves the collective extent of all its instantiations---it is sound to include it in our definitions of universal and existential subtyping.
+The outer subtyping judgments incorporate a single step of \emph{existential reduction}. Reduction on an existential type preserves the collective extent of all its instantiations---it is sound to include it in our definitions of universal and existential subtyping.
 In the
 existential subtyping judgment $\jle{\delta}{\delta}$ the l.h.s.
 is reduced and its result is checked with the r.h.s. using the inner subtying judgment.
@@ -88,7 +88,7 @@ domain type $\dom(d) = \exttype[\Delta']{T}$, resulting not only in a new existe
 also a substitution $\phi$ mapping type variables from $\Delta'$
 to types with variables in $\Delta''$. Before
 appealing to the inner subtyping judgment, that substitution is
-applied to $\arrow(d)$'s return type $T$. We will explain existential reduction in more detail in Section~\ref{sec:exred}.
+applied to $\arrow(d)$'s return type $T$. (We will explain existential reduction in more detail in Section~\ref{sec:exred}.)
 
 These subtyping judgments offer a nice interpretation of applicability and
 specificity of generic function declarations. Recall that a generic
@@ -106,8 +106,8 @@ $d_2$ with the existential subtyping assertion
 $\vdash \dom(d_1) \le \dom(d_2)$.
 
 These interpretations are clearly correct with respect to the inner subtyping judgments. Using a few
-elementary facts about $\le$, $\leinner$, and $\eqred$ that will be explained in Section~\ref{sec:exred}
-we can show existential reduction does not alter the situation.
+elementary facts about $\le$, $\leinner$, and $\eqred$ that will be explained in Section~\ref{sec:exred},
+we can show that existential reduction preserves the correctness in the outer subtyping judgments.
 
 \TODO{show this}
 
