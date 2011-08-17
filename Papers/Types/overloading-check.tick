@@ -80,8 +80,10 @@ The outer subtyping judgments incorporate a single step of \emph{quantifier redu
 In the existential subtyping judgment $\jle{\delta}{\delta}$ the l.h.s. is reduced and its result is checked with the r.h.s. using the inner subtyping judgment.
 Dually, in the universal subtyping judgment $\jle{\sigma}{\sigma}$ the r.h.s. is reduces and its result is checked with the l.h.s. using the inner subtyping judment. 
 
-We explain how to compute reductions in section reduction in more detail in Section~\ref{sec:exred}, but the behavior of of reduction can be understood entirely
+We explain how to compute generic reductions in more detail in Section~\ref{sec:exred}, but the behavior of of reduction can be understood almost entirely
 through the following two theorems.
+
+\TODO{THEOREMS}
 
 These subtyping judgments offer a nice interpretation of applicability and
 specificity of generic function declarations. Recall that a generic
@@ -139,6 +141,7 @@ the arrow type $\sigma_{meet} = \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \ri
 \end{theorem}
 
 \begin{psketch}
+\TODO{PROOF}
 \end{psketch}
 
 
