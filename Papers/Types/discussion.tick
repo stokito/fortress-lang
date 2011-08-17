@@ -1,56 +1,68 @@
 \subsection{Type Inference}
+We have devised our notion of applicability of an overloaded generic function declaration to a type $T$ as an existential quantification over monomorphic instances that are applicable to $T$. Notably, we have not described a method
+to \emph{compute} such an instance, given some particular argument type $T$; in other words, we are agnostic about the type inference mechanism by which polymorphic function applications are implicitly instantiated.
 
-Before describing a system for ensuring progress and preservation,
-it is important to discuss some implications of these conditions on
-type inference in a programming language.
-The application of a function declaration to a type requires
-instantiation of the type parameters of the declaration.
-In most programming languages with parametric polymorphism,
-a type inference mechanism automatically instantiates type parameters
-based on the types of the arguments and the enclosing context.
-But note that our progress and preservation conditions do not require
-that the type parameters of the function declaration 
-that is (dynamically) most specific 
-of those applicable to the ilks of the argument values 
-be the same as the type parameters
-of the function declaration that is (statically) most specific 
-of those applicable to the static types of the argument expressions.
-Thus, the results of static type inference do not (in general) tell us how to
-instantiate the type parameters of a most specific function
-declaration at run time.  
-In the Fortress programming language,
-type inference is performed statically, 
-and the results of that inference 
-are passed to the run-time system 
-to ensure that run-time type inference at a function call is sound.
-The rules for overloaded function declarations
-introduced in Section~\ref{sec:rules} ensure that
-the declaration of the dynamically most applicable function declaration,
-when instantiated with whatever we infer at run time,
-is more specific than the declaration of the statically most applicable
-function declaration, instantiated with what was inferred at compile time.
-%% For the dynamically most applicable function declaration,
-%% the instantiated declaration with whatever instantiation we infer
-%% must be more specific than the instantiated declaration of the
-%% statically most applicable function declaration with what was inferred
-%% at compile time.
+Any concrete programming language that
+instantiates our framework of overloading should include some mechanism
+by which these monomorphic instances are derived. For example, a programming language with implicit type instantiation on polymorphic function applications might use local type inference \cite{pierce00} or Damas-Milner type inference \cite{damas82}. In the Fortress programming language, a variant of local type inference is used by the type checker to infer instantiations of polymorphic
+function applications.
 
-
-%% For the dynamically most applicable function declaration,
-%% the instantiated declaration with whatever instantiation we infer
-%% must be more specific than the instantiated declaration of the
-%% statically most applicable function declaration with what was inferred
-%% at compile time.
-%% The rules on the overloaded function declarations
-%% introduced in Section~\ref{sec:rules} ensure that
-%% dynamically inferred types satisfy this requirement.
-
-
-
-Aside from this caveat, our system for checking overloaded declarations 
-is largely independent of how a specific type inference engine would choose 
-instantiations\footnote{Type inference manifests itself as the choice of instantiation of type variables in existential and universal subtyping; specifically, $\bar{V}$ in the inference rules for subtyping in Figure~\ref{fig:existential}. Mitchell \cite{mitchell88} first showed how type inference interacts with polymorphic subtyping.}. Thus we do not discuss the specific features of a type inference
-system further in this paper.
+\TODO{Do we need ot mention that Fortress does type inference at run time? Is it necessary that any language that instantiates our framework must do the same? I used to think so but in my tired state I'm not so sure. See the relevant part of the commented out explanation below.}
+% Another noteworthy aspect of our formulation of Overloading Safety concerns the 
+% 
+% 
+% 
+% Before describing a system for ensuring progress and preservation,
+% it is important to discuss some implications of these conditions on
+% type inference in a programming language.
+% The application of a function declaration to a type requires
+% instantiation of the type parameters of the declaration.
+% In most programming languages with parametric polymorphism,
+% a type inference mechanism automatically instantiates type parameters
+% based on the types of the arguments and the enclosing context.
+% But note that our progress and preservation conditions do not require
+% that the type parameters of the function declaration 
+% that is (dynamically) most specific 
+% of those applicable to the ilks of the argument values 
+% be the same as the type parameters
+% of the function declaration that is (statically) most specific 
+% of those applicable to the static types of the argument expressions.
+% Thus, the results of static type inference do not (in general) tell us how to
+% instantiate the type parameters of a most specific function
+% declaration at run time.  
+% In the Fortress programming language,
+% type inference is performed statically, 
+% and the results of that inference 
+% are passed to the run-time system 
+% to ensure that run-time type inference at a function call is sound.
+% The rules for overloaded function declarations
+% introduced in Section~\ref{sec:rules} ensure that
+% the declaration of the dynamically most applicable function declaration,
+% when instantiated with whatever we infer at run time,
+% is more specific than the declaration of the statically most applicable
+% function declaration, instantiated with what was inferred at compile time.
+% %% For the dynamically most applicable function declaration,
+% %% the instantiated declaration with whatever instantiation we infer
+% %% must be more specific than the instantiated declaration of the
+% %% statically most applicable function declaration with what was inferred
+% %% at compile time.
+% 
+% 
+% %% For the dynamically most applicable function declaration,
+% %% the instantiated declaration with whatever instantiation we infer
+% %% must be more specific than the instantiated declaration of the
+% %% statically most applicable function declaration with what was inferred
+% %% at compile time.
+% %% The rules on the overloaded function declarations
+% %% introduced in Section~\ref{sec:rules} ensure that
+% %% dynamically inferred types satisfy this requirement.
+% 
+% 
+% 
+% Aside from this caveat, our system for checking overloaded declarations 
+% is largely independent of how a specific type inference engine would choose 
+% instantiations\footnote{Type inference manifests itself as the choice of instantiation of type variables in existential and universal subtyping; specifically, $\bar{V}$ in the inference rules for subtyping in Figure~\ref{fig:existential}. Mitchell \cite{mitchell88} first showed how type inference interacts with polymorphic subtyping.}. Thus we do not discuss the specific features of a type inference
+% system further in this paper.
 
 % Section 2.1 last para: We should comment that this definition of
 % well-formedness agrees with that of the old system. If we view

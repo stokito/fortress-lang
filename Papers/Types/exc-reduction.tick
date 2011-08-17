@@ -1,5 +1,48 @@
-\TODO{NOTE! This section needs a big cut! The recovered judgments were already given in the Subtyping and Exclusion subsections above, and the rest is exposition about existential reduction.}
-\TODO{NOTE! It does still need a (slightly) more thorough explanation of the definition of existential reduction, now that constraints and whatnot have been introduced.}
+In the evaluation of valid overloadings from Section~\ref{sec:examples},
+intensional type analysis was required in order to reason about certain
+examples. Since this reasoning justified
+the validity of these overloaded functions, we incorporate it into
+the present formal system as well.
+
+Whenever two different domain types should be
+applicable to the same argument type $W$ (in order to validate the Meet Rule
+or Return Type Rule), an existentially quantified intersection type
+naturally arises as the necessary supertype of $W$.
+Intersection types $S \cap T$ in our type system naturally fall into two
+distinct cases: either $S \nexc T$, or $S \exc T$ in which case the 
+intersection has the same extent as \Bottom.
+In the second case, the intersection is trivial and $W$, as
+a subtype of the intersection, must also be trivial.
+Moreover, because the argument type $W$ to which both declarations must be applicable
+is necessarily equivalent to \Bottom, then the Meet Rule and Return Type Rule
+are both trivially satisfied by the presence of the implicit overloading on
+\Bottom. In this manner case analysis on whether an existentially
+quantified (intersection) type is \Bottom facilitates the checking of our
+rules.
+
+Na\"{i}vely one might expect this case analysis on $S \cap T$ to simply check
+whether $S \exc T$. However, as is the case when checking generic
+function declarations, the types $S$ and $T$ might have free type variables,
+whose uncertainty often precludes a definitive statement about $S \exc T$.
+(For example, `C[\X\]` $\exc$ `C[\Y\]` holds only if $X \not\equiv Y$.) Our solution is to reason backwards: Under the assumption that the intersection
+is nontrivial (that the types do not exclude), gather the necessary
+constraints on type parameters. (For example, `C[\X\] CAP C[\Y\]` $\not\equiv \Bottom$ yields the constraint $X \equiv Y$.) These constraints are then
+reduced, resulting in an instantiation (and potentially tighter bounds
+on type parameters) that necessarily follows from our assumption of nontriviality.%
+\footnote{A similar sort of case analysis and constraint solving
+arises for pattern matching with generalized algebraic data types (GADTs) \cite{simonet07}: GADTs resemble our existential types and pattern matching resembles our function application.}
+
+
+We call the general pattern of simplifying an existentially quantified
+(intersection) type \emph{existential reduction}, given by the judgment $\jtred{\delta_1}{\delta_2}$ in Figure~\ref{fig:existential}.
+
+\noindent\TODO{Stuff after this needs to be incorporated into the above.}
+
+
+
+
+
+
 % We now use the non-equivalence judgment to make rigorous our intuition about
 % how polymorphic exclusion affects the mechanical verification of the overloading rules.
 To show that the overloadings of functions such as `tail` and `foo` are valid,
