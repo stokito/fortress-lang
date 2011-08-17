@@ -1,0 +1,17 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=XXXCompoundComponent2.fss
+PREPARSER_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/parser_tests
+compile
+compile_err_equals=\
+${PREPARSER_TESTS_DIR}/XXXCompoundComponent2.fss:12:1-15:2:\n\
+\ Compound component XXXCompoundComponent2 should not include new declarations.\n\
+File XXXCompoundComponent2.fss has 1 error.\n
+compile_out_equals=

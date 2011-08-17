@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component setterTest
+export Executable
+
+object Player
+  thisWon : ZZ32 := 0
+  var thisLost : ZZ32 := 0
+  settable indices: ZZ32 = 3
+  settable fld: ZZ32 = 0
+  setter fld(x:ZZ32):() = fld := x
+  arr:ZZ32[2] = array1[\ZZ32,2\](1)
+end
+
+run():() = do
+  player = Player
+  player.indices := 5
+  tuple' = (4, 9, 8)
+  var x: ZZ32
+  player.arr[1] := 12
+  assert(player.arr[1], 12)
+  (x, player.indices, player.arr[1]) := tuple'
+  z: ZZ32 := 7
+  z += 10
+  player.thisWon += 18
+  player.thisLost += 81
+  player.indices += 100
+  assert(player.indices, 109)
+  assert(player.arr[1], 8)
+  player.fld := 5
+  assert(player.fld, 5)
+end
+
+end

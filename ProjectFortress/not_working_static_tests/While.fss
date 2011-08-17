@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component While
+  export Executable
+
+  foo( m : Maybe[\String\], b:Boolean ) : () = do
+    var s_void : ()
+    s_void := while s <- m do
+      var my_str : String
+      my_str := s
+    end
+    s_void := while b do () end
+  end
+
+  run() : () = ()
+
+end

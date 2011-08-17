@@ -1,0 +1,18 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled1.al
+  export Executable
+
+  foo(f:ZZ32->ZZ32,a:ZZ32,b:ZZ32) : ZZ32 = f(a)^b
+
+  run():() = ()
+end
