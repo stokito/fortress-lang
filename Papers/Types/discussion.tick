@@ -76,7 +76,7 @@
 % Thus if the polymorphic well-formedness is satisfied, so is the
 % monomorphic well-formedness.
 
-\subsection{Modularity}
+% \subsection{Modularity}
 
 To demonstrate the modularity of our design,
 we present a lightweight modeling of program modules,
@@ -85,8 +85,8 @@ suffices to guarantee the safety of the entire program.
 In our model, 
 a program is a \emph{module}, which may be either \emph{simple} or \emph{compound}.
 A \emph{simple module} consists of 
-(i) a class table and 
-(ii) a collection of function declarations.
+(\emph{i}) a class table and 
+(\emph{ii}) a collection of function declarations.
 That is, a simple module is just a program as described in the rest of this paper.
 It is well-formed if it satisfies the well-formedness conditions of a whole program,
 as described in previous sections.
