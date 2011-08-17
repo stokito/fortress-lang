@@ -328,7 +328,6 @@ components, separate compilation, Fortress, meet rule}
 \subsection{Overloading Resolution Safety}\label{sec:safety}
 \input{safety}
 
-%\section{More Permissive Overloading}
 \section{Exclusion}
 \label{sec:exclusion}
 % EXCLUSION

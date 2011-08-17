@@ -43,7 +43,7 @@ consisting of intersection types and union types;
 and the special type \Bottom, 
 which represents the uninhabited type 
 (i.e., no value belongs to \Bottom).
-The abstract syntax of types is defined in BNF as follows
+The abstract syntax of types is defined as follows
 (where $\bar{\emph{A}}$ indicates 
 a possibly empty comma-separated sequence of syntactic elements $\emph{A}$):
 \[
@@ -180,8 +180,7 @@ and each element of the first is a subtype of the corresponding element of the o
 % (i.e., $( \tuple{\bar{S}} ) \subtypeof ( \tuple{\bar{T}} )$
 % if and only if $|\bar{S}| = |\bar{T}|$
 % and $S_i \subtypeof T_i$ for all $1 \leq i \leq |\bar{S}|$).
-By definition, 
-an intersection type is the most general type 
+An intersection type is the most general type 
 that is a subtype of each of its element types, 
 and a union type is the most specific type 
 that is a supertype of each of its element types.
@@ -206,7 +205,7 @@ Note that the type variables $X_i$ may appear within the bounds $M_{ij}$.
 We write $\jgsub{S}{T}$ 
 to indicate the judgment that $S$ is a subtype of $T$ 
 in the context of $\Delta$.
-When $\Delta$ is understood to be empty, 
+When $\Delta$ is empty, 
 we write this judgment simply as $S \subtypeof T$.
 And we say that the types $S$ and $T$ are \emph{equivalent},
 written $S \equiv T$, 
@@ -237,10 +236,10 @@ we cannot infer that two constructed types
 have no common constructed subtype 
 from the lack of any such type in the class table.
 However, we do assume that each declaration is complete, 
-and furthermore, 
-that any type constructor used in the class table 
-(e.g., in a bound or a supertype of another declaration)
-is declared in the table, 
+% and furthermore, 
+% that any type constructor used in the class table 
+% (e.g., in a bound or a supertype of another declaration)
+% is declared in the table, 
 so that all the supertypes of a constructed type 
 are known.
 
@@ -252,8 +251,9 @@ for any well-formed extension $\T'$ of a well-formed class table $\T$,
 any type that is well-formed with respect to $\T$ 
 is well-formed with respect to $\T'$ 
 and the subtyping relation on $\T'$ agrees with that of $\T$. 
-That is, $T \in \T$ implies $T \in \T'$ and 
-$T \subtypeof U$ in $\T$ implies $T \subtypeof U$ in $\T'$.
+That is, 
+$T \in \T$ implies $T \in \T'$, 
+and $T \subtypeof U$ in $\T$ implies $T \subtypeof U$ in $\T'$.
 
 %% \TODO{Expand on this?}
 
@@ -332,7 +332,8 @@ then the argument value must belong to type `U`.
 
 %% \TODO{Make consistent use of ````declarations'' vs.\ ````definitions''.}
 
-A function declaration consists of 
+A function declaration (for a class table) 
+consists of 
 a name, 
 a sequence of type parameter declarations 
 (enclosed in white square brackets), 
@@ -341,10 +342,6 @@ and a type indicating the codomain of the function
 (i.e., the return type).  
 A type parameter declaration consists of
 a type parameter name and its bounds.
-To reduce clutter,
-we omit the white square brackets of a declaration 
-when the sequence of type parameter declarations is empty, 
-and elide braces around singleton lists of bounds.
 % The abstract syntax of function declarations is as follows:
 % \[
 % \begin{array}{lll}
@@ -360,7 +357,8 @@ and elide braces around singleton lists of bounds.
 For example, in the following function declaration:
 
 `  f[\X <: M, Y <: N\](List[\X\], Tree[\Y\]): Map[\X, Y\]
-`the name of the function is `f`, 
+`
+the name of the function is `f`, 
 the type parameter declarations are `X <: M` and `Y <: N`, 
 the domain type is the tuple type `(List[\X\], Tree[\Y\])`, 
 and the return type is `Map[\X, Y\]`.
@@ -368,6 +366,12 @@ We abbreviate a function declaration as \hdeclg{f}{\Delta}{S}{T}
 when we do not want to emphasize the bounds.
 % (we are abusing notation by letting
 % $\Delta$ range over both type environments and bounds definitions).
+To reduce clutter,
+we omit the white square brackets of a declaration 
+when the sequence of type parameter declarations is empty, 
+and elide braces around singleton lists of bounds.
+% \TODO{Mention that a monomorphic function declaration
+% is just a degenerate generic one.}
 
 A function declaration $d = \declg{f}{X}{N}{S}{T}$
 may be \emph{instantiated} with type arguments $\bar{W}$ 
@@ -385,19 +389,12 @@ We use the metavariable $\D$
 to range over finite collections of sets of function declarations 
 and $\Df$ for the subset of $\D$ 
 that contains all declarations of name $f$.
-%
+
 An instance \decl{f}{U}{V} of a declaration $d$ 
 is \emph{applicable} to a type $T$ 
 if and only if $T \subtypeof U$.
 A function declaration is \emph{applicable} to a type 
 if and only if at least one of its instances is.
-%
-For any two function declarations $d_1, d_2 \in \Df$, 
-$d_1$ is \emph{more specific} than $d_2$ 
-(written $d_1 \ms d_2$)
-if and only if for every type $T$ 
-such that $d_1$ is applicable to $T$, 
-$d_2$ is also applicable to $T$.
 %
 For any type $T$, the set $\Df(T)$ contains precisely those declarations
 in $\Df$ that are applicable to $T$.

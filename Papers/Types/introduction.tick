@@ -151,6 +151,8 @@ for a core of Fortress that does not support generics.
 
 %% \TODO{Move next several paragraphs into a background section?}
 
+% \subsection{Interpretation of Generic Function Declarations}
+
 To handle parametric polymorphism,
 it is helpful to have an intuitive interpretation for generic types and functions.
 One way to think about a generic type such as `List[\T\]`
@@ -173,11 +175,11 @@ we considered
 an interpretation of generic functions
 analogous to the one above for generic types;
 that is, 
-the generic function definition\footnote{%
+the generic function definition:\footnote{%
 The first pair of white square brackets 
 delimits the type parameter declarations, 
 but the other pairs of white brackets 
-provide the type arguments to the generic type `List`.}:
+provide the type arguments to the generic type `List`.}
 
 \small
 `  tail[\X\](x: List[\X\]): List[\X\] = e
@@ -239,7 +241,7 @@ Consider the following overloaded definitions:
   quux(x: ZZ): ZZ = 2
 `
 \normalsize
-Intuitively, we would expect that
+Intuitively, we might expect that
 the call `quux(x)` evaluates to 2 whenever the ilk of $x$ is a subtype of `ZZ`,
 and to~1 otherwise.
 However,
@@ -249,7 +251,7 @@ because the most specific monomorphic definition
 would be the the instantiation of the generic definition with `NN`.
 
 
-Indeed, it is not always obvious 
+It is not even always obvious 
 which function definition is the most specific one 
 applicable to a particular call
 in the presence of overloaded generic functions: 
@@ -336,6 +338,8 @@ In particular, the overloading of `foo` just shown is permitted and
 is not ambiguous, because under this interpretation the second definition
 is more specific than the first.
 
+% \subsection{Modularity and Exclusion}
+
 In providing rules to ensure 
 that any valid set of overloaded function definitions 
 guarantees that there is always a unique function to call at run time, 
@@ -376,8 +380,7 @@ Consider, for example, the following overloaded function definitions:
 
 \small
 `  print(s: String):() 
-  print(i: ZZ):()
-`
+  print(i: ZZ):()`
 \normalsize
 Although this overloading may seem intuitively to be valid,
 in a multiple-inheritance type system 
@@ -399,11 +402,11 @@ For example, single inheritance ensures that
 incomparable types exclude each other. 
 If the domains of two overloaded function definitions exclude each other, 
 then these definitions can never both be applicable to the same call,
-and so no ambiguity can arise between them.
+so no ambiguity can arise between them.
 In the example above,
-if `String` and `ZZ` exclude each other\footnote{
+if `String` and `ZZ` exclude each other,\!\footnote{
 Indeed, `String` and `ZZ` \emph{are} declared to exclude
-each other in the Fortress standard library.},
+each other in the Fortress standard library.}
 then the overloaded definitions of `print` above are valid.
 
 We already exploited exclusion 
