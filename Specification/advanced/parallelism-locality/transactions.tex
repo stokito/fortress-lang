@@ -1,0 +1,45 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Abortable Atomicity}
+\seclabel{transactions}
+
+Fortress provides a user-level \EXP{\VAR{abort}()} function which
+abandons execution of the innermost \KWD{atomic} expression and rolls back its
+changes, requiring the \KWD{atomic} expression to execute again from
+the beginning.  This permits an atomic section to perform consistency
+checks as it runs.
+Invoking the \VAR{abort} function not within an \KWD{atomic} expression has
+no effect.
+The functionality provided by
+\EXP{\VAR{abort}()} can be abused; it is possible to induce deadlock
+or livelock by creating an atomic section that always fails.  Here is
+a simple example of a program using \EXP{\VAR{abort}()} which is
+incorrect because Fortress does not guarantee that the two implicit
+threads (created by evaluating the two elements of the tuple) will
+always run in parallel; it is possible for the first element of the
+tuple to continually abort without ever running the second element of
+the tuple:
+\note{The example is commented out because it is not yet supported nor run by the interpreter.}
+%% \input{\home/advanced/examples/Parallel.Abort.a.tex}
+
+Fortress also includes a \KWD{tryatomic} expression, which attempts to
+run its body expression atomically.  If it succeeds, the result is returned;
+if it aborts due to a call to \VAR{abort} or due to conflict
+(as described in \secref{atomic}),
+the checked exception \TYP{TryAtomicFailure} is thrown.  In addition, \KWD{tryatomic} is permitted to throw \TYP{TryAtomicFailure} in the absence of conflict; however, it is not permitted to fail unless some other thread performs an access to shared state while the body is being run.
+Conceptually \KWD{atomic} can be defined in terms of \KWD{tryatomic} as follows:
+\input{\home/advanced/examples/Parallel.Abort.b.tex}
+Unlike the above definition, an implementation may choose to suspend a
+thread running an \KWD{atomic} expression which invokes \VAR{abort},
+re-starting it at a later time when it may be possible to make further
+progress.  The above definition restarts the body of the \KWD{atomic}
+expression immediately without suspending.

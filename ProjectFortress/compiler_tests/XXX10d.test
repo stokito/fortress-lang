@@ -1,0 +1,18 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled10.d
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled10.d.fss:14:13-17:\n\
+\ Could not check call to function g\n\
+\ - O->() is not applicable to an argument of type (T & {O, P}).\n\
+File Compiled10.d.fss has 1 error.\n
+compile_out_equals=

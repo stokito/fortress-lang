@@ -1,0 +1,377 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component aStar
+
+import Heap.{...}
+import List.{...}
+import File.{...}
+import System.{getProperty, toDirectoryName}
+export Executable
+
+(** To perform a search, define an object containing the search state.
+    This object must extend SearchInstance[\Cost\] for some
+    totally-ordered type Cost.  We're searching for a min-cost solution.
+    Example instantiations for Cost are ZZ32 and RR64 (disallowing NaN).
+
+    The AStar code asks a SearchInstance to generate its children.
+    You must write either the children() method, or the generate()
+    method; in either case the SearchInstances can (should) be
+    generated in parallel, and you should make sure that more than one
+    SearchInstance can exist at a time.
+
+    For example, if you're using this to solve something like Sudoku,
+    you'd want the children() to represent distinct Sudoku boards,
+    rather than updating a single board in place.  You can do this
+    either by copying the board state or by using some kind of
+    updatable board data structure.
+ **)
+
+trait SearchInstance[\Self extends SearchInstance[\Self,Cost\],
+                      Cost (* extends StandardTotalOrder[\Cost\] *)\]
+        extends Generator[\Self\]
+    (** isComplete() returns true if no further searching is possible
+        from this point, and returns false if further searching is
+        required. **)
+    getter isComplete(): Boolean
+
+    (** cost returns an estimate of the *total* cost of this search
+        instance from start to finish (note: NOT the cost from this
+        point to the final solution, but the total cost from the start
+        of time).  When isComplete() is true this should give the
+        precise cost. **)
+    getter cost(): Cost
+
+    (** children() returns the children of this particular search
+        state.  If you wish to generate the children in parallel, you
+        should use a parallel generator.  If isComplete() is true,
+        this probably ought to return an empty generator.  If you
+        write the children() getter you do not need to write the
+        generate() method.  **)
+    getter children(): Generator[\Self\] = self
+
+    (** If you don't write the children() getter you should write the
+        generate() method. **)
+    generate[\R\](r: Reduction[\R\], body: Self->R): R =
+        self.children.generate[\R\](r,body)
+end
+
+aStarPair[\T extends SearchInstance[\T,C\],C\](a:T):(C,T) = (a.cost(),a)
+
+(** Perform an A* search starting from root. **)
+aStar[\T extends SearchInstance[\T,C\],C\](root: T): Maybe[\T\] =
+    label succeed
+        q : Heap[\C,T\] := singletonHeap[\C,T\](aStarPair[\T,C\](root))
+        while (c,best,q') <- q.extractMinimum() do
+            println("************************************************************")
+            println(best)
+            println("Cost " c)
+            (complete, completeTime) = timing( fn () => best.isComplete())
+            println("Completeness check time: " completeTime)
+            if complete then
+                exit succeed with Just(best)
+            end
+            (kids, kidTime) = timing( fn () => best.children())
+            println("Generated " |kids| " children")
+            println("Children generation time: " kidTime)
+            (_, updTime) = timing( fn () =>
+                q := q'.merge(heap(kids.map[\(C,T)\](aStarPair[\T,C\]))))
+            println("Queue update time: " updTime)
+        end
+        Nothing[\T\] (** If we get here the search failed. **)
+    end succeed
+
+(************************************************************
+ * Sample problem
+ ************************************************************)
+
+(* Stupid, really inefficient but complete Sudoku solver.  We maintain
+   a 9x9x9-space of BoardStates: Perhaps or Yes at (i,j,k) indicates
+   that k is a candidate value for point (i,j) in the Sukoku grid, Yes
+   indicating that the candidacy has been propagated (crossing out
+   candidates in square, row, column, and patch).  The cost metric is
+   currently dubious.  A step consists of choosing one Perhaps entry
+   to propagate and set to Yes.  Infeasible solutions are pruned.  We
+   do forward propagation lazily when we're checking if the puzzle has
+   been solved.  This only occurs when a candidate solution looks
+   promising, so we avoid propagation cost for non-promising
+   candidates. *)
+
+trait BoardState
+        comprises { No, Perhaps, Yes }
+    getter cand(): Boolean = true
+    getter candNum(): ZZ32 = 1
+    getter working(): Boolean = false
+end
+
+object No extends BoardState
+    getter cand(): Boolean = false
+    getter candNum(): ZZ32 = 0
+end
+
+object Perhaps extends BoardState
+    getter working(): Boolean = true
+end
+
+object Yes extends BoardState end
+
+object Sudoku(var cands : ZZ32, var props : ZZ32,
+              state : Array3[\BoardState,0,9,0,9,0,9\])
+        extends SearchInstance[\Sudoku, ZZ32\]
+    (* legalState check is expensive, so we compute it lazily and cache the result. *)
+    consistent : BoardState := Perhaps
+    iMax : ZZ32 := -1  (* Index of square with maximum options *)
+    jMax : ZZ32 := -1  (* Computed incrementally by isConsistent. *)
+    getter isConsistent(): Boolean =
+        (* Also does propagation of trivialities. *)
+        if NOT consistent.working() then consistent.cand()
+        elif cands < 81 then
+            consistent := No
+            false
+        else
+            res = computeConsistent()
+            if NOT res then
+                println(self)
+                println("inconsistent, ruled out")
+            end
+            res
+        end
+    getter cost(): ZZ32 = 6 81 - 5 props - cands
+    getter isComplete(): ZZ32 = self.isConsistent AND: props = 81
+    getter longString(): String =
+        (BIG ||[i<-0#9] (
+             BIG ||[j<-0#9] (
+                 (BIG ||[k<-0#9] if state[i,j,k].working() then "."
+                                 elif state[i,j,k].cand() then "" (k+1)
+                                 else " " end) "|")
+             )) // "Remaining: " cands " Fixed: " props
+    getter asString(): String =
+        (BIG ||[i<-0#9] (
+             BIG ||[j<-0#9] do
+                 str : String := "X"
+                 for k<-0#9 do
+                     if state[i,j,k].working() then str := "."
+                     elif state[i,j,k].cand() then str := "" (k+1)
+                     end
+                 end
+                 str
+             end))
+    getter children(): Generator[\Sudoku\] =
+        if self.isConsistent then
+            incons : Sudoku = Sudoku(0,props+1,state)
+            <|  if state[iMax,jMax,k].working() then
+                    child = self.copy()
+                    child.fillState(iMax,jMax,k)
+                    child
+                else
+                    incons
+                end
+              | k <- 0#9 |>.filter(fn (s) => s.cands >= 81)
+        else
+            <|[\Sudoku\] |>
+        end
+
+    computeConsistent(): Boolean =
+        label inconsistent
+            keepTrying : Boolean := true
+            updated : Boolean := false
+            chk(s,v,i,j,k): Boolean =
+                if s=0 then
+                    consistent := No
+                    exit inconsistent with false
+                elif s=1 AND v>=0 then
+                    fillState(i,j,k)
+                else false
+                end
+            while props < 81 AND keepTrying do
+                options : ZZ32 := 0
+                keepTrying :=
+                    (BIG OR [i<-0#9, j<-0#9] do
+                        k' : ZZ32 := -1
+                        s = SUM [k<-0#9]
+                                if state[i,j,k].working() then k' := k; 1
+                                else state[i,j,k].candNum() end
+                        (* Remember square with MAX # candidates *)
+                        atomic if s > options then
+                                   options := s
+                                   iMax := i
+                                   jMax := j
+                               end
+                        chk(s,k',i,j,k')
+                      end) OR
+                    (BIG OR [i<-0#9, k<-0#9] do
+                        j' : ZZ32 := -1
+                        s = SUM [j<-0#9]
+                                if state[i,j,k].working() then j' := j; 1
+                                else state[i,j,k].candNum() end
+                        chk(s,j',i,j',k)
+                      end) OR
+                    (BIG OR [j<-0#9, k<-0#9] do
+                        i' : ZZ32 := -1
+                        s = SUM [i<-0#9]
+                                if state[i,j,k].working() then i' := i; 1
+                                else state[i,j,k].candNum() end
+                        chk(s,i',i',j,k)
+                      end) OR
+                    (BIG OR [i0<-0#3, j0<-0#3, k<-0#9] do
+                        i' : ZZ32 := -1
+                        j' : ZZ32 := -1
+                        s = SUM [i<-(3 i0)#3, j<-(3 j0)#3]
+                                if state[i,j,k].working() then
+                                     i':=i; j':=j; 1
+                                else state[i,j,k].candNum() end
+                        chk(s,i',i',j',k)
+                      end)
+                updated := updated OR keepTrying
+            end
+            if updated then
+                println(self)
+                println("Cost " self.cost())
+            end
+            if cands < 81 then
+                consistent := No
+                false
+            else
+                consistent := Yes
+                true
+            end
+        end inconsistent
+
+    (* fillState commits to i,j,k being chosen, assuming a race hasn't
+       prevented or preempted this choice.  It also updates props and
+       cands as appropriate. *)
+    fillState(i:ZZ32,j:ZZ32,k:ZZ32):ZZ32 =
+        if atomic (if state[i,j,k].working() then
+                       state[i,j,k] := Yes
+                       true
+                   else false end) then
+            atomic props += 1
+            afill(cond,i',j',k'):ZZ32 =
+                if cond then
+                    atomic do
+                        if state[i',j',k'].cand() then
+                            state[i',j',k'] := No
+                            1
+                        else
+                            0
+                        end
+                    end
+                else 0 end
+            delta =
+                (SUM [i' <- 0#9] afill(i =/= i', i',j,k)) +
+                (SUM [j' <- 0#9] afill(j =/= j', i,j',k)) +
+                (SUM [k' <- 0#9] afill(k =/= k', i,j,k')) +
+                (SUM [i' <- (3 (i DIV 3))#3, j' <- (3 (j DIV 3))#3]
+                       afill(i'=/=i AND j'=/=j, i',j',k))
+            if (delta > 0) then atomic cands -= delta end
+            true
+        else
+            println("Beaten to the punch at " (i,j,k))
+            false
+        end
+    copy(): Sudoku = Sudoku(cands,props,state.copy())
+end
+
+legalState(state:Array3[\BoardState,0,9,0,9,0,9\]): Boolean =
+    (BIG AND [i<-0#9,j<-0#9] (BIG OR [k<-0#9] state[i,j,k].cand())) AND
+    (BIG AND [i<-0#9,k<-0#9] (BIG OR [j<-0#9] state[i,j,k].cand())) AND
+    (BIG AND [j<-0#9,k<-0#9] (BIG OR [i<-0#9] state[i,j,k].cand())) AND
+    (BIG AND [i0<-0#3,j0<-0#3,k<-0#9]
+          (BIG OR [i<- (3 i0)#3,j<-(3 j0)#3] state[i,j,k].cand()))
+
+emptySudoku(): Sudoku = do
+    st0 = array3[\BoardState,9,9,9\]().fill(Perhaps)
+    Sudoku(9^3,0,st0)
+  end
+
+verifySudoku(st0) =
+    if legalState(st0.state) then
+        st0
+    else
+        fail("Bad initial state:" // st0)
+    end
+
+sudoku(givens:(ZZ32,ZZ32,ZZ32)...): Sudoku = do
+    st0 = emptySudoku()
+    for (i,j,k) <- givens do
+        st0.fillState(i-1,j-1,k-1)
+    end
+    verifySudoku(st0)
+  end
+
+sudoku(compact:String): Sudoku = do
+    st0 = emptySudoku()
+    for n<-compact.bounds do
+        i=n DIV 9
+        j=n REM 9
+        if i<9 AND j<9 then
+            case compact[n#1] of
+                "1" => st0.fillState(i,j,0)
+                "2" => st0.fillState(i,j,1)
+                "3" => st0.fillState(i,j,2)
+                "4" => st0.fillState(i,j,3)
+                "5" => st0.fillState(i,j,4)
+                "6" => st0.fillState(i,j,5)
+                "7" => st0.fillState(i,j,6)
+                "8" => st0.fillState(i,j,7)
+                "9" => st0.fillState(i,j,8)
+                else => false
+            end
+            ()
+        end
+    end
+    verifySudoku(st0)
+  end
+
+timing(x:()->Any): (Any,NanoInterval) = do
+    start = nanoTime()
+    r = x()
+    finish = nanoTime()
+    (r,NanoInterval(finish-start))
+  end
+
+value object NanoInterval(i:ZZ64)
+    getter sec(): RR64 = i / 10.0^9
+    getter ms(): RR64 = i / 10.0^6
+    getter us(): RR64 = i / 10.0^3
+    getter ns(): RR64 = 1.0 i
+    getter asString(): String =
+        if i = 0 then "0"
+        elif i >= 10^9 then self.sec "s"
+        elif i >= 10^6 then self.ms "ms"
+        elif i >= 10^3 then self.us "µs"
+        else self.ns "ns"
+        end
+    opr +(self, other:NanoInterval): NanoInterval =
+        NanoInterval(i+other.i)
+end
+
+run():()=do
+    spuriousInconsistency : Boolean := false
+    path = toDirectoryName(getProperty("fortress.autohome",""))
+    println("path=" path)
+    for problem <- seq(FileReadStream(path "ProjectFortress/demos/aStarSudokuData.txt").lines()) do
+        println("************************************************************")
+        (init,initTime) = timing (fn ():Sudoku => sudoku(problem))
+        println("initTime = " initTime)
+        (res,searchTime) = timing (fn ():Maybe[\Sudoku\] => aStar[\Sudoku,ZZ32\](init))
+        println("searchTime = " searchTime)
+        if r <- res then
+            println("Final result:" // r)
+        else
+            spuriousInconsistency := true
+            println("FAIL: INCONSISTENT:" // init)
+        end
+    end
+    if spuriousInconsistency then fail("Spurious inconsistencies found.") end
+  end
+
+end

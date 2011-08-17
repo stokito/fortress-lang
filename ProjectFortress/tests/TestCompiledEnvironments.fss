@@ -1,0 +1,104 @@
+(*******************************************************************************
+    Copyright now,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component TestCompiledEnvironments
+export Executable
+
+Aa:ZZ32 = 6
+BB:ZZ32 = 7
+
+run() = println "Hello, World!"
+
+trait Emptyא end
+trait Emptyב end
+trait Emptyג end
+trait Emptyד end
+trait Emptyה end
+trait Emptyו end
+trait Emptyז end
+trait Emptyח end
+trait Emptyט end
+trait Emptyי end
+trait Emptyך end
+trait Emptyכ end
+trait Emptyל end
+trait Emptyם end
+trait Emptyמ end
+trait Emptyן end
+trait Emptyנ end
+trait Emptyס end
+trait Emptyע end
+trait Emptyף end
+trait Emptyפ end
+trait Emptyץ end
+trait Emptyצ end
+trait Emptyק end
+trait Emptyר end
+trait Emptyש end
+trait Emptyת end
+trait Empty end
+
+opr $(_:Empty,_:Empty):ZZ32 = 42
+
+A:ZZ32 = 65
+B:ZZ32 = 66
+C:ZZ32 = 67
+D:ZZ32 = 68
+E:ZZ32 = 69
+F:ZZ32 = 70
+G:ZZ32 = 71
+H:ZZ32 = 72
+I:ZZ32 = 73
+J:ZZ32 = 74
+K:ZZ32 = 75
+L:ZZ32 = 76
+M:ZZ32 = 77
+N:ZZ32 = 78
+O:ZZ32 = 79
+P:ZZ32 = 80
+Q:ZZ32 = 81
+R:ZZ32 = 82
+S:ZZ32 = 83
+T:ZZ32 = 84
+U:ZZ32 = 85
+V:ZZ32 = 86
+W:ZZ32 = 87
+X:ZZ32 = 88
+Y:ZZ32 = 89
+Z:ZZ32 = 90
+a:ZZ32 = 97
+b:ZZ32 = 98
+c:ZZ32 = 99
+d:ZZ32 = 100
+e:ZZ32 = 101
+f:ZZ32 = 102
+g:ZZ32 = 103
+h:ZZ32 = 104
+i:ZZ32 = 105
+j:ZZ32 = 106
+k:ZZ32 = 107
+l:ZZ32 = 108
+m:ZZ32 = 109
+n:ZZ32 = 110
+o:ZZ32 = 111
+p:ZZ32 = 112
+q:ZZ32 = 113
+r:ZZ32 = 114
+s:ZZ32 = 115
+t:ZZ32 = 116
+u:ZZ32 = 117
+v:ZZ32 = 118
+w:ZZ32 = 119
+x:ZZ32 = 120
+y:ZZ32 = 121
+z:ZZ32 = 122
+
+end

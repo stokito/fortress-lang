@@ -1,0 +1,97 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Lazy
+export Lazy
+
+(** A Lazy[\T\] is a lazily evaluated T with memoization.
+   It can eventually be started in parallel.  We guarantee that
+   computation which computes the thunk value occurs at most once. *)
+value object Lazy[\T\](var s : State[\T\])
+  (** value obtains the value of the lazy object, evaluating it (or
+   blocking until it has been evaluated) as necessary. *)
+  getter val(): T = do
+      (old,eval) = attempt()
+      if eval then
+          assert(s.isPending(),"Lazy.value: not pending!")
+          s := Done[\T\](old.val())
+          s.val()
+      else
+          assert(old.isDone(),"Lazy.value: must be done by this point.")
+          old.val()
+      end
+    end
+  (** run attempts to run the thunk in parallel in its own spawned
+      thread.  This is a no-op if the thread has already been
+      evaluated or is under evaluation. *)
+  run(): () = do
+      (old,eval) = attempt()
+      if eval then
+          assert(s.isPending(),"Lazy.run: not pending!")
+          spawn do
+              s := Done[\T\](old.val())
+          end
+      else
+          assert(old.isDone(),"Lazy.run: must be done by this point.")
+          old.val()
+      end
+    end
+  (* attempt is used internally and encapsulates the thunk locking
+   protocol.  We return the current thunk state upon completion of the
+   attempt protocol; at this point we either own the thunk or it has
+   already been evaluated.  The boolean flag will be true if we have
+   ownership and are responsible for making sure the thunk is
+   evaluated.  The state s of a thunk has three values:
+       Done, in which case we return (s,false)
+       Pending, in which case attempt() will block using abort().
+       Thunk, in which case we return (s,true) after first atomically
+         replacing s with Pending to indicate that we have seized
+         ownership.
+   *)
+  attempt():(State[\T\],Boolean) =
+      atomic do
+          old = s
+          if NOT old.isDone() then
+              if old.isPending() then abort() end
+              s := Pending[\T\]
+              (old, true)
+          else
+              (old, false)
+          end
+      end
+end
+
+delay[\T\](f: ()->T):Lazy[\T\] = Lazy[\T\](Thunk[\T\](f))
+noDelay[\T\](t:T):Lazy[\T\] = Lazy[\T\](Done[\T\](t))
+
+(*** Private data for representing evaluation state of thunk *)
+
+trait State[\T\] comprises { Thunk[\T\], Pending[\T\], Done[\T\] }
+  getter isDone():Boolean = false
+  getter isPending():Boolean = false
+  getter val():T
+end
+
+object Thunk[\T\](f: ()->T) extends State[\T\]
+  getter val():T = f()
+end
+
+object Pending[\T\] extends State[\T\]
+  getter isPending():Boolean = true
+  getter val():T = abort()
+end
+
+object Done[\T\](v:T) extends State[\T\]
+  getter isDone():Boolean = true
+  getter val():T = v
+end
+
+end

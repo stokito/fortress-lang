@@ -1,0 +1,51 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Tests}
+\chaplabel{lib:tests}
+
+\Object{Fortress.Standard.TestSuite}
+
+An instance of the object \TYP{TestSuite} contains a set of test functions
+that can all be called by invoking the method \VAR{run}:
+%test object TestSuite(testFunctions = {})
+%  add(f: () -> ()): ()
+%  run(): ()
+%end
+\begin{Fortress}
+\(\KWD{test}\;\;\KWD{object} \TYP{TestSuite}(\VAR{testFunctions} = \{\})\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{add}(f\COLON () \rightarrow ())\COLON ()\)\\
+\(  \VAR{run}()\COLON ()\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+%  add(f: () -> ()): ()
+\Method{\(  \VAR{add}(f\COLON () \rightarrow ())\COLON ()\)}
+
+The \VAR{add} method adds a given test function to the \VAR{testFunctions}
+field of this object.
+
+%  run(): ()
+\Method{\(  \VAR{run}()\COLON ()\)}
+
+The \VAR{run} method calls each test function in the \VAR{testFunctions}
+field of this object.  Note that all tests in a \TYP{TestSuite} are run in
+parallel. 
+
+
+\section{Test Functions}
+
+%% I manually added a space after the test modifier. -- Sukyoung
+%test fail(message: String): ()
+\Method{\(\KWD{test}\ \VAR{fail}(\VAR{message}\COLON \TYP{String})\COLON ()\)}
+
+The helper function \VAR{fail} displays the error message provided
+and terminates execution of the enclosing test.
