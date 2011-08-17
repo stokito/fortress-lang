@@ -52,7 +52,7 @@ preserves subtype relationships between types in $\T$ and hence preserves
 validity of $\Df$.
 \end{psketch}
 
-\begin{lemma}[Determinism]
+\begin{lemma}[Unambiguity]
 If $\Df$ is valid with respect to the class table $\T$,
 then for every type $T \in \T$ such that $\Df(T)$ is nonempty, there is a unique most specific declaration in $\Df(T)$.
 \end{lemma}
@@ -75,6 +75,7 @@ of $d$, there exists an instance
 $\decl{f}{V}{W}$ of $d_{S}$ that is applicable to $S$ such that $W \subtypeof U$.
 \end{theorem}
 \begin{proof}
-The Extensibility Lemma lets us consider only the case when $\T' = \T$. Now the Determinism Lemma entails that such a $d_{S}$ exists, and the Return Type Rule
+The Extensibility Lemma lets us consider only the case when $\T' = \T$. 
+Now the Unambiguity Lemma entails that such a $d_{S}$ exists, and the Return Type Rule
 entails the rest.
 \end{proof}
