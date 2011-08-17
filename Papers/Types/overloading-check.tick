@@ -81,16 +81,20 @@ In the existential subtyping judgment $\jle{\delta}{\delta}$ the l.h.s. is reduc
 Dually, in the universal subtyping judgment $\jle{\sigma}{\sigma}$ the r.h.s. is reduces and its result is checked with the l.h.s. using the inner subtyping judment. 
 
 We explain how to compute generic reductions in more detail in Section~\ref{sec:exred}, but the behavior of of reduction can be understood almost entirely
-through the following two theorems.
+using the following lemmas which we state without proof.
+\begin{lemma}
+Suppose that $\jtred{\delta}{\delta'}$, then $\jleinner{\delta'}{\delta}$.
+\end{lemma}
+\begin{lemma}
+Suppose that $\jtred{\delta}{\delta'}$. If $\jgnequiv{T}{\Bottom}$ then $\jleinner{\exttype[]{T}}{\delta}$ if and only if $\jleinner{\exttype[]{T}}{\delta'}$.
+\end{lemma}
+\begin{lemma}
+Suppose that $\jtred{\sigma}{\sigma'}$ and $\arrowtype{S}{T}$ has $\jgnequiv{S}{\Bottom}$, then $\arrowtype{S}{T}$ is and instance of $\sigma$ if and only if
+$\arrowtype{S}{T}$ is an instance of $\sigma'$.
+\end{lemma}
 
-\TODO{THEOREMS}
-\begin{theorem}
-\end{theorem}
 
-\begin{theorem}
-\end{theorem}
-
-These subtyping judgments offer a nice interpretation of applicability and
+The these offer a nice interpretation of applicability and
 specificity of generic function declarations. Recall that a generic
 function declaration $d = \hdeclg{f}{\Delta}{S}{T}$ is applicable to a type
 $T$ if there is some instance $d'$ such that $T \le \dom(d')$.
@@ -108,7 +112,6 @@ to the inner subtyping judgments and our theorems immediately imply that they
 are correct with respect to the outer subtyping judments as well.
 
 \input{fig-meet}
-
 
 \subsection{Mechanically Checking the Rules}
 With our interpretations of applicability and specificity into existential
@@ -142,12 +145,14 @@ We can check the Return Type Rule using the subtype relation on universal types.
 \begin{theorem}
 Let $d_1 = \hdeclg{f}{\Delta_1}{S_1}{T_1}$ and $d_2 = \hdeclg{f}{\Delta_2}{S_2}{T_2}$ be declarations
 in $\Df$ with $d_1 \ms d_2$. They satisfy the return type rule if and only if $\arrow(d_1)$ is a subtype of
-the arrow type $\sigma_{meet} = \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \rightarrow T_2$.
+the arrow type $\sigma_{\wedge} = \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \rightarrow T_2$.
 \end{theorem}
 
-\begin{psketch}
-\TODO{PROOF}
-\end{psketch}
+\begin{proof}
+Note that $arrow(d_1)$ and $\sigma_{\wedge}$ are equally specific and that $arrow(d1) \le \sigma_{\wedge}$ implies that for every instance $\arrowtype{U}{V}$ of $\sigma_{\wedge}$ with $U \not \equiv \Bottom$
+we can find an instance $\arrowtype{U_1}{V_1}$ of $\arrow(d_1)$ with $U \subtypeof U_1$ and $V_1 \subtypeof V$. Thus the pair $d_1, d_2$ satisfies the return type rule if
+the pair $\sigma_{\wedge}, d_2$ does. This is clear because $\sigma_{\wedge}$ can match the return type of any instance of $d_2$ whose domain type is not $\Bottom$.
+\end{proof}
 
 
 
