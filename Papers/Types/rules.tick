@@ -125,11 +125,9 @@ then the type parameter instantiations derived by static type inference
 are relevant to $d_2$, but not to $d_1$.
 Because the call is dispatched to $d_1$, 
 we require type parameters for $d_1$ to be inferred \emph{dynamically}.
+\TODO{Say something about how this is done?
+Or that it is beyond the scope of this paper.}
 
-
-
-
-\TODO{Dynamic type inference}
 
 \subsection{Overloading Rules}
 \label{sec:threerules}
@@ -165,14 +163,17 @@ then $d_1 = d_2$.
 
 \item[Meet Rule]
 For every $d_1, d_2 \in \Df$,
-there exists a declaration $d_0 \in \Df$ (possibly one of the pair) 
+there exists a declaration $d_0 \in \Df$ (possibly $d_1$ or $d_2$) 
 such that,
-for every type $T \in \T$, $d_0$ is applicable to $T$ 
-if and only if both $d_1$ and $d_2$ are applicable to $T$.
+% for every type $T \in \T$, $d_0$ is applicable to $T$ 
+% if and only if both $d_1$ and $d_2$ are applicable to $T$.
+$d_0 \ms d_1$ and $d_0 \ms d_2$ 
+and $d_0$ is applicable to any type $T \in \T$ 
+to which both $d_1$ and $d_2$ are applicable.
 
 \item[Return Type Rule]
 For every $d_1, d_2 \in \Df$ with $d_1 \ms d_2$,
-and every type $T$ such that $d_1 \in \Df(T)$,
+and every type $T \not\equiv \Bottom$ such that $d_1 \in \Df(T)$,
 % (and thus $d_2 \in \Df(T)$),
 if an instance $\decl{f}{S_2}{T_2}$ of $d_2$ is applicable to $T$,
 then there is an instance \decl{f}{S_1}{T_1} of $d_1$
@@ -180,56 +181,70 @@ that is applicable to $T$ with \mbox{$T_1 <: T_2$}.
 
 \end{description}
 
+The No Duplicates Rule forbids distinct declarations from being equally specific 
+(i.e., each more specific than the other).
 
+The Meet Rule requires every pair of declarations 
+to have a \emph{disambiguating declaration}, 
+which is more specific than both 
+and applicable whenever both are applicable.
+(If one of the pair is more specific than the other, 
+then it is the disambiguating declaration.)
 
-% To avoid the obvious ambiguity, 
-% $\Df$ should not contain equally specific declarations:
-% for each pair of overloaded declarations, 
-% either one declaration is strictly more specific
-% than the other or they are incomparable.
-A pair of declarations is unambiguous
-if and only if for any type to which both declarations are applicable,
-there is a {\em disambiguating declaration} (possibly one of the pair)
-that is also applicable to that type and is more specific than both declarations. Moreover, that declaration is applicable exactly when
-both of the others are applicable.
+The Return Type Rules guarantees that
+whenever the type checker might have used an instance of a declaration $d_2$ 
+to check a program,
+and then a more specific declaration $d_1$ is selected by dynamic dispatch,
+then there is some instance of $d_1$ that is applicable to the argument 
+and whose return type is a subtype 
+of the return type of the instance of $d_2$ 
+the type checker used, 
+which is necessary for type preservation, 
+as discussed above.
 
-%% \TODO{Discuss what types $T$ we must consider, 
-%% and relevance to extensibility.}
-
-%% \TODO{Explain motivation for intersection types (i.e., as meet).
-%% Perhaps this belongs in Types section.}
-
-
-% If one monomorphic declaration is more specific than another monomorphic declaration,
-% then there is no ambiguity between these two declarations:
-% for any type to which both are applicable, the first is more specific.
-% In the parametrically polymorphic setting,
-% if one declaration is to be regarded as more specific than another,
-% we require that for every instance of the second that is applicable to a type,
-% there exists an instance of the first that is also applicable to the type.
-As in other object-oriented languages, to ensure type safety in the face of dynamic dispatch,
-we also require that the return type of the first declaration be a subtype of the return type of the second.
-% We can ensure that the second well-formedness condition for overloading
-% holds by checking the following rule for each function name $f$:
-
-Since $\Bottom$ is well-formed with respect to any class table, 
+Since $\Bottom$ is well-formed, 
+% with respect to any class table, 
 and tuple types with different numbers of arguments 
 have no common subtype other than \Bottom,
-the Meet Rule technically requires that 
+the Meet Rule requires that 
 an overloaded function with declarations that take different numbers of arguments 
 have a declaration applicable only to \Bottom.
-Because \Bottom\ is not first-class in Fortress, 
-such a declaration cannot be written, 
-and in any case it would, of course, never be applied
-because no value belongs to \Bottom.
+Such a declaration would never be applied 
+(because no value belongs to \Bottom), 
+and it cannot be written in Fortress 
+(because \Bottom\ is not first-class).
 To avoid this technicality, 
-we implicitly augment the set $\Df$ of overloaded function declarations with name $f$ 
+we implicitly augment every set $\Df$ 
 with a declaration $\decl{f}{\Bottom}{\Bottom}$.
-Because this declaration is strictly more specific 
-than any declaration that a programmer can write, and because its return
-type is \Bottom,
-it trivially satisfies all three rules when checked with any other
-declaration in $\Df$.
+This declaration is strictly more specific 
+than any declaration that a programmer can write,
+and its return type is a subtype of every type, 
+so it trivially satisfies all three rules 
+when checked with any other declaration in $\Df$.
+
+This technicality raises the following question:
+Must the Meet Rule hold for every $T \in \T$?
+Could we not, for example, 
+have excluded \Bottom\ from consideration, 
+as in the Return Type Rule, 
+and avoided the technicality?
+If so, 
+for which types is it necessary that the Meet Rule hold?
+The answer is,
+we must check the Meet Rule for a type $T \in \T$ 
+to which both $d_1$ and $d_2$ are applicable
+if there could be a value of type $T$ 
+such that for any type $T' \in \T$ 
+to which the value belongs, $T \subtypeof T'$.
+In other words, 
+we must check it for all ````leaf'' types.
+Thus, if we did not require extensibility, 
+we can check the Meet Rule only for those types that are ilks of values.
+However, 
+because we require extensibility, 
+and we support multiple inheritance,
+we use intersection types instead.
+
 
 \subsection{Properties of Overloaded Functions}
 With the rules for valid overloading laid out, we now describe some useful

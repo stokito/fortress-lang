@@ -354,7 +354,8 @@ components, separate compilation, Fortress, meet rule}
 \input{exc-reduction}
 
 
-\section{Discussion}\label{sec:discussion}
+\section{Overloading Across Modules}
+\label{sec:discussion}
 \input{discussion}
 
 \section{Related Work}\label{sec:related}
