@@ -1,0 +1,55 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ForUse
+import For.{...}
+import List.{...}
+import Set.{...}
+export Executable
+
+run() = do
+    n = <|1,2,3|>
+    b = <|100,101,102|>
+
+    println "With seq"
+    for a <- seq(n) do
+        (println a)
+    end
+
+    println "And without seq"
+    for a <- n, q <- b 
+    do
+        (println a " and " q)
+    end
+
+    println "Testing _"
+    for _ <- seq(n)  do
+        (println "Works.")
+    end
+
+    println "Testing filter expressions"
+    for a <- b , even(a) do
+        (println a " is an even number.")
+    end
+
+    println "Testing more doFront"
+    for a <- b at Global do
+        (println "Testing at")
+    end
+    for a <- b do end
+    for a <- b atomic do
+        (println "Testing atomic")
+    end
+
+    println "Ok, im done!"
+end
+
+end

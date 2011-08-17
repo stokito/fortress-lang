@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXSyntaxErrorCaseDo
+export Executable
+
+run():() = do
+  case 5 do
+    3 => println "foo"
+    5 => println "bar"
+  end
+end
+
+end

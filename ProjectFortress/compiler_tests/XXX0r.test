@@ -1,0 +1,19 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled0.r
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled0.r.fss:11:11-21:\n\
+\ Component Compiled0.r exports API Executable\n\
+\ but does not define all declarations in Executable.\n\
+\ Missing declarations: {run():() at ${FORTRESS_AUTOHOME}/Library/Executable.fsi:16:3-17:1}\n\
+File Compiled0.r.fss has 1 error.\n
+compile_out_equals=
