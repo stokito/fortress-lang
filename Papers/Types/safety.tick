@@ -62,9 +62,6 @@ by Lemma~\ref{lem:subsetvalid} and thus contains a unique most specific
 declaration by Lemma~\ref{lem:leastelement}.
 \end{proof}
 
-\vspace*{2ex}
-The proof of the Overloading Safety Theorem follows easily:
-
 \begin{theorem}[Overloading Safety]
 \label{thm:safety}
 Suppose $\Df$ is valid with respect to the class table $\T$.

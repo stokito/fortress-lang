@@ -122,21 +122,27 @@ Section~\ref{sec:rules}.
 We can check the No Duplicates Rule by verifying that for every pair of distinct function
 declarations $d_1, d_2 \in \Df$ either $d_1 \not \ms d_2$ or $d_1 \not \ms d_2$. 
 
-The Meet Rule requires that every pair of declarations $d_1, d_2 \in \Df$ has a meet in $\Df$. Thus, because
-more specific relation on function declarations corresponds to the subtyping relation on existential types, we just
-need to compute the meet $\dom(d_1) \wedge \dom(d_2)$ (under $\le$) of the existential types $\dom(d_1)$ and $\dom(d_2)$, and then search for a declaration
-$d_0 \in \Df$ with $dom(d_0) \equiv \dom(d_1) \wedge \dom(d_2)$. Fortunately, computing the meet of two existential types is easily done (see Figure~\ref{fig:meet}).
+The Meet Rule requires that every pair of declarations $d_1, d_2 \in \Df$ 
+has a meet in $\Df$. 
+Because the more specific relation on function declarations 
+corresponds to the subtyping relation on the (existential) domain types,
+we just need to find a declaration $d_0 \in \Df$ 
+whose domain type $dom(d_0)$ 
+is equivalent to the meet (under $\le$) 
+of the existential types $\dom(d_1)$ and $\dom(d_2)$.
+Figure~\ref{fig:meet} defines the ````computed meet'' of two existential types, 
+which 
 
 \begin{lemma}\label{lem:meet}
-$\delta_1 \meet \delta_2$ is actually the meet of $\delta_1$ and $\delta_2$ under $\le$.
+$\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\le$.
 \end{lemma}
 \begin{proof}
-First we will show that $\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\leinner$. That $\delta_1 \meet \delta_2 \leinner \delta_1$ and $\delta_1 \meet \delta_2 \leinner \delta_2$ is obvious.
+First we show that $\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\leinner$. That $\delta_1 \meet \delta_2 \leinner \delta_1$ and $\delta_1 \meet \delta_2 \leinner \delta_2$ is obvious.
 For any $\delta_0$, if $\bar{U}$ and $\bar{V}$ are instantiations that prove
 $\delta_0 \leinner \delta_1$ and $\delta_0 \leinner \delta_2$, respectively,
 then we can use the instantiation $\bar{U},\bar{V}$ to prove that $\delta_0 \le \delta_1 \meet \delta_2$.
 
-Now we will show that the meet under $\leinner$ is also the meet under $\le$. Suppose that $\delta_0 \le \delta_1$, $\delta_0 \le \delta_1$,
+Now we show that the meet under $\leinner$ is also the meet under $\le$. Suppose that $\delta_0 \le \delta_1$, $\delta_0 \le \delta_1$,
 and $\jtred{\delta_0}{\delta'_0}$. A little work lets us deduce that $\delta'_0 \leinner \delta_1 \meet \delta_2$ and hence $\delta_0 \le \delta_1 \meet \delta_2$.
 The fact that $\delta_1 \meet \delta_2 \le \delta_1$ and $\delta_1 \meet \delta_2 \le \delta_2$ follows from the fact that $\leinner$ implies $\le$.
 \end{proof}

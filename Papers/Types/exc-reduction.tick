@@ -79,9 +79,9 @@ to types with variables in $\Delta''$. We then construct a new arrow with domain
   {\jtreds{\unitype[\Delta']{\arrowtype{S}{T}}}{\unitype[\Delta'']{\arrowtype{S'}{\phi(T)}}}{\phi}}
 
 
-\infrule
-  {\text{otherwise}}
-  {\jtreds{\unitype[\Delta']{\arrowtype{S}{T}}}{\unitype[\Delta']{\arrowtype{S}{T}}}{\subst{}{}}}
+% \infrule
+%   {\text{otherwise}}
+%   {\jtreds{\unitype[\Delta']{\arrowtype{S}{T}}}{\unitype[\Delta']{\arrowtype{S}{T}}}{\subst{}{}}}
 
 \infrule
   {T \neq \arrowtype{U}{V}}
