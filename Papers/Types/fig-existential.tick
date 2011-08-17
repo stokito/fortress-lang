@@ -16,15 +16,8 @@
   {\jleinner{\forall\obb{X <: \bd{M}}T}{\forall\obb{Y <: \bd{N}}U}}
 
 \infrule
-  {\jtreds{\exttype[\Delta']{S}}{\exttype[\Delta'']{U}}{\phi} \\[.3em]
-   \jleinner{\sigma}{\unitype[\Delta'']{\left(\arrowtype{U}{\phi(T)}\right)}}}
-  {\jle{\sigma}{\unitype[\Delta']{\arrowtype{S}{T}}}}
-
-\infrule
-  {U \neq S \rightarrow T
-   \andalso
-   \jleinner{\sigma}{\unitype[\Delta']{U}}}
-  {\jle{\sigma}{\unitype[\Delta']{U}}}
+  {\jtred{\sigma'}{\sigma''} \andalso \jleinner{\sigma}{\sigma''}}
+  {\jle{\sigma}{\sigma'}}
 
 % \begin{tabularx}{\textwidth}{RcX}
 %   $\sigma_1 \le \sigma_2$ & \syndef & $\jle[\emptyset]{\sigma_1}{\sigma_2}$ \\
