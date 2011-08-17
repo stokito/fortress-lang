@@ -106,6 +106,8 @@
 \newcommand{\exttype}[2][\Delta]{\ensuremath{\exists\ob{#1}{#2}}}
 % universal type
 \newcommand{\unitype}[2][\Delta]{\ensuremath{\forall\ob{#1}{#2}}}
+% reduced existential type
+\newcommand{\reduce}[1]{\ensuremath{{#1}_r}}
 
 %%%%% Any and Bottom %%%%
 
@@ -383,5 +385,5 @@ Science and Technology(MEST) / National Research Foundation of Korea(NRF)
 % \appendix
 % \section{Subtyping Rules}
 % \input{fig-subtype}
-
+\input{proofs}
 \end{document}
