@@ -1,8 +1,8 @@
 Up to this point the precise definitions of subtyping and exclusion between
-types (and existential reduction) have remained unspecified. In this section
+types (and quantifier reduction) have remained unspecified. In this section
 we describe a small language of type constraints and, more importantly, we
 define subtyping and exclusion with respect to constraints. Finally, with constraint-based subtyping and exclusion defined, we explain
-in more detail the notion of existential reduction used in the $\le$ judgments (and thus in our rule-checking).
+in more detail the notion of quantifier reduction used in the $\le$ judgments (and thus in our rule-checking).
 
 \subsection{Inference Variables}
 
