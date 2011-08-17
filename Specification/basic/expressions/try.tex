@@ -1,0 +1,113 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Try Expressions}
+\seclabel{try-expr}
+
+\note{Chained exceptions are not yet supported.}
+
+\begin{Grammar}
+\emph{DelimitedExpr}
+&::=& \KWD{try} \emph{BlockElems} \option{\emph{Catch}}
+\options{\KWD{forbid} \emph{TraitTypes}}
+\options{\KWD{finally} \emph{BlockElems}} \KWD{end} \\
+\emph{Catch} &::=& \KWD{catch} \emph{BindId} \emph{CatchClauses}\\
+
+\emph{CatchClauses} &::=& \emph{CatchClause}$^+$\\
+
+\emph{CatchClause} &::=& \emph{TraitType} \EXP{\Rightarrow} \emph{BlockElems} \\
+\end{Grammar}
+
+
+A \KWD{try} expression starts with \KWD{try}
+followed by an expression block (the \emph{\KWD{try} block}),
+followed by an optional \KWD{catch} clause, an optional \KWD{forbid}
+clause, an optional \KWD{finally} clause, and finally
+\KWD{end}.  A \KWD{catch} clause consists of
+\KWD{catch} followed by an identifier, followed by a sequence
+of subclauses (each consisting of an exception type followed by the token
+\EXP{\Rightarrow} followed by an expression block).
+A \KWD{forbid} clause consists of \KWD{forbid}
+followed by a set of exception types.
+A \KWD{finally} clause consists of \KWD{finally}
+followed by an expression block.
+Note that the \KWD{try} block and the clauses
+form expression blocks and have the various properties of
+expression blocks (described in \secref{block-expr}).
+
+
+The expressions in the \KWD{try} block are first evaluated in order
+until they have all completed normally, or until one of them completes
+abruptly.  If the \KWD{try} block completes normally, the
+\emph{provisional} value of the \KWD{try} expression is the value of the
+last expression in the \KWD{try} block.  In this case, and in case of
+exiting to an enclosing \KWD{label} expression, the \KWD{catch} and
+\KWD{forbid} clauses are ignored.
+
+
+If an expression in the \KWD{try} block completes abruptly by throwing
+an exception, the exception value is bound to the identifier specified in
+the \KWD{catch} clause, and the type of the exception is matched
+against the subclauses of the \KWD{catch} clause in turn, exactly as in a
+\KWD{typecase} expression (\secref{typecase}).
+The right-hand-side expression block
+of the first matching subclause is evaluated.  If it
+completes normally, its value is the provisional value of the
+\KWD{try} expression.  If the \KWD{catch} clause completes abruptly,
+the \KWD{try} expression completes abruptly.  If a thrown exception is
+not matched by the \KWD{catch} clause (or this clause is omitted), but
+it is a subtype of the exception type listed in a
+\KWD{forbid} clause, a new
+\TYP{ForbiddenException} is created with the thrown exception as its
+argument and thrown.
+The exception thrown by the \KWD{try} block is \emph{chained} to the
+\TYP{ForbiddenException} as described in
+\secref{chained-exceptions}.
+
+
+If an exception thrown from a \KWD{try} block is matched by both
+\KWD{catch} and \KWD{forbid} clauses, the exception is caught by the
+\KWD{catch} clause.
+If an exception thrown from a \KWD{try} block is not matched by any
+\KWD{catch} or \KWD{forbid} clause, the \KWD{try} expression completes
+abruptly.
+
+
+The expression block of the \KWD{finally} clause
+is evaluated after completion of the \KWD{try} block
+and any \KWD{catch} or \KWD{forbid} clause.
+The type of this expression block must be ().
+The expressions in the \KWD{finally} clause are evaluated in order until
+they have all completed normally, or until one of them completes abruptly.
+In the latter case, the \KWD{try} expression completes abruptly exactly as
+the subexpression in the \KWD{finally} clause does.
+If the \KWD{finally} clause completes abruptly by throwing an exception,
+any thrown exception earlier in the \KWD{try} expression is chained to the
+exception thrown by the \KWD{finally} clause as described in
+\secref{chained-exceptions}.
+
+
+If the \KWD{finally} clause completes normally,
+and the \KWD{try} block or the \KWD{catch}
+clause completes normally, then the \KWD{try} expression completes
+normally with the provisional value of the \KWD{try} expression.
+Otherwise, the \KWD{try} expression completes abruptly as specified above.
+The type of a \KWD{try} expression is the union
+of the type of the \KWD{try} block
+and the types of all the right-hand sides of the \KWD{catch} clauses.
+
+For example, the following \KWD{try} expression:
+\input{\home/basic/examples/Expr.Try.a.tex}
+is equivalent to:
+\input{\home/basic/examples/Expr.Try.b.tex}
+The following example ensures that \VAR{file} is closed properly even if an
+IO error occurs:
+\input{\home/basic/examples/Expr.Try.c.tex}
