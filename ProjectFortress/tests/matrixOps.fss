@@ -1,0 +1,56 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component matrixOps
+export Executable
+
+(*
+Uncommenting this exhibits the bug in objectExprMystery.fss
+
+mtest(a:RR64[3,3]):() = ()
+*)
+
+run() = do
+  m0 : RR64[3,4] = [ 2.0 0.0 0.0  7.0
+                     0.0 3.0 0.0 11.0
+                     0.0 0.0 5.0 13.0 ]
+  i3 : RR64[3,3] = matrix[\RR64,3,3\](1.0)
+  i4 : RR64[4,4] = matrix[\RR64,4,4\](1.0)
+  z3 : RR64[3,3] = array2[\RR64,3,3\](fn (i,j) => 0.0)
+  z4 : RR64[4,4] = array2[\RR64,4,4\](fn (i,j) => 0.0)
+  z0 : RR64[3,4] = array2[\RR64,3,4\](fn (i,j) => 0.0)
+  v3 : RR64[3] = vector[\RR64,3\](1.0)
+  v4 : RR64[4] = vector[\RR64,4\](1.0)
+  assert(m0.copy(), m0, "copy")
+  assert(i3 DOT v3, v3, "i dot 3")
+  assert(i4 DOT v4, v4, "i dot 4")
+  assert(v3 DOT i3, v3, "3 dot i")
+  assert(v4 DOT i4, v4, "4 dot i")
+  r3 : RR64[3] = [ 9 14 18 ]
+  assert(m0 DOT v4, r3, "m0 v4")
+  r4 : RR64[4] = [ 2 3 5 31 ]
+  assert(v3 DOT m0, r4, "v3 m0")
+  assert(m0 DOT i4, m0, "m0 i4")
+  assert(i3 DOT m0, m0, "i3 m0")
+  assert(z3 DOT m0, z0, "z3 m0")
+  assert(m0 DOT z4, z0, "m0 z4")
+  m1 : RR64[4,4] = [ 4  0  0  14
+                     0  9  0  33
+                     0  0 25  65
+                    14 33 65 339]
+  assert(m0.t() DOT m0,m1, "m0^2")
+  m02 = 2.0 DOT m0
+  assert(m0 + m0, m02, "m0+m0")
+  assert(m0 DOT 2.0, m02,"2m0")
+  ()
+end
+
+end

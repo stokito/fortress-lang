@@ -1,0 +1,699 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Internal Document}
+
+\input{\home/appendices/FAQ}
+\input{\home/appendices/future}
+
+\section{Examples}
+\subsection{Scope of inherited method declarations}
+% f(x: ZZ) = x+1
+% trait T
+%   f(x: ZZ): ZZ = x+2
+% end
+% object O extends T
+%   g(x: ZZ) = f(x) + 3
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( f(x\COLON \mathbb{Z}) = x+1\)\\
+\( \KWD{trait}\:T\)\\
+{\tt~~}\pushtabs\=\+\(   f(x\COLON \mathbb{Z})\COLON \mathbb{Z} = x+2\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{object}\:O \KWD{extends}\:T\)\\
+{\tt~~}\pushtabs\=\+\(   g(x\COLON \mathbb{Z}) = f(x) + 3\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+Allow this and \EXP{O.g(4) = 9}.
+
+\subsection{Scope of \KWD{self}}
+% trait T
+%   getter y(): ZZ
+% end
+% object O(x: ZZ)
+%   n() = object extends T
+%           y: ZZ = self.x
+%         end
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:T\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{getter}\:y()\COLON \mathbb{Z}\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{object}\:O(x\COLON \mathbb{Z})\)\\
+{\tt~~}\pushtabs\=\+\(   n() =  \null\)\pushtabs\=\+\(\KWD{object}\;\;\KWD{extends}\:T\)\\
+{\tt~~~~~~~~}\pushtabs\=\+\(           y\COLON \mathbb{Z} = \mathord{\KWD{self}}.x\)\-\\\poptabs
+\(         \KWD{end}\)\-\-\\\poptabs\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+Note that the reference to \EXP{\mathord{\KWD{self}}} in the initialization expression for
+\VAR{y} cannot refer to the object being constructed, so if this is allowed, then that
+\EXP{\mathord{\KWD{self}}} must refer to the object \VAR{O}.
+
+\subsection{Object name shadowed by methods}
+% object O(x: ZZ)
+%   O(y: ZZ) = y+3
+%   m(z: ZZ) = O(z)
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{object}\:O(x\COLON \mathbb{Z})\)\\
+{\tt~~}\pushtabs\=\+\(   O(y\COLON \mathbb{Z}) = y+3\)\\
+\(   m(z\COLON \mathbb{Z}) = O(z)\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+Allow this and \EXP{O(1).m(2) = 5}.
+
+\subsection{Function name shadowed by keyword parameters}
+% f(f: ZZ = 0) = f+1
+% g(g: ZZ->ZZ = fn x => x) = g(2)       (* this is not a recursive function *)
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( f(f\COLON \mathbb{Z} = 0) = f+1\)\\
+\( g(g\COLON \mathbb{Z}\rightarrow\mathbb{Z} = \;\KWD{fn}\:x \Rightarrow x) = g(2)       \mathtt{(*}\;\hbox{\rm  this is not a recursive function \unskip}\;\mathtt{*)}\)\-\\\poptabs
+\end{Fortress}
+
+Allowed because the names of keyword parameters, unlike the names of other parameters,
+are part of the ``interface'' of the functional.
+
+\subsection{Type names referred by imported entities in a component implementing the types}
+
+A fully qualified type, \EXP{\TYP{APIName}.\VAR{typeName}}, ``available'' in a component,
+\TYP{ComponentName}, that implements the API, \TYP{APIName},
+denotes the same type \VAR{typeName}, which should be defined in the component,
+\TYP{ComponentName}.  For example:
+
+% api A
+%   trait T
+%     m(): T
+%   end
+% end
+
+% api B
+%   import A.T
+%   f(): T
+% end
+
+% component C
+%   import B.f
+%   export A
+%   trait T
+%     m(): T
+%     private n(): ()
+%   end
+%   g() = f().n()
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{api}\:A\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{trait}\:T\)\\
+{\tt~~}\pushtabs\=\+\(     m()\COLON T\)\-\\\poptabs
+\(   \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{api}\:B\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{import}\:A.T\)\\
+\(   f()\COLON T\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{component}\:C\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{import}\:B.f\)\\
+\(   \KWD{export}\:A\)\\
+\(   \KWD{trait}\:T\)\\
+{\tt~~}\pushtabs\=\+\(     m()\COLON T\)\\
+\(     \KWD{private}\:n()\COLON ()\)\-\\\poptabs
+\(   \KWD{end}\)\\
+\(   g() = f().n()\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+the method call \EXP{f().n()} is valid.
+
+However, a fully qualified type, \EXP{\TYP{APIName}.\VAR{typeName}},
+``occurring'' in a component, \TYP{ComponentName}, that implements the API, \TYP{APIName}
+is not allowed because \TYP{APIName} is not imported to the component.
+
+\subsection{Overloaded operators}
+
+\begin{itemize}
+\item Are we allowed to say:
+% trait Foo[\opr OP\]
+%   f(x: T[\OP\], y: ZZ32) = ...
+%   f(x: T[\OTIMES\], y: ZZ32) = ...
+%   opr OP(self, other: FOO[\OP\]) = ...
+%   opr OTIMES(self, other: FOO[\OP\]) = ...
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:\TYP{Foo}\llbracket\KWD{opr} \mathord{\OPR{OP}}\rrbracket\)\\
+{\tt~~}\pushtabs\=\+\(   f(x\COLON T\llbracket\OPR{OP}\rrbracket, y\COLON \mathbb{Z}32) = \ldots\)\\
+\(   f(x\COLON T\llbracket\otimes\rrbracket, y\COLON \mathbb{Z}32) = \ldots\)\\
+\(   \KWD{opr} \mathord{\OPR{OP}}(\KWD{self}, \VAR{other}\COLON \OPR{FOO}\llbracket\OPR{OP}\rrbracket) = \ldots\)\\
+\(   \KWD{opr} \mathord{\otimes}(\KWD{self}, \VAR{other}\COLON \OPR{FOO}\llbracket\OPR{OP}\rrbracket) = \ldots\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+now that \OPR{OP} is forbidden to be \EXP{\otimes},
+so maybe it's okay???
+
+If \VAR{T} is a trait, it is not allowed because \EXP{T\llbracket\OPR{OP}\rrbracket}
+may not exclude \EXP{T\llbracket\otimes\rrbracket}.
+
+No. We don't want to allow this. The static checker does not take the implicit constraint from the body of the trait.
+
+\item Are we allowed to say:
+% trait Foo[\nat n\]
+%   f(x: T[\n+1\], y: ZZ32) = ...
+%   f(x: T[\0\], y: ZZ32) = ...
+% end
+% object T[\nat n\]( ... ) end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:\TYP{Foo}\llbracket\KWD{nat}\:n\rrbracket\)\\
+{\tt~~}\pushtabs\=\+\(   f(x\COLON T\llbracket{}n+1\rrbracket, y\COLON \mathbb{Z}32) = \ldots\)\\
+\(   f(x\COLON T\llbracket{}0\rrbracket, y\COLON \mathbb{Z}32) = \ldots\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{object}\:T\llbracket\KWD{nat}\:n\rrbracket( \ldots ) \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+now that \EXP{n+1} is necessarily nonzero, so maybe it's okay???
+
+Not allowed.
+\item Are we allowed to say:
+% trait Foo[\nat n\]
+%   f(x: T[\1\], y: ZZ32) = ...
+%   f(x: T[\0\], y: ZZ32) = ...
+% end
+% object T[\nat n\]( ... ) end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:\TYP{Foo}\llbracket\KWD{nat}\:n\rrbracket\)\\
+{\tt~~}\pushtabs\=\+\(   f(x\COLON T\llbracket{}1\rrbracket, y\COLON \mathbb{Z}32) = \ldots\)\\
+\(   f(x\COLON T\llbracket{}0\rrbracket, y\COLON \mathbb{Z}32) = \ldots\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{object}\:T\llbracket\KWD{nat}\:n\rrbracket( \ldots ) \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+now that \KWD{nat} parameters are all instantiated, so maybe it's okay???
+
+Allowed.
+\item Are we even allowed to say this simpler case:
+% f(x: ZZ32, y: ZZ32) = ...
+% f(x: T[\0\], y: ZZ32) = ...
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( f(x\COLON \mathbb{Z}32, y\COLON \mathbb{Z}32) = \ldots\)\\
+\( f(x\COLON T\llbracket{}0\rrbracket, y\COLON \mathbb{Z}32) = \ldots\)\-\\\poptabs
+\end{Fortress}
+if our implementation strategy for \KWD{nat} parameters is ``don't instantiate''?
+
+Allowed.
+
+\item Do we allow this:
+% trait F[\nat n\] extends G[\n\] end
+% trait G[\nat n\] extends F[\n+1\] end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:F\llbracket\KWD{nat}\:n\rrbracket \KWD{extends}\:G\llbracket{}n\rrbracket \KWD{end}\)\\
+\( \KWD{trait}\:G\llbracket\KWD{nat}\:n\rrbracket \KWD{extends}\:F\llbracket{}n+1\rrbracket \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+Not allowed by the type acyclicity restriction.
+
+\end{itemize}
+
+\subsection{Implicitly Imported Types}
+When a component imports a functional \VAR{f}
+(either a top-level function or a functional method) by an import statement,
+the imported \VAR{f} may be overloaded with a functional \VAR{f} declared by the component.
+When a component imports a top-level declaration \VAR{f} from an API \VAR{A},
+all the relevant types to type check the uses of \VAR{f} are implicitly imported from \VAR{A}.
+However, these implicitly imported types for type checking are not expressible by programmers;
+programmers must import the types by import statements to use them.
+For example, the two functional calls in the following component \VAR{C} are valid:
+% api A
+%   trait T
+%     m() : ()
+%   end
+% end
+
+% api B
+%   import A.{...}
+%   f(): T
+%   g(T): ()
+% end
+
+% component C
+%   import B.{f, g}
+%   export Executable
+%   run (args) = do f().m(); g(f()) end
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{api}\:A\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{trait}\:T\)\\
+{\tt~~}\pushtabs\=\+\(     m() \mathrel{\mathtt{:}} ()\)\-\\\poptabs
+\(   \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{api}\:B\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{import}\:A.\{\ldots\}\)\\
+\(   f()\COLON T\)\\
+\(   g(T)\COLON ()\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{component}\:C\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{import}\:B.\{f, g\}\)\\
+\(   \KWD{export}\:\TYP{Executable}\)\\
+\(   \VAR{run} (\VAR{args}) = \;\KWD{do}\:f().m(); g(f()) \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+because \VAR{T} is implicitly imported from \VAR{B} to type check the functional calls.
+However, the programmers cannot write \VAR{T} in \VAR{C}
+because \VAR{T} is not imported by an import statement.
+
+\subsection{Component and Value Namespace}
+% component Surprise
+% import api Foo
+% export Executable
+
+% object Foo
+%   foo():String = "foo"
+%   bar():String = "foo"
+%   baz():String = "foo"
+% end
+
+% run(args:String...) = do
+%   Foo.foo()
+%   Foo.bar()
+%   Foo.baz()
+% end
+
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{component}\:\TYP{Surprise}\)\\
+\( \KWD{import}\;\;\KWD{api}\:\TYP{Foo}\)\\
+\( \KWD{export}\:\TYP{Executable}\)\\[4pt]
+\( \KWD{object}\:\TYP{Foo}\)\\
+{\tt~~}\pushtabs\=\+\(   \VAR{foo}()\COLONOP\TYP{String} =\;\;\hbox{\rm``\STR{foo}''}\)\\
+\(   \VAR{bar}()\COLONOP\TYP{String} =\;\;\hbox{\rm``\STR{foo}''}\)\\
+\(   \VAR{baz}()\COLONOP\TYP{String} =\;\;\hbox{\rm``\STR{foo}''}\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \VAR{run}(\VAR{args}\COLONOP\TYP{String}\ldots) = \;\KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(   \TYP{Foo}.\VAR{foo}()\)\\
+\(   \TYP{Foo}.\VAR{bar}()\)\\
+\(   \TYP{Foo}.\VAR{baz}()\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+Static error for the declaration of the object \TYP{Foo} in the above example.
+
+\subsection{Disjunctive Constraints}
+
+Here is a program that will only typecheck correctly if the fortress typechecker supports these disjunctions:
+%% component NeedsDisjunction
+%%   export Executable
+
+%%   object Right end
+%%   object Wrong end
+
+%%   bar[\T\](p_1:Plussable[\T\], p_2:Plussable[\T\]):Plussable[\T\] = p_1
+
+%%   trait Plussable[\T\]
+%%   end
+
+%%   object Parent extends {Plussable[\Right\], Plussable[\Wrong\]}
+%%   end
+
+%%   foo(p:Plussable[\Wrong\]):() = ()
+
+%%   run(args:String...):() = do
+%%     a:Parent = Parent
+%%     b:Parent = Parent
+
+%%     c = bar(a,b)
+%%     foo(c)
+%%   end
+%% end
+\begin{Fortress}
+\(\KWD{component}\:\TYP{NeedsDisjunction}\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{export}\:\TYP{Executable}\)\\[4pt]
+\(  \KWD{object}\:\TYP{Right} \KWD{end}\)\\
+\(  \KWD{object}\:\TYP{Wrong} \KWD{end}\)\\[4pt]
+\(  \VAR{bar}\llbracket{}T\rrbracket(p_{\mathrm{1}}\COLONOP\TYP{Plussable}\llbracket{}T\rrbracket, p_{\mathrm{2}}\COLONOP\TYP{Plussable}\llbracket{}T\rrbracket)\COLONOP\TYP{Plussable}\llbracket{}T\rrbracket = p_{\mathrm{1}}\)\\[4pt]
+\(  \KWD{trait}\:\TYP{Plussable}\llbracket{}T\rrbracket\)\\
+\(  \KWD{end}\)\\[4pt]
+\(  \KWD{object}\:\TYP{Parent} \KWD{extends} \{\TYP{Plussable}\llbracket\TYP{Right}\rrbracket, \TYP{Plussable}\llbracket\TYP{Wrong}\rrbracket\}\)\\
+\(  \KWD{end}\)\\[4pt]
+\(  \VAR{foo}(p\COLONOP\TYP{Plussable}\llbracket\TYP{Wrong}\rrbracket)\COLONOP() = ()\)\\[4pt]
+\(  \VAR{run}(\VAR{args}\COLONOP\TYP{String}\ldots)\COLONOP() = \;\KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(    a\COLONOP\TYP{Parent} = \TYP{Parent}\)\\
+\(    b\COLONOP\TYP{Parent} = \TYP{Parent}\)\\[4pt]
+\(    c = \VAR{bar}(a,b)\)\\
+\(    \VAR{foo}(c)\)\-\\\poptabs
+\(  \KWD{end}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+When \EXP{\VAR{bar}()} is called without explicit type parameters,
+we make its signature into:
+%bar[\$i\](p_1:Plussable[\$i\], p_2:Plussable[\$i\]):Plussable[\$i\]
+\begin{Fortress}
+\(\VAR{bar}\llbracket\$i\rrbracket(p_{\mathrm{1}}\COLONOP\TYP{Plussable}\llbracket\$i\rrbracket, p_{\mathrm{2}}\COLONOP\TYP{Plussable}\llbracket\$i\rrbracket)\COLONOP\TYP{Plussable}\llbracket\$i\rrbracket.\)
+\end{Fortress}
+\EXP{\VAR{bar}()} then becomes a legal overloading if,
+``\EXP{\$i} = Right OR \EXP{\$i} = Wrong''.
+Later, the call to \EXP{\VAR{foo}()} forces the issue:
+\EXP{\$i} must be ``Right'', but unless we kept both possibilities alive, our program might not typecheck correctly.
+
+
+\subsection{Weirdness with Multiple Inheritance and Polymorphism}
+
+We noticed that you can get some fairly odd behavior if you allow inheriting from the same trait multiple times with different static arguments.  For example in the following code there is no good way to decide what the value of \EXP{\VAR{foo}()} will be.
+%% component Bad
+%% export Executable
+
+%% trait Parent[\T\]
+%% end
+
+%% object goodChild[\T\] extends Parent[\T\]
+%% end
+
+%% object badChild extends { Parent[\ZZ32\], Parent[\String\] }
+%% end
+
+%% spank[\T\](x: Parent[\T\]): Parent[\T\] =
+%%   typecase a = "UnOh" of
+%%     T => x
+%%     else => goodCHild[\T\]
+%%   end
+
+%% foo(): ZZ32 =
+%%   typecase x = spank(badChild) of
+%%     badChild => 1
+%%     else => 0
+%%   end
+
+%% run(args: String):() = ignore(foo())
+
+%% end
+\begin{Fortress}
+\(\KWD{component}\:\TYP{Bad}\)\\
+\(\KWD{export}\:\TYP{Executable}\)\\[4pt]
+\(\KWD{trait}\:\TYP{Parent}\llbracket{}T\rrbracket\)\\
+\(\KWD{end}\)\\[4pt]
+\(\KWD{object}\:\VAR{goodChild}\llbracket{}T\rrbracket \KWD{extends}\:\TYP{Parent}\llbracket{}T\rrbracket\)\\
+\(\KWD{end}\)\\[4pt]
+\(\KWD{object}\:\VAR{badChild} \KWD{extends} \{\,\TYP{Parent}\llbracket\mathbb{Z}32\rrbracket, \TYP{Parent}\llbracket\TYP{String}\rrbracket\,\}\)\\
+\(\KWD{end}\)\\[4pt]
+\(\VAR{spank}\llbracket{}T\rrbracket(x\COLON \TYP{Parent}\llbracket{}T\rrbracket)\COLON \TYP{Parent}\llbracket{}T\rrbracket =\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{typecase}\:a =\;\;\hbox{\rm``\STR{UnOh}''}\;\;\KWD{of}\)\\
+{\tt~~}\pushtabs\=\+\(    T \Rightarrow x\)\\
+\(    \KWD{else} \Rightarrow \VAR{goodCHild}\llbracket{}T\rrbracket\)\-\\\poptabs
+\(  \KWD{end}\)\-\\[4pt]\poptabs
+\(\VAR{foo}()\COLON \mathbb{Z}32 =\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{typecase}\:x = \VAR{spank}(\VAR{badChild}) \KWD{of}\)\\
+{\tt~~}\pushtabs\=\+\(    \VAR{badChild} \Rightarrow 1\)\\
+\(    \KWD{else} \Rightarrow 0\)\-\\\poptabs
+\(  \KWD{end}\)\-\\[4pt]\poptabs
+\(\VAR{run}(\VAR{args}\COLON \TYP{String})\COLONOP() = \VAR{ignore}(\VAR{foo}())\)\\[4pt]
+\(\KWD{end}\)
+\end{Fortress}
+
+
+
+\subsection{\KWD{where} Clauses on Methods}
+%value trait LinearSequence[\T extends Object, nat n\]
+%   coercion[\nat b\](x:BinaryLinearSequence[\b,n\]) where {T extends  BinaryWord[\b\]}
+%   opr [n: IndexInt] : T throws { IndexOutOfBounds }
+%   opr [\nat k\] [r: StaticWidthRange[\k\]] : LinearSequence[\T,k\]
+%         throws { IndexOutOfBounds } where { k <= n }
+%   opr [n: IndexInt] := (v:T) : LinearSequence[\T,n\] throws  { IndexOutOfBounds }
+%   opr [\nat k\] [r: StaticWidthRange[\k\]] := (v:LinearSequence[\ T,k\]) : LinearSequence[\T,n\]
+%         throws { IndexOutOfBounds } where { k <= n }
+%   opr || [\nat m\](self, LinearSequence[\T,m\]) : LinearSequence[\T,n +m\]
+%end
+\begin{Fortress}
+\(\KWD{value}\;\;\KWD{trait} \TYP{LinearSequence}\llbracket{}T \KWD{extends} \TYP{Object}, \KWD{nat} n\rrbracket\)\\
+{\tt~~~}\pushtabs\=\+\(   \KWD{coercion}\llbracket\KWD{nat} b\rrbracket(x\COLONOP\TYP{BinaryLinearSequence}\llbracket{}b,n\rrbracket) \KWD{where} \{T \KWD{extends}  \TYP{BinaryWord}\llbracket{}b\rrbracket\}\)\\
+\(   \KWD{opr} [n\COLON \TYP{IndexInt}] \mathrel{\mathtt{:}} T \KWD{throws} \{\,\TYP{IndexOutOfBounds}\,\}\)\\
+\(   \KWD{opr} \mathord{\llbracket}\null\)\pushtabs\=\+\(\KWD{nat} k\rrbracket [r\COLON \TYP{StaticWidthRange}\llbracket{}k\rrbracket] \mathrel{\mathtt{:}} \TYP{LinearSequence}\llbracket{}T,k\rrbracket\)\\
+\(         \KWD{throws} \{\,\TYP{IndexOutOfBounds}\,\} \KWD{where} \{\,k \leq n\,\}\)\-\\\poptabs
+\(   \KWD{opr} [n\COLON \TYP{IndexInt}] \ASSIGN (v\COLONOP{}T) \mathrel{\mathtt{:}} \TYP{LinearSequence}\llbracket{}T,n\rrbracket \KWD{throws}  \{\,\TYP{IndexOutOfBounds}\,\}\)\\
+\(   \KWD{opr} \mathord{\llbracket}\null\)\pushtabs\=\+\(\KWD{nat} k\rrbracket [r\COLON \TYP{StaticWidthRange}\llbracket{}k\rrbracket] \ASSIGN (v\COLONOP\TYP{LinearSequence}\llbracket\,T,k\rrbracket) \mathrel{\mathtt{:}} \TYP{LinearSequence}\llbracket{}T,n\rrbracket\)\\
+\(         \KWD{throws} \{\,\TYP{IndexOutOfBounds}\,\} \KWD{where} \{\,k \leq n\,\}\)\-\\\poptabs
+\(   \KWD{opr} \| \llbracket\KWD{nat} m\rrbracket(\KWD{self}, \TYP{LinearSequence}\llbracket{}T,m\rrbracket) \mathrel{\mathtt{:}} \TYP{LinearSequence}\llbracket{}T,n +m\rrbracket\)\-\\\poptabs
+\(\KWD{end} \)
+\end{Fortress}
+
+
+%value trait IntegerValue[\bool negative, nat magnitude\]
+%      extends { IntegerConstant, ExtendedIntegerValue[\negative,magnitude,false\],
+%                RationalValue[\negative, magnitude, 1\] }
+%   opr /(self, other: IntegerValue[\neg,mag\] : RationalValue [\negative XOR neg, magnitude, mag\] where { mag =/= 0 }
+%   opr /(self, other: IntegerValue[\neg,mag\] : ExtendedRationalValue [\negative XOR neg, magnitude, mag\]
+%   opr SQRT(self) : RationalValueTimesSqrt[\magnitude\] where { NOT  negative }
+%   ...
+%end
+%value trait ExtendedIntegerValue[\bool negative, nat magnitude, bool infinite\]
+%      extends { ExtendedIntegerConstant,
+%                ExtendedRationalValue[\negative,
+%                                       if NOT infinite then magnitude elif negative then -1 else 1 end,
+%                                       if infinite then 0 else 1 end\] }
+%   opr /(self, other: ExtendedIntegerValue[\neg,mag,inf\]) : RationalValue[\ ... \] where { ... }
+%   opr /(self, other: ExtendedIntegerValue[\neg,mag,inf\]) : ExtendedRationalValue[\ ... \]
+%   opr SQRT(self) : RationalValueTimesSqrt[\false,1,1,magnitude\] where { NOT negative AND NOT infinite }
+%   ...
+%end
+\begin{Fortress}
+\(\KWD{value} \null\)\pushtabs\=\+\(\KWD{trait} \TYP{IntegerValue}\llbracket\KWD{bool} \VAR{negative}, \KWD{nat} \VAR{magnitude}\rrbracket\)\\
+\(      \KWD{extends} \{\,\null\)\pushtabs\=\+\(\TYP{IntegerConstant}, \TYP{ExtendedIntegerValue}\llbracket\VAR{negative},\VAR{magnitude},\VAR{false}\rrbracket, \)\\
+\(                \TYP{RationalValue}\llbracket\VAR{negative}, \VAR{magnitude}, 1\rrbracket\,\}\)\-\-\\\poptabs\poptabs
+{\tt~~~}\pushtabs\=\+\(   \KWD{opr} /(\KWD{self}, \VAR{other}\COLON \TYP{IntegerValue}\llbracket\VAR{neg},\VAR{mag}\rrbracket \mathrel{\mathtt{:}} \TYP{RationalValue} \llbracket\VAR{negative} \xor \VAR{neg}, \VAR{magnitude}, \VAR{mag}\rrbracket \KWD{where} \{\,\VAR{mag} \neq 0\,\}\)\\
+\(   \KWD{opr} /(\KWD{self}, \VAR{other}\COLON \TYP{IntegerValue}\llbracket\VAR{neg},\VAR{mag}\rrbracket \mathrel{\mathtt{:}} \TYP{ExtendedRationalValue} \llbracket\VAR{negative} \xor \VAR{neg}, \VAR{magnitude}, \VAR{mag}\rrbracket\)\\
+\(   \KWD{opr} \mathord{\surd}(\KWD{self}) \mathrel{\mathtt{:}} \TYP{RationalValueTimesSqrt}\llbracket\VAR{magnitude}\rrbracket \KWD{where} \{\,\neg  \VAR{negative}\,\}\)\\
+\(   \ldots\)\-\\\poptabs
+\(\KWD{end} \)\\
+\(\KWD{value} \null\)\pushtabs\=\+\(\KWD{trait} \TYP{ExtendedIntegerValue}\llbracket\KWD{bool} \VAR{negative}, \KWD{nat} \VAR{magnitude}, \KWD{bool} \VAR{infinite}\rrbracket\)\\
+\(      \KWD{extends} \{\,\null\)\pushtabs\=\+\(\TYP{ExtendedIntegerConstant},\)\\
+\(                \TYP{ExtendedRationalValue}\llbracket\null\)\pushtabs\=\+\(\VAR{negative},\)\\
+\(                                       \KWD{if} \neg \VAR{infinite} \KWD{then} \VAR{magnitude} \KWD{elif} \VAR{negative} \KWD{then} -1 \KWD{else} 1 \KWD{end},\)\\
+\(                                       \KWD{if} \VAR{infinite} \KWD{then} 0 \KWD{else} 1 \KWD{end}\rrbracket\,\}\)\-\-\-\\\poptabs\poptabs\poptabs
+{\tt~~~}\pushtabs\=\+\(   \KWD{opr} /(\KWD{self}, \VAR{other}\COLON \TYP{ExtendedIntegerValue}\llbracket\VAR{neg},\VAR{mag},\inf\rrbracket) \mathrel{\mathtt{:}} \TYP{RationalValue}\llbracket\,\ldots\,\rrbracket \KWD{where} \{\,\ldots\,\}\)\\
+\(   \KWD{opr} /(\KWD{self}, \VAR{other}\COLON \TYP{ExtendedIntegerValue}\llbracket\VAR{neg},\VAR{mag},\inf\rrbracket) \mathrel{\mathtt{:}} \TYP{ExtendedRationalValue}\llbracket\,\ldots\,\rrbracket\)\\
+\(   \KWD{opr} \mathord{\surd}(\KWD{self}) \mathrel{\mathtt{:}} \TYP{RationalValueTimesSqrt}\llbracket\VAR{false},1,1,\VAR{magnitude}\rrbracket \KWD{where} \{\,\neg \VAR{negative} \wedge \neg \VAR{infinite}\,\}\)\\
+\(   \ldots\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+
+\subsection{Conditional Subtyping}
+%trait RationalQuantity[\unit U absorbs unit, bool ninf, bool lt, bool eq, bool gt, bool pinf, bool nan\]
+%    extends { RationalQuantity[\U, ninf', lt', eq', gt', pinf', nan'\]
+%              where { bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan',
+%                      ninf ->  ninf', lt -> lt', eq -> eq', gt -> gt', pinf -> pinf', nan -> nan' },
+%              Field[\RationalQuantity[\U, ninf, lt, eq, gt, pinf, nan\],
+%                     RationalQuantity[\U, ninf, lt, false, gt, pinf, nan\],+,-,DOT,/,zero,one\]
+%              where { lt AND eq AND gt AND NOT ninf AND NOT pinf AND NOT nan, U = dimensionless },
+%              CommutativeMonoid[\RationalQuantity[\U, ninf, lt, eq, gt, pinf, nan\],+,-,zero\]
+%              TotalOrderOperators[\RationalQuantity[\U, ninf, lt, eq, gt, inf, nan\],<,<=,>=,>,CMP\]
+%              where { NOT nan } }
+%    where { ninf OR lt OR eq OR gt OR pinf OR nan }
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{RationalQuantity}\llbracket\KWD{unit} U \KWD{absorbs}\;\;\KWD{unit}, \KWD{bool} \VAR{ninf}, \KWD{bool} \VAR{lt}, \KWD{bool} \VAR{eq}, \KWD{bool} \VAR{gt}, \KWD{bool} \VAR{pinf}, \KWD{bool} \VAR{nan}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\null\)\pushtabs\=\+\(\TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}', \VAR{lt}', \VAR{eq}', \VAR{gt}', \VAR{pinf}', \VAR{nan}'\rrbracket\)\\
+\(              \KWD{where} \{\,\null\)\pushtabs\=\+\(\KWD{bool} \VAR{ninf}', \KWD{bool} \VAR{lt}', \KWD{bool} \VAR{eq}', \KWD{bool} \VAR{gt}', \KWD{bool} \VAR{pinf}', \KWD{bool} \VAR{nan}',\)\\
+\(                      \VAR{ninf} \rightarrow  \VAR{ninf}', \VAR{lt} \rightarrow \VAR{lt}', \VAR{eq} \rightarrow \VAR{eq}', \VAR{gt} \rightarrow \VAR{gt}', \VAR{pinf} \rightarrow \VAR{pinf}', \VAR{nan} \rightarrow \VAR{nan}'\,\},\)\-\\\poptabs
+\(              \TYP{Field}\llbracket\null\)\pushtabs\=\+\(\TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{eq}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,\)\\
+\(                     \TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{false}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,+,-,\cdot,/,\VAR{zero},\VAR{one}\rrbracket\)\-\\\poptabs
+\(              \KWD{where} \{\,\VAR{lt} \wedge \VAR{eq} \wedge \VAR{gt} \wedge \neg \VAR{ninf} \wedge \neg \VAR{pinf} \wedge \neg \VAR{nan}, U = \mathbin{\TYP{dimensionless}}\,\},\)\\
+\(              \TYP{CommutativeMonoid}\llbracket\TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{eq}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,+,-,\VAR{zero}\rrbracket\)\\
+\(              \TYP{TotalOrderOperators}\llbracket\TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{eq}, \VAR{gt}, \inf, \VAR{nan}\rrbracket,<,\leq,\geq,>,\OPR{CMP}\rrbracket\)\\
+\(              \KWD{where} \{\,\neg \VAR{nan}\,\}\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,\VAR{ninf} \vee \VAR{lt} \vee \VAR{eq} \vee \VAR{gt} \vee \VAR{pinf} \vee \VAR{nan}\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+
+
+\subsection{No Wrapped Fields Whose Types Are Naked Type Variables}
+
+We don't want to allow wrapped fields to have types
+that are naked type variables
+because then we cannot tell what methods an object has,
+and therefore, what names may be shadowed within the object definition:
+%object F[\T\](x:ZZ, wrapped y:T)
+%  f()  = object extends Object
+%                getX() = x
+%         end
+%end
+%
+%trait T1 (* has getter for x *)
+%   x:ZZ = 2
+%end
+\begin{Fortress}
+\(\KWD{object} F\llbracket{}T\rrbracket(x\COLONOP\mathbb{Z}, \KWD{wrapped} y\COLONOP{}T)\)\\
+{\tt~~}\pushtabs\=\+\(  f()  = \null\)\pushtabs\=\+\(\KWD{object} \null\)\pushtabs\=\+\(\KWD{extends} \TYP{Object}\)\\
+\(                \VAR{getX}() = x\)\-\\\poptabs
+\(         \KWD{end}\)\-\-\\\poptabs\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{trait} T_{1} \mathtt{(*}\;\hbox{\rm  has getter for x \unskip}\;\mathtt{*)}\)\\
+{\tt~~~}\pushtabs\=\+\(   x\COLONOP\mathbb{Z} = 2\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+With conditional subtyping (or conditional methods),
+we may also not be able to tell
+whether a trait has a particular method,
+but we can at least bound the names of the methods it may have.
+Still, we should watch out for this issue
+in the formulation of conditional subtyping.
+
+
+\subsection{Tricky Example for Explaining Shadowing}
+
+%trait S
+%  f() = 1  (* Declaration 1 *)
+%  g() = 5
+%end
+%
+%trait T
+%  f() = 2  (* Declaration 2 *)
+%  m() = 6
+%  n(): S
+%end
+%
+%object O extends S
+%  h():T = object extends T
+%            m() = f()
+%            n() = object extends S
+%                    g() = f()
+%                  end
+%          end
+%end
+\begin{Fortress}
+\(\KWD{trait} S\)\\
+{\tt~~}\pushtabs\=\+\(  f() = 1  \mathtt{(*}\;\hbox{\rm  Declaration 1 \unskip}\;\mathtt{*)}\)\\
+\(  g() = 5\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{trait} T\)\\
+{\tt~~}\pushtabs\=\+\(  f() = 2  \mathtt{(*}\;\hbox{\rm  Declaration 2 \unskip}\;\mathtt{*)}\)\\
+\(  m() = 6\)\\
+\(  n()\COLON S\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{object} O \KWD{extends} S\)\\
+{\tt~~}\pushtabs\=\+\(  h()\COLONOP{}T = \null\)\pushtabs\=\+\(\KWD{object}\;\;\KWD{extends} T\)\\
+{\tt~~~~~~~~~~}\pushtabs\=\+\(            m() = f()\)\\
+\(            n() = \null\)\pushtabs\=\+\(\KWD{object}\;\;\KWD{extends} S\)\\
+{\tt~~~~~~~~}\pushtabs\=\+\(                    g() = f()\)\-\\\poptabs
+\(                  \KWD{end}\)\-\-\\\poptabs\poptabs
+\(          \KWD{end}\)\-\-\\\poptabs\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+The reach of declaration 1
+includes the entire declaration of O,
+but it is shadowed by declaration 2,
+within the object expression that extends \VAR{T},
+which in turn is shadowed by declaration 1
+in the object expression that extends \VAR{S}.
+
+\subsection{A Pattern for Shadowing}
+
+% var count: ZZ = 0
+% getGlobalCount() = count
+% setGlobalCount(i:ZZ) = count := i
+
+% object LocalCounter(var count: ZZ)
+%   localIncrement() = count += 1
+%   getter totalCount = count + getGlobalCount()
+%   atomic transfer() = setGlobalCount(totalCount)
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{var} \VAR{count}\COLON \mathbb{Z} = 0\)\\
+\( \VAR{getGlobalCount}() = \VAR{count}\)\\
+\( \VAR{setGlobalCount}(i\COLONOP\mathbb{Z}) = \VAR{count} \ASSIGN i\)\\[4pt]
+\( \KWD{object} \TYP{LocalCounter}(\KWD{var} \VAR{count}\COLON \mathbb{Z})\)\\
+{\tt~~}\pushtabs\=\+\(   \VAR{localIncrement}() = \VAR{count} \mathrel{+}= 1\)\\
+\(   \KWD{getter} \VAR{totalCount} = \VAR{count} + \VAR{getGlobalCount}()\)\\
+\(   \KWD{atomic} \VAR{transfer}() = \VAR{setGlobalCount}(\VAR{totalCount})\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+Note the need for \VAR{getGlobalCount} and \VAR{setGlobalCount} just to get
+access to the top-level variable \VAR{count} within the body of
+\TYP{LocalCounter} (in which the top-level \VAR{count} variable declaration
+is shadowed).  Presumably the exported API would not include them.
+
+I think we were toying aroud with a direct means to acess a shadowed name
+using a new reserved word "\KWD{outer}" (or Guy proposed "periscope").  I
+don't like this, but it would eliminate the need for the pattern.
+
+\subsection{Implicitly Parameterized Object Expressions}
+
+What are the values of the last two expressions?
+
+% value trait A
+%   x:ZZ
+% end
+% f[\T\](y:ZZ) = object extends A x = y end
+% f[\RR\](1) = f[\ZZ\](1)
+% f[\RR\](1) = f[\RR\](1)
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{value}\;\;\KWD{trait}\:A\)\\
+{\tt~~}\pushtabs\=\+\(   x\COLONOP\mathbb{Z}\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( f\llbracket{}T\rrbracket(y\COLONOP\mathbb{Z}) = \;\KWD{object}\;\;\KWD{extends}\:A\:x = y \KWD{end}\)\\
+\( f\llbracket\mathbb{R}\rrbracket(1) = f\llbracket\mathbb{Z}\rrbracket(1)\)\\
+\( f\llbracket\mathbb{R}\rrbracket(1) = f\llbracket\mathbb{R}\rrbracket(1)\)\-\\\poptabs
+\end{Fortress}
+
+
+\section{Things to Check for Consistency}
+
+\begin{itemize}
+\item For each section in the Expressions chapter, describe the following:
+  \begin{itemize}
+  \item syntax
+  \item how it is reduced / how we evaluate it
+  \item value
+  \item type
+  \end{itemize}
+
+\item Avoid the following words:
+ must > should > may / might
+ avoid "may not"
+ use "might not" or "need not"
+  \item AVOID global, top-level (except top-level within components/APIs)
+  \item AVOID statement (except import/export statements)
+  \item AVOID compliant compilers (We may have a meta circular API for
+  compliant compilers.)
+  \item Three levels of Fortress libraries
+    \begin{itemize}
+    \item the Fortress core language
+    \item the Fortress core APIs (implicitly imported libraries)
+    \item the Fortress standard libraries
+    \end{itemize}
+  \item execute: programs, components, Fortress applications, functions,
+  threads, tests
+  \item evaluate: expressions,
+  \item should $\Rightarrow$ shall, must
+  \item may not $\Rightarrow$ might not, need not
+  \item . $\Rightarrow$ `.'
+  \item ``...,'' $\Rightarrow$ ``...'',
+  \item api $\Rightarrow$ API
+  \item iff $\Rightarrow$ if and only if
+  \item reduction $\Rightarrow$ evaluation
+  \item compile-time $\Rightarrow$ static
+  \item object type, object trait  $\Rightarrow$ \objecttype
+  \item ``scope over'' $\Rightarrow$ ``in scope''
+  \item ``a static error is signaled'' $\Rightarrow$ ``it is a static error''
+  \item ``a runtime error is signaled'' $\Rightarrow$ ``an exception is thrown''
+  \item Boolean (as an adjective) $\Rightarrow$ boolean
+  \item greatest lower bound $\Rightarrow$ intersection types
+  \item least upper bound $\Rightarrow$ union types
+  \item built-in types $\Rightarrow$ simple standard types
+  \item topmost, uppermost $\Rightarrow$ leftmost (define leftmost early on)
+  \item atomic block $\Rightarrow$ atomic expression
+  \item function and/or method $\Rightarrow$ functional
+  \item visible $\Rightarrow$ in scope (cf. scope defined in the Names chapter)
+  \item \OPR{in} $\Rightarrow$ \KWD{in}
+  \item \EXP{\VAR{indices}()} $\Rightarrow$ \VAR{indices}
+  \item \EXP{\mathord{\KWD{self}}} vs \VAR{self}
+  \item What errors do we want to catch?
+  \item What codes would be rejected that we'd like to reject?
+\end{itemize}
+
