@@ -312,8 +312,12 @@ When `foo` is called on two arguments of type `ZZ`,
 both `foo(x: ZZ, y: Object)` and `foo(x: Number, y: ZZ)` are applicable
 (assuming `ZZ <: Number <: Object`).
 Neither is more specific than the other,
-and no definition of `foo(x: ZZ, y: ZZ)` has been
-spplied to satisfy the Meet Rule, so this overloading is ambiguous.
+and moreover no definition of
+`foo(x: ZZ, y: ZZ)`
+% $\VAR{foo}(x\!: \mathbb{Z}, y\!: \mathbb{Z})$
+% $\mathit{foo}(x:\mathbb{Z}, y:\mathbb{Z})$
+has been
+supplied to satisfy the Meet Rule, so this overloading is ambiguous.
 
 
 %% Two authors of this paper (Hilburn and Kilpatrick) 
