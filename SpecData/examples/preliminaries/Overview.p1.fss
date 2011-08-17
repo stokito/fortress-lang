@@ -1,0 +1,33 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Overview.p1
+
+export Executable
+
+trait Moving end
+trait RR extends Number end
+
+object Particle(position: RR^3, velocity: RR^3)
+  extends Moving
+end
+
+run() = do
+(** EXAMPLE **)
+  pos: RR^3 = [3 2 5]
+  vel: RR^3 = [1 0 0]
+  p1 = Particle(pos, vel)
+(** END EXAMPLE **)
+end
+
+end

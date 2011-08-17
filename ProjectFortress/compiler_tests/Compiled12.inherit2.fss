@@ -1,0 +1,49 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Test multiple inheritance of method implementation
+   in the presence of abstract methods, when the
+   types involved are generic. *)
+
+trait T[\X\]
+  getter asString(): String
+  u(t:T[\X\]): T[\X\]
+  abstract v(t:T[\X\]): T[\X\]
+  abstract w(t:T[\X\]): T[\X\]
+end
+
+trait U[\X\] extends T[\X\]
+  u(t:T[\X\]): T[\X\] = self
+end
+
+trait V[\X\] extends T[\X\]
+  v(t:T[\X\]): T[\X\] = self
+end
+
+object W[\X\](s:String) extends { U[\X\], V[\X\] }
+  getter asString(): String = "W" s
+  w(t:T[\X\]): T[\X\] = self
+end
+
+run() = do
+    w1 : T[\ZZ32\] = W[\ZZ32\]("1")
+    w2 : U[\ZZ32\] = W[\ZZ32\]("2")
+    println(w1.asString)
+    println(w1.u(w2).asString)
+    println(w1.v(w2).asString)
+    println(w1.w(w2).asString)
+    println(w2.asString)
+    println(w2.u(w1).asString)
+    println(w2.v(w1).asString)
+    println(w2.w(w1).asString)
+  end
