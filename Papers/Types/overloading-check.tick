@@ -149,9 +149,9 @@ the arrow type $\sigma_{\wedge} = \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \
 \end{theorem}
 
 \begin{proof}
-Note that $arrow(d_1)$ and $\sigma_{\wedge}$ are equally specific and that $arrow(d1) \le \sigma_{\wedge}$ implies that for every instance $\arrowtype{U}{V}$ of $\sigma_{\wedge}$ with $U \not \equiv \Bottom$
-we can find an instance $\arrowtype{U_1}{V_1}$ of $\arrow(d_1)$ with $U \subtypeof U_1$ and $V_1 \subtypeof V$. Thus the pair $d_1, d_2$ satisfies the return type rule if
-the pair $\sigma_{\wedge}, d_2$ does. This is clear because $\sigma_{\wedge}$ can match the return type of any instance of $d_2$ whose domain type is not $\Bottom$.
+Note that $arrow(d_1)$ and $\sigma_{\wedge}$ are equally specific, and that $arrow(d_1) \le \sigma_{\wedge}$ implies that for every instance $\arrowtype{U}{V}$ of $\sigma_{\wedge}$ with $U \not \equiv \Bottom$
+we can find an instance $\arrowtype{U_1}{V_1}$ of $\arrow(d_1)$ with $U \subtypeof U_1$ and $V_1 \subtypeof V$. Thus the pair $d_1, d_2$ satisfies the Return Type Rule if
+the pair $\sigma_{\wedge}, d_2$\footnote{As an abuse of notation we use $\sigma_\wedge$ here to mean an illusory overloading of $f$, $d_\wedge$, such that $arrow(d_\wedge) = \sigma_\wedge$.} does. This is clear because $\sigma_{\wedge}$ can match the return type of any instance of $d_2$ whose domain type is not $\Bottom$.
 \end{proof}
 
 
