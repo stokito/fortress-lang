@@ -345,7 +345,7 @@ components, separate compilation, Fortress, meet rule}
 \label{sec:checking}
 \input{overloading-check}
 
-\section{Exclusion with Constraints}\label{sec:constraints}
+\section{Constraint-Based Judgments}\label{sec:constraints}
 \input{exc-constraints}
 
 %\subsection{Polymorphic Exclusion Checking}
