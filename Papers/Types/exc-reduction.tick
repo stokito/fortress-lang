@@ -1,3 +1,6 @@
+\TODO{NOTE! This section needs a big cut! The recovered judgments were already given in the Subtyping and Exclusion subsections above, and the rest is exposition about existential reduction.}
+\TODO{NOTE! It does still need a (slightly) more thorough explanation of the definition of existential reduction, now that constraints and whatnot have been introduced.}
+
 We can recover the usual subtyping judgment and define the exclusion judgment as follows:\\[1em]
 \begin{tabular}{cc}
 \begin{minipage}{0.23\textwidth}
