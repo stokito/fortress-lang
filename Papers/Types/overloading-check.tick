@@ -84,6 +84,11 @@ We explain how to compute generic reductions in more detail in Section~\ref{sec:
 through the following two theorems.
 
 \TODO{THEOREMS}
+\begin{theorem}
+\end{theorem}
+
+\begin{theorem}
+\end{theorem}
 
 These subtyping judgments offer a nice interpretation of applicability and
 specificity of generic function declarations. Recall that a generic
