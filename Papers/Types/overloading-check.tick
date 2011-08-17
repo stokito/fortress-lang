@@ -89,15 +89,13 @@ interpret the fact that a generic function declaration $d$ is applicable
 to a type $T$ with the existential subtyping assertion $\vdash T \subtypeof \dom(d)$. 
 Furthermore, we interpret the fact that $d_1$ is more specific than
 $d_2$ with the existential subtyping assertion
-$\vdash \dom(d_1) \subtypeof \dom(d_2)$. (Shortly, we will show that existential
-reduction does not upset these interpretations)
-
-In these judgments we make use of the simple subtyping judgment
-$\jgsub{T}{T}$. Simple subtyping behaves as described in
-Section~\ref{sec:pre}, and we will define algorithm that decides it in
-Section~\ref{sec:badref}.
+$\vdash \dom(d_1) \subtypeof \dom(d_2)$. Shortly, we will show that existential
+reduction does not upset these interpretations
 
 \subsection{Existential Reduction}
+\TODO{I am not sure this should go here. We don't have the tools to do existential reduction at this point.
+      I think we could get by with a shorter explanation of exactly what we need to do the next section.}
+
 In the evaluation of valid overloadings from Section~\ref{sec:examples}
 intensional type analysis was required in order to reason about certain
 examples. Since this reasoning justified
@@ -141,84 +139,44 @@ in Section~\ref{sec:constraints}.
 \subsection{Mechanically Checking the Rules}
 With our interpretations of applicability and specificity into existential
 subtyping, we now describe the process of checking the validity of a set of 
-overloaded declarations $\D(f)$ according to the rules in
-Section~\ref{sec:rules}. Recall that validity of $\D(f)$ (with respect to
-class table $\T$) is defined as the pairwise quantification of the validity
-of all pairs of declarations from $\D(f)$. Moreover, because we defined each
-rule as a property of such a pair, for each rule, we simply describe the
-process of checking an arbitrary pair of declarations.
+overloaded declarations $\Df$ according to the rules in
+Section~\ref{sec:rules}.
 
-We can check the No Duplicates Rule for $d_1, d_2$ by verifying that
-if $d_1 \neq d_2$ then  
+We can check the No Duplicates Rule by verifying that for every pair of distinct function
+declarations $d_1, d_2 \in \Df$ either $d_1 \not \ms d_2$ or $d_1 \not \ms d_2$. 
 
-\TODO{Scott left off here.}
+The Meet Rule requires that every pair of declarations $d_1, d_2 \in \Df$ has a meet in $\Df$. Thus, because
+more specific relation on function declarations corresponds to the subtyping relation on existential types, we just
+need to compute the meet $\dom(d_1) \wedge \dom(d_2)$ of the existential types $\dom(d_1)$ and $\dom(d_2)$ and search for a declaration
+$d_0 \in \Df$ with $dom(d_0) \equiv \dom(d_1) \wedge \dom(d_2)$. Fortunately, computing the meet of two existential types is easily dones (see Figure~\ref{fig:meet}).
 
-Now, we can mechanically check the No Duplicates Rule
-by mechanically determining if two declarations are equally specific.
-To check whether one declaration is more specific than another,
-we check whether the domain of the former is a subtype of the latter.
-Checking whether one existential type is a subtype of another
-is described in Figure~\ref{fig:existential}.
-
-To check the Meet Rule, for every pair of declarations $d_1, d_2 \in \D(f)$,
-we must find a function declaration $d_0 \in \D(f)$ that is
-applicable to a type $T$ if and only if both $d_1$ and $d_2$ are applicable to $T$.
-In other words, we need to find $d_0$ that is equivalent under specificity to
-the meet of $d_1$ and $d_2$.
-To mechanically find the meet of two generic function declarations,
-we define the \emph{computed meet} of $d_1$ and $d_2$ as
-a declaration $d_\meet$, not necessarily in $\D(f)$,
-such that $\textit{dom}(d_\meet) \equiv \textit{dom}(d_1) \meet \textit{dom}(d_2)$\footnote{%
-Note that the computed meet, as defined,
-is not actually unique since the return type is unspecified.
-By an abuse of notation, we refer to ````the'' computed meet 
-to mean any such computed meet.}: \begin{align*}
-  \textit{dom}(d_0) &\;\le\; \textit{dom}(d_1) \meet \textit{dom}(d_2) \\
-  \textit{dom}(d_1) \meet \textit{dom}(d_2) &\;\le\; \textit{dom}(d_0)
-\end{align*}
-Figure~\ref{fig:meet} defines the meet of two existential types $\delta_1 \meet \delta_2$,
-which may require alpha renaming on the existential types' parameters.
-The following lemma shows that the definition of the meet of two existential types is correct:
 \begin{lemma}\label{lem:meet}
-$\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\le$.
+$\delta_1 \meet \delta_2$ is actually the meet of $\delta_1$ and $\delta_2$ under $\subtypeof$.
 \end{lemma}
-\begin{psketch}
-That $\delta_1 \meet \delta_2$ is a subtype of both $\delta_1$ and $\delta_2$ is obvious.
+\begin{proof}
+First we will show that $\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\subtypeofinner$. That $\delta_1 \meet \delta_2 \subtypeofinner \delta_1$ and $\delta_1 \meet \delta_2 \subtypeofinner \delta_2$ is obvious.
 For any $\delta_0$, if $\bar{U}$ and $\bar{V}$ are instantiations that prove
-$\delta_0$ is a subtype of $\delta_1$ and $\delta_2$, respectively,
-then we can use $\bar{U},\bar{V}$ to prove that $\delta_0$ is a subtype of $\delta_1 \meet \delta_2$.
-\end{psketch}
+$\delta_0 \subtypeofinner \delta_1$ and $\delta_0 \subtypeofinner \delta_1$, respectively,
+then we can use the instantiation $\bar{U},\bar{V}$ to prove that $\delta_0 \subtypeof \delta_1 \meet \delta_2$.
+
+Now we will show that the meet under $\subtypeofinner$ is also the meet under $\subtypeof$. Suppose that $\delta_0 \subtypeof \delta_1$, $\delta_0] \subtypeof \delta_1$
+and $\delta_0 \eqred \reduce(\delta_0)$. A little work lets us deduce that $\reduce(\delta_0) \subtypeofinner \delta_1 \meet \delta_2$ and hence $\delta_0 \subtypeof \delta_1 \meet \delta_2$.
+The fact that $\delta_1 \meet \delta_2 \subtypeof \delta_1$ and $\delta_1 \meet \delta_2 \subtypeof \delta_1$ follows from the fact that $\subtypeofinner$ implies $\subtypeof$.
+\end{proof}
 
 \input{fig-meet}
 
 We can check the Return Type Rule using the subtype relation on universal types.
-Figure~\ref{fig:existential} presents the subtype relation on universal types, again,
-as originally given by Mitchell \cite{mitchell88}.
-Roughly, a universal type $\sigma_1 = \forall\ob{\Delta_1} T_1$ is a subtype of another universal
-type $\sigma_2 = \forall\ob{\Delta_2} T_2$ (written $\sigma_1 \le \sigma_2$) if
-$T_1$ can be instantiated to a subtype of $T_2$ in the environment $\Delta_2$.
+\begin{theorem}
+Let $d_1 = \hdeclg{f}{\Delta_1}{S_1}{T_1}$ and $d_2 = \hdeclg{f}{\Delta_2}{S_2}{T_2}$ be declarations
+in $\Df$ with $d_1 \ms d_2$. They satisfy the return type rule if and only if $\arrow(d_1)$ is a subtype of
+the arrow type $\sigma_{meet} = \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \rightarrow T_2$.
+\end{theorem}
 
-The generic declarations $d_1 = \hdeclg{f}{\Delta_1}{S_1}{T_1}$ 
-and $d_2 = \hdeclg{f}{\Delta_2}{S_2}{T_2}$ 
-with $d_1 \ms d_2$ satisfy the Return Type Rule
-whenever:
-\renewcommand{\theequation}{\fnsymbol{equation}}
-\begin{equation} \label{eq:rtr}
-  \forall\ob{\Delta_1}S_1 \rightarrow T_1 \; \le \; \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \rightarrow T_2
-\end{equation}
-To see this, suppose $W$ is a type to which $d_1$ is applicable 
-and the instance $\decl{f}{S_2'}{T_2'}$ of $d_2$ is also applicable to $W$.
-Let $d_\meet = \hdeclg{f}{\Delta_1, \Delta_2}{S_1 \cap S_2}{T_2}$ be the
-computed meet of $d_1$ and $d_2$;
-clearly, there is an instance $\decl{f}{U'}{V'}$ of $d_\meet$ 
-that is applicable to $W$ with $V' = T_2'$. 
-If $\textit{arrow}(d_1) \le \textit{arrow}(d_\meet)$,
-then there must be an instantiation $\decl{f}{S_1'}{T_1'}$ of $d_1$
-with $U' <: S_1'$ and $T_1' <: V'$. 
-Moreover, since $V'=T_2'$, such an instantiation 
-would satisfy the Return Type Rule for $d_1$ and $d_2$.
-Finally, observe that $\textit{arrow}(d_1) \le \textit{arrow}(d_\meet)$ 
-is identical to the condition (\ref{eq:rtr}), 
-and so the verification of (\ref{eq:rtr}) implies
-the verification of the Return Type Rule.
+\begin{psketch}
+First note that the pair $\sigma_meet$, $\arrow(d2)$ satisfies the return type rule. Now notice that
+since $\arrow(d_1)$ and $\sigma_meet$ are equally specific
+\end{psketch}
+
+
 

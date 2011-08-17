@@ -1,28 +1,11 @@
 \TODO{NOTE! This section needs a big cut! The recovered judgments were already given in the Subtyping and Exclusion subsections above, and the rest is exposition about existential reduction.}
 \TODO{NOTE! It does still need a (slightly) more thorough explanation of the definition of existential reduction, now that constraints and whatnot have been introduced.}
-
-We can recover the usual subtyping judgment and define the exclusion judgment as follows:\\[1em]
-\begin{tabular}{cc}
-\begin{minipage}{0.23\textwidth}
-\infrule
-{\jsub{S}{T}{\TRUE}}
-{\jgsub{S}{T}}
-\end{minipage}
-&
-\begin{minipage}{0.23\textwidth}
-\infrule
-{\jexc{S}{T}{\TRUE}}
-{\jgtemplate{S}{\exc}{T}}
-\end{minipage}
-\\[1.5em]
-\end{tabular}
-\noindent which state that, under assumptions $\Delta$, if the predicate generates the constraint $\TRUE$ (or some constraint that simplifies to $\TRUE$), then that predicate is proved.
-
 % We now use the non-equivalence judgment to make rigorous our intuition about
 % how polymorphic exclusion affects the mechanical verification of the overloading rules.
-To allow more overloaded functions such as `tail` and `foo` as valid overloadings,
-we adjust the subtype relation to take into account the relationships between type variables:\\[1em]
-%described by the constraints defined in Section~\ref{sec:constraints}:
+To show that the overloadings of functions such as `tail` and `foo` are valid,
+we needed to modify the $\subtypeinner$ relation on existentials and universals
+to use exclusion information:\\[1em]
+
 
 A reduction judgment on existential types $\vdash\delta\eqred\delta',\phi$
 defined in Figure~\ref{fig:existential} reduces $\delta = \exttype{T}$ to
@@ -30,7 +13,7 @@ $\delta' = \exttype[\Delta']{T'}$ with the substitution $\phi$
 under the assumption that $T$ is not equivalent to \Bottom; or,
 if $T$ is equivalent to \Bottom, the reduced existential $\delta'$ is \Bottom.
 When the substitution is unnecessary we omit it.
-The $solve$ operation is like that defined in Smith and Cartwright~\cite{smith08}.
+
 In fact, an existential type $\delta$ reduces to $\delta'$
 such that $T \ni \delta$ if and only if $T \ni \delta'$; therefore,
 we have $\delta' \le \delta$.

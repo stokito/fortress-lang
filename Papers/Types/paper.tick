@@ -350,10 +350,7 @@ components, separate compilation, Fortress, meet rule}
 \section{Constraint-Based Judgments}\label{sec:constraints}
 \input{exc-constraints}
 
-%\subsection{Polymorphic Exclusion Checking}
-%\subsection{Overloading with Polymorphic Exclusion, Again}
-
-\subsection{Incorporating Constraints into Subtyping}
+\subsection{Existential Reduction}
 \input{exc-reduction}
 
 \input{fig-subtype}
