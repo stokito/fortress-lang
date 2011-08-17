@@ -2,7 +2,7 @@
 \begin{figure}[t]
 \begin{minipage}{.5\textwidth}
 \centering
-\newjudge{Universal Subtyping}{\jqsubinner{\sigma}{\sigma} \quad \jqsub{\sigma}{\sigma}}
+\newjudge{Universal Subtyping}{\jleinner{\sigma}{\sigma} \quad \jle{\sigma}{\sigma}}
   
 \infrule
   {\Delta' = \Delta, \bds{Y}{N}
@@ -13,25 +13,25 @@
    \andalso
    \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{X}\bd{M_i}}
   }
-  {\jqsubinner{\forall\obb{X <: \bd{M}}T}{\forall\obb{Y <: \bd{N}}U}}
+  {\jleinner{\forall\obb{X <: \bd{M}}T}{\forall\obb{Y <: \bd{N}}U}}
 
 \infrule
   {\jtreds{\exttype[\Delta']{S}}{\exttype[\Delta'']{U}}{\phi} \\[.3em]
-   \jqsubinner{\sigma}{\unitype[\Delta'']{\left(\arrowtype{U}{\phi(T)}\right)}}}
-  {\jqsub{\sigma}{\unitype[\Delta']{\arrowtype{S}{T}}}}
+   \jleinner{\sigma}{\unitype[\Delta'']{\left(\arrowtype{U}{\phi(T)}\right)}}}
+  {\jle{\sigma}{\unitype[\Delta']{\arrowtype{S}{T}}}}
 
 \infrule
   {U \neq S \rightarrow T
    \andalso
-   \jqsubinner{\sigma}{\unitype[\Delta']{U}}}
-  {\jqsub{\sigma}{\unitype[\Delta']{U}}}
+   \jleinner{\sigma}{\unitype[\Delta']{U}}}
+  {\jle{\sigma}{\unitype[\Delta']{U}}}
 
 % \begin{tabularx}{\textwidth}{RcX}
-%   $\sigma_1 \le \sigma_2$ & \syndef & $\jqsub[\emptyset]{\sigma_1}{\sigma_2}$ \\
+%   $\sigma_1 \le \sigma_2$ & \syndef & $\jle[\emptyset]{\sigma_1}{\sigma_2}$ \\
 % \end{tabularx}
 
 \vspace*{2ex}
-\newjudge{Existential Subtyping}{\jqsubinner{\delta}{\delta} \quad \jqsub{\delta}{\delta}}
+\newjudge{Existential Subtyping}{\jleinner{\delta}{\delta} \quad \jle{\delta}{\delta}}
 
 \infrule
   {\Delta' = \Delta, \bds{X}{M}
@@ -42,14 +42,14 @@
    \andalso
    \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{Y}\bd{N_i}}
   }
-  {\jqsubinner{\exists\obb{X <: \bd{M}}T}{\exists\obb{Y <: \bd{N}}U}}
+  {\jleinner{\exists\obb{X <: \bd{M}}T}{\exists\obb{Y <: \bd{N}}U}}
 
 \infrule
-  {\jtred{\delta}{\delta''} \andalso \jqsubinner{\delta''}{\delta'}}
-  {\jqsub{\delta}{\delta'}}
+  {\jtred{\delta}{\delta''} \andalso \jleinner{\delta''}{\delta'}}
+  {\jle{\delta}{\delta'}}
   
 % \begin{tabularx}{\textwidth}{RcX}
-%   $\delta_1 \le \delta_2$ & \syndef & $\jqsub[\emptyset]{\delta_1}{\delta_2}$
+%   $\delta_1 \le \delta_2$ & \syndef & $\jle[\emptyset]{\delta_1}{\delta_2}$
 % \end{tabularx}
 
 \end{minipage}

@@ -12,7 +12,7 @@
 }
 
 \infrule
-  {\jqsub{\exists\ob{}T}{\delta}}
+  {\jle{\exists\ob{}T}{\delta}}
   {\japp{\delta}{T}}
 
 \begin{tabularx}{\textwidth}{RcX}
@@ -24,7 +24,7 @@
 \newjudge{Specificity}{\jms{f}{f}}
 
 \infrule
-  {\jqsub{\textit{dom}(f_1)}{\textit{dom}(f_2)}}
+  {\jle{\textit{dom}(f_1)}{\textit{dom}(f_2)}}
   {\jms{f_1}{f_2}}
 
 %%% SYNTAX DEF
