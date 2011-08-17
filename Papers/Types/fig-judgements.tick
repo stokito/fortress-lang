@@ -1,9 +1,9 @@
-%%%%%%%%%%%%%%% BEGIN JUDGEMENT FIGURE %%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%% BEGIN JUDGMENT FIGURE %%%%%%%%%%%%%%%
 \begin{figure}
 \begin{minipage}[ht]{.5\textwidth}
 \centering
 
-\newjudge{Primitive Judgements}{\jgconstrtemplate{T}{\ast}{T}{\C}}
+\newjudge{Primitive Judgments}{\jgconstrtemplate{T}{\ast}{T}{\C}}
 
 % \vspace{\afterruleskip}
 % \jsub{S}{T}{\C}
@@ -26,7 +26,7 @@ $$
 $$
 
 \vspace*{2ex}
-\newjudge{Derived Judgements}{\jgconstrtemplate{T}{\ast}{T}{\C}}
+\newjudge{Derived Judgments}{\jgconstrtemplate{T}{\ast}{T}{\C}}
 
 \infrule
   {\jsub{S}{T}{\C} \andalso \jsub{T}{S}{\C'}}
@@ -37,14 +37,14 @@ $$
   {\jnequiv{S}{T}{\C \vee \C'}}
 
 \vspace*{2ex}
-\newjudge{Derived Judgements}{\jgcontratemplate{T}{\ast}{T}{\C}}
+\newjudge{Derived Judgments}{\jgcontratemplate{T}{\ast}{T}{\C}}
   
 \infrule
   {\jequiv{S}{T}{\C}}
   {\jcnequiv{S}{T}{\neg \C}}
 
 \end{minipage}
-  \caption{Constraint-based judgement forms.}
+  \caption{Constraint-based judgment forms.}
   \label{fig:judge}
 \end{figure}
-%%%%%%%%%%%%%%% END JUDGEMENT FIGURE %%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%% END JUDGMENT FIGURE %%%%%%%%%%%%%%%%%

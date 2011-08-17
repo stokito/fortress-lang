@@ -1,5 +1,4 @@
 \documentclass[10pt]{sigplanconf}
-\usepackage{microtype}
 \usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem}
 \advance \textheight by 4pt
 
