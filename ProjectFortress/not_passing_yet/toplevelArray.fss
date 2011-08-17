@@ -1,0 +1,19 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component toplevelArray
+export Executable
+
+a:ZZ32[3] = [ 1 2 3 ]
+
+run() = assert(a[1],2,"a[1]")
+
+end

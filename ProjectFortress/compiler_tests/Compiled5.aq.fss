@@ -1,0 +1,19 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait T excludes S end
+trait S end
+trait U extends T end
+trait V extends { U, S } end
+
+run():() = ()

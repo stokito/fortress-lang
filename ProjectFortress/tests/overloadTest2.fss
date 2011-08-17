@@ -1,0 +1,51 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component overloadTest2
+export Executable
+
+(* This test should pass because String, Boolean, and ZZ32 exclude each other. *)
+
+var a1c:ZZ32 = 0
+var a2c:ZZ32 = 0
+var a3c:ZZ32 = 0
+
+a(x:ZZ32):ZZ32=do
+  println("a1 called")
+  a1c := 1;
+  x
+end
+
+a(x:String):String=do
+  println("a2 called")
+  a2c := 1;
+  x
+end
+
+a(x:Boolean):Boolean=do
+  println("a3 called")
+  a3c := 1;
+  x
+end
+
+run():()=do
+  println(a(1))
+
+  println(a("Foo"))
+
+  println(a(1=1))
+
+  println(
+  if a1c > 0 AND a2c > 0 AND a3c > 0 then "pass" else "fail" end
+  )
+end
+
+end
