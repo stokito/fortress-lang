@@ -286,6 +286,7 @@ public class Naming {
         bl(COMPILER_BUILTIN, "$String", "FString");
         bl("", SNOWMAN, "FVoid");
         bl("", INTERNAL_SNOWMAN, "FVoid");
+        bl(COMPILER_BUILTIN, "$Vector", "FVector");
     }
 
     public static String opForString(String op, String s) {

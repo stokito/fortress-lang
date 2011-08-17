@@ -1,65 +1,80 @@
-\TODO{Add introductory paragraph.}
+% Our central theorem about overloaded sets of function declarations
+% mirrors the age-old description of sound type systems that says ````well-typed
+% programs don't go wrong.'' In particular, it describes a form of
+% \emph{overloading safety} for multiple dynamic dispatch which comprises
+% three important properties:
+% \begin{itemize}
+%   \item if a function application has any meaning, then it has a unique most
+%   specific meaning,
+%   \item if it has a unique most specific meaning at compile time, then it
+%   has a (possibly different) unique most specific meaning at run time, and
+%   \item the ilk of the value returned at run time will be a subtype of
+% the type determined statically at compile time of the function application expression.
+% \end{itemize}
+% %% \TODO{Relate these properties to prior work?}
+% %
+% We formulate the Overloading Safety Theorem in terms of class table extension
+% to generalize (while also making precise) the notion that ````run time''
+% describes a world that consistently extends that of ````compile time.''
 
-\TODO{Make class table explicit in lemmas.}
+We now prove the main theorem of this paper, 
+that a valid set of overloaded generic function declarations 
+is safe 
+even if the class table is extended.
+Before proving the theorem we establish two lemmas. 
+First, we show that if a set of declarations is valid for a given class table, 
+then it is valid for any (well-formed) extension of that class table.
+Second, we show that if a set of overloaded declarations is valid, 
+then there is always a single best choice of declaration 
+to which to dispatch any (legal) call to that function 
+(i.e., the unique most specific declaration applicable to the arguments).
 
-\TODO{This section generally needs to be polished.}
+% The first is the more critical one:
+% it shows that one does not invalidate a valid set of
+% overloaded function declarations by extending the class
+% table for which it was proved valid.
+% Effectively the second lemma states that
+% there is always a single best choice for the meaning of a function
+% application.
 
-\begin{lemma}[Progress]
-\label{lem:progress}
-If some declaration in $\D(f)$ is applicable to $W$
-then there is a unique most specific declaration $d_W \in \D(f)$ 
-that is applicable to $W$.
+\begin{lemma}[Extensibility]
+\label{lem:mod}
+If $\Df$ is valid with respect to the class table $\T$,
+then $\Df$ is valid with respect to any extension $\T'$ of $\T$.
+\end{lemma}
+\begin{psketch}
+In Section~\ref{sec:checking} we will show that checking the validity of
+$\Df$ can be reduced to examining subtype relationships
+between existential and universal types, which are constructed solely from
+types
+appearing in $\Df$ and hence $\T$. Extension of the class table
+preserves subtype relationships between types in $\T$ and hence preserves
+validity of $\Df$.
+\end{psketch}
+
+\begin{lemma}[Determinism]
+If $\Df$ is valid with respect to the class table $\T$,
+then for every type $T \in \T$ such that $\Df(T)$ is nonempty, there is a unique most specific declaration in $\Df(T)$.
 \end{lemma}
 \begin{proof}
-Our proof strategy for satisfying the Progress condition
-makes use of the old idea from Castagna \emph{et al.} \cite{castagna95} 
-that for each name $f$ the set of function declarations $\D(f)$
-should form a meet semilattice under the \emph{more specific than} order 
-defined in Section~\ref{terms}.
-If any declaration of name $f$ is applicable to a type $W$,
-then the set $\D_W(f) \subseteq \D(f)$
-of all declarations named $f$ and applicable to $W$
-also forms a nonempty meet semilattice under specificity. Therefore
-$\D_W(f)$ must have a least element.
+Let $T \in \T$ be a type such that $\Df(T)$ is nonempty. This set is valid
+by Lemma~\ref{lem:subsetvalid} and thus contains a unique most specific
+declaration by Lemma~\ref{lem:leastelement}.
 \end{proof}
 
-\begin{lemma}[Preservation]
-\label{lem:preservation}
-If $\decl{f}{S}{T}$ is an instance of some declaration $d$
-that is applicable to $W$, 
-then there exists some instance $\decl{f}{U}{V}$ 
-of declaration $d_W$ from the previous lemma 
-such that $\decl{f}{U}{V}$ is applicable to $W$ 
-and  $V \extends T$.
-\end{lemma}
-\begin{proof}
-Note that subtyping is preserved under class table extension,
-so if $\D(f)$ satisfies the No Duplicates Rule and the Meet Rule
-with respect to the class table $\T$ then it satisfies them
-with respect to $\T'$ for any $\T' \ctext \T$.
-Therefore, we can be certain that adding more types will not
-invalidate the Progress guarantee.
-Just as in our discussion of the Meet Rule, the fact that subtyping is preserved
-under class table extension makes sure that the property that $\D(f)$ satisfies
-the Return Type Rule is preserved under class table extension. Therefore, the
-Return Type Rule and the rules from the last section are sufficient to ensure safety.
-\end{proof}
+\vspace*{2ex}
+The proof of the Overloading Safety Theorem follows easily:
 
-\begin{theorem}[Overloading Resolution Safety]
+\begin{theorem}[Overloading Safety]
 \label{thm:safety}
-There exists always a unique function to call at run time among a collection of overloaded function declarations.
-%There are no ambiguous calls at run time due to a collection of overloaded function declarations.
+Suppose $\Df$ is valid with respect to the class table $\T$.
+Then for any type $S \in \T' \ctext \T$,
+if $\Df(S)$ is nonempty then there exists a unique most specific declaration $d_{S} \in \Df(S)$.
+Furthermore for any declaration $d \in \Df(S)$ and instance $\decl{f}{T}{U}$
+of $d$, there exists an instance
+$\decl{f}{V}{W}$ of $d_{S}$ that is applicable to $S$ such that $W \subtypeof U$.
 \end{theorem}
 \begin{proof}
-Lemma~\ref{lem:progress} ensures that we never get stuck resolving an application;
-every call to a function declaration is unambiguous.
-Lemma~\ref{lem:preservation} ensures that the static type of an application
-is a supertype of the ilk of each value produced by the application at run time,
-provided that the ilks for the argument values in function applications 
-are always subtypes of the static types of the argument expressions
-(as they are in any language with a sound type system).
+The Extensibility Lemma lets us consider only the case when $\T' = \T$. Now the Determinism Lemma entails that such a $d_{S}$ exists, and the Return Type Rule
+entails the rest.
 \end{proof}
-Note that as a monomorphic function declaration is a special case of a generic function declaration,
-where the sequence of the type parameters is empty,
-these conditions apply also for monomorphic function declarations.
-

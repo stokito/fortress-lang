@@ -62,6 +62,10 @@ public class CompilerBuiltin {
         public static abstract class DefaultTraitMethods extends FValue implements JavaBufferedWriter {}
     }
 
+    public static interface Vector extends fortress.CompilerBuiltin.Object {
+        public static abstract class DefaultTraitMethods extends FValue implements Vector {}
+    }
+
     public static interface Object extends fortress.AnyType.Any {
         public static abstract class DefaultTraitMethods extends FValue implements Object {}
     }

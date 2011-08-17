@@ -134,7 +134,7 @@ case class CnAnd(uppers: Map[_InferenceVarType, Type], lowers: Map[_InferenceVar
     
     case CnOr(conjuncts, t2) =>
       val newConjuncts = conjuncts.map((sf: ConstraintFormula) => this.and(sf, newTa))
-      newConjuncts.foldRight(CnFalse.asInstanceOf[ConstraintFormula])((c1: ConstraintFormula, c2: ConstraintFormula) => c1.or(c2, newTa))
+      newConjuncts.foldLeft(CnFalse.asInstanceOf[ConstraintFormula])((c1: ConstraintFormula, c2: ConstraintFormula) => c1.or(c2, newTa))
   }
 
   override def or(c2: ConstraintFormula, newTa: TypeAnalyzer): ConstraintFormula = c2 match{
@@ -278,7 +278,7 @@ case class CnOr(conjuncts: List[CnAnd], ta: TypeAnalyzer) extends ConstraintForm
     case CnAnd(u, l, _) => c2.and(this, newTa)
     case CnOr(conjuncts2, _) =>
       val newConjuncts = conjuncts.map((cf: ConstraintFormula) => cf.and(c2, newTa))
-      newConjuncts.foldRight(CnFalse.asInstanceOf[ConstraintFormula])((c1, c2) => c1.or(c2, newTa))
+      newConjuncts.foldLeft(CnFalse.asInstanceOf[ConstraintFormula])((c1, c2) => c1.or(c2, newTa))
   }
 
   override def or(c2: ConstraintFormula, newTa: TypeAnalyzer): ConstraintFormula = c2 match{
@@ -287,7 +287,7 @@ case class CnOr(conjuncts: List[CnAnd], ta: TypeAnalyzer) extends ConstraintForm
     case CnAnd(u, l, _) => c2.or(this, newTa)
     case CnOr(conjuncts2, _) =>
       val newConjuncts = conjuncts.union(conjuncts2)
-      newConjuncts.foldRight(CnFalse.asInstanceOf[ConstraintFormula])((c1, c2) => c1.or(c2, newTa))
+      newConjuncts.foldLeft(CnFalse.asInstanceOf[ConstraintFormula])((c1, c2) => c1.or(c2, newTa))
   }
 
   override def solve(bounds: Map[_InferenceVarType,Type]): Option[Map[_InferenceVarType,Type]] = {

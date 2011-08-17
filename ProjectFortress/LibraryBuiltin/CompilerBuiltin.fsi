@@ -254,6 +254,12 @@ trait Character excludes { String, Number, Boolean }
     toUpperCase(self): Character
 end
 
+trait Vector 
+      getValue(i:ZZ32):ZZ32
+      putValue(i:ZZ32, v:ZZ32):()
+end
+
+makeVector(i:ZZ32) : Vector
 
 trait JavaBufferedReader excludes { String, Number, Boolean, Character }
   getter asString(): String

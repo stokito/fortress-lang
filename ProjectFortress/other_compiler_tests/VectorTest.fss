@@ -7,16 +7,13 @@
 
     This distribution may include materials developed by third parties.
 
- ******************************************************************************)
-
-component Compiled5.ab
+******************************************************************************)
+component VectorTest
 export Executable
 
 run():() = do
-  o = object
-        f(x:ZZ32): ()
-      end
-  o.f(0)
-end
-
+   z:Vector = makeVector(10)
+   z.putValue(0,10)
+   println(z.getValue(0))
+   end
 end
