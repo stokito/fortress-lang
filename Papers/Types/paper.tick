@@ -4,6 +4,7 @@
 
 % make a big red TODO label
 \newcommand{\TODO}[1]{\textbf{\emph{\textcolor{red}{TODO}}}: \textsf{\footnotesize #1}}
+% \newcommand{\TODO}[1]{}
 
 %newcommand
 \newcommand{\ms}{\preceq}
