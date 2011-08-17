@@ -1,0 +1,59 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component NatReflect
+export NatReflect
+
+(** Reflection for run-time integers into compile-time nat parameters.
+ *
+ *  Basically you can call the function reflect(n) and it will return
+ *  an instance of NatParam.  But every instance of NatParam is an
+ *  object N[\n\], so we can write a function which takes N[\n\] and
+ *  pass it a NatParam; within that function n becomes a static nat
+ *  parameter.
+ *)
+trait NatParam
+  (* comprises { N[\n\] } where [\ nat n \] *)
+  getter toZZ() : ZZ32
+end
+
+value object N[\nat n\] extends { NatParam }
+  getter toZZ() = n
+  getter asString() = n.asString
+end
+
+(* Inner loop of reflect, hoisted to top level because of incomplete
+ * implementation of generic local functions.  This basically
+ * decomposes the argument x into binary digits, and does the same
+ * operations on the static parameter r as it does so.
+ *
+ * Really this just proves that it can be done without extending the
+ * language.  Having proven that, we ought to build it in and document
+ * it in the spec for clarity and sanity's sake.
+ *)
+  __refl'[\nat r, nat b\](x:ZZ32):NatParam =
+    if x=0 then N[\r\]
+    elif (x REM (b+b)) = 0 then
+      __refl'[\r, b+b\](x)
+    else
+      __refl'[\r+b, b+b\](x-b)
+    end
+
+(* Actually convert a ZZ32 into a NatParam. *)
+reflect(z:ZZ32):NatParam = do
+  if z < 0 then
+    fail("reflect(" z "): negative argument")
+  else
+    __refl'[\0,1\](z)
+  end
+end
+
+end

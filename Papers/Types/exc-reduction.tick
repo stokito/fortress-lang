@@ -1,0 +1,127 @@
+We can recover the usual subtyping judgment and define the exclusion judgment as follows:\\[1em]
+\begin{tabular}{cc}
+\begin{minipage}{0.23\textwidth}
+\infrule
+{\jsub{S}{T}{\TRUE}}
+{\jgsub{S}{T}}
+\end{minipage}
+&
+\begin{minipage}{0.23\textwidth}
+\infrule
+{\jexc{S}{T}{\TRUE}}
+{\jgtemplate{S}{\exc}{T}}
+\end{minipage}
+\\[1.5em]
+\end{tabular}
+\noindent which state that, under assumptions $\Delta$, if the predicate generates the constraint $\TRUE$ (or some constraint that simplifies to $\TRUE$), then that predicate is proved.
+
+% We now use the non-equivalence judgment to make rigorous our intuition about
+% how polymorphic exclusion affects the mechanical verification of the overloading rules.
+To allow more overloaded functions such as `tail` and `foo` as valid overloadings,
+we adjust the subtype relation to take into account the relationships between type variables:\\[1em]
+%described by the constraints defined in Section~\ref{sec:constraints}:
+
+A reduction judgment on existential types $\vdash\delta\eqred\delta',\phi$
+defined in Figure~\ref{fig:existential} reduces $\delta = \exttype{T}$ to
+$\delta' = \exttype[\Delta']{T'}$ with the substitution $\phi$
+under the assumption that $T$ is not equivalent to \Bottom; or,
+if $T$ is equivalent to \Bottom, the reduced existential $\delta'$ is \Bottom.
+When the substitution is unnecessary we omit it.
+The $solve$ operation is like that defined in Smith and Cartwright~\cite{smith08}.
+In fact, an existential type $\delta$ reduces to $\delta'$
+such that $T \ni \delta$ if and only if $T \ni \delta'$; therefore,
+we have $\delta' \le \delta$.
+Reducing an existential type in this fashion involves the same kind of
+type analysis required for type checking generalized algebraic data types
+\cite{simonet07,jones09}.
+
+
+
+As an example, consider the following reduction:\\[.8em]
+\begin{tabular}{l}
+$\vdash$ `EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])`\\[.3em]
+\andalso~~~~~~$\eqred$ `EXISTS[\W <: ZZ\]ArrayList[\W\]`
+\end{tabular}
+\\[.8em]
+with substitution $[W/X,\, W/Y]$. We first check under what constraints $\C$
+the intersection `ArrayList[\X\] CAP List[\Y\]` is not equivalent to \Bottom:
+with polymorphic exclusion (specifically, the absence of multiple instantiation inheritance)
+we know that `ArrayList[\X\]` excludes `List[\Y\]`,
+which makes their intersection equivalent
+to \Bottom, unless $X \equiv Y$ is true. Solving the constraint $X
+\equiv Y$ yields a type substitution like $\phi = [W/X,\, W/Y]$. The
+judgment $\phi[\Delta] = \Delta'$ lets us construct reduced bounds
+from $\phi$ and the original bounds $\Delta$. To do this, we first
+partition $\phi(\bar{X})$ into a list of type variables $\bar{Y}$ and a
+list of other types $\bar{T}$. In our example, $\phi(X, Y) = W$ gets
+partitioned into $W$ and $\emptyset$. Then we need to construct a new
+bound $\phi^{-1}[Y_i, \Delta]$ for each $Y_i$ in $\bar{Y}$ by
+conjoining the bounds for every type variable in $\phi^{-1}(Y)$. In
+our example, $X$ and $Y$ map to $W$, so the bounds for $W$ are `{Any, ZZ}`,
+which we take as the new bounds environment $\Delta'$. We must
+ensure that the substitution does not produce invalid bounds, so we
+check $\bar{\Delta' \vdash \phi(X) <: \bar{\phi(M)}}$. In our example,
+`W <: {ZZ, Any}` easily proves that `W <: ZZ` and `W <: Any`. With
+$\Delta'$ the reduced existential type is simply
+$\exists\ob{\Delta'}\phi(T)$, where $T$ is the constituent type of the
+original existential. In our example, the final, reduced existential
+type is `EXISTS[\W <: ZZ\]ArrayList[\W\]`.
+%
+Once we have augmented the subtyping relation with existential
+reduction, we can finally check that the declarations $\D(`foo`)$ from
+Section~\ref{sec:problems} satisfy the Meet Rule.
+
+
+Similiarly, to check that the declarations $\D(`tail`)$ from Section~\ref{sec:problems}
+satisfy the Return Type Rule, we need to show the following:\\[.8em]
+\begin{tabular}{l}
+$\vdash$
+`FORALL[\X<:Any\]ArrayList[\X\] -> ArrayList[\X\]`\\
+$\le$
+`FORALL[\X<:Any,Y<:Any\](ArrayList[\X\] CAP List[\Y\])`\\
+\hspace*{11.2em}
+`-> List[\Y\]`
+\end{tabular}
+\\[.8em]
+%EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])
+%\andalso~~~$\eqred$ `EXISTS[\W <: ZZ\]ArrayList[\W\]`
+By the adjusted subtype relation in this section and the rules in Figure~\ref{fig:existential},
+we can show the following:\\[.8em]
+\begin{tabular}{l}
+$\vdash$
+`EXISTS[\X<:Any, Y<:Any\]ArrayList[\X\] CAP List[\Y\]`\\[.3em]
+\andalso~~~$\eqred$ `EXISTS[\W <: Any\]ArrayList[\W\]`
+\end{tabular}
+\\[.8em]
+with substitution $[W/X, W/Y]$.  Because the substitution satisfies the following:\\[.8em]
+\begin{tabular}{l}
+$\vdash$
+`FORALL[\X<:Any\]ArrayList[\X\] -> ArrayList[\X\]`\\
+$\le$
+`FORALL[\X<:Any\]ArrayList[\X\] -> List[\X\]`\\
+\end{tabular}
+\\[.8em]
+we can verify that the declarations $\D(`tail`)$ satisfy the Return Type Rule.
+
+
+% A similar analysis shows that if an instance of a universal arrow has
+% the domain `Bottom`, then it is irrelevant for the purposes of
+% guaranteeing Progress. Therefore we can use our reduction rule for
+% existential types to aid in the verification of the Return Type Rule
+% by augmenting the subtype rules for universal arrows:
+% \\[-1.5em]
+% \infrule
+%   {\jtreds{\exttype[\Delta_1]{T}}{\delta'}{\phi} \andalso
+%    \jqsub{S}{\unitype[{\phi[\Delta_1]}]{\left(\arrowtype{\phi(T)}{\phi(U)}\right)}}}
+%   {\jqsub{S}{\unitype[\Delta_1]{\arrowtype{T}{U}}}}
+%  % {\Delta \vdash S <: reduce(`FORALL[\X_bar <: M_bar\]S \to T`)}
+%  % {\Delta \vdash S <: `FORALL[\X_bar <: M_bar\]S \to T`}
+% It is easy to see from the previous existential reduction instance that this subtype judgment can be proven,
+% thus allowing us to verify the Return Type Rule for the function $\D(tail)$ from Section~4.
+
+%% Because this subtype judgment holds for the previous existential
+%% reduction instance, we can verify the Return Type Rule for the
+%% function $\D(tail)$ from Section~4.
+%% %% It is easy to see from the previous existential reduction instance
+%% %% that this subtype judgment holds, thus allowing us to verify
+%% %% the Return Type Rule for the function $\D(tail)$ from Section~4. 

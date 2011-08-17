@@ -1,0 +1,98 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Summations and Other Reduction Expressions}
+\seclabel{reduction-expr}
+
+\begin{Grammar}
+\emph{FlowExpr} &::=&
+\emph{Accumulator} \option{\emph{StaticArgs}}
+\options{\texttt[ \emph{GeneratorClauseList} \texttt]} \emph{Expr} \\
+
+\emph{Accumulator} &::=& $\sum$ $|$ $\prod$ $|$ \KWD{BIG} (\emph{Encloser} $|$ \emph{Op})
+\end{Grammar}
+
+A \emph{reduction expression} begins with a big operator such as
+$\sum$ or $\prod$ followed by an optional static arguments and
+an optional generator clause list (described in
+\secref{generators}), followed by a body expression.
+There is no explicit relationship between \EXP{\OPR{BIG}\:\emph{Op}} and
+\emph{Op}.  Instead, a reduction expression corresponds to a call to the
+\EXP{\OPR{BIG}\:\emph{Op}} operator, which has the following header:
+%% opr BIG Op[\T\](g:(Reduction[\R0\],T->R0)->R0):R
+\begin{Fortress}
+\(\KWD{opr} \mathord{\OPR{BIG}}\: \emph{Op}\llbracket{}T\rrbracket(g\COLONOP(\TYP{Reduction}\llbracket{}R_{0}\rrbracket,T\rightarrow{}R_{0})\rightarrow{}R_{0})\COLONOP{}R\)
+\end{Fortress}
+Here \VAR{R} is the result type of the operator, and \VAR{g} corresponds to
+the method %generate[\R0\]
+\EXP{\VAR{generate}\llbracket{}R_{0}\rrbracket}
+of the trait %Generator[\T\]
+\EXP{\TYP{Generator}\llbracket{}T\rrbracket}:
+it is a function that takes a reduction (of type %Reduction[\R0\]
+\EXP{\TYP{Reduction}\llbracket{}R_{0}\rrbracket})
+and a body (of type \EXP{T\rightarrow{}R_{0}})
+and returns a value of type \EXP{R_{0}} by running body on each
+generated element and combining them using the reduction.
+When a generator clause
+list is provided, generator clauses produce values and bind the values to the
+identifiers that are used in the subexpression.  Each iteration of the
+body expression is assumed to be evaluated in a separate implicit
+thread as described in \secref{generators}.  The resulting values are
+combined together using \emph{Op}
+\label{redexpr-redvar}
+as with reduction variables (see \secref{reduction-vars}).
+The value of a reduction expression is this combined value.
+When no generator clause list is provided, the body is taken to be an
+object of type \TYP{Generator} and the elements it generates are
+combined.  Thus, the reduction expression \EXP{\sum a} is equivalent
+to \EXP{\sum\limits_{x\leftarrow{}a}\mskip 4mu plus 4mu{x}}.
+
+A reduction expression with a generator list:
+%% \sum [v_1 \gets g_1, v_2 \gets g_2, \ldots] e
+\begin{Fortress}
+\(\sum [v_{\mathrm{1}} \gets g_{\mathrm{1}}, v_{\mathrm{2}} \gets g_{\mathrm{2}}, \ldots] e\)
+\end{Fortress}
+is equivalent to the following code:
+%do
+%  var result: ZZ32 = 0
+%  for v1 <- g1, v2 <- g2, \ldots do
+%    result += e
+%  end
+%  result
+%end
+\begin{Fortress}
+\(\KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{var}\:\VAR{result}\COLON \mathbb{Z}32 = 0\)\\
+\(  \KWD{for}\:v_{1} \leftarrow g_{1}, v_{2} \leftarrow g_{2}, \ldots \KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(    \VAR{result} \mathrel{+}= e\)\-\\\poptabs
+\(  \KWD{end}\)\\
+\(  \VAR{result}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+where \VAR{result} is a fresh variable.
+%
+A reduction expression without a generator clause list:
+%% \sum g
+\begin{Fortress}
+\(\sum g\)
+\end{Fortress}
+is equivalent to the following:
+%\sum [x \gets g] x
+\begin{Fortress}
+\(\sum [x \gets g] x\)
+\end{Fortress}
+Note that reduction expressions without generator clause lists can be used to
+conveniently sum any aggregate expression (described in
+\secref{aggregate-expr}), since every aggregate expression
+is a generator.
+
+\section{Parallel Prefix and Parallel Suffix}
+\note{This section was not in F1.0$\beta$ nor in F1.0.  We don't quite have a story on this yet.}

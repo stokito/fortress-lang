@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component atomicExpr
+export Executable
+
+run() = do
+   var x : ZZ32 = 0
+   var y : ZZ32 = 0
+   var z : ZZ32 = 0
+   (atomic do x+=1; y+=1; end, atomic do z:=x+y end)
+   if z=0 then println("PASS")
+   elif z = 1 then println("FAIL")
+   elif z = 2 then println("PASS")
+   else println("FAIL") end
+end
+end

@@ -1,0 +1,56 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component deepHierarchy
+export Executable
+
+(* We need to be careful about the order in which we instantiate a
+   type hierarchy with an overloaded method whose argument type
+   mentions a subclass.  This is extracted from the FingerTree code.
+   We see the following instantiation work (R indicates completion).
+   Note that nested instantiations of a type will return the
+   partially-computed outer object, and the problem is we need to know
+   the extends list in order to check the validity of the addLeft
+   overloading.
+
+Started
+not_passing_yet/deepHierarchy.fss:56.6: D0[\ZZ32\]
+not_passing_yet/deepHierarchy.fss:50.27: Finger[\ZZ32\]
+not_passing_yet/deepHierarchy.fss:47.27: Finger[\ZZ32\]
+not_passing_yet/deepHierarchy.fss:47.27: Finger[\ZZ32\] R
+not_passing_yet/deepHierarchy.fss:47.12: Finger[\ZZ32\]
+not_passing_yet/deepHierarchy.fss:47.12: Finger[\ZZ32\] R
+not_passing_yet/deepHierarchy.fss:46.23: Finger[\ZZ32\]
+not_passing_yet/deepHierarchy.fss:46.23: Finger[\ZZ32\] R
+not_passing_yet/deepHierarchy.fss:46.12: D0[\ZZ32\]
+not_passing_yet/deepHierarchy.fss:46.12: D0[\ZZ32\] R
+Got exception: com.sun.fortress.interpreter.evaluator.InterpreterError: not_passing_yet/deepHierarchy.fss:56.6: D0[\ZZ32\]: Get of unset extends
+
+*)
+
+trait Finger[\ E \]
+  addLeft(e:D0[\E\]) : Finger[\E\] = self
+  addLeft(e:Finger[\E\]) : Finger[\E\] = e
+end
+
+object D0[\E\]() extends { Finger[\E\] }
+  getter asString() = "0"
+end
+
+run():() = do
+  println("Started")
+  e = D0[\ZZ32\]()
+  println("Instantiated")
+  println(e)
+  ()
+end
+
+end

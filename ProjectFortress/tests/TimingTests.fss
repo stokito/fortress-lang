@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component TimingTests
+import Timing.{...}
+export Executable
+
+fib(x)=
+    if x <= 1 then x
+    else fib(x-1) + fib(x-2)
+    end
+
+run():()=do
+    assert(Timing("",0).toString, "0ns")
+    assert(Timing("boo",0).toString, "boo 0ns")
+    assert(Timing("",500).toString, "0.5us")
+    assert(Timing("",5000).toString, "5.0us")
+    assert(Timing("",500000).toString, "0.5ms")
+    assert(Timing("",5000000).toString, "5.0ms")
+    assert(Timing("",500000000).toString, "0.5s")
+    assert(Timing("",5000000000).toString, "5.0s")
+    "fib(1)" PRINTTIME: fib(1)
+    "fib(14)" PRINTTIME: fib(14)
+    "fib(20)" PRINTTIME: fib(20)
+  end
+
+end

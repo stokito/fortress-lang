@@ -1,0 +1,134 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component wordcount2
+import CaseInsensitiveString.{...}
+import File.{...}
+import FileSupport.{...}
+import PureList.{...}
+import Map.{...}
+import System.{getEnvironment}
+export Executable
+
+delimiters : String= " ,.?*\t-/[]"
+delimMap : Map[\Char,Boolean\] = { c |-> true | c <- delimiters }
+isDelimiter(c:Char):Boolean = delimMap.member(c,false)
+(*
+This is much slower, even for the relatively short string above.
+isDelimiter(c:Char):Boolean = c IN delimiters
+*)
+
+trait WordState comprises { Chunk, Segment }
+  getter words(): Map[\CaseInsensitiveString, ZZ32\]
+  opr OPLUS(self, other: WordState): WordState
+end
+
+object Chunk(s: String) extends WordState
+  getter words(): Map[\CaseInsensitiveString, ZZ32\] =
+    maybeWord(s, {[\CaseInsensitiveString,ZZ32\]})
+  opr OPLUS(self, other: WordState): WordState = Chunk("")
+  opr OPLUS(self, other: Chunk): WordState =
+    Chunk(s || other.s)
+  opr OPLUS(self, other: Segment): WordState =
+    Segment(s || other.l, other.A, other.r)
+end
+
+object Segment(l: String, A: Map[\CaseInsensitiveString,ZZ32\], r: String)
+    extends WordState
+  getter words(): Map[\CaseInsensitiveString, ZZ32\] =
+    maybeWord(l, maybeWord(r, A))
+  opr OPLUS(self, other: WordState): WordState = Chunk("")
+  opr OPLUS(self, other: Chunk): WordState =
+    Segment(l, A, r || other.s)
+  opr OPLUS(self, other: Segment): WordState = do
+    Segment(l, A UNIONSUM maybeWord(r || other.l, other.A), other.r)
+    end
+end
+
+(* object GlomReduction extends { MonoidReduction[\WordState\],
+                               ReductionWithZeroes[\WordState,WordState\] }
+    getter asString() = "GlomReduction"
+    empty(): WordState = Chunk("")
+    join(a: WordState, b: WordState): WordState = a OPLUS b
+end
+
+opr BIG OPLUS[\T\](): BigReduction[\WordState,WordState\] =
+    BigReduction[\WordState,WordState\](GlomReduction)
+
+opr BIG OPLUS[\T\](g: Generator[\WordState\]) =
+    __bigOperatorSugar[\WordState,WordState,WordState,WordState\](BIG OPLUS[\T\](), g)
+*)
+
+maybeWord(s: String, d:Map[\CaseInsensitiveString,ZZ32\]): Map[\CaseInsensitiveString,ZZ32\] =
+  if s.isEmpty then d else
+      d.updateWith(fn(mx)=>Just[\ZZ32\](mx.getDefault(0)+1), CaseInsensitiveString(s))
+end
+
+opr BIG OPLUS[\T\](): Reduction[\WordState\] = embiggen( fn(a,b) => a OPLUS b, Chunk("") )
+
+processChar(c: Char): WordState =
+  if (isDelimiter(c)) then
+    Segment("", {[\CaseInsensitiveString,ZZ32\]}, "")
+  else
+    Chunk("" c)
+  end
+
+words(s: String):Map[\CaseInsensitiveString,ZZ32\] =
+  (BIG OPLUS[c<-s] processChar(c)).words
+
+makeInv(x:String,y:ZZ32):Map[\ZZ32, List[\String\]\] =
+    {[\ZZ32,List[\String\]\] y |-> <|[\String\] x |> }
+
+opr UNIONSUM(a:Map[\CaseInsensitiveString,ZZ32\],
+             b:Map[\CaseInsensitiveString,ZZ32\]):Map[\CaseInsensitiveString,ZZ32\] =
+        a.union(fn(_,x,y)=>x+y, b)
+
+opr BIG UNIONSUM(): BigReduction[\Map[\CaseInsensitiveString,ZZ32\],
+                                 Map[\CaseInsensitiveString,ZZ32\]\] =
+    embiggen[\Map[\CaseInsensitiveString,ZZ32\]\](
+        fn (a,b) => a UNIONSUM b, {[\CaseInsensitiveString,ZZ32\]})
+
+opr UNIONUNION(a:Map[\ZZ32,List[\String\]\], b:Map[\ZZ32, List[\String\]\]):Map[\ZZ32,List[\String\]\] =
+    a.union(fn(k,x,y) => x || y, b)
+
+opr BIG UNIONUNION(): BigReduction[\Map[\ZZ32, List[\String\]\],Map[\ZZ32, List[\String\]\]\] =
+    embiggen[\Map[\ZZ32, List[\String\]\]\](fn(a,b) => a UNIONUNION b, {[\ZZ32,List[\String\]\]})
+
+processFile(name:String):() = do
+    time(str:String,s,f): () = println(str " in " ((f-s)/10.0^6) "ms")
+    println("Processing file " name)
+    rs:FileReadStream = FileReadStream(name)
+    start = nanoTime()
+    database:Map[\CaseInsensitiveString, ZZ32\] =
+        BIG UNIONSUM [l<-rs.lines()] words(l)
+    rs.close()
+    acq = nanoTime()
+    time("Acquired words",start,acq)
+    invDatabase:Map[\ZZ32,List[\String\]\] =
+        BIG UNIONUNION [(x,y) <-database] makeInv(x.asString,y)
+    inv = nanoTime()
+    time("Inverted database",acq,inv)
+    entries = <|[\(ZZ32, List[\String\])\] (c,m) | (c,m) <- invDatabase.reverse |>
+    for (c,m) <- seq(entries[0#100]) do
+        println(m ": " c " times")
+    end
+    finish = nanoTime()
+    time("Outputted",inv,finish)
+    time("Total run",start,finish)
+end
+
+
+run() = do
+    (* change the final string below to "testData" for quick test,
+       "hamlet" for thorough test comparable to wordcount.fss. *)
+    processFile(getEnvironment("fortress.autohome", "ProjectFortress/demos/") "hamlet")
+end
+end
