@@ -3,7 +3,7 @@ and argue informally why they are
 (or are not, in one case) 
 permitted by the rules in Section~\ref{sec:rules}, 
 paying particular attention to where multiple instantiation exclusion is required.
-We give a formal system and algorithm for doing these checks 
+We give a formal system and algorithm for performing these checks 
 in Section~\ref{sec:checking}.
 
 First, consider the function `foo`
@@ -20,7 +20,7 @@ exactly if the type of each is a subtype of `Object`,
 whereas the second is applicable to a pair of arguments exactly if
 the type of each is a subtype of `Number`.
 Thus, these definitions satisfy the No Duplicates Rule 
-and the Meet Rule.
+and the Meet Rule by Lemma~\ref{lem:strictms}.
 And they satisfy the Return Type Rule 
 because the return type of both definitions is always `ZZ`.
 
@@ -40,7 +40,7 @@ of type `List[\ZZ\]`.
 Thus, 
 each definition is strictly more specific than the preceding one, 
 so the No Duplicates Rule and Meet Rule 
-are satisfied for each pair of definitions.
+are satisfied for each pair of definitions by Lemma~\ref{lem:strictms}.
 
 To see that the Return Type Rule is satisfied 
 by the first two definitions, 

@@ -113,6 +113,7 @@ and replacing the rules for var types with.
 \infrule
   {\jnsub{S}{\Delta(X)}{\C'}}
   {\jnsub{S}{X}{\C \wedge \C'}}
+\TODO{What's $\C$???}
   
 \infrule
   {}
