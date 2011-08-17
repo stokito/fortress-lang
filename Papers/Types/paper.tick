@@ -350,7 +350,7 @@ components, separate compilation, Fortress, meet rule}
 \section{Constraint-Based Judgments}\label{sec:constraints}
 \input{exc-constraints}
 
-\subsection{Existential Reduction}
+\subsection{Quantifier Reduction}
 \label{sec:exred}
 \input{exc-reduction}
 

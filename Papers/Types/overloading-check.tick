@@ -51,7 +51,7 @@ which we utilize in checking the overloading rules. We actually define inner
 and outer subtyping judgments on universals and existentials; the former
 corresponds to a relatively standard interpretation of each (which
 resembles those defined in \cite{bourdoncle97}), while the latter
-incorporates \emph{existential reduction}, defined in the next section.
+incorporates \emph{quantifier reduction}, defined in the next section.
 
 
 \input{fig-existential}
@@ -76,19 +76,12 @@ a subtype of $\delta_2$ if $\delta_2$'s type parameters can be instantiated
 in $\delta_1$'s environment such that its instantiated type is a simple
 supertype of $\delta_1$'s type.
 
-The outer subtyping judgments incorporate a single step of \emph{existential reduction}. Reduction on an existential type preserves the collective extent of all its instantiations---it is sound to include it in our definitions of universal and existential subtyping.
-In the
-existential subtyping judgment $\jle{\delta}{\delta}$ the l.h.s.
-is reduced and its result is checked with the r.h.s. using the inner subtying judgment.
-Its use in the universal subtyping judgment $\jle{\sigma}{\sigma}$ requires
-a bit more explanation. We only use universal subtyping to compare
-generic arrow types of the form $\arrow(d)$ for a generic function declaration
-$d$. In this case, the r.h.s. arrow is reduced by reducing its
-domain type $\dom(d) = \exttype[\Delta']{T}$, resulting not only in a new existential type $\exttype[\Delta'']{U}$ but
-also a substitution $\phi$ mapping type variables from $\Delta'$
-to types with variables in $\Delta''$. Before
-appealing to the inner subtyping judgment, that substitution is
-applied to $\arrow(d)$'s return type $T$. (We will explain existential reduction in more detail in Section~\ref{sec:exred}.)
+The outer subtyping judgments incorporate a single step of \emph{quantifier reduction}.
+In the existential subtyping judgment $\jle{\delta}{\delta}$ the l.h.s. is reduced and its result is checked with the r.h.s. using the inner subtyping judgment.
+Dually, in the universal subtyping judgment $\jle{\sigma}{\sigma}$ the r.h.s. is reduces and its result is checked with the l.h.s. using the inner subtyping judment. 
+
+We explain how to compute reductions in section reduction in more detail in Section~\ref{sec:exred}, but the behavior of of reduction can be understood entirely
+through the following two theorems.
 
 These subtyping judgments offer a nice interpretation of applicability and
 specificity of generic function declarations. Recall that a generic
@@ -103,13 +96,9 @@ interpret the fact that a generic function declaration $d$ is applicable
 to a type $T$ with the existential subtyping assertion $\vdash T \le \dom(d)$. 
 Furthermore, we interpret the fact that $d_1$ is more specific than
 $d_2$ with the existential subtyping assertion
-$\vdash \dom(d_1) \le \dom(d_2)$.
-
-These interpretations are clearly correct with respect to the inner subtyping judgments. Using a few
-elementary facts about $\le$, $\leinner$, and $\eqred$ that will be explained in Section~\ref{sec:exred},
-we can show that existential reduction preserves the correctness in the outer subtyping judgments.
-
-\TODO{show this}
+$\vdash \dom(d_1) \le \dom(d_2)$. These interpretations are clearly correct with respect
+to the inner subtyping judgments and our theorems immediately imply that they
+are correct with respect to the outer subtyping judments as well.
 
 \input{fig-meet}
 
@@ -150,9 +139,6 @@ the arrow type $\sigma_{meet} = \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \ri
 \end{theorem}
 
 \begin{psketch}
-First note that the pair $\sigma_meet$, $\arrow(d2)$ satisfies the return type rule. Now notice that
-since $\arrow(d_1)$ and $\sigma_meet$ are equally specific
-\TODO{finish this}
 \end{psketch}
 
 
