@@ -49,8 +49,9 @@ In this section, we describe the rules for valid overloading.
 For each function name $f$,
 we determine whether a set of overloaded function declarations $\Df$ is valid
 by independently considering every pair of declarations in the set.
-A pair of declarations is a valid overloading 
-if it satisfies the three rules described below with respect to a class
+A set of declarations is a valid overloading 
+if every pair of distinct declarations in the set
+satisfies the three rules described below with respect to a class
 table $\T$, and a set $\Df$ is valid
 with respect to $\T$ if every pair of declarations in the set is valid with
 respect to $\T$.
@@ -72,14 +73,14 @@ distinct declarations in $\Df$ that are equally specific.
 \end{description}
 
 A pair of declarations is unambiguous
-if for any type to which both declarations are applicable,
+if and only if for any type to which both declarations are applicable,
 there is a {\em disambiguating declaration} (possibly one of the pair)
 that is also applicable to that type and is more specific than both declarations. Moreover, that declaration is applicable exactly when
 both of the others are applicable.
 \begin{description}
 \item[Meet Rule]
 For every $d_1, d_2 \in \Df$,
-there should exist a declaration $d_0 \in \Df$ (possibly one of the pair) 
+there must exist a declaration $d_0 \in \Df$ (possibly one of the pair) 
 such that,
 for every type $T \in \T$, $d_0$ is applicable to $T$ 
 if and only if both $d_1$ and $d_2$ are applicable to $T$.
@@ -96,7 +97,7 @@ if and only if both $d_1$ and $d_2$ are applicable to $T$.
 %% then that pair of declarations satisfies the No Duplicates Rule 
 %% and the Meet Rule.}
 
-If one monomorphic declaration is more specific than another monomorphic one,
+If one monomorphic declaration is more specific than another monomorphic declaration,
 then there is no ambiguity between these two declarations:
 for any type to which both are applicable, the first is more specific.
 In the parametrically polymorphic setting,
@@ -122,7 +123,7 @@ and tuple types with different numbers of arguments
 have no common subtype other than \Bottom,
 the Meet Rule technically requires that 
 an overloaded function with declarations that take different numbers of arguments 
-has a declaration applicable only to \Bottom.
+have a declaration applicable only to \Bottom.
 Because \Bottom\ is not first-class in Fortress, 
 such a declaration cannot be written, 
 and in any case it would, of course, never be applied

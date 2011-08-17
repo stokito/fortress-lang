@@ -14,13 +14,13 @@ of overloaded generic function declarations,
 they sometimes reject overloaded definitions 
 that might seem to be valid.
 For example, 
-given the type system as described thus far,
+given the type system as we have described it thus far,
 the overloaded `tail` function from the introduction 
 would be rejected by the overloading rules.
 
 These are not false negatives:
 multiple inheritance can introduce ambiguities 
-by extending two incomparable types 
+by extending two incomparable types, 
 as discussed in the introduction.
 Because we allow class tables to be extended by unknown modules, 
 we cannot generally infer that two types have no common nontrivial subtype 
@@ -46,7 +46,7 @@ Exclusion allows us to describe explicitly what is
 typically implicit in single-inheritance class hierarchies.
 
 In our previous work on Fortress without generics~\cite{allen07}, 
-we provide a special rule---the \emph{Exclusion Rule}---%
+we provided a special rule---the \emph{Exclusion Rule}---%
 to exploit this information.
 However, 
 the Exclusion Rule can also be viewed, 
@@ -66,7 +66,7 @@ we cannot define `List`
 so that the definitions for `tail` satisfy the Return Type Rule.
 
 To see this, 
-consider the following overloaded definitions (from the introduction):
+consider the following overloaded definitions (from Section~\ref{sec:intro}):
 
 \small
 `  tail[\T\](x: List[\T\]): List[\T\]
@@ -108,14 +108,14 @@ as in the following example
 (where `ZZ <: RR`):
 
 \small
-`  min[\X <: RR, Y <: ZZ\](p: Pair[\X,Y\]): RR
-  min[\X <: ZZ, Y <: RR\](p: Pair[\X,Y\]): RR
-  min[\X <: ZZ, Y <: ZZ\](p: Pair[\X,Y\]): ZZ
+`  minimum[\X <: RR, Y <: ZZ\](p: Pair[\X,Y\]): RR
+  minimum[\X <: ZZ, Y <: RR\](p: Pair[\X,Y\]): RR
+  minimum[\X <: ZZ, Y <: ZZ\](p: Pair[\X,Y\]): ZZ
 `
 \normalsize
 The first definition is applicable to exactly those arguments 
 of type `Pair[\X,Y\]` for some `X <: RR` and `Y <: ZZ`;
-the second to exactly those arguments
+the second is applicable to exactly those arguments
 of type `Pair[\X,Y\]` for some `X <: ZZ` and `Y <: RR`.
 So we might think that both definitions are applicable 
 to exactly those arguments of type `Pair[\X,Y\]` for some `X <: ZZ` and `Y <: ZZ`, 
@@ -128,17 +128,17 @@ We could, for example, have the following type constructor declaration:
 `  BadPair <: { Pair[\RR,ZZ\], Pair[\ZZ,RR\] }
 `
 \normalsize
-The first two definitions of `min` are both applicable to `BadPair` 
+The first two definitions of `minimum` are both applicable to `BadPair` 
 but the third is not.
 
 We might say that the problem with the above examples 
-is not with the definitions of `tail` and `min`, 
-but with the definitions of `BadList` and `BadPair`, 
+is not with the definitions of `tail` and `minimum`, 
+but with the definitions of `BadList` and `BadPair`;
+we must reject the idea
 that a value may belong to `List[\ZZ\]` or `List[\String\]`---%
 or to `Pair[\ZZ,RR\]` or `Pair[\RR,ZZ\]`---%
 but not to both.
-More generally, 
-we can impose a rule that forbids 
+Indeed, Fortress imposes a rule that forbids 
 \emph{multiple instantiation inheritance} \cite{kennedy07}, 
 in which a type (other than \Bottom) 
 is a subtype of distinct applications of a type constructor.\!\footnote{%
@@ -148,9 +148,10 @@ It is straightforward,
 but beyond the scope of this paper, 
 to extend this definition to systems 
 that support covariant and contravariant type parameters.}
-We call this rule \emph{multiple instantiation exclusion}.
+We call this rule \emph{multiple instantiation exclusion}
+and adopt it here.
 
-Multiple instantiation exclusion is easy to statically enforce, 
+Multiple instantiation exclusion is easy to enforce statically, 
 and experience suggests that it is not onerous in practice: 
 it is already required in Java, for example~\cite{JavaSpec}.
 Also, 

@@ -13,7 +13,7 @@
 %   * HMG(X) (pottier)
 %   * with OOP (russo)
 %
-\subsection{Overloading and dynamic dispatch.} 
+\subsection{Overloading and Dynamic Dispatch.} 
 
 \TODO{This needs editing}
 
@@ -34,7 +34,7 @@ so that the type hierarchy could be extended safely by new modules
 without rechecking old modules.
 
 
-Primarily, our system
+The system presented here
 strictly extends our previous effort \cite{allen07} with parametric polymorphism;
 all previous properties and results remain intact. The inclusion of parametric
 functions and types represents a shift in the research literature on overloading
@@ -69,7 +69,7 @@ which prevents overloaded functions defined on disjoint domains;
 and link-time checks are performed to ensure that multimethods are fully
 implemented across modules. 
 On the other hand, ML$_\le$ allows variance annotations on type constructors---% 
-something we attribute to future work.
+something we defer to future work.
 
 \TODO{Some other things to possibly mention about Bourdoncle and Merz:}
 \begin{itemize}
@@ -77,8 +77,8 @@ something we attribute to future work.
 \item
 They have a principal type, 
 which makes the return type rule easy, 
-because we don't need to compute a meet:
-we can just compare against the given return type.
+because they do not need to compute a meet:
+they can just compare against the given return type.
 
 \item
 They don't have exclusion.
@@ -86,7 +86,7 @@ They don't have exclusion.
 \item 
 They restrict their ````patterns'' so that each type variable 
 can occur at most once.
-Also, the type of each parameter must either be a single type variable 
+Also, the type of each parameter must be either a single type variable 
 or a constructed type whose arguments are type variables.
 The latter restriction avoids dealing with complicated ML patterns.
 I think the former serves the same purpose, actually.
@@ -101,9 +101,9 @@ which supports bounded parametric polymorphism and multimethods.
 Because Cecil has a type-erasure semantics, 
 statically checked parametric polymorphism has no effect on run-time dispatch.
 
-\subsection{Type classes.} Wadler and Blott \cite{wadler89} introduced
+\subsection{Type classes} Wadler and Blott \cite{wadler89} introduced the
 \emph{type class} as a means to specify and implement overloaded
-functions like equality and arithmetic operators in Haskell. Other authors
+functions such as equality and arithmetic operators in Haskell. Other authors
 have translated type classes to languages besides Haskell \cite{dreyer07,siek05,wehr07}.
 Type classes encapsulate overloaded function declarations, with separate
 \emph{instances} that define the behavior of those functions (called \emph{class methods})

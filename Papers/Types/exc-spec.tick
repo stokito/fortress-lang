@@ -54,7 +54,7 @@ We define the sets of instantiations of types
 in `excludes` and `comprises` clauses analogously to $\myextends{C\obb{T}}$.
 That is, 
 for an application $C\obb{T}$ 
-of the declaration above,\\[-.2em]
+of the declaration above, we have:\\[-.5em]
 \begin{align*}
 \myexcludes{C\obb{T}}  &= \{ \bar{\substb{T}{X}L} \} \\
 \mycomprises{C\obb{T}} &= \{ \bar{\substb{T}{X}K} \}
@@ -70,7 +70,8 @@ it asserts that `D[\T_bar\]` has no subtypes
 other than itself and \Bottom.
 Although the declaration has no `excludes` or `comprises` clause, 
 this condition implies that `D[\T_bar\]` 
-excludes any type other than its supertypes.
+excludes any type other than its supertypes
+(and therefore it is as if it had a clause `comprises {}`).
 
 % As mentioned previously, 
 Multiple instantiation exclusion 
@@ -178,7 +179,8 @@ Every non-singleton tuple type excludes every non-tuple type other than \Any.
 (A singleton tuple type is synonymous with its element type, 
 and so excludes exactly those types excluded by its element type.)
 % Every singleton tuple type excludes exactly those types excluded by its element type.
-Tuple type $(\bar{V})$ excludes $(\bar{W})$ if either $|\bar{V}| \neq |\bar{W}|$
+Non-singleton tuple type $(\bar{V})$ excludes non-singleton tuple type
+$(\bar{W})$ if either $|\bar{V}| \neq |\bar{W}|$
 or $V_i$ excludes $W_i$ for some $i$.
 An intersection type excludes any type excluded by \emph{any} of its constituent types;
 a union type excludes any type excluded by \emph{all} of its constituent types.
