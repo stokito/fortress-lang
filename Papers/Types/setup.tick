@@ -116,7 +116,7 @@ and the extends relation over type constructors is acyclic.
 %  C[\Z\] <: B[\A[\Z\]\]
 
 The type constructor declaration above 
-indicates that the constructed type $C\obb{U}$ 
+specifies that the constructed type $C\obb{U}$ 
 (\emph{i}) is \emph{well-formed} (with respect to $\T$)
 if and only if $|\bar{U}| = |\bar{X}|$ and
 $U_i \subtypeof \substb{U}{X}M_{ij}$ 
@@ -165,7 +165,7 @@ To reduce clutter,
 nullary applications are written without brackets; 
 for example, `C[\ \]` is written `C`. 
 We also elide the braces delimiting 
-a singleton list of bounds of a type parameter 
+a singleton list of either bounds of a type parameter 
 or supertypes of a class in a type constructor declaration.
 
 We extend the subtyping relation to
@@ -217,7 +217,7 @@ given a type environment,
 we consider only types whose (free) type variables 
 are bound in the type environment.
 Because our type language does not involve any type variable binding---%
-type variables are only bound by generic type constructor or function
+type variables are bound only by generic type constructor or function
 declarations---%
 the set of free type variables of $T$, written $\FV(T)$, is defined as
 the set of all type variables syntactically occurring within $T$.

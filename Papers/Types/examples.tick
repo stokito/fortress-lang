@@ -7,7 +7,7 @@ We give a formal system and algorithm for doing these checks
 in Section~\ref{sec:checking}.
 
 First, consider the function `foo`
-from the introduction:
+from Section~\ref{sec:intro}:
 
 \small
 `  foo[\X <: Object\](x: X, y: Object): ZZ = 1
@@ -84,15 +84,15 @@ is its instantiation with `ZZ`.
 That instantiation has return type `List[\ZZ\]`, 
 which is also the return type of the third definition.
 
-The `min` example from Section~\ref{sec:exclusion} is also valid 
+The `minimum` example from Section~\ref{sec:exclusion} is also valid 
 under multiple instantiation exclusion,
 which is necessary in this case 
 to satisfy the Meet Rule rather than the Return Type Rule:
 
 \small
-`  min[\X <: RR, Y <: ZZ\](p: Pair[\X,Y\]): RR
-  min[\X <: ZZ, Y <: RR\](p: Pair[\X,Y\]): RR
-  min[\X <: ZZ, Y <: ZZ\](p: Pair[\X,Y\]): ZZ
+`  minimum[\X <: RR, Y <: ZZ\](p: Pair[\X,Y\]): RR
+  minimum[\X <: ZZ, Y <: RR\](p: Pair[\X,Y\]): RR
+  minimum[\X <: ZZ, Y <: ZZ\](p: Pair[\X,Y\]): ZZ
 `
 \normalsize
 Any argument to which the first two definitions are both applicable 
@@ -133,7 +133,7 @@ in which case,
 This is exactly the type to which the third declaration is applicable, 
 so the Meet Rule is satisfied.
 
-Note that this example is similar to the previous one with `min`
+Note that this example is similar to the previous one with `minimum`
 except that rather than having each of the two definitions 
 being more restrictive on a type parameter, 
 one uses a more specific type constructor.
@@ -160,7 +160,7 @@ are both applicable to this argument,
 but the return type `ZZ` of the second declaration 
 is not a subtype of the return type `NN` of the instance of the first declaration.
 This rejection by the Return Type Rule is not gratuitous: 
-`baz` may be called with a argument of type `NN` 
+`baz` may be called with an argument of type `NN` 
 in a context that expects an `NN` in return.
 
 We can fix this example by making the second declaration generic:
@@ -182,45 +182,41 @@ Then the instantiation of the second declaration with $W$
 has return type $W$, which is a subtype of the return type $T$ 
 of the instance of the first declaration under consideration.
 
-Finally,
-consider the following overloaded definitions:
+%% Finally,
+%% consider the following overloaded definitions:
 
-\small
-`  quux[\X\](x: X): ZZ = 1
-  quux(x: ZZ): ZZ = 2
-`
-\normalsize
-This pair is valid 
-because the second definition is strictly more specific than the first---%
-so the No Duplicates and Meet Rules are satisfied---%
-and the return types of both is always just `ZZ`---%
-so the Return Type Rule is satisfied.
-The call `quux(x)` evaluates to 2 whenever the ilk of $x$ is a subtype of `ZZ`, 
-and to 1 otherwise,
-which we believe is the behavior a programmer would expect.
+%% \small
+%%   quux[\X\](x: X): ZZ = 1
+%%   quux(x: ZZ): ZZ = 2
+%% 
+%% \normalsize
+%% This pair is valid 
+%% because the second definition is strictly more specific than the first---%
+%% so the No Duplicates and Meet Rules are satisfied---%
+%% and the return types of both is always just `ZZ`---%
+%% so the Return Type Rule is satisfied.
+%% The call `quux(x)` evaluates to 2 whenever the ilk of $x$ is a subtype of `ZZ`, 
+%% and to 1 otherwise,
+%% which we believe is the behavior a programmer would expect.
 
-In contrast, 
-under the ````infinite set of monomorphic definitions'' interpretation,
-supposing that we could avoid or resolve the ambiguities described in the introduction,
-the call `quux(x)` when $x$ has type `NN <: ZZ` would evaluate to 1 
-because the most specific monomorphic definition 
-would be the the instantiation of the generic definition with `NN`.
-
-
+%% In contrast, 
+%% under the ````infinite set of monomorphic definitions'' interpretation,
+%% supposing that we could avoid or resolve the ambiguities described in the introduction,
+%% the call `quux(x)` when $x$ has type `NN <: ZZ` would evaluate to 1 
+%% because the most specific monomorphic definition 
+%% would be the the instantiation of the generic definition with `NN`.
 
 
 
 
 
-\TODO{Some stuff to mention?}
-In a single-inheritance language (without parametric polymorphism?), 
-the constructed types trivially form a meet semilattice: 
-two types have a common nontrivial subtype 
-only if one is a subtype of the other.
-Thus, the tuple types and constructed types form a meet semilattice.
-(But arrow types don't: 
-the meet of `S->T` and `U->V` is \emph{not} an arrow type.)
 
 
-
-
+%% \TODO{Some stuff to mention?}
+%% In a single-inheritance language (without parametric polymorphism?), 
+%% the constructed types trivially form a meet semilattice: 
+%% two types have a common nontrivial subtype 
+%% only if one is a subtype of the other.
+%% Thus, the tuple types and constructed types form a meet semilattice.
+%% (But arrow types don't: 
+%% the meet of `S->T` and `U->V` is \emph{not} an arrow type.)

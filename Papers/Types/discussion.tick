@@ -12,10 +12,10 @@ But note that our progress and preservation conditions do not require
 that the type parameters of the function declaration 
 that is (dynamically) most specific 
 of those applicable to the ilks of the argument values 
-are the same as the type parameters
+be the same as the type parameters
 of the function declaration that is (statically) most specific 
 of those applicable to the static types of the argument expressions.
-Thus, the results of static type inference do not tell us how to
+Thus, the results of static type inference do not (in general) tell us how to
 instantiate the type parameters of a most specific function
 declaration at run time.  
 In the Fortress programming language,
@@ -95,7 +95,7 @@ Flattening a simple module simply yields the same module.
 \item Flattening a compound module `C`
 consisting of filters (module/mapping pairs) $(c_1, m_1), \ldots, (c_N, m_N)$
 yields a simple module whose class table and collection of function declarations
-is the concatenation of the class tables and collections of function declarations
+are the unions of the class tables and collections of function declarations
 of $s_1, \ldots, s_N$, where $s_i$ is the simple module resulting from
 first flattening $c_i$ and then renaming all members
 of the resulting simple module according to the mapping $m_i$.
@@ -157,7 +157,7 @@ each of which combines modules `B` and `C` without renaming `add`.
 In each of `D` and `E`, 
 we have an ambiguity 
 in dispatching calls to `add` with types `(BigNum, Rational)` or `(Rational, BigNum)`.
-Our rules require adding two declarations in each of `D` and `E`
+Our rules require adding two declarations, one in each of `D` and `E`,
 to resolve these ambiguities.
 
 Now let us suppose we wish to combine `D` and `E` into a compound component `F`.

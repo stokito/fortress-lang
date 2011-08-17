@@ -8,23 +8,14 @@ three important properties:
   specific meaning,
   \item if it has a unique most specific meaning at compile time, then it
   has a (possibly different) unique most specific meaning at run time, and
-  \item its ilk at run time will be a subtype of its type at compile time.
+  \item the ilk of the value returned at run time will be a subtype of
+the type determined statically at compile time of the function application expression.
 \end{itemize}
 %% \TODO{Relate these properties to prior work?}
-
+%
 We formulate the Overloading Safety Theorem in terms of class table extension
 to generalize (while also making precise) the notion that ````run time''
 describes a world that consistently extends that of ````compile time.''
-
-\begin{theorem}[Overloading Safety]
-\label{thm:safety}
-Suppose $\Df$ is valid with respect to the class table $\T$.
-Then for any type $S \in \T' \ctext \T$,
-if $\Df(S)$ is nonempty then there exists a unique most specific declaration $d_{S} \in \Df(S)$.
-Furthermore for any declaration $d \in \Df(S)$ and instance $\decl{f}{T}{U}$
-of $d$, there exists an instance
-$\decl{f}{V}{W}$ of $d_{S}$ that is applicable to $S$ such that $W \subtypeof U$.
-\end{theorem}
 
 Before proving the theorem we will need to establish two lemmas. The first is
 the more critical one: it shows that one does not invalidate a valid set of
@@ -59,9 +50,17 @@ declaration by Lemma~\ref{lem:leastelement}.
 \end{proof}
 
 \vspace*{2ex}
-\noindent The proof of the Overloading Safety Theorem follows easily. 
-\vspace*{2ex}
+The proof of the Overloading Safety Theorem follows easily:
 
+\begin{theorem}[Overloading Safety]
+\label{thm:safety}
+Suppose $\Df$ is valid with respect to the class table $\T$.
+Then for any type $S \in \T' \ctext \T$,
+if $\Df(S)$ is nonempty then there exists a unique most specific declaration $d_{S} \in \Df(S)$.
+Furthermore for any declaration $d \in \Df(S)$ and instance $\decl{f}{T}{U}$
+of $d$, there exists an instance
+$\decl{f}{V}{W}$ of $d_{S}$ that is applicable to $S$ such that $W \subtypeof U$.
+\end{theorem}
 \begin{proof}
 The Extensibility Lemma lets us consider only the case when $\T' = \T$. Now the Determinism Lemma entails that such a $d_{S}$ exists, and the Return Type Rule
 entails the rest.
