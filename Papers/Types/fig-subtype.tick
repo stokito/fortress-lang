@@ -51,15 +51,15 @@
 \vspace*{-1em}
 
 \infrule
-  {}
+  {`I` \not \in \Delta}
   {\jsub{I}{I}{\TRUE}}
 
 \infrule
-  {}
+  {`I` \not \in \Delta}
   {\jsub{I}{T}{`I` \subtypeof `T`}}
  
 \infrule
-  {}
+  {`I` \not \in \Delta}
   {\jsub{S}{I}{`S` \subtypeof `I`}}
  
 \vspace*{2ex}

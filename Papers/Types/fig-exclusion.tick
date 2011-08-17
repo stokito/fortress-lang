@@ -33,11 +33,11 @@
 \vspace*{-1em}
 
 \infrule
-  {}
+  {`I` \not \in \Delta}
   {\jexc{I}{I}{\FALSE}}
   
 \infrule
-  {}
+  {`I` \not \in \Delta}
   {\jexc{I}{T}{`I` \exc `T`}}
 
 \vspace*{2ex}

@@ -1,5 +1,5 @@
 \documentclass[10pt]{sigplanconf}
-\usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem,xifthen}
+\usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem}
 \advance \textheight by 4pt
 
 % make a big red TODO label
@@ -196,16 +196,6 @@
 % Our proofs are more like proof sketches!! EricAllen 7/15/2011
 \newenvironment{proof}{\noindent \textbf{Proof:} }{\hfill $\Box$}
 \newenvironment{psketch}{\noindent \textbf{Proof sketch:} }{\hfill $\Box$}
-
-\newcommand{\infrulefrac}[3][]{%
-  \vspace{0.5ex}
-  \frac{\begin{array}{@{}c@{}}#2\end{array}}%
-       {#3}%
-  \ifthenelse{\isempty{#1}}%
-             {}%
-             {\hspace{1ex}\rlap{(\textsc{#1})}}%
-  \vspace{0.5ex}
-}
 
 \begin{document}
 
