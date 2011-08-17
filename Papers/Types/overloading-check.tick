@@ -166,16 +166,18 @@ Na\"{i}vely one might expect this case analysis on $S \cap T$ to simply check
 whether $S \exc T$. However, such as the case when checking generic
 function declarations, the types $S$ and $T$ might have free type variables,
 whose uncertainty often precludes a definitive statement about $S \exc T$.
-For example, `C[\X\]` $\exc$ `C[\Y\]` holds only if $X \not\equiv Y$. Our solution is to gather type variable constraints under which $S \exc T$
-may be proven.
+(For example, `C[\X\]` $\exc$ `C[\Y\]` holds only if $X \not\equiv Y$.) Our solution is to reason backwards: Under the assumption that the intersection
+is nontrivial (that the types do not exclude), gather the necessary
+constraints on type parameters. (For example, `C[\X\] CAP C[\Y\]` $\not\equiv \Bottom$ yields the constraint $X \equiv Y$.) These constraints are then
+reduced, resulting in an instantiation (and potentially tighter bounds
+on type parameters) that necessarily follows from our assumption of nontriviality.%
+\footnote{A similar sort of case analysis and constraint solving
+arises for pattern matching with generalized algebraic data types (GADTs) \cite{simonet07}: GADTs resemble our existential types and pattern matching resembles our function application.}
 
 
 We call the general pattern of simplifying an existentially quantified
-(intersection) type \emph{existential reduction}, given by the judgment $\jtred{\delta_1}{\delta_2}$. (As with simple subtyping we withhold a formal
-definition of existential reduction until after constraints are introduced
-in Section~\ref{sec:constraints}.)
-
-\noindent\TODO{Scott left off here.}
+(intersection) type \emph{existential reduction}, given by the judgment $\jtred{\delta_1}{\delta_2}$. Existential reduction is defined in Figure~\ref{fig:existential}, but we withhold further explanation of its definition until after constraints are formally introduced
+in Section~\ref{sec:constraints}.
 
 
 \subsection{Mechanically Checking the Rules}
@@ -189,7 +191,7 @@ rule as a property of such a pair, for each rule, we simply describe the
 process of checking an arbitrary pair of declarations.
 
 We can check the No Duplicates Rule for $d_1, d_2$ by verifying that
-if $d_1 \neq d_2$ implies both 
+if $d_1 \neq d_2$ then  
 
 \TODO{Scott left off here.}
 
