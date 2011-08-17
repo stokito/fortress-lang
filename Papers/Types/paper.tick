@@ -56,7 +56,7 @@
 \newcommand{\subtypeof}{\ensuremath{<:}}
 \newcommand{\nsubtypeof}{\not \subtypeof}
 \newcommand{\supertypeof}{\ensuremath{:>}}
-\newcommand{\subtypeofinner}{\ensuremath{\lesssim}}
+\newcommand{\leinner}{\ensuremath{\lesssim}}
 
 \newcommand{\alphaequiv}{\ensuremath{\stackrel{\alpha}{\sim}}}
 \newcommand{\cequiv}{\ensuremath{\sim}}
@@ -132,8 +132,8 @@
 \newcommand{\jgsub}[3][\Delta]{\jgtemplate[#1]{#2}{\subtypeof}{#3}}
 
 % subtyping on quantified types
-\newcommand{\jqsub}[3][\Delta]{\jgtemplate[#1]{#2}{\le}{#3}}
-\newcommand{\jqsubinner}[3][\Delta]{\jgtemplate[#1]{#2}{\subtypeofinner}{#3}}
+\newcommand{\jle}[3][\Delta]{\jgtemplate[#1]{#2}{\le}{#3}}
+\newcommand{\jleinner}[3][\Delta]{\jgtemplate[#1]{#2}{\leinner}{#3}}
 
 % constrained judgments
 \newcommand{\jgconstrtemplate}[5][\Delta]{\ensuremath{{#1}\,\vdash\,{#5}\,\Rightarrow\,{#2}\;{#3}\;{#4}}}

@@ -53,8 +53,6 @@ If it is possible to express $\C''$ as some type environment $\Delta''$,
 then we use this as the new type parameters over the simplified type
 $\phi(T)$.
 
-\TODO{Walk through an example?}
-
 %%%%%%%%%%%%%%%%%%%%% BEGIN EXRED FIG %%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}[t!]
 \centering
@@ -74,6 +72,20 @@ $\phi(T)$.
   \label{fig:exred}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%% END EXRED FIG %%%%%%%%%%%%%%%%%%%%%%
+
+As an example, in order to check that the first two declarations of $\D_{\mathit{bar}}$ from Section~$\ref{sec:examples}$ satisfy the Meet Rule,
+we must reduce the existential \[
+\text{`EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\]).`}
+\] Thus we must find the constraint $\C$ such that \[
+\jcnequiv[]{\text{`ArrayList[\X\] CAP List[\Y\]`}}{\Bottom}{\C}
+\] can be derived, noting that $X$ and $Y$ are actually (unbound) type inference variables here. In this instance $\C = X \equiv Y$ due to multiple
+instantiation exclusion. Then we convert the bounds on the existential's type parameters into the constraint $\C'$ on $X$ and $Y$ as inference variables: $\toConstraint{\text{`X <: Any, Y <: ZZ`}}{\text{`X <: Any, Y <: ZZ`}}$.
+Unifying the constraint \[
+\C \wedge \C' = X \equiv Y \wedge X \subtypeof `Any` \wedge Y \subtypeof `ZZ`
+\] yields the type substitution $\phi = [W/X, W/Y]$ (for some fresh variable $W$) and the simplified leftover constraint $\C'' =$ \text{`W <: ZZ`}. Since $\C''$ has the
+form of a type environment, $\toBound{\C''}{\text{`W <: ZZ`}}$,
+we finally reduce this existential to `EXISTS[\W <: ZZ\](ArrayList[\W\] CAP List[\W\])`. However, due to the class table declaration of `ArrayList[\W\]`
+this existential type will be indistinguishable (by $\leinner$) from the simpler `EXISTS[\W<:ZZ\]ArrayList[\W\]`.
 
 
 % % We now use the non-equivalence judgment to make rigorous our intuition about

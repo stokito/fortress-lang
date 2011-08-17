@@ -115,29 +115,49 @@ of constraint-based exclusion with the following rule:
   {\jgtemplate{S}{\exc}{T}}
 
 \subsection{Negative Judgments and Negation}
-\TODO{Major cleanup needed!!!}
-In the exclusion rules we use the judgments
-\jnsub{S}{T}{\C} and \jnsub{S}{T}{\C}
-note that these are not the same as the contrapositive judgments
+In the exclusion rules we use the judgments \\
+\begin{tabular}{ll}
+$\jnsub{S}{T}{\C}$ & $\jnexc{S}{T}{\C}$
+\end{tabular} 
 
-that are defined by applying a .
-
-To define 
-
+The rules for the judgment $\jnsub{S}{T}{\C}$ are obtained as follows.
+For each rule of $\jsub{S}{T}{\C}$
+that is not in the section marked bound variables
+make a new rule by replacing all occurences of a relation symbols with their
+opposites, swapping all occurences of $\wedge$ and $\vee$ or $\TRUE$ and $\FALSE$. In
+essence use de Morgan's laws. For bound type variables use the following rules:
 \infrule
-  {}
+  {`X` \in \Delta}
   {\jnsub{X}{T}{\FALSE}}
-
 \infrule
   {\jnsub{S}{\Delta(X)}{\C}}
   {\jnsub{S}{X}{\C}}
-
-To define
-
-do
+For example take the rule
 \infrule
-  {}
+  {\jsub{T}{U}{\C} \andalso \jsub{T}{V}{\C'}}
+  {\jsub{T}{U \cap V}{\C \wedge \C'}}
+and produce the rule
+\infrule
+  {\jnsub{T}{U}{\C} \andalso \jnsub{T}{V}{\C'}}
+  {\jnsub{T}{U \cap V}{\C \vee \C'}}
+
+Define the rules for the judgment $\jnexc{S}{T}{\C}$ by applying the same
+procedure to the rules of $\jexc{S}{T}{\C}$ and using the following rule for bound type variables.
+\infrule
+  {`X` \in \Delta}
   {\jnexc{X}{T}{\FALSE}}
+
+These judgments should not be confused with the contrapositive judgments
+\begin{tabular}{cc}
+$\jcnsub{S}{T}{\C}$ & $\jcnexc{S}{T}{\C}$
+\end{tabular}
+which can be obtained obtained using constraints. They handle bound type variables very differently. For
+example
+\[\jnsub[`X <: ZZ`]{ZZ}{X}{\FALSE}\]
+and
+\[\jcnsub[`X <: ZZ`]{ZZ}{X}{\TRUE}\]
+Intuitively, $\jnsub[`X <: ZZ`]{ZZ}{X}{\C}$ is asking is there any constraint on the inference variables that can make $`X` \not \subtypeof `ZZ`$ for every instantiation valid `X` satisfying the bounds. Where
+as the judgment $\jcnsub[`X <: ZZ`]{`ZZ`}{`X`}{\C}$ asks what constraints on the inference variables I can deduce from the knowledge that $`X` \not \subtypeof `ZZ`$.
 
 \subsection{Unification}
 Suppose that $\C$ is a conjunction of type equivalences. A \emph{unifier} of $\C$ is a substitution
