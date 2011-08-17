@@ -76,6 +76,20 @@ a subtype of $\delta_2$ if $\delta_2$'s type parameters can be instantiated
 in $\delta_1$'s environment such that its instantiated type is a simple
 supertype of $\delta_1$'s type.
 
+The outer subtyping judgments incorporate a single step of \emph{existential reduction} (Section~\ref{sec:exred}). Reduction on an existential type preserves the collective extent of all its instantiations---it is sound to include it in our definitions of universal and existential subtyping.
+In the
+existential subtyping judgment $\jqsub{\delta}{\delta}$ the l.h.s.
+is reduced and its result is checked with the r.h.s. using the inner subtying judgment.
+Its use in the universal subtyping judgment $\jqsub{\sigma}{\sigma}$ requires
+a bit more explanation. We only use universal subtyping to compare
+generic arrow types of the form $\arrow(d)$ for a generic function declaration
+$d$. In this case, the r.h.s. arrow is reduced by reducing its
+domain type $\dom(d) = \exttype[\Delta']{T}$, resulting not only in a new existential type $\exttype[\Delta'']{U}$ but
+also a substitution $\phi$ mapping type variables from $\Delta'$
+to types with variables in $\Delta''$. Before
+appealing to the inner subtyping judgment, that substitution is
+applied to $\arrow(d)$'s return type $T$. We will explain existential reduction in more detail in Section~\ref{sec:exred}.
+
 These subtyping judgments offer a nice interpretation of applicability and
 specificity of generic function declarations. Recall that a generic
 function declaration $d = \hdeclg{f}{\Delta}{S}{T}$ is applicable to a type
@@ -84,56 +98,16 @@ Note the existential quantification over instances of the generic function
 declaration. With our extended notion of domain type, we lift this
 criterion to the level of existential types; observe the same existential
 quantification over type instantiations $\bar{V}$ in the definition of
-existential subtyping. Ignoring existential reduction for now, we can
+existential subtyping. We can
 interpret the fact that a generic function declaration $d$ is applicable 
-to a type $T$ with the existential subtyping assertion $\vdash T \subtypeof \dom(d)$. 
+to a type $T$ with the existential subtyping assertion $\vdash T \le \dom(d)$. 
 Furthermore, we interpret the fact that $d_1$ is more specific than
 $d_2$ with the existential subtyping assertion
-$\vdash \dom(d_1) \subtypeof \dom(d_2)$. Shortly, we will show that existential
-reduction does not upset these interpretations
+$\vdash \dom(d_1) \le \dom(d_2)$.
 
-\subsection{Existential Reduction}
-\TODO{I am not sure this should go here. We don't have the tools to do existential reduction at this point.
-      I think we could get by with a shorter explanation of exactly what we need to do the next section.}
-
-In the evaluation of valid overloadings from Section~\ref{sec:examples}
-intensional type analysis was required in order to reason about certain
-examples. Since this reasoning justified
-the validity of these overloaded functions, our rule
-checking algorithm should incorporate it as well.
-
-Whenever two different domain types should be
-applicable to the same argument type $W$ (in order to validate the Meet Rule
-or Return Type Rule), an existentially quantified intersection type
-naturally arises as the necessary supertype of $W$.
-Intersection types $S \cap T$ in our type system naturally fall into two
-distinct cases: either $S \nexc T$, or $S \exc T$ in which case the 
-intersection has the same extent as \Bottom.
-In the second case, the intersection is trivial and $W$, as
-a subtype of the intersection, must also be trivial.
-Moreover, because the argument type $W$ to which both declarations must be applicable
-is necessarily equivalent to \Bottom, then the Meet Rule and Return Type Rule
-are both trivially satisfied by the presence of the implicit overloading on
-\Bottom. In this manner case analysis on whether an existentially
-quantified (intersection) type is \Bottom facilitates the checking of our
-rules.
-
-Na\"{i}vely one might expect this case analysis on $S \cap T$ to simply check
-whether $S \exc T$. However, as is the case when checking generic
-function declarations, the types $S$ and $T$ might have free type variables,
-whose uncertainty often precludes a definitive statement about $S \exc T$.
-(For example, `C[\X\]` $\exc$ `C[\Y\]` holds only if $X \not\equiv Y$.) Our solution is to reason backwards: Under the assumption that the intersection
-is nontrivial (that the types do not exclude), gather the necessary
-constraints on type parameters. (For example, `C[\X\] CAP C[\Y\]` $\not\equiv \Bottom$ yields the constraint $X \equiv Y$.) These constraints are then
-reduced, resulting in an instantiation (and potentially tighter bounds
-on type parameters) that necessarily follows from our assumption of nontriviality.%
-\footnote{A similar sort of case analysis and constraint solving
-arises for pattern matching with generalized algebraic data types (GADTs) \cite{simonet07}: GADTs resemble our existential types and pattern matching resembles our function application.}
-
-
-We call the general pattern of simplifying an existentially quantified
-(intersection) type \emph{existential reduction}, given by the judgment $\jtred{\delta_1}{\delta_2}$. Existential reduction is defined in Figure~\ref{fig:existential}, but we withhold further explanation of its definition until after constraints are formally introduced
-in Section~\ref{sec:constraints}.
+These interpretations are clearly correct with respect to the inner subtyping judgments. Shortly, we will show that the existential
+reduction in the outer subtyping judgment does not upset these
+interpretations. \TODO{(where exactly?)}
 
 
 \subsection{Mechanically Checking the Rules}

@@ -351,6 +351,7 @@ components, separate compilation, Fortress, meet rule}
 \input{exc-constraints}
 
 \subsection{Existential Reduction}
+\label{sec:exred}
 \input{exc-reduction}
 
 \input{fig-subtype}

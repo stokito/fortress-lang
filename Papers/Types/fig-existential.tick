@@ -20,6 +20,12 @@
    \jqsubinner{\sigma}{\unitype[\Delta'']{\left(\arrowtype{U}{\phi(T)}\right)}}}
   {\jqsub{\sigma}{\unitype[\Delta']{\arrowtype{S}{T}}}}
 
+\infrule
+  {U \neq S \rightarrow T
+   \andalso
+   \jqsubinner{\sigma}{\unitype[\Delta']{U}}}
+  {\jqsub{\sigma}{\unitype[\Delta']{U}}}
+
 % \begin{tabularx}{\textwidth}{RcX}
 %   $\sigma_1 \le \sigma_2$ & \syndef & $\jqsub[\emptyset]{\sigma_1}{\sigma_2}$ \\
 % \end{tabularx}
@@ -54,11 +60,11 @@
   {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta'']{\phi(T)}}{\phi}}
 
 \infrule
-  {}
+  {\text{otherwise}}
   {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta']{T}}{\subst{}{}}}
 
 \end{minipage}
-  \caption{Subtyping and reduction of existential types. Note that we can always use alpha renaming to avoid the free variable checks.}
+  \caption{Subtyping and reduction of existential types. Note that conventional alpha-renaming of type variables might be necessary.}
   \label{fig:existential}
 \end{figure}
 %%%%%%%%%%%%%%% END EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%
