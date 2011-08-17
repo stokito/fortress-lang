@@ -130,11 +130,11 @@ we just need to find a declaration $d_0 \in \Df$
 whose domain type $dom(d_0)$ 
 is equivalent to the meet (under $\le$) 
 of the existential types $\dom(d_1)$ and $\dom(d_2)$.
-Figure~\ref{fig:meet} defines the ````computed meet'' of two existential types, 
-which 
+Figure~\ref{fig:meet} shows how to compute the meet of two existential types.
 
 \begin{lemma}\label{lem:meet}
-$\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\le$.
+$\delta_1 \meet \delta_2$ (as defined in Figure~\ref{fig:meet}) 
+is the meet of $\delta_1$ and $\delta_2$ under $\le$.
 \end{lemma}
 \begin{proof}
 First we show that $\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\leinner$. That $\delta_1 \meet \delta_2 \leinner \delta_1$ and $\delta_1 \meet \delta_2 \leinner \delta_2$ is obvious.
