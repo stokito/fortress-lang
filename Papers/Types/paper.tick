@@ -130,13 +130,14 @@
 \newcommand{\jgtemplate}[4][\Delta]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}}}
 % ground subtyping
 \newcommand{\jgsub}[3][\Delta]{\jgtemplate[#1]{#2}{\subtypeof}{#3}}
+\newcommand{\jgnequiv}[3][\Delta]{\jgtemplate[#1]{#2}{\not \equiv}{#3}}
 
 % subtyping on quantified types
 \newcommand{\jle}[3][\Delta]{\jgtemplate[#1]{#2}{\le}{#3}}
 \newcommand{\jleinner}[3][\Delta]{\jgtemplate[#1]{#2}{\leinner}{#3}}
 
 % constrained judgments
-\newcommand{\jgconstrtemplate}[5][\Delta]{\ensuremath{{#1}\,\vdash\,{#5}\,\Rightarrow\,{#2}\;{#3}\;{#4}}}
+\newcommand{\jgconstrtemplate}[5][\Delta]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}\,\Leftarrow\,{#5}}}
 % ground subtyping with constraints
 \newcommand{\jsub}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\subtypeof}{#3}{#4}}
 % not subtype
