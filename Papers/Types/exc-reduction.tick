@@ -54,7 +54,7 @@ then we use this as the new type parameters over the simplified type
 $\phi(T)$.
 
 Similarly we call the general pattern of simplifying a universally quantified arrow type \emph{universal reduction} given by the judgment $\jtred{\sigma_1}{\sigma_2}$
-The first premise reduces the domain type $\dom(\sigma) = \exttype[\Delta']{S}$, resulting in a new existential type $\delta = \exttype[\Delta'']{\phi(S)}$ and a substitution $\phi$ mapping type variables from $\Delta'$
+The first premise reduces the domain type $\dom(\sigma) = \exttype[\Delta']{S}$, resulting in a new existential type $\delta = \exttype[\Delta'']{S'}$ and a substitution $\phi$ mapping type variables from $\Delta'$
 to types with variables in $\Delta''$. We then construct a new arrow with domain $\delta$ and range $\phi(T)$.
 
 %%%%%%%%%%%%%%%%%%%%% BEGIN EXRED FIG %%%%%%%%%%%%%%%%%%%%%%
@@ -72,13 +72,11 @@ to types with variables in $\Delta''$. We then construct a new arrow with domain
   {\text{otherwise}}
   {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta']{T}}{\subst{}{}}}
 
-  \caption{Existential reduction judgment.}
-  \label{fig:exred}
   
 \newjudge{Universal Reduction}{\jtreds{\sigma}{\sigma}{\phi}}
 \infrule
-  {\jtreds{\exttype[\Delta']{S}}{\exttype[\Delta'']{\phi(S)}}{\phi}}
-  {\jtreds{\unitype[\Delta']{\arrowtype{S}{T}}}{\unitype[\Delta'']{\arrowtype{\phi(S)}{\phi(T)}}}{\phi}}
+  {\jtreds{\exttype[\Delta']{S}}{\exttype[\Delta'']{S'}}{\phi}}
+  {\jtreds{\unitype[\Delta']{\arrowtype{S}{T}}}{\unitype[\Delta'']{\arrowtype{S'}{\phi(T)}}}{\phi}}
 
 
 \infrule
@@ -86,6 +84,8 @@ to types with variables in $\Delta''$. We then construct a new arrow with domain
   {\jtreds{\unitype[\Delta']{\arrowtype{S}{T}}}{\unitype[\Delta']{\arrowtype{S}{T}}}{\subst{}{}}}
 
   
+  \caption{Quantifier reduction judgments.}
+  \label{fig:exred}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%% END EXRED FIG %%%%%%%%%%%%%%%%%%%%%%
 
