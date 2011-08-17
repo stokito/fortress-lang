@@ -48,7 +48,7 @@ consider any type `W NEQUIV Bottom`
 to which the second definition is applicable---%
 so `W <: List[\T\]` for some `T <: Number`---%
 and any instantiation of the first definition with type $U$ 
-that is applicable to $W$---so `W <: List[\U\]`.
+that is applicable to $W$---so $W \subtypeof$ `List[\U\]`.
 Then 
 `W <: List[\T\] CAP List[\U\]`.
 By multiple instantiation exclusion,
@@ -63,7 +63,7 @@ has return type `List[\U\]`,
 which is also the return type 
 of the instantiation of the first definition 
 under consideration.
-(In Section~\ref{sec:}\TODO{???} we will
+(In Section~\ref{sec:exred} we describe how to
 incorporate this sort of reasoning about validity into our algorithmic
 checking of the overloading rules.)
 % In the justification that these two declarations satisfy the return type rule,

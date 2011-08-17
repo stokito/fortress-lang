@@ -187,7 +187,6 @@ a union type excludes any type excluded by \emph{all} of its constituent types.
 $\Bottom$ excludes every type 
 (including itself---it is the only type that excludes itself), 
 and $\Any$ does not exclude any type other than $\Bottom$.
-(We define the exclusion relation formally in Figure~\ref{fig:jexc}
-in Section~\ref{sec:constraints}.)
+(We define the exclusion relation formally in Section~\ref{sec:constraints}.)
 
 

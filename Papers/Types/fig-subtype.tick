@@ -1,7 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}[htbp]
+\centering
 \newjudge{Subtyping Rules}{\jsub{T}{T}{\C}}
-\\\\
+\vspace*{1em}
+
 \begin{minipage}[t]{.5\textwidth}
 \centering
 
