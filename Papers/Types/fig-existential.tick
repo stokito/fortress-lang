@@ -52,19 +52,8 @@
 %   $\delta_1 \le \delta_2$ & \syndef & $\jqsub[\emptyset]{\delta_1}{\delta_2}$
 % \end{tabularx}
 
-\vspace*{2ex}
-\newjudge{Existential Reduction}{\jtreds{\delta}{\delta}{\phi}}
-\infrule
-  {\jcnequiv{T}{\Bottom}{\C} \andalso \toConstraint{\Delta'}{\C'} \\
-   \jsolve{\C \wedge \C'}{\phi}{\C''} \andalso \toBound{\C''}{\Delta''}}
-  {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta'']{\phi(T)}}{\phi}}
-
-\infrule
-  {\text{otherwise}}
-  {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta']{T}}{\subst{}{}}}
-
 \end{minipage}
-  \caption{Subtyping and reduction of existential types. Note that conventional alpha-renaming of type variables might be necessary.}
+  \caption{Subtyping of universal and existential types. Note that conventional alpha-renaming of type variables might be necessary.}
   \label{fig:existential}
 \end{figure}
 %%%%%%%%%%%%%%% END EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%

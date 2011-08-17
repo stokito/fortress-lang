@@ -146,6 +146,6 @@
   {\jgconstrtemplate{`C[\S_bar\]`}{\bexcp}{`D[\T_bar\]`}{\FALSE}}
 
 \end{minipage}
-  \caption{Algorithm for generating exclusion constraints. Each rule is symmetric, apply the first one that matches.}
+  \caption{Algorithm for generating exclusion constraints. Each rule is symmetric; apply the first one that matches.}
   \label{fig:jexc}
 \end{figure*}

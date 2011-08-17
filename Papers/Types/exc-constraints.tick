@@ -54,12 +54,13 @@ has a partial inverse $\textit{toBound}(\C)$ that is defined whenever $\C$ can b
 \footnote{If $\C$ has multiple conjuncts of this form for a single $X$, then the resulting environment contains multiple bounds for $X$ using the $\bd{M}$ notation.}
 
 \subsection{Subtyping}
-\TODO{Q: Is Smith and Cartwright's system really so similar to warrant this? A: Yes}
-In \cite{smith08} Smith and Cartwright provide a sound and complete algorithm for generating constraints from the
-Java subtyping relation. We essentially preserve their semantics
-(see \cite[Appendix]{smith08} for details) with two notable differences.
+\input{fig-subtype}
+Figure~\ref{fig:jsub} presents the full definition of our constraint-based subtyping algorithm
+as inference rules for the judgment $\jsub{T}{T}{\C}$. Note that our algorithm requires that these rules be processed in the given order.
 
-First, we need to augment the subtyping rules for tuple types to account for the fact
+In \cite{smith08} Smith and Cartwright similarly define a sound and complete algorithm for generating constraints from the
+Java subtyping relation. We essentially preserve their semantics
+\cite[Appendix]{smith08} with two notable differences. First, our definition includes additional rules for tuple types to account for the fact
 that any tuple with a constituent type that is equivalent to $\Bottom$ is itself
 equivalent to $\Bottom$.
 
@@ -72,17 +73,17 @@ equivalent to $\Bottom$.
   {|\bar{S}| \neq 1 \andalso \forall i . \quad \jsub{S_i}{\Bottom}{\C_i}}
   {\jsub{(\bar{S})}{T}{\bigvee \C_i}}
 
-Second, we need to augment the rule for intersection types to account for
+\noindent Second, our definition includes an additional rule for intersection types to account for
 exclusion since the intersection of excluding types is equivalent to
-$\Bottom$. (Note that this extension
-makes the exclusion and subtyping rules mutually dependent.)
+$\Bottom$. (Note that this rule
+makes our exclusion and subtyping rules mutually dependent.)
 
 \infrule
   {\jsub{S}{U}{\C} \andalso \jsub{T}{U}{\C'} \\
    \jexc{S}{T}{\C''}}
   {\jsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
   
-We also define the subtyping judgment as a trivial application of
+We formally define the subtyping judgment from Section~\ref{sec:pre} as a trivial application of
 constraint-based subtyping with the following rule:
 
 \infrule
@@ -92,8 +93,10 @@ constraint-based subtyping with the following rule:
 
 \subsection{Exclusion}
 \input{fig-exclusion}
-Figure~\ref{fig:jexc} presents our exclusion rules, which formalize our original definition of exclusion in
-Section~\ref{sec:exc-spec}. To make our rules algorithmic we needed to break the exclusion relation on constructed
+Figure~\ref{fig:jexc} presents our definition of constraint-based exclusion
+as inference rules for the judgment $\jexc{T}{T}{\C}$. Like with constraint-based subtyping our algorithm requires that these rules be processed in order. Additionally, if no rule matches, then the l.h.s. and r.h.s. types should be swapped and the rules tried again.
+
+To make these rules algorithmic we break the exclusion relation on constructed
 types into four subrelations $\exce$, $\excc$, $\exco$, and $\excp$. The first three relations are then reduced
 to checking the asymmetric relations $\excre$, $\excrc$, and $\excro$.
 \begin{enumerate}
@@ -104,7 +107,7 @@ to checking the asymmetric relations $\excre$, $\excrc$, and $\excro$.
 $M$ and $N$ are distinct applications of the same type constructor.
 \end{enumerate}
 
-As with subtyping, we define the exclusion judgment as a trivial application
+As with subtyping, we formally define the exclusion judgment described in Section~\ref{sec:exclusion} as a trivial application
 of constraint-based exclusion with the following rule:
 
 \infrule
@@ -112,6 +115,7 @@ of constraint-based exclusion with the following rule:
   {\jgtemplate{S}{\exc}{T}}
 
 \subsection{Negative Judgments and Negation}
+\TODO{Major cleanup needed!!!}
 In the exclusion rules we use the judgments
 \jnsub{S}{T}{\C} and \jnsub{S}{T}{\C}
 note that these are not the same as the contrapositive judgments
@@ -136,14 +140,14 @@ do
   {\jnexc{X}{T}{\FALSE}}
 
 \subsection{Unification}
-\TODO{Expand on this a tad?}
 Suppose that $\C$ is a conjunction of type equivalences. A \emph{unifier} of $\C$ is a substitution
 $\phi$ of types for inference type variables such that $\phi(\C) = \TRUE$. We say that a unifier $\phi$ is more general than a unifier $\psi$ if there exists a substitution $\tau$
-such that $\tau \circ \phi \equiv \psi$. In other words $\phi$ is more general than $\psi$ if $\psi$ factors throughout $\phi$ \TODO{(huh?)}.
+such that $\tau \circ \phi = \psi$. In other words $\phi$ is more general than $\psi$ if $\psi$ factors throughout $\phi$.
 
-We can extend the notion of a unifier to an arbitrary conjunction $\C$ by noting that $\C$ can be factor \TODO{(huh?)} a conjunction $\C' \wedge \C''$
+We can extend the notion of a unifier to an arbitrary conjunction $\C$ in
+the case that $\C$ can be expressed as a conjunction $\C' \wedge \C''$
 where $\C'$ is entirely equivalences and $\C''$ contains no type equivalences. Then we define a unifier of $\C$ to be a unifier
-of $\C'$. Finally, we can extend the notion of unifier to a constraint $\C$ in disjunctive normal form to be a unifier of a disjunct of $\C$.
+of $\C'$. Finally, we can extend the notion of unifier to a constraint $\C$ in disjunctive normal form to be a unifier of any disjunct of $\C$.
 
-The (partial) function $\textit{unify}$ in Figure~\ref{fig:constraints} takes a formula $\C$ and produces a most general unifier $\phi$ if one exists. This is always the case
-if $\C$ consists of a single conjunct. Extending $\textit{unify}$ and the rules in Section \ref{sec:checking} to deal with (possible exponential) sets of maximally general unifiers is obvious future work. \TODO{What's ````possible exponential'' mean? And is this really ````obvious''? (No.)}
+The (partial) function $\textit{unify}$ in Figure~\ref{fig:constraints} takes a constraint $\C$ and produces a most general unifier $\phi$ if one exists, in the manner described above. This is always the case if $\C$ consists of a single conjunct. \textit{unify} additionally produces the substituted leftover
+part, $\phi(\C'')$.

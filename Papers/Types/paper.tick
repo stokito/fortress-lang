@@ -354,7 +354,6 @@ components, separate compilation, Fortress, meet rule}
 \label{sec:exred}
 \input{exc-reduction}
 
-\input{fig-subtype}
 
 \section{Discussion}\label{sec:discussion}
 \input{discussion}

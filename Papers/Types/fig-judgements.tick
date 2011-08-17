@@ -35,7 +35,6 @@ $$
 \infrule
   {\jnsub{S}{T}{\C} \andalso \jnsub{T}{S}{\C'}}
   {\jnequiv{S}{T}{\C \vee \C'}}
-\TODO{Double check the premises on this one, which used to be $\subtypeof$ instead of $\nsubtypeof$.}
 
 \vspace*{2ex}
 \newjudge{Derived Judgements}{\jgcontratemplate{T}{\ast}{T}{\C}}

@@ -110,6 +110,9 @@ reduction in the outer subtyping judgment does not upset these
 interpretations. \TODO{(where exactly?)}
 
 
+\input{fig-meet}
+
+
 \subsection{Mechanically Checking the Rules}
 With our interpretations of applicability and specificity into existential
 subtyping, we now describe the process of checking the validity of a set of 
@@ -137,8 +140,6 @@ Now we will show that the meet under $\subtypeofinner$ is also the meet under $\
 and $\delta_0 \eqred \reduce(\delta_0)$. A little work lets us deduce that $\reduce(\delta_0) \subtypeofinner \delta_1 \meet \delta_2$ and hence $\delta_0 \subtypeof \delta_1 \meet \delta_2$.
 The fact that $\delta_1 \meet \delta_2 \subtypeof \delta_1$ and $\delta_1 \meet \delta_2 \subtypeof \delta_1$ follows from the fact that $\subtypeofinner$ implies $\subtypeof$.
 \end{proof}
-
-\input{fig-meet}
 
 We can check the Return Type Rule using the subtype relation on universal types.
 \begin{theorem}
