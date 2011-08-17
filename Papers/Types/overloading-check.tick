@@ -28,7 +28,7 @@ We write $\forall\tplist{X}{N}T$ to bind each type variable $X_i$ with bounds
 $\{\bar{N_i}\}$ over the type $T$, and we use the metavariable $\sigma$ to range over universal types.
 
 
-Moreover, for the same $d$, its domain type, written $\dom(d)$, is the
+Moreover, the domain type of $d$, written $\dom(d)$, is the
 \emph{existential type} $\exists\ob{\Delta}{S}$. An \emph{existential type}
 also binds type parameter declarations over a type, 
 but unlike a universal type, it cannot be instantiated; 
@@ -129,13 +129,53 @@ $d_2$ with the existential subtyping assertion
 $\vdash \dom(d_1) \subtypeofinner \dom(d_2)$. (As we will see shortly,
 however, these interpretations are still not strong enough. We will need the
 richer judgment $\jqsub{\delta}{\delta}$.)
+\TODO{Tie in these informal notions to a formal statement that $\ms$
+precisely coincides with $\le$.}
 
-In these judgments we make use of a simple subtyping judgment $\jgsub{T}{T}$. Simple subtyping behaves as described in Section~\ref{sec:pre}, but we have
+In these judgments we make use of the simple subtyping judgment
+$\jgsub{T}{T}$. Simple subtyping behaves as described in
+Section~\ref{sec:pre}, but we have
 not yet defined an algorithm that decides it. For that we need a notion of
-constraint solving, which we will introduce in Section~\ref{sec:constraints}.
+constraint solving, which we will introduce in Section~\ref{sec:constraints};
+likewise for the exclusion judgment.
 
-\subsection{Strengthening}
+\subsection{Existential Reduction}
+In the evaluation of valid overloadings from Section~\ref{sec:examples}
+intensional type analysis was required in order to reason about certain
+examples. Since this reasoning justified
+the validity of these overloaded functions, our rule
+checking algorithm should incorporate it as well.
 
+Whenever two different domain types should be
+applicable to the same argument type $W$ (in order to validate the Meet Rule
+or Return Type Rule), an existentially quantified intersection type
+naturally arises as the necessary supertype of $W$.
+Intersection types $S \cap T$ in our type system naturally fall into two
+distinct cases: either $S \nexc T$, or $S \exc T$ in which case the 
+intersection has the same extent \TODO{(still have this lingo?)} as \Bottom.
+In the second case, the intersection is trivial and $W$, as
+a subtype of the intersection, must also be trivial.
+Moreover, because the argument type $W$ to which both declarations must be applicable
+is necessarily equivalent to \Bottom, then the Meet Rule and Return Type Rule
+are both trivially satisfied by the presence of the implicit overloading on
+\Bottom. In this manner case analysis on whether an existentially
+quantified (intersection) type is \Bottom facilitates the checking of our
+rules.
+
+Na\"{i}vely one might expect this case analysis on $S \cap T$ to simply check
+whether $S \exc T$. However, such as the case when checking generic
+function declarations, the types $S$ and $T$ might have free type variables,
+whose uncertainty often precludes a definitive statement about $S \exc T$.
+For example, `C[\X\]` $\exc$ `C[\Y\]` holds only if $X \not\equiv Y$. Our solution is to gather type variable constraints under which $S \exc T$
+may be proven.
+
+
+We call the general pattern of simplifying an existentially quantified
+(intersection) type \emph{existential reduction}, given by the judgment $\jtred{\delta_1}{\delta_2}$. (As with simple subtyping we withhold a formal
+definition of existential reduction until after constraints are introduced
+in Section~\ref{sec:constraints}.)
+
+\noindent\TODO{Scott left off here.}
 
 
 \subsection{Mechanically Checking the Rules}
