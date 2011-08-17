@@ -383,5 +383,4 @@ Science and Technology(MEST) / National Research Foundation of Korea(NRF)
 % \appendix
 % \section{Subtyping Rules}
 % \input{fig-subtype}
-\input{proofs}
 \end{document}
