@@ -14,7 +14,7 @@ TICKS = paper.tick introduction.tick abstract.tick related-work.tick setup.tick 
         exclusion.tick conclusion.tick exc-spec.tick exc-reduction.tick \
         exc-constraints.tick examples.tick safety.tick discussion.tick fig-exclusion.tick fig-subtype.tick \
         overloading-check.tick fig-existential.tick fig-meet.tick fig-application.tick fig-constraints.tick \
-        fig-judgements.tick
+        fig-judgements.tick proofs.tick
 
 TEXS = $(TICKS:.tick=.tex)
 

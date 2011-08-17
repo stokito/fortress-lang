@@ -16,9 +16,6 @@ the generalizations of ````arrow type'' and ````domain type'' of generic
 declarations, in the same manner as \cite{bourdoncle97}.
 
 
-% For a generic function declaration $d = \declg{f}{X}{N}{S}{T}$,
-% its arrow type (written $\textit{arrow}(d)$) is
-% the \emph{universal type} $\forall\tplist{X}{N}S \rightarrow T$.
 For a generic function declaration $d = \hdeclg{f}{\Delta}{S}{T}$,
 its arrow type, written $\arrow(d)$, is
 the \emph{universal type} \mbox{$\forall\ob{\Delta}S \rightarrow T$}.
@@ -44,35 +41,6 @@ $T$ as \emph{simple types} and the original subtyping relation $\subtypeof$ as
 \emph{simple subtyping}. When the meaning is clear from context, we equate
 both $\forall\ob{}T$ and $\exists\ob{}T$ with the simple type $T$. 
 
-% %applicability of a generic function
-% Recall that a generic function declaration $\hdeclg{f}{\Delta}{S}{T}$ 
-% is applicable to a type $U$
-% if and only if some instance of $d$ is applicable to $U$.
-% A monomorphic function declaration $d = \decl{f}{S'}{T'}$ is applicable to a type $U$
-% if and only if $U \subtypeof \dom(d)$,
-% where $\dom(d)$ is the domain $S'$ of $S' \rightarrow T'$, 
-% the arrow type of $d$.
-% %We must then extend our notion of 
-% % the ````arrow type of $f$'' for a generic function declaration $d$,
-% %but first we need to characterize the type of a generic function.
-% % In particular, we need a higher-level notion of universally
-% % quantified types separate from the language of types $W$.
-% This existential quantification over possible instantiations of the domain 
-% directly corresponds to an existentially quantified type,
-% as observed in \cite{bourdoncle97}. 
-% An \emph{existential type} $\exists\tplist{X}{N}T$ 
-% also binds type parameter declarations over a type, 
-% but unlike a universal type, it cannot be instantiated; 
-% instead, it represents some hidden type instantiation $\bar{W}$ 
-% and the corresponding instantiated type $\substb{W}{X}T$. 
-% Therefore, we say that the domain $\dom(d)$ of the generic declaration $d$
-% is the existential type $\exists\ob{\Delta}{S}$, where $\arrow(d) = \forall\ob{\Delta}S \rightarrow T$.
-% We use the metavariable $\delta$ to range over existential types.
-% Note that we abbreviate both the universal type $\forall\ob{}T$ and
-% the existential type $\exists\ob{}T$ as simply $T$ when the meaning is clear from context.
-% % Figure~\ref{fig:application} presents the formal definition of applicability 
-% % for a generic function declaration $d$ to a type $T$, $f \ni T$.
-
 % \input{fig-application}
 
 %%%%%%%%%%%%%%%%%%%%%%
@@ -90,8 +58,6 @@ incorporates \emph{existential reduction}, defined in the next section.
 
 The inner subtyping judgment on universals defined in
 Figure~\ref{fig:existential}, 
-% $$ \jqsubinner{\sigma_1}{\sigma_2} \quad \text{and} \quad
-%    \jqsubinner{\delta_1}{\delta_2}, $$
 $\jqsubinner{\sigma_1}{\sigma_2}$, stems from the notion of ````generic
 instances'' from Hindley-Milner type systems \cite{damas82},
 augmented with F-bounded quantification \cite{canning89,baldan99} to account
@@ -118,26 +84,18 @@ Note the existential quantification over instances of the generic function
 declaration. With our extended notion of domain type, we lift this
 criterion to the level of existential types; observe the same existential
 quantification over type instantiations $\bar{V}$ in the definition of
-existential subtyping. Now we cleanly interpret the fact that a generic
-function declaration $d$ is applicable to a type $T$ with the existential
-subtyping assertion $\vdash T \subtypeofinner \dom(d)$. 
-% \footnote{Such as with simple subtyping, as an abuse of notation we write
-% $\sigma_1 \subtypeofinner \sigma_2$ when we do not care about the enclosing
-% type environment; likewise for $\delta_1 \subtypeofinner \delta_2$.}
+existential subtyping. Ignoring existential reduction for now, we can
+interpret the fact that a generic function declaration $d$ is applicable 
+to a type $T$ with the existential subtyping assertion $\vdash T \subtypeof \dom(d)$. 
 Furthermore, we interpret the fact that $d_1$ is more specific than
 $d_2$ with the existential subtyping assertion
-$\vdash \dom(d_1) \subtypeofinner \dom(d_2)$. (As we will see shortly,
-however, these interpretations are still not strong enough. We will need the
-richer judgment $\jqsub{\delta}{\delta}$.)
-\TODO{Tie in these informal notions to a formal statement that $\ms$
-precisely coincides with $\le$.}
+$\vdash \dom(d_1) \subtypeof \dom(d_2)$. (Shortly, we will show that existential
+reduction does not upset these interpretations)
 
 In these judgments we make use of the simple subtyping judgment
 $\jgsub{T}{T}$. Simple subtyping behaves as described in
-Section~\ref{sec:pre}, but we have
-not yet defined an algorithm that decides it. For that we need a notion of
-constraint solving, which we will introduce in Section~\ref{sec:constraints};
-likewise for the exclusion judgment.
+Section~\ref{sec:pre}, and we will define algorithm that decides it in
+Section~\ref{sec:badref}.
 
 \subsection{Existential Reduction}
 In the evaluation of valid overloadings from Section~\ref{sec:examples}
@@ -163,7 +121,7 @@ quantified (intersection) type is \Bottom facilitates the checking of our
 rules.
 
 Na\"{i}vely one might expect this case analysis on $S \cap T$ to simply check
-whether $S \exc T$. However, such as the case when checking generic
+whether $S \exc T$. However, as is the case when checking generic
 function declarations, the types $S$ and $T$ might have free type variables,
 whose uncertainty often precludes a definitive statement about $S \exc T$.
 (For example, `C[\X\]` $\exc$ `C[\Y\]` holds only if $X \not\equiv Y$.) Our solution is to reason backwards: Under the assumption that the intersection

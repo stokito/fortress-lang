@@ -1,0 +1,39 @@
+\begin{lemma}
+If $\jtred{\delta}{\reduce{\delta}}$, then $\jqsubinner{\reduce{\delta}}{\delta}$.
+\end{lemma}
+
+\begin{lemma}
+If $\jtred{\delta}{reduce{\delta}}$, $\jtred{\delta'}{\reduce{\delta'}}$, and
+$\jqsubinner{\delta}{\delta'}$, then $\jqsubinner{\reduce{\delta}}{\reduce{\delta'}}$. 
+\end{lemma}
+
+\begin{lemma}
+If $\jtred{\delta}{reduce{\delta}}$, then $\jtred{reduce{\delta}}{reduce{\delta}}$
+\end{lemma}
+
+\begin{lemma}
+If $\jqsubinner{\delta}{\delta'}$, then $\jqsub{\delta}{\delta'}$
+\end{lemma}
+
+\begin{theorem}
+$\subtypeof$ is a preorder.
+\end{theorem}
+
+\begin{theorem}
+Let $d$ and $d'$ be declarations in $\Df$. If $\dom(d) \subtypeof \dom(d')$, then $d' \ms d$. 
+\end{theorem}
+
+\begin{proof}
+\end{proof}
+
+\begin{theorem}
+$\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\le$.
+\end{theorem}
+
+\begin{proof}
+Let $d$ and $d'$ be declarations in $\Df$ with $d' \ms d$. Consider the arrow $a$. If , then $d$ and $d'$ satisfy the return type rule.
+\end{proof}
+
+\begin{theorem}
+Suppoa
+\end{theorem}
