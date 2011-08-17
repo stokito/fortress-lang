@@ -1,28 +1,41 @@
-Our central theorem about overloaded sets of function declarations
-mirrors the age-old description of sound type systems that says ````well-typed
-programs don't go wrong.'' In particular, it describes a form of
-\emph{overloading safety} for multiple dynamic dispatch which comprises
-three important properties:
-\begin{itemize}
-  \item if a function application has any meaning, then it has a unique most
-  specific meaning,
-  \item if it has a unique most specific meaning at compile time, then it
-  has a (possibly different) unique most specific meaning at run time, and
-  \item the ilk of the value returned at run time will be a subtype of
-the type determined statically at compile time of the function application expression.
-\end{itemize}
-%% \TODO{Relate these properties to prior work?}
-%
-We formulate the Overloading Safety Theorem in terms of class table extension
-to generalize (while also making precise) the notion that ````run time''
-describes a world that consistently extends that of ````compile time.''
+% Our central theorem about overloaded sets of function declarations
+% mirrors the age-old description of sound type systems that says ````well-typed
+% programs don't go wrong.'' In particular, it describes a form of
+% \emph{overloading safety} for multiple dynamic dispatch which comprises
+% three important properties:
+% \begin{itemize}
+%   \item if a function application has any meaning, then it has a unique most
+%   specific meaning,
+%   \item if it has a unique most specific meaning at compile time, then it
+%   has a (possibly different) unique most specific meaning at run time, and
+%   \item the ilk of the value returned at run time will be a subtype of
+% the type determined statically at compile time of the function application expression.
+% \end{itemize}
+% %% \TODO{Relate these properties to prior work?}
+% %
+% We formulate the Overloading Safety Theorem in terms of class table extension
+% to generalize (while also making precise) the notion that ````run time''
+% describes a world that consistently extends that of ````compile time.''
 
-Before proving the theorem we will need to establish two lemmas. The first is
-the more critical one: it shows that one does not invalidate a valid set of
-overloaded function declarations by extending the class
-table for which it was proved valid. Effectively the second lemma states that
-there is always a single best choice for the meaning of a function
-application.
+We now prove the main theorem of this paper, 
+that a valid set of overloaded generic function declarations 
+is safe 
+even if the class table is extended.
+Before proving the theorem we establish two lemmas. 
+First, we show that if a set of declarations is valid for a given class table, 
+then it is valid for any (well-formed) extension of that class table.
+Second, we show that if a set of overloaded declarations is valid, 
+then there is always a single best choice of declaration 
+to which to dispatch any (legal) call to that function 
+(i.e., the unique most specific declaration applicable to the arguments).
+
+% The first is the more critical one:
+% it shows that one does not invalidate a valid set of
+% overloaded function declarations by extending the class
+% table for which it was proved valid.
+% Effectively the second lemma states that
+% there is always a single best choice for the meaning of a function
+% application.
 
 \begin{lemma}[Extensibility]
 \label{lem:mod}
