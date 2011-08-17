@@ -3,7 +3,7 @@
 % We now use the non-equivalence judgment to make rigorous our intuition about
 % how polymorphic exclusion affects the mechanical verification of the overloading rules.
 To show that the overloadings of functions such as `tail` and `foo` are valid,
-we needed to modify the $\subtypeinner$ relation on existentials and universals
+we needed to modify the $\subtypeofinner$ relation on existentials and universals
 to use exclusion information:\\[1em]
 
 
