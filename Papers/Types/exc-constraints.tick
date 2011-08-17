@@ -21,7 +21,7 @@ where $\propop$ ranges over $\subtypeof$, $\nsubtypeof$, $\exc$, $\nexc$,
 $\equiv$, and $\not\equiv$.
 If $S$ and $T$ contain no inference variables the judgment behaves like an unconditional judgment (i.e., it only produces the constraints $\TRUE$ or $\FALSE$).
 
-Similarly, the judgement of the form
+Similarly, the judgment of the form
 \[\jgcontratemplate{S}{\propop}{T}{\C}\]
 states that under the assumptions $\Delta$, if the proposition $S \propop T$ holds, then $\C$ must be true of the inference variables. In
 particular when $\C$ holds of the inference variables, $S \propop T$ does not have to hold for every valid instantiation of the bound type variables. (Note that we only make use of this judgment where $\propop$ is $\not\equiv$.)
