@@ -125,8 +125,8 @@ then the type parameter instantiations derived by static type inference
 are relevant to $d_2$, but not to $d_1$.
 Because the call is dispatched to $d_1$, 
 we require type parameters for $d_1$ to be inferred \emph{dynamically}.
-\TODO{Say something about how this is done?
-Or that it is beyond the scope of this paper.}
+Showing how to do so
+is beyond the scope of this paper.
 
 
 \subsection{Overloading Rules}
