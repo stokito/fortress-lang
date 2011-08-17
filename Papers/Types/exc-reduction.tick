@@ -83,6 +83,9 @@ to types with variables in $\Delta''$. We then construct a new arrow with domain
   {\text{otherwise}}
   {\jtreds{\unitype[\Delta']{\arrowtype{S}{T}}}{\unitype[\Delta']{\arrowtype{S}{T}}}{\subst{}{}}}
 
+\infrule
+  {T \neq \arrowtype{U}{V}}
+{\jtreds{\unitype[\Delta']{T}}{\unitype[\Delta']{T}}{\subst{}{}}}
   
   \caption{Quantifier reduction judgments.}
   \label{fig:exred}
