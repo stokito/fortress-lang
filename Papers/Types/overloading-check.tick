@@ -58,7 +58,7 @@ incorporates \emph{existential reduction}, defined in the next section.
 
 The inner subtyping judgment on universals defined in
 Figure~\ref{fig:existential}, 
-$\jqsubinner{\sigma_1}{\sigma_2}$, stems from the notion of ````generic
+$\jleinner{\sigma_1}{\sigma_2}$, stems from the notion of ````generic
 instances'' from Hindley-Milner type systems \cite{damas82},
 augmented with F-bounded quantification \cite{canning89,baldan99} to account
 for type parameters that may appear in their bounds. The single rule
@@ -70,7 +70,7 @@ of $\sigma_2$; in other words, $\sigma_1$ must be instantiated in $\sigma_2$'s
 environment to a simple subtype of $\sigma_2$'s type.
 
 The inner subtyping judgment on existentials also defined in
-Figure~\ref{fig:existential}, $\jqsubinner{\delta_1}{\delta_2}$, is the
+Figure~\ref{fig:existential}, $\jleinner{\delta_1}{\delta_2}$, is the
 logical dual of that for universals. The rule states that $\delta_1$ is
 a subtype of $\delta_2$ if $\delta_2$'s type parameters can be instantiated
 in $\delta_1$'s environment such that its instantiated type is a simple
@@ -78,9 +78,9 @@ supertype of $\delta_1$'s type.
 
 The outer subtyping judgments incorporate a single step of \emph{existential reduction} (Section~\ref{sec:exred}). Reduction on an existential type preserves the collective extent of all its instantiations---it is sound to include it in our definitions of universal and existential subtyping.
 In the
-existential subtyping judgment $\jqsub{\delta}{\delta}$ the l.h.s.
+existential subtyping judgment $\jle{\delta}{\delta}$ the l.h.s.
 is reduced and its result is checked with the r.h.s. using the inner subtying judgment.
-Its use in the universal subtyping judgment $\jqsub{\sigma}{\sigma}$ requires
+Its use in the universal subtyping judgment $\jle{\sigma}{\sigma}$ requires
 a bit more explanation. We only use universal subtyping to compare
 generic arrow types of the form $\arrow(d)$ for a generic function declaration
 $d$. In this case, the r.h.s. arrow is reduced by reducing its
@@ -93,7 +93,7 @@ applied to $\arrow(d)$'s return type $T$. We will explain existential reduction 
 These subtyping judgments offer a nice interpretation of applicability and
 specificity of generic function declarations. Recall that a generic
 function declaration $d = \hdeclg{f}{\Delta}{S}{T}$ is applicable to a type
-$T$ if there is some instance $d'$ such that $T \subtypeof \dom(d')$.
+$T$ if there is some instance $d'$ such that $T \le \dom(d')$.
 Note the existential quantification over instances of the generic function
 declaration. With our extended notion of domain type, we lift this
 criterion to the level of existential types; observe the same existential
@@ -105,10 +105,11 @@ Furthermore, we interpret the fact that $d_1$ is more specific than
 $d_2$ with the existential subtyping assertion
 $\vdash \dom(d_1) \le \dom(d_2)$.
 
-These interpretations are clearly correct with respect to the inner subtyping judgments. Shortly, we will show that the existential
-reduction in the outer subtyping judgment does not upset these
-interpretations. \TODO{(where exactly?)}
+These interpretations are clearly correct with respect to the inner subtyping judgments. Using a few
+elementary facts about $\le$, $\leinner$, and $\eqred$ that will be explained in Section~\ref{sec:exred}
+we can show existential reduction does not alter the situation.
 
+\TODO{show this}
 
 \input{fig-meet}
 
@@ -128,17 +129,17 @@ need to compute the meet $\dom(d_1) \wedge \dom(d_2)$ of the existential types $
 $d_0 \in \Df$ with $dom(d_0) \equiv \dom(d_1) \wedge \dom(d_2)$. Fortunately, computing the meet of two existential types is easily dones (see Figure~\ref{fig:meet}).
 
 \begin{lemma}\label{lem:meet}
-$\delta_1 \meet \delta_2$ is actually the meet of $\delta_1$ and $\delta_2$ under $\subtypeof$.
+$\delta_1 \meet \delta_2$ is actually the meet of $\delta_1$ and $\delta_2$ under $\le$.
 \end{lemma}
 \begin{proof}
-First we will show that $\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\subtypeofinner$. That $\delta_1 \meet \delta_2 \subtypeofinner \delta_1$ and $\delta_1 \meet \delta_2 \subtypeofinner \delta_2$ is obvious.
+First we will show that $\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\leinner$. That $\delta_1 \meet \delta_2 \leinner \delta_1$ and $\delta_1 \meet \delta_2 \leinner \delta_2$ is obvious.
 For any $\delta_0$, if $\bar{U}$ and $\bar{V}$ are instantiations that prove
-$\delta_0 \subtypeofinner \delta_1$ and $\delta_0 \subtypeofinner \delta_1$, respectively,
-then we can use the instantiation $\bar{U},\bar{V}$ to prove that $\delta_0 \subtypeof \delta_1 \meet \delta_2$.
+$\delta_0 \leinner \delta_1$ and $\delta_0 \leinner \delta_1$, respectively,
+then we can use the instantiation $\bar{U},\bar{V}$ to prove that $\delta_0 \le \delta_1 \meet \delta_2$.
 
-Now we will show that the meet under $\subtypeofinner$ is also the meet under $\subtypeof$. Suppose that $\delta_0 \subtypeof \delta_1$, $\delta_0] \subtypeof \delta_1$
-and $\delta_0 \eqred \reduce(\delta_0)$. A little work lets us deduce that $\reduce(\delta_0) \subtypeofinner \delta_1 \meet \delta_2$ and hence $\delta_0 \subtypeof \delta_1 \meet \delta_2$.
-The fact that $\delta_1 \meet \delta_2 \subtypeof \delta_1$ and $\delta_1 \meet \delta_2 \subtypeof \delta_1$ follows from the fact that $\subtypeofinner$ implies $\subtypeof$.
+Now we will show that the meet under $\leinner$ is also the meet under $\le$. Suppose that $\delta_0 \le \delta_1$, $\delta_0] \le \delta_1$
+and $\delta_0 \eqred \reduce(\delta_0)$. A little work lets us deduce that $\reduce(\delta_0) \leinner \delta_1 \meet \delta_2$ and hence $\delta_0 \le \delta_1 \meet \delta_2$.
+The fact that $\delta_1 \meet \delta_2 \le \delta_1$ and $\delta_1 \meet \delta_2 \le \delta_1$ follows from the fact that $\leinner$ implies $\le$.
 \end{proof}
 
 We can check the Return Type Rule using the subtype relation on universal types.
@@ -151,6 +152,7 @@ the arrow type $\sigma_{meet} = \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \ri
 \begin{psketch}
 First note that the pair $\sigma_meet$, $\arrow(d2)$ satisfies the return type rule. Now notice that
 since $\arrow(d_1)$ and $\sigma_meet$ are equally specific
+\TODO{finish this}
 \end{psketch}
 
 
