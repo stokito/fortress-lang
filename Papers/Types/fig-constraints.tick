@@ -31,7 +31,7 @@
   \toConstraint{\Delta}{\C} \\
   \vspace{\afterruleskip}
 
-  \toBound{\C}{\Delta} \\
+  \toBounds{\C}{\Delta} \\
   \vspace{\afterruleskip}
 
   \jsolve{\C}{\phi}{\C} \\

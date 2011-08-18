@@ -65,7 +65,7 @@ to types with variables in $\Delta''$. We then construct a new arrow with domain
 \newjudge{Existential Reduction}{\jtreds{\delta}{\delta}{\phi}}
 \infrule
   {\jcnequiv{T}{\Bottom}{\C} \andalso \toConstraint{\Delta'}{\C'} \\
-   \jsolve{\C \wedge \C'}{\phi}{\C''} \andalso \toBound{\C''}{\Delta''}}
+   \jsolve{\C \wedge \C'}{\phi}{\C''} \andalso \toBounds{\C''}{\Delta''}}
   {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta'']{\phi(T)}}{\phi}}
 
 \infrule
@@ -102,7 +102,7 @@ instantiation exclusion. Then we convert the bounds on the existential's type pa
 Unifying the constraint \[
 \C \wedge \C' = X \equiv Y \wedge X \subtypeof `Any` \wedge Y \subtypeof `ZZ`
 \] yields the type substitution $\phi = [W/X, W/Y]$ (for some fresh variable $W$) and the simplified leftover constraint $\C'' =$ \text{`W <: ZZ`}. Since $\C''$ has the
-form of a type environment, $\toBound{\C''}{\text{`W <: ZZ`}}$,
+form of a type environment, $\toBounds{\C''}{\text{`W <: ZZ`}}$,
 we finally reduce this existential to `EXISTS[\W <: ZZ\](ArrayList[\W\] CAP List[\W\])`. However, due to the class table declaration of `ArrayList[\W\]`
 this existential type will be indistinguishable (by $\leinner$) from the simpler `EXISTS[\W<:ZZ\]ArrayList[\W\]`.
 

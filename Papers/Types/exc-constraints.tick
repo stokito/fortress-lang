@@ -58,9 +58,10 @@ has a partial inverse $\textit{toBound}(\C)$ that is defined whenever $\C$ can b
 Figure~\ref{fig:jsub} presents the full definition of our constraint-based subtyping algorithm
 as inference rules for the judgment $\jsub{T}{T}{\C}$. Note that our algorithm requires that these rules be processed in the given order.
 
-In \cite{smith08} Smith and Cartwright similarly define a sound and complete algorithm for generating constraints from the
-Java subtyping relation. We essentially preserve their semantics
-\cite[Appendix]{smith08} with two notable differences. First, our definition includes additional rules for tuple types to account for the fact
+Smith and Cartwright similarly define a sound and complete algorithm 
+for generating constraints from the Java subtyping relation \cite{smith08}. 
+We essentially preserve their semantics with two notable differences. 
+First, our definition includes additional rules for tuple types to account for the fact
 that any tuple with a constituent type that is equivalent to $\Bottom$ is itself
 equivalent to $\Bottom$.
 

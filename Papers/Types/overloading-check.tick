@@ -26,31 +26,33 @@ including all of the valid examples in Section~\ref{sec:examples}.
 
 \subsection{Existential and Universal Types}
 
-For a generic function declaration $d = \hdeclg{f}{\Delta}{S}{T}$,
-its arrow type, written $\arrow(d)$, is
-the \emph{universal type} \mbox{$\forall\ob{\Delta}S \rightarrow T$}.
-A universal type binds type parameter declarations over some type and
-can be instantiated by any types fitting the type parameters' bounds.
-We write $\forall\tplist{X}{N}T$ to bind each type variable $X_i$ with bounds
-$\{\bar{N_i}\}$ over the type $T$, and we use the metavariable $\sigma$ to range over universal types.
-
-
-Moreover, the domain type of $d$, written $\dom(d)$, is the
-\emph{existential type} $\exists\ob{\Delta}{S}$. An \emph{existential type}
-also binds type parameter declarations over a type, 
-but unlike a universal type, it cannot be instantiated; 
-instead, it represents some hidden type instantiation 
+Given a generic function declaration $d = \hdeclg{f}{\Delta}{S}{T}$,
+its domain type, written $\dom(d)$, 
+is the existential type $\exists\ob{\Delta}{S}$.
+An \emph{existential type} binds type parameter declarations over a type, 
+but these type parameters cannot be instantiated; 
+instead, the existential type represents some hidden type instantiation 
 and the corresponding instantiated type. We write
 $\exists\tplist{X}{N}T$ to bind each type variable $X_i$ with bounds
 $\{\bar{N_i}\}$ over the type $T$, and we use the metavariable $\delta$ to
 range over existential types.
 
-Note that universal and existential types are not actually \emph{types} in
-our system. To distinguish between the different notions, we refer to types
-$T$ as \emph{simple types} and the original subtyping relation $\subtypeof$ as
-\emph{simple subtyping}. 
+The arrow type of declaration $d$ above, written $\arrow(d)$, 
+is the universal arrow type \mbox{$\forall\ob{\Delta}S \rightarrow T$}.
+We use this to formulate the Return Type Rule.
+A \emph{universal type} binds type parameter declarations over some type and
+can be instantiated by any types fitting the type parameters' bounds.
+We write $\forall\tplist{X}{N}T$ to bind each type variable $X_i$ 
+with bounds $\{\bar{N_i}\}$ over the type $T$, 
+and we use the metavariable $\sigma$ to range over universal types.
+
+Note that universal and existential types 
+are not actually \emph{types} in our system. 
+% To distinguish between the different notions, we refer to types
+% $T$ as \emph{simple types} and the original subtyping relation $\subtypeof$ as
+% \emph{simple subtyping}. 
 % When the meaning is clear from context, we equate
-% both $\forall\ob{}T$ and $\exists\ob{}T$ with the simple type $T$. 
+% both $\forall\ob{}T$ and $\exists\ob{}T$ with the type $T$. 
 
 % \input{fig-application}
 
@@ -70,7 +72,7 @@ The inner subtyping judgment on existentials $\jleinner{\delta_1}{\delta_2}$, de
 Figure~\ref{fig:existential}, states that $\delta_1$ is a subtype of $\delta_2$ in the environment $\Delta$ if the constituent type of $\delta_1$
 is a subtype of an instance of $\delta_2$ in the environment obtained by conjoining $\Delta$ and the bounds of $\delta_1$.
 
-In the outer subtypin judgment $\jle{\delta}{\delta'}$, we first perform \emph{existential reduction} to produce $\reduce{\delta}$. Then we check whether $\jleinner{\reduce{\delta}}{\delta'}$.
+In the outer subtyping judgment $\jle{\delta}{\delta'}$, we first perform \emph{existential reduction} to produce $\reduce{\delta}$. Then we check whether $\jleinner{\reduce{\delta}}{\delta'}$.
 We provide the rules for existential reduction in Section~\ref{sec:exred}, but the judgment $\jtred{\delta}{\reduce{\delta}}$ is with the following properties:
 \begin{enumerate}
 \item $\jleinner{\reduce{\delta}}{\delta}$
@@ -80,7 +82,6 @@ We provide the rules for existential reduction in Section~\ref{sec:exred}, but t
 \end{enumerate}
 The first three properties show that $\le$ is a preorder and that $\leinner$ implies $\le$.
 Adding the fourth property lets us show that any ground instance $T$ of $\delta$ with $T \neq \Bottom$ is an instance of $\reduce(\delta)$
-
 
 The inner subtyping judgment on universals $\jleinner{\sigma_1}{\sigma_2}$, defined in
 Figure~\ref{fig:existential},
