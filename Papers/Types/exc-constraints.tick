@@ -1,7 +1,8 @@
 Up to this point the precise definitions of subtyping and exclusion between
 types (and quantifier reduction) have remained unspecified. In this section
-we describe a small language of type constraints and, more importantly, we
-define subtyping and exclusion with respect to constraints. Finally, with constraint-based subtyping and exclusion defined, we explain
+we describe a small language of type constraints 
+and we define subtyping and exclusion with respect to constraints. 
+Finally, with constraint-based subtyping and exclusion defined, we explain
 in more detail the notion of quantifier reduction used in the $\le$ judgments (and thus in our rule-checking).
 
 \subsection{Inference Variables}
@@ -14,17 +15,24 @@ While the syntax of type variables is uniform, we conventionally distinguish the
 \subsection{Judgment Forms}
 \input{fig-judgements}
 
-In Figure \ref{fig:judge} we list the judgments that will be used for generating constraints. Each judgment of the form
+In Figure \ref{fig:judge}, 
+we list the judgments for generating constraints.
+A judgment of the form
 $\jgconstrtemplate{S}{\ast}{T}{\C}$
-states that under the assumptions $\Delta$, the constraint $\C$ on the inference variables imply the proposition $S \propop T$,
+states that under the assumptions $\Delta$, 
+the constraint $\C$ on the inference variables implies the proposition $S \propop T$,
 where $\propop$ ranges over $\subtypeof$, $\nsubtypeof$, $\exc$, $\nexc$,
 $\equiv$, and $\not\equiv$.
 If $S$ and $T$ contain no inference variables the judgment behaves like an unconditional judgment (i.e., it only produces the constraints $\TRUE$ or $\FALSE$).
 
 Similarly, the judgment of the form
 \[\jgcontratemplate{S}{\propop}{T}{\C}\]
-states that under the assumptions $\Delta$, if the proposition $S \propop T$ holds, then $\C$ must be true of the inference variables. In
-particular when $\C$ holds of the inference variables, $S \propop T$ does not have to hold for every valid instantiation of the bound type variables. (Note that we only make use of this judgment where $\propop$ is $\not\equiv$.)
+states that under the assumptions $\Delta$, if the proposition $S \propop T$ holds, then $\C$ must be true of the inference variables. 
+In particular, 
+when $\C$ holds of the inference variables, 
+$S \propop T$ does not have to hold 
+for every valid instantiation of the bound type variables. 
+(Note that we only make use of this judgment where $\propop$ is $\not\equiv$.)
 
 An important point about both kinds of judgments is that the types $S$ and $T$ should be considered \emph{inputs} and the
 constraint $\C$ should be considered an \emph{output}.
@@ -42,11 +50,12 @@ and a disjunction constraint $\C_1 \vee \C_2$ is satisfied exactly
 when one or both of $\C_1$ and $\C_2$ are satisfied.
 The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always satisfied. The equivalence constraint $S \equiv T$ is derived as $S \subtypeof T \wedge T \subtypeof S$.
 
-As in the work of Smith and Cartwright \cite{smith08}, on which we based our constraint
-generation rules, we normalize all constraint formulas into disjunctive normal form
+Following Smith and Cartwright \cite{smith08}, 
+% on which we based our constraint rules, 
+we normalize all constraint formulas into disjunctive normal form
 and simplify away obvious contradictions and redundancies. We further make use
-of some auxiliary meta-level definitions, defined in Figure~\ref{fig:constraints}. The (involutary) negation function
-$\neg \C$ of a constraint $\C$ has a standard de Morgan interpretation.
+of some auxiliary meta-level definitions, defined in Figure~\ref{fig:constraints}. 
+The negation $\neg \C$ of a constraint $\C$ has a standard de Morgan interpretation.
 Each type environment $\Delta = \bds{X}{M}$ naturally describes a constraint
 on the variables $\bar{X}$,
 which we denote $\textit{toConstraint}(\Delta)$. This conversion
@@ -61,9 +70,10 @@ as inference rules for the judgment $\jsub{T}{T}{\C}$. Note that our algorithm r
 Smith and Cartwright similarly define a sound and complete algorithm 
 for generating constraints from the Java subtyping relation \cite{smith08}. 
 We essentially preserve their semantics with two notable differences. 
-First, our definition includes additional rules for tuple types to account for the fact
-that any tuple with a constituent type that is equivalent to $\Bottom$ is itself
-equivalent to $\Bottom$.
+First, our definition includes additional rules for tuple types 
+to account for the fact that 
+any tuple is equivalent to \Bottom\ 
+if any of its element types is equivalent to \Bottom.
 
 \infrule
   {|\bar{S}| = |\bar{T}| \andalso \forall  i . \quad \jsub{S_i}{T_i}{\C_i} \\
@@ -76,8 +86,8 @@ equivalent to $\Bottom$.
 
 \noindent Second, our definition includes an additional rule for intersection types to account for
 exclusion since the intersection of excluding types is equivalent to
-$\Bottom$. (Note that this rule
-makes our exclusion and subtyping rules mutually dependent.)
+$\Bottom$. 
+This rule makes our exclusion and subtyping rules mutually dependent.
 
 \infrule
   {\jsub{S}{U}{\C} \andalso \jsub{T}{U}{\C'} \\
@@ -95,11 +105,15 @@ constraint-based subtyping with the following rule:
 \subsection{Exclusion}
 \input{fig-exclusion}
 Figure~\ref{fig:jexc} presents our definition of constraint-based exclusion
-as inference rules for the judgment $\jexc{T}{T}{\C}$. Like with constraint-based subtyping our algorithm requires that these rules be processed in order. Additionally, if no rule matches, then the l.h.s. and r.h.s. types should be swapped and the rules tried again.
+as inference rules for the judgment $\jexc{T}{T}{\C}$. 
+As with subtyping, 
+our algorithm requires that these rules be processed in order. Additionally, if no rule matches, then the l.h.s. and r.h.s. types should be swapped and the rules tried again.
 
-To make these rules algorithmic we break the exclusion relation on constructed
-types into four subrelations $\exce$, $\excc$, $\exco$, and $\excp$. The first three relations are then reduced
-to checking the asymmetric relations $\excre$, $\excrc$, and $\excro$.
+To make these rules algorithmic, 
+we break the exclusion relation on constructed types 
+into four subrelations $\exce$, $\excc$, $\exco$, and $\excp$. 
+The first three relations are further decomposed 
+into the asymmetric relations $\excre$, $\excrc$, and $\excro$.
 \begin{enumerate}
 \item `C[\ S_bar \]`\,$\excre$\,`D[\ T_bar \]` determines whether `D[\ T_bar \]` has a super type $N$ such that $N$ appears in the excludes clause of an ancestor of `C[\ S_bar \]`.
 \item `C[\ S_bar \]`\,$\excrc$\,`D[\ T_bar \]` determines whether `D[\ T_bar \]` excludes every type in the (nontrivial) comprises clause of `C[\ S_bar \]`.
@@ -116,18 +130,15 @@ of constraint-based exclusion with the following rule:
   {\jgtemplate{S}{\exc}{T}}
 
 \subsection{Negative Judgments and Negation}
-In the rules for constraint-based exclusion we use the negative judgments $\jnsub{T}{T}{\C}$ and $\jnexc{T}{T}{\C}$
-to determine constraints under which the negations hold. Instead of defining
-these two negative judgments explicitly, we describe a straightforward process
-of deriving them from their positive counterparts according to de Morgan's
-laws.
+In the rules for constraint-based exclusion (Figure~\ref{fig:jexc}),
+we use the negative judgments $\jnsub{T}{T}{\C}$ and $\jnexc{T}{T}{\C}$
+to determine constraints under which the negations hold. 
+Instead of defining negative judgments explicitly, 
+we describe how to derive them from their positive counterparts 
+according to de Morgan's laws.
 
-The rules for the negative subtyping judgment $\jnsub{T}{T}{\C}$ are obtained as follows.
-For each rule of $\jsub{T}{T}{\C}$
-that is not in the section marked ````bound variables,''
-make a new rule for $\jnsub{T}{T}{\C}$ by replacing each occurrence of a
-relation symbol $\propop$ with its
-polar opposite, and by swapping each $\wedge$ with $\vee$ and $\TRUE$ with $\FALSE$, and vice versa. Additionally, the rules for bound variables are given below:
+For the negative subtyping judgment $\jnsub{T}{T}{\C}$,
+the rules for bound variables are given below:
 \[
 \frac
   {`X` \in \Delta}
@@ -137,7 +148,12 @@ polar opposite, and by swapping each $\wedge$ with $\vee$ and $\TRUE$ with $\FAL
   {\jnsub{S}{\Delta(X)}{\C}}
   {\jnsub{S}{X}{\C}}
 \]
-
+The other rules for $\jnsub{T}{T}{\C}$ are obtained as follows:
+For each rule of $\jsub{T}{T}{\C}$
+that is not in the section marked ````bound variables,''
+make a new rule for $\jnsub{T}{T}{\C}$ by replacing each occurrence of a
+relation symbol $\propop$ with its negation, 
+and by swapping each $\wedge$ with $\vee$ and $\TRUE$ with $\FALSE$, and vice versa. 
 For example, the rule for intersection types on the r.h.s.
 \infrule
   {\jsub{T}{U}{\C} \andalso \jsub{T}{V}{\C'}}
