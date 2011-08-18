@@ -163,9 +163,8 @@ becomes the following rule in the negative subtyping judgment
   {\jnsub{T}{U}{\C} \andalso \jnsub{T}{V}{\C'}}
   {\jnsub{T}{U \cap V}{\C \vee \C'}}
 
-The rules for the negative exclusion judgment $\jnexc{T}{T}{\C}$ are derived
-according to the process above, with the following additional rule for
-bound variables
+The rules for the negative exclusion judgment $\jnexc{T}{T}{\C}$ are derived from
+those in $\jexc{T}{T}{\C} according to the process above, where the rule for bound variables is
 \infrule
   {`X` \in \Delta}
   {\jnexc{X}{T}{\FALSE}}
@@ -202,5 +201,5 @@ the case that $\C$ can be expressed as a conjunction $\C' \wedge \C''$
 where $\C'$ is entirely equivalences and $\C''$ contains no type equivalences. Then we define a unifier of $\C$ to be a unifier
 of $\C'$. Finally, we can extend the notion of unifier to a constraint $\C$ in disjunctive normal form to be a unifier of any disjunct of $\C$.
 
-The (partial) function $\textit{unify}$ in Figure~\ref{fig:constraints} takes a constraint $\C$ and produces a most general unifier $\phi$ if one exists, in the manner described above. This is always the case if $\C$ consists of a single conjunct. \textit{unify} additionally produces the substituted leftover
+The (partial) function $\textit{unify}$ in Figure~\ref{fig:constraints} takes a constraint $\C$ and produces a most general unifier $\phi$ if one exists. This is always the case if $\C$ consists of a single conjunct. \textit{unify} additionally produces the substituted leftover
 part, $\phi(\C'')$.
