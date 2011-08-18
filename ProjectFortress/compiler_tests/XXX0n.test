@@ -1,0 +1,17 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled0.n
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled0.n.fss:14:14-15:\n\
+\ Function body has type ()->(), but declared return type is ().\n\
+File Compiled0.n.fss has 1 error.\n
+compile_out_equals=

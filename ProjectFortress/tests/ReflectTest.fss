@@ -1,0 +1,237 @@
+(*******************************************************************************
+    Copyright 2010 Kang Seonghoon, KAIST
+    All rights reserved.
+ ******************************************************************************)
+
+export Executable
+import Reflect.{...}
+import List.{...}
+import Set.{...}
+
+trait A end
+trait B extends A end
+trait C extends A excludes B end
+trait D extends {B,C} comprises {E,F} end
+object E extends D end
+object F extends D end
+
+trait G[\T extends Number, U\]
+    getter answer(): ZZ32 = 42
+    foo(x:T, y:Generator[\U\]): T
+    foo(x:T): T = foo(x, Nothing[\U\])
+    foo(): T = foo(self.answer)
+end
+
+object H[\X extends Number\](v:X) extends G[\X,Char\]
+    var v2: X = v^2
+    foo(x:X, y:Generator[\Char\]): X = x (|y| + 1)
+    bar(): X = do
+        v2 := v2 + 1
+        v2 - 1
+    end
+end
+
+relaxToType[\T\](x:Generator[\T\]): Generator[\Type\] = x.map[\Type\](identity[\T\])
+opr TYPESEQ[\E1,E2\](x:Generator[\E1\], y:Set[\E2\]): Boolean =
+    (set relaxToType[\E1\](x) = set relaxToType[\E2\](y))
+opr TYPESEQ[\E1,E2\](x:Generator[\E1\], y:List[\E2\]): Boolean =
+    (list relaxToType[\E1\](x) = list relaxToType[\E2\](y))
+
+testType(): () = do
+    zz32 = theType[\ZZ32\]()
+    rr64 = theType[\RR64\]()
+    assert(join(zz32, rr64) TYPESEQ {rr64}, "incorrect join(" zz32 "," rr64 ")")
+    assert(meet(zz32, rr64) TYPESEQ {zz32}, "incorrect meet(" zz32 "," rr64 ")")
+    assert(zz32 SUBTYPEOF zz32, zz32 " <: " zz32 " doesn't hold")
+    assert(zz32 SUBTYPEOF rr64, zz32 " <: " rr64 " doesn't hold")
+    assert(NOT (rr64 SUBTYPEOF zz32), rr64 " <: " zz32 " (wrongly) hold")
+
+    string = theType[\String\]()
+    charlist = theType[\List[\Char\]\]()
+    assert(join(string, charlist) TYPESEQ {theType[\ZeroIndexed[\Char\]\]()},
+           "incorrect join(" string "," charlist ")")
+    assert(meet(string, charlist) TYPESEQ {bottomType},
+           "incorrect meet(" string "," charlist ")")
+    assert(NOT (string SUBTYPEOF charlist), string " <: " charlist " (wrongly) hold")
+    assert(NOT (charlist SUBTYPEOF string), charlist " <: " string " (wrongly) hold")
+
+    a = theType[\A\]()
+    b = theType[\B\]()
+    c = theType[\C\]()
+    d = theType[\D\]()
+    e = theType[\E\]()
+    f = theType[\F\]()
+    assert(instanceOf[\TraitType\](a), a " is not a trait type?")
+    assert(instanceOf[\ObjectType\](e), e " is not an object type?")
+    assert(a.typeExtends TYPESEQ {objectType}, "incorrect " a ".typeExtends")
+    assert(b.typeExtends TYPESEQ {a}, "incorrect " b ".typeExtends")
+    assert(c.typeExtends TYPESEQ {a}, "incorrect " c ".typeExtends")
+    assert(d.typeExtends TYPESEQ {b, c}, "incorrect " d ".typeExtends")
+    assert(e.typeExtends TYPESEQ {d}, "incorrect " e ".typeExtends")
+    assert(set relaxToType(b.typeExcludes) INTERSECTION {[\Type\] a,b,c,d,e,f} = {[\Type\] c},
+           "incorrect " b ".typeExcludes")
+    assert(set relaxToType(c.typeExcludes) INTERSECTION {[\Type\] a,b,c,d,e,f} = {[\Type\] b},
+           "incorrect " c ".typeExcludes")
+    assert(NOT a.typeComprises.holds, "incorrect " a ".typeComprises")
+    assert(d.typeComprises.holds AND (d.typeComprises.get TYPESEQ {e, f}),
+           "incorrect " b ".typeComprises")
+    assert(f.typeComprises.holds AND f.typeComprises.get.isEmpty,
+           "incorrect " f ".typeComprises")
+    assert(join(b, c) TYPESEQ {a}, "incorrect join(" b "," c ")")
+    (* not working correctly for now *)
+    (*assert(meet(b, c) TYPESEQ {d}, "incorrect meet(" b "," c ")")*)
+
+    arrow = theType[\ZZ32->String\]()
+    assert(instanceOf[\ArrowType\](arrow), arrow " is not an arrow type?")
+    assert(arrow.domain = theType[\ZZ32\](), "incorrect domain for " arrow)
+    assert(arrow.range = theType[\String\](), "incorrect range for " arrow)
+    assert(arrow.arity = 1, "incorrect arity for " arrow)
+    assert(NOT arrow.isVararg, arrow " should be not a vararg function!")
+    assert(arrow = arrowType(theType[\ZZ32\](), theType[\String\]()),
+           "arrowType constructor doesn't work")
+    arrow1 = theType[\(Char...)->String\]()
+    arrow2 = theType[\(ZZ32,Char...)->String\]()
+    assert(arrow1.arity = 1, "incorrect arity for " arrow1)
+    assert(arrow2.arity = 2, "incorrect arity for " arrow2)
+    assert(arrow1.isVararg, arrow1 " should be a vararg function!")
+    assert(arrow2.isVararg, arrow2 " should be a vararg function!")
+    assert(instanceOf[\RestType\](arrow1.domain), "incorrect rest type for " arrow1)
+    assert(instanceOf[\RestType\](arrow2.domain[1]), "incorrect rest type for " arrow2)
+    assert(arrow1.domain.base = arrow2.domain[1].base = theType[\Char\](),
+           "incorrect base types for RestType")
+    assert(arrow1.domain = arrow2.domain[1], "comparison of base types failed")
+    assert(arrow1 = arrowType(restType(theType[\Char\]()), theType[\String\]()),
+           "arrowType and restType constructors don't work")
+
+    tuple = theType[\(Char,Boolean,ZZ32)\]()
+    assert(|tuple| = 3, "incorrect length for " tuple)
+    assert(tuple[0] = theType[\Char\](), "incorrect value for " tuple)
+    assert(tuple[1] = theType[\Boolean\](), "incorrect value for " tuple)
+    assert(tuple[2] = theType[\ZZ32\](), "incorrect value for " tuple)
+    assert("/".join[\Type\](tuple) = "Char/Boolean/ZZ32", "generator for " tuple " doesn't work")
+    assert(tuple = tupleType(theType[\Char\](), theType[\Boolean\](), theType[\ZZ32\]()),
+           "tupleType constructor doesn't work")
+end
+
+checkTypeOf[\T\](obj:Any): () = do
+    objstr = typecase obj of
+        ZZ32->ZZ32 => "(function ZZ32->ZZ32)"
+        ()->() => "(function ()->())"
+        else => "" obj
+    end
+    assert(typeOf obj SUBTYPEOF theType[\T\](),
+           objstr " is not a subtype of " theType[\T\]() " but " typeOf obj)
+end
+
+testTypeOf(): () = do
+    checkTypeOf[\()\]()
+    checkTypeOf[\ZZ32\](42)
+    checkTypeOf[\RR64\](3.14)
+    checkTypeOf[\Boolean\](true)
+    checkTypeOf[\Char\]('c')
+    checkTypeOf[\String\]("car")
+    checkTypeOf[\((ZZ32,ZZ32),ZZ32)\]((3,4), 5)
+    checkTypeOf[\ZZ32->ZZ32\]((fn (x:ZZ32):ZZ32 => 42))
+    checkTypeOf[\()->()\](testTypeOf)
+    checkTypeOf[\List[\ZZ32\]\](<|[\ZZ32\] 1, 2, 3 |>)
+    checkTypeOf[\TraitType\](theType[\A\]())
+    checkTypeOf[\ObjectType\](typeOf E)
+    checkTypeOf[\ArrowType\](typeOf (fn (x:ZZ32):ZZ32 => 42))
+    checkTypeOf[\TupleType\](typeOf (0,1))
+    checkTypeOf[\BottomType\](bottomType)
+
+    (*)dumpType(typeOf ("Blah", 42, false, fn () => throw ForbiddenException))
+end
+
+testGeneric(): () = do
+    f = theType[\F\]()
+    g = theType[\G[\ZZ32,Boolean\]\]()
+    h = theType[\H[\QQ\]\]()
+
+    assert(f.staticArgs.isEmpty, "there should be no static arguments in " f)
+    assert(f.generic = f, "generic type for " f " didn't return itself")
+    assert(g.staticArgs TYPESEQ <|theType[\ZZ32\](), theType[\Boolean\]()|>,
+           "incorrect static arguments for " g ": " list(g.staticArgs))
+    assert(h.staticArgs TYPESEQ <|theType[\QQ\]()|>,
+           "incorrect static arguments for " h ": " list(h.staticArgs))
+
+    g' = g.generic
+    assert(instanceOf[\GenericType\](g'), "a generic type for " g " should exist")
+    g'params = <|[\(String,Set[\Type\])\] (name, set exts) | (name,exts) <- g'.staticParams |>
+    assert(g'params = <|[\(String,Set[\Type\])\] ("T", {[\Type\] theType[\Number\]()}),
+                                                 ("U", {[\Type\]}) |>,
+           "unexpected static parameters for " g' ": " g'params)
+
+    g'' = g'.apply(theType[\QQ\](), theType[\Char\]())
+    assert(g''.generic = g',
+           "a generic type for constructed " g'' " does not match with one for " g)
+    assert(g'' SUPERTYPEOF h, "constructed " g'' " didn't obey subtyping rules")
+end
+
+testMembers(): () = do
+    g = theType[\G[\ZZ32,Char\]\]()
+    h = theType[\H[\ZZ32\]\]()
+
+    gmembers = {[\(String,Type)\] (name, ty) | (name, ty, meth) <- g.members}
+    assert(gmembers = {[\(String,Type)\] ("answer", theType[\()->ZZ32\]()),
+                                         ("foo", theType[\(ZZ32,Generator[\Char\])->ZZ32\]()),
+                                         ("foo", theType[\ZZ32->ZZ32\]()),
+                                         ("foo", theType[\()->ZZ32\]()) },
+           "unexpected members for " g ": " gmembers)
+    hmembers = {[\(String,Type)\] (name, ty) | (name, ty, meth) <- h.members}
+    assert(hmembers = {[\(String,Type)\] ("v", theType[\()->ZZ32\]()),
+                                         ("v2", theType[\()->ZZ32\]()),
+                                         ("v2", theType[\ZZ32->()\]()),
+                                         ("foo", theType[\(ZZ32,Generator[\Char\])->ZZ32\]()),
+                                         ("bar", theType[\()->ZZ32\]()) },
+           "unexpected members for " h ": " hmembers)
+
+    hobj = H[\ZZ32\](9)
+    for (name, ty, meth0) <- seq(g.members) do
+        if meth <- meth0 then
+            (expected, actual) = case (name,ty) of
+                ("answer", theType[\()->ZZ32\]()) => (hobj.answer, meth(hobj))
+                ("foo", theType[\ZZ32->ZZ32\]()) => (hobj.foo(54), meth(hobj, 54))
+                ("foo", theType[\()->ZZ32\]()) => (hobj.foo(), meth(hobj))
+            end
+            assert(expected = actual,
+                   "the result of method wrapper for " name " (" actual ") doesn't match with "
+                   "the result of the original method (" expected ")")
+        elif NOT (name = "foo" AND ty = theType[\(ZZ32,Generator[\Char\])->ZZ32\]()) then
+            fail("unknown method " name " with type " ty " present")
+        end
+    end
+    for (name, ty, meth0) <- seq(h.members) do
+        if meth <- meth0 then
+            (expected, actual) = case (name,ty) of
+                ("v", theType[\()->ZZ32\]()) => (hobj.v, meth(hobj))
+                ("v2", theType[\()->ZZ32\]()) => (hobj.v2, meth(hobj))
+                ("v2", theType[\ZZ32->()\]()) => do
+                    meth(hobj, 17)
+                    (17, hobj.v2)
+                end
+                ("foo", theType[\(ZZ32,Generator[\Char\])->ZZ32\]()) =>
+                    (hobj.foo(54, "xyzzy"), meth(hobj, 54, "xyzzy"))
+                ("bar", theType[\()->ZZ32\]()) => do
+                    orig: ZZ32 := hobj.v2; hobj.bar(); expected = hobj.v2 - orig
+                    orig := hobj.v2; meth(hobj); actual = hobj.v2 - orig
+                    (expected, actual)
+                end
+                else => ((), ())
+            end
+            assert(expected = actual,
+                   "the result of method wrapper for " name " (" actual ") doesn't match with "
+                   "the result of the original method (" expected ")")
+        else
+            fail("unknown method " name " with type " ty " present")
+        end
+    end
+end
+
+run(): () = do
+    testType()
+    testTypeOf()
+    testGeneric()
+    testMembers()
+end
+
