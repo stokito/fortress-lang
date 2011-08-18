@@ -106,31 +106,25 @@ form of a type environment, $\toBounds{\C''}{\text{`W <: ZZ`}}$,
 we finally reduce this existential to `EXISTS[\W <: ZZ\](ArrayList[\W\] CAP List[\W\])`. However, due to the class table declaration of `ArrayList[\W\]`
 this existential type will be indistinguishable (by $\leinner$) from the simpler `EXISTS[\W<:ZZ\]ArrayList[\W\]`.
 
-When checking that the first two declarations $\D(\mathit{tail})$ from Section~$\ref{sec:examples}$ satisfy the return type rule, we use universal reduction to show 
-:\\[.8em]
-\begin{tabular}{l}
-$\vdash$
-`FORALL[\X <: Number\]List[\X\] -> List[\X\]`\\
-$\le$
-`FORALL[\X<:Number,Y<:Any\](List[\X\] CAP List[\Y\])`\\
-\hspace*{11.2em}
-`-> List[\Y\]`
-\end{tabular}
-\\[.8em]
-First, note that by reasoning similar to that in the last example we know
-\begin{tabular}{l}
-$\vdash$
-`EXISTS[\X<:Number, Y<:Any\]List[\X\] CAP List[\Y\]`\\[.3em]
-\andalso~~~$\eqred$ `EXISTS[\W <: Number\]List[\W\]`
-\end{tabular}
-\\[.8em]
-with substitution $[W/X, W/Y]$. We then use this substitution to reduce to
-\begin{tabular}{l}
-$\vdash$
-`FORALL[\X<:Number\]List[\X\] -> List[\X\]`\\
-$\leinner$
-`FORALL[\W<:Number\]List[\W\] -> List[\W\]`\\
-\end{tabular}
-\\[.8em]
+When checking that the first two declarations $\D_{\mathit{tail}}$ from Section~\ref{sec:examples} satisfy the Return Type Rule, we use universal reduction to prove
+\[\begin{array}{l@{}l@{}l}
+\vdash & \multicolumn{2}{l}{\text{`FORALL[\X <: Any\]List[\X\] -> List[\X\]`}} \\
+\le & \;\;\text{`FORALL[\X<:Any,Y<:Number\]`} & \!\text{`(List[\X\] CAP List[\Y\])`} \\
+&& \;\rightarrow \text{`List[\Y\]`}
+\end{array}\]
+First, note that by reasoning similar to that in the previous example we know
+\[
+\begin{array}{r@{}l}
+  \vdash \text{`EXISTS[\X<:Any, Y<:Number\]`} & \!\text{`(List[\X\] CAP List[\Y\])`} \\
+  \eqred \; \text{`EXISTS[\W <: Number\]`} & \!\text{`List[\W\]`} \\
+\end{array}
+\]
+with substitution $[W/X, W/Y]$. Using this substitution we must now prove
+\[
+\begin{array}{l@{}r@{}l}
+\vdash & \text{`FORALL[\X<:Number\]`} & \!\text{`List[\X\] -> List[\X\]`} \\
+\leinner & \;\;\text{`FORALL[\W<:Number\]`} & \!\text{`List[\W\] -> List[\W\]`}
+\end{array}
+\]
 which is clearly true.
 
