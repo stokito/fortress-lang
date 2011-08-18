@@ -77,13 +77,21 @@ We provide the rules for existential reduction in Section~\ref{sec:exred}, but t
 \begin{enumerate}
 \item $\jleinner{\reduce{\delta}}{\delta}$
 \item $\jleinner{\delta}{\delta'} implies \jleinner{\reduce{\delta}}{\reduce{\delta'}}$
-\item $\reduce{(\reduce{\delta}) = \reduce{\delta}}$
-\item $\reduce{\exttype[]{T}} = \exttype[]{T}$
+\item $\reduce{(\reduce{\delta})} = \reduce{\delta}$
+\item $\reduce{(\exttype[]{T})} = \exttype[]{T}$
 \end{enumerate}
 The first three properties show that $\le$ is a preorder and that $\leinner$ implies $\le$.
 Adding the fourth property lets us show that any ground instance $T$ of $\delta$ with $T \neq \Bottom$ is an instance of $\reduce(\delta)$
 
-The inner subtyping judgment on universals $\jleinner{\sigma_1}{\sigma_2}$, defined in
+Existential reduction is necessary because just extending the subtyping relation for ordinary types with exclusion
+is not enough to let us check the overloading rules. For example to check that the first two declarations of $\D_{\mathit{bar}}$ from Section~$\ref{sec:examples}$ satisfy the Meet Rule,
+we must be able to deduce the existential
+\[`EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])`\]
+and the existential
+\[`EXISTS[\W<:ZZ\]ArrayList[\W\]`\]
+describe the same set of ground instances.
+
+The rules for universals are dual to those for existentials. The inner subtyping judgment on universals $\jleinner{\sigma_1}{\sigma_2}$, defined in
 Figure~\ref{fig:existential},
 states that $\sigma_1$ is a subtype
 of $\sigma_2$ in the environment $\Delta$, if an instance of $\sigma_1$ is a subtype of the constituent type of $\sigma_2$ in the environment obtained by conjoining $\Delta$ and the bounds of $\sigma_2$. In
@@ -92,15 +100,20 @@ $\jleinner{\sigma}{\sigma''}$
 \begin{enumerate}
 \item $\jleinner{\reduce{\sigma}}{\reduce{\sigma}}$
 \item $\jleinner{\sigma}{\sigma'} implies \jleinner{\reduce{\sigma}}{\reduce{\sigma'}}$
-\item $\reduce{(\reduce{\sigma}) = \reduce{\sigma}}$
-\item $\reduce{\unitype[]{\arrowtype{S}{T}}} = \unitype[]{\arrowtype{S}{T}}$
+\item $\reduce{(\reduce{\sigma})} = \reduce{\sigma}$
+\item $\reduce{(\unitype[]{\arrowtype{S}{T}})} = \unitype[]{\arrowtype{S}{T}}$
 \end{enumerate}
 Again the first three properties show that $\le$ is a preorder and that $\leinner$ implies $\le$.
 Adding the fourth property lets us show that any ground instance $\arrowtype{S}{T}$ of $\delta$ with $S \neq \Bottom$ is an instance of $\reduce{\sigma}$.
 
+We need universal reduction for the same reason we need existential reduction: to check the overloading rules. For example to show the first two declarations in $\D(\mathit{tail})$
+from Section~$\ref{sec:examples}$ satisfy the return type rule, we use universal reduction to show 
+\[`FORALL[\X<:Number,Y<:Any\](List[\X\] CAP List[\Y\])`\]
+and
+\[`FORALL[\W<:Number\]List[\W\] -> List[\W\]`\]
+have all the same nontrivial instances.
 
-
-We explain how to compute generic reductions in in Section~\ref{sec:exred}.
+We explain how to compute existential and universal reductions in in Section~\ref{sec:exred}.
 
 \input{fig-meet}
 
