@@ -1,0 +1,79 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2008,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+
+# The following nonsense implements auto-homing, if no home is explicitly set
+
+# if Fortress home is not set
+if [ -z "$FORTRESS_HOME" ]; then
+  cmd=$0
+  emptyifslash=${cmd##*/*}
+  # if the command contains any slashes at all
+  if [ -z "$emptyifslash" ]; then
+    # slash occurs in name, use as is
+    true;
+  else
+    # no slash
+    cmd=`which $cmd`
+  fi
+  # if the command that we found resolves to a symbolic link, try to follow
+  # (not possible on Solaris, yet)
+  if [ -L $cmd ]; then
+     READLINK=""
+     if [ -e /bin/readlink ]; then
+        # Linux
+        READLINK=/bin/readlink
+     elif [ -e /usr/bin/readlink ]; then
+        # MacOS
+        READLINK=/usr/bin/readlink
+     else
+       echo "You need to set FORTRESS_HOME to the directory containing ProjectFortress"
+       echo "The target of the symbolic link could not be followed."
+       exit 1
+     fi
+     # Follow the link, figure out if it is absolute or relative.
+     target=`$READLINK $cmd`
+     emptyifslash=${target##/*}
+     # if absolute (begins with /)
+     if [ -z "$emptyifslash" ]; then
+       cmd=$target
+     else
+       cmd=${cmd%/*}/$target
+     fi
+     # echo Symlink resolves to $cmd
+  fi
+  FORTRESS_HOME=${cmd%/*}/..
+  echo guessing FORTRESS_HOME=$FORTRESS_HOME
+fi
+
+if [ -e "${FORTRESS_HOME}/ProjectFortress" ]; then
+  true
+else
+  echo "FORTRESS_HOME should be the name of the parent directory of ProjectFortress"
+  echo "instead of '$FORTRESS_HOME'"
+  exit 1
+fi
+
+if (uname | egrep CYGWIN > /dev/null) ; then
+  SEP=";"
+else
+  SEP=":"
+fi
+
+TP="$FORTRESS_HOME/ProjectFortress/third_party"
+SV=2.8.0.r21209
+
+CP="$FORTRESS_HOME/ProjectFortress/build${SEP}$FORTRESS_HOME/ProjectFortress/third_party/junit/junit.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/asm/asm-3.1.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/xtc/xtc.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/jsr166y/jsr166y.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/plt/plt.jar${SEP}$JAVA_HOME/lib/tools.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/unsigned/unsigned.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/scala/scala-compiler-${SV}.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/scala/scala-library-${SV}.jar${SEP}$CP"
+
+java -cp "$CP" \
+com.sun.fortress.Shell "$@"

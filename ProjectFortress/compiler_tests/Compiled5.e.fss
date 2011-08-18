@@ -1,0 +1,34 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+import CompilerSystem.args
+export { Executable }
+
+trait A extends Object comprises {E,C} end
+trait B extends Object comprises {F,C} end
+trait C extends {A,B} end
+trait E extends A excludes B end
+trait F extends B excludes A end
+
+f(o:Object):String = "Object"
+f(a:A):String = "A"
+f(b:B):String = "B"
+f(c:C):String = "C"
+
+object A1 extends E end
+object B1 extends F end
+object C1 extends C end
+
+run(): () = do
+  println f(A1)
+  println f(B1)
+  println f(C1)
+end

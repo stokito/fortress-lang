@@ -1,0 +1,30 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+object G[\ I,O \](f:I->O)
+  app(x:I):O = f x
+end
+
+three:ZZ32 = 3
+four:ZZ32 = 4
+
+t34 = (three, four)
+
+pluString(x:(ZZ32,ZZ32)):String = do
+  (y,z) = x
+  (y+z).asString
+end
+
+
+run():() = println(
+   if "7" = G[\(ZZ32,ZZ32), String\](pluString).app(t34) then "34" else "FAIL" end)

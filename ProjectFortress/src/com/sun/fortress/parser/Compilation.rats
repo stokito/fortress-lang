@@ -1,0 +1,417 @@
+/*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress components and APIs.
+ */
+module com.sun.fortress.parser.Compilation(Decl, Literal, Identifier, Keyword,
+                                           Symbol, Spacing);
+
+import Decl;
+import Literal;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* File ::=
+     w CompilationUnit w EndOfFile
+   | w ImportOrExports (w ;)? w (w Decls (w ;)?)? w EndOfFile
+   | w Imports (w ;)? (w AbsDecls (w ;)?)? w EndOfFile
+   | w (Imports (w ;)? w)? AbsDecls (w ;)? w EndOfFile
+ */
+public CompilationUnit File = initParser Program closeParser ;
+void initParser  = w { initParser(); };
+void closeParser = w EndOfFile
+     { try {
+           writer.close();
+       } catch (IOException error) {
+           error("Closing a log file for the parser failed!");
+       }
+     };
+
+CompilationUnit Program =
+     yyValue:CompilationUnit
+     { Span span = createSpan(yyStart,yyCount);
+       String file = span.getBegin().getFileName();
+       String cuname = yyValue.getName().toString();
+       if (!Shell.checkCompilationUnitName(file, cuname))
+           log(NodeUtil.getSpan(yyValue.getName()),
+               "    Component/API names must match their enclosing file names." +
+               "\n    File name: " + file +
+               "\n    Component/API name: " + cuname);
+     }
+   / a1:ImportOrExports (w semicolon)? w a2:Decls (w semicolon)?
+     { Span span = createSpan(yyStart,yyCount);
+       String file = span.begin.getFileName();
+       APIName name = NodeFactory.makeAPINameFromPath(writer, span, file, "\\.");
+       List<Import>  imports = a1.getA();
+       List<APIName> exports = a1.getB();
+       if ( ! exports.isEmpty() )
+           yyValue = NodeFactory.makeComponent(span, name, imports, a2, exports);
+       // already checked that file.length() > 4 by NodeFactory.makeAPINameFromPath
+       else if ( file.substring( file.length()-3).equals("fsi") ) {
+           yyValue = NodeFactory.makeApi(span, name, imports, a2);
+       } else {
+           log(span, "Components should have at least one export statement.");
+           yyValue = NodeFactory.makeComponent(span, name, imports, a2,
+                                               Collections.<APIName>emptyList());
+       }
+     }
+   / a1:ImportOrExports (w semicolon)? a2:(w yyValue:AbsDecls (w semicolon)?)?
+     { if (a2 == null) a2 = Collections.<Decl>emptyList();
+       Span span = createSpan(yyStart,yyCount);
+       String file = span.begin.getFileName();
+       APIName name = NodeFactory.makeAPINameFromPath(writer, span, file, "\\.");
+       if ( ! a1.getB().isEmpty() )
+           log(span, "APIs should not have export statements.");
+       yyValue = NodeFactory.makeApi(span, name, a1.getA(), a2);
+     }
+   / a1:(yyValue:ImportOrExports (w semicolon)? w)? a2:AbsDecls (w semicolon)?
+     { List<Import> imports = (a1 == null) ? Collections.<Import>emptyList()
+                                           : a1.getA();
+       Span span = createSpan(yyStart,yyCount);
+       String file = span.begin.getFileName();
+       APIName name = NodeFactory.makeAPINameFromPath(writer, span, file, "\\.");
+       if ( a1 != null && ! a1.getB().isEmpty() )
+           log(span, "APIs should not have export statements.");
+       yyValue = NodeFactory.makeApi(span, name, imports, a2);
+     };
+
+/* CompilationUnit ::=
+     Component
+   | Api
+ */
+private CompilationUnit CompilationUnit =
+     Component
+   / Api ;
+
+/* Component ::=
+     (native w)? component w APIName w ImportOrExports (w ;)?
+     (w Decls (w ;)?)? w end ((s component)? s APIName)?
+ */
+private Component Component =
+     a1:(native w)? component w a2:APIName w comprises w a3:APINames
+     a4:(w yyValue:ImportOrExports (w semicolon)?)? w
+     a5:(w yyValue:Decls (w semicolon)?)? w end a6:((s component)? s APIName)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a6 != null && !NodeUtil.nameString(a6).equals(NodeUtil.nameString(a2)))
+           log(span, "A component declaration of " + a2 +
+               " has the different name " + a6 + " at the end.");
+       if ( a5 != null)
+           log(span, "Compound component " + a2 + " should not include new declarations.");
+       List<Import>  imports = ( a4 == null ) ? Collections.<Import>emptyList()
+                                              : a4.getA();
+       List<APIName> exports = ( a4 == null ) ? Collections.<APIName>emptyList()
+                                              : a4.getB();
+       List<Decl>    decls   = Collections.<Decl>emptyList();
+       if (a1 == null)
+           yyValue = NodeFactory.makeComponent(span, a2, imports, decls, a3, false, exports);
+       else
+           yyValue = NodeFactory.makeComponent(span, a2, imports, decls, a3, true, exports);
+     }
+   / a1:(native w)? component w a2:APIName a3:(w yyValue:ImportOrExports (w semicolon)?)? w
+     a4:(w yyValue:Decls (w semicolon)?)? w end a5:((s component)? s APIName)?
+     { Span span = createSpan(yyStart,yyCount);
+       if ( a3 == null ||
+            a3 != null && a3.getB().isEmpty() )
+           log(span, "Components should have at least one export statement.");
+       if (a5 != null && !NodeUtil.nameString(a5).equals(NodeUtil.nameString(a2)))
+           log(span, "A component declaration of " + a2 +
+               " has the different name " + a5 + " at the end.");
+       List<Import>  imports = ( a3 == null ) ? Collections.<Import>emptyList()
+                                              : a3.getA();
+       List<APIName> exports = ( a3 == null ) ? Collections.<APIName>emptyList()
+                                              : a3.getB();
+       if (a4 == null) a4 = Collections.<Decl>emptyList();
+       if (a1 == null)
+           yyValue = NodeFactory.makeComponent(span, a2, imports, a4, exports);
+       else
+           yyValue = NodeFactory.makeComponent(span, a2, imports, a4, true, exports);
+     };
+
+/* Api ::=
+     api w APIName w comprises w APINames w end ((s api)? s APIName)?
+   | api w APIName (w Imports (w ;)?)? (w AbsDecls (w ;)?)? w end
+     ((s api)? s APIName)?
+   Imports ::= Import (br Import)*
+ */
+private Api Api =
+     a0:(native w)? api w a1:APIName w comprises w a2:APINames
+     a3:(w yyValue:ImportOrExports (w semicolon)?)?
+     a4:(w yyValue:AbsDecls (w semicolon)?)? w end a5:((s api)? s APIName)?
+     { Span span = createSpan(yyStart,yyCount);
+       if ( a0 != null )
+           log(span, "The native modifier is only for components not for APIs.");
+       if ( a5 != null && !NodeUtil.nameString(a5).equals(NodeUtil.nameString(a1)) )
+           log(span, "An API declaration of " + a1 +
+               " has the different name " + a5 + " at the end.");
+       if (a3 != null || a4 != null)
+           log(span, "Compound API " + a1 + " should not include new declarations.");
+       yyValue = NodeFactory.makeApi(span, a1, Collections.<Import>emptyList(),
+                                     Collections.<Decl>emptyList(), a2);
+     }
+   / a0:(native w)? api w a1:APIName a2:(w yyValue:ImportOrExports (w semicolon)?)?
+     a3:(w yyValue:AbsDecls (w semicolon)?)? w end
+     a4:((s api)? s APIName)?
+     { Span span = createSpan(yyStart,yyCount);
+       if ( a0 != null )
+           log(span, "The native modifier is only for components not for APIs.");
+       if ( a4 != null && !NodeUtil.nameString(a4).equals(NodeUtil.nameString(a1)) )
+           log(span, "An API declaration of " + a1 +
+               " has the different name " + a4 + " at the end.");
+       if ( a2 != null && ! a2.getB().isEmpty() )
+           log(span, "APIs should not have export statements.");
+       List<Import> imports = (a2 == null) ? Collections.<Import>emptyList()
+                                           : a2.getA();
+       if (a3 == null) a3 = Collections.<Decl>emptyList();
+       yyValue = NodeFactory.makeApi(span, a1, imports, a3);
+     };
+
+/* ImportOrExports ::= ImportOrExport (br ImportOrExport)* */
+private com.sun.fortress.useful.Pair<List<Import>,List<APIName>> ImportOrExports =
+     a1:ImportOrExport a2s:(br ImportOrExport)*
+     { List<Import>  imports = a1.getA();
+       List<APIName> exports = a1.getB();
+       for ( com.sun.fortress.useful.Pair<List<Import>,List<APIName>> pair : a2s.list()) {
+           imports.addAll(pair.getA());
+           exports.addAll(pair.getB());
+       }
+       yyValue = new com.sun.fortress.useful.Pair<List<Import>,List<APIName>>(imports, exports);
+     };
+
+/* ImportOrExport ::= Import / Export */
+private com.sun.fortress.useful.Pair<List<Import>,List<APIName>> ImportOrExport =
+     a1:Import
+     { yyValue = new com.sun.fortress.useful.Pair<List<Import>,List<APIName>>(Useful.list(a1),
+                                                                              new ArrayList<APIName>());
+     }
+   / a1:Export
+     { yyValue = new com.sun.fortress.useful.Pair<List<Import>,List<APIName>>(new ArrayList<Import>(),
+                                                                              Useful.list(a1));
+     };
+
+/* Import ::=
+     import (w ForeignLang)? w api w AliasedAPINames
+   | import w ImportedNames
+ */
+private List<Import> Import =
+     import a1:(w ForeignLang)? w api w a2:AliasedAPINames
+     { Option<String> f = ( a1 == null ) ? Option.<String>none()
+                                         : Option.<String>some(a1);
+       yyValue = Useful.list((Import)NodeFactory.makeImportApi(createSpan(yyStart,yyCount),
+                                                               f, a2));
+     }
+   / import w ImportedNames;
+
+/* ForeignLang ::= Id | StringLiteralExpr */
+private String ForeignLang =
+     !(Id w dot) a1:Id    { yyValue = a1.getText(); }
+   / a1:StringLiteralExpr { yyValue = a1.getText(); };
+
+/* ImportedNames ::=
+     (ForeignLang w)? APIName . w { w ... w } (w except w SimpleNames)?
+   |  ForeignLang w   APIName . w { w AliasedQualifiedNameList (w , w ...)? w }
+   | (ForeignLang w)? APIName . w { w AliasedSimpleNameList (w , w ...)? w }
+   | (ForeignLang w)? QualifiedName (w => w Id)?
+ */
+private List<Import> ImportedNames =
+     a1:(ForeignLang w)? a2:APIName dot w opencurly w ellipses w closecurly
+     a3:(w except w SimpleNames)?
+     { Option<String> f = ( a1 == null ) ? Option.<String>none()
+                                         : Option.<String>some(a1);
+       if (a3 == null) a3 = Collections.<IdOrOpOrAnonymousName>emptyList();
+       yyValue = Useful.list((Import)NodeFactory.makeImportStar(createSpan(yyStart,yyCount),
+                                                                f, a2, a3));
+     }
+   / a1:ForeignLang w a2:APIName dot w opencurly w a3:AliasedQualifiedNameList
+     a4:(w comma w ellipses)? w closecurly
+     { Option<String> f = Option.<String>some(a1);
+       Span span = createSpan(yyStart,yyCount);
+       List<Import> imports = Useful.list((Import)NodeFactory.makeImportNames(span, f, a2, a3));
+       if (a4 != null)
+           imports.add((Import)NodeFactory.makeImportStar(span, f, a2,
+                                                          Collections.<IdOrOpOrAnonymousName>emptyList()));
+       yyValue = imports;
+     }
+   / a1:ForeignLang w a2:APIName dot w opencurly w a3:AliasedQualifiedNameList
+     w ellipses w closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Collections.<Import>emptyList();
+     }
+   / a1:(ForeignLang w)? a2:APIName dot w opencurly w a3:AliasedSimpleNameList
+     a4:(w comma w ellipses)? w closecurly
+     { Option<String> f = ( a1 == null ) ? Option.<String>none()
+                                         : Option.<String>some(a1);
+       Span span = createSpan(yyStart,yyCount);
+       List<Import> imports = Useful.list((Import)NodeFactory.makeImportNames(span, f, a2,a3));
+       if (a4 != null)
+           imports.add((Import)NodeFactory.makeImportStar(span, f, a2,
+                                                          Collections.<IdOrOpOrAnonymousName>emptyList()));
+       yyValue = imports;
+     }
+   / a1:(ForeignLang w)? a2:APIName dot w opencurly w a3:AliasedSimpleNameList
+     w ellipses w closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Collections.<Import>emptyList();
+     }
+   / a1:(ForeignLang w)? a2:Id dot a3:QualifiedName a4:(w match w Id)?
+     { Option<String> f = ( a1 == null ) ? Option.<String>none()
+                                         : Option.<String>some(a1);
+       APIName api;
+       Id id;
+       if (a3.getApiName().isNone()) {
+           api = NodeFactory.makeAPIName(a2);
+           id = a3;
+       } else {
+           api = NodeFactory.makeAPINameSkipLast(a2, a3);
+           id  = NodeFactory.makeIdFromLast(a3);
+       }
+       AliasedSimpleName an = (a4 == null) ? NodeFactory.makeAliasedSimpleName(id)
+                                           : NodeFactory.makeAliasedSimpleName(id, a4);
+       Import imp = NodeFactory.makeImportNames(createSpan(yyStart,yyCount), f,
+                                                api, Useful.list(an));
+       yyValue = Useful.list(imp);
+     }
+   / <ErrorProduction>
+     Id (w match w Id)?
+     { log(createSpan(yyStart,yyCount), "Try \"import api APIName\"");
+       yyValue = Collections.<Import>emptyList();
+     };
+
+/* SimpleNames ::= SimpleName | { w SimpleNameList w } */
+/* SimpleNameList ::= SimpleName (w , w SimpleName)* */
+private List<IdOrOpOrAnonymousName> SimpleNames =
+     a1:SimpleName { yyValue = Useful.list(a1); }
+   / void:opencurly w a1:SimpleName a2s:(w comma w SimpleName)+ w void:closecurly
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / void:opencurly w a1:SimpleName a2s:(w commaOrNot w SimpleName)+ w void:closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / void:opencurly w a1:SimpleName w void:closecurly
+     { yyValue = Useful.list(a1); };
+
+/* AliasedSimpleName ::=
+     Id (w => w Id)?
+   | opr (w BIG)? w EncloserPair (w => w EncloserPair)?
+   | opr (w BIG)? w (Encloser | Op) (w => w (Encloser | Op))?
+ */
+private AliasedSimpleName AliasedSimpleName =
+     a1:Id a2:(w match w Id)?
+     { if (a2 == null)
+           yyValue = NodeFactory.makeAliasedSimpleName(a1);
+       else
+           yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
+     }
+   / opr big:(w BIG)? w a1:EncloserPair a2:(w match w EncloserPair)?
+     { if (big != null) a1 = NodeFactory.makeBig(a1);
+       if (a2 == null)
+           yyValue = NodeFactory.makeAliasedSimpleName(a1);
+       else {
+           if (big != null)
+               yyValue = NodeFactory.makeAliasedSimpleName(a1, NodeFactory.makeBig(a2));
+           else
+               yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
+       }
+     }
+   / opr big:(w BIG)? w a1:(Encloser / Op) a2:(w match w (Encloser / Op))?
+     { if (big != null) a1 = NodeFactory.makeBig(a1);
+       if (a2 == null)
+           yyValue = NodeFactory.makeAliasedSimpleName(a1);
+       else {
+           if (big != null)
+               yyValue = NodeFactory.makeAliasedSimpleName(a1, NodeFactory.makeBig(a2));
+           else
+               yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
+       }
+     };
+
+/* AliasedSimpleNameList ::= AliasedSimpleName (w , w AliasedSimpleName)* */
+private List<AliasedSimpleName> AliasedSimpleNameList =
+     a1:AliasedSimpleName a2s:(w comma w AliasedSimpleName)+
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / a1:AliasedSimpleName a2s:(w commaOrNot w AliasedSimpleName)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / a1:AliasedSimpleName
+     { yyValue = Useful.list(a1); };
+
+/* AliasedQualifiedName ::= QualifiedName (w => w QualifiedName)? */
+private AliasedSimpleName AliasedQualifiedName =
+     a1:QualifiedName a2:(w match w QualifiedName)?
+     { a1 = NodeFactory.makeDottedId(a1);
+       if (a2 == null)
+           yyValue = NodeFactory.makeAliasedSimpleName(a1);
+       else {
+           a2 = NodeFactory.makeDottedId(a2);
+           yyValue = NodeFactory.makeAliasedSimpleName(a1, a2);
+       }
+     };
+
+/* AliasedQualifiedNameList ::= AliasedQualifiedName (w , w AliasedQualifiedName)* */
+private List<AliasedSimpleName> AliasedQualifiedNameList =
+     a1:AliasedQualifiedName a2s:(w comma w AliasedQualifiedName)+
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / a1:AliasedQualifiedName a2s:(w commaOrNot w AliasedQualifiedName)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / a1:AliasedQualifiedName
+     { yyValue = Useful.list(a1); };
+
+/* AliasedAPINames ::=
+     AliasedAPIName
+   | { w AliasedAPINameList w }
+   AliasedAPINameList ::= AliasedAPIName (w , w AliasedAPIName)*
+ */
+private List<AliasedAPIName> AliasedAPINames =
+     a1:AliasedAPIName
+     { yyValue = Useful.list(a1); }
+   / void:opencurly w a1:AliasedAPIName a2s:(w comma w AliasedAPIName)+ w
+     void:closecurly
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / void:opencurly w a1:AliasedAPIName a2s:(w commaOrNot w AliasedAPIName)+ w
+     void:closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / void:opencurly w a1:AliasedAPIName w void:closecurly
+     { yyValue = Useful.list(a1); };
+
+/* AliasedAPIName ::= APIName (w => w Id)? */
+private AliasedAPIName AliasedAPIName =
+     a1:APIName a2:(w match w Id)?
+     { if (a2 == null)
+           yyValue = NodeFactory.makeAliasedAPIName(a1);
+       else
+           yyValue = NodeFactory.makeAliasedAPIName(a1, a2);
+     };
+
+/* Export ::= export w APINames */
+private List<APIName> Export = export w APINames ;
+
+/* APINames ::=
+     APIName
+   | { w APINameList w }
+   APINameList ::= APIName (w , w APIName)*
+ */
+List<APIName> APINames =
+     a1:APIName { yyValue = Useful.list(a1); }
+   / void:opencurly w a1:APIName a2s:(w comma w APIName)+ w void:closecurly
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / void:opencurly w a1:APIName a2s:(w commaOrNot w APIName)+ w void:closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / void:opencurly w a1:APIName w void:closecurly
+     { yyValue = Useful.list(a1); };
