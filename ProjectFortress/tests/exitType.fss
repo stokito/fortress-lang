@@ -1,0 +1,31 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component exitType
+export Executable
+
+trait T
+  m(val:ZZ32):ZZ32
+end
+
+func(x:ZZ32):ZZ32 = do
+   t:T
+   _ = label inner
+           t = object extends T
+                   m(val:ZZ32):ZZ32 = exit with (val + x)
+               end
+       end inner
+   x
+end
+
+run() = func(3)
+
+end

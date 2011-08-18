@@ -1,0 +1,19 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Constants
+export Constants
+
+pi : FloatLiteral = 3.141592653589793 (* Double whose sin is closest to 0 *)
+e : FloatLiteral = 2.7182818284590455 (* exp(1.0) *)
+infinity : RR64 = 1.0 / 0.0
+
+end

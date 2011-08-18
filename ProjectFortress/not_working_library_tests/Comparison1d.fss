@@ -1,0 +1,170 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Comparison1d
+export Executable
+
+
+trait SnerdEquality[\Self\] comprises Self
+    opr =(self, other:Self): Boolean = self SEQV other
+end
+
+opr =/=[\T extends SnerdEquality[\T\]\](a: T, b: T) = NOT (a = b)
+
+trait Comparison
+(*)        extends { StandardPartialOrder[\Comparison\] }
+(*)          extends { SnerdEquality[\Comparison\] }
+        comprises { Unordered, TotalComparison }
+    getter asString(): String = "Comparison"
+    (*) Default opr = is suitable for Comparison
+    (** Lexicographic ordering.  An associative operator.
+        Leftmost non-equal comparison dictates result. *)
+    opr LEXICO(self, other:Comparison): Comparison =
+        if self=EqualTo then other else self end
+    opr LEXICO(self, other:()->Comparison): Comparison =
+        if self=EqualTo then other() else self end
+    (** Symmetric comparison (product ordering).  A commutative
+        and associative operator. *)
+    opr SQCAP(self, other:Comparison): Comparison = Unordered
+    opr SQCAP(self, other:()->Comparison): Comparison = self SQCAP other()
+    opr CONVERSE(self): Comparison = Unordered
+    (*) This stuff ought to be provided by Equality[\Comparison\].
+    opr =(self, other:Comparison): Boolean = (self === other)
+    (*) This stuff ought to be provided by StandardPartialOrder[\Comparison\].
+    opr CMP(self, other:Comparison): Comparison =
+        if self < other then LessThan
+        elif other < self then GreaterThan
+        elif self = other then EqualTo
+        else Unordered
+        end
+    opr <(self, other:Comparison): Boolean
+    opr >(self, other:Comparison): Boolean = (other < self)
+    opr <=(self, other:Comparison): Boolean = (self = other OR: self < other)
+    opr >=(self, other:Comparison): Boolean = (other <= self)
+end
+
+(** Unordered is the outcome of a CMP b when a and b are partially
+    ordered and no ordering relationship exists between them. **)
+object Unordered extends Comparison
+    getter asString(): String = "Unordered"
+    getter asExprString(): String = self.asString
+    getter asDebugString(): String = self.asString
+    opr <(self, other:Comparison): Boolean = false
+    opr SQCAP(self, other:()->Comparison): Comparison = Unordered
+    opr CONVERSE(self): Comparison = Unordered
+end
+
+trait TotalComparison
+(*)     extends { Comparison, StandardTotalOrder[\TotalComparison\] }
+        extends { Comparison }
+        comprises { LessThan, EqualTo, GreaterThan }
+    getter asString(): String = "TotalComparison"
+    (* We're both a partial order (including Unordered) and a total
+       order (TotalComparison alone).  Avoid ambiguity between the
+       default definitions of CMP and >=. *)
+    opr CMP(self, other:Unordered): Comparison = Unordered
+    opr CMP(self, other:TotalComparison): TotalComparison =
+        if self < other then LessThan
+        elif other < self then GreaterThan
+        else EqualTo
+        end
+    opr <(self, other:Unordered): Boolean = false
+    opr >=(self, other:Unordered): Boolean = false
+    opr >=(self, other:Comparison): Boolean = NOT (other < self)
+    opr LEXICO(self, other:TotalComparison): TotalComparison =
+        if self=EqualTo then other else self end
+    opr LEXICO(self, other:()->TotalComparison): TotalComparison =
+        if self=EqualTo then other() else self end
+    opr CONVERSE(self): TotalComparison = EqualTo
+end
+
+object LessThan extends TotalComparison
+    getter asString(): String = "LessThan"
+    getter asExprString(): String = self.asString
+    getter asDebugString(): String = self.asString
+    opr CMP(self, other:LessThan): TotalComparison = EqualTo
+    opr CMP(self, other:TotalComparison): TotalComparison = GreaterThan
+    opr <(self, other:LessThan): Boolean = false
+    opr <(self, other:TotalComparison): Boolean = true
+    opr SQCAP(self, other:LessThan): LessThan = LessThan
+    opr SQCAP(self, other:EqualTo): LessThan = LessThan
+    opr CONVERSE(self): GreaterThan = GreaterThan
+end
+
+object GreaterThan extends TotalComparison
+    getter asString(): String = "GreaterThan"
+    getter asExprString(): String = self.asString
+    getter asDebugString(): String = self.asString
+    opr CMP(self, other:GreaterThan): TotalComparison = EqualTo
+    opr CMP(self, other:TotalComparison): TotalComparison = LessThan
+    opr <(self, other:TotalComparison): Boolean = false
+    opr SQCAP(self, other:GreaterThan): GreaterThan = GreaterThan
+    opr SQCAP(self, other:EqualTo): GreaterThan = GreaterThan
+    opr CONVERSE(self): LessThan = LessThan
+end
+
+object EqualTo extends TotalComparison
+    getter asString(): String = "EqualTo"
+    getter asExprString(): String = self.asString
+    getter asDebugString(): String = self.asString
+    opr =(self, other:EqualTo): Boolean = true
+    opr CMP(self, other:TotalComparison): TotalComparison = CONVERSE other
+    opr <(self, other:GreaterThan): Boolean = true
+    opr <(self, other:TotalComparison): Boolean = false
+    opr SQCAP(self, other: Comparison): Comparison = other
+    opr CONVERSE(self): EqualTo = EqualTo
+end
+
+
+(*) Test various operators on the type Comparison.
+
+run(): () = do
+  U = Unordered
+  L = LessThan
+  G = GreaterThan
+  E = EqualTo
+  if NOT((U LEXICO U) = U AND
+         (U LEXICO L) = U AND
+         (U LEXICO G) = U AND
+         (U LEXICO E) = U AND
+         (L LEXICO U) = L AND
+         (L LEXICO L) = L AND
+         (L LEXICO G) = L AND
+         (L LEXICO E) = L AND
+         (G LEXICO U) = G AND
+         (G LEXICO L) = G AND
+         (G LEXICO G) = G AND
+         (G LEXICO E) = G AND
+         (E LEXICO U) = U AND
+         (E LEXICO L) = L AND
+         (E LEXICO G) = G AND
+         (E LEXICO E) = E AND
+         (U SQCAP U) = U AND
+         (U SQCAP L) = U AND
+         (U SQCAP G) = U AND
+         (U SQCAP E) = U AND
+         (L SQCAP U) = U AND
+         (L SQCAP L) = L AND
+         (L SQCAP G) = U AND
+         (L SQCAP E) = L AND
+         (G SQCAP U) = U AND
+         (G SQCAP L) = U AND
+         (G SQCAP G) = G AND
+         (G SQCAP E) = G AND
+         (E SQCAP U) = U AND
+         (E SQCAP L) = L AND
+         (E SQCAP G) = G AND
+         (E SQCAP E) = E) then fail("Wanted E SQCAP E = E")
+  else println("PASS")
+  end
+end
+
+end

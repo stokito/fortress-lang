@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component nativeArrayTest
+import NativeArray.{...}
+export Executable
+
+run():() = do
+  z:Array1[\String, 0, 3\] = PrimitiveArray[\String, 3\]()
+  z.init(0,"icat")
+  z.init(1,"idog")
+  z.init(2,"ibat")
+  assert(z[0],"icat","z[0] init")
+  assert(z[1],"idog","z[1] init")
+  assert(z[2],"ibat","z[2] init")
+  z[0]:="cat"
+  z[1]:="dog"
+  z[2]:="bat"
+  assert(z[0],"cat","z[0]")
+  assert(z[1],"dog","z[1]")
+  assert(z[2],"bat","z[2]")
+  println( z[0] " " z[1] " " z[2] )
+  assert(z.get(1),"dog","z.get(1)")
+  println( z.get(1) )
+  assert(z.rank(),1,"z.rank()")
+  println( z.rank() )
+  println(z)
+end
+
+end

@@ -1,0 +1,76 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Mock up of the kind of code we expect after desugaring of
+comprehensions, in order to see whether we can typecheck it.
+*)
+
+(** Is excludes Boolean actually necessary here, or is that a bug in
+    exclusion checking? *)
+trait Generator[\T\] excludes Boolean
+    generate[\R\](r: Reduction[\R\], body: T->R): R
+    filter(f: T -> Boolean): Generator[\T\]
+end
+
+trait Reduction[\R\]
+    empty(): R
+    join(a: R, b:R): R
+end
+
+object TestReductionString extends Reduction[\String\]
+    empty(): String = ""
+    join(a: String, b: String): String = a || b
+end
+
+__bigOperator[\R\](o:Reduction[\R\],
+                desugaredClauses:(Reduction[\R\], R->R)->R): R =
+    desugaredClauses(o, fn (x:R):R => x)
+
+__generate[\T,R\](g: Generator[\T\], r: Reduction[\R\], f:T->R): R =
+    g.generate[\R\](r,f)
+__generate[\R\](p: Boolean, r: Reduction[\R\], f:()->R): R =
+    if p then f() else r.empty() end
+
+(* TODO: fix return type of filter when that works *)
+object FilteredRange(lo: ZZ32, hi:ZZ32, p: ZZ32 -> Boolean) extends Generator[\ZZ32\]
+    (* Interestingly, deleting the explicit type parameter [\R\] to gen here works *)
+    generate[\R\](r: Reduction[\R\], body: ZZ32->R): R = gen[\R\](lo,hi,p,r,body)
+    filter(q: ZZ32 -> Boolean): Generator[\ZZ32\] =
+        FilteredRange(lo, hi, fn n => p(n) AND: q(n))
+end
+
+gen[\R\](lo:ZZ32, hi:ZZ32, p: ZZ32->Boolean, r:Reduction[\R\], body: ZZ32->R): R =
+    if lo < hi then
+        mid = (lo+hi) DIV 2
+        r.join(gen(lo, mid, p, r, body), gen(mid+1,hi,p,r,body))
+    elif lo=hi AND: p(lo) then
+        body(lo)
+    else
+        r.empty()
+    end
+
+opr :(lo:ZZ32, hi:ZZ32): FilteredRange = FilteredRange(lo, hi, fn (n) => true)
+
+opr BIG ||(): TestReductionString = TestReductionString
+
+opr AND(a:Boolean, b:()->Boolean): Boolean = if a then b() else a end
+
+run(): () = do
+    (* This one doesn't appear to type check, even though the other three do.
+       Baffling! *)
+    println(__bigOperator(TestReductionString,
+                          fn (r, b) => (0:100).generate(r, fn(n) => b((2 n + 1).asString))))
+    println(BIG ||[n <- 0:100] (2 n + 1).asString)
+    println(BIG ||[n <- 0:10, m <- 0:10, n < m] (n+m).asString)
+    println(BIG ||[n <- 0:10, m <- 0:10, n < m, m < 3 n] (n+m).asString)
+  end

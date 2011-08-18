@@ -1,0 +1,144 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component objectCC_shadowTest
+export Executable
+
+foo(): String = "Foo at the top level"
+
+trait T1
+    foo(): String = "Foo in trait T1"
+    callFoo(): String = "callFoo in trait T1"
+end
+
+trait T2
+    callFoo(): String
+end
+
+trait Bar extends T1
+    foo(): String = "Foo in trait Bar"
+
+    m1():T1 = object extends T1
+                (* This should call the one defined in T1 *)
+                callFoo(): String = foo()
+            end
+
+    m2():T1 = object extends T1
+                foo(): String = "Foo in obj expr extending T1"
+                (* This should call the one defined above *)
+                callFoo(): String = foo()
+            end
+
+    m3():T2 = object extends T2
+                foo(): String = "Foo in obj expr extending T2"
+                (* This should call the one defined above *)
+                callFoo(): String = foo()
+            end
+
+    m4():T2 = object extends T2
+                (* This should call the one defined in Bar *)
+                callFoo(): String = foo()
+            end
+
+    m5():T1 = object extends T1
+                foo(x:ZZ32): String = "Value is " x
+                (* This should call the one defined above *)
+                callFoo(): String = foo(3)
+            end
+end
+
+topFunc1(): T1 = object extends T1
+                 (* This should call the one defined in T1 *)
+                 callFoo(): String = foo()
+                 end
+
+topFunc2(): T1 = do
+    object extends T1
+        foo(): String = "Foo in obj expr extending T1"
+        (* This should still call the one defined above *)
+        callFoo(): String = foo()
+    end
+end
+
+topFunc3(): T2 = do
+    object extends T2
+        foo(): String = "Foo in obj expr extending T2"
+        (* This should call the one defined above *)
+        callFoo(): String = foo()
+    end
+end
+
+topFunc4(): T2 = do
+    object extends T2
+        (* This should call the one defined at top level *)
+        callFoo(): String = foo()
+    end
+end
+
+topFunc5(): T2 = do
+    object extends T2
+        foo(x:ZZ32) = 3
+        (* This should call the one defined above *)
+        callFoo(): String = "The value is: " foo(3)
+    end
+end
+
+(* The following two tests contain illegal shadowing
+topFunc6(): T2 = do
+    object extends T2
+        foo(x:ZZ32) = 3   (* Illegal shadowing *)
+        callFoo(): String = foo()
+    end
+end
+
+topFunc7(): T2 = do
+    foo(): String = "Local foo in topFunc8." (* Illegal shadowing *)
+    object extends T2
+        callFoo(): String = foo()
+    end
+end
+*)
+
+object A() extends Bar
+end
+
+
+
+run():()=do
+    a:A = A()
+    x1:T1 = a.m1()
+    x2:T1 = a.m2()
+    x3:T2 = a.m3()
+    x4:T2 = a.m4()
+    x5:T1 = a.m5()
+
+    assert("Foo in trait T1", x1.callFoo(), "x1.callFoo() failed.")
+    assert("Foo in obj expr extending T1", x2.callFoo(), "x2.callFoo() failed.")
+    assert("Foo in obj expr extending T2", x3.callFoo(), "x3.callFoo() failed.")
+    assert("Foo in trait Bar", x4.callFoo(), "x4.callFoo() failed.")
+    assert("Value is 3", x5.callFoo(), "x5.callFoo() failed.")
+
+    y1:T1 = topFunc1()
+    y2:T1 = topFunc2()
+    y3:T2 = topFunc3()
+    y4:T2 = topFunc4()
+    y5:T2 = topFunc5()
+
+    assert("Foo in trait T1", y1.callFoo(), "y1.callFoo() failed.")
+    assert("Foo in obj expr extending T1", y2.callFoo(), "y2.callFoo() failed.")
+    assert("Foo in obj expr extending T2", y3.callFoo(), "y3.callFoo() failed.")
+    assert("Foo at the top level", y4.callFoo(), "y4.callFoo() failed.")
+    assert("The value is: 3", y5.callFoo(), "y5.callFoo() failed.")
+
+    println ("Testing object closure conversion with shawdowing: passed.")
+end
+
+end

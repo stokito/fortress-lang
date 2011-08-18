@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ParametricTree
+export Executable
+
+(* Tests non-parametric singleton extending polymorphic supertype with
+   nat parameters. *)
+
+trait Tree[\ E, nat k, nat d \]
+  comprises { Node[\E,k,d\], Leaf }
+end
+
+object Node[\ E, nat k, nat d \]
+           (var data : E,
+            l : ZZ32, (* Index of node at depth d in complete k-Tree *)
+            children : Tree[\E,k,d+1\][k])
+    extends { Tree[\ E, k, d \] }
+end
+
+object Leaf extends { Tree[\ E, k, d \] }
+    where [\ E, nat k, nat d \]
+end
+
+run() = ()
+
+end
