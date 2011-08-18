@@ -1,0 +1,30 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009,2011 Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+# This script contains the Scala version choice, and builds the basic classpath for running the Fortress tools.
+# It does NOT put the caches into the right place on the classpath.
+
+export FORTRESS_HOME="`${0%fortress_classpath}fortress_home`"
+
+if (uname | egrep CYGWIN > /dev/null) ; then
+  SEP=";"
+else
+  SEP=":"
+fi
+TP="$FORTRESS_HOME/ProjectFortress/third_party"
+SV=2.9.0
+# SV=2.8.0
+
+CLASSPATH="$FORTRESS_HOME/ProjectFortress/build${SEP}${TP}/junit/junit.jar${SEP}${TP}/asm/asm-all-3.1.jar${SEP}${TP}/xtc/xtc.jar${SEP}${TP}/jsr166y/jsr166y.jar${SEP}${TP}/plt/plt.jar${SEP}$JAVA_HOME/lib/tools.jar${SEP}${TP}/unsigned/unsigned.jar${SEP}${TP}/astgen/astgen.jar${SEP}${TP}/scala/scala-compiler-${SV}.jar${SEP}${TP}/scala/scala-library-${SV}.jar${SEP}$FORTRESS_HOME/default_repository/caches/bytecode_cache${SEP}$CLASSPATH"
+
+echo "$CLASSPATH"

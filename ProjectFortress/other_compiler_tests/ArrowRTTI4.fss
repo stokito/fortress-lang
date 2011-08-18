@@ -1,0 +1,57 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+******************************************************************************)
+
+export Executable
+
+f(x : Any, y : Any) = "any"
+
+f(x : Any, y : ZZ32) = "ai"
+
+f(x : Specific -> General, y : ZZ32) = "sgi"
+
+f(x : Any, y : Specific -> General) = "asg"
+
+f(x : Specific -> General, y : Any) = "sga"
+
+f(x : Specific -> General, y : Specific -> General) = "sgsg"
+
+f(x : Specific -> General, y : General -> Specific) = "sggs"
+
+f(x : General -> Specific, y : Specific -> General) = "gssg"
+
+f(x : General -> Specific, y : General -> Specific) = "gsgs"
+
+trait General end
+trait Specific extends General end
+
+object G extends General end
+object S extends Specific end
+
+sg(s : Specific) : G = G
+gs(g : General) : S = S
+
+run() : () = do
+    x : Any = gs
+    y : Any = sg
+    z : ZZ32 = 1
+    z2 : ZZ64 = 1
+    r : RR32 = 3.1459
+    r2 : RR64 = 3.1459
+   
+    result = f(x,sg) || f(y,sg) || f(1,y) || f(y,1.0) || f(x,x) || f(x,()) || f(x,true) || f(true,z) || f(true,z2) || f(true,r) || f(true,r2) || f(true,"test") || f(true,'c') || f(x,(y,y))
+    
+    expected = "gssg" || "sgsg" || "asg" || "sga" || "gsgs" || "sga" || "sga" || "ai" || "any" || "any" || "any" || "any" || "any" || "sga"
+    
+    if (result = expected) 
+        then println("ok")
+        else println("fail")
+    end
+end

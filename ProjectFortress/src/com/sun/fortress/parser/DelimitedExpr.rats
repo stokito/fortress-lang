@@ -1,0 +1,377 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress expressions that are enclosed by keywords.
+ */
+module com.sun.fortress.parser.DelimitedExpr(TraitObject, NoNewlineHeader,
+                                             MayNewlineHeader, Type, Expr,
+                                             LocalDecl, Literal, Identifier,
+                                             Keyword, Symbol, Spacing);
+import TraitObject;
+import NoNewlineHeader;
+import MayNewlineHeader;
+import Type;
+import Expr;
+import LocalDecl;
+import Literal;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* DelimitedExpr ::=
+     ArgExpr
+   | Parenthesized
+   | object (w ExtendsWhere)? (nl GoInAnObject)? w end
+   | Do
+   | label w Id w BlockElems w end w Id
+   | while w GeneratorClause w Do
+   | for w GeneratorClauseList w DoFront w end
+   | if w GeneratorClause w then w BlockElems (w Elifs)? (w Else)? w end
+   | ( w if w GeneratorClause w then w BlockElems (w Elifs)? w Else (w end)? w )
+   | case w Expr (w (Encloser | Op))? w of w CaseClauses (br CaseElse)? w end
+   | case w most w (Encloser | Op) w of w CaseClauses w end
+   | typecase w Expr w of w TypecaseClauses (br CaseElse)? w end
+   | try w BlockElems (w Catch)? (w forbid w TraitTypes)?
+     (w finally w BlockElems)? w end
+ */
+Expr DelimitedExpr =
+     ArgExpr
+   / Parenthesized
+   / object a1:(w ExtendsWhere)? a2:(nl GoInAnObject)? w end
+     { if (a1 == null) a1 = Collections.<TraitTypeWhere>emptyList();
+       if (a2 == null) a2 = Collections.<Decl>emptyList();
+       yyValue = ExprFactory.makeObjectExpr(createSpan(yyStart,yyCount),
+                                            a1, a2, Option.<SelfType>none());
+     }
+   / Do
+   / label w a1:IdOrOpName w a2:BlockElems w end w a3:IdOrOpName
+     { Span span = NodeUtil.getSpan(a1);
+       if (!a1.getText().equals(a3.getText()))
+           log(span, "Mismatched identifiers for a label expression:\n        '" +
+               a1 + "' at " + span + " and\n        '" +
+               a3 + "' at " + NodeUtil.getSpan(a3));
+       if ( a1 instanceof Op ) {
+           if (a1.getText().equals("in"))
+               log(span, "'in' is a reserved word, and cannot be used as a label.");
+           else
+               log(span, a1 + " is not a valid label name.\n");
+           yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount));
+       } else
+           yyValue = ExprFactory.makeLabel(createSpan(yyStart,yyCount), (Id)a1, a2);
+     }
+   / while w a1:GeneratorClause w a2:Do
+     { yyValue = ExprFactory.makeWhile(createSpan(yyStart,yyCount), a1, a2); }
+   / for w a1:GeneratorClauseList w a2:DoFront w end
+     { yyValue = ExprFactory.makeFor(createSpan(yyStart,yyCount), a1, a2); }
+   / if w a1:GeneratorClause w then w a2:BlockElems a3:(w Elifs)? a4:(w Else)? w end
+     { List<IfClause> clauses =
+             Useful.list(NodeFactory.makeIfClause(NodeUtil.spanTwo(a1,a2), a1, a2));
+       if (a3 != null) clauses.addAll(a3);
+       yyValue = ExprFactory.makeIf(createSpan(yyStart,yyCount), clauses,
+                                    Option.<Block>wrap(a4));
+     }
+   / if w a1:GeneratorClause w then w a2:BlockElems a3:(w Elifs)? w a4:Else
+     (w end)? &(w closeparen)
+     { List<IfClause> clauses =
+           Useful.list(NodeFactory.makeIfClause(NodeUtil.spanTwo(a1,a2), a1, a2));
+       if (a3 != null) clauses.addAll(a3);
+       yyValue = ExprFactory.makeIf(createSpan(yyStart,yyCount), clauses,
+                                    Option.<Block>some(a4));
+     }
+   / openparen w if w a1:GeneratorClause w then w a2:BlockElems a3:(w Elifs)?
+     w a4:Else (w end)? w closeparen
+     { List<IfClause> clauses =
+           Useful.list(NodeFactory.makeIfClause(NodeUtil.spanTwo(a1,a2), a1, a2));
+       if (a3 != null) clauses.addAll(a3);
+       yyValue = ExprFactory.makeIf(createSpan(yyStart,yyCount), clauses,
+                                    Option.<Block>some(a4));
+     }
+   / case w a1:Expr a2:(w (Encloser / Op))? w a3:(of / do / in) w a4:CaseClauses
+     a5:(br CaseElse)? w end
+     { Span span = createSpan(yyStart,yyCount);
+       Option<FunctionalRef> compare = (a2 == null) ? Option.<FunctionalRef>none()
+           : Option.<FunctionalRef>some(ExprFactory.makeOpRef(NodeFactory.makeOpInfix(a2)));
+       Option<Block> _else = (a5 == null) ? Option.<Block>none()
+                                          : Option.<Block>some(a5);
+       if ( ! a3.equals("of") )
+           log(span, "In a case expression, '" + a3 +
+               "' is used incorrectly.  Use 'of' instead.");
+       yyValue = ExprFactory.makeCaseExpr(span, Option.<Expr>some(a1),
+                                          compare, a4, _else);
+     }
+   / case w most w a1:(Encloser / Op) w a2:(of / do / in) w a3:CaseClauses w end
+     { Span span = createSpan(yyStart,yyCount);
+       if ( ! a2.equals("of") )
+           log(span, "In an extremum expression, '" + a2 +
+               "' is used incorrectly.  Use 'of' instead.");
+       Option<FunctionalRef> compare =
+           Option.<FunctionalRef>some(ExprFactory.makeOpRef(NodeFactory.makeOpInfix(a1)));
+       yyValue = ExprFactory.makeCaseExpr(span, Option.<Expr>none(), compare, a3,
+                                          Option.<Block>none());
+     }
+   / typecase w a1:Expr w a2:(of / do / in) w a3:TypecaseClauses
+     a4:(br CaseElse)? w end
+     { Span span = createSpan(yyStart,yyCount);
+       if ( ! a2.equals("of") )
+           log(span, "In a typecase expression, '" + a2 +
+               "' is used incorrectly.  Use 'of' instead.");
+       yyValue = ExprFactory.makeTypecase(span, false, Option.<Type>none(),
+                                          a1, a3, Option.<Block>wrap(a4));
+     }
+   / <ErrorProduction>
+     typecase w self w a1:(of / do / in) w TypecaseClauses (br CaseElse)? w end
+     { Span span = createSpan(yyStart,yyCount);
+       if ( ! a1.equals("of") )
+           log(span, "In a typecase expression, '" + a1 +
+               "' is used incorrectly.  Use 'of' instead.");
+       log(span, "In a typecase expression, 'self' is used incorrectly.  " +
+           "Use a binding such as 'x = self' instead.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
+     }
+   / <TRY> try w a1:BlockElems a2:(w Catch)? a3:(w forbid w TraitTypes)?
+     a4:(w finally w BlockElems)? w end
+     { if (a3 == null) a3 = Collections.<BaseType>emptyList();
+       yyValue = ExprFactory.makeTry(createSpan(yyStart,yyCount), a1,
+                                     Option.<Catch>wrap(a2), a3,
+                                     Option.<Block>wrap(a4));
+     };
+
+/* Do ::= (DoFront w also w)* DoFront w end */
+Do Do = a1s:(DoFront w also w)* a2:DoFront w end
+     { yyValue = ExprFactory.makeDo(createSpan(yyStart, yyCount),
+                                    Useful.list(a1s.list(), a2));
+     };
+
+/* DoFront ::= (at w Expr w)? (atomic w)? do (w BlockElems)? */
+private Block DoFront =
+     a1:(at w Expr w)? a2:(atomic w)? do a3:(w BlockElems)?
+     { boolean atomic = (a2 == null) ? false : true;
+       List<Expr> es = (a3 == null) ? Collections.<Expr>emptyList()
+                                    : a3.getExprs();
+       yyValue = ExprFactory.makeBlock(createSpan(yyStart,yyCount), false,
+                                       Option.<Type>none(),
+                                       Option.<Expr>wrap(a1), atomic, true, es);
+     };
+
+/* ArgExpr ::=
+     ( w (Expr w , w)* (Expr w ... w , w)? KeywordExpr (w , w KeywordExpr)* w )
+   | ( w (Expr w , w)* Expr w ... w )
+   | TupleExpr
+ */
+Expr ArgExpr =
+     openparen w a1s:(Expr w comma w)* a2:(Expr w void:ellipses w comma w)?
+     a3:KeywordExpr a4s:(w comma w KeywordExpr)* w closeparen
+     { Option<Expr> vs = ((a2 != null) ? Option.<Expr>some(a2)
+                                       : Option.<Expr>none());
+       List<KeywordExpr> ks = new ArrayList<KeywordExpr>();
+       ks.add(a3);
+       for (KeywordExpr b : (List<KeywordExpr>)a4s.list()) {
+           ks.add(b);
+       }
+       yyValue = ExprFactory.makeTupleExpr(createSpan(yyStart,yyCount),
+                                           false, Option.<Type>none(),
+                                           a1s.list(), vs, ks, false);
+     }
+   / openparen w a1s:(Expr w comma w)* a2:Expr w ellipses w closeparen
+     { yyValue = ExprFactory.makeTupleExpr(createSpan(yyStart,yyCount),
+                                           false, Option.<Type>none(),
+                                           a1s.list(), Option.<Expr>some(a2),
+                                           Collections.<KeywordExpr>emptyList(),
+                                           false);
+     }
+   / TupleExpr ;
+
+/* TupleExpr ::= ( w (Expr w , w)+  Expr w ) */
+Expr TupleExpr =
+     openparen w a1s:(Expr w comma w)+ a2:Expr w closeparen
+     { yyValue = ExprFactory.makeTupleExpr(createSpan(yyStart,yyCount),
+                                           Useful.list(a1s.list(), a2));
+     };
+
+/* KeywordExpr ::= BindId w = w Expr */
+private KeywordExpr KeywordExpr = a1:BindId w equals w a2:Expr
+     { yyValue = NodeFactory.makeKeywordExpr(createSpan(yyStart,yyCount),
+                                             a1, a2);
+     };
+
+/* Parenthesized ::= ( w Expr w ) */
+Expr Parenthesized =
+     openparen w a1:Expr w closeparen
+     { yyValue = ExprFactory.makeInParentheses(a1); };
+
+/* Elifs ::= Elif (w Elif)* */
+List<IfClause> Elifs = a1:Elif a2s:(w Elif)*
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* Elif ::= elif w GeneratorClause w then w BlockElems */
+private IfClause Elif = elif w a1:GeneratorClause w then w a2:BlockElems
+     { yyValue = NodeFactory.makeIfClause(createSpan(yyStart,yyCount), a1, a2); };
+
+/* Else ::= else w BlockElems */
+Block Else = else w BlockElems;
+
+/* CaseClause is defined in LocalDecl.rats */
+
+/* CaseClauses ::= CaseClause (br CaseClause)* */
+private List<CaseClause> CaseClauses = a1:CaseClause a2s:(br CaseClause)*
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* CaseElse ::= else w => w BlockElems */
+Block CaseElse = else w match w BlockElems ;
+
+/* TypecaseClauses ::= TypecaseClause (br TypecaseClause)* */
+private List<TypecaseClause> TypecaseClauses =
+     a1:TypecaseClause a2s:(br TypecaseClause)*
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* TypecaseClause ::=
+     Id w => w BlockElems
+   | (Id w : w)? TypeOrPattern w => w BlockElems
+ */
+TypecaseClause TypecaseClause =
+    a1:Id w match w a3:BlockElems
+    { Span span = createSpan(yyStart,yyCount);
+      yyValue = NodeFactory.makeTypecaseClause(span,
+                                               Option.<Id>none(),
+                                               NodeFactory.makeVarType(span, a1),
+                                               a3);
+    }
+  / a1:(Id w void:colon w)? a2:TypeOrPattern w match w a3:BlockElems
+    { yyValue = NodeFactory.makeTypecaseClause(createSpan(yyStart,yyCount),
+                                               Option.<Id>wrap(a1), a2, a3);
+    };
+
+/* Catch ::= catch w BindId w CatchClauses */
+Catch Catch = catch w a1:BindId w a2:CatchClauses
+     { yyValue = NodeFactory.makeCatch(createSpan(yyStart,yyCount), a1, a2); };
+
+/* CatchClauses ::= CatchClause (br CatchClause)* */
+private List<CatchClause> CatchClauses = a1:CatchClause a2s:(br CatchClause)*
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* CatchClause ::= TraitType w => w BlockElems */
+private CatchClause CatchClause = a1:TraitType w match w a2:BlockElems
+     { yyValue = NodeFactory.makeCatchClause(createSpan(yyStart,yyCount),
+                                             a1, a2);
+     };
+
+/* MapExpr ::= LeftEncloser (w StaticArgs)? w EntryList w RightEncloser */
+Expr MapExpr =
+     a1:LeftEncloser a2:(w StaticArgs)? w a3:EntryList w a4:RightEncloser
+     { if (a3 == null) a3 = Collections.<Expr>emptyList();
+       Span span = createSpan(yyStart,yyCount);
+       Op open  = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyStart+1),
+                                              a1.getText() + "|->");
+       Op close = NodeFactory.makeOpEnclosing(createSpan(yyCount-1,1),
+                                              a4.getText());
+       if (a2 == null)
+            yyValue = ASTUtil.enclosing(writer, span, open, a3, close);
+       else yyValue = ASTUtil.enclosing(writer, span, open, a2, a3, close);
+     };
+
+/* Comprehension ::=
+     (BIG w)? [ (w StaticArgs)? w ArrayComprehensionClause
+              (br ArrayComprehensionClause)* w ]
+   | (BIG w)? LeftEncloser (w StaticArgs)? w Entry wr | wr GeneratorClauseList w
+              RightEncloser
+   | (BIG w)? LeftEncloser (w StaticArgs)? w Expr wr | wr GeneratorClauseList w
+              RightEncloser
+ */
+Expr Comprehension =
+     (BIG w)? opensquare a1:(w StaticArgs)? w a2:ArrayComprehensionClause
+     a3s:(br ArrayComprehensionClause)* w closesquare
+     { Span span = createSpan(yyStart,yyCount);
+       if (a1 == null) a1 = Collections.<StaticArg>emptyList();
+       yyValue = ExprFactory.makeArrayComprehension(span, a1,
+                                                    Useful.cons(a2, a3s.list()));
+     }
+   / (BIG w)? a1:LeftEncloser a2:(w StaticArgs)? w a3:Entry wr bar wr
+     a4:GeneratorClauseList w a5:RightEncloser
+     { Span span = createSpan(yyStart,yyCount);
+       Op opr = NodeFactory.makeEnclosing(span, "BIG " + a1.getText() + "|->",
+                                          "BIG " + a5.getText());
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       yyValue = ExprFactory.makeAccumulator(span, a2, opr, a4, a3);
+     }
+   / (BIG w)? a1:LeftEncloser a2:(w StaticArgs)? w a3:Expr wr bar wr
+     a4:GeneratorClauseList w a5:RightEncloser
+     { Span span = createSpan(yyStart,yyCount);
+       Op opr = NodeFactory.makeEnclosing(span, "BIG " + a1.getText(),
+                                          "BIG " + a5.getText());
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       yyValue = ExprFactory.makeAccumulator(createSpan(yyStart,yyCount),
+                                             a2, opr, a4, a3);
+     };
+
+/* The operator "|->" should not be in the left-hand sides of map expressions
+   and map/array comprehensions.
+ */
+String mapstoOp =
+     !("|->" w Expr (w mapsto / wr bar / w closecurly / w comma)) "|->" ;
+
+/* The operator "<-" should not be in the left-hand sides of
+   generator clause lists. */
+String leftarrowOp = !("<-" w Expr (w leftarrow / w comma)) "<-";
+
+/* Entry ::= Expr w |-> w Expr */
+Expr Entry = a1:Expr w mapsto w a2:Expr
+     { yyValue = ExprFactory.makeTupleExpr(createSpan(yyStart,yyCount),
+                                           a1, a2);
+     };
+
+/* ArrayComprehensionLeft ::=
+     IdOrInt w |-> w Expr
+   | ( w IdOrInt w , w IdOrIntList w ) w |-> w Expr
+ */
+com.sun.fortress.useful.Pair<List<Expr>,Expr> ArrayComprehensionLeft =
+     a1:IdOrInt w mapsto w a2:Expr
+     { yyValue = new com.sun.fortress.useful.Pair<List<Expr>,Expr>(Useful.list(a1),
+                                                                   a2);
+     }
+   / openparen w a1:IdOrInt w comma w a2:IdOrIntList w closeparen w mapsto w
+     a3:Expr
+     { List<Expr> exprs = Useful.list(a1);
+       for (Expr i : a2) exprs.add(i);
+       yyValue = new com.sun.fortress.useful.Pair<List<Expr>,Expr>(exprs, a3);
+     }
+   / openparen w a1:IdOrInt w a2:IdOrIntList w closeparen w mapsto w
+     a3:Expr
+     { log(NodeUtil.getSpan(a1), "Missing comma.");
+       List<Expr> exprs = Useful.list(a1);
+       for (Expr i : a2) exprs.add(i);
+       yyValue = new com.sun.fortress.useful.Pair<List<Expr>,Expr>(exprs, a3);
+     };
+
+/* IdOrInt ::= Id | IntLiteralExpr */
+Expr IdOrInt =
+     a1:Id { yyValue = ExprFactory.makeVarRef(a1); }
+   / IntLiteralExpr ;
+
+/* IdOrIntList ::= IdOrInt (w , w IdOrInt)* */
+List<Expr> IdOrIntList =
+     a1:IdOrInt a2s:(w comma w IdOrInt)+
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / a1:IdOrInt a2s:(w commaOrNot w IdOrInt)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / a1:IdOrInt
+     { yyValue = Useful.list(a1); };
+
+/* ExprList ::= Expr (w , w Expr)* */
+List<Expr> ExprList = a1:Expr a2s:(w comma w Expr)*
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* EntryList ::= Entry (w , w Entry)* */
+List<Expr> EntryList = a1:Entry a2s:(w comma w Entry)*
+     { yyValue = Useful.cons(a1, a2s.list()); };
