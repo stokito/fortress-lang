@@ -83,26 +83,8 @@ incorporates \emph{quantifier reduction}, defined in the next section.
 
 
 \input{fig-existential}
-
-The inner subtyping judgment on universals defined in
-Figure~\ref{fig:existential}, 
-$\jleinner{\sigma_1}{\sigma_2}$, stems from the notion of ````generic
-instances'' from Hindley-Milner type systems \cite{damas82},
-augmented with F-bounded quantification \cite{canning89,baldan99} to account
-for type parameters that may appear in their bounds. The single rule
-states that $\sigma_1$ is a subtype
-of $\sigma_2$ if, in the environment extended by $\sigma_2$'s type parameters,
-there exists an instantiation $\bar{V}$ of $\sigma_1$ such that the
-constituent type of $\sigma_1$ is a (simple) subtype of the constituent type
-of $\sigma_2$; in other words, $\sigma_1$ must be instantiated in $\sigma_2$'s
-environment to a simple subtype of $\sigma_2$'s type.
-
-The inner subtyping judgment on existentials also defined in
-Figure~\ref{fig:existential}, $\jleinner{\delta_1}{\delta_2}$, is the
-logical dual of that for universals. The rule states that $\delta_1$ is
-a subtype of $\delta_2$ if $\delta_2$'s type parameters can be instantiated
-in $\delta_1$'s environment such that its instantiated type is a simple
-supertype of $\delta_1$'s type.
+The inner subtyping judgment on existentials defined in
+Figure~\ref{fig:existential}, $\jleinner{\delta_1}{\delta_2}$,
 
 In the outer subtypinf judgment $\jle{\delta}{\delta'}$, we first perform \emph{existential reduction} to produce $\reduce{\delta}$. Then we check whether $\jleinner{\reduce{\delta}}{\delta'}$.
 We provide the rules for existential reduction in Section~\ref{sec:exred}, but the judgment $\jtred{\delta}{\reduce{\delta}}$ is with the following properties:
@@ -116,15 +98,27 @@ The first three properties show that $\le$ is a preorder and that $\leinner$ imp
 Adding the fourth property lets us show that any ground instance $T$ of $\delta$ with $T \neq \Bottom$ is an instance of $\reduce(\delta)$
 
 
-Dually, in the universal subtyping judgment $\jle{\sigma}{\sigma'}$ we first perform $\emph{universal reduction}$ to produce $\reduce{\reduce{\sigma'}}$. Then we check whether
+The inner subtyping judgment on universals defined in
+Figure~\ref{fig:existential}, 
+$\jleinner{\sigma_1}{\sigma_2}$,
+states that $\sigma_1$ is a subtype
+of $\sigma_2$ if, in the environment extended by $\sigma_2$'s type parameters,
+there exists an instantiation $\bar{V}$ of $\sigma_1$ such that the
+constituent type of $\sigma_1$ is a subtype of the constituent type
+of $\sigma_2$.
+
+In the outer universal subtyping judgment $\jle{\sigma}{\sigma'}$ we first perform $\emph{universal reduction}$ to produce $\reduce{\reduce{\sigma'}}$. Then we check whether
 $\jleinner{\sigma}{\sigma''}$
+\begin{enumerate}
 \item $\jleinner{\reduce{\sigma}}{\reduce{\sigma}}$
 \item $\jleinner{\sigma}{\sigma'} implies \jleinner{\reduce{\sigma}}{\reduce{\sigma'}}$
 \item $\reduce{(\reduce{\sigma}) = \reduce{\sigma}}$
 \item $\reduce{\unitype[]{\arrowtype{S}{T}}} = \unitype[]{\arrowtype{S}{T}}$
 \end{enumerate}
-Again the first three properties show that $\le$ is a preorder and that $\lteinner$ implies $\le$.
+Again the first three properties show that $\le$ is a preorder and that $\leinner$ implies $\le$.
 Adding the fourth property lets us show that any ground instance $\arrowtype{S}{T}$ of $\delta$ with $S \neq \Bottom$ is an instance of $\reduce{\sigma}$.
+
+
 
 We explain how to compute generic reductions in in Section~\ref{sec:exred}.
 
