@@ -22,7 +22,7 @@ to perform these subtyping checks.
 The algorithm we describe is sound but not complete:
 it does rejects some sets of overloaded functions 
 that are valid by the overloading rules in Section~\ref{sec:rules}, 
-but it does accept many of them, 
+but it accepts many of them, 
 including all of the valid examples in Section~\ref{sec:examples}.
 
 \subsection{Existential and Universal Types}
@@ -48,7 +48,7 @@ with bounds $\{\bar{N_i}\}$ over the type $T$,
 and we use the metavariable $\sigma$ to range over universal types.
 
 Note that universal and existential types 
-are not actually \emph{types} in our system. 
+are \emph{not} actually types in our system.
 % To distinguish between the different notions, we refer to types
 % $T$ as \emph{simple types} and the original subtyping relation $\subtypeof$ as
 % \emph{simple subtyping}. 
@@ -60,12 +60,14 @@ are not actually \emph{types} in our system.
 %%%%%%%%%%%%%%%%%%%%%%
 % INTRODUCE SUBTYPING!
 \subsection{Universal and Existential Subtyping}
-We define subtyping judgments for universal types and for existential types,
-which we utilize in checking the overloading rules. We actually define inner
-and outer subtyping judgments on universals and existentials; the former
-corresponds to a relatively standard interpretation of each (which
-resembles those defined in \cite{bourdoncle97}), while the latter
-incorporates \emph{quantifier reduction}, defined in the next section.
+
+We define subtyping judgments for universal and existential types,
+which we use in checking the overloading rules. 
+We actually define inner and outer subtyping judgments on universals and existentials; 
+the former correspond to a relatively standard interpretation of each 
+(which resembles those defined in \cite{bourdoncle97});
+the latter incorporate \emph{quantifier reduction}, 
+defined in Section~\ref{sec:exred}.
 
 
 \input{fig-existential}
@@ -73,7 +75,10 @@ The inner subtyping judgment on existentials $\jleinner{\delta_1}{\delta_2}$, de
 Figure~\ref{fig:existential}, states that $\delta_1$ is a subtype of $\delta_2$ in the environment $\Delta$ if the constituent type of $\delta_1$
 is a subtype of an instance of $\delta_2$ in the environment obtained by conjoining $\Delta$ and the bounds of $\delta_1$.
 
-In the outer subtyping judgment $\jle{\delta}{\delta'}$, we first perform \emph{existential reduction} to produce $\reduce{\delta}$. Then we check whether $\jleinner{\reduce{\delta}}{\delta'}$.
+In the outer subtyping judgment $\jle{\delta}{\delta'}$, 
+we first perform \emph{existential reduction} to produce $\reduce{\delta}$ 
+(denoted \jtred{\delta}{\reduce{\delta}}). 
+Then we check whether $\jleinner{\reduce{\delta}}{\delta'}$.
 We provide (and explain) the formal definition of existential reduction in Section~\ref{sec:exred}, but for now note that it has the following properties:
 \begin{enumerate}
 \item $\jleinner{\reduce{\delta}}{\delta}$
@@ -84,7 +89,8 @@ We provide (and explain) the formal definition of existential reduction in Secti
 The first three properties show that $\le$ is a preorder and that $\leinner$ implies $\le$.
 Adding the fourth property lets us show that any ground instance $T$ of $\delta$ with $T \neq \Bottom$ is an instance of $\reduce{\delta}$
 
-Existential reduction is necessary because merely extending the subtyping relation for ordinary types with exclusion
+We use existential reduction 
+because merely extending the subtyping relation for ordinary types with exclusion
 is not enough to let us check the overloading rules. For example, to check that the first two declarations of $\D_{\mathit{bar}}$ from Section~$\ref{sec:examples}$ satisfy the Meet Rule,
 we must be able to deduce that the existential
 \[`EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])`\]
@@ -96,9 +102,13 @@ The rules for universals are dual to those for existentials. The inner subtyping
 Figure~\ref{fig:existential},
 states that $\sigma_1$ is a subtype
 of $\sigma_2$ in the environment $\Delta$, if an instance of $\sigma_1$ is a subtype of the constituent type of $\sigma_2$ in the environment obtained by conjoining $\Delta$ and the bounds of $\sigma_2$. In
-the outer universal subtyping judgment $\jle{\sigma}{\sigma'}$ we first perform $\emph{universal reduction}$ to produce $\reduce{\sigma'}$ and then check whether
-$\jleinner{\sigma}{\reduce{\sigma'}}$. Once again, we provide the formal definition of universal reduction in Section~\ref{sec:exred}, noting that it
-has the following properties:
+the outer universal subtyping judgment $\jle{\sigma}{\sigma'}$,
+we first perform $\emph{universal reduction}$ to produce $\reduce{\sigma'}$ 
+(denoted \jtred{\sigma'}{\reduce{\sigma'}})
+and then check whether $\jleinner{\sigma}{\reduce{\sigma'}}$. 
+Again, 
+we provide the formal definition of universal reduction in Section~\ref{sec:exred}, 
+noting that it has the following properties:
 \begin{enumerate}
 \item $\jleinner{\sigma}{\reduce{\sigma}}$
 \item $\jleinner{\sigma}{\sigma'}$ implies $\jleinner{\reduce{\sigma}}{\reduce{\sigma'}}$
@@ -161,10 +171,14 @@ the arrow type $\sigma_{\wedge} = \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \
 \end{theorem}
 
 \begin{proof}
-Let $d_{\wedge}$ be a dummy declaration with type $\sigma_{\wedge}$. Note that $d_{\wedge}$ and $d_1$ are equally specific and 
-the pair $d_{\wedge}$, $d_2$ satisfies the Return Type Rule. The fact that $arrow(d_1) \le \sigma_{\wedge}$ implies that for every instance $\arrowtype{U}{V}$ of $\sigma_{\wedge}$ with $U \not \equiv \Bottom$
-we can find an instance $\arrowtype{U_1}{V_1}$ of $\arrow(d_1)$ with $U \subtypeof U_1$ and $V_1 \subtypeof V$. Thus the pair $d_1$, $d_2$ satisfies the Return Type Rule because the pair $d_{\wedge}$, $d_2$ does.
+Let $d_{\wedge} = f\ob{\Delta_1, \Delta_2} S_1 \cap S_2 : T_2$, 
+so $\arrow(d_{\wedge}) = \sigma_{\wedge}$. 
+Note that $d_{\wedge}$ and $d_1$ are equally specific and 
+that $d_{\wedge}$ and $d_2$ satisfy the Return Type Rule. 
+If $\arrow(d_1) \le \sigma_{\wedge}$ then
+for every instance $\arrowtype{U}{V}$ of $\sigma_{\wedge}$ with $U \not \equiv \Bottom$,
+we can find an instance $\arrowtype{U_1}{V_1}$ of $\arrow(d_1)$ 
+with $U \subtypeof U_1$ and $V_1 \subtypeof V$. 
+Thus, the pair $d_1$ and $d_2$ satisfy the Return Type Rule because the pair $d_{\wedge}$, $d_2$ does.
 \end{proof}
-
-
 
