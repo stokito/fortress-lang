@@ -46,7 +46,9 @@
 % \end{tabularx}
 
 \end{minipage}
-  \caption{Subtyping of universal and existential types. Note that conventional alpha-renaming of type variables might be necessary.}
+  \caption{Subtyping of universal and existential types. 
+Note that alpha-renaming of type variables may be necessary 
+to apply these rules.}
   \label{fig:existential}
 \end{figure}
 %%%%%%%%%%%%%%% END EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%

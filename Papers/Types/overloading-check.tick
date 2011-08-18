@@ -1,20 +1,47 @@
+In this section,
+we describe how to mechanically check 
+the overloading rules from Section~\ref{sec:rules}. 
+The key insight is that the more specific relation 
+on overloaded function declarations
+corresponds to the subtyping relation 
+on the domain types of the declarations, 
+where the domain types of generic function declarations 
+are \emph{existential types}~\cite{bourdoncle97}.
+Thus, the problem of determining whether one declaration 
+is more specific than another 
+reduces to the problem of determining 
+whether one existential type is a subtype of another.
 
-In this section we describe how to mechanically check 
-the three overloading rules from Section~\ref{sec:rules}. The
-algorithm we describe does not check every possible valid set of overloaded
-functions (according to the rule definitions), but it does accept
-many desired overloadings, including all of the (valid) example overloadings
-provided so far.
-Thus we provide a sound but incomplete algorithm for determining that a
-set of overloaded function declarations is valid.
+We then formulate the overloading rules 
+as subtyping checks on existential and universal types 
+(universal types arise in the reformulation 
+of the Return Type Rule),
+and give an algorithm 
+to perform these subtyping checks.
+The algorithm we describe is sound but not complete:
+it does rejects some sets of overloaded functions 
+that are valid by the overloading rules in Section~\ref{sec:rules}, 
+but it does accept many of them, 
+including all of the valid examples in Section~\ref{sec:examples}.
+% Thus we provide a sound but incomplete algorithm for determining that a
+% set of overloaded function declarations is valid.
 
+% and a declaration $d_0$ is applicable exactly when 
+% both declarations $d_1$ and $d_2$ are applicable 
+% if and only if the domain type of $d_0$ 
+% is the meet (under existential subtyping) 
+% of the domain types of $d_1$ and $d_2$.
+% To check the Return Type Rule, 
+% we can represent the type of a generic function 
+% as a \emph{universal (arrow) type}.
 
-Previously the notions of applicability and specificity for generic
-declarations required an existential quantification over instances thereof.
-We rephrase these definitions in terms of universal and existential types,
-the generalizations of ````arrow type'' and ````domain type'' of generic
-declarations, in the same manner as \cite{bourdoncle97}.
+% Previously the notions of applicability and specificity for generic
+% declarations required an existential quantification over instances thereof.
+% We rephrase these definitions in terms of universal and existential types,
+% the generalizations of ````arrow type'' and ````domain type'' of generic
+% declarations, in the same manner as \cite{bourdoncle97}.
 
+\subsection{Existential and Universal Types}
 
 For a generic function declaration $d = \hdeclg{f}{\Delta}{S}{T}$,
 its arrow type, written $\arrow(d)$, is
@@ -38,8 +65,9 @@ range over existential types.
 Note that universal and existential types are not actually \emph{types} in
 our system. To distinguish between the different notions, we refer to types
 $T$ as \emph{simple types} and the original subtyping relation $\subtypeof$ as
-\emph{simple subtyping}. When the meaning is clear from context, we equate
-both $\forall\ob{}T$ and $\exists\ob{}T$ with the simple type $T$. 
+\emph{simple subtyping}. 
+% When the meaning is clear from context, we equate
+% both $\forall\ob{}T$ and $\exists\ob{}T$ with the simple type $T$. 
 
 % \input{fig-application}
 
@@ -80,13 +108,15 @@ The outer subtyping judgments incorporate a single step of \emph{quantifier redu
 In the existential subtyping judgment $\jle{\delta}{\delta}$ the l.h.s. is reduced and its result is checked with the r.h.s. using the inner subtyping judgment.
 Dually, in the universal subtyping judgment $\jle{\sigma}{\sigma}$ the r.h.s. is reduces and its result is checked with the l.h.s. using the inner subtyping judment. 
 
-We explain how to compute generic reductions in more detail in Section~\ref{sec:exred}, but the behavior of reduction can be understood almost entirely
+We explain how to compute quantifier reductions in more detail in Section~\ref{sec:exred}, but the behavior of reduction can be understood almost entirely
 using the following lemmas which we state without proof.
 \begin{lemma}
 If $\jtred{\delta}{\delta'}$ then $\jleinner{\delta'}{\delta}$.
 \end{lemma}
 \begin{lemma}
-Suppose $\jtred{\delta}{\delta'}$ and $\jgnequiv{T}{\Bottom}$. Then $\jleinner{\exttype[]{T}}{\delta}$ if and only if $\jleinner{\exttype[]{T}}{\delta'}$.
+Suppose $\jtred{\delta}{\delta'}$ and $\jgnequiv{T}{\Bottom}$. 
+Then $\jleinner{\exttype[]{T}}{\delta}$ 
+if and only if $\jleinner{\exttype[]{T}}{\delta'}$.
 \end{lemma}
 \begin{lemma}
 Suppose $\jtred{\sigma}{\sigma'}$ and $\jgnequiv{S}{\Bottom}$. Then $\arrowtype{S}{T}$ is an instance of $\sigma$ if and only if
@@ -104,7 +134,8 @@ criterion to the level of existential types; observe the same existential
 quantification over type instantiations $\bar{V}$ in the definition of
 existential subtyping. We can
 interpret the fact that a generic function declaration $d$ is applicable 
-to a type $T$ with the existential subtyping assertion $\vdash T \le \dom(d)$. 
+to a type $T$ 
+with the existential subtyping assertion $\vdash \exttype[]{T} \le \dom(d)$. 
 Furthermore, we interpret the fact that $d_1$ is more specific than
 $d_2$ with the existential subtyping assertion
 $\vdash \dom(d_1) \le \dom(d_2)$. These interpretations are clearly correct with respect
