@@ -73,47 +73,48 @@ Figure~\ref{fig:existential}, states that $\delta_1$ is a subtype of $\delta_2$ 
 is a subtype of an instance of $\delta_2$ in the environment obtained by conjoining $\Delta$ and the bounds of $\delta_1$.
 
 In the outer subtyping judgment $\jle{\delta}{\delta'}$, we first perform \emph{existential reduction} to produce $\reduce{\delta}$. Then we check whether $\jleinner{\reduce{\delta}}{\delta'}$.
-We provide the rules for existential reduction in Section~\ref{sec:exred}, but the judgment $\jtred{\delta}{\reduce{\delta}}$ is with the following properties:
+We provide (and explain) the formal definition of existential reduction in Section~\ref{sec:exred}, but for now note that it has the following properties:
 \begin{enumerate}
 \item $\jleinner{\reduce{\delta}}{\delta}$
-\item $\jleinner{\delta}{\delta'} implies \jleinner{\reduce{\delta}}{\reduce{\delta'}}$
+\item $\jleinner{\delta}{\delta'}$ implies $\jleinner{\reduce{\delta}}{\reduce{\delta'}}$
 \item $\reduce{(\reduce{\delta})} = \reduce{\delta}$
 \item $\reduce{(\exttype[]{T})} = \exttype[]{T}$
 \end{enumerate}
 The first three properties show that $\le$ is a preorder and that $\leinner$ implies $\le$.
-Adding the fourth property lets us show that any ground instance $T$ of $\delta$ with $T \neq \Bottom$ is an instance of $\reduce(\delta)$
+Adding the fourth property lets us show that any ground instance $T$ of $\delta$ with $T \neq \Bottom$ is an instance of $\reduce{\delta}$
 
-Existential reduction is necessary because just extending the subtyping relation for ordinary types with exclusion
-is not enough to let us check the overloading rules. For example to check that the first two declarations of $\D_{\mathit{bar}}$ from Section~$\ref{sec:examples}$ satisfy the Meet Rule,
-we must be able to deduce the existential
+Existential reduction is necessary because merely extending the subtyping relation for simple types with exclusion
+is not enough to let us check the overloading rules. For example, to check that the first two declarations of $\D_{\mathit{bar}}$ from Section~$\ref{sec:examples}$ satisfy the Meet Rule,
+we must be able to deduce that the existential
 \[`EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])`\]
 and the existential
 \[`EXISTS[\W<:ZZ\]ArrayList[\W\]`\]
-describe the same set of ground instances.
+describe the same set of ground instances of simple types.
 
 The rules for universals are dual to those for existentials. The inner subtyping judgment on universals $\jleinner{\sigma_1}{\sigma_2}$, defined in
 Figure~\ref{fig:existential},
 states that $\sigma_1$ is a subtype
 of $\sigma_2$ in the environment $\Delta$, if an instance of $\sigma_1$ is a subtype of the constituent type of $\sigma_2$ in the environment obtained by conjoining $\Delta$ and the bounds of $\sigma_2$. In
-the outer universal subtyping judgment $\jle{\sigma}{\sigma'}$ we first perform $\emph{universal reduction}$ to produce $\reduce{\reduce{\sigma'}}$. Then we check whether
-$\jleinner{\sigma}{\sigma''}$
+the outer universal subtyping judgment $\jle{\sigma}{\sigma'}$ we first perform $\emph{universal reduction}$ to produce $\reduce{\sigma'}$ and then check whether
+$\jleinner{\sigma}{\reduce{\sigma'}}$. Once again, we provide the formal definition of universal reduction in Section~\ref{sec:exred}, noting that it
+has the following properties:
 \begin{enumerate}
-\item $\jleinner{\reduce{\sigma}}{\reduce{\sigma}}$
-\item $\jleinner{\sigma}{\sigma'} implies \jleinner{\reduce{\sigma}}{\reduce{\sigma'}}$
+\item $\jleinner{\reduce{\sigma}}{\sigma}$
+\item $\jleinner{\sigma}{\sigma'}$ implies $\jleinner{\reduce{\sigma}}{\reduce{\sigma'}}$
 \item $\reduce{(\reduce{\sigma})} = \reduce{\sigma}$
 \item $\reduce{(\unitype[]{\arrowtype{S}{T}})} = \unitype[]{\arrowtype{S}{T}}$
 \end{enumerate}
 Again the first three properties show that $\le$ is a preorder and that $\leinner$ implies $\le$.
 Adding the fourth property lets us show that any ground instance $\arrowtype{S}{T}$ of $\delta$ with $S \neq \Bottom$ is an instance of $\reduce{\sigma}$.
 
-We need universal reduction for the same reason we need existential reduction: to check the overloading rules. For example to show the first two declarations in $\D(\mathit{tail})$
-from Section~$\ref{sec:examples}$ satisfy the return type rule, we use universal reduction to show 
+We need universal reduction for the same reason we need existential reduction, to check the overloading rules. For example to show the first two declarations in $\D_{\mathit{tail}}$
+from Section~\ref{sec:examples} satisfy the Return Type Rule, we use universal reduction to show that
 \[`FORALL[\X<:Number,Y<:Any\](List[\X\] CAP List[\Y\])`\]
 and
 \[`FORALL[\W<:Number\]List[\W\] -> List[\W\]`\]
 have all the same nontrivial instances.
 
-We explain how to compute existential and universal reductions in in Section~\ref{sec:exred}.
+% We provide and fully explain the definitions of existential and universal reduction in Section~\ref{sec:exred}.
 
 \input{fig-meet}
 
