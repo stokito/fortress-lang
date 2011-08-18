@@ -23,23 +23,6 @@ it does rejects some sets of overloaded functions
 that are valid by the overloading rules in Section~\ref{sec:rules}, 
 but it does accept many of them, 
 including all of the valid examples in Section~\ref{sec:examples}.
-% Thus we provide a sound but incomplete algorithm for determining that a
-% set of overloaded function declarations is valid.
-
-% and a declaration $d_0$ is applicable exactly when 
-% both declarations $d_1$ and $d_2$ are applicable 
-% if and only if the domain type of $d_0$ 
-% is the meet (under existential subtyping) 
-% of the domain types of $d_1$ and $d_2$.
-% To check the Return Type Rule, 
-% we can represent the type of a generic function 
-% as a \emph{universal (arrow) type}.
-
-% Previously the notions of applicability and specificity for generic
-% declarations required an existential quantification over instances thereof.
-% We rephrase these definitions in terms of universal and existential types,
-% the generalizations of ````arrow type'' and ````domain type'' of generic
-% declarations, in the same manner as \cite{bourdoncle97}.
 
 \subsection{Existential and Universal Types}
 
@@ -83,10 +66,11 @@ incorporates \emph{quantifier reduction}, defined in the next section.
 
 
 \input{fig-existential}
-The inner subtyping judgment on existentials defined in
-Figure~\ref{fig:existential}, $\jleinner{\delta_1}{\delta_2}$,
+The inner subtyping judgment on existentials $\jleinner{\delta_1}{\delta_2}$, defined in
+Figure~\ref{fig:existential}, states that $\delta_1$ is a subtype of $\delta_2$ in the environment $\Delta$ if the constituent type of $\delta_1$
+is a subtype of an instance of $\delta_2$ in the environment obtained by conjoining $\Delta$ and the bounds of $\delta_1$.
 
-In the outer subtypinf judgment $\jle{\delta}{\delta'}$, we first perform \emph{existential reduction} to produce $\reduce{\delta}$. Then we check whether $\jleinner{\reduce{\delta}}{\delta'}$.
+In the outer subtypin judgment $\jle{\delta}{\delta'}$, we first perform \emph{existential reduction} to produce $\reduce{\delta}$. Then we check whether $\jleinner{\reduce{\delta}}{\delta'}$.
 We provide the rules for existential reduction in Section~\ref{sec:exred}, but the judgment $\jtred{\delta}{\reduce{\delta}}$ is with the following properties:
 \begin{enumerate}
 \item $\jleinner{\reduce{\delta}}{\delta}$
@@ -98,16 +82,11 @@ The first three properties show that $\le$ is a preorder and that $\leinner$ imp
 Adding the fourth property lets us show that any ground instance $T$ of $\delta$ with $T \neq \Bottom$ is an instance of $\reduce(\delta)$
 
 
-The inner subtyping judgment on universals defined in
-Figure~\ref{fig:existential}, 
-$\jleinner{\sigma_1}{\sigma_2}$,
+The inner subtyping judgment on universals $\jleinner{\sigma_1}{\sigma_2}$, defined in
+Figure~\ref{fig:existential},
 states that $\sigma_1$ is a subtype
-of $\sigma_2$ if, in the environment extended by $\sigma_2$'s type parameters,
-there exists an instantiation $\bar{V}$ of $\sigma_1$ such that the
-constituent type of $\sigma_1$ is a subtype of the constituent type
-of $\sigma_2$.
-
-In the outer universal subtyping judgment $\jle{\sigma}{\sigma'}$ we first perform $\emph{universal reduction}$ to produce $\reduce{\reduce{\sigma'}}$. Then we check whether
+of $\sigma_2$ in the environment $\Delta$, if an instance of $\sigma_1$ is a subtype of the constituent type of $\sigma_2$ in the environment obtained by conjoining $\Delta$ and the bounds of $\sigma_2$. In
+the outer universal subtyping judgment $\jle{\sigma}{\sigma'}$ we first perform $\emph{universal reduction}$ to produce $\reduce{\reduce{\sigma'}}$. Then we check whether
 $\jleinner{\sigma}{\sigma''}$
 \begin{enumerate}
 \item $\jleinner{\reduce{\sigma}}{\reduce{\sigma}}$
