@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait T
+  getter asString():String
+end
+
+object O(s:String) extends T
+  getter asString():String = s
+end
+
+object P[\TT extends Any\](s:String, tpl:TT ) extends T
+  getter asString():String = s
+  asTpl():TT = tpl
+end
+
+hello() : String = "Hello"
+world(): String = "World"
+
+run():() = do
+  y = P[\ (O,()) \]("Cat", ( O("World!"), () ) )
+  z : (O,()) = y.asTpl()
+  (a,b) = z
+  m = P[\ () -> String \]("Bar", hello)
+  n = m.asTpl()
+  (*) println "Foo returned"
+  println( n() ) 
+  println( a.asString )
+end

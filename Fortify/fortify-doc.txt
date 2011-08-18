@@ -1,0 +1,489 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+This directory contains Emacs commands for converting Fortress code into LaTeX
+commands for the purposes of formatting. In order for LaTeX to understand the
+formatted code, you need to import the fortify.sty package in your LaTeX file:
+
+\usepackage{$FORTRESS_HOME/Fortify/fortify.sty}
+
+Emacs Formatting Commands
+-------------------------
+The main command "fortify", also bound to the key M-& (meta-ampersand).
+formats a portion of the text in the buffer as Fortress code by inserting TeX
+commands and performing certain transformations, which include replacing all-caps
+identifiers with appropriate mathematical symbols.
+
+With no prefix argument, the contiguous nonblank text preceding point is formatted.
+Here are some examples.  In each case assume that I have typed the text on the left
+and then hit M-& (in fact,  this is exactly what I am about to do to create the
+examples!); the replacement text is shown on the right.
+
+	x		\VAR{x}
+	foo		\VAR{foo}
+	GCD		\OPR{GCD}
+	Thread		\TYP{Thread}
+	spawn		\KWD{spawn}
+	UNION		\EXP{\cup}
+	a+b		\EXP{a+b}
+	foo+bar		\EXP{\VAR{foo}+\VAR{bar}}
+
+The formatting relies on TeX macros called \VAR, \OPR, \KWD, \TYP, and \EXP:
+
+	\VAR		variables
+	\OPR		identifiers used as operators
+	\KWD		keywords
+	\TYP		types
+	\EXP		general expressions
+
+In general, each formats its argument in math mode, but with some extra
+processing: \VAR applies \mathit, \OPR and \KWD apply \mathtt, and \TYP applies
+\mathrm; \OPR uses \mathbin spacing and \KWD uses \mathrel spacing (but
+sometimes extra fixup formatting is inserted within an \EXP to handle situations
+not covered well by TeX's math spacing rules); and all of them add a little
+extra \mathsurround space, the effect of which is to set these expressions off a
+little bit when they are used in running text.  This extra space shows up before
+commas and periods, too, which is intentional, so you can easily tell that the
+sentence punctuation is not part of the expression.
+
+(Through a bit of internal chicanery, \VAR and \OPR and \KWD and \TYP
+do not provide the extra \mathsurround space when they are used within
+a larger Fortress-formatting context such as the argument to \EXP.
+Uses of \EXP should not be nested.)
+
+What if you want to format an expression that contains whitespace?
+Use a C-U prefix, and M-& will format the region instead.  So, when
+you are just typing merrily along, if you foresee typing an expression
+containing spaces, just hit C-Space at the beginning of the expression
+to set the mark, then type the expression, then type C-U M-& to
+format the expression, then keep on typing.  Here are some examples:
+
+	a UNION b	    \EXP{a \cup b}
+	do x+=1; x end	    \EXP{\KWD{do}\:x\mathrel{+}=1; x \KWD{end}}
+	{ a^2 | a<-1:10 }   \EXP{\{\,a^{2} \mid a\leftarrow{}1\COLONOP{}10\,\}}
+	<\a,b,c,d\>         \EXP{\langle{}a,b,c,d\rangle}
+	<\ a,b,c,d \>       \EXP{\langle\,a,b,c,d\,\rangle}
+
+Note the use of \mathrel in second example to correct a spacing problem.  Note
+also the insertion of thin spaces within the braces in the third example; in
+general, the formatting process tries to honor the use of whitespace in the raw
+ASCII form, and the presence or absence of whitespace inside enclosing operators is
+reflected in the formatting by the presence or absence of a TeX thin space.  To see
+this more clearly, compare the fourth and fifth examples.  The presence or absence
+of whitespace on either side of a colon is also handled especially carefully;
+in general, one should put a space on both sides, or neither side, of a colon
+that is used an as operator to construct a range; but one should put a space after
+and not before a colon that separates a variable or function header from a type.
+
+This all works fine for expressions that fit within one line in running text.
+If you use C-U M-& on a region that contains a newline, then it does something
+a bit more heavyweight: it creates a display block using a LaTeX environment
+delimited by \begin{Fortress} and \end{Fortress}.  This is basically a
+"tabbing" environment with some extra features: the left margin is pushed in
+a little bit (by 1 em), and \VAR and \OPR and \KWD and \TYP are set up for
+use within that environment.
+
+In this multiline situation, it is best if the region begins at the beginning of a
+line.  The region is first subjected to the "untabify" command, and the resulting
+leading indentation of each line is respected in the formatting.  Here is an
+example:
+
+for i<-1:10, j<-p:q do
+  print "Hello, world!"
+  print(i DOT j)
+end
+
+\begin{Fortress}
+\(\KWD{for}\:i\leftarrow{}1\COLONOP{}10, j\leftarrow{}p\COLONOP{}q \KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{print}\;\;\hbox{\rm``\STR{Hello,~world!}''}\)\\
+\(  \VAR{print}(i \cdot j)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+Because the second line is indented two spaces relative to the first, {\tt~~} (with
+two tildes) is used to measure off the new indentation.  The sequence \pushtabs\=\+
+then establishes this new horizontal position as the left margin for subsequent
+lines.  The third line has the same indentation, so it simply uses this new left
+margin.  The fourth line is indented again, so at the end of the third line \- is
+used before the \\ and \poptabs is used after the \\ (this order is important) to
+undo the pushed left margin.
+
+The formatting tries to preserve what appear to be intentional indentation
+alignments with previous lines.  The general rule is that each line Y is compared to
+the closest preceding line X that is less indented; then line X is inspected at the
+horizontal position within it equal to the indentation of line Y.  If this position
+within line X either (a) has a space before it but not after it, or (b) has a left
+encloser before it, then this position within line X is deemed an alignment point,
+and a \pushtabs\=\+ is inserted there so that subsequence lines may be aligned to
+that point.  Here is an example:
+
+hack(thrash(splunge(a,
+                    trash(a,b,c)),
+            flog(self.fuddle,
+                 garbage)),
+     transmogrification(e,f,g))
+
+\begin{Fortress}
+\(\VAR{hack}( \null\)\pushtabs\=\+\(\VAR{thrash}( \null\)\pushtabs\=\+\(\VAR{splunge}( \null\)\pushtabs\=\+\(a,\)\\
+\(                    \VAR{trash}(a,b,c)),\)\-\\\poptabs
+\(            \VAR{flog}( \null\)\pushtabs\=\+\(\mathord{\KWD{self}}.\VAR{fuddle},\)\\
+\(                 \VAR{garbage})),\)\-\-\\\poptabs\poptabs
+\(     \VAR{transmogrification}(e,f,g))\)\-\\\poptabs
+\end{Fortress}
+
+In this example, points just after left parentheses serve as alignment points.
+Note also that not every left parenthesis is followed by the \pushtabs\=\+ sequence,
+only those that are actually used for alignment.
+
+Now here is another subtle trick: if the region begins with the character %,
+then the region is left alone, but a copy of the region is inserted after it
+into the buffer, and this copy is processed after being de-commented.  If the
+first *two* characters in the region are %%, then C-U M-X comment-region is used
+to decomment the region; otherwise each line in the region simply has one
+leading % removed, if any.  The net result is that the original region precedes
+the formatted code.  The idea is that Fortress examples can be kept within a TeX
+source file as a comment; to change the example, the recommended procedure is to
+edit this comment, then delete the formatted version and regenerate it from the
+comment.  As an example, if the region contains
+
+%for i<-1:10, j<-p:q do
+%  print "Hello, world!"
+%  print(i DOT j)
+%end
+
+then after C-U M-& the buffer will contain this:
+
+%for i<-1:10, j<-p:q do
+%  print "Hello, world!"
+%  print(i DOT j)
+%end
+\begin{Fortress}
+\(\KWD{for}\:i\leftarrow{}1\COLONOP{}10, j\leftarrow{}p\COLONOP{}q \KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{print}\;\;\hbox{\rm``\STR{Hello,~world!}''}\)\\
+\(  \VAR{print}(i \cdot j)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+If two C-U keystrokes prefix M-&, then side-by-side formatting is applied to the
+region.  (The % copy-and-decomment feature also applies to side-by-side
+formatting.)  Two versions of the code are displayed in the TeX form, with the
+mathematically formatted version on the left and the original ASCII code in \tt
+font on the right.  Of the total line width (as reported by \linewidth), half is
+allotted to the ASCII code on the right; that means the formatted code gets a
+little bit less than half of the total text width because it is indented by 1
+em.  (That usually works out okay, since formatted code tends to be a bit narrower
+than the ASCII code.)
+
+Other prefix arguments to M-& provide other useful behavior, as follows.
+A prefix argument of 2 or 5 causes the preceding nonblank text (if 2) or the
+region (if 5) to be formatted as if the contents of a Fortress string.
+Thus typing C-Space 100% #1 M-5 M-& produces
+
+     \STR{100{\char'45}~{\char'43}1}
+
+A prefix argument of 3 or 6 causes the preceding nonblank text (if 3)
+or the region (if 6) to be formatted as Fortress code and followed
+by another copy, formatted as string contents, in parentheses.
+This is really handy for mentioning an operator in running text and then
+giving the ASCII-only equivalent: you type INTERSECTION and then M-3 M-&
+and get
+
+	\EXP{\cap} (\STR{INTERSECTION})
+
+For prefix arguments 2, 3, 5, and 6, the text to be formatted must
+lie within a single line.
+
+A parameterized type of the form T[\S\] is rendered by replacing
+the brackets [\ and \] with the white square brackets
+U+27E6 (MATHEMATICAL LEFT WHITE SQUARE BRACKET) and
+U+27E7 (MATHEMATICAL RIGHT WHITE SQUARE BRACKET), respectively.
+
+
+Here are some subtleties to watch out for.  Bracket-subscripts are turned into
+actual subscripts when the subscript expressions are sufficiently simple.  If more
+than one subscript is present, then each subscript must be a single-letter name or
+single-digit number; however, a single-letter name may have following digits or
+prime marks:
+
+	a[i,j]          \EXP{a_{ij}}
+	a[j1,j2,j17]    \EXP{a_{j_{1}j_{2}j_{17}}}
+        a[k,k',k'']     \EXP{a_{kk'k''}}
+
+(Actually, I didn't bother to allow digits after the letter if there are four
+subscripts, and I didn't bother to handle more than four subscripts for now.)
+
+However, if there is only a single subscript, then it may be an expression
+involving + and - and DOT and / (but not any parentheses):
+
+	a[j+1]          \EXP{a_{j+1}}
+        a[-k DOT j + 3] \EXP{a_{-k \cdot j + 3}}
+
+It may also be a name with an underscore, where the part after the underscore
+serves as a label:
+
+	a[k_max]        \EXP{a_{k_{\mathrm{\max}}}}
+
+If the subscripts are sufficiently complicated, or if there is whitespace
+adjacent to the brackets or any comma, then actual subscripts are not used
+and the brackets remain (so putting spaces after your commas is a simple
+way to guarantee that bracket syntax will be used in the formatted version):
+
+	a[p^q]		\EXP{a[p^{q}]}
+        a[i, j]		\EXP{a[i, j]}
+
+For superscripts, if the superscript is surrounded by parentheses and
+the contained expression is sufficiently simple, the parentheses are removed:
+
+	a^(-1)		\EXP{a^{-1}}
+        a^(-1/2)	\EXP{a^{-1/2}}
+        a^(p+q-1)       \EXP{a^{p+q-1}}
+
+Generators and filters in brackets after an operator are handled by stacking them
+beneath the operator:
+
+	SUM[i<-1:n, j<-1:p, prime j] a[i] x^j
+
+becomes
+
+	\EXP{\sum\limits_{\genfrac{}{}{0pt}{1}{\genfrac{}{}{0pt}{1}{i
+	     \leftarrow{}1\COLONOP{}n}{j\leftarrow{}1\COLONOP{}p}}{\VAR{prime}\:j}}\:a_i\:x^{j}}
+
+which looks something like
+
+        -----
+         \         j
+          >    a  x
+         /      i
+        -----
+        i<-1:n
+        j<-1:p
+       prime j
+
+Names of Greek letters are converted, but for now they should not be part of
+larger names, except that the name a Greek letter may be followed by digits:
+
+	alpha		\EXP{\alpha}
+        XI		\EXP{\Xi}
+        rho0		\EXP{\VAR{rho}_{0}}
+        tau43		\EXP{\VAR{tau}_{43}}
+
+Standard transcendental functions are rendered using roman type:
+
+        n log n         \EXP{n \log n}
+        sin x cos x     \EXP{\sin x \cos x}
+
+Units should be spelled with trailing underscores, even the long names
+of the units; but the operators per, square, squared, cubic, cubed,
+and inverse do not need trailing underscore.
+
+        1.7 km_         \EXP{1.7\,\mathrm{km}}
+        meters_ per second_ squared
+                        \EXP{\mathrm{meters} \mathbin{\TYP{per}}
+                             \mathrm{second}\mskip 4mu plus 4mu\TYP{squared}}
+
+Blackboard font works fine in simple cases:
+
+	QQ		\EXP{\mathbb{Q}}
+        ZZ_star		\EXP{\mathbb{Z}^*}
+        NN128           \EXP{\mathbb{N}128}
+
+So does boldface:
+
+	_v		\EXP{\mathbf{v}}
+	_v43		\EXP{\mathbf{v}_{43}}
+
+The marks _vec and _bar work fine, with or without boldface, whether variables are
+single-letter or multi-letter:
+
+	x_vec		\EXP{\vec{\VAR{x}}}
+	_x_vec		\EXP{\vec{\mathbf{x}}}
+	foo_vec		\EXP{\overrightarrow{\VAR{foo}}}
+	_foo_vec	\EXP{\overrightarrow{\mathbf{foo}}}
+	x_bar		\EXP{\bar{\VAR{x}}}
+	_x_bar		\EXP{\bar{\mathbf{x}}}
+	foo_bar		\EXP{\overline{\VAR{foo}}}
+	_foo_bar	\EXP{\overline{\mathbf{foo}}}
+
+It tries to figure out left and right absolute value and norm enclosers,
+and separate them from binary operators or the separator in a comprehension:
+
+	a|b		\EXP{a|b}
+	|a| + 1         \EXP{\left|a\right| + 1}
+	{ a | b<-1:n }	\EXP{\{\,a \mid b\leftarrow{}1\mathinner{\mathtt{:}}n\,\}}
+	||b|| + 1       \EXP{\left\|b\right\| + 1}
+
+The command method-fortify, C-X &, performs related formatting for producing
+section headings for documenting methods.  The region is assumed to be a
+sequence of method declarations.  Each method declaration may span one or more
+lines of text.  Any line whose indentation matches that of the first line is
+assumed to start a new method declaration.  Each method declaration is formatted
+as Fortress code and becomes the argument of the TeX macro \Method (but \Method*
+is used for each declaration other than the first, except that a blank line
+means that the next method uses \\Method again).  If the first character in the
+region is %, then the region is first copied and decommented as for M-&.
+
+The file also defines two little convenience keystrokes.  M-_ makes it
+convenient to emphasize (using the TeX \emph{...} macro) one or more
+words before point.  M-? makes it easy to switch to another buffer;
+each time it is typed in succession, a another buffer is pulled to
+the top of the buffer list and made current.
+
+******************************************************************************
+   Batch Commands and Shell Scripts
+******************************************************************************
+batch-fortify
+-----------
+You can format an entire Fortress file at the command line by invoking
+the batch-fortify function:
+
+emacs -batch YOUR-FORTRESS-FILE.fss -l $FORTRESS_HOME/Fortify/fortify.el -f batch-fortify
+
+The result is that a formatted file is created, with the same name and
+at the same location as the input file, but with extension .tex.
+
+WARNING: Make sure your original file does not have suffix .tex or
+this command will overwrite it!
+
+As a convenience, a bash script "fortify" is provided in
+FORTRESS_HOME/bin. This script executes the fortify command on a given file.
+
+fortex
+-----
+You can also process a Fortress file containing "doc comments". A
+Fortress doc comment consists of a series of lines, where the first
+line begins with "(**", the last line consists of "**)" and lines in
+between begin with "*", with optional leading spaces and tabs at the
+beginning of each line. For example, the following function definition
+"factorial" is preceded by a doc comment:
+
+(**
+ * Takes a non-negative integer n and returns n!
+ **)
+factorial(n) =
+    if n = 0 then 1
+    else n factorial(n-1) end
+
+The fortex command strips the leading comment characters from
+doc comment lines, but leaves them otherwise unprocessed. All
+text other than doc comments is fortified. So, it's possible to embed LaTeX
+in a doc comment of a valid Fortress file, and then run 'fortex' on it
+to "uncomment" the doc comments and fortify the Fortress code.
+
+The fortex command also skips over "test" regions of a file, delimited
+with the following comment lines:
+
+(* TEST *)
+(* END TEST *)
+
+For example, the following code is a test region:
+
+(* TESTS *)
+run(args) = do
+    assertEquals(1, factorial(0))
+    assertEquals(1, factorial(1))
+    assertEquals(120, factorial(5))
+end
+(* END TESTS *)
+
+The idea is to allow users to provide test code in a file to check
+that it behaves as expected, without publishing tests in the fortified
+version of the file.
+
+Again, a formatted file is created  with the same name and location as the
+input file, but with extension .tex.
+
+WARNING: Make sure your original file does not have suffix .tex or
+this command will overwrite it!
+
+This command can be called as follows:
+
+emacs -batch YOUR-FORTRESS-FILE.fss -l $FORTRESS_HOME/Fortify/fortify.el -f fortex
+
+As with batch-fortify, a convenience script 'fortex' is provided in
+FORTRESS_HOME/bin.
+
+foreg
+-----
+It is often useful to fortify an example that is not itself a
+complete program. In such cases, it's still helpful if an enclosing
+program can be provided to check that the example is valid. For this
+purpose, the function 'foreg' is provided. This command deletes all
+lines in a file except those lines surrounded by "example"
+delimiters:
+
+(* EXAMPLE *)
+(* END EXAMPLE *)
+
+Lines in between (but not including) example delimiters are
+fortified. The result is stored in a file with the same name and
+location as the input file, but with suffix '.tex'.
+
+WARNING: Make sure your original file does not have suffix .tex or
+this command will overwrite it!
+
+For example, the following file:
+
+----
+component tmp
+export Executable
+
+(* EXAMPLE *)
+    run(args) = ()
+(* END EXAMPLE *)
+
+end
+----
+is converted as follows:
+----
+\begin{Fortress}
+{\tt~~~~}\pushtabs\=\+\(    \VAR{run}(\VAR{args}) = ()\)\-\\\poptabs
+\end{Fortress}
+----
+This command can be called as follows:
+
+emacs -batch YOUR-FORTRESS-FILE.fss -l $FORTRESS_HOME/Fortify/fortify.el -f foreg
+
+A convenience script 'foreg' for this command is provided in
+FORTRESS_HOME/bin.
+
+fortick
+-------
+fortick takes a file name and fortifies all occurrences of text in
+that file delimited by ticks. It writes the result to a new file in
+the same location, with suffix ".tex".
+
+WARNING: Make sure your original file does not have suffix .tex or
+this command will overwrite it!
+
+For example, given a file example.fss, with the following contents:
+
+(**
+`f(x) = x^2 + y^2`
+**)
+
+The fortick tool will write a file example.tex, with the following
+contents:
+
+(**
+\EXP{f(x) = x^{2} + y^{2}}
+**)
+
+If the opening tick and closing tick are adjacent, then fortick
+simply replaces the pair with a single tick.  This provides an escape
+for those who need to use ticks in LaTeX document.
+
+For example:
+
+(** This is what we call, in polite company, a ````misfeature.'' **)
+
+becomes:
+
+(** This is what we call, in polite company, a ``misfeature.'' **)

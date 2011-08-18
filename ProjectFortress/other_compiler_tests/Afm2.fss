@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(* Abstract Functional Method, does it work? *)
+
+component Afm2
+export Executable
+
+trait T
+  n(self):String = "PASS"
+end
+
+object O(x:String) extends T
+  n(self):String = x
+end
+
+object P() extends T
+end
+
+m(x:T):String = "T"
+m(x:O):String = "O"
+m(x:P):String = "P"
+
+run():() = do
+  x:T = O("PASS")
+  y:T = P()
+  println(n(x))
+  println(n(y))
+  println(m(x))
+  println(m(y))
+end
+end

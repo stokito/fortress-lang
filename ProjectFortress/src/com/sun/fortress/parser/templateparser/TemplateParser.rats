@@ -1,0 +1,202 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * A complete Fortress grammar with Gaps.
+ */
+module com.sun.fortress.parser.templateparser.TemplateParser;
+modify com.sun.fortress.parser.templateparser.Compilation(Declaration, Literal, Identifier, Keyword,
+                                                          Symbol, Spacing);
+instantiate com.sun.fortress.parser.templateparser.Declaration(TraitObject, Function, Variable,
+                                                               OtherDecl, NoNewlineExpr, Spacing, Syntax)
+            as Declaration;
+instantiate com.sun.fortress.parser.templateparser.TraitObject(Method, Variable, Parameter,
+                                                               OtherDecl, NoNewlineHeader,
+                                                               Identifier, Keyword, Symbol,
+                                                               Spacing)
+            as TraitObject;
+instantiate com.sun.fortress.parser.templateparser.Function(Parameter, NoNewlineHeader,
+                                                            NoNewlineType, NoNewlineExpr,
+                                                            Identifier, Keyword, Symbol,
+                                                            Spacing)
+            as Function;
+instantiate com.sun.fortress.parser.templateparser.Parameter(NoNewlineHeader, MayNewlineHeader,
+                                                             Type, Expression, Identifier,
+                                                             Keyword, Symbol, Spacing)
+            as Parameter;
+instantiate com.sun.fortress.parser.templateparser.Method(MethodParam, NoNewlineHeader,
+                                                          MayNewlineHeader, Type, NoNewlineExpr,
+                                                          Identifier, Keyword, Symbol, Spacing)
+            as Method;
+instantiate com.sun.fortress.parser.templateparser.MethodParam(Parameter, Keyword)
+            as MethodParam;
+instantiate com.sun.fortress.parser.templateparser.Variable(NoNewlineHeader, MayNewlineHeader,
+                                                            NoNewlineType, NoNewlineExpr,
+                                                            Identifier, Keyword, Symbol, Spacing)
+            as Variable;
+instantiate com.sun.fortress.parser.templateparser.MayNewlineHeader(OtherDecl, Type,
+                                                                    NoNewlineHeader, Expression,
+                                                                    DelimitedExpr, Literal,
+                                                                    Identifier, Keyword, Symbol,
+                                                                    Spacing)
+            as MayNewlineHeader;
+instantiate com.sun.fortress.parser.templateparser.NoNewlineHeader(OtherDecl, NoNewlineType,
+                                                                   NoNewlineExpr,
+                                                                   MayNewlineHeader, Literal,
+                                                                   Identifier, Keyword, Symbol,
+                                                                   Spacing)
+            as NoNewlineHeader;
+instantiate com.sun.fortress.parser.templateparser.OtherDecl(Parameter, NoNewlineHeader,
+                                                             NoNewlineType, NoNewlineExpr,
+                                                             Identifier, Keyword, Symbol,
+                                                             Spacing)
+            as OtherDecl;
+instantiate com.sun.fortress.parser.templateparser.Syntax(Identifier, Keyword, Spacing, Symbol,
+                                                          Expression, DelimitedExpr, LocalDecl,
+                                                          Unicode, NoNewlineHeader, Type)
+            as Syntax;
+instantiate com.sun.fortress.parser.templateparser.Type(NoNewlineHeader, MayNewlineHeader,
+                                                        Expression, Literal, Identifier,
+                                                        Keyword, Symbol, Spacing)
+            as Type;
+instantiate com.sun.fortress.parser.templateparser.NoNewlineType(Type, NoNewlineExpr, Keyword,
+                                                                 Symbol, Spacing)
+            as NoNewlineType;
+instantiate com.sun.fortress.parser.templateparser.Expression(Parameter, NoNewlineHeader,
+                                                              MayNewlineHeader, Type,
+                                                              DelimitedExpr, Literal,
+                                                              NoSpaceLiteral, Identifier,
+                                                              Keyword, Symbol,
+                                                              Spacing, Gaps)
+            as Expression;
+instantiate com.sun.fortress.parser.templateparser.DelimitedExpr(TraitObject, NoNewlineHeader,
+                                                                 MayNewlineHeader, Type,
+                                                                 Expression, LocalDecl, Literal,
+                                                                 Identifier, Keyword, Symbol,
+                                                                 Spacing)
+            as DelimitedExpr;
+instantiate com.sun.fortress.parser.templateparser.NoNewlineExpr(Expression, NoNewlineType,
+                                                                 Keyword, Symbol, Spacing)
+            as NoNewlineExpr;
+instantiate com.sun.fortress.parser.templateparser.NoSpaceExpr(Expression, Keyword, Symbol,
+                                                               Spacing)
+            as NoSpaceExpr;
+instantiate com.sun.fortress.parser.templateparser.Literal(Symbol, Spacing, Gaps)
+            as Literal;
+instantiate com.sun.fortress.parser.templateparser.NoSpaceLiteral(MayNewlineHeader, NoSpaceExpr,
+                                                                  Symbol, Spacing, Gaps)
+            as NoSpaceLiteral;
+instantiate com.sun.fortress.parser.templateparser.LocalDecl(Variable, NoNewlineHeader, MayNewlineHeader,
+                                                             NoNewlineType, NoNewlineExpr,
+                                                             DelimitedExpr, Identifier,
+                                                             Keyword, Symbol, Spacing)
+            as LocalDecl;
+instantiate com.sun.fortress.parser.templateparser.Identifier(Keyword, Symbol,
+                                                              Unicode, Spacing, Gaps)
+            as Identifier;
+instantiate com.sun.fortress.parser.templateparser.Symbol(DelimitedExpr, LocalDecl,
+                                                          NoNewlineExpr, Type, Identifier,
+                                                          Spacing, Keyword)
+            as Symbol;
+instantiate com.sun.fortress.parser.templateparser.Spacing(Symbol)
+            as Spacing;
+instantiate com.sun.fortress.parser.templateparser.Keyword(Identifier)
+            as Keyword;
+instantiate com.sun.fortress.parser.templateparser.Unicode
+            as Unicode;
+instantiate com.sun.fortress.parser.templateparser.Gaps(Symbol, Spacing, Identifier)
+            as Gaps;
+
+header {
+import com.sun.fortress.exceptions.ProgramError;
+import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.parser_util.precedence_opexpr.*;
+import com.sun.fortress.parser_util.precedence_resolver.*;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.*;
+import com.sun.fortress.parser_util.*;
+import com.sun.fortress.useful.PureList;
+import com.sun.fortress.useful.Empty;
+import com.sun.fortress.useful.Cons;
+import com.sun.fortress.useful.Useful;
+import com.sun.fortress.Shell;
+import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.collect.CollectUtil;
+import xtc.util.Action;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+
+
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.ProgramError.error;
+
+}
+
+body {
+
+    /*
+     * Set expectedName when parsing a file that should contain
+     * exactly one API or Component, and set it to the expected name
+     * of the API/Component (usually based on the file name).
+     * If expectedName is none (the default), then no name check is
+     * performed.
+     */
+    protected Option<APIName> expectedName = Option.<APIName>none();
+    public Option<APIName> getExpectedName() {
+        return expectedName;
+    }
+    public void setExpectedName(Option<APIName> expectedName) {
+        if (expectedName == null) {
+            throw new IllegalArgumentException("expected name must not be null");
+        }
+        this.expectedName = expectedName;
+    }
+    public void setExpectedName(APIName expectedName) {
+        setExpectedName(Option.wrap(expectedName));
+    }
+
+    Span createSpan(int start, int end) {
+        int i = end-2;
+        while ( i >= 0 && yyData[i] == ' ' ) { i--; }
+        if ( i-1 >= start )
+            end = i-1;
+        else
+            end = start;
+        Column s = column(start);
+        Column e = column(end);
+        SourceLocRats slStart = new SourceLocRats(s.file, s.line, s.column, start);
+        SourceLocRats slEnd   = new SourceLocRats(e.file, e.line, e.column, end);
+        return new Span(slStart, slEnd);
+    }
+
+    private SpanInfo makeSpanInfo(int start, int end) {
+        return NodeFactory.makeSpanInfo(createSpan(start, end));
+    }
+
+    private BufferedWriter writer = getWriter();
+    private BufferedWriter getWriter() {
+        try {
+            return Useful.filenameToBufferedWriter( ProjectProperties.macroErrorLog(column(0).file) );
+        } catch (IOException error) {
+            return error("Creating a log file for the parser failed!");
+        }
+    }
+    private void log(Span span, String message) {}
+}
+
+option flag(isNative), parser(com.sun.fortress.parser.templateparser.TemplateParser);

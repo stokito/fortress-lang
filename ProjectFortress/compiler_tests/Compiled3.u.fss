@@ -1,0 +1,19 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled3.u
+export Executable
+
+fib(n: ZZ32): String = if n <= 2 then 1 else fib(n-1) + fib(n-2) end
+
+run(): () = println(fib 20)
+
+end

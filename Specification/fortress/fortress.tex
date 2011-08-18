@@ -1,0 +1,133 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\catcode`\$=10
+\catcode`\:=10
+\def\svnrevision{$Revision: 4267 $}
+\catcode`\:=12
+\catcode`\$=3 % dollar sign is math shift
+
+\documentclass[10pt,openany]{book}
+\usepackage{url, amssymb, amsmath, amsthm, stmaryrd, xspace}
+\usepackage{amsfonts, graphicx, fullpage, times, wrapfig}
+\usepackage{hyperref, array, color}
+\usepackage{ifpdf}
+
+\newif\ifrelease
+\ifx\release\undefined
+  \releasefalse
+\else
+  \releasetrue
+\fi
+
+% Please uncomment the following line for a release version.
+% -- Sukyoung
+%\releasetrue
+
+\ifrelease
+\newcommand{\note}[1]{}
+\newcommand{\marginnote}[1]{}
+\else
+\newcommand{\note}[1]{\framebox[\textwidth][t]{\parbox[t]{\textwidth}{#1}}}
+%\marginnote{Some text that gets put into the margin} places the text in
+%the margin, pretty much vertically centered on the line where the marginnote
+%occurs in the input.
+\renewcommand{\marginparwidth}{.7in}
+\newcommand{\marginnote}[1]{%
+\marginpar{\footnotesize\raggedright\noindent\tolerance=1000{%
+\framebox[\marginparwidth][t]{\parbox[t]{\marginparwidth}{#1}}}}}
+\fi
+
+% Joe 8/4/06: added the following line for the proofs in overloading section
+\DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
+
+% Guy 12/23/05: if \parskip is changed, then \topsep and \partopsep also require adjustment
+% Guy 2/7/06: also the @list... macros need adjustment; tighten these up.
+\parskip = 7pt plus 2pt minus 1pt
+\makeatletter
+\setlength\partopsep{4\p@ \@plus 1\p@}
+\def\@listi{\leftmargin\leftmargini
+            \parsep\parskip
+            \topsep 0\p@
+            \itemsep\topsep}
+\let\@listI\@listi
+\@listi
+\def\@listii {\leftmargin\leftmarginii
+              \labelwidth\leftmarginii
+              \advance\labelwidth-\labelsep}
+\def\@listiii{\leftmargin\leftmarginiii
+              \labelwidth\leftmarginiii
+              \advance\labelwidth-\labelsep}
+\makeatother
+\parindent = 0pt
+
+\setcounter{tocdepth}{1}
+
+\ifpdf
+  \usepackage{epic,eepicemu}
+\else
+  \usepackage{epic,eepic}
+\fi
+
+\def\home{..}
+\def\macros{../latex-common/macros}
+\input{\macros/all-macros}
+
+\title{{\huge The Fortress Language Specification}
+\\[1em] {\fbox{\LARGE\it Working Draft}}
+\ifrelease
+\\ {\large Version 1.0}
+\else
+\\ {\normalsize SVN \svnrevision --- \today}
+\fi
+}
+\author
+{
+\begin{tabular}{c}
+                        Eric Allen \\
+                        David Chase \\
+                        Joe Hallett \\
+                        Victor Luchangco \\
+                        Jan-Willem Maessen \\
+                        Sukyoung Ryu \\
+                        Guy L. Steele Jr. \\
+                        Sam Tobin-Hochstadt \\ \\ \\
+{Additional contributors}: \\
+                        Joao Dias \\
+                        Carl Eastlund \\
+                        Christine Flood \\
+                        Yossi Lev \\
+                        Cheryl McCosh \\
+                        Janus Dam Nielsen \\
+                        Dan     Smith \\
+\end{tabular} \\
+\\
+\begin{tabular}{c}
+                        \copyright\ Sun Microsystems, Inc.
+\end{tabular}
+}
+
+\begin{document}
+\maketitle
+\input{preamble}
+\tableofcontents
+\input{\home/preliminaries/preliminaries}
+\input{\home/basic/basic}
+\input{\home/advanced/advanced}
+\input{\home/library/library}
+\input{\home/basic-lib/basic-lib}
+\input{\home/advanced-lib/advanced-lib}
+\input{\home/appendices/appendices}
+
+\bibliographystyle{plain}
+\bibliography{fortress}
+
+\end{document}

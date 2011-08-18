@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SqlUse
+import Sql.{...}
+import List.{...}
+export Executable
+
+run() = do
+    println (select foobar from blah)
+    select x:foo, y:bar from blarg where foo = 33 AND bar = :y
+    for (x,y) <- sqlobject.exec( "select foo, bar from blarg where foo = 33 AND bar = " y )
+end
+
+end

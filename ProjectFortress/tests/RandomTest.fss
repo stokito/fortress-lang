@@ -1,0 +1,102 @@
+(*******************************************************************************
+    Copyright 2010 Kang Seonghoon, KAIST
+    All rights reserved.
+ ******************************************************************************)
+
+component RandomTest
+export Executable
+import Random.{...}
+import List.{...}
+
+check[\T,Seed\](f:Indexed[\Seed,ZZ32\]->SeededRandomGen[\T,Seed\],
+                seed:Indexed[\Seed,ZZ32\]): () = do
+    g1: SeededRandomGen[\T,Seed\] := f(seed)
+    g2: SeededRandomGen[\T,Seed\] := f(seed)
+    assert(g1.left = g2.left, "different generator parameters")
+    assert(g1.right = g2.right, "different generator parameters")
+    assert(g1.min = g2.min, "different generator parameters")
+    assert(g1.max = g2.max, "different generator parameters")
+    assert(g1.seedSize = g2.seedSize, "different generator parameters")
+
+    checkRange(v:T) = ((g1.left.holds IMPLIES (g1.left.get <= v)) AND
+                       (g1.right.holds IMPLIES (g1.right.get >= v)) AND
+                       (g1.min.holds IMPLIES (g1.min.get <= v)) AND
+                       (g1.max.holds IMPLIES (g1.max.get >= v)) AND
+                       ((g1.left.holds AND NOT g1.min.holds) IMPLIES (g1.left.get < v)) AND
+                       ((g1.right.holds AND NOT g1.max.holds) IMPLIES (g1.right.get > v)))
+
+    for n <- seq(1:10) do
+        r11 = g1.random()
+        r21 = g2.random()
+        assert(checkRange(r11) AND checkRange(r21), "out of range")
+        assert(r11 = r21, "different random numbers from same generators")
+
+        r12 = g1.randomMany(n)
+        r22 = g2.randomMany(n)
+        assert(|r12| = |r22| = n, "did not generate a given number of random numbers")
+        assert(BIG AND [i<-r12] checkRange(i), "out of range")
+        assert(BIG AND [i<-r22] checkRange(i), "out of range")
+        assert(r12 = r22, "different random numbers from same generators")
+
+        r13 = g1.randomR(0#n)
+        r23 = g2.randomR(0#n)
+        assert((r13 IN (0#n)) AND (r23 IN (0#n)), "out of range")
+        assert(r13 = r23, "different random numbers from same generators")
+
+        r14 = g1.randomManyR(n, 0#n^2)
+        r24 = g2.randomManyR(n, 0#n^2)
+        assert(|r14| = |r24| = n, "did not generate a given number of random numbers")
+        assert(BIG AND [i<-r14] (i IN (0#n^2)), "out of range")
+        assert(BIG AND [i<-r24] (i IN (0#n^2)), "out of range")
+        assert(r14 = r24, "different random numbers from same generators")
+
+        dist = UniformDistribution[\ZZ32\](2^n:3^n)
+        g1' = g1.distributed[\ZZ32\](dist)
+        g2' = g2.distributed[\ZZ32\](dist)
+        r15 = g1'.randomMany(11-n)
+        r25 = g2'.randomMany(11-n)
+        assert(BIG AND [i<-r15] (i IN (2^n:3^n)), "out of range")
+        assert(BIG AND [i<-r25] (i IN (2^n:3^n)), "out of range")
+        assert(r15 = r25, "different random numbers from same generators")
+    end
+
+    g1.reseed(seed)
+    for n <- seq(1:10) do
+        r11' = g1.random()
+        r12' = g1.randomMany(n)
+        r13' = g1.randomR(0#n)
+        r14' = g1.randomManyR(n, 0#n^2)
+        r15' = g1.distributed[\ZZ32\](UniformDistribution[\ZZ32\](2^n:3^n)).randomMany(11-n)
+    end
+    r16 = g1.randomMany(42)
+    r26 = g2.randomMany(42)
+    assert(r16 = r26, "reseed is not deterministic")
+
+    r17 = <| do g1 := g1.perturbed(5^n); g1.random() end | n <- seq(1:10) |>
+    r27 = <| do g2 := g2.perturbed(5^n); g2.random() end | n <- seq(1:10) |>
+    assert(r17 = r27, "perturbed is not deterministic")
+
+    g2.reseed(seed)
+    for n <- seq(1:10) do
+        r21' = g2.random()
+        r22' = g2.randomMany(n)
+        r23' = g2.randomR(0#n)
+        r24' = g2.randomManyR(n, 0#n^2)
+        r25' = g2.distributed[\ZZ32\](UniformDistribution[\ZZ32\](2^n:3^n)).randomMany(11-n)
+    end
+    r26' = g2.randomMany(42)
+    r27' = <| do g2 := g2.perturbed(5^n); g2.random() end | n <- seq(1:10) |>
+    assert(r27 = r27', "perturbed in conjunction with reseed is not deterministic")
+end
+
+run(): () = do
+    linearCongruential'(seed:Indexed[\ZZ64,ZZ32\]): SeededRandomGen[\ZZ64,ZZ64\] =
+        linearCongruential(seed[0])
+    mersenneTwister'(seed:Indexed[\ZZ64,ZZ32\]): SeededRandomGen[\ZZ64,ZZ64\] =
+        mersenneTwister(vector[\ZZ64,624\](fn i => seed.get(i)))
+    check[\ZZ64,ZZ64\](linearCongruential', SystemRandomGen.randomMany(1))
+    check[\ZZ64,ZZ64\](mersenneTwister', SystemRandomGen.randomMany(624))
+end
+
+end RandomTest
+
