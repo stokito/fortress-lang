@@ -100,7 +100,7 @@ the outer universal subtyping judgment $\jle{\sigma}{\sigma'}$ we first perform 
 $\jleinner{\sigma}{\reduce{\sigma'}}$. Once again, we provide the formal definition of universal reduction in Section~\ref{sec:exred}, noting that it
 has the following properties:
 \begin{enumerate}
-\item $\jleinner{\reduce{\sigma}}{\sigma}$
+\item $\jleinner{\sigma}{\reduce{\sigma}}$
 \item $\jleinner{\sigma}{\sigma'}$ implies $\jleinner{\reduce{\sigma}}{\reduce{\sigma'}}$
 \item $\reduce{(\reduce{\sigma})} = \reduce{\sigma}$
 \item $\reduce{(\unitype[]{\arrowtype{S}{T}})} = \unitype[]{\arrowtype{S}{T}}$
