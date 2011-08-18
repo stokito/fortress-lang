@@ -1,0 +1,3996 @@
+\documentclass[10pt]{sigplanconf}
+\usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem}
+\advance \textheight by 4pt
+
+% make a big red TODO label
+\newcommand{\TODO}[1]{\textbf{\emph{\textcolor{red}{TODO}}}: \textsf{\footnotesize #1}}
+% \newcommand{\TODO}[1]{}
+
+%newcommand
+\newcommand{\ms}{\preceq}
+\renewcommand{\bar}{\overline}
+\newcommand{\meet}{\wedge}
+\newcommand{\C}{\mathcal{C}}
+\newcommand{\quoted}[1]{\begin{quote}#1\end{quote}}
+\newcommand{\exc}{\mathrel{\lozenge}}
+\newcommand{\nexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\lozenge}}
+\newcommand{\smalllozenge}{\vcenter{\hbox{\scalebox{.5}{$\lozenge$}}}}
+\newcommand{\normallozenge}{\vcenter{\hbox{$\lozenge$}}}
+% \newcommand{\altlozenge}{\ooalign{\hfil$\normallozenge$\hfil\cr\hfil$\smalllozenge$\hfil}}
+\newcommand{\altlozenge}{\ooalign{\hfil$\vcenter{\hbox{$\lozenge$}}$\hfil\cr\hfil$\cdot$\hfil}}
+\newcommand{\bexc}{\mathrel{\altlozenge}}
+\newcommand{\bexcp}{\mathrel{\altlozenge}_\textrm{m}}
+\newcommand{\bnexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\altlozenge}}
+
+\newcommand{\fresh}[1]{\textit{fresh}({#1})}
+\newcommand{\freeVar}[1]{\textit{freeVars({#1})}}
+
+\newcommand{\excr}{\triangleright}
+\newcommand{\excl}{\triangleleft}
+\newcommand{\excre}{\excr_\textrm{x}}
+\newcommand{\excle}{\excl_\textrm{x}}
+\newcommand{\excrc}{\excr_\textrm{c}}
+\newcommand{\exclc}{\excl_\textrm{c}}
+\newcommand{\excro}{\excr_\textrm{o}}
+\newcommand{\exclo}{\excl_\textrm{o}}
+% \newcommand{\excrp}{\excr_\textrm{m}}
+% \newcommand{\exclp}{\excl_\textrm{m}}
+\newcommand{\excrx}{\excr_*}
+\newcommand{\exclx}{\excl_*}
+\newcommand{\excx}{\exc_*}
+
+\newcommand{\exce}{\exc_\textrm{x}}
+\newcommand{\excc}{\exc_\textrm{c}}
+\newcommand{\exco}{\exc_\textrm{o}}
+\newcommand{\excp}{\exc_\textrm{m}}
+
+\newcommand{\propop}{\ensuremath{\mathrel{\ast}}}
+
+\newcommand{\ancestors}{\textit{ancestors}}
+\newcommand{\ancexcludes}{\textit{excludes}^*}
+\newcommand{\myexcludes}[1]{{#1}.\textit{excludes}}
+\newcommand{\mycomprises}[1]{{#1}.\textit{comprises}}
+\newcommand{\myextends}[1]{{#1}.\textit{extends}}
+
+\newcommand{\extends}{\ensuremath{<:}}
+\newcommand{\subtypeof}{\ensuremath{<:}}
+\newcommand{\nsubtypeof}{\not \subtypeof}
+\newcommand{\supertypeof}{\ensuremath{:>}}
+\newcommand{\leinner}{\ensuremath{\lesssim}}
+
+\newcommand{\alphaequiv}{\ensuremath{\stackrel{\alpha}{\sim}}}
+\newcommand{\cequiv}{\ensuremath{\sim}}
+
+\newcommand{\arrowtype}[2]{\mbox{\ensuremath{{#1} \rightarrow {#2}}}}
+\newcommand{\tuple}[1]{\ensuremath{#1}}
+
+\newcommand{\dom}{\ensuremath{\mathit{dom}}}
+\newcommand{\arrow}{\ensuremath{\mathit{arrow}}}
+\newcommand{\FV}{\ensuremath{\mathit{FV}}}
+
+% indented code block
+\newenvironment{ttquote}%
+{\begin{quote}\begin{alltt}}
+{\end{alltt}\end{quote}}
+
+% put in oxford brackets
+\newcommand{\ob}[1]{\ensuremath{\llbracket {#1} \rrbracket}}
+% put in oxford brackets and an overbar
+\newcommand{\obb}[1]{\ensuremath{\llbracket \bar{#1} \rrbracket}}
+% make a type param bound with the given name
+\newcommand{\bd}[1]{\ensuremath{\{\bar{#1}\}}}
+% syntactic definition
+\newcommand{\syndef}{\ensuremath{\overset{\mathrm{def}}{=}}}
+% make a substitution
+\newcommand{\subst}[2]{\ensuremath{[#1/#2]}}
+% make a substitution with bars
+\newcommand{\substb}[2]{\ensuremath{[\bar{#1}/\bar{#2}]}}
+% list of bounds/type environment
+\newcommand{\bds}[2]{\ensuremath{\bar{{#1} \extends \bd{#2}}}}
+% type parameter list with bounds and oxford brackets
+\newcommand{\tplist}[2]{\ensuremath{\ob{\bds{#1}{#2}}}}
+% monomorphic fn decl
+\newcommand{\decl}[3]{\mbox{\ensuremath{{#1}\,{#2}\!:\!{#3}}}}
+% a generic function declaration 
+\newcommand{\declg}[5]{\mbox{\ensuremath{#1 \tplist{#2}{#3}\, #4\!:\!#5}}}
+\newcommand{\hdeclg}[4]{\mbox{\ensuremath{#1 \ob{#2}\, #3\!:\!#4}}}
+% a class table T
+\newcommand{\T}{\ensuremath{\mathcal{T}}}
+% class table extension
+\newcommand{\ctext}{\ensuremath{\supseteq}}
+% a declaration set D
+\newcommand{\D}{\ensuremath{\mathcal{D}}}
+% a declaration set restricted to a function name
+\newcommand{\Df}[1][f]{\D_{\!#1}}
+% existential type
+\newcommand{\exttype}[2][\Delta]{\ensuremath{\exists\ob{#1}{#2}}}
+% universal type
+\newcommand{\unitype}[2][\Delta]{\ensuremath{\forall\ob{#1}{#2}}}
+% reduced existential type
+\newcommand{\reduce}[1]{\ensuremath{{#1}_r}}
+
+%%%%% Any and Bottom %%%%
+
+\newcommand{\Any}{\TYP{Any}}
+\newcommand{\Bottom}{\TYP{Bottom}}
+
+\newcommand{\FALSE}{\textrm{false}}
+\newcommand{\TRUE}{\textrm{true}}
+
+\newcommand{\NONE}{\bullet}
+
+\newcommand{\eqred}{\overset{\equiv}{\longrightarrow}}
+
+%%%%%%% JUDGMENTS %%%%%%%%
+
+%%% NEW SYNTACTIC JUDGMENT
+\newcommand{\newjudge}[2]{\fbox{\textbf{#1:} \quad \ensuremath{#2}}}
+
+% non constrained judgements
+\newcommand{\jgtemplate}[4][\Delta]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}}}
+% ground subtyping
+\newcommand{\jgsub}[3][\Delta]{\jgtemplate[#1]{#2}{\subtypeof}{#3}}
+\newcommand{\jgnequiv}[3][\Delta]{\jgtemplate[#1]{#2}{\not \equiv}{#3}}
+
+% subtyping on quantified types
+\newcommand{\jle}[3][\Delta]{\jgtemplate[#1]{#2}{\le}{#3}}
+\newcommand{\jleinner}[3][\Delta]{\jgtemplate[#1]{#2}{\leinner}{#3}}
+
+% constrained judgments
+\newcommand{\jgconstrtemplate}[5][\Delta]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}\,\Leftarrow\,{#5}}}
+% ground subtyping with constraints
+\newcommand{\jsub}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\subtypeof}{#3}{#4}}
+% not subtype
+\newcommand{\jnsub}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\not \subtypeof}{#3}{#4}}
+% type exclusion
+\newcommand{\jexc}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\exc}{#3}{#4}}
+% type non-exclusion
+\newcommand{\jnexc}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\nexc}{#3}{#4}}
+% equivalence
+\newcommand{\jequiv}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\equiv}{#3}{#4}}
+% nonequivalence
+\newcommand{\jnequiv}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\not\equiv}{#3}{#4}}
+
+
+% contrapositive judgements
+\newcommand{\jgcontratemplate}[5][\Delta]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}\,\Rightarrow\,{#5}}}
+% ground subtyping with constraints
+\newcommand{\jcsub}[4][\Delta]{\jgcontratemplate[#1]{#2}{\subtypeof}{#3}{#4}}
+% not subtype
+\newcommand{\jcnsub}[4][\Delta]{\jgcontratemplate[#1]{#2}{\not \subtypeof}{#3}{#4}}
+% type exclusion
+\newcommand{\jcexc}[4][\Delta]{\jgcontratemplate[#1]{#2}{\exc}{#3}{#4}}
+% type non-exclusion
+\newcommand{\jcnexc}[4][\Delta]{\jgcontratemplate[#1]{#2}{\nexc}{#3}{#4}}
+% equivalence
+\newcommand{\jcequiv}[4][\Delta]{\jgcontratemplate[#1]{#2}{\equiv}{#3}{#4}}
+% nonequivalence
+\newcommand{\jcnequiv}[4][\Delta]{\jgcontratemplate[#1]{#2}{\not\equiv}{#3}{#4}}
+
+
+% applicability of a domain or fndecl to a type
+\newcommand{\japp}[3][\Delta]{\jgtemplate[#1]{#2}{\ni}{#3}}
+% specificity between fndecls
+\newcommand{\jms}[3][\Delta]{\jgtemplate[#1]{#2}{\ms}{#3}}
+
+% constraints
+% convert a bound environment into a constraint
+\newcommand{\toConstraint}[2]{\ensuremath{\textit{toConstraint}({#1})\,=\,{#2}}}
+% convert a constraint into a bound environment
+\newcommand{\toBounds}[2]{\ensuremath{\textit{toBounds}({#1})\,=\,{#2}}}
+
+% apply substitution to constraint
+\newcommand{\japply}[4][\Delta]{\ensuremath{{#1}\,\vdash\,\textit{apply}({#2}, {#3})\,=\,{#4}}}
+% solve constraint to get a substitution and the residual constraints
+\newcommand{\jsolve}[4][\Delta]{\ensuremath{{#1}\,\vdash\,\textit{unify}({#2})\,=\,{#3}\,,\;{#4}}}
+
+
+
+% type reduction
+\newcommand{\jtred}[2]{\ensuremath{\Delta \vdash\,{#1} \eqred {#2}}}
+\newcommand{\jtreds}[3]{\ensuremath{\Delta \vdash\,{#1} \eqred {#2}\,,\;{#3}}}
+
+
+% for tabularx environments to have a right-aligned, stretched col
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
+
+\theorembodyfont{\rm}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+% Our proofs are more like proof sketches!! EricAllen 7/15/2011
+\newenvironment{proof}{\noindent \textbf{Proof:} }{\hfill $\Box$}
+\newenvironment{psketch}{\noindent \textbf{Proof sketch:} }{\hfill $\Box$}
+
+\begin{document}
+
+\conferenceinfo{OOPSLA '11}{October 22--27, 2011, Portland, Oregon, USA.}
+\CopyrightYear{2011}
+\copyrightdata{978-1-4503-0940-0/11/10}
+
+\titlebanner{draft}        % These are ignored unless
+\preprintfooter{draft}     % 'preprint' option specified.
+
+\title{Type Checking Modular Multiple Dispatch with Parametric Polymorphism and Multiple Inheritance}
+\subtitle{}
+\authorinfo{Eric Allen}{Oracle Labs}{eric.allen@oracle.com}
+\authorinfo{Justin Hilburn}{Oracle Labs}{justin.hilburn@oracle.com}
+\authorinfo{Scott Kilpatrick}{University of Texas \\ at Austin}{scottk@cs.utexas.edu}
+\authorinfo{Victor Luchangco}{Oracle Labs}{victor.luchangco@oracle.com}
+\authorinfo{Sukyoung Ryu}{KAIST}{sryu.cs@kaist.ac.kr}
+\authorinfo{David Chase}{Oracle Labs}{david.r.chase@oracle.com}
+\authorinfo{Guy L. Steele Jr.}{Oracle Labs}{guy.steele@oracle.com}
+
+\makeatletter
+\def \@maketitle {%
+ \begin{center}
+ \@settitlebanner
+ \let \thanks = \titlenote
+ \noindent \LARGE \bfseries \@titletext \par
+ %\vskip 6pt
+ %\noindent \Large \@subtitletext \par
+ \vskip 6pt
+   \noindent \@setauthor{9pc}{i}{\@false}\hspace{1.5pc}%
+             \@setauthor{9pc}{ii}{\@false}\hspace{1.5pc}%
+             \@setauthor{9pc}{iii}{\@false}\hspace{1.5pc}%
+             \@setauthor{9pc}{iv}{\@true}\par
+\vspace{12pt plus 2pt}
+ \noindent \@setauthor{9pc}{v}{\@false}\hspace{1.5pc}%
+           \@setauthor{9pc}{vi}{\@false}\hspace{1.5pc}%
+           \@setauthor{9pc}{vii}{\@false}\par
+\vspace{10pt plus 2pt}
+ \end{center}}
+\makeatother
+\maketitle
+
+
+%% llncs
+%% \title{Type-checking Modular Multiple Dispatch with Parametric Polymorphism and
+%% \mbox{Multiple Inheritance}}
+%% \titlerunning{Modular Multiple Dispatch with Polymorphism and Multiple Inheritance}
+
+%% \author{Eric Allen\inst{1} \and
+%% Justin Hilburn\inst{2} \and
+%% Scott Kilpatrick\inst{3} \and
+%% Sukyoung Ryu\inst{4} \and\\
+%% David Chase\inst{1} \and
+%% Victor Luchangco\inst{1} \and
+%% Guy L. Steele Jr.\inst{1}
+%% }
+%% \authorrunning{Allen, Hilburn, Kilpatrick, Ryu, Chase, Luchangco, and Steele Jr.}
+%% %
+%% %%%% list of authors for the TOC (use if author list has to be modified)
+%% %% \tocauthor{Ivar Ekeland, Roger Temam, Jeffrey Dean, David Grove,
+%% %% Craig Chambers, Kim B. Bruce, and Elisa Bertino}
+%% %
+%% \institute{Sun Labs / Oracle, USA
+%% %\email{\{firstname.lastname, david.r.chase\}@oracle.com}
+%% \and
+%% University of Oregon, USA
+%% %\email{jhilburn@uoregon.edu}
+%% \and
+%% MPI-SWS, Germany
+%% %\email{skilpat@mpi-sws.org}
+%% \and
+%% KAIST, Korea
+%% %\email{sryu@cs.kaist.ac.kr}
+%% }
+
+%% \maketitle
+
+\begin{abstract}
+In previous work,
+we presented rules for defining overloaded functions 
+that ensure type safety under symmetric multiple dispatch 
+in an object-oriented language with multiple inheritance, 
+and we showed how to check these rules 
+without requiring the entire type hierarchy to be known,
+thus supporting modularity and extensibility.
+In this work, 
+we extend these rules
+to a language that supports parametric polymorphism 
+on both classes and functions.
+
+In a multiple-inheritance language 
+in which any type may be extended by types in other modules,
+some overloaded functions that might seem valid 
+are correctly rejected by our rules.
+We explain how these functions can be permitted
+in a language that additionally supports an exclusion relation among types, 
+allowing programmers to declare ``nominal exclusions''
+and also implicitly imposing exclusion 
+among different instances of each polymorphic type.
+We give rules for computing the exclusion relation, 
+deriving many type exclusions from declared and implicit ones.
+
+We also show how to check our rules 
+for ensuring the safety of overloaded functions.
+In particular, 
+we reduce the problem of handling parametric polymorphism 
+to one of determining subtyping relationships 
+among universal and existential types.
+% which can be done without sacrificing modularity or extensibility.
+Our system has been implemented as part of the open-source Fortress compiler.
+
+
+\end{abstract}
+
+\category{D.3.3}{Programming Languages}{Language Constructs and Features---classes and objects, inheritance, modules, packages, polymorphism}
+
+\terms{Languages}
+
+\keywords{object-oriented programming, multiple dispatch, 
+symmetric dispatch, multiple inheritance, overloading, modularity, methods, 
+multimethods, static types, run-time types, ilks, 
+components, separate compilation, Fortress, meet rule}
+
+\section{Introduction}\label{sec:intro}
+A key feature of object-oriented languages is \emph{dynamic dispatch}: 
+there may be multiple definitions of a function (or method) with the same name---%
+we say the function is \emph{overloaded}---%
+and a call to a function of that name is resolved at run time
+based on the ``run-time types''---we use the term \emph{ilks}---of the arguments, 
+using the most specific definition 
+that is applicable to arguments having those particular ilks.
+With \emph{single dispatch}, 
+a particular argument is designated as the \emph{receiver}, 
+and the call is resolved only with respect to that argument.
+With \emph{multiple dispatch}, 
+the ilks of  all arguments to a call are used to resolve the call.
+\emph{Symmetric multiple dispatch} is a special case of multiple dispatch 
+in which all arguments are considered equally when resolving a call.
+
+Multiple dispatch provides a level of expressivity that closely models
+standard mathematical notation.
+In particular, 
+mathematical operators such as $+$ and $\leq$ and $\cup$
+and especially $\cdot$ and $\times$
+have different definitions depending on the ``types'' (or even the number)
+of their operands; 
+in a language with multiple dispatch, 
+it is natural to define these operators as overloaded functions. 
+Similarly, 
+many operations on collections such as \VAR{append} and \VAR{zip} 
+have different definitions 
+depending on the ilks of two or more arguments. 
+%% \TODO{Add (reference to) argument for symmetric multiple dispatch?}
+
+% \TODO{Alternative is to have a shorter intro, 
+% which mostly mimics the abstract, but with a bit more elaboration,
+% and I would probably leave the discussion of our prior work till later.
+% We may want to mention Fortress early as a context for this work.
+% Then have a long ``background'' section 
+% containing the discussion starting from Castagna to Bourdoncle and Merz,
+% and including the discussion of our prior work and former thoughts.}
+
+% To preserve type safety 
+% while incorporating multiple dispatch 
+% into an object-oriented language with a static semantics, 
+% the sets of valid overloaded definitions must be restricted.
+% For example, to avoid ambiguous function calls,
+% we must ensure that for every call site 
+% (knowing only the static types of the arguments),
+% there exists a unique ``best'' function to dispatch to at run time.\footnote{
+% In languages with static overloading, 
+% such as Scala, C\#, and the Java\texttrademark\ programming language 
+% \cite{scala,CSharpSpec,JavaSpec}, 
+% it is possible to simply reject ambiguous call sites of overloaded functions.
+% However, as Millstein and Chambers have observed, 
+% it is impossible to statically forbid ambiguity 
+% in the presence of multiple dynamic dispatch 
+% without imposing constraints at the definition sites of overloaded functions
+% \cite{millstein02,millstein03}.
+% \TODO{Is this true for asymmetric multiple dispatch?}}
+
+%% \TODO{Removing footnote eliminated C\# reference.
+%% Do we need to restore it?}
+
+In an object-oriented language with symmetric multiple dispatch,
+some restrictions must be placed on overloaded function definitions
+to guarantee type safety.
+% and avoid ambiguous function calls.
+% \cite{castagna95,millstein02,millstein03}.
+For example, 
+consider the following overloaded function definitions:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+f(a\COLON \TYP{Object}, b\COLON \mathbb{Z})\COLON \mathbb{Z} = 1 \\
+  f(a\COLON \mathbb{Z}, b\COLON \TYP{Object})\COLON \mathbb{Z} = 2\-
+\end{FortressCode}
+\normalsize
+To which of these definitions ought we dispatch 
+when $f$ is called with two arguments of ilk \EXP{\mathbb{Z}}?
+(We assume that \EXP{\mathbb{Z}} is a subtype of \TYP{Object}, written \EXP{\mathbb{Z} \SHORTCUT{<} \TYP{Object}}.)
+% Note that the ambiguity is inherent in these definitions:
+% there is a real question as to what behavior the programmer intended
+% in this case.  
+
+Castagna \textit{et al.} \cite{castagna95} address this problem 
+in the context of a type system 
+without parametric polymorphism or multiple inheritance
+by requiring every pair of overloaded function definitions 
+to satisfy the following properties:
+(\emph{i}) whenever the domain type%
+\footnote{The ``domain type'' of a function definition is the type of its
+parameter. Hereafter we consider every function to have a single parameter;
+the appearance of multiple parameters denotes a single tuple parameter.}
+of one 
+is a subtype of the domain type of the other, 
+the return type of the first
+must also be a subtype of the return type of the second; 
+and 
+(\emph{ii}) whenever the domain types of the two definitions 
+have a common lower bound (i.e., a common nontrivial%
+\footnote{A type is a nontrivial subtype of another type if it is not the
+trivial ``bottom'' type defined in the next section.}
+ subtype), 
+there is a unique definition for the same function 
+whose domain type is the greatest lower bound 
+of the domain types of the two definitions.
+Thus, 
+to satisfy the latter property for the example above, 
+the programmer must provide a third definition, such as:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+f(a\COLON \mathbb{Z}, b\COLON \mathbb{Z})\COLON \mathbb{Z} = 3\-
+\end{FortressCode}
+\normalsize
+
+We call this latter property the \emph{Meet Rule} 
+because it is equivalent to requiring
+that the definitions for each overloaded function form a meet semilattice 
+partially ordered by the subtype relation on their domain types, 
+which we call the \emph{more specific than} relation.\!\footnote{%
+Despite its name,
+this relation, like the subtype relation, is reflexive: 
+two function definitions with the same domain type 
+are each more specific than the other.
+In that case, we say the definitions are equally specific.}
+The Meet Rule guarantees 
+that there are no ambiguous function calls at run time.
+
+We call the first property above the \emph{Return Type Rule}
+(or \emph{Subtype Rule}).
+It ensures type preservation 
+% when the most specific function definition dynamically applicable to the arguments 
+% (i.e., based on their ilks) 
+% is more specific than the most specific definition statically applicable
+% (i.e., based on the types of the expressions).
+when a function call is resolved at run time 
+(based on the ilks of the argument values) 
+to a different (and more specific) definition 
+than the most specific one that could be determined at compile time 
+(based on the types of the argument expressions).
+
+In this paper, 
+we give new Meet and Return Type Rules 
+that ensure safe overloaded functions 
+in a language that supports symmetric multiple dispatch, 
+multiple inheritance, 
+and parametric polymorphism for both types and functions
+(i.e., generic types and generic functions), 
+as does the Fortress language we are developing \cite{Fortress}.
+We prove that these rules guarantee type safety.
+% (see Section~\ref{sec:safety}).
+This extends previous work \cite{allen07} 
+in which we gave analogous rules, 
+and proved the analogous result,
+for a core of Fortress that does not support generics.
+
+%% \TODO{Move next several paragraphs into a background section?}
+
+% \subsection{Interpretation of Generic Function Declarations}
+
+To handle parametric polymorphism,
+it is helpful to have an intuitive interpretation for generic types and functions.
+One way to think about a generic type such as \EXP{\TYP{List}\llbracket{}T\rrbracket}
+(a list with elements of type \VAR{T}---type parameter lists 
+in Fortress are delimited by white square brackets) 
+is that it represents an infinite set of ground types: 
+\EXP{\TYP{List}\llbracket\TYP{Object}\rrbracket} (lists of objects),
+\EXP{\TYP{List}\llbracket\TYP{String}\rrbracket} (lists of strings), 
+\EXP{\TYP{List}\llbracket\mathbb{Z}\rrbracket} (lists of integers), 
+and so on.
+An actual type checker must have rules 
+for working with uninstantiated (non-ground) generic types, 
+but for many purposes this model of ``an infinite set of ground types'' 
+is adequate for explanatory purposes.
+Not so, however, for generic functions.  
+
+For some time during the development of Fortress, 
+%% one of us (Steele) pushed for 
+we considered 
+an interpretation of generic functions
+analogous to the one above for generic types;
+that is, 
+the generic function definition:\footnote{%
+The first pair of white square brackets 
+delimits the type parameter declarations, 
+but the other pairs of white brackets 
+provide the type arguments to the generic type \TYP{List}.}
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{tail}\llbracket{}X\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}X\rrbracket\bigr)\COLON \TYP{List}\llbracket{}X\rrbracket = e\-
+\end{FortressCode}
+\normalsize
+should be understood as if it denoted an infinite set of monomorphic definitions:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{tail}\bigl(x\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket\bigr)\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket = e \\
+  \VAR{tail}\bigl(x\COLON \TYP{List}\llbracket\TYP{String}\rrbracket\bigr)\COLON \TYP{List}\llbracket\TYP{String}\rrbracket = e \\
+  \VAR{tail}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket = e \\
+  \ldots\-
+\end{FortressCode}
+\normalsize
+The intuition was that for any specific function call,
+the usual rule for dispatch would then choose 
+the appropriate most specific definition 
+for this (infinitely) overloaded function.
+
+Although that intuition worked well enough 
+for a single polymorphic function definition,
+it failed utterly when we considered multiple function definitions.
+For example, 
+a programmer might want to provide definitions 
+for specific monomorphic special cases, as in:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{tail}\llbracket{}X\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}X\rrbracket\bigr)\COLON \TYP{List}\llbracket{}X\rrbracket = e_1 \\
+  \VAR{tail}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket = e_3\-
+\end{FortressCode}
+\normalsize
+If the interpretation above is taken seriously, 
+this would be equivalent to:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{tail}\bigl(x\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket\bigr)\COLON \TYP{List}\llbracket\TYP{Object}\rrbracket = e_1 \\
+  \VAR{tail}\bigl(x\COLON \TYP{List}\llbracket\TYP{String}\rrbracket\bigr)\COLON \TYP{List}\llbracket\TYP{String}\rrbracket = e_1 \\
+  \VAR{tail}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket = e_1 \\
+  \ldots \\
+  \VAR{tail}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket = e_3\-
+\end{FortressCode}
+\normalsize
+which is ambiguous for calls in which the argument is of type \EXP{\TYP{List}\llbracket\mathbb{Z}\rrbracket}.
+
+It gets worse if the programmer wishes to handle an infinite set of cases specially.  
+It would seem natural to write:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{tail}\llbracket{}X\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}X\rrbracket\bigr)\COLON \TYP{List}\llbracket{}X\rrbracket = e_1 \\
+  \VAR{tail}\llbracket{}X \SHORTCUT{<} \TYP{Number}\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}X\rrbracket\bigr)\COLON \TYP{List}\llbracket{}X\rrbracket = e_2\-
+\end{FortressCode}
+\normalsize
+to handle specially all cases where \VAR{X} is a subtype of \TYP{Number}.
+But the model would regard this as an overloaded function
+with an infinite number of ambiguities.
+
+It does not suffice to  ``break ties''
+by choosing the instantiation of the more specific generic definition.
+Consider the following overloaded definitions:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{quux}\llbracket{}X\rrbracket(x\COLON X)\COLON \mathbb{Z} = 1 \\
+  \VAR{quux}(x\COLON \mathbb{Z})\COLON \mathbb{Z} = 2\-
+\end{FortressCode}
+\normalsize
+Intuitively, we might expect that
+the call \EXP{\VAR{quux}(x)} evaluates to 2 whenever the ilk of $x$ is a subtype of \EXP{\mathbb{Z}},
+and to~1 otherwise.
+However,
+under the ``infinite set of monomorphic definitions'' interpretation,
+the call \EXP{\VAR{quux}(x)} when $x$ has type \EXP{\mathbb{N} \SHORTCUT{<} \mathbb{Z}} would evaluate to 1
+because the most specific monomorphic definition
+would be the the instantiation of the generic definition with \EXP{\mathbb{N}}.
+
+
+It is not even always obvious 
+which function definition is the most specific one 
+applicable to a particular call
+in the presence of overloaded generic functions: 
+the overloaded definitions might have not only distinct argument types, 
+but also distinct type parameters 
+(even different numbers of type parameters), 
+so the type values of these parameters 
+make sense only in distinct type environments. 
+For example, 
+consider the following overloaded function definitions:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{foo}\llbracket{}X \SHORTCUT{<} \TYP{Object}\rrbracket(x\COLON X, y\COLON \TYP{Object})\COLON \mathbb{Z} = 1 \\
+  \VAR{foo}\llbracket{}Y \SHORTCUT{<} \TYP{Number}\rrbracket(x\COLON \TYP{Number}, y\COLON Y)\COLON \mathbb{Z} = 2\-
+\end{FortressCode}
+\normalsize
+The type parameter of the first definition
+denotes the type of the first argument, 
+and the type parameter of the second definition 
+denotes the type of the second argument;
+they bear no relation to each other.
+How should we compare such function definitions 
+to determine which is the best to dispatch to?
+How can we ensure that there even is a best one in all cases?
+%% \TODO{Eliminate rest of this paragraph?}
+%% Furthermore, the rules must be compatible with type inference, 
+%% since instantiation of type parameters at a call site 
+%% is typically done automatically.
+%% So even determining which definitions are applicable 
+%% to a particular call is not always obvious.
+
+% For example, 
+% consider the following overloaded function definitions:
+
+% \small
+%   combine[\T\](xs: List[\T\], ys: List[\T\]): List[\T\]
+%   combine[\S,T\](s: Table[\S,T\], t: Table[\S,T\]): Table[\S,T\]
+% \normalsize
+% The first definition has a single type parameter \VAR{T}
+% denoting the types of the elements of the two list arguments $xs$ and $ys$.
+% The second definition has two type parameters 
+% corresponding to the domains and ranges of the two table arguments $s$ and $t$.
+% But the type parameter of the first definition 
+% bears no relation to the type parameters of the second.
+
+Under the ``infinite set of monomorphic definitions'' interpretation, 
+these definitions would be equivalent to:
+
+\small\begin{FortressCode}
+{\tt ~~}\+\VAR{foo}(x\COLON \TYP{Object}, y\COLON \TYP{Object})\COLON \mathbb{Z} = 1 \\
+  \VAR{foo}(x\COLON \TYP{Number}, y\COLON \TYP{Object})\COLON \mathbb{Z} = 1 \\
+  \VAR{foo}(x\COLON \mathbb{Z}, y\COLON \TYP{Object})\COLON \mathbb{Z} = 1 \\
+  \ldots \\
+  \VAR{foo}(x\COLON \TYP{Number}, y\COLON \TYP{Number})\COLON \mathbb{Z} = 2 \\
+  \VAR{foo}(x\COLON \TYP{Number}, y\COLON \mathbb{Z})\COLON \mathbb{Z} = 2 \\
+  \ldots\-
+\end{FortressCode}
+\normalsize
+When \VAR{foo} is called on two arguments of type \EXP{\mathbb{Z}}, 
+both \EXP{\VAR{foo}(x\COLON \mathbb{Z}, y\COLON \TYP{Object})} and \EXP{\VAR{foo}(x\COLON \TYP{Number}, y\COLON \mathbb{Z})} are applicable
+(assuming \EXP{\mathbb{Z} \SHORTCUT{<} \TYP{Number} \SHORTCUT{<} \TYP{Object}}).
+Neither is more specific than the other,
+and moreover no definition of
+\EXP{\VAR{foo}(x\COLON \mathbb{Z}, y\COLON \mathbb{Z})}
+% $\VAR{foo}(x\!: \mathbb{Z}, y\!: \mathbb{Z})$
+% $\mathit{foo}(x:\mathbb{Z}, y:\mathbb{Z})$
+has been
+supplied to satisfy the Meet Rule, so this overloading is ambiguous.
+
+
+%% Two authors of this paper (Hilburn and Kilpatrick) 
+We propose to avoid such ambiguities 
+by adopting an alternate model for generic functions, 
+similar to one proposed by Bourdoncle and Merz~\cite{bourdoncle97},
+in which each function definition 
+is regarded not as an infinite set of definitions, but rather
+as a single definition whose domain type is
+existentially quantified over its type parameters.
+(A monomorphic definition is then regarded as a degenerate generic definition.)
+In this model, 
+overloaded function definitions are (partially) ordered 
+by the subtype relation on existential types.
+Adapting dispatch and the Meet Rule to use this new partial order is straightforward.
+Adapting the Return Type Rule is somewhat more complicated, 
+but checking it reduces to checking subtyping relationships 
+between universal types.
+Adopting this model has made overloaded generic functions in Fortress
+both tractable and effective.
+In particular, the overloading of \VAR{foo} just shown is permitted and
+is not ambiguous, because under this interpretation the second definition
+is more specific than the first.
+
+% \subsection{Modularity and Exclusion}
+
+In providing rules to ensure 
+that any valid set of overloaded function definitions 
+guarantees that there is always a unique function to call at run time, 
+we strive to be maximally permissive: 
+A set of overloaded definitions should be disallowed 
+only if it permits ambiguity
+that cannot be resolved at run time.  
+Unfortunately, this goal is in tension with another requirement, 
+to support modularity and extensibility.
+In particular, 
+we assume the program will be composed of several modules, 
+and that types defined in one module 
+may be extended by types defined in other modules.
+We want to be able to check the rules separately for each module, 
+and not have to recheck a module 
+when some other module extends its types.
+
+% In our prior work on Fortress without generics~\cite{allen07},
+% we showed that we could check the overloading rules in a modular way
+% so that the type hierarchy could be extended safely by new modules 
+% without rechecking old modules.
+
+The difficulty is due to multiple inheritance: 
+Because the type hierarchy defined by a module may be extended 
+by types in other modules, 
+two types may have a common nontrivial subtype 
+even if no type declared in this module 
+% (or in any module it extends) 
+extends them both.
+Thus,
+for any pair of overloaded function definitions with incomparable domain types
+(i.e., neither definition is more specific than the other),
+the Meet Rule requires some other definition to resolve the potential ambiguity.
+Because explicit intersection types cannot be expressed in Fortress, 
+it is not always possible to provide such a function definition.
+
+Consider, for example, the following overloaded function definitions:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{print}(s\COLON \TYP{String})\COLON(\ultrathin)  \\
+  \VAR{print}(i\COLON \mathbb{Z})\COLON(\ultrathin)\-
+\end{FortressCode}
+\normalsize
+Although this overloading may seem intuitively to be valid,
+in a multiple-inheritance type system 
+that allows any type to be extended by some other module, 
+one could define a type \TYP{StringAndInteger} 
+that extends both \TYP{String} and \EXP{\mathbb{Z}}.
+In that case,
+a call to \VAR{print} with an argument of type \TYP{StringAndInteger} 
+would be ambiguous.
+Thus, this overloading must be rejected by our overloading rules.
+
+To address this problem,
+Fortress enables programmers to declare ``nominal exclusion'', 
+restricting how type constructors may be extended, 
+and uses this to derive an \emph{exclusion relation} on types.
+Types related by exclusion must not have any nontrivial subtype in common.
+Many languages enforce and exploit exclusion implicitly. 
+For example, single inheritance ensures that
+incomparable types exclude each other. 
+If the domains of two overloaded function definitions exclude each other, 
+then these definitions can never both be applicable to the same call,
+so no ambiguity can arise between them.
+In the example above,
+if \TYP{String} and \EXP{\mathbb{Z}} exclude each other,\!\footnote{
+Indeed, \TYP{String} and \EXP{\mathbb{Z}} \emph{are} declared to exclude
+each other in the Fortress standard library.}
+then the overloaded definitions of \VAR{print} above are valid.
+
+We already exploited exclusion 
+in our prior work on Fortress without generics, 
+but the constructs Fortress provides for explicitly declaring exclusion 
+are insufficient for allowing 
+some intuitively appealing overloaded functions involving generic types.
+In particular, 
+we could not guarantee type safety 
+when a type extends multiple instantiations of a generic type.
+Implicitly forbidding such extension---%
+a property we call \emph{multiple instantiation exclusion}---%
+allows these intuitively appealing overloaded functions.
+
+
+% In Section~\ref{sec:exclusion},
+% we formalize this 
+% and we show how the exclusion relation is used 
+% to improve expressivity 
+% by accommodating overloadings that would otherwise be rejected.
+% The proof of safety in Section~\ref{sec:safety} 
+% covers the rules under this extended type system.
+
+
+% Nonetheless, 
+% we show in Section~\ref{sec:problems} 
+% that some seemingly valid sets of overloaded functions are rejected by our rules, 
+% and rightly so: 
+% although intuitively appealing, 
+% these overloaded functions admit ambiguous calls.
+
+% Many of these overloaded functions can, 
+% and we believe should, 
+% be allowed 
+% if the type system supports an \emph{exclusion relation},
+% which asserts that two types have no common instances.
+
+%% \TODO{Remove following paragraph (put in next section)? Repeated phrase ``minimize syntactic overhead.''}
+
+%% To minimize syntactic overhead 
+%% and to avoid needing to translate 
+%% between a concrete language syntax 
+%% and a formal semantics, 
+%% we present these rules (see Section~\ref{sec:rules}) 
+%% in the context of a straightforward formalization 
+%% of a type system supporting multiple inheritance 
+%% and parametric polymorphism, 
+%% which we define in Section~\ref{sec:pre}.
+
+
+% The remainder of this paper is organized thus:
+% In Section~\ref{sec:pre}, we define the concepts and notation necessary
+% to explain our formal rules for checking overloaded function definitions,
+% which we present using universal and existential types in Section~\ref{sec:rules}.
+% In Section~\ref{sec:problems}, 
+% we explain why some apparently valid overloadings
+% are (correctly) rejected by our rules 
+% and why a multiple-inheritance language
+% should include features for ``nominal exclusion'' (as Fortress does)
+% to improve expressiveness and accommodate such overloadings.
+% In Section~\ref{sec:exclusion}, we formalize the exclusion
+% relation and use it to extend the overloading rules of Section~\ref{sec:rules}.
+% %use it to augment the subtyping relation for universal and existential types.
+% Section~\ref{sec:safety} explains that the overloading rules are
+% sufficient to guarantee no undefined or ambiguous calls at run time.
+% In Section~\ref{sec:discussion}, we discuss type inference and modularity.
+% We discuss related work in Section~\ref{sec:related} and
+% conclude in Section~\ref{sec:conclusion}.
+
+
+
+\section{Preliminaries}\label{sec:pre}
+In this section, 
+we describe the standard parts of the type system 
+we consider in this paper, 
+and establish terminology and notation 
+for entities in this system.
+To minimize the syntactic overhead, 
+we avoid introducing a new language 
+and instead give a straightforward formalization of the type system.
+Novel parts of the type system, 
+including the rules for type checking overloaded function declarations, 
+are described in later sections.
+
+\subsection{Types}
+
+Following Kennedy and Pierce \cite{kennedy07},
+we define a world of types ranged over by metavariables $S$, $T$, $U$, $V$, and $W$. 
+% Types are of four forms: 
+% \emph{type variables} 
+% (ranged over by metavariables $X$, $Y$, and $Z$);
+% \emph{constructed types} 
+% (ranged over by metavariables $K$, $L$, $M$ and $N$), 
+% written \EXP{C\llbracket\bar{T}\rrbracket} 
+% where \VAR{C} is a type constructor 
+% and \EXP{\bar{T}} is a list of types; 
+% \emph{structural types},
+% consisting of arrow and tuple types;
+% and \emph{compound types},
+% consisting of intersection and union types. 
+% In addition, 
+% there are two special constructed types, \Any\ and \Bottom, explained below.
+Types are of five forms:
+\emph{type variables} (ranged over by metavariables $X$, $Y$, and $Z$);
+\emph{constructed types} (ranged over by metavariables $K$, $L$, $M$ and $N$), 
+consisting of the special constructed type \Any\ 
+and type constructor applications, 
+written \EXP{C\llbracket\bar{T}\rrbracket}, 
+where \VAR{C} is a type constructor 
+and \EXP{\bar{T}} is a list of types;
+\emph{structural types},
+consisting of arrow types and tuple types;
+\emph{compound types}, 
+consisting of intersection types and union types;
+and the special type \Bottom, 
+which represents the uninhabited type 
+(i.e., no value belongs to \Bottom).
+The abstract syntax of types is defined as follows
+(where $\bar{\emph{A}}$ indicates 
+a possibly empty comma-separated sequence of syntactic elements $\emph{A}$):
+\[
+\begin{array}{@{}l@{\;}l@{\;}l@{\;\;\;\;\;\;}l@{}}
+\emph{T} &::=& \emph{X} & \hbox{\rm type variable}\\
+&\mid& \Any \\
+&\mid& \emph{C}\llbracket\bar{\emph{T}}\rrbracket & \hbox{\rm type constructor application}\\
+&\mid& \emph{T} \rightarrow \emph{T} & \hbox{\rm arrow type}\\
+&\mid& ( \bar{\emph{T}} ) & \hbox{\rm tuple type}\\
+&\mid& \emph{T} \cap \emph{T} & \hbox{\rm intersection type}\\
+&\mid& \emph{T} \cup \emph{T} & \hbox{\rm union type}\\
+&\mid& \Bottom \\
+\end{array}
+\]
+
+A type may have multiple syntactic forms.\!\footnote{We abuse terminology 
+by not distinguishing type terms and types.}
+In particular,
+a tuple type of length one is synonymous with its element type, 
+and a tuple type with any \Bottom\ element 
+is synonymous with \Bottom.
+In addition, 
+any types that are provably equivalent as defined below 
+are also synonymous.
+
+As in Fortress, 
+compound types---intersection and union types---and \Bottom\ 
+are \emph{not} first-class:
+these forms of types cannot be written in a program; 
+rather, they are used by the type analyzer during type checking.
+For example, type variables may have multiple bounds, 
+so that any valid instantiation of such a variable
+must be a subtype of the intersection of its bounds.
+
+Type checking is done in the context of a \emph{class table} $\T$, 
+which is a set of type constructor declarations 
+(at most one declaration for each type constructor) 
+of the following form:
+\[
+C\tplist{X}{M} \extends \{\bar{N}\}
+\]
+where the only type variables that appear in $\bar{\bar{M}}$ and $\bar{N}$ 
+are those in $\bar{X}$.
+This declares the type constructor $C$, 
+and each $X_i$ is a \emph{type parameter} of $C$ 
+with \emph{bounds} $\bar{M_i}$.
+As usual for languages with nominal subtyping, 
+we allow recursive and mutually recursive references in $\T$ 
+(i.e., a type constructor can be mentioned 
+in the bounds and supertypes of its own and other type constructors' declarations).
+We say that $C$ \emph{extends} a type constructor $D$ 
+if $N_i = D\obb{T}$ for some $N_i$ and $\bar{T}$.
+A class table is \emph{well-formed} 
+if every type that appears in it is well-formed,
+as defined below, 
+and the extends relation over type constructors is acyclic.
+
+%% \TODO{Mention that given our restricted setting (i.e., no mixins), 
+%% the above definition (for well-formedness of class tables) 
+%% is equivalent to the one in Kennedy and Pierce?  
+%% (The one we had before was too weak: 
+%% see comment in source file for example.)}
+
+% A class table $\T$ is \emph{well-formed} if the resulting subtyping relation 
+% on its constructed types is a partial order.
+
+% Victor: This definition permits the following class table, which we want to disallow:
+%  A[\X\]
+%  B[\Y\] <: C[\A[\Y\]\]
+%  C[\Z\] <: B[\A[\Z\]\]
+
+The type constructor declaration above 
+specifies that the constructed type $C\obb{U}$ 
+(\emph{i}) is \emph{well-formed} (with respect to $\T$)
+if and only if $|\bar{U}| = |\bar{X}|$ and
+$U_i \subtypeof \substb{U}{X}M_{ij}$ 
+% for each bound $M_{ij}$
+for $1 \leq i \leq |\bar{U}|$ and $1 \leq j \leq |\bar{M_i}|$ 
+(where $\subtypeof$ is the subtyping relation defined below, 
+and $\substb{U}{X}M_{ij}$ is $M_{ij}$ 
+with $U_k$ substituted 
+for each occurrence of $X_k$ in $M_{ij}$ 
+for $1 \leq k \leq |\bar{U}|$);
+and 
+(\emph{ii}) is a subtype of $\substb{U}{X}N_l$ for $1 \leq l \leq |\bar{N}|$.
+The class table induces 
+a (nominal) \emph{subtyping relation} $\subtypeof$ over the constructed types 
+by taking the reflexive and transitive closure 
+of the subtyping relation derived from the declarations in the class table.
+In addition, 
+% \Any\ and \Bottom\ are well-formed with respect to any class table, and 
+every type is a subtype of \Any\ and a supertype of \Bottom.
+
+We say that a type $T$ (of any form) is \emph{well-formed} 
+with respect to $\T$, 
+and write $T \in \T$, 
+if every constructed type occurring in $T$ is well-formed with respect to $\T$.
+%% \TODO{Should this be restricted to ground types?}
+Typically, the class table is fixed and implicit, 
+and we assume it is well-formed 
+and often omit explicit reference to it.
+
+Given % a class table with 
+the type constructor declaration above, 
+we denote the set of explicitly declared supertypes 
+of the constructed type $C\obb{T}$ by:
+\[
+\myextends{C\obb{T}} = \{ \bar{\substb{T}{X}N} \}
+\]
+and the set of \emph{ancestors} of $C\obb{T}$ 
+(defined recursively) by:
+\[
+\ancestors(C\obb{T}) 
+   = \{C\obb{T}\} \cup 
+     \hspace*{-4ex} \bigcup_{M \in \myextends{C\obb{T}}} \hspace{-4ex} \ancestors(M).
+\]
+
+To reduce clutter, 
+nullary applications are written without brackets; 
+for example, \EXP{C\llbracket\,\rrbracket} is written \VAR{C}. 
+We also elide the braces delimiting 
+a singleton list of either bounds of a type parameter 
+or supertypes of a class in a type constructor declaration.
+
+We extend the subtyping relation to
+structural and compound types in the usual way:
+Arrow types are contravariant in their domain types 
+and covariant in their return types. 
+% (i.e., $\arrowtype{S}{T} \subtypeof \arrowtype{U}{V}$
+% if and only if $U \subtypeof S$ and $T \subtypeof V$).
+One tuple type is a subtype of another 
+if and only if they have the same number of elements, 
+and each element of the first is a subtype of the corresponding element of the other. 
+% (i.e., $( \tuple{\bar{S}} ) \subtypeof ( \tuple{\bar{T}} )$
+% if and only if $|\bar{S}| = |\bar{T}|$
+% and $S_i \subtypeof T_i$ for all $1 \leq i \leq |\bar{S}|$).
+An intersection type is the most general type 
+that is a subtype of each of its element types, 
+and a union type is the most specific type 
+that is a supertype of each of its element types.
+% An intersection type is by definition 
+% the most general type that is a subtype of each of its element types: 
+% $(A \cap B) <: A$, $(A \cap B) <: B$, and for all types $T$,
+% if $T <: A$ and $T <: B$ then $T <: (A \cap B)$.
+% Similarly, a union type is by definition 
+% the most specific type that is a supertype of each of its element types: 
+% $A <: (A \cup B)$, $B <: (A \cup B)$, and for all types $T$,
+% if $A <: T$ and $B <: T$ then $(A \cup B) <: T$.
+
+To extend the subtyping relation to type variables,
+we require  a \emph{type environment}, 
+which maps type variables to bounds:
+\[
+\Delta = \bds{X}{M}
+\]
+In the context of $\Delta$, 
+each type variable $X_i$ is a subtype of each of its bounds $M_{ij}$.
+Note that the type variables $X_i$ may appear within the bounds $M_{ij}$.
+We write $\jgsub{S}{T}$ 
+to indicate the judgment that $S$ is a subtype of $T$ 
+in the context of $\Delta$.
+When $\Delta$ is empty, 
+we write this judgment simply as $S \subtypeof T$.
+And we say that the types $S$ and $T$ are \emph{equivalent},
+written $S \equiv T$, 
+when $S \subtypeof T$ and $T \subtypeof S$.
+
+Henceforth, 
+given a type environment, 
+we consider only types whose (free) type variables 
+are bound in the type environment.
+Because our type language does not involve any type variable binding---%
+type variables are bound only by generic type constructor or function
+declarations---%
+the set of free type variables of $T$, written $\FV(T)$, is defined as
+the set of all type variables syntactically occurring within $T$.
+
+
+%% \TODO{Mention that we only support invariant parameters for now?}
+
+%% \TODO{Give class table with declarations for \EXP{\mathbb{Z}}, \TYP{String}, \TYP{List} and \TYP{ArrayList}.}
+
+\subsection{Extensibility}
+
+To enable modular type checking and compilation, 
+we do not assume that the class table is complete;
+there might be declarations yet unknown.
+Specifically, 
+we cannot infer that two constructed types 
+have no common constructed subtype 
+from the lack of any such type in the class table.
+However, we do assume that each declaration is complete, 
+% and furthermore, 
+% that any type constructor used in the class table 
+% (e.g., in a bound or a supertype of another declaration)
+% is declared in the table, 
+so that all the supertypes of a constructed type 
+are known.
+
+A class table $\T'$ is an \emph{extension} of $\T$ (written $\T' \ctext \T$)
+if every declaration in $\T$ is also in $\T'$.
+From this, 
+it follows that 
+for any well-formed extension $\T'$ of a well-formed class table $\T$, 
+any type that is well-formed with respect to $\T$ 
+is well-formed with respect to $\T'$ 
+and the subtyping relation on $\T'$ agrees with that of $\T$. 
+That is, 
+$T \in \T$ implies $T \in \T'$, 
+and $T \subtypeof U$ in $\T$ implies $T \subtypeof U$ in $\T'$.
+
+%% \TODO{Expand on this?}
+
+
+\subsection{Values and Ilks}
+
+Types are intended to describe the values that might be produced by
+an expression or passed into a function.
+In Fortress, for example, there are three kinds of values: 
+objects, functions, and tuples;
+every object belongs to at least one constructed type,
+every function belongs to at least one arrow type,
+and every tuple belongs to at least one tuple type.
+We say that two types \VAR{T} and \VAR{U} have \emph{the same extent}
+if every value \VAR{v} belongs to \VAR{T} if and only if \VAR{v} belongs to \VAR{U}.
+No value belongs to \Bottom.
+
+We place a requirement on values and on the type system that describes them: 
+Although a value may belong to more than one type, 
+every value \VAR{v} belongs to a unique type \EXP{\VAR{ilk}(v)} 
+(the \emph{ilk} of the value) 
+that is \emph{representable in the type system}\footnote{The
+type system presented here satisfies this requirement 
+simply by providing intersection types.  
+%% Fortress satisfies it in another way as well, 
+%% which is typical of object-oriented languages: 
+%% every object is created as an instance of a single nominal constructed type, 
+%% and this type is its ilk.
+%% \TODO{This doesn't show that functions have ilks.
+%% And indeed, if generic functions were values, 
+%% we would need to extend the type system to include express their ilks.
+%% However, as long as generic functions aren't values, 
+%% we can represent the ilk of a function 
+%% by the intersection of arrow types.}
+} 
+and has the property that for every type \VAR{T}, 
+if \VAR{v} belongs to \VAR{T} then \EXP{\VAR{ilk}(v) \SHORTCUT{<} T}.
+% moreover, \EXP{\VAR{ilk}(v) \neq \TYP{Bottom}}.  
+(This notion of \VAR{ilk} corresponds to what is sometimes called the
+``class'' or ``run-time type'' of the value.\footnote{%
+We prefer the term ``ilk'' to ``run-time type'' 
+because the notion---and usefulness---of 
+the most specific type to which a value belongs 
+is not confined to run time.
+We prefer it to the term ``class,'' 
+which is used in {\it The Java Language Specification}~\cite{JavaSpec}, 
+because not every language uses the term ``class'' 
+or requires that every value belong to a class.  
+For those who like acronyms, 
+we offer the mnemonic retronyms 
+``implementation-level kind'' 
+and ``intrinsically least kind.''})
+
+The implementation significance of ilks is that it is possible to
+select the dynamically most specific applicable function
+from an overload set using only the ilks of the argument values; no
+other information about the arguments is needed.
+%% \TODO{Context could be relevant.
+%% We use return type rule to ensure it's not.
+%% So perhaps this paragraph should really be expressing a desideratum:
+%% we want a system in which it is possible to select 
+%% the dynamically most specific applicable function 
+%% based only on the ilks.}
+
+In a safe type system,
+if an expression is determined by the type system to have type \VAR{T}, 
+then every value computed by the expression at run time
+will belong to type \VAR{T}; 
+moreover, 
+whenever a function whose ilk is \EXP{U\rightarrow{}V} is applied to an argument value,
+then the argument value must belong to type \VAR{U}.
+
+
+\subsection{Generic Function Declarations}
+\label{terms}
+
+%% \TODO{Make consistent use of ``declarations'' vs.\ ``definitions''.}
+
+A function declaration (for a class table) 
+consists of 
+a name, 
+a sequence of type parameter declarations 
+(enclosed in white square brackets), 
+a type indicating the domain of the function, 
+and a type indicating the codomain of the function
+(i.e., the return type).  
+A type parameter declaration consists of
+a type parameter name and its bounds.
+% The abstract syntax of function declarations is as follows:
+% \[
+% \begin{array}{lll}
+% \emph{Decl} &::=& 
+% %\emph{Id}\llbracket\bar{\emph{Id}}\SHORTCUT{<}\bar{\emph{Type}}\rrbracket \emph{Type} \COLON \emph{Type}\\
+% \declg{\textit{Id}}{\textit{Id}}{\textit{Type}}{\textit{Type}}{\textit{Type}}  \\
+% &\mid& 
+% %\emph{Id}\ \emph{Type} \COLON \emph{Type}\\
+% \decl{\textit{Id}}{\textit{Type}}{\textit{Type}}
+% \end{array}
+% \]
+
+For example, in the following function declaration:
+
+\begin{FortressCode}
+{\tt ~~}\+f\llbracket{}X \SHORTCUT{<} M, Y \SHORTCUT{<} N\rrbracket\bigl(\TYP{List}\llbracket{}X\rrbracket, \TYP{Tree}\llbracket{}Y\rrbracket\bigr)\COLON \TYP{Map}\llbracket{}X, Y\rrbracket\-
+\end{FortressCode}
+the name of the function is \VAR{f}, 
+the type parameter declarations are \EXP{X \SHORTCUT{<} M} and \EXP{Y \SHORTCUT{<} N}, 
+the domain type is the tuple type \EXP{\bigl(\TYP{List}\llbracket{}X\rrbracket, \TYP{Tree}\llbracket{}Y\rrbracket\bigr)}, 
+and the return type is \EXP{\TYP{Map}\llbracket{}X, Y\rrbracket}.
+We abbreviate a function declaration as \hdeclg{f}{\Delta}{S}{T} 
+when we do not want to emphasize the bounds.
+% (we are abusing notation by letting
+% $\Delta$ range over both type environments and bounds definitions).
+To reduce clutter,
+we omit the white square brackets of a declaration 
+when the sequence of type parameter declarations is empty, 
+and elide braces around singleton lists of bounds.
+% \TODO{Mention that a monomorphic function declaration
+% is just a degenerate generic one.}
+
+A function declaration $d = \declg{f}{X}{N}{S}{T}$
+may be \emph{instantiated} with type arguments $\bar{W}$ 
+if $|\bar{W}| = |\bar{X}|$ 
+and $W_i \subtypeof \substb{W}{X} N_{ij}$ for all $i$ and $j$;
+we call $\substb{W}{X} \decl{f}{S}{T}$
+the \emph{instantiation} of $d$ with $\bar{W}$. 
+When we do not care about $\bar{W}$, 
+we just say that $\decl{f}{U}{V}$
+is an \emph{instance} of $d$ 
+(and it is understood that $U=\substb{W}{X}S$
+and $V=\substb{W}{X}T$ for some $\bar{W}$).
+%
+We use the metavariable $\D$ 
+to range over finite collections of sets of function declarations 
+and $\Df$ for the subset of $\D$ 
+that contains all declarations of name $f$.
+
+An instance \decl{f}{U}{V} of a declaration $d$ 
+is \emph{applicable} to a type $T$ 
+if and only if $T \subtypeof U$.
+A function declaration is \emph{applicable} to a type 
+if and only if at least one of its instances is.
+%
+For any type $T$, the set $\Df(T)$ contains precisely those declarations
+in $\Df$ that are applicable to $T$.
+%
+% When we restrict analysis of overloaded functions $\Df$ to those
+% applicable to a type $T$, we write this subset as $\Df(T)$.
+
+
+%% \begin{figure}
+%%   \begin{minipage}{.462\textwidth}
+    
+%%   \fbox{\textbf{Type equivalence reduction:} \quad \jtred{\Delta}{T}{T}}
+%%   \TODO{rules for flattening/distributing $\cap, \cup$}
+%%   \TODO{is subtype/exclusion judgment in premises ok?}
+  
+%%   % INTERSECTION
+%%   \infrule
+%%     {\jgsub{\Delta}{T}{U}}
+%%     {\jtred{\Delta}{T \cap U}{T}}
+%%   \infrule
+%%     {\jgsub{\Delta}{U}{T}}
+%%     {\jtred{\Delta}{T \cap U}{U}}
+%%   \infrule
+%%     {\jexc{\Delta}{T}{U}}
+%%     {\jtred{\Delta}{T \cap U}{\TYP{Bottom}}}
+  
+%%   % UNION
+%%   \infrule
+%%     {\jgsub{\Delta}{T}{U}}
+%%     {\jtred{\Delta}{T \cup U}{U}}
+%%   \infrule
+%%     {\jgsub{\Delta}{U}{T}}
+%%     {\jtred{\Delta}{T \cup U}{T}}
+  
+%%   % ARROW
+%%   % \infrule
+%%   %   {\jtred{\Delta}{T}{T'}}
+%%   %   {\jtred{\Delta}{T \rightarrow U}{T' \rightarrow U}}
+%%   % \infrule
+%%   %   {\jtred{\Delta}{U}{U'}}
+%%   %   {\jtred{\Delta}{T \rightarrow U}{T \rightarrow U'}}
+  
+%%   % TUPLE
+%%   % \infrule
+%%   %   {\jtred{\Delta}{T_i}{T_i'}}
+%%   %   {\jtred{\Delta}{(T_1, \ldots, T_i, \ldots, T_n)}{(T_1, \ldots, T_i', \ldots, T_n)}}
+%%   \infrule
+%%     {T_i = \TYP{Bottom}}
+%%     {\jtred{\Delta}{(T_1, \ldots, T_i, \ldots, T_n)}{\TYP{Bottom}}}
+  
+%%   % CONSTRUCTED
+%%   % \infrule
+%%   %   {\jtred{\Delta}{T_i}{T_i'}}
+%%   %   {\jtred{\Delta}{C\ob{T_1, \ldots, T_i, \ldots, T_n}}{C\ob{T_1, \ldots, T_i', \ldots, T_n}}}
+  
+%%   % VARIABLE
+%%   \TODO{should be a subtype judgment instead?}
+%%   \infrule
+%%     {\EXP{X \SHORTCUT{<} \TYP{Bottom} \in \Delta}}
+%%     {\jtred{\Delta}{X}{\TYP{Bottom}}}
+  
+%%   % REDUCTION CONTEXT GRAMMAR
+%%   \newcommand{\OR}{\;|\;}
+%%   \[ E \; ::= \; [] \OR E \rightarrow U \OR T \rightarrow E \]
+%%   \[ \OR (T_1, \ldots, E, \ldots, T_n) \]
+%%   \[ \OR C\ob{T_1, \ldots, E, \ldots, T_n} \]
+  
+%%   % CONGRUENCE
+%%   \infrule
+%%     {\jtred{\Delta}{T}{T'}}
+%%     {\jtred{\Delta}{E[T]}{E[T']}}
+  
+%%   \end{minipage}
+%%   \caption{Type equivalence reduction}
+%%   \label{fig:tred}
+%% \end{figure}
+
+\section{Overloading Rules and Resolution}\label{sec:rules}
+In this section, 
+we define the ````meaning'' of overloaded generic functions; 
+that is,
+we define how a call to such a function is dispatched, 
+and we give rules for overloaded declarations 
+that ensure that our dispatch procedure is well-defined, 
+as Castagna \emph{et al.} 
+do for overloaded monomorphic functions \cite{castagna95}.
+The basic idea is simple:
+For any set of overloaded function declarations, 
+we define a partial order on the declarations---%
+we call this order the \emph{specificity relation}---%
+and dispatch any call to the most specific declaration applicable to the call,
+based on the ilks of the arguments.
+The rules for valid overloading ensure
+that the most specific declaration is well-defined (i.e., unique) for any call 
+(assuming that some declaration is applicable to the arguments), 
+and that the return type of a declaration 
+is a subtype of the return type of any less specific declaration.
+The latter property is necessary for type preservation for dynamic dispatch:
+a more specific declaration may be applicable 
+% the most specific declaration applicable 
+to the ilks of the arguments 
+than 
+% may be more specific that 
+the most specific declaration applicable 
+to the static types of the argument expressions, 
+so we must ensure that the return type of this more specific declaration 
+is a subtype of the return type used to type check the program 
+(i.e., at compile time).
+
+Specifically, 
+we define three rules:\footnote{%
+The meet rule of Castagna \emph{et al.} 
+requires the existence and uniqueness of the meet.
+We split these into two rules.}
+the \emph{No Duplicates Rule} ensures that no two declarations are equally specific; 
+the \emph{Meet Rule} ensures that the set of overloaded declarations
+form a meet semilattice under the specificity relation; 
+and the \emph{Return Type Rule} ensures type preservation for dynamic dispatch.
+We prove that any set of overloaded function declarations 
+satisfying these three properties is safe,
+even if the class table is extended 
+(Theorem~\ref{thm:safety}).
+
+% require there is a unique such most specific declaration for any call
+% For monomorphic functions, 
+% this specificity relation is simply the subtyping relation 
+% on the domain types of the function declarations, 
+% but for a generic function,
+% subtyping may depend on the instantiation of the declaration's type parameters.
+
+% they impose two conditions on overload sets, 
+% a ````meet rule'' that requires, 
+% for any two overloaded declarations, 
+% that there is a unique declaration 
+% whose domain type is the meet of the domin types of the two declarations, 
+% and a ````return type rule'' 
+% that requires that whenever one declaration's domain type 
+% is a subtype of another declaration's domain type, 
+% then the first declaration's return type 
+% is also a subtype of the second declaration's return type.
+
+% we define three rules---%
+% the \emph{No Duplicates Rule}, 
+% \emph{Meet Rule}, 
+% and \emph{Return Type Rule}---%
+% for valid overloading of generic functions.
+% % for pairs of overloaded function declarations.
+% A set of overloaded function declarations is \emph{valid} 
+% % with respect to a class table
+% if every pair of declarations in the set satisfies these rules. 
+% % using the subtyping relation induced by that class table.
+% % In Section~\ref{sec:safety},
+% We show that any valid set of overloaded function declarations is safe.
+% In Section~\ref{sec:checking},
+% we describe how to mechanically check these rules in a modular way
+% in terms of subtyping relations on universal and existential types.
+
+%% \TODO{Discuss intended minimality of these rules?}
+
+\subsection{Specificity of Generic Function Declarations}
+
+For monomorphic function declarations, 
+the specificity relation is just subtyping on their domain types.
+However,
+the domain type of a generic function declaration 
+may include type parameters of the declaration, 
+and type parameters of distinct declarations 
+bear no particular relation to each other.
+Furthermore, the subtyping relation between their domain types of 
+may depend on the instantiation of their type parameters, 
+as illustrated by `foo` and `quux` in the introduction.
+
+Instead of using subtyping,
+we adopt the following intuitive notion of specificity:
+One declaration is more specific than another 
+if the second is applicable to every argument 
+that the first is applicable to.
+That is, 
+for any $d_1, d_2 \in \Df$, 
+$d_1$ is \emph{more specific} than $d_2$ 
+(written $d_1 \ms d_2$) if 
+% and only if 
+$d_1 \in \Df(T)$ implies $d_2 \in \Df(T)$
+% such that $d_1$ is applicable to $T$, 
+% $d_2$ is also applicable to $T$.
+for every well-formed type $T$.
+Neatly, 
+this turns out to be equivalent 
+subtyping over domain types 
+where the domain type of a generic function declaration 
+is interpreted as an existential type~\cite{bourdoncle97};
+we use that formulation 
+to mechanically check the overloading rules 
+(see Section~\ref{sec:checking}).
+
+This definition of specificity 
+introduces a type inference problem for dynamic dispatch:
+If $d_2$ is the most specific declaration applicable 
+to the static types of the argument expressions, 
+and $d_1 \ms d_2$ is the most specific declaration applicable 
+to the ilks of the arguments, 
+then the type parameter instantiations derived by static type inference 
+are relevant to $d_2$, but not to $d_1$.
+Because the call is dispatched to $d_1$, 
+we require type parameters for $d_1$ to be inferred \emph{dynamically}.
+Showing how to do so
+is beyond the scope of this paper.
+
+
+\subsection{Overloading Rules}
+\label{sec:threerules}
+
+Given a class table $\T$, 
+a set $\D$ of generic function declarations for $\T$, 
+and a function name $f$, 
+the set $\Df$ is \emph{valid} 
+(or is a \emph{valid overloading}) 
+if it 
+% VL: quantification over pairs occurs *within* the rules
+% every pair of declarations in $\Df$ 
+satisfies the following three rules:
+
+% In this section, we describe the rules for valid overloading.
+% For each function name $f$,
+% we determine whether a set of overloaded function declarations $\Df$ is valid
+% by independently considering every pair of declarations in the set.
+% A set of declarations is a valid overloading 
+% if every pair of distinct declarations in the set
+% satisfies the three rules described below with respect to a class
+% table $\T$, and a set $\Df$ is valid
+% with respect to $\T$ if every pair of declarations in the set is valid with
+% respect to $\T$.
+
+\begin{description}
+
+\item[No Duplicates Rule]
+For every $d_1, d_2 \in \Df$, 
+if $d_1 \ms d_2$ and $d_2 \ms d_1$ 
+%then $d_1$ and $d_2$ denote the same declaration. 
+then $d_1 = d_2$.
+
+\item[Meet Rule]
+For every $d_1, d_2 \in \Df$,
+there exists a declaration $d_0 \in \Df$ (possibly $d_1$ or $d_2$) 
+such that,
+% for every type $T \in \T$, $d_0$ is applicable to $T$ 
+% if and only if both $d_1$ and $d_2$ are applicable to $T$.
+$d_0 \ms d_1$ and $d_0 \ms d_2$ 
+and $d_0$ is applicable to any type $T \in \T$ 
+to which both $d_1$ and $d_2$ are applicable.
+
+\item[Return Type Rule]
+For every $d_1, d_2 \in \Df$ with $d_1 \ms d_2$,
+and every type $T \not\equiv \Bottom$ such that $d_1 \in \Df(T)$,
+% (and thus $d_2 \in \Df(T)$),
+if an instance $\decl{f}{S_2}{T_2}$ of $d_2$ is applicable to $T$,
+then there is an instance \decl{f}{S_1}{T_1} of $d_1$
+that is applicable to $T$ with \mbox{$T_1 <: T_2$}.
+
+\end{description}
+
+The No Duplicates Rule forbids distinct declarations from being equally specific 
+(i.e., each more specific than the other).
+
+The Meet Rule requires every pair of declarations 
+to have a \emph{disambiguating declaration}, 
+which is more specific than both 
+and applicable whenever both are applicable.
+(If one of the pair is more specific than the other, 
+then it is the disambiguating declaration.)
+
+The Return Type Rules guarantees that
+whenever the type checker might have used an instance of a declaration $d_2$ 
+to check a program,
+and then a more specific declaration $d_1$ is selected by dynamic dispatch,
+then there is some instance of $d_1$ that is applicable to the argument 
+and whose return type is a subtype 
+of the return type of the instance of $d_2$ 
+the type checker used, 
+which is necessary for type preservation, 
+as discussed above.
+
+Since $\Bottom$ is well-formed, 
+% with respect to any class table, 
+and tuple types with different numbers of arguments 
+have no common subtype other than \Bottom,
+the Meet Rule requires that 
+an overloaded function with declarations that take different numbers of arguments 
+have a declaration applicable only to \Bottom.
+Such a declaration would never be applied 
+(because no value belongs to \Bottom), 
+and it cannot be written in Fortress 
+(because \Bottom\ is not first-class).
+To avoid this technicality, 
+we implicitly augment every set $\Df$ 
+with a declaration $\decl{f}{\Bottom}{\Bottom}$.
+This declaration is strictly more specific 
+than any declaration that a programmer can write,
+and its return type is a subtype of every type, 
+so it trivially satisfies all three rules 
+when checked with any other declaration in $\Df$.
+
+This technicality raises the following question:
+Must the Meet Rule hold for every $T \in \T$?
+Could we not, for example, 
+have excluded \Bottom\ from consideration, 
+as in the Return Type Rule, 
+and avoided the technicality?
+If so, 
+for which types is it necessary that the Meet Rule hold?
+The answer is,
+we must check the Meet Rule for a type $T \in \T$ 
+to which both $d_1$ and $d_2$ are applicable
+if there could be a value of type $T$ 
+such that for any type $T' \in \T$ 
+to which the value belongs, $T \subtypeof T'$.
+In other words, 
+we must check it for all ````leaf'' types.
+Thus, if we did not require extensibility, 
+we can check the Meet Rule only for those types that are ilks of values.
+However, 
+because we require extensibility, 
+and we support multiple inheritance,
+we use intersection types instead.
+
+
+\subsection{Properties of Overloaded Functions}
+With the rules for valid overloading laid out, we now describe some useful
+properties of valid overloaded sets and of the rules themselves.
+
+\begin{lemma}
+\label{lem:strictms}
+If $d_1$ and $d_2$ are declarations in $\Df$ such that
+$d_1 \ms d_2$ and $d_2 \not\ms d_1$, then the pair $(d_1, d_2)$ satisfies the
+No Duplicates Rule and the Meet Rule.
+\end{lemma}
+\begin{proof}
+The No Duplicates Rule is vacuously satisfied, and the Meet Rule is satisfied
+with $d_0 = d_1$ since $d_1 \ms d_2$ implies that $d_1$ is applicable to a type $T$ if and only if both $d_1$ and $d_2$ are applicable to $T$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:subsetvalid}
+For every type $T \in \T$, if $\Df$ is a valid set with respect to $\T$ then
+so is $\Df(T)$.
+\end{lemma}
+\begin{proof}
+The No Duplicates Rule and Return Type Rule are straightforward applications
+of the respective rules on $\Df$.
+
+Let $d_1, d_2$ be declarations in $\Df(T)$ and let $d_0 \in \Df$ be its
+disambiguating declaration guaranteed by the Meet Rule on $\Df$. Then $d_0$ is applicable to exactly those types $U$ to which $d_1$ and $d_2$ are
+both applicable. Since $d_1$ and $d_2$ are by definition both applicable
+to $T$, $d_0$ must also be applicable to $T$, and hence $d_0 \in \Df(T)$.
+Therefore the Meet Rule on $\Df(T)$ is satisfied.
+\end{proof}
+
+To further characterize valid sets of overloaded definitions and the
+more specific relation $\ms$, we interpret them as
+meet semilattices. A partially ordered set $(A, \sqsubseteq)$ forms a
+\emph{meet semilattice} if, for every pair of elements $a,b \in A$, their
+greatest lower bound, or \emph{meet}, is also in $A$.
+\begin{lemma}
+\label{lem:meetsemilattice}
+A valid set of overloaded function declarations forms a meet semilattice with
+the more specific relation.
+\end{lemma}
+\begin{proof}
+Suppose $\Df$ is a valid set of overloaded function declarations
+with respect to class table $\T$.
+First, $(\Df, \ms)$ forms a partially ordered set: clearly $\ms$ is
+reflexive and transitive, and antisymmetry is a direct corollary of the
+No Duplicates Rule.
+
+Second, we must
+show that (i) for every $d_1, d_2 \in \Df$ there exists a $d_0 \in \Df$
+such that $d_0 \ms d_1$ and $d_0 \ms d_2$ and (ii) if there exists a
+$d_0' \in \Df$ such that $d_0' \ms d_1$ and $d_0' \ms d_2$ then
+$d_0' \ms d_0$.
+
+Let $d_1$ and $d_2$ be declarations in $\Df$. By the Meet Rule, there
+exists a declaration $d_0 \in \Df$ that is applicable to a type $T \in \T$
+if and only if both $d_1$ and $d_2$ are too. Since for every $T$ to which
+$d_0$ is applicable we have that $d_1$ and $d_2$ are also applicable to it,
+we know that $d_0 \ms d_1$ and $d_0 \ms d_2$.
+
+Now let $d_0' \in \Df$ be more specific than both $d_1$ and $d_2$.
+Then for every type $T \in \T$ such that $d_0'$ is applicable
+to $T$, $d_1$ and $d_2$ are also applicable to $T$; thus $d_0$ is
+applicable to $T$ and $d_0' \ms d_0$.
+\end{proof}
+
+The No Duplicates Rule and the Meet Rule each
+corresponds to a defining property of
+meet semilattices (antisymmetry and the existence of meets,
+respectively), while the Return Type
+Rule guarantees that this interpretation is consistent with the
+semantics of multiple dynamic dispatch.
+
+\begin{lemma}
+\label{lem:leastelement}
+A valid set of overloaded function declarations $\Df(T)$ has a unique
+most specific declaration.
+\end{lemma}
+\begin{psketch}
+The set $\Df(T)$ forms a meet semilattice by the previous lemma and moreover
+it is clearly finite. By straightforward induction a finite meet semilattice
+has a least element, so there exists a unique declaration in $\Df(T)$ that
+is more specific than all others.
+\end{psketch}
+
+
+\subsection{Overloading Resolution Safety}\label{sec:safety}
+% Our central theorem about overloaded sets of function declarations
+% mirrors the age-old description of sound type systems that says ``well-typed
+% programs don't go wrong.'' In particular, it describes a form of
+% \emph{overloading safety} for multiple dynamic dispatch which comprises
+% three important properties:
+% \begin{itemize}
+%   \item if a function application has any meaning, then it has a unique most
+%   specific meaning,
+%   \item if it has a unique most specific meaning at compile time, then it
+%   has a (possibly different) unique most specific meaning at run time, and
+%   \item the ilk of the value returned at run time will be a subtype of
+% the type determined statically at compile time of the function application expression.
+% \end{itemize}
+% %% \TODO{Relate these properties to prior work?}
+% %
+% We formulate the Overloading Safety Theorem in terms of class table extension
+% to generalize (while also making precise) the notion that ``run time''
+% describes a world that consistently extends that of ``compile time.''
+
+We now prove the main theorem of this paper, 
+that a valid set of overloaded generic function declarations 
+is safe 
+even if the class table is extended.
+Before proving the theorem we establish two lemmas. 
+First, we show that if a set of declarations is valid for a given class table, 
+then it is valid for any (well-formed) extension of that class table.
+Second, we show that if a set of overloaded declarations is valid, 
+then there is always a single best choice of declaration 
+to which to dispatch any (legal) call to that function 
+(i.e., the unique most specific declaration applicable to the arguments).
+
+% The first is the more critical one:
+% it shows that one does not invalidate a valid set of
+% overloaded function declarations by extending the class
+% table for which it was proved valid.
+% Effectively the second lemma states that
+% there is always a single best choice for the meaning of a function
+% application.
+
+\begin{lemma}[Extensibility]
+\label{lem:mod}
+If $\Df$ is valid with respect to the class table $\T$,
+then $\Df$ is valid with respect to any extension $\T'$ of $\T$.
+\end{lemma}
+\begin{psketch}
+In Section~\ref{sec:checking} we will show that checking the validity of
+$\Df$ can be reduced to examining subtype relationships
+between existential and universal types, which are constructed solely from
+types
+appearing in $\Df$ and hence $\T$. Extension of the class table
+preserves subtype relationships between types in $\T$ and hence preserves
+validity of $\Df$.
+\end{psketch}
+
+\begin{lemma}[Unambiguity]
+If $\Df$ is valid with respect to the class table $\T$,
+then for every type $T \in \T$ such that $\Df(T)$ is nonempty, there is a unique most specific declaration in $\Df(T)$.
+\end{lemma}
+\begin{proof}
+Let $T \in \T$ be a type such that $\Df(T)$ is nonempty. This set is valid
+by Lemma~\ref{lem:subsetvalid} and thus contains a unique most specific
+declaration by Lemma~\ref{lem:leastelement}.
+\end{proof}
+
+\begin{theorem}[Overloading Safety]
+\label{thm:safety}
+Suppose $\Df$ is valid with respect to the class table $\T$.
+Then for any type $S \in \T' \ctext \T$,
+if $\Df(S)$ is nonempty then there exists a unique most specific declaration $d_{S} \in \Df(S)$.
+Furthermore for any declaration $d \in \Df(S)$ and instance $\decl{f}{T}{U}$
+of $d$, there exists an instance
+$\decl{f}{V}{W}$ of $d_{S}$ that is applicable to $S$ such that $W \subtypeof U$.
+\end{theorem}
+\begin{proof}
+The Extensibility Lemma lets us consider only the case when $\T' = \T$. 
+Now the Unambiguity Lemma entails that such a $d_{S}$ exists, and the Return Type Rule
+entails the rest.
+\end{proof}
+
+
+\section{Exclusion}
+\label{sec:exclusion}
+
+Although the rules in Section~\ref{sec:rules} 
+allow programmers to write valid sets 
+of overloaded generic function declarations,
+they sometimes reject overloaded definitions 
+that might seem to be valid.
+For example, 
+given the type system as we have described it thus far,
+the overloaded \VAR{tail} function from the introduction 
+would be rejected by the overloading rules.
+
+These are not false negatives:
+multiple inheritance can introduce ambiguities 
+by extending two incomparable types, 
+as discussed in the introduction.
+Because we allow class tables to be extended by unknown modules, 
+we cannot generally infer that two types have no common nontrivial subtype 
+from the lack of any such declared type.
+Therefore, 
+the Meet Rule requires the programmer 
+to provide a disambiguating definition 
+for any pair of overloaded definitions whose domain types are incomparable.
+
+This problem is not new with parametric polymorphism, 
+as the \VAR{print} example in the introduction shows.
+To address the problem, 
+Fortress defines an \emph{exclusion relation} $\exc$ over types
+such that two types that exclude each other 
+have no common nontrivial subtypes;
+that is, 
+if $T \exc U$ then $T \cap U$ is synonymous with \Bottom.
+Thus, overloaded definitions whose domain types exclude each other
+trivially satisfy the Meet Rule: 
+there are no types (other than \Bottom) 
+to which both definitions are applicable.
+Exclusion allows us to describe explicitly what is 
+typically implicit in single-inheritance class hierarchies.
+
+In our previous work on Fortress without generics~\cite{allen07}, 
+we provided a special rule---the \emph{Exclusion Rule}---%
+to exploit this information.
+However, 
+the Exclusion Rule can also be viewed, 
+as we do in this paper, 
+as a special case of the Meet Rule, 
+where there are no nontrivial types 
+to which both definitions are applicable.
+
+Fortress provides three mechanisms to explicitly declare exclusion \cite{Fortress}:
+an \KWD{object} declaration, a \KWD{comprises} clause and an \KWD{excludes} clause.
+We describe these precisely in Section~\ref{sec:exc-spec}, 
+but for now, we simply note that 
+they do not help with the overloaded \VAR{tail} function.
+Specifically,
+even with these exclusion mechanisms, 
+we cannot define \TYP{List} 
+so that the definitions for \VAR{tail} satisfy the Return Type Rule.
+
+To see this, 
+consider the following overloaded definitions (from Section~\ref{sec:intro}):
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{tail}\llbracket{}T\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}T\rrbracket\bigr)\COLON \TYP{List}\llbracket{}T\rrbracket \\
+  \VAR{tail}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\-
+\end{FortressCode}
+\normalsize
+and the following type constructor declaration:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\TYP{BadList} \SHORTCUT{<} \bigl\lbrace\,\TYP{List}\llbracket\mathbb{Z}\rrbracket, \TYP{List}\llbracket\TYP{String}\rrbracket\,\bigr\rbrace\-
+\end{FortressCode}
+\normalsize
+Both definitions of \VAR{tail} are applicable to the type \TYP{BadList},
+and the monomorphic one is more specific.
+Two instances of the generic definition are applicable to this type:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{tail}\bigl(\TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket \\
+  \VAR{tail}\bigl(\TYP{List}\llbracket\TYP{String}\rrbracket\bigr)\COLON \TYP{List}\llbracket\TYP{String}\rrbracket\-
+\end{FortressCode}
+\normalsize
+The Return Type Rule requires that 
+the return type of each of these instances 
+be a supertype of the return type of the monomorphic definition
+(the monomorphic definition is its only one instance); 
+that is, it requires 
+\EXP{\TYP{List}\llbracket\mathbb{Z}\rrbracket \SHORTCUT{<} \TYP{List}\llbracket\mathbb{Z}\rrbracket} 
+and \EXP{\TYP{List}\llbracket\mathbb{Z}\rrbracket \SHORTCUT{<} \TYP{List}\llbracket\TYP{String}\rrbracket}.
+The latter is clearly false.
+%% \TODO{Explain why we must not allow the overloading?
+%% That is, currently we simply say it doesn't satisfy the Return Type Rule, 
+%% but we don't explain why we should want it to do so.}
+
+A similar issue arises 
+when trying to satisfy the Meet Rule 
+by providing a disambiguating definition 
+for incomparable definitions, 
+as in the following example 
+(where \EXP{\mathbb{Z} \SHORTCUT{<} \mathbb{R}}):
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{minimum}\llbracket{}X \SHORTCUT{<} \mathbb{R}, Y \SHORTCUT{<} \mathbb{Z}\rrbracket\bigl(p\COLON \TYP{Pair}\llbracket{}X,Y\rrbracket\bigr)\COLON \mathbb{R} \\
+  \VAR{minimum}\llbracket{}X \SHORTCUT{<} \mathbb{Z}, Y \SHORTCUT{<} \mathbb{R}\rrbracket\bigl(p\COLON \TYP{Pair}\llbracket{}X,Y\rrbracket\bigr)\COLON \mathbb{R} \\
+  \VAR{minimum}\llbracket{}X \SHORTCUT{<} \mathbb{Z}, Y \SHORTCUT{<} \mathbb{Z}\rrbracket\bigl(p\COLON \TYP{Pair}\llbracket{}X,Y\rrbracket\bigr)\COLON \mathbb{Z}\-
+\end{FortressCode}
+\normalsize
+The first definition is applicable to exactly those arguments 
+of type \EXP{\TYP{Pair}\llbracket{}X,Y\rrbracket} for some \EXP{X \SHORTCUT{<} \mathbb{R}} and \EXP{Y \SHORTCUT{<} \mathbb{Z}};
+the second is applicable to exactly those arguments
+of type \EXP{\TYP{Pair}\llbracket{}X,Y\rrbracket} for some \EXP{X \SHORTCUT{<} \mathbb{Z}} and \EXP{Y \SHORTCUT{<} \mathbb{R}}.
+So we might think that both definitions are applicable 
+to exactly those arguments of type \EXP{\TYP{Pair}\llbracket{}X,Y\rrbracket} for some \EXP{X \SHORTCUT{<} \mathbb{Z}} and \EXP{Y \SHORTCUT{<} \mathbb{Z}}, 
+which is exactly when the third definition is applicable.
+However, 
+this is not true!
+We could, for example, have the following type constructor declaration:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\TYP{BadPair} \SHORTCUT{<} \bigl\lbrace\,\TYP{Pair}\llbracket\mathbb{R},\mathbb{Z}\rrbracket, \TYP{Pair}\llbracket\mathbb{Z},\mathbb{R}\rrbracket\,\bigr\rbrace\-
+\end{FortressCode}
+\normalsize
+The first two definitions of \VAR{minimum} are both applicable to \TYP{BadPair} 
+but the third is not.
+
+We might say that the problem with the above examples 
+is not with the definitions of \VAR{tail} and \VAR{minimum}, 
+but with the definitions of \TYP{BadList} and \TYP{BadPair};
+we must reject the idea
+that a value may belong to \EXP{\TYP{List}\llbracket\mathbb{Z}\rrbracket} or \EXP{\TYP{List}\llbracket\TYP{String}\rrbracket}---%
+or to \EXP{\TYP{Pair}\llbracket\mathbb{Z},\mathbb{R}\rrbracket} or \EXP{\TYP{Pair}\llbracket\mathbb{R},\mathbb{Z}\rrbracket}---%
+but not to both.
+Indeed, Fortress imposes a rule that forbids 
+\emph{multiple instantiation inheritance} \cite{kennedy07}, 
+in which a type (other than \Bottom) 
+is a subtype of distinct applications of a type constructor.\!\footnote{%
+This definition suffices for the type system described in this paper, 
+in which all type parameters are invariant.
+It is straightforward, 
+but beyond the scope of this paper, 
+to extend this definition to systems 
+that support covariant and contravariant type parameters.}
+We call this rule \emph{multiple instantiation exclusion}
+and adopt it here.
+
+Multiple instantiation exclusion is easy to enforce statically, 
+and experience suggests that it is not onerous in practice: 
+it is already required in Java, for example~\cite{JavaSpec}.
+Also, 
+Kennedy and Pierce have shown that 
+in systems that enforce multiple instantiation exclusion 
+(along with some technical restrictions),
+nominal subtyping is decidable~\cite{kennedy07}.\!\footnote{%
+They also show that forbidding contravariant type parameters 
+results in decidable nominal subtyping, 
+so subtyping in our type system is decidable in any case.}
+
+
+\subsection{Well-Formed Class Tables with Exclusion}
+\label{sec:exc-spec}
+
+To incorporate exclusion into our type system, 
+we first augment type constructor declarations 
+with two (optional) clauses---%
+the \KWD{excludes} and \KWD{comprises} clauses---%
+and add a new kind of type constructor declaration---%
+the \KWD{object} declaration.
+We then change the definition of well-formed class tables 
+to reflect the new features, 
+and to enforce multiple instantiation exclusion.
+
+The syntax for a type constructor declaration
+with the optional \KWD{excludes} and \KWD{comprises} clauses, 
+each of which specifies a list of types,
+is:
+\[
+C\tplist{X}{M} \extends \EXP{\lbrace\bar{N}\rbrace\, \bigl[\KWD{excludes} \lbrace\bar{L}\rbrace\bigr]\, \bigl[\KWD{comprises} \lbrace\bar{K}\rbrace\bigr]}
+\]
+
+This declaration asserts that for well-formed type \EXP{C\llbracket\bar{T}\rrbracket}, 
+the only common subtype of \EXP{C\llbracket\bar{T}\rrbracket} 
+and $\substb{T}{X}L_i$ for any $L_i$ in $\bar{L}$ 
+is \Bottom, 
+and any strict subtype of \EXP{C\llbracket\bar{T}\rrbracket} 
+must also be a subtype of $\substb{T}{X}K_i$ for some $K_i$ in $\bar{K}$.
+
+% The \KWD{excludes} clause asserts that
+% the intersection of any application \EXP{C\llbracket\bar{T}\rrbracket} of type constructor \VAR{C}
+% and any of \EXP{\bar{L}} is \TYP{Bottom} 
+% (i.e., 
+% \EXP{C\llbracket\bar{T}\rrbracket \cap [\bar{T} / \bar{X}]M_{i} \equiv \TYP{Bottom}} 
+% for any \EXP{\bar{T}} and for each \EXP{L_{i}} in \EXP{\bar{L}}).
+% This implies, of course, 
+% that any subtype of \EXP{C\llbracket\bar{T}\rrbracket} also excludes 
+% \EXP{[\bar{T} / \bar{X}]\, L_{i}}.
+
+% The \KWD{comprises} clause stipulates that
+% an application of type constructor \VAR{C} with \EXP{\bar{T}}
+% consists of exactly the types in \EXP{\bar{K}} that are instantiated with \EXP{\bar{T}}
+% (i.e., 
+% \EXP{C\llbracket\bar{T}\rrbracket \equiv [\bar{T} / \bar{X}]K_{1}} $\cup \ldots \cup$ \EXP{[\bar{T} / \bar{X}]\, K_{n}}).
+% Thus, if a type excludes \EXP{[\bar{T} / \bar{X}]K_{i}} for each $i$, then it
+% also necessarily excludes \EXP{C\llbracket\bar{T}\rrbracket}.
+
+% For convenience, 
+% we allow the \KWD{excludes} and \KWD{comprises} clauses to be omitted.
+Omitting the \KWD{excludes} clause is equivalent to having \EXP{\KWD{excludes} \lbrace\ultrathin\rbrace};
+omitting the \KWD{comprises} clause is equivalent to having \EXP{\KWD{comprises} \lbrace\,\TYP{Any}\,\rbrace}.\!\footnote{%
+To catch likely programming errors, 
+Fortress requires that 
+every $K_i$ in a \KWD{comprises} clause for $C\obb{T}$ be a subtype of $C\obb{T}$, 
+but allowing \TYP{Any} to appear in a \KWD{comprises} clause simplifies our presentation here.}
+
+We define the sets of instantiations of types 
+in \KWD{excludes} and \KWD{comprises} clauses analogously to $\myextends{C\obb{T}}$.
+That is, 
+for an application $C\obb{T}$ 
+of the declaration above, we have:\\[-.5em]
+\begin{align*}
+\myexcludes{C\obb{T}}  &= \{ \bar{\substb{T}{X}L} \} \\
+\mycomprises{C\obb{T}} &= \{ \bar{\substb{T}{X}K} \}
+\end{align*}
+
+A class table may also include \KWD{object} declarations, 
+which have the following syntax:
+\[
+\KWD{object} \; D\tplist{X}{M} \extends \EXP{\lbrace\bar{N}\rbrace}
+\]
+This declaration is convenient for defining ``leaf types'': 
+it asserts that \EXP{D\llbracket\bar{T}\rrbracket} has no subtypes 
+other than itself and \Bottom.
+Although the declaration has no \KWD{excludes} or \KWD{comprises} clause, 
+this condition implies that \EXP{D\llbracket\bar{T}\rrbracket} 
+excludes any type other than its supertypes
+(and therefore it is as if it had a clause \EXP{\KWD{comprises} \lbrace\ultrathin\rbrace}).
+
+% As mentioned previously, 
+Multiple instantiation exclusion 
+further restricts generic types: 
+Distinct instantiations of a generic type 
+(i.e., distinct applications of a type constructor) 
+have no common subtype other than \Bottom.
+
+To define well-formedness for class tables with exclusion 
+(including multiple instantiation exclusion),
+we define an \emph{exclusion relation} $\exc$ over well-formed types:
+$S \exc T$ asserts that 
+$S$ and $T$ have no common subtypes other than \Bottom.
+For constructed types $C\obb{T}$ and $D\obb{U}$, 
+$C\obb{T} \exc D\obb{U}$ if 
+\begin{itemize}
+
+\item
+$D\obb{U} \in \myexcludes{C\obb{T}}$; 
+
+\item
+for all $L \in \mycomprises{C\obb{T}}$,
+$D\obb{U}$ is not a subtype of $L$; 
+% $C\obb{T}$ has a \KWD{comprises} clause 
+% and $D\obb{U}$ is not a subtype of any type in that \KWD{comprises} clause;
+
+
+\item
+$C\obb{T}$ is declared by an \KWD{object} declaration 
+and $C\obb{T}$ is not a subtype of $D\obb{U}$;
+
+\item
+$D\obb{U} \exc C\obb{T}$ by any of the conditions above;
+
+\item
+$C = D$ and $\bar{T} \not\equiv \bar{U}$; or 
+
+\item
+$M \exc N$ for some $M \supertypeof C\obb{T}$ 
+and $N \supertypeof D\obb{U}$.
+
+\end{itemize} 
+
+We augment our notion of a well-formed class table 
+to require that the subtyping and exclusion relations it induces 
+``respect'' each other.
+That is, 
+for all well-formed constructed types $M$ and $N$, 
+if $M \exc N$ then no well-formed constructed type 
+is a subtype of both $M$ and $N$.
+A well-formed extension to a class table $\T$ 
+must preserve this property.
+
+Except for the imposition of multiple instantation exclusion, 
+these changes generalize the standard type system 
+described in Section~\ref{sec:pre}: 
+A class table that does not use any of the new features 
+is well-formed in this augmented system 
+exactly when it is well-formed in the standard system.
+On the other hand, 
+multiple instantiation exclusion
+restricts the set of well-formed class tables: 
+a table that is well-formed when multiple instantiation inheritance is permitted
+might not be well-formed under multiple instantiation exclusion.
+
+
+% The exclusion relation on constructed types can then be described in terms of
+% more precise sub-relations on those types, each of which corresponds to a certain
+% reason for (or proof of) exclusion:
+% \begin{enumerate}
+
+% \item The \KWD{excludes} clause explicitly states that
+% the constructed type \EXP{C\llbracket\bar{T}\rrbracket}
+% excludes $\substb{T}{X}L_i$ for each $L_i$ in $\bar{L}$, which
+% implies that any subtype of \EXP{C\llbracket\bar{T}\rrbracket} also excludes
+% each $\substb{T}{X}L_i$. We write this exclusion sub-relation as
+% $C\obb{T} \,\excre\, \substb{T}{X}L_i$.
+
+% \item The \KWD{comprises} clause stipulates that any subtype of \EXP{C\llbracket\bar{T}\rrbracket} 
+% \emph{must} be a subtype of \EXP{[\bar{T} / \bar{X}]K_{i}} for some \EXP{K_{i}} in \EXP{\bar{K}}. 
+% Then if every \EXP{[\bar{T} / \bar{X}]K_{i}} in \EXP{\bar{K}} excludes some type $U$, 
+% \EXP{C\llbracket\bar{T}\rrbracket} must also exclude $U$. 
+% We write this exclusion sub-relation as $C\obb{T} \,\excrc\, U$.
+  
+% \item The \KWD{object} keyword denotes a type constructor 
+% whose applications have no nontrivial subtypes; 
+% an \KWD{object} type constructor is a leaf of the class hierarchy. 
+% Since such a constructed type \EXP{C\llbracket\bar{T}\rrbracket} has no subtypes 
+% other than itself and \Bottom, 
+% we know that it excludes any type \VAR{U} other than its supertypes. 
+% We write this exclusion sub-relation as $C\obb{T} \,\excro\, U$.
+
+% \end{enumerate}
+
+% We take the symmetric closure of each of these relations 
+% to get the relations $\exce$, $\excc$ and $\exco$.
+% Exclusion between constructed types is informally defined as the union
+% of these symmetric relations.
+% (We introduce another sub-relation $\excp$ in Section~\ref{sec:exc-polyrules}.)
+
+We extend the exclusion relation 
+to structural and compound types as follows:
+Every arrow type excludes every non-arrow type other than \Any.
+Every non-singleton tuple type excludes every non-tuple type other than \Any.
+(A singleton tuple type is synonymous with its element type, 
+and so excludes exactly those types excluded by its element type.)
+% Every singleton tuple type excludes exactly those types excluded by its element type.
+Non-singleton tuple type $(\bar{V})$ excludes non-singleton tuple type
+$(\bar{W})$ if either $|\bar{V}| \neq |\bar{W}|$
+or $V_i$ excludes $W_i$ for some $i$.
+An intersection type excludes any type excluded by \emph{any} of its constituent types;
+a union type excludes any type excluded by \emph{all} of its constituent types.
+$\Bottom$ excludes every type 
+(including itself---it is the only type that excludes itself), 
+and $\Any$ does not exclude any type other than $\Bottom$.
+(We define the exclusion relation formally in Section~\ref{sec:constraints}.)
+
+
+To incorporate exclusion into our type system, 
+we first augment type constructor declarations 
+with two (optional) clauses---%
+the \KWD{excludes} and \KWD{comprises} clauses---%
+and add a new kind of type constructor declaration---%
+the \KWD{object} declaration.
+We then change the definition of well-formed class tables 
+to reflect the new features, 
+and to enforce multiple instantiation exclusion.
+
+The syntax for a type constructor declaration
+with the optional \KWD{excludes} and \KWD{comprises} clauses, 
+each of which specifies a list of types,
+is:
+\[
+C\tplist{X}{M} \extends \EXP{\lbrace\bar{N}\rbrace\, \bigl[\KWD{excludes} \lbrace\bar{L}\rbrace\bigr]\, \bigl[\KWD{comprises} \lbrace\bar{K}\rbrace\bigr]}
+\]
+
+This declaration asserts that for well-formed type \EXP{C\llbracket\bar{T}\rrbracket}, 
+the only common subtype of \EXP{C\llbracket\bar{T}\rrbracket} 
+and $\substb{T}{X}L_i$ for any $L_i$ in $\bar{L}$ 
+is \Bottom, 
+and any strict subtype of \EXP{C\llbracket\bar{T}\rrbracket} 
+must also be a subtype of $\substb{T}{X}K_i$ for some $K_i$ in $\bar{K}$.
+
+% The \KWD{excludes} clause asserts that
+% the intersection of any application \EXP{C\llbracket\bar{T}\rrbracket} of type constructor \VAR{C}
+% and any of \EXP{\bar{L}} is \TYP{Bottom} 
+% (i.e., 
+% \EXP{C\llbracket\bar{T}\rrbracket \cap [\bar{T} / \bar{X}]M_{i} \equiv \TYP{Bottom}} 
+% for any \EXP{\bar{T}} and for each \EXP{L_{i}} in \EXP{\bar{L}}).
+% This implies, of course, 
+% that any subtype of \EXP{C\llbracket\bar{T}\rrbracket} also excludes 
+% \EXP{[\bar{T} / \bar{X}]\, L_{i}}.
+
+% The \KWD{comprises} clause stipulates that
+% an application of type constructor \VAR{C} with \EXP{\bar{T}}
+% consists of exactly the types in \EXP{\bar{K}} that are instantiated with \EXP{\bar{T}}
+% (i.e., 
+% \EXP{C\llbracket\bar{T}\rrbracket \equiv [\bar{T} / \bar{X}]K_{1}} $\cup \ldots \cup$ \EXP{[\bar{T} / \bar{X}]\, K_{n}}).
+% Thus, if a type excludes \EXP{[\bar{T} / \bar{X}]K_{i}} for each $i$, then it
+% also necessarily excludes \EXP{C\llbracket\bar{T}\rrbracket}.
+
+% For convenience, 
+% we allow the \KWD{excludes} and \KWD{comprises} clauses to be omitted.
+Omitting the \KWD{excludes} clause is equivalent to having \EXP{\KWD{excludes} \lbrace\ultrathin\rbrace};
+omitting the \KWD{comprises} clause is equivalent to having \EXP{\KWD{comprises} \lbrace\,\TYP{Any}\,\rbrace}.\!\footnote{%
+To catch likely programming errors, 
+Fortress requires that 
+every $K_i$ in a \KWD{comprises} clause for $C\obb{T}$ be a subtype of $C\obb{T}$, 
+but allowing \TYP{Any} to appear in a \KWD{comprises} clause simplifies our presentation here.}
+
+We define the sets of instantiations of types 
+in \KWD{excludes} and \KWD{comprises} clauses analogously to $\myextends{C\obb{T}}$.
+That is, 
+for an application $C\obb{T}$ 
+of the declaration above, we have:\\[-.5em]
+\begin{align*}
+\myexcludes{C\obb{T}}  &= \{ \bar{\substb{T}{X}L} \} \\
+\mycomprises{C\obb{T}} &= \{ \bar{\substb{T}{X}K} \}
+\end{align*}
+
+A class table may also include \KWD{object} declarations, 
+which have the following syntax:
+\[
+\KWD{object} \; D\tplist{X}{M} \extends \EXP{\lbrace\bar{N}\rbrace}
+\]
+This declaration is convenient for defining ``leaf types'': 
+it asserts that \EXP{D\llbracket\bar{T}\rrbracket} has no subtypes 
+other than itself and \Bottom.
+Although the declaration has no \KWD{excludes} or \KWD{comprises} clause, 
+this condition implies that \EXP{D\llbracket\bar{T}\rrbracket} 
+excludes any type other than its supertypes
+(and therefore it is as if it had a clause \EXP{\KWD{comprises} \lbrace\ultrathin\rbrace}).
+
+% As mentioned previously, 
+Multiple instantiation exclusion 
+further restricts generic types: 
+Distinct instantiations of a generic type 
+(i.e., distinct applications of a type constructor) 
+have no common subtype other than \Bottom.
+
+To define well-formedness for class tables with exclusion 
+(including multiple instantiation exclusion),
+we define an \emph{exclusion relation} $\exc$ over well-formed types:
+$S \exc T$ asserts that 
+$S$ and $T$ have no common subtypes other than \Bottom.
+For constructed types $C\obb{T}$ and $D\obb{U}$, 
+$C\obb{T} \exc D\obb{U}$ if 
+\begin{itemize}
+
+\item
+$D\obb{U} \in \myexcludes{C\obb{T}}$; 
+
+\item
+for all $L \in \mycomprises{C\obb{T}}$,
+$D\obb{U}$ is not a subtype of $L$; 
+% $C\obb{T}$ has a \KWD{comprises} clause 
+% and $D\obb{U}$ is not a subtype of any type in that \KWD{comprises} clause;
+
+
+\item
+$C\obb{T}$ is declared by an \KWD{object} declaration 
+and $C\obb{T}$ is not a subtype of $D\obb{U}$;
+
+\item
+$D\obb{U} \exc C\obb{T}$ by any of the conditions above;
+
+\item
+$C = D$ and $\bar{T} \not\equiv \bar{U}$; or 
+
+\item
+$M \exc N$ for some $M \supertypeof C\obb{T}$ 
+and $N \supertypeof D\obb{U}$.
+
+\end{itemize} 
+
+We augment our notion of a well-formed class table 
+to require that the subtyping and exclusion relations it induces 
+``respect'' each other.
+That is, 
+for all well-formed constructed types $M$ and $N$, 
+if $M \exc N$ then no well-formed constructed type 
+is a subtype of both $M$ and $N$.
+A well-formed extension to a class table $\T$ 
+must preserve this property.
+
+Except for the imposition of multiple instantation exclusion, 
+these changes generalize the standard type system 
+described in Section~\ref{sec:pre}: 
+A class table that does not use any of the new features 
+is well-formed in this augmented system 
+exactly when it is well-formed in the standard system.
+On the other hand, 
+multiple instantiation exclusion
+restricts the set of well-formed class tables: 
+a table that is well-formed when multiple instantiation inheritance is permitted
+might not be well-formed under multiple instantiation exclusion.
+
+
+% The exclusion relation on constructed types can then be described in terms of
+% more precise sub-relations on those types, each of which corresponds to a certain
+% reason for (or proof of) exclusion:
+% \begin{enumerate}
+
+% \item The \KWD{excludes} clause explicitly states that
+% the constructed type \EXP{C\llbracket\bar{T}\rrbracket}
+% excludes $\substb{T}{X}L_i$ for each $L_i$ in $\bar{L}$, which
+% implies that any subtype of \EXP{C\llbracket\bar{T}\rrbracket} also excludes
+% each $\substb{T}{X}L_i$. We write this exclusion sub-relation as
+% $C\obb{T} \,\excre\, \substb{T}{X}L_i$.
+
+% \item The \KWD{comprises} clause stipulates that any subtype of \EXP{C\llbracket\bar{T}\rrbracket} 
+% \emph{must} be a subtype of \EXP{[\bar{T} / \bar{X}]K_{i}} for some \EXP{K_{i}} in \EXP{\bar{K}}. 
+% Then if every \EXP{[\bar{T} / \bar{X}]K_{i}} in \EXP{\bar{K}} excludes some type $U$, 
+% \EXP{C\llbracket\bar{T}\rrbracket} must also exclude $U$. 
+% We write this exclusion sub-relation as $C\obb{T} \,\excrc\, U$.
+  
+% \item The \KWD{object} keyword denotes a type constructor 
+% whose applications have no nontrivial subtypes; 
+% an \KWD{object} type constructor is a leaf of the class hierarchy. 
+% Since such a constructed type \EXP{C\llbracket\bar{T}\rrbracket} has no subtypes 
+% other than itself and \Bottom, 
+% we know that it excludes any type \VAR{U} other than its supertypes. 
+% We write this exclusion sub-relation as $C\obb{T} \,\excro\, U$.
+
+% \end{enumerate}
+
+% We take the symmetric closure of each of these relations 
+% to get the relations $\exce$, $\excc$ and $\exco$.
+% Exclusion between constructed types is informally defined as the union
+% of these symmetric relations.
+% (We introduce another sub-relation $\excp$ in Section~\ref{sec:exc-polyrules}.)
+
+We extend the exclusion relation 
+to structural and compound types as follows:
+Every arrow type excludes every non-arrow type other than \Any.
+Every non-singleton tuple type excludes every non-tuple type other than \Any.
+(A singleton tuple type is synonymous with its element type, 
+and so excludes exactly those types excluded by its element type.)
+% Every singleton tuple type excludes exactly those types excluded by its element type.
+Non-singleton tuple type $(\bar{V})$ excludes non-singleton tuple type
+$(\bar{W})$ if either $|\bar{V}| \neq |\bar{W}|$
+or $V_i$ excludes $W_i$ for some $i$.
+An intersection type excludes any type excluded by \emph{any} of its constituent types;
+a union type excludes any type excluded by \emph{all} of its constituent types.
+$\Bottom$ excludes every type 
+(including itself---it is the only type that excludes itself), 
+and $\Any$ does not exclude any type other than $\Bottom$.
+(We define the exclusion relation formally in Section~\ref{sec:constraints}.)
+
+
+
+
+\section{Examples}
+\label{sec:examples}
+We now consider several sets of overloaded generic function declarations, 
+and argue informally why they are 
+(or are not, in one case) 
+permitted by the rules in Section~\ref{sec:rules}, 
+paying particular attention to where multiple instantiation exclusion is required.
+We give a formal system and algorithm for performing these checks 
+in Section~\ref{sec:checking}.
+
+First, consider the function \VAR{foo}
+from Section~\ref{sec:intro}:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{foo}\llbracket{}X \SHORTCUT{<} \TYP{Object}\rrbracket(x\COLON X, y\COLON \TYP{Object})\COLON \mathbb{Z} = 1 \\
+  \VAR{foo}\llbracket{}Y \SHORTCUT{<} \TYP{Number}\rrbracket(x\COLON \TYP{Number}, y\COLON Y)\COLON \mathbb{Z} = 2\-
+\end{FortressCode}
+\normalsize
+This overloading is valid: 
+The second definition is strictly more specific than the first 
+because the first definition is applicable to a pair of arguments 
+exactly if the type of each is a subtype of \TYP{Object}, 
+whereas the second is applicable to a pair of arguments exactly if
+the type of each is a subtype of \TYP{Number}.
+Thus, these definitions satisfy the No Duplicates Rule 
+and the Meet Rule by Lemma~\ref{lem:strictms}.
+And they satisfy the Return Type Rule 
+because the return type of both definitions is always \EXP{\mathbb{Z}}.
+
+The overloaded definitions for \VAR{tail} are also valid:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{tail}\llbracket{}X\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}X\rrbracket\bigr)\COLON \TYP{List}\llbracket{}X\rrbracket = e_1 \\
+  \VAR{tail}\llbracket{}X \SHORTCUT{<} \TYP{Number}\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}X\rrbracket\bigr)\COLON \TYP{List}\llbracket{}X\rrbracket = e_2 \\
+  \VAR{tail}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket = e_3\-
+\end{FortressCode}
+\normalsize
+The first definition is applicable to any argument 
+of type \EXP{\TYP{List}\llbracket{}T\rrbracket} for any well-formed type \VAR{T}, 
+the second is applicable to an argument 
+of type \EXP{\TYP{List}\llbracket{}T\rrbracket} when \EXP{T \SHORTCUT{<} \TYP{Number}}, 
+and the third is applicable to an argument 
+of type \EXP{\TYP{List}\llbracket\mathbb{Z}\rrbracket}.
+Thus, 
+each definition is strictly more specific than the preceding one, 
+so the No Duplicates Rule and Meet Rule 
+are satisfied for each pair of definitions by Lemma~\ref{lem:strictms}.
+
+To see that the Return Type Rule is satisfied 
+by the first two definitions, 
+consider any type \EXP{W \not\equiv \TYP{Bottom}} 
+to which the second definition is applicable---%
+so \EXP{W \SHORTCUT{<} \TYP{List}\llbracket{}T\rrbracket} for some \EXP{T \SHORTCUT{<} \TYP{Number}}---%
+and any instantiation of the first definition with type $U$ 
+that is applicable to $W$---so $W \subtypeof$ \EXP{\TYP{List}\llbracket{}U\rrbracket}.
+Then 
+\EXP{W \SHORTCUT{<} \TYP{List}\llbracket{}T\rrbracket \cap \TYP{List}\llbracket{}U\rrbracket}.
+By multiple instantiation exclusion,
+\EXP{\TYP{List}\llbracket{}T\rrbracket \cap \TYP{List}\llbracket{}U\rrbracket \equiv \TYP{Bottom}}
+unless $T \equiv U$.
+Since $W \not\equiv \Bottom$, 
+we have $T \equiv U$,
+so $W \subtypeof \TYP{List}\ob{U}$ 
+with $U \subtypeof \TYP{Number}$.
+Thus, the instantiation of the second definition with $U$ 
+has return type \EXP{\TYP{List}\llbracket{}U\rrbracket}, 
+which is also the return type 
+of the instantiation of the first definition 
+under consideration.
+(In Section~\ref{sec:exred} we describe how to
+incorporate this sort of reasoning about validity into our algorithmic
+checking of the overloading rules.)
+% In the justification that these two declarations satisfy the return type rule,
+% we employed a sort of intensional type analysis. Through backward reasoning
+% we determined that the constraint $T \equiv U$ must hold in order for these
+% declarations to be valid. In Section~\ref{sec:}\TODO{???} we will
+% incorporate this methodology into our algorithmic checking of the overloading
+% rules.
+
+The Return Type Rule is also satisfied by the third definition 
+and either of the first two 
+because the third definition is applicable 
+only to arguments of type \EXP{\TYP{List}\llbracket\mathbb{Z}\rrbracket},
+and because of multiple instantiation exclusion, 
+the only instantiation of either the first or second definition 
+that is applicable to such an argument 
+is its instantiation with \EXP{\mathbb{Z}}.
+That instantiation has return type \EXP{\TYP{List}\llbracket\mathbb{Z}\rrbracket}, 
+which is also the return type of the third definition.
+
+The \VAR{minimum} example from Section~\ref{sec:exclusion} is also valid 
+under multiple instantiation exclusion,
+which is necessary in this case 
+to satisfy the Meet Rule rather than the Return Type Rule:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{minimum}\llbracket{}X \SHORTCUT{<} \mathbb{R}, Y \SHORTCUT{<} \mathbb{Z}\rrbracket\bigl(p\COLON \TYP{Pair}\llbracket{}X,Y\rrbracket\bigr)\COLON \mathbb{R} \\
+  \VAR{minimum}\llbracket{}X \SHORTCUT{<} \mathbb{Z}, Y \SHORTCUT{<} \mathbb{R}\rrbracket\bigl(p\COLON \TYP{Pair}\llbracket{}X,Y\rrbracket\bigr)\COLON \mathbb{R} \\
+  \VAR{minimum}\llbracket{}X \SHORTCUT{<} \mathbb{Z}, Y \SHORTCUT{<} \mathbb{Z}\rrbracket\bigl(p\COLON \TYP{Pair}\llbracket{}X,Y\rrbracket\bigr)\COLON \mathbb{Z}\-
+\end{FortressCode}
+\normalsize
+Any argument to which the first two definitions are both applicable 
+must be of type $\TYP{Pair}\ob{X_1,Y_1} \cap \TYP{Pair}\ob{X_2,Y_2}$
+for some $X_1 \subtypeof \EXP{\mathbb{R}}$, 
+$Y_1 \subtypeof \EXP{\mathbb{Z}}$, 
+$X_2 \subtypeof \EXP{\mathbb{Z}}$, 
+and $Y_2 \subtypeof \EXP{\mathbb{R}}$.
+Multiple instantiation exclusion 
+implies that $X_1 = X_2$ and $Y_1 = Y_2$,
+so the argument must be of type $\TYP{Pair}\ob{X_1,Y_1}$, 
+where $X_1 \subtypeof \EXP{\mathbb{R}} \cap \EXP{\mathbb{Z}} = \EXP{\mathbb{Z}}$
+and $Y_1 \subtypeof \EXP{\mathbb{Z}} \cap \EXP{\mathbb{R}} = \EXP{\mathbb{Z}}$, 
+so the third definition is applicable to it.
+And since the third definition is more specific than the first two,
+it satisfies the requirement of the Meet Rule.
+
+The following set of overloaded declarations is also valid 
+(given the declaration \EXP{\TYP{ArrayList}\llbracket{}X\rrbracket \SHORTCUT{<} \TYP{List}\llbracket{}X\rrbracket}):
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{bar}\llbracket{}X\rrbracket\TYP{ArrayList}\llbracket{}X\rrbracket\COLON \mathbb{Z} \\
+  \VAR{bar}\llbracket{}Y \SHORTCUT{<} \mathbb{Z}\rrbracket\TYP{List}\llbracket{}Y\rrbracket\COLON \mathbb{Z} \\
+  \VAR{bar}\llbracket{}Z \SHORTCUT{<} \mathbb{Z}\rrbracket\TYP{ArrayList}\llbracket{}Z\rrbracket\COLON \mathbb{Z}\-
+\end{FortressCode}
+\normalsize
+The first two declarations are incomparable:
+the first is applicable to \EXP{\TYP{ArrayList}\llbracket{}T\rrbracket} for any type \VAR{T},
+the second to \EXP{\TYP{List}\llbracket{}U\rrbracket} for \EXP{U \SHORTCUT{<} \mathbb{Z}}.
+Thus, both declarations are applicable to any argument 
+of type \EXP{\TYP{ArrayList}\llbracket{}T\rrbracket \cap \TYP{List}\llbracket{}U\rrbracket} 
+for any \VAR{T} and \EXP{U \SHORTCUT{<} \mathbb{Z}}.
+Since \EXP{\TYP{ArrayList}\llbracket{}T\rrbracket \SHORTCUT{<} \TYP{List}\llbracket{}T\rrbracket}, 
+this type is a subtype of \EXP{\TYP{List}\llbracket{}T\rrbracket \cap \TYP{List}\llbracket{}U\rrbracket}, 
+which, because of multiple instantiation exclusion, 
+is \Bottom\ unless $T \equiv U$,
+in which case,
+\EXP{\TYP{ArrayList}\llbracket{}T\rrbracket \cap \TYP{List}\llbracket{}U\rrbracket \equiv \TYP{ArrayList}\llbracket{}U\rrbracket}.
+This is exactly the type to which the third declaration is applicable, 
+so the Meet Rule is satisfied.
+
+Note that this example is similar to the previous one with \VAR{minimum}
+except that rather than having each of the two definitions 
+being more restrictive on a type parameter, 
+one uses a more specific type constructor.
+
+Finally, 
+we consider three examples that do not involve generic types,
+beginning with the following declarations:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{baz}\llbracket{}X\rrbracket(x\COLON X)\COLON X \\
+  \VAR{baz}(x\COLON \mathbb{Z})\COLON \mathbb{Z}\-
+\end{FortressCode}
+\normalsize
+This pair is \emph{not} valid: 
+it does not satisfy the Return Type Rule.
+% The second is strictly more specific, 
+% so the declarations satisfy the No Duplicates and Meet Rules.
+Consider, for example, 
+an argument of type \EXP{\mathbb{N} \SHORTCUT{<} \mathbb{Z}}.
+The second declaration, 
+which is more specific than the first,
+and the instantiation of the first declaration with \EXP{\mathbb{N}}
+are both applicable to this argument,
+but the return type \EXP{\mathbb{Z}} of the second declaration 
+is not a subtype of the return type \EXP{\mathbb{N}} of the instance of the first declaration.
+This rejection by the Return Type Rule is not gratuitous: 
+\VAR{baz} may be called with an argument of type \EXP{\mathbb{N}} 
+in a context that expects an \EXP{\mathbb{N}} in return.
+
+We can fix this example by making the second declaration generic:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{baz}\llbracket{}X\rrbracket(x\COLON X)\COLON X \\
+  \VAR{baz}\llbracket{}X \SHORTCUT{<} \mathbb{Z}\rrbracket(x\COLON X)\COLON X\-
+\end{FortressCode}
+\normalsize
+This pair is valid: 
+the second declaration is strictly more specific than the first, 
+so the No Duplicates and Meet Rules are satisfied.
+To see that the Return Type Rule is satisfied, 
+consider any type \EXP{W \not\equiv \TYP{Bottom}} to which the second declaration is applicable---%
+so \EXP{W \SHORTCUT{<} \mathbb{Z}}---%
+and any instantiation of the first with some type $T$ that is applicable to $W$---% 
+so \EXP{W \SHORTCUT{<} T}.
+Then the instantiation of the second declaration with $W$ 
+has return type $W$, which is a subtype of the return type $T$ 
+of the instance of the first declaration under consideration.
+
+%% Finally,
+%% consider the following overloaded definitions:
+
+%% \small
+%%   quux[\X\](x: X): ZZ = 1
+%%   quux(x: ZZ): ZZ = 2
+%% 
+%% \normalsize
+%% This pair is valid 
+%% because the second definition is strictly more specific than the first---%
+%% so the No Duplicates and Meet Rules are satisfied---%
+%% and the return types of both is always just \EXP{\mathbb{Z}}---%
+%% so the Return Type Rule is satisfied.
+%% The call \EXP{\VAR{quux}(x)} evaluates to 2 whenever the ilk of $x$ is a subtype of \EXP{\mathbb{Z}}, 
+%% and to 1 otherwise,
+%% which we believe is the behavior a programmer would expect.
+
+%% In contrast, 
+%% under the ``infinite set of monomorphic definitions'' interpretation,
+%% supposing that we could avoid or resolve the ambiguities described in the introduction,
+%% the call \EXP{\VAR{quux}(x)} when $x$ has type \EXP{\mathbb{N} \SHORTCUT{<} \mathbb{Z}} would evaluate to 1 
+%% because the most specific monomorphic definition 
+%% would be the the instantiation of the generic definition with \EXP{\mathbb{N}}.
+
+
+
+
+
+
+
+%% \TODO{Some stuff to mention?}
+%% In a single-inheritance language (without parametric polymorphism?), 
+%% the constructed types trivially form a meet semilattice: 
+%% two types have a common nontrivial subtype 
+%% only if one is a subtype of the other.
+%% Thus, the tuple types and constructed types form a meet semilattice.
+%% (But arrow types don't: 
+%% the meet of \EXP{S\rightarrow{}T} and \EXP{U\rightarrow{}V} is \emph{not} an arrow type.)
+
+We now consider several sets of overloaded generic function declarations, 
+and argue informally why they are 
+(or are not, in one case) 
+permitted by the rules in Section~\ref{sec:rules}, 
+paying particular attention to where multiple instantiation exclusion is required.
+We give a formal system and algorithm for performing these checks 
+in Section~\ref{sec:checking}.
+
+First, consider the function \VAR{foo}
+from Section~\ref{sec:intro}:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{foo}\llbracket{}X \SHORTCUT{<} \TYP{Object}\rrbracket(x\COLON X, y\COLON \TYP{Object})\COLON \mathbb{Z} = 1 \\
+  \VAR{foo}\llbracket{}Y \SHORTCUT{<} \TYP{Number}\rrbracket(x\COLON \TYP{Number}, y\COLON Y)\COLON \mathbb{Z} = 2\-
+\end{FortressCode}
+\normalsize
+This overloading is valid: 
+The second definition is strictly more specific than the first 
+because the first definition is applicable to a pair of arguments 
+exactly if the type of each is a subtype of \TYP{Object}, 
+whereas the second is applicable to a pair of arguments exactly if
+the type of each is a subtype of \TYP{Number}.
+Thus, these definitions satisfy the No Duplicates Rule 
+and the Meet Rule by Lemma~\ref{lem:strictms}.
+And they satisfy the Return Type Rule 
+because the return type of both definitions is always \EXP{\mathbb{Z}}.
+
+The overloaded definitions for \VAR{tail} are also valid:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{tail}\llbracket{}X\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}X\rrbracket\bigr)\COLON \TYP{List}\llbracket{}X\rrbracket = e_1 \\
+  \VAR{tail}\llbracket{}X \SHORTCUT{<} \TYP{Number}\rrbracket\bigl(x\COLON \TYP{List}\llbracket{}X\rrbracket\bigr)\COLON \TYP{List}\llbracket{}X\rrbracket = e_2 \\
+  \VAR{tail}\bigl(x\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket\bigr)\COLON \TYP{List}\llbracket\mathbb{Z}\rrbracket = e_3\-
+\end{FortressCode}
+\normalsize
+The first definition is applicable to any argument 
+of type \EXP{\TYP{List}\llbracket{}T\rrbracket} for any well-formed type \VAR{T}, 
+the second is applicable to an argument 
+of type \EXP{\TYP{List}\llbracket{}T\rrbracket} when \EXP{T \SHORTCUT{<} \TYP{Number}}, 
+and the third is applicable to an argument 
+of type \EXP{\TYP{List}\llbracket\mathbb{Z}\rrbracket}.
+Thus, 
+each definition is strictly more specific than the preceding one, 
+so the No Duplicates Rule and Meet Rule 
+are satisfied for each pair of definitions by Lemma~\ref{lem:strictms}.
+
+To see that the Return Type Rule is satisfied 
+by the first two definitions, 
+consider any type \EXP{W \not\equiv \TYP{Bottom}} 
+to which the second definition is applicable---%
+so \EXP{W \SHORTCUT{<} \TYP{List}\llbracket{}T\rrbracket} for some \EXP{T \SHORTCUT{<} \TYP{Number}}---%
+and any instantiation of the first definition with type $U$ 
+that is applicable to $W$---so $W \subtypeof$ \EXP{\TYP{List}\llbracket{}U\rrbracket}.
+Then 
+\EXP{W \SHORTCUT{<} \TYP{List}\llbracket{}T\rrbracket \cap \TYP{List}\llbracket{}U\rrbracket}.
+By multiple instantiation exclusion,
+\EXP{\TYP{List}\llbracket{}T\rrbracket \cap \TYP{List}\llbracket{}U\rrbracket \equiv \TYP{Bottom}}
+unless $T \equiv U$.
+Since $W \not\equiv \Bottom$, 
+we have $T \equiv U$,
+so $W \subtypeof \TYP{List}\ob{U}$ 
+with $U \subtypeof \TYP{Number}$.
+Thus, the instantiation of the second definition with $U$ 
+has return type \EXP{\TYP{List}\llbracket{}U\rrbracket}, 
+which is also the return type 
+of the instantiation of the first definition 
+under consideration.
+(In Section~\ref{sec:exred} we describe how to
+incorporate this sort of reasoning about validity into our algorithmic
+checking of the overloading rules.)
+% In the justification that these two declarations satisfy the return type rule,
+% we employed a sort of intensional type analysis. Through backward reasoning
+% we determined that the constraint $T \equiv U$ must hold in order for these
+% declarations to be valid. In Section~\ref{sec:}\TODO{???} we will
+% incorporate this methodology into our algorithmic checking of the overloading
+% rules.
+
+The Return Type Rule is also satisfied by the third definition 
+and either of the first two 
+because the third definition is applicable 
+only to arguments of type \EXP{\TYP{List}\llbracket\mathbb{Z}\rrbracket},
+and because of multiple instantiation exclusion, 
+the only instantiation of either the first or second definition 
+that is applicable to such an argument 
+is its instantiation with \EXP{\mathbb{Z}}.
+That instantiation has return type \EXP{\TYP{List}\llbracket\mathbb{Z}\rrbracket}, 
+which is also the return type of the third definition.
+
+The \VAR{minimum} example from Section~\ref{sec:exclusion} is also valid 
+under multiple instantiation exclusion,
+which is necessary in this case 
+to satisfy the Meet Rule rather than the Return Type Rule:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{minimum}\llbracket{}X \SHORTCUT{<} \mathbb{R}, Y \SHORTCUT{<} \mathbb{Z}\rrbracket\bigl(p\COLON \TYP{Pair}\llbracket{}X,Y\rrbracket\bigr)\COLON \mathbb{R} \\
+  \VAR{minimum}\llbracket{}X \SHORTCUT{<} \mathbb{Z}, Y \SHORTCUT{<} \mathbb{R}\rrbracket\bigl(p\COLON \TYP{Pair}\llbracket{}X,Y\rrbracket\bigr)\COLON \mathbb{R} \\
+  \VAR{minimum}\llbracket{}X \SHORTCUT{<} \mathbb{Z}, Y \SHORTCUT{<} \mathbb{Z}\rrbracket\bigl(p\COLON \TYP{Pair}\llbracket{}X,Y\rrbracket\bigr)\COLON \mathbb{Z}\-
+\end{FortressCode}
+\normalsize
+Any argument to which the first two definitions are both applicable 
+must be of type $\TYP{Pair}\ob{X_1,Y_1} \cap \TYP{Pair}\ob{X_2,Y_2}$
+for some $X_1 \subtypeof \EXP{\mathbb{R}}$, 
+$Y_1 \subtypeof \EXP{\mathbb{Z}}$, 
+$X_2 \subtypeof \EXP{\mathbb{Z}}$, 
+and $Y_2 \subtypeof \EXP{\mathbb{R}}$.
+Multiple instantiation exclusion 
+implies that $X_1 = X_2$ and $Y_1 = Y_2$,
+so the argument must be of type $\TYP{Pair}\ob{X_1,Y_1}$, 
+where $X_1 \subtypeof \EXP{\mathbb{R}} \cap \EXP{\mathbb{Z}} = \EXP{\mathbb{Z}}$
+and $Y_1 \subtypeof \EXP{\mathbb{Z}} \cap \EXP{\mathbb{R}} = \EXP{\mathbb{Z}}$, 
+so the third definition is applicable to it.
+And since the third definition is more specific than the first two,
+it satisfies the requirement of the Meet Rule.
+
+The following set of overloaded declarations is also valid 
+(given the declaration \EXP{\TYP{ArrayList}\llbracket{}X\rrbracket \SHORTCUT{<} \TYP{List}\llbracket{}X\rrbracket}):
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{bar}\llbracket{}X\rrbracket\TYP{ArrayList}\llbracket{}X\rrbracket\COLON \mathbb{Z} \\
+  \VAR{bar}\llbracket{}Y \SHORTCUT{<} \mathbb{Z}\rrbracket\TYP{List}\llbracket{}Y\rrbracket\COLON \mathbb{Z} \\
+  \VAR{bar}\llbracket{}Z \SHORTCUT{<} \mathbb{Z}\rrbracket\TYP{ArrayList}\llbracket{}Z\rrbracket\COLON \mathbb{Z}\-
+\end{FortressCode}
+\normalsize
+The first two declarations are incomparable:
+the first is applicable to \EXP{\TYP{ArrayList}\llbracket{}T\rrbracket} for any type \VAR{T},
+the second to \EXP{\TYP{List}\llbracket{}U\rrbracket} for \EXP{U \SHORTCUT{<} \mathbb{Z}}.
+Thus, both declarations are applicable to any argument 
+of type \EXP{\TYP{ArrayList}\llbracket{}T\rrbracket \cap \TYP{List}\llbracket{}U\rrbracket} 
+for any \VAR{T} and \EXP{U \SHORTCUT{<} \mathbb{Z}}.
+Since \EXP{\TYP{ArrayList}\llbracket{}T\rrbracket \SHORTCUT{<} \TYP{List}\llbracket{}T\rrbracket}, 
+this type is a subtype of \EXP{\TYP{List}\llbracket{}T\rrbracket \cap \TYP{List}\llbracket{}U\rrbracket}, 
+which, because of multiple instantiation exclusion, 
+is \Bottom\ unless $T \equiv U$,
+in which case,
+\EXP{\TYP{ArrayList}\llbracket{}T\rrbracket \cap \TYP{List}\llbracket{}U\rrbracket \equiv \TYP{ArrayList}\llbracket{}U\rrbracket}.
+This is exactly the type to which the third declaration is applicable, 
+so the Meet Rule is satisfied.
+
+Note that this example is similar to the previous one with \VAR{minimum}
+except that rather than having each of the two definitions 
+being more restrictive on a type parameter, 
+one uses a more specific type constructor.
+
+Finally, 
+we consider three examples that do not involve generic types,
+beginning with the following declarations:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{baz}\llbracket{}X\rrbracket(x\COLON X)\COLON X \\
+  \VAR{baz}(x\COLON \mathbb{Z})\COLON \mathbb{Z}\-
+\end{FortressCode}
+\normalsize
+This pair is \emph{not} valid: 
+it does not satisfy the Return Type Rule.
+% The second is strictly more specific, 
+% so the declarations satisfy the No Duplicates and Meet Rules.
+Consider, for example, 
+an argument of type \EXP{\mathbb{N} \SHORTCUT{<} \mathbb{Z}}.
+The second declaration, 
+which is more specific than the first,
+and the instantiation of the first declaration with \EXP{\mathbb{N}}
+are both applicable to this argument,
+but the return type \EXP{\mathbb{Z}} of the second declaration 
+is not a subtype of the return type \EXP{\mathbb{N}} of the instance of the first declaration.
+This rejection by the Return Type Rule is not gratuitous: 
+\VAR{baz} may be called with an argument of type \EXP{\mathbb{N}} 
+in a context that expects an \EXP{\mathbb{N}} in return.
+
+We can fix this example by making the second declaration generic:
+
+\small
+\begin{FortressCode}
+{\tt ~~}\+\VAR{baz}\llbracket{}X\rrbracket(x\COLON X)\COLON X \\
+  \VAR{baz}\llbracket{}X \SHORTCUT{<} \mathbb{Z}\rrbracket(x\COLON X)\COLON X\-
+\end{FortressCode}
+\normalsize
+This pair is valid: 
+the second declaration is strictly more specific than the first, 
+so the No Duplicates and Meet Rules are satisfied.
+To see that the Return Type Rule is satisfied, 
+consider any type \EXP{W \not\equiv \TYP{Bottom}} to which the second declaration is applicable---%
+so \EXP{W \SHORTCUT{<} \mathbb{Z}}---%
+and any instantiation of the first with some type $T$ that is applicable to $W$---% 
+so \EXP{W \SHORTCUT{<} T}.
+Then the instantiation of the second declaration with $W$ 
+has return type $W$, which is a subtype of the return type $T$ 
+of the instance of the first declaration under consideration.
+
+%% Finally,
+%% consider the following overloaded definitions:
+
+%% \small
+%%   quux[\X\](x: X): ZZ = 1
+%%   quux(x: ZZ): ZZ = 2
+%% 
+%% \normalsize
+%% This pair is valid 
+%% because the second definition is strictly more specific than the first---%
+%% so the No Duplicates and Meet Rules are satisfied---%
+%% and the return types of both is always just \EXP{\mathbb{Z}}---%
+%% so the Return Type Rule is satisfied.
+%% The call \EXP{\VAR{quux}(x)} evaluates to 2 whenever the ilk of $x$ is a subtype of \EXP{\mathbb{Z}}, 
+%% and to 1 otherwise,
+%% which we believe is the behavior a programmer would expect.
+
+%% In contrast, 
+%% under the ``infinite set of monomorphic definitions'' interpretation,
+%% supposing that we could avoid or resolve the ambiguities described in the introduction,
+%% the call \EXP{\VAR{quux}(x)} when $x$ has type \EXP{\mathbb{N} \SHORTCUT{<} \mathbb{Z}} would evaluate to 1 
+%% because the most specific monomorphic definition 
+%% would be the the instantiation of the generic definition with \EXP{\mathbb{N}}.
+
+
+
+
+
+
+
+%% \TODO{Some stuff to mention?}
+%% In a single-inheritance language (without parametric polymorphism?), 
+%% the constructed types trivially form a meet semilattice: 
+%% two types have a common nontrivial subtype 
+%% only if one is a subtype of the other.
+%% Thus, the tuple types and constructed types form a meet semilattice.
+%% (But arrow types don't: 
+%% the meet of \EXP{S\rightarrow{}T} and \EXP{U\rightarrow{}V} is \emph{not} an arrow type.)
+
+
+\section{Overloading Rules Checking}
+\label{sec:checking}
+
+
+In this section,
+we describe how to mechanically check 
+the overloading rules from Section~\ref{sec:rules}. 
+The key insight is that the more specific relation 
+on overloaded function declarations
+corresponds to the subtyping relation 
+on the domain types of the declarations, 
+where the domain types of generic function declarations 
+are \emph{existential types}~\cite{bourdoncle97}.
+Thus, the problem of determining whether one declaration 
+is more specific than another 
+reduces to the problem of determining 
+whether one existential type is a subtype of another.
+
+We then formulate the overloading rules 
+as subtyping checks on existential and universal types 
+(universal types arise in the reformulation 
+of the Return Type Rule),
+and give an algorithm 
+to perform these subtyping checks.
+The algorithm we describe is sound but not complete:
+it does rejects some sets of overloaded functions 
+that are valid by the overloading rules in Section~\ref{sec:rules}, 
+but it accepts many of them, 
+including all of the valid examples in Section~\ref{sec:examples}.
+
+\subsection{Existential and Universal Types}
+
+Given a generic function declaration $d = \hdeclg{f}{\Delta}{S}{T}$,
+its domain type, written $\dom(d)$, 
+is the existential type $\exists\ob{\Delta}{S}$.
+An \emph{existential type} binds type parameter declarations over a type, 
+but these type parameters cannot be instantiated; 
+instead, the existential type represents some hidden type instantiation 
+and the corresponding instantiated type. We write
+$\exists\tplist{X}{N}T$ to bind each type variable $X_i$ with bounds
+$\{\bar{N_i}\}$ over the type $T$, and we use the metavariable $\delta$ to
+range over existential types.
+
+The arrow type of declaration $d$ above, written $\arrow(d)$, 
+is the universal arrow type \mbox{$\forall\ob{\Delta}S \rightarrow T$}.
+We use this to formulate the Return Type Rule.
+A \emph{universal type} binds type parameter declarations over some type and
+can be instantiated by any types fitting the type parameters' bounds.
+We write $\forall\tplist{X}{N}T$ to bind each type variable $X_i$ 
+with bounds $\{\bar{N_i}\}$ over the type $T$, 
+and we use the metavariable $\sigma$ to range over universal types.
+
+Note that universal and existential types 
+are \emph{not} actually types in our system.
+% To distinguish between the different notions, we refer to types
+% $T$ as \emph{simple types} and the original subtyping relation $\subtypeof$ as
+% \emph{simple subtyping}. 
+% When the meaning is clear from context, we equate
+% both $\forall\ob{}T$ and $\exists\ob{}T$ with the type $T$. 
+
+%%%%%%%%%%%%%%%%%%%%%%
+% INTRODUCE SUBTYPING!
+\subsection{Universal and Existential Subtyping}
+
+We define subtyping judgments for universal and existential types,
+which we use in checking the overloading rules. 
+We actually define inner and outer subtyping judgments on universals and existentials; 
+the former correspond to a relatively standard interpretation of each 
+(which resembles those defined in \cite{bourdoncle97});
+the latter incorporate \emph{quantifier reduction}, 
+defined in Section~\ref{sec:exred}.
+
+%%%%%%%%%%%%%%% BEGIN EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%
+\begin{figure}[t]
+\begin{minipage}{.5\textwidth}
+\centering
+\newjudge{Existential Subtyping}{\jleinner{\delta}{\delta} \quad \jle{\delta}{\delta}}
+
+\infrule
+  {\Delta' = \Delta, \bds{X}{M}
+   \andalso
+   \bar{X} \cap (\FV(U) \cup \FV(\bar{N})) = \emptyset
+   \\
+   \jgsub[\Delta']{T}{\substb{V}{Y}U}
+   \andalso
+   \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{Y}\bd{N_i}}
+  }
+  {\jleinner{\exists\obb{X <: \bd{M}}T}{\exists\obb{Y <: \bd{N}}U}}
+
+\infrule
+  {\jtred{\delta}{\reduce{\delta}} \andalso \jleinner{\reduce{\delta}}{\delta'}}
+  {\jle{\delta}{\delta'}}
+
+\vspace*{2ex}
+\newjudge{Universal Subtyping}{\jleinner{\sigma}{\sigma} \quad \jle{\sigma}{\sigma}}
+\infrule
+  {\Delta' = \Delta, \bds{Y}{N}
+   \andalso
+   \bar{Y} \cap (\FV(T) \cup \FV(\bar{M})) = \emptyset
+   \\
+   \jgsub[\Delta']{\substb{V}{X}T}{U}
+   \andalso
+   \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{X}\bd{M_i}}
+  }
+  {\jleinner{\forall\obb{X <: \bd{M}}T}{\forall\obb{Y <: \bd{N}}U}}
+
+\infrule
+  {\jtred{\sigma'}{\reduce{\sigma'}} \andalso \jleinner{\sigma}{\reduce{\sigma'}}}
+  {\jle{\sigma}{\sigma'}}
+
+% \begin{tabularx}{\textwidth}{RcX}
+%   $\sigma_1 \le \sigma_2$ & \syndef & $\jle[\emptyset]{\sigma_1}{\sigma_2}$ \\
+% \end{tabularx}
+
+
+
+\end{minipage}
+  \caption{Subtyping of universal and existential types. 
+Note that alpha-renaming of type variables may be necessary 
+to apply these rules.}
+  \label{fig:existential}
+\end{figure}
+%%%%%%%%%%%%%%% END EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%
+
+
+The inner subtyping judgment on existentials $\jleinner{\delta_1}{\delta_2}$, defined in
+Figure~\ref{fig:existential}, states that $\delta_1$ is a subtype of $\delta_2$ in the environment $\Delta$ if the constituent type of $\delta_1$
+is a subtype of an instance of $\delta_2$ in the environment obtained by conjoining $\Delta$ and the bounds of $\delta_1$.
+
+In the outer subtyping judgment $\jle{\delta}{\delta'}$, 
+we first perform \emph{existential reduction} to produce $\reduce{\delta}$ 
+(denoted \jtred{\delta}{\reduce{\delta}}). 
+Then we check whether $\jleinner{\reduce{\delta}}{\delta'}$.
+We provide (and explain) the formal definition of existential reduction in Section~\ref{sec:exred}, but for now note that it has the following properties:
+\begin{enumerate}
+\item $\jleinner{\reduce{\delta}}{\delta}$
+\item $\jleinner{\delta}{\delta'}$ implies $\jleinner{\reduce{\delta}}{\reduce{\delta'}}$
+\item $\reduce{(\reduce{\delta})} = \reduce{\delta}$
+\item $\reduce{(\exttype[]{T})} = \exttype[]{T}$
+\end{enumerate}
+The first three properties show that $\le$ is a preorder and that $\leinner$ implies $\le$.
+Adding the fourth property lets us show that any ground instance $T$ of $\delta$ with $T \neq \Bottom$ is an instance of $\reduce{\delta}$
+
+We use existential reduction 
+because merely extending the subtyping relation for ordinary types with exclusion
+is not enough to let us check the overloading rules. For example, to check that the first two declarations of $\D_{\mathit{bar}}$ from Section~$\ref{sec:examples}$ satisfy the Meet Rule,
+we must be able to deduce that the existential
+\[\EXP{\exists\llbracket{}X \SHORTCUT{<} \TYP{Any}, Y \SHORTCUT{<} \mathbb{Z}\rrbracket\bigl(\TYP{ArrayList}\llbracket{}X\rrbracket \cap \TYP{List}\llbracket{}Y\rrbracket\bigr)}\]
+and the existential
+\[\EXP{\exists\llbracket{}W\SHORTCUT{<}\mathbb{Z}\rrbracket\TYP{ArrayList}\llbracket{}W\rrbracket}\]
+describe the same set of ground instances of types.
+
+The rules for universals are dual to those for existentials. The inner subtyping judgment on universals $\jleinner{\sigma_1}{\sigma_2}$, defined in
+Figure~\ref{fig:existential},
+states that $\sigma_1$ is a subtype
+of $\sigma_2$ in the environment $\Delta$, if an instance of $\sigma_1$ is a subtype of the constituent type of $\sigma_2$ in the environment obtained by conjoining $\Delta$ and the bounds of $\sigma_2$. In
+the outer universal subtyping judgment $\jle{\sigma}{\sigma'}$,
+we first perform $\emph{universal reduction}$ to produce $\reduce{\sigma'}$ 
+(denoted \jtred{\sigma'}{\reduce{\sigma'}})
+and then check whether $\jleinner{\sigma}{\reduce{\sigma'}}$. 
+Again, 
+we provide the formal definition of universal reduction in Section~\ref{sec:exred}, 
+noting that it has the following properties:
+\begin{enumerate}
+\item $\jleinner{\sigma}{\reduce{\sigma}}$
+\item $\jleinner{\sigma}{\sigma'}$ implies $\jleinner{\reduce{\sigma}}{\reduce{\sigma'}}$
+\item $\reduce{(\reduce{\sigma})} = \reduce{\sigma}$
+\item $\reduce{(\unitype[]{\arrowtype{S}{T}})} = \unitype[]{\arrowtype{S}{T}}$
+\end{enumerate}
+Again the first three properties show that $\le$ is a preorder and that $\leinner$ implies $\le$.
+Adding the fourth property lets us show that any ground instance $\arrowtype{S}{T}$ of $\delta$ with $S \neq \Bottom$ is an instance of $\reduce{\sigma}$.
+
+We need universal reduction for the same reason we need existential reduction, to check the overloading rules. For example to show the first two declarations in $\D_{\mathit{tail}}$
+from Section~\ref{sec:examples} satisfy the Return Type Rule, we use universal reduction to show that
+\[\EXP{\forall\llbracket{}X\SHORTCUT{<}\TYP{Number},Y\SHORTCUT{<}\TYP{Any}\rrbracket\bigl(\TYP{List}\llbracket{}X\rrbracket \cap \TYP{List}\llbracket{}Y\rrbracket\bigr)}\]
+and
+\[\EXP{\forall\llbracket{}W\SHORTCUT{<}\TYP{Number}\rrbracket\TYP{List}\llbracket{}W\rrbracket \rightarrow \TYP{List}\llbracket{}W\rrbracket}\]
+have all the same nontrivial instances.
+
+% We provide and fully explain the definitions of existential and universal reduction in Section~\ref{sec:exred}.
+
+%%%%%%%%%%%%%%%%%%%%% BEGIN MEET %%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}[ht!]
+\begin{minipage}{0.95\textwidth}
+\centering
+\vspace*{.5em}
+
+\newjudge{Existential Meet}{\delta_1 \;\meet\; \delta_2}
+\[ \begin{array}{c}
+  \left(\exists\tplist{X}{M}T\right) \; \meet \;
+      \left(\exists\tplist{Y}{N}U\right)
+  \quad \syndef \quad
+  \exists\ob{\bds{X}{M}, \bds{Y}{N}}\left(T \cap U\right)
+  \\[1em]
+  \text{where} \;
+  \bar{X} \cap \bar{Y} \;=\;
+  \bar{X} \cap (\FV(U) \cup \FV(\bar{N})) \;=\;
+  \bar{Y} \cap (\FV(T) \cup \FV(\bar{M})) \;=\;
+  \emptyset
+\end{array} \]
+
+\end{minipage}
+  \caption{The computed meet of existential types.}
+  \label{fig:meet}
+\end{figure*}
+%%%%%%%%%%%%%%%%%%%%% END MEET %%%%%%%%%%%%%%%%%%%%%%
+
+
+% %%%%%%%%%%%%%%%%%%%%% BEGIN MEET %%%%%%%%%%%%%%%%%%%%%%
+% \begin{figure}[ht]
+% \centering
+% \vspace*{.5em}
+% 
+% \newjudge{Existential Meet}{\delta_1 \;\meet\; \delta_2}
+% \[
+%   \left(\exists\tplist{X}{M}T\right) \; \meet \;
+%       \left(\exists\tplist{Y}{N}U\right)
+% \]\[
+%   \syndef
+% \]\[
+%   \exists\ob{\bds{X}{M}, \bds{Y}{N}}\left(T \cap U\right)
+% \]\vspace{.5em}\[
+% \begin{array}{rl}
+%   \text{where} & \bar{X} \cap \bar{Y} \;=\; \emptyset \\
+%                & \bar{X} \cap (\FV(U) \cup \FV(\bar{N})) \;=\; \emptyset \\
+%                & \bar{Y} \cap (\FV(T) \cup \FV(\bar{M})) \;=\; \emptyset \\
+% \end{array}
+% \]
+% 
+%   \caption{Computed meet of existential types.}
+%   \label{fig:meet}
+% \end{figure}
+% %%%%%%%%%%%%%%%%%%%%% END MEET %%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsection{Mechanically Checking the Rules}
+With our interpretations of applicability and specificity into existential
+subtyping, we now describe the process of checking the validity of a set of 
+overloaded declarations $\Df$ according to the rules in
+Section~\ref{sec:rules}.
+
+We can check the No Duplicates Rule by verifying that for every pair of distinct function
+declarations $d_1, d_2 \in \Df$ either $d_1 \not \ms d_2$ or $d_1 \not \ms d_2$. 
+
+The Meet Rule requires that every pair of declarations $d_1, d_2 \in \Df$ 
+has a meet in $\Df$. 
+Because the more specific relation on function declarations 
+corresponds to the subtyping relation on the (existential) domain types,
+we just need to find a declaration $d_0 \in \Df$ 
+whose domain type $dom(d_0)$ 
+is equivalent to the meet (under $\le$) 
+of the existential types $\dom(d_1)$ and $\dom(d_2)$.
+Figure~\ref{fig:meet} shows how to compute the meet of two existential types.
+
+\begin{lemma}\label{lem:meet}
+$\delta_1 \meet \delta_2$ (as defined in Figure~\ref{fig:meet}) 
+is the meet of $\delta_1$ and $\delta_2$ under $\le$.
+\end{lemma}
+\begin{proof}
+First we show that $\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\leinner$. That $\delta_1 \meet \delta_2 \leinner \delta_1$ and $\delta_1 \meet \delta_2 \leinner \delta_2$ is obvious.
+For any $\delta_0$, if $\bar{U}$ and $\bar{V}$ are instantiations that prove
+$\delta_0 \leinner \delta_1$ and $\delta_0 \leinner \delta_2$, respectively,
+then we can use the instantiation $\bar{U},\bar{V}$ to prove that $\delta_0 \le \delta_1 \meet \delta_2$.
+
+Now we show that the meet under $\leinner$ is also the meet under $\le$. Suppose that $\delta_0 \le \delta_1$, $\delta_0 \le \delta_1$,
+and $\jtred{\delta_0}{\delta'_0}$. A little work lets us deduce that $\delta'_0 \leinner \delta_1 \meet \delta_2$ and hence $\delta_0 \le \delta_1 \meet \delta_2$.
+The fact that $\delta_1 \meet \delta_2 \le \delta_1$ and $\delta_1 \meet \delta_2 \le \delta_2$ follows from the fact that $\leinner$ implies $\le$.
+\end{proof}
+
+We can check the Return Type Rule using the subtype relation on universal types.
+\begin{theorem}
+Let $d_1 = \hdeclg{f}{\Delta_1}{S_1}{T_1}$ and $d_2 = \hdeclg{f}{\Delta_2}{S_2}{T_2}$ be declarations
+in $\Df$ with $d_1 \ms d_2$. 
+They satisfy the Return Type Rule if $\arrow(d_1)$ is a subtype of
+the arrow type $\sigma_{\wedge} = \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \rightarrow T_2$.
+\end{theorem}
+
+\begin{proof}
+Let $d_{\wedge} = f\ob{\Delta_1, \Delta_2} S_1 \cap S_2 : T_2$, 
+so $\arrow(d_{\wedge}) = \sigma_{\wedge}$. 
+Note that $d_{\wedge}$ and $d_1$ are equally specific and 
+that $d_{\wedge}$ and $d_2$ satisfy the Return Type Rule. 
+Because $\arrow(d_1) \le \sigma_{\wedge}$,
+for every instance $\arrowtype{U}{V}$ of $\sigma_{\wedge}$ with $U \not \equiv \Bottom$,
+we can find an instance $\arrowtype{U_1}{V_1}$ of $\arrow(d_1)$ 
+with $U \subtypeof U_1$ and $V_1 \subtypeof V$. 
+Thus, the pair $d_1$ and $d_2$ satisfy the Return Type Rule because the pair $d_{\wedge}$, $d_2$ does.
+\end{proof}
+
+
+
+\section{Constraint-Based Judgments}\label{sec:constraints}
+\Up to this point the precise definitions of subtyping and exclusion between
+types (and quantifier reduction) have remained unspecified. In this section
+we describe a small language of type constraints 
+and we define subtyping and exclusion with respect to constraints. 
+Finally, with constraint-based subtyping and exclusion defined, we explain
+in more detail the notion of quantifier reduction used in the $\le$ judgments (and thus in our rule-checking).
+
+\subsection{Inference Variables}
+
+Until now we have only considered types whose free variables are bound in an explicit type environment. To gather constraints, however, we must check
+subtype and exclusion relationships between types with unbound \emph{inference} variables.
+Intuitively, we have no control over the constraints on a bound type variable (which are fixed by the associated type environment), but we may introduce constraints on an inference variable.
+While the syntax of type variables is uniform, we conventionally distinguish them by using the metavariables $X$ and $Y$ for bound type variables and $I$ and $J$ for inference type variables.
+
+\subsection{Judgment Forms}
+%%%%%%%%%%%%%%% BEGIN JUDGMENT FIGURE %%%%%%%%%%%%%%%
+\begin{figure}
+\begin{minipage}[ht]{.5\textwidth}
+\centering
+
+\newjudge{Primitive Judgments}{\jgconstrtemplate{T}{\ast}{T}{\C}}
+
+% \vspace{\afterruleskip}
+% \jsub{S}{T}{\C}
+% \vspace{\afterruleskip}
+% 
+% \jnsub{S}{T}{\C}
+% \vspace{\afterruleskip}
+% 
+% \jexc{S}{T}{\C}
+% \vspace{\afterruleskip}
+% 
+% \jnexc{S}{T}{\C}
+% \vspace{\afterruleskip}
+
+$$
+\begin{array}{l@{\hspace{2em}}l}
+\jsub{S}{T}{\C}  & \jexc{S}{T}{\C} \\[.5em]
+\jnsub{S}{T}{\C} & \jnexc{S}{T}{\C} \\
+\end{array}
+$$
+
+\vspace*{2ex}
+\newjudge{Derived Judgments}{\jgconstrtemplate{T}{\ast}{T}{\C}}
+
+\infrule
+  {\jsub{S}{T}{\C} \andalso \jsub{T}{S}{\C'}}
+  {\jequiv{S}{T}{\C \wedge \C'}}
+  
+\infrule
+  {\jnsub{S}{T}{\C} \andalso \jnsub{T}{S}{\C'}}
+  {\jnequiv{S}{T}{\C \vee \C'}}
+
+\vspace*{2ex}
+\newjudge{Derived Judgments}{\jgcontratemplate{T}{\ast}{T}{\C}}
+  
+\infrule
+  {\jequiv{S}{T}{\C}}
+  {\jcnequiv{S}{T}{\neg \C}}
+
+\end{minipage}
+  \caption{Constraint-based judgment forms.}
+  \label{fig:judge}
+\end{figure}
+%%%%%%%%%%%%%%% END JUDGMENT FIGURE %%%%%%%%%%%%%%%%%
+
+
+In Figure \ref{fig:judge}, 
+we list the judgments for generating constraints.
+A judgment of the form
+$\jgconstrtemplate{S}{\ast}{T}{\C}$
+states that under the assumptions $\Delta$, 
+the constraint $\C$ on the inference variables implies the proposition $S \propop T$,
+where $\propop$ ranges over $\subtypeof$, $\nsubtypeof$, $\exc$, $\nexc$,
+$\equiv$, and $\not\equiv$.
+If $S$ and $T$ contain no inference variables the judgment behaves like an unconditional judgment (i.e., it only produces the constraints $\TRUE$ or $\FALSE$).
+
+Similarly, the judgment of the form
+\[\jgcontratemplate{S}{\propop}{T}{\C}\]
+states that under the assumptions $\Delta$, if the proposition $S \propop T$ holds, then $\C$ must be true of the inference variables. 
+In particular, 
+when $\C$ holds of the inference variables, 
+$S \propop T$ does not have to hold 
+for every valid instantiation of the bound type variables. 
+(Note that we only make use of this judgment where $\propop$ is $\not\equiv$.)
+
+An important point about both kinds of judgments is that the types $S$ and $T$ should be considered \emph{inputs} and the
+constraint $\C$ should be considered an \emph{output}.
+
+\subsection{Constraint Forms}
+%%%%%%%%%%%%%%% BEGIN CONSTRAINT FIGURE %%%%%%%%%%%%%%%
+\begin{figure}[tb]
+
+
+\begin{tabular}{cc}
+\begin{minipage}{.2\textwidth}
+\centering
+  \fbox{\textbf{Constraint Grammar}}
+  \[
+  \begin{array}{lcl}
+  \C &::=& S <: T \\
+  &\mid& S \exc T \\
+  &\mid& S \not<: T \\
+  &\mid& S \nexc T \\
+  &\mid& \C \wedge \C \\
+  &\mid& \C \vee \C \\
+  &\mid& \FALSE \\
+  &\mid& \TRUE \\
+  \end{array}
+  \]
+\end{minipage}
+&
+\begin{minipage}{.25\textwidth}
+\centering
+  \fbox{\textbf{Constraint Utilities}}
+
+  \vspace{\afterruleskip}
+  $\neg \C = \C$
+  \vspace{\afterruleskip}
+
+  \toConstraint{\Delta}{\C} \\
+  \vspace{\afterruleskip}
+
+  \toBounds{\C}{\Delta} \\
+  \vspace{\afterruleskip}
+
+  \jsolve{\C}{\phi}{\C} \\
+  \vspace{\afterruleskip}
+\end{minipage}
+\end{tabular}
+
+
+  \caption{Constraints. Note that \textit{unify} and \textit{toBounds} are partial functions.}
+  \label{fig:constraints}
+\end{figure}
+%%%%%%%%%%%%%%% END CONSTRAINT FIGURE %%%%%%%%%%%%%%%%%
+
+Our grammar for type constraints is defined in Figure \ref{fig:constraints}.
+A primitive constraint is either {\it positive} or {\it negative}. We define
+positive primitive constraints: $S \subtypeof T$ specifies that
+a $S$ is a subtype of $T$, and $S \exc T$ specifies that $S$ must exclude $T$.
+Similarly, we define negative primitive constraints: $S \nsubtypeof T$ and $S \nexc T$ with the obvious interpretations.
+A conjunction constraint $\C_1 \wedge \C_2$ is satisfied exactly
+when both $\C_1$ and $\C_2$ are satisfied,
+and a disjunction constraint $\C_1 \vee \C_2$ is satisfied exactly
+when one or both of $\C_1$ and $\C_2$ are satisfied.
+The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always satisfied. The equivalence constraint $S \equiv T$ is derived as $S \subtypeof T \wedge T \subtypeof S$.
+
+Following Smith and Cartwright \cite{smith08}, 
+% on which we based our constraint rules, 
+we normalize all constraint formulas into disjunctive normal form
+and simplify away obvious contradictions and redundancies. We further make use
+of some auxiliary meta-level definitions, defined in Figure~\ref{fig:constraints}. 
+The negation $\neg \C$ of a constraint $\C$ has a standard de Morgan interpretation.
+Each type environment $\Delta = \bds{X}{M}$ naturally describes a constraint
+on the variables $\bar{X}$,
+which we denote $\textit{toConstraint}(\Delta)$. This conversion
+has a partial inverse $\textit{toBound}(\C)$ that is defined whenever $\C$ can be written as a conjunction of constraints of the form $X \subtypeof M$.%
+\footnote{If $\C$ has multiple conjuncts of this form for a single $X$, then the resulting environment contains multiple bounds for $X$ using the $\bd{M}$ notation.}
+
+\subsection{Subtyping}
+%%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}[htbp]
+\centering
+\newjudge{Subtyping Rules}{\jsub{T}{T}{\C}}
+\vspace*{1em}
+
+\begin{minipage}[t]{.5\textwidth}
+\centering
+
+\textbf{Logical rules}
+\vspace*{-1em}
+
+\infrule
+  {}
+  {\jsub{\Bottom}{T}{\TRUE}}
+
+\infrule
+  {}
+  {\jsub{M}{\Bottom}{\FALSE}}
+  
+\infrule
+  {}
+  {\jsub{\EXP{S \rightarrow T}}{\Bottom}{\FALSE}}
+  
+\infrule
+  {}
+  {\jsub{T}{\Any}{\TRUE}}
+
+\infrule
+  {}
+  {\jsub{\Any}{\EXP{S \rightarrow T}}{\FALSE}}
+
+
+\infrule
+  {\jsub{T}{U}{\C} \andalso \jsub{T}{V}{\C'}}
+  {\jsub{T}{U \cap V}{\C \wedge \C'}}
+
+\infrule
+  {\jsub{S}{U}{\C} \andalso \jsub{T}{U}{\C'} \\
+   \jexc{S}{T}{\C''}}
+  {\jsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
+  
+\infrule
+  {\jsub{T}{U}{\C} \andalso \jsub{T}{V}{\C'}}
+  {\jsub{T}{U \cup V}{\C \vee \C'}}
+  
+\infrule
+  {\jsub{S}{U}{\C} \andalso \jsub{T}{U}{\C'}}
+  {\jsub{S \cup T}{U}{\C \wedge \C'}}
+
+\vspace*{2ex}
+\textbf{Inference Variables}
+\vspace*{-1em}
+
+\infrule
+  {\VAR{I} \not \in \Delta}
+  {\jsub{I}{I}{\TRUE}}
+
+\infrule
+  {\VAR{I} \not \in \Delta}
+  {\jsub{I}{T}{\VAR{I} \subtypeof \VAR{T}}}
+ 
+\infrule
+  {\VAR{I} \not \in \Delta}
+  {\jsub{S}{I}{\VAR{S} \subtypeof \VAR{I}}}
+ 
+\vspace*{2ex}
+\textbf{Bound Variables}
+\vspace*{-1em}
+ 
+\infrule
+  {}
+  {\jsub{X}{X}{\TRUE}}
+
+\infrule
+  {\jsub{\Delta(X)}{T}{\C}}
+  {\jsub{X}{T}{\C}}
+
+\infrule
+  {\jsub{S}{\Bottom}{\C}}
+  {\jsub{S}{X}{\C}}
+
+\end{minipage}%
+\begin{minipage}[t]{.5\textwidth}
+\centering
+\textbf{Structural rules}
+% \vspace*{-1em}
+
+\infrule
+  {|\bar{S}| = |\bar{T}| \andalso \forall  i . \quad \jsub{S_i}{T_i}{\C_i} \\
+   \forall i . \quad \jsub{S_i}{\Bottom}{\D_i}}
+  {\jsub{(\bar{S})}{(\bar{T})}{(\bigwedge \C_i) \vee (\bigvee \D_i)}}
+
+\infrule
+  {|\bar{S}| \neq 1 \andalso \forall i . \quad \jsub{S_i}{\Bottom}{\C_i}}
+  {\jsub{(\bar{S})}{T}{\bigvee \C_i}}
+
+\infrule
+  {\jsub{U}{S}{\C} \andalso \jsub{T}{V}{\C'}}
+  {\jsub{\EXP{S \rightarrow T}}{\EXP{U \rightarrow V}}{\C \wedge \C'}}
+  
+\infrule
+  {|\bar{U}| \neq 1}
+  {\jsub{\EXP{S \rightarrow T}}{(\bar{U})}{\FALSE}}
+  
+\infrule
+  {|\bar{T}| \neq 1}
+  {\jsub{M}{(\bar{T})}{\FALSE}}
+
+\infrule
+  {}
+  {\jsub{\EXP{S \rightarrow T}}{M}{\FALSE}}
+
+\infrule
+  {}
+  {\jsub{M}{\EXP{S \rightarrow T}}{\FALSE}}
+
+\vspace*{2ex}
+\textbf{Constructed types}
+% \vspace*{-1em}
+
+\infrule
+  {C \neq D \andalso \forall M \in \EXP{C\llbracket\bar{S}\rrbracket}.extends. \quad \jsub{M}{\EXP{D\llbracket\bar{T}\rrbracket}}{\C_M}}
+  {\jsub{\EXP{C\llbracket\bar{S}\rrbracket}}{\EXP{D\llbracket\bar{T}\rrbracket}}{\bigvee \C_M}}
+
+\infrule
+  {\forall i . \quad \jequiv{S_i}{T_i}{C_i}}
+  {\jsub{\EXP{C\llbracket\bar{S}\rrbracket}}{\EXP{C\llbracket\bar{T}\rrbracket}}{\bigwedge C_i}}
+
+\end{minipage}
+
+  \caption{Algorithm for generating subtyping constraints. Apply the first rule that matches.}
+  \label{fig:jsub}
+\end{figure*}
+
+
+Figure~\ref{fig:jsub} presents the full definition of our constraint-based subtyping algorithm
+as inference rules for the judgment $\jsub{T}{T}{\C}$. Note that our algorithm requires that these rules be processed in the given order.
+
+Smith and Cartwright similarly define a sound and complete algorithm 
+for generating constraints from the Java subtyping relation \cite{smith08}. 
+We essentially preserve their semantics with two notable differences. 
+First, our definition includes additional rules for tuple types 
+to account for the fact that 
+any tuple is equivalent to \Bottom\ 
+if any of its element types is equivalent to \Bottom.
+
+\infrule
+  {|\bar{S}| = |\bar{T}| \andalso \forall  i . \quad \jsub{S_i}{T_i}{\C_i} \\
+   \forall i . \quad \jsub{S_i}{\Bottom}{\C'_i}}
+  {\jsub{(\bar{S})}{(\bar{T})}{(\bigwedge \C_i) \vee (\bigvee \C'_i)}}
+
+\infrule
+  {|\bar{S}| \neq 1 \andalso \forall i . \quad \jsub{S_i}{\Bottom}{\C_i}}
+  {\jsub{(\bar{S})}{T}{\bigvee \C_i}}
+
+\noindent Second, our definition includes an additional rule for intersection types to account for
+exclusion since the intersection of excluding types is equivalent to
+$\Bottom$. 
+This rule makes our exclusion and subtyping rules mutually dependent.
+
+\infrule
+  {\jsub{S}{U}{\C} \andalso \jsub{T}{U}{\C'} \\
+   \jexc{S}{T}{\C''}}
+  {\jsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
+  
+We formally define the subtyping judgment from Section~\ref{sec:pre} as a trivial application of
+constraint-based subtyping with the following rule:
+
+\infrule
+  {\jsub{S}{T}{\TRUE}}
+  {\jgsub{S}{T}}
+
+
+\subsection{Exclusion}
+
+%%%%%%%%%%%%%%% BEGIN EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%
+\begin{figure}[t]
+\begin{minipage}{.5\textwidth}
+\centering
+\newjudge{Existential Subtyping}{\jleinner{\delta}{\delta} \quad \jle{\delta}{\delta}}
+
+\infrule
+  {\Delta' = \Delta, \bds{X}{M}
+   \andalso
+   \bar{X} \cap (\FV(U) \cup \FV(\bar{N})) = \emptyset
+   \\
+   \jgsub[\Delta']{T}{\substb{V}{Y}U}
+   \andalso
+   \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{Y}\bd{N_i}}
+  }
+  {\jleinner{\exists\obb{X <: \bd{M}}T}{\exists\obb{Y <: \bd{N}}U}}
+
+\infrule
+  {\jtred{\delta}{\reduce{\delta}} \andalso \jleinner{\reduce{\delta}}{\delta'}}
+  {\jle{\delta}{\delta'}}
+
+\vspace*{2ex}
+\newjudge{Universal Subtyping}{\jleinner{\sigma}{\sigma} \quad \jle{\sigma}{\sigma}}
+\infrule
+  {\Delta' = \Delta, \bds{Y}{N}
+   \andalso
+   \bar{Y} \cap (\FV(T) \cup \FV(\bar{M})) = \emptyset
+   \\
+   \jgsub[\Delta']{\substb{V}{X}T}{U}
+   \andalso
+   \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{X}\bd{M_i}}
+  }
+  {\jleinner{\forall\obb{X <: \bd{M}}T}{\forall\obb{Y <: \bd{N}}U}}
+
+\infrule
+  {\jtred{\sigma'}{\reduce{\sigma'}} \andalso \jleinner{\sigma}{\reduce{\sigma'}}}
+  {\jle{\sigma}{\sigma'}}
+
+% \begin{tabularx}{\textwidth}{RcX}
+%   $\sigma_1 \le \sigma_2$ & \syndef & $\jle[\emptyset]{\sigma_1}{\sigma_2}$ \\
+% \end{tabularx}
+
+
+
+\end{minipage}
+  \caption{Subtyping of universal and existential types. 
+Note that alpha-renaming of type variables may be necessary 
+to apply these rules.}
+  \label{fig:existential}
+\end{figure}
+%%%%%%%%%%%%%%% END EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%
+
+
+Figure~\ref{fig:jexc} presents our definition of constraint-based exclusion
+as inference rules for the judgment $\jexc{T}{T}{\C}$. 
+As with subtyping, 
+our algorithm requires that these rules be processed in order. Additionally, if no rule matches, then the l.h.s. and r.h.s. types should be swapped and the rules tried again.
+
+To make these rules algorithmic, 
+we break the exclusion relation on constructed types 
+into four subrelations $\exce$, $\excc$, $\exco$, and $\excp$. 
+The first three relations are further decomposed 
+into the asymmetric relations $\excre$, $\excrc$, and $\excro$.
+\begin{enumerate}
+\item `C[\ S_bar \]`\,$\excre$\,`D[\ T_bar \]` determines whether `D[\ T_bar \]` has a super type $N$ such that $N$ appears in the excludes clause of an ancestor of `C[\ S_bar \]`.
+\item `C[\ S_bar \]`\,$\excrc$\,`D[\ T_bar \]` determines whether `D[\ T_bar \]` excludes every type in the (nontrivial) comprises clause of `C[\ S_bar \]`.
+\item `C[\ S_bar \]`\,$\excro$\,`D[\ T_bar \]` determines whether `C[\ S_bar \]` is an object and `D[\ T_bar \]` is not a supertype of `C[\ S_bar \]`.
+\item `C[\ S_bar \]`\,$\excp$\,`D[\ T_bar \]` determines whether there is a pair of types $(M, N)$ such that $M$ is an ancestor of `C[\ S_bar \]`, $N$ is an ancestor of `D[\ T_bar \]`, and
+$M$ and $N$ are distinct applications of the same type constructor.
+\end{enumerate}
+
+As with subtyping, we formally define the exclusion judgment described in Section~\ref{sec:exclusion} as a trivial application
+of constraint-based exclusion with the following rule:
+
+\infrule
+  {\jexc{S}{T}{\TRUE}}
+  {\jgtemplate{S}{\exc}{T}}
+
+\subsection{Negative Judgments and Negation}
+In the rules for constraint-based exclusion (Figure~\ref{fig:jexc}),
+we use the negative judgments $\jnsub{T}{T}{\C}$ and $\jnexc{T}{T}{\C}$
+to determine constraints under which the negations hold. 
+Instead of defining negative judgments explicitly, 
+we describe how to derive them from their positive counterparts 
+according to de Morgan's laws.
+
+For the negative subtyping judgment $\jnsub{T}{T}{\C}$,
+the rules for bound variables are given below:
+\[
+\frac
+  {`X` \in \Delta}
+  {\jnsub{X}{T}{\FALSE}}
+\qquad
+\frac
+  {\jnsub{S}{\Delta(X)}{\C}}
+  {\jnsub{S}{X}{\C}}
+\]
+The other rules for $\jnsub{T}{T}{\C}$ are obtained as follows:
+For each rule of $\jsub{T}{T}{\C}$
+that is not in the section marked ````bound variables,''
+make a new rule for $\jnsub{T}{T}{\C}$ by replacing each occurrence of a
+relation symbol $\propop$ with its negation, 
+and by swapping each $\wedge$ with $\vee$ and $\TRUE$ with $\FALSE$, and vice versa. 
+For example, the rule for intersection types on the r.h.s.
+\infrule
+  {\jsub{T}{U}{\C} \andalso \jsub{T}{V}{\C'}}
+  {\jsub{T}{U \cap V}{\C \wedge \C'}}
+becomes the following rule in the negative subtyping judgment
+\infrule
+  {\jnsub{T}{U}{\C} \andalso \jnsub{T}{V}{\C'}}
+  {\jnsub{T}{U \cap V}{\C \vee \C'}}
+
+The rules for the negative exclusion judgment $\jnexc{T}{T}{\C}$ are derived from
+those of $\jexc{T}{T}{\C}$ according to the process above. The rule for bound variables is
+\infrule
+  {`X` \in \Delta}
+  {\jnexc{X}{T}{\FALSE}}
+
+The negative subtyping judgment should not be confused with the derived contrapositive judgment $\jcnequiv{T}{T}{\C}$
+given in Figure~\ref{fig:judge}, for the two judgments handle bound type variables very differently. Intuitively, the negative assertion $\jnequiv{S}{T}{\C}$ computes the constraint $\C$ that satisfies the
+inequivalence for an arbitrary instantiation of the type variables bound
+in $\Delta$. Whereas the contrapositive assertion $\jcnequiv{S}{T}{\C}$
+computes the constraint $\C$ that holds for any instantiation of $\Delta$ such that the inequivalence is true. The following derivable assertions further illustrate this
+distinction, for $\Delta = \text{`X <: Any, Y <:Any`}$:\\[.5em]
+\begin{tabular}{l}
+  $\jnequiv{\text{`(Pair[\X, I\] CAP Pair[\Y, J\])`}}{\Bottom}%
+           {\FALSE}$ \\[.2em]
+  $\jcnequiv{\text{`(Pair[\X, I\] CAP Pair[\Y, J\])`}}{\Bottom}%
+            {I \equiv J}$ \\[.3em]
+\end{tabular}
+
+
+% For
+% example
+% \[\jnsub[`X <: ZZ`]{ZZ}{X}{\FALSE}\]
+% and
+% \[\jcnsub[`X <: ZZ`]{ZZ}{X}{\TRUE}\]
+% Intuitively, $\jnsub[`X <: ZZ`]{ZZ}{X}{\C}$ is asking is there any constraint on the inference variables that can make $`X` \not \subtypeof `ZZ`$ for every instantiation valid `X` satisfying the bounds. Where
+% as the judgment $\jcnsub[`X <: ZZ`]{`ZZ`}{`X`}{\C}$ asks what constraints on the inference variables I can deduce from the knowledge that $`X` \not \subtypeof `ZZ`$.
+
+\subsection{Unification}
+Suppose that $\C$ is a conjunction of type equivalences. A \emph{unifier} of $\C$ is a substitution
+$\phi$ of types for inference type variables such that $\phi(\C) = \TRUE$. We say that a unifier $\phi$ is more general than a unifier $\psi$ if there exists a substitution $\tau$
+such that $\tau \circ \phi = \psi$. In other words $\phi$ is more general than $\psi$ if $\psi$ factors throughout $\phi$.
+
+We can extend the notion of a unifier to an arbitrary conjunction $\C$ in
+the case that $\C$ can be expressed as a conjunction $\C' \wedge \C''$
+where $\C'$ is entirely equivalences and $\C''$ contains no type equivalences. Then we define a unifier of $\C$ to be a unifier
+of $\C'$. Finally, we can extend the notion of unifier to a constraint $\C$ in disjunctive normal form to be a unifier of any disjunct of $\C$.
+
+The (partial) function $\textit{unify}$ in Figure~\ref{fig:constraints} takes a constraint $\C$ and produces a most general unifier $\phi$ if one exists. This is always the case if $\C$ consists of a single conjunct. \textit{unify} additionally produces the substituted leftover
+part, $\phi(\C'')$.
+
+\subsection{Quantifier Reduction}
+\label{sec:exred}
+In the evaluation of valid overloadings from Section~\ref{sec:examples},
+intensional type analysis was required in order to reason about certain
+examples. Since this reasoning justified
+the validity of these overloaded functions, we incorporate it into
+the present formal system as well.
+
+Whenever two different domain types should be
+applicable to the same argument type $W$ (in order to validate the Meet Rule
+or Return Type Rule), an existentially quantified intersection type
+naturally arises as the necessary supertype of $W$.
+Intersection types $S \cap T$ in our type system naturally fall into two
+distinct cases: either $S \nexc T$, or $S \exc T$ in which case the 
+intersection has the same extent as \Bottom.
+In the second case, the intersection is trivial and $W$, as
+a subtype of the intersection, must also be trivial.
+Moreover, because the argument type $W$ to which both declarations must be applicable
+is necessarily equivalent to \Bottom, then the Meet Rule and Return Type Rule
+are both trivially satisfied by the presence of the implicit overloading on
+\Bottom. In this manner case analysis on whether an existentially
+quantified (intersection) type is \Bottom facilitates the checking of our
+rules.
+
+Na\"{i}vely one might expect this case analysis on $S \cap T$ to simply check
+whether $S \exc T$. However, as is the case when checking generic
+function declarations, the types $S$ and $T$ might have free type variables,
+whose uncertainty often precludes a definitive statement about $S \exc T$.
+(For example, \EXP{C\llbracket{}X\rrbracket} $\exc$ \EXP{C\llbracket{}Y\rrbracket} holds only if $X \not\equiv Y$.) Our solution is to reason backwards: Under the assumption that the intersection
+is nontrivial (that the types do not exclude), gather the necessary
+constraints on type parameters. (For example, \EXP{C\llbracket{}X\rrbracket \cap C\llbracket{}Y\rrbracket} $\not\equiv \Bottom$ yields the constraint $X \equiv Y$.) These constraints are then
+reduced, resulting in an instantiation (and potentially tighter bounds
+on type parameters) that necessarily follows from our assumption of nontriviality.%
+\footnote{A similar sort of case analysis and constraint solving
+arises for pattern matching with generalized algebraic data types (GADTs) \cite{simonet07}: GADTs resemble our existential types and pattern matching resembles our function application.}
+
+
+We call the general pattern of simplifying an existentially quantified
+(intersection) type \emph{existential reduction}, given by the judgment $\jtred{\delta}{\delta}$ in Figure~\ref{fig:exred}. The first rule for existential reduction performs the constraint-based case analysis described above, while the second merely relates the existential to itself if the premises of the first rule do not hold. We thus explain the first rule in more detail.
+
+The first premise determines the constraints $\C$ that must be true under
+the hypothesis that $T \not\equiv \Bottom$ (i.e. that this type is
+nontrivial). Note that the type variables from $\Delta$ are bound, while any
+type variables from the existential itself, $\Delta'$, become inference type
+variables mentioned in $\C$. The second premise binds $\C'$ to exactly
+the inference type variables and bounds denoted by the existential's type parameters; these are the constraints that must hold for $T$ to still make
+sense.
+In the third premise, if \textit{unify} succeeds, it
+produces a substitution $\phi$ for any inference type variables from $\Delta'$ constrained by equalities. Because $\phi$ is a most general unifier, it has the property that any other valid substitution $\psi$ of $\Delta'$'s variables with
+$\psi(T) \not\equiv \Bottom$ must be equal to $\tau \circ \phi$, for some
+other substitution $\tau$. Moreover, if \textit{unify} succeeds, it produces
+a set of leftover constraints $\C''$ that are not unifiable equalities (but have still
+been simplified).
+If it is possible to express $\C''$ as some type environment $\Delta''$,
+then we use this as the new type parameters over the simplified type
+$\phi(T)$.
+
+Similarly we call the general pattern of simplifying a universally quantified arrow type \emph{universal reduction}, given by the judgment $\jtred{\sigma_1}{\sigma_2}$
+The first premise reduces the domain type $\dom(\sigma) = \exttype[\Delta']{S}$, resulting in a new existential type $\delta = \exttype[\Delta'']{S'}$ and a substitution $\phi$ mapping type variables from $\Delta'$
+to types with variables in $\Delta''$. We then construct a new arrow with domain $\delta$ and range $\phi(T)$.
+
+%%%%%%%%%%%%%%%%%%%%% BEGIN EXRED FIG %%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[t!]
+\centering
+\vspace*{.5em}
+
+\newjudge{Existential Reduction}{\jtreds{\delta}{\delta}{\phi}}
+\infrule
+  {\jcnequiv{T}{\Bottom}{\C} \andalso \toConstraint{\Delta'}{\C'} \\
+   \jsolve{\C \wedge \C'}{\phi}{\C''} \andalso \toBounds{\C''}{\Delta''}}
+  {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta'']{\phi(T)}}{\phi}}
+
+\infrule
+  {\text{otherwise}}
+  {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta']{T}}{\subst{}{}}}
+
+  
+\newjudge{Universal Reduction}{\jtreds{\sigma}{\sigma}{\phi}}
+\infrule
+  {\jtreds{\exttype[\Delta']{S}}{\exttype[\Delta'']{S'}}{\phi}}
+  {\jtreds{\unitype[\Delta']{\arrowtype{S}{T}}}{\unitype[\Delta'']{\arrowtype{S'}{\phi(T)}}}{\phi}}
+
+
+% \infrule
+%   {\text{otherwise}}
+%   {\jtreds{\unitype[\Delta']{\arrowtype{S}{T}}}{\unitype[\Delta']{\arrowtype{S}{T}}}{\subst{}{}}}
+
+% \infrule
+%   {T \neq \arrowtype{U}{V}}
+% {\jtreds{\unitype[\Delta']{T}}{\unitype[\Delta']{T}}{\subst{}{}}}
+  
+  \caption{Quantifier reduction judgments.}
+  \label{fig:exred}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%% END EXRED FIG %%%%%%%%%%%%%%%%%%%%%%
+
+As an example, in order to check that the first two declarations of $\D_{\mathit{bar}}$ from Section~$\ref{sec:examples}$ satisfy the Meet Rule,
+we must reduce the existential \[
+\text{\EXP{\exists\llbracket{}X \SHORTCUT{<} \TYP{Any}, Y \SHORTCUT{<} \mathbb{Z}\rrbracket\bigl(\TYP{ArrayList}\llbracket{}X\rrbracket \cap \TYP{List}\llbracket{}Y\rrbracket\bigr).}}
+\] Thus we must find the constraint $\C$ such that \[
+\jcnequiv[]{\text{\EXP{\TYP{ArrayList}\llbracket{}X\rrbracket \cap \TYP{List}\llbracket{}Y\rrbracket}}}{\Bottom}{\C}
+\] can be derived, noting that $X$ and $Y$ are actually (unbound) type inference variables here. In this instance $\C = X \equiv Y$ due to multiple
+instantiation exclusion. Then we convert the bounds on the existential's type parameters into the constraint $\C'$ on $X$ and $Y$ as inference variables: $\toConstraint{\text{\EXP{X \SHORTCUT{<} \TYP{Any}, Y \SHORTCUT{<} \mathbb{Z}}}}{\text{\EXP{X \SHORTCUT{<} \TYP{Any}, Y \SHORTCUT{<} \mathbb{Z}}}}$.
+Unifying the constraint \[
+\C \wedge \C' = X \equiv Y \wedge X \subtypeof \TYP{Any} \wedge Y \subtypeof \EXP{\mathbb{Z}}
+\] yields the type substitution $\phi = [W/X, W/Y]$ (for some fresh variable $W$) and the simplified leftover constraint $\C'' =$ \text{\EXP{W \SHORTCUT{<} \mathbb{Z}}}. Since $\C''$ has the
+form of a type environment, $\toBounds{\C''}{\text{\EXP{W \SHORTCUT{<} \mathbb{Z}}}}$,
+we finally reduce this existential to \EXP{\exists\llbracket{}W \SHORTCUT{<} \mathbb{Z}\rrbracket\bigl(\TYP{ArrayList}\llbracket{}W\rrbracket \cap \TYP{List}\llbracket{}W\rrbracket\bigr)}. However, due to the class table declaration of \EXP{\TYP{ArrayList}\llbracket{}W\rrbracket}
+this existential type will be indistinguishable (by $\leinner$) from the simpler \EXP{\exists\llbracket{}W\SHORTCUT{<}\mathbb{Z}\rrbracket\TYP{ArrayList}\llbracket{}W\rrbracket}.
+
+When checking that the first two declarations $\D_{\mathit{tail}}$ from Section~\ref{sec:examples} satisfy the Return Type Rule, we use universal reduction to prove
+\[\begin{array}{l@{}l@{}l}
+\vdash & \multicolumn{2}{l}{\text{\EXP{\forall\llbracket{}X \SHORTCUT{<} \TYP{Any}\rrbracket\TYP{List}\llbracket{}X\rrbracket \rightarrow \TYP{List}\llbracket{}X\rrbracket}}} \\
+\le & \;\;\text{\EXP{\forall\llbracket{}X\SHORTCUT{<}\TYP{Any},Y\SHORTCUT{<}\TYP{Number}\rrbracket}} & \!\text{\EXP{\bigl(\TYP{List}\llbracket{}X\rrbracket \cap \TYP{List}\llbracket{}Y\rrbracket\bigr)}} \\
+&& \;\rightarrow \text{\EXP{\TYP{List}\llbracket{}Y\rrbracket}}
+\end{array}\]
+First, note that by reasoning similar to that in the previous example we know
+\[
+\begin{array}{r@{}l}
+  \vdash \text{\EXP{\exists\llbracket{}X\SHORTCUT{<}\TYP{Any}, Y\SHORTCUT{<}\TYP{Number}\rrbracket}} & \!\text{\EXP{\bigl(\TYP{List}\llbracket{}X\rrbracket \cap \TYP{List}\llbracket{}Y\rrbracket\bigr)}} \\
+  \eqred \; \text{\EXP{\exists\llbracket{}W \SHORTCUT{<} \TYP{Number}\rrbracket}} & \!\text{\EXP{\TYP{List}\llbracket{}W\rrbracket}} \\
+\end{array}
+\]
+with substitution $[W/X, W/Y]$. Using this substitution we must now prove
+\[
+\begin{array}{l@{}r@{}l}
+\vdash & \text{\EXP{\forall\llbracket{}X\SHORTCUT{<}\TYP{Number}\rrbracket}} & \!\text{\EXP{\TYP{List}\llbracket{}X\rrbracket \rightarrow \TYP{List}\llbracket{}X\rrbracket}} \\
+\leinner & \;\;\text{\EXP{\forall\llbracket{}W\SHORTCUT{<}\TYP{Number}\rrbracket}} & \!\text{\EXP{\TYP{List}\llbracket{}W\rrbracket \rightarrow \TYP{List}\llbracket{}W\rrbracket}}
+\end{array}
+\]
+which is clearly true.
+
+
+
+
+\section{Overloading Across Modules}
+\label{sec:discussion}
+% \subsection{Type Inference}
+% We have devised our notion of applicability of an overloaded generic function declaration to a type $T$ as an existential quantification over monomorphic instances that are applicable to $T$. Notably, we have not described a method
+% to \emph{compute} such an instance, given some particular argument type $T$; in other words, we are agnostic about the type inference mechanism by which polymorphic function applications are implicitly instantiated.
+
+% Any concrete programming language that
+% instantiates our framework of overloading should include some mechanism
+% by which these monomorphic instances are derived. For example, a programming language with implicit type instantiation on polymorphic function applications might use local type inference \cite{pierce00} or Damas-Milner type inference \cite{damas82}. In the Fortress programming language, a variant of local type inference is used by the type checker to infer instantiations of polymorphic
+% function applications.
+
+% \TODO{Do we need ot mention that Fortress does type inference at run time? Is it necessary that any language that instantiates our framework must do the same? I used to think so but in my tired state I'm not so sure. See the relevant part of the commented out explanation below.}
+
+% Another noteworthy aspect of our formulation of Overloading Safety concerns the 
+% 
+% 
+% 
+% Before describing a system for ensuring progress and preservation,
+% it is important to discuss some implications of these conditions on
+% type inference in a programming language.
+% The application of a function declaration to a type requires
+% instantiation of the type parameters of the declaration.
+% In most programming languages with parametric polymorphism,
+% a type inference mechanism automatically instantiates type parameters
+% based on the types of the arguments and the enclosing context.
+% But note that our progress and preservation conditions do not require
+% that the type parameters of the function declaration 
+% that is (dynamically) most specific 
+% of those applicable to the ilks of the argument values 
+% be the same as the type parameters
+% of the function declaration that is (statically) most specific 
+% of those applicable to the static types of the argument expressions.
+% Thus, the results of static type inference do not (in general) tell us how to
+% instantiate the type parameters of a most specific function
+% declaration at run time.  
+% In the Fortress programming language,
+% type inference is performed statically, 
+% and the results of that inference 
+% are passed to the run-time system 
+% to ensure that run-time type inference at a function call is sound.
+% The rules for overloaded function declarations
+% introduced in Section~\ref{sec:rules} ensure that
+% the declaration of the dynamically most applicable function declaration,
+% when instantiated with whatever we infer at run time,
+% is more specific than the declaration of the statically most applicable
+% function declaration, instantiated with what was inferred at compile time.
+% %% For the dynamically most applicable function declaration,
+% %% the instantiated declaration with whatever instantiation we infer
+% %% must be more specific than the instantiated declaration of the
+% %% statically most applicable function declaration with what was inferred
+% %% at compile time.
+% 
+% 
+% %% For the dynamically most applicable function declaration,
+% %% the instantiated declaration with whatever instantiation we infer
+% %% must be more specific than the instantiated declaration of the
+% %% statically most applicable function declaration with what was inferred
+% %% at compile time.
+% %% The rules on the overloaded function declarations
+% %% introduced in Section~\ref{sec:rules} ensure that
+% %% dynamically inferred types satisfy this requirement.
+% 
+% 
+% 
+% Aside from this caveat, our system for checking overloaded declarations 
+% is largely independent of how a specific type inference engine would choose 
+% instantiations\footnote{Type inference manifests itself as the choice of instantiation of type variables in existential and universal subtyping; specifically, $\bar{V}$ in the inference rules for subtyping in Figure~\ref{fig:existential}. Mitchell \cite{mitchell88} first showed how type inference interacts with polymorphic subtyping.}. Thus we do not discuss the specific features of a type inference
+% system further in this paper.
+
+% Section 2.1 last para: We should comment that this definition of
+% well-formedness agrees with that of the old system. If we view
+% monomorphic function declarations as polymorphic declarations with no
+% type parameters, then for each monomorphic declaration there is
+% exactly one instantiation of it (with an empty vector of type
+% arguments).  Then Preservation specifically says that if (monomorphic)
+% declaration f U: V is applicable to T, then for the most specific
+% declaration that is applicable to T, f' U': V', we have that V' <: V.
+% Thus if the polymorphic well-formedness is satisfied, so is the
+% monomorphic well-formedness.
+
+% \subsection{Modularity}
+
+To demonstrate the modularity of our design,
+we present a lightweight modeling of program modules,
+and show how applying our rules to each module separately
+suffices to guarantee the safety of the entire program.
+In our model, 
+a program is a \emph{module}, which may be either \emph{simple} or \emph{compound}.
+A \emph{simple module} consists of 
+(\emph{i}) a class table and 
+(\emph{ii}) a collection of function declarations.
+That is, a simple module is just a program as described in the rest of this paper.
+It is well-formed if it satisfies the well-formedness conditions of a whole program,
+as described in previous sections.
+
+A \emph{compound module} combines multiple modules, 
+possibly renaming members (i.e., classes and functions) of its constituents.
+More precisely, a compound module is a collection of \emph{filters},
+where a filter consists of a module 
+and a complete mapping from names of members of the module to names.
+The name of a member that is not renamed is simply mapped to itself.
+
+The semantics of a compound module is the semantics of the simple module
+that results from recursively \emph{flattening} the compound module as follows:
+\begin{itemize}
+
+\item
+Flattening a simple module simply yields the same module.
+
+\item Flattening a compound module \VAR{C}
+consisting of filters (module/mapping pairs) $(c_1, m_1), \ldots, (c_N, m_N)$
+yields a simple module whose class table and collection of function declarations
+are the unions of the class tables and collections of function declarations
+of $s_1, \ldots, s_N$, where $s_i$ is the simple module resulting from
+first flattening $c_i$ and then renaming all members
+of the resulting simple module according to the mapping $m_i$.
+
+\end{itemize}
+A compound module is well-formed if its flattened version is well-formed.
+This requirement implies that the type hierarchies in each constituent component 
+are consistent with the type hierarchy in the flattened version.
+
+We can now use this model of modularity to see 
+that we can separately compile and combine modules.
+
+First consider the case of a collection of modules with no overlapping function names
+such that each module has been checked separately 
+to ensure that the overloaded functions within them satisfy the overloading rules.
+Because the type hierarchies of each constituent of a compound module 
+must be consistent with that of the compound module, 
+all overloaded functions in the resulting compound module
+also obey the overloading rules.
+
+Now consider the case of a collection of separately checked modules 
+with some overlapping function names.
+When overloaded functions from separate modules are combined, 
+there are three rules that might be violated
+by the resulting overloaded definitions: 
+(1) the Meet Rule, (2) the No Duplicates Rule, (3) the Return Type Rule.
+If the Meet Rule is violated, 
+the programmer need only define yet another module to combine 
+that defines the missing meets of the various overloaded definitions.
+If the No Duplicates Rule or the Return Type Rule is violated, 
+the programmer can fix the problem by renaming functions 
+from one or more combined components to avoid the clash; 
+the programmer can then define another component 
+with more overloadings of the same function name 
+that dispatch to the various renamed functions in the manner the programmer intends.
+
+Consider the following example:\footnote{Suggested by 
+an anonymous reviewer of a previous version of this paper.}
+Suppose we have a type Number in module \VAR{A}, with a
+function:
+\begin{FortressCode}
+{\tt ~~}\+\VAR{add} \COLONOP (\TYP{Number}, \TYP{Number}) \rightarrow \TYP{Number}\-
+\end{FortressCode}
+Suppose we have the type and function:
+\begin{FortressCode}
+{\tt ~~}\+\TYP{BigNum} \SHORTCUT{<} \TYP{Number} \\
+  \VAR{add} \COLONOP (\TYP{BigNum}, \TYP{BigNum}) \rightarrow \TYP{BigNum}\-
+\end{FortressCode}
+in module \VAR{B} and the type and function:
+\begin{FortressCode}
+{\tt ~~}\+\TYP{Rational} \SHORTCUT{<} \TYP{Number} \\
+  \VAR{add} \COLONOP (\TYP{Rational}, \TYP{Rational}) \rightarrow \TYP{Rational}\-
+\end{FortressCode}
+in module \VAR{C}.
+
+Each of modules \VAR{B} and \VAR{C} satisfy the No Duplicates and Meet rules.
+Now, suppose we define two compound modules \VAR{D} and \VAR{E}, 
+each of which combines modules \VAR{B} and \VAR{C} without renaming \VAR{add}.
+In each of \VAR{D} and \VAR{E}, 
+we have an ambiguity 
+in dispatching calls to \VAR{add} with types \EXP{(\TYP{BigNum}, \TYP{Rational})} or \EXP{(\TYP{Rational}, \TYP{BigNum})}.
+Our rules require adding two declarations, one in each of \VAR{D} and \VAR{E},
+to resolve these ambiguities.
+
+Now let us suppose we wish to combine \VAR{D} and \VAR{E} into a compound component \VAR{F}.
+Without renaming, this combination would violate the No Duplicates Rule;
+each of \VAR{D} and \VAR{E} has an implementation of \EXP{\VAR{add}(\TYP{Bignum}, \TYP{Rational})}. 
+To resolve this conflict, 
+the program can rename \VAR{add} from both \VAR{D} and \VAR{E}, 
+and define a new \VAR{add} in \VAR{F}. 
+This new definition could dispatch to either of the renamed functions from \VAR{D} or \VAR{E}, 
+or it could do something entirely different, 
+depending on the programmer's intent.
+
+
+\section{Related Work}\label{sec:related}
+\subsection{Overloading and Dynamic Dispatch.} 
+
+Castagna \emph{et al.} proposed rules for defining overloaded functions
+to ensure type safety~\cite{castagna95}.
+They assumed knowledge of the entire type hierarchy 
+(to determine whether two types have a common subtype), 
+and the type hierarchy was assumed to be a meet semilattice 
+(to ensure that any two types have a greatest lower bound).
+
+Millstein and Chambers devised the language \emph{Dubious} to study 
+how to modularly ensure safety for 
+overloaded functions with symmetric multiple dynamic dispatch (\emph{multimethods})
+in a type system supporting multiple inheritance \cite{millstein02,millstein03}.
+With Clifton and Leavens, 
+they developed MultiJava \cite{multijava}, 
+an extension of Java with Dubious' semantics for multimethods.
+Lee and Chambers presented F(E\textsc{ml}) \cite{feml}, 
+a language with classes, symmetric multiple dispatch, and parameterized modules.
+% but without parametricity at the level of functions or types.
+In previous work~\cite{allen07},
+we built on the work of Millstein and Chambers 
+to give modular rules for a core of the Fortress language~\cite{Fortress}, 
+which supports multiple inheritance 
+and does not require that types have expressible meets 
+(i.e., the types that can be expressed in the language 
+need not form a meet semilattice), 
+but defines an \emph{exclusion relation} on types 
+to allow more valid overloadings.
+% We showed that we could check these rules in a modular way, 
+% so that the type hierarchy could be extended safely by new modules
+% without rechecking old modules.
+For detailed comparison of modularity and dispatch 
+for these systems, 
+see the related work section of our previous paper \cite{allen07}.
+
+None of the systems described above support polymorphic functions or types. 
+F(E\textsc{ml})'s parameterized modules (\emph{functors}) 
+provide a form of parametricity 
+but they cannot be implicitly applied; 
+the functions defined therein cannot be \emph{overloaded} 
+with those defined in other functors.
+This paper extends our previous work \cite{allen07} 
+with parametric polymorphism for both types and top-level functions.
+% The inclusion of parametric functions and types 
+% represents a shift in the research literature on overloading
+% and multiple dynamic dispatch.
+
+% I took out discussion of modularity here; it's charged and unnecessary
+% in order to distinguish our work. EricAllen 7/15/2011
+Overloading and multiple dispatch in the context of polymorphism 
+has previously been studied by Bourdoncle and Merz \cite{bourdoncle97}. 
+Their system, ML$_\le$, integrates parametric polymorphism, 
+class-based object orientation, and multimethods,
+but lacks multiple inheritance.
+Each multimethod (overloaded set) requires a unique specification (principal type), 
+% which prevents overloaded functions defined on disjoint domains; 
+% and link-time checks are performed to ensure that multimethods are fully
+% implemented across modules. 
+which greatly simplifies the checking of their equivalent of the Return Type Rule: 
+the return type of each definition needs to be compared 
+only with the return type of the principal type.
+Also, 
+to check their equivalent of the Meet Rule, 
+the entire type hierarchy relevant to the multimethod must be known, 
+% (i.e., no further extension is possible for types
+% to which the multimethod is applicable).
+so in general, this check must be done at link time.
+Finally, 
+their type system does not provide any exclusion relation.
+On the other hand, ML$_\le$ allows variance annotations on type constructors---% 
+something we defer to future work.
+
+Litvinov~\cite{litvinov98} developed a type system for the Cecil language,
+which supports bounded parametric polymorphism and multimethods.
+Because Cecil has a type-erasure semantics, 
+statically checked parametric polymorphism has no effect on run-time dispatch.
+
+\subsection{Type classes} Wadler and Blott \cite{wadler89} introduced the
+\emph{type class} as a means to specify and implement overloaded
+functions such as equality and arithmetic operators in Haskell. Other authors
+have translated type classes to languages besides Haskell \cite{dreyer07,siek05,wehr07}.
+Type classes encapsulate overloaded function declarations, with separate
+\emph{instances} that define the behavior of those functions (called \emph{class methods})
+for any particular type schema. Parametric polymorphism is then augmented to
+express type class constraints, providing a way to quantify a type variable --- and
+thus a function definition --- over all types that instantiate the type class. 
+
+% In his thesis \cite{jonesbook} Jones generalized Haskell's underlying type
+% system as \emph{qualified types}, in which the satisfaction of type predicates
+% must be proved with constructed \emph{evidence}. Qualified type systems (such
+% as Haskell) exhibit the \emph{principal types} property necessary for full
+% Damas-Milner style type inference \cite{dm82,jonesbook}; our system conservatively
+% assumes only \emph{local type inference} \cite{pierce00} --- implicit type
+% instantiation for polymorphic function calls.
+
+In systems with type classes, overloaded functions must be contained in some
+type class, and their signatures must vary in exactly the same structural
+position. This uniformity is necessary for an overloaded function call to
+admit a principal type; with a principal type for some function call's context,
+the type checker can determine the constraints under which a correct overloaded
+definition will be found. Because of this requirement, type classes are ill-suited
+for fixed, \emph{ad hoc} sets of overloaded functions like:
+\begin{FortressCode}
+{\tt ~~~~}\+\VAR{println}(\ultrathin)\COLON (\ultrathin) = \VAR{println}(\hbox{\rm\usefont{T1}{ptm}{m}{n}``\verythin''}) \\
+    \VAR{println}(s\COLON \TYP{String})\COLON (\ultrathin) = \ldots\-
+\end{FortressCode}
+or functions lacking uniform variance in the domain and range\footnote{With the
+\emph{multi-parameter type class} extension, one could define functions as these.
+A reference to the method \mono{bar}, however, would require an explicit type
+annotation like \mono{:: Int -> Bool} to apply to an \mono{Int}.} like:
+\begin{FortressCode}
+{\tt ~~~~}\+\VAR{bar}(x\COLON \mathbb{Z})\COLON \TYP{Boolean} = (x = 0) \\
+    \VAR{bar}(x\COLON \TYP{Boolean})\COLON \mathbb{Z} =\; \KWD{if} x \KWD{then} 1 \KWD{else} 2 \KWD{end} \\
+    \VAR{bar}(x\COLON \TYP{String})\COLON \TYP{String} = x\-
+\end{FortressCode}
+With type classes one can write overloaded functions with identical domain
+types. Such behavior is consistent with the \emph{static}, \emph{type-based}
+dispatch of Haskell, but it would lead to irreconcilable ambiguity in the
+\emph{dynamic}, \emph{value-based} dispatch of our system.
+%% In Appendix~\ref{app:haskell}, we present a further discussion of how our overloading resolution differs from that of Haskell and how our system might translate to that language, thereby addressing an existing inconsistency in modern type class extensions.
+
+A broader interpretation of Wadler and Blott's \cite{wadler89} sees type
+classes as program abstractions that quotient the space of ad-hoc polymorphism
+into the much smaller space of class methods. Indeed, Wadler and Blott's title
+suggests that the unrestricted space of ad-hoc polymorphism should be tamed,
+whereas our work embraces the possible expressivity achieved from mixing ad-hoc
+and parametric polymorphism by specifying the requisites for determinism and type safety.
+
+
+\section{Conclusion and Discussion}\label{sec:conclusion}
+We have shown how to statically ensure safety of overloaded, polymorphic functions while imposing relatively minimal restrictions, solely on function definition sites. We provide rules on definitions that can be checked modularly, irrespective of call sites, and we show how to mechanically verify that a program satisfies these rules. The type analysis required for implementing these checks involves subtyping on universal and existential types, which adds complexity not required for similar checks on monomorphic functions. We have defined an object-oriented language to explain our system of static checks, and we have implemented them as part of the open-source Fortress compiler \cite{Fortress}.
+
+Further, we show that in order to check many ``natural'' overloaded
+functions with our system in the context of a generic, object-oriented
+language with multiple inheritance,
+richer type relations must be available to programmers---the subtyping relation prevalent among such languages does not afford enough type analysis alone. We have therefore introduced an explicit, nominal exclusion relation to check safety of more interesting overloaded functions.
+
+Variance annotations have proven to be a convenient and expressive addition to languages based on nominal subtyping \cite{bourdoncle97,kennedy07,scala}. They add additional complexity to polymorphic exclusion checking, so we leave them to future work.
+
+
+\section*{Acknowledgments}
+This work is supported in part by the Engineering Research Center of Excellence Program of Korea Ministry of Education,
+Science and Technology(MEST) / National Research Foundation of Korea(NRF)
+(Grant 2011-0000974).
+
+\bibliographystyle{plain}
+
+\bibliography{paper}
+
+\end{document}
