@@ -1,0 +1,144 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component LongStringTests
+import File.{...}
+import String.{...}
+import Timing.{...}
+import List.{...}
+import System.{getProperty}
+
+export Testable
+
+var fileContents: String := ""
+var longSourceString: String := ""
+
+test inputTest(): () = do
+    readFile(10)
+    (*
+    println ""
+    println "fileContents is a " fileContents.ilkName
+    println "length = " fileContents.size
+    println "depth = " fileContents.depth
+    println  ( if fileContents.isBalanced then
+                        "balanced"
+                    elif fileContents.isAlmostBalanced then
+                        "almost balanced"
+                    else
+                        "unbalanced"
+                    end  )
+     *)
+
+    balancedContents = fileContents.balanced()
+    assert(balancedContents, fileContents)
+    (*
+    println "balancedContents is a " balancedContents.ilkName
+    println "length = " balancedContents.size
+    println "depth = " balancedContents.depth
+    println (  if balancedContents.isBalanced then
+                        "balanced"
+                    elif balancedContents.isAlmostBalanced then
+                        "almost balanced"
+                    else
+                        "unbalanced"
+                    end  )
+    output = FileWriteStream(getProperty("fortress.autohome", ".") "/ProjectFortress/tests/poem.out")
+    output.write(balancedContents)
+    output.close()
+    *)
+end
+
+readFile(n: ZZ32): () = do
+    input = FileReadStream(getProperty("fortress.autohome", ".") "/ProjectFortress/tests/poem.txt")
+    maxLeafSize := n
+    fileContents := BIG || [ c ← seq(input.chunks(n)) ] c
+    input.close()
+    longSourceString := fileContents.asFlatString
+    (* for i ← seq(1:4) do
+        longSourceString := longSourceString || longSourceString
+    end
+    longSourceString := longSourceString.asFlatString *)
+end
+
+buildString(n: ZZ32): () = do
+    if longSourceString.isEmpty then readFile(128) end
+    maxLeafSize := n
+    fileContents := BIG || [ i ← longSourceString.indices ] longSourceString[i]
+end
+
+test miniTest() = do
+    maxLeafSize := 10
+    abcdef = CatString("a", CatString("b", CatString("c", CatString("d",
+        CatString(EmptyString, CatString("e", "f"))))))
+    assert(abcdef, "abcdef")
+    balancedAbcdef = abcdef.balanced()
+    assert(balancedAbcdef, "abcdef")
+    assert(abcdef.asDebugString, "bC6/6:" //
+                "        J1/0:a" //
+                "        BC5/5:" //
+                "                J1/0:b" //
+                "                BC4/4:" //
+                "                        J1/0:c" //
+                "                        BC3/3:" //
+                "                                J1/0:d" //
+                "                                BC2/2:" //
+                "                                        E0/0" //
+                "                                        BC2/1:" //
+                "                                                J1/0:e" //
+                "                                                J1/0:f")
+    assert(balancedAbcdef.asDebugString, "J6/0:abcdef")
+end
+
+test statsTest() = do
+    buildString(6)
+    ss = fileContents.stats()
+    println (// ss.asString)
+    assert(ss.ssize, fileContents.size)
+    assert(ss.maxFlat, 4)
+    assert(ss.minFlat, 4)
+    assert(ss.avFlat, 4)
+    assert(ss.numFlat, 353)
+end
+
+test buildTiming() = do
+    println ()
+    for t ← seq(⟨8, 16, 32, 64 (*, 128, 256, 512, 1024 *)⟩) do
+        ("MaxFlat = " || t || ": ") PRINTTIME: buildString(t)
+        println(fileContents.stats())
+    end
+end
+
+test generatorTest() = do
+    "sequential" PRINTTIME: tryGen(⟨7, 9, 17 , 36, 98, 274, 1020, 2030⟩, seq)
+    "concurrent" PRINTTIME: tryGen(⟨7, 9, 17 , 36, 98, 274, 1020, 2030⟩, identity⟦Generator⟦Int⟧⟧)
+end
+
+tryGen(endpoints, f) = do
+    if fileContents.isEmpty then readFile(29) end
+    m = |fileContents|
+    println (newline fileContents.stats())
+    for i ← f(endpoints), j ← f(endpoints),  j MOD m ≥ i MOD m do
+        (*) println "subrange [" (i MOD m) ":" (j MOD m) "]"
+        (*) println fileContents[(i MOD m):(j MOD m)].asDebugString
+        assert(BIG || [ ch ←fileContents[(i MOD m):(j MOD m)]] ch,
+                fileContents[(i MOD m):(j MOD m)],
+                "when comparing subrange [" (i MOD m) ":" (j MOD m) "]")
+    end
+end
+
+run():() = label runMethod
+    readFile(32)
+    println fileContents
+    miniTest()
+    tryGen(⟨7, 9, 17 , 36, 275, 1032⟩, identity⟦Generator⟦Int⟧⟧)
+end runMethod
+
+end LongStringTests

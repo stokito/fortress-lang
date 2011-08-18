@@ -1,0 +1,42 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component genericTest5
+export Executable
+
+trait List[\T\]
+   length():ZZ32
+    head():T
+    tail():List[\T\]
+end
+
+object Cons[\T\](x:T, y:List[\T\]) extends List[\T\]
+    length():ZZ32=1+y.length()
+    head():T=x
+    tail():List[\T\]=y
+end
+
+object End[\T\](x:T) extends List[\T\]
+    length():ZZ32=1
+    head():T=x
+    tail():List[\T\]= self (* Buggy, but we lack where clauses at this stage *)
+end
+
+
+t(b:Boolean) = println (if b then "pass" else "fail")
+
+run():()=do
+  wun=End[\String\]("cat")
+  two=Cons[\String\]("dog", wun)
+  println (two.head() " " two.tail().head())
+end
+
+end

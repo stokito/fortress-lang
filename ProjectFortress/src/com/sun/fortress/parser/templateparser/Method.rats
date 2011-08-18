@@ -1,0 +1,30 @@
+/*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress method declarations.
+ */
+module com.sun.fortress.parser.templateparser.Method(Param, NoNewlineHeader, MayNewlineHeader,
+                                      Type, NoNewlineExpr, Identifier, Keyword,
+                                      Symbol, Spacing);
+
+import Param;
+import NoNewlineHeader;
+import MayNewlineHeader;
+import Type;
+import NoNewlineExpr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+modify com.sun.fortress.parser.Method(Param, NoNewlineHeader,
+MayNewlineHeader, Type, NoNewlineExpr, Identifier, Keyword, Symbol, Spacing);
