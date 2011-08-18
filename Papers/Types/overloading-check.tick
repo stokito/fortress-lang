@@ -1,3 +1,4 @@
+
 In this section,
 we describe how to mechanically check 
 the overloading rules from Section~\ref{sec:rules}. 
@@ -83,13 +84,13 @@ We provide (and explain) the formal definition of existential reduction in Secti
 The first three properties show that $\le$ is a preorder and that $\leinner$ implies $\le$.
 Adding the fourth property lets us show that any ground instance $T$ of $\delta$ with $T \neq \Bottom$ is an instance of $\reduce{\delta}$
 
-Existential reduction is necessary because merely extending the subtyping relation for simple types with exclusion
+Existential reduction is necessary because merely extending the subtyping relation for ordinary types with exclusion
 is not enough to let us check the overloading rules. For example, to check that the first two declarations of $\D_{\mathit{bar}}$ from Section~$\ref{sec:examples}$ satisfy the Meet Rule,
 we must be able to deduce that the existential
 \[`EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])`\]
 and the existential
 \[`EXISTS[\W<:ZZ\]ArrayList[\W\]`\]
-describe the same set of ground instances of simple types.
+describe the same set of ground instances of types.
 
 The rules for universals are dual to those for existentials. The inner subtyping judgment on universals $\jleinner{\sigma_1}{\sigma_2}$, defined in
 Figure~\ref{fig:existential},
@@ -160,9 +161,9 @@ the arrow type $\sigma_{\wedge} = \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \
 \end{theorem}
 
 \begin{proof}
-Note that $arrow(d_1)$ and $\sigma_{\wedge}$ are equally specific, and that $arrow(d_1) \le \sigma_{\wedge}$ implies that for every instance $\arrowtype{U}{V}$ of $\sigma_{\wedge}$ with $U \not \equiv \Bottom$
-we can find an instance $\arrowtype{U_1}{V_1}$ of $\arrow(d_1)$ with $U \subtypeof U_1$ and $V_1 \subtypeof V$. Thus the pair $d_1, d_2$ satisfies the Return Type Rule if
-the pair $\sigma_{\wedge}, d_2$\footnote{As an abuse of notation we use $\sigma_\wedge$ here to mean an illusory overloading of $f$, $d_\wedge$, such that $arrow(d_\wedge) = \sigma_\wedge$.} does. This is clear because $\sigma_{\wedge}$ can match the return type of any instance of $d_2$ whose domain type is not $\Bottom$.
+Let $d_{\meet}$ be a dummy declaration with type $\sigma_{\meet}$. Note that $\d_meet$ and $\d_1$ are equally specific and 
+the pair $d_{\meet}$, $\d_2$ satisfies the Return Type Rule. The fact that $arrow(d_1) \le \sigma_{\wedge}$ implies that for every instance $\arrowtype{U}{V}$ of $\sigma_{\wedge}$ with $U \not \equiv \Bottom$
+we can find an instance $\arrowtype{U_1}{V_1}$ of $\arrow(d_1)$ with $U \subtypeof U_1$ and $V_1 \subtypeof V$. Thus the pair $d_1$, $d_2$ satisfies the Return Type Rule because the pair $d_{\meet}$, $\d2$ does.
 \end{proof}
 
 
