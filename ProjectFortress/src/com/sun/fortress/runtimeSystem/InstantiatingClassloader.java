@@ -38,6 +38,8 @@ import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.useful.BATree;
+import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.FnVoid;
 import com.sun.fortress.useful.FnVoidVoid;
@@ -1788,6 +1790,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         cw.visit(JVM_BYTECODE_VERSION, ACC_PUBLIC, dename, null,
                  "java/lang/Object", superInterfaces);
 
+        // Intersect all the interfaces to find those common to all members
+        // of the union.
         HashSet<Class> intersected_tc_ifs = null;
         for (String member: parameters) {
             String for_loading = Naming.sepToDot(Naming.mangleFortressIdentifier(member));
@@ -1806,6 +1810,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 intersected_tc_ifs.retainAll(tc_ifs);
         }
 
+        // For each distinct method of the interfaces in the intersection,
+        // ignoring self type, emit a static forwarding method, where
+        // the first parameter is cast to an interface type (one that
+        // has that method) and then it is invoke-interfaced.
+        BATree<String, Method> forwarded = new BATree<String, Method>(DefaultComparator.V);
         for (Class an_if : intersected_tc_ifs) {
             // emit a forwarding method for each method in an_if
             if (an_if.isInterface()) {
@@ -1814,6 +1823,22 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     String nm = m.getName();
                     Class[] pts = m.getParameterTypes();
                     Class rt = m.getReturnType();
+                    StringBuffer key = new StringBuffer();
+                    key.append(nm);
+                    key.append("(");
+                    for (Class pt : pts) {
+                        String s = pt.getName();
+                        if (pt.isPrimitive()) {
+                            key.append(s);
+                        } else {
+                            key.append("L");
+                            key.append(Naming.dotToSep(s));
+                            key.append(";");
+                        }
+                    }
+                    key.append(")");
+                    key.append(Naming.dotToSep(rt.getName()));
+                    forwarded.put(key.toString(), m);
                 }
             }
             
