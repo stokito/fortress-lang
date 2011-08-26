@@ -20,6 +20,7 @@ TEXS = $(TICKS:.tick=.tex)
 
 # path to fortify.sty
 FORTIFY_PATH = $(FORTRESS_HOME)/Fortify
+BIN = $(FORTRESS_HOME)/bin
 
 # run the entire command chain necessary for clean compile
 all: $(TICKS)
@@ -31,7 +32,7 @@ all: $(TICKS)
 
 # run fortick
 tick: $(TICKS)
-	$(foreach var, $(TICKS), fortick $(var);)
+	$(foreach var, $(TICKS), $(BIN)/fortick $(var);)
 
 # make the pdf from the tex files and barf output
 tex: $(TEXS)
