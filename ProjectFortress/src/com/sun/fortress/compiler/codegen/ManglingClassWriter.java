@@ -29,15 +29,36 @@ public class ManglingClassWriter extends ClassWriter {
     }
 
 
+    /**
+     * Mangles name/desc/sig before handing off.
+     */
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         name = Naming.mangleMemberName(name);
         signature = Naming.mangleFortressIdentifier(signature);
         desc = Naming.mangleMethodSignature(desc);
 
-        return visitCGMethod(access, name, desc, signature, exceptions);
+        return visitNoMangleMethod(access, name, desc, signature, exceptions);
+    }
+    
+    public MethodVisitor visitCGMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        name = Naming.mangleMemberName(name);
+        signature = Naming.mangleFortressIdentifier(signature);
+        desc = Naming.mangleMethodSignature(desc);
+
+        return visitNoMangleMethod(access, name, desc, signature, exceptions);
     }
 
-    public MethodVisitor visitCGMethod(int access, String name, String desc, String signature, String[] exceptions) {
+    /**
+     * Does not mangle name/desc/sig; takes them as provided.
+     * 
+     * @param access
+     * @param name
+     * @param desc
+     * @param signature
+     * @param exceptions
+     * @return
+     */
+    public ManglingMethodVisitor visitNoMangleMethod(int access, String name, String desc, String signature, String[] exceptions) {
         MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
         return new ManglingMethodVisitor(TRACE_METHODS ? new TraceMethodVisitor(mv) : mv, access, name, desc);
     }
