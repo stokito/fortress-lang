@@ -36,6 +36,7 @@ import org.objectweb.asm.util.TraceClassVisitor;
 
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
+import com.sun.fortress.compiler.codegen.ManglingMethodVisitor;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.BATree;
@@ -1457,7 +1458,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         {
         String init_sig =
             InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class", n, Naming.RTTI_CONTAINER_TYPE, "V");
-        MethodVisitor mv = cw.visitCGMethod(ACC_PUBLIC, "<init>", init_sig, null, null);
+        MethodVisitor mv = cw.visitNoMangleMethod(ACC_PUBLIC, "<init>", init_sig, null, null);
         mv.visitCode();
         
         mv.visitVarInsn(ALOAD, 0); // this
@@ -1715,7 +1716,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         {
         String init_sig =
             InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class", n, Naming.RTTI_CONTAINER_TYPE, "V");
-        MethodVisitor mv = cw.visitCGMethod(ACC_PUBLIC, "<init>", init_sig, null, null);
+        MethodVisitor mv = cw.visitNoMangleMethod(ACC_PUBLIC, "<init>", init_sig, null, null);
         mv.visitCode();
         
         mv.visitVarInsn(ALOAD, 0); // this
@@ -1835,9 +1836,68 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     forwarded.put(key.toString(), m);
                 }
             }
-            
         }
         
+        // For each interface-qualified method defined in the intersection
+        // of interfaces, emit a forwarding method.
+        
+        for (String key : forwarded.keySet()) {
+            Method m = forwarded.get(key);
+            int ploc = key.indexOf('(');
+            String nm = key.substring(0, ploc);
+            String sig = key.substring(ploc);
+            int semiloc = sig.indexOf(';');
+            String callee_sig = "(" + sig.substring(semiloc+1);
+            // Static, forwarding method
+            ManglingMethodVisitor mv = cw.visitNoMangleMethod(ACC_PUBLIC+ACC_STATIC, nm, sig, null, null);
+            
+            int stack_index = 0;
+            
+            mv.visitVarInsn(ALOAD, stack_index++); // 'this'
+            Class[] pts = m.getParameterTypes();
+            
+            for (Class pt : pts) {
+                String s = pt.getName();
+                if (pt.isPrimitive()) {
+                    switch (s.charAt(0)) {
+                    case 'D':
+                        mv.visitVarInsn(DLOAD, stack_index++); // param
+                        stack_index++;
+                        break;
+                    case 'F':
+                        mv.visitVarInsn(FLOAD, stack_index++); // param
+                        break;
+                        
+                    case 'I':
+                    case 'S':
+                    case 'C':
+                    case 'B':
+                    case 'Z':
+                        mv.visitVarInsn(ILOAD, stack_index++); // param
+                        break;
+                    case 'J':
+                        mv.visitVarInsn(LLOAD, stack_index++); // param
+                        stack_index++;
+                        break;
+                    }
+                } else {
+                    mv.visitVarInsn(ALOAD, stack_index++); // param
+                }
+            }
+
+            String an_interface = Naming.dotToSep(m.getClass().getName());
+            
+            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE,
+                    Naming.demangleFortressIdentifier(an_interface), 
+                    Naming.demangleFortressIdentifier(nm),
+                    Naming.demangleMethodSignature(callee_sig) );
+            
+            char last = sig.charAt(sig.length()-1);
+            if (last == 'V')
+                voidEpilogue(mv);
+            else
+                areturnEpilogue(mv);
+        }       
 
         cw.visitEnd();
 
@@ -1980,7 +2040,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // getRTTI method/field and static initialization
         {
         	final String classname = dename;
-        	MethodVisitor mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC, // acccess
+        	MethodVisitor mv = cw.visitNoMangleMethod(Opcodes.ACC_PUBLIC, // acccess
                      Naming.RTTI_GETTER, // name
                      Naming.STATIC_PARAMETER_GETTER_SIG, // sig
                      null, // generics sig?
@@ -2417,7 +2477,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         // CLINIT
         // factory, consulting map, optionally invoking constructor.
-        MethodVisitor mv = cw.visitCGMethod(ACC_STATIC, "<clinit>", "()V", null, null);
+        MethodVisitor mv = cw.visitNoMangleMethod(ACC_STATIC, "<clinit>", "()V", null, null);
         mv.visitCode();
         // new
         mv.visitTypeInsn(NEW, Naming.RTTI_MAP_TYPE);
@@ -2459,7 +2519,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     sparams_size, Naming.RTTI_CONTAINER_TYPE, NamingCzar.descClass);
         }
 
-        mv = cw.visitCGMethod(ACC_PUBLIC + ACC_STATIC, "factory", fact_sig, null, null);
+        mv = cw.visitNoMangleMethod(ACC_PUBLIC + ACC_STATIC, "factory", fact_sig, null, null);
         mv.visitCode();
         /* 
          * First arg is java class, necessary for creation of type.

@@ -52,7 +52,7 @@ public class CodeGenClassWriter extends ManglingClassWriter {
         desc = Naming.mangleMethodSignature(desc);
 
         return new CodeGenMethodVisitor(access, name, desc, signature, exceptions,
-                                        super.visitCGMethod(access, name, desc, signature, exceptions));
+                                        super.visitNoMangleMethod(access, name, desc, signature, exceptions));
     }
 
     public CodeGenMethodVisitor visitCGMethod(int access, String name, String desc, String signature, String[] exceptions) {
@@ -61,7 +61,7 @@ public class CodeGenClassWriter extends ManglingClassWriter {
         desc = Naming.mangleMethodSignature(desc);
 
         return new CodeGenMethodVisitor(access, name, desc, signature, exceptions,
-                                        super.visitCGMethod(access, name, desc, signature, exceptions));
+                                        super.visitNoMangleMethod(access, name, desc, signature, exceptions));
     }
 
     private String dumpClass0( String unmangledFileName ) {
