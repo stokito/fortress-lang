@@ -224,14 +224,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 	expanded = true;
                 } else if (isGenericFunction) {
                     // also a closure
-                    try {
                     String dename = Naming.dotToSep(name);
                     dename = Naming.demangleFortressIdentifier(dename);
                     ArrayList<String> sargs = new ArrayList<String>();
                     String template_name = functionTemplateName(dename, sargs);
                     byte[] templateClassData = readResource(template_name);
-                    Naming.XlationData xldata =
-                        Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
+                    Naming.XlationData xldata = xlationForFunction(dename);
+                        // Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
                     
                     List<String> xl = xldata.staticParameterNames();
                    
@@ -244,9 +243,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     Instantiater instantiater = new Instantiater(cvcw, xlation, dename, this);
                     cr.accept(instantiater, 0);
                     classData = cw.toByteArray();
-                    } catch (VersionMismatch ex) {
-                        throw new ClassNotFoundException("Failed to decode xlation info", ex);
-                    }
+                    
                 } else if (isClosure) {
                     classData = instantiateClosure(Naming.demangleFortressIdentifier(name));
                 } else if (isGeneric) {
@@ -276,12 +273,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     } else if (stem.equals(UNION)) {
                         classData = instantiateUnion(dename, parameters);
                     } else {
-                        try {
                         ArrayList<String> sargs = new ArrayList<String>();
                         String template_name = genericTemplateName(dename, sargs); // empty sargs
                         byte[] templateClassData = readResource(template_name);
-                        Naming.XlationData xldata =
-                            Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
+                        Naming.XlationData xldata = xlationForGeneric(dename);
+                           // Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
                         
                         List<String> xl = xldata.staticParameterNames();
                         Map<String, String> xlation = Useful.map(xl, sargs);
@@ -294,9 +290,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         Instantiater instantiater = new Instantiater(cvcw, xlation, dename, this);
                         cr.accept(instantiater, 0);
                         classData = cw.toByteArray();
-                        } catch (VersionMismatch ex) {
-                            throw new ClassNotFoundException("Failed to decode xlation info", ex);
-                        }
+                        
                         // throw new ClassNotFoundException("Don't know how to instantiate generic " + stem + " of " + parameters);
                     }
                 } else {
@@ -2248,7 +2242,23 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     
     Naming.XlationData xlationForGeneric(String t) {
         String template_name = genericTemplateName(t, null);
+        return xlationForFunctionOrGeneric(template_name);
 
+    }
+
+    Naming.XlationData xlationForFunction(String t) {
+        String template_name = functionTemplateName(t, null);
+        return xlationForFunctionOrGeneric(template_name);
+
+    }
+
+    /**
+     * @param template_name
+     * @return
+     * @throws Error
+     */
+    private Naming.XlationData xlationForFunctionOrGeneric(String template_name)
+            throws Error {
         Naming.XlationData xldata = stemToXlation.get(template_name);
         
         if (xldata != null) return xldata;
@@ -2269,9 +2279,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         }
         
         return xldata;
-
     }
-
     public static void optionalStaticsAndClassInitForTO(
                List<InitializedStaticField> isf_list,
                ManglingClassWriter cw) {
