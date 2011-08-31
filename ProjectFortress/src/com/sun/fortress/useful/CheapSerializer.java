@@ -408,6 +408,53 @@ abstract public class CheapSerializer<T> {
         
     }
     
+    static public class TRIPLE<A, B, C> extends CheapSerializer<Triple<A, B, C>> {
+        private CheapSerializer<A> a;
+        private CheapSerializer<B> b;
+        private CheapSerializer<C> c;
+
+        public TRIPLE(CheapSerializer<A> a, CheapSerializer<B> b, CheapSerializer<C> c) {
+            this.a = a;
+            this.b = b;
+            this.c = c;
+        }
+        
+        @Override
+        public Triple<A, B, C> read(InputStream i) throws IOException {
+            A aa = a.read(i);
+            B bb = b.read(i);
+            C cc = c.read(i);
+            return new Triple<A,B,C>(aa, bb, cc);
+        }
+
+        public void write(OutputStream o, Triple<A, B, C> data) throws IOException {
+            a.write(o, data.getA());
+            b.write(o, data.getB());
+            c.write(o, data.getC());
+        }
+        
+        byte[] V = {'T', 'R', 'I', 'P', 'L', 'E', '_', '1', '.', '0', ' '};
+
+        @Override
+        public void version(OutputStream o) throws IOException {
+            o.write(V);
+            a.version(o);
+            b.version(o);
+            c.version(o);
+
+        }
+
+        @Override
+        public void version(InputStream o) throws IOException, VersionMismatch {
+            check(o, V);
+            a.version(o);
+            b.version(o);
+            c.version(o);
+
+        }
+        
+    }
+    
     static public class MAP<K, V> extends CheapSerializer<Map<K, V>> {
 
         private CheapSerializer<K> keys;
