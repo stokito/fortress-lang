@@ -3614,7 +3614,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             if (sparams_part.length() > 0) {
                 InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cg.cw);
 
-                cg.cw.dumpClass(PCNOuter, xldata.setTraitObjectTag(Naming.FUNCTION_GENERIC_TAG));
+                cg.cw.dumpClass(PCNOuter, xldata);
             }
 
 
@@ -3811,7 +3811,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         optionalStaticsAndClassInitForTO(classId, cnb, isSingletonObject);
         
         if (sparams_part.length() > 0) {
-            cw.dumpClass( cnb.fileName, xldata );
+            cw.dumpClass( cnb.fileName, xldata.setTraitObjectTag(Naming.OBJECT_GENERIC_TAG) );
         } else {
             cw.dumpClass( cnb.className );
         }

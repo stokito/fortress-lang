@@ -203,8 +203,9 @@ public class MethodInstantiater implements MethodVisitor {
                         Naming.XlationData xldata =
                             icl.xlationForGeneric(new_owner);
                         String stem_sort = xldata.first();
-                        if (stem_sort.equals(Naming.OBJECT_GENERIC_TAG) ||
-                            stem_sort.equals(Naming.FUNCTION_GENERIC_TAG))
+                        if (stem_sort.equals(Naming.OBJECT_GENERIC_TAG)
+                            // || stem_sort.equals(Naming.FUNCTION_GENERIC_TAG)
+                            )
                             opcode = Opcodes.INVOKEVIRTUAL;
                         else {
                           // do nothing

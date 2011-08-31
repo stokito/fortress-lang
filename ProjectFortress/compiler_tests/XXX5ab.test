@@ -11,7 +11,7 @@ tests=Compiled5.ab
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled5.ab.fss:16:14-29:\n\
+${STATIC_TESTS_DIR}/Compiled5.ab.fss:17:9-18:7:\n\
 \ Object method f lacks a body.\n\
 File Compiled5.ab.fss has 1 error.\n
 compile_out_equals=

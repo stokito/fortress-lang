@@ -98,6 +98,11 @@ public class Naming {
             data = xlationSerializer.fromBytes(bytes);
         }
         
+        private XlationData(String tag, XlationData other) {
+            data =  new Pair<String, List<Triple<String, String, Integer>>>(tag,
+                    other.data.getB());
+        }
+        
         static public XlationData fromBytes(byte[] bytes) throws VersionMismatch {
             return new XlationData(bytes);
         }
@@ -114,8 +119,7 @@ public class Naming {
             return xl;
         }
         public XlationData setTraitObjectTag(String tag) {
-            data.setA(tag);
-            return this;
+            return new XlationData(tag, this);
         }
         public String first() {
             return data.first();
