@@ -25,6 +25,7 @@ import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.useful.CheapSerializer;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.ProjectedList;
+import com.sun.fortress.useful.Triple;
 import com.sun.fortress.useful.VersionMismatch;
 
 public class Naming {
@@ -72,24 +73,25 @@ public class Naming {
     
     CheapSerializer.PAIR<
         String,
-        List<Pair<String, String>>> xlationSerializer = 
+        List<Triple<String, String, Integer>>> xlationSerializer = 
             
-            new CheapSerializer.PAIR<String,List<Pair<String, String>>>(
+            new CheapSerializer.PAIR<String,List<Triple<String, String, Integer>>>(
                     CheapSerializer.STRING,
-                    new CheapSerializer.LIST<Pair<String, String>>(
-                            new CheapSerializer.PAIR<String, String>(
+                    new CheapSerializer.LIST<Triple<String, String, Integer>>(
+                            new CheapSerializer.TRIPLE<String, String, Integer>(
                                     CheapSerializer.STRING,
-                                    CheapSerializer.STRING)
+                                    CheapSerializer.STRING,
+                                    CheapSerializer.INTEGER)
                             )
                     )
         ;
     
     public final static class XlationData {
-        Pair<String, List<Pair<String, String>>> data;
+        Pair<String, List<Triple<String, String, Integer>>> data;
         
         public XlationData(String tag) {
-            data = new Pair<String, List<Pair<String, String>>>(tag,
-                    new ArrayList<Pair<String, String>>());
+            data = new Pair<String, List<Triple<String, String, Integer>>>(tag,
+                    new ArrayList<Triple<String, String, Integer>>());
         }
         
         private XlationData(byte[] bytes)  throws VersionMismatch {
@@ -106,9 +108,9 @@ public class Naming {
         
         public List<String> staticParameterNames() {
             List<String> xl =
-                new ProjectedList<Pair<String, String>, String>(
+                new ProjectedList<Triple<String, String, Integer>, String>(
                         data.getB(),
-                        new Pair.GetB<String, String>());
+                        new Triple.GetB<String, String, Integer>());
             return xl;
         }
         public XlationData setTraitObjectTag(String tag) {
@@ -119,11 +121,11 @@ public class Naming {
             return data.first();
         }
         
-        public void addSortAndValueToStaticParams(Pair<String, String> p) {
+        public void addKindAndNameToStaticParams(Triple<String, String, Integer> p) {
             data.getB().add(p);
         }
-        public void addSortAndValueToStaticParams(String sort, String value) {
-            data.getB().add(new Pair<String, String>(sort, value));
+        public void addKindAndNameToStaticParams(String sort, String value) {
+            data.getB().add(new Triple<String, String, Integer>(sort, value, 0));
         }
     }
 

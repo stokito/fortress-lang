@@ -88,6 +88,7 @@ import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.Triple;
 import com.sun.fortress.useful.Useful;
 
 import edu.rice.cs.plt.tuple.Option;
@@ -1608,73 +1609,75 @@ public class NamingCzar {
         return calleeInfo;
     }
 
-    public static Pair<String, String> p(String s1) {
-        return new Pair<String, String>(s1, null);
+    public static Triple<String,String,Integer> p(String s1) {
+        return new Triple<String,String,Integer>(s1, null, 0);
     }
     
-    public static Pair<String, String> p(String s1, String s2) {
-        return new Pair<String, String>(s1, s2);
+    public static Triple<String,String,Integer> p(String s1, String s2) {
+        return new Triple<String,String,Integer>(s1, s2, 0);
     }
     
-    public static Pair<String, String> p(String s1, Pair<String,String> ps2) {
-        return new Pair<String, String>(s1, ps2.getB());
+    public static Triple<String,String,Integer> p(String s1, Triple<String,String,Integer> ps2) {
+        return new Triple<String,String,Integer>(s1, ps2.getB(), ps2.getC());
     }
     
-    public static Pair<String, String> p(Pair<String,String> ps1, Pair<String,String> ps2) {
-        return new Pair<String, String>(ps1.getA(), ps2.getB());
+    public static Triple<String,String,Integer> p(Triple<String,String,Integer> ps1, Triple<String,String,Integer> ps2) {
+        return new Triple<String,String,Integer>(ps1.getA(), ps2.getB(), ps2.getC());
     }
     
-    public static NodeAbstractVisitor<Pair<String,String>> spkTagger(final APIName ifMissing) { return new NodeAbstractVisitor<Pair<String,String>> () {
+    public static NodeAbstractVisitor<Triple<String,String,Integer>>
+        spkTagger(final APIName ifMissing)
+        { return new NodeAbstractVisitor<Triple<String,String,Integer>> () {
 
         @Override
-        public Pair<String,String> forKindBool(KindBool that) {
+        public Triple<String,String,Integer> forKindBool(KindBool that) {
             return p("bool");
         }
 
         @Override
-        public Pair<String,String> forKindDim(KindDim that) {
+        public Triple<String,String,Integer> forKindDim(KindDim that) {
             return p("dim");
         }
 
         @Override
-        public Pair<String,String> forKindInt(KindInt that) {
+        public Triple<String,String,Integer> forKindInt(KindInt that) {
             return p("intnat");
         }
 
         @Override
-        public Pair<String,String> forKindNat(KindNat that) {
+        public Triple<String,String,Integer> forKindNat(KindNat that) {
             // nats and ints go with same encoding; no distinction in args
             return p("intnat");
         }
 
         @Override
-        public Pair<String,String> forKindOp(KindOp that) {
+        public Triple<String,String,Integer> forKindOp(KindOp that) {
             return p("op");
         }
 
         @Override
-        public Pair<String,String> forKindType(KindType that) {
+        public Triple<String,String,Integer> forKindType(KindType that) {
             return p("type");
         }
 
         @Override
-        public Pair<String,String> forKindUnit(KindUnit that) {
+        public Triple<String,String,Integer> forKindUnit(KindUnit that) {
             return p("unit"); 
         }
 
         @Override
-        public Pair<String,String> forBoolBase(BoolBase b) {
+        public Triple<String,String,Integer> forBoolBase(BoolBase b) {
             // need these to be manifest constants for any evaluation
             return p("bool", b.isBoolVal() ? "true" : "false");
         }
 
         @Override
-        public Pair<String,String> forBoolRef(BoolRef b) {
+        public Triple<String,String,Integer> forBoolRef(BoolRef b) {
             return p("bool", b.getName().getText());
         }
 
         @Override
-        public Pair<String,String> forBoolBinaryOp(BoolBinaryOp b) {
+        public Triple<String,String,Integer> forBoolBinaryOp(BoolBinaryOp b) {
             BoolExpr l = b.getLeft();
             BoolExpr r = b.getRight();
             Op op = b.getOp();
@@ -1682,7 +1685,7 @@ public class NamingCzar {
         }
 
         @Override
-        public Pair<String,String> forBoolUnaryOp(BoolUnaryOp b) {
+        public Triple<String,String,Integer> forBoolUnaryOp(BoolUnaryOp b) {
             BoolExpr v = b.getBoolVal();
             Op op = b.getOp();
             return p("bool", v.accept(this).getB() + Naming.ENTER + op.getText());
@@ -1690,29 +1693,29 @@ public class NamingCzar {
 
         /* These need to return encodings of Fortress types. */
         @Override
-        public Pair<String,String> forBoolArg(BoolArg that) {
+        public Triple<String,String,Integer> forBoolArg(BoolArg that) {
             BoolExpr arg = that.getBoolArg();
 
             return  p("bool", arg.accept(this));
         }
 
         @Override
-        public Pair<String,String> forDimArg(DimArg that) {
+        public Triple<String,String,Integer> forDimArg(DimArg that) {
             return p("dim", that.getDimArg().accept(this));
         }
 
         @Override
-        public Pair<String,String> forIntBase(IntBase b) {
+        public Triple<String,String,Integer> forIntBase(IntBase b) {
             return p("intnat", String.valueOf(b.getIntVal()));
         }
 
         @Override
-        public Pair<String,String> forIntRef(IntRef b) {
+        public Triple<String,String,Integer> forIntRef(IntRef b) {
             return p("intnat", b.getName().getText());
         }
 
         @Override
-        public Pair<String,String> forIntBinaryOp(IntBinaryOp b) {
+        public Triple<String,String,Integer> forIntBinaryOp(IntBinaryOp b) {
             IntExpr l = b.getLeft();
             IntExpr r = b.getRight();
             Op op = b.getOp();
@@ -1720,19 +1723,19 @@ public class NamingCzar {
         }
 
        @Override
-        public Pair<String,String> forIntArg(IntArg that) {
+        public Triple<String,String,Integer> forIntArg(IntArg that) {
             IntExpr arg = that.getIntVal();
             return p("intnat",  arg.accept(this));
         }
 
         @Override
-        public Pair<String,String> forOpArg(OpArg that) {
+        public Triple<String,String,Integer> forOpArg(OpArg that) {
             IdOrOp name = that.getId();
             return p("op", name.getText());
         }
 
         @Override
-        public Pair<String,String> forTypeArg(TypeArg that) {
+        public Triple<String,String,Integer> forTypeArg(TypeArg that) {
             com.sun.fortress.nodes.Type arg = that.getTypeArg();
             // Pretagged with type information
             String s =  makeBoxedTypeName(arg, ifMissing);
@@ -1740,19 +1743,19 @@ public class NamingCzar {
         }
 
         @Override
-        public Pair<String,String> forUnitArg(UnitArg that) {
+        public Triple<String,String,Integer> forUnitArg(UnitArg that) {
             //UnitExpr arg = that.getUnitArg();
             return p("unit", that.getUnitArg().accept(this).getB());
         }
 
         @Override
-        public Pair<String,String> forTraitSelfType(TraitSelfType that) {
+        public Triple<String,String,Integer> forTraitSelfType(TraitSelfType that) {
             // TODO Auto-generated method stub
             return that.getNamed().accept(this);
         }
 
         @Override
-        public Pair<String,String> forTraitType(TraitType that) {
+        public Triple<String,String,Integer> forTraitType(TraitType that) {
             String s =  makeBoxedTraitName(that, ifMissing);
             return p("type", s);
         }
@@ -1779,15 +1782,15 @@ public class NamingCzar {
         if (sparams.size() == 0)
             return "";
 
-        NodeAbstractVisitor<Pair<String,String>> spkTagger = spkTagger(ifMissing);
+        NodeAbstractVisitor<Triple<String,String,Integer>> spkTagger = spkTagger(ifMissing);
         
         String frag = Naming.LEFT_OXFORD;
         StringBuilder buf = new StringBuilder();
         buf.append(frag);
         if (receiverType != null) {
-            Pair<String, String> s = receiverType.accept(spkTagger);
+            Triple<String,String,Integer> s = receiverType.accept(spkTagger);
             if (xldata != null)
-                xldata.addSortAndValueToStaticParams(s);
+                xldata.addKindAndNameToStaticParams(s);
             buf.append(s.getB() + ";");
         }
         for (StaticParam sp : sparams) {
@@ -1797,7 +1800,7 @@ public class NamingCzar {
             IdOrOp spn = sp.getName();
             String s = spn.getText();
             if (xldata != null)
-                xldata.addSortAndValueToStaticParams(k,s);
+                xldata.addKindAndNameToStaticParams(k,s);
             buf.append(s + ";");
         }
         frag = buf.toString();
@@ -1811,14 +1814,14 @@ public class NamingCzar {
         if (sargs.size() == 0)
             return "";
 
-        NodeAbstractVisitor<Pair<String,String>> spkTagger = spkTagger(ifMissing);
+        NodeAbstractVisitor<Triple<String,String,Integer>> spkTagger = spkTagger(ifMissing);
 
         String frag = Naming.LEFT_OXFORD;
         StringBuilder buf = new StringBuilder();
         buf.append(frag);
         int index = 1;
         for (StaticArg sp : sargs) {
-            Pair<String,String> tag = sp.accept(spkTagger);
+            Triple<String,String,Integer> tag = sp.accept(spkTagger);
             buf.append(tag.getB());
             buf.append(";");
             index++;
