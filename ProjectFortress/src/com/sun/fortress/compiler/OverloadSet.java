@@ -1479,7 +1479,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * @param fu
      * @return
      */
-    private static List<StaticParam> staticParametersOf(Functional fu) {
+    protected List<StaticParam> staticParametersOf(Functional fu) {
         List<StaticParam> params = null;
         if (fu instanceof FunctionalMethod) {
             List<StaticParam> ltsp = ((FunctionalMethod) fu).traitStaticParameters();
@@ -1898,6 +1898,24 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 cv.dumpClass(PCNOuter, xldata);
             }
         }
+        
+        /**
+         * @param fu
+         * @return
+         */
+        protected List<StaticParam> staticParametersOf(Functional fu) {
+            List<StaticParam> params = null;
+            if (fu instanceof FunctionalMethod) {
+                params = ((FunctionalMethod) fu).staticParameters();
+                if (params.size() == 0)
+                    params = null;
+            } else {
+                params = super.staticParametersOf(fu);
+            }
+            return params;
+        }
+
+
     }
 
     static public class AmongApis extends OverloadSet {

@@ -1005,7 +1005,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                      * See above comment -- I think this is the wrong instantiater,
                      * but it is not far wrong.
                      */
-                    Type noself_domain = super_inst.replaceIn(selfEditedDomainType(func, self_index));
+                    Type noself_domain = local_inst.replaceIn(selfEditedDomainType(func, self_index));
 
                     // Classify potential override
 
