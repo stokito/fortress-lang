@@ -635,7 +635,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
             // Think inst is unnecessary for self-forwarding
             if (inst != null) {
-                fromReturnType =inst.replaceIn(fromReturnType);
+                fromReturnType = inst.replaceIn(fromReturnType);
                 toReturnType = inst.replaceIn(toReturnType);
                 fromParamType = inst.replaceIn(fromParamType);
                 toParamType = inst.replaceIn(toParamType);
@@ -676,7 +676,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             else
             InstantiatingClassloader.forwardingMethod(cw, from_name, ACC_PUBLIC, 0,
                     receiverClass, mname, narrowing ? (isObject ? INVOKEVIRTUAL : INVOKEINTERFACE ): INVOKESTATIC,
-                            from_sig, to_sig, narrowing ? null : from_sig, arity, true, null);
+                            from_sig, to_sig, narrowing ? null : from_sig, arity, true, null,
+                                    toReturnType instanceof BottomType);
 
         }
         

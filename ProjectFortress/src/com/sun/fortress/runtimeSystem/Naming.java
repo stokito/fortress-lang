@@ -180,6 +180,8 @@ public class Naming {
     public static final String YINYANG = "\u262f"; // type static param
     public static final String ATOM = "\u269b"; // unit static param
 
+    public static final String BOTTOM = "\u2620"; // Bottom --  skull and crossbones
+    
     public static final String GENERIC_TAGS =
         BALLOT_BOX_WITH_CHECK + SCALES + MUSIC_SHARP +
         HAMMER_AND_PICK + YINYANG + ATOM;

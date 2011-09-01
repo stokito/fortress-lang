@@ -193,6 +193,7 @@ public class NamingCzar {
     public static final String internalFortressJavaBufferedWriter = makeFortressInternal("JavaBufferedWriter");
     public static final String internalFortressString = makeFortressInternal("String");
     public static final String internalFortressVoid   = makeFortressInternal("Void");
+    public static final String internalFortressBottom   = internalFortressVoid; // Naming.BOTTOM;
 
     // fortress interpreter types: type descriptors
     public static final String descFortressIntLiteral  = Naming.internalToDesc(internalFortressIntLiteral);
@@ -208,6 +209,7 @@ public class NamingCzar {
     public static final String descFortressString = Naming.internalToDesc(internalFortressString);
     public static final String descFortressVoid   = Naming.internalToDesc(internalFortressVoid);
     public static final String descFortressAny        = Naming.internalToDesc(fortressAny);
+    public static final String descFortressBottom        = Naming.internalToDesc(internalFortressBottom);
 
     public static final String voidToFortressVoid = Naming.makeMethodDesc("", descFortressVoid);
 
@@ -1222,7 +1224,7 @@ public class NamingCzar {
             }
             @Override
             public String forBottomType(BottomType t) {
-                    return withLSemi ? descFortressVoid : internalFortressVoid;
+                    return withLSemi ? descFortressBottom : internalFortressBottom;
             }
             @Override
             public String forUnionType(UnionType t) {

@@ -638,6 +638,16 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 );
     }
     
+    public static void forwardingMethod(ClassWriter cw,
+            String thisName, int thisModifiers, int selfIndex,
+            String fwdClass, String fwdName, int fwdOp,
+            String thisSig, String fwdSig, String selfCastSig,
+            int nparamsIncludingSelf, boolean pushSelf, String forceCastParam0) {
+        forwardingMethod(cw, thisName, thisModifiers, selfIndex,
+                fwdClass, fwdName, fwdOp, thisSig, fwdSig, selfCastSig,
+                nparamsIncludingSelf, pushSelf, forceCastParam0, false
+                );
+    }
     
     /**
      * Emits a forwarding method.
@@ -662,12 +672,15 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param forceCastParam0 cast param 0, even if it is not self.  This is for
      *                        implementation of generic methods.  It may need
      *                        to be generalized to all params, not entirely sure.
+     * @param castReturn      cast the return type to what it "ought" to be.
+     *                        deals with BottomType case.  Makes verifier happy.
      */
     public static void forwardingMethod(ClassWriter cw,
                                         String thisName, int thisModifiers, int selfIndex,
                                         String fwdClass, String fwdName, int fwdOp,
                                         String thisSig, String fwdSig, String selfCastSig,
-                                        int nparamsIncludingSelf, boolean pushSelf, String forceCastParam0) {
+                                        int nparamsIncludingSelf, boolean pushSelf,
+                                        String forceCastParam0, boolean castReturn) {
         String selfSig = null;
         if (pushSelf) {
             if (selfCastSig != null) {
@@ -716,7 +729,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // optional CAST here for tuple and arrow
         String tyName = Naming.sigRet(thisSig);
         if (tyName.startsWith(InstantiatingClassloader.TUPLE_OX) ||
-                tyName.startsWith(InstantiatingClassloader.ARROW_OX)   ) {
+                tyName.startsWith(InstantiatingClassloader.ARROW_OX) ||
+                castReturn) {
             String tyNameFrom = Naming.sigRet(fwdSig);
             InstantiatingClassloader.generalizedCastTo(mv, tyName);
         }
