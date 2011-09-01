@@ -77,6 +77,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     public static final String ANY_TUPLE = "Any" + Naming.TUPLE_TAG;
     
     public static final int JVM_BYTECODE_VERSION = Opcodes.V1_6;
+    public static final String ERASED_UNION_TYPE = "java/lang/Object";
+    public static final String ERASED_UNION_DESC = "L" + ERASED_UNION_TYPE + ";" ;
 
     
     // TODO make this depends on properties/env w/o dragging in all of the world.
@@ -1845,15 +1847,17 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             Method m = forwarded.get(key);
             int ploc = key.indexOf('(');
             String nm = key.substring(0, ploc);
-            String sig = key.substring(ploc);
-            int semiloc = sig.indexOf(';');
-            String callee_sig = "(" + sig.substring(semiloc+1);
+            String callee_sig = key.substring(ploc);
+            String sig = "(" + ERASED_UNION_DESC + key.substring(1);
             // Static, forwarding method
             ManglingMethodVisitor mv = cw.visitNoMangleMethod(ACC_PUBLIC+ACC_STATIC, nm, sig, null, null);
-            
+            String an_interface = Naming.dotToSep(m.getClass().getName());
+            String the_interface = Naming.demangleFortressIdentifier(an_interface);
             int stack_index = 0;
             
             mv.visitVarInsn(ALOAD, stack_index++); // 'this'
+            mv.visitTypeInsn(CHECKCAST, the_interface);
+            
             Class[] pts = m.getParameterTypes();
             
             for (Class pt : pts) {
@@ -1884,11 +1888,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     mv.visitVarInsn(ALOAD, stack_index++); // param
                 }
             }
-
-            String an_interface = Naming.dotToSep(m.getClass().getName());
             
             mv.visitMethodInsn(Opcodes.INVOKEINTERFACE,
-                    Naming.demangleFortressIdentifier(an_interface), 
+                    the_interface, 
                     Naming.demangleFortressIdentifier(nm),
                     Naming.demangleMethodSignature(callee_sig) );
             
