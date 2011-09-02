@@ -1,0 +1,46 @@
+/*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress literals.
+ */
+module com.sun.fortress.parser.templateparser.Literal(Symbol, Spacing, Gaps);
+
+import Symbol;
+import Spacing;
+import Gaps;
+
+modify com.sun.fortress.parser.Literal(Symbol, Spacing);
+
+Expr LiteralExpr +=
+     ExprGap
+   / LooseJuxtGap
+   / SimpleExprGap
+   / PrimaryGap
+   / LiteralExprGap
+   / <VOID> ...;
+
+Expr VoidLiteralExpr +=
+     VoidLiteralExprGap
+   / <FIRST> ...;
+
+IntLiteralExpr IntLiteralExpr +=
+     NumberLiteralExprGap
+   / IntLiteralExprGap
+   / <FIRST> ...;
+
+CharLiteralExpr CharLiteralExpr +=
+     CharLiteralExprGap
+   / <FIRST> ...;
+
+StringLiteralExpr StringLiteralExpr +=
+     StringLiteralExprGap
+   / <FIRST> ... ;

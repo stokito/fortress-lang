@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component knuth
+
+export Executable
+
+(* see http://en.wikipedia.org/wiki/Man_or_boy_test
+ * For a value of k, the value of A(k,...) should be as follows:
+ * k  0   1   2   3   4   5   6    7   8    9    10    11
+ * A  1   0   -2  0   1   0   1   -1  -10  -30  -67   -138
+ *)
+
+A(k:ZZ32, x1, x2, x3, x4, x5) = do
+    if k <= 0 then
+        x4() + x5()
+    else
+        var n:ZZ32 := k
+        B() = do
+            n := n - 1
+            A(n, B, x1, x2, x3, x4)
+        end
+        B()
+    end
+end
+
+run() = do
+    var k:ZZ32 := 8
+    assert(-10, A(k,(fn () => 1), (fn () => -1), (fn () => -1), (fn () => 1), (fn () => 0)),"Incorrect result")
+end
+
+end

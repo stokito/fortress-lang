@@ -1,0 +1,350 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Overview of Operators in the Fortress Standard Libraries}
+
+\note{The operators in this section are not tested nor run by the interpreter yet.}
+
+This section provides a high-level overview of the operators in
+\library.
+See \appref{operator-precedence} for the detailed rules for the operators
+provided by \library.
+
+\subsection{Prefix Operators}
+\seclabel{prefixops}
+
+For all standard numeric types, the prefix operator \EXP{+} simply returns its
+argument and the prefix operator \EXP{-} returns the negative of its argument.
+
+The operator \EXP{\neg} is the logical \scap{not} operator on boolean values
+and boolean intervals.
+
+The operator \EXP{\twointersectnot} computes the bitwise \scap{not} of
+an integer.
+
+Big operators such as \EXP{\sum} begin a \emph{reduction expression}
+(\secref{reduction-expr}).  The big operators include \EXP{\sum}
+(summation) and \EXP{\prod} (product), along with \EXP{\bigcap},
+\EXP{\bigcup}, \EXP{\bigwedge}, \EXP{\bigvee},
+\EXP{\underline{\bigvee}}, \EXP{\bigoplus},
+\EXP{\bigotimes}, \EXP{\biguplus}, \EXP{\displaystyle\boxplus},
+\EXP{\displaystyle\boxtimes}, \OPR{MAX}, \OPR{MIN}, and so on.
+
+\subsection{Postfix Operators}
+
+The operator \EXP{!} computes factorial; the operator \EXP{!!}
+computes double factorials.
+They may be applied to a value of any integral type and produces a
+result of the same type.
+
+When applied to a floating-point value \VAR{x}, \EXP{x!} computes
+\EXP{\Gamma(1+x)}, where \EXP{\Gamma} is the Euler gamma function.
+
+\subsection{Enclosing Operators}
+
+When used as left and right enclosing operators, $|\quad|$ computes the
+absolute value or magnitude of any number, and is also used to compute
+the number of elements in an aggregate, for example the cardinality
+of a set or the length of a list.  Similarly, $\|\quad\|$ is used
+to compute the norm of a vector or matrix.
+
+The floor operator $\lfloor\quad\rfloor$ and ceiling operator
+$\lceil\quad\rceil$
+may be applied to any standard integer, rational, or real value (their behavior
+is trivial when applied to integers, of course).  The operators
+hyperfloor $\lhfloor x \rhfloor$ = $2^{\lfloor \log_2 x \rfloor}$,
+hyperceiling $\lhceil x \rhceil$ = $2^{\lceil \log_2 x \rceil}$,
+hyperhyperfloor $\lhhfloor x \rhhfloor$ = $2^{\lhfloor \log_2 x \rhfloor}$,
+and hyperhyperceiling $\lhhceil x \rhhceil$ = $2^{\lhceil \log_2 x
+  \rhceil}$ are also available.
+
+\subsection{Exponentiation}
+Given two expressions \VAR{e} and \EXP{e'} denoting numeric quantities \VAR{v} and \EXP{v'} that
+are not vectors or matrices,
+the expression \EXP{e^{e'}} denotes the quantity obtained by raising \VAR{v} to the power \EXP{v'}.
+This operation is defined in the usual way on numerals.
+
+Given an expression \VAR{e} denoting a vector and an expression \EXP{e'} denoting a value
+of type \EXP{\mathbb{Z}}, the expression \EXP{e^{e'}} denotes repeated vector multiplication
+of \VAR{e} by itself \EXP{e'} times.
+
+Given an expression \VAR{e} denoting a square matrix and an expression \EXP{e'} denoting a value
+of type \EXP{\mathbb{Z}}, the expression \EXP{e^{e'}} denotes repeated matrix multiplication
+of \VAR{e} by itself \EXP{e'} times.
+
+\note{
+Eric: Do we also want to support the matrix exponential via this
+operator? Doing so requires having a special constant value for e.}
+
+\subsection{Superscript Operators}
+
+The superscript operator \EXP{\txt{\char'136}\VAR{T}} transposes a
+matrix. It also converts a column vector to a row vector or a row
+vector to a column vector.
+
+\subsection{Subscript Operators}
+
+Subscripting of arrays and other aggregates is written using square brackets:
+
+\begin{tabular}{llll}
+\txt{a[i]}        & \emph{is displayed as} & \EXP{a_i}
+& $i$th element of one-dimensional array \VAR{a} \\
+\txt{m[i,j]}      & \emph{is displayed as} &    \EXP{m_{ij}}
+& ${i,j}$th element  of two-dimensional matrix \VAR{m} \\
+\txt{space[i,j,k]}   & \emph{is displayed as} & \EXP{\VAR{space}_{ijk}}
+& $i,j,k$th element of three-dimensional array \VAR{space} \\
+\txt{a[3] := 4}      & \emph{is displayed as}
+& \EXP{a_{3} \mathrel{\mathtt{:}}= 4}
+& assign \EXP{4} to the third element of mutable array \VAR{a} \\
+\txt{m["foo"]}       & \emph{is displayed as}
+& \EXP{m_{\hbox{\rm``{\tt foo}''}}}
+& fetch the entry associated with string \EXP{\hbox{\rm``{\tt foo}''}}
+from map \VAR{m}
+\end{tabular}
+
+\subsection{Multiplication, Division, Modulo, and Remainder Operators}
+
+For most integer, rational, floating-point, complex, and interval expressions,
+multiplication can be expressed using any of `\EXP{\cdot}' or
+`\EXP{\times}' or simply juxtaposition.
+However,
+the \EXP{\times} operator is used to
+express the shape of matrices, so if expressions using multiplication are used
+in expressing the shape of a matrix, it may be necessary to avoid the
+use of '\EXP{\times}' to
+express multiplication, or to use parentheses.
+
+For integer, rational, floating-point, complex, and interval expressions, division is expressed by \EXP{/}.
+When the operator \EXP{/} is used to divide one integer by another,
+the result is rational.
+The operator \EXP{\div} performs truncating integer division:
+\EXP{m \div n = \mathit{signum}\left({m \over n}\right) \left\lfloor \left| {m \over n} \right| \right\rfloor}.
+The operator \OPR{REM} gives the remainder from such a truncating division:
+\EXP{m \OPR{REM} n = m - n (m \div n)}.
+The operator \OPR{MOD} gives the remainder from a floor division:
+\EXP{m \OPR{MOD} n = m - n \left\lfloor {m \over n} \right\rfloor};
+when \EXP{n>0} this is the usual modulus computation that evaluates integer \VAR{m}
+to an integer \VAR{k} such that \EXP{0\leq{}k<n} and \VAR{n} evenly divides \EXP{m-k}.
+
+The special operators \OPR{DIVREM} and \OPR{DIVMOD} each return a pair of values,
+the quotient and the remainder; \EXP{m \OPR{DIVREM} n} returns
+\EXP{(m \div n, m \OPR{REM} n)} while
+\EXP{m \OPR{DIVMOD} n} returns
+\EXP{(\left\lfloor {m \over n} \right\rfloor, m \OPR{MOD} n)}.
+
+Multiplication of a vector or matrix by a scalar is done with juxtaposition,
+as is multiplication of a vector by a matrix (on either side).  Vector dot product
+is expressed by `\EXP{\cdot}' and vector cross product by
+`\EXP{\times}'.  Division of
+a matrix or vector by a scalar may be expressed using `\EXP{/}'.
+
+The syntactic interaction of juxtaposition, \EXP{\cdot}, \EXP{\times},
+and \EXP{/} is subtle.
+\See{operator-precedence} for a discussion of the relative precedence of
+these operations and how precedence may depend on the use of whitespace.
+
+The handling of overflow depends on the type of the number produced.
+For integer results, overflow throws an \TYP{IntegerOverflow}.
+Rational computations do not overflow.
+For floating-point results, overflow produces \EXP{+\infty} or \EXP{-\infty}
+according to the rules of IEEE 754.
+For intervals, overflow produces an appropriate containing interval.
+
+Underflow is relevant only to floating-point computations and is handled
+according to the rules of IEEE 754.
+
+The handling of division by zero depends on the type of the number produced.
+For integer results, division by zero throws a \TYP{DivisionByZero}.
+For rational results, division by zero produces \EXP{1/0}.
+For floating-point results, division by zero produces a \TYP{NaN} value
+according to the rules of IEEE 754.
+For intervals, division by zero produces an appropriate containing interval
+(which under many circumstances will be the interval of all possible real values and infinities).
+
+Wraparound multiplication on fixed-size integers is expressed by
+\EXP{\dottimes}.
+Saturating multiplication on fixed-size integers is expressed by
+\EXP{\boxdot} or \EXP{\boxtimes}.
+These operations do not overflow.
+
+Ordinary multiplication and division of floating-point numbers always
+use the IEEE 754 ``round to nearest'' rounding mode.  This rounding
+mode may be emphasized by using the operators \EXP{\otimes} (or \EXP{\odot})
+and \EXP{\oslash}.  Multiplication and division in ``round toward zero''
+mode may be expressed with \EXP{\boxtimes} (or \EXP{\boxdot}) and
+\EXP{\boxslash}.
+Multiplication and division in ``round toward positive infinity''
+mode may be expressed with \EXP{\uptimes} (or \EXP{\updot}) and \EXP{\upslash}.
+Multiplication and division in ``round toward negative infinity''
+mode may be expressed with \EXP{\downtimes} (or \EXP{\downdot}) and
+\EXP{\downslash}.
+
+\subsection{Addition and Subtraction Operators}
+
+Addition and subtraction are expressed with \EXP{+} and \EXP{-} on all numeric quantities,
+including intervals, as well as vectors and matrices.
+
+The handling of overflow depends on the type of the number produced.
+For integer results, overflow throws an \TYP{IntegerOverflow}.
+Rational computations do not overflow.
+For floating-point results, overflow produces \EXP{+\infty} or \EXP{-\infty}
+according to the rules of IEEE 754.
+For intervals, overflow produces an appropriate containing interval.
+
+Underflow is relevant only to floating-point computations and is handled
+according to the rules of IEEE 754.
+
+Wraparound addition and subtraction on fixed-size integers are
+expressed by \EXP{\dotplus} and \EXP{\dotminus}.
+Saturating addition and subtraction on fixed-size integers are
+expressed by \EXP{\boxplus} and \EXP{\boxminus}.
+These operations do not overflow.
+
+Ordinary addition and subtraction of floating-point numbers always
+use the IEEE 754 ``round to nearest'' rounding mode.  This rounding
+mode may be emphasized by using the operators \EXP{\oplus}
+and \EXP{\ominus}.  Addition and subtraction in ``round toward zero''
+mode may be expressed with \EXP{\boxplus} and \EXP{\boxminus}.
+Addition and subtraction in ``round toward positive infinity''
+mode may be expressed with \EXP{\upplus} and \EXP{\upminus}.
+Addition and subtraction in ``round toward negative infinity''
+mode may be expressed with \EXP{\downplus} and \EXP{\downminus}.
+
+The construction \EXP{x \pm y} produces the interval \EXP{\bsINT{x-y,x+y}}.
+
+\subsection{Intersection, Union, and Set Difference Operators}
+
+Sets support the operations of intersection \EXP{\cap}, union
+\EXP{\cup}, disjoint union \EXP{\uplus},
+set difference \EXP{\setminus}, and symmetric set difference
+\EXP{\ominus}.  Disjoint union
+throws \TYP{DisjointUnionError} if the arguments are in fact not disjoint.
+
+Intervals support the operations of intersection \EXP{\cap}, union
+\EXP{\cup}, and interior hull \EXP{\underline{\union}}.
+The operation \EXP{\Cap} returns a pair of intervals; if the intersection of
+the arguments is a single contiguous span of real numbers, then the first result is an
+interval representing that span and the second result is an empty interval,
+but if the intersection is two spans, then two (disjoint) intervals are returned.
+The operation \EXP{\Cup} returns a pair of intervals; if the arguments overlap, then
+the first result is the union of the two intervals and the second result is an empty interval,
+but if the arguments are disjoint, they are simply returned as is.
+
+\subsection{Minimum and Maximum Operators}
+
+The operator \OPR{MAX} returns the larger of its two operands,
+and \OPR{MIN} returns the smaller of its two operands.
+
+For floating-point numbers, if either argument is a \TYP{NaN} then
+\TYP{NaN} is returned.  The floating-point operations \OPR{MAXNUM} and
+\OPR{MINNUM}
+behave similarly except that if one argument is \TYP{NaN} and the
+other is a number, the number is returned.  For all four of these
+operators, when applied to floating-point values,
+\EXP{-0} is considered to be smaller than \EXP{+0}.
+
+\subsection{GCD, LCM, and CHOOSE Operators}
+
+The infix operator \OPR{GCD} computes the greatest common
+divisor of its integer operands, and \OPR{LCM} computes the least
+common multiple.  The operator \OPR{CHOOSE} computes binomial
+coefficients:
+\EXP{n \OPR{CHOOSE} k = \binom{n}{k} = { n! \over k!(n-k)! }}.
+
+The expression \EXP{e \neq e'} is semantically equivalent to the expression
+\EXP{\neg(e = e')}.
+
+
+\subsection{Comparisons Operators}
+
+Unless otherwise noted, the operators described in this section
+produce boolean (\VAR{true}/\VAR{false}) results.
+
+The operators $<$, \EXP{\leq}, \EXP{\geq}, and $>$ are
+  used for numerical comparisons
+and are supported by integer, rational, and floating-point types.
+Comparison of rational values throws \TYP{RationalComparisonError}
+if either argument is the rational infinity \EXP{1/0} or the
+rational indefinite \EXP{0/0}.
+Comparison of floating-point values throws \TYP{FloatingComparisonError}
+if either argument is a \TYP{NaN}.
+
+The operators $<$, \EXP{\leq}, \EXP{\geq}, and \EXP{>} may also be
+used to compare characters
+(according to the numerical value of their Unicode codepoint values)
+and strings (lexicographic order based on the character ordering).
+They also use lexicographic order when used to compare lists
+whose elements support these same comparison operators.
+
+When $<$, \EXP{\leq}, \EXP{\geq}, and \EXP{>} are used to compare numerical
+intervals, the result is a boolean interval.  The functions
+\VAR{possibly} and \VAR{certainly} are useful for converting
+boolean intervals to boolean values for testing.  Thus
+\EXP{\VAR{possibly}(x>y)} is true if and only if there is some value in the interval
+\VAR{x} that is greater than some value in the interval \VAR{y}, while
+\EXP{\VAR{certainly}(x>y)} is true if and only if \VAR{x} and \VAR{y} are nonempty
+and every value in \VAR{x} is greater than every value in \VAR{y}.
+
+The operators \EXP{\subset}, \EXP{\subseteq}, \EXP{\supseteq}, and
+\EXP{\supset} may be used to compare sets or intervals regarded as sets.
+
+The operator \EXP{\in} may be used to test whether a value is a member of
+a set, list, array, interval, or range.
+
+\subsection{Logical Operators}
+
+The following binary operators may be used on boolean values:
+\begin{center}
+\begin{tabular}{rl}
+$\wedge$ & \scap{and} \\
+$\vee$ & inclusive \scap{or} \\
+$\underline{\vee}$ or $\oplus$ or $\neq$ & exclusive \scap{or} \\
+$\equiv$ or $\leftrightarrow$ or $=$ & equivalence (if and only if) \\
+$\rightarrow$ & \scap{implies} \\
+$\overline{\wedge}$ & \scap{nand} \\
+$\overline{\vee}$ & \scap{nor}
+\end{tabular}
+\end{center}
+
+These same operators may also be applied to boolean intervals
+to produce boolean interval results.
+
+The following operators may be used on integers to perform
+``bitwise'' operations:
+\begin{center}
+\begin{tabular}{rl}
+$\twointersectand$ & bitwise \scap{and} \\
+$\twointersector$ & bitwise inclusive \scap{or} \\
+$\underline{\twointersector}$ & bitwise exclusive \scap{or}
+\end{tabular}
+\end{center}
+The prefix operator \EXP{\twointersectnot} computes the bitwise
+\scap{not} of an integer.
+
+
+\subsection{Conditional Operators}
+\seclabel{standard-conditional-oprs}
+
+If \EXP{p(x)} and \EXP{q(x)} are expressions that produce
+boolean results, the expression \EXP{p(x) \wedge\mathpunct{\mathtt{:}}
+  q(x)} computes the
+logical \scap{and} of those two results by first evaluating \EXP{p(x)}.
+If the result of \EXP{p(x)} is \VAR{true}, then \EXP{q(x)} is also
+evaluated, and its
+result becomes the result of the entire expression; but if the result
+of \EXP{p(x)} is \VAR{false}, then \EXP{q(x)} is not evaluated,
+and the result of the entire expression is \VAR{false} without further ado.
+(Similarly, evaluating the expression \EXP{p(x)
+  \vee\mathpunct{\mathtt{:}} q(x)} does not
+evaluate \EXP{q(x)} if the result of \EXP{p(x)} is \VAR{true}.)
+Contrast this with the expression \EXP{p(x) \wedge q(x)} (with no colon),
+which evaluates both \EXP{p(x)} and \EXP{q(x)}, in no specified order and
+possibly in parallel.
