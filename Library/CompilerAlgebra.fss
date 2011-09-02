@@ -13,7 +13,7 @@ component CompilerAlgebra
 export CompilerAlgebra
 
 trait Equality[\Self\] comprises Self
-   opr =(self, other: Self): Boolean
+   opr =(self, other: Self): Boolean = (self === other)
 end
 
 end
