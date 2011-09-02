@@ -557,7 +557,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return r;
     }
 
-    private void popAll(int onStack) {
+    public static void popAll(MethodVisitor mv, int onStack) {
         if (onStack == 0) return;
         for (; onStack > 1; onStack -= 2) {
             mv.visitInsn(POP2);
@@ -674,7 +674,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 from_name = NamingCzar.mangleAwayFromOverload(from_name);
             }
             else
-            InstantiatingClassloader.forwardingMethod(cw, from_name, ACC_PUBLIC, 0,
+                InstantiatingClassloader.forwardingMethod(cw, from_name, ACC_PUBLIC, 0,
                     receiverClass, mname, narrowing ? (isObject ? INVOKEVIRTUAL : INVOKEINTERFACE ): INVOKESTATIC,
                             from_sig, to_sig, narrowing ? null : from_sig, arity, true, null,
                                     toReturnType instanceof BottomType);
@@ -1239,7 +1239,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             return;
         }
         for ( Expr e : stmts ) {
-            popAll(onStack);
+            popAll(mv, onStack);
             e.accept(this);
             onStack = 1;
             // TODO: can we have multiple values on stack in future?
@@ -1459,7 +1459,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         args.get(0).accept(this);
         conditionallyCastParameter(domain_types.get(0));
         if (vcgs != null) vcgs.get(0).assignValue(mv);
-        popAll(0);  // URGH!!!  look into better stack management...
+        popAll(mv, 0);  // URGH!!!  look into better stack management...
 
 
         // join / perform work locally left to right, leaving results on stack.
@@ -1474,7 +1474,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitFieldInsn(GETFIELD, task, "result", results[i]);
             conditionallyCastParameter(domain_types.get(i));
             if (vcgs != null) vcgs.get(i).assignValue(mv);
-            popAll(1);  // URGH!!!  look into better stack management...            
+            popAll(mv, 1);  // URGH!!!  look into better stack management...            
         }
     }
 
@@ -1482,7 +1482,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forDo(Do x) {
         debug("forDo ", x);
         int n = x.getFronts().size();
-        popAll(0);
+        popAll(mv, 0);
 
         if (n > 1) {
             forDoParallel(x.getFronts(), NodeFactory.makeVoidType(x.getInfo().getSpan()), null);
@@ -1589,7 +1589,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          mv.visitLabel(lfinally);
          if (finallyClause.isSome()) {
              finallyClause.unwrap().accept(this);
-             popAll(1);
+             popAll(mv, 1);
          }
     }
 

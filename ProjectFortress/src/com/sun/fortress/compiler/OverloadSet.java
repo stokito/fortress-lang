@@ -1107,6 +1107,15 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             return new TypeStructure(fullname, rttiStem, parameters, storeAtIndex, storeAtIndex+1, variance, invariantGenericsContained, variantGenericsContained, isObject);
         }        
     }
+    
+    public static TypeStructure makeParamTypeStructure(StaticParam sp, int index, int variance) {
+        String name = sp.getName().getText();
+        Set<String> invarGenerics = new HashSet<String>();
+        Set<String> varGenerics = new HashSet<String>();
+        if (variance == TypeStructure.INVARIANT) invarGenerics.add(name);
+        else varGenerics.add(name);
+        return new TypeStructure(name, name, null, index, index+1, variance, invarGenerics, varGenerics, false);
+    }
 
     /**
      * @param size
@@ -1218,6 +1227,105 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 @SuppressWarnings("unchecked")
                 MultiMap<String,TypeStructure> staticTss = spmaps[i];
                 
+                int localCount = f_type_structures[f_type_structures.length-1].successorIndex; //counter for use storing stuff such as lower bounds
+                
+                //create type structures for lower bounds
+                Map<StaticParam,TypeStructure> lowerBounds = new HashMap<StaticParam,TypeStructure>(); 
+                for (StaticParam sp : staticParams) lowerBounds.put(sp,makeParamTypeStructure(sp,localCount++,TypeStructure.COVARIANT));
+                
+                //infer and load RTTIs
+                
+                for (int j = 0; j < staticParams.size(); j++) {  
+                    StaticParam sp = staticParams.get(staticParams.size() - 1 - j);  //reverse order due to left to right scoping
+                    Set<TypeStructure> instances = staticTss.get(sp.getName().getText());                    
+                    
+                    //sort static parameters by their variance and put into
+                    //arrays using their local variable number
+                    List<Integer> invariantInstances = new ArrayList<Integer>();
+                    List<Integer> covariantInstances = new ArrayList<Integer>();
+                    List<Integer> contravariantInstances = new ArrayList<Integer>();
+                    for (TypeStructure ts: instances) {
+                        switch (ts.variance) {
+                        case TypeStructure.INVARIANT:
+                              invariantInstances.add(ts.localIndex);
+                              break;
+                        case TypeStructure.CONTRAVARIANT:
+                              contravariantInstances.add(ts.localIndex);
+                              break;
+                        case TypeStructure.COVARIANT:
+                              covariantInstances.add(ts.localIndex);
+                              break;
+                        default:
+                            throw new CompilerError("Unexpected Variance on TypeStructure during " +
+                            		"generic instantiation analysis for overload dispatch");
+                        }
+                    }
+                    
+                    // if any invariant instances, we must use that RTTI and check that 
+                    //1) any other invariant instances are the same type (each subtypes the other)
+                    //2) any covariant instances are subtypes of the invariant instance
+                    //3) any contravariant instances are supertypes of the invariant instance
+                    if (invariantInstances.size() > 0) {
+                        
+                        //a valid instantiation must use the runtime type
+                        //of all invariant instances (which must all be the same)
+                        //thus, wlog, we can use the first invariant instance
+                        int RTTItoUse = invariantInstances.get(0); 
+                        
+                        //1) for each other invariant instance, they must be the same
+                        //which we test by checking that each subtypes the other
+                        for (int k = 1; k < invariantInstances.size(); k++) {
+                            int RTTIcompare = invariantInstances.get(k);
+                            //RTTItoUse.runtimeSupertypeOf(RTTIcompare)
+                            mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
+                            mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
+                            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
+                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                            //RTTIcompare.runtimeSupertypeOf(RTTItoUse)
+                            mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
+                            mv.visitVarInsn(Opcodes.ALOAD, RTTItoUse);
+                            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
+                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                        }
+                        
+                        //2) for each covariant instance, the runtime type (RTTIcompare) must be a
+                        // subtype of the instantiated type (RTTItoUse)
+                        for (int RTTIcompare : covariantInstances) {
+                            //RTTItoUse.runtimeSupertypeOf(RTTIcompare)
+                            mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
+                            mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
+                            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
+                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                        }
+                        
+                        //3) for each contravariant instances, the instantiated type (RTTItoUse) must be a 
+                        // subtype of the runtime type (RTTIcompare)
+                        for (int RTTIcompare : contravariantInstances) {
+                            //RTTIcompare.runtimeSupertypeOf(RTTItoUse)
+                            mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
+                            mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
+                            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
+                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                        }
+                        
+                        //check lower bounds given by other variables
+                        
+                        
+                        //verify meets upper bounds
+                        
+                        
+                        //checks out, so store the RTTI we will use into the lower bound for this parameter
+                        mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
+                        int index = lowerBounds.get(sp).localIndex;
+                        mv.visitVarInsn(Opcodes.ASTORE, index);
+                        
+                    } else if (contravariantInstances.size() == 0) { //we can do inference for covariant-only occurrences
+                        
+                    } else { //otherwise, we might need to do inference which is not implemented yet
+                        throw new CompilerError("non-invariant inference with contravariance not implemented");
+                    }
+                }
+                
                 //load instance cache table to avoid classloader when possible
                 String tableName = Naming.cacheTableName(f.tagF.unambiguousName().getText());
                 String tableOwner = Naming.dotToSep(f.tagA.getText());
@@ -1229,141 +1337,43 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                                 Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD + Naming.ENVELOPE + "$" + Naming.HEAVY_X + arrow;
                 mv.visitLdcInsn(owner);
                 
-                boolean useRTTIarray = staticParams.size() > 6;
-                int rttiArrayIndex = f_type_structures[f_type_structures.length-1].successorIndex; //if needed
-                if (useRTTIarray) { //store into position after last RTTI
-                    mv.visitLdcInsn(staticParams.size());
-                    mv.visitTypeInsn(Opcodes.ANEWARRAY, Naming.RTTI_CONTAINER_TYPE);
-                    mv.visitVarInsn(Opcodes.ASTORE, rttiArrayIndex);
-                }
-                
-                //infer and load RTTIs
-                for (int j = 0; j < staticParams.size(); j++) {
-                    StaticParam sp = staticParams.get(j);
-                    Set<TypeStructure> instances = staticTss.get(sp.getName().getText());
-                    if (instances.size() > 1) {
-                        
-                        //sort static parameters by their variance and put into
-                        //arrays using their local variable number
-                        List<Integer> invariantInstances = new ArrayList<Integer>();
-                        List<Integer> covariantInstances = new ArrayList<Integer>();
-                        List<Integer> contravariantInstances = new ArrayList<Integer>();
-                        for (TypeStructure ts: instances) {
-                            switch (ts.variance) {
-                            case TypeStructure.INVARIANT:
-                                  invariantInstances.add(ts.localIndex);
-                                  break;
-                            case TypeStructure.CONTRAVARIANT:
-                                  contravariantInstances.add(ts.localIndex);
-                                  break;
-                            case TypeStructure.COVARIANT:
-                                  covariantInstances.add(ts.localIndex);
-                                  break;
-                            default:
-                                throw new CompilerError("Unexpected Variance on TypeStructure during " +
-                                		"generic instantiation analysis for overload dispatch");
-                            }
-                        }
-                        
-                        // if any invariant instances, we must use that RTTI and check that 
-                        //1) any other invariant instances are the same type (each subtypes the other)
-                        //2) any covariant instances are subtypes of the invariant instance
-                        //3) any contravariant instances are supertypes of the invariant instance
-                        if (invariantInstances.size() > 0) {
-                            Label popLabel = new Label();
-                            Label proceedLabel = new Label();
-                            
-                            //a valid instantiation must use the runtime type
-                            //of all invariant instances (which must all be the same)
-                            //thus, wlog, we can use the first invariant instance
-                            int RTTItoUse = invariantInstances.get(0); 
-                            
-                            //1) for each other invariant instance, they must be the same
-                            //which we test by checking that each subtypes the other
-                            for (int k = 1; k < invariantInstances.size(); k++) {
-                                int RTTIcompare = invariantInstances.get(k);
-                                //RTTItoUse.runtimeSupertypeOf(RTTIcompare)
-                                mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
-                                mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
-                                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
-                                mv.visitJumpInsn(Opcodes.IFEQ, popLabel);
-                                //RTTIcompare.runtimeSupertypeOf(RTTItoUse)
-                                mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
-                                mv.visitVarInsn(Opcodes.ALOAD, RTTItoUse);
-                                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
-                                mv.visitJumpInsn(Opcodes.IFEQ, popLabel);
-                            }
-                            
-                            //2) for each covariant instance, the runtime type (RTTIcompare) must be a
-                            // subtype of the instantiated type (RTTItoUse)
-                            for (int RTTIcompare : covariantInstances) {
-                                //RTTItoUse.runtimeSupertypeOf(RTTIcompare)
-                                mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
-                                mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
-                                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
-                                mv.visitJumpInsn(Opcodes.IFEQ, popLabel);
-                            }
-                            
-                            //3) for each contravariant instances, the instantiated type (RTTItoUse) must be a 
-                            // subtype of the runtime type (RTTIcompare)
-                            for (int RTTIcompare : contravariantInstances) {
-                                //RTTIcompare.runtimeSupertypeOf(RTTItoUse)
-                                mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
-                                mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
-                                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
-                                mv.visitJumpInsn(Opcodes.IFEQ, popLabel);
-                            }
-                            
-                            //checks out, so load the RTTI we will use
-                            if(useRTTIarray) { //if using an array, store it into the correct index
-                                mv.visitVarInsn(Opcodes.ALOAD, rttiArrayIndex);
-                                mv.visitLdcInsn(j); //index is the static param number
-                                mv.visitVarInsn(Opcodes.ALOAD, RTTItoUse);
-                                mv.visitInsn(Opcodes.AASTORE);
-                            } else { //just load
-                                mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
-                            }
-                            mv.visitJumpInsn(Opcodes.GOTO, proceedLabel);
-                            
-                            //if we failed pop from top of statck and try the next possible function definition
-                            mv.visitLabel(popLabel);
-                            mv.visitInsn(Opcodes.POP); //string
-                            mv.visitInsn(Opcodes.POP); //table
-                            mv.visitJumpInsn(Opcodes.GOTO, lookahead);
-                            
-                            //success - call this function
-                            mv.visitLabel(proceedLabel);
-                            
-                        } else { //otherwise, we might need to do inference which is not implemented yet
-                            throw new CompilerError("non-invariant inference for multiple instances of static parameters not implemented");
-                        }
-                    } else if (instances.size() == 1) { //easy case
-                        int offset = ((TypeStructure) instances.toArray()[0]).localIndex;
-                        
-                        if(useRTTIarray) { //if using an array, store it into the correct index
-                            mv.visitVarInsn(Opcodes.ALOAD, rttiArrayIndex);
-                            mv.visitLdcInsn(j); //index is the static param number
-                            mv.visitVarInsn(Opcodes.ALOAD, offset);
-                            mv.visitInsn(Opcodes.AASTORE);
-                        } else { //just load
-                            mv.visitVarInsn(Opcodes.ALOAD,offset);
-                        }
-                    }
-                }
-                
                 String ic_sig;
-                if (useRTTIarray) { //signature different depending on number of static parameters
+                if (staticParams.size() > 6) { //use an array
                    //load the function: RThelpers.loadClosureClass:(BAlongTree,String,RTTI[])
                    String paramList = Naming.CACHE_TABLE_DESC + NamingCzar.descString + Naming.RTTI_CONTAINER_ARRAY_DESC;
                    ic_sig = Naming.makeMethodDesc(paramList, Naming.internalToDesc(NamingCzar.internalObject));
                    
-                   mv.visitVarInsn(Opcodes.ALOAD,rttiArrayIndex); //also load the array
+                   mv.visitLdcInsn(staticParams.size());
+                   mv.visitTypeInsn(Opcodes.ANEWARRAY, Naming.RTTI_CONTAINER_TYPE);
+                   
+                   //dup array enough times to store RTTIs into it  //know need at least 6 more
+                   mv.visitInsn(Opcodes.DUP);  //first one to get arrays as top two elts on stack
+                   
+                   for (int numDups = staticParams.size()-1; numDups > 0; numDups = numDups/2) mv.visitInsn(Opcodes.DUP2);
+                   if (staticParams.size() % 2 == 0) mv.visitInsn(Opcodes.DUP);  //if even, started halving with an odd number, so needs one last
+                   
+                   //store parameters into array
+                   for(int k = 0; k < staticParams.size(); k++) {
+                       int index = lowerBounds.get(staticParams.get(k)).localIndex;
+                       mv.visitLdcInsn(k); //index is the static param number
+                       mv.visitVarInsn(Opcodes.ALOAD, index);
+                       mv.visitInsn(Opcodes.AASTORE);                       
+                   }
+                   
+                   //array left on stack
+                   
                    
                 } else {
-                    //load the function: RTHelpers.loadClosureClass:(BAlongTree,String,RTTI^n)Object
+                    //load the function: RTHelpers.loadClosureClass:(BAlongTree,(String,RTTI)^n)Object
                     ic_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes(Naming.CACHE_TABLE_TYPE + ";L" + NamingCzar.internalString, staticParams.size(), 
                         Naming.RTTI_CONTAINER_TYPE, 
                         Naming.internalToDesc(NamingCzar.internalObject));
+                    
+                    //load parameter RTTIs
+                    for(int k = 0; k < staticParams.size(); k++) {
+                        int index = lowerBounds.get(staticParams.get(k)).localIndex;
+                        mv.visitVarInsn(Opcodes.ALOAD, index);                      
+                    }
                     
                 }
                 mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.RT_HELPERS, "loadClosureClass", ic_sig);
