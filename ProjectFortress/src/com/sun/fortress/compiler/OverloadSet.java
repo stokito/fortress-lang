@@ -1233,18 +1233,50 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 Map<StaticParam,TypeStructure> lowerBounds = new HashMap<StaticParam,TypeStructure>(); 
                 for (StaticParam sp : staticParams) lowerBounds.put(sp,makeParamTypeStructure(sp,localCount++,TypeStructure.COVARIANT));
                 
-                //infer and load RTTIs
+                //gather variable-variable lower bounds
+                MultiMap<StaticParam,StaticParam> relativeLowerBounds = new MultiMap<StaticParam,StaticParam>();
+                MultiMap<StaticParam,Type> genericUpperBounds = new MultiMap<StaticParam,Type>();
+                MultiMap<StaticParam,Type> concreteUpperBounds = new MultiMap<StaticParam,Type>();
+                for (int outer = 0; outer < staticParams.size(); outer++) {
+                    StaticParam outerSP = staticParams.get(outer);
+                    for (BaseType bt : outerSP.getExtendsClause()) {
+                        if (bt instanceof VarType) {
+                            String varName = ((VarType) bt).getName().getText();
+                            boolean found = false;
+                            for (int inner = 0; inner < outer && !found; inner++) {
+                                StaticParam innerSP = staticParams.get(inner);
+                                if (varName.equals(innerSP.getName().getText())) {
+                                    relativeLowerBounds.putItem(outerSP, innerSP);
+                                    found = true;
+                                }
+                            }
+                            if (!found) throw new CompilerError("Bad Scoping of static parameters found during runtime inference codegen:" + 
+                                                                            varName + " not declared before used in a bound");
+                        } else if (bt instanceof AnyType) { //figure out if concrete or generic
+                            //do nothing - no need to add meaningless upper bound
+                        } else if (bt instanceof NamedType) {
+                            if (isGeneric(bt)) 
+                                genericUpperBounds.putItem(outerSP, bt);
+                            else
+                                concreteUpperBounds.putItem(outerSP, bt);
+                        }
+                    }
+                }
                 
+                
+                //infer and load RTTIs
                 for (int j = 0; j < staticParams.size(); j++) {  
                     StaticParam sp = staticParams.get(staticParams.size() - 1 - j);  //reverse order due to left to right scoping
                     Set<TypeStructure> instances = staticTss.get(sp.getName().getText());                    
+                    
+
                     
                     //sort static parameters by their variance and put into
                     //arrays using their local variable number
                     List<Integer> invariantInstances = new ArrayList<Integer>();
                     List<Integer> covariantInstances = new ArrayList<Integer>();
                     List<Integer> contravariantInstances = new ArrayList<Integer>();
-                    for (TypeStructure ts: instances) {
+                    if (instances != null) for (TypeStructure ts: instances) {
                         switch (ts.variance) {
                         case TypeStructure.INVARIANT:
                               invariantInstances.add(ts.localIndex);
@@ -1309,9 +1341,25 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         }
                         
                         //check lower bounds given by other variables
-                        
+                        Set<StaticParam> relativeLB = relativeLowerBounds.get(sp);
+                        if (relativeLB != null) for (StaticParam lb : relativeLB) {
+                            //RTTItoUse.runtimeSupertypeOf(otherLB)
+                            int otherOffset = lowerBounds.get(lb).localIndex;
+                            mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
+                            mv.visitVarInsn(Opcodes.ALOAD, otherOffset);
+                            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
+                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                        }
                         
                         //verify meets upper bounds
+                        Set<Type> concreteUB = concreteUpperBounds.get(sp);
+                        if (concreteUB != null) for (Type cu : concreteUB) {
+                            //transform into RTTI
+                            generateRTTIfromStaticType(mv, cu);
+                            mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
+                            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
+                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                        }
                         
                         
                         //checks out, so store the RTTI we will use into the lower bound for this parameter
@@ -1320,7 +1368,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         mv.visitVarInsn(Opcodes.ASTORE, index);
                         
                     } else if (contravariantInstances.size() == 0) { //we can do inference for covariant-only occurrences
-                        
+                        //note - need to deal with no instances here
+                        //throw new CompilerError("covariance not yet implemented");
                     } else { //otherwise, we might need to do inference which is not implemented yet
                         throw new CompilerError("non-invariant inference with contravariance not implemented");
                     }
@@ -1361,7 +1410,6 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                    }
                    
                    //array left on stack
-                   
                    
                 } else {
                     //load the function: RTHelpers.loadClosureClass:(BAlongTree,(String,RTTI)^n)Object
@@ -1426,6 +1474,51 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
+    private void generateRTTIfromStaticType(MethodVisitor mv, Type t) {
+        if (t instanceof TraitType) {
+            List<StaticArg> args = ((TraitType) t).getArgs();
+            if (args != null && args.size() > 0) {
+                //recurse
+                for (StaticArg sa : args) {
+                    if (sa instanceof TypeArg) {
+                        generateRTTIfromStaticType(mv, ((TypeArg) sa).getTypeArg());
+                    } else {
+                        throw new CompilerError("Expected TypeArg for RTTI generation");
+                    }
+                }
+                //find component for type and call factory
+                String typeName = NamingCzar.jvmTypeDesc(t, this.ifNone, false);
+                mv.visitMethodInsn(Opcodes.INVOKESTATIC, typeName + Naming.RTTI_CLASS_SUFFIX,Naming.RTTI_FACTORY, Naming.rttiFactorySig(args.size()));
+            } else {
+                //find component for type and grab singleton RTTI
+                String typeName = NamingCzar.jvmTypeDesc(t, this.ifNone, false);
+                mv.visitFieldInsn(Opcodes.GETSTATIC, typeName + Naming.RTTI_CLASS_SUFFIX, Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);
+            }
+        } else {
+            throw new CompilerError("Expected Trait Type for RTTI generation");
+        }
+    }
+    
+    private boolean isGeneric(Type t) {
+        if (t instanceof VarType) {
+            return true;
+        } else if (t instanceof TraitType) {
+            List<StaticArg> args = ((TraitType) t).getArgs();
+            if (args != null && args.size() > 0) {
+                for (StaticArg arg : args) {
+                    if (arg instanceof TypeArg) {
+                        if (isGeneric(((TypeArg) arg).getTypeArg())) return true;
+                    } else {
+                        throw new CompilerError("Expecting a TypeArg when checking genericity");
+                    }
+                }
+                return false; //no parts were generic
+            } else 
+                return false;
+        } else 
+            return false;
+    }
+    
     private String objectAbstractArrowTypeForNParams(int numParams) {
         StringBuilder ret = new StringBuilder("AbstractArrow" + Naming.LEFT_OXFORD);
         for (int i = 0; i < numParams; i++) ret.append(NamingCzar.internalObject + ";"); // params
