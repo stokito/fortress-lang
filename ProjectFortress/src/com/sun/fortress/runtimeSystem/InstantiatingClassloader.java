@@ -2513,7 +2513,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         boolean useSparamsArray = sparams_size > 6;
         int sparamsArrayIndex = sparams_size;
         
-        String fact_sig = Naming.rttiFactorySig(rttiClassName, sparams_size);
+        String fact_sig = Naming.rttiFactorySig(sparams_size);
         String init_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class",
                 sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
         String get_sig;
@@ -2535,7 +2535,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     sparams_size, Naming.RTTI_CONTAINER_TYPE, NamingCzar.descClass);
         }
 
-        mv = cw.visitNoMangleMethod(ACC_PUBLIC + ACC_STATIC, "factory", fact_sig, null, null);
+        mv = cw.visitNoMangleMethod(ACC_PUBLIC + ACC_STATIC, Naming.RTTI_FACTORY, fact_sig, null, null);
         mv.visitCode();
         /* 
          * First arg is java class, necessary for creation of type.

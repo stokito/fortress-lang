@@ -117,8 +117,8 @@ public class MethodInstantiater implements MethodVisitor {
             
             //call the factory
             String stem_rtti = Naming.stemClassToRTTIclass(stem);
-            String fact_sig = Naming.rttiFactorySig(stem_rtti, parameters.size());
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, stem_rtti, "factory", fact_sig);
+            String fact_sig = Naming.rttiFactorySig(parameters.size());
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, stem_rtti, Naming.RTTI_FACTORY, fact_sig);
         } else {
             //just get the field
             String ownerRTTIc = Naming.stemClassToRTTIclass(owner);

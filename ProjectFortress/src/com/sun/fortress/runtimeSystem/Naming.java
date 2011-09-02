@@ -147,6 +147,7 @@ public class Naming {
     public final static String RTTI_GETTER_CLASS = ANY_TYPE_CLASS;
     public final static String RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "RTTI";
     public final static String RTTI_SINGLETON = "ONLY";
+    public final static String RTTI_FACTORY = "factory";
     public final static String TUPLE_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "TupleRTTI";
     public final static String ARROW_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "ArrowRTTI";
     public final static String JAVA_RTTI_CONTAINER_TYPE = RT_VALUES_PKG + "JavaRTTI";
@@ -1023,10 +1024,8 @@ public class Naming {
      * @param n_static_params
      * @return
      */
-    public static String rttiFactorySig(String owner_and_result_class,
-            final int n_static_params) {
+    public static String rttiFactorySig(final int n_static_params) {
         return InstantiatingClassloader.jvmSignatureForNTypes(
-                //n_static_params, RTTI_CONTAINER_TYPE, internalToDesc(owner_and_result_class));
                 n_static_params, RTTI_CONTAINER_TYPE, internalToDesc(RTTI_CONTAINER_TYPE));
     }
     
