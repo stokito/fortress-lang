@@ -15,6 +15,7 @@ import java com.sun.fortress.nativeHelpers.{LocalRandom.localRandomDouble => jRa
                                             LocalRandom.localRandomInt => jRandomInt }
 *)
 import CompilerBuiltin.{...}
+import CompilerAlgebra.{...}
 import java com.sun.fortress.nativeHelpers.{equality.sEquiv => jSEQUIV}
 export CompilerLibrary
 
@@ -29,7 +30,9 @@ export CompilerLibrary
 
 (** Useful functions *)
 
-ignore(_:Any):() = ()
+ignore(_: Any): () = ()
+
+identity[\T extends Any\](x: T): T = x
 
 (************************************************************
  * Control over locality and location
@@ -333,6 +336,11 @@ end
 (*
 opr BIG ||(): StringConcatenation = StringConcatenation
 *)
+
+
+
+
+
 
 (************************************************************
 * Random numbers

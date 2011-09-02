@@ -159,7 +159,29 @@ trait Object extends Any
 (*)     getter asDebugString(): String  = do  (* for debugging; may contain more information *)
 (*)         ilk = self.ilkName
 (*)         firstChar = ilk[0]
-(*)         article = if firstChar = 'a' OR: firstChar = 'e' OR: firstChar = 'i' OR: firstChar = 'o' then "an " else "a " end
+(*)         article = if firstChar = 'a' OR: firstChar = 'e' OR: firstChar = 'i' OR: firstChar = 'o' OR:
+(*)           (firstChar = 'h' AND: |ilk| >= 4 AND: ilk[0:3] = "hono") OR:
+(*)           (firstChar = 'u' AND:
+(*)              (do ilkNameLength = |ilk|
+(*)                ilkNameLength >= 3 AND:
+(*)                  (do (secondChar, thirdChar) = (ilk[1], ilk[2])
+(*)                    (secondChar = 'b' AND thirdChar = 'i') OR:
+(*)                    (secondChar = 'n' AND thirdChar = 'i' AND:
+(*)                      (ilkNameLength = 3 OR:
+(*)                    (case ilk[3] of
+(*)                            'd' => ilkNameLength < 6 OR: (ilk[4:5] =/= "en" AND: ilk[4:5] =/= "io")
+(*)                            'm' => ilkNameLength < 5 OR: (ilk[4] =/= 'a' AND: ilk[4] =/= 'p')
+(*)                            'n' => ilkNameLength >= 5 AND: (ilk[4] = 'u')
+(*)                            'r' => ilkNameLength < 6 OR: ilk[4:5] =/= "on"
+(*)                        else => true))) OR:
+(*)                    (secondChar = 'r' AND
+(*)                  (thirdChar = 'a' OR: thirdChar = 'e' OR: thirdChar = 'i' OR: thirdChar = 'o' OR:
+(*)                    (thirdChar = 'u' AND: (ilkNameLength = 3 OR: ilk[3] =/= 'g')))) OR:
+(*)                    (secondChar = 't' AND
+(*)                  (thirdChar = 'a' OR: thirdChar = 'e' OR: thirdChar = 'i' OR: thirdChar = 'o'))
+(*)                    (secondChar = 'v' AND
+(*)                  (thirdChar = 'a' OR: thirdChar = 'e' OR: thirdChar = 'i' OR: thirdChar = 'u')))))
+(*)             then "an " else "a " end
 (*)         article ilk ": " self.asString
 (*)         self.asString
 (*) end
