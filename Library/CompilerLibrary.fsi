@@ -12,6 +12,7 @@
 api CompilerLibrary
 
 import CompilerBuiltin.{...}
+import CompilerAlgebra.{...}
 
 (************************************************************
  * Value bindings
@@ -22,6 +23,7 @@ import CompilerBuiltin.{...}
  ************************************************************)
 
 ignore(_:Any):()
+identity[\T extends Any\](x: T): T
 
 opr ===(a:Any, b:Any):Boolean
 opr NEQV(a:Any, b:Any):Boolean
@@ -118,6 +120,47 @@ opr #(lo:ZZ32, sz:ZZ32): GeneratorZZ32
 (*
 opr BIG ||(): ReductionString
 *)
+
+
+(*) trait Condition[\E extends Equality[\E\]\]   (*) extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
+(*)     getter isEmpty(): Boolean
+(*)     getter isNotEmpty(): Boolean
+(*)     getter holds(): Boolean
+(*)     getter size(): ZZ32
+(*)     getter get(): E throws NotFound
+(*)     getter indices(): Generator[\ZZ32\]
+(*)     getter indexValuePairs(): Condition[\(ZZ32,E)\]
+(*)     getter reverse() : Condition[\E\]
+(*)     opr |self|: ZZ32
+(*)     opr [i:ZZ32]:E throws NotFound
+(*)     getDefault(e:E): E
+(*)     cond[\G\](t: E -> G, e: () -> G): G
+(*)     generate[\G\](r:Reduction[\G\], body: E -> G): G
+
+(*)     map[\G\](f: E->G): Condition[\G\]
+(*)     ivmap[\G\](f: (ZZ32,E)->G): Condition[\G\]
+(*)     nest[\G\](f: E -> Generator[\G\]): Generator[\G\]
+(*)     cross[\G\](g: Generator[\G\]): Generator[\(E,G)\]
+(*)     mapReduce[\R\](body: E->R, _:(R,R)->R, id:R): R
+(*)     reduce(_:(E,E)->E, z:E):E
+(*)     reduce(r: Reduction[\E\]):E
+(*)     loop(f:E->()): ()
+(*)     opr IN(x:E, self):Boolean
+(*) end Condition
+
+(*) value trait Maybe[\T\] extends Condition[\T\]
+(*)         comprises { Just[\T\], NothingObject[\T\] }
+(*)     coerce(x: Nothing)
+(*)     opr SQCAP(self, o: Maybe[\T\]): Maybe[\T\]
+(*) end
+
+(*) value object Just[\T\](x:T) extends Maybe[\T\] end
+
+(*) value object NothingObject[\T\] extends Maybe[\T\]
+(*)     coerce(x: Nothing)
+(*) end
+
+(*) object Nothing end    
 
 (************************************************************
 * Random numbers
