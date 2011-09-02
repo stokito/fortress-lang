@@ -58,21 +58,39 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
     sa.subtypeED(fd, gd)
   }
   
-  // Convenience function when arrows have been extracted from functionals
-  // already.
-  def lteq(fa: ArrowType, ga: ArrowType): Boolean = {
+  // Checks the return type rule
+  def typeSafe(f: Functional, g: Functional): Boolean = {
+    if(!lteq(f, g))
+      true
+    else {
+      val fa = makeArrowFromFunctional(f, true).get
+      val ga = makeArrowFromFunctional(g, true).get
+      val ra = sa.returnUA(fa, ga)
+      sa.subtypeUA(fa, ra)
+    }
+  }
+  
+  def shadows(m: Method, n: Method): Boolean = false
+  def narrows(m: Method, n: Method): Boolean = true
+
+  //Checks whether f is the meet of g and h
+  def meet(f: Functional, g: Functional, h: Functional)(implicit checkingMethods: Boolean): Boolean = {
+    val fa = makeArrowFromFunctional(f, true).get
+    val ga = makeArrowFromFunctional(g, true).get
+    val ha = makeArrowFromFunctional(h, true).get
     val fd = sa.makeDomainFromArrow(fa)
     val gd = sa.makeDomainFromArrow(ga)
-    sa.subtypeED(fd, gd)
+    val hd = sa.makeDomainFromArrow(ha)
+    val md = sa.meetED(gd, hd)
+    sa.equivalentED(fd, md)
   }
   
-  // Convenience function when domains have been extracted from arrows
-  // already.
-  def lteq(fd: Type, gd: Type) = {
-	  sa.subtypeED(fd, gd)
-  }
   
-  // Checks when f is more specific than g in a particular parameter.
+  
+  /* TODO: REMOVE THE FOLLOWING FUNCTIONS
+   * They are currently being used by the code generator in a very undisciplined way
+   */
+   
   // drc, trying to figure out Scala
   def getParamType(f: Functional, i:Int): Type = {
     val fa = makeArrowFromFunctional(f, true).get
@@ -98,41 +116,19 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
     fd
   }
   
-  // Checks the return type rule
-  def typeSafe(f: Functional, g: Functional): Boolean = {
-    if(!lteq(f, g))
-      true
-    else {
-      val fa = makeArrowFromFunctional(f, true).get
-      val ga = makeArrowFromFunctional(g, true).get
-      val ra = sa.returnUA(fa, ga)
-      sa.subtypeUA(fa, ra)
-    }
-  }
-
-  //Checks whether f is the meet of g and h
-  def meet(f: Functional, g: Functional, h: Functional): Boolean = {
-    val fa = makeArrowFromFunctional(f, true).get
-    val ga = makeArrowFromFunctional(g, true).get
-    val ha = makeArrowFromFunctional(h, true).get
+  
+  // Convenience function when arrows have been extracted from functionals
+  // already.
+  def lteq(fa: ArrowType, ga: ArrowType): Boolean = {
     val fd = sa.makeDomainFromArrow(fa)
     val gd = sa.makeDomainFromArrow(ga)
-    val hd = sa.makeDomainFromArrow(ha)
-    val md = sa.meetED(gd, hd)
-    sa.equivalentED(fd, md)
+    sa.subtypeED(fd, gd)
   }
   
-  def meet(f: ((JavaList[StaticParam],Type,Type,Option[Int]),_),
-           g: ((JavaList[StaticParam],Type,Type,Option[Int]),_),
-           h: ((JavaList[StaticParam],Type,Type,Option[Int]),_)): Boolean = {
-    val fd = insertStaticParams(f._1._2, toList(f._1._1))
-    val gd = insertStaticParams(g._1._2, toList(g._1._1))
-    val hd = insertStaticParams(h._1._2, toList(h._1._1))
-    val fr = insertStaticParams(f._1._3, toList(f._1._1))
-    val gr = insertStaticParams(g._1._3, toList(g._1._1))
-    val hr = insertStaticParams(h._1._3, toList(h._1._1))
-
-    sa.equivalentED(fd, sa.meetED(gd, hd)) && sa.subtypeED(fr, sa.meetED(gr, hr))
+  // Convenience function when domains have been extracted from arrows
+  // already.
+  def lteq(fd: Type, gd: Type) = {
+      sa.subtypeED(fd, gd)
   }
 }
 
