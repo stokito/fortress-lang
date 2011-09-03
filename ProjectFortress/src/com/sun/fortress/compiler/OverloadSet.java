@@ -856,8 +856,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             this.variantGenericsContained = variantGenericsContained;
             this.isObject = isObject;
         }
-        void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast,
-                            Set<String> top_level_invariants) {            
+        void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast) //,
+                            //Set<String> top_level_invariants) 
+                            {            
             /*
              *  If a static parameter is used anywhere in the signature
              *  in an invariant context, then its value is fixed to the
@@ -917,7 +918,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         else // ends in RTTI_CLASS_SUFFIX - invoke virtual
                             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, RTTIinterface, method_name, Naming.STATIC_PARAMETER_GETTER_SIG);
                         // get parameter
-                        p.emitInstanceOf(mv, if_fail, false, top_level_invariants);
+                        p.emitInstanceOf(mv, if_fail, false); //, top_level_invariants);
                         i++;
                     }
                 }
@@ -1213,8 +1214,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     // Load actual parameter
                     if (j != selfIndex()) {
                         mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
-                        f_type_structures[j].emitInstanceOf(mv, lookahead, true,
-                                            top_level_invariants);
+                        f_type_structures[j].emitInstanceOf(mv, lookahead, true);//,
+                                            //top_level_invariants);
                         if (f_type_structures[j].invariantGenericsContained.size() > 0 ||
                             f_type_structures[j].variantGenericsContained.size() > 0)
                                 infer = true;
@@ -1240,13 +1241,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 for (int outer = 0; outer < staticParams.size(); outer++) {
                     StaticParam outerSP = staticParams.get(outer);
                     for (BaseType bt : outerSP.getExtendsClause()) {
-                        if (bt instanceof VarType) {
+                        if (bt instanceof VarType) {  // outerSP <: bt so outerSP will provide a lower bound on BT
                             String varName = ((VarType) bt).getName().getText();
                             boolean found = false;
                             for (int inner = 0; inner < outer && !found; inner++) {
                                 StaticParam innerSP = staticParams.get(inner);
                                 if (varName.equals(innerSP.getName().getText())) {
-                                    relativeLowerBounds.putItem(outerSP, innerSP);
+                                    relativeLowerBounds.putItem(innerSP, outerSP); // outerSP provides a lower bound on innerSP
                                     found = true;
                                 }
                             }
@@ -1312,12 +1313,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                             mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
                             mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
                             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
-                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead);  //if false fail
                             //RTTIcompare.runtimeSupertypeOf(RTTItoUse)
                             mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
                             mv.visitVarInsn(Opcodes.ALOAD, RTTItoUse);
                             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
-                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead);  //if false fail
                         }
                         
                         //2) for each covariant instance, the runtime type (RTTIcompare) must be a
@@ -1327,7 +1328,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                             mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
                             mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
                             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
-                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead); //if false fail
                         }
                         
                         //3) for each contravariant instances, the instantiated type (RTTItoUse) must be a 
@@ -1337,7 +1338,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                             mv.visitVarInsn(Opcodes.ALOAD, RTTIcompare);
                             mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
                             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
-                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead); //if false fail
                         }
                         
                         //check lower bounds given by other variables
@@ -1348,17 +1349,26 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                             mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
                             mv.visitVarInsn(Opcodes.ALOAD, otherOffset);
                             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
-                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead); //if false fail
                         }
                         
                         //verify meets upper bounds
                         Set<Type> concreteUB = concreteUpperBounds.get(sp);
-                        if (concreteUB != null) for (Type cu : concreteUB) {
+                        if (concreteUB != null) for (Type cub : concreteUB) {
                             //transform into RTTI
-                            generateRTTIfromStaticType(mv, cu);
+                            generateRTTIfromStaticType(mv, cub);
                             mv.visitVarInsn(Opcodes.ALOAD,RTTItoUse);
                             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
-                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead);
+                            mv.visitJumpInsn(Opcodes.IFEQ, lookahead); //if false fail
+                        }
+                        
+                        //generate more bounds for generic upper bounds
+                        Set<Type> genericUB = genericUpperBounds.get(sp);
+                        if (genericUB != null) for( Type gub : genericUB) {
+                            TypeStructure newTS = makeTypeStructure(gub,staticTss,TypeStructure.COVARIANT,localCount,staticParams);
+                            localCount = newTS.successorIndex;
+                            mv.visitVarInsn(Opcodes.ALOAD, RTTItoUse);
+                            newTS.emitInstanceOf(mv, lookahead, false); //fail if RTTItoUse doesn't have this structure
                         }
                         
                         
@@ -1368,8 +1378,73 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         mv.visitVarInsn(Opcodes.ASTORE, index);
                         
                     } else if (contravariantInstances.size() == 0) { //we can do inference for covariant-only occurrences
-                        //note - need to deal with no instances here
-                        //throw new CompilerError("covariance not yet implemented");
+                         
+                        boolean started = false;
+                        if (covariantInstances.size() > 0) {
+                            started = true;
+                            mv.visitVarInsn(Opcodes.ALOAD, covariantInstances.get(0));
+                           
+                            for (int k = 1; k < covariantInstances.size(); k++ ) {
+                                mv.visitVarInsn(Opcodes.ALOAD, covariantInstances.get(k));
+                                //TODO: allow unions
+                                joinStackNoUnion(mv,lookahead); //fails if cannot join w/o union
+                            }
+                        } 
+                        
+                        //incorporate lower bounds 
+                        Set<StaticParam> relativeLB = relativeLowerBounds.get(sp);
+                        if (relativeLB != null) for (StaticParam lb : relativeLB) {
+                            mv.visitVarInsn(Opcodes.ALOAD, lowerBounds.get(lb).localIndex);
+                            if (started) { //join it in
+                                //TODO: allow unions
+                                joinStackNoUnion(mv,lookahead);
+                           } else { //start with this lower bound
+                               started = true;
+                           }
+                        }
+                        
+                        if (started) { 
+                            
+                            //verify meets upper bounds
+                            Set<Type> concreteUB = concreteUpperBounds.get(sp);
+                            if (concreteUB != null) for (Type cub : concreteUB) {
+                                Label cleanup = new Label();
+                                Label next = new Label();
+                                
+                                mv.visitInsn(Opcodes.DUP);
+                                generateRTTIfromStaticType(mv, cub);  //transform concrete bound into RTTI
+                                mv.visitInsn(Opcodes.SWAP);  // LB <: CUB
+                                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
+                                mv.visitJumpInsn(Opcodes.IFEQ, cleanup);
+                                mv.visitJumpInsn(Opcodes.GOTO, next);
+                                mv.visitLabel(cleanup);
+                                mv.visitInsn(Opcodes.POP);
+                                mv.visitJumpInsn(Opcodes.GOTO, lookahead);
+                                mv.visitLabel(next);
+                            }
+                            
+                            //checks out, so store to lower bound of sp
+                            int index = lowerBounds.get(sp).localIndex;
+                            mv.visitVarInsn(Opcodes.ASTORE, index);
+                            
+                            //generate more bounds for generic upper bounds
+                            Set<Type> genericUB = genericUpperBounds.get(sp);
+                            if (genericUB != null) for( Type gub : genericUB) {
+                                TypeStructure newTS = makeTypeStructure(gub,staticTss,TypeStructure.COVARIANT,localCount,staticParams);
+                                localCount = newTS.successorIndex;
+                                mv.visitVarInsn(Opcodes.ALOAD, index);
+                                newTS.emitInstanceOf(mv, lookahead, false); //fail if candidate doesn't have this structure
+                            }
+                            
+                        } else {
+                            //Bottom is ok - no need to check upper bounds
+                            //or generate lower bounds
+                            mv.visitFieldInsn(Opcodes.GETSTATIC, Naming.RT_VALUES_PKG + "VoidRTTI", Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);
+                            int index = lowerBounds.get(sp).localIndex;
+                            mv.visitVarInsn(Opcodes.ASTORE, index);
+                        
+                        }
+    
                     } else { //otherwise, we might need to do inference which is not implemented yet
                         throw new CompilerError("non-invariant inference with contravariance not implemented");
                     }
@@ -1474,6 +1549,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
+    //Generates an RTTI from a Type by recursing through the structure
+    //grabbing singleton RTTIs or invoking factory methods.
     private void generateRTTIfromStaticType(MethodVisitor mv, Type t) {
         if (t instanceof TraitType) {
             List<StaticArg> args = ((TraitType) t).getArgs();
@@ -1499,6 +1576,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
     
+    //checks if a type is generic by looking for VarTypes in the type
     private boolean isGeneric(Type t) {
         if (t instanceof VarType) {
             return true;
@@ -1517,6 +1595,33 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 return false;
         } else 
             return false;
+    }
+    
+    //checks that the two RTTI on the top of the stack are in a subtyping
+    //relationship.  If they are, it leave the more general one on
+    //the stack.  If they aren't it removes both and continues execution
+    //at the lookahead label.
+    private void joinStackNoUnion(MethodVisitor mv, Label lookahead) {
+        Label try2 = new Label();
+        Label next = new Label();
+        Label cleanup = new Label();
+        
+        mv.visitInsn(Opcodes.DUP2);  //#2 <: #1
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
+        mv.visitJumpInsn(Opcodes.IFEQ, try2);  //if no, try opposite
+        mv.visitInsn(Opcodes.POP); // want #1 (lower on the stack)
+        mv.visitJumpInsn(Opcodes.GOTO, next);  //done
+        mv.visitLabel(try2);
+        mv.visitInsn(Opcodes.SWAP);
+        mv.visitInsn(Opcodes.DUP2); // #1 <: #2
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_SUBTYPE_METHOD_NAME, Naming.RTTI_SUBTYPE_METHOD_SIG);
+        mv.visitJumpInsn(Opcodes.IFEQ, cleanup);  //if no, fail dispatch
+        mv.visitInsn(Opcodes.POP); // want #2 (now lower on the stack)
+        mv.visitJumpInsn(Opcodes.GOTO, next);  //done
+        mv.visitLabel(cleanup);
+        mv.visitInsn(Opcodes.POP2);
+        mv.visitJumpInsn(Opcodes.GOTO, lookahead);
+        mv.visitLabel(next);
     }
     
     private String objectAbstractArrowTypeForNParams(int numParams) {
