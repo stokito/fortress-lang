@@ -11,8 +11,8 @@
 
 export Executable
 
-  identity[\T\](x: T): T = x
-  call1() = identity(fn x => x.foo())
+  identity1[\T\](x: T): T = x
+  call1() = identity1(fn x => x.foo())
 
   apply[\T, U\](f: T->U, x: T): U = f(x)
   call2() = apply(fn x => x.foo(), 5)
