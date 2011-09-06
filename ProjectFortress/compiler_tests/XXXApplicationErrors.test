@@ -11,8 +11,8 @@ tests=Compiled7.ApplicationErrors
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:15:13-36:\n\
-\ Could not check call to function identity\n\
+${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:15:13-37:\n\
+\ Could not check call to function identity1\n\
 \ - [\\T\\]T->T is not applicable to any type of the form _->_.\n\
 ${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:18:27-32:\n\
 \ No such method IntLiteral.foo.\n\
