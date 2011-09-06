@@ -1,0 +1,162 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+Type =
+     !(one) (io w)? TypePrimary (w in w Expr)?
+
+OpType =
+     TypePrimary
+   / TypePrefix
+
+TypePrimary =
+     TypePrimaryFront TightInfixPostfix
+   / <LooseJuxt> TypePrimaryFront wr TypePrimary
+   / <LooseInfix> TypePrimaryFront wr LooseInfix
+   / TypePrimaryFront
+
+TypePrefix =
+     DimPrefixOp TypePrimary
+   / DimPrefixOp TypePrefix
+   / <Prefix> DimPrefixOp wr TypePrimary
+   / <PrePrefix> DimPrefixOp wr TypePrefix
+
+TightInfixPostfix =
+     <Arrow> TypeInfixOp TypePrimary (w Throws)?
+   / <ArrowPrefix> TypeInfixOp TypePrefix (w Throws)?
+   / DimInfixOp TypePrimary
+   / DimInfixOp TypePrefix
+   / <Postfix> DimPostfixOp wr TypePrimary
+   / <PostPrefix> DimPostfixOp wr TypePrefix
+   / DimPostfixOp
+
+LooseInfix =
+     <Arrow> TypeInfixOp wr TypePrimary (w Throws)?
+   / <ArrowPrefix> TypeInfixOp wr TypePrefix (w Throws)?
+   / <Infix> DimInfixOp wr TypePrimary
+   / <InPrefix> DimInfixOp wr TypePrefix
+
+TypePrimaryFront =
+    TypeFront TypeTail+
+  / TypeFront
+
+TypeFront =
+     ParenthesizedType
+   / Domain
+   / TupleType
+   / TypeRef
+   / VoidType
+   / one
+
+ParenthesizedType =
+     openparen w Type w closeparen
+
+Domain =
+     openparen w (Type w comma w)* (Type w ellipses w comma w)?
+     KeywordType (w comma w KeywordType)* w closeparen
+   / openparen w (Type w comma w)* Type w ellipses w closeparen
+
+KeywordType = BindId w equals w Type
+
+TupleType =
+     openparen w Type w comma w TypeList w closeparen
+
+TypeList = Type (w comma w Type)*
+
+TypeRef =
+     "Unity"
+   / Id w StaticArgs
+   / Id
+
+VoidType =
+     openparen w closeparen
+
+TypeTail =
+     ArrayTypeSize
+   / Exponentiation
+   / ParenthesizedTypeLeft
+   / IdLeft
+
+ArrayTypeSize =
+     opensquare (w ArraySize)? w closesquare
+
+ArraySize = ExtentRange (w comma w ExtentRange)*
+
+ExtentRange =
+     (StaticArg w)? pound (w StaticArg)?
+   / (StaticArg w)? colon (w StaticArg)?
+   / StaticArg
+
+Exponentiation =
+     caret hasW IntExpr
+   / caret hasW openparen w ExtentRange (w cross w ExtentRange)* w
+     closeparen
+
+MayParenthesizedOpType =
+     openparen w OpType w closeparen
+   / OpType
+
+ParenthesizedTypeLeft =
+     openparen w MayParenthesizedOpType w closeparen
+
+IdLeft =
+     Id
+
+TypeInfixOp =
+     rightarrow
+
+DimInfixOp =
+     (DOT / slash / per)
+
+DimPrefixOp =
+     (square / cubic / inverse)
+
+DimPostfixOp =
+     (squared / cubed)
+
+TraitType =
+     TraitTypeFront TraitTypeTail+
+   / TypeRef
+
+TraitTypeFront =
+     ParenthesizedType
+   / TupleType
+   / TypeRef
+   / VoidType
+
+TraitTypeTail =
+     ArrayTypeSizeTrait
+   / ExponentiationTrait
+
+ArrayTypeSizeTrait =
+     opensquare (w ArraySize)? w closesquare
+
+ExponentiationTrait =
+     caret hasW IntExpr
+   / caret hasW openparen w ExtentRange (w cross w ExtentRange)* w
+     closeparen
+
+TraitTypeWithError =
+     TraitTypeFrontWithError TraitTypeTail+
+   / TypeRefWithError
+
+TraitTypeFrontWithError =
+     ParenthesizedType
+   / TupleType
+   / TypeRefWithError
+   / VoidType
+
+TypeRefWithError =
+     "Unity"
+   / Id w StaticArgs
+   / Id
+   / Op (w StaticArgs)?
+\end{verbatim}

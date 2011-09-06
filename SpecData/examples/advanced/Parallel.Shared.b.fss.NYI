@@ -1,0 +1,31 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Parallel.Shared.b
+export Executable
+
+trait List end
+object Cons(x:ZZ32, xs: List) extends List end
+object Empty extends List end
+
+f() = do
+(** EXAMPLE **)
+if isShared(o)
+(** END EXAMPLE **)
+end
+
+run(args:String...) = do
+  f()
+end
+
+end

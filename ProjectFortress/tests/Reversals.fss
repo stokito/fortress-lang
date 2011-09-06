@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Reversals
+import List.{...}
+export Executable
+
+run() = do
+    l = list[\ZZ32\](1:7)
+
+    (* Reversing generators *)
+
+    r = (l asif Generator[\ZZ32\]).reverse
+    assert("7-6-5-4-3-2-1" = "-".join[\ZZ32\](r))
+    assert("8-7-6-5-4-3-2" = "-".join[\ZZ32\](r.map[\ZZ32\](fn(n:ZZ32):ZZ32 => n+1)))
+    assert("1-2-3-4-5-6-7" = "-".join[\ZZ32\](r.reverse))
+    assert("7-5-3-1"       = "-".join[\ZZ32\](r.filter(fn(n:ZZ32):Boolean => odd(n))))
+
+    (* Reversing indexed objects *)
+
+    s = (l asif Indexed[\ZZ32,ZZ32\]).reverse
+    assert(|s| = 7)
+    assert("7-6-5-4-3-2-1"     = "-".join[\ZZ32\](s))
+    assert("8-7-6-5-4-3-2"     = "-".join[\ZZ32\](s.map[\ZZ32\](fn(n:ZZ32):ZZ32 => n+1)))
+    assert("1-2-3-4-5-6-7"     = "-".join[\ZZ32\](s.reverse))
+    assert("7-5-3-1"           = "-".join[\ZZ32\](s.filter(fn(n:ZZ32):Boolean => odd(n))))
+    assert("42-30-20-12-6-2-0" = "-".join[\ZZ32\](s.ivmap[\ZZ32\](fn(i:ZZ32,e:ZZ32):ZZ32 => i e)))
+end
+
+end

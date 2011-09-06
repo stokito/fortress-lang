@@ -1,0 +1,20 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2008, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+# Prints a line suitable for cutting and pasting into a shell that sets PATH properly
+
+FORTRESS_HOME="`${0%forpath}fortress_home`"
+
+FORTRESS_BIN=`cd ${FORTRESS_HOME}/bin; /bin/pwd`
+
+echo "PATH=\"$FORTRESS_BIN:$PATH\""

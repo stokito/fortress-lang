@@ -1,0 +1,43 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Environments}
+\seclabel{environments}
+
+An \emph{environment} maps \emph{names} to values or locations.
+Environments are immutable,
+and two environments that map exactly the same names
+to the same values or locations are identical.
+
+
+A program starts executing with an empty environment.
+Environments are extended with new mappings
+by variable, function, and object declarations, and functional calls
+(including calls to object constructors).
+After initializing all top-level variables and singleton objects,
+as described in \secref{initialization},
+the \emph{top-level environment} for each component is constructed.
+
+The environment of a value is determined by how it is
+\emph{constructed}.
+For all but object expressions (described in \secref{object-expr}),
+function expressions (described in \secref{func-expr})
+and local function declarations (described in \secref{local-fn-decls}),
+the environment of the constructed value is the top-level environment of the component in which the expression or declaration occurs.
+For object and function expressions and local function declarations,
+the environment of the constructed value
+is the lexical environment in which the expression or declaration was evaluated.
+
+We carefully distinguish a spawned thread from its associated spawned
+thread object.  In particular, note that the execution environment of
+a spawned thread, in which the body expression is evaluated, is
+distinct from the environment of the associated thread object, in
+which calls to the thread methods are evaluated.
