@@ -52,6 +52,8 @@ import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.NI
 
+import scala.math.max
+
 class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLattice[Type]{
   
   private final val debugSubtype = ProjectProperties.getBoolean("fortress.debug.analyzer.subtype", false)
@@ -123,7 +125,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       pAnd(ss.map(pSub(_, t)))
     case (s, SUnionType(_, ts)) =>
       pOr(ts.map(pSub(s, _)))
-    // We need to eliminate trait self types before making constraints  
+    // We must eliminate trait self types before making constraints  
     case (s: TraitSelfType, t) => pSub(removeSelf(s), t)
     case (s, STraitSelfType(_, named, _)) => pSub(s,named)
     // Inference variables
@@ -134,9 +136,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     /* Type variables are special for several reasons
      *  1) Getting the bound out of a type variable is the only place where a type can increase in size during type checking.
      *     We use the history to ensure termination.
-     *  2) They are the only place where you cannot negate using de Morgan's. There is actually a hidden modality. Subtype
-     *     should be interpreted as "definitely subtype" and not subtype should be interpreted as "definitely not subtype".
-     *     If you negate using de Morgan's you get "possibly not subtype" and "possibly subtype" respectively.
+     *  2) They are the only place where you cannot negate using de Morgan's. There is a good explanation of why in the OOPSLA paper.
      */ 
     case (s@SVarType(_, id, _), t) =>
       val hEntry = (negate, true, s, t)
@@ -356,23 +356,19 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         pOr(for(sa <- sas; ta <- tas) yield cP(sa, ta))
       }
       pOr(List(checkEC(s,t), checkCC(s,t), checkO(s,t), checkP(s,t)))
+    // ToDo: Handle keywords. Note that this will mean you can have a tuple of length 1 without varargs.
+    case (s@STupleType(_, e1, Some(v1), _), t@STupleType(_, e2, mv2, _)) =>
+        pExc(disjunctFromTuple(s, max(e1.size, e2.size)), t)
+    case (s@STupleType(_, e1, None, _), t@STupleType(_, e2, Some(v2), _)) => pExc(t, s)
+    case (STupleType(_, e1, None, _), STupleType(_, e2, None, _)) if (e1.size == e2.size) =>
+      pOr((e1, e2).zipped.map((a, b) => pExc(a, b)))
+    case (STupleType(_, e1, None, _), STupleType(_, e2, None, _)) =>
+      pTrue()
+    case (s: TupleType, t) => pExc(disjunctFromTuple(s, 1), t)
+    case (s, t: TupleType) => pExc(t, s)
     case (s: ArrowType, t: ArrowType) => pFalse()
     case (s: ArrowType, t) => pTrue()
-    case (s, t: ArrowType) => pTrue()
-    // ToDo: Handle keywords
-    case (STupleType(_, e1, mv1, _), STupleType(_, e2, mv2, _)) =>
-      val excludes = pOr((e1, e2).zipped.map((a, b) => pExc(a, b)))
-      val different = (mv1, mv2) match {
-        case (Some(v1), _) if (e1.size < e2.size) =>
-          pOr(e2.drop(e1.size).map(pExc(_, v1)))
-        case (_, Some(v2)) if (e1.size > e2.size) =>
-          pOr(e1.drop(e2.size).map(pExc(_, v2)))
-        case _ if (e1.size!=e2.size) => pTrue()
-        case _ => pFalse()
-      }
-      pOr(different, excludes)
-    case (s: TupleType, _) => pTrue()
-    case (_, t: TupleType) => pTrue()
+    case (s, t: ArrowType) => pExc(t, s)
   }
   
   protected def removeSelf(x: Type) = {
@@ -471,7 +467,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
                       normalizeTupleTypeMemo += ((e, vt) -> result)
                       normalizeTupleTypeMemo += ((ee, vtx) -> result)
                       result
-                    case result: BottomType =>
+                    case result =>
                       normalizeTupleTypeMemo += ((e, vt) -> result)
                       result
                   }
@@ -484,6 +480,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         super.walk(t) match {
           case STupleType(i, e, Some(v: BottomType), k) => STupleType(i, e, None, k)
           case STupleType(i, e, vt, k) if e.contains(bottom) => bottom
+          case STupleType(i, e, None, Nil) if (e.size == 1) => e.head
           case _ => t
         }
       }

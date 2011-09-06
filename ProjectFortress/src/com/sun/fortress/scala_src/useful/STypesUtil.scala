@@ -129,34 +129,33 @@ object STypesUtil {
   /**
    *  Return the arrow type of the given Functional index.
    */
-  def makeArrowFromFunctional(f: Functional, lifted: Boolean): Option[ArrowType] = {
-    val returnType = toOption(f.getReturnType).getOrElse(return None)
-    val params = toListFromImmutable(f.parameters).map(NU.getParamType)
-    val argType = makeArgumentType(params)
-
-    val effect = NF.makeEffect(f.thrownTypes)
-    val where = f match {
-      case f: Constructor => f.where
-      case _ => none[WhereClause]
-    }
-    val info = f match {
-      case m: HasSelfType if m.selfType.isNone =>
-        bug("No selfType on functional %s".format(f))
-      case m: HasSelfType => 
-        Some(SMethodInfo(m.selfType.get, m.selfPosition))
-      case _ => None
-    }
-
-     val sparamsJava = getStaticParameters(f, lifted)
-
-    Some(NF.makeArrowType(NF.typeSpan,
-      false,
-      argType,
-      returnType,
-      effect,
-      sparamsJava,
-      where,
-      info))
+  def makeArrowFromFunctional(f: Functional, lifted: Boolean): Option[ArrowType] = f match {
+    case f: DummyVariableFunction => Some(f.getArrowType())
+    case _ =>
+      val returnType = toOption(f.getReturnType).getOrElse(return None)
+      val params = toListFromImmutable(f.parameters).map(NU.getParamType)
+      val argType = makeArgumentType(params)
+      val effect = NF.makeEffect(f.thrownTypes)
+      val where = f match {
+        case f: Constructor => f.where
+        case _ => none[WhereClause]
+      }
+      val info = f match {
+        case m: HasSelfType if m.selfType.isNone =>
+          bug("No selfType on functional %s".format(f))
+        case m: HasSelfType => 
+          Some(SMethodInfo(m.selfType.get, m.selfPosition))
+        case _ => None
+      }
+      val sparamsJava = getStaticParameters(f, lifted)
+      Some(NF.makeArrowType(NF.typeSpan,
+                            false,
+                            argType,
+                            returnType,
+                            effect,
+                            sparamsJava,
+                            where,
+                            info))
   }
 
   /**
