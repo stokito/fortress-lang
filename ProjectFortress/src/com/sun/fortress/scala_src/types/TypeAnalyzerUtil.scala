@@ -67,7 +67,7 @@ object TypeAnalyzerUtil {
   def disjunctFromTuple(tuple: TupleType, size: Int): Type = tuple match {
     case STupleType(i, e, Some(v), k) if (size >= e.size) =>
       makeTupleType(i, e ++ List.fill(size-e.size){v}, k)
-    case STupleType(_, e , _, _) if (size == e.size)=> tuple
+    case STupleType(_, e, None, _) if (size == e.size)=> tuple
     case _ => BOTTOM
   }
 
