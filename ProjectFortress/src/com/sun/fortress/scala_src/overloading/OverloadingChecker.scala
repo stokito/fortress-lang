@@ -38,13 +38,12 @@ import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.Maps._
+import com.sun.fortress.scala_src.useful.Iterators._
 
 
 /* Checks the set of overloadings in a compilation unit. Must be run after typechecking
  * since return types must be inferred.
- * Verifies:
- * 1) Meet Rule, Exclusion Rule, Subtype Rule
- * 2)
+ * TODO : Rename this FunctionalChecker
  */
 
 class OverloadingChecker(current: CompilationUnitIndex,
@@ -52,26 +51,19 @@ class OverloadingChecker(current: CompilationUnitIndex,
                          errors: List[StaticError] = List())
                          (analyzer: TypeAnalyzer = TypeAnalyzer.make(new TraitTable(current, global))) {
   
-  type FnOrVar = Either[Function, DeclaredVariable]
-  
   def extend(params: List[StaticParam], where: Option[WhereClause]) = 
     new OverloadingChecker(current, global, errors)(analyzer.extend(params, where))
     
-  def check(): JavaList[StaticError] = {
-    toJavaList(checkOverloadedFunctions ++ 
-               checkOverloadedMethods ++ 
-               checkAbstractMethods ++ 
-               checkGetterSetters)
-  }
+  def check(): JavaList[StaticError] = toJavaList(checkFunctions ++ checkMethods)
   
-  private def checkOverloadedFunctions(): List[StaticError] = {
+  private def checkFunctions(): List[StaticError] = {
     val compFnRel = current.functions
     // Create a map from function names to sets of function indices
     val compFns = toSet(compFnRel.firstSet).flatMap(isDeclaredName).map{
-      f => (f, toSet(compFnRel.matchFirst(f)).map(Left(_).asInstanceOf[FnOrVar]))
+      f => (f, toSet(compFnRel.matchFirst(f).asInstanceOf[JavaSet[Functional]]))
     }
     val imports = toListFromImmutable(current.ast.getImports)
-    val expImports = imports.flatMap{
+    val explicitImports = imports.flatMap{
       case SImportNames(_, _, api, aliases) =>
         aliases.flatMap{
           case SAliasedSimpleName(_,name: IdOrOp, Some(alias: IdOrOp)) =>
@@ -82,41 +74,55 @@ class OverloadingChecker(current: CompilationUnitIndex,
         }
       case _ => List()
     }
-    val expFns = (compFns ++ expImports).groupBy(_._1.getText).mapElements{x => 
+    val explicitFns = (compFns ++ explicitImports).groupBy(_._1.getText).mapElements{x => 
       val (ids, fns) = x.unzip
-      (ids, fns.flatMap(x => x))
+      (ids, fns.flatMap(y => y))
     }
+    
     val importStar = imports.flatMap{isImportStar}
-    val allFns = expFns.map{
+    
+    // TODO: Crawl component to get all of the function references so I can check implicit imports properly
+    
+    val allFns = explicitFns.map{
       case (name, (ids, fns)) =>
         val implicitFns = importStar.flatMap{
           case SImportStar(_, _, api, excepts) if !excepts.exists(_.asInstanceOf[IdOrOp].getText == name) =>
             ids.flatMap(getFunctions(api, _))
           case _ =>
-            Set[FnOrVar]()
+            Set[Functional]()
         }
         (ids, fns ++ implicitFns)
     }
-    allFns.flatMap(checkFunctionOverloading).toList
+    implicit val checkingMethods = false
+    allFns.flatMap(checkOverloadingRules).toList
   }
-  
-  private def checkFunctionOverloading(idsAndFns: (Set[IdOrOp], Set[FnOrVar])): List[StaticError] = {
-    val (ids, fns) = idsAndFns
-    null
-  }
-  
-  private def checkOverloadedMethods(): List[StaticError] = null
-  
-  private def checkMethodOverloading(idsAndMethods: (Set[IdOrOp], Set[Method])): List[StaticError] = {
-    val (ids, methods) = idsAndMethods
-    null
-  }
-  
-  private def checkAbstractMethods(): List[StaticError] = null
 
-  private def checkGetterSetters(): List[StaticError] = null
+  private def checkMethods(): List[StaticError] = {
+    // overloading rules
+    // abstract methods
+    // getters/setters
+    // no new functional methods
+    val typesInCompilationUnit = current.typeConses.values
+    typesInCompilationUnit.flatMap{
+      case t: ObjectTraitIndex => List()
+      case t: ProperTraitIndex => List()
+      case _ => List()
+    }.toList
+  }  
   
-  private def sameText(x: IdOrOp, y: IdOrOp) = x == y
+  private def checkOverloadingRules(idsAndFns: (Set[IdOrOp], Set[Functional]))(implicit checkingMethods: Boolean): List[StaticError] = {
+    val (ids, fns) = idsAndFns
+    noDuplicatesRule(fns) ++ meetRule(fns) ++ returnTypeRule(fns)
+  }
+  
+  private def noDuplicatesRule(fns: Set[Functional])(implicit checkingMethods: Boolean): List[StaticError] = List()
+  private def meetRule(fns: Set[Functional])(implicit checkingMethods: Boolean): List[StaticError] = List()
+  private def returnTypeRule(fns: Set[Functional])(implicit checkingMethods: Boolean): List[StaticError] = List()
+
+  
+  private def checkGetterSetters(): List[StaticError] = List()
+  private def checkAbstractMethods(): List[StaticError] = List()
+  private def noNewFunctionalMethods(): List[StaticError] = List()
   
   private def isDeclaredName(f: IdOrOpOrAnonymousName): Option[IdOrOp] = f match {
     case i@SId(_,_,str) if IdentifierUtil.validId(str) => Some(i)
@@ -129,25 +135,23 @@ class OverloadingChecker(current: CompilationUnitIndex,
     case _ => None
   }
   
-  private def isArrow(v: Variable): Set[FnOrVar] = v match {
+  private def isArrow(v: Variable): Set[Functional] = v match {
     case d@SDeclaredVariable(lvalue) =>
       toOption(lvalue.getIdType) match {
-        case Some(a: ArrowType) => Set(Right(d))
+        case Some(a: ArrowType) => Set(new DummyVariableFunction(d))
         case _ => Set()
       }
     case _ => Set()
   }
   
-  private def getFunctions(api: APIName, id: IdOrOp): Set[FnOrVar] = 
+  private def getFunctions(api: APIName, id: IdOrOp): Set[Functional] = 
     getFunctions(global.lookup(api), id, false)
   
-  private def getFunctions(cUnit: CompilationUnitIndex, id: IdOrOp, onlyConcrete: Boolean): Set[FnOrVar] = {
-    val fns = toSet(cUnit.functions.matchFirst(id)).filter(!onlyConcrete || _.body.isSome).map(Left(_))
+  private def getFunctions(cUnit: CompilationUnitIndex, id: IdOrOp, onlyConcrete: Boolean): Set[Functional] = {
+    val fns = toSet(cUnit.functions.matchFirst(id)).filter(!onlyConcrete || _.body.isSome)
     val vars = cUnit.variables
     val mArrowVar = if (vars.containsKey(id)) isArrow(vars.get(id)) else Set()
     fns ++ mArrowVar
   }
-  
-
 
 }
