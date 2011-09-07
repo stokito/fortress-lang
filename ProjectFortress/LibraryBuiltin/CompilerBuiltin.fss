@@ -150,6 +150,7 @@ import java com.sun.fortress.nativeHelpers.{simpleStringVector.getIndexedValue =
                                             simpleStringVector.putIndexedValue => jStringVectorPut,
                                             simpleStringVector.getSize => jStringVectorGetSize,
                                             simpleStringVector.make => jStringVectorMake }
+
 import AnyType.{Any}
 import CompilerAlgebra.{ Equality }
 export CompilerBuiltin
@@ -489,10 +490,14 @@ end
 
 trait ZZ32Vector 
    getValue(i:ZZ32):ZZ32 = jIntVectorGet(self, i)
+   getValue(i:ZZ32, j:ZZ32):ZZ32 = jIntVectorGet(self, i,j)
    putValue(i:ZZ32, v:ZZ32):() = jIntVectorPut(self, i, v)
+   putValue(i:ZZ32, j:ZZ32, v:ZZ32):() = jIntVectorPut(self, i, j, v)
    opr[i:ZZ32]:ZZ32 = getValue(i)
+   opr[i:ZZ32, j:ZZ32]:ZZ32 = getValue(i,j)
    opr |self| : ZZ32 = jIntVectorGetSize(self)
 end
+
 
 trait StringVector 
    getValue(i:ZZ32):String = jStringVectorGet(self, i)
@@ -502,6 +507,8 @@ trait StringVector
 end
 
 makeZZ32Vector(i:ZZ32) : ZZ32Vector = jIntVectorMake(i)
+makeZZ32Vector(i:ZZ32, j:ZZ32) : ZZ32Vector = jIntVectorMake(i,j)
+     
 makeStringVector(i:ZZ32) : StringVector = jStringVectorMake(i)
 
 trait JavaBufferedReader excludes { String, Number, Boolean, Character }

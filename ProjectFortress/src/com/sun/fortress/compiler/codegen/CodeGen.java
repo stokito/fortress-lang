@@ -4353,8 +4353,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          if (vcg == null)
              throw new RuntimeException("Bad VCG");
 
-         System.out.println("vcg.fortressType = xxx" + vcg.fortressType + "xxx");
-
          if (vcg.fortressType.toString().equals("StringVector"))
              mv.visitMethodInsn(INVOKEVIRTUAL,
                             NamingCzar.descToInternal(NamingCzar.jvmTypeDesc(vcg.fortressType, thisApi())),
