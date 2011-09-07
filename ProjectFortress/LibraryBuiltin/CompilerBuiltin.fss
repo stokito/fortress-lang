@@ -144,8 +144,12 @@ import java com.sun.fortress.nativeHelpers.{fileOps.jbrOpen => jJavaBufferedRead
                                             fileOps.jbwClose => jJavaBufferedWriterClose }
 import java com.sun.fortress.nativeHelpers.{simpleIntVector.getIndexedValue => jIntVectorGet,
                                             simpleIntVector.putIndexedValue => jIntVectorPut,
+                                            simpleIntVector.getSize => jIntVectorGetSize,
                                             simpleIntVector.make => jIntVectorMake }
-
+import java com.sun.fortress.nativeHelpers.{simpleStringVector.getIndexedValue => jStringVectorGet,
+                                            simpleStringVector.putIndexedValue => jStringVectorPut,
+                                            simpleStringVector.getSize => jStringVectorGetSize,
+                                            simpleStringVector.make => jStringVectorMake }
 import AnyType.{Any}
 import CompilerAlgebra.{ Equality }
 export CompilerBuiltin
@@ -483,12 +487,22 @@ trait Character excludes { String, Number, Boolean }
     toUpperCase(self): Character = jMakeCharacter(jCharToUpperCase(jCodePoint(self)))
 end
 
-trait Vector 
-   getValue(i:ZZ32) = jIntVectorGet(self, i)
-   putValue(i:ZZ32, v:ZZ32) = jIntVectorPut(self, i, v)
+trait ZZ32Vector 
+   getValue(i:ZZ32):ZZ32 = jIntVectorGet(self, i)
+   putValue(i:ZZ32, v:ZZ32):() = jIntVectorPut(self, i, v)
+   opr[i:ZZ32]:ZZ32 = getValue(i)
+   opr |self| : ZZ32 = jIntVectorGetSize(self)
 end
 
-makeVector(i:ZZ32) : Vector = jIntVectorMake(i)
+trait StringVector 
+   getValue(i:ZZ32):String = jStringVectorGet(self, i)
+   putValue(i:ZZ32, v:String):() = jStringVectorPut(self, i, v)
+   opr[i:ZZ32]:String = getValue(i)
+   opr |self| : ZZ32 = jStringVectorGetSize(self)
+end
+
+makeZZ32Vector(i:ZZ32) : ZZ32Vector = jIntVectorMake(i)
+makeStringVector(i:ZZ32) : StringVector = jStringVectorMake(i)
 
 trait JavaBufferedReader excludes { String, Number, Boolean, Character }
   getter asString(): String = jJavaBufferedReaderAsString(self)

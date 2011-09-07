@@ -8,16 +8,13 @@
     This distribution may include materials developed by third parties.
 
 ******************************************************************************)
-component VectorTest
+component VectorTest2
 export Executable
 
 run():() = do
-   z:Vector = makeVector(10)
+   z:ZZ32Vector = makeZZ32Vector(10)
    z.putValue(0,10)
-   z.putValue(1,100)
-   z.putValue(2,200)
-   z.putValue(3,300)
-   println(z.getValue(2))
-   println(z[2])
+   x:ZZ32 = z.getValue(0)
+   println(z[0])
    end
 end
