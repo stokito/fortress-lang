@@ -18,9 +18,16 @@ fi
 
 ourname="$1"
 
-ver=`svnversion`
+parent=`hg summary | egrep '^parent: '`
+branch=`hg summary | egrep '^branch: '`
+commit=`hg summary | egrep '^commit: '`
+update=`hg summary | egrep '^update: '`
+ver=`echo $parent | sed '1,$s/parent: *\([0-9]*\):.*/\1/'`
 
-if ( echo $ver | egrep -q '^[0-9]+$' ) ; then
+if ( echo $parent | egrep -q ' tip$' &&
+     echo $branch | egrep -q ' default$' &&
+     echo $commit | egrep -q ' (clean)$' &&
+     echo $commit | egrep -q ' (current)$') ; then
 echo "Cleaning"
 ./ant clean compile
 echo "Echo zipping version ${ver}, logged in zip_${ver}.log"
@@ -41,20 +48,13 @@ ln -s `pwd` ../${ourname}
   > zip_${ver}.log )
 
 else
-  reason="none"
-  if ( echo $ver | egrep -q 'M') ; then
-    echo "Please commit local changes in $ver"
-    reason="M"
-  fi
-  if ( echo $ver | egrep -q 'S') ; then
-    echo "Please be sure $ver is not switched"
-    reason="S"
-  fi
-  if ( echo $ver | egrep -q ':') ; then
-    echo "Please update at top level to get a consistent version, not $ver"
-    reason=":"
-  fi
-  if [ ${reason} == "none" ]; then
-    echo "An svnversion '${ver}' not expected by the author of this script is causing confusion."
-  fi
+  echo "Repository needs to be in default state.  'Hg summary' reports:"
+  hg summary
+  echo
+  echo "Expected to see: "
+  echo "parent: ... tip"
+  echo "..."
+  echo "branch: default"
+  echo "commit: ... (clean)"
+  echo "update: (current)"
 fi
