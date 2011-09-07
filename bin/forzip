@@ -26,8 +26,8 @@ ver=`echo $parent | sed '1,$s/parent: *\([0-9]*\):.*/\1/'`
 
 if ( echo $parent | egrep -q ' tip$' &&
      echo $branch | egrep -q ' default$' &&
-     echo $commit | egrep -q ' (clean)$' &&
-     echo $update | egrep -q ' (current)$') ; then
+     echo $commit | egrep -q ' \(clean\)$' &&
+     echo $update | egrep -q ' \(current\)$') ; then
 echo "Cleaning"
 ./ant clean compile
 echo "Echo zipping version ${ver}, logged in zip_${ver}.log"
