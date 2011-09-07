@@ -11,14 +11,14 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-public final class FVector extends fortress.CompilerBuiltin.Vector.DefaultTraitMethods
-        implements fortress.CompilerBuiltin.Vector {
-    private int[] val;
+public final class FStringVector extends fortress.CompilerBuiltin.StringVector.DefaultTraitMethods
+        implements fortress.CompilerBuiltin.StringVector {
+    private String[] val;
 
-    private FVector(int[] a) {val = a;}
+    public FStringVector(String[] a) {val = a;}
 
-    public static FVector make(int s) {
-        return new FVector(new int[s]);
+    public static FStringVector make(int s) {
+        return new FStringVector(new String[s]);
     }
 
     public String toString() {
@@ -33,19 +33,20 @@ public final class FVector extends fortress.CompilerBuiltin.Vector.DefaultTraitM
 
     public FString asSring() { return new FString(toString());}
     
-    public int getIndexedValue(int i) {return val[i];}
-    public void putIndexedValue(int i, int x) {val[i] = x;}
+    public String getIndexedValue(int i) {return val[i];}
+    public void putIndexedValue(int i, String x) {val[i] = x;}
 
-    public int[] getValue() {return val;}
-    public static FVector make(int[] v) {
-        return new FVector(v);
+    public String[] getValue() {return val;}
+
+    public static FStringVector make(String[] v) {
+        return new FStringVector(v);
     }
  
 @Override
     public RTTI getRTTI() { return RTTIv.ONLY; }
     
     public static class RTTIv extends RTTI {
-        private RTTIv() { super(FVector.class); };
+        private RTTIv() { super(FStringVector.class); };
         public static final RTTI ONLY = new RTTIv();
     }
 }

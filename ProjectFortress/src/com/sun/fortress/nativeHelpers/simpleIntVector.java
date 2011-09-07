@@ -10,7 +10,7 @@
  ******************************************************************************/
 
 package com.sun.fortress.nativeHelpers;
-import com.sun.fortress.compiler.runtimeValues.FVector;
+import com.sun.fortress.compiler.runtimeValues.FZZ32Vector;
 
 public class simpleIntVector {
     //    public static int getIndexedValue(int[] v, int i) {return v[i];}
@@ -18,10 +18,12 @@ public class simpleIntVector {
 
     //    These should not be needed, but we have to crawl before we can run 
 
-    public static int getIndexedValue(FVector v, int i) {return v.getIndexedValue(i);}
-    public static void putIndexedValue(FVector v, int i, int val) {
+    public static int getIndexedValue(FZZ32Vector v, int i) {return v.getIndexedValue(i);}
+    public static void putIndexedValue(FZZ32Vector v, int i, int val) {
         v.putIndexedValue(i, val);
     }
 
-    public static FVector make(int i) {return FVector.make(i);}
+    public static int getSize(FZZ32Vector v) {return v.dim();}
+
+    public static FZZ32Vector make(int i) {return FZZ32Vector.make(i);}
 }

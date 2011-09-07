@@ -4321,6 +4321,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // AST node still exist at all at this point in compilation??
         // It ought to be turned into a MethodInvocation.
         // JWM 9/4/09
+
+        // This is more true than ever now that we have ZZ32Vector and StringVector,
+        // but I couldn't figure out where/how to add it to the proper desugaring phase.
+
         debug("forSubscriptExpr ", x);
         Expr obj = x.getObj();
         List<Expr> subs = x.getSubs();
@@ -4336,18 +4340,32 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
               " subs = ", subs, " op = ", op, " static args = ", staticArgs,
               " varRef = ", NamingCzar.idOrOpToString(id));
 
-        var.accept(this);
+        
+         var.accept(this);
 
-        for (Expr e : subs) {
-            debug("calling accept on ", e);
-            e.accept(this);
-        }
-        addLineNumberInfo(x);
-        mv.visitMethodInsn(INVOKEVIRTUAL,
-                           NamingCzar.makeInnerClassName(id),
-                           // Naming.mangleIdentifier(opToString(op)),
-                           NamingCzar.idOrOpToString(op),
-                           "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)Lcom/sun/fortress/compiler/runtimeValues/FString;");
+         for (Expr e : subs) {
+             debug("calling accept on ", e);
+             e.accept(this);
+         }
+         addLineNumberInfo(x);
+        
+         VarCodeGen vcg = getLocalVarOrNull(id);
+         if (vcg == null)
+             throw new RuntimeException("Bad VCG");
+
+         System.out.println("vcg.fortressType = xxx" + vcg.fortressType + "xxx");
+
+         if (vcg.fortressType.toString().equals("StringVector"))
+             mv.visitMethodInsn(INVOKEVIRTUAL,
+                            NamingCzar.descToInternal(NamingCzar.jvmTypeDesc(vcg.fortressType, thisApi())),
+                            NamingCzar.idOrOpToString(op),
+                            "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)Lcom/sun/fortress/compiler/runtimeValues/FString;");
+         else if (vcg.fortressType.toString().equals("ZZ32Vector"))
+             mv.visitMethodInsn(INVOKEVIRTUAL,
+                            NamingCzar.descToInternal(NamingCzar.jvmTypeDesc(vcg.fortressType, thisApi())),
+                            NamingCzar.idOrOpToString(op),
+                            "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)Lcom/sun/fortress/compiler/runtimeValues/FZZ32;");
+         else throw new CompilerError("Unknow Vector type: " + vcg.fortressType);
     }
 
     public void forTraitDecl(TraitDecl x) {
@@ -5176,10 +5194,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                                className,
                                                NamingCzar.SINGLETON_FIELD_NAME, tyDesc);
             addStaticVar(vcg);
-        }
-        debug("forVarRef ", v , " Value = ", vcg);
-        addLineNumberInfo(v);
 
+
+        }
+        addLineNumberInfo(v);
+        debug("forVarRef ", v , " Value = ", vcg);
         String static_args = NamingCzar.genericDecoration(lsargs, thisApi());
         vcg.pushValue(mv, static_args);
     }
@@ -5219,7 +5238,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
               " obj = ", x.getObj(),
               " method = ", x.getMethod(),
               " static args = ", x.getStaticArgs(),
-              " args = ", x.getArg());
+              " args = ", x.getArg(),
+              " overloading type = " + x.getOverloadingType());
         Id method = x.getMethod();
         Expr obj = x.getObj();
         List<StaticArg> method_sargs = x.getStaticArgs();
