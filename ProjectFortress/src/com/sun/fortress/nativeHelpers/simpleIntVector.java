@@ -19,11 +19,16 @@ public class simpleIntVector {
     //    These should not be needed, but we have to crawl before we can run 
 
     public static int getIndexedValue(FZZ32Vector v, int i) {return v.getIndexedValue(i);}
+    public static int getIndexedValue(FZZ32Vector v, int i, int j) {return v.getIndexedValue(i,j);}
     public static void putIndexedValue(FZZ32Vector v, int i, int val) {
         v.putIndexedValue(i, val);
+    }
+    public static void putIndexedValue(FZZ32Vector v, int i, int j, int val) {
+        v.putIndexedValue(i, j, val);
     }
 
     public static int getSize(FZZ32Vector v) {return v.dim();}
 
     public static FZZ32Vector make(int i) {return FZZ32Vector.make(i);}
+    public static FZZ32Vector make(int i,int j) {return FZZ32Vector.make(i,j);}
 }

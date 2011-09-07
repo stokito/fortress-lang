@@ -256,8 +256,11 @@ end
 
 trait ZZ32Vector 
       getValue(i:ZZ32):ZZ32
+      getValue(i:ZZ32, j:ZZ32):ZZ32
       putValue(i:ZZ32, v:ZZ32):()
+      putValue(i:ZZ32, j:ZZ32, v:ZZ32):()
       opr[i:ZZ32] : ZZ32
+      opr[i:ZZ32, j:ZZ32]: ZZ32
       opr |self| : ZZ32
 end
 
@@ -269,6 +272,7 @@ trait StringVector
 end
 
 makeZZ32Vector(i:ZZ32) : ZZ32Vector
+makeZZ32Vector(i:ZZ32, j:ZZ32) : ZZ32Vector
 makeStringVector(i:ZZ32) : StringVector
 
 trait JavaBufferedReader excludes { String, Number, Boolean, Character }
