@@ -82,8 +82,14 @@ trait ZZ64 extends Number excludes RR64
     getter asZZ32(): ZZ32 
     opr |self| : ZZ64
     opr -(self): ZZ64
+    opr BOXMINUS(self): ZZ64
+    opr DOTMINUS(self): ZZ64
     opr +(self, other:ZZ64): ZZ64
+    opr BOXPLUS(self, other:ZZ64): ZZ64
+    opr DOTPLUS(self, other:ZZ64): ZZ64
     opr -(self, other:ZZ64): ZZ64 
+    opr BOXMINUS(self, other:ZZ64): ZZ64 
+    opr DOTMINUS(self, other:ZZ64): ZZ64 
     opr <(self, other:ZZ64): Boolean 
     opr <=(self, other:ZZ64): Boolean 
     opr >(self, other:ZZ64): Boolean 
@@ -91,6 +97,10 @@ trait ZZ64 extends Number excludes RR64
     opr =(self, other:ZZ64): Boolean 
     opr juxtaposition(self, other:ZZ64): ZZ64
     opr DOT(self, other:ZZ64): ZZ64 
+    opr BOXDOT(self, other:ZZ64): ZZ64 
+    opr CROSS(self, other:ZZ64): ZZ64 
+    opr BOXCROSS(self, other:ZZ64): ZZ64 
+    opr DOTCROSS(self, other:ZZ64): ZZ64 
     opr DIV(self, other:ZZ64): ZZ64
     opr BITNOT(self): ZZ64 
     opr BITAND(self, other:ZZ64): ZZ64 
@@ -108,8 +118,14 @@ trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
     getter asZZ32(): ZZ32
     opr |self| : ZZ32
     opr -(self): ZZ32
+    opr BOXMINUS(self): ZZ32
+    opr DOTMINUS(self): ZZ32
     opr +(self, other:ZZ32): ZZ32
+    opr BOXPLUS(self, other:ZZ32): ZZ32
+    opr DOTPLUS(self, other:ZZ32): ZZ32
     opr -(self, other:ZZ32): ZZ32
+    opr BOXMINUS(self, other:ZZ32): ZZ32
+    opr DOTMINUS(self, other:ZZ32): ZZ32
     opr <(self, other:ZZ32) : Boolean
     opr <=(self, other:ZZ32): Boolean
     opr >(self, other:ZZ32): Boolean
@@ -117,6 +133,10 @@ trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
     opr =(self, other:ZZ32): Boolean
     opr juxtaposition(self, other:ZZ32): ZZ32
     opr DOT(self, other:ZZ32): ZZ32
+    opr BOXDOT(self, other:ZZ32): ZZ32
+    opr CROSS(self, other:ZZ32): ZZ32
+    opr BOXCROSS(self, other:ZZ32): ZZ32
+    opr DOTCROSS(self, other:ZZ32): ZZ32
     opr DIV(self, other:ZZ32): ZZ32
     opr BITNOT(self): ZZ32 
     opr BITAND(self, other:ZZ32): ZZ32 
@@ -353,6 +373,8 @@ trait UncheckedException extends Exception excludes CheckedException
 end
 
 object NegativeLength extends UncheckedException end
+
+object DivisionByZero extends UncheckedException end
 
 object IntegerOverflow extends UncheckedException end
 
