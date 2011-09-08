@@ -12,7 +12,7 @@
 component Integer3
 export Executable
 
-(*) Test exceptional behavior of operators that can overflow or wrap or saturate.
+(*) Test exceptional behavior of ZZ32 operators that can overflow or wrap or saturate.
 
 shouldOverflow(f: () -> ZZ32): Boolean =
   try
