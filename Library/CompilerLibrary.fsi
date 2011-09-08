@@ -41,8 +41,6 @@ deny(flag: Boolean, failMsg: String): ()
 
 object FailCalled(s:String) extends UncheckedException end
 
-object DivisionByZero extends UncheckedException end
-
 object UnpastingError extends UncheckedException end
 
 object CallerViolation extends UncheckedException end

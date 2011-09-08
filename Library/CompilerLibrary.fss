@@ -109,10 +109,6 @@ object FailCalled(s:String) extends UncheckedException
     getter asString(): String = "FAIL: " s
 end
 
-object DivisionByZero extends UncheckedException
-    getter asString(): String = "Division by zero"
-end
-
 object UnpastingError extends UncheckedException
     getter asString(): String = "Unpasting error"
 end

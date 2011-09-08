@@ -22,36 +22,75 @@ import java com.sun.fortress.nativeHelpers.{simpleBoolean.booleanAnd => jBoolean
                                             simpleBoolean.booleanEqv => jBooleanEqv,
                                             simpleBoolean.booleanNot => jBooleanNot}
 import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString => jIntToString,
+                                            simpleIntArith.parseInt => jParseInt,
                                             simpleIntArith.intAdd => jIntAdd,
                                             simpleIntArith.intSub => jIntSub,
                                             simpleIntArith.intMul => jIntMul,
                                             simpleIntArith.intDiv => jIntDiv,
+                                            simpleIntArith.intNeg => jIntNeg,
+                                            simpleIntArith.intAbs => jIntAbs,
+                                            simpleIntArith.longToInt => jLongToInt,
+                                            simpleIntArith.intOverflowingAdd => jIntOverflowingAdd,
+                                            simpleIntArith.intOverflowingSub => jIntOverflowingSub,
+                                            simpleIntArith.intOverflowingMul => jIntOverflowingMul,
+                                            simpleIntArith.intOverflowingDiv => jIntOverflowingDiv,
+                                            simpleIntArith.intOverflowingNeg => jIntOverflowingNeg,
+                                            simpleIntArith.intOverflowingAbs => jIntOverflowingAbs,
+                                            simpleIntArith.longOverflowingToInt => jLongOverflowingToInt,
+                                            simpleIntArith.intWrappingAdd => jIntWrappingAdd,
+                                            simpleIntArith.intWrappingSub => jIntWrappingSub,
+                                            simpleIntArith.intWrappingMul => jIntWrappingMul,
+                                            simpleIntArith.intWrappingDiv => jIntWrappingDiv,
+                                            simpleIntArith.intWrappingNeg => jIntWrappingNeg,
+                                            simpleIntArith.intWrappingAbs => jIntWrappingAbs,
+                                            simpleIntArith.longWrappingToInt => jLongWrappingToInt,
+                                            simpleIntArith.intSaturatingAdd => jIntSaturatingAdd,
+                                            simpleIntArith.intSaturatingSub => jIntSaturatingSub,
+                                            simpleIntArith.intSaturatingMul => jIntSaturatingMul,
+                                            simpleIntArith.intSaturatingDiv => jIntSaturatingDiv,
+                                            simpleIntArith.intSaturatingNeg => jIntSaturatingNeg,
+                                            simpleIntArith.intSaturatingAbs => jIntSaturatingAbs,
+                                            simpleIntArith.longSaturatingToInt => jLongSaturatingToInt,
                                             simpleIntArith.intLT => jIntLT,
                                             simpleIntArith.intLE => jIntLE,
                                             simpleIntArith.intGT => jIntGT,
                                             simpleIntArith.intGE => jIntGE,
                                             simpleIntArith.intEQ => jIntEQ,
-                                            simpleIntArith.intNeg => jIntNeg,
-                                            simpleIntArith.parseInt => jParseInt,
-                                            simpleIntArith.intAbs => jIntAbs,
-                                            simpleIntArith.longToInt => jLongToInt,
                                             simpleIntArith.intBitNot => jIntBitNot,
                                             simpleIntArith.intBitAnd => jIntBitAnd,
                                             simpleIntArith.intBitOr => jIntBitOr,
                                             simpleIntArith.intBitXor => jIntBitXor}
 import java com.sun.fortress.nativeHelpers.{simpleLongArith.longToString => jLongToString,
+                                            simpleLongArith.parseLong => jParseLong,
                                             simpleLongArith.longAdd => jLongAdd,
                                             simpleLongArith.longSub => jLongSub,
                                             simpleLongArith.longMul => jLongMul,
                                             simpleLongArith.longDiv => jLongDiv,
+                                            simpleLongArith.longNeg => jLongNeg,
+                                            simpleLongArith.longAbs => jLongAbs,
+                                            simpleLongArith.longOverflowingAdd => jLongOverflowingAdd,
+                                            simpleLongArith.longOverflowingSub => jLongOverflowingSub,
+                                            simpleLongArith.longOverflowingMul => jLongOverflowingMul,
+                                            simpleLongArith.longOverflowingDiv => jLongOverflowingDiv,
+                                            simpleLongArith.longOverflowingNeg => jLongOverflowingNeg,
+                                            simpleLongArith.longOverflowingAbs => jLongOverflowingAbs,
+                                            simpleLongArith.longWrappingAdd => jLongWrappingAdd,
+                                            simpleLongArith.longWrappingSub => jLongWrappingSub,
+                                            simpleLongArith.longWrappingMul => jLongWrappingMul,
+                                            simpleLongArith.longWrappingDiv => jLongWrappingDiv,
+                                            simpleLongArith.longWrappingNeg => jLongWrappingNeg,
+                                            simpleLongArith.longWrappingAbs => jLongWrappingAbs,
+                                            simpleLongArith.longSaturatingAdd => jLongSaturatingAdd,
+                                            simpleLongArith.longSaturatingSub => jLongSaturatingSub,
+                                            simpleLongArith.longSaturatingMul => jLongSaturatingMul,
+                                            simpleLongArith.longSaturatingDiv => jLongSaturatingDiv,
+                                            simpleLongArith.longSaturatingNeg => jLongSaturatingNeg,
+                                            simpleLongArith.longSaturatingAbs => jLongSaturatingAbs,
                                             simpleLongArith.longLT => jLongLT,
                                             simpleLongArith.longLE => jLongLE,
                                             simpleLongArith.longGT => jLongGT,
                                             simpleLongArith.longGE => jLongGE,
                                             simpleLongArith.longEQ => jLongEQ,
-                                            simpleLongArith.longNeg => jLongNeg,
-                                            simpleLongArith.parseLong => jParseLong,
-                                            simpleLongArith.longAbs => jLongAbs,
                                             simpleLongArith.intToLong => jIntToLong,
                                             simpleLongArith.longBitNot => jLongBitNot,
                                             simpleLongArith.longBitAnd => jLongBitAnd,
@@ -267,20 +306,30 @@ end
 trait ZZ64 extends Number excludes { RR64 }
     coerce(x: IntLiteral) = x.asZZ64
     coerce(x: ZZ32) = jIntToLong(x)
-    getter asZZ32(): ZZ32 = jLongToInt(self)
+    getter asZZ32(): ZZ32 = jLongOverflowingToInt(self)
     getter asString(): String = jLongToString(self)
-    opr |self| : ZZ64 = jLongAbs(self)
-    opr -(self): ZZ64 = jLongNeg(self)
-    opr +(self, other:ZZ64): ZZ64 = jLongAdd(self,other)
-    opr -(self, other:ZZ64): ZZ64 = jLongSub(self,other)
-    opr DOT(self, other:ZZ64): ZZ64 = jLongMul(self,other)
-    opr DIV(self, other:ZZ64): ZZ64 = jLongDiv(self,other)
+    opr |self| : ZZ64 = jLongOverflowingAbs(self)
+    opr -(self): ZZ64 = jLongOverflowingNeg(self)
+    opr BOXMINUS(self): ZZ64 = jLongWrappingNeg(self)
+    opr DOTMINUS(self): ZZ64 = jLongSaturatingNeg(self)
+    opr +(self, other:ZZ64): ZZ64 = jLongOverflowingAdd(self,other)
+    opr BOXPLUS(self, other:ZZ64): ZZ64 = jLongWrappingAdd(self,other)
+    opr DOTPLUS(self, other:ZZ64): ZZ64 = jLongSaturatingAdd(self,other)
+    opr -(self, other:ZZ64): ZZ64 = jLongOverflowingSub(self,other)
+    opr BOXMINUS(self, other:ZZ64): ZZ64 = jLongWrappingSub(self,other)
+    opr DOTMINUS(self, other:ZZ64): ZZ64 = jLongSaturatingSub(self,other)
+    opr DOT(self, other:ZZ64): ZZ64 = jLongOverflowingMul(self,other)
+    opr BOXDOT(self, other:ZZ64): ZZ64 = jLongWrappingMul(self,other)
+    opr CROSS(self, other:ZZ64): ZZ64 = jLongOverflowingMul(self,other)
+    opr BOXCROSS(self, other:ZZ64): ZZ64 = jLongWrappingMul(self,other)
+    opr DOTCROSS(self, other:ZZ64): ZZ64 = jLongSaturatingMul(self,other)
+    opr DIV(self, other:ZZ64): ZZ64 = jLongOverflowingDiv(self,other)
     opr <(self, other:ZZ64): Boolean = jLongLT(self,other)
     opr <=(self, other:ZZ64): Boolean = jLongLE(self,other)
     opr >(self, other:ZZ64): Boolean = jLongGT(self,other)
     opr >=(self, other:ZZ64): Boolean = jLongGE(self,other)
     opr =(self, other:ZZ64): Boolean = jLongEQ(self,other)
-    opr juxtaposition(self, other:ZZ64): ZZ64 = jLongMul(self,other)
+    opr juxtaposition(self, other:ZZ64): ZZ64 = jLongOverflowingMul(self,other)
     opr BITNOT(self): ZZ64 = jLongBitNot(self)
     opr BITAND(self, other:ZZ64): ZZ64 = jLongBitAnd(self,other)
     opr BITOR(self, other:ZZ64): ZZ64 = jLongBitOr(self,other)
@@ -290,24 +339,47 @@ trait ZZ64 extends Number excludes { RR64 }
     opr MINMAX(self, other:ZZ64): (ZZ64, ZZ64) = if self <= other then (self, other) else (other, self) end
     even(self): Boolean = ((self BITAND 1) = 0)
     odd(self): Boolean = NOT (even self)
+(*)     opr CHOOSE(self, other: ZZ64): ZZ64 = 
+(*)       if 0 < other < self then
+(*)         if (other + other) > self
+(*)         then self CHOOSE (self - other)
+(*)         else
+(*)           q = self - other
+(*)           chooseloop(j: ZZ64, a: ZZ64): ZZ64 =
+(*)             if j > m then a else chooseloop(j+1, (a DOT (q + j)) DIV j) end
+(*) 	  chooseloop(1, 1)
+(*)         end
+(*)       elif other = 0 OR: other = self then 1
+(*)       else 0
+(*)       end
 end
 
 trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
     coerce(x: IntLiteral) = x.asZZ32
     getter asZZ32(): ZZ32 = self
     getter asString(): String = jIntToString(self)
-    opr |self| : ZZ32 = jIntAbs(self)
-    opr -(self): ZZ32 = jIntNeg(self)
-    opr +(self, other:ZZ32): ZZ32 = jIntAdd(self,other)
-    opr -(self, other:ZZ32): ZZ32 = jIntSub(self,other)
-    opr DOT(self, other:ZZ32): ZZ32 = jIntMul(self,other)
-    opr DIV(self, other:ZZ32): ZZ32 = jIntDiv(self,other)
+    opr |self| : ZZ32 = jIntOverflowingAbs(self)
+    opr -(self): ZZ32 = jIntOverflowingNeg(self)
+    opr BOXMINUS(self): ZZ32 = jIntWrappingNeg(self)
+    opr DOTMINUS(self): ZZ32 = jIntSaturatingNeg(self)
+    opr +(self, other:ZZ32): ZZ32 = jIntOverflowingAdd(self,other)
+    opr BOXPLUS(self, other:ZZ32): ZZ32 = jIntOverflowingAdd(self,other)
+    opr DOTPLUS(self, other:ZZ32): ZZ32 = jIntOverflowingAdd(self,other)
+    opr -(self, other:ZZ32): ZZ32 = jIntOverflowingSub(self,other)
+    opr BOXMINUS(self, other:ZZ32): ZZ32 = jIntWrappingSub(self,other)
+    opr DOTMINUS(self, other:ZZ32): ZZ32 = jIntSaturatingSub(self,other)
+    opr DOT(self, other:ZZ32): ZZ32 = jIntOverflowingMul(self,other)
+    opr BOXDOT(self, other:ZZ32): ZZ32 = jIntWrappingMul(self,other)
+    opr CROSS(self, other:ZZ32): ZZ32 = jIntOverflowingMul(self,other)
+    opr BOXCROSS(self, other:ZZ32): ZZ32 = jIntWrappingMul(self,other)
+    opr DOTCROSS(self, other:ZZ32): ZZ32 = jIntSaturatingMul(self,other)
+    opr DIV(self, other:ZZ32): ZZ32 = jIntOverflowingDiv(self,other)
     opr <(self, other:ZZ32): Boolean = jIntLT(self,other)
     opr <=(self, other:ZZ32): Boolean = jIntLE(self,other)
     opr >(self, other:ZZ32): Boolean = jIntGT(self,other)
     opr >=(self, other:ZZ32): Boolean = jIntGE(self,other)
     opr =(self, other:ZZ32): Boolean = jIntEQ(self,other)
-    opr juxtaposition(self, other:ZZ32): ZZ32 = jIntMul(self,other)
+    opr juxtaposition(self, other:ZZ32): ZZ32 = jIntOverflowingMul(self,other)
     opr BITNOT(self): ZZ32 = jIntBitNot(self)
     opr BITAND(self, other:ZZ32): ZZ32 = jIntBitAnd(self,other)
     opr BITOR(self, other:ZZ32): ZZ32 = jIntBitOr(self,other)
@@ -556,6 +628,10 @@ end
 
 object NegativeLength extends UncheckedException
     getter asString(): String = "Negative length"
+end
+
+object DivisionByZero extends UncheckedException
+    getter asString(): String = "Division by zero"
 end
 
 object IntegerOverflow extends UncheckedException
