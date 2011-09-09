@@ -796,7 +796,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
      * Provides information about the static type and structure of the static 
      * type of a parameter to a function in an overload.
      * 
-     * @author dr2chase
+     * @author dr2chase, kbn
      */
     static class TypeStructure {
         /** If not generic, this is the Java type (boxed)
@@ -831,9 +831,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         public static final int INVARIANT = 0;
         public static final int CONTRAVARIANT = -1;
         
-        
-        final Set<String> variantGenericsContained;
-        final Set<String> invariantGenericsContained;
+        /** flag indicating whether this type structure
+         *  represents a type variable, or there exists
+         *  a type variable nested inside this type structure
+         *  Used to determine if inference is needed
+         */
+        final boolean containsTypeVariables;
         
         /**
          * If true, then the type in question is an object, and a faster type
@@ -844,7 +847,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         
         public TypeStructure(String fullname, String stem, TypeStructure[] parameters,
                 int localIndex, int successorIndex, int variance,
-                Set<String> invariantGenericsContained, Set<String> variantGenericsContained, boolean isObject) {
+                boolean containsTypeVariables, boolean isObject) {
             super();
             this.fullname = fullname;
             this.rttiStem = stem;
@@ -852,28 +855,16 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             this.localIndex = localIndex;
             this.successorIndex = successorIndex;
             this.variance = variance;
-            this.invariantGenericsContained = invariantGenericsContained;
-            this.variantGenericsContained = variantGenericsContained;
+            this.containsTypeVariables = containsTypeVariables;
             this.isObject = isObject;
         }
-        void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast) //,
-                            //Set<String> top_level_invariants) 
-                            {            
-            /*
-             *  If a static parameter is used anywhere in the signature
-             *  in an invariant context, then its value is fixed to the
-             *  result of static analysis, and runtime influence is superfluous.
-             *  This thins the set of static parameters to those that are
-             *  truly variant.
-             *  
-             *  The above is not true as example other_compiler_tests/IGO1.fss shows
-             */
+        void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast)  {            
             
-            if (invariantGenericsContained.size() == 0 && variantGenericsContained.size() == 0) {
-                /* easy case, no inference */
+            if ( !containsTypeVariables ) {
+                /* easy case, no type variables = no inference */
                 emitInstanceOfNG(mv, if_fail, value_cast); // helpful for debugging
 
-            } else { // has generic
+            } else { // has generic type variable
                 
                 if (value_cast) {
                     // convert value to its type.
@@ -970,8 +961,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         TypeStructure[] parameters = null;
         int[] variances = null;
         List<Type> type_elements = null;
-        Set<String> invariantGenericsContained = Collections.<String>emptySet();
-        Set<String> variantGenericsContained = Collections.<String>emptySet();
+        boolean hasTypeVariables = false;
         boolean isVarType = false;
         boolean isObject = false;
         
@@ -1039,11 +1029,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 for (StaticParam sp : staticParams) {
                     IdOrOp spn = sp.getName();
                     if (spn.getText().equals(rttiStem)) {
-                        if (variance != 0) {
-                            variantGenericsContained = Useful.set(tt_id.getText());
-                        } else {
-                            invariantGenericsContained = Useful.set(tt_id.getText());
-                        }
+                        hasTypeVariables = true;
                         isVarType = true;
                         break;
                     }
@@ -1068,54 +1054,30 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             parameters = new TypeStructure[type_elements.size()];
             int i = 0;
             int next_index = storeAtIndex+1;
-            HashSet<String> temp_var = new HashSet<String>();
-            HashSet<String> temp_invar = new HashSet<String>();
             for (Type tt : type_elements) {
                 TypeStructure ts = makeTypeStructure(tt, spmap, variances[i], next_index, staticParams);
-                temp_var.addAll(ts.variantGenericsContained);
-                temp_invar.addAll(ts.invariantGenericsContained);
+                
+                //has type variable if it or any nested structures have type variables
+                hasTypeVariables = hasTypeVariables || ts.containsTypeVariables;
                 parameters[i++] = ts;
                 next_index = ts.successorIndex;
             }
-            // if no generics, then no sub-evaluation
-            boolean hasGeneric = false;
             
-            /* BECAUSE OF STATIC CHECKING, an invariant use of a static
-             * parameter guarantees that we know the type -- no inference
-             * will be necessary. (do we really believe this?) - NO WE DON"T - rip this out I think
-             * 
-             * Removing invariants from the set gives us an approximation of
-             * what we will need to dynamically compute, or not.  Other context
-             * may remove other things.
-             */
-            temp_var.removeAll(temp_invar);
-            if (temp_var.size() > 0) {
-                variantGenericsContained = temp_var;
-                hasGeneric = true;
-            }
-            if (temp_invar.size() > 0) {
-                invariantGenericsContained = temp_invar;
-            }
-            //if (! hasGeneric) - KBN - should not be reseting next index counter
-            //   next_index = storeAtIndex+1;
-            return new TypeStructure(fullname, rttiStem, parameters, storeAtIndex, next_index, variance, invariantGenericsContained, variantGenericsContained, isObject);
+            return new TypeStructure(fullname, rttiStem, parameters, storeAtIndex, next_index, variance, hasTypeVariables, isObject);
         } else if (isVarType) {
-            TypeStructure x = new TypeStructure(fullname, rttiStem, parameters, storeAtIndex, storeAtIndex+1, variance, invariantGenericsContained, variantGenericsContained, isObject);
+            TypeStructure x = new TypeStructure(fullname, rttiStem, parameters, storeAtIndex, storeAtIndex+1, variance, hasTypeVariables, isObject);
             if (spmap != null)
                 spmap.putItem(rttiStem, x);
             return x;
         } else { 
-            return new TypeStructure(fullname, rttiStem, parameters, storeAtIndex, storeAtIndex+1, variance, invariantGenericsContained, variantGenericsContained, isObject);
+            return new TypeStructure(fullname, rttiStem, parameters, storeAtIndex, storeAtIndex+1, variance, hasTypeVariables, isObject);
         }        
     }
     
     public static TypeStructure makeParamTypeStructure(StaticParam sp, int index, int variance) {
         String name = sp.getName().getText();
-        Set<String> invarGenerics = new HashSet<String>();
-        Set<String> varGenerics = new HashSet<String>();
-        if (variance == TypeStructure.INVARIANT) invarGenerics.add(name);
-        else varGenerics.add(name);
-        return new TypeStructure(name, name, null, index, index+1, variance, invarGenerics, varGenerics, false);
+        //type structures representing static type parameters always have type variables in them
+        return new TypeStructure(name, name, null, index, index+1, variance, true, false);
     }
 
     /**
@@ -1201,23 +1163,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 // Will need lookahead for the next one.
                 lookahead = new Label();
 
-                Set<String> top_level_invariants = new HashSet<String>();
-                
-                top_level_invariants.addAll(return_type_structures[i].invariantGenericsContained);
-                
-                for (int j = 0; j < f_type_structures.length; j++) {
-                    if (j != selfIndex())
-                        top_level_invariants.addAll(f_type_structures[j].invariantGenericsContained);
-                }
                 
                 for (int j = 0; j < f_type_structures.length; j++) {
                     // Load actual parameter
                     if (j != selfIndex()) {
                         mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
-                        f_type_structures[j].emitInstanceOf(mv, lookahead, true);//,
-                                            //top_level_invariants);
-                        if (f_type_structures[j].invariantGenericsContained.size() > 0 ||
-                            f_type_structures[j].variantGenericsContained.size() > 0)
+                        f_type_structures[j].emitInstanceOf(mv, lookahead, true);
+                        //inference needed if the type structure contains generics TODO: do generics not appearing in the parameters make sense?  probably not, but might need to deal with them.
+                        if (f_type_structures[j].containsTypeVariables)
                                 infer = true;
                     }
                 }
@@ -1234,10 +1187,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 Map<StaticParam,TypeStructure> lowerBounds = new HashMap<StaticParam,TypeStructure>(); 
                 for (StaticParam sp : staticParams) lowerBounds.put(sp,makeParamTypeStructure(sp,localCount++,TypeStructure.COVARIANT));
                 
-                //gather variable-variable lower bounds
-                MultiMap<StaticParam,StaticParam> relativeLowerBounds = new MultiMap<StaticParam,StaticParam>();
-                MultiMap<StaticParam,Type> genericUpperBounds = new MultiMap<StaticParam,Type>();
-                MultiMap<StaticParam,Type> concreteUpperBounds = new MultiMap<StaticParam,Type>();
+                //gather different types of bounds into Multimaps for use later
+                MultiMap<StaticParam,StaticParam> relativeLowerBounds = new MultiMap<StaticParam,StaticParam>();  //form X :> Y
+                MultiMap<StaticParam,Type> genericUpperBounds = new MultiMap<StaticParam,Type>(); //form X <: GenericStem[\ ... \] where Y appears in ...
+                MultiMap<StaticParam,Type> concreteUpperBounds = new MultiMap<StaticParam,Type>(); //form X <: T where T contains no type variables
                 for (int outer = 0; outer < staticParams.size(); outer++) {
                     StaticParam outerSP = staticParams.get(outer);
                     for (BaseType bt : outerSP.getExtendsClause()) {
@@ -1331,7 +1284,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                             mv.visitJumpInsn(Opcodes.IFEQ, lookahead); //if false fail
                         }
                         
-                        //3) for each contravariant instances, the instantiated type (RTTItoUse) must be a 
+                        //3) for each contravariant instance, the instantiated type (RTTItoUse) must be a 
                         // subtype of the runtime type (RTTIcompare)
                         for (int RTTIcompare : contravariantInstances) {
                             //RTTIcompare.runtimeSupertypeOf(RTTItoUse)
