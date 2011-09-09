@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -26,6 +26,6 @@ object Sets {
 
   /** Creates an immutable set. */
   def toSet[T](jset: JavaSet[T]): Set[T] =
-    Set(JavaConversions.asSet(jset).toSeq: _*)
+    Set(JavaConversions.asScalaSet(jset).toSeq: _*)
 
 }

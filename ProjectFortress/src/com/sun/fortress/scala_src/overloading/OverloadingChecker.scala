@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2010, Oracle and/or its affiliates.
+    Copyright 2010,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -74,7 +74,7 @@ class OverloadingChecker(current: CompilationUnitIndex,
         }
       case _ => List()
     }
-    val explicitFns = (compFns ++ explicitImports).groupBy(_._1.getText).mapElements{x => 
+    val explicitFns = (compFns ++ explicitImports).groupBy(_._1.getText).mapValues{x => 
       val (ids, fns) = x.unzip
       (ids, fns.flatMap(y => y))
     }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -56,7 +56,7 @@ object ASTGenHelper {
 
     case m: JMap[_, _] => {
       var accum = Map[Any, Any]()
-      for (k <- (Map.empty ++ JavaConversions.asMap(m)).keySet) {
+      for (k <- (Map.empty ++ JavaConversions.mapAsScalaMap(m)).keySet) {
         accum += ((scalaify(k), scalaify(m.get(k))))
       }
       accum
@@ -64,7 +64,7 @@ object ASTGenHelper {
 
     case s: JSet[_] => {
       var accum = Set[Any]()
-      for (e <- Set.empty ++ JavaConversions.asSet(s)) {
+      for (e <- Set.empty ++ JavaConversions.asScalaSet(s)) {
         accum = accum + scalaify(e)
       }
       accum

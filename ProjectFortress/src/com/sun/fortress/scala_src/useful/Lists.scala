@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008,2010, Oracle and/or its affiliates.
+    Copyright 2008,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -31,12 +31,12 @@ object Lists {
   /* Conversion recommended by Martin Odersky, with some type trickery
      that's a bit annoying. */
   def toList[T](xs: JList[T]): List[T] =
-    JavaConversions.asBuffer(new ArrayBackedList(xs)).toList 
+    JavaConversions.asScalaBuffer(new ArrayBackedList(xs)).toList 
     /* JavaConversions.asBuffer(Useful.list(xs)).toList */
     /* List.fromArray[T]( xs.toArray(List[T]().toArray) ) */
     
   def toListFromImmutable[T](xs: JList[T]): List[T] =
-    JavaConversions.asBuffer(xs).toList 
+    JavaConversions.asScalaBuffer(xs).toList 
     /* JavaConversions.asBuffer(ArrayBackedList.fromImmutable(xs)).toList */
     
   def map[S, T](list: JList[S], fun: S => T): JList[T] = toJavaList(toListFromImmutable(list).map(fun))
