@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -17,7 +17,7 @@ import scala.collection.{Map => MMap}
 import scala.collection.JavaConversions
 
 object Maps {
-  def toMap[S, T](jmap: JavaMap[S, T]): Map[S, T] = Map.empty ++ JavaConversions.asMap(jmap)
+  def toMap[S, T](jmap: JavaMap[S, T]): Map[S, T] = Map.empty ++ JavaConversions.mapAsScalaMap(jmap)
 
   def toJavaMap[S, T](smap: MMap[S, T]): JavaMap[S, T] = {
     var jmap = new JavaHashMap[S, T]()

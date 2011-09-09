@@ -1,5 +1,5 @@
 /*******************************************************************************
-Copyright 2009,2010, Oracle and/or its affiliates.
+Copyright 2009,2011, Oracle and/or its affiliates.
 All rights reserved.
 
 
@@ -17,8 +17,8 @@ import scala.collection.JavaConversions
 
 object Iterators {
   implicit def wrapIterator[T](iter: JIterator[T]): Iterator[T] =
-   JavaConversions.asIterator(iter)
+   JavaConversions.asScalaIterator(iter)
 
   implicit def wrapIterable[T](iter: JIterable[T]): Iterator[T] =
-    JavaConversions.asIterator(iter.iterator)
+    JavaConversions.asScalaIterator(iter.iterator)
 }
