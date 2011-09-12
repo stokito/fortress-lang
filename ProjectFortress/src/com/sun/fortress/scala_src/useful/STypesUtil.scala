@@ -38,6 +38,7 @@ import com.sun.fortress.nodes_util.{ ExprFactory => EF }
 import com.sun.fortress.nodes_util.{ NodeFactory => NF }
 import com.sun.fortress.nodes_util.{ NodeUtil => NU }
 import com.sun.fortress.nodes_util.Span
+import com.sun.fortress.scala_src.overloading.OverloadingOracle
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.CoercionOracle
 import com.sun.fortress.scala_src.typechecker.Formula._
@@ -1024,9 +1025,11 @@ object STypesUtil {
         val STraitType(_, name, trait_args, _) = ty
         toOption(analyzer.traits.typeCons(name)) match {
           case Some(ti: TraitIndex) =>
-            val tindex = ti.asInstanceOf[TraitIndex]
-            allTraits.put(name, tindex)
-            traitsToDo ++= toListFromImmutable(ti.extendsTypes)
+            allTraits.put(name, ti)
+            val paramsToArgs = new StaticTypeReplacer(ti.staticParameters(), ty.getArgs())
+            val instantiated_extends_types =
+              toListFromImmutable(ti.extendsTypes).map(_.accept(paramsToArgs).asInstanceOf[TraitTypeWhere])
+            traitsToDo ++= instantiated_extends_types
           case _ =>
         }
 
@@ -1332,6 +1335,18 @@ object STypesUtil {
     implicit val bs = (false, false, true, false)
     val fnsAndArgs = ws.toList.flatMap{uberInheritedMethods(_)}
     fnsAndArgs.map{case (m: DeclaredMethod, a) => m.ast}.toSet
+  }
+  
+  def oldInheritedMethods(ws: Iterable[TraitTypeWhere])(implicit ta: TypeAnalyzer): Map[IdOrOpOrAnonymousName, FnAndSArgs] = {
+    implicit val gi = (i: Id) => Some(ta.typeCons(i))
+    implicit val h = new HierarchyHistory
+    implicit val e = (a: String, b: HasAt) => ()
+    implicit val bs = (true, true, true, true)
+    val fnsAndArgs = ws.toList.flatMap{uberInheritedMethods(_)}
+    val idToFns = fnsAndArgs.groupBy{case (a, b) => a.name}
+    val oracle = new OverloadingOracle()
+    
+    null
   }
   
   private def paramTyWithoutSelf(name: IdOrOpOrAnonymousName, func: Functional,
