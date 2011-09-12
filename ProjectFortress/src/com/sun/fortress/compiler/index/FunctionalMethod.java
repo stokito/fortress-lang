@@ -141,11 +141,6 @@ public class FunctionalMethod extends Function implements HasSelfType {
     }
 
     @Override
-    public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-        return new FunctionalMethod(this, visitor);
-    }
-
-    @Override
     public boolean hasDeclaredReturnType() {
         return NodeUtil.getReturnType(_ast).isSome();
     }

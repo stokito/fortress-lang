@@ -32,9 +32,5 @@ public class Unit extends TypeConsIndex {
     public List<StaticParam> staticParameters() {
         return new ArrayList<StaticParam>();
     }
-
-    @Override
-    public TypeConsIndex acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-        return new Unit((UnitDecl) ast.accept(visitor));
-    }
+    
 }

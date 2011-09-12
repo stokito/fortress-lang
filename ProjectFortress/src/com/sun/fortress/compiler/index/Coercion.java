@@ -163,11 +163,7 @@ public class Coercion extends Function {
         else return Collections.unmodifiableList(NodeUtil.getThrowsClause(_ast).unwrap());
     }
 
-    @Override
-    public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-        return new Coercion(this, visitor);
-    }
-
+    
     @Override
     public String toString() {
         return String.format("%s.%s", _declaringTrait.getText(), super.toString());
