@@ -121,8 +121,4 @@ public class Constructor extends Function {
         else return Collections.unmodifiableList(_throwsClause.unwrap());
     }
 
-    @Override
-    public Functional acceptNodeUpdateVisitor(final NodeUpdateVisitor v) {
-        return new Constructor(this, v);
-    }
 }

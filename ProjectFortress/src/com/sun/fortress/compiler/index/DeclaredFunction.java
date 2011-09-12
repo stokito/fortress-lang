@@ -101,11 +101,6 @@ public class DeclaredFunction extends Function {
     }
 
     @Override
-    public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-        return new DeclaredFunction(this, visitor);
-    }
-
-    @Override
     public boolean hasDeclaredReturnType() {
         return NodeUtil.getReturnType(_ast).isSome();
     }

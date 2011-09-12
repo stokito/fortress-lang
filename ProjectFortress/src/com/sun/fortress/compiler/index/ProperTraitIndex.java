@@ -46,33 +46,4 @@ public class ProperTraitIndex extends TraitIndex {
         _comprises.add(t);
     }
 
-    @Override
-    public TypeConsIndex acceptNodeUpdateVisitor(NodeUpdateVisitor v) {
-        Map<Id, Method> new_getters = new HashMap<Id, Method>();
-        for (Map.Entry<Id, Method> entry : this.getters().entrySet()) {
-            Method var = entry.getValue();
-            new_getters.put(entry.getKey(), (Method) var.acceptNodeUpdateVisitor(v));
-        }
-        Map<Id, Method> new_setters = new HashMap<Id, Method>();
-        for (Map.Entry<Id, Method> entry : this.setters().entrySet()) {
-            Method var = entry.getValue();
-            new_setters.put(entry.getKey(), (Method) var.acceptNodeUpdateVisitor(v));
-        }
-        Set<Coercion> new_coercions = new HashSet<Coercion>();
-        for (Coercion vd : this.coercions()) {
-            new_coercions.add((Coercion) vd.acceptNodeUpdateVisitor(v));
-        }
-        Set<Pair<IdOrOpOrAnonymousName, DeclaredMethod>> new_dm = new HashSet<Pair<IdOrOpOrAnonymousName, DeclaredMethod>>();
-        for (Pair<IdOrOpOrAnonymousName, DeclaredMethod> p : this.dottedMethods()) {
-            new_dm.add(Pair.make(p.first(), (DeclaredMethod) p.second().acceptNodeUpdateVisitor(v)));
-        }
-        Relation<IdOrOpOrAnonymousName, DeclaredMethod> new_dotted = CollectUtil.makeRelation(new_dm);
-        Set<Pair<IdOrOpOrAnonymousName, FunctionalMethod>> new_fm = new HashSet<Pair<IdOrOpOrAnonymousName, FunctionalMethod>>();
-        for (Pair<IdOrOpOrAnonymousName, FunctionalMethod> p : this.functionalMethods()) {
-            new_fm.add(Pair.make(p.first(), (FunctionalMethod) p.second().acceptNodeUpdateVisitor(v)));
-        }
-        Relation<IdOrOpOrAnonymousName, FunctionalMethod> new_functional = CollectUtil.makeRelation(new_fm);
-
-        return new ProperTraitIndex((TraitDecl) this.ast().accept(v), new_getters, new_setters, new_coercions, new_dotted, new_functional);
-    }
 }
