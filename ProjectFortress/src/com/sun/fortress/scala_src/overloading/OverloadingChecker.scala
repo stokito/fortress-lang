@@ -108,7 +108,7 @@ class OverloadingChecker(current: CompilationUnitIndex,
       case t: ProperTraitIndex => List()
       case _ => List()
     }.toList
-  }  
+  }
   
   private def checkOverloadingRules(idsAndFns: (Set[IdOrOp], Set[Functional]))(implicit checkingMethods: Boolean): List[StaticError] = {
     val (ids, fns) = idsAndFns

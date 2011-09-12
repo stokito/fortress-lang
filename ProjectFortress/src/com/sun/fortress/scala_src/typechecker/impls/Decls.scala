@@ -96,12 +96,10 @@ trait Decls { self: STypeChecker with Common =>
         case Some(ti) =>
           // Extend method checker with methods and functions
           // that will now be in scope
-          val inheritedMethods = this.inheritedMethods(extendsC)
-          val dottedMethods = ti.asInstanceOf[TraitIndex]
-                                .dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]]
-          val methods = new UnionRelation(inheritedMethods,
-                                          dottedMethods)
-          method_checker = method_checker.extendWithFunctions(methods)
+          val inheritedMethods = commonInheritedMethods(extendsC, analyzer.traits)
+          val dottedMethods = toSet(ti.asInstanceOf[TraitIndex].dottedMethods.secondSet)
+          val methods = inheritedMethods ++ dottedMethods
+          method_checker = method_checker.extendWithListOfFunctions(methods)
           // Extend method checker with self
           selfType match {
             case Some(ty) =>
@@ -148,12 +146,10 @@ trait Decls { self: STypeChecker with Common =>
         case Some(oi) =>
           // Extend type checker with methods and functions
           // that will now be in scope as regular functions
-          val dottedMethods = oi.asInstanceOf[TraitIndex]
-                                .dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName,Method]]
-          val inheritedMethods = this.inheritedMethods(extendsC)
-          val methods = new UnionRelation(inheritedMethods,
-                                          dottedMethods)
-          method_checker = method_checker.extendWithFunctions(methods)
+          val dottedMethods = toSet(oi.asInstanceOf[TraitIndex].dottedMethods.secondSet)
+          val inheritedMethods = commonInheritedMethods(extendsC, analyzer.traits)
+          val methods = inheritedMethods ++ dottedMethods
+          method_checker = method_checker.extendWithListOfFunctions(methods)
           // Extend method checker with self
           selfType match {
             case Some(ty) =>

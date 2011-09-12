@@ -70,6 +70,8 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
     }
   }
   
+  
+  // TODO: Implement the following functions for use in the code generator
   def shadows(m: Method, n: Method): Boolean = false
   def narrows(m: Method, n: Method): Boolean = true
 
