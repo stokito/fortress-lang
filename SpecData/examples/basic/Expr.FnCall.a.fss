@@ -1,0 +1,30 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.FnCall.a
+
+export Executable
+
+arctan(x:RR64,y:RR64) = ()
+f() = do
+x = 3.141592
+y = 0
+(** EXAMPLE **)
+cos(x)
+arctan(y,x)
+(** END EXAMPLE **)
+end
+
+run() = f()
+
+end

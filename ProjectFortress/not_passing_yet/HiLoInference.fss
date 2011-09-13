@@ -1,0 +1,55 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component HiLoInference
+
+export Executable
+
+trait T
+end
+
+trait U extends T
+end
+
+trait V extends U
+end
+
+object ov extends V end
+
+object ou extends U end
+
+object ot extends T end
+
+f[\W\](x:W, e:W->W) = println "F called"
+
+g(t:T):T = t
+h(u:U):U = u
+i(u:U):T = u
+j(v:V):V = v
+k(v:V):U = v
+l(v:V):T = v
+
+run():() = do
+  f(ot, g)
+
+  f(ou, g)
+  f(ou, h)
+  f(ou, i)
+
+  f(ov, g)
+  f(ov, h)
+  f(ov, i)
+  f(ov, j)
+  f(ov, k)
+  f(ov, l)
+end
+
+end

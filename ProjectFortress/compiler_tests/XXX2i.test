@@ -1,0 +1,22 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled2.i
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+
+compile
+
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled2.i.fss:12:1-8:\n\
+\ Unmatched delimiter \"component\".\n\
+${STATIC_TESTS_DIR}/Compiled2.i.fss:17:3-10:\n\
+\ Nested component definitions are not allowed.\n\
+File Compiled2.i.fss has 2 errors.\n\
+
+compile_out_equals=

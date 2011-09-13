@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(*
+Relative upper bound case with invariant
+- first call dispatches to "general"
+- second call dispatches to "specific"
+*)
+
+
+f(x : Any, y : Any) : String = "general"
+f[\X extends A, Y extends X \](x : X, y : Y) : String = "specific"
+
+trait A end
+trait B extends A end
+
+object aObj extends A end
+object bObj extends B end
+
+object Foo[\X\](x : X) end
+
+run() = do 
+    x : Any = aObj
+    y : Any = Foo(aObj)
+    println(f(x,y))
+    
+    z : Any = aObj
+    println(f(x,z))
+end

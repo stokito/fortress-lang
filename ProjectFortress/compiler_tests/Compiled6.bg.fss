@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+ export Executable
+
+  trait BetterThanZZ32
+    opr +(self, other:BetterThanZZ32):BetterThanZZ32 = other
+  end
+  foo() : () = do
+    var o : BetterThanZZ32
+
+    o := (object extends { BetterThanZZ32 }
+            foo() : BetterThanZZ32 = self + self
+          end)
+    o := o + o
+  end
+
+  run():() = ()
