@@ -39,6 +39,12 @@ end
 object FlatString extends String
 end FlatString
 
+print(s:String):()
+print(c:Character):()
+print(x:ZZ32):()
+print(x:ZZ64):()
+print(x:RR64):()
+
 println(s:String):()
 println(c:Character):()
 (*) println(x:Object): ()
@@ -109,6 +115,7 @@ trait ZZ64 extends Number excludes RR64
     opr MIN(self, other:ZZ64): ZZ64 
     opr MAX(self, other:ZZ64): ZZ64 
     opr MINMAX(self, other:ZZ64): (ZZ64, ZZ64) 
+    opr CHOOSE(self, other:ZZ64): ZZ64
     even(self): Boolean
     odd(self): Boolean
 end
@@ -144,7 +151,8 @@ trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
     opr BITXOR(self, other:ZZ32): ZZ32
     opr MIN(self, other:ZZ32): ZZ32 
     opr MAX(self, other:ZZ32): ZZ32 
-    opr MINMAX(self, other:ZZ32): (ZZ32, ZZ32) 
+    opr MINMAX(self, other:ZZ32): (ZZ32, ZZ32)
+    opr CHOOSE(self, other:ZZ32): ZZ32 
     even(self): Boolean
     odd(self): Boolean
 end
