@@ -1,0 +1,103 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component caseTest
+
+export Executable
+
+test1()=do
+    case 2 + 2 of
+        4 => ()
+        5#2 => fail("caseTest test1 failed")
+    end
+end
+
+test2()= do
+    case 2 + 4 of
+        4 => fail("caseTest test2 failed")
+        5#2 => ()
+    end
+end
+
+test3() = do
+    i = 7
+    j = 9
+    case most > of
+        i => fail("caseTest test3 failed")
+        j => ()
+    end
+end
+
+test4() = do
+    i = 7
+    j = 9
+    case most > of
+        i => fail("caseTest test4 failed")
+        j => ()
+    end
+end
+
+test5() = do
+    case 2+2 <=  of
+        3 => fail("caseTest test5 failed")
+        7 => ()
+    end
+end
+
+test6() = do
+    case 2+2  of
+        3 => fail("caseTest test6 failed")
+        7 => fail("caseTest test6 failed")
+        else => ()
+    end
+end
+
+test7() = do
+    i = 7
+    j = 9
+    case most < of
+        7 => ()
+        9 => fail("caseTest test7 failed")
+    end
+end
+
+test8()=do
+    mile = 1.6
+    km   = 1
+    f() = do
+        case most > of
+            1 mile => "miles are larger"
+            1 km   => fail("caseTest test8 failed")
+        end
+    end
+    f()
+end
+
+test9()=do
+   case most > of
+      "hocuspocus"  => fail("caseTest test9 failed")
+      "abracadabra" => fail("caseTest test9 failed")
+      "shazam"      => ()
+   end
+end
+
+run():()=do
+   test1();
+   test2();
+   test3();
+   test4();
+   test5();
+   test6();
+   test7();
+   test8();
+   test9();
+end
+end

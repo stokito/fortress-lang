@@ -1,0 +1,24 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Coercion}
+\seclabel{coercion-expr}
+
+An identity function \EXP{\mathrm{coerce}} is defined in \library\
+to convert the type of its argument to its type argument:
+%% coerce_[\T\](x: T) = x
+\begin{Fortress}
+\(\mathrm{coerce}\llbracket{}T\rrbracket(x\COLON T) = x\)
+\end{Fortress}
+The function returns its argument as the given type.
+Unlike coercions described in \chapref{conversions-coercions},
+the \EXP{\mathrm{coerce}} function can apply to an argument whose type is
+a subtype of the type being coerced to.

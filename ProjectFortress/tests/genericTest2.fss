@@ -1,0 +1,33 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component genericTest2
+export Executable
+
+f[\nat n\]():ZZ32 = n
+g[\nat n, nat m\]():ZZ32 = f[\n+m\]()
+
+run():()=do
+
+  a = f[\1\]()
+  b = g[\2,3\]()
+  c = f[\5\]()
+  d = f[\1\]()
+  h = g[\2,3\]()
+
+  sum =  a + b + c + d + h ;
+  println(
+  if (sum = 17)
+     then "pass " sum else "fail" end
+  )
+end
+
+end

@@ -1,0 +1,32 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component forTest2
+export Executable
+
+a() = do
+    for i<-1#2 do
+       println("Hello World");
+        end
+end
+
+b() = do
+       for i<-1#2 do
+      a();
+       end
+end
+
+run():()=do
+   for i <- 1#2 do
+      b()
+   end
+end
+end

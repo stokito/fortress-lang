@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+f[\ I, O \] (x:I, g:(I,I)->O):O = g(x, x)
+
+three:ZZ32 = 3
+four:ZZ32 = 4
+
+t34:(ZZ32,ZZ32) = (three, four)
+
+pluString(w:(ZZ32,ZZ32),x:(ZZ32,ZZ32)):String = do
+  (u,v) = w
+  (y,z) = x
+  ((u+y) DIV 2).asString || ((v+z) DIV 2).asString
+end
+
+
+run():() = println(
+   f[\(ZZ32,ZZ32), String\](t34, pluString) )

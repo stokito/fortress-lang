@@ -1,0 +1,30 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component expTest
+export Executable
+
+(** Based on bug report by Evan McCorkle *)
+run() = do
+    xr : RR64 = 0.25
+    xz : ZZ64 = 4
+    rr : RR64 = 4.0
+    rz : ZZ64 = 4
+    rh : RR64 = 0.5
+    assert(xr^rz,1/256)
+    assert(xz^rz,256)
+    assert(xr^rr,1/256)
+    assert(xz^rr,256)
+    assert(xr^rh,0.5)
+    assert(xz^rh,2)
+  end
+
+end

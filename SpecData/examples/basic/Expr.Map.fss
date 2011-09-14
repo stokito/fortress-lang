@@ -1,0 +1,28 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.Map
+
+import Map.{...}
+export Executable
+
+run() = do
+  m: Map[\String, ZZ32\]
+(** EXAMPLE **)
+m = { "a" |-> 0, "b" |-> 1, "c" |-> 2 }
+(** END EXAMPLE **)
+  println(m.asDebugString())
+  println m["b"]
+end
+
+end
