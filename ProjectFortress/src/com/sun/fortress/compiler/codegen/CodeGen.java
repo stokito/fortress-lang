@@ -1559,31 +1559,24 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              Catch _catch = catchClauses.unwrap();
              Id name = _catch.getName();
 
-             Label done = new Label();
+             Label done = new Label(); // first statement after the whole try-catch statement
              List<CatchClause> clauses = _catch.getClauses();
              for (CatchClause clause : clauses) {
-                 Label next = new Label();
-                 Label end = new Label();
+                 Label end = new Label(); // if catch clause does not match, skip clause body
                  BaseType match = clause.getMatchType();
                  
-                 
-                 mv.visitInsn(DUP);
+                 mv.visitInsn(DUP); // Save Java exception while we fiddle with Fortress data
                  mv.visitMethodInsn(INVOKEVIRTUAL, "com/sun/fortress/compiler/runtimeValues/FException", 
                                     "getValue","()Lcom/sun/fortress/compiler/runtimeValues/FValue;");
 
                  InstantiatingClassloader.generalizedInstanceOf(mv, NamingCzar.jvmBoxedTypeName(match, thisApi()));
-                 mv.visitJumpInsn(IFNE, next);
-                 mv.visitJumpInsn(GOTO, end);
-                 mv.visitLabel(next);
+                 mv.visitJumpInsn(IFEQ, end);
                  mv.visitInsn(POP);
                  clause.getBody().accept(this);
                  mv.visitJumpInsn(GOTO, done);
                  mv.visitLabel(end);
              }
-             mv.visitInsn(POP);
-             mv.visitMethodInsn(INVOKESTATIC,
-                            NamingCzar.internalFortressVoid, NamingCzar.make,
-                            NamingCzar.voidToFortressVoid);
+	     mv.visitInsn(ATHROW); // Rethrow if no match
              mv.visitLabel(done);
          }
          mv.visitLabel(lfinally);
