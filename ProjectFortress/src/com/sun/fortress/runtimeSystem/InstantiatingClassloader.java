@@ -1848,7 +1848,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         }
                     }
                     key.append(")");
-                    key.append(Naming.dotToSep(rt.getName()));
+                    String s = Naming.dotToSep(rt.getName());
+                    key.append("L" + s + ";");
                     forwarded.put(key.toString(), m);
                 }
             }
@@ -1860,12 +1861,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         for (String key : forwarded.keySet()) {
             Method m = forwarded.get(key);
             int ploc = key.indexOf('(');
-            String nm = key.substring(0, ploc);
-            String callee_sig = key.substring(ploc);
-            String sig = "(" + ERASED_UNION_DESC + key.substring(1);
+            String nm = Naming.demangleFortressIdentifier(key.substring(0, ploc));
+            String callee_sig = Naming.demangleFortressDescriptor(key.substring(ploc));
+            String sig = "(" + ERASED_UNION_DESC + callee_sig.substring(1);
             // Static, forwarding method
-            ManglingMethodVisitor mv = cw.visitNoMangleMethod(ACC_PUBLIC+ACC_STATIC, nm, sig, null, null);
-            String an_interface = Naming.dotToSep(m.getClass().getName());
+            MethodVisitor mv = cw.visitCGMethod(ACC_PUBLIC+ACC_STATIC, nm, sig, null, null);
+            String an_interface = Naming.dotToSep(m.getDeclaringClass().getName());
             String the_interface = Naming.demangleFortressIdentifier(an_interface);
             int stack_index = 0;
             
@@ -1905,8 +1906,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             
             mv.visitMethodInsn(Opcodes.INVOKEINTERFACE,
                     the_interface, 
-                    Naming.demangleFortressIdentifier(nm),
-                    Naming.demangleMethodSignature(callee_sig) );
+                    nm,
+                    callee_sig);
             
             char last = sig.charAt(sig.length()-1);
             if (last == 'V')
