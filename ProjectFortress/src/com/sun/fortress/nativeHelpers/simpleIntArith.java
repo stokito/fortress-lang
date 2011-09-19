@@ -321,5 +321,17 @@ public class simpleIntArith {
     public static int intBitXor(int a, int b) {
         return a ^ b;
     }
+
+    public static int intExp(int a, int b) {
+        double result = java.lang.Math.pow(a,b);
+        if (result > Integer.MAX_VALUE)
+            throw new RuntimeException("Overflow Error:");
+        else
+            return (int) result;
+    }
+
+    public static double intToDouble(int a) {
+        return (double) a;
+    }
     
 }

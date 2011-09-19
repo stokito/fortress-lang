@@ -57,6 +57,8 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.BoolArg;
 import com.sun.fortress.nodes.BottomType;
+import com.sun.fortress.nodes.CaseClause;
+import com.sun.fortress.nodes.CaseExpr;
 import com.sun.fortress.nodes.Catch;
 import com.sun.fortress.nodes.CatchClause;
 import com.sun.fortress.nodes.ChainExpr;
@@ -1270,6 +1272,54 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         inABlock=oldInABlock;
     }
 
+
+// I took a stab at this, but got stuck on the comparison operator.
+//   public void forCaseExpr(CaseExpr x) {
+//         debug( " forCaseExpr:", x);
+//         System.out.println("ForCaseExpr: x = " + x + 
+//                            " param = " + x.getParam() + 
+//                            " compare = " + x.getCompare() + 
+//                            " _equalsOp = " + x.getEqualsOp() +
+//                            " _inOp = " + x.getInOp() + 
+//                            " clauses = " + x.getClauses() +
+//                            " else = " + x.getElseClause());
+
+//         if (x.getParam().isNone()) {
+//             throw new RuntimeException("NYI: forCaseExpr with null param");
+//         } else if (x.getCompare().isSome()) {
+//             throw new RuntimeException("Only default CMP for now ");
+//         }
+
+//         Label done = new Label();
+//         for (CaseClause c : x.getClauses()) {
+//             System.out.println("CaseClause: " + c +
+//                                " Match Clause = " + c.getMatchClause() +
+//                                " Body = " + c.getBody() + 
+//                                " Op = " + c.getOp());
+
+//             Label next = new Label();
+//             Label end = new Label();
+//             x.getParam().unwrap().accept(this);
+//             c.getMatchClause().accept(this);
+            
+            
+//             mv.visitJumpInsn(IF_EQ, next);
+//             mv.visitJumpInsn(GOTO, end);
+//             mv.visitLabel(next);
+//             c.getBody().accept(this);
+//             mv.visitJumpInsn(GOTO, done);
+//             mv.visitLabel(end);
+//         }
+//         if (x.getElseClause().isSome())
+//             x.getElseClause().unwrap().accept(this);
+
+//         mv.visitMethodInsn(INVOKESTATIC,
+//                             NamingCzar.internalFortressVoid, NamingCzar.make,
+//                             NamingCzar.voidToFortressVoid);
+
+//         mv.visitLabel(done);
+//     }
+
     public void forChainExpr(ChainExpr x) {
         debug( "forChainExpr", x);
         Expr first = x.getFirst();
@@ -1576,7 +1626,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  mv.visitJumpInsn(GOTO, done);
                  mv.visitLabel(end);
              }
-	     mv.visitInsn(ATHROW); // Rethrow if no match
+             mv.visitInsn(ATHROW); // Rethrow if no match
              mv.visitLabel(done);
          }
          mv.visitLabel(lfinally);
@@ -4341,21 +4391,30 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              e.accept(this);
          }
          addLineNumberInfo(x);
-        
+
          VarCodeGen vcg = getLocalVarOrNull(id);
          if (vcg == null)
              throw new RuntimeException("Bad VCG");
 
+         String ZZ32Sig = "Lcom/sun/fortress/compiler/runtimeValues/FZZ32;";
+         String args = "(";
+
+         for (int i = 0; i < subs.size(); i++)
+             args = args + ZZ32Sig;
+
+         args = args + ")";
+
          if (vcg.fortressType.toString().equals("StringVector"))
              mv.visitMethodInsn(INVOKEVIRTUAL,
-                            NamingCzar.descToInternal(NamingCzar.jvmTypeDesc(vcg.fortressType, thisApi())),
-                            NamingCzar.idOrOpToString(op),
-                            "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)Lcom/sun/fortress/compiler/runtimeValues/FString;");
+                                NamingCzar.descToInternal(NamingCzar.jvmTypeDesc(vcg.fortressType, thisApi())),
+                                NamingCzar.idOrOpToString(op),
+                                args + "Lcom/sun/fortress/compiler/runtimeValues/FString;");
          else if (vcg.fortressType.toString().equals("ZZ32Vector"))
              mv.visitMethodInsn(INVOKEVIRTUAL,
                             NamingCzar.descToInternal(NamingCzar.jvmTypeDesc(vcg.fortressType, thisApi())),
                             NamingCzar.idOrOpToString(op),
-                            "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)Lcom/sun/fortress/compiler/runtimeValues/FZZ32;");
+                                args + "Lcom/sun/fortress/compiler/runtimeValues/FZZ32;");
+
          else throw new CompilerError("Unknow Vector type: " + vcg.fortressType);
     }
 
