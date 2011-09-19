@@ -155,6 +155,9 @@ trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
     opr CHOOSE(self, other:ZZ32): ZZ32 
     even(self): Boolean
     odd(self): Boolean
+    opr ^(self, other:ZZ32): ZZ32
+    asRR64(): RR64
+
 end
 
 trait IntLiteral excludes {ZZ32, ZZ64}

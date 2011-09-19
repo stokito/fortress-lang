@@ -60,7 +60,9 @@ import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString => jIntTo
                                             simpleIntArith.intBitNot => jIntBitNot,
                                             simpleIntArith.intBitAnd => jIntBitAnd,
                                             simpleIntArith.intBitOr => jIntBitOr,
-                                            simpleIntArith.intBitXor => jIntBitXor}
+                                            simpleIntArith.intBitXor => jIntBitXor,
+                                            simpleIntArith.intExp => jIntExp,
+                                            simpleIntArith.intToDouble => jIntToDouble}
 import java com.sun.fortress.nativeHelpers.{simpleLongArith.longToString => jLongToString,
                                             simpleLongArith.parseLong => jParseLong,
                                             simpleLongArith.longAdd => jLongAdd,
@@ -399,6 +401,8 @@ trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
     opr CHOOSE(self, other:ZZ32): ZZ32 = jIntOverflowingChoose(self,other)
     even(self): Boolean = ((self BITAND 1) = 0)
     odd(self): Boolean = NOT (even self)
+    opr ^(self, other:ZZ32):ZZ32 = jIntExp(self, other)
+    asRR64(): RR64 = jIntToDouble(self)
 end
 
 trait IntLiteral excludes {ZZ32, ZZ64}

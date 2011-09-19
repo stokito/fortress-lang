@@ -1,0 +1,56 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+******************************************************************************)
+component ProcFreqFinalTest1
+export Executable
+
+(* This is just a stub *)
+pchisq(testStatistic:RR64, df:ZZ32):RR64 = 0.9766578
+
+(*  This is what we want test1 to look like
+test1():RR64 = 
+     z:ZZ32[2,2] = [ 11 8 ; 20 12]
+     testStatistic:RR64 = ((x[1,2]) - (x[2,1]^2)) / (x[1,2] + x[2,1])
+     1-pchisq(testStatistic, df=1)
+end
+*)
+
+(* This is the executable R code
+x<- array(1:4, dim=c(2,2)
+x[1,1] <- 11
+x[1,2] <- 8
+x[2,1] <- 20
+x[2,2] <- 12
+testStatistic <- (x[1,2] - x[2,1])^2 / (x[1,2]+x[2,1])
+1-pchisq(testStatistic, df=1)
+*)
+
+
+(* This is what we have to do for now *)
+test1():RR64 = do
+   (* Need 0 and 1 based vectors *)
+    z:ZZ32Vector = makeZZ32Vector(3,3)
+    z.putValue(1,1,11)
+    z.putValue(1,2,8)
+    z.putValue(2,1,20)
+    z.putValue(2,2,12)
+
+   temp1:ZZ32 = z[1,2] - z[2,1]
+   temp2:ZZ32 = temp1^2
+   temp3:ZZ32 = z[1,2] + z[2,1]
+   testStatistic:RR64 = temp2.asRR64() / temp3.asRR64()
+   result:RR64 = 1.0 - pchisq(testStatistic, 1)
+   result
+end
+
+run()  = do
+   println(test1())
+end
+end
