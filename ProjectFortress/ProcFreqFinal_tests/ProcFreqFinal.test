@@ -7,7 +7,7 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests= ProcFreqFinalTest1
+tests= ProcFreqFinalTest1 ProcFreqFinalTest2
 compile
 link
 run
