@@ -36,7 +36,7 @@ testStatistic <- (x[1,2] - x[2,1])^2 / (x[1,2]+x[2,1])
 (* This is what we have to do for now *)
 test1():RR64 = do
    (* Need 0 and 1 based vectors *)
-    z:ZZ32Vector = makeZZ32Vector(3,3)
+    z:ZZ32Vector = makeZZ32Vector(2,2)
     z.putValue(1,1,11)
     z.putValue(1,2,8)
     z.putValue(2,1,20)

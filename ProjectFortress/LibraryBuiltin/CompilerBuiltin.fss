@@ -188,7 +188,9 @@ import java com.sun.fortress.nativeHelpers.{fileOps.jbrOpen => jJavaBufferedRead
 import java com.sun.fortress.nativeHelpers.{simpleIntVector.getIndexedValue => jIntVectorGet,
                                             simpleIntVector.putIndexedValue => jIntVectorPut,
                                             simpleIntVector.getSize => jIntVectorGetSize,
-                                            simpleIntVector.make => jIntVectorMake }
+                                            simpleIntVector.make => jIntVectorMake,
+                                            simpleIntVector.getRows => jIntVectorGetRows,
+                                            simpleIntVector.getCols => jIntVectorGetCols }
 import java com.sun.fortress.nativeHelpers.{simpleStringVector.getIndexedValue => jStringVectorGet,
                                             simpleStringVector.putIndexedValue => jStringVectorPut,
                                             simpleStringVector.getSize => jStringVectorGetSize,
@@ -582,6 +584,8 @@ trait ZZ32Vector
    opr[i:ZZ32]:ZZ32 = getValue(i)
    opr[i:ZZ32, j:ZZ32]:ZZ32 = getValue(i,j)
    opr |self| : ZZ32 = jIntVectorGetSize(self)
+   nrows():ZZ32 = jIntVectorGetRows(self)
+   ncols():ZZ32  = jIntVectorGetCols(self)
 end
 
 

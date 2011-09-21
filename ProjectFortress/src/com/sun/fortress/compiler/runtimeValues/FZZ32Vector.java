@@ -36,7 +36,9 @@ public final class FZZ32Vector extends fortress.CompilerBuiltin.ZZ32Vector.Defau
         return result;
     }
 
-    public int dim() {return val.length;}
+    public int dim()  {return val.length;}
+    public int rows() {return dim_x;}
+    public int cols() {return dim_y;}
 
     public FString asSring() { return new FString(toString());}
     
