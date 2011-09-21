@@ -293,6 +293,8 @@ trait ZZ32Vector
       opr[i:ZZ32] : ZZ32
       opr[i:ZZ32, j:ZZ32]: ZZ32
       opr |self| : ZZ32
+      nrows():ZZ32
+      ncols():ZZ32
 end
 
 trait StringVector
