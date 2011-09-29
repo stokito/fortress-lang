@@ -73,5 +73,5 @@ opr AND(a:Boolean, b:()->Boolean): Boolean = if a then b() else a end
 length[\T\](g: Generator[\T\]): ZZ32 = SUM[_ <- g] 1
 
 run(): () = do
-    println(length(1:100))
-  end
+  println(length(1:100))
+end

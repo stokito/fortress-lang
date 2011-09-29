@@ -79,9 +79,5 @@ public class FieldSetterMethod extends FieldGetterOrSetterMethod {
         StaticTypeReplacer replacer = new StaticTypeReplacer(params, args);
         return new FieldSetterMethod(this, replacer);
     }
-
-    @Override
-    public FieldSetterMethod acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-        return new FieldSetterMethod(this, visitor);
-    }
+    
 }

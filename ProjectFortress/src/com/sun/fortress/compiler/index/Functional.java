@@ -36,7 +36,7 @@ public abstract class Functional extends InferredTypeIndex {
 
     public abstract Option<Expr> body();
 
-    public abstract Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor);
+    // public abstract Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor);
 
     public abstract IdOrOp name();
 

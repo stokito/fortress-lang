@@ -39,8 +39,4 @@ public class ParametricOperator extends FunctionalMethod {
         return _name;
     }
 
-    @Override
-    public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-        return new ParametricOperator(this, visitor);
-    }
 }

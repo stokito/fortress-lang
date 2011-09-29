@@ -43,6 +43,7 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
  */
 trait Common { self: STypeChecker =>
 
+  /*
   // TODO: Consider merging with STypesUtil.inheritedMethods
   def inheritedMethods(extendedTraits: Iterable[TraitTypeWhere])
                       : Relation[IdOrOpOrAnonymousName, Method] = {
@@ -86,19 +87,19 @@ trait Common { self: STypeChecker =>
     inheritedMethodsHelper(new HierarchyHistory(), methods, extendedTraits)
     methods
   }
+  */
 
-  protected def findMethodsInTraitHierarchy(methodName: IdOrOpOrAnonymousName,
+  protected def findMethodsInTraitHierarchy(methodName: IdOrOp,
                                             receiverType: Type)
                                             : Set[Method] = {
 
     val traitTypes = traitTypesCallable(receiverType)
-    //TODO: What does the next line do?
     val ttAsWheres = traitTypes.map(NodeFactory.makeTraitTypeWhere)
-    val allMethods = inheritedMethods(ttAsWheres)
-    toSet(allMethods.matchFirst(methodName))
+    val allMethods = commonInheritedMethods(ttAsWheres, analyzer.traits).groupBy(_.name)
+    allMethods.getOrElse(methodName, List[Method]()).toSet
   }
 
-  def getGetterType(fieldName: IdOrOpOrAnonymousName, receiverType: Type): Option[Type] = {
+  def getGetterType(fieldName: IdOrOp, receiverType: Type): Option[Type] = {
     // We can just assume there is a getter index for every field
     val methods = findMethodsInTraitHierarchy(fieldName, receiverType)
     def isGetter(m: Method): Option[FieldGetterMethod] = m match {
@@ -110,7 +111,7 @@ trait Common { self: STypeChecker =>
     getters.headOption.flatMap(g => toOption(g.getReturnType))
   }
 
-  def getSetterType(fieldName: IdOrOpOrAnonymousName, receiverType: Type): Option[Type] = {
+  def getSetterType(fieldName: IdOrOp, receiverType: Type): Option[Type] = {
     //We can just assume there is a getter for every field
     val methods = findMethodsInTraitHierarchy(fieldName, receiverType)
     def isSetter(m: Method): Option[FieldSetterMethod] = m match {

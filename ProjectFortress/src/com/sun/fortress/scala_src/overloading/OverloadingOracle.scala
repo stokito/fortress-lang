@@ -42,6 +42,8 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
   
   val sa = new TypeSchemaAnalyzer()
   
+  def extend(params: List[StaticParam], where: Option[WhereClause]) = new OverloadingOracle()(ta.extend(params, where))
+  
   override def tryCompare(x: Functional, y: Functional): Option[Int] = {
     val xLEy = lteq(x,y)
     val yLEx = lteq(y,x)
@@ -70,9 +72,13 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
     }
   }
   
-  def shadows(m: Method, n: Method): Boolean = false
-  def narrows(m: Method, n: Method): Boolean = true
+  
+  // TODO: Implement the following functions for use in the code generator
+  def shadows(f: Functional, g: Functional): Boolean = false
+  def narrows(f: Functional, g: Functional): Boolean = true
+  def overrides(f: Functional, g: Functional): Boolean = false
 
+  
   //Checks whether f is the meet of g and h
   def meet(f: Functional, g: Functional, h: Functional)(implicit checkingMethods: Boolean): Boolean = {
     val fa = makeArrowFromFunctional(f, true).get
