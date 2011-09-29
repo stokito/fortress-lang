@@ -72,11 +72,6 @@ public class FieldGetterMethod extends FieldGetterOrSetterMethod {
     }
 
     @Override
-    public FieldGetterMethod acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-        return new FieldGetterMethod(this, visitor);
-    }
-
-    @Override
     public boolean hasDeclaredReturnType() {
       return _ast.getIdType().isSome();
     }

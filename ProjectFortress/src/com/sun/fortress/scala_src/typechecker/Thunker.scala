@@ -19,6 +19,7 @@ import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Sets._
+import com.sun.fortress.scala_src.useful.STypesUtil._
 import edu.rice.cs.plt.collect.CollectUtil
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.collect.UnionRelation
@@ -59,20 +60,18 @@ class Thunker(var typeChecker: STypeChecker)
         case Some(ti:TraitIndex) =>
           // Extend method checker with methods and functions
           // that will now be in scope
-          val inheritedMethods = typeChecker.inheritedMethods(extendsC)
+          val inheritedMethods = commonInheritedMethods(extendsC, typeChecker.traits)
           val functionalMethods = ti.functionalMethods
-          val dottedMethods = ti.dottedMethods.
-                                 asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]]
-          val methods = new UnionRelation(inheritedMethods,
-                                          dottedMethods)
-          typeChecker = typeChecker.extendWithFunctions(methods)
+          val dottedMethods = toSet(ti.dottedMethods.secondSet)
+          val methods = inheritedMethods ++ dottedMethods
+          typeChecker = typeChecker.extendWithListOfFunctions(methods)
           // Extend method checker with self
           selfType.foreach(ty => typeChecker = typeChecker.addSelf(ty))
           //Create a tryChecker
           val tryChecker = STypeCheckerFactory.makeTryChecker(typeChecker)
           // Prime all the functional indices in this object to set their return
           // types.
-          Thunker.primeFunctionals(dottedMethods.secondSet, tryChecker)
+          Thunker.primeFunctionals(dottedMethods, tryChecker)
           Thunker.primeFunctionals(functionalMethods.secondSet, tryChecker)
           Thunker.primeFunctionals(CollectUtil.asSet(ti.getters.values), tryChecker)
 
@@ -93,13 +92,11 @@ class Thunker(var typeChecker: STypeChecker)
         case Some(to:ObjectTraitIndex) =>
           // Extend method checker with methods and functions
           // that will now be in scope
-          val inheritedMethods = typeChecker.inheritedMethods(extendsC)
-          val functionalMethods = to.functionalMethods
-          val dottedMethods = to.dottedMethods.
-                                 asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]]
-          val methods = new UnionRelation(inheritedMethods,
-                                          dottedMethods)
-          typeChecker = typeChecker.extendWithFunctions(methods)
+          val inheritedMethods = commonInheritedMethods(extendsC, typeChecker.traits)
+          val functionalMethods = toSet(to.functionalMethods.secondSet)
+          val dottedMethods = toSet(to.dottedMethods.secondSet)
+          val methods = inheritedMethods ++ dottedMethods
+          typeChecker = typeChecker.extendWithListOfFunctions(methods)
           // Extend method checker with self
           selfType match {
             case Some(ty) =>
@@ -110,8 +107,8 @@ class Thunker(var typeChecker: STypeChecker)
           val tryChecker = STypeCheckerFactory.makeTryChecker(typeChecker)
           // Prime all the functional indices in this object to set their return
           // types.
-          Thunker.primeFunctionals(dottedMethods.secondSet, tryChecker)
-          Thunker.primeFunctionals(functionalMethods.secondSet, tryChecker)
+          Thunker.primeFunctionals(dottedMethods, tryChecker)
+          Thunker.primeFunctionals(functionalMethods, tryChecker)
           Thunker.primeFunctionals(CollectUtil.asSet(to.getters.values), tryChecker)
 
         case _ => ()
@@ -133,7 +130,7 @@ object Thunker {
       (implicit cycleChecker: CyclicReferenceChecker) = toSet(fns).foreach(primeFunctional(cycleChecker, tryChecker))
 
   def primeFunctionals[T<:Functional]
-      (fns: List[T], tryChecker: TryChecker)
+      (fns: Iterable[T], tryChecker: TryChecker)
       (implicit cycleChecker: CyclicReferenceChecker) = fns.foreach(primeFunctional(cycleChecker, tryChecker))
 
   def primeFunctional[T<:Functional](cycleChecker: CyclicReferenceChecker,

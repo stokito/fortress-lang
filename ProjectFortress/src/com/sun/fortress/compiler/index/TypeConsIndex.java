@@ -27,11 +27,4 @@ public abstract class TypeConsIndex {
 
     public abstract List<StaticParam> staticParameters();
 
-    /**
-     * Accepts the given node on every {@code Node} that the index contains.
-     * Note that because this method returns new TypeConsIndex-es, this visitor
-     * is required to return the same type of node for top-level nodes.
-     */
-    public abstract TypeConsIndex acceptNodeUpdateVisitor(NodeUpdateVisitor visitor);
-
 }

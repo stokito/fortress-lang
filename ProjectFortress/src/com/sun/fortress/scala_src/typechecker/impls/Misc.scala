@@ -384,9 +384,10 @@ trait Misc { self: STypeChecker with Common =>
       // Extend type checker with methods and functions
       // that will now be in scope as regular functions
       val oi = IndexBuilder.buildObjectExprIndex(o)
-      val methods = new UnionRelation(inheritedMethods(extendsC),
-                                      oi.asInstanceOf[ObjectTraitIndex].dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]])
-      method_checker = method_checker.extendWithFunctions(methods)
+      val omethods = toSet(oi.asInstanceOf[ObjectTraitIndex].dottedMethods.secondSet)
+      val imethods = commonInheritedMethods(extendsC, analyzer.traits)
+      val methods = (omethods.toList ++ imethods)
+      method_checker = method_checker.extendWithListOfFunctions(methods)
       method_checker = method_checker.extendWithFunctions(oi.asInstanceOf[ObjectTraitIndex].functionalMethods)
       // Extend method checker with self
       selfType match {

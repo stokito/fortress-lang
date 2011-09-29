@@ -117,11 +117,6 @@ public class DeclaredMethod extends Method {
     }
 
     @Override
-    public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-        return new DeclaredMethod(this, visitor);
-    }
-
-    @Override
     public IdOrOp name() {
         // Declared methods cannot have anonymous names.
         return (IdOrOp) NodeUtil.getName(_ast);
