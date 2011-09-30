@@ -17,6 +17,8 @@ import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
+
 import edu.rice.cs.plt.collect.CollectUtil;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.lambda.SimpleBox;
@@ -56,10 +58,11 @@ public class FunctionalMethod extends Function implements HasSelfType {
     /**
      * Copy another FunctionalMethod, performing a substitution with the visitor.
      */
-    public FunctionalMethod(FunctionalMethod that, NodeUpdateVisitor visitor) {
+    public FunctionalMethod(FunctionalMethod that, List<StaticParam> params, List<StaticArg> args) {
+        StaticTypeReplacer visitor = new StaticTypeReplacer(that._traitParams, args);
         _ast = (FnDecl) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
-        _traitParams = visitor.recurOnListOfStaticParam(that._traitParams);
+        _traitParams = params;
         _selfType = visitor.recurOnOptionOfSelfType(that._selfType);
         _selfPosition = that._selfPosition;
 
@@ -163,4 +166,9 @@ public class FunctionalMethod extends Function implements HasSelfType {
     public int selfPosition() {
         return _selfPosition;
     }
+    
+    public FunctionalMethod instantiateTraitStaticParameters(List<StaticParam> params, List<StaticArg> args) {
+        return new FunctionalMethod(this, params, args);
+    }
+
 }

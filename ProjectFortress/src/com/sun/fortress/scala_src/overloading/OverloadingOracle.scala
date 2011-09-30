@@ -14,6 +14,7 @@ package com.sun.fortress.scala_src.overloading
 import _root_.java.util.{List => JavaList}
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.index._
+import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.compiler.Types.ANY
 import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.Types.OBJECT
@@ -91,12 +92,33 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
     sa.equivalentED(fd, md)
   }
   
+  sealed trait COMPARISON_RESULT {}
+  case object NO_RELATION extends COMPARISON_RESULT {}
+  case object OVERLOADS extends COMPARISON_RESULT {}
+  case object NARROWS extends COMPARISON_RESULT {}
+  case object JUST_SHADOWS extends COMPARISON_RESULT {}
   
+  def compare(f: Functional, g: Functional): COMPARISON_RESULT = (f, g) match {
+    case (f: HasSelfType, g: HasSelfType) =>
+      val (fPTSS, fST, fSI) = paramTypeWithoutSelf(f)
+      val (gPTSS, gST, gSI) = paramTypeWithoutSelf(g)
+      if(fSI != gSI)
+        return NO_RELATION
+      val (fSP, gSP) = (f.staticParameters, g.staticParameters)
+      val (fSA, gSA) = (staticParamsToArgs(fSP), staticParamsToArgs(gSP))
+      val (fSA_for_gSP, gSA_for_fSP) =
+        (new StaticTypeReplacer(gSP, fSA), new StaticTypeReplacer(fSP, gSA))
+      
+      NO_RELATION
+    case _ =>
+      bug("Should only be used on methods and functional methods.")
+  }
   
   /* TODO: REMOVE THE FOLLOWING FUNCTIONS
    * They are currently being used by the code generator in a very undisciplined way
    */
-   
+  
+  
   // drc, trying to figure out Scala
   def getParamType(f: Functional, i:Int): Type = {
     val fa = makeArrowFromFunctional(f, true).get
@@ -136,5 +158,6 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
   def lteq(fd: Type, gd: Type) = {
       sa.subtypeED(fd, gd)
   }
+  
 }
 

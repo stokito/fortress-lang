@@ -11,6 +11,7 @@
 
 package com.sun.fortress.compiler.index;
 
+import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -59,12 +60,13 @@ abstract public class FieldGetterOrSetterMethod extends Method {
     /**
      * Copy another getter/setter, performing a substitution with the visitor.
      */
-    protected FieldGetterOrSetterMethod(FieldGetterOrSetterMethod that, NodeUpdateVisitor visitor) {
+    protected FieldGetterOrSetterMethod(FieldGetterOrSetterMethod that, List<StaticParam> params, List<StaticArg> args) {
+        StaticTypeReplacer visitor = new StaticTypeReplacer(that._traitParams, args);
         _ast = (Binding) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
         _selfType = visitor.recurOnOptionOfSelfType(that._selfType);
         // Static instantiation clears params
-        _traitParams = CollectUtil.emptyList();
+        _traitParams = params;
         if (that._fnDecl.isSome()) {
             _fnDecl = Option.some((FnDecl) that._fnDecl.unwrap().accept(visitor));
         } else {

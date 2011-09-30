@@ -53,8 +53,9 @@ public class FieldSetterMethod extends FieldGetterOrSetterMethod {
     /**
      * Copy another FieldSetterMethod, performing a substitution with the visitor.
      */
-    private FieldSetterMethod(FieldSetterMethod that, NodeUpdateVisitor visitor) {
-        super(that, visitor);
+    private FieldSetterMethod(FieldSetterMethod that, List<StaticParam> params, List<StaticArg> args) {
+        super(that, params, args);
+        StaticTypeReplacer visitor = new StaticTypeReplacer(params, args);
         _param = (Param) that._param.accept(visitor);
     }
     
@@ -75,9 +76,8 @@ public class FieldSetterMethod extends FieldGetterOrSetterMethod {
     }
 
     @Override
-    public FieldSetterMethod instantiate(List<StaticParam> params, List<StaticArg> args) {
-        StaticTypeReplacer replacer = new StaticTypeReplacer(params, args);
-        return new FieldSetterMethod(this, replacer);
+    public FieldSetterMethod instantiateTraitStaticParameters(List<StaticParam> params, List<StaticArg> args) {
+        return new FieldSetterMethod(this, params, args);
     }
     
 }

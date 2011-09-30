@@ -47,13 +47,14 @@ public class DeclaredMethod extends Method {
     /**
      * Copy another DeclaredMethod, performing a substitution with the visitor.
      */
-    private DeclaredMethod(DeclaredMethod that, NodeUpdateVisitor visitor) {
+    private DeclaredMethod(DeclaredMethod that, List<StaticParam> params, List<StaticArg> args) {
+        StaticTypeReplacer visitor = new StaticTypeReplacer(that._traitParams, args);
         _originalMethod = that.originalMethod();
         _ast = (FnDecl) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
         _selfType = visitor.recurOnOptionOfSelfType(that._selfType);
         // Static instantiation clears params
-        _traitParams = CollectUtil.emptyList();
+        _traitParams = params;
         _thunk = that._thunk;
         _thunkVisitors = that._thunkVisitors;
         pushVisitor(visitor);
@@ -103,9 +104,8 @@ public class DeclaredMethod extends Method {
     }
 
     @Override
-    public Method instantiate(List<StaticParam> params, List<StaticArg> args) {
-        StaticTypeReplacer replacer = new StaticTypeReplacer(params, args);
-        return new DeclaredMethod(this, replacer);
+    public Method instantiateTraitStaticParameters(List<StaticParam> params, List<StaticArg> args) {
+        return new DeclaredMethod(this, params, args);
     }
 
     public Id declaringTrait() {

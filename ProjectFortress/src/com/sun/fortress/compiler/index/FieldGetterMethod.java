@@ -46,8 +46,8 @@ public class FieldGetterMethod extends FieldGetterOrSetterMethod {
     /**
      * Copy another FieldGetterMethod, performing a substitution with the visitor.
      */
-    private FieldGetterMethod(FieldGetterMethod that, NodeUpdateVisitor visitor) {
-        super(that, visitor);
+    private FieldGetterMethod(FieldGetterMethod that, List<StaticParam> params, List<StaticArg> args) {
+        super(that, params, args);
     }
 
     /** Make a Binding for this setter from the given function. */
@@ -66,9 +66,8 @@ public class FieldGetterMethod extends FieldGetterOrSetterMethod {
     }
 
     @Override
-    public FieldGetterMethod instantiate(List<StaticParam> params, List<StaticArg> args) {
-        StaticTypeReplacer replacer = new StaticTypeReplacer(params, args);
-        return new FieldGetterMethod(this, replacer);
+    public FieldGetterMethod instantiateTraitStaticParameters(List<StaticParam> params, List<StaticArg> args) {
+        return new FieldGetterMethod(this, params, args);
     }
 
     @Override

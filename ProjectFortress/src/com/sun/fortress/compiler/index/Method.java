@@ -37,7 +37,8 @@ public abstract class Method extends Functional implements HasSelfType {
      * The contract of this method requires
      * that all implementing subtypes must return their own type, rather than a supertype.
      */
-    public abstract Method instantiate(List<StaticParam> params, List<StaticArg> args);
+    @Override
+    public abstract Method instantiateTraitStaticParameters(List<StaticParam> params, List<StaticArg> args);
 
     public Modifiers mods() {
         Node _ast = ast();

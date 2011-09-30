@@ -1117,7 +1117,7 @@ object STypesUtil {
     for (pltPair <- toSet(methods)) {
       val methodName = pltPair.first
       val (f, r, tt) = pltPair.second
-      val (paramTy, selfIndex, sparams) = paramTyWithoutSelf(methodName, f, r)
+      val (paramTy, selfIndex, sparams) = paramTySchemaWithoutSelf(methodName, f, r)
       allMethods.addBinding(methodName, (paramTy, selfIndex, sparams, f, r, tt))
     }
     var traitsToDo: List[TraitTypeWhere] = extendedTraits
@@ -1140,7 +1140,7 @@ object STypesUtil {
               
             def oneMethod(methodName: IdOrOp, methodFunc: Functional) = {
               val (paramTy, selfIndex, sparams) =
-                paramTyWithoutSelf(methodName, methodFunc, paramsToArgs)
+                paramTySchemaWithoutSelf(methodName, methodFunc, paramsToArgs)
               val first_analyzer = analyzer.extend(sparams, None)
               var new_analyzer = first_analyzer
               if (!methodFunc.name().equals(methodName)) {
@@ -1324,7 +1324,7 @@ object STypesUtil {
     implicit val bs = (true, true, true, false)
     val fnsAndArgs = ws.toList.flatMap{uberInheritedMethods(_)}
     fnsAndArgs.map{
-      case (m: Method, Some(as)) => m.instantiate(m.traitStaticParameters() , as)
+      case (m: Method, Some(as)) => m.instantiateTraitStaticParameters(m.traitStaticParameters() , as)
       case (m, None)  => bug(m + "is not a method or did not have static args.")
     }
   }
@@ -1349,7 +1349,8 @@ object STypesUtil {
     null
   }
   
-  private def paramTyWithoutSelf(name: IdOrOpOrAnonymousName, func: Functional,
+  // TODO: Remove this
+  private def paramTySchemaWithoutSelf(name: IdOrOpOrAnonymousName, func: Functional,
     paramsToArgs: StaticTypeReplacer) = {
     val span = NU.getSpan(name)
     val params = toListFromImmutable(func.parameters)
@@ -1365,6 +1366,19 @@ object STypesUtil {
       case Some(t) => (paramsToArgs.replaceIn(t), sp, sparams)
       case _ => (NF.makeVoidType(span), sp, sparams)
     }
+  }
+  
+  def paramTypeWithoutSelf(func: Functional with HasSelfType) = {
+    val stp = func.selfPosition
+    val params = toListFromImmutable(func.parameters)
+    val span = NU.getSpan(func.name)
+    val paramsSansSelf =
+      if (stp >= 0)
+        params.take(stp) ++ params.drop(stp + 1)
+      else
+        params
+    val paramTypeSansSelf = paramsToType(paramsSansSelf, span).get
+    (paramTypeSansSelf, func.selfType, stp)
   }
 
   /* Returns the type of the given list of parameters. */
