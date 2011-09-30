@@ -1378,7 +1378,7 @@ object STypesUtil {
       else
         params
     val paramTypeSansSelf = paramsToType(paramsSansSelf, span).get
-    (paramTypeSansSelf, func.selfType, stp)
+    (paramTypeSansSelf, func.selfType.unwrap, stp)
   }
 
   /* Returns the type of the given list of parameters. */

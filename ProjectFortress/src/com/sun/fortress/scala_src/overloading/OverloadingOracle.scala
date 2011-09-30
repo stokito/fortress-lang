@@ -22,11 +22,7 @@ import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory._
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.typechecker.ConstraintFormula
-import com.sun.fortress.scala_src.typechecker.CnFalse
-import com.sun.fortress.scala_src.typechecker.CnTrue
-import com.sun.fortress.scala_src.typechecker.CnAnd
-import com.sun.fortress.scala_src.typechecker.CnOr
+import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
 import com.sun.fortress.scala_src.typechecker.TraitTable
 import com.sun.fortress.scala_src.types.TypeAnalyzer
@@ -73,13 +69,6 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
     }
   }
   
-  
-  // TODO: Implement the following functions for use in the code generator
-  def shadows(f: Functional, g: Functional): Boolean = false
-  def narrows(f: Functional, g: Functional): Boolean = true
-  def overrides(f: Functional, g: Functional): Boolean = false
-
-  
   //Checks whether f is the meet of g and h
   def meet(f: Functional, g: Functional, h: Functional)(implicit checkingMethods: Boolean): Boolean = {
     val fa = makeArrowFromFunctional(f, true).get
@@ -100,18 +89,53 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
   
   def compare(f: Functional, g: Functional): COMPARISON_RESULT = (f, g) match {
     case (f: HasSelfType, g: HasSelfType) =>
-      val (fPTSS, fST, fSI) = paramTypeWithoutSelf(f)
-      val (gPTSS, gST, gSI) = paramTypeWithoutSelf(g)
+      val (fPTSS, tFST, fSI) = paramTypeWithoutSelf(f)
+      val fST = removeSelf(tFST)
+      val (uGPTSS, uGST, gSI) = paramTypeWithoutSelf(g)
       if(fSI != gSI)
         return NO_RELATION
-      val (fSP, gSP) = (f.staticParameters, g.staticParameters)
-      val (fSA, gSA) = (staticParamsToArgs(fSP), staticParamsToArgs(gSP))
-      val (fSA_for_gSP, gSA_for_fSP) =
-        (new StaticTypeReplacer(gSP, fSA), new StaticTypeReplacer(fSP, gSA))
-      
-      NO_RELATION
+      val (fSPJ, gSPJ) = (f.staticParameters, g.staticParameters)
+      val (fSPS, gSPS) = (toList(fSPJ), toList(gSPJ))
+      val (fSA, gSA) = (staticParamsToArgs(fSPJ), staticParamsToArgs(gSPJ))
+      val (fTA, gTA) = (ta.extend(gSPS, None), ta.extend(fSPS, None))
+      if(!staticArgsMatchStaticParams(toList(fSA), gSPS)(fTA) || 
+         !staticArgsMatchStaticParams(toList(gSA), fSPS)(gTA))
+        return NO_RELATION
+      val fSA_for_gSP = new StaticTypeReplacer(fSPJ, gSA)
+      val (gPTSS, gST) = (fSA_for_gSP.replaceIn(uGPTSS), fSA_for_gSP.replaceIn(removeSelf(uGST)))
+      val (fRT, gRT) = (f.getReturnType.unwrap, fSA_for_gSP.replaceIn(g.getReturnType.unwrap))
+      val fST_strictlySub_gST = isTrue(fTA.subtype(fST, gST)) && !isTrue(fTA.subtype(gST,fST))
+      val gDTSS_sub_fDTSS = isTrue(fTA.subtype(gPTSS, fPTSS))
+      val fDTSS_sub_gDTSS = isTrue(fTA.subtype(fPTSS, gPTSS))
+      val fRT_eq_gRT = isTrue(fTA.equivalent(fRT, gRT))
+      (fST_strictlySub_gST, gDTSS_sub_fDTSS, fDTSS_sub_gDTSS, fRT_eq_gRT) match {
+        case (false, _, _, _) => NO_RELATION
+        case (true, true, false, _) => JUST_SHADOWS
+        case (true, true, true, false) => NARROWS
+        case (true, true, true, true) => OVERLOADS
+      }
     case _ =>
       bug("Should only be used on methods and functional methods.")
+  }
+  
+  def narrows(f: Functional, g: Functional) = compare(f, g) match {
+    case NARROWS => true
+    case _ => false
+  }
+  
+  def shadows(f: Functional, g: Functional) = compare(f, g) match {
+    case NO_RELATION => false
+    case _ => true
+  }
+  
+  def overloads(f: Functional, g: Functional) = compare(f, g) match {
+    case OVERLOADS => true
+    case _ => false
+  }
+  
+  private def removeSelf(x: SelfType) = x match {
+    case STraitSelfType(_, tt, _) => tt
+    case _ => x
   }
   
   /* TODO: REMOVE THE FOLLOWING FUNCTIONS
