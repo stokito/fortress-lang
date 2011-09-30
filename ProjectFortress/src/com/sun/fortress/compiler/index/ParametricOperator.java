@@ -30,8 +30,8 @@ public class ParametricOperator extends FunctionalMethod {
         putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
 
-    public ParametricOperator(ParametricOperator that, NodeUpdateVisitor visitor) {
-        super(that, visitor);
+    public ParametricOperator(ParametricOperator that, List<StaticParam> params, List<StaticArg> args) {
+        super(that, params, args);
     }
 
     @Override

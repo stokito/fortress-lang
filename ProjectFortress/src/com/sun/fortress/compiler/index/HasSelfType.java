@@ -11,8 +11,8 @@
 
 package com.sun.fortress.compiler.index;
 
-import com.sun.fortress.nodes.SelfType;
 import com.sun.fortress.nodes.*;
+
 import edu.rice.cs.plt.tuple.Option;
 import java.util.List;
 
@@ -25,4 +25,6 @@ public interface HasSelfType {
     public Option<SelfType> selfType();
     public int selfPosition();
     public List<StaticParam> traitStaticParameters();
+    public HasSelfType instantiateTraitStaticParameters(List<StaticParam> params, List<StaticArg> args);
+    
 }
