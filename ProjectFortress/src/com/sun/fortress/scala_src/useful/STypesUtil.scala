@@ -1324,7 +1324,7 @@ object STypesUtil {
     implicit val bs = (true, true, true, false)
     val fnsAndArgs = ws.toList.flatMap{uberInheritedMethods(_)}
     fnsAndArgs.map{
-      case (m: Method, Some(as)) => m.instantiateTraitStaticParameters(m.traitStaticParameters() , as)
+      case (m: Method, Some(as)) => m.instantiateTraitStaticParameters(toJavaList(List()) , as)
       case (m, None)  => bug(m + "is not a method or did not have static args.")
     }
   }
