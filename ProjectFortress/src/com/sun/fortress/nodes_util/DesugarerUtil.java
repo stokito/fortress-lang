@@ -104,7 +104,11 @@ public class DesugarerUtil {
     }
 
     public static Id gensymId(String prefix) {
-        return NodeFactory.makeId(NodeFactory.internalSpan, gensym(prefix));
+        return gensymId(NodeFactory.internalSpan, prefix);
+    }
+
+    public static Id gensymId(Span s, String prefix) {
+        return NodeFactory.makeId(s, gensym(prefix));
     }
 
     /**

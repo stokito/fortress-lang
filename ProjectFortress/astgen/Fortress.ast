@@ -971,7 +971,7 @@ interface Node() extends HasAt;
                          * Names of "method" must be unqualified.
                          * e.g.) myString.toUppercase()
                          */
-                        MethodInvocation(Expr obj, Id method,
+                        MethodInvocation(Expr obj, IdOrOp method,
                                          List<StaticArg> staticArgs,
                                          Expr arg,
                                          Option<Type> overloadingType = Option.<Type>none(),

@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2009, Oracle and/or its affiliates.
+    Copyright 2009,2011 Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -25,5 +25,7 @@
     o.s ||= "huh?"
 
     var x: String = "hello"
-    ((O(x))[5], x, (O(x)).s) ||= (x, " world", x)
+    (O(x))[5] ||= x
+    x ||= " world"
+    (O(x)).s ||= x
   end

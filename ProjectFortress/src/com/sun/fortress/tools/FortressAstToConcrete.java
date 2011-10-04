@@ -638,12 +638,12 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             public String forNamedOp(final NamedOp opThat) {
                 final String oper = opThat.getText();
                 if (opThat.isEnclosing()) {
-                    String left = oper.split(" ")[0];
+                    String left = oper.split("_")[0];
                     String right = oper.substring(left.length());
-                    if (left.equals("BIG")) {
-                        left = "BIG " + right.split(" ")[0];
-                        right = right.substring(left.length());
-                    }
+//                     if (left.equals("BIG")) {
+//                         left = "BIG " + right.split(" ")[0];
+//                         right = right.substring(left.length());
+//                     }
                     String params = vparams.equals("()") ? "" : vparams;
                     params = params.startsWith("(") ? params.substring(1, params.length() - 1) : params;
                     return "opr " + left + sparams + " " + params + " " + right;
@@ -1424,7 +1424,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         if (that.getAccOp().isEnclosing()) { // comprehensions
             Op _op = that.getAccOp();
             String op = _op.getText();
-            String left = op.split(" ")[0];
+            String left = op.split("_")[0];
             String right = op.substring(left.length());
             left = left.startsWith("BIG") ? left.substring(4, left.length()) : left;
             String closing = right.startsWith("BIG") ? right.substring(4, right.length()) : right;
@@ -1837,7 +1837,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 final String oper = canonicalOp(opThat.getText());
                 if (opThat.isEnclosing()) {
                     String op = opThat.getText();
-                    String left = op.split(" ")[0];
+                    String left = op.split("_")[0];
                     String right = op.substring(left.length());
                     String staticArgs = "";
                     List<StaticArg> sargs = thatOpExpr.getOp().getStaticArgs();
@@ -2620,7 +2620,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
             StringBuilder s = new StringBuilder();
 
             String op = that.getText();
-            String left = op.split(" ")[0];
+            String left = op.split("_")[0];
             String right = op.substring(left.length());
 
             s.append(left);
@@ -2825,7 +2825,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         String op = that.getOp().getText();
-        String left = op.split(" ")[0];
+        String left = op.substring(1).split("_")[0];
         String right = op.substring(left.length());
         s.append(left);
         inOxfordBrackets(s, staticArgs_result);

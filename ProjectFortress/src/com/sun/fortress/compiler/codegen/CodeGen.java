@@ -988,12 +988,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 
                 Type raw_super_ret = oa.getRangeType(super_func);
                 Type super_ret = super_inst.replaceIn(raw_super_ret);
-                int super_self_index = selfParameterIndex(super_func.parameters());
+                int super_self_index = NodeUtil.selfParameterIndex(super_func.parameters());
                 Type super_noself_domain = super_inst.replaceIn(selfEditedDomainType(super_func, super_self_index));
 
                 for (Functional func : funcs) {
                     Type ret = local_inst.replaceIn(oa.getRangeType(func));
-                    int self_index = selfParameterIndex(func.parameters());
+                    int self_index = NodeUtil.selfParameterIndex(func.parameters());
                     if (self_index != super_self_index) {
                         /*
                          * Not sure we see this ever; it is a bit of a mistake,
@@ -2450,7 +2450,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         FnHeader header = x.getHeader();
 
         List<Param> params = header.getParams();
-        int selfIndex = selfParameterIndex(params);
+        int selfIndex = NodeUtil.selfParameterIndex(params);
 
         // Someone had better get rid of anonymous names before they get to CG.
         IdOrOp name = (IdOrOp) header.getName();
@@ -2946,25 +2946,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitEnd();
     }
 
-    /**
-     * TODO: surely this is derivable from the arrow type, which maintains the selfParameterIndex?
-     * Are those inconsistent with one another?
-     * @param params
-     * @return
-     */
-    private int selfParameterIndex(List<Param> params) {
-        int selfIndex = Naming.NO_SELF;
-        int i = 0;
-        for (Param p : params) {
-            if (p.getName().getText() == "self") {
-                selfIndex = i;
-                break;
-            }
-            i++;
-        }
-        return selfIndex;
-    }
-
     public void forTupleExpr(TupleExpr x) {
         List<Expr> exprs = x.getExprs();
         Type t = x.getInfo().getExprType().unwrap();
@@ -3400,7 +3381,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // consistent; basically we need to create the definition
             // here, and the use that VarCodeGen object for the
             // subsequent true definitions.
-            throw sayWhat(d, "Can't yet handle forward binding declarations.");
+	    String varnames = "";
+	    for (LValue lh : lhs) {
+		varnames = varnames + " " + lh.getName();
+	    }
+            throw sayWhat(d, "Can't yet handle forward binding declarations (variables are:" + varnames + ")");
         }
         int n = lhs.size();
         List<VarCodeGen> vcgs = new ArrayList(n);
@@ -5290,7 +5275,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
               " static args = ", x.getStaticArgs(),
               " args = ", x.getArg(),
               " overloading type = " + x.getOverloadingType());
-        Id method = x.getMethod();
+        IdOrOp method = x.getMethod();
         Expr obj = x.getObj();
         List<StaticArg> method_sargs = x.getStaticArgs();
         Expr arg = x.getArg();
@@ -5906,7 +5891,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             List<StaticParam> sparams = h.getStaticParams();
 
             List<Param> params = h.getParams();
-            int selfIndex = selfParameterIndex(params);
+            int selfIndex = NodeUtil.selfParameterIndex(params);
             boolean  functionalMethod = selfIndex != Naming.NO_SELF;
 
             if (sparams.size() > 0) {

@@ -13,6 +13,11 @@
 
   export Executable
 
+  opr +(a: (ZZ32, ZZ32), b: ZZ32): (ZZ32, ZZ32) = do
+    (p, q) = a
+    (p+b, q+b)
+  end
+
   run() = do
     var x: ZZ32 = 0
     x += 5

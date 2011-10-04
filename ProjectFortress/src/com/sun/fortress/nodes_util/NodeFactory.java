@@ -1805,8 +1805,13 @@ return new TraitType(info, name, sargs, sparams);
 
     public static Op makeEnclosing(Span in_span, String in_open, String in_close) {
         return makeOp(in_span, Option.<APIName>none(),
-                      PrecedenceMap.ONLY.canon(in_open + " " + in_close),
+                      PrecedenceMap.ONLY.canon(in_open + "_" + in_close),
                       enclosing, true);
+    }
+
+    public static Op makeEnclosing(Span in_span, String in_open, String in_close, boolean subscript, boolean assignment) {
+	String name = PrecedenceMap.ONLY.canon((subscript ? "_" : "") + in_open + "_" + in_close + (assignment ? ":=" : ""));
+	return makeOp(in_span, Option.<APIName>none(), name, enclosing, true);
     }
 
     public static Op makeOp(Span span, Option<APIName> api,
@@ -1916,7 +1921,7 @@ return new TraitType(info, name, sargs, sparams);
     public static Op makeBig(Op op) {
         if ( op.isEnclosing() ) {
             String _op = op.getText();
-            String left  = _op.split(" ")[0];
+            String left  = _op.split("_")[0];
             String right = "BIG " + _op.substring(left.length()+1);
             left  = "BIG " + left;
             return makeEnclosing(NodeUtil.getSpan(op), left, right);

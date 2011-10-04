@@ -284,7 +284,7 @@ trait Decls { self: STypeChecker with Common =>
             case List(lhs) => List((lhs, rhsType))
             case _ =>
               if (!enoughElementsForType(lhses, rhsType)) {
-                signal(node, "Right-hand side has type %s, but left-hand side declares %d variables.".format(rhsType, lhses.size))
+                signal(node, "Right-hand side has type %s, but left-hand side is a tuple of %d variables.".format(rhsType, lhses.size))
                 return node
               }
               zipWithRhsType(lhses, rhsType)
@@ -377,7 +377,7 @@ trait Decls { self: STypeChecker with Common =>
             case List(lhs) => List((lhs, rhsType))
             case _ =>
               if (!enoughElementsForType(lhses, rhsType)) {
-                signal(expr, "Right-hand side has type %s, but left-hand side declares %d variables.".format(rhsType, lhses.size))
+                signal(expr, "Right-hand side has type %s, but left-hand side is a tuple of %d variables.".format(rhsType, lhses.size))
                 return expr
               }
               zipWithRhsType(lhses, rhsType)

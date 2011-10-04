@@ -70,7 +70,8 @@ FnHeaderFront OpHeaderFront :=
        yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
                                             opa1, opa4.getText(),
                                             Option.<String>wrap(big), opa2, opa3,
-                                            Option.<Param>wrap(opa5));
+					    !NodeUtil.hasSelfParameter(opa3),
+					    Option.<Param>wrap(opa5));
      }
    / ... ;
 
@@ -89,6 +90,7 @@ FnHeaderFront AbsOpHeaderFront :=
        yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
                                             opa1, opa4.getText(),
                                             Option.<String>wrap(big), opa2, opa3,
+					    !NodeUtil.hasSelfParameter(opa3),
                                             Option.<Param>wrap(opa5));
      }
    / ... ;

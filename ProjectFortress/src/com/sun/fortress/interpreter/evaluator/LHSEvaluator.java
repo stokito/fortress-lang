@@ -46,10 +46,10 @@ public class LHSEvaluator extends NodeAbstractVisitor<Voidoid> {
         args.add(value);
         args.addAll(indices);
         Option<Op> op = x.getOp();
-        // Should evaluate obj.[](subs, value)
-        String opString = "[]=";
+        // Should evaluate obj._[_]:=(subs, value)
+        String opString = "_[_]:=";
         if (op.isSome()) {
-            opString = NodeUtil.nameString(op.unwrap());
+            opString = NodeUtil.nameString(op.unwrap()) + ":=";
         }
         evaluator.invokeMethod(arr, opString, args, x);
         return null;

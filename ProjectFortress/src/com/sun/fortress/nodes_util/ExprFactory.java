@@ -133,21 +133,33 @@ public class ExprFactory {
     }
 
     public static MethodInvocation makeMethodInvocation(FieldRef that, Expr obj,
-                                                        Id field, Expr expr) {
+                                                        IdOrOp field, Expr expr) {
         return makeMethodInvocation(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that),
                                     NodeUtil.getExprType(that), obj, field, expr);
     }
 
+    public static MethodInvocation makeMethodInvocation(SubscriptExpr that, Expr obj,
+                                                        IdOrOp method, List<StaticArg> staticArgs, Expr arg) {
+        return makeMethodInvocation(NodeUtil.getSpan(that), true,
+                                    NodeUtil.getExprType(that), obj, method, staticArgs, arg);
+    }
+
+    public static MethodInvocation makeMethodInvocation(Assignment that, Expr obj,
+                                                        IdOrOp method, List<StaticArg> staticArgs, Expr arg) {
+        return makeMethodInvocation(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that),
+                                    NodeUtil.getExprType(that), obj, method, staticArgs, arg);
+    }
+
     public static MethodInvocation makeMethodInvocation(Span span,
                                                         Expr receiver,
-                                                        Id method,
+                                                        IdOrOp method,
                                                         Expr arg) {
         return makeMethodInvocation(span, false, Option.<Type>none(),
                                     receiver, method, arg);
     }
     public static MethodInvocation makeMethodInvocation(Span span,
                                                         Expr receiver,
-                                                        Id method,
+                                                        IdOrOp method,
                                                         List<StaticArg> staticArgs,
                                                         Expr arg) {
         return makeMethodInvocation(span, false, Option.<Type>none(),
@@ -157,7 +169,7 @@ public class ExprFactory {
     public static MethodInvocation makeMethodInvocation(Span span,
                                                         boolean isParenthesized,
                                                         Option<Type> type,
-                                                        Expr obj, Id field,
+                                                        Expr obj, IdOrOp field,
                                                         Expr expr) {
         return makeMethodInvocation(span, isParenthesized, type, obj, field,
                                     Collections.<StaticArg>emptyList(), expr);
@@ -166,7 +178,7 @@ public class ExprFactory {
     public static MethodInvocation makeMethodInvocation(Span span,
                                                         boolean parenthesized,
                                                         Option<Type> ty,
-                                                        Expr obj, Id field,
+                                                        Expr obj, IdOrOp field,
                                                         List<StaticArg> staticArgs,
                                                         Expr expr) {
         ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
@@ -700,7 +712,7 @@ public class ExprFactory {
     public static Expr makeSubscripting(Span span, Expr base, String open,
                                         String close, List<Expr> args,
                                         List<StaticArg> sargs) {
-        Op op = NodeFactory.makeEnclosing(span, open, close);
+        Op op = NodeFactory.makeEnclosing(span, open, close, true, false);
         List<Expr> es;
         if (args == null) es = Collections.<Expr>emptyList();
         else              es = args;
@@ -1080,6 +1092,14 @@ public class ExprFactory {
         return new _RewriteObjectExpr(info, header,
                                       implicitTypeParameters, genSymName,
                                       staticArgs);
+    }
+
+    public static Assignment makeAssignment(Span span, Lhs lhs, Expr rhs) {
+        return makeAssignment(span, Option.<Type>none(), Useful.list(lhs), Option.<FunctionalRef>none(), rhs);
+    }
+
+    public static Assignment makeAssignment(Span span, List<Lhs> lhs, Expr rhs) {
+        return makeAssignment(span, Option.<Type>none(), lhs, Option.<FunctionalRef>none(), rhs);
     }
 
     public static Assignment makeAssignment(Span span, List<Lhs> lhs,

@@ -488,7 +488,7 @@ trait Operators { self: STypeChecker with Common =>
           val newExpr = SSubscriptExpr(info,
                                        makeDummyFor(checkedObj),
                                        (checkedRhs :: checkedSubs).map(makeDummyFor),
-                                       Some(op),
+                                       Some(NF.makeOp(op, op.getText() + ":=")),
                                        sargs)
           val maybeCheckedExpr =
             STypeCheckerFactory.makeTryChecker(this).tryCheckExpr(newExpr)

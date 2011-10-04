@@ -766,8 +766,8 @@ object STypesUtil {
    */
   def enoughElementsForType[T](elts: List[T], typ: Type): Boolean =
     elts.size == 1 || (typ match {
-      case STupleType(_, typs, None, _) => typs.size == elts.size
-      case STupleType(_, typs, Some(_), _) => false //typs.size <= elts.size
+      case STupleType(_, typs, None, _) => typs.size == elts.size   // no varargs, keywords ignored for now
+      case STupleType(_, typs, Some(_), _) => false //typs.size <= elts.size    // varargs, but ignored for now (as are keywords)
       case _ => false
     })
 
