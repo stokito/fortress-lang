@@ -18,6 +18,7 @@ import java.util.List;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 
+import com.sun.fortress.Shell;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.DesugarerUtil;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -43,7 +44,10 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
  *  {@code e_1 AND (fn () => e_2)}, for which an overloading must exist.
  *  This desugaring must go before disambiguation, and is therefore called
  *  by {@code PreDisambiguationDesugarer}.
- *  3) Remwrite reductions to explicit invocations of big operators.
+ *  3) Rewrite reductions to explicit invocations of big operators.
+ *  4) Desugar compound assignments (this requires identifying subexpressions of LHS)
+ *  5) Desugar subscripting expressions to method calls.
+ *  6) Desugar subscripting assignments
  */
 public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
 
@@ -396,5 +400,148 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         if ( isParen ) res = ExprFactory.makeInParentheses(res);
         return (Expr)recur(res);
     }
+
+    @Override
+    public Node forSubscriptExpr(SubscriptExpr that) {
+	if (!Shell.getAssignmentPreDesugaring()) {
+	    return super.forSubscriptExpr(that);
+	} else {
+	    // Rewrite a subscript expression into a method call (pretty straightforward)
+	    Expr obj = that.getObj();
+	    List<Expr> subs = that.getSubs();
+	    Option<Op> op = that.getOp();
+	    List<StaticArg> staticArgs =that.getStaticArgs();
+	    if (!op.isSome()) bug(that, "Subscript operator expected");
+	    Op knownOp = op.unwrap();
+	    Expr result = ExprFactory.makeMethodInvocation(that,
+							   obj,
+							   knownOp,
+							   staticArgs,
+							   ExprFactory.makeTupleExpr(NodeUtil.getSpan(knownOp), subs));					   
+	    return (Expr)recur(result);
+	}
+    }
+    
+    @Override
+    public Node forAssignment(Assignment that) {
+	// Here there are three sorts of rewrite to consider:
+	// (a) If this is a compound assignment, rewrite to use ordinary assignment.
+	// (b) If the lhs is a tuple, rewrite into a set of individual assignments.
+	// (c) If the lhs is a subscript expression, rewrite to a method call.
+	List<Lhs> lhs = that.getLhs();
+	Option<FunctionalRef> assignOp = that.getAssignOp();
+	Expr rhs = that.getRhs();
+	List<CompoundAssignmentInfo> assignmentInfos = that.getAssignmentInfos();
+	if (!Shell.getAssignmentPreDesugaring()) {
+	    return super.forAssignment(that);
+	}
+        else if (assignOp.isSome() || lhs.size() > 1) {
+	    // Compound and/or tuple assignment
+	    // The basic idea is to transform `(a, b.field, c[sub1,sub2]) := e` into
+	    // `do (ta, tb, tc, tsub1, tsub2, (t1, t2, t3)) = (a, b, c, sub1, sub2, e)
+	    //     a := t1; tb.field := t2; tc[tsub1, tsub2] := t3 end`
+	    // (TODO) Unfortunately, currently we don't handle nested binding tuples.
+	    // For now, we'll just transform it into
+	    // `do (ta, tb, tc, tsub1, tsub2) = (a, b, c, sub1, sub2)
+	    //     (t1, t2, t3) = e
+	    //     a := t1; tb.field := t2; tc[tsub1, tsub2] := t3 end`
+	    // which merely loses a bit of potential parallelism.
+	    // We omit the first tuple binding if the tuple is empty.
+	    // If it is a compound assignment `(a, b.field, c[sub1,sub2]) OP= e`, it becomes
+	    // `do (ta, tb, tc, tsub1, tsub2) = (a, b, c, sub1, sub2)
+	    //     (t1, t2, t3) = (ta, tb, tc[tsub1, tsub2]) OP e
+	    //     a := t1; tb.field := t2; tc[tsub1, tsub2] := t3 end`
+	    List<LValue> exprLValues = Useful.list();
+	    List<LValue> otherLValues = Useful.list();
+	    List<Expr> otherExprs = Useful.list();
+	    List<Expr> assignments = Useful.list();
+	    boolean isCompound = assignOp.isSome();
+	    List<Expr> accesses = Useful.list();
+	    Span thatSpan = NodeUtil.getSpan(that);
+	    for (Lhs lh : lhs) {
+		Span lhSpan = NodeUtil.getSpan((Expr)lh);
+		Id tempId = DesugarerUtil.gensymId(lhSpan, "e");
+		VarRef tempVar = ExprFactory.makeVarRef(lhSpan, tempId);
+		exprLValues = Useful.snoc(exprLValues, NodeFactory.makeLValue(lhSpan ,tempId));
+		if (lh instanceof SubscriptExpr) {
+		    SubscriptExpr lhsub = (SubscriptExpr)lh;
+		    Expr obj = lhsub.getObj();
+		    Span objSpan = NodeUtil.getSpan(obj);
+		    List<Expr> subs = lhsub.getSubs();
+		    Id baseTempId = DesugarerUtil.gensymId(objSpan, "b");
+		    VarRef baseTempVar = ExprFactory.makeVarRef(objSpan, baseTempId);
+		    otherLValues = Useful.snoc(otherLValues, NodeFactory.makeLValue(objSpan, baseTempId));
+		    otherExprs = Useful.snoc(otherExprs, obj);
+		    List<Expr> subTempVars = Useful.list();
+		    for (Expr sub : lhsub.getSubs()) {
+			Span subSpan = NodeUtil.getSpan(sub);
+			Id subTempId = DesugarerUtil.gensymId(subSpan, "s");
+			subTempVars = Useful.snoc(subTempVars, ExprFactory.makeVarRef(subSpan, subTempId));
+			otherLValues = Useful.snoc(otherLValues, NodeFactory.makeLValue(subSpan, subTempId));
+		    }
+		    otherExprs = Useful.concat(otherExprs, subs);
+		    SubscriptExpr newLhs = ExprFactory.makeSubscriptExpr(NodeUtil.getSpan(lhsub),
+									 baseTempVar, subTempVars,
+									 lhsub.getOp(), lhsub.getStaticArgs());
+		    if (isCompound) accesses = Useful.snoc(accesses, newLhs);
+		    assignments = Useful.snoc(assignments, ExprFactory.makeAssignment(thatSpan, newLhs, tempVar));
+		} else if (lh instanceof FieldRef) {
+		    FieldRef lhref = (FieldRef)lh;
+		    Expr obj = lhref.getObj();
+		    Span objSpan = NodeUtil.getSpan(obj);
+		    Id objTempId = DesugarerUtil.gensymId(objSpan, "o");
+		    VarRef objTempVar = ExprFactory.makeVarRef(objSpan, objTempId);
+		    otherLValues = Useful.snoc(otherLValues, NodeFactory.makeLValue(objSpan, objTempId));
+		    otherExprs = Useful.snoc(otherExprs, obj);
+		    FieldRef newLhs = ExprFactory.makeFieldRef(NodeUtil.getSpan(lhref), objTempVar, lhref.getField());
+		    if (isCompound) accesses = Useful.snoc(accesses, newLhs);
+		    assignments = Useful.snoc(assignments, ExprFactory.makeAssignment(thatSpan, newLhs, tempVar));
+		} else if (lh instanceof VarRef) {
+		    VarRef lhvar = (VarRef)lh;
+		    Span varSpan = NodeUtil.getSpan(lhvar);
+		    Id varTempId = DesugarerUtil.gensymId(varSpan, "v");
+		    VarRef varTempVar = ExprFactory.makeVarRef(varSpan, varTempId);
+		    otherLValues = Useful.snoc(otherLValues, NodeFactory.makeLValue(varSpan, varTempId));
+		    otherExprs = Useful.snoc(otherExprs, lhvar);
+		    if (isCompound) accesses = Useful.snoc(accesses, varTempVar);
+		    assignments = Useful.snoc(assignments, ExprFactory.makeAssignment(thatSpan, lhvar, tempVar));
+		} else {
+		    bug(that, "Malformed assignment LHS");
+		}
+	    }
+	    Expr result = ExprFactory.makeBlock(thatSpan, assignments);
+	    if (otherExprs.size() > 0) {
+		Expr otherRhs = ExprFactory.makeMaybeTupleExpr(thatSpan, otherExprs);
+		result = ExprFactory.makeLocalVarDecl(thatSpan, otherLValues, otherRhs,  result);
+	    }
+	    Expr newRhs = isCompound ?
+		ExprFactory.makeOpExpr(NodeUtil.spanTwo(assignOp.unwrap(), rhs),
+				       assignOp.unwrap(),
+				       ExprFactory.makeMaybeTupleExpr(thatSpan, accesses),
+				       rhs) :
+		rhs;
+	    result = ExprFactory.makeLocalVarDecl(thatSpan, exprLValues, newRhs, result);
+	    return (Expr)recur(result);
+	} else if (lhs.get(0) instanceof SubscriptExpr) {
+	    // Subscripted assignment
+	    SubscriptExpr lhExpr = (SubscriptExpr)lhs.get(0);
+	    Expr obj = lhExpr.getObj();
+	    List<Expr> subs = lhExpr.getSubs();
+	    Option<Op> op = lhExpr.getOp();
+	    List<StaticArg> staticArgs = lhExpr.getStaticArgs();
+	    if (!op.isSome()) bug(lhExpr, "Subscript operator expected");
+	    Op knownOp = op.unwrap();
+	    Expr result = ExprFactory.makeMethodInvocation(that,
+							   obj,
+							   NodeFactory.makeOp(knownOp, knownOp.getText() + ":="),
+							   staticArgs,
+							   ExprFactory.makeTupleExpr(NodeUtil.spanTwo(knownOp, rhs),
+										     Useful.cons(rhs, subs)));
+	    return (Expr)recur(result);
+	} else {
+	    return super.forAssignment(that);
+	}
+    }
+
 
 }

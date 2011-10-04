@@ -27,6 +27,12 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 
 /**
  * Desugars all ChainExprs into compound OpExprs.
+ *
+ * Example: `a < b = c <= d < e` desugars into:
+ *   do
+ *      (t1, t2, t3, t4, t5) = (a, b, c, d, e)
+ *      (((t1 < t2) AND (t2 = t3)) AND (t3 = t4)) AND (t4 < t5)
+ *   end
  */
 class ChainExprDesugarer extends Walker {
 
@@ -36,55 +42,51 @@ class ChainExprDesugarer extends Walker {
   /** Java Option of boolean type. */
   private val BOOLEAN = some[Type](Types.BOOLEAN)
 
-  /** Walk the AST, recursively desugaring any ChainExprs. */
+  /** Walk the AST, recursively desugaring any ChainExpr nodes. */
   override def walk(node: Any) = node match {
-    case e:ChainExpr => desugarChainExpr(e)
+    case SChainExpr(info, first, links, andop) => 
+        // Recursively desugar the constituent expressions.
+	val recurredFirst = walk(first).asInstanceOf[Expr]
+        val recurredLinks = links.map(walk(_).asInstanceOf[Link])
+	desugarChainExpr(SChainExpr(info, recurredFirst, recurredLinks, andop))
     case _ => super.walk(node)
   }
 
   /** Desugar the given ChainExpr. */
-  def desugarChainExpr(e: ChainExpr): Expr = {
-    val SChainExpr(info, first, links, _) = e
-    val andOp = addSpan(e.getAndOp, info.getSpan()).asInstanceOf[FunctionalRef]
+  def desugarChainExpr(ce: ChainExpr): Expr = {
+    val SChainExpr(info, first, links, _) = ce
+    val andOp = addSpan(ce.getAndOp, info.getSpan()).asInstanceOf[FunctionalRef]
 
-    // Recursively desugar the constituent expressions.
-    val newFirst = walk(first).asInstanceOf[Expr]
-    val newLinks = links.map(walk(_).asInstanceOf[Link])
-
-    // Common case: 1 operator.  Written rather imperatively
-    // to bail out without complicating the rest.
-    newLinks match {
+    val result = links match {
         case SLink(info, op, expr) :: Nil =>
-            var res = EF.makeOpExpr(NU.getSpan(e), BOOLEAN, op, newFirst, expr);
-            return setParenthesized(res, NU.isParenthesized(e));
-        case _ => ()
+	    // Common case: just 1 operator, so no temporary variables needed.
+            EF.makeOpExpr(NU.getSpan(ce), BOOLEAN, op, first, expr);
+        case _ =>
+	    // Create the decl to bind new vars to all exprs.
+	    val linkExprs = links.map(_.getExpr)
+	    val firstVar = naming.makeVarRef(first)
+	    val linkVars = linkExprs.map(naming.makeVarRef)
+	    val allVars = firstVar :: linkVars
+	    val decl = TempVarDecl(allVars, first :: linkExprs)
+
+	    // Create the conjuncts.
+	    val conjuncts = (allVars, links, linkVars).zipped.map {
+	      case (left, SLink(_, op, _), right) =>
+		setParenthesized(EF.makeOpExpr(NU.spanTwo(left, right), BOOLEAN, op, left, right), true)
+	    }
+
+	    // Build up the conjunction.
+	    val conjunction = conjuncts.reduceLeft { (lhs: Expr, next: Expr) =>
+	      setParenthesized(EF.makeOpExpr(NU.spanTwo(lhs, next), BOOLEAN, andOp, lhs, next), true)
+	    }
+
+	    // Wrap a declaring do block around the conjunction.
+	    val block = decl.makeLocalVarDeclDo(NU.getSpan(ce), conjunction)
+	    // System.err.println("desugarChainExpr:\n"+ce.toStringReadable()+"\nto:\n"+block.toStringReadable());
+	    block
     }
-
-    // Create the decl to bind new vars to all exprs.
-    val linkExprs = newLinks.map(_.getExpr)
-    val firstVar = naming.makeVarRef(newFirst)
-    val linkVars = linkExprs.map(naming.makeVarRef)
-    val allVars = firstVar :: linkVars
-    val decl = TempVarDecl(allVars, newFirst :: linkExprs)
-
-    // Create the conjuncts.
-    val conjuncts = (allVars, newLinks, linkVars).zipped.map {
-      case (left, SLink(_, op, _), right) =>
-        setParenthesized(EF.makeOpExpr(NU.spanTwo(left, right), BOOLEAN, op, left, right), true)
-    }
-
-    // Build up the conjunction.
-    val conjunction = conjuncts.reduceLeft { (lhs: Expr, next: Expr) =>
-      setParenthesized(EF.makeOpExpr(NU.spanTwo(lhs, next), BOOLEAN, andOp, lhs, next), true)
-    }
-
-    // Wrap a declaring do block around the conjunction.
-    val block = decl.makeLocalVarDeclDo(NU.getSpan(e), conjunction)
-
-    // System.err.println("desugarChainExpr:\n"+e.toStringReadable()+"\nto:\n"+block.toStringReadable());
-
     // Set parenthesized depending on if the ChainExpr was.
-    setParenthesized(block, NU.isParenthesized(e))
+    setParenthesized(result, NU.isParenthesized(ce))
   }
 
 }

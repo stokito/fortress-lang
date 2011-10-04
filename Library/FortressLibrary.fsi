@@ -1539,6 +1539,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
               StandardMutableArrayType[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\] }
     excludes { Number, String }
   getter size():ZZ32
+  getter sizes():(ZZ32,ZZ32)
   getter bounds():CompactFullRange[\(ZZ32,ZZ32)\]
   opr |self| : ZZ32
   (** Translate from %b0%, %b1%-indexing to 0-indexing, checking bounds. **)
@@ -1655,6 +1656,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     excludes { Number, String }
 
     getter size():ZZ32
+    getter sizes():(ZZ32,ZZ32,ZZ32)
     getter bounds():CompactFullRange[\(ZZ32,ZZ32,ZZ32)\]
 
 
@@ -1888,6 +1890,26 @@ opr BIG MINNUM(g: Generator[\RR64\]): RR64
 opr BIG MAXNUM(): BigReduction[\RR64,RR64\]
 
 opr BIG MAXNUM(g: Generator[\RR64\]): RR64
+
+
+(*) MIN/MAX combinations on tuples
+
+opr BIG MIN_MIN[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\]():
+        Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\]
+opr BIG MIN_MIN[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\](g:Generator[\(T,U)\]):(T,U)
+
+opr BIG MIN_MAX[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\]():
+        Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\]
+opr BIG MIN_MAX[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\](g:Generator[\(T,U)\]):(T,U)
+
+opr BIG MAX_MIN[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\]():
+        Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\]
+opr BIG MAX_MIN[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\](g:Generator[\(T,U)\]):(T,U)
+
+opr BIG MAX_MAX[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\]():
+        Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\]
+opr BIG MAX_MAX[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\](g:Generator[\(T,U)\]):(T,U)
+
 
 (** AndReduction and OrReduction take advantage of natural zeroes for early exit. **)
 object AndReduction
@@ -2506,5 +2528,16 @@ end
 
 (* Shortcut to create a relational predicate *)
 relationalPredicate[\E\](relation : (E, E) -> Boolean) : E -> RelationalPredicateCondition[\ E \]
+
+
+(*) Some random stuff related to arrays and the MCKPE benchmark
+
+opr PREFIX_SUM(x: Array[\ZZ32,ZZ32\]): Array[\ZZ32,ZZ32\]
+opr SUFFIX_SUM(x: Array[\ZZ32,ZZ32\]): Array[\ZZ32,ZZ32\]
+opr +(x: Array[\ZZ32,ZZ32\], y: ZZ32): Array[\ZZ32,ZZ32\]
+opr -(x: Array[\ZZ32,ZZ32\], y: ZZ32): Array[\ZZ32,ZZ32\]
+opr MIN(x: Array[\ZZ32,ZZ32\], y: ZZ32): Array[\ZZ32,ZZ32\]
+opr MAX(x: Array[\ZZ32,ZZ32\], y: ZZ32): Array[\ZZ32,ZZ32\]
+
 
 end

@@ -13,7 +13,9 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled6.bo.fss:33:10-11:\n\
 \ Could not assign an expression of type Bar to variable a of type Foo.\n\
+${STATIC_TESTS_DIR}/Compiled6.bo.fss:38:5-16:\n\
+\ Right-hand side has type Bar, but left-hand side is a tuple of 2 variables.\n\
 ${STATIC_TESTS_DIR}/Compiled6.bo.fss:39:10-19:\n\
 \ Could not assign an expression of type (Bar, Bar) to variable c of type Quux.\n\
-File Compiled6.bo.fss has 2 errors.\n
+File Compiled6.bo.fss has 3 errors.\n
 compile_out_equals=

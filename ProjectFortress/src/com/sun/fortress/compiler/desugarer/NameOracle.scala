@@ -60,4 +60,10 @@ class NameOracle(desugarer: Object) {
   def makeVarRef(expr: Expr): VarRef =
     EF.makeVarRef(NU.getSpan(expr), toJavaOption(getType(expr)), makeId(NU.getSpan(expr)))
 
+  /** Create a fresh name and return a pair of an LValue and a VarRef for that name. */
+  def makeLValueAndVarRef(span: Span): (LValue, VarRef) = {
+    val name = makeId(span)
+    (NF.makeLValue(span, name), EF.makeVarRef(span, name))
+  }
+
 }

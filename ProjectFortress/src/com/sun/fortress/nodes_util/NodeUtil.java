@@ -49,6 +49,7 @@ import com.sun.fortress.parser_util.precedence_resolver.PrecedenceMap;
 
 import com.sun.fortress.parser.Fortress;
 import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.runtimeSystem.Naming;
 
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 import static com.sun.fortress.exceptions.ProgramError.error;
@@ -1595,8 +1596,7 @@ public class NodeUtil {
                                                   Option<String> big,
                                                   List<StaticParam> sparams,
                                                   List<Param> params) {
-        return makeOpHeaderFront(writer, span, leftOp, right, big, sparams, params,
-                                 Option.<Param>none());
+        return makeOpHeaderFront(writer, span, leftOp, right, big, sparams, params, false, Option.<Param>none());
     }
 
     public static FnHeaderFront makeOpHeaderFront(BufferedWriter writer, Span span,
@@ -1604,6 +1604,7 @@ public class NodeUtil {
                                                   Option<String> big,
                                                   List<StaticParam> sparams,
                                                   List<Param> params,
+						  boolean subscript,
                                                   Option<Param> opparam) {
         String left  = leftOp.getText();
         if (PrecedenceMap.ONLY.matchedBrackets(left, right) ||
@@ -1617,7 +1618,8 @@ public class NodeUtil {
         } else
             log(writer, getSpan(leftOp),
                 "Mismatched enclosing operator definition: " + left + " and " + right);
-        IdOrOpOrAnonymousName name = NodeFactory.makeEnclosing(span, left, right);
+        IdOrOpOrAnonymousName name =
+	    NodeFactory.makeEnclosing(span, left, right, subscript, opparam.isSome()) ;
         return new FnHeaderFront(name, sparams, params, opparam);
     }
 
@@ -1752,4 +1754,25 @@ public class NodeUtil {
 
         return NodeFactory.makeDomain(NodeFactory.makeSpan("TypeEnv_bogus_span_for_empty_list", params), paramTypes, varargsType, keywordTypes);
     }
+
+    public static int selfParameterIndex(List<Param> params) {
+        int selfIndex = Naming.NO_SELF;
+        int i = 0;
+        for (Param p : params) {
+            if (p.getName().getText() == "self") {
+                selfIndex = i;
+                break;
+            }
+            i++;
+        }
+        return selfIndex;
+    }
+
+    public static boolean hasSelfParameter(List<Param> params) {
+        for (Param p : params) {
+            if (p.getName().getText() == "self") return true;
+        }
+        return false;
+    }
+
 }

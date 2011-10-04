@@ -115,14 +115,8 @@ public class Desugarer {
 
         Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap =
             Option.<Map<Pair<Id,Id>,FieldRef>>none();
-Component comp = (Component) component.ast();
+	Component comp = (Component) component.ast();
         TraitTable traitTable = new TraitTable(component, env);
-
-        // Desugar [compound] assignments into multiple ordinary assignments.
-        if (Shell.getAssignmentDesugaring()) {
-            AssignmentDesugarer assnDesugarer = new AssignmentDesugarer();
-            comp = (Component) assnDesugarer.walk(comp);
-        }
 
         // Desugar coercion invocation nodes into function applications.
         if (Shell.getCoercionDesugaring()) {

@@ -718,6 +718,12 @@ public class Useful {
         return result;
     }
 
+    public static <T> List<T> snoc(List<T> y, T x) {
+        ArrayList<T> result = new ArrayList<T>(1 + y.size());
+        result.addAll(y);
+        result.add(x);
+        return result;
+    }
 
     public static <T> List<T> removeIndex(int i, List<T> y) {
         int l = y.size();

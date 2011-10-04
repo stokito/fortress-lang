@@ -144,7 +144,7 @@ constant inline Action<Expr> SubscriptAssign =
                  (a2 == null) ? Collections.<StaticArg>emptyList() : a2;
              List<Expr> es = (a3 == null) ? Collections.<Expr>emptyList() : a3;
              Op op = NodeFactory.makeEnclosing(NodeUtil.spanTwo(a1,a4),
-                                               a1.getText(), a4.getText());
+                                               a1.getText(), a4.getText(), true, false);
              return ExprFactory.makeSubscriptExpr(span, base, es,
                                                   Option.<Op>some(op), sargs);
             }};
@@ -633,7 +633,7 @@ SubscriptingMI Subscripting =
      a1:(opensquare / opencurly) a2:(w StaticArgs)? a3:(w ExprList)? w
      a4:(closesquare / closecurly)
      { Span span = createSpan(yyStart,yyCount);
-       Op op = NodeFactory.makeEnclosing(span, a1, a4);
+       Op op = NodeFactory.makeEnclosing(span, a1, a4, true, false);
        if (a2 == null) a2 = Collections.<StaticArg>emptyList();
        if (a3 == null) a3 = Collections.<Expr>emptyList();
        if (! PrecedenceMap.ONLY.matchedBrackets(a1, a4))
@@ -642,7 +642,7 @@ SubscriptingMI Subscripting =
      }
    / a1:LeftEncloser a2:(w StaticArgs)? a3:(w ExprList)? w a4:RightEncloser
      { Span span = createSpan(yyStart,yyCount);
-       Op op = NodeFactory.makeEnclosing(span, a1.getText(),a4.getText());
+       Op op = NodeFactory.makeEnclosing(span, a1.getText(),a4.getText(), true, false);
        if (a2 == null) a2 = Collections.<StaticArg>emptyList();
        if (a3 == null) a3 = Collections.<Expr>emptyList();
        yyValue = ExprFactory.makeSubscriptingMI(span, op, a3, a2);
