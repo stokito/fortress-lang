@@ -552,7 +552,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         Expr arg = x.getArg();
         List<FValue> args = argList(arg.accept(this));
 
-        Id method = x.getMethod();
+        IdOrOp method = x.getMethod();
         String mname = NodeUtil.nameString(method);
         List<StaticArg> sargs = x.getStaticArgs();
         if (sargs.isEmpty()) {
@@ -902,7 +902,7 @@ public class Evaluator extends EvaluatorBase<FValue> {
         List<FValue> subs = evalExprListParallel(x.getSubs());
         Option<Op> op = x.getOp();
         // Should evaluate obj.[](subs, getText)
-        String opString = "[]";
+        String opString = "_[_]";
         if (op.isSome()) {
             opString = NodeUtil.nameString(op.unwrap());
         }

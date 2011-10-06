@@ -23,12 +23,13 @@ import scala.collection.mutable.{ Set => MSet }
 import edu.rice.cs.plt.tuple.Pair
 import edu.rice.cs.plt.collect.Relation
 import edu.rice.cs.plt.collect.IndexedRelation
+import com.sun.fortress.compiler.disambiguator.NameEnv
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.Types
 import com.sun.fortress.compiler.Types.ANY
 import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.Types.OBJECT
-import com.sun.fortress.compiler.index._
+import com.sun.fortress.compiler.index.{Unit => UnitI , _}
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.exceptions.TypeError
@@ -37,6 +38,7 @@ import com.sun.fortress.nodes_util.{ ExprFactory => EF }
 import com.sun.fortress.nodes_util.{ NodeFactory => NF }
 import com.sun.fortress.nodes_util.{ NodeUtil => NU }
 import com.sun.fortress.nodes_util.Span
+import com.sun.fortress.scala_src.overloading.OverloadingOracle
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.CoercionOracle
 import com.sun.fortress.scala_src.typechecker.Formula._
@@ -764,8 +766,8 @@ object STypesUtil {
    */
   def enoughElementsForType[T](elts: List[T], typ: Type): Boolean =
     elts.size == 1 || (typ match {
-      case STupleType(_, typs, None, _) => typs.size == elts.size
-      case STupleType(_, typs, Some(_), _) => false //typs.size <= elts.size
+      case STupleType(_, typs, None, _) => typs.size == elts.size   // no varargs, keywords ignored for now
+      case STupleType(_, typs, Some(_), _) => false //typs.size <= elts.size    // varargs, but ignored for now (as are keywords)
       case _ => false
     })
 
@@ -991,15 +993,10 @@ object STypesUtil {
             isDynamicallyApplicable(o, bestArrow, unliftedSargs, liftedSargs)
           }
         }
-//        System.err.println("Candidates=" + candidates)
-//        System.err.println("Pruned=" + pruned)
-//        System.err.println("Overloadings=" + overloadings)
-
 
         // Add in the filtered overloadings, the inferred static args,
         // and the statically most applicable arrow to the fn.
-        
-        // WHAT IF OVERLOADINGS IS EMPTY?  IT IS, for CoerceBug1.
+
         addType(
           addStaticArgs(
             addOverloadings(fn, overloadings, skipOverloads),
@@ -1028,9 +1025,11 @@ object STypesUtil {
         val STraitType(_, name, trait_args, _) = ty
         toOption(analyzer.traits.typeCons(name)) match {
           case Some(ti: TraitIndex) =>
-            val tindex = ti.asInstanceOf[TraitIndex]
-            allTraits.put(name, tindex)
-            traitsToDo ++= toListFromImmutable(ti.extendsTypes)
+            allTraits.put(name, ti)
+            val paramsToArgs = new StaticTypeReplacer(ti.staticParameters(), ty.getArgs())
+            val instantiated_extends_types =
+              toListFromImmutable(ti.extendsTypes).map(_.accept(paramsToArgs).asInstanceOf[TraitTypeWhere])
+            traitsToDo ++= instantiated_extends_types
           case _ =>
         }
 
@@ -1118,7 +1117,7 @@ object STypesUtil {
     for (pltPair <- toSet(methods)) {
       val methodName = pltPair.first
       val (f, r, tt) = pltPair.second
-      val (paramTy, selfIndex, sparams) = paramTyWithoutSelf(methodName, f, r)
+      val (paramTy, selfIndex, sparams) = paramTySchemaWithoutSelf(methodName, f, r)
       allMethods.addBinding(methodName, (paramTy, selfIndex, sparams, f, r, tt))
     }
     var traitsToDo: List[TraitTypeWhere] = extendedTraits
@@ -1141,7 +1140,7 @@ object STypesUtil {
               
             def oneMethod(methodName: IdOrOp, methodFunc: Functional) = {
               val (paramTy, selfIndex, sparams) =
-                paramTyWithoutSelf(methodName, methodFunc, paramsToArgs)
+                paramTySchemaWithoutSelf(methodName, methodFunc, paramsToArgs)
               val first_analyzer = analyzer.extend(sparams, None)
               var new_analyzer = first_analyzer
               if (!methodFunc.name().equals(methodName)) {
@@ -1269,10 +1268,89 @@ object STypesUtil {
   }
 
   def allMethods(tt: TraitType, analyzer: TypeAnalyzer): Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] =
-    inheritedMethods(List(NF.makeTraitTypeWhere(tt)),
-      analyzer)
+    inheritedMethods(List(NF.makeTraitTypeWhere(tt)), analyzer)
+  
+  
+  type FnAndSArgs = (Functional, Option[JList[StaticArg]])
+  type GSDF = (Boolean, Boolean, Boolean, Boolean)
+  type GetIndex = Id => Option[TypeConsIndex]
+  type ErrorSignal = (String, HasAt) => Unit
+  
+  def uberInheritedMethods(b: BaseType)
+        (implicit gi: GetIndex, h: HierarchyHistory, e: ErrorSignal, bs: GSDF): List[FnAndSArgs] = b match {
+    case t@STraitType(_, id, _, _) => 
+      gi(id) match {
+        case Some(i: TraitIndex) =>
+          uberInheritedMethods(i, Some(t.getArgs()))
+        case None =>
+          e("The name" + id + " does not appear in the trait table.", id)
+          List()
+    }
+    case a: AnyType => List()
+    case _ =>
+      // Only other possibility is a VarType.
+      e("Type variable " + b + " must not appear " +
+          "in the extends clause of a trait or object declaration.", b)
+      List()
+  }
+  
+  def uberInheritedMethods(tw: TraitTypeWhere)
+        (implicit gi: GetIndex, h: HierarchyHistory, e: ErrorSignal, bs: GSDF): List[FnAndSArgs] = tw match {
+    case STraitTypeWhere(_, t, _) if h.explore(t) => uberInheritedMethods(t)
+    case _ => List()
+  }
+  
+  def uberInheritedMethods(t: TraitIndex, a: Option[JList[StaticArg]])
+        (implicit gi: GetIndex, h: HierarchyHistory, e: ErrorSignal, bs: GSDF): List[FnAndSArgs] = {
+    def sub(x: TraitTypeWhere) = a match {
+      case Some(as) => 
+        val inner = new StaticTypeReplacer(t.staticParameters, as)
+        x.accept(inner).asInstanceOf[TraitTypeWhere]
+      case None => x
+    }
+    val eMethods = t.extendsTypes.flatMap{x => uberInheritedMethods(sub(x))}.toList
+    val (g, s, d, f) = bs
+    val get = if (g) t.getters().values().toList else List()
+    val set = if (s) t.setters().values().toList else List()
+    val dot = if (d) t.dottedMethods().secondSet().toList else List()
+    val fun = if (f) t.functionalMethods().secondSet().toList else List()
+    eMethods ++ (get ++ set ++ dot ++ fun).map((_, a))
+  }
 
-  private def paramTyWithoutSelf(name: IdOrOpOrAnonymousName, func: Functional,
+  def commonInheritedMethods(ws: Iterable[TraitTypeWhere], tt: TraitTable): List[Method] = {
+    implicit val gi = (i: Id) => toOption(tt.typeCons(i))
+    implicit val h = new HierarchyHistory
+    implicit val e = (a: String, b: HasAt) => ()
+    implicit val bs = (true, true, true, false)
+    val fnsAndArgs = ws.toList.flatMap{uberInheritedMethods(_)}
+    fnsAndArgs.map{
+      case (m: Method, Some(as)) => m.instantiateTraitStaticParameters(toJavaList(List()) , as)
+      case (m, None)  => bug(m + "is not a method or did not have static args.")
+    }
+  }
+  
+  def exprInheritedMethods(ws: Iterable[TraitTypeWhere], env: NameEnv)(implicit error: ErrorSignal): Set[FnDecl] = {
+    implicit val gi = (i: Id) => Some(env.typeConsIndex(i))
+    implicit val h = new HierarchyHistory
+    implicit val bs = (false, false, true, false)
+    val fnsAndArgs = ws.toList.flatMap{uberInheritedMethods(_)}
+    fnsAndArgs.map{case (m: DeclaredMethod, a) => m.ast}.toSet
+  }
+  
+  def oldInheritedMethods(ws: Iterable[TraitTypeWhere])(implicit ta: TypeAnalyzer): Map[IdOrOpOrAnonymousName, FnAndSArgs] = {
+    implicit val gi = (i: Id) => Some(ta.typeCons(i))
+    implicit val h = new HierarchyHistory
+    implicit val e = (a: String, b: HasAt) => ()
+    implicit val bs = (true, true, true, true)
+    val fnsAndArgs = ws.toList.flatMap{uberInheritedMethods(_)}
+    val idToFns = fnsAndArgs.groupBy{case (a, b) => a.name}
+    val oracle = new OverloadingOracle()
+    
+    null
+  }
+  
+  // TODO: Remove this
+  private def paramTySchemaWithoutSelf(name: IdOrOpOrAnonymousName, func: Functional,
     paramsToArgs: StaticTypeReplacer) = {
     val span = NU.getSpan(name)
     val params = toListFromImmutable(func.parameters)
@@ -1288,6 +1366,19 @@ object STypesUtil {
       case Some(t) => (paramsToArgs.replaceIn(t), sp, sparams)
       case _ => (NF.makeVoidType(span), sp, sparams)
     }
+  }
+  
+  def paramTypeWithoutSelf(func: Functional with HasSelfType) = {
+    val stp = func.selfPosition
+    val params = toListFromImmutable(func.parameters)
+    val span = NU.getSpan(func.name)
+    val paramsSansSelf =
+      if (stp >= 0)
+        params.take(stp) ++ params.drop(stp + 1)
+      else
+        params
+    val paramTypeSansSelf = paramsToType(paramsSansSelf, span).get
+    (paramTypeSansSelf, func.selfType.unwrap, stp)
   }
 
   /* Returns the type of the given list of parameters. */

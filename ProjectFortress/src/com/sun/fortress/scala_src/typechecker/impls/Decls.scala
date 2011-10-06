@@ -96,12 +96,10 @@ trait Decls { self: STypeChecker with Common =>
         case Some(ti) =>
           // Extend method checker with methods and functions
           // that will now be in scope
-          val inheritedMethods = this.inheritedMethods(extendsC)
-          val dottedMethods = ti.asInstanceOf[TraitIndex]
-                                .dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName, Method]]
-          val methods = new UnionRelation(inheritedMethods,
-                                          dottedMethods)
-          method_checker = method_checker.extendWithFunctions(methods)
+          val inheritedMethods = commonInheritedMethods(extendsC, analyzer.traits)
+          val dottedMethods = toSet(ti.asInstanceOf[TraitIndex].dottedMethods.secondSet)
+          val methods = inheritedMethods ++ dottedMethods
+          method_checker = method_checker.extendWithListOfFunctions(methods)
           // Extend method checker with self
           selfType match {
             case Some(ty) =>
@@ -148,12 +146,10 @@ trait Decls { self: STypeChecker with Common =>
         case Some(oi) =>
           // Extend type checker with methods and functions
           // that will now be in scope as regular functions
-          val dottedMethods = oi.asInstanceOf[TraitIndex]
-                                .dottedMethods.asInstanceOf[Relation[IdOrOpOrAnonymousName,Method]]
-          val inheritedMethods = this.inheritedMethods(extendsC)
-          val methods = new UnionRelation(inheritedMethods,
-                                          dottedMethods)
-          method_checker = method_checker.extendWithFunctions(methods)
+          val dottedMethods = toSet(oi.asInstanceOf[TraitIndex].dottedMethods.secondSet)
+          val inheritedMethods = commonInheritedMethods(extendsC, analyzer.traits)
+          val methods = inheritedMethods ++ dottedMethods
+          method_checker = method_checker.extendWithListOfFunctions(methods)
           // Extend method checker with self
           selfType match {
             case Some(ty) =>
@@ -288,7 +284,7 @@ trait Decls { self: STypeChecker with Common =>
             case List(lhs) => List((lhs, rhsType))
             case _ =>
               if (!enoughElementsForType(lhses, rhsType)) {
-                signal(node, "Right-hand side has type %s, but left-hand side declares %d variables.".format(rhsType, lhses.size))
+                signal(node, "Right-hand side has type %s, but left-hand side is a tuple of %d variables.".format(rhsType, lhses.size))
                 return node
               }
               zipWithRhsType(lhses, rhsType)
@@ -381,7 +377,7 @@ trait Decls { self: STypeChecker with Common =>
             case List(lhs) => List((lhs, rhsType))
             case _ =>
               if (!enoughElementsForType(lhses, rhsType)) {
-                signal(expr, "Right-hand side has type %s, but left-hand side declares %d variables.".format(rhsType, lhses.size))
+                signal(expr, "Right-hand side has type %s, but left-hand side is a tuple of %d variables.".format(rhsType, lhses.size))
                 return expr
               }
               zipWithRhsType(lhses, rhsType)

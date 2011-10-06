@@ -43,62 +43,17 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
  */
 trait Common { self: STypeChecker =>
 
-  // TODO: Consider merging with STypesUtil.inheritedMethods
-  def inheritedMethods(extendedTraits: Iterable[TraitTypeWhere])
-                      : Relation[IdOrOpOrAnonymousName, Method] = {
-    def inheritedMethodsHelper(history: HierarchyHistory,
-                               methods: Relation[IdOrOpOrAnonymousName, Method],
-                               extended_traits: Iterable[TraitTypeWhere])
-                               : scala.Unit = {
-      for ( STraitTypeWhere(_, ty: TraitType, _) <- extended_traits;
-            if history.explore(ty)) {
-        toOption(traits.typeCons(ty.getName)) match {
-          case Some(ti : TraitIndex) =>
-            val trait_params = ti.staticParameters
-            val trait_args = ty.getArgs
-
-            // Instantiate methods with static args
-            val dotted = toSet(ti.asInstanceOf[TraitIndex].dottedMethods).map(t => (t.first, t.second))
-            for ( pair <- dotted ) {
-                methods.add(pair._1,
-                            pair._2.instantiate(trait_params,trait_args).asInstanceOf[Method])
-            }
-            val getters = ti.asInstanceOf[TraitIndex].getters
-            for ( getter <- toSet(getters.keySet) ) {
-                methods.add(getter,
-                            getters.get(getter).instantiate(trait_params,trait_args).asInstanceOf[Method])
-            }
-            val setters = ti.asInstanceOf[TraitIndex].setters
-            for ( setter <- toSet(setters.keySet) ) {
-                methods.add(setter,
-                            setters.get(setter).instantiate(trait_params,trait_args).asInstanceOf[Method])
-            }
-            val paramsToArgs = new StaticTypeReplacer(trait_params, trait_args)
-            val instantiated_extends_types =
-              toListFromImmutable(ti.asInstanceOf[TraitIndex].extendsTypes).map( (t:TraitTypeWhere) =>
-                    t.accept(paramsToArgs).asInstanceOf[TraitTypeWhere] )
-            inheritedMethodsHelper(history.copy, methods, instantiated_extends_types)
-          case _ =>
-        }
-      }
-    }
-    val methods = new IndexedRelation[IdOrOpOrAnonymousName, Method](false)
-    inheritedMethodsHelper(new HierarchyHistory(), methods, extendedTraits)
-    methods
-  }
-
-  protected def findMethodsInTraitHierarchy(methodName: IdOrOpOrAnonymousName,
+  protected def findMethodsInTraitHierarchy(methodName: IdOrOp,
                                             receiverType: Type)
                                             : Set[Method] = {
 
     val traitTypes = traitTypesCallable(receiverType)
-    //TODO: What does the next line do?
     val ttAsWheres = traitTypes.map(NodeFactory.makeTraitTypeWhere)
-    val allMethods = inheritedMethods(ttAsWheres)
-    toSet(allMethods.matchFirst(methodName))
+    val allMethods = commonInheritedMethods(ttAsWheres, analyzer.traits).groupBy(_.name)
+    allMethods.getOrElse(methodName, List[Method]()).toSet
   }
 
-  def getGetterType(fieldName: IdOrOpOrAnonymousName, receiverType: Type): Option[Type] = {
+  def getGetterType(fieldName: IdOrOp, receiverType: Type): Option[Type] = {
     // We can just assume there is a getter index for every field
     val methods = findMethodsInTraitHierarchy(fieldName, receiverType)
     def isGetter(m: Method): Option[FieldGetterMethod] = m match {
@@ -110,7 +65,7 @@ trait Common { self: STypeChecker =>
     getters.headOption.flatMap(g => toOption(g.getReturnType))
   }
 
-  def getSetterType(fieldName: IdOrOpOrAnonymousName, receiverType: Type): Option[Type] = {
+  def getSetterType(fieldName: IdOrOp, receiverType: Type): Option[Type] = {
     //We can just assume there is a getter for every field
     val methods = findMethodsInTraitHierarchy(fieldName, receiverType)
     def isSetter(m: Method): Option[FieldSetterMethod] = m match {

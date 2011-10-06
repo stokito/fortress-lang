@@ -18,6 +18,12 @@
     opr [i:ZZ32] := (x: String) = s := x
   end
 
+  opr ||(a: (String, String), b: (String, String)): (String, String) = do
+    (a1,a2) = a
+    (b1,b2) = b
+    (a1 || b1, a2 || b2)
+  end
+
   run() = do
     var x: String = "hello"
     ((O(x))[5], x) ||= (x, " world")

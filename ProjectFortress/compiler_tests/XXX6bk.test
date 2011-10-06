@@ -12,6 +12,6 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled6.bk.fss:19:28-46:\n\
-\ Could not assign an expression of type String with subscript operator Sub.[ZZ32].\n\
+\ No such method Sub._[_]:=.\n\
 File Compiled6.bk.fss has 1 error.\n
 compile_out_equals=

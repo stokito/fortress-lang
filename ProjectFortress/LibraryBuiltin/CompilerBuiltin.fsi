@@ -155,6 +155,9 @@ trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
     opr CHOOSE(self, other:ZZ32): ZZ32 
     even(self): Boolean
     odd(self): Boolean
+    opr ^(self, other:ZZ32): ZZ32
+    asRR64(): RR64
+
 end
 
 trait IntLiteral excludes {ZZ32, ZZ64}
@@ -290,6 +293,8 @@ trait ZZ32Vector
       opr[i:ZZ32] : ZZ32
       opr[i:ZZ32, j:ZZ32]: ZZ32
       opr |self| : ZZ32
+      nrows():ZZ32
+      ncols():ZZ32
 end
 
 trait StringVector

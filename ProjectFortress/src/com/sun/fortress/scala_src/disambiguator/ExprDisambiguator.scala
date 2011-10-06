@@ -427,8 +427,8 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                     return vref
                   } else result = Some(SVarRef(info, newName, sargs, depth))
                 case (0, f, _) if f > 0 =>
-                  val new_fns = setToList[IdOrOp](toSet(fns))
-                  val unambiguous_fns = setToList[IdOrOp](toSet(env.unambiguousFunctionNames(name)))
+                  val new_fns = toSet(fns).toList
+                  val unambiguous_fns = toSet(env.unambiguousFunctionNames(name)).toList
                   // Create a list of overloadings for this FnRef from the
                   // matching function names.
                   // TODO: insert correct number of to-infer arguments?
@@ -478,8 +478,8 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
             case _ => node
           }
         else {
-          val new_fns = setToList[IdOrOp](toSet(fns))
-          val unambiguous_fns = setToList[IdOrOp](toSet(env.unambiguousFunctionNames(fn_name)))
+          val new_fns = toSet(fns).toList
+          val unambiguous_fns = toSet(env.unambiguousFunctionNames(fn_name)).toList
           SFnRef(info, sargs, depth, fn_name.asInstanceOf[Id], new_fns,
                  // Create a list of overloadings for this FnRef from the matching
                  // function names.
@@ -659,7 +659,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
       case SLetFn(info, body, fns) =>
         inBlock = true
         val old_env = env
-        val definedDecls = listToSet(fns)
+        val definedDecls = fns.toSet
         for (fn <- fns) {
           NU.getName(fn) match {
             case name:Id =>
@@ -867,11 +867,11 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
       val parametric_ops: Set[(IdOrOp, IdOrOp)] = 
         toSet(env.getParametricOperators).map(toPair(_))
       val explicit_ops: List[(IdOrOp, IdOrOp)] = 
-        setToList(toSet(env.explicitFunctionNames(op_name)).map((op_name, _)) ++
-          parametric_ops.map{case (a, b) => (a, a)})
+        (toSet(env.explicitFunctionNames(op_name)).map((op_name, _)) ++
+          parametric_ops.map{case (a, b) => (a, a)}).toList
       val unambiguous_ops: List[(IdOrOp, IdOrOp)] =
-        setToList(toSet(env.unambiguousFunctionNames(op_name)).map((op_name, _)) ++
-          parametric_ops)
+        (toSet(env.unambiguousFunctionNames(op_name)).map((op_name, _)) ++
+          parametric_ops).toList
       if (explicit_ops.isEmpty && unambiguous_ops.isEmpty)
         None
       else {
@@ -896,7 +896,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
                      extendWithVars(bindings)
                      val new_gen = walk(gen).asInstanceOf[GeneratorClause]
                      env = old_env
-                     (old_gens ::: List(new_gen), bindings ++ listToSet(bind))
+                     (old_gens ::: List(new_gen), bindings ++ bind.toSet)
                  }}
 
   // multiple instances of the same name are allowed
@@ -966,46 +966,8 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
    * @param extended_traits
    * @return
    */
-  private def inheritedMethods(extended_traits: List[TraitTypeWhere])
-                              : Set[FnDecl] =
-    inheritedMethodsHelper(new HierarchyHistory(), extended_traits)
-
-  // For now we won't add functional methods.
-  // They are not received through inheritance.
-  private def inheritedMethodsHelper(hist: HierarchyHistory,
-                                     extended_traits: List[TraitTypeWhere])
-                                    : Set[FnDecl] = {
-    extended_traits.foldLeft(Set[FnDecl]())
-      {(methods, t) => t match {
-         case STraitTypeWhere(_, base: NamedType, _)
-              if hist.explore(base) =>
-           // Trait types or VarTypes can represent traits at this phase of compilation.
-           val trait_name = base.getName
-           env.typeConsIndex(trait_name) match {
-             case ti:TraitIndex =>
-               val my_meth = toSet(ti.dottedMethods.secondSet).map(_.ast)
-               // Now recursively add methods from trait's extends clause
-               val inherited_meth =
-                   inheritedMethodsHelper(hist.copy, toListFromImmutable(ti.extendsTypes))
-               methods ++ my_meth ++ inherited_meth
-             case tci =>
-               if (tci == null)
-                 error("Type variable " + trait_name + " must not appear " +
-                       "in the extends clause of a trait or object declaration.",
-                       trait_name)
-               methods // Probably ANY
-           }
-         case _ => methods
-       }}
+  private def inheritedMethods(extended_traits: List[TraitTypeWhere]): Set[FnDecl] = {
+    exprInheritedMethods(extended_traits, env)(error)
   }
-
-  private def setToList[T](set: Set[T]): List[T] = {
-    var list = List[T]()
-    for (x <- set.iterator) { list = x :: list }
-    list
-  }
-
-  private def listToSet[T](list: List[T]): Set[T] =
-    list.foldLeft (Set[T]()) ((set, x) => set + x)
 
 }

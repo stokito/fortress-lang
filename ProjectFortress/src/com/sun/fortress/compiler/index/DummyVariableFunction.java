@@ -61,11 +61,6 @@ public class DummyVariableFunction extends Function {
         return null;
     }
 
-    @Override
-    public Functional acceptNodeUpdateVisitor(NodeUpdateVisitor visitor) {
-        // TODO Auto-generated method stub
-        return null;
-    }
 
     @Override
     public IdOrOp name() {

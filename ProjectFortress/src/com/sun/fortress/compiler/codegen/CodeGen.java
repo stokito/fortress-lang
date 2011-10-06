@@ -57,6 +57,8 @@ import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.BoolArg;
 import com.sun.fortress.nodes.BottomType;
+import com.sun.fortress.nodes.CaseClause;
+import com.sun.fortress.nodes.CaseExpr;
 import com.sun.fortress.nodes.Catch;
 import com.sun.fortress.nodes.CatchClause;
 import com.sun.fortress.nodes.ChainExpr;
@@ -986,12 +988,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 
                 Type raw_super_ret = oa.getRangeType(super_func);
                 Type super_ret = super_inst.replaceIn(raw_super_ret);
-                int super_self_index = selfParameterIndex(super_func.parameters());
+                int super_self_index = NodeUtil.selfParameterIndex(super_func.parameters());
                 Type super_noself_domain = super_inst.replaceIn(selfEditedDomainType(super_func, super_self_index));
 
                 for (Functional func : funcs) {
                     Type ret = local_inst.replaceIn(oa.getRangeType(func));
-                    int self_index = selfParameterIndex(func.parameters());
+                    int self_index = NodeUtil.selfParameterIndex(func.parameters());
                     if (self_index != super_self_index) {
                         /*
                          * Not sure we see this ever; it is a bit of a mistake,
@@ -1269,6 +1271,54 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         doStatements(x.getExprs());
         inABlock=oldInABlock;
     }
+
+
+// I took a stab at this, but got stuck on the comparison operator.
+//   public void forCaseExpr(CaseExpr x) {
+//         debug( " forCaseExpr:", x);
+//         System.out.println("ForCaseExpr: x = " + x + 
+//                            " param = " + x.getParam() + 
+//                            " compare = " + x.getCompare() + 
+//                            " _equalsOp = " + x.getEqualsOp() +
+//                            " _inOp = " + x.getInOp() + 
+//                            " clauses = " + x.getClauses() +
+//                            " else = " + x.getElseClause());
+
+//         if (x.getParam().isNone()) {
+//             throw new RuntimeException("NYI: forCaseExpr with null param");
+//         } else if (x.getCompare().isSome()) {
+//             throw new RuntimeException("Only default CMP for now ");
+//         }
+
+//         Label done = new Label();
+//         for (CaseClause c : x.getClauses()) {
+//             System.out.println("CaseClause: " + c +
+//                                " Match Clause = " + c.getMatchClause() +
+//                                " Body = " + c.getBody() + 
+//                                " Op = " + c.getOp());
+
+//             Label next = new Label();
+//             Label end = new Label();
+//             x.getParam().unwrap().accept(this);
+//             c.getMatchClause().accept(this);
+            
+            
+//             mv.visitJumpInsn(IF_EQ, next);
+//             mv.visitJumpInsn(GOTO, end);
+//             mv.visitLabel(next);
+//             c.getBody().accept(this);
+//             mv.visitJumpInsn(GOTO, done);
+//             mv.visitLabel(end);
+//         }
+//         if (x.getElseClause().isSome())
+//             x.getElseClause().unwrap().accept(this);
+
+//         mv.visitMethodInsn(INVOKESTATIC,
+//                             NamingCzar.internalFortressVoid, NamingCzar.make,
+//                             NamingCzar.voidToFortressVoid);
+
+//         mv.visitLabel(done);
+//     }
 
     public void forChainExpr(ChainExpr x) {
         debug( "forChainExpr", x);
@@ -1559,31 +1609,24 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              Catch _catch = catchClauses.unwrap();
              Id name = _catch.getName();
 
-             Label done = new Label();
+             Label done = new Label(); // first statement after the whole try-catch statement
              List<CatchClause> clauses = _catch.getClauses();
              for (CatchClause clause : clauses) {
-                 Label next = new Label();
-                 Label end = new Label();
+                 Label end = new Label(); // if catch clause does not match, skip clause body
                  BaseType match = clause.getMatchType();
                  
-                 
-                 mv.visitInsn(DUP);
+                 mv.visitInsn(DUP); // Save Java exception while we fiddle with Fortress data
                  mv.visitMethodInsn(INVOKEVIRTUAL, "com/sun/fortress/compiler/runtimeValues/FException", 
                                     "getValue","()Lcom/sun/fortress/compiler/runtimeValues/FValue;");
 
                  InstantiatingClassloader.generalizedInstanceOf(mv, NamingCzar.jvmBoxedTypeName(match, thisApi()));
-                 mv.visitJumpInsn(IFNE, next);
-                 mv.visitJumpInsn(GOTO, end);
-                 mv.visitLabel(next);
+                 mv.visitJumpInsn(IFEQ, end);
                  mv.visitInsn(POP);
                  clause.getBody().accept(this);
                  mv.visitJumpInsn(GOTO, done);
                  mv.visitLabel(end);
              }
-             mv.visitInsn(POP);
-             mv.visitMethodInsn(INVOKESTATIC,
-                            NamingCzar.internalFortressVoid, NamingCzar.make,
-                            NamingCzar.voidToFortressVoid);
+             mv.visitInsn(ATHROW); // Rethrow if no match
              mv.visitLabel(done);
          }
          mv.visitLabel(lfinally);
@@ -2407,7 +2450,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         FnHeader header = x.getHeader();
 
         List<Param> params = header.getParams();
-        int selfIndex = selfParameterIndex(params);
+        int selfIndex = NodeUtil.selfParameterIndex(params);
 
         // Someone had better get rid of anonymous names before they get to CG.
         IdOrOp name = (IdOrOp) header.getName();
@@ -2903,25 +2946,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitEnd();
     }
 
-    /**
-     * TODO: surely this is derivable from the arrow type, which maintains the selfParameterIndex?
-     * Are those inconsistent with one another?
-     * @param params
-     * @return
-     */
-    private int selfParameterIndex(List<Param> params) {
-        int selfIndex = Naming.NO_SELF;
-        int i = 0;
-        for (Param p : params) {
-            if (p.getName().getText() == "self") {
-                selfIndex = i;
-                break;
-            }
-            i++;
-        }
-        return selfIndex;
-    }
-
     public void forTupleExpr(TupleExpr x) {
         List<Expr> exprs = x.getExprs();
         Type t = x.getInfo().getExprType().unwrap();
@@ -3357,7 +3381,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // consistent; basically we need to create the definition
             // here, and the use that VarCodeGen object for the
             // subsequent true definitions.
-            throw sayWhat(d, "Can't yet handle forward binding declarations.");
+	    String varnames = "";
+	    for (LValue lh : lhs) {
+		varnames = varnames + " " + lh.getName();
+	    }
+            throw sayWhat(d, "Can't yet handle forward binding declarations (variables are:" + varnames + ")");
         }
         int n = lhs.size();
         List<VarCodeGen> vcgs = new ArrayList(n);
@@ -4348,21 +4376,30 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              e.accept(this);
          }
          addLineNumberInfo(x);
-        
+
          VarCodeGen vcg = getLocalVarOrNull(id);
          if (vcg == null)
              throw new RuntimeException("Bad VCG");
 
+         String ZZ32Sig = "Lcom/sun/fortress/compiler/runtimeValues/FZZ32;";
+         String args = "(";
+
+         for (int i = 0; i < subs.size(); i++)
+             args = args + ZZ32Sig;
+
+         args = args + ")";
+
          if (vcg.fortressType.toString().equals("StringVector"))
              mv.visitMethodInsn(INVOKEVIRTUAL,
-                            NamingCzar.descToInternal(NamingCzar.jvmTypeDesc(vcg.fortressType, thisApi())),
-                            NamingCzar.idOrOpToString(op),
-                            "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)Lcom/sun/fortress/compiler/runtimeValues/FString;");
+                                NamingCzar.descToInternal(NamingCzar.jvmTypeDesc(vcg.fortressType, thisApi())),
+                                NamingCzar.idOrOpToString(op),
+                                args + "Lcom/sun/fortress/compiler/runtimeValues/FString;");
          else if (vcg.fortressType.toString().equals("ZZ32Vector"))
              mv.visitMethodInsn(INVOKEVIRTUAL,
                             NamingCzar.descToInternal(NamingCzar.jvmTypeDesc(vcg.fortressType, thisApi())),
                             NamingCzar.idOrOpToString(op),
-                            "(Lcom/sun/fortress/compiler/runtimeValues/FZZ32;)Lcom/sun/fortress/compiler/runtimeValues/FZZ32;");
+                                args + "Lcom/sun/fortress/compiler/runtimeValues/FZZ32;");
+
          else throw new CompilerError("Unknow Vector type: " + vcg.fortressType);
     }
 
@@ -5238,7 +5275,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
               " static args = ", x.getStaticArgs(),
               " args = ", x.getArg(),
               " overloading type = " + x.getOverloadingType());
-        Id method = x.getMethod();
+        IdOrOp method = x.getMethod();
         Expr obj = x.getObj();
         List<StaticArg> method_sargs = x.getStaticArgs();
         Expr arg = x.getArg();
@@ -5854,7 +5891,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             List<StaticParam> sparams = h.getStaticParams();
 
             List<Param> params = h.getParams();
-            int selfIndex = selfParameterIndex(params);
+            int selfIndex = NodeUtil.selfParameterIndex(params);
             boolean  functionalMethod = selfIndex != Naming.NO_SELF;
 
             if (sparams.size() > 0) {

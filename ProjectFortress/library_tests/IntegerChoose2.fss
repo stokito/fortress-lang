@@ -9,7 +9,7 @@
 
  ******************************************************************************)
 
-component ChooseTest2
+component IntegerChoose2
 import java com.sun.fortress.nativeHelpers.{simpleLongArith.longSlowCautiousChoose => jLongSlowCautiousChoose}
 export Executable
 
@@ -106,6 +106,42 @@ run(): () = do
   for i <- seq(67:100), j <- seq(0:17) do
     verifyChoose(i,j)
     verifyChoose(i,i-j)
+  end
+
+  (*) These are the points that separate use of the fast algorithm from th
+  (*) slow, cautious algorithm.  Check a range -3:3 around them.
+  for j <- seq(-3:3) do
+    verifyChoose(3037000500+j, 2)
+    verifyChoose(2642246+j, 3)
+    verifyChoose(86251+j, 4)
+    verifyChoose(11724+j, 5)
+    verifyChoose(3218+j, 6)
+    verifyChoose(1313+j, 7)
+    verifyChoose(684+j, 8)
+    verifyChoose(419+j, 9)
+    verifyChoose(287+j, 10)
+    verifyChoose(214+j, 11)
+    verifyChoose(169+j, 12)
+    verifyChoose(139+j, 13)
+    verifyChoose(119+j, 14)
+    verifyChoose(105+j, 15)
+    verifyChoose(95+j, 16)
+    verifyChoose(87+j, 17)
+    verifyChoose(81+j, 18)
+    verifyChoose(76+j, 19)
+    verifyChoose(73+j, 20)
+    verifyChoose(68+j, 21)
+    verifyChoose(66+j, 22)
+    verifyChoose(64+j, 23)
+    verifyChoose(63+j, 24)
+    verifyChoose(62+j, 25)
+    verifyChoose(62+j, 26)
+    verifyChoose(61+j, 27)
+    verifyChoose(61+j, 28)
+    verifyChoose(61+j, 29)
+    verifyChoose(61+j, 30)
+    verifyChoose(61+j, 31)
+    verifyChoose(61+j, 32)
   end
 
   for i <- seq(-10:10), j <- seq(-10:20) do

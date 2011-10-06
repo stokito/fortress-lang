@@ -406,8 +406,6 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
    */
   def checkExpr(expr: Expr, expected: Option[Type]): Expr
 
-  def inheritedMethods(extendedTraits: Iterable[TraitTypeWhere]): Relation[IdOrOpOrAnonymousName, Method]
-
   // ---------------------------------------------------------------------------
   // CONCRETE DEFINITIONS ------------------------------------------------------
 

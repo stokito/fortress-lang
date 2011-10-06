@@ -2291,6 +2291,7 @@ trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
               StandardMutableArrayType[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\] }
     excludes { Number, String }
   getter size():ZZ32 = s0 s1
+  getter sizes():(ZZ32,ZZ32) = (s0, s1)
   getter bounds():CompactFullRange2D[\ZZ32,ZZ32\] = sized2Range[\ZZ32,ZZ32\](0,0,b0,b1,s0,s1)
   getter asString(): String = do
     r : String := "[" b0 "#" s0 "," b1 "#" s1 "]"
@@ -2665,6 +2666,7 @@ trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
     excludes { Number, String }
 
     getter size():ZZ32 = s0 s1 s2
+    getter sizes():(ZZ32,ZZ32,ZZ32) = (s0, s1, s2)
     getter bounds():CompactFullRange3D[\ZZ32,ZZ32,ZZ32\] =
         sized3Range[\ZZ32,ZZ32,ZZ32\](0,0,0,b0,b1,b2,s0,s1,s2)
 
@@ -3145,6 +3147,90 @@ opr BIG MAXNUM(): BigReduction[\RR64,RR64\] =
 
 opr BIG MAXNUM(g: Generator[\RR64\]) =
     __bigOperatorSugar[\RR64,RR64,RR64,RR64\](BIG MAXNUM(), g)
+
+
+(*) MIN/MAX combinations on tuples
+
+object TupleMinMinReduction[\T extends StandardMinMax[\T\],
+                             U extends StandardMinMax[\U\]\]
+      extends CommutativeReduction[\(T,U)\]
+    getter asString(): String = "TupleMinMinReduction"
+    simpleJoin(a:(T,U),b:(T,U)): (T,U) = do
+        (a1,a2) = a
+        (b1,b2) = b
+        first = a1 MIN b1
+        if first =/= b1 then a
+        elif first =/= a1 then b
+        else (a1, a2 MIN b2)
+        end
+      end
+end
+opr BIG MIN_MIN[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\]():
+        Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\] =
+    Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\](fn x => x, TupleMinMinReduction[\T,U\], fn x => x)
+opr BIG MIN_MIN[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\](g:Generator[\(T,U)\]):(T,U) =
+    __bigOperatorSugar[\(T,U),(T,U),(T,U),AnyMaybe\](BIG MIN_MIN[\T,U\](), g)
+
+object TupleMinMaxReduction[\T extends StandardMinMax[\T\],
+                             U extends StandardMinMax[\U\]\]
+      extends CommutativeReduction[\(T,U)\]
+    getter asString(): String = "TupleMinMaxReduction"
+    simpleJoin(a:(T,U),b:(T,U)): (T,U) = do
+        (a1,a2) = a
+        (b1,b2) = b
+        first = a1 MIN b1
+        if first =/= b1 then a
+        elif first =/= a1 then b
+        else (a1, a2 MAX b2)
+        end
+      end
+end
+opr BIG MIN_MAX[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\]():
+        Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\] =
+    Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\](fn x => x, TupleMinMaxReduction[\T,U\], fn x => x)
+opr BIG MIN_MAX[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\](g:Generator[\(T,U)\]):(T,U) =
+    __bigOperatorSugar[\(T,U),(T,U),(T,U),AnyMaybe\](BIG MIN_MAX[\T,U\](), g)
+
+object TupleMaxMinReduction[\T extends StandardMinMax[\T\],
+                             U extends StandardMinMax[\U\]\]
+      extends CommutativeReduction[\(T,U)\]
+    getter asString(): String = "TupleMaxMinReduction"
+    simpleJoin(a:(T,U),b:(T,U)): (T,U) = do
+        (a1,a2) = a
+        (b1,b2) = b
+        first = a1 MAX b1
+        if first =/= b1 then a
+        elif first =/= a1 then b
+        else (a1, a2 MIN b2)
+        end
+      end
+end
+opr BIG MAX_MIN[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\]():
+        Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\] =
+    Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\](fn x => x, TupleMaxMinReduction[\T,U\], fn x => x)
+opr BIG MAX_MIN[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\](g:Generator[\(T,U)\]):(T,U) =
+    __bigOperatorSugar[\(T,U),(T,U),(T,U),AnyMaybe\](BIG MAX_MIN[\T,U\](), g)
+
+object TupleMaxMaxReduction[\T extends StandardMinMax[\T\],
+                             U extends StandardMinMax[\U\]\]
+      extends CommutativeReduction[\(T,U)\]
+    getter asString(): String = "TupleMaxMaxReduction"
+    simpleJoin(a:(T,U),b:(T,U)): (T,U) = do
+        (a1,a2) = a
+        (b1,b2) = b
+        first = a1 MAX b1
+        if first =/= b1 then a
+        elif first =/= a1 then b
+        else (a1, a2 MAX b2)
+        end
+      end
+end
+opr BIG MAX_MAX[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\]():
+        Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\] =
+    Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\](fn x => x, TupleMaxMaxReduction[\T,U\], fn x => x)
+opr BIG MAX_MAX[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\](g:Generator[\(T,U)\]):(T,U) =
+    __bigOperatorSugar[\(T,U),(T,U),(T,U),AnyMaybe\](BIG MAX_MAX[\T,U\](), g)
+
 
 (** AndReduction and OrReduction take advantage of natural zeroes for early exit. **)
 object AndReduction
@@ -4386,5 +4472,47 @@ end
 
 (* Shortcut to create a relational predicate *)
 relationalPredicate[\E\](relation : (E, E) -> Boolean) : E -> RelationalPredicateCondition[\ E \] = fn (x : Generator[\ E \]) : RelationalPredicateCondition[\ E \] => ConcreteRelationalPredicateCondition[\E\](relation, x)
+
+
+(*) Some random stuff related to arrays and the MCKPE benchmark
+
+(*) For now, use a sequential implementation
+opr PREFIX_SUM(x: Array[\ZZ32,ZZ32\]): Array[\ZZ32,ZZ32\] = do
+  result = x.copy()
+  for i <- seq(1 # (|x| - 1)) do result[i] += result[i-1] end
+  result
+end
+
+(*) For now, use a sequential implementation
+opr SUFFIX_SUM(x: Array[\ZZ32,ZZ32\]): Array[\ZZ32,ZZ32\] = do
+  result = x.copy()
+  for i <- seq((|x| - 2):0:-1) do result[i] += result[i+1] end
+  result
+end
+
+opr +(x: Array[\ZZ32,ZZ32\], y: ZZ32): Array[\ZZ32,ZZ32\] = do
+  result = x.copy()
+  for i <- x.indices() do result[i] += y end
+  result
+end
+
+opr -(x: Array[\ZZ32,ZZ32\], y: ZZ32): Array[\ZZ32,ZZ32\] = do
+  result = x.copy()
+  for i <- x.indices() do result[i] -= y end
+  result
+end
+
+opr MIN(x: Array[\ZZ32,ZZ32\], y: ZZ32): Array[\ZZ32,ZZ32\] = do
+  result = x.copy()
+  for i <- x.indices() do result[i] MIN= y end
+  result
+end
+
+opr MAX(x: Array[\ZZ32,ZZ32\], y: ZZ32): Array[\ZZ32,ZZ32\] = do
+  result = x.copy()
+  for i <- x.indices() do result[i] MAX= y end
+  result
+end
+
 
 end

@@ -9,7 +9,7 @@
 
  ******************************************************************************)
 
-component ChooseTest1
+component IntegerChoose1
 import java com.sun.fortress.nativeHelpers.{simpleIntArith.intSlowCautiousChoose => jIntSlowCautiousChoose}
 export Executable
 
@@ -96,6 +96,26 @@ run(): () = do
   for i <- seq(34:40), j <- seq(0:9) do
     verifyChoose(i,j)
     verifyChoose(i,i-j)
+  end
+
+  (*) These are the points that separate use of the fast algorithm from th
+  (*) slow, cautious algorithm.  Check a range -3:3 around them.
+  for j <- seq(-3:3) do
+    verifyChoose(46341+j, 2)
+    verifyChoose(1626+j, 3)
+    verifyChoose(338+j, 4)
+    verifyChoose(140+j, 5)
+    verifyChoose(82+j, 6)
+    verifyChoose(58+j, 7)
+    verifyChoose(46+j, 8)
+    verifyChoose(39+j, 9)
+    verifyChoose(35+j, 10)
+    verifyChoose(33+j, 11)
+    verifyChoose(31+j, 12)
+    verifyChoose(30+j, 13)
+    verifyChoose(30+j, 14)
+    verifyChoose(29+j, 15)
+    verifyChoose(29+j, 16)
   end
 
   for i <- seq(-10:10), j <- seq(-10:20) do
