@@ -13,7 +13,6 @@ package com.sun.fortress.compiler;
 
 import java.util.*;
 import com.sun.fortress.Shell;
-import com.sun.fortress.compiler.desugarer.PreTypeCheckDesugaringVisitor;
 import com.sun.fortress.compiler.desugarer.AssignmentAndSubscriptDesugarer;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
