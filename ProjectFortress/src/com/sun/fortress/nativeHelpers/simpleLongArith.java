@@ -101,6 +101,108 @@ public class simpleLongArith {
     }
 
 
+    // Multiply non-negative longs only, returning -1 on overflow
+    private static long longCautiousNonNegativeMul(long a, long b) {
+	if (a < 2 || b < 2) return a * b;
+	if (((int)a)==a && ((int)b)==b) return a * b;
+	if ((Long.MAX_VALUE / a) < b) return -1;
+        return a * b;
+    }
+
+    // Largest n for which `n CHOOSE k` is guaranteed to be representable as a long
+    private final static int maxLongChooseN = 66;
+    private final static long[] tempLongChooseArray = new long[maxLongChooseN/2];
+    private final static long[] longChooseTable = new long[chooseAccess(maxLongChooseN + 1, 2)];
+
+    // Entry k is the largest n for which `n CHOOSE (k+2)` can be computed by
+    // the fast algorithm without overflow occurring at any intermediate step.
+    private final static long[] maxLongChooseSafeN = { 3037000500L, 2642246, 86251, 11724, 3218, 1313, 684,
+						       419, 287, 214, 169, 139, 119, 105, 95, 87, 81, 76, 73,
+						       70, 68, 66, 64, 63, 62, 62, 61, 61, 61, 61, 61, 61 };
+    // This index computation uses the 1-D array longChooseTable densely to hold a strangely
+    // triangular 2-D array. It should be used only for 4 <= n <= maxLongChooseN and 2 <= k <= n/2.
+    // The 1-D array holds elements for (n,k) = (4,2) (5,2) (6,2) (6,3) (7,2) (7,3) (8,2) (8,3) (8,4)
+    // (9,2) (9,3) (9,4) (10,2) (10,3) (10,4) (10,5) (11,2) (11,3) (11,4) (11,5) and so on.
+    // This represents (slightly over) one-half of Pascal's triangle with the outermost two
+    // layers discarded.
+    private static int chooseAccess(int n, int k) { return ((n-3)>>1)*((n-2)>>1) + (k-2); }
+
+    static {
+	for (int n = 4; n <= maxLongChooseN; n++) {
+	    for (int k = 2; k <= n/2; k++) {
+		// The table entries for row n-1 are already done, so they are available for computing row n.
+		longChooseTable[chooseAccess(n, k)] = longOverflowingChoose(n-1, k-1) + longOverflowingChoose(n-1, k);
+	    }
+	}
+    }
+
+    // Computes `n CHOOSE k`, or -1 if that value is not representable as an long.
+    public static long longSlowCautiousChoose(long n, long kk) {
+	if (kk < 0 || kk > n) return 0;
+        if (kk > (n >> 1)) kk = n - kk;
+        if (kk < 2) return (kk == 0) ? 1 : n;
+        if (n > maxLongChooseN && (kk << 1) > maxLongChooseN) return -1;
+	int k = (int)kk;
+	for (int j = 0; j < k; j++) tempLongChooseArray[j] = n - j;
+	for (int j = k; j > 1; j--) {
+	    // You can't just try to find an array element that j divides;
+	    // you have to pick j apart into its prime factors.  Example: `40 CHOOSE 9`.
+	    int q = j;
+	    while (q > 1) {
+		int pf = q;
+		int newq = 1;
+		// Find just one prime factor of q (if none found by this loop, q itself is prime).
+		for (int p = 2; p * p <= q; p = ((p-1)|1)+2) {
+		    // Note that p takes on the values 2, 3, 5, 7, 9, 11, 13, 15, ...
+		    // (For maxLongChooseN/2=33, only the values 2, 3, 5 are needed.)
+		    int s = q / p;
+		    if (s*p == q) { pf = p; newq = s; break; }
+		}
+		// Now divide some element of the array by that prime factor
+		found: {
+		    for (int m = 0; m < k; m++) {
+			long w = tempLongChooseArray[m] / pf;
+			if (w * pf == tempLongChooseArray[m]) {
+			    tempLongChooseArray[m] = w;
+			    break found;
+			}
+		    }
+		    System.out.println("n=" + n + ",k=" + k + ",j=" + j);
+		    for (int z = 0; z < k; z++) System.out.println(tempLongChooseArray[z]);
+		    throw new UnknownError("THIS SHOULDN'T HAPPEN in longSlowCautiousChoose");
+		}
+		q = newq;
+	    }
+	}
+	long result = tempLongChooseArray[0];
+	for (int j = 1; j < k; j++) {
+	    result = longCautiousNonNegativeMul(result, tempLongChooseArray[j]);
+	    if (result == -1) break;
+	}
+	return result;
+    }
+
+    // This is the one we want to use from Fortress code.  It tries to be fast.
+    public static long longOverflowingChoose(long n, long kk) {
+	if (kk < 0 || kk > n) return 0;
+        if (kk > (n >> 1)) kk = n - kk;
+        if (kk < 2) return (kk == 0) ? 1 : n;
+	if (n <= maxLongChooseN) return longChooseTable[chooseAccess((int)n, (int)kk)];
+	if (kk > maxLongChooseN)
+	    throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+	int k = (int)kk;
+	if (n > maxLongChooseSafeN[k-2]) {
+	    long q = longSlowCautiousChoose(n, k);
+	    if (q == -1) throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+	    return q;
+	}
+	// Fast algorithm (no overflow checking required)
+	long r = n;
+	for (int j = 1; j < k; j++) r = (r * (n - j)) / (j + 1);
+	return r;
+    }
+
+
     // Arithmetic operators with wrapping
 
     public static long longWrappingAdd(long a, long b) {
