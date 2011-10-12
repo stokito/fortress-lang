@@ -54,7 +54,7 @@ public class simpleDoubleArith {
     }
 
     public static boolean doubleGE(double a, double b) {
-        return a > b;
+        return a >= b;
     }
 
     public static boolean doubleEQ(double a, double b) {

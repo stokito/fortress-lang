@@ -189,6 +189,7 @@ import java com.sun.fortress.nativeHelpers.{simpleIntVector.getIndexedValue => j
                                             simpleIntVector.putIndexedValue => jIntVectorPut,
                                             simpleIntVector.getSize => jIntVectorGetSize,
                                             simpleIntVector.make => jIntVectorMake,
+                                            simpleIntVector.asString => jIntVectorAsString,
                                             simpleIntVector.getRows => jIntVectorGetRows,
                                             simpleIntVector.getCols => jIntVectorGetCols }
 import java com.sun.fortress.nativeHelpers.{simpleStringVector.getIndexedValue => jStringVectorGet,
@@ -243,9 +244,9 @@ trait String
     opr |self| : ZZ32 = jStrlen(self)
     opr <(self, b: String) = (jCompareTo(self, b) < 0)
     opr =(self, b: String) = (jCompareTo(self, b) = 0)
-    opr ||(self, b:String): String =  jConcatenate(self, b)
-    opr juxtaposition(self, b:String): String = jConcatenate(self, b)
-    opr [i:ZZ32] : ZZ32 = jCharAt(self, i)
+    opr ||(self, b:Object): String =  jConcatenate(self, b.asString)
+    opr juxtaposition(self, b:Object): String = jConcatenate(self, b.asString)
+    opr [i:ZZ32] : Character = jMakeCharacter(jCharAt(self, i))
     substring(lo:ZZ32, hi:ZZ32):String = jSubstring(self, lo, hi)
     opr ^(self, n: ZZ32): String =
       if n <= 1 then
@@ -265,9 +266,9 @@ print(x:ZZ32):() = jPrint(x.asString)
 print(x:ZZ64):() = jPrint(x.asString)
 print(x:RR64):() = jPrint(x.asString)
 
+println(x:Object):() = jPrintln(x.asString)
 println(s:String):() = jPrintln(s)
 println(c:Character):() = jPrintln(c.asString)
-(*) println(x:Object): () = jPrintln(x.asString)
 (*) println():() = jPrintln("")
 (*) println(x:Any):() = jPrintln("<any>")
 
@@ -275,8 +276,8 @@ println(x:ZZ32):() = jPrintln(x.asString)
 println(x:ZZ64):() = jPrintln(x.asString)
 (*) println(x:RR32):() = jPrintln(x.asString)
 println(x:RR64):() = jPrintln(x.asString)
-(*) println(x: (Any, Any)):() = jPrintln(str(x))
-(*) println(x: (Any, Any, Any)):() = jPrintln(str(x))
+(*) println(x: (Object, Object)):() = do (a,b) = x; jPrintln("(" a.asString ", " b.asString ")") end
+(*) println(x: (Object, Object, Object)):() = do (a,b,c) = x; jPrintln("(" a.asString ", " b.asString ", " c.asString ")") end
 (*) println(x: (Any, Any, Any, Any)):() = jPrintln(str(x))
 (*) println[\A,B,C,D,E\](x: (A,B,C,D,E)):() = jPrintln(str(x))
 (*) println[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):() = jPrintln(str(x))
@@ -341,6 +342,7 @@ trait ZZ64 extends Number excludes { RR64 }
     opr >(self, other:ZZ64): Boolean = jLongGT(self,other)
     opr >=(self, other:ZZ64): Boolean = jLongGE(self,other)
     opr =(self, other:ZZ64): Boolean = jLongEQ(self,other)
+    opr =/=(self, other:ZZ64): Boolean = NOT (self = other)
     opr juxtaposition(self, other:ZZ64): ZZ64 = jLongOverflowingMul(self,other)
     opr BITNOT(self): ZZ64 = jLongBitNot(self)
     opr BITAND(self, other:ZZ64): ZZ64 = jLongBitAnd(self,other)
@@ -392,6 +394,7 @@ trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
     opr >(self, other:ZZ32): Boolean = jIntGT(self,other)
     opr >=(self, other:ZZ32): Boolean = jIntGE(self,other)
     opr =(self, other:ZZ32): Boolean = jIntEQ(self,other)
+    opr =/=(self, other:ZZ32): Boolean = NOT (self = other)
     opr juxtaposition(self, other:ZZ32): ZZ32 = jIntOverflowingMul(self,other)
     opr BITNOT(self): ZZ32 = jIntBitNot(self)
     opr BITAND(self, other:ZZ32): ZZ32 = jIntBitAnd(self,other)
@@ -408,6 +411,7 @@ trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
 end
 
 trait IntLiteral excludes {ZZ32, ZZ64}
+    getter asString(): String = self.asZZ32.asString
     getter asZZ32(): ZZ32
     getter asZZ64(): ZZ64
 (*
@@ -576,18 +580,44 @@ trait Character excludes { String, Number, Boolean }
     toUpperCase(self): Character = jMakeCharacter(jCharToUpperCase(jCodePoint(self)))
 end
 
-trait ZZ32Vector 
-   getValue(i:ZZ32):ZZ32 = jIntVectorGet(self, i)
-   getValue(i:ZZ32, j:ZZ32):ZZ32 = jIntVectorGet(self, i,j)
-   putValue(i:ZZ32, v:ZZ32):() = jIntVectorPut(self, i, v)
-   putValue(i:ZZ32, j:ZZ32, v:ZZ32):() = jIntVectorPut(self, i, j, v)
-   opr[i:ZZ32]:ZZ32 = getValue(i)
-   opr[i:ZZ32, j:ZZ32]:ZZ32 = getValue(i,j)
+trait ZZ32Vector excludes { String, Number, Boolean, Character }
+   getter asString(): String = jIntVectorAsString(self)
+   getter shape(): (ZZ32, ZZ32) = (jIntVectorGetRows(self), jIntVectorGetCols(self))
+   getter nrows(): ZZ32 = jIntVectorGetRows(self)
+   getter ncols(): ZZ32 = jIntVectorGetCols(self)
+   getter copy(): ZZ32Vector = makeZZ32Vector(self.nrows).fill(fn (i) => self[i])    (*) Handles only 1D case
+   getValue(i:ZZ32): ZZ32 = jIntVectorGet(self, i)
+   getValue(i:ZZ32, j:ZZ32): ZZ32 = jIntVectorGet(self, i, j)
+   putValue(i:ZZ32, v:ZZ32): () = jIntVectorPut(self, i, v)
+   putValue(i:ZZ32, j:ZZ32, v:ZZ32): () = jIntVectorPut(self, i, j, v)
+   opr[i:ZZ32]: ZZ32 = getValue(i)
+   opr[i:ZZ32, j:ZZ32]: ZZ32 = getValue(i,j)
+   opr[i:ZZ32] := (v: ZZ32): () = putValue(i,v)
+   opr[i:ZZ32, j:ZZ32] := (v: ZZ32): () = putValue(i,j,v)
    opr |self| : ZZ32 = jIntVectorGetSize(self)
-   nrows():ZZ32 = jIntVectorGetRows(self)
-   ncols():ZZ32  = jIntVectorGetCols(self)
+   fill(v: ZZ32): ZZ32Vector = do
+     for i <- 0 # |self| do
+       self[i] := v
+     end
+     self
+   end
+   fill(f: ZZ32 -> ZZ32): ZZ32Vector = do
+     for i <- 0 # |self| do
+       self[i] := f(i)
+     end
+     self
+   end
+   fill2(f: (ZZ32, ZZ32) -> ZZ32): ZZ32Vector = do
+     for i <- 0 # self.nrows, j <- 0 # self.ncols do
+       self[i,j] := f(i,j)
+     end
+     self
+   end
 end
 
+__makeZZ32Vector(l1: ZZ32, d1: ZZ32, l2: ZZ32, d2: ZZ32): ZZ32Vector = jIntVectorMake(l1, d1, l2, d2)
+
+makeStringVector(i:ZZ32) : StringVector = jStringVectorMake(i)
 
 trait StringVector 
    getValue(i:ZZ32):String = jStringVectorGet(self, i)
@@ -595,11 +625,6 @@ trait StringVector
    opr[i:ZZ32]:String = getValue(i)
    opr |self| : ZZ32 = jStringVectorGetSize(self)
 end
-
-makeZZ32Vector(i:ZZ32) : ZZ32Vector = jIntVectorMake(i)
-makeZZ32Vector(i:ZZ32, j:ZZ32) : ZZ32Vector = jIntVectorMake(i,j)
-     
-makeStringVector(i:ZZ32) : StringVector = jStringVectorMake(i)
 
 trait JavaBufferedReader excludes { String, Number, Boolean, Character }
   getter asString(): String = jJavaBufferedReaderAsString(self)
@@ -615,7 +640,7 @@ end
 
 makeJavaBufferedReader(s: String): JavaBufferedReader throws FileNotFoundException = jJavaBufferedReaderOpen(s)
 
-trait   JavaBufferedWriter excludes { String, Number, Boolean, Character, JavaBufferedReader }
+trait JavaBufferedWriter excludes { String, Number, Boolean, Character, JavaBufferedReader }
   getter asString(): String = jJavaBufferedWriterAsString(self)
   write(c: Character): () throws IOException = jJavaBufferedWriterWriteChar(self, jCodePoint(c))
   write(s: String): () throws IOException = jJavaBufferedWriterWriteString(self, s)

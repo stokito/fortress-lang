@@ -29,9 +29,9 @@ trait String
     opr <(self, b:String): Boolean
     opr =(self, b: String): Boolean
     opr |self| : ZZ32
-    opr || (self, b:String):String
-    opr juxtaposition(self, b:String): String
-    opr[i:ZZ32] : ZZ32
+    opr || (self, b:Object):String
+    opr juxtaposition(self, b:Object): String
+    opr[i:ZZ32] : Character
     substring(lo:ZZ32, hi:ZZ32):String
     opr ^(self, n: ZZ32): String
 end
@@ -45,17 +45,17 @@ print(x:ZZ32):()
 print(x:ZZ64):()
 print(x:RR64):()
 
+println(x:Object):()
 println(s:String):()
 println(c:Character):()
-(*) println(x:Object): ()
 (*) println():()
 (*) println(x:Any):()
 println(x:ZZ32):()
 println(x:ZZ64):()
 (*) println(x:RR32):()
 println(x:RR64):()
-(*) println(x: (Any, Any)):()
-(*) println(x: (Any, Any, Any)):()
+(*) println(x: (Object, Object)):()
+(*) println(x: (Object, Object, Object)):()
 (*) println(x: (Any, Any, Any, Any)):()
 (*) println[\A,B,C,D,E\](x: (A,B,C,D,E)):()
 (*) println[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):()
@@ -101,6 +101,7 @@ trait ZZ64 extends Number excludes RR64
     opr >(self, other:ZZ64): Boolean 
     opr >=(self, other:ZZ64): Boolean 
     opr =(self, other:ZZ64): Boolean 
+    opr =/=(self, other:ZZ64): Boolean 
     opr juxtaposition(self, other:ZZ64): ZZ64
     opr DOT(self, other:ZZ64): ZZ64 
     opr BOXDOT(self, other:ZZ64): ZZ64 
@@ -138,6 +139,7 @@ trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
     opr >(self, other:ZZ32): Boolean
     opr >=(self, other:ZZ32): Boolean
     opr =(self, other:ZZ32): Boolean
+    opr =/=(self, other:ZZ32): Boolean
     opr juxtaposition(self, other:ZZ32): ZZ32
     opr DOT(self, other:ZZ32): ZZ32
     opr BOXDOT(self, other:ZZ32): ZZ32
@@ -285,27 +287,33 @@ trait Character excludes { String, Number, Boolean }
     toUpperCase(self): Character
 end
 
-trait ZZ32Vector 
-      getValue(i:ZZ32):ZZ32
-      getValue(i:ZZ32, j:ZZ32):ZZ32
-      putValue(i:ZZ32, v:ZZ32):()
-      putValue(i:ZZ32, j:ZZ32, v:ZZ32):()
-      opr[i:ZZ32] : ZZ32
-      opr[i:ZZ32, j:ZZ32]: ZZ32
-      opr |self| : ZZ32
-      nrows():ZZ32
-      ncols():ZZ32
+trait ZZ32Vector excludes { String, Number, Boolean, Character }
+  getter shape(): (ZZ32, ZZ32)
+  getter nrows(): ZZ32
+  getter ncols(): ZZ32
+  getter copy(): ZZ32Vector
+  getValue(i:ZZ32): ZZ32
+  getValue(i:ZZ32, j:ZZ32): ZZ32
+  putValue(i:ZZ32, v:ZZ32): ()
+  putValue(i:ZZ32, j:ZZ32, v:ZZ32): ()
+  opr[i:ZZ32]: ZZ32
+  opr[i:ZZ32, j:ZZ32]: ZZ32
+  opr[i:ZZ32] := (v: ZZ32): ()
+  opr[i:ZZ32, j:ZZ32] := (v: ZZ32): ()
+  opr |self| : ZZ32
+  fill(v: ZZ32): ZZ32Vector
+  fill(f: ZZ32 -> ZZ32): ZZ32Vector
+  fill2(f: (ZZ32, ZZ32) -> ZZ32): ZZ32Vector
 end
 
 trait StringVector
-      getValue(i:ZZ32):String
-      putValue(i:ZZ32, v:String):()
-      opr[i:ZZ32] : String
-      opr |self| : ZZ32
+  getValue(i:ZZ32):String
+  putValue(i:ZZ32, v:String):()
+  opr[i:ZZ32] : String
+  opr |self| : ZZ32
 end
 
-makeZZ32Vector(i:ZZ32) : ZZ32Vector
-makeZZ32Vector(i:ZZ32, j:ZZ32) : ZZ32Vector
+__makeZZ32Vector(l1: ZZ32, d1: ZZ32, l2: ZZ32, d2: ZZ32): ZZ32Vector
 makeStringVector(i:ZZ32) : StringVector
 
 trait JavaBufferedReader excludes { String, Number, Boolean, Character }
