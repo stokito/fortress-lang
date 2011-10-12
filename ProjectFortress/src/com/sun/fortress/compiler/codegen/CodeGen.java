@@ -222,6 +222,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     // lexEnv does not include the top level or object right now, just
     // args and local vars.  Object fields should have been translated
     // to dotted notation at this point, right?  Right?  (No, not.)
+    // Actually, you can't; fields are supposed to be in scope in the
+    // initializers of later fields, but it is not correct to translate
+    // references to them to `self.name` because `self` is not in scope
+    // within such initializers.
     private BATree<String, VarCodeGen> lexEnv;
     boolean inATrait = false;
     boolean inAnObject = false;
