@@ -56,6 +56,8 @@ run(): () = do
   deny(-three <= -five)
   deny(-six >= -five)
   assert(-six <= -five)
+  assert(five >= five)
+  assert(five <= five)
 
   deny(three > five)
   assert(three < five)
@@ -73,6 +75,8 @@ run(): () = do
   deny(-three < -five)
   deny(-six > -five)
   assert(-six < -five)
+  deny(five > five)
+  deny(five < five)
 
   assert(BITNOT seven = -8)
   assert(BITNOT (BITNOT seven) = seven)

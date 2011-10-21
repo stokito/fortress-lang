@@ -14,6 +14,7 @@ package com.sun.fortress.compiler.runtimeValues;
 import java.math.BigInteger;
 
 import com.sun.fortress.compiler.runtimeValues.FZZ32.RTTIc;
+import com.sun.fortress.compiler.runtimeValues.FString;
 
 public final class FIntLiteral extends fortress.CompilerBuiltin.IntLiteral.DefaultTraitMethods
         implements fortress.CompilerBuiltin.IntLiteral {
@@ -54,7 +55,9 @@ public final class FIntLiteral extends fortress.CompilerBuiltin.IntLiteral.Defau
     }
 
     public FString asString() {
-        return null; /* replaced in generated code; necessary for primitive hierarchy */
+	// This was slipping through, because code generator was failing.  For now, do something useful.
+        // return null; /* replaced in generated code; necessary for primitive hierarchy */
+	return FString.make(this.toString());
     }
 
     public Error outOfRange(String t) {

@@ -200,7 +200,7 @@ object STypeEnv extends StaticEnvCompanion[Type] {
         lValues.flatMap(extractNodeBindings)
 
       case _ =>
-        throw TypeError.make("Cannot handle " + node, node)
+        throw TypeError.make("Cannot handle " + node.asInstanceOf[AbstractNode].toStringVerbose, node)
     }
 
   protected def extractTypeConsBindings[T <: TypeConsIndex]

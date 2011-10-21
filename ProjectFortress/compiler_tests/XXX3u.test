@@ -15,6 +15,7 @@ ${STATIC_TESTS_DIR}/Compiled3.u.fss:15:46-52:\n\
 \ Could not check call to operator +\n\
 \ - (RR64, RR64)->RR64 is not applicable to an argument of type (String, String).\n\
 \ - (ZZ32, ZZ32)->ZZ32 is not applicable to an argument of type (String, String).\n\
+\ - (ZZ32Vector, ZZ32)->ZZ32Vector is not applicable to an argument of type (String, String).\n\
 \ - (ZZ64, ZZ64)->ZZ64 is not applicable to an argument of type (String, String).\n\
 File Compiled3.u.fss has 1 error.\n
 compile_out_equals=
