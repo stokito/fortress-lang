@@ -82,8 +82,10 @@ trait GeneratorZZ32 excludes { Boolean }
     seq(self): SeqGeneratorZZ32
     abstract loop(body:ZZ32->()): ()
     abstract generate(r: ReductionString, body: ZZ32->String): String
+    abstract generate(r: ReductionZZ32, body: ZZ32->ZZ32): ZZ32
     abstract seqloop(body:ZZ32->()): ()
     abstract seqgenerate(r: ReductionString, body: ZZ32->String): String
+    abstract seqgenerate(r: ReductionZZ32, body: ZZ32->ZZ32): ZZ32
     abstract filter(f: ZZ32 -> Boolean): GeneratorZZ32
     opr IN(x:ZZ32, self): Boolean
 end
@@ -96,20 +98,44 @@ opr =(left:GeneratorZZ32, right:GeneratorZZ32): Boolean
 
 __bigOperator(o:ReductionString,
               desugaredClauses:(ReductionString, String->String)->String): String
+__bigOperator(o:ReductionZZ32,
+              desugaredClauses:(ReductionZZ32, ZZ32->ZZ32)->ZZ32): ZZ32
 
 __generate(g: GeneratorZZ32, r: ReductionString, f:ZZ32->String): String
+__generate(g: GeneratorZZ32, r: ReductionZZ32, f:ZZ32->ZZ32): ZZ32
 __generate(p: Boolean, r: ReductionString, f:()->String): String
+__generate(p: Boolean, r: ReductionZZ32, f:()->ZZ32): ZZ32
 
 __loop(g: GeneratorZZ32, body: ZZ32->()): ()
+
+trait Range extends GeneratorZZ32 excludes { Number, String, Boolean, Character }
+  getter lowerBound(): ZZ32
+  getter upperBound(): ZZ32
+end
 
 trait ReductionString
     abstract empty(): String
     abstract join(a: String, b: String): String
 end
 
+trait ReductionZZ32 excludes ReductionString
+    abstract empty(): ZZ32
+    abstract join(a: ZZ32, b: ZZ32): ZZ32
+end
+
 object StringConcatenation extends ReductionString
     empty(): String
     join(a: String, b: String): String
+end
+
+object ZZ32Addition extends ReductionZZ32
+    empty(): ZZ32
+    join(a: ZZ32, b: ZZ32): ZZ32
+end
+
+object ZZ32Max extends ReductionZZ32
+    empty(): ZZ32
+    join(a: ZZ32, b: ZZ32): ZZ32
 end
 
 opr :(lo:ZZ32, hi:ZZ32): GeneratorZZ32
@@ -118,6 +144,15 @@ opr #(lo:ZZ32, sz:ZZ32): GeneratorZZ32
 (*
 opr BIG ||(): ReductionString
 *)
+
+opr BIG MAX(): ReductionZZ32
+opr BIG MAX(g: GeneratorZZ32): ZZ32
+
+opr PREFIX_SUM(x: ZZ32Vector): ZZ32Vector
+opr +(x: ZZ32Vector, y: ZZ32): ZZ32Vector
+opr -(x: ZZ32Vector, y: ZZ32): ZZ32Vector
+opr MIN(x: ZZ32Vector, y: ZZ32): ZZ32Vector
+opr MAX(x: ZZ32Vector, y: ZZ32): ZZ32Vector
 
 
 (*) trait Condition[\E extends Equality[\E\]\]   (*) extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
@@ -159,6 +194,16 @@ opr BIG ||(): ReductionString
 (*) end
 
 (*) object Nothing end    
+
+
+(************************************************************
+* Making vectors
+************************************************************)
+
+makeZZ32Vector(d1:ZZ32): ZZ32Vector
+makeZZ32Vector(d1:ZZ32, d2:ZZ32): ZZ32Vector
+makeZZ32Vector(r: Range): ZZ32Vector
+makeZZ32Vector(r1: Range, r2: Range): ZZ32Vector
 
 (************************************************************
 * Random numbers

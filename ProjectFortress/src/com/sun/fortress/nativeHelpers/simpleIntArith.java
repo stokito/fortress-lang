@@ -295,7 +295,7 @@ public class simpleIntArith {
     }
 
     public static boolean intGE(int a, int b) {
-        return a > b;
+        return a >= b;
     }
 
     public static boolean intEQ(int a, int b) {

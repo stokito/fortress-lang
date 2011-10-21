@@ -272,6 +272,12 @@ object ExportChecker {
             overloadingChecker.coverOverloading(toSet(fnsInAPI.matchFirst(f)))
           val overloadingInComp =
             overloadingChecker.coverOverloading(toSet(fnsInComp.matchFirst(f)))
+// 	  if (f.isInstanceOf[IdOrOp] && f.asInstanceOf[IdOrOp].getText.contains("println")) {
+// 	        System.out.println("API overloadingInAPI:\n" + overloadingInAPI)
+// 		System.out.println("Component overloading:\n" + overloadingInComp)
+// 		System.out.println(fnsInComp.firstSet)
+// 		System.out.println(fnsInComp)
+//           }     
           for ( g <- overloadingInAPI ) {
             if ( ! existsMatching(g, overloadingInComp) )
               missingDecls = g :: missingDecls

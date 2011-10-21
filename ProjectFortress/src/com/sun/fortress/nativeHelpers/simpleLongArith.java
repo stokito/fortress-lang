@@ -292,7 +292,7 @@ public class simpleLongArith {
     }
 
     public static boolean longGE(long a, long b) {
-        return a > b;
+        return a >= b;
     }
 
     public static boolean longEQ(long a, long b) {
