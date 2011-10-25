@@ -256,10 +256,10 @@ public class InstantiationMap  {
                  */
                 if (tag.equals("Arrow") && params.size() == 2) {
                      String domain = params.get(0);
-                     if (domain.startsWith(InstantiatingClassloader.TUPLE_OX)) {
+                     if (domain.startsWith(Naming.TUPLE_OX)) {
                          String in_pat = input.substring(original_begin);
                          if (unwrap_expanded_tuples_in_arrows ||
-                             in_pat.startsWith(InstantiatingClassloader.TUPLE_OX))
+                             in_pat.startsWith(Naming.TUPLE_OX))
                              params.set(0, domain.substring(6, domain.length()-1));
                      }
                 }

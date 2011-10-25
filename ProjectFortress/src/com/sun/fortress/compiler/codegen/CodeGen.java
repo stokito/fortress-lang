@@ -5183,8 +5183,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                             "<clinit>", Naming.voidToVoid, null, null);
         exp.accept(this);
         // Might condition cast-to on inequality of static types
-        if (tyName.startsWith(InstantiatingClassloader.TUPLE_OX) ||
-                tyName.startsWith(InstantiatingClassloader.ARROW_OX)   ) {
+        if (tyName.startsWith(Naming.TUPLE_OX) ||
+                tyName.startsWith(Naming.ARROW_OX)   ) {
             InstantiatingClassloader.generalizedCastTo(mv, tyName);
         }
         mv.visitFieldInsn(PUTSTATIC, classFile,
