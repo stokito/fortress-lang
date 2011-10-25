@@ -48,15 +48,29 @@ public class ManglingMethodVisitor extends MethodAdapter {
         super.visitMaxs(maxStack, maxLocals);
     }
 
+    private final static String UTYPE = Naming.UNION + Naming.LEFT_OXFORD;
+    private final static String UDESC = "L"+ UTYPE;
+    
+    boolean checkForUIdesc(String desc) {
+        boolean rc = desc.startsWith(UDESC);
+        return rc;
+    }
+
+    boolean checkForUItype(String type) {
+        boolean rc = type.startsWith(UTYPE);
+        return rc;
+    }
 
     @Override
     public void visitFieldInsn(int opcode, String owner, String _name,
             String desc) {
 
+        checkForUIdesc(desc);
+
         owner = Naming.mangleFortressIdentifier(owner);
         _name = Naming.mangleMemberName(_name);
-        desc = Naming.mangleFortressDescriptor(desc);
-
+        desc = Naming.mangleFortressDescriptor(desc, true);
+        
         super.visitFieldInsn(opcode, owner, _name, desc);
     }
 
@@ -64,6 +78,8 @@ public class ManglingMethodVisitor extends MethodAdapter {
     public void visitLocalVariable(String _name, String desc, String signature,
             Label start, Label end, int index) {
 
+        checkForUIdesc(desc);
+        
         signature = Naming.mangleFortressIdentifier(signature);
         _name = Naming.mangleMemberName(_name);
         desc = Naming.mangleFortressDescriptor(desc);
@@ -74,10 +90,13 @@ public class ManglingMethodVisitor extends MethodAdapter {
     @Override
     public void visitMethodInsn(int opcode, String owner, String _name,
             String desc) {
+
+        checkForUIdesc(desc);
+        
         owner = Naming.mangleFortressIdentifier(owner);
         _name = Naming.mangleMemberName(_name);
-        desc = Naming.mangleMethodSignature(desc);
-
+        desc = Naming.mangleMethodSignature(desc, true);
+        
         super.visitMethodInsn(opcode, owner, _name, desc);
     }
 
@@ -97,6 +116,8 @@ public class ManglingMethodVisitor extends MethodAdapter {
 
     @Override
     public void visitTypeInsn(int opcode, String type) {
+        checkForUItype(type);
+        
         type = Naming.mangleFortressIdentifier(type);
 
         super.visitTypeInsn(opcode, type);
