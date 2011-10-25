@@ -67,8 +67,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     
     public static final String ABSTRACT_ = "Abstract";
     public static final String CONCRETE_ = "Concrete";
-    public static final String UNION = "Union";
-    
     public static final String ABSTRACT_ARROW = ABSTRACT_ + Naming.ARROW_TAG;
     public static final String WRAPPED_ARROW = "Wrapped" + Naming.ARROW_TAG;
     
@@ -77,10 +75,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     public static final String ANY_TUPLE = "Any" + Naming.TUPLE_TAG;
     
     public static final int JVM_BYTECODE_VERSION = Opcodes.V1_6;
-    public static final String ERASED_UNION_TYPE = "java/lang/Object";
-    public static final String ERASED_UNION_DESC = "L" + ERASED_UNION_TYPE + ";" ;
-
-    
     // TODO make this depends on properties/env w/o dragging in all of the world.
     private static final boolean LOG_LOAD_CHOICES = false;
     static final boolean LOG_LOADS = false;
@@ -273,7 +267,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         classData = instantiateAnyTuple(dename, parameters);
                     } else if (stem.equals(ANY_CONCRETE_TUPLE)) {
                         classData = instantiateAnyConcreteTuple(dename, parameters);
-                    } else if (stem.equals(UNION)) {
+                    } else if (stem.equals(Naming.UNION)) {
                         classData = instantiateUnion(dename, parameters);
                     } else {
                         ArrayList<String> sargs = new ArrayList<String>();
@@ -1863,7 +1857,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             int ploc = key.indexOf('(');
             String nm = Naming.demangleFortressIdentifier(key.substring(0, ploc));
             String callee_sig = Naming.demangleFortressDescriptor(key.substring(ploc));
-            String sig = "(" + ERASED_UNION_DESC + callee_sig.substring(1);
+            String sig = "(" + Naming.ERASED_UNION_DESC + callee_sig.substring(1);
             // Static, forwarding method
             MethodVisitor mv = cw.visitCGMethod(ACC_PUBLIC+ACC_STATIC, nm, sig, null, null);
             String an_interface = Naming.dotToSep(m.getDeclaringClass().getName());

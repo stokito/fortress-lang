@@ -579,7 +579,42 @@ public class Naming {
                 break;
             case 'L':
                 sb.append(ch);
-                i = mangleFortressIdentifier(s, i+1, sb);
+                i = mangleFortressIdentifier(s, i+1, sb, false);
+                break;
+            default:
+                Error e = new Error("Was not expecting to see character " + ch + " in " + s);
+                throw e;
+            }
+        }
+        return sb.toString();
+    }
+    
+    public static String mangleMethodSignature(String s, boolean erase_UI) {
+        StringBuilder sb = new StringBuilder();
+        int l = s.length();
+        int i = 0;
+        while (i < l) {
+            char ch = s.charAt(i);
+            switch (ch) {
+            case 'B':
+            case 'C':
+            case 'D':
+            case 'F':
+            case 'I':
+            case 'J':
+            case 'S':
+            case 'Z':
+            case 'V': // should only appear in return if well-formed
+
+            case '[': // eat array indicator
+            case '(': // eat intro and outro, assume well-formed
+            case ')':
+                sb.append(ch);
+                i++;
+                break;
+            case 'L':
+                sb.append(ch);
+                i = mangleFortressIdentifier(s, i+1, sb, erase_UI);
                 break;
             default:
                 Error e = new Error("Was not expecting to see character " + ch + " in " + s);
@@ -635,8 +670,8 @@ public class Naming {
      * @param sb the stringbuffer to which the transformed string is appended.
      * @return the index of the next character to process (if any).
      */
-    private static int mangleFortressIdentifier(String s, int start, StringBuilder sb) {
-        return mangleOrNotFortressIdentifier(s,start, sb,true);
+    private static int mangleFortressIdentifier(String s, int start, StringBuilder sb, boolean erase_UI) {
+        return mangleOrNotFortressIdentifier(s, start, sb, true, erase_UI);
     }
 
     public static String mangleFortressIdentifier(String s) {
@@ -647,7 +682,7 @@ public class Naming {
         if (pointyDelimitedInitMethod(s))
             return s;
         StringBuilder sb = new StringBuilder();
-         mangleOrNotFortressIdentifier(s,0, sb,true);
+         mangleOrNotFortressIdentifier(s,0, sb, true, false);
          String t = sb.toString();
          if (t.startsWith("\\-=Arrow"))
              throw new Error("AHA!");
@@ -673,6 +708,13 @@ public class Naming {
     public static String mangleFortressDescriptor(String s) {
         // This is a degenerate case of "signature"; if that is made pickier, this will not work.
         String t =  mangleMethodSignature(s);
+        if (t.startsWith("\\-=Arrow"))
+            throw new Error("AHA!");
+        return t;
+    }
+    public static String mangleFortressDescriptor(String s, boolean erase_UI) {
+        // This is a degenerate case of "signature"; if that is made pickier, this will not work.
+        String t =  mangleMethodSignature(s, erase_UI);
         if (t.startsWith("\\-=Arrow"))
             throw new Error("AHA!");
         return t;
@@ -714,7 +756,7 @@ public class Naming {
      * @return the index of the next character to process (if any).
      */
     private static int demangleFortressIdentifier(String s, int start, StringBuilder sb) {
-        return mangleOrNotFortressIdentifier(s,start, sb,false);
+        return mangleOrNotFortressIdentifier(s,start, sb, false, false);
     }
 
     public static String demangleFortressIdentifier(String s) {
@@ -727,7 +769,7 @@ public class Naming {
             return s;
 
         StringBuilder sb = new StringBuilder();
-         mangleOrNotFortressIdentifier(s,0, sb, false);
+         mangleOrNotFortressIdentifier(s,0, sb, false, false);
          return sb.toString();
     }
 
@@ -742,17 +784,21 @@ public class Naming {
     }
 
 
-    private static int mangleOrNotFortressIdentifier(String s, int start, StringBuilder sb, boolean mangleOrNot) {
+    private static int mangleOrNotFortressIdentifier(String s, int start,
+            StringBuilder sb, boolean mangleOrNot, boolean erase_UI) {
         // specials = $/;
-        return mangleOrNotFortressIdentifier(s, start, sb, mangleOrNot,"$/;");
+        return mangleOrNotFortressIdentifier(s, start, sb, mangleOrNot,"$/;", erase_UI);
     }
 
-    private static int mangleOrNotFortressFileName(String s, int start, StringBuilder sb, boolean mangleOrNot) {
+    private static int mangleOrNotFortressFileName(String s, int start,
+            StringBuilder sb, boolean mangleOrNot) {
         // specials = $/;
-        return mangleOrNotFortressIdentifier(s, start, sb, mangleOrNot,"$/;.");
+        return mangleOrNotFortressIdentifier(s, start, sb, mangleOrNot,"$/;.", false);
     }
 
-    private static int mangleOrNotFortressIdentifier(String s, int start, StringBuilder sb, boolean mangleOrNot, String specials) {
+    private static int mangleOrNotFortressIdentifier(String s, int start,
+            StringBuilder sb, boolean mangleOrNot,
+            String specials, boolean erase_UI) {
         int l = s.length();
         int nesting = 0;
 
@@ -763,14 +809,14 @@ public class Naming {
             } else if (ch == RIGHT_OXFORD_CHAR) {
                 nesting--;
             } else if (nesting == 0 && (-1 != specials.indexOf(ch))) {
-                appendNonEmptyMangledSubstring(sb, s, start, i, mangleOrNot);
+                appendNonEmptyMangledSubstring(sb, s, start, i, mangleOrNot, erase_UI);
                 sb.append(ch);
                 if (ch == ';')
                     return i+1;
                 start = i+1;
             }
         }
-        appendNonEmptyMangledSubstring(sb, s, start, l, mangleOrNot);
+        appendNonEmptyMangledSubstring(sb, s, start, l, mangleOrNot, erase_UI);
         return l;
     }
 
@@ -782,10 +828,15 @@ public class Naming {
      * @param i
      */
     private static void appendNonEmptyMangledSubstring(StringBuilder sb,
-            String s, int start, int i, boolean mangleOrNot) {
+            String s, int start, int i, boolean mangleOrNot, boolean erase_UI) {
         if (i - start > 0) {
             s = s.substring(start, i);
-            sb.append(mangleOrNot ? mangleIdentifier(s) : deMangle(s));
+            if (erase_UI && s.startsWith(UNION_TYPE_PFX)) {
+                    s = ERASED_UNION_TYPE;
+                    sb.append(s);
+            } else {
+                sb.append(mangleOrNot ? mangleIdentifier(s) : deMangle(s));
+            }
         }
     }
 
@@ -1100,8 +1151,11 @@ public class Naming {
 
         public static final int NO_SELF = -1;
         public static final String RT_HELPERS = "com/sun/fortress/runtimeSystem/RTHelpers";
+        public static final String ERASED_UNION_TYPE = "java/lang/Object";
+        public static final String ERASED_UNION_DESC = "L" + ERASED_UNION_TYPE + ";" ;
+        public static final String UNION = "Union";
+        private final static String UNION_TYPE_PFX = Naming.UNION + Naming.LEFT_OXFORD;
 
-		
 
     
 }
