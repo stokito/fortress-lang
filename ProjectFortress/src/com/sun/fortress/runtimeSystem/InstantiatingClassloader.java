@@ -62,9 +62,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     public static final String TUPLE_TYPED_ELT_PFX = "e";
     public static final String TUPLE_OBJECT_ELT_PFX = "o";
     public static final String TUPLE_FIELD_PFX = "f";
-    public static final String ARROW_OX = Naming.ARROW_TAG + "\u27e6";
-    public static final String TUPLE_OX = Naming.TUPLE_TAG + "\u27e6";
-    
     public static final String ABSTRACT_ = "Abstract";
     public static final String CONCRETE_ = "Concrete";
     public static final String ABSTRACT_ARROW = ABSTRACT_ + Naming.ARROW_TAG;
@@ -722,8 +719,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         mv.visitMethodInsn(fwdOp, fwdClass, fwdName, fwdSig);
         // optional CAST here for tuple and arrow
         String tyName = Naming.sigRet(thisSig);
-        if (tyName.startsWith(InstantiatingClassloader.TUPLE_OX) ||
-                tyName.startsWith(InstantiatingClassloader.ARROW_OX) ||
+        if (tyName.startsWith(Naming.TUPLE_OX) ||
+                tyName.startsWith(Naming.ARROW_OX) ||
                 castReturn) {
             String tyNameFrom = Naming.sigRet(fwdSig);
             InstantiatingClassloader.generalizedCastTo(mv, tyName);
@@ -1534,7 +1531,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
             if (l == 2) {
                 String parameter = parameters.get(0);
-                if (parameter.startsWith(TUPLE_OX)) {
+                if (parameter.startsWith(Naming.TUPLE_OX)) {
                     /* Unwrap tuple, also. */
                     unwrapped_parameters = extractStringParameters(parameter);
                     unwrapped_parameters.add(parameters.get(1));
@@ -2231,13 +2228,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param cast_to
      */
     public static void generalizedCastTo(MethodVisitor mv, String cast_to) {
-        if (cast_to.startsWith(TUPLE_OX)) {
+        if (cast_to.startsWith(Naming.TUPLE_OX)) {
             List<String> cast_to_parameters = extractStringParameters(cast_to);
             String any_tuple_n = ANY_TUPLE + Naming.LEFT_OXFORD + cast_to_parameters.size() + Naming.RIGHT_OXFORD;
             String sig = "(" + Naming.internalToDesc(any_tuple_n) + ")L" + cast_to + ";";
             mv.visitTypeInsn(Opcodes.CHECKCAST, any_tuple_n);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, CONCRETE_+cast_to, CAST_TO, sig);
-        } else if (cast_to.startsWith(ARROW_OX)) {
+        } else if (cast_to.startsWith(Naming.ARROW_OX)) {
             List<String> cast_to_parameters = extractStringParameters(cast_to);
             // mv.visitTypeInsn(Opcodes.CHECKCAST, cast_to);
             

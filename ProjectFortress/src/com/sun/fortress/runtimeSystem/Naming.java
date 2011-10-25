@@ -831,7 +831,7 @@ public class Naming {
             String s, int start, int i, boolean mangleOrNot, boolean erase_UI) {
         if (i - start > 0) {
             s = s.substring(start, i);
-            if (erase_UI && s.startsWith(UNION_TYPE_PFX)) {
+            if (erase_UI && s.startsWith(UNION_OX)) {
                     s = ERASED_UNION_TYPE;
                     sb.append(s);
             } else {
@@ -1154,7 +1154,9 @@ public class Naming {
         public static final String ERASED_UNION_TYPE = "java/lang/Object";
         public static final String ERASED_UNION_DESC = "L" + ERASED_UNION_TYPE + ";" ;
         public static final String UNION = "Union";
-        private final static String UNION_TYPE_PFX = Naming.UNION + Naming.LEFT_OXFORD;
+        public final static String UNION_OX = Naming.UNION + Naming.LEFT_OXFORD;
+        public static final String ARROW_OX = ARROW_TAG + "\u27e6";
+        public static final String TUPLE_OX = TUPLE_TAG + "\u27e6";
 
 
     

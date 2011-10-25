@@ -181,6 +181,7 @@ public class MethodInstantiater implements MethodVisitor {
     public void visitMethodInsn(int opcode, String owner, String name,
             String desc) {
         String oname = name;
+        String descSplice = ""; // used to transform calls to union/intersection
         if (owner.equals(Naming.magicInterpClass)) {
             name = xlation.getTypeName(name);
             String op = Naming.encodedOp(name);
@@ -198,8 +199,12 @@ public class MethodInstantiater implements MethodVisitor {
             String new_owner = xlation.getTypeName(owner);  // demangled.
             if (opcode == Opcodes.INVOKEINTERFACE && !new_owner.equals(owner) ) {
                 if (new_owner.contains(Naming.LEFT_OXFORD)) {
-                    if (! new_owner.startsWith(InstantiatingClassloader.ARROW_OX) &&
-                        ! new_owner.startsWith(InstantiatingClassloader.TUPLE_OX)   ) {
+                    if (new_owner.startsWith(Naming.UNION_OX)) {
+                        // replace invokeinterface with invokestatic, modify desc
+                        opcode = Opcodes.INVOKESTATIC;
+                        descSplice = Naming.ERASED_UNION_DESC;
+                    } else if (! new_owner.startsWith(Naming.ARROW_OX) &&
+                        ! new_owner.startsWith(Naming.TUPLE_OX)   ) {
                         Naming.XlationData xldata =
                             icl.xlationForGeneric(new_owner);
                         String stem_sort = xldata.first();
@@ -231,6 +236,8 @@ public class MethodInstantiater implements MethodVisitor {
             }
             name = xlation.getTypeName(name);
             desc = xlation.getMethodDesc(desc);
+            if (descSplice != null)
+                desc = "(" + descSplice + desc.substring(1);
             mv.visitMethodInsn(opcode, new_owner, name, desc);
         }
     }
