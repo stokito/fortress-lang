@@ -35,7 +35,7 @@ public class ManglingClassWriter extends ClassWriter {
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         name = Naming.mangleMemberName(name);
         signature = Naming.mangleFortressIdentifier(signature);
-        desc = Naming.mangleMethodSignature(desc);
+        desc = Naming.mangleMethodSignature(desc, true);
 
         return visitNoMangleMethod(access, name, desc, signature, exceptions);
     }
@@ -111,7 +111,10 @@ public class ManglingClassWriter extends ClassWriter {
             String signature, Object value) {
         signature = Naming.mangleFortressIdentifier(signature);
         name = Naming.mangleMemberName(name);
-        desc = Naming.mangleFortressDescriptor(desc);
+        desc = Naming.mangleFortressDescriptor(desc, true);
+        if (TRACE_METHODS) {
+                System.out.println(desc + " " + name);
+        }
         return super.visitField(access, name, desc, signature, value);
     }
 
