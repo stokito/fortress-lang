@@ -67,9 +67,10 @@ public class ManglingMethodVisitor extends MethodAdapter {
 
         checkForUIdesc(desc);
 
+        StringBuilder erasedContent = new StringBuilder();
         owner = Naming.mangleFortressIdentifier(owner);
-        _name = Naming.mangleMemberName(_name);
-        desc = Naming.mangleFortressDescriptor(desc, true);
+        desc = Naming.mangleFortressDescriptor(desc, erasedContent, true);
+        _name = Naming.mangleMemberName(_name); // Need to mangle somehow if NOT ERASED
         
         super.visitFieldInsn(opcode, owner, _name, desc);
     }
@@ -93,10 +94,11 @@ public class ManglingMethodVisitor extends MethodAdapter {
 
         checkForUIdesc(desc);
         
+        StringBuilder erasedContent = new StringBuilder();
         owner = Naming.mangleFortressIdentifier(owner);
-        _name = Naming.mangleMemberName(_name);
-        desc = Naming.mangleMethodSignature(desc, true);
-        
+        desc = Naming.mangleMethodSignature(desc, erasedContent, true);
+        _name = Naming.mangleMemberName(_name);  // Need to mangle somehow if NOT ERASED
+     
         super.visitMethodInsn(opcode, owner, _name, desc);
     }
 

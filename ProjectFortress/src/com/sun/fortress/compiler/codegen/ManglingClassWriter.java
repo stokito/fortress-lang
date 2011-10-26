@@ -33,9 +33,10 @@ public class ManglingClassWriter extends ClassWriter {
      * Mangles name/desc/sig before handing off.
      */
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        name = Naming.mangleMemberName(name);
+        StringBuilder erasedContent = new StringBuilder();
         signature = Naming.mangleFortressIdentifier(signature);
-        desc = Naming.mangleMethodSignature(desc, true);
+        desc = Naming.mangleMethodSignature(desc, erasedContent, true);
+        name = Naming.mangleMemberName(name); // Need to mangle somehow if NOT ERASED
 
         return visitNoMangleMethod(access, name, desc, signature, exceptions);
     }
@@ -109,9 +110,10 @@ public class ManglingClassWriter extends ClassWriter {
     @Override
     public FieldVisitor visitField(int access, String name, String desc,
             String signature, Object value) {
+        StringBuilder erasedContent = new StringBuilder();
         signature = Naming.mangleFortressIdentifier(signature);
-        name = Naming.mangleMemberName(name);
-        desc = Naming.mangleFortressDescriptor(desc, true);
+        desc = Naming.mangleFortressDescriptor(desc, erasedContent, true);
+        name = Naming.mangleMemberName(name); // Need to mangle somehow if NOT ERASED
         if (TRACE_METHODS) {
                 System.out.println(desc + " " + name);
         }
