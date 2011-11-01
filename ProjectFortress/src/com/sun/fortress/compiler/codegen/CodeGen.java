@@ -522,12 +522,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     private void addLocalVar( VarCodeGen v ) {
         debug("addLocalVar ", v);
-        lexEnv.put(v.name.getText(), v);
+        lexEnv.put(v.getName(), v);
     }
 
     private void addStaticVar( VarCodeGen v ) {
         debug("addStaticVar ", v);
-        lexEnv.put(v.name.getText(), v);
+        lexEnv.put(v.getName(), v);
     }
 
     private VarCodeGen addParam(Param p) {
@@ -562,6 +562,24 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             debug("getLocalVar:", nm, " VarCodeGen = null");
         return r;
     }
+
+    private VarCodeGen getLocalVarOrNull( IdOrOp nm, List<StaticArg> lsargs) {
+        debug("getLocalVar: ", nm);
+        String s = VarCodeGen.varCGName(nm, lsargs);
+        VarCodeGen r = lexEnv.get(s);
+        if (r != null)
+            debug("getLocalVar:", nm, " VarCodeGen = ", r, " of class ", r.getClass());
+        else
+            debug("getLocalVar:", nm, " VarCodeGen = null");
+        return r;
+    }
+
+
+    /**
+     * @param nm
+     * @param lsargs
+     * @return
+     */
 
     public static void popAll(MethodVisitor mv, int onStack) {
         if (onStack == 0) return;
@@ -4057,7 +4075,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         BATree<String, VarCodeGen> result =
             new BATree<String, VarCodeGen>(StringHashComparer.V);
         for (VarCodeGen v : freeVars) {
-            String name = v.name.getText();
+            String name = v.getName();
             cw.visitField(ACC_PUBLIC + ACC_FINAL, name,
                           NamingCzar.jvmBoxedTypeDesc(v.fortressType, thisApi()),
                           null, null);
@@ -4085,7 +4103,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // code (or more usually the compiler will complain).
         int varIndex = 1;
         for (VarCodeGen v0 : freeVars) {
-            VarCodeGen v = lexEnv.get(v0.name.getText());
+            VarCodeGen v = lexEnv.get(v0.getName());
             v.prepareAssignValue(mv);
             mv.visitVarInsn(ALOAD, varIndex++);
             v.assignValue(mv);
@@ -5223,13 +5241,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forVarRef(VarRef v) {
         List<StaticArg> lsargs = v.getStaticArgs();
         Id id = v.getVarId();
-        VarCodeGen vcg = getLocalVarOrNull(id);
+        VarCodeGen vcg = getLocalVarOrNull(id, lsargs);
         if (vcg == null) {
             debug("forVarRef fresh import ", v);
             Type ty = NodeUtil.getExprType(v).unwrap();
             String tyDesc = NamingCzar.jvmTypeDesc(ty, thisApi());
             String className = NamingCzar.jvmClassForToplevelDecl(id, packageAndClassName);
-            vcg = new VarCodeGen.StaticBinding(id, ty,
+            vcg = new VarCodeGen.StaticBinding(id, lsargs, ty,
                                                className,
                                                NamingCzar.SINGLETON_FIELD_NAME, tyDesc);
             addStaticVar(vcg);

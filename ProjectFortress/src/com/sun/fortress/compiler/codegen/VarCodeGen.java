@@ -42,11 +42,11 @@ import static com.sun.fortress.exceptions.ProgramError.errorMsg;
  * and generates code for references to that variable.
  */
 public abstract class VarCodeGen {
-    public final IdOrOp name;
+    protected final String name;
     public final Type fortressType;
     public final int sizeOnStack;
 
-    public VarCodeGen(IdOrOp name, Type fortressType) {
+    public VarCodeGen(String name, Type fortressType) {
         super();
         this.name = name;
         this.fortressType = fortressType;
@@ -54,6 +54,23 @@ public abstract class VarCodeGen {
         this.sizeOnStack = 1;
     }
 
+    public static String varCGName(IdOrOp nm, List<StaticArg> lsargs) {
+        return NamingCzar.idOrOpToString(nm) +
+            (lsargs != null && lsargs.size() > 0 ? lsargs.toString() : "");
+    }
+    
+    public VarCodeGen(IdOrOp name, List<StaticArg> lsargs, Type fortressType) {
+        this(varCGName(name, lsargs), fortressType);
+    }
+
+    public VarCodeGen(IdOrOp name, Type fortressType) {
+        this(name.getText(), fortressType);
+    }
+
+    public String getName() {
+        return name;
+    }
+    
     public String toString() {
         return "VarCodeGen:" + name + "," + fortressType;
     }
@@ -127,6 +144,13 @@ public abstract class VarCodeGen {
             this.objectFieldName = name;
             this.classDesc = desc;
         }
+        
+        public NeedsType(IdOrOp id, List<StaticArg> lsargs, Type fortressType, String owner, String name, String desc) {
+            super(id, lsargs, fortressType);
+            this.packageAndClassName = owner;
+            this.objectFieldName = name;
+            this.classDesc = desc;
+        }
     }
 
 
@@ -160,13 +184,18 @@ public abstract class VarCodeGen {
 
         List<String> sparams;
 
-        public StaticBinding(IdOrOp id, Type fortressType, String owner, String name, String desc, List<String> sparams) {
+        private StaticBinding(IdOrOp id, Type fortressType, String owner, String name, String desc, List<String> sparams) {
             super(id, fortressType, owner, name, desc);
             this.sparams = sparams;
         }
 
         public StaticBinding(IdOrOp id, Type fortressType, String owner, String name, String desc) {
             super(id, fortressType, owner, name, desc);
+            this.sparams = Collections.emptyList();
+        }
+
+        public StaticBinding(IdOrOp id, List<StaticArg> lsargs, Type fortressType, String owner, String name, String desc) {
+            super(id, lsargs, fortressType, owner, name, desc);
             this.sparams = Collections.emptyList();
         }
 
