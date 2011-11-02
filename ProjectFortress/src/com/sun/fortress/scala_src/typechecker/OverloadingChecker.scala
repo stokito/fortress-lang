@@ -538,7 +538,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
      */
     def coverOverloading(set: Set[JavaFunction]) = {
       var result = Set[JavaFunction]()
-      for (f <- set ; if !coveredBy(f, result)) {
+      for (f <- set ; if !coveredBy(f, set)) {
         result = result + f
       }
       result = result.filter {
@@ -548,9 +548,12 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
       result.map { case SDeclaredFunction(fd) => fd }
     }
 
+    /*
+     * Set may contain the object f; if so, ignore it.
+     */
     private def coveredBy(f: JavaFunction, set: Set[JavaFunction]): Boolean = {
       var result = false
-      for (g <- set ; if !result && coveredBy(f, g)) { result = true }
+      for (g <- set ; if !result && f != g && coveredBy(f, g)) { result = true }
       result
     }
 
