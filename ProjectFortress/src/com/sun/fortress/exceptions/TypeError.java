@@ -35,4 +35,23 @@ public class TypeError extends StaticError {
     public static StaticError make(String description, HasAt location) {
         return new TypeError(description, location);
     }
+    
+    public static void b0() { 
+        return;
+    }
+    public static void b1(Object a) { 
+        return;
+    }
+    public static void b2(Object a, Object b) {
+        return;
+    }
+    public static void b3(Object a, Object b, Object c) {
+        return;
+    }
+    public static void b4(Object a, Object b, Object c, Object d) {
+        return;
+    }
+    public static void b5(Object a, Object b, Object c, Object d, Object e) {
+        return;
+    }
 }

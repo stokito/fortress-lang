@@ -247,9 +247,14 @@ object ExportChecker {
                 // no overloading for abstract function declarations for now
                 val overloadingInComp =
                   overloadingChecker.coverOverloading(toSet(component.functions.matchFirst(v)))
-                if ( ! existsMatching(lvalue, overloadingInComp) )
+                if ( ! existsMatching(lvalue, overloadingInComp) ) {
+                  TypeError.b2(overloadingInComp, v);
                   missingDecls = lvalue :: missingDecls
-              } else missingDecls = lvalue :: missingDecls
+                }
+              } else {
+                TypeError.b2(vsInComp, v);
+                missingDecls = lvalue :: missingDecls
+              }
             case _ => // non-DeclaredVariable
                       //   ParamVariable or SingletonVariable
           }
@@ -270,8 +275,9 @@ object ExportChecker {
         if ( fnsInComp.firstSet.contains(f) ) {
           val overloadingInAPI =
             overloadingChecker.coverOverloading(toSet(fnsInAPI.matchFirst(f)))
+          val compFns = toSet(fnsInComp.matchFirst(f))
           val overloadingInComp =
-            overloadingChecker.coverOverloading(toSet(fnsInComp.matchFirst(f)))
+            overloadingChecker.coverOverloading(compFns)
 // 	  if (f.isInstanceOf[IdOrOp] && f.asInstanceOf[IdOrOp].getText.contains("println")) {
 // 	        System.out.println("API overloadingInAPI:\n" + overloadingInAPI)
 // 		System.out.println("Component overloading:\n" + overloadingInComp)
@@ -279,14 +285,36 @@ object ExportChecker {
 // 		System.out.println(fnsInComp)
 //           }     
           for ( g <- overloadingInAPI ) {
-            if ( ! existsMatching(g, overloadingInComp) )
+            if ( ! existsMatching(g, overloadingInComp) ) {
+              // This junk is all here because Scala does not play nice with
+              // the Eclipse debugger.  Since the bug is a Heisenbug, the
+              // offending code is repeated several times to give multiple
+              // shots at figuring it out when it finally goes wrong.
+              val oicTest =
+                   overloadingChecker.coverOverloading(compFns)
+              TypeError.b5(overloadingInComp, oicTest, g, f, compFns);
+              val oicTest2 =
+                   overloadingChecker.coverOverloading(compFns)
+              TypeError.b0();
+              val oicTest3 =
+                   overloadingChecker.coverOverloading(compFns)
+              TypeError.b0();
+              val oicTest4 =
+                   overloadingChecker.coverOverloading(compFns)
+              TypeError.b0();
+              val oicTest5 =
+                   overloadingChecker.coverOverloading(compFns)
+              TypeError.b0();
               missingDecls = g :: missingDecls
+            }
           }
         } else {
           for ( d <- toSet(fnsInAPI.matchFirst(f)) ) {
             d match {
-              case SDeclaredFunction(fd) =>
+              case SDeclaredFunction(fd) => {
+                TypeError.b2(fnsInAPI, fd);
                 missingDecls = fd :: missingDecls
+              }
               case _ =>
             }
           }
@@ -345,7 +373,10 @@ object ExportChecker {
           }
           if ( ! cause.equals("") )
             wrongDecls = (declInAPI, cause) :: wrongDecls
-        } else missingDecls = declInAPI :: missingDecls
+        } else {
+          TypeError.b2(typesInComp.keySet, t);
+          missingDecls = declInAPI :: missingDecls
+        }
       }
 
       def toString(x:ASTNode) = x.getInfo.getSpan.toString
