@@ -316,7 +316,7 @@ strToInt(s:String):ZZ32 = jParseInt(s)
 trait Number excludes { String }
 end
 
-trait ZZ64 extends Number excludes { RR64 }
+trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 }
     coerce(x: IntLiteral) = x.asZZ64
     coerce(x: ZZ32) = jIntToLong(x)
     getter asZZ32(): ZZ32 = jLongOverflowingToInt(self)
@@ -369,7 +369,7 @@ trait ZZ64 extends Number excludes { RR64 }
 (*)       end
 end
 
-trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
+trait ZZ32 extends { Number, Equality[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
     coerce(x: IntLiteral) = x.asZZ32
     getter asZZ32(): ZZ32 = self
     getter asString(): String = jIntToString(self)
@@ -422,7 +422,7 @@ trait IntLiteral excludes {ZZ32, ZZ64}
     getter asRR64(): RR64
 end
 
-trait RR64 extends Number excludes ZZ64
+trait RR64 extends { Number, Equality[\RR64\] } excludes ZZ64
     coerce(x: FloatLiteral) = x.asRR64
     coerce(x: RR32) = jFloatToDouble(x)
     getter asString(): String = jDoubleToString(self)
@@ -465,7 +465,7 @@ trait RR64 extends Number excludes ZZ64
         end
 end
 
-trait RR32 extends Number excludes { ZZ64, ZZ32, RR64 }
+trait RR32 extends { Number, Equality[\RR32\] } excludes { ZZ64, ZZ32, RR64 }
     coerce(x: FloatLiteral) = x.asRR32
 end
 
@@ -474,7 +474,7 @@ trait FloatLiteral excludes {RR32, RR64}
     getter asRR64(): RR64
 end
 
-trait Boolean      extends { Equality[\Boolean\] }
+trait Boolean extends { Equality[\Boolean\] }
     excludes { String, Number }
   getter holds(): Boolean = self
   getter get(): () = ()
@@ -529,7 +529,7 @@ makeCharacter(n: ZZ32): Character =
     else throw IntegerOverflow   (*) Really should be IndexOutOfRange
     end
 
-trait Character excludes { String, Number, Boolean }
+trait Character extends Equality[\Character\]  excludes { String, Number, Boolean }
     getter asString() : String = jCharToString(jCodePoint(self))
     getter asExprString() : String = jCharToExprString(jCodePoint(self))
     getter codePoint(): ZZ32 = jCodePoint(self)

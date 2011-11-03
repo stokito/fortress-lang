@@ -23,8 +23,6 @@ end Object
 nanoTime(): RR64
 
 trait String
-(*)    coerce(n: ZZ32) 
-(*)    coerce(n: ZZ64) 
     getter isEmpty(): Boolean
     opr <(self, b:String): Boolean
     opr =(self, b: String): Boolean
@@ -82,7 +80,7 @@ strToInt(s:String):ZZ32
 trait Number excludes { String }
 end
 
-trait ZZ64 extends Number excludes RR64
+trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes RR64
     coerce(x: IntLiteral)
     coerce(x: ZZ32) 
     getter asZZ32(): ZZ32 
@@ -121,7 +119,7 @@ trait ZZ64 extends Number excludes RR64
     odd(self): Boolean
 end
 
-trait ZZ32 extends Number excludes { ZZ64, RR32, RR64 }
+trait ZZ32 extends { Number, Equality[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
     coerce(x: IntLiteral)
     getter asZZ32(): ZZ32
     opr |self| : ZZ32
@@ -173,7 +171,7 @@ trait IntLiteral excludes {ZZ32, ZZ64}
     abstract getter asRR64(): RR64
 end
 
-trait RR64 extends Number excludes ZZ64
+trait RR64 extends { Number, Equality[\RR64\] } excludes ZZ64
     coerce(x: FloatLiteral)
     coerce(x: RR32)
     getter isNaN(): Boolean 
@@ -199,7 +197,7 @@ trait RR64 extends Number excludes ZZ64
     opr ^(self, other:ZZ32): RR64
 end
 
-trait RR32 extends Number excludes { ZZ64, ZZ32, RR64 }
+trait RR32 extends { Number, Equality[\RR32\] } excludes { ZZ64, ZZ32, RR64 }
     coerce(x: FloatLiteral)
 end
 
@@ -238,7 +236,7 @@ false: Boolean
 
 makeCharacter(n: ZZ32): Character
 
-trait Character excludes { String, Number, Boolean } 
+trait Character extends Equality[\Character\] excludes { String, Number, Boolean } 
     getter codePoint(): ZZ32
 
     opr <(self, other:Character): Boolean
