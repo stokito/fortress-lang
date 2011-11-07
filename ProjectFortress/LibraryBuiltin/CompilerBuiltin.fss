@@ -276,9 +276,9 @@ println(x:ZZ32):() = jPrintln(x.asString)
 println(x:ZZ64):() = jPrintln(x.asString)
 (*) println(x:RR32):() = jPrintln(x.asString)
 println(x:RR64):() = jPrintln(x.asString)
-(*) println(x: (Object, Object)):() = do (a,b) = x; jPrintln("(" a.asString ", " b.asString ")") end
-(*) println(x: (Object, Object, Object)):() = do (a,b,c) = x; jPrintln("(" a.asString ", " b.asString ", " c.asString ")") end
-(*) println(x: (Any, Any, Any, Any)):() = jPrintln(str(x))
+println(a: Any, b: Any): () = jPrintln("(" str(a) ", " str(b) ")")
+println(a: Any, b: Any, c: Any): () = jPrintln("(" str(a) ", " str(b) ", " str(c) ")")
+println(a: Any, b: Any, c: Any, d: Any): () = jPrintln("(" str(a) ", " str(b) ", " str(c) ", " str(d) ")")
 (*) println[\A,B,C,D,E\](x: (A,B,C,D,E)):() = jPrintln(str(x))
 (*) println[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):() = jPrintln(str(x))
 (*) println[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):() = jPrintln(str(x))
@@ -301,12 +301,12 @@ errorPrintln(x:RR64):() = jErrorPrintln(x.asString)
 (*) errorPrintln[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):() = jErrorPrintln(str(x))
 
 (*) Utility routine for converting tuples to strings
-(*) private str(x:Any):String = "<big tuple>"
-(*) private str(x: Object):String = x.asString
-(*) private str():String = "()"
-(*) private str(x: (Any, Any)):String = do (a,b) = x; "(" str(a) ", " str(b) ")" end
-(*) private str(x: (Any, Any, Any)):String = do (a,b,c) = x; "(" str(a) ", " str(b) ", " str(c) ")" end
-(*) private str(x: (Any, Any, Any, Any)):String = do (a,b,c,d) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ")" end
+private str(x: Any): String = "<big tuple>"
+private str(x: Object): String = x.asString
+private str(): String = "()"
+private str(a: Any, b: Any): String = "(" str(a) ", " str(b) ")"
+private str(a: Any, b: Any, c: Any): String = "(" str(a) ", " str(b) ", " str(c) ")"
+private str(a: Any, b: Any, c: Any, d: Any): String = "(" str(a) ", " str(b) ", " str(c) ", " str(d) ")"
 (*) private str[\A,B,C,D,E\](x: (A,B,C,D,E)):String = do (a,b,c,d,e) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ")" end
 (*) private str[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):String = do (a,b,c,d,e,f) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ", " str(f) ")" end
 (*) private str[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):String = do (a,b,c,d,e,f,g) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ", " str(f) ", " str(g) ")" end
