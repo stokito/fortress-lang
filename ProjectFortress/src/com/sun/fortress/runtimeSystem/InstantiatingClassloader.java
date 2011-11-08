@@ -781,14 +781,24 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     }
 
     public static void eep(MethodVisitor mv, String s) {
-         mv.visitLdcInsn(s);
-         mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "eep", "(Ljava/lang/String;)V");
-     }     
-     
-     public static void eep(String s) {
-         System.err.println(s);
-     }
-     
+        mv.visitLdcInsn(s);
+        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "eep", "(Ljava/lang/String;)V");
+    }
+    
+    public static void eepI(MethodVisitor mv, String s) {
+        mv.visitLdcInsn(s);
+        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "eep", "(Ljava/lang/String;I)I");
+    }     
+    
+    public static void eep(String s) {
+        System.err.println(s);
+    }
+    
+    public static int eep(String s, int i) {
+        System.err.println(s + i);
+        return i;
+    }
+    
      public static void eep(MethodVisitor mv) {
          mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/InstantiatingClassloader", "eep", "(Ljava/lang/Throwable;)V");
      } 
@@ -2213,9 +2223,24 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param cast_to
      */
     public static void generalizedInstanceOf(MethodVisitor mv, String cast_to) {
-        if (cast_to.startsWith(Naming.TUPLE_TAG + Naming.LEFT_OXFORD)) {
+        if (cast_to.startsWith(Naming.UNION_OX)) {
+            List<String> cast_to_parameters = extractStringParameters(cast_to);
+            Label done = new Label();
+            for (int i = 0; i < cast_to_parameters.size(); i++) {
+                mv.visitInsn(DUP); // object to test
+                generalizedInstanceOf(mv, cast_to_parameters.get(i)); // replaces obj w/ 1/0
+                mv.visitInsn(DUP); // copy for branch test. leave one on TOS
+                // eepI(mv,"union instanceof subtest " + cast_to_parameters.get(i));
+                mv.visitJumpInsn(IFNE, done);
+                mv.visitInsn(POP); // discard unnecessary zero.
+            }
+            mv.visitLdcInsn(0); // failure
+            mv.visitLabel(done);
+            mv.visitInsn(SWAP); // put tested obj on TOS
+            mv.visitInsn(POP); // discard
+        } else if (cast_to.startsWith(Naming.TUPLE_OX)) {
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, CONCRETE_+cast_to, IS_A, "(Ljava/lang/Object;)Z");
-        } else if (cast_to.startsWith(Naming.ARROW_TAG + Naming.LEFT_OXFORD)) {
+        } else if (cast_to.startsWith(Naming.ARROW_OX)) {
         	mv.visitMethodInsn(Opcodes.INVOKESTATIC, ABSTRACT_+cast_to, IS_A,"(Ljava/lang/Object;)Z");
         } else {
         	String type = cast_to.equals(Naming.INTERNAL_SNOWMAN) ? Naming.specialFortressTypes.get(Naming.INTERNAL_SNOWMAN) : cast_to;
@@ -2228,7 +2253,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param cast_to
      */
     public static void generalizedCastTo(MethodVisitor mv, String cast_to) {
-        if (cast_to.startsWith(Naming.TUPLE_OX)) {
+        if (cast_to.startsWith(Naming.UNION_OX)) {
+            // do nothing, it will be erased!
+        } else if (cast_to.startsWith(Naming.TUPLE_OX)) {
             List<String> cast_to_parameters = extractStringParameters(cast_to);
             String any_tuple_n = ANY_TUPLE + Naming.LEFT_OXFORD + cast_to_parameters.size() + Naming.RIGHT_OXFORD;
             String sig = "(" + Naming.internalToDesc(any_tuple_n) + ")L" + cast_to + ";";

@@ -20,6 +20,7 @@ import java.util.*;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
+import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.Debug;
 
@@ -70,7 +71,7 @@ public class ManglingMethodVisitor extends MethodAdapter {
         StringBuilder erasedContent = new StringBuilder();
         owner = Naming.mangleFortressIdentifier(owner);
         desc = Naming.mangleFortressDescriptor(desc, erasedContent, true);
-        _name = Naming.mangleMemberName(_name); // Need to mangle somehow if NOT ERASED
+        _name = Naming.mangleMemberName(ManglingClassWriter.TWEAK_ERASED_UNIONS ? _name + erasedContent: _name); // Need to mangle somehow if NOT ERASED
         
         super.visitFieldInsn(opcode, owner, _name, desc);
     }
@@ -97,7 +98,8 @@ public class ManglingMethodVisitor extends MethodAdapter {
         StringBuilder erasedContent = new StringBuilder();
         owner = Naming.mangleFortressIdentifier(owner);
         desc = Naming.mangleMethodSignature(desc, erasedContent, true);
-        _name = Naming.mangleMemberName(_name);  // Need to mangle somehow if NOT ERASED
+        boolean is_not_special = ! Naming.pointyDelimitedInitMethod(_name);
+        _name = Naming.mangleMemberName(ManglingClassWriter.TWEAK_ERASED_UNIONS && is_not_special ? _name + erasedContent: _name);  // Need to mangle somehow if NOT ERASED
      
         super.visitMethodInsn(opcode, owner, _name, desc);
     }
@@ -120,9 +122,14 @@ public class ManglingMethodVisitor extends MethodAdapter {
     public void visitTypeInsn(int opcode, String type) {
         checkForUItype(type);
         
-        type = Naming.mangleFortressIdentifier(type);
-
-        super.visitTypeInsn(opcode, type);
+        if (opcode == Opcodes.INSTANCEOF && type.startsWith(Naming.UNION_OX)) {
+            InstantiatingClassloader.generalizedInstanceOf(this, type);
+        } else if (opcode == Opcodes.CHECKCAST && type.startsWith(Naming.UNION_OX)) {
+            InstantiatingClassloader.generalizedCastTo(this, type);
+        } else {
+            type = Naming.mangleFortressIdentifier(type);
+            super.visitTypeInsn(opcode, type);
+        }
     }
 
     @Override
