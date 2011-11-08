@@ -23,6 +23,7 @@ import com.sun.fortress.useful.Useful;
 public class ManglingClassWriter extends ClassWriter {
 
     public final static boolean TRACE_METHODS = ProjectProperties.getBoolean("fortress.bytecode.list", false);
+    public final static boolean TWEAK_ERASED_UNIONS = true;
     
     public ManglingClassWriter(int flags) {
         super(flags);
@@ -36,7 +37,8 @@ public class ManglingClassWriter extends ClassWriter {
         StringBuilder erasedContent = new StringBuilder();
         signature = Naming.mangleFortressIdentifier(signature);
         desc = Naming.mangleMethodSignature(desc, erasedContent, true);
-        name = Naming.mangleMemberName(name); // Need to mangle somehow if NOT ERASED
+        boolean is_not_special = ! Naming.pointyDelimitedInitMethod(name);
+        name = Naming.mangleMemberName(TWEAK_ERASED_UNIONS && is_not_special ? name + erasedContent: name); // Need to mangle somehow if NOT ERASED
 
         return visitNoMangleMethod(access, name, desc, signature, exceptions);
     }
@@ -113,7 +115,7 @@ public class ManglingClassWriter extends ClassWriter {
         StringBuilder erasedContent = new StringBuilder();
         signature = Naming.mangleFortressIdentifier(signature);
         desc = Naming.mangleFortressDescriptor(desc, erasedContent, true);
-        name = Naming.mangleMemberName(name); // Need to mangle somehow if NOT ERASED
+        name = Naming.mangleMemberName(TWEAK_ERASED_UNIONS ? name + erasedContent: name); // Need to mangle somehow if NOT ERASED
         if (TRACE_METHODS) {
                 System.out.println(desc + " " + name);
         }
