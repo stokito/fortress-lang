@@ -53,6 +53,9 @@ trait Common { self: STypeChecker =>
     allMethods.getOrElse(methodName, List[Method]()).toSet
   }
 
+  def smaller(g1:FieldGetterOrSetterMethod, g2:FieldGetterOrSetterMethod): Boolean = 
+    isSubtype(g1.selfType.unwrap, g2.selfType.unwrap)
+  
   def getGetterType(fieldName: IdOrOp, receiverType: Type): Option[Type] = {
     // We can just assume there is a getter index for every field
     val methods = findMethodsInTraitHierarchy(fieldName, receiverType)
@@ -61,8 +64,10 @@ trait Common { self: STypeChecker =>
       case _ => None
     }
     val getters = methods.flatMap(isGetter).toList
-    // TODO: Figure out what the type should be if there are overridden getters.
-    getters.headOption.flatMap(g => toOption(g.getReturnType))
+    
+    if (getters.isEmpty) None else 
+    toOption(getters.min(Ordering.fromLessThan(smaller)).getReturnType)
+    // getters.headOption.flatMap(g => toOption(g.getReturnType))
   }
 
   def getSetterType(fieldName: IdOrOp, receiverType: Type): Option[Type] = {
@@ -73,8 +78,9 @@ trait Common { self: STypeChecker =>
       case _ => None
     }
     val setters = methods.flatMap(isSetter).toList
-    // TODO: Figure out what the type should be if there are overridden setters.
-    setters.headOption.flatMap(s => makeArrowFromFunctional(s).map(_.getDomain))
+    if (setters.isEmpty) None else
+    makeArrowFromFunctional(setters.min(Ordering.fromLessThan(smaller))).map(_.getDomain)
+    // setters.headOption.flatMap(s => makeArrowFromFunctional(s).map(_.getDomain))
   }
 
   /**
