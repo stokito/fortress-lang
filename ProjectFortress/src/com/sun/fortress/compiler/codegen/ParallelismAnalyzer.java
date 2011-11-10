@@ -22,6 +22,10 @@ public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
     private static final int ARG_THRESHOLD = 2;
     private final HashSet<ASTNode> worthy = new HashSet<ASTNode>();
 
+    void addToWorthy(ASTNode x) {
+        // worthy.add(x);
+    }
+
     private boolean isComputeIntensiveArg(Expr e) {
         // A FnRef should not be parallelized itself. But, as an argument,
         // it supports the case for parallelizing the enclosing application.
@@ -46,6 +50,7 @@ public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
 
     private boolean tallyArgs(List<Expr> args) {
         int count = 0;
+        debug("TallyArgs: args = " + args);
 
         for (Expr e : args) {
             if (isComputeIntensiveArg(e)) count++;
@@ -68,24 +73,25 @@ public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
     }
 
     public void printTable() {
-        if (false)
         for (ASTNode node : worthy)
-            System.out.println("Parallelizable table has entry " + node);
+            debug("Parallelizable table has entry " + node);
     }
 
     // Line 51 is the only OpExpr we want to parallelize
     public void forOpExprOnly(OpExpr x) {
-        debug(x,"forOpExpr");
-        if (tallyArgs(x.getArgs())) worthy.add(x);
+        debug(x,"forOpExpr" + x);
+        if (tallyArgs(x.getArgs())) {
+            addToWorthy(x);
+        }
     }
 
     public void forTupleExprOnly(TupleExpr x) {
-        debug(x,"forTupleExpr");
-        if (tallyArgs(x.getExprs())) worthy.add(x);
+        debug(x,"forTupleExpr" + x);
+        if (tallyArgs(x.getExprs())) addToWorthy(x);
     }
 
     public void for_RewriteFnAppOnly(_RewriteFnApp x) {
-        debug(x,"for_RewriteFnApp");
+        debug(x,"for_RewriteFnApp" + x);
         String node = x.toString();
         String fcn = x.getFunction().toString();
         if (node.contains("CompilerLibrary") ||
@@ -95,6 +101,6 @@ public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
             {
                 return;
             } 
-        worthy.add(x);
+        addToWorthy(x);
     }
 }
