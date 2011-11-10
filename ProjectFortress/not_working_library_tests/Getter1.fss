@@ -16,7 +16,9 @@ trait Foo
   getter g(): Foo
 end
 
-object Bar(n: ZZ32) extends Foo end
+object Bar(n: ZZ32) extends Foo
+   getter g() = self
+end
 
 object Baz(g: Bar) extends Foo
   ztesch(): Bar = self.g
