@@ -133,7 +133,7 @@ public class Inlining {
     }
 
      public static void recalculateLabels(ByteCodeMethodVisitor method) {
-         method.labelDefs = new HashMap();
+         //         method.labelDefs = new HashMap();
          recalculateLabels(method, method.insns);
      }
 

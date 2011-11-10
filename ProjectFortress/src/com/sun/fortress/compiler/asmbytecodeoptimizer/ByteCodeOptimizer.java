@@ -131,11 +131,14 @@ class ByteCodeOptimizer {
         while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry)it.next();
             ByteCodeVisitor bcv = (ByteCodeVisitor) pairs.getValue();
+            System.out.println("About to start optimizing " + bcv.name);
             AddString.optimize(bcv);
             RemoveLiteralCoercions.optimize(bcv);
-            Inlining.optimize(bcv);
+            //            Inlining.optimize(bcv);
             AbstractInterpretation.optimize((String) pairs.getKey(), bcv);
+            System.out.println("About to start DefUseChainOptimizations on " + bcv.name);
             DefUseChains.optimize(bcv);
+            System.out.println("Finished DefUseChainOptimizations on " + bcv.name);
         }
     }
         
