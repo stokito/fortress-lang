@@ -1461,7 +1461,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             d.accept(this);
         }
 
+        //        System.out.println("About to print parallelism table for " + packageAndClassName);
+        //        pa.printTable();
         cw.dumpClass( packageAndClassName );
+        
     }
 
     public void forDecl(Decl x) {
@@ -1472,6 +1475,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     // of those pesky FVoids for the arms of the DO.
 
     public void forDoParallel(List<? extends Expr> args, Type domain_type, List<VarCodeGen> vcgs) {
+        System.out.println("ForDoParallel: " + args);
         final int n = args.size();
         if (n <= 0) return;
         

@@ -24,6 +24,7 @@ public abstract class FortressExecutable extends RecursiveAction {
     public static final int numThreads = getNumThreads();
     public static final int defaultSpawnThreshold = 5;
     public static final int spawnThreshold = getSpawnThreshold();
+    public static final int loopChunk = getLoopChunk();
     public static final FortressTaskRunnerGroup group =
         new FortressTaskRunnerGroup(numThreads);
     public static final boolean useHelpJoin = getHelpJoin();
@@ -42,6 +43,12 @@ public abstract class FortressExecutable extends RecursiveAction {
         String spawnThresholdString = System.getenv("FORTRESS_SPAWN_THRESHOLD");
         if (spawnThresholdString != null) return Integer.parseInt(spawnThresholdString);
         return defaultSpawnThreshold;
+    }
+
+    static int getLoopChunk() {
+        String loopChunkString = System.getenv("FORTRESS_LOOP_CHUNK");
+        if (loopChunkString != null) return Integer.parseInt(loopChunkString);
+        return 1;
     }
 
     static boolean getHelpJoin() {
