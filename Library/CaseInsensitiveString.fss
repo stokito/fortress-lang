@@ -1,0 +1,46 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component CaseInsensitiveString
+export CaseInsensitiveString
+
+(** A %CaseInsensitiveString% is a wrapper around a %String% that
+    totally orders the underlying string case-insensitively.  This is
+    useful when using strings in a data structure that expects them to
+    extend StandardTotalOrder, for example as keys in a map or
+    elements of a set. **)
+value object CaseInsensitiveString(s:String)
+        extends { StandardTotalOrder[\CaseInsensitiveString\],
+                  ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] }
+    getter size():ZZ32 = |s|
+    (** %asString% returns the underlying non-case-insensitive %String%, %s%. **)
+    getter asString() : String = s
+    getter asDebugString() : String = "CaseInsensitive " s
+    getter indices() : CompactFullRange[\ZZ32\] = s.indices()
+    getter generator() : Generator[\Char\] = s.generator()
+    opr |self| : ZZ32 = |s|
+    opr =(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.asString) = 0
+    opr <(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.asString) < 0
+    opr <=(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.asString) <= 0
+    opr >(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.asString) > 0
+    opr >=(self, other:CaseInsensitiveString): Boolean = s.cicmp(other.asString) >= 0
+    opr CMP(self, other:CaseInsensitiveString): TotalComparison =
+        s.cicmp(other.asString) CMP 0
+    opr [i:ZZ32]: Char = s[i]
+    (** As a convenience, we permit LowerRange indexing to go 1 past the bounds
+        of the string, returning the empty string, in order to permit some convenient
+        string-trimming idioms. **)
+    opr[r0:Range[\ZZ32\]] : String =  CaseInsensitiveString(s[r0])
+    opr juxtaposition(self, other:CaseInsensitiveString): CaseInsensitiveString =
+        CaseInsensitiveString(s other)
+end
+
+end

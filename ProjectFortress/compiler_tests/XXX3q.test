@@ -1,0 +1,18 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled3.q
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${FORTRESS_AUTOHOME}/ProjectFortress/test_library/Compiled3.q.fsi:14:3-23:\n\
+\ Invalid comprises clause: a trait with a comprises ...,\n\
+\ such as Compiled3.q.T, should not be extended.\n\
+File Compiled3.q.fss has 1 error.\n
+compile_out_equals=

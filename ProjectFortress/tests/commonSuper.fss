@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component commonSuper
+export Executable
+
+f[\A\](x:A, y:A) : A = y
+
+trait T
+  me():String = "T"
+end
+
+object B() extends T
+  me()="B"
+end
+
+object C() extends T
+  me()="C"
+end
+
+run() = do
+    t1 = f(B(),C())
+    println(t1.me())
+    t2 = f(13.0, 5)
+    println(t2)
+    t3 = f(13.0, 5 7)
+    println(t3)
+    t4 = 3.0 t3
+    println(t4)
+  end
+
+end

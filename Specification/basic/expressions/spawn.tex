@@ -1,0 +1,32 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Spawn Expressions}
+\seclabel{spawn}
+
+\note{Static checking for \KWD{io} actions are not yet supported.}
+
+\begin{Grammar}
+\emph{FlowExpr} &::=& \KWD{spawn} \emph{Expr} \\
+\end{Grammar}
+
+A spawned thread is created using a \KWD{spawn} expression.  A
+\KWD{spawn} expression consists of \KWD{spawn} followed by an
+expression.  A \KWD{spawn} expression spawns a thread which evaluates
+its subexpression in parallel with any succeeding evaluation.  The
+value of a \KWD{spawn} expression is the spawned thread
+and the type of the expression is \EXP{\TYP{Thread}\llbracket{}T\rrbracket},
+where \VAR{T} is the static type of the expression spawned.
+A \KWD{spawn} expression constitutes an \KWD{io} action, and thus cannot be run
+within the body of an \KWD{atomic} expression.
+A \KWD{spawn} expression cannot be run
+within the body of an \KWD{atomic} expression.
+The semantics of spawned threads are discussed in \secref{threads-parallelism}.
