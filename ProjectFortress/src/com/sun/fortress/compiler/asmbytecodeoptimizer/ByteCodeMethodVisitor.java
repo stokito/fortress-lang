@@ -65,6 +65,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         this.result = NamingCzar.parseResult(desc);
         this.index = 0;
         this.vals = new ArrayList<AbstractInterpretationValue>();
+        this.labelDefs = new HashMap();
         changed = false;
     }
 

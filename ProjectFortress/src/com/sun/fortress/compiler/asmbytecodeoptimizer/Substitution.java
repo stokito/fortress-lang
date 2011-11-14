@@ -18,6 +18,8 @@ import org.objectweb.asm.util.*;
 
 public class Substitution {
 
+    int replacement_index = 0;
+
     List<Insn> match;
     List<Insn> replacements;
 
@@ -63,8 +65,10 @@ public class Substitution {
         // Every instruction has a label instruction with it.
         for (int j = 0; j < match.size(); j++)
             bcmv.insns.remove(i);
-        for (int j = replacements.size()-1; j >= 0; j--) 
-            bcmv.insns.add(i, replacements.get(j));
+        for (int j = replacements.size()-1; j >= 0; j--) {
+            Insn insn = replacements.get(j);
+            bcmv.insns.add(i, insn.copy(insn.index + "." + replacement_index++));
+        }
     }
 
     public void makeSubstitution(ByteCodeMethodVisitor bcmv) {

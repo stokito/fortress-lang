@@ -60,13 +60,17 @@ public class AbstractInterpretationContext {
     
     // 
     void pushStackDefinition(Insn i, AbstractInterpretationValue s) {
+        System.out.println("About to push stack definition: Insn = " + i + "AIV = " + s + " stackIndex = " + stackIndex + " maxStack = " + bcmv.maxStack);
         i.addDef(s);
-        stack[stackIndex++] = s;
+        stack[stackIndex] = s;
+        stackIndex++;
+
     }
 
     void pushStack(Insn i, AbstractInterpretationValue s) {
         s.addUse(i);
-        stack[stackIndex++] = s;
+        stack[stackIndex] = s;
+        stackIndex++;
     }
 
     AbstractInterpretationValue popStack(Insn i) { 
@@ -144,6 +148,7 @@ public class AbstractInterpretationContext {
         else if (i instanceof NotYetImplementedInsn) { printInsn(i, pc); throw new RuntimeException("NYI"); }
         else if (i instanceof SingleInsn)     { printInsn(i, pc); interpretSingleInsn((SingleInsn) i);}
         else if (i instanceof TableSwitchInsn) { printInsn(i, pc); interpretTableSwitchInsn((TableSwitchInsn) i);}
+        else if (i instanceof TryCatchBlock) { printInsn(i,pc); interpretTryCatchBlock((TryCatchBlock) i);}
         else if (i instanceof TypeInsn) { printInsn(i, pc);  interpretTypeInsn((TypeInsn) i);}
         else if (i instanceof VarInsn) { printInsn(i, pc); interpretVarInsn((VarInsn) i);}
         else if (i instanceof VisitLineNumberInsn) { 
@@ -247,10 +252,11 @@ public class AbstractInterpretationContext {
     }
 
     void interpretStaticMethodInsn(MethodInsn mi) {
+        System.out.println("interpretStaticMethod: " + mi + " args = " + NamingCzar.parseArgs(mi.desc) + " of size " + NamingCzar.parseArgs(mi.desc).size());
+
          int opcode = mi.opcode;
          String result = NamingCzar.parseResult(mi.desc);
          List<String> args = NamingCzar.parseArgs(mi.desc);
-         int k = args.size() - 1;
 
          for (int i = 0; i < args.size(); i++) {
              popStack(mi);
@@ -308,9 +314,10 @@ public class AbstractInterpretationContext {
     void interpretIntInsn(IntInsn i) {}
 
     int getNext(ByteCodeMethodVisitor bcmv, JumpInsn i) {
-
         Integer loc = (Integer) bcmv.labelDefs.get(i.label.toString());
-        return loc.intValue();
+        if (loc != null) 
+            return loc.intValue();
+        else return 0;
     }
 
     void addNext(JumpInsn i) {
@@ -380,7 +387,7 @@ public class AbstractInterpretationContext {
    void interpretSingleInsn(SingleInsn i) {
         switch(i.opcode) {
         case Opcodes.NOP: break;
-        case Opcodes. ACONST_NULL: pushStackDefinition(i, bcmv.createValue(i, "NULL")); break;
+        case Opcodes.ACONST_NULL: pushStackDefinition(i, bcmv.createValue(i, "NULL")); break;
         case Opcodes.ICONST_M1: 
         case Opcodes.ICONST_0: 
         case Opcodes.ICONST_1: 
@@ -504,6 +511,11 @@ public class AbstractInterpretationContext {
 
 
     void interpretTableSwitchInsn(TableSwitchInsn i) {NYI(i);}
+
+    void interpretTryCatchBlock(TryCatchBlock i) { 
+        // for every instruction from i.start to i.end i.handler is a potential next instruction.
+        //        For now do nothing.
+    }
 
     void interpretTypeInsn(TypeInsn i) {
         switch (i.opcode) {
