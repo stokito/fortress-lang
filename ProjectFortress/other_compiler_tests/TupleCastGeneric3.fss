@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait T
+  getter asString():String
+end
+
+object O(s:String) extends T
+  getter asString():String = s
+end
+
+tu:(T,T) = ( O("Hello"), O("World!") )
+
+join[\U extends T\](x:(U,U), y:Boolean) = do
+  (a,b) = x
+  a.asString " " b.asString
+end
+
+foo[\ V extends Any \](x:V):V = do
+  (*) println "Foo called"
+  x
+end
+
+run():() = do
+  x = foo[\(T,T)\](tu)
+  (*) println "Foo returned"
+  println( join[\T\](x, true) )
+end

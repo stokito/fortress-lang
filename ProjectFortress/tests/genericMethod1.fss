@@ -1,0 +1,45 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component genericMethod1
+export Executable
+
+run():()=do
+  a:ZZ32[6] = [ 0 1 2 3 4 5 ]
+  b:ZZ32[2] = a.subarray[\0, 2, 0\](1)
+  assert(b[0],0)
+  assert(b[1],1)
+
+  c:ZZ32[2] = a.subarray[\0, 2, 1\](2)
+
+  assert(c[0],1)
+  assert(c[1],3)
+
+  d:ZZ32[2] = a.subarray[\0, 2, 2\](1)
+
+  assert(d[0],2)
+  assert(d[1],3)
+
+  e:ZZ32[3] = a.subarray[\0, 3, 1\](2)
+  f:ZZ32[2] = e.subarray[\0, 2, 2\](-2)
+
+  assert(f[0],5)
+  assert(f[1],1)
+
+  e' = a.freeze().subarray[\0, 3, 1\](2) (*'*)
+  f' = e'.subarray[\0, 2, 2\](-2)        (*'*)
+
+  assert(f'[0],5)  (*'*)
+  assert(f'[1],1)  (*'*)
+
+end
+
+end

@@ -1,0 +1,26 @@
+(********************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+********************************************************************************)
+export Executable
+
+factorial(n: ZZ32): ZZ32
+    requires {n >= 0} =
+    if n = 0 then 1
+    else n factorial (n-1)
+    end
+
+f(n: ZZ32) requires {n >= 0,
+                     n + 3,
+                     n-5 <= 0} = ()
+g(n: ZZ32) ensures  {n >= 0,
+                     n + 3,
+                     n-5 <= 0 provided 8} = ()
+
+run() = ()

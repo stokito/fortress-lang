@@ -1,0 +1,38 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Throw Expressions}
+\seclabel{throw-expr}
+\begin{Grammar}
+\emph{FlowExpr} &::=& \KWD{throw} \emph{Expr}
+\end{Grammar}
+
+A \KWD{throw} expression consists of \KWD{throw}
+followed by a subexpression.
+The type of the subexpression must be a subtype of the type
+\TYP{Exception} (see \chapref{exceptions}).
+A \KWD{throw} expression evaluates its subexpression to an exception value
+and throws the exception value;
+the expression completes abruptly and has \TYP{BottomType}.
+
+
+The type \TYP{Exception} has exactly two direct mutually exclusive subtypes,
+\TYP{CheckedException} and \TYP{UncheckedException}.
+Every \TYP{CheckedException} that is thrown
+must be caught or forbidden by an enclosing \KWD{try} expression
+(see \secref{try-expr}),
+or it must be declared in the \KWD{throws} clause
+of an enclosing functional declaration (see \secref{function-decls}).
+Similarly, every \TYP{CheckedException} declared to be thrown
+in the static type of a functional called
+must be either caught or forbidden by an enclosing \KWD{try} expression,
+or declared in the \KWD{throws} clause
+of an enclosing functional declaration.

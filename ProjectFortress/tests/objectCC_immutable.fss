@@ -1,0 +1,122 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component objectCC_immutable
+export Executable
+
+trait T
+    x():ZZ32
+    y():ZZ32
+end
+
+a1:ZZ32 = 7
+
+(* objExpr not capturing anything *)
+topFunc1():T =
+    object extends T
+        x():ZZ32 = a1
+        y():ZZ32 = x() DOT a1
+    end
+
+(* objExpr capturing param *)
+topFunc2(top:ZZ32):T =
+    object extends T
+        x():ZZ32 = top
+        y():ZZ32 = x() + 1
+    end
+
+(* objExpr capturing local var and fnDef *)
+topFunc3(top:ZZ32):T = do
+    a2:ZZ32 = 12
+    (* local():ZZ32 = a1 !!! Doesn't work w/ interpreter yet! *)
+    object extends T
+        x():ZZ32 = a2
+        (* y():ZZ32 = local() DOT a2 + top !!! Doesn't work w/ interpreter yet! *)
+        y():ZZ32 = a1 DOT a2 + top
+    end
+end
+
+(* objExpr capturing local vars in nested LocaVarDecls *)
+topFunc4(top:ZZ32):T = do
+    a2:ZZ32 = 12
+    a3:ZZ32 = 11
+    object extends T
+        x():ZZ32 = a2 DOT a3
+        y():ZZ32 = topFunc2(top).x() DOT a2
+    end
+end
+
+object O(v:ZZ32)
+    (tmp, tmp2):(ZZ32,ZZ32) = (2,3)
+    foo():ZZ32 = v
+    bar():T = do
+                enclosing:O = self
+                object extends T
+                    x():ZZ32 = quack(enclosing, tmp2)
+                    y():ZZ32 = local() + tmp
+                end
+            end
+    quack(self, t:ZZ32):ZZ32 = self.v + t
+    local():ZZ32 = v
+end
+
+(* objExpr capturing Abs fields and vars in Trait *)
+trait XTrait
+    v:ZZ32
+    getVal():T = do
+            enclosing:XTrait = self
+            object extends T
+                x():ZZ32 = enclosing.v
+                y():ZZ32 = local()
+            end
+        end
+    local():ZZ32
+end
+
+object XObj(v:ZZ32) extends XTrait
+    local():ZZ32 = 2 + self.v
+end
+
+run():() = do
+    obj1:T = topFunc1()
+    assert(a1, obj1.x(), "obj1.x() failed.")
+    assert( a1 DOT a1, obj1.y(), "obj1.y() failed.")
+
+    var top:ZZ32 = 3
+    obj2:T = topFunc2(top)
+    assert(top, obj2.x(), "obj2.x() failed.")
+    assert( top+1, obj2.y(), "obj2.y() failed.")
+
+    obj3:T = topFunc3(top)
+    assert(12, obj3.x(), "obj3.x() failed.")
+    assert( 7 DOT 12 + top, obj3.y(), "obj3.y() failed.")
+
+    obj4:T = topFunc4(top)
+    assert( 12 DOT 11, obj4.x(), "obj4.x() failed.")
+    assert( top DOT 12, obj4.y(), "obj4.y() failed.")
+
+    o1:O = O(6);
+    o2:T = o1.bar()
+
+    assert( quack(o1, o1.tmp2), o2.x(), "o2.x() failed" )
+    assert( o1.v + o1.tmp, o2.y(), "o2.y() failed" )
+
+    xo1:XObj = XObj(7)
+    o3:T = xo1.getVal()
+
+    assert( xo1.v, o3.x(), "o3.x() failed" )
+    assert( xo1.local(), o3.y(), "o3.y() failed" )
+
+    println ("Testing object closure conversion for immutable " ||
+             "varRefs and fnRefs: passed.")
+end
+
+end

@@ -1,0 +1,79 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Words
+import PureList.{...}
+export Executable
+
+opr || [\E\](a: List[\E\], b:List[\E\]): List[\E\] = a.append(b)
+
+trait WordState comprises { Chunk, Segment }
+  opr OPLUS(self, other: WordState): WordState
+end
+
+object Chunk(s: String) extends WordState
+  opr OPLUS(self, other: WordState): WordState = Chunk("")
+  opr OPLUS(self, other: Chunk): WordState =
+    Chunk(s || other.s)
+  opr OPLUS(self, other: Segment): WordState =
+    Segment(s || other.l, other.A, other.r)
+end
+
+object Segment(l: String, A: List[\String\], r: String)
+    extends WordState
+  opr OPLUS(self, other: WordState): WordState = Chunk("")
+  opr OPLUS(self, other: Chunk): WordState =
+    Segment(l, A, r || other.s)
+  opr OPLUS(self, other: Segment): WordState =
+    Segment(l, A || maybeWord(r || other.l) || other.A, other.r)
+end
+
+object GlomReduction extends { MonoidReduction[\WordState\],
+                               ReductionWithZeroes[\WordState,WordState\] }
+    getter asString() = "GlomReduction"
+    empty(): WordState = Chunk("")
+    join(a: WordState, b: WordState): WordState = a OPLUS b
+end
+
+opr BIG OPLUS[\T\](): BigReduction[\WordState,WordState\] =
+    BigReduction[\WordState,WordState\](GlomReduction)
+
+opr BIG OPLUS[\T\](g: Generator[\WordState\]) =
+    __bigOperatorSugar[\WordState,WordState,WordState,WordState\](BIG OPLUS[\T\](), g)
+
+maybeWord(s: String): List[\String\] =
+  if s = "" then <|[\String\] |> else <|[\String\] s |> end
+
+processChar(c: String): WordState =
+  if (c = " ") then
+    Segment("", <|[\String\] |>, "")
+  else
+    Chunk(c)
+  end
+
+words(s: String) = do
+  g = BIG OPLUS[k<-0#s.size] processChar(s[k#1])
+  typecase g of
+    g':Chunk => maybeWord(g'.s)
+    g':Segment => maybeWord(g'.l) || g'.A || maybeWord(g'.r)
+  end
+end
+
+run(args:String...):() = do
+  println "Hello, world!"
+  println words("")
+  println words("  ")
+  println words("JustOneWord")
+  println words("This is a sample")
+  println words("  Here  is  another  sample  ")
+end
+
+end

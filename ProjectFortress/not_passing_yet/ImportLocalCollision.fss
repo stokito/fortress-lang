@@ -1,0 +1,33 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ImportLocalCollision
+import TestImports1.{...}
+export Executable
+
+trait U
+  s():String = "s from ImportLocalCollision.U"
+end
+
+object V extends U
+end
+
+object W extends T
+  myname():String = "ImportLocalCollision.W"
+end
+
+run():()=do
+  println V.s()
+  println W.s()
+  println W.t()
+end
+
+end
