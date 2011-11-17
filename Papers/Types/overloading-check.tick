@@ -1,0 +1,185 @@
+
+In this section,
+we describe how to mechanically check 
+the overloading rules from Section~\ref{sec:rules}. 
+The key insight is that the more specific relation 
+on overloaded function declarations
+corresponds to the subtyping relation 
+on the domain types of the declarations, 
+where the domain types of generic function declarations 
+are \emph{existential types}~\cite{bourdoncle97}.
+Thus, the problem of determining whether one declaration 
+is more specific than another 
+reduces to the problem of determining 
+whether one existential type is a subtype of another.
+
+We then formulate the overloading rules 
+as subtyping checks on existential and universal types 
+(universal types arise in the reformulation 
+of the Return Type Rule),
+and give an algorithm 
+to perform these subtyping checks.
+The algorithm we describe is sound but not complete:
+it does rejects some sets of overloaded functions 
+that are valid by the overloading rules in Section~\ref{sec:rules}, 
+but it accepts many of them, 
+including all of the valid examples in Section~\ref{sec:examples}.
+
+\subsection{Existential and Universal Types}
+
+Given a generic function declaration $d = \hdeclg{f}{\Delta}{S}{T}$,
+its domain type, written $\dom(d)$, 
+is the existential type $\exists\ob{\Delta}{S}$.
+An \emph{existential type} binds type parameter declarations over a type, 
+but these type parameters cannot be instantiated; 
+instead, the existential type represents some hidden type instantiation 
+and the corresponding instantiated type. We write
+$\exists\tplist{X}{N}T$ to bind each type variable $X_i$ with bounds
+$\{\bar{N_i}\}$ over the type $T$, and we use the metavariable $\delta$ to
+range over existential types.
+
+The arrow type of declaration $d$ above, written $\arrow(d)$, 
+is the universal arrow type \mbox{$\forall\ob{\Delta}S \rightarrow T$}.
+We use this to formulate the Return Type Rule.
+A \emph{universal type} binds type parameter declarations over some type and
+can be instantiated by any types fitting the type parameters' bounds.
+We write $\forall\tplist{X}{N}T$ to bind each type variable $X_i$ 
+with bounds $\{\bar{N_i}\}$ over the type $T$, 
+and we use the metavariable $\sigma$ to range over universal types.
+
+Note that universal and existential types 
+are \emph{not} actually types in our system.
+% To distinguish between the different notions, we refer to types
+% $T$ as \emph{simple types} and the original subtyping relation $\subtypeof$ as
+% \emph{simple subtyping}. 
+% When the meaning is clear from context, we equate
+% both $\forall\ob{}T$ and $\exists\ob{}T$ with the type $T$. 
+
+% \input{fig-application}
+
+%%%%%%%%%%%%%%%%%%%%%%
+% INTRODUCE SUBTYPING!
+\subsection{Universal and Existential Subtyping}
+
+We define subtyping judgments for universal and existential types,
+which we use in checking the overloading rules. 
+We actually define inner and outer subtyping judgments on universals and existentials; 
+the former correspond to a relatively standard interpretation of each 
+(which resembles those defined in \cite{bourdoncle97});
+the latter incorporate \emph{quantifier reduction}, 
+defined in Section~\ref{sec:exred}.
+
+
+\input{fig-existential}
+The inner subtyping judgment on existentials $\jleinner{\delta_1}{\delta_2}$, defined in
+Figure~\ref{fig:existential}, states that $\delta_1$ is a subtype of $\delta_2$ in the environment $\Delta$ if the constituent type of $\delta_1$
+is a subtype of an instance of $\delta_2$ in the environment obtained by conjoining $\Delta$ and the bounds of $\delta_1$.
+
+In the outer subtyping judgment $\jle{\delta}{\delta'}$, 
+we first perform \emph{existential reduction} to produce $\reduce{\delta}$ 
+(denoted \jtred{\delta}{\reduce{\delta}}). 
+Then we check whether $\jleinner{\reduce{\delta}}{\delta'}$.
+We provide (and explain) the formal definition of existential reduction in Section~\ref{sec:exred}, but for now note that it has the following properties:
+\begin{enumerate}
+\item $\jleinner{\reduce{\delta}}{\delta}$
+\item $\jleinner{\delta}{\delta'}$ implies $\jleinner{\reduce{\delta}}{\reduce{\delta'}}$
+\item $\reduce{(\reduce{\delta})} = \reduce{\delta}$
+\item $\reduce{(\exttype[]{T})} = \exttype[]{T}$
+\end{enumerate}
+The first three properties show that $\le$ is a preorder and that $\leinner$ implies $\le$.
+Adding the fourth property lets us show that any ground instance $T$ of $\delta$ with $T \neq \Bottom$ is an instance of $\reduce{\delta}$
+
+We use existential reduction 
+because merely extending the subtyping relation for ordinary types with exclusion
+is not enough to let us check the overloading rules. For example, to check that the first two declarations of $\D_{\mathit{bar}}$ from Section~$\ref{sec:examples}$ satisfy the Meet Rule,
+we must be able to deduce that the existential
+\[`EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\])`\]
+and the existential
+\[`EXISTS[\W<:ZZ\]ArrayList[\W\]`\]
+describe the same set of ground instances of types.
+
+The rules for universals are dual to those for existentials. The inner subtyping judgment on universals $\jleinner{\sigma_1}{\sigma_2}$, defined in
+Figure~\ref{fig:existential},
+states that $\sigma_1$ is a subtype
+of $\sigma_2$ in the environment $\Delta$, if an instance of $\sigma_1$ is a subtype of the constituent type of $\sigma_2$ in the environment obtained by conjoining $\Delta$ and the bounds of $\sigma_2$. In
+the outer universal subtyping judgment $\jle{\sigma}{\sigma'}$,
+we first perform $\emph{universal reduction}$ to produce $\reduce{\sigma'}$ 
+(denoted \jtred{\sigma'}{\reduce{\sigma'}})
+and then check whether $\jleinner{\sigma}{\reduce{\sigma'}}$. 
+Again, 
+we provide the formal definition of universal reduction in Section~\ref{sec:exred}, 
+noting that it has the following properties:
+\begin{enumerate}
+\item $\jleinner{\sigma}{\reduce{\sigma}}$
+\item $\jleinner{\sigma}{\sigma'}$ implies $\jleinner{\reduce{\sigma}}{\reduce{\sigma'}}$
+\item $\reduce{(\reduce{\sigma})} = \reduce{\sigma}$
+\item $\reduce{(\unitype[]{\arrowtype{S}{T}})} = \unitype[]{\arrowtype{S}{T}}$
+\end{enumerate}
+Again the first three properties show that $\le$ is a preorder and that $\leinner$ implies $\le$.
+Adding the fourth property lets us show that any ground instance $\arrowtype{S}{T}$ of $\delta$ with $S \neq \Bottom$ is an instance of $\reduce{\sigma}$.
+
+We need universal reduction for the same reason we need existential reduction, to check the overloading rules. For example to show the first two declarations in $\D_{\mathit{tail}}$
+from Section~\ref{sec:examples} satisfy the Return Type Rule, we use universal reduction to show that
+\[`FORALL[\X<:Number,Y<:Any\](List[\X\] CAP List[\Y\])`\]
+and
+\[`FORALL[\W<:Number\]List[\W\] -> List[\W\]`\]
+have all the same nontrivial instances.
+
+% We provide and fully explain the definitions of existential and universal reduction in Section~\ref{sec:exred}.
+
+\input{fig-meet}
+
+\subsection{Mechanically Checking the Rules}
+With our interpretations of applicability and specificity into existential
+subtyping, we now describe the process of checking the validity of a set of 
+overloaded declarations $\Df$ according to the rules in
+Section~\ref{sec:rules}.
+
+We can check the No Duplicates Rule by verifying that for every pair of distinct function
+declarations $d_1, d_2 \in \Df$ either $d_1 \not \ms d_2$ or $d_1 \not \ms d_2$. 
+
+The Meet Rule requires that every pair of declarations $d_1, d_2 \in \Df$ 
+has a meet in $\Df$. 
+Because the more specific relation on function declarations 
+corresponds to the subtyping relation on the (existential) domain types,
+we just need to find a declaration $d_0 \in \Df$ 
+whose domain type $dom(d_0)$ 
+is equivalent to the meet (under $\le$) 
+of the existential types $\dom(d_1)$ and $\dom(d_2)$.
+Figure~\ref{fig:meet} shows how to compute the meet of two existential types.
+
+\begin{lemma}\label{lem:meet}
+$\delta_1 \meet \delta_2$ (as defined in Figure~\ref{fig:meet}) 
+is the meet of $\delta_1$ and $\delta_2$ under $\le$.
+\end{lemma}
+\begin{proof}
+First we show that $\delta_1 \meet \delta_2$ is the meet of $\delta_1$ and $\delta_2$ under $\leinner$. That $\delta_1 \meet \delta_2 \leinner \delta_1$ and $\delta_1 \meet \delta_2 \leinner \delta_2$ is obvious.
+For any $\delta_0$, if $\bar{U}$ and $\bar{V}$ are instantiations that prove
+$\delta_0 \leinner \delta_1$ and $\delta_0 \leinner \delta_2$, respectively,
+then we can use the instantiation $\bar{U},\bar{V}$ to prove that $\delta_0 \le \delta_1 \meet \delta_2$.
+
+Now we show that the meet under $\leinner$ is also the meet under $\le$. Suppose that $\delta_0 \le \delta_1$, $\delta_0 \le \delta_1$,
+and $\jtred{\delta_0}{\delta'_0}$. A little work lets us deduce that $\delta'_0 \leinner \delta_1 \meet \delta_2$ and hence $\delta_0 \le \delta_1 \meet \delta_2$.
+The fact that $\delta_1 \meet \delta_2 \le \delta_1$ and $\delta_1 \meet \delta_2 \le \delta_2$ follows from the fact that $\leinner$ implies $\le$.
+\end{proof}
+
+We can check the Return Type Rule using the subtype relation on universal types.
+\begin{theorem}
+Let $d_1 = \hdeclg{f}{\Delta_1}{S_1}{T_1}$ and $d_2 = \hdeclg{f}{\Delta_2}{S_2}{T_2}$ be declarations
+in $\Df$ with $d_1 \ms d_2$. 
+They satisfy the Return Type Rule if $\arrow(d_1)$ is a subtype of
+the arrow type $\sigma_{\wedge} = \forall\ob{\Delta_1, \Delta_2}(S_1 \cap S_2) \rightarrow T_2$.
+\end{theorem}
+
+\begin{proof}
+Let $d_{\wedge} = f\ob{\Delta_1, \Delta_2} S_1 \cap S_2 : T_2$, 
+so $\arrow(d_{\wedge}) = \sigma_{\wedge}$. 
+Note that $d_{\wedge}$ and $d_1$ are equally specific and 
+that $d_{\wedge}$ and $d_2$ satisfy the Return Type Rule. 
+Because $\arrow(d_1) \le \sigma_{\wedge}$,
+for every instance $\arrowtype{U}{V}$ of $\sigma_{\wedge}$ with $U \not \equiv \Bottom$,
+we can find an instance $\arrowtype{U_1}{V_1}$ of $\arrow(d_1)$ 
+with $U \subtypeof U_1$ and $V_1 \subtypeof V$. 
+Thus, the pair $d_1$ and $d_2$ satisfy the Return Type Rule because the pair $d_{\wedge}$, $d_2$ does.
+\end{proof}
+

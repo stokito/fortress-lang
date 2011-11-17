@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+component SyntaxExtendsUse
+
+  import SyntaxExtends.{ A, B, D, E, F }
+  import List.{...}
+
+  export Executable
+
+  some thingB1
+
+  some thingC0
+
+  some thingC1
+
+  some thingC2
+
+  some thingF
+
+  run() = print (somethingB1() ", " somethingC0() ", " somethingC1() ", " somethingC2() ", and " somethingF())
+end
