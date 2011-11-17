@@ -239,60 +239,77 @@ trait Object extends Any
 end Object
 
 trait String
+    getter isEmpty(): Boolean
+    getter asString(): String
+    getter asJavaString(): JavaString
+    opr |self| : ZZ32
+    opr <(self, b: String): Boolean = false    (*) Needs to be replaced by generic definition once big operators work
+    opr =(self, b: String): Boolean = false    (*) Needs to be replaced by generic definition once big operators work
+    opr ||(self, b:Object): String
+    opr juxtaposition(self, b:Object): String
+    opr [i:ZZ32] : Character
+    substring(lo:ZZ32, hi:ZZ32): String
+    opr ^(self, n: ZZ32): String
+end
+
+trait JavaString extends String
     getter isEmpty(): Boolean = (jStrlen(self) = 0)
     getter asString(): String = self
+    getter asJavaString(): JavaString = self
     opr |self| : ZZ32 = jStrlen(self)
-    opr <(self, b: String) = (jCompareTo(self, b) < 0)
-    opr =(self, b: String) = (jCompareTo(self, b) = 0)
-    opr ||(self, b:Object): String =  jConcatenate(self, b.asString)
-    opr juxtaposition(self, b:Object): String = jConcatenate(self, b.asString)
+    opr <(self, b: JavaString): Boolean = (jCompareTo(self, b) < 0)
+    opr =(self, b: JavaString): Boolean = (jCompareTo(self, b) = 0)
+    opr ||(self, b:Object): JavaString =  jConcatenate(self, b.asString.asJavaString)
+    opr juxtaposition(self, b:Object): JavaString = jConcatenate(self, b.asString.asJavaString)
     opr [i:ZZ32] : Character = jMakeCharacter(jCharAt(self, i))
-    substring(lo:ZZ32, hi:ZZ32):String = jSubstring(self, lo, hi)
-    opr ^(self, n: ZZ32): String =
+    substring(lo:ZZ32, hi:ZZ32): JavaString = jSubstring(self, lo, hi)
+    opr ^(self, n: ZZ32): JavaString =
       if n <= 1 then
-        if n=1 then self elif n=0 then "" else throw NegativeLength end
+        if n=1 then self elif n=0 then ("").asJavaString else throw NegativeLength end
       else
         x = (self || self)^(n DIV 2)
         if odd n then x || self else x end
       end
 end
 
-object FlatString extends String
-end FlatString
+print(x:Object):() = jPrint(x.asString.asJavaString)
+(*) print(s:String):() = jPrint(s.asJavaString)
+(*) print(s:JavaString):() = jPrint(s)
+(*) print(c:Character):() = jPrint(c.asString)
+(*) print(x:ZZ32):() = jPrint(x.asString)
+(*) print(x:ZZ64):() = jPrint(x.asString)
+(*) print(x:RR64):() = jPrint(x.asString)
 
-print(s:String):() = jPrint(s)
-print(c:Character):() = jPrint(c.asString)
-print(x:ZZ32):() = jPrint(x.asString)
-print(x:ZZ64):() = jPrint(x.asString)
-print(x:RR64):() = jPrint(x.asString)
-
-println(x:Object):() = jPrintln(x.asString)
-println(s:String):() = jPrintln(s)
-println(c:Character):() = jPrintln(c.asString)
+println(x:Object):() = jPrintln(x.asString.asJavaString)
+(*) println(s:String):() = jPrintln(s.asJavaString)
+(*) println(s:JavaString):() = jPrintln(s)
+(*) println(c:Character):() = jPrintln(c.asString)
 (*) println():() = jPrintln("")
 (*) println(x:Any):() = jPrintln("<any>")
 
-println(x:ZZ32):() = jPrintln(x.asString)
-println(x:ZZ64):() = jPrintln(x.asString)
+(*) println(x:ZZ32):() = jPrintln(x.asString)
+(*) println(x:ZZ64):() = jPrintln(x.asString)
 (*) println(x:RR32):() = jPrintln(x.asString)
-println(x:RR64):() = jPrintln(x.asString)
-println(a: Any, b: Any): () = jPrintln("(" str(a) ", " str(b) ")")
-println(a: Any, b: Any, c: Any): () = jPrintln("(" str(a) ", " str(b) ", " str(c) ")")
-println(a: Any, b: Any, c: Any, d: Any): () = jPrintln("(" str(a) ", " str(b) ", " str(c) ", " str(d) ")")
+(*) println(x:RR64):() = jPrintln(x.asString)
+println(a: Any, b: Any): () = jPrintln(("(" str(a) ", " str(b) ")").asJavaString)
+println(a: Any, b: Any, c: Any): () = jPrintln(("(" str(a) ", " str(b) ", " str(c) ")").asJavaString)
+println(a: Any, b: Any, c: Any, d: Any): () = jPrintln(("(" str(a) ", " str(b) ", " str(c) ", " str(d) ")").asJavaString)
 (*) println[\A,B,C,D,E\](x: (A,B,C,D,E)):() = jPrintln(str(x))
 (*) println[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):() = jPrintln(str(x))
 (*) println[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):() = jPrintln(str(x))
 
-errorPrintln(s:String):() = jErrorPrintln(s)
-errorPrintln(c:Character):() = jErrorPrintln(c.asString)
+errorPrintln(x:Object):() = jErrorPrintln(x.asString.asJavaString)
+(*) errorPrintln(s:String):() = jErrorPrintln(s.asJavaString)
+(*) errorPrintln(s:JavaString):() = jErrorPrintln(s)
+(*) errorPrintln(c:Character):() = jErrorPrintln(c.asString)
 (*) errorPrintln(x:Object): () = jErrorPrintln(x.asString)
 (*) errorPrintln():() = jErrorPrintln("")
 (*) errorPrintln(x:Any):() = jErrorPrintln("<big tuple>")
 
-errorPrintln(x:ZZ32):() = jErrorPrintln(x.asString)
-errorPrintln(x:ZZ64):() = jErrorPrintln(x.asString)
+(*) errorPrintln(x:ZZ32):() = jErrorPrintln(x.asString)
+(*) errorPrintln(x:ZZ64):() = jErrorPrintln(x.asString)
 (*) errorPrintln(x:RR32):() = jErrorPrintln(x.asString)
-errorPrintln(x:RR64):() = jErrorPrintln(x.asString)
+(*) errorPrintln(x:RR64):() = jErrorPrintln(x.asString)
 (*) errorPrintln[\A,B\](x: (A,B)):() = jErrorPrintln(str(x))
 (*) errorPrintln[\A,B,C\](x: (A,B,C)):() = jErrorPrintln(str(x))
 (*) errorPrintln[\A,B,C,D\](x: (A,B,C,D)):() = jErrorPrintln(str(x))
@@ -301,17 +318,17 @@ errorPrintln(x:RR64):() = jErrorPrintln(x.asString)
 (*) errorPrintln[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):() = jErrorPrintln(str(x))
 
 (*) Utility routine for converting tuples to strings
-private str(x: Any): String = "<big tuple>"
-private str(x: Object): String = x.asString
-private str(): String = "()"
-private str(a: Any, b: Any): String = "(" str(a) ", " str(b) ")"
-private str(a: Any, b: Any, c: Any): String = "(" str(a) ", " str(b) ", " str(c) ")"
-private str(a: Any, b: Any, c: Any, d: Any): String = "(" str(a) ", " str(b) ", " str(c) ", " str(d) ")"
-(*) private str[\A,B,C,D,E\](x: (A,B,C,D,E)):String = do (a,b,c,d,e) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ")" end
-(*) private str[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):String = do (a,b,c,d,e,f) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ", " str(f) ")" end
-(*) private str[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):String = do (a,b,c,d,e,f,g) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ", " str(f) ", " str(g) ")" end
+private str(x: Any): JavaString = ("<big tuple>").asJavaString
+private str(x: Object): JavaString = x.asString.asJavaString
+private str(): JavaString = ("()").asJavaString
+private str(a: Any, b: Any): JavaString = ("(" str(a) ", " str(b) ")").asJavaString
+private str(a: Any, b: Any, c: Any): JavaString = ("(" str(a) ", " str(b) ", " str(c) ")").asJavaString
+private str(a: Any, b: Any, c: Any, d: Any): JavaString = ("(" str(a) ", " str(b) ", " str(c) ", " str(d) ")").asJavaString
+(*) private str[\A,B,C,D,E\](x: (A,B,C,D,E)): JavaString = do (a,b,c,d,e) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ")" end
+(*) private str[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)): JavaString = do (a,b,c,d,e,f) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ", " str(f) ")" end
+(*) private str[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)): JavaString = do (a,b,c,d,e,f,g) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ", " str(f) ", " str(g) ")" end
 
-strToInt(s:String):ZZ32 = jParseInt(s)
+strToInt(s:String):ZZ32 = jParseInt(s.asJavaString)
 
 trait Number excludes { String }
 end
@@ -354,19 +371,6 @@ trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 }
     opr CHOOSE(self, other:ZZ64): ZZ64 = jLongOverflowingChoose(self,other)
     even(self): Boolean = ((self BITAND 1) = 0)
     odd(self): Boolean = NOT (even self)
-(*)     opr CHOOSE(self, other: ZZ64): ZZ64 = 
-(*)       if 0 < other < self then
-(*)         if (other + other) > self
-(*)         then self CHOOSE (self - other)
-(*)         else
-(*)           q = self - other
-(*)           chooseloop(j: ZZ64, a: ZZ64): ZZ64 =
-(*)             if j > m then a else chooseloop(j+1, (a DOT (q + j)) DIV j) end
-(*)       chooseloop(1, 1)
-(*)         end
-(*)       elif other = 0 OR: other = self then 1
-(*)       else 0
-(*)       end
 end
 
 trait ZZ32 extends { Number, Equality[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
@@ -617,12 +621,12 @@ end
 
 __makeZZ32Vector(l1: ZZ32, d1: ZZ32, l2: ZZ32, d2: ZZ32): ZZ32Vector = jIntVectorMake(l1, d1, l2, d2)
 
-makeStringVector(i:ZZ32) : StringVector = jStringVectorMake(i)
+makeStringVector(i:ZZ32): StringVector = jStringVectorMake(i)
 
 trait StringVector 
-   getValue(i:ZZ32):String = jStringVectorGet(self, i)
-   putValue(i:ZZ32, v:String):() = jStringVectorPut(self, i, v)
-   opr[i:ZZ32]:String = getValue(i)
+   getValue(i:ZZ32): String = jStringVectorGet(self, i)
+   putValue(i:ZZ32, v:String): () = jStringVectorPut(self, i, v.asJavaString)
+   opr[i:ZZ32]: String = getValue(i)
    opr |self| : ZZ32 = jStringVectorGetSize(self)
 end
 
@@ -638,18 +642,18 @@ trait JavaBufferedReader excludes { String, Number, Boolean, Character }
   consume(): () = jJavaBufferedReaderConsume(self)
 end
 
-makeJavaBufferedReader(s: String): JavaBufferedReader throws FileNotFoundException = jJavaBufferedReaderOpen(s)
+makeJavaBufferedReader(s: String): JavaBufferedReader throws FileNotFoundException = jJavaBufferedReaderOpen(s.asJavaString)
 
 trait JavaBufferedWriter excludes { String, Number, Boolean, Character, JavaBufferedReader }
   getter asString(): String = jJavaBufferedWriterAsString(self)
   write(c: Character): () throws IOException = jJavaBufferedWriterWriteChar(self, jCodePoint(c))
-  write(s: String): () throws IOException = jJavaBufferedWriterWriteString(self, s)
+  write(s: String): () throws IOException = jJavaBufferedWriterWriteString(self, s.asJavaString)
   newLine(): () throws IOException = jJavaBufferedWriterNewLine(self)
   flush(): () throws IOException = jJavaBufferedWriterFlush(self)
   close(): () throws IOException = jJavaBufferedWriterClose(self)
 end
 
-makeJavaBufferedWriter(s: String): JavaBufferedWriter throws FileNotFoundException = jJavaBufferedWriterOpen(s)
+makeJavaBufferedWriter(s: String): JavaBufferedWriter throws FileNotFoundException = jJavaBufferedWriterOpen(s.asJavaString)
 
 
 (************************************************************

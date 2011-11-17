@@ -322,6 +322,26 @@ public class simpleIntArith {
         return a ^ b;
     }
 
+    public static int intToIntPower(int a, int b) {
+	if (b <= 0) {
+	    if (b == 0 || a == 1) return 1;
+	    else if (a < 0) throw Utility.makeFortressException("fortress.CompilerBuiltin$DivisionByZero");
+	    else return 0;
+	}
+	long result = 1;
+	long x = a;
+	do {
+	    if (x != (int) x) throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+	    if ((b & 1) != 0) {
+		result *= x;
+		if (result != (int) result) throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+	    }
+	    b >>= 1;
+	    x *= x;
+	} while (b > 0);
+	return (int) result;
+    }
+
     public static int intExp(int a, int b) {
         double result = java.lang.Math.pow(a,b);
         if (result > Integer.MAX_VALUE)

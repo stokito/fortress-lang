@@ -19,7 +19,7 @@ import java com.sun.fortress.nativeHelpers.{simpleOverload.duo => jDuo}
 export Executable
 
 print2(x:String, y:String):() = do
-  jPrintln(jDuo(x,y))
+  jPrintln(jDuo(x.asJavaString,y.asJavaString))
 end
 
 (* jDuo(x:String, y:ZZ32):String = do
@@ -46,15 +46,15 @@ run(): () = do
   five:ZZ32=5
   six:ZZ32=6
 
-  jPrintln(local("b", "az"))
-  jPrintln(local(five,six))
-  jPrintln(local("5",six))
-  jPrintln(local(five,"6"))
+  jPrintln(local("b", "az").asJavaString)
+  jPrintln(local(five,six).asJavaString)
+  jPrintln(local("5",six).asJavaString)
+  jPrintln(local(five,"6").asJavaString)
   
-  jPrintln(lokal("b", "az"))
-  jPrintln(lokal(five,six))
-  jPrintln(lokal("5",six))
-  jPrintln(lokal(five,"6"))
+  jPrintln(lokal("b", "az").asJavaString)
+  jPrintln(lokal(five,six).asJavaString)
+  jPrintln(lokal("5",six).asJavaString)
+  jPrintln(lokal(five,"6").asJavaString)
 
 end
 

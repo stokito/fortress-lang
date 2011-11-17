@@ -23,35 +23,36 @@ end Object
 nanoTime(): RR64
 
 trait String
+    getter asJavaString(): JavaString
     getter isEmpty(): Boolean
-    opr <(self, b:String): Boolean
+    opr <(self, b: String): Boolean
     opr =(self, b: String): Boolean
     opr |self| : ZZ32
-    opr || (self, b:Object):String
+    opr || (self, b:Object): String
     opr juxtaposition(self, b:Object): String
     opr[i:ZZ32] : Character
-    substring(lo:ZZ32, hi:ZZ32):String
+    substring(lo:ZZ32, hi:ZZ32): String
     opr ^(self, n: ZZ32): String
 end
 
-object FlatString extends String
-end FlatString
+trait JavaString extends String
+end JavaString
 
-print(s:String):()
-print(c:Character):()
-print(x:ZZ32):()
-print(x:ZZ64):()
-print(x:RR64):()
+print(x:Object):()
+(*) print(c:Character):()
+(*) print(x:ZZ32):()
+(*) print(x:ZZ64):()
+(*) print(x:RR64):()
 
 println(x:Object):()
-println(s:String):()
-println(c:Character):()
+(*) println(s:String):()
+(*) println(c:Character):()
 (*) println():()
 (*) println(x:Any):()
-println(x:ZZ32):()
-println(x:ZZ64):()
+(*) println(x:ZZ32):()
+(*) println(x:ZZ64):()
 (*) println(x:RR32):()
-println(x:RR64):()
+(*) println(x:RR64):()
 println(a: Any, b: Any): ()
 println(a: Any, b: Any, c: Any): ()
 println(a: Any, b: Any, c: Any, d: Any): ()
@@ -59,15 +60,16 @@ println(a: Any, b: Any, c: Any, d: Any): ()
 (*) println[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):()
 (*) println[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):()
 
-errorPrintln(s:String):()
-errorPrintln(c:Character):()
+errorPrintln(x:Object):()
+(*) errorPrintln(s:String):()
+(*) errorPrintln(c:Character):()
 (*) errorPrintln(x:Object): ()
 (*) errorPrintln():()
 (*) errorPrintln(x:Any):()
-errorPrintln(x:ZZ32):()
-errorPrintln(x:ZZ64):()
+(*) errorPrintln(x:ZZ32):()
+(*) errorPrintln(x:ZZ64):()
 (*) errorPrintln(x:RR32):()
-errorPrintln(x:RR64):()
+(*) errorPrintln(x:RR64):()
 (*) errorPrintln[\A,B\](x: (A,B)):()
 (*) errorPrintln[\A,B,C\](x: (A,B,C)):()
 (*) errorPrintln[\A,B,C,D\](x: (A,B,C,D)):()
@@ -315,7 +317,6 @@ __makeZZ32Vector(l1: ZZ32, d1: ZZ32, l2: ZZ32, d2: ZZ32): ZZ32Vector
 makeStringVector(i:ZZ32) : StringVector
 
 trait JavaBufferedReader excludes { String, Number, Boolean, Character }
-  getter asString(): String
   read(): Character throws IOException
   readLine(): String throws IOException
   readk(k: ZZ32): String throws IOException
@@ -329,7 +330,6 @@ end
 makeJavaBufferedReader(s: String): JavaBufferedReader throws FileNotFoundException
 
 trait JavaBufferedWriter excludes { String, Number, Boolean, Character, JavaBufferedReader }
-  getter asString(): String
   write(c: Character): () throws IOException
   write(s: String): () throws IOException
   newLine(): () throws IOException

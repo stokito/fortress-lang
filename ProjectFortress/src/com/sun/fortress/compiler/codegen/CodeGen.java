@@ -1077,6 +1077,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 if (shadowed)
                     continue;
                 if (narrowed) {
+		    System.out.println("generateForwardingFor:");
+		    System.out.println("  super_func = " + super_func);
+		    System.out.println("  narrowed_func = " + narrowed_func);
+		    System.out.println("  super_inst = " + super_inst);
+		    System.out.println("  currentTraitObjectType = " + currentTraitObjectType);
                     generateForwardingFor(super_func, narrowed_func, false, super_inst, currentTraitObjectType, currentTraitObjectType, true); // swapped
                     // TODO emit the forwarding method
                     continue;
@@ -4350,7 +4355,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     public void forCharLiteralExpr(CharLiteralExpr x) {
         // This is cheating, but the best we can do for now.
-        // We make a FString and push it on the stack.
+        // We make a FJavaString and push it on the stack.
         debug("forCharLiteral ", x);
         addLineNumberInfo(x);
         mv.visitLdcInsn(x.getCharVal());
@@ -4361,13 +4366,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     
     public void forStringLiteralExpr(StringLiteralExpr x) {
         // This is cheating, but the best we can do for now.
-        // We make a FString and push it on the stack.
+        // We make a FJavaString and push it on the stack.
         debug("forStringLiteral ", x);
         addLineNumberInfo(x);
         mv.visitLdcInsn(x.getText());
         addLineNumberInfo(x);
-        mv.visitMethodInsn(INVOKESTATIC, NamingCzar.internalFortressString, NamingCzar.make,
-                           Naming.makeMethodDesc(NamingCzar.descString, NamingCzar.descFortressString));
+        mv.visitMethodInsn(INVOKESTATIC, NamingCzar.internalFortressJavaString, NamingCzar.make,
+                           Naming.makeMethodDesc(NamingCzar.descString, NamingCzar.descFortressJavaString));
     }
 
     public void forSubscriptExpr(SubscriptExpr x) {
@@ -4378,6 +4383,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // This is more true than ever now that we have ZZ32Vector and StringVector,
         // but I couldn't figure out where/how to add it to the proper desugaring phase.
+	if (x == x) throw new Error("Should not be a subscriptExpr here in codegen!");
 
         debug("forSubscriptExpr ", x);
         Expr obj = x.getObj();
@@ -4419,7 +4425,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              mv.visitMethodInsn(INVOKEVIRTUAL,
                                 NamingCzar.descToInternal(NamingCzar.jvmTypeDesc(vcg.fortressType, thisApi())),
                                 NamingCzar.idOrOpToString(op),
-                                args + "Lcom/sun/fortress/compiler/runtimeValues/FString;");
+                                args + "Lcom/sun/fortress/compiler/runtimeValues/FJavaString;");
          else if (vcg.fortressType.toString().equals("ZZ32Vector"))
              mv.visitMethodInsn(INVOKEVIRTUAL,
                             NamingCzar.descToInternal(NamingCzar.jvmTypeDesc(vcg.fortressType, thisApi())),

@@ -169,7 +169,7 @@ public class NamingCzar {
     public static final String internalSingleton  = internalObject;
     public static final String internalClass      = org.objectweb.asm.Type.getInternalName(Class.class);
 
-    // If you change these, you may also need to change items in file FortressMethodAdapter.java
+    // If you change these, you may also need to change items in file nativeInterface/FortressMethodAdapter.java
     public static final String descFloat         = org.objectweb.asm.Type.getDescriptor(float.class);
     public static final String descInt           = org.objectweb.asm.Type.getDescriptor(int.class);
     public static final String descDouble        = org.objectweb.asm.Type.getDescriptor(double.class);
@@ -193,6 +193,7 @@ public class NamingCzar {
     public static final String internalFortressJavaBufferedReader = makeFortressInternal("JavaBufferedReader");
     public static final String internalFortressJavaBufferedWriter = makeFortressInternal("JavaBufferedWriter");
     public static final String internalFortressString = makeFortressInternal("String");
+    public static final String internalFortressJavaString = makeFortressInternal("JavaString");
     public static final String internalFortressZZ32Vector   = makeFortressInternal("ZZ32Vector");
     public static final String internalFortressStringVector   = makeFortressInternal("StringVector");
     public static final String internalFortressVoid   = makeFortressInternal("Void");
@@ -210,6 +211,7 @@ public class NamingCzar {
     public static final String descFortressJavaBufferedReader  = Naming.internalToDesc(internalFortressJavaBufferedReader);
     public static final String descFortressJavaBufferedWriter  = Naming.internalToDesc(internalFortressJavaBufferedWriter);
     public static final String descFortressString = Naming.internalToDesc(internalFortressString);
+    public static final String descFortressJavaString = Naming.internalToDesc(internalFortressJavaString);
     public static final String descFortressVoid   = Naming.internalToDesc(internalFortressVoid);
     public static final String descFortressAny        = Naming.internalToDesc(fortressAny);
     public static final String descFortressBottom        = Naming.internalToDesc(internalFortressBottom);
@@ -415,7 +417,7 @@ public class NamingCzar {
         s(Double.class, fortLib, "RR64");
         s(Type.DOUBLE_TYPE, fortLib, "RR64");
         s(Object.class, anyLib, "Any");
-        s(String.class, fortLib, "String");
+        s(String.class, fortLib, "JavaString");
         s(FortressBufferedReader.class, fortLib, "JavaBufferedReader");
         s(FortressBufferedWriter.class, fortLib, "JavaBufferedWriter");
         s(BigInteger.class, fortLib, "ZZ");
@@ -514,7 +516,7 @@ public class NamingCzar {
         bl(fortLib, "RR64", "FRR64");
         bl(fortLib, "ZZ32", "FZZ32");
         bl(fortLib, "ZZ64", "FZZ64");
-        bl(fortLib, "String", "FString");
+        bl(fortLib, "JavaString", "FJavaString");
         bl(fortLib, "ZZ32Vector", "FZZ32Vector");
         bl(fortLib, "StringVector", "FStringVector");
         bl(NodeFactory.makeVoidType(span), "FVoid");

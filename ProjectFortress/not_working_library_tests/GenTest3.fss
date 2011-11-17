@@ -12,8 +12,8 @@
 component GenTest3
 import CompilerAlgebra.{ ... }
 export Executable
-trait Generator[\E\] excludes { Number, Character }
-    map[\Gxx\](f: E->Gxx): Generator[\Gxx\]
+trait Generator[\Exx\] excludes { Number, Character }
+    map[\Gxx\](f: Exx->Gxx): Generator[\Gxx\]
 end Generator
 
 

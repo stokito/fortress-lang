@@ -50,6 +50,10 @@ public class CompilerBuiltin {
         public static abstract class DefaultTraitMethods extends FValue implements String {}
     }
 
+    public static interface JavaString extends fortress.CompilerBuiltin.String {
+        public static abstract class DefaultTraitMethods extends FValue implements JavaString {}
+    }
+
     public static interface Character extends fortress.CompilerBuiltin.Object {
         public static abstract class DefaultTraitMethods extends FValue implements Character {}
     }

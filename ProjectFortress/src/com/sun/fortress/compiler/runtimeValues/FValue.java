@@ -18,7 +18,7 @@ public abstract class FValue implements fortress.AnyType.Any {
         return null;
     }
     
-    public FString asString() {
+    public FJavaString asString() {
         return null; /* replaced in generated code; necessary for primitive hierarchy */
     }
     

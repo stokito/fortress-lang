@@ -19,7 +19,7 @@ import java com.sun.fortress.nativeHelpers.{simpleOverload.duo => jDuo}
 export Executable
 
 print2(x:String, y:String):() = do
-  jPrintln(jDuo(x,y))
+  jPrintln(jDuo(x.asJavaString,y.asJavaString))
 end
 
 (* jDuo(x:String, y:ZZ32):String = do
@@ -41,8 +41,8 @@ run(): () = do
         but the inferred type is insufficiently precise.
   *)
 
-  jPrintln(local("b"))
-  jPrintln(local(5,6))
+  jPrintln(local("b").asJavaString)
+  jPrintln(local(5,6).asJavaString)
 
 end
 

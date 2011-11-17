@@ -17,7 +17,7 @@ public final class FZZ32 extends fortress.CompilerBuiltin.ZZ32.DefaultTraitMetho
 
     private FZZ32(int x) { val = x; }
     public String toString() { return String.valueOf(val);}
-    public FString asString() { return new FString(String.valueOf(val));}
+    public FJavaString asString() { return FJavaString.make(String.valueOf(val));}
     public int getValue() {return val;}
     public static FZZ32 make(int x) {
         return new FZZ32(x);

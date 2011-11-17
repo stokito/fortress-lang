@@ -42,7 +42,7 @@ public final class FFloatLiteral extends fortress.CompilerBuiltin.FloatLiteral.D
         return val;
     }
 
-    public FString asString() {
+    public FJavaString asString() {
         return null; /* replaced in generated code; necessary for primitive hierarchy */
     }
 

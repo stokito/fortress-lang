@@ -21,7 +21,7 @@ export Executable
 id(x:ZZ32):ZZ32 = x
 
 run(): () = do
-  jPrintln(jDuo("PA","SS"))
+  jPrintln(jDuo("PA".asJavaString,"SS".asJavaString))
   jPrintln(jDuo(id(5),id(6)))
 end
 

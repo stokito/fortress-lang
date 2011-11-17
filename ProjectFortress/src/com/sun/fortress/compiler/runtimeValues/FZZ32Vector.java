@@ -59,7 +59,7 @@ public final class FZZ32Vector extends fortress.CompilerBuiltin.ZZ32Vector.Defau
     public int rows() {return dim_x;}
     public int cols() {return dim_y;}
 
-    public FString asString() { return new FString(toString());}
+    public FJavaString asString() { return FJavaString.make(toString());}
     
     public int getIndexedValue(int i) {return val[i-lower_x];}
     public int getIndexedValue(int i, int j) {return val[(i-lower_x)*dim_y + (j-lower_y)];}

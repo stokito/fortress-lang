@@ -199,7 +199,7 @@ public class DefUseChains {
                         bcmv.insns.add(j, new VarInsn("DSTORE", Opcodes.DSTORE, val.getValueNumber(), vi.index));
                     else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FBoolean;"))
                         bcmv.insns.add(j, new VarInsn("ISTORE", Opcodes.ISTORE, val.getValueNumber(), vi.index));
-                    else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FString;"))
+                    else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FJavaString;"))
                         bcmv.insns.add(j, new VarInsn("ASTORE", Opcodes.ASTORE, val.getValueNumber(), vi.index));
                     else throw new RuntimeException("Don't recognize var type " + val.getType());
                 } else if (vi.opcode == Opcodes.ALOAD) {
@@ -215,7 +215,7 @@ public class DefUseChains {
                         bcmv.insns.add(j, new VarInsn("DLOAD", Opcodes.DLOAD, val.getValueNumber(), vi.index));
                     else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FBoolean;"))
                         bcmv.insns.add(j, new VarInsn("ILOAD", Opcodes.ILOAD, val.getValueNumber(), vi.index));
-                    else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FString;"))
+                    else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FJavaString;"))
                         bcmv.insns.add(j, new VarInsn("ALOAD", Opcodes.ALOAD, val.getValueNumber(), vi.index));
                     else throw new RuntimeException("Don't recognize var type " + val.getType());
                 }

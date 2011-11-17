@@ -125,8 +125,8 @@ public class FortressMethodAdapter extends ClassAdapter {
         initializeEntry("FRR64",    "getValue", "()D", "make", "(D)L" + prefix + "FRR64;");
         initializeEntry("FBoolean", "getValue", "()Z", "make", "(Z)L" + prefix + "FBoolean;");
         initializeEntry("FVoid",    "getValue", "()",  "make", "()L" + prefix + "FVoid;");
-        initializeEntry("FString",  "getValue", "()Ljava/lang/String;",
-                                    "make", "(Ljava/lang/String;)L" + prefix + "FString;");
+        initializeEntry("FJavaString",  "getValue", "()Ljava/lang/String;",
+                                    "make", "(Ljava/lang/String;)L" + prefix + "FJavaString;");
         initializeEntry("FCharacter",    "getValue",	"()I", "make", "(I)L" + prefix + "FCharacter;");
         initializeEntry("FJavaBufferedReader", "getValue", "()Lcom/sun/fortress/compiler/runtimeValues/FortressBufferedReader;",
                                     "make", "(Lcom/sun/fortress/compiler/runtimeValues/FortressBufferedReader;)L" + prefix + "FJavaBufferedReader;");

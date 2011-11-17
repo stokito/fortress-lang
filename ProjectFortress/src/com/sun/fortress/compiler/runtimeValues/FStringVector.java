@@ -31,7 +31,7 @@ public final class FStringVector extends fortress.CompilerBuiltin.StringVector.D
 
     public int dim() {return val.length;}
 
-    public FString asSring() { return new FString(toString());}
+    public FJavaString asSring() { return FJavaString.make(toString());}
     
     public String getIndexedValue(int i) {return val[i];}
     public void putIndexedValue(int i, String x) {val[i] = x;}
