@@ -7,6 +7,6 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests=U2
+tests=U2 U3
 link
 run

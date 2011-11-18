@@ -25,8 +25,8 @@ end;
 
 object Q(b:String, c:String) extends U end;
 
-f(o:O):() =  jPrintln(o.val(3+3))
-f(o:Z):() = jPrintln("Hi!")
+f(o:O):() =  println(o.val(3+3))
+f(o:Z):() = println("Hi!")
 
 g(x:Z):() = f(x)
 

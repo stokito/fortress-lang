@@ -21,9 +21,9 @@ g(x:ZZ32, h:ZZ32->Number):String =  h(x).asString
 
 run():() = 
   if g(0,f)="1" then
-     jPrintln("Ok!")
+     println("Ok!")
   else
-     jPrintln("FAIL")
+     println("FAIL")
   end
   
 end
