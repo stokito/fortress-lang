@@ -23,8 +23,8 @@ object O(a:String) extends S end;
 object Q(b:String, c:String) extends U end;
 
 (* Field ref not yet implemented, sigh. *)
-f(o:O):() = jPrintln("Ha!")
-f(o:Z):() = jPrintln("Hi!")
+f(o:O):() = println("Ha!")
+f(o:Z):() = println("Hi!")
 
 g(x:Z):() = f(x)
 

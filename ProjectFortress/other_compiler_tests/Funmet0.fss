@@ -18,9 +18,9 @@ export Executable
 
 run():() = do
    jPrintln(me(f1(), 0)) (* 2 *)
-   jPrintln(" ");
+   println(" ");
    jPrintln(me(f2(), 0)) (* 3 *)
-   jPrintln(" ");
+   println(" ");
 end
 
 end

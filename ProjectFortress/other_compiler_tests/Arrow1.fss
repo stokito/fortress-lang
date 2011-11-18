@@ -20,9 +20,9 @@ g(x:ZZ32, h:ZZ32->ZZ32):ZZ32 =  h(h(x))
 
 run():() = 
   if g(0,f)=2 then
-     jPrintln("Ok!")
+     println("Ok!")
   else
-     jPrintln("FAIL")
+     println("FAIL")
   end
   
 end

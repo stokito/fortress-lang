@@ -22,8 +22,8 @@ trait S extends {T,U} end
 object O() extends S end;
 object Q() extends U end;
 
-f(o:O):() = jPrintln("Ha!")
-f(o:Z):() = jPrintln("Hi!")
+f(o:O):() = println("Ha!")
+f(o:Z):() = println("Hi!")
 
 g(x:Z):() = f(x)
 

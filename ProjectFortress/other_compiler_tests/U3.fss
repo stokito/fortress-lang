@@ -26,7 +26,7 @@ trait Z excludes X
   zmethod() = " Z FAIL "
 end
 
-object A[\ T extends X,  V extends Z\] (x:T,  z:V)
+object A[\ T extends X,  V extends Z\] (x1:T, x2:T,  z1:V, z2:V)
   f(t:T) = t.xmethod()
   f(v:V) = v.zmethod()
   f(o:Object) = " f Object FAIL "
@@ -45,12 +45,8 @@ end
 
 (*) aiming for T=union(O1,O2), V=union(P1,P2)
  
-b():Boolean = true
-o12 = if b() then O1 else O2 end
-p12 = if b() then P1 else P2 end
-
 run() = do
-  tricksy = A(o12,  p12) (*) Uses static types, is that correct?
+  tricksy = A(O1, O2, P1, P2)
   o:Object = O1
   p:Object = P2
   println(tricksy.f(O1) tricksy.f(P2) ) (*) "PASS", if we're lucky
