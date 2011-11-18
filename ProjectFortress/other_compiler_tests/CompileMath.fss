@@ -17,7 +17,7 @@ export Executable
 
 run(): () = do
    jPrintRR64(jrandom())
-   jPrintln("Pass")
+   println("Pass")
 end
 
 end
