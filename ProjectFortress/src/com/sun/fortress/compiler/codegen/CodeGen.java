@@ -626,7 +626,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         int arity = from_params.size();
         
         
-        String receiverClass = NamingCzar.jvmTypeDesc(toTrait, component.getName(), false) +
+        String receiverClass = NamingCzar.jvmTypeDescAsTrait(toTrait, component.getName()) +
         NamingCzar.springBoard;
         
         boolean isObject = springBoardClass == null;
@@ -635,7 +635,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             receiverClass = springBoardClass;                
             if (narrowing) {
                 // Might be wrong for traits
-                receiverClass = NamingCzar.jvmTypeDesc(toTrait, component.getName(), false);
+                receiverClass = NamingCzar.jvmTypeDescAsTrait(toTrait, component.getName());
             }
         }
 
@@ -1077,11 +1077,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 if (shadowed)
                     continue;
                 if (narrowed) {
-		    System.out.println("generateForwardingFor:");
-		    System.out.println("  super_func = " + super_func);
-		    System.out.println("  narrowed_func = " + narrowed_func);
-		    System.out.println("  super_inst = " + super_inst);
-		    System.out.println("  currentTraitObjectType = " + currentTraitObjectType);
+//		    System.out.println("generateForwardingFor:");
+//		    System.out.println("  super_func = " + super_func);
+//		    System.out.println("  narrowed_func = " + narrowed_func);
+//		    System.out.println("  super_inst = " + super_inst);
+//		    System.out.println("  currentTraitObjectType = " + currentTraitObjectType);
                     generateForwardingFor(super_func, narrowed_func, false, super_inst, currentTraitObjectType, currentTraitObjectType, true); // swapped
                     // TODO emit the forwarding method
                     continue;
@@ -3459,7 +3459,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         if (rhss == null) {
             TupleType rhs_type = (TupleType) rhs.getInfo().getExprType().unwrap();
-            String rhs_type_desc = NamingCzar.makeTupleDescriptor(rhs_type, thisApi());
+            String rhs_type_desc = NamingCzar.makeTupleDescriptor(rhs_type, thisApi(), false);
             String[] rhs_element_type_descs = NamingCzar.makeTupleElementDescriptors(rhs_type, thisApi());
             // Assignment of tuple, to multiple left hand side varibles.
             // Serially pick the pieces out of the tuple.

@@ -192,7 +192,7 @@ public class NamingCzar {
     public static final String internalFortressCharacter  = makeFortressInternal("Character");
     public static final String internalFortressJavaBufferedReader = makeFortressInternal("JavaBufferedReader");
     public static final String internalFortressJavaBufferedWriter = makeFortressInternal("JavaBufferedWriter");
-    public static final String internalFortressString = makeFortressInternal("String");
+    // public static final String internalFortressString = makeFortressInternal("String");
     public static final String internalFortressJavaString = makeFortressInternal("JavaString");
     public static final String internalFortressZZ32Vector   = makeFortressInternal("ZZ32Vector");
     public static final String internalFortressStringVector   = makeFortressInternal("StringVector");
@@ -210,7 +210,7 @@ public class NamingCzar {
     public static final String descFortressCharacter  = Naming.internalToDesc(internalFortressCharacter);
     public static final String descFortressJavaBufferedReader  = Naming.internalToDesc(internalFortressJavaBufferedReader);
     public static final String descFortressJavaBufferedWriter  = Naming.internalToDesc(internalFortressJavaBufferedWriter);
-    public static final String descFortressString = Naming.internalToDesc(internalFortressString);
+    // public static final String descFortressString = Naming.internalToDesc(internalFortressString);
     public static final String descFortressJavaString = Naming.internalToDesc(internalFortressJavaString);
     public static final String descFortressVoid   = Naming.internalToDesc(internalFortressVoid);
     public static final String descFortressAny        = Naming.internalToDesc(fortressAny);
@@ -977,12 +977,14 @@ public class NamingCzar {
 
   }
 
-    public static String makeTupleDescriptor(TupleType t, final APIName ifNone) {
-
+    public static String makeTupleDescriptor(TupleType t, final APIName ifNone,
+            boolean specialFortressAsInterfaces) {
         List<com.sun.fortress.nodes.Type> types = t.getElements();
         
         String res =
-            "Tuple"+ Naming.LEFT_OXFORD + makeUnboxedTupleDescriptor(t, ifNone) + Naming.RIGHT_OXFORD;
+            "Tuple"+ Naming.LEFT_OXFORD +
+            makeUnboxedTupleDescriptor(t, ifNone, specialFortressAsInterfaces) +
+            Naming.RIGHT_OXFORD;
 
         return res;
 
@@ -1140,7 +1142,7 @@ public class NamingCzar {
         return jvmTypeDesc(t, ifNone, false, true);
     }
 
-    private static String makeUnboxedTupleDescriptor(TupleType t, final APIName ifNone) {
+    private static String makeUnboxedTupleDescriptor(TupleType t, final APIName ifNone, boolean specialFortressAsInterfaces) {
         if ( NodeUtil.isVoidType(t) )
             throw new Error("Unexpected case in unboxed tuple descriptor");
         if (t.getVarargs().isSome())
@@ -1200,11 +1202,11 @@ public class NamingCzar {
     }
 
     private static String jvmTypeDescs(List<com.sun.fortress.nodes.Type> types,
-                                      final APIName ifNone, boolean withLSemi, boolean boxedTuples) {
+                                      final APIName ifNone, boolean withLSemi, boolean boxedTuples, boolean specialFortressAsInterfaces) {
         String r = "";
         StringBuilder buf = new StringBuilder();
         for (com.sun.fortress.nodes.Type t : types) {
-            buf.append(jvmTypeDesc(t, ifNone, withLSemi, boxedTuples));
+            buf.append(jvmTypeDesc(t, ifNone, withLSemi, boxedTuples, specialFortressAsInterfaces));
         }
         r = buf.toString();
         return r;
@@ -1213,14 +1215,27 @@ public class NamingCzar {
     public static String jvmTypeDesc(final com.sun.fortress.nodes.Type type,
             final APIName ifNone,
             final boolean withLSemi) {
-        return jvmTypeDesc(type, ifNone, withLSemi, false);
+        return jvmTypeDesc(type, ifNone, withLSemi, false, false);
+    }
+
+    public static String jvmTypeDescAsTrait(final com.sun.fortress.nodes.Type type,
+            final APIName ifNone) {
+        return jvmTypeDesc(type, ifNone, false, false, true);
     }
 
             
     public static String jvmTypeDesc(final com.sun.fortress.nodes.Type type,
+            final APIName ifNone,
+            final boolean withLSemi,
+            final boolean boxed) {
+        return jvmTypeDesc(type, ifNone, withLSemi, boxed, false);
+    }
+    
+    private static String jvmTypeDesc(final com.sun.fortress.nodes.Type type,
                                      final APIName ifNone,
                                      final boolean withLSemi,
-                                     final boolean boxed) {
+                                     final boolean boxed,
+                                     final boolean specialFortressAsInterfaces) {
         return type.accept(new NodeAbstractVisitor<String>() {
             @Override
             public String defaultCase(Node x) {
@@ -1251,11 +1266,11 @@ public class NamingCzar {
                 if (!t.getKeywords().isEmpty())
                     throw new CompilerError(t,"Can't compile Keyword args yet");
                 if (boxed) {
-                    String res = makeTupleDescriptor(t, ifNone);
+                    String res = makeTupleDescriptor(t, ifNone, specialFortressAsInterfaces);
                     if (withLSemi) res = Naming.internalToDesc(res);
                     return res;
                 } else
-                return jvmTypeDescs(t.getElements(), ifNone, true, true);
+                return jvmTypeDescs(t.getElements(), ifNone, true, true, specialFortressAsInterfaces);
             }
             @Override
             public String forAnyType (AnyType t) {
@@ -1277,7 +1292,9 @@ public class NamingCzar {
                 // I think this is wrong!  What about API names?
                 // What about foreign-implemented types?
                 // - DRC 2009-08-10
-                String result = (withLSemi ? specialFortressDescriptors : specialFortressTypes).get(t);
+                String result = specialFortressAsInterfaces ? null :
+                    (withLSemi ? specialFortressDescriptors :
+                        specialFortressTypes).get(t);
                 if (result != null) {
                     Debug.debug(Debug.Type.CODEGEN, 1, "forTrait Type ", t ,
                                 " builtin ", result);
@@ -1477,7 +1494,7 @@ public class NamingCzar {
             jvmTypeDescForGeneratedTaskInit(List<com.sun.fortress.nodes.Type> fvtypes,
                                             APIName ifNone) {
         // May need to box any tuples, not really sure yet.
-        return "(" + jvmTypeDescs(fvtypes, ifNone, true, false) + ")V";
+        return "(" + jvmTypeDescs(fvtypes, ifNone, true, false, false) + ")V";
     }
 
     /** Type name for class containing singleton binding of toplevel
