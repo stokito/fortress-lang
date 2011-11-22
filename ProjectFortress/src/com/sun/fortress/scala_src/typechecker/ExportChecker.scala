@@ -481,7 +481,12 @@ object ExportChecker {
       case (STraitSelfType(_, namedL, tysL),
             STraitSelfType(_, namedR, tysR)) =>
         equalTypes(namedL, namedR) &&
-        equalListTypes(tysL, tysR)
+        (tysL.isEmpty || equalListTypes(tysL, tysR))
+        /*
+         * Bug above with tysL.isEmpty -- comprises {...} must match ordinary
+         * self type, however both are encoded as an empty comprises list.
+         * This seems wrong.
+         */
       case (SObjectExprType(_, tysL), SObjectExprType(_, tysR)) =>
         equalListTypes(tysL, tysR)
       case (STraitType(_, nameL, argsL, paramsL),
@@ -744,6 +749,7 @@ object ExportChecker {
               cause = addMessage(cause,
                                  "different field @ " + NodeUtil.getSpan(l))
             case SFnDecl(_,h,_,_,_) =>
+              val eq2 = inComp.exists(r => equalMember(l, r))
               cause = addMessage(cause,
                                  "different method " + h.getName +
                                  " @ " + NodeUtil.getSpan(l))
