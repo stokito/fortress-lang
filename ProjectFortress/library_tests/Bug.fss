@@ -1,0 +1,9 @@
+component Bug
+export Executable
+
+run (): () = do
+  one: ZZ32 = -1  
+  ()
+end
+
+end
