@@ -1,0 +1,31 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component RecursiveApiTest3c
+import RecursiveApiTest3a.{ MaybeFoo, Foo, Zilch }
+import RecursiveApiTest3b.{ MaybeBar, Bar, Nada }
+export Executable
+
+run(): () = do
+  p = Foo(Nada)
+  q = Foo(Bar(p))
+  testsome(p, q.peek())
+end
+
+testsome(a: Foo, b: MaybeBar): () = ()
+testsome(a: Foo, b: Bar): () = testmore(a, b.peek())
+testsome(a: Foo, b: Nada): () = println("fail")
+
+testmore(a: Foo, b: MaybeFoo): () = ()
+testmore(a: Foo, b: Foo): () = println(if a === b then "pass" else "fail" end)
+testmore(a: Foo, b: Zilch): () = println("fail")
+
+end

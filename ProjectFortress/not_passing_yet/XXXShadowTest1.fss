@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXShadowTest1
+export Executable
+
+trait T
+    foo(): String = "Foo in trait T"
+    callFoo(): String = "callFoo in trait T"
+end
+
+trait Bar extends T
+    foo(): String = "Foo in trait Bar"
+    callFoo(): String = "callFoo in trait Bar"
+
+    m():T = object extends T
+                callFoo(): String = foo()
+            end
+end
+
+object A() extends Bar
+end
+
+
+run():()=do
+  a:A = A()
+  x:T = a.m()
+
+  println("x.callFoo returns: " x.callFoo())
+end
+
+end

@@ -1,0 +1,454 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Memory Model}
+\chaplabel{memory-model}
+
+Fortress programs are highly multithreaded by design; the language
+makes it easy to expose parallelism.  However, many Fortress objects
+are mutable; without judicious use of synchronization
+constructs---reductions and \KWD{atomic} expressions---\emph{data
+  races} will occur and programs will behave in an unpredictable way.
+The memory model has two important functions:
+\begin{enumerate}
+\item Define a programming discipline for the use of data and
+  synchronization, and describe the behavior of programs that obey
+  this discipline.  This is the purpose of
+  \secref{programmer-memory-model}.
+\item Define the behavior of programs that do not obey the programming
+  discipline.  This constrains the optimizations that can be performed
+  on Fortress programs.  The remaining sections of this chapter
+  specify the detailed memory model that Fortress programs must obey.
+\end{enumerate}
+
+\section{Principles}
+
+The Fortress memory model has been written with several important
+guiding principles in mind.  Violations of these principles must be
+taken as a flaw in the memory model specification rather than an
+opportunity to be exploited by the programmer or implementor.  The most
+important principle is this: violations of the Fortress memory model
+must still respect the underlying data abstractions of the Fortress
+programming language.  All data structures must be properly
+initialized before they can be read by another thread, and a program
+must not read values that were never written.  When a program fails,
+it must fail gracefully by throwing an exception.
+
+The second goal is nearly as important, and much more difficult:
+present a memory model which can be understood thoroughly by
+programmers and implementors.  It must never be difficult to judge
+whether a particular program behavior is permitted by the model.
+Where possible, it must be possible to check that a program obeys
+the programming discipline.
+
+The final goal of the Fortress memory model is to permit aggressive
+optimization of Fortress programs.  A multiprocessor memory model can
+rule out optimizations that might be performed by a compiler for a
+uniprocessor.  The Fortress memory model attempts to rule out as few
+behaviors as possible, but more importantly attempts to make it easy
+to judge whether a particular optimization is permitted or not.  The
+semantics of Fortress already allows permissive operation reordering in
+many programs, simply by virtue of the implicitly parallel semantics
+of tuple evaluation and looping.
+
+\section{Programming Discipline}
+\seclabel{programmer-memory-model}
+
+If Fortress programmers obey the following discipline, they can expect
+sequentially consistent behavior from their Fortress programs:
+\begin{itemize}
+
+\item Updates to shared mutable locations must always be performed using an
+  \KWD{atomic} expression.  A location is considered to be shared if
+  and only if that location can be accessed by more than one thread at
+  a time.  For example, statically partitioning an array among many
+  threads need not make the array elements shared; only elements
+  actually accessed by more than one thread are considered to be
+  shared.
+
+\item Within a thread or group of implicit threads objects must not
+  be accessed through aliased references; this can yield unexpected
+  results.  \secref{aliasing} defines the notion of \emph{apparently
+    disjoint} references.  An object must not be written through one
+  reference when it is accessed through another apparently disjoint
+  reference.
+
+\end{itemize}
+
+The following stylistic guidelines reduce the possibility of
+pathological behavior when a program strays from the above discipline:
+\begin{itemize}
+
+\item Where feasible, reduction must be used in favor of updating a
+  single shared object.
+
+\item Immutable fields and variables must be used wherever
+  practical.  We discuss this further in \secref{immutability}.
+
+\item A getter or a setter should behave as though it is performing a
+  simple field access, even if it internally accesses many
+  locations.  The simplest (but not necessarily most
+  efficient) way to obtain the appropriate behavior is to make
+  hand-coded accessors \KWD{atomic}.  \secref{gettersetter} expands on
+  this.
+
+\end{itemize}
+
+\subsection{Immutability}
+\seclabel{immutability}
+
+Recall from \secref{memory-ops} that we can distinguish mutable and
+immutable memory locations.  Any thread that reads an immutable field
+will obtain the initial value written when the object was constructed.
+In this regard it is worth re-emphasizing the distinction between an
+object reference and the object it refers to.  A location that does not
+contain a value object contains an object reference.  If the field is
+immutable, that means the reference is not subject to change; however,
+fields of the object referred to may still be modified in accordance with the
+memory model.
+
+By contrast, recall that all the fields of a value object are
+immutable; however, a mutable location may have a value type.  Such a
+location can be written, completely replacing the value object it
+contains.  Similarly, reading the value contained in such a location
+conceptually causes the entire value object to be read; if this isn't
+followed by an immediate field reference, the read must be performed
+atomically.  This may potentially be expensive (see
+\secref{read-atomicity}).
+
+\subsection{Providing the Appearance of a Single Object}
+\seclabel{gettersetter}
+
+In practice, most accesses to fields occur through a mediating getter
+or setter method.  It should not be possible for the programmer to
+tell whether a given getter or setter directly accesses a field or if
+it performs additional computations.  Similarly, any subscripting
+operation must be indistinguishable from accessing a single field.
+Thus, accessor methods and subscripting methods should provide the
+appearance of atomicity, as described in \secref{read-atomicity}.
+\Library\ are written to preserve this abstraction.  For
+example, the \TYP{Array} type in Fortress makes use of one or more
+underlying \TYP{HeapSequence}s, and array subscripting
+preserves the atomicity guarantees of this underlying object.
+
+\subsection{Modifying Aliased Objects}
+\seclabel{aliasing}
+
+In common with Fortran, and unlike most other popular programming
+languages, Fortress gives special treatment to accesses to a location
+through different aliases.  For the purposes of variable aliasing, it
+is important to define the notion of \emph{apparently disjoint} (or
+simply disjoint) object and field references.  If two references are not
+disjoint, we say they are \emph{certainly the same}, or just \emph{the
+  same}.  By contrast, we say object references are \emph{identical}
+if they refer to the same object, and \emph{distinct} otherwise.
+Accesses to fields reached via apparently disjoint object references
+may be reordered (except an initializing write is never reordered with
+respect to other accesses to the identical location).
+
+\note{
+Problem: Consider a function call on a tree and its subtree.  The
+common subtree won't be considered disjoint, right?  We bottom out
+to comparing an argument to a field reference, and have recourse to
+the calling context.  Is that what we want, or do we want to
+consider them a priori distinct (I think so).
+}
+
+\note{
+Questions -- Sukyoung
+
+1. What and how do we guarantee with these?
+
+2. coverage? if or if and only if?
+}
+
+Distinct references are always disjoint.  Two identical
+references are apparently disjoint if they are obtained in any of the
+following ways:
+\begin{itemize}
+\item distinct parameters of a single function call
+\item distinct fields
+\item a parameter and a field
+\item identically named fields read from apparently disjoint object references
+\item distinct reads of a single location for which there may be an
+  interposing write
+\end{itemize}
+When comparing variables defined in different scopes, these rules will
+eventually lead to reads of fields or to reads of parameters in some
+common containing scope.
+
+We extend this to field references as follows: two field references
+are apparently disjoint if they refer to distinct fields, or they
+refer to identically named fields read from apparently disjoint object
+references.
+
+Consider the following example:
+\input{\home/basic/examples/MemModel.Aliases.f.tex}
+Here \VAR{x} and \VAR{y} in \VAR{f} are
+apparently disjoint; the writes may be reordered, so the call
+\EXP{f(a,a)} may assign either 17 or 32 to \EXP{a_{0}}.
+
+A similar phenomenon occurs in the following example:
+\input{\home/basic/examples/MemModel.Aliases.g.tex}
+Again \VAR{x} and \VAR{y} are apparently distinct in \VAR{g}, so the
+write to \EXP{x_{0}} and the read of \EXP{y_{0}} may be reordered.
+The call \EXP{g(a,a)} will assign 17 to \EXP{a_{0}} but may return
+either the initial value of \EXP{a_{0}} or 17.
+
+It is safe to \emph{read} an object through apparently disjoint references:
+\input{\home/basic/examples/MemModel.Aliases.h.tex}
+A call to \EXP{h(a,a)} will read \EXP{a_{0}} twice without ambiguity.
+Note, however, that the reads may still be reordered, and if
+\EXP{a_{0}} is written in parallel by another thread this reordering
+can be observed.
+
+If necessary, \KWD{atomic} expressions can be used to order disjoint field
+references:
+\input{\home/basic/examples/MemModel.Aliases.fprime.tex}
+Here the call \EXP{f'(a,a)} ends up setting \EXP{a_{0}} to
+32.  Note that simply using a single \KWD{atomic} expression
+containing one or both writes is not sufficient;
+the two writes must be in distinct \KWD{atomic} expressions
+to be required to occur in order.
+
+When references occur in distinct calling contexts, they are
+disambiguated at the point of call:
+\input{\home/basic/examples/MemModel.Aliases.jkl.tex}
+Here if we call \EXP{k(a)} the order of the writes performed by the
+two calls to \VAR{j} is unambiguous, and \EXP{a_{0}} is 32 in the end.
+By contrast, \EXP{l(a,a)} calls \VAR{j} with two apparently disjoint
+references, and the writes in these two calls may thus be reordered.
+
+\note{
+Some stuff here about overwriting.
+
+Some stuff here about nested functions and accesses to stuff in the
+enclosing scope.
+}
+
+\section{Read and Write Atomicity}
+\seclabel{read-atomicity}
+
+This section makes potentially very controversial choices.  In
+particular, the unit of atomic read/write can be considerably larger
+than the natural read/write granularity of the underlying machine.
+So we have to use hugely expensive mechanisms (the easiest of which
+is boxing and copying) if we read or write non-trivial objects
+non-transactionally.
+
+\note{I take comfort in the fact that we can obtain the required semantics
+by just putting these large operations into a read-only or
+write-only transaction and detecting/resolving conflict using the
+same set of underlying mechanisms.}
+
+Any read or write to a location is
+\emph{indivisible}.  In practical terms, this means that each read
+operation will see exactly the data written by a single write
+operation.  Note in particular that indivisibility holds for a mutable
+location containing a large value object.  It is convenient to imagine
+that every access to a mutable location is surrounded by an
+\KWD{atomic} expression.  However, there are a number of ordering
+guarantees provided by \KWD{atomic} accesses that are not respected by
+non-\KWD{atomic} accesses.
+
+\section{Ordering Dependencies among Operations}
+
+The Fortress memory model is specified in terms of two orderings:
+dynamic program order (see \chapref{evaluation} and
+\chapref{expressions}) and memory order.  The actual order of memory
+operations in a given program execution is \emph{memory order}, a
+total order on all memory operations.  Dynamic program order
+constrains memory order.  However, memory operations need not be
+ordered according to dynamic program order; many memory operations,
+even reads and writes to a single field or array element, can be
+reordered.  Programmers who adhere to the model in
+\secref{programmer-memory-model} can expect sequentially consistent
+behavior: the global ordering of memory operations will respect dynamic program order.
+
+Here is a summary of the salient aspects of memory order:
+\begin{itemize}
+\item There is a single memory order which is respected in all threads.
+\item Every read obtains the value of the immediately preceding write
+  to the identical location in memory order.
+\item Memory order on \KWD{atomic} expressions respects dynamic program order.
+\item Memory order respects dynamic program order for operations that
+  certainly access the same location.
+\item Initializing writes are ordered before any other memory access
+  to the same location.
+\end{itemize}
+
+\subsection{Dynamic Program Order}
+
+Much of the definition of \emph{dynamic program order} is given in the
+descriptions of individual expressions in \chapref{expressions}.  It
+is important to understand that dynamic program order represents a
+conceptual, naive view of the order of operations in an execution;
+this naive view is used to define the more permissive memory order
+permitted by the memory model.  Dynamic program order is a partial
+order, rather than a total order; in most cases operations in
+different threads will not be ordered with respect to one another.
+There is an important exception: there is an ordering dependency among
+threads when a thread starts or must be complete.
+
+\note{TODO: re-factor into expressions chapter.}
+
+An expression is ordered in dynamic program order after any expression
+it dynamically contains, with one exception: a \KWD{spawn} expression
+is dynamically ordered before any subexpression of its body.  The body
+of the \KWD{spawn} is dynamically ordered before any point at which
+the spawned thread object is observed to have completed.
+
+Only expressions whose evaluation completes normally
+occur in dynamic program order,
+unless the expression is ``directly responsible'' for generating
+abrupt termination.  Examples of the latter case are \KWD{throw} and \KWD{exit}
+expressions and division by zero.  In particular, when
+the evaluation of a
+subexpression of an expression completes abruptly, causing the
+expression itself to complete abruptly, the containing expression does
+not occur in dynamic program order.
+A \KWD{label} block is ordered
+after an \KWD{exit} that targets it.
+The expressions in a \KWD{catch}
+clause whose \KWD{try} block throws a matching exception are ordered
+after the \KWD{throw} and before any expression in the \KWD{finally}
+clause.  If the \KWD{catch} completes normally, the \KWD{try} block as
+a whole is ordered after the expressions in the \KWD{finally} clause.
+For this reason, when we refer to the place of non-\KWD{spawn}
+expression in dynamic program order, we mean the expression or any
+expression it dynamically contains.
+
+
+For any construct giving rise to implicit threads---tuple
+evaluation, function or method call, or the body of an expression with
+generators such as \KWD{for}---there is no ordering in dynamic program
+order between the expression executed in each thread in the group.
+\note{Ugh, this is bogus:}
+These subexpressions are ordered with respect to expressions which
+precede or succeed the group.
+
+When a function or method is called, the body of the function or
+method occurs dynamically after the arguments and function or
+receiver; the call expression is ordered after the body of the called
+function or method.
+
+For conditional expressions such as \KWD{if}, \KWD{case}, and
+\KWD{typecase}, the expression being tested is
+ordered dynamically before any chosen branch.  This branch is in turn
+ordered dynamically before the conditional expression itself.
+
+Iterations of the body of a \KWD{while} loop are ordered by dynamic
+program order.  Each evaluation of the guarding predicate is ordered
+after any previous iteration and before any succeeding iteration.  The
+\KWD{while} loop as a whole is ordered after the final evaluation of
+the guarding predicate, which yields \VAR{false}.
+
+An iteration of the body of a \KWD{for} loop,
+and each evaluation of the body expression in a comprehension or big operator,
+is ordered after the generator expressions.
+
+\subsection{Memory Order}
+
+\note{
+Question: Should variables (esp parameters and mutable locals) be
+considered locations which can be read from / written to?  This
+makes things easy to explain, but may not give the behavior we expect.}
+
+\emph{Memory order} gives a total order on all memory accesses in a
+program execution.  A read obtains the value of the most recent prior
+write to the identical location in memory order.  In this section we
+describe the constraints on memory order, guided by dynamic program
+order.  We can think of these constraints as specifying a partial
+order which must be respected by memory order.  The simplest constraint
+is that accesses certainly to the same location must respect dynamic
+program order.  Apparently disjoint accesses need not respect dynamic
+program order, but an initializing write must be ordered before all
+other accesses to the identical location in program order.
+
+\note{The following doesn't fully address Bill Pugh's concerns: it still
+allows cheesy outs where we write a bogus location which is never
+read.  Also, we order atomics in memory order even if they don't
+share common data; can we tell, and do we care}
+
+Accesses in distinct (non-nested) \KWD{atomic} expressions respect
+dynamic program order.  Given an \KWD{atomic} expression, we divide
+accesses into four classes:
+\begin{enumerate}
+\item Constituents, dynamically contained within the \KWD{atomic} expression.
+\item Ancestors, dynamically ordered before the \KWD{atomic} expression.
+\item Descendants, dynamically ordered after the \KWD{atomic} expression.
+\item Peers, dynamically unordered with respect to operations
+  dynamically contained within the \KWD{atomic} expression.
+\end{enumerate}
+We say an \KWD{atomic} expression is \emph{effective} if it contains
+an access to a location, there is a peer access to the identical
+location, and at least one of these accesses is a write.  For an
+effective \KWD{atomic} expression, every peer access must either be
+a \emph{predecessor} or a \emph{successor}.  A predecessor must occur
+before every constituent and every descendant in memory order.  A
+successor must occur after every constituent and every ancestor in
+memory order.  Every ancestor must occur before every descendant in
+memory order.
+
+The above conditions guarantee that there is a single, global ordering
+for the effective \KWD{atomic} expressions in a Fortress program.  This
+means that for any executions of \KWD{atomic} expressions $A$ and $B$ one of the
+following conditions holds:
+\begin{itemize}
+\item $A$ is dynamically contained inside $B$.
+\item $B$ is dynamically contained inside $A$.
+\item Every expression dynamically contained in $A$ precedes every
+  expression dynamically contained in $B$ in memory order.  This will
+  always hold when $A$ is dynamically ordered before $B$.
+\item Every expression dynamically contained in $B$ precedes every
+  expression dynamically contained in $A$ in memory order.  This will
+  always hold when $B$ is dynamically ordered before $A$.
+\end{itemize}
+The above rules are also sufficient to guarantee that \KWD{atomic}
+expressions nested inside an enclosing \KWD{atomic} behave with
+respect to one another just as if they had occurred at the top level
+in an un-nested context.
+
+Any access preceding a \KWD{spawn} in dynamic program order will
+precede accesses in the spawned expression in memory order.  Any
+access occurring after a spawned thread has been observed to
+complete in dynamic program order will occur after accesses in the
+spawned expression in memory order.
+
+A reduction variable in a \KWD{for} loop does not have a single
+associated location; instead, there is a distinct location for each
+loop iteration, initialized by writing the identity of the reduction.
+These locations are distinct from the location associated with the
+reduction variable in the surrounding scope.  In memory order there is
+a read of each of these locations each of which succeeds the last
+access to that variable in the loop iteration, along with a read of
+the location in the enclosing scope which succeeds all accesses to
+that location preceding the loop in dynamic program order.  These
+reads are followed by a write of the location in the enclosing scope
+which in turn precedes all accesses to that location that succeed the
+loop in dynamic program order.
+
+\note{The following is controversial.  I think this is effectively the
+condition the X10 guys are trying to capture formally in their
+memory model work.}
+
+Finally, reads and writes in Fortress programs must respect dynamic
+program order for operations that are \emph{semantically related}.
+If the read $A$ precedes the write $B$ in dynamic program order, and
+the value of $B$ can be determined in some fashion without recourse to
+$A$, then these operations are not semantically related.  A simple
+example is if $A$ is a reference to variable \VAR{x} and $B$ is the
+assignment \EXP{y \ASSIGN x \cdot 0}.  Here it can be determined that
+\EXP{y \ASSIGN 0} without recourse to $x$ and these variables are not
+semantically related.  By contrast, the write \EXP{y \ASSIGN x} is
+always semantically related to the read of \VAR{x}.  Note that two
+operations can only be semantically related if a transitive data or
+control dependency exists between them.

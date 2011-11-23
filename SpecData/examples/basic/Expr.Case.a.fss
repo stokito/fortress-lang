@@ -1,0 +1,31 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.Case.a
+
+import Set.{...}
+export Executable
+
+f(planet) = do
+(** EXAMPLE **)
+case planet IN of
+  {"Mercury", "Venus", "Earth", "Mars"} => "inner"
+  {"Jupiter", "Saturn", "Uranus", "Neptune"} => "outer"
+  else => "remote"
+end
+(** END EXAMPLE **)
+end
+
+run() = println f("Neptune")
+
+end

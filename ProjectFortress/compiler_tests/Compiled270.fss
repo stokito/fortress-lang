@@ -1,0 +1,57 @@
+(*******************************************************************************
+   Copyright 2009, Oracle and/or its affiliates.
+   All rights reserved.
+
+
+   Use is subject to license terms.
+
+   This distribution may include materials developed by third parties.
+
+******************************************************************************)
+
+component Compiled270
+export Executable
+
+(* Test composite coercions.
+   TODO: verify the results!!!  Right now this code is naughty. *)
+
+object C extends A end
+object D extends B end
+
+trait A
+  coerce(x: D) = C
+  coerce(t: (D, D)) = C
+end
+
+trait B
+  coerce(x: C) = D
+end
+
+f(x: A): A = x
+g(x: B): B = x
+
+h(x: A): C = C
+i(x: A, y: B): C = C
+
+run():() = do
+  (*) Test trait type coercions.
+  x: A = D
+  y: B = C
+  a = f(D)
+  b = g(C)
+
+  (*) Test tuple type coercions.
+  b11 = (D, 5)
+  b1: (A, ZZ32) = b11
+  b2: (A, B) = (D, C)
+  b33 = ((D, C), C)
+  b3: ((A, B), B) = b33
+
+  (*) Test arrow type coercions.
+  c1: D -> B = h
+  c2: ((D, D), C) -> B = i
+
+  ()
+end
+
+end

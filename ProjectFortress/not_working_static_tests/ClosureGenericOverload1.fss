@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(*
+This is an expected failure, but it is supposed to report the error
+at the appropriate line.  The cause of the error is creation of a closure
+(function value) from an overloaded function that includes a generic member.
+This is apparently not allowed.  At least one version of the compiler
+(around revision 4850) reports this error at the declaration of the
+overloaded function, rather than at its use in a closure.
+
+*)
+
+trait A
+  getter s():String = "A"
+end
+
+trait B excludes A
+  getter t():String = "B"
+end
+
+f(a:A) = a.s
+f[\T extends B\](b:T) = b.t (*) Error is reported here
+
+object O extends A end
+
+run(): () = do
+  g = f           (*) Error is CAUSED here, LINE 38
+end

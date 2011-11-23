@@ -1,0 +1,308 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Tests and Properties}
+\chaplabel{tests}
+
+\note{Tests and properties are not yet supported.
+
+Examples in this chapter are not tested nor run by the interpreter.}
+
+\note{
+Ticket \#248
+
+By default, tests actually in a given component are run.
+Do not run the run function while running tests.
+Overloading the same name with test and non-test functionals is not
+allowed.
+To test multiple components:
+
+{\small\tt fortress test blah1.fss blah2.fss ...}
+}
+
+\note{Introduce another keyword \KWD{testhelper}
+for auxiliary functions in tests.
+The \KWD{testhelper} codes need to be in APIs.}
+
+\note{
+A limited form of tests are supported by the interpreter as follows:
+
+To help make programs more robust,
+the \KWD{test} modifier can appear on a top-level function definition
+with type ``\EXP{() \rightarrow ()}''.
+Functions with modifier \KWD{test} must not be overloaded with
+functions that do not have modifier \KWD{test}.
+The collection of all functions in a program that include modifier \KWD{test}
+are referred to collectively as the program's \emph{tests}.
+Tests can refer to non-tests but
+it is a static error for a non-test to refer to any test.
+Tests can refer to non-tests but non-tests must not refer to any test.
+
+For example, we can write the following test function:
+\input{\home/basic/examples/TestFactorial.tex}
+
+
+When a program's tests are \emph{run},
+each top-level function definition with modifier \KWD{test}
+is run in textual program order.
+}
+
+Fortress supports automated program testing.
+Components and APIs can declare \emph{tests}.
+Test declarations specify explicit finite collections over which the
+test is run.
+Components, APIs, traits, and objects can declare \emph{properties}
+which describe boolean conditions that the enclosing construct is expected
+to obey.  Tests and properties may modify the program state.
+
+\section{The Purpose of Tests and Properties}
+To help make programs more robust, Fortress programs are allowed
+to include special constructs called
+\emph{tests} and \emph{properties}.  Tests consist of test data
+along with code that can be run on that data.
+Properties are documentation used to describe the behavior
+of the traits and functions of a program; they can be thought of
+as comments written in a formal language.
+For each property, there is a special function that can be
+called by a program's tests to ensure that the property holds for specific
+test data.
+
+
+A fortress includes hooks to allow programmers to run a specific test
+on an executable component, and to run all tests on such a component.
+A particularly useful time to run
+the tests of an executable component is at component link time;
+errors in the behavior of constituent components can be caught
+before the linked program is run.
+
+
+\section{Test Declarations}
+\seclabel{test-decls}
+
+\begin{Grammar}
+\emph{TestDecl} &::=& \KWD{test} \emph{Id} \texttt[\emph{GeneratorClauseList}\texttt]
+\EXP{=} \emph{Expr} \\
+
+\emph{GeneratorClauseList} &::=& \emph{GeneratorBinding}(\EXP{,} \emph{GeneratorClause})$^*$\\
+
+\emph{GeneratorBinding}
+&::=& \emph{BindIdOrBindIdTuple}\EXP{\leftarrow}\emph{Expr} \\
+
+\emph{GeneratorClause}
+&::=& \emph{GeneratorBinding}\\
+&$|$& \emph{Expr} \\
+
+\emph{BindIdOrBindIdTuple}
+&::=& \emph{BindId}\\
+&$|$& \texttt{(} \emph{BindId}\EXP{,} \emph{BindIdList} \texttt{)}\\
+
+\end{Grammar}
+
+A test declaration begins with
+\KWD{test} followed by an identifier, a list of zero or more generators
+(described in \secref{generators}) enclosed in square brackets, the
+token \EXP{=}, and a subexpression.
+When a test is \emph{run} (See \secref{basicops}), the
+subexpression is evaluated in each extension of the enclosing environment
+corresponding to each point in the cross product
+of bindings determined by the generators in the generator list.
+
+For example, the following test:
+\note{The fortify has some problems here...}
+% test fxLessThanFy[x <- E, y <- F] = assert (f(x) < f(y))
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{test} \VAR{fxLessThanFy}[{x \leftarrow E}, {y \leftarrow F}] = \VAR{assert} (f(x) < f(y))\)\-\\\poptabs
+\end{Fortress}
+checks that, for each value $x$ supplied by generator $E$,
+and for each value $y$ supplied by generator $F$,
+\EXP{f(x)} is less than \EXP{f(y)}.
+
+
+\section{Other Test Constructs}
+The \KWD{test} modifier can also appear
+on a function definition, trait definition, object definition,
+or top-level variable definition. In these contexts, the modifier indicates
+that the program construct it modifies can be referred to by a test.
+Functions with modifier \KWD{test} must not be overloaded with
+functions that do not have modifier \KWD{test}, and
+traits with modifier \KWD{test} must not be extended
+by traits or objects that do not have modifier \KWD{test}.
+The collection of all constructs in a program that include modifier \KWD{test}
+are referred to collectively as the program's \emph{tests}.
+Tests can refer to non-tests but
+it is a static error for a non-test to refer to any test.
+
+For example, we can write the following helper function:
+% test ensureApplicationFails(g,x) = do
+%   applicationSucceeded := false
+%   try
+%     g(x)
+%     applicationSucceeded := true
+%   catch e
+%     Exception => ()
+%   end
+%   if applicationSucceeded then
+%     fail "Application succeeded!"
+%   end
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{test} \VAR{ensureApplicationFails}(g,x) = \;\KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(   \VAR{applicationSucceeded} \ASSIGN \VAR{false}\)\\
+\(   \KWD{try}\)\\
+{\tt~~}\pushtabs\=\+\(     g(x)\)\\
+\(     \VAR{applicationSucceeded} \ASSIGN \VAR{true}\)\-\\\poptabs
+\(   \KWD{catch} e\)\\
+{\tt~~}\pushtabs\=\+\(     \TYP{Exception} \Rightarrow ()\)\-\\\poptabs
+\(   \KWD{end}\)\\
+\(   \KWD{if} \VAR{applicationSucceeded} \KWD{then}\)\\
+{\tt~~}\pushtabs\=\+\(     \VAR{fail}\;\hbox{\rm``\STR{Application~succeeded!}''}\)\-\\\poptabs
+\(   \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+The library function \VAR{fail} displays the error message provided
+and terminates execution of the enclosing test.
+
+\section{Running Tests}
+
+When a program's tests are \emph{run}, the following actions are
+taken:
+\begin{enumerate}
+\item All top-level
+definitions, including constructs beginning with modifier \KWD{test}, are
+initialized. A test declaration with name $t$ declares a function named $t$
+that takes a tuple of parameters corresponding to the variables bound in
+the generator list of the test declaration.
+For each variable $v$ in the generator list
+of $t$, if the type of generator supplied for $v$ is
+\EXP{\TYP{Generator}\llbracket\OPR{\alpha}\rrbracket}
+then the parameter in the function corresponding to $v$ has type
+\EXP{\mathrm{\alpha}}. The return type of the function is \EXP{()}.
+
+Each such function bound in this manner is referred to as a
+\emph{test function}.
+Test functions can be called from the rest of the program's tests.
+
+\item Each test $t$ in a program is run in each extension of
+$t$'s enclosing environment with a point in the cross product
+of bindings determined by the generators in the test's generator list.
+\end{enumerate}
+
+
+\section{Test Suites}
+\seclabel{test-suites}
+
+In order to allow programmers to run strict subsets of all tests
+defined in a program, Fortress allows tests to be
+assembled into \emph{test suites}.
+
+The convenience object \TYP{TestSuite} is defined in \library.
+An instance of this object contains a set of test functions that can all
+be called by invoking the method \VAR{run}:
+
+% test object TestSuite(testFunctions = {})
+%
+%   add(f: () -> ()) = testFunctions.insert(f)
+%
+%   run() =
+%     for t <- testFunctions do
+%       t()
+%     end
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{test}\;\;\KWD{object} \TYP{TestSuite}(\VAR{testFunctions} = \{\})\)\\[4pt]
+{\tt~~}\pushtabs\=\+\(   \VAR{add}(f\COLON () \rightarrow ()) = \;\VAR{testFunctions}.\VAR{insert}(f)\)\\[4pt]
+\(   \VAR{run}() =\)\\
+{\tt~~}\pushtabs\=\+\(     \KWD{for} t \leftarrow \VAR{testFunctions}\;\;\KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(       t()\)\-\\\poptabs
+\(     \KWD{end}\)\-\-\\\poptabs\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+Note that all tests in a \TYP{TestSuite} are run in parallel.
+
+\section{Property Declarations}
+\seclabel{property-decls}
+
+\begin{Grammar}
+\emph{PropertyDecl} &::=& \KWD{property} \options{\emph{Id} \EXP{=}}
+\options{$\forall$ \emph{ValParam}} \emph{Expr} \\
+
+\emph{ValParam} &::=& \emph{BindId}\\
+&$|$& \texttt(\option{\emph{Params}}\texttt)\\
+
+\emph{Params}
+&::=& (\emph{Param}\EXP{,})$^*$ \options{\emph{Varargs}\EXP{,}} \emph{Keyword}(\EXP{,}\emph{Keyword})$^*$\\
+&$|$& (\emph{Param}\EXP{,})$^*$  \emph{Varargs}\\
+&$|$& \emph{Param}(\EXP{,} \emph{Param})$^*$\\
+
+\emph{VarargsParam} &::=& \emph{BindId}\EXP{\COLONOP}\emph{Type}\EXP{...} \\
+
+\emph{Varargs} &::=& \emph{VarargsParam}\\
+
+\emph{Keyword} &::=& \emph{Param}\EXP{=}\emph{Expr} \\
+
+\emph{PlainParam} &::=& \emph{BindId} \option{\emph{IsType}} \\
+&$|$& \emph{Type} \\
+
+\emph{Param} &::=& \emph{PlainParam}\\
+
+\end{Grammar}
+
+Components and APIs may include \emph{property}
+declarations, documenting
+boolean conditions that a program is expected to obey.
+Syntactically, a property declaration begins with
+\KWD{property} followed by an optional identifier followed by the token
+\EXP{=}, an optional value parameter, which may be a tuple, preceded by the
+token \EXP{\forall}, and a boolean subexpression.
+In any execution of the program, the boolean subexpression is expected to
+evaluate to true at any time for any binding of the property declaration's
+parameter to any value of its declared type.
+When a property declaration includes an identifier,
+the property identifier is bound to a function whose parameter
+and body are that of the property, and whose return type is \TYP{Boolean}.
+A function bound in this manner is referred to as a \emph{property function}.
+
+
+Properties can also be declared in trait or object declarations. Such
+properties are expected to hold for all instances of the trait or object
+and for all bindings of the property's parameter. If a property in a trait
+or object includes a name, the name is bound to a method whose parameter
+and body are that of the property, and whose return type is
+\TYP{Boolean}.
+A method bound in this manner is referred to as a \emph{property
+  method}. A property method of a trait $T$ can be called,
+via dotted method notation, on an instance of $T$.
+
+Property functions and methods can be referred to in a program's tests.
+If the result of a call to a property function or method is not
+\VAR{true}, a \TYP{TestFailure} exception is thrown. For example, we can
+write:
+% property fIsMonotonic = FORALL(x: ZZ, y: ZZ) (x < y) -> (f(x) < f(y))
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{property} \TYP{fIsMonotonic} = \forall(x\COLON \mathbb{Z}, y\COLON \mathbb{Z})\; (x < y) \rightarrow (f(x) < f(y))\)\-\\\poptabs
+\end{Fortress}
+% test s : Set[\ZZ\] = {-2000, 0, 1, 7, 42, 59, 100, 1000, 5697}
+% test fIsMonotonicOverS [x <- s, y <- s] = fIsMonotonic(x,y)
+% test fIsMonotonicHairy [x <- s, y <- s] = fIsMonotonic(x, x^2 + y)
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{test} s \mathrel{\mathtt{:}} \TYP{Set}\llbracket\mathbb{Z}\rrbracket = \{-2000, 0, 1, 7, 42, 59, 100, 1000, 5697\}\)\\
+\( \KWD{test} \VAR{fIsMonotonicOverS} [x \leftarrow s, y \leftarrow s] = \VAR{fIsMonotonic}(x,y)\)\\
+\( \KWD{test} \VAR{fIsMonotonicHairy} [x \leftarrow s, y \leftarrow s] = \VAR{fIsMonotonic}(x, x^{2} + y)\)\-\\\poptabs
+\end{Fortress}
+The test \VAR{fIsMonotonicOverS} tests that function \VAR{f} is
+monotonic
+over all values in set \VAR{s}. The test \VAR{fIsMonotonicHairy}
+tests that \VAR{f} is monotonic with respect to the values in \VAR{s}
+compared to the set of values corresponding to all the ways in which
+we can choose an element of \VAR{s}, square it,
+and add it to another element of \VAR{s}.
