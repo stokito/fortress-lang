@@ -252,6 +252,10 @@
       1 (fortress-with-unicode-char
          (fortress-unicode MATHBB-Z)
          'font-lock-fortress-type-face))
+    `("\\<\\(NN\\)\\(64\\|32\\)?\\>"
+      1 (fortress-with-unicode-char
+         (fortress-unicode MATHBB-N)
+         'font-lock-fortress-type-face))
 
     ;; builtin type name
     `(,(concat "\\<\\(" (regexp-opt fortress-builtin-types) "\\)\\>")

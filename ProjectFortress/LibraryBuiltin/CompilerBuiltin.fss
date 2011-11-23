@@ -63,6 +63,43 @@ import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString => jIntTo
                                             simpleIntArith.intBitXor => jIntBitXor,
                                             simpleIntArith.intExp => jIntExp,
                                             simpleIntArith.intToDouble => jIntToDouble}
+import java com.sun.fortress.nativeHelpers.{simpleUnsignedIntArith.makeNN32FromZZ32WithSpecialCompilerHackForNN32ResultType => jMakeNN32FromZZ32,
+                                            simpleUnsignedIntArith.makeZZ32FromNN32WithSpecialCompilerHackForNN32ArgumentType => jMakeZZ32FromNN32,
+                                            simpleUnsignedIntArith.unsignedIntToString => jUnsignedIntToString,
+                                            simpleUnsignedIntArith.parseUnsignedInt => jParseUnsignedInt,
+                                            simpleUnsignedIntArith.unsignedIntOverflowingAdd => jUnsignedIntOverflowingAdd,
+                                            simpleUnsignedIntArith.unsignedIntOverflowingSub => jUnsignedIntOverflowingSub,
+                                            simpleUnsignedIntArith.unsignedIntOverflowingMul => jUnsignedIntOverflowingMul,
+                                            simpleUnsignedIntArith.unsignedIntOverflowingDiv => jUnsignedIntOverflowingDiv,
+                                            simpleUnsignedIntArith.unsignedIntOverflowingNeg => jUnsignedIntOverflowingNeg,
+                                            simpleUnsignedIntArith.unsignedIntOverflowingAbs => jUnsignedIntOverflowingAbs,
+                                            simpleUnsignedIntArith.longOverflowingToUnsignedInt => jLongOverflowingToUnsignedInt,
+                                            simpleUnsignedIntArith.unsignedIntOverflowingChoose => jUnsignedIntOverflowingChoose,
+                                            simpleUnsignedIntArith.unsignedIntWrappingAdd => jUnsignedIntWrappingAdd,
+                                            simpleUnsignedIntArith.unsignedIntWrappingSub => jUnsignedIntWrappingSub,
+                                            simpleUnsignedIntArith.unsignedIntWrappingMul => jUnsignedIntWrappingMul,
+                                            simpleUnsignedIntArith.unsignedIntWrappingDiv => jUnsignedIntWrappingDiv,
+                                            simpleUnsignedIntArith.unsignedIntWrappingNeg => jUnsignedIntWrappingNeg,
+                                            simpleUnsignedIntArith.unsignedIntWrappingAbs => jUnsignedIntWrappingAbs,
+                                            simpleUnsignedIntArith.longWrappingToUnsignedInt => jLongWrappingToUnsignedInt,
+                                            simpleUnsignedIntArith.unsignedIntSaturatingAdd => jUnsignedIntSaturatingAdd,
+                                            simpleUnsignedIntArith.unsignedIntSaturatingSub => jUnsignedIntSaturatingSub,
+                                            simpleUnsignedIntArith.unsignedIntSaturatingMul => jUnsignedIntSaturatingMul,
+                                            simpleUnsignedIntArith.unsignedIntSaturatingDiv => jUnsignedIntSaturatingDiv,
+                                            simpleUnsignedIntArith.unsignedIntSaturatingNeg => jUnsignedIntSaturatingNeg,
+                                            simpleUnsignedIntArith.unsignedIntSaturatingAbs => jUnsignedIntSaturatingAbs,
+                                            simpleUnsignedIntArith.longSaturatingToUnsignedInt => jLongSaturatingToUnsignedInt,
+                                            simpleUnsignedIntArith.unsignedIntLT => jUnsignedIntLT,
+                                            simpleUnsignedIntArith.unsignedIntLE => jUnsignedIntLE,
+                                            simpleUnsignedIntArith.unsignedIntGT => jUnsignedIntGT,
+                                            simpleUnsignedIntArith.unsignedIntGE => jUnsignedIntGE,
+                                            simpleUnsignedIntArith.unsignedIntEQ => jUnsignedIntEQ,
+                                            simpleUnsignedIntArith.unsignedIntBitNot => jUnsignedIntBitNot,
+                                            simpleUnsignedIntArith.unsignedIntBitAnd => jUnsignedIntBitAnd,
+                                            simpleUnsignedIntArith.unsignedIntBitOr => jUnsignedIntBitOr,
+                                            simpleUnsignedIntArith.unsignedIntBitXor => jUnsignedIntBitXor,
+                                            simpleUnsignedIntArith.unsignedIntExp => jUnsignedIntExp,
+                                            simpleUnsignedIntArith.unsignedIntToDouble => jUnsignedIntToDouble}
 import java com.sun.fortress.nativeHelpers.{simpleLongArith.longToString => jLongToString,
                                             simpleLongArith.parseLong => jParseLong,
                                             simpleLongArith.longAdd => jLongAdd,
@@ -414,12 +451,57 @@ trait ZZ32 extends { Number, Equality[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
     asRR64(): RR64 = jIntToDouble(self)
 end
 
+trait NN32 extends { Number, Equality[\NN32\] } excludes { ZZ32, ZZ64, RR32, RR64 }
+    coerce(x: IntLiteral) = x.asNN32
+    getter asNN32(): NN32 = self
+    getter asString(): String = jUnsignedIntToString(jMakeZZ32FromNN32(self))
+    opr |self| : NN32 = self
+    opr -(self): NN32 = 
+         if (self = 0) 
+         then 0
+         else throw IntegerOverflow
+         end
+    opr BOXMINUS(self): NN32 = jMakeNN32FromZZ32(jUnsignedIntWrappingNeg(jMakeZZ32FromNN32(self)))
+    opr DOTMINUS(self): NN32 = jMakeNN32FromZZ32(jUnsignedIntSaturatingNeg(jMakeZZ32FromNN32(self)))
+    opr +(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntOverflowingAdd(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr BOXPLUS(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntWrappingAdd(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr DOTPLUS(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntSaturatingAdd(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr -(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntOverflowingSub(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr BOXMINUS(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntWrappingSub(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr DOTMINUS(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntSaturatingSub(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr DOT(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntOverflowingMul(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr BOXDOT(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntWrappingMul(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr CROSS(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntOverflowingMul(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr BOXCROSS(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntWrappingMul(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr DOTCROSS(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntSaturatingMul(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr DIV(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntOverflowingDiv(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr <(self, other:NN32): Boolean = jUnsignedIntLT(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other))
+    opr <=(self, other:NN32): Boolean = jUnsignedIntLE(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other))
+    opr >(self, other:NN32): Boolean = jUnsignedIntGT(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other))
+    opr >=(self, other:NN32): Boolean = jUnsignedIntGE(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other))
+    opr =(self, other:NN32): Boolean = jIntEQ(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other))
+    opr =/=(self, other:NN32): Boolean = NOT (jMakeZZ32FromNN32(self) = jMakeZZ32FromNN32(other))
+    opr juxtaposition(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntOverflowingMul(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr BITNOT(self): NN32 = jMakeNN32FromZZ32(jUnsignedIntBitNot(jMakeZZ32FromNN32(self)))
+    opr BITAND(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntBitAnd(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr BITOR(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntBitOr(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr BITXOR(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntBitXor(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr MIN(self, other:NN32): NN32 = if self <= other then self else other end
+    opr MAX(self, other:NN32): NN32 = if self >= other then self else other end
+    opr MINMAX(self, other:NN32): (NN32, NN32) = if self <= other then (self, other) else (other, self) end
+    opr CHOOSE(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntOverflowingChoose(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    even(self): Boolean = ((self BITAND 1) = 0)
+    odd(self): Boolean = NOT (even self)
+    opr ^(self, other:NN32):NN32 = jMakeNN32FromZZ32(jUnsignedIntExp(jMakeZZ32FromNN32(self), jMakeZZ32FromNN32(other)))
+    asRR64(): RR64 = jUnsignedIntToDouble(jMakeZZ32FromNN32(self))
+end
+
 trait IntLiteral excludes {ZZ32, ZZ64}
     getter asString(): String = self.asZZ32.asString
     getter asZZ32(): ZZ32
     getter asZZ64(): ZZ64
-(*
     getter asNN32(): NN32
+(*
     getter asZZ(): ZZ
     getter asRR32(): RR32
 *)

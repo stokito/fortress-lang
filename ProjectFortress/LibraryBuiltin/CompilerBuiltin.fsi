@@ -162,9 +162,51 @@ trait ZZ32 extends { Number, Equality[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
 
 end
 
+trait NN32 extends { Number, Equality[\NN32\] } excludes { ZZ32, ZZ64, RR32, RR64 }
+    coerce(x: IntLiteral)
+    getter asNN32(): NN32
+    getter asString(): String
+    opr |self| : NN32
+    opr -(self): NN32 
+    opr BOXMINUS(self): NN32
+    opr DOTMINUS(self): NN32
+    opr +(self, other:NN32): NN32
+    opr BOXPLUS(self, other:NN32): NN32
+    opr DOTPLUS(self, other:NN32): NN32
+    opr -(self, other:NN32): NN32
+    opr BOXMINUS(self, other:NN32): NN32
+    opr DOTMINUS(self, other:NN32): NN32
+    opr DOT(self, other:NN32): NN32
+    opr BOXDOT(self, other:NN32): NN32
+    opr CROSS(self, other:NN32): NN32
+    opr BOXCROSS(self, other:NN32): NN32
+    opr DOTCROSS(self, other:NN32): NN32
+    opr DIV(self, other:NN32): NN32
+    opr <(self, other:NN32): Boolean
+    opr <=(self, other:NN32): Boolean
+    opr >(self, other:NN32): Boolean
+    opr >=(self, other:NN32): Boolean
+    opr =(self, other:NN32): Boolean
+    opr =/=(self, other:NN32): Boolean
+    opr juxtaposition(self, other:NN32): NN32
+    opr BITNOT(self): NN32
+    opr BITAND(self, other:NN32): NN32
+    opr BITOR(self, other:NN32): NN32
+    opr BITXOR(self, other:NN32): NN32
+    opr MIN(self, other:NN32): NN32
+    opr MAX(self, other:NN32): NN32
+    opr MINMAX(self, other:NN32): (NN32, NN32)
+    opr CHOOSE(self, other:NN32): NN32
+    even(self): Boolean
+    odd(self): Boolean
+    opr ^(self, other:NN32):NN32
+    asRR64(): RR64
+end
+
 trait IntLiteral excludes {ZZ32, ZZ64}
     abstract getter asZZ32(): ZZ32
     abstract getter asZZ64(): ZZ64
+    abstract getter asNN32(): NN32
 (*
     abstract getter asNN32(): NN32
     abstract getter asZZ(): ZZ

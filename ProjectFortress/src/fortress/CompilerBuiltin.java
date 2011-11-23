@@ -26,6 +26,10 @@ public class CompilerBuiltin {
         public static abstract class DefaultTraitMethods extends FValue implements ZZ32 {}
     }
 
+    public static interface NN32 extends fortress.CompilerBuiltin.Number {
+        public static abstract class DefaultTraitMethods extends FValue implements NN32 {}
+    }
+
     public static interface ZZ64 extends fortress.CompilerBuiltin.Number {
         public static abstract class DefaultTraitMethods extends FValue implements ZZ64 {}
     }

@@ -389,7 +389,7 @@ object ZZ32Addition extends ReductionZZ32
 end
 
 object ZZ32Max extends ReductionZZ32
-    empty(): ZZ32 = -32768 TIMES 65536
+    empty(): ZZ32 = do a: ZZ32 = 32768; b: ZZ32 = 65536; (-a) TIMES b end
     join(a: ZZ32, b: ZZ32): ZZ32 = a MAX b
 end
 
@@ -509,7 +509,7 @@ characterInitialQuotePunctuation: ZZ32 = 29
 characterFinalQuotePunctuation: ZZ32 = 30
 
 (*) Character directionality
-characterDirectionalityUndefined: ZZ32 = -1
+characterDirectionalityUndefined: ZZ32 = do a: ZZ32 = 1; -a end
 characterDirectionalityLeftToRight: ZZ32 = 0
 characterDirectionalityRightToLeft: ZZ32 = 1
 characterDirectionalityRightToLeftArabic: ZZ32 = 2

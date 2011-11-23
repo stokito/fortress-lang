@@ -186,6 +186,7 @@ public class NamingCzar {
     public static final String internalFortressFloatLiteral = makeFortressInternal("FloatLiteral");
     public static final String internalFortressZZ32  = makeFortressInternal("ZZ32");
     public static final String internalFortressZZ64  = makeFortressInternal("ZZ64");
+    public static final String internalFortressNN32  = makeFortressInternal("NN32");
     public static final String internalFortressRR32  = makeFortressInternal("RR32");
     public static final String internalFortressRR64  = makeFortressInternal("RR64");
     public static final String internalFortressBoolean  = makeFortressInternal("Boolean");
@@ -204,6 +205,7 @@ public class NamingCzar {
     public static final String descFortressFloatLiteral  = Naming.internalToDesc(internalFortressFloatLiteral);
     public static final String descFortressZZ32  = Naming.internalToDesc(internalFortressZZ32);
     public static final String descFortressZZ64  = Naming.internalToDesc(internalFortressZZ64);
+    public static final String descFortressNN32  = Naming.internalToDesc(internalFortressNN32);
     public static final String descFortressRR32  = Naming.internalToDesc(internalFortressRR32);
     public static final String descFortressRR64  = Naming.internalToDesc(internalFortressRR64);
     public static final String descFortressBoolean  = Naming.internalToDesc(internalFortressBoolean);
@@ -350,10 +352,14 @@ public class NamingCzar {
 	    return fortressCharacterType;
 	} else if ((!isResultType) && method_name.equals("charCodePointWithSpecialCompilerHackForCharacterArgumentType") && s.equals("I")) {
 	    return fortressCharacterType;
-    } else if (s.equals("[I")) {
-        return fortressZZ32VectorType;
-    } else if (s.equals("[String")) {
-        return fortressStringVectorType;
+	} else if (isResultType && method_name.equals("makeNN32FromZZ32WithSpecialCompilerHackForNN32ResultType") && s.equals("I")) {
+	    return fortressNN32Type;
+	} else if ((!isResultType) && method_name.equals("makeZZ32FromNN32WithSpecialCompilerHackForNN32ArgumentType") && s.equals("I")) {
+	    return fortressNN32Type;
+	} else if (s.equals("[I")) {
+	    return fortressZZ32VectorType;
+	} else if (s.equals("[String")) {
+	    return fortressStringVectorType;
 	} else return specialForeignJavaTranslations.get(s);
     }
 
@@ -432,7 +438,7 @@ public class NamingCzar {
     private static TraitType fortressCharacterType = ss(fortLib, "Character");
     private static TraitType fortressZZ32VectorType = ss(fortLib, "ZZ32Vector");    
     private static TraitType fortressStringVectorType = ss(fortLib, "StringVector");
-
+    private static TraitType fortressNN32Type = ss(fortLib, "NN32");
     
     /**
      * Package prefix for runtime values
@@ -512,10 +518,11 @@ public class NamingCzar {
         bl(fortLib, "Character", "FCharacter");
         bl(fortLib, "JavaBufferedReader", "FJavaBufferedReader");
         bl(fortLib, "JavaBufferedWriter", "FJavaBufferedWriter");
+        bl(fortLib, "ZZ64", "FZZ64");
+        bl(fortLib, "ZZ32", "FZZ32");
+	bl(fortLib, "NN32", "FNN32");
         bl(fortLib, "RR32", "FRR32");
         bl(fortLib, "RR64", "FRR64");
-        bl(fortLib, "ZZ32", "FZZ32");
-        bl(fortLib, "ZZ64", "FZZ64");
         bl(fortLib, "JavaString", "FJavaString");
         bl(fortLib, "ZZ32Vector", "FZZ32Vector");
         bl(fortLib, "StringVector", "FStringVector");
