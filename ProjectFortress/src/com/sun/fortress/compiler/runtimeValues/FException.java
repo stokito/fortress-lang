@@ -25,7 +25,12 @@ public class FException extends java.lang.Error {
         exceptions.put(v, this);
     }
 
-    public String toString() { return "FortressException: " + error.getClass() + " with string " + error.asString().getValue();}
+    public String toString() {
+        String the_class = error.getClass().toString();
+        FJavaString the_java_string = (FJavaString) (error.asString());
+        String the_string = the_java_string.getValue();
+         return "FortressException: " + the_class + " with string " + the_string;
+         }
 
     // Codegen.java knows about the return type of this getValue method.
     public FValue getValue() { return error; }

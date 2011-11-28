@@ -12,13 +12,13 @@
 package com.sun.fortress.compiler.runtimeValues;
 
 public abstract class FValue implements fortress.AnyType.Any {
-
+    
     @Override
     public RTTI getRTTI() {
         return null;
     }
     
-    public FJavaString asString() {
+    public fortress.CompilerBuiltin.String asString() {
         return null; /* replaced in generated code; necessary for primitive hierarchy */
     }
     

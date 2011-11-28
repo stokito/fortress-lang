@@ -27,7 +27,7 @@ public class stringOps {
         return s.charAt(at);
     }
     
-    public static String asString(fortress.AnyType.Any a) {
+    public static String asString(fortress.AnyType.Any a) { // this can't be right! DRC
         return "<" + a.getClass() + ">";
     }
 }
