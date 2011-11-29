@@ -472,6 +472,9 @@ abstract class STypeChecker(val current: CompilationUnitIndex,
         coercions.buildCoercion(checkedExpr, expected).getOrElse {
           msgAndLoc match {
             case Some((message, location)) =>
+              val someE = Some(expected)
+              val checkedExpr2 = checkExpr(expr, someE) // Repeat calculation for debugging
+              val checkedExpr3 = checkExpr(expr, someE) // Repeat calculation for debugging
               signal(location, message.format(normalize(typ), normalize(expected)))
             case None =>
           }

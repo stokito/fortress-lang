@@ -12,7 +12,7 @@
 component Compiled1.av
  export Executable
 
- foo[\nat n\]():ZZ32 = n+n
+ foo[\nat n\]():ZZ32 = n.asZZ32 + n.asZZ32
 
  run():() = ()
 end

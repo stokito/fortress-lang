@@ -17,9 +17,12 @@ export Executable
 t(x:Boolean) = println( if x then "PASS" else "FAIL" end )
 
 run() = do
-  t( 0<=0<1 )
-  t( 0<=0<1=1<2<=2 )
-  t( NOT (0>=0>1=1>2>=2) )
+  zero: ZZ32 = 0
+  one: ZZ32 = 1
+  two: ZZ32 = 2
+  t( zero<=zero<one )
+  t( zero<=zero<one=one<two<=two )
+  t( NOT (zero>=zero>one=one>two>=two) )
 end
 
 end

@@ -445,7 +445,10 @@ trait Functionals { self: STypeChecker with Common =>
 
     // Sort the arrows and instantiations to find the statically most
     // applicable. Then update each candidate's Overloading node.
-    Some(candidates.sortWith(moreSpecificCandidate))
+    val sorted = Some(candidates.sortWith(moreSpecificCandidate))
+    // ensure that head is actually more specific.
+    
+    sorted
   }
 
   /**
