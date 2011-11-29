@@ -24,6 +24,7 @@ import com.sun.fortress.nodes.Node;
 import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
+import com.sun.fortress.compiler.desugarer.PreTypeCheckDesugaringVisitor;
 
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Pair;
@@ -108,7 +109,8 @@ public class PreTypeCheckDesugarer {
         if (Shell.getAssignmentDesugaring()) {
             AssignmentAndSubscriptDesugarer assnDesugarer = new AssignmentAndSubscriptDesugarer();
             comp = (Component) assnDesugarer.walk(comp);
-        }
+	}
+	comp = (Component) comp.accept( new PreTypeCheckDesugaringVisitor() );
 
         return comp;
     }

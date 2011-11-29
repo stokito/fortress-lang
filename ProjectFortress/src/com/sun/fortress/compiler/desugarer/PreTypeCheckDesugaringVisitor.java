@@ -60,6 +60,8 @@ public class PreTypeCheckDesugaringVisitor extends NodeUpdateVisitor {
         return Collections.singletonList(extendsObject);
     }
 
+    /* THESE THREE METHODS ARE SUSPECT
+
     @Override
         public Node forObjectExprOnly(ObjectExpr that,
                                       ExprInfo info,
@@ -106,6 +108,8 @@ public class PreTypeCheckDesugaringVisitor extends NodeUpdateVisitor {
                                        header_result, that.getSelfType());
     }
 
+    TO HERE */
+
     @Override
     public Node forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
         // If there is a colon at all, the operator is no longer ambiguous:
@@ -145,6 +149,7 @@ public class PreTypeCheckDesugaringVisitor extends NodeUpdateVisitor {
         String str = op_result.toString();
         String theListEnclosingOperatorName = "BIG <| BIG |>";
         String someBigOperatorName = "BIG";
+
         //make sure the body is of application of some big operator
         if ((str.length() >= someBigOperatorName.length()
              && str.substring(0, someBigOperatorName.length()).equals(someBigOperatorName))) {
@@ -180,6 +185,11 @@ public class PreTypeCheckDesugaringVisitor extends NodeUpdateVisitor {
                 }
             }
         }
+	// The test "str.equals("prefix -")" on the following line should be refactored.
+	else if (that.getArgs().size()==1 && that.getArgs().get(0) instanceof IntLiteralExpr && str.equals("prefix -")) { //  && str.equals("-")
+	    //System.out.println("Desugaring - " + that.getArgs().get(0) + " `" + str + "`");
+	    return ExprFactory.makeIntLiteralExpr(NodeUtil.getSpan(that), ((IntLiteralExpr)that.getArgs().get(0)).getIntVal().negate());
+	}
 
         List<Expr> args_result = recurOnListOfExpr(that.getArgs());
 

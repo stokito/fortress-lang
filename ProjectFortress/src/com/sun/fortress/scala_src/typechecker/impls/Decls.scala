@@ -237,6 +237,7 @@ trait Decls { self: STypeChecker with Common =>
               case p@SPattern(_,_,_) =>
                 bug("Pattern should be desugared away: " + p)
               case t@SType(_) =>
+          //System.out.println("Losing rhs: " + r)
                 (lv, checkExpr(r, t, errorString("Right-hand side", "declared")))
             }
             case None => lv match {
@@ -272,6 +273,7 @@ trait Decls { self: STypeChecker with Common =>
       val (newLhses, newRhs) = declaredType match {
         // If there is a declared type, just check the RHS expecting that.
         case Some(typ) =>
+          //System.out.println("Losing rhs: " + rhs)
           (lhses, checkExpr(rhs, typ, errorString("Right-hand side", "declared")))
         // If there is not a declared type, check the RHS and assign LHS types
         // from that.
@@ -326,6 +328,7 @@ trait Decls { self: STypeChecker with Common =>
               case p@SPattern(_,_,_) =>
                 bug("Pattern should be desugared away: " + p)
               case t@SType(_) =>
+          //System.out.println("Losing rhs: " + rhs)
                 (lv, checkExpr(r, t, errorString("Right-hand side", "declared")))
             }
             case None => lv match {
@@ -365,6 +368,7 @@ trait Decls { self: STypeChecker with Common =>
       val (newLhses, newRhs) = declaredType match {
         // If there is a declared type, just check the RHS expecting that.
         case Some(typ) =>
+          //System.out.println("Losing rhs: " + rhs)
           (lhses, checkExpr(rhs, typ, errorString("Right-hand side", "declared")))
         // If there is not a declared type, check the RHS and assign LHS types
         // from that.
