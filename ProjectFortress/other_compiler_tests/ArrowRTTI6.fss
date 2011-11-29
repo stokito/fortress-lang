@@ -46,10 +46,10 @@ run() : () = do
     println(f(a1,y))
     println(f(a2,x))
     println(f(a2,y))
-(*    if NOT(f(a1,x) = "A1gs") then println("fail")
-        elif NOT(f(a1,y) = "A1sg") then println("fail")
+   if NOT(f(a1,x) = "A1gs-") then println("fail")
+        elif NOT(f(a1,y) = "A1sg^") then println("fail")
         elif NOT(f(a2,x) = "A2gs") then println("fail")
-        elif NOT(f(a2,y) = "A1sg") then println("fail")
+        elif NOT(f(a2,y) = "A1sg^") then println("fail")
         else println("ok")
-    end *)
+    end
 end

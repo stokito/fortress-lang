@@ -1,4 +1,4 @@
-#    Copyright 2011, Oracle and/or its affiliates.
+#    Copyright 2009, Oracle and/or its affiliates.
 #    All rights reserved.
 #
 #
@@ -7,8 +7,7 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests=ArrowRTTI ArrowRTTI2 ArrowRTTI4 ArrowRTTI5 ArrowRTTI6
+tests=IGO3
 link
 run
-run_out_contains=ok\n
-
+run_out_WImatches=InvOoo InvTop
