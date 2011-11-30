@@ -203,7 +203,7 @@ trait NN32 extends { Number, Equality[\NN32\] } excludes { ZZ32, ZZ64, RR32, RR6
     asRR64(): RR64
 end
 
-trait IntLiteral excludes {ZZ32, ZZ64}
+trait IntLiteral excludes {ZZ32, ZZ64, NN32, RR64, RR32, Character, Boolean, String}
     abstract getter asZZ32(): ZZ32
     abstract getter asZZ64(): ZZ64
     abstract getter asNN32(): NN32
@@ -213,6 +213,40 @@ trait IntLiteral excludes {ZZ32, ZZ64}
     abstract getter asRR32(): RR32
 *)
     abstract getter asRR64(): RR64
+
+    opr |self| : IntLiteral
+    opr -(self): IntLiteral
+    opr BOXMINUS(self): IntLiteral
+    opr DOTMINUS(self): IntLiteral
+    opr +(self, other:IntLiteral): IntLiteral
+    opr BOXPLUS(self, other:IntLiteral): IntLiteral
+    opr DOTPLUS(self, other:IntLiteral): IntLiteral
+    opr -(self, other:IntLiteral): IntLiteral 
+    opr BOXMINUS(self, other:IntLiteral): IntLiteral 
+    opr DOTMINUS(self, other:IntLiteral): IntLiteral 
+    opr <(self, other:IntLiteral): Boolean 
+    opr <=(self, other:IntLiteral): Boolean 
+    opr >(self, other:IntLiteral): Boolean 
+    opr >=(self, other:IntLiteral): Boolean 
+    opr =(self, other:IntLiteral): Boolean 
+    opr =/=(self, other:IntLiteral): Boolean 
+    opr juxtaposition(self, other:IntLiteral): IntLiteral
+    opr DOT(self, other:IntLiteral): IntLiteral 
+    opr BOXDOT(self, other:IntLiteral): IntLiteral 
+    opr CROSS(self, other:IntLiteral): IntLiteral 
+    opr BOXCROSS(self, other:IntLiteral): IntLiteral 
+    opr DOTCROSS(self, other:IntLiteral): IntLiteral 
+    opr DIV(self, other:IntLiteral): IntLiteral
+    opr BITNOT(self): IntLiteral 
+    opr BITAND(self, other:IntLiteral): IntLiteral 
+    opr BITOR(self, other:IntLiteral): IntLiteral 
+    opr BITXOR(self, other:IntLiteral): IntLiteral
+    opr MIN(self, other:IntLiteral): IntLiteral 
+    opr MAX(self, other:IntLiteral): IntLiteral 
+    opr MINMAX(self, other:IntLiteral): (IntLiteral, IntLiteral) 
+    opr CHOOSE(self, other:IntLiteral): IntLiteral
+    even(self): Boolean
+    odd(self): Boolean
 end
 
 trait RR64 extends { Number, Equality[\RR64\] } excludes ZZ64
@@ -443,6 +477,9 @@ trait CheckedException extends Exception excludes UncheckedException
 end
 
 trait IOException extends CheckedException
+end
+
+object CompilerFailureDetectedAtRunTime extends UncheckedException
 end
 
 object IOFailure(s: String) extends IOException

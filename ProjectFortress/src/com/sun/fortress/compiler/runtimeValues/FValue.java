@@ -23,7 +23,8 @@ public abstract class FValue implements fortress.AnyType.Any {
     }
     
     public String toString() {
-        return asString().toString();
+        if (this.asString() == null) System.out.println("Failed FValue of type " + this.getClass().getName());
+        return this.asString().toString();
     }
 
 }
