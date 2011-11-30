@@ -17,6 +17,7 @@ public class FString  extends fortress.CompilerBuiltin.String.DefaultTraitMethod
     FString(String x) { val = x; }
     public String getValue() { return val;}
     public String toString() { return val;}
+    public FJavaString asString() { return FJavaString.make(val);}
     public static FString make(String s) { return new FString(s);}
     public static FString concatenate(FString s1, FString s2) { return new FString(s1.toString() + s2.toString());}
 

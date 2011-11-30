@@ -496,7 +496,7 @@ trait NN32 extends { Number, Equality[\NN32\] } excludes { ZZ32, ZZ64, RR32, RR6
     asRR64(): RR64 = jUnsignedIntToDouble(jMakeZZ32FromNN32(self))
 end
 
-trait IntLiteral excludes {ZZ32, ZZ64}
+trait IntLiteral excludes {ZZ32, ZZ64, NN32, RR64, RR32, Character, Boolean, String}
     getter asString(): String = self.asZZ32.asString
     getter asZZ32(): ZZ32
     getter asZZ64(): ZZ64
@@ -506,6 +506,40 @@ trait IntLiteral excludes {ZZ32, ZZ64}
     getter asRR32(): RR32
 *)
     getter asRR64(): RR64
+
+    opr |self| : IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr -(self): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BOXMINUS(self): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr DOTMINUS(self): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr +(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BOXPLUS(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr DOTPLUS(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr -(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BOXMINUS(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr DOTMINUS(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr DOT(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BOXDOT(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr CROSS(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BOXCROSS(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr DOTCROSS(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr DIV(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr <(self, other:IntLiteral): Boolean = throw CompilerFailureDetectedAtRunTime
+    opr <=(self, other:IntLiteral): Boolean = throw CompilerFailureDetectedAtRunTime
+    opr >(self, other:IntLiteral): Boolean = throw CompilerFailureDetectedAtRunTime
+    opr >=(self, other:IntLiteral): Boolean = throw CompilerFailureDetectedAtRunTime
+    opr =(self, other:IntLiteral): Boolean = throw CompilerFailureDetectedAtRunTime
+    opr =/=(self, other:IntLiteral): Boolean = throw CompilerFailureDetectedAtRunTime
+    opr juxtaposition(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BITNOT(self): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BITAND(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BITOR(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BITXOR(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr MIN(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr MAX(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr MINMAX(self, other:IntLiteral): (IntLiteral, IntLiteral) = throw CompilerFailureDetectedAtRunTime
+    opr CHOOSE(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    even(self): Boolean = throw CompilerFailureDetectedAtRunTime
+    odd(self): Boolean = throw CompilerFailureDetectedAtRunTime
 end
 
 trait RR64 extends { Number, Equality[\RR64\] } excludes ZZ64
@@ -771,6 +805,9 @@ trait CheckedException extends Exception excludes UncheckedException
 end
 
 trait IOException extends CheckedException
+end
+
+object CompilerFailureDetectedAtRunTime extends UncheckedException
 end
 
 object IOFailure(s: String) extends IOException
