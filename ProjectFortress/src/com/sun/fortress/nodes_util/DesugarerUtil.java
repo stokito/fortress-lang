@@ -17,6 +17,7 @@ import java.util.List;
 
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.compiler.WellKnownNames;
+import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.useful.Useful;
 
 public class DesugarerUtil {
@@ -92,7 +93,7 @@ public class DesugarerUtil {
     private static int tempCount = 0;
 
     public static String gensym(String prefix) {
-        return prefix + "$" + (++tempCount);
+        return prefix + Naming.GENERATED + (++tempCount);
     }
 
     public static String gensym() {
@@ -100,7 +101,7 @@ public class DesugarerUtil {
     }
 
     public static String gensymFn(String prefix) {
-        return prefix + "$match";
+        return prefix + Naming.GENERATED + "match";
     }
 
     public static Id gensymId(String prefix) {

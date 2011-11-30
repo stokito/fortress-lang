@@ -343,7 +343,8 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                                   EF.makeVarRef(pair._1.getName)::pair._2).flatten
         // new declarations to be added in case of a tuple pattern 
         val bindings = desugaredParams.map(_._4)
-        val call_expr = EF.make_RewriteFnApp(span, EF.makeFnRef(span, new_FnName), 
+        // should function be var ref or fn ref?
+        val call_expr = EF.make_RewriteFnApp(span, EF.makeVarRef(span, new_FnName), 
                                              EF.makeMaybeTupleExpr(span, toJavaList(args)))
         // make a temporary unambiguousname to identify a desugared FnDecl later
         val ds_unambiname = NF.makeId(span, "Desugared")
@@ -371,7 +372,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                     ds_unambiname, Some(final_body), implement)
    
           }
-        val new_span = NF.makeSpan("Patern matching desugarer generated.")
+        val new_span = NF.makeSpan("PMdesugarer-generated")
         // a new function declaration
         val added_Fndecl = SFnDecl(NF.makeSpanInfo(new_span),
                                    SFnHeader(sps, mods, new_FnName, where, throwsC,
