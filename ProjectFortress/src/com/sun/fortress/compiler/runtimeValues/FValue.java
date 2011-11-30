@@ -19,11 +19,10 @@ public abstract class FValue implements fortress.AnyType.Any {
     }
     
     public FJavaString asString() {
-        return null; /* replaced in generated code; necessary for primitive hierarchy */
+        return FJavaString.make("Bogus value from FValue.asString()"); /* replaced in generated code; necessary for primitive hierarchy */
     }
     
     public String toString() {
-        if (this.asString() == null) System.out.println("Failed FValue of type " + this.getClass().getName());
         return this.asString().toString();
     }
 
