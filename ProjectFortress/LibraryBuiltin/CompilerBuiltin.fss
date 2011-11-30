@@ -808,6 +808,7 @@ trait IOException extends CheckedException
 end
 
 object CompilerFailureDetectedAtRunTime extends UncheckedException
+    getter asString(): String = "Compiler failure detected at runtime"
 end
 
 object IOFailure(s: String) extends IOException
