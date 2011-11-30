@@ -473,7 +473,7 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
             case id:Id => // Could be a singleton object with static arguments.
             if (env.explicitTypeConsNames(id).isEmpty && !topFns.contains(id.getText)) {
                 error("Function " + id + " is not defined.", fnref); fnref
-              } else // create _RewriteObjectRef
+              } else // create _RewriteObjectRef -- as var ref, or as expr?
                 walk(SVarRef(info, id, sargs, depth)).asInstanceOf[VarRef]
             case _ => node
           }

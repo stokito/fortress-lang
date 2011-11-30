@@ -188,6 +188,7 @@ public class Naming {
         HAMMER_AND_PICK + YINYANG + ATOM;
 
     public static final String ENTER = "\u2386";
+    public static final String GENERATED = "\u270e"; // lower right pencil
 
     public static final String INTERNAL_SNOWMAN = SNOWMAN;
 
