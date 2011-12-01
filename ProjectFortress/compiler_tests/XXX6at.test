@@ -15,6 +15,7 @@ ${STATIC_TESTS_DIR}/Compiled6.at.fss:24:5-8:\n\
 \ O has no getter called foo\n\
 ${STATIC_TESTS_DIR}/Compiled6.at.fss:25:5-12:\n\
 \ Could not check call to operator +\n\
+\ - (IntLiteral, IntLiteral)->IntLiteral is not applicable to an argument of type (String, IntLiteral).\n\
 \ - (NN32, NN32)->NN32 is not applicable to an argument of type (String, IntLiteral).\n\
 \ - (RR64, RR64)->RR64 is not applicable to an argument of type (String, IntLiteral).\n\
 \ - (ZZ32, ZZ32)->ZZ32 is not applicable to an argument of type (String, IntLiteral).\n\

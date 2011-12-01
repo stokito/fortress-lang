@@ -640,8 +640,8 @@ trait Boolean extends { Equality[\Boolean\] }
 (*)       end
 end
 
-true: Boolean = (0=0)
-false: Boolean = (0=1)
+true: Boolean = do x: ZZ32 = 0; (x=x) end
+false: Boolean = do x: ZZ32 = 0; (x=/=x) end
 
 makeCharacter(n: ZZ32): Character =
     if characterMinCodePoint <= n <= characterMaxCodePoint

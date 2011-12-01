@@ -14,6 +14,7 @@ compile_err_equals=\
 \${STATIC_TESTS_DIR}/Compiled5.ad.fss:15:12-16:\n\
 \    Could not check call to operator <\n\
 \    - (Character, Character)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (IntLiteral, IntLiteral)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (NN32, NN32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (RR64, RR64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (String, String)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
@@ -22,6 +23,7 @@ compile_err_equals=\
 \${STATIC_TESTS_DIR}/Compiled5.ad.fss:15:16-20:\n\
 \    Could not check call to operator <\n\
 \    - (Character, Character)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (IntLiteral, IntLiteral)->Boolean is not applicable to an argument of type (ZZ32, ZZ32).\n\
 \    - (NN32, NN32)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
 \    - (RR64, RR64)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
 \    - (String, String)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
@@ -32,6 +34,7 @@ compile_err_equals=\
 \    - (Boolean, Boolean)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (Character, Character)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (GeneratorZZ32, GeneratorZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (IntLiteral, IntLiteral)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (NN32, NN32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (RR64, RR64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (String, String)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
