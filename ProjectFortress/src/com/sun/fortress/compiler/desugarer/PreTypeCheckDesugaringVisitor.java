@@ -190,8 +190,8 @@ public class PreTypeCheckDesugaringVisitor extends NodeUpdateVisitor {
 	    //System.out.println("Desugaring - " + that.getArgs().get(0) + " `" + str + "`");
 	    return ExprFactory.makeIntLiteralExpr(NodeUtil.getSpan(that), ((IntLiteralExpr)that.getArgs().get(0)).getIntVal().negate());
 	}
-	else if (that.getArgs().size()==2 && that.getArgs().get(0) instanceof IntLiteralExpr && that.getArgs().get(1) instanceof IntLiteralExpr ) { // && str.equals("infix +")
-	    System.out.println("Desugaring - " + that.getArgs().get(0) + " `" + str + "`");
+	else if (that.getArgs().size()==2 && that.getArgs().get(0) instanceof IntLiteralExpr && that.getArgs().get(1) instanceof IntLiteralExpr && str.equals("+")) { 
+	    //System.out.println("Desugaring - " + that.getArgs().get(0) + " `" + str + "`");
 	    return ExprFactory.makeIntLiteralExpr(NodeUtil.getSpan(that), ((IntLiteralExpr)that.getArgs().get(0)).getIntVal().add(((IntLiteralExpr)that.getArgs().get(1)).getIntVal()));
 	}
 	
