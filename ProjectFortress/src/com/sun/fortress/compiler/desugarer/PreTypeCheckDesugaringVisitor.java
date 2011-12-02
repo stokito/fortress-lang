@@ -186,16 +186,23 @@ public class PreTypeCheckDesugaringVisitor extends NodeUpdateVisitor {
             }
         }
 	// The test "str.equals("prefix -")" on the following line should be refactored.
-	else if (that.getArgs().size()==1 && that.getArgs().get(0) instanceof IntLiteralExpr && str.equals("prefix -")) { //  && str.equals("-")
-	    //System.out.println("Desugaring - " + that.getArgs().get(0) + " `" + str + "`");
-	    return ExprFactory.makeIntLiteralExpr(NodeUtil.getSpan(that), ((IntLiteralExpr)that.getArgs().get(0)).getIntVal().negate());
+	else if (that.getArgs().size()==1) {
+	    Node arg = recur(that.getArgs().get(0));
+	    if (arg instanceof IntLiteralExpr && str.equals("prefix -")) { //  && str.equals("-")
+	        //System.out.println("Desugaring - " + that.getArgs().get(0) + " `" + str + "`");
+	        return ExprFactory.makeIntLiteralExpr(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that),((IntLiteralExpr)arg).getIntVal().negate());
+            }
 	}
-	else if (that.getArgs().size()==2 && that.getArgs().get(0) instanceof IntLiteralExpr && that.getArgs().get(1) instanceof IntLiteralExpr && str.equals("+")) { 
-	    //System.out.println("Desugaring - " + that.getArgs().get(0) + " `" + str + "`");
-	    return ExprFactory.makeIntLiteralExpr(NodeUtil.getSpan(that), ((IntLiteralExpr)that.getArgs().get(0)).getIntVal().add(((IntLiteralExpr)that.getArgs().get(1)).getIntVal()));
+	else if (that.getArgs().size()==2) {
+	    Node arg0 = recur(that.getArgs().get(0));
+	    Node arg1 = recur(that.getArgs().get(1));
+	    if (arg0 instanceof IntLiteralExpr && arg1 instanceof IntLiteralExpr && str.equals("+")) { 
+		//System.out.println("Desugaring - " + that.getArgs().get(0) + " `" + str + "`");
+		return ExprFactory.makeIntLiteralExpr(NodeUtil.getSpan(that), NodeUtil.isParenthesized(that),
+						      ((IntLiteralExpr)arg0).getIntVal().add(((IntLiteralExpr)arg1).getIntVal()));
+	    }
 	}
 	
-
         List<Expr> args_result = recurOnListOfExpr(that.getArgs());
 
         OpExpr new_op;

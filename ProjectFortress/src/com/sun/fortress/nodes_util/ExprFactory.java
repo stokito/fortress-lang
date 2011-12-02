@@ -649,6 +649,13 @@ public class ExprFactory {
     }
 
     public static IntLiteralExpr makeIntLiteralExpr(Span span,
+						    boolean parenthesized,
+                                                    BigInteger intVal) {
+        return makeIntLiteralExpr(span, parenthesized, Option.<Type>none(),
+                                  intVal.toString(), intVal);
+    }
+
+    public static IntLiteralExpr makeIntLiteralExpr(Span span,
                                                     boolean parenthesized,
                                                     Option<Type> ty,
                                                     String text,
