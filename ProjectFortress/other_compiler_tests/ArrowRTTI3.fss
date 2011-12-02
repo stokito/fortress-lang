@@ -19,12 +19,12 @@ f[\T\](x:Any, y : T) : T = do
 end
 
 f[\T\](x : Specific -> General,y : T) = do
-    println("sg")
+    println("k\nsg")
     y
 end
 
 f[\T\](x : General -> Specific, y : T) = do
-    println("gs")
+    print("gs\no")
     y
 end
 

@@ -9,15 +9,18 @@
 
  ******************************************************************************)
 
-component Pattern3
+component Pattern2
 export Executable
 
 (*) Test pattern matching
 
-foo(x:(y:ZZ32, z:ZZ32),p:(q:ZZ32,r:ZZ32)): ZZ32 = (y+z)(q+r)
+object Baz(x: ZZ32, y: ZZ32) end
+
+
+foo(z: Baz(x: ZZ32, y: ZZ32)): ZZ32 = x+y
 
 run(): () = do
-  println(foo((3,4),(5,6)))
+  println(foo(Baz(1,6)))
 end
 
 end
