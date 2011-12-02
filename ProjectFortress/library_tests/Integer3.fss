@@ -16,13 +16,11 @@ export Executable
 
 shouldOverflow(f: () -> ZZ32): Boolean =
   try
-    println("Entering shouldOverflow")
     ignore f()
-    println("Did not raise an exception")
     false
   catch e
-    IntegerOverflow => do println("Detected overflow"); true end
-    Exception => do println("Raised something"); false end
+    IntegerOverflow => true
+    Exception => false 
   end
 
 shouldDivideByZero(f: () -> ZZ32): Boolean =

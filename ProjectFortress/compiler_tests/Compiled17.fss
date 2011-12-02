@@ -29,9 +29,9 @@ end
 
 run() =do
   o = O[\ZZ32\](3)
-  a = 3 (*) f(o)             (*) 3
-  b = o.g[\ZZ32\](5)       (*) 8
-  c = 4 (*) f'(4)            (*) 4
+  a: ZZ32 = 3 (*) f(o)             (*) 3
+  b: ZZ32 = o.g[\ZZ32\](5)       (*) 8
+  c: ZZ32 = 4 (*) f'(4)            (*) 4
 
   println(
   if (a=3 AND b=8 AND c=4)

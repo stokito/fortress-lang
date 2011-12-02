@@ -44,11 +44,8 @@ public final class Utility {
 
     public static FException makeFortressException(String name) {
 	try {
-	    System.out.println("Class: " + Class.forName(name));
-	    System.out.println("Constructors: " + Class.forName(name).getConstructors());
-	    Constructor fortressIOException = Class.forName(name).getConstructor(new Class[]{ String.class });
-	    System.out.println("Check");
-	    return new FException((FValue)fortressIOException.newInstance(FString.make("")));
+	    Constructor fortressIOException = Class.forName(name).getConstructor();
+	    return new FException((FValue)fortressIOException.newInstance());
 	} catch (ClassNotFoundException x) {
 	    throw new FortressImplementationError(x);
 	} catch (NoSuchMethodException x) {
@@ -61,5 +58,25 @@ public final class Utility {
 	    throw new FortressImplementationError(x);
 	}
     }
+
+    // public static FException makeFortressException(String name) {
+    // 	try {
+    // 	    System.out.println("Class: " + Class.forName(name));
+    // 	    System.out.println("Constructors: " + Class.forName(name).getConstructors());
+    // 	    Constructor fortressIOException = Class.forName(name).getConstructor(new Class[]{ String.class });
+    // 	    System.out.println("Check");
+    // 	    return new FException((FValue)fortressIOException.newInstance(FString.make("")));
+    // 	} catch (ClassNotFoundException x) {
+    // 	    throw new FortressImplementationError(x);
+    // 	} catch (NoSuchMethodException x) {
+    // 	    throw new FortressImplementationError(x);
+    // 	} catch (InstantiationException x) {
+    // 	    throw new FortressImplementationError(x);
+    // 	} catch (IllegalAccessException x) {
+    // 	    throw new FortressImplementationError(x);
+    // 	} catch (InvocationTargetException x) {
+    // 	    throw new FortressImplementationError(x);
+    // 	}
+    // }
 
 }
