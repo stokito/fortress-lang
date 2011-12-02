@@ -44,7 +44,7 @@ run() = do
   t2:T = O
   t3:T = P
   
-  println(f(t1,t2)) (*) InvOoo
-  println(f(t1,t3)) (*) InvTop
+  println(f(t1,t2)) (*) InvOoo -- t2 is an O
+  println(f(t1,t3)) (*) InvTop -- t3 is NOT an O
   
 end

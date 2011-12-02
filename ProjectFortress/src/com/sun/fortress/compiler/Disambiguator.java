@@ -317,6 +317,8 @@ public class Disambiguator {
         IndexBuilder.ComponentResult new_comp_ir =
         	IndexBuilder.buildComponents(new_comps, System.currentTimeMillis());
 
+        List<Component> pattern_matched_comps = new ArrayList<Component>();
+
         for( Component comp : new_comps ) {
             ComponentIndex index = new_comp_ir.components().get(comp.getName());
             if (index == null) {
@@ -328,6 +330,7 @@ public class Disambiguator {
             errors.addAll(pm.getErrors());
 
             comp = (Component) new PatternMatchingDesugaredSimplifier(comp).simplifier();
+            pattern_matched_comps.add(comp);
 
 /* For testing ...
 			try {
@@ -343,6 +346,17 @@ public class Disambiguator {
             checkExports(index, errors);
             if ( !errors.isEmpty() )
                 return new ComponentResult(results, errors);
+            // experiment; break loop apart to re-init top level env
+        }
+        
+        IndexBuilder.ComponentResult pm_comp_ir =
+            IndexBuilder.buildComponents(pattern_matched_comps, System.currentTimeMillis());
+
+        for( Component comp : pattern_matched_comps ) {
+
+            ComponentIndex index = pm_comp_ir.components().get(comp.getName());
+
+            NameEnv env = new TopLevelEnv(globalEnv, index, errors);
 
             // Finally, disambiguate the expressions
             ExprDisambiguator sed = new ExprDisambiguator(comp, env);

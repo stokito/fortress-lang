@@ -7,8 +7,8 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests=ArrowRTTI ArrowRTTI2 ArrowRTTI3 ArrowRTTI4 ArrowRTTI5 ArrowRTTI6
+tests= Pattern1 Pattern2 Pattern3
+compile
 link
 run
-run_out_contains=ok\n
-
+run_out_equals=7\n
