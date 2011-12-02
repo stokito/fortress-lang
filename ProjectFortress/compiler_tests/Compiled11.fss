@@ -19,8 +19,8 @@ g[\T extends ZZ32, S\](x:T):ZZ32 = f[\T\](x) + 5
 run() =do
   a = f[\ZZ32\](0)        (*) 0
   b = g[\ZZ32,String\](0) (*) 5
-  c : ZZ32 = f(1 + 4)
-  d : ZZ32 = f(0+0)
+  c : ZZ32 = f[\ZZ32\](1 + 4)
+  d : ZZ32 = f[\ZZ32\](0+0)
 
   println(
   if (a=d=0 AND b=c=5)
