@@ -92,7 +92,14 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
       else fns
     }
 
-    // for functions
+    /* for functions :
+     * set elements = tuple (
+     *    static parameters,
+     *    replaced params,
+     *    replaced return
+     *    functional method self position
+     * 
+     */
     private def toFunctionSig(set: Set[JavaFunctional], onlyConcrete: Boolean)
                              : Set[((JavaList[StaticParam],Type,Type,Option[Int]), Span)] =
       set.filter(s => isFunction(s) &&
@@ -168,6 +175,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
               }
             }
           }
+          // debugging probe: TypeError.b3(name, f, set)
           checkFunctionOverloading(f, set)
         }
 
