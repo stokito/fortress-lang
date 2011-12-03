@@ -188,15 +188,37 @@ maintain proper indentation.
        Targets
   -->
   <target name="help">
-    <echo message="ant checkEnv, checkNodesUptodate, checkOperatorsUptodate,
-                   checkParserUptodate, clean, cleanCache, compileJava, compileAll,
-                   compileCommon, compileCommonLint, compileLint, doc,
-                   grammarCoverage, help, init, interpreter-jar,
-                   makeAST, operatorsGen, fortressparser, preparser,
-                   parser, reportNotPassing, systemProperties, test, testAll,
-                   testCompiler, testDemos, testSystem, testOnly, testOtherCompiler,
-                   -DtestPattern='some pattern', testCruiseControl"/>
-    <echo message="If you are building Fortress, you want ant compile or ant test."/>
+    <echo>
+Targets include:
+clean            - clean out everything
+cleanCache       - clean out cached Fortress bytecodes and ASTs
+systemProperties - report Java system properties
+
+compile          - build the Fortress system
+compileCommon    - build the subset of the Fortress system necessary
+                   for generated files
+generated        - create all machine-generated files
+
+test             - run all tests.  Includes cleanCache and compile
+                   This is the pre-push tests.
+testOnly         - together with -DtestPattern='SomeTestName' runs
+                   only the junit test in class (not package) SomeTestName,
+                   e.g., -DtestPattern='SyntaxAbstractionJUTest'
+testQuick        - only compiler tests, other compiler tests, library tests
+testFast         - a subset of tests, excluding (some) slower ones
+                   "test" depends on this, so it should not be modified
+                   carelessly.
+testDemos        - test the Fortress demos
+
+Other targets:
+checkEnv, checkNodesUptodate, checkOperatorsUptodate,
+checkParserUptodate, compileJava, compileAll,
+compileCommonLint, compileLint, doc, grammarCoverage,
+help, init, interpreter-jar, makeAST, operatorsGen,
+fortressparser, preparser, parser, reportNotPassing,
+testAll, testCompiler, testSystem,
+testOtherCompiler, testCruiseControl
+</echo>
   </target>
 
   <target name="systemProperties">
@@ -817,6 +839,33 @@ maintain proper indentation.
       <formatter type="plain" usefile="true"/>
       <batchtest fork="true" todir="${test.results}">
         <fileset dir="${build}">
+          <include name="**/LibraryJUTest.class"/>
+        </fileset>
+      </batchtest>
+    </junit>
+    <delete dir="${PF}/test-tmp" />
+    <fail message="Tests expected to pass are failing!" if="tests.failed"/>
+  </target>
+
+  <target name ="testQuick" depends="cleanCache, compile"
+          description="Test the native code generator">
+    <mkdir dir="${test.results}"/>
+    <mkdir dir="${PF}/test-tmp" />
+    <junit printsummary="on"
+           haltonerror="off"
+           haltonfailure="off"
+           showoutput="yes"
+           fork="true"
+           maxmemory="${junitMem}"
+           errorProperty="tests.failed"
+           failureProperty="tests.failed">
+      <classpath refid="compile.classpath"/>
+      <jvmarg value="-Djava.io.tmpdir=${PF}/test-tmp" />
+      <formatter type="plain" usefile="true"/>
+      <batchtest fork="true" todir="${test.results}">
+        <fileset dir="${build}">
+          <include name="**/CompilerJUTest.class"/>
+          <include name="**/OtherCompilerJUTest.class"/>
           <include name="**/LibraryJUTest.class"/>
         </fileset>
       </batchtest>
