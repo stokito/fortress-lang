@@ -1,0 +1,632 @@
+
+0. The big picture
+    (a) A mechanism that decides, based on type information alone,
+        whether a function declaration is applicable to a call.
+        Two versions of this mechanism are used, one at compile
+        time and one at run time.
+    (b) A mechanism for static type inference that fills in
+        type information elided by the programmer.
+    (c) An overloaded dispatch mechanism.
+    (d) A mechanism for dynamic type inference.  This is
+        qualitatively different from static type inference.
+
+1. The overall structure of method/function dispatch
+   Principles:
+     (a) The reaches, and the scopes, of all functions or methods
+         in the same overloading group are co-extensive.
+         (This requires a perhaps slightly counterintuitive definition
+         of reach and scope for local functions.)
+     (b) There is a partial order "more specific than or equal to"
+         on functions or methods.  This partial order induces
+         a semilattice on each overloading group.
+     (c) The meet rule implies that all functions or methods in the
+         same overloading group in fact form a meet-semilattice,
+         that is, a semilattice with greatest lower bounds.  If an
+         overloading group contains two functions or methods f1 and f2
+         that are applicable to a particular argument x, and neither
+         is more specific than the other, then it must contain f3
+         that is also applicable to x such that f3 is more specific
+         than f1 and is also more specific than f2.
+     (d) Thus for any function or method call, either no function
+         in the relevant overloading group is applicable, or there
+         is a unique most specific applicable function or method.
+     (e) The set of statically applicable functions/methods is
+         a subset of the dynamically applicable functions/methods.
+         Moreover, the unique most specific dynamically applicable
+         function or method will be equal to or more specific than
+         every statically applicable functions/methods.
+     Therefore we can implement function/method dispatch as follows:
+     (i) Rewrite every function as follows ...
+     (ii) For every function call, choose ANY applicable function and call it.
+     (iii) In particular, as an optimization, we can choose any STATICALLY
+           applicable function, so we can make that decision at compiler time.
+     (iv) In particular, as an optimization, we can choose the MOST SPECIFIC
+          statically applicable function.
+
+2. Dynamic type inference
+
+
+
+3. Important optimizations
+
+
+We explain a language that has:
+  traits and objects with multiple inheritance of both
+     dotted and functional methods
+  tuples
+  operator syntax as well as functional syntax
+  field access, dotted methods, functional methods,
+     top-level, and local functions with multiway dispatch
+  an "asif" feature to get "super"-like behavior in
+     a multiple-dispatch environment
+  components and APIs
+
+Program ::= (API | Component)*
+API ::= "api" Name Import* (FunctionDecl | ApiTraitDecl | ApiObjectDecl)* "end"
+Component ::= "component" Import* Export* ComponentItem* "end"
+ComponentItem ::= FunctionDecl | FunctionDefn | TraitDefn | ObjectDefn | VarDefn
+Import ::= "import" Name . "{" ImportItemList "}"
+ImportItemList ::= ImportItem ("," ImportItem)*
+ImportItem ::= Name ("|->" Name)?
+Export ::= "export" Name
+ApiTraitDecl ::= "trait" Name Extends? Comprises? Excludes? ApiTraitItem* "end"
+ApiTraitItem ::= VarDecl | DottedMethodDecl | FunctionalMethodDecl
+ApiObjectDecl ::= "object" Name ("(" ParameterList? ")")? ApiTraitItem* "end"
+FunctionDecl ::= Name "(" ParameterList? ")" ":" Type
+FunctionDefn ::= FunctionDecl "=" Expression
+TraitDefn ::= "trait" Name Extends? Comprises? Excludes? TraitItem* "end"
+TraitItem ::= ApiTraitItem | DottedMethodDefn | FunctionalMethodDefn
+DottedMethodDecl ::= ("getter" | "setter")? (("self" | Name) ".")?
+                        Name "(" ParameterList? ")" ":" Type
+DottedMethodDefn ::= DottedMethodDecl "=" Expression
+FunctionalMethodDecl ::= Name "(" SelfParameterList? ")" ":" Type
+FunctionalMethodDefn ::= FunctionalMethodDecl "=" Expression
+Extends ::= "extends" "{" NameList "}"
+Comprises ::= "comprises" "{" NameList "}"
+Excludes ::= "excludes" "{" NameList "}"
+ObjectDefn ::= "object" Name ("(" ParameterList? ")")? ObjectItem* "end"
+ObjectItem ::= VarDefn | DottedMethodDefn | FunctionalMethodDefn
+VarDecl ::= (Name | "_") ":" Type
+VarDefn ::= VarDecl ("=" | ":=") Expression | (Name | "_") "=" Expression
+NameList ::= Name ("," Name)*
+ParameterList ::= VarDecl ("," VarDecl)*
+SelfParameterList ::= (VarDecl ",")* "self" ("," VarDecl)*
+Expression ::= Name | Literal | "self" | "(" Expression ")" | Assignment | OperatorCall |
+               FunctionCall | DottedMethodCall | FieldAccess | FieldAssignment | IfThenElseEnd | DoEnd
+CallExpr ::= Expression ("asif" Type)?
+CallExprList ::= CallExpr ("," CallExpr)*
+Assignment ::= Name ":=" Expression
+OperatorCall ::= Prefix | Postfix | Infix | Bracketed | Subscripted | SubscriptedAssignment
+Prefix ::= Operator CallExpr
+PostFix ::= CallExpr Operator
+Infix ::= CallExpr Operator CallExpr
+Operator ::= AllCapsIdentifier | UnicodeMathematicalOperator
+UnicodeMathematicalOperator ::= + | - | ... [and many others]
+Bracketed ::= [ CallExprList? ] | \{ CallExprList? \} | \langle CallExprList? \rangle | \lfloor CallExprList? \rfloor | \lceil CallExprList? \rceil | ... [and many others]
+Subscripted ::= CallExpr Bracketed
+SubscriptedAssignment ::= Subscripted ":=" CallExpr
+FunctionCall ::= Name "(" CallExprList? ")"
+DottedMethodCall ::= CallExpr "." Name "(" CallExprList? ")"
+FieldAccess ::= CallExpr "." Name
+FieldAssignment ::= CallExpr "." Name ":=" CallExpr
+IfThenElseEnd ::= "if" Expression "then" StatementList ("elif" StatementList)*
+                     ("else" StatementList)? "end"
+DoEnd ::= "do" StatementList "end"
+StatementList ::= Statement* Expression
+Statement ::= Expression | VarDefn | FunctionDefn
+Type ::= Name
+
+in terms of a language that has:
+
+  traits and objects with single inheritance of dotted methods,
+     and no overloading or overriding
+  tuples
+  field access only within an object, dotted methods with only
+     receiver dispatch, top-level functions that are not overloaded
+     and have no dispatch, and local functions that are not
+     overloaded and have no dispatch
+  one global namespace
+  the minimal reflective ability to obtain a "type object"
+     representing either a type or the ilk of an object,
+     and to inquire of two such type objects whether one
+     is a subtype of the other
+  static methods instead of top-level functions
+
+Program ::= (FunctionDefn | TraitDefn | ObjectDefn | VarDefn)*
+FunctionDefn ::= Name "(" ParameterList? ")" ":" Type "=" Expression
+TraitDefn ::= "trait" Name Extends? DottedMethodDecl* "end"
+DottedMethodDecl ::= (("self" | Name) ".")? Name "(" ParameterList? ")" ":" Type
+DottedMethodDefn ::= DottedMethodDecl "=" Expression
+Extends ::= "extends" "{" NameList "}"
+ObjectDefn ::= "object" Name Constructor ObjectItem* "end"
+Constructor ::= Name "(" ParameterList? ")" = Expression
+ObjectItem ::= VarDefn | DottedMethodDefn
+VarDecl ::= (Name | "_") ":" Type
+VarDefn ::= VarDecl ("=" | ":=") Expression | (Name | "_") "=" Expression
+NameList ::= Name ("," Name)*
+ParameterList ::= VarDecl ("," VarDecl)*
+Expression ::= Name | Literal | "self" | "(" Expression ")" | TypeLiteral | Construction | Assignment |
+               FunctionCall | DottedMethodCall | FieldAccess | FieldAssignment | IfThenElseEnd | DoEnd
+ExpressionList ::= Expression ("," Expression)*
+TypeLiteral ::= Type "." "type"
+Construction ::= "new" name "(" ExpressionList? ")"
+Assignment ::= Name ":=" Expression
+FunctionCall ::= Name "(" ExpressionList? ")"
+DottedMethodCall ::= Expression "." Name "(" ExpressionList? ")"
+FieldAccess ::= "self" "." Name
+FieldAssignment ::= "self" "." Name ":=" Expression
+IfThenElseEnd ::= "if" Expression "then" StatementList ("elif" StatementList)*
+                     ("else" StatementList)? "end"
+DoEnd ::= "do" StatementList "end"
+StatementList ::= Statement* Expression
+Statement ::= Expression | VarDefn | FunctionDefn
+Type ::= Name
+
+
+Step -1: Elimination of operator syntax
+
+This includes elimination of array assignment.
+
+Rewrite operator function and functional method declarations and definitions such as these:
+
+   opr SQRT(x: RR64): RR64 = body
+   opr (n: NN)! : NN = PROD[k<-1:n] k
+   opr +(p: Number, q: Number): Number
+   opr MAX(self, other: QQ): QQ = (if self > other then self else other)
+   opr INTERSECTION(self, other: Set): { x | x <- self, x IN other }
+   opr |self| : NN = self.length
+   opr |\x: QQ/| : ZZ = x.floor()
+   opr [ p: MyType, q: MyType ] = p DOT q - q DOT p
+   opr self[index: ZZ32] = body
+   opr self[index1: ZZ32, index2: ZZ32] := (newValue: EltType) = body
+
+into ordinary function and functional method declarations and definitions such as these:
+
+   prefix$SQRT(x: RR64): RR64 = body
+   postfix$EXCLAMATION_MARK(n: NN): NN = PROD[k<-1:n] k
+   infix$PLUS(p: Number, q: Number): Number
+   infix$MAX(self, other: QQ): QQ = (if self > other then self else other)
+   infix$INTERSECTION(self, other: Set): { x | x <- self, x IN other }
+   bracket$VERTICAL_BAR$VERTICAL_BAR(self): NN = self.length
+   bracket$LEFT_FLOOR$RIGHT_FLOOR(x: QQ): ZZ = x.floor()
+   bracket$LEFT_TORTOISE_SHELL_BRACKET$RIGHT_TORTOISE_SHELL_BRACKET(p: MyType, q: MyType) = p q - q p
+   subscript$LEFT_SQUARE_BRACKET$RIGHT_SQUARE_BRACKET(self, index: ZZ32) = body
+   assignment$LEFT_SQUARE_BRACKET$RIGHT_SQUARE_BRACKET(self, index1: ZZ32, index2: ZZ32, newValue: EltType) = body
+
+Similarly, rewrite operator calls, subscripting expressions, and subscripted assignments such as these:
+
+   SQRT z
+   (m+1)!
+   a+b
+   a MAX b
+   C INTERSECTION D
+   |myArray|
+   |\n/2/|
+   [ x, y ]
+   x[k+1]
+   m[j,k] := 43
+
+into ordinary function calls such as these:
+
+   prefix$SQRT(z)
+   postfix$EXCLAMATION_MARK(m+1)
+   infix$PLUS(a, b)
+   infix$MAX(a, b)
+   infix$INTERSECTION(C, D)
+   bracketed$VERTICAL_BAR$VERTICAL_BAR(myArray)
+   bracket$LEFT_FLOOR$RIGHT_FLOOR(n/2)
+   bracketed$LEFT_TORTOISE_SHELL_BRACKET$RIGHT_TORTOISE_SHELL_BRACKET(x, y)
+   subscript$LEFT_SQUARE_BRACKET$RIGHT_SQUARE_BRACKET(x, k+1)
+   assignment$LEFT_SQUARE_BRACKET$RIGHT_SQUARE_BRACKET(m, j, k, 43)
+
+This is a purely syntactic transformation.
+
+
+Step 0: Static analysis, including enforcement of type rules,
+enforcement of the overloading rules, and expansion and
+canonicalization of import statements.
+
+
+Step 1: Eliminate getters, setters, field accesses, and field asssignments.
+
+Getters and setters are treated as dotted methods in the usual way,
+and field accesses and assignments are translated to dotted methods calls
+in the usual way.
+
+Every simple variable access `x` that refers to a field is rewritten to `self.x()`.
+Every field access `e.z` is rewritten to `e.z()`.
+Every field assignment `e.z := v` is rewritten to `e.z(v)`.
+Every getter declaration or definition is rewritten by removing the keyword `getter`,
+thereby converting it to an ordinary dotted method declaration of definition.
+Every setter declaration or definition is rewritten by removing the keyword `setter`,
+thereby converting it to an ordinary dotted method declaration of definition.
+
+Then every field declaration in an object
+
+  z: T
+
+is augmented by a pair of "magic" (or "primitive") methods
+
+  z(): T = self.z
+  z(newValue: T): () = do self.z := newValue end
+
+
+Every field declaration in a trait
+
+  z: T
+
+ is rewritten to a pair of abstract declarations:
+
+  z(): T
+  z(_: T): ()
+
+
+Step 2: Eliminate functional methods.
+
+For every functional method declaration or definition in a trait or object U in a component:
+
+  f(a1: T1, a2: T2, ..., self, ..., an: Tn): T
+  f(a1: T1, a2: T2, ..., self, ..., an: Tn): T = body
+
+replace it with a dotted method declaration or definition:
+
+  f$j(a1: T1, a2: T2, ..., an: Tn): T
+  f$j(a1: T1, a2: T2, ..., an: Tn): T = body
+
+and add a top-level function definition to the containing component:
+
+  f(a1: T1, a2: T2, ..., freshVariableName: U, ..., an: Tn): T = freshVariableName.f$j(a1, a2, ..., an)
+
+where j is the decimal representation of the position of the `self`
+parameter and `freshVariableName` is a freshly generated variable name
+that is distinct from all others in the program.
+
+
+For every functional method declaration in a trait or object U in an API:
+
+  f(a1: T1, a2: T2, ..., self, ..., an: Tn): T
+
+delete it and add a top-level function declaration to the containing API:
+
+  f(a1: T1, a2: T2, ..., freshVariableName: U, ..., an: Tn): T
+
+
+Step 3: Rewrite components.
+
+(a) Rewrite import statements
+
+Treat every import statement
+
+  import A.{ x }
+
+as if it had been written
+
+  import A.{ x |-> x }
+
+Now consider each import statement
+
+  import A.{ old |-> new }
+
+For every top-level function declaration in API A with the name "old":
+
+  old(a1, a2, ..., an): T
+
+create in C a top-level function definition:
+
+  new(a1, a2, ..., an): T = api$A$old(a1, a2, ..., an)
+
+For every dotted method declaration in API A with the name "old":
+
+  old(a1, a2, ..., an): T
+
+let U be the name of the trait or object within which the declaration appears, and
+add to C, within its definition of a trait of object U, two dotted method definitions:
+
+  new(a1, a2, ..., an): T = self.api$A$old(a1, a2, ..., an)
+  new$asif$U(a1, a2, ..., an): T = self.api$A$old$asif$U(a1, a2, ..., an)
+
+(b) Rewrite trait declarations
+
+Replace each
+
+   trait U extends { V1, ..., Vn }
+
+with
+
+  interface U extends { V1, ..., Vn }
+
+and delete the body of every dotted method definition in the trait,
+thus converting it to an abstract dotted method declaration.
+
+[In a more elaborate theory that uses Java inheritance,
+an additional class is defined to contain method definitions.]
+
+
+(c) Rewrite object declarations
+
+Replace each
+
+  object O extends { V1, ..., Vn }
+
+with
+
+  final class O extends { V1, ..., Vn }
+
+and copy into the object declaration every method that it inherits
+and is not overridden.  (This step must precede step (e).)
+
+
+[For objects without value parameters, need to use a singleton pattern.
+For objects with value parameters, need to create fields and a constructor.]
+
+
+
+(d) Rewrite overloaded functions
+
+For every maximal set Sf of function declarations and definitions
+(whether top-level or local) that have the same name `f` and whose
+scopes are co-extensive:
+
+(i) Assign a distinct integer j to each one.
+(ii) For the j'th definition of f:
+
+  f(a1: T1, a2: T2:, ..., an: Tn): T = body
+
+replace it with three static methods at top level (or within
+the class for component C):
+
+  C$f$j(a1: T1, a2: T2:, ..., an: Tn): T = C$f$dispatch$j(a1, a1.ilk(), a2, a2.ilk(), ..., an, an.ilk())
+  C$f$dispatch$j(a1: T1, ilk1: Type, a2: T2, ilk2: Type, ..., an: Tn, ilkn: Type): T = <see below>
+  C$f$applicable$j(ilk1: Type, ilk2: Type, ..., ilkn: Type): Boolean =
+    ilk1.isSubType(T1.class) && ilk2.isSubType(T2.class) && ... && ilkn.isSubType(Tn.class)
+
+[ilk1, ilk2, ..., ilkn are actually freshly generated variable names.]
+
+[For Java, which does not have top-level functions,
+we instead create static methods within a class for the component,
+and do not use the C$ prefix in the function names.]
+
+Let Sfj be the the subset of Sf consisting of definitions in Sf that
+is strictly more specific than definition j.  Let Sfj' be the subset
+of Sf consisting of all definitions d in Sf such that there is no d'
+in Sfj such that d is strictly more specific than d'.  Let Sfj'' be an
+arbitrary subset of (possibly the same as) Sfj that is also a superset
+of (possibly the same as) Sfj'.
+
+Then create a body for the definition of C$f$dispatch$j as follows:
+
+    if C$f$applicable$43(ilk1, ilk2, ..., ilkn) then C$f$dispatch$43(a1, ilk1, a2, ilk2, ..., an, ilkn)
+    elif C$f$applicable$19(ilk1, ilk2, ..., ilkn) then C$f$dispatch$19(a1, ilk1, a2, ilk2, ..., an, ilkn)
+    ...
+    elif C$f$applicable$27(ilk1, ilk2, ..., ilkn) then C$f$dispatch$27(a1, ilk1, a2, ilk2, ..., an, ilkn)
+    else body
+    end
+
+This very simple dispatch process, and the flexibility it affords,
+are made possible by the meet rule.
+
+We might have expected to create a single function
+
+  C$f$j(a1: T1, a2: T2:, ..., an: Tn): T = do
+    (ilk1, ilk2, ..., ilkn) = (a1.ilk(), a2.ilk(), ..., an.ilk())
+    if C$f$applicable$43(ilk1, ilk2, ..., ilkn) then C$f$dispatch$43(a1, ilk1, a2, ilk2, ..., an, ilkn)
+    elif C$f$applicable$19(ilk1, ilk2, ..., ilkn) then C$f$dispatch$19(a1, ilk1, a2, ilk2, ..., an, ilkn)
+    ...
+    elif C$f$applicable$27(ilk1, ilk2, ..., ilkn) then C$f$dispatch$27(a1, ilk1, a2, ilk2, ..., an, ilkn)
+    else body
+    end
+  end
+
+We break out C$f$dispatch$j as a separate function purely in order to support `asif` expressions (see below).
+
+The structure of the C$f$applicable$j functions is quite straightforward and formulaic here.
+It gets much more interesting for generic methods, but that is beyond the scope of this paper.
+
+
+(e) Rewrite overloaded dotted methods
+
+In each trait or object declaration U, consider each maximal set Sm of dotted methods
+with the same name `m`:
+
+(i) Assign a distinct integer j to each one.
+(ii) For the j'th definition of m:
+
+  m(a1: T1, a2: T2:, ..., an: Tn): T = body
+
+replace it with three dotted methods:
+
+  m$j(a1: T1, a2: T2:, ..., an: Tn): T = self.m$dispatch$j(a1, a1.ilk(), a2, a2.ilk(), ..., an, an.ilk())
+  m$dispatch$j(a1: T1, ilk1: Type, a2: T2, ilk2: Type, ..., an: Tn, ilkn: Type): T = <see below>
+  m$applicable$j(ilk1: Type, ilk2: Type, ..., ilkn: Type): Boolean =
+    ilk1.isSubType(T1.class) && ilk2.isSubType(T2.class) && ... && ilkn.isSubType(Tn.class)
+
+[For Java, which does not have top-level functions,
+we instead create static methods within a class for the component,
+and do not use the C$ prefix in the function names.]
+
+Let Smj be the the subset of Sm consisting of definitions in Sm that
+is strictly more specific than definition j.  Let Smj' be the subset
+of Sm consisting of all definitions d in Sm such that there is no d'
+in Smj such that d is strictly more specific than d'.  Let Smj'' be an
+arbitrary subset of (possibly the same as) Smj that is also a superset
+of (possibly the same as) Smj'.
+
+Then create a body for the definition of m$dispatch$j as follows:
+
+    if self.m$applicable$43(ilk1, ilk2, ..., ilkn) then self.m$dispatch$43(a1, ilk1, a2, ilk2, ..., an, ilkn)
+    elif self.m$applicable$19(ilk1, ilk2, ..., ilkn) then self.m$dispatch$19(a1, ilk1, a2, ilk2, ..., an, ilkn)
+    ...
+    elif self.m$applicable$27(ilk1, ilk2, ..., ilkn) then self.m$dispatch$27(a1, ilk1, a2, ilk2, ..., an, ilkn)
+    else body
+    end
+
+This very simple dispatch process, and the flexibility it affords,
+are made possible by the meet rule.  One might worry that calling
+a method more specialized in its arguments might end up calling
+an inherited method, but again, the meet rule prevents that.
+
+(f) Rewrite function calls.
+
+In component C, consider a function call, none of whose arguments
+is an `asif` expression:
+
+   f(a1, a2, ..., an)
+
+Consider the statically most specific applicable function
+definition d, and let j be the integer that was assigned to it.
+
+If d is a top-level definition, the function call is rewritten to
+
+   C$f$j(a1, a2, ..., an)
+
+Otherwise it is rewritten to
+
+   f$j(a1, a2, ..., an)
+
+In component C, consider a function call, at least one of whose arguments
+is an `asif` expression, for example:
+
+   f(a1, a2 asif T2, a3 asif T3, ..., an)
+
+Consider the statically most specific applicable function
+definition d, and let j be the integer that was assigned to it.
+
+If d is a top-level definition, the function call is rewritten to
+
+   do
+     (t1, t2, t3, ..., tn) = (a1, a2, a3, ..., an)
+     C$f$dispatch$j(a1, a1.ilk(), a2, T2.class, a3, T3.class, ..., an, an.ilk())
+   end
+
+Otherwise it is rewritten to
+
+   do
+     (t1, t2, t3, ..., tn) = (a1, a2, a3, ..., an)
+     f$dispatch$j(a1, a1.ilk(), a2, T2.class, a3, T3.class, ..., an, an.ilk())
+   end
+
+(g) Rewrite dotted method calls.
+
+Consider a dotted method call, none of whose arguments
+is an `asif` expression:
+
+   x.m(a1, a2, ..., an)
+
+Consider the statically most specific applicable dotted method
+definition d, and let j be the integer that was assigned to it.
+The dotted method call is rewritten to:
+
+   x.m$j(a1, a2, ..., an)
+
+If x is an `asif' expression such as `y asif T`:
+
+   (y asif T).m(a1, a2, ..., an)
+
+then the dotted method call is rewritten to
+
+   y.m$j(a1, a2, ..., an)
+
+Consider a dotted method call, at least one of whose arguments
+is an `asif` expression, for example
+
+   x.m(a1, a2 asif T2, a3 asif T3, ..., an)
+
+Consider the statically most specific applicable dotted method
+definition d, and let j be the integer that was assigned to it.
+The dotted method call is rewritten to:
+
+   do
+     (t1, t2, t3, ..., tn) = (a1, a2, a3, ..., an)
+     x.m$dispatch$j(a1, a1.ilk(), a2, T2.class, a3, T3.class, ..., an, an.ilk())
+   end
+
+If x is an `asif' expression such as `y asif T`:
+
+   (y asif T).m(a1, a2 asif T2, a3 asif T3, ..., an)
+
+then the dotted method call is rewritten to
+
+   do
+     (t1, t2, t3, ..., tn) = (a1, a2, a3, ..., an)
+     y.m$dispatch$j(a1, a1.ilk(), a2, T2.class, a3, T3.class, ..., an, an.ilk())
+   end
+
+
+Step 4: Rewrite APIs.
+
+Within an API named A that is implemented by a component named K:
+
+    A top-level function declaration
+
+      f(a1: T1, a2: T2, ..., an: Tn): T
+
+    is rewritten to a function definition
+
+      A$f(a1: T1, a2: T2, ..., an: Tn): T = K$f(a1, a2, ..., an)
+
+
+api Library
+
+end Library
+
+api SubLibrary
+
+end SubLibrary
+
+component Main
+import MyLibrary
+export Executable
+
+run() = do
+  println gidney().describe()
+end Main
+
+component MyLibrary
+import SubLibrary
+export Library
+
+trait Color
+  name: String
+  describe() = kind " color " name
+end
+
+trait CoolColor extends Color
+  getter kind() = "cool"
+end
+
+trait TrafficColor extends Color
+  getter kind() = "traffic"
+end
+
+object Red extends TrafficColor
+  name = "red"
+end
+
+object Green extends { TrafficColor, CoolColor }
+  name = "green"
+  getter kind() = (self asif Coolcolor).kind " " (self asif TrafficColor).kind
+end
+
+object Blue extends CoolColor
+  name = "blue"
+end
+
+object Yellow extends TrafficColor
+  name = "yellow"
+end
+
+
+
+
+end MyLibrary
+
+component MySubLibrary
+export SubLibrary
+
+object Purple extends CoolColor
+  name = "purple"
+end
+
+gidney(): Color = Purple
+
+end MySubLibrary

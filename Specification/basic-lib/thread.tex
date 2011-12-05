@@ -1,0 +1,57 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Threads}
+\chaplabel{lib:thread}
+
+\Trait{Fortress.Standard.Thread}
+
+Every thread in Fortress has trait \TYP{Thread}.
+
+%trait Thread[\T extends Any\]
+%  val(): T
+%  wait(): ()
+%  ready(): Boolean
+%  stop(): () throws Stopped
+%end
+\begin{Fortress}
+\(\KWD{trait}\mskip 4mu plus 4mu\TYP{Thread}\llbracket{}T \KWD{extends}\mskip 4mu plus 4mu\TYP{Any}\rrbracket\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{val}()\COLON T\)\\
+\(  \VAR{wait}()\COLON ()\)\\
+\(  \VAR{ready}()\COLON \TYP{Boolean}\)\\
+\(  \VAR{stop}()\COLON () \KWD{throws}\mskip 4mu plus 4mu\TYP{Stopped}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+%  val(): T
+\Method{\EXP{  \VAR{val}()\COLON T}}
+\seclabel{lib:thread:val}
+
+The \VAR{val} method returns the value computed by the expression of the
+thread.  If the thread has not yet completed execution, the invocation of
+\VAR{val} blocks until it has done so.
+
+%  wait(): ()
+\Method{\EXP{  \VAR{wait}()\COLON ()}}
+
+The \VAR{wait} method waits for a thread to complete, but does not return a
+value. 
+
+%  ready(): Boolean
+\Method{\EXP{  \VAR{ready}()\COLON \TYP{Boolean}}}
+
+The \VAR{ready} method returns \VAR{true} if a thread has completed, and
+returns \VAR{false} otherwise.
+
+%  stop(): () throws Stopped
+\Method{\EXP{  \VAR{stop}()\COLON () \KWD{throws} \TYP{Stopped}}}
+
+The \VAR{stop} method attempts to terminate a thread.

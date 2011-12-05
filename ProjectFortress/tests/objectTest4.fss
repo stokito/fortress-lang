@@ -1,0 +1,45 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component objectTest4
+export Executable
+
+g():A = A(2,3)
+h():A = A(3,6)
+
+object A(i:ZZ32, j:ZZ32)
+  f:() -> A := g (* A closure-valued field, initially g *)
+
+  id():A = self
+  getI():ZZ32 = self.i
+  getZ():ZZ32 = j
+
+  setF(g') = do f := g'; println "setf"; end (* Update the closure-valued field *)
+end
+
+(* Test that a's fields have the expected sum *)
+s(a:A, n:ZZ32) = println(
+  if (a.id().getI() + a.id().getZ() = n) then "pass" else
+     "fail " a.id().getI() " "  a.id().getZ() " " n end
+  )
+
+run():()=do
+
+  a = A(3,4)
+  s(a,7)
+
+  s((a.f)(),5) (* a.f = g, g() = A(2,3) *)
+
+  a.setF(h)
+  s((a.f)(),9) (* a.f = h, h() = A(3,6) *)
+
+end
+end

@@ -1,0 +1,54 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+native component NativeArray
+export NativeArray
+
+private language="java"
+private package="com.sun.fortress.interpreter.glue.prim"
+
+object PrimitiveArray[\T, nat s0\]() extends Array1[\T,0,s0\]
+  opr [i:ZZ32]:T = self.get(i)
+  get(i:ZZ32):T =
+    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveArray$get")
+  opr [i:ZZ32] := (v:T) : () = self.put(i,v)
+  put(i:ZZ32, v:T):() =
+    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveArray$put")
+  init00(i:ZZ32, v:T):Boolean =
+    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimitiveArray$init0")
+  (* We used to validate the result of init00, but that doesn't work if
+     the ith element was initialized as part of a failed transaction. *)
+  init0(i:ZZ32, v:T):() = do _ = init00(i,v); () end
+end
+
+object PrimImmutableArray[\T, nat s0\]() extends ImmutableArray1[\T,0,s0\]
+  opr [i:ZZ32]:T = self.get(i)
+  get(i:ZZ32):T =
+    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimImmutableArray$get")
+  init00(i:ZZ32, v:T):Boolean =
+    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimImmutableArray$init0")
+  (* We used to validate the result of init00, but that doesn't work if
+     the ith element was initialized as part of a failed transaction. *)
+  init0(i:ZZ32, v:T):() = do _ = init00(i,v); () end
+end
+
+object PrimImmutableRR64Array[\nat s0\]() extends ImmutableArray1[\RR64,0,s0\]
+  opr [i:ZZ32]:RR64 = self.get(i)
+  get(i:ZZ32):RR64 =
+    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimImmutableRR64Array$get")
+  init00(i:ZZ32, v:RR64):Boolean =
+    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.PrimImmutableRR64Array$init0")
+  (* We used to validate the result of init00, but that doesn't work if
+     the ith element was initialized as part of a failed transaction. *)
+  init0(i:ZZ32, v:RR64):() = do _ = init00(i,v); () end
+end
+
+end

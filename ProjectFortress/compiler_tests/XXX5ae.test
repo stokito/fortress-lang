@@ -1,0 +1,23 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled5.ae
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.ae.fss:20:12-16:\n\
+\ The chained expression had type ZZ32, but should have type Boolean.\n\
+${STATIC_TESTS_DIR}/Compiled5.ae.fss:20:16-20:\n\
+\ The chained expression had type ZZ32, but should have type Boolean.\n\
+${STATIC_TESTS_DIR}/Compiled5.ae.fss:20:20-24:\n\
+\ The chained expression had type ZZ32, but should have type Boolean.\n\
+${STATIC_TESTS_DIR}/Compiled5.ae.fss:21:6-10:\n\
+\ The chained expression had type ZZ32, but should have type Boolean.\n\
+File Compiled5.ae.fss has 4 errors.\n
+compile_out_equals=

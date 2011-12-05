@@ -1,0 +1,23 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled6.an
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled6.an.fss:19:1-21:\n\
+\ The inherited abstract method m(self:T):() from the trait T\n\
+\ in the object O is not defined in the component Compiled6.an.\n\
+${STATIC_TESTS_DIR}/Compiled6.an.fss:22:5-25:6:\n\
+\ The inherited abstract method m(self:T):() from the trait T\n\
+\ in the object _ is not defined in the component Compiled6.an.\n\
+${STATIC_TESTS_DIR}/Compiled6.an.fss:23:7-18:\n\
+\ Object expressions should not define any new functional methods.\n\
+File Compiled6.an.fss has 3 errors.\n
+compile_out_equals=
