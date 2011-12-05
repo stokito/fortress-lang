@@ -7,6 +7,7 @@ run (): () = do
   z = 3 + 3
   x : ZZ32 = z
   println(x)
+  println("test")
   ()
 end
 
