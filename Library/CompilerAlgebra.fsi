@@ -11,8 +11,8 @@
 
 api CompilerAlgebra
 
-trait Equality[\Self\] comprises Self
-  opr =(self, other:Self): Boolean
+trait Equality[\T\] comprises T
+  opr =(self, other:T): Boolean
 end
 
 end

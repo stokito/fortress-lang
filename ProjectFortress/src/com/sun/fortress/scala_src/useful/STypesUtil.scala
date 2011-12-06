@@ -292,7 +292,7 @@ object STypesUtil {
     }
 
    def getOps(t: (StaticParam, StaticArg)): Option[(Op, Op)] = t match {
-     case (SStaticParam(_, o: Op, _, _, _,_: KindOp, _), SOpArg(_,_,io)) => Some((o,io))
+     case (SStaticParam(_, 0, o: Op, _, _, _,_: KindOp, _), SOpArg(_,_,io)) => Some((o,io))       // TODO: variance needs to be addressed
      case _ => None
    }
   
@@ -472,7 +472,7 @@ object STypesUtil {
     ty match {
       case SVarType(_, typ, _) =>
         sparams.exists {
-          case SStaticParam(_, sp, List(_: AnyType), _, _, _, _) => typ == sp
+          case SStaticParam(_, _, sp, List(_: AnyType), _, _, _, _) => typ == sp
           case _ => false
         }
       case _ => isArrows(ty)

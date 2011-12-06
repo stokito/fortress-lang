@@ -322,7 +322,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     val sp = getStaticParams(e)
     val ia = sp.map(s => NF.make_InferenceVarType(NU.getSpan(s)))
     val temp = (ia, sp).zipped.flatMap{
-      case (i, SStaticParam(info, n, _, _, _, _, _)) =>
+      case (i, SStaticParam(info, _, n, _, _, _, _, _)) =>       // TODO: variance needs to be addressed
         Some((i, NF.makeVarType(info.getSpan, n.asInstanceOf[Id])))
       case _ => None
     }
@@ -333,7 +333,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     // Note that the notEquivalent method in ta is neccessarily not equivalent and is not the same
     // Add bounds (even if we can't use them very well yet)
     val ub = and((ia, sp).zipped.flatMap{
-      case (i, SStaticParam(_, _, p, _, _, _:KindType, _)) =>
+      case (i, SStaticParam(_, _,  _, p, _, _, _:KindType, _)) =>      // TODO: variance needs to be addressed
         Some(upperBound(i, ta.meet(p.map(vi))))
       case _ => None
     })
@@ -366,7 +366,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     // Create a mapping from type variables in the static params to their
     // corresponding bounds.
     val varsMap = new HashMap[VarType, List[Type]]
-    for (SStaticParam(info, x:Id, exts, _, _, _:KindType, _) <- sparams)
+    for (SStaticParam(info, _, x:Id, exts, _, _, _:KindType, _) <- sparams)      // TODO: variance needs to be addressed
       varsMap(NF.makeVarType(info.getSpan, x)) = exts
     
     // Get the unique vars in the image under phi.
@@ -388,8 +388,8 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     // Create a type analyzer with only the image variables and their bounds.
     val imageTa = ta.extend(imageSparams, None)
     val rimageSparams = imageSparams.map{
-      case SStaticParam(i, x, e, d, a, k:KindType, l) =>
-        SStaticParam(i, x, conjuncts(imageTa.meet(e)).
+      case SStaticParam(i, v, x, e, d, a, k:KindType, l) =>
+        SStaticParam(i, v, x, conjuncts(imageTa.meet(e)).
                              toList.map(_.asInstanceOf[BaseType]), d, a, k, l)
       case x => x
     }

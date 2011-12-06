@@ -1931,40 +1931,42 @@ return new TraitType(info, name, sargs, sparams);
     }
 
     public static StaticParam makeStaticParamId(BufferedWriter writer, Span span,
-                                                IdOrOp name, StaticParamKind k) {
-        return makeStaticParamId(writer, span, name,
+                                                String variance, IdOrOp name, StaticParamKind k) {
+        return makeStaticParamId(writer, span, variance, name,
                                  Collections.<BaseType>emptyList(),
                                  Option.<Type>none(), false, k);
     }
 
     public static StaticParam makeStaticParamId(BufferedWriter writer, Span span,
-                                                IdOrOp name, List<BaseType> tys,
+                                                String variance, IdOrOp name, List<BaseType> tys,
                                                 Option<Type> ty, boolean b,
                                                 StaticParamKind k) {
         if ( name instanceof Id )
-            return makeStaticParam(span, name, tys, ty, b, k);
+            return makeStaticParam(span, variance, name, tys, ty, b, k);
         else {
             NodeUtil.log(writer, span,
                          name + " is not a valid static prameter name.");
-            return makeStaticParam(span, bogusId(span), tys, ty, b, k);
+            return makeStaticParam(span, variance, bogusId(span), tys, ty, b, k);
         }
     }
 
     public static StaticParam makeStaticParam(Span span,
+    							                 String variance,
                                               IdOrOp name, List<BaseType> tys,
                                               Option<Type> ty, boolean b,
                                               StaticParamKind k) {
-        return new StaticParam(makeSpanInfo(span), name, tys, ty, b, k);
+    	    int v = (variance == null ? 0 : variance.equals("covariant") ? 1 : variance.equals("contravariant") ? -1 : (Integer) bug(span,"Incorrect variance " + variance));
+        return new StaticParam(makeSpanInfo(span), v, name, tys, ty, b, k);
     }
 
     public static StaticParam makeTypeParam(Span span,
                                             Id id, List<BaseType> tys,
                                             Option<Type> ty, boolean b) {
-        return makeStaticParam(span, id, tys, ty, b, new KindType());
+        return makeStaticParam(span, null, id, tys, ty, b, new KindType());
     }
 
     public static StaticParam makeTypeParam(Span s, String name) {
-        return makeStaticParam(s, makeId(s, name),
+        return makeStaticParam(s, null, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindType());
@@ -1973,48 +1975,48 @@ return new TraitType(info, name, sargs, sparams);
     public static StaticParam makeTypeParam(Span s, String name, String sup) {
         List<BaseType> supers = new ArrayList<BaseType>(1);
         supers.add(makeVarType(s, sup));
-        return makeStaticParam(s, makeId(s, name), supers,
+        return makeStaticParam(s, null, makeId(s, name), supers,
                                Option.<Type>none(), false,
                                new KindType());
     }
     
     public static StaticParam makeOpParam(Span s, String name) {
-        return makeStaticParam(s, makeOp(s, name),
+        return makeStaticParam(s, null, makeOp(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindOp());
     }
 
     public static StaticParam makeBoolParam(Span s, String name) {
-        return makeStaticParam(s, makeId(s, name),
+        return makeStaticParam(s, null, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindBool());
     }
 
     public static StaticParam makeDimParam(Span s, String name) {
-        return makeStaticParam(s, makeId(s, name),
+        return makeStaticParam(s, null, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindDim());
     }
 
     public static StaticParam makeUnitParam(Span s, String name) {
-        return makeStaticParam(s, makeId(s, name),
+        return makeStaticParam(s, null, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindUnit());
     }
 
     public static StaticParam makeIntParam(Span s, String name) {
-        return makeStaticParam(s, makeId(s, name),
+        return makeStaticParam(s, null, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindInt());
     }
 
     public static StaticParam makeNatParam(Span s, String name) {
-        return makeStaticParam(s, makeId(s, name),
+        return makeStaticParam(s, null, makeId(s, name),
                                Collections.<BaseType>emptyList(),
                                Option.<Type>none(), false,
                                new KindNat());

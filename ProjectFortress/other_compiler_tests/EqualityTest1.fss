@@ -12,8 +12,8 @@
 component EqualityTest1
 export Executable
 
-trait TestEquality[\Self\] comprises Self
-    opr =(self, other:Self): Boolean = self SEQV other
+trait TestEquality[\T\] comprises T
+    opr =(self, other:T): Boolean = self SEQV other
 end
 
 opr TESTNOTEQUAL[\T extends TestEquality[\T\]\](a: T, b: T) = NOT (a = b)

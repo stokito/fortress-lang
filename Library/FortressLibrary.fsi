@@ -70,8 +70,8 @@ opr =(a:Any, b:Any):Boolean
 
 opr =/=(a:Any, b:Any):Boolean
 
-trait Equality[\Self extends Equality[\Self\]\]
-    abstract opr =(self, other:Self): Boolean
+trait Equality[\T extends Equality[\T\]\]
+    abstract opr =(self, other:T): Boolean
 end
 
 (** Total ordering *)
@@ -164,14 +164,14 @@ end
 (** StandardPartialOrder is partial ordering using %<%,%>%,%<=%,%>=%,%=%, and %CMP%.
     This is primarily for floating-point values.  Minimal complete
     definition: %CMP% or %{ <, = }%. **)
-trait StandardPartialOrder[\Self extends StandardPartialOrder[\Self\]\]
-        extends { Equality[\Self\] }
-    opr CMP(self, other:Self): Comparison
-    opr <(self, other:Self): Boolean
-    opr >(self, other:Self): Boolean
-    opr =(self, other:Self): Boolean
-    opr <=(self, other:Self): Boolean
-    opr >=(self, other:Self): Boolean
+trait StandardPartialOrder[\T extends StandardPartialOrder[\T\]\]
+        extends { Equality[\T\] }
+    opr CMP(self, other:T): Comparison
+    opr <(self, other:T): Boolean
+    opr >(self, other:T): Boolean
+    opr =(self, other:T): Boolean
+    opr <=(self, other:T): Boolean
+    opr >=(self, other:T): Boolean
 end
 
 (** %StandardMin% is the %MIN% operator; most types that implement %MIN%
@@ -216,10 +216,10 @@ end
     define %=% in the latter case).  As noted above, %MIN%
     and %MAX% respect the total order and are defined in the obvious
     way. **)
-trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
-        extends { StandardPartialOrder[\Self\], StandardMinMax[\Self\] }
-    opr MINMAX(self, other:Self): (Self,Self)
-    opr CMP(self, other:Self): TotalComparison
+trait StandardTotalOrder[\T extends StandardTotalOrder[\T\]\]
+        extends { StandardPartialOrder[\T\], StandardMinMax[\T\] }
+    opr MINMAX(self, other:T): (T,T)
+    opr CMP(self, other:T): TotalComparison
 end
 
 (************************************************************
@@ -249,11 +249,11 @@ shouldRaise[\Ex extends Exception\] (expr: ()->()): ()
 
 (** Additive group making use of %+%.  Must define %+% and
     either unary or binary %-%. **)
-trait AdditiveGroup[\Self extends AdditiveGroup[\Self\]\]
-    getter zero(): Self
-    abstract opr +(self, other: Self): Self
-    opr -(self, other: Self): Self
-    opr -(self) : Self
+trait AdditiveGroup[\T extends AdditiveGroup[\T\]\]
+    getter zero(): T
+    abstract opr +(self, other: T): T
+    opr -(self, other: T): T
+    opr -(self) : T
 end
 
 (** Place holder for exclusions of MultiplicativeRing **)
@@ -261,13 +261,13 @@ trait AnyMultiplicativeRing end
 
 (** Multiplicative ring using TIMES and juxtaposition.
     Define opr TIMES; juxtaposition is defined in terms of TIMES. **)
-trait MultiplicativeRing[\Self extends MultiplicativeRing[\Self\]\]
-        extends { AdditiveGroup[\Self\], AnyMultiplicativeRing }
-    abstract getter one(): Self
-    abstract opr TIMES(self, other:Self): Self
-    opr juxtaposition(self, other:Self): Self
+trait MultiplicativeRing[\T extends MultiplicativeRing[\T\]\]
+        extends { AdditiveGroup[\T\], AnyMultiplicativeRing }
+    abstract getter one(): T
+    abstract opr TIMES(self, other:T): T
+    opr juxtaposition(self, other:T): T
     (** Exponentiation need only deal with natural exponents. **)
-    opr ^(self, other:ZZ64): Self
+    opr ^(self, other:ZZ64): T
 end
 
 trait Number

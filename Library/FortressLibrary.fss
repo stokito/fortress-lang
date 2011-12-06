@@ -97,8 +97,8 @@ opr =(a:Any, b:Any):Boolean = a SEQV b
 
 opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
 
-trait Equality[\Self extends Equality[\Self\]\]
-    opr =(self, other:Self): Boolean = self SEQV other
+trait Equality[\T extends Equality[\T\]\]
+    opr =(self, other:T): Boolean = self SEQV other
 end
 
 (** Total ordering *)
@@ -210,19 +210,19 @@ end
 (** StandardPartialOrder is partial ordering using <,>,<=,>=,=, and CMP.
     This is primarily for floating-point values.  Minimal complete
     definition: CMP or { <, = }. **)
-trait StandardPartialOrder[\Self extends StandardPartialOrder[\Self\]\]
-        extends { Equality[\Self\] }
-    opr CMP(self, other:Self): Comparison =
+trait StandardPartialOrder[\T extends StandardPartialOrder[\T\]\]
+        extends { Equality[\T\] }
+    opr CMP(self, other:T): Comparison =
         if self < other then LessThan
         elif other < self then GreaterThan
         elif self = other then EqualTo
         else Unordered
         end
-    opr <(self, other:Self): Boolean = LessThan = (self CMP other)
-    opr >(self, other:Self): Boolean = other < self
-    opr =(self, other:Self): Boolean = EqualTo = (self CMP other)
-    opr <=(self, other:Self): Boolean = other >= self
-    opr >=(self, other:Self): Boolean = (self = other OR: self > other)
+    opr <(self, other:T): Boolean = LessThan = (self CMP other)
+    opr >(self, other:T): Boolean = other < self
+    opr =(self, other:T): Boolean = EqualTo = (self CMP other)
+    opr <=(self, other:T): Boolean = other >= self
+    opr >=(self, other:T): Boolean = (self = other OR: self > other)
 end
 
 (** %StandardMin% is a MIN operator; most types that implement %MIN%
@@ -267,18 +267,18 @@ end
     advisable to define = in the latter case).  As noted above, %MIN%
     and %MAX% respect the total order and are defined in the obvious
     way. **)
-trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
-        extends { StandardPartialOrder[\Self\], StandardMinMax[\Self\] }
-    opr CMP(self, other:Self): TotalComparison =
+trait StandardTotalOrder[\T extends StandardTotalOrder[\T\]\]
+        extends { StandardPartialOrder[\T\], StandardMinMax[\T\] }
+    opr CMP(self, other:T): TotalComparison =
         if self < other then LessThan
         elif other < self then GreaterThan
         else EqualTo
         end
-    opr >=(self, other:Self): Boolean = NOT (self < other)
-    opr <=(self, other:Self): Boolean = NOT (other < self)
-    opr MIN(self, other:Self): Self = if other < self then other else self end
-    opr MAX(self, other:Self): Self = if other < self then self else other end
-    opr MINMAX(self, other:Self): (Self,Self) =
+    opr >=(self, other:T): Boolean = NOT (self < other)
+    opr <=(self, other:T): Boolean = NOT (other < self)
+    opr MIN(self, other:T): T = if other < self then other else self end
+    opr MAX(self, other:T): T = if other < self then self else other end
+    opr MINMAX(self, other:T): (T,T) =
         if other < self then (other, self) else (self, other) end
 end
 
@@ -325,11 +325,11 @@ end
 ************************************************************)
 
 (** Additive group making use of +.  Must define + and either unary or binary -. **)
-trait AdditiveGroup[\Self extends AdditiveGroup[\Self\]\]
-    getter zero(): Self = self - self
-    opr +(self, other: Self): Self
-    opr -(self, other: Self): Self = self + (-other)
-    opr -(self) : Self = self.zero - self
+trait AdditiveGroup[\T extends AdditiveGroup[\T\]\]
+    getter zero(): T = self - self
+    opr +(self, other: T): T
+    opr -(self, other: T): T = self + (-other)
+    opr -(self) : T = self.zero - self
 end
 
 (** Place holder for exclusions of MultiplicativeRing **)
@@ -337,13 +337,13 @@ trait AnyMultiplicativeRing end
 
 (** Multiplicative ring using TIMES and juxtaposition.
     Define opr TIMES; juxtaposition is defined in terms of TIMES. **)
-trait MultiplicativeRing[\Self extends MultiplicativeRing[\Self\]\]
-        extends { AdditiveGroup[\Self\], AnyMultiplicativeRing }
-    getter one(): Self
-    opr TIMES(self, other:Self): Self
-    opr juxtaposition(self, other:Self): Self = self TIMES other
+trait MultiplicativeRing[\T extends MultiplicativeRing[\T\]\]
+        extends { AdditiveGroup[\T\], AnyMultiplicativeRing }
+    getter one(): T
+    opr TIMES(self, other:T): T
+    opr juxtaposition(self, other:T): T = self TIMES other
     (** Exponentiation need only deal with natural exponents. **)
-    opr ^(self, other:AnyIntegral): Self
+    opr ^(self, other:AnyIntegral): T
 end
 
 trait Number

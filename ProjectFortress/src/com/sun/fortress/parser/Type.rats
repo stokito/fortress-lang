@@ -190,6 +190,7 @@ List<Type> TypeList = a1:Type a2s:(w comma w Type)*
 
 /* TypeRef ::= DottedIdChain (w StaticArgs)? */
 /* TypeRef ::= Id (w StaticArgs)? */
+/* TypeRef ::= SelfTypeId */
 Type TypeRef =
      "Unity"
      { yyValue = NodeFactory.makeDimBase(createSpan(yyStart,yyCount), false); }
@@ -198,6 +199,8 @@ Type TypeRef =
        yyValue = NodeFactory.makeTraitType(span, a1, a2);
      }
    / a1:Id
+     { yyValue = NodeFactory.makeVarType(createSpan(yyStart,yyCount), a1); }
+   / a1:SelfTypeId 
      { yyValue = NodeFactory.makeVarType(createSpan(yyStart,yyCount), a1); };
 
 /* VoidType ::= ( w ) */
@@ -492,3 +495,8 @@ private Type TypeRefWithError =
      { yyValue = NodeFactory.makeVarType(createSpan(yyStart,yyCount),
                                          a1.getText());
      };
+
+Id SelfTypeId =
+    a1:Self { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount),a1); }
+    ;
+     
