@@ -22,6 +22,7 @@ import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.staticenv.EmptyKindEnv
+import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
 import com.sun.fortress.scala_src.typechecker.staticenv.StaticEnv
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -182,7 +183,43 @@ object SNodeUtil {
     case tt:TraitSelfType => getTraitType(tt.getNamed)
     case _ => None
   }
-  
+
+  /**
+   * Returns a type with all bound static parameters replaced with unique
+   * identifiers for a specified static environment. Each call should generate
+   * entirely different names.
+   */
+  def alphaRenameTypeSchema(t: Type, env: KindEnv): Type = {
+    if (t.getInfo.getStaticParams.isEmpty) return t
+    
+    // Make a substitution of [Ti -> Xi] for each static parameter Ti where
+    // Xi is fresh in the static environment.
+    val subst = getStaticParams(t).map { sp =>
+      val srcName = sp.getName
+      val dstName = makeFreshName(srcName, env)
+      (srcName, dstName)
+    }
+    alphaRename(subst, t).asInstanceOf[Type]
+  }
+
+  /**
+   * Returns a type function/method header with all bound static parameters replaced
+   * with unique identifiers for this static environment. Each call should generate
+   * entirely different names.
+   */
+  def alphaRenameHeader(h: FnHeader, env: KindEnv): FnHeader = {
+    if (h.getStaticParams.isEmpty) return h
+    
+    // Make a substitution of [Ti -> Xi] for each static parameter Ti where
+    // Xi is fresh in the static environment.
+    val subst = toListFromImmutable(h.getStaticParams).map { sp =>
+      val srcName = sp.getName
+      val dstName = makeFreshName(srcName, env)
+      (srcName, dstName)
+    }
+    alphaRename(subst, h).asInstanceOf[FnHeader]
+  }
+
   /**
    * Replace every occurrence of a the name `orig` with the name `repl` in the
    * node `body`. Every occurrence of a name with the same API and text as
