@@ -125,7 +125,7 @@ trait NestedStaticEnv[T] extends StaticEnv[T] {
     case None => parent.lookup(x)
   }
   
-  override def toString: String = bindings.mkString("[", ", ", "]")
+  override def toString: String = bindings.mkString("[", ", ", "]") + parent
   override def isEmpty: Boolean = bindings.isEmpty
 }
 

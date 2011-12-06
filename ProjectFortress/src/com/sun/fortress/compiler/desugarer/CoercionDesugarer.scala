@@ -43,12 +43,14 @@ class CoercionDesugarer extends Walker {
   }
 
   /** Desugar the given coercion, using the given arg. */
-  protected def desugarCoercion(c: CoercionInvocation, arg: Expr): Expr = c match {
+  protected def desugarCoercion(c: CoercionInvocation, arg: Expr): Expr = {
+  //  println("Desugaring " + c.toStringReadable + " on argument " + arg.toStringReadable)
+   c match {
     case c:TraitCoercionInvocation => desugarTraitCoercion(c, arg)
     case c:TupleCoercionInvocation => desugarTupleCoercion(c, arg)
     case c:ArrowCoercionInvocation => desugarArrowCoercion(c, arg)
     case c:UnionCoercionInvocation => desugarUnionCoercion(c, arg)
-  }
+  }}
 
   /** Desugar the given coercion, using its own arg. */
   protected def desugarCoercion(c: CoercionInvocation): Expr =
