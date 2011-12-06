@@ -40,6 +40,7 @@ import com.sun.fortress.scala_src.useful.Iterators._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
+import com.sun.fortress.scala_src.useful.SNodeUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 
 /* All inherited abstract methods in object declarations and
@@ -60,19 +61,21 @@ class AbstractMethodChecker(component: ComponentIndex,
     node match {
       case o@SObjectDecl(SSpanInfo(span),
                          STraitTypeHeader(sparams, _, name, _, _, _, extendsC, ps, decls),
-                         _) => ps match {
-        case Some(params) if ! params.isEmpty =>
-          checkObject(span, sparams, name, extendsC,
-                      params.map(p => NF.makeVarDecl(toJavaList(List(NF.makeLValue(p))))) ::: walk(decls).asInstanceOf[List[Decl]])
-        case _ =>
-          checkObject(span, sparams, name, extendsC, walk(decls).asInstanceOf[List[Decl]])
+                         _) => {
+	val allDecls = walk(decls).asInstanceOf[List[Decl]]
+        ps match {
+	    case Some(params) if ! params.isEmpty =>
+	      checkObject(span, sparams, name, extendsC,
+			  params.map(p => NF.makeVarDecl(toJavaList(List(NF.makeLValue(p))))) ::: allDecls)
+	    case _ =>
+	      checkObject(span, sparams, name, extendsC, allDecls)
+	  }
       }
-
       case o@SObjectExpr(SExprInfo(span, _, _),
                          STraitTypeHeader(_, _, name, _, _, _, extendsC, _, decls),
                          _) =>
-        checkObject(span, List(), name, extendsC,
-                    walk(decls).asInstanceOf[List[Decl]])
+	val allDecls = walk(decls).asInstanceOf[List[Decl]]
+        checkObject(span, List(), name, extendsC, allDecls)
         val methods = inheritedMethods(extendsC, typeAnalyzer)
         val inherited = toSet(methods.firstSet)
                         .map(_.asInstanceOf[IdOrOpOrAnonymousName])
@@ -102,8 +105,8 @@ class AbstractMethodChecker(component: ComponentIndex,
     for ((owner, d) <- toCheck; if !implement(d, decls, owner)) {
         error(span,
               "The inherited abstract method " + d + " from the trait " + owner +
-              "\n    in the object " + name +
-              " is not defined in the component " + componentName + ".")
+              "\n    has no concrete implementation in the object " + name +
+              "  in component " + componentName + ".")
     }
     typeAnalyzer = oldTypeAnalyzer
   }
@@ -176,18 +179,33 @@ class AbstractMethodChecker(component: ComponentIndex,
     def subst(ty: Type) = TypeAnalyzerUtil.substitute(sargs, sparams, ty)
 
     decl match {
+//       case fd:FnDecl =>
+//         //Todo: This is not quite right as we might need to alpha rename
+//         //Todo: The bounds for the static params may mention the parameters of the trait so we may need to substitute
+//         val extended = typeAnalyzer.extend(toList(fd.getHeader.getStaticParams),
+//           fd.getHeader.getWhereClause)
+//         (isTrue(extended.equivalent(subst(NU.getParamType(d)),
+//                                   NU.getParamType(fd))) ||
+//           implement(toListFromImmutable(NU.getParams(d)),
+//                     toListFromImmutable(NU.getParams(fd)),
+//                     subst _) ) &&
+//         isTrue(extended.subtype(NU.getReturnType(fd).unwrap,
+//                              subst(NU.getReturnType(d).unwrap)))
       case fd:FnDecl =>
         //Todo: This is not quite right as we might need to alpha rename
         //Todo: The bounds for the static params may mention the parameters of the trait so we may need to substitute
-        val extended = typeAnalyzer.extend(toList(fd.getHeader.getStaticParams),
-          fd.getHeader.getWhereClause)
-        (isTrue(extended.equivalent(subst(NU.getParamType(d)),
-                                  NU.getParamType(fd))) ||
-          implement(toListFromImmutable(NU.getParams(d)),
-                    toListFromImmutable(NU.getParams(fd)),
-                    subst _) ) &&
-        isTrue(extended.subtype(NU.getReturnType(fd).unwrap,
-                             subst(NU.getReturnType(d).unwrap)))
+        val extended = typeAnalyzer.extend(toList(fd.getHeader.getStaticParams), fd.getHeader.getWhereClause)
+	val dh = alphaRenameHeader(d.getHeader, extended.env)
+	val doubleExtended = extended.extend(toList(dh.getStaticParams), None)
+//         (!isFalse(doubleExtended.equivalent(subst(NU.getHeaderParamType(dh, NU.getSpan(d))),
+//                                             NU.getParamType(fd))) ||
+//           implement(doubleExtended,
+// 	            toListFromImmutable(NU.getParams(dh)),
+//                     toListFromImmutable(NU.getParams(fd)),
+//                     subst _) ) &&
+//         isTrue(doubleExtended.subtype(NU.getReturnType(fd).unwrap,
+//                                       subst(NU.getReturnType(dh).unwrap)))
+           true  // We don't yet know how to implement this correctly
       case vd:VarDecl if vd.getLhs.size == 1 =>
         NU.isVoidType(NU.getParamType(d)) &&
         isTrue(typeAnalyzer.subtype(NU.optTypeOrPatternToType(vd.getLhs.get(0).getIdType).unwrap,
@@ -201,12 +219,13 @@ class AbstractMethodChecker(component: ComponentIndex,
    * `implements' the parameters of the abstract method declaration `ps`. The
    * `subst` function is used to instantiate the params of `ps`.
    */
-  private def implement(ps: List[Param],
+  private def implement(ta: TypeAnalyzer,
+  	      		ps: List[Param],
                         params: List[Param],
                         subst: Type => Type): Boolean =
     !(ps, params).zipped.exists { (p1, p2) =>
-      isFalse(typeAnalyzer.equivalent(subst(NU.getParamType(p1)),
-                                            NU.getParamType(p2))) &&
+      isFalse(ta.equivalent(subst(NU.getParamType(p1)),
+			    NU.getParamType(p2))) &&
       !p1.getName.getText.equals("self")
     }
 }

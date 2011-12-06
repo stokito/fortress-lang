@@ -13,9 +13,9 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/patternMatching1a.fss:15:1-21:\n\
 \ The inherited abstract method a():ZZ32 from the trait T\n\
-\ in the object O is not defined in the component patternMatching1a.\n\
+\ has no concrete implementation in the object O in component patternMatching1a.\n\
 ${STATIC_TESTS_DIR}/patternMatching1a.fss:15:1-21:\n\
 \ The inherited abstract method b():String from the trait T\n\
-\ in the object O is not defined in the component patternMatching1a.\n\
+\ has no concrete implementation in the object O in component patternMatching1a.\n\
 File patternMatching1a.fss has 2 errors.\n
 compile_out_equals=
