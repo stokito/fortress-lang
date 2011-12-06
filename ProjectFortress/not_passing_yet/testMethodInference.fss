@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component testMethodInference
+export Executable
+
+globalunary[\T\](x:T):T = x
+
+trait Boolean comprises {true, false}
+apply[\T\](x:T, y:T):T
+unary[\T\](x:T):T
+end
+
+object true extends Boolean
+getter asString():String = "true"
+apply[\T\](x:T, y:T):T = x
+unary[\T\](x:T):T = x
+end
+
+object false extends Boolean
+getter asString():String = "false"
+apply[\T\](x:T, y:T):T = y
+unary[\T\](x:T):T = x
+end
+
+run():() = do
+tr:true = true
+fl:false = false
+println "true: " tr.unary(4)
+println "true: " tr.globalunary(3)
+println "false: " fl.apply[\ZZ32\](1,2)
+println "true: " tr.apply[\ZZ32\](1,2)
+end
+
+end

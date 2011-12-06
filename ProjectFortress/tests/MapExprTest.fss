@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component MapExprTest
+export Executable
+
+object Map[\K,V\] end
+
+opr { ↦[\ K,V \] xs: (K,V)... }: Map[\K,V\] = Map[\K,V\]
+opr BIG {↦[\K,V,T\] }: Map[\K,V\] = Map[\K,V\]
+
+run():() = ()
+
+end

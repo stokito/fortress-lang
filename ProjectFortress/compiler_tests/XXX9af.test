@@ -1,0 +1,22 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled9.af.fss
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled9.af.fss:15:3-36:\n\
+\ Invalid comprises clause: CompilerBuiltin.Exception has a comprises clause\n\
+\ but its immediate subtype FooExn is not eligible to extend it.\n\
+${STATIC_TESTS_DIR}/Compiled9.af.fss:15:25-32:\n\
+\ Type FooExn excludes CompilerBuiltin.Exception but it extends CompilerBuiltin.Exception.\n\
+${STATIC_TESTS_DIR}/Compiled9.af.fss:19:10-26:6:\n\
+\ Could not assign an expression of type OR(IntLiteral,String) to variable z of type String.\n\
+File Compiled9.af.fss has 3 errors.\n
+compile_out_equals=

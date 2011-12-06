@@ -1,0 +1,54 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component System
+import NativeArray.{...}
+export System
+
+(**
+Access to configuration information specific to a run of a Fortress program.
+
+Examples include command-line arguments, environment variables,
+registry parameters, and the like.
+**)
+
+(** args is a top-level variable containing any command-line
+    arguments.  It is an arbitrary-sized 1-D array.  Unlike C's argv,
+    args does *not* include the program name.  Programmers should use
+    programName to access this information.
+**)
+args : ImmutableArray[\String,ZZ32\] = getProgramArgs(getProgramArgsPrim())
+
+getProgramArgsPrim(): ImmutableArray[\String,ZZ32\] = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$GetProgramArgs")
+
+(* Impedence matcher to get types right.  Sigh. *)
+getProgramArgs[\T extends String, int n\](r0:PrimImmutableArray[\T,n\]): PrimImmutableArray[\String,n\] =
+    r0.replica[\String\]().fill(fn (i:ZZ32): String => r0.get(i))
+
+(** programName is the name by which the Fortress program was invoked. **)
+programName : String = ""
+
+(** A way to get environment information from inside of fortress *)
+getEnvironment(name:String, defaultValue:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$GetEnvironment")
+
+(** A way to get fortress-style property information (that can be
+   overridden by environment variable settings; uses the same code as
+   property settings for the fortress implementation itself). *)
+getProperty(name:String, defaultValue:String):String = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$GetProperty")
+
+(** Turn string into properly-terminated directory name
+    (on Unix/Windows, add a trailing / if one is missing and string is nonempty) **)
+toDirectoryName(s: String): String = do
+    l = |s|
+    if l>0 AND: s[l-1]=/='/' then s "/" else s end
+  end
+
+end

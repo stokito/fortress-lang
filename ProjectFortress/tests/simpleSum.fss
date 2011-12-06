@@ -1,0 +1,63 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component simpleSum
+export Executable
+
+(* Now a library function
+opr SUM[\T\](g:(Reduction[\Number\],T->Number)->Number):Number =
+    g(SumReduction,cast[\Number\])
+*)
+
+run():() = do
+    s0 = SUM [x<-0#10] x
+    assert(s0,45,"SUM [x<-0#10] x")
+    s1 = SUM [x<-0#10] 2 x + 1
+    assert(s1,100,"SUM [x <- 0#10] 2x+1")
+    s2 = SUM (0#10)
+    assert(s2,45,"SUM (0#10)")
+    s3 = SUM (5#0)
+    assert(s3,0,"SUM (5#0)")
+
+    body(x:ZZ32): RR64 = if x MOD 2 = 0 then x else 1.0 x end
+    s4 = SUM [x<-0#10] body(3 x + 1)
+    assert(s4,145.0,"SUM [x<-0#10] body(3x+1)")
+
+    s5 = SUM [x<-0#10, 2 DIVIDES x] 3 x + 1
+    assert(s5,65,"s5 = SUM [x<-0#10, 2 DIVIDES x] 3 x + 1")
+
+    s6 = SUM [x<-1#0] x
+    assert(s6,0,"s6 = SUM [x<-1#0] x")
+
+    s7 = SUM [x<-0#10, x<=0] x
+    assert(s7,0,"s7 = SUM [x<-0#10, x<=0] x")
+
+    p0 = PROD[x<-0#10] x
+    assert(p0,0,"p0 = PROD[x<-0#10] x")
+
+    p1 = PROD[x<-0#10, x<0] x
+    assert(p1,1,"p1 = PROD[x<-0#10, x<0] x")
+
+    p2 = PROD[x<-1#5] 2 x
+    assert(p2,32 120,"p2 = PROD[x<-1#5] 2 x")
+
+    (* Test MIN and MAX *)
+    p3 = BIG MIN[x<-(-2)#10] x^2 + 2 x + 3
+    assert(p3,2,"p3 = MIN[x<-(-2)#10] x^2 + 2 x + 3")
+
+    try
+      r = BIG MIN[x<-(0#10),x<0] x^2 + 2 x + 3
+      fail("Empty BIG MIN returned " r)
+    catch x EmptyReduction => ()
+    end
+  end
+
+end
