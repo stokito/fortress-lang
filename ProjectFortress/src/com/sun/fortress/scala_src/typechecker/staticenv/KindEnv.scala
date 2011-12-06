@@ -21,8 +21,8 @@ import com.sun.fortress.useful.NI
 
 /**
  * Represents a list of variable name to static parameter bindings for some
- * context. All instances of this class should be created with `KindEnv.make`
- * or with the `extendWith` method.
+ * context. All instances of this class should be created with `KindEnv.makeFresh`
+ * or with the `extend` method.
  */
 abstract sealed class KindEnv extends StaticEnv[StaticParam] {
 
