@@ -325,6 +325,10 @@ public class NodeUtil {
         return f.getHeader().getParams();
     }
 
+    public static List<Param> getParams(FnHeader h) {
+        return h.getParams();
+    }
+
     public static Type getParamType(Param p) {
         if ( p.getIdType().isSome() && p.getIdType().unwrap() instanceof Type )
             return (Type)p.getIdType().unwrap();
@@ -354,12 +358,20 @@ public class NodeUtil {
         } else return Option.<Type>none();
     }
 
-    public static Type getParamType(FnDecl f) {
-        return getParamType(getParams(f), getSpan(f));
+    public static Type getHeaderParamType(FnHeader f, Span s) {
+        return getParamType(getParams(f), s);
+    }
+
+    public static Type getParamType(FnDecl d) {
+        return getParamType(getParams(d), getSpan(d));
     }
 
     public static Option<Type> getReturnType(FnDecl f) {
         return f.getHeader().getReturnType();
+    }
+
+    public static Option<Type> getReturnType(FnHeader h) {
+        return h.getReturnType();
     }
 
     public static Option<List<Type>> getThrowsClause(FnDecl f) {

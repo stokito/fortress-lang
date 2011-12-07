@@ -441,12 +441,20 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
           val exclusionOracle = new ExclusionOracle(new ErrorLog())(typeAnalyzer)
           val meet = (reduce(typeAnalyzer.meet(first._1._2, second._1._2), exclusionOracle),
                       reduce(typeAnalyzer.meet(first._1._3, second._1._3), exclusionOracle))
-          for ( f <- set ; if ! result )
+          val loopTypeAnalyzer = typeAnalyzer
+          for ( f <- set ; if ! result ) {
+	      // For each method in the set, we need to add its static parameters to the environment.
+	      // Maybe it would be better to refactor so that `subtype` takes care of that detail?
+              val loopStaticParameters = new ArrayList[StaticParam]()
+              loopStaticParameters.addAll(f._1._1)
+	      typeAnalyzer = loopTypeAnalyzer.extend(toListFromImmutable(loopStaticParameters), None)
               if ( subtype(f._1._2, meet._1) &&
                    subtype(meet._1, f._1._2) &&
                    subtype(meet._2, f._1._3) &&
-                   subtype(f._1._3, meet._2))
+                   subtype(f._1._3, meet._2)) {
                   result = true
+              }
+          }
           typeAnalyzer = oldTypeAnalyzer
           result
       }
