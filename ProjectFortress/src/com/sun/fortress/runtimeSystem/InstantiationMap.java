@@ -239,7 +239,7 @@ public class InstantiationMap  {
             int at = maybeBareVar(input, begin, one_accum, true, false, unwrap_expanded_tuples_in_arrows);
             char ch = input.charAt(at++);
         
-            if (ch == ';') {
+            if (ch == Naming.GENERIC_SEPARATOR_CHAR) {
                 params.add(one_accum.toString());
                                 
                 begin = at; 
@@ -267,7 +267,7 @@ public class InstantiationMap  {
                 int l = params.size(); 
                 for (int i = 0; i < l; i++) {
                     accum.append(params.get(i));
-                    accum.append( i < (l-1) ? ';' : Naming.RIGHT_OXFORD_CHAR);
+                    accum.append( i < (l-1) ? Naming.GENERIC_SEPARATOR_CHAR : Naming.RIGHT_OXFORD_CHAR);
                 }
                 
                 return at;
@@ -307,8 +307,8 @@ public class InstantiationMap  {
       * @param ch
       * @return
       */
-     private static boolean nonVar(char ch) {
-        return ch == '/' || ch == '$' || ch == ';' || 
+     private static boolean nonVar(char ch) { // maybe a literal semicolon below?
+        return ch == '/' || ch == '$' || ch == Naming.GENERIC_SEPARATOR_CHAR || 
                ch == Naming.LEFT_OXFORD_CHAR || ch == Naming.RIGHT_OXFORD_CHAR;
     }
 
@@ -330,7 +330,9 @@ public class InstantiationMap  {
         boolean eol = false;
         boolean disabled = false;
         
-        while (ch != ';' && ch != Naming.RIGHT_OXFORD_CHAR) {
+        while (ch != Naming.GENERIC_SEPARATOR_CHAR &&
+                ch != ';' && 
+                ch != Naming.RIGHT_OXFORD_CHAR) {
             if (ch == Naming.HEAVY_X_CHAR)
                 disabled = true;
             
@@ -453,7 +455,7 @@ public class InstantiationMap  {
         for (int i = leftBracket+1; i <= rightBracket; i++) {
             char ch = s.charAt(i);
     
-            if ((ch == ';' || ch == Naming.RIGHT_OXFORD_CHAR) && depth == 1) {
+            if ((ch == Naming.GENERIC_SEPARATOR_CHAR || ch == Naming.RIGHT_OXFORD_CHAR) && depth == 1) {
                 String parameter = s.substring(pbegin,i);
                 if (parameters != null)
                     parameters.add(parameter);

@@ -1578,15 +1578,15 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     }
     
     private String objectAbstractArrowTypeForNParams(int numParams) {
-        StringBuilder ret = new StringBuilder("AbstractArrow" + Naming.LEFT_OXFORD);
-        for (int i = 0; i < numParams; i++) ret.append(NamingCzar.internalObject + ";"); // params
+        StringBuilder ret = new StringBuilder(Naming.ABSTRACT_ARROW + Naming.LEFT_OXFORD);
+        for (int i = 0; i < numParams; i++) ret.append(NamingCzar.internalObject + Naming.GENERIC_SEPARATOR); // params
         ret.append(NamingCzar.internalObject + Naming.RIGHT_OXFORD); // return
         return ret.toString();
     }
     
     private String objectArrowTypeForNParams(int numParams) {
         StringBuilder ret = new StringBuilder("Arrow" + Naming.LEFT_OXFORD);
-        for (int i = 0; i < numParams; i++) ret.append(NamingCzar.internalObject + ";"); // params
+        for (int i = 0; i < numParams; i++) ret.append(NamingCzar.internalObject + Naming.GENERIC_SEPARATOR); // params
         ret.append(NamingCzar.internalObject + Naming.RIGHT_OXFORD); // return
         return ret.toString();
     }

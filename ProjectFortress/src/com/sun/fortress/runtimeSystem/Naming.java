@@ -30,6 +30,9 @@ import com.sun.fortress.useful.VersionMismatch;
 
 public class Naming {
     
+    public static final String ABSTRACT_ARROW = "AbstractArrow";
+    public static final String CONCRETE_TUPLE = "ConcreteTuple";
+
     /**
      * Generates the popular variants of the class name for a
      * Fortress trait or object.
@@ -1118,9 +1121,9 @@ public class Naming {
     
     public static String rttiClassToBaseClass(String rttiClass) {
         if (rttiClass.startsWith("Arrow,")) {
-            return "AbstractArrow";
+            return ABSTRACT_ARROW;
         } else if (rttiClass.startsWith("Tuple,")) {
-            return "ConcreteTuple";
+            return CONCRETE_TUPLE;
         } else {
             return rttiClass.substring(0,rttiClass.length() - Naming.RTTI_CLASS_SUFFIX.length());
         }
@@ -1189,6 +1192,9 @@ public class Naming {
         public final static String UNION_OX = Naming.UNION + Naming.LEFT_OXFORD;
         public static final String ARROW_OX = ARROW_TAG + "\u27e6";
         public static final String TUPLE_OX = TUPLE_TAG + "\u27e6";
+        
+        public static final String GENERIC_SEPARATOR = ",";
+        public static final char GENERIC_SEPARATOR_CHAR = GENERIC_SEPARATOR.charAt(0);
 
 
     
