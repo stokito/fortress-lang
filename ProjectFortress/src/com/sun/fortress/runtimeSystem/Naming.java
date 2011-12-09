@@ -158,6 +158,14 @@ public class Naming {
     public final static String RTTI_SUBTYPE_METHOD_SIG = "(" + RTTI_CONTAINER_DESC + ")Z";
     public final static String RTTI_SUBTYPE_METHOD_NAME = "runtimeSupertypeOf";
 
+    
+    /*
+     * Special characters for tagging in generate names.
+     * These should not be mathematical operators, nor should they be "letters",
+     * including in foreign languages.  Best places to go looking for these are
+     * in the "Miscellaneous symbols" (2600) and "Dingbats" (2700) code blocks.
+     */
+    
     // Used to indicate translation convention to apply to type parameter.
     public final static String FOREIGN_TAG = "\u2615"; // hot beverage == JAVA
     public final static String NORMAL_TAG = "\u263a"; // smiley face == normal case.
@@ -173,6 +181,7 @@ public class Naming {
 
     public static final String UP_INDEX = "\u261d"; // Special static parameter for static type of self in generic method invocation
     
+    // These below seem to be unused.
     public static final String BALLOT_BOX_WITH_CHECK = "\u2611"; // boolean static param
     public static final String SCALES = "\u2696"; // dimension static param
     public static final String MUSIC_SHARP = "\u266f"; // int static param
@@ -187,8 +196,12 @@ public class Naming {
         BALLOT_BOX_WITH_CHECK + SCALES + MUSIC_SHARP +
         HAMMER_AND_PICK + YINYANG + ATOM;
 
-    public static final String ENTER = "\u2386";
-    public static final String GENERATED = "\u270e"; // lower right pencil
+    /* Enter is used in calculated references for nat args appearing
+     * within uninstantiated generics.  Calculations are converted to RPN,
+     * to be simplified at instantiation.
+     */
+    public static final String ENTER = "\u2386"; // used
+    public static final String GENERATED = "\u270e"; // lower right pencil == Desugarer gensyms
 
     public static final String INTERNAL_SNOWMAN = SNOWMAN;
 
@@ -212,6 +225,10 @@ public class Naming {
     public final static char RIGHT_PAREN_ORNAMENT_CHAR = '\u2769'; // sig disambig tag
     public final static String LEFT_OXFORD = "\u27e6";
     public final static String RIGHT_OXFORD = "\u27e7";
+    
+    public final static String LEFT_HEAVY_ANGLE = "\u276e"; // marks Opr parameters in RTTI types
+    public final static String RIGHT_HEAVY_ANGLE = "\u276f"; // marks Opr parameters in RTTI types
+    
     
     /**
      * Name for Arrow-interface generic.
@@ -1045,6 +1062,21 @@ public class Naming {
     	return stemClassName + RTTI_CLASS_SUFFIX;
     }
 
+    public static String oprArgAnnotatedRTTI(String stemClassName,
+            List<String> opr_args) {
+        if (opr_args.size() == 0)
+            return stemClassName;
+        StringBuffer sb = new StringBuffer(stemClassName);
+        String sep = LEFT_HEAVY_ANGLE;
+        for (String op : opr_args) {
+            sb.append(sep);
+            sep = ",";
+            sb.append(op);
+        }
+        sb.append(RIGHT_HEAVY_ANGLE);
+        return sb.toString();
+    }
+
     /**
      * Returns the name of the RTTI interface for a Fortress type,
      * given the (Java) name of the stem of the type.
@@ -1064,12 +1096,6 @@ public class Naming {
      * @return
      */
     public static String stemInterfaceToRTTIinterface(String stemClassName) {
-//        if (stemClassName.startsWith("ConcreteTuple")) {
-//            java.lang.System.err.println("stemInterfaceToRTTIinterface called with ConcreteTuple - FIX");
-//            //concrete tuples n-ary use the RTTI class Tuple,<n>$RTTIc
-//            int n = InstantiatingClassloader.extractStringParameters(stemClassName).size();
-//            return TUPLE_RTTI_TAG + n + RTTI_INTERFACE_SUFFIX;
-//        }
         if (stemClassName.startsWith(TUPLE_RTTI_TAG) || stemClassName.startsWith(ARROW_RTTI_TAG) )
             return stemClassName + RTTI_CLASS_SUFFIX;
         
