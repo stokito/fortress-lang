@@ -13,7 +13,7 @@ public class RTHelpers {
         
         StringBuilder classNameBuf = new StringBuilder(stem + Naming.LEFT_OXFORD);
         for (int i = 0; i < params.length - 1; i++) {
-            classNameBuf.append(params[i].className() + ";");
+            classNameBuf.append(params[i].className() + Naming.GENERIC_SEPARATOR);
         }
         classNameBuf.append(params[params.length-1].className() + Naming.RIGHT_OXFORD);
         
@@ -89,7 +89,7 @@ public class RTHelpers {
         // String self_class = tcn.substring(0,gear_index) + tcn.substring(gear_index+1,up_index);
         
         String class_we_want = tcn.substring(0,begin_static_params+1) + // self_class + ";" +
-            Useful.substring(sig,1,-1) + ";" + trait_sig.substring(1) + tcn.substring(envelope);
+            Useful.substring(sig,1,-1) + Naming.GENERIC_SEPARATOR + trait_sig.substring(1) + tcn.substring(envelope);
         class_we_want = Naming.mangleFortressIdentifier(class_we_want);
         return RTHelpers.loadClosureClass(l, t, class_we_want);
     }
@@ -141,7 +141,7 @@ public class RTHelpers {
         
         //otherwise, get new instance by building class to get
         StringBuilder paramList = new StringBuilder(Naming.LEFT_OXFORD);
-        for (int i = 0; i < params.length-1; i++) paramList.append(params[i].className() + ";");
+        for (int i = 0; i < params.length-1; i++) paramList.append(params[i].className() + Naming.GENERIC_SEPARATOR);
         paramList.append(params[params.length-1].className() + Naming.RIGHT_OXFORD);
         int insertLoc = stem.indexOf(Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD);
         String className = stem.substring(0,insertLoc) + paramList.toString() + stem.substring(insertLoc+2);
