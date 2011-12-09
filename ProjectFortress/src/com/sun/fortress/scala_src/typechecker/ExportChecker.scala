@@ -615,10 +615,10 @@ object ExportChecker {
   /* Returns true if two static parameters are same. */
   private def equalStaticParams(left: StaticParam, right: StaticParam): Boolean =
     (left, right) match {
-      case (SStaticParam(_, nameL, extendsL, dimL, absorbsL, kindL, _),
-            SStaticParam(_, nameR, extendsR, dimR, absorbsR, kindR, _)) =>
-        equalIdOrOps(nameL, nameR) && equalListTypes(extendsL, extendsR) &&
-        equalOptTypes(dimL, dimR) &&
+      case (SStaticParam(_, varianceL, nameL, extendsL, dimL, absorbsL, kindL, _),
+            SStaticParam(_, varianceR, nameR, extendsR, dimR, absorbsR, kindR, _)) =>
+        equalIdOrOps(nameL, nameR) && varianceL == varianceR && equalListTypes(extendsL, extendsR) &&
+        equalOptTypes(dimL, dimR) && 
         absorbsL == absorbsR && kindL == kindR
     }
 

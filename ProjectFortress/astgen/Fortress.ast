@@ -1518,10 +1518,10 @@ interface Node() extends HasAt;
             /**
              * static parameter
              * Names must be unqualified.
-             * StaticParam ::= Id Extends? (absorbs unit)?
-             *               | int Id
-             *               | nat Id
-             *               | bool Id
+             * StaticParam ::= Variance? Id Extends? (absorbs unit)?
+             *               | Variance? int Id
+             *               | Variance? nat Id
+             *               | Variance? bool Id
              *               | dim Id
              *               | unit Id (: Type)? (absorbs unit)?
              *               | opr Op
@@ -1533,7 +1533,8 @@ interface Node() extends HasAt;
              * e.g.) unit U absrbs unit
              * e.g.) opr ODOT
              */
-            StaticParam(IdOrOp name,
+            StaticParam(int variance,
+                        IdOrOp name,
                         List<BaseType> extendsClause,
                         Option<Type> dimParam,
                         boolean absorbsParam,

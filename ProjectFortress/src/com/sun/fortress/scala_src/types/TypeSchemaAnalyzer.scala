@@ -84,8 +84,8 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
 
   // Subtyping on universal arrows
   private def subtypeUAInner(s: ArrowType, t: ArrowType): Boolean =
-    subUA(normalizeUA(alphaRenameTypeSchema(s).asInstanceOf[ArrowType]),
-          normalizeUA(alphaRenameTypeSchema(t).asInstanceOf[ArrowType]))
+    subUA(normalizeUA(alphaRenameTypeSchema(s, ta.env).asInstanceOf[ArrowType]),
+          normalizeUA(alphaRenameTypeSchema(t, ta.env).asInstanceOf[ArrowType]))
   
   // Subtyping on universal arrows with distinct parameters  
   protected def subUA(s: ArrowType, t: ArrowType): Boolean = (s, t) match {
@@ -127,7 +127,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
 
   // Subtyping for existential domains
   private def subtypeEDInner(s: Type, t: Type) = 
-    subED(normalizeED(alphaRenameTypeSchema(s)), normalizeED(alphaRenameTypeSchema(t)))
+    subED(normalizeED(alphaRenameTypeSchema(s, ta.env)), normalizeED(alphaRenameTypeSchema(t, ta.env)))
   
   private def subED(s: Type, t: Type): Boolean = (s,t) match {
     // t has static parameters
@@ -150,28 +150,10 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
   }
   
   def equivalentED(s: Type, t: Type) =
-    eqED(alphaRenameTypeSchema(s), alphaRenameTypeSchema(t))
+    eqED(alphaRenameTypeSchema(s, ta.env), alphaRenameTypeSchema(t, ta.env))
     
   private def eqED(s: Type, t: Type) = 
     subED(s, t) && subED(t, s)
-    
-  /**
-   * Returns a type with all bound static parameters replaced with unique
-   * identifiers for this static environment. Each call should generate
-   * entirely different names.
-   */
-  def alphaRenameTypeSchema(t: Type): Type = {
-    if (t.getInfo.getStaticParams.isEmpty) return t
-    
-    // Make a substitution of [Ti -> Xi] for each static parameter Ti where
-    // Xi is fresh in the static environment.
-    val subst = getStaticParams(t).map { sp =>
-      val srcName = sp.getName
-      val dstName = makeFreshName(srcName, ta.env)
-      (srcName, dstName)
-    }
-    alphaRename(subst, t).asInstanceOf[Type]
-  }
   
   // Normalizes existential domains using exclusion as in the paper
   def normalizeED(e: Type): Type = {
@@ -188,8 +170,8 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
   
   // The meet of two existential types
   def meetED(x: Type, y: Type): Type = {
-    val ax = alphaRenameTypeSchema(x)
-    val ay = alphaRenameTypeSchema(y)
+    val ax = alphaRenameTypeSchema(x, ta.env)
+    val ay = alphaRenameTypeSchema(y, ta.env)
     val xp = getStaticParams(ax)
     val yp = getStaticParams(ay)
     assert((xp intersect yp).isEmpty)
@@ -204,8 +186,8 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
   
     // The meet of two existential types
   def joinED(x: Type, y: Type): Type = {
-    val ax = alphaRenameTypeSchema(x)
-    val ay = alphaRenameTypeSchema(y)
+    val ax = alphaRenameTypeSchema(x, ta.env)
+    val ay = alphaRenameTypeSchema(y, ta.env)
     val xp = getStaticParams(ax)
     val yp = getStaticParams(ay)
     assert((xp intersect yp).isEmpty)
@@ -219,7 +201,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
   }
 
   // The special arrow that we use when checking the return type rule
-  def returnUA(x: ArrowType, y: ArrowType) = (alphaRenameTypeSchema(x), alphaRenameTypeSchema(y)) match {
+  def returnUA(x: ArrowType, y: ArrowType) = (alphaRenameTypeSchema(x, ta.env), alphaRenameTypeSchema(y, ta.env)) match {
     case (SArrowType(STypeInfo(s1, p1, sp1, w1), d1, r1, e1, i1, m1), 
           SArrowType(STypeInfo(s2, p2, sp2, w2), d2, r2, e2, i2, m2)) =>
        normalizeUA(SArrowType(STypeInfo(s1, p1,sp1 ++ sp2, None), ta.meet(d1,d2), r2, ta.mergeEffect(e1,e2), i1 && i2, None))
@@ -322,7 +304,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     val sp = getStaticParams(e)
     val ia = sp.map(s => NF.make_InferenceVarType(NU.getSpan(s)))
     val temp = (ia, sp).zipped.flatMap{
-      case (i, SStaticParam(info, n, _, _, _, _, _)) =>
+      case (i, SStaticParam(info, _, n, _, _, _, _, _)) =>       // TODO: variance needs to be addressed
         Some((i, NF.makeVarType(info.getSpan, n.asInstanceOf[Id])))
       case _ => None
     }
@@ -333,7 +315,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     // Note that the notEquivalent method in ta is neccessarily not equivalent and is not the same
     // Add bounds (even if we can't use them very well yet)
     val ub = and((ia, sp).zipped.flatMap{
-      case (i, SStaticParam(_, _, p, _, _, _:KindType, _)) =>
+      case (i, SStaticParam(_, _,  _, p, _, _, _:KindType, _)) =>      // TODO: variance needs to be addressed
         Some(upperBound(i, ta.meet(p.map(vi))))
       case _ => None
     })
@@ -366,7 +348,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     // Create a mapping from type variables in the static params to their
     // corresponding bounds.
     val varsMap = new HashMap[VarType, List[Type]]
-    for (SStaticParam(info, x:Id, exts, _, _, _:KindType, _) <- sparams)
+    for (SStaticParam(info, _, x:Id, exts, _, _, _:KindType, _) <- sparams)      // TODO: variance needs to be addressed
       varsMap(NF.makeVarType(info.getSpan, x)) = exts
     
     // Get the unique vars in the image under phi.
@@ -388,8 +370,8 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     // Create a type analyzer with only the image variables and their bounds.
     val imageTa = ta.extend(imageSparams, None)
     val rimageSparams = imageSparams.map{
-      case SStaticParam(i, x, e, d, a, k:KindType, l) =>
-        SStaticParam(i, x, conjuncts(imageTa.meet(e)).
+      case SStaticParam(i, v, x, e, d, a, k:KindType, l) =>
+        SStaticParam(i, v, x, conjuncts(imageTa.meet(e)).
                              toList.map(_.asInstanceOf[BaseType]), d, a, k, l)
       case x => x
     }

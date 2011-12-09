@@ -170,8 +170,8 @@ class HygienicRenamer(constituent: APIName,
              SSpanInfo(walk(getSpan).asInstanceOf[com.sun.fortress.nodes_util.Span])
          case SSpawn(getInfo, getBody) =>
              SSpawn(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ExprInfo], walk(getBody).asInstanceOf[com.sun.fortress.nodes.Expr])
-         case SStaticParam(getInfo, getName, getExtendsClause, getDimParam, isAbsorbsParam, getKind, isLifted) =>
-             SStaticParam(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], walk(getName).asInstanceOf[com.sun.fortress.nodes.IdOrOp], walk(getExtendsClause).asInstanceOf[List[com.sun.fortress.nodes.BaseType]], walk(getDimParam).asInstanceOf[Option[com.sun.fortress.nodes.Type]], walk(isAbsorbsParam).asInstanceOf[Boolean], walk(getKind).asInstanceOf[com.sun.fortress.nodes.StaticParamKind], walk(isLifted).asInstanceOf[Boolean])
+         case SStaticParam(getInfo, getVariance, getName, getExtendsClause, getDimParam, isAbsorbsParam, getKind, isLifted) =>
+             SStaticParam(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ASTNodeInfo], getVariance, walk(getName).asInstanceOf[com.sun.fortress.nodes.IdOrOp], walk(getExtendsClause).asInstanceOf[List[com.sun.fortress.nodes.BaseType]], walk(getDimParam).asInstanceOf[Option[com.sun.fortress.nodes.Type]], walk(isAbsorbsParam).asInstanceOf[Boolean], walk(getKind).asInstanceOf[com.sun.fortress.nodes.StaticParamKind], walk(isLifted).asInstanceOf[Boolean])
          case SStringLiteralExpr(getInfo, getText) =>
              SStringLiteralExpr(walk(getInfo).asInstanceOf[com.sun.fortress.nodes.ExprInfo], walk(getText).asInstanceOf[String])
          case SSubscriptExpr(getInfo, getObj, getSubs, getOp, getStaticArgs) =>

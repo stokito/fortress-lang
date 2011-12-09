@@ -25,11 +25,12 @@ body {
         "goto",         "idiom",        "public",       "pure",
         "reciprocal",   "static",
 
-        "BIG",          "SI_unit",      "absorbs",      "abstract",
-        "also",         "api",          "asif",
+        "BIG",          "Self",         "SI_unit",      "absorbs",      
+        "abstract",     "also",         "api",          "asif",
         "at",           "atomic",       "bool",         "case",
         "catch",        "coerce",       "coerces",      "component",
-        "comprises",    "default",      "dim",          "do",
+        "comprises",    "contravariant","covariant",
+        "default",      "dim",          "do",
         "elif",         "else",         "end",          "ensures",
         "except",       "excludes",     "exit",         "export",
         "extends",      "finally",      "fn",           "for",
@@ -123,9 +124,12 @@ transient void with = "with" !(idrest);
 
 /* Keywords that we need the string representation such as modifiers. */
 transient String BIG = "BIG" !(idrest);
+transient String Self = "Self" !(idrest);
 transient String SI_unit = "SI_unit" !(idrest);
 transient String abstract = "abstract" !(idrest);
 transient String atomic = "atomic" !(idrest);
+transient String contravariant = "contravariant" !(idrest);
+transient String covariant = "covariant" !(idrest);
 transient String do = "do" !(idrest);
 transient String end = "end" !(idrest);
 transient String getter = "getter" !(idrest);
