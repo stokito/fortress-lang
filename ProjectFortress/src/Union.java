@@ -47,8 +47,8 @@ public class Union {
             if (lazyClassName == null)
                 synchronized (this) {
                     if (lazyClassName == null) {
-                String className = "Union" + Naming.LEFT_OXFORD + 
-                                    a.className() + ";" +
+                String className = Naming.UNION + Naming.LEFT_OXFORD + 
+                                    a.className() + Naming.GENERIC_SEPARATOR +
                                     b.className() + Naming.RIGHT_OXFORD;
                 
                 // Pretty sure this is demangled already.
