@@ -41,9 +41,9 @@ public class InstantiationMapJUTest extends TestCase {
         assertEquals("BB"+Naming.RIGHT_OXFORD, b.toString());
 
         b = new StringBuilder();
-        i = map.maybeVarInOxfords("C;D"+Naming.RIGHT_OXFORD, 0, b, true);
+        i = map.maybeVarInOxfords("C" + Naming.GENERIC_SEPARATOR + "D"+Naming.RIGHT_OXFORD, 0, b, true);
         assertEquals(4, i);
-        assertEquals("cat;dog"+Naming.RIGHT_OXFORD, b.toString());
+        assertEquals("cat" + Naming.GENERIC_SEPARATOR + "dog"+Naming.RIGHT_OXFORD, b.toString());
         
         // Don't know what this is for, we aren't using it.
 //        b = new StringBuilder();

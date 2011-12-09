@@ -29,6 +29,22 @@ public abstract class RTTI {
         this.javaRep = javaRep;
         this.serialNumber = snCount++;
     }
+    /*
+     * Long term, this will need to be done lazily because
+     * of issues generating appropriate bytecodes for methods
+     * appearing in some generics -- nominal union types will
+     * need to be canonicalized to a form that might not be a
+     * union, depending upon subtype relations that might depend
+     * on this class itself.
+     */
+    public RTTI(String javaRep) {
+        try {
+            this.javaRep = Class.forName(javaRep);
+        } catch (ClassNotFoundException ex) {
+            throw new Error(ex);
+        }
+        this.serialNumber = snCount++;
+    }
     
     public int hashCode() { return javaRep.hashCode(); }
     
