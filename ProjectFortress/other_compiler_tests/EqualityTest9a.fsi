@@ -11,8 +11,8 @@
 
 api EqualityTest9a
 
-trait TestEquality[\Self\] comprises Self
-    opr =(self, other:Self): Boolean
+trait TestEquality[\T\] comprises T
+    opr =(self, other:T): Boolean
 end
 
 opr TESTNOTEQUAL[\T extends TestEquality[\T\]\](a: T, b: T): Boolean

@@ -93,15 +93,15 @@ object EqTo extends TotalComp
     opr INVERSE(self): TotalComp = EqTo
 end
 
-trait Equty[\Self extends Equty[\Self\]\]
-    opr EQL(self, other:Self): Boolean
+trait Equty[\T extends Equty[\T\]\]
+    opr EQL(self, other:T): Boolean
 end
 
 (** StdPartialOrder is partial ordering using LSTH,GRTH,LSEQ,GREQ,EQL, and CMP.
     This is primarily for floating-point values.  Minimal complete
     definition: either CMP or { LSTH, = }. **)
-trait StdPartialOrder[\Self extends StdPartialOrder[\Self\]\]
-    opr CMP(self, other:Self): Comp =
+trait StdPartialOrder[\T extends StdPartialOrder[\T\]\]
+    opr CMP(self, other:T): Comp =
         if self LSTH other then LessTh
         elif other GRTH self then GreaterTh
         else
@@ -110,28 +110,28 @@ trait StdPartialOrder[\Self extends StdPartialOrder[\Self\]\]
         else Unord
         end
         end
-    opr LSTH(self, other:Self): Boolean = LessTh EQL (self CMP other)
-    opr GRTH(self, other:Self): Boolean = other LSTH self
-    opr EQL(self, other:Self): Boolean = do
+    opr LSTH(self, other:T): Boolean = LessTh EQL (self CMP other)
+    opr GRTH(self, other:T): Boolean = other LSTH self
+    opr EQL(self, other:T): Boolean = do
         println("spo " self " EQL " other)
         EqTo EQL (self CMP other)
       end
-    opr LSEQ(self, other:Self): Boolean = other GREQ self
-    opr GREQ(self, other:Self): Boolean = (self EQL other) OR: (self GRTH other)
+    opr LSEQ(self, other:T): Boolean = other GREQ self
+    opr GREQ(self, other:T): Boolean = (self EQL other) OR: (self GRTH other)
 end
 
 (** StdTotalOrder is the usual total order using LSTH,GRTH,LSEQ,GREQ,EQL, and CMP.
     Most values that define a comparison should do so using this.
     Minimal complete definition: either CMP or LSTH (it's advisable to
     define EQL in the latter case). **)
-trait StdTotalOrder[\Self extends StdTotalOrder[\Self\]\]
-        extends StdPartialOrder[\Self\]
-    opr CMP(self, other:Self): Comp =
+trait StdTotalOrder[\T extends StdTotalOrder[\T\]\]
+        extends StdPartialOrder[\T\]
+    opr CMP(self, other:T): Comp =
         if self LSTH other then LessTh
         elif other LSTH self then GreaterTh
         else EqTo
         end
-    opr GREQ(self, other:Self): Boolean = NOT (self LSTH other)
+    opr GREQ(self, other:T): Boolean = NOT (self LSTH other)
 end
 
 object Foo extends StdPartialOrder[\Foo\]

@@ -211,16 +211,16 @@ trait Range2D[\I extends Integral[\I\], J extends Integral[\J\]\] extends Range[
 end
 
 trait ActualRange2D[\I extends Integral[\I\], J extends Integral[\J\],
-                    Self extends ActualRange2D[\I,J,Self,Scalar1,Scalar2\],
+                    T extends ActualRange2D[\I,J,T,Scalar1,Scalar2\],
                     Scalar1 extends ScalarRange[\I\],
                     Scalar2 extends ScalarRange[\J\]\] extends Range2D[\I,J\]
     getter range1(): Scalar1
     getter range2(): Scalar2
-    every(s_i:I, s_j:J): Self =
+    every(s_i:I, s_j:J): T =
         self.recombine(self.range1.every(s_i), self.range2.every(s_j))
-    imposeStride(s_i:I, s_j:J): Self =
+    imposeStride(s_i:I, s_j:J): T =
         self.recombine(self.range1.imposeStride(s_i), self.range2.imposeStride(s_j))
-    recombine(a:Scalar1, b:Scalar2): Self
+    recombine(a:Scalar1, b:Scalar2): T
 end
 
 combine3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[\K\]\]
@@ -280,22 +280,22 @@ trait Range3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integ
 end
 
 trait ActualRange3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[\K\],
-                    Self extends ActualRange3D[\I,J,K,Self,Scalar1,Scalar2,Scalar3\],
+                    T extends ActualRange3D[\I,J,K,T,Scalar1,Scalar2,Scalar3\],
                     Scalar1 extends ScalarRange[\I\],
                     Scalar2 extends ScalarRange[\J\],
                     Scalar3 extends ScalarRange[\K\]\] extends Range3D[\I,J,K\]
     getter range1(): Scalar1
     getter range2(): Scalar2
     getter range3(): Scalar3
-    every(s_i:I, s_j:J, s_k:K): Self =
+    every(s_i:I, s_j:J, s_k:K): T =
         self.recombine(self.range1.every(s_i),
                        self.range2.every(s_j),
                        self.range3.every(s_k))
-    imposeStride(s_i:I, s_j:J, s_k:K): Self =
+    imposeStride(s_i:I, s_j:J, s_k:K): T =
         self.recombine(self.range1.imposeStride(s_i),
                        self.range2.imposeStride(s_j),
                        self.range3.imposeStride(s_k))
-    recombine(a:Scalar1, b:Scalar2, c:Scalar3): Self
+    recombine(a:Scalar1, b:Scalar2, c:Scalar3): T
 end
 
 trait PartialScalarRange[\I extends Integral[\I\]\]

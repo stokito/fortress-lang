@@ -12,8 +12,8 @@
 component MaybeTest9
 export Executable
 
-trait Equality[\Self\] comprises Self
-    opr =(self, other:Self): Boolean = self SEQV other
+trait Equality[\T\] comprises T
+    opr =(self, other:T): Boolean = self SEQV other
 end
 
 object Baz extends Equality[\Baz\]

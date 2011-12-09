@@ -12,8 +12,8 @@
 component CompilerAlgebra
 export CompilerAlgebra
 
-trait Equality[\Self\] comprises Self
-   opr =(self, other: Self): Boolean = (self === other)
+trait Equality[\T\] comprises T
+   opr =(self, other: T): Boolean = (self === other)
 end
 
 end

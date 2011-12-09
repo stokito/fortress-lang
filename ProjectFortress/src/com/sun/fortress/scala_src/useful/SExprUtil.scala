@@ -37,12 +37,9 @@ object SExprUtil {
   
   def isCheckable(expr: Expr): Boolean = expr match {
 //    case t:TupleExpr => toList(t.getExprs).forall(isCheckable)
-    case f:FnExpr => fnExprHasParams(f)
+    case f:FnExpr => toListFromImmutable(f.getHeader.getParams).forall(p => p.getIdType.isSome)
     case _ => true   
   }
-  
-  def fnExprHasParams(f: FnExpr): Boolean = 
-    toListFromImmutable(f.getHeader.getParams).forall(p => p.getIdType.isSome)
   
   def isFnExpr(e: Expr) = e match {
     case f:FnExpr => true

@@ -68,16 +68,16 @@ trait Range2D[\I extends Integral[\I\], J extends Integral[\J\]\]
 end
 
 trait ActualRange2D[\I extends Integral[\I\], J extends Integral[\J\],
-        Self extends ActualRange2D[\I, J, Self, Scalar1, Scalar2\],
+        T extends ActualRange2D[\I, J, T, Scalar1, Scalar2\],
         Scalar1 extends ScalarRange[\I\],
         Scalar2 extends ScalarRange[\J\]\]
     extends Range2D[\I, J\]
     getter range1(): Scalar1
     getter range2(): Scalar2
 
-    every(s_i: I, s_j: J): Self
-    imposeStride(s_i: I, s_j: J): Self
-    recombine(a: Scalar1, b: Scalar2): Self
+    every(s_i: I, s_j: J): T
+    imposeStride(s_i: I, s_j: J): T
+    recombine(a: Scalar1, b: Scalar2): T
 end
 
 combine3D[\I extends Integral[\I\], J extends Integral[\J\], K extends Integral[\K\]\](i: ScalarRange[\I\], j: ScalarRange[\J\], k: ScalarRange[\K\]): Range3D[\I, J, K\]
@@ -104,7 +104,7 @@ end
 
 trait ActualRange3D[\I extends Integral[\I\], J extends Integral[\J\],
         K extends Integral[\K\],
-        Self extends ActualRange3D[\I, J, K, Self, Scalar1, Scalar2, Scalar3\],
+        T extends ActualRange3D[\I, J, K, T, Scalar1, Scalar2, Scalar3\],
         Scalar1 extends ScalarRange[\I\],
         Scalar2 extends ScalarRange[\J\],
         Scalar3 extends ScalarRange[\K\]\]
@@ -113,9 +113,9 @@ trait ActualRange3D[\I extends Integral[\I\], J extends Integral[\J\],
     getter range2(): Scalar2
     getter range3(): Scalar3
 
-    every(s_i: I, s_j: J, s_k: K): Self
-    imposeStride(s_i: I, s_j: J, s_k: K): Self
-    recombine(a: Scalar1, b: Scalar2, c: Scalar3): Self
+    every(s_i: I, s_j: J, s_k: K): T
+    imposeStride(s_i: I, s_j: J, s_k: K): T
+    recombine(a: Scalar1, b: Scalar2, c: Scalar3): T
 end
 
 trait PartialScalarRange[\I extends Integral[\I\]\]

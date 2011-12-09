@@ -90,10 +90,17 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     pSub(x, y)(true, history)
 
   private val pSubMemo = new scala.collection.mutable.HashMap[(Type, Type, Boolean, Set[hType]), CFormula]()
-    
+
+  private var pSubDepthForPrinting: Int = 0
+  private final val indentationPadding = "   |   |   |   |   |   |   |   |   |   |"
+
   protected def pSub(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
-     if (debugSubtype)
-         System.err.println("psub > (" + x + ", " + y + ", " + negate + ")" )
+     val savedDepthForPrinting = pSubDepthForPrinting
+     val indentation = indentationPadding.take(savedDepthForPrinting % indentationPadding.size)
+     if (debugSubtype) {
+         System.err.println(indentation + "psub > (" + x + ", " + y + ", " + negate + "), env=" + env)
+         pSubDepthForPrinting += 1
+     }
      val rval = if (x == y)
            pTrue()
          else if (cacheSubtypes)
@@ -105,8 +112,10 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
               result
            }
          else pSubInner(x,y)
-     if (debugSubtype)
-         System.err.println("psub < (" + x + ", " + y + ", " + negate + ") RETURNS " + rval)
+     if (debugSubtype) {
+         System.err.println(indentation + "psub < (" + x + ", " + y + ", " + negate + ") RETURNS " + rval)
+         pSubDepthForPrinting = savedDepthForPrinting
+     }
      rval
   }
 
