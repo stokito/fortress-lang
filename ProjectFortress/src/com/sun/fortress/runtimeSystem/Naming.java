@@ -237,7 +237,7 @@ public class Naming {
      * Name for Arrow-interface generic.
      */
     public final static String ARROW_TAG="Arrow";
-    public final static String ARROW_RTTI_TAG = "Arrow,";
+    public final static String ARROW_RTTI_TAG = "Arrow*";
     public static String arrowRTTIclass(int n) {
     	return ARROW_RTTI_TAG + n;
     }
@@ -246,7 +246,7 @@ public class Naming {
      * Name for Tuple-interface generic.
      */
     public final static String TUPLE_TAG="Tuple";
-    public final static String TUPLE_RTTI_TAG="Tuple,";
+    public final static String TUPLE_RTTI_TAG="Tuple*";
     public static String tupleRTTIclass(int n) {
     	return TUPLE_RTTI_TAG + n;
     }
@@ -1120,9 +1120,9 @@ public class Naming {
     }
     
     public static String rttiClassToBaseClass(String rttiClass) {
-        if (rttiClass.startsWith("Arrow,")) {
+        if (rttiClass.startsWith(ARROW_RTTI_TAG)) {
             return ABSTRACT_ARROW;
-        } else if (rttiClass.startsWith("Tuple,")) {
+        } else if (rttiClass.startsWith(TUPLE_RTTI_TAG)) {
             return CONCRETE_TUPLE;
         } else {
             return rttiClass.substring(0,rttiClass.length() - Naming.RTTI_CLASS_SUFFIX.length());
