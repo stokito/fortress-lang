@@ -113,67 +113,67 @@ public class InstantiationMap  {
         }
 
 
-    /**
-     * @param s
-     * @return
-     * @throws Error
-     */
-    public String oxfordSensitiveSubstitution(String s) throws Error {
-        int l = s.length();
-        
-        int oxLevel = 0;
-        
-        
-        for (int i = 0; i < l; i++) {
-            char ch = s.charAt(i);
-            
-            if (Naming.GENERIC_TAGS.indexOf(ch) != -1) {
-                // Found a variable
-                StringBuilder b = new StringBuilder();
-                int j = 0;
-                while (j < l) {
-                     ch = s.charAt(j);
-                     j++;
-                     if (ch == Naming.LEFT_OXFORD_CHAR) {
-                         oxLevel++;
-                         b.append(ch);
-                     } else if (ch == Naming.RIGHT_OXFORD_CHAR)  {
-                         oxLevel--;
-                         b.append(ch);
-                     } else if (Naming.GENERIC_TAGS.indexOf(ch) != -1) {
-                         StringBuilder v = new StringBuilder(8);
-                         v.append(ch);
-                         while (j < l) {
-                             ch = s.charAt(j);
-                             if ('0' <= ch && ch <= '9') {
-                                 v.append(ch);
-                                 j++;
-                             } else {
-                                 break;
-                             }
-                         }
-                         // j addresses next character or the end.
-                         // v contains the variable.
-                         String vs = v.toString();
-                         String t = p.get(vs);
-                         if (t == null)
-                             throw new Error("Missing generic binding for " + vs + " map = " + p);
-                         if (oxLevel == 0) {
-                             b.append(t.substring(1));
-                         } else {
-                             b.append(t);
-                         }
-                         
-                     } else {
-                         b.append(ch);
-                     }
-                }
-                s = b.toString();
-                break;
-            }
-        }
-        return s;
-    }
+//    /**
+//     * @param s
+//     * @return
+//     * @throws Error
+//     */
+//    public String oxfordSensitiveSubstitution(String s) throws Error {
+//        int l = s.length();
+//        
+//        int oxLevel = 0;
+//        
+//        
+//        for (int i = 0; i < l; i++) {
+//            char ch = s.charAt(i);
+//            
+//            if (Naming.GENERIC_TAGS.indexOf(ch) != -1) {
+//                // Found a variable
+//                StringBuilder b = new StringBuilder();
+//                int j = 0;
+//                while (j < l) {
+//                     ch = s.charAt(j);
+//                     j++;
+//                     if (ch == Naming.LEFT_OXFORD_CHAR) {
+//                         oxLevel++;
+//                         b.append(ch);
+//                     } else if (ch == Naming.RIGHT_OXFORD_CHAR)  {
+//                         oxLevel--;
+//                         b.append(ch);
+//                     } else if (Naming.GENERIC_TAGS.indexOf(ch) != -1) {
+//                         StringBuilder v = new StringBuilder(8);
+//                         v.append(ch);
+//                         while (j < l) {
+//                             ch = s.charAt(j);
+//                             if ('0' <= ch && ch <= '9') {
+//                                 v.append(ch);
+//                                 j++;
+//                             } else {
+//                                 break;
+//                             }
+//                         }
+//                         // j addresses next character or the end.
+//                         // v contains the variable.
+//                         String vs = v.toString();
+//                         String t = p.get(vs);
+//                         if (t == null)
+//                             throw new Error("Missing generic binding for " + vs + " map = " + p);
+//                         if (oxLevel == 0) {
+//                             b.append(t.substring(1));
+//                         } else {
+//                             b.append(t);
+//                         }
+//                         
+//                     } else {
+//                         b.append(ch);
+//                     }
+//                }
+//                s = b.toString();
+//                break;
+//            }
+//        }
+//        return s;
+//    }
 
     
     // Looking for  Lvariable; in method signatures,

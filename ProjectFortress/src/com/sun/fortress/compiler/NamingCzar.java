@@ -1520,6 +1520,11 @@ public class NamingCzar {
         return makeInnerClassName(api, x.getText()+sparams_part);
     }
 
+    public static String jvmClassForToplevelTypeDecl(IdOrOp x, List<String> opr_args, String api) {
+        api = repairedApiName(x, api);
+        return makeInnerClassName(api, Naming.oprArgAnnotatedRTTI(x.getText(), opr_args));
+    }
+
     /**
      * @param id_or_op
      * @param default_api
