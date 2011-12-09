@@ -2165,7 +2165,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitLocalVariable("signature", "Ljava/lang/String;", null, l0, l4, stringOff);
         mv.visitLocalVariable("o", "Ljava/lang/Object;", null, l1, l4, tmpOff);
         // 6,6 if in a generic trait.
-        mv.visitMaxs(5, 5);
+        //        mv.visitMaxs(5, 5);
+        mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);            
         mv.visitEnd();  
     }
 
@@ -2811,8 +2812,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     castToArrowType);            
             
             cg.mv.visitInsn(ARETURN);
-            
-            cg.mv.visitMaxs(2, 3);
+            cg.mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);            
+        //            cg.mv.visitMaxs(2, 3);
             cg.mv.visitEnd();
             
             InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cg.cw);

@@ -24,7 +24,7 @@ import org.objectweb.asm.util.*;
 
 public class DefUseChains {
 
-    private static boolean noisy = true;
+    private static boolean noisy = false;
     ByteCodeMethodVisitor bcmv;
 
     public static void optimize(ByteCodeVisitor bcv) {
@@ -35,35 +35,35 @@ public class DefUseChains {
             ByteCodeMethodVisitor bcmv = (ByteCodeMethodVisitor) pairs.getValue();
             String className = (String) pairs.getKey();
             if (noisy) {
-                //                printMethod(bcmv, "Annotated");
-                //                System.out.println("Printing Values HERE");
-                //                printValues(bcmv);
+                printMethod(bcmv, "Annotated");
+                System.out.println("Printing Values HERE");
+                printValues(bcmv);
             }
             changed = renameValues(bcmv);
             if (noisy && changed) {
-                //                 printMethod(bcmv, "After Rename");
-                //                 System.out.println("Printing Values After Rename HERE");
-                //                 printValues(bcmv);
+                printMethod(bcmv, "After Rename");
+                System.out.println("Printing Values After Rename HERE");
+                printValues(bcmv);
              }
              changed = identifyPotentialUnusedBoxedValues(bcmv);
              if (noisy && changed) {
                  System.out.println("After identifying unused vars");
-                 //                 printMethod(bcmv, "After Identify Unused");
-                 //                 printValues(bcmv);
+                 printMethod(bcmv, "After Identify Unused");
+                 printValues(bcmv);
                  printChains(bcmv);
              }
              changed = removeUnusedBoxedValues(bcmv);
              if (noisy && changed) {
                  System.out.println("After removing unused vars");
-                 //                 printMethod(bcmv, "After RemoveUnused");
-                 //                 printValues(bcmv);
+                 printMethod(bcmv, "After RemoveUnused");
+                 printValues(bcmv);
                  printChains(bcmv);                 
              }
              changed = renumberInsns(bcmv);
              if (noisy && changed) {
-                 //                 printMethod(bcmv, "After Renumber");
-                 //                 System.out.println("Printing Values After Renumber HERE");
-                 //                 printValues(bcmv);
+                 printMethod(bcmv, "After Renumber");
+                 System.out.println("Printing Values After Renumber HERE");
+                 printValues(bcmv);
              }
         }
     }
@@ -259,6 +259,13 @@ public class DefUseChains {
                                                            "make",
                                                            "(Z)Lcom/sun/fortress/compiler/runtimeValues/FBoolean;",
                                                            "ReboxingReturnValue"));
+                    else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FString;"))
+                        bcmv.insns.add(j, new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC, 
+                                                           "com/sun/fortress/compiler/runtimeValues/FString",
+                                                           "make",
+                                                           "(java.lang.String)Lcom/sun/fortress/compiler/runtimeValues/FString;",
+                                                           "ReboxingReturnValue"));
+
 
                     else throw new RuntimeException("Don't recognize var type " + val.getType());
 
@@ -301,7 +308,6 @@ public class DefUseChains {
         
         for (AbstractInterpretationValue val : bcmv.getValues()) {
             if (val != null) {  // second slot in a double word variable 
-                System.out.println("Before: valUses = " + val.getUses());
                 HashSet<Insn> UpdatedValUses = new HashSet<Insn>();
                 for (Insn i : val.getUses()) {
                     if (i instanceof VarInsn) {
@@ -320,18 +326,15 @@ public class DefUseChains {
                     }
                 }
                 val.setUses(UpdatedValUses);                
-                System.out.println("After: valUses = " + val.getUses());
-
             }
 
-            System.out.println("Replacements = " + replacements);
+            //            System.out.println("Replacements = " + replacements);
 
             for (Object o : replacements.keySet()) {
                 Insn i = (Insn) o;
                 int j = bcmv.insns.indexOf(i);
                 Insn k = (Insn) replacements.get(i);
                 if (j >= 0) {
-                    System.out.println("About to remove instruction: " + bcmv.insns.get(j) + " and add " + k);
                     bcmv.insns.remove(j);
                     bcmv.insns.add(j, k);
                 }

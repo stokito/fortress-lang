@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2010, Oracle and/or its affiliates.
+    Copyright 2011, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -11,8 +11,6 @@
 package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
 import com.sun.fortress.compiler.NamingCzar;
-import com.sun.fortress.useful.MagicNumbers;
-
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -24,517 +22,163 @@ import java.util.Set;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
-
-public class AbstractInterpretationContext {
-    
-    AbstractInterpretation ai;
+class AbstractInterpretationContext {
     ByteCodeMethodVisitor bcmv;
-    AbstractInterpretationValue stack[];
-    AbstractInterpretationValue locals[];
-    Object defs[];
-    Object uses[];
+    AbstractInterpretationValue[] stack;
+    AbstractInterpretationValue[] locals;
     int stackIndex;
     int pc;
-    private final static boolean noisy = false;
+    Insn cause;
+    static boolean noisy = false;
+    static List<AbstractInterpretationContext> branchTargets = new ArrayList<AbstractInterpretationContext>();
 
-    private int defCount = 0;
-
-    public int hashCode() {
-        return MagicNumbers.p * pc + MagicNumbers.s * stackIndex + MagicNumbers.d * defCount;
-    }
-    
-    public boolean equals(Object o) {
-        if (! (o instanceof AbstractInterpretationContext))
-            return false;
-        AbstractInterpretationContext aic = (AbstractInterpretationContext) o;
-        return aic.pc == pc &&
-        aic.stackIndex == stackIndex &&
-        aic.defCount == defCount &&
-        aic.ai == ai &&
-        aic.bcmv == bcmv &&
-        aic.stack == stack &&
-        aic.locals == locals &&
-        aic.defs == defs &&
-        aic.uses == uses;
-    }
-    
-    // 
-    void pushStackDefinition(Insn i, AbstractInterpretationValue s) {
-        System.out.println("About to push stack definition: Insn = " + i + "AIV = " + s + " stackIndex = " + stackIndex + " maxStack = " + bcmv.maxStack);
-        i.addDef(s);
-        stack[stackIndex] = s;
-        stackIndex++;
-
-    }
-
-    void pushStack(Insn i, AbstractInterpretationValue s) {
-        s.addUse(i);
-        stack[stackIndex] = s;
-        stackIndex++;
-    }
-
-    AbstractInterpretationValue popStack(Insn i) { 
-        AbstractInterpretationValue result = stack[--stackIndex];
-        result.addUse(i);
-        return result;
-    }
-
-    AbstractInterpretationContext(AbstractInterpretation ai,
-                                  ByteCodeMethodVisitor bcmv, 
-                                  AbstractInterpretationValue stack[], 
-                                  AbstractInterpretationValue locals[], 
-                                  int stackIndex, int pc) {
-        this.ai = ai;
+    AbstractInterpretationContext(ByteCodeMethodVisitor bcmv, 
+                                  AbstractInterpretationValue[] stack, 
+                                  AbstractInterpretationValue[] locals,
+                                  int stackIndex,
+                                  int pc) {
         this.bcmv = bcmv;
         this.stack = stack;
         this.locals = locals;
         this.stackIndex = stackIndex;
         this.pc = pc;
+        this.cause = bcmv.insns.get(0);
+    }    
+
+    AbstractInterpretationContext(Insn cause, AbstractInterpretationContext c, int pc) {
+        this.bcmv = c.bcmv;
+        this.stack = c.stack;
+        this.locals = c.locals;
+        this.stackIndex = c.stackIndex;
+        this.pc = pc;
+        this.cause = cause;
+        if (noisy)
+            System.out.println("Creating an AIC caused by " + cause + " with pc = " + pc);
     }
 
-    public String getStackString() {
-        String result = "[";
-        for(int i = 0; i < stackIndex; i++) 
-            result = result + " " + stack[i];
-        result = result + "]";
-        return result;
+    String getStackString() {
+        String result = pc + "[";
+        int i = 0;
+        for (; i < stackIndex-1; i++)
+            result = result + stack[i] + ",";
+        if (i == stackIndex - 1)
+            result = result + stack[stackIndex - 1];
+        return result + "]" + cause;
     }
 
-    public String getLocalsString() {
-        String result = "{";
-        for (int i=0; i < locals.length; i++)
-            result = result + " " + locals[i];
-        result = result + "}";
-        return result;
+    static void addBranchTarget(AbstractInterpretationContext c) {
+        branchTargets.add(c);
     }
 
-    public void NYI(Insn i) {
-        throw new RuntimeException("Abstract Interpretation: Insn " + i + " not yet implemented");
+    boolean isDoubleWideType(AbstractInterpretationValue v) {
+        return v.getType().equals("J") || v.getType().equals("D");
     }
 
-     public void interpretMethod() {
-         if (noisy) System.out.println("interpretMethod: pc = " + pc);
-         while (pc < bcmv.insns.size()) {
-             interpretInsn(bcmv.insns.get(pc), pc);
-             pc++;
-         }
-         bcmv.sortValues();
-     }
+    Integer getJumpDestination(String s) { 
+        return (Integer) bcmv.labelDefs.get(s);}
 
-    void printInsn(Insn i, int pc) {
-        if (noisy)  {
-            System.out.println("InterpretInsn: pc= " + pc + " insn = " + i + getStackString() + getLocalsString());
-        }
-    }        
-
-    public void interpretInsn(Insn i, int pc) {
-        i.setStack(stack);
-        i.setLocals(locals);
-
-        if (i instanceof FieldInsn)      { printInsn(i, pc); interpretFieldInsn((FieldInsn) i); }
-        else if (i instanceof IincInsn)  { printInsn(i, pc); interpretIincInsn((IincInsn) i);}
-        else if (i instanceof IntInsn)   { printInsn(i, pc); interpretIntInsn((IntInsn) i);}
-        else if (i instanceof JumpInsn)  { printInsn(i, pc); interpretJumpInsn((JumpInsn) i);}
-        else if (i instanceof LabelInsn) { interpretLabelInsn((LabelInsn) i);}
-        else if (i instanceof LdcInsn)   { printInsn(i, pc); interpretLdcInsn((LdcInsn) i);}
-        else if (i instanceof LookupSwitchInsn) { 
-            printInsn(i, pc); 
-            interpretLookupSwitchInsn((LookupSwitchInsn) i);
-        }
-        else if (i instanceof MethodInsn) { 
-            printInsn(i, pc); 
-            interpretMethodInsn((MethodInsn) i);
-        }
-        else if (i instanceof NotYetImplementedInsn) { printInsn(i, pc); throw new RuntimeException("NYI"); }
-        else if (i instanceof SingleInsn)     { printInsn(i, pc); interpretSingleInsn((SingleInsn) i);}
-        else if (i instanceof TableSwitchInsn) { printInsn(i, pc); interpretTableSwitchInsn((TableSwitchInsn) i);}
-        else if (i instanceof TryCatchBlock) { printInsn(i,pc); interpretTryCatchBlock((TryCatchBlock) i);}
-        else if (i instanceof TypeInsn) { printInsn(i, pc);  interpretTypeInsn((TypeInsn) i);}
-        else if (i instanceof VarInsn) { printInsn(i, pc); interpretVarInsn((VarInsn) i);}
-        else if (i instanceof VisitLineNumberInsn) { 
-            interpretVisitLineNumberInsn((VisitLineNumberInsn) i);}
-        else if (i instanceof VisitMaxs) {}
-        else if (i instanceof VisitCode) {}
-        else if (i instanceof VisitEnd) {}
-        else if (i instanceof VisitFrame) {}
-        else if (i instanceof LocalVariableInsn) {}
-        else NYI(i);
-    }
-
-
-    void interpretFieldInsn(FieldInsn i) {
-        int opcode = i.opcode;
-        if (opcode == Opcodes.GETFIELD) {
-            popStack(i);
-            pushStackDefinition(i, bcmv.createValue(i, i.desc));
-        } else if (opcode == Opcodes.GETSTATIC) {
-            pushStackDefinition(i, bcmv.createValue(i, i.desc));
-        } else if (opcode == Opcodes.PUTSTATIC) {
-            popStack(i);
-        } else if (opcode == Opcodes.PUTFIELD) {
-            popStack(i);
-            popStack(i);
-        }
-        else throw new RuntimeException("Unknown field instruction");
-    }
-
-    void interpretLoad(VarInsn i, int opcode, String expected, AbstractInterpretationValue val) {
-        checkExpectedType(opcode, expected, val);            
-        pushStack(i, val);
-    }
-
-    /**
-     * @param opcode
-     * @param expected
-     * @param val
-     */
-    public void checkExpectedType(int opcode, String expected,
-            AbstractInterpretationValue val) {
-        char c = val.getType().charAt(0);
-        if (expected.indexOf(c) == -1)
-            System.out.println(" Op " + Opcodes.opcNames[opcode] + " expected " + expected + " but got " + val.getType());
-    }
-
-    void interpretStore(VarInsn i, int opcode, String expected) {
-        AbstractInterpretationValue val = popStack(i);
-        checkExpectedType(opcode, expected, val);            
-        locals[i.var] = val;
-    }
-            
-
-    void interpretVarInsn(VarInsn i) {
-        int opcode = i.opcode;
-        AbstractInterpretationValue val = locals[i.var];
-        switch(opcode) {
-        case Opcodes.ILOAD:  interpretLoad(i, opcode, "I", val); break;
-        case Opcodes.LLOAD:  interpretLoad(i, opcode, "J", val); break;
-        case Opcodes.FLOAD:  interpretLoad(i, opcode, "F", val); break;
-        case Opcodes.DLOAD:  interpretLoad(i, opcode, "D", val); break;
-        case Opcodes.ALOAD:  interpretLoad(i, opcode, "L[", val); break;
-        case Opcodes.ISTORE: interpretStore(i, opcode, "I");     break;
-        case Opcodes.LSTORE: interpretStore(i, opcode, "J");     break;
-        case Opcodes.FSTORE: interpretStore(i, opcode, "F");     break;
-        case Opcodes.DSTORE: interpretStore(i, opcode, "D");     break;
-        case Opcodes.ASTORE: interpretStore(i, opcode, "L[");     break;
-        default: throw new RuntimeException("Unknown VarInsn Opcode= " + opcode);
-        }
-    }
-
-    void interpretBoxingMethodInsn(MethodInsn mi) {
-        String result = NamingCzar.parseResult(mi.desc);
-        if (mi.isFVoidBoxingMethod()) {
-            pushStackDefinition(mi, bcmv.createValue(mi, result));
-        } else {
-            AbstractInterpretationValue val = popStack(mi);
-            pushStackDefinition(mi, bcmv.createValue(mi, result, val));
-        }
-    }
-        
-    void interpretUnBoxingMethodInsn(MethodInsn mi) {
-        String result = NamingCzar.parseResult(mi.desc);
-        List<String> args = NamingCzar.parseArgs(mi.desc);
-        int k = args.size() - 1;
-
-         if (args.size() > 0)
-            throw new RuntimeException("Called Unboxing method with one or more arguements " + mi + " " + args.size());
-
-        AbstractInterpretationValue val = popStack(mi);
-        if (val instanceof AbstractInterpretationBoxedValue) {
-            AbstractInterpretationBoxedValue bv = (AbstractInterpretationBoxedValue) val;
-            if (!result.equals(bv.unboxed().getType()))
-                throw new RuntimeException("The unboxed value with type " + bv.unboxed().getType() + " should have the expected type " + result);
-            pushStack(mi, bv.unboxed());
-        } else {
-         if (result.compareTo("V") != 0) {
-             pushStackDefinition(mi, bcmv.createValue(mi, result));
-         }
-        }
-    }
-
-    void interpretStaticMethodInsn(MethodInsn mi) {
-        System.out.println("interpretStaticMethod: " + mi + " args = " + NamingCzar.parseArgs(mi.desc) + " of size " + NamingCzar.parseArgs(mi.desc).size());
-
-         int opcode = mi.opcode;
-         String result = NamingCzar.parseResult(mi.desc);
-         List<String> args = NamingCzar.parseArgs(mi.desc);
-
-         for (int i = 0; i < args.size(); i++) {
-             popStack(mi);
-         }
-
-         if (result.compareTo("V") != 0) {
-             pushStackDefinition(mi, bcmv.createValue(mi, result));
-         }
-    }
-
-    void interpretInterfaceMethodInsn(MethodInsn mi) {
-         int opcode = mi.opcode;
-         String result = NamingCzar.parseResult(mi.desc);
-         List<String> args = NamingCzar.parseArgs(mi.desc);
-
-         for (int i = 0; i < args.size(); i++) {
-             popStack(mi);
-         }
-         popStack(mi); //owner
-
-         if (result.compareTo("V") != 0) {
-             pushStackDefinition(mi, bcmv.createValue(mi, result));
-         }
-    }
-        
-
-    void interpretNonStaticMethodInsn(MethodInsn mi) {
-         int opcode = mi.opcode;
-         String result = NamingCzar.parseResult(mi.desc);
-         List<String> args = NamingCzar.parseArgs(mi.desc);
-
-         for (int i = 0; i < args.size(); i++) {
-             popStack(mi);
-         }
-         popStack(mi); //owner
-
-         if (result.compareTo("V") != 0) {
-             pushStackDefinition(mi, bcmv.createValue(mi, result));
-         }
-    }
-
-     void interpretMethodInsn(MethodInsn mi) {
-         if (mi.isBoxingMethod()) 
-             interpretBoxingMethodInsn(mi);
-         else if (mi.isUnBoxingMethod())
-             interpretUnBoxingMethodInsn(mi);
-         else if (mi.isStaticMethod()) 
-             interpretStaticMethodInsn(mi);
-         else if (mi.isInterfaceMethod())
-             interpretInterfaceMethodInsn(mi);
-         else interpretNonStaticMethodInsn(mi);
-     }
-
-    void interpretIincInsn(IincInsn i) {}
-    void interpretIntInsn(IntInsn i) {}
-
-    int getNext(ByteCodeMethodVisitor bcmv, JumpInsn i) {
-        Integer loc = (Integer) bcmv.labelDefs.get(i.label.toString());
-        if (loc != null) 
-            return loc.intValue();
+    int getNext(JumpInsn i) {
+        Integer loc = getJumpDestination(i.label.toString());
+        if (loc != null) return loc.intValue();
         else return 0;
     }
 
-    void addNext(JumpInsn i) {
-        AbstractInterpretationContext next = 
-            new AbstractInterpretationContext(ai, bcmv, stack, locals, 
-                                              stackIndex, getNext(bcmv, i));
-        ai.instructions.add(next);
+    void finished() {
+        pc = bcmv.insns.size();
+    }
+            
+    int setLocal(int index, AbstractInterpretationValue val) {
+        int i = index;
+        locals[i++] = val;
+        if (isDoubleWideType(val)) {
+            locals[i++] = bcmv.createSecondSlotValue(val);
+        }
+        return i;
     }
 
-    void interpretJumpInsn(JumpInsn i) {
-        switch(i.opcode) {
-        case Opcodes.IFEQ: 
-        case Opcodes.IFNE: 
-        case Opcodes.IFLT: 
-        case Opcodes.IFGE: 
-        case Opcodes.IFGT: 
-        case Opcodes.IFLE: {
-            popStack(i);
-            addNext(i);
-            break;
+    AbstractInterpretationValue getLocal(int index) {
+        AbstractInterpretationValue res = locals[index];
+        if (isDoubleWideType(res)) {
+            AbstractInterpretationSecondSlotValue other = (AbstractInterpretationSecondSlotValue) locals[index+1];
         }
-        case Opcodes.IF_ICMPEQ:
-        case Opcodes.IF_ICMPNE:
-        case Opcodes.IF_ICMPLT:
-        case Opcodes.IF_ICMPGE:
-        case Opcodes.IF_ICMPGT:
-        case Opcodes.IF_ICMPLE:
-        case Opcodes.IF_ACMPEQ:
-        case Opcodes.IF_ACMPNE: {
-            popStack(i);
-            popStack(i);
-            addNext(i);
-            break;
-        }
-        case Opcodes.GOTO: {
-            pc = getNext(bcmv,i);
-            break;
-        }
-        case Opcodes.JSR: NYI(i); break;
-        case Opcodes.IFNULL: 
-        case Opcodes.IFNONNULL:  {
-            popStack(i);
-            addNext(i);
-            break;
-        }
-
-        default: NYI(i); 
-        }
-    }
-    void interpretLabelInsn(LabelInsn i) {}
-    void interpretLdcInsn(LdcInsn i) {
-        Object o = i.cst;
-
-        if (o instanceof Integer) pushStackDefinition(i, bcmv.createValue(i, "I"));
-        else if (o instanceof Long) pushStackDefinition(i, bcmv.createValue(i, "J"));
-        else if (o instanceof Float) pushStackDefinition(i, bcmv.createValue(i, "F"));
-        else if (o instanceof Double) pushStackDefinition(i, bcmv.createValue(i, "D"));
-        else {
-            // Is this right? dr2chase - 2011-04-08
-            String cl = o.getClass().getName().replace(".", "/");
-            pushStackDefinition(i, bcmv.createValue(i, "L"+ cl + ";"));
-        }
+        return res;
     }
 
-    void interpretLookupSwitchInsn(LookupSwitchInsn i) {}
- 
-   void interpretSingleInsn(SingleInsn i) {
-        switch(i.opcode) {
-        case Opcodes.NOP: break;
-        case Opcodes.ACONST_NULL: pushStackDefinition(i, bcmv.createValue(i, "NULL")); break;
-        case Opcodes.ICONST_M1: 
-        case Opcodes.ICONST_0: 
-        case Opcodes.ICONST_1: 
-        case Opcodes.ICONST_2: 
-        case Opcodes.ICONST_3: 
-        case Opcodes.ICONST_4: 
-        case Opcodes.ICONST_5: pushStackDefinition(i, bcmv.createValue(i, "I"));break;
-        case Opcodes.LCONST_0: 
-        case Opcodes.LCONST_1: pushStackDefinition(i, bcmv.createValue(i, "J"));break;
-        case Opcodes.FCONST_0: 
-        case Opcodes.FCONST_1: 
-        case Opcodes.FCONST_2: pushStackDefinition(i, bcmv.createValue(i, "F")); break;
-        case Opcodes.DCONST_0: 
-        case Opcodes.DCONST_1: pushStackDefinition(i, bcmv.createValue(i, "D")); break;
-        case Opcodes.IALOAD:   pushStackDefinition(i, bcmv.createValue(i, "I")); break;
-        case Opcodes.LALOAD:   pushStackDefinition(i, bcmv.createValue(i, "J")); break;
-        case Opcodes.FALOAD:   pushStackDefinition(i, bcmv.createValue(i, "F")); break;
-        case Opcodes.DALOAD:   pushStackDefinition(i, bcmv.createValue(i, "D")); break;
-        case Opcodes.AALOAD: NYI(i); break; 
-        case Opcodes.BALOAD: NYI(i); break; 
-        case Opcodes.CALOAD: NYI(i); break; 
-        case Opcodes.SALOAD: NYI(i); break; 
-        case Opcodes.IASTORE: NYI(i); break; 
-        case Opcodes.LASTORE: NYI(i); break; 
-        case Opcodes.FASTORE: NYI(i); break; 
-        case Opcodes.DASTORE: NYI(i); break; 
-        case Opcodes.AASTORE: NYI(i); break; 
-        case Opcodes.BASTORE: NYI(i); break; 
-        case Opcodes.CASTORE: NYI(i); break; 
-        case Opcodes.SASTORE: NYI(i); break; 
-        case Opcodes.POP: popStack(i); break; 
-        case Opcodes.POP2: NYI(i); break; 
-        case Opcodes.DUP: {
-            AbstractInterpretationValue dup_x_value = popStack(i); 
-            pushStack(i, dup_x_value); 
-            pushStack(i, dup_x_value); 
-            break;
+    void pushStackDefinition(Insn i, String desc) {
+        AbstractInterpretationValue s = bcmv.createValue(i, desc);
+        if (noisy) {
+            System.out.print(getStackString());
+            System.out.println("pushStackDefinition: Insn = " + i + " desc = " + desc + " value = " + s);
         }
-        case Opcodes.DUP_X1: NYI(i); break; 
-        case Opcodes.DUP_X2: NYI(i); break; 
-        case Opcodes.DUP2: NYI(i); break; 
-        case Opcodes.DUP2_X1: NYI(i); break; 
-        case Opcodes.DUP2_X2: NYI(i); break; 
-        case Opcodes.SWAP: {
-            AbstractInterpretationValue swap_x_value = popStack(i);
-            AbstractInterpretationValue swap_y_value = popStack(i);
-            pushStack(i, swap_y_value);
-            pushStack(i, swap_x_value);
-            break;
+        i.addDef(s);
+        s.addDefinition(i);
+        if (isDoubleWideType(s)) {
+            AbstractInterpretationSecondSlotValue ss = bcmv.createSecondSlotValue(s);
+            stack[stackIndex++] = ss;
+            i.addDef(ss);
+            ss.addDefinition(i);
         }
-        case Opcodes.IADD: NYI(i); break; 
-        case Opcodes.LADD: NYI(i); break; 
-        case Opcodes.FADD: NYI(i); break; 
-        case Opcodes.DADD: NYI(i); break; 
-        case Opcodes.ISUB: NYI(i); break; 
-        case Opcodes.LSUB: NYI(i); break; 
-        case Opcodes.FSUB: NYI(i); break; 
-        case Opcodes.DSUB: NYI(i); break; 
-        case Opcodes.IMUL: NYI(i); break; 
-        case Opcodes.LMUL: NYI(i); break; 
-        case Opcodes.FMUL: NYI(i); break; 
-        case Opcodes.DMUL: NYI(i); break; 
-        case Opcodes.IDIV: NYI(i); break; 
-        case Opcodes.LDIV: NYI(i); break; 
-        case Opcodes.FDIV: NYI(i); break; 
-        case Opcodes.DDIV: NYI(i); break; 
-        case Opcodes.IREM: NYI(i); break; 
-        case Opcodes.LREM: NYI(i); break; 
-        case Opcodes.FREM: NYI(i); break; 
-        case Opcodes.DREM: NYI(i); break; 
-        case Opcodes.INEG: NYI(i); break; 
-        case Opcodes.LNEG: NYI(i); break; 
-        case Opcodes.FNEG: NYI(i); break; 
-        case Opcodes.DNEG: NYI(i); break; 
-        case Opcodes.ISHL: NYI(i); break; 
-        case Opcodes.LSHL: NYI(i); break; 
-        case Opcodes.ISHR: NYI(i); break; 
-        case Opcodes.LSHR: NYI(i); break; 
-        case Opcodes.IUSHR: NYI(i); break; 
-        case Opcodes.LUSHR: NYI(i); break; 
-        case Opcodes.IAND: NYI(i); break; 
-        case Opcodes.LAND: NYI(i); break; 
-        case Opcodes.IOR: NYI(i); break; 
-        case Opcodes.LOR: NYI(i); break; 
-        case Opcodes.IXOR: NYI(i); break; 
-        case Opcodes.LXOR: NYI(i); break; 
-        case Opcodes.I2L: NYI(i); break; 
-        case Opcodes.I2F: NYI(i); break; 
-        case Opcodes.I2D: NYI(i); break; 
-        case Opcodes.L2I: NYI(i); break; 
-        case Opcodes.L2F: NYI(i); break; 
-        case Opcodes.L2D: NYI(i); break; 
-        case Opcodes.F2I: NYI(i); break; 
-        case Opcodes.F2L: NYI(i); break; 
-        case Opcodes.F2D: NYI(i); break; 
-        case Opcodes.D2I: NYI(i); break; 
-        case Opcodes.D2L: NYI(i); break; 
-        case Opcodes.D2F: NYI(i); break; 
-        case Opcodes.I2B: NYI(i); break; 
-        case Opcodes.I2C: NYI(i); break; 
-        case Opcodes.I2S: NYI(i); break; 
-        case Opcodes.LCMP: NYI(i); break; 
-        case Opcodes.FCMPL: NYI(i); break; 
-        case Opcodes.FCMPG: NYI(i); break; 
-        case Opcodes.DCMPL: NYI(i); break; 
-        case Opcodes.DCMPG: NYI(i); break; 
-        case Opcodes.IRETURN: popStack(i); pc = bcmv.insns.size(); break; 
-        case Opcodes.LRETURN: popStack(i); popStack(i); pc = bcmv.insns.size(); break; 
-        case Opcodes.FRETURN: popStack(i); pc = bcmv.insns.size(); break; 
-        case Opcodes.DRETURN: popStack(i); popStack(i); pc = bcmv.insns.size(); break; 
-        case Opcodes.ARETURN: popStack(i); pc = bcmv.insns.size(); break; 
-        case Opcodes.RETURN:  pc = bcmv.insns.size(); break; 
-        case Opcodes.ARRAYLENGTH: NYI(i); break; 
-        case Opcodes.ATHROW: popStack(i); pc = bcmv.insns.size(); break; 
-        case Opcodes.MONITORENTER: popStack(i); break; 
-        case Opcodes.MONITOREXIT: popStack(i); break;
-        default: 
-            NYI(i);
-        }
-   }
+        stack[stackIndex++] = s;
+        i.setStack(stack);
 
-
-    void interpretTableSwitchInsn(TableSwitchInsn i) {NYI(i);}
-
-    void interpretTryCatchBlock(TryCatchBlock i) { 
-        // for every instruction from i.start to i.end i.handler is a potential next instruction.
-        //        For now do nothing.
     }
 
-    void interpretTypeInsn(TypeInsn i) {
-        switch (i.opcode) {
-        case Opcodes.NEW: pushStackDefinition(i, bcmv.createValue(i, i.type)); break;
-        case Opcodes.ANEWARRAY: NYI(i); break;
-        case Opcodes.CHECKCAST: {
-            AbstractInterpretationValue v = popStack(i); 
-            pushStack(i, v);
-            break;
+    void pushStackBoxedDefinition(Insn i, String result, AbstractInterpretationValue val) {
+        if (noisy) System.out.print(getStackString());        
+        AbstractInterpretationBoxedValue bv = bcmv.createBoxedValue(i, result, val);
+        if (noisy)
+            System.out.println("pushStackBoxedDefinition: Insn = " + i + 
+                               " result = " + result + " value = " + val);
+        i.addDef(bv);
+        bv.addDefinition(i);
+        stack[stackIndex++] = bv;
+        i.setStack(stack);
+    }
+    
+    void pushStack(Insn i, AbstractInterpretationValue s) {
+        if (noisy) {
+            System.out.print(getStackString());        
+            System.out.println("pushStack: Insn = " + i + " value = " + s); 
         }
-        case Opcodes.INSTANCEOF: popStack(i); pushStackDefinition(i, bcmv.createValue(i, "I")); break;
-        default: NYI(i); break;
+        if (stackIndex >= stack.length) {
+            System.out.println("pushStack overflow: StackIndex = " + stackIndex);
+            System.out.println("BCMV = " + bcmv + " Insn = " + i);
+            for (int j = 0; j < stackIndex; j++)
+                System.out.println("Stack Item: " + j + " = " + stack[j]);
+            int count = 0;
+            for (Insn insn : bcmv.insns) {
+                if (i.matches(insn)) System.out.print("****>");
+                System.out.println("Insn " + count++ + " = " + insn + " stack = " + insn.getStackString());
+            }
+            throw new RuntimeException("pushStack: i = " + i + " causes stack overflow");
         }
+        s.addUse(i);
+        i.addUse(s);
+        if (isDoubleWideType(s)) {
+                AbstractInterpretationSecondSlotValue ss = bcmv.createSecondSlotValue(s);
+                stack[stackIndex++] = ss;
+                i.addUse(ss);
+                ss.addUse(i);
+            }
+        stack[stackIndex++] = s;
+        i.setStack(stack);
+
     }
 
-    void interpretVisitLineNumberInsn(VisitLineNumberInsn i) {}
-
-    public String toString() {
-        return  getStackString() + getLocalsString();
+    AbstractInterpretationValue popStack(Insn i) { 
+        if (noisy) System.out.print(getStackString());        
+        AbstractInterpretationValue result = stack[--stackIndex];
+        if (noisy) System.out.println("popStack: Insn = " + i + " result = " + result);
+        if (isDoubleWideType(result)) {
+            AbstractInterpretationSecondSlotValue other = 
+                (AbstractInterpretationSecondSlotValue) stack[--stackIndex];
+            i.addUse(other);
+            other.addUse(i);
+        }
+        i.addUse(result);
+        result.addUse(i);
+        i.setStack(stack);
+        return result;
     }
+
 }
-

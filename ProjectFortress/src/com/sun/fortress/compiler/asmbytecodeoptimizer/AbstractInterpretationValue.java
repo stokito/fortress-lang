@@ -19,6 +19,7 @@ public class AbstractInterpretationValue {
     private Set<Insn> defs;
     private Set<Insn> uses;
     private boolean needed;
+    private Insn definition;
     private String type;
 
     AbstractInterpretationValue(Insn definition, String type) {
@@ -27,6 +28,7 @@ public class AbstractInterpretationValue {
         this.defs.add(definition);
         this.uses = new HashSet<Insn>();
         this.needed = true;
+        this.definition = definition;
         this.type = type;
         if (type.equals("J") || type.equals("D"))
             count++;
@@ -38,6 +40,7 @@ public class AbstractInterpretationValue {
     public boolean notNeeded() { return !needed;}
     public void setNeeded() { needed = true;}
     public void setUnNeeded() {needed = false;}
+    public Insn getDefinition() { return definition;}
     public String getType() { return type;}
     
 
@@ -79,8 +82,10 @@ public class AbstractInterpretationValue {
     }
 
     public String toString() { 
-        return idString() + valueNumber + " needed = " + needed + 
-            " with type " + type + "\n     defs = " + defsString() + 
-            "\n     used in " + usesString() + "\n";
+        return idString() + valueNumber;
+
+        //        return idString() + valueNumber + " needed = " + needed + 
+        //            " with type " + type + "\n     defs = " + defsString() + 
+        //            "\n     used in " + usesString() + "\n";
     }
 }

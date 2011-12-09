@@ -68,6 +68,7 @@ public class Inlining {
         if (insn instanceof MethodInsn) {
             MethodInsn mi = (MethodInsn) insn;
             if ((mi.opcode == Opcodes.INVOKEINTERFACE) && (isCompilerBuiltin(mi.owner))) {
+                System.out.println("isBuiltinInterfaceMethod true : mi = " + mi);
                 return true;
             }
         }

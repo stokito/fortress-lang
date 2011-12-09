@@ -92,6 +92,14 @@ public class Opcodes {
     public static final int ACC_ABSTRACT                 = 0x00000400;
     public static final int ACC_SUPER                    = 0x00000020;
 
+    /* Frame codes */
+    public static final int F_NEW                        = -1;
+    public static final int F_FULL                       = 0;
+    public static final int F_APPEND                     = 1;
+    public static final int F_CHOP                       = 2;
+    public static final int F_SAME                       = 3;
+    public static final int F_SAME1                      = 4;
+
     /* Type codes */
     public static final int T_BOOLEAN                    = 0x00000004;
     public static final int T_CHAR                       = 0x00000005;

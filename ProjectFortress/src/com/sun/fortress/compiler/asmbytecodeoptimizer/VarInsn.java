@@ -33,7 +33,6 @@ public class VarInsn extends Insn {
 
     public boolean matches(VarInsn vi) {
         boolean result = (opcode == vi.opcode) && (var == vi.var);
-        System.out.println("Matching " + vi + " with " + this + "=" + result);
         return result;
     }
 

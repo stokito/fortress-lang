@@ -31,7 +31,7 @@ public class AbstractInterpretationBoxedValue extends AbstractInterpretationValu
 
     public String idString() {
         if (originalValue != null)
-            return "AbstractInterpretationBoxedValue: originalValue = " + originalValue.getValueNumber();
+            return "AbstractInterpretationBoxedValue: originalValue = " + originalValue.getValueNumber() + "...";
         else
             return "AbstractInterpretationBoxedValue: generatedBoxedValue ";
     }
