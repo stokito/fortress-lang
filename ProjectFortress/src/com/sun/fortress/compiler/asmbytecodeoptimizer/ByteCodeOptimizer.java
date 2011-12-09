@@ -134,11 +134,10 @@ class ByteCodeOptimizer {
             System.out.println("About to start optimizing " + bcv.name);
             AddString.optimize(bcv);
             RemoveLiteralCoercions.optimize(bcv);
+            CalculateLabels.optimize(bcv);
             //            Inlining.optimize(bcv);
             AbstractInterpretation.optimize((String) pairs.getKey(), bcv);
-            System.out.println("About to start DefUseChainOptimizations on " + bcv.name);
             DefUseChains.optimize(bcv);
-            System.out.println("Finished DefUseChainOptimizations on " + bcv.name);
         }
     }
         

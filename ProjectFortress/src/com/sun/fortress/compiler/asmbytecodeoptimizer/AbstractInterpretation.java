@@ -9,35 +9,24 @@
 
 ******************************************************************************/
 package com.sun.fortress.compiler.asmbytecodeoptimizer;
-
-import com.sun.fortress.compiler.NamingCzar;
-import com.sun.fortress.useful.ArrayQueueList;
-
-
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.objectweb.asm.*;
-import org.objectweb.asm.util.*;
 
 
 public class AbstractInterpretation {
+    private final static boolean noisy = false;
+    String className;
+    ByteCodeMethodVisitor bcmv;
     AbstractInterpretationContext context;
 
-    static Set<AbstractInterpretationContext> instructions;
-    private final static boolean noisy = false;
-
     AbstractInterpretation(String className, ByteCodeMethodVisitor bcmv) {
-        context = new AbstractInterpretationContext(this, bcmv, 
-                                                    new AbstractInterpretationValue[bcmv.maxStack],
-                                                    new AbstractInterpretationValue[bcmv.maxLocals],
-                                                    0, 0); 
+        this.className = className;
+        this.bcmv = bcmv;
+        this.context = new AbstractInterpretationContext(bcmv,
+                                                         new AbstractInterpretationValue[bcmv.maxStack],
+                                                         new AbstractInterpretationValue[bcmv.maxLocals],
+                                                         0, 0);
         AbstractInterpretationValue.initializeCount();
-        instructions = new HashSet<AbstractInterpretationContext>();
     }
 
     public static void optimize(String key, ByteCodeVisitor bcv) {
@@ -45,7 +34,6 @@ public class AbstractInterpretation {
 
          while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry) it.next();
-            // System.err.println(key + " " + pairs.getKey());
             ByteCodeMethodVisitor bcmv = (ByteCodeMethodVisitor) pairs.getValue();
             optimizeMethod(key, bcmv);
          }
@@ -53,7 +41,6 @@ public class AbstractInterpretation {
 
     public static void optimizeMethod(String key, ByteCodeMethodVisitor bcmv) {
         AbstractInterpretation ai = new AbstractInterpretation(key, bcmv);
-        // if (noisy) System.out.println("optimize for key = " + key);
         int localsIndex = 0;
         Insn insn = bcmv.insns.get(0);        
 
@@ -62,57 +49,84 @@ public class AbstractInterpretation {
                 String t = "L" + key.replace(".class", ";");
                 AbstractInterpretationValue val = bcmv.createValue(insn,t);
                 insn.addDef(val);
-                ai.context.locals[localsIndex++] = val;
+                localsIndex = ai.context.setLocal(localsIndex, val);
             }
         
             for (int i = 0; i < bcmv.args.size(); i++) {
                 String t = bcmv.args.get(i);
                 AbstractInterpretationValue val = bcmv.createValue(insn,t);
                 insn.addDef(val);
-                ai.context.locals[localsIndex+i] = val;
-                // Skip the second local, for dual-word values.
-                char c = t.charAt(0);
-                if (c == 'J' || c == 'D')
-                    localsIndex++;
+                localsIndex = ai.context.setLocal(localsIndex, val);
             }
-
             ai.interpretMethod();
+                
             bcmv.setAbstractInterpretation(ai);
         }
     }
 
+    public void interpretInsns(AbstractInterpretationContext c, int start) {
+        c.pc = start;
+         while (c.pc < bcmv.insns.size()) {
+             AbstractInterpretationInsn.interpretInsn(c, bcmv.insns.get(c.pc), c.pc);
+             c.pc++;
+         }
+    }        
+
     public void interpretMethod() {
         long startTime = 0;
+
         if (noisy) {
-            System.out.println("Interpreting method " + context.bcmv.name + " with access " + context.bcmv.access + " Opcodes.static = " + Opcodes.ACC_STATIC + " bcmv.maxStack = " + context.bcmv.maxStack + " maxLocals = " + context.bcmv.maxLocals);
-            System.out.flush();
-            startTime = System.currentTimeMillis();
+            System.out.println("Interpreting method " + bcmv.name + " with access " + bcmv.access + " Opcodes.static = " + Opcodes.ACC_STATIC + " bcmv.maxStack = " + bcmv.maxStack + " maxLocals = " + bcmv.maxLocals);
         }
 
-        context.interpretMethod();
-     
-        while (!instructions.isEmpty()) {
-            int size = instructions.size();
-            
-            context = removeOne(instructions);
-            context.interpretMethod();
+        interpretInsns(context, 0);
+
+        while (!context.branchTargets.isEmpty()) {
+            AbstractInterpretationContext c = context.branchTargets.remove(0);
+            interpretInsns(c,c.pc);
         }
+            
+
+         for (AbstractInterpretationContext c : context.branchTargets) {
+             interpretInsns(c, c.pc);
+         }
+
+         bcmv.sortValues();
         
         if (noisy) {
-            System.out.println("Finished method " + context.bcmv.name + " in " + (System.currentTimeMillis() - startTime) + " ms");
+            System.out.println("Finished method " + bcmv.name + " in " + (System.currentTimeMillis() - startTime) + " ms");
         }
 
     }
 
-    private AbstractInterpretationContext removeOne(
-            Set<AbstractInterpretationContext> insts) {
-        AbstractInterpretationContext inst = insts.iterator().next();
-        insts.remove(inst);
-        return inst;
+
+   
+    public String getStackString() {
+        String result = "[";
+        for(int i = 0; i < context.stackIndex; i++) 
+            result = result + " " + context.stack[i];
+        result = result + "]";
+        return result;
     }
 
+    public String getLocalsString() {
+        String result = "{";
+        for (int i=0; i < context.locals.length; i++)
+            result = result + " " + context.locals[i];
+        result = result + "}";
+        return result;
+    }
+
+
+    void printInsn(Insn i, int pc) {
+        if (noisy)  {
+            System.out.println("InterpretInsn: pc= " + pc + " insn = " + i + getStackString() + getLocalsString());
+        }
+    }        
+
+
     public String toString() {
-        return context.toString();
+        return  getStackString() + getLocalsString();
     }
 }
 

@@ -30,7 +30,18 @@ public class VisitFrame extends Insn {
     }
 
     public String toString() { 
-        String result = "VisitFrame locals = [";
+        String result = "VisitFrame: type = ";
+        switch (type) {
+        case Opcodes.F_NEW:      result = result + " F_NEW ";    break;
+        case Opcodes.F_FULL:     result = result + " F_FULL ";   break;
+        case Opcodes.F_APPEND:   result = result + " F_APPEND "; break;
+        case Opcodes.F_CHOP:     result = result + " F_CHOP ";   break;
+        case Opcodes.F_SAME:     result = result + " F_SAME ";   break;
+        case Opcodes.F_SAME1:    result = result + " F_SAME1 ";  break;
+        default: throw new RuntimeException("Unknown Frame Type " + type);
+        }
+
+        result = result + "locals = [";
         for (int i = 0; i < nLocal; i++)
             result = result + local[i] + "  ";
         result = result + "] Stack = [";

@@ -66,6 +66,8 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         this.index = 0;
         this.vals = new ArrayList<AbstractInterpretationValue>();
         this.labelDefs = new HashMap();
+        this.maxStack = 0;
+        this.maxLocals = 0;
         changed = false;
     }
 
@@ -93,8 +95,14 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         return result;
     }
 
-    public AbstractInterpretationBoxedValue createValue(Insn i, String desc, AbstractInterpretationValue v) {
+    public AbstractInterpretationBoxedValue createBoxedValue(Insn i, String desc, AbstractInterpretationValue v) {
         AbstractInterpretationBoxedValue result = new AbstractInterpretationBoxedValue(i, desc, v);
+        vals.add(result);
+        return result;
+    }
+
+    public AbstractInterpretationSecondSlotValue createSecondSlotValue(AbstractInterpretationValue v) {
+        AbstractInterpretationSecondSlotValue result = new AbstractInterpretationSecondSlotValue(v);
         vals.add(result);
         return result;
     }
