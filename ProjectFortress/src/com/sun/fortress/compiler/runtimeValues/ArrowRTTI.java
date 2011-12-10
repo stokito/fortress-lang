@@ -58,9 +58,9 @@ public abstract class ArrowRTTI extends RTTI {
 	 }
 	
 	 public String className() {
-	     StringBuilder ret = new StringBuilder("AbstractArrow" + Naming.LEFT_OXFORD);
+	     StringBuilder ret = new StringBuilder(Naming.ABSTRACT_ARROW + Naming.LEFT_OXFORD);
 	     for (RTTI input : this.inputsRTTI)
-	         ret.append(input.className() + ";");
+	         ret.append(input.className() + Naming.GENERIC_SEPARATOR);
 	     ret.append(outputRTTI.className() + Naming.RIGHT_OXFORD);
 	     return ret.toString();
 	 }

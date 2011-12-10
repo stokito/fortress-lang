@@ -1030,7 +1030,7 @@ public class NamingCzar {
     public static String makeAbstractArrowDescriptor(
             List<com.sun.fortress.nodes.Param> params,
             com.sun.fortress.nodes.Type rt, APIName ifNone) {
-        return makeAnArrowDescriptor(paramsToTypes(params), rt, ifNone, "AbstractArrow");
+        return makeAnArrowDescriptor(paramsToTypes(params), rt, ifNone, Naming.ABSTRACT_ARROW);
     }
 
     /**
@@ -1048,11 +1048,11 @@ public class NamingCzar {
             StringBuilder buf = new StringBuilder();
             buf.append(result);
             for (com.sun.fortress.nodes.Type t : params) {
-                buf.append(makeBoxedTypeName(t, ifNone) + ";");
+                buf.append(makeBoxedTypeName(t, ifNone) + Naming.GENERIC_SEPARATOR);
             }
             result = buf.toString();
         } else {
-            result = result + Naming.INTERNAL_SNOWMAN + ";";
+            result = result + Naming.INTERNAL_SNOWMAN + Naming.GENERIC_SEPARATOR;
         }
 
         result = result + makeBoxedTypeName(rt, ifNone) + Naming.RIGHT_OXFORD;
@@ -1159,7 +1159,7 @@ public class NamingCzar {
         String res = "";
         StringBuilder buf = new StringBuilder();
         for (com.sun.fortress.nodes.Type ty : t.getElements()) {
-            buf.append(makeBoxedTypeName(ty, ifNone) +  ';');
+            buf.append(makeBoxedTypeName(ty, ifNone) +  Naming.GENERIC_SEPARATOR_CHAR);
         }
         res = buf.toString();
         return Useful.substring(res, 0, -1);
@@ -1188,7 +1188,7 @@ public class NamingCzar {
      */
     private static String makeBoxedUnionName(UnionType ut,
             final APIName ifNone) {
-        String s = makeBoxedThingName("Union", ut.getElements(), ifNone);
+        String s = makeBoxedThingName(Naming.UNION, ut.getElements(), ifNone);
         return s;
     }
     
@@ -1201,7 +1201,7 @@ public class NamingCzar {
         String prepend = "";
         for (com.sun.fortress.nodes.Type ty : lt) {
             buf.append(prepend);
-            prepend = ";";
+            prepend = Naming.GENERIC_SEPARATOR;
             buf.append(makeBoxedTypeName(ty, ifNone));
         }
         buf.append(Naming.RIGHT_OXFORD);
@@ -1339,7 +1339,7 @@ public class NamingCzar {
                 String pfx = Naming.LEFT_OXFORD;
                 for (StaticParam p : sparams) {
                     sparams_part.append(pfx);
-                    pfx = ";";
+                    pfx = Naming.GENERIC_SEPARATOR;
                     sparams_part.append(p.getName().accept(this));
                 }
                 sparams_part.append(Naming.RIGHT_OXFORD);
@@ -1518,6 +1518,11 @@ public class NamingCzar {
     public static String jvmClassForToplevelTypeDecl(IdOrOp x, String sparams_part, String api) {
         api = repairedApiName(x, api);
         return makeInnerClassName(api, x.getText()+sparams_part);
+    }
+
+    public static String jvmClassForToplevelTypeDecl(IdOrOp x, List<String> opr_args, String api) {
+        api = repairedApiName(x, api);
+        return makeInnerClassName(api, Naming.oprArgAnnotatedRTTI(x.getText(), opr_args));
     }
 
     /**
@@ -1828,7 +1833,7 @@ public class NamingCzar {
             Triple<String,String,Integer> s = receiverType.accept(spkTagger);
             if (xldata != null)
                 xldata.addKindAndNameToStaticParams(s);
-            buf.append(s.getB() + ";");
+            buf.append(s.getB() + Naming.GENERIC_SEPARATOR);
         }
         for (StaticParam sp : sparams) {
             StaticParamKind spk = sp.getKind();
@@ -1838,7 +1843,7 @@ public class NamingCzar {
             String s = spn.getText();
             if (xldata != null)
                 xldata.addKindAndNameToStaticParams(k,s);
-            buf.append(s + ";");
+            buf.append(s + Naming.GENERIC_SEPARATOR);
         }
         frag = buf.toString();
         // TODO Auto-generated method stub
@@ -1860,7 +1865,7 @@ public class NamingCzar {
         for (StaticArg sp : sargs) {
             Triple<String,String,Integer> tag = sp.accept(spkTagger);
             buf.append(tag.getB());
-            buf.append(";");
+            buf.append(Naming.GENERIC_SEPARATOR);
             index++;
         }
         frag = buf.toString();

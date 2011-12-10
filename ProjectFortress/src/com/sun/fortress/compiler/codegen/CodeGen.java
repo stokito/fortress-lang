@@ -4727,16 +4727,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         
         for (Id extendee : direct_extends.keySet()) {
-            // note fields are volatile because of double-checked locking below
-            String extendeeIlk =
-                NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",
-                                                       packageAndClassName);
-
-//            String field_type = Naming.stemClassToRTTIclass(extendeeIlk);
-//            String tyDesc = Naming.internalToDesc(field_type);
-//            cw.visitField(ACC_PRIVATE + ACC_VOLATILE,
-//                    extendeeIlk, tyDesc, null, null);
             
+            // This yutch is repeated below in lazyInit; needs cleanup.
+            TraitIndex ti = direct_extends.get(extendee);
+            List<StaticArg> ti_args = direct_extends_args.get(extendee);
+            List<String> opr_args = oprsFromStaticArgs(ti_args);
+            String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(
+                                       extendee,opr_args,packageAndClassName);
+
+            // note fields are volatile because of double-checked locking below
             cw.visitField(ACC_PRIVATE + ACC_VOLATILE,
                     extendeeIlk, Naming.RTTI_CONTAINER_DESC, null, null);
          }
@@ -4864,7 +4863,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 // invoke factory method for value to store.
                 generateTypeReference(mv, rttiClassName, extendee, ti_args, spns);
                 //putExtendeeField(rttiClassName, extendee);
-                putExtendeeField(rttiClassName, extendee);
+                List<String> opr_args = oprsFromStaticArgs(ti_args);
+                String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,opr_args,packageAndClassName);
+                mv.visitFieldInsn(PUTFIELD, rttiClassName, extendeeIlk, Naming.RTTI_CONTAINER_DESC);
             }
            
            // Mark as inited.  Just store a self-pointer and be done with it.
@@ -5038,10 +5039,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     								   List<StaticArg> ti_args,
     								   HashSet<String> spns)
     {	
-        String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
+        List<String> opr_args = oprsFromStaticArgs(ti_args);
+        String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,opr_args,packageAndClassName);
         String field_type = Naming.stemClassToRTTIclass(extendeeIlk);
         
-        if (ti_args.size() == 0) {
+        if (ti_args.size() - opr_args.size() == 0) {
             if (spns.contains(extendee.getText())) {
                 // reference to a static parameter.  Load from field of same name.
                 mv2.visitVarInsn(ALOAD, 0);
@@ -5052,7 +5054,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             }
         } else {
             // invoke field_type.factory(class, args)
-            String fact_sig = InstantiatingClassloader.jvmSignatureForNTypes(ti_args.size(),
+            String fact_sig = InstantiatingClassloader.jvmSignatureForNTypes(ti_args.size() - opr_args.size(),
                     Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_CONTAINER_DESC);
 //            String fact_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class",ti_args.size(),
 //                    Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_CONTAINER_DESC);
@@ -5136,7 +5138,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 } else if (sta instanceof IntArg) {
                     
                 } else if (sta instanceof OpArg) {
-                    
+                    continue; // skip opr args pushing to factory
                 } else if (sta instanceof UnitArg) {
                     
                 } else {
@@ -5150,6 +5152,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
     }
     
+    private List<String> oprsFromStaticArgs(List<StaticArg> ti_args) {
+        ArrayList<String> al = new ArrayList<String>();
+        for (StaticArg sta : ti_args) {
+            if (sta instanceof OpArg) {
+                OpArg opa = (OpArg) sta;
+                al.add(opa.getId().getText());
+            } 
+        }
+        return al;
+    }
+
+
     private void generateTraitTypeReference(CodeGenMethodVisitor mv2, TraitType tt, String rttiClassName, HashSet<String> spns) {
         List<StaticArg> tt_sa = tt.getArgs();
         Id tt_id = tt.getName();
