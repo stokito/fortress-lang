@@ -384,7 +384,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         for (int i = leftBracket+1; i <= rightBracket; i++) {
             char ch = name.charAt(i);
     
-            if ((ch == ';' || ch == Naming.RIGHT_OXFORD_CHAR) && depth == 1) {
+            if ((ch == Naming.GENERIC_SEPARATOR_CHAR || ch == Naming.RIGHT_OXFORD_CHAR) && depth == 1) {
                 String parameter = name.substring(pbegin,i);
                 if (sargs != null)
                     sargs.add(parameter);
@@ -2206,11 +2206,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     }
 
     private static String stringListToGeneric(String what, List<String> parameters) {
-        return what + Useful.listInDelimiters(Naming.LEFT_OXFORD, parameters, Naming.RIGHT_OXFORD, ";");
+        return what + Useful.listInDelimiters(Naming.LEFT_OXFORD, parameters, Naming.RIGHT_OXFORD, Naming.GENERIC_SEPARATOR);
     }
 
     private static String stringListToGenericOfObjects(String what, List<String> parameters) {
-        return what + Useful.listInDelimiters(Naming.LEFT_OXFORD, parameters, Naming.RIGHT_OXFORD, ";");
+        return what + Useful.listInDelimiters(Naming.LEFT_OXFORD, parameters, Naming.RIGHT_OXFORD, Naming.GENERIC_SEPARATOR);
     }
 
 
