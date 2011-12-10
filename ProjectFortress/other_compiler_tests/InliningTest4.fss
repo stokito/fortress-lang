@@ -1,0 +1,36 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component InliningTest4
+export Executable
+
+fun(x: RR64): RR64 = x (x x + 1.0)
+
+integrate_fo'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, tol: RR64): RR64 = do
+  t1:RR64 = |l-h|
+  t2:RR64 = |fl| fh
+  println(t1)
+  println(t2)
+  println(fl)
+  println(fh)
+  if |l - h| <= |fl| fh OR: fl < fh then                 
+        integrate_fo'(l,h,fl,fh,a,tol) + integrate_fo'(l,h,fl,fh,a,tol)
+  else
+        100.0
+  end
+end
+
+
+run(): () = do
+   foo = integrate_fo'(1.0, 20.0, 4.0, 3.0, 5.0, 6.0)
+   println(foo)
+end
+end

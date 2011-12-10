@@ -1,0 +1,43 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component OprDecl.SubscriptedAssignment
+
+export Executable
+
+object BizarroIndex
+  val = 2
+end
+object Widget end
+
+object SubscriptedAssignmentTest
+  bizarroFetch(x: BizarroIndex) = BizarroIndex.val
+  bizarroInstall(x: BizarroIndex, newValue: Widget) = ()
+  opr [x: BizarroIndex] = self.bizarroFetch(x)
+(** EXAMPLE **)
+  (* subscripted assignment method *)
+  opr [x: BizarroIndex] := (newValue: Widget) = self.bizarroInstall(x, newValue)
+(** END EXAMPLE **)
+end
+
+foo = SubscriptedAssignmentTest
+p = BizarroIndex
+myWidget = Widget
+
+run() = do
+  assert(SubscriptedAssignmentTest[BizarroIndex] = 2)
+  foo[p] := myWidget
+  println("OprDecl.SubscriptedAssignment.fss passed.")
+end
+
+end
