@@ -507,7 +507,9 @@ object STypesUtil {
     case _: KindInt => NI.nyi()
     case _: KindBool => NI.nyi()
     case _: KindDim => NI.nyi()
-    case _: KindOp => NF.makeOpArg(NU.getSpan(sparam), NF.make_InferenceVarOp(NU.getSpan(sparam)))
+    case _: KindOp => NF.makeOpArg(NU.getSpan(sparam),
+                      NF.make_InferenceVarOp(NU.getSpan(sparam)),
+                      sparam.isLifted) // DRC- opArgs also lifted?
     case _: KindUnit => NI.nyi()
     case _: KindNat => NI.nyi()
     case _ => bug("unexpected kind of static parameter")

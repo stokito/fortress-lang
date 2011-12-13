@@ -3192,9 +3192,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             /*
              *  Note this does not yet deal with functional, generic methods
              *  because it stomps on "sargs".
+             *  
+             *  This is also hacked because of uncertain results
+             *  with opr parameters; the args were repeated (why?)
              */
             Option<MethodInfo> omi = ((ArrowType) arrow).getMethodInfo();
-            if (omi.isSome()) {
+            
+            // sargs.size() == 0 is a hack to avoid doubled parameters.
+            if (omi.isSome() && sargs.size() == 0) {
                 MethodInfo mi = omi.unwrap();
                 // int self_i = mi.getSelfPosition();
                 Type self_t = mi.getSelfType();
@@ -3202,7 +3207,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     self_t = ((TraitSelfType)self_t).getNamed();
                 if (self_t instanceof TraitType) {
                     /* Trait static args, followed by method static args */
-                    sargs = Useful.concat(((TraitType) self_t).getArgs(), sargs);
+                    List<StaticArg> new_sargs = Useful.concat(((TraitType) self_t).getArgs(), sargs);
+                    if (sargs.size() > 0 && new_sargs.size() != sargs.size())
+                        throw new Error("Interesting case found");
+                    sargs = new_sargs;
                 }
             }
         } else {
@@ -3232,7 +3240,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Type arrowToUse = arrow;
 
             if (oschema.isSome()) {
-                arrowToUse = oschema.unwrap();
+                // bug??
+                // Schema should NOT be AnyType, but in at least one case it is
+                if (!( oschema.unwrap() instanceof AnyType ))
+                    arrowToUse = oschema.unwrap();
             } else {
                 System.err.println(NodeUtil.getSpan(x) + ": FunctionalRef " + x + " lacks overloading schema; using "+arrowToUse+" sargs "+sargs);
             }
