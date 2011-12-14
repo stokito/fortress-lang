@@ -1,0 +1,36 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component comprehensions
+import Set.{...}
+import List.{...}
+import Map.{...}
+export Executable
+
+run():() = ()
+
+  set_comp_one = { i + j | i <- 1 # 10 , j <- 0 # 1 }
+  set_comp_two = {a^b | a<-2#2,b<-1#4}
+  set_comp_tri = { i+j | i <- 1#10, j <- 1#10, i < j }
+
+  list_comp_one = <| i + j | i <- 1 # 10 , j <- 0 # 1 |>
+  list_comp_two = <|a^b | a<-2#2,b<-1#4|>
+
+  map_comp_one = { i - j |-> j - i | i <- 1 # 10 , j <- 1 # 1 }
+  map_comp_two = {a^b|->a b | a<-2#2,b<-1#4}
+
+  array_comp_big = [ (x,y,1) |-> 0.0 | x <- 1#xSize, y <- 1#ySize
+                     (1,y,z) |-> 0.0 | y <- 1#ySize, z <- 2#zSize
+                     (x,1,z) |-> 0.0 | x <- 2#xSize, z <- 2#zSize
+                     (x,y,z) |-> x + y z | x <- 2#xSize,
+                                         y <- 2#ySize,
+                                         z <- 2#zSize ]
+end

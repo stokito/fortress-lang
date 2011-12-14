@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component letRecTest
+export Executable
+
+run():()=do
+  inc4(x) = (inc2(inc2(x)));
+  inc(x) = (1 + (x));
+  inc2(x) = (inc(inc(x)));
+  println(if inc4(4)=8 then "pass" else "fail")
+end
+
+end

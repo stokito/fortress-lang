@@ -1,0 +1,56 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Each IfClause should have type () if there is no corresponding 'else'. *)
+
+run():() = do
+
+  (* test single if clause *)
+  if true then
+    1
+  end
+
+  (* test multiple if clause # 1 *)
+  if true then
+    2
+  elif false then
+    3
+  end
+
+  (* test multiple if clause # 2 *)
+  if true then
+    4
+    ()
+  elif false then
+    5
+  end
+
+  (* test multiple if clause # 3 *)
+  if true then
+    6
+  elif false then
+    7
+    ()
+  end
+
+  (* test multiple if clause # 4 *)
+  (* this one should be fine *)
+  if true then
+    8
+    ()
+  elif false then
+    9
+    ()
+  end
+
+end

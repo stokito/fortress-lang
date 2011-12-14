@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(*
+Concrete upper bound, invariant only
+- first call dispatches to "general"
+- second call dispatches to "specific"
+*)
+
+
+f(x : Any) : String = "general"
+f[\X extends B \](x : Foo[\X\]) : String = "specific"
+
+trait A end
+trait B extends A end
+
+object aObj extends A end
+object bObj extends B end
+
+object Foo[\X\](x : X) end
+
+run() = do 
+    x: Any = Foo(aObj)
+    println(f(x))
+    
+    y : Any = Foo(bObj)
+    println(f(y))
+end

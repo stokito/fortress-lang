@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component DXXFnExprTypeInference
+import List.{...}
+import Set.{...}
+export Executable
+
+ (* Parameters to function expressions should infer types from the usage in the body. *)
+
+ (*generators = ignore(fn (reduction, unitt) => __generate(3 : 10, reduction, fn (a) => unitt(a)))*)
+ f(x:Any):() = ()
+ blah = f(fn (reduction, unitt) => __generate(3 : 10, reduction, fn (a) => unitt(a)))
+
+ run():() = ()
+
+end

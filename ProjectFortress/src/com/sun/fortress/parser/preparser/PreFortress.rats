@@ -1,0 +1,90 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * A PreFortress grammar which can parse the component name, imports, and delimiters.
+ */
+module      com.sun.fortress.parser.preparser.PreFortress;
+modify      com.sun.fortress.parser.preparser.PreCompilation (Literal, Identifier, Keyword, PreSymbol, Spacing);
+
+instantiate com.sun.fortress.parser.Identifier (Keyword, PreSymbol, Unicode, Spacing) as Identifier;
+instantiate com.sun.fortress.parser.Keyword (Identifier) as Keyword;
+instantiate com.sun.fortress.parser.Literal(PreSymbol, Spacing) as Literal;
+instantiate com.sun.fortress.parser.Spacing (PreSymbol) as Spacing;
+instantiate com.sun.fortress.parser.Unicode as Unicode;
+instantiate com.sun.fortress.parser.preparser.PreSymbol (Identifier, Spacing, Keyword) as PreSymbol;
+
+header {
+import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.exceptions.ProgramError;
+import com.sun.fortress.parser_util.precedence_opexpr.*;
+import com.sun.fortress.parser_util.precedence_resolver.*;
+import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.*;
+import com.sun.fortress.parser_util.*;
+import com.sun.fortress.useful.Cons;
+import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.Empty;
+import com.sun.fortress.useful.PureList;
+import com.sun.fortress.useful.Useful;
+import com.sun.fortress.Shell;
+import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.iter.IterUtil;
+import edu.rice.cs.plt.collect.CollectUtil;
+import xtc.util.Action;
+import java.util.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import static com.sun.fortress.exceptions.ProgramError.errorMsg;
+import static com.sun.fortress.exceptions.ProgramError.error;
+import static com.sun.fortress.exceptions.InterpreterBug.bug;
+}
+
+body {
+    Span createSpan(int start, int end) {
+        int i = end-2;
+        while ( i >= 0 && yyData[i] == ' ' ) { i--; }
+        if ( i-1 >= start )
+            end = i-1;
+        else
+            end = start;
+        Column s = column(start);
+        Column e = column(end);
+        SourceLocRats slStart = new SourceLocRats(s.file, s.line, s.column, start);
+        SourceLocRats slEnd   = new SourceLocRats(e.file, e.line, e.column, end);
+        return new Span(slStart, slEnd);
+   }
+
+    private BufferedWriter writer;
+
+    void initParser() {
+        String s = ProjectProperties.preparserErrorLog(column(0).file);
+        try {
+            Debug.debug( Debug.Type.PARSER, 1, "Preparsing " + column(0).file + "...");
+            writer = Useful.filenameToBufferedWriter( s );
+        } catch (IOException error) {
+            error("Creating log file " + s + " for the parser failed, exception " + error.getMessage());
+        }
+    }
+
+    void log(Span span, String message) {
+        NodeUtil.log(writer, span, message);
+    }
+
+}
+
+option parser(com.sun.fortress.parser.preparser.PreFortress);
