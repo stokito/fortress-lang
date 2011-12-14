@@ -4234,8 +4234,8 @@ opr ->(a: Boolean, b:Boolean):Boolean = if a then b else true end
 opr ->(a: Boolean, b:()->Boolean):Boolean = if a then b() else true end
 opr <->(a: Boolean, b:Boolean):Boolean = a=b
 
-true : Boolean = () SEQV ()
-false : Boolean = true SEQV ()
+(*)true : Boolean = () SEQV ()
+(*)false : Boolean = true SEQV ()
 
 opr +[\T extends Number\](x:T):T = x
 

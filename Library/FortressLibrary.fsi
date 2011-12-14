@@ -2476,8 +2476,8 @@ opr ->(a: Boolean, b:Boolean):Boolean
 opr ->(a: Boolean, b:()->Boolean):Boolean
 opr <->(a: Boolean, b:Boolean):Boolean
 
-true : Boolean
-false : Boolean
+(*)true : Boolean
+(*)false : Boolean
 
 opr +[\T extends Number\](x:T):T
 

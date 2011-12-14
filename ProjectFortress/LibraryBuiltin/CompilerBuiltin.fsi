@@ -309,8 +309,8 @@ trait Boolean   extends { Equality[\Boolean\] }
   opr =(self, other:Boolean): Boolean
 end
 
-true: Boolean
-false: Boolean
+(*)true: Boolean
+(*)false: Boolean
 
 makeCharacter(n: ZZ32): Character
 

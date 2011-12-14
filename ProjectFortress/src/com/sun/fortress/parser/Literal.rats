@@ -16,23 +16,35 @@ module com.sun.fortress.parser.Literal(Symbol, Spacing);
 
 import Symbol;
 import Spacing;
+import Keyword;
 
 /* LiteralExpr ::=
      ( w )
+   | VoidLiteralExpr  
    | NumericLiteralExpr
    | CharLiteralExpr
    | StringLiteralExpr
+   | BooleanLiteralExpr
  */
 Expr LiteralExpr =
      <VOID> VoidLiteralExpr
    / <NUMERICAL> NumericLiteralExpr
    / <CHAR> CharLiteralExpr
    / <STRING> StringLiteralExpr
+   / <BOOLEAN> BooleanLiteralExpr
    ;
 
 Expr VoidLiteralExpr =
      <FIRST> openparen w closeparen
      { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); };
+
+BooleanLiteralExpr BooleanLiteralExpr =
+     b:BooleanLiteral { yyValue = ExprFactory.makeBooleanLiteralExpr(createSpan(yyStart,yyCount),b.equals("true")?1:0);};
+
+transient String BooleanLiteral =
+     true
+   / false  
+   ;
 
 transient IntLiteralExpr IntLiteralExpr =
      <FIRST> a1:NumericLiteralExpr &{ (a1 instanceof IntLiteralExpr) }

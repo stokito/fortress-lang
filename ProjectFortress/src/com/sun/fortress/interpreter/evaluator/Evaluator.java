@@ -1507,6 +1507,10 @@ public class Evaluator extends EvaluatorBase<FValue> {
         return FIntLiteral.make(x.getIntVal());
     }
 
+    public FValue forBooleanLiteralExpr(BooleanLiteralExpr x) {
+        return FBool.make(x.getBooleanVal() == 1? true : false);
+    }
+    
     private FValue forIdOfTLRef(Id x) {
         FValue res = e.getValueNull(x, Environment.TOP_LEVEL);
         if (res == null) {

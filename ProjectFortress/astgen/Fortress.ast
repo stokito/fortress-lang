@@ -769,6 +769,11 @@ interface Node() extends HasAt;
                              * e.g.) ()
                              */
                             VoidLiteralExpr();
+                            /**
+                             * Boolean literal
+                             * e.g.) true
+                             */
+                            BooleanLiteralExpr(int booleanVal);
                         /**
                          * variable reference
                          * VarOrFnRef ::= Id

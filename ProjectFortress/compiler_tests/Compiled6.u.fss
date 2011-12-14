@@ -20,19 +20,19 @@ trait Boolean
     opr <->(self, other: Boolean): Boolean
 end
 
-value object true extends Boolean
-    opr NOT(self): Boolean = false
+value object trueTest extends Boolean
+    opr NOT(self): Boolean = falseTest
     opr AND(self, other: Boolean): Boolean = other
-    opr OR(self, other: Boolean): Boolean = true
+    opr OR(self, other: Boolean): Boolean = trueTest
     opr ->(self, other: Boolean): Boolean = other
     opr <->(self, other: Boolean): Boolean = other
 end
 
-value object false extends Boolean
-    opr NOT(self): Boolean = true
+value object falseTest extends Boolean
+    opr NOT(self): Boolean = trueTest
     opr AND(self, other: Boolean): Boolean = self
     opr OR(self, other: Boolean): Boolean = other
-    opr ->(self, other: Boolean): Boolean = true
+    opr ->(self, other: Boolean): Boolean = trueTest
     opr <->(self, other: Boolean): Boolean = NOT(other)
 end
 

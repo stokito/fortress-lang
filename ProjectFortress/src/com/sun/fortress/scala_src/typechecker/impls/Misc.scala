@@ -478,6 +478,9 @@ trait Misc { self: STypeChecker with Common =>
     case SVoidLiteralExpr(SExprInfo(span,parenthesized,_), text) =>
       SVoidLiteralExpr(SExprInfo(span,parenthesized,Some(Types.VOID)), text)
 
+    case SBooleanLiteralExpr(SExprInfo(span,parenthesized,_), text, b) =>
+      SBooleanLiteralExpr(SExprInfo(span,parenthesized,Some(Types.BOOLEAN)), text, b)      
+      
     // Type checking of varargs and keyword arguments are not yet implemented.
     case STupleExpr(SExprInfo(span,parenthesized,_), es, vs, ks, inApp) => {
       if ( vs.isDefined || ks.size > 0 ) { // ArgExpr

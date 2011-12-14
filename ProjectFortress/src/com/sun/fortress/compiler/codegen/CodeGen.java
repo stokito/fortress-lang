@@ -56,6 +56,7 @@ import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.Block;
 import com.sun.fortress.nodes.BoolArg;
+import com.sun.fortress.nodes.BooleanLiteralExpr;
 import com.sun.fortress.nodes.BottomType;
 import com.sun.fortress.nodes.CaseClause;
 import com.sun.fortress.nodes.CaseExpr;
@@ -3402,6 +3403,21 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
     }
 
+    public void forBooleanLiteralExpr(BooleanLiteralExpr x) {
+    	debug("forBooleanLiteralExpr ",x);
+    	int b = x.getBooleanVal();
+    	addLineNumberInfo(x);
+    	if (b == 0) 
+    		mv.visitInsn(ICONST_0);
+    	else
+    		mv.visitInsn(ICONST_1);	
+    	addLineNumberInfo(x);
+        mv.visitMethodInsn(INVOKESTATIC,
+                NamingCzar.internalFortressBoolean, NamingCzar.make,
+                Naming.makeMethodDesc(NamingCzar.descBoolean,
+                                          NamingCzar.descFortressBoolean));    	
+    }
+    	
     public void forLocalVarDecl(LocalVarDecl d) {
         debug("forLocalVarDecl", d);
         List<LValue> lhs = d.getLhs();

@@ -636,6 +636,16 @@ public class ExprFactory {
         return digits;
     }
 
+ /*
+  *  There is a subtlety for declaration of the following makeFooExpr functions.
+  *  The precise type information must not be provided. 
+  *  Instead, the type information may be Option.<Type>none()
+  *  This is because the disambiguator comes before the type checker and is not
+  *  able to process the type information for literals encountered in the file
+  *  CompilerBuiltIn.fss, because the types needed are defined by that very file.
+  *  Letting the type checker fill in the types seems to work fine.
+  */
+    
     public static IntLiteralExpr makeIntLiteralExpr(Span span,
                                                     BigInteger intVal) {
         return makeIntLiteralExpr(span, intVal.toString(), intVal);
@@ -709,6 +719,18 @@ public class ExprFactory {
         return new VoidLiteralExpr(info, text);
     }
 
+    public static BooleanLiteralExpr makeBooleanLiteralExpr(Span span,int bVal) {
+        return makeBooleanLiteralExpr(span, false, Option.<Type>none(), "",bVal); 
+    }
+
+    public static BooleanLiteralExpr makeBooleanLiteralExpr(Span span,
+                                                      boolean parenthesized,
+                                                      Option<Type> ty,
+                                                      String text, int bVal) {
+        ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
+        return new BooleanLiteralExpr(info, text,bVal);
+    }    
+    
     public static Expr makeSubscripting(Span span,
                                         String left, String right,
                                         Expr base, List<Expr> args,
@@ -1868,6 +1890,10 @@ public class ExprFactory {
         public Expr forIntLiteralExpr(IntLiteralExpr e) {
             return makeIntLiteralExpr(NodeUtil.getSpan(e), true, NodeUtil.getExprType(e),
                                       e.getText(), e.getIntVal());
+        }
+        public Expr forBooleanLiteralExpr(BooleanLiteralExpr e) {
+            return makeBooleanLiteralExpr(NodeUtil.getSpan(e), true, NodeUtil.getExprType(e),
+                                      e.getText(), e.getBooleanVal());
         }
         public Expr forCharLiteralExpr(CharLiteralExpr e) {
             return makeCharLiteralExpr(NodeUtil.getSpan(e), true, NodeUtil.getExprType(e),

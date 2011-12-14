@@ -12,11 +12,11 @@
 component nestedOutcome
 export Executable
 
-f() ensures { do (outcome = 5)
-                 g() ensures { (outcome = 3) } = 3
+f() ensures { do (outcome = 5) 
+                 g() ensures { (outcome = 3) provided true } = 3 
                  g()
                  true
-              end } = 5
+              end provided true } = 5
 
 run() = println(f())
 

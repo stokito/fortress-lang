@@ -1006,7 +1006,7 @@ trait CompactFullScalarRange[\I extends Integral[\I\]\] extends { FullScalarRang
     opr IN(n:I, self): Boolean = self.lower <= n <= self.upper
     indexOf(n:I):Maybe[\I\] = if (n IN self) then Just[\I\](n - self.lower) else Nothing[\I\] end
     shiftLeft(shift: I): CompactFullScalarRange[\I\] = (self.lower - shift) : (self.upper - shift)
-    shiftRight(shift: I): CompactFullScalarRange[\I\] ensures { |outcome| = |self| }
+    shiftRight(shift: I): CompactFullScalarRange[\I\] (* ensures { |outcome| = |self| } *)
         =  (self.lower + shift) : (self.upper + shift)
 end
 

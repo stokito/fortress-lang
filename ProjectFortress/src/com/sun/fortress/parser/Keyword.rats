@@ -45,7 +45,8 @@ body {
         "throws",       "trait",        "try",          "tryatomic",
         "type",         "typecase",     "typed",        "unit",
         "value",        "var",          "where",        "while",
-        "widens",       "with",         "wrapped"
+        "widens",       "with",         "wrapped",
+        "true",         "false"
     });
   }
 }
@@ -122,6 +123,7 @@ transient void where = "where" !(idrest);
 transient void while = "while" !(idrest);
 transient void with = "with" !(idrest);
 
+
 /* Keywords that we need the string representation such as modifiers. */
 transient String BIG = "BIG" !(idrest);
 transient String Self = "Self" !(idrest);
@@ -150,3 +152,5 @@ transient String value = "value" !(idrest);
 transient String var = "var" !(idrest);
 transient String widens = "widens" !(idrest);
 transient String wrapped = "wrapped" !(idrest);
+transient String true = "true" !(idrest);
+transient String false = "false" !(idrest);

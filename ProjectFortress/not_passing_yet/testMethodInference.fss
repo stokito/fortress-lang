@@ -14,26 +14,26 @@ export Executable
 
 globalunary[\T\](x:T):T = x
 
-trait Boolean comprises {true, false}
+trait MyBoolean comprises {trueTest, falseTest}
 apply[\T\](x:T, y:T):T
 unary[\T\](x:T):T
 end
 
-object true extends Boolean
+object trueTest extends MyBoolean
 getter asString():String = "true"
 apply[\T\](x:T, y:T):T = x
 unary[\T\](x:T):T = x
 end
 
-object false extends Boolean
+object falseTest extends MyBoolean
 getter asString():String = "false"
 apply[\T\](x:T, y:T):T = y
 unary[\T\](x:T):T = x
 end
 
 run():() = do
-tr:true = true
-fl:false = false
+tr:trueTest = trueTest
+fl:falseTest = falseTest
 println "true: " tr.unary(4)
 println "true: " tr.globalunary(3)
 println "false: " fl.apply[\ZZ32\](1,2)

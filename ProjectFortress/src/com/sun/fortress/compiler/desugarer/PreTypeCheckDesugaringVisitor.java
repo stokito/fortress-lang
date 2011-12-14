@@ -133,7 +133,7 @@ public class PreTypeCheckDesugaringVisitor extends NodeUpdateVisitor {
             return super.forAmbiguousMultifixOpExpr(that);
         }
     }
-
+    
     @Override
     public Node forOpExpr(OpExpr that) {
         FunctionalRef op_result = (FunctionalRef) recur(that.getOp());
