@@ -674,6 +674,10 @@ public class ExprFactory {
         return new IntLiteralExpr(info, text, intVal);
     }
 
+    public static IntLiteralExpr makeIntLiteralExpr(ExprInfo info, BigInteger intVal) {
+        return new IntLiteralExpr(info, intVal.toString(), intVal);
+}
+    
     public static CharLiteralExpr makeCharLiteralExpr(Span span, String s) {
         int n = s.length();
         if (n == 0) {
