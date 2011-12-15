@@ -51,6 +51,10 @@ public enum PhaseOrder {
      * More details in com.sun.fortress.compiler.Desugarer
      */
     DESUGAR("Desugaring"),
+    /*
+     * Folds integer literal expressions until they are atomic
+     */
+    INTEGERLITERALFOLDING("Folding of integer literals"),
     /* Rewrites overloaded functional declarations.
      * More details in com.sun.fortress.compiler.OverloadRewriter
      */
@@ -136,6 +140,7 @@ public enum PhaseOrder {
         GRAMMAR,
         PRETYPECHECKDESUGAR,
         TYPECHECK,
+        INTEGERLITERALFOLDING,
         DESUGAR,
         OVERLOADREWRITE,
         CODEGEN
@@ -176,9 +181,10 @@ public enum PhaseOrder {
                 return new TypeCheckPhase(phase);
             case DESUGAR:
                 return new DesugarPhase(phase);
+            case INTEGERLITERALFOLDING:
+            	return new IntegerLiteralFoldingPhase(phase);
             case OVERLOADREWRITE:
-                return new OverloadRewritingPhase(phase);
-                
+                return new OverloadRewritingPhase(phase);                
             case OVERLOADREWRITE_FOR_INTERPRETER:
                 return new OverloadRewritingForInterpreterPhase(phase);
             case ENVGEN:
