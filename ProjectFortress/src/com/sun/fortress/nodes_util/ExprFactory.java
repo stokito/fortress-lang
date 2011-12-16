@@ -735,6 +735,11 @@ public class ExprFactory {
         return new BooleanLiteralExpr(info, text,bVal);
     }    
     
+    public static BooleanLiteralExpr makeBooleanLiteralExpr(ExprInfo info, boolean bVal) {
+    	Integer iVal = bVal? 1 : 0;
+        return new BooleanLiteralExpr(info, iVal.toString(), iVal);
+}
+    
     public static Expr makeSubscripting(Span span,
                                         String left, String right,
                                         Expr base, List<Expr> args,
@@ -1492,6 +1497,11 @@ public class ExprFactory {
         return new Throw(info, expr);
     }
 
+  public static Throw makeThrow(ExprInfo info, String st) {
+      Id id = NodeFactory.makeId(info.getSpan(), WellKnownNames.fortressLibrary(), st);
+	  return new Throw(info,makeVarRef(info.getSpan(), id));
+  }
+    
     public static StringLiteralExpr makeStringLiteralExpr(Span span, String s) {
         return makeStringLiteralExpr(span, false, Option.<Type>none(), s);
     }
