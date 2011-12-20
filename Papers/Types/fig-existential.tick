@@ -1,0 +1,51 @@
+%%%%%%%%%%%%%%% BEGIN EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%
+\begin{figure}[t]
+\begin{minipage}{.5\textwidth}
+\centering
+\newjudge{Existential Subtyping}{\jleinner{\delta}{\delta} \quad \jle{\delta}{\delta}}
+
+\infrule
+  {\Delta' = \Delta, \bds{X}{M}
+   \andalso
+   \bar{X} \cap (\FV(U) \cup \FV(\bar{N})) = \emptyset
+   \\
+   \jgsub[\Delta']{T}{\substb{V}{Y}U}
+   \andalso
+   \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{Y}\bd{N_i}}
+  }
+  {\jleinner{\exists\obb{X <: \bd{M}}T}{\exists\obb{Y <: \bd{N}}U}}
+
+\infrule
+  {\jtred{\delta}{\reduce{\delta}} \andalso \jleinner{\reduce{\delta}}{\delta'}}
+  {\jle{\delta}{\delta'}}
+
+\vspace*{2ex}
+\newjudge{Universal Subtyping}{\jleinner{\sigma}{\sigma} \quad \jle{\sigma}{\sigma}}
+\infrule
+  {\Delta' = \Delta, \bds{Y}{N}
+   \andalso
+   \bar{Y} \cap (\FV(T) \cup \FV(\bar{M})) = \emptyset
+   \\
+   \jgsub[\Delta']{\substb{V}{X}T}{U}
+   \andalso
+   \forall i\,.\;\jgsub[\Delta']{V_i}{\substb{V}{X}\bd{M_i}}
+  }
+  {\jleinner{\forall\obb{X <: \bd{M}}T}{\forall\obb{Y <: \bd{N}}U}}
+
+\infrule
+  {\jtred{\sigma'}{\reduce{\sigma'}} \andalso \jleinner{\sigma}{\reduce{\sigma'}}}
+  {\jle{\sigma}{\sigma'}}
+
+% \begin{tabularx}{\textwidth}{RcX}
+%   $\sigma_1 \le \sigma_2$ & \syndef & $\jle[\emptyset]{\sigma_1}{\sigma_2}$ \\
+% \end{tabularx}
+
+
+
+\end{minipage}
+  \caption{Subtyping of universal and existential types. 
+Note that alpha-renaming of type variables may be necessary 
+to apply these rules.}
+  \label{fig:existential}
+\end{figure}
+%%%%%%%%%%%%%%% END EXISTENTIAL FIGURE %%%%%%%%%%%%%%%%

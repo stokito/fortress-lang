@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled90
+export Executable
+
+(* Higher order functions. Also local functions.
+   WORKS.
+ *)
+
+trait A
+    getter asString(): String = "FAIL"
+end
+object O extends A
+    getter asString(): String = "pass"
+end
+object P extends A end
+
+f(g:A->(O->A)):O->A = g(anA())
+
+anA():A = O
+
+run():() = do
+  println(f(fn(a:A) => (fn(o:O) => a))(O).asString)
+end
+
+end

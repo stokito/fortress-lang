@@ -1,0 +1,206 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand{\api}{a}
+\chapter{Components and APIs}
+\applabel{components}
+
+\note{This chapter might not be up to date.}
+
+As mentioned in \chapref{components}, 
+we formally specify key functionality of the Fortress component system,
+and illustrate how we can reason about the correctness of the system.
+
+\paragraph{Components}
+One important restriction on components is that no \apiN\ may be both
+imported and exported by the same component.
+Formally, we introduce two functions on components,
+$\imports$ and $\exports$,
+that return the imported and exported \apisN\ of the component, respectively.
+For any component $\comp$, %% \in \components$,
+$\imports(\comp) \intersect \exports(\comp) = \emptyset$.
+This restriction is required throughout to ground the semantics of
+operations on components, as discussed in \secref{basicops}.
+
+\paragraph{APIs}
+Other than its identity,
+the only relevant characteristic of an \apiN\ $\api$
+is the set of \apisN\ that it uses,
+denoted by $\uses(\api)$.
+Because an \apiN\ $\api$ might expose types
+defined in $\uses(\api)$,
+we require that a component that exports $\api$
+also exports all \apisN\ in $\uses(\api)$ that it does not import.
+Formally, the following condition holds on the exported \apisN\
+of a component $\comp$:
+\[
+\api \in \exports(\comp) \logicand \api' \in \uses(\api)
+        \implies \api' \in \imports(\comp) \union \exports(\comp)
+\]
+
+\paragraph{Link}
+Given a set $\compset = \set{\comp_1,\ldots,\comp_k}$ of components,
+we define a partial function $\linkfn(\compset)$
+that returns the component resulting from $\comp_1$ through $\comp_k$.
+If $\comp = \linkfn(\compset)$,
+then $\exports(\comp) = \Union_{\comp' \in \compset} \exports(\comp')$
+and $\imports(\comp) = \Union_{\comp' \in \compset} \imports(\comp')
+                      - \exports(\comp)$.
+
+The function $\linkfn$ is partial
+because we do not allow arbitrary sets of components to be linked.
+In particular,
+Two components cannot be linked if they export the same
+\apiN.\!\footnote{There is one exception to this rule:
+the special \apiN\ \upgapi, which is used during upgrades discussed below.}
+This restriction is made for the sake of simplicity;
+it allows programmers to link a set of components
+without having to specify explicitly
+which constituent exporting an \apiN\ $A$
+provides the implementation exported by the linked component,
+and which constituent connects to the constituents that import $A$:
+only one component exports $A$, so there is only one choice.
+Although we lose expressiveness with this design,
+the user interface to link is vastly simplified,
+and it is rare that including multiple components that export a given \apiN\
+in a set of linked components is even desirable.
+We discuss how even such rare cases can be supported in
+\secref{advancedops}.
+
+For a compound component,
+in addition to the exported and imported \apisN,
+we want to know what its constituents are.
+So we introduce another function $\constituents$,
+which takes a component and returns the set of its constituents.
+That is,
+$\constituents(\linkfn(\compset)) = \compset$.
+It is an invariant of the system
+that for any compound component $C$
+(i.e., $\constituents(\comp) \neq \emptyset$),
+any \apiN\ imported by any of its constituents
+is either imported by $C$ or exported by one of its constituents
+(i.e., $\Union_{\comp' \in \constituents(\comp)} \imports(\comp')
+          \subseteq \imports(\comp) \union \Union_{\comp' \in
+          \constituents(\comp)} \exports(\comp')$). 
+This property is crucial for executing components, as we discuss below.
+A simple component (i.e., one produced directly by compilation)
+has no constituents (i.e., $\constituents(\comp) = \emptyset$).
+
+\paragraph{Upgrade}
+A predicate \replacerest\ takes two components
+and indicates whether the first can be upgraded with the second;
+that is, $\replacerest(\targcomp,\upgcomp)$
+returns true if and only if $\targcomp$ can be upgraded with $\upgcomp$.
+This predicate captures both the constraints imposed by a component's
+\VAR{isValidUpgrade} function and
+the conditions that guarantee the well-formedness of the result.
+That is,
+\begin{align*}
+\replacerest(\targcomp,\upgcomp) \implies
+        &\targcomp\VAR{.isValidUpgrade}(\upgcomp)  \\
+        &\logicand \imports(\upgcomp) \subseteq \exports(\targcomp)
+                                        \union \imports(\targcomp) \\
+        &\logicand \exports(\upgcomp) \subset \exports(\targcomp) \\
+        &\logicand \forall \comp \in \constituents(\targcomp).
+                (\exports(\comp) \subseteq \exports(\upgcomp)
+                 \logicor \exports(\comp) \intersect
+        \exports(\upgcomp) = \emptyset
+                 \logicor \replacerest(\comp,\upgcomp))
+\end{align*}
+
+\paragraph{Visible and Provided}
+We introduce two new functions on components:
+\visibleAPI, which returns the \apisN\ of a component that have not been
+hidden; 
+and \provided, which returns those visible \apisN\ that are exported
+by some top-level constituent of the component
+(or all the exported \apisN\ of a simple component);
+we say these \apisN\ are \emph{provided} by the component.
+We need to distinguish provided \apisN\
+because they can be imported by the top-level constituents of a component,
+and thus by a replacement component in an upgrade,
+while other visible \apisN\ cannot be.
+Thus, for a compound component $\comp$,
+$\provided(\comp) = \visibleAPI(\comp) \intersect
+                        \Union_{\comp' \in \constituents(\comp)} \exports(\comp')$.
+For a simple component $\comp$,
+$\provided(\comp) = \visibleAPI(\comp) = \exports(\comp)$.
+
+\paragraph{Constrain}
+If $\comp$ is a compound component
+and $\apiset \subset \exports(\comp)$ is a set of \apisN\
+such that
+$\api \in \exports(\comp) \logicand \api' \in \uses(\api) \intersect \apiset
+        \implies \api \in \apiset$,
+we define $\comp' = \constrainfn(\comp,\apiset)$
+such that $\exports(\comp') = \exports(\comp) - \apiset$
+and for any component $\comp''$,
+$\replacerest(\comp',\comp'')
+  \iff \replacerest(\comp,\comp'') \logicand
+                \exports(\comp') \not\subseteq \exports(\comp'')$.
+The $\imports$, $\visibleAPI$, $\provided$ and $\constituents$ functions
+all have the same values for $\comp$ and $\comp'$.
+The extra condition on the upgrade compatibility
+simply captures the restriction we mentioned above,
+that a replacement component should not export every \apiN\
+exported by the target.
+
+\paragraph{Hide}
+If $\comp$ is a compound component
+and $\apiset \subset \visibleAPI(\comp)$ is a set of \apisN\
+such that $\exports(\comp) \not\subseteq \apiset$
+and $\api \in \visibleAPI(\comp) \logicand \api'\in\uses(\api)
+ \intersect \apiset        \implies \api \in \apiset$,
+we define $\comp' = \hidefn(\comp,\apiset)$
+such that $\visibleAPI(\comp') = \visibleAPI(\comp) - \apiset$,
+$\provided(\comp') = \provided(\comp) - \apiset$,
+$\exports(\comp') = \exports(\comp) - \apiset$,
+and for any component $\comp''$,
+$\replacerest(\comp',\comp'')
+  \iff \replacerest(\comp,\comp'') \logicand
+                \exports(\comp') \not\subseteq \exports(\comp'')
+        \logicand \visibleAPI(\comp'') \subseteq \visibleAPI(\comp')$.
+The additional clause in $\replacerest(\comp',\comp'')$
+(compared with that of $\constrainfn$)
+reflects the hiding of the \apisN:
+we can no longer upgrade \apisN\ that are hidden.
+
+
+\paragraph{Upgrade}
+The interplay between imported, exported, visible and provided \apisN\
+introduces subtleties.  In particular,
+the last of the three conditions imposed for well-formedness of upgrades
+is modified to state
+that for any constituent that is not subsumed by a replacement component,
+either it can be upgraded with the replacement,
+or its \emph{visible} \apisN\ are disjoint
+from the \apisN\ exported by the replacement
+(i.e., it is unaffected by the upgrade).
+To maintain the invariant that no two constituents export the same \apiN,
+we need another condition,
+which was implied by the previous condition
+when no \apisN\ were constrained or hidden:
+if the replacement subsumes any constituents of the target,
+then its exported \apisN\ must exactly match
+the exported \apisN\ of some subset of the constituents of the target.
+That is,
+if $\replacerest(\targcomp,\upgcomp)
+        \logicand \exists \comp \in \constituents(\targcomp).\
+                        \exports(\comp) \subseteq \exports(\upgcomp)$
+then $\exports(\upgcomp) = \Union_{\comp \in \compset} \exports(\comp)$
+for some $\compset \subset \constituents(\targcomp)$.
+In practice, this restriction is rarely a problem;
+in most cases, a user wishes to upgrade a target
+with a new version of a single constituent component,
+where the \apisN\ exported by the old and new versions
+are either an exact match,
+or there are new \apisN\ introduced by the new component
+that have no implementation in the target.

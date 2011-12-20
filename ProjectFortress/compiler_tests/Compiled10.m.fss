@@ -1,0 +1,27 @@
+(********************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+********************************************************************************)
+export Executable
+
+trait BinaryPredicate[\T, opr OP\] comprises T
+  abstract opr OP(self, other:T): Boolean
+end
+
+trait Reflexive[\S, opr ROP\] extends { BinaryPredicate[\S, ROP\] } comprises S
+(*
+  property FORALL(a: S) (a ROP a)
+*)
+end
+
+trait Sample extends Reflexive[\Sample, ~\]
+  opr ~(self, other: Sample) = true
+end
+
+run() = ()
