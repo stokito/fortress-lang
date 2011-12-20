@@ -846,14 +846,14 @@ TestResult(result:TestResult): TestResult =
     TestResult(result.status, list result.tags, list result.collected)
 
 (** A testable instance with arguments of type `P`. **)
-trait Testable[\P\] excludes String
+trait Testable[\P\] excludes {String, AnyVector, Number, AnyMatrix}
     (** Runs a test with given arguments and returns a result. The test should
         be deterministic as much as possible: some routines like `shrink`, for
         example, rely on this behavior. **)
     abstract run(arg:P): TestResult
 
     (** `Testable[\P\]` can be also used as an arrow type `P->TestResult`. **)
-    opr juxtaposition(self, arg:P): TestResult = run(arg)
+    (*) opr juxtaposition(self, arg:P): TestResult = run(arg)
 end
 
 (** Represents a test that has been finished already and returns a fixed

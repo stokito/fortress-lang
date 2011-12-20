@@ -753,7 +753,7 @@ public class NamingCzar {
 
 
     public static String mangleAwayFromOverload(String mname) {
-        mname += "$SINGLE";
+        mname += Naming.NON_OVERLOADED_TAG;
         return mname;
     }
 
