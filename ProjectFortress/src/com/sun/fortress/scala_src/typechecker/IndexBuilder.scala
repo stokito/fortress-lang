@@ -26,7 +26,6 @@ import scala.collection.mutable.MultiMap
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.Set
-
 import com.sun.fortress.compiler.GlobalEnvironment
 import com.sun.fortress.compiler.NamingCzar
 import com.sun.fortress.compiler.StaticPhaseResult
@@ -74,6 +73,7 @@ import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.HasAt
 import com.sun.fortress.useful.NI
+import com.sun.fortress.exceptions.TypeError
 
 object IndexBuilder {
   private def error(errors: JavaList[StaticError], message: String, loc: HasAt) =
@@ -516,12 +516,15 @@ object IndexBuilder {
             parametric = true
         }
         if (parametric){
+            TypeError.b3(ast, traitDecl, apiName);
             val po = new ParametricOperator(ast, traitDecl, enclosingParams)
             parametricOperators.add(po)
             topLevelFunctions.add(name, po)
             topLevelFunctions.add(uaname, po)
+            functionalMethods.add(name, po)
         }
         else {
+            TypeError.b3(ast, traitDecl, apiName);          
           val m = new JavaFunctionalMethod(ast, traitDecl, enclosingParams)
           functionalMethods.add(name, m)
           topLevelFunctions.add(name, m)
