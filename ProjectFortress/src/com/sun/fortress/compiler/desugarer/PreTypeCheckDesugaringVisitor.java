@@ -420,7 +420,7 @@ public class PreTypeCheckDesugaringVisitor extends NodeUpdateVisitor {
     
     @Override
     public Node forAssignment(Assignment that) {
-	System.out.println("PreDesugar entry");
+	//System.out.println("PreDesugar entry");
 	// Here there are three sorts of rewrite to consider:
 	// (a) If this is a compound assignment, rewrite to use ordinary assignment.
 	// (b) If the lhs is a tuple, rewrite into a set of individual assignments.
@@ -430,11 +430,11 @@ public class PreTypeCheckDesugaringVisitor extends NodeUpdateVisitor {
 	Expr rhs = that.getRhs();
 	List<CompoundAssignmentInfo> assignmentInfos = that.getAssignmentInfos();
 	if (!Shell.getAssignmentPreDesugaring()) {
-	    System.out.println("Did not PreDesugar");
+	    //System.out.println("Did not PreDesugar");
 	    return super.forAssignment(that);
 	}
         else if (assignOp.isSome() || lhs.size() > 1) {
-	    System.out.println("Compound/tuple PreDesugar");
+	    //System.out.println("Compound/tuple PreDesugar");
 	    // Compound and/or tuple assignment
 	    // The basic idea is to transform `(a, b.field, c[sub1,sub2]) := e` into
 	    // `do (ta, tb, tc, tsub1, tsub2, (t1, t2, t3)) = (a, b, c, sub1, sub2, e)
@@ -522,7 +522,7 @@ public class PreTypeCheckDesugaringVisitor extends NodeUpdateVisitor {
 	    result = ExprFactory.makeLocalVarDecl(thatSpan, exprLValues, newRhs, result);
 	    return (Expr)recur(result);
 	} else if (lhs.get(0) instanceof SubscriptExpr) {
-	    System.out.println("PreDesugar single subscript expr");
+	    //System.out.println("PreDesugar single subscript expr");
 	    // Subscripted assignment
 	    SubscriptExpr lhExpr = (SubscriptExpr)lhs.get(0);
 	    Expr obj = lhExpr.getObj();
@@ -539,7 +539,7 @@ public class PreTypeCheckDesugaringVisitor extends NodeUpdateVisitor {
 										     Useful.cons(rhs, subs)));
 	    return (Expr)recur(result);
 	} else {
-	    System.out.println("PreDesugar single expr of class " + lhs.get(0).getClass().getName());
+	    // System.out.println("PreDesugar single expr of class " + lhs.get(0).getClass().getName());
 	    return super.forAssignment(that);
 	}
     }
