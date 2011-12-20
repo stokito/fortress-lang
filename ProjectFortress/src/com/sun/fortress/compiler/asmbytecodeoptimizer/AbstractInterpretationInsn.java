@@ -11,11 +11,9 @@
 package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
 import com.sun.fortress.compiler.NamingCzar;
-import java.util.Iterator;
 import java.util.List;
 
 public class AbstractInterpretationInsn {
-    // These could all be static...
 
     public static void interpretInsn(AbstractInterpretationContext c, Insn i, int pc) {
         if (i instanceof FieldInsn)       
@@ -369,7 +367,9 @@ public class AbstractInterpretationInsn {
             // for every instruction from i.start to i.end i.handler is a potential next instruction.
             //        For now just make sure the handler is evaluated.
         Integer handler = c.getJumpDestination(i.handler.toString());
-        c.addBranchTarget(new AbstractInterpretationContext(i, c, handler));
+        AbstractInterpretationContext handlerContext = new AbstractInterpretationContext(i, c, handler);
+        handlerContext.pushStackDefinition(i, "Ljava.lang.Throwable;");
+        c.addBranchTarget(handlerContext);
     }
 
     static void interpretTypeInsn(AbstractInterpretationContext c, TypeInsn i) {
@@ -378,7 +378,15 @@ public class AbstractInterpretationInsn {
         case Opcodes.ANEWARRAY: NYI(i); break;
         case Opcodes.CHECKCAST: {
             AbstractInterpretationValue v = c.popStack(i); 
-            c.pushStack(i, v);
+            if (v != null) {
+                if (v.getType().equals(i.getType()))
+                    c.pushStack(i, v);
+                else {
+                    c.pushStackDefinition(i, i.type); break;
+                }
+            } else {
+                throw new RuntimeException("Checkcast called on null value");
+            }
             break;
         }
         case Opcodes.INSTANCEOF: c.popStack(i); c.pushStackDefinition(i, "I"); break;

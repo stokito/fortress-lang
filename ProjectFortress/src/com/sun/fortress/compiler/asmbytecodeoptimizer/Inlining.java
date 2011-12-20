@@ -31,8 +31,8 @@ public class Inlining {
             Map.Entry pairs = (Map.Entry)it.next();
             ByteCodeMethodVisitor bcmv = (ByteCodeMethodVisitor) pairs.getValue();
             String className = (String) pairs.getKey();
+            bcmv.labelDefs = new HashMap();
             Inline(bcmv, className);
-            printMethod(bcmv, "After Optimize");
         }
     }
 
@@ -68,7 +68,6 @@ public class Inlining {
         if (insn instanceof MethodInsn) {
             MethodInsn mi = (MethodInsn) insn;
             if ((mi.opcode == Opcodes.INVOKEINTERFACE) && (isCompilerBuiltin(mi.owner))) {
-                System.out.println("isBuiltinInterfaceMethod true : mi = " + mi);
                 return true;
             }
         }
@@ -134,7 +133,6 @@ public class Inlining {
     }
 
      public static void recalculateLabels(ByteCodeMethodVisitor method) {
-         //         method.labelDefs = new HashMap();
          recalculateLabels(method, method.insns);
      }
 
@@ -267,7 +265,7 @@ public class Inlining {
         insns.add(new LabelInsn("start_"+ mi._name, start, newIndex(mi, index++)));
         int[] offsets = new int[methodToInline.maxLocals + 1];
 
-    // Static Method start at args.size() - 1, NonStatic Methods start at args.size()
+        // Static Method start at args.size() - 1, NonStatic Methods start at args.size()
         if (staticMethod) argsStart = argsStart - 1;
 
         for (int i = argsStart; i >= 0; i--) {
@@ -337,60 +335,60 @@ public class Inlining {
             // By walking over all of the bytecodes we end up fixing up all of the labels
             // For now, throw out other expansions.
             if (insn instanceof MethodInsn) {
-                    MethodInsn mi = (MethodInsn) insn;
-                    if (isGenericMethod(mi.owner)) {
-                        // We can't do anything here
-                    } else if (isBuiltinInterfaceMethod(bcmv, insn)) {
-                        ByteCodeVisitor bcv = (ByteCodeVisitor) builtin.classes.get(mi.owner + "$DefaultTraitMethods.class");
-                        // Revisit this to see how kosher it is. Encoding knowledge of how default methods work.
+                MethodInsn mi = (MethodInsn) insn;
+                if (isGenericMethod(mi.owner)) {
+                    //  We can't do anything here
+                } else if (isBuiltinInterfaceMethod(bcmv, insn)) {
+                    ByteCodeVisitor bcv = (ByteCodeVisitor) builtin.classes.get(mi.owner + "$DefaultTraitMethods.class");
+                    // Revisit this to see how kosher it is. Encoding knowledge of how default methods work.
+                    ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
+                                                                                                          mi.desc); 
+                    if (methodToInline != null && isNotInParentSet(mi)) {
+                        inlineMethodCall(className, bcmv, mi, methodToInline, false);
+                        IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
+                    }
+                } else if (isCompilerBuiltin(mi.owner)) {
+                    if (isBuiltinStaticMethod(bcmv, insn)) {
+                        ByteCodeVisitor bcv = (ByteCodeVisitor) builtin.classes.get(mi.owner + ".class");
                         ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
                                                                                                               mi.desc); 
                         if (methodToInline != null && isNotInParentSet(mi)) {
-                            inlineMethodCall(className, bcmv, mi, methodToInline, false);
+                            inlineMethodCall(className, bcmv, mi, methodToInline,true);
                             IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
                         }
-                    } else if (isCompilerBuiltin(mi.owner)) {
-                        if (isBuiltinStaticMethod(bcmv, insn)) {
-                            ByteCodeVisitor bcv = (ByteCodeVisitor) builtin.classes.get(mi.owner + ".class");
-                            ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
-                                                                                                                  mi.desc); 
-                            if (methodToInline != null && isNotInParentSet(mi)) {
-                                inlineMethodCall(className, bcmv, mi, methodToInline,true);
-                                IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
-                            }
-                        } else if (isBuiltinInstanceMethod(bcmv, insn)) {
-                        }
-                    } else if (isCompilerLibrary(mi.owner)) {
-                        if (isLibraryStaticMethod(bcmv, insn)) {
-                            ByteCodeVisitor bcv = (ByteCodeVisitor) library.classes.get(mi.owner + ".class");
-                            ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
-                                                                                                                  mi.desc); 
-                            if (methodToInline != null && isNotInParentSet(mi)) {
-                                inlineMethodCall(className, bcmv, mi, methodToInline,true);
-                                IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
-                            }
-                        } else if (isBuiltinInstanceMethod(bcmv, insn)) {
-                        }
-                    } else if (isBoxedNativeInterfaceMethod(mi.owner)) {
-                        String key = mi.owner + ".class";
-                        ByteCodeVisitor bcv = (ByteCodeVisitor) nativeHelpers.classes.get(key);
-                        ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
-                                                                                                              mi.desc); 
-                        if (methodToInline != null) {
-                            inlineMethodCall(className, bcmv, mi, methodToInline, true);
-                            IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
-                        }
-
-                    } else if (isUnboxedNativeInterfaceMethod(mi.owner)) {
-                        String key = "native/" + mi.owner + ".class";
-                        ByteCodeVisitor bcv = (ByteCodeVisitor) nativeHelpers.classes.get(key);
-                        ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
-                                                                                                              mi.desc); 
-                        if (methodToInline != null) {
-                            inlineMethodCall(className, bcmv, mi, methodToInline, true);
-                            IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
-                        }
+                    } else if (isBuiltinInstanceMethod(bcmv, insn)) {
                     }
+                } else if (isCompilerLibrary(mi.owner)) {
+                    if (isLibraryStaticMethod(bcmv, insn)) {
+                        ByteCodeVisitor bcv = (ByteCodeVisitor) library.classes.get(mi.owner + ".class");
+                        ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
+                                                                                                              mi.desc); 
+                        if (methodToInline != null && isNotInParentSet(mi)) {
+                            inlineMethodCall(className, bcmv, mi, methodToInline,true);
+                            IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
+                        }
+                    } else if (isBuiltinInstanceMethod(bcmv, insn)) {
+                    }
+                } else if (isBoxedNativeInterfaceMethod(mi.owner)) {
+                    String key = mi.owner + ".class";
+                    ByteCodeVisitor bcv = (ByteCodeVisitor) nativeHelpers.classes.get(key);
+                    ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
+                                                                                                          mi.desc); 
+                    if (methodToInline != null) {
+                        inlineMethodCall(className, bcmv, mi, methodToInline, true);
+                        IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
+                    }
+
+                } else if (isUnboxedNativeInterfaceMethod(mi.owner)) {
+                    String key = "native/" + mi.owner + ".class";
+                    ByteCodeVisitor bcv = (ByteCodeVisitor) nativeHelpers.classes.get(key);
+                    ByteCodeMethodVisitor methodToInline = (ByteCodeMethodVisitor) bcv.methodVisitors.get(mi._name + 
+                                                                                                          mi.desc); 
+                    if (methodToInline != null) {
+                        inlineMethodCall(className, bcmv, mi, methodToInline, true);
+                        IterateOverInsns(bcmv, className, builtin, library, nativeHelpers, mi.inlineExpansionInsns, preamble + "    ");
+                    }
+                }
             }
         }
     }

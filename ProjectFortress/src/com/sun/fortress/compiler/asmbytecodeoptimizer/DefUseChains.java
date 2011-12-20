@@ -38,33 +38,35 @@ public class DefUseChains {
                 printMethod(bcmv, "Annotated");
                 System.out.println("Printing Values HERE");
                 printValues(bcmv);
+                printChains(bcmv);
             }
             changed = renameValues(bcmv);
-            if (noisy && changed) {
-                printMethod(bcmv, "After Rename");
-                System.out.println("Printing Values After Rename HERE");
-                printValues(bcmv);
-             }
-             changed = identifyPotentialUnusedBoxedValues(bcmv);
              if (noisy && changed) {
-                 System.out.println("After identifying unused vars");
-                 printMethod(bcmv, "After Identify Unused");
+                 printMethod(bcmv, "After Rename");
+                 System.out.println("Printing Values After Rename HERE");
                  printValues(bcmv);
                  printChains(bcmv);
-             }
-             changed = removeUnusedBoxedValues(bcmv);
+              }
+             changed = identifyPotentialUnusedBoxedValues(bcmv);
              if (noisy && changed) {
-                 System.out.println("After removing unused vars");
-                 printMethod(bcmv, "After RemoveUnused");
-                 printValues(bcmv);
-                 printChains(bcmv);                 
-             }
-             changed = renumberInsns(bcmv);
-             if (noisy && changed) {
-                 printMethod(bcmv, "After Renumber");
-                 System.out.println("Printing Values After Renumber HERE");
-                 printValues(bcmv);
-             }
+                  System.out.println("After identifying unused vars");
+                  printMethod(bcmv, "After Identify Unused");
+                  printValues(bcmv);
+                  printChains(bcmv);
+              }
+             // changed = removeUnusedBoxedValues(bcmv);
+             // if (noisy && changed) {
+             //     System.out.println("After removing unused vars");
+             //     printMethod(bcmv, "After RemoveUnused");
+             //     printValues(bcmv);
+             //     printChains(bcmv);                 
+             // }
+             // changed = renumberInsns(bcmv);
+             // if (noisy && changed) {
+             //     printMethod(bcmv, "After Renumber");
+             //     System.out.println("Printing Values After Renumber HERE");
+             //     printValues(bcmv);
+             // }
         }
     }
 
@@ -183,12 +185,12 @@ public class DefUseChains {
             } else if (i.isUnBoxingMethod()) {
                 removeInsn(bcmv, i, val, "UnboxingMethod");
             } else if (i.isCheckCast()) {
-                removeInsn(bcmv, i, val, "CheckCast");
+                removeInsn(bcmv, i, val, "CheckCast"); // FIXME CHF
             } else if (i instanceof VarInsn) {
                 VarInsn vi = (VarInsn) i;
                 if (vi.opcode == Opcodes.ASTORE) {
                     int j = bcmv.insns.indexOf(i);
-                    removeInsn(bcmv, i, val, "astoreconversion");
+                    removeInsn(bcmv, i, val, "astoreconversion" + val.getType());
                     if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FZZ32;"))
                         bcmv.insns.add(j, new VarInsn("ISTORE", Opcodes.ISTORE, val.getValueNumber(), vi.index));
                     else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FZZ64;"))
@@ -199,12 +201,10 @@ public class DefUseChains {
                         bcmv.insns.add(j, new VarInsn("DSTORE", Opcodes.DSTORE, val.getValueNumber(), vi.index));
                     else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FBoolean;"))
                         bcmv.insns.add(j, new VarInsn("ISTORE", Opcodes.ISTORE, val.getValueNumber(), vi.index));
-                    else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FJavaString;"))
-                        bcmv.insns.add(j, new VarInsn("ASTORE", Opcodes.ASTORE, val.getValueNumber(), vi.index));
-                    else throw new RuntimeException("Don't recognize var type " + val.getType());
+                    else bcmv.insns.add(j, new VarInsn("ASTORE", Opcodes.ASTORE, val.getValueNumber(), vi.index));
                 } else if (vi.opcode == Opcodes.ALOAD) {
                     int j = bcmv.insns.indexOf(i);
-                    removeInsn(bcmv, i, val, "Aloadconversion");
+                    removeInsn(bcmv, i, val, "Aloadconversion" + val.getType());
                     if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FZZ32;"))
                         bcmv.insns.add(j, new VarInsn("ILOAD", Opcodes.ILOAD, val.getValueNumber(), vi.index));
                     else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FZZ64;"))
@@ -215,9 +215,7 @@ public class DefUseChains {
                         bcmv.insns.add(j, new VarInsn("DLOAD", Opcodes.DLOAD, val.getValueNumber(), vi.index));
                     else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FBoolean;"))
                         bcmv.insns.add(j, new VarInsn("ILOAD", Opcodes.ILOAD, val.getValueNumber(), vi.index));
-                    else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FJavaString;"))
-                        bcmv.insns.add(j, new VarInsn("ALOAD", Opcodes.ALOAD, val.getValueNumber(), vi.index));
-                    else throw new RuntimeException("Don't recognize var type " + val.getType());
+                    else bcmv.insns.add(j, new VarInsn("ALOAD", Opcodes.ALOAD, val.getValueNumber(), vi.index));
                 }
             } else if (i instanceof SingleInsn) {
                 SingleInsn si = (SingleInsn) i;
@@ -231,16 +229,16 @@ public class DefUseChains {
                                                            "ReboxingReturnValue"));
                     else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FZZ64;"))
                         bcmv.insns.add(j, new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC, 
-                                                           "com/sun/fortress/compiler/runtimeValues/FZZ64",
-                                                           "make",
-                                                           "(J)Lcom/sun/fortress/compiler/runtimeValues/FZZ64;",
-                                                           "ReboxingReturnValue"));
+                                                         "com/sun/fortress/compiler/runtimeValues/FZZ64",
+                                                         "make",
+                                                         "(J)Lcom/sun/fortress/compiler/runtimeValues/FZZ64;",
+                                                         "ReboxingReturnValue"));
                     else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FRR32;"))
                         bcmv.insns.add(j, new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC, 
-                                                           "com/sun/fortress/compiler/runtimeValues/FRR32",
-                                                           "make",
-                                                           "(F)Lcom/sun/fortress/compiler/runtimeValues/FRR32;",
-                                                           "ReboxingReturnValue"));
+                                                         "com/sun/fortress/compiler/runtimeValues/FRR32",
+                                                         "make",
+                                                         "(F)Lcom/sun/fortress/compiler/runtimeValues/FRR32;",
+                                                         "ReboxingReturnValue"));
                     else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FRR64;"))
                         bcmv.insns.add(j, new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC, 
                                                            "com/sun/fortress/compiler/runtimeValues/FRR64",
@@ -255,20 +253,17 @@ public class DefUseChains {
                                                          "ReboxingReturnValue"));
                     else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FBoolean;"))
                         bcmv.insns.add(j, new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC, 
-                                                           "com/sun/fortress/compiler/runtimeValues/FBoolean",
-                                                           "make",
-                                                           "(Z)Lcom/sun/fortress/compiler/runtimeValues/FBoolean;",
-                                                           "ReboxingReturnValue"));
-                    else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FString;"))
+                                                         "com/sun/fortress/compiler/runtimeValues/FBoolean",
+                                                         "make",
+                                                         "(Z)Lcom/sun/fortress/compiler/runtimeValues/FBoolean;",
+                                                         "ReboxingReturnValue"));
+                    else if (val.getType().equals("Lcom/sun/fortress/compiler/runtimeValues/FJavaString;"))
                         bcmv.insns.add(j, new MethodInsn("INVOKESTATIC", Opcodes.INVOKESTATIC, 
-                                                           "com/sun/fortress/compiler/runtimeValues/FString",
-                                                           "make",
-                                                           "(java.lang.String)Lcom/sun/fortress/compiler/runtimeValues/FString;",
-                                                           "ReboxingReturnValue"));
-
-
+                                                         "com/sun/fortress/compiler/runtimeValues/FJavaString",
+                                                         "make",
+                                                         "(java.lang.String)Lcom/sun/fortress/compiler/runtimeValues/FJavaString;",
+                                                         "ReboxingReturnValue"));
                     else throw new RuntimeException("Don't recognize var type " + val.getType());
-
                 }
             }
         }
@@ -280,7 +275,7 @@ public class DefUseChains {
             if (val != null && val.isBoxed()) {
                 boolean used = false;
                 for (Insn i : val.getUses()) {
-                    if ((i instanceof VarInsn) || i.isCheckCast() || i.isUnBoxingMethod()) {
+                    if ((i instanceof VarInsn) || i.isUnnecessaryCheckCast(val) || i.isUnBoxingMethod()) {
                         // do nothing
                     } else {
                         used = true;
@@ -307,40 +302,35 @@ public class DefUseChains {
         HashMap replacements = new HashMap();
         
         for (AbstractInterpretationValue val : bcmv.getValues()) {
-            if (val != null) {  // second slot in a double word variable 
-                HashSet<Insn> UpdatedValUses = new HashSet<Insn>();
-                for (Insn i : val.getUses()) {
-                    if (i instanceof VarInsn) {
-                        VarInsn vi = (VarInsn) i;
-                        int j = bcmv.insns.indexOf(i);
-                        if (j > 0) {
-                            Insn k = new VarInsn(vi.name, vi.opcode, val.getValueNumber(), vi.index);
-                            Insn old = (Insn) replacements.put(vi, k);
-                            if (old != null)
-                                throw new RuntimeException("WTF:" + vi + " replaced by both " + old + " and " + k);
-                            UpdatedValUses.add(k);
-                            changed = true;
-                        }
-                    } else {
-                        UpdatedValUses.add(i);
+            HashSet<Insn> UpdatedValUses = new HashSet<Insn>();
+
+            for (Insn i : val.getUses()) {
+                if (i instanceof VarInsn) {
+                    VarInsn vi = (VarInsn) i;
+                    int j = bcmv.insns.indexOf(i);
+                    if (j > 0) {
+                        Insn k = new VarInsn(vi.name, vi.opcode, val.getValueNumber(), vi.index);
+                        Insn old = (Insn) replacements.put(vi, k);
+                        UpdatedValUses.add(k);
+                        changed = true;
                     }
+                } else {
+                    UpdatedValUses.add(i);
                 }
-                val.setUses(UpdatedValUses);                
             }
+            val.setUses(UpdatedValUses);                
+        }
 
-            //            System.out.println("Replacements = " + replacements);
-
-            for (Object o : replacements.keySet()) {
-                Insn i = (Insn) o;
-                int j = bcmv.insns.indexOf(i);
-                Insn k = (Insn) replacements.get(i);
-                if (j >= 0) {
-                    bcmv.insns.remove(j);
-                    bcmv.insns.add(j, k);
-                }
+        for (Object o : replacements.keySet()) {
+            Insn i = (Insn) o;
+            int j = bcmv.insns.indexOf(i);
+            Insn k = (Insn) replacements.get(i);
+            if (j >= 0) {
+                bcmv.insns.remove(j);
+                bcmv.insns.add(j, k);
             }
         }
-        return changed;
+    return changed;
     }
 }
 

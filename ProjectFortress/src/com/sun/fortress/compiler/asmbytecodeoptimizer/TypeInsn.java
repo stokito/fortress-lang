@@ -23,16 +23,22 @@ public class TypeInsn extends Insn {
         this.type = type;
     }
     public String toString() { 
-        return "TypeInsn:" +  name;
+        return "TypeInsn:" +  name + " with type " + type;
     }
 
     public TypeInsn copy(String newIndex) {
         return new TypeInsn(name, opcode, type, newIndex);
     }
     
+    public boolean isUnnecessaryCheckCast(AbstractInterpretationValue v) {
+        return isCheckCast() && type.equals(v.getType());
+    }
+
     public void toAsm(MethodVisitor mv) { 
         mv.visitTypeInsn(opcode, type);
     }
+
+    public String getType() {return type;}
 
     public boolean isCheckCast() {
         if (opcode == Opcodes.CHECKCAST)
