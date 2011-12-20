@@ -46,7 +46,8 @@ public class IntegerLiteralFoldingVisitor extends NodeUpdateVisitor {
 		if (op.equals("BY") || op.equals("BOXCROSS") || op.equals("DOTCROSS") || op.equals("DOT") || op.equals("BOXDOT") || op.equals("juxtaposition"))
 			return ExprFactory.makeIntLiteralExpr(info_result,v0.multiply(v1));
 		if (op.equals("DIV") && v1.equals(BigInteger.ZERO)) 
-			return ExprFactory.makeThrow(info_result,"Division by zero");
+			throw new CompilerError("No folding of division by zero yet");
+			//return ExprFactory.makeThrow(info_result,"DivisionByZero");
 		if (op.equals("DIV")) 
 			return ExprFactory.makeIntLiteralExpr(info_result,v0.divide(v1));
 		if (op.equals("AND"))
@@ -89,9 +90,17 @@ public class IntegerLiteralFoldingVisitor extends NodeUpdateVisitor {
 				if (links_result.size() == 1)	
 					return folded;
 				else {
-					throw new CompilerError("Not really handling chains of expressions yet");
-/*					links_result.remove(0); 
-				    return forChainExprOnly(that,info_result,(Expr)folded,links_result,andOp_result);*/
+					if (folded instanceof BooleanLiteralExpr)	{
+						if (((BooleanLiteralExpr) folded).getBooleanVal() == 0) 
+							return ExprFactory.makeBooleanLiteralExpr(info_result,false);
+						else {
+							Expr e = links_result.remove(0).getExpr(); 
+						    return forChainExprOnly(that,info_result,e,links_result,andOp_result);
+						}
+					}
+					else 
+						throw new CompilerError("One of the link in a chained expression produced something other than a boolean literal during folding.");
+					
 				}
 			}	
 			
@@ -111,7 +120,7 @@ public class IntegerLiteralFoldingVisitor extends NodeUpdateVisitor {
 				
 				BigInteger v = ((IntLiteralExpr)args_result.get(0)).getIntVal();
 				String op = op_result.toString();
-				if (op.equals("prefix -") || op.equals("BOXMINUS") || op.equals("DOTMINUS")) 
+				if (op.equals("prefix -") || op.equals("prefix BOXMINUS") || op.equals("prefix DOTMINUS")) 
 					return ExprFactory.makeIntLiteralExpr(info_result, v.negate());
 				if (op.equals("|_|")) 
 					return ExprFactory.makeIntLiteralExpr(info_result, v.abs());

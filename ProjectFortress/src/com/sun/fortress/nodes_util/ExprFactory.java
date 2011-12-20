@@ -1498,8 +1498,8 @@ public class ExprFactory {
     }
 
   public static Throw makeThrow(ExprInfo info, String st) {
-      Id id = NodeFactory.makeId(info.getSpan(), WellKnownNames.fortressLibrary(), st);
-	  return new Throw(info,makeVarRef(info.getSpan(), id));
+      Id id = NodeFactory.makeId(info.getSpan(),WellKnownNames.compilerBuiltin(), st);
+	  return new Throw(info,makeVarRef(info.getSpan(), info.getExprType() ,id));
   }
     
     public static StringLiteralExpr makeStringLiteralExpr(Span span, String s) {
