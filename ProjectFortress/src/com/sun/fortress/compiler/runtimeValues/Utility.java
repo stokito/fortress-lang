@@ -28,7 +28,7 @@ public final class Utility {
     public static FException makeFortressException(String name, String msg) {
 	try {
 	    Constructor fortressIOException = Class.forName(name).getConstructor(new Class[]{ String.class });
-	    return new FException((FValue)fortressIOException.newInstance(FString.make(msg == null ? "" : msg)));
+	    return new FException((FValue)fortressIOException.newInstance(FJavaString.make(msg == null ? "" : msg)));
 	} catch (ClassNotFoundException x) {
 	    throw new FortressImplementationError(x);
 	} catch (NoSuchMethodException x) {

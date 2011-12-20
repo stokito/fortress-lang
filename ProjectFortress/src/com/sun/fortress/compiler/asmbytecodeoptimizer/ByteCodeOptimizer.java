@@ -126,6 +126,7 @@ class ByteCodeOptimizer {
         }
     }
 
+   
     void optimize() {
         Iterator it = classes.entrySet().iterator();
         while (it.hasNext()) {
@@ -135,9 +136,10 @@ class ByteCodeOptimizer {
             AddString.optimize(bcv);
             RemoveLiteralCoercions.optimize(bcv);
             CalculateLabels.optimize(bcv);
-            //            Inlining.optimize(bcv);
+            Inlining.optimize(bcv);
             AbstractInterpretation.optimize((String) pairs.getKey(), bcv);
             DefUseChains.optimize(bcv);
+            //            GenerateUnboxedVersions.optimize((String) pairs.getKey(), bcv);
         }
     }
         

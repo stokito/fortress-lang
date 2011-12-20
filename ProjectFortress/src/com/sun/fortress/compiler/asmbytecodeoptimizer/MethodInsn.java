@@ -12,6 +12,7 @@ package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
+import com.sun.fortress.compiler.NamingCzar;
 
 public class MethodInsn extends Insn {
     int opcode;
@@ -62,9 +63,8 @@ public class MethodInsn extends Insn {
     }
 
     public boolean isBoxingMethod() {
-        boolean result = owner.startsWith("com/sun/fortress/compiler/runtimeValues") &&
-            _name.equals("make");
-        return result;
+        return _name.equals("make") &
+            NamingCzar.typeIsFortressSpecialType(owner);
     }
 
     public boolean isFVoidBoxingMethod() {
@@ -73,11 +73,9 @@ public class MethodInsn extends Insn {
     }
 
     public boolean isUnBoxingMethod() {
-        boolean result = owner.startsWith("com/sun/fortress/compiler/runtimeValues") &&
-            _name.equals("getValue");
-
-        return result;
-
+        if (_name.equals("getValue") & NamingCzar.typeIsFortressSpecialType(owner))
+            return true;
+        return false;
     }
 
     private boolean needed() {

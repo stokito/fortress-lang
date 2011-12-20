@@ -28,6 +28,7 @@ public class stringOps {
     }
     
     public static String asString(fortress.AnyType.Any a) { // this can't be right! DRC
-        return "<" + a.getClass() + ">";
+        //        return "<" + a.getClass() + ">";
+        return a.toString(); // I think this is better CHF
     }
 }
