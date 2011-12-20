@@ -118,6 +118,19 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
         return updateNode(that, that.getName());
     }
 
+    @Override
+    public Node forFnDecl(FnDecl that) {
+        // TODO Auto-generated method stub
+        return super.forFnDecl(that);
+    }
+
+    @Override
+    public Node forOpRef(OpRef that) {
+        // TODO Auto-generated method stub
+        return super.forOpRef(that);
+    }
+
+
     /**
      * Do the static arguments and parameters "match" in the limited sense that there
      * are the same number and their kinds match (e.g., TypeArgs match TypeParams,

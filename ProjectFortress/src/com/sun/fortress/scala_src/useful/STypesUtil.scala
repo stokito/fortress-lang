@@ -1141,6 +1141,7 @@ object STypesUtil {
             if (!skip) {
               
             def oneMethod(methodName: IdOrOp, methodFunc: Functional) = {
+              val methodName2 = methodName.accept(paramsToArgs);
               val (paramTy, selfIndex, sparams) =
                 paramTySchemaWithoutSelf(methodName, methodFunc, paramsToArgs)
               val first_analyzer = analyzer.extend(sparams, None)
