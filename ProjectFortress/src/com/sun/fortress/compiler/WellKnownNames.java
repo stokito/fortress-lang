@@ -82,7 +82,8 @@ public class WellKnownNames {
     public static String executableApi() { return _executableApi; }
     public static String simpleExecutableApi() { return _simpleExecutableApi; }
     public static String[] defaultLibrary() { return _defaultLibrary; }
-
+    public static String compilerBuiltin() { return _compilerBuiltin; }
+    
     public static boolean exportsMain(String apiName) {
         return ( apiName.equals(_executableApi) ||
                  apiName.equals(_simpleExecutableApi) );

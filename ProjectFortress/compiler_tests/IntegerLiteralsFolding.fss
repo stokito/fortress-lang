@@ -1,35 +1,35 @@
 component IntegerLiteralsFolding
 export Executable
 
+shouldDivideByZero(f: () -> IntLiteral): Boolean =
+  try
+    ignore f()
+    false
+  catch e
+    DivisionByZero => true
+    Exception => false
+  end
+
 run(): () = do
   assert(4 = 4)
-  a = -(-5)
-  b = 3 + 3
-  d = 3 BOXPLUS 3
-  e = 3 DOTPLUS 3
-  f = 3 - 3
-  g = 3 BOXMINUS 3
-  h = 3 DOTMINUS 3
-  i = 3 CROSS 3
-  j = 3 BOXCROSS 3
-  k = 3 DOTCROSS 3
-  l = 3 DOT 3
-  m = 3 BOXDOT 3
-  n = 3 3
-  o = 3 BY 3
-  p = |-3|
-  q = 3 < 4
-  r = |-4| 
-  s = 0
-  t = 0
-  u = 0
-  v = 0
-  w = 0
-  x = 0
-  y = 0
-  z = 0
-  (*)i = |-6|
-  (*)assert(3 =/= 4)
+  assert (-(-5) = 5)
+  assert(3 + 3 = 6)
+  assert(3 BOXPLUS 3 = 6)
+  assert(3 DOTPLUS 3 = 6)
+  assert(3 - 3 = 0)
+  assert(3 BOXMINUS 3 = 0)
+  assert(3 DOTMINUS 3 = 0)
+  assert(3 CROSS 3 = 9)
+  assert((3 BOXCROSS 3) = 9)
+  assert((3 DOTCROSS 3) = 9)
+  assert(3 DOT 3 = 9)
+  assert((3 BOXDOT 3) = 9)
+  assert(4 DIV 2 = 2)
+  (*)assert(shouldDivideByZero(fn () => throw DivisionByZero))
+  assert(3 3 = 9)
+  assert(3 BY 3 = 9)
+  assert(|-3| = 3)
+  assert(3 < 4 < 5)
   assert(3 =/= 4)
 end
 
