@@ -139,8 +139,8 @@ public enum PhaseOrder {
         DISAMBIGUATE,
         GRAMMAR,
         PRETYPECHECKDESUGAR,
-        TYPECHECK,
         INTEGERLITERALFOLDING,
+        TYPECHECK,
         DESUGAR,
         OVERLOADREWRITE,
         CODEGEN

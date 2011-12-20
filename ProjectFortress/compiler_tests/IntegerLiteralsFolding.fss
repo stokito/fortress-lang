@@ -1,15 +1,6 @@
 component IntegerLiteralsFolding
 export Executable
 
-shouldDivideByZero(f: () -> IntLiteral): Boolean =
-  try
-    ignore f()
-    false
-  catch e
-    DivisionByZero => true
-    Exception => false
-  end
-
 run(): () = do
   assert(4 = 4)
   assert (-(-5) = 5)
@@ -25,12 +16,11 @@ run(): () = do
   assert(3 DOT 3 = 9)
   assert((3 BOXDOT 3) = 9)
   assert(4 DIV 2 = 2)
-  (*)assert(shouldDivideByZero(fn () => throw DivisionByZero))
-  assert(3 3 = 9)
   assert(3 BY 3 = 9)
   assert(|-3| = 3)
   assert(3 < 4 < 5)
   assert(3 =/= 4)
+  assert((0 CHOOSE 0) = 1)
 end
 
 end

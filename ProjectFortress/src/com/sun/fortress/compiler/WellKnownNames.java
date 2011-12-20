@@ -32,6 +32,10 @@ public class WellKnownNames {
         return "__builtinFactory"+rank;
     }
 
+    private static String _Infinity = "Infinity";
+    private static String _NegativeInfinity = "NegativeInfinity";
+    private static String _UndefinedNumber = "UndefinedNumber";
+    
     private static String _compilerLibrary = "CompilerLibrary";
     private static String _compilerAlgebra = "CompilerAlgebra";
     private static String _compilerBuiltin = com.sun.fortress.runtimeSystem.Naming.COMPILER_BUILTIN;
@@ -75,6 +79,10 @@ public class WellKnownNames {
     public final static String calleeViolationException = "CalleeViolation";
     public final static String labelException = "LabelException";
 
+    public static String Infinity() { return _Infinity; }	
+    public static String NegativeInfinity() { return _NegativeInfinity; }	
+    public static String UndefinedNumber() { return _UndefinedNumber; }	
+    
     public static String compilerAlgebra() { return _compilerAlgebra; }
     public static String fortressLibrary() { return _fortressLibrary; }
     public static String fortressBuiltin() { return _fortressBuiltin; }

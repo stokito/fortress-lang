@@ -370,6 +370,10 @@ strToInt(s:String):ZZ32 = jParseInt(s.asJavaString)
 trait Number excludes { String }
 end
 
+value object Infinity extends Number end
+value object NegativeInfinity extends Number end
+value object IndefiniteNumber extends Number end
+
 trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 }
     coerce(x: IntLiteral) = x.asZZ64
     coerce(x: ZZ32) = jIntToLong(x)

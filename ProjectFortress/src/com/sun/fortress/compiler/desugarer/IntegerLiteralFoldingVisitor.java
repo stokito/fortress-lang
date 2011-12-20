@@ -12,6 +12,7 @@
 package com.sun.fortress.compiler.desugarer;
 
 import com.sun.fortress.compiler.Types;
+import com.sun.fortress.compiler.WellKnownNames;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
 import com.sun.fortress.useful.*;
@@ -34,6 +35,26 @@ public class IntegerLiteralFoldingVisitor extends NodeUpdateVisitor {
 	
 	public IntegerLiteralFoldingVisitor() { }
 	
+	private BigInteger factorial_aux(BigInteger n, BigInteger acc) {
+		if (n.compareTo(BigInteger.ZERO) == -1)
+			throw new CompilerError("Integer Literal folding: Need to do something for factorial of negative values");
+		if (n.equals(BigInteger.ZERO))
+		   	return acc;
+		else
+			return factorial_aux(n.subtract(BigInteger.ONE),n.multiply(acc)); 
+	}
+	
+	private BigInteger factorial(BigInteger n) {
+		return factorial_aux(n,BigInteger.ONE);
+	}
+	
+	private BigInteger choose(BigInteger n, BigInteger k) {
+		BigInteger n_fact = factorial(n);
+		BigInteger k_fact = factorial(k);
+		BigInteger nminusk_fact = factorial(n.subtract(k));
+		return n_fact.divide(k_fact.multiply(nminusk_fact));
+	}
+	
 	private Node foldBinaryOperator(FunctionalRef op_result, ExprInfo info_result, Expr arg0, Expr arg1) {
 		
 		BigInteger v0 = ((IntLiteralExpr)arg0).getIntVal();
@@ -45,9 +66,12 @@ public class IntegerLiteralFoldingVisitor extends NodeUpdateVisitor {
 			return ExprFactory.makeIntLiteralExpr(info_result,v0.subtract(v1));
 		if (op.equals("BY") || op.equals("BOXCROSS") || op.equals("DOTCROSS") || op.equals("DOT") || op.equals("BOXDOT") || op.equals("juxtaposition"))
 			return ExprFactory.makeIntLiteralExpr(info_result,v0.multiply(v1));
+		if (op.equals("DIV") && v0.equals(BigInteger.ZERO) && v1.equals(BigInteger.ZERO)) 
+			return ExprFactory.makeVarRef(info_result.getSpan(),WellKnownNames.compilerBuiltin(),WellKnownNames.UndefinedNumber());
+		if (op.equals("DIV") && v0.compareTo(BigInteger.ZERO) == -1 && v1.equals(BigInteger.ZERO)) 
+			return ExprFactory.makeVarRef(info_result.getSpan(),WellKnownNames.compilerBuiltin(),WellKnownNames.NegativeInfinity());
 		if (op.equals("DIV") && v1.equals(BigInteger.ZERO)) 
-			throw new CompilerError("No folding of division by zero yet");
-			//return ExprFactory.makeThrow(info_result,"DivisionByZero");
+			return ExprFactory.makeVarRef(info_result.getSpan(),WellKnownNames.compilerBuiltin(),WellKnownNames.Infinity());
 		if (op.equals("DIV")) 
 			return ExprFactory.makeIntLiteralExpr(info_result,v0.divide(v1));
 		if (op.equals("AND"))
@@ -60,6 +84,10 @@ public class IntegerLiteralFoldingVisitor extends NodeUpdateVisitor {
 			return ExprFactory.makeIntLiteralExpr(info_result,v0.min(v1));
 		if (op.equals("MAX"))
 			return ExprFactory.makeIntLiteralExpr(info_result,v0.max(v1));
+		if(op.equals("MINMAX"))
+			return ExprFactory.makeTupleExpr(info_result.getSpan(), ExprFactory.makeIntLiteralExpr(NodeUtil.getSpan(arg0),v0.min(v1)),ExprFactory.makeIntLiteralExpr(NodeUtil.getSpan(arg1),v0.max(v1)));
+		if(op.equals("CHOOSE"))
+			return ExprFactory.makeIntLiteralExpr(info_result.getSpan(),choose(v0,v1));
 		boolean lt = v0.compareTo(v1) == -1 ? true : false;
 		boolean gt = v0.compareTo(v1) == 1 ? true : false; 
 		boolean eq = v0.equals(v1);
@@ -75,7 +103,8 @@ public class IntegerLiteralFoldingVisitor extends NodeUpdateVisitor {
 			return ExprFactory.makeBooleanLiteralExpr(info_result, eq);
 		if (op.equals("NE"))
 			return ExprFactory.makeBooleanLiteralExpr(info_result, lt || gt);
-		throw new CompilerError("Operator not handled yet" + op);
+		List<Expr> args = Arrays.asList(arg0,arg1);
+		return new OpExpr(info_result, op_result, args);
 		
 	}
 	
@@ -146,11 +175,4 @@ public class IntegerLiteralFoldingVisitor extends NodeUpdateVisitor {
 
 }
 
-/*if (op.equals("even"))
-	return ExprFactory.makeBooleanLiteralExpr(info_result,v.mod(new BigInteger("2")) == BigInteger.ZERO? true : false);
-if (op.equals("odd"))
-	return ExprFactory.makeBooleanLiteralExpr(info_result,v.mod(new BigInteger("2")) == BigInteger.ONE? true : false);*/
-
-//opr MINMAX(self, other:ZZ64): (ZZ64, ZZ64) 
-//opr CHOOSE(self, other:ZZ64): ZZ64
 
