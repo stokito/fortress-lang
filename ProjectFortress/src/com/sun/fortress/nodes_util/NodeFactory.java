@@ -1745,6 +1745,10 @@ return new TraitType(info, name, sargs, sparams);
         return new OpArg(makeSpanInfo(span), false, op);
     }
     
+    public static OpArg makeOpArg(Span span, Op op, boolean lifted){
+        return new OpArg(makeSpanInfo(span), lifted, op);
+    }
+    
     public static OpArg makeOpArg(Span span, String text){
         return new OpArg(makeSpanInfo(span), false, makeOp(span, text));
     }

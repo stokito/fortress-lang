@@ -29,8 +29,8 @@ else
 fi
 
 CP="`"$FORTRESS_HOME"/bin/run_classpath`"
-CP=$FORTRESS_HOME/default_repository/caches/optimizedbytecode_cache/${SEP}$FORTRESS_HOME/default_repository/caches/optimizedbytecode_cache/*.jar${SEP}$CP
-# echo $CP
+CP=$FORTRESS_HOME/default_repository/caches/optimizedbytecode_cache/${SEP}$FORTRESS_HOME/default_repository/caches/optimizedbytecode_cache/*${SEP}$CP
+echo $CP
 
 if [ -z "$JAVA_HOME" ] ; then
   JAVACMD=java

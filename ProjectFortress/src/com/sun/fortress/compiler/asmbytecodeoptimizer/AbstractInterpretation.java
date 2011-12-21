@@ -91,8 +91,6 @@ public class AbstractInterpretation {
              interpretInsns(c, c.pc);
          }
 
-         bcmv.sortValues();
-        
         if (noisy) {
             System.out.println("Finished method " + bcmv.name + " in " + (System.currentTimeMillis() - startTime) + " ms");
         }

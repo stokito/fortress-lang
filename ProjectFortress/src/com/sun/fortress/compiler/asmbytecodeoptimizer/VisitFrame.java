@@ -56,6 +56,7 @@ public class VisitFrame extends Insn {
     }
 
     public void toAsm(MethodVisitor mv) {
-        mv.visitFrame(type, nLocal, local, nStack, stack);
+        //        System.out.println("About to emit visitFrame : " + toString());
+        //        mv.visitFrame(type, nLocal, local, nStack, stack);
     }
 }

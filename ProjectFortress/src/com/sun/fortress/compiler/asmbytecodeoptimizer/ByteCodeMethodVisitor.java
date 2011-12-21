@@ -12,6 +12,7 @@ package com.sun.fortress.compiler.asmbytecodeoptimizer;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.jar.*;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
 
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
@@ -41,7 +43,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
     boolean changed;
     HashMap labelDefs;
     AbstractInterpretation ai;
-    private ArrayList<AbstractInterpretationValue> vals;
+    private TreeSet<AbstractInterpretationValue> vals;
     
 
     // Is useful for debugging
@@ -54,6 +56,15 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         insns.add(i);
     }
 
+    class AIVComparator implements Comparator<AbstractInterpretationValue> {
+        public int compare(AbstractInterpretationValue a, AbstractInterpretationValue b) {
+            return a.getValueNumber() - b.getValueNumber();
+        }
+        public boolean equals(AbstractInterpretationValue a, AbstractInterpretationValue b) {
+            return a.getValueNumber() == b.getValueNumber();
+        }
+    }
+
     public ByteCodeMethodVisitor(int access, String name, String desc, String sig, String[] exceptions) {
         this.insns = new ArrayList<Insn>();
         this.access = access;
@@ -64,7 +75,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         this.args = NamingCzar.parseArgs(desc);
         this.result = NamingCzar.parseResult(desc);
         this.index = 0;
-        this.vals = new ArrayList<AbstractInterpretationValue>();
+        this.vals = new TreeSet<AbstractInterpretationValue>(new AIVComparator());
         this.labelDefs = new HashMap();
         this.maxStack = 0;
         this.maxLocals = 0;
@@ -111,24 +122,7 @@ public class ByteCodeMethodVisitor extends AbstractVisitor implements MethodVisi
         vals.add(v);
     }
 
-    public void sortValues() {
-        AbstractInterpretationValue foo[] = new AbstractInterpretationValue[vals.size() * 2];  // Some Values are double width
-        int max = 0;
-        for (AbstractInterpretationValue v : vals) {
-            if (v != null) {
-                if (v.getValueNumber() > max) max = v.getValueNumber();
-                foo[v.getValueNumber()] = v;
-            }
-        }
-        ArrayList<AbstractInterpretationValue> sortedValues = new ArrayList<AbstractInterpretationValue>();
-        for (int i = 0; i < max; i++) {
-            sortedValues.add(foo[i]);
-        }
-
-        vals = sortedValues;
-    }
-
-    public List<AbstractInterpretationValue> getValues() { return vals;}
+    public TreeSet<AbstractInterpretationValue> getValues() { return vals;}
 
     public String toString() {
         return "Method " + name + " desc = " + desc + " sig = " + sig;

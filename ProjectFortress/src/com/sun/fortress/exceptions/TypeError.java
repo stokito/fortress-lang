@@ -11,6 +11,8 @@
 
 package com.sun.fortress.exceptions;
 
+import com.sun.fortress.nodes.FnDecl;
+import com.sun.fortress.nodes.TraitObjectDecl;
 import com.sun.fortress.useful.HasAt;
 
 /**
@@ -46,6 +48,11 @@ public class TypeError extends StaticError {
         return;
     }
     public static void b3(Object a, Object b, Object c) {
+        if (b instanceof TraitObjectDecl) {
+        TraitObjectDecl tod = (TraitObjectDecl) b;
+        String s = tod.getHeader().getName().stringName();
+        return;
+        }
         return;
     }
     public static void b4(Object a, Object b, Object c, Object d) {
