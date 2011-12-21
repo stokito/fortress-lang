@@ -853,6 +853,8 @@ trait Testable[\P\] excludes {String, AnyVector, Number, AnyMatrix}
     abstract run(arg:P): TestResult
 
     (** `Testable[\P\]` can be also used as an arrow type `P->TestResult`. **)
+    (* This has to be disabled, because it is ambiguous with String (Any,self)
+       juxtapostion *)
     (*) opr juxtaposition(self, arg:P): TestResult = run(arg)
 end
 
