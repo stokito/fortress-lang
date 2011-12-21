@@ -21,8 +21,8 @@ public class FException extends java.lang.Error {
     
     public FException(FValue v) { 
         super("Fortress Exception: " + v.asString());
-        System.out.println("Creating Fortress exception with error value " + v);
-	error = v;
+        // System.out.println("Creating Fortress exception with error value " + v);
+        error = v;
         exceptions.put(v, this);
     }
 

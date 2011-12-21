@@ -99,8 +99,8 @@ testCheck() = do
     unsignedRshift = forAll[\ZZ32\] (fn p =>
             ("right shift by 32+ bits" |: ((p RSHIFT 40) = (p RSHIFT 32))) AND
             ("no sign extension" |: ((p RSHIFT 40) = 0)))
-    assert(unsignedRshift(42).status = TestPass, "unsignedRshift with p=42 failed")
-    assert(unsignedRshift(-42).status = TestFail, "unsignedRshift with p=-42 passed")
+    assert(unsignedRshift.run(42).status = TestPass, "unsignedRshift with p=42 failed")
+    assert(unsignedRshift.run(-42).status = TestFail, "unsignedRshift with p=-42 passed")
     check(unsignedRshift)
 
     (* fixed version of `unsignedRshift`: should pass (with no tags) *)

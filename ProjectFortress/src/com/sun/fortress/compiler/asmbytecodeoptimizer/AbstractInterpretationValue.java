@@ -78,7 +78,7 @@ public class AbstractInterpretationValue {
     }
 
     public String idString() {
-        return "AbstractInterpretationValue:";
+        return "AIV:";
     }
 
     public String toString() { 

@@ -520,7 +520,7 @@ public class NamingCzar {
         bl(fortLib, "JavaBufferedWriter", "FJavaBufferedWriter");
         bl(fortLib, "ZZ64", "FZZ64");
         bl(fortLib, "ZZ32", "FZZ32");
-	bl(fortLib, "NN32", "FNN32");
+        bl(fortLib, "NN32", "FNN32");
         bl(fortLib, "RR32", "FRR32");
         bl(fortLib, "RR64", "FRR64");
         bl(fortLib, "JavaString", "FJavaString");
@@ -539,6 +539,10 @@ public class NamingCzar {
      */
     public static boolean fortressTypeIsSpecial(com.sun.fortress.nodes.Type t) {
         return specialFortressDescriptors.containsKey(t);
+    }
+
+    public static boolean typeIsFortressSpecialType(String t) {
+        return specialFortressTypes.containsValue(t);
     }
 
 //    public static String boxedImplDesc(com.sun.fortress.nodes.Type t, APIName ifNone) {
@@ -749,7 +753,7 @@ public class NamingCzar {
 
 
     public static String mangleAwayFromOverload(String mname) {
-        mname += "$SINGLE";
+        mname += Naming.NON_OVERLOADED_TAG;
         return mname;
     }
 

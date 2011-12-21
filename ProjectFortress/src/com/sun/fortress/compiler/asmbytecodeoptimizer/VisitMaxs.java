@@ -36,8 +36,8 @@ public class VisitMaxs extends Insn {
     }
     
     public void toAsm(MethodVisitor mv) {
-        //        mv.visitMaxs(Naming.ignoredMaxsParameter,Naming.ignoredMaxsParameter);
-        mv.visitMaxs(1024,1024);
+        mv.visitMaxs(0,0);
+        //        mv.visitMaxs(1024,1024);
         //        mv.visitMaxs(maxStack, maxLocals);
     }
 }

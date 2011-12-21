@@ -140,6 +140,10 @@ abstract public class Insn {
         return false;
     }
 
+    public boolean isUnnecessaryCheckCast(AbstractInterpretationValue v) {
+        return false;
+    }
+
     public boolean isBoxingMethod() {
         if (this instanceof MethodInsn) {
             MethodInsn mi = (MethodInsn) this;

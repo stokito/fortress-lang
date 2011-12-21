@@ -27,7 +27,7 @@ public class AbstractInterpretationSecondSlotValue extends AbstractInterpretatio
 
     public String idString() {
         if (originalValue != null)
-            return "AbstractInterpretationSecondSlotValue: originalValue = " + originalValue.getValueNumber();
+            return "AISS[" + originalValue.getValueNumber() + "]";
         else
             throw new RuntimeException("Shouldn't happen");
     }
