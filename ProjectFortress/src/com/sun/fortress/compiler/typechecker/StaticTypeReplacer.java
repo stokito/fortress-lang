@@ -53,7 +53,8 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
     
     /** Assume params.size() == args.size() */
     public StaticTypeReplacer(List<StaticParam> params, List<StaticArg> args) {
-        assert(params.size() == args.size());
+        if (params.size() != args.size())
+	    InterpreterBug.bug("Number of args does not equal number of parameters in StaticTypeReplacer");
         int n = params.size();
         parameterMap = new HashMap<IdOrOpOrAnonymousName, StaticArg>(n);
         for (int i=0; i<n; ++i) {

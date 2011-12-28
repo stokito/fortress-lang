@@ -806,16 +806,24 @@ public class NodeFactory {
                              Option.<WhereClause>none(), methodInfo);
     }
 
-    public static ArrowType makeArrowType(Span span, Type domain, Type range,
-                                          Effect effect) {
-        return makeArrowType(span, false, domain, range, effect,
+//     public static ArrowType makeArrowType(Span span, Type domain, Type range,
+//                                           Effect effect) {
+//         return makeArrowType(span, false, domain, range, effect,
+//                              Collections.<StaticParam>emptyList(),
+//                              Option.<WhereClause>none());
+//     }
+
+    public static ArrowType makeArrowType(Span span, Type domain, Type range) {
+        return makeArrowType(span, false, domain, range,
+                             makeEffect(NodeUtil.getSpan(range).getEnd()),
                              Collections.<StaticParam>emptyList(),
                              Option.<WhereClause>none());
     }
 
-    public static ArrowType makeArrowType(Span span, Type domain, Type range) {
-        return makeArrowType(span, domain, range,
-                             makeEffect(NodeUtil.getSpan(range).getEnd()));
+    public static ArrowType makeArrowType(Span span, Type domain, Type range, List<StaticParam> sparams) {
+	return makeArrowType(span, false, domain, range,
+			     makeEffect(NodeUtil.getSpan(range).getEnd()),
+			     sparams, Option.<WhereClause>none());
     }
 
     public static ArrowType makeArrowType(Span span, boolean parenthesized,
@@ -969,6 +977,11 @@ public class NodeFactory {
         return makeTraitType(NodeUtil.getSpan(name), false, name, sargs);
     }
 
+    public static TraitType makeTraitTypeForScala(Id name,
+                                          List<StaticArg> sargs) {
+        return makeTraitType(NodeUtil.getSpan(name), false, name, sargs, Collections.<StaticParam>emptyList());
+    }
+
     public static TraitType makeTraitType(Id name) {
         return makeTraitType(NodeUtil.getSpan(name), false, name);
     }
@@ -976,9 +989,9 @@ public class NodeFactory {
     public static TraitType makeTraitType(Span span, boolean parenthesized,
             Id name, List<StaticArg> sargs,
             List<StaticParam> sparams) {
-TypeInfo info = makeTypeInfo(span, parenthesized);
-return new TraitType(info, name, sargs, sparams);
-}
+	TypeInfo info = makeTypeInfo(span, parenthesized);
+	return new TraitType(info, name, sargs, sparams);
+    }
 
     /**
      * Non-standard -- stashes the params into the type-info, leaving the

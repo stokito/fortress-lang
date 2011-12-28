@@ -22,8 +22,8 @@ import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.NodeFactory._
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.typechecker.staticenv.KindEnv
+import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.typechecker.TraitTable
 import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.types.TypeSchemaAnalyzer

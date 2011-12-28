@@ -19,7 +19,7 @@ f'(x: ZZ32): ZZ32 = x
 
 trait T[\S extends ZZ32\]
   f(self):S
-  g[\U extends ZZ32\]():ZZ32
+  g[\U extends ZZ32\](u: U):ZZ32
 end
 
 object O[\S extends ZZ32\](x: S) extends T[\S\]

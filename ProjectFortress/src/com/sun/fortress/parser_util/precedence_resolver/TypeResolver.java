@@ -28,6 +28,7 @@ import com.sun.fortress.useful.Cons;
 import com.sun.fortress.useful.PureList;
 import edu.rice.cs.plt.tuple.Option;
 
+import java.util.Collections;
 import java.util.List;
 
 /*
@@ -214,7 +215,10 @@ public class TypeResolver {
         Op op = frame.getOp();
         Type first = frame.getArg();
         if (isTypeOp(op)) {
-            return NodeFactory.makeArrowType(spanTwo(first, last), first, typeToType(last), frame.getEffect());
+            return NodeFactory.makeArrowType(spanTwo(first, last), false, first, typeToType(last),
+					     frame.getEffect(),
+					     Collections.<StaticParam>emptyList(),
+                                             Option.<WhereClause>none());
         } else { // !(isTypeOp(op))
             try {
                 DimExpr _second = typeToDim(last);
