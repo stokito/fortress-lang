@@ -21,6 +21,7 @@ import java.util.List;
  * static parameters on the declaring trait and get the type of `self`.
  */
 public interface HasSelfType {
+    public Node ast();
     public Id declaringTrait();
     public Option<SelfType> selfType();
     public int selfPosition();

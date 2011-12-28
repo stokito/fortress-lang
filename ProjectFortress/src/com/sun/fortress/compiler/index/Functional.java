@@ -24,7 +24,7 @@ import java.util.List;
  */
 public abstract class Functional extends InferredTypeIndex {
 
-    //public abstract Node ast();
+    // public abstract Node ast();
 
     public abstract List<StaticParam> staticParameters();
 

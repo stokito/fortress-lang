@@ -1100,19 +1100,22 @@ object STypesUtil {
   // update gives us for free.
   // It'd be nice to abbreviate the type of the Relation somehow.
   def inheritedMethods(extendedTraits: List[TraitTypeWhere],
-    methods: Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)],
-    analyzer: TypeAnalyzer): Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = 
-      inheritedMethods(extendedTraits, methods, analyzer, false)
+                       methods: Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)],
+                       analyzer: TypeAnalyzer):
+        Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = 
+    inheritedMethods(extendedTraits, methods, analyzer, false)
       
   def inheritedMethods(extendedTraits: List[TraitTypeWhere],
-    methods: Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)],
-    analyzer: TypeAnalyzer,
-    skipFirstTraitMethods : Boolean): Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
+                       methods: Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)],
+                       analyzer: TypeAnalyzer,
+                       skipFirstTraitMethods : Boolean):
+        Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
     if (debugInheritedMethods)
       System.err.println("inheritedMethods " + extendedTraits.map(_.getBaseType))
     val history: HierarchyHistory = new HierarchyHistory()
     val allMethods =
-      new HashMap[IdOrOpOrAnonymousName, MSet[(Type, Int, List[StaticParam], Functional, StaticTypeReplacer, TraitType)]] with MultiMap[IdOrOpOrAnonymousName, (Type, Int, List[StaticParam], Functional, StaticTypeReplacer, TraitType)]
+      ( new HashMap[IdOrOpOrAnonymousName, MSet[(Type, Int, List[StaticParam], Functional, StaticTypeReplacer, TraitType)]]
+        with MultiMap[IdOrOpOrAnonymousName, (Type, Int, List[StaticParam], Functional, StaticTypeReplacer, TraitType)] )
     // Method name -> parameter types (not incl self), actual decl, type info, decl site
     for (pltPair <- toSet(methods)) {
       val methodName = pltPair.first
@@ -1246,14 +1249,16 @@ object STypesUtil {
   }
 
   def inheritedMethods(extendedTraits: List[TraitTypeWhere],
-    analyzer: TypeAnalyzer): Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
+                       analyzer: TypeAnalyzer):
+        Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
     val methods =
       new IndexedRelation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)](false)
     inheritedMethods(extendedTraits, methods, analyzer)
   }
 
   def inheritedMethods(extendedTraits: JList[TraitTypeWhere],
-    analyzer: TypeAnalyzer): Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] =
+                       analyzer: TypeAnalyzer):
+        Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] =
     inheritedMethods(toListFromImmutable(extendedTraits),
       analyzer)
 
@@ -1261,15 +1266,25 @@ object STypesUtil {
    * Returns a relation for the methods that are inherited 
    */
   def properlyInheritedMethods(tt: TraitType,
-    analyzer: TypeAnalyzer): Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
+                               analyzer: TypeAnalyzer):
+        Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
     val methods =
       new IndexedRelation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)](false)
     inheritedMethods(List(NF.makeTraitTypeWhere(tt)), methods, analyzer, true)
   }
 
-  def allMethods(tt: TraitType, analyzer: TypeAnalyzer): Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] =
+  def allMethods(tt: TraitType, analyzer: TypeAnalyzer):
+        Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] =
     inheritedMethods(List(NF.makeTraitTypeWhere(tt)), analyzer)
   
+  // TODO: This does not work properly because typechecker does not know a name for the type of an object expression.
+  def allMethodsOfObjectExpr(oe: ObjectExpr, analyzer: TypeAnalyzer):
+        Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
+    val methods =
+      new IndexedRelation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)](false)
+    inheritedMethods(toList(oe.getHeader.getExtendsClause), methods, analyzer, false)
+  }
+ 
   
   type FnAndSArgs = (Functional, Option[JList[StaticArg]])
   type GSDF = (Boolean, Boolean, Boolean, Boolean)
