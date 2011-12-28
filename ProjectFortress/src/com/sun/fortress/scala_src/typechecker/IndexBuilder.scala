@@ -208,10 +208,10 @@ object IndexBuilder {
    * having an index for one can be helpful.
    */
   def buildObjectExprIndex(obj: ObjectExpr): ObjectTraitIndex = {
-    val fake_span = NF.makeSpan("FAKE_SPAN")
-    val fake_object_name = NF.makeId(fake_span, "FAKE_NAME")
+    val span = NU.getSpan(obj)
+    val fake_object_name = NF.makeId(span, "<object expression>")
     // Make fake object
-    val decl = NF.makeObjectDecl(fake_span, fake_object_name,
+    val decl = NF.makeObjectDecl(span, fake_object_name,
                                  NU.getExtendsClause(obj),
                                  NU.getDecls(obj), obj.getSelfType)
     val index_holder: JavaMap[Id,TypeConsIndex] = new JavaHashMap[Id,TypeConsIndex]()
