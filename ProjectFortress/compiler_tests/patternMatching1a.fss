@@ -12,6 +12,9 @@
 export Executable
 
 trait T(a:ZZ32, b:String) end
-object O extends T end
+object O extends T
+  a: ZZ32 = 3
+  b: String = "Foo"
+end
 
 run():() = ()
