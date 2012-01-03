@@ -122,6 +122,7 @@ public class FortressMethodAdapter extends ClassAdapter {
         initializeEntry("FZZ32",    "getValue", "()I", "make", "(I)L" + prefix + "FZZ32;");
         initializeEntry("FZZ64",    "getValue", "()J", "make", "(J)L" + prefix + "FZZ64;");
         initializeEntry("FNN32",    "getValue", "()I", "make", "(I)L" + prefix + "FNN32;");
+        initializeEntry("FNN64",    "getValue", "()J", "make", "(J)L" + prefix + "FNN64;");
         initializeEntry("FRR32",    "getValue", "()F", "make", "(F)L" + prefix + "FRR32;");
         initializeEntry("FRR64",    "getValue", "()D", "make", "(D)L" + prefix + "FRR64;");
         initializeEntry("FBoolean", "getValue", "()Z", "make", "(Z)L" + prefix + "FBoolean;");
@@ -133,6 +134,8 @@ public class FortressMethodAdapter extends ClassAdapter {
                                     "make", "(Lcom/sun/fortress/compiler/runtimeValues/FortressBufferedReader;)L" + prefix + "FJavaBufferedReader;");
         initializeEntry("FJavaBufferedWriter", "getValue", "()Lcom/sun/fortress/compiler/runtimeValues/FortressBufferedWriter;",
                                     "make", "(Lcom/sun/fortress/compiler/runtimeValues/FortressBufferedWriter;)L" + prefix + "FJavaBufferedWriter;");
+        initializeEntry("FZZ", "getValue", "()Ljava/math/BigInteger;",
+                "make", "(Lcom/sun/fortress/compiler/runtimeValues/String;)L" + prefix + "FZZ;");
         initializeEntry("FVector", "getValue", "()[I" , "make","([I)L"+ prefix + "FVector;");
     }
 
