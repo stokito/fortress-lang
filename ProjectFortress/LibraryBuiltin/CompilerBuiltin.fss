@@ -100,6 +100,38 @@ import java com.sun.fortress.nativeHelpers.{simpleUnsignedIntArith.makeNN32FromZ
                                             simpleUnsignedIntArith.unsignedIntBitXor => jUnsignedIntBitXor,
                                             simpleUnsignedIntArith.unsignedIntExp => jUnsignedIntExp,
                                             simpleUnsignedIntArith.unsignedIntToDouble => jUnsignedIntToDouble}
+import java com.sun.fortress.nativeHelpers.{simpleUnsignedLongArith.makeNN64FromZZ64WithSpecialCompilerHackForNN64ResultType => jMakeNN64FromZZ64,
+                                            simpleUnsignedLongArith.makeZZ64FromNN64WithSpecialCompilerHackForNN64ArgumentType => jMakeZZ64FromNN64,
+                                            simpleUnsignedLongArith.unsignedLongToString => junsignedLongToString,
+                                            simpleUnsignedLongArith.parseUnsignedLong => jParseUnsignedLong,
+                                            simpleUnsignedLongArith.unsignedLongOverflowingAdd => junsignedLongOverflowingAdd,
+                                            simpleUnsignedLongArith.unsignedLongOverflowingSub => junsignedLongOverflowingSub,
+                                            simpleUnsignedLongArith.unsignedLongOverflowingMul => junsignedLongOverflowingMul,
+                                            simpleUnsignedLongArith.unsignedLongOverflowingDiv => junsignedLongOverflowingDiv,
+                                            simpleUnsignedLongArith.unsignedLongOverflowingNeg => junsignedLongOverflowingNeg,
+                                            simpleUnsignedLongArith.unsignedLongOverflowingAbs => junsignedLongOverflowingAbs,
+                                            simpleUnsignedLongArith.unsignedLongWrappingAdd => junsignedLongWrappingAdd,
+                                            simpleUnsignedLongArith.unsignedLongWrappingSub => junsignedLongWrappingSub,
+                                            simpleUnsignedLongArith.unsignedLongWrappingMul => junsignedLongWrappingMul,
+                                            simpleUnsignedLongArith.unsignedLongWrappingDiv => junsignedLongWrappingDiv,
+                                            simpleUnsignedLongArith.unsignedLongWrappingNeg => junsignedLongWrappingNeg,
+                                            simpleUnsignedLongArith.unsignedLongWrappingAbs => junsignedLongWrappingAbs,
+                                            simpleUnsignedLongArith.unsignedLongSaturatingAdd => junsignedLongSaturatingAdd,
+                                            simpleUnsignedLongArith.unsignedLongSaturatingSub => junsignedLongSaturatingSub,
+                                            simpleUnsignedLongArith.unsignedLongSaturatingMul => junsignedLongSaturatingMul,
+                                            simpleUnsignedLongArith.unsignedLongSaturatingDiv => junsignedLongSaturatingDiv,
+                                            simpleUnsignedLongArith.unsignedLongSaturatingNeg => junsignedLongSaturatingNeg,
+                                            simpleUnsignedLongArith.unsignedLongSaturatingAbs => junsignedLongSaturatingAbs,
+                                            simpleUnsignedLongArith.unsignedLongLT => junsignedLongLT,
+                                            simpleUnsignedLongArith.unsignedLongLE => junsignedLongLE,
+                                            simpleUnsignedLongArith.unsignedLongGT => junsignedLongGT,
+                                            simpleUnsignedLongArith.unsignedLongGE => junsignedLongGE,
+                                            simpleUnsignedLongArith.unsignedLongEQ => junsignedLongEQ,
+                                            simpleUnsignedLongArith.unsignedLongBitNot => junsignedLongBitNot,
+                                            simpleUnsignedLongArith.unsignedLongBitAnd => junsignedLongBitAnd,
+                                            simpleUnsignedLongArith.unsignedLongBitOr => junsignedLongBitOr,
+                                            simpleUnsignedLongArith.unsignedLongBitXor => junsignedLongBitXor,
+                                            simpleUnsignedLongArith.unsignedLongExp => junsignedLongExp}
 import java com.sun.fortress.nativeHelpers.{simpleLongArith.longToString => jLongToString,
                                             simpleLongArith.parseLong => jParseLong,
                                             simpleLongArith.longAdd => jLongAdd,
@@ -233,7 +265,24 @@ import java com.sun.fortress.nativeHelpers.{simpleStringVector.getIndexedValue =
                                             simpleStringVector.putIndexedValue => jStringVectorPut,
                                             simpleStringVector.getSize => jStringVectorGetSize,
                                             simpleStringVector.make => jStringVectorMake }
-
+import java com.sun.fortress.nativeHelpers.{simpleArbitraryPrecisionArith.parse => jAPParse,
+                                            simpleArbitraryPrecisionArith.toString => jAPToString,
+                                            simpleArbitraryPrecisionArith.add => jAPAdd,
+                                            simpleArbitraryPrecisionArith.sub => jAPSub ,
+                                            simpleArbitraryPrecisionArith.mul => jAPMul , 
+                                            simpleArbitraryPrecisionArith.div => jAPDiv ,
+                                            simpleArbitraryPrecisionArith.neg => jAPNeg ,
+                                            simpleArbitraryPrecisionArith.abs => jAPAbs ,
+                                            simpleArbitraryPrecisionArith.lt => jAPLt ,
+                                            simpleArbitraryPrecisionArith.le => jAPLe ,
+                                            simpleArbitraryPrecisionArith.gt => jAPGt ,
+                                            simpleArbitraryPrecisionArith.ge => jAPGe ,
+                                            simpleArbitraryPrecisionArith.eq => jAPEq ,
+                                            simpleArbitraryPrecisionArith.not => jAPNot,
+                                            simpleArbitraryPrecisionArith.and => jAPAnd,
+                                            simpleArbitraryPrecisionArith.oor => jAPOr,
+                                            simpleArbitraryPrecisionArith.xor => jAPXor}
+                                       
 import AnyType.{Any}
 import CompilerAlgebra.{ Equality }
 export CompilerBuiltin
@@ -374,7 +423,44 @@ value object Infinity extends Number end
 value object NegativeInfinity extends Number end
 value object IndefiniteNumber extends Number end
 
-trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 }
+trait ZZ extends { Number, Equality[\ZZ\] } excludes { RR64, ZZ64, ZZ32, NN32, NN64, IntLiteral }
+    coerce(x: IntLiteral) = x.asZZ
+    getter asString(): String = jAPToString(self)
+    opr |self| : ZZ = jAPAbs(self)
+    opr -(self): ZZ = jAPNeg(self)
+    opr BOXMINUS(self): ZZ = jAPNeg(self)
+    opr DOTMINUS(self): ZZ = jAPNeg(self)
+    opr +(self, other:ZZ): ZZ = jAPAdd(self,other)
+    opr BOXPLUS(self, other:ZZ): ZZ = jAPAdd(self,other)
+    opr DOTPLUS(self, other:ZZ): ZZ = jAPAdd(self,other)
+    opr -(self, other:ZZ): ZZ = jAPSub(self,other)
+    opr BOXMINUS(self, other:ZZ): ZZ = jAPSub(self,other)
+    opr DOTMINUS(self, other:ZZ): ZZ = jAPSub(self,other)
+    opr DOT(self, other:ZZ): ZZ = jAPMul(self,other)
+    opr BOXDOT(self, other:ZZ): ZZ = jAPMul(self,other)
+    opr CROSS(self, other:ZZ): ZZ = jAPMul(self,other)
+    opr BOXCROSS(self, other:ZZ): ZZ = jAPMul(self,other)
+    opr DOTCROSS(self, other:ZZ): ZZ = jAPMul(self,other)
+    opr DIV(self, other:ZZ): ZZ = jAPDiv(self,other)
+    opr <(self, other:ZZ): Boolean = jAPLt(self,other)
+    opr <=(self, other:ZZ): Boolean = jAPLe(self,other)
+    opr >(self, other:ZZ): Boolean = jAPGt(self,other)
+    opr >=(self, other:ZZ): Boolean = jAPGe(self,other)
+    opr =(self, other:ZZ): Boolean = jAPEq(self,other)
+    opr =/=(self, other:ZZ): Boolean = NOT (self = other)
+    opr juxtaposition(self,other:ZZ) = jAPMul(self,other)
+    opr BITNOT(self): ZZ = jAPNot(self)
+    opr BITAND(self, other:ZZ): ZZ = jAPAnd(self,other)
+    opr BITOR(self, other:ZZ): ZZ = jAPOr(self,other)
+    opr BITXOR(self, other:ZZ): ZZ = jAPXor(self,other)
+    opr MIN(self, other:ZZ): ZZ = if self <= other then self else other end
+    opr MAX(self, other:ZZ): ZZ = if self >= other then self else other end
+    opr MINMAX(self, other:ZZ): (ZZ, ZZ) = if self <= other then (self, other) else (other, self) end
+    even(self): Boolean = ((self BITAND 1) = 0)
+    odd(self): Boolean = NOT (even self)
+end
+
+trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 , ZZ }
     coerce(x: IntLiteral) = x.asZZ64
     coerce(x: ZZ32) = jIntToLong(x)
     getter asZZ32(): ZZ32 = jLongOverflowingToInt(self)
@@ -500,11 +586,56 @@ trait NN32 extends { Number, Equality[\NN32\] } excludes { ZZ32, ZZ64, RR32, RR6
     asRR64(): RR64 = jUnsignedIntToDouble(jMakeZZ32FromNN32(self))
 end
 
-trait IntLiteral excludes {ZZ32, ZZ64, NN32, RR64, RR32, Character, Boolean, String}
+trait NN64 extends { Number, Equality[\NN64\] } excludes { ZZ32, ZZ64, RR32, RR64, NN32, ZZ, IntLiteral }
+    coerce(x: IntLiteral) = x.asNN64
+    getter asNN64(): NN64 = self
+    getter asString(): String = junsignedLongToString(jMakeZZ64FromNN64(self))
+    opr |self| : NN64 = self
+    opr -(self): NN64 = 
+         if (self = 0) 
+         then 0
+         else throw IntegerOverflow
+         end
+    opr BOXMINUS(self): NN64 = jMakeNN64FromZZ64(junsignedLongWrappingNeg(jMakeZZ64FromNN64(self)))
+    opr DOTMINUS(self): NN64 = jMakeNN64FromZZ64(junsignedLongSaturatingNeg(jMakeZZ64FromNN64(self)))
+    opr +(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongOverflowingAdd(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr BOXPLUS(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongWrappingAdd(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr DOTPLUS(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongSaturatingAdd(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr -(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongOverflowingSub(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr BOXMINUS(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongWrappingSub(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr DOTMINUS(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongSaturatingSub(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr DOT(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongOverflowingMul(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr BOXDOT(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongWrappingMul(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr CROSS(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongOverflowingMul(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr BOXCROSS(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongWrappingMul(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr DOTCROSS(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongSaturatingMul(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr DIV(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongOverflowingDiv(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr <(self, other:NN64): Boolean = junsignedLongLT(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other))
+    opr <=(self, other:NN64): Boolean = junsignedLongLE(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other))
+    opr >(self, other:NN64): Boolean = junsignedLongGT(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other))
+    opr >=(self, other:NN64): Boolean = junsignedLongGE(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other))
+    opr =(self, other:NN64): Boolean = junsignedLongEQ(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other))
+    opr =/=(self, other:NN64): Boolean = NOT (jMakeZZ64FromNN64(self) = jMakeZZ64FromNN64(other))
+    opr juxtaposition(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongOverflowingMul(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr BITNOT(self): NN64 = jMakeNN64FromZZ64(junsignedLongBitNot(jMakeZZ64FromNN64(self)))
+    opr BITAND(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongBitAnd(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr BITOR(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongBitOr(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr BITXOR(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongBitXor(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr MIN(self, other:NN64): NN64 = if self <= other then self else other end
+    opr MAX(self, other:NN64): NN64 = if self >= other then self else other end
+    opr MINMAX(self, other:NN64): (NN64, NN64) = if self <= other then (self, other) else (other, self) end
+    even(self): Boolean = ((self BITAND 1) = 0)
+    odd(self): Boolean = NOT (even self)
+    opr ^(self, other:NN64):NN64 = jMakeNN64FromZZ64(junsignedLongExp(jMakeZZ64FromNN64(self), jMakeZZ64FromNN64(other)))
+end
+
+trait IntLiteral excludes {ZZ32, ZZ64, NN32, RR64, RR32, Character, Boolean, String, NN64, ZZ}
     getter asString(): String = self.asZZ32.asString
+    getter asZZ(): ZZ   
     getter asZZ32(): ZZ32
     getter asZZ64(): ZZ64
     getter asNN32(): NN32
+    getter asNN64(): NN64
 (*
     getter asZZ(): ZZ
     getter asRR32(): RR32
