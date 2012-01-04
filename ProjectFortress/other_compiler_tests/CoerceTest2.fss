@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component CoerceTest2
+export Executable
+
+trait TestEquality[\Self\] comprises Self
+    opr =(self, other:Self): Boolean = self SEQV other
+end
+
+object Baz extends TestEquality[\Baz\] end
+
+value trait TestMaybe[\T extends TestEquality[\T\]\]
+        comprises { TestNothingObject[\T\], TestJust[\T\] }
+end
+
+value object TestJust[\T extends TestEquality[\T\]\](x: T) extends TestMaybe[\T\]
+    getDefault(_: T): T = x
+    opr =(self,o:TestJust[\T\]): Boolean = (x=o.x)
+end
+
+value object TestNothingObject[\T extends TestEquality[\T\]\] extends TestMaybe[\T\]
+    coerce(_: TestNothing) = TestNothingObject[\T\]
+    getDefault(defaultValue: T):T = defaultValue
+    opr =(self,_:TestNothingObject[\T\]) = true
+end
+
+object TestNothing end
+
+run(): () = println(if TestJust(Baz).getDefault(Baz) = Baz then "PASS" else "FAIL" end)
+
+end

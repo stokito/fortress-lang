@@ -1,0 +1,118 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component zeno
+import ChunkedSparseArray.{...}
+export Executable
+
+(**
+ * Models Zeno's betting game from Brian Hayes' "Computing Science"
+ * column in American Scientist magazine (May/June 2008).
+ *
+ * We each start with 1 unit of money.
+ * At each round we wager half of the money held by the poorer of us.
+ * We toss a coin and the winner gets the wager from the loser.
+ *
+ * Observation: the fraction of the money we hold has a power-of-2 denominator.
+ * This denominator increases by 1 (in lowest terms) after each round, and the
+ * numerator is an odd number.
+ *
+ * We're interested in a histogram of outcomes.  This histogram is symmetric
+ * about 1, so we only need to track the outcome of the poorer player, and
+ * without loss of generality we can fix the outcome of the first coin toss.
+ *
+ * We shouldn't bother histogramming more rounds than we're willing to
+ * store, because binning the histogram will throw out exactly the
+ * results of the additional rounds.
+ *
+ * Note, though, that the histogram appears to be *very* sparse.
+ * This is a great test of sparse concurrent bit-backed arrays.
+ **)
+
+rounds : ZZ32 = 10
+
+(** Represents m / 2^n and 2 - (m / 2^n) **)
+value object Frac(m : ZZ32, n : ZZ32)
+    getter asString(): String =
+        if n > 1 then
+            m "/2^" n
+        elif n = 1 then
+            m "/2"
+        else
+            m ""
+        end
+    getter numerator(): ZZ32 = m
+    getter round(): ZZ32 = n
+    win(): Frac = do
+        m' = 3 m
+        n' = n+1
+        d = 2^n'
+        if m' > d then
+            Frac(2 d - m', n')
+        else
+            Frac(m',n')
+        end
+      end
+    lose(): Frac = Frac(m,n+1)
+end
+
+init : Frac = Frac(1,0)
+
+bin(f:Frac): ZZ32 = f.numerator() (* DIV 2 *)
+unbin(i:ZZ32): Frac = Frac(i (* 2 i + 1 *), rounds)
+
+histogram : Array[\ZZ32,ZZ32\] = (* array[\ZZ32\](2^(rounds-1)).fill(0) *)
+    chunkedSparseArray(2^rounds,0 asif ZZ32)
+
+trial(f:Frac): () =
+    if f.round() = rounds then
+        b = bin(f)
+        atomic histogram[b] += 1
+    else
+        do
+            trial(f.win())
+        also do
+            trial(f.lose())
+        end
+    end
+
+spaces : String = "                    "
+asterisks : String = "***************************************************************************"
+
+(* prepend spaces to s until it is w in width *)
+prepad(w: ZZ32, s: String): String = spaces[ |s| : w ] s
+
+showHist():() = do
+    mx = BIG MAX histogram
+    indexFieldWidth : ZZ32 = BIG MAX [(i,v) <- histogram.indexValuePairs, v=/=0] |"" i| - 1
+    valueFieldWidth : ZZ32 = |"" mx| - 1
+    println("mx = " mx)
+    histogramLength = 75 - indexFieldWidth - valueFieldWidth
+    for (i,v) <- sequential(histogram.indexValuePairs), v =/= 0 do
+        iAsString = "" i
+        print(prepad(indexFieldWidth, iAsString) ": ")
+        vAsString = "" v
+        print(prepad(valueFieldWidth, vAsString) " |")
+        n = (histogramLength v + mx DIV 2) DIV mx
+        if n < 1 then
+            println(".")
+        else
+            println(asterisks[0#n])
+        end
+    end
+  end
+
+run(): () = do
+    trial(init.lose())
+    showHist()
+  end
+
+end

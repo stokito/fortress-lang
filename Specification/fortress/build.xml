@@ -1,0 +1,216 @@
+<?xml version="1.0" ?>
+
+<!--
+Copyright 2009, Oracle and/or its affiliates.
+All rights reserved.
+
+
+Use is subject to license terms.
+
+This distribution may include materials developed by third parties.
+
+-->
+
+<project name="FortressSpec" default="spec">
+  <description>
+    The Fortress specification, written in LaTeX.
+  </description>
+
+  <property environment="env"/>
+  <property name="fortress.home"
+            value="${env.FORTRESS_HOME}"/>
+  <property name="compiler.home"
+            value="${fortress.home}/ProjectFortress"/>
+  <property name="example.home"
+            value="${fortress.home}/SpecData/examples"/>
+  <property name="preliminaries.example.home"
+            value="${fortress.home}/SpecData/examples/preliminaries"/>
+  <property name="basic.example.home"
+            value="${fortress.home}/SpecData/examples/basic"/>
+  <property name="advanced.example.home"
+            value="${fortress.home}/SpecData/examples/advanced"/>
+  <property name="library.example.home"
+            value="${fortress.home}/SpecData/examples/library"/>
+  <property name="library.api.home"
+            value="${fortress.home}/Library"/>
+  <property name="library.builtin.home"
+            value="${compiler.home}/LibraryBuiltin"/>
+  <property name="preliminaries.ex" value="${basedir}/../preliminaries/examples"/>
+  <property name="basic.ex"         value="${basedir}/../basic/examples"/>
+  <property name="advanced.ex"      value="${basedir}/../advanced/examples"/>
+  <property name="library.ex"       value="${basedir}/../library/examples"/>
+  <property name="library.api"      value="${basedir}/../library/apis"/>
+  <property name="texinputs"        value=".:${fortress.home}/Fortify:"/>
+  <property name="compiler.classpath"
+            value="${compiler.home}/build:${compiler.home}/third_party/xtc/xtc.jar:${compiler.home}/third_party/jsr166y/jsr166y.jar:${compiler.home}/third_party/plt/plt.jar:${compiler.home}/third_party/junit/junit.jar"/>
+
+  <taskdef name="fortress"
+           classname="com.sun.fortress.ant_tasks.FortressTask"
+	   classpath="${compiler.classpath}"/>
+
+  <taskdef name="fortex"
+           classname="com.sun.fortress.ant_tasks.FortexTask"
+           classpath="${compiler.classpath}"/>
+
+  <taskdef name="foreg"
+           classname="com.sun.fortress.ant_tasks.ForegTask"
+           classpath="${compiler.classpath}"/>
+
+  <target name="spec" depends="genSource, makeExs, bib">
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+  </target>
+
+  <target name="tex" depends="makeReservedWordsFiles, bib">
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+  </target>
+
+  <target name="onlyTex">
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+  </target>
+
+  <target name="bib">
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+    <exec executable="bibtex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+    <exec executable="pdflatex" failonerror="true">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+  </target>
+
+  <target name="genSource" depends="makeReservedWordsFiles, texExs"/>
+
+  <target name="makeReservedWordsFiles">
+    <exec executable="perl" dir="${basedir}">
+      <arg value="keywords.pl"/>
+    </exec>
+    <exec executable="perl" dir="${basedir}">
+      <arg value="unitOperators.pl"/>
+    </exec>
+    <exec executable="perl" dir="${basedir}">
+      <arg value="specialReservedWords.pl"/>
+    </exec>
+  </target>
+
+  <target name="texExs">
+    <foreg>
+      <fileset dir="${example.home}">
+        <include name="**/*.fss"/>
+        <include name="**/*.fsi"/>
+      </fileset>
+    </foreg>
+
+    <fortex>
+      <fileset dir="${library.api.home}">
+        <include name="*.fsi"/>
+      </fileset>
+    </fortex>
+
+    <fortex>
+      <fileset dir="${library.builtin.home}">
+        <include name="*.fsi"/>
+      </fileset>
+    </fortex>
+
+    <move todir="${preliminaries.ex}">
+      <fileset dir="${preliminaries.example.home}" includes="**/*.tex"/>
+    </move>
+    <move todir="${basic.ex}">
+      <fileset dir="${basic.example.home}" includes="**/*.tex"/>
+    </move>
+    <move todir="${advanced.ex}">
+      <fileset dir="${advanced.example.home}" includes="**/*.tex"/>
+    </move>
+    <move todir="${library.ex}">
+      <fileset dir="${library.example.home}" includes="**/*.tex"/>
+    </move>
+    <move todir="${library.api}">
+      <fileset dir="${library.api.home}" includes="*.tex"/>
+      <fileset dir="${library.builtin.home}" includes="*.tex"/>
+    </move>
+  </target>
+
+  <target name="makeExs" depends="texExs, evalExs, compileApis, evalLibExs"/>
+
+  <target name="evalExs">
+    <fortress>
+      <env key="JAVA_FLAGS" value="-Xmx768m" />
+      <fileset dir="${example.home}">
+        <include name="**/*.fss"/>
+        <exclude name="**/*.compile.fss"/>
+        <exclude name="**/library/*.fss"/>
+      </fileset>
+    </fortress>
+  </target>
+
+  <target name="compileApis">
+    <fortress compile="yes">
+      <fileset dir="${example.home}">
+        <include name="**/*.fsi"/>
+        <include name="**/*.compile.fss"/>
+        <exclude name="**/library/*.fss"/>
+      </fileset>
+    </fortress>
+  </target>
+
+  <target name="evalLibExs">
+    <fortress parse="yes">
+      <fileset dir="${library.example.home}">
+        <include name="**/*.fss"/>
+        <include name="**/*.fsi"/>
+      </fileset>
+    </fortress>
+  </target>
+
+  <target name="clean"
+          description="Delete the generated files.">
+    <delete file="fortress-keywords.tex"/>
+    <delete file="fortress-unitOperators.tex"/>
+    <delete file="fortress-specialReservedWords.tex"/>
+    <delete>
+      <fileset defaultexcludes="no" dir="${basedir}" includes="**/*~" />
+      <fileset defaultexcludes="no" dir="${basedir}" includes="**/*#" />
+      <fileset dir="${basedir}" includes="**/*.log" />
+      <fileset dir="${basedir}" includes="**/*.dvi" />
+      <fileset dir="${basedir}" includes="**/*.ps" />
+      <fileset dir="${basedir}" includes="**/*.pdf" />
+      <fileset dir="${basedir}" includes="**/*.aux" />
+      <fileset dir="${basedir}" includes="**/*.toc" />
+      <fileset dir="${basedir}" includes="**/*.bbl" />
+      <fileset dir="${basedir}" includes="**/*.blg" />
+      <fileset dir="${basedir}" includes="**/*.out" />
+      <fileset dir="${preliminaries.ex}" includes="**/*.tex" />
+      <fileset dir="${basic.ex}"         includes="**/*.tex" />
+      <fileset dir="${advanced.ex}"      includes="**/*.tex" />
+      <fileset dir="${library.ex}"       includes="**/*.tex" />
+      <fileset dir="${library.api}"      includes="**/*.tex" />
+    </delete>
+  </target>
+
+</project>

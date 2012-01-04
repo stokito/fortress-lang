@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component mapCombine
+import Map.{...}
+export Executable
+
+run() = do
+  n: Map[\ZZ32,ZZ32\] = {[\ZZ32,ZZ32\] 1 |-> 4, 2 |-> 8}
+  f: Map[\ZZ32,ZZ32\] = {[\ZZ32,ZZ32\] 1 |-> 9, 2 |-> 3}
+  println n
+  println f
+  println n.combine[\ZZ32,ZZ32\]( fn (key:ZZ32, v1:ZZ32, v2:ZZ32): Maybe[\ZZ32\] => Just[\ZZ32\](v1 + v2),
+                                  fn (k:ZZ32, v:ZZ32): Maybe[\ZZ32\] => Just[\ZZ32\](v),
+                                  fn (k:ZZ32, v:ZZ32): Maybe[\ZZ32\] => Just[\ZZ32\](v),
+                                  identity[\Map[\ZZ32,ZZ32\]\],
+                                  identity[\Map[\ZZ32,ZZ32\]\],
+                                  f asif Map[\ZZ32,ZZ32\] )
+end
+
+end

@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+  trait foo
+    doIt():String = "blah"
+  end
+  trait quux extends foo
+    niceness():String = self.doIt()
+  end
+
+  someFunction():foo = object extends foo
+                         helper():String = self.doIt()
+                         helper2():String = self.helper()
+                       end
+
+  object bar extends foo
+    otherThing():String = doIt()
+  end
+  run():() = ignore(bar.doIt())
