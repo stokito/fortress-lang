@@ -313,6 +313,7 @@ public class Naming {
         bl(COMPILER_BUILTIN, "$RR64", "FRR64");
         bl(COMPILER_BUILTIN, "$ZZ32", "FZZ32");
         bl(COMPILER_BUILTIN, "$ZZ64", "FZZ64");
+        bl(COMPILER_BUILTIN, "$ZZ", "FZZ");        
         bl(COMPILER_BUILTIN, "$JavaString", "FJavaString");
         bl("", SNOWMAN, "FVoid");
         bl("", INTERNAL_SNOWMAN, "FVoid");

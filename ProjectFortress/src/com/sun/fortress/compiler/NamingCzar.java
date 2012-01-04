@@ -28,6 +28,7 @@ import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.runtimeValues.FortressBufferedReader;
 import com.sun.fortress.compiler.runtimeValues.FortressBufferedWriter;
+import com.sun.fortress.compiler.runtimeValues.FZZ;
 import com.sun.fortress.compiler.runtimeValues.FZZ32Vector;
 import com.sun.fortress.compiler.runtimeValues.FStringVector;
 import com.sun.fortress.exceptions.CompilerError;
@@ -328,6 +329,8 @@ public class NamingCzar {
                     return NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, fortLib, "ZZ32Vector"));
                 } else if (s.equals("Lcom/sun/fortress/compiler/runtimeValues/FStringVector;")) {
                     return NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, fortLib, "StringVector"));
+                } else if (s.equals("Lcom/sun/fortress/compiler/runtimeValues/FZZ;")) {
+                    return NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, fortLib, "ZZ"));
                 } else throw new Error("Unhandled case in import of native method dealing in implementation types, native type is " + s);
             }
         }
@@ -435,6 +438,7 @@ public class NamingCzar {
         s(FortressBufferedReader.class, fortLib, "JavaBufferedReader");
         s(FortressBufferedWriter.class, fortLib, "JavaBufferedWriter");
         s(BigInteger.class, fortLib, "ZZ");
+        //s(FZZ.class,fortLib,"ZZ");
         specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
 	// You would think the following would be correct, but it's not, because
 	// we actually use Java int values to represent Fortress Character values.
@@ -448,6 +452,7 @@ public class NamingCzar {
     private static TraitType fortressStringVectorType = ss(fortLib, "StringVector");
     private static TraitType fortressNN32Type = ss(fortLib, "NN32");
     private static TraitType fortressNN64Type = ss(fortLib, "NN64");
+    private static TraitType fortressZZType = ss(fortLib, "ZZ");   
     
     /**
      * Package prefix for runtime values

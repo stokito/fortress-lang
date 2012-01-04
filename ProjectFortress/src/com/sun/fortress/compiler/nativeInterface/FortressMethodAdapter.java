@@ -135,7 +135,7 @@ public class FortressMethodAdapter extends ClassAdapter {
         initializeEntry("FJavaBufferedWriter", "getValue", "()Lcom/sun/fortress/compiler/runtimeValues/FortressBufferedWriter;",
                                     "make", "(Lcom/sun/fortress/compiler/runtimeValues/FortressBufferedWriter;)L" + prefix + "FJavaBufferedWriter;");
         initializeEntry("FZZ", "getValue", "()Ljava/math/BigInteger;",
-                "make", "(Lcom/sun/fortress/compiler/runtimeValues/String;)L" + prefix + "FZZ;");
+                "make", "(Ljava/lang/String;)L" + prefix + "FZZ;");
         initializeEntry("FVector", "getValue", "()[I" , "make","([I)L"+ prefix + "FVector;");
     }
 

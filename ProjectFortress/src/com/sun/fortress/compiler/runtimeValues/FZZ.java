@@ -14,7 +14,7 @@ package com.sun.fortress.compiler.runtimeValues;
 import com.sun.fortress.compiler.runtimeValues.FZZ.RTTIc;
 import java.math.BigInteger;
 
-public class FZZ  extends fortress.CompilerBuiltin.ZZ64.DefaultTraitMethods implements fortress.CompilerBuiltin.ZZ  {
+public class FZZ  extends fortress.CompilerBuiltin.ZZ.DefaultTraitMethods implements fortress.CompilerBuiltin.ZZ  {
     final BigInteger val;
 
     private FZZ(String x) { val = new BigInteger(x); }
