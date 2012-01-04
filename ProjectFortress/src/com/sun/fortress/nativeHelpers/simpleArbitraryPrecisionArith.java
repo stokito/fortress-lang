@@ -90,11 +90,11 @@ public class simpleArbitraryPrecisionArith {
     	return a.xor(b);
     }
 	
-    public static BigInteger ZZtoBI(FZZ i) {
-    	return i.getValue();
+    public static BigInteger ZZtoBI(BigInteger i) {
+    	return i;
     }
     
-    public static FZZ BItoZZ(BigInteger i) {
-    	return FZZ.make(i.toString());
+    public static BigInteger BItoZZ(BigInteger i) {
+    	return i;
     }
 }

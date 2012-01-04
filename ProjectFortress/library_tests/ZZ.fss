@@ -31,6 +31,7 @@ shouldDivideByZero(f: () -> ZZ): Boolean =
   end
 
 run(): () = do
+  one: ZZ = 1
   zero: ZZ = 0
   two: ZZ = 2
   three: ZZ = 3
@@ -78,8 +79,6 @@ run(): () = do
   assert(shouldDivideByZero(fn () => seven DIV zero))
   assert(shouldDivideByZero(fn () => zero DIV zero))
   assert(shouldDivideByZero(fn () => maxValue DIV zero))
-  deny(maxValue BOXPLUS 1 = 0)
-  deny(maxValue DOTPLUS 1 = maxValue)
   println("PASS")
 end
 

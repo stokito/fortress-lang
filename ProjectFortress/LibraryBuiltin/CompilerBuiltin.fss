@@ -455,6 +455,7 @@ trait ZZ extends { Number, Equality[\ZZ\] } excludes { RR64, ZZ64, ZZ32, NN32, N
     opr BITNOT(self): ZZ = BItoZZ(jAPNot(ZZtoBI(self)))
     opr BITAND(self, other:ZZ): ZZ = BItoZZ(jAPAnd(ZZtoBI(self),ZZtoBI(other)))
     opr BITOR(self, other:ZZ): ZZ = BItoZZ(jAPOr(ZZtoBI(self),ZZtoBI(other)))
+    (*)opr BITOR(self, other:ZZ): ZZ = jAPOr(self,other)
     opr BITXOR(self, other:ZZ): ZZ = BItoZZ(jAPXor(ZZtoBI(self),ZZtoBI(other)))
     opr MIN(self, other:ZZ): ZZ = if self <= other then self else other end
     opr MAX(self, other:ZZ): ZZ = if self >= other then self else other end
