@@ -881,7 +881,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @return 
      */
     
-    private Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> dumpOverloadedMethodChaining(String [] superInterfaces, boolean includeCurrent) {
+     private Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> dumpOverloadedMethodChaining(String [] superInterfaces, boolean includeCurrent) {
         Map<IdOrOpOrAnonymousName, MultiMap<Integer,Functional>> overloadedMethods =
             new HashMap<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>>();
 
@@ -891,29 +891,39 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (superInterfaces.length < 1)
             return overloadedMethods;
         
+       /*  This call is the one-and-only client of declToTraitTypeEnhanced
+           The "enhanced" version of declToTraitType annotates all the static
+           args with the static parameters supplied by the trait/object
+        */
         TraitType currentTraitObjectType = STypesUtil.declToTraitTypeEnhanced(currentTraitObjectDecl);
-        // TraitType currentTraitObjectType = STypesUtil.declToTraitType(currentTraitObjectDecl);
         List<TraitTypeWhere> extendsClause = NodeUtil.getExtendsClause(currentTraitObjectDecl);
         
         OverloadingOracle oa =  new OverloadingOracle(typeAnalyzer);
         
+        if (DEBUG_OVERLOADED_METHOD_CHAINING)
+            System.err.println("Considering overloads for "+currentTraitObjectType +
+                    ", extended=" + Useful.listTranslatedInDelimiters("[", extendsClause, "]", ",", TTWtoString));
+            
+        
         /*
-         * Apparently allMethods returns the transitive closure of all methods
-         * declared in a particular trait or object and the types it extends.
-         * Iterate over all of them, noting the ones with bodies, that are not
-         * already defined in this type or the first extending type (those
-         * defined in this type are conditional on includeCurrent).
-         *
+         * properlyInheritedMethods is supposed to return methods that are
+         * (potentially) inherited by this trait.  The declaration from the
+         * most specific trait declaring a given method signature should be
+         * what is returned; HOWEVER, there is a big, in that return types
+         * are apparently ignored, so two methods with same domain but different
+         * return types will only result in a single method.  This can cause
+         * a problem in the case that a method is available from parent and
+         * from great-grandparent, AND if the parent-inheritance is not first
+         * position (otherwise, a default implementation appears from the
+         * parent, though this might not be the correct one).
+         * 
          * Note that extends clauses should be minimal by this point, or at
          * least as-if minimal; we don't want to be dealing with duplicated
          * methods that would not trigger overriding by the meet rule (if the
          * extends clause is minimal, and a method is defined twice in the
          * extends clause, then it needs to be disambiguated in this type).
          */
-        if (DEBUG_OVERLOADED_METHOD_CHAINING)
-            System.err.println("Considering overloads for "+currentTraitObjectType +
-                    ", extended=" + Useful.listTranslatedInDelimiters("[", extendsClause, "]", ",", TTWtoString));
-            
+        // This call is the one-and-only client of properlyInheritedMethods
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
             toConsider = STypesUtil.properlyInheritedMethods(currentTraitObjectType, typeAnalyzer);
         
@@ -922,12 +932,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         TraitIndex ti = (TraitIndex) typeAnalyzer.traits().typeCons(currentTraitObjectType.getName()).unwrap();
         
-        // This is used to fix the type annotation in type_info; it lacks
-        // constraints on static parameters.
+         /* This is used to fix the type annotation in type_info; it lacks
+            constraints on static parameters.
+         */
         StaticTypeReplacer local_inst =
             new StaticTypeReplacer(ti.staticParameters(),
                     STypesUtil.staticParamsToArgsEnhanced(ti.staticParameters()));
         
+         /* Set of all method (functional) names declared in the current trait
+            or object.  They're lumped together (for now) because we're using
+            iteration instead of a callback-oriented scheme below.
+         */
         MultiMap<IdOrOpOrAnonymousName, Functional> nameToFSets =
             new MultiMap<IdOrOpOrAnonymousName, Functional>();
         
@@ -990,6 +1005,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         
 
+        /*
+         * For each method name and set of definitions
+         * in the current trait or object, consider all potentially
+         * matching overloads from the traits that current properly
+         * extends, and look for shadowing, narrowing, and overloads.
+         */
         for(Map.Entry<IdOrOpOrAnonymousName, Set<Functional>> ent : nameToFSets.entrySet())  {
             IdOrOpOrAnonymousName name = ent.getKey();
             Set<Functional> funcs = ent.getValue();
@@ -997,11 +1018,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // initial set of potential overloads is this trait/object's methods
             Set<Functional> perhapsOverloaded = new HashSet<Functional>(funcs);
             
+            /*
+             *  for each method with the same name among our ancestor traits,
+             *  figure out our obligation to deal with it.
+             */
             for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> overridden :
                 toConsider.matchFirst(name)) {
                 Functional super_func = overridden._1();
                 StaticTypeReplacer super_inst = overridden._2();
                 TraitType traitDeclaringMethod = overridden._3();
+                
+                // should not happen, if from properly extending ancestors
                 if (traitDeclaringMethod.equals(currentTraitObjectType))
                     continue;
                 
@@ -1014,6 +1041,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 int super_self_index = NodeUtil.selfParameterIndex(super_func.parameters());
                 Type super_noself_domain = super_inst.replaceIn(selfEditedDomainType(super_func, super_self_index));
 
+                // For each function in current trait, with a given name
                 for (Functional func : funcs) {
                     Type ret = local_inst.replaceIn(oa.getRangeType(func));
                     int self_index = NodeUtil.selfParameterIndex(func.parameters());
@@ -1075,32 +1103,50 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     }
                 }
 
+                /*
+                 * In the shadowed case, the current trait's method definition
+                 * is an exact match for the super, therefore there is no
+                 * overload and no narrowing on the Java side.
+                 */
                 if (shadowed)
                     continue;
+                
+                /* 
+                 * In the narrowed case, we must generate a forwarding method
+                 * from wider-return-sig to narrower-return-sig.  No cast
+                 * is required, parameters match, and narrower can be passed
+                 * to wider.
+                 */
                 if (narrowed) {
 //		    System.out.println("generateForwardingFor:");
 //		    System.out.println("  super_func = " + super_func);
 //		    System.out.println("  narrowed_func = " + narrowed_func);
 //		    System.out.println("  super_inst = " + super_inst);
 //		    System.out.println("  currentTraitObjectType = " + currentTraitObjectType);
-                    generateForwardingFor(super_func, narrowed_func, false, super_inst, currentTraitObjectType, currentTraitObjectType, true); // swapped
-                    // TODO emit the forwarding method
+                    generateForwardingFor(super_func, narrowed_func, false,
+                            super_inst, currentTraitObjectType,
+                            currentTraitObjectType, true);
                     continue;
                 }
+                
+                /*
+                 * The supertype method is neither shadowed nor narrowed.
+                 * If it ends up that there is more than one of these, then
+                 * an overloaded method will be required.
+                 */
                 perhapsOverloaded.add(super_func);
             }
 
             // need to refine the overloaded methods check because of exclusion
-            MultiMap<Integer, Functional> partitionedByArgCount = partitionByMethodArgCount(oa, perhapsOverloaded);
+            MultiMap<Integer, Functional> partitionedByArgCount =
+                partitionByMethodArgCount(oa, perhapsOverloaded);
 
             if (partitionedByArgCount.size() > 0 ) {
                 
                 overloadedMethods.put(name, partitionedByArgCount);
                 if (DEBUG_OVERLOADED_METHOD_CHAINING)
                     System.err.println(" Method "+ name + " has overloads " + perhapsOverloaded);
-            }
-            // TODO now emit necessary overloads, if any.
-            
+            }            
         }
         return overloadedMethods;
     }
@@ -5888,6 +5934,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return partitionedByArgCount;
     }
 
+    /**
+     * Converts a set of functionals into a map from arg count to set of
+     * functions with that many args.  Singleton sets are replaced with
+     * empty sets because no overload is required in that case.
+     * 
+     * Notice that this might not be right if a function takes "Any" as
+     * a parameter, since a tuple is also an "Any".
+     * 
+     * @param oa
+     * @param defs
+     * @return
+     */
     public static MultiMap<Integer,  Functional> partitionByMethodArgCount(
             OverloadingOracle oa, 
             Set<? extends Functional> defs) {
