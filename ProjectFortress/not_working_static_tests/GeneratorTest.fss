@@ -1,0 +1,31 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component GeneratorTest
+  export Executable
+
+  foo(g:Generator[\ZZ32\]) : () = do
+    for x <- g do
+      var a : ZZ32
+      a := x
+    end
+  end
+
+  bar(g:Generator[\(ZZ32,ZZ32)\]) : () = do
+    for (x,y) <- g do
+      var a:ZZ32
+      a := x
+      a := y
+    end
+  end
+
+  run():()=()
+end

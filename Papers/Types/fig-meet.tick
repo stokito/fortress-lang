@@ -1,0 +1,52 @@
+%%%%%%%%%%%%%%%%%%%%% BEGIN MEET %%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}[ht!]
+\begin{minipage}{0.95\textwidth}
+\centering
+\vspace*{.5em}
+
+\newjudge{Existential Meet}{\delta_1 \;\meet\; \delta_2}
+\[ \begin{array}{c}
+  \left(\exists\tplist{X}{M}T\right) \; \meet \;
+      \left(\exists\tplist{Y}{N}U\right)
+  \quad \syndef \quad
+  \exists\ob{\bds{X}{M}, \bds{Y}{N}}\left(T \cap U\right)
+  \\[1em]
+  \text{where} \;
+  \bar{X} \cap \bar{Y} \;=\;
+  \bar{X} \cap (\FV(U) \cup \FV(\bar{N})) \;=\;
+  \bar{Y} \cap (\FV(T) \cup \FV(\bar{M})) \;=\;
+  \emptyset
+\end{array} \]
+
+\end{minipage}
+  \caption{The computed meet of existential types.}
+  \label{fig:meet}
+\end{figure*}
+%%%%%%%%%%%%%%%%%%%%% END MEET %%%%%%%%%%%%%%%%%%%%%%
+
+
+% %%%%%%%%%%%%%%%%%%%%% BEGIN MEET %%%%%%%%%%%%%%%%%%%%%%
+% \begin{figure}[ht]
+% \centering
+% \vspace*{.5em}
+% 
+% \newjudge{Existential Meet}{\delta_1 \;\meet\; \delta_2}
+% \[
+%   \left(\exists\tplist{X}{M}T\right) \; \meet \;
+%       \left(\exists\tplist{Y}{N}U\right)
+% \]\[
+%   \syndef
+% \]\[
+%   \exists\ob{\bds{X}{M}, \bds{Y}{N}}\left(T \cap U\right)
+% \]\vspace{.5em}\[
+% \begin{array}{rl}
+%   \text{where} & \bar{X} \cap \bar{Y} \;=\; \emptyset \\
+%                & \bar{X} \cap (\FV(U) \cup \FV(\bar{N})) \;=\; \emptyset \\
+%                & \bar{Y} \cap (\FV(T) \cup \FV(\bar{M})) \;=\; \emptyset \\
+% \end{array}
+% \]
+% 
+%   \caption{Computed meet of existential types.}
+%   \label{fig:meet}
+% \end{figure}
+% %%%%%%%%%%%%%%%%%%%%% END MEET %%%%%%%%%%%%%%%%%%%%%%

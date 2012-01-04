@@ -1,0 +1,52 @@
+#!/bin/csh
+
+################################################################################
+#    Copyright 2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+bin/fortress link ProjectFortress/compiler_tests/Compiled0.fss
+bin/fortress link ProjectFortress/compiler_tests/Compiled1.fss
+bin/fortress link ProjectFortress/compiler_tests/Compiled2.fss
+bin/fortress link ProjectFortress/compiler_tests/Compiled3.fss
+bin/fortress link ProjectFortress/compiler_tests/Compiled4.fss
+bin/fortress link ProjectFortress/compiler_tests/Compiled5.fss
+bin/fortress link ProjectFortress/compiler_tests/Compiled6.fss
+bin/fortress link ProjectFortress/compiler_tests/Compiled7.fss
+bin/fortress link ProjectFortress/compiler_tests/Compiled9.fss
+
+bin/BytecodeOptimize default_repository/caches/bytecode_cache/Compiled0.jar
+bin/BytecodeOptimize default_repository/caches/bytecode_cache/Compiled1.jar
+bin/BytecodeOptimize default_repository/caches/bytecode_cache/Compiled2.jar
+bin/BytecodeOptimize default_repository/caches/bytecode_cache/Compiled3.jar
+bin/BytecodeOptimize default_repository/caches/bytecode_cache/Compiled4.jar
+bin/BytecodeOptimize default_repository/caches/bytecode_cache/Compiled5.jar
+bin/BytecodeOptimize default_repository/caches/bytecode_cache/Compiled6.jar
+bin/BytecodeOptimize default_repository/caches/bytecode_cache/Compiled7.jar
+bin/BytecodeOptimize default_repository/caches/bytecode_cache/Compiled9.jar
+
+bin/run Compiled0
+bin/run Compiled1
+bin/run Compiled2 TEST
+bin/run Compiled3
+bin/run Compiled4 5
+bin/run Compiled5
+bin/run Compiled6
+bin/run Compiled7
+bin/run Compiled9
+
+bin/runOpt Compiled0
+bin/runOpt Compiled1
+bin/runOpt Compiled2 TEST
+bin/runOpt Compiled3
+bin/runOpt Compiled4 5
+bin/runOpt Compiled5
+bin/runOpt Compiled6
+bin/runOpt Compiled7
+bin/runOpt Compiled9

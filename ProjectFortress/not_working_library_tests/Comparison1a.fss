@@ -1,0 +1,59 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Comparison1a
+import ComparisonLibrary.{...}
+export Executable
+
+(*) Test various operators on the type Comparison.
+
+run(): () = do
+  U = Unordered
+  L = LessThan
+  G = GreaterThan
+  E = EqualTo
+  if NOT((U LEXICO U) = U AND
+         (U LEXICO L) = U AND
+         (U LEXICO G) = U AND
+         (U LEXICO E) = U AND
+         (L LEXICO U) = L AND
+         (L LEXICO L) = L AND
+         (L LEXICO G) = L AND
+         (L LEXICO E) = L AND
+         (G LEXICO U) = G AND
+         (G LEXICO L) = G AND
+         (G LEXICO G) = G AND
+         (G LEXICO E) = G AND
+         (E LEXICO U) = U AND
+         (E LEXICO L) = L AND
+         (E LEXICO G) = G AND
+         (E LEXICO E) = E AND
+         (U SQCAP U) = U AND
+         (U SQCAP L) = U AND
+         (U SQCAP G) = U AND
+         (U SQCAP E) = U AND
+         (L SQCAP U) = U AND
+         (L SQCAP L) = L AND
+         (L SQCAP G) = U AND
+         (L SQCAP E) = L AND
+         (G SQCAP U) = U AND
+         (G SQCAP L) = U AND
+         (G SQCAP G) = G AND
+         (G SQCAP E) = G AND
+         (E SQCAP U) = U AND
+         (E SQCAP L) = L AND
+         (E SQCAP G) = G AND
+         (E SQCAP E) = E) then fail("Wanted E SQCAP E = E")
+  else println("PASS")
+  end
+end
+
+end
