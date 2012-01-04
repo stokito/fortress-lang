@@ -1,0 +1,41 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+Type := ...
+TupleType := ...
+NoNewlineTupleType = TupleType
+ExtentRange := ...
+NoNewlineExtentRange = ExtentRange
+
+NoNewlineType =
+     !(one) (io w)? TypePrimary (w in w NoNewlineExpr)?
+
+TypePrimary := ...
+   / <LooseJuxt> TypePrimaryFront sr TypePrimary
+   / <LooseInfix> TypePrimaryFront sr LooseInfix
+
+TypePrefix := ...
+   / <Prefix> DimPrefixOp sr TypePrimary
+   / <PrePrefix> DimPrefixOp sr TypePrefix
+
+TightInfixPostfix := ...
+   / <Arrow> TypeInfixOp TypePrimary (s Throws)?
+   / <ArrowPrefix> TypeInfixOp TypePrefix (s Throws)?
+   / <Postfix> DimPostfixOp sr TypePrimary
+   / <PostPrefix> DimPostfixOp sr TypePrefix
+
+LooseInfix := ...
+   / <Arrow> TypeInfixOp sr TypePrimary (s Throws)?
+   / <ArrowPrefix> TypeInfixOp sr TypePrefix (s Throws)?
+   / <Infix> DimInfixOp sr TypePrimary
+   / <InPrefix> DimInfixOp sr TypePrefix
+\end{verbatim}

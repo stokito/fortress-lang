@@ -48,7 +48,8 @@
 \newcommand\FortressOuterTYP[1]{{\FortressMathsurroundFixup{0.5}\ensuremath{\mathrm{#1}\mathsurround=0.5\FortressMathsurround}}}
 \newcommand\FortressOuterVAR[1]{{\FortressMathsurroundFixup{0.5}\ensuremath{\mathit{#1}\mathsurround=0.5\FortressMathsurround}}}
 \newcommand\FortressOuterSTR[1]{{\FortressMathsurroundFixup{1}\ensuremath{\hbox{\tt\usefont{T1}{pcr}{m}{n}\selectfont#1}\mathsurround=\FortressMathsurround}}}
-\newcommand\EXP[1]{{\FortressMathsurroundFixup{1}\ensuremath{{\protect\FortressInnerMacros\let\*=\fortresslinecomment#1}\mathsurround=\FortressMathsurround}}}
+\newcommand\EXP{\protect\protectedEXP}
+\newcommand\protectedEXP[1]{{\FortressMathsurroundFixup{1}\ensuremath{{\protect\FortressInnerMacros\let\*=\fortresslinecomment#1}\mathsurround=\FortressMathsurround}}}
 \newcommand\FortressOuterMacros{\let\KWD\FortressOuterKWD \let\KWDVAR\FortressOuterKWDVAR
   \let\OPR\FortressOuterOPR \let\TYP\FortressOuterTYP \let\VAR\FortressOuterVAR \let\STR\FortressOuterSTR}
 

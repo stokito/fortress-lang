@@ -17,7 +17,9 @@ ${STATIC_TESTS_DIR}/Compiled6.at.fss:25:5-12:\n\
 \ Could not check call to operator +\n\
 \ - (IntLiteral, IntLiteral)->IntLiteral is not applicable to an argument of type (String, IntLiteral).\n\
 \ - (NN32, NN32)->NN32 is not applicable to an argument of type (String, IntLiteral).\n\
+\ - (NN64, NN64)->NN64 is not applicable to an argument of type (String, IntLiteral).\n\
 \ - (RR64, RR64)->RR64 is not applicable to an argument of type (String, IntLiteral).\n\
+\ - (ZZ, ZZ)->ZZ is not applicable to an argument of type (String, IntLiteral).\n\
 \ - (ZZ32, ZZ32)->ZZ32 is not applicable to an argument of type (String, IntLiteral).\n\
 \ - (ZZ32Vector, ZZ32)->ZZ32Vector is not applicable to an argument of type (String, IntLiteral).\n\
 \ - (ZZ64, ZZ64)->ZZ64 is not applicable to an argument of type (String, IntLiteral).\n\
