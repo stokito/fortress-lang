@@ -21,6 +21,7 @@ public class FZZ  extends fortress.CompilerBuiltin.ZZ.DefaultTraitMethods implem
     public String toString() { return val.toString();}
     public BigInteger getValue() {return val;}
     public static FZZ make(String x) {return new FZZ(x);}
+    public static FZZ make(BigInteger x) {return new FZZ(x.toString());}
     
     @Override
     public RTTI getRTTI() { return RTTIc.ONLY; }
