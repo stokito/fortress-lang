@@ -281,7 +281,10 @@ import java com.sun.fortress.nativeHelpers.{simpleArbitraryPrecisionArith.parse 
                                             simpleArbitraryPrecisionArith.not => jAPNot,
                                             simpleArbitraryPrecisionArith.and => jAPAnd,
                                             simpleArbitraryPrecisionArith.oor => jAPOr,
-                                            simpleArbitraryPrecisionArith.xor => jAPXor}
+                                            simpleArbitraryPrecisionArith.xor => jAPXor,
+                                            simpleArbitraryPrecisionArith.ZZtoBI => ZZtoBI,
+                                            simpleArbitraryPrecisionArith.BItoZZ => BItoZZ
+                                            }
                                        
 import AnyType.{Any}
 import CompilerAlgebra.{ Equality }
@@ -425,34 +428,34 @@ value object IndefiniteNumber extends Number end
 
 trait ZZ extends { Number, Equality[\ZZ\] } excludes { RR64, ZZ64, ZZ32, NN32, NN64, IntLiteral }
     coerce(x: IntLiteral) = x.asZZ
-    getter asString(): String = jAPToString(self)
-    opr |self| : ZZ = jAPAbs(self)
-    opr -(self): ZZ = jAPNeg(self)
-    opr BOXMINUS(self): ZZ = jAPNeg(self)
-    opr DOTMINUS(self): ZZ = jAPNeg(self)
-    opr +(self, other:ZZ): ZZ = jAPAdd(self,other)
-    opr BOXPLUS(self, other:ZZ): ZZ = jAPAdd(self,other)
-    opr DOTPLUS(self, other:ZZ): ZZ = jAPAdd(self,other)
-    opr -(self, other:ZZ): ZZ = jAPSub(self,other)
-    opr BOXMINUS(self, other:ZZ): ZZ = jAPSub(self,other)
-    opr DOTMINUS(self, other:ZZ): ZZ = jAPSub(self,other)
-    opr DOT(self, other:ZZ): ZZ = jAPMul(self,other)
-    opr BOXDOT(self, other:ZZ): ZZ = jAPMul(self,other)
-    opr CROSS(self, other:ZZ): ZZ = jAPMul(self,other)
-    opr BOXCROSS(self, other:ZZ): ZZ = jAPMul(self,other)
-    opr DOTCROSS(self, other:ZZ): ZZ = jAPMul(self,other)
-    opr DIV(self, other:ZZ): ZZ = jAPDiv(self,other)
-    opr <(self, other:ZZ): Boolean = jAPLt(self,other)
-    opr <=(self, other:ZZ): Boolean = jAPLe(self,other)
-    opr >(self, other:ZZ): Boolean = jAPGt(self,other)
-    opr >=(self, other:ZZ): Boolean = jAPGe(self,other)
-    opr =(self, other:ZZ): Boolean = jAPEq(self,other)
+    getter asString(): String = jAPToString(ZZtoBI(self))
+    opr |self| : ZZ = BItoZZ(jAPAbs(ZZtoBI(self)))
+    opr -(self): ZZ = BItoZZ(jAPNeg(ZZtoBI(self)))
+    opr BOXMINUS(self): ZZ = BItoZZ(jAPNeg(ZZtoBI(self)))
+    opr DOTMINUS(self): ZZ = BItoZZ(jAPNeg(ZZtoBI(self)))
+    opr +(self, other:ZZ): ZZ = BItoZZ(jAPAdd(ZZtoBI(self),ZZtoBI(other)))
+    opr BOXPLUS(self, other:ZZ): ZZ = BItoZZ(jAPAdd(ZZtoBI(self),ZZtoBI(other)))
+    opr DOTPLUS(self, other:ZZ): ZZ = BItoZZ(jAPAdd(ZZtoBI(self),ZZtoBI(other)))
+    opr -(self, other:ZZ): ZZ = BItoZZ(jAPSub(ZZtoBI(self),ZZtoBI(other)))
+    opr BOXMINUS(self, other:ZZ): ZZ = BItoZZ(jAPSub(ZZtoBI(self),ZZtoBI(other)))
+    opr DOTMINUS(self, other:ZZ): ZZ = BItoZZ(jAPSub(ZZtoBI(self),ZZtoBI(other)))
+    opr DOT(self, other:ZZ): ZZ = BItoZZ(jAPMul(ZZtoBI(self),ZZtoBI(other)))
+    opr BOXDOT(self, other:ZZ): ZZ = BItoZZ(jAPMul(ZZtoBI(self),ZZtoBI(other)))
+    opr CROSS(self, other:ZZ): ZZ = BItoZZ(jAPMul(ZZtoBI(self),ZZtoBI(other)))
+    opr BOXCROSS(self, other:ZZ): ZZ = BItoZZ(jAPMul(ZZtoBI(self),ZZtoBI(other)))
+    opr DOTCROSS(self, other:ZZ): ZZ = BItoZZ(jAPMul(ZZtoBI(self),ZZtoBI(other)))
+    opr DIV(self, other:ZZ): ZZ = BItoZZ(jAPDiv(ZZtoBI(self),ZZtoBI(other)))
+    opr <(self, other:ZZ): Boolean = jAPLt(ZZtoBI(self),ZZtoBI(other))
+    opr <=(self, other:ZZ): Boolean = jAPLe(ZZtoBI(self),ZZtoBI(other))
+    opr >(self, other:ZZ): Boolean = jAPGt(ZZtoBI(self),ZZtoBI(other))
+    opr >=(self, other:ZZ): Boolean = jAPGe(ZZtoBI(self),ZZtoBI(other))
+    opr =(self, other:ZZ): Boolean = jAPEq(ZZtoBI(self),ZZtoBI(other))
     opr =/=(self, other:ZZ): Boolean = NOT (self = other)
-    opr juxtaposition(self,other:ZZ) = jAPMul(self,other)
-    opr BITNOT(self): ZZ = jAPNot(self)
-    opr BITAND(self, other:ZZ): ZZ = jAPAnd(self,other)
-    opr BITOR(self, other:ZZ): ZZ = jAPOr(self,other)
-    opr BITXOR(self, other:ZZ): ZZ = jAPXor(self,other)
+    opr juxtaposition(self,other:ZZ) = BItoZZ(jAPMul(ZZtoBI(self),ZZtoBI(other)))
+    opr BITNOT(self): ZZ = BItoZZ(jAPNot(ZZtoBI(self)))
+    opr BITAND(self, other:ZZ): ZZ = BItoZZ(jAPAnd(ZZtoBI(self),ZZtoBI(other)))
+    opr BITOR(self, other:ZZ): ZZ = BItoZZ(jAPOr(ZZtoBI(self),ZZtoBI(other)))
+    opr BITXOR(self, other:ZZ): ZZ = BItoZZ(jAPXor(ZZtoBI(self),ZZtoBI(other)))
     opr MIN(self, other:ZZ): ZZ = if self <= other then self else other end
     opr MAX(self, other:ZZ): ZZ = if self >= other then self else other end
     opr MINMAX(self, other:ZZ): (ZZ, ZZ) = if self <= other then (self, other) else (other, self) end

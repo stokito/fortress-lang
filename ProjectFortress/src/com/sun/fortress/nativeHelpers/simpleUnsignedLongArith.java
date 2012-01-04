@@ -24,48 +24,57 @@ public class simpleUnsignedLongArith {
         return Long.toString(x);
     }
     
-    public static long unsignedLongOverflowingAdd(long a, long b) {
-    	long r = a + b;
-    	if ((((~r & b) | ((~r | b) & (r - b))) == 1)) throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
-    	return r;
+    public static boolean ltu(long a, long b) {
+    	return ((((~a & b) | ((~a | b) & (a - b))) >>> 63) == 1);
+    }
+	
+    public static boolean leu(long a, long b) {
+    	return ((((~a | b) & ((a ^ b) | ~(b - a))) >>> 63) == 1);
     }
 
-    public static long unsignedLongOverflowingSub(long a, long b) {
-    	long r = a - b;
-    	if (((~r & b) | ((~r | b) & (r - b))) == 1) throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
-    	return r;
-    }
+    public static boolean gtu(long b, long a) {
+    	return ((((~a & b) | ((~a | b) & (a - b))) >>> 63) == 1);
+    }    
 
-    public static long unsignedLongOverflowingMul(long a, long b) {
-    	long r = a * b;
-    	if (b != 0) {
-    		long q;
-        	if (b < 0) {
-        		if (((~a & b) | ((~a | b) & (a - b))) == 1) q = 0;
-        		else q = 1;
-        	}
-        	else {
-        	    q = ((a >>> 1) / b) << 1;
-        		long rr = a - (q * b);
-        		if (((~rr | b) & ((rr ^ b) | ~(rr - b))) == 1) q = q + 1; 
-        	}    		
-    		if (q != a) throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
-    	}
-    	return r;
+    public static boolean geu(long b, long a) {
+    	return ((((~a | b) & ((a ^ b) | ~(b - a))) >>> 63) == 1);
     }
-
-    public static long unsignedLongOverflowingDiv(long n, long d) {
-    	if (d==0) throw Utility.makeFortressException("fortress.CompilerBuiltin$DivisionByZero");
+    
+    public static long divu(long n, long d) {
     	if (d < 0) {
-    		if (((~n & d) | ((~n | d) & (n - d))) == 1) return 0;
+    		if (ltu(n,d)) return 0;
     		else return 1;
     	}
     	else {
     		long q = ((n >>> 1) / d) << 1;
     		long r = n - (q * d);
-    		if (((~r | d) & ((r ^ d) | ~(r - d))) == 1) q = q + 1; 
+    		if (geu(r,d)) q = q + 1; 
     		return q;
     	}
+    }
+    
+    public static long unsignedLongOverflowingAdd(long a, long b) {
+    	long r = a + b;
+    	if (ltu(r,a)) throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+    	return r;
+    }
+
+    public static long unsignedLongOverflowingSub(long a, long b) {
+    	long r = a - b;
+    	if (gtu(r,a)) throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+    	return r;
+    }
+
+    public static long unsignedLongOverflowingMul(long a, long b) {
+    	long r = a * b;
+    	if (b == 0) return r; 
+    	if (divu(r,b) != a) throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+    	return r;
+    }
+
+    public static long unsignedLongOverflowingDiv(long n, long d) {
+    	if (d==0) throw Utility.makeFortressException("fortress.CompilerBuiltin$DivisionByZero");
+    	return divu(n,d);
     }
 
     public static long unsignedLongOverflowingNeg(long a) {  
@@ -91,16 +100,7 @@ public class simpleUnsignedLongArith {
 
     public static long unsignedLongWrappingDiv(long n, long d) { 
     	if (d==0) throw Utility.makeFortressException("fortress.CompilerBuiltin$DivisionByZero");
-    	if (d < 0) {
-    		if (((~n & d) | ((~n | d) & (n - d))) == 1) return 0;
-    		else return 1;
-    	}
-    	else {
-    		long q = ((n >>> 1) / d) << 1;
-    		long r = n - (q * d);
-    		if (((~r | d) & ((r ^ d) | ~(r - d))) == 1) q = q + 1; 
-    		return q;
-    	}
+    	return divu(n,d);
     }
 
     public static long unsignedLongWrappingNeg(long a) { 
@@ -117,46 +117,26 @@ public class simpleUnsignedLongArith {
 
     public static long unsignedLongSaturatingAdd(long a, long b) {
     	long r = a + b;
-    	if ((((~r & b) | ((~r | b) & (r - b))) == 1)) return -1;
+    	if (ltu(r,a)) return -1;
     	return r;
     }
 
     public static long unsignedLongSaturatingSub(long a, long b) {
     	long r = a - b;
-    	if (((~r & b) | ((~r | b) & (r - b))) == 1) return 0;
+    	if (gtu(r,a)) return 0;
     	return r;
     }
 
     public static long unsignedLongSaturatingMul(long a, long b) {
     	long r = a * b;
-    	if (b != 0) {
-    		long q;
-        	if (b < 0) {
-        		if (((~a & b) | ((~a | b) & (a - b))) == 1) q = 0;
-        		else q = 1;
-        	}
-        	else {
-        	    q = ((a >>> 1) / b) << 1;
-        		long rr = a - (q * b);
-        		if (((~rr | b) & ((rr ^ b) | ~(rr - b))) == 1) q = q + 1; 
-        	}    		
-    		if (q != a) return -1;
-    	}
+    	long q = divu(r,b);
+    	if (q != a) return -1;
     	return r;
     }
 
     public static long unsignedLongSaturatingDiv(long n, long d) {
     	if (d==0) throw Utility.makeFortressException("fortress.CompilerBuiltin$DivisionByZero");
-    	if (d < 0) {
-    		if (((~n & d) | ((~n | d) & (n - d))) == 1) return 0;
-    		else return 1;
-    	}
-    	else {
-    		long q = ((n >>> 1) / d) << 1;
-    		long r = n - (q * d);
-    		if (((~r | d) & ((r ^ d) | ~(r - d))) == 1) q = q + 1; 
-    		return q;
-    	}
+    	return divu(n,d);
     }
 
     public static long unsignedLongSaturatingNeg(long a) {  
@@ -172,19 +152,19 @@ public class simpleUnsignedLongArith {
     }
 
     public static boolean unsignedLongLT(long a, long b) {
-    	return (((~a & b) | ((~a | b) & (a - b))) == 1);
+    	return ltu(a,b);
     }
 	
     public static boolean unsignedLongLE(long a, long b) {
-    	return (((~a | b) & ((a ^ b) | ~(a - b))) == 1);
+    	return leu(a,b);
     }
 
-    public static boolean unsignedLongGT(long b, long a) {
-    	return (((~a & b) | ((~a | b) & (a - b))) == 1);
+    public static boolean unsignedLongGT(long a, long b) {
+    	return gtu(a,b);
     }    
 
-    public static boolean unsignedLongGE(long b, long a) {
-    	return (((~a | b) & ((a ^ b) | ~(a - b))) == 1);
+    public static boolean unsignedLongGE(long a, long b) {
+    	return geu(a,b);
     }
 
     public static boolean unsignedLongEQ(long a, long b) {
@@ -207,6 +187,7 @@ public class simpleUnsignedLongArith {
     	return a ^ b;
     }
 
+    // NIY
     public static long unsignedLongExp(long a, long b) {  
     	return a + b;
     }

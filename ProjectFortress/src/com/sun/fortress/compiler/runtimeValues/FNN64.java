@@ -13,7 +13,7 @@ package com.sun.fortress.compiler.runtimeValues;
 
 import com.sun.fortress.compiler.runtimeValues.FNN64.RTTIc;
 
-public class FNN64  extends fortress.CompilerBuiltin.ZZ64.DefaultTraitMethods implements fortress.CompilerBuiltin.NN64  {
+public class FNN64  extends fortress.CompilerBuiltin.NN64.DefaultTraitMethods implements fortress.CompilerBuiltin.NN64  {
     final long val;
 
     private FNN64(long x) { val = x; }

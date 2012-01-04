@@ -12,6 +12,7 @@
 package com.sun.fortress.nativeHelpers;
 
 import com.sun.fortress.compiler.runtimeValues.FException;
+import com.sun.fortress.compiler.runtimeValues.FZZ;
 import com.sun.fortress.compiler.runtimeValues.Utility;
 import java.math.BigInteger;
 
@@ -38,8 +39,8 @@ public class simpleArbitraryPrecisionArith {
     	return a.multiply(b);
     }
 
-    // Check/write the spec for division
     public static BigInteger div(BigInteger a, BigInteger b) { 
+    	if (b.equals(BigInteger.ZERO)) throw Utility.makeFortressException("fortress.CompilerBuiltin$DivisionByZero"); 
     	return a.divide(b);
     }
 
@@ -89,4 +90,11 @@ public class simpleArbitraryPrecisionArith {
     	return a.xor(b);
     }
 	
+    public static BigInteger ZZtoBI(FZZ i) {
+    	return i.getValue();
+    }
+    
+    public static FZZ BItoZZ(BigInteger i) {
+    	return FZZ.make(i.toString());
+    }
 }
