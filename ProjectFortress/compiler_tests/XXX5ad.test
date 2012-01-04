@@ -16,8 +16,10 @@ compile_err_equals=\
 \    - (Character, Character)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (IntLiteral, IntLiteral)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (NN32, NN32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (NN64, NN64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (RR64, RR64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (String, String)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (ZZ, ZZ)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \${STATIC_TESTS_DIR}/Compiled5.ad.fss:15:16-20:\n\
@@ -25,8 +27,10 @@ compile_err_equals=\
 \    - (Character, Character)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
 \    - (IntLiteral, IntLiteral)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
 \    - (NN32, NN32)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (NN64, NN64)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
 \    - (RR64, RR64)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
 \    - (String, String)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (ZZ, ZZ)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
 \    - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
 \    - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
 \${STATIC_TESTS_DIR}/Compiled5.ad.fss:16:6-10:\n\
@@ -36,8 +40,10 @@ compile_err_equals=\
 \    - (GeneratorZZ32, GeneratorZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (IntLiteral, IntLiteral)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (NN32, NN32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (NN64, NN64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (RR64, RR64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (String, String)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (ZZ, ZZ)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \    - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
 \File Compiled5.ad.fss has 3 errors.\n

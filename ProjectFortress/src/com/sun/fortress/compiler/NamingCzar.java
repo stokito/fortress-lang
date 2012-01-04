@@ -28,6 +28,7 @@ import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.runtimeValues.FortressBufferedReader;
 import com.sun.fortress.compiler.runtimeValues.FortressBufferedWriter;
+import com.sun.fortress.compiler.runtimeValues.FZZ;
 import com.sun.fortress.compiler.runtimeValues.FZZ32Vector;
 import com.sun.fortress.compiler.runtimeValues.FStringVector;
 import com.sun.fortress.exceptions.CompilerError;
@@ -184,9 +185,11 @@ public class NamingCzar {
     public static final String stringArrayToVoid = Naming.makeMethodDesc(makeArrayDesc(descString), Naming.descVoid);
     public static final String internalFortressIntLiteral  = makeFortressInternal("IntLiteral");
     public static final String internalFortressFloatLiteral = makeFortressInternal("FloatLiteral");
+    public static final String internalFortressZZ  = makeFortressInternal("ZZ");
     public static final String internalFortressZZ32  = makeFortressInternal("ZZ32");
     public static final String internalFortressZZ64  = makeFortressInternal("ZZ64");
     public static final String internalFortressNN32  = makeFortressInternal("NN32");
+    public static final String internalFortressNN64  = makeFortressInternal("NN64");
     public static final String internalFortressRR32  = makeFortressInternal("RR32");
     public static final String internalFortressRR64  = makeFortressInternal("RR64");
     public static final String internalFortressBoolean  = makeFortressInternal("Boolean");
@@ -203,9 +206,11 @@ public class NamingCzar {
     // fortress interpreter types: type descriptors
     public static final String descFortressIntLiteral  = Naming.internalToDesc(internalFortressIntLiteral);
     public static final String descFortressFloatLiteral  = Naming.internalToDesc(internalFortressFloatLiteral);
+    public static final String descFortressZZ  = Naming.internalToDesc(internalFortressZZ);
     public static final String descFortressZZ32  = Naming.internalToDesc(internalFortressZZ32);
     public static final String descFortressZZ64  = Naming.internalToDesc(internalFortressZZ64);
     public static final String descFortressNN32  = Naming.internalToDesc(internalFortressNN32);
+    public static final String descFortressNN64  = Naming.internalToDesc(internalFortressNN64);
     public static final String descFortressRR32  = Naming.internalToDesc(internalFortressRR32);
     public static final String descFortressRR64  = Naming.internalToDesc(internalFortressRR64);
     public static final String descFortressBoolean  = Naming.internalToDesc(internalFortressBoolean);
@@ -324,6 +329,8 @@ public class NamingCzar {
                     return NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, fortLib, "ZZ32Vector"));
                 } else if (s.equals("Lcom/sun/fortress/compiler/runtimeValues/FStringVector;")) {
                     return NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, fortLib, "StringVector"));
+                } else if (s.equals("Lcom/sun/fortress/compiler/runtimeValues/FZZ;")) {
+                    return NodeFactory.makeTraitType(span, false, NodeFactory.makeId(span, fortLib, "ZZ"));
                 } else throw new Error("Unhandled case in import of native method dealing in implementation types, native type is " + s);
             }
         }
@@ -356,6 +363,10 @@ public class NamingCzar {
 	    return fortressNN32Type;
 	} else if ((!isResultType) && method_name.equals("makeZZ32FromNN32WithSpecialCompilerHackForNN32ArgumentType") && s.equals("I")) {
 	    return fortressNN32Type;
+	} else if (isResultType && method_name.equals("makeNN64FromZZ64WithSpecialCompilerHackForNN64ResultType") && s.equals("J")) {
+	    return fortressNN64Type;
+	} else if ((!isResultType) && method_name.equals("makeZZ64FromNN64WithSpecialCompilerHackForNN64ArgumentType") && s.equals("J")) {
+	    return fortressNN64Type;
 	} else if (s.equals("[I")) {
 	    return fortressZZ32VectorType;
 	} else if (s.equals("[String")) {
@@ -427,6 +438,7 @@ public class NamingCzar {
         s(FortressBufferedReader.class, fortLib, "JavaBufferedReader");
         s(FortressBufferedWriter.class, fortLib, "JavaBufferedWriter");
         s(BigInteger.class, fortLib, "ZZ");
+        //s(FZZ.class,fortLib,"ZZ");
         specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
 	// You would think the following would be correct, but it's not, because
 	// we actually use Java int values to represent Fortress Character values.
@@ -439,6 +451,8 @@ public class NamingCzar {
     private static TraitType fortressZZ32VectorType = ss(fortLib, "ZZ32Vector");    
     private static TraitType fortressStringVectorType = ss(fortLib, "StringVector");
     private static TraitType fortressNN32Type = ss(fortLib, "NN32");
+    private static TraitType fortressNN64Type = ss(fortLib, "NN64");
+    private static TraitType fortressZZType = ss(fortLib, "ZZ");   
     
     /**
      * Package prefix for runtime values
@@ -518,9 +532,11 @@ public class NamingCzar {
         bl(fortLib, "Character", "FCharacter");
         bl(fortLib, "JavaBufferedReader", "FJavaBufferedReader");
         bl(fortLib, "JavaBufferedWriter", "FJavaBufferedWriter");
+        bl(fortLib, "ZZ", "FZZ");
         bl(fortLib, "ZZ64", "FZZ64");
         bl(fortLib, "ZZ32", "FZZ32");
         bl(fortLib, "NN32", "FNN32");
+        bl(fortLib, "NN64", "FNN64");
         bl(fortLib, "RR32", "FRR32");
         bl(fortLib, "RR64", "FRR64");
         bl(fortLib, "JavaString", "FJavaString");

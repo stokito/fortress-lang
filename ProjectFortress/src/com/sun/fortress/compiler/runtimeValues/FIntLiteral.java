@@ -83,10 +83,14 @@ public final class FIntLiteral extends fortress.CompilerBuiltin.IntLiteral.Defau
     	throw outOfRange("NN32");
     }
 
-
-
-    public BigInteger asZZ() {
-        return new BigInteger(this.toString());
+    public FNN64 asNN64() {
+        if (largerVal == null) 
+    	    return FNN64.make((long)smallerVal);
+    	throw outOfRange("NN64");
+    }
+    
+    public FZZ asZZ() {
+        return FZZ.make(this.toString());
     }
 
     public FRR64 asRR64() {

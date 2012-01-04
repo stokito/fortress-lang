@@ -22,6 +22,10 @@ public class CompilerBuiltin {
         public static abstract class DefaultTraitMethods extends FValue implements FloatLiteral {}
     }
 
+    public static interface ZZ extends fortress.CompilerBuiltin.Number {
+        public static abstract class DefaultTraitMethods extends FValue implements ZZ {}
+    }
+    
     public static interface ZZ32 extends fortress.CompilerBuiltin.Number {
         public static abstract class DefaultTraitMethods extends FValue implements ZZ32 {}
     }
@@ -34,6 +38,10 @@ public class CompilerBuiltin {
         public static abstract class DefaultTraitMethods extends FValue implements ZZ64 {}
     }
 
+    public static interface NN64 extends fortress.CompilerBuiltin.Number {
+        public static abstract class DefaultTraitMethods extends FValue implements NN64 {}
+    }   
+    
     public static interface RR32 extends fortress.CompilerBuiltin.Number {
         public static abstract class DefaultTraitMethods extends FValue implements RR32 {}
     }

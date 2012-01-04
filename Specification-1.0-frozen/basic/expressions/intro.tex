@@ -1,0 +1,32 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Fortress is an expression-oriented language.
+The positions in which an expression may legally appear
+(\emph{value context})
+are determined by the nonterminal \emph{Expr}
+in the Fortress grammar defined in \appref{concrete-syntax}.
+We say that an expression is a \emph{subexpression}
+of any expression (or any other program construct)
+that (syntactically) contains it.
+When evaluation of one subexpression
+must complete before another subexpression is evaluated,
+those subexpressions are ordered by dynamic program order
+(see \chapref{evaluation}).
+This constrains the memory behavior of program constructs,
+as described in \chapref{memory-model}.
+Unless otherwise specified,
+abrupt completion of the evaluation of a subexpression
+causes the evaluation of the expression as a whole
+to complete abruptly in the same way.
+Also, if one expression precedes another by dynamic program order,
+and the evaluation of the first expression completes abruptly,
+the second is not evaluated at all.

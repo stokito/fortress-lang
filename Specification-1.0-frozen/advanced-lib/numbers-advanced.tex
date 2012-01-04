@@ -1,0 +1,454 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Numbers}
+\chaplabel{lib:numbers-advanced}
+
+\Trait{Fortress.Standard.RationalQuantity}
+\seclabel{advanced-rationals}
+
+The standard types for rational numbers such as \EXP{\mathbb{Q}} and \EXP{\mathbb{Q}^*}
+and \EXP{\mathbb{Q}^{\#}_{\leq}} are defined in terms of a single trait \TYP{RationalQuantity}
+that handles dimensions and units as well as performing a case analysis to distinguish
+rather a particular expression is guaranteed not to produce infinities, \EXP{0/0},
+or numbers of a particular sign.
+
+The trait \TYP{RationalQuantity} takes seven static parameters; the first is a dimensional unit,
+and the others are booleans specifying whether an instance of the trait can possibly
+be \EXP{-\infty}, a finite rational less than zero, zero, a finite rational greater than zero,
+\EXP{+\infty}, or \EXP{0/0}.  This allows the standard rational types to be represented
+as follows:
+%type QQ = RationalQuantity[\dimensionless,false,true,true,true,false,false\]
+%type QQ_LT = RationalQuantity[\dimensionless,false,true,false,false,false,false\]
+%type QQ_LE = RationalQuantity[\dimensionless,false,true,true,false,false,false\]
+%type QQ_GE = RationalQuantity[\dimensionless,false,false,true,true,false,false\]
+%type QQ_GT = RationalQuantity[\dimensionless,false,false,false,true,false,false\]
+%type QQ_NE = RationalQuantity[\dimensionless,false,true,false,true,false,false\]
+%type QQ_star = RationalQuantity[\dimensionless,true,true,true,true,true,false\]
+%type QQ_star_LT = RationalQuantity[\dimensionless,true,true,false,false,false,false\]
+%type QQ_star_LE = RationalQuantity[\dimensionless,true,true,true,false,false,false\]
+%type QQ_star_GE = RationalQuantity[\dimensionless,false,false,true,true,true,false\]
+%type QQ_star_GT = RationalQuantity[\dimensionless,false,false,false,true,true,false\]
+%type QQ_star_NE = RationalQuantity[\dimensionless,true,true,false,true,true,false\]
+%type QQ_splat = RationalQuantity[\dimensionless,true,true,true,true,true,true\]
+%type QQ_splat_LT = RationalQuantity[\dimensionless,true,true,false,false,false,true\]
+%type QQ_splat_LE = RationalQuantity[\dimensionless,true,true,true,false,false,true\]
+%type QQ_splat_GE = RationalQuantity[\dimensionless,false,false,true,true,true,true\]
+%type QQ_splat_GT = RationalQuantity[\dimensionless,false,false,false,true,true,true\]
+%type QQ_splat_NE = RationalQuantity[\dimensionless,true,true,false,true,true,true\]
+\begin{Fortress}
+\(\KWD{type} \mathbb{Q} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{false},\VAR{true},\VAR{true},\VAR{true},\VAR{false},\VAR{false}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}_{<} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{false},\VAR{true},\VAR{false},\VAR{false},\VAR{false},\VAR{false}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}_{\leq} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{false},\VAR{true},\VAR{true},\VAR{false},\VAR{false},\VAR{false}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}_{\geq} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{false},\VAR{false},\VAR{true},\VAR{true},\VAR{false},\VAR{false}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}_{>} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{false},\VAR{false},\VAR{false},\VAR{true},\VAR{false},\VAR{false}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}_{\neq} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{false},\VAR{true},\VAR{false},\VAR{true},\VAR{false},\VAR{false}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}^* = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{true},\VAR{true},\VAR{true},\VAR{true},\VAR{true},\VAR{false}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}^*_{<} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{true},\VAR{true},\VAR{false},\VAR{false},\VAR{false},\VAR{false}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}^*_{\leq} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{true},\VAR{true},\VAR{true},\VAR{false},\VAR{false},\VAR{false}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}^*_{\geq} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{false},\VAR{false},\VAR{true},\VAR{true},\VAR{true},\VAR{false}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}^*_{>} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{false},\VAR{false},\VAR{false},\VAR{true},\VAR{true},\VAR{false}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}^*_{\neq} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{true},\VAR{true},\VAR{false},\VAR{true},\VAR{true},\VAR{false}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}^{\#} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{true},\VAR{true},\VAR{true},\VAR{true},\VAR{true},\VAR{true}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}^{\#}_{<} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{true},\VAR{true},\VAR{false},\VAR{false},\VAR{false},\VAR{true}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}^{\#}_{\leq} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{true},\VAR{true},\VAR{true},\VAR{false},\VAR{false},\VAR{true}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}^{\#}_{\geq} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{false},\VAR{false},\VAR{true},\VAR{true},\VAR{true},\VAR{true}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}^{\#}_{>} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{false},\VAR{false},\VAR{false},\VAR{true},\VAR{true},\VAR{true}\rrbracket\)\\
+\(\KWD{type} \mathbb{Q}^{\#}_{\neq} = \TYP{RationalQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{true},\VAR{true},\VAR{false},\VAR{true},\VAR{true},\VAR{true}\rrbracket\)
+\end{Fortress}
+
+Here is the detailed description of \TYP{RationalQuantity}, showing the details
+of the type calculations:
+
+%% trait RationalQuantity[\unit U absorbs unit,
+%%                         bool ninf, bool lt, bool eq, bool gt, bool pinf, bool nan\]
+%%     extends { RationalQuantity[\U, ninf', lt', eq', gt', pinf', nan'\]
+%%               where { bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan',
+%%                       ninf ->  ninf', lt -> lt', eq -> eq', gt -> gt', pinf -> pinf', nan -> nan' },
+%%               Field[\RationalQuantity[\U, ninf, lt, eq, gt, pinf, nan\],
+%%                      RationalQuantity[\U, ninf, lt, false, gt, pinf, nan\],+,-,DOT,/\]
+%%               where { lt AND eq AND gt AND NOT ninf AND NOT pinf AND NOT nan, U = dimensionless },
+%%               Field[\RationalQuantity[\U, ninf, lt, eq, gt, pinf, nan\],
+%%                      RationalQuantity[\U, ninf, lt, false, gt, pinf, nan\],+,-,TIMES,/\]
+%%               where { lt AND eq AND gt AND NOT ninf AND NOT pinf AND NOT nan, U = dimensionless },
+%%               Field[\RationalQuantity[\U, ninf, lt, eq, gt, pinf, nan\],
+%%                      RationalQuantity[\U, ninf, lt, false, gt, pinf, nan\],+,-,juxtaposition,/\]
+%%               where { lt AND eq AND gt AND NOT ninf AND NOT pinf AND NOT nan, U = dimensionless },
+%%               AbelianGroup[\RationalQuantity[\U, ninf, lt, eq, gt, pinf, nan\],+,-\],
+%%               TotalOrderOperators[\RationalQuantity[\U, ninf, lt, eq, gt, pinf, nan\],<,<=,>=,>,CMP\]
+%%               where { NOT nan },
+%%               PartialOrderAndLattice[\RationalQuantity[\U, ninf, lt, eq, gt, pinf, nan\],<=,MIN,MAX\]
+%%               where { NOT nan },
+%%               PartialOrderAndMeetBoundedLattice[\RationalQuantity[\U, ninf, lt, eq, gt, pinf, nan\],
+%%                                                  <=,MIN,MAX\]
+%%               where { pinf AND NOT nan },
+%%               PartialOrderAndJoinBoundedLattice[\RationalQuantity[\U, ninf, lt, eq, gt, pinf, nan\],
+%%                                                  <=,MIN,MAX\]
+%%               where { ninf AND NOT nan },
+%%               PartialOrderAndBoundedLattice[\RationalQuantity[\U, ninf, lt, eq, gt, pinf, nan\],
+%%                                              <=,MIN,MAX\]
+%%               where { ninf AND pinf AND NOT nan } }
+%%     where { ninf OR lt OR eq OR gt OR pinf OR nan }
+%%   coerce(x: Identity[\+\])
+%%   coerce(x: Identity[\DOT\])
+%%   coerce(x: Identity[\TIMES\])
+%%   coerce(x: Identity[\juxtaposition\])
+%%   coerce(x: Zero[\DOT\])
+%%   coerce(x: Zero[\TIMES\])
+%%   coerce(x: Zero[\juxtaposition\])
+%%   coerce(x: IntegerQuantity[\U,ninf,lt,eq,gt,pinf,nan\])
+%%   opr juxtaposition[\unit U', bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, other: RationalQuantity[\U',ninf',lt',eq',gt',pinf',nan'\]):
+%%        RationalQuantity[\U U',
+%%                          ninf AND pinf' OR ninf AND gt' OR lt AND pinf' OR pinf AND ninf' OR pinf AND lt' OR gt AND ninf',
+%%                          lt AND gt' OR gt AND lt',
+%%                          eq AND (lt' OR eq' OR gt') OR (lt OR eq OR gt) AND eq',
+%%                          lt AND lt' OR gt AND gt',
+%%                          ninf AND ninf' OR ninf AND lt' OR lt AND ninf' OR pinf AND pinf' OR pinf AND gt' OR gt AND pinf',
+%%                          nan OR nan' OR ninf AND eq' OR pinf AND eq' OR eq AND ninf' OR eq AND pinf'\]
+%%   opr +(self): RationalQuantity[\U,ninf,lt,eq,gt,pinf,nan\]
+%%   opr +[\bool ninf', bool lt', bool eq', bool gt', bool inf', bool nan'\]
+%%        (self, other: RationalQuantity[\U,ninf',lt',eq',gt',pinf',nan'\]):
+%%        RationalQuantity[\U,
+%%                          ninf AND (ninf' OR lt' OR eq' OR gt') OR (ninf OR lt OR eq OR gt) AND ninf',
+%%                          lt AND (lt' OR eq' OR gt') OR (lt OR eq OR gt) AND lt',
+%%                          lt AND gt' OR eq AND eq' OR gt AND lt',
+%%                          gt AND (lt' OR eq' OR gt') OR (lt OR eq OR gt) AND gt',
+%%                          pinf AND (lt' OR eq' OR gt' OR pinf') OR (lt OR eq OR gt OR pinf) AND pinf',
+%%                          nan OR nan' OR ninf AND pinf' OR pinf AND ninf'\]
+%%   opr -(self): RationalQuantity[\U,pinf,gt,eq,lt,ninf,nan\]
+%%   opr -[\bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, other: RationalQuantity[\U,ninf',lt',eq',gt',pinf',nan'\]):
+%%        RationalQuantity[\U,
+%%                          ninf AND (lt' OR eq' OR gt' OR pinf') OR (ninf OR lt OR eq OR gt) AND pinf',
+%%                          lt AND (lt' OR eq' OR gt') OR (lt OR eq OR gt) AND gt',
+%%                          lt AND lt' OR eq AND eq' OR gt AND gt',
+%%                          gt AND (lt' OR eq' OR gt') OR (lt OR eq OR gt) AND lt',
+%%                          pinf AND (ninf' OR lt' OR eq' OR gt') OR (lt OR eq OR gt OR pinf) AND ninf',
+%%                          nan OR nan' OR ninf AND ninf' OR pinf AND pinf'\]
+%%   opr DOT[\unit U', bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, other: RationalQuantity[\U',ninf',lt',eq',gt',pinf',nan'\]):
+%%        RationalQuantity[\U U',
+%%                          ninf AND pinf' OR ninf AND gt' OR lt AND pinf' OR pinf AND ninf' OR pinf AND lt' OR gt AND ninf',
+%%                          lt AND gt' OR gt AND lt',
+%%                          eq AND (lt' OR eq' OR gt') OR (lt OR eq OR gt) AND eq',
+%%                          lt AND lt' OR gt AND gt',
+%%                          ninf AND ninf' OR ninf AND lt' OR lt AND ninf' OR pinf AND pinf' OR pinf AND gt' OR gt AND pinf',
+%%                          nan OR nan' OR ninf AND eq' OR pinf AND eq' OR eq AND ninf' OR eq AND pinf'\]
+%%   opr TIMES[\unit U', bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, other: RationalQuantity[\U',ninf',lt',eq',gt',pinf',nan'\]):
+%%        RationalQuantity[\U U',
+%%                          ninf AND pinf' OR ninf AND gt' OR lt AND pinf' OR pinf AND ninf' OR pinf AND lt' OR gt AND ninf',
+%%                          lt AND gt' OR gt AND lt',
+%%                          eq AND (lt' OR eq' OR gt') OR (lt OR eq OR gt) AND eq',
+%%                          lt AND lt' OR gt AND gt',
+%%                          ninf AND ninf' OR ninf AND lt' OR lt AND ninf' OR pinf AND pinf' OR pinf AND gt' OR gt AND pinf',
+%%                          nan OR nan' OR ninf AND eq' OR pinf AND eq' OR eq AND ninf' OR eq AND pinf'\]
+%%   opr /(self): RationalQuantity[\1/U, eq, lt, ninf OR pinf, gt, eq, nan\]
+%%   opr /[\unit U', bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, other: RationalQuantity[\U',ninf',lt',eq',gt',pinf',nan'\]):
+%%        RationalQuantity[\U/U',
+%%                          ninf AND eq' OR ninf AND gt' OR lt AND eq' OR pinf AND lt',
+%%                          lt AND gt' OR gt AND lt',
+%%                          eq AND (lt' OR gt') OR (lt OR eq OR gt) AND (ninf' OR pinf')',
+%%                          lt AND lt' OR gt AND gt',
+%%                          ninf AND lt' OR pinf AND eq' OR pinf AND gt' OR gt AND eq',
+%%                          nan OR nan' OR (ninf OR pinf) AND (ninf' OR pinf') OR eq AND eq'\]
+%%   opr ^[\unit U', bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, power: IntegerQuantity[\U',ninf',lt',eq',gt',pinf'\]):
+%%        RationalQuantity[\U,
+%%                          ninf AND gt' OR eq AND lt',
+%%                          lt AND (lt' OR gt'),
+%%                          eq AND gt' OR (ninf OR pinf) AND lt',
+%%                          (lt OR gt) AND (lt' OR eq' OR gt'),
+%%                          pinf AND gt' OR eq AND lt',
+%%                          needs more work here\]
+%%      where { U = dimensionless, U' = dimensionless }
+%%   opr <[\bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, other: RationalQuantity[\U,ninf',lt',eq',gt',pinf',nan'\]): Boolean
+%%   opr <=[\bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, other: RationalQuantity[\U,ninf',lt',eq',gt',pinf',nan'\]): Boolean
+%%   opr =[\bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, other: RationalQuantity[\U,ninf',lt',eq',gt',pinf',nan'\]): Boolean
+%%   opr >=[\bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, other: RationalQuantity[\U,ninf',lt',eq',gt',pinf',nan'\]): Boolean
+%%   opr >[\bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, other: RationalQuantity[\U,ninf',lt',eq',gt',pinf',nan'\]): Boolean
+%%   opr CMP[\bool ninf', bool lt', bool eq', bool gt', bool pinf'\]
+%%        (self, other: RationalQuantity[\U,ninf',lt',eq',gt',pinf',false\]): TotalComparison
+%%   opr CMP[\bool ninf', bool lt', bool eq', bool gt', bool pinf'\]
+%%        (self, other: RationalQuantity[\U,ninf',lt',eq',gt',pinf',true\]): Comparison
+%%   opr MAX[\bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, other: RationalQuantity[\U,ninf',lt',eq',gt',pinf',nan'\]):
+%%        RationalQuantity[\U,
+%%                          ninf AND ninf',
+%%                          lt AND (ninf' OR lt') OR (ninf OR lt) AND lt',
+%%                          eq AND (ninf' OR lt' OR eq') OR (ninf OR lt OR eq) AND eq',
+%%                          gt AND (ninf' OR lt' OR eq' OR gt') OR (ninf OR lt OR eq OR gt) AND gt',
+%%                          pinf AND (ninf' OR lt' OR eq' OR gt' OR pinf') OR (ninf OR lt OR eq OR gt OR pinf) AND pinf',
+%%                          nan OR nan'\]
+%%   opr MIN[\bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, other: RationalQuantity[\U,ninf',lt',eq',gt',pinf',nan'\]):
+%%        RationalQuantity[\U,
+%%                          ninf AND (ninf' OR lt' OR eq' OR gt' OR pinf') OR (ninf OR lt OR eq OR gt OR pinf) AND ninf',
+%%                          lt AND (lt' OR eq' OR gt' OR pinf') OR (lt OR eq OR gt OR pinf) AND lt',
+%%                          eq AND (eq' OR gt' OR pinf') OR (eq OR gt OR pinf) AND eq',
+%%                          gt AND (gt' OR pinf') OR (gt OR pinf) AND gt',
+%%                          pinf AND pinf',
+%%                          nan OR nan'\]
+%%   opr MAXNUM[\bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, other: RationalQuantity[\U,ninf',lt',eq',gt',pinf',nan'\]):
+%%        RationalQuantity[\U,
+%%                          ninf AND (nan' OR ninf') OR (nan OR ninf) AND ninf',
+%%                          lt AND (nan' OR ninf' OR lt') OR (nan OR ninf OR lt) AND lt',
+%%                          eq AND (nan' OR ninf' OR lt' OR eq') OR (nan OR ninf OR lt OR eq) AND eq',
+%%                          gt AND (nan' OR ninf' OR lt' OR eq' OR gt') OR (nan OR ninf OR lt OR eq OR gt) AND gt',
+%%                          pinf AND (nan' OR ninf' OR lt' OR eq' OR gt' OR pinf') OR
+%%                               (nan OR ninf OR lt OR eq OR gt OR pinf) AND pinf',
+%%                          nan AND nan'\]
+%%   opr MINNUM[\bool ninf', bool lt', bool eq', bool gt', bool pinf', bool nan'\]
+%%        (self, other: RationalQuantity[\U,ninf',lt',eq',gt',pinf',nan'\]):
+%%        RationalQuantity[\U,
+%%                          ninf AND (ninf' OR lt' OR eq' OR gt' OR pinf' OR nan') OR
+%%                               (ninf OR lt OR eq OR gt OR pinf OR nan) AND ninf',
+%%                          lt AND (lt' OR eq' OR gt' OR pinf' OR nan') OR (lt OR eq OR gt OR pinf OR nan) AND lt',
+%%                          eq AND (eq' OR gt' OR pinf' OR nan') OR (eq OR gt OR pinf OR nan) AND eq',
+%%                          gt AND (gt' OR pinf' OR nan') OR (gt OR pinf OR nan) AND gt',
+%%                          pinf AND (pinf' OR nan') OR (pinf OR nan) AND pinf',
+%%                          nan AND nan'\]
+%%   opr |self|: RationalQuantity[\U,false,false,eq,lt OR gt,ninf OR pinf,nan\]
+%%   signum(self): RationalQuantity[\U,false,lt,eq,gt,false,nan\]
+%%   numerator(self): IntegerQuantity[\U,false,ninf OR lt,eq,gt OR pinf,false,nan\]
+%%   denominator(self): IntegerQuantity[\dimensionless,false,false,ninf OR pinf,lt OR eq OR gt,false,nan\]
+%%   floor(self): IntegerQuantity[\U,ninf,lt,eq OR gt,gt,pinf,nan\]
+%%   opr LF self RF: IntegerQuantity[\U,ninf,lt,eq OR gt,gt,pinf,nan\]
+%%   ceiling(self): IntegerQuantity[\U,ninf,lt,lt OR eq,gt,pinf,nan\]
+%%   opr LC self RC: IntegerQuantity[\U,ninf,lt,lt OR eq,gt,pinf,nan\]
+%%   round(self): IntegerQuantity[\U,ninf,lt,lt OR eq OR gt,gt,pinf,nan\]
+%%   truncate(self): IntegerQuantity[\U,ninf,lt,lt OR eq OR gt,gt,pinf,nan\]
+%%   opr ||\ self /||: IntegerQuantity[\U,ninf,lt,eq OR gt,gt,pinf,nan\] where { NOT (inf OR lt OR nan) }
+%%   opr ||/ self \||: IntegerQuantity[\U,ninf,lt,lt OR eq,gt,pinf,nan\] where { NOT (inf OR lt OR nan) }
+%%   opr |||\ self /|||: IntegerQuantity[\U,ninf,lt,eq OR gt,gt,pinf,nan\] where { NOT (inf OR lt OR nan) }
+%%   opr |||/ self \|||: IntegerQuantity[\U,ninf,lt,lt OR eq,gt,pinf,nan\] where { NOT (inf OR lt OR nan) }
+%%   realpart(self): RationalQuantity[\U,ninf,lt,eq,gt,pinf,nan\]
+%%   imagpart(self): RationalQuantity[\U,false,false,true,false,false,nan\]
+%%   check(self): QQ throws CastError
+%%   check_star(self): QQ_star throws CastError
+%%   check_LT(self): QQ_LT throws CastError
+%%   check_LE(self): QQ_LE throws CastError
+%%   check_GE(self): QQ_GE throws CastError
+%%   check_GT(self): QQ_GT throws CastError
+%%   check_NE(self): QQ_NE throws CastError
+%%   check_star_LT(self): QQ_star_LT throws CastError
+%%   check_star_LE(self): QQ_star_LE throws CastError
+%%   check_star_GE(self): QQ_star_GE throws CastError
+%%   check_star_GT(self): QQ_star_GT throws CastError
+%%   check_star_NE(self): QQ_star_NE throws CastError
+%%   check_splat_LT(self): QQ_splat_LT throws CastError
+%%   check_splat_LE(self): QQ_splat_LE throws CastError
+%%   check_splat_GE(self): QQ_splat_GE throws CastError
+%%   check_splat_GT(self): QQ_splat_GT throws CastError
+%%   check_splat_NE(self): QQ_splat_NE throws CastError
+%% end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{RationalQuantity}\llbracket\,\null\)\pushtabs\=\+\(\KWD{unit}\:U \KWD{absorbs}\;\;\KWD{unit},\)\\
+\(                        \KWD{bool}\:\VAR{ninf}, \KWD{bool}\:\VAR{lt}, \KWD{bool}\:\VAR{eq}, \KWD{bool}\:\VAR{gt}, \KWD{bool}\:\VAR{pinf}, \KWD{bool}\:\VAR{nan}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}', \VAR{lt}', \VAR{eq}', \VAR{gt}', \VAR{pinf}', \VAR{nan}'\rrbracket\)\\
+\(              \KWD{where} \{\, \null\)\pushtabs\=\+\(\KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}',\)\\
+\(                      \VAR{ninf} \rightarrow  \VAR{ninf}', \VAR{lt} \rightarrow \VAR{lt}', \VAR{eq} \rightarrow \VAR{eq}', \VAR{gt} \rightarrow \VAR{gt}', \VAR{pinf} \rightarrow \VAR{pinf}', \VAR{nan} \rightarrow \VAR{nan}'\,\},\)\-\\\poptabs
+\(              \TYP{Field}\llbracket\,\null\)\pushtabs\=\+\(\TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{eq}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,\)\\
+\(                     \TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{false}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,+,-,\cdot,/\rrbracket\)\-\\\poptabs
+\(              \KWD{where} \{\,\VAR{lt} \wedge \VAR{eq} \wedge \VAR{gt} \wedge \neg \VAR{ninf} \wedge \neg \VAR{pinf} \wedge \neg \VAR{nan}, U = \mathbin{\TYP{dimensionless}}\,\},\)\\
+\(              \TYP{Field}\llbracket\,\null\)\pushtabs\=\+\(\TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{eq}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,\)\\
+\(                     \TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{false}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,+,-,\times,/\rrbracket\)\-\\\poptabs
+\(              \KWD{where} \{\,\VAR{lt} \wedge \VAR{eq} \wedge \VAR{gt} \wedge \neg \VAR{ninf} \wedge \neg \VAR{pinf} \wedge \neg \VAR{nan}, U = \mathbin{\TYP{dimensionless}}\,\},\)\\
+\(              \TYP{Field}\llbracket\,\null\)\pushtabs\=\+\(\TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{eq}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,\)\\
+\(                     \TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{false}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,+,-,\KWD{juxtaposition},/\rrbracket\)\-\\\poptabs
+\(              \KWD{where} \{\,\VAR{lt} \wedge \VAR{eq} \wedge \VAR{gt} \wedge \neg \VAR{ninf} \wedge \neg \VAR{pinf} \wedge \neg \VAR{nan}, U = \mathbin{\TYP{dimensionless}}\,\},\)\\
+\(              \TYP{AbelianGroup}\llbracket\TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{eq}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,+,-\rrbracket,\)\\
+\(              \TYP{TotalOrderOperators}\llbracket\TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{eq}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,<,\leq,\geq,>,\OPR{CMP}\rrbracket\)\\
+\(              \KWD{where} \{\,\neg \VAR{nan}\,\},\)\\
+\(              \TYP{PartialOrderAndLattice}\llbracket\TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{eq}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,\leq,\OPR{MIN},\OPR{MAX}\rrbracket\)\\
+\(              \KWD{where} \{\,\neg \VAR{nan}\,\},\)\\
+\(              \TYP{PartialOrderAndMeetBoundedLattice}\llbracket\,\null\)\pushtabs\=\+\(\TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{eq}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,\)\\
+\(                                                 \leq,\OPR{MIN},\OPR{MAX}\rrbracket\)\-\\\poptabs
+\(              \KWD{where} \{\,\VAR{pinf} \wedge \neg \VAR{nan}\,\},\)\\
+\(              \TYP{PartialOrderAndJoinBoundedLattice}\llbracket\,\null\)\pushtabs\=\+\(\TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{eq}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,\)\\
+\(                                                 \leq,\OPR{MIN},\OPR{MAX}\rrbracket\)\-\\\poptabs
+\(              \KWD{where} \{\,\VAR{ninf} \wedge \neg \VAR{nan}\,\},\)\\
+\(              \TYP{PartialOrderAndBoundedLattice}\llbracket\,\null\)\pushtabs\=\+\(\TYP{RationalQuantity}\llbracket{}U, \VAR{ninf}, \VAR{lt}, \VAR{eq}, \VAR{gt}, \VAR{pinf}, \VAR{nan}\rrbracket,\)\\
+\(                                             \leq,\OPR{MIN},\OPR{MAX}\rrbracket\)\-\\\poptabs
+\(              \KWD{where} \{\,\VAR{ninf} \wedge \VAR{pinf} \wedge \neg \VAR{nan}\,\}\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,\VAR{ninf} \vee \VAR{lt} \vee \VAR{eq} \vee \VAR{gt} \vee \VAR{pinf} \vee \VAR{nan}\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket+\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\cdot\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\times\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\KWD{juxtaposition}\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Zero}\llbracket\cdot\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Zero}\llbracket\times\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Zero}\llbracket\KWD{juxtaposition}\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{IntegerQuantity}\llbracket{}U,\VAR{ninf},\VAR{lt},\VAR{eq},\VAR{gt},\VAR{pinf},\VAR{nan}\rrbracket)\)\\
+\(  \KWD{opr}\;\;\KWD{juxtaposition}\llbracket\KWD{unit}\:U', \KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U',\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLONOP\)\\
+\(       \TYP{RationalQuantity}\llbracket\,\null\)\pushtabs\=\+\(U\:U',\)\\
+\(                         \VAR{ninf} \wedge \VAR{pinf}' \vee \VAR{ninf} \wedge \VAR{gt}' \vee \VAR{lt} \wedge \VAR{pinf}' \vee \VAR{pinf} \wedge \VAR{ninf}' \vee \VAR{pinf} \wedge \VAR{lt}' \vee \VAR{gt} \wedge \VAR{ninf}',\)\\
+\(                         \VAR{lt} \wedge \VAR{gt}' \vee \VAR{gt} \wedge \VAR{lt}',\)\\
+\(                         \VAR{eq} \wedge (\VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}') \vee (\VAR{lt} \vee \VAR{eq} \vee \VAR{gt}) \wedge \VAR{eq}',\)\\
+\(                         \VAR{lt} \wedge \VAR{lt}' \vee \VAR{gt} \wedge \VAR{gt}',\)\\
+\(                         \VAR{ninf} \wedge \VAR{ninf}' \vee \VAR{ninf} \wedge \VAR{lt}' \vee \VAR{lt} \wedge \VAR{ninf}' \vee \VAR{pinf} \wedge \VAR{pinf}' \vee \VAR{pinf} \wedge \VAR{gt}' \vee \VAR{gt} \wedge \VAR{pinf}',\)\\
+\(                         \VAR{nan} \vee \VAR{nan}' \vee \VAR{ninf} \wedge \VAR{eq}' \vee \VAR{pinf} \wedge \VAR{eq}' \vee \VAR{eq} \wedge \VAR{ninf}' \vee \VAR{eq} \wedge \VAR{pinf}'\rrbracket\)\-\-\\\poptabs\poptabs
+\(  \KWD{opr} +(\KWD{self})\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf},\VAR{lt},\VAR{eq},\VAR{gt},\VAR{pinf},\VAR{nan}\rrbracket\)\\
+\(  \KWD{opr} +\llbracket\KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{inf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLONOP\)\\
+\(       \TYP{RationalQuantity}\llbracket\,\null\)\pushtabs\=\+\(U,\)\\
+\(                         \VAR{ninf} \wedge (\VAR{ninf}' \vee \VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}') \vee (\VAR{ninf} \vee \VAR{lt} \vee \VAR{eq} \vee \VAR{gt}) \wedge \VAR{ninf}',\)\\
+\(                         \VAR{lt} \wedge (\VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}') \vee (\VAR{lt} \vee \VAR{eq} \vee \VAR{gt}) \wedge \VAR{lt}',\)\\
+\(                         \VAR{lt} \wedge \VAR{gt}' \vee \VAR{eq} \wedge \VAR{eq}' \vee \VAR{gt} \wedge \VAR{lt}',\)\\
+\(                         \VAR{gt} \wedge (\VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}') \vee (\VAR{lt} \vee \VAR{eq} \vee \VAR{gt}) \wedge \VAR{gt}',\)\\
+\(                         \VAR{pinf} \wedge (\VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}' \vee \VAR{pinf}') \vee (\VAR{lt} \vee \VAR{eq} \vee \VAR{gt} \vee \VAR{pinf}) \wedge \VAR{pinf}',\)\\
+\(                         \VAR{nan} \vee \VAR{nan}' \vee \VAR{ninf} \wedge \VAR{pinf}' \vee \VAR{pinf} \wedge \VAR{ninf}'\rrbracket\)\-\-\\\poptabs\poptabs
+\(  \KWD{opr} -(\KWD{self})\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{pinf},\VAR{gt},\VAR{eq},\VAR{lt},\VAR{ninf},\VAR{nan}\rrbracket\)\\
+\(  \KWD{opr} -\llbracket\KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLONOP\)\\
+\(       \TYP{RationalQuantity}\llbracket\,\null\)\pushtabs\=\+\(U,\)\\
+\(                         \VAR{ninf} \wedge (\VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}' \vee \VAR{pinf}') \vee (\VAR{ninf} \vee \VAR{lt} \vee \VAR{eq} \vee \VAR{gt}) \wedge \VAR{pinf}',\)\\
+\(                         \VAR{lt} \wedge (\VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}') \vee (\VAR{lt} \vee \VAR{eq} \vee \VAR{gt}) \wedge \VAR{gt}',\)\\
+\(                         \VAR{lt} \wedge \VAR{lt}' \vee \VAR{eq} \wedge \VAR{eq}' \vee \VAR{gt} \wedge \VAR{gt}',\)\\
+\(                         \VAR{gt} \wedge (\VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}') \vee (\VAR{lt} \vee \VAR{eq} \vee \VAR{gt}) \wedge \VAR{lt}',\)\\
+\(                         \VAR{pinf} \wedge (\VAR{ninf}' \vee \VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}') \vee (\VAR{lt} \vee \VAR{eq} \vee \VAR{gt} \vee \VAR{pinf}) \wedge \VAR{ninf}',\)\\
+\(                         \VAR{nan} \vee \VAR{nan}' \vee \VAR{ninf} \wedge \VAR{ninf}' \vee \VAR{pinf} \wedge \VAR{pinf}'\rrbracket\)\-\-\\\poptabs\poptabs
+\(  \KWD{opr} \mathord{\cdot}\llbracket\KWD{unit}\:U', \KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U',\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLONOP\)\\
+\(       \TYP{RationalQuantity}\llbracket\,\null\)\pushtabs\=\+\(U\:U',\)\\
+\(                         \VAR{ninf} \wedge \VAR{pinf}' \vee \VAR{ninf} \wedge \VAR{gt}' \vee \VAR{lt} \wedge \VAR{pinf}' \vee \VAR{pinf} \wedge \VAR{ninf}' \vee \VAR{pinf} \wedge \VAR{lt}' \vee \VAR{gt} \wedge \VAR{ninf}',\)\\
+\(                         \VAR{lt} \wedge \VAR{gt}' \vee \VAR{gt} \wedge \VAR{lt}',\)\\
+\(                         \VAR{eq} \wedge (\VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}') \vee (\VAR{lt} \vee \VAR{eq} \vee \VAR{gt}) \wedge \VAR{eq}',\)\\
+\(                         \VAR{lt} \wedge \VAR{lt}' \vee \VAR{gt} \wedge \VAR{gt}',\)\\
+\(                         \VAR{ninf} \wedge \VAR{ninf}' \vee \VAR{ninf} \wedge \VAR{lt}' \vee \VAR{lt} \wedge \VAR{ninf}' \vee \VAR{pinf} \wedge \VAR{pinf}' \vee \VAR{pinf} \wedge \VAR{gt}' \vee \VAR{gt} \wedge \VAR{pinf}',\)\\
+\(                         \VAR{nan} \vee \VAR{nan}' \vee \VAR{ninf} \wedge \VAR{eq}' \vee \VAR{pinf} \wedge \VAR{eq}' \vee \VAR{eq} \wedge \VAR{ninf}' \vee \VAR{eq} \wedge \VAR{pinf}'\rrbracket\)\-\-\\\poptabs\poptabs
+\(  \KWD{opr} \mathord{\times}\llbracket\KWD{unit}\:U', \KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U',\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLONOP\)\\
+\(       \TYP{RationalQuantity}\llbracket\,\null\)\pushtabs\=\+\(U\:U',\)\\
+\(                         \VAR{ninf} \wedge \VAR{pinf}' \vee \VAR{ninf} \wedge \VAR{gt}' \vee \VAR{lt} \wedge \VAR{pinf}' \vee \VAR{pinf} \wedge \VAR{ninf}' \vee \VAR{pinf} \wedge \VAR{lt}' \vee \VAR{gt} \wedge \VAR{ninf}',\)\\
+\(                         \VAR{lt} \wedge \VAR{gt}' \vee \VAR{gt} \wedge \VAR{lt}',\)\\
+\(                         \VAR{eq} \wedge (\VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}') \vee (\VAR{lt} \vee \VAR{eq} \vee \VAR{gt}) \wedge \VAR{eq}',\)\\
+\(                         \VAR{lt} \wedge \VAR{lt}' \vee \VAR{gt} \wedge \VAR{gt}',\)\\
+\(                         \VAR{ninf} \wedge \VAR{ninf}' \vee \VAR{ninf} \wedge \VAR{lt}' \vee \VAR{lt} \wedge \VAR{ninf}' \vee \VAR{pinf} \wedge \VAR{pinf}' \vee \VAR{pinf} \wedge \VAR{gt}' \vee \VAR{gt} \wedge \VAR{pinf}',\)\\
+\(                         \VAR{nan} \vee \VAR{nan}' \vee \VAR{ninf} \wedge \VAR{eq}' \vee \VAR{pinf} \wedge \VAR{eq}' \vee \VAR{eq} \wedge \VAR{ninf}' \vee \VAR{eq} \wedge \VAR{pinf}'\rrbracket\)\-\-\\\poptabs\poptabs
+\(  \KWD{opr} /(\KWD{self})\COLON \TYP{RationalQuantity}\llbracket{}1/U, \VAR{eq}, \VAR{lt}, \VAR{ninf} \vee \VAR{pinf}, \VAR{gt}, \VAR{eq}, \VAR{nan}\rrbracket\)\\
+\(  \KWD{opr} /\llbracket\KWD{unit}\:U', \KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U',\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLONOP\)\\
+\(       \TYP{RationalQuantity}\llbracket\,\null\)\pushtabs\=\+\(U/U',\)\\
+\(                         \VAR{ninf} \wedge \VAR{eq}' \vee \VAR{ninf} \wedge \VAR{gt}' \vee \VAR{lt} \wedge \VAR{eq}' \vee \VAR{pinf} \wedge \VAR{lt}',\)\\
+\(                         \VAR{lt} \wedge \VAR{gt}' \vee \VAR{gt} \wedge \VAR{lt}',\)\\
+\(                         \VAR{eq} \wedge (\VAR{lt}' \vee \VAR{gt}') \vee (\VAR{lt} \vee \VAR{eq} \vee \VAR{gt}) \wedge (\VAR{ninf}' \vee \VAR{pinf}')',\)\\
+\(                         \VAR{lt} \wedge \VAR{lt}' \vee \VAR{gt} \wedge \VAR{gt}',\)\\
+\(                         \VAR{ninf} \wedge \VAR{lt}' \vee \VAR{pinf} \wedge \VAR{eq}' \vee \VAR{pinf} \wedge \VAR{gt}' \vee \VAR{gt} \wedge \VAR{eq}',\)\\
+\(                         \VAR{nan} \vee \VAR{nan}' \vee (\VAR{ninf} \vee \VAR{pinf}) \wedge (\VAR{ninf}' \vee \VAR{pinf}') \vee \VAR{eq} \wedge \VAR{eq}'\rrbracket\)\-\-\\\poptabs\poptabs
+\(  \KWD{opr} ^\llbracket\KWD{unit}\:U', \KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{power}\COLON \TYP{IntegerQuantity}\llbracket{}U',\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}'\rrbracket)\COLONOP\)\\
+\(       \TYP{RationalQuantity}\llbracket\,\null\)\pushtabs\=\+\(U,\)\\
+\(                         \VAR{ninf} \wedge \VAR{gt}' \vee \VAR{eq} \wedge \VAR{lt}',\)\\
+\(                         \VAR{lt} \wedge (\VAR{lt}' \vee \VAR{gt}'),\)\\
+\(                         \VAR{eq} \wedge \VAR{gt}' \vee (\VAR{ninf} \vee \VAR{pinf}) \wedge \VAR{lt}',\)\\
+\(                         (\VAR{lt} \vee \VAR{gt}) \wedge (\VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}'),\)\\
+\(                         \VAR{pinf} \wedge \VAR{gt}' \vee \VAR{eq} \wedge \VAR{lt}',\)\\
+\(                         \VAR{needs}\:\VAR{more}\:\VAR{work}\:\VAR{here}\rrbracket\)\-\-\\\poptabs\poptabs
+{\tt~~~}\pushtabs\=\+\(     \KWD{where} \{\,U = \mathbin{\TYP{dimensionless}}, U' = \mathbin{\TYP{dimensionless}}\,\}\)\-\\\poptabs
+\(  \KWD{opr} \mathord{<}\llbracket\KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLON \TYP{Boolean}\)\-\\\poptabs
+\(  \KWD{opr} \mathord{\leq}\llbracket\KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLON \TYP{Boolean}\)\-\\\poptabs
+\(  \KWD{opr} \mathord{=}\llbracket\KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLON \TYP{Boolean}\)\-\\\poptabs
+\(  \KWD{opr} \mathord{\geq}\llbracket\KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLON \TYP{Boolean}\)\-\\\poptabs
+\(  \KWD{opr} \mathord{>}\llbracket\KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLON \TYP{Boolean}\)\-\\\poptabs
+\(  \KWD{opr} \mathord{\OPR{CMP}}\llbracket\KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{false}\rrbracket)\COLON \TYP{TotalComparison}\)\-\\\poptabs
+\(  \KWD{opr} \mathord{\OPR{CMP}}\llbracket\KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{true}\rrbracket)\COLON \TYP{Comparison}\)\-\\\poptabs
+\(  \KWD{opr} \mathord{\OPR{MAX}}\llbracket\KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLONOP\)\\
+\(       \TYP{RationalQuantity}\llbracket\,\null\)\pushtabs\=\+\(U,\)\\
+\(                         \VAR{ninf} \wedge \VAR{ninf}',\)\\
+\(                         \VAR{lt} \wedge (\VAR{ninf}' \vee \VAR{lt}') \vee (\VAR{ninf} \vee \VAR{lt}) \wedge \VAR{lt}',\)\\
+\(                         \VAR{eq} \wedge (\VAR{ninf}' \vee \VAR{lt}' \vee \VAR{eq}') \vee (\VAR{ninf} \vee \VAR{lt} \vee \VAR{eq}) \wedge \VAR{eq}',\)\\
+\(                         \VAR{gt} \wedge (\VAR{ninf}' \vee \VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}') \vee (\VAR{ninf} \vee \VAR{lt} \vee \VAR{eq} \vee \VAR{gt}) \wedge \VAR{gt}',\)\\
+\(                         \VAR{pinf} \wedge (\VAR{ninf}' \vee \VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}' \vee \VAR{pinf}') \vee (\VAR{ninf} \vee \VAR{lt} \vee \VAR{eq} \vee \VAR{gt} \vee \VAR{pinf}) \wedge \VAR{pinf}',\)\\
+\(                         \VAR{nan} \vee \VAR{nan}'\rrbracket\)\-\-\\\poptabs\poptabs
+\(  \KWD{opr} \mathord{\OPR{MIN}}\llbracket\KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLONOP\)\\
+\(       \TYP{RationalQuantity}\llbracket\,\null\)\pushtabs\=\+\(U,\)\\
+\(                         \VAR{ninf} \wedge (\VAR{ninf}' \vee \VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}' \vee \VAR{pinf}') \vee (\VAR{ninf} \vee \VAR{lt} \vee \VAR{eq} \vee \VAR{gt} \vee \VAR{pinf}) \wedge \VAR{ninf}',\)\\
+\(                         \VAR{lt} \wedge (\VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}' \vee \VAR{pinf}') \vee (\VAR{lt} \vee \VAR{eq} \vee \VAR{gt} \vee \VAR{pinf}) \wedge \VAR{lt}',\)\\
+\(                         \VAR{eq} \wedge (\VAR{eq}' \vee \VAR{gt}' \vee \VAR{pinf}') \vee (\VAR{eq} \vee \VAR{gt} \vee \VAR{pinf}) \wedge \VAR{eq}',\)\\
+\(                         \VAR{gt} \wedge (\VAR{gt}' \vee \VAR{pinf}') \vee (\VAR{gt} \vee \VAR{pinf}) \wedge \VAR{gt}',\)\\
+\(                         \VAR{pinf} \wedge \VAR{pinf}',\)\\
+\(                         \VAR{nan} \vee \VAR{nan}'\rrbracket\)\-\-\\\poptabs\poptabs
+\(  \KWD{opr} \mathord{\OPR{MAXNUM}}\llbracket\KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLONOP\)\\
+\(       \TYP{RationalQuantity}\llbracket\,\null\)\pushtabs\=\+\(U,\)\\
+\(                         \VAR{ninf} \wedge (\VAR{nan}' \vee \VAR{ninf}') \vee (\VAR{nan} \vee \VAR{ninf}) \wedge \VAR{ninf}',\)\\
+\(                         \VAR{lt} \wedge (\VAR{nan}' \vee \VAR{ninf}' \vee \VAR{lt}') \vee (\VAR{nan} \vee \VAR{ninf} \vee \VAR{lt}) \wedge \VAR{lt}',\)\\
+\(                         \VAR{eq} \wedge (\VAR{nan}' \vee \VAR{ninf}' \vee \VAR{lt}' \vee \VAR{eq}') \vee (\VAR{nan} \vee \VAR{ninf} \vee \VAR{lt} \vee \VAR{eq}) \wedge \VAR{eq}',\)\\
+\(                         \VAR{gt} \wedge (\VAR{nan}' \vee \VAR{ninf}' \vee \VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}') \vee (\VAR{nan} \vee \VAR{ninf} \vee \VAR{lt} \vee \VAR{eq} \vee \VAR{gt}) \wedge \VAR{gt}',\)\\
+\(                         \VAR{pinf}  \null\)\pushtabs\=\+\(\wedge (\VAR{nan}' \vee \VAR{ninf}' \vee \VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}' \vee \VAR{pinf}') \vee\)\\
+\(                              (\VAR{nan} \vee \VAR{ninf} \vee \VAR{lt} \vee \VAR{eq} \vee \VAR{gt} \vee \VAR{pinf}) \wedge \VAR{pinf}',\)\-\\\poptabs
+\(                         \VAR{nan} \wedge \VAR{nan}'\rrbracket\)\-\-\\\poptabs\poptabs
+\(  \KWD{opr} \mathord{\OPR{MINNUM}}\llbracket\KWD{bool}\:\VAR{ninf}', \KWD{bool}\:\VAR{lt}', \KWD{bool}\:\VAR{eq}', \KWD{bool}\:\VAR{gt}', \KWD{bool}\:\VAR{pinf}', \KWD{bool}\:\VAR{nan}'\rrbracket\)\\
+{\tt~~~~~}\pushtabs\=\+\(       (\KWD{self}, \VAR{other}\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf}',\VAR{lt}',\VAR{eq}',\VAR{gt}',\VAR{pinf}',\VAR{nan}'\rrbracket)\COLONOP\)\\
+\(       \TYP{RationalQuantity}\llbracket\,\null\)\pushtabs\=\+\(U,\)\\
+\(                         \VAR{ninf}  \null\)\pushtabs\=\+\(\wedge (\VAR{ninf}' \vee \VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}' \vee \VAR{pinf}' \vee \VAR{nan}') \vee\)\\
+\(                              (\VAR{ninf} \vee \VAR{lt} \vee \VAR{eq} \vee \VAR{gt} \vee \VAR{pinf} \vee \VAR{nan}) \wedge \VAR{ninf}',\)\-\\\poptabs
+\(                         \VAR{lt} \wedge (\VAR{lt}' \vee \VAR{eq}' \vee \VAR{gt}' \vee \VAR{pinf}' \vee \VAR{nan}') \vee (\VAR{lt} \vee \VAR{eq} \vee \VAR{gt} \vee \VAR{pinf} \vee \VAR{nan}) \wedge \VAR{lt}',\)\\
+\(                         \VAR{eq} \wedge (\VAR{eq}' \vee \VAR{gt}' \vee \VAR{pinf}' \vee \VAR{nan}') \vee (\VAR{eq} \vee \VAR{gt} \vee \VAR{pinf} \vee \VAR{nan}) \wedge \VAR{eq}',\)\\
+\(                         \VAR{gt} \wedge (\VAR{gt}' \vee \VAR{pinf}' \vee \VAR{nan}') \vee (\VAR{gt} \vee \VAR{pinf} \vee \VAR{nan}) \wedge \VAR{gt}',\)\\
+\(                         \VAR{pinf} \wedge (\VAR{pinf}' \vee \VAR{nan}') \vee (\VAR{pinf} \vee \VAR{nan}) \wedge \VAR{pinf}',\)\\
+\(                         \VAR{nan} \wedge \VAR{nan}'\rrbracket\)\-\-\\\poptabs\poptabs
+\(  \KWD{opr} \left|\mathord{\KWD{self}}\right|\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{false},\VAR{false},\VAR{eq},\VAR{lt} \vee \VAR{gt},\VAR{ninf} \vee \VAR{pinf},\VAR{nan}\rrbracket\)\\
+\(  \VAR{signum}(\KWD{self})\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{false},\VAR{lt},\VAR{eq},\VAR{gt},\VAR{false},\VAR{nan}\rrbracket\)\\
+\(  \VAR{numerator}(\KWD{self})\COLON \TYP{IntegerQuantity}\llbracket{}U,\VAR{false},\VAR{ninf} \vee \VAR{lt},\VAR{eq},\VAR{gt} \vee \VAR{pinf},\VAR{false},\VAR{nan}\rrbracket\)\\
+\(  \VAR{denominator}(\KWD{self})\COLON \TYP{IntegerQuantity}\llbracket\mathbin{\TYP{dimensionless}},\VAR{false},\VAR{false},\VAR{ninf} \vee \VAR{pinf},\VAR{lt} \vee \VAR{eq} \vee \VAR{gt},\VAR{false},\VAR{nan}\rrbracket\)\\
+\(  \VAR{floor}(\KWD{self})\COLON \TYP{IntegerQuantity}\llbracket{}U,\VAR{ninf},\VAR{lt},\VAR{eq} \vee \VAR{gt},\VAR{gt},\VAR{pinf},\VAR{nan}\rrbracket\)\\
+\(  \KWD{opr} \lfloor \mathord{\KWD{self}} \rfloor\COLON \TYP{IntegerQuantity}\llbracket{}U,\VAR{ninf},\VAR{lt},\VAR{eq} \vee \VAR{gt},\VAR{gt},\VAR{pinf},\VAR{nan}\rrbracket\)\\
+\(  \VAR{ceiling}(\KWD{self})\COLON \TYP{IntegerQuantity}\llbracket{}U,\VAR{ninf},\VAR{lt},\VAR{lt} \vee \VAR{eq},\VAR{gt},\VAR{pinf},\VAR{nan}\rrbracket\)\\
+\(  \KWD{opr} \lceil \mathord{\KWD{self}} \rceil\COLON \TYP{IntegerQuantity}\llbracket{}U,\VAR{ninf},\VAR{lt},\VAR{lt} \vee \VAR{eq},\VAR{gt},\VAR{pinf},\VAR{nan}\rrbracket\)\\
+\(  \VAR{round}(\KWD{self})\COLON \TYP{IntegerQuantity}\llbracket{}U,\VAR{ninf},\VAR{lt},\VAR{lt} \vee \VAR{eq} \vee \VAR{gt},\VAR{gt},\VAR{pinf},\VAR{nan}\rrbracket\)\\
+\(  \VAR{truncate}(\KWD{self})\COLON \TYP{IntegerQuantity}\llbracket{}U,\VAR{ninf},\VAR{lt},\VAR{lt} \vee \VAR{eq} \vee \VAR{gt},\VAR{gt},\VAR{pinf},\VAR{nan}\rrbracket\)\\
+\(  \KWD{opr} \lhfloor \mathord{\KWD{self}} \rhfloor\COLON \TYP{IntegerQuantity}\llbracket{}U,\VAR{ninf},\VAR{lt},\VAR{eq} \vee \VAR{gt},\VAR{gt},\VAR{pinf},\VAR{nan}\rrbracket \KWD{where} \{\,\neg (\inf \vee \VAR{lt} \vee \VAR{nan})\,\}\)\\
+\(  \KWD{opr} \lhceil \mathord{\KWD{self}} \rhceil\COLON \TYP{IntegerQuantity}\llbracket{}U,\VAR{ninf},\VAR{lt},\VAR{lt} \vee \VAR{eq},\VAR{gt},\VAR{pinf},\VAR{nan}\rrbracket \KWD{where} \{\,\neg (\inf \vee \VAR{lt} \vee \VAR{nan})\,\}\)\\
+\(  \KWD{opr} \lhhfloor \mathord{\KWD{self}} \rhhfloor\COLON \TYP{IntegerQuantity}\llbracket{}U,\VAR{ninf},\VAR{lt},\VAR{eq} \vee \VAR{gt},\VAR{gt},\VAR{pinf},\VAR{nan}\rrbracket \KWD{where} \{\,\neg (\inf \vee \VAR{lt} \vee \VAR{nan})\,\}\)\\
+\(  \KWD{opr} \lhhceil \mathord{\KWD{self}} \rhhceil\COLON \TYP{IntegerQuantity}\llbracket{}U,\VAR{ninf},\VAR{lt},\VAR{lt} \vee \VAR{eq},\VAR{gt},\VAR{pinf},\VAR{nan}\rrbracket \KWD{where} \{\,\neg (\inf \vee \VAR{lt} \vee \VAR{nan})\,\}\)\\
+\(  \VAR{realpart}(\KWD{self})\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{ninf},\VAR{lt},\VAR{eq},\VAR{gt},\VAR{pinf},\VAR{nan}\rrbracket\)\\
+\(  \VAR{imagpart}(\KWD{self})\COLON \TYP{RationalQuantity}\llbracket{}U,\VAR{false},\VAR{false},\VAR{true},\VAR{false},\VAR{false},\VAR{nan}\rrbracket\)\\
+\(  \VAR{check}(\KWD{self})\COLON \mathbb{Q} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^*(\KWD{self})\COLON \mathbb{Q}^* \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}_{<}(\KWD{self})\COLON \mathbb{Q}_{<} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}_{\leq}(\KWD{self})\COLON \mathbb{Q}_{\leq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}_{\geq}(\KWD{self})\COLON \mathbb{Q}_{\geq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}_{>}(\KWD{self})\COLON \mathbb{Q}_{>} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}_{\neq}(\KWD{self})\COLON \mathbb{Q}_{\neq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^*_{<}(\KWD{self})\COLON \mathbb{Q}^*_{<} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^*_{\leq}(\KWD{self})\COLON \mathbb{Q}^*_{\leq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^*_{\geq}(\KWD{self})\COLON \mathbb{Q}^*_{\geq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^*_{>}(\KWD{self})\COLON \mathbb{Q}^*_{>} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^*_{\neq}(\KWD{self})\COLON \mathbb{Q}^*_{\neq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^{\#}_{<}(\KWD{self})\COLON \mathbb{Q}^{\#}_{<} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^{\#}_{\leq}(\KWD{self})\COLON \mathbb{Q}^{\#}_{\leq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^{\#}_{\geq}(\KWD{self})\COLON \mathbb{Q}^{\#}_{\geq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^{\#}_{>}(\KWD{self})\COLON \mathbb{Q}^{\#}_{>} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^{\#}_{\neq}(\KWD{self})\COLON \mathbb{Q}^{\#}_{\neq} \KWD{throws}\:\TYP{CastError}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+For descriptions of the methods, \see{basic-rationals}.

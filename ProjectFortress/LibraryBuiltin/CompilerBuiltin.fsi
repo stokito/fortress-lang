@@ -86,7 +86,43 @@ value object Infinity extends Number end
 value object NegativeInfinity extends Number end
 value object IndefiniteNumber extends Number end
 
-trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes RR64
+trait ZZ extends { Number, Equality[\ZZ\] } excludes { RR64, ZZ64, ZZ32, NN32, NN64, IntLiteral } 
+    coerce(x: IntLiteral)
+    opr |self| : ZZ
+    opr -(self): ZZ
+    opr BOXMINUS(self): ZZ
+    opr DOTMINUS(self): ZZ
+    opr +(self, other:ZZ): ZZ
+    opr BOXPLUS(self, other:ZZ): ZZ
+    opr DOTPLUS(self, other:ZZ): ZZ
+    opr -(self, other:ZZ): ZZ 
+    opr BOXMINUS(self, other:ZZ): ZZ 
+    opr DOTMINUS(self, other:ZZ): ZZ 
+    opr <(self, other:ZZ): Boolean 
+    opr <=(self, other:ZZ): Boolean 
+    opr >(self, other:ZZ): Boolean 
+    opr >=(self, other:ZZ): Boolean 
+    opr =(self, other:ZZ): Boolean 
+    opr =/=(self, other:ZZ): Boolean 
+    opr juxtaposition(self, other:ZZ): ZZ
+    opr DOT(self, other:ZZ): ZZ 
+    opr BOXDOT(self, other:ZZ): ZZ 
+    opr CROSS(self, other:ZZ): ZZ 
+    opr BOXCROSS(self, other:ZZ): ZZ 
+    opr DOTCROSS(self, other:ZZ): ZZ 
+    opr DIV(self, other:ZZ): ZZ
+    opr BITNOT(self): ZZ 
+    opr BITAND(self, other:ZZ): ZZ 
+    opr BITOR(self, other:ZZ): ZZ 
+    opr BITXOR(self, other:ZZ): ZZ
+    opr MIN(self, other:ZZ): ZZ 
+    opr MAX(self, other:ZZ): ZZ 
+    opr MINMAX(self, other:ZZ): (ZZ, ZZ) 
+    even(self): Boolean
+    odd(self): Boolean
+end
+
+trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 , ZZ }
     coerce(x: IntLiteral)
     coerce(x: ZZ32) 
     getter asZZ32(): ZZ32 
@@ -207,7 +243,46 @@ trait NN32 extends { Number, Equality[\NN32\] } excludes { ZZ32, ZZ64, RR32, RR6
     asRR64(): RR64
 end
 
-trait IntLiteral excludes {ZZ32, ZZ64, NN32, RR64, RR32, Character, Boolean, String}
+trait NN64 extends { Number, Equality[\NN64\] } excludes { ZZ32, ZZ64, RR32, RR64, NN32, ZZ, IntLiteral }
+    coerce(x: IntLiteral)
+    getter asNN64(): NN64
+    getter asString(): String
+    opr |self| : NN64
+    opr -(self): NN64 
+    opr BOXMINUS(self): NN64
+    opr DOTMINUS(self): NN64
+    opr +(self, other:NN64): NN64
+    opr BOXPLUS(self, other:NN64): NN64
+    opr DOTPLUS(self, other:NN64): NN64
+    opr -(self, other:NN64): NN64
+    opr BOXMINUS(self, other:NN64): NN64
+    opr DOTMINUS(self, other:NN64): NN64
+    opr DOT(self, other:NN64): NN64
+    opr BOXDOT(self, other:NN64): NN64
+    opr CROSS(self, other:NN64): NN64
+    opr BOXCROSS(self, other:NN64): NN64
+    opr DOTCROSS(self, other:NN64): NN64
+    opr DIV(self, other:NN64): NN64
+    opr <(self, other:NN64): Boolean
+    opr <=(self, other:NN64): Boolean
+    opr >(self, other:NN64): Boolean
+    opr >=(self, other:NN64): Boolean
+    opr =(self, other:NN64): Boolean
+    opr =/=(self, other:NN64): Boolean
+    opr juxtaposition(self, other:NN64): NN64
+    opr BITNOT(self): NN64
+    opr BITAND(self, other:NN64): NN64
+    opr BITOR(self, other:NN64): NN64
+    opr BITXOR(self, other:NN64): NN64
+    opr MIN(self, other:NN64): NN64
+    opr MAX(self, other:NN64): NN64
+    opr MINMAX(self, other:NN64): (NN64, NN64)
+    even(self): Boolean
+    odd(self): Boolean
+    opr ^(self, other:NN64):NN64
+end
+
+trait IntLiteral excludes {ZZ32, ZZ64, NN32, RR64, RR32, Character, Boolean, String, NN64, ZZ}
     abstract getter asZZ32(): ZZ32
     abstract getter asZZ64(): ZZ64
     abstract getter asNN32(): NN32
