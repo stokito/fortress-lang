@@ -686,7 +686,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 to_sig = Naming.removeNthSigParameter(to_sig, narrowing ? selfIndex : selfIndex+1);
                 mname = Naming.fmDottedName(singleName(name), selfIndex);
             } else {
-                mname = singleName(name); // What about static params?
+                mname = singleName(name); 
                 arity++;
             }
             String from_name = forward_to_non_overload ? NamingCzar.mangleAwayFromOverload(mname): mname;
@@ -790,6 +790,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
             toConsider = STypesUtil.allMethods(currentTraitObjectType, typeAnalyzer);
         //System.err.println("Considering chains for "+currentTraitObjectType);
+        
+        /*
+         * For each method declared by some ancestor somewhere,
+         * 
+         */
         for (edu.rice.cs.plt.tuple.Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
                  assoc : toConsider) {
             scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tup = assoc.second();
@@ -805,42 +810,54 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             List<StaticParam> static_parameters = fnl.staticParameters();
             
-            /* If defined in the current trait. */
-            if (tupTrait.equals(currentTraitObjectType)) {
-                if (includeCurrent) {
-                    // Trait, not object
-                    generateForwardingFor(fnl, inst, currentTraitObjectType, tupTrait); // swapped
-                    generateForwardingFor(fnl, fnl, true, inst, currentTraitObjectType, tupTrait, false); // swapped
-                }
-                continue;
-            }
             boolean alreadyThere = false;
 
-            /* Iterate over tuples for
-             * already-defined methods
-             * whose names match
-             * that of the method being considered (assoc.first()).
-             *
-             * If the trait of the method being considered,
-             * and the trait of any name-matching already included method
-             * match, then don't generate a wrapper.
-             *
-             * DOES THIS HAVE A BUG IN IT?  WHAT ABOUT OVERLOADED METHODS?
-             * Their names will match, but the parameter types need not.
+            /* If defined in the current trait or object,
+             * emit forwarding method if "includeCurrent"
+             * (which should be true for traits.
              */
-            for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tupAlready :
-                     alreadyIncluded.matchFirst(assoc.first())) {
-                if (tupAlready._3().equals(tupTrait)) {
-                    //System.err.println("    " + fnl + " already imported by first supertrait.");
-                    alreadyThere = true;
-                    break;
+            if (tupTrait.equals(currentTraitObjectType)) {
+                alreadyThere = !includeCurrent;
+                // Skip all the fancing processing
+            } else {
+                /* Iterate over tuples for
+                 * already-defined methods
+                 * whose names match
+                 * that of the method being considered (assoc.first()).
+                 *
+                 * If the trait of the method being considered,
+                 * and the trait of any name-matching already included method
+                 * match, then don't generate a wrapper.
+                 *
+                 * DOES THIS HAVE A BUG IN IT?  WHAT ABOUT OVERLOADED METHODS?
+                 * Their names will match, but the parameter types need not.
+                 */
+                for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tupAlready :
+                    alreadyIncluded.matchFirst(assoc.first())) {
+                    if (tupAlready._3().equals(tupTrait)) {
+                        //System.err.println("    " + fnl + " already imported by first supertrait.");
+                        alreadyThere = true;
+                        break;
+                    }
                 }
             }
+            /*
+             * alreadyThere is true if EITHER
+             *     current = tupTrait and is an object
+             * OR  current != tupTrait AND
+             *     the method in question was defined in the first
+             *     trait that this trait extends (including transitive
+             *     definitions from that first trait).  Therefore,
+             *     it is inherited and by default forwarded.
+             *  
+             */
             if (alreadyThere) {
                 continue;
             }
-            generateForwardingFor(fnl, inst, currentTraitObjectType, tupTrait); // swapped
-            generateForwardingFor(fnl, fnl, true, inst, currentTraitObjectType, tupTrait, false); // swapped
+            // Forward calls from instance method to static method
+            generateForwardingFor(fnl, inst, currentTraitObjectType, tupTrait); 
+            // Also forward the leaf (non-overloaded) version of the name.
+            generateForwardingFor(fnl, fnl, true, inst, currentTraitObjectType, tupTrait, false); 
         }
     }
 
