@@ -1013,10 +1013,44 @@ object STypesUtil {
     }
   }
 
-  def inheritedTransitiveTraits(extendedTraits: JList[TraitTypeWhere], analyzer: TypeAnalyzer): java.util.HashMap[Id, TraitIndex] = {
+
+  /**
+   * Given a TraitIndex or TraitObjectDecl, return a HashMap with one entry for every
+   * distinct supertrait of the declared trait or object.  The entry maps the name (stem)
+   * of the supertrait to a TraitIndex for that name (stem).
+   */
+
+  def allSupertraits(ti: TraitIndex, analyzer: TypeAnalyzer): java.util.HashMap[Id, TraitIndex] =
+    allSupertraits(ti.ast, analyzer)
+
+  def allSupertraits(tod: TraitObjectDecl, analyzer: TypeAnalyzer): java.util.HashMap[Id, TraitIndex] =
+    mapOverAllSupertraits(tod, analyzer, (x, y) => x)
+
+  /**
+   * Given a TraitIndex or TraitObjectDecl, return a HashMap with one entry for every
+   * distinct supertrait of the declared trait or object.  The entry maps the name (stem)
+   * of the supertrait to a pair of a TraitIndex for that name (stem) and a list of specific
+   * static arguments for that stem.
+   */
+
+  def allSupertraitsAndStaticArgs(tod: TraitObjectDecl, analyzer: TypeAnalyzer): java.util.HashMap[Id, (TraitIndex, java.util.List[StaticArg])] =
+    mapOverAllSupertraits(tod, analyzer, (x, y) => (x, y))
+
+  /**
+   * Given a TraitIndex or TraitObjectDecl, return a HashMap with one entry for every
+   * distinct supertrait of the declared trait or object.  The entry maps the name (stem)
+   * of the supertrait to the result of applying a supplied function mapfn to the TraitIndex
+   * for that name (stem) and a list of specific static arguments for that stem.  This requires
+   * taking a transitive closure of the immediate-supertrait relation and eliminating duplicates.
+   */
+
+  def mapOverAllSupertraits[T](tod: TraitObjectDecl,
+                        analyzer: TypeAnalyzer,
+                        mapfn: (TraitIndex, java.util.List[StaticArg]) => T):
+        java.util.HashMap[Id, T] = {
     val history: HierarchyHistory = new HierarchyHistory()
-    val allTraits = new java.util.HashMap[Id, TraitIndex]
-    var traitsToDo: List[TraitTypeWhere] = toListFromImmutable(extendedTraits)
+    val allTraits = new java.util.HashMap[Id, T]
+    var traitsToDo: List[TraitTypeWhere] = toListFromImmutable(tod.getHeader.getExtendsClause)
     while (!traitsToDo.isEmpty) {
       val doNow = traitsToDo
       traitsToDo = List()
@@ -1027,65 +1061,63 @@ object STypesUtil {
         val STraitType(_, name, trait_args, _) = ty
         toOption(analyzer.traits.typeCons(name)) match {
           case Some(ti: TraitIndex) =>
-            allTraits.put(name, ti)
-            val paramsToArgs = new StaticTypeReplacer(ti.staticParameters(), ty.getArgs())
+            allTraits.put(name, mapfn(ti, trait_args))
+            val paramsToArgs = new StaticTypeReplacer(ti.staticParameters(), trait_args)
             val instantiated_extends_types =
               toListFromImmutable(ti.extendsTypes).map(_.accept(paramsToArgs).asInstanceOf[TraitTypeWhere])
             traitsToDo ++= instantiated_extends_types
-          case _ =>
+          case _ =>  // nothing to do
         }
-
-      }
-    }
-    allTraits
-  }
-  
-  def inheritedTraits(extendedTraits: JList[TraitTypeWhere], analyzer: TypeAnalyzer): java.util.HashMap[Id, TraitIndex] = {
-    val history: HierarchyHistory = new HierarchyHistory()
-    val allTraits = new java.util.HashMap[Id, TraitIndex]
-    var traitsToDo: List[TraitTypeWhere] = toListFromImmutable(extendedTraits)
-    while (!traitsToDo.isEmpty) {
-      val doNow = traitsToDo
-      traitsToDo = List()
-      for (
-        STraitTypeWhere(_, ty: TraitType, _) <- doNow;
-        if history.explore(ty)
-      ) {
-        val STraitType(_, name, trait_args, _) = ty
-        toOption(analyzer.traits.typeCons(name)) match {
-          case Some(ti: TraitIndex) =>
-            val tindex = ti.asInstanceOf[TraitIndex]
-            allTraits.put(name, tindex)
-          case _ =>
-        }
-
       }
     }
     allTraits
   }
 
-    def inheritedTraitsArgs(extendedTraits: JList[TraitTypeWhere], analyzer: TypeAnalyzer): java.util.HashMap[Id, java.util.List[StaticArg]] = {
-    val history: HierarchyHistory = new HierarchyHistory()
-    val allTraits = new java.util.HashMap[Id, java.util.List[StaticArg]]
-    var traitsToDo: List[TraitTypeWhere] = toListFromImmutable(extendedTraits)
-    while (!traitsToDo.isEmpty) {
-      val doNow = traitsToDo
-      traitsToDo = List()
-      for (
-        STraitTypeWhere(_, ty: TraitType, _) <- doNow;
-        if history.explore(ty)
-      ) {
-        val STraitType(_, name, trait_args, _) = ty
-        toOption(analyzer.traits.typeCons(name)) match {
-          case Some(ti: TraitIndex) =>
-            val tindex = ti.asInstanceOf[TraitIndex]
-            allTraits.put(name, toJavaList(trait_args))
-          case _ =>
-        }
+  /**
+   * Given a TraitIndex or TraitObjectDecl, return a HashMap with one entry for every distinct
+   * immediate supertrait of the declared trait or object.  The entry maps the name (stem)
+   * of the supertrait to a TraitIndex for that name (stem).
+   */
 
+  def immediateSupertraits(tod: TraitObjectDecl, analyzer: TypeAnalyzer): java.util.HashMap[Id, TraitIndex] =
+    mapOverAllImmediateSupertraits(tod, analyzer, (x, y) => x)
+
+  /**
+   * Given a TraitIndex or TraitObjectDecl, return a HashMap with one entry for every
+   * distinct supertrait of the declared trait or object.  The entry maps the name (stem)
+   * of the supertrait to a list of specific static arguments for that stem.
+   */
+
+  def immediateSupertraitsStaticArgs(tod: TraitObjectDecl, analyzer: TypeAnalyzer): java.util.HashMap[Id, java.util.List[StaticArg]] =
+    mapOverAllImmediateSupertraits(tod, analyzer, (x, y) => y)
+
+  /**
+   * Given a TraitIndex or TraitObjectDecl, return a HashMap with one entry for every distinct
+   * immediate supertrait of the declared trait or object.  The entry maps the name (stem)
+   * of the supertrait to the result of applying a supplied function mapfn to the TraitIndex
+   * for that name (stem) and a list of specific static arguments for that stem.  This requires
+   * eliminating duplicates.
+   */
+
+  def mapOverAllImmediateSupertraits[T](tod: TraitObjectDecl,
+                                        analyzer: TypeAnalyzer,
+                                        mapfn: (TraitIndex, java.util.List[StaticArg]) => T):
+        java.util.HashMap[Id, T] = {
+    val history: HierarchyHistory = new HierarchyHistory()
+    val immediateTraits = new java.util.HashMap[Id, T]
+    var traitsToDo: List[TraitTypeWhere] = toListFromImmutable(tod.getHeader.getExtendsClause)
+    for (
+      STraitTypeWhere(_, ty: TraitType, _) <- traitsToDo;
+      if history.explore(ty)
+    ) {
+      val STraitType(_, name, trait_args, _) = ty
+      toOption(analyzer.traits.typeCons(name)) match {
+	case Some(ti: TraitIndex) =>
+	  immediateTraits.put(name, mapfn(ti, trait_args))
+	case _ =>  // nothing to do
       }
     }
-    allTraits
+    immediateTraits
   }
 
 
@@ -1279,7 +1311,65 @@ object STypesUtil {
   def allMethods(tt: TraitType, analyzer: TypeAnalyzer):
         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] =
     inheritedMethods(List(NF.makeTraitTypeWhere(tt)), analyzer)
+
+//   def allMethods(tt: TraitType, analyzer: TypeAnalyzer):
+//         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
+//     toOption(analyzer.traits.typeCons(tt.getName)) match {
+//       case Some(ti: TraitIndex) =>
+//             allSupertraits(ti, analyzer).map
+//       case _ =>
+//     }    
+//   }
+
   
+
+  /**
+   * Returns a Scala HashMap that maps method names to sets of tuples
+   * (Functional, StaticTypeReplacer, TraitType).
+   */
+
+  def declaredMethods(ty: TraitType, analyzer: TypeAnalyzer):
+        HashMap[IdOrOpOrAnonymousName, MSet[(Functional, StaticTypeReplacer, TraitType)]] = {
+    val result = (new HashMap[IdOrOpOrAnonymousName, MSet[(Functional, StaticTypeReplacer, TraitType)]]
+                  with MultiMap[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)])
+    val STraitType(_, name, trait_args, _) = ty
+    toOption(analyzer.traits.typeCons(name)) match {
+      case Some(ti: TraitIndex) =>
+	// Instantiate methods with static args
+	val paramsToArgs = new StaticTypeReplacer(ti.staticParameters, toJavaList(trait_args))
+
+	def oneMethod(methodName: IdOrOp, methodFunc: Functional) = {
+	  if (!methodFunc.name().equals(methodName)) {
+	    // TODO: work around the fact that TraitIndex includes
+	    // two copies of the same Functional for exported functional
+	    // methods, one under the local methodName and the other
+	    // under the unambiguous methodName.  Really the latter ought to
+	    // have a methodFunc with a different name() and no body.
+	    // System.err.println("   oneMethod: "+ methodFunc+" named "+methodName);
+	  } else {
+	    result.addBinding(methodName, (methodFunc, paramsToArgs, ty))
+	  }
+	}
+
+	def onePair[T <: Functional](t: Pair[IdOrOpOrAnonymousName, T]) =
+	  t.first match {
+	    case id: IdOrOp => oneMethod(id, t.second)
+	    case _ => ()
+	  }
+
+	def oneMapping(t: JMap.Entry[Id, Method]) = oneMethod(t.getKey, t.getValue)
+
+	ti.dottedMethods.foreach(onePair)
+	ti.functionalMethods.foreach(onePair)
+	ti.getters.entrySet.foreach(oneMapping)
+	ti.setters.entrySet.foreach(oneMapping)
+
+      case _ => // Nothing to do
+    }
+    result
+  }
+
+
   // TODO: This does not work properly because typechecker does not know a name for the type of an object expression.
   def allMethodsOfObjectExpr(oe: ObjectExpr, analyzer: TypeAnalyzer):
         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {

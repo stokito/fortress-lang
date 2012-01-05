@@ -4680,13 +4680,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<StaticParam> sparams = header.getStaticParams();
         
         HashMap<Id, TraitIndex> transitive_extends =
-            STypesUtil.inheritedTransitiveTraits(extend_s, typeAnalyzer);
+            STypesUtil.allSupertraits(tod, typeAnalyzer);
 
         HashMap<Id, TraitIndex> direct_extends =
-            STypesUtil.inheritedTraits(extend_s, typeAnalyzer);
+            STypesUtil.immediateSupertraits(tod, typeAnalyzer);
         
         HashMap<Id, List<StaticArg>> direct_extends_args =
-            STypesUtil.inheritedTraitsArgs(extend_s, typeAnalyzer);
+            STypesUtil.immediateSupertraitsStaticArgs(tod, typeAnalyzer);
         
         int d_e_size = direct_extends.size();
 
@@ -4994,9 +4994,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         for (Map.Entry <Id, TraitIndex> entry : direct_extends.entrySet()) {
             Id te_id = entry.getKey();
             TraitIndex te_ti = entry.getValue();
-            List<TraitTypeWhere> extends_extends = te_ti.extendsTypes();
             HashMap<Id, TraitIndex> extends_transitive_extends =
-                STypesUtil.inheritedTransitiveTraits(extends_extends, typeAnalyzer);
+                STypesUtil.allSupertraits(te_ti, typeAnalyzer);
             extends_transitive_extends.put(te_id, te_ti); // put self in set.
             transitive_extends_from_extends.put(te_id, extends_transitive_extends);
         }
