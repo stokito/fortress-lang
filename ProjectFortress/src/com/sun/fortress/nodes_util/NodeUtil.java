@@ -561,7 +561,7 @@ public class NodeUtil {
                 int commentDepth = 0;
                 String line = br.readLine(); lineNo++;
                 while ( blankOrComment(line) || commentDepth != 0 ) {
-                    if ( line.equals("") ) {
+                    if ( line.trim().equals("") ) {
                         line = br.readLine(); lineNo++;
                     } else {
                         String[] split = line.split(" ");
