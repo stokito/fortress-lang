@@ -1,0 +1,71 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+NoNewlineExpr = Expr
+Expr := ...
+ExprFront :=
+    <AssignExpr> NoNewlineAssignExpr
+  / ...
+NoNewlineAssignExpr =
+    AssignLefts s AssignOp w NoNewlineExpr
+
+ExprTail :=
+     <As> NoNewlineAs
+   / <AsIf> NoNewlineAsIf
+
+NoNewlineAs =
+     s typed w NoNewlineType
+
+NoNewlineAsIf =
+     s asif w NoNewlineType
+
+TightInfixRight := ...
+   / <Primary>   Encloser sr OpExprPrimary
+   / <Loose>     Encloser sr LooseInfix
+   / <LeftLoose> Encloser sr LeftLooseInfix
+
+LeftLooseInfix := ...
+   / <Primary> Encloser sr OpExprPrimary
+   / <Prefix>  Encloser sr OpExprPrefix
+   / <Left>    Encloser sr OpExprLeftEncloser
+
+OpExprPrimary := ...
+   / <Primary>   Primary sr OpExprPrimary
+   / <Loose>     Primary sr LooseInfix
+   / <LeftLoose> Primary sr LeftLooseInfix
+
+OpExprPrefix := ...
+   / <Primary> Op sr OpExprPrimary
+   / <Prefix>  Op sr OpExprPrefix
+   / <Left>    Op sr OpExprLeftEncloser
+
+TightInfixPostfix := ...
+   / <Primary> Op sr OpExprPrimary
+   / <Prefix>  Op sr OpExprPrefix
+   / <Left>    Op sr OpExprLeftEncloser
+
+LooseInfix := ...
+   / <Left> Op sr OpExprLeftEncloser
+
+GeneratorClauseList :=
+     GeneratorBinding (s comma w GeneratorClause)*
+NoNewlineGeneratorClauseList = GeneratorClauseList
+
+NoNewlineVarWTypes =
+     NoNewlineVarWType
+   / openparen w NoNewlineVarWType (w comma w NoNewlineVarWType)+ w
+     closeparen
+
+ NoNewlineVarWType = BindId s NoNewlineIsType
+
+NoNewlineIsType = colon w NoNewlineType
+\end{verbatim}

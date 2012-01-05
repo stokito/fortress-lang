@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component generatedExpr
+export Executable
+
+run():() =
+  do
+    print (i " "), i <- 0#10
+    println "OK"
+    a = array[\Boolean\](10).fill(true)
+    a[i] := false, i <- 0#10
+    failure : ZZ32 := -1
+    if a[i] then failure := i end, i <- 0#10
+    if failure >= 0 then
+        println("FAIL on " failure ", " a)
+    end
+  end
+
+end

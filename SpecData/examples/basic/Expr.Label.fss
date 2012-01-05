@@ -1,0 +1,36 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.Label
+
+export Executable
+
+Sun  = "Sun"
+Home = "Home"
+goingTo(x) = x = Sun
+x32A = "x32A"
+x32B = "x32B"
+sunExit() = do
+(** EXAMPLE **)
+  label I95
+    if goingTo(Sun)
+    then exit I95 with x32B
+    else x32A
+    end
+  end I95
+(** END EXAMPLE **)
+end
+
+run() = println sunExit()
+
+end

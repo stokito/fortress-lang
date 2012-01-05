@@ -1,0 +1,434 @@
+/*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress macro language.
+ */
+module com.sun.fortress.parser.Syntax(Identifier, Keyword, Spacing, Symbol, Expr,
+                                      DelimitedExpr, LocalDecl, Unicode, Header,
+                                      Type);
+
+import Identifier;
+import Keyword;
+import Spacing;
+import Symbol;
+import Expr;
+import DelimitedExpr;
+import LocalDecl;
+import Unicode;
+import Header;
+import Type;
+
+body {
+  static {
+    add(FORTRESS_SYNTAX_SPECIAL_SYMBOLS, new String[] {
+        "AND",    "BACKSPACE",    "FORMFEED",    "NEWLINE",
+        "NOT",    "RETURN",       "TAB",         "SPACE",
+        "<\\[",   "without",      "=>"
+    });
+
+    add(FORTRESS_SYNTAX_SPECIAL_CHARS, new String[] {
+        "#",      ":",      "`",      "\\+",    "\\?",    "\\*",
+        "\\[",    "\\]",    "\\|",    "\\_",    "\\{",    "\\}"
+    });
+  }
+}
+
+option setOfString(FORTRESS_SYNTAX_SPECIAL_SYMBOLS), setOfString(FORTRESS_SYNTAX_SPECIAL_CHARS);
+
+/* GrammarDef ::=
+     native w grammar w Id (br NonterminalDecl)* w end
+   | grammar w Id (w GrammarExtends)? (br NonterminalDef)* w end
+ */
+public GrammarDecl GrammarDef =
+     native w grammar w a1:Id a2s:(br NonterminalDecl)* w end
+     { yyValue = new GrammarDecl(makeSpanInfo(yyStart,yyCount), a1,
+                                 Collections.<Id>emptyList(), a2s.list(),
+                                 Collections.<TransformerDecl>emptyList(),
+                                 /* native */ true);
+     }
+   / grammar w a1:Id a2:(w GrammarExtends)? a3s:(br NonterminalDef)* w end
+     { if ( a2 == null) a2 = Collections.<Id>emptyList();
+       yyValue = new GrammarDecl(makeSpanInfo(yyStart,yyCount), a1, a2, a3s.list(),
+                                 Collections.<TransformerDecl>emptyList(),
+                                 /* native */ false);
+     };
+
+/* GrammarExtends ::= extends w QualifiedNames */
+List<Id> GrammarExtends = extends w QualifiedNames ;
+
+/* QualifiedNames ::= QualifiedName | { w QualifiedNameList w } */
+/* QualifiedNameList ::= QualifiedName (w , w QualifiedName)* */
+List<Id> QualifiedNames =
+     a1:QualifiedName { yyValue = Useful.list(a1); }
+   / opencurly w a1:QualifiedName a2s:(w comma w QualifiedName)+ w closecurly
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / opencurly w a1:QualifiedName a2s:(w commaOrNot w QualifiedName)+ w closecurly
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / opencurly w a1:QualifiedName w closecurly
+     { yyValue = Useful.list(a1); };
+
+/* NonterminalDef ::=
+     Id w | w := w SyntaxExtensionDef (w SyntaxExtensionDefOr)*
+   | NonterminalHeader w : (w TraitType)? w := w SyntaxDef (w SyntaxDefOr)*
+   | NonterminalDecl
+ */
+private GrammarMemberDecl NonterminalDef =
+     name:Id w bar w colonequals w a1:SyntaxExtensionDef
+     a2s:(w SyntaxExtensionDefOr)*
+     { List<SyntaxDecl> syntaxDefs = a2s.list();
+       syntaxDefs.add(0, a1);
+       yyValue = new NonterminalExtensionDef(makeSpanInfo(yyStart,yyCount), name,
+                                             syntaxDefs);
+     }
+   / header:NonterminalHeader w colon astType:(w TraitType)? w colonequals
+     w a1:SyntaxDef a2s:(w SyntaxDefOr)*
+     { List<SyntaxDecl> syntaxDefs = a2s.list();
+       syntaxDefs.add(0, a1);
+       yyValue = new NonterminalDef(makeSpanInfo(yyStart,yyCount),
+                                    header.getName(), syntaxDefs, header,
+                                    Option.<BaseType>wrap(astType));
+     }
+   / NonterminalDecl;
+
+/* Only nonterminal decls are allowed within native grammars. */
+/* NonterminalDecl ::= NonterminalHeader w : w TraitType */
+private GrammarMemberDecl NonterminalDecl =
+       header:NonterminalHeader w colon w astType:TraitType
+      { yyValue = new NonterminalDef(makeSpanInfo(yyStart,yyCount),
+                                     header.getName(),
+                                     Collections.<SyntaxDecl>emptyList(), header,
+                                     Option.<BaseType>wrap(astType));
+      };
+
+/* NonterminalHeader ::=
+     (private w)? Id (w Params)? (w StaticParams)? (: Type)? (w Where)?
+ */
+private NonterminalHeader NonterminalHeader =
+     a1:(private w)? name:Id params:(w Params)? staticParams:(w StaticParams)?
+     type:(void:colon Type)? whereClauses:(w Where)?
+     { Modifiers mod = (a1 == null) ? Modifiers.None : Modifiers.Private;
+       if (params == null) params = Collections.<NonterminalParameter>emptyList();
+       if (staticParams == null) staticParams = Collections.<StaticParam>emptyList();
+       if (whereClauses != null) NodeUtil.checkWhereClauses(writer, whereClauses);
+       yyValue = new NonterminalHeader(makeSpanInfo(yyStart, yyCount),
+                                       mod, name, params, staticParams,
+                                       Option.<Type>wrap(type),
+                                       Option.<WhereClause>wrap(whereClauses));
+     };
+
+/* Params ::= ( w Param (w , w Param)* w ) */
+private List<NonterminalParameter> Params =
+     openparen w a1:Param a2s:(w comma w Param)+ w closeparen
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / openparen w a1:Param a2s:(w commaOrNot w Param)+ w closeparen
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / openparen w a1:Param w closeparen
+     { yyValue = Useful.list(a1); };
+
+/* Param ::= Id : TraitType */
+private NonterminalParameter Param =
+     a1:Id colon a2:TraitType
+     { yyValue = new NonterminalParameter(makeSpanInfo(yyStart,yyCount),
+                                          a1, a2);
+     };
+
+/* SyntaxDef ::= (ChoiceModifier w)? SyntaxSymbols w => w PreTransformerDecl */
+SyntaxDecl SyntaxDef =
+     mods:(ChoiceModifier w)? a1:SyntaxSymbols w separator w a2:PreTransformerDecl
+     { yyValue = NodeFactory.makeSyntaxDef(createSpan(yyStart,yyCount),
+                                           Option.<String>wrap(mods), a1, a2);
+     };
+
+/* SyntaxExtensionDef ::=
+     SyntaxDef
+   | (SuperChoiceModifier w)? Id w from w Id
+ */
+SyntaxDecl SyntaxExtensionDef =
+     SyntaxDef
+   / mods:(SuperChoiceModifier w)? nt:Id w "from" w grammar:Id
+     { yyValue = NodeFactory.makeSuperSyntaxDef(createSpan(yyStart,yyCount),
+                                                Option.<String>wrap(mods), nt,
+                                                grammar);
+     };
+
+/* SyntaxDefOr ::= "|" w SyntaxDef */
+SyntaxDecl SyntaxDefOr = bar w yyValue:SyntaxDef ;
+
+/* SyntaxExtensionDefOr ::= "|" w SyntaxExtensionDef */
+SyntaxDecl SyntaxExtensionDefOr = bar w yyValue:SyntaxExtensionDef ;
+
+/* ChoiceModifier ::= private */
+String ChoiceModifier = private ;
+
+/* SuperChoiceModifier ::= private | without */
+String SuperChoiceModifier = private / without ;
+
+/* PreTransformerDecl ::= PreTransformer */
+TransformerDecl PreTransformerDecl =
+     transformer:PreTransformer
+     { yyValue = new PreTransformerDef(makeSpanInfo(yyStart,yyCount),
+                                       transformer);
+     };
+
+/* PreTransformer ::=
+     case w Id w of w CaseTransformerClauses w end
+   | (Id w)? <[ w AnythingBuitRightDelimiter w ]>
+ */
+Transformer PreTransformer =
+     case w pvar:Id w of w clauses:CaseTransformerClauses w end
+     { yyValue = new CaseTransformer(makeSpanInfo(yyStart,yyCount),
+                                     pvar, clauses);
+     }
+   / nt:(Id w)? leftDelimiter w a1:AnythingButRightDelimiter w rightDelimiter
+     { Span span = createSpan(yyStart,yyCount);
+       if (nt == null) nt = NodeFactory.makeId(span, "Expr"); // ????? -- Sukyoung
+       yyValue = new UnparsedTransformer(NodeFactory.makeSpanInfo(span), a1, nt);
+     };
+
+/* CaseTransformerClauses ::= CaseTransformerClause (br CaseTransformerClause)* */
+List<CaseTransformerClause> CaseTransformerClauses =
+     a1:CaseTransformerClause a2s:(br CaseTransformerClause)*
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* CaseTransformerClause ::= Id w (( w BindIdList w ) w)? => w PreTransformer */
+CaseTransformerClause CaseTransformerClause =
+     c:Id w gaps:(openparen w BindIdList w closeparen w)? separator w
+     transformer:PreTransformer
+     { if (gaps == null) gaps = Collections.<Id>emptyList();
+       yyValue = new CaseTransformerClause(makeSpanInfo(yyStart,yyCount),
+                                           c, gaps, transformer);
+     };
+
+String AnythingButRightDelimiter = (']' !'>' / !']' _)*;
+
+/* SyntaxSymbols ::= SyntaxSymbol Symbs* */
+List<SyntaxSymbol> SyntaxSymbols =
+     a1:SyntaxSymbol a2s:Symbs* &(w separator)
+     { List<SyntaxSymbol> ls = Useful.list(a1);
+       for ( List<SyntaxSymbol> sl: a2s.list() ) ls.addAll(sl);
+       yyValue = ls;
+     };
+
+/* SyntaxSymbolsX ::= SyntaxSymbol Symbs* */
+List<SyntaxSymbol> SyntaxSymbolsX =
+     a1:SyntaxSymbol a2s:Symbs*
+     { List<SyntaxSymbol> ls = Useful.list(a1);
+       for ( List<SyntaxSymbol> sl: a2s.list() ) ls.addAll(sl);
+       yyValue = ls;
+     };
+
+/* Symbs ::= SpaceOrBreakline+ SyntaxSymbol */
+List<SyntaxSymbol> Symbs = a1s:SpaceOrBreakline+ a2:SyntaxSymbol
+     { yyValue = Useful.list(a1s.list(), a2); };
+
+/* SpaceOrBreakline ::= sr / Breakline */
+SyntaxSymbol SpaceOrBreakline =
+     a1:sr
+     { yyValue = new WhitespaceSymbol(makeSpanInfo(yyStart,yyCount), a1); }
+   / a1:breakline
+     { yyValue = new BreaklineSymbol(makeSpanInfo(yyStart,yyCount), a1); };
+
+/* SyntaxSymbol ::=
+     NOT w SymbolMod
+   | AND w SymbolMod
+   | SymbolMod
+ */
+SyntaxSymbol SyntaxSymbol =
+     Not w a1:SymbolMod
+     { if (a1 instanceof NoWhitespaceSymbol) {
+           SyntaxSymbol tmp = ((NoWhitespaceSymbol) a1).getSymbol();
+           yyValue = new NoWhitespaceSymbol(makeSpanInfo(yyStart,yyCount),
+                                            new NotPredicateSymbol(a1.getInfo(), tmp));
+       } else yyValue = new NotPredicateSymbol(makeSpanInfo(yyStart,yyCount), a1);
+     }
+   / And w a1:SymbolMod
+     {  if (a1 instanceof NoWhitespaceSymbol) {
+          SyntaxSymbol tmp = ((NoWhitespaceSymbol) a1).getSymbol();
+          yyValue = new NoWhitespaceSymbol(makeSpanInfo(yyStart,yyCount),
+                                           new AndPredicateSymbol(a1.getInfo(), tmp));
+        }
+        else yyValue = new AndPredicateSymbol(makeSpanInfo(yyStart,yyCount), a1);
+     }
+   / SymbolMod;
+
+/* SymbolMod ::=
+     Single ?
+   | Single *
+   | Single +
+   | Single
+ */
+SyntaxSymbol SymbolMod =
+     a1:Single questionmark
+     { if ( a1 instanceof NoWhitespaceSymbol ) {
+           SyntaxSymbol tmp = ((NoWhitespaceSymbol)a1).getSymbol();
+           yyValue = new NoWhitespaceSymbol(makeSpanInfo(yyStart,yyCount),
+                                            new OptionalSymbol(a1.getInfo(), tmp));
+       } else yyValue = new OptionalSymbol(makeSpanInfo(yyStart,yyCount), a1);
+     }
+   / a1:Single star
+     { if ( a1 instanceof NoWhitespaceSymbol ) {
+           SyntaxSymbol tmp = ((NoWhitespaceSymbol)a1).getSymbol();
+           yyValue = new NoWhitespaceSymbol(makeSpanInfo(yyStart,yyCount),
+                                            new RepeatSymbol(a1.getInfo(), tmp));
+       } else yyValue = new RepeatSymbol(makeSpanInfo(yyStart,yyCount), a1);
+     }
+   / a1:Single plus
+     { if ( a1 instanceof NoWhitespaceSymbol ) {
+           SyntaxSymbol tmp = ((NoWhitespaceSymbol)a1).getSymbol();
+           yyValue = new NoWhitespaceSymbol(makeSpanInfo(yyStart,yyCount),
+                                            new RepeatOneOrMoreSymbol(a1.getInfo(), tmp));
+       } else yyValue = new RepeatOneOrMoreSymbol(makeSpanInfo(yyStart,yyCount), a1);
+     }
+   / Single;
+
+/* Single ::=
+     GroupSymbol
+   | BaseSymbol
+ */
+SyntaxSymbol Single =
+     GroupSymbol
+   / a1:BaseSymbol
+     { SpanInfo info = makeSpanInfo(yyStart,yyCount);
+       if ( a1 instanceof NoWhitespaceSymbol ) {
+           List<SyntaxSymbol> tmp =
+               Useful.list(((NoWhitespaceSymbol) a1).getSymbol());
+           yyValue = new NoWhitespaceSymbol(info, new GroupSymbol(info, tmp));
+       } else yyValue = new GroupSymbol(info, Useful.list(a1));
+     };
+
+/* BaseSymbol ::= (Id :)? Symbol */
+SyntaxSymbol BaseSymbol =
+     a1:(Id void:colon)? a2:Symbol
+     { if (a1 != null) {
+           if (a2 instanceof NoWhitespaceSymbol) {
+               SyntaxSymbol tmp = ((NoWhitespaceSymbol) a2).getSymbol();
+               yyValue = new NoWhitespaceSymbol(makeSpanInfo(yyStart,yyCount),
+                                                new PrefixedSymbol(a2.getInfo(), a1, tmp));
+           } else yyValue = new PrefixedSymbol(makeSpanInfo(yyStart,yyCount), a1, a2);
+       } else yyValue = a2;
+     };
+
+/* GroupSymbol ::= { w SyntaxSymbolsX w } */
+SyntaxSymbol GroupSymbol =
+     "{" w a1:SyntaxSymbolsX w "}"
+     { yyValue = new GroupSymbol(makeSpanInfo(yyStart, yyCount), a1); };
+
+/* Symbol ::= Item hash? */
+SyntaxSymbol Symbol =
+     a1:Item a2:hash?
+     { if (a2 == null) yyValue = a1;
+       else yyValue = new NoWhitespaceSymbol(makeSpanInfo(yyStart,yyCount), a1);
+     };
+
+/* Item ::=
+     !(w separator) ItemText
+   | "[" CharacterClass* "]"
+   | "_"
+   | "TAB"
+   | "FORMFEED"
+   | "RETURN"
+   | "NEWLINE"
+   | "SPACE"
+   | "BACKSPACE"
+ */
+SyntaxSymbol Item =
+     !(w separator) a:ItemText
+     { yyValue = new ItemSymbol(makeSpanInfo(yyStart,yyCount), a); }
+   / opensquare a1s:CharacterClass* closesquare
+     { yyValue = new CharacterClassSymbol(makeSpanInfo(yyStart,yyCount),
+                                          a1s.list());
+     }
+   / underscore
+     { yyValue = new AnyCharacterSymbol(makeSpanInfo(yyStart,yyCount)); }
+   / Tab
+     { yyValue = new TabSymbol(makeSpanInfo(yyStart,yyCount)); }
+   / Formfeed
+     { yyValue = new FormfeedSymbol(makeSpanInfo(yyStart,yyCount)); }
+   / Return
+     { yyValue = new CarriageReturnSymbol(makeSpanInfo(yyStart,yyCount)); }
+   / Newline
+     { yyValue = new NewlineSymbol(makeSpanInfo(yyStart,yyCount)); }
+   / Space
+     { yyValue = new WhitespaceSymbol(makeSpanInfo(yyStart,yyCount), " "); }
+   / Backspace
+     { yyValue = new BackspaceSymbol(makeSpanInfo(yyStart,yyCount)); };
+
+/* CharacterClass ::= Char (: Char)? */
+CharacterSymbol CharacterClass =
+     a1:Char a2:(void:colon Char)?
+     { if (a2 != null)
+           yyValue = new CharacterInterval(makeSpanInfo(yyStart,yyCount), a1, a2);
+       else yyValue = new CharSymbol(makeSpanInfo(yyStart,yyCount), a1);
+     };
+
+String Char =
+     Tab       { yyValue = "\t"; }
+   / Formfeed  { yyValue = "\f"; }
+   / Return    { yyValue = "\r"; }
+   / Newline   { yyValue = "\n"; }
+   / Space     { yyValue = " "; }
+   / Backspace { yyValue = "\u2408"; }
+   / utf16;
+
+String ItemText =
+     !(SpecialSymbols) (utf16 utf16*)
+   / SpecialSymbols utf16+ ;
+
+String utf16 =
+     EscapedSpecialChars
+   / EscapedSpecialSymbols
+   / !(SpecialChars) [\u0000-\uFFFF];
+
+String SpecialChars =
+     space / breakline / colon / questionmark / hash
+   / plus / star / opensquare / closesquare
+   / pling / bar / underscore / "{" / "}" ;
+
+String EscapedSpecialChars = pling SpecialChars;
+
+String EscapedSpecialSymbols = pling SpecialSymbols;
+
+String SpecialSymbols =
+     Tab / Formfeed / Return / Newline / Space
+   / Backspace / Not / And / separator ;
+
+transient String bar = "|";
+transient String hash = "#";
+transient String colon = ":";
+transient String pling = "`";
+transient String plus = "+";
+transient String questionmark = "?";
+transient String star = "*";
+transient String opensquare = "[";
+transient String closesquare = "]";
+
+transient String separator = "=>";
+transient String leftDelimiter = "<[";
+transient String rightDelimiter = "]>";
+
+transient String And = "AND";
+transient String Backspace = "BACKSPACE";
+transient String Formfeed = "FORMFEED";
+transient String Newline = "NEWLINE";
+transient String Not = "NOT";
+transient String Return = "RETURN";
+transient String Space = "SPACE";
+transient String Tab = "TAB";
+transient String without = "without";
+
+transient private String sr  = space+; // significant space
+transient private String space = " " / "\f";
+transient private String breakline = "\r\n" / "\r" !("\n") / "\n" / [\u2028\u2029];

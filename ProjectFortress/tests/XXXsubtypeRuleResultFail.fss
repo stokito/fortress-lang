@@ -1,0 +1,36 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXsubtypeRuleResultFail
+export Executable
+
+trait T
+  p():String = "T"
+end
+
+trait S extends T
+  p():String = "S"
+end
+
+object ot extends T end
+object os extends S end
+
+f(t:T):T = t
+f(s:S):S = s
+
+g(x:T, y:T, z:S):S = z
+g(x:T, y:S, z:S):T = x
+
+run():()= do
+  println("Overloading should f a i l, this should not run")
+end
+
+end
