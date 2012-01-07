@@ -12,14 +12,17 @@
 package com.sun.fortress.compiler.typechecker;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
+import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.NI;
 
 import edu.rice.cs.plt.collect.CollectUtil;
@@ -44,6 +47,17 @@ import static edu.rice.cs.plt.tuple.Option.*;
  */
 public class StaticTypeReplacer extends NodeUpdateVisitor {
 
+    private final static Comparator<IdOrOpOrAnonymousName> IOOOANcomparator = new
+        Comparator<IdOrOpOrAnonymousName>() {
+
+            @Override
+            public int compare(IdOrOpOrAnonymousName arg0,
+                    IdOrOpOrAnonymousName arg1) {
+                return NodeComparator.compare(arg0, arg1);
+            }
+        
+    };
+    
     /** Map parameter name to the static argument bound to it. */
     private final Map<IdOrOpOrAnonymousName, StaticArg> parameterMap;
 
@@ -56,7 +70,8 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
         if (params.size() != args.size())
 	    InterpreterBug.bug("Number of args does not equal number of parameters in StaticTypeReplacer");
         int n = params.size();
-        parameterMap = new HashMap<IdOrOpOrAnonymousName, StaticArg>(n);
+        // parameterMap = new HashMap<IdOrOpOrAnonymousName, StaticArg>(n);
+        parameterMap = new BATree<IdOrOpOrAnonymousName, StaticArg>(IOOOANcomparator);
         for (int i=0; i<n; ++i) {
             parameterMap.put(params.get(i).getName(), args.get(i));
         }
@@ -66,7 +81,11 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
         return (Type)t.accept(this); // TODO safe?
     }
 
-    private Node updateNode(Node that, Id name) {
+    public IdOrOpOrAnonymousName replaceIn(IdOrOpOrAnonymousName t) {
+        return (IdOrOpOrAnonymousName)t.accept(this); // TODO safe?
+    }
+
+    private Node updateNode(Node that, IdOrOpOrAnonymousName name) {
         if (name.getApiName().isSome()) { return that; }
         StaticArg outer_arg = parameterMap.get(name);
         if (outer_arg == null) { return that; }
@@ -129,6 +148,14 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
     public Node forOpRef(OpRef that) {
         // TODO Auto-generated method stub
         return super.forOpRef(that);
+    }
+
+    @Override
+    public Node forNamedOp(NamedOp that) {
+        Node n = updateNode(that, that);
+        if (that == n)
+            return that;
+        return n;
     }
 
 

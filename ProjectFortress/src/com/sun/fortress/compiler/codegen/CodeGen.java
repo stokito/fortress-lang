@@ -926,7 +926,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * properlyInheritedMethods is supposed to return methods that are
          * (potentially) inherited by this trait.  The declaration from the
          * most specific trait declaring a given method signature should be
-         * what is returned; HOWEVER, there is a big, in that return types
+         * what is returned; HOWEVER, there is a bug, in that return types
          * are apparently ignored, so two methods with same domain but different
          * return types will only result in a single method.  This can cause
          * a problem in the case that a method is available from parent and
@@ -943,6 +943,25 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // This call is the one-and-only client of properlyInheritedMethods
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
             toConsider = STypesUtil.properlyInheritedMethods(currentTraitObjectType, typeAnalyzer);
+        
+        MultiMap<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>> toConsiderFixed =
+            new MultiMap<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>();
+        
+        for (edu.rice.cs.plt.tuple.Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+        assoc : toConsider) {
+            IdOrOpOrAnonymousName n = assoc.first();
+            scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tup = assoc.second();
+            
+            Functional fnl = tup._1();
+            StaticTypeReplacer inst = tup._2();
+            TraitType tupTrait = tup._3();
+            
+            IdOrOpOrAnonymousName nn = inst.replaceIn(n);
+            
+            toConsiderFixed.putItem(n, tup);
+            
+        }
+        
         
         if (DEBUG_OVERLOADED_METHOD_CHAINING)
         System.err.println("properlyInheritedMethods=" + toConsider);
