@@ -92,6 +92,14 @@ public class MultiMap<K, V> extends HashMap<K, Set<V>> implements IMultiMap<K, V
         return s;
     }
 
+    public Set<V> getEmptyIfMissing(K k) {
+        Set<V> s = get(k);
+        if (s == null) {
+            s = Collections.emptySet();
+        }
+        return s;
+    }
+
     public Set<V> removeItemAllowEmpty(K k, V v) {
         Set<V> s = get(k);
         if (s != null) {
