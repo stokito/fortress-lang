@@ -958,14 +958,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
             IdOrOpOrAnonymousName nn = inst.replaceIn(n);
             
-            toConsiderFixed.putItem(n, tup);
+            toConsiderFixed.putItem(nn, tup);
             
         }
         
         
-        if (DEBUG_OVERLOADED_METHOD_CHAINING)
-            System.err.println("properlyInheritedMethods=" + toConsiderFixed);
-        // System.err.println("properlyInheritedMethods=" + toConsider);
+        if (DEBUG_OVERLOADED_METHOD_CHAINING) {
+            System.err.println("properlyInheritedMethods  (orig)=" + toConsider);
+            System.err.println("properlyInheritedMethods (fixed)=" + toConsiderFixed);
+        }
         
         TraitIndex ti = (TraitIndex) typeAnalyzer.traits().typeCons(currentTraitObjectType.getName()).unwrap();
         
