@@ -964,7 +964,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         
         if (DEBUG_OVERLOADED_METHOD_CHAINING)
-        System.err.println("properlyInheritedMethods=" + toConsider);
+            System.err.println("properlyInheritedMethods=" + toConsiderFixed);
+        // System.err.println("properlyInheritedMethods=" + toConsider);
         
         TraitIndex ti = (TraitIndex) typeAnalyzer.traits().typeCons(currentTraitObjectType.getName()).unwrap();
         
@@ -1059,7 +1060,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              *  figure out our obligation to deal with it.
              */
             for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> overridden :
-                toConsider.matchFirst(name)) {
+                toConsiderFixed.getEmptyIfMissing(name)) {
+                // toConsider.matchFirst(name)) {
                 Functional super_func = overridden._1();
                 StaticTypeReplacer super_inst = overridden._2();
                 TraitType traitDeclaringMethod = overridden._3();
