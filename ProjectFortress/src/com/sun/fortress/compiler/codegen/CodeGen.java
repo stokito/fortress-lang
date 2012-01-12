@@ -4783,9 +4783,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         {
         int i = 0;
         for (Id extendee : direct_extends.keySet()) {
-            String extendeeIlk =
-                NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",
-                        packageAndClassName);
+            List<StaticArg> ti_args = direct_extends_args.get(extendee);
+            String extendeeIlk = oprTaggedGenericStemName(extendee, ti_args);
+
+//            String extendeeIlk =
+//                NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",
+//                        packageAndClassName);
             direct_extends_keys[i] = extendee;
             superInterfaces[i++] = Naming.stemInterfaceToRTTIinterface(extendeeIlk);
          }
@@ -4841,11 +4844,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         for (Id extendee : direct_extends.keySet()) {
             
             // This yutch is repeated below in lazyInit; needs cleanup.
-            TraitIndex ti = direct_extends.get(extendee);
             List<StaticArg> ti_args = direct_extends_args.get(extendee);
-            List<String> opr_args = oprsFromStaticArgs(ti_args);
-            String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(
-                                       extendee,opr_args,packageAndClassName);
+            String extendeeIlk = oprTaggedGenericStemName(extendee, ti_args);
 
             // note fields are volatile because of double-checked locking below
             cw.visitField(ACC_PRIVATE + ACC_VOLATILE,
@@ -4971,12 +4971,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
            for (Id extendee : direct_extends_keys) {
                 TraitIndex ti = direct_extends.get(extendee);
                 List<StaticArg> ti_args = direct_extends_args.get(extendee);
+                String extendeeIlk = oprTaggedGenericStemName(extendee, ti_args);
+
                 mv.visitVarInsn(ALOAD, 0); // this ptr for store.
                 // invoke factory method for value to store.
                 generateTypeReference(mv, rttiClassName, extendee, ti_args, spns);
-                //putExtendeeField(rttiClassName, extendee);
-                List<String> opr_args = oprsFromStaticArgs(ti_args);
-                String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,opr_args,packageAndClassName);
                 mv.visitFieldInsn(PUTFIELD, rttiClassName, extendeeIlk, Naming.RTTI_CONTAINER_DESC);
             }
            
@@ -5121,6 +5120,19 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
 
     /**
+     * @param stem
+     * @param static_args
+     * @return
+     */
+    private String oprTaggedGenericStemName(Id stem, List<StaticArg> static_args) {
+        List<String> opr_args = oprsFromStaticArgs(static_args);
+        String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(
+                                   stem,opr_args,packageAndClassName);
+        return extendeeIlk;
+    }
+
+
+    /**
      * Finish up a method that returns an Object
      */
     private void areturnEpilogue() {
@@ -5150,9 +5162,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     								   List<StaticArg> ti_args,
     								   HashSet<String> spns)
     {	
+        String extendeeIlk = oprTaggedGenericStemName(extendee, ti_args);
+        String field_type = Naming.stemClassToRTTIclass(extendeeIlk);      
         List<String> opr_args = oprsFromStaticArgs(ti_args);
-        String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,opr_args,packageAndClassName);
-        String field_type = Naming.stemClassToRTTIclass(extendeeIlk);
         
         if (ti_args.size() - opr_args.size() == 0) {
             if (spns.contains(extendee.getText())) {
