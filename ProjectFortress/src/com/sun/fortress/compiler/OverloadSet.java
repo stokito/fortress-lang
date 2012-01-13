@@ -16,6 +16,7 @@ import java.util.*;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.*;
 
+import com.sun.fortress.compiler.codegen.ClassNameBundle;
 import com.sun.fortress.compiler.codegen.CodeGen;
 import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
 import com.sun.fortress.compiler.index.Constructor;
@@ -1878,9 +1879,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     static public class  TraitOrObjectFactory extends Factory {
         
         final int invokeOpcode;
-        final Naming.ClassNameBundle cnb;
+        final ClassNameBundle cnb;
         
-        public TraitOrObjectFactory(int invoke_opcode, Naming.ClassNameBundle cnb) {
+        public TraitOrObjectFactory(int invoke_opcode, ClassNameBundle cnb) {
             this.invokeOpcode = invoke_opcode;
             this.cnb = cnb;
         }
@@ -1916,12 +1917,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          */
         final int selfIndex;
         final int invokeOpcode;
-        final Naming.ClassNameBundle cnb;
+        final ClassNameBundle cnb;
         
         ForTraitOrObject(
                 final APIName apiname, IdOrOpOrAnonymousName name,
                 TypeAnalyzer ta, Set<Functional> defs, OverloadSet parent, int n,
-                int self_index, Naming.ClassNameBundle cnb, int invoke_opcode) {
+                int self_index, ClassNameBundle cnb, int invoke_opcode) {
             super(apiname, name, ta, Useful.applyToAll(defs, new F<Functional, TaggedFunctionName>() {
 
                 @Override
@@ -1941,7 +1942,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 Set<TaggedFunctionName> childLSTSF,
                 OverloadSet parent, int paramCount,
                 boolean this_disambiguates_the_erasure,
-                int self_index, Naming.ClassNameBundle cnb, int invoke_opcode) {
+                int self_index, ClassNameBundle cnb, int invoke_opcode) {
             super(ifNone, name, ta, childLSTSF, paramCount);
             selfIndex = self_index;
             this.cnb = cnb;
