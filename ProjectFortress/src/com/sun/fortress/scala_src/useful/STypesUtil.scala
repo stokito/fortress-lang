@@ -1092,6 +1092,16 @@ object STypesUtil {
     mapOverAllImmediateSupertraits(tod, analyzer, (x, y) => y)
 
   /**
+   * Given a TraitIndex or TraitObjectDecl, return a HashMap with one entry for every
+   * distinct supertrait of the declared trait or object.  The entry maps the name (stem)
+   * of the supertrait to pair containing a TraitIndex for that name (stem) and
+   *  a list of specific static arguments for that stem.
+   */
+
+  def immediateSupertraitsAndStaticArgs(tod: TraitObjectDecl, analyzer: TypeAnalyzer): java.util.HashMap[Id, (TraitIndex, java.util.List[StaticArg])] =
+    mapOverAllImmediateSupertraits(tod, analyzer, (x, y) => (x, y))
+    
+  /**
    * Given a TraitIndex or TraitObjectDecl, return a HashMap with one entry for every distinct
    * immediate supertrait of the declared trait or object.  The entry maps the name (stem)
    * of the supertrait to the result of applying a supplied function mapfn to the TraitIndex

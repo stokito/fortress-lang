@@ -30,6 +30,8 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import scala.Tuple2;
+
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.OverloadSet;
@@ -88,6 +90,7 @@ import com.sun.fortress.nodes.ImportStar;
 import com.sun.fortress.nodes.IntArg;
 import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.IntersectionType;
+import com.sun.fortress.nodes.KindOp;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.LocalVarDecl;
@@ -108,6 +111,7 @@ import com.sun.fortress.nodes.PlainPattern;
 import com.sun.fortress.nodes.SelfType;
 import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.StaticParamKind;
 import com.sun.fortress.nodes.StringLiteralExpr;
 import com.sun.fortress.nodes.SubscriptExpr;
 import com.sun.fortress.nodes.Throw;
@@ -4721,6 +4725,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         HashMap<Id, TraitIndex> transitive_extends =
             STypesUtil.allSupertraits(tod, typeAnalyzer);
 
+        HashMap<String, Tuple2<TraitIndex, List<StaticArg>>> transitive_extends_opr_tagged =
+            oprTagSupertraitsAndArgs(STypesUtil.allSupertraitsAndStaticArgs(tod, typeAnalyzer));
+        
+        HashMap<String, Tuple2<TraitIndex, List<StaticArg>>> direct_extends_opr_tagged =
+            oprTagSupertraitsAndArgs(STypesUtil.immediateSupertraitsAndStaticArgs(tod, typeAnalyzer));
+        
         HashMap<Id, TraitIndex> direct_extends =
             STypesUtil.immediateSupertraits(tod, typeAnalyzer);
         
@@ -5026,16 +5036,26 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * return a field (static parameter) of T, or will delegate to one
          * of the types extending T.
          */
-        HashMap<Id, Map<Id, TraitIndex>> transitive_extends_from_extends = 
-            new HashMap<Id, Map<Id, TraitIndex>>();
+        HashMap<String, Map<String, Tuple2<TraitIndex,List<StaticArg>>>> transitive_extends_from_extends = 
+            new HashMap<String, Map<String, Tuple2<TraitIndex,List<StaticArg>>>>();
         
         for (Map.Entry <Id, TraitIndex> entry : direct_extends.entrySet()) {
             Id te_id = entry.getKey();
             TraitIndex te_ti = entry.getValue();
-            HashMap<Id, TraitIndex> extends_transitive_extends =
-                STypesUtil.allSupertraits(te_ti, typeAnalyzer);
-            extends_transitive_extends.put(te_id, te_ti); // put self in set.
-            transitive_extends_from_extends.put(te_id, extends_transitive_extends);
+            HashMap<Id, Tuple2<TraitIndex,List<StaticArg> > >extends_transitive_extends_tmp =
+                STypesUtil.allSupertraitsAndStaticArgs(te_ti.ast(), typeAnalyzer);
+            
+            Tuple2<TraitIndex,List<StaticArg>> te_pair  =
+                new Tuple2<TraitIndex,List<StaticArg>>(te_ti, direct_extends_args.get(te_id));
+            extends_transitive_extends_tmp.put(te_id, te_pair); // put self in set.
+            
+            HashMap<String, Tuple2<TraitIndex, List<StaticArg>>> extends_transitive_extends =
+                oprTagSupertraitsAndArgs(extends_transitive_extends_tmp);
+            
+            String te_id_stem = oprTaggedGenericStemName(te_id,
+                    direct_extends_args.get(te_id));
+            
+            transitive_extends_from_extends.put(te_id_stem, extends_transitive_extends);
         }
         
         // Future opt: sort by transitive_extends, use largest as class ancestor
@@ -5047,34 +5067,40 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             if (transitive_extends.size() == 0)
                 break;
             Id de_id = entry.getKey();
+            String de_id_stem = oprTaggedGenericStemName(de_id,
+                    direct_extends_args.get(de_id));
             TraitIndex de_ti = entry.getValue();
             
             // iterate over all traits transitively extended by delegate (de_)            
-            Map<Id, TraitIndex> extends_transitive_extends =
-                transitive_extends_from_extends.get(de_id);
-            Set<Map.Entry <Id, TraitIndex>> entryset =
+            Map<String, Tuple2<TraitIndex,List<StaticArg>>> extends_transitive_extends =
+                transitive_extends_from_extends.get(de_id_stem);
+            Set<Map.Entry<String, Tuple2<TraitIndex,List<StaticArg>>>> entryset =
                 extends_transitive_extends.entrySet();
-            for (Map.Entry <Id, TraitIndex> extends_entry :
+            
+            for (Map.Entry<String, Tuple2<TraitIndex,List<StaticArg>>> extends_entry :
                 entryset) {
                     
                 // delegate for extended te_id, if not already done.
-                Id te_id = extends_entry.getKey();
-                if (! transitive_extends.containsKey(te_id))
+                String te_id = extends_entry.getKey();
+                if (! transitive_extends_opr_tagged.containsKey(te_id))
                     continue; // already done.
                 else
-                    transitive_extends.remove(te_id);
+                    transitive_extends_opr_tagged.remove(te_id);
 
-                TraitIndex te_ti = extends_entry.getValue();
-                List<StaticParam> te_sp = te_ti.staticParameters();
+                Tuple2<TraitIndex,List<StaticArg>> te_ti = extends_entry.getValue();
+                List<StaticParam> te_sp = te_ti._1.staticParameters();
                 
                 if (te_sp.size() == 0)
                     continue;  // no static parameters to delegate for.
                 
-                String te_stem = stemFromId(te_id, packageAndClassName);
+                String te_stem = te_id;
                 // emit delegates here
                 // asX#number
                 int i = Naming.STATIC_PARAMETER_ORIGIN;
                 for (StaticParam a_sparam : te_sp) {
+                    StaticParamKind spk = a_sparam.getKind();
+                    if (spk instanceof KindOp)
+                        continue;
                     String method_name =
                        Naming.staticParameterGetterName(te_stem, i);
                     
@@ -5087,12 +5113,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     mv.visitVarInsn(ALOAD, 0);
                     mv.visitMethodInsn(INVOKEVIRTUAL, rttiClassName, "lazyInit", "()V");
                     
-                    Id delegate_id = null;
+                    String delegate_id = null;
                     // invoke delegate -- work in progress here
-                    if(direct_extends.containsKey(te_id) || te_id.equals(name)) {
+                    if(direct_extends_opr_tagged.containsKey(te_id) || te_id.equals(name)) {
                        delegate_id = te_id;
                     } else { //need to find a direct extend that extends the trait we're looking for
-                        for (Id direct_extend_id : direct_extends.keySet()) {
+                        for (String direct_extend_id :
+                            direct_extends_opr_tagged.keySet()) {
                             if (transitive_extends_from_extends.get(direct_extend_id).containsKey(te_id)) {
                                 delegate_id = direct_extend_id;
                                 break;
@@ -5100,11 +5127,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         }
                     }
                     if (delegate_id == null)
-                           throw new CompilerError("Could not find directly extended trait that transitively extends" + te_id.getText());
+                           throw new CompilerError("Could not find directly extended trait that transitively extends" + te_id);
                     
                     mv.visitVarInsn(ALOAD, 0);
                     getExtendeeField(rttiClassName, delegate_id);
-                    String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(delegate_id,"",packageAndClassName);
+                    String extendeeIlk = delegate_id; // NamingCzar.jvmClassForToplevelTypeDecl(delegate_id,"",packageAndClassName);
                     String field_type = Naming.stemClassToRTTIclass(extendeeIlk);
                     mv.visitMethodInsn(INVOKEVIRTUAL, field_type, method_name,
                             Naming.STATIC_PARAMETER_GETTER_SIG);
@@ -5116,6 +5143,30 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         cw.dumpClass( rttiClassName );
         cw = prev;
+    }
+
+
+    /**
+     * 
+     * Convert a map from Id to tuple of TraitIndex and StaticArg into a map
+     * from String to tuple, where the String is the opr-tagged name of the
+     * supertrait.
+     * 
+     * @param extends_transitive_extends_tmp
+     * @return
+     */
+    private HashMap<String, Tuple2<TraitIndex, List<StaticArg>>> oprTagSupertraitsAndArgs(
+            HashMap<Id, Tuple2<TraitIndex, List<StaticArg>>> extends_transitive_extends_tmp) {
+        HashMap<String, Tuple2<TraitIndex,List<StaticArg>>> extends_transitive_extends =
+            new HashMap<String, Tuple2<TraitIndex,List<StaticArg>>>();
+        
+        for (Map.Entry<Id, Tuple2<TraitIndex,List<StaticArg> > > x :
+            extends_transitive_extends_tmp.entrySet()) {
+            String ete_oper_stem =
+                oprTaggedGenericStemName(x.getKey(), x.getValue()._2);
+            extends_transitive_extends.put(ete_oper_stem, x.getValue());
+        }
+        return extends_transitive_extends;
     }
 
 
@@ -5305,8 +5356,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * 
      * Does NOT expect that rttiRef is on stack; returns value of field.
      */
-    private void getExtendeeField(String rttiClassName, Id extendee) {
-        String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
+    private void getExtendeeField(String rttiClassName, String extendeeIlk) {
+        // String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",packageAndClassName);
         String field_type = Naming.stemClassToRTTIclass(extendeeIlk);
         //String tyDesc = Naming.internalToDesc(field_type);
         mv.visitVarInsn(ALOAD, 0);
