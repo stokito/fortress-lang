@@ -297,8 +297,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 		}
     }
     
-    static public Naming.ClassNameBundle new_ClassNameBundle(Id id, String sparams_part, String PCN) {
-        return new Naming.ClassNameBundle(stemFromId(id, PCN), sparams_part);
+    public ClassNameBundle new_ClassNameBundle(Id id,
+            List<StaticParam> original_static_params,
+            Naming.XlationData xldata) {
+        String sparams_part =
+            NamingCzar.genericDecoration(original_static_params,
+                xldata, thisApi());
+        return new ClassNameBundle(stemFromId(id, packageAndClassName), sparams_part);
     }
 
 
@@ -3678,21 +3683,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Naming.XlationData xldata = 
             xlationData(Naming.OBJECT_GENERIC_TAG);
         
-        final String sparams_part = NamingCzar.genericDecoration(original_static_params, xldata, thisApi());
-
-
         boolean savedInAnObject = inAnObject;
         inAnObject = true;
         Id classId = NodeUtil.getName(x);
 
-        final Naming.ClassNameBundle cnb = new_ClassNameBundle(classId, sparams_part, packageAndClassName);
+        final ClassNameBundle cnb = new_ClassNameBundle(classId, original_static_params, xldata);
 
-        String erasedSuperI = (EMIT_ERASED_GENERICS && (sparams_part.length() > 0)) ?
+        String erasedSuperI = (EMIT_ERASED_GENERICS && cnb.isGeneric) ?
                 cnb.stemClassName : "";
         String [] superInterfaces =
             NamingCzar.extendsClauseToInterfaces(extendsC, component.getName(), erasedSuperI);
 
-        if (EMIT_ERASED_GENERICS && (sparams_part.length() > 0)) {
+        if (EMIT_ERASED_GENERICS && cnb.isGeneric) {
             emitErasedClassFor(cnb, (TraitObjectDecl) x);
         }
 
@@ -3723,7 +3725,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
             ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();           
 
-            if (sparams_part.length() > 0) {
+            if (cnb.isGeneric) {
                 ArrowType at =
                     typeAndParamsToArrow(NodeUtil.getSpan(x),
                             NodeFactory.makeTraitType(classId,
@@ -3787,7 +3789,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
             mv.visitEnd();
 
-            if (sparams_part.length() > 0) {
+            if (cnb.isGeneric) {
                 InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cg.cw);
 
                 cg.cw.dumpClass(PCNOuter, xldata);
@@ -3986,7 +3988,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         optionalStaticsAndClassInitForTO(classId, cnb, isSingletonObject);
         
-        if (sparams_part.length() > 0) {
+        if (cnb.isGeneric) {
             cw.dumpClass( cnb.fileName, xldata.setTraitObjectTag(Naming.OBJECT_GENERIC_TAG) );
         } else {
             cw.dumpClass( cnb.className );
@@ -4007,7 +4009,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     /**
      * @param cnb
      */
-    public void emitRttiField(final Naming.ClassNameBundle cnb) {
+    public void emitRttiField(final ClassNameBundle cnb) {
         initializedStaticFields_TO.add(new InitializedStaticField() {
 
             @Override
@@ -4056,7 +4058,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param cnb
      * @param isSingletonObject
      */
-   private void optionalStaticsAndClassInitForTO(Id classId, Naming.ClassNameBundle cnb, boolean isSingletonObject) {
+   private void optionalStaticsAndClassInitForTO(Id classId, ClassNameBundle cnb, boolean isSingletonObject) {
         if (initializedStaticFields_TO.size() ==  0 && !isSingletonObject)
             return;
 
@@ -4149,7 +4151,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
       	voidEpilogue();
    }
 
-   private void emitErasedClassFor(Naming.ClassNameBundle cnb, TraitObjectDecl x) {
+   private void emitErasedClassFor(ClassNameBundle cnb, TraitObjectDecl x) {
         String classFile = cnb.stemClassName;
         String classFileOuter = cnb.stemClassName;
 
@@ -4582,8 +4584,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Naming.XlationData xldata = 
             xlationData(Naming.TRAIT_GENERIC_TAG);
 
-        String sparams_part = NamingCzar.genericDecoration(original_static_params, xldata, thisApi());
-
 //       First let's do the interface class
 //        String classFile = NamingCzar.makeInnerClassName(packageAndClassName,
 //                                                         NodeUtil.getName(x).getText());
@@ -4598,12 +4598,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         Id classId = NodeUtil.getName(x);
         
-        Naming.ClassNameBundle cnb = new_ClassNameBundle(classId, sparams_part, packageAndClassName);
+        ClassNameBundle cnb = new_ClassNameBundle(classId, original_static_params, xldata);
         
-        String erasedSuperI = EMIT_ERASED_GENERICS && (sparams_part.length() > 0) ? cnb.stemClassName
+        String erasedSuperI = EMIT_ERASED_GENERICS && cnb.isGeneric ?
+                cnb.stemClassName
                 : "";
                 
-        if (EMIT_ERASED_GENERICS && (sparams_part.length() > 0)) {
+        if (EMIT_ERASED_GENERICS && cnb.isGeneric) {
            emitErasedClassFor(cnb, (TraitObjectDecl) x);
         }
 
@@ -4639,7 +4640,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         optionalStaticsAndClassInitForTO(classId, cnb, false);
 
-        if (sparams_part.length() > 0 ) {
+        if (cnb.isGeneric ) {
             cw.dumpClass( cnb.fileName, xldata );
         } else {
             cw.dumpClass( cnb.fileName );
@@ -4684,7 +4685,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         newcg.optionalStaticsAndClassInitForTO(classId, cnb, false);
  
         debug("Finished dumpDecls ", springBoardClass);
-        if (sparams_part.length() > 0 ) {
+        if (cnb.isGeneric ) {
             /* Not dead sure this is right
              * Reasoning is that if the springboard IS ever referenced in a
              * generic context (how????) it is in fact a class, so it needs
@@ -4716,7 +4717,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
     
     private void RttiClassAndInterface(TraitObjectDecl tod,
-                                       Naming.ClassNameBundle cnb) {
+                                       ClassNameBundle cnb) {
         TraitTypeHeader header = tod.getHeader();
         List<TraitTypeWhere> extend_s = header.getExtendsClause();
         IdOrOpOrAnonymousName name = header.getName();

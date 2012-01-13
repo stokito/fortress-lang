@@ -33,45 +33,6 @@ public class Naming {
     public static final String ABSTRACT_ARROW = "AbstractArrow";
     public static final String CONCRETE_TUPLE = "ConcreteTuple";
 
-    /**
-     * Generates the popular variants of the class name for a
-     * Fortress trait or object.
-     * 
-     * @author dr2chase
-     */
-    public static class ClassNameBundle {
-    
-        
-        /** The name of the class. */
-        public final String className;
-        /**
-         * Descriptor form of the class name.  ( L ... ; )
-         */
-        public final String classDesc;
-    
-        /** Template file naming convention so 
-         * generic expander can locate it.
-         * Same as className for non-generic.
-         */
-        public final String fileName;
-        
-        /** No static parameters;
-         * the ilk of the generic.
-         */
-        public final String stemClassName; 
-        public ClassNameBundle(String stem_class_name, String sparams_part) {
-            stemClassName = stem_class_name;
-    
-            className =
-                combineStemAndSparams(stemClassName, sparams_part);
-                
-            fileName =
-                combineStemAndSparams(stemClassName, Naming.makeTemplateSParams(sparams_part));
-            
-            classDesc = internalToDesc(className);
-        }
-    }
-
     private final static
     
     CheapSerializer.PAIR<
