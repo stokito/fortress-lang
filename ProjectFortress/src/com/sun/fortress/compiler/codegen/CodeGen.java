@@ -4003,7 +4003,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         inAnObject = savedInAnObject;
         
         // Needed (above) to embed a reference to the Rtti information for this type.
-        RttiClassAndInterface(x,cnb);
+        RttiClassAndInterface(x,cnb, xldata);
     }
 
     /**
@@ -4713,15 +4713,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         springBoardClass = null;
         initializedStaticFields_TO = null;
         
-        RttiClassAndInterface(x,cnb);
+        RttiClassAndInterface(x,cnb, xldata);
     }
     
     private void RttiClassAndInterface(TraitObjectDecl tod,
-                                       ClassNameBundle cnb) {
+                                       ClassNameBundle cnb,
+                                       Naming.XlationData xldata) {
+        
         TraitTypeHeader header = tod.getHeader();
-        List<TraitTypeWhere> extend_s = header.getExtendsClause();
+
         IdOrOpOrAnonymousName name = header.getName();
         List<StaticParam> sparams = header.getStaticParams();
+        
         
         HashMap<Id, TraitIndex> transitive_extends =
             STypesUtil.allSupertraits(tod, typeAnalyzer);
@@ -4731,6 +4734,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         HashMap<String, Tuple2<TraitIndex, List<StaticArg>>> direct_extends_opr_tagged =
             oprTagSupertraitsAndArgs(STypesUtil.immediateSupertraitsAndStaticArgs(tod, typeAnalyzer));
+        
         
         HashMap<Id, TraitIndex> direct_extends =
             STypesUtil.immediateSupertraits(tod, typeAnalyzer);
@@ -4786,7 +4790,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * extends y$RTTIi for each y in extend_s
          */
         
-        String stemClassName = cnb.stemClassName;
+        String stemClassName =
+            Naming.oprArgAnnotatedRTTI(cnb.stemClassName,
+                    oprsFromKindParamList(xldata.staticParameterKindNamePairs()));
+        
         String rttiInterfaceName = Naming.stemInterfaceToRTTIinterface(stemClassName);
         String[] superInterfaces = new String[d_e_size];
         
@@ -4795,7 +4802,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         int i = 0;
         for (Id extendee : direct_extends.keySet()) {
             List<StaticArg> ti_args = direct_extends_args.get(extendee);
-            String extendeeIlk = oprTaggedGenericStemName(extendee, ti_args);
+            String extendeeIlk = oprTaggedGenericStemNameSA(extendee, ti_args);
 
 //            String extendeeIlk =
 //                NamingCzar.jvmClassForToplevelTypeDecl(extendee,"",
@@ -4817,8 +4824,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         {
             int i = Naming.STATIC_PARAMETER_ORIGIN;
             for (StaticParam sp : sparams) {
+                if (! (sp.getKind() instanceof KindOp) ) {
                 String method_name =
-                    Naming.staticParameterGetterName(cnb.stemClassName, i);
+                    Naming.staticParameterGetterName(stemClassName, i);
                 mv = cw.visitCGMethod(
                         ACC_ABSTRACT + ACC_PUBLIC, method_name,
                         Naming.STATIC_PARAMETER_GETTER_SIG, null, null);
@@ -4826,6 +4834,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         Naming.ignoredMaxsParameter);
                 mv.visitEnd();
                 i++;
+                }
             }
         }
 
@@ -4856,7 +4865,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
             // This yutch is repeated below in lazyInit; needs cleanup.
             List<StaticArg> ti_args = direct_extends_args.get(extendee);
-            String extendeeIlk = oprTaggedGenericStemName(extendee, ti_args);
+            String extendeeIlk = oprTaggedGenericStemNameSA(extendee, ti_args);
 
             // note fields are volatile because of double-checked locking below
             cw.visitField(ACC_PRIVATE + ACC_VOLATILE,
@@ -4982,7 +4991,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
            for (Id extendee : direct_extends_keys) {
                 TraitIndex ti = direct_extends.get(extendee);
                 List<StaticArg> ti_args = direct_extends_args.get(extendee);
-                String extendeeIlk = oprTaggedGenericStemName(extendee, ti_args);
+                String extendeeIlk = oprTaggedGenericStemNameSA(extendee, ti_args);
 
                 mv.visitVarInsn(ALOAD, 0); // this ptr for store.
                 // invoke factory method for value to store.
@@ -5053,7 +5062,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             HashMap<String, Tuple2<TraitIndex, List<StaticArg>>> extends_transitive_extends =
                 oprTagSupertraitsAndArgs(extends_transitive_extends_tmp);
             
-            String te_id_stem = oprTaggedGenericStemName(te_id,
+            String te_id_stem = oprTaggedGenericStemNameSA(te_id,
                     direct_extends_args.get(te_id));
             
             transitive_extends_from_extends.put(te_id_stem, extends_transitive_extends);
@@ -5068,7 +5077,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             if (transitive_extends.size() == 0)
                 break;
             Id de_id = entry.getKey();
-            String de_id_stem = oprTaggedGenericStemName(de_id,
+            String de_id_stem = oprTaggedGenericStemNameSA(de_id,
                     direct_extends_args.get(de_id));
             TraitIndex de_ti = entry.getValue();
             
@@ -5164,7 +5173,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         for (Map.Entry<Id, Tuple2<TraitIndex,List<StaticArg> > > x :
             extends_transitive_extends_tmp.entrySet()) {
             String ete_oper_stem =
-                oprTaggedGenericStemName(x.getKey(), x.getValue()._2);
+                oprTaggedGenericStemNameSA(x.getKey(), x.getValue()._2);
             extends_transitive_extends.put(ete_oper_stem, x.getValue());
         }
         return extends_transitive_extends;
@@ -5176,8 +5185,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param static_args
      * @return
      */
-    private String oprTaggedGenericStemName(Id stem, List<StaticArg> static_args) {
+    private String oprTaggedGenericStemNameSA(Id stem, List<StaticArg> static_args) {
         List<String> opr_args = oprsFromStaticArgs(static_args);
+        String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(
+                                   stem,opr_args,packageAndClassName);
+        return extendeeIlk;
+    }
+    
+    private String oprTaggedGenericStemNameKP(Id stem, List<Pair<String,String>> kind_param_list) {
+        List<String> opr_args = oprsFromKindParamList(kind_param_list);
+        
         String extendeeIlk = NamingCzar.jvmClassForToplevelTypeDecl(
                                    stem,opr_args,packageAndClassName);
         return extendeeIlk;
@@ -5214,7 +5231,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     								   List<StaticArg> ti_args,
     								   HashSet<String> spns)
     {	
-        String extendeeIlk = oprTaggedGenericStemName(extendee, ti_args);
+        String extendeeIlk = oprTaggedGenericStemNameSA(extendee, ti_args);
         String field_type = Naming.stemClassToRTTIclass(extendeeIlk);      
         List<String> opr_args = oprsFromStaticArgs(ti_args);
         
@@ -5327,12 +5344,24 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
     }
     
+    // List<Pair<String,String>> kind_param_list
+    
     private List<String> oprsFromStaticArgs(List<StaticArg> ti_args) {
         ArrayList<String> al = new ArrayList<String>();
         for (StaticArg sta : ti_args) {
             if (sta instanceof OpArg) {
                 OpArg opa = (OpArg) sta;
                 al.add(opa.getId().getText());
+            } 
+        }
+        return al;
+    }
+
+    private List<String> oprsFromKindParamList(List<Pair<String,String>> kind_param_list) {
+        ArrayList<String> al = new ArrayList<String>();
+        for (Pair<String,String> kp : kind_param_list) {
+            if (kp.getA().equals(Naming.XL_OPR)) {
+                al.add(kp.getB());
             } 
         }
         return al;

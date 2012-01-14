@@ -82,6 +82,20 @@ public class Naming {
                         new Triple.GetB<String, String, Integer>());
             return xl;
         }
+        public List<String> staticParameterKinds() {
+            List<String> xl =
+                new ProjectedList<Triple<String, String, Integer>, String>(
+                        data.getB(),
+                        new Triple.GetA<String, String, Integer>());
+            return xl;
+        }
+        public List<Pair<String,String>> staticParameterKindNamePairs() {
+            List<Pair<String,String>> xl =
+                new ProjectedList<Triple<String, String, Integer>, Pair<String,String>>(
+                        data.getB(),
+                        new Triple.GetAB<String, String, Integer>());
+            return xl;
+        }
         public XlationData setTraitObjectTag(String tag) {
             return new XlationData(tag, this);
         }
@@ -145,21 +159,8 @@ public class Naming {
 
     public static final String UP_INDEX = "\u261d"; // Special static parameter for static type of self in generic method invocation
     
-    // These below seem to be unused.
-    public static final String BALLOT_BOX_WITH_CHECK = "\u2611"; // boolean static param
-    public static final String SCALES = "\u2696"; // dimension static param
-    public static final String MUSIC_SHARP = "\u266f"; // int static param
-    public static final String MUSIC_NATURAL = "\u266e"; // nat(ural) static param
-    public static final String HAMMER_AND_PICK = "\u2692"; // opr static param
-    public static final String YINYANG = "\u262f"; // type static param
-    public static final String ATOM = "\u269b"; // unit static param
-
     public static final String BOTTOM = "\u2620"; // Bottom --  skull and crossbones
     
-    public static final String GENERIC_TAGS =
-        BALLOT_BOX_WITH_CHECK + SCALES + MUSIC_SHARP +
-        HAMMER_AND_PICK + YINYANG + ATOM;
-
     /* Enter is used in calculated references for nat args appearing
      * within uninstantiated generics.  Calculations are converted to RPN,
      * to be simplified at instantiation.
@@ -171,14 +172,7 @@ public class Naming {
 
     public final static char FOREIGN_TAG_CHAR = FOREIGN_TAG.charAt(0);
     public final static char NORMAL_TAG_CHAR = NORMAL_TAG.charAt(0);
-    // public final static char INTERNAL_TAG_CHAR = INTERNAL_TAG.charAt(0);
-    public static final char BALLOT_BOX_WITH_CHECK_CHAR = BALLOT_BOX_WITH_CHECK.charAt(0);
-    public static final char SCALES_CHAR = SCALES.charAt(0);
-    public static final char MUSIC_SHARP_CHAR = MUSIC_SHARP.charAt(0);
-    public static final char MUSIC_NATURAL_CHAR = MUSIC_NATURAL.charAt(0);
-    public static final char HAMMER_AND_PICK_CHAR = HAMMER_AND_PICK.charAt(0);
-    public static final char YINYANG_CHAR = YINYANG.charAt(0);
-    public static final char ATOM_CHAR = ATOM.charAt(0);
+    
     public static final char HEAVY_X_CHAR = HEAVY_X.charAt(0);
 
     public final static String GEAR = "\u2699";
@@ -192,7 +186,13 @@ public class Naming {
     
     public final static String LEFT_HEAVY_ANGLE = "\u276e"; // marks Opr parameters in RTTI types
     public final static String RIGHT_HEAVY_ANGLE = "\u276f"; // marks Opr parameters in RTTI types
-    
+
+    public final static String XL_BOOL = "bool";
+    public final static String XL_INTNAT = "intnat";
+    public final static String XL_OPR = "opr";
+    public final static String XL_TYPE = "type";
+    public final static String XL_UNIT = "unit";
+    public final static String XL_DIM = "dim";
     
     /**
      * Name for Arrow-interface generic.
