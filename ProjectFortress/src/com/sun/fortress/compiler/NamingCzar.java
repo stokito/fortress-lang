@@ -1693,49 +1693,49 @@ public class NamingCzar {
 
         @Override
         public Triple<String,String,Integer> forKindBool(KindBool that) {
-            return p("bool");
+            return p(Naming.XL_BOOL);
         }
 
         @Override
         public Triple<String,String,Integer> forKindDim(KindDim that) {
-            return p("dim");
+            return p(Naming.XL_DIM);
         }
 
         @Override
         public Triple<String,String,Integer> forKindInt(KindInt that) {
-            return p("intnat");
+            return p(Naming.XL_INTNAT);
         }
 
         @Override
         public Triple<String,String,Integer> forKindNat(KindNat that) {
             // nats and ints go with same encoding; no distinction in args
-            return p("intnat");
+            return p(Naming.XL_INTNAT);
         }
 
         @Override
         public Triple<String,String,Integer> forKindOp(KindOp that) {
-            return p("op");
+            return p(Naming.XL_OPR);
         }
 
         @Override
         public Triple<String,String,Integer> forKindType(KindType that) {
-            return p("type");
+            return p(Naming.XL_TYPE);
         }
 
         @Override
         public Triple<String,String,Integer> forKindUnit(KindUnit that) {
-            return p("unit"); 
+            return p(Naming.XL_UNIT); 
         }
 
         @Override
         public Triple<String,String,Integer> forBoolBase(BoolBase b) {
             // need these to be manifest constants for any evaluation
-            return p("bool", b.isBoolVal() ? "true" : "false");
+            return p(Naming.XL_BOOL, b.isBoolVal() ? "true" : "false");
         }
 
         @Override
         public Triple<String,String,Integer> forBoolRef(BoolRef b) {
-            return p("bool", b.getName().getText());
+            return p(Naming.XL_BOOL, b.getName().getText());
         }
 
         @Override
@@ -1743,14 +1743,14 @@ public class NamingCzar {
             BoolExpr l = b.getLeft();
             BoolExpr r = b.getRight();
             Op op = b.getOp();
-            return p("bool", l.accept(this).getB() + Naming.ENTER + r.accept(this).getB() + Naming.ENTER + op.getText());
+            return p(Naming.XL_BOOL, l.accept(this).getB() + Naming.ENTER + r.accept(this).getB() + Naming.ENTER + op.getText());
         }
 
         @Override
         public Triple<String,String,Integer> forBoolUnaryOp(BoolUnaryOp b) {
             BoolExpr v = b.getBoolVal();
             Op op = b.getOp();
-            return p("bool", v.accept(this).getB() + Naming.ENTER + op.getText());
+            return p(Naming.XL_BOOL, v.accept(this).getB() + Naming.ENTER + op.getText());
         }
 
         /* These need to return encodings of Fortress types. */
@@ -1758,22 +1758,22 @@ public class NamingCzar {
         public Triple<String,String,Integer> forBoolArg(BoolArg that) {
             BoolExpr arg = that.getBoolArg();
 
-            return  p("bool", arg.accept(this));
+            return  p(Naming.XL_BOOL, arg.accept(this));
         }
 
         @Override
         public Triple<String,String,Integer> forDimArg(DimArg that) {
-            return p("dim", that.getDimArg().accept(this));
+            return p(Naming.XL_DIM, that.getDimArg().accept(this));
         }
 
         @Override
         public Triple<String,String,Integer> forIntBase(IntBase b) {
-            return p("intnat", String.valueOf(b.getIntVal()));
+            return p(Naming.XL_INTNAT, String.valueOf(b.getIntVal()));
         }
 
         @Override
         public Triple<String,String,Integer> forIntRef(IntRef b) {
-            return p("intnat", b.getName().getText());
+            return p(Naming.XL_INTNAT, b.getName().getText());
         }
 
         @Override
@@ -1781,19 +1781,19 @@ public class NamingCzar {
             IntExpr l = b.getLeft();
             IntExpr r = b.getRight();
             Op op = b.getOp();
-            return p("intnat",l.accept(this).getB() + Naming.ENTER + r.accept(this).getB() + Naming.ENTER + op.getText());
+            return p(Naming.XL_INTNAT,l.accept(this).getB() + Naming.ENTER + r.accept(this).getB() + Naming.ENTER + op.getText());
         }
 
        @Override
         public Triple<String,String,Integer> forIntArg(IntArg that) {
             IntExpr arg = that.getIntVal();
-            return p("intnat",  arg.accept(this));
+            return p(Naming.XL_INTNAT,  arg.accept(this));
         }
 
         @Override
         public Triple<String,String,Integer> forOpArg(OpArg that) {
             IdOrOp name = that.getId();
-            return p("op", name.getText());
+            return p(Naming.XL_OPR, name.getText());
         }
 
         @Override
@@ -1801,13 +1801,13 @@ public class NamingCzar {
             com.sun.fortress.nodes.Type arg = that.getTypeArg();
             // Pretagged with type information
             String s =  makeBoxedTypeName(arg, ifMissing);
-            return p("type", s);
+            return p(Naming.XL_TYPE, s);
         }
 
         @Override
         public Triple<String,String,Integer> forUnitArg(UnitArg that) {
             //UnitExpr arg = that.getUnitArg();
-            return p("unit", that.getUnitArg().accept(this).getB());
+            return p(Naming.XL_UNIT, that.getUnitArg().accept(this).getB());
         }
 
         @Override
@@ -1819,7 +1819,7 @@ public class NamingCzar {
         @Override
         public Triple<String,String,Integer> forTraitType(TraitType that) {
             String s =  makeBoxedTraitName(that, ifMissing);
-            return p("type", s);
+            return p(Naming.XL_TYPE, s);
         }
 
     };

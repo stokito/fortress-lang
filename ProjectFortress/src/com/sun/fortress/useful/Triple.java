@@ -75,6 +75,12 @@ public class Triple<T, U, V> {
             return x.getA();
         }
     }
+    public static class GetAB<TT, UU, VV> implements F<Triple<TT,UU, VV>,Pair<TT, UU>> {        
+        @Override
+        public Pair<TT, UU> apply(Triple<TT, UU, VV> x) {
+            return new Pair<TT,UU>(x.getA(), x.getB());
+        }
+    }
     public static class GetB<TT, UU, VV> implements F<Triple<TT,UU, VV>,UU> {        
         @Override
         public UU apply(Triple<TT, UU, VV> x) {
