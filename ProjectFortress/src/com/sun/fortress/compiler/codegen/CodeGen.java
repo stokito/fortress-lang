@@ -4873,21 +4873,25 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          }
  
         // Fields and Getters for static parameters
+        int count_non_opr_sparams;
         {
             int i = Naming.STATIC_PARAMETER_ORIGIN;
             for (StaticParam sp : sparams) {
-                String spn = sp.getName().getText();
-                String stem_name = cnb.stemClassName;
-                InstantiatingClassloader.fieldAndGetterForStaticParameter(cw, stem_name, spn, i);           
-                i++;
+                if (! (sp.getKind() instanceof KindOp) ) {
+                    String spn = sp.getName().getText();
+                    String stem_name = stemClassName;
+                    InstantiatingClassloader.fieldAndGetterForStaticParameter(cw, stem_name, spn, i);           
+                    i++;
+                }
             }
+            count_non_opr_sparams = i - Naming.STATIC_PARAMETER_ORIGIN;
         }
 
         /*
          * constructor (init method)
          * parameters for static parameters, if any.
          */
-        final int sparams_size = sparams.size();
+        final int sparams_size = count_non_opr_sparams;
         {
             // Variant of this code in InstantiatingClassloader
             String init_sig =
@@ -4901,13 +4905,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
             int pno = 2; // 1 is java class
             for (StaticParam sp : sparams) {
-                String spn = sp.getName().getText();
-                // not yet this;  sp.getKind();
-                mv.visitVarInsn(ALOAD, 0);
-                mv.visitVarInsn(ALOAD, pno);
-                mv.visitFieldInsn(PUTFIELD, rttiClassName, spn,
-                                  Naming.RTTI_CONTAINER_DESC);
-                pno++;
+                if (! (sp.getKind() instanceof KindOp) ) {
+                    String spn = sp.getName().getText();
+                    // not yet this;  sp.getKind();
+                    mv.visitVarInsn(ALOAD, 0);
+                    mv.visitVarInsn(ALOAD, pno);
+                    mv.visitFieldInsn(PUTFIELD, rttiClassName, spn,
+                            Naming.RTTI_CONTAINER_DESC);
+                    pno++;
+                }
             }
             
             voidEpilogue();
