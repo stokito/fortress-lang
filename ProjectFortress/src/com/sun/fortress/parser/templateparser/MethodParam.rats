@@ -1,0 +1,20 @@
+/*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress method parameter declarations.
+ */
+module com.sun.fortress.parser.templateparser.MethodParam(Param, Keyword);
+
+import Param;
+import Keyword;
+
+modify com.sun.fortress.parser.MethodParam(Param, Keyword);

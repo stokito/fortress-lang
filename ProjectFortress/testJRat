@@ -1,0 +1,27 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+if (uname | egrep -q CYGWIN) ; then
+  CP="build;third_party/junit/junit.jar;third_party/unsigned/unsigned.jar;third_party/asm/asm-3.1.jar;third_party/xtc/xtc.jar;third_party/jsr166y/jsr166y.jar;third_party/plt/plt.jar;third_party/astgen/astgen.jar"
+else
+  CP="build:third_party/junit/junit.jar:third_party/unsigned/unsigned.jar:third_party/asm/asm-3.1.jar:third_party/xtc/xtc.jar:third_party/jsr166y/jsr166y.jar:third_party/plt/plt.jar:third_party/astgen/astgen.jar"
+fi
+
+if [ -z "$JRATLOC" ]; then
+    JRATLOC=shiftone-jrat-1-beta1
+fi
+
+java -javaagent:${JRATLOC}/shiftone-jrat.jar -cp "$CP" -Xmx1024M -Xms512M \
+-Dfortress.unittests.count=10_2 \
+junit.textui.TestRunner \
+com.sun.fortress.tests.unit_tests.SystemJUTest

@@ -1,0 +1,68 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009,2010, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+ValParam =
+     BindId
+   / openparen (w Params)? w closeparen
+
+AbsValParam =
+     openparen (w AbsParams)? w closeparen
+   / Type
+
+Parameter = Keyword / Varargs / Param
+Params =
+     Parameter (w comma w Parameter)+
+   / Parameter (w commaOrNot w Parameter)+
+   / Parameter
+
+AbsParameter = Keyword / Varargs / AbsParam
+AbsParams =
+     AbsParameter (w comma w AbsParameter)+
+   / AbsParameter (w commaOrNot w AbsParameter)+
+   / AbsParameter
+
+VarargsParam = BindId w colon w Type w ellipses
+Varargs = VarargsParam
+
+Keyword = Param w equals w Expr
+
+PlainParam =
+     BindId (w IsType)?
+Param = PlainParam
+
+AbsPlainParam =
+     BindId w IsType
+   / Type
+AbsParam = AbsPlainParam
+
+LeftOp =
+     LeftEncloser w mapsto
+   / LeftEncloser
+   / Encloser
+SingleOp =
+     Op
+   / caret
+   / Encloser
+   / SUM
+   / PROD
+OpHeaderFront =
+     <Enclosing> opr (w BIG)? w opLeftOp
+     (w StaticParams)? (w Params)? w (RightEncloser / Encloser)
+   / opr w ValParam w (Op / ExponentOp / caret) (w StaticParams)?
+   / opr (w BIG)? w SingleOp (w StaticParams)? w ValParam
+
+AbsOpHeaderFront =
+     <Enclosing> opr (w BIG)? w opLeftOp
+     (w StaticParams)? (w AbsParams)? w (RightEncloser / Encloser)
+   / opr w AbsValParam w (Op / ExponentOp / caret) (w StaticParams)?
+   / opr (w BIG)? w SingleOp (w StaticParams)? w AbsValParam
+\end{verbatim}

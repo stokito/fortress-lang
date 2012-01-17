@@ -1,0 +1,18 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component DXXDoubleSub
+  export Executable
+  run():() = ()
+  blah(arr: Array1[\ZZ32,0, 5 \],a:ZZ32,b:ZZ32): ZZ32 = do
+    arr[a][b]
+  end
+ end
