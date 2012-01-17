@@ -626,6 +626,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
     private void generateForwardingFor(Functional from_fnl, Functional to_fnl, boolean forward_to_non_overload,
             StaticTypeReplacer inst, TraitType fromTrait, TraitType toTrait, boolean narrowing) {
+        debug("generateForwarding: from ", from_fnl, " to ", to_fnl);
         IdOrOp name = from_fnl.name();
         if (!(from_fnl instanceof HasSelfType))
             throw sayWhat(name, " method "+from_fnl+" doesn't appear to have self type.");
@@ -695,7 +696,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 to_sig = Naming.removeNthSigParameter(to_sig, narrowing ? selfIndex : selfIndex+1);
                 mname = Naming.fmDottedName(singleName(name), selfIndex);
             } else {
-                mname = singleName(name); 
+                mname = singleName(name); // What about static params?
                 arity++;
             }
             String from_name = forward_to_non_overload ? NamingCzar.mangleAwayFromOverload(mname): mname;
@@ -757,7 +758,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
       comprises clauses.)
     */
     private void dumpMethodChaining(String [] superInterfaces, boolean includeCurrent) {
-
+        debug("Dump method chaining");
         /*
          * If the number of supertraits is 0, there is nothing to inherit.
          * If it is one, inheritance comes via the class hierarchy.
@@ -775,14 +776,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * Initialize alreadyIncluded to empty, or to the inherited methods
          * from the first t
          */
-        if (extendsClause.size() == 0) {
+        if (extendsClause.size() == 0 || !(extendsClause.get(0).getBaseType() instanceof TraitType)) {
             alreadyIncluded =
                 new IndexedRelation<IdOrOpOrAnonymousName,
                              scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>();
         } else {
-            alreadyIncluded = STypesUtil.inheritedMethods(extendsClause.subList(0,1), typeAnalyzer);
+//          alreadyIncluded = STypesUtil.inheritedMethods(extendsClause.subList(0,1), typeAnalyzer);
+            alreadyIncluded = STypesUtil.allMethods((TraitType)(extendsClause.get(0).getBaseType()), typeAnalyzer);
+	    debug("Already included: ", alreadyIncluded);
         }
-
+	//        System.err.println("For " + currentTraitObjectType + " the already included methods are " + alreadyIncluded);
         /*
          * Apparently allMethods returns the transitive closure of all methods
          * declared in a particular trait or object and the types it extends.
@@ -797,13 +800,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * extends clause, then it needs to be disambiguated in this type).
          */
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
-            toConsider = STypesUtil.allMethods(currentTraitObjectType, typeAnalyzer);
-        //System.err.println("Considering chains for "+currentTraitObjectType);
-        
-        /*
-         * For each method declared by some ancestor somewhere,
-         * 
-         */
+            toConsider = STypesUtil.allMethodsNotIdenticallyCovered(currentTraitObjectType, typeAnalyzer);
+        debug("Considering chains for ", currentTraitObjectType, ": ", toConsider);
         for (edu.rice.cs.plt.tuple.Pair<IdOrOpOrAnonymousName,scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
                  assoc : toConsider) {
             scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tup = assoc.second();
@@ -819,54 +817,44 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             List<StaticParam> static_parameters = fnl.staticParameters();
             
-            boolean alreadyThere = false;
-
-            /* If defined in the current trait or object,
-             * emit forwarding method if "includeCurrent"
-             * (which should be true for traits.
-             */
-            if (tupTrait.equals(currentTraitObjectType)) {
-                alreadyThere = !includeCurrent;
-                // Skip all the fancing processing
-            } else {
-                /* Iterate over tuples for
-                 * already-defined methods
-                 * whose names match
-                 * that of the method being considered (assoc.first()).
-                 *
-                 * If the trait of the method being considered,
-                 * and the trait of any name-matching already included method
-                 * match, then don't generate a wrapper.
-                 *
-                 * DOES THIS HAVE A BUG IN IT?  WHAT ABOUT OVERLOADED METHODS?
-                 * Their names will match, but the parameter types need not.
-                 */
-                for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tupAlready :
-                    alreadyIncluded.matchFirst(assoc.first())) {
-                    if (tupAlready._3().equals(tupTrait)) {
-                        //System.err.println("    " + fnl + " already imported by first supertrait.");
-                        alreadyThere = true;
-                        break;
-                    }
+	    //            if (tupTrait.equals(currentTraitObjectType)) {
+            if (typeAnalyzer.equiv(tupTrait, currentTraitObjectType)) {
+                /* If defined in the current trait. */
+                if (includeCurrent) {
+                    // Trait, not object
+                    generateForwardingFor(fnl, inst, currentTraitObjectType, tupTrait); // swapped
+                    generateForwardingFor(fnl, fnl, true, inst, currentTraitObjectType, tupTrait, false); // swapped
                 }
-            }
-            /*
-             * alreadyThere is true if EITHER
-             *     current = tupTrait and is an object
-             * OR  current != tupTrait AND
-             *     the method in question was defined in the first
-             *     trait that this trait extends (including transitive
-             *     definitions from that first trait).  Therefore,
-             *     it is inherited and by default forwarded.
-             *  
-             */
-            if (alreadyThere) {
-                continue;
-            }
-            // Forward calls from instance method to static method
-            generateForwardingFor(fnl, inst, currentTraitObjectType, tupTrait); 
-            // Also forward the leaf (non-overloaded) version of the name.
-            generateForwardingFor(fnl, fnl, true, inst, currentTraitObjectType, tupTrait, false); 
+            } else {
+                /* If not defined in the current trait. */
+		boolean alreadyThere = false;
+
+		/* Iterate over tuples for
+		 * already-defined methods
+		 * whose names match
+		 * that of the method being considered (assoc.first()).
+		 *
+		 * If the trait of the method being considered,
+		 * and the trait of any name-matching already included method
+		 * match, then don't generate a wrapper.
+		 *
+		 * DOES THIS HAVE A BUG IN IT?  WHAT ABOUT OVERLOADED METHODS?
+		 * Their names will match, but the parameter types need not.
+		 */
+		debug("For method ", assoc.first(), ", does any of these match: ", alreadyIncluded.matchFirst(assoc.first()));
+		for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tupAlready :
+			 alreadyIncluded.matchFirst(assoc.first())) {
+		    if (tupAlready._3().equals(tupTrait)) {
+			//System.err.println("    " + fnl + " already imported by first supertrait.");
+			alreadyThere = true;
+			break;
+		    }
+		}
+		if (!alreadyThere) {
+		    generateForwardingFor(fnl, inst, currentTraitObjectType, tupTrait); // swapped
+		    generateForwardingFor(fnl, fnl, true, inst, currentTraitObjectType, tupTrait, false); // swapped
+		}
+	    }
         }
     }
 
@@ -907,7 +895,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @return 
      */
     
-     private Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> dumpOverloadedMethodChaining(String [] superInterfaces, boolean includeCurrent) {
+    private Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> dumpOverloadedMethodChaining(String [] superInterfaces, boolean includeCurrent) {
         Map<IdOrOpOrAnonymousName, MultiMap<Integer,Functional>> overloadedMethods =
             new HashMap<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>>();
 
@@ -917,19 +905,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (superInterfaces.length < 1)
             return overloadedMethods;
         
-       /*  This call is the one-and-only client of declToTraitTypeEnhanced
-           The "enhanced" version of declToTraitType annotates all the static
-           args with the static parameters supplied by the trait/object
-        */
         TraitType currentTraitObjectType = STypesUtil.declToTraitTypeEnhanced(currentTraitObjectDecl);
+        // TraitType currentTraitObjectType = STypesUtil.declToTraitType(currentTraitObjectDecl);
         List<TraitTypeWhere> extendsClause = NodeUtil.getExtendsClause(currentTraitObjectDecl);
         
         OverloadingOracle oa =  new OverloadingOracle(typeAnalyzer);
-        
-        if (DEBUG_OVERLOADED_METHOD_CHAINING)
-            System.err.println("Considering overloads for "+currentTraitObjectType +
-                    ", extended=" + Useful.listTranslatedInDelimiters("[", extendsClause, "]", ",", TTWtoString));
-            
         
         /*
          * properlyInheritedMethods is supposed to return methods that are
@@ -949,9 +929,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * extends clause is minimal, and a method is defined twice in the
          * extends clause, then it needs to be disambiguated in this type).
          */
-        // This call is the one-and-only client of properlyInheritedMethods
+        if (DEBUG_OVERLOADED_METHOD_CHAINING)
+            System.err.println("Considering overloads for "+currentTraitObjectType +
+                    ", extended=" + Useful.listTranslatedInDelimiters("[", extendsClause, "]", ",", TTWtoString));
+            
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
-            toConsider = STypesUtil.properlyInheritedMethods(currentTraitObjectType, typeAnalyzer);
+            toConsider = STypesUtil.properlyInheritedMethodsNotIdenticallyCovered(currentTraitObjectType, typeAnalyzer);
         
         MultiMap<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>> toConsiderFixed =
             new MultiMap<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>();
@@ -979,17 +962,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         TraitIndex ti = (TraitIndex) typeAnalyzer.traits().typeCons(currentTraitObjectType.getName()).unwrap();
         
-         /* This is used to fix the type annotation in type_info; it lacks
-            constraints on static parameters.
-         */
+        // This is used to fix the type annotation in type_info; it lacks
+        // constraints on static parameters.
         StaticTypeReplacer local_inst =
             new StaticTypeReplacer(ti.staticParameters(),
                     STypesUtil.staticParamsToArgsEnhanced(ti.staticParameters()));
         
-         /* Set of all method (functional) names declared in the current trait
-            or object.  They're lumped together (for now) because we're using
-            iteration instead of a callback-oriented scheme below.
-         */
         MultiMap<IdOrOpOrAnonymousName, Functional> nameToFSets =
             new MultiMap<IdOrOpOrAnonymousName, Functional>();
         
@@ -1052,12 +1030,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         
 
-        /*
-         * For each method name and set of definitions
-         * in the current trait or object, consider all potentially
-         * matching overloads from the traits that current properly
-         * extends, and look for shadowing, narrowing, and overloads.
-         */
         for(Map.Entry<IdOrOpOrAnonymousName, Set<Functional>> ent : nameToFSets.entrySet())  {
             IdOrOpOrAnonymousName name = ent.getKey();
             Set<Functional> funcs = ent.getValue();
@@ -1065,18 +1037,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // initial set of potential overloads is this trait/object's methods
             Set<Functional> perhapsOverloaded = new HashSet<Functional>(funcs);
             
-            /*
-             *  for each method with the same name among our ancestor traits,
-             *  figure out our obligation to deal with it.
-             */
             for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> overridden :
                 toConsiderFixed.getEmptyIfMissing(name)) {
                 // toConsider.matchFirst(name)) {
                 Functional super_func = overridden._1();
                 StaticTypeReplacer super_inst = overridden._2();
                 TraitType traitDeclaringMethod = overridden._3();
-                
-                // should not happen, if from properly extending ancestors
                 if (traitDeclaringMethod.equals(currentTraitObjectType))
                     continue;
                 
@@ -1089,7 +1055,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 int super_self_index = NodeUtil.selfParameterIndex(super_func.parameters());
                 Type super_noself_domain = super_inst.replaceIn(selfEditedDomainType(super_func, super_self_index));
 
-                // For each function in current trait, with a given name
                 for (Functional func : funcs) {
                     Type ret = local_inst.replaceIn(oa.getRangeType(func));
                     int self_index = NodeUtil.selfParameterIndex(func.parameters());
@@ -1151,50 +1116,32 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     }
                 }
 
-                /*
-                 * In the shadowed case, the current trait's method definition
-                 * is an exact match for the super, therefore there is no
-                 * overload and no narrowing on the Java side.
-                 */
                 if (shadowed)
                     continue;
-                
-                /* 
-                 * In the narrowed case, we must generate a forwarding method
-                 * from wider-return-sig to narrower-return-sig.  No cast
-                 * is required, parameters match, and narrower can be passed
-                 * to wider.
-                 */
                 if (narrowed) {
 //		    System.out.println("generateForwardingFor:");
 //		    System.out.println("  super_func = " + super_func);
 //		    System.out.println("  narrowed_func = " + narrowed_func);
 //		    System.out.println("  super_inst = " + super_inst);
 //		    System.out.println("  currentTraitObjectType = " + currentTraitObjectType);
-                    generateForwardingFor(super_func, narrowed_func, false,
-                            super_inst, currentTraitObjectType,
-                            currentTraitObjectType, true);
+                    generateForwardingFor(super_func, narrowed_func, false, super_inst, currentTraitObjectType, currentTraitObjectType, true); // swapped
+                    // TODO emit the forwarding method
                     continue;
                 }
-                
-                /*
-                 * The supertype method is neither shadowed nor narrowed.
-                 * If it ends up that there is more than one of these, then
-                 * an overloaded method will be required.
-                 */
                 perhapsOverloaded.add(super_func);
             }
 
             // need to refine the overloaded methods check because of exclusion
-            MultiMap<Integer, Functional> partitionedByArgCount =
-                partitionByMethodArgCount(oa, perhapsOverloaded);
+            MultiMap<Integer, Functional> partitionedByArgCount = partitionByMethodArgCount(oa, perhapsOverloaded);
 
             if (partitionedByArgCount.size() > 0 ) {
                 
                 overloadedMethods.put(name, partitionedByArgCount);
                 if (DEBUG_OVERLOADED_METHOD_CHAINING)
                     System.err.println(" Method "+ name + " has overloads " + perhapsOverloaded);
-            }            
+            }
+            // TODO now emit necessary overloads, if any.
+            
         }
         return overloadedMethods;
     }
@@ -3658,7 +3605,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     // forObjectDeclPrePass actually generates the class corresponding
     // to the given ObjectDecl.
     public void forObjectDeclPrePass(ObjectDecl x) {
-        debug("forObjectDeclPrePass ", x);
+        debug("Begin forObjectDeclPrePass for ", x);
         TraitTypeHeader header = x.getHeader();
         List<TraitTypeWhere> extendsC = header.getExtendsClause();
 
@@ -3952,23 +3899,27 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          }
         
             
-        
+        debug("Dump overloaded method chaining for ", x);
         Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> overloads = dumpOverloadedMethodChaining(superInterfaces, false);
         if (OVERLOADED_METHODS)
             typeLevelOverloadedNamesAndSigs =
                 generateTopLevelOverloads(thisApi(), overloads, typeAnalyzer, cw,
                         this, new OverloadSet.TraitOrObjectFactory(Opcodes.INVOKEVIRTUAL, cnb));
+        debug("End of dump overloaded method chaining for ", x);
        
+        debug("Process declarations for ", x);
         for (Decl d : header.getDecls()) {
             // This does not work yet.
             d.accept(this);
         }
+        debug("End of processing declarations for ", x);
         
         initCodeGen.instanceInitForObject(abstractSuperclass);
         
-        
+	debug("Dump method chaining for ", x);
         dumpMethodChaining(superInterfaces, false);
         // dumpErasedMethodChaining(superInterfaces, false);
+	debug("End of dump method chaining for ", x);
         
         /* RTTI stuff */
         mv = cw.visitCGMethod(Opcodes.ACC_PUBLIC, // acccess
@@ -4004,6 +3955,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         // Needed (above) to embed a reference to the Rtti information for this type.
         RttiClassAndInterface(x,cnb, xldata);
+        debug("End forObjectDeclPrePass for ", x);
     }
 
     /**
@@ -6071,18 +6023,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return partitionedByArgCount;
     }
 
-    /**
-     * Converts a set of functionals into a map from arg count to set of
-     * functions with that many args.  Singleton sets are replaced with
-     * empty sets because no overload is required in that case.
-     * 
-     * Notice that this might not be right if a function takes "Any" as
-     * a parameter, since a tuple is also an "Any".
-     * 
-     * @param oa
-     * @param defs
-     * @return
-     */
     public static MultiMap<Integer,  Functional> partitionByMethodArgCount(
             OverloadingOracle oa, 
             Set<? extends Functional> defs) {

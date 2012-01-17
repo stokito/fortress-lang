@@ -52,8 +52,8 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
   def lteq(f: Functional, g: Functional): Boolean = {
     val fa = makeArrowFromFunctional(f, true).get
     val ga = makeArrowFromFunctional(g, true).get
-    val fd = sa.makeDomainFromArrow(fa)
-    val gd = sa.makeDomainFromArrow(ga)
+    val fd = sa.makeDomainWithSelfFromArrow(fa)
+    val gd = sa.makeDomainWithSelfFromArrow(ga)
     sa.subtypeED(fd, gd)
   }
   
@@ -172,8 +172,8 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
   // Convenience function when arrows have been extracted from functionals
   // already.
   def lteq(fa: ArrowType, ga: ArrowType): Boolean = {
-    val fd = sa.makeDomainFromArrow(fa)
-    val gd = sa.makeDomainFromArrow(ga)
+    val fd = sa.makeDomainWithSelfFromArrow(fa)
+    val gd = sa.makeDomainWithSelfFromArrow(ga)
     sa.subtypeED(fd, gd)
   }
   

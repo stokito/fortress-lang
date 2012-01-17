@@ -50,6 +50,12 @@ import com.sun.fortress.useful.NI
 class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
   private final val cacheSchemaSubtypes = ProjectProperties.getBoolean("fortress.schema.subtype.cache", true)
 
+  def makeDomainWithSelfFromArrow(a: ArrowType): Type = {
+    if (a.getMethodInfo.isSome && (a.getMethodInfo.get.getSelfPosition == -1))
+        insertStaticParams(NF.makeTupleType(toJavaList(List(a.getMethodInfo.get.getSelfType, a.getDomain))), getStaticParams(a))
+    else insertStaticParams(a.getDomain, getStaticParams(a))
+  }
+
   def makeDomainFromArrow(a: ArrowType): Type = {
     insertStaticParams(a.getDomain, getStaticParams(a))
   }
@@ -103,7 +109,9 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
        * sigma(s) <: t */
       val sparams = getStaticParams(s)
       def constraintMaker(ss: Type, m: Map[Op, Op]) = ta.subtype(ss, t)
-      !inferStaticParamsHelper(s, constraintMaker, true, true).isEmpty
+      val helperResult = inferStaticParamsHelper(s, constraintMaker, true, true)
+//       println("Static params helper says: " + helperResult)
+      !helperResult.isEmpty
     // neither has static parameters; use normal subtyping
     case (s, t) => ta.lteq(s, t)
   }
@@ -144,7 +152,9 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
        * s <: sigma(t) */
       val sparams = getStaticParams(t)
       def constraintMaker(tt: Type, m: Map[Op, Op]) = ta.subtype(s, tt)
-      !inferStaticParamsHelper(t, constraintMaker, true, true).isEmpty
+      val helperResult = inferStaticParamsHelper(t, constraintMaker, true, true)
+//      println("Static params helper says: " + helperResult)
+      !helperResult.isEmpty
     // neither has static parameters; use normal subtyping
     case (s,t) => ta.lteq(s, t)
   }
@@ -192,12 +202,13 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     val yp = getStaticParams(ay)
     assert((xp intersect yp).isEmpty)
     
-    // Create the ugly meet.
+    // Create the ugly join.
     val join = insertStaticParams(makeUnionType(Set(clearStaticParams(ax), clearStaticParams(ay))),
                                   xp ++ yp)
-    
     // Try to reduce this existential type.
-    normalizeED(join)
+    val result = normalizeED(join)
+//     println("The \"ugly join\" of " + x + " aka " + ax + " and " + y + " aka " + ay + " is " + join + ", which normalizes to " + result)
+    result
   }
 
   // The special arrow that we use when checking the return type rule
