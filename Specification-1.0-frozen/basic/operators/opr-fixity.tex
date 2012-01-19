@@ -1,0 +1,106 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Operator Fixity}
+\seclabel{operator-fixity}
+
+\note{Multifix operators are not yet supported.}
+
+Most operators in Fortress can be used variously as prefix, postfix,
+infix, nofix, or multifix operators.
+(See \secref{chained-multifix} for a discussion of how
+infix operators may be chained
+or treated as multifix operators.)
+\note{
+Victor: I think that we shouldn't list ``multifix'' separately here.
+ (Note that multifix does not appear in any of the tables.)
+ Rather multifix is a way to interpret infix operators.}
+Some operators can be used in pairs
+as enclosing (bracketing) operators---see \secref{enclosing-ops}.
+The Fortress language
+dictates only the rules of syntax; whether an operator has
+a meaning when used in a particular way depends only on whether
+there is a definition in the program for that operator when
+used in that particular way (see \chapref{operatordefs}).
+
+The fixity of a non-enclosing operator is determined by context.
+To the left of such an operator we may find
+(1) a \emph{primary tail} (described below),
+(2) another operator, or
+(3) a comma, semicolon, or left encloser.  To the right we may find
+(1) a \emph{primary front} (described below),
+(2) another operator, (3) a comma, semicolon, or right
+encloser, or (4) a line break.
+%
+A primary tail is an identifier, a literal,
+a right encloser, or a superscripted postfix operator (exponent operator).
+A primary front is an identifier, a literal, or a left encloser.
+%
+\note{
+A primary expression is an identifier, a literal,
+an expression enclosed by matching enclosers, a field selection,
+or an expression followed by a postfix operator.}
+Considered in all combinations, this makes twelve possibilities.
+In some cases one must also consider whether or not whitespace separates the operator
+from what lies on either side.  The rules of operator fixity are specified
+by \figref{opr-fixity1}, where the center column indicates the fixity that results
+from the left and right context specified by the other columns.
+
+\begin{figure}[htbp]
+\begin{center}
+{ %start of local bindings
+  \def\two#1#2{\begin{tabular}{c}#1\\#2\end{tabular}}
+  \def\twoone#1{\two{\strut}{\raisebox{1.5ex}[0in][0in]{#1}}}
+  \def\four#1#2#3#4{\begin{tabular}{c}#1\\#2\\#3\\#4\end{tabular}}
+  \def\fourone#1{\four{\strut}{\strut}{\raisebox{1.5ex}[0in][0in]{#1}}{\strut}}
+
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+{\bf left context} & {\bf whitespace} & {\bf operator fixity} & {\bf whitespace} & {\bf right context} \\ \hline
+\fourone{primary tail} & \four{yes}{yes}{no}{no} & \four{{\bf infix}}{{\bf error} (infix)}{{\bf postfix}}{{\bf infix}}
+    & \four{yes}{no}{yes}{no} & \fourone{primary front} \\ \hline
+\fourone{primary tail} & \four{yes}{yes}{no}{no} & \four{{\bf infix}}{{\bf error} (infix)}{{\bf postfix}}{{\bf infix}}
+    & \four{yes}{no}{yes}{no} & \fourone{operator} \\ \hline
+\twoone{primary tail} & \two{yes}{no} & \two{{\bf error} (postfix)}{{\bf
+    postfix}}  &  & \twoone{\txt{, ; }right encloser} \\ \hline
+\twoone{primary tail} & \two{yes}{no} & \two{{\bf infix}}{{\bf postfix}}  &  & \twoone{line break} \\ \hline
+operator         & & {\bf prefix}        & & primary front           \\ \hline
+operator         & & {\bf prefix}        & & operator          \\ \hline
+operator         & & {\bf error} (nofix) & & \txt{, ; }right encloser \\ \hline
+operator         & & {\bf error} (nofix) & & line break        \\ \hline
+\txt{, ; }left encloser& & {\bf prefix}  & & primary front           \\ \hline
+\txt{, ; }left encloser& & {\bf prefix}  & & operator          \\ \hline
+\txt{, ; }left encloser& & {\bf nofix}   & & \txt{, ; }right encloser \\ \hline
+\txt{, ; }left encloser& & {\bf error} (prefix) & & line break        \\ \hline
+\end{tabular}
+
+} %end of local bindings
+\end{center}
+\caption{Operator Fixity (I)}
+\figlabel{opr-fixity1}
+\end{figure}
+
+A case described in the center column of the table as an {\bf error}
+is a static error; for such cases, the fixity mentioned in parentheses
+is the recommended treatment of the operator for the purpose of
+attempting to continuing the parse in search of other errors.
+
+The table may seem complicated, but it all boils down to a couple of practical rules of thumb:
+\begin{enumerate}
+\item {\it Any} operator can be prefix, postfix, infix, or nofix.
+
+\item An infix operator can be \emph{loose} (having whitespace on both sides)
+or \emph{tight} (having whitespace on neither side), but it mustn't be \emph{lopsided}
+(having whitespace on one side but not the other).
+
+\item A postfix operator must have no whitespace before it and must
+be followed (possibly after some whitespace) by a comma, semicolon, right encloser, or line break.
+\end{enumerate}

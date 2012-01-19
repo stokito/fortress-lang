@@ -1,0 +1,255 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Dynamic Semantics}\label{where-dynamic}
+A dynamic semantics for \wherecore\ is provided in
+Figures~\ref{fig:where-dynamic1} and \ref{fig:where-dynamic2}.
+
+\begin{figure}[htbp!]
+Values, evaluation contexts, and redexes\\
+
+\newcommand{\expASO}{\exp\ \tyAS}
+\newcommand{\valASO}{\val\ \tyAS}
+\newcommand{\eargsASO}{\ensuremath{\parens{\seq{\expASO}}}}
+\newcommand{\restyASO}{\ensuremath{\tyAsc\ \ty}}
+\newcommand{\vargsASO} {\ensuremath{\parens{\seq{\valASO}}}}
+\newcommand{\partialvargsASO}{\ensuremath{\parens{\seq{\valASO}\
+  \context\ \tyAS\ \seq{\expASO}}}}
+
+$
+\begin{array}{llll}
+\val   &::=& \objval\\
+\context &::=& \hole\\
+      &|& \oapp\partialvargs\\
+      &|& \invoke{\context}{\vname}\\
+      &|& \invoke{\context\ \static{\ty}}{\ftapp\eargsASO\restyASO}\\
+      &|& \invoke{\val\ \static{\ty}}{\ftapp\partialvargsASO\restyASO}\\
+     &|& \typecase{\context}{\seq{\ty \Rightarrow \exp}}{\exp}\\
+\redex &::=& \invoke{\val}{\vname}\\
+      &|& \invoke{\val\ \static{\ty}}{\ftapp\vargsASO\restyASO}\\
+     &|& \typecase{\val}{\seq{\ty \Rightarrow \exp}}{\exp}
+\end{array}\\ \\
+$
+
+Evaluation rules: \fbox{\reduce{\redex}{\exp}}
+
+\[
+\begin{array}{lc}
+\newinfrule{\begin{array}{c}
+\odsyntaxRFWh \inp
+\end{array}}{
+\begin{array}{c}
+\reduce{\invoke{\objval}{\sub\vname i}}
+{\val_i}\\
+\end{array}
+}
+{\rFieldRule} \\ \\
+
+\newinfrule{\begin{array}{c}
+\mtypeFD{\strecv}{\emptyset} = \set{(
+\tparamsLP~\mkftnty\tyPP\rettytwo, \ignore)}\smallrulesep
+{S(\substseq{\tyP}{\tvone'}\seq\tyPP)} = {\seq\argty}\smallrulesep
+{S(\substseq{\tyP}{\tvone'}\rettytwo)} = {\resty}\\
+\odsyntaxRM \inp
+\rulesep
+\mbodyF{\fname\targsP}{\oapp, \strecv}
+ = \set{\mthbodyP}
+\end{array}}{
+\begin{array}{c}
+\reduce{\invoke{\objval\static{\strecv}}
+{\fname\targsP\vargsPAS} \restyAS}
+{\substseq{\val}{\vname}
+ \subst{\objval}{\self}
+ \substseq{\prm\val}{\prm\vname}S\exp}\\
+\end{array}
+}
+{\rMethodRule} \\ \\
+
+\newinfrule{\begin{array}{c}
+\typeF(\val) = \ty^\val
+\rulesep
+|\tys| = n
+\rulesep
+\neg (\provesSD{\emptyset}{\ty^\val}{\ty_i})
+\rulesep
+1 \le i < n
+\rulesep
+\provesSD{\emptyset}{\ty^\val}{\ty_n}
+\end{array}}{
+\begin{array}{c}
+\reduce{\typecaseR}
+{\subst{\val}{\vname}\exp_n}\\
+\end{array}
+}
+{\rTypecaseRule} \\ \\
+
+\lefteqn{
+{\rTypecaseElseRule} 
+\quad\quad\quad\quad
+\ensuremath
+{ \newfrac
+  {\displaystyle 
+\begin{array}{c}
+\typeF(\val) = \ty^\val
+\rulesep
+\neg (\provesSD{\emptyset}{\ty^\val}{\ty_i})
+\rulesep
+1 \le i \le |\tys|
+\end{array}}
+  {\displaystyle 
+\begin{array}{c}
+\reduce{\typecaseRElse}{\subst{\val}{\vname}\exp'}\\
+\end{array}
+}}
+}
+\\
+\end{array}
+\]
+
+Method body lookup: 
+\fbox{\mbodyF{\ftapp}{\ty, \ty} = \set{\mthbody}}
+
+\[
+\begin{array}{lc}
+
+\newinfrule{
+\begin{array}{c}
+\dsyntaxMB \inp
+\rulesep
+\fdsyntaxMB \in \set{\seq{\fd}}
+\end{array}
+}
+{\mbodyF{\ftappP}{\cname\targs, \strecv} = 
+\set{
+\mkmthbody{\prm\vname}
+{
+\substseq{\tyP}{\tvone'}\substseq{\tyc}{\tvone}\exp}}}
+{\mbBothRule} \\[2em]
+
+\newinfrule{
+\begin{array}{c}
+\dsyntaxMB \inp
+\rulesep
+\fdsyntaxMB \in \set{\seq{\fd}}
+\\
+\tyO \not= \cname\bsTP{\ignore}
+\rulesep
+\recv(\capp, \tyO) = S
+\end{array}
+}
+{\mbodyF{\ftappP}{\cname\targs, \tyO} = 
+\set{
+\mkmthbody{\prm\vname}
+{
+\substseq{\tyP}{\prm\tvone}(S([\seq{\ty/\tvone}]\exp))}}}
+{\mbWitnessRule} \\[2em]
+
+\newinfrule{
+\begin{array}{c}
+\dsyntaxMS \inp
+\rulesep
+\fname\not\in\set{\seq{\Fname(\fd)}}
+\rulesep
+\cname \not= \cname'
+\\\end{array}
+}
+{\mbodyF{\ftappP}
+{\cname\targs, \cname'\bsTP{\seq{\ty^c}}} = 
+ \bigcup_{\sub \tappfour i\in\set{\seq{\tappfour}}} 
+\mbodyF{\ftappP}
+{\substseq{\ty}{\tvone}\sub \tappfour i, 
+\cname'\bsTP{\seq{\ty^c}}
+)
+}}
+{\mbSuperRule}\\[2em]
+
+\newinfrule{
+\begin{array}{c}
+\dsyntaxMS \inp
+\rulesep
+\fname\not\in\set{\seq{\Fname(\fd)}}
+\\\end{array}
+}
+{\mbodyF{\ftappP}
+{\cname\targs, \strecv} = 
+ \bigcup_{\sub \tappfour i\in\set{\seq{\tappfour}}} 
+\mbodyF{\ftappP}
+{\substseq{\ty^c}{\tvone}\sub \tappfour i, \obj}}
+{\mbSuperStatRule}\\[2em]
+
+\newrule{\mbodyF{\ftapp}{\obj, \ty} = \emptyset}{\mbObjRule}
+\end{array}
+\]
+\caption{Dynamic Semantics of \wherecore\ (I)}
+\label{fig:where-dynamic1}
+\end{figure}
+
+\begin{figure}[htbp!]
+Function/method name lookup: \fbox{\Fname(\fd) = \fname} \\ \\
+\Fname(\fdsyntax) = \fname\\ \\
+
+Types of values: \fbox{\typeF(\val) = \ty} \\
+
+$
+\typeF(\objval) = \oapp
+$\\ \\
+
+Finding witnesses from the static type of the receiver:
+\fbox{\recv(\ty, \ty) = S}
+
+\[
+\begin{array}{llll}
+\recv(\ty, \tyP) &=& \left\{
+\begin{array}{ll}
+\emptysubst & \mbox{if }\tyP = \obj\\
+\witness(\capp, \cname\bsTP{\seq{\tyP}}) &
+\mbox{if }\ty = \capp
+\mbox{ and } \tyP = \cname\bsTP{\seq{\tyP}}\\
+S_n \more\ S_1 &
+\mbox{if }\ty = \capp
+\mbox{, } \tyP = \cname'\bsTP{\seq{\tyP}}
+\mbox{, } \cname \not= \cname'\mbox{, }\\
+& 
+ \dsyntaxRECV \inp\mbox{,}\\
+& 
+\mbox{and } \recv(\substseq{\ty}{\tvone}\sub \tappfour i,
+ \cname'\bsTP{\seq{\tyP}}) = S_i
+\mbox{ for }{\sub \tappfour i\in\set{\seq{\tappfour}}} \\
+\emptysubst & \mbox{otherwise}
+\end{array}
+\right.
+\end{array} \\ \\
+\]
+
+Match two types to get substitutions: \fbox{\witness(\ty, \ty) = S}
+
+\[
+\begin{array}{llll}
+\witness(\ty, \tyP) & = & 
+\left\{
+\begin{array}{ll}
+\emptysubst & \mbox{if } \ty = \tyP\\
+\subst{\tyP}{\tvtwo} & \mbox{if } \ty = \tvtwo\\
+S_n \more\ S_1 
+& \mbox{if } \ty = \capp
+\mbox{, } \tyP = \cname\bsTP{\seq{\tyP}}
+\mbox{, and }
+\witness(S_{i-1} \more\ S_1 \tyn i, {\tyn i}') = S_i
+\mbox{ for }1\leq i\leq n\\
+\emptysubst & \mbox{otherwise}
+\end{array}
+\right.
+\end{array}
+\]
+
+\caption{Dynamic Semantics of \wherecore\ (II)}
+\label{fig:where-dynamic2}
+\end{figure}

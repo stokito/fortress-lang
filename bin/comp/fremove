@@ -1,0 +1,13 @@
+#!/bin/bash
+
+FHOME=/Users/Tristan/Code/workspace/Project/default_repository/caches/bytecode_cache
+
+rm -Rf $FHOME/$1
+if [ -f $FHOME/$1.jar ]
+then 
+    rm $FHOME/$1.jar
+fi
+if [ -f $FHOME/$1.class ]    
+then 
+    rm $FHOME/$1.class
+fi

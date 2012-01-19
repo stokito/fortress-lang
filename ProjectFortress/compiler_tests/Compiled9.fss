@@ -1,0 +1,46 @@
+(*******************************************************************************
+   Copyright 2009, Oracle and/or its affiliates.
+   All rights reserved.
+
+
+   Use is subject to license terms.
+
+   This distribution may include materials developed by third parties.
+
+******************************************************************************)
+
+component Compiled9
+
+export Executable
+
+object C extends A end
+object D extends B end
+
+trait A
+  coerce(x: D) = C
+end
+
+trait B
+  coerce(x: C) = D
+end
+
+f(x: A): A = x
+g(x: B): B = x
+
+h(x: A): C = C
+i(x: A, y: B): C = C
+
+run():() = do
+  (*) Test trait type coercions.
+  x: A = D
+  y: B = C
+  a = f(D)
+  b = g(C)
+
+  (*) Test arrow type coercions.
+  c1: D -> B = h
+
+  println "OK"
+end
+
+end

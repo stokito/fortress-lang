@@ -1,0 +1,97 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component labelExit
+export Executable
+
+(* Testing basic named labels *)
+test1()=do
+    barney:ZZ32 =
+        label fred
+            if true
+            then exit fred with 3
+            else 7
+            end
+        end fred
+    assert(barney,3,"label 1 failed")
+end
+
+(* Testing nested named labels *)
+test2()=do
+    barney:ZZ32 =
+        label fred
+            label wilma
+                if true
+                then exit fred with 3
+                else 7
+                end
+            end wilma
+            exit fred with 9
+        end fred
+    assert(barney,3,"label 2 failed")
+end
+
+(* Testing basic anonymous end statements *)
+test3()=do
+    barney:ZZ32 =
+        label fred
+            if true
+            then exit with 3
+            else 7
+            end
+        end fred
+    assert(barney,3,"label 3 failed")
+end
+
+(* Testing exit from nested functions *)
+test4() = do
+    barney:ZZ32 =
+        label fred
+            wilma(x:ZZ32) = exit fred with x
+            if true then wilma(5) else 17 end
+        end fred
+    assert(barney,5,"label 4 failed")
+  end
+
+(* Testing non-exit from loop *)
+test5() = do
+    pebbles : ZZ32[5] = array1[\ZZ32,5\](0)
+    barney : Boolean = label fred
+        for v <- pebbles do
+            if v=/=0 then exit with false end
+        end
+        true
+      end fred
+    assert(barney,true,"label 5 failed")
+  end
+
+(* Testing exit from loop *)
+test6() = do
+    pebbles : ZZ32[5] = array1[\ZZ32,5\](0)
+    pebbles[3] := 7
+    barney : Boolean = label fred
+        for v <- pebbles do
+            if v=/=0 then exit with false end
+        end
+        true
+      end fred
+    assert(barney,false,"label 5 failed")
+  end
+
+run():()=do
+    test1()
+    test2()
+    test3()
+    test4()
+    test5()
+    test6()
+end
+end

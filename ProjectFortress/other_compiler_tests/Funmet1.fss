@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Funmet1
+
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+export Funmet1
+
+trait T
+  me(self, x:ZZ32):ZZ32 = x + 1
+end
+
+object O extends T
+  me(self, x:ZZ32):ZZ32 = x + 2
+end
+
+f1() : T = O
+
+end

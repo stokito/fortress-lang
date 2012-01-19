@@ -1,0 +1,42 @@
+#!/bin/bash
+
+FHOME=/Users/Tristan/Code/workspace/Project/default_repository/caches/bytecode_cache
+
+export PATH=$PATH:"/Users/Tristan/Code/workspace/Project/bin/comp/"
+
+cd $FHOME
+
+if [ -d "___TMP/" ]
+then
+    rm -Rf ___TMP
+fi 
+mkdir ___TMP
+
+cat $FHOME/$2/symbolics |
+(
+    while read line
+    do
+        `echo "$line" |
+            awk '/unit/ {print "cp -R " $2 " ___TMP/"$2}'`
+    done
+)
+cat $FHOME/$2/symbolics |
+(
+    while read line
+    do
+        #`echo "$line" | sed 's/'$3'/'$4'/' | sed 's/'$2'/'$1'/'`
+        #echo "$line" | sed 's/'$3'/'$4'/' | sed 's/'$2'/'$1'/'
+        `echo "$line" | 
+            awk '/flink/ {print "flink " "___TMP/"$2 " " "___TMP/"$3 " " "___TMP/"$4}' | 
+            sed 's/___TMP\/'$3'/'$4'/' | 
+            sed 's/___TMP\/'$2'/'$1'/'`
+    done
+)
+
+
+
+
+
+
+
+    

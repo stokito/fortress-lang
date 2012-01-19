@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(* Test apparent failure of the singleton object mechanism.
+ *)
+component MaybeTest16
+import CompilerAlgebra.{ ... }
+export Executable
+
+object Baz
+  getter asString() = "Baz"
+end
+
+object Quux
+  getter asString() = "Quux"
+end
+
+value object TestNothingObject[\T\] extends Equality[\TestNothingObject[\T\]\]
+end
+
+run(): () = do
+    assert(TestNothingObject[\Baz\] = TestNothingObject[\Baz\])
+    assert(TestNothingObject[\Quux\] = TestNothingObject[\Quux\])
+    println "PASS"
+end
+
+end

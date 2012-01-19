@@ -1,0 +1,54 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009 Sun Microsystems, Inc.,
+#    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+#    All rights reserved.
+#
+#    U.S. Government Rights - Commercial software.
+#    Government users are subject to the Sun Microsystems, Inc. standard
+#    license agreement and applicable provisions of the FAR and its supplements.
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+#    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+#    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+################################################################################
+
+#
+# For NetBeans, you should not need to adjust anything to
+# build and test Fortress.
+#
+# For Eclipse, workspace and ant builds should not require any
+# adjustments, but to run tests using Ant within Eclipse, you
+# will need to add junit.jar to
+# build.xml -> Run As -> Ant Build... -> Classpath -> User Entries -> Add JARs...
+#
+
+find_ant(){
+  # Strip "." from the path, and look for ant.
+  # This avoids infinite regress if this is the first or only "ant" on the normal PATH.
+  export NODOTPATH="`echo "$PATH" | sed -e '1,$s/^[.]://g'`"
+  NODOTPATH="`echo "$NODOTPATH" | sed -e '1,$s/:[.]:/:/g'`"
+  NODOTPATH="`echo "$NODOTPATH" | sed -e '1,$s/:[.]$//g'`"
+  result="`(PATH="$NODOTPATH" which ant 2>/dev/null)`"
+  if [ -z "$result" ]; then
+    echo "Could not find ant. You need to install it. See http://ant.apache.org/ for details." >&2
+    exit 1
+  fi
+  echo $result
+  exit 0
+}
+
+ant_exec="`find_ant`"
+n=$?
+if [ $n -ne 0 ]; then
+        exit $n
+fi
+
+# Note that the scripts reference must export their symbols so that they are available below.
+. ./antrc_suggested
+
+"$ant_exec" -noclasspath "$@"

@@ -1,0 +1,117 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component sequivTest
+export Executable
+
+equiv(a:Any, b:Any, other: Any...): () =
+    if NOT (a SEQV b AND b SEQV a) then
+        res = BIG ||[x<-other] x
+        fail(a " not SEQV " b ": " res)
+    end
+
+
+nequiv(a:Any, b:Any, other: Any...): () =
+    if a SEQV b OR b SEQV a then
+        res = BIG ||[x<-other] x
+        fail(a " SEQV " b ": " res)
+    end
+
+run() = do
+    a : ZZ32 = 45
+    b : RR64 = 45.0
+    c : RR64 = 5.0 + 40.0
+    d : ZZ64 = 1934137491234745 - 1934137491234700
+    e : ZZ = 19341374912347452347629872905790283423598124792143168
+    f : RR64 = b + e
+    g : RR64[3] = [ 0.0 1.0 3.14 ]
+    h : ZZ32 -> ZZ32 = identity[\ZZ32\]
+    i : ZZ32 -> ZZ32 = fn (x:ZZ32): ZZ32 => x
+    j : Number -> Number = identity[\Number\]
+    equiv(a,a)
+    equiv(b,b)
+    equiv(c,c)
+    equiv(d,d)
+    equiv(e,e)
+    equiv(f,f)
+    equiv(g,g)
+    equiv(h,h)
+    equiv(i,i)
+    equiv(j,j)
+    equiv(a,b)
+    equiv(a,c)
+    equiv(a,d)
+    nequiv(a,e)
+    nequiv(a,f)
+    nequiv(a,g)
+    nequiv(a,h)
+    nequiv(a,i)
+    nequiv(a,j)
+    equiv(b,c)
+    equiv(b,d)
+    nequiv(b,e)
+    nequiv(b,f)
+    nequiv(b,g)
+    nequiv(b,h)
+    nequiv(b,i)
+    nequiv(b,j)
+    equiv(c,d)
+    nequiv(c,e)
+    nequiv(c,f)
+    nequiv(c,g)
+    nequiv(c,h)
+    nequiv(c,i)
+    nequiv(c,j)
+    nequiv(d,e)
+    nequiv(d,f)
+    nequiv(d,g)
+    nequiv(d,h)
+    nequiv(d,i)
+    nequiv(d,j)
+    equiv(e+0.0,f)
+    nequiv(e,g)
+    nequiv(e,h)
+    nequiv(e,i)
+    nequiv(e,j)
+    nequiv(f,g)
+    nequiv(f,h)
+    nequiv(f,i)
+    nequiv(f,j)
+    nequiv(g,h)
+    nequiv(g,i)
+    nequiv(g,j)
+    nequiv(h,i)
+    nequiv(h,j)
+    nequiv(i,j)
+    equiv((a,b),(a,c))
+    equiv((),())
+    nequiv((a,a),(a,f))
+    nequiv((),a)
+    nequiv(a,())
+    equiv(true,true)
+    equiv(false,false)
+    nequiv(true,false)
+    nequiv(true,17)
+    n = Nothing[\ZZ32\]
+    jj = Just[\ZZ32\](18)
+    equiv(n,n)
+    equiv(jj,jj)
+    nequiv(n,jj)
+    equiv(jj,Just[\ZZ32\](18))
+    nequiv(n,a)
+    nequiv(n,true)
+    nequiv(jj,a)
+    nequiv(jj,false)
+    equiv((a,jj),(b,jj))
+    equiv((a,Just[\ZZ32\](18)),(a,jj))
+  end
+
+end

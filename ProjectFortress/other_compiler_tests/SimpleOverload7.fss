@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SimpleOverload7
+
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.bar => jBar}
+
+import java com.sun.fortress.nativeHelpers.{simpleOverload.baz => jBaz}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.duo => jDuo}
+import java com.sun.fortress.nativeHelpers.{simpleIntArith.iMulL => iMulL}
+
+export Executable
+
+print2(x:String, y:String):() = do
+  jPrintln(jDuo(x.asJavaString,y.asJavaString))
+end
+
+local(x:ZZ64, y:ZZ64):String = "baz"
+local(x:ZZ32, y:ZZ32):String = "11"
+
+run(): () = do
+  print2("PA","SS")
+
+  jPrintln(local(iMulL(9000000,1000000), iMulL(8000000,2000000)).asJavaString)
+  jPrintln(local(5,6).asJavaString)
+
+end
+
+
+end
