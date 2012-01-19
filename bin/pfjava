@@ -15,4 +15,4 @@ FORTRESS_HOME=`${0%pfjava}fortress_home`
 
 CP="`"${FORTRESS_HOME}"/bin/run_classpath`"
 
-java $JAVA_FLAGS -cp "$CP" "$@"
+java $JAVA_FLAGS -cp "expanded.jar;$CP" "$@"
