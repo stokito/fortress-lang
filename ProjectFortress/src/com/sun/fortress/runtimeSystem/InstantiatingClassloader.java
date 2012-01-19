@@ -33,6 +33,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.util.TraceClassVisitor;
+import org.objectweb.asm.tree.*;
 
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.codegen.ManglingClassWriter;
@@ -288,7 +289,21 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         // throw new ClassNotFoundException("Don't know how to instantiate generic " + stem + " of " + parameters);
                     }
                 } else {
+                	//System.out.println("Getting class: " + name);
                     classData = getClass(name);
+                    
+                    ClassReader cr = new ClassReader(classData);
+                    ClassNode classADT = new ClassNode();
+                    cr.accept(classADT, 0);
+                    
+                    if (!(name.replace('.','/')).equals(classADT.name)) {
+                    	System.out.println("Renaming on the fly :-)");
+                    	classADT.name = name;
+                    }
+                    
+                    ClassWriter cw = new ClassWriter(0);
+                    classADT.accept(cw);
+                    classData = cw.toByteArray();
                 }
                 
                 if (expanded && SAVE_EXPANDED_JAR != null) {
