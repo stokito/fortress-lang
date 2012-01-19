@@ -23,9 +23,11 @@ import org.objectweb.asm.Type;
 
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.useful.CheapSerializer;
+import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.ProjectedList;
 import com.sun.fortress.useful.Triple;
+import com.sun.fortress.useful.Useful;
 import com.sun.fortress.useful.VersionMismatch;
 
 public class Naming {
@@ -88,6 +90,22 @@ public class Naming {
                         data.getB(),
                         new Triple.GetA<String, String, Integer>());
             return xl;
+        }
+        
+        public final static F<String, Boolean> isOpr = new F<String, Boolean>() {
+            @Override
+            public Boolean apply(String x) {
+                return x.equals(Naming.XL_OPR);
+            }
+            
+        };
+        
+        public List<Boolean> isOprKind() {
+            List<String> xl =
+                new ProjectedList<Triple<String, String, Integer>, String>(
+                        data.getB(),
+                        new Triple.GetA<String, String, Integer>());
+            return Useful.applyToAll(xl, isOpr);
         }
         public List<Pair<String,String>> staticParameterKindNamePairs() {
             List<Pair<String,String>> xl =
@@ -186,6 +204,8 @@ public class Naming {
     
     public final static String LEFT_HEAVY_ANGLE = "\u276e"; // marks Opr parameters in RTTI types
     public final static String RIGHT_HEAVY_ANGLE = "\u276f"; // marks Opr parameters in RTTI types
+    public final static char LEFT_HEAVY_ANGLE_CHAR = LEFT_HEAVY_ANGLE.charAt(0); // marks Opr parameters in RTTI types
+    public final static char RIGHT_HEAVY_ANGLE_CHAR = RIGHT_HEAVY_ANGLE.charAt(0); // marks Opr parameters in RTTI types
 
     public final static String XL_BOOL = "bool";
     public final static String XL_INTNAT = "intnat";
@@ -1042,6 +1062,12 @@ public class Naming {
         return sb.toString();
     }
 
+    public static String fileForOprTaggedGeneric(String stemClassName) {
+        return stemClassName + LEFT_HEAVY_ANGLE + RIGHT_HEAVY_ANGLE;
+    }
+
+
+    
     /**
      * Returns the name of the RTTI interface for a Fortress type,
      * given the (Java) name of the stem of the type.
@@ -1157,8 +1183,9 @@ public class Naming {
         
         public static final String GENERIC_SEPARATOR = ",";
         public static final char GENERIC_SEPARATOR_CHAR = GENERIC_SEPARATOR.charAt(0);
-        public static final String NON_OVERLOADED_TAG = "\u2659";
-
+        public static final String NON_OVERLOADED_TAG = "\u2659"; // Pawn
+        public static final String METHOD_SPECIALS = NON_OVERLOADED_TAG + INDEX;
+        
 
     
 }
