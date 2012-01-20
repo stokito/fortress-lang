@@ -1,0 +1,184 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress parameters.
+ */
+module com.sun.fortress.parser.Parameter(NoNewlineHeader, MayNewlineHeader,
+                                         Type, Expr, Identifier, Keyword,
+                                         Symbol, Spacing);
+
+import NoNewlineHeader;
+import MayNewlineHeader;
+import Type;
+import Expr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* ValParam ::= BindId | ( (w Params)? w ) */
+transient List<Param> ValParam =
+     a1:BindId
+     { yyValue = Useful.list(NodeFactory.makeParam(a1)); }
+   / openparen a1:(w Params)? w closeparen
+     { if (a1 == null) yyValue = Collections.<Param>emptyList();
+       else            yyValue = a1;
+     };
+
+/* AbsValParam ::= ( (w AbsParams)? w ) | Type */
+transient List<Param> AbsValParam =
+     openparen a1:(w AbsParams)? w closeparen
+     { if (a1 == null) yyValue = Collections.<Param>emptyList();
+       else            yyValue = a1;
+     }
+   / a1:Type
+     { yyValue = Useful.list(NodeFactory.makeAbsParam(a1)); };
+
+/* Params ::=
+     (Param w , w)* (Varargs w , w)? Keyword (w , w Keyword)*
+   | (Param w , w)*  Varargs
+   |  Param (w , w Param)*
+ */
+transient Param Parameter = Keyword / Varargs / Param ;
+transient List<Param> Params =
+     a1:Parameter a2s:(w comma w Parameter)+
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkParams(writer, yyValue);
+     }
+   / a1:Parameter a2s:(w commaOrNot w Parameter)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / a1:Parameter
+     { yyValue = Useful.list(a1);
+       NodeUtil.checkParams(writer, yyValue);
+     };
+
+/* AbsParams ::=
+     (AbsParam w , w)* (Varargs w , w)? Keyword (w , w Keyword)*
+   | (AbsParam w , w)*  Varargs
+   |  AbsParam (w , w AbsParam)*
+ */
+transient Param AbsParameter = Keyword / Varargs / AbsParam ;
+transient List<Param> AbsParams =
+     a1:AbsParameter a2s:(w comma w AbsParameter)+
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkParams(writer, yyValue);
+     }
+   / a1:AbsParameter a2s:(w commaOrNot w AbsParameter)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkParams(writer, yyValue);
+     }
+   / a1:AbsParameter
+     { yyValue = Useful.list(a1);
+       NodeUtil.checkParams(writer, yyValue);
+     };
+
+/* Varargs ::= BindId w : w Type w ... */
+transient Param VarargsParam = a1:BindId w colon w a2:Type w ellipses
+     { yyValue = NodeFactory.makeVarargsParam(a1, a2); };
+transient Param Varargs = VarargsParam ;
+
+/* Keyword ::= Param w = w Expr */
+transient Param Keyword = a1:Param w equals w a2:Expr
+     { yyValue = NodeFactory.makeParam(a1, a2); };
+
+/* Param ::= BindId (w IsTypeOrPattern)? */
+transient Param PlainParam =
+     a1:BindId a2:(w IsTypeOrPattern)?
+     { if (a2 != null) yyValue = NodeFactory.makeParam(a1, a2);
+       else            yyValue = NodeFactory.makeParam(a1);
+     };
+transient Param Param = PlainParam ;
+
+/* AbsParam ::= BindId w IsType | Type */
+transient Param AbsPlainParam =
+     a1:BindId w a2:IsType
+     { yyValue = NodeFactory.makeParam(a1, a2); }
+   / a1:Type
+     { yyValue = NodeFactory.makeAbsParam(a1); };
+transient Param AbsParam = AbsPlainParam ;
+
+/* OpHeaderFront ::=
+     opr (w BIG)? w (LeftEncloser w |-> | LeftEncloser | Encloser) (w StaticParams)?
+     (w Params)? w (RightEncloser | Encloser)
+   | opr w ValParam w (Op | ExponentOp | ^) (w StaticParams)?
+   | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w ValParam
+ */
+transient Op LeftOp =
+     a1:LeftEncloser w mapsto
+     { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount),
+                                             a1.getText() + "|->");
+     }
+   / LeftEncloser
+   / Encloser ;
+transient Op SingleOp =
+     Op
+   / caret { yyValue=NodeFactory.makeOpUnknown(createSpan(yyStart,yyCount), "^"); }
+   / Encloser
+   / SUM  { yyValue=NodeFactory.makeOpBig(createSpan(yyStart,yyCount), "BIG +"); }
+   / PROD { yyValue=NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
+                                          "BIG juxtaposition"); };
+FnHeaderFront OpHeaderFront =
+     <Enclosing> opr big:(w BIG)? w opa1:LeftOp
+     opa2:(w StaticParams)? opa3:(w Params)? w opa4:(RightEncloser / Encloser)
+     { if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
+       if (opa3 == null) opa3 = Collections.<Param>emptyList();
+       yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
+                                            opa1, opa4.getText(), Option.<String>wrap(big),
+                                            opa2, opa3);
+     }
+   / opr w a1:ValParam w a2:(Op / ExponentOp /
+                             caret {yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart,yyCount), "^");}
+                            ) a3:(w StaticParams)?
+     { Op op = (Op)a2;
+       if (a3 == null)
+           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(op), a1);
+       else
+           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(op), a3, a1);
+     }
+   / opr big:(w BIG)? w a1:SingleOp a2:(w StaticParams)? w a3:ValParam
+     { yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
+                                            a1, Option.<String>wrap(big),
+                                            Option.<List<StaticParam>>wrap(a2), a3);
+     };
+
+/* AbsOpHeaderFront ::=
+     opr (w BIG)? w (LeftEncloser w |-> | LeftEncloser | Encloser) (w StaticParams)?
+     (w AbsParams)? w (RightEncloser | Encloser)
+   | opr w AbsValParam w (Op | ExponentOp | ^) (w StaticParams)?
+   | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w AbsValParam
+ */
+FnHeaderFront AbsOpHeaderFront =
+     <Enclosing> opr big:(w BIG)? w opa1:LeftOp
+     opa2:(w StaticParams)? opa3:(w AbsParams)? w opa4:(RightEncloser / Encloser)
+     { if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
+       if (opa3 == null) opa3 = Collections.<Param>emptyList();
+       yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
+                                            opa1, opa4.getText(),
+                                            Option.<String>wrap(big), opa2, opa3);
+     }
+   / opr w a1:AbsValParam w a2:(Op / ExponentOp
+                                caret {yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart,yyCount), "^");}
+                               ) a3:(w StaticParams)?
+     { Op op = (Op)a2;
+       if (a3 == null)
+           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(op), a1);
+       else
+           yyValue = new FnHeaderFront(NodeFactory.makeOpPostfix(op), a3, a1);
+     }
+   / opr big:(w BIG)? w a1:SingleOp a2:(w StaticParams)? w a3:AbsValParam
+     { yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
+                                            a1, Option.<String>wrap(big),
+                                            Option.<List<StaticParam>>wrap(a2), a3);
+     };

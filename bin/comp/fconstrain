@@ -1,0 +1,20 @@
+#!/bin/bash
+
+FHOME=/Users/Tristan/Code/workspace/Project/default_repository/caches/bytecode_cache
+
+cp -R $FHOME/$2 $FHOME/$1
+rm $FHOME/$1/exports
+touch $FHOME/$1/exports
+
+cat $FHOME/$2/exports |
+(
+    while read line
+    do
+        arr=($line)
+        if [ ${arr[2]} != $3 ]
+        then
+            echo $line >> $FHOME/$1/exports
+        fi
+    done
+)
+

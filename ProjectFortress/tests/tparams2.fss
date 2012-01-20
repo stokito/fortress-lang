@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component tparams2
+export Executable
+
+object O[\ nat n, bool b, int i\]()
+  getN():ZZ32 = n
+  getB():String = if b then "T" else "F" end
+  getI():ZZ32 = i
+end
+
+
+
+run():()=do
+  o = O[\1, true, 2\]()
+  println("o = " o.getN() " " o.getB() " " o.getI() )
+end
+
+
+end

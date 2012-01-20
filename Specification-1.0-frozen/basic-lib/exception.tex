@@ -1,0 +1,74 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Exceptions}
+\chaplabel{lib:exception}
+
+\Trait{Fortress.Standard.Exception}
+
+The trait \TYP{Exception} is a single root of the exception hierarchy;
+every exception in Fortress has trait \TYP{Exception}.
+An exception is either a \TYP{CheckedException} or an
+\TYP{UncheckException}.
+Every exception has optional fields: a message and a chained exception.
+These fields are default to \TYP{Nothing}
+where an optional value \VAR{v} is either \TYP{Nothing} or
+\EXP{\TYP{Just}(v)} as declared in \secref{convenience-types}.
+
+
+% trait Exception comprises { CheckedException, UncheckedException }
+%   settable message: Maybe[\String\]
+%   settable chain: Maybe[\Exception\]
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait} \TYP{Exception} \KWD{comprises} \{\,\TYP{CheckedException}, \TYP{UncheckedException}\,\}\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{settable} \VAR{message}\COLON \TYP{Maybe}\llbracket\TYP{String}\rrbracket\)\\
+\(   \KWD{settable} \VAR{chain}\COLON \TYP{Maybe}\llbracket\TYP{Exception}\rrbracket\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+%   settable message: Maybe[\String\]
+\Method{\EXP{   \KWD{settable} \VAR{message}\COLON \TYP{Maybe}\llbracket\TYP{String}\rrbracket}}
+
+When an exception is thrown, its \VAR{message} may be set. 
+
+%   settable chain: Maybe[\Exception\]
+\Method{\EXP{   \KWD{settable} \VAR{chain}\COLON \TYP{Maybe}\llbracket\TYP{Exception}\rrbracket}}
+
+When an exception is thrown, its \VAR{chain} may be set to the exception
+thrown immediately before this exception.
+
+
+\Trait{Fortress.Standard.CheckedException}
+
+% trait CheckedException 
+%   extends { Exception }
+%   excludes { UncheckedException }
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait} \TYP{CheckedException} \)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{extends} \{\,\TYP{Exception}\,\}\)\\
+\(   \KWD{excludes} \{\,\TYP{UncheckedException}\,\}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+\Trait{Fortress.Standard.UncheckedException}
+
+% trait UncheckedException 
+%   extends { Exception }
+%   excludes { CheckedException }
+%end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait} \TYP{UncheckedException} \)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{extends} \{\,\TYP{Exception}\,\}\)\\
+\(   \KWD{excludes} \{\,\TYP{CheckedException}\,\}\)\-\-\\\poptabs\poptabs
+\(\KWD{end}\)
+\end{Fortress}

@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+component GS3
+export Executable
+
+(* Test: Extension of interesting supertypes *)
+
+object G[\T\] extends Equality[\G[\T\]\]
+   opr =(self, other: G[\T\]): Boolean = true
+end
+
+run():()= do
+   println(if G[\String\] = G[\String\] then "PASS" else "FAIL")
+   println(if G[\String\] = G[\ZZ32\] then "FAIL" else "PASS")
+
+   end
+
+end

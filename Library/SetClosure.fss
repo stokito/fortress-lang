@@ -1,0 +1,133 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SetClosure
+import Set.{...}
+export SetClosure
+
+(* closure predicates *)
+
+isClosed[\T\](s: Set[\T\], f: T->Set[\T\]): Boolean =
+  BIG AND[x <- s] f(x) SUBSETEQ s
+
+isClosed2[\T\](s: Set[\T\], f: (T,T)->Set[\T\]): Boolean =
+  BIG AND[x <- s, y <- s] f(x,y) SUBSETEQ s
+
+(*
+isClosedN[\T\](set: Set[\T\], f: Array[\T\]->Set[\T\], n: ZZ32): Boolean =
+  BIG AND[xs <- arraysFrom(set,n)] f(xs) SUBSETEQ set
+
+arraysFrom(set:Set[\T\], n: ZZ32): Generator[\Array[\T\]\] =
+  if n = 0 then Just(array[\T\](0)) else ArraysFrom[\T\](set, arraysFrom[\T\](set, n-1)) end
+
+object ArraysFrom[\T\](set:Set[\T\], sub: Generator[\Array[\T\]\]) extends Generator[\Array[\T\]\]
+  generate[\R\](r: Reduction[\R\], body: T->R): R = do
+    set.cross(sub).map(arrayCons[\T\])
+  end
+end
+
+arrayCons[\T\](x:T, xs:Array[\T\]) = do
+  a = array[\T\](xs.size + 1)
+  for (i,ix) <- xs.indexValuePairs do
+    a[i] := ix
+  end
+  a[xs.size] := x
+  a
+end
+*)
+
+(* closure functions *)
+
+closure[\T\](start: Set[\T\], f: T->Set[\T\]): Set[\T\] = do
+  closureLoop(accResult: Set[\T\], working: Set[\T\]) =
+    if working.isEmpty then accResult else
+      newResult = accResult UNION working
+      newOnes = BIG UNION[\T\][x <- working] f(x)
+      closureLoop(newResult, newOnes DIFFERENCE newResult)
+  end
+  closureLoop(set[\T\](), start)
+end
+
+closure2[\T\](start: Set[\T\], f: (T,T)->Set[\T\]): Set[\T\] = do
+  closure2Loop(accResult: Set[\T\], working: Set[\T\]) =
+    if working.isEmpty then accResult else
+      newResult = accResult UNION working
+      newOnes = ((BIG UNION[\T\][x <- working, y <- accResult THEN working] f(x,y))
+                 UNION (BIG UNION[\T\][x <- accResult, y <- working] f(x,y)))
+      closure2Loop(newResult, newOnes DIFFERENCE newResult)
+    end
+  closure2Loop(set[\T\](), start)
+end
+
+object ConcatGenerator[\T\](first:Generator[\T\], second:Generator[\T\])
+    extends Generator[\T\]
+  generate[\R\](r: Reduction[\R\], body:T->R):R =
+    r.join(first.generate[\R\](r, body), second.generate[\R\](r, body))
+end
+
+opr THEN[\T\](x: Generator[\T\], y: Generator[\T\]):Generator[\T\] =
+  ConcatGenerator[\T\](x,y)
+
+test testClosurePredicates():() = do
+  emptySet = set[\ZZ32\]()
+  f(n: ZZ32): Set[\ZZ32\] = {[\ZZ32\] n, -n }
+  input = {[\ZZ32\] 1,2,3}
+
+  assert(isClosed(emptySet, f))
+  assert(isClosed({[\ZZ32\] -1, 0, 1}, f))
+  assert(NOT isClosed({[\ZZ32\] 0,1}, f))
+
+  g(x: ZZ32, y:ZZ32): Set[\ZZ32\] = {[\ZZ32\] |x-y|}
+  assert(isClosed2(emptySet, g))
+  assert(isClosed2({[\ZZ32\] 0,2 4}, g))
+  assert(NOT isClosed2({[\ZZ32\] 0, 1, 3}, g))
+
+  println("Closed predicate tests pass")
+end
+
+test testClosure():() = do
+  emptySet = set[\ZZ32\]()
+  f(n: ZZ32): Set[\ZZ32\] = {[\ZZ32\] n, -n }
+  g(n: ZZ32): Set[\ZZ32\] = {[\ZZ32\] j | j<-1:n, n MOD j = 0 }
+  h(n: ZZ32): Set[\ZZ32\] = if n=0 then emptySet else {[\ZZ32\] n-1} end
+  input = {[\ZZ32\] 1,2,3}
+  assert(closure(input, f), {[\ZZ32\] 1, -1 , 2, -2, 3, -3})
+  assert(closure(emptySet, f), emptySet)
+  input2 = {[\ZZ32\] 30, 42}
+  result2 = closure(input2, g)
+  assert(closure(input2, g), {[\ZZ32\] 1,2,3,5,6,7,10,14,15,21,30,42})
+  assert(closure({[\ZZ32\] 4, 8}, h), {[\ZZ32\] x | x<-0:8 })
+
+  println("Closure (unary generator) tests pass")
+end
+
+test testClosure2():() = do
+  emptySet = set[\ZZ32\]()
+  f(x:ZZ32, y:ZZ32):Set[\ZZ32\] = {[\ZZ32\] |x-y| }
+  set1 = {[\ZZ32\] 9, 6}
+  assert(closure2(set1, f), {[\ZZ32\] 0, 3, 6, 9})
+  set2 = {[\ZZ32\] 4, 5}
+  assert(closure2(set2, f), {[\ZZ32\] 0, 1, 2, 3, 4, 5})
+
+  g(x:ZZ32, y:ZZ32):Set[\ZZ32\] = {[\ZZ32\] (x + y) MOD 7}
+  set3 = {[\ZZ32\] 4}
+  assert(closure2(set3, g), {[\ZZ32\] x | x <- 0:6 })
+
+  h(x:ZZ32, y:ZZ32):Set[\ZZ32\] = {[\ZZ32\] (x + y) MOD 6}
+  set4 = {[\ZZ32\] 4}
+  assert(closure2(set4, h), {[\ZZ32\] 0, 2, 4})
+
+  println("Closure (binary generator) tests pass")
+end
+
+run():() = ()
+
+end

@@ -1,0 +1,19 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled1.s
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled1.s.fss:15:1-16:2:\n\
+\ Invalid top-level declaration.\n\
+${STATIC_TESTS_DIR}/Compiled1.s.fss:15:10-16:2:\n\
+\ Missing function body.\n\
+File Compiled1.s.fss has 2 errors.\n
+compile_out_equals=

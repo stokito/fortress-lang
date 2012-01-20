@@ -1,0 +1,37 @@
+#    Copyright 2009,2010,2011 Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled6.at
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled6.at.fss:24:5-8:\n\
+\ O has no getter called foo\n\
+${STATIC_TESTS_DIR}/Compiled6.at.fss:25:5-12:\n\
+\ Could not check call to operator +\n\
+\ - (IntLiteral, IntLiteral)->IntLiteral is not applicable to an argument of type (String, IntLiteral).\n\
+\ - (NN32, NN32)->NN32 is not applicable to an argument of type (String, IntLiteral).\n\
+\ - (NN64, NN64)->NN64 is not applicable to an argument of type (String, IntLiteral).\n\
+\ - (RR64, RR64)->RR64 is not applicable to an argument of type (String, IntLiteral).\n\
+\ - (ZZ, ZZ)->ZZ is not applicable to an argument of type (String, IntLiteral).\n\
+\ - (ZZ32, ZZ32)->ZZ32 is not applicable to an argument of type (String, IntLiteral).\n\
+\ - (ZZ32Vector, ZZ32)->ZZ32Vector is not applicable to an argument of type (String, IntLiteral).\n\
+\ - (ZZ64, ZZ64)->ZZ64 is not applicable to an argument of type (String, IntLiteral).\n\
+${STATIC_TESTS_DIR}/Compiled6.at.fss:26:5-21:\n\
+\ O has no setter called bar\n\
+${STATIC_TESTS_DIR}/Compiled6.at.fss:29:5-49:\n\
+\ Could not check method invocation O._[_]:=\n\
+\ - (String, ZZ32)->() is not applicable to an argument of type (IntLiteral, IntLiteral).\n\
+${STATIC_TESTS_DIR}/Compiled6.at.fss:29:21-27:\n\
+\ Could not assign an expression of type IntLiteral to field O.s of type String.\n\
+${STATIC_TESTS_DIR}/Compiled6.at.fss:33:5-21:\n\
+\ Could not check call to operator ||\n\
+\ - (String, Object)->String is not applicable to an argument of type ((String, String), (IntLiteral, IntLiteral)).\n\
+File Compiled6.at.fss has 6 errors.\n
+compile_out_equals=

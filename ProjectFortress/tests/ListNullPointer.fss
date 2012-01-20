@@ -1,0 +1,32 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ListNullPointer
+import PureList.{...}
+export Executable
+
+(* Causes null pointer exception during sum computation *)
+
+run():() = do
+  testLens : List[\ZZ32\] = <|[\ZZ32\] |>
+  s0 = testLens.generate[\Number\](SumReduction, identity[\Number\])
+  assert(s0,0,"Sum s0")
+  s1 = testLens.generate[\Number\](SumReduction, identity[\Number\])
+  assert(s1,0,"Sum s1")
+  tl2 : List[\ZZ32\] = <| 5 asif ZZ32 |>
+  s2 = tl2.generate[\Number\](SumReduction, identity[\Number\])
+  assert(s2,5,"Sum s2")
+  tl3 : List[\ZZ32\] = <| 0 asif ZZ32,1,2,7,10 |>
+  s3 = tl3.generate[\Number\](SumReduction, fn (x:ZZ32):Number => x)
+  assert(s3,20,"Sum s3")
+end
+
+end
