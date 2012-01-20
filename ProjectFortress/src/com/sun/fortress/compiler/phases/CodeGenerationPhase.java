@@ -22,11 +22,13 @@ import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
+import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Component;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
 import com.sun.fortress.repository.ForeignJava;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.scala_src.typechecker.TraitTable;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.Debug;
@@ -38,8 +40,12 @@ import edu.rice.cs.plt.collect.PredicateSet;
 import edu.rice.cs.plt.collect.Relation;
 import edu.rice.cs.plt.iter.IterUtil;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import java.util.Iterator;
 
 public class CodeGenerationPhase extends Phase {
 
@@ -86,6 +92,61 @@ public class CodeGenerationPhase extends Phase {
         for (Component component : previous.componentIterator()) {
             Debug.debug(Debug.Type.CODEGEN, 1, "CodeGenerationPhase: Compile(" + component.getName() + ")");
             ComponentIndex ci = previous.components().get(component.getName());
+            
+            // John Experiment
+            /*
+            String repository = ProjectProperties.BYTECODE_CACHE_DIR + "/";
+            String cmpName = repository + ci.name().getText();
+            String cmpNameShort = ci.name().getText();
+            
+            File cmp = new File(cmpName);
+            cmp.mkdir();
+            
+            File imports = new File(cmp,"imports");
+            File exports = new File(cmp,"exports");
+            File constituents = new File(cmp,"constituents");
+            File rewrites = new File(cmp,"rewrites");
+            File symbolics = new File(cmp,"symbolics");
+            File codePool = new File(cmp,"code_pool");
+            
+            try {
+            	imports.createNewFile();
+            	exports.createNewFile();
+            	constituents.createNewFile();
+            	rewrites.createNewFile();
+            	symbolics.createNewFile();
+            	codePool.mkdir();
+            	
+            	FileWriter importsOutput = new FileWriter(imports);
+            	FileWriter exportsOutput = new FileWriter(exports);
+            	FileWriter symbolicsOutput = new FileWriter(symbolics);
+            	
+            	symbolicsOutput.write("unit " + cmpNameShort + "\n");
+            	symbolicsOutput.flush();
+            	symbolicsOutput.close();
+            	
+            	Iterator<APIName> importsIterator = ci.imports().iterator();
+            	while(importsIterator.hasNext())  {
+            		String s = cmpNameShort + " i " + importsIterator.next().getText() + "\n";
+            		importsOutput.write(s,0,s.length());
+            	}
+            	importsOutput.flush();
+            	importsOutput.close();
+            	
+            	Iterator<APIName> exportsIterator = ci.exports().iterator();
+            	while(exportsIterator.hasNext()) {
+            		String s = cmpNameShort + " e " + exportsIterator.next().getText() + "\n";
+            		exportsOutput.write(s,0,s.length());
+            	}
+            	exportsOutput.flush();
+            	exportsOutput.close();
+            	
+            } catch (IOException msg) {
+            	throw new ProgramError();
+            }
+            */
+            // end John Experiment
+            
             //TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ci, apiEnv));
             TypeAnalyzer sta = newTypeAnalyzer(new TraitTable(ci, apiEnv));
                  

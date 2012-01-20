@@ -28,6 +28,19 @@ public class InstantiationMap  {
         this.p = p;
     }
     
+    public String getMethodName(String s) {
+        // TODO will need to rewrite into type, desc, and method variants.
+        if (s == null)
+            return s;
+        s = Naming.demangleFortressIdentifier(s);
+        StringBuilder b = new StringBuilder();
+        maybeBareMethodName(s, b);
+        
+        s = b.toString();
+       
+        return s;
+    }
+    
     public String getName(String s) {
         // TODO will need to rewrite into type, desc, and method variants.
         if (s == null)
@@ -218,7 +231,8 @@ public class InstantiationMap  {
      */
     int maybeVarInOxfords(String input, int begin, StringBuilder accum,
             boolean unwrap_expanded_tuples_in_arrows) {
-        return mVIO(input, "", begin, accum, unwrap_expanded_tuples_in_arrows);
+        return mVIO(input, "", begin, accum,
+                unwrap_expanded_tuples_in_arrows, Naming.RIGHT_OXFORD_CHAR);
      }
     /**
      * 
@@ -231,7 +245,7 @@ public class InstantiationMap  {
      * @return
      */
     int mVIO(String input, String tag, int begin, StringBuilder accum,
-            boolean unwrap_expanded_tuples_in_arrows) {
+            boolean unwrap_expanded_tuples_in_arrows, char rh_bracket) {
         int original_begin = begin;
         ArrayList<String> params = new ArrayList<String>();
         while (true) {
@@ -244,7 +258,7 @@ public class InstantiationMap  {
                                 
                 begin = at; 
                 
-            } else if (ch == Naming.RIGHT_OXFORD_CHAR) {
+            } else if (ch == rh_bracket) {
                 params.add(one_accum.toString());
 
                 /* 
@@ -267,7 +281,7 @@ public class InstantiationMap  {
                 int l = params.size(); 
                 for (int i = 0; i < l; i++) {
                     accum.append(params.get(i));
-                    accum.append( i < (l-1) ? Naming.GENERIC_SEPARATOR_CHAR : Naming.RIGHT_OXFORD_CHAR);
+                    accum.append( i < (l-1) ? Naming.GENERIC_SEPARATOR_CHAR : rh_bracket);
                 }
                 
                 return at;
@@ -309,79 +323,110 @@ public class InstantiationMap  {
       */
      private static boolean nonVar(char ch) { // maybe a literal semicolon below?
         return ch == '/' || ch == '$' || ch == Naming.GENERIC_SEPARATOR_CHAR || 
-               ch == Naming.LEFT_OXFORD_CHAR || ch == Naming.RIGHT_OXFORD_CHAR;
+               ch == Naming.LEFT_OXFORD_CHAR || ch == Naming.RIGHT_OXFORD_CHAR || 
+               ch == Naming.LEFT_HEAVY_ANGLE_CHAR || ch == Naming.RIGHT_HEAVY_ANGLE_CHAR;
     }
 
-    /**
-     * 
-     * @param input
-     * @param begin
-     * @param accum
-     * @param inOxfords
-     * @param xlate_specials
-     * @return
-     */
-    int maybeBareVar(String input, int begin, StringBuilder accum,
-            boolean inOxfords, boolean xlate_specials,
-            boolean unwrap_expanded_tuples_in_arrows) {
-        int at = begin;
-        char ch = input.charAt(at++);
-        boolean maybeVar = true;
-        boolean eol = false;
-        boolean disabled = false;
-        
-        while (ch != Naming.GENERIC_SEPARATOR_CHAR &&
-                ch != ';' && 
-                ch != Naming.RIGHT_OXFORD_CHAR) {
-            if (ch == Naming.HEAVY_X_CHAR)
-                disabled = true;
-            
-//            if (ch == '=') {
-//                if (maybeVar)
-//                    accum.append(input.substring(begin, at-1));
-//                maybeVar = false;
-//                break;
-//            } else
-                if (!maybeVar) {
-                accum.append(ch);
-            } else if (nonVar(ch)) {
-                maybeVar = false;
-                accum.append(input.substring(begin, at));
-            } 
-            
-            if (ch == Naming.LEFT_OXFORD_CHAR) {
-                at = (disabled ? EMPTY: this).mVIO(input, input.substring(begin, at-1), at, accum, unwrap_expanded_tuples_in_arrows);
-            }
-            
-            if (at >= input.length()) {
-                eol = true;
-                break;
-            }
-            ch = input.charAt(at++);
-        }
-        
-        at = eol ? at : at - 1;
-        
-        if (maybeVar) {
-            String s = input.substring(begin, at);
-            if (ch != '=') {
-                String t = p.get(s); // (inOxfords ? q : p).get(s);
-                if (t != null) {
-                    if (xlate_specials && t.equals(Naming.SNOWMAN)) {
-                        t = Naming.specialFortressTypes.get(t);
-                    }
-                    accum.append(t);
-                    //accum.append(inOxfords ? t : t.substring(1));
-                } else {
-                    accum.append(s);
-                }
-            } else {
-                accum.append(s);
-            }
-        }
-        return at;
-    }
-    
+     /**
+      * 
+      * @param input
+      * @param begin
+      * @param accum
+      * @param inOxfords
+      * @param xlate_specials
+      * @return
+      */
+     int maybeBareVar(String input, int begin, StringBuilder accum,
+             boolean inOxfords, boolean xlate_specials,
+             boolean unwrap_expanded_tuples_in_arrows) {
+         int at = begin;
+         char ch = input.charAt(at++);
+         boolean maybeVar = true;
+         boolean eol = false;
+         boolean disabled = false;
+         
+         while (ch != Naming.GENERIC_SEPARATOR_CHAR &&
+                 ch != ';' && 
+                 ch != Naming.RIGHT_OXFORD_CHAR && 
+                 ch != Naming.RIGHT_HEAVY_ANGLE_CHAR) {
+             if (ch == Naming.HEAVY_X_CHAR)
+                 disabled = true;
+                 if (!maybeVar) {
+                 accum.append(ch);
+             } else if (nonVar(ch)) {
+                 maybeVar = false;
+                 accum.append(input.substring(begin, at));
+             } 
+             
+             if (ch == Naming.LEFT_OXFORD_CHAR) {
+                 at = (disabled ? EMPTY: this).mVIO(input,
+                         input.substring(begin, at-1), at, accum,
+                         unwrap_expanded_tuples_in_arrows, Naming.RIGHT_OXFORD_CHAR);
+             } else if (ch == Naming.LEFT_HEAVY_ANGLE_CHAR) {
+                 at = (disabled ? EMPTY: this).mVIO(input,
+                         input.substring(begin, at-1), at, accum,
+                         unwrap_expanded_tuples_in_arrows, Naming.RIGHT_HEAVY_ANGLE_CHAR);
+             } 
+             
+             if (at >= input.length()) {
+                 eol = true;
+                 break;
+             }
+             ch = input.charAt(at++);
+         }
+         
+         at = eol ? at : at - 1;
+         
+         if (maybeVar) {
+             String s = input.substring(begin, at);
+             if (ch != '=') {
+                 String t = p.get(s); // (inOxfords ? q : p).get(s);
+                 if (t != null) {
+                     if (xlate_specials && t.equals(Naming.SNOWMAN)) {
+                         t = Naming.specialFortressTypes.get(t);
+                     }
+                     accum.append(t);
+                     //accum.append(inOxfords ? t : t.substring(1));
+                 } else {
+                     accum.append(s);
+                 }
+             } else {
+                 accum.append(s);
+             }
+         }
+         return at;
+     }
+     /**
+      * 
+      * @param input
+      * @param begin
+      * @param accum
+      * @param inOxfords
+      * @param xlate_specials
+      * @return
+      */
+     void maybeBareMethodName(String input, StringBuilder accum) {
+         int at = 0;
+         
+         while (at < input.length()) {
+             char ch = input.charAt(at);
+             if (Naming.METHOD_SPECIALS.indexOf(ch) != -1) {
+                 break;
+             }
+             at++;
+         }
+         
+         String s = input.substring(0, at);
+         String t = p.get(s); 
+             if (t != null) {
+                 accum.append(t);
+             } else {
+                 accum.append(s);
+             }
+         accum.append(input.substring(at));
+         return;
+     }
+     
     int maybeVarInMethodSig(String input, int begin, StringBuilder accum) {
         return maybeVarInMethodSig(input, begin, accum, DEFAULT_TUPLE_FLATTENING);
     }
@@ -455,15 +500,19 @@ public class InstantiationMap  {
         for (int i = leftBracket+1; i <= rightBracket; i++) {
             char ch = s.charAt(i);
     
-            if ((ch == Naming.GENERIC_SEPARATOR_CHAR || ch == Naming.RIGHT_OXFORD_CHAR) && depth == 1) {
+            if ((ch == Naming.GENERIC_SEPARATOR_CHAR ||
+                    ch == Naming.RIGHT_OXFORD_CHAR ||
+                    ch == Naming.RIGHT_HEAVY_ANGLE_CHAR) && depth == 1) {
                 String parameter = s.substring(pbegin,i);
                 if (parameters != null)
                     parameters.add(parameter);
                 pbegin = i+1;
             } else {
-                if (ch == Naming.LEFT_OXFORD_CHAR) {
+                if (ch == Naming.LEFT_OXFORD_CHAR ||
+                        ch == Naming.LEFT_HEAVY_ANGLE_CHAR) {
                     depth++;
-                } else if (ch == Naming.RIGHT_OXFORD_CHAR) {
+                } else if (ch == Naming.RIGHT_OXFORD_CHAR ||
+                        ch == Naming.RIGHT_HEAVY_ANGLE_CHAR) {
                     depth--;
                 } else {
     
