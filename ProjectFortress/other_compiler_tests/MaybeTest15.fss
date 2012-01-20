@@ -74,6 +74,8 @@ run(): () = do
     assert(|TestJust(Baz)| = 1)
     assert(|TestNothingObject[\Baz\]| = 0)
     assert(TestJust(Baz).get = Baz)
+    assert(TestJust(Baz) NI Baz)
+    deny(TestNothingObject[\Baz\] NI Baz)
     assert(Baz IN TestJust(Baz))
     deny(Baz IN TestNothingObject[\Baz\])
     assert(TestJust(Baz) = TestJust(Baz))

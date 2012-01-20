@@ -414,7 +414,7 @@ object Formula{
         case True => Some((tUnifier, oUnifier))
         case False => None
         case nc@And(ts, os) =>
-	  println("nc: " + nc)
+//	  println("nc: " + nc)
           // Operators only have equality constraints so they should always be solved by unification
           assert(os.isEmpty)
           val sub = TU.killIvars compose 
@@ -425,14 +425,14 @@ object Formula{
                 // If there is a single lower bound and it is a trait type, 
                 // try all of its ancestors, searching for one that satisfies
                 // all upper bounds.
-		println("uni: " + uni)
-		println("pl: " + pl)
+//		println("uni: " + uni)
+//		println("pl: " + pl)
                 if (pl.size == 1) {
                   pl.head match {
                     case tt:TraitType =>
                       for (a <- (ta.ancestors(tt) ++ List(uni)).toList.sortWith((a,b) => isTrue(ta.subtype(b,a)))) {
 		        val proposedMap = cMap(nc, TU.killIvars compose tSubstitution(Map((k,p)).map(_=>(k,a))))
-			println("For ancestor " + a + " proposed map is " + proposedMap)
+//			println("For ancestor " + a + " proposed map is " + proposedMap)
                         if (isTrue(proposedMap)) {
                           uni = a 
                         }
@@ -444,11 +444,11 @@ object Formula{
               }
             })
 	  val newMap = cMap(newCon, sub)
-	  println("newMap: " + newMap)
+//	  println("newMap: " + newMap)
           if(isTrue(newMap))
             Some((sub compose tUnifier, oUnifier))
           else {
-               println("sub:" + sub + " on formula " + c)
+//               println("sub:" + sub + " on formula " + c)
                None
           }
         // Should never occur
@@ -577,13 +577,15 @@ object Formula{
       val tForm = and(ts.map{
         case (k, TPrimitive(pl,nl,pu,nu,pe,ne)) =>
           val sk = tSub(k)
-	  println("cMap substitutes " + sk + " for " + k)
-          and(ta.subtype(tSub(ta.join(pl)), sk), and(
-              and(nl.map(t => ta.notSubtype(tSub(t),sk))), and(
-              ta.subtype(sk, tSub(ta.meet(pu))), and(
-              and(nu.map(t => ta.notSubtype(sk, tSub(t)))), and(
-              and(pe.map(t => ta.excludes(sk,tSub(t)))),
-              and(ne.map(t => ta.notExcludes(sk, tSub(t)))))))))})
+//	  println("cMap substitutes " + sk + " for " + k)
+	  val plf = ta.subtype(tSub(ta.join(pl)), sk)
+	  val nlf = and(nl.map(t => ta.notSubtype(tSub(t),sk)))
+	  val puf = ta.subtype(sk, tSub(ta.meet(pu)))
+	  val nuf = and(nu.map(t => ta.notSubtype(sk, tSub(t))))
+	  val pef = and(pe.map(t => ta.excludes(sk,tSub(t))))
+	  val nef = and(ne.map(t => ta.notExcludes(sk, tSub(t))))
+//	  println("... and gets AND(" + plf + "," + nlf + "," + puf + "," + nuf + "," + pef + "," + nef + ")")
+          and(plf, and(nlf, and(puf, and(nuf, and(pef, nef)))))})
       val oForm = and(os.map{
         case (k, OPrimitive(po, no)) =>
           val sk = oSub(k)
