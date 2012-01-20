@@ -1,0 +1,116 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component lutx
+export Executable
+
+(* Guy's sequential LU code, based on Dongarra code.
+   Translated into something which works in Fortress today by Jan.
+*)
+
+
+opr MAXMIN[\N extends Number, I extends AnyIntegral\](a:(N,I),b:(N,I)):(N,I) = do
+  (x1,n1) = a
+  (x2,n2) = b
+  if x1 > x2 then
+    a
+  elif x1 < x2 OR n2 < n1 then
+    b
+  else
+    a
+  end
+end
+
+object Lower[\N extends Number, nat n\](mem:Matrix[\N,n,n\])
+    extends Matrix[\N,n,n\]
+  replica[\U\]():Matrix[\U,n,n\] = mem.replica[\U\]()
+  put(t':(ZZ32,ZZ32),_:N) : () = fail("Lower triangular matrices are immutable.")
+  init0(t':(ZZ32,ZZ32),_:N) : () = fail("Lower triangular matrices are immutable.")
+  get(t':(ZZ32,ZZ32)):N = do
+      (i,j) = t'
+      e = mem.get(t')
+      if i=j then 1 elif i>=j then e else 0 e end
+    end
+end
+
+lower[\N extends Number, nat n\](mem:Matrix[\N,n,n\]) = Lower[\N,n\](mem)
+
+object Upper[\N extends Number, nat n\](mem:Matrix[\N,n,n\])
+    extends Matrix[\N,n,n\]
+  replica[\U\]():Matrix[\U,n,n\] = mem.replica[\U\]()
+  put(t':(ZZ32,ZZ32), v:N) : () = fail("Upper triangular matrices are immutable.")
+  init0(t':(ZZ32,ZZ32), v:N) : () = fail("Upper triangular matrices are immutable.")
+  get(t':(ZZ32,ZZ32)):N = do
+      (i,j) = t'
+      e = mem.get(t')
+      if i<=j then e else 0 e end
+    end
+end
+
+upper[\N extends Number, nat n\](mem:Matrix[\N,n,n\]) = Upper[\N,n\](mem)
+
+lutx[\nat n\](A:Matrix[\RR64,n,n\]):
+    (Matrix[\RR64,n,n\],Vector[\ZZ32,n\]) = do
+  p : Vector[\ZZ32,n\] = vector[\ZZ32,n\](identity[\ZZ32\])
+  for k <- seq(0#n-1) do
+    rest = k+1 # n-k-1
+    t:(RR64,ZZ32) := (|A[k,k]|,k)
+    for ii <- rest do
+      atomic t MAXMIN= (|A[ii,k]|,ii)
+    end
+    (v,m) = t
+    if v =/= 0 then
+      if m =/= k then
+        (* exchange rows if required. *)
+        for j <- 0#n do
+          (A[k,j],A[m,j]) := (A[m,j],A[k,j])
+        end
+        (p[k],p[m]) := (p[m],p[k])
+      end
+      for j <- rest do
+        A[j,k] /= A[k,k]
+      end
+      for i <- rest, j <- rest do
+          A[i,j] -= A[i,k] A[k,j]
+      end
+    end
+  end
+  (lower(A),upper(A),p)
+end
+
+showPerm[\nat n\](a:Vector[\ZZ32,n\]):() = do
+  print("[")
+  for i <- seq(0#n) do
+    print(" " i "->" a[i])
+  end
+  println(" ]")
+end
+
+(* Uncommenting the type signature manifests the bug in
+   objectExprMystery.fss *)
+mtest(a(*:RR64[6,6]*)):() = do
+  println(a)
+  (l,u,p) = lutx(a)
+  println(a)
+  showPerm(p)
+  println(l u)
+end
+
+run():() = do
+  a : RR64[6,6] = matrix[\RR64,6,6\]()
+  a.fill(fn (i,j) => if j <= i then 7.0-i else 7 6 5 2.0 end)
+  mtest(a)
+  b : RR64[6,6] = matrix[\RR64,6,6\]()
+  b.fill(fn (i,j) => if j >= i then 7.0-j else 7 6 5 2.0 end)
+  mtest(b)
+end
+
+end

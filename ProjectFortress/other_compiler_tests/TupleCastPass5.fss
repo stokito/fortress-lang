@@ -1,0 +1,42 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait T
+  getter asString():String
+  
+  (* x will be received as a boxed (T,T) *)
+  join(x:(T,T), c:Boolean) = do
+    (a,b) = x
+    if c then
+      a.asString " " b.asString
+    else
+      "FAIL"
+    end
+  end
+end
+
+object O(s:String) extends T
+  getter asString():String = s
+end
+
+h:O = O("Hello")
+w:O = O("World!")
+
+tu:(O,O) = (h, w)
+
+make():(T,T) = tu
+
+run():() = 
+  (* first parameter (x) will be passed as a boxed (O,O) *)
+  println( h.join(tu, true))
+

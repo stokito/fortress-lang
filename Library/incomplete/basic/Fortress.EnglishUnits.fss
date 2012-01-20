@@ -1,0 +1,69 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Fortress.EnglishUnits
+import { Length, Area, Volume, Time, Mass, millimeters, liters, grams }
+       from Fortress.SIUnits
+
+unit inch inches: Length = 25.4 millimeters   (* exactly *)
+unit foot feet: Length = 12 inches
+unit yard yards: Length = 3 feet
+unit mile miles: Length = 5280 feet
+unit rod rods: Length = 16.5 feet
+unit furlong furlongs: Length = 220 yards
+
+unit surveyFoot surveyFeet: Length = 1200/3937 meter
+unit surveyMile surveyMiles: Length = 5280 surveyFeet
+
+unit nauticalMile nauticalMiles: Length = 1852 meters   (* exactly *)
+unit knot knots: Speed = nauticalMiles / hour
+
+unit week weeks: Time = 7 days
+unit fortnight fortnights: Time = 14 days
+unit microfortnight microfortnights = 10^(-6) fortnight
+
+unit gallon gallons: Volume = 231 cubic inches   (* exactly *)
+unit fluidQuart fluidQuarts: Volume = 1/4 gallon
+unit fluidPint fluidPints: Volume = 1/2 fluidQuart
+unit fluidCup fluidCups: Volume = 1/2 fluidPint
+unit fluidOunce fluidOunces: Volume = 1/8 fluidCup
+unit fluidDram fluidDrams: Volume = 1/8 fluidOunce
+unit minim minims: Volume = 1/60 fluidDram
+
+unit traditionalTablespoon traditionalTablespoons: Volume = 1/2 fluidOunce
+unit traditionalTeaspoon traditionalTeaspoons: Volume =
+ 1/3 traditionalTablespoon
+
+unit federalTablespoon federalTablespoons: Volume = 15 milliliters
+unit federalTeaspoon federalTeaspoons: Volume = 1/3 federalTablespoon
+
+unit dryPint dryPints: Volume = 1/2 dryQuart
+unit dryQuart dryQuarts: Volume = 1/8 peck
+unit peck pecks: Volume = 1/4 bushel
+unit bushel bushels: Volume = 2150.42 cubic inches   (* exactly *)
+
+unit acre: Area = 4840 square yards
+
+unit imperialGallon: Volume = 4.54609 liters   (* exactly *)
+unit imperialQuart: Volume = 1/4 imperialGallon
+unit imperialPint: Volume = 1/2 imperialQuart
+unit imperialGill: Volume = 1/4 imperialPint
+unit imperialFluidOunce: Volume = 1/5 imperialGill
+unit imperialFluidDrachm: Volume = 1/8 imperialFluidOunce
+unit imperialFluidDRam = imperialFluidDrachm
+unit imperialFluidScruple: Volume = 1/3 imperialFluidDrachm
+unit imperialMinim: Volume = 1/20 imperialFluidScruple
+
+unit pound pounds lb_ lbs_: Mass = 453.59237 grams   (* exactly *)
+unit ounce ounces oz_: Mass = 1/16 pound
+unit grain grains: Mass = 1/7000 pound
+unit troyPound troyPounds: Mass = 5760 grains
+unit troyOunce troyOunces: Mass = 1/12 troyPound

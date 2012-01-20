@@ -1,0 +1,568 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Functions}
+\chaplabel{functions}
+
+\note{Abstract function declarations and their checking,
+modifiers on functions such as \KWD{atomic} and \KWD{io},
+keyword and varargs parameters, where clauses,
+contract checking, and tail-call optimization
+are not supported yet.
+
+Varargs and keyword examples and abstract function declarations examples
+are not run by the interpreter.}
+
+\note{Guy's email titled ``Re: Function equality issues'' on 02/13/08
+
+Yes with returning false for overloaded functions (with the implementation-dependent features).
+(03/03/08)}
+
+A \emph{function} is a value that has a function type
+(described in \secref{function-types}).
+Each function takes exactly one argument, which may be a tuple, and returns
+exactly one result, which may be a tuple.
+A function may be declared as top level or local as described
+in \secref{decl-kinds}.
+Fortress allows functions to be \emph{overloaded} (as described in
+\chapref{multiple-dispatch}); there may be multiple function
+declarations with the same function name in a single lexical scope.
+Functions can be passed as arguments and returned as values.
+Single variables may be bound to functions
+including overloaded functions.
+
+\section{Function Declarations}
+\seclabel{function-decls}
+
+\begin{Grammar}
+\emph{FnDecl}
+&::=& \option{\emph{FnMods}} \emph{FnHeaderFront} \emph{FnHeaderClause}
+\EXP{=} \emph{Expr} \\
+&$|$& \emph{FnSig} \\
+
+\emph{FnSig} &::=& \emph{SimpleName} \EXP{\mathrel{\mathtt{:}}} \emph{Type}\\
+
+\emph{FnMods} &::=& \emph{FnMod}$^+$\\
+
+\emph{FnMod} &::=& \emph{AbsFnMod} $|$ \KWD{private}\\
+
+\emph{AbsFnMod} &::=& \emph{LocalFnMod} $|$
+\KWD{test}\\
+
+\emph{LocalFnMod} &::=& \KWD{atomic} $|$ \KWD{io}\\
+
+\emph{FnHeaderFront}
+&::=& \emph{NamedFnHeaderFront}\\
+&$|$& \emph{OpHeaderFront} \\
+
+\emph{NamedFnHeaderFront}
+&::=& \emph{Id} \option{\emph{StaticParams}} \emph{ValParam} \\
+
+\emph{ValParam} &::=& \emph{BindId}\\
+&$|$& \texttt(\option{\emph{Params}}\texttt)\\
+
+\emph{Params}
+&::=&
+(\emph{Param}\EXP{,})$^*$ \options{\emph{Varargs}\EXP{,}} \emph{Keyword}(\EXP{,}\emph{Keyword})$^*$\\
+&$|$&
+(\emph{Param}\EXP{,})$^*$  \emph{Varargs}\\
+&$|$& \emph{Param}(\EXP{,} \emph{Param})$^*$\\
+
+\emph{VarargsParam} &::=& \emph{BindId}\EXP{\COLONOP}\emph{Type}\EXP{...} \\
+
+\emph{Varargs} &::=& \emph{VarargsParam}\\
+
+\emph{Keyword} &::=& \emph{Param}\EXP{=}\emph{Expr} \\
+
+\emph{PlainParam} &::=& \emph{BindId} \option{\emph{IsType}} \\
+&$|$& \emph{Type} \\
+
+\emph{Param} &::=& \emph{PlainParam}\\
+
+\emph{FnHeaderClause} &::=& \option{\emph{IsType}} \emph{FnClauses} \\
+
+\emph{FnClauses} &::=& \option{\emph{Throws}} \option{\emph{Where}}
+\emph{Contract} \\
+
+\emph{Throws} &::=& \KWD{throws} \emph{MayTraitTypes}\\
+
+\end{Grammar}
+
+Syntactically, a function declaration consists of
+an optional sequence of modifiers followed by
+the name of the function, optional static parameters
+(described in \chapref{trait-parameters}),
+the value parameter with its (optionally) declared type,
+an optional type of a return value,
+an optional declaration of thrown checked exceptions
+(discussed in \chapref{exceptions}),
+an optional \KWD{where} clause (discussed in \secref{where-clauses}),
+a contract for the function (discussed in \secref{contracts}),
+and finally an optional body expression preceded by the token \EXP{=}.
+A \KWD{throws} clause does not include naked type variables.
+Every element in a \KWD{throws} clause is a subtype of
+\TYP{CheckedException}.
+When a function declaration includes a body expression, it is called a
+\emph{function definition}.
+Function declarations can be mutually recursive.
+
+Function declarations can include the following special modifiers:
+\paragraph{\KWD{atomic}:}
+A function with the modifier \KWD{atomic} acts as if its entire
+body were surrounded in an \KWD{atomic} expression discussed in
+\secref{atomic}.
+
+\paragraph{\KWD{io}:}
+Functions that perform externally visible input/output actions
+are said to be \KWD{io} functions.
+An \KWD{io} function must not be invoked from a non-\KWD{io} function.
+
+A function takes exactly one argument, which may be a tuple.
+When a function takes a tuple argument, we abuse terminology by saying that
+the function takes multiple arguments.
+Value parameters cannot be mutated inside the function body.
+
+A function's value parameter consists of a parenthesized,
+comma-separated list of bindings where each binding is one of:
+\begin{itemize}
+\item A plain binding ``\VAR{identifier}''
+or ``\EXP{\VAR{identifier}\COLONOP{}T}''
+\item A varargs binding ``\EXP{\VAR{identifier}\COLONOP{}T\ldots}''
+\item A keyword binding ``\EXP{\VAR{identifier}=\exp}''
+or ``\EXP{\VAR{identifier}\COLONOP{}T=\exp}''
+\end{itemize}
+When the parameter is a single plain binding without a declared type,
+enclosing parentheses may be elided.
+The following restrictions apply:  No two bindings may have the same
+    identifier.
+No keyword binding may precede a plain binding.
+No varargs binding may follow a keyword binding or precede a plain binding.
+Note that it is permitted to have a single plain binding,
+or to have no bindings.  The latter case, ``()'', is considered equivalent
+to a single plain binding of the ignored identifier ``\_'' of type (), that
+is, ``\EXP{(\_\COLONOP())}''.
+Also, there can be at most one varargs binding.
+
+A parameter declared by keyword binding is called
+a \emph{keyword parameter};
+a keyword parameter must be declared with
+a \emph{default} expression,
+which is used when no argument is bound to the parameter explicitly.
+Syntactically, the default expression is specified
+after an \EXP{=} sign.
+The default expression of a parameter $x$ of function $f$
+is evaluated each time the function is called
+without a value provided for $x$ at the call site.
+All parameters occurring to the left of $x$
+are in scope of its default expression.
+All parameters following $x$ must include default expressions as well;
+$x$ is in scope of their default expressions and the body of the function.
+When an argument is passed explicitly for a keyword parameter,
+that argument must be passed as a \emph{keyword argument}.
+(See \secref{function-app}.)
+If no type is declared for a keyword parameter,
+the type is inferred from the static type of its default expression.
+
+A parameter declared by varargs binding is called
+a \emph{varargs parameter};
+it is used to pass a variable number of arguments to a function
+as a single heap sequence.
+The type of a varargs parameter
+    is \EXP{\TYP{HeapSequence}\llbracket{}T\rrbracket} where \VAR{T} is
+    the type mentioned in (or inferred for) that binding.
+\note{See the library section for a discussion of
+\TYP{HeapSequence}.}
+Note that the type of a varargs parameter cannot be omitted.
+If a function does not have a varargs parameter
+then the number of arguments is fixed by the function's type.
+Note that a varargs parameter is not allowed to have a default expression.
+
+For example, here is a simple
+polymorphic function for creating lists:
+\input{\home/basic/examples/Fun.Decl.tex}
+
+\section{Function Applications}
+\seclabel{function-app}
+
+\note{varargs arguments (10/30/07)
+
+Is there any reason to use \TYP{HeapSequence} which is mutable to implement varargs tuples?
+How about implementing them in terms of some covariant data type?
+
+We agreed to implement varargs tuples using \TYP{ReadOnlyHeapSequence} which is immutable and
+invariant. We'll add \TYP{MakeReadOnlyHeapSequence} into the core library.
+}
+
+Fortress allows functions to be overloaded; there may be multiple function
+declarations with the same function name in a single lexical scope.
+Thus, we need to determine which functional declarations are applicable to
+a function application.
+
+An overloaded function has multiple arrow types in its function type,
+and it associates a declaration with each constituent arrow type.
+When an overloaded function of type \VAR{T} is called with an argument of type
+\VAR{A}, the call is ``dispatched'' to the declaration associated with
+the most specific type of \VAR{T} applicable to \VAR{A}
+(if no such type exists, then the function is not applicable to \VAR{A}).
+This is well defined because the overloading rules guarantee that
+the type of any function value is a well-formed function type.
+
+If a function's argument type is \EXP{()},
+then function declarations with the following forms of parameter lists are
+considered to be applicable:
+\begin{itemize}
+\item   \EXP{()}
+which means the same thing as \EXP{(\_\COLONOP())}
+\item   \EXP{(x\COLONOP())}
+which is something programmers don't ordinarily write
+\item   \EXP{(x\COLONOP{}T\ldots)}
+\end{itemize}
+In the last case, \VAR{x} is bound to an empty
+\EXP{\TYP{HeapSequence}\llbracket{}T\rrbracket}.
+
+If a function's argument type \VAR{A} is
+    neither \EXP{()} nor a tuple type, then function declarations with the following forms of parameter lists are considered
+    to be applicable:
+\begin{itemize}
+\item
+        \EXP{(x\COLONOP{}T)}       where \VAR{A} is a subtype of \VAR{T}
+\item
+        \EXP{(x\COLONOP{}T\ldots)} where \VAR{A} is a subtype of \VAR{T}
+\end{itemize}
+In the last case, \VAR{x} is bound to a
+    \EXP{\TYP{HeapSequence}\llbracket{}T\rrbracket} of length \EXP{1},
+    containing  the actual argument value.
+
+If a function's argument type \VAR{A} is
+a tuple type, then function declarations with the following forms of
+parameter lists are considered to be applicable:
+\begin{itemize}
+\item
+        \EXP{(x\COLONOP{}T)}       where \VAR{A} is a subtype of \VAR{T}
+\item
+        \EXP{(x\COLONOP{}T\ldots)} where \VAR{A} is a subtype of \VAR{T}
+\item
+a parameter list with no varargs binding, provided that
+ \begin{itemize}
+ \item type \VAR{A} has exactly as many plain types as the parameter
+list has plain bindings, and
+ \item for every keyword-type pair (described in
+\secref{tuple-types}) in \VAR{A}, the parameter list has a
+binding with the same keyword, and
+ \item for every element type in \VAR{A}, the type in the element type
+is a subtype of the type of the corresponding binding in the parameter list.
+ \end{itemize}
+\item
+a parameter list with a varargs binding, provided that
+ \begin{itemize}
+ \item type \VAR{A} has at least as many plain types as the parameter
+list has plain bindings, and
+ \item for every keyword-type pair in
+\VAR{A}, the parameter list has a binding with the same keyword, and
+ \item for every element type in \VAR{A}, the type in the element type
+is a subtype of the type of the corresponding binding in the parameter
+list---but if there is no corresponding binding, then the type in the
+element type must be a subtype of the type in the varargs binding.
+ \end{itemize}
+\end{itemize}
+    In the latter case, the parameter named by the identifier in the varargs
+    binding is bound to a \EXP{\TYP{HeapSequence}\llbracket{}T\rrbracket}
+    that contains, in order, all the
+ values of the tuple that did not correspond to plain
+    bindings, followed by all the values in the varargs \TYP{HeapSequence}
+    of the tuple, if any.
+
+When an argument is passed explicitly for a keyword parameter, that
+argument must be passed as a \emph{keyword argument}.
+Syntactically, a keyword argument is a keyword-value pair
+``\EXP{\VAR{identifier} = e}''.
+Keyword parameters not explicitly bound are bound to their default values.
+If a parameter that has no default value is not explicitly bound to an
+argument, it is a static error.
+
+When a function is called (See \secref{function-calls} for a discussion
+of function call expressions), function arguments are evaluated in parallel,
+keyword parameters not explicitly bound are bound to their
+default values sequentially,
+and the body of the function is evaluated in
+a new environment, extending the environment in which
+it is defined with all parameters bound to their arguments.
+
+If the application of a function \VAR{f} ends by calling another
+function \VAR{g}, tail-call
+optimization must be applied.  Storage used by the new environments
+constructed for the application of \VAR{f} must be reclaimed.
+
+Here are some examples:
+%sin(pi)
+%arctan(y, x)
+%makeColor(red=5, green=3, blue=43)
+%processString(s, start=5, finish=43)
+\input{\home/basic/examples/Fun.App.a.tex}
+If the function's argument is not a tuple, then the argument need not be
+parenthesized:
+%sin x
+%log log n
+\input{\home/basic/examples/Fun.App.b.tex}
+
+Here are a few varargs and keyword examples:
+%f(x:ZZ, y:ZZ..., z:ZZ = 0) = <| x, <| q | q<-y |>, z |>
+%
+%f(1)  returns  <| 1, <| |>, 0 |>
+%f(1, 2, 3)  returns  <| 1, <| 2, 3 |>, 0 |>
+%f(1, [2 3]...)  returns  <| 1, <| 2, 3 |>, 0 |>
+%f(1, 2, 3, [4 5]...)  returns  <| 1, <| 2, 3, 4, 5 |>, 0 |>
+%f(1, 2, 3, 17#3...)  returns  <| 1, <| 2, 3, 17, 18, 19 |>, 0 |>
+%f(1, 2, 3, z=8)  returns  <| 1, <| 2, 3 |>, 8 |>
+%f([2 3]...)  declaration not applicable
+\begin{Fortress}
+\(f(x\COLONOP\mathbb{Z}, y\COLONOP\mathbb{Z}\ldots, z\COLONOP\mathbb{Z} = 0) =
+\langle x, \langle q \mid q\leftarrow{}y \rangle, z \rangle\)\\
+\end{Fortress}
+
+\begin{tabular}{lcl}
+\EXP{f(1)}  & \emph{returns} &
+\EXP{\langle 1, \langle \rangle, 0 \rangle}
+\\
+\EXP{f(1, 2, 3)}  & \emph{returns} &
+\EXP{\langle 1, \langle 2, 3 \rangle, 0 \rangle}
+\\
+\EXP{f(1, [2\;3]\ldots)}  & \emph{returns} &
+\EXP{\langle 1, \langle 2, 3 \rangle, 0 \rangle}
+\\
+\EXP{f(1, 2, 3, [4\;5]\ldots)}  & \emph{returns} &
+\EXP{\langle 1, \langle 2, 3, 4, 5 \rangle, 0 \rangle}
+\\
+\EXP{f(1, 2, 3, 17\mathinner{\hbox{\tt\char'43}}3\ldots)} & \emph{returns} &
+\EXP{\langle 1, \langle 2, 3, 17, 18, 19 \rangle, 0 \rangle}
+\\
+\EXP{f(1, 2, 3, z=8)} & \emph{returns} &
+\EXP{\langle 1, \langle 2, 3 \rangle, 8 \rangle}
+\\
+\EXP{f([2\;3]\ldots)}  & \emph{declaration not applicable}
+\end{tabular}
+
+\section{Abstract Function Declarations}
+\seclabel{abstractFunctionDeclarations}
+
+\begin{Grammar}
+\emph{AbsFnDecl} &::=& \option{\emph{AbsFnMods}} \emph{FnHeaderFront}
+\emph{FnHeaderClause}\\
+&$|$& \emph{FnSig} \\
+
+\emph{AbsFnMods} &::=& \emph{AbsFnMod}$^+$\\
+
+\emph{AbsFnMod} &::=& \emph{LocalFnMod} $|$ \KWD{test}\\
+
+\emph{LocalFnMod} &::=& \KWD{atomic} $|$ \KWD{io}\\
+
+\emph{FnSig} &::=& \emph{Name} \EXP{\mathrel{\mathtt{:}}} \emph{ArrowType}\\
+\end{Grammar}
+
+In a component, overloaded functions may be declared separately from their
+definitions using \emph{abstract function declarations}.
+Abstract function declarations themselves may be overloaded.
+For an abstract function declaration with name \VAR{f}, argument type
+\VAR{T}, and return type \VAR{U} (\VAR{T} and \VAR{U} may be tuple types),
+any concrete declaration for \VAR{f} must be for a function whose argument
+type is a subtype of \VAR{T} and whose return type is a subtype of \VAR{U}.
+Furthermore, the union of the argument types of the concrete declarations for
+\VAR{f} must be equal to \VAR{T}.
+Concrete function declarations must satisfy the overloading rules.
+Unless \VAR{T} has a \KWD{comprises} clause (or is a tuple type, at least
+one of whose entries has a \KWD{comprises} clause), this implies that some
+concrete declaration for \VAR{f} must have argument type \VAR{T}.
+
+Syntactically, an abstract function declaration is a function declaration
+without a body.  Parameter names may be elided but parameter types cannot
+be omitted.  Additionally, when a function's type is not parameterized,
+Fortress provides an alternative mathematical notation for
+an abstract function declaration: function name followed by the token
+`\EXP{\COLONOP}', followed by an arrow type.
+
+For example, after the following abstract function declaration:
+%printMolecule(Molecule): ()
+\begin{Fortress}
+\(\VAR{printMolecule}(\TYP{Molecule})\COLON ()\)
+\end{Fortress}
+where trait \TYP{Molecule} is defined as follows:
+%trait Molecule comprises {OrganicMolecule, InorganicMolecule} end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Molecule} \KWD{comprises} \{\TYP{OrganicMolecule}, \TYP{InorganicMolecule}\} \KWD{end}\)
+\end{Fortress}
+the programmer could write:
+%printMolecule(molecule: Molecule) = ...
+\begin{Fortress}
+\(\VAR{printMolecule}(\VAR{molecule}\COLON \TYP{Molecule}) = \ldots\)
+\end{Fortress}
+or could write:
+%printMolecule(molecule: OrganicMolecule) = ...
+%printMolecule(molecule: InorganicMolecule) = ...
+\begin{Fortress}
+\(\VAR{printMolecule}(\VAR{molecule}\COLON \TYP{OrganicMolecule}) = \ldots\)\\
+\(\VAR{printMolecule}(\VAR{molecule}\COLON \TYP{InorganicMolecule}) = \ldots\)
+\end{Fortress}
+For the latter, the programmer must provide a
+definition for every immediate subtype of \TYP{Molecule}, or
+it is a static error.
+
+\section{Function Contracts}
+\seclabel{contracts}
+
+\note{For nested contracts, the inner \KWD{outcome} shadows the outer \KWD{outcome}.}
+
+\begin{Grammar}
+\emph{Contract} &::=& \option{\emph{Requires}} \option{\emph{Ensures}} \option{\emph{Invariant}}\\
+
+\emph{Requires} &::=&
+\KWD{requires} \{ \option{\emph{ExprList}} \} \\
+
+\emph{Ensures}  &::=&
+\KWD{ensures} \{ \option{\emph{EnsuresClauseList}} \} \\
+
+\emph{EnsuresClauseList} &::=&
+\emph{EnsuresClause}(\EXP{,} \emph{EnsuresClause})$^*$ \\
+
+\emph{EnsuresClause} &::=& \emph{Expr} \options{\KWD{provided} \emph{Expr}} \\
+
+\emph{Invariant}&::=&
+\KWD{invariant} \{ \option{\emph{ExprList}} \} \\
+
+\end{Grammar}
+
+Function contracts consist of three optional clauses: a \KWD{requires}
+clause, an \KWD{ensures} clause, and an \KWD{invariant} clause.
+All three clauses are evaluated in the scope of the function body.
+\note{
+extended with a special variable \emph{arg}, bound to an immutable
+array of all function arguments. (This array is useful for describing
+contracts in the presence of higher-order functions;
+see \secref{arrow-types}).
+}
+
+\note{
+Jan: Which of the following must be pure?  Presumably all of them.
+We should say so.
+
+Eric: Requiring declared purity on all called functions in a contract is
+too restrictive.
+}
+
+The  \KWD{requires} clause consists of a sequence of
+expressions of type \TYP{Boolean} separated by commas and
+enclosed in curly braces.
+The \KWD{requires} clause is evaluated during a function call before
+the body of the function. If any expression in a \KWD{requires} clause
+does not evaluate to \VAR{true}, a \TYP{CallerViolation} exception is
+thrown.
+
+The \KWD{ensures} clause consists of a sequence of
+\KWD{ensures} subclauses. Each such subclause consists of an
+expression of type \TYP{Boolean},
+optionally followed by
+a \KWD{provided} subclause. A \KWD{provided} subclause begins with
+\KWD{provided} followed by an expression of type
+\TYP{Boolean}.  For each subclause in the \KWD{ensures} clause of a
+contract, the \KWD{provided}
+subclause is evaluated immediately after the \KWD{requires} clause during a
+function call (before the function body is evaluated).
+If a \KWD{provided} subclause evaluates to \VAR{true},
+then the expression preceding this \KWD{provided} subclause is evaluated
+after the function body is evaluated.
+If the expression evaluated after function evaluation does
+not evaluate to \VAR{true}, a \TYP{CalleeViolation} exception is thrown.
+The expression preceding the \KWD{provided} subclause can refer to
+the return value of the function.
+A \KWD{outcome} variable is implicitly bound to a return value of the
+function and is in scope of
+the expression preceding the \KWD{provided} subclause.
+The implicitly declared \KWD{outcome} shadows any other declaration with the
+same name in scope.
+
+The \KWD{invariant} clause consists of a sequence of expressions of
+\emph{any type} enclosed by curly braces.
+These expressions are evaluated before and after a function call.  For
+each expression $e$ in this sequence, if the value of $e$ when evaluated
+before the function call is not equal to the value of $e$ after
+the function call,  a \TYP{CalleeViolation} exception is thrown.
+
+Here are some examples:
+\input{\home/basic/examples/Fun.Contract.tex}
+
+Overloaded function contracts are handled similarly with method contracts
+described in \secref{method-contracts}.  In particular, substitutability is
+preserved: the statically most applicable function to a call should be
+substitutable with the dynamically most applicable function to the call.
+For a call of function $f$,
+we use the term \emph{static contract} of $f$ to refer to
+a contract declared in the statically most applicable function declaration
+and the term \emph{dynamic contract} of $f$ to refer to a contract declared
+in the dynamically most applicable function declaration.
+Three exceptions may be thrown due to an overloaded function contract
+violation: \TYP{CallerViolation} is thrown when the \KWD{requires} clause
+of the static contract fails, \TYP{CalleeViolation} is thrown when the
+\KWD{ensures} or \KWD{invariant} clause of the dynamic contract fails,
+and \TYP{ContractOverloadingViolation} is thrown
+when the \KWD{requires} clause of the dynamic contract
+or the \KWD{ensures} or \KWD{invariant} clause of the static contract fails.
+
+
+Evaluation of a call of function $f$ proceeds as follows.
+Let $C$ and $C'$ be the static and dynamic contracts of $f$, respectively.
+If the \KWD{requires} clause of $C$ fails,
+a \TYP{CallerViolation} exception is thrown.
+%
+Otherwise, if the \KWD{requires} clause of $C'$ fails,
+a \TYP{ContractOverloadingViolation} exception is thrown.
+%
+Otherwise, the \KWD{provided} subclauses of $C$ and $C'$ are evaluated. For
+every \KWD{provided} subclause that evaluates to \VAR{true}, the
+corresponding \KWD{ensures} subclause is recorded in a table
+$E$ for later comparison.  Similarly, the \KWD{invariant} clauses of $C$
+and $C'$ are evaluated and the results are stored in $E$ for later
+comparison.
+%
+Then the body of the dynamically most applicable function declaration of $f$
+is evaluated.  After evaluation of the body,
+%
+all \KWD{ensures} subclauses of the dynamic contract recorded in $E$
+are checked to ensure that they evaluate to \VAR{true}, and
+all \KWD{invariant} clauses of the dynamic contract recorded in $E$
+are checked to ensure that they evaluate to values equal to the
+values they evaluated to before evaluation of the body.
+%
+If any such check fails, a \TYP{CalleeViolation}
+exception is thrown. Otherwise, all \KWD{ensures} subclauses and
+\KWD{invariant} clauses of the static contract in $E$ are checked.
+If any of these checks fails, a \TYP{ContractOverloadingViolation} exception
+is thrown.
+
+\section{Local Function Declarations}
+\seclabel{local-fn-decls}
+\begin{Grammar}
+\emph{LocalFnDecl} &::=&
+\option{\emph{LocalFnMods}}
+\emph{NamedFnHeaderFront} \emph{FnHeaderClause} \EXP{=}
+\emph{Expr} \\
+
+\emph{LocalFnMods} &::=& \emph{LocalFnMod}$^+$\\
+
+\emph{LocalFnMod} &::=& \KWD{atomic} $|$ \KWD{io}\\
+\end{Grammar}
+
+
+Functions can be declared within expression blocks (described in
+\secref{block-expr}) via the same syntax as is used for top-level
+function declarations (described in \chapref{functions})
+except that locally declared functions must not be operators
+and must not include the modifiers \KWD{private} and \KWD{test}.
+As with top-level function declarations, locally declared functions in a
+single scope are allowed to be overloaded and mutually recursive.

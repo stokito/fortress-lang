@@ -1,0 +1,301 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Treap
+export Treap
+
+private Min_W : ZZ32 = -1
+
+(* We organize the treap as a max-treap; a min-treap would work just as well. *)
+
+singleton(key:ZZ32, val:String): Treap = leaf1(key,val)
+
+empty: Treap = Empty
+
+trait Treap comprises { NonEmpty, Empty }
+    getter isEmpty(): Boolean
+    private getter w(): ZZ32
+    getter min(): Treap
+    getter max(): Treap
+    getter asString(): String = "{" mkString(false) "}"
+    getter asDebugString(): String = "(" mkString(true) ")"
+
+    (* Union and intersection are left-biased *)
+    opr UNION(self, other: Treap): Treap = doCombine(self,UnionOp, other)
+    opr INTERSECTION(self, other: Treap): Treap = doCombine(self,IntersectionOp, other)
+    opr DIFFERENCE(self, other: Treap): Treap = doCombine(self,DifferenceOp, other)
+    opr SYMDIFF(self, other: Treap): Treap = doCombine(self,SymdiffOp, other)
+    containsKey(key:ZZ32): Boolean = NOT nodeWithKey(key).isEmpty
+    replace(key:ZZ32, val:String): Treap = singleton(key,val) UNION self
+    add(key:ZZ32, val:String): Treap = self UNION singleton(key,val)
+    remove(key:ZZ32): Treap = self DIFFERENCE Leaf1(Min_W,key,"")
+    lookup(key:ZZ32, defaultValue:String): String =
+        nodeWithKey(key).rootValue(defaultValue)
+    rootKey(defaultKey: ZZ32): ZZ32
+    rootValue(defaultValue: String): String
+
+    private mkString(withParens: Boolean): String
+    (** TODO: some of these should probably be exposed in the api somehow. *)
+    (*
+    (* Split tree at key. *)
+    split(key: ZZ32): (Treap, Treap, Treap)
+    *)
+    (* Left subtree of split at key *)
+    private splitL(key:ZZ32): Treap
+    (* Node with given key, or Empty *)
+    private nodeWithKey(key:ZZ32): Treap
+    (* Right subtree of split at key *)
+    private splitR(key:ZZ32): Treap
+    (* Join this treap (on left) to r (on right);
+       assumes keys appropriately ordered. *)
+    private join(r: Treap): Treap
+    (* Join nonempty l (on left) to this treap (on right);
+       again assumes keys appropriately ordered. *)
+    private joinNE(l: NonEmpty): NonEmpty
+
+    private combine(c: CombiningOp, r: Treap): Treap
+    private combineNE(l: NonEmpty, c: CombiningOp): Treap
+    private combineRootL(lr: Leaf1, c: CombiningOp): Treap
+    private combineRootR(c: CombiningOp, rr: Leaf1): Treap
+end
+
+private object Empty extends Treap
+    getter isEmpty(): Boolean = true
+    getter w(): ZZ32 = Min_W
+    getter min(): Treap = self
+    getter max(): Treap = self
+    mkString(withParens: Boolean): String = ""
+    (*
+    (* Split tree at key. *)
+    split(key: ZZ32): (Treap, Treap, Treap) =
+        (self, self, self)
+    *)
+    (* Left subtree of split at key *)
+    splitL(key:ZZ32): Treap = self
+    (* Node with given key, or Empty *)
+    nodeWithKey(key:ZZ32): Treap = self
+    (* Right subtree of split at key *)
+    splitR(key:ZZ32): Treap = self
+    join(r: Treap): Treap = r
+    joinNE(l: NonEmpty): NonEmpty = l
+
+    combine(c: CombiningOp, r: Treap): Treap = c.rightAlone(r)
+    combineNE(l: NonEmpty, c: CombiningOp): Treap = c.leftAlone(l)
+
+    combineRootL(lr: Leaf1, c: CombiningOp): Treap = c.leftAlone(lr)
+    combineRootR(c: CombiningOp, rr: Leaf1): Treap = c.rightAlone(rr)
+
+    rootKey(defaultKey: ZZ32): ZZ32 = defaultKey
+    rootValue(defaultValue: String): String = defaultValue
+end
+
+private trait NonEmpty extends Treap comprises { Leaf1, Node }
+    getter isEmpty(): Boolean = false
+    getter k(): ZZ32
+    getter v(): String
+    getter root(): Leaf1
+
+    join(r: Treap): Treap = r.joinNE(self)
+    (* Join this treap (on left) to r (on right);
+       assumes w > r.w *)
+    joinNEH(r: NonEmpty): NonEmpty
+
+    combine(c: CombiningOp, r: Treap): Treap =
+        r.combineNE(self,c)
+    combineNEH(c: CombiningOp, r: NonEmpty): Treap
+
+    combineRootL(lr: Leaf1, c: CombiningOp): Treap = c.combine(lr,self.root)
+    combineRootR(c: CombiningOp, rr: Leaf1): Treap = c.combine(self.root,rr)
+
+    rootKey(defaultKey: ZZ32): ZZ32 = self.k
+    rootValue(defaultValue: String): String = self.v
+end
+
+private object Leaf1(w0: ZZ32, k0: ZZ32, v0: String) extends NonEmpty
+    getter k(): ZZ32 = k0
+    getter v(): String = v0
+    getter root(): Leaf1 = self
+    getter w(): ZZ32 = w0
+    getter min(): Treap = self
+    getter max(): Treap = self
+    mkString(withParens: Boolean): String = do
+        r = k0.asString "|->" v0
+        if withParens then
+            "<" w0.asString ">" r
+        else
+            r
+        end
+      end
+    (*
+    (* Split tree at key. *)
+    split(key: ZZ32): (Treap, Treap, Treap) =
+        if key < k0 then
+            (Empty, Empty, self)
+        elif key > k0 then
+            (self, Empty, Empty)
+        else
+            (Empty, self, Empty)
+        end
+    *)
+    (* Left subtree of split at key *)
+    splitL(key:ZZ32): Treap =
+        if key > k0 then self else Empty end
+    (* Node with given key, or Empty *)
+    nodeWithKey(key:ZZ32): Treap =
+        if key = k0 then self else Empty end
+    (* Right subtree of split at key *)
+    splitR(key:ZZ32): Treap =
+        if key < k0 then self else Empty end
+
+    joinNE(l: NonEmpty): NonEmpty =
+        if w0 > l.w then
+            Node(l, w0, k0, v0, Empty)
+        else
+            l.joinNEH(self)
+        end
+    joinNEH(r: NonEmpty): NonEmpty =
+        Node(Empty, w0, k0, v0, r)
+
+    combineNE(l: NonEmpty, c: CombiningOp): Treap =
+        if w0 > l.w then
+            (lt, m, rt) = (l.splitL(k0), l.nodeWithKey(k0), l.splitR(k0))
+            c.leftAlone(lt).join(m.combineRootR(c, self)).join(c.leftAlone(rt))
+        else
+            l.combineNEH(c,self)
+        end
+    combineNEH(c: CombiningOp, r: NonEmpty): Treap = do
+            (lt, m, rt) = (r.splitL(k0), r.nodeWithKey(k0), r.splitR(k0))
+            c.rightAlone(lt).join(m.combineRootL(self, c)).join(c.rightAlone(rt))
+        end
+end
+
+private leaf1(key: ZZ32, val: String): Treap =
+    Leaf1(randomZZ32(2147483647), key, val)
+
+private object Node(left: Treap, w0: ZZ32, k0: ZZ32, v0: String, right: Treap)
+        extends NonEmpty
+    getter k(): ZZ32 = k0
+    getter v(): String = v0
+    getter root(): Leaf1 = Leaf1(w0, k0, v0)
+    getter w(): ZZ32 = w0
+    getter min(): Treap =
+        if left.isEmpty then self.root else left.min end
+    getter max(): Treap =
+        if right.isEmpty then self.root else right.max end
+    mkString(withParens: Boolean): String = do
+        mid = k0.asString "|->" v0
+        (l,r) = (left.mkString(withParens), right.mkString(withParens))
+        if withParens then
+            "(" l ") <" w0.asString ">" mid " (" r ")"
+        else
+            lh = if l.isEmpty then mid else l " " mid end
+            if r.isEmpty then lh else lh " " r end
+        end
+      end
+    (*
+    (* Split tree at key. *)
+    split(key: ZZ32): (Treap, Treap, Treap) =
+        if key < k0 then
+            (l, match, r) = left.split(key)
+            (l, match, node(r, w0, k0, v0, right))
+        elif key > k0 then
+            (l, match, r) = right.split(key)
+            (node(left, w0, k0, v0, l), match, r)
+        else
+            (left, self, right)
+        end
+    *)
+    (* Left subtree of split at key *)
+    splitL(key:ZZ32): Treap =
+        if key < k0 then
+            left.splitL(key)
+        elif key > k0 then
+            Node(left, w0, k0, v0, right.splitL(key))
+        else
+            left
+        end
+    (* Node with given key, or Empty *)
+    nodeWithKey(key:ZZ32): Treap =
+        if key < k0 then
+            left.nodeWithKey(key)
+        elif key > k0 then
+            right.nodeWithKey(key)
+        else
+            self
+        end
+    (* Right subtree of split at key *)
+    splitR(key:ZZ32): Treap =
+        if key < k0 then
+            Node(left.splitR(key), w0, k0, v0, right)
+        elif key > k0 then
+            right.splitR(key)
+        else
+            right
+        end
+
+    joinNE(l: NonEmpty): NonEmpty =
+        if w0 > l.w then
+            Node(l.join(left), w0, k0, v0, right)
+        else
+            l.joinNEH(self)
+        end
+    joinNEH(r: NonEmpty): NonEmpty =
+        Node(left, w0, k0, v0, right.join(r))
+
+    combineNE(l: NonEmpty, c: CombiningOp): Treap =
+        if w0 > l.w then
+            (lt, m, rt) = (l.splitL(k0), l.nodeWithKey(k0), l.splitR(k0))
+            lt.combine(c,left).join(m.combineRootR(c, self.root)).join(rt.combine(c,right))
+        else
+            l.combineNEH(c,self)
+        end
+    combineNEH(c: CombiningOp, r: NonEmpty): Treap = do
+            (lt, m, rt) = (r.splitL(k0), r.nodeWithKey(k0), r.splitR(k0))
+            left.combine(c,lt).join(m.combineRootL(self.root, c)).join(right.combine(c,rt))
+        end
+end
+
+(** Work around bug in which direct call to combine method was
+ *  generated with incorrect type signature (using actual call-
+ *  site type of CombiningOp) **)
+doCombine(l:Treap, co: CombiningOp, r: Treap): Treap = l.combine(co,r)
+
+private trait CombiningOp
+    rightAlone(right: Treap): Treap
+    leftAlone(left: Treap): Treap
+    combine(leftArg: Leaf1, rightArg: Leaf1): Treap
+end
+
+private object UnionOp extends CombiningOp
+    rightAlone(right: Treap): Treap = right
+    leftAlone(left: Treap): Treap = left
+    combine(leftArg: Leaf1, rightArg: Leaf1): Treap = leftArg
+end
+
+private object IntersectionOp extends CombiningOp
+    rightAlone(right: Treap): Treap = Empty
+    leftAlone(left: Treap): Treap = Empty
+    combine(leftArg: Leaf1, rightArg: Leaf1): Treap = leftArg
+end
+
+private object DifferenceOp extends CombiningOp
+    rightAlone(right: Treap): Treap = Empty
+    leftAlone(left: Treap): Treap = left
+    combine(leftArg: Leaf1, rightArg: Leaf1): Treap = Empty
+end
+
+private object SymdiffOp extends CombiningOp
+    rightAlone(right: Treap): Treap = right
+    leftAlone(left: Treap): Treap = left
+    combine(leftArg: Leaf1, rightArg: Leaf1): Treap = Empty
+end
+
+end
