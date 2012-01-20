@@ -26,14 +26,17 @@ import com.sun.fortress.useful.Useful;
 
 public class Instantiater extends ClassAdapter {
     
-    InstantiationMap types;
-    String instanceName;
-    InstantiatingClassloader icl;
+    final InstantiationMap types;
+    final InstantiationMap oprs;
+    final String instanceName;
+    final InstantiatingClassloader icl;
     int access_flags;
     
-    public Instantiater(ClassVisitor cv, Map xlation, String instanceName, InstantiatingClassloader icl) {
+    public Instantiater(ClassVisitor cv, Map<String, String> xlation,
+            Map<String, String> opr_xlation, String instanceName, InstantiatingClassloader icl) {
         super(cv);
         this.types = new InstantiationMap(xlation);
+        this.oprs = new InstantiationMap(opr_xlation);
         this.instanceName = instanceName;
         this.icl = icl;
     }
@@ -45,7 +48,6 @@ public class Instantiater extends ClassAdapter {
     @Override
     public void visit(int version, int access, String name, String signature,
             String superName, String[] interfaces) {
-        // TODO Auto-generated method stub
         this.access_flags = access;  //save access for use in generating methods for flattened tuples
         String[] new_interfaces = new String[interfaces.length];
         for (int i = 0; i < interfaces.length; i++) {
@@ -106,7 +108,7 @@ public class Instantiater extends ClassAdapter {
     public MethodVisitor visitMethod(int access, String name, String desc,
             String signature, String[] exceptions) {
     	// necessary?
-        name = types.getName(name);
+        name = oprs.getMethodName(name);
         //System.out.println("old desc=" + desc);
         //desc = types.getMethodDesc(desc);
         //System.out.println("new desc=" + desc);

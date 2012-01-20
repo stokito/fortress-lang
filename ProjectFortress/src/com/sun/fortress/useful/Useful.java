@@ -660,6 +660,15 @@ public class Useful {
         return map(x1, x2, result);
     }
 
+    public static <T,U> Map<T,U> map(List<T> x1, List<U> x2, List<Boolean> filter) {
+        HashMap<T,U> result = new HashMap<T,U>();
+        int l = x1.size();
+        for (int i = 0; i < l; i++)
+            if (filter.get(i))
+                result.put(x1.get(i), x2.get(i));
+        return result;
+    }
+
     public static <T,U> Map<T,U> map(List<T> x1, List<U> x2, Map<T,U> result) {
         int l = x1.size();
         for (int i = 0; i < l; i++)
