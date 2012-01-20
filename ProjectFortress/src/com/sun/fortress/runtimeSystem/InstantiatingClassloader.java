@@ -289,7 +289,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         // throw new ClassNotFoundException("Don't know how to instantiate generic " + stem + " of " + parameters);
                     }
                 } else {
-                	//System.out.println("Getting class: " + name);
+                	classData = getClass(name);
+                	/*//System.out.println("Getting class: " + name);
                     classData = getClass(name);
                     
                     ClassReader cr = new ClassReader(classData);
@@ -303,7 +304,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     
                     ClassWriter cw = new ClassWriter(0);
                     classADT.accept(cw);
-                    classData = cw.toByteArray();
+                    classData = cw.toByteArray();*/
                 }
                 
                 if (expanded && SAVE_EXPANDED_JAR != null) {

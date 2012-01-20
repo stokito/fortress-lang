@@ -94,7 +94,7 @@ public class CodeGenerationPhase extends Phase {
             ComponentIndex ci = previous.components().get(component.getName());
             
             // John Experiment
-            
+            /*
             String repository = ProjectProperties.BYTECODE_CACHE_DIR + "/";
             String cmpName = repository + ci.name().getText();
             String cmpNameShort = ci.name().getText();
@@ -144,7 +144,7 @@ public class CodeGenerationPhase extends Phase {
             } catch (IOException msg) {
             	throw new ProgramError();
             }
-            
+            */
             // end John Experiment
             
             //TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ci, apiEnv));
