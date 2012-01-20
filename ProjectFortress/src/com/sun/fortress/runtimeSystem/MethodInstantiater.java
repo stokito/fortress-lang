@@ -234,7 +234,7 @@ public class MethodInstantiater implements MethodVisitor {
                     }
                 }
             }
-            name = xlation.getTypeName(name);
+            name = xlation.getMethodName(name);
             desc = xlation.getMethodDesc(desc);
             if (descSplice != null)
                 desc = "(" + descSplice + desc.substring(1);

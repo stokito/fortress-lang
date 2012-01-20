@@ -1,0 +1,55 @@
+#!/bin/bash
+
+FHOME=/Users/Tristan/Code/workspace/Project/default_repository/caches/bytecode_cache
+CMP=$FHOME/$1
+
+if [ $# != 1 ]
+then
+    echo Usage: finfo component
+    exit
+fi
+if [ -d "$FHOME/$1" ]
+then
+    true
+else
+    echo No such component
+    exit
+fi    
+
+function display {    
+    printf "$2"
+    printf Imports: 
+    cat $1/imports | awk '{printf " "; printf $3}'
+    echo
+    printf "$2"
+    printf Exports: 
+    cat $1/exports | awk '{printf " "; printf $3}'
+    echo
+    printf "$2"    
+    printf Constts:
+    cat $1/constituents | awk '{printf " "; printf $1}'
+    echo
+    printf "$2"    
+    printf Linkkks:
+    cat $1/rewrites | awk '{printf " "; printf $1 ; printf " linked to " ; printf $3 ; printf " for API " ; printf $2}'    
+    echo
+    echo    
+    cat $1/constituents | 
+    (
+        while read line
+        do
+            printf "$2"
+            printf $line
+            echo
+            loc=" "
+            display $1/$line "$2$loc"
+        done
+    )
+    
+}
+
+echo
+display $CMP ""
+
+
+

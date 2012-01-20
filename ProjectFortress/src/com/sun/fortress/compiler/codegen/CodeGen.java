@@ -4743,11 +4743,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * extends y$RTTIi for each y in extend_s
          */
         
+        List<String> opr_params = oprsFromKindParamList(xldata.staticParameterKindNamePairs());
         String stemClassName =
             Naming.oprArgAnnotatedRTTI(cnb.stemClassName,
-                    oprsFromKindParamList(xldata.staticParameterKindNamePairs()));
+                    opr_params);
+        
         
         String rttiInterfaceName = Naming.stemInterfaceToRTTIinterface(stemClassName);
+        String rttiInterfaceFileName =
+            opr_params.size() == 0 ? rttiInterfaceName : 
+            Naming.stemInterfaceToRTTIinterface(Naming.fileForOprTaggedGeneric(cnb.stemClassName));
+        
         String[] superInterfaces = new String[d_e_size];
         
         Id[] direct_extends_keys = new Id[d_e_size]; // will use in lazyInit
@@ -4791,7 +4797,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             }
         }
 
-        cw.dumpClass( rttiInterfaceName );
+        cw.dumpClass( rttiInterfaceFileName );
         
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, prev);
 
@@ -4803,6 +4809,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         superInterfaces = new String[1];
         superInterfaces[0] = rttiInterfaceName;
         String rttiClassName =  Naming.stemClassToRTTIclass(stemClassName);
+        String rttiClassFileName =  opr_params.size() == 0 ? rttiClassName : 
+            Naming.stemClassToRTTIclass(Naming.fileForOprTaggedGeneric(cnb.stemClassName));
+
         cw.visitSource(NodeUtil.getSpan(tod).begin.getFileName(), null);
         cw.visit( InstantiatingClassloader.JVM_BYTECODE_VERSION,
                   ACC_PUBLIC, rttiClassName, null,
@@ -5110,7 +5119,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 }
             }
         }
-        cw.dumpClass( rttiClassName );
+        cw.dumpClass( rttiClassFileName );
         cw = prev;
     }
 
