@@ -32,6 +32,7 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 import org.objectweb.asm.tree.*;
 
@@ -223,21 +224,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     dename = Naming.demangleFortressIdentifier(dename);
                     ArrayList<String> sargs = new ArrayList<String>();
                     String template_name = functionTemplateName(dename, sargs);
-                    byte[] templateClassData = readResource(template_name);
                     Naming.XlationData xldata = xlationForFunction(dename);
-                        // Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
-                    
-                    List<String> xl = xldata.staticParameterNames();
-                   
-                    Map<String, String> xlation  = Useful.map(xl, sargs);
-                    ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
-                    ClassReader cr = new ClassReader(templateClassData);
-                    ClassVisitor cvcw = LOG_FUNCTION_EXPANSION ?
-                        new TraceClassVisitor((ClassVisitor) cw, new PrintWriter(System.err)) :
-                            cw;
-                    Instantiater instantiater = new Instantiater(cvcw, xlation, dename, this);
-                    cr.accept(instantiater, 0);
-                    classData = cw.toByteArray();
+                    classData = readAndExpandGenericThing(dename, sargs,
+                            template_name, xldata);
                     
                 } else if (isClosure) {
                     classData = instantiateClosure(Naming.demangleFortressIdentifier(name));
@@ -270,21 +259,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     } else {
                         ArrayList<String> sargs = new ArrayList<String>();
                         String template_name = genericTemplateName(dename, sargs); // empty sargs
-                        byte[] templateClassData = readResource(template_name);
                         Naming.XlationData xldata = xlationForGeneric(dename);
-                           // Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
-                        
-                        List<String> xl = xldata.staticParameterNames();
-                        Map<String, String> xlation = Useful.map(xl, sargs);
-                        ManglingClassWriter cw =
-                            new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
-                        ClassReader cr = new ClassReader(templateClassData);
-                        ClassVisitor cvcw = LOG_FUNCTION_EXPANSION ?
-                            new TraceClassVisitor((ClassVisitor) cw, new PrintWriter(System.err)) :
-                                cw;
-                        Instantiater instantiater = new Instantiater(cvcw, xlation, dename, this);
-                        cr.accept(instantiater, 0);
-                        classData = cw.toByteArray();
+                        classData = readAndExpandGenericThing(dename, sargs,
+                                template_name, xldata);
                         
                         // throw new ClassNotFoundException("Don't know how to instantiate generic " + stem + " of " + parameters);
                     }
@@ -350,6 +327,46 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         }
 
         return clazz;
+    }
+
+    /**
+     * @param dename
+     * @param sargs
+     * @param template_name
+     * @param xldata
+     * @return
+     * @throws IOException
+     */
+    private byte[] readAndExpandGenericThing(String dename,
+            ArrayList<String> sargs, String template_name,
+            Naming.XlationData xldata) throws IOException {
+        byte[] classData;
+        byte[] templateClassData = readResource(template_name);
+            // Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
+        
+        List<String> xl = xldata.staticParameterNames();
+               
+        Map<String, String> xlation  = Useful.map(xl, sargs);
+        Map<String, String> opr_xlation  = Useful.map(xl, sargs, xldata.isOprKind());
+        
+        ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
+        ClassReader cr = new ClassReader(templateClassData);
+        ClassVisitor cvcw = LOG_FUNCTION_EXPANSION ?
+            new TraceClassVisitor((ClassVisitor) cw, new PrintWriter(System.err)) :
+                cw;
+        Instantiater instantiater = new Instantiater(cvcw, xlation, opr_xlation, dename, this);
+        cr.accept(instantiater, 0);
+        classData = cw.toByteArray();
+        if (ProjectProperties.getBoolean("fortress.bytecode.verify", false)) {
+            try {
+                PrintWriter pw = new PrintWriter(System.out);
+                CheckClassAdapter.verify(new ClassReader(classData), true, pw);
+            } catch (Throwable th) {
+                th.printStackTrace();
+            }
+        }
+
+        return classData;
     }
 
     private String functionTemplateName(String name, ArrayList<String> sargs) {
@@ -2346,8 +2363,20 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
     
     static boolean isExpanded(String className) {
-        int left = className.indexOf(Naming.LEFT_OXFORD);
-        int right = className.indexOf(Naming.RIGHT_OXFORD);
+        return isExpanded(className, Naming.LEFT_OXFORD_CHAR, Naming.RIGHT_OXFORD_CHAR) ||
+        isExpanded(className, Naming.LEFT_HEAVY_ANGLE_CHAR, Naming.RIGHT_HEAVY_ANGLE_CHAR);
+    }
+
+    /**
+     * @param className
+     * @param left_ch
+     * @param right_ch
+     * @return
+     */
+    private static boolean isExpanded(String className, char left_ch,
+            char right_ch) {
+        int left = className.indexOf(left_ch);
+        int right = className.indexOf(right_ch);
         return (left != -1 && right != -1 && left < right);
     }
     
