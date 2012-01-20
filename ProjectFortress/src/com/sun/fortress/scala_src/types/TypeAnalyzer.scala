@@ -149,12 +149,14 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
      */ 
     case (s@SVarType(_, id, _), t) =>
       val hEntry = (negate, true, s, t)
-      if (history.contains(hEntry))
+      if (history.contains(hEntry)) {
+        println("pSubInner summary judgment: False")
         False
-      else {
+      } else {
         val nHistory = history + hEntry
         val sParam = staticParam(id)
         val supers = meet(toListFromImmutable(sParam.getExtendsClause))
+	println("pSubInner: supers = " + supers)
         if (negate)
           pFalse()(!negate)
         else
