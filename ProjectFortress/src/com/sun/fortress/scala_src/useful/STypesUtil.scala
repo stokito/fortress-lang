@@ -53,6 +53,7 @@ import com.sun.fortress.useful.HasAt
 import com.sun.fortress.useful.NI
 import com.sun.fortress.scala_src.typechecker._
 import com.sun.fortress.useful.Useful
+import java.util.Collections;
 
 object STypesUtil {
 
@@ -1423,7 +1424,9 @@ object STypesUtil {
     val (paramsToArgs, ty) = trait_args match {
        case Some(ta) => (new StaticTypeReplacer(ti.staticParameters, ta),
        	                 NF.makeTraitTypeForScala(tname, ta))
-       case None => (nullStaticTypeReplacer, NF.makeTraitType(tname))
+       case None => (nullStaticTypeReplacer,
+                     NF.makeTraitType(NU.getSpan(tname), true, tname,
+                                      staticParamsToArgs(ti.staticParameters), Collections.emptyList[StaticParam]))
     }
 
     def oneMethod(methodName: IdOrOp, methodFunc: Functional) = {
