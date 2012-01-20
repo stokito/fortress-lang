@@ -1,0 +1,31 @@
+#!/bin/bash
+
+FHOME=/Users/Tristan/Code/workspace/Project/default_repository/caches/bytecode_cache 
+NAME=`basename $1 .fss`
+
+if [ $# != 1 ]
+then
+    echo Usage: fcompile file.fss
+    exit
+fi
+
+if [ -d $FHOME/$NAME ]
+then
+    echo The fortress already contains a component with name $NAME
+    exit
+fi
+
+
+touch $1
+fortress compile $1
+
+if [ -f $FHOME/$NAME.jar ] 
+then
+    true
+else 
+    exit
+fi        
+
+jar -xf $FHOME/$NAME.jar
+mv $NAME.class $FHOME/$NAME/code_pool/
+rm $FHOME/$NAME.jar

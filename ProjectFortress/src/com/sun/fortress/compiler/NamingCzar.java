@@ -438,7 +438,6 @@ public class NamingCzar {
         s(FortressBufferedReader.class, fortLib, "JavaBufferedReader");
         s(FortressBufferedWriter.class, fortLib, "JavaBufferedWriter");
         s(BigInteger.class, fortLib, "ZZ");
-        //s(FZZ.class,fortLib,"ZZ");
         specialForeignJavaTranslations.put("V", NodeFactory.makeVoidType(span));
 	// You would think the following would be correct, but it's not, because
 	// we actually use Java int values to represent Fortress Character values.
