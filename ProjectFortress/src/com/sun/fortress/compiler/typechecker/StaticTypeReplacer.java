@@ -22,6 +22,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
+import com.sun.fortress.scala_src.useful.STypesUtil;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.NI;
 
@@ -108,7 +109,17 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
 
     @Override
     public Node forVarType(VarType that) {
-        return updateNode(that, that.getName());
+        Type t = (Type)  updateNode(that, that.getName());
+        if (t == that)
+            return t;
+        List<StaticParam> that_sp = that.getInfo().getStaticParams();
+        if (that_sp.size() == 0) 
+            return t;
+        List<StaticParam> t_sp = t.getInfo().getStaticParams();
+        if (t_sp.size() > 0)
+            return t;
+        List<StaticParam> new_sp = recurOnListOfStaticParam(that_sp);
+        return STypesUtil.insertStaticParams(t, new_sp);
     }
 
     @Override
