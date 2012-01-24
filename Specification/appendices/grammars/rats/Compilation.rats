@@ -1,0 +1,80 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+File =
+     w CompilationUnit w EndOfFile
+   / w Exports w ";"? w Imports w ";"? (w Decls w ";"?)? w EndOfFile // Error production
+   / (w Imports w ";"?)? (w Decls w ";"?)? w EndOfFile // Error production
+   / (w Imports w ";"?)? w Exports w ";"? (w Decls w ";"?)? w EndOfFile
+   / (w Imports w ";"?)? w AbsDecls w ";"? w EndOfFile
+   / w Imports w ";"? (w AbsDecls w ";"?)? w EndOfFile
+
+CompilationUnit =
+     Component
+   / Api
+
+Component =
+     ("native" w)? "component" w APIName w Exports w ";"? w Imports w ";"? (w Decls w ";"?)?
+     w "end" // Error production
+   / ("native" w)? "component" w APIName (w Imports w ";"?)? w Decls w ";"? w "end"
+     // Error production
+   / ("native" w)? "component" w APIName (w Imports w ";"?)? w Exports w ";"? (w Decls w ";"?)?
+     w "end" ((s "component")? s APIName)?
+
+Api =
+     "native" w "api" w APIName (w Imports w ";"?)? (w AbsDecls w ";"?)? w "end"
+     // Error production
+   / "api" w APIName (w Imports w ";"?)? (w AbsDecls w ";"?)? w "end" ((s "api")? s APIName)?
+
+Imports = Import (br Import)*
+
+Import =
+     "import" w "api" w AliasedAPINames
+   / "import" w ImportedNames
+
+ImportedNames =
+     APIName "." w "{" w "..." w "}" (w "except" w SimpleNames)?
+   / APIName "." w "{" w AliasedSimpleNameList (w "," w "...")? w "}"
+   / Id "." QualifiedName (w "as" w Id)?
+   / Id (w "as" w Id)?          // Error production
+
+SimpleNames =
+     SimpleName
+   / "{" w SimpleNameList w "}"
+
+SimpleNameList = SimpleName (w "," w SimpleName)*
+
+AliasedSimpleName =
+     Id (w "as" w Id)?
+   / "opr" (w "BIG")? w (Encloser / Op) (w "as" w (Encloser / Op))?
+   / "opr" (w "BIG")? w EncloserPair (w "as" w EncloserPair)?
+
+AliasedSimpleNameList = AliasedSimpleName (w "," w AliasedSimpleName)*
+
+AliasedAPINames =
+     AliasedAPIName
+   / "{" w AliasedAPINameList w "}"
+
+AliasedAPIName = APIName (w "as" w Id)?
+
+AliasedAPINameList = AliasedAPIName (w "," w AliasedAPIName)*
+
+Exports = Export (br Export)*
+
+Export = "export" w APINames
+
+APINames =
+     APIName
+   / "{" w APINameList w "}"
+
+APINameList = APIName (w "," w APIName)*
+\end{verbatim}
