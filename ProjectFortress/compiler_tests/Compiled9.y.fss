@@ -1,0 +1,20 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+import Operators.{opr OP, opr |, opr | |}
+export Executable
+
+run() = do
+ 1 OP 2
+ (3)OP
+ |"first", "second"|
+ "first" | "second"
+end

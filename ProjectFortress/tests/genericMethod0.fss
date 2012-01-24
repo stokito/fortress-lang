@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component genericMethod0
+export Executable
+
+trait SGenerator[\ E \]
+  size() : ZZ64
+  generate[\ R \]
+          (f: (R,R) -> R, z : R, body : E -> R):R
+end
+
+value object MyRange(l:ZZ32, h:ZZ32) extends Generator[\ ZZ32 \]
+  size() = h - l
+  generate[\ R \](red : Reduction[\R\], body : ZZ32 -> R):R = do
+    i:ZZ32 := l
+    r : R := red.empty()
+    while i <= h do
+      r := red.join(r,body(i))
+      i += 1
+    end
+  end
+end
+
+run():() = do
+  MyRange(1,10).generate[\()\](VoidReduction,
+                               fn (x:ZZ32):() => println "Hello World")
+end
+
+end

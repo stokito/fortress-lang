@@ -1,0 +1,29 @@
+% Try ../../bin/fortick example.tic to create example.tex
+\documentclass[11pt]{article}
+\usepackage{fortify}
+\title{Trying out Fortify}
+\author{A. N. Arthur}
+\begin{document}
+\maketitle
+
+A one-liner:
+\begin{center}
+`f(x: ZZ) = x^2`
+\end{center}
+
+A multi-liner:
+
+`component fact
+export Executable
+
+run() = do 
+   for i <- seq(0#20) do
+     j:ZZ64 = widen(i)
+     println("fact(" j ")= " f(j))
+   end
+end
+
+f(x:ZZ64):ZZ64 = if x < 2 then 1 else x f(x-1) end
+end`
+
+\end{document}

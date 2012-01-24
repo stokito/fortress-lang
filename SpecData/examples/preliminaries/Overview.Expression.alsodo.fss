@@ -1,0 +1,39 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Overview.Expression.alsodo
+
+export Executable
+
+h() =
+(** EXAMPLE **)
+do
+  factorial(10)
+also do
+  factorial(5)
+also do
+  factorial(2)
+end
+(** END EXAMPLE **)
+
+factorial(n: ZZ32) = do    (* factorial *)
+  var result: ZZ32 = 1
+  for i <- 1:n do atomic result := result i end
+  println result
+end
+
+run() = do
+  h()
+end
+
+end

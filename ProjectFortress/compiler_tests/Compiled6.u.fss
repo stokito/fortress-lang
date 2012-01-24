@@ -1,0 +1,41 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+import CompilerBuiltin.{...} except Boolean
+export Executable
+
+trait Boolean
+    opr NOT(self): Boolean
+    opr AND(self, other: Boolean): Boolean
+    opr OR(self, other: Boolean): Boolean
+    opr ->(self, other: Boolean): Boolean
+    opr <->(self, other: Boolean): Boolean
+end
+
+value object trueTest extends Boolean
+    opr NOT(self): Boolean = falseTest
+    opr AND(self, other: Boolean): Boolean = other
+    opr OR(self, other: Boolean): Boolean = trueTest
+    opr ->(self, other: Boolean): Boolean = other
+    opr <->(self, other: Boolean): Boolean = other
+end
+
+value object falseTest extends Boolean
+    opr NOT(self): Boolean = trueTest
+    opr AND(self, other: Boolean): Boolean = self
+    opr OR(self, other: Boolean): Boolean = other
+    opr ->(self, other: Boolean): Boolean = trueTest
+    opr <->(self, other: Boolean): Boolean = NOT(other)
+end
+
+fib(n: ZZ32): ZZ32 = if NOT(n > 2) then 1 else fib(n-1) + fib(n-2) end
+
+run(): () = println(fib 20)

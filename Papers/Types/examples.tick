@@ -1,0 +1,222 @@
+We now consider several sets of overloaded generic function declarations, 
+and argue informally why they are 
+(or are not, in one case) 
+permitted by the rules in Section~\ref{sec:rules}, 
+paying particular attention to where multiple instantiation exclusion is required.
+We give a formal system and algorithm for performing these checks 
+in Section~\ref{sec:checking}.
+
+First, consider the function `foo`
+from Section~\ref{sec:intro}:
+
+\small
+`  foo[\X <: Object\](x: X, y: Object): ZZ = 1
+  foo[\Y <: Number\](x: Number, y: Y): ZZ = 2`
+\normalsize
+This overloading is valid: 
+The second definition is strictly more specific than the first 
+because the first definition is applicable to a pair of arguments 
+exactly if the type of each is a subtype of `Object`, 
+whereas the second is applicable to a pair of arguments exactly if
+the type of each is a subtype of `Number`.
+Thus, these definitions satisfy the No Duplicates Rule 
+and the Meet Rule by Lemma~\ref{lem:strictms}.
+And they satisfy the Return Type Rule 
+because the return type of both definitions is always `ZZ`.
+
+The overloaded definitions for `tail` are also valid:
+
+\small
+`  tail[\X\](x: List[\X\]): List[\X\] = e1
+  tail[\X <: Number\](x: List[\X\]): List[\X\] = e2
+  tail(x: List[\ZZ\]): List[\ZZ\] = e3`
+\normalsize
+The first definition is applicable to any argument 
+of type `List[\T\]` for any well-formed type `T`, 
+the second is applicable to an argument 
+of type `List[\T\]` when `T <: Number`, 
+and the third is applicable to an argument 
+of type `List[\ZZ\]`.
+Thus, 
+each definition is strictly more specific than the preceding one, 
+so the No Duplicates Rule and Meet Rule 
+are satisfied for each pair of definitions by Lemma~\ref{lem:strictms}.
+
+To see that the Return Type Rule is satisfied 
+by the first two definitions, 
+consider any type `W NEQUIV Bottom` 
+to which the second definition is applicable---%
+so `W <: List[\T\]` for some `T <: Number`---%
+and any instantiation of the first definition with type $U$ 
+that is applicable to $W$---so $W \subtypeof$ `List[\U\]`.
+Then 
+`W <: List[\T\] CAP List[\U\]`.
+By multiple instantiation exclusion,
+`List[\T\] CAP List[\U\] EQUIV Bottom`
+unless $T \equiv U$.
+Since $W \not\equiv \Bottom$, 
+we have $T \equiv U$,
+so $W \subtypeof \TYP{List}\ob{U}$ 
+with $U \subtypeof \TYP{Number}$.
+Thus, the instantiation of the second definition with $U$ 
+has return type `List[\U\]`, 
+which is also the return type 
+of the instantiation of the first definition 
+under consideration.
+(In Section~\ref{sec:exred} we describe how to
+incorporate this sort of reasoning about validity into our algorithmic
+checking of the overloading rules.)
+% In the justification that these two declarations satisfy the return type rule,
+% we employed a sort of intensional type analysis. Through backward reasoning
+% we determined that the constraint $T \equiv U$ must hold in order for these
+% declarations to be valid. In Section~\ref{sec:}\TODO{???} we will
+% incorporate this methodology into our algorithmic checking of the overloading
+% rules.
+
+The Return Type Rule is also satisfied by the third definition 
+and either of the first two 
+because the third definition is applicable 
+only to arguments of type `List[\ZZ\]`,
+and because of multiple instantiation exclusion, 
+the only instantiation of either the first or second definition 
+that is applicable to such an argument 
+is its instantiation with `ZZ`.
+That instantiation has return type `List[\ZZ\]`, 
+which is also the return type of the third definition.
+
+The `minimum` example from Section~\ref{sec:exclusion} is also valid 
+under multiple instantiation exclusion,
+which is necessary in this case 
+to satisfy the Meet Rule rather than the Return Type Rule:
+
+\small
+`  minimum[\X <: RR, Y <: ZZ\](p: Pair[\X,Y\]): RR
+  minimum[\X <: ZZ, Y <: RR\](p: Pair[\X,Y\]): RR
+  minimum[\X <: ZZ, Y <: ZZ\](p: Pair[\X,Y\]): ZZ
+`
+\normalsize
+Any argument to which the first two definitions are both applicable 
+must be of type $\TYP{Pair}\ob{X_1,Y_1} \cap \TYP{Pair}\ob{X_2,Y_2}$
+for some $X_1 \subtypeof `RR`$, 
+$Y_1 \subtypeof `ZZ`$, 
+$X_2 \subtypeof `ZZ`$, 
+and $Y_2 \subtypeof `RR`$.
+Multiple instantiation exclusion 
+implies that $X_1 = X_2$ and $Y_1 = Y_2$,
+so the argument must be of type $\TYP{Pair}\ob{X_1,Y_1}$, 
+where $X_1 \subtypeof `RR` \cap `ZZ` = `ZZ`$
+and $Y_1 \subtypeof `ZZ` \cap `RR` = `ZZ`$, 
+so the third definition is applicable to it.
+And since the third definition is more specific than the first two,
+it satisfies the requirement of the Meet Rule.
+
+The following set of overloaded declarations is also valid 
+(given the declaration `ArrayList[\X\] <: List[\X\]`):
+
+\small
+`  bar[\X\]ArrayList[\X\]: ZZ
+  bar[\Y <: ZZ\]List[\Y\]: ZZ
+  bar[\Z <: ZZ\]ArrayList[\Z\]: ZZ`
+\normalsize
+The first two declarations are incomparable:
+the first is applicable to `ArrayList[\T\]` for any type `T`,
+the second to `List[\U\]` for `U <: ZZ`.
+Thus, both declarations are applicable to any argument 
+of type `ArrayList[\T\] CAP List[\U\]` 
+for any `T` and `U <: ZZ`.
+Since `ArrayList[\T\] <: List[\T\]`, 
+this type is a subtype of `List[\T\] CAP List[\U\]`, 
+which, because of multiple instantiation exclusion, 
+is \Bottom\ unless $T \equiv U$,
+in which case,
+`ArrayList[\T\] CAP List[\U\] EQUIV ArrayList[\U\]`.
+This is exactly the type to which the third declaration is applicable, 
+so the Meet Rule is satisfied.
+
+Note that this example is similar to the previous one with `minimum`
+except that rather than having each of the two definitions 
+being more restrictive on a type parameter, 
+one uses a more specific type constructor.
+
+Finally, 
+we consider three examples that do not involve generic types,
+beginning with the following declarations:
+
+\small
+`  baz[\X\](x: X): X
+  baz(x: ZZ): ZZ
+`
+\normalsize
+This pair is \emph{not} valid: 
+it does not satisfy the Return Type Rule.
+% The second is strictly more specific, 
+% so the declarations satisfy the No Duplicates and Meet Rules.
+Consider, for example, 
+an argument of type `NN <: ZZ`.
+The second declaration, 
+which is more specific than the first,
+and the instantiation of the first declaration with `NN`
+are both applicable to this argument,
+but the return type `ZZ` of the second declaration 
+is not a subtype of the return type `NN` of the instance of the first declaration.
+This rejection by the Return Type Rule is not gratuitous: 
+`baz` may be called with an argument of type `NN` 
+in a context that expects an `NN` in return.
+
+We can fix this example by making the second declaration generic:
+
+\small
+`  baz[\X\](x: X): X
+  baz[\X <: ZZ\](x: X): X
+`
+\normalsize
+This pair is valid: 
+the second declaration is strictly more specific than the first, 
+so the No Duplicates and Meet Rules are satisfied.
+To see that the Return Type Rule is satisfied, 
+consider any type `W NEQUIV Bottom` to which the second declaration is applicable---%
+so `W <: ZZ`---%
+and any instantiation of the first with some type $T$ that is applicable to $W$---% 
+so `W <: T`.
+Then the instantiation of the second declaration with $W$ 
+has return type $W$, which is a subtype of the return type $T$ 
+of the instance of the first declaration under consideration.
+
+%% Finally,
+%% consider the following overloaded definitions:
+
+%% \small
+%%   quux[\X\](x: X): ZZ = 1
+%%   quux(x: ZZ): ZZ = 2
+%% 
+%% \normalsize
+%% This pair is valid 
+%% because the second definition is strictly more specific than the first---%
+%% so the No Duplicates and Meet Rules are satisfied---%
+%% and the return types of both is always just `ZZ`---%
+%% so the Return Type Rule is satisfied.
+%% The call `quux(x)` evaluates to 2 whenever the ilk of $x$ is a subtype of `ZZ`, 
+%% and to 1 otherwise,
+%% which we believe is the behavior a programmer would expect.
+
+%% In contrast, 
+%% under the ````infinite set of monomorphic definitions'' interpretation,
+%% supposing that we could avoid or resolve the ambiguities described in the introduction,
+%% the call `quux(x)` when $x$ has type `NN <: ZZ` would evaluate to 1 
+%% because the most specific monomorphic definition 
+%% would be the the instantiation of the generic definition with `NN`.
+
+
+
+
+
+
+
+%% \TODO{Some stuff to mention?}
+%% In a single-inheritance language (without parametric polymorphism?), 
+%% the constructed types trivially form a meet semilattice: 
+%% two types have a common nontrivial subtype 
+%% only if one is a subtype of the other.
+%% Thus, the tuple types and constructed types form a meet semilattice.
+%% (But arrow types don't: 
+%% the meet of `S->T` and `U->V` is \emph{not} an arrow type.)

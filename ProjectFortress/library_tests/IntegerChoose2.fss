@@ -1,0 +1,158 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component IntegerChoose2
+import java com.sun.fortress.nativeHelpers.{simpleLongArith.longSlowCautiousChoose => jLongSlowCautiousChoose}
+export Executable
+
+(*) Test CHOOSE operator on ZZ64
+
+(*) shouldOverflow(f: () -> ZZ64): Boolean =
+(*)   try
+(*)     ignore f()
+(*)     false
+(*)   catch e
+(*)     IntegerOverflow => true
+(*)     Exception => false
+(*)   end
+
+verifyChoose(i: ZZ64, j: ZZ64):() = do
+    assert(i CHOOSE j = jLongSlowCautiousChoose(i, j),
+           i.asString " CHOOSE " j.asString "  " (i CHOOSE j).asString "=/=" jLongSlowCautiousChoose(i, j).asString)
+    assert(i CHOOSE j = ((i-1) CHOOSE (j-1)) + ((i-1) CHOOSE j),
+           i.asString " CHOOSE " j.asString "  " (i CHOOSE j).asString "=/=" ((i-1) CHOOSE (j-1)).asString "+" ((i-1) CHOOSE j).asString)
+end
+
+run(): () = do
+  zero: ZZ64 = 0
+  one: ZZ64 = 1
+  two: ZZ64 = 2
+  three: ZZ64 = 3
+  four: ZZ64 = 4
+  five: ZZ64 = 5
+  six: ZZ64 = 6
+  seven: ZZ64 = 7
+  nine: ZZ64 = 9
+  ten: ZZ64 = 10
+  eleven: ZZ64 = 11
+  twelve: ZZ64 = 12
+  sixteen: ZZ64 = 16
+  twentyone: ZZ64 = 21
+  thirty: ZZ64 = 30
+  forty: ZZ64 = 40
+  fortyone: ZZ64 = 41
+  sixty: ZZ64 = 60
+  sixtyone: ZZ64 = 61
+  eighty: ZZ64 = 80
+  eightyone: ZZ64 = 81
+
+  assert(zero CHOOSE zero = 1)
+
+  assert(one CHOOSE zero = 1)
+  assert(one CHOOSE one = 1)
+
+  assert(two CHOOSE zero = 1)
+  assert(two CHOOSE one = 2)
+  assert(two CHOOSE two = 1)
+
+  assert(three CHOOSE zero = 1)
+  assert(three CHOOSE one = 3)
+  assert(three CHOOSE two = 3)
+  assert(three CHOOSE three = 1)
+
+  assert(four CHOOSE zero = 1)
+  assert(four CHOOSE one = 4)
+  assert(four CHOOSE two = 6)
+  assert(four CHOOSE three = 4)
+  assert(four CHOOSE four = 1)
+
+  assert(five CHOOSE zero = 1)
+  assert(five CHOOSE one = 5)
+  assert(five CHOOSE two = 10)
+  assert(five CHOOSE three = 10)
+  assert(five CHOOSE four = 5)
+  assert(five CHOOSE five = 1)
+
+  assert(six CHOOSE zero = 1)
+  assert(six CHOOSE one = 6)
+  assert(six CHOOSE two = 15)
+  assert(six CHOOSE three = 20)
+  assert(six CHOOSE four = 15)
+  assert(six CHOOSE five = 6)
+  assert(six CHOOSE six = 1)
+
+  assert(thirty CHOOSE eleven = 54627300)
+  assert(thirty CHOOSE sixteen = 145422675)
+
+  assert(sixty CHOOSE twentyone = 7984465725343800)
+  assert(sixty CHOOSE thirty = 118264581564861424)
+
+  assert((forty CHOOSE nine) + (forty CHOOSE ten) = (fortyone CHOOSE ten))
+  assert((sixty CHOOSE nine) + (sixty CHOOSE ten) = (sixtyone CHOOSE ten))
+  assert((eighty CHOOSE nine) + (eighty CHOOSE ten) = (eightyone CHOOSE ten))
+
+  for i <- seq(1:66), j <- seq(0:i) do
+    verifyChoose(i,j)
+  end
+
+  for i <- seq(67:100), j <- seq(0:17) do
+    verifyChoose(i,j)
+    verifyChoose(i,i-j)
+  end
+
+  (*) These are the points that separate use of the fast algorithm from th
+  (*) slow, cautious algorithm.  Check a range -3:3 around them.
+  for j <- seq(-3:3) do
+    verifyChoose(3037000500+j, 2)
+    verifyChoose(2642246+j, 3)
+    verifyChoose(86251+j, 4)
+    verifyChoose(11724+j, 5)
+    verifyChoose(3218+j, 6)
+    verifyChoose(1313+j, 7)
+    verifyChoose(684+j, 8)
+    verifyChoose(419+j, 9)
+    verifyChoose(287+j, 10)
+    verifyChoose(214+j, 11)
+    verifyChoose(169+j, 12)
+    verifyChoose(139+j, 13)
+    verifyChoose(119+j, 14)
+    verifyChoose(105+j, 15)
+    verifyChoose(95+j, 16)
+    verifyChoose(87+j, 17)
+    verifyChoose(81+j, 18)
+    verifyChoose(76+j, 19)
+    verifyChoose(73+j, 20)
+    verifyChoose(68+j, 21)
+    verifyChoose(66+j, 22)
+    verifyChoose(64+j, 23)
+    verifyChoose(63+j, 24)
+    verifyChoose(62+j, 25)
+    verifyChoose(62+j, 26)
+    verifyChoose(61+j, 27)
+    verifyChoose(61+j, 28)
+    verifyChoose(61+j, 29)
+    verifyChoose(61+j, 30)
+    verifyChoose(61+j, 31)
+    verifyChoose(61+j, 32)
+  end
+
+  for i <- seq(-10:10), j <- seq(-10:20) do
+     if j < 0 OR j > i then
+       i': ZZ64 = i
+       j': ZZ64 = j
+       assert(i' CHOOSE j' = 0)
+     end
+  end
+
+  println("PASS")
+end
+
+end

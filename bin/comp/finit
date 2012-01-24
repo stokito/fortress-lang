@@ -1,0 +1,4 @@
+#!/bin/bash
+
+/Users/Tristan/Code/workspace/Project/ant cleanCache > /dev/null
+/Users/Tristan/Code/workspace/Project/bin/fortress link Test.fss > /dev/null

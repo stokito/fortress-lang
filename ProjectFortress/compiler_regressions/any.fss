@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component any
+export Executable
+
+import java com.sun.fortress.nativeHelpers.{equality.sEquiv => jSEQUIV}
+
+anyeq(x:Any, y:Any):Boolean = jSEQUIV(x,y)
+anyeq(x:String, y:String):Boolean = (x=y)
+
+object O end
+
+run() = do
+
+ println(if anyeq(O,O) then "PASS" else "FAIL")
+
+end
+
+end
