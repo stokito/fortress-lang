@@ -165,6 +165,20 @@ public enum PhaseOrder {
         return phase;
     }
 
+    public static Phase makePhaseOrder(PhaseOrder[] order,
+            GlobalEnvironment env,
+            Iterable<Api> apis,
+            Iterable<Component> components,
+            long lastModified) {
+        Phase phase = new EmptyPhase(env, apis, components, lastModified);
+        
+        for (int i = 0; i < order.length; i++) {
+            phase = order[i].makePhaseOrderHelper(phase);
+        }
+        
+        return phase;
+    }    
+    
     private Phase makePhaseOrderHelper(Phase phase) {
         switch (this) {
             case EMPTY:
