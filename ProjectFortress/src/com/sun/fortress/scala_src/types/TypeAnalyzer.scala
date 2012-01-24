@@ -148,7 +148,9 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
      *     We use the history to ensure termination.
      *  2) They are the only place where you cannot negate using de Morgan's. There is a good explanation of why in the OOPSLA paper.
      */
-    case (s@SVarType(_, sid, _), t@SVarType(_, tid, _)) if (sid == tid) => True
+    case (s@SVarType(_, sid, _), t@SVarType(_, tid, _)) if (sid == tid 
+        // || sid.asInstanceOf[Id].getText == tid.asInstanceOf[Id].getText
+        ) => True
     case (s@SVarType(_, id, _), t) =>
       val hEntry = (negate, true, s, t)
       if (history.contains(hEntry)) {
