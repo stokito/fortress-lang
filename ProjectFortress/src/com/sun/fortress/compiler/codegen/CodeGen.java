@@ -1093,10 +1093,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                      *   shadowing and collisions.
                      *  
                      */
-                    if (name.toString().equals("getDefault")) {
-                        boolean a = oa.lteq(noself_domain, super_noself_domain);
-                        boolean b = oa.lteq(noself_domain, super_noself_domain);
-                        boolean c = oa.lteq(noself_domain, super_noself_domain);
+                    if (name.toString().contains("f")) {
+                        boolean a = oa.lteq(ret, super_ret);
+                        boolean b = oa.lteq(ret, super_ret);
+                        boolean c = oa.lteq(ret, super_ret);
                     }
                     boolean d_a_le_b = oa.lteq(noself_domain, super_noself_domain) ;
                     boolean d_b_le_a = oa.lteq(super_noself_domain, noself_domain) ;
