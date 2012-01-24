@@ -642,7 +642,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         boolean isObject = springBoardClass == null;
         
-        if (toTrait.equals(fromTrait)) {
+        if (typeAnalyzer.equiv(toTrait,fromTrait)) {
             receiverClass = springBoardClass;                
             if (narrowing) {
                 // Might be wrong for traits
@@ -660,7 +660,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // TODO This could be bogus, but for now, let's try it.
             String from_name = forward_to_non_overload ? NamingCzar.mangleAwayFromOverload(mname): mname;
             InstantiatingClassloader.forwardingMethod(cw, from_name, ACC_PUBLIC,
-						      selfIndex,   // was 0, but I think that was a bug
+						      0,   // ZERO is also a magic number
                     receiverClass, mname + Naming.GENERIC_METHOD_FINDER_SUFFIX_IN_TRAIT, INVOKESTATIC,
                     sig, sig, arity, false, null);
         } else {
@@ -846,6 +846,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 		for (scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tupAlready :
 			 alreadyIncluded.matchFirst(assoc.first())) {
 		    if (tupAlready._3().equals(tupTrait)) {
+		        alreadyThere = true;
+	            break;
+		    }
+		    
+		    StaticTypeReplacer str = tupAlready._2();
+		    Type alreadyType = inst.replaceIn(tupAlready._3());
+		    if (typeAnalyzer.equiv(alreadyType,tupTrait)) {
 			//System.err.println("    " + fnl + " already imported by first supertrait.");
 			alreadyThere = true;
 			break;
@@ -1044,7 +1051,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 Functional super_func = overridden._1();
                 StaticTypeReplacer super_inst = overridden._2();
                 TraitType traitDeclaringMethod = overridden._3();
-                if (traitDeclaringMethod.equals(currentTraitObjectType))
+                if (typeAnalyzer.equiv(traitDeclaringMethod,currentTraitObjectType))
                     continue;
                 
                 boolean shadowed = false;  // EQ -> EQ seen
@@ -1086,6 +1093,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                      *   shadowing and collisions.
                      *  
                      */
+                    if (name.toString().equals("getDefault")) {
+                        boolean a = oa.lteq(noself_domain, super_noself_domain);
+                        boolean b = oa.lteq(noself_domain, super_noself_domain);
+                        boolean c = oa.lteq(noself_domain, super_noself_domain);
+                    }
                     boolean d_a_le_b = oa.lteq(noself_domain, super_noself_domain) ;
                     boolean d_b_le_a = oa.lteq(super_noself_domain, noself_domain) ;
                     
