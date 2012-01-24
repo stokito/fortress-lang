@@ -87,14 +87,35 @@ public class CodeGenerationPhase extends Phase {
                 ForeignJava.only.generateWrappersForApi(api, overloads, size_partitioned_overloads, ta);
                 // Need to generate overloaded functions -- where?
             }
+            
+            // John
+            /*
+            else {
+            	ApiIndex ai = previous.apis().get(api);
+            	
+            	String repository = ProjectProperties.BYTECODE_CACHE_DIR + "/";
+            	String apiName = repository + ai.name().getText() + ".api";
+            	
+            	File apiF = new File(apiName);
+            	try {
+            		apiF.createNewFile();
+            	}
+            	catch (IOException msg) {
+                	throw new ProgramError();
+            	
+            	}
+            }
+            // end John
+             * 
+             */
         }
 
         for (Component component : previous.componentIterator()) {
             Debug.debug(Debug.Type.CODEGEN, 1, "CodeGenerationPhase: Compile(" + component.getName() + ")");
             ComponentIndex ci = previous.components().get(component.getName());
-            
-            // John Experiment
             /*
+            // John Experiment
+            
             String repository = ProjectProperties.BYTECODE_CACHE_DIR + "/";
             String cmpName = repository + ci.name().getText();
             String cmpNameShort = ci.name().getText();
@@ -144,9 +165,9 @@ public class CodeGenerationPhase extends Phase {
             } catch (IOException msg) {
             	throw new ProgramError();
             }
-            */
-            // end John Experiment
             
+            // end John Experiment
+            */
             //TypeAnalyzer ta = new TypeAnalyzer(new TraitTable(ci, apiEnv));
             TypeAnalyzer sta = newTypeAnalyzer(new TraitTable(ci, apiEnv));
                  
