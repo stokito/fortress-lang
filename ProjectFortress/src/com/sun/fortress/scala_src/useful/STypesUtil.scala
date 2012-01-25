@@ -141,7 +141,7 @@ object STypesUtil {
   def makeArrowFromFunctional(f: Functional, lifted: Boolean): Option[ArrowType] =
     makeArrowFromFunctional(f, lifted, false)
 
-  private def makeArrowFromFunctional(f: Functional, lifted: Boolean, omitSelf: Boolean): Option[ArrowType] = f match {
+  def makeArrowFromFunctional(f: Functional, lifted: Boolean, omitSelf: Boolean): Option[ArrowType] = f match {
     case f: DummyVariableFunction => Some(f.getArrowType())
     case _ =>
       val returnType = toOption(f.getReturnType).getOrElse(return None)
