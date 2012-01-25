@@ -1,0 +1,30 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+export Executable
+
+trait T
+  m(x:ZZ32, y:String): String = y
+end
+
+trait S
+  m(z:String, t:String): String = (z t)
+  m(): String = "S.m()"
+end
+
+object O(x:ZZ32,y:ZZ32) extends S
+  m(): String = "O(" x.asString "," y.asString ") " self.m("a","b")
+end
+
+run() = do
+  o = O(1,2)
+  println(o.m())
+  println(o.m("c","d"))
+end

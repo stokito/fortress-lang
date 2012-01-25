@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component nullaryOverload
+export Executable
+
+f():() = println("Nullary")
+f(x:ZZ32):() = println("ZZ32: " x)
+f(x:String):() = println("String: " x)
+
+run() = do
+  f()
+  f(15)
+  f("Hello")
+end
+
+end

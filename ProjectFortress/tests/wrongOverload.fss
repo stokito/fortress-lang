@@ -1,0 +1,54 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component wrongOverload
+export Executable
+
+(* We choose the most-specific overloading which is in scope at the
+   call site.  Because juxtaposition calls through to DOT, this is the
+   definition of DOT in force in FortressLibrary.fss, not here. *)
+
+trait Sparse[\N extends Number, nat n, nat m\]
+  extends Matrix[\N,n,m\]
+    get(t1:(ZZ32,ZZ32)) = do println("OK: sparse get"); 0 end
+    put(t1:(ZZ32,ZZ32), v:N) = fail("Sparse put")
+    init0(t1:(ZZ32,ZZ32), v:N) = fail("Sparse init")
+    replica[\U\]() = fail("Sparse replica")
+    mapReduce[\R\](f:N->R, j:(R,R)->R, z:R):R =
+          fail("Sparse mapReduce")
+end
+
+object Csr[\N extends Number, nat n, nat m\]()
+  extends Sparse[\N,n,m\]
+    t() = Csc[\N,m,n\]()
+end
+
+object Csc[\N extends Number, nat n, nat m\]()
+  extends Sparse[\N,n,m\]
+    t() = Csr[\N,m,n\]()
+end
+
+opr DOT[\ T extends Number, nat n, nat m, nat p\]
+       (me:Csr[\T,n,m\], other:Csc[\T,m,p\]):Csr[\T,n,p\] = do
+  println("FAIL: Csr DOT Csc")
+  me
+end
+
+mkMatrix[\nat n\]() : RR64[n,n] = do
+end
+
+run(): () = do
+  l = Csr[\RR64,1,1\]()
+  l l.t()
+  ()
+end
+
+end

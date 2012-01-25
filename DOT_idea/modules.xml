@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project relativePaths="false" version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/PFC.iml" filepath="$PROJECT_DIR$/PFC.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ProjectFortress/ProjectFortress.iml" filepath="$PROJECT_DIR$/ProjectFortress/ProjectFortress.iml" />
+    </modules>
+  </component>
+</project>
+

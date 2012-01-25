@@ -1,0 +1,79 @@
+(*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+******************************************************************************)
+
+export Executable
+
+trait dummy
+  s() : String = "dummy"
+end
+
+trait dummygp
+  s() : String = "dummygp"
+end
+
+trait gp
+  m() : gp = c3
+  s():String = "gp"
+end
+
+trait p extends gp
+  m() : p = c2
+  s():String = "p"
+end
+
+trait pd extends {dummygp, gp}
+  m() : pd = c4
+  s():String = "pd"
+end
+
+object c1 extends p
+  m() : c1 = c1
+  s():String = "c1"
+end
+
+object c2 extends { dummy, p}
+  m() : c2 = c2
+  s():String = "c2"
+end
+
+object c3 extends { dummy, pd, p}
+  m() : c3 = c3
+  s():String = "c3"
+end
+
+object c4 extends { dummy, pd}
+  m() : c4 = c4
+  s():String = "c4"
+end
+
+
+run() : () = do
+   gp1 : gp = c1
+   gp2 : gp = c2
+   gp3 : gp = c3
+   
+   p1 : p = c1
+   p2 : p = c2
+   p3 : p = c3
+   
+   println c1.m().s()
+   println c2.m().s()
+   println c3.m().s()
+   
+   println p1.m().s()
+   println p2.m().s()
+   println p3.m().s()
+   
+   println gp1.m().s()
+   println gp2.m().s()
+   println gp3.m().s()
+   
+end
