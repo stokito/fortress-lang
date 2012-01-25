@@ -130,6 +130,11 @@ public abstract class VarCodeGen {
         public void outOfScope(CodeGenMethodVisitor mv) {
             mv.disposeCompilerLocal(offset);
         }
+
+        public String toString() {
+            return "VarCodeGen:StackVar" + name + "," + fortressType;
+        }
+
     }
 
     protected abstract static class NeedsType extends VarCodeGen {
@@ -171,6 +176,11 @@ public abstract class VarCodeGen {
         public void assignValue(CodeGenMethodVisitor mv) {
             mv.visitFieldInsn(Opcodes.PUTFIELD, packageAndClassName, objectFieldName, classDesc);
         }
+
+        public String toString() {
+            return "VarCodeGen:FieldVar" + name + "," + fortressType;
+        }
+
 
         @Override
         public void outOfScope(CodeGenMethodVisitor mv) {
@@ -235,6 +245,11 @@ public abstract class VarCodeGen {
             prepareAssignValue(mv);
         }
 
+        public String toString() {
+            return "VarCodeGen:StaticBinding" + name + "," + fortressType;
+        }
+
+
         @Override
         public void outOfScope(CodeGenMethodVisitor mv) {
             // never happens
@@ -263,6 +278,11 @@ public abstract class VarCodeGen {
         public void assignValue(CodeGenMethodVisitor mv) {
             prepareAssignValue(mv);
         }
+
+        public String toString() {
+            return "VarCodeGen:ParamVar" + name + "," + fortressType;
+        }
+
     }
 
     /** Local variable not visible outside current activation.  We
@@ -277,5 +297,38 @@ public abstract class VarCodeGen {
         public LocalVar(IdOrOp name, Type fortressType, CodeGen cg) {
             super(name, fortressType, cg);
         }
+
+        public String toString() {
+            return "VarCodeGen: localVar: " + name + "," + fortressType;
+        }
+
     }
+
+    public static class LocalMutableVar extends StackVar {
+
+        public LocalMutableVar(IdOrOp id, Type fortressType, CodeGen cg) {
+            super(id, fortressType, cg);
+        }
+    
+        public void prepareAssignValue(CodeGenMethodVisitor mv) {
+            super.prepareAssignValue(mv);
+        }
+  
+        public void assignValue(CodeGenMethodVisitor mv) {
+            // Ugh!  We are compensating for an extra value on the stack in doStatements in CodeGen
+            // So we need to ensure that there is one.
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitVarInsn(Opcodes.ASTORE, offset);
+        }
+
+        public void pushValue(CodeGenMethodVisitor mv) {
+            super.pushValue(mv);
+        }
+
+        public String toString() {
+            return "VarCodeGen: localMutableVar: " + name + "," + fortressType;
+        }
+
+    }
+
 }

@@ -51,6 +51,7 @@ import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.Assignment;
 import com.sun.fortress.nodes.ASTNode;
 import com.sun.fortress.nodes.AbbreviatedType;
 import com.sun.fortress.nodes.AnyType;
@@ -67,6 +68,7 @@ import com.sun.fortress.nodes.CatchClause;
 import com.sun.fortress.nodes.ChainExpr;
 import com.sun.fortress.nodes.CharLiteralExpr;
 import com.sun.fortress.nodes.Component;
+import com.sun.fortress.nodes.CompoundAssignmentInfo;
 import com.sun.fortress.nodes.Decl;
 import com.sun.fortress.nodes.DimArg;
 import com.sun.fortress.nodes.Do;
@@ -91,6 +93,7 @@ import com.sun.fortress.nodes.IntArg;
 import com.sun.fortress.nodes.IntLiteralExpr;
 import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.KindOp;
+import com.sun.fortress.nodes.Lhs;
 import com.sun.fortress.nodes.LValue;
 import com.sun.fortress.nodes.Link;
 import com.sun.fortress.nodes.LocalVarDecl;
@@ -577,6 +580,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         debug("getLocalVar: ", nm);
         String s = VarCodeGen.varCGName(nm, lsargs);
         VarCodeGen r = lexEnv.get(s);
+
         if (r != null)
             debug("getLocalVar:", nm, " VarCodeGen = ", r, " of class ", r.getClass());
         else
@@ -1337,12 +1341,37 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     public void defaultCase(Node x) {
-        System.out.println("defaultCase: " + x + " of class " + x.getClass());
         throw sayWhat(x);
     }
 
     public void forImportStar(ImportStar x) {
         // do nothing, don't think there is any code go generate
+    }
+
+    public void forAssignment(Assignment x) {
+        List<Lhs> lhs_list = x.getLhs();
+        if (lhs_list.size() != 1)
+            throw new RuntimeException(" Can't do multiple assignments yet");
+        Lhs lhs = lhs_list.get(0);
+        if (! (lhs instanceof VarRef))
+            throw new RuntimeException(" Can't do anything other than VarRefs");
+        Option<FunctionalRef> assignOp = x.getAssignOp();
+        if (assignOp.isSome())
+            throw new RuntimeException(" Can't handle special assignments");
+
+        List<CompoundAssignmentInfo> assignmentInfos = x.getAssignmentInfos();
+        if (assignmentInfos.size() > 0)
+            throw new RuntimeException(" Can't handle compound assigments");
+
+        Expr rhs = x.getRhs();
+
+        rhs.accept(this);
+        VarRef vr = (VarRef) lhs;
+        Id var = vr.getVarId();
+        VarCodeGen r = getLocalVarOrNull(var);
+
+        if (r != null)
+            r.assignValue(this.mv);
     }
 
     public void forBlock(Block x) {
@@ -2425,7 +2454,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         try {
             exitMethodScope(selfIndex, selfVar, paramsGen);
         } catch (Throwable t) {
-              throw new Error("\n"+NodeUtil.getSpan(body)+": Error trying to close method scope.\n" + mv.getText(),t);
+            throw new Error("\n"+NodeUtil.getSpan(body)+": Error trying to close method scope.\n" + mv.getText(),t);
         }
     }
 
@@ -3488,34 +3517,24 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public void forLocalVarDecl(LocalVarDecl d) {
         debug("forLocalVarDecl", d);
         List<LValue> lhs = d.getLhs();
-        if (!d.getRhs().isSome()) {
-            // Just a forward declaration to be bound in subsequent
-            // code.  But we need to leave a marker so that the
-            // definitions down different control flow paths are
-            // consistent; basically we need to create the definition
-            // here, and the use that VarCodeGen object for the
-            // subsequent true definitions.
-	    String varnames = "";
-	    for (LValue lh : lhs) {
-		varnames = varnames + " " + lh.getName();
-	    }
-            throw sayWhat(d, "Can't yet handle forward binding declarations (variables are:" + varnames + ")");
-        }
         int n = lhs.size();
         List<VarCodeGen> vcgs = new ArrayList(n);
         List<Type> lhs_types = new ArrayList(n);
         for (LValue v : lhs) {
-            if (v.isMutable()) {
-                throw sayWhat(d, "Can't yet generate code for mutable variable declarations.");
-            }
             if (!v.getIdType().isSome()) {
                 throw sayWhat(d, "Variable being bound lacks type information!");
             }
 
             // Introduce variable
             Type ty = (Type)v.getIdType().unwrap();
-            VarCodeGen vcg = new VarCodeGen.LocalVar(v.getName(), ty, this);
+            VarCodeGen vcg;
+            if (v.isMutable()) {
+                vcg = new VarCodeGen.LocalMutableVar(v.getName(), ty, this);
+            } else {
+                vcg = new VarCodeGen.LocalVar(v.getName(), ty, this);
+            }
             vcgs.add(vcg);
+            addLocalVar(vcg);
             lhs_types.add(ty);
         }
         
@@ -3575,12 +3594,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // Evaluate rest of block with binding in scope
         CodeGen cg = new CodeGen(this);
-        for (VarCodeGen vcg : vcgs) {
-            cg.addLocalVar(vcg);
-        }
 
         cg.doStatements(d.getBody().getExprs());
-
         // Dispose of bindings now that we're done
         // Do this in reverse order of creation.
         for (int i = n-1; i >= 0; i--) {
