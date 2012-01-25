@@ -128,6 +128,28 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
         }
     }
 
+    /**
+     * Special version with list-editing abilities
+     * @param that
+     * @return
+     */
+    @Override
+    public List<StaticParam> recurOnListOfStaticParam(List<StaticParam> that) {
+        java.util.ArrayList<StaticParam> accum = new java.util.ArrayList<StaticParam>();
+        boolean unchanged = true;
+        for (StaticParam elt : that) {
+            StaticParam update_elt = (StaticParam) recur(elt);
+            if (update_elt == null) {
+                // these get edited in StaticTypeReplacer.
+                unchanged = false;
+            } else {
+                unchanged &= (elt == update_elt);
+                accum.add(update_elt);
+            }
+        }
+        return unchanged ? that : accum;
+    }
+
     @Override
     public Node forStaticParam(StaticParam that) {
         if (replaceStaticParams) {
