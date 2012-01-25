@@ -43,6 +43,7 @@ import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.typechecker.CoercionOracle
 import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
+import com.sun.fortress.scala_src.types.TypeSchemaAnalyzer
 import com.sun.fortress.scala_src.useful.Iterators._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -52,6 +53,7 @@ import com.sun.fortress.useful.HasAt
 import com.sun.fortress.useful.NI
 import com.sun.fortress.scala_src.typechecker._
 import com.sun.fortress.useful.Useful
+import java.util.Collections;
 
 object STypesUtil {
 
@@ -128,14 +130,29 @@ object STypesUtil {
     case _ => makeArrowFromFunctional(f, false)
   }
   
+  def makeArrowWithoutSelfFromFunctional(f: Functional): Option[ArrowType] = f match {
+    case _: FunctionalMethod => makeArrowFromFunctional(f, true, true)
+    case _ => makeArrowFromFunctional(f, false, true)
+  }
+  
   /**
    *  Return the arrow type of the given Functional index.
    */
-  def makeArrowFromFunctional(f: Functional, lifted: Boolean): Option[ArrowType] = f match {
+  def makeArrowFromFunctional(f: Functional, lifted: Boolean): Option[ArrowType] =
+    makeArrowFromFunctional(f, lifted, false)
+
+  def makeArrowFromFunctional(f: Functional, lifted: Boolean, omitSelf: Boolean): Option[ArrowType] = f match {
     case f: DummyVariableFunction => Some(f.getArrowType())
     case _ =>
       val returnType = toOption(f.getReturnType).getOrElse(return None)
-      val params = toListFromImmutable(f.parameters).map(NU.getParamType)
+      val originalParams = toListFromImmutable(f.parameters).map(NU.getParamType)
+      val params = if (omitSelf)
+                     f match { case fhst: HasSelfType => 
+                                 if (fhst.selfPosition >= 0)
+                                   (originalParams.take(fhst.selfPosition) ++
+				    originalParams.drop(fhst.selfPosition + 1))
+				 else originalParams }
+                   else originalParams
       val argType = makeArgumentType(params)
       val effect = NF.makeEffect(f.thrownTypes)
       val where = f match {
@@ -143,10 +160,10 @@ object STypesUtil {
         case _ => none[WhereClause]
       }
       val info = f match {
-        case m: HasSelfType if m.selfType.isNone =>
+        case fhst: HasSelfType if fhst.selfType.isNone =>
           bug("No selfType on functional %s".format(f))
-        case m: HasSelfType => 
-          Some(SMethodInfo(m.selfType.get, m.selfPosition))
+        case fhst: HasSelfType => 
+          Some(SMethodInfo(fhst.selfType.get, fhst.selfPosition))
         case _ => None
       }
       val sparamsJava = getStaticParameters(f, lifted)
@@ -841,7 +858,10 @@ object STypesUtil {
       applyLifted = inferLifted,
       applyUnlifted = inferUnlifted).
       getOrElse(return None).asInstanceOf[T]
+//    println("Static params helper has infTyp " + infTyp)
+
     val constraint = constraintMaker(infTyp, ops)
+//    println("Static params helper has constraint " + constraint)
 
     // 5. build bounds map B = [$T_i -> S(UB(T_i))]
     val infVars = sargs.flatMap(staticArgType)
@@ -852,12 +872,15 @@ object STypesUtil {
         applyUnlifted = inferUnlifted)
     }.map(t => TPrimitive(Set(), Set(), Set(t), Set(), Set(), Set()))
     val bounds = And(Map(infVars.zip(sparamBounds): _*), Map())
+//    println("Static params helper has bounds " + bounds)
 
     // 6. solve C to yield a substitution S' = [$T_i -> U_i]
     val (tSub, oSub) = solve(and(constraint, bounds)).getOrElse(return None)
 
     // 7. instantiate infArrow with [U_i] to get resultArrow
-    val resultTyp = analyzer.normalize(tSub(infTyp)).asInstanceOf[T]
+    val prenorm = tSub(infTyp)
+    val resultTyp = analyzer.normalize(prenorm).asInstanceOf[T]
+//    println("Static params helper normalized " + prenorm + " to " + resultTyp);
 
     // 8. return (resultArrow,StaticArgs([U_i]))
     val resultArgs = sargs.map {
@@ -1032,6 +1055,9 @@ object STypesUtil {
    * of the supertrait to a pair of a TraitIndex for that name (stem) and a list of specific
    * static arguments for that stem.
    */
+
+  def allSupertraitsAndStaticArgs(ti: TraitIndex, analyzer: TypeAnalyzer): java.util.HashMap[Id, (TraitIndex, java.util.List[StaticArg])] =
+    allSupertraitsAndStaticArgs(ti.ast, analyzer)
 
   def allSupertraitsAndStaticArgs(tod: TraitObjectDecl, analyzer: TypeAnalyzer): java.util.HashMap[Id, (TraitIndex, java.util.List[StaticArg])] =
     mapOverAllSupertraits(tod, analyzer, (x, y) => (x, y))
@@ -1312,70 +1338,122 @@ object STypesUtil {
    */
   def properlyInheritedMethods(tt: TraitType,
                                analyzer: TypeAnalyzer):
-        Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
-    val methods =
-      new IndexedRelation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)](false)
-    inheritedMethods(List(NF.makeTraitTypeWhere(tt)), methods, analyzer, true)
-  }
-
-  def allMethods(tt: TraitType, analyzer: TypeAnalyzer):
         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] =
-    inheritedMethods(List(NF.makeTraitTypeWhere(tt)), analyzer)
-
-//   def allMethods(tt: TraitType, analyzer: TypeAnalyzer):
-//         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
-//     toOption(analyzer.traits.typeCons(tt.getName)) match {
-//       case Some(ti: TraitIndex) =>
-//             allSupertraits(ti, analyzer).map
-//       case _ =>
-//     }    
+    gatherMethods(tt, analyzer, false)
+//   {
+//     val methods =
+//       new IndexedRelation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)](false)
+//     inheritedMethods(List(NF.makeTraitTypeWhere(tt)), methods, analyzer, true)
 //   }
 
-  
+
+  def properlyInheritedMethodsNotIdenticallyCovered(tt: TraitType, analyzer: TypeAnalyzer):
+         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
+    removeIdenticallyCoveredMethods(properlyInheritedMethods(tt, analyzer), analyzer)
+  }
+
+  def allMethodsNotIdenticallyCovered(tt: TraitType, analyzer: TypeAnalyzer):
+         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
+    removeIdenticallyCoveredMethods(allMethods(tt, analyzer), analyzer)
+  }
+
+  private def removeIdenticallyCoveredMethods(methods: Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)],
+  	      				      analyzer: TypeAnalyzer):
+        Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
+//    println("Removing identically covered methods: " + methods)
+    val tsa = new TypeSchemaAnalyzer()(analyzer)
+    val result = new IndexedRelation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)](false)
+    // For each method, check to see whether it is covered by another definition with identical domain.
+    for ((meth, str, tt) <- methods.secondSet) {
+      val thisDomain = str.replaceIn(tsa.makeDomainFromArrow(makeArrowWithoutSelfFromFunctional(meth).get))
+      var include = true
+      for ((meth2, str2, tt2) <- methods.secondSet) {
+        if ((meth2.name == meth.name) &&
+            (meth != meth2) &&
+            (meth.asInstanceOf[HasSelfType].selfPosition == meth2.asInstanceOf[HasSelfType].selfPosition) &&
+	    analyzer.lteq(tt2, tt) && !analyzer.lteq(tt, tt2)) {
+          val thatDomain = str2.replaceIn(tsa.makeDomainFromArrow(makeArrowWithoutSelfFromFunctional(meth2).get))
+          if (tsa.equivalentED(thisDomain, thatDomain)) include = false
+        }
+      }
+      if (include) result.add(meth.name, (meth, str, tt))
+    }
+//    println("   with the result: " + result)
+    result
+  }
+
+//   def allMethods(tt: TraitType, analyzer: TypeAnalyzer):
+//         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] =
+//     inheritedMethods(List(NF.makeTraitTypeWhere(tt)), analyzer)
+
+  def allMethods(tt: TraitType, analyzer: TypeAnalyzer):
+         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] =
+    gatherMethods(tt, analyzer, true)
+
+  def gatherMethods(tt: TraitType, analyzer: TypeAnalyzer, includeSelf: Boolean):
+        Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
+    val result = new IndexedRelation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)](false)
+    toOption(analyzer.traits.typeCons(tt.getName)) match {
+      case Some(ti: TraitIndex) =>
+        val traitsAndArgs = allSupertraitsAndStaticArgs(ti, analyzer)
+        for (tname <- traitsAndArgs.keySet;
+             (name, set) <- { val (ti, trait_args) = traitsAndArgs.get(tname); declaredMethods(tname, ti, Some(trait_args)) };
+             data <- set)
+          result.add(name, data)
+        if (includeSelf) {
+	  for ((name, set) <- declaredMethods(ti.ast.getHeader.getName.asInstanceOf[Id], ti, None);
+               data <- set)
+            result.add(name, data)
+        }
+      case _ =>
+    }
+    result
+  }
+
+   private val nullStaticTypeReplacer = new StaticTypeReplacer(new java.util.LinkedList[StaticParam](), new java.util.LinkedList[StaticArg]())
 
   /**
    * Returns a Scala HashMap that maps method names to sets of tuples
    * (Functional, StaticTypeReplacer, TraitType).
    */
 
-  def declaredMethods(ty: TraitType, analyzer: TypeAnalyzer):
+  def declaredMethods(tname: Id, ti: TraitIndex, trait_args: Option[java.util.List[StaticArg]]):
         HashMap[IdOrOpOrAnonymousName, MSet[(Functional, StaticTypeReplacer, TraitType)]] = {
     val result = (new HashMap[IdOrOpOrAnonymousName, MSet[(Functional, StaticTypeReplacer, TraitType)]]
                   with MultiMap[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)])
-    val STraitType(_, name, trait_args, _) = ty
-    toOption(analyzer.traits.typeCons(name)) match {
-      case Some(ti: TraitIndex) =>
-	// Instantiate methods with static args
-	val paramsToArgs = new StaticTypeReplacer(ti.staticParameters, toJavaList(trait_args))
-
-	def oneMethod(methodName: IdOrOp, methodFunc: Functional) = {
-	  if (!methodFunc.name().equals(methodName)) {
-	    // TODO: work around the fact that TraitIndex includes
-	    // two copies of the same Functional for exported functional
-	    // methods, one under the local methodName and the other
-	    // under the unambiguous methodName.  Really the latter ought to
-	    // have a methodFunc with a different name() and no body.
-	    // System.err.println("   oneMethod: "+ methodFunc+" named "+methodName);
-	  } else {
-	    result.addBinding(methodName, (methodFunc, paramsToArgs, ty))
-	  }
-	}
-
-	def onePair[T <: Functional](t: Pair[IdOrOpOrAnonymousName, T]) =
-	  t.first match {
-	    case id: IdOrOp => oneMethod(id, t.second)
-	    case _ => ()
-	  }
-
-	def oneMapping(t: JMap.Entry[Id, Method]) = oneMethod(t.getKey, t.getValue)
-
-	ti.dottedMethods.foreach(onePair)
-	ti.functionalMethods.foreach(onePair)
-	ti.getters.entrySet.foreach(oneMapping)
-	ti.setters.entrySet.foreach(oneMapping)
-
-      case _ => // Nothing to do
+    val (paramsToArgs, ty) = trait_args match {
+       case Some(ta) => (new StaticTypeReplacer(ti.staticParameters, ta),
+       	                 NF.makeTraitTypeForScala(tname, ta))
+       case None => (nullStaticTypeReplacer,
+                     NF.makeTraitType(NU.getSpan(tname), true, tname,
+                                      staticParamsToArgs(ti.staticParameters), Collections.emptyList[StaticParam]))
     }
+
+    def oneMethod(methodName: IdOrOp, methodFunc: Functional) = {
+      if (!methodFunc.name().equals(methodName)) {
+	// TODO: work around the fact that TraitIndex includes
+	// two copies of the same Functional for exported functional
+	// methods, one under the local methodName and the other
+	// under the unambiguous methodName.  Really the latter ought to
+	// have a methodFunc with a different name() and no body.
+	// System.err.println("   oneMethod: "+ methodFunc+" named "+methodName);
+      } else {
+	result.addBinding(methodName, (methodFunc, paramsToArgs, ty))
+      }
+    }
+
+    def onePair[T <: Functional](t: Pair[IdOrOpOrAnonymousName, T]) =
+      t.first match {
+	case id: IdOrOp => oneMethod(id, t.second)
+	case _ => ()
+      }
+
+    def oneMapping(t: JMap.Entry[Id, Method]) = oneMethod(t.getKey, t.getValue)
+
+    ti.dottedMethods.foreach(onePair)
+    ti.functionalMethods.foreach(onePair)
+    ti.getters.entrySet.foreach(oneMapping)
+    ti.setters.entrySet.foreach(oneMapping)
     result
   }
 

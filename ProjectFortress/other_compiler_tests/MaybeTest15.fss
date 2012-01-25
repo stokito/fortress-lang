@@ -36,19 +36,21 @@ value trait TestMaybe[\T extends Equality[\T\]\] extends { Equality[\TestMaybe[\
     opr |self| : ZZ32
     getDefault(_: T): T
     opr IN(y:T, self): Boolean
+    opr NI(self, y:T): Boolean
     opr SQCAP(self, other: TestMaybe[\T\]): TestMaybe[\T\] = other
 end
 
-value object TestJust[\T extends Equality[\T\]\](x: T) extends TestMaybe[\T\]
+value object TestJust[\U extends Equality[\U\]\](x: U) extends TestMaybe[\U\]
     getter asString(): String = "TestJust(" x.asString ")"
     getter size(): ZZ32 = 1
     getter get() = x
     getter holds() = true
     opr |self| : ZZ32 = 1
-    getDefault(_: T): T = x
-    opr IN(y:T, self): Boolean = (y = x)
-    opr =(self,other:TestJust[\T\]): Boolean = (x = other.x)
-    opr SQCAP(self, other:TestJust[\T\]): TestMaybe[\T\] = if other.x = x then self else TestNothingObject[\T\] end
+    getDefault(_: U): U = x
+    opr IN(y:U, self): Boolean = (y = x)
+    opr NI(self, y:U): Boolean = (y = x)
+    opr =(self,other:TestJust[\U\]): Boolean = (x = other.x)
+    opr SQCAP(self, other:TestJust[\U\]): TestMaybe[\U\] = if other.x = x then self else TestNothingObject[\U\] end
 end
 
 value object TestNothingObject[\T extends Equality[\T\]\] extends TestMaybe[\T\]
@@ -59,6 +61,7 @@ value object TestNothingObject[\T extends Equality[\T\]\] extends TestMaybe[\T\]
     opr |self| : ZZ32 = 0
     getDefault(defaultValue: T):T = defaultValue
     opr IN(x:T, self): Boolean = false
+    opr NI(self, x:T): Boolean = false
     opr SQCAP(self, other: TestMaybe[\T\]): TestNothingObject[\T\] = self
 end
 
@@ -71,6 +74,8 @@ run(): () = do
     assert(|TestJust(Baz)| = 1)
     assert(|TestNothingObject[\Baz\]| = 0)
     assert(TestJust(Baz).get = Baz)
+    assert(TestJust(Baz) NI Baz)
+    deny(TestNothingObject[\Baz\] NI Baz)
     assert(Baz IN TestJust(Baz))
     deny(Baz IN TestNothingObject[\Baz\])
     assert(TestJust(Baz) = TestJust(Baz))

@@ -131,6 +131,13 @@ public class TopSort {
 
 
     public static <T extends TopSortItem<T>> List<T> depthFirst(Iterable<T> unsorted) {
+//         {
+// 	    System.err.println(">>TopSort");
+// 	    Iterator<T> baz = unsorted.iterator();
+// 	    while (baz.hasNext()) {
+// 		System.err.println(">> " + baz.next());
+// 	    }
+//         }
         Iterator<T> i = unsorted.iterator();
 
         int n = 0;

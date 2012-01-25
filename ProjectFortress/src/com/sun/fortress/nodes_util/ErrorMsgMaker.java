@@ -21,6 +21,12 @@ import com.sun.fortress.useful.*;
 public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     public static final ErrorMsgMaker ONLY = new ErrorMsgMaker();
 
+    public static boolean printHashCodes = false;   // Some temporary debugging codes briefly bind this to true.
+
+    private String hashCodify(Object node, String s) {
+        return printHashCodes ? (s + "@" + node.hashCode()) : s;
+    }
+
     public static String errorMsg(Object... messages) {
         StringBuilder fullMessage = new StringBuilder();
         for (Object message : messages) {
@@ -151,7 +157,7 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forId(Id node) {
-        return NodeUtil.nameString(node);
+        return hashCodify(node, NodeUtil.nameString(node));
     }
 
     public String forOp(Op node) {
@@ -345,11 +351,11 @@ public class ErrorMsgMaker extends NodeAbstractVisitor<String> {
     }
 
     public String forTraitType(TraitType node) {
-        String constructorName = NodeUtil.shortNameString(node.getName());
+        String constructorName = hashCodify(node.getName(), NodeUtil.shortNameString(node.getName()));
         if (node.getArgs().isEmpty()) {
             return constructorName;
         } else {
-            return NodeUtil.shortNameString(node.getName()) +
+            return constructorName +
                 Useful.listInOxfords(mapSelf(node.getArgs()));
         }
     }

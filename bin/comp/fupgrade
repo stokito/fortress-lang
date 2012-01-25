@@ -1,6 +1,22 @@
 #!/bin/bash
 
-FHOME=/Users/Tristan/Code/workspace/Project/default_repository/caches/bytecode_cache
+################################################################################
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+
+if [ -z "$FORTRESS_HOME" ]; then
+   export FORTRESS_HOME="`${0%comp/finit}fortress_home`"
+fi
+
+FHOME=$FORTRESS_HOME/default_repository/caches/bytecode_cache
 
 export PATH=$PATH:"/Users/Tristan/Code/workspace/Project/bin/comp/"
 
