@@ -23,6 +23,8 @@ import edu.rice.cs.plt.iter.IterUtil;
 
 import com.sun.fortress.compiler.*;
 import com.sun.fortress.exceptions.shell.UserError;
+import com.sun.fortress.exceptions.CompilerBug;
+import com.sun.fortress.exceptions.InterpreterBug;
 import com.sun.fortress.exceptions.MultipleStaticError;
 import com.sun.fortress.exceptions.LabelException;
 import com.sun.fortress.exceptions.StaticError;
@@ -477,10 +479,15 @@ public final class Shell {
         } catch (UserError error) {
             System.err.println(error.getMessage());
             return_code = -1;
-        }
-        catch (IOException error) {
+        } catch (IOException error) {
             System.err.println(error.getMessage());
             return_code = -2;
+        } catch (CompilerBug error) {
+            System.err.println(error.getMessage());
+            if (Debug.isOn()) {
+                error.printStackTrace();
+            }
+            return_code = -3;
         }
 
         Init.allowForLeakChecks();
@@ -690,13 +697,13 @@ public final class Shell {
             }
             return_code = 1;
         } catch (ProgramError e) {
-            System.err.println(e.getMessage());
-            e.printInterpreterStackTrace(System.err);
-            if (Debug.isOn()) {
-                e.printStackTrace();
-            } else {
-                System.err.println(turnOnDebugMessage);
-            }
+            failureBoilerplate(e);
+            return_code = 1;
+        } catch (CompilerBug e) {
+            failureBoilerplate(e);
+            return_code = 1;
+        } catch (InterpreterBug e) {
+            failureBoilerplate(e);
             return_code = 1;
         } catch ( FileNotFoundException f ){
             throw new UserError(file + " not found");
@@ -705,6 +712,20 @@ public final class Shell {
             catch (IOException e) {}
         }
         return return_code;
+    }
+
+    /**
+     * @param e
+     */
+    private static void failureBoilerplate(FortressException e) {
+        System.err.println(e.getMessage());
+        e.printInterpreterStackTrace(System.err);
+        if (Debug.isOn()) {
+            e.printStackTrace();
+        } else {
+            System.err.println(turnOnDebugMessage);
+        }
+        (new Throwable()).printStackTrace();
     }
 
     /**
@@ -948,15 +969,13 @@ public final class Shell {
             throw new WrappedException(e);
         } catch (StaticError ex) {
             return flattenErrors(ex);
+        } catch (CompilerBug e) {
+            return IterUtil.singleton(new WrappedException(e, Debug.isOn()));
+        } catch (InterpreterBug e) {
+            return IterUtil.singleton(new WrappedException(e, Debug.isOn()));
         } catch (FortressException e) {
-            System.err.println(e.getMessage());
-            e.printInterpreterStackTrace(System.err);
-            if (Debug.isOn()) {
-                e.printStackTrace();
-            } else {
-                System.err.println(turnOnDebugMessage);
-            }
-            System.exit(1);
+             failureBoilerplate(e);
+             System.exit(1);
         } finally {
             if (bcr != null && name != null)
              bcr.deleteComponent(name, false);
@@ -1124,13 +1143,7 @@ public final class Shell {
             }
             System.exit(1);
         } catch (FortressException e) {
-            System.err.println(e.getMessage());
-            e.printInterpreterStackTrace(System.err);
-            if (Debug.isOn()) {
-                e.printStackTrace();
-            } else {
-                System.err.println(turnOnDebugMessage);
-            }
+            failureBoilerplate(e);
             System.exit(1);
         }
     }
@@ -1214,13 +1227,7 @@ public final class Shell {
                 } catch (RepositoryError e) {
                     System.err.println(e.getMessage());
                 } catch (FortressException e) {
-                    System.err.println(e.getMessage());
-                    e.printInterpreterStackTrace(System.err);
-                    if (Debug.isOn()) {
-                        e.printStackTrace();
-                    } else {
-                        System.err.println(turnOnDebugMessage);
-                    }
+                    failureBoilerplate(e);
                     System.exit(1);
                 }
             }

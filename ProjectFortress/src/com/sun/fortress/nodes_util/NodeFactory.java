@@ -1975,6 +1975,13 @@ public class NodeFactory {
     	    int v = (variance == null ? 0 : variance.equals("covariant") ? 1 : variance.equals("contravariant") ? -1 : (Integer) bug(span,"Incorrect variance " + variance));
         return new StaticParam(makeSpanInfo(span), v, name, tys, ty, b, k);
     }
+    
+    public static StaticParam makeStaticParam(StaticParam sp, Id name, List<BaseType> extendsClauses) {
+        return new StaticParam(sp.getInfo(), sp.getVariance(), name,
+                extendsClauses, sp.getDimParam(), sp.isAbsorbsParam(),
+                sp.getKind()
+                );
+    }
 
     public static StaticParam makeTypeParam(Span span,
                                             Id id, List<BaseType> tys,

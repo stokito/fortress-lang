@@ -30,7 +30,7 @@ import com.sun.fortress.compiler.index.TypeAliasIndex
 import com.sun.fortress.compiler.Types.ANY
 import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.Types.OBJECT
-import com.sun.fortress.exceptions.InterpreterBug.bug
+import com.sun.fortress.exceptions.CompilerBug.bug
 import com.sun.fortress.nodes._
 import com.sun.fortress.nodes_util.ErrorMsgMaker
 import com.sun.fortress.nodes_util.NodeFactory.typeSpan

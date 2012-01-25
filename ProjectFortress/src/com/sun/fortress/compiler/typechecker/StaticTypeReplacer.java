@@ -62,6 +62,8 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
     /** Map parameter name to the static argument bound to it. */
     private final Map<IdOrOpOrAnonymousName, StaticArg> parameterMap;
 
+    boolean replaceStaticParams = false; // NOT THREAD SAFE
+    
     public String toString() {
         return parameterMap.toString();
     }
@@ -118,10 +120,39 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
         List<StaticParam> t_sp = t.getInfo().getStaticParams();
         if (t_sp.size() > 0)
             return t;
+        { boolean savedReplaceStaticParams = replaceStaticParams;
+        replaceStaticParams = true;
         List<StaticParam> new_sp = recurOnListOfStaticParam(that_sp);
+        replaceStaticParams = savedReplaceStaticParams;
         return STypesUtil.insertStaticParams(t, new_sp);
+        }
     }
 
+    @Override
+    public Node forStaticParam(StaticParam that) {
+        if (replaceStaticParams) {
+            /*
+             * This seems very wrong.  This code exists to rewrite the static params
+             * hanging off the type info of nodes that get rewritten.
+             */
+            Node sp =  updateNode(that, that.getName());
+            List<BaseType> that_extendsClauses = that.getExtendsClause();
+            List<BaseType> extendsClauses = recurOnListOfBaseType(that_extendsClauses);
+            if (sp != that) {
+                if (sp instanceof VarType) {
+                    that = NodeFactory.makeStaticParam(that, ((VarType) sp).getName(), extendsClauses);
+                } else { // if it is not a VarType, the constraint vanishes
+                    return null;
+                }
+            } else if (that_extendsClauses != extendsClauses) {
+                that = NodeFactory.makeStaticParam(that, (Id) (that.getName()), extendsClauses);
+            }
+            return that;
+        }
+        else
+            return super.forStaticParam(that);
+    }
+    
     @Override
     public Node forOpArg(OpArg that) {
         StaticArg arg = parameterMap.get(that.getId());

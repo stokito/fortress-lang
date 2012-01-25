@@ -57,6 +57,10 @@ public class FileTests {
          * The search path for analysis, compilation, etc.
          */
         String path;
+        
+        String whoami() {
+            return getClass().getSimpleName() + " " + f;
+        }
 
         /**
          * If true, only print test output for unexpected results.
@@ -381,11 +385,11 @@ public class FileTests {
                     if (trueFailure != null) {
                         System.out.println(" Saw failure, but did not satisfy " + trueFailure);
                         // Expected exception, saw none.
-                        fail("Saw wrong failure.");
+                        fail("Saw wrong failure. " + whoami());
                     } else {
                         System.out.println(" Missing expected failure ");
                         // Expected exception, saw none.
-                        fail("Expected failure or exception, saw none.");
+                        fail("Expected failure or exception, saw none. " + whoami());
                     }
                 }
             } else {
@@ -398,7 +402,7 @@ public class FileTests {
                 wt_err.flush(trueFailure != null ? printFailure : printSuccess);
                 wt_out.flush(trueFailure != null ? printFailure : printSuccess);
 
-                assertTrue("Must satisfy " + trueFailure, trueFailure == null);
+                assertTrue("Must satisfy " + trueFailure + " " + whoami(), trueFailure == null);
 
             }
         }
@@ -420,10 +424,10 @@ public class FileTests {
             if (printFailure) {
                 System.out.println(s);
                 ex.printStackTrace();
-                fail();
+                fail(whoami());
             } else {
                 System.out.println(s);
-                fail(ex.getMessage());
+                fail(ex.getMessage() + " " + whoami());
             }
         }
 
@@ -568,11 +572,11 @@ public class FileTests {
 
             if (trueFailure != null) {
                 System.out.println("Failed to satisfy " + trueFailure);
-                fail();
+                fail(whoami());
 
             } else if (shouldFail != failed) {
                 System.out.println(failed ? "UNEXPECTED failure (" + fail_cause + ")" : "Did not see expected failure");
-                fail();
+                fail(whoami());
             } else {
                 System.out.println(failed ? "Saw expected failure (" + fail_cause + ")" : "Passed");
             }
@@ -655,6 +659,8 @@ public class FileTests {
     public static class CommandTest extends SourceFileTest {
         private final String command;
         private final StringMap props;
+        
+        String whoami() { return command; }
 
         public CommandTest(String command,
                            StringMap props,
