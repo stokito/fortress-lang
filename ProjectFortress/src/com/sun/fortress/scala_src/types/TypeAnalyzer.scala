@@ -30,8 +30,9 @@ import com.sun.fortress.compiler.index.TypeAliasIndex
 import com.sun.fortress.compiler.Types.ANY
 import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.Types.OBJECT
-import com.sun.fortress.exceptions.InterpreterBug.bug
+import com.sun.fortress.exceptions.CompilerBug.bug
 import com.sun.fortress.nodes._
+import com.sun.fortress.nodes_util.ErrorMsgMaker
 import com.sun.fortress.nodes_util.NodeFactory.typeSpan
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
@@ -146,19 +147,28 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
      *  1) Getting the bound out of a type variable is the only place where a type can increase in size during type checking.
      *     We use the history to ensure termination.
      *  2) They are the only place where you cannot negate using de Morgan's. There is a good explanation of why in the OOPSLA paper.
-     */ 
+     */
+    case (s@SVarType(_, sid, _), t@SVarType(_, tid, _)) if (sid == tid 
+        // || sid.asInstanceOf[Id].getText == tid.asInstanceOf[Id].getText
+        ) => True
     case (s@SVarType(_, id, _), t) =>
       val hEntry = (negate, true, s, t)
-      if (history.contains(hEntry))
+      if (history.contains(hEntry)) {
         False
-      else {
+      } else {
         val nHistory = history + hEntry
         val sParam = staticParam(id)
         val supers = meet(toListFromImmutable(sParam.getExtendsClause))
+//	println("pSubInner: supers = " + supers)
         if (negate)
           pFalse()(!negate)
-        else
-          pSub(supers, t)(negate, nHistory)
+        else {
+	  val result = pSub(supers, t)(negate, nHistory)
+//           ErrorMsgMaker.printHashCodes = true
+//           println("...and the result of the recursive pSub(" + supers + "," + t + ") is " + result)
+//           ErrorMsgMaker.printHashCodes = false
+	  result
+        }
       }
     case (s, t@SVarType(_, id, _)) =>
       val hEntry = (negate, true, s, t)
@@ -318,7 +328,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (i: _InferenceVarType, j: _InferenceVarType) => pAnd(pExclusion(i,j), pExclusion(j,i))
     case (i: _InferenceVarType, t) => pExclusion(i, t)
     case (s, j: _InferenceVarType) => pExc(j, s)
-    case (s: VarType, t: VarType) if (s==t) => pOr(pSub(s, BOTTOM), pSub(t, BOTTOM))
+    case (s@SVarType(_, sid, _), t@SVarType(_, tid, _)) if (s==t || sid == tid) =>
+      pOr(pSub(s, BOTTOM), pSub(t, BOTTOM))
     case (s@SVarType(_, id, _), t) =>
       val hEntry = (negate, false, s, t)
       if (history.contains(hEntry))
