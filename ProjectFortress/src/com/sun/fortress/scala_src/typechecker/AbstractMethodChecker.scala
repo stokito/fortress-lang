@@ -19,6 +19,7 @@ import scala.collection.mutable.HashSet
 import scala.Iterator._
 import edu.rice.cs.plt.collect.Relation
 import com.sun.fortress.compiler.GlobalEnvironment
+import com.sun.fortress.compiler.Types.BOTTOM
 import com.sun.fortress.compiler.index.ComponentIndex
 import com.sun.fortress.compiler.index.{DeclaredMethod => JavaDeclaredMethod}
 import com.sun.fortress.compiler.index.FieldGetterOrSetterMethod
@@ -38,6 +39,7 @@ import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.overloading.OverloadingOracle
 import com.sun.fortress.scala_src.typechecker.Formula._
 import com.sun.fortress.scala_src.types.TypeAnalyzer
+import com.sun.fortress.scala_src.types.TypeSchemaAnalyzer
 import com.sun.fortress.scala_src.types.TypeAnalyzerUtil
 import com.sun.fortress.scala_src.useful.Iterators._
 import com.sun.fortress.scala_src.useful.Lists._
@@ -84,14 +86,30 @@ class AbstractMethodChecker(component: ComponentIndex,
     val oldTypeAnalyzer = typeAnalyzer
     // Add static parameters of the enclosing trait or object
     typeAnalyzer = typeAnalyzer.extend(toList(tth.getStaticParams), None)
-    // If any method inherited and not overridden is abstract,
-    // then there was a failure to provide a concrete definition.
-    for ((meth, _, tt) <- methods.secondSet) {
+    val tsa = new TypeSchemaAnalyzer()(typeAnalyzer)
+    val concreteMethods = methods.secondSet.filter(x => x match { case (meth, _, tt) => !isAbstractMethod(meth, tt)}).toList
+    // For each abstract method, check to see whether it is covered by one or more concrete definitions.
+    for ((meth, str, tt) <- methods.secondSet) {
       if (isAbstractMethod(meth, tt)) {
-        error(NU.getSpan(od),
-              "The inherited abstract method " + meth.asInstanceOf[HasSelfType].ast + " from the trait " + tt +
-              "\n    has no concrete implementation in the object " + tth.getName +
-              " in component " + componentName + ".")
+        val thisDomain = str.replaceIn(tsa.makeDomainFromArrow(makeArrowWithoutSelfFromFunctional(meth).get))
+	val relevantConcreteMethods = concreteMethods.filter(x => x match { case (meth2, _, _) =>
+            (meth2.name == meth.name) && (meth.asInstanceOf[HasSelfType].selfPosition == meth2.asInstanceOf[HasSelfType].selfPosition)})
+        val concreteMethodsAndDomains = relevantConcreteMethods.map(x => x match { case (meth2, str2, _) =>
+            (meth2, str2.replaceIn(tsa.makeDomainFromArrow(makeArrowWithoutSelfFromFunctional(meth2).get)))}).toList
+        val moreSpecificConcreteMethodsAndDomains = concreteMethodsAndDomains.filter(x => x match { case (meth2, dom2) => typeAnalyzer.lteq(dom2, thisDomain)})
+        val domainList = moreSpecificConcreteMethodsAndDomains.map(x => x match { case (concMeth, domain) => domain }).toList
+        val domainUnion = domainList.fold(BOTTOM)(tsa.joinED)
+//    	println("\nThis domain: " + thisDomain)
+//    	println("Concrete methods and domains: " + concreteMethodsAndDomains)
+//    	println("More specific concrete methods and domains: " + moreSpecificConcreteMethodsAndDomains)
+//    	println("Domain union of " + domainList + " is " + domainUnion)
+        if (!tsa.subtypeED(thisDomain, domainUnion)) {
+//  	  println("Domain " + thisDomain + " is not a subtype of " + domainUnion)
+	  error(NU.getSpan(od),
+		"The inherited abstract method " + meth.asInstanceOf[HasSelfType].ast + " from the trait " + tt +
+		"\n    has no concrete implementation in the object " + tth.getName +
+		" in component " + componentName + ".")
+        }
       }
     }
     typeAnalyzer = oldTypeAnalyzer
