@@ -47,7 +47,7 @@ fortress.source.path=;.;${_fr}/LibraryBuiltin;${FORTRESS_AUTOHOME}/Library;${_fr
 #
 # useful runtime properties
 #
-# DISABLE bytecode optimizer testing#
+# DISABLE bytecode optimizer testing
 fortress.unittests.noopt=true
 fortress.test.leaks=false
 fortress.bytecode.list=false
