@@ -427,8 +427,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         if (msf_parameters.size() != cand_parameters.size()) {
             throw new CompilerError("Diff length parameter lists, should not be possible");
         }
-                
+
+	//	System.err.println("Is " + g + " more specific than " + f + "?  (Comparing " + g.tagF + " and " + f.tagF + ")");
         boolean result =  oa.lteq(g.tagF, f.tagF);
+	//	System.err.println("Answer to: Is " + g + " more specific than " + f + "? " + result);
         return result;
     }
 

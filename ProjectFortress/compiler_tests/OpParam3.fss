@@ -1,6 +1,6 @@
 component OpParam3
 
-export executable
+export Executable
 
 
 trait Baz[\ opr ASTERISK \]
