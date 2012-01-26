@@ -4715,7 +4715,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         IdOrOpOrAnonymousName name = header.getName();
         List<StaticParam> sparams = header.getStaticParams();
         
-        
         HashMap<Id, TraitIndex> transitive_extends =
             STypesUtil.allSupertraits(tod, typeAnalyzer);
 
@@ -4781,6 +4780,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          */
         
         List<String> opr_params = oprsFromKindParamList(xldata.staticParameterKindNamePairs());
+        xldata = opr_params.size() == 0 ? null : xlationData(Naming.RTTI_GENERIC_TAG);
+        for (String opr_param : opr_params)
+            xldata.addKindAndNameToStaticParams(Naming.XL_OPR, opr_param);
         String stemClassName =
             Naming.oprArgAnnotatedRTTI(cnb.stemClassName,
                     opr_params);
@@ -4834,7 +4836,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             }
         }
 
-        cw.dumpClass( rttiInterfaceFileName );
+        cw.dumpClass( rttiInterfaceFileName, xldata);
         
         cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, prev);
 
@@ -5156,7 +5158,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 }
             }
         }
-        cw.dumpClass( rttiClassFileName );
+        cw.dumpClass( rttiClassFileName, xldata);
         cw = prev;
     }
 
