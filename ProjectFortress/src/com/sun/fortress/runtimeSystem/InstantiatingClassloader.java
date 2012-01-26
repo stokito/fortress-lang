@@ -209,7 +209,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             try {
                 boolean isClosure = name.contains(Naming.ENVELOPE);
                 boolean isGenericFunction = name.contains(Naming.GEAR);
-                boolean isGeneric = isExpanded(name);
+                boolean isGenericOxford = isExpandedOx(name);
+                boolean isGenericAngle = isExpandedAngle(name);
+                boolean isGeneric = isGenericOxford || isGenericAngle;
+                char left_char = isGenericOxford ?
+                        Naming.LEFT_OXFORD_CHAR : Naming.LEFT_HEAVY_ANGLE_CHAR;
+                char right_char = isGenericOxford ?
+                        Naming.RIGHT_OXFORD_CHAR : Naming.RIGHT_HEAVY_ANGLE_CHAR;
 
                 boolean expanded = (isGeneric || isGenericFunction || isClosure) ;
                 if (name.startsWith(Naming.TUPLE_RTTI_TAG)) {
@@ -233,8 +239,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 } else if (isGeneric) {
                     String dename = Naming.dotToSep(name);
                     dename = Naming.demangleFortressIdentifier(dename);
-                    int left = dename.indexOf(Naming.LEFT_OXFORD);
-                    int right = dename.lastIndexOf(Naming.RIGHT_OXFORD);
+                    int left = dename.indexOf(left_char);
+                    int right = dename.lastIndexOf(right_char);
                     String stem = dename.substring(0,left);
                     List<String> parameters = extractStringParameters(dename, left, right);
                     if (stem.equals(Naming.ARROW_TAG)) {
@@ -258,8 +264,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                         classData = instantiateUnion(dename, parameters);
                     } else {
                         ArrayList<String> sargs = new ArrayList<String>();
-                        String template_name = genericTemplateName(dename, sargs); // empty sargs
-                        Naming.XlationData xldata = xlationForGeneric(dename);
+                        String template_name = genericTemplateName(dename, left_char, right_char, sargs); // empty sargs
+                        Naming.XlationData xldata = xlationForGeneric(dename, left_char, right_char);
                         classData = readAndExpandGenericThing(dename, sargs,
                                 template_name, xldata);
                         
@@ -441,8 +447,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     }
 
     private String genericTemplateName(String name, ArrayList<String> sargs) {
-        int left_oxford = name.indexOf(Naming.LEFT_OXFORD);
-        int right_oxford = name.lastIndexOf(Naming.RIGHT_OXFORD);
+        return genericTemplateName(name, Naming.LEFT_OXFORD_CHAR,
+                Naming.RIGHT_OXFORD_CHAR, sargs);
+    }
+
+    private String genericTemplateName(String name, char left_char, char right_char, ArrayList<String> sargs) {
+        int left_oxford = name.indexOf(left_char);
+        int right_oxford = name.lastIndexOf(right_char);
 
         String s = InstantiationMap.canonicalizeStaticParameters(name, left_oxford,
                 right_oxford, sargs);
@@ -2362,8 +2373,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
 
     
-    static boolean isExpanded(String className) {
-        return isExpanded(className, Naming.LEFT_OXFORD_CHAR, Naming.RIGHT_OXFORD_CHAR) ||
+    static boolean isExpandedOx(String className) {
+        return isExpanded(className, Naming.LEFT_OXFORD_CHAR, Naming.RIGHT_OXFORD_CHAR) ;
+    }
+    static boolean isExpandedAngle(String className) {
+        return 
         isExpanded(className, Naming.LEFT_HEAVY_ANGLE_CHAR, Naming.RIGHT_HEAVY_ANGLE_CHAR);
     }
 
@@ -2382,6 +2396,11 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     
     Naming.XlationData xlationForGeneric(String t) {
         String template_name = genericTemplateName(t, null);
+        return xlationForFunctionOrGeneric(template_name);
+
+    }
+    Naming.XlationData xlationForGeneric(String t, char left_char, char right_char) {
+        String template_name = genericTemplateName(t, left_char, right_char, null);
         return xlationForFunctionOrGeneric(template_name);
 
     }
