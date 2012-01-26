@@ -1,0 +1,115 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(* Modified MaybeTest14 to use the Equality trait from CompilerAlgebra, and added more tests.
+ *)
+component MaybeTest15
+import CompilerAlgebra.{ ... }
+export Executable
+
+(*) trait Equality[\Self\] comprises Self
+(*)     opr =(self, other:Self): Boolean = self SEQV other
+(*) end
+
+object Baz extends Equality[\Baz\]
+  getter asString() = "Baz"
+end
+
+object Quux extends Equality[\Quux\]
+  getter asString() = "Quux"
+end
+
+value trait TestMaybe[\T extends Equality[\T\]\] extends { Equality[\TestMaybe[\T\]\] }
+        comprises { TestNothingObject[\T\], TestJust[\T\] }
+    getter asString(): String
+    getter size(): ZZ32
+    getter get(): T
+    getter holds(): Boolean
+    opr |self| : ZZ32
+    getDefault(_: T): T
+    opr IN(y:T, self): Boolean
+    opr NI(self, y:T): Boolean
+    opr SQCAP(self, other: TestMaybe[\T\]): TestMaybe[\T\] = other
+end
+
+value object TestJust[\U extends Equality[\U\]\](x: U) extends TestMaybe[\U\]
+    getter asString(): String = "TestJust(" x.asString ")"
+    getter size(): ZZ32 = 1
+    getter get() = x
+    getter holds() = true
+    opr |self| : ZZ32 = 1
+    getDefault(_: U): U = x
+    opr IN(y:U, self): Boolean = (y = x)
+    opr NI(self, y:U): Boolean = (y = x)
+    opr =(self,other:TestJust[\U\]): Boolean = (x = other.x)
+    opr SQCAP(self, other:TestJust[\U\]): TestMaybe[\U\] = if other.x = x then self else TestNothingObject[\U\] end
+end
+
+value object TestNothingObject[\T extends Equality[\T\]\] extends TestMaybe[\T\]
+    getter asString():String = "Nothing"
+    getter size(): ZZ32 = 0
+    getter get() = throw NotFound
+    getter holds() = false
+    opr |self| : ZZ32 = 0
+    getDefault(defaultValue: T):T = defaultValue
+    opr IN(x:T, self): Boolean = false
+    opr NI(self, x:T): Boolean = false
+    opr SQCAP(self, other: TestMaybe[\T\]): TestNothingObject[\T\] = self
+end
+
+run(): () = do
+    assert(TestJust(Baz).getDefault(Baz) = Baz, "getDefault")
+    assert(TestJust(Baz).asString = "TestJust(Baz)", "asString")
+    assert(TestNothingObject[\Baz\].asString = "Nothing", "asString")
+    assert(TestJust(Baz).size = 1)
+    assert(TestNothingObject[\Baz\].size = 0)
+    assert(|TestJust(Baz)| = 1)
+    assert(|TestNothingObject[\Baz\]| = 0)
+    assert(TestJust(Baz).get = Baz)
+    assert(TestJust(Baz) NI Baz)
+    deny(TestNothingObject[\Baz\] NI Baz)
+    assert(Baz IN TestJust(Baz))
+    deny(Baz IN TestNothingObject[\Baz\])
+    assert(TestJust(Baz) = TestJust(Baz))
+    assert(TestNothingObject[\Baz\] = TestNothingObject[\Baz\])
+    assert(TestNothingObject[\Quux\] = TestNothingObject[\Quux\])
+    assert(TestNothingObject[\Boolean\] = TestNothingObject[\Boolean\])
+    assert(TestNothingObject[\ZZ32\] = TestNothingObject[\ZZ32\])
+    deny(TestJust(Baz) = TestNothingObject[\Baz\])
+    deny(TestNothingObject[\Baz\] = TestJust(Baz))
+    assert((TestJust(Baz) SQCAP TestJust(Baz)).asString = "TestJust(Baz)")
+    assert((TestJust(Baz) SQCAP TestNothingObject[\Baz\]).asString = "Nothing")
+    assert((TestNothingObject[\Baz\] SQCAP TestJust(Baz)).asString = "Nothing")
+    assert((TestNothingObject[\Baz\] SQCAP TestNothingObject[\Baz\]).asString = "Nothing")
+    assert(TestJust(true) = TestJust(true))
+    deny(TestJust(true) = TestJust(false))
+    deny(TestJust(false) = TestJust(true))
+    assert(TestJust(false) = TestJust(false))
+    assert(true IN TestJust(true))
+    deny(false IN TestJust(true))
+    deny(true IN TestJust(false))
+    assert(false IN TestJust(false))
+    assert((TestJust(true) SQCAP TestJust(true)).asString = "TestJust(true)")
+    assert((TestJust(true) SQCAP TestJust(false)).asString = "Nothing")
+    assert((TestJust(false) SQCAP TestJust(true)).asString = "Nothing")
+    assert((TestJust(false) SQCAP TestJust(false)).asString = "TestJust(false)")
+    assert((TestJust(true) SQCAP TestNothingObject[\Boolean\]).asString = "Nothing")
+    assert((TestJust(false) SQCAP TestNothingObject[\Boolean\]).asString = "Nothing")
+    assert((TestNothingObject[\Boolean\] SQCAP TestJust(true)).asString = "Nothing")
+    assert((TestNothingObject[\Boolean\] SQCAP TestJust(false)).asString = "Nothing")
+    assert((TestNothingObject[\Boolean\] SQCAP TestNothingObject[\Boolean\]).asString = "Nothing")
+    assert(TestJust(true).holds)
+    assert(TestJust(false).holds)
+    deny(TestNothingObject[\Boolean\].holds)
+    println "PASS"
+end
+
+end

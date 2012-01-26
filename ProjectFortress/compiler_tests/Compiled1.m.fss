@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled1.m
+export Executable
+
+  (* An exit outside of a label with no target should generate error. *)
+
+  run():() = do
+
+    exit with 5
+
+  end
+
+end

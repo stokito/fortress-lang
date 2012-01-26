@@ -1,0 +1,72 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component objectCC_multi_objExpr_mutVar2
+export Executable
+
+trait T
+    inc():ZZ32
+    dec():ZZ32
+end
+
+object O(var v:ZZ32)
+    var x:ZZ32 = 1
+
+    getV():ZZ32 = v
+    getX():ZZ32 = x
+    incV():() = v := v+1;
+    incX():() = x := x+1;
+
+    bar():T = object extends T
+                  inc():ZZ32 = do v := v + x; v end
+                  dec():ZZ32 = do v := v - x; v end
+              end
+    quack():T = object extends T
+                    inc():ZZ32 = do x := 2; v := v + x; v end
+                    dec():ZZ32 = do x := 2; v := v - x; v end
+                end
+end
+
+run():() = do
+    println "Testing mix use of mutable and immutable VarRef declared in enclosing ObjectDecl, with two structurally equivalent object expressions ."
+    o:O = O(3);
+    assert(3, o.getV(), "o.getV() failed: returns ", o.getV(), " instead of 3.")
+
+    t1:T = o.bar()
+    var r1:ZZ32 = t1.inc()
+    r1 := t1.inc()
+    assert(5, r1, "t1.inc() failed: returns ", r1, " instead of 5.")
+    assert(5, o.getV(), "o.getV() failed: returns ", o.getV(), " instead of 5.")
+    r2:ZZ32 = t1.dec()
+    assert(4, r2, "t1.dec() failed: returns ", r2, " instead of 4.")
+    assert(4, o.getV(), "o.getV() failed: returns ", o.getV(), " instead of 4.")
+
+    t2:T = o.quack()
+    var r3:ZZ32 = t2.inc()
+    r3 := t2.inc()
+    assert(8, r3, "t2.inc() failed: returns ", r3, " instead of 8.")
+    assert(8, o.getV(), "o.getV() failed: returns ", o.getV(), " instead of 8.")
+    r4:ZZ32 = t2.dec()
+    assert(6, r4, "t2.dec() failed: returns ", r4, " instead of 6.")
+    assert(6, o.getV(), "o.getV() failed: returns ", o.getV(), " instead of 6.")
+
+    o.incV();
+    assert(7, o.getV(), "o.incV() or o.getV() failed: getV returns ",
+           o.getV(), " instead of 7.")
+
+    o.incX();
+    assert(3, o.getX(), "o.incX() or o.getX() failed: getX returns ",
+           o.getX(), " instead of 3.")
+
+    println "Passed."
+end
+
+end

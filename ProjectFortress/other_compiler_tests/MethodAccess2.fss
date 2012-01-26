@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component MethodAccess2
+
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+export Executable
+
+trait Z end
+trait T extends Z end
+trait U extends Z end
+trait S extends {T,U} end
+
+object O(a:String, b:ZZ32) extends S
+  val(i:ZZ32):String = if i + b < 10 then a else "Hi!" end
+end;
+
+object Q(b:String, c:String) extends U end;
+
+f(o:O):() =  println(o.val(6))
+f(o:Z):() = println("Hi!")
+
+g(x:Z):() = f(x)
+
+run():() = do
+  g(O("Ha!", 3)) (* 6+3 = 9      < 10 ==> "Ha!" *)
+  g(O("Ha!", 4)) (* 6+4 = 10 NOT < 10 ==> "Hi!" *)
+  (* jPrintln("Hi!") *)
+end
+
+end

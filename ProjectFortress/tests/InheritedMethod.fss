@@ -1,0 +1,65 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component InheritedMethod
+export Executable
+
+trait Base
+end
+
+trait Sub1 extends Base excludes {Sub2}
+end
+
+trait Sub2 extends Base excludes {Sub1}
+end
+
+f():ZZ32 = 5
+
+trait T1
+  a(x:Sub1, y:Base):ZZ32 = 1
+  g():ZZ32 = f()
+end
+
+trait T2
+  a(x:Base, y:Sub2):ZZ32 = 2
+end
+
+object O() extends {T1, T2}
+  a(x:Sub1, y:Sub2):ZZ32 = 3
+  f():ZZ32 = 4
+end
+
+object s1 extends Sub1
+end
+
+object s2 extends Sub2
+end
+
+t(s:String, expected:ZZ32, actual:ZZ32):() = do
+ if expected = actual then
+      println(s actual)
+  else
+     println("FAIL " s expected " but got " actual)
+  end
+end
+
+run():()=do
+  o:O = O()
+
+  t("o.a(s1, s1)=", 1, o.a(s1,s1))  (* T1.a *)
+  t("o.a(s2, s2)=", 2, o.a(s2,s2))  (* T2.a *)
+  t("o.a(s1, s2)=", 3,  o.a(s1,s2)) (* O.a *)
+  t("o.f()=", 4,  o.f())            (* o.f *)
+  t("o.g()=", 5,  o.g())            (* T1.g calls "f" from toplevel *)
+
+end
+
+end

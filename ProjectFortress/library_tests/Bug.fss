@@ -1,0 +1,14 @@
+component Bug
+export Executable
+
+run (): () = do
+  one: ZZ32 = -1  
+  y = 56 
+  z = 3 + 3
+  x : ZZ32 = z
+  println(x)
+  println("test")
+  ()
+end
+
+end

@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component NatParamOverloading
+export Executable
+
+(* Note: this used to fail unless we replaced ZZ32[n] by
+   Array1[\ZZ32,0,n\], or we un-overloaded g. *)
+g[\nat n\]( a: ZZ32[n] ) : () = ()
+g[\nat n\]( b: RR64 ) : () = ()
+
+run():() = do
+  a : ZZ32[2] = [ 5 7 ]
+  g[\2\](a)
+  g[\2\](3.0)
+end
+
+end

@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+object lotsOfUnusedStaticParams[\M,N,O,P,Q,R,S\] end
+
+f(x : Any) = "Any"
+f[\X,Y,Z,A,B,C,D\](x : lotsOfUnusedStaticParams[\X,Y,Z,A,B,C,D\]) = 
+    "lotsOfUnusedStaticParams"
+
+run() = do
+    t : Any =lotsOfUnusedStaticParams    
+        [\String,Number,ZZ32,RR32,RR64,Number,String\]
+
+    println(f(t))
+end
