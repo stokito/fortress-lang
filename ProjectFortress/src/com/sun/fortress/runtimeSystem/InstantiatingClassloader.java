@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -263,9 +264,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     } else if (stem.equals(Naming.UNION)) {
                         classData = instantiateUnion(dename, parameters);
                     } else {
+                        Naming.XlationData xldata =
+                                xlationForGeneric(dename, left_char, right_char);
                         ArrayList<String> sargs = new ArrayList<String>();
                         String template_name = genericTemplateName(dename, left_char, right_char, sargs); // empty sargs
-                        Naming.XlationData xldata = xlationForGeneric(dename, left_char, right_char);
                         classData = readAndExpandGenericThing(dename, sargs,
                                 template_name, xldata);
                         

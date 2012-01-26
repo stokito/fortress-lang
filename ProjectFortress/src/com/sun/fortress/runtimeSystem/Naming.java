@@ -343,6 +343,7 @@ public class Naming {
     public static final String FUNCTION_GENERIC_TAG = "function";
     public static final String TRAIT_GENERIC_TAG = "trait";
     public static final String OBJECT_GENERIC_TAG = "object";
+    public static final String RTTI_GENERIC_TAG = "rtti";
 
     public static String javaDescForTaggedFortressType(String ft) {
 
