@@ -1,0 +1,151 @@
+%%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}[htbp]
+\centering
+\newjudge{Exclusion}{\jexc{T}{T}{\C}}
+\vspace*{1em}
+
+\begin{minipage}[t]{.5\textwidth}
+\centering  
+\textbf{Logical rules}
+\vspace*{-1em}
+
+\infrule
+  {}
+  {\jexc{\Bottom}{T}{\TRUE}}
+
+\infrule
+  {\jsub{T}{\Bottom}{\C}}
+  {\jexc{\Any}{T}{\C}}
+
+\infrule
+  {\jexc{S}{U}{\C} \andalso 
+   \jexc{T}{U}{\C'} \\
+   \jsub{S \cap T}{\Bottom}{\C''}}
+  {\jexc{S \cap T}{U}{\C \vee \C' \vee \C''}}
+
+\infrule
+  {\jexc{S}{U}{\C}    \andalso 
+   \jexc{T}{U}{\C'}}
+  {\jexc{S \cup T}{U}{\C \wedge \C'}}
+
+\vspace*{2ex}
+\textbf{Inference Variables}
+\vspace*{-1em}
+
+\infrule
+  {`I` \not \in \Delta}
+  {\jexc{I}{I}{\FALSE}}
+  
+\infrule
+  {`I` \not \in \Delta}
+  {\jexc{I}{T}{`I` \exc `T`}}
+
+\vspace*{2ex}
+\textbf{Bound Variables}
+\vspace*{-1em}
+
+\infrule
+  {\jexc{\Delta(X)}{T}{C}}
+  {\jexc{X}{T}{C}}
+
+\vspace*{2ex}
+\textbf{Structural rules}
+\vspace*{-1em}
+
+\infrule
+  {|\bar{S}|=|\bar{T}|  \andalso \forall  i . \jexc{S_i}{T_i}{\C_i}}
+  {\jexc{(\bar{S})}{(\bar{T})}{\bigvee \C_i}}
+
+\infrule
+  {|\bar{S}| \neq |\bar{T}|}
+  {\jexc{(\bar{S})}{(\bar{T})}{\TRUE}}
+
+\infrule
+  {M \neq \Any \andalso
+   |\bar{T}| \neq 1}
+  {\jexc{M}{(\bar{T})}{\TRUE}}
+
+\infrule
+  {|\bar{T}| \neq 1}
+  {\jexc{`S -> R`}{(\bar{T})}{\TRUE}}
+
+\infrule
+  {}
+  {\jexc{`S -> T`}{`U -> V`}{\FALSE}}
+
+\infrule
+  {M \neq \Any}
+  {\jexc{M}{`T -> U`}{\TRUE}}
+
+\end{minipage}%
+\begin{minipage}[t]{.5\textwidth}
+\centering
+\textbf{Constructed types}
+\vspace*{-1em}
+
+\infrule
+  {\jgconstrtemplate{`C[\S_bar\]`}{\exce}{`D[\T_bar\]`}{\C_e} \\
+   \jgconstrtemplate{`C[\S_bar\]`}{\excc}{`D[\T_bar\]`}{\C_c} \\
+   \jgconstrtemplate{`C[\S_bar\]`}{\exco}{`D[\T_bar\]`}{\C_o} \\
+   \jgconstrtemplate{`C[\S_bar\]`}{\excp}{`D[\T_bar\]`}{\C_p}}
+  {\jexc{`C[\S_bar\]`}{`D[\T_bar\]`}{\C_e \vee \C_c \vee \C_o \vee \C_p}}
+
+\infrule
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excrx}{`D[\T_bar\]`}{\C} \\
+   \jgconstrtemplate{`D[\T_bar\]`}{\excrx}{`C[\S_bar\]`}{\C'}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excx}{`D[\T_bar\]`}{\C \vee \C'}}
+\vspace{-3ex}
+\hfill where $* \in \{\mathrm{x,c,o}\}$
+\\%[-.2em]
+
+\vspace*{-1em}
+\infrule
+  {}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excrx}{`C[\T_bar\]`}{\FALSE}}
+\vspace{-3ex}
+\hfill where $* \in \{\mathrm{x,c,o}\}$
+\\%[-.2em]
+\vspace*{-1ex}
+
+\infrule
+  {C \neq D \andalso A = \ancestors(`C[\S_bar\]`) \\
+   \forall N \in \left(\bigcup_{M \in A} \myexcludes{M}\right). \quad \jsub{`D[\T_bar\]`}{N}{\C_{N}}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excre}{`D[\T_bar\]`}{\bigvee \C_{N}}}
+
+\infrule
+  {C \neq D \\
+\forall M \in \mycomprises{`C[\S_bar\]`}.\quad \jexc{M}{`D[\T_bar\]`}{\C_M}
+}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excrc}{`D[\T_bar\]`}{\bigwedge \C_M}}
+
+\infrule
+  {C \neq D \andalso \text{$C$ does not have a `comprises` clause}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excrc}{`D[\T_bar\]`}{\FALSE}}
+
+\infrule
+  {C \neq D \andalso `object`\ C \andalso
+   \jnsub{`C[\S_bar\]`}{`D[\T_bar\]`}{\C}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excro}{`D[\T_bar\]`}{\C}}
+
+\infrule
+  {C \neq D \andalso \neg(`object`\ C)}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excro}{`D[\T_bar\]`}{\FALSE}}
+
+\infrule
+  {\forall M \in \ancestors(`C[\S_bar\]`).\\
+   \forall N \in \ancestors(`D[\T_bar\]`).\\
+   \jgconstrtemplate{M}{\bexcp}{N}{\C_{M,N}}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\excp}{`D[\T_bar\]`}{\bigvee \C_{M,N}}}
+
+\infrule
+  {\forall i .\jnequiv{S_i}{T_i}{\C_i}}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\bexcp}{`C[\T_bar\]`}{\bigvee \C_i}}
+
+\infrule
+  {C \neq D}
+  {\jgconstrtemplate{`C[\S_bar\]`}{\bexcp}{`D[\T_bar\]`}{\FALSE}}
+
+\end{minipage}
+  \caption{Algorithm for generating exclusion constraints. Each rule is symmetric; apply the first one that matches.}
+  \label{fig:jexc}
+\end{figure*}

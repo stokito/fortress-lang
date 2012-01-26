@@ -1,0 +1,143 @@
+/*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress function declarations.
+ */
+module com.sun.fortress.parser.Function(Param, Header, NoNewlineType,
+                                        NoNewlineExpr, Identifier, Keyword,
+                                        Symbol, Spacing);
+
+import Param;
+import Header;
+import NoNewlineType;
+import NoNewlineExpr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* FnDecl ::=
+     Mods? FnHeaderFront FnHeaderClause w = w NoNewlineExpr
+   | AbsFnDecl
+ */
+FnDecl TopLevelFnDecl =
+     a1:Mods? a2:FnHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
+     { if (a1 == null) a1 = Modifiers.None;
+       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), a1, a2, a3, a4);
+     }
+   / InvalidFnDecl
+   / AbsFnDecl
+   ;
+
+FnDecl InvalidFnDecl =
+     Mods? a2:FnHeaderFront a3:FnHeaderClause s a4:NoNewlineExpr
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Invalid top-level declaration.");
+       yyValue = NodeFactory.mkFnDecl(span, Modifiers.None, a2, a3, a4);
+     };
+
+/* FnDecl ::=
+     Mods? FnHeaderFront FnHeaderClause w = w NoNewlineExpr
+   | AbsFnDecl
+ */
+FnDecl FnDecl =
+     a1:Mods? a2:FnHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
+     { if (a1 == null) a1 = Modifiers.None;
+       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), a1, a2, a3, a4);
+     }
+   / AbsFnDecl
+   ;
+
+/* AbsFnDecl ::=
+     Mods? AbsFnHeaderFront FnHeaderClause
+   | FnSig
+ */
+FnDecl AbsFnDecl =
+     a1:Mods? a2:AbsFnHeaderFront a3:FnHeaderClause
+     { if (a1 == null) a1 = Modifiers.None;
+       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), a1, a2, a3);
+     }
+   / FnSig ;
+
+/* FnHeaderFront ::=
+     NamedFnHeaderFront
+   | OpHeaderFront
+ */
+FnHeaderFront FnHeaderFront =
+     NamedFnHeaderFront
+   / OpHeaderFront ;
+
+/* AbsFnHeaderFront ::=
+     AbsNamedFnHeaderFront
+   | AbsOpHeaderFront
+ */
+FnHeaderFront AbsFnHeaderFront =
+     AbsNamedFnHeaderFront
+   / AbsOpHeaderFront ;
+
+/* NamedFnHeaderFront ::= Id (w StaticParams)? w ValParam */
+FnHeaderFront NamedFnHeaderFront =
+     a1:Id a2:(w StaticParams)? w a3:ValParam
+     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
+       yyValue = new FnHeaderFront(a1, a2, a3);
+     };
+
+/* AbsNamedFnHeaderFront ::= Id (w StaticParams)? w AbsValParam */
+FnHeaderFront AbsNamedFnHeaderFront =
+     a1:Id a2:(w StaticParams)? w a3:AbsValParam
+     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
+       yyValue = new FnHeaderFront(a1, a2, a3);
+     };
+
+/* FnSig ::= SimpleName w : w NoNewlineType */
+FnDecl FnSig =
+     a1:SimpleName w colon w a2:NoNewlineType
+     { final Modifiers mods = Modifiers.None;
+       final List<Param>  params = Collections.<Param>emptyList();
+       if (!(a2 instanceof ArrowType)) {
+           Span span = NodeUtil.getSpan(a2);
+           log(span, "Abstract function declaration should have an arrow type.");
+           Type ty = NodeFactory.makeVoidType(span);
+           a2 = NodeFactory.makeArrowType(span, ty, ty);
+       }
+       Type d = ((ArrowType) a2).getDomain();
+       if ( d instanceof TupleType ) {
+           TupleType _d = (TupleType)d;
+           for (Type argT : _d.getElements()) {
+               Id name = NodeFactory.makeId(NodeUtil.getSpan(argT), "_");
+               params.add(NodeFactory.makeParam(NodeUtil.getSpan(argT),
+                                                mods, name, argT));
+           }
+           if (_d.getVarargs().isSome()) {
+               Type argT = _d.getVarargs().unwrap();
+               Id name = NodeFactory.makeId(NodeUtil.getSpan(argT), "_");
+               params.add(NodeFactory.makeVarargsParam(NodeUtil.getSpan(argT),
+                                                       mods, name, argT));
+           }
+           assert(_d.getKeywords().isEmpty()): "Keyword parameters present"
+               + " in a FnSig: " + _d;
+       } else {
+           Id name = NodeFactory.makeId(NodeUtil.getSpan(d), "_");
+           params.add(NodeFactory.makeParam(NodeUtil.getSpan(d), mods, name, d));
+       }
+
+       /*
+       We could do this, if we had a suitable value for bottomExpr:
+       for (KeywordType k : d.getKeywords()) {
+           params.add(NodeFactory.makeParam(NodeUtil.getSpan(k), mods,
+                                            k.getName(), k.getType(), bottomExpr,
+                                            Option.<Type>none()));
+       }
+       */
+       yyValue = NodeFactory.mkFnDecl(createSpan(yyStart,yyCount), mods, a1,
+                                      params, ((ArrowType)a2).getRange());
+     };

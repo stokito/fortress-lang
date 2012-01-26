@@ -1,0 +1,18 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled6.bs
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled6.bs.fss:23:10-27:\n\
+\ Could not check method invocation Foo.doFoo\n\
+\ - [\\ZZ32\\](ZZ32, String)->String is not applicable to an argument of type ZZ32.\n\
+File Compiled6.bs.fss has 1 error.\n
+compile_out_equals=
