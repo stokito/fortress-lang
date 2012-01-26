@@ -5812,6 +5812,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 String cast_to = NamingCzar.jvmTypeDesc(domain_type, thisApi(), false, true);
                 InstantiatingClassloader.generalizedCastTo(mv, cast_to);
         } else if (apparent_type.isNone() ||
+                /* This will insert unnecessary casts, but the JIT should remove them
+                 * It might be worthwhile to do a simple walk of supertraits of the
+                 * apparent_type to see if the subtyping is a trivial instance of
+                 * will-work-in-Java.
+                 */
                 0 != NodeComparator.compare(apparent_type.unwrap(), domain_type)) {
             String cast_to = NamingCzar.jvmTypeDesc(domain_type, thisApi(), false, true);
             InstantiatingClassloader.generalizedCastTo(mv, cast_to);
