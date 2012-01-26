@@ -139,6 +139,7 @@ import com.sun.fortress.nodes._RewriteFnApp;
 import com.sun.fortress.nodes._RewriteFnOverloadDecl;
 import com.sun.fortress.nodes_util.ExprFactory;
 import com.sun.fortress.nodes_util.Modifiers;
+import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.SourceLoc;
@@ -172,7 +173,9 @@ import com.sun.fortress.useful.Useful;
 import edu.rice.cs.plt.collect.IndexedRelation;
 import edu.rice.cs.plt.collect.PredicateSet;
 import edu.rice.cs.plt.collect.Relation;
+import edu.rice.cs.plt.tuple.Null;
 import edu.rice.cs.plt.tuple.Option;
+import edu.rice.cs.plt.tuple.Wrapper;
 
 // Note we have a name clash with org.objectweb.asm.Type
 // and com.sun.fortress.nodes.Type.  If anyone has a better
@@ -1594,7 +1597,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // arg 0 gets compiled in place, rather than turned into work.
         if (vcgs != null) vcgs.get(0).prepareAssignValue(mv);
         args.get(0).accept(this);
-        conditionallyCastParameter(domain_types.get(0));
+        conditionallyCastParameter(args.get(0), domain_types.get(0));
         if (vcgs != null) vcgs.get(0).assignValue(mv);
         popAll(mv, 0);  // URGH!!!  look into better stack management...
 
@@ -1609,7 +1612,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String task = tasks[i];
             mv.visitMethodInsn(INVOKEVIRTUAL, task, "joinOrRun", "()V");
             mv.visitFieldInsn(GETFIELD, task, "result", results[i]);
-            conditionallyCastParameter(domain_types.get(i));
+            conditionallyCastParameter(args.get(i), domain_types.get(i));
             if (vcgs != null) vcgs.get(i).assignValue(mv);
             popAll(mv, 1);  // URGH!!!  look into better stack management...            
         }
@@ -4345,13 +4348,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // arg 0 gets compiled in place, rather than turned into work.
         if (vcgs != null) vcgs.get(0).prepareAssignValue(mv);
         args.get(0).accept(this);
-        conditionallyCastParameter(domain_types.get(0));
+        conditionallyCastParameter(args.get(0),
+                domain_types.get(0));
         if (vcgs != null) vcgs.get(0).assignValue(mv);
 
 
         // join / perform work locally left to right, leaving results on stack.
         for (int i = 1; i < n; i++) {
-            if (vcgs != null) vcgs.get(i).prepareAssignValue(mv);
+            VarCodeGen vcg = vcgs != null ? vcgs.get(i) : null;
+            if (vcg != null)
+                vcg.prepareAssignValue(mv);
             int taskVar = taskVars[i];
             mv.visitVarInsn(ALOAD, taskVar);
             mv.disposeCompilerLocal(taskVar);
@@ -4359,8 +4365,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String task = tasks[i];
             mv.visitMethodInsn(INVOKEVIRTUAL, task, "joinOrRun", "()V");
             mv.visitFieldInsn(GETFIELD, task, "result", results[i]);
-            conditionallyCastParameter(domain_types.get(i));
-            if (vcgs != null) vcgs.get(i).assignValue(mv);
+            conditionallyCastParameter(args.get(i),
+                    domain_types.get(i));
+            if (vcg != null)
+                vcg.assignValue(mv);
         }
     }
 
@@ -4380,7 +4388,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             int i = 0;
             for (Expr arg : args) {
                 arg.accept(this);
-                conditionallyCastParameter(domain_types.get(i++));
+                conditionallyCastParameter(arg, domain_types.get(i++));
             }
         } else {
             int n = args.size();
@@ -4391,7 +4399,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 VarCodeGen vcg = vcgs.get(i);
                 vcg.prepareAssignValue(mv);
                 args.get(i).accept(this);
-                conditionallyCastParameter(domain_types.get(i));
+                conditionallyCastParameter(Wrapper.make(vcg.fortressType), domain_types.get(i));
                 vcg.assignValue(mv);
             }
         }
@@ -4428,7 +4436,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             int i = 0;
             for (Expr arg : args) {
                 arg.accept(this);
-                conditionallyCastParameter(domain_types.get(i));
+                conditionallyCastParameter(arg, domain_types.get(i));
                 i++;
             }
         }
@@ -5737,7 +5745,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     Type t = arg_tts.get(i);
                     expr.accept(this);
 
-                    conditionallyCastParameter(t);
+                    conditionallyCastParameter(expr, t);
                 }
                 
                 paramCount = l;
@@ -5768,16 +5776,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     if (i < l-1) {
                         mv.visitInsn(DUP);
                         mv.visitMethodInsn(INVOKEINTERFACE, owner, m, "()"+sig);
+                        conditionallyCastParameter((Expr)null, t); // can't quite figure out what the type is here.
                         mv.visitInsn(SWAP);
                     } else {
                         mv.visitMethodInsn(INVOKEINTERFACE, owner, m, "()"+sig);
+                        conditionallyCastParameter((Expr)null, t); // can't quite figure out what the type is here.
                     }
-                    conditionallyCastParameter(t);
                 }
                
             } else if (arg_t instanceof VarType) { 
                 arg.accept(this);
-                conditionallyCastParameter(arg_t);
+                conditionallyCastParameter(arg, arg_t);
             } else {
                 arg.accept(this);
             }
@@ -5785,23 +5794,27 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
 
-    /**
-     * @param t
+    private void conditionallyCastParameter(Expr expr, Type domain_type) {
+        conditionallyCastParameter(expr == null ?
+                Null.<Type>make() : expr.getInfo().getExprType(),
+                domain_type);
+    }
+        /**
+     * @param domain_type
      */
-    private void conditionallyCastParameter(Type t) {
-        if (t instanceof ArrowType) {
+    private void conditionallyCastParameter(Option<Type> apparent_type, Type domain_type) {
+        if (domain_type instanceof ArrowType) {
             // insert cast
-            String cast_to = NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
+            String cast_to = NamingCzar.jvmTypeDesc(domain_type, thisApi(), false, true);
             InstantiatingClassloader.generalizedCastTo(mv, cast_to);
-        } else if ((t instanceof TupleType) && ((TupleType)t).getElements().size() > 0) {
+        } else if ((domain_type instanceof TupleType) && ((TupleType)domain_type).getElements().size() > 0) {
                 // insert cast
-                String cast_to = NamingCzar.jvmTypeDesc(t, thisApi(), false, true);
+                String cast_to = NamingCzar.jvmTypeDesc(domain_type, thisApi(), false, true);
                 InstantiatingClassloader.generalizedCastTo(mv, cast_to);
-        } else if (t instanceof VarType) {
-            // insert conditional cast (what form does this take?)
-            // note that generalizedCastTo will make this a bare instanceof.
-            // watch out for possibility of double-rewrite,
-            // in case of generic meth of generic trait/object.
+        } else if (apparent_type.isNone() ||
+                0 != NodeComparator.compare(apparent_type.unwrap(), domain_type)) {
+            String cast_to = NamingCzar.jvmTypeDesc(domain_type, thisApi(), false, true);
+            InstantiatingClassloader.generalizedCastTo(mv, cast_to);
         }
     }
 
