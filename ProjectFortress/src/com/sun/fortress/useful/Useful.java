@@ -20,6 +20,9 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+// THIS CANNOT DEPEND ON THE REST OF THE COMPILER
+// import com.sun.fortress.exceptions.ProgramError;
+
 public class Useful {
 
     static final String localMilliIso8601Format = "yyyy-MM-dd'T'HH:mm:ss.SSSzzz";
@@ -1242,6 +1245,25 @@ public class Useful {
             }
         }
         return s;
+    }
+    
+    public static void ensureFileExists(String s) throws Error {
+    	
+    	File f = new File(s);
+		if (!f.exists()) {
+			try {
+				f.createNewFile();
+				FileOutputStream out = new FileOutputStream(f);
+				byte[] init = { 48 , 35 };
+				out.write(init);
+				out.flush();
+				out.close();
+    		}
+			catch (IOException msg) {
+				throw new Error(msg);
+			}
+    	}
+    	
     }
     
     public static void use(Object o) {}
