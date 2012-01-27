@@ -26,6 +26,7 @@ import com.sun.fortress.nodes_util.ASTIO;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.repository.graph.*;
+import com.sun.fortress.runtimeSystem.ByteCodeWriter;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.useful.Fn;
@@ -34,11 +35,19 @@ import com.sun.fortress.useful.Useful;
 import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionUnwrapException;
+import com.sun.fortress.useful.Pair;
+import com.sun.fortress.linker.Link;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
+import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
 
 /* A graph-based repository. This repository determines the dependency structure
  * before any components/APIs are compiled so that they can be compiled in an
@@ -67,7 +76,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private boolean needUpdate = true;
     /* If link is true then pull in a component for an API */
     private boolean link = false;
-
+    /* Stores the necessary rewrites */
+    private Map<APIName,List<Pair<APIName,APIName>>> rewrites;
+    
     static private Map<String, DerivedFiles<CompilationUnit>> otherCaches =
             new HashMap<String, DerivedFiles<CompilationUnit>>();
 
@@ -77,6 +88,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         this.path = p;
         this.cache = cache;
         graph = new Graph<GraphNode>();
+        rewrites = new HashMap<APIName,List<Pair<APIName,APIName>>>();
         addRoots();
     }
 
@@ -317,7 +329,28 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         if (link && !b) {
             Debug.debug(Debug.Type.REPOSITORY, 1, "Linking component ", node.getName(), " to component ", api);
             // Add element, but no API
-            addComponentGraph(api);
+            
+            // At this point, the question is: which component do we want to add? 
+            // We need to query the repository to know which component is exporting this API
+            // this has to depend on node as well as on api
+            
+            String s = cache.getMapping().get(api.getText());
+            
+            // If API was not linked to a specific component, we try to find a component with matching name
+            if (s == null) addComponentGraph(api);
+            else {
+            	APIName n = NodeFactory.makeAPIName(NodeFactory.repoSpan,s);
+            	addComponentGraph(n);
+            	List<Pair<APIName,APIName>> l = rewrites.get(node.getName());
+            	Pair<APIName,APIName> new_entry = new Pair<APIName,APIName>(api,n);
+            	if (l == null) {
+            		List<Pair<APIName,APIName>> new_list = new ArrayList<Pair<APIName,APIName>>();
+            		new_list.add(new_entry);
+            		rewrites.put(node.getName(),new_list);
+            	}
+            	else l.add(new_entry);	
+            }
+            
         }
     }
 
@@ -382,7 +415,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
         catch (FileNotFoundException ex2) {
             throw new FileNotFoundException(
-                    NodeUtil.getSpan(name) + ":\n    Could not find API " + dotted + " in file named " + slashed +
+                    NodeUtil.getSpan(name) + ":\n    Could not find an implementation for API " + dotted +
                     " on path\n    " + path);
         }
         return fdot;
@@ -771,6 +804,42 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         if (!result.isSuccessful()) {
             throw new MultipleStaticError(result.errors());
         }
+        
+        // It is not clear that this is really the right place to rewrite
+        List<Pair<APIName,APIName>> l = rewrites.get(component.getName());
+        if (l != null) {
+        	
+        	String jarFile = ProjectProperties.fileName(ProjectProperties.BYTECODE_CACHE_DIR, component.getName().getText(), "jar");
+        	String jarFileTMP = ProjectProperties.fileName(ProjectProperties.BYTECODE_CACHE_DIR, component.getName().getText() + "HACKHACK", "jar");
+        	JarFile jarHandle;
+        	try {
+        		File original = new File(jarFile);
+        		jarHandle = new JarFile(original);
+        		InputStream in = jarHandle.getInputStream(jarHandle.getEntry(component.getName()+".class"));
+        		byte[] toWrite = new byte[in.available()];
+        		in.read(toWrite,0,in.available());
+        		
+        		        		
+        		for (Pair<APIName,APIName> x: l) {
+        			toWrite = Link.rewrite(toWrite,x.first().getText(),x.second().getText());;
+        			
+        		}
+        	
+        		File newversion = new File(jarFileTMP);
+        		FileOutputStream f = new FileOutputStream(newversion);
+        		ByteCodeWriter.writeJarredClass(new JarOutputStream(f), component.getName().getText(), toWrite);
+        		f.flush();
+        		f.close();
+        		
+        		original.delete();
+        		newversion.renameTo(original);
+        		
+        	} catch(IOException msg) {
+        		throw new ProgramError();
+        	}
+        	
+        }
+        
         return result;
     }
 

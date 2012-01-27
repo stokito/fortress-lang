@@ -29,11 +29,15 @@ import com.sun.fortress.repository.graph.ComponentGraphNode;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.exceptions.*;
 import edu.rice.cs.plt.tuple.Option;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.FileInputStream;
+import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Map;
 
 public class CacheBasedRepository { // extends StubRepository implements FortressRepository {
@@ -45,7 +49,7 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
             new BATree<APIName, ComponentIndex>(NodeComparator.apiNameComparer);
 
     protected final String pwd;
-
+    
     public CacheBasedRepository(String _pwd) {
         pwd = _pwd;
     }
@@ -200,6 +204,83 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
         for (APIName componentName : components.keySet()) {
             deleteComponent(componentName);
         }
+    }
+    
+    private static int read_int(FileInputStream f) {
+    	
+    	int acc = 0;
+    	
+    	try {
+    		while (true) {
+    			int tmp = f.read();
+    			if (48 <= tmp && tmp <= 57) {
+    				acc = acc * 10 + (tmp - 48); 
+    			}
+    			else if (tmp == 35) {
+    				break;
+    			}
+    			else throw new ProgramError();
+    		}
+    	}
+    	catch (IOException msg) {
+    		throw new ProgramError();
+    	}
+
+    	return acc;
+    	
+    }
+    
+    
+    
+    public Map<String,String> getMapping() {
+
+    	return new HashMap<String,String>();
+    	
+    	/*
+    	FileInputStream f;
+    	int entries = 0;
+    	Map<String,String> m = new HashMap<String,String>();
+    	//Charset ascii = new Charset("US-ASCII",null);
+    	
+    	
+    	try {
+    		f = new FileInputStream(pwd + "/global.map");
+    	}
+    	catch (IOException msg) {
+    		throw new ProgramError();
+    	}
+    	
+    	entries = read_int(f);
+    	
+    	
+    	int counter = 0;
+    	
+    	try {
+    	while (counter < entries) {
+    		int one = read_int(f);
+    		int two = read_int(f);
+    		byte[] a1 = new byte[one]; 
+    		byte[] a2 = new byte[two];
+    		f.read(a1,0,one);
+    		f.read(a2,0,two);
+    		char[] c1 = new char[one];
+    		char[] c2 = new char[two];
+    		for (int i = 0 ; i < c1.length ; ++i)
+    			c1[i] = (char) a1[i];
+    		for (int i = 0 ; i < c2.length ; ++i)
+    			c2[i] = (char) a2[i];
+    		String s1 = new String(c1);
+    		String s2 = new String(c2);
+    		m.put(s1, s2);   		
+    		counter++;
+    	}
+    	
+    	} catch (IOException msg) {
+    		throw new ProgramError();
+    	}
+    	
+    	return m;
+   */ 	
     }
 
 }
