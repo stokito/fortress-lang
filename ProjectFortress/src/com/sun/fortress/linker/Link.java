@@ -33,7 +33,7 @@ import org.objectweb.asm.tree.*;
 
 import com.sun.fortress.runtimeSystem.ByteCodeWriter;
 
-class Linker {
+public class Link {
 		
     /**
      * Read-in the class file at componenetPath and returns its associated ASM ClassNode
@@ -142,7 +142,7 @@ class Linker {
 		
 	}
 		
-	public static byte[] merge(ArrayList<byte[]> x) {
+	private static byte[] merge(ArrayList<byte[]> x) {
 		byte[] newBytecode = {};
 		Iterator<byte[]> itr = x.iterator();
 		while (itr.hasNext()) {
@@ -156,7 +156,7 @@ class Linker {
 	// C.fss exports D.fsi
 	// Name clash
 	
-	private static byte[] rewrite(byte[] bytecode, String searched, String replacement) {
+	public static byte[] rewrite(byte[] bytecode, String searched, String replacement) {
 		
 		//System.out.println("Searching for " + searched);
 		
@@ -233,6 +233,19 @@ class Linker {
         source.close();
         
 	}
+	
+	public static void rewrite(String classToRewrite, String apiToRewrite, String componentTargeted) {
+		
+        try {
+        	byte[] bytecode = readIn(classToRewrite);
+        	byte[] newBytecode = rewrite(bytecode,apiToRewrite,componentTargeted);
+        	writeOut(newBytecode,classToRewrite);
+           } catch (IOException e) {
+        		System.out.println("Cannot find component: " + classToRewrite);
+        		return;
+        	}
+	   
+    }
 	
     public static void main(String args[]) {
         //System.out.println("Linking ");

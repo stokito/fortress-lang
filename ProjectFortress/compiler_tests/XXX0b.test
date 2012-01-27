@@ -12,7 +12,7 @@ STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled0.b.fss:12:8-16:\n\
-\ Could not find API Runnable in file named Runnable.fsi on path\n\
+\ Could not find an implementation for API Runnable on path\n\
 \ ${STATIC_TESTS_DIR}:${FORTRESS_SOURCE_PATH}\n\
 File Compiled0.b.fss has 1 error.\n
 compile_out_equals=
