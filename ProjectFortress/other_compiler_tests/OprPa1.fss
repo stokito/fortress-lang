@@ -29,19 +29,19 @@ run() : () = do
     c = a BELOWEQ b
     d = b BELOWEQ a
     e = a BELOWEQ a
+    println c
+    println d
+    println e
     println "End BELOWEQ tests"
 
     println "Begin ABOVE tests"
     f = a ABOVE b
     g = b ABOVE a
     h = a ABOVE a
-    println "End ABOVE tests"
-
-    println c
-    println d
-    println e
     println f
     println g
     println h
+    println "End ABOVE tests"
+
 
 end

@@ -3277,6 +3277,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         com.sun.fortress.nodes.Type arrow = exprType(x);
 
         List<StaticArg> sargs = x.getStaticArgs();
+        TraitType trait_self_t = null;
         if (arrow instanceof ArrowType) {
             /*
              *  Note this does not yet deal with functional, generic methods
@@ -3295,8 +3296,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 if (self_t instanceof TraitSelfType)
                     self_t = ((TraitSelfType)self_t).getNamed();
                 if (self_t instanceof TraitType) {
+                    trait_self_t = (TraitType) self_t;
                     /* Trait static args, followed by method static args */
-                    List<StaticArg> new_sargs = Useful.concat(((TraitType) self_t).getArgs(), sargs);
+                    List<StaticArg> new_sargs = Useful.concat(trait_self_t.getArgs(), sargs);
                     if (sargs.size() > 0 && new_sargs.size() != sargs.size())
                         throw new Error("Interesting case found");
                     sargs = new_sargs;
@@ -3314,7 +3316,35 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         String pkgClass = calleeInfo.first();
         String theFunction = calleeInfo.second();
+        
+        /*
+         * BEGIN AMAZING HACK.
+         * If this is a reference to an Op,
+         * and the Op has the same name as an OpArg in sargs,
+         * figure out the original 
+         */
+        
+        if (x instanceof OpRef && sargs.size() > 0 && trait_self_t != null) {
+            int arg_index = 0;
+            for (StaticArg sarg : sargs) {
+                if (sarg instanceof OpArg) {
+                    OpArg op_sarg = (OpArg) sarg;
+                    if (op_sarg.getId().getText().equals(theFunction)) {
+                        TypeConsIndex tst_tci = ci.typeConses().get(trait_self_t.getName());
+                        List<StaticParam> tst_tci_sp = tst_tci.staticParameters();
+                        StaticParam sps = tst_tci_sp.get(arg_index);
+                        theFunction = sps.getName().getText();
+                        break;
+                    }
+                }
+                arg_index++;
+            }
+        }
 
+        /*
+         * END AMAZING HACK.
+         */
+        
         if (decoration.length() > 0) {
             // debugging reexecute
             decoration = NamingCzar.genericDecoration(sargs, thisApi());
@@ -3340,7 +3370,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String arrow_type = NamingCzar.jvmTypeDesc(arrowToUse, thisApi(), false);
 
             pkgClass =
-                Naming.genericFunctionPkgClass(pkgClass, calleeInfo.second(),
+                Naming.genericFunctionPkgClass(pkgClass, theFunction,
                                                    decoration, arrow_type);
             theFunction = Naming.APPLIED_METHOD;
 
