@@ -50,7 +50,8 @@ public class NodeFactory {
     public static final Span shellSpan = makeSpan("Shell generated.");
     public static final Span unprinterSpan = makeSpan("Unprinter generated.");
     public static final Span testSpan = makeSpan("Test generated.");
-
+    public static final Span repoSpan = makeSpan("Repository generated.");
+    
     /**
      * For use only when there is no hope of
      * attaching a true span.
