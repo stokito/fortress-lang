@@ -1185,7 +1185,9 @@ public class Naming {
         public static final String GENERIC_SEPARATOR = ",";
         public static final char GENERIC_SEPARATOR_CHAR = GENERIC_SEPARATOR.charAt(0);
         public static final String NON_OVERLOADED_TAG = "\u2659"; // Pawn
-        public static final String METHOD_SPECIALS = NON_OVERLOADED_TAG + INDEX;
+        public static final String METHOD_SPECIALS =
+            NON_OVERLOADED_TAG + INDEX + GENERIC_SEPARATOR +
+            LEFT_HEAVY_ANGLE + RIGHT_HEAVY_ANGLE + HEAVY_X;
         
 
     

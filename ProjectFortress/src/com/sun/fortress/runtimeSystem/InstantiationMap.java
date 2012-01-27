@@ -36,9 +36,9 @@ public class InstantiationMap  {
         StringBuilder b = new StringBuilder();
         maybeBareMethodName(s, b);
         
-        s = b.toString();
+        String s2 = b.toString();
        
-        return s;
+        return s2;
     }
     
     public String getName(String s) {
@@ -407,25 +407,39 @@ public class InstantiationMap  {
       */
      void maybeBareMethodName(String input, StringBuilder accum) {
          int at = 0;
-         
+         int last = at;
          while (at < input.length()) {
              char ch = input.charAt(at);
              if (Naming.METHOD_SPECIALS.indexOf(ch) != -1) {
-                 break;
+                 maybeChunk(input, accum, at, last);
+                 accum.append(ch);
+                 last=at+1;
+                 if (ch == Naming.HEAVY_X_CHAR) {
+                     accum.append(input.substring(last));
+                     return;
+                 }
              }
              at++;
          }
          
-         String s = input.substring(0, at);
-         String t = p.get(s); 
-             if (t != null) {
-                 accum.append(t);
-             } else {
-                 accum.append(s);
-             }
-         accum.append(input.substring(at));
+         maybeChunk(input, accum, at, last);
          return;
      }
+
+    /**
+     * @param input
+     * @param accum
+     * @param at
+     * @param last
+     */
+    private void maybeChunk(String input, StringBuilder accum, int at, int last) {
+        String part = input.substring(last, at);
+         String repl = p.get(part);
+         if (repl != null)
+             accum.append(repl);
+         else
+             accum.append(part);
+    }
      
     int maybeVarInMethodSig(String input, int begin, StringBuilder accum) {
         return maybeVarInMethodSig(input, begin, accum, DEFAULT_TUPLE_FLATTENING);
