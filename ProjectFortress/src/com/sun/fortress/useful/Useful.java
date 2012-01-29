@@ -1251,8 +1251,8 @@ public class Useful {
 			try {
 				f.createNewFile();
 				FileOutputStream out = new FileOutputStream(f);
-				byte[] init = { 48 , 35 };
-				out.write(init);
+				//byte[] init = { 48 , 35 };
+				out.write(0);
 				out.flush();
 				out.close();
     		}
