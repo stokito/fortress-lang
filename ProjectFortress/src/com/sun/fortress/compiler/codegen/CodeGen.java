@@ -4809,6 +4809,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * extends y$RTTIi for each y in extend_s
          */
         
+        Naming.XlationData original_xldata = xldata;
         List<String> opr_params = oprsFromKindParamList(xldata.staticParameterKindNamePairs());
         xldata = opr_params.size() == 0 ? null : xlationData(Naming.RTTI_GENERIC_TAG);
         for (String opr_param : opr_params)
@@ -4975,8 +4976,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             voidEpilogue();
         } else {
-            InstantiatingClassloader.emitDictionaryAndFactoryForGenericRTTIclass(cw, rttiClassName,
-                    sparams_size);           
+            InstantiatingClassloader.
+            emitDictionaryAndFactoryForGenericRTTIclass(cw, rttiClassName,
+                    sparams_size, original_xldata);           
         }
         
         /*

@@ -47,6 +47,7 @@ import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.FnVoid;
 import com.sun.fortress.useful.FnVoidVoid;
+import com.sun.fortress.useful.InfiniteList;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.useful.Triple;
 import com.sun.fortress.useful.Useful;
@@ -243,7 +244,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     int left = dename.indexOf(left_char);
                     int right = dename.lastIndexOf(right_char);
                     String stem = dename.substring(0,left);
-                    List<String> parameters = extractStringParameters(dename, left, right);
+                    List<String> parameters = RTHelpers.extractStringParameters(dename, left, right);
                     if (stem.equals(Naming.ARROW_TAG)) {
                         // Arrow interface
                         classData = instantiateArrow(dename, parameters);
@@ -542,7 +543,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             ft = ft.substring(1);
         int left = ft.indexOf(Naming.LEFT_OXFORD);
         int right = ft.lastIndexOf(Naming.RIGHT_OXFORD);
-        List<String> parameters = extractStringParameters(ft, left, right);
+        List<String> parameters = RTHelpers.extractStringParameters(ft, left, right);
         if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
         	parameters = parameters.subList(1,2);
 
@@ -803,27 +804,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             // if one_param is long or double, increment i_bump to account for the extra slot.
             i_bump += SignatureParser.width(one_param) - 1;
         }
-    }
-
-    
-    
-
-    /**
-     * @param s
-     * @param leftBracket
-     * @param rightBracket
-     * @return
-     */
-    static List<String> extractStringParameters(String s,
-                                                             int leftBracket, int rightBracket) {
-        
-        ArrayList<String> parameters = new ArrayList<String>();
-        return InstantiationMap.extractStringParameters(s, leftBracket, rightBracket, parameters);
-    }
-    public static List<String> extractStringParameters(String s) {
-        int leftBracket = s.indexOf(Naming.LEFT_OXFORD);
-        int rightBracket = InstantiationMap.templateClosingRightOxford(s);
-        return extractStringParameters(s, leftBracket, rightBracket);
     }
 
     public static void eep(MethodVisitor mv, String s) {
@@ -1133,7 +1113,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return cw.toByteArray();
 
     }
-    private static byte[] instantiateAbstractArrow(String name, List<String> parameters) {
+    private byte[] instantiateAbstractArrow(String name, List<String> parameters) {
         ManglingClassWriter cw = new ManglingClassWriter(ClassWriter.COMPUTE_MAXS|ClassWriter.COMPUTE_FRAMES);
         
         /*
@@ -1486,7 +1466,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 		ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
 		if (!parameters.contains("java/lang/Object")) {
 		    
-		    isf_list.add(new InitializedStaticField.StaticForUsualRttiField(final_name));
+		    isf_list.add(new InitializedStaticField.StaticForUsualRttiField(final_name, this));
         } else {
 		    isf_list.add(new InitializedStaticField.StaticForJLOParameterizedRttiField(final_name));
 		}
@@ -1565,7 +1545,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // clinit -- part of the dictionary call
         // dictionary
         // factory
-        emitDictionaryAndFactoryForGenericRTTIclass(cw, name, n);
+        // ought to create bogus xldata for tuples and arrows, instead we pass null
+        emitDictionaryAndFactoryForGenericRTTIclass(cw, name, n, null);
         
         cw.visitEnd();
         return cw.toByteArray();
@@ -1589,7 +1570,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 String parameter = parameters.get(0);
                 if (parameter.startsWith(Naming.TUPLE_OX)) {
                     /* Unwrap tuple, also. */
-                    unwrapped_parameters = extractStringParameters(parameter);
+                    unwrapped_parameters = RTHelpers.extractStringParameters(parameter);
                     unwrapped_parameters.add(parameters.get(1));
                     tupled_parameters = parameters;
                     tupleType = parameter;
@@ -1823,7 +1804,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // clinit -- part of the dictionary call
         // dictionary
         // factory
-        emitDictionaryAndFactoryForGenericRTTIclass(cw, name, n);
+        // ought to create bogus xldata for tuples and arrows, instead we pass null
+        emitDictionaryAndFactoryForGenericRTTIclass(cw, name, n, null);
         
         cw.visitEnd();
         return cw.toByteArray();
@@ -2003,7 +1985,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         return cw.toByteArray();
     }
 
-    private static byte[] instantiateConcreteTuple(String dename, List<String> parameters) {
+    private byte[] instantiateConcreteTuple(String dename, List<String> parameters) {
         /*
          * extends AnyConcreteTuple[\ N \]
          * 
@@ -2120,7 +2102,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     null,
                     null);
             //taken from codegen.emitRttiField	
-            InitializedStaticField isf = new InitializedStaticField.StaticForRttiFieldOfTuple(classname);
+            InitializedStaticField isf = new InitializedStaticField.StaticForRttiFieldOfTuple(classname, this);
             isf.forClinit(imv);
             cw.visitField(ACC_PUBLIC + ACC_STATIC + ACC_FINAL,
             		isf.asmName(), isf.asmSignature(),
@@ -2270,7 +2252,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      */
     public static void generalizedInstanceOf(MethodVisitor mv, String cast_to) {
         if (cast_to.startsWith(Naming.UNION_OX)) {
-            List<String> cast_to_parameters = extractStringParameters(cast_to);
+            List<String> cast_to_parameters = RTHelpers.extractStringParameters(cast_to);
             Label done = new Label();
             for (int i = 0; i < cast_to_parameters.size(); i++) {
                 mv.visitInsn(DUP); // object to test
@@ -2302,13 +2284,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         if (cast_to.startsWith(Naming.UNION_OX)) {
             // do nothing, it will be erased!
         } else if (cast_to.startsWith(Naming.TUPLE_OX)) {
-            List<String> cast_to_parameters = extractStringParameters(cast_to);
+            List<String> cast_to_parameters = RTHelpers.extractStringParameters(cast_to);
             String any_tuple_n = ANY_TUPLE + Naming.LEFT_OXFORD + cast_to_parameters.size() + Naming.RIGHT_OXFORD;
             String sig = "(" + Naming.internalToDesc(any_tuple_n) + ")L" + cast_to + ";";
             mv.visitTypeInsn(Opcodes.CHECKCAST, any_tuple_n);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, CONCRETE_+cast_to, CAST_TO, sig);
         } else if (cast_to.startsWith(Naming.ARROW_OX)) {
-            List<String> cast_to_parameters = extractStringParameters(cast_to);
+            List<String> cast_to_parameters = RTHelpers.extractStringParameters(cast_to);
             // mv.visitTypeInsn(Opcodes.CHECKCAST, cast_to);
             
             Triple<List<String>, List<String>, String> stuff =
@@ -2552,11 +2534,40 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         }
     }
     
+    public static void pushArgs(MethodVisitor mv, int first_arg, int n_args, List<Boolean> nulls) {
+        int nulls_pushed = 0;
+        for (int arg = 0; arg < n_args; arg++) {
+            if (nulls.get(arg)) {
+                mv.visitInsn(Opcodes.ACONST_NULL);
+                nulls_pushed++;
+            } else {
+                mv.visitVarInsn(Opcodes.ALOAD, arg+first_arg-nulls_pushed);
+            }
+        }
+    }
+    
     public static void pushArgsIntoArray(MethodVisitor mv, int first_arg, int n_args, int array_offset) {
         for (int arg = 0; arg < n_args; arg++) {
             mv.visitVarInsn(Opcodes.ALOAD, array_offset);
             mv.visitLdcInsn(arg); //index is the static param number
             mv.visitVarInsn(Opcodes.ALOAD, arg+first_arg);
+            mv.visitInsn(Opcodes.AASTORE);
+        }
+        mv.visitVarInsn(ALOAD, array_offset);
+    }
+
+    public static void pushArgsIntoArray(MethodVisitor mv, int first_arg,
+            int n_args, int array_offset, List<Boolean> nulls) {
+        int nulls_pushed = 0;
+        for (int arg = 0; arg < n_args; arg++) {
+            mv.visitVarInsn(Opcodes.ALOAD, array_offset);
+            mv.visitLdcInsn(arg); //index is the static param number
+            if (nulls.get(arg)) {
+                mv.visitInsn(Opcodes.ACONST_NULL);
+                nulls_pushed++;
+            } else {
+                mv.visitVarInsn(Opcodes.ALOAD, arg+first_arg-nulls_pushed);
+            }
             mv.visitInsn(Opcodes.AASTORE);
         }
         mv.visitVarInsn(ALOAD, array_offset);
@@ -2569,7 +2580,18 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     static public void emitDictionaryAndFactoryForGenericRTTIclass(
             ManglingClassWriter cw,
             String rttiClassName,
-            final int sparams_size) {
+            int sparams_size,
+            final Naming.XlationData xldata) {
+        
+        // Push nulls for opr parameters in the factory call.
+        List<Boolean> spks;
+        int type_sparams_size = sparams_size;
+        if (xldata != null) {
+             spks = xldata.isOprKind();
+             sparams_size = spks.size();
+        } else {
+            spks = new InfiniteList<Boolean>(false);
+        }
         
         // FIELD
         // static, initialized to Map-like thing
@@ -2598,7 +2620,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         boolean useSparamsArray = sparams_size > 6;
         int sparamsArrayIndex = sparams_size;
         
-        String fact_sig = Naming.rttiFactorySig(sparams_size);
+        String fact_sig = Naming.rttiFactorySig(type_sparams_size);
         String init_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class",
                 sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
         String get_sig;
@@ -2642,9 +2664,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitLdcInsn(sparams_size);
             mv.visitTypeInsn(Opcodes.ANEWARRAY, Naming.RTTI_CONTAINER_TYPE);
             mv.visitVarInsn(Opcodes.ASTORE, sparamsArrayIndex);
-            InstantiatingClassloader.pushArgsIntoArray(mv, 0, l, sparamsArrayIndex);
+            InstantiatingClassloader.pushArgsIntoArray(mv, 0, l, sparamsArrayIndex, spks);
         } else {
-            InstantiatingClassloader.pushArgs(mv, 0, l);
+            InstantiatingClassloader.pushArgs(mv, 0, l, spks);
         }
         // invoke Dictionary.get
         mv.visitMethodInsn(INVOKEVIRTUAL, Naming.RTTI_MAP_TYPE, "get", get_sig);
@@ -2666,7 +2688,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         if (useSparamsArray) {
             mv.visitVarInsn(ALOAD, sparamsArrayIndex);
         } else {
-            InstantiatingClassloader.pushArgs(mv, 0, l);
+            InstantiatingClassloader.pushArgs(mv, 0, l, spks);
         }
 
         // 2) invoke constructor
@@ -2679,7 +2701,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         if (useSparamsArray) {
             mv.visitVarInsn(ALOAD, sparamsArrayIndex);
         } else {
-            InstantiatingClassloader.pushArgs(mv, 0, l);
+            InstantiatingClassloader.pushArgs(mv, 0, l, spks);
         }
         
         //(mv, "before getRTTIclass");
@@ -2687,7 +2709,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         //eep(mv, "after getRTTIclass");
 
         // 4) init RTTI object (do not use array)
-        InstantiatingClassloader.pushArgs(mv, 0, l);
+        InstantiatingClassloader.pushArgs(mv, 0, l, spks);
         mv.visitMethodInsn(INVOKESPECIAL, rttiClassName,
                 "<init>", init_sig);
         // 5) add to dictionary

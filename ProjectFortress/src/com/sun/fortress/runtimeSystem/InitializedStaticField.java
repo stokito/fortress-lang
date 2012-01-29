@@ -41,14 +41,16 @@ abstract public class InitializedStaticField implements Opcodes {
     static final class StaticForRttiFieldOfTuple extends
             InitializedStaticField {
         private final String classname;
+        private final InstantiatingClassloader icl;
     
-        StaticForRttiFieldOfTuple(String classname) {
+        StaticForRttiFieldOfTuple(String classname, InstantiatingClassloader icl) {
             this.classname = classname;
+            this.icl = icl;
         }
     
         @Override
         public void forClinit(MethodVisitor mv) {
-        	MethodInstantiater mi = new MethodInstantiater(mv, null, null);
+        	MethodInstantiater mi = new MethodInstantiater(mv, null, icl);
         	mi.rttiReference(classname + Naming.RTTI_CLASS_SUFFIX);	
             mv.visitFieldInsn(PUTSTATIC, classname, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
         }
@@ -95,14 +97,16 @@ abstract public class InitializedStaticField implements Opcodes {
     static final class StaticForUsualRttiField extends
             InitializedStaticField {
         private final String final_name;
-    
-        StaticForUsualRttiField(String final_name) {
+        private final InstantiatingClassloader icl;
+        
+        StaticForUsualRttiField(String final_name, InstantiatingClassloader icl) {
             this.final_name = final_name;
+            this.icl = icl;
         }
     
         @Override
         public void forClinit(MethodVisitor init_mv) {
-        	MethodInstantiater mi = new MethodInstantiater(init_mv, null, null);
+        	MethodInstantiater mi = new MethodInstantiater(init_mv, null, icl);
         	mi.rttiReference(final_name + Naming.RTTI_CLASS_SUFFIX);
         	init_mv.visitFieldInsn(PUTSTATIC, final_name, Naming.RTTI_FIELD, Naming.RTTI_CONTAINER_DESC);
         }

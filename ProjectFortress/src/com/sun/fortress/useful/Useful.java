@@ -576,7 +576,7 @@ public class Useful {
         return result;
     }
 
-    /**
+     /**
      * Returns the LIST [ e = verb.apply(i) != false | i IN s ]
      *
      * @param <T>
@@ -595,16 +595,32 @@ public class Useful {
                 return null;
             }
         });
-        /* Raw implementation
-        List<T> result = new List<T>();
+    }
+    
+
+    public static <T> List<T> exclude(final Iterable<? extends T> l, final List<Boolean> f) {
+        List<T> result = new ArrayList<T>();
+        int i = 0;
         for ( T t : l){
-            if ( f.apply(t) ){
+            if ( i >= f.size() || ! f.get(i) ){
                 result.add(t);
             }
+            i++;
         }
         return result;
-        */
-    }
+        }
+
+    public static <T> List<T> retain(final Iterable<? extends T> l, final List<Boolean> f) {
+        List<T> result = new ArrayList<T>();
+        int i = 0;
+        for ( T t : l){
+            if ( i < f.size() && f.get(i) ){
+                result.add(t);
+            }
+            i++;
+        }
+        return result;
+        }
 
     public static <T, U> List<T> convertList(Iterable<? extends U> list) {
         return filteredList(list, new F<U, T>() {

@@ -4,18 +4,40 @@
  */
 package com.sun.fortress.runtimeSystem;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sun.fortress.compiler.runtimeValues.RTTI;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.Useful;
 
 public class RTHelpers {
     static public Class getRTTIclass(String stem, RTTI[] params) {
-        
-        StringBuilder classNameBuf = new StringBuilder(stem + Naming.LEFT_OXFORD);
-        for (int i = 0; i < params.length - 1; i++) {
-            classNameBuf.append(params[i].className() + Naming.GENERIC_SEPARATOR);
+        int lh_angle_index = stem.indexOf(Naming.LEFT_HEAVY_ANGLE);
+        List<String> opr_params = null;
+        if (lh_angle_index != -1 ) {
+            // Not 100% sure of the mangling/dot status here. 
+            // might be none because we are dealing with opr parameters.
+            String dename = Naming.dotToSep(stem);
+            dename = Naming.demangleFortressIdentifier(dename);
+            int left = dename.indexOf(Naming.LEFT_HEAVY_ANGLE);
+            int right = dename.lastIndexOf(Naming.RIGHT_HEAVY_ANGLE);
+            stem = dename.substring(0,lh_angle_index);
+            opr_params = RTHelpers.extractStringParameters(dename, left, right);
         }
-        classNameBuf.append(params[params.length-1].className() + Naming.RIGHT_OXFORD);
+        StringBuilder classNameBuf = new StringBuilder(stem + Naming.LEFT_OXFORD);
+        int j = 0;
+        for (int i = 0; i < params.length - 1; i++) {
+            String pcl = params[i] == null ?
+                    opr_params.get(j++) : params[i].className();
+            classNameBuf.append(pcl + Naming.GENERIC_SEPARATOR);
+        }
+        {
+        int i = params.length-1;
+        String pcl = params[i] == null ?
+                opr_params.get(j++) : params[i].className();
+        classNameBuf.append(pcl + Naming.RIGHT_OXFORD);
+        }
         
         String mangledClassName = Naming.mangleFortressIdentifier(classNameBuf.toString());
         String mangledDots = Naming.sepToDot(mangledClassName);
@@ -180,5 +202,24 @@ public class RTHelpers {
     public static Object loadClosureClass(BAlongTree t, String stem, RTTI param1, RTTI param2, RTTI param3, RTTI param4, RTTI param5, RTTI param6) {
         RTTI[] params = { param1, param2, param3, param4, param5, param6 };
         return loadClosureClass(t, stem, params);
+    }
+
+    /**
+     * @param s
+     * @param leftBracket
+     * @param rightBracket
+     * @return
+     */
+    static List<String> extractStringParameters(String s,
+                                                             int leftBracket, int rightBracket) {
+        
+        ArrayList<String> parameters = new ArrayList<String>();
+        return InstantiationMap.extractStringParameters(s, leftBracket, rightBracket, parameters);
+    }
+
+    public static List<String> extractStringParameters(String s) {
+        int leftBracket = s.indexOf(Naming.LEFT_OXFORD);
+        int rightBracket = InstantiationMap.templateClosingRightOxford(s);
+        return extractStringParameters(s, leftBracket, rightBracket);
     }
 }

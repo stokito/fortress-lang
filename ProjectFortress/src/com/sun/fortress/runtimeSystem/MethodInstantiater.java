@@ -98,8 +98,9 @@ public class MethodInstantiater implements MethodVisitor {
         if (lox_index != -1) {
             int rox_index = owner.lastIndexOf(Naming.RIGHT_OXFORD);
             String stem = owner.substring(0,lox_index);
-            List<String> parameters = InstantiatingClassloader.extractStringParameters(
+            List<String> parameters = RTHelpers.extractStringParameters(
                     owner, lox_index, rox_index);
+            
             
             // special case hack for tuples, and arrows
             if (stem.equals(Naming.TUPLE_TAG) || stem.equals("ConcreteTuple")) {
@@ -108,6 +109,17 @@ public class MethodInstantiater implements MethodVisitor {
             	stem = Naming.arrowRTTIclass(parameters.size());
             } else if (stem.contains(Naming.ENVELOPE)  && stem.endsWith(Naming.ARROW_TAG)) {
             	stem = Naming.arrowRTTIclass(parameters.size());
+            } else if (stem.equals(Naming.UNION)) {
+                
+            } else {
+                // a real class that might have opr parameters.
+                // Obtain the xldata for the original type
+                Naming.XlationData xldata =
+                    icl.xlationForGeneric(owner.substring(0,rox_index+1));
+                List<Boolean> filter = xldata.isOprKind();
+                List<String> opr_params = Useful.retain(parameters, filter);
+                parameters = Useful.exclude(parameters, filter);
+                stem = Naming.oprArgAnnotatedRTTI(stem, opr_params);
             }
             
             //recursive call

@@ -175,7 +175,7 @@ public final class MagicNumbers {
         int xx = seed | 1;
         int ff = array[ls & 1023]; // Depends on array being large enough
         for (Object oo : list) {
-            int hh = oo.hashCode();
+            int hh = oo == null ? 0x55555555 : oo.hashCode();
             int ah = xx >>> 29;
             xx = xx * ff ^ hh + ah;
         }
