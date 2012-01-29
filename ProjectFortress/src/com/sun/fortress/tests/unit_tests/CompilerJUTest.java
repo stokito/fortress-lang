@@ -29,7 +29,7 @@ public class CompilerJUTest {
         // Make sure there are no compiled files from earlier tests
         // lurking in the repository.
         Shell.resetRepository();
-
+        
         String testDir1 = ProjectProperties.BASEDIR + "compiler_tests";
         String testDir2 = ProjectProperties.BASEDIR + "parser_tests";
         boolean failsOnly = !ProjectProperties.getBoolean("fortress.junit.verbose", false);

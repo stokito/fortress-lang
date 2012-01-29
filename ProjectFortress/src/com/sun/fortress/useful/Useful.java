@@ -20,9 +20,6 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-// THIS CANNOT DEPEND ON THE REST OF THE COMPILER
-// import com.sun.fortress.exceptions.ProgramError;
-
 public class Useful {
 
     static final String localMilliIso8601Format = "yyyy-MM-dd'T'HH:mm:ss.SSSzzz";
@@ -1260,7 +1257,7 @@ public class Useful {
 				out.close();
     		}
 			catch (IOException msg) {
-				throw new Error(msg);
+				throw new Error("Failed to create file " + s);
 			}
     	}
     	
