@@ -1,0 +1,59 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+
+if [ -z "$FORTRESS_HOME" ]; then
+   export FORTRESS_HOME="`${0%comp/fextract}fortress_home`"
+fi
+
+FHOME=$FORTRESS_HOME/default_repository/caches/bytecode_cache
+
+if [ $# != 3 ]
+then
+    echo Usage: fextract target extractee extracted
+    exit
+fi       
+
+if [ -f /tmp/blob ]
+then
+    rm /tmp/blob
+fi
+touch /tmp/blob
+
+# Warning, includes the top-level component itself
+function bfs {  
+  if [ -n "$2" ]
+  then   
+    echo $2 >> /tmp/blob
+  fi  
+  cat $FHOME/$1/$2constituents |
+  (
+    while read line 
+    do
+        bfs $1 $2$line/ 
+    done
+  )    
+}  
+
+bfs $2 ""
+
+cat /tmp/blob |
+(
+    while read line
+    do
+        if [ `basename $line` == "$3" ]
+        then
+            cp -R $FHOME/$2/$line $FHOME/$1 
+        fi
+    done
+)

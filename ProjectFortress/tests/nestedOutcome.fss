@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component nestedOutcome
+export Executable
+
+f() ensures { do (outcome = 5) 
+                 g() ensures { (outcome = 3) provided true } = 3 
+                 g()
+                 true
+              end provided true } = 5
+
+run() = println(f())
+
+end

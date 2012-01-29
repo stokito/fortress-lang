@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Funmet0
+
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+import Funmet1.{T,f1,me}
+import Funmet2.{f2}
+export Executable
+
+run():() = do
+   jPrintln(me(f1(), 0)) (* 2 *)
+   println(" ");
+   jPrintln(me(f2(), 0)) (* 3 *)
+   println(" ");
+end
+
+end

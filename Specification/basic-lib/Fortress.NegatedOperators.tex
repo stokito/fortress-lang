@@ -1,0 +1,314 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Negated Relational Operators}
+\chaplabel{lib:negated-relational-operators}
+
+\section{Negated Equivalence Operators}
+
+\Function {
+\EXP{\KWD{opr} \mathord{\not\sequiv}(x\COLON \TYP{Any}, y\COLON \TYP{Any})\COLON \TYP{Boolean}}
+} \seclabel{operator-NSEQV}
+
+
+The infix operator \EXP{\not\sequiv} applies \EXP{\neg} to the
+result of \EXP{\sequiv} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\not\equiv}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\equiv\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NEQV}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\not\equiv}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\equiv\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NEQV}
+
+
+The infix operator \EXP{\not\equiv} applies \EXP{\neg} to the
+result of \EXP{\equiv} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\neq}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,=\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NE}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\neq}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,=\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NE}
+
+
+The infix operator \EXP{\neq} applies \EXP{\neg} to the result of
+\EXP{=} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\not\simeq}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\simeq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NSIMEQ}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\not\simeq}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\simeq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NSIMEQ}
+
+
+The infix operator \EXP{\not\simeq} applies \EXP{\neg} to the
+result of \EXP{\simeq} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\not\approx}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\approx\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NAPPROX}
+
+
+The infix operator \EXP{\not\approx} applies \EXP{\neg} to the
+result of \EXP{\approx} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\not\approx}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\approx\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NAPPROX}
+
+
+\section{Negated Plain Comparison Operators}
+
+\Function {
+\EXP{\KWD{opr} \mathord{\nless}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,<\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NLT}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\nless}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,<\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NLT}
+
+
+The infix operator \EXP{\nless} applies \EXP{\neg} to the result of
+\EXP{<} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\nleq}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\leq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NLE}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\nleq}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\leq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NLE}
+
+
+The infix operator \EXP{\nleq} applies \EXP{\neg} to the result of
+\EXP{\leq} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\ngeq}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\geq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NGE}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\ngeq}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\geq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NGE}
+
+
+The infix operator \EXP{\ngeq} applies \EXP{\neg} to the result of
+\EXP{\geq} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\ngtr}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,>\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NGT}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\ngtr}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,>\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NGT}
+
+
+The infix operator \EXP{\ngtr} applies \EXP{\neg} to the result of
+\EXP{>} on the same operands.
+
+
+\section{Negated Set Comparison Operators}
+
+\Function {
+\EXP{\KWD{opr} \mathord{\not\subset}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\subset\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NSUBSET}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\not\subset}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\subset\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NSUBSET}
+
+
+The infix operator \EXP{\not\subset} applies \EXP{\neg} to the
+result of \EXP{\subset} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\nsubseteq}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\subseteq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NSUBSETEQ}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\nsubseteq}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\subseteq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NSUBSETEQ}
+
+
+The infix operator \EXP{\nsubseteq} applies \EXP{\neg} to the
+result of \EXP{\subseteq} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\nsupseteq}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\supseteq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NSUPSETEQ}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\nsupseteq}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\supseteq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NSUPSETEQ}
+
+
+The infix operator \EXP{\nsupseteq} applies \EXP{\neg} to the
+result of \EXP{\supseteq} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\not\supset}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\supset\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+}  \seclabel{operator-NSUPSET}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\not\supset}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\supset\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NSUPSET}
+
+
+The infix operator \EXP{\not\supset} applies \EXP{\neg} to the
+result of \EXP{\supset} on the same operands.
+
+
+\section{Negated Square Comparison Operators}
+
+\Function {
+\EXP{\KWD{opr} \mathord{\not\sqsubset}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\sqsubset\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NSQSUBSET}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\not\sqsubset}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\sqsubset\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NSQSUBSET}
+
+
+The infix operator \EXP{\not\sqsubset} applies \EXP{\neg} to the
+result of \EXP{\sqsubset} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\not\sqsubseteq}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\sqsubseteq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NSQSUBSETEQ}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\not\sqsubseteq}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\sqsubseteq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NSQSUBSETEQ}
+
+
+The infix operator \EXP{\not\sqsubseteq} applies \EXP{\neg} to the
+result of \EXP{\sqsubseteq} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\not\sqsupseteq}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\sqsupseteq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NSQSUPSETEQ}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\not\sqsupseteq}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\sqsupseteq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NSQSUPSETEQ}
+
+
+The infix operator \EXP{\not\sqsupseteq} applies \EXP{\neg} to the
+result of \EXP{\sqsupseteq} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\not\sqsupset}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\sqsupset\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NSQSUPSET}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\not\sqsupset}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\sqsupset\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NSQSUPSET}
+
+
+The infix operator \EXP{\not\sqsupset} applies \EXP{\neg} to the
+result of \EXP{\sqsupset} on the same operands
+
+\section{Negated Curly Comparison Operators}
+
+\Function {
+\EXP{\KWD{opr} \mathord{\nprec}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\prec\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NPREC}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\nprec}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\prec\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NPREC}
+
+
+The infix operator \EXP{\nprec} applies \EXP{\neg} to the result of
+\EXP{\prec} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\not\preceq}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\preccurlyeq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NPRECEQ}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\not\preceq}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\preccurlyeq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NPRECEQ}
+
+
+The infix operator \EXP{\not\preceq} applies \EXP{\neg} to the
+result of \EXP{\preceq} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\not\succeq}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\succcurlyeq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NSUCCEQ}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\not\succeq}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\succcurlyeq\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NSUCCEQ}
+
+
+The infix operator \EXP{\not\succeq} applies \EXP{\neg} to the
+result of \EXP{\succeq} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\nsucc}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\succ\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NSUCC}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\nsucc}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\succ\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NSUCC}
+
+
+The infix operator \EXP{\nsucc} applies \EXP{\neg} to the result of
+\EXP{\succ} on the same operands.
+
+\section{Negated Miscellaneous Relational Operators}
+
+\Function {
+\EXP{\KWD{opr} \mathord{\not\in}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\in\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NOTIN}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\not\in}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\in\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NOTIN}
+
+
+The infix operator \EXP{\not\in} applies \EXP{\neg} to the result
+of \EXP{\in} on the same operands.
+
+\Function {
+\EXP{\KWD{opr} \mathord{\OPR{NOTNI}}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\ni\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NOTNI}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\OPR{NOTNI}}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\ni\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NOTNI}
+
+
+The infix operator \EXP{\not\ni} applies \EXP{\neg} to the result
+of \EXP{\ni} on the same operands.
+
+\section{Other Negated Operators}
+
+\Function {
+\EXP{\KWD{opr} \mathord{\nparallel}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\parallel\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Boolean}}
+} \seclabel{operator-NPARALLEL}
+
+\Function* {
+\EXP{\KWD{opr} \mathord{\nparallel}\llbracket{}T \KWD{extends}\:\TYP{BinaryIntervalPredicate}\llbracket{}T,\parallel\rrbracket\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{BooleanInterval}}
+} \seclabel{interval-operator-NPARALLEL}
+
+
+The infix operator \EXP{\nparallel} applies \EXP{\neg} to the
+result of \EXP{\parallel} on the same operands.

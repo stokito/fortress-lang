@@ -1,0 +1,125 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component objectCC_mutable
+export Executable
+
+trait T
+    x():ZZ32
+    y():ZZ32
+end
+
+var a1:ZZ32 = 7
+
+(* objExpr not capturing anything, but use mutable top level var *)
+topFunc1():T =
+    object extends T
+        x():ZZ32 = a1
+        y():ZZ32 = x() DOT a1
+    end
+(* objExpr capturing param *)
+topFunc2(top:ZZ32):T =
+    object extends T
+        x():ZZ32 = top
+        y():ZZ32 = x() + 1
+    end
+
+(* objExpr capturing mutable local var *)
+topFunc3(top:ZZ32):T = do
+    var a2:ZZ32 = 2
+    a1 := a1 + 1
+    object extends T
+        x():ZZ32 = do a2 := a2 DOT 2; a2 end
+        y():ZZ32 = a2
+    end
+end
+
+(* objExpr capturing local vars in nested LocaVarDecls *)
+topFunc4(top:ZZ32):T = do
+    var a2:ZZ32 = 12
+    var a3:ZZ32 = 9
+    a3 := a3 + 2
+    object extends T
+        x():ZZ32 = do a2 := a2 - 1; a3 end
+        y():ZZ32 = a2 DOT a3
+    end
+end
+
+object O(var v:ZZ32)
+    var (tmp:ZZ32, tmp2:ZZ32) = (5,7)
+    incTmp():ZZ32 = do tmp := tmp + 1; tmp end
+    incTmp2():ZZ32 = do tmp2 := tmp2 + 1; tmp2 end
+    foo():ZZ32 = do v := v + tmp; v end
+    bar():T = do
+                var enclosing:O = self
+                object extends T
+                    x():ZZ32 = quack(enclosing, tmp2).x()
+                    y():ZZ32 = tmp + v
+                end
+            end
+    quack(self, t:ZZ32):T = do
+            var enclosing:O = self
+            object extends T
+                x():ZZ32 = enclosing.v + t
+                y():ZZ32 = enclosing.tmp2
+            end
+        end
+end
+
+run():() = do
+    obj1:T = topFunc1()
+    a1 := a1 + 1
+    assert(a1, obj1.x(), "obj1.x() failed.")
+    assert( a1 DOT a1, obj1.y(), "obj1.y() failed.")
+
+    var top:ZZ32 = 3
+    top += 1
+    obj2:T = topFunc2(top)
+    assert(top, obj2.x(), "obj2.x() failed.")
+    assert( top+1, obj2.y(), "obj2.y() failed.")
+
+    obj3:T = topFunc3(top)
+    assert(4, obj3.x(), "obj3.x() failed.")
+    assert(4, obj3.y(), "obj3.y() failed.")
+    assert(9, obj1.x(), "obj1.x() after creation of obj3 failed.")
+
+    obj4:T = topFunc4(top)
+    assert(11, obj4.x(), "obj4.x() failed.")
+    assert(121, obj4.y(), "obj4.y() failed.")
+
+    o1:O = O(6);
+    var newTmp:ZZ32 = o1.incTmp()
+    newTmp := o1.incTmp()
+    assert(o1.tmp, newTmp, "o1.incTmp() failed.")
+    var newV:ZZ32 = o1.foo()
+    assert(o1.v, newV, "o1.foo() failed.")
+
+    o2:T = o1.bar()
+    var newTmp2:ZZ32 = o1.incTmp2()
+    assert(o1.tmp2, newTmp2, "o1.incTmp2() failed.")
+    assert(o1.v + o1.tmp2, o2.x(), "o2.x() failed.")
+    assert(o1.tmp + o1.v, o2.y(), "o2.y() failed.")
+
+    o2':T = o1.bar()
+    newTmp2 := o1.incTmp2()
+    o1.v := 7
+    assert(o1.v + o1.tmp2, o2'.x(), "o2'.x() failed.")
+    assert(o1.tmp + o1.v, o2'.y(), "o2'.y() failed.")
+
+    o3:T = quack(o1, 11)
+    assert( o1.v + 11, o3.x(), "o3.x() failed" )
+    assert( o1.tmp2, o3.y(), "o3.y() failed" )
+
+    println ("Testing object closure conversion for mutable " ||
+             "varRefs: passed.")
+end
+
+end
