@@ -30,6 +30,7 @@ import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.exceptions.*;
+import com.sun.fortress.linker.FileWriter;
 import edu.rice.cs.plt.tuple.Option;
 
 import java.io.File;
@@ -209,7 +210,7 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
     private static int read_int(FileInputStream f) {
     	
     	int acc = 0;
-    	
+ 	
     	try {
     		while (true) {
     			int tmp = f.read();
@@ -219,11 +220,13 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
     			else if (tmp == 35) {
     				break;
     			}
-    			else throw new ProgramError();
+    			else {
+    				throw new Error("Read an unknow character");
+    			}
     		}
     	}
     	catch (IOException msg) {
-    		throw new ProgramError();
+    		throw new Error("Read did not work");
     	}
 
     	return acc;
@@ -234,25 +237,24 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
     
     public Map<String,String> getMapping() {
 
-    	return new HashMap<String,String>();
+    	return FileWriter.readMap();
     	
     	/*
     	FileInputStream f;
     	int entries = 0;
     	Map<String,String> m = new HashMap<String,String>();
-    	//Charset ascii = new Charset("US-ASCII",null);
-    	
-    	
+
+
     	try {
-    		f = new FileInputStream(pwd + "/global.map");
+    			f = new FileInputStream(ProjectProperties.CACHES + "/global.map");
     	}
-    	catch (IOException msg) {
-    		throw new ProgramError();
+    	catch (FileNotFoundException msg) {
+    			throw new Error("Cannot find the global map");
     	}
-    	
+ 
+
     	entries = read_int(f);
-    	
-    	
+    	    	
     	int counter = 0;
     	
     	try {
@@ -270,7 +272,7 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
     		for (int i = 0 ; i < c2.length ; ++i)
     			c2[i] = (char) a2[i];
     		String s1 = new String(c1);
-    		String s2 = new String(c2);
+    		String s2 = new String(c2);  		
     		m.put(s1, s2);   		
     		counter++;
     	}
@@ -279,8 +281,10 @@ public class CacheBasedRepository { // extends StubRepository implements Fortres
     		throw new ProgramError();
     	}
     	
+
+    	
     	return m;
-   */ 	
+      	*/
     }
 
 }

@@ -335,7 +335,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             // this has to depend on node as well as on api
             
             String s = cache.getMapping().get(api.getText());
-            
+
             // If API was not linked to a specific component, we try to find a component with matching name
             if (s == null) addComponentGraph(api);
             else {
