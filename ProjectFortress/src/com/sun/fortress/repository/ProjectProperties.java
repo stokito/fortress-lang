@@ -306,7 +306,7 @@ public class ProjectProperties {
         Useful.ensureDirectoryExists(INTERPRETER_CACHE_DIR);
         Useful.ensureDirectoryExists(INTERPRETER_PARSED_CACHE_DIR);
         Useful.ensureDirectoryExists(ANALYZED_CACHE_DIR);
-        Useful.ensureFileExists(ANALYZED_CACHE_DIR + "/global.map");
+        Useful.ensureFileExists(CACHES + "/global.map");
         Useful.ensureDirectoryExists(ANALYZED_CACHE_DEPENDS_DIR);
         Useful.ensureDirectoryExists(SYNTAX_CACHE_DIR);
         Useful.ensureDirectoryExists(ENVIRONMENT_CACHE_DIR);
