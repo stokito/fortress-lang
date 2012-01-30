@@ -153,6 +153,7 @@ import com.sun.fortress.runtimeSystem.InitializedInstanceField;
 import com.sun.fortress.runtimeSystem.InitializedStaticField;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
+import com.sun.fortress.runtimeSystem.RTHelpers;
 import com.sun.fortress.scala_src.overloading.OverloadingOracle;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.scala_src.useful.STypesUtil;
@@ -5724,9 +5725,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         if (anySymbolic) {
             String loadHash = Naming.opForString(Naming.hashMethod, string_sargs);
-            String loadString = Naming.opForString(Naming.stringMethod, string_sargs);
             mv.visitMethodInsn(INVOKESTATIC, Naming.magicInterpClass, loadHash, "()J");
-            mv.visitMethodInsn(INVOKESTATIC, Naming.magicInterpClass, loadString, "()Ljava/lang/String;");
+            RTHelpers.symbolicLdc(mv, string_sargs);
         } else {
             // compute hashcode statically, push constant,
             long hash_sargs = MagicNumbers.hashStringLong(string_sargs);
@@ -5749,6 +5749,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitInsn(SWAP);
         return castToArrowType;
     }
+
 
     /**
      * @param expr
