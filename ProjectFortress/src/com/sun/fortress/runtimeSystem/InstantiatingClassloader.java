@@ -214,6 +214,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 boolean isGenericOxford = isExpandedOx(name);
                 boolean isGenericAngle = isExpandedAngle(name);
                 boolean isGeneric = isGenericOxford || isGenericAngle;
+                boolean isRTTIc = name.endsWith(Naming.RTTI_CLASS_SUFFIX);
+                
                 char left_char = isGenericOxford ?
                         Naming.LEFT_OXFORD_CHAR : Naming.LEFT_HEAVY_ANGLE_CHAR;
                 char right_char = isGenericOxford ?
@@ -233,8 +235,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     ArrayList<String> sargs = new ArrayList<String>();
                     String template_name = functionTemplateName(dename, sargs);
                     Naming.XlationData xldata = xlationForFunction(dename);
-                    classData = readAndExpandGenericThing(dename, sargs,
-                            template_name, xldata);
+                    classData = readAndExpandGenericThing(dename, sargs, xldata,
+                            template_name);
                     
                 } else if (isClosure) {
                     classData = instantiateClosure(Naming.demangleFortressIdentifier(name));
@@ -269,12 +271,24 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                                 xlationForGeneric(dename, left_char, right_char);
                         ArrayList<String> sargs = new ArrayList<String>();
                         String template_name = genericTemplateName(dename, left_char, right_char, sargs); // empty sargs
-                        classData = readAndExpandGenericThing(dename, sargs,
-                                template_name, xldata);
+                        classData = readAndExpandGenericThing(dename, sargs, xldata,
+                                template_name);
                         
                         // throw new ClassNotFoundException("Don't know how to instantiate generic " + stem + " of " + parameters);
                     }
+                } else if (isRTTIc) {
+                    // Even if not generic, translate these to flush out symbolic references.
+                    String dename = Naming.dotToSep(name);
+                    dename = Naming.demangleFortressIdentifier(dename);
+                    Naming.XlationData xldata = new Naming.XlationData(Naming.RTTI_GENERIC_TAG);
+                    ArrayList<String> sargs = new ArrayList<String>();
+                    
+                    classData = getClass(name);
+                    classData = readAndExpandGenericThing(dename, sargs,
+                            xldata, classData);
+                    
                 } else {
+                
                 	classData = getClass(name);
                 	/*//System.out.println("Getting class: " + name);
                     classData = getClass(name);
@@ -347,12 +361,28 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @throws IOException
      */
     private byte[] readAndExpandGenericThing(String dename,
-            ArrayList<String> sargs, String template_name,
-            Naming.XlationData xldata) throws IOException {
-        byte[] classData;
+            ArrayList<String> sargs,
+            Naming.XlationData xldata,
+            String template_name) throws IOException {
         byte[] templateClassData = readResource(template_name);
             // Naming.XlationData.fromBytes(readResource(template_name, "xlation"));
         
+        byte[] classData = readAndExpandGenericThing(dename, sargs, xldata,
+                templateClassData);
+
+        return classData;
+    }
+
+    /**
+     * @param dename
+     * @param sargs
+     * @param xldata
+     * @param templateClassData
+     * @return
+     */
+    private byte[] readAndExpandGenericThing(String dename,
+            ArrayList<String> sargs, Naming.XlationData xldata,
+            byte[] templateClassData) {
         List<String> xl = xldata.staticParameterNames();
                
         Map<String, String> xlation  = Useful.map(xl, sargs);
@@ -365,7 +395,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 cw;
         Instantiater instantiater = new Instantiater(cvcw, xlation, opr_xlation, dename, this);
         cr.accept(instantiater, 0);
-        classData = cw.toByteArray();
+        byte[] classData = cw.toByteArray();
         if (ProjectProperties.getBoolean("fortress.bytecode.verify", false)) {
             try {
                 PrintWriter pw = new PrintWriter(System.out);
@@ -374,7 +404,6 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 th.printStackTrace();
             }
         }
-
         return classData;
     }
 
@@ -2622,7 +2651,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         String fact_sig = Naming.rttiFactorySig(type_sparams_size);
         String init_sig = InstantiatingClassloader.jvmSignatureForOnePlusNTypes("java/lang/Class",
-                sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
+                type_sparams_size, Naming.RTTI_CONTAINER_TYPE, "V");
         String get_sig;
         String put_sig;
         String getClass_sig;
@@ -2697,7 +2726,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         // 3) create class for this object
         String stem = Naming.rttiClassToBaseClass(rttiClassName);
-        mv.visitLdcInsn(stem);
+        if (xldata == null) {
+            // NOT symbolic (and a problem if we pretend that it is)
+            mv.visitLdcInsn(stem);
+        } else {
+            RTHelpers.symbolicLdc(mv, stem);
+        }
         if (useSparamsArray) {
             mv.visitVarInsn(ALOAD, sparamsArrayIndex);
         } else {
@@ -2709,7 +2743,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         //eep(mv, "after getRTTIclass");
 
         // 4) init RTTI object (do not use array)
-        InstantiatingClassloader.pushArgs(mv, 0, l, spks);
+        // NOTE only pushing type_sparams here.
+        InstantiatingClassloader.pushArgs(mv, 0, type_sparams_size);
         mv.visitMethodInsn(INVOKESPECIAL, rttiClassName,
                 "<init>", init_sig);
         // 5) add to dictionary

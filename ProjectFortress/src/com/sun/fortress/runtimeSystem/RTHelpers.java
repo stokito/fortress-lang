@@ -7,6 +7,9 @@ package com.sun.fortress.runtimeSystem;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+
 import com.sun.fortress.compiler.runtimeValues.RTTI;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.Useful;
@@ -221,5 +224,13 @@ public class RTHelpers {
         int leftBracket = s.indexOf(Naming.LEFT_OXFORD);
         int rightBracket = InstantiationMap.templateClosingRightOxford(s);
         return extractStringParameters(s, leftBracket, rightBracket);
+    }
+
+    /**
+     * @param string_constant
+     */
+    public static void symbolicLdc( MethodVisitor mv, String string_constant) {
+        String loadString = Naming.opForString(Naming.stringMethod, string_constant);
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, Naming.magicInterpClass, loadString, "()Ljava/lang/String;");
     }
 }
