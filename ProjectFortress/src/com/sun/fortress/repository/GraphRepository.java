@@ -37,6 +37,7 @@ import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionUnwrapException;
 import com.sun.fortress.useful.Pair;
 import com.sun.fortress.linker.Link;
+import com.sun.fortress.linker.RepoState;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -334,7 +335,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             // We need to query the repository to know which component is exporting this API
             // this has to depend on node as well as on api
             
-            String s = cache.getMapping().get(api.getText());
+            RepoState st = RepoState.getRepoState();
+            
+            String s = st.getDefaultMap().get(api.getText());
 
             // If API was not linked to a specific component, we try to find a component with matching name
             if (s == null) addComponentGraph(api);
