@@ -2620,6 +2620,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         boolean inAMethod = inAnObject || inATrait;
         boolean savedInAnObject = inAnObject;
         boolean savedInATrait = inATrait;
+        boolean savedInAMethod = inAMethod;
         boolean savedEmittingFunctionalMethodWrappers = emittingFunctionalMethodWrappers;
 
         try {
@@ -2663,7 +2664,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                             params, selfIndex, returnType, body);
                  } else {
                     generateFunctionalBody(x, (IdOrOp)name,
-                            params, selfIndex, returnType, inAMethod,
+                            params, selfIndex, returnType, savedInAMethod,
                             savedInAnObject, body);
                  }
             }
@@ -2757,6 +2758,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param paramsGen
      */
     private void exitMethodScope(int selfIndex, VarCodeGen selfVar, List<VarCodeGen> paramsGen) {
+
         for (int i = paramsGen.size() - 1; i >= 0; i--) {
             if (i != selfIndex) {
                 VarCodeGen v = paramsGen.get(i);
@@ -3922,7 +3924,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // 3) add field to scope for use in methods
         for (Decl d : header.getDecls()) {
             if (d instanceof VarDecl) {
-         	   // TODO need to spot for "final" fields.  Right now we assume final.
+         	   // TODO need to spot for "final" fields.  Right now we assume mutable, not final.
                final VarDecl vd = (VarDecl) d;
                final CodeGen cg = this;
          	   int numDecls = vd.getLhs().size();
@@ -3932,7 +3934,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          		   Type fieldType = (Type)l.getIdType().unwrap();
          		   String typeDesc = NamingCzar.jvmBoxedTypeDesc(fieldType, thisApi());
          		   Id id = NodeFactory.makeId(NodeUtil.getSpan(l.getName()), fieldName);
-         		   VarCodeGen fieldVcg = new VarCodeGen.FieldVar(id,
+         		   VarCodeGen fieldVcg = new VarCodeGen.MutableFieldVar(id,
                          fieldType,
                          cnb.className,
                          fieldName,
@@ -3940,7 +3942,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         		   
          		   //1) add field to class
          		   cw.visitField(
-         	             ACC_PUBLIC + ACC_FINAL,
+         	             ACC_PUBLIC,
          	             fieldName, typeDesc,
          	             null /* for non-generic */, null /* instance has no value */);
          		   

@@ -7,7 +7,7 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests= atomic0
+tests= atomic0 atomic1
 link
 run
 run_out_contains=PASS

@@ -86,6 +86,7 @@ public abstract class VarCodeGen {
             throw new CompilerError(errorMsg("Unexpected static args supplied to " + name +", statics = " + static_args));
     }
 
+
     /** Generate code to prepare to assign the value of this variable;
      *  this might push stuff on the stack.  The value can then be
      *  computed to top of stack and assignValue will perform the
@@ -134,7 +135,6 @@ public abstract class VarCodeGen {
         public String toString() {
             return "VarCodeGen:StackVar" + name + "," + fortressType;
         }
-
     }
 
     protected abstract static class NeedsType extends VarCodeGen {
@@ -179,6 +179,45 @@ public abstract class VarCodeGen {
 
         public String toString() {
             return "VarCodeGen:FieldVar" + name + "," + fortressType;
+        }
+
+
+        @Override
+        public void outOfScope(CodeGenMethodVisitor mv) {
+            // TODO Auto-generated method stub
+
+        }
+
+    }
+
+    public static class MutableFieldVar extends NeedsType {
+        public MutableFieldVar(IdOrOp id, Type fortressType, String owner, String name, String desc) {
+            super(id, fortressType, owner, name, desc);
+        }
+
+        public void pushValue(CodeGenMethodVisitor mv) {
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitFieldInsn(Opcodes.GETFIELD, packageAndClassName, objectFieldName, classDesc);
+        }
+
+        public void prepareAssignValue(CodeGenMethodVisitor mv) {
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+        }
+
+        public void assignValue(CodeGenMethodVisitor mv) {
+            // URG, another case of meeting assumptions.
+            // We get here with the value to assign on the stack, but not the 
+            // object, so load the object, and then swap them, and add a return val
+            // to keep the rest of codegen happy.
+            mv.visitVarInsn(Opcodes.ALOAD,0);
+            mv.visitInsn(Opcodes.SWAP);
+            mv.visitFieldInsn(Opcodes.PUTFIELD, packageAndClassName, objectFieldName, classDesc);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.internalFortressVoid, NamingCzar.make,
+                               Naming.makeMethodDesc("", NamingCzar.descFortressVoid));
+        }
+
+        public String toString() {
+            return "VarCodeGen:MutableFieldVar" + name + "," + fortressType;
         }
 
 
