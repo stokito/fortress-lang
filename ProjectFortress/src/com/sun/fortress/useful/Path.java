@@ -174,5 +174,12 @@ public class Path {
     public int length() {
         return dirs.size();
     }
+    
+    public void print() {
+    	
+    	for (File d: dirs) 
+    		System.out.println(d);
+    
+    }
 
 }

@@ -131,7 +131,7 @@ public final class Shell {
             if (! file.delete())
                 throw new IOException();
         }
-        Useful.ensureFileExists(ProjectProperties.CACHES + "/global.map");
+
     }
 
     /* Helper method to print usage message.*/

@@ -28,6 +28,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.ByteCodeWriter;
 import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.Useful;
 
 public final class Linker {
 	
@@ -111,7 +112,5 @@ public final class Linker {
         }
         
 	}
-	
-	
 	
 }

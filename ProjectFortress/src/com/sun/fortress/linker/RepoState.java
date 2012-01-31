@@ -31,28 +31,29 @@ final class RepoState {
 	
 	private RepoState() {
 		
+		initRepoState();
 		defaultMap = new HashMap<String,String>();
 		specMap = new HashMap<Pair<String,String>,String>();
 		readState();
 		
 	}
 	
-	public static RepoState getRepoState() {
+	static RepoState getRepoState() {
 		
-		if (ref == null)
+		if (ref == null) 
 			ref = new RepoState();
 		
 		return ref;
 		
 	}
 	
-	public Map<String,String> getDefaultMap() {
+	Map<String,String> getDefaultMap() {
 		
 		return defaultMap;
 		
 	}
 	
-	public Map<Pair<String,String>,String> getSpecMap() {
+	Map<Pair<String,String>,String> getSpecMap() {
 		
 		return specMap;
 		
@@ -214,15 +215,35 @@ final class RepoState {
 		Set<String> defaultKeys = defaultMap.keySet();
 		Set<Pair<String,String>> specKeys = specMap.keySet();
 		
+		System.out.println("API map\n");
+		
 		for (String k: defaultKeys)
-			System.out.println(k + " -> " + defaultMap.get(k));
+			System.out.println("  . " + k + " -> " + defaultMap.get(k));
 
-		System.out.println();
+		System.out.println("Specific linkages map\n");
 		
 		for (Pair<String,String> k: specKeys)
-			System.out.println(k.first() + " -> " + k.second() + " -> " + specMap.get(k));
+			System.out.println("  . " + k.first() + " -> " + k.second() + " -> " + specMap.get(k));
 		
 	}
 	
+    private void initRepoState() throws Error {
+    	
+    	File f = new File(ProjectProperties.CACHES + "/global.map");
+		if (!f.exists()) {
+			try {
+				f.createNewFile();
+				FileOutputStream out = new FileOutputStream(f);
+				out.write(0);
+				out.write(0);
+				out.flush();
+				out.close();
+    		}
+			catch (IOException msg) {
+				throw new Error("Failed to create the linker state");
+			}
+    	}
+    	
+    }
 	
 }
