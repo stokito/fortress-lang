@@ -33,9 +33,9 @@ import org.objectweb.asm.tree.*;
 
 import com.sun.fortress.runtimeSystem.ByteCodeWriter;
 
-final class Link {
+final class ClassRewriter {
 		
-	private Link() {}
+	private ClassRewriter() {}
 	
     /**
      * Read-in the class file at componenetPath and returns its associated ASM ClassNode

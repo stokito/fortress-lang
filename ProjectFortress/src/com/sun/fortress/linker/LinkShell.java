@@ -18,7 +18,7 @@ import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.MainWrapper;
 import com.sun.fortress.useful.Pair;
 
-public class FileWriter {
+public class LinkShell {
 		
 	public static void main(String[] args) throws Throwable, InterruptedException{
 		
