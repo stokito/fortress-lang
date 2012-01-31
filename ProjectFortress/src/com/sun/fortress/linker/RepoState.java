@@ -22,7 +22,7 @@ import java.util.Set;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.useful.Pair;
 
-public class RepoState {
+final class RepoState {
 	
 	Map<String,String> defaultMap;
 	Map<Pair<String,String>,String> specMap;
