@@ -158,7 +158,7 @@ final class Link {
 	// C.fss exports D.fsi
 	// Name clash
 	
-	public static byte[] rewrite(byte[] bytecode, String searched, String replacement) {
+	static byte[] rewrite(byte[] bytecode, String searched, String replacement) {
 		
 		//System.out.println("Searching for " + searched);
 		
