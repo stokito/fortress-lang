@@ -11,10 +11,10 @@
 
 package com.sun.fortress.linker;
 
-public class FortressLinkerError extends Error {
-	public final String message;
+class FortressLinkerError extends Error {
+	final String message;
 	
-	public FortressLinkerError(String message) {
+	FortressLinkerError(String message) {
 		this.message = message;
 	}
 }

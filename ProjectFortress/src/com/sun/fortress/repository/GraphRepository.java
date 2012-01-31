@@ -36,8 +36,8 @@ import edu.rice.cs.plt.iter.IterUtil;
 import edu.rice.cs.plt.tuple.Option;
 import edu.rice.cs.plt.tuple.OptionUnwrapException;
 import com.sun.fortress.useful.Pair;
-import com.sun.fortress.linker.Link;
-import com.sun.fortress.linker.RepoState;
+import com.sun.fortress.linker.Linker;
+
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -77,8 +77,6 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private boolean needUpdate = true;
     /* If link is true then pull in a component for an API */
     private boolean link = false;
-    /* Stores the necessary rewrites */
-    private Map<APIName,List<Pair<APIName,APIName>>> rewrites;
     
     static private Map<String, DerivedFiles<CompilationUnit>> otherCaches =
             new HashMap<String, DerivedFiles<CompilationUnit>>();
@@ -89,7 +87,6 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         this.path = p;
         this.cache = cache;
         graph = new Graph<GraphNode>();
-        rewrites = new HashMap<APIName,List<Pair<APIName,APIName>>>();
         addRoots();
     }
 
@@ -335,24 +332,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             // We need to query the repository to know which component is exporting this API
             // this has to depend on node as well as on api
             
-            RepoState st = RepoState.getRepoState();
-            
-            String s = st.getDefaultMap().get(api.getText());
-
-            // If API was not linked to a specific component, we try to find a component with matching name
-            if (s == null) addComponentGraph(api);
-            else {
-            	APIName n = NodeFactory.makeAPIName(NodeFactory.repoSpan,s);
-            	addComponentGraph(n);
-            	List<Pair<APIName,APIName>> l = rewrites.get(node.getName());
-            	Pair<APIName,APIName> new_entry = new Pair<APIName,APIName>(api,n);
-            	if (l == null) {
-            		List<Pair<APIName,APIName>> new_list = new ArrayList<Pair<APIName,APIName>>();
-            		new_list.add(new_entry);
-            		rewrites.put(node.getName(),new_list);
-            	}
-            	else l.add(new_entry);	
-            }
+            APIName implementer = Linker.whoIsImplementingMyAPI(node.getName(), api);
+            addComponentGraph(implementer);
             
         }
     }
@@ -809,39 +790,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         }
         
         // It is not clear that this is really the right place to rewrite
-        List<Pair<APIName,APIName>> l = rewrites.get(component.getName());
-        if (l != null) {
-        	
-        	String jarFile = ProjectProperties.fileName(ProjectProperties.BYTECODE_CACHE_DIR, component.getName().getText(), "jar");
-        	String jarFileTMP = ProjectProperties.fileName(ProjectProperties.BYTECODE_CACHE_DIR, component.getName().getText() + "HACKHACK", "jar");
-        	JarFile jarHandle;
-        	try {
-        		File original = new File(jarFile);
-        		jarHandle = new JarFile(original);
-        		InputStream in = jarHandle.getInputStream(jarHandle.getEntry(component.getName()+".class"));
-        		byte[] toWrite = new byte[in.available()];
-        		in.read(toWrite,0,in.available());
-        		
-        		        		
-        		for (Pair<APIName,APIName> x: l) {
-        			toWrite = Link.rewrite(toWrite,x.first().getText(),x.second().getText());;
-        			
-        		}
-        	
-        		File newversion = new File(jarFileTMP);
-        		FileOutputStream f = new FileOutputStream(newversion);
-        		ByteCodeWriter.writeJarredClass(new JarOutputStream(f), component.getName().getText(), toWrite);
-        		f.flush();
-        		f.close();
-        		
-        		original.delete();
-        		newversion.renameTo(original);
-        		
-        	} catch(IOException msg) {
-        		throw new ProgramError();
-        	}
-        	
-        }
+        Linker.linkMyComponent(component.getName());
         
         return result;
     }

@@ -33,8 +33,10 @@ import org.objectweb.asm.tree.*;
 
 import com.sun.fortress.runtimeSystem.ByteCodeWriter;
 
-public class Link {
+final class Link {
 		
+	private Link() {}
+	
     /**
      * Read-in the class file at componenetPath and returns its associated ASM ClassNode
      */	
@@ -234,7 +236,7 @@ public class Link {
         
 	}
 	
-	public static void rewrite(String classToRewrite, String apiToRewrite, String componentTargeted) {
+	static void rewrite(String classToRewrite, String apiToRewrite, String componentTargeted) {
 		
         try {
         	byte[] bytecode = readIn(classToRewrite);
@@ -247,7 +249,7 @@ public class Link {
 	   
     }
 	
-    public static void main(String args[]) {
+    static void main(String args[]) {
         //System.out.println("Linking ");
         try {
         	byte[] bytecode = readIn(args[0]);
