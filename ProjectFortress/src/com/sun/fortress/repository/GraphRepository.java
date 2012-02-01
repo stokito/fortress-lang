@@ -194,6 +194,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         Debug.debug(Debug.Type.REPOSITORY, 2, "Get component for ", name);
         ComponentGraphNode node = addComponentGraph(name);
         refreshGraph();
+        
+        // It is not clear that this is really the right place to rewrite
+        Linker.linkMyComponent(node.getName());
+        
         try {
             return node.getComponent().unwrap();
         }
@@ -788,10 +792,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         if (!result.isSuccessful()) {
             throw new MultipleStaticError(result.errors());
         }
-        
-        // It is not clear that this is really the right place to rewrite
-        Linker.linkMyComponent(component.getName());
-        
+                
         return result;
     }
 

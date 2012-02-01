@@ -47,7 +47,7 @@ public class LinkShell {
 				System.exit(-1);
 			}
 			st.defaultMap.put(args[1], args[2]);
-			st.writeState();
+			//st.updateLinkage(args[1], args[2]);
 		}
 		
 		if (what.equals("clink")) {
@@ -56,7 +56,7 @@ public class LinkShell {
 				System.exit(-1);
 			}
 			st.specMap.put(new Pair<String,String>(args[1],args[2]),args[3]);
-			st.writeState();
+			//st.updateLinkage(args[1], args[2], args[3]);
 		}
 		
 		if (what.equals("path")) {
@@ -64,7 +64,7 @@ public class LinkShell {
 			System.exit(0);
 		}
 		
-		if (what.equals("run")) {	
+		if (what.equals("build")) {	
 			if (args.length != 2) {
 				System.out.println("Expecting one argument");
 				System.exit(-1);
@@ -72,9 +72,9 @@ public class LinkShell {
 			File f = ProjectProperties.SOURCE_PATH.findFile(args[1]);
 			String[] compileArgs = {"link",f.toString()}; 
 			Shell.main(compileArgs);
-			//String[] runArgs = {args[1].substring(0,args[1].length() - 4)};
-			//MainWrapper.main(runArgs);
 		}
+	
+		st.writeState();
 		
 	}
 	
