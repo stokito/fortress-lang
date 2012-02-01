@@ -385,6 +385,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * Find every exported name, and make an entry mapping name to
          * API declarations, so that unambiguous names from APIs can
          * also be emitted.
+         * 
+         * However, it looks like this information is currently unused.
          */
         List<APIName> exports = c.getExports();
         for (APIName apiname:exports) {
