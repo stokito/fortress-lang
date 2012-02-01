@@ -1,0 +1,192 @@
+To incorporate exclusion into our type system, 
+we first augment type constructor declarations 
+with two (optional) clauses---%
+the `excludes` and `comprises` clauses---%
+and add a new kind of type constructor declaration---%
+the `object` declaration.
+We then change the definition of well-formed class tables 
+to reflect the new features, 
+and to enforce multiple instantiation exclusion.
+
+The syntax for a type constructor declaration
+with the optional `excludes` and `comprises` clauses, 
+each of which specifies a list of types,
+is:
+\[
+C\tplist{X}{M} \extends `{N_bar} [excludes {L_bar}] [comprises {K_bar}]`
+\]
+
+This declaration asserts that for well-formed type `C[\T_bar\]`, 
+the only common subtype of `C[\T_bar\]` 
+and $\substb{T}{X}L_i$ for any $L_i$ in $\bar{L}$ 
+is \Bottom, 
+and any strict subtype of `C[\T_bar\]` 
+must also be a subtype of $\substb{T}{X}K_i$ for some $K_i$ in $\bar{K}$.
+
+% The `excludes` clause asserts that
+% the intersection of any application `C[\T_bar\]` of type constructor `C`
+% and any of `L_bar` is `Bottom` 
+% (i.e., 
+% `C[\T_bar\] CAP [T_bar / X_bar]M[i] EQUIV Bottom` 
+% for any `T_bar` and for each `L[i]` in `L_bar`).
+% This implies, of course, 
+% that any subtype of `C[\T_bar\]` also excludes 
+% `[T_bar / X_bar] L[i]`.
+
+% The `comprises` clause stipulates that
+% an application of type constructor `C` with `T_bar`
+% consists of exactly the types in `K_bar` that are instantiated with `T_bar`
+% (i.e., 
+% `C[\T_bar\] EQUIV [T_bar / X_bar]K[1]` $\cup \ldots \cup$ `[T_bar / X_bar] K[n]`).
+% Thus, if a type excludes `[T_bar / X_bar]K[i]` for each $i$, then it
+% also necessarily excludes `C[\T_bar\]`.
+
+% For convenience, 
+% we allow the `excludes` and `comprises` clauses to be omitted.
+Omitting the `excludes` clause is equivalent to having `excludes {}`;
+omitting the `comprises` clause is equivalent to having `comprises { Any }`.\!\footnote{%
+To catch likely programming errors, 
+Fortress requires that 
+every $K_i$ in a `comprises` clause for $C\obb{T}$ be a subtype of $C\obb{T}$, 
+but allowing `Any` to appear in a `comprises` clause simplifies our presentation here.}
+
+We define the sets of instantiations of types 
+in `excludes` and `comprises` clauses analogously to $\myextends{C\obb{T}}$.
+That is, 
+for an application $C\obb{T}$ 
+of the declaration above, we have:\\[-.5em]
+\begin{align*}
+\myexcludes{C\obb{T}}  &= \{ \bar{\substb{T}{X}L} \} \\
+\mycomprises{C\obb{T}} &= \{ \bar{\substb{T}{X}K} \}
+\end{align*}
+
+A class table may also include `object` declarations, 
+which have the following syntax:
+\[
+`object` \; D\tplist{X}{M} \extends `{N_bar}`
+\]
+This declaration is convenient for defining ````leaf types'': 
+it asserts that `D[\T_bar\]` has no subtypes 
+other than itself and \Bottom.
+Although the declaration has no `excludes` or `comprises` clause, 
+this condition implies that `D[\T_bar\]` 
+excludes any type other than its supertypes
+(and therefore it is as if it had a clause `comprises {}`).
+
+% As mentioned previously, 
+Multiple instantiation exclusion 
+further restricts generic types: 
+Distinct instantiations of a generic type 
+(i.e., distinct applications of a type constructor) 
+have no common subtype other than \Bottom.
+
+To define well-formedness for class tables with exclusion 
+(including multiple instantiation exclusion),
+we define an \emph{exclusion relation} $\exc$ over well-formed types:
+$S \exc T$ asserts that 
+$S$ and $T$ have no common subtypes other than \Bottom.
+For constructed types $C\obb{T}$ and $D\obb{U}$, 
+$C\obb{T} \exc D\obb{U}$ if 
+\begin{itemize}
+
+\item
+$D\obb{U} \in \myexcludes{C\obb{T}}$; 
+
+\item
+for all $L \in \mycomprises{C\obb{T}}$,
+$D\obb{U}$ is not a subtype of $L$; 
+% $C\obb{T}$ has a `comprises` clause 
+% and $D\obb{U}$ is not a subtype of any type in that `comprises` clause;
+
+
+\item
+$C\obb{T}$ is declared by an `object` declaration 
+and $C\obb{T}$ is not a subtype of $D\obb{U}$;
+
+\item
+$D\obb{U} \exc C\obb{T}$ by any of the conditions above;
+
+\item
+$C = D$ and $\bar{T} \not\equiv \bar{U}$; or 
+
+\item
+$M \exc N$ for some $M \supertypeof C\obb{T}$ 
+and $N \supertypeof D\obb{U}$.
+
+\end{itemize} 
+
+We augment our notion of a well-formed class table 
+to require that the subtyping and exclusion relations it induces 
+````respect'' each other.
+That is, 
+for all well-formed constructed types $M$ and $N$, 
+if $M \exc N$ then no well-formed constructed type 
+is a subtype of both $M$ and $N$.
+A well-formed extension to a class table $\T$ 
+must preserve this property.
+
+Except for the imposition of multiple instantation exclusion, 
+these changes generalize the standard type system 
+described in Section~\ref{sec:pre}: 
+A class table that does not use any of the new features 
+is well-formed in this augmented system 
+exactly when it is well-formed in the standard system.
+On the other hand, 
+multiple instantiation exclusion
+restricts the set of well-formed class tables: 
+a table that is well-formed when multiple instantiation inheritance is permitted
+might not be well-formed under multiple instantiation exclusion.
+
+
+% The exclusion relation on constructed types can then be described in terms of
+% more precise sub-relations on those types, each of which corresponds to a certain
+% reason for (or proof of) exclusion:
+% \begin{enumerate}
+
+% \item The `excludes` clause explicitly states that
+% the constructed type `C[\T_bar\]`
+% excludes $\substb{T}{X}L_i$ for each $L_i$ in $\bar{L}$, which
+% implies that any subtype of `C[\T_bar\]` also excludes
+% each $\substb{T}{X}L_i$. We write this exclusion sub-relation as
+% $C\obb{T} \,\excre\, \substb{T}{X}L_i$.
+
+% \item The `comprises` clause stipulates that any subtype of `C[\T_bar\]` 
+% \emph{must} be a subtype of `[T_bar / X_bar]K[i]` for some `K[i]` in `K_bar`. 
+% Then if every `[T_bar / X_bar]K[i]` in `K_bar` excludes some type $U$, 
+% `C[\T_bar\]` must also exclude $U$. 
+% We write this exclusion sub-relation as $C\obb{T} \,\excrc\, U$.
+  
+% \item The `object` keyword denotes a type constructor 
+% whose applications have no nontrivial subtypes; 
+% an `object` type constructor is a leaf of the class hierarchy. 
+% Since such a constructed type `C[\T_bar\]` has no subtypes 
+% other than itself and \Bottom, 
+% we know that it excludes any type `U` other than its supertypes. 
+% We write this exclusion sub-relation as $C\obb{T} \,\excro\, U$.
+
+% \end{enumerate}
+
+% We take the symmetric closure of each of these relations 
+% to get the relations $\exce$, $\excc$ and $\exco$.
+% Exclusion between constructed types is informally defined as the union
+% of these symmetric relations.
+% (We introduce another sub-relation $\excp$ in Section~\ref{sec:exc-polyrules}.)
+
+We extend the exclusion relation 
+to structural and compound types as follows:
+Every arrow type excludes every non-arrow type other than \Any.
+Every non-singleton tuple type excludes every non-tuple type other than \Any.
+(A singleton tuple type is synonymous with its element type, 
+and so excludes exactly those types excluded by its element type.)
+% Every singleton tuple type excludes exactly those types excluded by its element type.
+Non-singleton tuple type $(\bar{V})$ excludes non-singleton tuple type
+$(\bar{W})$ if either $|\bar{V}| \neq |\bar{W}|$
+or $V_i$ excludes $W_i$ for some $i$.
+An intersection type excludes any type excluded by \emph{any} of its constituent types;
+a union type excludes any type excluded by \emph{all} of its constituent types.
+$\Bottom$ excludes every type 
+(including itself---it is the only type that excludes itself), 
+and $\Any$ does not exclude any type other than $\Bottom$.
+(We define the exclusion relation formally in Section~\ref{sec:constraints}.)
+
+
