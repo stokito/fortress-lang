@@ -79,8 +79,15 @@ final class RepoState {
 			l = new ArrayList<Pair<String,String>>();
 			links.put(cmp1,l);
 		}
-		if (!l.contains(p))
-			l.add(p);
+		
+		Pair<String,String> tmp = null;
+		for (Pair<String,String> q: l) 
+			if (q.first().equals(api))
+				tmp = q;
+		
+		if (tmp != null)
+			l.remove(tmp);
+		l.add(p);
 		
 	}
 	
@@ -318,22 +325,5 @@ final class RepoState {
     	}
     	
     }
-	
-//    void updateLinkage(String cmp1, String api, String cmp2) {
-//		
-//    	List<Pair<String,String>> l = links.get(cmp1);
-//    	for (Pair<String,String> p: l) {
-//    		if (p.first().equals(api)) {
-//    			p = new Pair<String,String>(api,cmp2);
-//    			// cmp1 must be rewritten
-//    			Linker.linkMyComponent(cmp1);
-//    		}
-//    	}
-//    	
-//	}
-//	
-//	void updateLinkage(String api, String cmp) {
-//		
-//	} 
     
 }
