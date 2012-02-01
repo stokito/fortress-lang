@@ -195,8 +195,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         ComponentGraphNode node = addComponentGraph(name);
         refreshGraph();
         
-        // It is not clear that this is really the right place to rewrite
-        Linker.linkMyComponent(node.getName());
+        for (GraphNode g: graph.nodes()) 
+        	if (g instanceof ComponentGraphNode) 
+                Linker.linkMyComponent(g.getName());
         
         try {
             return node.getComponent().unwrap();
@@ -278,6 +279,9 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 if (cache_date >= getComponentFileDate(node)) {
                     Debug.debug(Debug.Type.REPOSITORY, 2, "Found cached version of ", node);
                     node.setComponent(cache.getComponent(name, node.getSourcePath()), cache_date);
+                    
+                    //Linker.linkMyComponent(node.getName());
+                    
                 }
             }
             catch (FileNotFoundException f) {
@@ -314,6 +318,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 nodeDependsOnApi(node, NodeFactory.makeAPIName(NodeFactory.shellSpan, root));
             }
         }
+        
         return node;
     }
 
@@ -793,6 +798,8 @@ public class GraphRepository extends StubRepository implements FortressRepositor
             throw new MultipleStaticError(result.errors());
         }
                 
+        //Linker.linkMyComponent(component.getName());
+        
         return result;
     }
 

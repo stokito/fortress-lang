@@ -47,7 +47,6 @@ public class LinkShell {
 				System.exit(-1);
 			}
 			st.defaultMap.put(args[1], args[2]);
-			//st.updateLinkage(args[1], args[2]);
 		}
 		
 		if (what.equals("clink")) {
@@ -56,7 +55,6 @@ public class LinkShell {
 				System.exit(-1);
 			}
 			st.specMap.put(new Pair<String,String>(args[1],args[2]),args[3]);
-			//st.updateLinkage(args[1], args[2], args[3]);
 		}
 		
 		if (what.equals("path")) {
