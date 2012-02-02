@@ -33,9 +33,9 @@ import org.objectweb.asm.tree.*;
 
 import com.sun.fortress.runtimeSystem.ByteCodeWriter;
 
-final class Link {
+final class ClassRewriter {
 		
-	private Link() {}
+	private ClassRewriter() {}
 	
     /**
      * Read-in the class file at componenetPath and returns its associated ASM ClassNode
@@ -158,7 +158,7 @@ final class Link {
 	// C.fss exports D.fsi
 	// Name clash
 	
-	public static byte[] rewrite(byte[] bytecode, String searched, String replacement) {
+	static byte[] rewrite(byte[] bytecode, String searched, String replacement) {
 		
 		//System.out.println("Searching for " + searched);
 		

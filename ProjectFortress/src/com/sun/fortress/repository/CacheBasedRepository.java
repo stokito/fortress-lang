@@ -30,7 +30,6 @@ import com.sun.fortress.scala_src.typechecker.IndexBuilder;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
 import com.sun.fortress.exceptions.*;
-import com.sun.fortress.linker.FileWriter;
 import edu.rice.cs.plt.tuple.Option;
 
 import java.io.File;

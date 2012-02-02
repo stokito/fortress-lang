@@ -1259,26 +1259,7 @@ public class Useful {
         }
         return s;
     }
-    
-    public static void ensureFileExists(String s) throws Error {
-    	
-    	File f = new File(s);
-		if (!f.exists()) {
-			try {
-				f.createNewFile();
-				FileOutputStream out = new FileOutputStream(f);
-				out.write(0);
-				out.write(0);
-				out.flush();
-				out.close();
-    		}
-			catch (IOException msg) {
-				throw new Error("Failed to create file " + s);
-			}
-    	}
-    	
-    }
-    
+        
     public static void use(Object o) {}
     public static void use(int i) {}
     public static void use(boolean b) {}
