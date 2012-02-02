@@ -12,6 +12,7 @@
 package com.sun.fortress.linker;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 
@@ -75,6 +77,98 @@ public final class Linker {
         
         return implementer;
         
+	}
+	
+	private static void copyFile(String src, String dst) throws IOException {
+		
+		String srcPath = ProjectProperties.fileName(ProjectProperties.BYTECODE_CACHE_DIR, src, "jar");
+		String dstPath = ProjectProperties.fileName(ProjectProperties.BYTECODE_CACHE_DIR, dst, "jar");
+				
+		JarFile jarIn = new JarFile(srcPath);
+		InputStream in = jarIn.getInputStream(jarIn.getEntry(src+".class"));
+
+		FileOutputStream out = new FileOutputStream(dstPath);
+		JarOutputStream jos = new JarOutputStream(out);
+
+		byte[] toWrite = new byte[in.available()];
+		in.read(toWrite,0,in.available());
+		
+		toWrite = ClassRewriter.rewrite(toWrite,src,dst);;
+		
+		ByteCodeWriter.writeJarredClass(jos, dst, toWrite);
+		jos.flush();
+		jos.close();
+		
+		jarIn.close();
+		
+	}
+	
+	public static void generateAliases(APIName component) {
+		
+		if (ref == null)
+			ref = new Linker();
+		
+        RepoState st = RepoState.getRepoState();
+        
+        
+        String cmp = component.getText();
+        if (cmp.equals("CompilerBuiltin") || cmp.equals("AnyType") || cmp.equals("CompilerLibrary")) 
+        	return;
+        
+        
+        List<String> aliases = st.alias.get(component.getText());
+    	
+    	if (aliases == null)
+    		return;
+        
+    		for (String alias: aliases) {
+    			
+    			File aliasOut = new File(ProjectProperties.fileName(ProjectProperties.BYTECODE_CACHE_DIR, alias, "jar"));
+    			try {
+    				aliasOut.createNewFile();
+    				copyFile(cmp,alias);
+    			} catch (IOException msg) {
+    				throw new Error("Failed to copy file " + cmp + " from " + alias );
+    			}
+    			    			
+    		}
+
+
+		
+	}
+	
+	public static APIName whatToSearchFor(APIName name) {
+		
+		if (ref == null)
+			ref = new Linker();
+		
+        RepoState st = RepoState.getRepoState();
+        
+        // Let's see if this name is an alias
+       
+        for (String k: st.getAlias().keySet()) {
+        	
+        	for (String a: st.getAlias().get(k)) {
+        		if (a.equals(name.getText())) {
+        			// It is in fact an alias
+        			return NodeFactory.makeAPIName(NodeFactory.repoSpan,k);
+        			
+        		}
+        	}
+        	
+        }
+        	
+        return name;
+		
+	}
+	
+	public static void linkAll() {
+		
+		Set<APIName> cmps = rewrites.keySet();
+		
+		for (APIName cmp: cmps)
+			linkMyComponent(cmp);
+		
 	}
 	
 	public static void linkMyComponent(APIName component) {

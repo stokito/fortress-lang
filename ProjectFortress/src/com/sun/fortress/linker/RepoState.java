@@ -29,6 +29,7 @@ final class RepoState {
 	Map<String,String> defaultMap;
 	Map<Pair<String,String>,String> specMap;
 	Map<String,List<Pair<String,String>>> links;
+	Map<String,List<String>> alias; 
 	
 	private static RepoState ref;
 	
@@ -38,6 +39,7 @@ final class RepoState {
 		defaultMap = new HashMap<String,String>();
 		specMap = new HashMap<Pair<String,String>,String>();
 		links = new HashMap<String,List<Pair<String,String>>>();
+		alias = new HashMap<String,List<String>>();
 		readState();
 		
 	}
@@ -69,6 +71,11 @@ final class RepoState {
 		
 	}
 	
+	Map<String,List<String>> getAlias() {
+		
+		return alias;
+		
+	}
 	
     // Important invariant: no duplicates
 	void recordLink(String cmp1, String api, String cmp2) {
@@ -88,6 +95,17 @@ final class RepoState {
 		if (tmp != null)
 			l.remove(tmp);
 		l.add(p);
+		
+	}
+	
+	void addAlias(String original, String newAlias) {
+		
+		List<String> l = alias.get(original);
+		if (l == null) {
+			l = new ArrayList<String>();
+			alias.put(original, l);
+		}
+		l.add(newAlias);
 		
 	}
 	
@@ -189,6 +207,20 @@ final class RepoState {
 				l.add(new Pair<String,String>(readString(fi),readString(fi)));			
 		}
 			
+		// Aliases
+		int copiesEntries = readByte(fi);
+		
+		for (int i = 0 ; i < copiesEntries; ++i) {
+			
+			String key = readString(fi);
+			int listLength = readByte(fi);
+			
+			List<String> l = new ArrayList<String>();
+			alias.put(key, l);
+
+			for (int j = 0 ; j < listLength; ++j)
+				l.add(readString(fi));
+		}
 		
 		try {
 			fi.close();
@@ -257,6 +289,21 @@ final class RepoState {
 			
 		}
 		
+		// Writing Aliases
+		writeByte(fo,alias.size());
+		
+		Set<String> keysCopies = alias.keySet();
+		
+		for (String k: keysCopies) {
+						
+			writeString(fo,k);
+			List<String> l = alias.get(k);
+			writeByte(fo,l.size());
+			
+			for (String v: l)
+				writeString(fo,v);
+		}
+		
 		try {
 			fo.flush();
 		} catch (IOException msg) {
@@ -276,6 +323,7 @@ final class RepoState {
 		
 		defaultMap = new HashMap<String,String>();
 		specMap = new HashMap<Pair<String,String>,String>();
+		alias = new HashMap<String,List<String>>();
 		writeState();
 		
 	}
@@ -285,6 +333,7 @@ final class RepoState {
 		Set<String> defaultKeys = defaultMap.keySet();
 		Set<Pair<String,String>> specKeys = specMap.keySet();
 		Set<String> linksKeys = links.keySet();
+		Set<String> copiesKeys = alias.keySet();
 		
 		System.out.println("\nAPI map\n");
 		
@@ -304,6 +353,14 @@ final class RepoState {
 				System.out.println("       API " + v.first() + " -> CMP " + v.second());
 		}
 		
+		System.out.println("\nCopies\n");
+		
+		for (String k: copiesKeys) {
+			System.out.println("  . " + k + " has the following aliases:"); 
+			for (String v: alias.get(k)) 
+				System.out.println("        " + v);
+		}
+		
 	}
 	
     private void initRepoState() throws Error {
@@ -313,6 +370,7 @@ final class RepoState {
 			try {
 				f.createNewFile();
 				FileOutputStream out = new FileOutputStream(f);
+				out.write(0);
 				out.write(0);
 				out.write(0);
 				out.write(0);
