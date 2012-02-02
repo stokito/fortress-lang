@@ -28,6 +28,7 @@ import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.ByteCodeWriter;
 import com.sun.fortress.useful.Pair;
+import com.sun.fortress.useful.Useful;
 
 public final class Linker {
 	
@@ -91,15 +92,16 @@ public final class Linker {
         		
         		        		
         		for (Pair<APIName,APIName> x: l) {
-        			toWrite = Link.rewrite(toWrite,x.first().getText(),x.second().getText());;
+        			toWrite = ClassRewriter.rewrite(toWrite,x.first().getText(),x.second().getText());;
         			
         		}
         	
         		File newversion = new File(jarFileTMP);
         		FileOutputStream f = new FileOutputStream(newversion);
-        		ByteCodeWriter.writeJarredClass(new JarOutputStream(f), component.getText(), toWrite);
-        		f.flush();
-        		f.close();
+        		JarOutputStream jos = new JarOutputStream(f);
+        		ByteCodeWriter.writeJarredClass(jos, component.getText(), toWrite);
+        		jos.flush();
+        		jos.close();
         		
         		original.delete();
         		newversion.renameTo(original);
@@ -111,7 +113,5 @@ public final class Linker {
         }
         
 	}
-	
-	
 	
 }

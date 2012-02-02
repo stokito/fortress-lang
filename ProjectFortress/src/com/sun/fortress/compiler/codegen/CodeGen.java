@@ -416,6 +416,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             }
         }
 
+        
+        /*
+         * Need to spot defined (not abstract) functional methods 
+         * from supertraits where opr-parameterization changes
+         * the name of the method.  The parameter-named method
+         * should NOT appear in top-level functions; the translated
+         * method SHOULD.  As an overload, it only needs to be typed
+         * with the subtypes that have no opr parameters. 
+         */
+        Map<Id, TypeConsIndex> some_traits = ci.typeConses();
+        /*
+         * 
+         */
+        
         this.topLevelOverloads =
             sizePartitionedOverloads(ci.functions());
 
