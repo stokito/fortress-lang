@@ -11,9 +11,15 @@
 #
 ################################################################################
 
-
 if [ -z "$FORTRESS_HOME" ]; then
    export FORTRESS_HOME="`${0%comp/tlink}fortress_home`"
+fi
+
+if [ "$1" = "run" ]
+then
+	fortress link $2
+	run `basename "$2" ".fss"`
+	exit
 fi
 
 CP="`"$FORTRESS_HOME"/bin/run_classpath`"
@@ -30,7 +36,4 @@ fi
 
 JAVA_FLAGS+=" -Dfile.encoding=UTF-8 -Xfuture"
 
-#echo "$JAVACMD" $JAVA_FLAGS -cp "$CP" com.sun.fortress.linker.Link "$@"
-
 "$JAVACMD" $JAVA_FLAGS -cp "$CP" com.sun.fortress.linker.LinkShell "$@"
-

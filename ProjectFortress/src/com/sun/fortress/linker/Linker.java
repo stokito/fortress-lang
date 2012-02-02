@@ -53,7 +53,9 @@ public final class Linker {
         
         s = st.getSpecMap().get(new Pair<String,String>(component.getText(),api.getText()));
         if (s == null) s = st.getDefaultMap().get(api.getText());;
-        if (s == null) { 
+        if (s == null) {
+            //st.recordLink(component.getText(), api.getText(), api.getText());
+            //st.writeState();
         	return api;
         }
                 
@@ -67,7 +69,10 @@ public final class Linker {
         	rewrites.put(component, l);
         }
         l.add(rewrite_rule);
-
+    
+        //st.recordLink(component.getText(), api.getText(), implementer.getText());
+        //st.writeState();
+        
         return implementer;
         
 	}
@@ -76,6 +81,8 @@ public final class Linker {
 		
 		if (ref == null)
 			ref = new Linker();
+		
+        RepoState st = RepoState.getRepoState();
 		
         List<Pair<APIName,APIName>> l = rewrites.get(component);
         if (l != null) {
@@ -92,9 +99,22 @@ public final class Linker {
         		
         		        		
         		for (Pair<APIName,APIName> x: l) {
-        			toWrite = ClassRewriter.rewrite(toWrite,x.first().getText(),x.second().getText());;
+        			// Use bookkeeping to find out the current name for x.first()
+        			String toReplace = x.first().getText();
         			
+        			List<Pair<String,String>> history = st.getRewrites().get(component.getText());
+        			if (history != null) {
+        				for (Pair<String,String> p: history) 
+        					if (p.first().equals(toReplace)) {
+        						toReplace = p.second();
+        						break;
+        					}
+        			}
+        					
+        			toWrite = ClassRewriter.rewrite(toWrite,toReplace,x.second().getText());;
+        	        st.recordLink(component.getText(), toReplace, x.second().getText());
         		}
+    	        st.writeState();
         	
         		File newversion = new File(jarFileTMP);
         		FileOutputStream f = new FileOutputStream(newversion);
@@ -113,5 +133,5 @@ public final class Linker {
         }
         
 	}
-	
+		
 }
