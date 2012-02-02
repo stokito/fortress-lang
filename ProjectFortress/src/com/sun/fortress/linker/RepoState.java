@@ -15,7 +15,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,6 +28,7 @@ final class RepoState {
 	
 	Map<String,String> defaultMap;
 	Map<Pair<String,String>,String> specMap;
+	Map<String,List<Pair<String,String>>> links;
 	
 	private static RepoState ref;
 	
@@ -34,6 +37,7 @@ final class RepoState {
 		initRepoState();
 		defaultMap = new HashMap<String,String>();
 		specMap = new HashMap<Pair<String,String>,String>();
+		links = new HashMap<String,List<Pair<String,String>>>();
 		readState();
 		
 	}
@@ -56,6 +60,34 @@ final class RepoState {
 	Map<Pair<String,String>,String> getSpecMap() {
 		
 		return specMap;
+		
+	}
+	
+	Map<String,List<Pair<String,String>>> getRewrites() {
+		
+		return links;
+		
+	}
+	
+	
+    // Important invariant: no duplicates
+	void recordLink(String cmp1, String api, String cmp2) {
+		
+		Pair<String,String> p = new Pair<String,String>(api,cmp2);
+		List<Pair<String,String>> l = links.get(cmp1);
+		if (l == null) {
+			l = new ArrayList<Pair<String,String>>();
+			links.put(cmp1,l);
+		}
+		
+		Pair<String,String> tmp = null;
+		for (Pair<String,String> q: l) 
+			if (q.first().equals(api))
+				tmp = q;
+		
+		if (tmp != null)
+			l.remove(tmp);
+		l.add(p);
 		
 	}
 	
@@ -132,16 +164,31 @@ final class RepoState {
 		catch (IOException msg) {
 			throw new Error("Cannot find global.map");
 		}
-		
+
+		// Reading default API linkage map
 		int defaultEntries = readByte(fi);
 		
 		for (int i = 0; i < defaultEntries ; ++i) 				
 			defaultMap.put(readString(fi), readString(fi));
-				
+
+		// Reading specific linkage map
 		int specEntries = readByte(fi);
 		
 		for (int i = 0; i < specEntries; ++i)
 			specMap.put(new Pair<String,String>(readString(fi),readString(fi)), readString(fi));
+
+		// Readings links bookkeeping
+		int linksEntries = readByte(fi);
+		
+		for (int i = 0; i < linksEntries; ++i) {
+			String key = readString(fi);
+			int listLength = readByte(fi);
+			List<Pair<String,String>> l = new ArrayList<Pair<String,String>>();
+			links.put(key,l);
+			for (int j = 0; j < listLength; ++j) 
+				l.add(new Pair<String,String>(readString(fi),readString(fi)));			
+		}
+			
 		
 		try {
 			fi.close();
@@ -165,6 +212,7 @@ final class RepoState {
 			throw new Error("Could not create an output stream to the global map");
 		}
 		
+		// Writing default linkage map
 		writeByte(fo,defaultMap.size());
 				
 		Set<String> keysDefault = defaultMap.keySet();		
@@ -176,6 +224,7 @@ final class RepoState {
 						
 		}
 		
+		// Writing specific linkage map
 		writeByte(fo,specMap.size());
 		
 		Set<Pair<String,String>> keysSpec = specMap.keySet();
@@ -188,6 +237,26 @@ final class RepoState {
 			
 		}
  		
+		// Writing links bookkeeping
+		
+		writeByte(fo,links.size());
+		
+		Set<String> keysLinks = links.keySet();
+		
+		for (String k: keysLinks) {
+			
+			List<Pair<String,String>> l = links.get(k);
+			writeString(fo,k);
+			writeByte(fo,l.size());
+			for (Pair<String,String> p: l) {
+				
+				writeString(fo,p.first());
+				writeString(fo,p.second());
+				
+			}
+			
+		}
+		
 		try {
 			fo.flush();
 		} catch (IOException msg) {
@@ -206,6 +275,7 @@ final class RepoState {
 	void reset() {
 		
 		defaultMap = new HashMap<String,String>();
+		specMap = new HashMap<Pair<String,String>,String>();
 		writeState();
 		
 	}
@@ -214,16 +284,25 @@ final class RepoState {
 		
 		Set<String> defaultKeys = defaultMap.keySet();
 		Set<Pair<String,String>> specKeys = specMap.keySet();
+		Set<String> linksKeys = links.keySet();
 		
-		System.out.println("API map\n");
+		System.out.println("\nAPI map\n");
 		
 		for (String k: defaultKeys)
 			System.out.println("  . " + k + " -> " + defaultMap.get(k));
 
-		System.out.println("Specific linkages map\n");
+		System.out.println("\nSpecific linkages map\n");
 		
 		for (Pair<String,String> k: specKeys)
 			System.out.println("  . " + k.first() + " -> " + k.second() + " -> " + specMap.get(k));
+		
+		System.out.println("\nLinkage bookkeeping\n");
+		
+		for (String k: linksKeys) {
+			System.out.println("  . Links for component " + k + ":");
+			for (Pair<String,String> v: links.get(k))
+				System.out.println("       API " + v.first() + " -> CMP " + v.second());
+		}
 		
 	}
 	
@@ -236,6 +315,7 @@ final class RepoState {
 				FileOutputStream out = new FileOutputStream(f);
 				out.write(0);
 				out.write(0);
+				out.write(0);
 				out.flush();
 				out.close();
     		}
@@ -245,5 +325,5 @@ final class RepoState {
     	}
     	
     }
-	
+    
 }
