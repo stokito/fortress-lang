@@ -86,6 +86,7 @@ public class LinkShell {
 			st.addAlias(args[1],args[2]);
 		}
 		
+		
 		if (what.equals("build")) {	
 			if (args.length != 2) {
 				System.out.println("Expecting one argument");
