@@ -282,8 +282,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 if (cache_date >= getComponentFileDate(node)) {
                     Debug.debug(Debug.Type.REPOSITORY, 2, "Found cached version of ", node);
                     node.setComponent(cache.getComponent(name, node.getSourcePath()), cache_date);
-                    
-                    //Linker.linkMyComponent(node.getName());
+              
                     
                 }
             }
@@ -807,8 +806,6 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         if (!result.isSuccessful()) {
             throw new MultipleStaticError(result.errors());
         }
-                
-        //Linker.linkMyComponent(component.getName());
         
         return result;
     }
