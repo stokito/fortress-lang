@@ -1,0 +1,42 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component initOrder
+export Executable
+
+(* Attempt to reproduce a bizarre bug with initialization order of
+classes and operators, which results in "get of unset extends" in
+FTraitOrObject. *)
+
+(* Everything must extend this trait, or the bug will disappear. *)
+trait S excludes { Number }
+end
+
+(* Moving this definition down past the definition of object V
+   causes the bug to disappear. *)
+f(a:ZZ32, b:ZZ32):ZZ32 = a
+
+(* Changing *both* of these to object declarations causes the bug to
+   disapper. *)
+trait M extends { S }
+end
+
+trait V extends { S }
+end
+
+(* Moving these definitions around doesn't seem to make any difference
+   at all. *)
+f(me:M, other:M):M = me
+f(other : RR64, me : V) : V = me
+
+run() = println(f(13,14))
+
+end

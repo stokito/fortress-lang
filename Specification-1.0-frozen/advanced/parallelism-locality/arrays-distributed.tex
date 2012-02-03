@@ -1,0 +1,77 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Distributed Arrays}
+\seclabel{arrays}
+
+\note{Distributions, array comprehensions, and
+\TYP{HeapSequence} are not yet supported.}
+
+Arrays, vectors, and matrices in Fortress are assumed to be spread out
+across the machine.  As in Fortran, Fortress arrays are complex data
+structures; simple linear storage is encapsulated by the
+\TYP{HeapSequence} type, which is used in the implementation of arrays
+(see \secref{parallelism-fundamentals}).
+The default distribution of
+an array is determined by the Fortress libraries; in general it
+depends on the size of the array, and on the size and locality
+characteristics of the machine running the program.
+For advanced
+users, the distribution library (introduced in \secref{distributions})
+provides a way of combining and pivoting distributions, or of
+redistributing two arrays so that their distributions match.
+Programmers must create arrays by using
+an array comprehension (\secref{comprehensions}) or
+an aggregate expression (\secref{aggregate-expr}), or by using one of
+the factory functions at the top of \figref{arrayFactories}.  After calling
+any of these factories, the elements of the resulting array must be
+initialized using either indexed assignment or using one of the
+initialization methods described at the bottom of the figure.
+
+\begin{figure}
+\begin{tabular}{|m{2.0in}|m{4.0in}|}
+\hline
+  \EXP{\VAR{array}\llbracket{}E\rrbracket(\emph{size}\COLONOP{}I)\COLONOP\TYP{Array}\llbracket{}E,I\rrbracket} & {Creates an uninitialized 0-indexed array of the specified runtime-determined size.  The size is an integer for a 1-dimensional array, a 2-tuple for a two-dimensional array, and so forth.} \\
+\hline
+  \EXP{{array}_{1}\llbracket{}E,n\rrbracket()} & {Creates an uninitialized 0-indexed 1-dimensional array of statically determined size $n$.} \\
+\hline
+  \EXP{{array}_{2}\llbracket{}E,n,m\rrbracket()} & {Creates an uninitialized 0-indexed 2-dimensional array of statically determined size $n$ by $m$.} \\
+\hline
+  \EXP{{array}_{3}\llbracket{}E,n,m,p\rrbracket()} & {Creates an uninitialized 0-indexed 3-dimensional array of statically determined size $n$ by $m$ by $p$.} \\
+\hline
+\end{tabular}
+\begin{tabular}{|m{2.0in}|m{4.0in}|}
+\hline
+\EXP{\VAR{a}.\VAR{fill}(v\COLONOP{}E)} & {Initializes all elements with value \VAR{v}.} \\
+\hline
+\EXP{\VAR{a}.\VAR{fill}(f\COLONOP{}I\rightarrow{}E)} & {Calls \VAR{f} at each index and initializes the corresponding element with the result of the call.} \\
+\hline
+\EXP{\VAR{a}.\VAR{init}(i\COLONOP{}I, v\COLONOP{}E)} & {Initializes element at index \VAR{i} with value \VAR{v}.} \\
+\hline
+\end{tabular}
+\caption{\figlabel{arrayFactories}Factories for creating arrays and methods for initializing their elements}
+\end{figure}
+
+Each array element may be initialized at most once using the methods of \figref{arrayFactories}; the programmer must assure that this initialization completes before any other access to the corresponding array element.  The programmer must also assure that an element is initialized before it is first read.\footnote{The present implementation signals a fatal error in case of duplicate initialization, or if an uninitialized element is read.}  Note that these factories and methods are intended to be used to library programmers to build higher-level functionality (for example, the \VAR{fill} methods themselves are defined in terms of calls to \VAR{init}, and the \VAR{array} factory is defined in terms of \EXP{{array}_{1}}, \EXP{{array}_{2}}, and so forth).
+
+Because the elements of a fortress array may reside in multiple
+regions of the machine, there is an additional method
+\EXP{a.\VAR{region}(i)} which returns the region in which the array
+element \EXP{a_i} resides.  An element of an array is always local to
+the region in which the array as a whole is contained, so
+\EXP{(a.\VAR{region}(i)).\VAR{isLocalTo}(\VAR{region}(a))} must always
+return \VAR{true}.  When an array contains reference objects, the
+programmer must be careful to distinguish the region in which the
+array element \EXP{a_i} resides, \EXP{a.\VAR{region}(i)}, from the
+region in which the object referred to by the array element resides,
+\EXP{\VAR{region}(a_i)}.  The former describes the region of the array
+itself; the latter describes the region of the data referred to by the
+array.  These may differ.

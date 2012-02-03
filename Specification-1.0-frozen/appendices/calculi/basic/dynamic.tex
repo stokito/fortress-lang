@@ -1,0 +1,110 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Dynamic Semantics}\label{basic-dynamic}
+A dynamic semantics for \basiccore\ is provided in
+Figure~\ref{fig:basic-dynamic}.
+This semantics has been mechanized via the \pltredex\ tool~\cite{MFFF-RTA04}.
+It therefore follows the style of explicit evaluation contexts and redexes.
+The \basiccore\ dynamic semantics consists of two evaluations rules:
+one for field access and another for method invocation.  
+For simplicity, we use `\ignore' to denote some parts of the syntax
+that do not have key roles in a rule.
+We assume that \ignore\ does not expand across definition boundaries unless
+the entire definition is included in it.
+
+\begin{figure}[htbp]
+Values, evaluation contexts, redexes, and trait and object names\\
+
+$
+\begin{array}{llll}
+\val &::=& \objval & \mbox{value}\\
+\context &::=& \hole & \mbox{evaluation context}\\
+      &|& \oapp\parens{\exps\context\exps}\\
+      &|& \invoke{\context}{\vname}\\
+      &|& \invoke{\context}{\ftapp\eargs}\\
+      &|& \invoke{\exp}{\ftapp\parens{\exps\context\exps}}\rulesep\rulesep\\
+\redex &::=& \invoke{\val}{\vname}& \mbox{redex}\\
+      &|& \invoke{\val}{\ftapp\vargs}\\
+\cname &::=& \tname &\mbox{trait name}\\
+      &|& \oname &\mbox{object name}\\ \\
+\end{array}
+$
+
+Evaluation rules: \fbox{\reduce{\redex}{\exp}}
+
+\[
+\begin{array}{lc}
+\newinfrule{
+\object\oname\ignore\parens{\seq{\vname\colon\ignore}}\ignore\ \mt{end} \inp
+}{
+\begin{array}{c}
+\reduce{\invoke{\objval}{\sub\vname i}}
+{\sub\val i}\\
+\end{array}
+}
+{\rFieldRule} \\ \\
+
+\newinfrule{\begin{array}{c}
+\odsyntaxRM \inp
+\rulesep
+\mbodyF{\fname\targsP}{\oapp} = \set{\mthbodyP}
+\end{array}}{
+\begin{array}{c}
+\reduce{\invoke{\objval}{\fname\targsP\vargsP}}
+{\substseq{\val}{\vname}
+ \subst{\objval}{\self}
+ \substseq{\prm\val}{\prm\vname}\exp}\\
+\end{array}
+}
+{\rMethodRule} \\ \\
+
+\end{array}
+\]
+
+Method body lookup: \fbox{\mbodyF{\ftapp}{\ty} = \set{\mthbody}}
+
+\[
+\begin{array}{lc}
+\newinfrule{
+\begin{array}{c}
+\dsyntaxMB \inp
+\rulesep
+\fdsyntaxMB \in \set{\seq{\fd}}
+\\\end{array}
+}
+{\mbodyF{\ftappP}{\cname\targs} = 
+\braces{\substseq{\tyP}{\prm\tvone} \substseq{\ty}{\tvone}
+\mthbodyP}}
+{\mbBothRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\dsyntaxMS \inp
+\rulesep
+\fname\not\in\set{\seq{\Fname(\fd)}}
+\\\end{array}
+}
+{\mbodyF{\ftappP}{\cname\targs} = 
+ \bigcup_{\sub \tappone i\in\set{\seq{\tappone}}} 
+\mbodyF{\ftappP}{\substseq{\ty}{\tvone}\sub \tappone i}}
+{\mbSuperRule} \\ \\
+
+\newrule{\mbodyF{\ftapp}\obj = \emptyset}{\mbObjRule}
+
+\end{array}
+\]
+
+Function/method name lookup: \fbox{\Fname(\fd) = \fname} \\ \\
+\Fname(\fdsyntax) = \fname
+\caption{Dynamic Semantics of \basiccore}
+\label{fig:basic-dynamic}
+\end{figure}

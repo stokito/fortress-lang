@@ -1,0 +1,54 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component immutableTopLevel
+export Executable
+
+(* Notice that initialization is out-of-order *)
+
+var effects:ZZ32=0
+
+sideeffect(v:ZZ32):ZZ32 = do
+  effects+=1
+  v
+end
+
+a=sideeffect(x)
+b=sideeffect(y)
+c:ZZ32=sideeffect(x)
+d:ZZ32=sideeffect(y)
+
+object P
+  ff:ZZ32 = do O.p(1); 17; end
+end
+
+object O
+  p(xx:ZZ32):() = println("O.p(" xx ") called")
+end
+
+x:ZZ32=sideeffect(1)
+y=sideeffect(2)
+z:ZZ32:=sideeffect(3)
+
+run():()=do
+  println("x = " x)
+  println("y = " y)
+  println("z = " z)
+  println("a = " a)
+  println("b = " b)
+  println("c = " c)
+  println("d = " d)
+  O.p(P.ff)
+  println("Sideeffect count = " effects ", " (if effects = 7 then "PASS" else "FAIL"))
+
+end
+
+end

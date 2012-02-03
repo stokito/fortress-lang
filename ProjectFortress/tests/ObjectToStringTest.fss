@@ -1,0 +1,32 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ObjectToStringTest
+export Executable
+
+object Foo(a: ZZ32, b:String) extends Object
+end
+
+object Fue[\T\](a: T, b:String) extends Object
+end
+
+object Bar(a: ZZ32, b:String)
+end
+
+run() : () = do
+    r = object end
+    println(r.asString)
+    println(Foo(17,"Hello there").asString)
+    println(Fue[\ZZ32\](17,"Hello there").asString)
+    println(Bar(17,"Hello there").asString)
+  end
+
+end
