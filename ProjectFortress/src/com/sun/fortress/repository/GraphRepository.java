@@ -195,9 +195,12 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         ComponentGraphNode node = addComponentGraph(name);
         refreshGraph();
         
+        /*
         for (GraphNode g: graph.nodes()) 
         	if (g instanceof ComponentGraphNode) 
                 Linker.linkMyComponent(g.getName());
+        */
+        Linker.linkAll();
         
         try {
             return node.getComponent().unwrap();
@@ -279,8 +282,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                 if (cache_date >= getComponentFileDate(node)) {
                     Debug.debug(Debug.Type.REPOSITORY, 2, "Found cached version of ", node);
                     node.setComponent(cache.getComponent(name, node.getSourcePath()), cache_date);
-                    
-                    //Linker.linkMyComponent(node.getName());
+              
                     
                 }
             }
@@ -397,7 +399,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     }
 
     public File findFile(APIName name, String suffix) throws FileNotFoundException {
-        String dotted = name.toString();
+    	
+    	APIName n = Linker.whatToSearchFor(name);
+    	
+        String dotted = n.toString();
         String slashed = dotted.replace(".", "/");
         slashed = slashed + "." + suffix;
         File fdot;
@@ -503,6 +508,10 @@ public class GraphRepository extends StubRepository implements FortressRepositor
                  * that parseComponent is going to return.
                  */
                 result = parseComponent(syntaxExpand(node), result);
+                
+                // At this point, the jar file should have been generated
+                Linker.generateAliases(node.getName());
+                
                 for (Map.Entry<APIName, ComponentIndex> entry : result.components().entrySet()) {
                     if (inComponentList(entry.getKey(), reparseComponents)) {
                         addComponent(entry.getKey(), entry.getValue());
@@ -797,8 +806,6 @@ public class GraphRepository extends StubRepository implements FortressRepositor
         if (!result.isSuccessful()) {
             throw new MultipleStaticError(result.errors());
         }
-                
-        //Linker.linkMyComponent(component.getName());
         
         return result;
     }
