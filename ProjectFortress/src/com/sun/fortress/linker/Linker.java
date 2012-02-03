@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2011, Oracle and/or its affiliates.
+    Copyright 2012, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -26,15 +26,19 @@ import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
-import com.sun.fortress.exceptions.ProgramError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.ByteCodeWriter;
-import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Pair;
-import com.sun.fortress.useful.Useful;
 
+/**
+ * Linker is a singleton object that serves as an interface between the graph 
+ * repository that manages compilation and the repository state that contains 
+ * the linking information. From an implementation point of view, the Linker object
+ * has the only methods that are accessible form outside the linker package. 
+ * @author tristan
+ */
 public final class Linker {
 	
 
@@ -47,6 +51,14 @@ public final class Linker {
 		
 	}
 		
+	
+	/**
+	 * Use this function to query the linker to discover what components implements a given api for a given component.
+	 * This function should be called while computing the graph of dependencies, for each api in each component. 
+	 * @param component The component for which you want to find the implementer of an api
+	 * @param api The api for which you want to find an implementation
+	 * @return The component that implements api for component
+	 */
 	public static APIName whoIsImplementingMyAPI(APIName component,APIName api) {
 		
 		if (ref == null)
@@ -122,6 +134,10 @@ public final class Linker {
 		
 	}
 	
+	/**
+	 * Use this function to generate the jar files for all of the aliases of a given component.
+	 * @param component The component for which you want to generate the aliases.
+	 */
 	public static void generateAliases(APIName component) {
 		
 		if (ref == null)
@@ -158,6 +174,13 @@ public final class Linker {
 		
 	}
 	
+	/**
+	 * Use this function to figure out what is the name of the file containing the implementation
+	 * of a component. The name of a component and of it's source file may not always match because 
+	 * of aliases. 
+	 * @param name The name of the component for which you are searching the source implementation.
+	 * @return
+	 */
 	public static APIName whatToSearchFor(APIName name) {
 		
 		if (ref == null)
@@ -183,6 +206,10 @@ public final class Linker {
 		
 	}
 	
+	/**
+	 * Use this function to apply the linking rewrites. This function will update the linking for 
+	 * all the components in the repository.
+	 */
 	public static void linkAll() {
 		
 		Set<APIName> cmps = rewrites.keySet();
@@ -192,7 +219,7 @@ public final class Linker {
 		
 	}
 	
-	public static void linkMyComponent(APIName component) {
+	private static void linkMyComponent(APIName component) {
 		
 		if (ref == null)
 			ref = new Linker();

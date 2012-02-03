@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2008,2010, Oracle and/or its affiliates.
+    Copyright 2012, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -13,9 +13,7 @@ package com.sun.fortress.linker;
 
 import java.io.File;
 
-import com.sun.fortress.Shell;
 import com.sun.fortress.repository.ProjectProperties;
-import com.sun.fortress.runtimeSystem.MainWrapper;
 import com.sun.fortress.useful.Pair;
 
 public class LinkShell {
@@ -87,15 +85,6 @@ public class LinkShell {
 		}
 		
 		
-		if (what.equals("build")) {	
-			if (args.length != 2) {
-				System.out.println("Expecting one argument");
-				System.exit(-1);
-			}
-			File f = ProjectProperties.SOURCE_PATH.findFile(args[1]);
-			String[] compileArgs = {"link",f.toString()}; 
-			Shell.main(compileArgs);
-		}
 	
 		st.writeState();
 		

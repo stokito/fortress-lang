@@ -1,5 +1,5 @@
  /*******************************************************************************
-    Copyright 2008,2011, Oracle and/or its affiliates.
+    Copyright 2008,2012, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -192,14 +192,12 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     @Override
     public ComponentIndex getComponent(APIName name) throws FileNotFoundException, IOException, StaticError {
         Debug.debug(Debug.Type.REPOSITORY, 2, "Get component for ", name);
+
+        // Generate jar files for new aliases
+        
         ComponentGraphNode node = addComponentGraph(name);
         refreshGraph();
         
-        /*
-        for (GraphNode g: graph.nodes()) 
-        	if (g instanceof ComponentGraphNode) 
-                Linker.linkMyComponent(g.getName());
-        */
         Linker.linkAll();
         
         try {
