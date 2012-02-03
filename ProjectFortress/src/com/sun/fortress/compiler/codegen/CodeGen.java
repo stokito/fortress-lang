@@ -426,9 +426,46 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * with the subtypes that have no opr parameters. 
          */
         Map<Id, TypeConsIndex> some_traits = ci.typeConses();
-        /*
-         * 
-         */
+        for (Map.Entry<Id,TypeConsIndex> ent : some_traits.entrySet()) {
+            TypeConsIndex tci = ent.getValue();
+            Id id = ent.getKey();
+            List <StaticParam>  tci_sps = tci.staticParameters();
+            if (! staticParamsIncludeOpr(tci_sps)) {
+                tci.ast();
+                Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+                toConsider = STypesUtil.properlyInheritedMethodsNotIdenticallyCovered(id, typeAnalyzer);
+                /* This tci has no opr params; we need 
+                 * to look at all the functional methods
+                 * that it inherits, and if any of them come
+                 * from traits with opr params, and if
+                 * their name is one of those opr params,
+                 * and if this trait/object does not define
+                 * that same method itself, then we need
+                 * to note the need for such a functional
+                 * method, both for its declaration and for
+                 * purposes of overloading.
+                 */
+                for (edu.rice.cs.plt.tuple.Pair<IdOrOpOrAnonymousName,
+                        scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
+                assoc : toConsider) {
+                    IdOrOpOrAnonymousName n = assoc.first();
+                    scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tup = assoc.second();
+                    
+                    Functional fnl = tup._1();
+                    if (! (fnl instanceof FunctionalMethod))
+                        continue;
+                    StaticTypeReplacer inst = tup._2();
+                    TraitType tupTrait = tup._3();
+                    
+                    IdOrOp nn = (IdOrOp) (inst.replaceIn(n));
+                    
+                    if (! n.equals(nn)) {
+                        System.err.println("Found orphaned functional method " + nn);
+                    }
+                }
+               
+            }
+        }
         
         this.topLevelOverloads =
             sizePartitionedOverloads(ci.functions());
@@ -457,6 +494,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
     }
     
+
+
+    private boolean staticParamsIncludeOpr(List<StaticParam> sps) {
+        for (StaticParam sp : sps) {
+            if (sp.getKind() instanceof KindOp)
+                return true;
+        }
+        return false;
+    }
 
 
     // We need to expose this because nobody else helping CodeGen can
@@ -966,7 +1012,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     ", extended=" + Useful.listTranslatedInDelimiters("[", extendsClause, "]", ",", TTWtoString));
             
         Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
-            toConsider = STypesUtil.properlyInheritedMethodsNotIdenticallyCovered(currentTraitObjectType, typeAnalyzer);
+            toConsider = STypesUtil.properlyInheritedMethodsNotIdenticallyCovered(currentTraitObjectType.getName(), typeAnalyzer);
         
         MultiMap<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>> toConsiderFixed =
             new MultiMap<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>();

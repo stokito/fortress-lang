@@ -1340,6 +1340,11 @@ object STypesUtil {
                                analyzer: TypeAnalyzer):
         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] =
     gatherMethods(tt, analyzer, false)
+    
+  def properlyInheritedMethods(tt_id: Id,
+                               analyzer: TypeAnalyzer):
+        Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] =
+    gatherMethods(tt_id, analyzer, false)
 //   {
 //     val methods =
 //       new IndexedRelation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)](false)
@@ -1347,9 +1352,9 @@ object STypesUtil {
 //   }
 
 
-  def properlyInheritedMethodsNotIdenticallyCovered(tt: TraitType, analyzer: TypeAnalyzer):
+  def properlyInheritedMethodsNotIdenticallyCovered(tt_id: Id, analyzer: TypeAnalyzer):
          Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
-    removeIdenticallyCoveredMethods(properlyInheritedMethods(tt, analyzer), analyzer)
+    removeIdenticallyCoveredMethods(properlyInheritedMethods(tt_id, analyzer), analyzer)
   }
 
   def allMethodsNotIdenticallyCovered(tt: TraitType, analyzer: TypeAnalyzer):
@@ -1391,9 +1396,13 @@ object STypesUtil {
     gatherMethods(tt, analyzer, true)
 
   def gatherMethods(tt: TraitType, analyzer: TypeAnalyzer, includeSelf: Boolean):
+        Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = 
+          gatherMethods(tt.getName, analyzer, includeSelf)
+
+    def gatherMethods(tt_name: Id, analyzer: TypeAnalyzer, includeSelf: Boolean):
         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
     val result = new IndexedRelation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)](false)
-    toOption(analyzer.traits.typeCons(tt.getName)) match {
+    toOption(analyzer.traits.typeCons(tt_name)) match {
       case Some(ti: TraitIndex) =>
         val traitsAndArgs = allSupertraitsAndStaticArgs(ti, analyzer)
         for (tname <- traitsAndArgs.keySet;
