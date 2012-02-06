@@ -45,6 +45,7 @@ import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.HasSelfType;
 import com.sun.fortress.compiler.index.Method;
+import com.sun.fortress.compiler.index.ParametricOperator;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
@@ -1153,6 +1154,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 // toConsider.matchFirst(name)) {
                 Functional super_func = overridden._1();
                 StaticTypeReplacer super_inst = overridden._2();
+                
+                if (super_func instanceof ParametricOperator) {
+                    // TODO -- substitute and compare, I think.
+                    continue;
+                }
+                
                 TraitType traitDeclaringMethod = overridden._3();
                 if (typeAnalyzer.equiv(traitDeclaringMethod,currentTraitObjectType))
                     continue;
