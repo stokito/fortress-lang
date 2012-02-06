@@ -417,6 +417,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         
+        Relation<IdOrOpOrAnonymousName, Function> augmentedFunctions =
+            new IndexedRelation<IdOrOpOrAnonymousName, Function>(false);
+        
+        augmentedFunctions.addAll(ci.functions());
+        
         /*
          * Need to spot defined (not abstract) functional methods 
          * from supertraits where opr-parameterization changes
@@ -431,7 +436,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Id id = ent.getKey();
             List <StaticParam>  tci_sps = tci.staticParameters();
             if (! staticParamsIncludeOpr(tci_sps)) {
-                tci.ast();
+                TraitObjectDecl tci_decl = (TraitObjectDecl) tci.ast();
                 Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
                 toConsider = STypesUtil.properlyInheritedMethodsNotIdenticallyCovered(id, typeAnalyzer);
                 /* This tci has no opr params; we need 
@@ -461,6 +466,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     
                     if (! n.equals(nn)) {
                         System.err.println("Found orphaned functional method " + nn);
+                        FunctionalMethod fm = (FunctionalMethod) fnl;
+                        FnDecl new_fm_ast = (FnDecl) fm.ast().accept(inst);
+                        nn = (IdOrOp) (inst.replaceIn(n)); // repeat to debug.
+                        FunctionalMethod new_fm = new FunctionalMethod(new_fm_ast,
+                                tci_decl, tci_sps);
+                        // This is somewhat wrong; the functional method needs to be rewritten.
+                        augmentedFunctions.add(nn, new_fm);
                     }
                 }
                
@@ -468,7 +480,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         
         this.topLevelOverloads =
-            sizePartitionedOverloads(ci.functions());
+            sizePartitionedOverloads(augmentedFunctions);
 
         this.topLevelOverloadedNamesAndSigs = new HashSet<String>();
         this.lexEnv = new BATree<String,VarCodeGen>(StringHashComparer.V);
