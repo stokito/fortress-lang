@@ -431,6 +431,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * with the subtypes that have no opr parameters. 
          */
         Map<Id, TypeConsIndex> some_traits = ci.typeConses();
+        /* Use this to avoid creating duplicate overloaded methods.
+         * Note that we have to be careful about Java representations
+         * of types; when self-types are involved, the naively computed
+         * Java representations of two "Fortress-equal" types may not
+         * match, which can lead to verify errors.
+         * 
+         * Ideally, we want to use the more-Java-generic static signature
+         * (which is more likely to match and not fail verification)
+         * but use the tighter for dynamic tests.
+         */
+        OverloadingOracle oa = new OverloadingOracle(ta);
         for (Map.Entry<Id,TypeConsIndex> ent : some_traits.entrySet()) {
             TypeConsIndex tci = ent.getValue();
             Id id = ent.getKey();
@@ -465,14 +476,24 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     IdOrOp nn = (IdOrOp) (inst.replaceIn(n));
                     
                     if (! n.equals(nn)) {
-                        System.err.println("Found orphaned functional method " + nn);
                         FunctionalMethod fm = (FunctionalMethod) fnl;
                         FnDecl new_fm_ast = (FnDecl) fm.ast().accept(inst);
-                        nn = (IdOrOp) (inst.replaceIn(n)); // repeat to debug.
                         FunctionalMethod new_fm = new FunctionalMethod(new_fm_ast,
                                 tci_decl, tci_sps);
-                        // This is somewhat wrong; the functional method needs to be rewritten.
-                        augmentedFunctions.add(nn, new_fm);
+                        // Filter out functions already defined in the overload.
+                        boolean duped = false;
+                        Set<? extends Functional> defs = augmentedFunctions.matchFirst(nn);
+                        for (Functional af : defs) {
+                            if (oa.lteq(af, new_fm) && oa.lteq(new_fm, af)) {
+                                duped = true;
+                                break;
+                            }
+                        }
+
+                        if (! duped) {
+                            System.err.println("Found orphaned functional method " + nn);
+                            augmentedFunctions.add(nn, new_fm);
+                        }
                     }
                 }
                
