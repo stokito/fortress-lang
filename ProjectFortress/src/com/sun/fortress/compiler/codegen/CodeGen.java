@@ -205,6 +205,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         
     };
+
+    private  List<FunctionalMethod> orphanedFunctionalMethods;
     
     CodeGenClassWriter cw;
     CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
@@ -354,7 +356,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.component = c.component;
         this.ci = c.ci;
         this.env = c.env;
-
+        this.orphanedFunctionalMethods = null; // top level only
     }
 
     public CodeGen(Component c,
@@ -376,11 +378,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.fv = fv;
         this.ci = ci;
         this.exportedToUnambiguous = new MultiMap<String, Function> ();
-
+        this.orphanedFunctionalMethods = new ArrayList<FunctionalMethod>();
         this.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, jos);
         cw.visitSource(NodeUtil.getSpan(c).begin.getFileName(), null);
         boolean exportsExecutable = false;
         boolean exportsDefaultLibrary = false;
+        
 
         /*
          * Find every exported name, and make an entry mapping name to
@@ -494,6 +497,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         if (! duped) {
                             System.err.println("Found orphaned functional method " + nn);
                             augmentedFunctions.add(nn, new_fm);
+                            orphanedFunctionalMethods.add(new_fm);
                         }
                     }
                 }
@@ -1653,6 +1657,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         
         voidEpilogue();
+        
+        for (FunctionalMethod ofm : orphanedFunctionalMethods) {
+            //                     functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, savedInATrait, sparams);
+
+        }
 
         for ( Decl d : x.getDecls() ) {
             d.accept(this);
