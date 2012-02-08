@@ -206,7 +206,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
     };
 
-    private  List<FunctionalMethod> orphanedFunctionalMethods;
+    private final List<FunctionalMethod> orphanedFunctionalMethods;
     
     CodeGenClassWriter cw;
     CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
@@ -356,7 +356,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.component = c.component;
         this.ci = c.ci;
         this.env = c.env;
-        this.orphanedFunctionalMethods = null; // top level only
+        this.orphanedFunctionalMethods = c.orphanedFunctionalMethods;
     }
 
     public CodeGen(Component c,
