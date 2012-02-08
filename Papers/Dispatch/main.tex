@@ -1,0 +1,136 @@
+\documentclass[preprint,10pt]{sigplanconf}
+%\usepackage{url, amssymb, amsmath, amsthm, stmaryrd, xspace}
+%\usepackage{amsfonts, graphicx, fullpage, times, wrapfig}
+%\usepackage{hyperref, array}
+%\usepackage{url, amssymb, amsmath, stmaryrd}
+
+\topmargin=0.8in
+\advance\textheight by 4pt
+
+\setlength{\textfloatsep}{6pt plus 4pt minus 4pt}
+\setlength{\dbltextfloatsep}{6pt plus 4pt minus 4pt}
+\renewcommand{\topfraction}{0.80}
+\makeatletter
+\setvspace{\@sectionaboveskip}{8pt plus 3pt minus 2pt}
+\setlength{\@sectionbelowskip}{2pt}
+\setvspace{\@subsectionaboveskip}{6pt plus 2pt minus 2pt}
+\setlength{\@subsectionbelowskip}{2pt}
+\makeatother
+
+%\usepackage{fortify}
+\def\macros{../../latex-common/macros}
+\input{\macros/macros}
+
+
+% --- Author Metadata here ---
+%\conferenceinfo{}{}
+%\CopyrightYear{2010}
+%\crdata{}  % Allows default copyright data (X-XXXXX-XX-X/XX/XX) to be over-ridden.
+% --- End of Author Metadata ---
+
+
+\title{Implementing Fully Modular, Statically Typed, \\ Symmetric Multimethod Dispatch}
+%\subtitle{[Extended Abstract]
+%\titlenote{A full version of this paper is available as ...}
+
+
+% \authorinfo{
+% David Chase \and Victor Luchangco \and Sukyoung Ryu \and
+% Guy L. Steele Jr.}
+% {Oracle Labs}
+% {\{david.r.chase, guy.steele\}@oracle.com}
+
+\authorinfo{Guy L. Steele Jr.}{Oracle Labs}{\small guy.steele@oracle.com}
+\authorinfo{David Chase}{Oracle Labs}{\small david.r.chase@oracle.com}
+\authorinfo{Eric Allen}{Oracle Labs}{\small eric.allen@oracle.com}
+\authorinfo{Victor Luchangco}{Oracle Labs}{\small victor.luchangco@oracle.com}
+\authorinfo{Sukyoung Ryu}{KAIST}{\small sryu@cs.kaist.ac.kr}
+
+
+\makeatletter
+\def \@maketitle {%
+  \begin{center}
+  \@settitlebanner
+  \let \thanks = \titlenote
+  \noindent \LARGE \bfseries \@titletext \par
+  %\vskip 6pt
+  %\noindent \Large \@subtitletext \par
+  \vskip 6pt
+  \ifcase \@authorcount
+    \@latex@error{No authors were specified for this paper}{}\or
+    \@titleauthors{i}{}{}\or
+    \@titleauthors{i}{ii}{}\or
+    \@titleauthors{i}{ii}{iii}\or
+    \noindent \@setauthor{9pc}{i}{\@false}\hspace{1.5pc}%
+              \@setauthor{9pc}{ii}{\@false}\hspace{1.5pc}%
+              \@setauthor{9pc}{iii}{\@false}\hspace{1.5pc}%
+              \@setauthor{9pc}{iv}{\@true}\par
+    \vspace{20pt}\or
+    \noindent \@setauthor{8pc}{i}{\@false}\hspace{0.5pc}%
+              \@setauthor{8pc}{ii}{\@false}\hspace{0.5pc}%
+              \@setauthor{7.5pc}{iii}{\@false}\hspace{0.5pc}%
+              \@setauthor{8.6pc}{iv}{\@false}\hspace{0.5pc}%
+              \@setauthor{7.5pc}{v}{\@true}\par
+    \vspace{20pt}\or
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{vi}\or
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{vi}%
+                  \@titleauthors{vii}{}{}\or
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{vi}%
+                  \@titleauthors{vii}{viii}{}\or
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{vi}%
+                  \@titleauthors{vii}{viii}{ix}\or
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{vi}%
+                  \@titleauthors{vii}{viii}{ix}\@titleauthors{x}{}{}%
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{vi}%
+                  \@titleauthors{vii}{viii}{ix}\@titleauthors{x}{xi}{}%
+    \@titleauthors{i}{ii}{iii}\@titleauthors{iv}{v}{vi}%
+                  \@titleauthors{vii}{viii}{ix}\@titleauthors{x}{xi}{xii}%
+  \else
+    \@latex@error{Cannot handle more than 12 authors}{}%
+  \fi
+  %\vspace{0.5pc}
+  \end{center}}
+
+\renewenvironment{thebibliography}[1]
+     {\section*{\refname
+        \@mkboth{\MakeUppercase\refname}{\MakeUppercase\refname}}%
+      \list{\@biblabel{\@arabic\c@enumiv}}%
+           {\settowidth\labelwidth{\@biblabel{#1}}%
+            \leftmargin=10pt
+            \advance\labelsep by -1pt
+            \advance\leftmargin\labelsep
+            \@openbib@code
+            \usecounter{enumiv}%
+            \let\p@enumiv\@empty
+            \renewcommand\theenumiv{\@arabic\c@enumiv}}%
+      \small
+      \softraggedright%%%\sloppy
+      \clubpenalty4000
+      \@clubpenalty \clubpenalty
+      \widowpenalty4000%
+      \sfcode`\.\@m}
+     {\def\@noitemerr
+       {\@latex@warning{Empty `thebibliography' environment}}%
+      \endlist}
+\makeatother
+
+\begin{document}
+
+\maketitle
+
+\input{abstract}
+
+\vbox to 20pt{
+\category{D.3.3}{Programming Languages}{Language Constructs and Features---classes and objects, inheritance, modules, packages, polymorphism}
+\vss}
+
+\terms{Languages}
+
+\keywords{object-oriented programming, traits, multiple dispatch, symmetric dispatch, multiple inheritance, overloading, modularity, methods, multimethods, functional methods, static types, run-time types, ilks, components, separate compilation, Fortress, meet rule}
+
+\input{body}
+
+\bibliographystyle{abbrv}
+\bibliography{books}
+
+\end{document}

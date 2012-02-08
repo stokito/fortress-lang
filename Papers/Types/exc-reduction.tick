@@ -1,0 +1,130 @@
+In the evaluation of valid overloadings from Section~\ref{sec:examples},
+intensional type analysis was required in order to reason about certain
+examples. Since this reasoning justified
+the validity of these overloaded functions, we incorporate it into
+the present formal system as well.
+
+Whenever two different domain types should be
+applicable to the same argument type $W$ (in order to validate the Meet Rule
+or Return Type Rule), an existentially quantified intersection type
+naturally arises as the necessary supertype of $W$.
+Intersection types $S \cap T$ in our type system naturally fall into two
+distinct cases: either $S \nexc T$, or $S \exc T$ in which case the 
+intersection has the same extent as \Bottom.
+In the second case, the intersection is trivial and $W$, as
+a subtype of the intersection, must also be trivial.
+Moreover, because the argument type $W$ to which both declarations must be applicable
+is necessarily equivalent to \Bottom, then the Meet Rule and Return Type Rule
+are both trivially satisfied by the presence of the implicit overloading on
+\Bottom. In this manner case analysis on whether an existentially
+quantified (intersection) type is \Bottom facilitates the checking of our
+rules.
+
+Na\"{i}vely one might expect this case analysis on $S \cap T$ to simply check
+whether $S \exc T$. However, as is the case when checking generic
+function declarations, the types $S$ and $T$ might have free type variables,
+whose uncertainty often precludes a definitive statement about $S \exc T$.
+(For example, `C[\X\]` $\exc$ `C[\Y\]` holds only if $X \not\equiv Y$.) Our solution is to reason backwards: Under the assumption that the intersection
+is nontrivial (that the types do not exclude), gather the necessary
+constraints on type parameters. (For example, `C[\X\] CAP C[\Y\]` $\not\equiv \Bottom$ yields the constraint $X \equiv Y$.) These constraints are then
+reduced, resulting in an instantiation (and potentially tighter bounds
+on type parameters) that necessarily follows from our assumption of nontriviality.%
+\footnote{A similar sort of case analysis and constraint solving
+arises for pattern matching with generalized algebraic data types (GADTs) \cite{simonet07}: GADTs resemble our existential types and pattern matching resembles our function application.}
+
+
+We call the general pattern of simplifying an existentially quantified
+(intersection) type \emph{existential reduction}, given by the judgment $\jtred{\delta}{\delta}$ in Figure~\ref{fig:exred}. The first rule for existential reduction performs the constraint-based case analysis described above, while the second merely relates the existential to itself if the premises of the first rule do not hold. We thus explain the first rule in more detail.
+
+The first premise determines the constraints $\C$ that must be true under
+the hypothesis that $T \not\equiv \Bottom$ (i.e. that this type is
+nontrivial). Note that the type variables from $\Delta$ are bound, while any
+type variables from the existential itself, $\Delta'$, become inference type
+variables mentioned in $\C$. The second premise binds $\C'$ to exactly
+the inference type variables and bounds denoted by the existential's type parameters; these are the constraints that must hold for $T$ to still make
+sense.
+In the third premise, if \textit{unify} succeeds, it
+produces a substitution $\phi$ for any inference type variables from $\Delta'$ constrained by equalities. Because $\phi$ is a most general unifier, it has the property that any other valid substitution $\psi$ of $\Delta'$'s variables with
+$\psi(T) \not\equiv \Bottom$ must be equal to $\tau \circ \phi$, for some
+other substitution $\tau$. Moreover, if \textit{unify} succeeds, it produces
+a set of leftover constraints $\C''$ that are not unifiable equalities (but have still
+been simplified).
+If it is possible to express $\C''$ as some type environment $\Delta''$,
+then we use this as the new type parameters over the simplified type
+$\phi(T)$.
+
+Similarly we call the general pattern of simplifying a universally quantified arrow type \emph{universal reduction}, given by the judgment $\jtred{\sigma_1}{\sigma_2}$
+The first premise reduces the domain type $\dom(\sigma) = \exttype[\Delta']{S}$, resulting in a new existential type $\delta = \exttype[\Delta'']{S'}$ and a substitution $\phi$ mapping type variables from $\Delta'$
+to types with variables in $\Delta''$. We then construct a new arrow with domain $\delta$ and range $\phi(T)$.
+
+%%%%%%%%%%%%%%%%%%%%% BEGIN EXRED FIG %%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[t!]
+\centering
+\vspace*{.5em}
+
+\newjudge{Existential Reduction}{\jtreds{\delta}{\delta}{\phi}}
+\infrule
+  {\jcnequiv{T}{\Bottom}{\C} \andalso \toConstraint{\Delta'}{\C'} \\
+   \jsolve{\C \wedge \C'}{\phi}{\C''} \andalso \toBounds{\C''}{\Delta''}}
+  {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta'']{\phi(T)}}{\phi}}
+
+\infrule
+  {\text{otherwise}}
+  {\jtreds{\exttype[\Delta']{T}}{\exttype[\Delta']{T}}{\subst{}{}}}
+
+  
+\newjudge{Universal Reduction}{\jtreds{\sigma}{\sigma}{\phi}}
+\infrule
+  {\jtreds{\exttype[\Delta']{S}}{\exttype[\Delta'']{S'}}{\phi}}
+  {\jtreds{\unitype[\Delta']{\arrowtype{S}{T}}}{\unitype[\Delta'']{\arrowtype{S'}{\phi(T)}}}{\phi}}
+
+
+% \infrule
+%   {\text{otherwise}}
+%   {\jtreds{\unitype[\Delta']{\arrowtype{S}{T}}}{\unitype[\Delta']{\arrowtype{S}{T}}}{\subst{}{}}}
+
+% \infrule
+%   {T \neq \arrowtype{U}{V}}
+% {\jtreds{\unitype[\Delta']{T}}{\unitype[\Delta']{T}}{\subst{}{}}}
+  
+  \caption{Quantifier reduction judgments.}
+  \label{fig:exred}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%% END EXRED FIG %%%%%%%%%%%%%%%%%%%%%%
+
+As an example, in order to check that the first two declarations of $\D_{\mathit{bar}}$ from Section~$\ref{sec:examples}$ satisfy the Meet Rule,
+we must reduce the existential \[
+\text{`EXISTS[\X <: Any, Y <: ZZ\](ArrayList[\X\] CAP List[\Y\]).`}
+\] Thus we must find the constraint $\C$ such that \[
+\jcnequiv[]{\text{`ArrayList[\X\] CAP List[\Y\]`}}{\Bottom}{\C}
+\] can be derived, noting that $X$ and $Y$ are actually (unbound) type inference variables here. In this instance $\C = X \equiv Y$ due to multiple
+instantiation exclusion. Then we convert the bounds on the existential's type parameters into the constraint $\C'$ on $X$ and $Y$ as inference variables: $\toConstraint{\text{`X <: Any, Y <: ZZ`}}{\text{`X <: Any, Y <: ZZ`}}$.
+Unifying the constraint \[
+\C \wedge \C' = X \equiv Y \wedge X \subtypeof `Any` \wedge Y \subtypeof `ZZ`
+\] yields the type substitution $\phi = [W/X, W/Y]$ (for some fresh variable $W$) and the simplified leftover constraint $\C'' =$ \text{`W <: ZZ`}. Since $\C''$ has the
+form of a type environment, $\toBounds{\C''}{\text{`W <: ZZ`}}$,
+we finally reduce this existential to `EXISTS[\W <: ZZ\](ArrayList[\W\] CAP List[\W\])`. However, due to the class table declaration of `ArrayList[\W\]`
+this existential type will be indistinguishable (by $\leinner$) from the simpler `EXISTS[\W<:ZZ\]ArrayList[\W\]`.
+
+When checking that the first two declarations $\D_{\mathit{tail}}$ from Section~\ref{sec:examples} satisfy the Return Type Rule, we use universal reduction to prove
+\[\begin{array}{l@{}l@{}l}
+\vdash & \multicolumn{2}{l}{\text{`FORALL[\X <: Any\]List[\X\] -> List[\X\]`}} \\
+\le & \;\;\text{`FORALL[\X<:Any,Y<:Number\]`} & \!\text{`(List[\X\] CAP List[\Y\])`} \\
+&& \;\rightarrow \text{`List[\Y\]`}
+\end{array}\]
+First, note that by reasoning similar to that in the previous example we know
+\[
+\begin{array}{r@{}l}
+  \vdash \text{`EXISTS[\X<:Any, Y<:Number\]`} & \!\text{`(List[\X\] CAP List[\Y\])`} \\
+  \eqred \; \text{`EXISTS[\W <: Number\]`} & \!\text{`List[\W\]`} \\
+\end{array}
+\]
+with substitution $[W/X, W/Y]$. Using this substitution we must now prove
+\[
+\begin{array}{l@{}r@{}l}
+\vdash & \text{`FORALL[\X<:Number\]`} & \!\text{`List[\X\] -> List[\X\]`} \\
+\leinner & \;\;\text{`FORALL[\W<:Number\]`} & \!\text{`List[\W\] -> List[\W\]`}
+\end{array}
+\]
+which is clearly true.
+

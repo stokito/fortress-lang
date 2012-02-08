@@ -1,0 +1,33 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+
+if [ -z "$FORTRESS_HOME" ]; then
+   export FORTRESS_HOME="`${0%comp/fcomponents}fortress_home`"
+fi
+
+FHOME=$FORTRESS_HOME/default_repository/caches/bytecode_cache
+
+if [ $# != 0 ]
+then
+    echo Usage: fcomponents
+    exit
+fi
+
+cd $FHOME/ ; ls -d */ | grep -e".*" | 
+    (
+        while read line
+        do
+            echo `basename $line`
+        done     
+    )

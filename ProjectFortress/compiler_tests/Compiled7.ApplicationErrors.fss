@@ -1,0 +1,33 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+  identity1[\T\](x: T): T = x
+  call1() = identity1(fn x => x.foo())
+
+  apply[\T, U\](f: T->U, x: T): U = f(x)
+  call2() = apply(fn x => x.foo(), 5)
+
+  compose[\T, U, V\](f: T->U, g: U->V): T->V = fn x => g(f(x))
+  call3() = compose(fn x => x.foo(), fn x => x.bar())
+
+  opr *(f: Object->String, x: ZZ32) = f(x)
+  opr *(f: ZZ32->String, x: ZZ32) = f(x)
+  call4() = (fn x => x) * 5
+
+  bar = fn (x: String->String, y: Object) => x
+  (*) call5() = bar (fn (x) => x, 5)
+
+  baz[\T\](x: T): T = x
+  call6() = baz(fn (x):ZZ32 => x)
+
+  run() = ()
