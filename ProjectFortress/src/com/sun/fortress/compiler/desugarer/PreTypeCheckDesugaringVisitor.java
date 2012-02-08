@@ -544,5 +544,60 @@ public class PreTypeCheckDesugaringVisitor extends NodeUpdateVisitor {
 	}
     }
 
+//    private Block forCaseClauses(Expr e1, FunctionalRef comp, List<CaseClause> l, Option<Block> def) {
+//    	
+//    	int size = l.size();
+//    	
+//    	if (size == 0) 
+//    		throw new Error("Desugarer found no case clauses in a case expression, please report.");
+//    		
+//    	
+//		CaseClause c = l.get(0);
+//		l.remove(0);    	
+//		Expr e2 = c.getMatchClause();
+//		List<Expr> tuple = new ArrayList<Expr>();
+//		tuple.add(e1);
+//		tuple.add(e2);
+//		Expr arg = ExprFactory.makeTupleExpr(NodeFactory.desugarerSpan, tuple);
+//		Expr cond = ExprFactory.make_RewriteFnApp(comp, arg);
+//		If i;
+//		
+//    	if (size > 1) {
+//    		i = ExprFactory.makeIf(NodeFactory.desugarerSpan, cond, c.getBody(), forCaseClauses(e1,comp,l,def));
+//    	} else if (def.isSome()) {
+//    		i = ExprFactory.makeIf(NodeFactory.desugarerSpan, cond, c.getBody(), def.unwrap());
+//    	} else {
+//    		Expr ex = ExprFactory.makeThrow(NodeFactory.desugarerSpan, "MatchFailure");
+//    		i = ExprFactory.makeIf(NodeFactory.desugarerSpan, cond, c.getBody(),ExprFactory.makeBlock(ex));
+//    	}
+//    	    	
+//		return ExprFactory.makeBlock(i);
+//    
+//    }
+//    
+//    @Override
+//    public Node forCaseExpr(CaseExpr x) {
+//        	
+//    	if (x.getParam().isNone())
+//    		throw new Error("Desugaring failed for case expression. The case expression has no conditional expression. Please report.");
+//
+//    	NameOracle naming = new NameOracle(this);
+//    	Id fresh = naming.makeId();
+//    	
+//    	Option<FunctionalRef> fn_op = x.getCompare(); 
+//    	FunctionalRef fn;
+//    	
+//    	if (fn_op.isSome()) {
+//    		fn = fn_op.unwrap();
+//    	} else {
+//    		fn = x.getEqualsOp();
+//    	}
+//    	    	    	
+//    	Block cascade = forCaseClauses(ExprFactory.makeVarRef(NodeFactory.desugarerSpan,fresh),fn,x.getClauses(),x.getElseClause());
+//    	
+//    	return ExprFactory.makeLocalVarDecl(fresh ,x.getParam().unwrap(), cascade);
+//    	
+//    }
+    
 
 }

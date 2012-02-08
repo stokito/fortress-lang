@@ -15,6 +15,7 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -95,16 +96,19 @@ public class StaticChecker {
     public static class ComponentResult extends StaticPhaseResult {
         private final Map<APIName, ComponentIndex> _components;
         private final List<APIName> _failedComponents;
-
+        private final Map<APIName, STypeChecker> _typeCheckers;
+        
         public ComponentResult(Map<APIName, ComponentIndex> components,
                                List<APIName> failedComponents,
-                               Iterable<? extends StaticError> errors) {
+                               Iterable<? extends StaticError> errors, Map<APIName, STypeChecker> typeCheckers) {
             super(errors);
             _components = components;
             _failedComponents = failedComponents;
+            _typeCheckers = typeCheckers;
         }
         public Map<APIName, ComponentIndex> components() { return _components; }
         public List<APIName> failed() { return _failedComponents; }
+        public Map<APIName,STypeChecker> typeCheckers() { return _typeCheckers; }
     }
 
     /**
@@ -138,11 +142,13 @@ public class StaticChecker {
         HashSet<Component> checkedComponents = new HashSet<Component>();
         List<APIName> failedComponents = new ArrayList<APIName>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
-
+        Map<APIName,STypeChecker> typeCheckers = new HashMap<APIName,STypeChecker>();
+        
         for (Map.Entry<APIName, ComponentIndex> component : components.entrySet()) {
             TypeCheckerResult checked = checkCompilationUnit(component.getValue(),
                                                              env, false);
             checkedComponents.add((Component)checked.ast());
+            typeCheckers.put(component.getKey(), checked.typeChecker());
             if (!checked.isSuccessful()) failedComponents.add(component.getKey());
             errors = IterUtil.compose(checked.errors(), errors);
         }
@@ -150,7 +156,7 @@ public class StaticChecker {
             (IndexBuilder.buildComponents(checkedComponents,
                                           System.currentTimeMillis()).components(),
              failedComponents,
-             errors);
+             errors,typeCheckers);
     }
 
     public static TypeCheckerResult checkCompilationUnit(CompilationUnitIndex index,
@@ -240,7 +246,7 @@ public class StaticChecker {
                     ast = (Component)typeChecker.typeCheck(component_ast);
                     componentIndex = (ComponentIndex)buildIndex(ast, isApi);
                     errors.addAll(Lists.toJavaList(typeChecker.getErrors()));
-                    result = new TypeCheckerResult(ast, errors);
+                    result = new TypeCheckerResult(ast, errors, typeChecker);
                 }
                 index = componentIndex;
             }

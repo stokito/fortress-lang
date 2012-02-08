@@ -170,6 +170,9 @@ object FloatingComparisonError extends UncheckedException
     getter asString(): String = "Floating comparison error"
 end
 
+object MatchFailure extends UncheckedException
+    getter asString(): String = "Match failure"
+end    
 
 (* Checked Exceptions *)
 

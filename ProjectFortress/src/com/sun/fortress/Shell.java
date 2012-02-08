@@ -280,6 +280,10 @@ public final class Shell {
     public static boolean getChainExprDesugaring(){
         return compileProperties.use_scala && compileProperties.chainexpr_desugar;
     }
+    
+    public static boolean getCaseExprDesugaring(){
+        return compileProperties.case_expr_desugar;
+    }
 
     public static void setMacro(boolean macro) {
         compileProperties.macro = macro;
@@ -321,6 +325,10 @@ public final class Shell {
         compileProperties.chainexpr_desugar = desugar;
     }
 
+    public static void setCaseExprDesugaring(boolean desugar) {
+    	compileProperties.case_expr_desugar = desugar;
+    }
+    
     /**
      * Main entry point for the fortress shell.
      * In order to support accurate testing of error messages, this method immediately
@@ -362,6 +370,7 @@ public final class Shell {
     public static void useInterpreterLibraries() {
 	setAssignmentPreDesugaring(false);
 	setAssignmentDesugaring(true);
+	setCaseExprDesugaring(false);
         WellKnownNames.useFortressLibraries();
         Types.useFortressLibraries();
     }
@@ -1262,6 +1271,7 @@ public final class Shell {
         boolean assignment_pre_desugar = ProjectProperties.getBoolean("fortress.compile.predesugar.assignment",false); // run predisambiguation assignment desugaring or not
         boolean coercion_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.coercion",true); // run coercion desugaring or not
         boolean chainexpr_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.chainexpr",true); // run chain expr desugaring or not
+        boolean case_expr_desugar = true;
     }
 
 }

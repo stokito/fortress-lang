@@ -40,7 +40,7 @@ public class DesugarPhase extends Phase {
             throw new MultipleStaticError(apiDSR.errors());
         }
 
-        Desugarer.ComponentResult componentDSR = Desugarer.desugarComponents(previous.components(), apiEnv);
+        Desugarer.ComponentResult componentDSR = Desugarer.desugarComponents(previous.components(), apiEnv, previous.typeCheckers());
 
         if (!componentDSR.isSuccessful()) {
             throw new MultipleStaticError(componentDSR.errors());

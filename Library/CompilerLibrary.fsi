@@ -72,6 +72,7 @@ object RationalComparisonError extends UncheckedException end
 
 object FloatingComparisonError extends UncheckedException end
 
+object MatchFailure extends UncheckedException end
 
 (************************************************************
  * Simple Range support

@@ -18,6 +18,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.fortress.scala_src.typechecker.STypeChecker;
+
 import com.sun.fortress.compiler.StaticPhaseResult;
 import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.nodes.ASTNode;
@@ -46,7 +48,8 @@ import static com.sun.fortress.exceptions.InterpreterBug.bug;
 public class TypeCheckerResult extends StaticPhaseResult {
     private Node ast;
     private final Option<Type> type;
-
+    private STypeChecker typeChecker;
+    
     /**
      * Generally compose should be called instead of this method. This method is
      * only to be called if you no longer care about propagating constraints upwards.
@@ -107,6 +110,14 @@ public class TypeCheckerResult extends StaticPhaseResult {
         type = Option.none();
     }
 
+    public TypeCheckerResult(Node _ast,
+            Iterable<? extends StaticError> _errors, STypeChecker _typeChecker) {
+        super(_errors);
+        ast = _ast;
+        type = Option.none();
+        typeChecker = _typeChecker;
+    }
+    
     public TypeCheckerResult(Node _ast) {
         super();
         ast = _ast;
@@ -139,7 +150,8 @@ public class TypeCheckerResult extends StaticPhaseResult {
 
     public Node ast() { return ast; }
     public Option<Type> type() { return type; }
-
+    public STypeChecker typeChecker() { return typeChecker; }
+    
     //Provide a setter so that we can Normalize the AST and keep all of the other state in TypeCheckerResult
     public void setAst(Node _ast){
         this.ast=_ast;

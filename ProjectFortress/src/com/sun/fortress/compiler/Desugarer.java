@@ -13,6 +13,8 @@ package com.sun.fortress.compiler;
 
 import java.util.*;
 
+import com.sun.fortress.scala_src.typechecker.STypeChecker;
+
 import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.desugarer.*;
 import com.sun.fortress.compiler.index.ApiIndex;
@@ -95,13 +97,13 @@ public class Desugarer {
     /** Statically check the given components. */
     public static ComponentResult
         desugarComponents(Map<APIName, ComponentIndex> components,
-                          GlobalEnvironment env) {
+                          GlobalEnvironment env, Map<APIName,STypeChecker> typeCheckers) {
 
         HashSet<Component> desugaredComponents = new HashSet<Component>();
         Iterable<? extends StaticError> errors = new HashSet<StaticError>();
 
         for (Map.Entry<APIName, ComponentIndex> component : components.entrySet()) {
-            desugaredComponents.add(desugarComponent(component.getValue(), env));
+            desugaredComponents.add(desugarComponent(component.getValue(), env, typeCheckers.get(component.getKey())));
         }
         return new ComponentResult
             (IndexBuilder.buildComponents(desugaredComponents,
@@ -111,13 +113,20 @@ public class Desugarer {
 
     public static Component
         desugarComponent(ComponentIndex component,
-                         GlobalEnvironment env) {
+                         GlobalEnvironment env, STypeChecker typeChecker) {
 
         Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap =
             Option.<Map<Pair<Id,Id>,FieldRef>>none();
 	Component comp = (Component) component.ast();
         TraitTable traitTable = new TraitTable(component, env);
 
+        boolean b = Shell.getCaseExprDesugaring();
+        // Desugar case expressions
+        if (b) {
+        	CaseExprDesugarer caseExprDesugarer = new CaseExprDesugarer( typeChecker );
+        	comp = (Component) comp.accept(caseExprDesugarer);
+        }
+        
         // Desugar coercion invocation nodes into function applications.
         if (Shell.getCoercionDesugaring()) {
             CoercionDesugarer coercionDesugarer = new CoercionDesugarer();

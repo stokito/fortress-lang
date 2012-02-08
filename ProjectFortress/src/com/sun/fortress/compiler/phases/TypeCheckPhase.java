@@ -54,7 +54,7 @@ public class TypeCheckPhase extends Phase {
 
         return new AnalyzeResult(apiSR.apis(),
                                  componentSR.components(),
-                                 IterUtil.<StaticError>empty());
+                                 IterUtil.<StaticError>empty(),componentSR.typeCheckers());
     }
 
 }

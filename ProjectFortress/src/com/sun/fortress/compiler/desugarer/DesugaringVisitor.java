@@ -11,6 +11,7 @@
 
 package com.sun.fortress.compiler.desugarer;
 
+import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.Types;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.*;
@@ -27,6 +28,9 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
+
+import com.sun.fortress.scala_src.typechecker.STypeChecker;
+import com.sun.fortress.scala_src.typechecker.STypeCheckerFactory;
 
 /* Getter/setter desugaring
  */
@@ -62,12 +66,12 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
     private List<Id> fieldsInScope;
     private Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap =
         Option.<Map<Pair<Id,Id>,FieldRef>>none();
-
+     
     public DesugaringVisitor( Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap ) {
         fieldsInScope = new ArrayList<Id>();
         this.boxedRefMap = boxedRefMap;
     }
-
+    
     public DesugaringVisitor( List<Id> _fieldsInScope,
                               Option<Map<Pair<Id,Id>,FieldRef>> boxedRefMap ) {
         fieldsInScope = _fieldsInScope;
@@ -604,4 +608,6 @@ public class DesugaringVisitor extends NodeUpdateVisitor {
                                        body_result, implementsUnambiguousName_result);
     }
 
+
+        
 }

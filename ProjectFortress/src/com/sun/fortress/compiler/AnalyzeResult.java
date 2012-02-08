@@ -14,6 +14,8 @@ package com.sun.fortress.compiler;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sun.fortress.scala_src.typechecker.STypeChecker;
+
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.StaticError;
@@ -31,7 +33,8 @@ public final class AnalyzeResult extends StaticPhaseResult {
 
     private final Map<APIName, ApiIndex> _apis;
     private final Map<APIName, ComponentIndex> _components;
-
+    private final Map<APIName, STypeChecker> _typeCheckers;
+    
     public AnalyzeResult(Iterable<? extends StaticError> errors) {
         this(new HashMap<APIName, ApiIndex>(), new HashMap<APIName, ComponentIndex>(),
                 errors);
@@ -43,8 +46,21 @@ public final class AnalyzeResult extends StaticPhaseResult {
         super(errors);
         _apis = apis;
         _components = components;
+        _typeCheckers = null;
     }
 
+    // Use this constructor if you want to pass the type checkers to the next phase.
+    // Use with caution!
+    public AnalyzeResult(Map<APIName, ApiIndex> apis,
+            Map<APIName, ComponentIndex> components,
+            Iterable<? extends StaticError> errors, 
+            Map<APIName, STypeChecker> typeCheckers) {
+        super(errors);
+        _apis = apis;
+        _components = components;
+        _typeCheckers = typeCheckers;
+    }    
+    
     /**
      * A copying constructor, where every other field of the given result will be
      * copied, except apis, components, and errors, which will be replaced by the
@@ -59,6 +75,7 @@ public final class AnalyzeResult extends StaticPhaseResult {
     	super(errors);
     	_apis = apis;
         _components = components;
+        _typeCheckers = null;
     }
     
     public Iterable<Api> apiIterator() { 
@@ -71,4 +88,10 @@ public final class AnalyzeResult extends StaticPhaseResult {
     
     public Map<APIName, ApiIndex> apis() { return _apis; }
     public Map<APIName, ComponentIndex> components() { return _components; }
+    public Map<APIName, STypeChecker> typeCheckers() { 
+    	if (_typeCheckers == null) {
+    		throw new Error("A compiler pass is trying to get access to the type chekcers when it should not. Please report.");
+    	}
+    	return _typeCheckers; 
+    }
 }
