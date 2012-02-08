@@ -359,7 +359,7 @@ public final class Shell {
         Types.useCompilerLibraries();
     }
 
-    public static void useFortressLibraries() {
+    public static void useInterpreterLibraries() {
 	setAssignmentPreDesugaring(false);
 	setAssignmentDesugaring(true);
         WellKnownNames.useFortressLibraries();
@@ -399,7 +399,7 @@ public final class Shell {
                 setPhaseOrder( PhaseOrder.compilerPhaseOrder );
                 return_code = link(args);
             } else if (what.equals("walk")) {
-                useFortressLibraries();
+                useInterpreterLibraries();
                 setScala(false);
                 setPhaseOrder( PhaseOrder.interpreterPhaseOrder );
                 walk(args);
@@ -444,7 +444,7 @@ public final class Shell {
 
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("typecheck-old")) {
-                useFortressLibraries();
+                useInterpreterLibraries();
                 setScala(false);
                 /* TODO: remove the next line once type checking is permanently turned on */
                 setTypeChecking(true);
@@ -452,13 +452,13 @@ public final class Shell {
 
                 return_code = compilerPhases(args, Option.<String>none(), what);
             } else if (what.equals("test")) {
-                useFortressLibraries();
+                useInterpreterLibraries();
                 setScala(false);
                 setPhaseOrder( PhaseOrder.interpreterPhaseOrder );
                 walkTests(args, false);
             } else if (what.contains(ProjectProperties.COMP_SOURCE_SUFFIX)
                        || (what.startsWith("-") && tokens.length > 1)) {
-                useFortressLibraries();
+                useInterpreterLibraries();
                 setScala(false);
                 setPhaseOrder( PhaseOrder.interpreterPhaseOrder );
                 walk(Arrays.asList(tokens));
