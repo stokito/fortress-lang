@@ -173,7 +173,7 @@ public class TopSort {
                     a.add(it);
                 }
             }
-            throw new CycleInRelation("No topological order exists; input contains cycle", a);
+            throw new CycleInRelation("No topological order exists; input contains cycle: ", a);
             
         }
 
