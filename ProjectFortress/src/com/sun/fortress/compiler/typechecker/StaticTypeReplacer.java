@@ -88,7 +88,7 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
         return (IdOrOpOrAnonymousName)t.accept(this); // TODO safe?
     }
 
-    private Node updateNode(Node that, IdOrOpOrAnonymousName name) {
+    private Node updateNode(Node that, final IdOrOpOrAnonymousName name) {
         if (name.getApiName().isSome()) { return that; }
         StaticArg outer_arg = parameterMap.get(name);
         if (outer_arg == null) { return that; }
@@ -98,7 +98,12 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
                 @Override public Node forTypeArg(TypeArg arg) { return arg.getTypeArg(); }
                 @Override public Node forIntArg(IntArg arg) { return arg.getIntVal(); }
                 @Override public Node forBoolArg(BoolArg arg) { return arg.getBoolArg(); }
-                @Override public Node forOpArg(OpArg arg) { return arg.getId(); }
+                @Override public Node forOpArg(OpArg arg) {
+                    if (name instanceof NamedOp) {
+                        return NodeFactory.makeOp((NamedOp) name, arg.getId().getText());
+                    } else 
+                        return arg.getId();
+                    }
                 @Override public Node forDimArg(DimArg arg) { return arg.getDimArg(); }
                 @Override public Node forUnitArg(UnitArg arg) { return arg.getUnitArg(); }
             });

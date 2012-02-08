@@ -45,6 +45,7 @@ import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.HasSelfType;
 import com.sun.fortress.compiler.index.Method;
+import com.sun.fortress.compiler.index.ParametricOperator;
 import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
@@ -204,6 +205,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         
     };
+
+    private final List<FunctionalMethod> orphanedFunctionalMethods;
     
     CodeGenClassWriter cw;
     CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
@@ -353,7 +356,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.component = c.component;
         this.ci = c.ci;
         this.env = c.env;
-
+        this.orphanedFunctionalMethods = c.orphanedFunctionalMethods;
     }
 
     public CodeGen(Component c,
@@ -375,11 +378,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.fv = fv;
         this.ci = ci;
         this.exportedToUnambiguous = new MultiMap<String, Function> ();
-
+        this.orphanedFunctionalMethods = new ArrayList<FunctionalMethod>();
         this.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, jos);
         cw.visitSource(NodeUtil.getSpan(c).begin.getFileName(), null);
         boolean exportsExecutable = false;
         boolean exportsDefaultLibrary = false;
+        
 
         /*
          * Find every exported name, and make an entry mapping name to
@@ -417,6 +421,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         
+        Relation<IdOrOpOrAnonymousName, Function> augmentedFunctions =
+            new IndexedRelation<IdOrOpOrAnonymousName, Function>(false);
+        
+        augmentedFunctions.addAll(ci.functions());
+        
         /*
          * Need to spot defined (not abstract) functional methods 
          * from supertraits where opr-parameterization changes
@@ -426,12 +435,23 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
          * with the subtypes that have no opr parameters. 
          */
         Map<Id, TypeConsIndex> some_traits = ci.typeConses();
+        /* Use this to avoid creating duplicate overloaded methods.
+         * Note that we have to be careful about Java representations
+         * of types; when self-types are involved, the naively computed
+         * Java representations of two "Fortress-equal" types may not
+         * match, which can lead to verify errors.
+         * 
+         * Ideally, we want to use the more-Java-generic static signature
+         * (which is more likely to match and not fail verification)
+         * but use the tighter for dynamic tests.
+         */
+        OverloadingOracle oa = new OverloadingOracle(ta);
         for (Map.Entry<Id,TypeConsIndex> ent : some_traits.entrySet()) {
             TypeConsIndex tci = ent.getValue();
             Id id = ent.getKey();
             List <StaticParam>  tci_sps = tci.staticParameters();
             if (! staticParamsIncludeOpr(tci_sps)) {
-                tci.ast();
+                TraitObjectDecl tci_decl = (TraitObjectDecl) tci.ast();
                 Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
                 toConsider = STypesUtil.properlyInheritedMethodsNotIdenticallyCovered(id, typeAnalyzer);
                 /* This tci has no opr params; we need 
@@ -460,7 +480,25 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     IdOrOp nn = (IdOrOp) (inst.replaceIn(n));
                     
                     if (! n.equals(nn)) {
-                        System.err.println("Found orphaned functional method " + nn);
+                        FunctionalMethod fm = (FunctionalMethod) fnl;
+                        FnDecl new_fm_ast = (FnDecl) fm.ast().accept(inst);
+                        FunctionalMethod new_fm = new FunctionalMethod(new_fm_ast,
+                                tci_decl, tci_sps);
+                        // Filter out functions already defined in the overload.
+                        boolean duped = false;
+                        Set<? extends Functional> defs = augmentedFunctions.matchFirst(nn);
+                        for (Functional af : defs) {
+                            if (oa.lteq(af, new_fm) && oa.lteq(new_fm, af)) {
+                                duped = true;
+                                break;
+                            }
+                        }
+
+                        if (! duped) {
+                            System.err.println("Found orphaned functional method " + nn);
+                            augmentedFunctions.add(nn, new_fm);
+                            orphanedFunctionalMethods.add(new_fm);
+                        }
                     }
                 }
                
@@ -468,7 +506,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         
         this.topLevelOverloads =
-            sizePartitionedOverloads(ci.functions());
+            sizePartitionedOverloads(augmentedFunctions);
 
         this.topLevelOverloadedNamesAndSigs = new HashSet<String>();
         this.lexEnv = new BATree<String,VarCodeGen>(StringHashComparer.V);
@@ -1120,6 +1158,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 // toConsider.matchFirst(name)) {
                 Functional super_func = overridden._1();
                 StaticTypeReplacer super_inst = overridden._2();
+                
+                if (super_func instanceof ParametricOperator) {
+                    // TODO -- substitute and compare, I think.
+                    continue;
+                }
+                
                 TraitType traitDeclaringMethod = overridden._3();
                 if (typeAnalyzer.equiv(traitDeclaringMethod,currentTraitObjectType))
                     continue;
@@ -1613,6 +1657,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         
         voidEpilogue();
+        
+        for (FunctionalMethod ofm : orphanedFunctionalMethods) {
+            //                     functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, savedInATrait, sparams);
+
+        }
 
         for ( Decl d : x.getDecls() ) {
             d.accept(this);

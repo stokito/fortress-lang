@@ -998,14 +998,24 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             TraitType tt = (TraitType) t;
             List<StaticArg> tt_sa = tt.getArgs();
             Id tt_id = tt.getName();
+            List<String> tt_sa_oprs = new ArrayList<String>();
+            List<StaticArg> tt_sa_no_oprs = new ArrayList<StaticArg>();
+            for (StaticArg sta : tt_sa) {
+                if (sta instanceof OpArg) {
+                    tt_sa_oprs.add(((OpArg) sta).getId().getText());
+                } else {
+                    tt_sa_no_oprs.add(sta);
+                }
+            }
             rttiStem = CodeGen.stemFromId(tt_id,packageAndClassName);
+            rttiStem = Naming.oprArgAnnotatedRTTI(rttiStem, tt_sa_oprs);
             if (tt_sa.size() > 0) {
                 // process args into types. Non-type args will be somewhat problematic at first.
                 type_elements = new ArrayList<Type>();
                 // need to figure out how to normalize array length if non-type args.
-                variances = arrayOfInt(tt_sa.size(), 0);
+                variances = arrayOfInt(tt_sa_no_oprs.size(), 0);
                 int variance_index = 0;
-                for (StaticArg sta : tt_sa) {
+                for (StaticArg sta : tt_sa_no_oprs) {
                     if (sta instanceof TypeArg) {
                         TypeArg sta_ta = (TypeArg) sta;
                         type_elements.add( sta_ta.getTypeArg() );

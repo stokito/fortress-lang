@@ -24,5 +24,18 @@ public class CycleInRelation extends IllegalArgumentException {
     public java.util.List getItems() {
         return items;
     }
+
+    @Override
+    public String getMessage() {
+        // TODO Auto-generated method stub
+        String items_string;
+        try {
+            items_string = items.toString();
+        } catch (Throwable kablooie) {
+            items_string = "[exception " + kablooie.getMessage() +
+                            "from toString() of items]";
+        }
+        return super.getMessage() + items_string;
+    }
     
 }
