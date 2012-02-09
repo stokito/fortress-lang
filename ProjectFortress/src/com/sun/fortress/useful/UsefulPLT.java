@@ -154,6 +154,18 @@ public class UsefulPLT {
             public Set<V> putKey(K k) {
                 return error();
             }
+
+            @Override
+            public Set<V> getEmptyIfMissing(K k) {
+                Set<V> s = singleton.get(k);
+                
+                return s == null ? Collections.<V>emptySet() : s;
+            }
+
+            @Override
+            public Set<V> removeItemAllowEmpty(K k, V v) {
+                return error();
+            }
         };
     }
 

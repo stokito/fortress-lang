@@ -163,6 +163,9 @@ public class FunctionalMethod extends Function implements HasSelfType {
         return _selfType;
     }
 
+    /**
+     * Numbering begins at zero.
+     */
     public int selfPosition() {
         return _selfPosition;
     }

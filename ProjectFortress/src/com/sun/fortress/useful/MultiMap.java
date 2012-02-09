@@ -54,10 +54,12 @@ public class MultiMap<K, V> extends AbstractMap<K, Set<V>> implements IMultiMap<
         }
         if (m instanceof BATree) {
             // Combo of signature generic params and instanceof BATree says ok.
-            delegate = ((BATree<K,Set<V>>) m).copy();
+            delegate = new BATree<K,Set<V>>(((BATree<K,Set<V>>) m).comp);
         } else {
-            delegate = new HashMap<K, Set<V>>(m);
+            delegate = new HashMap<K, Set<V>>();
         }
+        for (Map.Entry<? extends K, ? extends Set<V>> entry : m.entrySet())
+            putItems(entry.getKey(), entry.getValue());
     }
 
     // TODO can we get the Java generics right on this?
