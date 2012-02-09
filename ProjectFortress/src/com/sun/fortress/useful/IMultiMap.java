@@ -27,6 +27,10 @@ public interface IMultiMap<K, V> extends Map<K, Set<V>> {
     public Set<V> removeItem(K k, V v);
 
     public Set<V> putKey(K k);
+    
+    public Set<V> getEmptyIfMissing(K k);
+
+    public Set<V> removeItemAllowEmpty(K k, V v);
 
     public final static IMultiMap EMPTY_MULTIMAP = new IMultiMap() {
         private <T> T error() {
@@ -99,6 +103,16 @@ public interface IMultiMap<K, V> extends Map<K, Set<V>> {
 
         public Collection values() {
             return Collections.emptyMap().values();
+        }
+
+        @Override
+        public Set getEmptyIfMissing(Object k) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set removeItemAllowEmpty(Object k, Object v) {
+            return null;
         }
     };
 }
