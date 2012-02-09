@@ -206,7 +206,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
     };
 
-    private final List<FunctionalMethod> orphanedFunctionalMethods;
+    private final MultiMap<IdOrOp, FunctionalMethod> orphanedFunctionalMethods;
     
     CodeGenClassWriter cw;
     CodeGenMethodVisitor mv; // Is this a mistake?  We seem to use it to pass state to methods/visitors.
@@ -378,7 +378,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.fv = fv;
         this.ci = ci;
         this.exportedToUnambiguous = new MultiMap<String, Function> ();
-        this.orphanedFunctionalMethods = new ArrayList<FunctionalMethod>();
+        this.orphanedFunctionalMethods = new MultiMap<IdOrOp, FunctionalMethod>(NodeComparator.idOrOpComparer);
         this.cw = new CodeGenClassWriter(ClassWriter.COMPUTE_FRAMES, jos);
         cw.visitSource(NodeUtil.getSpan(c).begin.getFileName(), null);
         boolean exportsExecutable = false;
@@ -495,9 +495,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         }
 
                         if (! duped) {
-                            System.err.println("Found orphaned functional method " + nn);
+                            // System.err.println("Found orphaned functional method " + nn);
                             augmentedFunctions.add(nn, new_fm);
-                            orphanedFunctionalMethods.add(new_fm);
+                            orphanedFunctionalMethods.putItem(id, new_fm);
                         }
                     }
                 }
@@ -1658,11 +1658,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         voidEpilogue();
         
-        for (FunctionalMethod ofm : orphanedFunctionalMethods) {
-            //                     functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, savedInATrait, sparams);
-
-        }
-
         for ( Decl d : x.getDecls() ) {
             d.accept(this);
         }
@@ -2900,11 +2895,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param returnType
      */
     private void functionalMethodWrapper(FnDecl x, IdOrOp name,
+            int selfIndex,
+            boolean savedInATrait,
+            List<StaticParam> f_method_static_params) {
+        functionalMethodWrapper(x, name, selfIndex, savedInATrait, f_method_static_params, currentTraitObjectDecl);
+    }
+    
+    private void functionalMethodWrapper(FnDecl x, IdOrOp name,
                                          int selfIndex,
                                          boolean savedInATrait,
-                                         List<StaticParam> f_method_static_params) {
+                                         List<StaticParam> f_method_static_params,
+                                         TraitObjectDecl ctod) {
+        
         // FnHeader header = x.getHeader();
-        TraitTypeHeader trait_header = currentTraitObjectDecl.getHeader();
+        TraitTypeHeader trait_header = ctod.getHeader();
         List<StaticParam> trait_sparams = trait_header.getStaticParams();
         //String uaname = NamingCzar.idOrOpToString(x.getUnambiguousName());
 
@@ -3036,7 +3040,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String mname = nonCollidingSingleName(name, sig, "");
 
             InstantiatingClassloader.forwardingMethod(cw, mname, modifiers,
-                    selfIndex, traitOrObjectName, dottedName, invocation, sig, sig,
+                    selfIndex, traitOrObjectName, dottedName, invocation, sig,
+                    sig,
                     params.size(), true, null);
 
         } else {
@@ -3774,9 +3779,26 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         traitOrObjectName = classFile;
         currentTraitObjectDecl = x;
         dumpTraitDecls(header.getDecls());
+        emitOrphanedFunctionalMethods(classId);
         currentTraitObjectDecl = null;
         emittingFunctionalMethodWrappers = false;
         traitOrObjectName = null;
+    }
+
+
+    /**
+     * @param for_class_id
+     */
+    private void emitOrphanedFunctionalMethods(Id for_class_id) {
+        for (FunctionalMethod ofm : orphanedFunctionalMethods.getEmptyIfMissing(for_class_id)) {
+            System.err.println("Orphaned functional method, trait " + for_class_id + ", fmethod " + ofm);
+            FnDecl x = ofm.ast();
+            int selfIndex = ofm.selfPosition();
+            List<StaticParam> sparams = ofm.staticParameters(); // what about trait static parameters??
+            IdOrOp name = ofm.name();
+            BaseType bt = ((TraitSelfType)(x.getHeader().getParams().get(selfIndex).getIdType().unwrap())).getNamed();
+            functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, inATrait, sparams);
+        }
     }
 
     // forObjectDeclPrePass actually generates the class corresponding
@@ -4837,6 +4859,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Have to use the origial header to get the signatures right.
         dumpTraitDecls(original_header.getDecls());
         
+        emitOrphanedFunctionalMethods(traitname);
        
         emittingFunctionalMethodWrappers = false;
 
