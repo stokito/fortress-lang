@@ -3039,24 +3039,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // TODO different collision rules for top-level and for methods.
             String mname = nonCollidingSingleName(name, sig, "");
 
-            InstantiatingClassloader.forwardingMethod(
-                    cw, // classwriter
-                    mname, // name of the generated method
-                    modifiers, // modifiers of the generated method
-                    selfIndex, // index of the self parameter, if any
-                    traitOrObjectName, // class of the method being called
-                    dottedName, // name of the method being called
-                    invocation, 
-                    sig, // signature of the generated method
-                    sig, // signature, including self at selfindex, of the called method
-                    params.size(), // number of params including self
-                    true, // push self first
-                    null); // cast param 0 even if not self.
-
+            functionalForwardingMethod(cw, mname, sig, traitOrObjectName,
+                    dottedName, selfIndex, params.size(), savedInATrait);
+            
         } else {
-
-       
-           
 
             functionalMethodOfGenericTraitObjectWrapper(x, trait_sparams,
                     sig, invocation, dottedName, selfIndex,
@@ -3067,6 +3053,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     }
 
+    /**
+     * Newspeak for forwarding; the old forwarding method code is too atrocious for words.
+     * 
+     * @param cw
+     * @param generated_method_name
+     * @param generated_method_sig
+     * @param invoked_method_trait_object
+     * @param invoked_method_name
+     * @param self_index
+     * @param n_params_including_self
+     * @param is_a_trait
+     */
     static void functionalForwardingMethod(
             ClassWriter cw,
             String generated_method_name,
@@ -3873,7 +3871,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
             functionalForwardingMethod(cw, mname, sig,
                     invoked_class_name, invoked_method_name, selfIndex, params.size(), inATrait);
-            // functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, inATrait, sparams);
         }
     }
 
