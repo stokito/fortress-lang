@@ -3039,10 +3039,19 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // TODO different collision rules for top-level and for methods.
             String mname = nonCollidingSingleName(name, sig, "");
 
-            InstantiatingClassloader.forwardingMethod(cw, mname, modifiers,
-                    selfIndex, traitOrObjectName, dottedName, invocation, sig,
-                    sig,
-                    params.size(), true, null);
+            InstantiatingClassloader.forwardingMethod(
+                    cw, // classwriter
+                    mname, // name of the generated method
+                    modifiers, // modifiers of the generated method
+                    selfIndex, // index of the self parameter, if any
+                    traitOrObjectName, // class of the method being called
+                    dottedName, // name of the method being called
+                    invocation, 
+                    sig, // signature of the generated method
+                    sig, // signature, including self at selfindex, of the called method
+                    params.size(), // number of params including self
+                    true, // push self first
+                    null); // cast param 0 even if not self.
 
         } else {
 
@@ -3058,6 +3067,51 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     }
 
+    static void functionalForwardingMethod(
+            ClassWriter cw,
+            String generated_method_name,
+            String generated_method_sig,
+            String invoked_method_trait_object,
+            String invoked_method_name,
+            int self_index,
+            int n_params_including_self,
+            boolean is_a_trait
+            ) {
+        String invoked_method_sig = Naming.removeNthSigParameter(generated_method_sig, self_index);
+        String self_sig = Naming.nthSigParameter(generated_method_sig, self_index);
+        self_sig.substring(1, self_sig.length()-1); // Strip off L;
+        
+        String ret_type = Naming.sigRet(invoked_method_sig);
+        
+        MethodVisitor mv = cw.visitMethod(ACC_STATIC + ACC_PUBLIC, generated_method_name, generated_method_sig, null, null);
+        mv.visitCode();
+        mv.visitVarInsn(ALOAD, self_index);
+        // If the self_sig does not match the type that we are about to invoke,
+        // cast it.
+        if (! self_sig.equals(invoked_method_trait_object)) {
+            InstantiatingClassloader.generalizedCastTo(mv, invoked_method_trait_object);
+        }
+        // push parameters, except for self
+        for (int i = 0; i < n_params_including_self; i++)
+            if (i != self_index) {
+                mv.visitVarInsn(ALOAD, i);
+            }
+        
+        // invoke
+        mv.visitMethodInsn(is_a_trait ? INVOKEINTERFACE : INVOKEVIRTUAL, invoked_method_trait_object, invoked_method_name, invoked_method_sig);
+
+        
+        // This will need to generalize for covariant types, I expect
+        if (ret_type.startsWith(Naming.TUPLE_OX) ||
+                ret_type.startsWith(Naming.ARROW_OX) ) {
+            InstantiatingClassloader.generalizedCastTo(mv, ret_type);
+        }
+        mv.visitInsn(ARETURN);
+
+        mv.visitMaxs(2, 3);
+        mv.visitEnd();
+
+    }
 
     /**
      * @param x
@@ -3797,7 +3851,29 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             List<StaticParam> sparams = ofm.staticParameters(); // what about trait static parameters??
             IdOrOp name = ofm.name();
             BaseType bt = ((TraitSelfType)(x.getHeader().getParams().get(selfIndex).getIdType().unwrap())).getNamed();
-            functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, inATrait, sparams);
+            
+            FnHeader header = x.getHeader();
+            List<Param> params = header.getParams();
+            com.sun.fortress.nodes.Type returnType = header.getReturnType()
+                    .unwrap();
+            com.sun.fortress.nodes.Type paramType = NodeUtil.getParamType(x);
+            String sig = NamingCzar.jvmSignatureFor(paramType,
+                    returnType, component.getName());
+
+            
+            String mname = nonCollidingSingleName(name, sig, "");
+
+            String invoked_class_name =
+                NamingCzar.jvmClassForToplevelTypeDecl(for_class_id,
+                        "", // no generics just yet
+                        packageAndClassName);
+
+            String invoked_method_name = Naming.fmDottedName(singleName(name), selfIndex);
+
+            
+            functionalForwardingMethod(cw, mname, sig,
+                    invoked_class_name, invoked_method_name, selfIndex, params.size(), inATrait);
+            // functionalMethodWrapper(x, (IdOrOp)name,  selfIndex, inATrait, sparams);
         }
     }
 
