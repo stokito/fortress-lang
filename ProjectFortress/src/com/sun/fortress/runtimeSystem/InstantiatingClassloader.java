@@ -819,8 +819,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
     public static void pushParamsNotSelf(int selfIndex,
             int nparamsIncludingSelf, String forceCastParam0, MethodVisitor mv,
             SignatureParser sp, int parsed_arg_cursor) {
-        int i_bump = 0;
         List<String> parsed_args = sp.getJVMArguments();
+        int i_bump = 0;
         for (int i = 0; i < nparamsIncludingSelf; i++) {
             if (i==selfIndex) continue;
             String one_param = parsed_args.get(parsed_arg_cursor++);
