@@ -282,7 +282,7 @@ trait NN64 extends { Number, Equality[\NN64\] } excludes { ZZ32, ZZ64, RR32, RR6
     opr ^(self, other:NN64):NN64
 end
 
-trait IntLiteral excludes {ZZ32, ZZ64, NN32, RR64, RR32, Character, Boolean, String, NN64, ZZ}
+trait IntLiteral extends { Number, Equality[\IntLiteral\] } excludes {ZZ32, ZZ64, NN32, RR64, RR32, Character, Boolean, String, NN64, ZZ}
     abstract getter asZZ32(): ZZ32
     abstract getter asZZ64(): ZZ64
     abstract getter asNN32(): NN32
