@@ -28,7 +28,7 @@ public class SystemJUTest {
 
     public static Test suite() throws IOException {
         Shell.setPhaseOrder(PhaseOrder.interpreterPhaseOrder);
-        Shell.setCaseExprDesugaring(false);
+        Shell.setCompiledExprDesugaring(false);
         String testDir = ProjectProperties.BASEDIR + "tests";
         String s = System.getProperty("tests");
         boolean failsOnly = !("1".equals(System.getenv("FORTRESS_JUNIT_VERBOSE")));

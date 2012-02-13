@@ -120,9 +120,8 @@ public class Desugarer {
 	Component comp = (Component) component.ast();
         TraitTable traitTable = new TraitTable(component, env);
 
-        boolean b = Shell.getCaseExprDesugaring();
         // Desugar case expressions
-        if (b) {
+        if (Shell.getCompiledExprDesugaring()) {
         	CaseExprDesugarer caseExprDesugarer = new CaseExprDesugarer( typeChecker );
         	comp = (Component) comp.accept(caseExprDesugarer);
         }
@@ -144,6 +143,12 @@ public class Desugarer {
             comp = (Component) comp.accept(desugaringVisitor);
         }
 
+        // Desugar type ascription
+        if (Shell.getCompiledExprDesugaring()) {
+        	TypeAscriptionDesugarer typeAscriptionDesugarer = new TypeAscriptionDesugarer();
+        	comp = (Component) comp.accept(typeAscriptionDesugarer);
+        }
+        
         return comp;
     }
 
