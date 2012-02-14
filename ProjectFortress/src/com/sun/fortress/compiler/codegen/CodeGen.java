@@ -1905,28 +1905,37 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     public void forTypecase(Typecase x) {
         Expr expr = x.getBindExpr();
-
+        expr.accept(this);
+        
         Label done = new Label();
         for (TypecaseClause c : x.getClauses()) {
             Label next = new Label();
             Label end = new Label();
             TypeOrPattern match = c.getMatchType();
             Type typ = getType(match);
-            expr.accept(this);
+            mv.visitInsn(DUP);
             InstantiatingClassloader.generalizedInstanceOf(mv, NamingCzar.jvmBoxedTypeName(typ, thisApi()));
             mv.visitJumpInsn(IFNE, next);
             mv.visitJumpInsn(GOTO, end);
             mv.visitLabel(next);
+            mv.visitInsn(POP);
             c.getBody().accept(this);
             mv.visitJumpInsn(GOTO, done);
             mv.visitLabel(end);
          }
+
+        if (x.getElseClause().isSome()) {
+            mv.visitInsn(POP);
+        	x.getElseClause().unwrap().accept(this);
+            mv.visitJumpInsn(GOTO, done);
+        }
 
          mv.visitMethodInsn(INVOKESTATIC,
                             NamingCzar.internalFortressVoid, NamingCzar.make,
                             NamingCzar.voidToFortressVoid);
 
          mv.visitLabel(done);
+
 
     }
 
