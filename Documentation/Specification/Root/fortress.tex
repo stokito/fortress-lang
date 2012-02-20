@@ -1,0 +1,49 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[openany]{book}
+
+\input{build-options}
+
+\def{\home}{..}
+
+\input{\home/Support/macros}
+
+% Need to add stuff from old preamble, but I'd like to do this incrementally, 
+% as we understand what we need.
+% Much of what is in old preamble should be in some support file.
+
+% What packages do we need? 
+
+
+\title{The Fortress Language Specification}
+
+\begin{document}
+
+\frontmatter
+
+% title page
+% preamble
+
+\mainmatter
+
+\input{\home/Preliminaries/preliminaries}
+\input{\home/Language/language}
+\input{\home/Libraries/libraries}
+
+\backmatter
+
+\input{\home/Appendices/appendices}
+
+% Bibliography
+% Index (?)
+
+\end{document}
