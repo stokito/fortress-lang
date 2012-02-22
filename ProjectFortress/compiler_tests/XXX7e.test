@@ -1,4 +1,4 @@
-#    Copyright 2009, Oracle and/or its affiliates.
+#    Copyright 2009,2012 Oracle and/or its affiliates.
 #    All rights reserved.
 #
 #
@@ -13,6 +13,6 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled7.e.fss:16:1-19:\n\
 ${FORTRESS_AUTOHOME}/ProjectFortress/test_library/Foo.fsi:13:3-18:\n\
-\ There are multiple declarations of g with the same type: ZZ32 -> ZZ32\n\
+\ There are multiple declarations of g with the same parameter type: ZZ32\n\
 File Compiled7.e.fss has 1 error.\n
 compile_out_equals=

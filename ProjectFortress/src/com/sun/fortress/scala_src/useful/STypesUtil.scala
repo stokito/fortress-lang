@@ -840,9 +840,10 @@ object STypesUtil {
    *     that instantiated it.
    */
   def inferStaticParamsHelper[T <: Type](typ: T,
-    constraintMaker: (T, Map[Op, Op]) => CFormula,
-    inferLifted: Boolean = true,
-    inferUnlifted: Boolean = true)(implicit analyzer: TypeAnalyzer): Option[(T, List[StaticArg])] = {
+      				   	 constraintMaker: (T, Map[Op, Op]) => CFormula,
+					 inferLifted: Boolean = true,
+					 inferUnlifted: Boolean = true)(implicit analyzer: TypeAnalyzer):
+        Option[(T, List[StaticArg])] = {
 
     // Substitute inference variables for static parameters in typ.
 
@@ -858,10 +859,10 @@ object STypesUtil {
       applyLifted = inferLifted,
       applyUnlifted = inferUnlifted).
       getOrElse(return None).asInstanceOf[T]
-//    println("Static params helper has infTyp " + infTyp)
+//   println("Static params helper has infTyp " + infTyp)
 
     val constraint = constraintMaker(infTyp, ops)
-//    println("Static params helper has constraint " + constraint)
+//   println("Static params helper has constraint " + constraint)
 
     // 5. build bounds map B = [$T_i -> S(UB(T_i))]
     val infVars = sargs.flatMap(staticArgType)
@@ -870,9 +871,10 @@ object STypesUtil {
         insertStaticParams(t, sparams),
         applyLifted = inferLifted,
         applyUnlifted = inferUnlifted)
-    }.map(t => TPrimitive(Set(), Set(), Set(t), Set(), Set(), Set()))
+    }.map(t => TPrimitive(Set(), Set(), Set(t), Set(  ), Set(), Set()))     // GLS 2/6/2012 Don't allow BottomType to be an upper bound (this could be loosened for some vars but not others)
+    // GLS 2/6/2012 The real fix would be to prohibit BottomType as an upper bound only for vars that are in contravariant position in the signature.
     val bounds = And(Map(infVars.zip(sparamBounds): _*), Map())
-//    println("Static params helper has bounds " + bounds)
+//   println("Static params helper has bounds " + bounds)
 
     // 6. solve C to yield a substitution S' = [$T_i -> U_i]
     val (tSub, oSub) = solve(and(constraint, bounds)).getOrElse(return None)
@@ -880,7 +882,7 @@ object STypesUtil {
     // 7. instantiate infArrow with [U_i] to get resultArrow
     val prenorm = tSub(infTyp)
     val resultTyp = analyzer.normalize(prenorm).asInstanceOf[T]
-//    println("Static params helper normalized " + prenorm + " to " + resultTyp);
+//   println("Static params helper normalized " + prenorm + " to " + resultTyp);
 
     // 8. return (resultArrow,StaticArgs([U_i]))
     val resultArgs = sargs.map {
@@ -1783,4 +1785,16 @@ object STypesUtil {
     outFinder(ast)
     result
   }
+
+  val leftOxfordBracket = "[\\"
+  val rightOxfordBracket = "\\]"
+
+  def typeToString(t: Type): String = {
+    if (t.getInfo.getStaticParams.isEmpty)
+      return t.toString
+    val sparams = getStaticParams(t)
+    sparams.mkString(leftOxfordBracket, ", ", rightOxfordBracket) + t.toString
+  }
+
+  def typeAndSpanToString(t: Type): String = typeToString(t) + " @ " + NU.getSpan(t) 
 }
