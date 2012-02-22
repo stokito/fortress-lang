@@ -1976,9 +1976,9 @@ public class NodeFactory {
         return new StaticParam(makeSpanInfo(span), v, name, tys, ty, b, k);
     }
     
-    public static StaticParam makeStaticParam(StaticParam sp, Id name, List<BaseType> extendsClauses) {
+    public static StaticParam makeStaticParam(StaticParam sp, Id name, List<BaseType> extendsClause) {
         return new StaticParam(sp.getInfo(), sp.getVariance(), name,
-                extendsClauses, sp.getDimParam(), sp.isAbsorbsParam(),
+                extendsClause, sp.getDimParam(), sp.isAbsorbsParam(),
                 sp.getKind()
                 );
     }

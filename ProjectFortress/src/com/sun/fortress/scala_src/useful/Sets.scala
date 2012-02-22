@@ -14,6 +14,7 @@ package com.sun.fortress.scala_src.useful
 import _root_.java.util.{HashSet => JHashSet}
 import _root_.java.util.{Set => JavaSet}
 import scala.collection.JavaConversions
+import scala.collection.immutable.Set
 
 object Sets {
 

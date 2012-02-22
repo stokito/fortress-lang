@@ -1,4 +1,4 @@
-#    Copyright 2009, Oracle and/or its affiliates.
+#    Copyright 2009,2012 Oracle and/or its affiliates.
 #    All rights reserved.
 #
 #
@@ -13,8 +13,8 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled5.j.fss:22:1-19:\n\
 ${STATIC_TESTS_DIR}/Compiled5.j.fss:23:1-19:\n\
-\ Invalid overloading of f:\n\
-\ A -> String @ ${STATIC_TESTS_DIR}/Compiled5.j.fss:22:1-19\n\
-\ and B -> String @ ${STATIC_TESTS_DIR}/Compiled5.j.fss:23:1-19\n\
+\    Invalid overloading of f in component Compiled5.j:\n\
+\     A->String @ ${STATIC_TESTS_DIR}/Compiled5.j.fss:22:1-19\n\
+\ and B->String @ ${STATIC_TESTS_DIR}/Compiled5.j.fss:23:1-19\n\
 File Compiled5.j.fss has 1 error.\n
 compile_out_equals=
