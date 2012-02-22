@@ -1731,16 +1731,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitMethodInsn(INVOKEVIRTUAL, task, "forkIfProfitable", "()V");
         }
         // arg 0 gets compiled in place, rather than turned into work.
-        if (vcgs != null) vcgs.get(0).prepareAssignValue(mv);
         args.get(0).accept(this);
         conditionallyCastParameter(args.get(0), domain_types.get(0));
         if (vcgs != null) vcgs.get(0).assignValue(mv);
-        popAll(mv, 0);  // URGH!!!  look into better stack management...
-
+        popAll(mv, 0);  // URGH!!!  look into better stack management...  FIXME CHF
 
         // join / perform work locally left to right, leaving results on stack.
         for (int i = 1; i < n; i++) {
-            if (vcgs != null) vcgs.get(i).prepareAssignValue(mv);
             int taskVar = taskVars[i];
             mv.visitVarInsn(ALOAD, taskVar);
             mv.disposeCompilerLocal(taskVar);
@@ -2623,8 +2620,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
             addLocalVar(vcg);
             paramsGen.add(vcg);
-            
-            vcg.prepareAssignValue(mv);
             
             index = Naming.TUPLE_ORIGIN;
             for (Type t : tuple_types) {
@@ -3786,7 +3781,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 mv.visitInsn(DUP);
 
                 VarCodeGen vcg = vcgs.get(i);
-                vcg.prepareAssignValue(mv);
                 /* swap dup'd tuple to TOS -- note assumption that prepareAssignValue pushes 
                  * either zero or one item on stack.
                  */
@@ -4439,7 +4433,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             cw.visitField(ACC_PUBLIC + ACC_FINAL, name,
                           NamingCzar.jvmBoxedTypeDesc(v.fortressType, thisApi()),
                           null, null);
-            result.put(name, new TaskVarCodeGen(v, taskClass, thisApi()));
+            result.put(name, new VarCodeGen.TaskVarCodeGen(v, taskClass, thisApi()));
         }
         return result;
     }
@@ -4464,7 +4458,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         int varIndex = 1;
         for (VarCodeGen v0 : freeVars) {
             VarCodeGen v = lexEnv.get(v0.getName());
-            v.prepareAssignValue(mv);
             mv.visitVarInsn(ALOAD, varIndex++);
             v.assignValue(mv);
         }
@@ -4609,7 +4602,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitMethodInsn(INVOKEVIRTUAL, task, "forkIfProfitable", "()V");
         }
         // arg 0 gets compiled in place, rather than turned into work.
-        if (vcgs != null) vcgs.get(0).prepareAssignValue(mv);
         args.get(0).accept(this);
         conditionallyCastParameter(args.get(0),
                 domain_types.get(0));
@@ -4619,8 +4611,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // join / perform work locally left to right, leaving results on stack.
         for (int i = 1; i < n; i++) {
             VarCodeGen vcg = vcgs != null ? vcgs.get(i) : null;
-            if (vcg != null)
-                vcg.prepareAssignValue(mv);
             int taskVar = taskVars[i];
             mv.visitVarInsn(ALOAD, taskVar);
             mv.disposeCompilerLocal(taskVar);
@@ -4660,7 +4650,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             }
             for (int i = 0; i < n; i++) {
                 VarCodeGen vcg = vcgs.get(i);
-                vcg.prepareAssignValue(mv);
                 args.get(i).accept(this);
                 conditionallyCastParameter(Wrapper.make(vcg.fortressType), domain_types.get(i));
                 vcg.assignValue(mv);
