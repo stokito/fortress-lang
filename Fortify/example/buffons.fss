@@ -13,6 +13,8 @@ component fortress.executable
 
 export Executable
 
+(*) A comment-to-end-of-line
+
 run():()=do
    needleLength = 20
    numRows = 10
@@ -31,7 +33,7 @@ run():()=do
          y2 = y1 + needleLength (delta_Y / sqrt(rsq))
          (y_L, y_H) = (y1 MIN y2, y1 MAX y2)
          if ceiling(y_L/needleLength) = floor(y_H/needleLength) then
-            		atomic do hits += 1.0 end
+             atomic do hits += 1.0 end
          end
          atomic do n += 1.0 end
       end

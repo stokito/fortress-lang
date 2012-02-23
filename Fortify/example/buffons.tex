@@ -1,40 +1,39 @@
-\documentclass{article}
-\usepackage{fortify}
-
-\begin{document}
-
-\begin{Fortress}
-\(\VAR{run}(\VAR{args}\COLONOP\TYP{String}\ldots)\COLONOP()=\;\KWD{do}\)\\
-{\tt~~~}\pushtabs\=\+\(   \VAR{needleLength} = 20\)\\
-\(   \VAR{numRows} = 10\)\\
-\(   \VAR{tableHeight} = \VAR{needleLength}\:\VAR{numRows}\)\\
-\(   \KWD{var}\:\VAR{hits} \mathrel{\mathtt{:}}\:\mathbb{R}64 = 0.0\)\\
-\(   \KWD{var}\:n \mathrel{\mathtt{:}}\:\mathbb{R}64 = 0.0\)\\[4pt]
-\(   \VAR{println}(\hbox{\rm``\STR{Starting~parallel~Buffons}''})\)\\
-\(   \VAR{recordTime}(6.0)\)\\
-\(   \KWD{for}\:i \leftarrow 1\mathinner{\hbox{\tt\char'43}}3000 \KWD{do}\)\\
-{\tt~~~}\pushtabs\=\+\(      \delta{}_{\mathrm{X}} = \VAR{random}(2.0) - 1\)\\
-\(      \delta{}_{\mathrm{Y}} = \VAR{random}(2.0) - 1\)\\
-\(      \VAR{rsq} = \delta{}_{\mathrm{X}}^{2} + \delta{}_{\mathrm{Y}}^{2}\)\\
-\(      \KWD{if}  \null\)\pushtabs\=\+\(0 < \VAR{rsq} < 1 \KWD{then}\)\\
-\(         y_{1} = \VAR{tableHeight}\:\VAR{random}(1.0)\)\\
-\(         y_{2} = y_{1} + \VAR{needleLength} (\delta{}_{\mathrm{Y}} / \VAR{sqrt}(\VAR{rsq}))\)\\
-\(         (y_{\mathrm{L}}, y_{\mathrm{H}}) = (y_{1} \OPR{MIN}\:y_{2}, y_{1} \OPR{MAX}\:y_{2})\)\\
-\(         \KWD{if}\:\VAR{ceiling}(y_{\mathrm{L}}/\VAR{needleLength}) = \VAR{floor}(y_{\mathrm{H}}/\VAR{needleLength}) \KWD{then}\)\\
-{\tt~~~~~~~~~~~~~~~}\pushtabs\=\+\(                        \KWD{atomic}\;\;\KWD{do}\:\VAR{hits} \mathrel{+}= 1.0 \KWD{end}\)\-\\\poptabs
-\(         \KWD{end}\)\\
-\(         \KWD{atomic}\;\;\KWD{do}\:n \mathrel{+}= 1.0 \KWD{end}\)\-\\\poptabs
-\(      \KWD{end}\)\-\\\poptabs
-\(   \KWD{end}\)\\
-\(   \VAR{probability} = \VAR{hits}/n\)\\
-\(   \pi{}_{\mathrm{est}} = 2.0/\VAR{probability}\)\\
-\(   \VAR{printTime}(6.0)\)\\
-\(   \VAR{println}(\hbox{\rm``\STR{}''})\)\\
-\(   \VAR{print}(\hbox{\rm``\STR{estimated~Pi~=~}''})\)\\
-\(   \VAR{println}(\pi{}_{\mathrm{est}})\)\\
-\(   \KWD{end}\)\-\\\poptabs
-\(\KWD{end}\)
-\end{Fortress}
-
-
-\end{document}
+\begin{FortressCode}
+\KWD{component} \VAR{fortress}.\VAR{executable} \\
+ \\
+\KWD{export} \TYP{Executable} \\
+ \\
+\*{ A comment-to-end-of-line} \\
+ \\
+\VAR{run}(\ultrathin)\COLON(\ultrathin)=\;\KWD{do} \\
+\3 \+\VAR{needleLength} = 20 \\
+   \VAR{numRows} = 10 \\
+   \VAR{tableHeight} = \VAR{needleLength}\, \VAR{numRows} \\
+   \KWD{var} \VAR{hits} \COLONOP \mathbb{R}64 = 0.0 \\
+   \KWD{var} n \COLONOP \mathbb{R}64 = 0.0 \\
+ \\
+   \VAR{println}(\hbox{\rm\usefont{T1}{ptm}{m}{n}``\STR{Starting~parallel~Buffons}''}) \\
+   \VAR{recordTime}(6.0) \\
+   \KWD{for} i \leftarrow 1\mathbin{\#}3000 \KWD{do} \\
+   \3 \+\delta_{\mathrm{X}} = \VAR{random}(2.0) - 1 \\
+      \delta_{\mathrm{Y}} = \VAR{random}(2.0) - 1 \\
+      \VAR{rsq} = \delta_{\mathrm{X}}^{2} + \delta_{\mathrm{Y}}^{2} \\
+      \KWD{if} \+0 < \VAR{rsq} < 1 \KWD{then} \\
+         y_1 = \VAR{tableHeight}\, \VAR{random}(1.0) \\
+         y_2 = y_1 + \VAR{needleLength}\, \bigl(\delta_{\mathrm{Y}} / \VAR{sqrt}(\VAR{rsq})\bigr) \\
+         (y_{\mathrm{L}}, y_{\mathrm{H}}) = (y_1 \OPR{MIN} y_2, y_1 \OPR{MAX} y_2) \\
+         \KWD{if} \VAR{ceiling}\left({\textstyle{}y_{\mathrm{L}}\over\textstyle\VAR{needleLength}}\right) = \VAR{floor}\left({\textstyle{}y_{\mathrm{H}}\over\textstyle\VAR{needleLength}}\right) \KWD{then} \\
+         \2\2\+\KWD{atomic}\;\; \KWD{do} \VAR{hits} \mathrel{\mathrel{+}=} 1.0 \KWD{end}\- \\
+         \KWD{end} \\
+         \KWD{atomic}\;\; \KWD{do} n \mathrel{\mathrel{+}=} 1.0 \KWD{end}\- \\
+      \KWD{end}\- \\
+   \KWD{end} \\
+   \VAR{probability} = {\textstyle\VAR{hits}\over\textstyle{}n} \\
+   \pi_{\mathrm{est}} = {\textstyle2.0\over\textstyle\VAR{probability}} \\
+   \VAR{printTime}(6.0) \\
+   \VAR{println}(\hbox{\rm\usefont{T1}{ptm}{m}{n}``\verythin''}) \\
+   \VAR{print}(\hbox{\rm\usefont{T1}{ptm}{m}{n}``\STR{estimated~Pi~=~}''}) \\
+   \VAR{println}(\pi_{\mathrm{est}}) \\
+   \KWD{end}\- \\
+\KWD{end}
+\end{FortressCode}
