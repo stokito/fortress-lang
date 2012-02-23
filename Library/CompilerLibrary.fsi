@@ -24,6 +24,8 @@ import CompilerAlgebra.{...}
 
 ignore(_:Any):()
 identity[\T extends Any\](x: T): T
+instanceOf[\T extends Any\](x: Any) : Boolean
+cast[\T extends Any\](x: Any): T
 
 opr ===(a:Any, b:Any):Boolean
 opr NEQV(a:Any, b:Any):Boolean
@@ -73,6 +75,8 @@ object RationalComparisonError extends UncheckedException end
 object FloatingComparisonError extends UncheckedException end
 
 object MatchFailure extends UncheckedException end
+
+object CastException extends UncheckedException end
 
 (************************************************************
  * Simple Range support

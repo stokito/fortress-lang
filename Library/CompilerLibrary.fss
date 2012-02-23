@@ -36,6 +36,19 @@ ignore(_: Any): () = ()
 
 identity[\T extends Any\](x: T): T = x
 
+cast[\T extends Any\](x: Any): T = 
+  typecase x of
+      y: T => y
+      else => throw CastException
+    end
+
+instanceOf[\T extends Any\](x: Any) : Boolean = 
+  typecase x of 
+    T => true
+    else => false
+  end  
+
+
 (************************************************************
  * Control over locality and location
  ************************************************************)
@@ -172,6 +185,10 @@ end
 
 object MatchFailure extends UncheckedException
     getter asString(): String = "Match failure"
+end    
+
+object CastException extends UncheckedException
+    getter asString(): String = "Cast exception"
 end    
 
 (* Checked Exceptions *)

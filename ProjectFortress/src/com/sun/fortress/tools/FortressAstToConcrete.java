@@ -2205,7 +2205,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
         StringBuilder s = new StringBuilder();
 
         s.append(domain_result);
-        s.append(" -> ");
+        s.append("->");
         s.append(range_result);
         s.append(effect_result);
 

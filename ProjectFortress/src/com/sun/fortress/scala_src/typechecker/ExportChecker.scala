@@ -40,6 +40,8 @@ import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.exceptions.InterpreterBug.bug
 import com.sun.fortress.repository.FortressRepository
 import com.sun.fortress.scala_src.nodes._
+import com.sun.fortress.scala_src.overloading.OverloadingOracle
+import com.sun.fortress.scala_src.types.TypeAnalyzer
 import com.sun.fortress.scala_src.useful._
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
@@ -592,18 +594,17 @@ object ExportChecker {
 
   /* Returns true if two FnHeaders are same. */
   private def equalFnHeaders(left: FnHeader, right: FnHeader,
-                             ignoreAbstract: Boolean): Boolean =
-    (left, right) match {
+                             ignoreAbstract: Boolean): Boolean = (left, right) match {
       case (SFnHeader(sparamsL, modsL, _, whereL, throwsL, contractL,
                       paramsL, retTyL),
             SFnHeader(sparamsR, modsR, _, whereR, throwsR, contractR,
                       paramsR, retTyR)) =>
-        equalListStaticParams(sparamsL, sparamsR) &&
-        ( if (ignoreAbstract)
-            modsL.remove(Modifiers.Abstract).equals(modsR.remove(Modifiers.Abstract))
-          else modsL.equals(modsR) ) &&
+        (equalListStaticParams(sparamsL, sparamsR) &&
+          ( if (ignoreAbstract)
+              modsL.remove(Modifiers.Abstract).equals(modsR.remove(Modifiers.Abstract))
+            else modsL.equals(modsR) ) &&
         equalOptListTypes(throwsL, throwsR) &&
-        equalListParams(paramsL, paramsR) && equalOptTypes(retTyL, retTyR)
+        equalListParams(paramsL, paramsR) && equalOptTypes(retTyL, retTyR))
   }
 
   /* Returns true if two lists of static parameters are same. */
@@ -788,4 +789,10 @@ object ExportChecker {
 
   private def toOptList[T](ol: JavaOption[JavaList[T]]): Option[List[T]] =
     if (ol.isNone) None else Some(toListFromImmutable(ol.unwrap))
+
+    /* Returns the set of overloaded function declarations
+     * covering the given set of the overloaded declarations.
+     * Invariant: set.size > 1
+     */
+
 }
