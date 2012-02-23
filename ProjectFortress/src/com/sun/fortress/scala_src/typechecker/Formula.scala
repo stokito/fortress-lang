@@ -153,7 +153,7 @@ object Formula{
   
   def implies(c1: CFormula, c2: CFormula)(implicit ta: TypeAnalyzer) =
     imp(reduce(c1), reduce(c2))
-    
+
   private def imp(c1: CFormula, c2: CFormula)(implicit ta: TypeAnalyzer): Boolean = (c1, c2) match {
     case (False, _) => true
     case (_, False) => false
@@ -161,30 +161,48 @@ object Formula{
     case (True, _) => false
     // Checks whether every constraint in c2 is in c1
     case (And(as, os), And(bs, ps)) =>
-      def tImplies(p: TPrimitive, q: TPrimitive): Boolean = {
-        val TPrimitive(pl1, nl1, pu1, nu1, pe1, ne1) = p
-        val TPrimitive(pl2, nl2, pu2, nu2, pe2, ne2) = q
-        val pls = ta.lteq(ta.join(pl2), ta.join(pl1))
-        val nls = nl2.forall(n2 => nl1.exists(ta.lteq(n2,_)) || pe1.exists(p1 => ta.definitelyExcludes(p1, n2)) || pu1.exists(p1 => isFalse(ta.subtype(n2, p1))))
-        val pus = ta.lteq(ta.meet(pu1), ta.meet(pu2))
-        val nus = nu2.forall(n2 => nu1.exists(ta.lteq(_,n2)) || pe1.exists(p1 => ta.definitelyExcludes(p1, n2)) || pl1.exists(p1 => isFalse(ta.subtype(p1, n2))))
-        // ToDo: Figure out whether using a recursive implies here will terminate
-        val pes = pe2.forall(e2 => pe1.exists(ta.lteq(e2, _)) || pu1.exists(t1 => imp(c1, ta.excludes(e2, t1))))
-        val nes = ne2.forall(n2 => pu1.exists(ta.lteq(_, n2)) || pl1.exists(p1 => isFalse(ta.excludes(p1, n2))))
-        pls && nls && pls && pus && nus && pes && nes
-     }
-     def oImplies(p: OPrimitive, q: OPrimitive): Boolean = {
-       val OPrimitive(p1s, n1s) = p
-       val OPrimitive(p2s, n2s) = q
-       p2s.forall(p2 => p1s.exists(_==p2)) && n2s.forall(n2 => n1s.exists(_==n2))
-     }
      forall(as, bs, tImplies, tUnit) && forall(ps, os, oImplies, oUnit)
     case (c1, Or(cs)) => cs.exists(imp(c1, _))
     case (Or(cs), c2) => cs.forall(imp(_, c2))
   }
-  
-  private def forall[S, T](as: Map[S, T], bs: Map[S,T], pred: (T, T) => Boolean, unit: T): Boolean = 
-    (as.keySet ++ bs.keySet).forall(k => pred(as.getOrElse(k, unit), bs.getOrElse(k, unit)))
+
+  private def tImplies(p: TPrimitive, q: TPrimitive)(implicit ta: TypeAnalyzer): Boolean = {
+    val TPrimitive(pl1, nl1, pu1, nu1, pe1, ne1) = p
+    val TPrimitive(pl2, nl2, pu2, nu2, pe2, ne2) = q
+    val pls = ta.lteq(ta.join(pl2), ta.join(pl1))
+    val nls = nl2.forall(n2 => nl1.exists(ta.lteq(n2,_)) || pe1.exists(p1 => ta.definitelyExcludes(p1, n2)) || pu1.exists(p1 => isFalse(ta.subtype(n2, p1))))
+    val pus = ta.lteq(ta.meet(pu1), ta.meet(pu2))
+    val nus = nu2.forall(n2 => nu1.exists(ta.lteq(_,n2)) || pe1.exists(p1 => ta.definitelyExcludes(p1, n2)) || pl1.exists(p1 => isFalse(ta.subtype(p1, n2))))
+//         // ToDo: Figure out whether using a recursive implies here will terminate
+//         val pes = pe2.forall(e2 => pe1.exists(ta.lteq(e2, _)) || pu1.exists(t1 => imp(c1, ta.excludes(e2, t1))))
+    // Actually, it won't.  So we need to make sure that c1 is also decomposed.  So we use a specialized imp called primImp.
+    val pes = pe2.forall(e2 => pe1.exists(ta.lteq(e2, _)) || pu1.exists(t1 => primImp(p, ta.excludes(e2, t1))))
+    val nes = ne2.forall(n2 => pu1.exists(ta.lteq(_, n2)) || pl1.exists(p1 => isFalse(ta.excludes(p1, n2))))
+    pls && nls && pus && nus && pes && nes
+ }
+
+  private def primImp(p: TPrimitive, c2: CFormula)(implicit ta: TypeAnalyzer): Boolean = c2 match {
+    case (False) => false
+    case (True) => true
+    case (And(bs, ps)) => bs.values.forall(tImplies(p, _))
+    case (Or(cs)) => cs.exists(primImp(p, _))
+  }
+
+ private def oImplies(p: OPrimitive, q: OPrimitive): Boolean = {
+   val OPrimitive(p1s, n1s) = p
+   val OPrimitive(p2s, n2s) = q
+   p2s.forall(p2 => p1s.exists(_==p2)) && n2s.forall(n2 => n1s.exists(_==n2))
+ }
+
+  private var stackLevel = 0
+
+  private def forall[S, T](as: Map[S, T], bs: Map[S,T], pred: (T, T) => Boolean, unit: T): Boolean = {
+    stackLevel += 1
+    if (stackLevel == 10) bug("forall stack overflow")
+    val result = (as.keySet ++ bs.keySet).forall(k => pred(as.getOrElse(k, unit), bs.getOrElse(k, unit)))
+    stackLevel -= 1
+    result
+  }
   
   def implies(e1: EFormula, e2: EFormula)(implicit ta: TypeAnalyzer) =
     imp(reduce(e1), reduce(e2))
@@ -440,6 +458,7 @@ object Formula{
                     case _ => 0
                   }
                 }
+//                println("slv: new (k->uni) = " + k + "->" + uni)
                 (k, uni)
               }
             })
@@ -458,6 +477,7 @@ object Formula{
   
   def unify(c: CFormula)(implicit ta: TypeAnalyzer): Option[(CFormula, Type => Type, Op => Op)] = {
       val eq = getEquality(c)
+//      println("Unify " + c + " produces " + eq)
       un(eq).map{case (ts, os) => (cMap(c, ts, os), ts, os)}
   }
   
@@ -508,7 +528,8 @@ object Formula{
   def unify(e: EFormula)(implicit ta: TypeAnalyzer): Option[(Type => Type, Op => Op)] =
     un(reduce(e))
   
-  private def un(e: EFormula)(implicit ta: TypeAnalyzer): Option[(Type => Type, Op => Op)] = e match {
+  private def un(e: EFormula)(implicit ta: TypeAnalyzer): Option[(Type => Type, Op => Op)] = { // println("un of " + e)
+   e match {
     case False => None
     case True => Some((tEmptySub, oEmptySub))
     case e@Conjuncts(teq, oeq) =>
@@ -517,49 +538,53 @@ object Formula{
         case (a, b) => b.flatMap(TU.getInferenceVars).exists(a.contains(_))
       }
       // Takes a set of more than one inference variable and creates a substitution to unify them
-      def tMake(x: Set[_InferenceVarType]) = tSubstitution(Map(x.tail.map((x.head, _)).toSeq:_*))
+      def tMake(x: Set[_InferenceVarType]) = tSubstitution({ val result = Map(x.tail.map((x.head, _)).toSeq:_*); // println("tMake subst = " + result);
+                                                             result })
       val (mTSub, tSplit, tVars, tReg) = makeSub(teq, tError, tMake).getOrElse(return None)
       // No errors possible
       def oError(x: (Set[_InferenceVarOp], Set[Op])) = false
       def oMake(x: Set[_InferenceVarOp]) = oSubstitution(Map(x.tail.map((x.head, _)).toSeq:_*)) 
       val (mOSub, oSplit, oVars, oReg) = makeSub(oeq, oError, oMake).getOrElse(return None)
       // Combine op and type substitutions
-      val mTOSub = (mTSub, mOSub) match{
+      val mTOSub = (mTSub, mOSub) match {
         case (Some(tSub), Some(oSub)) => Some((insertOps(oSub) compose tSub, oSub))
         case (Some(tSub), None) => Some((tSub, oEmptySub))
         case (None, Some(oSub)) => Some((insertOps(oSub), oSub))
         case (None, None) => None
       }
-      // If there were any inference variables to be unified, then recurse
       mTOSub match{
         case Some((tSub, oSub)) =>
-          return un(eMap(e, tSub, oSub)).map{case (t, o) => (t compose tSub, o compose oSub)}
-        case None=> ()
+	  val eResult = eMap(e, tSub, oSub)
+//	  println("un recursion 1: eMap produces " + eResult)
+          // If there were any inference variables to be unified, then recurse
+          un(eResult).map{case (t, o) => (t compose tSub, o compose oSub)}
+        case None=>
+	  /* Gets all equivalence classes with more than two non inference variable types and computes the 
+	   * constraints under which they are equivalent.
+	   */
+	  val tNewCons = tReg.filter{_.size > 1}.map{e => e.tail.foldLeft((e.head, True.asInstanceOf[EFormula]))
+	    {case ((s, c), t) => (t, and(c, getEquality(ta.equivalent(s, t))))}._2}
+	  if(!tNewCons.isEmpty) {
+	    // If there were any new constraints, then recurse
+	    val tNewCon = and(tNewCons)
+	    val tOrig = Conjuncts(tSplit.map{case (iv, niv) => iv ++ Set(niv.head)}, oeq)
+	    un(and(tNewCon, tOrig))
+	  } else {
+	    /* Now each equivalence class must consist of one inference variable 
+	     * and one non inference variable. Unify them.
+	     */
+	    val tSub = tSubstitution(Map(tSplit.map{case (iv, ts) => (iv.head, ts.head)}.toSeq:_*))
+	    val oSub = oSubstitution(Map(oSplit.map{case (iv, ts) => (iv.head, ts.head)}.toSeq:_*))
+	    Some((insertOps(oSub) compose tSub, oSub))
+          }
       }
-      /* Gets all equivalence classes with more than two non inference variable types and computes the 
-       * constraints under which they are equivalent.
-       */
-      val tNewCons = tReg.filter{_.size > 1}.map{e => e.tail.foldLeft((e.head, True.asInstanceOf[EFormula]))
-        {case ((s, c), t) => (t, and(c, getEquality(ta.equivalent(s, t))))}._2}
-      // If there were any new constraints, then recurse
-      if(!tNewCons.isEmpty) {
-        val tNewCon = and(tNewCons)
-        val tOrig = Conjuncts(tSplit.map{case (iv, niv) => iv ++ Set(niv.head)}, oeq)
-        return un(and(tNewCon, tOrig))
-      }
-      /* Now each equivalence class must consist of one inference variable 
-       * and one non inference variable. Unify them.
-       */
-      val tSub = tSubstitution(Map(tSplit.map{case (iv, ts) => (iv.head, ts.head)}.toSeq:_*))
-      val oSub = oSubstitution(Map(oSplit.map{case (iv, ts) => (iv.head, ts.head)}.toSeq:_*))
-      Some((insertOps(oSub) compose tSub, oSub))
     case Disjuncts(es) =>
       for(e <- es) {
         val solved = un(e)
         if(solved.isDefined) return solved
       }
       None
-  }
+  } }
   
   // Have to use a manifest due to erasure
   private def makeSub[T, U <: T](xss: Set[Set[T]], error: ((Set[U], Set[T])) => Boolean , makeS: Set[U] => (T => T))(implicit m: scala.reflect.Manifest[U]): Option[(Option[T => T], Set[(Set[U], Set[T])], Set[Set[U]], Set[Set[T]])] = {
@@ -584,7 +609,7 @@ object Formula{
 	  val nuf = and(nu.map(t => ta.notSubtype(sk, tSub(t))))
 	  val pef = and(pe.map(t => ta.excludes(sk,tSub(t))))
 	  val nef = and(ne.map(t => ta.notExcludes(sk, tSub(t))))
-//	  println("... and gets AND(" + plf + "," + nlf + "," + puf + "," + nuf + "," + pef + "," + nef + ")")
+//	  println("cMap produces AND(" + plf + "," + nlf + "," + puf + "," + nuf + "," + pef + "," + nef + ")")
           and(plf, and(nlf, and(puf, and(nuf, and(pef, nef)))))})
       val oForm = and(os.map{
         case (k, OPrimitive(po, no)) =>

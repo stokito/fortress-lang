@@ -1,4 +1,4 @@
-#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    Copyright 2009,2010,2012 Oracle and/or its affiliates.
 #    All rights reserved.
 #
 #
@@ -13,8 +13,8 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled3.l.fss:19:1-21:\n\
 ${STATIC_TESTS_DIR}/Compiled3.l.fss:20:1-26:\n\
-\ Invalid overloading of f:\n\
-\  S[\\String\\] -> () @ ${STATIC_TESTS_DIR}/Compiled3.l.fss:20:1-26\n\
-\ and T[\\()\\] -> () @ ${STATIC_TESTS_DIR}/Compiled3.l.fss:19:1-21\n\
+\    Invalid overloading of f in component Compiled3.l:\n\
+\     S[\\String\\]->() @ ${STATIC_TESTS_DIR}/Compiled3.l.fss:20:1-26\n\
+\ and T[\\()\\]->() @ ${STATIC_TESTS_DIR}/Compiled3.l.fss:19:1-21\n\
 File Compiled3.l.fss has 1 error.\n
 compile_out_equals=

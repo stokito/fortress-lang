@@ -1,4 +1,4 @@
-#    Copyright 2009, Oracle and/or its affiliates.
+#    Copyright 2009,2012 Oracle and/or its affiliates.
 #    All rights reserved.
 #
 #
@@ -13,6 +13,6 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled7.b.fss:16:1-20:\n\
 ${STATIC_TESTS_DIR}/TypesInAPI.fsi:28:1-19:\n\
-\ There are multiple declarations of fur with the same type: String -> ()\n\
+\ There are multiple declarations of fur with the same parameter type: String\n\
 File Compiled7.b.fss has 1 error.\n
 compile_out_equals=
