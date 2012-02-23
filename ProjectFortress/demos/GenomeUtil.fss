@@ -1,0 +1,145 @@
+(*******************************************************************************
+Copyright 2010 Michael Zody and Sun Microsystems, Inc. 
+All rights reserved.
+
+Sun Microsystems, Inc. is the Copyright owner of the Fortress programming language software, and Michael Zody is the developer of the algorithm which this software implements and the Copyright owner of the software implementation of the algorithm, to which Sun Microsystems, Inc. has a perpetual, irrevocable, royalty free right and license to use and distribute. 
+
+Use is subject to license terms accompanying the software.
+ ******************************************************************************)
+
+component GenomeUtil
+
+import File.{...}
+import FileSupport.{...}
+import FlatString.{...}
+import List.{...}
+import Pairs.{...}
+
+export GenomeUtil
+
+encodeACGT(c: Char): ZZ32 = case c of 'A' => 0; 'C' => 1; 'G' => 2; 'T' => 3; end
+
+color(c1:Char, c2:Char): Char =
+  if (c1 = 'N') OR (c2 = 'N') then '4' else char('0'.codePoint + (encodeACGT(c1) BITXOR encodeACGT(c2))) end
+
+colorsFromACGT(strACGT: String): String = BIG || <| color(p,q) | (p,q)<-pairs(strACGT) |>
+
+colorsToACGT(start: Char, colorstr: String): String =
+  start || (BIG ||[i <- 0 # |colorstr|] "ACGT"[encodeACGT(start) BITXOR (BIG BITXOR[k <- 0#(i+1)] (colorstr[k].codePoint BITAND 3))])
+
+
+trait ReferenceGenome
+  nextChunk(): ()
+  currentChunkRange(): CompactFullRange[\ZZ32\]
+  getACGT(r: CompactFullRange[\ZZ32\]): String
+  getColors(r: CompactFullRange[\ZZ32\]): String
+end ReferenceGenome
+
+object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ32)
+    extends ReferenceGenome
+  padLength = maxReadSize + 1
+  buffer: String := ("N")^(2 padLength)
+  currentChunkStart: ZZ32 := 0
+  currentChunkLength: ZZ32 := 0
+  nextChunk(): () = do
+    buffer := buffer[|buffer| - padLength # padLength]
+    currentChunkStart += currentChunkLength
+    currentChunkLength := 0
+    while currentChunkLength < chunkSize AND NOT rs.eof() do
+      line = rs.uncheckedReadLine()
+      if |line| > 0 AND: line[0] =/= '>' then
+        buffer ||= line
+        currentChunkLength += |line|
+      end
+    end
+  end
+  currentChunkRange(): CompactFullRange[\ZZ32\] = currentChunkStart # currentChunkLength
+  getACGT(r: CompactFullRange[\ZZ32\]): String = buffer[r.lower - currentChunkStart + padLength # |r|]
+  getColors(r: CompactFullRange[\ZZ32\]): String = colorsFromACGT buffer[r.lower - currentChunkStart + padLength # |r| + 1]
+end FileBasedReferenceGenome
+
+getReferenceGenomeFromFile(fileName: String, chunkSize: ZZ32, maxReadSize: ZZ32): ReferenceGenome = do
+  rg = FileBasedReferenceGenome(FileReadStream(fileName), chunkSize, maxReadSize)
+  rg.nextChunk()
+  rg
+end
+
+trait ReadList
+  nextRange(): ()
+  getReads(): List[\Read\]
+end ReadList
+
+object FileBasedReadList(rs: ReadStream, maxReadSize: ZZ32, ref: ReferenceGenome) extends ReadList
+  currentSet: List[\Read\] := <|[\Read\] |>
+  peekAhead: Maybe[\Read\] := Nothing[\Read\]
+
+  nextRange(): () = do
+    currentSet := <|[\Read\] rd | rd <- currentSet, rd.range.lower <= ref.currentChunkRange().upper AND ref.currentChunkRange().lower <= rd.range.upper |>
+    if rd <- peekAhead then
+      if rd.range.upper < ref.currentChunkRange().lower then
+        peekAhead := Nothing[\Read\]
+      elif rd.range.lower <= ref.currentChunkRange().upper then
+        currentSet ||= <| rd |>
+        peekAhead := Nothing[\Read\]
+        inputMoreReads()
+      end
+    else
+      inputMoreReads()
+    end
+  end
+
+  inputMoreReads() = do
+    label gobble
+      while NOT rs.eof() do
+        if rd <- parseOneRead(rs, ref) then
+          if ref.currentChunkRange().upper < rd.range.lower then
+            peekAhead := Just rd
+            exit gobble
+          elif ref.currentChunkRange().lower <= rd.range.upper then
+            currentSet ||= <| rd |>
+          end
+        end
+      end
+    end gobble
+  end
+
+  getReads(): List[\Read\] = currentSet
+
+end FileBasedReadList
+
+getReadListFromFile(fileName: String, maxReadSize: ZZ32, ref: ReferenceGenome): ReadList =
+  FileBasedReadList(FileReadStream(fileName), maxReadSize, ref)
+
+object Read(header: String, sequence: String, name: String, pos: ZZ32, length: ZZ32, seqend: ZZ32, 
+            refColorsSnip: String, sampleColorsSnip: String, refACGTSnip: String)
+  range: CompactFullRange[\ZZ32\] = pos#length
+  getter asString(): String = pos || "  " || name || "  " || refColorsSnip || "  " sampleColorsSnip || "  " || refACGTSnip 
+end Read
+
+getAdjustedSequence(negativeOrientation:Boolean, sequence:String, refColorsSnip: String): String = do
+  temp = sequence[1:]
+  if (negativeOrientation) then
+    (reverse(temp))[0 : |temp| - 2] || refColorsSnip[|temp| - 1]
+  else
+    refColorsSnip[0] || temp[1:]
+  end
+end
+
+parseOneRead(r: ReadStream, ref: ReferenceGenome): Maybe[\Read\] = do
+  header: String = r.uncheckedReadLine()
+  sequence: String = r.uncheckedReadLine()
+  if sequence = "" then Nothing[\Read\] else
+    name: String = header.upto(',')
+    loc: String = header.beyond(',').beyond('_').upto('.')
+    length: ZZ32 = |sequence| - 1
+    negativeOrientation: Boolean = (loc[0] = '-')
+    adjustedLocation: ZZ32 = if (negativeOrientation) then strToInt(loc[1:]) - length + 1 else strToInt(loc) - 1 end
+    sequenceEnd: ZZ32 = adjustedLocation + length - 1
+    refColorsSnip: String = ref.getColors(adjustedLocation : sequenceEnd + 1).asFlatString
+    adjustedSequence: FlatString = getAdjustedSequence(negativeOrientation, sequence, refColorsSnip).asFlatString
+    refACGTSnip: String = ref.getACGT(adjustedLocation : sequenceEnd + 1).asFlatString
+    Just Read(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, refColorsSnip, adjustedSequence, refACGTSnip)
+  end
+end
+
+end

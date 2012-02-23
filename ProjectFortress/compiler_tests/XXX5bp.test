@@ -1,0 +1,18 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled5.bp
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.bp.fsi:13:1-11:\n\
+\ Invalid comprises clause: Compiled5.bp.P is included in the comprises clause of T\n\
+\ but Compiled5.bp.P does not extend T.\n\
+File Compiled5.bp.fss has 1 error.\n
+compile_out_equals=

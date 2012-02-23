@@ -1,0 +1,168 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Threads and Parallelism}
+\seclabel{threads-parallelism}
+
+\note{Reduction variables and deferred exceptions are not yet supported.}
+
+\note{Thread fairness guarantee (Jan's email titled ``Re: Clarifying fairness guarantees'' sent on 14 Mar 2007)}
+
+\note{Fix citations:
+
+Victor's email titled ``Re: Fortress 1.0 spec (revision 4793)'' sent on
+31 Mar 2008}
+
+There are two kinds of threads in Fortress:
+\emph{implicit} threads and \emph{spawned}  (or \emph{explicit}) threads.
+Spawned threads are objects created by the \KWD{spawn} construct,
+described in \secref{spawn}.
+
+A thread may be in one of five states: \emph{not started},
+\emph{executing}, \emph{suspended}, \emph{normally completed} or
+\emph{abruptly completed}.  We say a thread is \emph{not started}
+after it is created but before it has taken a step.  This is only
+important for purposes of determining whether two threads are
+executing simultaneously; see \secref{threadlocal}.  A thread is
+\emph{executing} or \emph{suspended} if it has taken a step, but has
+not completed; see below for the distinction between executing and
+suspended threads.  A thread is \emph{complete} if its expression has
+completed evaluation.  If the expression completes normally, its value
+is the result of the thread.
+
+Every thread has a \emph{body} and an \emph{execution environment}.
+The body is an intermediate expression, which the thread evaluates in
+the context of the execution environment; both the body and the
+execution environment may change when the thread takes a step.  This
+environment is used to look up names in scope but bound in a block
+that encloses the construct that created the thread.  The execution
+environment of a newly created thread is the environment of the thread
+that created the new thread.
+
+In Fortress, a number of constructs are \emph{implicitly parallel}.
+An implicitly parallel construct creates a \emph{group} of one or
+more implicit threads.  The implicitly parallel constructs are:
+\begin{itemize}
+\item {\bf Tuple expressions:} Each element expression of the tuple
+  expression is evaluated in a separate implicit thread
+  (see \secref{tuple-expr}).
+\item {\bf \EXP{\KWD{also}\;\KWD{do}} blocks:} each
+  sub-block separated by an \KWD{also} clause is evaluated in a
+  separate implicit thread (see \secref{also-block}).
+\item {\bf Method invocations and function calls:}
+The receiver or the function and each of the arguments is
+  evaluated in a separate implicit thread
+  (see \secref{dotted-method-calls}, \secref{naked-method-calls},
+ and \secref{function-calls}).
+\item {\bf \KWD{for} loops, comprehensions, sums, generated
+    expressions, and big operators:} Parallelism in looping constructs
+  is specified by the generators used (see \secref{generators}).
+  Programmers must assume that generators that do not extend
+  \TYP{SequentialGenerator} can execute each iteration of the body
+  expression in a separate implicit thread.  The functional method
+  \VAR{seq} and the equivalent function \VAR{sequential} can be used
+  to turn any \TYP{Generator} into a \TYP{SequentialGenerator}.
+\item {\bf Extremum expressions:} Each guarding expression of the extremum
+  expression is evaluated in a separate implicit thread
+  (see \secref{extremum-expr}).
+\item {\bf Tests:}
+Each test is evaluated in a separate implicit thread
+(see \chapref{tests}).
+
+\end{itemize}
+
+Implicit threads run fork-join style:
+all threads in a group are created together,
+and they all must complete before the group as a whole completes.
+There is no way for a programmer to single out an implicit
+thread and operate upon it in any way; they are managed purely by the
+compiler, runtime, and libraries of the Fortress implementation.
+Implicit threads need not be scheduled fairly; indeed, a Fortress
+implementation may choose to serialize portions of any group of
+implicit threads, interleaving their operations in any way it likes.
+For example, the following code fragment may loop forever:
+\note{The TYP{Thread} example is commented out.}
+%% \input{\home/basic/examples/Eval.Thread.tex}
+
+If any implicit thread in a group completes abruptly, the group as a
+whole will complete abruptly as well.  Every thread in the group will
+either not run at all, complete (normally or abruptly), or may be
+terminated early as described in \secref{early-termination}.
+The result of the abrupt completion of the group is
+the result of one of the constituent threads that completes abruptly.
+After abrupt completion of a group of implicit threads, each reduction
+variable (see \secref{reduction-vars})
+may reflect an arbitrary subset of updates performed by the
+threads in the group.  This means in general that reduction variables
+should not be accessed after abrupt completion.  The exact behavior of reduction variables depends on the supporting generator structure and is described in \secref{defining-generators}.
+
+Spawned thread objects are reference objects of type
+\EXP{\TYP{Thread}\llbracket{}T\rrbracket}, where
+\VAR{T} is the static type of the expression spawned;
+this trait has the following methods, each taking no arguments:
+\begin{itemize}
+\item The \VAR{val} method returns the value computed by the
+  subexpression of the \KWD{spawn} expression.  If the thread has not
+  yet completed execution, the invocation of \VAR{val} blocks until it
+ has done so.
+ A spawned thread is not permitted to exit (discussed
+ in \secref{label-expr}) to a surrounding label (the label is
+ considered to be out of scope), but may fail to catch an exception
+ and thus complete abruptly.
+ When this happens, the exception is
+ \emph{deferred}.  Any invocation of the \VAR{val} method on the
+ spawned thread throws the deferred exception.  If the spawned thread
+ object is discarded, the exception will be silently ignored.  In
+ particular, if the result of a \KWD{spawn} expression is dropped, it
+ is impossible to detect completion of the spawned thread or to
+ recover from any deferred exceptions.
+\item The \VAR{wait} method waits for a thread to complete,
+but does not return a value and will not throw a deferred exception.
+\item The \VAR{ready} method returns \VAR{true} if a thread
+has completed, and returns \VAR{false} otherwise.
+\item The \VAR{stop} method attempts to terminate a thread
+as described in \secref{early-termination}.
+\end{itemize}
+
+We say a spawned thread has been \emph{observed to complete} after
+invoking the \VAR{val} or \VAR{wait} methods, or when an invocation of
+the \VAR{ready} method returns \VAR{true}.
+
+In the absence of sufficient parallel resources, an attempt is made to
+run the subexpression of the \KWD{spawn} expression before continuing
+succeeding evaluation.  We can imagine that
+it is actually the \emph{rest} of
+the evaluation \emph{after} the parallel block which is spawned off
+in parallel.  This is a subtle technical point, but makes the
+sequential execution of parallel code simpler to understand, and
+avoids subtle problems with the asymptotic stack usage of parallel
+code~\cite{lazyTask,LazyThreads}.
+
+\label{abort-thread}
+There are three
+ways in which a thread can be suspended.  First, a
+thread that begins evaluating an implicitly parallel construct,
+creating a thread group, is suspended until that thread group has
+completed.  Second, a thread that invokes \VAR{val} or \VAR{wait} is
+suspended until the spawned thread completes.
+Finally, invoking the
+\VAR{abort} function from within an \KWD{atomic} expression may cause
+a thread to suspend; see \secref{transactions}.
+
+Threads in a Fortress program can perform operations simultaneously on
+shared objects.  In order to synchronize data accesses, Fortress
+provides \KWD{atomic} expressions (see \secref{atomic}).
+\chapref{memory-model} describes the memory model which is obeyed by
+Fortress programs.
+
+\input{\home/basic/evaluation/reduction}
+
+\input{\home/basic/evaluation/slack}

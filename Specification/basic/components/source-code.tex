@@ -1,0 +1,506 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\note{
+Victor:
+
+Define (in lexical structure?) when program constructs are ``the same''
+ (i.e., identical except for ``syntax'' issues).  Or else, we may want o
+ to include a generic statement in the lexical structure chapter saying
+ that after that chapter, except for the appendices, unless otherwise
+ stated,  two fragments of program text are considered the same if they
+ are scanned into the same sequence of tokens (we need to be careful
+ about the whitespace-sensitivity though).}
+
+\seclabel{source-code}
+
+We call the source code for a single software component a \emph{project}.
+Typically, when a project written in other programming languages is compiled,
+each file in the project is separately compiled.
+To ship an application,
+these files are linked together to form an application or library.
+Fortress uses a different model:
+a project is compiled directly into a single component,
+which is installed in the compiling fortress.
+
+From the point of view of the compiler, all the source code for a
+project is contained in a single file.  This approach simplifies the design
+but it is unworkable for
+components of substantial size.  Therefore, the compiler can be
+instructed to concatenate several source files together before
+compiling, while maintaining the original source location
+information.
+
+After these components are compiled from source files, they can then
+be linked together to form larger components.
+
+
+
+
+
+\section{Components}
+\seclabel{components}
+
+\note{``\KWD{import} \KWD{api} \emph{AliasedAPINames}'' syntax and
+qualified names are not yet supported.}
+
+\begin{Grammar}
+\emph{Component} &::=&
+\option{\KWD{native}}
+\KWD{component} \emph{APIName} \option{\emph{Imports}} \emph{Exports}
+\option{\emph{Decls}} \KWD{end}\\
+& &\options{\option{\KWD{component}} \emph{APIName}}\\
+
+\emph{APIName} &::=& \emph{Id}(\EXP{.}\emph{Id})$^*$\\
+
+\emph{Imports} &::=& \emph{Import}$^+$\\
+\emph{Import}
+&::=& \KWD{import} \emph{ImportedNames} \\
+&$|$& \KWD{import} \KWD{api} \emph{AliasedAPINames} \\
+
+\emph{ImportedNames}
+&::=& \emph{APIName} \EXP{.} \{ \EXP{...} \}
+\options{\KWD{except} \emph{SimpleNames}}
+\\
+&$|$& \emph{APIName} \EXP{.}
+\{ \emph{SimpleNameList} \options{\EXP{,} \EXP{...}} \}\\
+\{ \emph{AliasedSimpleNameList} \options{\EXP{,} \EXP{...}} \}\\
+&$|$& \emph{QualifiedName} \options{\KWD{as} \emph{Id}}\\
+
+\emph{SimpleNames} &::=& \emph{SimpleName} \\
+&$|$& \{ \emph{SimpleNameList} \}\\
+
+\emph{SimpleNameList} &::=& \emph{SimpleName}(\EXP{,} \emph{SimpleName})$^*$ \\
+
+\end{Grammar}
+
+\begin{GrammarTwo}
+\emph{SimpleName} &::=& \emph{Id} \\
+&$|$& \KWD{opr} \option{\KWD{BIG}} (\emph{Encloser} $|$ \emph{Op}) \\
+&$|$& \KWD{opr} \option{\KWD{BIG}} \emph{EncloserPair} \\
+
+\emph{AliasedSimpleNameList}
+&::=& \emph{AliasedSimpleName}(\EXP{,} \emph{AliasedSimpleName})$^*$ \\
+
+\emph{AliasedSimpleName} &::=& \emph{Id} \options{\KWD{as} \emph{Id}}\\
+&$|$& \KWD{opr} \emph{Op} \options{\KWD{as} \emph{Op}} \\
+&$|$& \KWD{opr} \emph{EncloserPair} \options{\KWD{as} \emph{EncloserPair}} \\
+
+\emph{EncloserPair} &::=&
+(\emph{LeftEncloser} $|$ \emph{Encloser}) \option{\EXP{\cdot}}
+(\emph{RightEncloser} $|$ \emph{Encloser})\\
+
+\emph{AliasedAPINames} &::=& \emph{AliasedAPIName} \\
+&$|$& \{ \emph{AliasedAPINameList} \}\\
+
+\emph{AliasedAPIName} &::=& \emph{APIName} \options{\KWD{as} \emph{Id}}\\
+
+\emph{AliasedAPINameList} &::=& \emph{AliasedAPIName}(\EXP{,} \emph{AliasedAPIName})$^*$ \\
+
+\emph{Exports} &::=& \emph{Export}$^+$\\
+
+\emph{Export} &::=& \KWD{export} \emph{APINames} \\
+
+\emph{APINames} &::=& \emph{APIName} \\
+&$|$& \{ \emph{APINameList} \}\\
+
+\emph{APINameList} &::=& \emph{APIName}(\EXP{,} \emph{APIName})$^*$ \\
+
+\emph{Decls} &::=& \emph{Decl}$^+$\\
+\end{GrammarTwo}
+
+In this specification, we will refer to components created by
+compiling a file as \emph{simple components}, while components created by
+linking components together will be known as \emph{compound
+components}.
+
+The source code of a simple component definition
+begins with an optional modifier \KWD{native} followed by
+\KWD{component} followed by a
+\emph{possibly qualified name} (an identifier or a sequence of
+identifiers separated by periods with no intervening whitespace),
+followed by a sequence of \emph{import} statements,
+and a sequence of \emph{export} statements,
+and finally a sequence of declarations,
+where all sequences are separated by newlines or semicolons.
+A component declaration may end with an optional \KWD{component} and its name again.
+It is a static error if the identifier after \KWD{end} is not
+the name of the component being declared.
+
+
+\subsection{Import Statements}
+An import statement imports declarations from one or more APIs.
+There are two forms of import statements.
+The first form imports all top-level and functional method declarations
+(i.e., declarations whose reach is the entire API)
+from the listed APIs,
+and allows the names declared by these declarations
+to be used \emph{qualified} by the name of the API
+from which it is imported.
+%import apiName, anotherApiName
+\begin{Fortress}
+\(\KWD{import} \VAR{apiName}, \VAR{anotherApiName}\)
+\end{Fortress}
+This form may also provide an \emph{alias}
+for one or more of the APIs.
+%import apiName as alias, anotherApiName
+\begin{Fortress}
+\(\KWD{import} \VAR{apiName} \KWD{as} \VAR{alias}, \VAR{anotherApiName}\)
+\end{Fortress}
+A name imported from an API with an alias
+must be qualified by the alias
+rather than the name of the API.
+It is a static error for any alias
+to be the name of any imported API.
+Multiple APIs may be given the same alias,
+but it is a static error
+if declarations imported from two APIs with the same alias
+declare the same name
+unless the set of imported declarations with that name
+from APIs with that alias
+form a valid set of overloaded declarations.
+
+There are two forms of import statements: \emph{explicit import statements} and
+\emph{on-demand import statements}.
+
+An explicit import statement specifies a single API and a set of names;
+it imports the top-level and functional method declarations in the specified API.
+It allows the specified names to be used \emph{unqualified}
+in the importing component or API:
+% import APIName.{ name (, name)^+ }
+\begin{Fortress}
+\( \KWD{import}\:\TYP{APIName}.\{\,\VAR{name} (, \VAR{name})^+\,\}\)
+\end{Fortress}
+We call an import statement of this form
+an \emph{import-unqualified} statement.
+We say an import statement of this form is an ``explicit import'' statement.
+It is a static error if
+a name specified by an import-unqualified
+statement
+is also declared by a top-level or functional method declaration
+in the importing component or API,
+or if it is also specified by another import-unqualified
+statement,
+unless all top-level or functional declarations for that name
+in the importing component or any of APIs
+imported by an import-unqualified
+statement that specifies that name
+form a valid set of overloaded declarations.
+It is also a static error if any specified name
+is not declared by a declaration imported from the API.
+
+
+An ``ordinary'' operator (i.e., operators other than
+ enclosing or vertical-line operators)
+is a single token, and it is imported simply by putting \KWD{opr}
+before it in the import statement.  This imports all of its prefix, postfix,
+infix, multifix and nofix declarations.
+A matched pair of enclosing operators is written \KWD{opr}
+the left encloser, the right encloser, with \EXP{\cdot}
+optionally between the two enclosers.
+A vertical-line operator may be imported either as an infix operator or
+a bracketing operator, according to the rules above for ordinary and
+enclosing operators respectively.
+
+An import-unqualified
+statement may include an alias for each name it specifies.
+%import APIName.{ name as name' (, name)^+ }
+\begin{Fortress}
+\(\KWD{import}\:\TYP{APIName}.\{\,\VAR{name} \KWD{as}\:\VAR{name}' (, \VAR{name})^+\,\}\)
+\end{Fortress}
+In this case, the alias (unqualified) must be used
+instead of the name declared by the actual imported declaration,
+and the restriction about declarations
+in the importing component or API
+and names specified in other import-unqualified
+statements
+applies to the alias rather than the specified name.
+
+For convenience, an on-demand import statement
+allows all names declared by imported declarations
+of the specified \apiN\ to be referred to with unqualified names:
+%import APIName.{...}
+\begin{Fortress}
+\(\KWD{import}\:\TYP{APIName}.\{\ldots\}\)
+\end{Fortress}
+This form permits an \KWD{except} clause,
+which lists names that are \emph{not} permitted to be used unqualified
+by that import-unqualified
+statement
+(it may be permitted by a declaration
+in the importing component or API,
+or by some other import-unqualified
+statement).
+%import APIName.{...} except { name (, name)^+ }
+\begin{Fortress}
+\(\KWD{import}\:\TYP{APIName}.\{\ldots\} \KWD{except} \{\,\VAR{name} (, \VAR{name})^+\,\}\)
+\end{Fortress}
+A name \VAR{name} is imported on demand in a component \VAR{C}
+from an API \VAR{A} only if all the following conditions hold:
+\begin{enumerate}
+\item \VAR{C} contains an on-demand import statement.
+\item \VAR{name} is neither listed in the \KWD{except} clause
+nor explicitly imported by \VAR{C}.
+\item Either 1) a top-level or functional method declaration of \VAR{name}
+appears in \VAR{C} or 2) a reference to \VAR{name} appears in component \VAR{C}
+and \VAR{C} does not provide an explicit declaration of \VAR{name}.
+\end{enumerate}
+
+The set of all declarations that are declared or imported
+(either explicitly or on demand) by a component must satisfy the overloading
+rules (and in particular, any nonfunctional declaration must not be overloaded).
+In addition, it is a static error if in a set of overloaded declarations,
+any of the following are true:
+\begin{enumerate}
+\item Any declaration imported on demand is more specific than any explicit declaration.
+\item Any top-level function declaration is more specific than any functional method declaration.
+(This rule actually applies to declarations in a single component as well.)
+\item
+Any top-level function declaration imported on demand is more specific than any other declaration not in the same API as the top-level function declaration.
+\end{enumerate}
+It is also a static error to explicitly import a name from an API
+that does not declare it, or to have multiple import-on-demand statements
+with the same API.
+
+If there is no imported declaration matching a reference, it is a static error.
+If there is more than one imported declaration that a reference may refer to,
+it is a static error.
+For example, it is a static error to have a reference \TYP{List}
+in the context of the following import statements:
+%import List.{...}
+%import PureList.{...}
+\begin{Fortress}
+\(\KWD{import}\:\TYP{List}.\{\ldots\}\)\\
+\(\KWD{import}\:\TYP{PureList}.\{\ldots\}\)
+\end{Fortress}
+A reference \TYP{List} may refer to
+the type \TYP{List} declared in the API \TYP{List} or
+the type \TYP{List} declared in the API \TYP{PureList}.
+
+\subsection{Export Statements}
+\note{
+Victor's email on March 7, 2009 1:28:48 AM EST
+titled "Re: Exposing a partial type hierarchy in an API"
+
+Because the extends clause of a trait declaration in a component must be
+the same as in an API exported by the component, the type hierarchy
+above any trait can be determined simply by looking at the API declaring
+that trait, and those APIs it imports. Fortress does not allow
+components to contain private supertypes for traits in an exported API.
+}
+
+Export statements specify the APIs that a component exports.
+One important restriction on components is that no \apiN\ may be both
+imported and exported by the same component. This restriction helps to
+avoid some (but not all) accidental cyclic dependencies.
+
+Every component implicitly imports the Fortress core APIs;
+every fortress has at least one component implementing all of these \apisN.
+A \emph{preferred} component exporting these \apisN\ (configurable by the user)
+is implicitly linked to
+every component installed in the fortress.
+
+
+A component must provide a declaration, or a set of declarations,
+that \emph{satisfies} every top-level declaration in any API
+that it exports, as described below.
+A component may include declarations
+that do not participate in satisfying any exported declaration
+(i.e., a declaration of any exported API), and in particular,
+no declaration modified by \KWD{private}
+participates in satisfying any exported declaration.
+Such declarations are not visible from outside the component.
+
+Type aliases and dimension, unit, test and property declarations
+are satisfied only by declarations that are the same.\footnote{The
+declarations are compared after ASCII conversion and scanning,
+and differences in the characters within whitespace elements
+is permitted
+provided they do not change whether the whitespace element
+is line-breaking.
+}
+\note{Victor: what about trait/object/etc declarations with test modifier?}
+
+A top-level variable declaration declaring a single variable
+is satisfied by any top-level variable declaration
+that declares the name with the same type
+(in the component,
+the type may be inferred).
+A top-level variable declaration declaring multiple variables
+is satisfied by a set of declarations (possibly just one)
+that declare all the names with their respective types
+(which again, may be inferred).
+In either case,
+the modifiers including the mutability of a variable must be the same in
+the exported and satisfying declarations.
+A top-level variable declaration
+declaring a single immutable variable
+with arrow type \EXP{P \rightarrow R}
+is also satisfied
+by a set of top-level function and functional method declarations
+if the union of their parameter types is \VAR{P}
+and each of their return types is a subtype of \VAR{R}.
+Thus, an abstract function declaration
+in the form of variable declarations in an API
+need not be replicated in a component exporting that API.
+
+A top-level function declaration is satisfied by
+a set of top-level function and functional method declarations
+the union of whose parameter types
+is the parameter type of the exported declaration,
+and each of whose return types
+is a subtype of the return type of the exported declaration.
+\note{Victor: also need type of thrown checked exceptions
+
+Victor: it may also be satisfied by a declaration
+ or set of declarations whose parameter type is a supertype
+ of the exported declaration's parameter type
+ provided that there is an overloaded exported declaration
+ whose parameter type is a supertype of the satisfying declarations.
+ (This comment also applied to the method declarations below.
+ We need a term for this concept.)
+}
+
+A trait or object declaration is satisfied by
+a declaration
+that has the same header,\footnote{The order of
+the modifiers,
+the clauses,
+and the types in the
+\KWD{extends}, \KWD{excludes} and \KWD{comprises} clauses
+may differ.}
+and contains,
+for each field declaration and non-abstract method declaration
+in the exported declaration,
+a satisfying declaration (or a set of declarations).
+When a trait has an abstract method declared,
+a satisfying trait declaration is allowed to provide a concrete declaration.
+If a trait declaration (in an API)
+has a \KWD{comprises} clause containing ``\EXP{\ldots}'',
+then the \KWD{comprises} clause of its satisfying declaration
+must contain all the types listed in the declaration in the API
+but it cannot contain ``\EXP{\ldots}'';
+instead, it may contain other types declared in the component
+provided that those types are not declared by the API.
+A field declaration is satisfied by
+a (possibly implicit) getter and/or setter declaration,
+depending on whether the field
+is declared to be \KWD{hidden} and/or \KWD{settable}
+by the exported declaration.
+
+A method declaration is satisfied
+by a set of method declarations
+the union of whose parameter types
+is the parameter type of the exported declaration,
+and each of whose return types
+is a subtype of the return type of the exported declaration.
+\note{
+Victor: need to be dotted iff exported decl is dotted.
+
+Victor: also need type of thrown checked exceptions}
+A satisfying trait or object declaration
+may contain method and field declarations not exported by the API
+but these might not be overloaded
+with method or field declarations provided by
+(contained in or inherited by)
+any declarations exported by the API.
+\note{
+Victor: is this true even for getters and setters?
+That is, can we not define both a getter and a setter
+with the same name and export only one of them?
+I think we should be allowed to do this.}
+
+For functional declarations,
+recall that several functional declarations
+may define the same entity (i.e., they may be overloaded).
+Given a set of overloaded declarations,
+it is not permitted to export some of them and not others.
+
+
+\note{
+2. A trait with a comprises clause is considered to have a concrete method declaration with a particular signature even if its declaration is actually abstract provided that all its immediate subtraits are considered to have concrete method declaration with that signature.  Thus, such a trait can have a method declaration that is abstract in the component, but not so declared in the API.  (And we might also allow the analogous thing for top-level functions.)
+
+3. A component may have a functional declaration that is not in the API provided that it is "covered" by some overloaded declaration.
+
+4. A component exporting an API with an "abstract function declaration" need not have that declaration (or any matching one).  It does, however, need matching declarations for the concrete functional declarations in that API.
+}
+
+\subsection{Cross-Component Overloading}
+When a component is compiled,
+the \apisN\ it refers to must be present in the fortress.
+The import statements in a component are not
+a way to abbreviate unqualified names of objects or functions.
+In our system,
+an import statement merely allows references to the imported \apiN\
+to appear in the component definition.
+References to elements of an imported \apiN\ must be fully qualified
+unless they are imported by an import statement with a \KWD{from} clause.
+%
+When a component imports a functional $f$ (either a top-level function or
+a functional method) by an import statement,
+with a \KWD{from} clause,
+the imported $f$ may be overloaded with a functional $f$ declared by the
+component.
+When a component imports a top-level declaration $f$ from an API $A$,
+all the relevant types to type check the uses of $f$ are implicitly
+imported from $A$.  However, these implicitly imported types for type
+checking are not expressible by programmers; programmers must import the
+types by import statements to use them.  For example, the two
+functional calls in the following component \VAR{C} are valid:
+\note{This example is not tested nor run by the interpreter.}
+% api A
+%    trait T
+%      m():()
+%    end
+% end
+% api B
+%    import A.{...}
+%
+%    f(): T
+%    g(T): ()
+% end
+% component C
+%    import B.{f, g}
+%    export Executable
+%
+%    run(args) = do f().m(); g(f()) end
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{api}\:A\)\\
+{\tt~~~}\pushtabs\=\+\(    \KWD{trait}\:T\)\\
+{\tt~~}\pushtabs\=\+\(      m()\COLONOP()\)\-\\\poptabs
+\(    \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{api}\:B\)\\
+{\tt~~~}\pushtabs\=\+\(    \KWD{import}\:A.\{\ldots\}\)\\[4pt]
+\(    f()\COLON T\)\\
+\(    g(T)\COLON ()\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{component}\:C\)\\
+{\tt~~~}\pushtabs\=\+\(    \KWD{import}\:B.\{f, g\}\)\\
+\(    \KWD{export}\:\TYP{Executable}\)\\[4pt]
+\(    \VAR{run}(\VAR{args}) = \;\KWD{do}\:f().m(); g(f()) \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+because \EXP{T} is implicitly imported from \VAR{B} to type check
+the functional calls.
+However, the programmers cannot write \EXP{T} in \VAR{C} because \EXP{T}
+is not imported by an import statement.
+
+
+\subsection{Native Components}
+A component may have the modifier \KWD{native} to declare an
+``unsafe component''.  Within an unsafe component,
+the syntax and semantics are implementation dependent.
+However, an unsafe component can export an API,
+which can be imported by safe components and APIs as usual.
+
+\input{\home/basic/components/apis}

@@ -1,0 +1,50 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(*
+ The overloading for F has two members, the more-general member
+ is not generic, so the overall overload is not generic and the
+ type for the specific member must be inferred at runtime, even
+ though it is invariant.
+ *)
+
+f(x:Object, y:Object): String = "OO"
+
+trait T
+  getter s():String
+end
+
+object O extends T
+  getter s():String = "o"
+end
+
+object P extends T
+  getter s():String = "p"
+end
+
+object Inv[\ Y extends T \]( y:Y ) extends T
+  getter s():String = y.s
+end
+
+f[\ X extends T \]( x:Inv[\X\], y:Inv[\X\]) : String = "Inv" x.s y.s
+
+run() = do
+  t1:T = Inv(O)
+  t2:T = Inv(P)
+  t3:T = Inv(Inv(O))
+  println(f(t1,t2))
+  println(f(t1,t1))
+  println(f(t2,t2))
+  println(f(t3,t3))
+  
+end

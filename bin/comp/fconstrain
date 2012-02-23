@@ -1,0 +1,36 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+
+if [ -z "$FORTRESS_HOME" ]; then
+   export FORTRESS_HOME="`${0%comp/fconstrain}fortress_home`"
+fi
+
+FHOME=$FORTRESS_HOME/default_repository/caches/bytecode_cache
+
+cp -R $FHOME/$2 $FHOME/$1
+rm $FHOME/$1/exports
+touch $FHOME/$1/exports
+
+cat $FHOME/$2/exports |
+(
+    while read line
+    do
+        arr=($line)
+        if [ ${arr[2]} != $3 ]
+        then
+            echo $line >> $FHOME/$1/exports
+        fi
+    done
+)
+

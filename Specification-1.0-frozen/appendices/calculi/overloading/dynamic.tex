@@ -1,0 +1,91 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Dynamic Semantics}\label{overloading-dynamic}
+A dynamic semantics for \overloadingcore\ is provided in
+Figure~\ref{fig:overloading-dynamic}.
+
+
+\begin{figure}[htbp]
+Values, evaluation contexts, and redexes\\
+
+$
+\begin{array}{llll}
+\val &::=& \objval&\mbox{value}\\
+\context &::=& \hole&\mbox{evaluation context}\\
+      &|& \oapp\parens{\exps\context\exps}\\
+      &|& \invoke{\context}{\vname}\\
+      &|& \invoke{\context}{\ftapp\eargs}\\
+      &|& \invoke{\exp}{\ftapp\parens{\exps\context\exps}}\\
+      &|& \ftapp\parens{\exps\context\exps}\\
+\redex &::=& \invoke{\val}{\vname}&\mbox{redex}\\
+      &|& \invoke{\val}{\ftapp\vargs}\\
+      &|& \ftapp\vargs\\ \\
+\end{array}
+$
+
+Evaluation rules: \fbox{\reduce{\redex}{\exp}}
+
+\[
+\begin{array}{lc}
+\newinfrule{\begin{array}{c}
+\object\oname\ignore\parens{\seq{\vname\colon\ignore}}\ignore\ \mt{end} \inp
+\end{array}}{
+\begin{array}{c}
+\reduce{\invoke{\objval}{\sub\vname i}}
+{\sub\val i}\\
+\end{array}
+}
+{\rFieldRule} \\ \\
+
+\newinfrule{\begin{array}{c}
+\odsyntaxRM \inp
+\rulesep
+\seq{\typeF(\valP)} = \tysPP
+\\
+\mostspecificFD{\emptyset}(\applicableFD{\emptyset}(\ftappP\parens{\tysPP}, \visible(\oapp))) = 
+\fname\tparamsP\parens{\seq{\vname'\colon\ignore}}\colon\ignore\equal\exp
+\end{array}}{
+\begin{array}{c}
+\reduce{\invoke{\objval}{\fname\targsP\vargsP}}
+{\substseq{\val}{\vname}
+ \subst{\objval}{\self}
+ \substseq{\prm\val}{\prm\vname}\exp}\\
+\end{array}
+}
+{\rMethodRule} \\ \\
+
+\newinfrule{\begin{array}{c}
+\seq{\typeF(\val)} = \tysP
+\\
+\mostspecificFD{\emptyset}(\applicableFD{\emptyset}(\ftapp\parens{\tysP}, \set{(\fd, \obj) \mid \fd \in \pgm})) =
+\fname\tparams\parens{\seq{\vname\colon\ignore}}\colon\ignore\equal\exp
+\end{array}}{
+\begin{array}{c}
+\reduce{\fname\targs\vargs}
+{\substseq{\val}{\vname}\exp}\\
+\end{array}
+}
+{\rFunRule} \\ \\
+
+\end{array}
+\]
+
+Types of values: \fbox{\typeF(\val) = \ty} \\
+
+$
+\typeF(\objval) = \oapp
+$
+
+\caption{Dynamic Semantics of \overloadingcore}
+\label{fig:overloading-dynamic}
+\end{figure}
+
