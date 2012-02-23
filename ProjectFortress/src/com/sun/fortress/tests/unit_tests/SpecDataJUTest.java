@@ -24,7 +24,7 @@ public class SpecDataJUTest {
     }
 
     public static Test suite() throws IOException {
-    	Shell.setCaseExprDesugaring(false);
+    	Shell.setCompiledExprDesugaring(false);
         Shell.setPhaseOrder(PhaseOrder.interpreterPhaseOrder);
     	
         String testDir1 = ProjectProperties.FORTRESS_AUTOHOME + "/SpecData/examples/basic";

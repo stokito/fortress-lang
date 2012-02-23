@@ -1,4 +1,4 @@
-#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    Copyright 2009,2010,2012 Oracle and/or its affiliates.
 #    All rights reserved.
 #
 #
@@ -13,9 +13,9 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled7.a.fss:18:1-17:\n\
 ${STATIC_TESTS_DIR}/TypesInAPI.fsi:28:1-19:\n\
-\ There are multiple declarations of g with the same type: String -> ()\n\
+\    There are multiple declarations of g with the same parameter type: String\n\
 ${STATIC_TESTS_DIR}/Compiled7.a.fss:21:1-17:\n\
-${STATIC_TESTS_DIR}/TypesInAPI.fsi:23:1-17:\n\
-\ There are multiple declarations of h with the same type: String -> ()\n\
+${STATIC_TESTS_DIR}/TypesInAPI.fsi:23:6-16:\n\
+\    There are multiple declarations of h with the same parameter type: String\n\
 File Compiled7.a.fss has 2 errors.\n
 compile_out_equals=

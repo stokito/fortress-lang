@@ -165,6 +165,13 @@ public class TypeNormalizer extends NodeUpdateVisitor {
 					List<Type> elements_result) {
 	if (elements_result.size() == 1)
 	    return elements_result.get(0);
+	else if (elements_result.size() == 2) {
+		Type a = elements_result.get(0);
+		Type b = elements_result.get(1);
+		if (a instanceof AnyType) return b;
+		if (b instanceof AnyType) return a;
+		return that;
+	}
 	else
 	    return super.forIntersectionTypeOnly(that, info_result,
 						 elements_result);

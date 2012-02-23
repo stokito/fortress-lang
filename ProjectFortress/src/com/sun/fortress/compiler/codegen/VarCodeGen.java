@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2012, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -87,12 +87,6 @@ public abstract class VarCodeGen {
     }
 
 
-    /** Generate code to prepare to assign the value of this variable;
-     *  this might push stuff on the stack.  The value can then be
-     *  computed to top of stack and assignValue will perform the
-     *  assignment. */
-    public abstract void prepareAssignValue(CodeGenMethodVisitor mv);
-
     /** Generate code to assign the value of this variable from the
      *  top of the Java stack. */
     public abstract void assignValue(CodeGenMethodVisitor mv);
@@ -118,10 +112,6 @@ public abstract class VarCodeGen {
 
         public void pushValue(CodeGenMethodVisitor mv) {
             mv.visitVarInsn(Opcodes.ALOAD, offset);
-        }
-
-        public void prepareAssignValue(CodeGenMethodVisitor mv) {
-            // Do nothing.
         }
 
         public void assignValue(CodeGenMethodVisitor mv) {
@@ -169,18 +159,15 @@ public abstract class VarCodeGen {
             mv.visitFieldInsn(Opcodes.GETFIELD, packageAndClassName, objectFieldName, classDesc);
         }
 
-        public void prepareAssignValue(CodeGenMethodVisitor mv) {
-            mv.visitVarInsn(Opcodes.ALOAD, 0);
-        }
-
         public void assignValue(CodeGenMethodVisitor mv) {
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitInsn(Opcodes.SWAP);
             mv.visitFieldInsn(Opcodes.PUTFIELD, packageAndClassName, objectFieldName, classDesc);
         }
 
         public String toString() {
             return "VarCodeGen:FieldVar" + name + "," + fortressType;
         }
-
 
         @Override
         public void outOfScope(CodeGenMethodVisitor mv) {
@@ -200,9 +187,6 @@ public abstract class VarCodeGen {
             mv.visitFieldInsn(Opcodes.GETFIELD, packageAndClassName, objectFieldName, classDesc);
         }
 
-        public void prepareAssignValue(CodeGenMethodVisitor mv) {
-            mv.visitVarInsn(Opcodes.ALOAD, 0);
-        }
 
         public void assignValue(CodeGenMethodVisitor mv) {
             // URG, another case of meeting assumptions.
@@ -275,13 +259,9 @@ public abstract class VarCodeGen {
             mv.visitFieldInsn(Opcodes.GETSTATIC, packageAndClassName+static_args, objectFieldName, cd);
         }
 
-        public void prepareAssignValue(CodeGenMethodVisitor mv) {
+        public void assignValue(CodeGenMethodVisitor mv) {
             throw new CompilerError(errorMsg("Invalid assignment to static binding ",name,
                     ": ", fortressType));
-        }
-
-        public void assignValue(CodeGenMethodVisitor mv) {
-            prepareAssignValue(mv);
         }
 
         public String toString() {
@@ -307,15 +287,11 @@ public abstract class VarCodeGen {
             super(name, fortressType, cg);
         }
 
-        public void prepareAssignValue(CodeGenMethodVisitor mv) {
+        public void assignValue(CodeGenMethodVisitor mv) {
             throw new CompilerError(errorMsg("Invalid assignment to ",name,
                                              ": ", fortressType,
                                              " param ",offset,
                                              " size ", sizeOnStack));
-        }
-
-        public void assignValue(CodeGenMethodVisitor mv) {
-            prepareAssignValue(mv);
         }
 
         public String toString() {
@@ -349,10 +325,6 @@ public abstract class VarCodeGen {
             super(id, fortressType, cg);
         }
     
-        public void prepareAssignValue(CodeGenMethodVisitor mv) {
-            super.prepareAssignValue(mv);
-        }
-  
         public void assignValue(CodeGenMethodVisitor mv) {
             // Ugh!  We are compensating for an extra value on the stack in doStatements in CodeGen
             // So we need to ensure that there is one.
@@ -370,4 +342,46 @@ public abstract class VarCodeGen {
 
     }
 
+    public static class TaskVarCodeGen extends VarCodeGen {
+        final String taskClass;
+        private final APIName ifNone;
+
+        public TaskVarCodeGen(VarCodeGen v, String taskClass, APIName ifNone) {
+            super(v.name, v.fortressType);
+            this.taskClass = taskClass;
+            this.ifNone = ifNone;
+            Debug.debug(Debug.Type.CODEGEN, 1,
+                        "Creating a new TaskVarCodeGen from VarCodeGen " + v);
+        }
+
+        public TaskVarCodeGen(IdOrOp name, Type fortressType, String taskClass, APIName ifNone) {
+            super(name, fortressType);
+            this.ifNone = ifNone;
+            this.taskClass = taskClass;
+        }
+
+        public void pushValue(CodeGenMethodVisitor mv) {
+            mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
+            mv.visitFieldInsn(Opcodes.GETFIELD, taskClass,
+                              getName(),
+                              NamingCzar.jvmTypeDesc(fortressType, ifNone)) ;
+
+        }
+
+        public void assignValue(CodeGenMethodVisitor mv) {
+            mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
+            mv.visitInsn(Opcodes.SWAP);
+            mv.visitFieldInsn(Opcodes.PUTFIELD, taskClass,
+                              getName(),
+                              NamingCzar.jvmTypeDesc(fortressType, ifNone)
+                              );
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.internalFortressVoid, NamingCzar.make,
+                           Naming.makeMethodDesc("", NamingCzar.descFortressVoid));
+        }
+
+        public void outOfScope(CodeGenMethodVisitor mv) {
+            // We've already told asm about our type and such.
+        }
+
+    }
 }

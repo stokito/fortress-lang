@@ -37,6 +37,7 @@ public class DemoTests {
 
     public static Test suite() throws IOException {
         Shell.setPhaseOrder(PhaseOrder.interpreterPhaseOrder);
+        Shell.setCompiledExprDesugaring(false);
         boolean failsOnly = !("1".equals(System.getenv("FORTRESS_JUNIT_VERBOSE")));
 
         String testDir = ProjectProperties.BASEDIR + "demos";

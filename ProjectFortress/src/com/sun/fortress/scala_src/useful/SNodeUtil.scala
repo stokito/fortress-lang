@@ -194,12 +194,13 @@ object SNodeUtil {
     
     // Make a substitution of [Ti -> Xi] for each static parameter Ti where
     // Xi is fresh in the static environment.
-    val subst = getStaticParams(t).map { sp =>
-      val srcName = sp.getName
-      val dstName = makeFreshName(srcName, env)
-      (srcName, dstName)
-    }
-    alphaRename(subst, t).asInstanceOf[Type]
+    val subst = getStaticParams(t).map(sp => (sp.getName, makeFreshName(sp.getName, env).asInstanceOf[Id]))
+    val renamedType = alphaRename(subst, t).asInstanceOf[Type]
+    val renamedStaticParams = getStaticParams(t).zip(subst.map(_._2)).map(x => x match { case (a, b) =>
+        val renamedExtendsClause = toList(a.getExtendsClause).map(ty => alphaRename(subst, ty).asInstanceOf[BaseType])
+        NF.makeStaticParam(a, b, toJavaList(renamedExtendsClause))
+    })
+    insertStaticParams(clearStaticParams(renamedType), toJavaList(renamedStaticParams))
   }
 
   /**

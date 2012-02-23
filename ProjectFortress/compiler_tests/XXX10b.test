@@ -14,7 +14,5 @@ compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled10.b.fss:18:9-26:\n\
 \ Could not check method invocation O.m\n\
 \ - ZZ32->() is not applicable to an argument of type Number.\n\
-${STATIC_TESTS_DIR}/Compiled10.b.fss:18:13:\n\
-\ Expression has type IntLiteral, but ascripted type is Number.\n\
-File Compiled10.b.fss has 2 errors.\n
+File Compiled10.b.fss has 1 error.\n
 compile_out_equals=
