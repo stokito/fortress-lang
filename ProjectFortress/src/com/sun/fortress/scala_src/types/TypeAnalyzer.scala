@@ -78,6 +78,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   def join(x: Type, y: Type): Type = join(List(x, y))
   def join(x: Iterable[Type]): Type = normalize(makeUnionType(x))
 
+  protected def pMeet(x: Type, y: Type)(implicit history: Set[hType]): Type = pNorm(makeIntersectionType(List(x, y)))
+
   def subtype(x: Type, y: Type): CFormula =
     sub(normalize(x), normalize(y))(Set())
   
@@ -99,8 +101,11 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
      val savedDepthForPrinting = pSubDepthForPrinting
      val indentation = indentationPadding.take(savedDepthForPrinting % indentationPadding.size)
      if (debugSubtype) {
+//         System.err.println(indentation + "psub > (" + x.getClass + "!" + x + ", " + y.getClass + "!" + y + ", " + negate + "), history=" + history)
+//         System.err.println(indentation + "psub > (" + x.getClass + "!" + x + ", " + y.getClass + "!" + y + ", " + negate + "), env=" + env)
          System.err.println(indentation + "psub > (" + x + ", " + y + ", " + negate + "), env=" + env)
          pSubDepthForPrinting += 1
+	 if (pSubDepthForPrinting > 50) bug(x, "pSub stack getting too big!")
      }
      val rval = if (x == y)
            pTrue()
@@ -158,17 +163,19 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       } else {
         val nHistory = history + hEntry
         val sParam = staticParam(id)
-        val supers = meet(toListFromImmutable(sParam.getExtendsClause))
-//	println("pSubInner: supers = " + supers)
-        if (negate)
-          pFalse()(!negate)
-        else {
-	  val result = pSub(supers, t)(negate, nHistory)
-//           ErrorMsgMaker.printHashCodes = true
-//           println("...and the result of the recursive pSub(" + supers + "," + t + ") is " + result)
-//           ErrorMsgMaker.printHashCodes = false
-	  result
-        }
+        val result = if (negate) {
+//	               println("pSubInner 0: FALSE")
+		       pFalse()(!negate)
+		     } else {
+		       // Using pNorm causes the current history to be passed down
+		       val supers = pNorm(makeIntersectionType(toListFromImmutable(sParam.getExtendsClause)))(nHistory)
+//	               println("pSubInner 1: supers = " + supers)
+		       pSub(supers, t)(negate, nHistory)
+                     }
+//	ErrorMsgMaker.printHashCodes = true
+//	println("...and the result of the recursive pSub is " + result)
+//	ErrorMsgMaker.printHashCodes = false
+        result
       }
     case (s, t@SVarType(_, id, _)) =>
       val hEntry = (negate, true, s, t)
@@ -177,11 +184,19 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       else {
         val nHistory = history + hEntry
         val sParam = staticParam(id)
-        val supers = meet(toListFromImmutable(sParam.getExtendsClause))
-        if (negate)
-          pSub(s, supers)(negate, nHistory)
-        else
-          pSub(s, BOTTOM)
+        val result = if (negate) {
+		       // Using pNorm causes the current history to be passed down
+		       val supers = pNorm(makeIntersectionType(toListFromImmutable(sParam.getExtendsClause)))(nHistory)
+//	               println("pSubInner 2: supers = " + supers)
+		       pSub(s, supers)(negate, nHistory)
+		     } else {
+//	               println("pSubInner 3: BOTTOM")
+		       pSub(s, BOTTOM)
+                     }
+//            ErrorMsgMaker.printHashCodes = true
+//            println("...and the result of the recursive pSub is " + result)
+//            ErrorMsgMaker.printHashCodes = false
+        result
       }
     // Trait types
     case (s: TraitType, t: TraitType) if (t==OBJECT) => pTrue()
@@ -302,7 +317,8 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   private val pExcMemo = new scala.collection.mutable.HashMap[(Type, Type, Boolean, Set[hType]), CFormula]()
     
   protected def pExc(x: Type, y: Type)(implicit negate: Boolean, history: Set[hType]): CFormula = {
-    if (cacheExcludes)
+    if (x == y) pFalse()
+    else if (cacheExcludes)
       pExcMemo.get((x, y, negate, history)) match {
         case Some(v) => v
         case _ => 
@@ -337,7 +353,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       else {
         val nHistory = history + hEntry
         val sParam = staticParam(id)
-        val supers = meet(toListFromImmutable(sParam.getExtendsClause))
+        val supers = pNorm(makeIntersectionType(toListFromImmutable(sParam.getExtendsClause)))
         if (negate) pFalse()(!negate) else pExc(supers, t)(negate, nHistory)
       }
     case (s, t:VarType) => exc(t, s)
@@ -428,7 +444,9 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   private val normalizeArrowTypeMemo = new scala.collection.mutable.HashMap[(Type, Type, Effect, Boolean), Any]()
   private val normalizeOtherTypeMemo = new scala.collection.mutable.HashMap[Any, Any]()
 
-  def normalize(x: Type): Type = {
+  def normalize(x: Type): Type = pNorm(x)(Set[hType]())
+
+  protected def pNorm(x: Type)(implicit history: Set[hType]): Type = {
     object normalizer extends Walker {
       override def walk(y: Any): Any = y match {
         case t: VarType => walkVarType(t)
@@ -548,9 +566,14 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     normalizer(x).asInstanceOf[Type]
   }
   
-  protected def normConjunct(x: Iterable[Type]): List[Type] = {
-    implicit val h = Set[hType]()
-    if(x.exists(y => x.exists(z => dExc(y, z))))
+  protected def normConjunct(x: Iterable[Type])(implicit history: Set[hType]): List[Type] = {
+    val cc = x.map(y => (y, y.isInstanceOf[TraitType] &&
+                            comprisesClause(y.asInstanceOf[TraitType]).exists(c => x.exists(z => dExc(z, c))))).toList
+    if (cc.exists(_._2))
+      cc.map(z => { val (y, p) = z;
+                    if (p) makeUnionType(comprisesClause(y.asInstanceOf[TraitType]).toList.flatMap(c => if (x.exists(z => dExc(z, c))) None else Some(c)))
+                    else y })
+    else if (x.exists(y => x.exists(z => dExc(y, z))))
       List(BOTTOM)
     else {
       val ds = x.foldLeft(List[Type]())((l, a) => {
@@ -566,15 +589,15 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     }
   }
 
-  protected def normTuples(ts: List[TupleType]): List[TupleType] = ts match {
+  protected def normTuples(ts: List[TupleType])(implicit history: Set[hType]): List[TupleType] = ts match {
     case Nil => Nil
-    case _ => List(ts.reduceLeft(normTuples))
+    case _ => List(ts.reduceLeft((a,b) => normTuples(a,b)))
   }
 
   //ToDo: Keywords
-  protected def normTuples(x: TupleType, y: TupleType): TupleType = (x,y) match {
+  protected def normTuples(x: TupleType, y: TupleType)(implicit history: Set[hType]): TupleType = (x,y) match {
     case (STupleType(_, e1, None, _), STupleType(_, e2, None, _)) =>
-      STupleType(makeInfo(e1), (e1, e2).zipped.map(meet), None, Nil)
+      STupleType(makeInfo(e1), (e1, e2).zipped.map((a,b) => pMeet(a,b)), None, Nil)
     case (STupleType(_, e1, None, _), STupleType(_, e2, Some(_), _)) =>
       normTuples(x, disjunctFromTuple(y, e1.size).asInstanceOf[TupleType])
     case (STupleType(_, e1, Some(_), _), STupleType(_, e2, None, _)) =>
@@ -582,12 +605,11 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (STupleType(_, e1, Some(v1), _), STupleType(_, e2, Some(v2), _)) => {
       val ee1 = e1 ++ List.fill(e2.size - e1.size){v1}
       val ee2 = e2 ++ List.fill(e1.size - e2.size){v2}
-      STupleType(makeInfo(e1), (ee1, ee2).zipped.map(meet), Some(meet(v1, v2)), Nil)
+      STupleType(makeInfo(e1), (ee1, ee2).zipped.map((a,b) => pMeet(a,b)), Some(pMeet(v1, v2)), Nil)
     }
   }
 
-  protected def normDisjunct(x: Iterable[Type]): List[Type] = {
-      implicit val h = Set[hType]()
+  protected def normDisjunct(x: Iterable[Type])(implicit history: Set[hType]): List[Type] = {
       x.foldLeft(List[Type]())((l, a) => {
         val l2 = l.filter(x => !isTrue(sub(x,a)))
         l2 ++ (if (l2.exists(x => isTrue(sub(a,x)))) Nil else List(a))
@@ -664,7 +686,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 
   // Accessor method for kind env
   def staticParam(x: Id): StaticParam =
-    env.staticParam(x).getOrElse(bug(x, x + " is not in the kind env."))
+    env.staticParam(x).getOrElse(bug(x, x + " is not in the kind env " + env))
 
   def extend(params: List[StaticParam], where: Option[WhereClause]) =
     new TypeAnalyzer(traits, env.extend(params, where))

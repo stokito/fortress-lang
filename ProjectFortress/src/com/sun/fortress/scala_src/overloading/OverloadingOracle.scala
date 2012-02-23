@@ -52,33 +52,75 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
   def lteq(f: Functional, g: Functional): Boolean = {
     val fa = makeArrowFromFunctional(f, true).get
     val ga = makeArrowFromFunctional(g, true).get
+    lteq(fa, ga)
+  }
+
+  def lteq(fa: ArrowType, ga: ArrowType): Boolean = {
     val fd = sa.makeDomainWithSelfFromArrow(fa)
     val gd = sa.makeDomainWithSelfFromArrow(ga)
     sa.subtypeED(fd, gd)
   }
-  
+
+  def equiv(fa: ArrowType, ga: ArrowType): Boolean = lteq(fa, ga) && lteq(ga, fa)
+
   // Checks the return type rule
-  def typeSafe(f: Functional, g: Functional): Boolean = {
-    if(!lteq(f, g))
+  def satisfiesReturnTypeRule(f: Functional, g: Functional): Boolean = {
+    val fa = makeArrowFromFunctional(f, true).get
+    val ga = makeArrowFromFunctional(g, true).get
+    satisfiesReturnTypeRule(fa, ga)
+  }
+
+  def satisfiesReturnTypeRule(fa: ArrowType, ga: ArrowType): Boolean = {
+    if(!lteq(fa, ga))
       true
     else {
-      val fa = makeArrowFromFunctional(f, true).get
-      val ga = makeArrowFromFunctional(g, true).get
       val ra = sa.returnUA(fa, ga)
-      sa.subtypeUA(fa, ra)
+      val result = sa.subtypeUA(fa, ra)
+//       if (!result) {
+// 	println("fa = " + typeToString(fa))
+// 	println("ga = " + typeToString(ga))
+// 	println("ra = " + typeToString(ra))
+// 	println("result = " + result + "\n")
+//       }
+      result
     }
   }
   
-  //Checks whether f is the meet of g and h
-  def meet(f: Functional, g: Functional, h: Functional)(implicit checkingMethods: Boolean): Boolean = {
+  // Checks when domain of f excludes domain of g
+  def excludes(f: Functional, g: Functional): Boolean = {
     val fa = makeArrowFromFunctional(f, true).get
     val ga = makeArrowFromFunctional(g, true).get
-    val ha = makeArrowFromFunctional(h, true).get
-    val fd = sa.makeDomainFromArrow(fa)
-    val gd = sa.makeDomainFromArrow(ga)
-    val hd = sa.makeDomainFromArrow(ha)
+    excludes(fa, ga)
+  }
+
+  def excludes(fa: ArrowType, ga: ArrowType): Boolean = {
+    val fd = sa.makeDomainWithSelfFromArrow(fa)
+    val gd = sa.makeDomainWithSelfFromArrow(ga)
+    val md = sa.meetED(fd, gd)
+    sa.subtypeED(md, BOTTOM)
+  }
+  
+//   //Checks whether f is the meet of g and h
+//   def isMeet(f: Functional, g: Functional, h: Functional): Boolean = {
+//     val fa = makeArrowFromFunctional(f, true).get
+//     val ga = makeArrowFromFunctional(g, true).get
+//     val ha = makeArrowFromFunctional(h, true).get
+//     isMeet(fa, ga, ha)
+//   }
+  
+  //Checks whether f is the meet of g and h
+  def isMeet(fa: ArrowType, ga: ArrowType, ha: ArrowType, isMethod: Boolean): Boolean = {
+    val fd = sa.makeDomainFromArrow(fa, isMethod)
+    val gd = sa.makeDomainFromArrow(ga, isMethod)
+    val hd = sa.makeDomainFromArrow(ha, isMethod)
     val md = sa.meetED(gd, hd)
-    sa.equivalentED(fd, md)
+//     println("isMeet: fd = " + typeToString(fd))
+//     println("        gd = " + typeToString(gd))
+//     println("        hd = " + typeToString(hd))
+//     println("        md = " + typeToString(md))
+    val result = sa.equivalentED(fd, md)
+//     println("    result = " + result)
+    result
   }
   
   sealed trait COMPARISON_RESULT {}
@@ -173,15 +215,6 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
     val fd = sa.makeRangeFromArrow(fa)
     // Watch out, do we need to strip self type?
     fd
-  }
-  
-  
-  // Convenience function when arrows have been extracted from functionals
-  // already.
-  def lteq(fa: ArrowType, ga: ArrowType): Boolean = {
-    val fd = sa.makeDomainWithSelfFromArrow(fa)
-    val gd = sa.makeDomainWithSelfFromArrow(ga)
-    sa.subtypeED(fd, gd)
   }
   
   // Convenience function when domains have been extracted from arrows

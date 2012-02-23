@@ -1,4 +1,4 @@
-#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    Copyright 2009,2010,2012 Oracle and/or its affiliates.
 #    All rights reserved.
 #
 #
@@ -13,8 +13,8 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled3.w.fsi:18:1-17:\n\
 ${STATIC_TESTS_DIR}/Compiled3.w.fsi:19:1-21:1:\n\
-\ Invalid overloading of f:\n\
-\ (Compiled3.w.O, Compiled3.w.T) -> () @ ${STATIC_TESTS_DIR}/Compiled3.w.fsi:18:1-17\n\
-\ and (Compiled3.w.T, Compiled3.w.O) -> () @ ${STATIC_TESTS_DIR}/Compiled3.w.fsi:19:1-21:1\n\
+\ Invalid overloading of f in API Compiled3.w:\n\
+\ (Compiled3.w.O, Compiled3.w.T)->() @ ${STATIC_TESTS_DIR}/Compiled3.w.fsi:18:1-17\n\
+\ and (Compiled3.w.T, Compiled3.w.O)->() @ ${STATIC_TESTS_DIR}/Compiled3.w.fsi:19:1-21:1\n\
 File Compiled3.w.fsi has 1 error.\n
 compile_out_equals=

@@ -1,4 +1,4 @@
-#    Copyright 2009, Oracle and/or its affiliates.
+#    Copyright 2009,2012 Oracle and/or its affiliates.
 #    All rights reserved.
 #
 #
@@ -13,6 +13,6 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled0.v.fss:13:1-22:\n\
 ${STATIC_TESTS_DIR}/Compiled0.v.fss:14:1-22:\n\
-\ There are multiple declarations of run with the same type: String -> ()\n\
+\    There are multiple declarations of run with the same parameter type: String\n\
 File Compiled0.v.fss has 1 error.\n
 compile_out_equals=

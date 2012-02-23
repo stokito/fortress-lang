@@ -96,7 +96,7 @@ class AbstractMethodChecker(component: ComponentIndex,
             (meth2.name == meth.name) && (meth.asInstanceOf[HasSelfType].selfPosition == meth2.asInstanceOf[HasSelfType].selfPosition)})
         val concreteMethodsAndDomains = relevantConcreteMethods.map(x => x match { case (meth2, str2, _) =>
             (meth2, str2.replaceIn(tsa.makeDomainFromArrow(makeArrowWithoutSelfFromFunctional(meth2).get)))}).toList
-        val moreSpecificConcreteMethodsAndDomains = concreteMethodsAndDomains.filter(x => x match { case (meth2, dom2) => typeAnalyzer.lteq(dom2, thisDomain)})
+        val moreSpecificConcreteMethodsAndDomains = concreteMethodsAndDomains.filter(x => x match { case (meth2, dom2) => tsa.subtypeED(dom2, thisDomain)})
         val domainList = moreSpecificConcreteMethodsAndDomains.map(x => x match { case (concMeth, domain) => domain }).toList
         val domainUnion = domainList.fold(BOTTOM)(tsa.joinED)
 //    	println("\nThis domain: " + thisDomain)
@@ -104,7 +104,7 @@ class AbstractMethodChecker(component: ComponentIndex,
 //    	println("More specific concrete methods and domains: " + moreSpecificConcreteMethodsAndDomains)
 //    	println("Domain union of " + domainList + " is " + domainUnion)
         if (!tsa.subtypeED(thisDomain, domainUnion)) {
-//  	  println("Domain " + thisDomain + " is not a subtype of " + domainUnion)
+  	  println("Domain " + thisDomain + " is not a subtype of " + domainUnion)
 	  error(NU.getSpan(od),
 		"The inherited abstract method " + meth.asInstanceOf[HasSelfType].ast + " from the trait " + tt +
 		"\n    has no concrete implementation in the object " + tth.getName +
@@ -120,6 +120,7 @@ class AbstractMethodChecker(component: ComponentIndex,
     for { (meth, _, tt) <- ms.secondSet } println(tt + ": " + meth)
   }
 
+  // This doesn't work, but the eventual plan is to lift all object expressions to become top-level objects with generated names.
   private def checkObjectExpression(oe: ObjectExpr) = {
     // An object expression does not have static parameters, so no need to make a new TypeAnalyzer.
     val tth = oe.getHeader

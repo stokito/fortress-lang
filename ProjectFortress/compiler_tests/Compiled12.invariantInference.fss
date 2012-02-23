@@ -1,5 +1,5 @@
 (*******************************************************************************
-    Copyright 2011, Oracle and/or its affiliates.
+    Copyright 2011,2012 Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -8,6 +8,8 @@
     This distribution may include materials developed by third parties.
 
  ******************************************************************************)
+
+component Compiled12.invariantInference
 
 export Executable
 
@@ -77,4 +79,6 @@ run() = do
     println(f(supTestAny,supTestAny,(SubO,SubO))) (*) Wsuper Inv,Co
     println(f(supTestAny,subTestAny,(SubO,SubO))) (*) Wsuper Co
     println(f(subTestAny,subTestAny,(SuperO,SuperO))) (*) Wsub Inv
+end
+
 end
