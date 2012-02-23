@@ -1,9 +1,8 @@
 
 I wrote this example for people that just want to try the tool without having a preexisting document.
 
-I used the fortify tool to generate latex for the run method in buffons.fss.
-
-I added the following header:
+I used the fortify tool to generate latex for the run method in buffons.fss, producing
+the output buffons.tex.  I edited that to add the following header:
 
 \documentclass{article}
 \usepackage{fortify}
@@ -12,10 +11,14 @@ I added the following header:
 
 and the following footer:
 
-
 \end{document}
 
 and saved the file in buffons.tex.  
 
 I copied ../fortify.sty to this directory and then ran pdflatex on buffons.tex to generate buffons.pdf.
+
+Alternately, you can run the commands:
+
+fortify buffons.fss
+pdflatex buffons_doc.tex
 
