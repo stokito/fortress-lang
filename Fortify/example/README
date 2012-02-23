@@ -19,6 +19,6 @@ I copied ../fortify.sty to this directory and then ran pdflatex on buffons.tex t
 
 Alternately, you can run the commands:
 
-fortify buffons.fss
+../../bin/fortify buffons.fss
 pdflatex buffons_doc.tex
 
