@@ -1,0 +1,17 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=XXXPreparser.t
+PREPARSER_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/parser_tests
+compile
+compile_err_equals=\
+${PREPARSER_TESTS_DIR}/XXXPreparser.t.fss:16:11-15:\n\
+\ Unmatched delimiters \"[\\\" and \"]\".\n\
+File XXXPreparser.t.fss has 1 error.\n
+compile_out_equals=

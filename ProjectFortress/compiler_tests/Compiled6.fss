@@ -1,0 +1,37 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled6
+export Executable
+
+(** Simple use of higher-order function to simulate sequential generator *)
+
+orderedEnum(lo:ZZ32, hi:ZZ32, f: ZZ32->()): () =
+    if hi < lo then
+        ()
+    elif hi = lo then
+        f(lo)
+    else
+        mid = (lo + hi) DIV 2
+        orderedEnum(lo,mid,f)
+        orderedEnum(mid+1,hi,f)
+    end
+
+printlnZZ(n:ZZ32): () = println(n.asString)
+
+run():() = do
+    (** TODO: type annotation should not be necessary! *)
+    orderedEnum(0,9, fn n => println(n))
+    (** TODO: closing over non-generic global function *)
+    orderedEnum(0,9,printlnZZ)
+  end
+
+end

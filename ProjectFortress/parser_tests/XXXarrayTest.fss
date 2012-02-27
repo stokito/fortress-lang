@@ -1,0 +1,83 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXarrayTest
+export Executable
+
+trait T extends ZZ32[9]
+end
+
+trait Rank[\ nat n \]
+end
+
+trait Indexed1[\ nat n \]
+end
+
+trait Indexed2[\ nat n \]
+end
+
+trait Indexed3[\ nat n \]
+end
+
+trait Array1[\T, nat b0, nat s0\] extends {Indexed1 [\ s0 \], Rank[\ 1 \]}
+  (* Get and put come from implementation. *)
+  get(i:ZZ32):T
+  put(i:ZZ32, v:T)
+
+  opr[i:ZZ32]:T = self.get(i-b0)
+  opr[i:ZZ32]:= (v:T) = self.put(i-b0,v)
+
+end
+
+trait Array2[\T, nat b0, nat s0, nat b1, nat s1\] extends {
+  Indexed1 [\ s0 \], Indexed2 [\ s1 \] , Rank[\ 2 \]}
+  opr[i:ZZ32, j:ZZ32] : T
+  opr[i:ZZ32, j:ZZ32]:= (v:T)
+end
+
+trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\] extends
+  {Indexed1[\ s0 \], Indexed2[\ s1 \], Indexed3[\ s2 \] , Rank[\ 3 \]}
+
+  opr[i:ZZ32, j:ZZ32, k:ZZ32] : T
+  opr[i:ZZ32, j:ZZ32, k:ZZ32]:= (v:T)
+end
+
+run():()=do
+
+  z:Array1[\String, 0, 3\] = array1[\String, 0, 3\]()
+  z[0]:="cat"
+  z[1]:="dog"
+  z[2]:="bat"
+  println( z[0] " " z[1] " " z[2] );
+
+  a:ZZ32[3] = [1 2 3]
+  b:ZZ32[2,2] = [ 10 11 ; 12 13 ]
+  b2:ZZ32[2,2] = [ 10 11
+                   12 13 ]
+
+  c:ZZ32[2,2,2] = [ 111 112 ;
+                    121 122 ;;
+                    211 212 ;
+                    221 222 ]
+   d:ZZ32[4,2,2] = [ c ;;
+                    311 312 ;
+                    321 322 ;;
+                    411 412 ;
+                    421 422
+                  ]
+
+(*
+   e:ZZ32^(2 BY 2) = [ 101 102 ; 201 202 ]
+*)
+
+end
+
+end

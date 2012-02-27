@@ -1,0 +1,1276 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009,2010, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Simplified Grammar for Application Programmers and Library Writers}
+\applabel{concrete-syntax}
+
+\note{The chapter is not up to date.}
+
+In this chapter, we provide a simplified grammar of the Fortress concrete
+syntax as documentation, to enable Fortress programmers to understand it
+more easily.  It includes unimplemented Fortress language features
+such as dimensions and units, tests and properties, coercions, and where
+clauses.  The full Fortress grammar is described in \appref{cst}.
+
+
+The simplified grammar does not describe the details of the uses of
+operators, whitespaces, and semicolons.
+Instead, they are described as follows according to three
+different contexts influencing the whitespace-sensitivity of expressions:
+\begin{description}
+\item[statement] Expressions
+immediately enclosed by an expression block are in a statement-like context.
+Multiple expressions can appear on a line if they are separated
+(or terminated) by semicolons.  If an expression can legally end
+at the end of a line, it does; if it cannot, it does not.
+A prefix or infix operator that lacks its last operand
+prevents an expression from ending.  For example,
+%an = expression +
+%     spanning +
+%     four +
+%     lines
+%a  = oneLiner
+%four() ; on(); one(); line();
+\begin{Fortress}
+\(\VAR{an} = \null\)\pushtabs\=\+\(\VAR{expression} +\)\\
+\(     \VAR{spanning} +\)\\
+\(     \VAR{four} +\)\\
+\(     \VAR{lines}\)\-\\\poptabs
+\(a  = \VAR{oneLiner}\)\\
+\(\VAR{four}() ; \VAR{on}(); \VAR{one}(); \VAR{line}();\)
+\end{Fortress}
+
+\item[nested]
+An expression or list of expressions
+immediately enclosed by parentheses or braces
+is nested.  Multiple expressions are separated by commas,
+and the end of a line does not end an expression.  Because of this
+effect, the meaning of a several lines of code can change if they
+are wrapped in parentheses.  Parentheses can also be used to ensure
+that a multiline expression is not terminated prematurely without
+paying special attention to line endings.
+%lhs = rhs
+%- aSeparateExpression
+%
+%postProfit(revenue
+%           - expenses)
+\begin{Fortress}
+\(\VAR{lhs} = \VAR{rhs}\)\\
+\(- \VAR{aSeparateExpression}\)\\[4pt]
+\(\VAR{postProfit}(\null\)\pushtabs\=\+\(\VAR{revenue}\)\\
+\(           - \VAR{expenses})\)\-\\\poptabs
+\end{Fortress}
+
+\item[pasted]
+Fortress has special syntax for matrix pasting.  Within square
+brackets, whitespace-separated expressions are treated (depending
+on their type) as either matrix elements or submatrices within a
+row.  Because whitespace is the separator, it also ends expressions
+where possible.  In addition, newline-or-semicolon-separated
+rows are pasted vertically along their columns.  Higher-dimensional
+pasting is expressed with repeated semicolons, but repeated newlines
+do not have the same effect.
+%id2a = [ 1 0 ; 0 1 ]
+%id2b = [ 1 0 ;
+%         0 1 ]
+%id2c = [ 1 0
+%         0 1 ]
+%cube2 = [ 1 0 ; 0 1 ;; 1 -1 ; 1 1 ]
+\begin{Fortress}
+\(\VAR{id2a} = [1\;0 ; 0\;1\,]\)\\
+\(\VAR{id2b} = [\null\)\pushtabs\=\+\(1\;0 ;\)\\
+\(         0\;1\,]\)\-\\\poptabs
+\(\VAR{id2c} = [\null\)\pushtabs\=\+\(1\;0\)\\
+\(         0\;1\,]\)\-\\\poptabs
+\({cube}_{2} = [1\;0 ; 0\;1 ;; 1 -1 ; 1\;1\,]\)
+\end{Fortress}
+
+\end{description}
+
+
+The simplified grammar is written in the extended BNF form
+with the following three postfix operators:
+\begin{itemize}
+\item ?: which means that its argument (the symbol or group of symbols in
+  parentheses to the left of the operator) can appear zero or one time
+\item $*$: which means that its argument can appear zero or more times
+\item $+$: which means that its argument can appear one or more times
+\end{itemize}
+
+\section{Components and APIs}
+\begin{tabular}{lll}
+\emph{File} &::=& \emph{CompilationUnit}\\
+&$|$& \option{\emph{Imports}} \emph{Exports} \option{\emph{Decls}}\\
+&$|$& \option{\emph{Imports}} \emph{AbsDecls} \\
+&$|$& \emph{Imports} \option{\emph{AbsDecls}}\\
+
+\emph{CompilationUnit} &::=& \emph{Component}\\
+&$|$&\emph{Api}\\
+
+\emph{Component} &::=&
+\option{\KWD{native}}
+\KWD{component} \emph{APIName}
+\option{\emph{Imports}} \emph{Exports} \option{\emph{Decls}} \KWD{end}
+\options{\option{\KWD{component}} \emph{APIName}}\\
+\emph{Api} &::=&
+\KWD{api} \emph{APIName}
+\option{\emph{Imports}} \option{\emph{AbsDecls}} \KWD{end}
+\options{\option{\KWD{api}} \emph{APIName}}\\
+
+\emph{Imports} &::=& \emph{Import}$^+$\\
+
+\emph{Import}
+&::=& \KWD{import} \KWD{api} \emph{AliasedAPINames} \\
+&$|$& \KWD{import} \emph{ImportedNames} \\
+
+\emph{ImportedNames}
+&::=& \emph{APIName} \EXP{.} \{ \EXP{...} \}
+\options{\KWD{except} \emph{SimpleNames}}\\
+&$|$& \emph{APIName} \EXP{.} \{ \emph{AliasedSimpleNameList}
+\options{\EXP{,} \EXP{...}} \}\\
+&$|$& \emph{QualifiedName} \options{\KWD{as} \emph{Id}}\\
+
+\emph{SimpleNames} &::=& \emph{SimpleName} \\
+&$|$& \{ \emph{SimpleNameList} \}\\
+
+\emph{SimpleNameList} &::=& \emph{SimpleName}(\EXP{,} \emph{SimpleName})$^*$ \\
+
+\emph{AliasedSimpleName} &::=& \emph{Id} \options{\KWD{as} \emph{Id}}\\
+&$|$& \KWD{opr} \option{\KWD{BIG}} (\emph{Encloser} $|$ \emph{Op})
+ \options{\KWD{as} (\emph{Encloser} $|$ \emph{Op})} \\
+&$|$& \KWD{opr} \option{\KWD{BIG}} \emph{EncloserPair} \options{\KWD{as} \emph{EncloserPair}} \\
+
+\emph{AliasedSimpleNameList}
+&::=& \emph{AliasedSimpleName}(\EXP{,} \emph{AliasedSimpleName})$^*$ \\
+
+\emph{AliasedAPINames} &::=& \emph{AliasedAPIName} \\
+&$|$& \{ \emph{AliasedAPINameList} \}\\
+
+\emph{AliasedAPIName} &::=& \emph{APIName} \options{\KWD{as} \emph{Id}}\\
+
+\emph{AliasedAPINameList}
+&::=& \emph{AliasedAPIName}(\EXP{,} \emph{AliasedAPIName})$^*$ \\
+
+\emph{Exports} &::=& \emph{Export}$^+$\\
+
+\emph{Export} &::=& \KWD{export} \emph{APINames} \\
+
+\emph{APINames} &::=& \emph{APIName} \\
+&$|$& \{ \emph{APINameList} \}\\
+
+\emph{APINameList} &::=& \emph{APIName}(\EXP{,} \emph{APIName})$^*$ \\
+\end{tabular}
+
+
+\section{Top-level Declarations}
+\begin{tabular}{lll}
+\emph{Decls} &::=& \emph{Decl}$^+$\\
+
+\emph{Decl} &::=& \emph{TraitDecl}\\
+&$|$& \emph{ObjectDecl}\\
+&$|$& \emph{VarDecl}\\
+&$|$& \emph{FnDecl}\\
+&$|$& \emph{DimUnitDecl}\\
+&$|$& \emph{TypeAlias}\\
+&$|$& \emph{TestDecl}\\
+&$|$& \emph{PropertyDecl}\\
+&$|$& \emph{ExternalSyntax}\\
+
+\emph{AbsDecls} &::=& \emph{AbsDecl}$^+$\\
+
+\emph{AbsDecl} &::=& \emph{AbsTraitDecl}\\
+&$|$& \emph{AbsObjectDecl}\\
+&$|$& \emph{AbsVarDecl}\\
+&$|$& \emph{AbsFnDecl}\\
+&$|$& \emph{DimUnitDecl}\\
+&$|$& \emph{TypeAlias}\\
+&$|$& \emph{TestDecl}\\
+&$|$& \emph{PropertyDecl}\\
+&$|$& \emph{AbsExternalSyntax}
+\end{tabular}
+
+\section{Trait and Object Declarations}
+A \emph{TraitHeaderFront} may have 0 or 1 of each \emph{TraitClause}.
+
+\begin{tabular}{lll}
+\emph{TraitDecl}  &::=& \option{\emph{TraitMods}}
+\emph{TraitHeaderFront} \emph{TraitClauses} \option{\emph{GoInATrait}} \KWD{end}
+\options{\option{\KWD{trait}} \emph{Id}} \\
+
+\emph{TraitHeaderFront} &::=&
+\KWD{trait} \emph{Id} \option{\emph{StaticParams}} \option{\emph{ExtendsWhere}} \\
+
+\emph{TraitClauses} &::=& \emph{TraitClause}$^*$\\
+
+\emph{TraitClause} &::=& \emph{Excludes} \\
+&$|$& \emph{Comprises} \\
+&$|$& \emph{Where} \\
+
+\emph{GoInATrait}
+&::=& \option{\emph{Coercions}}
+\emph{GoFrontInATrait} \option{\emph{GoBackInATrait}}\\
+&$|$& \option{\emph{Coercions}} \emph{GoBackInATrait} \\
+&$|$& \emph{Coercions}\\
+
+\emph{Coercions} &::=& \emph{Coercion}$^+$\\
+
+\emph{GoFrontInATrait} &::=& \emph{GoesFrontInATrait}$^+$\\
+
+\emph{GoesFrontInATrait}
+&::=& \emph{AbsFldDecl} \\
+&$|$& \emph{GetterSetterDecl} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{GoBackInATrait} &::=& \emph{GoesBackInATrait}$^+$\\
+
+\emph{GoesBackInATrait}
+&::=& \emph{MdDecl} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{ObjectDecl}  &::=& \option{\emph{ObjectMods}}
+\emph{ObjectHeader} \option{\emph{GoInAnObject}} \KWD{end}
+\options{\option{\KWD{object}} \emph{Id}}\\
+
+\emph{ObjectHeader} &::=& \KWD{object} \emph{Id}
+\option{\emph{StaticParams}} \option{\emph{ObjectValParam}}
+\option{\emph{ExtendsWhere}} \emph{FnClauses} \\
+
+\end{tabular}
+
+\begin{tabular}{lll}
+\emph{ObjectValParam} &::=& \texttt( \option{\emph{ObjectParams}} \texttt) \\
+
+\emph{ObjectParams}
+&::=& (\emph{ObjectParam} \EXP{,})$^*$ \options{\emph{ObjectVarargs} \EXP{,}}
+       \emph{ObjectKeyword}(\EXP{,}\emph{ObjectKeyword})$^*$\\
+&$|$& (\emph{ObjectParam} \EXP{,})$^*$ \emph{ObjectVarargs}\\
+&$|$& \emph{ObjectParam} (\EXP{,} \emph{ObjectParam})$^*$\\
+
+\emph{ObjectVarargs} &::=& \KWD{transient} \emph{Varargs}\\
+
+\emph{ObjectKeyword} &::=& \emph{ObjectParam}\EXP{=}\emph{Expr}\\
+
+\emph{ObjectParam} &::=& \option{\emph{ParamFldMods}} \emph{Param} \\
+&$|$& \KWD{var} \KWD{transient} \emph{ParamWType} \\
+&$|$& \option{\KWD{transient}} \KWD{var} \emph{ParamWType} \\
+&$|$& \KWD{transient} \emph{Param} \\
+
+\emph{ParamWType} &::=& \emph{BindId} \option{\emph{IsType}} \\
+
+\emph{GoInAnObject}
+&::=& \option{\emph{Coercions}}
+\emph{GoFrontInAnObject} \option{\emph{GoBackInAnObject}}\\
+&$|$& \option{\emph{Coercions}} \emph{GoBackInAnObject} \\
+&$|$& \emph{Coercions}\\
+
+\emph{GoFrontInAnObject} &::=& \emph{GoesFrontInAnObject}$^+$\\
+
+\emph{GoesFrontInAnObject}
+&::=& \emph{FldDecl} \\
+&$|$& \emph{GetterSetterDef} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{GoBackInAnObject} &::=& \emph{GoesBackInAnObject}$^+$\\
+
+\emph{GoesBackInAnObject}
+&::=& \emph{MdDef} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{AbsTraitDecl}  &::=& \option{\emph{AbsTraitMods}}
+\emph{TraitHeaderFront} \emph{AbsTraitClauses}
+\option{\emph{AbsGoInATrait}} \KWD{end}
+\options{\option{\KWD{trait}} \emph{Id}} \\
+
+\emph{AbsTraitClauses} &::=& \emph{AbsTraitClause}$^*$\\
+
+\emph{AbsTraitClause} &::=& \emph{Excludes} \\
+&$|$& \emph{AbsComprises} \\
+&$|$& \emph{Where} \\
+
+\emph{AbsGoInATrait}
+&::=& \option{\emph{AbsCoercions}}
+\emph{AbsGoFrontInATrait} \option{\emph{AbsGoBackInATrait}}\\
+&$|$& \option{\emph{AbsCoercions}} \emph{AbsGoBackInATrait} \\
+&$|$& \emph{AbsCoercions}\\
+
+\emph{AbsCoercions} &::=& \emph{AbsCoercion}$^+$\\
+
+\emph{AbsGoFrontInATrait} &::=& \emph{AbsGoesFrontInATrait}$^+$\\
+
+\emph{AbsGoesFrontInATrait}
+&::=& \emph{ApiFldDecl} \\
+&$|$& \emph{AbsGetterSetterDecl} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{AbsGoBackInATrait} &::=& \emph{AbsGoesBackInATrait}$^+$\\
+
+\emph{AbsGoesBackInATrait}
+&::=& \emph{AbsMdDecl} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{AbsObjectDecl} &::=& \option{\emph{AbsObjectMods}}
+ \emph{ObjectHeader} \option{\emph{AbsGoInAnObject}} \KWD{end}
+\options{\option{\KWD{object}} \emph{Id}}\\
+
+\emph{AbsGoInAnObject}
+&::=& \option{\emph{AbsCoercions}}
+\emph{AbsGoFrontInAnObject} \option{\emph{AbsGoBackInAnObject}}\\
+&$|$& \option{\emph{AbsCoercions}} \emph{AbsGoBackInAnObject} \\
+&$|$& \emph{AbsCoercions}\\
+
+\emph{AbsGoFrontInAnObject} &::=& \emph{AbsGoesFrontInAnObject}$^+$\\
+
+\emph{AbsGoesFrontInAnObject}
+&::=& \emph{ApiFldDecl} \\
+&$|$& \emph{AbsGetterSetterDecl} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{AbsGoBackInAnObject} &::=& \emph{AbsGoesBackInAnObject}$^+$\\
+
+\emph{AbsGoesBackInAnObject}
+&::=& \emph{AbsMdDecl} \\
+&$|$& \emph{PropertyDecl} \\
+
+\end{tabular}
+
+\section{Variable Declarations}
+\begin{tabular}{lll}
+\emph{VarDecl}
+&::=& \option{\emph{VarMods}} \emph{VarWTypes} \emph{InitVal} \\
+&$|$& \option{\emph{VarImmutableMods}} \emph{BindIdOrBindIdTuple} \EXP{=} \emph{Expr}\\
+&$|$& \option{\emph{VarMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{Type}\EXP{...}
+\emph{InitVal} \\
+&$|$& \option{\emph{VarMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{TupleType}
+\emph{InitVal} \\
+
+\emph{VarMods} &::=& \emph{VarMod}$^+$\\
+
+\emph{VarImmutableMods} &::=& \emph{VarImmutableMod}$^+$\\
+
+\emph{VarMod} &::=& \emph{AbsVarMod} $|$ \KWD{private}\\
+
+\emph{VarImmutableMod} &::=& \emph{AbsVarImmutableMod} $|$ \KWD{private}\\
+
+\emph{VarWTypes} &::=& \emph{VarWType} \\
+&$|$& \texttt{(} \emph{VarWType}(\EXP{,} \emph{VarWType})$^+$ \texttt{)}\\
+
+\emph{VarWType} &::=& \emph{BindId} \emph{IsType}\\
+
+\emph{InitVal} &::=& (\EXP{=}$|$\EXP{\ASSIGN}) \emph{Expr} \\
+
+\emph{AbsVarDecl} &::=& \option{\emph{AbsVarMods}} \emph{VarWTypes}\\
+&$|$& \option{\emph{AbsVarMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{Type}\EXP{...}\\
+&$|$& \option{\emph{AbsVarMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{TupleType}\\
+
+\emph{AbsVarMods} &::=& \emph{AbsVarMod}$^+$\\
+
+\emph{AbsVarMod} &::=& \KWD{var} $|$ \KWD{test}\\
+
+\emph{AbsVarImmutableMod} &::=& \KWD{test}\\
+\end{tabular}
+
+\section{Function Declarations}
+\begin{tabular}{lll}
+\emph{FnDecl}
+&::=& \option{\emph{FnMods}} \emph{FnHeaderFront} \emph{FnHeaderClause}
+\EXP{=} \emph{Expr} \\
+&$|$& \option{\emph{FnMods}} \emph{AbsFnHeaderFront} \emph{FnHeaderClause}\\
+&$|$& \emph{FnSig} \\
+
+\emph{FnSig} &::=& \emph{SimpleName} \EXP{\mathrel{\mathtt{:}}} \emph{Type}\\
+
+\emph{AbsFnDecl} &::=& \option{\emph{AbsFnMods}} \emph{AbsFnHeaderFront}
+\emph{FnHeaderClause}\\
+&$|$& \emph{FnSig} \\
+
+\emph{FnHeaderFront}
+&::=& \emph{NamedFnHeaderFront}\\
+&$|$& \emph{OpHeaderFront} \\
+
+\emph{AbsFnHeaderFront}
+&::=& \emph{AbsNamedFnHeaderFront}\\
+&$|$& \emph{AbsOpHeaderFront} \\
+
+\emph{NamedFnHeaderFront}
+&::=& \emph{Id} \option{\emph{StaticParams}} \emph{ValParam} \\
+
+\emph{AbsNamedFnHeaderFront}
+&::=& \emph{Id} \option{\emph{StaticParams}} \emph{AbsValParam} \\
+\end{tabular}
+
+\section{Dimension, Unit, Type Alias, Test, Property, and External Syntax
+  Declarations}
+\begin{tabular}{lll}
+\emph{DimUnitDecl}
+&::=&
+\KWD{dim} \emph{Id} \options{\EXP{=} \emph{Type}}
+(\KWD{unit} $|$ \KWD{SI\_unit}) \emph{Id}$^+$
+\options{\EXP{=} \emph{Expr}}\\
+&$|$&
+\KWD{dim} \emph{Id}
+\options{\EXP{=} \emph{Type}} \options{\KWD{default} \emph{Id}}\\
+&$|$&
+(\KWD{unit} $|$ \KWD{SI\_unit})
+\emph{Id}$^+$ \options{\EXP{\mathrel{\mathtt{:}}} \emph{Type}}
+ \options{\EXP{=} \emph{Expr}}\\
+
+\emph{TypeAlias} &::=& \KWD{type} \emph{Id} \option{\emph{StaticParams}}
+\EXP{=} \emph{Type} \\
+
+\emph{TestDecl} &::=& \KWD{test} \emph{Id} \texttt[\emph{GeneratorClauseList}\texttt]
+\EXP{=} \emph{Expr} \\
+
+\emph{PropertyDecl} &::=& \KWD{property} \options{\emph{Id} \EXP{=}}
+\options{$\forall$ \emph{ValParam}} \emph{Expr} \\
+
+\emph{ExternalSyntax} &::=&
+\KWD{syntax} \emph{OpenExpander} \emph{Id} \emph{CloseExpander}
+ \EXP{=} \emph{Expr} \\
+
+\emph{OpenExpander} &::=& \emph{Id}\\
+&$|$& \emph{LeftEncloser} \\
+&$|$& \emph{Encloser} \\
+
+\emph{CloseExpander} &::=& \emph{Id} \\
+&$|$& \emph{RightEncloser}\\
+&$|$& \emph{Encloser} \\
+&$|$& \KWD{end} \\
+
+\emph{AbsExternalSyntax} &::=&
+\KWD{syntax} \emph{OpenExpander} \emph{Id} \emph{CloseExpander}\\
+
+\end{tabular}
+
+\section{Headers}
+Each modifier should not appear multiple times in a declaration.
+
+\begin{tabular}{lll}
+\emph{IsType} &::=& \EXP{\mathrel{\mathtt{:}}} \emph{Type}\\
+
+\emph{ExtendsWhere} &::=& \KWD{extends} \emph{TraitTypeWheres} \\
+
+\emph{TraitTypeWheres} &::=& \emph{TraitTypeWhere} \\
+&$|$& \{ \emph{TraitTypeWhereList} \} \\
+
+\emph{TraitTypeWhereList} &::=& \emph{TraitTypeWhere}(\EXP{,} \emph{TraitTypeWhere})$^*$ \\
+
+\emph{TraitTypeWhere} &::=& \emph{TraitType} \option{\emph{Where}}\\
+
+\emph{Extends} &::=& \KWD{extends} \emph{TraitTypes} \\
+\emph{Excludes} &::=& \KWD{excludes} \emph{TraitTypes} \\
+\emph{Comprises} &::=& \KWD{comprises} \emph{ComprisingTypes} \\
+\emph{AbsComprises} &::=& \KWD{comprises} \emph{AbsComprisingTypes} \\
+
+\emph{TraitTypes} &::=& \emph{TraitType} \\
+&$|$& \{ \emph{TraitTypeList} \} \\
+\emph{TraitTypeList} &::=& \emph{TraitType}(\EXP{,} \emph{TraitType})$^*$ \\
+
+\emph{ComprisingTypes}
+&::=& \emph{ComprisingType} \\
+&$|$& \texttt{\{} \emph{ComprisingTypeList} \texttt{\}} \\
+
+\emph{ComprisingTypeList}
+&::=& \emph{ComprisingType}(\EXP{,} \emph{ComprisingType})$^*$\\
+
+\emph{ComprisingType}
+&::=& \emph{TraitType} \\
+&$|$& \emph{Id} \\
+
+\emph{AbsComprisingTypes}
+&::=& \emph{ComprisingType} \\
+&$|$& \texttt{\{} \option{\emph{AbsComprisingTypeList}} \texttt{\}} \\
+
+\emph{AbsComprisingTypeList}
+&::=& \EXP{\ldots} \\
+&$|$& \emph{ComprisingTypeList} \options{\EXP{,} \ldots}\\
+
+\emph{Where}
+&::=& \KWD{where} \bTPl\ \emph{WhereBindingList} \bTPr\
+\options{\{ \emph{WhereConstraintList} \}}\\
+&$|$& \KWD{where} \{ \emph{WhereConstraintList} \}\\
+
+\emph{WhereBindingList} &::=& \emph{WhereBinding}(\EXP{,}
+\emph{WhereBinding})$^*$ \\
+
+\emph{WhereBinding} &::=& \emph{Id} \option{\emph{Extends}}\\
+&$|$& \KWD{nat} \emph{Id}\\
+&$|$& \KWD{int} \emph{Id}\\
+&$|$& \KWD{bool} \emph{Id}\\
+&$|$& \KWD{unit} \emph{Id}\\
+
+\emph{WhereConstraintList} &::=& \emph{WhereConstraint}(\EXP{,}
+\emph{WhereConstraint})$^*$ \\
+
+\emph{WhereConstraint}
+&::=& \emph{Id} \emph{Extends}\\
+&$|$& \emph{TypeAlias} \\
+&$|$& \emph{Type} \KWD{coerces} \emph{Type}\\
+&$|$& \emph{Type} \KWD{widens} \emph{Type}\\
+&$|$& \emph{UnitConstraint} \\
+&$|$& \emph{QualifiedName} \EXP{=} \emph{QualifiedName}\\
+&$|$& \emph{IntConstraint} \\
+&$|$& \emph{BoolExpr} \\
+
+\emph{UnitConstraint}
+&::=& \TYP{dimensionless} \EXP{=} \emph{Id}\\
+&$|$& \emph{Id} \EXP{=} \TYP{dimensionless} \\
+
+\emph{IntConstraint}
+&::=& \emph{IntExpr} $\le$ \emph{IntExpr} \\
+&$|$& \emph{IntExpr} $<$ \emph{IntExpr} \\
+&$|$& \emph{IntExpr} $\ge$ \emph{IntExpr} \\
+&$|$& \emph{IntExpr} $>$ \emph{IntExpr} \\
+&$|$& \emph{IntExpr} \EXP{=} \emph{IntExpr} \\
+
+\emph{IntVal}
+&::=& \emph{IntLiteralExpr}\\
+&$|$& \emph{QualifiedName}\\
+
+\end{tabular}
+
+\begin{tabular}{lll}
+\emph{IntExpr}
+&::=& \emph{IntVal}\\
+&$|$& \emph{IntExpr} \EXP{+} \emph{IntExpr}\\
+&$|$& \emph{IntExpr} \EXP{-} \emph{IntExpr}\\
+&$|$& \emph{IntExpr} $\csdot$ \emph{IntExpr}\\
+&$|$& \emph{IntExpr} \emph{IntExpr}\\
+&$|$& \emph{IntExpr} \texttt{\^} \emph{IntVal}\\
+&$|$& \texttt{(}\emph{IntExpr}\texttt{)} \\
+
+\emph{BoolConstraint}
+&::=& \OPR{NOT} \emph{BoolExpr} \\
+&$|$& \emph{BoolExpr} \OPR{OR} \emph{BoolExpr} \\
+&$|$& \emph{BoolExpr} \OPR{AND} \emph{BoolExpr} \\
+&$|$& \emph{BoolExpr} \OPR{IMPLIES} \emph{BoolExpr} \\
+&$|$& \emph{BoolExpr} \EXP{=} \emph{BoolExpr} \\
+
+\emph{BoolVal}
+&::=& \VAR{true}\\
+&$|$& \VAR{false}\\
+&$|$& \emph{QualifiedName}\\
+
+\emph{BoolExpr}
+&::=& \emph{BoolVal}\\
+&$|$& \emph{BoolConstraint}\\
+&$|$& \texttt{(}\emph{BoolExpr}\texttt{)} \\
+
+\emph{UnitExpr}
+&::=& \VAR{dimensionless}\\
+&$|$& \emph{QualifiedName}\\
+&$|$& \emph{UnitExpr} $\csdot$ \emph{UnitExpr}\\
+&$|$& \emph{UnitExpr} \emph{UnitExpr}\\
+&$|$& \emph{UnitExpr} \EXP{/} \emph{UnitExpr}\\
+&$|$& \emph{UnitExpr} \TYP{per} \emph{UnitExpr}\\
+&$|$& \emph{UnitExpr} \texttt{\^} \emph{UnitExpr}\\
+&$|$& \texttt{(}\emph{UnitExpr}\texttt{)} \\
+
+\emph{FnHeaderClause} &::=& \option{\emph{IsType}} \emph{FnClauses} \\
+
+\emph{FnClauses} &::=& \option{\emph{Throws}} \option{\emph{Where}} \emph{Contract} \\
+
+\emph{Throws} &::=& \KWD{throws} \emph{MayTraitTypes}\\
+
+\emph{MayTraitTypes} &::=& \texttt{\{\}} \\
+&$|$& \emph{TraitTypes} \\
+
+\emph{Contract} &::=& \option{\emph{Requires}} \option{\emph{Ensures}} \option{\emph{Invariant}}\\
+
+\emph{Requires} &::=&
+\KWD{requires} \{ \option{\emph{ExprList}} \} \\
+
+\emph{Ensures}  &::=&
+\KWD{ensures} \{ \option{\emph{EnsuresClauseList}} \} \\
+
+\emph{EnsuresClauseList} &::=&
+\emph{EnsuresClause}(\EXP{,} \emph{EnsuresClause})$^*$ \\
+
+\emph{EnsuresClause} &::=& \emph{Expr} \options{\KWD{provided} \emph{Expr}} \\
+
+\emph{Invariant}&::=&
+\KWD{invariant} \{ \option{\emph{ExprList}} \} \\
+
+\emph{TraitMods} &::=& \emph{TraitMod}$^+$\\
+
+\emph{TraitMod} &::=& \emph{AbsTraitMod} $|$ \KWD{private}\\
+
+\emph{AbsTraitMods} &::=& \emph{AbsTraitMod}$^+$\\
+
+\emph{AbsTraitMod} &::=& \KWD{value} $|$ \KWD{test}\\
+
+\emph{ObjectMods} &::=& \emph{TraitMods}\\
+
+\emph{AbsObjectMods} &::=& \emph{AbsTraitMods}\\
+
+\emph{MdMods} &::=& \emph{MdMod}$^+$\\
+
+\emph{MdMod} &::=& \emph{FnMod} $|$ \KWD{override}\\
+
+\emph{AbsMdMods} &::=& \emph{AbsMdMod}$^+$\\
+
+\emph{AbsMdMod} &::=& \emph{AbsFnMod} $|$ \KWD{override}\\
+
+\emph{FnMods} &::=& \emph{FnMod}$^+$\\
+
+\emph{FnMod} &::=& \emph{AbsFnMod} $|$ \KWD{private}\\
+
+\emph{AbsFnMods} &::=& \emph{AbsFnMod}$^+$\\
+
+\emph{AbsFnMod} &::=& \emph{LocalFnMod} $|$ \KWD{test}\\
+
+\emph{LocalFnMods} &::=& \emph{LocalFnMod}$^+$\\
+
+\emph{LocalFnMod} &::=& \KWD{atomic} $|$ \KWD{io}\\
+
+\end{tabular}
+
+\begin{tabular}{lll}
+\emph{ParamFldMods} &::=& \emph{ParamFldMod}$^+$\\
+
+\emph{ParamFldMod} &::=&
+\KWD{hidden} $|$ \KWD{settable} $|$ \KWD{wrapped}\\
+
+\emph{FldMods} &::=& \emph{FldMod}$^+$\\
+
+\emph{FldImmutableMods} &::=& \emph{FldImmutableMod}$^+$\\
+
+\emph{FldMod} &::=& \KWD{var} $|$ \emph{AbsFldMod}\\
+
+\emph{FldImmutableMod} &::=& \emph{AbsFldMod}\\
+
+\emph{AbsFldMods} &::=& \emph{AbsFldMod}$^+$\\
+
+\emph{AbsFldMod} &::=& \emph{ApiFldMod} $|$ \KWD{wrapped} $|$ \KWD{private}\\
+
+\emph{ApiFldMods} &::=& \emph{ApiFldMod}$^+$\\
+
+\emph{ApiFldMod} &::=& \KWD{hidden} $|$ \KWD{settable} $|$ \KWD{test}\\
+
+\emph{StaticParams} &::=& \bTPl \emph{StaticParamList}\bTPr\\
+
+\emph{StaticParamList} &::=& \emph{StaticParam}(\EXP{,} \emph{StaticParam})$^*$\\
+
+\emph{StaticParam}
+&::=& \emph{Id} \option{\emph{Extends}} \options{\KWD{absorbs} \KWD{unit}} \\
+&$|$& \KWD{nat} \emph{Id} \\
+&$|$& \KWD{int} \emph{Id} \\
+&$|$& \KWD{bool} \emph{Id} \\
+&$|$& \KWD{dim} \emph{Id} \\
+&$|$& \KWD{unit} \emph{Id} \options{\EXP{\mathrel{\mathtt{:}}} \emph{Type}}
+ \options{\KWD{absorbs} \KWD{unit}}\\
+&$|$& \KWD{opr} \emph{Op} \\
+
+\emph{StaticArgs}    &::=& \bTPl \emph{StaticArgList} \bTPr \\
+
+\emph{StaticArgList} &::=& \emph{StaticArg}(\EXP{,} \emph{StaticArg})$^*$ \\
+
+\emph{StaticArg} &::=&
+\emph{Op} \\
+&$|$& \TYP{Unity} \\
+&$|$& \TYP{dimensionless}\\
+&$|$& \EXP{1}\EXP{/}\emph{Type}\\
+&$|$& \emph{DimPrefixOp} \emph{Type}\\
+&$|$& \emph{IntExpr}\\
+&$|$& \emph{BoolExpr}\\
+&$|$& \emph{Type}\\
+&$|$& \emph{UnitExpr}\\
+
+\end{tabular}
+
+\section{Parameters}
+\begin{tabular}{lll}
+\emph{ValParam} &::=& \emph{BindId}\\
+&$|$& \texttt(\option{\emph{Params}}\texttt)\\
+
+\emph{AbsValParam} &::=& \texttt(\option{\emph{AbsParams}}\texttt)\\
+&$|$& \emph{Type}\\
+
+\emph{Params}
+&::=& (\emph{Param}\EXP{,})$^*$ \options{\emph{Varargs}\EXP{,}} \emph{Keyword}(\EXP{,}\emph{Keyword})$^*$\\
+&$|$& (\emph{Param}\EXP{,})$^*$  \emph{Varargs}\\
+&$|$& \emph{Param}(\EXP{,} \emph{Param})$^*$\\
+
+\emph{AbsParams}
+&::=& (\emph{AbsParam}\EXP{,})$^*$ \options{\emph{Varargs}\EXP{,}} \emph{Keyword}(\EXP{,}\emph{Keyword})$^*$\\
+&$|$& (\emph{AbsParam}\EXP{,})$^*$  \emph{Varargs}\\
+&$|$& \emph{AbsParam}(\EXP{,} \emph{AbsParam})$^*$\\
+
+\emph{VarargsParam} &::=& \emph{BindId}\EXP{\COLONOP}\emph{Type}\EXP{...} \\
+
+\emph{Varargs} &::=& \emph{VarargsParam}\\
+
+\emph{Keyword} &::=& \emph{Param}\EXP{=}\emph{Expr} \\
+
+\emph{PlainParam} &::=& \emph{BindId} \option{\emph{IsType}} \\
+
+\emph{Param} &::=& \emph{PlainParam}\\
+
+\emph{AbsPlainParam} &::=& \emph{BindId} \emph{IsType} \\
+&$|$& \emph{Type} \\
+
+\emph{AbsParam} &::=& \emph{AbsPlainParam}\\
+
+\emph{OpHeaderFront}
+&::=& \KWD{opr} \option{\KWD{BIG}}
+(\emph{LeftEncloser} \EXP{\mapsto} $|$ \emph{LeftEncloser} $|$ \emph{Encloser})
+\option{\emph{StaticParams}} \option{\emph{Params}}\\
+&& (\emph{RightEncloser} $|$ \emph{Encloser}) \\
+&$|$& \KWD{opr} \emph{ValParam}
+(\emph{Op} $|$ \emph{ExponentOp} $|$ \texttt{\^}) \option{\emph{StaticParams}} \\
+&$|$& \KWD{opr} \option{\KWD{BIG}}
+(\emph{Op} $|$ \texttt{\^} $|$ \emph{Encloser} $|$ $\sum$ $|$ $\prod$)
+ \option{\emph{StaticParams}} \emph{ValParam} \\
+
+\emph{AbsOpHeaderFront}
+&::=& \KWD{opr} \option{\KWD{BIG}}
+(\emph{LeftEncloser} \EXP{\mapsto} $|$ \emph{LeftEncloser} $|$ \emph{Encloser})
+\option{\emph{StaticParams}} \option{\emph{AbsParams}}\\
+&& (\emph{RightEncloser} $|$ \emph{Encloser}) \\
+&$|$& \KWD{opr} \emph{AbsValParam}
+(\emph{Op} $|$ \emph{ExponentOp} $|$ \texttt{\^}) \option{\emph{StaticParams}} \\
+&$|$& \KWD{opr} \option{\KWD{BIG}}
+(\emph{Op} $|$ \texttt{\^} $|$ \emph{Encloser} $|$ $\sum$ $|$ $\prod$)
+ \option{\emph{StaticParams}} \emph{AbsValParam} \\
+\end{tabular}
+
+\section{Method Declarations}
+\begin{tabular}{lll}
+\emph{MdDecl} &::=& \emph{MdDef} \\
+&$|$& \option{\KWD{abstract}} \option{\emph{MdMods}} \emph{AbsMdHeaderFront}
+\emph{FnHeaderClause} \\
+
+\emph{MdDef}  &::=& \option{\emph{MdMods}} \emph{MdHeaderFront} \emph{FnHeaderClause}
+\EXP{=} \emph{Expr} \\
+
+\emph{AbsMdDecl} &::=&
+\option{\KWD{abstract}} \option{\emph{AbsMdMods}} \emph{AbsMdHeaderFront}
+\emph{FnHeaderClause} \\
+
+\emph{MdHeaderFront}  &::=& \emph{NamedMdHeaderFront}\\
+&$|$& \emph{OpMdHeaderFront} \\
+
+\emph{AbsMdHeaderFront}  &::=& \emph{AbsNamedMdHeaderFront}\\
+&$|$& \emph{AbsOpMdHeaderFront} \\
+
+\emph{NamedMdHeaderFront} &::=&
+\emph{Id} \option{\emph{StaticParams}} \emph{MdValParam} \\
+
+\emph{AbsNamedMdHeaderFront} &::=&
+\emph{Id} \option{\emph{StaticParams}} \emph{AbsMdValParam} \\
+
+\emph{GetterSetterDecl} &::=& \emph{GetterSetterDef} \\
+&$|$& \option{\KWD{abstract}} \option{\emph{FnMods}}
+ \emph{GetterSetterMod} \emph{AbsMdHeaderFront} \emph{FnHeaderClause} \\
+
+\emph{GetterSetterDef}  &::=& \option{\emph{FnMods}} \emph{GetterSetterMod}
+\emph{MdHeaderFront} \emph{FnHeaderClause}
+\EXP{=} \emph{Expr} \\
+
+\emph{GetterSetterMod} &::=& \KWD{getter} $|$ \KWD{setter}\\
+
+\emph{AbsGetterSetterDecl} &::=& \option{\KWD{abstract}} \option{\emph{AbsFnMods}}
+ \emph{GetterSetterMod} \emph{AbsMdHeaderFront} \emph{FnHeaderClause} \\
+
+\emph{Coercion} &::=&
+\KWD{coerce}\option{\emph{StaticParams}}\texttt(\emph{BindId} \emph{IsType}\texttt)\emph{CoercionClauses} \option{\KWD{widens}} \EXP{=} \emph{Expr}\\
+
+\emph{AbsCoercion} &::=&
+\KWD{coerce}\option{\emph{StaticParams}}\texttt(\emph{BindId} \emph{IsType}\texttt)\emph{CoercionClauses} \option{\KWD{widens}}\\
+
+\emph{CoercionClauses} &::=&
+\option{\emph{CoercionWhere}}
+\option{\emph{Ensures}} \option{\emph{Invariant}}\\
+
+\emph{CoercionWhere}
+&::=& \KWD{where} \bTPl\ \emph{WhereBindingList} \bTPr\
+\options{\{ \emph{CoercionWhereConstraintList} \}}\\
+&$|$& \KWD{where} \{ \emph{CoercionWhereConstraintList} \}\\
+
+\emph{CoercionWhereConstraintList} &::=& \emph{CoercionWhereConstraint}(\EXP{,}
+\emph{CoercionWhereConstraint})$^*$ \\
+
+\emph{CoercionWhereConstraint} &::=& \emph{WhereConstraint}\\
+&$|$& \emph{Type} \KWD{widens} \KWD{or} \KWD{coerces} \emph{Type}\\
+
+\end{tabular}
+
+\section{Method Parameters}
+\begin{tabular}{lll}
+\emph{MdValParam} &::=& \texttt( \option{\emph{MdParams}} \texttt) \\
+
+\emph{AbsMdValParam} &::=& \texttt( \option{\emph{AbsMdParams}} \texttt) \\
+
+\emph{MdParams}
+&::=& (\emph{MdParam}\EXP{,})$^*$ \options{\emph{Varargs}\EXP{,}} \emph{MdKeyword}(\EXP{,}\emph{MdKeyword})$^*$\\
+&$|$& (\emph{MdParam}\EXP{,})$^*$  \emph{Varargs}\\
+&$|$& \emph{MdParam}(\EXP{,} \emph{MdParam})$^*$\\
+
+\emph{AbsMdParams}
+&::=& (\emph{AbsMdParam}\EXP{,})$^*$ \options{\emph{Varargs}\EXP{,}} \emph{MdKeyword}(\EXP{,}\emph{MdKeyword})$^*$\\
+&$|$& (\emph{AbsMdParam}\EXP{,})$^*$  \emph{Varargs}\\
+&$|$& \emph{AbsMdParam}(\EXP{,} \emph{AbsMdParam})$^*$\\
+
+\emph{MdKeyword} &::=& \emph{MdParam}\EXP{=}\emph{Expr} \\
+
+\emph{MdParam} &::=& \emph{Param} \\
+&$|$& \KWD{self} \\
+
+\emph{AbsMdParam} &::=& \KWD{self} \\
+&$|$& \emph{AbsParam} \\
+
+\emph{OpMdHeaderFront}
+&::=& \KWD{opr} \option{\KWD{BIG}}
+(\emph{LeftEncloser} \EXP{\mapsto} $|$ \emph{LeftEncloser} $|$ \emph{Encloser}) \option{\emph{StaticParams}}
+\option{\emph{Params}}\\
+&& (\emph{RightEncloser} $|$ \emph{Encloser})
+\options{\EXP{\ASSIGN} \texttt( \emph{SubscriptAssignParam} \texttt)}
+\\
+&$|$& \KWD{opr} \emph{ValParam}
+(\emph{Op} $|$ \emph{ExponentOp}) \option{\emph{StaticParams}} \\
+&$|$& \KWD{opr} \option{\KWD{BIG}}
+(\emph{Op} $|$ \texttt{\^} $|$ \emph{Encloser} $|$ $\sum$ $|$ $\prod$)
+ \option{\emph{StaticParams}} \emph{ValParam} \\
+
+\emph{AbsOpMdHeaderFront}
+&::=& \KWD{opr} \option{\KWD{BIG}}
+(\emph{LeftEncloser} \EXP{\mapsto} $|$ \emph{LeftEncloser} $|$ \emph{Encloser}) \option{\emph{StaticParams}}
+\option{\emph{AbsParams}}\\
+&& (\emph{RightEncloser} $|$ \emph{Encloser})
+\options{\EXP{\ASSIGN} \texttt( \emph{AbsSubscriptAssignParam} \texttt)}
+\\
+&$|$& \KWD{opr} \emph{AbsValParam}
+(\emph{Op} $|$ \emph{ExponentOp}) \option{\emph{StaticParams}} \\
+&$|$& \KWD{opr} \option{\KWD{BIG}}
+(\emph{Op} $|$ \texttt{\^} $|$ \emph{Encloser} $|$ $\sum$ $|$ $\prod$)
+ \option{\emph{StaticParams}} \emph{AbsValParam} \\
+
+\emph{SubscriptAssignParam}
+&::=& \emph{Varargs}\\
+&$|$& \emph{Param}\\
+
+\emph{AbsSubscriptAssignParam}
+&::=& \emph{Varargs}\\
+&$|$& \emph{AbsParam}\\
+\end{tabular}
+
+\section{Field Declarations}
+\begin{tabular}{lll}
+\emph{FldDecl}
+&::=& \option{\emph{FldMods}} \emph{FldWTypes} \emph{InitVal} \\
+&$|$& \option{\emph{FldImmutableMods}} \emph{BindIdOrBindIdTuple} \EXP{=} \emph{Expr}\\
+&$|$& \option{\emph{FldMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{Type}\EXP{...}
+\emph{InitVal} \\
+&$|$& \option{\emph{FldMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{TupleType}
+\emph{InitVal} \\
+
+\emph{FldWTypes} &::=& \emph{FldWType} \\
+&$|$& \texttt{(} \emph{FldWType}(\EXP{,} \emph{FldWType})$^+$ \texttt{)}\\
+
+\emph{FldWType} &::=& \emph{BindId} \emph{IsType}\\
+
+\end{tabular}
+
+\section{Abstract Field Declarations}
+\begin{tabular}{lll}
+\emph{AbsFldDecl}
+&::=& \option{\emph{AbsFldMods}} \emph{AbsFldWTypes}\\
+&$|$& \option{\emph{AbsFldMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{Type}\EXP{...}\\
+&$|$& \option{\emph{AbsFldMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{TupleType}\\
+
+\emph{AbsFldWTypes} &::=& \emph{AbsFldWType} \\
+&$|$& \texttt{(} \emph{AbsFldWType}(\EXP{,} \emph{AbsFldWType})$^+$ \texttt{)}\\
+
+\emph{AbsFldWType} &::=& \emph{BindId} \emph{IsType}\\
+
+\emph{ApiFldDecl} &::=& \option{\emph{ApiFldMods}} \emph{BindId} \emph{IsType}\\
+
+\end{tabular}
+
+\section{Expressions}
+\begin{tabular}{lll}
+\emph{Expr}
+&::=& \emph{AssignExpr}\\
+&$|$& \emph{OpExpr}\\
+&$|$& \emph{DelimitedExpr}\\
+&$|$& \emph{FlowExpr}\\
+&$|$& \KWD{fn} \emph{BindId} \option{\emph{Throws}} \EXP{\Rightarrow} \emph{Expr}\\
+&$|$& \KWD{fn} \texttt{(} \emph{Params} \texttt{)} \option{\emph{IsType}} \option{\emph{Throws}} \EXP{\Rightarrow} \emph{Expr}\\
+&$|$& \emph{Expr} \KWD{typed} \emph{Type}\\
+&$|$& \emph{Expr} \KWD{asif} \emph{Type}\\
+
+\emph{AssignExpr}
+&::=& \emph{AssignLefts} \emph{AssignOp} \emph{Expr}\\
+
+\emph{AssignLefts}
+&::=& \texttt( \emph{AssignLeft}(\EXP{,} \emph{AssignLeft})$^*$ \texttt)\\
+&$|$& \emph{AssignLeft}\\
+
+\emph{AssignLeft}
+&::=& \emph{SubscriptExpr}\\
+&$|$& \emph{FieldSelection}\\
+&$|$& \emph{QualifiedName}\\
+
+\emph{SubscriptExpr} &::=&
+\emph{Primary} \emph{LeftEncloser} \option{\emph{StaticArgs}} \option{\emph{ExprList}} \emph{RightEncloser} \\
+
+\emph{FieldSelection} &::=& \emph{Primary}\EXP{.}\emph{Id}\\
+
+\emph{OpExpr}
+&::=& \emph{EncloserOp} \option{\emph{OpExpr}} \option{\emph{EncloserOp}} \\
+&$|$& \emph{OpExpr} \emph{EncloserOp} \option{\emph{OpExpr}} \\
+&$|$& \emph{Primary}\\
+
+\emph{EncloserOp} &::=& \emph{Encloser}\\
+&$|$& \emph{Op}\\
+
+\emph{Primary}
+&::=& \emph{PrimaryItem} (\EXP{,} \emph{PrimaryItem})$^*$\\
+
+\emph{PrimaryItem}
+&::=& \emph{ArrayExpr}\\
+&$|$& \emph{MapExpr} \\
+&$|$& \emph{Comprehension} \\
+&$|$& \emph{LeftEncloser} \option{\emph{StaticArgs}} \option{\emph{ExprList}} \emph{RightEncloser} \\
+&$|$& \emph{ParenthesisDelimited}\\
+&$|$& \emph{LiteralExpr}\\
+&$|$& \emph{VarOrFnRef}\\
+&$|$& \KWD{self} \\
+&$|$& \emph{Primary} \emph{LeftEncloser} \option{\emph{StaticArgs}} \option{\emph{ExprList}} \emph{RightEncloser} \\
+&$|$& \emph{Primary}\EXP{.}\emph{Id}
+\option{\emph{StaticArgs}} \emph{ParenthesisDelimited}\\
+&$|$& \emph{Primary}\EXP{.}\emph{Id}\\
+&$|$& \emph{Primary} \verb+^+ \emph{Exponent}\\
+&$|$& \emph{Primary} \emph{ExponentOp}\\
+&$|$& \emph{Primary} \emph{ArgExpr}\\
+&$|$& \emph{Primary} \emph{Primary}\\
+
+\emph{VarOrFnRef} &::=& \emph{Id} \option{\emph{StaticArgs}}\\
+
+\end{tabular}
+
+\begin{tabular}{lll}
+\emph{ParenthesisDelimited}
+&::=& \emph{Parenthesized}\\
+&$|$& \emph{ArgExpr}\\
+&$|$& \texttt(\texttt)\\
+
+\emph{Exponent}
+&::=& \emph{ParenthesisDelimited}\\
+&$|$& \emph{LiteralExpr}\\
+&$|$& \emph{Id}\\
+&$|$& \KWD{self}\\
+
+\emph{FlowExpr}
+&::=& \KWD{exit} \option{\emph{Id}} \options{\KWD{with} \emph{Expr}} \\
+&$|$& \emph{Accumulator} \option{\emph{StaticArgs}}
+\options{\texttt[ \emph{GeneratorClauseList} \texttt]} \emph{Expr} \\
+&$|$& \KWD{BIG} \emph{LeftEncloser} \ensuremath{\mapsto} \option{\emph{StaticArgs}}
+\emph{RightEncloser} \emph{Expr} \\
+&$|$& \KWD{BIG} \emph{LeftEncloser} \option{\emph{StaticArgs}}
+\emph{RightEncloser} \emph{Expr} \\
+
+&$|$& \KWD{atomic} \emph{AtomicBack}\\
+&$|$& \KWD{tryatomic} \emph{AtomicBack} \\
+&$|$& \KWD{spawn} \emph{Expr} \\
+&$|$& \KWD{throw} \emph{Expr}\\
+
+\emph{AtomicBack}
+&::=& \emph{AssignExpr}\\
+&$|$& \emph{OpExpr}\\
+&$|$& \emph{DelimitedExpr}\\
+
+\emph{GeneratorClauseList} &::=& \emph{GeneratorBinding}(\EXP{,} \emph{GeneratorClause})$^*$\\
+
+\emph{GeneratorBinding}
+&::=& \emph{BindIdOrBindIdTuple}\EXP{\leftarrow}\emph{Expr} \\
+
+\emph{GeneratorClause}
+&::=& \emph{GeneratorBinding}\\
+&$|$& \emph{Expr} \\
+
+\end{tabular}
+
+\section{Expressions Enclosed by Keywords or Symbols}
+\begin{tabular}{lll}
+\emph{DelimitedExpr}
+&::=& \emph{ArgExpr}\\
+&$|$& \emph{Parenthesized}\\
+&$|$& \KWD{object} \option{\emph{ExtendsWhere}}
+\option{\emph{GoInAnObject}} \KWD{end} \\
+&$|$& \emph{Do}\\
+&$|$& \KWD{label} \emph{Id} \emph{BlockElems} \KWD{end} \emph{Id} \\
+&$|$& \KWD{while} \emph{GeneratorClause} \emph{Do} \\
+&$|$& \KWD{for} \emph{GeneratorClauseList} \emph{DoFront} \KWD{end}\\
+&$|$& \KWD{if} \emph{GeneratorClause} \KWD{then} \emph{BlockElems} \option{\emph{Elifs}} \option{\emph{Else}} \KWD{end}\\
+&$|$& \texttt{(}\KWD{if} \emph{GeneratorClause} \KWD{then} \emph{BlockElems}
+\option{\emph{Elifs}} \emph{Else} \option{\KWD{end}}\texttt{)}\\
+&$|$& \KWD{case} \emph{Expr} \option{(\emph{Encloser} $|$ \emph{Op})} \KWD{of} \emph{CaseClauses}
+\option{\emph{CaseElse}} \KWD{end} \\
+&$|$& \KWD{case} \KWD{most} (\emph{Encloser} $|$ \emph{Op}) \KWD{of}
+\emph{CaseClauses} \KWD{end}\\
+&$|$& \KWD{typecase} \emph{TypecaseBindings} \KWD{of}
+\emph{TypecaseClauses} \option{\emph{CaseElse}} \KWD{end}\\
+&$|$& \KWD{try} \emph{BlockElems} \option{\emph{Catch}}
+\options{\KWD{forbid} \emph{TraitTypes}}
+\options{\KWD{finally} \emph{BlockElems}} \KWD{end} \\
+
+\emph{Do} &::=& (\emph{DoFront} \KWD{also})$^*$ \emph{DoFront} \KWD{end}\\
+
+\emph{DoFront} &::=& \options{\KWD{at} \emph{Expr}} \option{\KWD{atomic}}
+\KWD{do} \option{\emph{BlockElems}}\\
+
+\emph{ArgExpr} &::=&
+\texttt( (\emph{Expr}\EXP{,})$^*$ \options{\emph{Expr}\EXP{...}\EXP{,}}
+\emph{KeywordExpr} (\EXP{,} \emph{KeywordExpr})$^*$ \texttt)\\
+&$|$& \texttt( (\emph{Expr}\EXP{,})$^*$ \emph{Expr}\EXP{...} \texttt)\\
+&$|$& \emph{TupleExpr}\\
+
+\emph{TupleExpr}
+&::=& \texttt( (\emph{Expr}\EXP{,})$^+$ \emph{Expr} \texttt)\\
+
+\emph{KeywordExpr} &::=& \emph{BindId} \EXP{=} \emph{Expr}\\
+
+\emph{Parenthesized} &::=& \texttt( \emph{Expr} \texttt)\\
+
+\emph{Elifs} &::=& \emph{Elif}$^+$\\
+
+\emph{Elif} &$::=$& \KWD{elif} \emph{GeneratorClause} \KWD{then} \emph{BlockElems}\\
+
+\emph{Else} &$::=$& \KWD{else} \emph{BlockElems}\\
+
+\emph{CaseClauses} &::=& \emph{CaseClause}$^+$\\
+
+\emph{CaseClause} &::=& \emph{Expr} \EXP{\Rightarrow} \emph{BlockElems}\\
+
+\emph{CaseElse} &::=& \KWD{else} \EXP{\Rightarrow} \emph{BlockElems}\\
+
+\end{tabular}
+
+\begin{tabular}{lll}
+\emph{TypecaseBindings} &::=& \emph{TypecaseVars}
+\options{\EXP{=} \emph{Expr}}\\
+
+\emph{TypecaseVars} &::=& \emph{BindId} \\
+&$|$& \texttt{(} \emph{BindId}(\EXP{,} \emph{BindId})$^+$ \texttt{)} \\
+
+\emph{TypecaseClauses} &::=& \emph{TypecaseClause}$^+$\\
+
+\emph{TypecaseClause} &::=&
+\emph{TypecaseTypes} \EXP{\Rightarrow} \emph{BlockElems} \\
+
+\emph{TypecaseTypes}
+&::=& \texttt{(} \emph{TypeList} \texttt{)}\\
+&$|$& \emph{Type} \\
+
+\emph{Catch} &::=& \KWD{catch} \emph{BindId} \emph{CatchClauses}\\
+
+\emph{CatchClauses} &::=& \emph{CatchClause}$^+$\\
+
+\emph{CatchClause} &::=& \emph{TraitType} \EXP{\Rightarrow} \emph{BlockElems} \\
+
+\emph{MapExpr} &::=& \emph{LeftEncloser} \option{\emph{StaticArgs}} \emph{EntryList} \emph{RightEncloser}\\
+
+\emph{Comprehension}
+&::=& \option{\KWD{BIG}} \texttt{[} \option{\emph{StaticArgs}}
+\emph{ArrayComprehensionClause}$^+$ \texttt{]}\\
+&$|$& \option{\KWD{BIG}} \emph{LeftEncloser} \option{\emph{StaticArgs}}
+\emph{Entry} \texttt{|} \emph{GeneratorClauseList} \emph{RightEncloser} \\
+&$|$& \option{\KWD{BIG}} \emph{LeftEncloser} \option{\emph{StaticArgs}}
+\emph{Expr} \texttt{|} \emph{GeneratorClauseList} \emph{RightEncloser} \\
+
+\emph{Entry} &::=& \emph{Expr} \ensuremath{\mapsto} \emph{Expr} \\
+
+\emph{ArrayComprehensionClause} &::=&
+\emph{ArrayComprehensionLeft} \texttt{|} \emph{GeneratorClauseList}\\
+
+\emph{ArrayComprehensionLeft} &::=&
+\emph{IdOrInt} \ensuremath{\mapsto} \emph{Expr}\\
+&$|$& \texttt( \emph{IdOrInt}\EXP{,} \emph{IdOrIntList} \texttt) \ensuremath{\mapsto} \emph{Expr}\\
+
+\emph{IdOrInt} &::=& \emph{Id}\\
+&$|$& \emph{IntLiteralExpr}\\
+
+\emph{IdOrIntList} &::=& \emph{IdOrInt}(\EXP{,} \emph{IdOrInt})$^*$ \\
+
+\emph{ExprList} &::=& \emph{Expr}(\EXP{,} \emph{Expr})$^*$ \\
+
+\emph{EntryList} &::=& \emph{Entry}(\EXP{,} \emph{Entry})$^*$ \\
+
+\end{tabular}
+
+\section{Local Declarations}
+\begin{tabular}{lll}
+\emph{BlockElems} &::=& \emph{BlockElem}$^+$ \\
+
+\emph{BlockElem}
+&::=& \emph{LocalVarFnDecl}\\
+&$|$& \emph{Expr}\options{\EXP{,} \emph{GeneratorClauseList}}\\
+
+\emph{LocalVarFnDecl}
+&::=& \emph{LocalFnDecl}$^+$\\
+&$|$& \emph{LocalVarDecl}\\
+
+\emph{LocalFnDecl} &::=&
+\option{\emph{LocalFnMods}} \emph{Id} \option{\emph{StaticParams}} \emph{ValParam} \emph{FnHeaderClause} \EXP{=}
+\emph{Expr} \\
+
+\emph{LocalVarDecl}
+&::=& \option{\KWD{var}} \emph{VarMayTypes} \EXP{=} \emph{Expr} \\
+&$|$& \option{\KWD{var}} \emph{VarWTypes} \EXP{:=} \emph{Expr} \\
+&$|$& \option{\KWD{var}} \emph{VarWTypes}\\
+&$|$& \emph{VarWoTypes} \EXP{=} \emph{Expr} \\
+&$|$& \option{\KWD{var}} \emph{VarWoTypes} \EXP{\mathrel{\mathtt{:}}} \emph{Type}\EXP{...}
+\option{\emph{InitVal}} \\
+&$|$& \option{\KWD{var}} \emph{VarWoTypes} \EXP{\mathrel{\mathtt{:}}} \emph{TupleType}
+\option{\emph{InitVal}} \\
+
+\emph{VarMayTypes} &::=& \emph{VarMayType} \\
+&$|$& \texttt{(} \emph{VarMayType}(\EXP{,} \emph{VarMayType})$^+$ \texttt{)}\\
+\emph{VarMayType} &::=& \emph{BindId} \options{\emph{IsType}}\\
+
+\emph{VarWoTypes} &::=& \emph{VarWoType} \\
+&$|$& \texttt{(} \emph{VarWoType}(\EXP{,} \emph{VarWoType})$^+$ \texttt{)}\\
+\emph{VarWoType} &::=& \emph{BindId}\\
+&$|$& \emph{Unpasting} \\
+
+\emph{Unpasting} &::=& \texttt{[} \emph{UnpastingElems} \texttt{]} \\
+
+\emph{UnpastingElems}
+&::=& \emph{UnpastingElem} \emph{RectSeparator} \emph{UnpastingElems} \\
+&$|$& \emph{UnpastingElem} \\
+
+\emph{UnpastingElem}
+&::=& \emph{BindId} \options{\texttt{[} \emph{UnpastingDim} \texttt{]}} \\
+&$|$& \emph{Unpasting} \\
+
+\emph{UnpastingDim} &::=& \emph{ExtentRange} (\BY\ \emph{ExtentRange})$^+$ \\
+
+\end{tabular}
+
+\section{Literals}
+\begin{tabular}{lll}
+\emph{LiteralExpr} &::=& \texttt{(} \texttt{)}\\
+&$|$& \emph{NumericLiteralExpr}\\
+&$|$& \emph{CharLiteralExpr}\\
+&$|$& \emph{StringLiteralExpr}\\
+
+\emph{ArrayExpr} &::=&
+\texttt{[} \option{\emph{StaticArgs}} \emph{RectElements} \texttt{]}\\
+
+\emph{RectElements} &::=& \emph{Expr} \emph{MultiDimCons}$^*$\\
+
+\emph{MultiDimCons} &::=& \emph{RectSeparator} \emph{Expr}\\
+\end{tabular}
+
+\section{Types}
+\begin{tabular}{lll}
+\emph{Type}
+&::=& \emph{TypeRef} \\
+&$|$& \emph{TraitType} \\
+&$|$& \emph{TupleType} \\
+&$|$& \texttt( \emph{Type} \texttt) \\
+&$|$& \texttt{()} \\
+&$|$& \emph{ArgType} \EXP{\rightarrow} \emph{Type}  \option{\emph{Throws}}\\
+&$|$& \emph{Type} \emph{DimType} \\
+
+\emph{TypeRef}
+&::=& \emph{DottedId} \option{\emph{StaticArgs}}\\
+
+\emph{TraitType}
+&::=& \emph{TypeRef}\\
+&$|$& \emph{Type} \texttt{[} \option{\emph{ArraySize}} \texttt{]} \\
+&$|$& \emph{Type} \verb+^+ \emph{IntExpr}\\
+&$|$& \emph{Type} \verb+^+ \texttt{(} \emph{ExtentRange}
+(\EXP{\times} \emph{ExtentRange})$^*$ \texttt{)}\\
+
+\emph{ArgType}
+&::=& \texttt{(} (\emph{Type}\EXP{,})$^*$
+\options{\emph{Type}\EXP{...}\EXP{,}}
+\emph{KeywordType}(\EXP{,} \emph{KeywordType})$^*$ \texttt{)}\\
+&$|$& \texttt{(} (\emph{Type}\EXP{,})$^*$
+\emph{Type}\EXP{...} \texttt{)}\\
+&$|$& \emph{TupleType} \\
+
+\emph{KeywordType} &::-& \emph{BindId}\EXP{=}\emph{Type}\\
+
+\emph{TupleType} &::=&
+\texttt{(} \emph{Type}\EXP{,} \emph{TypeList} \texttt{)}\\
+
+\emph{TypeList} &::=& \emph{Type}(\EXP{,} \emph{Type})$^*$ \\
+
+\emph{ArraySize} &::=& \emph{ExtentRange}(\EXP{,} \emph{ExtentRange})$^*$ \\
+
+\emph{ExtentRange}
+&::=& \option{\emph{StaticArg}}\EXP{\mathinner{\hbox{\tt\char'43}}}
+\option{\emph{StaticArg}}\\
+&$|$& \option{\emph{StaticArg}}\KWD:\option{\emph{StaticArg}}\\
+&$|$& \emph{StaticArg} \\
+
+\emph{DimType}
+&::=& \emph{DottedId} \\
+&$|$& \texttt( \emph{DimType} \texttt) \\
+&$|$& \EXP{1} \\
+&$|$& \emph{DimPrefixOp} \emph{DimType} \\
+&$|$& \emph{DimType} \emph{DimInfixOp} \emph{DimType} \\
+&$|$& \emph{DimType} \emph{DimPostfixOp} \\
+&$|$& \emph{DimType} \KWD{in} \emph{Expr}\\
+
+\emph{DimPrefixOp} &::=& \KWD{square} $|$ \KWD{cubic} $|$ \KWD{inverse} \\
+\emph{DimInfixOp} &::=& $\csdot$ $|$ \EXP{/} $|$ \KWD{per} \\
+\emph{DimPostfixOp} &::=& \KWD{squared} $|$ \KWD{cubed} \\
+
+\end{tabular}
+
+\section{Symbols and Operators}
+\begin{tabular}{lll}
+
+\emph{EncloserPair} &::=&
+(\emph{LeftEncloser} $|$ \emph{Encloser}) \option{\EXP{\cdot}}
+(\emph{RightEncloser} $|$ \emph{Encloser})\\
+
+\emph{ExponentOp} &::=& \verb+^T+ $|$ \verb+^+(\emph{Encloser} $|$ \emph{Op})\\
+
+\emph{CompoundOp} &::=& (\emph{Encloser} $|$ \emph{Op})\EXP{=}\\
+
+\emph{AssignOp} &::=& \EXP{\ASSIGN} $|$ \emph{CompoundOp}\\
+
+\emph{Accumulator} &::=& $\sum$ $|$ $\prod$ $|$ \KWD{BIG} (\emph{Encloser} $|$ \emph{Op})\\
+\end{tabular}
+
+\section{Identifiers}
+\begin{tabular}{lll}
+
+\emph{IdOrOpName} &::=& \emph{Id}\\
+&$|$& \emph{OpName}\\
+
+\emph{BindId} &::=& \emph{Id}\\
+&$|$& \KWD{\_}\\
+
+\emph{BindIdList} &::=& \emph{BindId}(\EXP{,} \emph{BindId})$^*$\\
+
+\emph{BindIdOrBindIdTuple}
+&::=& \emph{BindId}\\
+&$|$& \texttt{(} \emph{BindId}\EXP{,} \emph{BindIdList} \texttt{)}\\
+
+\emph{SimpleName} &::=& \emph{Id} \\
+&$|$& \KWD{opr} \option{\KWD{BIG}} (\emph{Encloser} $|$ \emph{Op}) \\
+&$|$& \KWD{opr} \option{\KWD{BIG}} \emph{EncloserPair} \\
+
+\emph{APIName} &::=& \emph{Id}(\EXP{.}\emph{Id})$^*$\\
+
+\emph{QualifiedName} &::=& \emph{Id}(\EXP{.}\emph{Id})$^*$\\
+\end{tabular}
+
+\section{Spaces and Comments}
+\begin{tabular}{lll}
+\emph{RectSeparator} &::=& \EXP{;}+\\
+&$|$& \emph{Whitespace}\\
+\end{tabular}

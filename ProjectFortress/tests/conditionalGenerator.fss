@@ -1,0 +1,24 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component conditionalGenerator
+export Executable
+
+run():() =
+  do
+    a = array[\Boolean\](10).fill(true)
+    a[i] := false, i <- 0#10
+    failure : ZZ32 := -1
+    failure := i, i <- 0#10, a[i]
+    assert(failure, -1)
+  end
+
+end

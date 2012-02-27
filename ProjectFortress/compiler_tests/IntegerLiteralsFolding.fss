@@ -1,0 +1,26 @@
+component IntegerLiteralsFolding
+export Executable
+
+run(): () = do
+  assert(4 = 4)
+  assert (-(-5) = 5)
+  assert(3 + 3 = 6)
+  assert(3 BOXPLUS 3 = 6)
+  assert(3 DOTPLUS 3 = 6)
+  assert(3 - 3 = 0)
+  assert(3 BOXMINUS 3 = 0)
+  assert(3 DOTMINUS 3 = 0)
+  assert(3 CROSS 3 = 9)
+  assert((3 BOXCROSS 3) = 9)
+  assert((3 DOTCROSS 3) = 9)
+  assert(3 DOT 3 = 9)
+  assert((3 BOXDOT 3) = 9)
+  assert(4 DIV 2 = 2)
+  assert(3 BY 3 = 9)
+  assert(|-3| = 3)
+  assert(3 < 4 < 5)
+  assert(3 =/= 4)
+  assert((0 CHOOSE 0) = 1)
+end
+
+end
