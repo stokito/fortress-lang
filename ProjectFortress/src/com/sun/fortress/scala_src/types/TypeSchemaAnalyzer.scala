@@ -167,7 +167,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     subED(normalizeED(alphaRenameTypeSchema(s, ta.env)), normalizeED(alphaRenameTypeSchema(t, ta.env)))
   
   private def subED(s: Type, t: Type): Boolean =  {
-//    println("subED:\n   " + s + "[" + getStaticParams(s) + "]\n   " + t + "[" + getStaticParams(t) + "]")
+    println("subED:\n   " + s + "[" + getStaticParams(s) + "]\n   " + t + "[" + getStaticParams(t) + "]")
     val result = (s,t) match {
     // t has static parameters
     case (s,t) if !s.getInfo.getStaticParams.isEmpty =>
@@ -184,7 +184,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
       val nta = ta.extend(getStaticParams(t), getWhere(t))
       def constraintMaker(tt: Type, m: Map[Op, Op]) = nta.subtype(s, tt)
       val helperResult = inferStaticParamsHelper(t, constraintMaker, true, true)
-//      println("Static params helper for subED says: " + helperResult)
+      println("Static params helper for subED says: " + helperResult)
       !helperResult.isEmpty
     // neither has static parameters; use normal subtyping
     case (s,t) => ta.lteq(s, t)
@@ -248,7 +248,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     result
   }
 
-//   // The special arrow that we use when checking the return type rule
+  // The special arrow that we use when checking the return type rule
   def returnUA(x: ArrowType, y: ArrowType) =
     (alphaRenameTypeSchema(x, ta.extend(toList(x.getInfo.getStaticParams), None).env),
      alphaRenameTypeSchema(y, ta.extend(toList(y.getInfo.getStaticParams), None).env)) match {

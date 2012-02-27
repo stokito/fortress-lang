@@ -32,6 +32,7 @@ import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Maps._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
+import com.sun.fortress.scala_src.useful.SNodeUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.NI
 
@@ -70,21 +71,52 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
     satisfiesReturnTypeRule(fa, ga)
   }
 
+
+//   // The special arrow that we use when checking the return type rule
+  def returnUA(x: ArrowType, y: ArrowType) =
+    (alphaRenameTypeSchema(x, ta.extend(toList(x.getInfo.getStaticParams), None).env),
+     alphaRenameTypeSchema(y, ta.extend(toList(y.getInfo.getStaticParams), None).env)) match {
+      case (xa@SArrowType(STypeInfo(s1, p1, sp1, w1), d1, r1, e1, i1, m1), 
+            ya@SArrowType(STypeInfo(s2, p2, sp2, w2), d2, r2, e2, i2, m2)) =>
+//         println("returnUA: " + xa + "[" + sp1 + "] and " + ya + "[" + sp2 + "]")
+	 val spCombined = sp1 ++ sp2
+	 val nta = ta.extend(spCombined, None)
+	 val ntsa = new TypeSchemaAnalyzer()(nta)
+         ntsa.normalizeUA(SArrowType(STypeInfo(s1, p1, spCombined, None), nta.meet(d1,d2), r2, nta.mergeEffect(e1,e2), i1 && i2, None))
+    }
+  
   def satisfiesReturnTypeRule(fa: ArrowType, ga: ArrowType): Boolean = {
     if(!lteq(fa, ga))
       true
     else {
       val ra = sa.returnUA(fa, ga)
       val result = sa.subtypeUA(fa, ra)
+      if (!result) {
+	println("fa = " + typeToString(fa))
+	println("ga = " + typeToString(ga))
+	println("ra = " + typeToString(ra))
+	println("result = " + result + "\n")
+      }
+      result
+    }
+  }
+
+
+//   def satisfiesReturnTypeRule(fa: ArrowType, ga: ArrowType): Boolean = {
+//     if(!lteq(fa, ga))
+//       true
+//     else {
+//       val ra = sa.returnUA(fa, ga)
+//       val result = sa.subtypeUA(fa, ra)
 //       if (!result) {
 // 	println("fa = " + typeToString(fa))
 // 	println("ga = " + typeToString(ga))
 // 	println("ra = " + typeToString(ra))
 // 	println("result = " + result + "\n")
 //       }
-      result
-    }
-  }
+//       result
+//     }
+//   }
   
   // Checks when domain of f excludes domain of g
   def excludes(f: Functional, g: Functional): Boolean = {
