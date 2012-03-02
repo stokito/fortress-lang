@@ -1524,6 +1524,7 @@ interface Node() extends HasAt;
              * static parameter
              * Names must be unqualified.
              * StaticParam ::= Variance? Id Extends? (absorbs unit)?
+             *               | Variance? Id Dominates? (absorbs unit)?
              *               | Variance? int Id
              *               | Variance? nat Id
              *               | Variance? bool Id
@@ -1541,6 +1542,7 @@ interface Node() extends HasAt;
             StaticParam(int variance,
                         IdOrOp name,
                         List<BaseType> extendsClause,
+                        List<BaseType> dominatesClause,
                         Option<Type> dimParam,
                         boolean absorbsParam,
                         StaticParamKind kind,
