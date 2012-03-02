@@ -30,7 +30,7 @@ body {
         "at",           "atomic",       "bool",         "case",
         "catch",        "coerce",       "coerces",      "component",
         "comprises",    "contravariant","covariant",
-        "default",      "dim",          "do",
+        "default",      "dim",          "do",           "dominates",
         "elif",         "else",         "end",          "ensures",
         "except",       "excludes",     "exit",         "export",
         "extends",      "finally",      "fn",           "for",
@@ -83,6 +83,7 @@ transient void component = "component" !(idrest);
 transient void comprises = "comprises" !(idrest);
 transient void default = "default" !(idrest);
 transient void dim = "dim" !(idrest);
+transient void dominates = "dominates" !(idrest);
 transient void elif = "elif" !(idrest);
 transient void else = "else" !(idrest);
 transient void ensures = "ensures" !(idrest);
