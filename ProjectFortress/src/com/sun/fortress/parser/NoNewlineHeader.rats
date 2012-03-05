@@ -59,11 +59,20 @@ List<BaseType> Extends = extends w TraitTypes ;
 /* Dominates ::= dominates w TraitTypes */
 List<BaseType> Dominates = dominates w TraitTypes ;
 
-/* ExtendsOrDominates ::= extends | dominates */
-String ExtendsOrDominates =
-     extends { yyValue="extends"; }
-   / dominates { yyValue="dominates"; }
-   ;
+/* Bounds ::= Extends | Dominates */
+List<List<BaseType>> Bounds = 
+    a:Extends {
+    	List<List<BaseType>> l = Collections.<List<BaseType>>emptyList();
+    	l.add(a);
+		yyValue = l; 
+    }
+  / a:Dominates {
+        List<List<BaseType>> l = Collections.<List<BaseType>>emptyList();
+        l.add(null);
+        l.add(a);
+  		yyValue = l;
+  }
+  ;
 
 /* Excludes ::= excludes w TraitTypes */
 List<BaseType> Excludes = excludes w TraitTypes ;
@@ -306,20 +315,19 @@ private StaticParam StaticParam =
                                                a1, a2, a3, Collections.<BaseType>emptyList(),Option.<Type>none(),
                                                absorbs, new KindType());
      }
-     /*
-   / a1:(Variance w)? a2:Id a3:(w ExtendsOrDominates) a4:(w TraitTypes) a5:(w absorbs w unit)?
+   / a1:(Variance w)? a2:Id a3:(w Bounds)? a4:(w absorbs w unit)?
      { List<BaseType> eextends = Collections.<BaseType>emptyList();
        List<BaseType> dominates = Collections.<BaseType>emptyList();
-       if (a3.equals("extends") && a4 == null) log(createSpan(yyStart,yyCount), "What is " + a2.getText() + " extending?");
-       if (a3.equals("dominates") && a4 == null) log(createSpan(yyStart,yyCount), "What is " + a2.getText() + " dominating?");
-       if (a3.equals("extends")) eextends = a4;
-       if (a3.equals("dominates")) dominates = a4;  
+       if (a3 != null) {       
+       		if (a3.get(0) == null) dominates = a3.get(1);
+       		else eextends = a3.get(0);
+       }
        boolean absorbs = (a4 == null) ? false : true;
        yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
                                                a1, a2, eextends, dominates,Option.<Type>none(),
                                                absorbs, new KindType());
-     } 
-     */      
+     }     
+     /*  
    / a1:(Variance w)? a2:Id a3:(w Extends)? a4:(w absorbs w unit)?
      { if (a3 == null) a3 = Collections.<BaseType>emptyList();
        boolean absorbs = (a4 == null) ? false : true;
@@ -327,6 +335,7 @@ private StaticParam StaticParam =
                                                a1, a2, a3, Collections.<BaseType>emptyList(),Option.<Type>none(),
                                                absorbs, new KindType());
      } 
+     */
    / a1:(Variance w)? a2:SelfTypeId
      { yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
                                                a1, a2, Collections.<BaseType>emptyList(), Collections.<BaseType>emptyList(),Option.<Type>none(),
