@@ -481,7 +481,7 @@ trait Functionals { self: STypeChecker with Common =>
     // Instantiate the arrows if you were given static args
     if (!sargs.isEmpty) {
       arrowsAndSchemata = arrowsAndSchemata.
-        flatMap(a => staticInstantiation(sargs, a._1).
+        flatMap(a => staticInstantiationForApp(sargs, a._1).
             map(x => (x.asInstanceOf[ArrowType],a._2)))
     }
 
