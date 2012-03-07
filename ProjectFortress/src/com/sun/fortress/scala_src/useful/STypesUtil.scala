@@ -646,6 +646,54 @@ object STypesUtil {
     Some(staticReplacer(cleared).asInstanceOf[Type])
   }
 
+    def staticInstantiationForApp(sargs: List[StaticArg],
+    body: Type,
+    applyLifted: Boolean = false,
+    applyUnlifted: Boolean = true)(implicit analyzer: TypeAnalyzer): Option[Type] = {
+
+    val sparams = getStaticParams(body)
+    val sparamsAndSargs = sparams.filter { s =>
+      (s.isLifted && applyLifted) || (!s.isLifted && applyUnlifted)
+    } zip sargs
+
+    // Need to add a check to ensure if aliased is true all the args have names
+    if (sparamsAndSargs.size != sargs.size) return None
+    if (!staticArgsMatchStaticParamsForApp(sparamsAndSargs)) return None
+
+    // Create mapping from parameter names to static args.
+    val paramMap = Map(sparamsAndSargs.map(pa => (pa._1.getName, pa._2)): _*)
+
+    // Gets the actual value out of a static arg.
+    def sargToVal(sarg: StaticArg): Node = sarg match {
+      case sarg: TypeArg => sarg.getTypeArg
+      case sarg: IntArg => sarg.getIntVal
+      case sarg: BoolArg => sarg.getBoolArg
+      case sarg: OpArg => sarg.getId
+      case sarg: DimArg => sarg.getDimArg
+      case sarg: UnitArg => sarg.getUnitArg
+      case _ => bug("unexpected kind of static arg")
+    }
+
+    // Clear the static params.
+    val cleared = clearStaticParams(body)
+
+    // Replaces all the occurrences of static params as variables with args.
+    object staticReplacer extends Walker {
+      override def walk(node: Any): Any = node match {
+        case n: VarType => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n: OpArg => paramMap.get(n.getId).getOrElse(n)
+        case n: IntRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n: BoolRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n: DimRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case n: UnitRef => paramMap.get(n.getName).map(sargToVal).getOrElse(n)
+        case _ => super.walk(node)
+      }
+    }
+
+    // Get the replaced type
+    Some(staticReplacer(cleared).asInstanceOf[Type])
+  }
+  
   /**
    * Determines if the kinds of the given static args match those of the static
    * parameters. In the case of type arguments, the type is checked to be a
@@ -672,6 +720,28 @@ object STypesUtil {
     sparamsAndSargs.forall(argMatchesParam)
   }
 
+    def staticArgsMatchStaticParamsForApp(sparamsAndSargs: List[(StaticParam, StaticArg)])(implicit analyzer: TypeAnalyzer): Boolean = {
+
+    // Match a single pair.
+    def argMatchesParam(paramAndArg: (StaticParam, StaticArg)): Boolean = {
+      val (param, arg) = paramAndArg
+      (arg, param.getKind) match {
+        case (_: TypeArg, _: KindType) => 
+          (true /: param.getExtendsClause()) (_ && isSubtype(arg.asInstanceOf[TypeArg].getTypeArg(),_))
+        case (_: IntArg, _: KindInt) => true
+        case (_: BoolArg, _: KindBool) => true
+        case (_: DimArg, _: KindDim) => true
+        case (_: OpArg, _: KindOp) => true
+        case (_: UnitArg, _: KindUnit) => true
+        case (_: IntArg, _: KindNat) => true
+        case (_, _) => false
+      }
+    }
+
+    // Match every pair.
+    sparamsAndSargs.forall(argMatchesParam)
+  }
+  
   /** Same as the other overloading but checks two explicit lists. */
   def staticArgsMatchStaticParams(sargs: List[StaticArg],
     sparams: List[StaticParam])(implicit analyzer: TypeAnalyzer): Boolean =
