@@ -93,8 +93,8 @@ object SNodeUtil {
 
   /** Return a copy of the given static parameter but lifted. */
   def liftStaticParam(sp: StaticParam): StaticParam = {
-    val SStaticParam(v1, v2, v3, v4, v5, v6, v7, _) = sp
-    SStaticParam(v1, v2, v3, v4, v5, v6, v7, true)
+    val SStaticParam(v1, v2, v3, v4, v5, v6, v7, v8, _) = sp
+    SStaticParam(v1, v2, v3, v4, v5, v6, v7, v8, true)
   }
 
   /** Given a node with a Span, return the same node but with the given span. */
@@ -149,9 +149,9 @@ object SNodeUtil {
 	for (sp <- toListFromImmutable(jSparams)) {
 	  if (toListFromImmutable(jComprisesTypes).exists(equalSparam(_, sp))) {
 	    sp match {
-              case SStaticParam(info, variance, name, extendsC, dim, absorbs, k:KindType, lifted) =>
+              case SStaticParam(info, variance, name, extendsC, dominatesC, dim, absorbs, k:KindType, lifted) =>
 		sparams ++= List(SStaticParam(info, variance, name,
-					      (self_type :: extendsC).distinct,
+					      (self_type :: extendsC).distinct, dominatesC,
 					      dim, absorbs, k, lifted))
               case _ => sparams ++= List(sp)
 	    }

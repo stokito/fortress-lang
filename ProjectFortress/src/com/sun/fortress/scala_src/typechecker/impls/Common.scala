@@ -98,7 +98,7 @@ trait Common { self: STypeChecker =>
 
     // Get the trait types callable from the upper bounds of this parameter.
     case SVarType(_, name, _) => toOption(analyzer.env.staticParam(name)) match {
-      case Some(s@SStaticParam(_, _, _, ts, _, _, SKindType(_), _)) =>      // TODO: variance needs to be addressed
+      case Some(s@SStaticParam(_, _, _, ts, _, _, _, SKindType(_), _)) =>      // TODO: variance needs to be addressed
         Set(ts:_*).filter(NodeUtil.isTraitType).flatMap(traitTypesCallable)
       case _ => Set.empty[TraitType]
     }

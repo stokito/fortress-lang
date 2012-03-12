@@ -217,7 +217,7 @@ class FormulaJUTest extends TestCase {
       val typea = nTyp("Zz")
       val typeb = nTyp("T")
       val typec = nTyp("Eq[T]")
-      val sp = SStaticParam(typeb.getInfo, 0, typeb.getName, List(typec), None, false, SKindType(), false)
+      val sp = SStaticParam(typeb.getInfo, 0, typeb.getName, List(typec), List(typec), None, false, SKindType(), false)
       implicit val analyzer = typeAnalyzer("{trait Eq[T extends {Eq[T]}], trait Zz extends {Eq[Zz]}}").extend(List(sp), None)
       val c = and(analyzer.equivalent(ivar1, typeb), analyzer.subtype(ivar1, typea))
       assertTrue(solve(c) == None)

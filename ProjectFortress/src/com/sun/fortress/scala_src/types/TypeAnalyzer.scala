@@ -53,6 +53,8 @@ import com.sun.fortress.scala_src.useful.Sets._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.NI
 
+import com.sun.fortress.scala_src.useful.ASTGenHelper._
+
 import scala.math.max
 
 class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLattice[Type]{
@@ -209,9 +211,34 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       }
     // Trait types
     case (s: TraitType, t: TraitType) if (t==OBJECT) => pTrue()
-    case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (typeCons(n1)==typeCons(n2)) =>
+    
+    case (STraitType(_,traitId_1,staticArgs_1,_),STraitType(_,traitId_2,staticArgs_2,_)) 
+    	if (typeCons(traitId_1)==typeCons(traitId_2)) =>
+
+     // First, let's find the static parameters for trait traitId_1
+	  
+     def same_id(idx: TypeConsIndex) = {
+       traitId_1.getText().equals(idx.ast().asInstanceOf[TraitObjectDecl].getHeader().getName().asInstanceOf[Id].getText())
+     }
+
+     val idx = traits.find(same_id)
+     val staticParams = scalaify(idx.unwrap().staticParameters()).asInstanceOf[List[StaticParam]]
+
+     val args = staticParams.zip(staticArgs_1.zip(staticArgs_2))
+     def cmp (param: StaticParam, args: (StaticArg,StaticArg)): CFormula = {
+       if (param.getVariance() == 1)
+         pSub(args._1.asInstanceOf[TypeArg].getTypeArg(),args._2.asInstanceOf[TypeArg].getTypeArg())
+       else if (param.getVariance == -1)
+         pSub(args._2.asInstanceOf[TypeArg].getTypeArg(),args._1.asInstanceOf[TypeArg].getTypeArg())
+       else
+         pEqv(args._1,args._2)
+     }
+     val formulas : List[CFormula] = args.map(e => cmp(e._1,e._2))
+     pAnd(formulas)
+    
+    //case (STraitType(_, n1, a1,_), STraitType(_, n2, a2, _)) if (typeCons(n1)==typeCons(n2)) =>
       // println("checking " + a1 + " vs " + a2)
-      pAnd((a1, a2).zipped.map((a, b) => pEqv(a, b)))
+      //pAnd((a1, a2).zipped.map((a, b) => pEqv(a, b)))
     case (s:TraitType , t: TraitType) =>
       // println("checking " + s + " <: " + t)
       val par = parents(s)

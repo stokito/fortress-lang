@@ -66,7 +66,7 @@ class TypeAnalyzerJUTest extends TestCase {
       val typea = nTyp("Zz")
       val typeb = nTyp("T")
       val typec = nTyp("Eq[T]")
-      val sp = SStaticParam(typeb.getInfo, 0, typeb.getName, List(typec), None, false, SKindType(), false)
+      val sp = SStaticParam(typeb.getInfo, 0, typeb.getName, List(typec),List(typec), None, false, SKindType(), false)
       implicit val analyzer = typeAnalyzer("{trait Eq[T extends {Eq[T]}], trait Zz extends {Eq[Zz]}}").extend(List(sp), None)
       assertTrue(isFalse(analyzer.subtype(typea, typeb)))
       assertTrue(isFalse(analyzer.subtype(typeb, typea)))
