@@ -87,7 +87,7 @@ public abstract class Functional extends InferredTypeIndex {
     // Copy a static parameter but make it lifted.
     static final protected Lambda<StaticParam, StaticParam> liftStaticParam = new Lambda<StaticParam, StaticParam>() {
         public StaticParam value(StaticParam that) {
-            return new StaticParam(that.getInfo(), that.getVariance(), that.getName(), that.getExtendsClause(), that.getDimParam(), that.isAbsorbsParam(), that.getKind(), true);
+            return new StaticParam(that.getInfo(), that.getVariance(), that.getName(), that.getExtendsClause(),that.getDominatesClause(), that.getDimParam(), that.isAbsorbsParam(), that.getKind(), true);
         }
     };
 }

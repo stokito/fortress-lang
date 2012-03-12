@@ -2538,6 +2538,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                                      String info,
                                      final String name_result,
                                      final List<String> extendsClause_result,
+                                     final List<String> dominatesClause_result,
                                      final Option<String> dim_result,
                                      String kind_result) {
         return that.getKind().accept(new NodeDepthFirstVisitor<String>() {
@@ -2546,6 +2547,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
                 StringBuilder s = new StringBuilder();
                 s.append(name_result);
                 s = optCurlyBraces(s, " extends ", extendsClause_result, "");
+                s = optCurlyBraces(s, " dominates ", dominatesClause_result, "");
                 if (that.isAbsorbsParam()) {
                     s.append(" absorbs unit");
                 }

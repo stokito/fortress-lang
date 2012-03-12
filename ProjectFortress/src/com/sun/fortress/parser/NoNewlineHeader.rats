@@ -56,6 +56,24 @@ private TraitTypeWhere TraitTypeWhere =
 /* Extends ::= extends w TraitTypes */
 List<BaseType> Extends = extends w TraitTypes ;
 
+/* Dominates ::= dominates w TraitTypes */
+List<BaseType> Dominates = dominates w TraitTypes ;
+
+/* Bounds ::= Extends | Dominates */
+List<List<BaseType>> Bounds = 
+    a:Extends {
+    	List<List<BaseType>> l = Collections.<List<BaseType>>emptyList();
+    	l.add(a);
+		yyValue = l; 
+    }
+  / a:Dominates {
+        List<List<BaseType>> l = Collections.<List<BaseType>>emptyList();
+        l.add(null);
+        l.add(a);
+  		yyValue = l;
+  }
+  ;
+
 /* Excludes ::= excludes w TraitTypes */
 List<BaseType> Excludes = excludes w TraitTypes ;
 
@@ -258,6 +276,7 @@ List<StaticParam> StaticParams =
    | opr w Op
    | (Variance w)? IdOrOpName w Extends (w absorbs w unit)?
    | (Variance w)? Id (w Extends)? (w absorbs w unit)?
+   | (Variance w)? Id (w Dominates)? (w absorbs w unit)?
    | (Variance w)? SelfTypeId
 */
 private StaticParam StaticParam =
@@ -280,32 +299,46 @@ private StaticParam StaticParam =
    / unit w a1:IdOrOpName a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)?
      { boolean absorbs = (a3 == null) ? false : true;
        yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
-                                               null, a1, Collections.<BaseType>emptyList(),
+                                               null, a1, Collections.<BaseType>emptyList(), Collections.<BaseType>emptyList(),
                                                Option.<Type>wrap(a2), absorbs,
                                                new KindUnit());
      }
    / opr w a1:Op
      { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), null, a1,
-                                             Collections.<BaseType>emptyList(),
+                                             Collections.<BaseType>emptyList(), Collections.<BaseType>emptyList(),
                                              Option.<Type>none(), false,
                                              new KindOp());
      }
    / a1:(Variance w)? a2:IdOrOpName w a3:Extends a4:(w absorbs w unit)?
      { boolean absorbs = (a4 == null) ? false : true;
        yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
-                                               a1, a2, a3, Option.<Type>none(),
+                                               a1, a2, a3, Collections.<BaseType>emptyList(),Option.<Type>none(),
                                                absorbs, new KindType());
      }
+   / a1:(Variance w)? a2:Id a3:(w Bounds)? a4:(w absorbs w unit)?
+     { List<BaseType> eextends = Collections.<BaseType>emptyList();
+       List<BaseType> dominates = Collections.<BaseType>emptyList();
+       if (a3 != null) {       
+       		if (a3.get(0) == null) dominates = a3.get(1);
+       		else eextends = a3.get(0);
+       }
+       boolean absorbs = (a4 == null) ? false : true;
+       yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, a2, eextends, dominates,Option.<Type>none(),
+                                               absorbs, new KindType());
+     }     
+     /*  
    / a1:(Variance w)? a2:Id a3:(w Extends)? a4:(w absorbs w unit)?
      { if (a3 == null) a3 = Collections.<BaseType>emptyList();
        boolean absorbs = (a4 == null) ? false : true;
        yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
-                                               a1, a2, a3, Option.<Type>none(),
+                                               a1, a2, a3, Collections.<BaseType>emptyList(),Option.<Type>none(),
                                                absorbs, new KindType());
-     }
+     } 
+     */
    / a1:(Variance w)? a2:SelfTypeId
      { yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
-                                               a1, a2, Collections.<BaseType>emptyList(), Option.<Type>none(),
+                                               a1, a2, Collections.<BaseType>emptyList(), Collections.<BaseType>emptyList(),Option.<Type>none(),
                                                false, new KindType());
      }
    / <ErrorProduction>
