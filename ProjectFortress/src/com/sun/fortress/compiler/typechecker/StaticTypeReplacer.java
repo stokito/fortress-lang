@@ -88,6 +88,10 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
         return (IdOrOpOrAnonymousName)t.accept(this); // TODO safe?
     }
 
+    public StaticParam replaceStaticParam(StaticParam t) {
+        return (StaticParam)t.accept(this);
+    }
+
     private Node updateNode(Node that, final IdOrOpOrAnonymousName name) {
         if (name.getApiName().isSome()) { return that; }
         StaticArg outer_arg = parameterMap.get(name);

@@ -60,8 +60,7 @@ abstract public class FieldGetterOrSetterMethod extends Method {
     /**
      * Copy another getter/setter, performing a substitution with the visitor.
      */
-    protected FieldGetterOrSetterMethod(FieldGetterOrSetterMethod that, List<StaticParam> params, List<StaticArg> args) {
-        StaticTypeReplacer visitor = new StaticTypeReplacer(that._traitParams, args);
+    protected FieldGetterOrSetterMethod(FieldGetterOrSetterMethod that, List<StaticParam> params, StaticTypeReplacer visitor) {
         _ast = (Binding) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
         _selfType = visitor.recurOnOptionOfSelfType(that._selfType);

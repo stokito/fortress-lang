@@ -11,6 +11,8 @@
 
 package com.sun.fortress.compiler.index;
 
+import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
+
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.LValue;
@@ -39,6 +41,8 @@ public abstract class Method extends Functional implements HasSelfType {
      */
     @Override
     public abstract Method instantiateTraitStaticParameters(List<StaticParam> params, List<StaticArg> args);
+    @Override
+    public abstract Method instantiateTraitStaticParameters(List<StaticParam> params, StaticTypeReplacer str);
 
     public Modifiers mods() {
         Node _ast = ast();
