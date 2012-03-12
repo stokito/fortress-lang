@@ -453,7 +453,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             if (! staticParamsIncludeOpr(tci_sps)) {
                 TraitObjectDecl tci_decl = (TraitObjectDecl) tci.ast();
                 Relation<IdOrOpOrAnonymousName, scala.Tuple3<Functional, StaticTypeReplacer, TraitType>>
-                toConsider = STypesUtil.properlyInheritedMethodsNotIdenticallyCovered(id, typeAnalyzer);
+		    toConsider = STypesUtil.properlyInheritedMethodsNotIdenticallyCovered(id, typeAnalyzer);
                 /* This tci has no opr params; we need 
                  * to look at all the functional methods
                  * that it inherits, and if any of them come
@@ -1257,7 +1257,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     // TODO emit the forwarding method
                     continue;
                 }
-                perhapsOverloaded.add(super_func);
+                perhapsOverloaded.add((Functional)(((HasSelfType)super_func).instantiateTraitStaticParameters(ti.staticParameters(), super_inst)));  // GLS 3/12/2012
             }
 
             // need to refine the overloaded methods check because of exclusion
@@ -1274,7 +1274,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
         return overloadedMethods;
     }
-
 
     /**
      * Returns the "Type" for the domain of a method, with self removed from

@@ -376,9 +376,9 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
 			        oa: OverloadingOracle) = {
       val (fa, fsp) = first
       val (ga, gsp) = second
-          println("Satisfies return type rule?\n   " + typeAndSpanToString(fa) + "\n   " + typeAndSpanToString(ga))
+//          println("Satisfies return type rule?\n   " + typeAndSpanToString(fa) + "\n   " + typeAndSpanToString(ga))
       if (!oa.satisfiesReturnTypeRule(fa, ga)) {
-        println("For " + name + ",\nthe return type of " + typeAndSpanToString(fa) + " should be a subtype of the\n    return type of " + typeAndSpanToString(ga))
+//        println("For " + name + ",\nthe return type of " + typeAndSpanToString(fa) + " should be a subtype of the\n    return type of " + typeAndSpanToString(ga))
         error(mergeSpan(fa, ga),
 	      "For " + name + ",\nthe return type of " + typeAndSpanToString(fa) + " should be a subtype of the\n    return type of " + typeAndSpanToString(ga))
       }

@@ -47,8 +47,7 @@ public class DeclaredMethod extends Method {
     /**
      * Copy another DeclaredMethod, performing a substitution with the visitor.
      */
-    private DeclaredMethod(DeclaredMethod that, List<StaticParam> params, List<StaticArg> args) {
-        StaticTypeReplacer visitor = new StaticTypeReplacer(that._traitParams, args);
+    private DeclaredMethod(DeclaredMethod that, List<StaticParam> params, StaticTypeReplacer visitor) {
         _originalMethod = that.originalMethod();
         _ast = (FnDecl) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
@@ -104,8 +103,13 @@ public class DeclaredMethod extends Method {
     }
 
     @Override
-    public Method instantiateTraitStaticParameters(List<StaticParam> params, List<StaticArg> args) {
-        return new DeclaredMethod(this, params, args);
+    public DeclaredMethod instantiateTraitStaticParameters(List<StaticParam> params, List<StaticArg> args) {
+        return new DeclaredMethod(this, params, new StaticTypeReplacer(_traitParams, args));
+    }
+
+    @Override
+    public DeclaredMethod instantiateTraitStaticParameters(List<StaticParam> params, StaticTypeReplacer str) {
+        return new DeclaredMethod(this, params, str);
     }
 
     public Id declaringTrait() {
