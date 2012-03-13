@@ -9,13 +9,13 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\documentclass[openany]{book}
+\documentclass[openany,10pt]{book}
 
-\input{build-options}
+%\input{build-options}
 
-\def{\home}{..}
+\newcommand{\home}{..}
 
-\input{\home/Support/macros}
+%\input{\home/Support/macros}
 
 % Need to add stuff from old preamble, but I'd like to do this incrementally, 
 % as we understand what we need.
@@ -25,13 +25,16 @@
 
 
 \title{The Fortress Language Specification}
+\author{}
 
 \begin{document}
 
 \frontmatter
 
-% title page
+\maketitle
 % preamble
+\tableofcontents
+
 
 \mainmatter
 
@@ -43,7 +46,12 @@
 
 \input{\home/Appendices/appendices}
 
-% Bibliography
+% Remove the following line when things are getting serious!
+\nocite{*} 
+
+\bibliographystyle{plain}
+\bibliography{fortress}
+
 % Index (?)
 
 \end{document}
