@@ -166,7 +166,10 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
   private def subtypeEDInner(s: Type, t: Type) = 
     subED(normalizeED(alphaRenameTypeSchema(s, ta.env)), normalizeED(alphaRenameTypeSchema(t, ta.env)))
   
-  private def subED(s: Type, t: Type): Boolean =  {
+  private def subED(s: Type, t: Type): Boolean = !subEDsolution(s, t).isEmpty
+
+  // At this point, the types should have been alpha-renamed if necessary so that type parameters do not conflict.
+  def subEDsolution(s: Type, t: Type): Option[(Type, List[StaticArg])]  =  {
 //    println("subED:\n   " + s + "[" + getStaticParams(s) + "]\n   " + t + "[" + getStaticParams(t) + "]")
     val result = (s,t) match {
     // t has static parameters
@@ -175,8 +178,8 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
        * from s. Then strip s of it's type parameters to get s'
        * and call lteq(s',t) */
       val tsa = extend(getStaticParams(s), getWhere(s))
-      val ss = clearStaticParams(s)   // replaceTypeParametersWithInferenceVariables(s)
-      tsa.subED(ss, t)
+      val ss = clearStaticParams(s)
+      tsa.subEDsolution(ss, t)
     // s has static parameters and t does not
     case (s, t) if !t.getInfo.getStaticParams.isEmpty =>
       /* Try and infer an instantiation sigma of t such that 
@@ -185,15 +188,20 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
       def constraintMaker(tt: Type, m: Map[Op, Op]) = nta.subtype(s, tt)
       val helperResult = inferStaticParamsHelper(t, constraintMaker, true, true)
 //      println("Static params helper for subED says: " + helperResult)
-      !helperResult.isEmpty
+      helperResult
     // neither has static parameters; use normal subtyping
-    case (s,t) => ta.lteq(s, t)
+    case (s,t) => if (ta.lteq(s, t)) Some((t, List[StaticArg]())) else None
   }
 //  println("subED returns " + result)
   result }
   
-  def equivalentED(s: Type, t: Type) =
-    eqED(normalizeED(alphaRenameTypeSchema(s, ta.env)), normalizeED(alphaRenameTypeSchema(t, ta.env)))
+  def equivalentED(s: Type, t: Type) = {
+    val sr = alphaRenameTypeSchema(s, ta.env)
+    val tr = alphaRenameTypeSchema(t, ta.env)
+//    println("equivalentED: s = " + typeToString(s) + ", t = " + typeToString(t) + ", sr = " + typeToString(sr) + ", tr = " + typeToString(tr))
+    val newtsa = this.extend(getStaticParams(sr), getWhere(sr)).extend(getStaticParams(tr), getWhere(tr))
+    newtsa.eqED(newtsa.normalizeED(sr), newtsa.normalizeED(tr))
+  }
     
   private def eqED(s: Type, t: Type) = 
     subED(s, t) && subED(t, s)
@@ -242,24 +250,12 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     // Create the ugly join.
     val join = insertStaticParams(makeUnionType(Set(clearStaticParams(ax), clearStaticParams(ay))),
                                   xp ++ yp)
+//     println("The \"ugly join\" of " + typeToString(x) + " aka " + typeToString(ax) + " and " + typeToString(y) + " aka " + typeToString(ay) + " is " + typeToString(join))
     // Try to reduce this existential type.
     val result = normalizeED(join)
 //     println("The \"ugly join\" of " + x + " aka " + ax + " and " + y + " aka " + ay + " is " + join + ", which normalizes to " + result)
     result
   }
-
-//   // The special arrow that we use when checking the return type rule
-  def returnUA(x: ArrowType, y: ArrowType) =
-    (alphaRenameTypeSchema(x, ta.extend(toList(x.getInfo.getStaticParams), None).env),
-     alphaRenameTypeSchema(y, ta.extend(toList(y.getInfo.getStaticParams), None).env)) match {
-      case (xa@SArrowType(STypeInfo(s1, p1, sp1, w1), d1, r1, e1, i1, m1), 
-            ya@SArrowType(STypeInfo(s2, p2, sp2, w2), d2, r2, e2, i2, m2)) =>
-//         println("returnUA: " + xa + "[" + sp1 + "] and " + ya + "[" + sp2 + "]")
-	 val spCombined = sp1 ++ sp2
-	 val nta = ta.extend(spCombined, None)
-	 val ntsa = new TypeSchemaAnalyzer()(nta)
-         ntsa.normalizeUA(SArrowType(STypeInfo(s1, p1, spCombined, None), nta.meet(d1,d2), r2, nta.mergeEffect(e1,e2), i1 && i2, None))
-    }
   
   /**
    * Checks if two types `s` and `t` are syntactically equivalent. If either
@@ -359,7 +355,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
    * reduction" definition.
    */
   private def reduceED(ed: Type): Option[(Type, Type => Type)] = {
-//    println("reduceED on " + ed + "[" + getStaticParams(ed) + "]")
+//    println("reduceED on " + typeToString(ed) + "[[" + getStaticParams(ed) + "]]")
     // Insert inference variables for type parameters
     val spd = getStaticParams(ed)
     val e = insertStaticParams(ta.extend(spd, None).normalize(clearStaticParams(ed)), spd)

@@ -11,6 +11,8 @@
 
 package com.sun.fortress.compiler.index;
 
+import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
+
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.NodeUtil;
 import edu.rice.cs.plt.lambda.SimpleBox;
@@ -30,8 +32,8 @@ public class ParametricOperator extends FunctionalMethod {
         putThunk(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
 
-    public ParametricOperator(ParametricOperator that, List<StaticParam> params, List<StaticArg> args) {
-        super(that, params, args);
+    public ParametricOperator(ParametricOperator that, List<StaticParam> params, StaticTypeReplacer visitor) {
+        super(that, params, visitor);
     }
 
     @Override

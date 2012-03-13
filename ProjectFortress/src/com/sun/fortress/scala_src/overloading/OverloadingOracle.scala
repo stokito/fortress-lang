@@ -32,6 +32,7 @@ import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Maps._
 import com.sun.fortress.scala_src.useful.Options._
 import com.sun.fortress.scala_src.useful.Sets._
+import com.sun.fortress.scala_src.useful.SNodeUtil._
 import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.useful.NI
 
@@ -55,6 +56,7 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
     lteq(fa, ga)
   }
 
+  // Dead code?
   def lteq(fa: ArrowType, ga: ArrowType): Boolean = {
     val fd = sa.makeDomainWithSelfFromArrow(fa)
     val gd = sa.makeDomainWithSelfFromArrow(ga)
@@ -70,21 +72,107 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
     satisfiesReturnTypeRule(fa, ga)
   }
 
-  def satisfiesReturnTypeRule(fa: ArrowType, ga: ArrowType): Boolean = {
-    if(!lteq(fa, ga))
-      true
-    else {
-      val ra = sa.returnUA(fa, ga)
-      val result = sa.subtypeUA(fa, ra)
+  def satisfiesReturnTypeRule(x: ArrowType, y: ArrowType): Boolean =
+    (alphaRenameTypeSchema(x, ta.extend(toList(x.getInfo.getStaticParams), None).env),
+     alphaRenameTypeSchema(y, ta.extend(toList(y.getInfo.getStaticParams), None).env)) match {
+      case (fa@SArrowType(STypeInfo(s1, p1, sp1, w1), d1, r1, e1, i1, m1), 
+	    ga@SArrowType(STypeInfo(s2, p2, sp2, w2), d2, r2, e2, i2, m2)) =>
+	val fd = sa.makeDomainWithSelfFromArrow(fa)
+	val gd = sa.makeDomainWithSelfFromArrow(ga)
+	sa.subEDsolution(fd, gd) match {
+	  case Some((newgd, newargs)) =>
+	    // Build the special arrow that we use when checking the return type rule
+	    val nta = ta.extend(sp1, None)
+	    val ntsa = new TypeSchemaAnalyzer()(nta)
+	    val str = new StaticTypeReplacer(sp2, newargs)
+	    val newr2 = str.replaceIn(r2)
+	    val ra = ntsa.normalizeUA(SArrowType(STypeInfo(s1, p1, sp1, None), nta.meet(d1,newgd), newr2, nta.mergeEffect(e1,e2), i1 && i2, None))
+	    // Now test against that special arrow
+	    val result = sa.subtypeUA(fa, ra)
+	    if (!result) {
+// 	      println("fa = " + typeToString(fa))
+// 	      println("ga = " + typeToString(ga))
+// 	      println("ra = " + typeToString(ra))
+// 	      println("result = " + result + "\n")
+	    }
+	    result
+	  case None => true
+	}
+    }
+
+//   def satisfiesReturnTypeRule(x: ArrowType, y: ArrowType): Boolean =
+//     (alphaRenameTypeSchema(x, ta.extend(toList(x.getInfo.getStaticParams), None).env),
+//      alphaRenameTypeSchema(y, ta.extend(toList(y.getInfo.getStaticParams), None).env)) match {
+//       case (fa@SArrowType(STypeInfo(s1, p1, sp1, w1), d1, r1, e1, i1, m1), 
+// 	    ga@SArrowType(STypeInfo(s2, p2, sp2, w2), d2, r2, e2, i2, m2)) =>
+// 	val fd = sa.makeDomainWithSelfFromArrow(fa)
+// 	val gd = sa.makeDomainWithSelfFromArrow(ga)
+// 	val solution = sa.subEDsolution(fd, gd)
+// 	if (solution.isEmpty)
+// 	  true
+// 	else {
+//           // Build the special arrow that we use when checking the return type rule
+// 	  val spCombined = sp1 ++ sp2
+// 	  val nta = ta.extend(spCombined, None)
+// 	  val ntsa = new TypeSchemaAnalyzer()(nta)
+// 	  val ra = ntsa.normalizeUA(SArrowType(STypeInfo(s1, p1, spCombined, None), nta.meet(d1,d2), r2, nta.mergeEffect(e1,e2), i1 && i2, None))
+// 	  val result = sa.subtypeUA(fa, ra)
+// 	  if (!result) {
+// 	    println("fa = " + typeToString(fa))
+// 	    println("ga = " + typeToString(ga))
+// 	    println("ra = " + typeToString(ra))
+// 	    println("result = " + result + "\n")
+// 	  }
+// 	  result
+// 	}
+//     }
+
+
+// //   // The special arrow that we use when checking the return type rule
+//   def returnUA(x: ArrowType, y: ArrowType) =
+//     (alphaRenameTypeSchema(x, ta.extend(toList(x.getInfo.getStaticParams), None).env),
+//      alphaRenameTypeSchema(y, ta.extend(toList(y.getInfo.getStaticParams), None).env)) match {
+//       case (xa@SArrowType(STypeInfo(s1, p1, sp1, w1), d1, r1, e1, i1, m1), 
+//             ya@SArrowType(STypeInfo(s2, p2, sp2, w2), d2, r2, e2, i2, m2)) =>
+// //         println("returnUA: " + xa + "[" + sp1 + "] and " + ya + "[" + sp2 + "]")
+// 	 val spCombined = sp1 ++ sp2
+// 	 val nta = ta.extend(spCombined, None)
+// 	 val ntsa = new TypeSchemaAnalyzer()(nta)
+//          ntsa.normalizeUA(SArrowType(STypeInfo(s1, p1, spCombined, None), nta.meet(d1,d2), r2, nta.mergeEffect(e1,e2), i1 && i2, None))
+//     }
+  
+//   def satisfiesReturnTypeRule(fa: ArrowType, ga: ArrowType): Boolean = {
+//     if(!lteq(fa, ga))
+//       true
+//     else {
+//       val ra = returnUA(fa, ga)
+//       val result = sa.subtypeUA(fa, ra)
 //       if (!result) {
 // 	println("fa = " + typeToString(fa))
 // 	println("ga = " + typeToString(ga))
 // 	println("ra = " + typeToString(ra))
 // 	println("result = " + result + "\n")
 //       }
-      result
-    }
-  }
+//       result
+//     }
+//   }
+
+
+//   def satisfiesReturnTypeRule(fa: ArrowType, ga: ArrowType): Boolean = {
+//     if(!lteq(fa, ga))
+//       true
+//     else {
+//       val ra = sa.returnUA(fa, ga)
+//       val result = sa.subtypeUA(fa, ra)
+//       if (!result) {
+// 	println("fa = " + typeToString(fa))
+// 	println("ga = " + typeToString(ga))
+// 	println("ra = " + typeToString(ra))
+// 	println("result = " + result + "\n")
+//       }
+//       result
+//     }
+//   }
   
   // Checks when domain of f excludes domain of g
   def excludes(f: Functional, g: Functional): Boolean = {

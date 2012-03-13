@@ -135,6 +135,11 @@ object STypesUtil {
     case _ => makeArrowFromFunctional(f, false, true)
   }
   
+  def makeLiftedArrowWithoutSelfFromFunctional(f: Functional): Option[ArrowType] = f match {
+    case _: FunctionalMethod => makeArrowFromFunctional(f, true, true)
+    case _ => makeArrowFromFunctional(f, true, true)
+  }
+  
   /**
    *  Return the arrow type of the given Functional index.
    */
@@ -1476,14 +1481,14 @@ object STypesUtil {
     val result = new IndexedRelation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)](false)
     // For each method, check to see whether it is covered by another definition with identical domain.
     for ((meth, str, tt) <- methods.secondSet) {
-      val thisDomain = str.replaceIn(tsa.makeDomainFromArrow(makeArrowWithoutSelfFromFunctional(meth).get))
+      val thisDomain = fullyReplacedMethodDomain(meth, str, tsa)
       var include = true
       for ((meth2, str2, tt2) <- methods.secondSet) {
         if ((meth2.name == meth.name) &&
             (meth != meth2) &&
             (meth.asInstanceOf[HasSelfType].selfPosition == meth2.asInstanceOf[HasSelfType].selfPosition) &&
 	    analyzer.lteq(tt2, tt) && !analyzer.lteq(tt, tt2)) {
-          val thatDomain = str2.replaceIn(tsa.makeDomainFromArrow(makeArrowWithoutSelfFromFunctional(meth2).get))
+          val thatDomain = fullyReplacedMethodDomain(meth2, str2, tsa)
           if (tsa.equivalentED(thisDomain, thatDomain)) include = false
         }
       }
@@ -1492,6 +1497,12 @@ object STypesUtil {
 //    println("   with the result: " + result)
     result
   }
+
+  def fullyReplacedMethodDomain(meth: Functional, str: StaticTypeReplacer, tsa: TypeSchemaAnalyzer): Type = {
+    val dom = tsa.makeDomainFromArrow(makeLiftedArrowWithoutSelfFromFunctional(meth).get)
+    insertStaticParams(clearStaticParams(dom), getStaticParameters(meth, true).map(sp => str.replaceStaticParam(sp)).toList)
+  }
+
 
 //   def allMethods(tt: TraitType, analyzer: TypeAnalyzer):
 //         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] =
@@ -1505,7 +1516,7 @@ object STypesUtil {
         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = 
           gatherMethods(tt.getName, analyzer, includeSelf)
 
-    def gatherMethods(tt_name: Id, analyzer: TypeAnalyzer, includeSelf: Boolean):
+  def gatherMethods(tt_name: Id, analyzer: TypeAnalyzer, includeSelf: Boolean):
         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
     val result = new IndexedRelation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)](false)
     toOption(analyzer.traits.typeCons(tt_name)) match {
@@ -1635,7 +1646,7 @@ object STypesUtil {
     implicit val bs = (true, true, true, false)
     val fnsAndArgs = ws.toList.flatMap{uberInheritedMethods(_)}
     fnsAndArgs.map{
-      case (m: Method, Some(as)) => m.instantiateTraitStaticParameters(toJavaList(List()) , as)
+      case (m: Method, Some(as)) => m.instantiateTraitStaticParameters(toJavaList(List[StaticParam]()) , as)
       case (m, None)  => bug(m + "is not a method or did not have static args.")
     }
   }
