@@ -1,0 +1,25 @@
+K = \x y . x
+S = \f a x . f x (a x)
+I = \x . x
+T = K
+F = \x y . y
+if = \b t e . b t e
+z = \f x . x
+s = \n f x . n f (f x)
+one = s z
+two = s one
+three = s two
+four = s three
+five = s four
+six = s five
+z? = \n . n (\x . F) T
++ = \n m . n s m
+pair = \a b k . k a b
+fst = \p . p (\a b . a)
+snd = \p . p (\a b . b)
+unPair = \p k . p k
+pred = \n. fst (n (\p. unPair p (\a b. pair b (s b))) (pair z z))
+fib = \n . (\pn . if (z? pn) n (+ (fib pn) (fib (pred pn)))) (pred n)
+pred
+The next thing will take a long time!
+fib six

@@ -1,0 +1,312 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Dimensions and Units}
+\chaplabel{lib:dimensions}
+
+\section{Fortress.SIUnits}
+\seclabel{lib:siunits}
+
+% (* Reference: http://physics.nist.gov/cuu/Units/index.html *)
+
+% (* SI base units *)
+
+% dim Length  SI_unit meter meters m_
+% dim Mass default kilogram; SI_unit gram grams g_: Mass
+% dim Time  SI_unit second seconds s_
+% dim ElectricCurrent  SI_unit ampere amperes A_
+% dim Temperature  SI_unit kelvin kelvins K_
+% dim AmountOfSubstance  SI_unit mole moles mol_
+% dim LuminousIntensity  SI_unit candela candelas cd_
+
+% (* SI derived units with special names and symbols *)
+
+% dim Angle = Unity  SI_unit radian radians rad_
+% dim SolidAngle = Unity  SI_unit steradian steradians sr_
+% dim Frequency = 1 / Time  SI_unit hertz Hz_
+% dim Force = Mass Acceleration  SI_unit newton newtons N_
+% dim Pressure = Force / Area  SI_unit pascal pascals Pa_
+% dim Energy = Length Force  SI_unit joule joules J_
+% dim Power = Energy / Time  SI_unit watt watts W_
+% dim ElectricCharge = ElectricCurrent Time  SI_unit coulomb coulombs C_
+% dim ElectricPotential = Power / Current  SI_unit volt volts V_
+% dim Capacitance = ElectricCharge / Voltage  SI_unit farad farads F_
+% dim Resistance = ElectricPotential / Current  SI_unit ohm ohms OMEGA_
+% dim Conductance = 1 / Resistance  SI_unit siemens S_
+% dim MagneticFlux = Voltage Time  SI_unit weber webers Wb_
+% dim MagneticFluxDensity = MagneticFlux / Area  SI_unit tesla teslas T_
+% dim Inductance = MagneticFlux / Current  SI_unit henry henries H_
+% dim LuminousFlux = LuminousIntensity SolidAngle  SI_unit lumen lumens lm_
+% dim Illuminance = LuminousFlux / Area  SI_unit lux lx_
+% dim RadionuclideActivity = 1 / Time  SI_unit becquerel becquerels Bq_
+% dim AbsorbedDose = Energy / Mass  SI_unit gray grays Gy_
+% dim CatalyticActivity = AmountOfSubstance / Time  SI_unit katal katals kat_
+
+% (* Other derived dimensions *)
+
+% dim Area = Length^2
+% dim Volume = Length^3
+% dim Velocity = Length / Time
+% dim Speed = Velocity
+% dim Acceleration = Velocity / Time
+% dim Momentum = Mass Velocity
+% dim AngularVelocity = Angle / Second
+% dim AngularAcceleration = Angle / Second^2
+% dim WaveNumber = 1 / Length
+% dim MassDensity = Mass / Volume
+% dim CurrentDensity = Current / Area
+% dim MagneticFieldStrength = Current / Length
+% dim Luminance = LuminousIntensity / Area
+% dim Work = Energy
+% dim Action = Energy Time
+% dim MomentOfForce = Force Length
+% dim Torque = MomentOfForce
+% dim MomentOfInertia = Mass Length^2
+% dim Voltage = ElectricPotential
+% dim Conductivity = Conductance / Length
+% dim Resistivity = 1 / Conductivity
+% dim Impedance = Resistance
+% dim Permittivity = Capacitance / Length
+% dim Permeability = Inductance / Length
+% dim Irradiance = Power / Area
+% dim RadiantIntensity = Power / SolidAngle
+% dim Radiance = Power / Area SolidAngle
+% dim AbsorbedDoseRate = AbsorbedDose / Time
+% dim CatalyticConcentration = CatalyticActivity / Volume
+% dim HeatCapacity = Energy / Temperature
+% dim Entropy = Energy / Temperature
+% dim DynamicViscosity = Pressure Time
+% dim SpecificHeatCapacity = Energy / Mass Temperature
+% dim SpecificEntropy = Energy / Mass Temperature
+% dim SpecificEnergy = Energy / Mass
+% dim ThermalConductivity = Energy / Length Temperature
+% dim EnergyDensity = Energy / Volume
+% dim ElectricFieldStrength = ElectricPotential / Length
+% dim ElectricChargeDensity = ElectricCharge / Volume
+% dim ElectricFlux = ElectricCharge
+% dim ElectricFluxDensity = ElectricCharge / Area
+% dim MolarEnergy = Energy / AmountOfSubstance
+% dim MolarHeatCapacity = Energy / AmountOfSubstance Temperature
+% dim MolarEntropy = Energy / AmountOfSubstance Temperature
+% dim RadiationExposure = ElectricCharge / Mass
+
+% (* Units outside the SI that are accepted for use with the SI *)
+
+% unit minute minutes min_: Time
+% unit hour hours h_: Time
+% unit day days d_: Time
+% unit degreeOfAngle degrees: Angle
+% unit minuteOfAngle minutesOfAngle: Angle
+% unit secondOfAngle secondsOfAngle: Angle
+% SI_unit metricTon metricTons tonne tonnes t_: Mass
+% SI_unit liter liters  L_: Volume
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \mathtt{(*}\;\hbox{\rm  Reference: http://physics.nist.gov/cuu/Units/index.html \unskip}\;\mathtt{*)}\)\\[4pt]
+\( \mathtt{(*}\;\hbox{\rm  SI base units \unskip}\;\mathtt{*)}\)\\[4pt]
+\( \KWD{dim} \TYP{Length}  \KWD{SI{\char'137}unit} \TYP{meter}\mskip 4mu plus 4mu\TYP{meters}\mskip 4mu plus 4mu\mathrm{m}\)\\
+\( \KWD{dim} \TYP{Mass} \KWD{default} \TYP{kilogram}; \KWD{SI{\char'137}unit} \TYP{gram}\mskip 4mu plus 4mu\TYP{grams}\mskip 4mu plus 4mu\mathrm{g}\COLON \TYP{Mass}\)\\
+\( \KWD{dim} \TYP{Time}  \KWD{SI{\char'137}unit} \TYP{second}\mskip 4mu plus 4mu\TYP{seconds}\mskip 4mu plus 4mu\mathrm{s}\)\\
+\( \KWD{dim} \TYP{ElectricCurrent}  \KWD{SI{\char'137}unit} \TYP{ampere}\mskip 4mu plus 4mu\TYP{amperes}\mskip 4mu plus 4mu\mathrm{A}\)\\
+\( \KWD{dim} \TYP{Temperature}  \KWD{SI{\char'137}unit} \TYP{kelvin}\mskip 4mu plus 4mu\TYP{kelvins}\mskip 4mu plus 4mu\mathrm{K}\)\\
+\( \KWD{dim} \TYP{AmountOfSubstance}  \KWD{SI{\char'137}unit} \TYP{mole}\mskip 4mu plus 4mu\TYP{moles}\mskip 4mu plus 4mu\mathrm{mol}\)\\
+\( \KWD{dim} \TYP{LuminousIntensity}  \KWD{SI{\char'137}unit} \TYP{candela}\mskip 4mu plus 4mu\TYP{candelas}\mskip 4mu plus 4mu\mathrm{cd}\)\\[4pt]
+\( \mathtt{(*}\;\hbox{\rm  SI derived units with special names and symbols \unskip}\;\mathtt{*)}\)\\[4pt]
+\( \KWD{dim} \TYP{Angle} = \TYP{Unity}  \KWD{SI{\char'137}unit} \TYP{radian}\mskip 4mu plus 4mu\TYP{radians}\mskip 4mu plus 4mu\mathrm{rad} \)\\
+\( \KWD{dim} \TYP{SolidAngle} = \TYP{Unity}  \KWD{SI{\char'137}unit} \TYP{steradian}\mskip 4mu plus 4mu\TYP{steradians}\mskip 4mu plus 4mu\mathrm{sr} \)\\
+\( \KWD{dim} \TYP{Frequency} = 1 / \TYP{Time}  \KWD{SI{\char'137}unit} \TYP{hertz}\mskip 4mu plus 4mu\mathrm{Hz} \)\\
+\( \KWD{dim} \TYP{Force} = \TYP{Mass}\mskip 4mu plus 4mu\TYP{Acceleration}  \KWD{SI{\char'137}unit} \TYP{newton}\mskip 4mu plus 4mu\TYP{newtons}\mskip 4mu plus 4mu\mathrm{N} \)\\
+\( \KWD{dim} \TYP{Pressure} = \TYP{Force} / \TYP{Area}  \KWD{SI{\char'137}unit} \TYP{pascal}\mskip 4mu plus 4mu\TYP{pascals}\mskip 4mu plus 4mu\mathrm{Pa} \)\\
+\( \KWD{dim} \TYP{Energy} = \TYP{Length}\mskip 4mu plus 4mu\TYP{Force}  \KWD{SI{\char'137}unit} \TYP{joule}\mskip 4mu plus 4mu\TYP{joules}\mskip 4mu plus 4mu\mathrm{J} \)\\
+\( \KWD{dim} \TYP{Power} = \TYP{Energy} / \TYP{Time}  \KWD{SI{\char'137}unit} \TYP{watt}\mskip 4mu plus 4mu\TYP{watts}\mskip 4mu plus 4mu\mathrm{W} \)\\
+\( \KWD{dim} \TYP{ElectricCharge} = \TYP{ElectricCurrent}\mskip 4mu plus 4mu\TYP{Time}  \KWD{SI{\char'137}unit} \TYP{coulomb}\mskip 4mu plus 4mu\TYP{coulombs}\mskip 4mu plus 4mu\mathrm{C} \)\\
+\( \KWD{dim} \TYP{ElectricPotential} = \TYP{Power} / \TYP{Current}  \KWD{SI{\char'137}unit} \TYP{volt}\mskip 4mu plus 4mu\TYP{volts}\mskip 4mu plus 4mu\mathrm{V} \)\\
+\( \KWD{dim} \TYP{Capacitance} = \TYP{ElectricCharge} / \TYP{Voltage}  \KWD{SI{\char'137}unit} \TYP{farad}\mskip 4mu plus 4mu\TYP{farads}\mskip 4mu plus 4mu\mathrm{F} \)\\
+\( \KWD{dim} \TYP{Resistance} = \TYP{ElectricPotential} / \TYP{Current}  \KWD{SI{\char'137}unit} \TYP{ohm}\mskip 4mu plus 4mu\TYP{ohms}\mskip 4mu plus 4mu\Omega \)\\
+\( \KWD{dim} \TYP{Conductance} = 1 / \TYP{Resistance}  \KWD{SI{\char'137}unit} \TYP{siemens}\mskip 4mu plus 4mu\mathrm{S} \)\\
+\( \KWD{dim} \TYP{MagneticFlux} = \TYP{Voltage}\mskip 4mu plus 4mu\TYP{Time}  \KWD{SI{\char'137}unit} \TYP{weber}\mskip 4mu plus 4mu\TYP{webers}\mskip 4mu plus 4mu\mathrm{Wb} \)\\
+\( \KWD{dim} \TYP{MagneticFluxDensity} = \TYP{MagneticFlux} / \TYP{Area}  \KWD{SI{\char'137}unit} \TYP{tesla}\mskip 4mu plus 4mu\TYP{teslas}\mskip 4mu plus 4mu\mathrm{T} \)\\
+\( \KWD{dim} \TYP{Inductance} = \TYP{MagneticFlux} / \TYP{Current}  \KWD{SI{\char'137}unit} \TYP{henry}\mskip 4mu plus 4mu\TYP{henries}\mskip 4mu plus 4mu\mathrm{H} \)\\
+\( \KWD{dim} \TYP{LuminousFlux} = \TYP{LuminousIntensity}\mskip 4mu plus 4mu\TYP{SolidAngle}  \KWD{SI{\char'137}unit} \TYP{lumen}\mskip 4mu plus 4mu\TYP{lumens}\mskip 4mu plus 4mu\mathrm{lm} \)\\
+\( \KWD{dim} \TYP{Illuminance} = \TYP{LuminousFlux} / \TYP{Area}  \KWD{SI{\char'137}unit} \TYP{lux}\mskip 4mu plus 4mu\mathrm{lx} \)\\
+\( \KWD{dim} \TYP{RadionuclideActivity} = 1 / \TYP{Time}  \KWD{SI{\char'137}unit} \TYP{becquerel}\mskip 4mu plus 4mu\TYP{becquerels}\mskip 4mu plus 4mu\mathrm{Bq} \)\\
+\( \KWD{dim} \TYP{AbsorbedDose} = \TYP{Energy} / \TYP{Mass}  \KWD{SI{\char'137}unit} \TYP{gray}\mskip 4mu plus 4mu\TYP{grays}\mskip 4mu plus 4mu\mathrm{Gy} \)\\
+\( \KWD{dim} \TYP{CatalyticActivity} = \TYP{AmountOfSubstance} / \TYP{Time}  \KWD{SI{\char'137}unit} \TYP{katal}\mskip 4mu plus 4mu\TYP{katals}\mskip 4mu plus 4mu\mathrm{kat} \)\\[4pt]
+\( \mathtt{(*}\;\hbox{\rm  Other derived dimensions \unskip}\;\mathtt{*)}\)\\[4pt]
+\( \KWD{dim} \TYP{Area} = \TYP{Length}^{2}\)\\
+\( \KWD{dim} \TYP{Volume} = \TYP{Length}^{3}\)\\
+\( \KWD{dim} \TYP{Velocity} = \TYP{Length} / \TYP{Time}\)\\
+\( \KWD{dim} \TYP{Speed} = \TYP{Velocity}\)\\
+\( \KWD{dim} \TYP{Acceleration} = \TYP{Velocity} / \TYP{Time}\)\\
+\( \KWD{dim} \TYP{Momentum} = \TYP{Mass}\mskip 4mu plus 4mu\TYP{Velocity}\)\\
+\( \KWD{dim} \TYP{AngularVelocity} = \TYP{Angle} / \TYP{Second}\)\\
+\( \KWD{dim} \TYP{AngularAcceleration} = \TYP{Angle} / \TYP{Second}^{2}\)\\
+\( \KWD{dim} \TYP{WaveNumber} = 1 / \TYP{Length}\)\\
+\( \KWD{dim} \TYP{MassDensity} = \TYP{Mass} / \TYP{Volume}\)\\
+\( \KWD{dim} \TYP{CurrentDensity} = \TYP{Current} / \TYP{Area}\)\\
+\( \KWD{dim} \TYP{MagneticFieldStrength} = \TYP{Current} / \TYP{Length}\)\\
+\( \KWD{dim} \TYP{Luminance} = \TYP{LuminousIntensity} / \TYP{Area}\)\\
+\( \KWD{dim} \TYP{Work} = \TYP{Energy}\)\\
+\( \KWD{dim} \TYP{Action} = \TYP{Energy}\mskip 4mu plus 4mu\TYP{Time}\)\\
+\( \KWD{dim} \TYP{MomentOfForce} = \TYP{Force}\mskip 4mu plus 4mu\TYP{Length}\)\\
+\( \KWD{dim} \TYP{Torque} = \TYP{MomentOfForce}\)\\
+\( \KWD{dim} \TYP{MomentOfInertia} = \TYP{Mass}\mskip 4mu plus 4mu\TYP{Length}^{2}\)\\
+\( \KWD{dim} \TYP{Voltage} = \TYP{ElectricPotential}\)\\
+\( \KWD{dim} \TYP{Conductivity} = \TYP{Conductance} / \TYP{Length}\)\\
+\( \KWD{dim} \TYP{Resistivity} = 1 / \TYP{Conductivity}\)\\
+\( \KWD{dim} \TYP{Impedance} = \TYP{Resistance}\)\\
+\( \KWD{dim} \TYP{Permittivity} = \TYP{Capacitance} / \TYP{Length}\)\\
+\( \KWD{dim} \TYP{Permeability} = \TYP{Inductance} / \TYP{Length}\)\\
+\( \KWD{dim} \TYP{Irradiance} = \TYP{Power} / \TYP{Area}\)\\
+\( \KWD{dim} \TYP{RadiantIntensity} = \TYP{Power} / \TYP{SolidAngle}\)\\
+\( \KWD{dim} \TYP{Radiance} = \TYP{Power} / \TYP{Area}\mskip 4mu plus 4mu\TYP{SolidAngle}\)\\
+\( \KWD{dim} \TYP{AbsorbedDoseRate} = \TYP{AbsorbedDose} / \TYP{Time}\)\\
+\( \KWD{dim} \TYP{CatalyticConcentration} = \TYP{CatalyticActivity} / \TYP{Volume}\)\\
+\( \KWD{dim} \TYP{HeatCapacity} = \TYP{Energy} / \TYP{Temperature}\)\\
+\( \KWD{dim} \TYP{Entropy} = \TYP{Energy} / \TYP{Temperature}\)\\
+\( \KWD{dim} \TYP{DynamicViscosity} = \TYP{Pressure}\mskip 4mu plus 4mu\TYP{Time}\)\\
+\( \KWD{dim} \TYP{SpecificHeatCapacity} = \TYP{Energy} / \TYP{Mass}\mskip 4mu plus 4mu\TYP{Temperature}\)\\
+\( \KWD{dim} \TYP{SpecificEntropy} = \TYP{Energy} / \TYP{Mass}\mskip 4mu plus 4mu\TYP{Temperature}\)\\
+\( \KWD{dim} \TYP{SpecificEnergy} = \TYP{Energy} / \TYP{Mass}\)\\
+\( \KWD{dim} \TYP{ThermalConductivity} = \TYP{Energy} / \TYP{Length}\mskip 4mu plus 4mu\TYP{Temperature}\)\\
+\( \KWD{dim} \TYP{EnergyDensity} = \TYP{Energy} / \TYP{Volume}\)\\
+\( \KWD{dim} \TYP{ElectricFieldStrength} = \TYP{ElectricPotential} / \TYP{Length}\)\\
+\( \KWD{dim} \TYP{ElectricChargeDensity} = \TYP{ElectricCharge} / \TYP{Volume}\)\\
+\( \KWD{dim} \TYP{ElectricFlux} = \TYP{ElectricCharge}\)\\
+\( \KWD{dim} \TYP{ElectricFluxDensity} = \TYP{ElectricCharge} / \TYP{Area}\)\\
+\( \KWD{dim} \TYP{MolarEnergy} = \TYP{Energy} / \TYP{AmountOfSubstance}\)\\
+\( \KWD{dim} \TYP{MolarHeatCapacity} = \TYP{Energy} / \TYP{AmountOfSubstance}\mskip 4mu plus 4mu\TYP{Temperature}\)\\
+\( \KWD{dim} \TYP{MolarEntropy} = \TYP{Energy} / \TYP{AmountOfSubstance}\mskip 4mu plus 4mu\TYP{Temperature}\)\\
+\( \KWD{dim} \TYP{RadiationExposure} = \TYP{ElectricCharge} / \TYP{Mass}\)\\[4pt]
+\( \mathtt{(*}\;\hbox{\rm  Units outside the SI that are accepted for use with the SI \unskip}\;\mathtt{*)}\)\\[4pt]
+\( \KWD{unit} \TYP{minute}\mskip 4mu plus 4mu\TYP{minutes} \min\COLON \TYP{Time} \)\\
+\( \KWD{unit} \TYP{hour}\mskip 4mu plus 4mu\TYP{hours}\mskip 4mu plus 4mu\mathrm{h}\COLON \TYP{Time} \)\\
+\( \KWD{unit} \TYP{day}\mskip 4mu plus 4mu\TYP{days}\mskip 4mu plus 4mu\mathrm{d}\COLON \TYP{Time} \)\\
+\( \KWD{unit} \TYP{degreeOfAngle}\mskip 4mu plus 4mu\TYP{degrees}\COLON \TYP{Angle}  \)\\
+\( \KWD{unit} \TYP{minuteOfAngle}\mskip 4mu plus 4mu\TYP{minutesOfAngle}\COLON \TYP{Angle} \)\\
+\( \KWD{unit} \TYP{secondOfAngle}\mskip 4mu plus 4mu\TYP{secondsOfAngle}\COLON \TYP{Angle} \)\\
+\( \KWD{SI{\char'137}unit} \TYP{metricTon}\mskip 4mu plus 4mu\TYP{metricTons}\mskip 4mu plus 4mu\TYP{tonne}\mskip 4mu plus 4mu\TYP{tonnes}\mskip 4mu plus 4mu\mathrm{t}\COLON \TYP{Mass} \)\\
+\( \KWD{SI{\char'137}unit} \TYP{liter}\mskip 4mu plus 4mu\TYP{liters}\mskip 4mu plus 4mu\mathrm{L}\COLON \TYP{Volume} \)\-\\\poptabs
+\end{Fortress}
+
+\section{Fortress.EnglishUnits}
+\seclabel{lib:englishunits}
+
+% import { Length, Area, Volume, Time, Mass, millimeters, liters, grams }
+%        from Fortress.SIUnits
+
+% unit inch inches: Length
+% unit foot feet: Length
+% unit yard yards: Length
+% unit mile miles: Length
+% unit rod rods: Length
+% unit furlong furlongs: Length
+
+% unit surveyFoot surveyFeet: Length
+% unit surveyMile surveyMiles: Length
+
+% unit nauticalMile nauticalMiles: Length
+% unit knot knots: Speed
+
+% unit week weeks: Time
+% unit fortnight fortnights: Time
+% unit microfortnight microfortnights: Time
+
+% unit gallon gallons: Volume
+% unit fluidQuart fluidQuarts: Volume
+% unit fluidPint fluidPints: Volume
+% unit fluidCup fluidCups: Volume
+% unit fluidOunce fluidOunces: Volume
+% unit fluidDram fluidDrams: Volume
+% unit minim minims: Volume
+
+% unit traditionalTablespoon traditionalTablespoons: Volume
+% unit traditionalTeaspoon traditionalTeaspoons: Volume
+% unit federalTablespoon federalTablespoons: Volume
+% unit federalTeaspoon federalTeaspoons: Volume
+
+% unit dryPint dryPints: Volume
+% unit dryQuart dryQuarts: Volume
+% unit peck pecks: Volume
+% unit bushel bushels: Volume
+
+% unit acre: Area
+
+% unit imperialGallon: Volume
+% unit imperialQuart: Volume
+% unit imperialPint: Volume
+% unit imperialGill: Volume
+% unit imperialFluidOunce: Volume
+% unit imperialFluidDrachm: Volume
+% unit imperialFluidDRam : Volume
+% unit imperialFluidScruple: Volume
+% unit imperialMinim: Volume
+
+% unit pound pounds lb_ lbs_: Mass
+% unit ounce ounces oz_: Mass
+% unit grain grains: Mass
+% unit troyPound troyPounds: Mass
+% unit troyOunce troyOunces: Mass
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{import} \null\)\pushtabs\=\+\(\{\,\TYP{Length}, \TYP{Area}, \TYP{Volume}, \TYP{Time}, \TYP{Mass}, \TYP{millimeters}, \TYP{liters}, \TYP{grams}\,\} \)\\
+\(        \KWD{from} \TYP{Fortress}.\TYP{SIUnits}\)\-\\[4pt]\poptabs
+\( \KWD{unit} \TYP{inch}\mskip 4mu plus 4mu\TYP{inches}\COLON \TYP{Length} \)\\
+\( \KWD{unit} \TYP{foot}\mskip 4mu plus 4mu\TYP{feet}\COLON \TYP{Length} \)\\
+\( \KWD{unit} \TYP{yard}\mskip 4mu plus 4mu\TYP{yards}\COLON \TYP{Length} \)\\
+\( \KWD{unit} \TYP{mile}\mskip 4mu plus 4mu\TYP{miles}\COLON \TYP{Length} \)\\
+\( \KWD{unit} \TYP{rod}\mskip 4mu plus 4mu\TYP{rods}\COLON \TYP{Length} \)\\
+\( \KWD{unit} \TYP{furlong}\mskip 4mu plus 4mu\TYP{furlongs}\COLON \TYP{Length} \)\\[4pt]
+\( \KWD{unit} \TYP{surveyFoot}\mskip 4mu plus 4mu\TYP{surveyFeet}\COLON \TYP{Length} \)\\
+\( \KWD{unit} \TYP{surveyMile}\mskip 4mu plus 4mu\TYP{surveyMiles}\COLON \TYP{Length} \)\\[4pt]
+\( \KWD{unit} \TYP{nauticalMile}\mskip 4mu plus 4mu\TYP{nauticalMiles}\COLON \TYP{Length} \)\\
+\( \KWD{unit} \TYP{knot}\mskip 4mu plus 4mu\TYP{knots}\COLON \TYP{Speed} \)\\[4pt]
+\( \KWD{unit} \TYP{week}\mskip 4mu plus 4mu\TYP{weeks}\COLON \TYP{Time} \)\\
+\( \KWD{unit} \TYP{fortnight}\mskip 4mu plus 4mu\TYP{fortnights}\COLON \TYP{Time} \)\\
+\( \KWD{unit} \TYP{microfortnight}\mskip 4mu plus 4mu\TYP{microfortnights}\COLON \TYP{Time} \)\\[4pt]
+\( \KWD{unit} \TYP{gallon}\mskip 4mu plus 4mu\TYP{gallons}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{fluidQuart}\mskip 4mu plus 4mu\TYP{fluidQuarts}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{fluidPint}\mskip 4mu plus 4mu\TYP{fluidPints}\COLON \TYP{Volume}\)\\
+\( \KWD{unit} \TYP{fluidCup}\mskip 4mu plus 4mu\TYP{fluidCups}\COLON \TYP{Volume} \)\\
+\( \KWD{unit}\mskip 4mu plus 4mu\TYP{fluidOunce}\mskip 4mu plus 4mu\TYP{fluidOunces}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{fluidDram}\mskip 4mu plus 4mu\TYP{fluidDrams}\COLON \TYP{Volume}\)\\
+\( \KWD{unit} \TYP{minim}\mskip 4mu plus 4mu\TYP{minims}\COLON \TYP{Volume} \)\\[4pt]
+\( \KWD{unit} \TYP{traditionalTablespoon}\mskip 4mu plus 4mu\TYP{traditionalTablespoons}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{traditionalTeaspoon}\mskip 4mu plus 4mu\TYP{traditionalTeaspoons}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{federalTablespoon}\mskip 4mu plus 4mu\TYP{federalTablespoons}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{federalTeaspoon}\mskip 4mu plus 4mu\TYP{federalTeaspoons}\COLON \TYP{Volume} \)\\[4pt]
+\( \KWD{unit} \TYP{dryPint}\mskip 4mu plus 4mu\TYP{dryPints}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{dryQuart}\mskip 4mu plus 4mu\TYP{dryQuarts}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{peck}\mskip 4mu plus 4mu\TYP{pecks}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{bushel}\mskip 4mu plus 4mu\TYP{bushels}\COLON \TYP{Volume} \)\\[4pt]
+\( \KWD{unit} \TYP{acre}\COLON \TYP{Area} \)\\[4pt]
+\( \KWD{unit} \TYP{imperialGallon}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{imperialQuart}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{imperialPint}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{imperialGill}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{imperialFluidOunce}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{imperialFluidDrachm}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{imperialFluidDRam} \mathrel{\mathtt{:}} \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{imperialFluidScruple}\COLON \TYP{Volume} \)\\
+\( \KWD{unit} \TYP{imperialMinim}\COLON \TYP{Volume} \)\\[4pt]
+\( \KWD{unit} \TYP{pound}\mskip 4mu plus 4mu\TYP{pounds}\mskip 4mu plus 4mu\mathrm{lb}\mskip 4mu plus 4mu\mathrm{lbs}\COLON \TYP{Mass} \)\\
+\( \KWD{unit} \TYP{ounce}\mskip 4mu plus 4mu\TYP{ounces}\mskip 4mu plus 4mu\mathrm{oz}\COLON \TYP{Mass} \)\\
+\( \KWD{unit} \TYP{grain}\mskip 4mu plus 4mu\TYP{grains}\COLON \TYP{Mass} \)\\
+\( \KWD{unit} \TYP{troyPound}\mskip 4mu plus 4mu\TYP{troyPounds}\COLON \TYP{Mass} \)\\
+\( \KWD{unit} \TYP{troyOunce}\mskip 4mu plus 4mu\TYP{troyOunces}\COLON \TYP{Mass} \)\-\\\poptabs
+\end{Fortress}
+
+\section{Fortress.InformationUnits}
+
+%dim Information unit bit bits
+%unit byte bytes: Information
+\begin{Fortress}
+\(\KWD{dim}\mskip 4mu plus 4mu\TYP{Information} \KWD{unit}\mskip 4mu plus 4mu\TYP{bit}\mskip 4mu plus 4mu\TYP{bits}\)\\
+\(\KWD{unit}\mskip 4mu plus 4mu\TYP{byte}\mskip 4mu plus 4mu\TYP{bytes}\COLON \TYP{Information}\)
+\end{Fortress}

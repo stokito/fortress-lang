@@ -1,0 +1,130 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Generators}
+\seclabel{generators}
+
+\note{Distributions are not yet supported.}
+
+\begin{Grammar}
+\emph{GeneratorClauseList} &::=& \emph{GeneratorBinding}(\EXP{,} \emph{GeneratorClause})$^*$ \\
+
+\emph{GeneratorBinding}
+&::=& \emph{BindIdOrBindIdTuple}\EXP{\leftarrow}\emph{Expr} \\
+
+\emph{GeneratorClause}
+&::=& \emph{GeneratorBinding} \\
+&$|$& \emph{Expr} \\
+
+\emph{BindIdOrBindIdTuple}
+&::=& \emph{BindId}\\
+&$|$& \texttt{(} \emph{BindId}\EXP{,} \emph{BindIdList} \texttt{)}\\
+
+\emph{BindIdList} &::=& \emph{BindId}(\EXP{,} \emph{BindId})$^*$\\
+
+\emph{BindId} &::=& \emph{Id}\\
+&$|$& \KWD{\_}\\
+\end{Grammar}
+
+Fortress makes extensive use of comma-separated \emph{generator clause lists}
+to express parallel iteration.  Generator clause lists occur in
+generated expressions (described in \secref{generated}) and
+\KWD{for} loops (described in \secref{for-expr}),
+sums and big operators (described in \secref{reduction-expr}),
+and comprehensions (described in \secref{comprehensions}).
+We refer to these
+collectively as \emph{expressions with generator clauses}.  Every expression with
+generator clauses contains a \emph{body expression} which is evaluated for each
+combination of values bound in the generator clause list
+(each such combination yields an \emph{iteration} of the body).
+
+A generator clause is either a \emph{generator binding} or
+an expression of type \EXP{\TYP{Generator}\llbracket()\rrbracket}
+(this includes the type \TYP{Boolean}).
+A generator clause list must begin with a generator binding.
+A generator binding consists of one or more
+comma-separated identifiers followed by the token \EXP{\leftarrow},
+followed by a subexpression (called the \emph{generator expression}).
+A generator expression evaluates to an object whose type is
+\TYP{Generator}.  A generator encapsulates zero or more
+\emph{generator iterations}.  By default, the programmer must assume
+that generator iterations are run in parallel in separate implicit
+threads unless the generators are instances of \TYP{SequentialGenerator}; the
+actual behavior of generators is dictated by library code, as
+described in \secref{defining-generators}.
+No generator iterations are run until the generator expression completes.
+For each generator iteration, a generator object produces a value or a tuple
+of values.  These values are bound to the identifiers to the left of the arrow,
+which are in scope of the subsequent generator clause list and of the
+body of the construct containing the generator clause list.
+
+An expression of type \EXP{\TYP{Generator}\llbracket()\rrbracket} in a
+generator clause list is interpreted as a \emph{filter}.  A generator
+iteration is performed only if the filter yields \EXP{()}.
+If the filter yields no value, subsequent expressions in
+the generator clause list will not be evaluated.  Note in particular that \VAR{true} is a \TYP{Boolean} value yielding \EXP{()} exactly once, while \VAR{false} is a \TYP{Boolean} value that yields no elements.
+
+The order of nesting of generators need not imply anything about the
+relative order of nesting of iterations.  In most cases, multiple
+generators can be considered equivalent to multiple nested loops.
+However, the compiler will make an effort to choose the best possible
+iteration order it can for a multiple-generator loop, and may even
+combine generators together; there may be no such guarantee for nested
+loops.  Thus loops with multiple generators are preferable to distinct nested loops in general.
+Note that the early termination behavior of nested looping is subtly
+different from a single multi-generator loop, since nested loops give
+rise to nested thread groups; see \secref{early-termination}.
+
+Each generator iteration of the innermost generator clause
+corresponds to a \emph{body iteration}, or simply an \emph{iteration}
+of the generator clause list.  Each iteration is run in its own implicit
+thread.  Each expression in the generator clause list can be considered
+to evaluate in a separate implicit thread.  Together these implicit
+threads form a thread group.  Evaluation of an expression with generators
+completes only when this thread group has completed.
+
+Some common \TYP{Generator}s include:
+\begin{quote}
+\begin{tabular}{ll}
+\EXP{l\COLONOP{}u}              & Any range expression \\
+\EXP{a}                         & Array \VAR{a} generates its elements \\
+\EXP{a.\VAR{indices}}           & The index set of array \VAR{a} \\
+\EXP{\{0,1,2,3\}}               & The elements of an aggregate expression \\
+\EXP{\VAR{sequential}(g)}       & A sequential version of generator \VAR{g}
+\end{tabular}
+\end{quote}
+The generator \EXP{\VAR{sequential}(g)} forces the iterations using
+values from \VAR{g} to be performed in order.  Every generator has an
+associated \emph{natural order} which is the order obtained by
+\EXP{sequential}.  For example, a sequential \KWD{for} loop starting
+at $1$ and going to $n$ can be written as follows:
+%for i <- sequential(1:n) do
+%  \cdots
+%end
+\begin{Fortress}
+\(\KWD{for} i \leftarrow \VAR{sequential}(1\COLONOP{}n) \KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(  \cdots\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+The \VAR{sequential} generator respects generator clause list ordering; it
+will always nest strictly inside preceding generator clauses and
+outside succeeding ones.
+
+Given a multidimensional array, the \VAR{indices} generator returns
+a tuple of values, which can be bound by a tuple of variables to the
+left of the arrow:
+%(i,j) <- my2DArray.indices
+\begin{Fortress}
+\((i,j) \leftarrow \VAR{my2DArray}.\VAR{indices}\)
+\end{Fortress}
+The parallelism of a loop on this generator follows the spatial
+distribution (discussed in \secref{distributions})
+of \VAR{my2DArray} as closely as possible.

@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ampersand
+export Executable
+
+run() = do
+  println "OK &"&(* in comment & *)
+
+  x = 3
+  assert(9, 3&
+x)
+end
+
+end

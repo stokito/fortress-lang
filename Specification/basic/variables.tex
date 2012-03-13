@@ -1,0 +1,226 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Variables}
+\chaplabel{variables}
+
+\note{Functionals with the modifier \KWD{io} and
+matrix unpasting are not yet supported.}
+
+\section{Top-Level Variable Declarations}
+\seclabel{top-var-decls}
+\begin{Grammar}
+\emph{VarDecl}
+&::=& \option{\emph{VarMods}} \emph{VarWTypes} \emph{InitVal} \\
+&$|$& \option{\emph{VarImmutableMods}} \emph{BindIdOrBindIdTuple} \EXP{=} \emph{Expr}\\
+&$|$& \option{\emph{VarMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{Type}\EXP{...}
+\emph{InitVal} \\
+&$|$& \option{\emph{VarMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{TupleType}
+\emph{InitVal} \\
+
+\emph{VarMods} &::=& \emph{VarMod}$^+$\\
+
+\emph{VarImmutableMods} &::=& \emph{VarImmutableMod}$^+$\\
+
+\emph{VarMod} &::=& \emph{AbsVarMod} $|$ \KWD{private}\\
+
+\emph{VarImmutableMod} &::=& \emph{AbsVarImmutableMod} $|$ \KWD{private}\\
+
+\emph{AbsVarMod} &::=& \KWD{var} $|$ \KWD{test}\\
+
+\emph{AbsVarImmutableMod} &::=& \KWD{test}\\
+
+\emph{VarWTypes} &::=& \emph{VarWType} \\
+&$|$& \texttt{(} \emph{VarWType}(\EXP{,} \emph{VarWType})$^+$ \texttt{)}\\
+
+\emph{VarWType} &::=& \emph{BindId} \emph{IsType}\\
+
+\emph{InitVal} &::=& (\EXP{=}$|$\EXP{\ASSIGN}) \emph{Expr} \\
+
+\emph{TupleType} &::=&
+\texttt{(} \emph{Type}\EXP{,} \emph{TypeList} \texttt{)}\\
+
+\emph{TypeList} &::=& \emph{Type}(\EXP{,} \emph{Type})$^*$ \\
+
+\emph{IsType} &::=& \EXP{\mathrel{\mathtt{:}}} \emph{Type}\\
+\end{Grammar}
+
+A \emph{variable}'s name can be any valid Fortress identifier.
+There are three forms of variable declarations.  The first form:
+%id : Type = expr
+\begin{Fortress}
+\(\VAR{id} \mathrel{\mathtt{:}} \TYP{Type} = \VAR{expr}\)
+\end{Fortress}
+declares \VAR{id} to be an immutable variable with static type \TYP{Type}
+whose value is computed to be the value of the \emph{initializer} expression
+\VAR{expr}.
+The static type of \VAR{expr} must be a subtype of \TYP{Type}.
+
+
+The second (and most convenient) form:
+%id = expr
+\begin{Fortress}
+\(\VAR{id} = \VAR{expr}\)
+\end{Fortress}
+declares \VAR{id} to be an immutable variable
+whose value is computed to be the value of the expression \VAR{expr};
+the static type of the variable is the static type of \VAR{expr}.
+
+The third form:
+%var id : Type = expr
+\begin{Fortress}
+\(\KWD{var} \VAR{id} \mathrel{\mathtt{:}} \TYP{Type} = \VAR{expr}\)
+\end{Fortress}
+declares \VAR{id} to be a mutable variable of type \TYP{Type}
+whose initial value is computed to be the value of the expression \VAR{expr}.
+As before, the static type of \VAR{expr} must be a subtype of \TYP{Type}.
+The modifier \KWD{var} is optional
+when `\EXP{\ASSIGN}' is used instead of `\EXP{=}' as follows:
+
+%var? id : Type := expr
+\begin{Fortress}
+\(\option{\KWD{var}}\ \VAR{id} \mathrel{\mathtt{:}} \TYP{Type} \ASSIGN \VAR{expr}\)
+\end{Fortress}
+
+In short, immutable variables are declared and initialized by `\EXP{=}'
+and mutable variables are declared and initialized either by `\EXP{\ASSIGN}'
+or by declaring them according to the third form above with the modifier
+\KWD{var}.
+
+
+All forms can be used with \emph{tuple notation} to declare multiple
+variables together.  Variables to declare
+are enclosed in parentheses and separated by commas, as are the
+types declared for them:
+%(id(, id)^+) : (Type(, Type)^+)
+\begin{Fortress}
+\((\VAR{id}(, \VAR{id})^+) \mathrel{\mathtt{:}} (\TYP{Type}(, \TYP{Type})^+)\)
+\end{Fortress}
+Alternatively, the types can be included alongside the respective variables,
+optionally eliding types that can be inferred from context:
+%(id(: Type)?(, id(: Type)?)^+)
+\begin{Fortress}
+\((\VAR{id}\options{\COLON \TYP{Type}}(, \VAR{id}\options{\COLON \TYP{Type}})^+)\)
+\end{Fortress}
+
+Alternatively, a single type followed by `\EXP{\ldots}'
+can be declared for all of the variables:
+%(id(, id)^+): Type...
+\begin{Fortress}
+\((\VAR{id}(, \VAR{id})^+)\COLON \TYP{Type}\ldots\)
+\end{Fortress}
+This notation is especially helpful when a function application returns a tuple of values.
+
+The initializer expressions of top-level variable declarations can refer to
+variables declared later in textual order.
+\label{decl-io}
+Evaluation of top-level initializer expressions cannot call
+functionals with the modifier \KWD{io}.
+
+
+Here are some simple examples of variable declarations:
+\input{\home/basic/examples/Var.Top.a.tex}
+declares the variable \EXP{\pi}
+to be an approximate representation of the mathematical object \EXP{\pi}.
+It is also legal to write:
+\input{\home/basic/examples/Var.Top.b.tex}
+This definition enforces that \EXP{\pi} has static type \EXP{\mathbb{R}64}.
+
+The following example declares multiple variables using tuple notation:
+\input{\home/basic/examples/Var.Top.c.tex}
+
+The following three declarations are equivalent:
+\input{\home/basic/examples/Var.Top.d.tex}
+\vspace*{-1em}
+\input{\home/basic/examples/Var.Top.e.tex}
+\vspace*{-1.4em}
+\input{\home/basic/examples/Var.Top.f.tex}
+
+
+\section{Local Variable Declarations}
+\seclabel{local-var-decls}
+
+\note{Delayed initialization of local variable declarations:
+
+We want to disallow type annotation for delayed initialization of local variable declarations:
+% do
+%   i: ZZ32
+%   _ = if b
+%       then i: ZZ32 = 1
+%       else i: ZZ32 = 0
+%       end
+%   println i
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(   i\COLON \mathbb{Z}32\)\\
+\(   {\tt\_} =  \null\)\pushtabs\=\+\(\KWD{if}\:b\)\\
+\(       \KWD{then}\:i\COLON \mathbb{Z}32 = 1\)\\
+\(       \KWD{else}\:i\COLON \mathbb{Z}32 = 0\)\\
+\(       \KWD{end}\)\-\\\poptabs
+\(   \VAR{println}\:i\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+}
+
+\begin{Grammar}
+\emph{LocalVarDecl}
+&::=& \option{\KWD{var}} \emph{LocalVarWTypes} \emph{InitVal} \\
+&$|$& \option{\KWD{var}} \emph{LocalVarWTypes}\\
+&$|$& \emph{LocalVarWoTypes} \EXP{=} \emph{Expr} \\
+&$|$& \option{\KWD{var}} \emph{LocalVarWoTypes} \EXP{\mathrel{\mathtt{:}}} \emph{Type}\EXP{...}
+\option{\emph{InitVal}} \\
+&$|$& \option{\KWD{var}} \emph{LocalVarWoTypes} \EXP{\mathrel{\mathtt{:}}} \emph{TupleType}
+\option{\emph{InitVal}} \\
+
+\emph{LocalVarWTypes} &::=& \emph{LocalVarWType} \\
+&$|$& \texttt{(} \emph{LocalVarWType}(\EXP{,} \emph{LocalVarWType})$^+$ \texttt{)}\\
+\emph{LocalVarWType} &::=& \emph{BindId} \emph{IsType}\\
+
+\emph{LocalVarWoTypes} &::=& \emph{LocalVarWoType} \\
+&$|$& \texttt{(} \emph{LocalVarWoType}(\EXP{,} \emph{LocalVarWoType})$^+$ \texttt{)}\\
+\emph{LocalVarWoType} &::=& \emph{BindId}\\
+&$|$& \emph{Unpasting} \\
+
+\end{Grammar}
+
+Variables can be declared within expression blocks (described in
+\secref{block-expr}) via the same syntax as is used for top-level
+variable declarations (described in \secref{top-var-decls}) except that
+local variables must not include modifiers besides \KWD{var} and
+additional syntax is allowed as follows:
+\begin{itemize}
+\item
+The form:
+%var? id : Type
+\begin{Fortress}
+\(\option{\KWD{var}}\ \VAR{id} \mathrel{\mathtt{:}} \TYP{Type}\)
+\end{Fortress}
+declares a variable without giving it an initial value
+(where mutability is determined by the presence of the \KWD{var} modifier).
+It is a static error if such a variable is referred to before it has been
+given a value; an immutable variable is initialized by another variable
+declaration and a mutable variable is initialized by assignment.
+It is also a static error if an immutable variable is initialized more than once.
+Whenever a variable bound in this manner is assigned a value, the type of
+that value must be a subtype of its declared type.
+This form allows declaration of the types of variables to be separated
+from definitions, and it allows programmers to delay assigning to a variable
+before a sensible value is known.
+In the following example, the declaration of the type of a variable and its
+definition are separated:
+\input{\home/basic/examples/Var.Local.tex}
+
+\item Special syntax for declaring local variables as parts of a
+matrix is provided as described in \secref{unpasting}.
+\end{itemize}
+
+\input{\home/basic/matrix-unpasting}

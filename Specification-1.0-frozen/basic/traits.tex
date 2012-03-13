@@ -1,0 +1,818 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Traits}
+\chaplabel{traits}
+
+\note{Where clauses, the \KWD{override} modifier, value traits,
+method contracts, and abstract functional declarations are not yet supported.}
+
+\note{Covariant list with \KWD{comprises} clause (Victor's email titled
+``Problem with covariant List?'' on 10/27/07)}
+
+\emph{Traits} are declared by trait declarations.
+Traits define new named types.
+A trait specifies a collection of \emph{methods}
+(described in \secref{methods}).
+One trait can extend others,
+which means that it inherits the methods from those traits,
+and that the type defined by that trait
+is a subtype of the types of traits it extends.
+
+
+\section{Trait Declarations}
+\seclabel{trait-decls}
+
+\begin{Grammar}
+\emph{TraitDecl}  &::=& \option{\emph{TraitMods}}
+\emph{TraitHeaderFront} \emph{TraitClauses} \option{\emph{GoInATrait}} \KWD{end}
+\options{\option{\KWD{trait}} \emph{Id}} \\
+
+\emph{TraitHeaderFront} &::=&
+\KWD{trait} \emph{Id} \option{\emph{StaticParams}} \option{\emph{ExtendsWhere}} \\
+
+\emph{TraitClauses} &::=& \emph{TraitClause}$^*$\\
+
+\emph{TraitClause} &::=& \emph{Excludes} \\
+&$|$& \emph{Comprises} \\
+&$|$& \emph{Where} \\
+
+\emph{GoInATrait}
+&::=& \option{\emph{Coercions}}
+\emph{GoFrontInATrait} \option{\emph{GoBackInATrait}}\\
+&$|$& \option{\emph{Coercions}}
+\emph{GoBackInATrait} \\
+&$|$& \emph{Coercions}\\
+
+\emph{Coercions} &::=& \emph{Coercion}$^+$\\
+
+\emph{GoFrontInATrait} &::=& \emph{GoesFrontInATrait}$^+$\\
+
+\emph{GoesFrontInATrait}
+&::=& \emph{AbsFldDecl} \\
+&$|$& \emph{GetterSetterDecl} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{GoBackInATrait} &::=& \emph{GoesBackInATrait}$^+$\\
+
+\emph{GoesBackInATrait}
+&::=& \emph{MdDecl} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{TraitMods} &::=& \emph{TraitMod}$^+$\\
+
+\emph{TraitMod} &::=& \emph{AbsTraitMod} $|$ \KWD{private}\\
+
+\emph{AbsTraitMod} &::=& \KWD{value} $|$ \KWD{test}\\
+
+\emph{ExtendsWhere} &::=& \KWD{extends} \emph{TraitTypeWheres} \\
+
+\emph{TraitTypeWheres} &::=& \emph{TraitTypeWhere} \\
+&$|$& \{ \emph{TraitTypeWhereList} \} \\
+
+\emph{TraitTypeWhereList} &::=& \emph{TraitTypeWhere}(\EXP{,} \emph{TraitTypeWhere})$^*$ \\
+
+\emph{TraitTypeWhere} &::=& \emph{TraitType} \option{\emph{Where}}\\
+\end{Grammar}
+
+\begin{GrammarTwo}
+\emph{Excludes} &::=& \KWD{excludes} \emph{TraitTypes} \\
+\emph{Comprises} &::=& \KWD{comprises} \emph{TraitTypes} \\
+
+\emph{TraitTypes} &::=& \emph{TraitType} \\
+&$|$& \{ \emph{TraitTypeList} \} \\
+\emph{TraitTypeList} &::=& \emph{TraitType}(\EXP{,} \emph{TraitType})$^*$ \\
+
+\end{GrammarTwo}
+
+\begin{GrammarTwo}
+\emph{TraitType}
+&::=& \emph{TypeRef}\\
+&$|$& \emph{Type} \texttt{[} \option{\emph{ArraySize}} \texttt{]} \\
+&$|$& \emph{Type} \verb+^+ \emph{IntExpr}\\
+&$|$& \emph{Type} \verb+^+ \texttt{(} \emph{ExtentRange}
+(\EXP{\times} \emph{ExtentRange})$^*$ \texttt{)}\\
+
+\emph{ArraySize} &::=& \emph{ExtentRange}(\EXP{,} \emph{ExtentRange})$^*$ \\
+
+\emph{ExtentRange}
+&::=& \option{\emph{StaticArg}}\EXP{\mathinner{\hbox{\tt\char'43}}}
+\option{\emph{StaticArg}}\\
+&$|$& \option{\emph{StaticArg}}\KWD:\option{\emph{StaticArg}}\\
+&$|$& \emph{StaticArg} \\
+
+\emph{StaticArgs}    &::=& \bTPl \emph{StaticArgList} \bTPr \\
+
+\emph{StaticArgList} &::=& \emph{StaticArg}(\EXP{,} \emph{StaticArg})$^*$ \\
+
+\emph{StaticArg} &::=&
+\emph{Op} \\
+&$|$& \TYP{Unity} \\
+&$|$& \TYP{dimensionless}\\
+&$|$& \EXP{1}\EXP{/}\emph{Type}\\
+&$|$& \emph{DimPrefixOp} \emph{Type}\\
+&$|$& \emph{IntExpr}\\
+&$|$& \emph{BoolExpr}\\
+&$|$& \emph{Type}\\
+&$|$& \emph{UnitExpr}\\
+
+\end{GrammarTwo}
+
+Syntactically, a trait declaration starts with
+an optional sequence of modifiers followed by
+\KWD{trait}, followed by the name of the trait,
+an optional sequence of static parameters (described in
+\chapref{trait-parameters}),
+an optional set of \emph{extended} traits,
+an optional set of \emph{excluded} traits,
+an optional set of \emph{comprises} on the trait,
+an optional \KWD{where} clause (described in \secref{where-clauses}),
+zero or more \emph{coercion} declarations
+(discussed in \chapref{conversions-coercions}),
+zero or more declarations of abstract fields,
+getter and setter methods,
+and zero or more declarations of methods
+separated by newlines or semicolons,
+that are not getters or setters,
+and finally \KWD{end}.
+A trait declaration may end with an optional \KWD{trait} and its name again.
+It is a static error if the identifier after \KWD{end} is not the name of the trait being declared.
+Property declarations (described in \secref{property-decls}) can be freely
+commingled with the declarations of methods and abstract fields.
+An \KWD{extends} clause comes first, if any, and
+\KWD{excludes},
+\KWD{comprises},
+and \KWD{where}
+clauses come in any order.
+
+Each of \KWD{extends}, \KWD{excludes}, and \KWD{comprises} clauses consists
+of \KWD{extends}, \KWD{excludes}, and \KWD{comprises}
+respectively followed by a set of trait references
+separated by commas and enclosed in braces `\txt{\{}' and `\txt{\}}'.
+If such a clause contains only one trait, the enclosing braces may be elided.
+In an API (but not a component),
+a \KWD{comprises} clause may include ``\EXP{\ldots}''.
+A trait reference listed in the \KWD{comprises} clause is a declared
+trait identifier (within the same component or an API imported by the
+component).
+\note{
+Victor: Why is this property stated only for a comprises clause?
+Doesn't it apply to extends and excludes clauses as well?
+Also, do we really mean ``trait identifier'' above?  Where is that
+term defined?  Does it include instantiations of parametric traits?}
+
+A trait with an \KWD{extends} clause
+\emph{explicitly extends} those traits listed in its \KWD{extends} clause.
+\note{
+Victor: It is possible for a trait to explicitly extend itself
+ using hidden type variables.  In particular, the straightforward
+ interpretation of covariant/contravariant declarations has this property.
+ (But we could just rule this a special case, since it is special in other
+ ways already.)
+}
+In addition, every trait except \TYP{Any} and \TYP{Object}
+implicitly extends the trait \TYP{Object}
+if it does not do so explicitly.
+We define the extension relation to be the transitive closure
+of implicit and
+explicit extension.
+That is, trait \VAR{T} \emph{extends} trait \VAR{U}
+if and only if \VAR{T} explicitly or implicitly
+extends \VAR{U} or if there is some trait \VAR{S}
+that \VAR{T} explicitly extends and that extends \VAR{U}.
+The extension relation induced by a program is the smallest
+relation satisfying these conditions.
+This relation must form an acyclic hierarchy
+rooted at trait \TYP{Object}.
+\note{
+Victor: Technically, there may be self cycles in explicit extension due to
+ hidden type variables, as described above.}
+If a trait \VAR{T} extends trait \VAR{U},
+or if \VAR{T} and \VAR{U} are the same trait,
+we say that \VAR{T} is a subtrait of \VAR{U}
+and that \VAR{U} is a supertrait of \VAR{T}.
+
+We say that trait \VAR{T} \emph{strictly extends} trait \VAR{U}
+if and only if
+(\emph{i}) \VAR{T} extends \VAR{U} and (\emph{ii}) \VAR{T} is not \VAR{U}.
+We say that trait \VAR{T} \emph{immediately extends} trait \VAR{U}
+\note{
+Victor: I think we don't use ``immediately extends'' anywhere in the spec,
+  only ``immediate supertype/subtype''.}
+if and only if (\emph{i}) \VAR{T} strictly extends \VAR{U} and
+(\emph{ii}) there is no trait \VAR{V}
+such that \VAR{T} strictly extends \VAR{V}
+and \VAR{V} strictly extends \VAR{U}.
+We call \VAR{U} an \emph{immediate supertrait} of \VAR{T}
+and \VAR{T} an \emph{immediate subtrait} of \VAR{U}.
+\note{Victor: this belongs in the type chapter.}
+
+A trait with an \KWD{excludes} clause excludes
+every trait listed in its \KWD{excludes} clause.
+If a trait \VAR{T} excludes a trait \VAR{U},
+the two traits are mutually exclusive:
+neither can extend the other, and no trait can extend them both.
+As discussed in \secref{type-relations},
+the exclusion relation is symmetric.
+Thus, if \VAR{T} excludes \VAR{U}
+then \VAR{U} excludes \VAR{T}
+whether or not \VAR{T} is listed in an \KWD{excludes} clause
+in the declaration of \VAR{U}.
+
+\note{
+If a trait declaration of \VAR{T} includes a \KWD{comprises} clause
+then the traits listed in its \KWD{comprises} clause
+are exactly the traits that immediately extend \VAR{T}
+and they must explicitly extend \VAR{T}
+(i.e., list \VAR{T} in their \KWD{extends} clause).
+If the \KWD{comprises} clause of a trait \VAR{T} includes ``\EXP{\ldots}''
+(and must therefore be in an API),
+then in a component exporting the enclosing API,
+other traits may explicitly extend \VAR{T},
+but these traits may not be declared or imported by the API
+(see \secref{apis}).}
+
+
+For example, the following trait declaration:
+\input{\home/basic/examples/Trait.Decl.tex}
+declares a trait \TYP{Catalyst} with
+no modifiers,
+no static parameters,
+and
+no \KWD{excludes} clauses,
+no \KWD{comprises} clauses,
+and no \KWD{where} clauses.
+Trait \TYP{Catalyst} extends a trait named \TYP{Object}.
+A single method (named \VAR{catalyze}) is declared, which
+has a parameter of type
+\TYP{Reaction} and the return type \TYP{()}.
+
+
+The following example trait:
+%trait Molecule comprises { OrganicMolecule, InorganicMolecule }
+%  mass(): Mass
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Molecule} \KWD{comprises} \{\,\TYP{OrganicMolecule}, \TYP{InorganicMolecule}\,\}\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{mass}()\COLON \TYP{Mass}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+comprises of two traits: \TYP{OrganicMolecule} and \TYP{InorganicMolecule}.
+Therefore, the following trait declaration is not allowed:
+%(* Not allowed! *)
+%trait ExclusiveMolecule extends Molecule end
+\begin{Fortress}
+\(\mathtt{(*}\;\hbox{\rm  Not allowed! \unskip}\;\mathtt{*)}\)\\
+\(\KWD{trait} \TYP{ExclusiveMolecule} \KWD{extends} \TYP{Molecule} \KWD{end}\)
+\end{Fortress}
+Traits \TYP{OrganicMolecule} and \TYP{InorganicMolecule} may be exclusive:
+%trait OrganicMolecule extends Molecule excludes InorganicMolecule end
+%
+%trait InorganicMolecule extends Molecule end
+\begin{Fortress}
+\(\KWD{trait} \TYP{OrganicMolecule} \KWD{extends} \TYP{Molecule} \KWD{excludes} \TYP{InorganicMolecule} \KWD{end}\)\\[4pt]
+\(\KWD{trait} \TYP{InorganicMolecule} \KWD{extends} \TYP{Molecule} \KWD{end}\)
+\end{Fortress}
+\TYP{OrganicMolecule} and \TYP{InorganicMolecule} exclude each other, even
+though only \TYP{OrganicMolecule} has an \KWD{excludes} clause.
+For example, the following trait declaration is not allowed:
+%(* Not allowed! *)
+%trait InclusiveMolecule extends { InorganicMolecule, OrganicMolecule } end
+\begin{Fortress}
+\(\mathtt{(*}\;\hbox{\rm  Not allowed! \unskip}\;\mathtt{*)}\)\\
+\(\KWD{trait} \TYP{InclusiveMolecule} \KWD{extends} \{\,\TYP{InorganicMolecule}, \TYP{OrganicMolecule}\,\} \KWD{end}\)
+\end{Fortress}
+
+A trait is allowed to have multiple immediate supertraits.
+The following trait has two immediate supertraits:
+%trait Enzyme extends { OrganicMolecule, Catalyst } end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Enzyme} \KWD{extends} \{\,\TYP{OrganicMolecule}, \TYP{Catalyst}\,\} \KWD{end}\)
+\end{Fortress}
+
+\section{Method Declarations}
+\seclabel{methods}
+
+\note{
+hidden without settable is a static error
+only within traits
+not  within objects !!!
+-- Sukyoung}
+
+\note{Accessing a field by a ``naked'' identifier reference
+within trait declarations are not allowed.
+We require a dotted field access by a ``self.'' prefix. (08/11/08)
+-- Sukyoung}
+
+\note{Getters must always be called with the special syntax:
+\EXP{\VAR{receiver}.\VAR{getterName}
+}
+
+A getter is required to have a type consistent with a corresponding setter.}
+
+\begin{Grammar}
+\emph{MdDecl} &::=& \emph{MdDef} \\
+&$|$&
+\option{\KWD{abstract}} \option{\emph{MdMods}} \option{\KWD{getter}}
+\emph{MdHeaderFront} \emph{FnHeaderClause} \\
+
+\emph{MdDef}  &::=& \option{\emph{MdMods}} \option{\KWD{getter}}
+\emph{MdHeaderFront} \emph{FnHeaderClause}
+\EXP{=} \emph{Expr} \\
+
+\emph{AbsMdDecl} &::=&
+\option{\KWD{abstract}} \option{\emph{AbsMdMods}} \option{\KWD{getter}}
+\emph{MdHeaderFront} \emph{FnHeaderClause} \\
+
+\emph{MdMods} &::=& \emph{MdMod}$^+$\\
+
+\emph{MdMod} &::=& \emph{FnMod} $|$ \KWD{override}\\
+
+\emph{FnMod} &::=& \emph{AbsFnMod} $|$ \KWD{private}\\
+
+\emph{AbsFnMod} &::=& \emph{LocalFnMod} $|$
+\KWD{test}\\
+
+\emph{LocalFnMod} &::=& \KWD{atomic} $|$ \KWD{io}\\
+
+\emph{AbsMdMods} &::=& \emph{AbsMdMod}$^+$\\
+
+\emph{AbsMdMod} &::=& \emph{AbsFnMod} $|$ \KWD{override}\\
+
+\emph{GetterSetterDecl} &::=& \emph{GetterSetterDef} \\
+&$|$& \option{\KWD{abstract}} \option{\emph{FnMods}}
+\emph{GetterSetterMod} \emph{MdHeaderFront} \emph{FnHeaderClause} \\
+
+\emph{GetterSetterDef}  &::=& \option{\emph{FnMods}} \emph{GetterSetterMod}
+\emph{MdHeaderFront} \emph{FnHeaderClause}
+\EXP{=} \emph{Expr} \\
+
+\emph{GetterSetterMod} &::=& \KWD{getter} $|$ \KWD{setter}\\
+
+\emph{AbsGetterSetterDecl} &::=& \option{\KWD{abstract}} \option{\emph{AbsFnMods}}
+ \emph{GetterSetterMod} \emph{MdHeaderFront} \emph{FnHeaderClause} \\
+
+\emph{MdHeaderFront}  &::=& \emph{NamedMdHeaderFront}\\
+&$|$& \emph{OpMdHeaderFront} \\
+
+\emph{NamedMdHeaderFront} &::=&
+\emph{Id} \option{\emph{StaticParams}} \emph{MdValParam} \\
+
+\emph{MdValParam} &::=& \texttt( \option{\emph{MdParams}} \texttt) \\
+
+\emph{MdParams}
+&::=&
+(\emph{MdParam}\EXP{,})$^*$ \options{\emph{Varargs}\EXP{,}} \emph{MdKeyword}(\EXP{,}\emph{MdKeyword})$^*$\\
+&$|$&
+(\emph{MdParam}\EXP{,})$^*$  \emph{Varargs}\\
+&$|$& \emph{MdParam}(\EXP{,} \emph{MdParam})$^*$\\
+
+\emph{MdKeyword} &::=& \emph{MdParam}\EXP{=}\emph{Expr} \\
+
+\emph{MdParam} &::=& \emph{Param} \\
+&$|$& \KWD{self} \\
+
+\emph{Param} &::=& \emph{PlainParam}\\
+
+\emph{PlainParam} &::=& \emph{BindId} \option{\emph{IsType}} \\
+&$|$& \emph{Type} \\
+
+\emph{FnHeaderClause} &::=& \option{\emph{IsType}} \emph{FnClauses} \\
+
+\emph{IsType} &::=& \EXP{\mathrel{\mathtt{:}}} \emph{Type}\\
+
+\emph{FnClauses} &::=& \option{\emph{Throws}} \option{\emph{Where}} \emph{Contract} \\
+
+\emph{Throws} &::=& \KWD{throws} \emph{MayTraitTypes}\\
+
+\emph{MayTraitTypes} &::=& \texttt{\{\}} \\
+&$|$& \emph{TraitTypes} \\
+
+\end{Grammar}
+
+A trait declaration contains a set of method declarations.
+Syntactically, a method declaration begins with
+an optional sequence of modifiers followed by
+the method's name,
+optional static parameters
+(described in \chapref{trait-parameters}),
+the value parameter with its (optionally) declared type,
+an optional type of a return value,
+an optional declaration of thrown checked exceptions
+(discussed in \chapref{exceptions}),
+an optional \KWD{where} clause
+(discussed in \secref{where-clauses}),
+a contract for the method (discussed in \secref{method-contracts}),
+and finally an optional body expression preceded by the token \EXP{=}.
+If a method declaration has the \KWD{getter} modifier,
+it does not affect the behavior of a program; rather,
+it documents that the method is intended to serve as a getter.
+A \KWD{throws} clause does not include naked type variables.
+Every element in a \KWD{throws} clause is a subtype of
+\TYP{CheckedException}.
+
+
+Method declarations can include the following special modifiers:
+\paragraph{\KWD{getter}:}
+A method declaration with the modifier \KWD{getter} explicitly declares a
+getter method for a field, even in the absence of an actual field declaration.
+\note{The following description is too confusing.  Reword it!!!}
+If such a field exists, there is no implicit getter for the field.
+An explicitly declared getter method must take no arguments and return a
+result of the field's type.
+A getter method must not throw any checked exception.
+Getter names may not overlap ordinary method names.
+A getter method must be invoked with the field access syntax:
+%expr.id
+\begin{Fortress}
+\(\VAR{expr}.\VAR{id}\)
+\end{Fortress}
+where \VAR{id} is the name of the getter method.
+
+
+
+\paragraph{\KWD{setter}:}
+A method declaration with the modifier \KWD{setter} explicitly declares a
+setter method for a field, even in the absence of an actual field.
+\note{The following description is too confusing.  Reword it!!!}
+If such a field exists, there is no implicit setter for the field.
+An explicitly declared setter method must take a single argument---the
+value being set---and return \EXP{()}.
+A setter method must not throw any checked exception.
+Setter names may not overlap ordinary method names.
+A setter method must be invoked with the \emph{assignment syntax}:
+%expr1.id := expr2
+\begin{Fortress}
+\({expr}_{1}.\VAR{id} \ASSIGN {expr}_{2}\)
+\end{Fortress}
+
+
+We say that a method declaration \emph{occurs} in a trait declaration.
+A trait declaration \emph{declares} a method declaration that occurs
+in that trait declaration.
+A trait declaration \emph{inherits} method declarations from the
+declarations of its immediate supertraits
+except those method declarations
+that are \emph{overridden} (as described later in this section) or
+whose parameter type (not including the type of the self parameter)
+is equal to the parameter type of a method declaration
+that occurs in the trait declaration.
+A trait declaration \emph{provides} the method declarations that it
+declares or inherits.
+
+
+
+
+There are two sorts of method declarations:
+\emph{dotted method} declarations and
+\emph{functional method} declarations.
+Syntactically, a dotted method declaration is identical to a function
+declaration.
+When a method is invoked, a special self parameter is bound to the
+object on which it is invoked.
+
+
+
+A functional method declaration has a parameter named \KWD{self} at an
+arbitrary position in its parameter list.  This parameter is not given a type
+and implicitly has the type of the enclosing trait or object.
+Semantically, functional method declarations can be viewed as top-level
+function declarations.  For example, the following overloaded functional method
+\VAR{f} declared within a trait declaration \VAR{A}:
+\input{\home/basic/examples/Trait.Method.a.tex}
+\input{\home/basic/examples/Trait.Method.b.tex}
+may be rewritten as top-level functions as follows:
+\input{\home/basic/examples/Trait.Method.c.tex}
+\input{\home/basic/examples/Trait.Method.d.tex}
+where \VAR{internalF} is a freshly generated name.
+Functional method declarations may be overloaded with top-level function
+declarations.
+An abstract function declaration
+(described in \secref{abstractFunctionDeclarations})
+can be provided also for overloaded functional method declarations.
+See \chapref{multiple-dispatch} for a discussion of overloaded
+functionals in Fortress.
+
+
+
+When a method declaration includes a body expression, it is called a
+\emph{method definition}.
+A method declaration that does not have its body expression is referred to
+as an \emph{abstract method declaration}.
+An abstract method declaration declares an \emph{abstract method};
+any object inheriting an abstract method must define a body expression for the
+method.  An abstract method declaration may include the modifier \KWD{abstract}.
+It may elide parameter names but parameter
+types cannot be omitted except for the self parameter.
+
+
+\note{
+Method declarations that are overridden by some declaration are not
+accessible.  They are not considered for overloading checks.
+
+Partial overriding of an overloaded functional is allowed
+but partial overriding of a functional declaration is not allowed.
+}
+
+A method declaration may have the modifier \KWD{override}.
+Such a declaration \emph{overrides} any inherited declaration with the same name
+and the self parameter (if any) at the same position,
+whose parameter type, not counting the type of the self parameter,
+is a strict subtype of the overriding declaration's parameter type.
+The return type of the overriding declaration must be subtype of
+that of the overridden declaration to preserve type safety.
+A declaration with the modifier \KWD{override} must override
+some inherited declaration.
+It is a static error if a declaration with the modifier \KWD{override}
+does not override any inherited declaration.
+
+Here is an example trait \TYP{Enzyme} which provides methods
+\VAR{reactionSpeed} and \VAR{catalyze}:
+\input{\home/basic/examples/Trait.Method.e.tex}
+\TYP{Enzyme}
+inherits the abstract method \VAR{mass} from \TYP{OrganicMolecule},
+declares the abstract method \VAR{reactionSpeed}, and
+declares the concrete method \VAR{catalyze}
+which is inherited as an abstract method
+from its supertrait \TYP{Catalyst}.
+
+
+
+
+
+\section{Abstract Field Declarations}
+\seclabel{abstract-fields}
+
+\begin{Grammar}
+\emph{AbsFldDecl}
+&::=& \option{\emph{AbsFldMods}} \emph{AbsFldWTypes}\\
+&$|$& \option{\emph{AbsFldMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{Type}\EXP{...}\\
+&$|$& \option{\emph{AbsFldMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{TupleType}\\
+
+\emph{AbsFldWTypes} &::=& \emph{AbsFldWType} \\
+&$|$& \texttt{(} \emph{AbsFldWType}(\EXP{,} \emph{AbsFldWType})$^+$ \texttt{)}\\
+
+\emph{AbsFldWType} &::=& \emph{BindId} \emph{IsType}\\
+
+\emph{AbsFldMods} &::=& \emph{AbsFldMod}$^+$\\
+
+\emph{AbsFldMod} &::=& \emph{ApiFldMod} $|$ \KWD{wrapped} $|$ \KWD{private}\\
+
+\emph{ApiFldMod} &::=& \KWD{hidden} $|$ \KWD{settable} $|$ \KWD{test}\\
+
+\end{Grammar}
+
+
+Traits may also include abstract field declarations that are implicit
+declarations of abstract getter methods.
+Syntactically, an abstract field declaration consists of an optional
+sequence of modifiers followed by the field name, followed by the token
+`\EXP{\COLONOP}', and the type of the field.
+
+
+By default, a field declaration implicitly
+declares a getter method for the field unless there is an explicit
+getter declared in the enclosing trait.
+An implicit getter method takes no arguments, has the same name as the
+field, and has a return type equal to the field type.  When called, the
+implicit getter returns the value of the field when called.
+
+
+
+
+Abstract field declarations can include the following special modifiers:
+\paragraph{\KWD{hidden}:}
+A field declaration with the
+modifier \KWD{hidden} has no implicit getter method.
+
+
+\paragraph{\KWD{settable}:}
+A field declaration with the modifier \KWD{settable} has an implicit
+setter method unless there is an explicit setter declared in the enclosing
+trait.  An implicit setter method takes a parameter
+(with no default expression) whose type is the type of the field, and
+returns \EXP{()}. When called, the implicit setter rebinds the
+corresponding field to its argument.
+If a field declaration includes the modifier  \KWD{settable} and
+\KWD{hidden}, only an abstract setter is declared.
+%
+If a field declaration includes the modifier \KWD{hidden} without
+\KWD{settable}, it is a static error.
+If an abstract field declaration includes the modifier \KWD{settable},
+it is mutable.
+Because the \KWD{settable} modifier implies \KWD{var}, and
+the \KWD{var} modifier without \KWD{settable} only affects implementations,
+abstract field declarations do not include the \KWD{var} modifier.
+
+
+
+
+\paragraph{\KWD{wrapped}:}
+If a field declaration of $f$ has the modifier \KWD{wrapped}
+and the type of $f$ is trait type $T$, and $T$ is not a naked type variable,
+then the enclosing trait $S$ implicitly includes ``forwarding methods'' for
+all methods in $T$ that are also inherited from any supertrait of $S$.
+Each of these methods simply calls
+the corresponding method on the trait referred to by field $f$.
+%
+If the trait declaration enclosing $f$ explicitly declares a method $m$
+that conflicts with an implicitly declared forwarding method $m'$, then the
+enclosing trait contains only method $m$, not $m'$.
+%
+If the trait declaration enclosing $f$ inherits a concrete method $m$
+that conflicts with an implicitly declared forwarding method $m'$, then the
+enclosing trait contains only method $m$, not $m'$.
+%
+Because wrapped fields do not change declarations of methods but change
+definitions of methods, they only affect implementations;
+APIs do not include wrapped fields.
+
+
+For example, in the following declarations:
+%trait Dictionary[\T\]
+%  put(T): ()
+%  get(): T
+%end
+%
+%trait WrappedDictionary[\T\] extends Dictionary[\T\]
+%  wrapped val: Dictionary[\T\]
+%  get(): T
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Dictionary}\llbracket{}T\rrbracket\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{put}(T)\COLON ()\)\\
+\(  \VAR{get}()\COLON T\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{trait} \TYP{WrappedDictionary}\llbracket{}T\rrbracket \KWD{extends} \TYP{Dictionary}\llbracket{}T\rrbracket\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{wrapped} \VAR{val}\COLON \TYP{Dictionary}\llbracket{}T\rrbracket\)\\
+\(  \VAR{get}()\COLON T\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+the parametric trait \TYP{WrappedDictionary} implicitly includes the
+following forwarding method:
+%put(x) = val.put(x)
+\begin{Fortress}
+\(\VAR{put}(x) = \VAR{val}.\VAR{put}(x)\)
+\end{Fortress}
+If \VAR{get} were not explicitly declared in \TYP{WrappedDictionary}, then
+\TYP{WrappedDictionary} would also include the forwarding method:
+%get() = val.get()
+\begin{Fortress}
+\(\VAR{get}() = \VAR{val}.\VAR{get}()\)
+\end{Fortress}
+
+\note{
+Wrapped fields imply subtyping.
+
+what methods are implicitly defined?
+
+% trait T
+%    f(x) = 17
+%    abstract h(x)
+% end
+% object A extends T
+%    f(x) = 23
+%    g(x) = 5
+%    h(x) = 3
+% end
+% object B extends T
+%    wrapped a: A
+% end
+
+% f(x) = (self asif T).f(x)
+% h(x) = a.h(x)
+
+% trait U
+%    abstract g(x)
+% end
+% object B extends {T, U}
+%    wrapped a: A                  ERROR!
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:T\)\\
+{\tt~~~}\pushtabs\=\+\(    f(x) = 17\)\\
+\(    \KWD{abstract}\:h(x)\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{object}\:A \KWD{extends}\:T\)\\
+{\tt~~~}\pushtabs\=\+\(    f(x) = 23\)\\
+\(    g(x) = 5\)\\
+\(    h(x) = 3\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{object}\:B \KWD{extends}\:T\)\\
+{\tt~~~}\pushtabs\=\+\(    \KWD{wrapped}\:a\COLON A\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( f(x) = (\mathord{\KWD{self}} \KWD{asif}\:T).f(x)\)\\
+\( h(x) = a.h(x)\)\\[4pt]
+\( \KWD{trait}\:U\)\\
+{\tt~~~}\pushtabs\=\+\(    \KWD{abstract}\:g(x)\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{object}\:B \KWD{extends} \{T, U\}\)\\
+{\tt~~~}\pushtabs\=\+\(    \KWD{wrapped}\:a\COLON A                  \OPR{ERROR}!\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+}
+
+\section{Method Contracts}
+\seclabel{method-contracts}
+
+\begin{Grammar}
+\emph{Contract} &::=& \option{\emph{Requires}} \option{\emph{Ensures}}
+\option{\emph{Invariant}}\\
+
+\emph{Requires} &::=&
+\KWD{requires} \{ \option{\emph{ExprList}} \} \\
+
+\emph{Ensures}  &::=&
+\KWD{ensures} \{ \option{\emph{EnsuresClauseList}} \} \\
+
+\emph{EnsuresClauseList} &::=&
+\emph{EnsuresClause}(\EXP{,} \emph{EnsuresClause})$^*$ \\
+
+\emph{EnsuresClause} &::=& \emph{Expr} \options{\KWD{provided} \emph{Expr}} \\
+
+\emph{Invariant}&::=&
+\KWD{invariant} \{ \option{\emph{ExprList}} \} \\
+
+\end{Grammar}
+
+Method contracts consist of three optional clauses: a \KWD{requires}
+clause, an \KWD{ensures} clause, and an \KWD{invariant} clause.
+All three clauses are evaluated in the scope of the method body.
+See \secref{contracts} for a discussion of each clause.
+
+
+Method contracts are handled similarly to the manner described in
+\cite{MethodContracts}. In particular, substitutability under subtyping is
+preserved.  For a call to a method \VAR{m} with receiver \VAR{e},
+we use the term \emph{static contract} of $m$ to refer to
+a contract declared in the statically most
+applicable method declaration provided by the static type of $e$
+and the term \emph{dynamic contract} of $m$ to refer to a contract declared
+in the dynamically most applicable method declaration provided by the
+runtime type of $e$.
+Three exceptions may be thrown due to a method contract
+violation: \TYP{CallerViolation} is thrown when the \KWD{requires} clause
+of the static contract fails, \TYP{CalleeViolation} is thrown when the
+\KWD{ensures} or \KWD{invariant} clause of the dynamic contract fails,
+and \TYP{ContractHierarchyViolation} is thrown
+when the \KWD{requires} clause of the dynamic contract
+or the \KWD{ensures} or \KWD{invariant} clause of the static contract fails.
+
+
+Evaluation of a call to a method \VAR{m} with receiver \VAR{e}
+proceeds as follows.
+First, $e$ is evaluated to a value $v$ with runtime type \VAR{U}.
+Let $C$ and $C'$ be the static and dynamic contracts of $m$, respectively.
+If the \KWD{requires} clause of $C$ fails,
+a \TYP{CallerViolation} exception is thrown.
+%
+Otherwise, if the \KWD{requires} clause of $C'$ fails,
+a \TYP{ContractHierarchyViolation} exception is thrown.
+%
+Otherwise, the \KWD{provided} subclauses of $C$ and $C'$ are evaluated. For
+every \KWD{provided} subclause that evaluates to \VAR{true}, the
+corresponding \KWD{ensures} subclause is recorded in a table
+$E$ for later comparison.  Similarly, the \KWD{invariant} clauses of $C$
+and $C'$ are evaluated and the results are stored in $E$ for later
+comparison.
+%
+Then the body of $m$ provided by \VAR{U}
+is evaluated.  After evaluation of the body,
+all \KWD{ensures} subclauses of the dynamic contract recorded in $E$
+are checked to ensure that they evaluate to \VAR{true}, and
+all \KWD{invariant} clauses of the dynamic contract recorded in $E$
+are checked to ensure that they evaluate to values equal to the
+values they evaluated to before evaluation of the body.
+If any such check fails, a \TYP{CalleeViolation}
+exception is thrown. Otherwise, all \KWD{ensures} subclauses and
+\KWD{invariant} clauses of the static contract in $E$ are checked.
+If any of these checks fails, a \TYP{ContractHierarchyViolation} exception
+is thrown.
+
+
+\section{Value Traits}
+\seclabel{value-traits}
+
+\begin{Grammar}
+\emph{TraitMod} &::=& \KWD{value}\\
+\end{Grammar}
+
+
+If a trait declaration has the modifier \KWD{value}, all subtraits
+of that trait must also have the modifier \KWD{value}, and all objects
+extending that trait are required to be value objects (described in
+\secref{value-objects}).
+If a field declaration of a value trait has the modifier \KWD{settable},
+the return type of its implicit setter method is the value trait type.
+If a value trait has an explicit setter method, the setter must be an
+abstract method and its return type must be the value trait type.
+See \secref{value-objects} for a discussion of updating fields of value
+objects.

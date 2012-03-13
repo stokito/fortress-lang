@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+object G[\ E \](e1: E, e2:E)
+  generate[\ R \](body: E->R, combine : (R,R) -> R) : R = 
+    combine(body(e1), body(e2))
+end
+
+three:ZZ32 = 3
+four:ZZ32 = 4
+
+plus(x:String, y:String):String = x || y
+
+somebody(x:ZZ32):String = x.asString
+
+run():() = println(G[\ZZ32\](three, four).generate[\String\](somebody, plus))

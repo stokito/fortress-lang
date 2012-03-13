@@ -1,0 +1,85 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Label and Exit}
+\seclabel{label-expr}
+
+\begin{Grammar}
+\emph{DelimitedExpr} &::=&
+\KWD{label} \emph{Id} \emph{BlockElems} \KWD{end} \emph{Id} \\
+
+\emph{FlowExpr}
+&::=& \KWD{exit} \option{\emph{Id}} \options{\KWD{with} \emph{Expr}} \\
+
+\end{Grammar}
+
+An expression block may be labeled using a \KWD{label} expression,
+which consists of \KWD{label}, an identifier (the block's \emph{name}),
+an expression block (its \emph{body}), \KWD{end}, and finally its name again
+(it is a static error if the identifier after \KWD{end} is not the name).
+The name of a \KWD{label} expression
+is in scope in the label namespace
+at any point in its body
+that is not within a \KWD{spawn} subexpression of the body.
+A \KWD{label} expression is evaluated
+by evaluating its body.
+
+An \KWD{exit} expression consists of \KWD{exit},
+an optional identifier (the \emph{target})
+and an optional \KWD{with} clause,
+which consists of \KWD{with} followed by an expression.
+If a target is specified, it is
+a static error if the target is not in scope
+in the label namespace at the \KWD{exit} expression.
+That is, the target must be the name
+of a statically enclosing \KWD{label} expression,
+and the \KWD{exit} expression must not be within
+a \KWD{spawn} expression that is contained
+in the \KWD{label} expression.
+If no target is specified, the target is implicitly the name
+of the smallest statically enclosing \KWD{label} expression; it is
+a static error if there is no such expression.
+
+An \KWD{exit} expression with a \KWD{with} clause
+evaluates its \KWD{with} clause expression to yield a \KWD{with} clause value.
+The \KWD{exit} expression completes abruptly with the \KWD{with} clause value
+(see \secref{eval-completion}).
+An \KWD{exit} expression with no \KWD{with} clause
+has an implicit \KWD{with} clause whose expression is \EXP{()}.
+The type of an \KWD{exit} expression is \TYP{BottomType}.
+
+If the evaluation of the body of a \KWD{label} expression completes normally,
+its value is the value of the body.
+If the evaluation of the body completes abruptly
+with an \KWD{exit} expression whose target
+is the name of the \KWD{label} expression,
+then the evaluation of the \KWD{label} expression completes normally
+and its value is the \KWD{with} clause value of the \KWD{exit} expression.
+The type of a \KWD{label} expression
+is the union of the type of the last expression of its expression block
+and the types of the \KWD{with} clause values of
+any \KWD{exit} expressions within the \KWD{label} expression
+whose target is the \KWD{label} expression's name.
+
+If one or more \KWD{try} expressions are nested between an
+\KWD{exit} expression and the targeted \KWD{label} block, the \KWD{finally}
+clauses of these expressions are run in order, from innermost to
+outermost, as described in \secref{try-expr}.  If any \KWD{finally}
+clause completes abruptly by throwing an exception, the \KWD{exit}
+expression fails to exit, the evaluation of the \KWD{label} expression
+completes abruptly, and the exception is propagated.
+
+Here is a simple example:
+\input{\home/basic/examples/Expr.Label.tex}
+The expression ``\EXP{\KWD{exit} I_{95} \KWD{with} \VAR{x32B}}'' completes
+abruptly and attempts to transfer control to the end of the
+targeted labeled block ``\EXP{\KWD{label} I_{95}}''.
+The targeted labeled block completes normally with value \VAR{x32B}.

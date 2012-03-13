@@ -1,0 +1,603 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand{\api}{A}
+\section{Basic Fortress Operations}
+\seclabel{basicops}
+
+We now describe the operations that can be performed on a fortress
+by developers and end-users
+for developing, installing, testing, and maintaining components.
+We can think of these operations
+as commands to an interactive shell provided by the fortress.
+
+In this section,
+we discuss operations on a fortress in their most basic form,
+postponing the discussion of more advanced options,
+including additional optional parameters,
+to \secref{advancedops}.
+Although these more advanced options are critical to performing
+some real-world tasks with components,
+it is easier to describe their behavior
+after the basic forms of operations have been discussed.
+
+\paragraph{Compile}
+This operation takes the source code
+for a simple component (or \apiN) definition
+and produces a new component object (or \apiN\ object)
+that is installed on the fortress.
+Its type is as follows:
+
+%compile(file:String):()
+\shellcommand{compile(file:String):()}
+
+For example,
+suppose \shellcommand{IronCrypto.fss} contains
+the source code for the aforementioned
+\ironcryp\ application,
+which imports \TYP{Fortress.IO}
+and \TYP{Fortress.Security},
+and exports
+\TYP{Fortress.Crypto}.
+Suppose we also have source code, \shellcommand{IronIO.fss}, for another
+application, \ironio, which imports nothing and exports \TYP{Fortress.IO}.
+We generate these components by compiling the source files:
+
+%compile("IronIO.fss")
+%compile("IronCrypto.fss")
+\shellcommand{compile("IronIO.fss")}\\
+\shellcommand{compile("IronCrypto.fss")}
+
+The results are depicted diagrammatically
+in \figref{ironcrypto-simple}.
+\begin{figure}
+\begin{center}
+\input{\home/basic/components/ironcrypto.eepic}
+\end{center}
+\caption{Simple components in box notation:
+A component is represented by a box,
+with the name of the component at the top of the box.
+The arrow protruding from the upper right corner of a box
+is labeled with the \apisN\ exported by the component.
+The arrow pointing into the bottom of a box
+is labeled with \apisN\ imported by the component.
+If no \apisN\ are imported, we elide the arrow.}
+\figlabel{ironcrypto-simple}
+\end{figure}
+
+\paragraph{Link}
+
+A collection of one or more components exporting different \apisN\
+may be combined to form a new, compound, component
+by calling the \shellcommand{link} operation,
+passing the names of the components to link
+along with the name of the resulting compound component.
+Syntactically, a \shellcommand{link} operation is written as follows:\footnote{We
+present only the basic form of \shellcommand{link} here.
+\shellcommand{link} has additional optional arguments
+that we discuss in the \secref{advancedops}.}
+
+%link(result:String, constituents:String...):()
+\shellcommand{link(result:String, constituents:String...):()}
+
+The components being linked are called \emph{constituents}
+of the resulting component,
+which exports all the \apisN\ exported by any of its constituents,
+and imports the \apisN\ imported by at least one of its constituents
+but not exported by any of them.
+
+For example,
+we can link the \ironio\ and \ironcryp\ libraries
+compiled above:
+
+%link(IronLink, IronIO, IronCrypto)
+\shellcommand{link(IronLink, IronIO, IronCrypto)}
+
+The resulting component,
+illustrated in \figref{simplelink},
+imports \fortsec\ and exports \fortio\ and \fortcryp.
+\begin{figure}
+\begin{center}
+\input{\home/basic/components/ironlink.eepic}
+\end{center}
+\caption{A compound component:
+A component inside another component
+is a constituent of the component that immediately encloses it.}
+\figlabel{simplelink}
+\end{figure}
+
+\shellcommand{link} does not distinguish between simple and compound
+components, so we can get arbitrarily nested components.  For example,
+we can construct an application \coolcrypto\
+by compiling another source code, \shellcommand{IronSecurity.fss},
+for the library \ironsec\
+that imports \fortio\ and exports \fortsec,
+and then linking the result with \ironlink.
+
+%compile(IronSecurity.fss)
+%link(CoolCryptoApp, IronSecurity, IronLink)
+\shellcommand{compile(IronSecurity.fss)}\\
+\shellcommand{link(CoolCryptoApp, IronSecurity, IronLink)}
+
+The resulting components are illustrated in \figref{coolcrypto}.
+
+Two components cannot be linked if they export the same
+\apiN.\!\footnote{There is one exception to this rule:
+the special \apiN\ \upgapi, which is used during upgrades discussed below.}
+This restriction is made for the sake of simplicity;
+it allows programmers to link a set of components
+without having to specify explicitly
+which constituent exporting an \apiN\ $A$
+provides the implementation exported by the linked component,
+and which constituent connects to the constituents that import $A$:
+only one component exports $A$, so there is only one choice.
+Although we lose expressiveness with this design,
+the user interface to link is vastly simplified,
+and it is rare that including multiple components that export a given \apiN\
+in a set of linked components is even desirable.
+We discuss how even such rare cases can be supported in
+\secref{advancedops}.
+\note{
+THERE IS ANOTHER RESTRICTION ON LINKING,
+but it is trivially met if you can't hide \apisN.}
+
+For a compound component,
+in addition to the exported and imported \apisN,
+we want to know what its constituents are.
+It is an invariant of the system
+that for any compound component $C$,
+any \apiN\ imported by any of its constituents
+is either imported by $C$ or exported by one of its constituents.
+This property is crucial for executing components, as we discuss below.
+A simple component (i.e., one produced directly by compilation)
+has no constituents.
+
+\begin{figure}
+\begin{center}
+\input{\home/basic/components/coolcrypto.eepic}
+\end{center}
+\caption{Repeated linking}
+\figlabel{coolcrypto}
+\end{figure}
+
+\paragraph{Execute}
+
+Components provide implementations of the \apisN\ they export.
+A component is \emph{executable} if it imports no \apisN\
+and it exports the special \apiN\ \execapi,
+defined as follows:
+
+%api Executable
+%run(args:String...):()
+%end
+\begin{Fortress}
+\(\KWD{api} \TYP{Executable}\)\\
+\(\VAR{run}(\VAR{args}\COLONOP\TYP{String}\ldots)\COLONOP()\)\\
+\(\KWD{end}\)
+\end{Fortress}
+
+An executable component may be \emph{executed} by calling the
+\shellcommand{execute} operation,
+resulting in a call to the component's implementation of the
+\VAR{run} function in a new process.
+Arguments to the \VAR{run} function are passed to the shell:
+
+%execute(componentName:String, args:String...):()
+\shellcommand{execute(componentName:String, args:String...):()}
+
+We say that a component is being executed when
+\shellcommand{execute} has been called on that component
+and has not yet returned,
+or if it is the constituent component of a component being executed.
+During an execution,
+references may be made to \apisN\ exported by a component being executed,
+which may in turn make references to \apisN\ that it imports.
+
+For references to an \apiN\ $\api$ exported by the component,
+if the component is simple,
+then it contains the code necessary to evaluate
+any reference to an \apiN\ it exports,
+possibly making references to \apisN\ that it imports to do so.
+If the component is compound,
+then it contains a unique constituent
+that exports $\api$;
+the reference is resolved to that constituent component.
+
+For external references within a constituent component,
+recall that all such references in a component
+must be to \apisN\ that the component imports.
+A component being executed either does not import any \apiN\
+(and thus there are no external references to resolve),
+or else is a constituent of another component
+that is being executed.
+In the latter case, the constituent defers the reference
+to its enclosing component.
+
+For example,
+suppose \coolcrypto\ above is the constituent
+of some executable component,
+and when that component is executed,
+it generates a reference to \TYP{SecretKey} in \fortcryp,
+which it resolves to \coolcrypto.
+\coolcrypto\ resolves this reference to \ironlink,
+which resolves it to \ironcryp,
+which is a simple component.
+Suppose that in evaluating this reference,
+\ironcryp\ generates
+a reference to \TYP{PublicKey} in \fortsec.
+Because \ironcryp\ imports \fortsec,
+it resolves this reference to its enclosing component, \ironlink,
+which in turn resolves it to \coolcrypto,
+which resolves it to \ironsec,
+which is a simple component.
+
+
+Not all projects are compiled to components
+that export \execapi.
+For example, a library component does not usually export \execapi.
+
+
+\paragraph{Upgrade}
+
+Compound components may be upgraded
+with new constituent components by calling an \shellcommand{upgrade} operation,
+passing the name of the component to upgrade (the \emph{target}),
+the name of a component to upgrade with (the \emph{replacement}),
+and a name for the resulting component (which we call the \emph{result}).
+The type of the \shellcommand{upgrade} operation is as follows:
+
+%upgrade(target:String, replacement:String, result = target):()
+\shellcommand{upgrade(target:String, replacement:String, result = target):()}
+
+If no result name is provided,
+the result is bound to the name of the target,
+and the target is uninstalled (see below).
+
+For example,
+we can upgrade \coolcrypto\
+with a component \coolsec,
+which exports \fortsec\
+and imports nothing to \TYP{CoolCryptoApp.2.0}.
+
+%upgrade(CoolCryptoApp, CoolSecurity, CoolCryptoApp.2.0)
+\shellcommand{upgrade(CoolCryptoApp, CoolSecurity, CoolCryptoApp.2.0)}
+
+The resulting component is illustrated in \figref{upgraded}.
+Notice that the constituent, \ironsec, exporting \\
+\fortsec\
+has been replaced.
+
+A component can be upgraded
+only if it exports the special \apiN\ \upgapi,
+defined as follows:
+
+%api Upgradable
+%import Component from Components
+%
+%isValidUpgrade(that:Component):Boolean
+%upgrade(that:Component):Component requires { isValidUpgrade(that) }
+%
+%end
+\begin{Fortress}
+\(\KWD{api} \TYP{Upgradable}\)\\
+\(\KWD{import} \TYP{Component} \KWD{from} \TYP{Components}\)\\[4pt]
+\(\VAR{isValidUpgrade}(\VAR{that}\COLONOP\TYP{Component})\COLONOP\TYP{Boolean}\)\\
+\(\VAR{upgrade}(\VAR{that}\COLONOP\TYP{Component})\COLONOP\TYP{Component} \KWD{requires} \{\,\VAR{isValidUpgrade}(\VAR{that})\,\}\)\\[4pt]
+\(\KWD{end}\)
+\end{Fortress}
+
+
+The \upgapi\ \apiN\ imports a special \apiN\ \TYP{Components} that
+provides handles on \TYP{Component} and \TYP{Api} objects.
+The \TYP{Components} \apiN\ is described
+in \chapref{lib:api-components}.
+
+An \shellcommand{upgrade} operation on a component
+invokes the \VAR{isValidUpgrade} function,
+as declared in the \apiN\ \upgapi.
+This function must take a component and return \VAR{true}
+if and only if it is legal to upgrade with respect to that component.
+Developers can define their own versions of this component
+to restrict how their components can be upgraded.
+For example,
+they can prevent upgrades with older versions of a component,
+or with a matching component from an untrusted vendor.
+
+\begin{figure*}
+\begin{center}
+\input{\home/basic/components/coolcrypto2.eepic}
+\end{center}
+\caption{An upgraded component}
+\figlabel{upgraded}
+\end{figure*}
+
+The \upgapi\ \apiN\ presents a problem for our model. Its implementation
+by the various constituent components in a compound
+component must be accessed during an \shellcommand{upgrade} operation.
+However, because the exported \apisN\ of the constituent components must
+be disjoint, they cannot all export \upgapi\ after linking.
+
+We solve this problem by introducing an additional step during linking.
+In a \shellcommand{link} operation,
+a special component, called a \emph{restriction component},
+is constructed automatically, based on the provided constituents.
+This component exports the \upgapi\ \apiN;
+its implementation is a function
+of all the constituents provided to the \shellcommand{link} operation.
+The provided constituents are then used to construct a new set
+of constituents that are identical to the provided constituents
+except that they do not export \upgapi.
+These new constituents are then combined,
+along with the restriction component,
+to form the constituents of a new compound component.
+
+In addition to the constraints
+imposed by a component's \VAR{isValidUpgrade} function,
+there are several other conditions
+that must be met in order for an upgrade to be valid.
+These conditions are necessary to ensure
+that the resulting component is well-formed
+and imports and exports the same \apisN\ as the target:
+\footnote{
+  These
+  conditions are sufficient
+  provided there are no hidden or constrained \apisN,
+  which are discussed in \secref{advancedops}.
+}
+\begin{enumerate}
+
+\item
+Every \apiN\ imported by the replacement must be either
+imported or exported by the target.
+
+\item
+The \apisN\ exported by the replacement
+must be a subset of those exported by the target.
+
+\item
+If the replacement does not export all the APIs that a constituent exports
+then either the replacement and constituent do not export any \apisN\ in common
+or the constituent can be upgraded with the replacement.
+
+\end{enumerate}
+
+The rationale for the first two conditions is straightforward:
+If an \apiN\ is imported by the replacement
+but not imported or exported by the target,
+then references to that \apiN\ cannot be resolved in the result
+(unless we also import that \apiN\ in the result).
+If an \apiN\ is exported by the replacement but not the target,
+then the result will export an \apiN\ not exported by the target.
+
+The third condition says that the constituents of the target
+can be partitioned into three sets:
+those that are subsumed by the replacement,
+those that are unaffected by the upgrade,
+and all the rest, which can be upgraded with the replacement.
+This condition enables recursive propagation of upgrades.
+That is, an upgrade not only replaces constituents
+at the top level of the component,
+but is also propagated into any constituents
+with which it exports some \apisN\ in common.
+Thus, in the example above,
+we could have upgraded \coolcrypto\
+with a component that exports \fortio.
+However,
+we could not have upgraded \coolcrypto\
+with a component that exports both \fortsec\ and \fortio\
+because \ironlink\ exports \fortio\ but not \fortsec.
+In \secref{advancedops},
+we show how hiding and constraining \apisN\ can help us
+get around many of the limitations that this condition imposes.
+
+Recall that in our system,
+unlike with dynamic linking,
+components are encapsulated
+so that an upgrade to one component
+does not affect any other component on the system.
+We can imagine that all operations on components
+copy the components that they operate on
+rather than share them.
+Because components are immutable,
+these two interpretations are semantically indistinguishable.
+Convenience operations that support mass upgrades
+are provided on fortresses
+(e.g., an \shellcommand{upgradeAll} operation
+that takes a component and upgrades all components in the fortress
+that can be upgraded with its argument).
+
+
+\newcommand{\prereqs}{\shellcommand{prereqs}}
+\paragraph{Extract and Install}
+
+A component installed on a fortress may be \emph{extracted} by calling an
+\shellcommand{extract} operation on the fortress,
+passing the name of the component as an argument,
+along with an argument \prereqs,
+denoting the names of all \apisN\ that must be installed on any fortress
+before this component can be installed.
+
+%extract(componentName:String, prereqs:Set[\String\] = {}):()
+{\small\verb+extract(componentName:String, prereqs:Set[\String\] = {}):()+}
+
+Furthermore,
+the destination fortress must have a component that exports these \apisN\
+and is a valid upgrade of the extracted component.
+Intuitively, a \prereqs\ argument allows a component to be
+serialized without having to include all of its libraries; new
+libraries can be provided
+when the component is installed at a destination fortress.
+
+The \prereqs\ argument is optional;
+if omitted, the extracted component can be installed on any fortress.
+Any component can be extracted; however
+only compound components can be extracted
+with a \prereqs\ argument:
+because extracted
+components must be upgradable with respect to a component
+exporting their \prereqs,
+no \prereqs\ argument makes sense for a simple component.
+
+The \apisN\ included in a \prereqs\ argument
+must be the \apisN\ exported by some subset
+of the extracted component's constituents
+(or a subset of the constituents of one of its constituents,
+and so on, due to recursive updating).
+
+The extracted component is serialized to a file,
+including all the \apisN\ it refers to
+(and, transitively, all \apisN\ they refer to)
+and all constituent components,
+except those that export the \prereqs.
+This operation does not remove the extracted component from the fortress;
+there is a separate \shellcommand{uninstall} operation for that.
+
+When the component is extracted,
+if no \prereqs\ were passed to the \shellcommand{extract} operation,
+then the contents of the file can be deserialized by any fortress
+into the extracted component,
+which can be installed on the fortress.
+However, if \prereqs\ were passed to \shellcommand{extract},
+then the file must be deserialized into a component
+that exports only the \instapi\ \apiN:
+
+%api Installable
+%import Component from Components
+%reconstitute(candidate:Component):Component
+%end
+\begin{Fortress}
+\(\KWD{api} \TYP{Installable}\)\\
+\(\KWD{import} \TYP{Component} \KWD{from} \TYP{Components}\)\\
+\(\VAR{reconstitute}(\VAR{candidate}\COLONOP\TYP{Component})\COLONOP\TYP{Component}\)\\
+\(\KWD{end}\)
+\end{Fortress}
+
+The deserialized component is immediately linked with preferred
+implementations of all of its imported \apisN.
+(Preferred implementations of \apisN\ are maintained in a table by
+a fortress, which maps each \apiN\ to a list of components that implements
+it, in order of preference).
+Because the deserialized and linked  component exports the \instapi\ \apiN,
+it has a \VAR{reconstitute} function
+that takes a \VAR{candidate} component,
+which exports the \prereqs\ \apisN,
+and checks whether the given component
+satisfies the \VAR{isValidUpgrade} condition
+of the extracted component.
+If so, it returns the extracted component
+upgraded with the given component.
+The \VAR{reconstitute} function is called by the fortress
+with a new component, formed by linking the preferred components
+for each \apiN\ in the extracted components' \prereqs\ argument.
+
+Note that an extracted component with \prereqs\ \apisN\
+is \emph{not} the same as an
+extracted component that imports the same \apisN\
+but has no \prereqs\ \apisN.
+The latter can always be installed on a fortress,
+and then can be subsequently linked with any component
+that exports the imported \apisN.
+In contrast,
+the fortress has no access to an extracted component
+with \prereqs\ \apisN\
+unless it has a component that exports these \apisN\
+and satisfies the \VAR{isValidUpgrade} function of the extracted component.
+This difference provides a means
+for controlling access to the extracted component,
+for security, legal, or other reasons.
+
+Syntactically, an \shellcommand{install} operation takes the name of a file
+constraining an extracted component.
+The \shellcommand{install} operation is overloaded with another
+operation that takes the name of a component
+to match \prereqs.
+If this optional argument is provided,
+and the deserialized component exports the \instapi\ \apiN,
+then the \VAR{reconstitute} function is called
+with
+the component denoted by the optional argument of \shellcommand{install},
+rather than the fortress' preferred implementation of the \prereqs\ \apisN.
+Install operations are written as follows:
+
+%install(file:String):()
+%install(file:String, prereqs:Set[\String\]):()
+{\small\verb+install(file:String):()+\\
+\verb+install(file:String, prereqs:Set[\String\]):()+}
+
+
+By default,
+a fortress adds a newly installed component to the head of the
+``preferred'' list for every \apiN\ it exports.
+However, this default may be overridden by the end-user;
+an end-user may modify the table
+or even map some \apisN\ differently during a particular installation.
+If one or more of the \apisN\ required by an extracted component
+is not mapped to an \apiN\ on the destination fortress,
+an exception is thrown.
+
+There is a corresponding operation for \apisN,
+\shellcommand{installAPI}, that takes a serialization of a set
+of \apisN\ and installs them into a fortress.
+
+%installAPI(file:String):()
+\shellcommand{installAPI(file:String):()}
+
+This set of \apisN\ must be closed under imports. If an \apiN\
+that is installed in this way is already installed on the fortress,
+the definitions must match exactly,
+or an exception is thrown.
+
+\paragraph{Uninstall}
+An \shellcommand{uninstall} operation takes the name of a
+component as an argument and
+removes the top-level binding of that component from a fortress.
+Note that the uninstalled component
+may have been linked to other components,
+or used as a replacement in an upgrade,
+and the result may still be installed;
+an \shellcommand{uninstall} operation will not affect these other components.
+
+%uninstall(file:String):()
+\shellcommand{uninstall(file:String):()}
+
+There is a corresponding operation for \apisN,
+\shellcommand{uninstallAPI}, that removes an \apiN\ from a fortress.
+
+%uninstallAPI(file:String):()
+\shellcommand{uninstallAPI(file:String):()}
+
+Typically, this operation is used only to remove \apisN\
+that have been corrupted in some fashion.
+
+\paragraph{Testing}
+A component can be tested by calling the method
+\VAR{runTests} on it: 
+%runTests(inclusive = true): ()
+\begin{Fortress}
+\(\VAR{runTests}(\VAR{inclusive} = \VAR{true})\COLON ()\)
+\end{Fortress}
+
+This method runs all test functions defined in the component.
+All test functions are run in parallel;
+each test function is run for each
+combination of test cases (bound in its generator list as described in
+\secref{test-decls}) in parallel. 
+In the case of a compound component,
+the set of defined test functions consists of
+all test functions defined by all constituent components and by all
+exported \apisN.  The set of test functions run can be limited by
+first hiding the tested component in a more restrictive \apiN. 
+The set of test functions can also be expanded by linking with a component
+defining additional test functions. 
+
+The \VAR{runTests} method includes a keyword parameter \VAR{inclusive} that
+defaults to \VAR{true}.  If this parameter is set to \VAR{false}, only test
+functions defined in the \apisN\ exported by the component are run.
