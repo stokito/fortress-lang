@@ -158,6 +158,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     case (s@SVarType(_, sid, _), t@SVarType(_, tid, _)) if (sid == tid 
         // || sid.asInstanceOf[Id].getText == tid.asInstanceOf[Id].getText
         ) => True
+            
     case (s@SVarType(_, id, _), t) =>
       val hEntry = (negate, true, s, t)
       if (history.contains(hEntry)) {
@@ -165,7 +166,9 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       } else {
         val nHistory = history + hEntry
         val sParam = staticParam(id)
-        val result = if (negate) {
+
+        def stdResult () =  {
+          if (negate) {        
 //	               println("pSubInner 0: FALSE")
 		       pFalse()(!negate)
 		     } else {
@@ -174,6 +177,19 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
 //	               println("pSubInner 1: supers = " + supers)
 		       pSub(supers, t)(negate, nHistory)
                      }
+        }
+        
+        val result = 
+          if (t.isInstanceOf[VarType]) {
+        	  val v = t.asInstanceOf[VarType].getName()
+              val lowerParam = staticParam(v)
+              if (!lowerParam.getDominatesClause().isEmpty()) { 
+                val lowers = pNorm(makeUnionType(toListFromImmutable(lowerParam.getDominatesClause)))(nHistory)
+                pSub(s,lowers)
+              } else {stdResult()}
+        } else {stdResult()} 
+        
+        
 //	ErrorMsgMaker.printHashCodes = true
 //	println("...and the result of the recursive pSub is " + result)
 //	ErrorMsgMaker.printHashCodes = false

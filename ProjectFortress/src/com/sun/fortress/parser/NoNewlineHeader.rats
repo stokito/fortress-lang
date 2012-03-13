@@ -59,16 +59,20 @@ List<BaseType> Extends = extends w TraitTypes ;
 /* Dominates ::= dominates w TraitTypes */
 List<BaseType> Dominates = dominates w TraitTypes ;
 
+/* The following actions are a bit of a hack, but they allow for a plesant BNF 
+without too many modifications of the AST. The size of the list is used to pass
+an information: did we parse an extend or a dominate? */
 /* Bounds ::= Extends | Dominates */
 List<List<BaseType>> Bounds = 
     a:Extends {
-    	List<List<BaseType>> l = Collections.<List<BaseType>>emptyList();
+    	List<List<BaseType>> l = new ArrayList<List<BaseType>>();
     	l.add(a);
 		yyValue = l; 
     }
   / a:Dominates {
-        List<List<BaseType>> l = Collections.<List<BaseType>>emptyList();
-        l.add(null);
+        List<List<BaseType>> l = new ArrayList<List<BaseType>>();
+        List<BaseType> dummy = new ArrayList<BaseType>();
+        l.add(dummy);
         l.add(a);
   		yyValue = l;
   }
@@ -319,7 +323,7 @@ private StaticParam StaticParam =
      { List<BaseType> eextends = Collections.<BaseType>emptyList();
        List<BaseType> dominates = Collections.<BaseType>emptyList();
        if (a3 != null) {       
-       		if (a3.get(0) == null) dominates = a3.get(1);
+       		if (a3.size() == 2) dominates = a3.get(1);
        		else eextends = a3.get(0);
        }
        boolean absorbs = (a4 == null) ? false : true;

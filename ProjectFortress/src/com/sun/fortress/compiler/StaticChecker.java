@@ -53,6 +53,7 @@ import com.sun.fortress.scala_src.typechecker.STypeChecker;
 import com.sun.fortress.scala_src.typechecker.TryChecker;
 import com.sun.fortress.scala_src.typechecker.STypeCheckerFactory;
 import com.sun.fortress.scala_src.typechecker.staticenv.STypeEnv;
+import com.sun.fortress.scala_src.typechecker.VarianceChecker;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.scala_src.useful.ErrorLog;
 import com.sun.fortress.scala_src.useful.Lists;
@@ -247,6 +248,9 @@ public class StaticChecker {
                     componentIndex = (ComponentIndex)buildIndex(ast, isApi);
                     errors.addAll(Lists.toJavaList(typeChecker.getErrors()));
                     result = new TypeCheckerResult(ast, errors, typeChecker);
+                                        
+                    errors.addAll(VarianceChecker.run((Component) ast));
+                                        
                 }
                 index = componentIndex;
             }

@@ -496,7 +496,7 @@ object STypesUtil {
     }
 
   /**
-   * Returns the type of the static parameter's bound if it is a type parameter.
+   * Returns the type of the static parameter's upper bound if it is a type parameter.
    */
   def staticParamBoundType(sparam: StaticParam): Option[Type] =
     sparam.getKind match {
@@ -506,6 +506,19 @@ object STypesUtil {
         Some(NF.makeIntersectionType(sparam.getExtendsClause))
       case _ => None
     }
+  
+  /**
+   * Returns the type of the static parameter's lower bound if it is a type parameter.
+   */
+  def staticParamLowerBoundType(sparam: StaticParam): Option[Type] =
+    sparam.getKind match {
+      case _: KindType if sparam.getDominatesClause.isEmpty =>
+        Some(Types.ANY)
+      case _: KindType =>
+        Some(NF.makeIntersectionType(sparam.getDominatesClause))
+      case _ => None
+    }
+    
   
     // Get an inference variable type out of a static arg.
     def staticArgType(sarg: StaticArg): Option[_InferenceVarType] = sarg match {
@@ -607,7 +620,7 @@ object STypesUtil {
     val sparamsAndSargs = sparams.filter { s =>
       (s.isLifted && applyLifted) || (!s.isLifted && applyUnlifted)
     } zip sargs
-
+    
     // Need to add a check to ensure if aliased is true all the args have names
     if (sparamsAndSargs.size != sargs.size) return None
     if (!staticArgsMatchStaticParams(sparamsAndSargs)) return None
@@ -627,8 +640,11 @@ object STypesUtil {
     }
 
     // Clear the static params.
-    val cleared = clearStaticParams(body)
-
+    val cleared = if (applyUnlifted) clearStaticParams(body)
+    		else clearStaticParams(body,sparams.filter { s =>
+      (s.isLifted && applyLifted) || (!s.isLifted && applyUnlifted)
+          })
+    
     // Replaces all the occurrences of static params as variables with args.
     object staticReplacer extends Walker {
       override def walk(node: Any): Any = node match {
@@ -726,8 +742,11 @@ object STypesUtil {
     def argMatchesParam(paramAndArg: (StaticParam, StaticArg)): Boolean = {
       val (param, arg) = paramAndArg
       (arg, param.getKind) match {
-        case (_: TypeArg, _: KindType) => 
-          (true /: param.getExtendsClause()) (_ && isSubtype(arg.asInstanceOf[TypeArg].getTypeArg(),_))
+        case (_: TypeArg, _: KindType) => {
+          val extendsOK = (true /: param.getExtendsClause()) (_ && isSubtype(arg.asInstanceOf[TypeArg].getTypeArg(),_))
+          val dominatesOK = (true /: param.getDominatesClause()) (_ && isSubtype(_,arg.asInstanceOf[TypeArg].getTypeArg()))
+          extendsOK && dominatesOK          
+        }
         case (_: IntArg, _: KindInt) => true
         case (_: BoolArg, _: KindBool) => true
         case (_: DimArg, _: KindDim) => true
@@ -886,6 +905,7 @@ object STypesUtil {
       // if context given, C := C1 AND range(infArrow) <:? context
       val rangeConstraint = context.map(t =>
         checkSubtype(infArrow.getRange, t)).getOrElse(True)
+        
       and(domainConstraint, rangeConstraint)
     }
 
@@ -919,10 +939,15 @@ object STypesUtil {
 
     // 1. build substitution S = [T_i -> $T_i]
     // 2. instantiate fnType with S to get an arrow type with inf vars, infArrow
-    val sparams = getStaticParams(typ).filter { s =>
+    val sparamsIni = getStaticParams(typ).filter { s =>
       (s.isLifted && inferLifted) || (!s.isLifted && inferUnlifted)
     }
-    val sargs = sparams.map(makeInferenceArg)
+    //Fix to avoid getting dominating variables
+    val sparams: List[StaticParam] = sparamsIni.filter(_.getDominatesClause().isEmpty())
+    val domparams: List[StaticParam] = sparamsIni.filterNot(_.getDominatesClause().isEmpty())
+    
+    val sargs = sparams.map(makeInferenceArg) ++ domparams.map(makeInferenceArg)
+    
     val ops = Map((sparams.zip(sargs).flatMap(getOps)):_*)
     val infTyp = staticInstantiation(sargs,
       typ,
@@ -943,11 +968,20 @@ object STypesUtil {
         applyUnlifted = inferUnlifted)
     }.map(t => TPrimitive(Set(), Set(), Set(t), Set(  ), Set(), Set()))     // GLS 2/6/2012 Don't allow BottomType to be an upper bound (this could be loosened for some vars but not others)
     // GLS 2/6/2012 The real fix would be to prohibit BottomType as an upper bound only for vars that are in contravariant position in the signature.
-    val bounds = And(Map(infVars.zip(sparamBounds): _*), Map())
+    val upperBounds = And(Map(infVars.zip(sparamBounds): _*), Map())
 //   println("Static params helper has bounds " + bounds)
 
+   val sparamLowerBounds = domparams.flatMap(staticParamLowerBoundType).flatMap { t =>
+      staticInstantiation(sargs,
+        insertStaticParams(t, sparams),
+        applyLifted = inferLifted,
+        applyUnlifted = inferUnlifted)
+    }.map(t => TPrimitive(Set(t), Set(), Set(), Set(), Set(), Set()))
+    
+    val lowerBounds = And(Map(infVars.zip(sparamLowerBounds): _*), Map())
+    
     // 6. solve C to yield a substitution S' = [$T_i -> U_i]
-    val (tSub, oSub) = solve(and(constraint, bounds)).getOrElse(return None)
+    val (tSub, oSub) = solve(and(constraint, and(upperBounds,lowerBounds))).getOrElse(return None)
 
     // 7. instantiate infArrow with [U_i] to get resultArrow
     val prenorm = tSub(infTyp)
