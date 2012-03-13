@@ -249,7 +249,6 @@ public class StaticChecker {
                     errors.addAll(Lists.toJavaList(typeChecker.getErrors()));
                     result = new TypeCheckerResult(ast, errors, typeChecker);
                                         
-                    errors.addAll(VarianceChecker.run((Component) ast));
                                         
                 }
                 index = componentIndex;
@@ -285,6 +284,12 @@ public class StaticChecker {
                 result = addErrors(errors, result);
             }
 
+            // Hack: don't run the variance checker if running the interpreter
+            if (!isApi && Shell.getCompiledExprDesugaring()) { 
+                errors.addAll(VarianceChecker.run((Component) result.ast()));            	
+                result = addErrors(errors, result);
+            }
+            
             return result;
         } else {
             return new TypeCheckerResult(index.ast(), IterUtil.<StaticError>empty());
