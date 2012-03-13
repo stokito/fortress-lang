@@ -46,8 +46,8 @@ public class FieldGetterMethod extends FieldGetterOrSetterMethod {
     /**
      * Copy another FieldGetterMethod, performing a substitution with the visitor.
      */
-    private FieldGetterMethod(FieldGetterMethod that, List<StaticParam> params, List<StaticArg> args) {
-        super(that, params, args);
+    private FieldGetterMethod(FieldGetterMethod that, List<StaticParam> params, StaticTypeReplacer visitor) {
+        super(that, params, visitor);
     }
 
     /** Make a Binding for this setter from the given function. */
@@ -67,7 +67,11 @@ public class FieldGetterMethod extends FieldGetterOrSetterMethod {
 
     @Override
     public FieldGetterMethod instantiateTraitStaticParameters(List<StaticParam> params, List<StaticArg> args) {
-        return new FieldGetterMethod(this, params, args);
+        return new FieldGetterMethod(this, params, new StaticTypeReplacer(_traitParams, args));
+    }
+    @Override
+    public FieldGetterMethod instantiateTraitStaticParameters(List<StaticParam> params, StaticTypeReplacer str) {
+        return new FieldGetterMethod(this, params, str);
     }
 
     @Override

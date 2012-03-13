@@ -58,8 +58,7 @@ public class FunctionalMethod extends Function implements HasSelfType {
     /**
      * Copy another FunctionalMethod, performing a substitution with the visitor.
      */
-    public FunctionalMethod(FunctionalMethod that, List<StaticParam> params, List<StaticArg> args) {
-        StaticTypeReplacer visitor = new StaticTypeReplacer(that._traitParams, args);
+    public FunctionalMethod(FunctionalMethod that, List<StaticParam> params, StaticTypeReplacer visitor) {
         _ast = (FnDecl) that._ast.accept(visitor);
         _declaringTrait = that._declaringTrait;
         _traitParams = params;
@@ -169,9 +168,15 @@ public class FunctionalMethod extends Function implements HasSelfType {
     public int selfPosition() {
         return _selfPosition;
     }
-    
+
+    @Override    
     public FunctionalMethod instantiateTraitStaticParameters(List<StaticParam> params, List<StaticArg> args) {
-        return new FunctionalMethod(this, params, args);
+        return new FunctionalMethod(this, params, new StaticTypeReplacer(_traitParams, args));
+    }
+
+    @Override    
+    public FunctionalMethod instantiateTraitStaticParameters(List<StaticParam> params, StaticTypeReplacer str) {
+        return new FunctionalMethod(this, params, str);
     }
 
 }

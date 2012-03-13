@@ -134,9 +134,18 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     // Intersection types
     case (s, SIntersectionType(_,ts)) =>
       pAnd(ts.map(pSub(s, _)))  
-    case (SIntersectionType(_,ss), t) => 
+    case (SIntersectionType(_,ss), t) => {
+//       val specialTerm =
+//         if (ss.size > 0 && ss.exists(!_.isInstanceOf[ArrowType])) pTrue()
+//         else pSub(NF.makeArrowType(NU.getSpan(x),
+// 				   NF.makeIntersectionType(toJavaSet(ss.map(_.asInstanceOf[ArrowType].getDomain))),
+// 				   NF.makeUnionType(toJavaSet(ss.map(_.asInstanceOf[ArrowType].getRange)))),
+//                   t)
+//       pOr(pOr(pOr(ss.map(pSub(_, t))), specialTerm),
+//           pOr(Pairs.distinctPairsFrom(ss).map(tt => pExc(tt._1, tt._2)))) // The second constraint is the only time exclusion is called during subtype checking
       pOr(pOr(ss.map(pSub(_, t))),
           pOr(Pairs.distinctPairsFrom(ss).map(tt => pExc(tt._1, tt._2)))) // The second constraint is the only time exclusion is called during subtype checking
+    }
     // Union types
     case (SUnionType(_,ss), t) =>
       pAnd(ss.map(pSub(_, t)))
