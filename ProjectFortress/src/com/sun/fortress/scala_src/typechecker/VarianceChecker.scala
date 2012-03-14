@@ -130,7 +130,7 @@ private def verifyTraitDeclaration(decl: Decl, traitStaticParameters: List[Stati
            // First, analyze the arrow type range
            verifyType(rangeType,1)(traitStaticParameters) &&  
            // Second, analyze the arrow type domain
-           scan(domainTypes, { verifyType(_:Type,-1)(traitStaticParameters) })
+           scan(domainTypes, { verifyType(_:Type,-1)(traitStaticParameters) }) &&
            // Third, analyze the arrow type parameters
            scan(staticParams, { verifyFunDeclStaticParam(_:StaticParam,-1)(traitStaticParameters) })
          
@@ -146,14 +146,20 @@ private def verifyTraitDeclaration(decl: Decl, traitStaticParameters: List[Stati
 
  }
 
-// TODO
  private def verifyVarDecl(v: LValue)(implicit traitStaticParameters:List[StaticParam]): Boolean = {
    
    val hidden = v.getMods().isHidden()
    val settable = v.getMods().isSettable()
    val typ = v.getIdType().unwrap()    // John: for now, I'm assuming that abstract field declarations always have a type  
 
-   verifyType(typ.asInstanceOf[Type],0)  
+   val pol = (hidden,settable) match {
+     case (true,true) => -1
+     case (true,false) => 1 // This one is actually ruled out by the parser
+     case (false,false) => 1
+     case (false,true) => 0 
+   }
+   
+   verifyType(typ.asInstanceOf[Type],pol)  
    
  }
 
