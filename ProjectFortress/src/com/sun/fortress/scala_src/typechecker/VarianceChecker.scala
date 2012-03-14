@@ -151,8 +151,9 @@ private def verifyTraitDeclaration(decl: Decl, traitStaticParameters: List[Stati
    
    val hidden = v.getMods().isHidden()
    val settable = v.getMods().isSettable()
-   
-   true
+   val typ = v.getIdType().unwrap()    // John: for now, I'm assuming that abstract field declarations always have a type  
+
+   verifyType(typ.asInstanceOf[Type],0)  
    
  }
 
