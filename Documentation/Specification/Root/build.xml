@@ -21,8 +21,9 @@ This distribution may include materials developed by third parties.
             value="${env.FORTRESS_HOME}"/>
   <property name="compiler.home"
             value="${fortress.home}/ProjectFortress"/>
-  <property name="example.home"
-            value="${fortress.home}/SpecData/examples"/>
+  <property name="code.home"
+            value="${fortress.home}/Documentation/Specification/Code"/>
+<!--
   <property name="preliminaries.example.home"
             value="${fortress.home}/SpecData/examples/preliminaries"/>
   <property name="basic.example.home"
@@ -31,6 +32,7 @@ This distribution may include materials developed by third parties.
             value="${fortress.home}/SpecData/examples/advanced"/>
   <property name="library.example.home"
             value="${fortress.home}/SpecData/examples/library"/>
+            -->
   <property name="library.api.home"
             value="${fortress.home}/Library"/>
   <property name="library.builtin.home"
@@ -104,16 +106,28 @@ This distribution may include materials developed by third parties.
     </exec>
   </target>
 
-  <target name="genSource" depends="texExs"/>
+  <target name="genSource" depends="makeReservedWordsFiles, texExs"/>
 
+  <target name="makeReservedWordsFiles">
+	    <exec executable="perl" dir="${basedir}">
+	      <arg value="../Support/keywords.pl"/>
+	    </exec>
+	    <exec executable="perl" dir="${basedir}">
+	      <arg value="../Support/unitOperators.pl"/>
+	    </exec>
+	    <exec executable="perl" dir="${basedir}">
+	      <arg value="../Support/specialReservedWords.pl"/>
+	    </exec>
+  </target>	
+	
   <target name="texExs">
     <foreg>
-      <fileset dir="${example.home}">
+      <fileset dir="${code.home}">
         <include name="**/*.fss"/>
-        <include name="**/*.fsi"/>
       </fileset>
     </foreg>
 
+  	<!--
     <fortex>
       <fileset dir="${library.api.home}">
         <include name="*.fsi"/>
@@ -142,6 +156,8 @@ This distribution may include materials developed by third parties.
       <fileset dir="${library.api.home}" includes="*.tex"/>
       <fileset dir="${library.builtin.home}" includes="*.tex"/>
     </move>
+    -->
+    
   </target>
 
   <target name="makeExs" depends="texExs, evalExs, compileApis, evalLibExs"/>

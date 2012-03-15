@@ -24,3 +24,12 @@ fortress.(log/bbl/etc): Files created by LaTeX
 
 % The scripts used to generate files should be in Support.
 
+--John
+Options for ./ant: (mind the ./)
+
+bib: build the bibliography
+tex : build the complete specification
+onlyText: build the specification without the bibliography
+genSource: build the fortress examples
+clean: clean the build 
+
