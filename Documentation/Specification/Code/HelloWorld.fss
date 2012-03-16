@@ -1,7 +1,7 @@
 component HelloWorld
-
+(** EXAMPLE **)
   export Executable
   
   run() = println("Hello, world!")
-
+(** END EXAMPLE **)
 end

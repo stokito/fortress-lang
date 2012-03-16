@@ -69,7 +69,7 @@ This distribution may include materials developed by third parties.
     </exec>
   </target>
 
-  <target name="tex" depends="bib">
+  <target name="tex" depends="genSource, bib">
     <exec executable="pdflatex" failonerror="true">
       <arg value="fortress"/>
       <env key="TEXINPUTS" value="${texinputs}" />
