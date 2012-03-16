@@ -56,7 +56,6 @@ def run(ast: Component) = {
 
    val decls = scalaify(ast.getDecls()).asInstanceOf[List[Decl]]
    val b = scan(decls,verifyTrait)
-   if (!b) error("Variance not correct",ast)
    errors
 
  }
@@ -182,7 +181,7 @@ private def verifyTraitDeclaration(decl: Decl, traitStaticParameters: List[Stati
  */
 private def verifyFunDeclStaticParam(s: StaticParam, polarity: Int)(implicit traitStaticParameters:List[StaticParam]): Boolean = {
    
-		 scan(traitStaticParameters, { verifyParam(_:StaticParam,s.getName().getText(),polarity) })	&&
+		 scan(traitStaticParameters, { verifyParam(_:StaticParam,s.getName().getText(),polarity,s) })	&&
 		 scan(scalaify(s.getExtendsClause()).asInstanceOf[List[Type]], { verifyType(_: Type,polarity) } ) &&
 		 scan(scalaify(s.getDominatesClause()).asInstanceOf[List[Type]], { verifyType(_: Type,flip(polarity)) })
    
@@ -199,7 +198,7 @@ private def verifyType(ty: Type, polarity: Int)(implicit traitStaticParameters:L
    ty match {
 
      case t: VarType =>
-       scan(traitStaticParameters, { verifyParam(_: StaticParam,t.getName().getText(),polarity) })
+       scan(traitStaticParameters, { verifyParam(_: StaticParam,t.getName().getText(),polarity,ty) })
 
      case t:TraitType =>
        val traitParams = scalaify(t.getTraitStaticParams()).asInstanceOf[List[StaticParam]]
