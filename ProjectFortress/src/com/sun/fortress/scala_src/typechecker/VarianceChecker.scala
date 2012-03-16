@@ -67,12 +67,23 @@ def run(ast: Component) = {
  * @param polarity: the polarity of the position we were in when we found the type name
  * @return
  */
-private def verifyParam(s: StaticParam, name: String, polarity: Int): Boolean = {
+private def verifyParam(s: StaticParam, name: String, polarity: Int, n: Node): Boolean = {
   
   // If the type name we found while analyzing a type match the trait static parameter name
   if (s.getName().getText().equals(name)) {
     // Verify that the static parameter's variance declaration correspond to the current polarity
-	  s.getVariance() == polarity
+	  val b = s.getVariance() == polarity
+	  val vary = if (s.getVariance() == 1) "covariant" else "contravariant"
+	  val othervary = polarity match {
+	    case 1 => "covariant"
+	    case 0 => "invariant"
+	    case -1 => "contravariant"
+	  }  
+	  if (!b) error(
+	      "Type error: static parameter " + s.getName().getText() + 
+	      " is declared to be " + vary +
+	      " but appears in a " + othervary + " position",n)
+	  b
   }
   // Otherwise, nothing to do
   else true
