@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component fib
+export Executable
+
+fib(n:ZZ32): ZZ32 =
+  if n <= 1 then n
+  else fib(n-1) + fib(n-2)
+  end
+
+run():()=do
+  assert(fib(20),6765,"fib(20) wrong")
+  assert(fib(25),75025,"fib(25) wrong")
+end
+
+end

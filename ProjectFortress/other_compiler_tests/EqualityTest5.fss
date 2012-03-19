@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component EqualityTest5
+export Executable
+
+trait EqualityFoo[\Selfquux\] comprises Selfquux
+    opr =(self, other:Selfquux): Boolean = self SEQV other
+end
+
+opr FOONE[\T extends EqualityFoo[\T\]\](a: T, b: T): Boolean = NOT (a = b)
+
+trait Foo extends EqualityFoo[\Foo\] end
+
+object Baz extends Foo end
+
+run(): () = println(if Baz FOONE Baz then "FAIL" else "PASS" end)
+
+end

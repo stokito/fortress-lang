@@ -1,0 +1,205 @@
+(*******************************************************************************
+    Copyright 2010 Joonhyung Hwang and Chulwoo Lee, KAIST
+    All rights reserved.
+ ******************************************************************************)
+
+(* Satisfiability Library with DPLL *)
+
+component Satisfiability
+import File.{...}
+import PureList.{...}
+import Set.{...}
+export Satisfiability
+
+(*
+    Function parseLine parses a line and returns a list.
+*)
+
+parseLine(e:List[\ZZ32\], l:String, s:ZZ32, n:ZZ32) =
+        if |l| = 0 then
+                e
+        elif l[0] = 'c' OR l[0] = 'p' then
+                e
+        else
+                c = l[0]
+                if c = '-' then
+                        parseLine(e, l[1:], -s, n)
+                elif c = '0' then
+                        parseLine(e, l[1:], s, 10 n + 0)
+                elif c = '1' then
+                        parseLine(e, l[1:], s, 10 n + 1)
+                elif c = '2' then
+                        parseLine(e, l[1:], s, 10 n + 2)
+                elif c = '3' then
+                        parseLine(e, l[1:], s, 10 n + 3)
+                elif c = '4' then
+                        parseLine(e, l[1:], s, 10 n + 4)
+                elif c = '5' then
+                        parseLine(e, l[1:], s, 10 n + 5)
+                elif c = '6' then
+                        parseLine(e, l[1:], s, 10 n + 6)
+                elif c = '7' then
+                        parseLine(e, l[1:], s, 10 n + 7)
+                elif c = '8' then
+                        parseLine(e, l[1:], s, 10 n + 8)
+                elif c = '9' then
+                        parseLine(e, l[1:], s, 10 n + 9)
+                elif c = ' ' then
+                        if n =/= 0 then
+                                parseLine((e || <|[\ZZ32\] s n|>), l[1:], 1, 0)
+                        else
+                                parseLine(e, l[1:], s, n)
+                        end
+                end
+        end
+
+(*
+    Function parseFile reads from a FileReadStream and returns
+    a list of lists.
+*)
+
+parseFile(f:FileReadStream) = 
+        if f.ready then
+                l = f.readLine()
+                e = parseLine(<|[\ZZ32\]|>, l, 1, 0)
+                if |e| > 0 then
+                        (<|[\List[\ZZ32\]\] e|> || parseFile(f))
+                else
+                        parseFile(f)
+                end
+        else
+                <|[\List[\ZZ32\]\]|>
+        end
+
+(*
+    Function readQuery receives a filename and reads SAT problem in DIMACS format.
+*)
+
+readQuery(filename:String) = do
+        f = FileReadStream(filename)
+        q = parseFile(f)
+        f.close()
+        q
+end
+
+(*
+    Function fUnitPropagation removes unnecessary clauses and variables in f.
+*)
+
+fUnitPropagation(f, theta) = <|[\ZZ32\] g.filter(fn h => NOT (-h IN theta)) | g <- f.filter(fn g => |g.filter(fn h => h IN theta)| = 0) |>
+
+(*
+    Function thetaUnitPropagation finds values of free variables in unit clauses.
+*)
+
+thetaUnitPropagation(f, theta) = {[\ZZ32\] h | g <- f, h <- g, |g| = 1 }
+
+(*
+    Function isSatisfied returns true
+    if no clause in the formula has no true literal.
+    It returns false otherwise.
+*)
+
+isSatisfied(f, theta) =
+do
+        (*) true if the clause is satisfied,
+        (*) or, one of the variables is satisfied
+        checkClause(c, t) =
+        label clause
+                for d<-c do
+                        if d IN theta then
+                                exit clause with true
+                        end
+                end
+                false
+        end clause
+
+        (*) true if all clauses are satisfied
+        label formula
+                for g<-f do
+                        if NOT checkClause(g, theta) then
+                                exit formula with false
+                        end
+                end
+                true
+        end formula
+end
+
+(*
+    Function isConflicting returns true
+    if a clause in the formula has no literal or all false literals.
+    It returns false otherwise.
+*)
+
+isConflicting(f, theta) =
+do
+        (*) true if the clause is conflicting,
+        (*) or, all variables are unsatisfied
+        checkClause(c, t) =
+        label clause
+                for d<-c do
+                        if NOT (-d IN theta) then
+                                exit clause with false
+                        end
+                end
+                true
+        end clause
+
+        (*) true if one of the clauses is conflicting
+        label formula
+                for g<-f do
+                        if checkClause(g, theta) then
+                                exit formula with true
+                        end
+                end
+                false
+        end formula
+end
+
+(*
+    Function chooseFreeVariable returns a free variable.
+*)
+
+chooseFreeVariable(f, theta) = label found
+        for g <- f, h <- g, NOT (h IN theta), NOT (-h IN theta) do
+                exit found with |h|
+        end
+        (*) chooseFreeVariable is not supposed to be 0
+        0
+end found
+
+(*
+    Function dpll solves satisfiability problem using DPLL algorithm.
+*)
+
+dpll(f, theta) =
+do
+        (*) {[\ZZ32\] 0} is the bottom
+        f' = fUnitPropagation(f, theta)
+        theta' = (theta UNION thetaUnitPropagation(f', theta))
+        if (isConflicting(f', theta')) then
+                {[\ZZ32\] 0}
+        elif (isSatisfied(f', theta')) then
+                theta'
+        else
+                x = chooseFreeVariable(f', theta')
+                label testFreeVariable
+                        for y<-{x,-x} do
+                                theta'' = dpll(f', theta'.add(y))
+                                if (theta'' =/= {[\ZZ32\] 0}) then
+                                        exit testFreeVariable with theta''
+                                end
+                        end
+                        {[\ZZ32\] 0}
+                end testFreeVariable
+        end
+end
+
+(*
+    Function satisfiability is a wrapper for dpll.
+*)
+
+satisfiability(f:List[\List[\ZZ32\]\]):Set[\ZZ32\] = dpll(f, {[\ZZ32\]})
+
+end
+

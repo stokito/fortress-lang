@@ -1,0 +1,157 @@
+(*******************************************************************************
+    Copyright 2010 Kang Seonghoon, KAIST
+    All rights reserved.
+ ******************************************************************************)
+
+export Executable
+import QuickCheck.{...}
+import List.{...}
+import Set.{...}
+import Map.{...}
+import Random.{...}
+
+(** The example of user-defined generator. **)
+object genTestStatus extends Gen[\TestStatus\]
+    private fromTestStatus(status:TestStatus): ZZ32 =
+        case status of
+            TestPass => 0
+            TestFail => 1
+            TestSkip => 2
+        end
+
+    private toTestStatus(v:ZZ32): TestStatus =
+        case v of
+            0 => TestPass
+            1 => TestFail
+            2 => TestSkip
+        end
+
+    generate(c:TestContext): TestStatus =
+        toTestStatus(c.random(3))
+    perturb(obj:TestStatus, g:AnySeededRandomGen): AnySeededRandomGen =
+        g.perturbed(fromTestStatus obj)
+end
+
+(** The example of user-defined `Arbitrary` interface, extended from
+    `DefaultArbitrary`. **)
+object arb extends DefaultArbitrary
+    gen[\T\](): Gen[\T\] =
+        typecase fn (_:T):T => throw ForbiddenException of
+            TestStatus->TestStatus => genTestStatus
+            (*)else => (self asif DefaultArbitrary).gen[\T\]()
+            else => gen0[\T\](self)
+        end
+end
+
+(** Tests various generators. **)
+testGen() = do
+    c = TestContext(arb, linearCongruential(), 50)
+    show(gen:AnyGen, n:ZZ32) =
+        println(gen ": " (BIG ||| [_ <- seq(0#n)] gen.generate(c)))
+
+    show(arb.gen[\()\](), 32)
+    show(arb.gen[\Boolean\](), 16)
+    show(arb.gen[\ZZ32\](), 12)
+    show(arb.gen[\ZZ64\](), 8)
+    show(arb.gen[\ZZ\](), 8)
+    show(arb.gen[\QQ\](), 4)
+    show(arb.gen[\RR32\](), 8)
+    show(arb.gen[\RR64\](), 4)
+    show(arb.gen[\Char\](), 32)
+    show(arb.gen[\String\](), 16)
+    show(arb.gen[\Maybe[\Char\]\](), 8)
+    show(arb.gen[\List[\ZZ32\]\](), 2)
+    show(arb.gen[\List[\String\]\](), 2)
+    show(arb.gen[\List[\Maybe[\List[\String\]\]\]\](), 1)
+    show(arb.gen[\Map[\ZZ32,(Set[\Boolean\],Set[\Char\])\]\](), 1)
+    show(arb.gen[\Range[\ZZ32\]\](), 4)
+    show(arb.gen[\(ZZ32,Maybe[\Char\],String)\](), 4)
+    show(arb.gen[\TestStatus\](), 8)
+    show(arb.gen[\List[\TestStatus\]\](), 2)
+
+    gen1 = arb.gen[\ZZ32->ZZ32\]()
+    f = gen1.generate(c)
+    println(gen1 ":")
+    println("    " f(42) " " f(54))
+    println("    " f(42) " " f(54))
+
+    gen2 = arb.gen[\ZZ32->(ZZ32->ZZ32)\]()
+    g = gen2.generate(c)
+    println(gen2 ":")
+    println("    " g(42)(42) " " g(42)(54) " " g(54)(42) " " g(54)(54))
+    println("    " g(42)(42) " " g(42)(54) " " g(54)(42) " " g(54)(54))
+
+    println()
+end
+
+(** Tests various properties with labeling and shrinking. **)
+testCheck() = do
+    (* associativity of `+` operator over `ZZ32` domain: should pass *)
+    assocPlus = forAll[\(ZZ32,ZZ32,ZZ32)\] (fn (p,q,r) => ((p+q)+r = p+(q+r)))
+    check(assocPlus)
+
+    (* associativity of `+` operator over `RR64` domain: may fail *)
+    assocPlusFloat = forAll[\(RR64,RR64,RR64)\] (fn (p,q,r) => ((p+q)+r = p+(q+r)))
+    check(assocPlusFloat)
+
+    (* whether `RSHIFT` operator is signed or unsigned: should fail
+       (with tag "no sign extension") *)
+    unsignedRshift = forAll[\ZZ32\] (fn p =>
+            ("right shift by 32+ bits" |: ((p RSHIFT 40) = (p RSHIFT 32))) AND
+            ("no sign extension" |: ((p RSHIFT 40) = 0)))
+    assert(unsignedRshift.run(42).status = TestPass, "unsignedRshift with p=42 failed")
+    assert(unsignedRshift.run(-42).status = TestFail, "unsignedRshift with p=-42 passed")
+    check(unsignedRshift)
+
+    (* fixed version of `unsignedRshift`: should pass (with no tags) *)
+    unsignedRshiftPositive = forAll[\ZZ32\] (fn p =>
+            ("right shift by 32+ bits" |: ((p RSHIFT 40) = (p RSHIFT 32))) AND:
+            (("p is positive" |: (p >= 0)) ==> ("no sign extension" |: ((p RSHIFT 40) = 0))))
+    check(unsignedRshiftPositive)
+
+    (* associativity of `COMPOSE` operator over function domain: should pass *)
+    assocCompose = (forAll[\(ZZ32->ZZ64,ZZ64->Char,Char->Boolean,ZZ32)\]
+        (fn (f,g,h,x) => (((h COMPOSE g) COMPOSE f)(x) = (h COMPOSE (g COMPOSE f))(x))))
+    check(assocCompose, 20)
+
+    (* stringized integer should result in the same value by `strToInt`:
+       should pass with appropriate test statistics; likely to reach
+       the maximum number of tests until 100 successful tests. *)
+    intStringRoundtrip = forAll[\ZZ32\] (fn p =>
+        classify(0<=p<10, "1 digit") classify(10<=p<100, "2 digits") classify(p>=100, "3 digits or more") classify(p MOD 10 = 0, "ends with zero")
+        ((0 <= p < 1000) ==> (p = strToInt(p.toString))))
+    check(intStringRoundtrip, 100)
+
+    (* Some of next three tests are likely to reach the maximum number of tests
+       during the shrinking phase: the second check of each test should shrink
+       the instance completely, i.e. the concatenation of arguments consists of
+       exactly //one// non-alphabetic character. *)
+
+    (* all non-empty strings consists of alphabets *)
+    alphabeticString = forAll[\String\] (fn p =>
+        (|p| > 0) ==> (BIG AND [i <- p] ('a' <= i <= 'z') OR ('A' <= i <= 'Z')))
+    check(alphabeticString, 100)
+    check(alphabeticString, 1000000)
+
+    (* same as above, but two strings present *)
+    alphabeticString' = forAll[\(String,String)\] (fn (p,q) =>
+        (|p q| > 0) ==> (BIG AND [i <- p q] ('a' <= i <= 'z') OR ('A' <= i <= 'Z')))
+    check(alphabeticString', 100)
+    check(alphabeticString', 1000000)
+
+    (* same as above, but multiple strings possible *)
+    alphabeticString'' = forAll[\List[\String\]\] (fn p => (do
+        p' = BIG || p
+        (|p'| > 0) ==> (BIG AND [i <- p'] ('a' <= i <= 'z') OR ('A' <= i <= 'Z'))
+    end))
+    check(alphabeticString'', 100)
+    check(alphabeticString'', 1000000)
+
+    println()
+end
+
+run() = do
+    testGen()
+    testCheck()
+end
+

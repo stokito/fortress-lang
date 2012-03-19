@@ -1,0 +1,17 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled5.be
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.be.fss:15:5-24:\n\
+\ No such method (IntLiteral, IntLiteral, IntLiteral, IntLiteral).something.\n\
+File Compiled5.be.fss has 1 error.\n
+compile_out_equals=

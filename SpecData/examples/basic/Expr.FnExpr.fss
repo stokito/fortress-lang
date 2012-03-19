@@ -1,0 +1,26 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.FnExpr
+
+export Executable
+
+f() = do
+(** EXAMPLE **)
+fn(x: RR64) => if x < 0 then -x else x end
+(** END EXAMPLE **)
+end
+
+run() = println (f() 3)
+
+end

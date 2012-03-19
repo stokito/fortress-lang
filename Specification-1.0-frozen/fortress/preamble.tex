@@ -1,0 +1,155 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[p]
+The Fortress Language Specification, Version 1.0\cite{Fortress} was the first to be
+released in tandem with a compliant interpreter (as of March 31, 2008),
+available as open source and online at:\\
+
+\begin{center}
+{\tt http://projectfortress.sun.com}\\[1em]
+\end{center}
+Our tandem release of a specification and matching interpreter was a major
+milestone for the project.
+Our reference implementation has been evolving gradually,
+in parallel with the evolution of the language specification and
+the development of the core libraries.  In order to synchronize
+the specification with the implementation, it was necessary both to add
+features to the implementation and to drop features from the specification.
+All Fortress source code appearing in the specification has been
+tested by executing it with the open source Fortress implementation. Moreover,
+all code has been rendered automatically with the tool \emph{Fortify}, also
+included with the standard Fortress distribution. Fortify is an open source tool
+for converting Fortress source code to \LaTeX.\\
+
+
+Since the release, we have incrementally added back
+features taken out of the specification as they have been implemented.
+In particular, we have been building a Fortress compiler with a static
+type checker and various static constraints checker.
+We also made considerable amount of modification and evolution of the
+language design.\\
+
+
+This specification is a working draft;
+it is meant to include all language features included in
+the Fortress Language Specification, Version 1.0\EXP{\beta{}}
+(perhaps with additional ) and any language changes since then.
+This version of the specification is not yet for a release;
+it may include wild ideas that require additional research before they can be
+implemented reliably.
+This specification includes descriptions of unimplemented features in boxes
+at the beginning of sections,
+and informal comments and notes in boxes in the margin.
+\end{figure}
+
+
+\begin{figure}[p]
+The not-yet-supported features include:
+\begin{itemize}
+\item widening coercion
+\item multifix operators
+\item type coverage check
+\item generic overloading check
+\item definite assignment check
+\item keyword and varargs parameters
+\item varargs expressions
+\item some modifiers (\KWD{override}, \KWD{io}, \KWD{atomic}, \KWD{value}, ...)
+\item qualified names
+\item identifiers including connecting punctuations
+\item ASCII conversion
+\item Unicode canonicalization
+\item array comprehensions
+\item reduction variables
+\item object copy
+\item unboxed types
+\item mutual recursion in value objects
+\item thread fairness guarantee
+\item distributions
+\item matrix unpasting
+\item Non-type static parameters
+\item dimensions and units
+\item tests and properties
+\item type aliases
+\item where clauses and conditional extension
+\item abstract function declarations
+\item checked exceptions, deferred exceptions, and chained exceptions
+\item contract checking (overloaded functionals and method overriding)
+\item static expressions, static range types, and some range operations
+\item some types (\TYP{HeapSequence},
+\TYP{LinearSequence}, $\mathbb{Q}$,
+\TYP{Numeral}, \EXP{\mathbb{Z}}, \EXP{\mathbb{N}}, \EXP{\mathbb{Q}}, ...)
+\item some operators on aggregate expressions
+\item some functions in \secref{other-expressions}
+\item tail-call optimization
+\item compound APIs check
+\item import API names
+\item components linking
+\end{itemize}
+\end{figure}
+
+%% Description in F1.0
+%% -- Sukyoung
+% This release of the Fortress Language Specification is the first to be
+% released in tandem with a compliant interpreter, available as open source
+% and online at:\\
+
+% \begin{center}
+% {\tt http://projectfortress.sun.com}\\[1em]
+% \end{center}
+% Our tandem release of a specification and matching interpreter is a major
+% milestone for the project; it is a goal we have been working toward for
+% some time.  All Fortress source code appearing in this specification has been
+% tested by executing it with the open source Fortress implementation. Moreover,
+% all code has been rendered automatically with the tool \emph{Fortify}, also
+% included with the standard Fortress distribution. Fortify is an open source tool
+% for converting Fortress source code to \LaTeX.
+
+% Our reference implementation has been evolving gradually,
+% in parallel with the evolution of the language specification and
+% the development of the core libraries.  In order to synchronize
+% the specification with the implementation, it was necessary both to add
+% features to the implementation and to drop features from the specification.
+% Most significantly, most static checks in the implementation are currently
+% turned off, as we are in the process of completing the static
+% type checker and the type inference engine.
+% Static constraints are still included in the specification as documentation.
+% Contrary to the Fortress Language Specification, Version 1.0\EXP{\beta{}},
+% inference of static parameter instantiations
+% is based on the runtime types of the arguments to a functional call.
+% Support for syntactic abstraction is not included in this release.
+% We do not yet support nontrivial distributions, nor parallel nested
+% transactions.  Moreover, many other minor language features defined in
+% the Fortress Language Specification, Version 1.0\EXP{\beta{}} have been elided.
+% All of these features require additional research before they can be
+% implemented reliably; this research and development is a high priority
+% for the Fortress team.\\
+
+% With this release, our goal in moving forward is to incrementally add back
+% features taken out of the specification as they are implemented.
+% In particular, all language features included in
+% the Fortress Language Specification, Version 1.0\EXP{\beta{}}
+% remain goals for eventual inclusion in the language
+% (perhaps with additional modification and evolution of their design).
+% By proceeding in this manner, we believe that our implementation will be
+% useful for more tasks more quickly, as it will comply with the public
+% specification.  Moreover, the Fortress community will be better able to
+% evaluate the design of new features, as users will be able to use them
+% immediately, and developers will be able to contribute to the implementation
+% effort more easily, as they will be able to build off of a relatively stable
+% and well-specified base.\\
+
+% Moving forward with the implementation, in concert with our open source
+% community, our goal is to build off of the infrastructure of our interpreter
+% to construct the first optimizing Fortress compiler and to achieve our
+% long-standing goal of constructing a new programming language with high
+% performance and high programmer productivity, owned by the community that
+% uses it, and able to grow gracefully with the tasks it is applied to.

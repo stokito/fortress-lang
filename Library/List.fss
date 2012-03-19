@@ -1,0 +1,501 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component List
+import OneShotFlag.{...}
+import NativeArray.{...}
+import CovariantCollection.{...}
+
+export List
+
+(** Array Lists, immutable style (not the mutable Java ArrayList style).
+
+    An ArrayList is an immutable, fully-initialized segment of a
+    write-once array.  The rest of the mutable array may contain
+    elements of purelists in which this list is contained, or may be
+    unwritten for future use.  Every PureList includes a pointer to a
+    flag canExtend; if this flag is true we are permitted to add
+    additional elements to the PureList in place by writing into the
+    uninitialized portions of the array.  At most one instance sharing
+    the same backing array will obtain permission to extend the array
+    in this way; we atomically check and update the flag to guarantee
+    this.  Having obtained permission to extend the list, that
+    permission may be passed on to future attempts to extend.
+
+    Eventually the backing array fills and we must allocate a new
+    backing array to accept new elements.  At the moment we're not
+    particularly careful to avoid stealing permission to extend for
+    overflowing append operations.
+
+    We keep separate flags for both the left and right ends of the
+    ArrayList, so that it supports efficient extension or append on
+    either end.  The append operation attempts to copy the contents of
+    one argument into the other, choosing based on the availability of
+    space and permission.  The way enlargement works tends to favor
+    right extension; if you're appending this shouldn't matter, but it
+    means it's probably better to use %addRight% in favor of %addLeft%
+    if there is a choice.
+
+    Note also that the implementation hasn't yet been carefully
+    checked for amortization, so it is quite likely there are a number
+    of asymptotic infelicities in the library.
+
+    Finally, note that this is an efficient *amortized* structure.  An
+    individual operation may be quite slow due to copying work.
+    Moreover, because it is amortized rather than incremental it may
+    be quite inefficient if you augment a single list in multiple
+    different ways (the list will be repeatedly re-copied for each
+    different extension).
+
+    Baking these off vs PureLists, they look very good in practice.
+    But the bakeoff tended to extend each list at most once (not 100%
+    true, but close).
+
+ **)
+
+(* Tests can be found in
+   tests/ArrayListQuick.fss
+   demos/ArrayListLong.fss
+*)
+
+(* minSize must be >= 1 *)
+minSize : ZZ32 := 44
+
+private scale(x : ZZ32): ZZ32 = minSize MAX (2 x)
+
+private expansion(curr: ZZ32, new: ZZ32): ZZ32 =
+    if new > curr then
+        (* Common case? *)
+        (1 + scale curr) MAX new
+    elif scale new <= curr then
+        new
+    else
+        curr
+    end
+
+(** Lists of some item type.  Used to collect elements of unknown type
+    into a list whose element type is as specific as possible. **)
+trait AnyList excludes { Number, HasRank, String }
+        (* comprises List[\E\] where [\E\] *)
+    opr ||(self, f:AnyList): AnyList = app(self,f)
+    addLeft(e:Any): AnyList = addL(e,self)
+    addRight(e:Any): AnyList = addR(self,e)
+end
+
+private app[\T,E extends T,F extends T\](a:List[\E\], b:List[\F\]): List[\T\] =
+    typecase (a,b) of
+        (a':List[\T\],b':List[\T\]) => a' || b'
+        (a':List[\T\],b':List[\F\]) => a'.appendRC[\F\](b')
+        (a':List[\E\],b':List[\T\]) => b'.appendLC[\E\](a')
+        else =>
+            emptyList[\T\](scale(|a| + |b|)).appendR[\E\](a).appendR[\F\](b)
+    end
+
+private addL[\T,E extends T,F extends T\](x:E, xs:List[\F\]): List[\T\] =
+    emptyList[\T\](scale(|xs|)).addRight(x).appendR[\F\](xs)
+
+private addR[\T,E extends T,F extends T\](xs:List[\F\],x:E): List[\T\] =
+    emptyList[\T\](scale(|xs|)).appendR[\F\](xs).addRight(x)
+
+(** %List%.  We return a %Generator% for non-list-specific operations
+    for which reuse of the %Generator% will not increase asymptotic
+    complexity, but return a %List% in cases (such as %map% and
+    %filter%) where it will.  *)
+trait List[\E\] extends { AnyList, LexicographicOrder[\List[\E\],E\] }
+        excludes { Number, HasRank }
+    (** %left% and %extractLeft% return the leftmost element in the list
+        (and in the latter case, the remainder of the list without its
+        leftmost element).  They return %Nothing% if the list is empty.
+        %right% and %extractRight% do the same with the rightmost
+        element. *)
+    getter left():Maybe[\E\] = self.extractLeft.map[\E\](fn (v:E,_):E => v)
+    getter right():Maybe[\E\] = self.extractRight.map[\E\](fn (_,v:E):E => v)
+    getter extractLeft(): Maybe[\(E,List[\E\])\]
+    getter extractRight(): Maybe[\(List[\E\],E)\]
+    getter asString():String = "<|" || ", ".join[\E\](self) || "|>"
+    getter reverse(): List[\E\] =
+        generate[\List[\E\]\](RevConcat[\E\],singleton[\E\])
+    (** the operator %||% returns a list containing the elements of %self% followed
+        by the elements of %f% *)
+    opr ||(self, other:List[\E\]): List[\E\]
+    (** Helper methods for %||% *)
+    private appendRC[\T\](other:List[\T\]): List[\E\]
+    private appendLC[\T\](other:List[\T\]): List[\E\]
+    private appendR[\T\](other:List[\T\]): List[\E\]
+    private appendL[\T\](other:List[\T\]): List[\E\]
+    (** %addLeft% and %addRight% add an element to the left or right of
+        the list, respectively *)
+    addLeft(e:E):List[\E\]
+    addRight(e:E):List[\E\]
+    (** %take% returns the leftmost %n% elements of the list; if the
+        list is shorter than this, the entire list is returned. *)
+    take(n:ZZ32): List[\E\]
+    (** %drop% drops the leftmost %n% elements of the list; if the list
+        is shorter than this, an empty list is returned. *)
+    drop(n:ZZ32): List[\E\]
+    opr [n:ZZ32]: E
+    opr [n:Range[\ZZ32\]]: List[\E\] = do
+        r = (0 # |self|).narrowToRange(n)
+        if r.stride = 1 then
+            drop(r.left.get).take(|r|)
+        else
+            <| self[i] | i <- r |>
+        end
+      end
+    (** %l.split(n)% is equivalent to %(l.take(n),l.drop(n))%.  Note in
+        particular that appending its results yields the original
+        list. *)
+    split(n:ZZ32): (List[\E\], List[\E\])
+    (** %split% splits the list into two smaller lists.  If %|l| > 1%
+        both lists will be non-empty. *)
+    split(): (List[\E\], List[\E\])
+    filter(p: E -> Boolean): List[\E\] =
+        concatMap[\E\](fn (x:E):List[\E\] => if p(x) then singleton[\E\](x)
+                                             else <|[\E\] |> end)
+    (** %concatMap% is an in-place version of the %nest% method from
+        %Generator%; it flattens the result into an actual list, rather than
+        returning an abstract %Generator%. *)
+    concatMap[\G\](f: E->List[\G\]): List[\G\] =
+        generate[\List[\G\]\](Concat[\G\],f)
+    map[\G\](f: E->G): List[\G\] =
+        concatMap[\G\](fn (e:E):List[\G\] => singleton[\G\](f(e)))
+    ivmap[\G\](f: (ZZ32,E)->G): List[\G\] =
+        self.indexValuePairs.generate[\List[\G\]\](Concat[\G\],
+                  fn (t:(ZZ32,E)):List[\G\] => singleton[\G\](f(t)))
+end
+
+(** Vararg factory for lists; provides aggregate list constants **)
+opr <|[\E\] xs: E... |>: List[\E\] = list(xs)
+opr BIG <|[\T\]|>: Comprehension[\T,List[\T\],AnyCovColl,AnyCovColl\] =
+    covariantCompr[\T,List[\T\]\](fn (cc) => fromImmutableArray(cc.toImmutableArray()))
+opr BIG <|[\T\] g:Generator[\T\]|>:List[\T\] =
+    __bigOperatorSugar[\T,List[\T\],AnyCovColl,AnyCovColl\](BIG <|[\T\]|>(), g)
+
+opr BIG CONCAT[\T\](): BigReduction[\List[\T\],List[\T\]\] =
+    BigReduction[\List[\T\],List[\T\]\](Concat[\T\])
+opr BIG CONCAT[\T\](g: Generator[\List[\T\]\]):List[\T\] =
+    __bigOperatorSugar[\List[\T\],List[\T\],List[\T\],List[\T\]\](BIG CONCAT[\T\](), g)
+
+(** Convert generator into list; can be used to desugar list
+    comprehensions *)
+list[\E\](g:Generator[\E\]):List[\E\] =
+    g.generate[\List[\E\]\](Concat[\E\], singleton[\E\])
+list[\E\](g:Indexed[\E,ZZ32\]):List[\E\] = do
+    a = primitiveImmutableArray[\E\](|g|)
+    for (i,v) <- g[#].indexValuePairs do
+        a.init0(i,v)
+    end
+    fromImmutableArray[\E\](a)
+  end
+list[\E\](f: ImmutableArray[\E,ZZ32\]): List[\E\] =
+    if f.bounds.lower = 0 then
+        fromImmutableArray[\E\](f)
+    else
+        fromImmutableArray[\E\](f[#].copy())
+    end
+list[\E\](r: List[\E\]): List[\E\] = r
+
+(** Flatten an int-indexed collection of lists **)
+concat[\E\](lists:Indexed[\List[\E\],ZZ32\]):ArrayList[\E\] = do
+    (* The following just sets positions to the prefix sum of the lengths
+       of the lists.  sz is the total length.  When we have prefixes we
+       ought to do this step in parallel. *)
+    listsLower = lists.bounds.lower
+    positions = primitiveImmutableArray[\ZZ32\](|lists|)
+    sz : ZZ32 := 0
+    for (i,l) <- sequential(lists.indexValuePairs) do
+         positions.init0(i-listsLower,sz)
+         sz += |l|
+    end
+    (* The prefix is complete.  Allocate the final list and put elements
+       into place in parallel. *)
+    under = primitiveImmutableArray[\E\](sz)
+    for (i,l) <- lists.indexValuePairs do
+        ofs = positions.get(i-listsLower)
+        for (j,v) <- l.indexValuePairs do
+            under.init0(ofs+j,v)
+        end
+    end
+    fromImmutableArray[\E\](under)
+  end
+
+(** A reduction object for concatenating lists. *)
+private object Concat[\E\] extends MonoidReduction[\ List[\E\] \]
+  getter asString():String = "List concatenation reduction"
+  empty(): List[\E\] = emptyList[\E\]()
+  join(a:List[\E\], b:List[\E\]): List[\E\] = a || b
+end
+
+(** A reduction object for concatenating lists covariantly. *)
+private object CVConcat[\T\] extends MonoidReduction[\AnyList\]
+  getter asString():String = "Covariant list concatenation reduction"
+  empty(): AnyList = emptyList[\T\]()
+  join(a:AnyList, b:AnyList): AnyList = a || b
+end
+
+(** The same for reverse concatenation *)
+private object RevConcat[\E\] extends MonoidReduction[\ List[\E\] \]
+  getter asString():String = "List reversal concatenation reduction"
+  empty(): List[\E\] = emptyList[\E\]()
+  join(a:List[\E\], b:List[\E\]): List[\E\] = b || a
+end
+
+object ArrayList[\E\]( underlying : ImmutableArray[\E,ZZ32\],
+                       firstUsed : ZZ32, canExtendLeft : OneShot,
+                       firstUnused : ZZ32, canExtendRight : OneShot )
+        extends { List[\E\], DelegatedIndexed[\E,ZZ32\] }
+    getter size(): ZZ32 = |self|
+    getter isEmpty(): Boolean = firstUnused <= firstUsed
+    getter left(): Maybe[\E\] =
+        if self.isEmpty then Nothing[\E\]
+        else Just[\E\](underlying.get(firstUsed)) end
+    getter right():Maybe[\E\] =
+        if self.isEmpty then Nothing[\E\]
+        else Just[\E\](underlying.get(firstUnused-1)) end
+    getter extractLeft(): Maybe[\(E,ArrayList[\E\])\] =
+        if self.isEmpty then Nothing[\(E,ArrayList[\E\])\]
+        else Just[\(E,ArrayList[\E\])\](underlying.get(firstUsed),
+                       ArrayList(underlying, firstUsed+1, noShot,
+                                 firstUnused, canExtendRight))
+        end
+    getter extractRight(): Maybe[\(ArrayList[\E\],E)\] =
+        if self.isEmpty then Nothing[\(ArrayList[\E\],E)\]
+        else Just[\(ArrayList[\E\],E)\](
+                       ArrayList(underlying, firstUsed, canExtendLeft,
+                                      firstUnused-1, noShot),
+                       underlying.get(firstUnused-1))
+        end
+    getter indices(): ZeroIndexed[\ZZ32\] = 0 # |self|
+    getter indexValuePairs(): Generator[\(ZZ32,E)\] =
+        self.indices.map[\(ZZ32,E)\](fn (i:ZZ32):(ZZ32,E) =>
+                                        (i,underlying.get(firstUsed+i)))
+    getter generator(): Generator[\E\] =
+        (firstUsed # |self|).map[\E\](fn (i:ZZ32):E => underlying.get(i))
+
+    getter leftSpace(): ZZ32 =
+        if canExtendLeft.canTry then
+            if firstUsed=0 then canExtendLeft.tryOnce() end
+            firstUsed
+        else
+            0
+        end
+    getter rightSpace(): ZZ32 =
+        if canExtendRight.canTry then
+            res = |underlying| - firstUnused
+            if res = 0 then canExtendRight.tryOnce() end
+            res
+        else
+            0
+        end
+    getter reverse(): ArrayList[\E\] = do
+        firstUnused1 = firstUnused-1
+        sz = |self|
+        under = primitiveImmutableArray[\E\](sz)
+        under.init0(i,underlying.get(firstUnused1-i)), i <- 0#sz
+        fromImmutableArray[\E\](under)
+      end
+
+    opr |self| : ZZ32 = firstUnused - firstUsed
+
+    get(i:ZZ32): E = underlying.get(firstUsed+i)
+
+    fill[\T\](start: ZZ32, under: ImmutableArray[\T,ZZ32\]): () = do
+        shift = start - firstUsed
+        under.init0(i+shift, cast[\T\](underlying.get(i))), i <- firstUsed # |self|
+      end
+
+    (** Return new %ArrayList% enlarged on the left by at least %i%
+        elements.  It claims %canExtendLeft% on the new list.  **)
+    enlargeLeft[\T\](i:ZZ32): ArrayList[\T\] = do
+        sz0 = |underlying|
+        sz = (sz0 + i) MAX scale(sz0)
+        fstUsed = sz - sz0
+        under = primitiveImmutableArray[\E\](sz)
+        fill[\T\](fstUsed,under)
+        fstUnused = fstUsed + |self|
+        ArrayList(under,fstUsed,noShot,fstUnused,oneShot())
+      end
+
+    (** Return new %ArrayList% enlarged on the right by at least %i%
+        elements.  It claims %canExtendRight% on the new list.  **)
+    enlargeRight[\T\](i:ZZ32): ArrayList[\T\] = do
+        sz0 = |underlying|
+        sz = (sz0 + i) MAX scale(sz0)
+        under = primitiveImmutableArray[\E\](sz)
+        fill[\T\](firstUsed,under)
+        ArrayList(under,firstUsed,oneShot(),firstUnused,noShot)
+      end
+
+    addLeft(e:E): List[\E\] = do
+        c = if canExtendLeft.tryOnce() AND firstUsed > 0 then
+                self
+            else
+                enlargeLeft[\E\](1)
+            end
+        cFirstUsed1 = c.firstUsed-1
+        cUnder = c.underlying
+        cUnder.init0(cFirstUsed1,e)
+        ArrayList( cUnder, cFirstUsed1,   oneShot(),
+                                c.firstUnused, c.canExtendRight )
+      end
+    addRight(e:E): List[\E\] = do
+        c = if canExtendRight.tryOnce() AND firstUnused < |underlying| then
+                self
+            else
+                enlargeRight[\E\](1)
+            end
+        cFirstUnused = c.firstUnused
+        cUnder = c.underlying
+        cUnder.init0(cFirstUnused,e)
+        ArrayList( cUnder, c.firstUsed,    c.canExtendLeft,
+                                cFirstUnused+1, oneShot() )
+      end
+
+    (** %||% cab either append %other% to the right of %self%
+        or %self% to the left of %other%.  Choose based on available
+        space, preferring right append and if necessary right extension. **)
+    opr ||(self, other:List[\E\]): List[\E\] =
+        if self.rightSpace >= |other| AND: canExtendRight.tryOnce() then
+            appendR[\E\](other)
+        elif other.leftSpace >= |self| AND: other.canExtendLeft.tryOnce() then
+            other.appendL[\E\](self)
+        else
+            (* Enlarge on the right.  Note missed opportunity for parallelism in
+               the name of maintainability: we could do the two copy operations
+               in enlargeRight and appendR in parallel. *)
+            otherSize = |other|
+            fresh = enlargeRight[\E\](otherSize)
+            fresh.appendR[\E\](other)
+        end
+    appendR[\T\](other:List[\T\]): List[\E\] = do
+        other.fill[\E\](firstUnused,underlying)
+        ArrayList(underlying,firstUsed,canExtendLeft,
+                            firstUnused + |other|, oneShot())
+      end
+    appendRC[\T\](other:List[\T\]): List[\E\] =
+        if self.rightSpace >= |other| AND: canExtendRight.tryOnce() then
+            appendR[\T\](other)
+        else
+            fresh = enlargeRight[\E\](|other|)
+            fresh.appendR[\T\](other)
+        end
+    appendL[\T\](left1:List[\T\]): List[\E\] = do
+        lsz = |left1|
+        fstUsed = firstUsed - lsz
+        left1.fill[\E\](fstUsed,underlying)
+        ArrayList(underlying,fstUsed,oneShot(),firstUnused,canExtendRight)
+      end
+    appendLC[\T\](left1:List[\T\]): List[\E\] =
+        if self.leftSpace >= |left1| AND: canExtendLeft.tryOnce() then
+            appendL[\T\](left1)
+        else
+            fresh = enlargeLeft[\E\](|left1|)
+            fresh.appendL[\T\](left1)
+        end
+
+    (** Return first n elements of this list.  take(n) never fails: If n is
+        negative or 0, an empty list is returned; if n is larger than |self|,
+        the whole list is returned. **)
+    take(n:ZZ32): ArrayList[\E\] =
+        if n <= 0 then
+            ArrayList(underlying,firstUsed,canExtendLeft,
+                                      firstUsed,noShot)
+        elif n < |self| then
+            ArrayList(underlying, firstUsed,canExtendLeft,
+                                       firstUsed+n, noShot)
+        else
+            self
+        end
+    (** Drop the first n elements from this list and return the rest.  drop(n)
+        never fails: If n is larger than |self|, an empty list is returned; if
+        n <= 0 the original list is returned. **)
+    drop(n:ZZ32): ArrayList[\E\] =
+        if n <= 0 then
+            self
+        elif n < |self| then
+            ArrayList(underlying, firstUsed+n, noShot,
+                                       firstUnused, canExtendRight)
+        else
+            ArrayList(underlying, firstUnused, noShot,
+                                       firstUnused, canExtendRight)
+        end
+    split(n:ZZ32): (ArrayList[\E\],ArrayList[\E\]) =
+        if n <= 0 then
+            (ArrayList(underlying, firstUsed,canExtendLeft,
+                                        firstUsed,noShot),
+             self)
+        elif n < |self| then
+            (ArrayList(underlying, firstUsed,canExtendLeft,
+                                        firstUsed+n, noShot),
+             ArrayList(underlying, firstUsed+n, noShot,
+                                        firstUnused, canExtendRight))
+        else
+            (self,
+             ArrayList(underlying, firstUnused, noShot,
+                                        firstUnused, canExtendRight))
+        end
+    split(): (ArrayList[\E\],ArrayList[\E\]) = do
+        sz = |self|
+        if sz <= 1 then
+            split(sz)
+        else
+            split(partitionL(sz))
+        end
+      end
+    opr [n:ZZ32]: E = do
+        ui = firstUsed + n
+        if 0 <= n AND ui < firstUnused then
+            underlying.get(ui)
+        else
+            fail("ArrayList[" n "] index outside 0#" |self|)
+        end
+      end
+    mapArr[\G\](f:E->G):ImmutableArray[\G,ZZ32\] =
+        primitiveImmutableArray[\G\](|self|).fill(
+            fn (i:ZZ32):G => f(underlying.get(i+firstUsed)))
+    map[\G\](f:E->G): ArrayList[\G\] =
+        fromImmutableArray[\G\](mapArr[\G\](f))
+    ivmapArr[\G\](f:(ZZ32,E)->G):ImmutableArray[\G,ZZ32\] =
+        primitiveImmutableArray[\G\](|self|).fill(
+            fn (i:ZZ32):G => f(i,underlying.get(i+firstUsed)))
+    ivmap[\G\](f:(ZZ32,E)->G): ArrayList[\G\] =
+        fromImmutableArray[\G\](ivmapArr[\G\](f))
+    (* We implement concatMap data-parallel fashion to avoid repeated copying.
+       Cost: we must allocate 2*|self| auxiliary arrays. *)
+    concatMap[\G\](f: E->List[\G\]): List[\G\] = do
+        lists = mapArr[\List[\G\]\](f)
+        concat[\G\](lists)
+      end
+end
+
+private fromImmutableArray[\E\](under: ImmutableArray[\E,ZZ32\]): ArrayList[\E\] =
+    ArrayList[\E\](under, 0, noShot, |under|, noShot)
+
+emptyList[\E\](): List[\E\] =
+    ArrayList[\E\](PrimImmutableArray[\E,0\](),0,noShot,0,noShot)
+
+(** emptyList[\E\](n) allocates an empty list that can accept n
+    addRight operations without reallocating the underlying storage. **)
+emptyList[\E\](n:ZZ32): List[\E\] =
+    ArrayList(primitiveImmutableArray[\E\](n),0,noShot,0,oneShot())
+
+private cvSingleton(e:Any): AnyList = singleton(e)
+
+singleton[\E\](e:E): List[\E\] = do
+    u = primitiveImmutableArray[\E\](minSize)
+    u.init0(0,e)
+    ArrayList[\E\](u,0,noShot,1,if minSize > 1 then oneShot() else noShot end)
+  end
+
+transpose[\E,F\](xys: List[\(E,F)\]): (List[\E\], List[\F\]) =
+  ( <|[\E\] x | (x, _) <- xys |>, <|[\F\] y | (_, y) <- xys |> )
+
+end
