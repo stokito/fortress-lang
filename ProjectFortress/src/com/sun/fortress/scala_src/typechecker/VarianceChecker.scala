@@ -56,7 +56,6 @@ def run(ast: Component) = {
 
    val decls = scalaify(ast.getDecls()).asInstanceOf[List[Decl]]
    val b = scan(decls,verifyTrait)
-   if (!b) error("Variance not correct",ast)
    errors
 
  }
@@ -67,12 +66,23 @@ def run(ast: Component) = {
  * @param polarity: the polarity of the position we were in when we found the type name
  * @return
  */
-private def verifyParam(s: StaticParam, name: String, polarity: Int): Boolean = {
+private def verifyParam(s: StaticParam, name: String, polarity: Int, n: Node): Boolean = {
   
   // If the type name we found while analyzing a type match the trait static parameter name
   if (s.getName().getText().equals(name)) {
     // Verify that the static parameter's variance declaration correspond to the current polarity
-	  s.getVariance() == polarity
+	  val b = s.getVariance() == polarity
+	  val vary = if (s.getVariance() == 1) "covariant" else "contravariant"
+	  val othervary = polarity match {
+	    case 1 => "covariant"
+	    case 0 => "invariant"
+	    case -1 => "contravariant"
+	  }  
+	  if (!b) error(
+	      "Type error: static parameter " + s.getName().getText() + 
+	      " is declared to be " + vary +
+	      " but appears in a " + othervary + " position",n)
+	  b
   }
   // Otherwise, nothing to do
   else true
@@ -171,7 +181,7 @@ private def verifyTraitDeclaration(decl: Decl, traitStaticParameters: List[Stati
  */
 private def verifyFunDeclStaticParam(s: StaticParam, polarity: Int)(implicit traitStaticParameters:List[StaticParam]): Boolean = {
    
-		 scan(traitStaticParameters, { verifyParam(_:StaticParam,s.getName().getText(),polarity) })	&&
+		 scan(traitStaticParameters, { verifyParam(_:StaticParam,s.getName().getText(),polarity,s) })	&&
 		 scan(scalaify(s.getExtendsClause()).asInstanceOf[List[Type]], { verifyType(_: Type,polarity) } ) &&
 		 scan(scalaify(s.getDominatesClause()).asInstanceOf[List[Type]], { verifyType(_: Type,flip(polarity)) })
    
@@ -188,7 +198,7 @@ private def verifyType(ty: Type, polarity: Int)(implicit traitStaticParameters:L
    ty match {
 
      case t: VarType =>
-       scan(traitStaticParameters, { verifyParam(_: StaticParam,t.getName().getText(),polarity) })
+       scan(traitStaticParameters, { verifyParam(_: StaticParam,t.getName().getText(),polarity,ty) })
 
      case t:TraitType =>
        val traitParams = scalaify(t.getTraitStaticParams()).asInstanceOf[List[StaticParam]]

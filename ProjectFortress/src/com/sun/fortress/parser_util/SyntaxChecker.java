@@ -102,9 +102,24 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
         }
     }
 
+    private void ruleOutDominates(TraitObjectDecl that) {
+    	
+    	List<StaticParam> ls = that.getHeader().getStaticParams();
+    	
+    	for (StaticParam sp: ls) {
+    		
+    		if (!sp.getDominatesClause().isEmpty()) {
+    			log(that, "Declaration " + NodeUtil.getName(that) + " must not declare a dominating static parameter.");
+    		}
+    		
+    	}
+    	
+    }
+    
     public void forTraitDecl(TraitDecl that) {
         inTrait = true;
         Modifiers mods = NodeUtil.getMods(that);
+        ruleOutDominates(that);
         if (!Modifiers.TraitMod.containsAll(mods)) {
             log(that, mods.remove(Modifiers.TraitMod) + " cannot modify a trait, " + NodeUtil.getName(that));
         }
@@ -118,6 +133,7 @@ public final class SyntaxChecker extends NodeDepthFirstVisitor_void {
     public void forObjectDecl(ObjectDecl that) {
         inObject = true;
         Modifiers mods = NodeUtil.getMods(that);
+        ruleOutDominates(that);
         if (!Modifiers.ObjectMod.containsAll(mods)) {
             log(that, mods.remove(Modifiers.ObjectMod) + " cannot modify an object, " + NodeUtil.getName(that));
         }
