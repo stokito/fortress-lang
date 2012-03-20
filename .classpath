@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="ProjectFortress/src"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/xtc/xtc.jar" sourcepath="ProjectFortress/third_party/xtc/xtc_src.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/junit/junit.jar" sourcepath="third_party/junit/junit_src.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/unsigned/unsigned.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/plt/plt.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/jsr166y/jsr166y.jar" sourcepath="third_party/jsr166y/jsr166/src"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/astgen/astgen.jar" sourcepath="ProjectFortress/third_party/astgen/astgen-src.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/ant/ant.jar"/>
+	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/asm/asm-all-3.1.jar" sourcepath="ProjectFortress/third_party/asm/asm-src-3.1.zip"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/ant/ant-junit.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derby.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyclient.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyLocale_cs.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyLocale_de_DE.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyLocale_es.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyLocale_fr.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyLocale_hu.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyLocale_it.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyLocale_ja_JP.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyLocale_ko_KR.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyLocale_pl.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyLocale_pt_BR.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyLocale_ru.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyLocale_zh_CN.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyLocale_zh_TW.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbynet.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbyrun.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/derbytools.jar"/>
+	<classpathentry kind="lib" path="ProjectFortress/third_party/javadb/register.jar"/>
+	<classpathentry kind="output" path="ProjectFortress/build"/>
+</classpath>
