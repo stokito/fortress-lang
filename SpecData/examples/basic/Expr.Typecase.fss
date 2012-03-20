@@ -1,0 +1,35 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.Typecase
+
+export Executable
+
+object myLoser
+  myField = "mine"
+end
+
+f() = do
+yogiBerraAutograph = ()
+(** EXAMPLE **)
+typecase myLoser.myField of
+  x:String => x "foo"
+  x:Number => x + 3
+  Object => yogiBerraAutograph
+end
+(** END EXAMPLE **)
+end
+
+run() = println f()
+
+end

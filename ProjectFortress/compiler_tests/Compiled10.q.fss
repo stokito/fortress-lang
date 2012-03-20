@@ -1,0 +1,19 @@
+(********************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+********************************************************************************)
+export Executable
+
+trait Bar[\T, S\] comprises {T, S}
+  f(self, x:Bar[\S, T\]): () = ()
+end
+object O extends {Bar[\O, P\], Bar[\P, O\]} end
+object P extends {Bar[\O, P\], Bar[\P, O\]} end
+
+run() = ()
