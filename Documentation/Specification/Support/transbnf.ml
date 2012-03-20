@@ -122,21 +122,22 @@ let rec parse_grammar l =
     | g,[] -> g
     | g,rem -> failwith "BNF parsing error"
 
-let pp_choice choice = " & " ^ " & " ^ (concat " " choice) ^ " \\\\"
+let pp_choice choice = " & " ^ " & $\\mathsf{" ^ (concat " " choice) ^ "}$ \\\\"
 
 let pp_choices choices = List.map pp_choice choices
 
 let pp_entry (header,choices) = 
-  let h = Printf.sprintf "\\begin{tabular}{lll}" in
-  let s = header ^ " & " ^ " ::= " ^ " & " ^ " \\\\"  in
-  let e = Printf.sprintf "\\end{tabular}" in
-  h :: s :: ((pp_choices choices) @ [e]) 
+  let first = List.hd choices in
+  let s = "$\\mathsf{" ^ header ^ "}$ & " ^ " $\\mathsf{::=}$ " ^ " & $\\mathsf{" ^ (concat " " first) ^ "}$ \\\\"  in
+  s :: (pp_choices (List.tl choices))
 
 let pp_entries entries = List.flatten (List.map pp_entry entries)
 
 let pp_section (title,entries): string list = 
-  let sec = Printf.sprintf "\\section{%s}" title in
-  sec :: (pp_entries entries)
+  let sec = Printf.sprintf "\\section{%s} \n" title in
+  let h = Printf.sprintf "\\begin{tabular}{p{2cm}ll}" in
+  let e = Printf.sprintf "\\end{tabular} \n" in
+  sec :: h :: ((pp_entries entries) @ [e])
 
 let pp_sections sections: string list = 
   List.flatten (List.map pp_section sections) 
@@ -153,13 +154,12 @@ let _ =
       while true do
 	let s = input_line ic in 
 	if length s > 0 then in_file := (analyze s !line_counter) :: !in_file;
-	      (* output_string oc s; *)
 	incr line_counter
       done
     with End_of_file -> () in
   let read = List.rev !in_file in
   let g = parse_grammar read in
   let g = pp_grammar g in
-  List.iter (fun x -> Printf.printf "%s\n" x) g
+  List.iter (fun x -> let x = x ^ "\n" in output_string oc x) g
  
     
