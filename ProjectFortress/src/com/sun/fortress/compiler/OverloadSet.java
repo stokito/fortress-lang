@@ -2039,6 +2039,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
           
             List<StaticParam> sargs = null;
+            String PCNOuter = null;
+            Naming.XlationData xldata = null; 
+            String overloaded_name = oMangle(_name);
             
             if (principalMember != null) {
                 sargs = staticParametersOf(principalMember.tagF);
@@ -2053,9 +2056,6 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             if (CodeGenerationPhase.debugOverloading)
                 System.err.println("Emitting overloaded method " + _name + signature);
 
-            String PCNOuter = null;
-            Naming.XlationData xldata = null; 
-            String overloaded_name = oMangle(_name);
             
             ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
             
