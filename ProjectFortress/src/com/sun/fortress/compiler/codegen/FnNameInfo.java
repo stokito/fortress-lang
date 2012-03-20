@@ -15,6 +15,7 @@ import java.util.List;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnHeader;
+import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeUtil;
@@ -25,13 +26,16 @@ public class FnNameInfo {
     Type returnType;
     Type paramType;
     APIName ifNone;
+    IdOrOp name;
     Span span;
     public FnNameInfo(FnDecl x, APIName ifNone) {
-        static_params = x.getHeader().getStaticParams();
         FnHeader header = x.getHeader();
-         returnType = header.getReturnType().unwrap();
-         paramType = NodeUtil.getParamType(x);
-         this.ifNone = ifNone;
-         span = NodeUtil.getSpan(x);
+
+        static_params = x.getHeader().getStaticParams();
+        returnType = header.getReturnType().unwrap();
+        paramType = NodeUtil.getParamType(x);
+        this.ifNone = ifNone;
+        span = NodeUtil.getSpan(x);
+        name = (IdOrOp) (x.getHeader().getName());
     }
 }
