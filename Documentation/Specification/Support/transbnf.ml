@@ -1,17 +1,27 @@
 
 open String
 
-type choice = string list
+type kind = 
+  | Section of string 
+  | Entry of string 
+  | Choice of string list
+
+type prere = 
+  | PNonterminal of string
+  | PKeyword of string
+  | POr
+  | POpt
+  | PStar
+  | PLpar
+  | PRpar
+  | PGroup of prere list
+
+type choice = prere list
 type choices = choice list
 type entry = string * choices
 type entries = entry list
 type section = string * entries
 type grammar = section list
-
-type kind = 
-  | Section of string 
-  | Entry of string 
-  | Choice of string list
 
 let rec print_line line = 
   match line with
@@ -79,12 +89,80 @@ let analyze line line_counter =
     | _ -> 
       let error_msg = "Error: ambiguous line " ^ (string_of_int line_counter) ^ " |" ^ line ^ "| " in
       failwith error_msg
-	
+
+let first s = get s 0
+let last s = get s (length s - 1)
+let remove_last s = sub s 0 (length s - 1)
+let remove_first s = sub s 1 (length s - 1)
+
+let identify c = 
+  match c with 
+    | '*' -> Some PStar
+    | '?' -> Some POpt
+    | '|' -> Some POr
+    | '(' -> Some PLpar
+    | ')' -> Some PRpar
+    | _ -> None
+
+let rec explode s: choice = 
+  if length s <= 0 then [] else
+    match identify (last s) with
+      | Some x -> explode (remove_last s) @ [x]
+      | None -> match identify (first s) with
+	  | Some x -> x :: explode (remove_first s)
+	  | None -> 
+	    if first s >= 'A' && first s <= 'Z' 
+	    then [PNonterminal s]
+	    else [PKeyword s]  
+	    
+let rec scan_regexp l: choice = 
+  match l with
+    | [] -> []
+    | hd :: tl ->
+      let res = scan_regexp tl in
+      (explode hd) @ res
+
+let rec group_regexp l = 
+  match l with 
+    | [] -> ([],[])
+    | PLpar :: tl ->
+      let (res, rem) = group_regexp tl in
+      let (behind,rem) = group_regexp rem in
+      (PGroup res :: behind, rem)
+    | PRpar :: tl ->
+      ([], tl)
+    | hd :: tl -> 
+      let (res, rem) = group_regexp tl in
+      (hd :: res, rem)
+
+let rec pp_prere p = 
+  match p with
+    | POr -> " |"
+    | PStar -> "*"
+    | POpt -> "?"
+    | PNonterminal s -> Printf.sprintf " $\\mathsf{%s}$" s
+    | PKeyword s -> Printf.sprintf " $\\mathbf{%s}$" s
+    | PGroup l -> "( " ^ concat "" (List.map pp_prere l) ^ " )"
+    | PLpar -> failwith "A regexp has a left parenthis while pretty printing"
+    | PRpar -> failwith "A regexp has a right parenthis while pretty printing"
+
+let parse_regexp l: choice = 
+  Printf.printf "Scanning...\n";
+  flush stdout;
+  let nl = scan_regexp l in
+  Printf.printf "Grouping...\n";
+  flush stdout;
+  let (nl, rem) = group_regexp nl in 
+  if rem <> [] then 
+    let error_msg = "Error: failed to recognize the following reg exp: " ^ (concat " " l) ^ " found the following remainder: " ^ (concat " " (List.map pp_prere rem )) in
+    failwith error_msg else
+    nl
+
 let rec parse_choices l: choices * kind list =
   match l with
     | Choice rhs :: tl -> 
       let (choices,l) = parse_choices tl in
-      (rhs :: choices, l)
+      (parse_regexp rhs :: choices, l)
     | _ -> ([],l) 
 
 let rec parse_entry l: entry option * kind list =
@@ -122,21 +200,21 @@ let rec parse_grammar l =
     | g,[] -> g
     | g,rem -> failwith "BNF parsing error"
 
-let pp_choice choice = " & " ^ " & $\\mathsf{" ^ (concat " " choice) ^ "}$ \\\\"
+let pp_choice (choice: choice) = " & " ^ " & " ^ (concat "" (List.map pp_prere choice)) ^ " \\\\"
 
-let pp_choices choices = List.map pp_choice choices
+let pp_choices (choices: choices) = List.map pp_choice choices
 
-let pp_entry (header,choices) = 
+let pp_entry ((header,choices): string * choices)  = 
   let first = List.hd choices in
-  let s = "$\\mathsf{" ^ header ^ "}$ & " ^ " $\\mathsf{::=}$ " ^ " & $\\mathsf{" ^ (concat " " first) ^ "}$ \\\\"  in
+  let s = "$\\mathsf{" ^ header ^ "}$ & " ^ " $\\mathsf{::=}$ " ^ " &" ^ (concat "" (List.map pp_prere first)) ^ " \\\\"  in
   s :: (pp_choices (List.tl choices))
 
 let pp_entries entries = List.flatten (List.map pp_entry entries)
 
 let pp_section (title,entries): string list = 
   let sec = Printf.sprintf "\\section{%s} \n" title in
-  let h = Printf.sprintf "\\begin{tabular}{p{2cm}ll}" in
-  let e = Printf.sprintf "\\end{tabular} \n" in
+  let h = Printf.sprintf " \n\\begin{longtable}[l]{p{2cm}ll}" in
+  let e = Printf.sprintf "\\end{longtable} \\hfill \n" in
   sec :: h :: ((pp_entries entries) @ [e])
 
 let pp_sections sections: string list = 
@@ -158,8 +236,14 @@ let _ =
       done
     with End_of_file -> () in
   let read = List.rev !in_file in
+  Printf.printf "Parsing...\n";
+  flush stdout;
   let g = parse_grammar read in
+  Printf.printf "Pretty printing...\n";
+  flush stdout;
   let g = pp_grammar g in
+  Printf.printf "Done!\n";
+  flush stdout;
   List.iter (fun x -> let x = x ^ "\n" in output_string oc x) g
  
     
