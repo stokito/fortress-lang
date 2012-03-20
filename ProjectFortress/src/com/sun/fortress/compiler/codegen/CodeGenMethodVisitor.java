@@ -89,6 +89,69 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
         Debug.debug(Debug.Type.CODEGEN, 1, getText());
     }
 
+    private String getStackTrace() {
+        String result = "\n";
+        StackTraceElement[] ste = Thread.currentThread().getStackTrace();
+
+        for (StackTraceElement s : ste) result = result + s + "\n";
+        return result;
+    }
+
+    private String opc(int opcode) {
+        return com.sun.fortress.compiler.asmbytecodeoptimizer.Opcodes.opcNames[opcode];
+    }
+
+    public void visitFieldInsn(int opcode, String owner, String name, String desc) 
+    {
+        Debug.debug(Debug.Type.CODEGEN, 1, "visitFieldInsn: ", opc(opcode), " owner = " + owner, " name = ", name, " desc = ", desc, getStackTrace());
+        super.visitFieldInsn(opcode, owner,name,desc);
+    }
+
+    public void visitIincInsn(int var, int increment) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "visitIincInsn: var = ", var , " increment = ", increment, getStackTrace());
+        super.visitIincInsn(var, increment);
+    }
+
+    public void visitInsn(int opcode) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "visitInsn:", opc(opcode), getStackTrace());
+        super.visitInsn(opcode);
+    }
+    
+    public void visitIntInsn(int opcode, int operand) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "visitIntInsn:", opc(opcode), " ", operand, " " , getStackTrace());
+        super.visitIntInsn(opcode, operand);
+    }
+
+    public void visitJumpInsn(int opcode, Label label) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "visitJumpInsn:", opc(opcode), " ", label, " " , getStackTrace());
+        super.visitJumpInsn(opcode, label);
+    }
+
+    public void visitLabel(Label label) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "visitLabel:", label);
+        super.visitLabel(label);
+    }
+
+    public void visitLdcInsn(Object cst) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "visitLdcInsn:", cst);
+        super.visitLdcInsn(cst);
+    }
+
+    public void visitMethodInsn(int opcode, String owner, String name, String desc) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "visitMethodInsn:", opc(opcode), " owner = ", owner, " name = ", name, " desc = ", desc, getStackTrace());
+        super.visitMethodInsn(opcode, owner, name, desc);
+    }
+
+    public void visitTypeInsn(int opcode, String type) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "visitTypeInsn:", opc(opcode), " type = ",  type, getStackTrace());
+        super.visitTypeInsn(opcode, type);
+    }
+
+    public void visitVarInsn(int opcode, int var) {
+        Debug.debug(Debug.Type.CODEGEN, 1, "visitVarInsn:", opc(opcode), " var = " , var, getStackTrace());
+        super.visitVarInsn(opcode, var);
+    }
+
     /**
      * the correct way to get a local is to call createCompilerLocal,
      * which will give you a stack offset that acts as a handle on the

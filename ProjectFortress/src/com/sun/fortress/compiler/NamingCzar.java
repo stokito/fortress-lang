@@ -145,9 +145,6 @@ public class NamingCzar {
     // Base class for tasks
     public static final String fortressBaseTask = "com/sun/fortress/runtimeSystem/BaseTask";
 
-    // Base class for shadow frame for mutable variables in tasks.
-    public static final String fortressShadowFrame = "com/sun/fortress/runtimeSystem/ShadowFrame";
-
     // Base class for misc RTS routines
     public static final String miscCodegen = "com/sun/fortress/runtimeSystem/MiscCodegenFunctions";
     public static final String matchFailure = "overloadMatchFailure";
@@ -227,6 +224,9 @@ public class NamingCzar {
     public static final String descFortressBottom        = Naming.internalToDesc(internalFortressBottom);
 
     public static final String voidToFortressVoid = Naming.makeMethodDesc("", descFortressVoid);
+
+    public static final String descFortressMutableFValueInternal = 
+        "Lcom/sun/fortress/compiler/runtimeValues/MutableFValue;" ;
 
     private static final List<String> extendsObject =
         Collections.singletonList(internalObject);
@@ -778,11 +778,6 @@ public class NamingCzar {
     private static int taskCount = 0;
     public static String gensymTaskName(String packageAndClassName) {
         return packageAndClassName + "$" + "task" + taskCount++;
-    }
-
-    private static int shadowFrameCount = 0;
-    public static String gensymShadowFrameName(String packageAndClassName) {
-        return packageAndClassName + "$" + "shadowFrame" + taskCount++;
     }
 
     private static int implementationCount = 0;
