@@ -29,18 +29,22 @@ ImportFrom ::=
 
 Names ::=
      | Name
-     | {NameList } NameList ::=
-     | Name( , Name)∗
+     | {NameList } 
+
+NameList ::=
+     | Name( , Name)*
 
 AliasedNames ::=
      | AliasedName
-     | {AliasedNameList } AliasedName ::=
+     | {AliasedNameList } 
+
+AliasedName ::=
      | Id ( as DottedId)?
      | opr Op ( as Op)?
      | opr LeftEncloser RightEncloser ( as LeftEncloser RightEncloser)?
 
 AliasedNameList ::=
-     | AliasedName( , AliasedName)∗
+     | AliasedName( , AliasedName)*
 
 AliasedDottedIds ::=
      | AliasedDottedId
@@ -50,7 +54,7 @@ AliasedDottedId ::=
      | DottedId ( as DottedId)?
 
 AliasedDottedIdList ::=
-     | AliasedDottedId( , AliasedDottedId)∗
+     | AliasedDottedId( , AliasedDottedId)*
 
 Exports ::=
      | Export+
@@ -60,8 +64,10 @@ Export ::=
 
 DottedIds ::=
      | DottedId
-     | {DottedIdList } DottedIdList ::=
-     | DottedId( , DottedId)∗
+     | {DottedIdList } 
+
+DottedIdList ::=
+     | DottedId( , DottedId)*
 
 $$$$$ Top-level Declarations
 
@@ -138,9 +144,9 @@ ObjectValParam ::=
      | ( ObjectParams? )
 
 ObjectParams ::=
-     | (ObjectParam , )∗ (ObjectVarargs , )? ObjectKeyword( , ObjectKeyword)∗
-     | (ObjectParam , )∗ ObjectVarargs
-     | ObjectParam ( , ObjectParam)∗
+     | (ObjectParam , )* (ObjectVarargs , )? ObjectKeyword( , ObjectKeyword)*
+     | (ObjectParam , )* ObjectVarargs
+     | ObjectParam ( , ObjectParam)*
 
 ObjectVarargs ::=
      | transient Varargs
@@ -277,18 +283,24 @@ Comprises ::=
 
 TraitTypes ::=
      | TraitType
-     | {TraitTypeList } TraitTypeList ::=
-     | TraitType( , TraitType)∗
+     | {TraitTypeList } 
+
+TraitTypeList ::=
+     | TraitType( , TraitType)*
 
 ComprisingTypes ::=
      | TraitType
-     | {ComprisingTypeList } ComprisingTypeList ::=
+     | {ComprisingTypeList } 
+
+ComprisingTypeList ::=
      | . . .
-     | TraitType( , TraitType)∗ ( , . . . )?
+     | TraitType( , TraitType)* ( , . . . )?
 
 Where ::=
-     | where { WhereClauseList } WhereClauseList ::=
-     | WhereClause( , WhereClause)∗
+     | where { WhereClauseList } 
+
+WhereClauseList ::=
+     | WhereClause( , WhereClause)*
 
 BoolRef ::=
      | StaticArg
@@ -314,20 +326,28 @@ Contract ::=
      | Requires? Ensures? Invariant?
 
 Requires ::=
-     | requires { ExprList? } Ensures ::=
-     | ensures { ProvidedList? } ProvidedList ::=
-     | Provided( , Provided)∗
+     | requires { ExprList? } 
+
+Ensures ::=
+     | ensures { ProvidedList? } 
+
+ProvidedList ::=
+     | Provided( , Provided)*
 
 Provided ::=
      | Expr ( provided Expr)?
 
 Invariant ::=
-     | invariant { ExprList? } CoercionClauses ::=
+     | invariant { ExprList? } 
+
+CoercionClauses ::=
      | Throws? CoercionWhere? Contract
 
 CoercionWhere ::=
-     | where { CoercionWhereClauseList } CoercionWhereClauseList ::=
-     | CoercionWhereClause( , CoercionWhereClause)∗
+     | where { CoercionWhereClauseList } 
+
+CoercionWhereClauseList ::=
+     | CoercionWhereClause( , CoercionWhereClause)*
 
 CoercionWhereClause ::=
      | WhereClause
@@ -397,7 +417,7 @@ StaticParams ::=
      | [\StaticParamList\]  
 
 StaticParamList ::=
-     | StaticParam( , StaticParam)∗
+     | StaticParam( , StaticParam)*
 
 StaticParam ::=
      | Id Extends? (absorbs unit )?
@@ -416,9 +436,9 @@ ValParam ::=
      | (Params?)
 
 Params ::=
-     | (Param , )∗ (Varargs , )? Keyword( ,Keyword)∗
-     | (Param , )∗ Varargs
-     | Param( , Param)∗
+     | (Param , )* (Varargs , )? Keyword( ,Keyword)*
+     | (Param , )* Varargs
+     | Param( , Param)*
 
 VarargsParam ::=
      | Id : TypeRef ...
@@ -491,9 +511,9 @@ MdValParam ::=
      | ( MdParams? )
 
 MdParams ::=
-     | (MdParam , )∗ (Varargs , )? MdKeyword( ,MdKeyword)∗
-     | (MdParam , )∗ Varargs
-     | MdParam( , MdParam)∗
+     | (MdParam , )* (Varargs , )? MdKeyword( ,MdKeyword)*
+     | (MdParam , )* Varargs
+     | MdParam( , MdParam)*
 
 MdKeyword ::=
      | MdParam=Expr
@@ -572,7 +592,7 @@ UnitRef ::=
      | StaticArg
 
 AssignLefts ::=
-     | ( AssignLeft( , AssignLeft)∗ )
+     | ( AssignLeft( , AssignLeft)* )
      | AssignLeft
 
 AssignLeft ::=
@@ -625,7 +645,7 @@ AtomicBack ::=
      | DelimitedExpr
 
 GeneratorList ::=
-     | Generator( , Generator)∗
+     | Generator( , Generator)*
 
 Generator ::=
      | Id←Expr
@@ -649,18 +669,18 @@ DelimitedExpr ::=
      | try BlockElems Catch? (forbid TraitTypes)? ( finally BlockElems)? end
 
 Do ::=
-     | (DoFront also )∗ DoFront end
+     | (DoFront also )* DoFront end
 
 DoFront ::=
      | ( at Expr)? atomic ? do BlockElems?
 
 TupleExpr ::=
-     | ( (Expr , )∗ (Expr ... , )? Binding ( , Binding)∗ )
+     | ( (Expr , )* (Expr ... , )? Binding ( , Binding)* )
      | NoKeyTuple
 
 NoKeyTuple ::=
-     | ( (Expr , )∗ Expr ... )
-     | ( (Expr , )∗ Expr )
+     | ( (Expr , )* Expr ... )
+     | ( (Expr , )* Expr )
 
 Elifs ::=
      | Elif+
@@ -686,7 +706,7 @@ TypecaseBindings ::=
      | Id
 
 BindingList ::=
-     | Binding( , Binding)∗
+     | Binding( , Binding)*
 
 Binding ::=
      | BindId = Expr
@@ -732,7 +752,7 @@ IdOrInt ::=
      | IntLiteral
 
 IdOrIntList ::=
-     | IdOrInt( , IdOrInt)∗
+     | IdOrInt( , IdOrInt)*
 
 BaseExpr ::=
      | NoKeyTuple
@@ -741,7 +761,7 @@ BaseExpr ::=
      | self
 
 ExprList ::=
-     | Expr( , Expr)∗
+     | Expr( , Expr)*
 
 $$$$$ Local Declarations
 
@@ -802,11 +822,11 @@ Literal ::=
      | NumericLiteral
      | CharLiteral
      | StringLiteral
-     | {Entry ( , Entry)∗ }
+     | {Entry ( , Entry)* }
      | [ RectElements ]
 
 RectElements ::=
-     | Expr MultiDimCons∗
+     | Expr MultiDimCons*
 
 MultiDimCons ::=
      | RectSeparator Expr
@@ -833,7 +853,7 @@ TraitType ::=
      | ￿TypeRef ￿
      | TypeRef [ ArraySize? ]
      | TypeRef ˆ StaticArg
-     | TypeRef ˆ ( ExtentRange (× ExtentRange)∗ )
+     | TypeRef ˆ ( ExtentRange (× ExtentRange)* )
 
 ArrowType ::=
      | TypeRef → TypeRef Throws?
@@ -854,8 +874,8 @@ DimRef ::=
      | StaticArg
 
 TupleType ::=
-     | ( (TypeRef , )∗ (TypeRef ... , )? KeywordType( , KeywordType)∗ )
-     | ( (TypeRef , )∗ TypeRef ... )
+     | ( (TypeRef , )* (TypeRef ... , )? KeywordType( , KeywordType)* )
+     | ( (TypeRef , )* TypeRef ... )
      | SimpleTupleType
 
 KeywordType ::=
@@ -865,10 +885,10 @@ SimpleTupleType ::=
      | ( TypeRef , TypeRefList )
 
 TypeRefList ::=
-     | TypeRef ( , TypeRef )∗
+     | TypeRef ( , TypeRef )*
 
 StaticArgList ::=
-     | StaticArg( , StaticArg)∗
+     | StaticArg( , StaticArg)*
 
 StaticArg ::=
      | Number
@@ -903,7 +923,7 @@ DUPostOp ::=
      | cubed
 
 ArraySize ::=
-     | ExtentRange( , ExtentRange)∗
+     | ExtentRange( , ExtentRange)*
 
 ExtentRange ::=
      | StaticArg? # StaticArg?
@@ -922,14 +942,14 @@ AssignOp ::=
 $$$$$ Identifiers
 
 IdList ::=
-     | Id( , Id)∗
+     | Id( , Id)*
 
 Name ::=
      | Id
      | opr Op
 
 DottedId ::=
-     | Id( . Id)∗
+     | Id( . Id)*
 
 BindId ::=
      | Id
