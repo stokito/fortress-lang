@@ -118,6 +118,9 @@ This distribution may include materials developed by third parties.
 	    <exec executable="perl" dir="${basedir}">
 	      <arg value="../Support/specialReservedWords.pl"/>
 	    </exec>
+  		<exec executable="ocaml" dir="${basedir}">
+  			<arg value="../Support/transbnf.ml" />
+  		</exec>	
   </target>	
 	
   <target name="texExs">

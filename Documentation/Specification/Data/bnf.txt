@@ -414,7 +414,7 @@ LocalFnMods ::=
      | LocalFnMod+
 
 StaticParams ::=
-     | [\StaticParamList\]  
+     | [[[StaticParamList]]]  
 
 StaticParamList ::=
      | StaticParam( , StaticParam)*
@@ -583,7 +583,7 @@ Expr ::=
 UnitExpr ::=
      | UnitRef
      | Expr UnitRef
-     | Expr · UnitRef
+     | Expr . UnitRef
      | Expr / UnitRef
      | Expr per UnitRef
      | Expr in UnitRef
@@ -617,19 +617,19 @@ EncloserOp ::=
 
 Primary ::=
      | Comprehension
-     | Id[\ StaticArgList \]
+     | Id[[[ StaticArgList ]]]
      | BaseExpr
      | LeftEncloser ExprList? RightEncloser
      | Primary[ExprList?]
-     | Primary . Id ([\StaticArgList\])? TupleExpr
-     | Primary . Id ([\StaticArgList\])?()
+     | Primary . Id ([[[StaticArgList]]])? TupleExpr
+     | Primary . Id ([[[StaticArgList]]])?()
      | Primary . Id
-     | Primary ˆ BaseExpr
+     | Primary ^ BaseExpr
      | Primary ExponentOp
      | Primary TupleExpr
      | Primary()
      | Primary Primary
-     | TraitType . coercion (￿StaticArgList ￿)?(Expr)
+     | TraitType . coercion ([[[StaticArgList]]])?(Expr)
 
 FlowExpr ::=
      | exit Id? (with Expr)?
@@ -648,8 +648,8 @@ GeneratorList ::=
      | Generator( , Generator)*
 
 Generator ::=
-     | Id←Expr
-     | ( Id , IdList )←Expr
+     | Id<-Expr
+     | ( Id , IdList )<-Expr
      | Expr
 
 $$$$$ Expressions Enclosed by Keywords
@@ -813,7 +813,7 @@ UnpastingElem ::=
      | Unpasting
 
 UnpastingDim ::=
-     | ExtentRange (× ExtentRange)+
+     | ExtentRange (SQRT ExtentRange)+
 
 $$$$$ Literals
 
@@ -848,24 +848,24 @@ TypeRef ::=
      | DimType
 
 TraitType ::=
-     | DottedId (￿StaticArgList ￿)?
-     | {TypeRef ￿→ TypeRef }
-     | ￿TypeRef ￿
+     | DottedId ([[[StaticArgList]]])?
+     | {TypeRef |-> TypeRef }
+     | [[[TypeRef]]]
      | TypeRef [ ArraySize? ]
-     | TypeRef ˆ StaticArg
-     | TypeRef ˆ ( ExtentRange (× ExtentRange)* )
+     | TypeRef ^ StaticArg
+     | TypeRef ^ ( ExtentRange (SQRT ExtentRange)* )
 
 ArrowType ::=
-     | TypeRef → TypeRef Throws?
+     | TypeRef -> TypeRef Throws?
 
 DimType ::=
      | DimRef
      | TypeRef DimRef
-     | TypeRef · DimRef
+     | TypeRef . DimRef
      | TypeRef / DimRef
      | TypeRef per DimRef
      | TypeRef UnitRef
-     | TypeRef · UnitRef
+     | TypeRef . UnitRef
      | TypeRef / UnitRef
      | TypeRef per UnitRef
      | TypeRef in DimRef
@@ -898,11 +898,11 @@ StaticArg ::=
      | Unity
      | dimensionless
      | StaticArg + StaticArg
-     | StaticArg · StaticArg
+     | StaticArg . StaticArg
      | StaticArg StaticArg
      | StaticArg / StaticArg
      | 1 / StaticArg
-     | StaticArg ˆ StaticArg
+     | StaticArg ^ StaticArg
      | StaticArg per StaticArg
      | DUPreOp StaticArg
      | StaticArg DUPostOp
@@ -926,7 +926,7 @@ ArraySize ::=
      | ExtentRange( , ExtentRange)*
 
 ExtentRange ::=
-     | StaticArg? # StaticArg?
+     | StaticArg? SHARP StaticArg?
      | StaticArg? : StaticArg?
      | StaticArg
 
@@ -953,5 +953,5 @@ DottedId ::=
 
 BindId ::=
      | Id
-     | _
+     | UNDERSCORE
 
