@@ -1481,6 +1481,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         if (r != null)
             r.assignValue(this.mv);
+        // All statements need to leave a value on the stack.
+        pushVoid();
     }
 
     public void forBlock(Block x) {
@@ -1733,7 +1735,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         args.get(0).accept(this);
         conditionallyCastParameter(args.get(0), domain_types.get(0));
         if (vcgs != null) vcgs.get(0).assignValue(mv);
-        popAll(mv, 0);  // URGH!!!  look into better stack management...  FIXME CHF
+        popAll(mv, 0); 
 
         // join / perform work locally left to right, leaving results on stack.
         for (int i = 1; i < n; i++) {
@@ -3777,7 +3779,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Type ty = (Type)v.getIdType().unwrap();
             VarCodeGen vcg;
             if (v.isMutable()) {
-                vcg = new VarCodeGen.LocalMutableVar(v.getName(), ty, this);
+                vcg = new VarCodeGen.LocalMutableVar(v.getName(), ty, this, thisApi());
             } else {
                 vcg = new VarCodeGen.LocalVar(v.getName(), ty, this);
             }
@@ -4470,10 +4472,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             new BATree<String, VarCodeGen>(StringHashComparer.V);
         for (VarCodeGen v : freeVars) {
             String name = v.getName();
-            cw.visitField(ACC_PUBLIC + ACC_FINAL, name,
-                          NamingCzar.jvmBoxedTypeDesc(v.fortressType, thisApi()),
-                          null, null);
-            result.put(name, new VarCodeGen.TaskVarCodeGen(v, taskClass, thisApi()));
+            
+            if (v.isAMutableLocalVar())
+                result.put(name, new VarCodeGen.MutableTaskVarCodeGen((VarCodeGen.LocalMutableVar) v,
+                                                                      taskClass,
+                                                                      thisApi(), cw, mv));
+            else result.put(name, new VarCodeGen.TaskVarCodeGen(v, taskClass, thisApi(), cw));
         }
         return result;
     }
@@ -4499,7 +4503,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         for (VarCodeGen v0 : freeVars) {
             VarCodeGen v = lexEnv.get(v0.getName());
             mv.visitVarInsn(ALOAD, varIndex++);
-            v.assignValue(mv);
+            v.assignHandle(mv);
         }
         voidEpilogue();
     }
@@ -4534,11 +4538,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     public String taskConstructorDesc(List<VarCodeGen> freeVars) {
         // And their types
-        List<Type> freeVarTypes = new ArrayList(freeVars.size());
+        String result = "(";
+
         for (VarCodeGen v : freeVars) {
-            freeVarTypes.add(v.fortressType);
+            if (v.isAMutableLocalVar())
+                result = result + NamingCzar.descFortressMutableFValueInternal;
+            else result = result + NamingCzar.jvmTypeDesc(v.fortressType, thisApi());
         }
-        return NamingCzar.jvmTypeDescForGeneratedTaskInit(freeVarTypes, component.getName());
+        return result + ")V";
     }
 
     // This sets up the parallel task construct.
@@ -4577,7 +4584,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitInsn(DUP);
             // Push the free variables in order.
             for (VarCodeGen v : freeVars) {
-                v.pushValue(mv, "");
+                v.pushHandle(mv);
             }
             mv.visitMethodInsn(INVOKESPECIAL, cname, "<init>", sig);
     }

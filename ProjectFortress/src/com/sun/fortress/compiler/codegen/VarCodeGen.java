@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.MethodVisitor;
@@ -75,6 +76,9 @@ public abstract class VarCodeGen {
         return "VarCodeGen:" + name + "," + fortressType;
     }
 
+    public boolean isAMutableLocalVar() {
+        if (this instanceof LocalMutableVar) return true; else return false;
+    }
     /** Generate code to push the value of this variable onto the Java stack.
      */
     public abstract void pushValue(CodeGenMethodVisitor mv);
@@ -86,6 +90,13 @@ public abstract class VarCodeGen {
             throw new CompilerError(errorMsg("Unexpected static args supplied to " + name +", statics = " + static_args));
     }
 
+    public void assignHandle(CodeGenMethodVisitor mv) {
+        assignValue(mv);
+    }
+
+    public void pushHandle(CodeGenMethodVisitor mv) {
+        pushValue(mv);
+    }
 
     /** Generate code to assign the value of this variable from the
      *  top of the Java stack. */
@@ -117,6 +128,7 @@ public abstract class VarCodeGen {
         public void assignValue(CodeGenMethodVisitor mv) {
             mv.visitVarInsn(Opcodes.ASTORE, offset);
         }
+
 
         public void outOfScope(CodeGenMethodVisitor mv) {
             mv.disposeCompilerLocal(offset);
@@ -319,45 +331,88 @@ public abstract class VarCodeGen {
 
     }
 
-    public static class LocalMutableVar extends StackVar {
+    public static class LocalMutableVar extends VarCodeGen {
+        // LocalMutableVar's must be MutableFValues
+        int offset;
+        public final String name;
+        public final Type fortressType;
+        private final APIName ifNone;
 
-        public LocalMutableVar(IdOrOp id, Type fortressType, CodeGen cg) {
-            super(id, fortressType, cg);
+
+        public LocalMutableVar(IdOrOp id, Type fortressType, CodeGen cg, APIName ifNone) {
+            super(id.getText(), fortressType);
+            this.name = id.getText();
+            this.fortressType = fortressType;
+            this.offset = cg.mv.createCompilerLocal(name, NamingCzar.descFortressMutableFValueInternal);
+            this.ifNone = ifNone;
+            cg.mv.visitTypeInsn(Opcodes.NEW, "com/sun/fortress/compiler/runtimeValues/MutableFValue");
+            cg.mv.visitInsn(Opcodes.DUP);
+            cg.mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
+                                  "com/sun/fortress/compiler/runtimeValues/MutableFValue",
+                                  "<init>",
+                                  "()V");
+            cg.mv.visitVarInsn(Opcodes.ASTORE, offset);
         }
     
         public void assignValue(CodeGenMethodVisitor mv) {
             // Ugh!  We are compensating for an extra value on the stack in doStatements in CodeGen
             // So we need to ensure that there is one.
-            mv.visitInsn(Opcodes.DUP);
+            mv.visitVarInsn(Opcodes.ALOAD, offset);
+            mv.visitInsn(Opcodes.SWAP);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, 
+                               "com/sun/fortress/compiler/runtimeValues/MutableFValue", 
+                               "setValue",
+                               "(Lcom/sun/fortress/compiler/runtimeValues/FValue;)V");
+        }
+
+        public void assignHandle(CodeGenMethodVisitor mv) {
             mv.visitVarInsn(Opcodes.ASTORE, offset);
         }
 
+        public void pushHandle(CodeGenMethodVisitor mv) {
+            mv.visitVarInsn(Opcodes.ALOAD, offset);
+        }
+
         public void pushValue(CodeGenMethodVisitor mv) {
-            super.pushValue(mv);
+            mv.visitVarInsn(Opcodes.ALOAD, offset);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/sun/fortress/compiler/runtimeValues/MutableFValue", 
+                               "getValue",
+                               "()Lcom/sun/fortress/compiler/runtimeValues/FValue;");
+            mv.visitTypeInsn(Opcodes.CHECKCAST, NamingCzar.jvmTypeDesc(fortressType, ifNone, false));
         }
 
         public String toString() {
             return "VarCodeGen: localMutableVar: " + name + "," + fortressType;
         }
 
+        public void outOfScope(CodeGenMethodVisitor mv) {
+            mv.disposeCompilerLocal(offset);
+        }
     }
 
     public static class TaskVarCodeGen extends VarCodeGen {
         final String taskClass;
         private final APIName ifNone;
 
-        public TaskVarCodeGen(VarCodeGen v, String taskClass, APIName ifNone) {
+        public TaskVarCodeGen(VarCodeGen v, String taskClass, APIName ifNone, ClassWriter cw) {
             super(v.name, v.fortressType);
             this.taskClass = taskClass;
             this.ifNone = ifNone;
             Debug.debug(Debug.Type.CODEGEN, 1,
                         "Creating a new TaskVarCodeGen from VarCodeGen " + v);
+
+            cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, v.name,
+                          NamingCzar.jvmBoxedTypeDesc(v.fortressType, ifNone),
+                          null, null);
         }
 
-        public TaskVarCodeGen(IdOrOp name, Type fortressType, String taskClass, APIName ifNone) {
+        public TaskVarCodeGen(IdOrOp name, Type fortressType, String taskClass, APIName ifNone, ClassWriter cw) {
             super(name, fortressType);
             this.ifNone = ifNone;
             this.taskClass = taskClass;
+            cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, name.getText(),
+                          NamingCzar.jvmBoxedTypeDesc(fortressType, ifNone),
+                          null, null);
         }
 
         public void pushValue(CodeGenMethodVisitor mv) {
@@ -383,5 +438,71 @@ public abstract class VarCodeGen {
             // We've already told asm about our type and such.
         }
 
+    }
+
+    public static class MutableTaskVarCodeGen extends VarCodeGen {
+        final String taskClass;
+        private final APIName ifNone;
+
+        public MutableTaskVarCodeGen(LocalMutableVar lmv, String taskClass, APIName ifNone, 
+                                     ClassWriter cw, CodeGenMethodVisitor mv) {
+            super(lmv.name, lmv.fortressType);
+            this.taskClass = taskClass;
+            this.ifNone = ifNone;
+
+            cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, lmv.name,
+                          "Lcom/sun/fortress/compiler/runtimeValues/MutableFValue;",
+                          null, null);
+        }
+
+        public void assignHandle(CodeGenMethodVisitor mv) {
+            mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
+            mv.visitInsn(Opcodes.SWAP);
+            mv.visitFieldInsn(Opcodes.PUTFIELD, taskClass, getName(), 
+                               "Lcom/sun/fortress/compiler/runtimeValues/MutableFValue;");
+        }
+
+        public void assignValue(CodeGenMethodVisitor mv) {
+            mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
+            mv.visitFieldInsn(Opcodes.GETFIELD, taskClass,
+                              getName(),
+                              "Lcom/sun/fortress/compiler/runtimeValues/MutableFValue;");       
+            mv.visitInsn(Opcodes.SWAP);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, 
+                               "com/sun/fortress/compiler/runtimeValues/MutableFValue", 
+                               "setValue",
+                               "(Lcom/sun/fortress/compiler/runtimeValues/FValue;)V");
+            // Another case of leaving something on the stack to meet expectations.
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.internalFortressVoid, NamingCzar.make,
+                           Naming.makeMethodDesc("", NamingCzar.descFortressVoid));
+
+        }
+
+        public void pushHandle(CodeGenMethodVisitor mv) {
+            mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
+            mv.visitFieldInsn(Opcodes.GETFIELD, taskClass,
+                              getName(),
+                              "Lcom/sun/fortress/compiler/runtimeValues/MutableFValue;");
+        }
+
+        public void pushValue(CodeGenMethodVisitor mv) {
+            mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
+            mv.visitFieldInsn(Opcodes.GETFIELD, taskClass,
+                              getName(),
+                              "Lcom/sun/fortress/compiler/runtimeValues/MutableFValue;");
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/sun/fortress/compiler/runtimeValues/MutableFValue", 
+                               "getValue",
+                               "()Lcom/sun/fortress/compiler/runtimeValues/FValue;");
+            mv.visitTypeInsn(Opcodes.CHECKCAST, NamingCzar.jvmTypeDesc(fortressType, ifNone, false));
+        }
+
+        public String toString() {
+            return "VarCodeGen: MutableTaskVarCodeGen: " + name + "," + fortressType;
+        }
+
+        public void outOfScope(CodeGenMethodVisitor mv) {
+            // We've already told asm about our type and such.
+        }
+ 
     }
 }
