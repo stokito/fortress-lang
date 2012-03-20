@@ -1948,7 +1948,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param savedInATrait 
      * @param forceCastParam0InApply
      */
-    private String generateGenericFunctionClass(FnNameInfo x, FnDecl fndecl, IdOrOp name,
+    private String generateGenericFunctionClass(FnNameInfo x, GenericMethodBodyMaker body_maker, IdOrOp name,
                                             int selfIndex, String forceCastParam0InApply) {
         /*
          * Different plan for static parameter decls;
@@ -2040,18 +2040,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String applied_method = InstantiatingClassloader.closureClassPrefix(PCN_for_class, cg.cw, PCN_for_class, sig, forceCastParam0InApply, isf_list);
 
         // Code below cribbed from top-level/functional/ordinary method
-        int modifiers = ACC_PUBLIC | ACC_STATIC ;
 
-        Expr body = fndecl.getBody().unwrap();
-        List<Param> params = fndecl.getHeader().getParams();
         String modified_sig = sig;
         if (forceCastParam0InApply != null) {
             modified_sig = Naming.replaceNthSigParameter(sig, 0, Naming.internalToDesc(forceCastParam0InApply));
             // Ought to rewrite params for better debugging info, but yuck, it is hard.
         }
 
-        cg.generateActualMethodCode(modifiers, applied_method, modified_sig, params, selfIndex,
-                                    selfIndex != Naming.NO_SELF, body);
+        body_maker.generateBody(cg, selfIndex, applied_method,
+                modified_sig);
 
         InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cg.cw);
 
@@ -2062,6 +2059,44 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 //        cg2.generateRuntimeInstantiationClass(PCN_for_file, header.getStaticParams().size());
         
         return PCN_for_class;
+    }
+
+    abstract static class GenericMethodBodyMaker {
+        abstract void generateBody(CodeGen cg, int selfIndex,
+                String applied_method, String modified_sig);
+    }
+    
+    static class GenericMethodBodyMakerFnDecl extends GenericMethodBodyMaker {
+        FnDecl fndecl;
+        GenericMethodBodyMakerFnDecl(FnDecl fndecl) {
+            super();
+            this.fndecl = fndecl;
+        }
+        
+        void generateBody(CodeGen cg, int selfIndex,
+                String applied_method, String modified_sig) {
+            Expr body = fndecl.getBody().unwrap();
+            List<Param> params = fndecl.getHeader().getParams();
+            int modifiers = ACC_PUBLIC | ACC_STATIC ;
+            cg.generateActualMethodCode(modifiers, applied_method, modified_sig, params, selfIndex,
+                                        selfIndex != Naming.NO_SELF, body);
+        }
+     }
+    
+    /**
+     * @param fndecl
+     * @param selfIndex
+     * @param cg
+     * @param applied_method
+     * @param modified_sig
+     */
+    private void generateGenericMethodBody(FnDecl fndecl, int selfIndex,
+            CodeGen cg, String applied_method, String modified_sig) {
+        Expr body = fndecl.getBody().unwrap();
+        List<Param> params = fndecl.getHeader().getParams();
+        int modifiers = ACC_PUBLIC | ACC_STATIC ;
+        cg.generateActualMethodCode(modifiers, applied_method, modified_sig, params, selfIndex,
+                                    selfIndex != Naming.NO_SELF, body);
     }
     
 //    private void generateRuntimeInstantiationClass(String templateClassName, int numStaticParams) {
@@ -2156,9 +2191,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // Bug here, not getting the type name right.
         Id gfid = NodeFactory.makeId(sp_span, TO_method_name);
         String template_class_name = 
-            generateGenericFunctionClass(new FnNameInfo(new_fndecl, thisApi()), x, gfid, Naming.NO_SELF, traitOrObjectName);
+            generateGenericFunctionClass(new FnNameInfo(new_fndecl, thisApi()), new GenericMethodBodyMakerFnDecl(x), gfid, Naming.NO_SELF, traitOrObjectName);
         
-        String method_name = genericMethodName(x, self_index);
+        String method_name = genericMethodName(new FnNameInfo(x, thisApi()), self_index);
         
         generateGenericMethodClosureFinder(method_name, template_class_name, selfType, savedInATrait);
         
@@ -2204,11 +2239,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param name
      * @param sparams
      */
-    private String genericMethodName(FnDecl x, int selfIndex) {
-
-        IdOrOp name = (IdOrOp) (x.getHeader().getName());
-        ArrowType at = fndeclToType(new FnNameInfo(x, thisApi()), selfIndex);
-        String possiblyDottedName = Naming.fmDottedName(singleName(name), selfIndex);
+    private String genericMethodName(FnNameInfo x, int selfIndex) {
+        ArrowType at = fndeclToType(x, selfIndex);
+        String possiblyDottedName = Naming.fmDottedName(singleName(x.name), selfIndex);
         
         return genericMethodName(possiblyDottedName, at);    
     }
@@ -2765,7 +2798,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         // throw sayWhat(x, "Generic methods not yet implemented.");
 
                     } else {
-                        generateGenericFunctionClass(new FnNameInfo(x, thisApi()), x, (IdOrOp)name, selfIndex, null);
+                        generateGenericFunctionClass(new FnNameInfo(x, thisApi()),
+                                new GenericMethodBodyMakerFnDecl(x), (IdOrOp)name, selfIndex, null);
                     }
                  } else if (savedInATrait) {
                     generateTraitDefaultMethod(x, (IdOrOp)name,
@@ -6409,7 +6443,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             if (sparams.size() > 0) {
                 // Not handling overload-based name-forwarding of generic methods yet.
-                String method_name = genericMethodName(f, selfIndex);
+                String method_name = genericMethodName(new FnNameInfo(f, thisApi()), selfIndex);
                 CodeGenMethodVisitor mv = cw.visitCGMethod(ACC_ABSTRACT + ACC_PUBLIC, method_name, genericMethodClosureFinderSig, null, null);
                 mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
                 mv.visitEnd();
