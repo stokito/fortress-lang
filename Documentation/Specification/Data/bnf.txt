@@ -29,14 +29,14 @@ ImportFrom ::=
 
 Names ::=
      | Name
-     | {NameList } 
+     | { NameList } 
 
 NameList ::=
      | Name( , Name)*
 
 AliasedNames ::=
      | AliasedName
-     | {AliasedNameList } 
+     | { AliasedNameList } 
 
 AliasedName ::=
      | Id ( as DottedId)?
@@ -48,7 +48,7 @@ AliasedNameList ::=
 
 AliasedDottedIds ::=
      | AliasedDottedId
-     | {AliasedDottedIdList } 
+     | { AliasedDottedIdList } 
 
 AliasedDottedId ::=
      | DottedId ( as DottedId)?
@@ -64,7 +64,7 @@ Export ::=
 
 DottedIds ::=
      | DottedId
-     | {DottedIdList } 
+     | { DottedIdList } 
 
 DottedIdList ::=
      | DottedId( , DottedId)*
@@ -283,14 +283,14 @@ Comprises ::=
 
 TraitTypes ::=
      | TraitType
-     | {TraitTypeList } 
+     | { TraitTypeList } 
 
 TraitTypeList ::=
      | TraitType( , TraitType)*
 
 ComprisingTypes ::=
      | TraitType
-     | {ComprisingTypeList } 
+     | { ComprisingTypeList } 
 
 ComprisingTypeList ::=
      | . . .
@@ -414,7 +414,7 @@ LocalFnMods ::=
      | LocalFnMod+
 
 StaticParams ::=
-     | [[[StaticParamList]]]  
+     | [[[ StaticParamList ]]]  
 
 StaticParamList ::=
      | StaticParam( , StaticParam)*
@@ -447,7 +447,7 @@ Varargs ::=
      | VarargsParam
 
 Keyword ::=
-     | Param=Expr
+     | Param = Expr
 
 PlainParam ::=
      | BindId IsType?
@@ -500,10 +500,10 @@ AbsGetterSetterDecl ::=
      | abstract ? FnMods? GetterSetterMod MdHeaderFront FnHeaderClause
 
 Coercion ::=
-     | widening ? coercion StaticParams?(Id IsType)CoercionClauses =Expr
+     | widening ? coercion StaticParams? ( Id IsType ) CoercionClauses = Expr
 
 AbsCoercion ::=
-     | widening ? coercion StaticParams?(Id IsType)CoercionClauses
+     | widening ? coercion StaticParams? (Id IsType ) CoercionClauses
 
 $$$$$ Method Parameters
 
@@ -516,7 +516,7 @@ MdParams ::=
      | MdParam( , MdParam)*
 
 MdKeyword ::=
-     | MdParam=Expr
+     | MdParam = Expr
 
 MdParam ::=
      | Param
@@ -601,7 +601,7 @@ AssignLeft ::=
      | BindId
 
 SubscriptExpr ::=
-     | Primary [ExprList?]
+     | Primary [ ExprList? ]
 
 FieldSelection ::=
      | Primary . Id
@@ -617,23 +617,23 @@ EncloserOp ::=
 
 Primary ::=
      | Comprehension
-     | Id[[[ StaticArgList ]]]
+     | Id [[[ StaticArgList ]]]
      | BaseExpr
      | LeftEncloser ExprList? RightEncloser
-     | Primary[ExprList?]
-     | Primary . Id ([[[StaticArgList]]])? TupleExpr
-     | Primary . Id ([[[StaticArgList]]])?()
+     | Primary [ ExprList? ]
+     | Primary . Id ( [[[ StaticArgList ]]] )? TupleExpr
+     | Primary . Id ( [[[ StaticArgList ]]] )? [([ ])]
      | Primary . Id
      | Primary ^ BaseExpr
      | Primary ExponentOp
      | Primary TupleExpr
-     | Primary()
+     | Primary [([ ])]
      | Primary Primary
-     | TraitType . coercion ([[[StaticArgList]]])?(Expr)
+     | TraitType . coercion ( [[[ StaticArgList ]]] )?(Expr)
 
 FlowExpr ::=
      | exit Id? (with Expr)?
-     | Accumulator ([ GeneratorList ])? Expr
+     | Accumulator ( [ GeneratorList ] )? Expr
      | atomic AtomicBack
      | tryatomic AtomicBack
      | spawn Expr
@@ -648,8 +648,8 @@ GeneratorList ::=
      | Generator( , Generator)*
 
 Generator ::=
-     | Id<-Expr
-     | ( Id , IdList )<-Expr
+     | Id <- Expr
+     | [([ Id , IdList ])] <- Expr
      | Expr
 
 $$$$$ Expressions Enclosed by Keywords
@@ -701,7 +701,7 @@ CaseElse ::=
      | else => BlockElems
 
 TypecaseBindings ::=
-     | ( BindingList )
+     | [([ BindingList ])]
      | Binding
      | Id
 
@@ -718,7 +718,7 @@ TypecaseClause ::=
      | TypecaseTypeRefs => BlockElems
 
 TypecaseTypeRefs ::=
-     | ( TypeRefList )
+     | [([ TypeRefList ])]
      | TypeRef
 
 Catch ::=
@@ -732,8 +732,8 @@ CatchClause ::=
 
 Comprehension ::=
      | { Expr      | GeneratorList }
-     | {Entry      | GeneratorList }
-     | <Expr      | GeneratorList  > 
+     | { Entry      | GeneratorList }
+     | < Expr      | GeneratorList  > 
      | [ ArrayComprehensionClause+ ]
 
 Entry ::=
@@ -770,7 +770,7 @@ BlockElems ::=
 
 BlockElem ::=
      | LocalVarFnDecl
-     | Expr( , GeneratorList)?
+     | Expr ( , GeneratorList)?
 
 LocalVarFnDecl ::=
      | LocalFnDecl+
@@ -809,11 +809,11 @@ UnpastingElems ::=
      | UnpastingElem
 
 UnpastingElem ::=
-     | Id ([ UnpastingDim ])?
+     | Id ( [ UnpastingDim ] )?
      | Unpasting
 
 UnpastingDim ::=
-     | ExtentRange (SQRT ExtentRange)+
+     | ExtentRange ( SQRT ExtentRange)+
 
 $$$$$ Literals
 
@@ -822,7 +822,7 @@ Literal ::=
      | NumericLiteral
      | CharLiteral
      | StringLiteral
-     | {Entry ( , Entry)* }
+     | { Entry ( , Entry)* }
      | [ RectElements ]
 
 RectElements ::=
@@ -848,9 +848,9 @@ TypeRef ::=
      | DimType
 
 TraitType ::=
-     | DottedId ([[[StaticArgList]]])?
-     | {TypeRef |-> TypeRef }
-     | [[[TypeRef]]]
+     | DottedId ( [[[ StaticArgList ]]] )?
+     | { TypeRef |-> TypeRef }
+     | [[[ TypeRef ]]]
      | TypeRef [ ArraySize? ]
      | TypeRef ^ StaticArg
      | TypeRef ^ ( ExtentRange (SQRT ExtentRange)* )
@@ -879,7 +879,7 @@ TupleType ::=
      | SimpleTupleType
 
 KeywordType ::=
-     | Id=TypeRef
+     | Id = TypeRef
 
 SimpleTupleType ::=
      | ( TypeRef , TypeRefList )
@@ -911,7 +911,7 @@ StaticArg ::=
      | StaticArg AND StaticArg
      | StaticArg IMPLIES StaticArg
      | TypeRef
-     | (StaticArg)
+     | [([ StaticArg ])]
 
 DUPreOp ::=
      | square      
@@ -926,7 +926,7 @@ ArraySize ::=
      | ExtentRange( , ExtentRange)*
 
 ExtentRange ::=
-     | StaticArg? SHARP StaticArg?
+     | StaticArg? # StaticArg?
      | StaticArg? : StaticArg?
      | StaticArg
 
@@ -953,5 +953,5 @@ DottedId ::=
 
 BindId ::=
      | Id
-     | UNDERSCORE
+     | _
 
