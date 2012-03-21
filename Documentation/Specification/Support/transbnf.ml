@@ -1,4 +1,13 @@
+(*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
 
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+******************************************************************************)
 open String
 
 type kind = 
@@ -12,6 +21,7 @@ type prere =
   | POr
   | POpt
   | PStar
+  | PPlus
   | PLpar
   | PRpar
   | PGroup of prere list
@@ -95,25 +105,43 @@ let last s = get s (length s - 1)
 let remove_last s = sub s 0 (length s - 1)
 let remove_first s = sub s 1 (length s - 1)
 
-let identify c = 
-  match c with 
-    | '*' -> Some PStar
-    | '?' -> Some POpt
-    | '|' -> Some POr
+let identify c len = 
+  match c with  
+    | '+' -> if len = 1 then None else Some PPlus 
+    | '*' -> if len = 1 then None else Some PStar
+    | '?' -> if len = 1 then None else Some POpt
+    | '|' -> if len = 1 then Some POr else None
     | '(' -> Some PLpar
     | ')' -> Some PRpar
     | _ -> None
 
+let escape s = 
+  match s with
+    | "{" -> "\\{"
+    | "}" -> "\\}"
+    | "^" -> "CHAPEAU"
+    | "#" -> "\\#"
+    | "_" -> "\\_"
+    | "|->" -> "\mapsto"
+    | "[[[" -> "\\llbracket"
+    | "]]]" -> "\\rrbracket"
+    | "->" -> "\\rightarrow"
+    | "<-" -> "\\leftarrow"
+    | "[([" -> "("
+    | "])]" -> ")"
+    | "=>" -> "\\Rightarrow"
+    | _ -> s
+
 let rec explode s: choice = 
   if length s <= 0 then [] else
-    match identify (last s) with
+    match identify (last s) (length s) with
       | Some x -> explode (remove_last s) @ [x]
-      | None -> match identify (first s) with
+      | None -> match identify (first s) (length s) with
 	  | Some x -> x :: explode (remove_first s)
 	  | None -> 
 	    if first s >= 'A' && first s <= 'Z' 
 	    then [PNonterminal s]
-	    else [PKeyword s]  
+	    else [PKeyword (escape s)]  
 	    
 let rec scan_regexp l: choice = 
   match l with
@@ -137,21 +165,18 @@ let rec group_regexp l =
 
 let rec pp_prere p = 
   match p with
-    | POr -> " |"
-    | PStar -> "*"
-    | POpt -> "?"
+    | POr -> " $^|$"
+    | PStar -> "$^*$"
+    | POpt -> "$^?$"
+    | PPlus -> "$^+$"
     | PNonterminal s -> Printf.sprintf " $\\mathsf{%s}$" s
     | PKeyword s -> Printf.sprintf " $\\mathbf{%s}$" s
-    | PGroup l -> "( " ^ concat "" (List.map pp_prere l) ^ " )"
+    | PGroup l -> " $\\rbag$ " ^ concat "" (List.map pp_prere l) ^ " $\\lbag$"
     | PLpar -> failwith "A regexp has a left parenthis while pretty printing"
     | PRpar -> failwith "A regexp has a right parenthis while pretty printing"
 
 let parse_regexp l: choice = 
-  Printf.printf "Scanning...\n";
-  flush stdout;
   let nl = scan_regexp l in
-  Printf.printf "Grouping...\n";
-  flush stdout;
   let (nl, rem) = group_regexp nl in 
   if rem <> [] then 
     let error_msg = "Error: failed to recognize the following reg exp: " ^ (concat " " l) ^ " found the following remainder: " ^ (concat " " (List.map pp_prere rem )) in
@@ -213,7 +238,7 @@ let pp_entries entries = List.flatten (List.map pp_entry entries)
 
 let pp_section (title,entries): string list = 
   let sec = Printf.sprintf "\\section{%s} \n" title in
-  let h = Printf.sprintf " \n\\begin{longtable}[l]{p{2cm}ll}" in
+  let h = Printf.sprintf " \n\\begin{longtable}[l]{p{3cm}ll}" in
   let e = Printf.sprintf "\\end{longtable} \\hfill \n" in
   sec :: h :: ((pp_entries entries) @ [e])
 
