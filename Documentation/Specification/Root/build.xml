@@ -121,6 +121,9 @@ This distribution may include materials developed by third parties.
   		<exec executable="ocaml" dir="${basedir}">
   			<arg value="../Support/transbnf.ml" />
   		</exec>	
+		<exec executable="./gp" dir="${basedir}/../Support/">
+			<arg value="${fortress.home}/Documentation/Specification/" />
+		</exec>	
   </target>	
 	
   <target name="texExs">
