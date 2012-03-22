@@ -122,7 +122,7 @@ let escape s =
     | "^" -> "CHAPEAU"
     | "#" -> "\\#"
     | "_" -> "\\_"
-    | "|->" -> "\mapsto"
+    | "|->" -> "\\mapsto"
     | "[[[" -> "\\llbracket"
     | "]]]" -> "\\rrbracket"
     | "->" -> "\\rightarrow"
@@ -165,13 +165,13 @@ let rec group_regexp l =
 
 let rec pp_prere p = 
   match p with
-    | POr -> " $^|$"
+    | POr -> " $\\big|$"
     | PStar -> "$^*$"
     | POpt -> "$^?$"
     | PPlus -> "$^+$"
     | PNonterminal s -> Printf.sprintf " $\\mathsf{%s}$" s
     | PKeyword s -> Printf.sprintf " $\\mathbf{%s}$" s
-    | PGroup l -> " $\\rbag$ " ^ concat "" (List.map pp_prere l) ^ " $\\lbag$"
+    | PGroup l -> " $\\big($ " ^ concat "" (List.map pp_prere l) ^ " $\\big)$"
     | PLpar -> failwith "A regexp has a left parenthis while pretty printing"
     | PRpar -> failwith "A regexp has a right parenthis while pretty printing"
 
@@ -247,6 +247,35 @@ let pp_sections sections: string list =
 
 let pp_grammar = pp_sections
 
+let rec select_entries entries nt =
+  match entries with
+    | [] -> []
+    | (s,_) as hd :: tl ->
+      if List.mem s nt then hd :: select_entries tl nt 
+      else select_entries tl nt
+
+let rec select_sections sections nt = 
+  match sections with
+    | [] -> []
+    | (_,entries) :: tl -> select_entries entries nt @ select_sections tl nt
+
+let select_and_print nt = 
+  let ic = open_in "../Data/bnf.txt" in
+  let line_counter = ref 1 in
+  let in_file = ref [] in
+  let _ = 
+    try 
+      while true do
+	let s = input_line ic in 
+	if length s > 0 then in_file := (analyze s !line_counter) :: !in_file;
+	incr line_counter
+      done
+    with End_of_file -> () in
+  let read = List.rev !in_file in
+  let g = parse_grammar read in  
+  let entries = select_sections g nt in
+  pp_entries entries
+
 let _ = 
   let ic = open_in "../Data/bnf.txt" in
   let oc = open_out "../Data/bnf.tex" in
@@ -269,6 +298,7 @@ let _ =
   let g = pp_grammar g in
   Printf.printf "Done!\n";
   flush stdout;
-  List.iter (fun x -> let x = x ^ "\n" in output_string oc x) g
+  List.iter (fun x -> let x = x ^ "\n" in output_string oc x) g;
+  close_out oc
  
     
