@@ -2179,7 +2179,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         Id gfid = NodeFactory.makeId(sp_span, TO_method_name);
         String template_class_name = 
             generateGenericFunctionClass(new FnNameInfo(new_fndecl, thisApi()),
-                    new GenericMethodBodyMakerFnDecl(x), gfid,
+                    new GenericMethodBodyMakerFnDecl(new_fndecl), gfid,
                     Naming.NO_SELF, traitOrObjectName);
         
         String method_name = genericMethodName(new FnNameInfo(x, thisApi()), self_index);
