@@ -24,8 +24,6 @@ let read_file path: string list =
   List.rev !in_file
 
 let write_file path f = 
-  Printf.printf "Writing %d lines to %s\n%!" (List.length f) path;
-  List.iter print_string f;
   let oc = open_out path in
   List.iter (fun s -> output_string oc (s ^ "\n")) f;
   close_out oc
@@ -71,10 +69,9 @@ let rec find_grammar_section l =
     
 let fetch_grammar l = 
   let (before, rem) = find_grammar_section l in
-  if rem = [] then (Printf.printf "Found nothing!\n%!"; (before,[],[])) else
+  if rem = [] then (before,[],[]) else
     let (nt, rem) = parse_nonterminals rem in
     let after = discard_grammar rem in
-    Printf.printf "Found something!\n%!";
     (before, nt, after)
 
 let process nt = 
@@ -90,11 +87,8 @@ let rec transform l =
     before @ [grammar_start] @ ["\n"] @ nt @ ["\n"] @ [special] @ ["\n"] @ grammar @ ["\n"] @ [special] @ (transform after)
     
 let preprocess path =
-  Printf.printf "Preprocessing %s\n%!" path;
   let file = read_file path in
-  Printf.printf "Collected %d lines\n%!" (List.length file);
   let file = transform file in
-  Printf.printf "Writing %d lines\n%!" (List.length file);
   write_file path file  
 
 let is_tex_file s = 
@@ -112,8 +106,6 @@ let rec find_all_tex_files path =
 let _ = 
   let path = Array.get Sys.argv 1 in
   let texfiles = find_all_tex_files path in
-  Printf.printf "List of tex files to process:\n%!";
-  List.iter (fun f -> Printf.printf "%s\n%!" f) texfiles; 
   List.iter preprocess texfiles
 
 

@@ -122,7 +122,7 @@ This distribution may include materials developed by third parties.
   			<arg value="../Support/transbnf.ml" />
   		</exec>	
 		<exec executable="./gp" dir="${basedir}/../Support/">
-			<arg value="${fortress.home}/Documentation/Specification/" />
+			<arg value="${fortress.home}/Documentation/Specification/Data/BNFslice/" />
 		</exec>	
   </target>	
 	
