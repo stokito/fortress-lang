@@ -19,6 +19,7 @@ import org.objectweb.asm.util.*;
 import com.sun.fortress.compiler.codegen.ClassNameBundle;
 import com.sun.fortress.compiler.codegen.CodeGen;
 import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
+import com.sun.fortress.compiler.codegen.FnNameInfo;
 import com.sun.fortress.compiler.index.Constructor;
 import com.sun.fortress.compiler.index.DeclaredFunction;
 import com.sun.fortress.compiler.index.DeclaredMethod;
@@ -36,6 +37,7 @@ import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
+import com.sun.fortress.nodes_util.Span;
 import com.sun.fortress.runtimeSystem.InitializedStaticField;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
@@ -1892,10 +1894,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         
         final int invokeOpcode;
         final ClassNameBundle cnb;
+        final CodeGen cg;
         
-        public TraitOrObjectFactory(int invoke_opcode, ClassNameBundle cnb) {
+        public TraitOrObjectFactory(int invoke_opcode, ClassNameBundle cnb, CodeGen cg) {
             this.invokeOpcode = invoke_opcode;
             this.cnb = cnb;
+            this.cg = cg;
         }
 
         @Override
@@ -1916,7 +1920,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
             }
             
-            return new ForTraitOrObject(apiname, name, ta, defs, null, n, self_index, cnb, invokeOpcode);
+            return new ForTraitOrObject(apiname, name, ta, defs, null, n, self_index, cnb, invokeOpcode, cg);
         }
         
     };
@@ -1930,11 +1934,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         final int selfIndex;
         final int invokeOpcode;
         final ClassNameBundle cnb;
+        final CodeGen cg;
         
         ForTraitOrObject(
                 final APIName apiname, IdOrOpOrAnonymousName name,
                 TypeAnalyzer ta, Set<Functional> defs, OverloadSet parent, int n,
-                int self_index, ClassNameBundle cnb, int invoke_opcode) {
+                int self_index, ClassNameBundle cnb, int invoke_opcode, CodeGen cg) {
             super(apiname, name, ta, Useful.applyToAll(defs, new F<Functional, TaggedFunctionName>() {
 
                 @Override
@@ -1946,6 +1951,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             selfIndex = self_index;
             this.cnb = cnb;
             this.invokeOpcode = invoke_opcode;
+            this.cg = cg;
         }
         
         ForTraitOrObject(APIName ifNone,
@@ -1954,15 +1960,16 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 Set<TaggedFunctionName> childLSTSF,
                 OverloadSet parent, int paramCount,
                 boolean this_disambiguates_the_erasure,
-                int self_index, ClassNameBundle cnb, int invoke_opcode) {
+                int self_index, ClassNameBundle cnb, int invoke_opcode, CodeGen cg) {
             super(ifNone, name, ta, childLSTSF, paramCount);
             selfIndex = self_index;
             this.cnb = cnb;
             this.invokeOpcode = invoke_opcode;
+            this.cg = cg;
         }
 
         protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName _principalMember, OverloadSet parent) {
-            OverloadSet subset = new ForTraitOrObject(ifNone, name, ta, childLSTSF, parent, paramCount, true, selfIndex, cnb, invokeOpcode);
+            OverloadSet subset = new ForTraitOrObject(ifNone, name, ta, childLSTSF, parent, paramCount, true, selfIndex, cnb, invokeOpcode, cg);
             subset.principalMember = _principalMember;
             return subset;
         }
@@ -2037,39 +2044,67 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             String signature = getSignature(selfIndex);
             String[] exceptions = getExceptions();
 
-          
+
             List<StaticParam> sargs = null;
             String PCNOuter = null;
             Naming.XlationData xldata = null; 
             String overloaded_name = oMangle(_name);
-            
+
             if (principalMember != null) {
                 sargs = staticParametersOf(principalMember.tagF);
             }
-            
+
             if (sargs != null) {
                 // Not yet prepared for overloaded GENERIC methods!
-                throw new CompilerError("Not yet ready for overloaded generic methods:\n>> " + principalMember + "\n" + this);
+                Span span = NodeUtil.getSpan(name);
+                List<Type> t1 = overloadedDomain();
+                Type domain = t1.size() == 1 ? t1.get(0) : NodeFactory.makeTupleType(t1);
+                
+                FnNameInfo fnni = new FnNameInfo(sargs, getRange(), domain, cg.thisApi(), (IdOrOp) name, span );
+                FnNameInfo fnni_closure = fnni.convertGenericMethodToClosureDecl(selfIndex,
+                        cg.currentTraitObjectDecl.getHeader().getStaticParams());
+                CodeGen.GenericMethodBodyMaker gmbm = new CodeGen.GenericMethodBodyMaker () {
 
-            }
+                    @Override
+                    public void generateGenericMethodBody(CodeGen cg, int selfIndex,
+                            String applied_method, String modified_sig) {
+                        // TODO Auto-generated method stub
+                        MethodVisitor mv = cg.getCw().visitCGMethod(Opcodes.ACC_PUBLIC, applied_method, modified_sig, null, null);
+                        generateBody(mv);
+                    }
+                };
+                String TO_method_name = cnb.stemClassName + Naming.UP_INDEX + overloaded_name;
+                Id gfid = NodeFactory.makeId(span, TO_method_name);
 
-            if (CodeGenerationPhase.debugOverloading)
-                System.err.println("Emitting overloaded method " + _name + signature);
+                String template_class_name = cg.generateGenericFunctionClass(fnni_closure, gmbm, gfid, selfIndex, cg.traitOrObjectName);
+                boolean in_a_trait = invokeOpcode == Opcodes.INVOKEINTERFACE;
+                String selfType = in_a_trait ? cg.traitOrObjectName +  NamingCzar.springBoard : cg.traitOrObjectName;
+                String method_name = cg.genericMethodName(fnni, selfIndex);
+                
+                cg.generateGenericMethodClosureFinder(method_name, template_class_name, selfType, in_a_trait);
 
-            
-            ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
-            
-            MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC, // access,
+                // throw new CompilerError("Not yet ready for overloaded generic methods:\n>> " + principalMember + "\n" + this);
+
+            } else {
+
+                if (CodeGenerationPhase.debugOverloading)
+                    System.err.println("Emitting overloaded method " + _name + signature);
+
+
+                ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
+
+                MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC, // access,
                         overloaded_name, // name,
                         signature, // sp.getFortressifiedSignature(),
                         null, // signature, // depends on generics, I think
                         exceptions); // exceptions);
-            
-            generateBody(mv);
-            
-            if (PCNOuter != null) {
-                InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cv);
-                cv.dumpClass(PCNOuter, xldata);
+
+                generateBody(mv);
+
+                if (PCNOuter != null) {
+                    InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cv);
+                    cv.dumpClass(PCNOuter, xldata);
+                }
             }
         }
         
