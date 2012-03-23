@@ -119,7 +119,7 @@ let escape s =
   match s with
     | "{" -> "\\{"
     | "}" -> "\\}"
-    | "^" -> "CHAPEAU"
+    | "^" -> "\\wedge" 
     | "#" -> "\\#"
     | "_" -> "\\_"
     | "|->" -> "\\mapsto"
@@ -130,6 +130,8 @@ let escape s =
     | "[([" -> "("
     | "])]" -> ")"
     | "=>" -> "\\Rightarrow"
+    | "kBIGSUM" -> "\\sum"
+    | "kBIGPROD" -> "\\prod"
     | _ -> s
 
 let rec explode s: choice = 
@@ -142,7 +144,8 @@ let rec explode s: choice =
 	    if first s >= 'A' && first s <= 'Z' 
 	    then [PNonterminal s]
 	    else [PKeyword (escape s)]  
-	    
+	      
+
 let rec scan_regexp l: choice = 
   match l with
     | [] -> []
@@ -225,7 +228,7 @@ let rec parse_grammar l =
     | g,[] -> g
     | g,rem -> failwith "BNF parsing error"
 
-let pp_choice (choice: choice) = " & " ^ " & " ^ (concat "" (List.map pp_prere choice)) ^ " \\\\"
+let pp_choice (choice: choice) = " & $\\big|$" ^ " & " ^ (concat "" (List.map pp_prere choice)) ^ " \\\\"
 
 let pp_choices (choices: choices) = List.map pp_choice choices
 
@@ -238,7 +241,7 @@ let pp_entries entries = List.flatten (List.map pp_entry entries)
 
 let pp_section (title,entries): string list = 
   let sec = Printf.sprintf "\\section{%s} \n" title in
-  let h = Printf.sprintf " \n\\begin{longtable}[l]{p{3cm}ll}" in
+  let h = Printf.sprintf " \n\\begin{longtable}[l]{p{3cm}rl}" in
   let e = Printf.sprintf "\\end{longtable} \\hfill \n" in
   sec :: h :: ((pp_entries entries) @ [e])
 
@@ -259,7 +262,70 @@ let rec select_sections sections nt =
     | [] -> []
     | (_,entries) :: tl -> select_entries entries nt @ select_sections tl nt
 
-let select_and_print nt = 
+let map_entries f (g: grammar) =
+  List.flatten (List.map (fun (_,es) -> List.map f es) g)
+
+let rec flatten_prere  l =
+  match l with 
+    | [] -> []
+    | PGroup l :: tl -> flatten_prere l @ flatten_prere tl
+    | hd :: tl -> hd :: flatten_prere tl
+
+let get_all (g: grammar) =
+  let all = List.flatten(map_entries (fun (_,l) -> List.flatten l) g) in 
+  flatten_prere all
+
+module S = Set.Make(struct type t = string let compare = compare end)  
+
+let collect_all_nonterminals_entries (g: grammar) = 
+  map_entries (fun (s,_) -> s) g
+
+let collect_all_used_nonterminals g =
+  let filter_nt p = 
+    match p with
+      | PNonterminal _ -> true
+      | _ -> false
+  in
+  let extract_nt nt = 
+    match nt with
+      | PNonterminal s -> s
+      | _ -> failwith "Found a non nonterminal after filtering"
+  in
+  List.map extract_nt (List.filter filter_nt (get_all g)) 
+
+let display_difference left right =
+  let diff = S.diff left right in
+  S.iter (fun x -> Printf.printf "%s\n%!" x) diff
+
+let check_nonterminals (g: grammar) = 
+  let left = collect_all_nonterminals_entries g in
+  let left = List.fold_left (fun s -> fun elt -> S.add elt s) S.empty left in
+  let right = collect_all_used_nonterminals g in
+  let right = List.fold_left (fun s -> fun elt -> S.add elt s) S.empty right in
+  if S.equal left right then true 
+  else 
+    (
+      Printf.printf "\n* Non-terminals defined but not used\n\n%!";
+      display_difference left right;
+      Printf.printf "\n* Non-terminals used without being defined\n\n%!";
+      display_difference right left;
+      false
+    )
+
+let print_keywords g = 
+  let filter_nt p = 
+    match p with
+      | PKeyword s -> true
+      | _ -> false
+  in
+  let extract_nt nt = 
+    match nt with
+      | PKeyword s -> s
+      | _ -> failwith "Found a non nonterminal after filtering"
+  in
+    List.map extract_nt (List.filter filter_nt (get_all g)) 
+
+let read_and_parse_bnf () = 
   let ic = open_in "../Data/bnf.txt" in
   let line_counter = ref 1 in
   let in_file = ref [] in
@@ -273,32 +339,24 @@ let select_and_print nt =
     with End_of_file -> () in
   let read = List.rev !in_file in
   let g = parse_grammar read in  
+  g
+
+let select_and_print nt = 
+  let g = read_and_parse_bnf() in
   let entries = select_sections g nt in
   pp_entries entries
 
-let _ = 
-  let ic = open_in "../Data/bnf.txt" in
+let pretty_print_full_grammar () = 
+  let g = read_and_parse_bnf() in
+  let _ = check_nonterminals g in
+  Printf.printf "\nKeywords found: \n%!";
+  let kwds = print_keywords g in
+  let kwds = List.fold_left (fun s -> fun elt -> S.add elt s) S.empty kwds in
+  S.iter (fun x -> Printf.printf "%s   %!" x) kwds;
+  Printf.printf "\n%!";
   let oc = open_out "../Data/bnf.tex" in
-  let line_counter = ref 1 in
-  let in_file = ref [] in
-  let _ = 
-    try 
-      while true do
-	let s = input_line ic in 
-	if length s > 0 then in_file := (analyze s !line_counter) :: !in_file;
-	incr line_counter
-      done
-    with End_of_file -> () in
-  let read = List.rev !in_file in
-  Printf.printf "Parsing...\n";
-  flush stdout;
-  let g = parse_grammar read in
-  Printf.printf "Pretty printing...\n";
-  flush stdout;
   let g = pp_grammar g in
-  Printf.printf "Done!\n";
-  flush stdout;
   List.iter (fun x -> let x = x ^ "\n" in output_string oc x) g;
   close_out oc
  
-    
+let _ = pretty_print_full_grammar()    
