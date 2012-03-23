@@ -79,10 +79,7 @@ Decl ::=
      | ObjectDecl
      | VarDecl
      | FnDecl
-     | DimUnitDecl
      | TypeAlias
-     | TestDecl
-     | PropertyDecl
      | ExternalSyntax
 
 AbsDecls ::=
@@ -93,10 +90,7 @@ AbsDecl ::=
      | AbsObjectDecl
      | AbsVarDecl
      | AbsFnDecl
-     | DimUnitDecl
      | TypeAlias
-     | TestDecl
-     | PropertyDecl
      | AbsExternalSyntax
 
 $$$$$ Trait and Object Declarations
@@ -113,7 +107,6 @@ TraitClauses ::=
 TraitClause ::=
      | Excludes
      | Comprises
-     | Where
 
 GoInATrait ::=
      | GoFrontInATrait GoBackInATrait?
@@ -144,15 +137,11 @@ ObjectValParam ::=
      | ( ObjectParams? )
 
 ObjectParams ::=
-     | (ObjectParam , )* (ObjectVarargs , )? ObjectKeyword( , ObjectKeyword)*
-     | (ObjectParam , )* ObjectVarargs
+     | (ObjectParam , )* ObjectKeyword( , ObjectKeyword)*
      | ObjectParam ( , ObjectParam)*
 
-ObjectVarargs ::=
-     | transient Varargs
-
 ObjectKeyword ::=
-     | ObjectParam=Expr
+     | ObjectParam = Expr
 
 ObjectParam ::=
      | FldMods? Param
@@ -296,19 +285,6 @@ ComprisingTypeList ::=
      | . . .
      | TraitType( , TraitType)* ( , . . . )?
 
-Where ::=
-     | where { WhereClauseList } 
-
-WhereClauseList ::=
-     | WhereClause( , WhereClause)*
-
-BoolRef ::=
-     | StaticArg
-
-UnitConstraint ::=
-     | unit Id
-     | UnitRef = UnitRef
-
 FnHeaderClause ::=
      | IsType? FnClauses
 
@@ -319,39 +295,11 @@ Throws ::=
      | throws MayTraitTypes
 
 MayTraitTypes ::=
-     | {}
+     | { }
      | TraitTypes
-
-Contract ::=
-     | Requires? Ensures? Invariant?
-
-Requires ::=
-     | requires { ExprList? } 
-
-Ensures ::=
-     | ensures { ProvidedList? } 
-
-ProvidedList ::=
-     | Provided( , Provided)*
-
-Provided ::=
-     | Expr ( provided Expr)?
-
-Invariant ::=
-     | invariant { ExprList? } 
 
 CoercionClauses ::=
      | Throws? CoercionWhere? Contract
-
-CoercionWhere ::=
-     | where { CoercionWhereClauseList } 
-
-CoercionWhereClauseList ::=
-     | CoercionWhereClause( , CoercionWhereClause)*
-
-CoercionWhereClause ::=
-     | WhereClause
-     | TypeRef widens or coerces TypeRef
 
 UniversalMod ::=
      | private      
@@ -384,7 +332,6 @@ VarMods ::=
 AbsFldMod ::=
      | hidden      
      | settable      
-     | wrapped      
      | UniversalMod
 
 AbsFldMods ::=
@@ -408,7 +355,6 @@ ApiFldMods ::=
 
 LocalFnMod ::=
      | atomic      
-     | io
 
 LocalFnMods ::=
      | LocalFnMod+
@@ -420,12 +366,10 @@ StaticParamList ::=
      | StaticParam( , StaticParam)*
 
 StaticParam ::=
-     | Id Extends? (absorbs unit )?
+     | Id Extends? 
      | nat Id
      | int Id
      | bool Id
-     | dim Id
-     | unit Id ( : DimRef )? ( absorbs unit )?
      | opr Op
      | ident Id
 
@@ -436,7 +380,7 @@ ValParam ::=
      | (Params?)
 
 Params ::=
-     | (Param , )* (Varargs , )? Keyword( ,Keyword)*
+     | (Param , )* (Varargs , )? Keyword( , Keyword)*
      | (Param , )* Varargs
      | Param( , Param)*
 
@@ -479,7 +423,7 @@ AbsMdDecl ::=
      | abstract ? FnMods? MdHeaderFront FnHeaderClause
 
 MdHeaderFront ::=
-     | (Receiver . )?Id StaticParams? MdValParam
+     | ( Receiver . )?Id StaticParams? MdValParam
      | OpHeaderFront
 
 Receiver ::=
@@ -499,19 +443,13 @@ GetterSetterMod ::=
 AbsGetterSetterDecl ::=
      | abstract ? FnMods? GetterSetterMod MdHeaderFront FnHeaderClause
 
-Coercion ::=
-     | widening ? coercion StaticParams? ( Id IsType ) CoercionClauses = Expr
-
-AbsCoercion ::=
-     | widening ? coercion StaticParams? (Id IsType ) CoercionClauses
-
 $$$$$ Method Parameters
 
 MdValParam ::=
      | ( MdParams? )
 
 MdParams ::=
-     | (MdParam , )* (Varargs , )? MdKeyword( ,MdKeyword)*
+     | (MdParam , )* (Varargs , )? MdKeyword( , MdKeyword)*
      | (MdParam , )* Varargs
      | MdParam( , MdParam)*
 
@@ -578,18 +516,6 @@ Expr ::=
      | fn ValParam IsType? Throws? => Expr
      | Expr as TypeRef
      | Expr asif TypeRef
-     | UnitExpr
-
-UnitExpr ::=
-     | UnitRef
-     | Expr UnitRef
-     | Expr . UnitRef
-     | Expr / UnitRef
-     | Expr per UnitRef
-     | Expr in UnitRef
-
-UnitRef ::=
-     | StaticArg
 
 AssignLefts ::=
      | ( AssignLeft( , AssignLeft)* )
@@ -666,7 +592,7 @@ DelimitedExpr ::=
      | case Expr Op? of CaseClauses CaseElse? end
      | case ( largest      | smallest ) Op? of CaseClauses end
      | typecase TypecaseBindings of TypecaseClauses CaseElse? end
-     | try BlockElems Catch? (forbid TraitTypes)? ( finally BlockElems)? end
+     | try BlockElems Catch? ( finally BlockElems)? end
 
 Do ::=
      | (DoFront also )* DoFront end
@@ -799,26 +725,12 @@ LocalVarWoTypes ::=
 
 LocalVarWoType ::=
      | var ? Id
-     | Unpasting
 
-Unpasting ::=
-     | [ UnpastingElems ]
-
-UnpastingElems ::=
-     | UnpastingElem RectSeparator UnpastingElems
-     | UnpastingElem
-
-UnpastingElem ::=
-     | Id ( [ UnpastingDim ] )?
-     | Unpasting
-
-UnpastingDim ::=
-     | ExtentRange ( SQRT ExtentRange)+
 
 $$$$$ Literals
 
 Literal ::=
-     | ( )
+     | [([ ])]
      | NumericLiteral
      | CharLiteral
      | StringLiteral
@@ -845,7 +757,6 @@ TypeRef ::=
      | ArrowType
      | TupleType
      | (TypeRef ?)
-     | DimType
 
 TraitType ::=
      | DottedId ( [[[ StaticArgList ]]] )?
@@ -857,21 +768,6 @@ TraitType ::=
 
 ArrowType ::=
      | TypeRef -> TypeRef Throws?
-
-DimType ::=
-     | DimRef
-     | TypeRef DimRef
-     | TypeRef . DimRef
-     | TypeRef / DimRef
-     | TypeRef per DimRef
-     | TypeRef UnitRef
-     | TypeRef . UnitRef
-     | TypeRef / UnitRef
-     | TypeRef per UnitRef
-     | TypeRef in DimRef
-
-DimRef ::=
-     | StaticArg
 
 TupleType ::=
      | ( (TypeRef , )* (TypeRef ... , )? KeywordType( , KeywordType)* )
@@ -891,36 +787,9 @@ StaticArgList ::=
      | StaticArg( , StaticArg)*
 
 StaticArg ::=
-     | Number
      | Op
-     | true
-     | false
-     | Unity
-     | dimensionless
-     | StaticArg + StaticArg
-     | StaticArg . StaticArg
-     | StaticArg StaticArg
-     | StaticArg / StaticArg
-     | 1 / StaticArg
-     | StaticArg ^ StaticArg
-     | StaticArg per StaticArg
-     | DUPreOp StaticArg
-     | StaticArg DUPostOp
-     | NOT StaticArg
-     | StaticArg OR StaticArg
-     | StaticArg AND StaticArg
-     | StaticArg IMPLIES StaticArg
      | TypeRef
      | [([ StaticArg ])]
-
-DUPreOp ::=
-     | square      
-     | cubic      
-     | inverse
-
-DUPostOp ::=
-     | squared      
-     | cubed
 
 ArraySize ::=
      | ExtentRange( , ExtentRange)*
@@ -930,14 +799,14 @@ ExtentRange ::=
      | StaticArg? : StaticArg?
      | StaticArg
 
-Number ::=
-     | IntLiteral
-
 $$$$$ Symbols and Operators
 
 AssignOp ::=
      | :=      
-     | Op=
+     | Op =
+
+Accumulator ::=
+     | kBIGSUM | kBIGPROD | BIG Op
 
 $$$$$ Identifiers
 
