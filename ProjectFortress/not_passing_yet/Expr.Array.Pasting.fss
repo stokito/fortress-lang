@@ -1,0 +1,31 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.Array.Pasting
+
+export Executable
+
+f() = do
+(** EXAMPLE **)
+A: ZZ32[2,3] = [3 4 5; 6 7 8]
+B: ZZ32[2,3,2] = [A ;; 3 4 5; 6 7 8 ]
+(*
+B: ZZ32[2,3,2] = [A ;; A]
+*)
+(** END EXAMPLE **)
+  B[1,2,0]
+end
+
+run() = println f()
+
+end

@@ -1,0 +1,104 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XmlUse
+
+import Xml.{...}
+import List.{...}
+
+export Executable
+
+printTree(node,space) = do
+    print (space "" node.tag() " " (BIG ||| node.attributes()) ":")
+    if node.hasElements() then
+        println ""
+        for i <- node.children() do
+            printTree(i,space " ")
+        end
+    else
+        println node.content()
+    end
+end
+
+run() = do
+
+    println "Answer is " (<aaa />)
+    println "Answer is " (<aaa foo="bar">a</aaa>)
+    println "Answer is " (<aaa foo="bar/boo">a</aaa>)
+    println "Answer is " (<aaa foo="bar" />)
+    println "Answer is " (<aaa foo="bar" a="b" />)
+    println "Answer is " (<a />)
+    println "Answer is " (<x></x>)
+
+    println "Answer is " (<aaa>aa</aaa>)
+    println "Answer is " (<aaa><q /></aaa>)
+
+    println "Answer is " (<aaa><foobar /></aaa>)
+    println "Answer is " (<aaa> <aa>aa</aa> </aaa>)
+
+    println "Answer is " (<hello><world>hi mom</world></hello>)
+    println "Answer is " (<hello attr="foobar"><world>hi (* a fortress comment *) mom</world></hello>)
+    println "Answer is " (<hello attr="foobar" more="blah"><world>hi mom</world></hello>)
+    println "Answer is " (<hi><![CDATA[i like food]]></hi>)
+    println "Answer is " (<hi><![CDATA[i like food]]><![CDATA[pizza is good too]]></hi>)
+
+    xml:Content = <note>hi</note>
+    println "Xml: " xml
+
+    println "Xml: "
+    <note>It makes no sense to have an XML literal here remember Fortress
+     interprets this as a new declaration like (* Element("note", CData(...), "note") *) </note>
+
+    xml2 = <note>
+           <to>Tove</to>
+         </eton>
+    println "Xml: " xml2
+
+    println "Xml: " (
+    <from>Jani</from>)
+
+    println "Xml: " (
+    <note>
+      <to>Tove</to>
+      <from>Jani</from>
+      <heading>Reminder</heading>
+      <body>Dont forget me this weekend</body>
+    </note>)
+
+    (*
+    x = <t2>text</t2>
+    y = <t2> <t3>bread</t3> </t2>
+    println x.hasElements
+    println y.hasElements
+    *)
+    y:Element = cast[\Element\](xml2)
+    println "xml2 has elements = " (y.hasElements())
+
+    z = <f>hello</f>
+    println cast[\Element\](z).hasElements()
+    q = <f><g></g></f>
+    println cast[\Element\](q).hasElements()
+    q1 = <chicken tastes="good">
+            <elbow>hi</elbow>
+            <hand status="swollen" number="9">
+                <finger>pinky</finger>
+                <finger>thumb</finger>
+            </hand>
+         </chicken>
+    q2 = cast[\Element\](q1)
+    println q2.hasElements()
+    println q2.children()
+    println "Print tree for q2"
+    printTree(q2,"")
+    println "ok"
+end
+
+end

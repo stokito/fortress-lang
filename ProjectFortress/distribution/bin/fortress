@@ -1,0 +1,10 @@
+# /bin/sh
+
+LOCALCLASSPATH=${FORTRESS}/lib
+   
+for file in $(ls ${FORTRESS}/lib); do
+   LOCALCLASSPATH=${LOCALCLASSPATH}:${FORTRESS}/lib/${file}
+done
+
+exec "${JAVA_HOME}/bin/java" -classpath "$LOCALCLASSPATH" com.sun.fortress.shell.Shell $*
+#exec "${JAVA_HOME}/bin/java $*"

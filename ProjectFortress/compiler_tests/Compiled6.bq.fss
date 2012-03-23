@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+
+  trait Foo end
+  trait Bar extends Foo end
+
+  foo(b:Bar):() = do
+    var i:ZZ32
+    i := b.size
+  end
+
+  run():() =()

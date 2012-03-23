@@ -1,0 +1,76 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Do Expressions}
+\seclabel{block-expr}
+
+\begin{Grammar}
+\emph{Do} &::=& (\emph{DoFront} \KWD{also})$^*$ \emph{DoFront} \KWD{end}\\
+
+\emph{DoFront} &::=& \options{\KWD{at} \emph{Expr}} \option{\KWD{atomic}} \KWD{do} \option{\emph{BlockElems}}\\
+
+\emph{BlockElems} &::=& \emph{BlockElem}$^+$ \\
+
+\emph{BlockElem}
+&::=& \emph{LocalVarFnDecl}\\
+&$|$& \emph{Expr}\options{\EXP{,} \emph{GeneratorClauseList}}\\
+
+\emph{LocalVarFnDecl}
+&::=& \emph{LocalFnDecl}$^+$\\
+&$|$& \emph{LocalVarDecl}\\
+
+\end{Grammar}
+
+A \KWD{do} expression consists of a series of \emph{expression blocks}
+separated by \KWD{also} and
+terminated by \KWD{end}.  Each expression block is preceded by
+an optional \KWD{at} expression (described in \secref{parallelism-fundamentals}),
+an optional \KWD{atomic}, and
+\KWD{do}.  When prefixed by \KWD{at} or \KWD{atomic}, it is as though
+that expression block were evaluated as the body expression of an \KWD{at} or
+\KWD{atomic} expression (described in \secref{atomic}), respectively.
+An expression block
+consists of a (possibly empty) series of \emph{elements}--expressions,
+generated expressions (described in \secref{generated}),
+local variable declarations, or local function declarations--separated
+by newlines or semicolons.
+
+A single expression block evaluates its elements in order: each
+element must complete before evaluation of the next can begin, and the
+expression block as a whole does not complete until the final element completes.
+Each expression except the last element of the expression block
+must have type \TYP{()}.
+There are two ways to make an expression \VAR{e} of type non-\TYP{()}
+have type \TYP{()} in an expression block:
+1) ``\EXP{\VAR{ignore}(e)}'' and 2) ``\EXP{{\tt\_} = e}''.
+If the last element of the expression block is an
+expression, the value and type of this expression are the value and
+type of the expression block as a whole.  Otherwise, the value and
+type of the expression block is \EXP{()}.  Each expression block
+introduces a new scope.  Some compound expressions have clauses that
+are implicitly expression blocks.
+
+Because a local declaration shares a syntax with an
+\emph{equality testing expression}, we require that any equality testing
+expression within an expression block be parenthesized.
+
+
+Here are examples of function
+declarations whose bodies are \KWD{do} expressions:
+\input{\home/basic/examples/Expr.Do.f.tex}
+
+\input{\home/basic/examples/Expr.Do.foo.tex}
+
+\input{\home/basic/examples/Expr.Do.mySum.tex}
+
+\input{\home/basic/expressions/generated}
+
+\input{\home/basic/expressions/also}

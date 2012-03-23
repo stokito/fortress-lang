@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Arrow2
+
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+export Executable
+
+f(x:Object):ZZ32 = 1
+
+(* can f be passed to parameter h of g ? *)
+g(x:ZZ32, h:ZZ32->Number):String =  h(x).asString
+
+run():() = 
+  if g(0,f)="1" then
+     println("Ok!")
+  else
+     println("FAIL")
+  end
+  
+end

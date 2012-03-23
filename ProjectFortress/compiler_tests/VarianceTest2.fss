@@ -1,0 +1,20 @@
+component VarianceTest2
+
+  export Executable
+
+  trait Test[\contravariant T\] 
+    f(x: T): () 
+  end
+
+  object Impl[\T\]() extends Test[\T\] 
+    f(x: T): () = ()
+  end
+
+  trait Foo end
+    
+  run() = do
+    x: Test[\Foo\] = Impl[\Any\]()
+    ()
+  end
+  
+end

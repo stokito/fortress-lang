@@ -1,0 +1,132 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Integer3
+export Executable
+
+(*) Test exceptional behavior of ZZ32 operators that can overflow or wrap or saturate.
+
+shouldOverflow(f: () -> ZZ32): Boolean =
+  try
+    ignore f()
+    false
+  catch e
+    IntegerOverflow => true
+    Exception => false 
+  end
+
+shouldDivideByZero(f: () -> ZZ32): Boolean =
+  try
+    ignore f()
+    false
+  catch e
+    DivisionByZero => true
+    Exception => false
+  end
+
+run(): () = do
+  zero: ZZ32 = 0
+  minusOne: ZZ32 = -1
+  two: ZZ32 = 2
+  five: ZZ32 = 5
+  six: ZZ32 = 6
+  minusSix: ZZ32 = (BITNOT six) + 1
+  seven: ZZ32 = 7
+  minusSeven: ZZ32 = (BITNOT seven) + 1
+  semihuge: ZZ32 = 30000_16
+  huge: ZZ32 = 50000000_16
+  twiceHuge: ZZ32 = A0000000_16
+  minusHuge: ZZ32 = (BITNOT huge) + 1
+  minusTwiceHuge: ZZ32 = (BITNOT twiceHuge) + 1
+  maxValue: ZZ32 = 7FFFFFFF_16
+  minValue: ZZ32 = -maxValue - 1
+
+  assert(-six = minusSix)
+  assert(BOXMINUS six = minusSix)
+  assert(DOTMINUS six = minusSix)
+  assert(-minusSeven = seven)
+  assert(BOXMINUS minusSeven = seven)
+  assert(DOTMINUS minusSeven = seven)
+  assert(|minusSix| = 6)
+  assert(|six| = 6)
+  assert(five + seven = 12)
+  assert((five BOXPLUS seven) = 12)
+  assert((five DOTPLUS seven) = 12)
+  assert(seven - five = 2)
+  assert((seven BOXMINUS five) = 2)
+  assert((seven DOTMINUS five) = 2)
+  assert(seven five = 35)
+  assert(seven DOT five = 35)
+  assert((seven BOXDOT five) = 35)
+  assert(seven CROSS five = 35)
+  assert((seven BOXCROSS five) = 35)
+  assert((seven DOTCROSS five) = 35)
+  assert(seven DIV two = 3)
+  assert(five + minusSeven = -2)
+  assert((five BOXPLUS minusSeven) = -2)
+  assert((five DOTPLUS minusSeven) = -2)
+  assert(minusSeven - five = -12)
+  assert((minusSeven BOXMINUS five) = -12)
+  assert((minusSeven DOTMINUS five) = -12)
+  assert(minusSeven five = -35)
+  assert(minusSeven DOT five = -35)
+  assert((minusSeven BOXDOT five) = -35)
+  assert(minusSeven CROSS five = -35)
+  assert((minusSeven BOXCROSS five) = -35)
+  assert((minusSeven DOTCROSS five) = -35)
+  assert(minusSeven DIV two = -3)
+
+  (* assert(shouldDivideByZero(fn () => seven DIV zero)) *)
+  (* assert(shouldDivideByZero(fn () => minusSix DIV zero)) *)
+  (* assert(shouldDivideByZero(fn () => zero DIV zero)) *)
+  (* assert(shouldDivideByZero(fn () => minValue DIV zero)) *)
+  (* assert(shouldDivideByZero(fn () => maxValue DIV zero)) *)
+
+  assert(shouldOverflow(fn () => -minValue))
+  assert(BOXMINUS minValue = minValue)
+  assert(DOTMINUS minValue = maxValue)
+  assert(shouldOverflow(fn () => |minValue|))
+  assert(shouldOverflow(fn () => huge + huge))
+  assert(shouldOverflow(fn () => minusHuge + minusHuge))
+  assert((huge BOXPLUS huge) = twiceHuge)
+  assert((minusHuge BOXPLUS minusHuge) = minusTwiceHuge)
+  assert((huge DOTPLUS huge) = maxValue)
+  assert((minusHuge DOTPLUS minusHuge) = minValue)
+  assert(shouldOverflow(fn () => huge - minusHuge))
+  assert(shouldOverflow(fn () => minusHuge - huge))
+  assert((minusHuge BOXMINUS huge) = minusTwiceHuge)
+  assert((huge BOXMINUS minusHuge) = twiceHuge)
+  assert((minusHuge DOTMINUS huge) = minValue)
+  assert((huge DOTMINUS minusHuge) = maxValue)
+  assert(shouldOverflow(fn () => huge huge))
+  assert(shouldOverflow(fn () => semihuge semihuge))
+  assert(shouldOverflow(fn () => minusHuge huge))
+  assert(shouldOverflow(fn () => huge DOT huge))
+  assert(shouldOverflow(fn () => semihuge DOT semihuge))
+  assert(shouldOverflow(fn () => minusHuge DOT huge))
+  assert((huge BOXDOT huge) = 0)
+  assert((semihuge BOXDOT semihuge) = 0)
+  assert((minusHuge BOXDOT huge) = 0)
+  assert(shouldOverflow(fn () => huge CROSS huge))
+  assert(shouldOverflow(fn () => semihuge CROSS semihuge))
+  assert(shouldOverflow(fn () => minusHuge CROSS huge))
+  assert((huge BOXCROSS huge) = 0)
+  assert((semihuge BOXCROSS semihuge) = 0)
+  assert((minusHuge BOXCROSS huge) = 0)
+  assert((huge DOTCROSS huge) = maxValue)
+  assert((semihuge DOTCROSS semihuge) = maxValue)
+  assert((minusHuge DOTCROSS huge) = minValue)
+  assert(shouldOverflow(fn () => minValue DIV minusOne))
+
+  println("PASS")
+end
+
+end
