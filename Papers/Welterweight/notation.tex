@@ -1,0 +1,49 @@
+We write $\bar{x}$ as shorthand for a possibly empty comma-separated sequence $x_1, x_2, \ldots, x_n$ for some freely chosen nonnegative integer $n$;
+thus $\bar{x}$ may expand to `` '' or ``$x_1$'' or ``$x_1, x_2$'' or ``$x_1, x_2, x_3$'' or ``$x_1, x_2, x_3, x_4$'' and so on.
+More generally, for any expression, that same expression with an overbar is shorthand for a possibly empty comma-separated sequence
+of copies of that expression with two transformations applied to each copy: (a) any subexpression that is underlined one or more times
+is replaced by a copy of that subexpression with one underline removed, and (b) any subexpression that is a single letter, possibly with primes and/or subscripts attached, that is not underlined
+is replaced by a copy of that possibly decorated identifier with an additional subscript $i$ appended, where $i$ is the number of the copy (starting from the left with 1). Thus $\bar{\underline{[\tau/P]}\tau'}$ means $[\tau/P]\tau'_1, [\tau/P]\tau'_2, \dots, [\tau/P]\tau'_n$,
+so one possible concrete expansion is $[\tau/P]\tau'_1, [\tau/P]\tau'_2, [\tau/P]\tau'_3, [\tau/P]\tau'_4, [\tau/P]\tau'_5$.  As another example, the shorthand
+$f\bigobb{P \extends \bdb{\tau}}$ means $f\bigob{P_1 \extends \bdb{\tau_1}, P_2 \extends \bdb{\tau_1}, \ldots, P_n \extends \bdb{\tau_n}}$ which in turn means:
+\[ \begin{array}{l@{}l}
+    f \big\llbracket \mskip0.5\thinmuskip & P_1 \extends \bd{\tau_{11}, \tau_{12}, \ldots, \tau_{1{n_1}}}, \\
+                                          & P_2 \extends \bd{\tau_{21}, \tau_{22}, \ldots, \tau_{2{n_2}}}, \\
+                                          & \ldots, \\
+                                          & P_n \extends \bd{\tau_{m1}, \tau_{m2}, \ldots, \tau_{m{n_m}}} \mskip 0.5\thinmuskip \big\rrbracket
+\end{array} \]
+so one possible concrete expansion is:
+\[ \begin{array}{l@{}l}
+    f \big\llbracket \mskip0.5\thinmuskip & P_1 \extends \bd{\tau_{11}, \tau_{12}, \tau_{13}}, \\
+                                          & P_2 \extends \bd{\tau_{21}}, \\
+                                          & P_3 \extends \bd{\,}, \\
+                                          & P_4 \extends \bd{\tau_{41}, \tau_{42}, \tau_{43}, \tau_{44}, \tau_{45}, \tau_{46}} \mskip 0.5\thinmuskip \big\rrbracket
+\end{array} \]
+
+The function $\#$ returns an integer sayig how many arguments it was given; thus $\#(\bar{x})$ tells the length of the sequence into which $\bar{x}$ has expanded.
+
+We use ``$\dontcare$'' as a shorthand for any sequence of tokens that is correctly balanced within respect to parentheses, braces, and brackets,
+such that every comma or semicolon in the sequence is contained within at least one matched pair of parentheses, braces, or brackets.
+
+When either kind of shorthand is used in a BNF rule or inference rule, it is as if there were an infinite number of instantiations of the rule,
+one for each possible expansion of the shorthand.  If such shorthands are used more than once in a rule, the effect is multiplicative (Cartesian product), except that
+if multiple overbar shorthands attach subscripts to the same identifier (with identical decorations), the effect is to ``zip'' those shorthands, in which case they all
+produce the same number of copies, using the same index $i$ in any given copy of the containing rule.
+
+As an additional convenience using such shorthands, we adopt these conventions:
+\begin{itemize}
+\item If a judgment has several comma-separated expressions to the right of the turnstile, it is
+as if there were several distinct judgments, one containing each of the expressions to the right of the turnstile.
+Thus the judgment $\jgTHREEtemplate{\Gamma}{\tau_1}{\extends}{\tau'_1}{\tau_2}{\tau'_2}{\tau_3}{\tau'_3}$
+means the same as three separately written judgments:
+\[\jgtemplate[\Gamma]{\tau_1}{\extends}{\tau'_1} \andalso \jgtemplate[\Gamma]{\tau_2}{\extends}{\tau'_2} \andalso \jgtemplate[\Gamma]{\tau_3}{\extends}{\tau'_3} \]
+\item If a judgment has nothing to the right of the turnstile, it is
+as if there were no judgment written at all.
+\item If an inference rule has several comma-separated expressions or judgments below the line as consequents, it is
+as if there were several distinct inference rules, one containing each of the consequents below the line.
+\item If an inference rule has nothing below the line, it is
+as if there were no inference rule written at all.
+\end{itemize}
+
+Finally, we sometimes use parentheses or braces or brackets of different sizes within an expression purely to enhance readability;
+the size of such a symbol does not affect its meaning in the formalism.
