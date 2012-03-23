@@ -482,7 +482,7 @@ public final class Shell {
             }
         } catch (StaticError e) {
             System.err.println(e);
-            if (Debug.isOn()) {
+            if (Debug.stackTraceOn()) {
                 e.printStackTrace();
             }
             return_code = -1;
@@ -494,7 +494,7 @@ public final class Shell {
             return_code = -2;
         } catch (CompilerBug error) {
             System.err.println(error.getMessage());
-            if (Debug.isOn()) {
+            if (Debug.stackTraceOn()) {
                 error.printStackTrace();
             }
             return_code = -3;
@@ -699,7 +699,7 @@ public final class Shell {
                 }
             }
         } catch (ParserError e) {
-            if (Debug.isOn()) {
+            if (Debug.stackTraceOn()) {
                 System.err.println(e.getMessage());
                 e.printStackTrace();
             } else {
@@ -730,7 +730,7 @@ public final class Shell {
     private static void failureBoilerplate(FortressException e) {
         System.err.println(e.getMessage());
         e.printInterpreterStackTrace(System.err);
-        if (Debug.isOn()) {
+        if (Debug.stackTraceOn()) {
             e.printStackTrace();
         } else {
             System.err.println(turnOnDebugMessage);
@@ -896,7 +896,7 @@ public final class Shell {
         } catch (ProgramError e) {
             System.err.println(e.getMessage());
             e.printInterpreterStackTrace(System.err);
-            if (Debug.isOn()) {
+            if (Debug.stackTraceOn()) {
                 e.printStackTrace();
             } else {
                 System.err.println(turnOnDebugMessage);
@@ -968,7 +968,7 @@ public final class Shell {
         } catch (ProgramError pe) {
             Iterable<? extends StaticError> se = pe.getStaticErrors();
             if (se == null)
-                return IterUtil.singleton(new WrappedException(pe, Debug.isOn()));
+                return IterUtil.singleton(new WrappedException(pe, Debug.stackTraceOn()));
             else
                 return flattenErrors(se);
         } catch (RepositoryError ex) {
@@ -980,9 +980,9 @@ public final class Shell {
         } catch (StaticError ex) {
             return flattenErrors(ex);
         } catch (CompilerBug e) {
-            return IterUtil.singleton(new WrappedException(e, Debug.isOn()));
+            return IterUtil.singleton(new WrappedException(e, Debug.stackTraceOn()));
         } catch (InterpreterBug e) {
-            return IterUtil.singleton(new WrappedException(e, Debug.isOn()));
+            return IterUtil.singleton(new WrappedException(e, Debug.stackTraceOn()));
         } catch (FortressException e) {
              failureBoilerplate(e);
              System.exit(1);
@@ -1010,7 +1010,7 @@ public final class Shell {
         if ( ex instanceof MultipleStaticError ) {
             for ( StaticError err : (MultipleStaticError)ex )
                 result.addAll( flattenErrors(err) );
-        } else result.add(new WrappedException(ex, Debug.isOn()));
+        } else result.add(new WrappedException(ex, Debug.stackTraceOn()));
         return result;
     }
 
@@ -1124,7 +1124,7 @@ public final class Shell {
                     throw (RuntimeException) th;
                 if (th instanceof Error)
                     throw (Error) th;
-                throw new WrappedException(th, Debug.isOn());
+                throw new WrappedException(th, Debug.stackTraceOn());
             }
 
             if ( !IterUtil.isEmpty(errors) ) {
@@ -1138,7 +1138,7 @@ public final class Shell {
             // by the CacheBasedRepository.
         } catch ( StaticError e ){
             System.err.println(e);
-            if ( Debug.isOn() ){
+            if ( Debug.stackTraceOn() ){
                 e.printStackTrace();
             }
             System.exit(-1);
@@ -1146,7 +1146,7 @@ public final class Shell {
             throw e;
         } catch (LabelException e) {
             System.err.println(e.getMessage());
-            if (Debug.isOn()) {
+            if (Debug.stackTraceOn()) {
                 e.printStackTrace();
             } else {
                 System.err.println(turnOnDebugMessage);
@@ -1220,7 +1220,7 @@ public final class Shell {
                             throw (RuntimeException) th;
                         if (th instanceof Error)
                             throw (Error) th;
-                        throw new WrappedException(th, Debug.isOn());
+                        throw new WrappedException(th, Debug.stackTraceOn());
                     }
 
                     for (StaticError error: errors) {
@@ -1231,7 +1231,7 @@ public final class Shell {
                     // by the CacheBasedRepository.
                 } catch ( StaticError e ){
                     System.err.println(e);
-                    if ( Debug.isOn() ){
+                    if ( Debug.stackTraceOn() ){
                         e.printStackTrace();
                     }
                 } catch (RepositoryError e) {

@@ -66,14 +66,14 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
 
         this.hasThis = (access & Opcodes.ACC_STATIC) != Opcodes.ACC_STATIC;
 
-        Debug.debug(Debug.Type.CODEGEN, 1,
+        Debug.debug(Debug.Type.CODEGEN, 2,
                     "MethodVisitor: name = " , name , " desc = " , desc ,
                     " argumentTypes = " , argumentTypes , " resultType " , resultType);
 
     }
 
     public void dump() {
-        Debug.debug(Debug.Type.CODEGEN, 1,
+        Debug.debug(Debug.Type.CODEGEN, 2,
                     "MethodVisitor: name = " , name , " desc = " , desc ,
                     " access = " , access , " signature = " , signature ,
                     " exceptions " , exceptions ,
@@ -86,7 +86,7 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
     }
 
     public void dumpBytecodes() {
-        Debug.debug(Debug.Type.CODEGEN, 1, getText());
+        Debug.debug(Debug.Type.CODEGEN, 2, getText());
     }
 
     private String getStackTrace() {
@@ -103,52 +103,52 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
 
     public void visitFieldInsn(int opcode, String owner, String name, String desc) 
     {
-        Debug.debug(Debug.Type.CODEGEN, 1, "visitFieldInsn: ", opc(opcode), " owner = " + owner, " name = ", name, " desc = ", desc, getStackTrace());
+        Debug.debug(Debug.Type.CODEGEN, 2, "visitFieldInsn: ", opc(opcode), " owner = " + owner, " name = ", name, " desc = ", desc, getStackTrace());
         super.visitFieldInsn(opcode, owner,name,desc);
     }
 
     public void visitIincInsn(int var, int increment) {
-        Debug.debug(Debug.Type.CODEGEN, 1, "visitIincInsn: var = ", var , " increment = ", increment, getStackTrace());
+        Debug.debug(Debug.Type.CODEGEN, 2, "visitIincInsn: var = ", var , " increment = ", increment, getStackTrace());
         super.visitIincInsn(var, increment);
     }
 
     public void visitInsn(int opcode) {
-        Debug.debug(Debug.Type.CODEGEN, 1, "visitInsn:", opc(opcode), getStackTrace());
+        Debug.debug(Debug.Type.CODEGEN, 2, "visitInsn:", opc(opcode), getStackTrace());
         super.visitInsn(opcode);
     }
     
     public void visitIntInsn(int opcode, int operand) {
-        Debug.debug(Debug.Type.CODEGEN, 1, "visitIntInsn:", opc(opcode), " ", operand, " " , getStackTrace());
+        Debug.debug(Debug.Type.CODEGEN, 2, "visitIntInsn:", opc(opcode), " ", operand, " " , getStackTrace());
         super.visitIntInsn(opcode, operand);
     }
 
     public void visitJumpInsn(int opcode, Label label) {
-        Debug.debug(Debug.Type.CODEGEN, 1, "visitJumpInsn:", opc(opcode), " ", label, " " , getStackTrace());
+        Debug.debug(Debug.Type.CODEGEN, 2, "visitJumpInsn:", opc(opcode), " ", label, " " , getStackTrace());
         super.visitJumpInsn(opcode, label);
     }
 
     public void visitLabel(Label label) {
-        Debug.debug(Debug.Type.CODEGEN, 1, "visitLabel:", label);
+        Debug.debug(Debug.Type.CODEGEN, 2, "visitLabel:", label);
         super.visitLabel(label);
     }
 
     public void visitLdcInsn(Object cst) {
-        Debug.debug(Debug.Type.CODEGEN, 1, "visitLdcInsn:", cst);
+        Debug.debug(Debug.Type.CODEGEN, 2, "visitLdcInsn:", cst);
         super.visitLdcInsn(cst);
     }
 
     public void visitMethodInsn(int opcode, String owner, String name, String desc) {
-        Debug.debug(Debug.Type.CODEGEN, 1, "visitMethodInsn:", opc(opcode), " owner = ", owner, " name = ", name, " desc = ", desc, getStackTrace());
+        Debug.debug(Debug.Type.CODEGEN, 2, "visitMethodInsn:", opc(opcode), " owner = ", owner, " name = ", name, " desc = ", desc, getStackTrace());
         super.visitMethodInsn(opcode, owner, name, desc);
     }
 
     public void visitTypeInsn(int opcode, String type) {
-        Debug.debug(Debug.Type.CODEGEN, 1, "visitTypeInsn:", opc(opcode), " type = ",  type, getStackTrace());
+        Debug.debug(Debug.Type.CODEGEN, 2, "visitTypeInsn:", opc(opcode), " type = ",  type, getStackTrace());
         super.visitTypeInsn(opcode, type);
     }
 
     public void visitVarInsn(int opcode, int var) {
-        Debug.debug(Debug.Type.CODEGEN, 1, "visitVarInsn:", opc(opcode), " var = " , var, getStackTrace());
+        Debug.debug(Debug.Type.CODEGEN, 2, "visitVarInsn:", opc(opcode), " var = " , var, getStackTrace());
         super.visitVarInsn(opcode, var);
     }
 
@@ -172,7 +172,7 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
                                        localVariableCount +
                                        "\nvarNames = " + varNames);
         }
-        Debug.debug(Debug.Type.CODEGEN, 1,
+        Debug.debug(Debug.Type.CODEGEN, 2,
                     "LOCAL create ", localVariableCount, " ", _name);
         varNames.add(_name);
         varTypes.add(type);
@@ -201,7 +201,7 @@ public class CodeGenMethodVisitor extends TraceMethodVisitor {
             visitLabel(finish);
             visitLocalVariable(varNames.get(localId), ty, null, varFirstUse.get(localId), finish, localId);
         }
-        Debug.debug(Debug.Type.CODEGEN, 1,
+        Debug.debug(Debug.Type.CODEGEN, 2,
                     "LOCAL destroy ", localId, " ", varNames.get(localId));
         if (localId == (localVariableCount-1)) {
             varNames.remove(localId);

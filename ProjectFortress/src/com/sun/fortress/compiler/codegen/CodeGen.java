@@ -959,7 +959,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 		    }
 		    
 		    StaticTypeReplacer str = tupAlready._2();
-		    Type alreadyType = inst.replaceIn(tupAlready._3());
+		    Type alreadyType = str.replaceIn(tupAlready._3());
 		    if (typeAnalyzer.equiv(alreadyType,tupTrait)) {
 			//System.err.println("    " + fnl + " already imported by first supertrait.");
 			alreadyThere = true;

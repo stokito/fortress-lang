@@ -63,7 +63,7 @@ public class RatsParserGenerator {
             return parserLoader.findClass("com.sun.fortress.parser.templateparser." + freshFortressName);
         }
         catch (ClassNotFoundException e) {
-            throw new WrappedException(e, Debug.isOnMax());
+            throw new WrappedException(e, Debug.isOnFor(1, Debug.Type.STACKTRACE) );
         }
     }
 

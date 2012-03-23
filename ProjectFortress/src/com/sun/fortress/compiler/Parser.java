@@ -286,7 +286,8 @@ public class Parser {
             String desc =
                 "Error occurred while instantiating and executing a temporary parser: "
                 + temporaryParserClass.getCanonicalName();
-            if (Debug.isOnMax()) {
+            if (Debug.isOnFor(1, Debug.Type.STACKTRACE) ||
+                    Debug.isOnFor(Debug.MAX_LEVEL, Debug.Type.SYNTAX) ) {
                 e.printStackTrace();
             } else {
                 System.err.println(Shell.turnOnDebugMessage);

@@ -58,7 +58,7 @@ public abstract class RatsUtil {
             }
         }
         catch (FileNotFoundException e) {
-            if (Debug.isOnMax()) {
+            if (Debug.isOnFor(1, Debug.Type.STACKTRACE) ) {
                 System.err.println(e.getMessage());
                 e.printStackTrace();
             } else {
@@ -66,7 +66,7 @@ public abstract class RatsUtil {
             }
         }
         catch (IOException e) {
-            if (Debug.isOnMax()) {
+            if (Debug.isOnFor(1, Debug.Type.STACKTRACE) ) {
                 System.err.println(e.getMessage());
                 e.printStackTrace();
             } else {
@@ -90,7 +90,7 @@ public abstract class RatsUtil {
             fo.flush();
         }
         catch (FileNotFoundException e) {
-            if (Debug.isOnMax()) {
+            if (Debug.isOnFor(1, Debug.Type.STACKTRACE) ) {
                 System.err.println(e.getMessage());
                 e.printStackTrace();
             } else {
@@ -98,7 +98,7 @@ public abstract class RatsUtil {
             }
         }
         catch (IOException e) {
-            if (Debug.isOnMax()) {
+            if (Debug.isOnFor(1, Debug.Type.STACKTRACE) ) {
                 System.err.println(e.getMessage());
                 e.printStackTrace();
             } else {

@@ -17,8 +17,8 @@ import java.util.List;
 
 public final class Debug {
 
-    private static final int MAX_LEVEL = 11;
-    private static int level = 0;
+    public static final int MAX_LEVEL = 11;
+    private static int defaultLevel = MAX_LEVEL;
     private static final PrintStream debugPS = System.out;
 
     private Debug() {
@@ -32,34 +32,36 @@ public final class Debug {
         PARSER("parser"), REPOSITORY("repository"), STACKTRACE("stacktrace"), SYNTAX("syntax");
 
         private final String name;
-        private boolean isOn;
+        private int level;
 
         Type(String name) {
             this.name = name;
-            isOn = false;
+            level = 0;
         }
 
-        public void setOn(boolean isOn) {
-            this.isOn = isOn;
+        public void setOn(int level) {
+            this.level = level;
         }
 
         public String toString() {
             return name;
         }
 
-        public boolean isOn() {
-            return isOn;
+        public boolean isOn(int level) {
+            return this.level >= level;
         }
 
-        public static void setAllOn() {
-            for (Type type : Type.values()) {
-                type.setOn(true);
+        public boolean matchAndSet(String s, int level) {
+            if (s.equalsIgnoreCase(name)) {
+                this.level = level;
+                return true;
             }
+            return false;
         }
-
+        
     }
 
-    /* Return a string specifying the debugging types suppored */
+    /** Return a string specifying the debugging types suppored */
     public static String typeStrings() {
         StringBuilder buf = new StringBuilder();
         for (Type type : Type.values()) {
@@ -68,61 +70,43 @@ public final class Debug {
         return buf.toString();
     }
 
+    /**
+     * Check an option against all the options available, setting the level
+     * of the first one that matches.  Returns true iff there is a match.
+     */
+    public static boolean matchOption(String s, int level) {
+        for (Type type : Type.values()) {
+            if (type.matchAndSet(s, level))
+                return true;
+        }
+        return false;
+    }
+    
     /* Takes in a list of options, parse the ones relavent to the Debug facility,
      * and return the rest of the options that are not used.
      */
     public static List<String> parseOptions(List<String> options) {
-        Debug.level = MAX_LEVEL;
-        boolean somethingIsOn = false;
         int tokenConsumed = 0;
 
         for (int i = 0; i < options.size(); i++) {
             String option = options.get(i);
-
-            if (option.equalsIgnoreCase(Type.FORTRESS.toString())) {
-                Type.FORTRESS.setOn(true);
-                somethingIsOn = true;
+            int eq_at = option.indexOf('=');
+            int opt_default_level = defaultLevel;
+            if (eq_at != -1) {
+                String num = option.substring(eq_at+1);
+                try {
+                    opt_default_level = Integer.valueOf(num);
+                    option = option.substring(0, eq_at);
+                } catch (NumberFormatException ex) {
+                    // Do nothing, it could be a valid input, not a debugging option.
+                }
+            }
+            if (matchOption(option, opt_default_level))
                 tokenConsumed++;
-            } else if (option.equalsIgnoreCase(Type.ASTGEN.toString())) {
-                Type.ASTGEN.setOn(true);
-                somethingIsOn = true;
-                tokenConsumed++;
-            } else if (option.equalsIgnoreCase(Type.ENVGEN.toString())) {
-                Type.ENVGEN.setOn(true);
-                somethingIsOn = true;
-                tokenConsumed++;
-            } else if (option.equalsIgnoreCase(Type.CODEGEN.toString())) {
-                Type.CODEGEN.setOn(true);
-                somethingIsOn = true;
-                tokenConsumed++;
-            } else if (option.equalsIgnoreCase(Type.COMPILER.toString())) {
-                Type.COMPILER.setOn(true);
-                somethingIsOn = true;
-                tokenConsumed++;
-            } else if (option.equalsIgnoreCase(Type.INTERPRETER.toString())) {
-                Type.INTERPRETER.setOn(true);
-                somethingIsOn = true;
-                tokenConsumed++;
-            } else if (option.equalsIgnoreCase(Type.PARSER.toString())) {
-                Type.PARSER.setOn(true);
-                somethingIsOn = true;
-                tokenConsumed++;
-            } else if (option.equalsIgnoreCase(Type.REPOSITORY.toString())) {
-                Type.REPOSITORY.setOn(true);
-                somethingIsOn = true;
-                tokenConsumed++;
-            } else if (option.equalsIgnoreCase(Type.STACKTRACE.toString())) {
-                Type.STACKTRACE.setOn(true);
-                somethingIsOn = true;
-                tokenConsumed++;
-            } else if (option.equalsIgnoreCase(Type.SYNTAX.toString())) {
-                Type.SYNTAX.setOn(true);
-                somethingIsOn = true;
-                tokenConsumed++;
-            } else {
+            else {
                 try {
                     int l = Integer.valueOf(option);
-                    Debug.level = l;
+                    defaultLevel = l;
                     tokenConsumed++;
                 }
                 catch (NumberFormatException e) {
@@ -133,11 +117,6 @@ public final class Debug {
             }
         }
 
-        if (somethingIsOn == false) {
-            /* -debug flag is set but no debugging type specified */
-            Type.setAllOn();
-        }
-
         return options.subList(tokenConsumed, options.size());
     }
 
@@ -145,7 +124,7 @@ public final class Debug {
      * and no specific debugging level is set when fortress is run.
      */
     public static void debug(Type type, Object... msgs) {
-        if (type.isOn() && Debug.level == MAX_LEVEL) {
+        if (type.isOn(Debug.MAX_LEVEL)) {
             StringBuilder buf = new StringBuilder();
             buf.append("[" + type.toString() + "] " + java.text.DateFormat.getTimeInstance().format(new java.util.Date()) + " ");
 	    //            buf.append("[" + type.toString() + "] ");
@@ -161,7 +140,7 @@ public final class Debug {
      * set when fortress is run.
      */
     public static void debug(Type type, int level, Object... msgs) {
-        if (type.isOn() && level <= Debug.level) {
+        if (type.isOn(level)) {
             StringBuilder buf = new StringBuilder();
             buf.append("[" + type.toString() + "] " + java.text.DateFormat.getTimeInstance().format(new java.util.Date()) + " ");
 	    //            buf.append("[" + type.toString() + "] ");
@@ -172,31 +151,19 @@ public final class Debug {
         }
     }
 
-    public static boolean isOnMax() {
-        return (Debug.level == MAX_LEVEL);
-    }
-
     /* Checking whether debugging is on in the most general sense: that the debug
      * level is on at all..
      */
-    public static boolean isOn() {
-        return (Debug.level > 0);
+    public static boolean stackTraceOn() {
+        return Debug.isOnFor(1, Debug.Type.STACKTRACE);
     }
 
-    /* Checking whether debugging is on for the type specified by the
-     * arguments and that the debug level is either not specified when fortress
-     * is run or is set to the MAX_LEVEL.
-     */
-    public static boolean isOnMaxFor(Type type) {
-        if (type.isOn() && Debug.level == MAX_LEVEL) return true;
-        return false;
-    }
 
     /* Checking whether debugging is on for the level and
      * type specified by the arguments.
      */
     public static boolean isOnFor(int l, Type type) {
-        if (type.isOn() && l <= Debug.level) return true;
+        if (type.isOn(l) ) return true;
         return false;
     }
 
