@@ -120,7 +120,7 @@ public class Parser {
                     Component c = (Component) cu;
                     List<GrammarIndex> result = getImportedGrammars(c, env);
                     if (!result.isEmpty()) {
-                        Debug.debug(Debug.Type.SYNTAX, "Component: ",
+                        Debug.debug(Debug.Type.SYNTAX, 2, "Component: ",
                                     c.getName(), " imports grammars...");
                     }
                     grammars = result;
