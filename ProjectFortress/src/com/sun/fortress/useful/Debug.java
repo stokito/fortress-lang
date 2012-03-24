@@ -82,7 +82,7 @@ public final class Debug {
         return false;
     }
     
-    /* Takes in a list of options, parse the ones relavent to the Debug facility,
+    /** Takes in a list of options, parse the ones relevant to the Debug facility,
      * and return the rest of the options that are not used.
      */
     public static List<String> parseOptions(List<String> options) {
@@ -120,22 +120,7 @@ public final class Debug {
         return options.subList(tokenConsumed, options.size());
     }
 
-    /* Print the debugging string iff the debugging type is on
-     * and no specific debugging level is set when fortress is run.
-     */
-    public static void debug(Type type, Object... msgs) {
-        if (type.isOn(Debug.MAX_LEVEL)) {
-            StringBuilder buf = new StringBuilder();
-            buf.append("[" + type.toString() + "] " + java.text.DateFormat.getTimeInstance().format(new java.util.Date()) + " ");
-	    //            buf.append("[" + type.toString() + "] ");
-            for (Object s : msgs) {
-                buf.append(s.toString());
-            }
-            debugPS.println(buf.toString());
-        }
-    }
-
-    /* Print the debugging string iff the debugging type is on
+    /** Print the debugging string iff the debugging type is on
      * and if the level argument is smaller than the debugging level
      * set when fortress is run.
      */
@@ -151,32 +136,20 @@ public final class Debug {
         }
     }
 
-    /* Checking whether debugging is on in the most general sense: that the debug
-     * level is on at all..
+    /** Checks whether a stack trace is desired (in general).
      */
     public static boolean stackTraceOn() {
         return Debug.isOnFor(1, Debug.Type.STACKTRACE);
     }
 
 
-    /* Checking whether debugging is on for the level and
+    /** Checks whether debugging is on for the level and
      * type specified by the arguments.
      */
     public static boolean isOnFor(int l, Type type) {
         if (type.isOn(l) ) return true;
         return false;
     }
-
-    /* Doesn't seem like anyone is using it
-       public static void debugArray(Type type, int level, Object[] o ) {
-       if( type.isOn() && level <= Debug.level ) {
-       debugPS.println( String.format("Array %s", o.toString()) );
-       for (Object n : o) {
-       debugPS.println( n.toString() );
-       }
-       debugPS.println( String.format("End of Array %s", o.toString()) );
-       }
-       }*/
 
 
 }

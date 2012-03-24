@@ -28,7 +28,7 @@ public class JavaC {
     static final String PATHSEP = File.pathSeparator;
 
     public static int compile(String sourceDir, String destinationDir, String filename) {
-        Debug.debug(Debug.Type.SYNTAX, "compiling a temporary parser...");
+        Debug.debug(Debug.Type.SYNTAX, 2, "compiling a temporary parser...");
         String classpath =
                 sourceDir + PATHSEP + getFortressThirdPartyDependencyJars() + PATHSEP + getFortressBuildDir();
         String[] args = {
@@ -38,7 +38,7 @@ public class JavaC {
         PrintWriter pw = new PrintWriter(sw);
         int compilationResult = com.sun.tools.javac.Main.compile(args, pw);
         String errors = sw.getBuffer().toString();
-        Debug.debug(Debug.Type.SYNTAX, "done: ", compilationResult);
+        Debug.debug(Debug.Type.SYNTAX, 2, "done: ", compilationResult);
 
         if (!errors.equals("")) {
             System.err.println(errors);

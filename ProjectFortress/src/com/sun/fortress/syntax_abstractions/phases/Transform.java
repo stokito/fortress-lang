@@ -646,7 +646,7 @@ public class Transform extends TemplateUpdateVisitor {
             Debug.debug(Debug.Type.SYNTAX, 3, "Argument " + varName + " is " + argument);
         }
 
-        Debug.debug(Debug.Type.SYNTAX, "Invoking transformer ", that.getSyntaxTransformer());
+        Debug.debug(Debug.Type.SYNTAX, 2, "Invoking transformer ", that.getSyntaxTransformer());
         Node transformed = transformer.accept(new TransformerEvaluator(this.transformers, evaluated));
         checkFullyTransformed(transformed);
         return transformed;
