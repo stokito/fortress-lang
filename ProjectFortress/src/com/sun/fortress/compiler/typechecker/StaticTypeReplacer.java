@@ -79,6 +79,24 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
             parameterMap.put(params.get(i).getName(), args.get(i));
         }
     }
+    
+    /**
+     * Returns the static type replacer where the substitutions in a
+     * have been updated by the static type replacer b.
+     * 
+     * Not quite composition, for inputs to a that contain variables
+     * in the domain of b.
+     * 
+     * 
+     * @param a
+     * @param b
+     */
+    public StaticTypeReplacer(StaticTypeReplacer a, StaticTypeReplacer b) {
+        parameterMap = new BATree<IdOrOpOrAnonymousName, StaticArg>(IOOOANcomparator);
+        for (IdOrOpOrAnonymousName key : a.parameterMap.keySet()) {
+            parameterMap.put(key, (StaticArg) ((a.parameterMap.get(key)).accept(b)) ); 
+        }
+    }
 
     public Type replaceIn(Type t) {
         return (Type)t.accept(this); // TODO safe?

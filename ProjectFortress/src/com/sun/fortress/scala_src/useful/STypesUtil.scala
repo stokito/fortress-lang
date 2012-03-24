@@ -1513,10 +1513,22 @@ object STypesUtil {
     gatherMethods(tt, analyzer, true)
 
   def gatherMethods(tt: TraitType, analyzer: TypeAnalyzer, includeSelf: Boolean):
-        Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = 
-          gatherMethods(tt.getName, analyzer, includeSelf)
+        Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
+          val tmp = gatherMethods(tt.getName, analyzer, includeSelf)
+          val tt_args = tt.getArgs
+          if ( tt_args.isEmpty ) {
+            tmp
+          } else {
+            val ti = analyzer.traits.typeCons(tt.getName).unwrap
+            val tt_params = ti.staticParameters
+            val str = new StaticTypeReplacer(tt_params, tt_args)
+            // leave this for now to keep compilable.
+            tmp
+          }
+          
+  }
 
-  def gatherMethods(tt_name: Id, analyzer: TypeAnalyzer, includeSelf: Boolean):
+  private def gatherMethods(tt_name: Id, analyzer: TypeAnalyzer, includeSelf: Boolean):
         Relation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
     val result = new IndexedRelation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)](false)
     toOption(analyzer.traits.typeCons(tt_name)) match {
