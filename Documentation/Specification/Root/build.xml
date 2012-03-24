@@ -121,6 +121,15 @@ This distribution may include materials developed by third parties.
   		<exec executable="ocaml" dir="${basedir}">
   			<arg value="../Support/transbnf.ml" />
   		</exec>	
+  		<exec executable="ocamlc" dir="${basedir}/../Support/">
+  			<arg value="transbnf.ml" />
+  		</exec>
+		<exec executable="ocamlc" dir="${basedir}/../Support/">
+			<arg value="transbnf.cmo" />
+			<arg value="grammar_preprocessor.ml" />
+			<arg value="-o" />
+			<arg value="gp" />
+		</exec>
 		<exec executable="./gp" dir="${basedir}/../Support/">
 			<arg value="${fortress.home}/Documentation/Specification/Data/BNFslice/" />
 		</exec>	
