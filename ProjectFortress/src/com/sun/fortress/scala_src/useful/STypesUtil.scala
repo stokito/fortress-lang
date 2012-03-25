@@ -1521,9 +1521,21 @@ object STypesUtil {
           } else {
             val ti = analyzer.traits.typeCons(tt.getName).unwrap
             val tt_params = ti.staticParameters
-            val str = new StaticTypeReplacer(tt_params, tt_args)
+            val outer_str = new StaticTypeReplacer(tt_params, tt_args)
             // leave this for now to keep compilable.
-            tmp
+            def relativizer(x:Pair[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)]):
+               Pair[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)] = {
+                val iooan = x.first()
+                val (fl, str, tt) = x.second()
+                new Pair(iooan, (fl, new StaticTypeReplacer(str, outer_str), outer_str.replaceIn(tt).asInstanceOf[TraitType]))
+            }
+            // It would be so nice if the Rice PLT tools came with bundled documentation, so I could figure out how to use them
+            // tmp.applyToAll(relativizer)
+            val result = new IndexedRelation[IdOrOpOrAnonymousName, (Functional, StaticTypeReplacer, TraitType)](false)
+            for (bogus <- tmp) {
+              result.add(relativizer(bogus))
+            }
+            result
           }
           
   }
