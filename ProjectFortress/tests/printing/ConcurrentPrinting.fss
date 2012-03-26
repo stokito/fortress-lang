@@ -1,0 +1,34 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ConcurrentPrinting
+import String.{...}
+export Executable
+
+    object CatStringReduction extends MonoidReduction[\String\]
+        getter asString() = "CatString Reduction"
+        empty(): String = EmptyString
+        join(a:String, b:String):String = CatString(a, b)
+    end
+
+    catStringFrom(args: String...): String =
+        seq(args).generate⟦String⟧(CatStringReduction, fn(x) => x)
+
+    run():()=do
+        cs = catStringFrom("This ", "is ", "a ", "longish ", "string ", "that ",
+        "reads ", "as ", "a ", "sentence ", "when ", "other " "strings ", "are ",
+        "not ", "interleaved.")
+        for i ←1:10 do
+            println cs
+       end
+    end
+
+end ConcurrentPrinting

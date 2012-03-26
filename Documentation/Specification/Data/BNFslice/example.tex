@@ -1,0 +1,24 @@
+
+%%%%% GRAMMAR %%%%%
+
+
+%File
+%CompilationUnit
+
+
+%%%%%%%%%%%%%%%%%%%
+
+
+
+\begin{longtable}[l]{p{3cm}ll}
+$\mathsf{File}$ &  $\mathsf{::=}$  & $\mathsf{CompilationUnit}$ \\
+ & $\big|$ &  $\mathsf{Imports}$$^?$ $\mathsf{Exports}$ $\mathsf{Decls}$$^?$ \\
+ & $\big|$ &  $\mathsf{Imports}$$^?$ $\mathsf{AbsDecls}$ \\
+ & $\big|$ &  $\mathsf{Imports}$ $\mathsf{AbsDecls}$$^?$ \\
+$\mathsf{CompilationUnit}$ &  $\mathsf{::=}$  & $\mathsf{Component}$ \\
+ & $\big|$ &  $\mathsf{Api}$ \\
+\end{longtable} \hfill 
+
+
+
+%%%%%%%%%%%%%%%%%%%

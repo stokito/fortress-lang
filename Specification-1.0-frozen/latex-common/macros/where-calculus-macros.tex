@@ -1,0 +1,146 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% Where clauses macros %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\renewcommand{\tappone}{\ensuremath{K}}
+\renewcommand{\tapptwo}{\ensuremath{H}}
+\renewcommand{\tappthree}{\ensuremath{J}}
+\renewcommand{\tappfour}{\ensuremath{N}}
+
+\newcommand{\withS}{\ensuremath{\code{with}\ S}}
+\newcommand{\static}[1]{\ensuremath{\tyAsc\ {#1}}}
+\newcommand{\strecvO}{\ensuremath{\cname\bsTP{\seq{\ty}}}}
+\newcommand{\strecv}{\ensuremath{\cname\bsTP{\seq{\ty^c}}}}
+\newcommand{\strecvP}{\ensuremath{\cnameP\bsTP{\seq{\ty^c}}}}
+\newcommand{\fty}{\ensuremath{\eta}}
+\renewcommand{\override}{\ensuremath{\pgm\vdash \mathit{override}}}
+\newcommand{\overrideTemplateW}{\ensuremath{\override(
+  \fname, \cname, \fty)}}
+\newcommand{\tycP}{\ensuremath{\ty^{c'}}}
+\newcommand{\tycPP}{\ensuremath{\ty^{c''}}}
+\newcommand{\tycPPP}{\ensuremath{\ty^{c'''}}}
+\newcommand{\tycPS}{\ensuremath{S \ty^{c'}}}
+\newcommand{\tycPSS}{\ensuremath{S S' \ty^{c'}}}
+\newcommand{\tyW}{\ensuremath{\tau^\tvtwo}}
+\newcommand{\tyWC}{\ensuremath{\tau^{\tvtwo c}}}
+\newcommand{\tyO}{\ensuremath{\tau^o}}
+\newcommand{\tyAS}{\tyAsc\ \ty}
+\newcommand{\argtysAS}{\tyAsc\ \argty}
+\newcommand{\valAS}{\val\ \argtysAS}
+\newcommand{\valPAS}{{\val'\ \argtysAS}}
+\newcommand{\expAS}{\exp\ \argtysAS}
+\newcommand{\eargsAS}{\ensuremath{\parens{\seq{\expAS}}}}
+\newcommand{\restyAS}{\ensuremath{\tyAsc\ \resty}}
+\newcommand{\vargsAS} {\ensuremath{\parens{\seq{\valAS}}}}
+\newcommand{\vargsPAS}{\ensuremath{\parens{\seq{\valPAS}}}}
+\newcommand{\partialvargsAS}{\ensuremath{\parens{\seq{\valAS}\
+  \context\ \argtysAS\ \seq{\expAS}}}}
+\renewcommand{\boundPP}{\ensuremath{\tvone'\extends\set{\seq\super}}}
+\renewcommand{\boundPPP}{\ensuremath{\tvone''\extends\set{\seq{\super''}}}}
+\renewcommand{\boundPPPP}{\ensuremath{\tvone'''\extends\set{\seq{\super'''}}}}
+\renewcommand{\boundPPPPP}{\ensuremath{\tvone'\extends\set{\seq{\super'''}}}}
+\renewcommand{\boundtwoP}{\ensuremath{\tvtwo'\extends\set{\seq\supertwo}}}
+\newcommand{\boundtwoPP}{\ensuremath{\tvtwo''\extends\set{\seq{\supertwo''}}}}
+\newcommand{\boundC}{\ensuremath{\tvone^{c}\extends\set{\seq{\super^{c}}}}}
+\newcommand{\boundtwoC}{\ensuremath{\tvtwo^{c}\extends\set{\seq{\supertwo^{c}}}}}
+\newcommand{\csyntaxSRthmMth}{\ensuremath{\ignore \cnameP\tparamsPPP\ignore
+  \extends\{\supersfourPP\}\ \where \tparamstwoPP \ \ignore \ \fds \ \ignore}}
+\newcommand{\csyntaxSRthmMthTwo}{\ensuremath{\ignore \cname\tparamsC
+  \ignore\ \where \tparamstwoC \ \ignore}}
+\renewcommand{\tvenvoneP}{\ensuremath{\seq{\tvone'\subtype\set{\seq{\tappone'}}}}}
+\newcommand{\tvenvonePP}{\ensuremath{\seq{\tvone''\subtype\set{\seq{\tappone''}}}}}
+\renewcommand{\tvenvtwo}{\ensuremath{\seq{\tvtwo\subtype\set{\seq\tapptwo}}}}
+\newcommand{\tvenvtwoP}{\ensuremath{\seq{\tvtwo'\subtype\set{\seq{\tapptwo'}}}}}
+\newcommand{\tvenvtwoPP}{\ensuremath{\seq{\tvtwo''\subtype\set{\seq{\tapptwo''}}}}}
+\newcommand{\dsyntaxRECV}{\ensuremath{
+  \ignore\ \cname \tparamsL \ignore \extends \set{\seq\tappfour}\ignore}}
+\newcommand{\dsyntaxDEFN}{\ensuremath{
+  \ignore\cname\bsTP{\seq{\tvone \ignore}}\ignore\extends\set{\seq\tappfour}\ignore}}
+
+%% 25 renewcommands
+\renewcommand{\bound}{\ensuremath{\tvone\extends\set{\seq\super}}}
+\renewcommand{\boundtwo}{\ensuremath{\tvtwo\extends\set{\seq\supertwo}}}
+\renewcommand{\boundP}{\ensuremath{\tvone'\extends\set{\seq{\super'}}}}
+\renewcommand{\boundL} {\ensuremath{\tvone\extends\ignore}}
+\renewcommand{\boundLP}{\ensuremath{\prm\tvone\extends\ignore}}
+
+\renewcommand{\mthinvk}{\ensuremath{(\exp\ \static{\strecvO}\code).\fname\targs\parens{\seq{\exp\ \tyAS}}\ \tyAS}}
+\renewcommand{\tdsyntax}{\ensuremath{
+\trait \tname\tparams\extends\{\seq\tappfour\}\where\tparamsWH\ \fds\ \code{end}}}
+\renewcommand{\tdsyntaxTD}{\ensuremath{
+\trait \tname\tparams\extends\braces\supersfour\where\tparamstwoWH\
+\fds\ \cend}}
+%% FIELD \renewcommand{\odsyntax}{\ensuremath{\object \oname\tparams\vparams
+%% FIELD \extends\{\seq\tappfour\}\where\tparamsWH\ \seq{\vd}\ \fds\ \code{end}}}
+\renewcommand{\odsyntax}{\ensuremath{\object \oname\tparams\vparams
+\extends\{\seq\tappfour\}\where\tparamsWH\ \fds\ \code{end}}}
+\renewcommand{\odsyntaxRM}{\ensuremath{\object \oname\ignore\
+\vparamsRMS\ignore\ \cend}}
+%% FIELD \renewcommand{\odsyntaxOD}{\ensuremath{\object \oname\tparams\vparams
+%% FIELD \extends\braces\supersfour\where\tparamstwoWH\
+%% FIELD \seq{\vd}\ \fds\ \cend}}
+ \renewcommand{\odsyntaxOD}{\ensuremath{\object \oname\tparams\vparams
+ \extends\braces\supersfour\where\tparamstwoWH\ \fds\ \cend}}
+\renewcommand{\odsyntaxObj}{\ensuremath{\object\ \oname\tparamsL\ \vparamsR\ignore\ \cend}}
+%% FIELD \renewcommand{\odsyntaxFld}{\ensuremath{\object \oname\tparamsL\ignore\
+%% FIELD \seq{\vname\isTy \equal \ignore}\ \ignore\ \cend}}
+ \renewcommand{\odsyntaxFld}{\ensuremath{\object \oname\tparamsL\vparams
+ \ignore\ \cend}}
+
+\newcommand{\odsyntaxRFWh}{\ensuremath{\object \oname\tparamsL
+\parens{\seq{\vname\isTyL}}\ignore\ \cend}}
+
+%% FIELD \renewcommand{\odsyntaxSRthm}{\ensuremath{\object \oname\tparams\vparamsP\
+%% FIELD \ignore\ \seq{\vname\isTy \equal \exp}\ \ignore\ \cend}}
+
+ \renewcommand{\odsyntaxSRthm}{\ensuremath{\object \oname\tparams\vparams\
+ \ignore\ \cend}}
+\renewcommand{\odsyntaxSRthmMth}{\ensuremath{\object \oname\tparams\vparams
+\ignore \ \where \tparamstwo \ \ignore\ \cend}}
+\renewcommand{\odsyntaxTSlemObj}{\ensuremath{\object \oname\tparamstwo\vparamsP
+\ignore}}
+\renewcommand{\dsyntaxMS}{\ensuremath{
+\ignore\ \cname \tparamsL \ignore\ \extends \braces\supersfour\ignore\ \fds\ \ignore}}
+\renewcommand{\dsyntaxMT}{\ensuremath{
+\ignore\ \cname \tparamsLP \ignore\ \extends \braces\supersfour\ignore}}
+\renewcommand{\dsyntaxSB}{\ensuremath{
+\ignore\ \cname \tparamsL \ignore\ \extends \braces\supers\ \ignore}}
+\renewcommand{\dsyntaxSBlem}{\ensuremath{
+\ignore\ \cname \tparamsPPPP \ignore\ \extends \braces\supersfour
+\where \tparamstwoPWH \ignore \fds \ignore}}
+\renewcommand{\dsyntaxOVER}{\ensuremath{
+\ignore\ \cname \ignore \extends \set{\seq\tappfour}\ignore}}
+\renewcommand{\fdsyntaxMB}{\ensuremath{
+\fname\tparamsLP\parens{\seq{\vname'\colon\ignore}}\colon\ignore\ \equal \exp}}
+\renewcommand{\evd}{\ensuremath{\vname\isTy \equal \exp}}
+\renewcommand{\tvenvone}{\ensuremath{\seq{\tvone\subtype\set{\seq\tappone}}}}
+\renewcommand{\funAppValPrime}{\fname\bsTP{\seq{\ty'}}\parens{\seq{\val'} \ \tyAsc\ \seq{\ty^{a}}} \ \tyAsc\ \ty^{r}}
+\newcommand{\fsub}{$\mathsf{F}_{<:}$}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% Redefined macros %%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\renewcommand{\fname}{\ensuremath{m}}
+\renewcommand{\fd}  {\ensuremath{\mathit{md}}}
+\renewcommand{\Fname} {\ensuremath{\mathit{Name}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% Typecase macros %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\typecase}[3]{\ensuremath{
+\KWD{typecase}\ \vname\ = {#1}\ \KWD{of}\ {#2}\ \KWD{else}\ {#3}\ \cend}}
+\newcommand{\typecaseR}{\ensuremath{\typecase{\val}{\seq{\ty \Rightarrow \exp}\
+         \seq{\tyP \Rightarrow \expP}}{\exp}}}
+\newcommand{\typecaseRElse}{\ensuremath{
+\typecase{\val}{\seq{\ty \Rightarrow \exp}}{\exp'}}}

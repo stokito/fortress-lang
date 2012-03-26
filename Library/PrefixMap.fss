@@ -1,0 +1,446 @@
+(******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(******************************************************************************
+
+  Prefix trees, aka Tries: implementing Maps; purely functional
+
+  PrefixMap[\E,F,V\] is the type of maps, indexed by F, and valued in V. Here F is a zero-indexed data type storing elements of type E, supporting an operator addLeft.
+
+  At present F must be a subtype of List[\E\] (where List is defined as in List.fss).
+
+  Future improvements:
+
+   - When the standard collection trait hierarchy is done, we can make this code work more pleasantly and in more generality:
+       - we want F to be any type modelling List[\E\]
+       - we could demand that PrefixMap[\E,F,V\] model Map[\F,V\].
+       - we could vary the indexing data structure for each node. For some prefix trees, it would be best to implement their children as an array. If we are indexing by lists of booleans, we would want an ad-hoc indexing structure whose lookup algorithm is an "if".
+
+ ******************************************************************************)
+
+component PrefixMap
+import List.{...}
+import Map.{...} except { opr BIG UNION, opr BIG UPLUS }
+import PrefixSet.{...}
+import CovariantCollection.{...}
+export PrefixMap
+
+
+trait PrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\]
+        extends { Generator[\(F,V)\], Equality[\PrefixMap[\E,F,V\]\] }
+
+    getter asString():String = "{/" (", ".join[\String\](self.map[\String\](fn(x:F,v:V) => (x.asString || " |-> " || v.asString)))) || "/}"
+
+    getter isEmpty():Boolean = (NOT isMember()) AND children().isEmpty
+    getter size():ZZ32
+    content():Maybe[\V\]
+    children():Map[\E,PrefixMap[\E,F,V\]\]
+    isMember():Boolean = (if x <- content() then true else false end)
+    opr |self|:ZZ32 = self.size
+
+    prefixGenerate[\R\](prefix:F, r:Reduction[\R\], body: (F,V)->R):R = do
+        t:R = children().generate[\R\](r, fn (k,v) => v.prefixGenerate[\R\](prefix.addRight(k),r,body))
+        if x <- content() then
+            r.join(body(prefix,x), t)
+        else
+            t
+        end
+    end
+    generate[\R\](r: Reduction[\R\], body:(F,V)->R):R = prefixGenerate[\R\](<|[\E\] |>, r, body)
+
+
+    prefixSeqgen[\R\](prefix:F, r: Reduction[\R\], body: (F,V)->R):R = do
+        t:R = children().seqgen[\R\](r, fn (k,v) => v.prefixSeqgen[\R\](prefix.addRight(k),r,body))
+        if x <- content() then
+            r.join(body(prefix,x),t)
+        else
+            t
+        end
+    end
+    seqgen[\R\](r: Reduction[\R\], body: (F,V)->R):R = prefixSeqgen[\R\](<|[\E\] |>, r, body)
+    seq(self):SequentialGenerator[\(F,V)\] = SeqPrefixMapGenerator[\E,F,V\](self)
+
+
+    dom(self):PrefixSet[\E,F\] = fastPrefixSet[\E,F\](content().holds, children().mapFilter[\PrefixSet[\E,F\]\](fn (k,v) => v.dom()))
+
+
+    opr [k:F]:V throws NotFound = do
+        if x <- member(k) then x else throw NotFound end
+    end
+
+    member(k:F): Maybe[\V\] = do
+        if (h,t) <- k.extractLeft() then
+            if m <- children().member(h) then
+                m.member(t)
+            else
+                Nothing[\V\]
+            end
+        elif x <- content() then
+            Just[\V\](x)
+        else
+            Nothing[\V\]
+        end
+    end
+
+    (** The two-argument version of member returns the default value v
+        if the key is absent from the map. **)
+    member(k:F, v:V): V = do
+        if x <- member(k) then x else v end
+    end
+
+
+    (** minimum and maximum refer to the key **)
+
+    minimum():Maybe[\(F,V)\] = if self.isEmpty then Nothing[\(F,V)\] else Just[\(F,V)\](getMinimum()) end
+    getMinimum():(F,V) throws NotFound = do
+        if x <- content() then
+            (<|[\E\] |>, x)
+        elif (k,v) <- children().minimum() then
+            (f,w) = v.getMinimum()
+            (f.addLeft(k), w)
+        else
+            throw NotFound
+        end
+    end
+
+    maximum(): Maybe[\(F,V)\] = if self.isEmpty then Nothing[\(F,V)\] else Just[\(F,V)\](getMaximum()) end
+    getMaximum():F throws NotFound = do
+        if (k,v) <- children().maximum() then
+            (f,w) = v.getMaximum()
+            (f.addLeft(k), w)
+        elif x <- content() then
+            (<|[\E\] |>, x)
+        else
+            throw NotFound
+        end
+    end
+
+
+    deleteMinimum():PrefixMap[\E,F,V\] =
+            if (_,_,r) <- extractMinimum() then r else self end
+    deleteMaximum():PrefixMap[\E,F,V\] =
+        if (_,_,r) <- extractMaximum() then r else self end
+
+
+    extractMinimum():Maybe[\(F,V, PrefixMap[\E,F,V\])\] = do
+        if x <- content() then
+            Just[\(F, V, PrefixMap[\E,F,V\])\](<|[\E\] |>, x, fastPrefixMap[\E,F,V\](Nothing[\V\], children()))
+        elif (k,v,r) <- children().extractMinimum() then
+            (m,w,s) = v.extractMinimum().get
+            Just[\(F, V, PrefixMap[\E,F,V\])\](m.addLeft(k), w, prefixMap[\E,F,V\](Nothing[\V\], r.add(k,s)))
+        else
+            Nothing[\(F, V, PrefixMap[\E,F,V\])\]
+        end
+    end
+
+    extractMaximum():Maybe[\(F,V, PrefixMap[\E,F,V\])\] = do
+        if (k,v,r) <- children().extractMaximum() then
+            (m,w,s) = v.extractMaximum().get
+            Just[\(F, V, PrefixMap[\E,F,V\])\](m.addLeft(k), w, prefixMap[\E,F,V\](content(), r.add(k,s)))
+        elif x <- content() then
+            Just[\(F, V, PrefixMap[\E,F,V\])\](<|[\E\] |>, x, emptyPrefixMap[\E,F,V\]())
+        else
+            Nothing[\(F, V, PrefixMap[\E,F,V\])\]
+        end
+    end
+
+
+    (** If no mapping presently exists, maps k to v. **)
+    add(x:F,v:V): PrefixMap[\E,F,V\] = do
+        if (h,t) <- x.extractLeft() then
+            f(z:Maybe[\PrefixMap[\E,F,V\]\]):Maybe[\PrefixMap[\E,F,V\]\] = do
+                if s <- z then
+                    Just[\PrefixMap[\E,F,V\]\](s.add(t,v))
+                else
+                    Just(emptyPrefixMap[\E,F,V\]().add(t,v))
+                end
+            end
+            fastPrefixMap[\E,F,V\](content(),children().updateWith(f, h))
+        else
+            if a <- self.isMember() then
+                self
+            else
+                fastPrefixMap[\E,F,V\](Just[\V\](v),children())
+            end
+        end
+    end
+
+    (** Maps k to v. **)
+    update(x:F, v:V):PrefixMap[\E,F,V\] = do
+        if (h,t) <- x.extractLeft() then
+            f(z:Maybe[\PrefixMap[\E,F,V\]\]):Maybe[\PrefixMap[\E,F,V\]\] = do
+                if s <- z then
+                    Just[\PrefixMap[\E,F,V\]\](s.update(t,v))
+                else
+                    Just(emptyPrefixMap[\E,F,V\]().add(t,v))
+                end
+            end
+            prefixMap[\E,F,V\](content(), children().updateWith(f, h))
+        else
+            fastPrefixMap[\E,F,V\](Just[\V\](v),children())
+        end
+    end
+
+    (** Eliminate any mapping for key x. **)
+    delete(x:F): PrefixMap[\E,F,V\] = do
+        if (h,t) <- x.extractLeft() then
+            f(z:Maybe[\PrefixMap[\E,F,V\]\]):Maybe[\PrefixMap[\E,F,V\]\] = do
+                if s <- z then
+                    Just[\PrefixMap[\E,F,V\]\](s.delete(t))
+                else
+                    Nothing[\PrefixMap[\E,F,V\]\]
+                end
+            end
+            prefixMap[\E,F,V\](content(),children().updateWith(f, h))
+        else
+            prefixMap[\E,F,V\](Nothing[\V\],children())
+        end
+    end
+
+    updateWith(f:Maybe[\V\]->Maybe[\V\], k:F):PrefixMap[\E,F,V\] = do
+        if (h,t) <- k.extractLeft() then
+            g(z:Maybe[\PrefixMap[\E,F,V\]\]):Maybe[\PrefixMap[\E,F,V\]\] = do
+                if s <- z then
+                    Just[\PrefixMap[\E,F,V\]\](s.updateWith(g,t))
+                else
+                    if x <- f(Nothing[\V\]) then
+                        Just[\PrefixMap[\E,F,V\]\](emptyPrefixMap[\E,F,V\]().add(t))
+                    else
+                        Nothing[\PrefixMap[\E,F,V\]\]
+                    end
+                end
+            end
+            prefixMap[\E,F,V\](content(), children().updateWith(g, h))
+        else
+            fastPrefixMap[\E,F,V\](f(content()),children())
+        end
+    end
+
+
+    (** UNION favors the leftmost value when a key occurs in both maps. **)
+    opr UNION(self, other:PrefixMap[\E,F,V\]):PrefixMap[\E,F,V\] = do
+        inOrder(x:Maybe[\V\], y:Maybe[\V\]) = if x.holds then x else y end
+        ifOne(k:E, v:PrefixMap[\E,F,V\]):Maybe[\PrefixMap[\E,F,V\]\] = Just[\PrefixMap[\E,F,V\]\](v)
+        mapOne(a:Map[\E,PrefixMap[\E,F,V\]\]):Map[\E,PrefixMap[\E,F,V\]\] = a
+        ifBoth(k:E, u:PrefixMap[\E,F,V\], v:PrefixMap[\E,F,V\]):Maybe[\PrefixMap[\E,F,V\]\] = Just[\PrefixMap[\E,F,V\]\](u UNION v)
+        fastPrefixMap[\E,F,V\](inOrder(content(),other.content()), children().combine[\PrefixMap[\E,F,V\],PrefixMap[\E,F,V\]\](ifBoth,ifOne,ifOne,mapOne,mapOne,other.children()))
+    end
+
+    (** UPLUS (disjoint union) throws the KeyOverlap exception when a key
+            occurs in both maps. **)
+    opr UPLUS(self, other: PrefixMap[\E,F,V\]): PrefixMap[\E,F,V\] = do
+        oneOrOther(x:Maybe[\V\], y:Maybe[\V\]):Maybe[\V\] = if x.holds then if y.holds then throw KeyOverlap else x end else y end
+        ifOne(k:E, v:PrefixMap[\E,F,V\]):Maybe[\PrefixMap[\E,F,V\]\] = Just[\PrefixMap[\E,F,V\]\](v)
+        mapOne(a:Map[\E,PrefixMap[\E,F,V\]\]):Map[\E,PrefixMap[\E,F,V\]\] = a
+        ifBoth(k:E, u:PrefixMap[\E,F,V\], v:PrefixMap[\E,F,V\]):Maybe[\PrefixMap[\E,F,V\]\] = Just[\PrefixMap[\E,F,V\]\](u UPLUS v)
+        fastPrefixMap[\E,F,V\](oneOrOther(content(),other.content()), children().combine[\PrefixMap[\E,F,V\],PrefixMap[\E,F,V\]\](ifBoth,ifOne,ifOne,mapOne,mapOne,other.children()))
+    end
+
+    union(f:(F,V,V)->V, other: PrefixMap[\E,F,V\]): PrefixMap[\E,F,V\] = do
+        innerunion(prefix:F, x:PrefixMap[\E,F,V\], y:PrefixMap[\E,F,V\]):PrefixMap[\E,F,V\] = do
+            ifOne(k:E, v:PrefixMap[\E,F,V\]):Maybe[\PrefixMap[\E,F,V\]\] = Just[\PrefixMap[\E,F,V\]\](v)
+            mapOne(a:Map[\E,PrefixMap[\E,F,V\]\]):Map[\E,PrefixMap[\E,F,V\]\] = a
+            ifBoth(k:E, u:PrefixMap[\E,F,V\], v:PrefixMap[\E,F,V\]):Maybe[\PrefixMap[\E,F,V\]\] = Just[\PrefixMap[\E,F,V\]\](innerunion(prefix.addRight(k),u,v))
+            fastPrefixMap[\E,F,V\](f(prefix,x.content(),y.content()), x.children().combine[\PrefixMap[\E,F,V\],PrefixMap[\E,F,V\]\](ifBoth,ifOne,ifOne,mapOne,mapOne,y.children()))
+        end
+        innerunion(<|[\E\] |>, other)
+    end
+
+
+    splitAt(k:F):(PrefixMap[\E,F,V\],Maybe[\V\],PrefixMap[\E,F,V\]) = do
+        if (h,t) <- k.extractLeft() then
+            (l,x,r) = children().splitAt(h)
+            if m <- x then
+                (ml,mm,mr) = m.splitAt(t)
+                (fastPrefixMap[\E,F,V\](content(), l.add(h,ml)), mm, fastPrefixMap[\E,F,V\](false, r.add(h,mr)))
+            else
+                (fastPrefixMap[\E,F,V\](content(), l), Nothing[\V\], fastPrefixMap[\E,F,V\](false, r))
+            end
+        else
+            (emptyPrefixMap[\E,F,V\](), content(), emptyPrefixMap[\E,F,V\]())
+        end
+    end
+
+
+    concat(other:PrefixMap[\E,F,V\]): PrefixMap[\E,F,V\] = do
+        if (leftmaxkey,leftmaxval,left) <- children().extractMaximum() then
+            if (rightminkey,rightminval,right) <- other.children().extractMinimum() then
+                if leftmaxkey<rightminkey then
+                    fastPrefixSet(isMember() OR other.isMember(), children().concat(other.children()))
+                else
+                    fastPrefixSet(isMember() OR other.isMember(), left.concat3(leftmaxkey, leftmaxval.concat(rightminval), right))
+                end
+            else
+                self
+            end
+        else
+            other
+        end
+    end
+
+    concat3(k:F, v:V, other:PrefixMap[\E,F,V\]):PrefixMap[\E,F,V\] = concat(other.add(k,v))
+
+
+    (** combine is the "swiss army knife" combinator on pairs of maps.
+        We call f() on keys present in both input maps;
+        We call doThis on keys present in self but not in that;
+        We call doThat on keys present in that but not in self.
+        When any of these functions returns r=Just[\Result\], the key is mapped
+            to r.get in the result.
+        When any of these functions returns Nothing[\Result\] there is no
+            mapping for the key in the result.
+
+        mapThis(p,m) must be equivalent to
+          m.mapFilter(fn (k,v) => doThis(p||k, v))
+        and mapThat(p,m) must be equivalent to
+          m.mapFilter(fn (k,v) => doThat(p||k, v));
+        they are included because often they can do their jobs without
+        traversing their argument (eg for union and intersection
+        operations we can pass through or discard whole submaps without
+        traversing them).
+     **)
+
+    combine[\V2,R\](doBoth:(F,V,V2)->Maybe[\R\],
+                    doThis:(F,V)->Maybe[\R\],
+                    doThat:(F,V2)->Maybe[\R\],
+                    mapThis:(F,PrefixMap[\E,F,V\])->PrefixMap[\E,F,R\],
+                    mapThat:(F,PrefixMap[\E,F,V2\])->PrefixMap[\E,F,R\],
+                    that: PrefixMap[\E,F,V2\]): PrefixMap[\E,F,R\] = do
+
+        prefixCombine(prefix:F, arg1:PrefixMap[\E,F,V\], arg2:PrefixMap[\E,F,V2\]):PrefixMap[\E,F,R\] = do
+            c = do
+                if x <- arg1.content() then
+                    if y <- arg2.content() then
+                        doBoth(prefix,x,y)
+                    else
+                        doThis(prefix,x)
+                    end
+                else
+                    if y <- arg2.content() then
+                        doThat(prefix,y)
+                    else
+                        Nothing[\R\]
+                    end
+                end
+            end
+
+            ourDoBoth(e:E, m1:PrefixMap[\E,F,V\], m2:PrefixMap[\E,F,V2\]):PrefixMap[\E,F,R\] = prefixCombine(prefix.addRight(e), m1, m2)
+
+            ourDoThis(e:E, m1:PrefixMap[\E,F,V\]):PrefixMap[\E,F,R\] = mapThis(prefix.addRight(e), m1)
+
+            ourDoThat(e:E, m2:PrefixMap[\E,F,V2\]):PrefixMap[\E,F,R\] = mapThat(prefix.addRight(e), m2)
+
+            ourMapThis(m1:PrefixMap[\E,F,V\]):PrefixMap[\E,F,R\] = m1.mapFilter(ourDoThis)
+
+            ourMapThat(m2:PrefixMap[\E,F,V2\]):PrefixMap[\E,F,R\] = m2.mapFilter(ourDoThat)
+
+            prefixMap(c, arg1.children().combine(ourDoBoth, ourDoThis, ourDoThat, ourMapThis, ourMapThat, arg2.children()))
+        end
+
+        prefixCombine(<|[\E\] |>, self, that)
+    end
+
+    (** Easy-to-use version when there is no special doThis or doThat **)
+    combine[\V2,R\](doBoth:(F,V,V2)->Maybe[\R\],
+                   doThis:(F,V)->Maybe[\R\],
+                   doThat:(F,V2)->Maybe[\R\],
+                   that: PrefixMap[\E,F,V2\]): PrefixMap[\E,F,R\] = do
+        adHocMapThis(p,m) = m.mapFilter(fn (k,v) => doThis(p||k, v))
+        adHocMapThat(p,m) = m.mapFilter(fn (k,v) => doThat(p||k, v))
+        combine[\V2,R\](doBoth, doThis, doThat, adHocMapThis, adHocMapThat, that)
+    end
+
+
+    mapFilter[\R\](f:(F,V)->Maybe[\R\]): PrefixMap[\E,F,R\] = do
+        prefixMapFilter(prefix:F, m:PrefixMap[\E,F,V\]):PrefixMap[\E,F,R\] = do
+            if x <- m.content() then
+                prefixMap[\E,F,R\](f(prefix, x), m.children().mapFilter[\PrefixMap[\E,F,R\]\](fn (e,z) => Just[\PrefixMap[\E,F,R\]\](prefixMapFilter(prefix.addRight(e), z))))
+            else
+                prefixMap[\E,F,R\](Nothing[\R\], m.children().mapFilter[\PrefixMap[\E,F,R\]\](fn (e,z) => Just[\PrefixMap[\E,F,R\]\](prefixMapFilter(prefix.addRight(e), z))))
+            end
+        end
+
+        prefixMapFilter(<|[\E\] |>, self)
+    end
+end
+
+
+
+(* A PrefixMap with given content and children: 'unsafe' as it assumes it is not given any useless tree structure *)
+object fastPrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\](v:Maybe[\V\],c:Map[\E,PrefixMap[\E,F,V\]\]) extends PrefixMap[\E,F,V\]
+    getter size():ZZ32 = fixedsize
+    fixedsize:ZZ32 = (if v then 1 else 0 end) + (SUM[(k,a) <- c] a.size)
+    content():Maybe[\V\] = v
+    children():Map[\E,PrefixMap[\E,F,V\]\] = c
+end
+
+
+
+(* A PrefixMap with given children: 'safe' as it will remove any useless tree structure *)
+prefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\], V\](v:Maybe[\V\], c:Map[\E,PrefixMap[\E,F,V\]\]):PrefixMap[\E,F,V\] = fastPrefixMap[\E,F,V\](v, {[\E,PrefixMap[\E,F,V\]\] k |-> l | (k,l)<-c, l.size =/= 0 })
+
+
+
+emptyPrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\]():PrefixMap[\E,F,V\] = fastPrefixMap[\E,F,V\](Nothing[\V\],{[\E,PrefixMap[\E,F,V\]\]})
+
+
+
+singletonPrefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\](x:F,v:V):PrefixMap[\E,F,V\] = do
+    if (h,t) <- x.extractLeft() then
+        prefixMap[\E,F,V\](Nothing[\V\], singleton[\E,PrefixMap[\E,F,V\]\](h,singletonPrefixMap[\E,F,V\](t,v)))
+    else
+        fastPrefixMap[\E,F,V\](Just[\V\](v), {[\E,PrefixMap[\E,F,V\]\]})
+    end
+end
+
+
+
+prefixMap[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\](g:Generator[\(F,V)\]):PrefixMap[\E,F,V\] = g.generate[\PrefixMap[\E,F,V\]\](DisjointPrefixMapUnion[\E,F,V\], singletonPrefixMap[\E,F,V\])
+
+
+opr {/|->[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\] fs:(F,V)... /}:PrefixMap[\E,F,V\] = prefixMap[\E,F,V\](fs)
+
+opr BIG {/|->[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\] g:Generator[\(F,V)\] /}:PrefixMap[\E,F,V\] = prefixMap[\E,F,V\](g)
+
+opr BIG {/|->[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\] /}:Comprehension[\(F,V),PrefixMap[\E,F,V\],AnyCovColl,AnyCovColl\] =
+    covariantCompr[\(F,V),PrefixMap[\E,F,V\]\](fn cc => prefixMap[\E,F,V\](cc.toArray()))
+
+
+
+
+opr BIG UNION[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\]():Comprehension[\PrefixMap[\E,F,V\],PrefixMap[\E,F,V\],Any,Any\] =
+      embiggen[\ PrefixMap[\E,F,V\] \](fn (a,b) => a UNION b, emptyPrefixMap[\E,F,V\]())
+
+opr BIG UNION[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\](g: Generator[\PrefixMap[\E,F,V\]\]):PrefixMap[\E,F,V\] =
+    __bigOperatorSugar[\PrefixMap[\E,F,V\],PrefixMap[\E,F,V\],Any,Any\](BIG UNION[\E,F,V\](), g)
+
+opr BIG UPLUS[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\]():Comprehension[\PrefixMap[\E,F,V\],PrefixMap[\E,F,V\],Any,Any\] =
+    embiggen[\ PrefixMap[\E,F,V\] \](fn (a,b) => a UPLUS b, emptyPrefixMap[\E,F,V\]())
+
+opr BIG UPLUS[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\](g: Generator[\PrefixMap[\E,F,V\]\]):PrefixMap[\E,F,V\] =
+    __bigOperatorSugar[\PrefixMap[\E,F,V\],PrefixMap[\E,F,V\],Any,Any\](BIG UPLUS[\E,F,V\](), g)
+
+
+
+object SeqPrefixMapGenerator[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\](o:PrefixMap[\E,F,V\])
+    extends SequentialGenerator[\(F,V)\]
+    generate[\R\](r: Reduction[\R\], body: (F,V)->R):R = o.seqgen[\R\](r,body)
+end
+
+object DisjointPrefixMapUnion[\E extends StandardTotalOrder[\E\], F extends List[\E\],V\] extends MonoidReduction[\PrefixMap[\E,F,V\]\]
+    getter asString(): String = "Disjoint prefix map union reduction"
+    empty():PrefixMap[\E,F,V\] = emptyPrefixMap[\E,F,V\]()
+    join(a:PrefixMap[\E,F,V\], b:PrefixMap[\E,F,V\]): PrefixMap[\E,F,V\] =
+        a UPLUS b
+end
+
+
+end

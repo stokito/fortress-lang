@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component explicitStaticArgsToAggregates
+import Set.{...}
+import Map.{...}
+import List.{...}
+export Executable
+
+run():()=do
+    a:ZZ32[2,2] = [[\ZZ32\] 11 12 ;
+                            21 22 ]
+
+   i:ZZ32 = 1 + 2 + 3 + 4
+   a1:ZZ32[4] = [[\ZZ32\] 1 2 3 4 ]
+   a2:ZZ32[4] = [ 2 3 4 5 ]
+   s2:Set[\ZZ32\] = {[\ZZ32\] 1, 2, 3, 4, i }
+   println("i=" i)
+   ip:List[\ZZ32[4]\] = <|[\ZZ32[4]\] a1, a2 |>
+   println("ip=" ip);
+
+   s1:Set[\ZZ32\] = {[\ZZ32\] 1, 2, 3, 4 } (* Now succeeds *)
+   println("s1=" s1);
+
+   map: Map[\String,ZZ32\] = {[\String,ZZ32\] "Nathi" |-> 3 }
+   println("map=" map);
+
+end
+
+end

@@ -1,0 +1,115 @@
+trait Antisymmetric[\T extends AntiSymmetric[\T,SIM\], opr SIM\]
+    extends { BinaryPredicate[\T,SIM\], EquivalenceRelation[\T,=\],
+              BinaryPredicateSubstitutionLaws[\T,SIM,=\] }
+  property FORALL (a: T, b: T) ((a SIM b) AND (b SIM a)) :IMPLIES: (a = b)
+end
+
+trait PartialOrder[\T extends PartialOrder[\T,PRECEQ\], opr PRECEQ\]
+    extends { Reflexive[\T,PRECEQ\], Antisymmetric[\T,PRECEQ\], Transitive[\T,PRECEQ\] }
+end
+
+trait StrictPartialOrder[\T extends StrictPartialOrder[\T,PREC\], opr PREC\]
+    extends { Irreflexive[\T,PREC\], Antisymmetric[\T,PREC\], Transitive[\T,PREC\] }
+end
+
+trait TotalOrder[\T extends TotalOrder[\T,PRECEQ\], opr PRECEQ\]
+    extends { PartialOrder[\T,PRECEQ\] }
+  property FORALL (a: T, b: T) (a PRECEQ b) OR (b PRECEQ a)
+end
+
+trait StrictTotalOrder[\T extends StrictTotalOrder[\T,PREC\], opr PREC\]
+    extends { StrictPartialOrder[\T,PREC\] }
+  property FORALL (a: T, b: T) (a PREC b) OR (b PREC a) OR (a = b)
+end
+
+trait PartialOrderOperators[\T extends PartialOrderOperators[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\],
+                             opr PREC, opr PRECEQ, opr SUCCEQ, opr SUCC, opr CMP\]
+    extends { StrictPartialOrder[\T,PREC\], PartialOrder[\T, PRECEQ\],
+              PartialOrder[\T,SUCCEQ\], StrictPartialOrder[\T,SUCC\] }
+  abstract opr CMP(self, other: T):  Comparison
+  property FORALL (a: T, b: T) ((a CMP b) === LessThan) IFF ((b CMP a) === GreaterThan)
+  property FORALL (a: T, b: T) ((a CMP b) === EqualTo) IFF ((b CMP a) === EqualTo)
+  property FORALL (a: T, b: T) ((a CMP b) === Unordered) IFF ((b CMP a) === Unordered)
+  property FORALL (a: T, b: T) (a PREC b) IFF ((a CMP b) === LessThan)
+  property FORALL (a: T, b: T) (a PRECEQ b) IFF ((a CMP b) === LessThan OR (a CMP b) === EqualTo)
+  property FORALL (a: T, b: T) (a = b) IFF ((a CMP b) === EqualTo)
+  property FORALL (a: T, b: T) (a SUCCEQ b) IFF ((a CMP b) === GreaterThan OR (a CMP b) === EqualTo)
+  property FORALL (a: T, b: T) (a SUCC b) IFF ((a CMP b) === GreaterThan)
+end
+
+trait TotalOrderOperators[\T extends TotalOrderOperators[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\],
+                           opr PREC, opr PRECEQ, opr SUCCEQ, opr SUCC, opr CMP\]
+    extends { PartialOrderOperators[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\],
+              StrictTotalOrder[\T,PREC\], TotalOrder[\T, PRECEQ\],
+              TotalOrder[\T,SUCCEQ\], StrictTotalOrder[\T,SUCC\] }
+  abstract opr CMP(self, other: T):  TotalComparison
+end
+
+trait PartialOrderBasedOnLE[\T extends PartialOrderBasedOnLE[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\],
+                             opr PREC, opr PRECEQ, opr SUCCEQ, opr SUCC, opr CMP\]
+    extends { PartialOrderOperators[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\] }
+  opr CMP(self, other: T): Comparison
+  opr PREC(self, other: T): Boolean
+  opr =(self, other: T): Boolean
+  opr SUCCEQ(self, other: T): Boolean
+  opr SUCC(self, other: T): Boolean
+end
+
+trait TotalOrderBasedOnLE[\T extends TotalOrderBasedOnLE[\T,PREC,PRECEQ,SUCCEQq,SUCC,CMP\],
+                           opr PREC, opr PRECEQ, opr SUCCEQ, opr SUCC, opr CMP\]
+    extends { TotalOrderOperators[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\] }
+  opr CMP(self, other: T): TotalComparison
+  opr PREC(self, other: T): Boolean
+  opr =(self, other: T): Boolean
+  opr SUCCEQ(self, other: T): Boolean
+  opr SUCC(self, other: T): Boolean
+end
+
+trait TotalOrderBasedOnLT[\T extends TotalOrderBasedOnLT[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\],
+                           opr PREC, opr PRECEQ, opr SUCCEQ, opr SUCC, opr CMP\]
+    extends { TotalOrderOperators[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\] }
+  opr CMP(self, other: T): TotalComparison
+  opr PRECEQ(self, other: T): Boolean
+  opr =(self, other: T): Boolean
+  opr SUCCEQ(self, other: T): Boolean
+  opr SUCC(self, other: T): Boolean
+end
+
+value object MaximalElement[\opr PRECEQ\] end
+
+trait HasMaximalElement[\T extends HasMaximalElement[\T,PRECEQ\], opr PRECEQ\]
+    extends { PartialOrder[\T,PRECEQ\] }
+    where { T coerces MaximalElement[\PRECEQ\] }
+  property FORALL (a: T) a PRECEQ MaximalElement[\PRECEQ\]
+end
+
+value object MinimalElement[\opr PRECEQ\] end
+
+trait HasMinimalElement[\T extends HasMinimalElement[\T,PRECEQ\], opr PRECEQ\]
+    extends { PartialOrder[\T,PRECEQ\] }
+    where { T coerces MinimalElement[\PRECEQ\] }
+  property FORALL (a: T) MinimalElement[\PRECEQ\] PRECEQ a
+end
+
+trait LexicographicPartialOrder[\T extends LexicographicPartialOrder[\T,SQSUBSET,SQSUBSETEQ,EQV,SQSUPSETEQ,SQSUPSET,TCMP,
+                                                                      X,PREC,PRECEQ,SIMEQ,SUCCEQ,SUCC,XCMP\],
+                                 opr SQSUBSET, opr SQSUBSETEQ, opr EQV, opr SQSUPSETEQ, opr SQSUPSET, opr TCMP,
+                                 X extends TotalOrderOperators[\X,PREC,PRECEQ,SIMEQ,SUCCEQ,SUCC,XCMP\],
+                                 opr PREC, opr PRECEQ, opr SIMEQ, opr SUCCEQ, opr SUCC, opr XCMP\]
+    extends { PartialOrderOperators[\LexicographicPartialOrder[\T,SQSUBSET,SQSUBSETEQ,EQV,SQSUPSETEQ,SQSUPSET,TCMP,
+                                                                X,PREC,PRECEQ,SIMEQ,SUCCEQ,SUCC,XCMP\],
+                                     SQSUBSET,SQSUBSETEQ,SQSUPSETEQ,SQSUPSET,TCMP\] }
+        where { T extends ZeroBasedIndexing[\T,X\] }
+  property FORALL (a: T, b: T) (a TCMP b) = (BIG LEXICO[i <- a.indices INTERSECTION b.indices] (a[i] XCMP b[i])) LEXICO (|a| CMP |b|)
+end
+
+trait LexicographicTotalOrder[\T extends LexicographicTotalOrder[\T,SQSUBSET,SQSUBSETEQ,EQV,SQSUPSETEQ,SQSUPSET,TCMP,
+                                                                  X,PREC,PRECEQ,SIMEQ,SUCCEQ,SUCC,XCMP\],
+                               opr SQSUBSET, opr SQSUBSETEQ, opr EQV, opr SQSUPSETEQ, opr SQSUPSET, opr TCMP,
+                               X extends TotalOrderOperators[\X,PREC,PRECEQ,SIMEQ,SUCCEQ,SUCC,XCMP\],
+                               opr PREC, opr PRECEQ, opr SIMEQ, opr SUCCEQ, opr SUCC, opr XCMP\]
+    extends { LexicographicPartialOrder[\T,SQSUBSET,SQSUBSETEQ,EQV,SQSUPSETEQ,SQSUPSET,TCMP,X,PREC,PRECEQ,SIMEQ,SUCCEQ,SUCC,XCMP\],
+              TotalOrderOperators[\LexicographicTotalOrder[\T,SQSUBSET,SQSUBSETEQ,EQV,SQSUPSETEQ,SQSUPSET,TCMP,
+                                                            X,PREC,PRECEQ,SIMEQ,SUCCEQ,SUCC,XCMP\],
+                                   SQSUBSET,SQSUBSETEQ,SQSUPSETEQ,SQSUPSET,TCMP\] }
+end

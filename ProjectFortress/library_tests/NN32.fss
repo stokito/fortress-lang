@@ -1,0 +1,90 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component NN32
+export Executable
+
+shouldOverflow(f: () -> NN32): Boolean =
+  try
+    ignore f()
+    false
+  catch e
+    IntegerOverflow => true
+    Exception => false
+  end
+
+shouldDivideByZero(f: () -> NN32): Boolean =
+  try
+    ignore f()
+    false
+  catch e
+    DivisionByZero => true
+    Exception => false
+  end
+
+run(): () = do
+  zero: NN32 = 0
+  two: NN32 = 2
+  three: NN32 = 3
+  four: NN32 = 4
+  five: NN32 = 5
+  six: NN32 = 6
+  seven: NN32 = 7
+  semihuge: NN32 = 30000_16
+  huge: NN32 = 50000000_16
+  twiceHuge: NN32 = A0000000_16
+  bits: NN32 = 1100_16
+  morebits: NN32 = 1010_16
+  maxValue: NN32 = FFFFFFFF_16
+
+  assert(|four| = four)
+  assert (three + four = seven)
+  assert (seven - three = four)
+  assert((five BOXPLUS seven) = 12)
+  assert((five DOTPLUS seven) = 12)
+  assert((seven BOXMINUS five) = 2)
+  assert((seven DOTMINUS five) = 2)
+  assert((four)(five) = 20)
+  assert((four) (five) = 20)
+  assert(seven five = 35)
+  assert(three DOT seven = 21)
+  assert(seven CROSS five = 35)
+  assert((seven BOXCROSS five) = 35)
+  assert((seven DOTCROSS five) = 35)
+  assert(seven DIV two = 3)
+  deny(three >= five)
+  assert(three <= five)
+  assert(six >= five)
+  deny(six <= five)
+  deny(three > five)
+  assert(three < five)
+  assert(six > five)
+  deny(six < five)
+  assert(BITNOT (BITNOT seven) = seven)
+  assert((bits BITAND morebits) = 1000_16)
+  assert((bits BITOR morebits) = 1110_16)
+  assert((bits BITXOR morebits) = 0110_16)
+  assert(three MAX five = five)
+  assert(three MIN five = three)
+  assert(six MAX five = six)
+  assert(six MIN five = five)
+  assert(odd(five))
+  assert(even(four))
+  assert(shouldDivideByZero(fn () => seven DIV zero))
+  assert(shouldDivideByZero(fn () => zero DIV zero))
+  assert(shouldDivideByZero(fn () => maxValue DIV zero))
+  assert(shouldOverflow(fn () => maxValue + 1))
+  assert(maxValue BOXPLUS 1 = 0)
+  assert(maxValue DOTPLUS 1 = maxValue)
+  println("PASS")
+end
+
+end

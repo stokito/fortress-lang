@@ -1,0 +1,60 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+# this script extracts user metrics from majordomo subscriber lists and from trac member lists.
+# it expects to see a directory name, where the directory contains files named
+# trac -- cut and pasted from a Trac user list web page
+# implementation, language, and announce -- cut and pasted from a Majordomo2 list-users
+#   web page, short form
+# it creates a number of files in that directory, the important one is "all.sorted".
+# which in theory contains the no-duplicates, no-sun list of "members" -- the length of the
+# file in lines is the numbers of external members in our community.
+
+if [ $# -lt 1 ] ; then
+  echo member_metrics directory_name
+  exit 1
+fi
+
+D=$1
+
+if [ -d "$D" ] ; then
+
+if [ -f "$D/trac" -a -f "$D/implementation" -a -f "$D/language" -a -f "$D/announce" ] ; then 
+
+H="`pwd`"
+
+awk 'BEGIN {FS="\t";} {if ($4 == "") print $2; else print $4;}' "$D/trac" |
+sed -E -e '1,$s/[ 	]+$//g' > "$D/trac.clean"
+
+for i in implementation language announce ; do
+"$H/extract_addresses_from_mailing_list" < "$D/$i" > "$D/${i}.clean"
+done
+
+for i in implementation language announce trac; do
+egrep -v "@sun.com" "$D/${i}.clean" > "$D/${i}.ns"
+done
+
+cat "${D}"/*.ns > "${D}/all.ns"
+sort -u "${D}/all.ns" | awk -f ExcludeSpecialCases.awk - >  "${D}/all.sorted"
+
+else
+
+  echo $D must contain trac, implementation, language, and announce
+
+fi
+
+else
+  
+  echo $D must be a directory and must exist and be readable.
+
+fi
