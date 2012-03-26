@@ -247,7 +247,7 @@ object SimpleMappedGenerator[\E7,F3\](g0: Generator[\E7\], f0: E7->F3)
         extends MappedGenerator[\E7,F3\]
     getter g(): Generator[\E7\] = g0
     getter f(): E7->F3 = f0
-    getter asString(): String = "mapped(" (self asif Generator[\F3\]).asString ")"
+    getter asString(): String = "mapped(" self.g.asString ")"
 end
 
 object SimpleSequentialMappedGenerator[\E8,F4\](g0: SequentialGenerator[\E8\], f0: E8->F4)

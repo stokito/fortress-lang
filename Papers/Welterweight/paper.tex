@@ -8,6 +8,9 @@
 
 \newcommand{\kwd}[1]{\mathtt{#1}}
 
+\newcommand{\emptyseq}{\bullet}
+\newcommand{\whennonempty}[2]{{\def\nonemptytempA{#1}\def\nonemptytempB{}\ifx\nonemptytempA\nonemptytempB\else#2\fi}}
+\newcommand{\turnstile}{\vdash}
 %newcommand
 \newcommand{\ms}{\preceq}
 \renewcommand{\bar}{\overline}
@@ -24,13 +27,14 @@
 \newcommand{\bexcp}{\mathrel{\altlozenge}_\textrm{m}}
 \newcommand{\bnexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\altlozenge}}
 
-\newcommand{\countof}{\#}
+\newcommand{\countof}{\hbox{\tt\#}}
+\newcommand{\apply}{\hbox{\tt\char'100}}
 \newcommand{\comprises}{\mathrel{\mathord{\equiv}\mathord{\bigcup}}}
 
 \newcommand{\fresh}[1]{\textit{fresh}({#1})}
 \newcommand{\freeVar}[1]{\textit{freeVars({#1})}}
 
-\newcommand{\dontcare}{\mathtt{\_}}
+\newcommand{\dontcare}{\_\!\_}
 \newcommand{\excr}{\triangleright}
 \newcommand{\excl}{\triangleleft}
 \newcommand{\excre}{\excr_\textrm{x}}
@@ -68,7 +72,10 @@
 \newcommand{\cequiv}{\ensuremath{\sim}}
 
 \newcommand{\arrowtype}[2]{\mbox{\ensuremath{({#1} \rightarrow {#2})}}}
-\newcommand{\tuple}[1]{\ensuremath{#1}}
+\newcommand{\tuple}[1]{\ensuremath{(#1)}}
+\newcommand{\tupleb}[1]{\ensuremath{(\bar{#1})}}
+\newcommand{\bigtuple}[1]{\ensuremath{\big(#1\big)}}
+\newcommand{\bigtupleb}[1]{\ensuremath{\big(\bar{#1}\big)}}
 
 \newcommand{\uniontype}[2]{\mbox{\ensuremath{({#1} \cup {#2})}}}
 \newcommand{\intersectiontype}[2]{\mbox{\ensuremath{({#1} \cap {#2})}}}
@@ -85,6 +92,9 @@
 \newcommand{\verythinmathspace}{\mskip0.5\thinmuskip}
 
 \newcommand{\set}[1]{\ensuremath{\{{#1}\}}}
+\newcommand{\setb}[1]{\ensuremath{\{\bar{#1}\}}}
+\newcommand{\bigset}[1]{\ensuremath{\big\{{#1}\big\}}}
+\newcommand{\bigsetb}[1]{\ensuremath{\big\{\bar{#1}\big\}}}
 
 % put in oxford brackets
 \newcommand{\ob}[1]{\ensuremath{\llbracket\verythinmathspace {#1} \verythinmathspace\rrbracket}}
@@ -146,22 +156,52 @@
 \newcommand{\newjudge}[2]{\hbox{{#1:} \quad \fbox{\ensuremath{#2}}}}
 
 % non constrained judgements
-\newcommand{\jgtemplate}[4][\Delta]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}}}
-\newcommand{\jgTHREEtemplate}[8]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}, {#5}\;{#3}\;{#6}, {#7}\;{#3}\;{#8}}}
+\newcommand{\jgtemplate}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{#3}\;{#4}}}
+\newcommand{\jgbtemplate}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\bar{{#2}\;{#3}\;{#4}}}}
+\newcommand{\jgTHREEtemplate}[8]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{#3}\;{#4}, {#5}\;{#3}\;{#6}, {#7}\;{#3}\;{#8}}}
+
+\newcommand{\jgshorttemplate}[3][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{#3}}}
+\newcommand{\jgbshorttemplate}[3][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\bar{{#2}\;{#3}}}}
+
 % ground subtyping
 \newcommand{\jgsub}[3][\Delta]{\jgtemplate[#1]{#2}{\subtypeof}{#3}}
 \newcommand{\jgnequiv}[3][\Delta]{\jgtemplate[#1]{#2}{\not \equiv}{#3}}
 
 % evaluation
 \newcommand{\jevalstep}[3][\Delta]{\jgtemplate[#1]{#2}{\longrightarrow}{#3}}
+\newcommand{\jevalstepTWO}[5][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{\longrightarrow}\;{#3}, {#4}\;{\longrightarrow}\;{#5}}}
+\newcommand{\jbevalstep}[3][\Delta]{\jgbtemplate[#1]{#2}{\longrightarrow}{#3}}
 \newcommand{\jevalstar}[3][\Delta]{\jgtemplate[#1]{#2}{\longrightarrow^*}{#3}}
+
+% typing
+\newcommand{\jtype}[3][\Delta;\Gamma]{\jgtemplate[#1]{#2}{\mathrel{:}}{#3}}
+\newcommand{\jbtype}[3][\Delta;\Gamma]{\jgbtemplate[#1]{#2}{\mathrel{:}}{#3}}
+
+%subtyping
+\newcommand{\jsubtype}[3][\Delta]{\jgtemplate[#1]{#2}{\subtypeof}{#3}}
+\newcommand{\jbsubtype}[3][\Delta]{\jgbtemplate[#1]{#2}{\subtypeof}{#3}}
+\newcommand{\jnotsubtype}[3][\Delta]{\jgtemplate[#1]{#2}{\not\subtypeof}{#3}}
+\newcommand{\jequivtype}[3][\Delta]{\jgtemplate[#1]{#2}{\equiv}{#3}}
+\newcommand{\jbequivtype}[3][\Delta]{\jgbtemplate[#1]{#2}{\equiv}{#3}}
+\newcommand{\jnotequivtype}[3][\Delta]{\jgtemplate[#1]{#2}{\not\equiv}{#3}}
+
+% well-formed types
+\newcommand{\jwftype}[2][\Delta]{\jgshorttemplate[#1]{#2}{\mathsf{ok}}}
+\newcommand{\jbwftype}[2][\Delta]{\jgbshorttemplate[#1]{#2}{\mathsf{ok}}}
+
+\newcommand{\jwfdecl}[2][\Delta]{\jgshorttemplate[#1]{#2}{\mathsf{ok}}}
+\newcommand{\jbwfdecl}[2][\Delta]{\jgbshorttemplate[#1]{#2}{\mathsf{ok}}}
+
+\newcommand{\jwfmeth}[2][\Delta;\Gamma]{\jgshorttemplate[#1]{#2}{\mathsf{ok}}}
+\newcommand{\jbwfmeth}[2][\Delta;\Gamma]{\jgbshorttemplate[#1]{#2}{\mathsf{ok}}}
+
 
 % subtyping on quantified types
 \newcommand{\jle}[3][\Delta]{\jgtemplate[#1]{#2}{\le}{#3}}
 \newcommand{\jleinner}[3][\Delta]{\jgtemplate[#1]{#2}{\leinner}{#3}}
 
 % constrained judgments
-\newcommand{\jgconstrtemplate}[5][\Delta]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}\,\Leftarrow\,{#5}}}
+\newcommand{\jgconstrtemplate}[5][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{#3}\;{#4}\,\Leftarrow\,{#5}}}
 % ground subtyping with constraints
 \newcommand{\jsub}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\subtypeof}{#3}{#4}}
 % not subtype
@@ -177,7 +217,7 @@
 
 
 % contrapositive judgements
-\newcommand{\jgcontratemplate}[5][\Delta]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}\,\Rightarrow\,{#5}}}
+\newcommand{\jgcontratemplate}[5][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{#3}\;{#4}\,\Rightarrow\,{#5}}}
 % ground subtyping with constraints
 \newcommand{\jcsub}[4][\Delta]{\jgcontratemplate[#1]{#2}{\subtypeof}{#3}{#4}}
 % not subtype
@@ -204,15 +244,15 @@
 \newcommand{\toBounds}[2]{\ensuremath{\textit{toBounds}({#1})\,=\,{#2}}}
 
 % apply substitution to constraint
-\newcommand{\japply}[4][\Delta]{\ensuremath{{#1}\,\vdash\,\textit{apply}({#2}, {#3})\,=\,{#4}}}
+\newcommand{\japply}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\textit{apply}({#2}, {#3})\,=\,{#4}}}
 % solve constraint to get a substitution and the residual constraints
-\newcommand{\jsolve}[4][\Delta]{\ensuremath{{#1}\,\vdash\,\textit{unify}({#2})\,=\,{#3}\,,\;{#4}}}
+\newcommand{\jsolve}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\textit{unify}({#2})\,=\,{#3}\,,\;{#4}}}
 
 
 
 % type reduction
-\newcommand{\jtred}[2]{\ensuremath{\Delta \vdash\,{#1} \eqred {#2}}}
-\newcommand{\jtreds}[3]{\ensuremath{\Delta \vdash\,{#1} \eqred {#2}\,,\;{#3}}}
+\newcommand{\jtred}[2]{\ensuremath{\Delta \turnstile\,{#1} \eqred {#2}}}
+\newcommand{\jtreds}[3]{\ensuremath{\Delta \turnstile\,{#1} \eqred {#2}\,,\;{#3}}}
 
 
 % for tabularx environments to have a right-aligned, stretched col

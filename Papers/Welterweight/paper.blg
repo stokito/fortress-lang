@@ -1,46 +1,45 @@
 This is BibTeX, Version 0.99c (Web2C 7.5.7)
 The top-level auxiliary file: paper.aux
-I found no \bibdata command---while reading file paper.aux
-I found no \bibstyle command---while reading file paper.aux
+The style file: plain.bst
+Database file #1: paper.bib
 You've used 1 entry,
-            0 wiz_defined-function locations,
-            84 strings with 492 characters,
-and the built_in function-call counts, 0 in all, are:
-= -- 0
-> -- 0
+            2118 wiz_defined-function locations,
+            501 strings with 4218 characters,
+and the built_in function-call counts, 441 in all, are:
+= -- 32
+> -- 43
 < -- 0
-+ -- 0
-- -- 0
-* -- 0
-:= -- 0
-add.period$ -- 0
-call.type$ -- 0
-change.case$ -- 0
++ -- 17
+- -- 16
+* -- 39
+:= -- 83
+add.period$ -- 2
+call.type$ -- 1
+change.case$ -- 11
 chr.to.int$ -- 0
-cite$ -- 0
-duplicate$ -- 0
-empty$ -- 0
-format.name$ -- 0
-if$ -- 0
+cite$ -- 1
+duplicate$ -- 7
+empty$ -- 23
+format.name$ -- 16
+if$ -- 81
 int.to.chr$ -- 0
-int.to.str$ -- 0
+int.to.str$ -- 1
 missing$ -- 0
-newline$ -- 0
-num.names$ -- 0
-pop$ -- 0
-preamble$ -- 0
-purify$ -- 0
+newline$ -- 7
+num.names$ -- 2
+pop$ -- 16
+preamble$ -- 1
+purify$ -- 10
 quote$ -- 0
-skip$ -- 0
+skip$ -- 8
 stack$ -- 0
-substring$ -- 0
-swap$ -- 0
+substring$ -- 5
+swap$ -- 1
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 0
+type$ -- 4
 warning$ -- 0
-while$ -- 0
-width$ -- 0
-write$ -- 0
-(There were 2 error messages)
+while$ -- 2
+width$ -- 2
+write$ -- 10
