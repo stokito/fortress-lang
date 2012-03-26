@@ -24,7 +24,7 @@
 % \newcommand{\altlozenge}{\ooalign{\hfil$\normallozenge$\hfil\cr\hfil$\smalllozenge$\hfil}}
 \newcommand{\altlozenge}{\ooalign{\hfil$\vcenter{\hbox{$\lozenge$}}$\hfil\cr\hfil$\cdot$\hfil}}
 \newcommand{\bexc}{\mathrel{\altlozenge}}
-\newcommand{\bexcp}{\mathrel{\altlozenge}_\textrm{m}}
+\newcommand{\bexcm}{\mathrel{\altlozenge}_\textrm{m}}
 \newcommand{\bnexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\altlozenge}}
 
 \newcommand{\countof}{\hbox{\tt\#}}
@@ -37,22 +37,19 @@
 \newcommand{\dontcare}{\_\!\_}
 \newcommand{\excr}{\triangleright}
 \newcommand{\excl}{\triangleleft}
-\newcommand{\excre}{\excr_\textrm{x}}
-\newcommand{\excle}{\excl_\textrm{x}}
+\newcommand{\excrx}{\excr_\textrm{x}}
+\newcommand{\exclx}{\excl_\textrm{x}}
 \newcommand{\excrc}{\excr_\textrm{c}}
 \newcommand{\exclc}{\excl_\textrm{c}}
 \newcommand{\excro}{\excr_\textrm{o}}
 \newcommand{\exclo}{\excl_\textrm{o}}
 % \newcommand{\excrp}{\excr_\textrm{m}}
 % \newcommand{\exclp}{\excl_\textrm{m}}
-\newcommand{\excrx}{\excr_*}
-\newcommand{\exclx}{\excl_*}
-\newcommand{\excx}{\exc_*}
 
-\newcommand{\exce}{\exc_\textrm{x}}
+\newcommand{\excx}{\exc_\textrm{x}}
 \newcommand{\excc}{\exc_\textrm{c}}
 \newcommand{\exco}{\exc_\textrm{o}}
-\newcommand{\excp}{\exc_\textrm{m}}
+\newcommand{\excm}{\exc_\textrm{m}}
 
 \newcommand{\propop}{\ensuremath{\mathrel{\ast}}}
 
@@ -95,6 +92,7 @@
 \newcommand{\setb}[1]{\ensuremath{\{\bar{#1}\}}}
 \newcommand{\bigset}[1]{\ensuremath{\big\{{#1}\big\}}}
 \newcommand{\bigsetb}[1]{\ensuremath{\big\{\bar{#1}\big\}}}
+\newcommand{\LRsetb}[1]{\ensuremath{\left\{\bar{#1}\right\}}}
 
 % put in oxford brackets
 \newcommand{\ob}[1]{\ensuremath{\llbracket\verythinmathspace {#1} \verythinmathspace\rrbracket}}
@@ -140,6 +138,7 @@
 %%%%% Any and Bottom %%%%
 
 \newcommand{\Any}{\TYP{Any}}
+\newcommand{\Object}{\TYP{Object}}
 \newcommand{\Bottom}{\TYP{Bottom}}
 
 \newcommand{\FALSE}{\textrm{false}}
@@ -202,18 +201,23 @@
 
 % constrained judgments
 \newcommand{\jgconstrtemplate}[5][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{#3}\;{#4}\,\Leftarrow\,{#5}}}
+\newcommand{\jgbconstrtemplate}[5][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\bar{{#2}\;{#3}\;{#4}\,\Leftarrow\,{#5}}}}
+\newcommand{\jgbbconstrtemplate}[5][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\bar{\bar{{#2}\;{#3}\;{#4}\,\Leftarrow\,{#5}}}}}
 % ground subtyping with constraints
 \newcommand{\jsub}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\subtypeof}{#3}{#4}}
+\newcommand{\jbsub}[4][\Delta]{\jgbconstrtemplate[#1]{#2}{\subtypeof}{#3}{#4}}
 % not subtype
 \newcommand{\jnsub}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\not \subtypeof}{#3}{#4}}
 % type exclusion
 \newcommand{\jexc}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\exc}{#3}{#4}}
+\newcommand{\jbexc}[4][\Delta]{\jgbconstrtemplate[#1]{#2}{\exc}{#3}{#4}}
 % type non-exclusion
 \newcommand{\jnexc}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\nexc}{#3}{#4}}
 % equivalence
 \newcommand{\jequiv}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\equiv}{#3}{#4}}
 % nonequivalence
 \newcommand{\jnequiv}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\not\equiv}{#3}{#4}}
+\newcommand{\jbnequiv}[4][\Delta]{\jgbconstrtemplate[#1]{#2}{\not\equiv}{#3}{#4}}
 
 
 % contrapositive judgements
@@ -350,6 +354,8 @@ methods, multimethods, separate compilation, Fortress}
 
 \section{Conclusion and Discussion}\label{sec:conclusion}
 %\input{conclusion}
+
+\input{fig-exclusion}
 
 \section*{Acknowledgments}
 % This work is supported in part by the Engineering Research Center of Excellence Program of Korea Ministry of Education,

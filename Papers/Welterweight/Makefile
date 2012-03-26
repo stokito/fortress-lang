@@ -10,7 +10,7 @@
 ################################################################################
 # very basic makefile
 
-TICKS = paper.tick notation.tick grammar.tick
+TICKS = paper.tick notation.tick grammar.tick fig-exclusion.tick
 #         introduction.tick abstract.tick related-work.tick setup.tick rules.tick \
 #         exclusion.tick conclusion.tick exc-spec.tick exc-reduction.tick \
 #         exc-constraints.tick examples.tick safety.tick discussion.tick fig-exclusion.tick fig-subtype.tick \
