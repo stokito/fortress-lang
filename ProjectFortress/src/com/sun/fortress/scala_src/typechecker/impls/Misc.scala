@@ -415,9 +415,12 @@ trait Misc { self: STypeChecker with Common =>
     /* Matches if block is an atomic block. */
     case SBlock(SExprInfo(span,parenthesized,resultType),
                 loc, true, withinDo, exprs) =>
+      /* Strip the "atomic" to avoid infinite recursion;
+       * then set it back again */
+      NF.remakeAtomic(
       forAtomic(SBlock(SExprInfo(span,parenthesized,resultType),
                        loc, false, withinDo, exprs),
-                "an 'atomic' do block")
+                "an 'atomic' do block").asInstanceOf[Block])
 
     /* Matches if block is not an atomic block. */
     case SBlock(SExprInfo(span,parenthesized,resultType),
