@@ -11,7 +11,7 @@ $e$ ranges over expressions $e$ \\
 $t$ ranges over trait types $t$ \\
 $c$ ranges over constructed types $c$ \\
 $P, Q, S$ range over type parameter names $P$ \\
-$T, A, B, C$ range over trait names $T$ \\
+$T, A, B$ range over trait names $T$ \\
 $O$ ranges over object names $O$ \\
 $x, y$ range over variable names $x$ \\
 $z$ ranges over field names $z$ \\
@@ -24,7 +24,9 @@ $\lambda$ ranges over lattice type parameter bindings $\lambda$ \\
 $\psi$ ranges over general type environment entries $\psi$ \\
 $v$ ranges over values $v$ \\
 $E$ ranges over evaluation contexts $E$ \\
-$R$ ranges over redexes $R$ \\[6pt]
+$R$ ranges over redexes $R$ \\
+
+ \\[6pt]
 $\pi$ and $\sigma$ do not range over any {\sc bnf} nonterminal
 \end{tabular}
 
@@ -68,8 +70,8 @@ e        & ::= &  x                                                             
          &  |  &  c                                         & \hbox{\rm constructed type} \\
          &  |  &  (\bar{\tau})                              & \hbox{\rm tuple type} \\
          &  |  &  \arrowtype{\tau}{\tau}                    & \hbox{\rm arrow type} \\
-         &  |  &  \TYP{Any}                                     & \hbox{\rm special \TYP{Any} type} \\
-         &  |  &  \TYP{Object}                                  & \hbox{\rm special \TYP{Object} type} \\[4pt]
+         &  |  &  \Any                                      & \hbox{\rm special \Any\ type} \\
+         &  |  &  \Object                                   & \hbox{\rm special \Object type} \\[4pt]
 c        & ::= &  O\obb{\tau}                               & \hbox{\rm object type} \\
          &  |  &  t                                         & \hbox{\rm trait type} \\[4pt]
 t        & ::= &  T\obb{\tau}                               & \hbox{\rm trait type} \\[4pt]
@@ -97,18 +99,18 @@ i        & ::= &  \hbox{\rm integer}                        & \hbox{\rm fixed in
          &  |  &  O\obb{\alpha}                                  & \hbox{\rm object type} \\
          &  |  &  (\bar{\alpha})                                 & \hbox{\rm tuple type} \\
          &  |  &  \arrowtype{\alpha}{\alpha}                     & \hbox{\rm arrow type} \\
-         &  |  &  \TYP{Any}                                          & \hbox{\rm special \TYP{Any} type} \\
-         &  |  &  \TYP{Object}                                       & \hbox{\rm special \TYP{Object} type} \\
-         &  |  &  \TYP{Bottom}                                       & \hbox{\rm special \TYP{Bottom} type} \\
+         &  |  &  \Any                                           & \hbox{\rm special \Any\ type} \\
+         &  |  &  \Object                                        & \hbox{\rm special \Object\ type} \\
+         &  |  &  \Bottom                                        & \hbox{\rm special \Bottom\ type} \\
          &  |  &  \uniontype{\alpha}{\alpha}                     & \hbox{\rm union type} \\
          &  |  &  \intersectiontype{\alpha}{\alpha}              & \hbox{\rm intersection type} \\[4pt]
 \kappa   & ::= &  \alpha                                         & \hbox{\rm lattice type} \\
          &  |  &  \existstypeb{\lambda}{\alpha}                  & \hbox{\rm existentially quantified type} \\[1pt]
          &  |  &  \foralltypeb{\lambda}{\alpha}                  & \hbox{\rm universally quantified type} \\[4pt]
 \lambda  & ::= &  \bdb{\alpha} \extends P \extends \bdb{\alpha}  & \hbox{\rm lattice type parameter binding} \\[4pt]
-\psi      & ::= &  \delta                                         & \hbox{\rm program declaration} \\
-         &  |  &  \varphi                                        & \hbox{\rm full type parameter binding} \\[4pt]
-\Delta   & ::= &  \bar{\psi}                                      & \hbox{\rm type-declaration environment} \\[4pt]
+\psi     & ::= &  \delta                                         & \hbox{\rm program declaration} \\
+         &  |  &  \lambda                                        & \hbox{\rm lattice type parameter binding} \\[4pt]
+\Delta   & ::= &  \bar{\psi}                                     & \hbox{\rm type-declaration environment} \\[4pt]
 \Gamma   & ::= &  \bar{x\COLON\alpha}                            & \hbox{\rm variable-type environment} \\[4pt]
 \end{array}
 
@@ -256,7 +258,7 @@ R        & ::= &  \pi_i(v)                                                      
 
 \medskip
 \caption{Functions on Variable-type Enviroments}
-\label{fig:values}
+\label{fig:environments}
 \end{figure}
 
 
@@ -397,17 +399,17 @@ R        & ::= &  \pi_i(v)                                                      
 \bigskip
 
 \infax[W-Any-Type]
-  { \jwftype{\TYP{Any}} }
+  { \jwftype{\Any} }
 
 \bigskip
 
 \infax[W-Object-Type]
-  { \jwftype{\TYP{Object}} }
+  { \jwftype{\Object} }
 
 \bigskip
 
 \infax[W-Bottom-Type]
-  { \jwftype{\TYP{Bottom}} }
+  { \jwftype{\Bottom} }
 
 \bigskip
 
@@ -495,7 +497,7 @@ R        & ::= &  \pi_i(v)                                                      
 
 \medskip
 \caption{Program typing and Well-formed Definitions}
-\label{fig:wellformedtypes}
+\label{fig:wellformeddecls}
 \end{figure*}
 
 
@@ -567,17 +569,17 @@ R        & ::= &  \pi_i(v)                                                      
 \bigskip
 
 \infax[S-Any]
-  { \jsubtype{\kappa}{\TYP{Any}} }
+  { \jsubtype{\kappa}{\Any} }
 
 \bigskip
 
 \infax[S-Bottom]
-  { \jsubtype{\TYP{Bottom}}{\kappa} }
+  { \jsubtype{\Bottom}{\kappa} }
 
 \bigskip
 
 \infax[S-Object]
-  { \jsubtype{c}{\TYP{Object}} }
+  { \jsubtype{c}{\Object} }
 
 \bigskip
 
@@ -678,8 +680,8 @@ R        & ::= &  \pi_i(v)                                                      
 \bigskip
 
 \infrule[E-Tuple-Bottom]
-  { \kappa' \in \setb{\kappa}  \andalso  \jsubtype{\kappa'}{\TYP{Bottom}} }
-  { \jequivtype{(\bar{\kappa})}{\TYP{Bottom}} }
+  { \kappa' \in \setb{\kappa}  \andalso  \jsubtype{\kappa'}{\Bottom} }
+  { \jequivtype{(\bar{\kappa})}{\Bottom} }
 
 \bigskip
 
@@ -713,11 +715,22 @@ R        & ::= &  \pi_i(v)                                                      
   { \jsubtype{\alpha}{\eta} }
   { \jequivtype{\intersectiontype{\alpha}{\eta}}{\alpha} }
 
-
-
 \medskip
 \caption{Type equivalence}
 \label{fig:equivalence}
+\end{figure}
+
+
+\begin{figure}
+\typicallabel{X-Tuple}
+
+\newjudge{Type exclusion}{\jequivtype{\alpha}{\alpha}}
+
+
+
+\medskip
+\caption{Type Exclusion}
+\label{fig:exclusion}
 \end{figure}
 
 \clearpage
