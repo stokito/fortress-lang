@@ -2798,6 +2798,16 @@ public class NodeFactory {
         });
     }
 
+    /**
+     * Reallocates a block with the atomic flag jammed on.
+     * @param block
+     * @return
+     */
+    public static Block remakeAtomic(Block block) {
+        block = new Block(block.getInfo(), block.getLoc(), true, block.isWithinDo(), block.getExprs());
+        return block;
+    }
+    
     public static Id makeLocalId(Id fn) {
         return new Id(fn.getInfo(), Option.<APIName>none(), fn.getText());
     }
