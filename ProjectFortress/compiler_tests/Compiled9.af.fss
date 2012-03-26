@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+
+  object Something end
+  object FooExn extends Exception end
+
+  run() : () = do
+    var z:String
+    z := try
+      throw FooExn
+    catch e
+      FooExn => "First string"
+      Exception => "Second string"
+    finally
+      4
+    end
+    ()
+  end

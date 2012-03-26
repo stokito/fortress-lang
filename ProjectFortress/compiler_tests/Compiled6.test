@@ -1,0 +1,33 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests= Compiled6
+compile
+link
+run
+run_out_contains=0\n\
+1\n\
+2\n\
+3\n\
+4\n\
+5\n\
+6\n\
+7\n\
+8\n\
+9\n\
+0\n\
+1\n\
+2\n\
+3\n\
+4\n\
+5\n\
+6\n\
+7\n\
+8\n\
+9

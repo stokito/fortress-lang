@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(*) Test working compound assignments.
+
+  export Executable
+
+  opr +(a: (ZZ32, ZZ32), b: ZZ32): (ZZ32, ZZ32) = do
+    (p, q) = a
+    (p+b, q+b)
+  end
+
+  run() = do
+    var x: ZZ32 = 0
+    x += 5
+
+    (t, s) = (1, 4)
+
+    var y: ZZ32 = 1
+    (x, y) += t
+  end

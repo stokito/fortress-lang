@@ -1,0 +1,727 @@
+
+\begin{figure}
+
+\begin{tabular}[t]{@{}l@{}}
+$\delta$ ranges over top-level declarations $\delta$ \\
+$V$ ranges over variances $V$ \\
+$\mu$ ranges over method declarations $\mu$ \\
+$\beta$ ranges over simple type parameter bindings $\beta$ \\
+$\varphi$ ranges over full type parameter bindings $\varphi$ \\
+$e$ ranges over expressions $e$ \\
+$t$ ranges over trait types $t$ \\
+$c$ ranges over constructed types $c$ \\
+$P, Q, S$ range over type parameter names $P$ \\
+$T, A, B, C$ range over trait names $T$ \\
+$O$ ranges over object names $O$ \\
+$x, y$ range over variable names $x$ \\
+$z$ ranges over field names $z$ \\
+$f$ ranges over function names $f$ \\
+$m$ ranges over method names $m$ \\
+$\tau, \zeta, \xi, \omega$ range over types $\tau$ \\
+$\alpha, \gamma, \rho, \chi, \eta$ range over lattice types $\alpha$ \\
+$\kappa$ ranges over quantified types $\kappa$ \\
+$\lambda$ ranges over lattice type parameter bindings $\lambda$ \\
+$\psi$ ranges over general type environment entries $\psi$ \\
+$v$ ranges over values $v$ \\
+$E$ ranges over evaluation contexts $E$ \\
+$R$ ranges over redexes $R$ \\[6pt]
+$\pi$ and $\sigma$ do not range over any {\sc bnf} nonterminal
+\end{tabular}
+
+\caption{Metavariables}
+\label{fig:metavariables}
+\end{figure}
+
+
+
+
+\begin{figure*}
+
+\begin{tabular*}{\textwidth}{@{}l@{\extracolsep{0pt plus 1fil}}|l@{}}
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 1.5em}l@{\hskip 0em}l@{}}
+p        & ::= &  \bar{\delta}, e                                                    & \multicolumn{2}{@{}l@{}}{\hbox{\rm program (declarations plus expression)\hskip0.6em}} \\[4pt]
+\delta   & ::= &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{trait} \; T\bigobb{V\;\beta}
+                              \mathbin{\extends} \bigbdb{t} \mathbin{\exc} \bigbdb{t} \mathbin{\comprises} \bigbdb{c} \; \bar{\mu} \; \kwd{end}            } & \hbox{\rm trait declaration} \\[1pt]
+         &  |  &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{object} \; O\bigobb{\beta} (\bar{z\COLON\tau}) \extends \bigbdb{t} \; \bar{\mu } \; \kwd{end} } & \hbox{\rm object declaration} \\[1pt]
+         &  |  &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ f\bigobb{\beta} (\bar{x\COLON\tau})\COLON\tau = e                                                  } & \hbox{\rm function declaration} \\[4pt]
+V        & ::= &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{covariant} \mid \kwd{contravariant} \mid \kwd{invariant}                                      } & \hbox{\rm variance} \\[4pt]
+\mu      & ::= &  m\bigobb{\varphi} (\bar{x\COLON\tau})\COLON\tau = e                & \multicolumn{2}{@{}l@{}}{\hbox{\rm method declaration}} \\[4pt]
+\beta    & ::= &  P \extends \bdb{\tau}                                              & \multicolumn{2}{@{}l@{}}{\hbox{\rm simple type parameter binding}} \\[4pt]
+\varphi  & ::= &  \bdb{\tau} \extends P \extends \bdb{\tau}                          & \multicolumn{2}{@{}l@{}}{\hbox{\rm full type parameter binding}} \\[4pt]
+e        & ::= &  x                                                                  & \multicolumn{2}{@{}l@{}}{\hbox{\rm variable reference}} \\
+         &  |  &  \kwd{self}                                                         & \multicolumn{2}{@{}l@{}}{\hbox{\rm self reference}} \\
+         &  |  &  (\bar{e})                                                          & \multicolumn{2}{@{}l@{}}{\hbox{\rm tuple creation}} \\
+         &  |  &  \pi_i(e)                                                           & \multicolumn{2}{@{}l@{}}{\hbox{\rm tuple projection}} \\
+         &  |  &  ((\bar{x\COLON\tau})\COLON\tau \Rightarrow e)                      & \multicolumn{2}{@{}l@{}}{\hbox{\rm function creation}} \\
+         &  |  &  e\apply(\bar{e})                                                   & \multicolumn{2}{@{}l@{}}{\hbox{\rm function application}} \\
+         &  |  &  e.z                                                                & \multicolumn{2}{@{}l@{}}{\hbox{\rm field reference}} \\
+         &  |  &  O\obb{\tau}(\bar{e})                                               & \multicolumn{2}{@{}l@{}}{\hbox{\rm object creation}} \\
+         &  |  &  f\obb{\tau}(\bar{e})                                               & \multicolumn{2}{@{}l@{}}{\hbox{\rm function invocation with static arguments\hskip0.6em}} \\
+         &  |  &  f(\bar{e})                                                         & \multicolumn{2}{@{}l@{}}{\hbox{\rm function invocation, no static arguments}} \\
+         &  |  &  e.m\obb{\tau}(\bar{e})                                             & \multicolumn{2}{@{}l@{}}{\hbox{\rm method invocation with static arguments}} \\
+         &  |  &  e.m(\bar{e})                                                       & \multicolumn{2}{@{}l@{}}{\hbox{\rm method invocation, no static arguments}} \\
+         &  |  &  (e \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e)  & \multicolumn{2}{@{}l@{}}{\hbox{\rm match expression}}
+\end{array}
+&
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 1.5em}l@{}}
+\tau     & ::= &  P                                         & \hbox{\rm type parameter reference} \\
+         &  |  &  c                                         & \hbox{\rm constructed type} \\
+         &  |  &  (\bar{\tau})                              & \hbox{\rm tuple type} \\
+         &  |  &  \arrowtype{\tau}{\tau}                    & \hbox{\rm arrow type} \\
+         &  |  &  `Any`                                     & \hbox{\rm special `Any` type} \\
+         &  |  &  `Object`                                  & \hbox{\rm special `Object` type} \\[4pt]
+c        & ::= &  O\obb{\tau}                               & \hbox{\rm object type} \\
+         &  |  &  t                                         & \hbox{\rm trait type} \\[4pt]
+t        & ::= &  T\obb{\tau}                               & \hbox{\rm trait type} \\[4pt]
+P        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm type parameter name} \\[4pt]
+T        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm generic trait name} \\[4pt]
+O        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm generic object name} \\[4pt]
+x        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm variable name} \\[4pt]
+z        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm field name} \\[4pt]
+f        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm function name} \\[4pt]
+m        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm method name} \\[4pt]
+i        & ::= &  \hbox{\rm integer}                        & \hbox{\rm fixed integer}
+\end{array}
+\end{tabular*}
+
+\caption{Grammar for Welterweight Fortress}
+\label{fig:grammar}
+\end{figure*}
+
+
+\begin{figure}
+
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 2em}l@{}}
+\alpha   & ::= &  P                                              & \hbox{\rm type parameter name} \\
+         &  |  &  T\obb{\alpha}                                  & \hbox{\rm trait type} \\
+         &  |  &  O\obb{\alpha}                                  & \hbox{\rm object type} \\
+         &  |  &  (\bar{\alpha})                                 & \hbox{\rm tuple type} \\
+         &  |  &  \arrowtype{\alpha}{\alpha}                     & \hbox{\rm arrow type} \\
+         &  |  &  `Any`                                          & \hbox{\rm special `Any` type} \\
+         &  |  &  `Object`                                       & \hbox{\rm special `Object` type} \\
+         &  |  &  `Bottom`                                       & \hbox{\rm special `Bottom` type} \\
+         &  |  &  \uniontype{\alpha}{\alpha}                     & \hbox{\rm union type} \\
+         &  |  &  \intersectiontype{\alpha}{\alpha}              & \hbox{\rm intersection type} \\[4pt]
+\kappa   & ::= &  \alpha                                         & \hbox{\rm lattice type} \\
+         &  |  &  \existstypeb{\lambda}{\alpha}                  & \hbox{\rm existentially quantified type} \\[1pt]
+         &  |  &  \foralltypeb{\lambda}{\alpha}                  & \hbox{\rm universally quantified type} \\[4pt]
+\lambda  & ::= &  \bdb{\alpha} \extends P \extends \bdb{\alpha}  & \hbox{\rm lattice type parameter binding} \\[4pt]
+\psi     & ::= &  \delta                                         & \hbox{\rm program declaration} \\
+         &  |  &  \varphi                                        & \hbox{\rm full type parameter binding} \\[4pt]
+\Delta   & ::= &  \bar{\psi}                                     & \hbox{\rm type-declaration environment} \\[4pt]
+\Gamma   & ::= &  \bar{x\COLON\alpha}                            & \hbox{\rm variable-type environment} \\[4pt]
+\end{array}
+
+\caption{Symbols Not Used in the Concrete Syntax}
+\label{fig:internalsymbols}
+\end{figure}
+
+
+\begin{figure}
+
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 2em}l@{}}
+v        & ::= &  O\obb{\alpha}(\bar{v})                              & \hbox{\rm object instance} \\
+         &  |  &  (\bar{v})                                           & \hbox{\rm tuple value} \\
+         &  |  &  ((\bar{x\COLON\tau})\COLON\tau \Rightarrow e)     & \hbox{\rm function value} \\[4pt]
+E        & ::= &  \Box                                                               & \hbox{\rm evaluation context} \\
+         &  |  &  (\bar{e}\,E\,\bar{e})                                              \\
+         &  |  &  \pi_i(E)                                                           \\
+         &  |  &  E\apply(\bar{e})                                                   \\
+         &  |  &  e\apply(\bar{e}\,E\,\bar{e})                                       \\
+         &  |  &  E.z                                                                \\
+         &  |  &  O\obb{\tau}(\bar{e}\,E\,\bar{e})                                   \\
+         &  |  &  f\obb{\tau}(\bar{e}\,E\,\bar{e})                                   \\
+         &  |  &  f(\bar{e}\,E\,\bar{e})                                             \\
+         &  |  &  E.m\obb{\tau}(\bar{e})                                             \\
+         &  |  &  e.m\obb{\tau}(\bar{e}\,E\,\bar{e})                                 \\
+         &  |  &  E.m(\bar{e})                                                       \\
+         &  |  &  e.(\bar{e}\,E\,\bar{e})                                            \\
+         &  |  &  (E \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e)  \\[4pt]
+R        & ::= &  \pi_i(v)                                                           & \hbox{\rm redex} \\
+         &  |  &  (v)                                                                \\
+         &  |  &  v\apply(\bar{v})                                                   \\
+         &  |  &  v.z                                                                \\
+         &  |  &  f\obb{\tau}(\bar{v})                                               \\
+         &  |  &  f(\bar{v})                                                         \\
+         &  |  &  v.m\obb{\tau}(\bar{v})                                             \\
+         &  |  &  v.m(\bar{v})                                                       \\
+         &  |  &  (v \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e)
+\end{array}
+
+\bigskip
+\newjudge{Ilk of a value}{\mathit{ilk}(v) = \alpha}
+\medskip
+\begin{array}[t]{@{}l@{}}
+\mathit{ilk}(O\obb{\alpha}(\bar{v})) = O\obb{\alpha} \\[2pt]
+\mathit{ilk}((\bar{v})) = (\bar{\mathit{ilk}(v)}) \\[2pt]
+\mathit{ilk}(((\bar{x\COLON\tau})\COLON\tau' \Rightarrow e)) = \arrowtype{(\bar{\tau})}{\tau'}
+\end{array}
+
+\medskip
+\caption{Values, Evaluation Contexts, Redexes, and Ilks}
+\label{fig:values}
+\end{figure}
+
+
+
+\begin{figure*}
+
+\typicallabel{R-Function-No-Static-Args}
+
+\newjudge{Evaluation rules}{\jevalstep[\Delta]{E[R]}{E[e]}}
+
+\medskip
+
+\infax[R-Project-Tuple]
+  { \jbevalstep[\Delta]{\underline{E}\big[\pi(\underline{\bar{v}})\big]}{\underline{E}[v]} }
+
+\bigskip
+
+\infax[R-Singleton-Tuple]
+  { \jevalstep[\Delta]{(v)}{v} }
+
+\bigskip
+
+\infax[R-Apply-Function]
+%  { \jsubtype[\Delta]{(\bar{\mathit{ilk}(v)})}{(\bar{\tau})} }
+  { \jevalstep[\Delta]{{E\big[((\bar{x\COLON\tau})\COLON\tau \Rightarrow e)\apply(\bar{v})\big]}}{E\big[ [\bar{v/x}]e \big]} }
+
+\bigskip
+
+\infrule[R-Field-Access]
+  {  \kwd{object} \; O\ob{\dontcare} (\bar{z\COLON\dontcare}) \;\dontcare \; \kwd{end} \in \set{\Delta} }
+  { \jbevalstep[\Delta]{\underline{E}\big[\,\underline{O\obb{\alpha}(\bar{v})}.z\big]}{\underline{E}[v]} }
+
+\bigskip
+
+\infrule[R-Function-Static-Args]
+  {  \mathit{msa}(\Delta, f\obb{\tau}, (\bar{ilk(v)})) = \bigset{\bigtuple{f\bigobb{P \extends \bd{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho = e, \dontcare}} }
+  { \jevalstep[\Delta]{E\big[f\obb{\tau}(\bar{v})\big]}{E\big[ [\bar{v/x}][\bar{\tau/P}]e \big]} }
+
+\bigskip
+
+\infrule[R-Function-No-Static-Args]
+  {  \mathit{msa}(\Delta, f, (\bar{ilk(v)})) = \bigset{\bigtuple{f\bigobb{P \extends \bd{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho = e, \dontcare}} }
+  { \jevalstep[\Delta]{E\big[f(\bar{v})\big]}{E\big[ [\bar{v/x}][\bar{\tau/P}]e \big]} }
+
+\bigskip
+
+\infrule[R-Method-Static-Args]
+  {  \mathit{msa}(\Delta, O\obb{\gamma}, m\obb{\tau}, (\bar{ilk(v)})) = \bigset{\bigtuple{m\bigobb{\bd{\dontcare} \extends P \extends \bd{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho = e, \dontcare}} }
+  { \jevalstep[\Delta]{E\big[O\obb{\gamma}(\bar{v}).m\obb{\tau}(\bar{v'})\big]}{E\big[ [O\obb{\gamma}(\bar{v})/\kwd{self}][\bar{v'/x}][\bar{\tau/P}]e \big]} }
+
+\bigskip
+
+\infrule[R-Method-No-Static-Args]
+  {  \mathit{msa}(\Delta, O\obb{\gamma}, m, (\bar{ilk(v)})) = \bigset{\bigtuple{m\bigobb{\bd{\dontcare} \extends P \extends \bd{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho = e, \dontcare}} }
+  { \jevalstep[\Delta]{E\big[O\obb{\gamma}(\bar{v}).m(\bar{v'})\big]}{E\big[ [O\obb{\gamma}(\bar{v})/\kwd{self}][\bar{v'/x}][\bar{\tau/P}]e \big]} }
+
+\bigskip
+
+\infrule[R-Match-Succeeds]
+  { \jsubtype[\Delta]{\mathit{ilk}(v)}{\tau} }
+  { \jevalstep[\Delta]{E\big[(v \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e')\big]}{E\big[[v/x]e\big]} }
+
+\bigskip
+
+\infrule[R-Match-Fails]
+  { \jnotsubtype[\Delta]{\mathit{ilk}(v)}{\tau} }
+  { \jevalstep[\Delta]{E\big[(v \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e')\big]}{E[e']} }
+
+\medskip
+\caption{Dynamic Semantics: Evaluation Rules}
+\label{fig:evaluation}
+\end{figure*}
+
+
+
+
+\begin{figure}
+\typicallabel{E-Domain}
+
+\newjudge{Domain of environment}{\mathit{dom}(\Gamma) = \setb{x}}
+\medskip
+
+\infax[E-Domain]
+  { \mathit{dom}(\bar{x\COLON \dontcare}) = \setb{x} }
+
+\bigskip
+
+\newjudge{Lookup in variable-type environment}{\mathit{lookup}(\Gamma, x) = \alpha}
+\medskip
+
+\infrule[E-Lookup]
+  { \Gamma = \dontcare, x\COLON\alpha, \bar{x'\COLON\dontcare}  \andalso  x \not\in \bigsetb{x'} }
+  { \mathit{lookup}(\Gamma, x) = \alpha }
+
+\medskip
+\caption{Functions on Variable-type Enviroments}
+\label{fig:values}
+\end{figure}
+
+
+
+
+\begin{figure}
+\typicallabel{T-Func-NSA}
+
+\newjudge{Static types of expressions}{\jtype{e}{\alpha}}
+\bigskip
+
+\infrule[T-Variable]
+  { x \in \mathit{dom}(\Gamma) }
+  { \jtype{x}{\mathit{lookup}(\Gamma, x)} }
+
+\bigskip
+
+\infrule[T-Self]
+  { \kwd{self} \in \mathit{dom}(\Gamma) }
+  { \jtype{\kwd{self}}{\mathit{lookup}(\Gamma, \kwd{self})} }
+
+\bigskip
+
+\infrule[T-Tuple]
+  { \jbtype{e}{\alpha} }
+  { \jtype{(\bar{e})}{(\bar{\alpha})} }
+
+\bigskip
+
+\infrule[T-Project]
+  { \jtype{e}{\tupleb{\alpha}} }
+  { \jbtype{\pi(\underline{e})}{\alpha} }
+
+\bigskip
+
+\infax[T-Func]
+  { \jtype{((\bar{x\COLON\tau})\COLON\omega \Rightarrow e)}{\arrowtype{(\bar{\tau})}{\omega}} }
+
+\bigskip
+
+\infrule[T-Apply]
+  { \jtype{e}{\arrowtype{(\bar{\alpha})}{\rho}}  \\
+    \jtype{(\bar{e'})}{(\bar{\chi})} \andalso
+    \jbsubtype{\chi}{\alpha}  }
+  { \jtype{e\apply(\bar{e'})}{\rho} }
+
+\bigskip
+
+\infrule[T-Field]
+  { \jtype{e}{O\obb{\alpha}} \\
+    \kwd{object} \; O\bigobb{P \extends \bd{\dontcare}} (\bar{z\COLON\tau}) \; \dontcare \; \kwd{end} \in \set{\Delta} }
+  { \jbtype{\underline{e}.z}{\underline{\Big[\bar{\alpha/P}\Big]}\tau} }
+
+\bigskip
+
+\infrule[T-Object]
+  { TBD }
+  { \jtype{O\obb{\tau}(\bar{e})}{} }
+
+\bigskip
+
+\infrule[T-Func-SA]
+  { TBD }
+  { \jtype{f\obb{\tau}(\bar{e})}{} }
+
+\bigskip
+
+\infrule[T-Func-NSA]
+  { TBD }
+  { \jtype{f(\bar{e})}{} }
+
+\bigskip
+
+\infrule[T-Method-SA]
+  { TBD }
+  { \jtype{e.m\obb{\tau}(\bar{e})}{} }
+
+\bigskip
+
+\infrule[T-Method-NSA]
+  { TBD }
+  { \jtype{e.m(\bar{e})}{} }
+
+\bigskip
+
+\infrule[T-Match]
+  { \jtype{e}{\alpha}  \\ \jtype[\Delta;\Gamma,x\COLON(\alpha\cap\tau)]{e'}{\eta}  \andalso \jtype{e''}{\chi} }
+  { \jtype{(e \; \kwd{match} \; x\COLON\tau \Rightarrow e' \; \kwd{else}\; e'')}{(\eta\cup\chi)} }
+
+\medskip
+\caption{Static Types of Expressions}
+\label{fig:expressiontypes}
+\end{figure}
+
+
+
+
+\begin{figure}
+\typicallabel{W-Object}
+
+\newjudge{Well-formed types}{\jwftype{\kappa}}
+\bigskip
+
+% Stuff in \Delta is assumed to be well-formed
+
+\infrule[W-Param]
+  { \bd{\dontcare} \extends P \extends \bd{\dontcare} \in \set{\Delta} }
+  { \jwftype{P} }
+
+\bigskip
+
+\infrule[W-Trait]
+  { \kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \; \dontcare \; \kwd{end} \in \set{\Delta} \\[2pt]
+    \countof(\bar{\alpha}) = \countof(\bar{P})  \andalso  \jbwftype{\alpha} \\[3pt]
+    \jbsubtype{\alpha}{\underline{\Big[\bar{\alpha/P}\Big]}\xi} }
+  { \jwftype{T\obb{\alpha}} }
+
+\bigskip
+
+\infrule[W-Object]
+  { \kwd{object} \; O\bigobb{P \extends \bdb{\xi}} \; \dontcare \; \kwd{end} \in \set{\Delta} \\[2pt]
+    \countof(\bar{\alpha}) = \countof(\bar{P})  \andalso  \jbwftype{\alpha} \\[3pt]
+    \jbsubtype{\alpha}{\underline{\Big[\bar{\alpha/P}\Big]}\xi} }
+  { \jwftype{O\obb{\alpha}} }
+
+\bigskip
+
+\infrule[W-Tuple]
+  { \jbwftype{\alpha} }
+  { \jwftype{(\bar{\alpha})} }
+
+\bigskip
+
+\infrule[W-Arrow]
+  { \jwftype{\alpha}  \andalso  \jwftype{\rho} }
+  { \jwftype{\arrowtype{\alpha}{\rho}} }
+
+\bigskip
+
+\infax[W-Any-Type]
+  { \jwftype{`Any`} }
+
+\bigskip
+
+\infax[W-Object-Type]
+  { \jwftype{`Object`} }
+
+\bigskip
+
+\infax[W-Bottom-Type]
+  { \jwftype{`Bottom`} }
+
+\bigskip
+
+\infrule[W-Union]
+  { \jwftype{\alpha}  \andalso  \jwftype{\gamma} }
+  { \jwftype{\uniontype{\alpha}{\gamma}} }
+
+\bigskip
+
+\infrule[W-Intersection]
+  { \jwftype{\alpha}  \andalso  \jwftype{\gamma} }
+  { \jwftype{\intersectiontype{\alpha}{\gamma}} }
+
+\bigskip
+
+\infrule[W-Exists]
+  { \jbwftype{\chi}  \andalso  \jbwftype{\eta} \\[4pt]
+    \jwftype[\Delta, \bar{\bdb{\chi} \extends P \extends \bdb{\eta}}]{\alpha} }
+  { \jwftype{\existstypeb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\alpha}} }
+
+\bigskip
+
+\infrule[W-Forall]
+  { \jbwftype{\chi}  \andalso  \jbwftype{\eta} \\[4pt]
+    \jwftype[\Delta, \bar{\bdb{\chi} \extends P \extends \bdb{\eta}}]{\alpha} }
+  { \jwftype{\foralltypeb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\alpha}} }
+
+\medskip
+\caption{Well-formed Types}
+\label{fig:wellformedtypes}
+\end{figure}
+
+
+\begin{figure*}
+\typicallabel{D-Trait}
+
+
+\newjudge{Program typing}{\jtype[]{p}{\alpha}}
+\bigskip
+
+\infrule[T-Program]
+  { p = \bar{\delta},e  \andalso  \jbwfdecl[\bar{\delta}]{\delta}  \andalso  \jtype[\bar{\delta};\emptyseq]{e}{\alpha} }
+  { \jtype[]{p}{\alpha} }
+
+\bigskip
+\newjudge{Well-formed declarations}{\jwfdecl{\delta}}
+\bigskip
+
+% Stuff in \Delta is assumed to be well-formed
+
+\infrule[D-Trait]
+  { \Delta' = \Delta,\bar{\bd{\,} \extends P \extends \bdb{\xi}} \\[2pt]
+    \jbwftype[\Delta']{\xi}  \andalso  \jbwftype[\Delta']{A\obb{\tau}}  \andalso  \jbwftype[\Delta']{t}  \andalso  \jbwftype[\Delta']{c}  \andalso
+    \jbsubtype[\Delta']{c}{\underline{T\obb{P}}} \\[2pt]
+    \mathit{distinct}(T, \bar{A})  \andalso  \bar{\mathit{notOfTrait}(\underline{T}, t)}  \andalso  \bar{\mathit{notOfTrait}(\underline{T}, c)}  \andalso  
+    \jbwfdecl[\Delta';\kwd{self}\COLON T\bigobb{P}]{\mu} }
+  { \jwfdecl{\kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \mathbin{\extends} \bigbdb{A\obb{\tau}} \mathbin{\exc} \bigbdb{t} \mathbin{\comprises} \bigbdb{c} \; \bar{\mu} \; \kwd{end}} }
+
+\bigskip
+
+\infrule[D-Object]
+  { \Delta' = \Delta,\bar{\bd{\,} \extends P \extends \bdb{\xi}} \\[1pt]
+    \jbwftype[\Delta']{\xi}  \andalso  \jbwftype[\Delta']{\tau}  \andalso  \jbwftype[\Delta']{t} \andalso
+    \jbwfdecl[\Delta';\kwd{self}\COLON T\bigobb{P}]{\mu} }
+  { \jwfdecl{\kwd{object} \; O\bigobb{P \extends \bdb{\xi}} (\bar{z\COLON\tau}) \extends \bigbdb{t} \; \bar{\mu } \; \kwd{end}} }
+
+\bigskip
+
+\infrule[D-Function]
+  { \Delta' = \Delta,\bar{\bd{\,} \extends P \extends \bdb{\xi}} \\[1pt]
+    \jbwftype[\Delta']{\xi}  \andalso  \jbwftype[\Delta']{\tau}  \andalso  \jwftype[\Delta']{\omega} \andalso
+    \jtype[\Delta';\bar{x\COLON\tau}]{e}{\rho}  \andalso  \jsubtype[\Delta']{\rho}{\omega} }
+  { \jwfdecl{f\bigobb{P \extends \bdb{\xi}} (\bar{x\COLON\tau})\COLON\omega = e} }
+
+\bigskip
+
+\newjudge{Well-formed methods}{\jwfmeth{\mu}}
+\bigskip
+
+\infrule[D-Method]
+  { \Delta' = \Delta,\bar{\bdb{\zeta} \extends P \extends \bdb{\xi}} \\[1pt]
+    \jbwftype[\Delta']{\zeta}  \andalso   \jbwftype[\Delta']{\xi}  \andalso  \jbwftype[\Delta']{\tau}  \andalso  \jwftype[\Delta']{\omega} \andalso
+    \jtype[\Delta';\Gamma,\bar{x\COLON\tau}]{e}{\rho}  \andalso  \jsubtype[\Delta']{\rho}{\omega} }
+  { \jwfdecl{m\bigobb{\bdb{\zeta} \extends P \extends \bdb{\xi}} (\bar{x\COLON\tau})\COLON\omega = e} }
+
+\medskip
+\caption{Program typing and Well-formed Definitions}
+\label{fig:wellformedtypes}
+\end{figure*}
+
+
+\begin{figure}
+\typicallabel{NotOfTrait-Object}
+
+\newjudge{Not constructed from a given trait}{\mathit{notOfTrait}(T, c)}
+
+\bigskip
+
+\infax[NotOfTrait-Object]
+  { \mathit{notOfTrait}(T, O\ob{\dontcare}) }
+
+\bigskip
+
+\infrule[NotOfTrait-Trait]
+  { \mathit{distinct}(T, T') }
+  { \mathit{notOfTrait}(T, T'\ob{\dontcare}) }
+
+\bigskip
+
+\newjudge{Distinct trait names}{\mathit{distinct}(\bar{T})}
+
+\bigskip
+\infrule[Distinct-Trait]
+  { \left| \bigsetb{T} \right| = \countof(\bar{T}) }
+  { \mathit{distinct}(\bar{T})}
+
+\medskip
+\caption{Miscellaneous Judgments}
+\label{fig:miscjudgments}
+\end{figure}
+
+
+\begin{figure}
+\typicallabel{S-Parameter-Sub}
+
+\newjudge{Subtyping (part 1 of 2)}{\jsubtype{\kappa}{\kappa}}
+
+\bigskip
+
+\infax[S-Reflexive]
+  { \jsubtype{\kappa}{\kappa} }
+
+\bigskip
+
+\infrule[S-Transitive]
+  { \jsubtype{\kappa}{\kappa'}  \andalso  \jsubtype{\kappa'}{\kappa''} }
+  { \jsubtype{\kappa}{\kappa''} }
+
+\bigskip
+
+\infrule[S-Equivalent]
+  { \jequivtype{\kappa}{\kappa'} }
+  { \jsubtype{\kappa}{\kappa'} }
+
+\bigskip
+
+\infrule[S-Parameter-Sub]
+  { \bd{\dontcare} \extends P \extends \bdb{\alpha} \in \set{\Delta} }
+  { \jbsubtype{P}{\alpha} }
+
+\bigskip
+
+\infrule[S-Parameter-Super]
+  { \bdb{\alpha} \extends P \extends \bd{\dontcare} \in \set{\Delta} }
+  { \jbsubtype{\alpha}{P} }
+
+\bigskip
+
+\infax[S-Any]
+  { \jsubtype{\kappa}{`Any`} }
+
+\bigskip
+
+\infax[S-Bottom]
+  { \jsubtype{`Bottom`}{\kappa} }
+
+\bigskip
+
+\infax[S-Object]
+  { \jsubtype{c}{`Object`} }
+
+\bigskip
+
+\infrule[S-Tuple]
+  { \countof(\bar{\alpha}) = \countof(\bar{\eta})  \andalso  \jbsubtype{\alpha}{\eta} }
+  { \jsubtype{\tupleb{\alpha}}{\tupleb{\eta}} }
+
+\bigskip
+
+\infrule[S-Arrow]
+  { \jsubtype{\alpha'}{\alpha}  \andalso  \jsubtype{\rho}{\rho'} }
+  { \jsubtype{\arrowtype{\alpha}{\rho}}{\arrowtype{\alpha'}{\rho'}} }
+
+\bigskip
+
+\infax[S-Union-Super]
+  { \jsubtype{\alpha}{\uniontype{\alpha}{\eta}} }
+
+\bigskip
+
+\infax[S-Intersection-Sub]
+  { \jsubtype{\intersectiontype{\alpha}{\eta}}{\alpha} }
+
+\bigskip
+
+\infrule[S-Union-Sub]
+  { \jsubtype{\uniontype{\alpha}{\eta}}{\chi} }
+  { \jsubtype{\alpha}{\chi} }
+
+\bigskip
+
+\infrule[S-Intersection-Super]
+  { \jsubtype{\chi}{\intersectiontype{\alpha}{\eta}} }
+  { \jsubtype{\chi}{\alpha} }
+
+\medskip
+
+\caption{Subtyping (part 1 of 2)}
+\label{fig:subtyping1}
+\end{figure}
+
+
+\begin{figure*}
+\typicallabel{S-Contravariant}
+
+\newjudge{Subtyping (part 2 of 2)}{\jsubtype{\kappa}{\kappa}}
+
+\bigskip
+
+\infrule[S-Covariant]
+  { \kwd{trait} \; T\bigob{\bar{V\;P \extends \bd{\dontcare}}, \kwd{covariant}\;Q \extends \bd{\dontcare}, \bar{V'\;S \extends \bd{\dontcare}}} \; \dontcare \; \kwd{end} \in \set{\Delta} \\[1pt]
+    \jsubtype{\gamma}{\gamma'}  \andalso  \countof(\bar{\alpha}) = \countof(\bar{P})  \andalso  \countof(\bar{\eta}) = \countof(\bar{S}) \andalso
+    \jwftype{T\ob{\bar{\alpha},\gamma,\bar{\eta}}}  \andalso  \jwftype{T\ob{\bar{\alpha},\gamma',\bar{\eta}}} }
+  { \jsubtype{T\ob{\bar{\alpha},\gamma,\bar{\eta}}}{T\ob{\bar{\alpha},\gamma',\bar{\eta}}} }
+
+\bigskip
+
+\infrule[S-Contravariant]
+  { \kwd{trait} \; T\bigob{\bar{V\;P \extends \bd{\dontcare}}, \kwd{contravariant}\;Q \extends \bd{\dontcare}, \bar{V'\;S \extends \bd{\dontcare}}} \; \dontcare \; \kwd{end} \in \set{\Delta} \\[1pt]
+    \jsubtype{\gamma'}{\gamma}  \andalso  \countof(\bar{\alpha}) = \countof(\bar{P})  \andalso  \countof(\bar{\eta}) = \countof(\bar{S}) \andalso
+    \jwftype{T\ob{\bar{\alpha},\gamma,\bar{\eta}}}  \andalso  \jwftype{T\ob{\bar{\alpha},\gamma',\bar{\eta}}} }
+  { \jsubtype{T\ob{\bar{\alpha},\gamma,\bar{\eta}}}{T\ob{\bar{\alpha},\gamma',\bar{\eta}}} }
+
+\bigskip
+
+\infrule[S-Trait-Extends]
+  { \kwd{trait} \; T\bigob{\bar{V\;P \extends \bd{\dontcare}}} \extends \bdb{t} \; \dontcare \; \kwd{end} \in \set{\Delta}  \andalso  \jwftype{T\obb{\alpha}} }
+  { \jsubtype{T\obb{\alpha}}{\big[\,\bar{\alpha/P}\,\big]t} }
+
+\bigskip
+
+\infrule[S-Object-Extends]
+  { \kwd{object} \; O\bigob{\bar{P \extends \bd{\dontcare}}}(\dontcare) \extends \bdb{t} \; \dontcare \; \kwd{end} \in \set{\Delta}  \andalso  \jwftype{O\obb{\alpha}} }
+  { \jsubtype{O\obb{\alpha}}{\big[\,\bar{\alpha/P}\,\big]t} }
+
+\medskip
+\caption{Subtyping (part 2 of 2)}
+\label{fig:subtyping2}
+\end{figure*}
+
+
+\begin{figure}
+\typicallabel{E-Tuple-Bottom}
+
+\newjudge{Type equivalence}{\jequivtype{\kappa}{\kappa}}
+
+\bigskip
+
+\infrule[E-Symmetric]
+  { \jequivtype{\kappa}{\kappa'} }
+  { \jequivtype{\kappa'}{\kappa} }
+
+\bigskip
+
+\infax[E-Singleton-Tuple]
+  { \jequivtype{(\kappa)}{\kappa} }
+
+\bigskip
+
+\infrule[E-Tuple-Bottom]
+  { \kappa' \in \setb{\kappa}  \andalso  \jsubtype{\kappa'}{`Bottom`} }
+  { \jequivtype{(\bar{\kappa})}{`Bottom`} }
+
+\bigskip
+
+\infax[U-Commutative]
+  { \jequivtype{\uniontype{\alpha}{\eta}}{\uniontype{\eta}{\alpha}} }
+
+\bigskip
+
+\infax[U-Associative]
+  { \jequivtype{\uniontype{\alpha}{\uniontype{\eta}{\chi}}}{\uniontype{\uniontype{\alpha}{\eta}}{\chi}} }
+
+\bigskip
+
+\infrule[U-Absorption]   % From this and properties of `Any` and `Bottom` we have identity, zero, and idempotence
+  { \jsubtype{\alpha}{\eta} }
+  { \jequivtype{\uniontype{\alpha}{\eta}}{\eta} }
+
+\bigskip
+
+\infax[I-Commutative]
+  { \jequivtype{\intersectiontype{\alpha}{\eta}}{\intersectiontype{\eta}{\alpha}} }
+
+\bigskip
+
+\infax[I-Associative]
+  { \jequivtype{\intersectiontype{\alpha}{\intersectiontype{\eta}{\chi}}}{\intersectiontype{\intersectiontype{\alpha}{\eta}}{\chi}} }
+
+\bigskip
+
+\infrule[I-Absorption]   % From this and properties of `Any` and `Bottom` we have identity, zero, and idempotence
+  { \jsubtype{\alpha}{\eta} }
+  { \jequivtype{\intersectiontype{\alpha}{\eta}}{\alpha} }
+
+
+
+\medskip
+\caption{Type equivalence}
+\label{fig:equivalence}
+\end{figure}
+
+\clearpage
+\clearpage
+\clearpage
+
+

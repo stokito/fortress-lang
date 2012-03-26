@@ -1,0 +1,33 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Generic methods of generic types
+   But NO OVERLOADING *)
+
+trait T[\S extends String\]
+  g[\U extends ZZ32\](u:U):String
+end
+
+object O[\S extends String\](x: S) extends T[\S\]
+  g[\U extends ZZ32\](u:U):String = x || u.asString
+end
+
+run() =do
+  o = O[\String\]("cat")
+  b = o.g[\ZZ32\](5)       (*) 8
+
+  println(
+  if (b="cat5")
+     then "pass" else "fail" end
+  )
+end

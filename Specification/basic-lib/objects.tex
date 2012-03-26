@@ -1,0 +1,188 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Objects}
+\chaplabel{lib:object}
+
+\Trait{Fortress.Core.Any}
+
+\tracingcommands=1\tracingmacros=1
+
+The trait \TYP{Any} is the single root of the type hierarchy; every
+object in Fortress has trait \TYP{Any} and therefore every object
+implements the methods of this trait.  The immediate subtypes of the trait
+\TYP{Any} are \TYP{Object}, \TYP{Tuple}, and \TYP{()}.
+
+%trait Any
+%  getter hashCode(): NN64
+%  opr ===(self, other: Any): Boolean
+%  opr IDENTITY(self): Any
+%  hash(maxval: NN64): NN64
+%  hash(maxval: NN32): NN32
+%  toString(): String
+%  property FORALL (x, y, n: NN64) x === y IMPLIES x.hash(n) === y.hash(n)
+%  property FORALL (x, y, n: NN32) x === y IMPLIES x.hash(n) === y.hash(n)
+%  property FORALL (x) x.hashCode === x.hash(2^64-1)
+%  property FORALL (x, y) x === y IMPLIES x.toString() = y.toString()
+%  property FORALL (a) (IDENTITY a) === a
+%  property FORALL (a) a===a
+%  property FORALL (a,b) a===b IFF b===a
+%  property FORALL (a,b,c) (a===b AND: b===c) IMPLIES: a===c
+%end
+\begin{Fortress}
+\(\KWD{trait}\mskip 4mu plus 4mu\TYP{Any}\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{getter}\mskip 4mu plus 4mu\VAR{hashCode}()\COLON \mathbb{N}64\)\\
+\(  \KWD{opr} \mathord{\sequiv}(\KWD{self}, \VAR{other}\COLON \TYP{Any})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\OPR{IDENTITY}}(\KWD{self})\COLON \TYP{Any}\)\\
+\(  \VAR{hash}(\VAR{maxval}\COLON \mathbb{N}64)\COLON \mathbb{N}64\)\\
+\(  \VAR{hash}(\VAR{maxval}\COLON \mathbb{N}32)\COLON \mathbb{N}32\)\\
+\(  \VAR{toString}()\COLON \TYP{String}\)\\
+\(  \KWD{property} \forall (x, y, n\COLON \mathbb{N}64)\; x \sequiv y \rightarrow x.\VAR{hash}(n) \sequiv y.\VAR{hash}(n)\)\\
+\(  \KWD{property} \forall (x, y, n\COLON \mathbb{N}32)\; x \sequiv y \rightarrow x.\VAR{hash}(n) \sequiv y.\VAR{hash}(n)\)\\
+\(  \KWD{property} \forall (x)\; x.\VAR{hashCode} \sequiv x.\VAR{hash}(2^{64}-1)\)\\
+\(  \KWD{property} \forall (x, y)\; x \sequiv y \rightarrow x.\VAR{toString}() = y.\VAR{toString}()\)\\
+\(  \KWD{property} \forall (a)\; (\OPR{IDENTITY}\mskip 4mu plus 4mu{a}) \sequiv a\)\\
+\(  \KWD{property} \forall (a)\; a\sequiv{}a\)\\
+\(  \KWD{property} \forall (a,b)\; a\sequiv{}b \leftrightarrow b\sequiv{}a\)\\
+\(  \KWD{property} \forall (a,b,c)\; (a\sequiv{}b \wedge\COLON b\sequiv{}c) \rightarrow\COLON a\sequiv{}c\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+
+%  getter hashCode(): NN64
+\Method{\EXP{\KWD{getter} \VAR{hashCode}()\COLON \mathbb{N}64}}
+
+Every object has associated with it a 64-bit unsigned integer value called its \emph{hash code};
+this is the value returned by the \VAR{hash} method when given the argument \EXP{2^{64}-1}.
+Hash codes are not necessarily consistent from one Fortress application to another, nor from
+one execution of a Fortress application to another execution of the same application,
+but remain fixed during the execution of a single Fortress application.
+It is permitted for two objects to have the same hashCode, but Fortress programmers and
+implementors should be aware that assigning distinct hash codes to distinct objects
+may improve the performance of hash tables.
+
+The trait \TYP{Any} defines its \VAR{hash} methods in terms of \VAR{hashCode};
+therefore it suffices for a subtrait to override \VAR{hashCode} to get the benefit
+of the \VAR{hash} methods as well.
+
+
+%  opr ===(self, other: Any): Boolean
+\Method{\EXP{\KWD{opr} \mathord{\sequiv}(\KWD{self}, \VAR{other}\COLON \TYP{Any})\COLON \TYP{Boolean}}}
+
+The infix operator \EXP{\sequiv} (object equivalence) is used to
+decide whether two objects are ``the same object'' in the strictest
+sense possible; this is described in detail in \secref{equivalence}.
+Note that the properties of trait \TYP{Any} assert that \EXP{\sequiv}
+is an equivalence relation.  In \TYP{Object} this property is asserted abstractly using the algebraic constraints of \chapref{lib:algebraic-constraints}.
+
+For \EXP{\not\sequiv} \see{operator-NSEQV}.
+
+%  opr IDENTITY(self): Any
+\Method{\EXP{\KWD{opr} \mathord{\OPR{IDENTITY}}(\KWD{self})\COLON \TYP{Any}}}
+
+The operator \OPR{IDENTITY} simply returns its argument.  (This may not be
+terribly useful for applications programming, but it has technical uses for
+specifying contracts and algebraic properties in libraries as described in
+\secref{opr-properties}.)
+
+
+%  hash(maxval: NN64): NN64
+%  hash(maxval: NN32): NN32
+\Method{\EXP{\VAR{hash}(\VAR{maxval}\COLON \mathbb{N}64)\COLON \mathbb{N}64}}
+\Method*{\EXP{\VAR{hash}(\VAR{maxval}\COLON \mathbb{N}32)\COLON \mathbb{N}32}}
+
+The \VAR{hash} method returns a \emph{hash value} for the object as an
+unsigned integer that is less than or equal to the \VAR{maxval} argument.
+This hash value is not necessarily consistent from one Fortress
+application to another, nor from one execution of a Fortress
+application to another execution of the same application, but the hash
+value produced for a given value of the \VAR{maxval} argument remains
+fixed during the execution of a single Fortress application.  There is
+no defined relationship between hash values produced for the same
+object but with different \VAR{maxval} values.  Fortress programmers and
+implementors should be aware that the performance of hash tables is
+likely to be improved if, for any given collection of objects and
+given value for the \VAR{maxval} argument, the \VAR{hash} method
+assigns hash values to those objects with relatively uniform distribution.
+
+
+%  toString(): String
+\Method{\EXP{\VAR{toString}()\COLON \TYP{String}}}
+
+The general contract of \VAR{toString} is that it returns a string that
+``textually represents'' this object. The idea is to provide a concise but
+informative representation that will be useful to a person reading it.
+
+
+\Trait{Fortress.Core.Object}
+
+The trait \TYP{Object} is the root of the type hierarchy for all
+user-constructed objects and functions.
+The \TYP{Object} type does not
+have any additional methods, but uses algebraic constraints (see
+\chapref{lib:algebraic-constraints}) to describe the properties of the
+existing operators more abstractly.
+
+%trait Object extends { Any, EquivalenceRelation[\Object,===\], IdentityOperator[\Object\] }
+%    excludes { Tuple }
+%end
+\begin{Fortress}
+\(\KWD{trait}\mskip 4mu plus 4mu\TYP{Object} \KWD{extends} \{\,\TYP{Any}, \TYP{EquivalenceRelation}\llbracket\TYP{Object},\sequiv\rrbracket, \TYP{IdentityOperator}\llbracket\TYP{Object}\rrbracket\,\}\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{excludes} \{\,\TYP{Tuple}\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+
+\Trait{Fortress.Core.Tuple}
+\seclabel{core-tuple}
+
+The trait \TYP{Tuple} is the root of the type hierarchy for all tuple types (see \secref{tuple-types}).  No user-defined object can be a subtype of \TYP{Tuple}.  As with the type \TYP{Object}, the type \TYP{Tuple} uses algebraic constraints to describe its existing methods.
+
+%trait Tuple extends { Any, EquivalenceRelation[\Tuple,===\], IdentityOperator[\Tuple\] }
+%    excludes { Object }
+%  toString(): String
+%end
+\begin{Fortress}
+\(\KWD{trait}\mskip 4mu plus 4mu\TYP{Tuple} \KWD{extends} \{\,\TYP{Any}, \TYP{EquivalenceRelation}\llbracket\TYP{Tuple},\sequiv\rrbracket, \TYP{IdentityOperator}\llbracket\TYP{Tuple}\rrbracket\,\}\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{excludes} \{\,\TYP{Object}\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \VAR{toString}()\COLON \TYP{String}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+
+\Method{\EXP{\VAR{toString}()\COLON \TYP{String}}}
+
+The \VAR{toString} method returns a string \EXP{\hbox{\rm``\STR{}''}}
+concatenated as follows:
+\begin{itemize}
+\item If the tuple has just one element, concatenate
+\EXP{\hbox{\rm``\STR{tuple}''}}.
+\item Concatenate \EXP{\hbox{\rm``\STR{(}''}}.
+\item For each element of the tuple, in left-to-right order,
+     taking all plain elements before any varargs or keyword
+     element, taking any varargs element before any keyword
+     element, and taking keyword elements in the order defined
+     by the type of the tuple (which may not be the sorted order):
+     \begin{itemize}
+     \item If this is a plain element,
+ concatenate the \VAR{toString} of the element.
+     \item If this is a varargs element ``\EXP{e\ldots}'',
+ concatenate the \VAR{toString} of \VAR{e} and
+ concatenate \EXP{\hbox{\rm``\STR{...}''}}.
+     \item If this is a keyword element ``\EXP{\VAR{id} = e}'',
+ concatenate the \VAR{toString} of \VAR{id},
+ concatenate \EXP{\hbox{\rm``\STR{~=~}''}}, and
+ concatenate the \VAR{toString} of \VAR{e}.
+     \item If this is the last element of the tuple,
+ concatenate \EXP{\hbox{\rm``\STR{)}''}};
+          otherwise concatenate ", ".
+     \end{itemize}
+\end{itemize}

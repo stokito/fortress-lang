@@ -1,0 +1,54 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+ ******************************************************************************)
+
+export Executable
+(* testing overlap and coverage of method signatures and returns *)
+
+trait T
+  getter s():String = "default"
+  m(x:T):T = O
+  m(o1):T
+  m(o2):T
+  m(x:X):T = o1("T.X")
+end
+
+object o1(s:String) extends T
+  m(x:o1):T = o1("o1.o1")
+  m(x:o2):T = o1("o1.o2")
+end
+object o2(s:String) extends T
+  m(x:o1):T = o1("o2.o1")
+  m(x:o2):T = o1("o2.o2")
+end
+object o3(s:String) extends T
+  m(x:o1):T = o1("o3.o1")
+  m(x:o2):T = o1("o3.o2")
+end
+
+trait U extends T 
+  m(x:o2):T = o1("U.o2")
+end
+
+trait V extends U
+  m(x:o1):T = o1("V.o1")
+end
+
+trait W extends V
+  m(x:W):T = o1("W.W")
+end
+
+trait X extends W
+end
+
+object O extends X
+end
+
+run() = do
+end
+
