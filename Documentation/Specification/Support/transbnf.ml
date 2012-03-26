@@ -132,6 +132,8 @@ let escape s =
     | "=>" -> "\\Rightarrow"
     | "kBIGSUM" -> "\\sum"
     | "kBIGPROD" -> "\\prod"
+    | "kBIG" -> "BIG"
+    | "kTIMES" -> "\\times"
     | _ -> s
 
 let rec explode s: choice = 

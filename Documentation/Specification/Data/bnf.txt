@@ -79,8 +79,6 @@ Decl ::=
      | ObjectDecl
      | VarDecl
      | FnDecl
-     | TypeAlias
-     | ExternalSyntax
 
 AbsDecls ::=
      | AbsDecl+
@@ -90,10 +88,8 @@ AbsDecl ::=
      | AbsObjectDecl
      | AbsVarDecl
      | AbsFnDecl
-     | TypeAlias
-     | AbsExternalSyntax
 
-$$$$$ Trait and Object Declarations
+$$$$$ Trait Declaration
 
 TraitDecl ::=
      | TraitHeader GoInATrait? end
@@ -118,14 +114,35 @@ GoFrontInATrait ::=
 GoesFrontInATrait ::=
      | AbsFldDecl
      | GetterSetterDecl
-     | PropertyDecl
 
 GoBackInATrait ::=
      | GoesBackInATrait+
 
 GoesBackInATrait ::=
      | MdDecl
-     | PropertyDecl
+
+AbsTraitDecl ::=
+     | TraitHeader AbsGoInATrait? end
+
+AbsGoInATrait ::=
+     | AbsGoFrontInATrait AbsGoBackInATrait?
+     | AbsGoBackInATrait
+
+AbsGoFrontInATrait ::=
+     | AbsGoesFrontInATrait+
+
+AbsGoesFrontInATrait ::=
+     | ApiFldDecl
+     | AbsGetterSetterDecl
+
+AbsGoBackInATrait ::=
+     | AbsGoesBackInATrait+
+
+AbsGoesBackInATrait ::=
+     | AbsMdDecl
+     | AbsCoercion
+
+$$$$$ Object declaration
 
 ObjectDecl ::=
      | ObjectHeader GoInAnObject? end
@@ -157,37 +174,12 @@ GoFrontInAnObject ::=
 GoesFrontInAnObject ::=
      | FldDecl
      | GetterSetterDef
-     | PropertyDecl
 
 GoBackInAnObject ::=
      | GoesBackInAnObject+
 
 GoesBackInAnObject ::=
      | MdDef
-     | PropertyDecl
-
-AbsTraitDecl ::=
-     | TraitHeader AbsGoInATrait? end
-
-AbsGoInATrait ::=
-     | AbsGoFrontInATrait AbsGoBackInATrait?
-     | AbsGoBackInATrait
-
-AbsGoFrontInATrait ::=
-     | AbsGoesFrontInATrait+
-
-AbsGoesFrontInATrait ::=
-     | ApiFldDecl
-     | AbsGetterSetterDecl
-     | PropertyDecl
-
-AbsGoBackInATrait ::=
-     | AbsGoesBackInATrait+
-
-AbsGoesBackInATrait ::=
-     | AbsMdDecl
-     | AbsCoercion
-     | PropertyDecl
 
 AbsObjectDecl ::=
      | ObjectHeader AbsGoInAnObject? end
@@ -202,7 +194,6 @@ AbsGoFrontInAnObject ::=
 AbsGoesFrontInAnObject ::=
      | ApiFldDecl
      | AbsGetterSetterDecl
-     | PropertyDecl
 
 AbsGoBackInAnObject ::=
      | AbsGoesBackInAnObject+
@@ -210,7 +201,6 @@ AbsGoBackInAnObject ::=
 AbsGoesBackInAnObject ::=
      | AbsMdDecl
      | AbsCoercion
-     | PropertyDecl
 
 $$$$$ Variable Declaration
 
@@ -289,7 +279,7 @@ FnHeaderClause ::=
      | IsType? FnClauses
 
 FnClauses ::=
-     | Throws? Where? Contract
+     | Throws? 
 
 Throws ::=
      | throws MayTraitTypes
@@ -299,11 +289,10 @@ MayTraitTypes ::=
      | TraitTypes
 
 CoercionClauses ::=
-     | Throws? CoercionWhere? Contract
+     | Throws? 
 
 UniversalMod ::=
      | private      
-     | test
 
 TraitMod ::=
      | value      
@@ -330,9 +319,7 @@ VarMods ::=
      | VarMod+
 
 AbsFldMod ::=
-     | hidden      
-     | settable      
-     | UniversalMod
+     | hidden | settable | UniversalMod
 
 AbsFldMods ::=
      | AbsFldMod+
@@ -346,9 +333,7 @@ FldMods ::=
 
 
 ApiFldMod ::=
-     | hidden      
-     | settable      
-     | UniversalMod
+     | hidden | settable | UniversalMod
 
 ApiFldMods ::=
      | ApiFldMod+
@@ -380,15 +365,9 @@ ValParam ::=
      | (Params?)
 
 Params ::=
-     | (Param , )* (Varargs , )? Keyword( , Keyword)*
-     | (Param , )* Varargs
+     | (Param , )* Keyword( , Keyword)*
+     | (Param , )* 
      | Param( , Param)*
-
-VarargsParam ::=
-     | Id : TypeRef ...
-
-Varargs ::=
-     | VarargsParam
 
 Keyword ::=
      | Param = Expr
@@ -406,7 +385,6 @@ OpHeaderFront ::=
      | opr (Op      | Encloser) StaticParams? ValParam
 
 SubscriptAssignParam ::=
-     | Varargs
      | Param
 
 $$$$$ Method Declaration
@@ -443,14 +421,20 @@ GetterSetterMod ::=
 AbsGetterSetterDecl ::=
      | abstract ? FnMods? GetterSetterMod MdHeaderFront FnHeaderClause
 
+Coercion ::=
+     | widening? coercion StaticParams? [([ Id IsType ])] CoercionClauses = Expr
+
+AbsCoercion ::=
+     | widening? coercion StaticParams? [([ Id IsType ])] CoercionClauses      
+
 $$$$$ Method Parameters
 
 MdValParam ::=
      | ( MdParams? )
 
 MdParams ::=
-     | (MdParam , )* (Varargs , )? MdKeyword( , MdKeyword)*
-     | (MdParam , )* Varargs
+     | (MdParam , )* MdKeyword( , MdKeyword)*
+     | (MdParam , )* 
      | MdParam( , MdParam)*
 
 MdKeyword ::=
@@ -562,7 +546,6 @@ FlowExpr ::=
      | Accumulator ( [ GeneratorList ] )? Expr
      | atomic AtomicBack
      | tryatomic AtomicBack
-     | spawn Expr
      | throw Expr
 
 AtomicBack ::=
@@ -590,7 +573,6 @@ DelimitedExpr ::=
      | if Expr then BlockElems Elifs? Else? end
      | ( if Expr then BlockElems Elifs? Else end ?)
      | case Expr Op? of CaseClauses CaseElse? end
-     | case ( largest      | smallest ) Op? of CaseClauses end
      | typecase TypecaseBindings of TypecaseClauses CaseElse? end
      | try BlockElems Catch? ( finally BlockElems)? end
 
@@ -761,10 +743,10 @@ TypeRef ::=
 TraitType ::=
      | DottedId ( [[[ StaticArgList ]]] )?
      | { TypeRef |-> TypeRef }
-     | [[[ TypeRef ]]]
+     | < TypeRef >
      | TypeRef [ ArraySize? ]
-     | TypeRef ^ StaticArg
-     | TypeRef ^ ( ExtentRange (SQRT ExtentRange)* )
+     | TypeRef ^ IntLiteral
+     | TypeRef ^ ( ExtentRange (kTIMES ExtentRange)* )
 
 ArrowType ::=
      | TypeRef -> TypeRef Throws?
@@ -806,7 +788,7 @@ AssignOp ::=
      | Op =
 
 Accumulator ::=
-     | kBIGSUM | kBIGPROD | BIG Op
+     | kBIGSUM | kBIGPROD | kBIG Op
 
 $$$$$ Identifiers
 
