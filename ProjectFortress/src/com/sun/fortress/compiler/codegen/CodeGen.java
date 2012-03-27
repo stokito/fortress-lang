@@ -50,6 +50,7 @@ import com.sun.fortress.compiler.index.TraitIndex;
 import com.sun.fortress.compiler.index.TypeConsIndex;
 import com.sun.fortress.compiler.nativeInterface.SignatureParser;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
+import com.sun.fortress.compiler.typechecker.TypeNormalizer;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.Assignment;
@@ -5757,6 +5758,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (vcg == null) {
             debug("forVarRef fresh import ", v);
             Type ty = NodeUtil.getExprType(v).unwrap();
+            ty = TypeNormalizer.normalize(ty);
+            /* TODO if ty is an intersection type,
+             * need to be sure it really is normalized.
+             * Because of bugs in static analysis, it is not.
+             * For now, defer normalization till run time.
+             */
             String tyDesc = NamingCzar.jvmTypeDesc(ty, thisApi());
             String className = NamingCzar.jvmClassForToplevelDecl(id, packageAndClassName);
             vcg = new VarCodeGen.StaticBinding(id, lsargs, ty,
