@@ -1,0 +1,32 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component LabelTest
+export Executable
+
+trait T
+    m():()
+end
+
+topFunc():T =
+    label quit
+        object extends T
+            m():() = exit quit
+        end
+    end quit
+
+run():() =
+    try topFunc().m()
+    catch e
+        LabelException => println "Ok"
+    end
+
+end

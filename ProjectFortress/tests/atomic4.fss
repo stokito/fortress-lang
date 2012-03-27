@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component atomic4
+
+export Executable
+
+run():()=do
+    var count : ZZ32 = 0
+    atomic do
+        for i <- 1#300 do
+             atomic do
+                 count+= 1
+             end
+        end
+    end
+    if count=/=300 then
+     println("FAIL: count = " count)
+   end
+end
+end

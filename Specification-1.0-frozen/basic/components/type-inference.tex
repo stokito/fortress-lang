@@ -1,0 +1,46 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Type Inference for Components}
+\seclabel{type-inference-components}
+
+Type inference for Fortress has been described as a procedure performed
+over a whole Fortress program in \chapref{type-inference}. In this
+section, we explain how this procedure can 
+be adapted to perform type inference over a simple program component. 
+For a compound component,
+concatenate all declarations of all constituents in
+the order specified by the constructing \shellcommand{link}
+operation.  Constituent compound component declarations are
+recursively concatenated.
+
+
+Type inference over a simple component $C$ is performed by first
+expanding $C$ into a self-contained Fortress program, as follows:
+\begin{enumerate}
+\item All program constructs corresponding to declarations in APIs exported by
+$C$ are expanded so that they include all types and static parameters
+included in the exported APIs. 
+\item All types provided by all declarations in the APIs imported by $C$
+are prepended to $C$. Note that these declarations must include
+types for all variables, functions, fields, and methods;
+otherwise the APIs that declare them are not well-formed.
+\item In order for the resulting expanded program to be well-formed, 
+we assume that all declarations in these APIs are
+expanded into special definitions that include \emph{empty bodies}.
+The empty body of such a definition is a conceptual body which
+cannot be expressed directly in Fortress programs.
+Because declarations in APIs do not have any elided type,
+type inference ignores empty bodies.
+\end{enumerate}
+Once $C$ is expanded, type inference 
+is performed over all program constructs that still include elided types.
+Empty bodies are ignored.

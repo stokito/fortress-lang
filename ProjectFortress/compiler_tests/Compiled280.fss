@@ -1,0 +1,69 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+import Set.{...}
+export Executable
+
+(* Tests that various normal (not extemum) case expressions type check ok. *)
+
+foo(z:ZZ32,g:Generator[\ZZ32\]) = do
+  println(case z IN of
+            g => "this?" end typed String)
+
+  case z of
+    g => "Did this work?"
+  end
+end
+
+
+run():() = do
+  println(case 5 of
+            1 => "1"
+            2 => "2"
+            else => "else"
+          end typed String)
+
+  (* No operator *)
+  ignore(case 5#10 of
+           2#10 => 0
+           1    => 1
+           5#10 => 1
+           else => -1
+         end)
+
+  ignore(case 5 of
+           1 => "1"
+           2 => "2"
+           3:10 => "3:10"
+         end typed String)
+
+  ignore(case 5 of
+           1 => "1"
+           2 => "2"
+           6:10 => "range"
+           else => "else"
+         end typed String)
+
+    (* Operator *)
+    ignore(case 5 > of
+             4 => true
+             6 => false
+             else => false
+           end typed Boolean)
+
+    planet = "Saturn"
+    ignore(case planet IN of
+             {"Mercury", "Venus", "Earth", "Mars"} => "inner"
+             {"Jupiter", "Saturn", "Uranus", "Neptune"} => "outer"
+             else => "remote"
+           end typed String)
+
+end

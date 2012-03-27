@@ -1,0 +1,272 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{\Apis}
+\seclabel{apis}
+
+\note{All APIs should provide all types explicitly in all declarations.}
+
+\begin{Grammar}
+\emph{Api} &::=&
+\KWD{api} \emph{APIName} \option{\emph{Imports}} \option{\emph{AbsDecls}} \KWD{end}
+\options{\option{\KWD{api}} \emph{APIName}}\\
+
+\emph{AbsDecls} &::=& \emph{AbsDecl}$^+$\\
+
+\emph{AbsDecl} &::=& \emph{AbsTraitDecl}\\
+&$|$& \emph{AbsObjectDecl}\\
+&$|$& \emph{AbsVarDecl}\\
+&$|$& \emph{AbsFnDecl}\\
+&$|$& \emph{DimUnitDecl}\\
+&$|$& \emph{TypeAlias}\\
+&$|$& \emph{TestDecl}\\
+&$|$& \emph{PropertyDecl}\\
+&$|$& \emph{AbsExternalSyntax}\\
+
+\end{Grammar}
+
+\begin{GrammarTwo}
+\emph{AbsTraitDecl}  &::=& \option{\emph{AbsTraitMods}}
+\emph{TraitHeaderFront} \emph{AbsTraitClauses}
+\option{\emph{AbsGoInATrait}} \KWD{end} \\
+&&\options{\option{\KWD{trait}} \emph{Id}}\\
+
+\emph{AbsTraitMods} &::=& \emph{AbsTraitMod}$^+$\\
+
+\emph{AbsTraitMod} &::=& \KWD{value} $|$ \KWD{test}\\
+
+\emph{AbsTraitClauses} &::=& \emph{AbsTraitClause}$^*$\\
+
+\emph{AbsTraitClause} &::=& \emph{Excludes} \\
+&$|$& \emph{AbsComprises} \\
+&$|$& \emph{Where} \\
+
+\emph{AbsComprises} &::=& \KWD{comprises} \emph{ComprisingTypes} \\
+
+\emph{ComprisingTypes}
+&::=& \emph{TraitType} \\
+&$|$& \texttt{\{} \emph{ComprisingTypeList} \texttt{\}} \\
+
+\emph{ComprisingTypeList}
+&::=& \EXP{\ldots} \\
+&$|$& \emph{TraitType}(\EXP{,} \emph{TraitType})$^*$ \options{\EXP{,} \ldots}\\
+
+\end{GrammarTwo}
+
+\begin{GrammarTwo}
+\emph{AbsGoInATrait}
+&::=& \option{\emph{AbsCoercions}}
+\emph{AbsGoFrontInATrait} \option{\emph{AbsGoBackInATrait}}\\
+&$|$& \option{\emph{AbsCoercions}}
+\emph{AbsGoBackInATrait} \\
+&$|$& \emph{AbsCoercions}\\
+
+\emph{AbsCoercions} &::=& \emph{AbsCoercion}$^+$\\
+
+\emph{AbsGoFrontInATrait} &::=& \emph{AbsGoesFrontInATrait}$^+$\\
+
+\emph{AbsGoesFrontInATrait}
+&::=& \emph{ApiFldDecl} \\
+&$|$& \emph{AbsGetterSetterDecl} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{AbsGoBackInATrait} &::=& \emph{AbsGoesBackInATrait}$^+$\\
+
+\emph{AbsGoesBackInATrait}
+&::=& \emph{AbsMdDecl} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{AbsObjectDecl} &::=& \option{\emph{AbsObjectMods}}
+ \emph{ObjectHeader} \option{\emph{AbsGoInAnObject}} \KWD{end}
+\options{\option{\KWD{object}} \emph{Id}}\\
+
+\emph{AbsObjectMods} &::=& \emph{AbsTraitMods}\\
+
+\emph{AbsGoInAnObject}
+&::=& \option{\emph{AbsCoercions}}
+\emph{AbsGoFrontInAnObject} \option{\emph{AbsGoBackInAnObject}}\\
+&$|$& \option{\emph{AbsCoercions}}
+\emph{AbsGoBackInAnObject} \\
+&$|$& \emph{AbsCoercions}\\
+
+\emph{AbsGoFrontInAnObject} &::=& \emph{AbsGoesFrontInAnObject}$^+$\\
+
+\emph{AbsGoesFrontInAnObject}
+&::=& \emph{ApiFldDecl} \\
+&$|$& \emph{AbsGetterSetterDecl} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{AbsGoBackInAnObject} &::=& \emph{AbsGoesBackInAnObject}$^+$\\
+
+\emph{AbsGoesBackInAnObject}
+&::=& \emph{AbsMdDecl} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{AbsCoercion} &::=&
+\KWD{coerce}\option{\emph{StaticParams}}\texttt(\emph{BindId} \emph{IsType}\texttt)\emph{CoercionClauses} \option{\KWD{widens}}\\
+
+\emph{ApiFldDecl} &::=& \option{\emph{ApiFldMods}}
+\emph{BindId} \emph{IsType}\\
+
+\emph{ApiFldMods} &::=& \emph{ApiFldMod}$^+$\\
+
+\emph{ApiFldMod} &::=& \KWD{hidden} $|$ \KWD{settable} $|$ \KWD{test}\\
+
+\emph{AbsVarDecl} &::=& \option{\emph{AbsVarMods}} \emph{VarWTypes}\\
+&$|$& \option{\emph{AbsVarMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{Type}\EXP{...}\\
+&$|$& \option{\emph{AbsVarMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{TupleType}\\
+
+\emph{AbsVarMods} &::=& \emph{AbsVarMod}$^+$\\
+
+\emph{AbsVarMod} &::=& \KWD{var} $|$ \KWD{test}\\
+
+\end{GrammarTwo}
+
+
+\Apis\ are compiled from special \apiN\ definitions.  These are source
+files which declare the entities declared by the \apiN, the names of all
+\apisN\ referred to by those declarations, and prose documentation.  In
+short, the source code of an \apiN\ must specify all the information
+that is traditionally provided for the published \apisN\ of libraries in
+other languages.
+
+The syntax of an \apiN\ definition is
+identical to the syntax of a component definition, except that:
+\begin{enumerate}
+
+\item
+An \apiN\ definition begins with \KWD{api}
+rather than \KWD{component}.
+As with components,
+the identifiers associated with \apisN\ that are not included in \library\
+are prefixed with the reverse of the URL of the development team.
+
+\item
+An \apiN\ does not include \KWD{export} statements.
+(However, it does include \KWD{import} statements,
+which name the other \apisN\ used in the \apiN\ definition.)
+
+\item
+Only declarations (not definitions!) are included in an \apiN\
+definition except test and property declarations.
+A method or field declaration may include the modifier \KWD{abstract}.
+(Whether a declaration includes the modifier \KWD{abstract}
+has a significant effect on its meaning, as discussed below).
+
+\end{enumerate}
+
+
+Import statements in APIs permit names declared in imported APIs to be used
+in the importing API either qualified or unqualified,
+just as in components.  Those names are \emph{not}, however,
+part of the importing API,
+and thus cannot be imported from that API by a component or another API.
+
+For the sake of simplicity, every identifier reference in an \apiN\
+definition must refer either to a declaration in a used \apiN\
+(i.e., an \apiN\ named in an import statement,
+or the Fortress core APIs, which are implicitly imported),
+or to a declaration in the \apiN\ itself.
+In this way, \apisN\ differ from signatures in most module systems:
+they are not parametric in their external dependencies.
+
+\section{Component and API Identity}
+
+Formally, we introduce two functions on components,
+$\imports$ and $\exports$,
+that return the imported and exported \apisN\ of the component, respectively.
+For any component $\comp$, %% \in \components$,
+$\imports(\comp) \intersect \exports(\comp) = \emptyset$.
+This restriction is required throughout to ground the semantics of
+operations on components, as discussed in \secref{basicops}.
+
+Every component
+has a unique name, used for the purposes of component linking.
+This name includes a user-provided identifier.
+In the case of a simple component, the identifier is determined by
+a component name given at
+the top of the source file from which it is compiled.
+A build script may keep a tally on version numbers and append them to the
+first line of a component,
+incrementing its tally on each compilation.
+The name of a compound component is specified as an argument
+to the \shellcommand{link} operation (described in \secref{basicops})
+that defines it.
+Component equivalence is determined nominally
+to allow mutually recursive linking of components.
+By programmer convention, identifiers associated with components
+that are not included in \library\
+begin with the reverse of the URL of the development team.
+%Two components with the same name must be identical, even if they are
+%contained in different fortresses.
+A fortress does not allow the installation of
+distinct components with the same name.
+Component names are used during
+\shellcommand{link} and \shellcommand{upgrade}
+operations to ensure that the restrictions on
+upgrades to a component are respected,
+as explained in \secref{basicops}.
+
+Every component also includes
+a vendor name,
+the name of the fortress it is compiled on, and
+a timestamp, denoting the time of compilation.
+The time of compilation is measured by the compiling fortress,
+and the name of the fortress is provided by the fortress automatically.
+Every timestamp issued by a fortress must be unique.
+The vendor name typically remains the same throughout a significant
+portion of the life of a
+user account, and is best provided as a user environment variable.
+
+Every \apiN\ has a unique name that consists of a user-provided identifier.
+As with components,
+\apiN\ equivalence is determined nominally.
+Every \apiN\ also includes a vendor name,
+the name of the fortress it is compiled on,
+and a timestamp.
+\note{
+Victor: Is it the \apiN\ name that includes the vendor, etc.?
+It used to just say \apiN, and I changed it to \apiN\ name.
+
+Jan: I changed it back, because we don't claim to distinguish APIs
+  this way in the remainder of the text, and don't give a
+  mechanism for specifying these details in an import.}
+Component names must not conflict with \apiN\ names.
+For convenience, a compiler can also
+produce an \apiN\ directly from a project
+with the same name as the component it is derived from.
+Such an \apiN\ includes \emph{matching} declarations of the component.
+All declarations in the component appear in the API.
+
+
+A component must include, for every \apiN\ $A$ it exports,
+matching definitions for all the declarations in $A$.
+A matching definition of a declaration $d$
+is a definition $d'$ with the same name as $d$
+that includes definitions for all declarations
+other than the methods or fields declared \KWD{abstract} in $d$.
+The header and type of $d'$ must be the same as the header and type of $d$.
+$d'$ may include additional definitions not declared in $d$.
+
+Other than its identity,
+the only relevant characteristic of an \apiN\ $\api$
+is the set of \apisN\ that it uses,
+denoted by $\uses(\api)$.
+Because an \apiN\ $\api$ might expose types
+defined in $\uses(\api)$,
+we require that a component that exports $\api$
+also exports all \apisN\ in $\uses(\api)$ that it does not import.
+Formally, the following condition holds on the exported \apisN\
+of a component $\comp$:
+\[
+\api \in \exports(\comp) \logicand \api' \in \uses(\api)
+        \implies \api' \in \imports(\comp) \union \exports(\comp)
+\]

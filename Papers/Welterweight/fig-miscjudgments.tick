@@ -1,0 +1,39 @@
+
+\begin{figure}
+\typicallabel{NotOfTrait-Object}
+
+\newjudge{Not constructed from a given trait}{\mathit{notOfTrait}(T, c)}
+
+\bigskip
+
+\infax[NotOfTrait-Object]
+  { \mathit{notOfTrait}(T, O\ob{\dontcare}) }
+
+\bigskip
+
+\infrule[NotOfTrait-Trait]
+  { \mathit{distinct}(T, T') }
+  { \mathit{notOfTrait}(T, T'\ob{\dontcare}) }
+
+\bigskip
+
+\newjudge{Distinct names}{\mathit{distinct}(\bar{\Id})}
+
+\bigskip
+\infrule[Distinct-Identifiers]
+  { \left| \bigsetb{\Id} \right| = \countof(\bar{\Id}) }
+  { \mathit{distinct}(\bar{\Id})}
+
+\bigskip
+
+\newjudge{Distinct declarations}{\mathit{distinct}(\bar{\delta})}
+
+\bigskip
+\infrule[Distinct-Identifiers]
+  { \left| \bigsetb{\delta} \right| = \countof(\bar{\delta}) }
+  { \mathit{distinct}(\bar{\delta})}
+
+\medskip
+\caption{Miscellaneous Judgments}
+\label{fig:miscjudgments}
+\end{figure}

@@ -1,0 +1,142 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Dynamic Semantics}\label{acffd-dynamic}
+A dynamic semantics for \acffdcore\ is provided in
+Figure~\ref{fig:acffd-dynamic}.
+
+\begin{figure}[htbp]
+Values, intermediate expressions,
+evaluation contexts, redexes, and trait and object names\\
+
+$
+\begin{array}{llll}
+\val &::=& \objvalval&\mbox{value}\\
+\iexp   &::=& \vname &\mbox{intermediate expression}\\
+         &|& \self\\
+         &|& \oapp\iargs\\
+         &|& \ifldacc\\
+         &|& \imthinvk\\
+         &|& \oapp\set{\seq{\vname\mapsto\iexp}; \seq{\vname\mapsto\iexp}}\\
+\context &::=& \hole&\mbox{evaluation context}\\
+      &|& \oapp\parens{\iexps\context\iexps}\\
+      &|& \invoke{\context}{\vname}\\
+      &|& \invoke{\context}{\ftapp\iargs}\\
+%      &|& \oapp\partialvargsI\\
+      &|& \invoke{\iexp}{\ftapp\parens{\iexps\context\iexps}}\\
+      &|& \oapp\set{\seq{\vname\mapsto\val};\ \vname\mapsto\context\ \seq{\vname\mapsto\exp}}\\
+\redex &::=& \oapp\vargs&\mbox{redex}\\
+      &|& \oapp\set{\seq{\vname\mapsto\val};\ \vname\mapsto\val\ \seq{\vname\mapsto\exp}}\\
+      &|& \invoke{\val}{\vname}\\
+      &|& \invoke{\val}{\ftapp\vargs}\\
+\cname &::=& \tname&\mbox{trait name}\\
+      &|& \oname&\mbox{object name}\\ \\
+\end{array}
+$
+
+Evaluation rules: \fbox{\reduce{\redex}{\iexp}}
+
+\[
+\begin{array}{lc}
+\newinfrule{\begin{array}{c}
+\object \oname\tparamsL\vparamsLN
+\ignore\ \seq{\vname'\isTyL\equal\exp'}\ \ignore\ \mt{end}
+ \inp
+\end{array}}{
+\begin{array}{c}
+\reduce{\oapp\vargs}
+{\oapp \set{\seq{\vname\mapsto\val}\
+;\seq{\vname'\mapsto\substseq{\val}{\vname}
+\substseq{\ty}{\tvone}\exp'}
+}}
+\end{array}
+}
+{\rObjectRule} \\ \\
+
+%\newinfrule
+%{\reduceNoContext{\substseq{\val}{\vname}\iexp}{\iexp'}}
+%{
+%\reduce
+%{\oapp\set{\seq{\vname\mapsto\val}\
+%y\mapsto\iexp\ \seq{z\mapsto\exp}}}
+%{\oapp\set{\seq{\vname\mapsto\val}\
+%y\mapsto\iexp'\ \seq{z\mapsto\exp}}}
+%}
+%{\rObjectFieldRule} \\ \\
+
+\newrule{
+\reduce
+{\oapp\set{\seq{\vname\mapsto\val};\
+y\mapsto\val\
+\seq{z\mapsto\exp}}}
+{\oapp\set{\seq{\vname\mapsto\val}\
+y\mapsto\val;\
+\seq{z\mapsto\subst{\val}{y}\exp}}}}
+{\rSubRule} \\ \\
+
+\newrule{
+\reduce{\invoke{\objvalval}{\vname_i}}
+{\sub\val i}}
+{\rFieldRule} \\ \\
+
+\newinfrule{\begin{array}{c}
+\mbodyF{\fname\targsP}{\oapp} = \set{\mkmthbody{\vname'}{\exp}}
+\end{array}}{
+\reduce
+{\invoke{\objvalval}{\fname\targsP\vargsP}}
+{\substseq{\val}{\vname}
+ \subst{\objvalval}{\self}
+ \substseq{\val'}{\vname'}\exp}
+}
+{\rMethodRule} \\ \\
+
+\end{array}
+\]
+
+Method body lookup: \fbox{\mbodyF{\ftapp}{\ty} = \set{\mthbody}}
+
+\[
+\begin{array}{lc}
+\newinfrule{
+\begin{array}{c}
+\dsyntaxMB \inp
+\rulesep
+\fdsyntaxMB \in \set{\seq{\fd}}
+\\\end{array}
+}
+{\mbodyF{\ftappP}{\cname\targs} = 
+\braces{\substseq{\tyP}{\prm\tvone}\substseq{\ty}{\tvone}
+\mthbodyP}}
+{\mbBothRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\dsyntaxMS \inp
+\rulesep
+\fname\not\in\set{\seq{\Fname(\fd)}}
+\\\end{array}
+}
+{\mbodyF{\ftappP}{\cname\targs} = 
+ \bigcup_{\sub \tappone i\in\set{\seq{\tappone}}} 
+\mbodyF{\ftappP}{\substseq{\ty}{\tvone}\sub \tappone i}}
+{\mbSuperRule} \\ \\
+
+\newrule{\mbodyF{\ftapp}\obj = \emptyset}{\mbObjRule}
+
+\end{array}
+\]
+
+Function/method name lookup: \fbox{\Fname(\fd) = \fname} \\ \\
+\Fname(\fdsyntax) = \fname
+\caption{Dynamic Semantics of \acffdcore}
+\label{fig:acffd-dynamic}
+\end{figure}
+
