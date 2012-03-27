@@ -1,4 +1,4 @@
-This is pdfTeXk, Version 3.1415926-1.40.9 (Web2C 7.5.7) (format=pdflatex 2008.12.28)  26 MAR 2012 18:15
+This is pdfTeXk, Version 3.1415926-1.40.9 (Web2C 7.5.7) (format=pdflatex 2008.12.28)  27 MAR 2012 17:00
 entering extended mode
  %&-line parsing enabled.
 **paper.tex
@@ -472,19 +472,19 @@ File: thp.sty 1995/11/23 v2.2c Theorem extension package (FMi)
  (./paper.aux)
 \openout1 = `paper.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 272.
-LaTeX Font Info:    ... okay on input line 272.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 272.
-LaTeX Font Info:    ... okay on input line 272.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 272.
-LaTeX Font Info:    ... okay on input line 272.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 272.
-LaTeX Font Info:    ... okay on input line 272.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 272.
-LaTeX Font Info:    ... okay on input line 272.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 272.
-LaTeX Font Info:    ... okay on input line 272.
-LaTeX Font Info:    Try loading font information for OT1+ptm on input line 272.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Try loading font information for OT1+ptm on input line 287.
 
 
 (/usr/local/texlive/2008/texmf-dist/tex/latex/psnfss/ot1ptm.fd
@@ -504,27 +504,27 @@ File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 \everyMPtoPDFconversion=\toks31
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <17.28> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 311.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 326.
 
-Overfull \hbox (1.55576pt too wide) in paragraph at lines 311--311
+Overfull \hbox (1.55576pt too wide) in paragraph at lines 326--326
  []\OT1/cmss/m/n/10 jean.baptiste.tristan@oracle.com 
  []
 
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 311.
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 326.
 
 (/usr/local/texlive/2008/texmf-dist/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <7> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 311.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 326.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 314.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 329.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 322.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 337.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <10> not available
-(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 322.
+(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 337.
 
-Overfull \hbox (1.94742pt too wide) in paragraph at lines 325--329
+Overfull \hbox (1.94742pt too wide) in paragraph at lines 340--344
  \OT1/ptm/b/it/10 Key-words \OT1/ptm/m/n/10 object-oriented pro-gram-ming, mul-
 ti-ple dis-patch,
  []
@@ -541,72 +541,105 @@ File: umsb.fd 2002/01/19 v2.2g AMS font definitions
 LaTeX Font Info:    Try loading font information for U+stmry on input line 1.
 
 (/usr/local/texlive/2008/texmf-dist/tex/latex/stmaryrd/Ustmry.fd)
-Overfull \hbox (0.92989pt too wide) in paragraph at lines 3--14
+(./fig-metavariables.tex)
+Overfull \hbox (3.70619pt too wide) in paragraph at lines 15--18
+\OT1/ptm/m/n/10 out-er-most first. There-fore the short-hand $\OML/cmm/m/it/10 
+f[] [] []$ \OT1/ptm/m/n/10 means
+ []
+
+
+Overfull \hbox (0.92989pt too wide) in paragraph at lines 15--18
 \OML/cmm/m/it/10 f[] [] []$\OT1/ptm/m/n/10 , which in turn
  []
 
-[1{/usr/local/texlive/2008/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
+
+Underfull \vbox (badness 1112) has occurred while \output is active []
+
+ [1{/usr/local/texlive/2008/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
 ]
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <9> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 33.
-)
-(./grammar.tex
-Overfull \hbox (5.15556pt too wide) in alignment at lines 42--87
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 37.
+
+(./fig-grammar.tex
+Overfull \hbox (35.8233pt too wide) in alignment at lines 4--52
 [] [] 
  []
 
+) [2]) (./grammar.tex (./fig-internalsymbols.tex) (./fig-wellformedtypes.tex)
+[3] (./fig-expressiontypes.tex)
+Underfull \vbox (badness 7631) has occurred while \output is active []
 
-Overfull \hbox (2.40826pt too wide) detected at line 313
- [] 
- []
+ [4])
+(./static.tex (./fig-wellformeddecls.tex)) (./evaluation.tex (./fig-values.tex)
+(./fig-evaluation.tex) (./fig-miscjudgments.tex
+Underfull \vbox (badness 2617) has occurred while \output is active []
 
+ [5]
+[6]) [7] [8
 
-Overfull \hbox (20.41232pt too wide) detected at line 349
- [] 
- []
-
-[2] [3] [4] [5] [6] [7] [8]) (./fig-exclusion.tex
+]) (./subtyping.tex (./fig-subtyping.tex) (./fig-exclusion.tex
 
 LaTeX Warning: Float too large for page by 5.29672pt on input line 156.
 
-) (./paper.bbl) [9
+) [9
+
+
+] [10] [11] (./fig-miscsubtyping.tex
+Overfull \hbox (39.30365pt too wide) detected at line 9
+ [] 
+ []
+
+
+Overfull \hbox (39.30365pt too wide) detected at line 39
+ [] 
+ []
+
+
+Overfull \hbox (39.30365pt too wide) detected at line 45
+ [] 
+ []
+
+) (./fig-quantified.tex) [12
+
+]) (./paper.bbl) [13
 
 
 
 
-] [10] (./paper.aux) ) 
+
+] (./paper.aux) ) 
 Here is how much of TeX's memory you used:
- 3531 strings out of 493876
- 42704 string characters out of 1150567
- 203575 words of memory out of 3000000
- 6721 multiletter control sequences out of 10000+50000
- 28666 words of font info for 61 fonts, out of 3000000 for 5000
+ 3630 strings out of 493876
+ 43987 string characters out of 1150567
+ 146400 words of memory out of 3000000
+ 6760 multiletter control sequences out of 10000+50000
+ 35912 words of font info for 84 fonts, out of 3000000 for 5000
  714 hyphenation exceptions out of 8191
- 30i,23n,30p,583b,325s stack positions out of 5000i,500n,10000p,200000b,50000s
-{/usr/local/texlive/2008/texmf-dist/fonts/enc/dvips/base/
-8r.enc}</usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmex10.pfb></
-usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmmi10.pfb></usr/local
-/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmmi5.pfb></usr/local/texlive/2
-008/texmf-dist/fonts/type1/bluesky/cm/cmmi7.pfb></usr/local/texlive/2008/texmf-
-dist/fonts/type1/bluesky/cm/cmr10.pfb></usr/local/texlive/2008/texmf-dist/fonts
-/type1/bluesky/cm/cmr5.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/blue
-sky/cm/cmr7.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmss
-10.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmsy10.pfb></
-usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmsy7.pfb></usr/local/
-texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmsy9.pfb></usr/local/texlive/20
-08/texmf-dist/fonts/type1/bluesky/cm/cmti10.pfb></usr/local/texlive/2008/texmf-
-dist/fonts/type1/bluesky/cm/cmtt10.pfb></usr/local/texlive/2008/texmf-dist/font
-s/type1/bluesky/ams/msam10.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/
-hoekwater/stmaryrd/stmary10.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1
-/urw/times/utmb8a.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/urw/times
-/utmbi8a.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/urw/times/utmr8a.p
-fb></usr/local/texlive/2008/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/l
-ocal/texlive/2008/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on paper.pdf (10 pages, 172711 bytes).
+ 30i,23n,30p,583b,314s stack positions out of 5000i,500n,10000p,200000b,50000s
+{/usr/local/texlive/2008/texmf-dist/fonts/enc/dvips/base/8r.en
+c}</usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmex10.pfb></usr/l
+ocal/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmmi10.pfb></usr/local/texl
+ive/2008/texmf-dist/fonts/type1/bluesky/cm/cmmi5.pfb></usr/local/texlive/2008/t
+exmf-dist/fonts/type1/bluesky/cm/cmmi7.pfb></usr/local/texlive/2008/texmf-dist/
+fonts/type1/bluesky/cm/cmr10.pfb></usr/local/texlive/2008/texmf-dist/fonts/type
+1/bluesky/cm/cmr5.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky/c
+m/cmr7.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmss10.pf
+b></usr/local/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmsy10.pfb></usr/l
+ocal/texlive/2008/texmf-dist/fonts/type1/bluesky/cm/cmsy7.pfb></usr/local/texli
+ve/2008/texmf-dist/fonts/type1/bluesky/cm/cmsy9.pfb></usr/local/texlive/2008/te
+xmf-dist/fonts/type1/bluesky/cm/cmti10.pfb></usr/local/texlive/2008/texmf-dist/
+fonts/type1/bluesky/cm/cmtt10.pfb></usr/local/texlive/2008/texmf-dist/fonts/typ
+e1/bluesky/ams/msam10.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/hoekw
+ater/stmaryrd/stmary10.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/urw/
+times/utmb8a.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/urw/times/utmb
+i8a.pfb></usr/local/texlive/2008/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></
+usr/local/texlive/2008/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/
+texlive/2008/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on paper.pdf (13 pages, 194237 bytes).
 PDF statistics:
- 116 PDF objects out of 1000 (max. 8388607)
+ 126 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 131072)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

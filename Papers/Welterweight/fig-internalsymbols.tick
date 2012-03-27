@@ -1,0 +1,32 @@
+
+\begin{figure}
+
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 2em}l@{}}
+\alpha   & ::= &  P                                              & \hbox{\rm type parameter name} \\
+         &  |  &  T\obb{\alpha}                                  & \hbox{\rm trait type} \\
+         &  |  &  O\obb{\alpha}                                  & \hbox{\rm object type} \\
+         &  |  &  (\bar{\alpha})                                 & \hbox{\rm tuple type} \\
+         &  |  &  \arrowtype{\alpha}{\alpha}                     & \hbox{\rm arrow type} \\
+         &  |  &  \Any                                           & \hbox{\rm special \Any\ type} \\
+         &  |  &  \Object                                        & \hbox{\rm special \Object\ type} \\
+         &  |  &  \Bottom                                        & \hbox{\rm special \Bottom\ type} \\
+         &  |  &  \uniontype{\alpha}{\alpha}                     & \hbox{\rm union type} \\
+         &  |  &  \intersectiontype{\alpha}{\alpha}              & \hbox{\rm intersection type} \\[4pt]
+\kappa   & ::= &  \alpha                                         & \hbox{\rm lattice type} \\
+         &  |  &  \Xi                                            & \hbox{\rm existentially quantified type} \\
+         &  |  &  \Upsilon                                       & \hbox{\rm universally quantified type} \\[4pt]
+\Xi      & ::= &  \existstypeb{\lambda}{\alpha}                  & \hbox{\rm existentially quantified type} \\[4pt]
+\Upsilon & ::= &  \foralltypeb{\lambda}{\alpha}                  & \hbox{\rm universally quantified type} \\[4pt]
+\lambda  & ::= &  \bdb{\alpha} \extends P \extends \bdb{\alpha}  & \hbox{\rm lattice type parameter binding} \\[4pt]
+\psi     & ::= &  \delta                                         & \hbox{\rm program declaration} \\
+         &  |  &  \lambda                                        & \hbox{\rm lattice type parameter binding} \\[4pt]
+\var     & ::= &  x                                              & \hbox{\rm variable name} \\
+         &  |  &  z                                              & \hbox{\rm field name} \\
+         &  |  &  \kwd{self}                                     & \hbox{\rm self keyword} \\[4pt]
+\Delta   & ::= &  \bar{\psi}                                     & \hbox{\rm type-declaration environment} \\[4pt]
+\Gamma   & ::= &  \bar{\mathit{var}\COLON\alpha}                 & \hbox{\rm variable-type environment} \\[4pt]
+\end{array}
+
+\caption{Symbols Not Used in the Concrete Syntax}
+\label{fig:internalsymbols}
+\end{figure}

@@ -1,0 +1,51 @@
+\begin{figure*}
+
+\begin{tabular}{cc}
+\begin{minipage}{.5\textwidth}
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 2em}l@{}}
+v        & ::= &  O\obb{\alpha}(\bar{v})                              & \hbox{\rm object instance} \\
+         &  |  &  (\bar{v})                                           & \hbox{\rm tuple value} \\
+         &  |  &  ((\bar{x\COLON\tau})\COLON\tau \Rightarrow e)     & \hbox{\rm function value} \\[4pt]
+E        & ::= &  \Box                                                               & \hbox{\rm evaluation context} \\
+         &  |  &  (\bar{e}\,E\,\bar{e})                                              \\
+         &  |  &  \pi_i(E)                                                           \\
+         &  |  &  E\apply(\bar{e})                                                   \\
+         &  |  &  e\apply(\bar{e}\,E\,\bar{e})                                       \\
+         &  |  &  E.z                                                                \\
+         &  |  &  O\obb{\tau}(\bar{e}\,E\,\bar{e})                                   \\
+         &  |  &  f\obb{\tau}(\bar{e}\,E\,\bar{e})                                   \\
+         &  |  &  f(\bar{e}\,E\,\bar{e})                                             \\
+         &  |  &  E.m\obb{\tau}(\bar{e})                                             \\
+         &  |  &  e.m\obb{\tau}(\bar{e}\,E\,\bar{e})                                 \\
+         &  |  &  E.m(\bar{e})                                                       \\
+         &  |  &  e.(\bar{e}\,E\,\bar{e})                                            \\
+         &  |  &  (E \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e)  \\[4pt]
+\end{array}
+\end{minipage}&%
+\begin{minipage}{.5\textwidth}
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 2em}l@{}}
+R        & ::= &  \pi_i(v)                                                           & \hbox{\rm redex} \\
+         &  |  &  (v)                                                                \\
+         &  |  &  v\apply(\bar{v})                                                   \\
+         &  |  &  v.z                                                                \\
+         &  |  &  f\obb{\tau}(\bar{v})                                               \\
+         &  |  &  f(\bar{v})                                                         \\
+         &  |  &  v.m\obb{\tau}(\bar{v})                                             \\
+         &  |  &  v.m(\bar{v})                                                       \\
+         &  |  &  (v \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e)
+\end{array}
+\bigskip
+\newjudge{Ilk of a value}{\mathit{ilk}(v) = \alpha}
+\medskip
+\begin{array}[t]{@{}l@{}}
+\mathit{ilk}(O\obb{\alpha}(\bar{v})) = O\obb{\alpha} \\[2pt]
+\mathit{ilk}((\bar{v})) = (\bar{\mathit{ilk}(v)}) \\[2pt]
+\mathit{ilk}(((\bar{x\COLON\tau})\COLON\tau' \Rightarrow e)) = \listof{\arrowtype{(\bar{\tau})}{\tau'}}
+\end{array}
+\end{minipage}
+\end{tabular}
+\medskip
+\caption{Values, Evaluation Contexts, Redexes, and Ilks}
+\label{fig:values}
+\end{figure*}
+

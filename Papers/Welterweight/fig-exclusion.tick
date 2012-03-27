@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}[htbp]
-\centering
-\newjudge{Exclusion}{\jexc{\alpha}{\alpha}{\C}}
+\centering\leavevmode
+\newjudge{Exclusion Rules That Generate Constraints}{\jexc{\alpha}{\alpha}{\C}}
 \vspace*{1em}
 
 \begin{minipage}[t]{.4\textwidth}
@@ -152,6 +152,6 @@
 
 \end{minipage}
   \caption{Algorithm for generating exclusion constraints. Each rule is symmetric; apply the first one that matches.}
-  \label{fig:jexc}
+  \label{fig:exclusion}
 \end{figure*} 
 

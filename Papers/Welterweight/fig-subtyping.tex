@@ -44,16 +44,16 @@
 \textbf{Inference Variables}
 
 \infrule
-  {`I` \not\in \mathit{parameters}(\Delta) }
+  {\VAR{I} \not\in \mathit{parameters}(\Delta) }
   { \jsub{I}{I}{\TRUE} }
 
 \infrule
-  {`I` \not\in \mathit{parameters}(\Delta) }
+  {\VAR{I} \not\in \mathit{parameters}(\Delta) }
   { \jsub{I}{\alpha}{I \subtypeof \alpha} }
  
 \infrule
-  {`I` \not\in \mathit{parameters}(\Delta) }
-  { \jsub{\alpha}{I}{\alpha \subtypeof `I`} }
+  {\VAR{I} \not\in \mathit{parameters}(\Delta) }
+  { \jsub{\alpha}{I}{\alpha \subtypeof \VAR{I}} }
  
 \bigskip
 \textbf{Bound Variables}
@@ -149,5 +149,5 @@
 \end{minipage}
 
   \caption{Algorithm for generating subtyping constraints. Apply the first rule that matches.}
-  \label{fig:jsub}
+  \label{fig:subtyping}
 \end{figure*}

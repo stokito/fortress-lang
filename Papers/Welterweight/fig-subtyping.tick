@@ -149,5 +149,5 @@
 \end{minipage}
 
   \caption{Algorithm for generating subtyping constraints. Apply the first rule that matches.}
-  \label{fig:jsub}
+  \label{fig:subtyping}
 \end{figure*}
