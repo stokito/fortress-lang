@@ -55,6 +55,7 @@ import com.sun.fortress.nodes.IntBase;
 import com.sun.fortress.nodes.IntBinaryOp;
 import com.sun.fortress.nodes.IntExpr;
 import com.sun.fortress.nodes.IntRef;
+import com.sun.fortress.nodes.IntersectionType;
 import com.sun.fortress.nodes.KindBool;
 import com.sun.fortress.nodes.KindDim;
 import com.sun.fortress.nodes.KindInt;
@@ -1199,6 +1200,10 @@ public class NamingCzar {
             UnionType ut = (UnionType) t;
             return makeBoxedUnionName(ut, ifNone);
         }
+        else if (t instanceof IntersectionType) {
+            IntersectionType ut = (IntersectionType) t;
+            return makeBoxedIntersectionName(ut, ifNone);
+        }
         else
             throw new CompilerError(t, " How did we get here? type = " +
                                      t + " of class " + t.getClass());
@@ -1212,6 +1217,12 @@ public class NamingCzar {
     private static String makeBoxedUnionName(UnionType ut,
             final APIName ifNone) {
         String s = makeBoxedThingName(Naming.UNION, ut.getElements(), ifNone);
+        return s;
+    }
+    
+    private static String makeBoxedIntersectionName(IntersectionType ut,
+            final APIName ifNone) {
+        String s = makeBoxedThingName(Naming.INTERSECTION, ut.getElements(), ifNone);
         return s;
     }
     
@@ -1285,6 +1296,11 @@ public class NamingCzar {
             @Override
             public String forUnionType(UnionType t) {
                 String s = makeBoxedUnionName(t, ifNone);
+                return withLSemi ? "L" + s + ";" : s;
+            }
+            @Override
+            public String forIntersectionType(IntersectionType t) {
+                String s = makeBoxedIntersectionName(t, ifNone);
                 return withLSemi ? "L" + s + ";" : s;
             }
             @Override
