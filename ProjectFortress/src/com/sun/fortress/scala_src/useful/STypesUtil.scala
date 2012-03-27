@@ -645,10 +645,14 @@ object STypesUtil {
     }
 
     // Clear the static params.
-    val cleared = if (applyUnlifted) clearStaticParams(body)
-    		else clearStaticParams(body,sparams.filter { s =>
-      (s.isLifted && applyLifted) || (!s.isLifted && applyUnlifted)
-          })
+
+    val cleared = clearStaticParams(body,sparams.filter { s => (s.isLifted && applyLifted) || (!s.isLifted && applyUnlifted) })
+    
+    //    val cleared = 
+//    		if (applyUnlifted) 
+//    			clearStaticParams(body)
+//    		else clearStaticParams(body,sparams.filter { s =>
+//    			(s.isLifted && applyLifted) || (!s.isLifted && applyUnlifted) })
     
     // Replaces all the occurrences of static params as variables with args.
     object staticReplacer extends Walker {
