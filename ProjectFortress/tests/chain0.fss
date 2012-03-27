@@ -1,0 +1,57 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component chain0
+export Executable
+
+t(x:Boolean) = println( if x then "PASS" else "FAIL" end )
+t(x:ZZ32, y:ZZ32) = if x = y then println "PASS" else
+                        println ("FAIL, Got " x " expected " y )
+                    end
+
+
+
+run() = do
+
+t( 0 ≤ 0 < 1 = 1 < 2 ≤ 2 )
+t( NOT (0 ≥ 0 > 1 = 1 > 2 ≥ 2 ) )
+t( 1 MAX 3 > 2 )
+
+t((3 MOD 4), 3 )
+t((-3 MOD 4), 1 )
+t((3 MOD -4), -1 )
+t((-3 MOD -4), -3 )
+
+t( (60 GCD 48), 12)
+t( (65 GCD 52), 13)
+
+t( (3 LCM 4), 12)
+t( (6 LCM 4), 12)
+t( (6 LCM 15), 30)
+
+t( (0 CHOOSE 0), 1)
+t( (1 CHOOSE 1), 1)
+
+t( (2 CHOOSE 0), 1)
+t( (2 CHOOSE 1), 2)
+t( (2 CHOOSE 2), 1)
+
+t( (4 CHOOSE 2), 6)
+
+t( (6 CHOOSE 2), 15)
+t( (6 CHOOSE 3), 20)
+
+t( (7 CHOOSE 2), 21)
+t( (7 CHOOSE 3), 35)
+
+end
+
+end

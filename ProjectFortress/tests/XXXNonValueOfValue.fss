@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXNonValueOfValue
+
+export Executable
+
+value trait T
+    getter f(): ZZ32
+    g(self, other:ZZ32): ZZ32 = other + f()
+end
+
+object O(x:ZZ32) extends T
+end
+
+run() = println "OK"
+
+end
