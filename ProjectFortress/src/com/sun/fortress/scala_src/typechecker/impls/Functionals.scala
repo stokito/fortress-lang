@@ -627,7 +627,8 @@ trait Functionals { self: STypeChecker with Common =>
       // Check all the overloadings and filter out any that have the wrong
       // number or kind of static parameters.
       var hadNoType = false
-      def rewriteOverloading(o: Overloading): Option[Overloading] = check(o) match {
+      def rewriteOverloading(o: Overloading): Option[Overloading] = {
+        o match {
         case ov@SOverloading(_, _, _, Some(ty), _) if sargs.isEmpty => Some(ov)
 
         case SOverloading(info, name, origName, Some(ty), schema) =>
@@ -636,8 +637,12 @@ trait Functionals { self: STypeChecker with Common =>
           }
 
         case _ => hadNoType = true; None
-      }
-      val checkedOverloadings = overloadings.flatMap(rewriteOverloading)
+      }}
+      def checkOverloading(o: Overloading): Option[Overloading] = Some(check(o).asInstanceOf[Overloading])
+      //def checkOverloading(o: Overloading): Overloading = check(o).asInstanceOf[Overloading]
+
+      val justcheckedOverloadings = overloadings.flatMap(checkOverloading)
+      val checkedOverloadings = justcheckedOverloadings.flatMap(rewriteOverloading)
 
       // If there are no overloadings, we cannot continue type checking. If any
       // of the overloadings failed to get a type
@@ -652,6 +657,8 @@ trait Functionals { self: STypeChecker with Common =>
       // Make the intersection type of all the overloadings.
       val overloadingTypes = checkedOverloadings.map(_.getType.unwrap)
       val intersectionType = NF.makeMaybeIntersectionType(toJavaList(overloadingTypes))
+      // val intersectionType = analyzer.meet(overloadingTypes)
+      
       addType(addOverloadings(fn, checkedOverloadings, false), intersectionType)
     }
 
