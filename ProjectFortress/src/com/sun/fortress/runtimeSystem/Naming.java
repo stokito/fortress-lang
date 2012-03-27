@@ -1179,6 +1179,8 @@ public class Naming {
         public static final String ERASED_UNION_DESC = "L" + ERASED_UNION_TYPE + ";" ;
         public static final String UNION = "Union";
         public final static String UNION_OX = Naming.UNION + Naming.LEFT_OXFORD;
+        public static final String INTERSECTION = "Intersection";
+        public final static String INTERSECTION_OX = Naming.INTERSECTION + Naming.LEFT_OXFORD;
         public static final String ARROW_OX = ARROW_TAG + "\u27e6";
         public static final String TUPLE_OX = TUPLE_TAG + "\u27e6";
         
