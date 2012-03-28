@@ -994,7 +994,8 @@ object STypesUtil {
 
     // 7. instantiate infArrow with [U_i] to get resultArrow
     val prenorm = tSub(infTyp)
-    val resultTyp = analyzer.normalize(prenorm).asInstanceOf[T]
+    val extendedAnalyzer = analyzer.extendJ(prenorm.getInfo().getStaticParams(),None)
+    val resultTyp = extendedAnalyzer.normalize(prenorm).asInstanceOf[T]
 //   println("Static params helper normalized " + prenorm + " to " + resultTyp);
 
     // 8. return (resultArrow,StaticArgs([U_i]))
