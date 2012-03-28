@@ -1,0 +1,157 @@
+/*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress keywords.
+ */
+module com.sun.fortress.parser.Keyword(Identifier);
+
+import Identifier;
+
+body {
+  static {
+    add(FORTRESS_KEYWORDS, new String[] {
+        "FORALL",
+        "None",
+
+        "goto",         "idiom",        "public",       "pure",
+        "reciprocal",   "static",
+
+        "BIG",          "Self",         "SI_unit",      "absorbs",      
+        "abstract",     "also",         "api",          "asif",
+        "at",           "atomic",       "bool",         "case",
+        "catch",        "coerce",       "coerces",      "component",
+        "comprises",    "contravariant","covariant",
+        "default",      "dim",          "do",           "dominates",
+        "elif",         "else",         "end",          "ensures",
+        "except",       "excludes",     "exit",         "export",
+        "extends",      "finally",      "fn",           "for",
+        "forbid",       "getter",       "grammar",      "hidden",
+        "if",           "import",       "int",
+        "invariant",    "io",           "label",        "most",
+        "nat",          "native",       "object",       "of",
+        "opr",          "or",           "override",
+        "private",      "property",     "provided",     "requires",
+        "self",         "settable",     "setter",       "spawn",
+        "syntax",       "test",         "then",         "throw",
+        "throws",       "trait",        "try",          "tryatomic",
+        "type",         "typecase",     "typed",        "unit",
+        "value",        "var",          "where",        "while",
+        "widens",       "with",         "wrapped",
+        "true",         "false"
+    });
+  }
+}
+
+option setOfString(FORTRESS_KEYWORDS);
+
+transient String cubed = "cubed" !(idrest);
+transient String cubic = "cubic" !(idrest);
+transient String inverse = "inverse" !(idrest);
+transient String per = "per" !(idrest);
+transient String square = "square" !(idrest);
+transient String squared = "squared" !(idrest);
+
+transient void FORALL = "FORALL" !(idrest);
+transient void None = "None" !(idrest);
+transient void goto = "goto" !(idrest);
+transient void idiom = "idiom" !(idrest);
+transient void public = "public" !(idrest);
+transient void pure = "pure" !(idrest);
+transient void reciprocal = "reciprocal" !(idrest);
+transient void static = "static" !(idrest);
+
+transient void absorbs = "absorbs" !(idrest);
+transient void also = "also" !(idrest);
+transient void api = "api" !(idrest);
+transient void asif = "asif" !(idrest);
+transient void at = "at" !(idrest);
+transient void bool = "bool" !(idrest);
+transient void case = "case" !(idrest);
+transient void catch = "catch" !(idrest);
+transient void coerce = "coerce" !(idrest);
+transient void coerces = "coerces" !(idrest);
+transient void component = "component" !(idrest);
+transient void comprises = "comprises" !(idrest);
+transient void default = "default" !(idrest);
+transient void dim = "dim" !(idrest);
+transient void dominates = "dominates" !(idrest);
+transient void elif = "elif" !(idrest);
+transient void else = "else" !(idrest);
+transient void ensures = "ensures" !(idrest);
+transient void except = "except" !(idrest);
+transient void excludes = "excludes" !(idrest);
+transient void exit = "exit" !(idrest);
+transient void export = "export" !(idrest);
+transient void extends = "extends" !(idrest);
+transient void finally = "finally" !(idrest);
+transient void fn = "fn" !(idrest);
+transient void for = "for" !(idrest);
+transient void forbid = "forbid" !(idrest);
+transient void if = "if" !(idrest);
+transient void import = "import" !(idrest);
+transient void int = "int" !(idrest);
+transient void invariant = "invariant" !(idrest);
+transient void label = "label" !(idrest);
+transient void most = "most" !(idrest);
+transient void nat = "nat" !(idrest);
+transient void object = "object" !(idrest);
+transient void opr = "opr" !(idrest);
+transient void or = "or" !(idrest);
+transient void property = "property" !(idrest);
+transient void provided = "provided" !(idrest);
+transient void requires = "requires" !(idrest);
+transient void spawn = "spawn" !(idrest);
+transient void syntax = "syntax" !(idrest);
+transient void then = "then" !(idrest);
+transient void throw = "throw" !(idrest);
+transient void throws = "throws" !(idrest);
+transient void trait = "trait" !(idrest);
+transient void try = "try" !(idrest);
+transient void tryatomic = "tryatomic" !(idrest);
+transient void type = "type" !(idrest);
+transient void typecase = "typecase" !(idrest);
+transient void typed = "typed" !(idrest);
+transient void where = "where" !(idrest);
+transient void while = "while" !(idrest);
+transient void with = "with" !(idrest);
+
+
+/* Keywords that we need the string representation such as modifiers. */
+transient String BIG = "BIG" !(idrest);
+transient String Self = "Self" !(idrest);
+transient String SI_unit = "SI_unit" !(idrest);
+transient String abstract = "abstract" !(idrest);
+transient String atomic = "atomic" !(idrest);
+transient String contravariant = "contravariant" !(idrest);
+transient String covariant = "covariant" !(idrest);
+transient String do = "do" !(idrest);
+transient String end = "end" !(idrest);
+transient String getter = "getter" !(idrest);
+transient String grammar = "grammar" !(idrest);
+transient String hidden = "hidden" !(idrest);
+transient String in = "in" !(idrest);
+transient String io = "io" !(idrest);
+transient String native = "native" !(idrest);
+transient String of = "of" !(idrest);
+transient String override = "override" !(idrest);
+transient String private = "private" !(idrest);
+transient String self = "self" !(idrest);
+transient String settable = "settable" !(idrest);
+transient String setter = "setter" !(idrest);
+transient String test = "test" !(idrest);
+transient String unit = "unit" !(idrest);
+transient String value = "value" !(idrest);
+transient String var = "var" !(idrest);
+transient String widens = "widens" !(idrest);
+transient String wrapped = "wrapped" !(idrest);
+transient String true = "true" !(idrest);
+transient String false = "false" !(idrest);

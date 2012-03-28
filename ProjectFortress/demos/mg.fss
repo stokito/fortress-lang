@@ -1,0 +1,170 @@
+(*******************************************************************************
+    Copyright 2010 Changdae Kim, KAIST
+    All rights reserved.
+ ******************************************************************************)
+
+(*
+    NAS PARALLEL BENCHMARK - MG
+    programmer: Changdae Kim (KAIST)
+    contact: holypsycho@gmail.com
+*)
+
+component mg
+
+import System.{args}
+import List.{...}
+export Executable
+
+object Grid3(x:ZZ32, y:ZZ32, z:ZZ32, I)
+
+    var data:Array[\RR64, (ZZ32, ZZ32, ZZ32)\] := array[\RR64\](x, y, z).fill(I)
+
+    getter x_size() = x
+    getter y_size() = y
+    getter z_size() = z
+    getter norm() = SQRT((SUM [i<-0:(x-1)] (SUM [j<-0:(y-1)] (SUM [k<-0:(z-1)] (data[i,j,k]))))/(x y z))
+    
+    initialize(points:List[\(ZZ32, ZZ32, ZZ32)\], val:RR64) = do
+        for (i, j, k) <- points do
+            self.set(i, j, k, val)
+        end
+    end
+
+    set(i:ZZ32, j:ZZ32, k:ZZ32, val:RR64) = do
+        if (i >= 0) AND (i < x) AND (j >= 0) AND (j < y) AND (k >= 0) AND (k < z) then
+            data[i, j, k] := val
+        end
+    end
+
+    get(i:ZZ32, j:ZZ32, k:ZZ32):RR64 = do
+        if i < 0 OR i >= x then 0
+        elif j < 0 OR j >= y then 0
+        elif k < 0 OR k >= z then 0
+        else data[i, j, k]
+        end
+    end
+
+    opr [i:ZZ32, j:ZZ32, k:ZZ32] = data[i, j, k]
+
+    opr +(self, b:Grid3):Grid3 = Grid3(x, y, z, (fn(i:ZZ32, j:ZZ32, k:ZZ32) => (self[i,j,k] + b[i,j,k])))
+    opr -(self, b:Grid3):Grid3 = Grid3(x, y, z, (fn(i:ZZ32, j:ZZ32, k:ZZ32) => (self[i,j,k] - b[i,j,k])))
+    opr -(self):Grid3 = Grid3(x, y, z, (fn(i:ZZ32, j:ZZ32, k:ZZ32) => (-self[i,j,k])))
+
+
+end Grid3
+
+
+object DiscretizeOperator(c0:RR64, c1:RR64, c2:RR64, c3:RR64)
+
+    opr juxtaposition(self, inp:Grid3):Grid3 = Grid3(inp.x_size, inp.y_size, inp.z_size, (fn(i:ZZ32, j:ZZ32, k:ZZ32) => (
+                    c0 inp.get(i, j, k)
+                    + c1 (inp.get(i-1, j, k) + inp.get(i, j-1, k) + inp.get(i, j, k-1) + inp.get(i+1, j, k) + inp.get(i, j+1, k) + inp.get(i, j, k+1))
+                    + c2 (inp.get(i-1, j-1, k) + inp.get(i+1, j-1, k) + inp.get(i-1, j+1, k) + inp.get(i+1, j+1, k) + inp.get(i, j-1, k-1) + inp.get(i, j+1, k-1) + inp.get(i-1, j, k-1) + inp.get(i+1, j, k-1) + inp.get(i, j-1, k+1) + inp.get(i, j+1, k+1) + inp.get(i-1, j, k+1) + inp.get(i+1, j, k+1))
+                    + c3 (inp.get(i-1, j-1, k-1) + inp.get(i+1, j-1, k-1) + inp.get(i-1, j+1, k-1) + inp.get(i+1, j+1, k-1) + inp.get(i-1, j-1, k+1) + inp.get(i+1, j-1, k+1) + inp.get(i-1, j+1, k+1) + inp.get(i+1, j+1, k+1) )
+                    )))
+
+end DiscretizeOperator
+
+
+(*) Grid Size
+gridsize = 16
+
+minusOnePoints:List[\(ZZ32, ZZ32, ZZ32)\] = <|[\(ZZ32, ZZ32, ZZ32)\]
+    (211, 154,  98),
+    (102, 138, 112),
+    (101, 156,  59),
+    ( 17, 205,  32),
+    ( 92,  63, 205),
+    (199,   7, 203),
+    (205, 170, 157),
+    ( 87, 184, 255),
+    (154, 162,  36),
+    (223,  42, 240)
+    |>
+
+plusOnePoints:List[\(ZZ32, ZZ32, ZZ32)\] = <|[\(ZZ32, ZZ32, ZZ32)\]
+    ( 57, 120, 167),
+    (  5, 118, 175),
+    (176, 246, 164),
+    ( 45, 194, 234),
+    (212,   7, 248),
+    (115, 123, 207),
+    (202,  83, 209),
+    (203,  18, 198),
+    (243, 172,  14),
+    ( 54, 209,  40)
+    |>
+
+(*) Discretize Operators
+var S:DiscretizeOperator := DiscretizeOperator(-3.0/8.0, 1.0/32.0, -1.0/64.0, 0.0)
+A = DiscretizeOperator(-8.0/3.0, 0.0, 1.0/6.0, 1.0/12.0)
+P = DiscretizeOperator(1.0/2.0, 1.0/4.0, 1.0/8.0, 1.0/16.0)
+Q = DiscretizeOperator(1.0, 1.0/2.0, 1.0/4.0, 1.0/8.0)
+
+
+vmg(r:Grid3, k:ZZ):Grid3 =  
+    if k > 1 then 
+        r1 = P r
+        z1 = vmg(r1, k-1)
+        z = Q z1
+        r2 = r - (A z)
+        z + (S r2)
+    else
+        S r
+    end
+
+run() = do
+    var class:String = "A"
+    if |args| > 0 then class := args[0] end 
+
+    var iteration:ZZ32 = 4
+    
+    if class = "B" then 
+        iteration := 20
+        S := DiscretizeOperator(-3.0/17.0, 1.0/33.0, -1.0/61.0, 0.0)
+    else (*) If not "B", class = "A"
+        iteration := 4
+        S := DiscretizeOperator(-3.0/8.0, 1.0/32.0, -1.0/64.0, 0.0)
+    end
+
+    println "NAS Parallel Benchmarks - MG Benchmark"
+    println "contact: holypsycho@gmail.com"
+    println
+    println "Size: " gridsize "x " gridsize "x " gridsize " (class " class ")"
+    println "(If you want to chagne gridsize, edit the line 65)"
+    println "Iterations: " iteration
+    println ""
+
+    var v:Grid3 := Grid3(gridsize, gridsize, gridsize, 0)
+    var u:Grid3 := Grid3(gridsize, gridsize, gridsize, 0)
+    var r:Grid3
+  
+    var k_vmg:ZZ := round((log gridsize) / (log 2))
+
+    (*) initialize v
+    v.initialize(minusOnePoints, -1.0)
+    v.initialize(plusOnePoints, 1.0)
+
+    startTime = nanoTime()
+
+    var tempTimeStart:ZZ64 := 0
+    var tempTimeEnd:ZZ64 := 0
+
+    for it <- seq(1:iteration) do
+        println "iteration " it
+        tempTimeStart := nanoTime()
+        r := v - (A u)
+        u := u + vmg(r, k_vmg)
+        tempTimeEnd := nanoTime()
+        println ((tempTimeEnd - tempTimeStart) / 1000000000.0) " seconds"
+    end
+
+    endTime = nanoTime()
+
+    println ""
+    println "L2 Norm is " (v - (A u)).norm
+    println ""
+    println "Time: " ((endTime - startTime) / 1000000000.0) " seconds"
+
+end
+end mg

@@ -1,0 +1,33 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXGenericOverload2
+export Executable
+
+(* Should not compile *)
+
+(* This demonstrates why it is not correct to
+   substitute bounds for generic type parameters
+   when checking correctness of overloading. *)
+
+trait B  end
+object A extends B end
+
+f[\ U, V \] ( u:U, v:V, b:B) = 1
+f[\ U, V \] ( v:V, u:U, a:A) = 2
+
+run():() = do
+  println("FAIL: should have failed in generic overloading of f" )
+
+  g = f[\A, B\]
+end
+
+end

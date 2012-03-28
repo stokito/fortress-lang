@@ -1,0 +1,72 @@
+\begin{figure}
+\typicallabel{T-Field}
+
+\newjudge{Well-formed expressions and static types}{\jtype{e}{\alpha}}
+\bigskip
+
+\infrule[T-Variable]
+  { \Gamma = \bar{\vphantom{x}\smash{\dontcare}}, \var\COLON\alpha, \bar{x\COLON\dontcare}  \andalso  \var \not\in \bigsetb{x} }
+  { \jtype{\var}{\alpha} }
+
+\bigskip
+
+\infrule[T-Tuple]
+  { \jbtype{e}{\alpha} }
+  { \jtype{(\bar{e})}{(\bar{\alpha})} }
+
+\bigskip
+
+\infrule[T-Project]
+  { \jtype{e}{\tupleb{\alpha}} }
+  { \jbtype{\pi(\underline{e})}{\alpha} }
+
+\bigskip
+
+\infrule[T-Func]
+  { \jbwftype{\tau}  \andalso \jwftype{\omega}  \andalso  \jtype[\Delta;\Gamma,\bar{x\COLON\tau}]{e}{\omega} }
+  { \jtype{((\bar{x\COLON\tau})\COLON\omega \Rightarrow e)}{\arrowtype{(\bar{\tau})}{\omega}} }
+
+\bigskip
+
+\infrule[T-Apply]
+  { \jtype{e}{\arrowtype{(\bar{\alpha})}{\rho}}  \\
+    \jtype{(\bar{e'})}{(\bar{\chi})} \andalso
+    \jbsubtype{\chi}{\alpha}  }
+  { \jtype{e\apply(\bar{e'})}{\rho} }
+
+\bigskip
+
+\infrule[T-Field]
+  { \jtype{e}{O\obb{\alpha}} \\
+    \kwd{object} \; O\bigobb{P \extends \bd{\dontcare}} (\bar{z\COLON\tau}) \; \dontcare \; \kwd{end} \in \Delta }
+  { \jbtype{\underline{e}.z}{\underline{\Big[\bar{\alpha/P}\Big]}\tau} }
+
+\bigskip
+
+\infrule[T-Object]
+  { \jbwftype{\tau}  \andalso  TBD }
+  { \jtype{O\obb{\tau}(\bar{e})}{} }
+
+\bigskip
+
+\infrule[T-Func-NSA]
+  { TBD }
+  { \jtype{f(\bar{e})}{} }
+
+\bigskip
+
+\infrule[T-Method-NSA]
+  { TBD }
+  { \jtype{e.m(\bar{e})}{} }
+
+\bigskip
+
+\infrule[T-Match]
+  { \jtype{e}{\alpha}  \andalso  \jwftype{\tau} \\
+    \jtype[\Delta;\Gamma,x\COLON(\alpha\cap\tau)]{e'}{\eta}  \andalso \jtype{e''}{\chi} }
+  { \jtype{(e \; \kwd{match} \; x\COLON\tau \Rightarrow e' \; \kwd{else}\; e'')}{(\eta\cup\chi)} }
+
+\medskip
+\caption{Static Types of Expressions}
+\label{fig:expressiontypes}
+\end{figure}

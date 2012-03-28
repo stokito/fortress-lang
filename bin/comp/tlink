@@ -1,0 +1,39 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+if [ -z "$FORTRESS_HOME" ]; then
+   export FORTRESS_HOME="`${0%comp/tlink}fortress_home`"
+fi
+
+if [ "$1" = "run" ]
+then
+	fortress link $2
+	run `basename "$2" ".fss"`
+	exit
+fi
+
+CP="`"$FORTRESS_HOME"/bin/run_classpath`"
+# echo $CP
+if [ -z "$JAVA_HOME" ] ; then
+  JAVACMD=java
+else
+  JAVACMD="$JAVA_HOME/bin/java"
+fi
+
+if [ -z "$JAVA_FLAGS" ] ; then
+  JAVA_FLAGS="-Xmx768m"
+fi
+
+JAVA_FLAGS+=" -Dfile.encoding=UTF-8 -Xfuture"
+
+"$JAVACMD" $JAVA_FLAGS -cp "$CP" com.sun.fortress.linker.LinkShell "$@"

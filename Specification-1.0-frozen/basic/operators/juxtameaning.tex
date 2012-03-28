@@ -1,0 +1,217 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Juxtaposition}
+\seclabel{juxtameaning}
+
+\note{Qualified names are not yet supported.}
+
+Juxtaposition in Fortress may be a function call or
+a special infix operator.  \Library\ include several declarations of
+a \KWD{juxtaposition} operator.
+
+When two expressions are juxtaposed, the juxtaposition is interpreted as
+follows:
+if the left-hand-side expression is a function, juxtaposition performs
+function application;
+otherwise, juxtaposition performs the
+\KWD{juxtaposition} operator application.
+
+The manner in which a juxtaposition of three or more items must be associated
+requires type information and awareness of whitespace.  (This is an inherent property
+of customary mathematical notation, which Fortress is designed to emulate where feasible.)
+Therefore a Fortress compiler must produce a provisional parse in which such
+multi-element juxtapositions are held in abeyance, then perform a type analysis
+on each element and use that information to rewrite the n-ary juxtaposition
+into a tree of binary juxtapositions.
+
+All we need to know is whether each element of a
+juxtaposition has an arrow type.
+There are actually three legitimate possibilities for each element of a juxtaposition:
+(a) it has an arrow type, in which case it is considered to be a function
+element;
+(b) it has a type that is not an arrow type, in which case it is considered
+to be a non-function element.
+(c) it is an identifier that has no visible declaration,
+in which case it is considered to be a function element (and everything will work
+out okay if it turns out to be the name of an appropriate functional method).
+
+The rules below are designed to forbid certain forms of notational ambiguity
+that can arise if the name of a functional method happens to be used also
+as the name of a variable.  For example, suppose that trait \VAR{T} has a functional
+method of one parameter named \VAR{n}; then in the code
+%% do
+%%   a: T = t
+%%   n: ZZ = 14
+%%   z = n a
+%% end
+\begin{Fortress}
+\(\KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(  a\COLON T = t\)\\
+\(  n\COLON \mathbb{Z} = 14\)\\
+\(  z = n\; a\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+it might not be clear whether the intended meaning was to invoke
+the functional method \VAR{n} on \VAR{a} or to multiply \VAR{a} by \EXP{14}.
+The rules specify that such a situation is a static error.
+
+The rules for reassociating a loose juxtaposition are as follows:
+\begin{itemize}
+\item
+First the loose juxtaposition is broken
+into nonempty chunks; wherever there is a non-function element followed by a
+function element, the latter begins a new chunk.  Thus a chunk
+consists of some number (possibly zero) of functions followed by some
+number (possibly zero) of non-functions.
+
+\item
+It is a static error if any non-function element in a chunk
+is an unparenthesized identifier \VAR{f} and is followed by another non-function
+element whose type is such that \VAR{f} can be applied to that latter element
+as a functional method.
+
+\item
+The non-functions in each
+chunk, if any, are replaced by a single element consisting of the
+non-functions grouped left-associatively into binary juxtapositions.
+
+\item
+What remains in each chunk is then grouped right-associatively.
+
+(Notice that, up to this point, no analysis of the types of newly constructed chunks is needed
+during this process.)
+
+\item
+It is a static error if an element of the original juxtaposition
+was the last element in its chunk before reassociation, the chunk was not the last chunk
+(and therefore the element in question is a non-function element),
+the element was an unparenthesized identifier \VAR{f},
+and the type of the following chunk after reassociation
+is such that \VAR{f} can be applied to that following chunk
+as a functional method.
+
+\item
+If any element that remains has type String, then it is a static error
+if there is any pair of adjacent elements within the juxtaposition
+such that neither element is of type String.
+
+\item
+What remains is considered to be a binary or multifix application of the juxtaposition
+operator; if more than two elements remain, the application is handled in the same
+way as for any other multifix operator (see \secref{chained-multifix}).
+\end{itemize}
+
+
+Here is an example: \EXP{n~(n+1)~\sin~3~n~x~\log~\log~x}.  Assuming that
+\EXP{\sin} and \EXP{\log} name functions in the usual manner and that
+\VAR{n}, \EXP{(n+1)}, and \VAR{x} are not functions, this loose juxtaposition
+splits into three chunks: \EXP{n~(n+1)}, 
+\EXP{\sin~3~n~x}, and \EXP{\log~\log~x}.
+The first chunk has only two elements and needs no further reassociation.
+In the second chunk, the non-functions \EXP{3~n~x} are replaced by
+\EXP{((3~n)~x)}.
+In the third chunk, there is only one non-function, so that remains unchanged;
+the chunk is the right-associated to form \EXP{(\log~(\log~x))}.  Assuming
+that no multifix definition of juxtaposition has been provided,
+the three chunks are left-associated, to produce the final interpretation
+\EXP{((n~(n+1))~(\sin~((3~n)~x)))~(\log~(\log~x))}.  Now the original
+juxtaposition has been reduced to binary juxtaposition expressions.
+
+
+A tight juxtaposition is always left-associated if it contains any dot
+(i.e., ``.'') not within parentheses or some pair of enclosing operators.
+If such a tight juxtaposition begins with an identifier immediately followed by
+a dot then the maximal prefix of identifiers separated by dots (whitespace may
+follow but not precede the dots) is collected into a ``dotted id chain'',
+which is subsequently partitioned into
+the longest prefix, if any, that is a qualified name, and the remaining
+the dots and identifiers, which are interpreted as selectors.  If the last
+identifier in the dotted id chain
+is part of a selector (i.e., the entire dotted id chain is not a
+qualified name), and it
+is immediately followed by a left parenthesis, then the last selector together
+with the subsequent parenthesis-delimited expression is a method invocation.
+
+
+A tight juxtaposition without any dots might not be entirely left-associated.
+Rather, it is considered as a nonempty sequence of elements: the front
+expression, any ``math items'', and any postfix operator, and subject to
+reassociation as described below.  A math item may be a subscripting,
+an exponentiation, or one of a few kinds of expressions.
+It is a static error if an exponentiation is immediately followed by
+a subcripting or an exponentiation.
+
+The procedure for reassociation is as follows:
+\begin{itemize}
+\item For each expression element (i.e., not a subscripting, exponentiation or
+postfix operator), determine whether it is a function.
+\item If some function element is immediately followed by an expression element
+then, find the first such function element, and call the next element the
+argument.  It is a static error if either the argument is not parenthesized,
+or the argument is immediately followed by a non-expression element.  Otherwise,
+replace the function and argument with a single element that is the application
+of the function to the argument.  This new element is an expression.
+Reassociate the resulting sequence (which is one element shorter).
+\item If there is any non-expression element (it cannot be the first element)
+then replace the first such element and the element immediately preceding it
+(which must be an expression) with a single element that does the appropriate
+operator application.  This new element is an expression.  Reassociate the
+resulting sequence (which is one element shorter).
+\item Otherwise, the sequence necessarily has only expression elements,
+only the last of which may be a function.
+If any element that remains has type String, then it is a static error
+if there is any pair of adjacent elements within the juxtaposition
+such that neither element is of type String.
+\item
+What remains is considered to be a binary or multifix application of the juxtaposition
+operator; if more than two elements remain, the application is handled in the same
+way as for any other multifix operator (see \secref{chained-multifix}).
+\end{itemize}
+(Note that this process requires type analysis of newly created chunks
+all along the way.)
+
+Here is an (admittedly contrived) example:
+\EXP{\VAR{reduce}(f)(a)(x+1)\VAR{atan}(x+2)}.
+Suppose that \VAR{reduce} is a curried function
+that accepts a function \VAR{f} and returns a function that can
+be applied to an array \VAR{a} (the idea is to use the function \VAR{f},
+which ought to take two arguments, to combine the elements of the
+array to produce an accumulated result).
+
+The leftmost function is \VAR{reduce}, and the following element \VAR{(f)}
+is parenthesized, so the two elements are replaced with one:
+\EXP{(\VAR{reduce}(f))(a)(x+1)\VAR{atan}(x+2)}.
+Now type analysis determines that the element \EXP{(\VAR{reduce}(f))}
+is a function.
+
+The leftmost function is \EXP{(\VAR{reduce}(f))}, and the following element
+\EXP{(a)}
+is parenthesized, so the two elements are replaced with one:
+\EXP{((\VAR{reduce}(f))(a))(x+1)\VAR{atan}(x+2)}.
+Now type analysis determines that the element
+\EXP{((\VAR{reduce}(f))(a))} is not a function.
+
+The leftmost function is \EXP{\VAR{atan}},
+and the following element \EXP{(x+2)}
+is parenthesized, so the two elements are replaced with one:
+\EXP{((\VAR{reduce}(f))(a))(x+1)(\VAR{atan}(x+2))}.
+Now type analysis determines that the element \EXP{(\VAR{atan}(x+2))}
+is not a function.
+
+There are no functions remaining in the juxtaposition.  Assuming
+that no multifix definition of juxtaposition has been provided,
+the remaining elements are left-associated:
+\begin{center}
+\EXP{(((\VAR{reduce}(f))(a))(x+1))(\VAR{atan}(x+2))}
+\end{center}
+Now the original juxtaposition has been reduced to binary juxtaposition
+expressions.
