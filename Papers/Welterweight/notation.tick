@@ -86,7 +86,7 @@ As an extreme (but useful) example of the application of these conventions, cons
 
 \infax{ \jevalstepTWO[\Delta]{E\big[\pi_1(\bar{v})\big]}{E[v_1]}{E\big[\pi_2(\bar{v})\big]}{E[v_2]} }
 
-\noindent Note that both the $\pi$ symbol and the second occurrence of $v$ receive subscripts in each copy, but the underlines (which are removed as part of the expansion process) prevent the first occurrence of $v$ (which happens to have a second overbar) and the two occurrences of $E$ from receiving subscripts.  Now we expand the remaining overbars, but because they will attach subscripts to the symbol $v$, and $v$ has already had subscripts attached by the larger overbar, we must choose the same number of copies (two) for each of these overbars:
+\noindent Note that both the $\pi$ symbol and the second occurrence of $v$ receive subscripts in each copy, but the underlines (which are removed as part of the expansion process) prevent the first occurrence of $v$ (which happens to have a second overbar) and the two occurrences of $E$ from receiving subscripts.  Now we expand the remaining overbars, but because they will attach subscripts to the monogram $v$, and $v$ has already had subscripts attached by the larger overbar, we must choose the same number of copies (two) for each of these overbars:
 
 \infax{ \jevalstepTWO[\Delta]{E\big[\pi_1(v_1,v_2)\big]}{E[v_1]}{E\big[\pi_2(v_1,v_2)\big]}{E[v_2]} }
 

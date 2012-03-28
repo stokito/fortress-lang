@@ -11,7 +11,7 @@ p        & ::= &  \bar{\delta}, e                                               
          &  |  &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{object} \; O\bigobb{\beta} (\bar{z\COLON\tau}) \extends \bigbdb{t} \; \bar{\mu } \; \kwd{end} } & \hbox{\rm object declaration} \\[1pt]
          &  |  &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ f\bigobb{\beta} (\bar{x\COLON\tau})\COLON\tau = e                                                  } & \hbox{\rm function declaration} \\[4pt]
 V        & ::= &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{covariant} \mid \kwd{contravariant} \mid \kwd{invariant}                                      } & \hbox{\rm variance} \\[4pt]
-\mu      & ::= &  m\bigobb{\varphi} (\bar{x\COLON\tau})\COLON\tau = e                & \multicolumn{2}{@{}l@{}}{\hbox{\rm method declaration}} \\[4pt]
+\mu      & ::= &  m\bigobb{\varphi} (\bar{x\COLON\tau})\COLON\tau = e                & \multicolumn{2}{@{}l@{}}{\hbox{\rm dotted method declaration}} \\[4pt]
 \beta    & ::= &  P \extends \bdb{\tau}                                              & \multicolumn{2}{@{}l@{}}{\hbox{\rm simple type parameter binding}} \\[4pt]
 \varphi  & ::= &  \bdb{\tau} \extends P \extends \bdb{\tau}                          & \multicolumn{2}{@{}l@{}}{\hbox{\rm full type parameter binding}} \\[4pt]
 e        & ::= &  x                                                                  & \multicolumn{2}{@{}l@{}}{\hbox{\rm variable reference}} \\
@@ -23,10 +23,8 @@ e        & ::= &  x                                                             
          &  |  &  e\apply(\bar{e})                                                   & \multicolumn{2}{@{}l@{}}{\hbox{\rm function application}} \\
          &  |  &  e.z                                                                & \multicolumn{2}{@{}l@{}}{\hbox{\rm dotted field reference}} \\
          &  |  &  O\obb{\tau}(\bar{e})                                               & \multicolumn{2}{@{}l@{}}{\hbox{\rm object creation}} \\
-         &  |  &  f\obb{\tau}(\bar{e})                                               & \multicolumn{2}{@{}l@{}}{\hbox{\rm function invocation with static arguments\hskip0.6em}} \\
-         &  |  &  f(\bar{e})                                                         & \multicolumn{2}{@{}l@{}}{\hbox{\rm function invocation, no static arguments}} \\
-         &  |  &  e.m\obb{\tau}(\bar{e})                                             & \multicolumn{2}{@{}l@{}}{\hbox{\rm method invocation with static arguments}} \\
-         &  |  &  e.m(\bar{e})                                                       & \multicolumn{2}{@{}l@{}}{\hbox{\rm method invocation, no static arguments}} \\
+         &  |  &  f(\bar{e})                                                         & \multicolumn{2}{@{}l@{}}{\hbox{\rm function invocation}} \\
+         &  |  &  e.m(\bar{e})                                                       & \multicolumn{2}{@{}l@{}}{\hbox{\rm method dotted invocation}} \\
          &  |  &  (e \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e)  & \multicolumn{2}{@{}l@{}}{\hbox{\rm match expression}}
 \end{array}
 &
@@ -40,14 +38,20 @@ e        & ::= &  x                                                             
 c        & ::= &  O\obb{\tau}                               & \hbox{\rm object type} \\
          &  |  &  t                                         & \hbox{\rm trait type} \\[4pt]
 t        & ::= &  T\obb{\tau}                               & \hbox{\rm trait type} \\[4pt]
-P        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm type parameter name} \\[4pt]
-T        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm generic trait name} \\[4pt]
-O        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm generic object name} \\[4pt]
-x        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm variable name} \\[4pt]
-z        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm field name} \\[4pt]
-f        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm function name} \\[4pt]
+P        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm type parameter name} \\[1pt]
+T        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm generic trait name} \\[1pt]
+O        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm generic object name} \\[1pt]
+x        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm variable name} \\[1pt]
+z        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm field name} \\[1pt]
+f        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm function name} \\[1pt]
 m        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm method name} \\[4pt]
-Id       & ::= &  P|T|O|x|z|f|m                             & \hbox{\rm names}
+Id       & ::= &  P                                         & \hbox{\rm names} \\
+         &  |  &  T \\
+         &  |  &  O \\
+         &  |  &  x \\
+         &  |  &  z \\
+         &  |  &  f \\
+         &  |  &  m
 \end{array}
 \end{tabular*}
 

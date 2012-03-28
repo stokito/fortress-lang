@@ -3,22 +3,20 @@
 \input{fig-wellformedtypes}
 
 
-The metavariables used throughout this paper are listed in Figure~\ref{fig:metavariables}.
-
-The grammar for Welterweight Fortress (hereafter called ````WF'') is given in Figure~\ref{fig:grammar}.
+The grammar for Welterweight Fortress is given in Figure~\ref{fig:grammar}.
 A program consists of declarations and an expression to be evaluated i the contex of those declarations.
 Each declaration defines a trait, an object, or a top-level function.
 
 A trait is similar to a Java interface, but can contain method declarations.
-It also has an \emph{extends clause} \hbox{$\extends\;\bigsetb{t}$}, an \emph{excludes clause} \hbox{$\exc\;\bigsetb{t}$},
-and optionally a \emph{comprises clause} \hbox{$\comprises\;\setb{c}$}.  The extends clause indicates what other trait instances are supertypes
+It also has an \emph{extends clause} \hbox{$\extends\,\bigsetb{t}$}, an \emph{excludes clause} \hbox{$\exc\,\bigsetb{t}$},
+and optionally a \emph{comprises clause} \hbox{$\comprises\,\setb{c}$}.  The extends clause indicates what other trait instances are supertypes
 of the trait; the excludes clause indicates what other trait instances cannot have values in common with this trait.
 The comprises clause, if present, indicates that no value can belong to the trait unless it also belongs
 to one of the comprised types.
 
 An object is similar to a Java class.  Rather than having a separately declared constructor method,
 it has a parameter list containing names of fields and their types; an object creation expression
-provides a set of arguments that are simply used to initialize the fields, with no further action taken.
+provides a set of arguments that are simply used to initialize the declared fields, with no further action taken.
 An object declaration also has an extends clause, indicating what trait instances are supertypes of the object type.
 
 A top-level function has a parameter list containing names of parameters and their types, and also a return type and a body expression.
@@ -43,8 +41,8 @@ distinguish application of function-typed values from invocation of (possibly ov
 Function invocations and method invocations each come in two forms, depending on whether static type arguments
 are provided explicitly or are to be inferred.  The \emph{match expression} is a kind of compromise between
 a conventional %\kwd{if}$ expression and a conventional $\kwd{typecase}$ expression.  One can get the effect
-of $\kwd{if}\;e_1\;\kwd{then}\;e_2\;\kwd{else}\;e_3$ by declaring objects $\mathrm{True}\ob{\,}$ and $\mathrm{False}\ob{\,}$,
+of $\kwd{if}\;e_1\;\kwd{then}\;e_2\;\kwd{else}\;e_3$ by declaring objects $\mathrm{True}\ob{\verythinmathspace}$ and $\mathrm{False}\ob{\verythinmathspace}$,
 using them as values of predicates, and then writing
-$e_1\;\kwd{match}\;x'\COLON \mathrm{true}\ob{\,} \Rightarrow e_2 \;\kwd{else}\;e_3$.
+$e_1\;\kwd{match}\;x'\COLON \mathrm{True}\ob{\verythinmathspace} \Rightarrow e_2 \;\kwd{else}\;e_3$.
 
 The type $\Any$ is a supertype of all types. The type $\Object$ is a supertype of every constructed type, that is, every trait type and every object type.

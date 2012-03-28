@@ -36,7 +36,8 @@
 \newcommand{\fresh}[1]{\textit{fresh}({#1})}
 \newcommand{\freeVar}[1]{\textit{freeVars({#1})}}
 
-\newcommand{\dontcare}{\_\!\_}
+%\newcommand{\dontcare}{\_\!\_}
+\newcommand{\dontcare}{\vbox to 0pt{\vss\hrule width 1ex}}
 \newcommand{\excr}{\triangleright}
 \newcommand{\excl}{\triangleleft}
 \newcommand{\excrx}{\excr_\textrm{x}}
@@ -55,11 +56,16 @@
 
 \newcommand{\propop}{\ensuremath{\mathrel{\ast}}}
 
-\newcommand{\ancestors}{\textit{ancestors}}
-\newcommand{\ancexcludes}{\textit{excludes}^*}
-\newcommand{\myexcludes}[1]{{#1}.\textit{excludes}}
-\newcommand{\mycomprises}[1]{{#1}.\textit{comprises}}
-\newcommand{\myextends}[1]{{#1}.\textit{extends}}
+% \newcommand{\ancestors}{\textit{ancestors}}
+% \newcommand{\ancexcludes}{\textit{excludes}^*}
+% \newcommand{\myexcludes}[1]{{#1}.\textit{excludes}}
+% \newcommand{\mycomprises}[1]{{#1}.\textit{comprises}}
+% \newcommand{\myextends}[1]{{#1}.\textit{extends}}
+
+\newcommand{\ancestors}[2][\Delta]{\textit{ancestors}(#1,#2)}
+\newcommand{\excluded}[2][\Delta]{\textit{excluded}(#1,#2)}
+\newcommand{\comprised}[2][\Delta]{\textit{comprised}(#1,#2)}
+\newcommand{\parents}[2][\Delta]{\textit{parents}(#1,#2)}
 
 \newcommand{\extends}{\ensuremath{<:}}
 \newcommand{\subtypeof}{\ensuremath{<:}}
@@ -202,8 +208,8 @@
 \newcommand{\jwfdecl}[2][\Delta]{\jgshorttemplate[#1]{#2}{\mathsf{ok}}}
 \newcommand{\jbwfdecl}[2][\Delta]{\jgbshorttemplate[#1]{#2}{\mathsf{ok}}}
 
-\newcommand{\jwfmeth}[2][\Delta;\Gamma]{\jgshorttemplate[#1]{#2}{\mathsf{ok}}}
-\newcommand{\jbwfmeth}[2][\Delta;\Gamma]{\jgbshorttemplate[#1]{#2}{\mathsf{ok}}}
+\newcommand{\jwfmeth}[2][\Delta;\Gamma;\bar{P};\bar{z}]{\jgshorttemplate[#1]{#2}{\mathsf{ok}}}
+\newcommand{\jbwfmeth}[2][\Delta;\Gamma;\bar{P};\bar{z}]{\jgbshorttemplate[#1]{#2}{\mathsf{ok}}}
 
 
 % subtyping on quantified types

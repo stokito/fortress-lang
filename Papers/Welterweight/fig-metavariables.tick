@@ -22,12 +22,13 @@ $\alpha, \gamma, \rho, \chi, \eta$ range over lattice types $\alpha$ \\
 $\kappa$ ranges over quantified types $\kappa$ \\
 $\lambda$ ranges over lattice type parameter bindings $\lambda$ \\
 $\psi$ ranges over general type environment entries $\psi$ \\
+$I$ ranges over inference variables names $I$ \\
 $v$ ranges over values $v$ \\
 $E$ ranges over evaluation contexts $E$ \\
 $R$ ranges over redexes $R$ \\[6pt]
 $\pi$ and $\sigma$ do not range over any {\sc bnf} nonterminal
 \end{tabular}
 
-\caption{Metavariables}
+\caption{Metavariables Used in This Paper}
 \label{fig:metavariables}
 \end{figure}

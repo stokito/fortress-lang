@@ -115,13 +115,13 @@
   { \jgconstrtemplate{T\obb{\alpha}}{\excro}{T\obb{\eta}}{\FALSE} }
 
 \infrule
-  { \mathit{distinct}(T,T')  \andalso  \setb{\chi} = \ancestors(T\obb{\alpha}) \\[1pt]
-    \setb{\omega} = \bigcup\setb{\myexcludes{\chi}}  \andalso  \jbsub{\underline{T'\obb{\eta}}}{\omega}{\C} }
+  { \mathit{distinct}(T,T')  \andalso  \setb{\chi} = \ancestors{T\obb{\alpha}} \\[1pt]
+    \setb{\omega} = \bigcup\setb{\excluded[\underline{\Delta}]{\chi}}  \andalso  \jbsub{\underline{T'\obb{\eta}}}{\omega}{\C} }
   { \jgconstrtemplate{T\obb{\alpha}}{\excrx}{T'\obb{\eta}}{\bigvee\bigsetb{\C}} }
 
 \infrule
   { \mathit{distinct}(T,T')  \\
-    \setb{\omega} = \bigcup\setb{\mycomprises{T\obb{\alpha}}}  \andalso  \jbexc{\underline{T'\obb{\eta}}}{\omega}{\C}
+    \setb{\omega} = \comprised{T\obb{\alpha}}  \andalso  \jbexc{\underline{T'\obb{\eta}}}{\omega}{\C}
 }
   { \jgconstrtemplate{T\obb{\alpha}}{\excrc}{T'\obb{\eta}}{\bigwedge\bigsetb{\C}} }
 
@@ -137,8 +137,8 @@
   { \jgconstrtemplate{T\obb{\alpha}}{\excrc}{T'\obb{\eta}}{\FALSE} }
 
 \infrule
-  { \setb{\chi} = \ancestors(T\obb{\alpha}) \andalso
-    \setb{\omega} = \ancestors(T'\obb{\eta}) \\[3pt]
+  { \setb{\chi} = \ancestors{T\obb{\alpha}} \andalso
+    \setb{\omega} = \ancestors{T'\obb{\eta}} \\[3pt]
     \jgbbconstrtemplate{\chi}{\bexcm}{\underline{\omega}}{\C} }
   { \jgconstrtemplate{T\obb{\alpha}}{\excm}{T'\obb{\eta}}{\bigvee\LRsetb{\bar{\C}}} }
 

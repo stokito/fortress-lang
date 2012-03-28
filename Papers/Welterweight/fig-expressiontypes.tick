@@ -1,12 +1,12 @@
 \begin{figure}
 \typicallabel{T-Field}
 
-\newjudge{Static types of expressions}{\jtype{e}{\alpha}}
+\newjudge{Well-formed expressions and static types}{\jtype{e}{\alpha}}
 \bigskip
 
 \infrule[T-Variable]
-  { \Gamma = \dontcare, \var\COLON\alpha, \bar{x'\COLON\dontcare}  \andalso  x \not\in \bigsetb{x'} }
-  { \jtype{x}{\alpha} }
+  { \Gamma = \bar{\vphantom{x}\smash{\dontcare}}, \var\COLON\alpha, \bar{x\COLON\dontcare}  \andalso  \var \not\in \bigsetb{x} }
+  { \jtype{\var}{\alpha} }
 
 \bigskip
 
@@ -23,7 +23,7 @@
 \bigskip
 
 \infrule[T-Func]
-  { \jtype[\Delta;\Gamma,\bar{x\COLON\tau}]{e}{\omega} }
+  { \jbwftype{\tau}  \andalso \jwftype{\omega}  \andalso  \jtype[\Delta;\Gamma,\bar{x\COLON\tau}]{e}{\omega} }
   { \jtype{((\bar{x\COLON\tau})\COLON\omega \Rightarrow e)}{\arrowtype{(\bar{\tau})}{\omega}} }
 
 \bigskip
@@ -38,32 +38,20 @@
 
 \infrule[T-Field]
   { \jtype{e}{O\obb{\alpha}} \\
-    \kwd{object} \; O\bigobb{P \extends \bd{\dontcare}} (\bar{z\COLON\tau}) \; \dontcare \; \kwd{end} \in \set{\Delta} }
+    \kwd{object} \; O\bigobb{P \extends \bd{\dontcare}} (\bar{z\COLON\tau}) \; \dontcare \; \kwd{end} \in \Delta }
   { \jbtype{\underline{e}.z}{\underline{\Big[\bar{\alpha/P}\Big]}\tau} }
 
 \bigskip
 
 \infrule[T-Object]
-  { TBD }
+  { \jbwftype{\tau}  \andalso  TBD }
   { \jtype{O\obb{\tau}(\bar{e})}{} }
-
-\bigskip
-
-\infrule[T-Func-SA]
-  { TBD }
-  { \jtype{f\obb{\tau}(\bar{e})}{} }
 
 \bigskip
 
 \infrule[T-Func-NSA]
   { TBD }
   { \jtype{f(\bar{e})}{} }
-
-\bigskip
-
-\infrule[T-Method-SA]
-  { TBD }
-  { \jtype{e.m\obb{\tau}(\bar{e})}{} }
 
 \bigskip
 
@@ -74,7 +62,8 @@
 \bigskip
 
 \infrule[T-Match]
-  { \jtype{e}{\alpha}  \\ \jtype[\Delta;\Gamma,x\COLON(\alpha\cap\tau)]{e'}{\eta}  \andalso \jtype{e''}{\chi} }
+  { \jtype{e}{\alpha}  \andalso  \jwftype{\tau} \\
+    \jtype[\Delta;\Gamma,x\COLON(\alpha\cap\tau)]{e'}{\eta}  \andalso \jtype{e''}{\chi} }
   { \jtype{(e \; \kwd{match} \; x\COLON\tau \Rightarrow e' \; \kwd{else}\; e'')}{(\eta\cup\chi)} }
 
 \medskip

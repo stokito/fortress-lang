@@ -115,12 +115,12 @@
 
 \infrule
   { \mathit{distinct}(T,T') \andalso
-    \setb{\tau} = \myextends{T\obb{\alpha}} \andalso
+    \setb{\tau} = \parents{T\obb{\alpha}} \andalso
     \jbsub{\tau}{\underline{T'\obb{\eta}}}{\C} }
   { \jsub{T\obb{\alpha}}{T'\obb{\eta}}{\bigvee\bigsetb{\C}} }
 
 \infrule
-  { \setb{\tau} = \myextends{O\obb{\alpha}} \andalso
+  { \setb{\tau} = \parents{O\obb{\alpha}} \andalso
     \jbsub{\tau}{\underline{T'\obb{\eta}}}{\C} }
   { \jsub{O\obb{\alpha}}{T'\obb{\eta}}{\bigvee\bigsetb{\C}} }
 

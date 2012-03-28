@@ -10,6 +10,8 @@ Figure~\ref{fig:expressiontypes} gives rules for determining the static type of 
 Figure~\ref{fig:wellformeddecls} gives rules for deciding whether declarations are well-formed and well-typed, given the overall set of declarations $\Delta$,
 and for determining the type of a program.
 
+\input{fig-miscjudgments}
+
 Figure~\ref{fig:miscjudgments} gives rules for miscellaneous subsidary judgments.
 
 The rules for typing and well-formedness depend on judgments about subtyping and type exclusion, which are addressed in Section~\ref{sec:subtyping}.

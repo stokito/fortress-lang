@@ -8,6 +8,8 @@
 
 \newcommand{\kwd}[1]{\mathtt{#1}}
 
+\newcommand{\var}{\mathit{var}}
+\newcommand{\Id}{\mathit{Id}}
 \newcommand{\emptyseq}{\bullet}
 \newcommand{\whennonempty}[2]{{\def\nonemptytempA{#1}\def\nonemptytempB{}\ifx\nonemptytempA\nonemptytempB\else#2\fi}}
 \newcommand{\turnstile}{\vdash}
@@ -34,7 +36,8 @@
 \newcommand{\fresh}[1]{\textit{fresh}({#1})}
 \newcommand{\freeVar}[1]{\textit{freeVars({#1})}}
 
-\newcommand{\dontcare}{\_\!\_}
+%\newcommand{\dontcare}{\_\!\_}
+\newcommand{\dontcare}{\vbox to 0pt{\vss\hrule width 1ex}}
 \newcommand{\excr}{\triangleright}
 \newcommand{\excl}{\triangleleft}
 \newcommand{\excrx}{\excr_\textrm{x}}
@@ -53,11 +56,16 @@
 
 \newcommand{\propop}{\ensuremath{\mathrel{\ast}}}
 
-\newcommand{\ancestors}{\textit{ancestors}}
-\newcommand{\ancexcludes}{\textit{excludes}^*}
-\newcommand{\myexcludes}[1]{{#1}.\textit{excludes}}
-\newcommand{\mycomprises}[1]{{#1}.\textit{comprises}}
-\newcommand{\myextends}[1]{{#1}.\textit{extends}}
+% \newcommand{\ancestors}{\textit{ancestors}}
+% \newcommand{\ancexcludes}{\textit{excludes}^*}
+% \newcommand{\myexcludes}[1]{{#1}.\textit{excludes}}
+% \newcommand{\mycomprises}[1]{{#1}.\textit{comprises}}
+% \newcommand{\myextends}[1]{{#1}.\textit{extends}}
+
+\newcommand{\ancestors}[2][\Delta]{\textit{ancestors}(#1,#2)}
+\newcommand{\excluded}[2][\Delta]{\textit{excluded}(#1,#2)}
+\newcommand{\comprised}[2][\Delta]{\textit{comprised}(#1,#2)}
+\newcommand{\parents}[2][\Delta]{\textit{parents}(#1,#2)}
 
 \newcommand{\extends}{\ensuremath{<:}}
 \newcommand{\subtypeof}{\ensuremath{<:}}
@@ -93,6 +101,12 @@
 \newcommand{\bigset}[1]{\ensuremath{\big\{{#1}\big\}}}
 \newcommand{\bigsetb}[1]{\ensuremath{\big\{\bar{#1}\big\}}}
 \newcommand{\LRsetb}[1]{\ensuremath{\left\{\bar{#1}\right\}}}
+
+\newcommand{\listof}[1]{\ensuremath{\langle{#1}\rangle}}
+\newcommand{\listofb}[1]{\ensuremath{\langle\bar{#1}\rangle}}
+\newcommand{\biglistof}[1]{\ensuremath{\big\langle{#1}\big\rangle}}
+\newcommand{\biglistofb}[1]{\ensuremath{\big\langle\bar{#1}\big\rangle}}
+\newcommand{\LRlistofb}[1]{\ensuremath{\left\langle\bar{#1}\right\rangle}}
 
 % put in oxford brackets
 \newcommand{\ob}[1]{\ensuremath{\llbracket\verythinmathspace {#1} \verythinmathspace\rrbracket}}
@@ -152,7 +166,7 @@
 
 %%% NEW SYNTACTIC JUDGMENT
 %\newcommand{\newjudge}[2]{\fbox{\textbf{#1:} \quad \ensuremath{#2}}}
-\newcommand{\newjudge}[2]{\hbox{{#1:} \quad \fbox{\ensuremath{#2}}}}
+\newcommand{\newjudge}[2]{\hbox{\textbf{#1:} \quad \fbox{\ensuremath{#2}}}}
 
 % non constrained judgements
 \newcommand{\jgtemplate}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{#3}\;{#4}}}
@@ -180,6 +194,9 @@
 \newcommand{\jsubtype}[3][\Delta]{\jgtemplate[#1]{#2}{\subtypeof}{#3}}
 \newcommand{\jbsubtype}[3][\Delta]{\jgbtemplate[#1]{#2}{\subtypeof}{#3}}
 \newcommand{\jnotsubtype}[3][\Delta]{\jgtemplate[#1]{#2}{\not\subtypeof}{#3}}
+\newcommand{\jexctype}[3][\Delta]{\jgtemplate[#1]{#2}{\exc}{#3}}
+\newcommand{\jbexctype}[3][\Delta]{\jgbtemplate[#1]{#2}{\exc}{#3}}
+\newcommand{\jnotexctype}[3][\Delta]{\jgtemplate[#1]{#2}{\nexc}{#3}}
 \newcommand{\jequivtype}[3][\Delta]{\jgtemplate[#1]{#2}{\equiv}{#3}}
 \newcommand{\jbequivtype}[3][\Delta]{\jgbtemplate[#1]{#2}{\equiv}{#3}}
 \newcommand{\jnotequivtype}[3][\Delta]{\jgtemplate[#1]{#2}{\not\equiv}{#3}}
@@ -191,8 +208,8 @@
 \newcommand{\jwfdecl}[2][\Delta]{\jgshorttemplate[#1]{#2}{\mathsf{ok}}}
 \newcommand{\jbwfdecl}[2][\Delta]{\jgbshorttemplate[#1]{#2}{\mathsf{ok}}}
 
-\newcommand{\jwfmeth}[2][\Delta;\Gamma]{\jgshorttemplate[#1]{#2}{\mathsf{ok}}}
-\newcommand{\jbwfmeth}[2][\Delta;\Gamma]{\jgbshorttemplate[#1]{#2}{\mathsf{ok}}}
+\newcommand{\jwfmeth}[2][\Delta;\Gamma;\bar{P};\bar{z}]{\jgshorttemplate[#1]{#2}{\mathsf{ok}}}
+\newcommand{\jbwfmeth}[2][\Delta;\Gamma;\bar{P};\bar{z}]{\jgbshorttemplate[#1]{#2}{\mathsf{ok}}}
 
 
 % subtyping on quantified types
@@ -218,6 +235,10 @@
 % nonequivalence
 \newcommand{\jnequiv}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\not\equiv}{#3}{#4}}
 \newcommand{\jbnequiv}[4][\Delta]{\jgbconstrtemplate[#1]{#2}{\not\equiv}{#3}{#4}}
+
+% ground subtyping with constraints
+\newcommand{\jvaries}[5][\Delta]{\jgconstrtemplate[#1]{#2}{#3}{#4}{#5}}
+\newcommand{\jbvaries}[5][\Delta]{\jgbconstrtemplate[#1]{#2}{#3}{#4}{#5}}
 
 
 % contrapositive judgements
@@ -250,13 +271,13 @@
 % apply substitution to constraint
 \newcommand{\japply}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\textit{apply}({#2}, {#3})\,=\,{#4}}}
 % solve constraint to get a substitution and the residual constraints
-\newcommand{\jsolve}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\textit{unify}({#2})\,=\,{#3}\,,\;{#4}}}
+\newcommand{\jsolve}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\textit{unify}({#2})\,=\,({#3}, {#4})}}
 
 
 
 % type reduction
 \newcommand{\jtred}[2]{\ensuremath{\Delta \turnstile\,{#1} \eqred {#2}}}
-\newcommand{\jtreds}[3]{\ensuremath{\Delta \turnstile\,{#1} \eqred {#2}\,,\;{#3}}}
+\newcommand{\jtreds}[3]{\ensuremath{\Delta \turnstile\,{#1} \eqred {#2}\;\mathsf{using}\;{#3}}}
 
 
 % for tabularx environments to have a right-aligned, stretched col
@@ -341,9 +362,22 @@ methods, multimethods, separate compilation, Fortress}
 \label{sec:grammar}
 \input{grammar}
 
-\section{Wellformedness}
-\label{sec:wellformedness}
-%\input{wellformedness}
+\section{Wellformedness and Static Typing}
+\label{sec:static}
+\input{static}
+
+\section{Dynamic Evaluation Semantics}
+\label{sec:evaluation}
+\input{evaluation}
+
+\section{Subtyping and Type Exclusion}
+\label{sec:subtyping}
+\input{subtyping}
+
+
+\section{Run-time Type Solving}
+\label{sec:solving}
+%\input{solving}
 
 \section{Examples}
 \label{sec:examples}
@@ -354,8 +388,6 @@ methods, multimethods, separate compilation, Fortress}
 
 \section{Conclusion and Discussion}\label{sec:conclusion}
 %\input{conclusion}
-
-\input{fig-exclusion}
 
 \section*{Acknowledgments}
 % This work is supported in part by the Engineering Research Center of Excellence Program of Korea Ministry of Education,
@@ -373,4 +405,11 @@ methods, multimethods, separate compilation, Fortress}
 % \end{thebibliography}
 
 % \appendix
+
+\clearpage
+\clearpage
+\clearpage
+\clearpage
+\clearpage
+\clearpage
 \end{document}

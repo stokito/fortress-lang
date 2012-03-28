@@ -24,8 +24,6 @@ every function belongs to at least one arrow type,
 and every tuple belongs to at least one tuple type.
 No value belongs to $\Bottom$.
 
-\input{fig-miscjudgments}
-
 Although a value may belong to more than one type, 
 every value $v$ belongs to a unique type $\mathit{ilk}(v)$
 (the \emph{ilk} of the value).

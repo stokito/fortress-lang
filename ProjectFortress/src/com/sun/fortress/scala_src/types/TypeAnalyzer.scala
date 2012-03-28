@@ -661,11 +661,14 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     }
   }
 
-  protected def normDisjunct(x: Iterable[Type])(implicit history: Set[hType]): List[Type] = {
-      x.foldLeft(List[Type]())((l, a) => {
+  protected def normDisjunct(xx: Iterable[Type])(implicit history: Set[hType]): List[Type] = {
+      val x = xx.toList
+      val result = x.foldLeft(List[Type]())((l, a) => {
         val l2 = l.filter(x => !isTrue(sub(x,a)))
         l2 ++ (if (l2.exists(x => isTrue(sub(a,x)))) Nil else List(a))
       })
+      println("normDisjunct:\n  " + x + "\n  " + result)
+      result
   }
   
   // Operators that appear in OpArgs should just be unqualified names
