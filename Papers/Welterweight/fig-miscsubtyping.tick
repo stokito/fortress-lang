@@ -6,7 +6,7 @@
 
 \infrule
   { \jsub{\alpha}{\eta}{\C}  \andalso  \jsub{\eta}{\alpha}{\C'} }
-  { \jsub{\alpha}{\eta}{\C \wedge \C'} }
+  { \jequiv{\alpha}{\eta}{\C \wedge \C'} }
 
 \newjudge{Unconditional subtyping}{\jsubtype{\alpha}{\alpha}}
 

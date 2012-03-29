@@ -29,20 +29,20 @@
 % \bigskip
 
 % \infrule[R-Function-Static-Args]
-%   {  \mathit{msa}(\Delta, f\obb{\tau}, (\bar{ilk(v)})) = \bigset{\bigtuple{f\bigobb{P \extends \bd{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho = e, \dontcare}} }
+%   {  \mathit{msa}(\Delta, f\obb{\tau}, (\bar{ilk(v)})) = \bigset{\bigtuple{\dontcare, f\bigobb{P \extends \bd{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho \defneq e, \dontcare}} }
 %   { \jevalstep[\Delta]{E\big[f\obb{\tau}(\bar{v})\big]}{E\big[ [\bar{v/x}][\bar{\tau/P}]e \big]} }
 
 \bigskip
 
 %\infrule[R-Function-No-Static-Args]
 \infrule[R-Function]
-  {  \mathit{msa}(\Delta, f, (\bar{ilk(v)})) = \bigset{\bigtuple{f\bigobb{P \extends \bd{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho = e, \dontcare}} }
+  {  \mathit{msa}(\Delta, f, (\bar{ilk(v)})) = \bigset{\bigtuple{\dontcare, f\bigobb{P \extends \bd{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho \defneq e, \dontcare}} }
   { \jevalstep[\Delta]{E\big[f(\bar{v})\big]}{E\big[ [\bar{v/x}][\bar{\tau/P}]e \big]} }
 
 % \bigskip
 
 % \infrule[R-Method-Static-Args]
-%   {  \mathit{msa}(\Delta, O\obb{\gamma}, m\obb{\tau}, (\bar{ilk(v)})) = \bigset{\bigtuple{m\bigobb{\bd{\dontcare} \extends P \extends \bd{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho = e, \dontcare}} }
+%   {  \mathit{msa}(\Delta, O\obb{\gamma}, m\obb{\tau}, (\bar{ilk(v)})) = \bigset{\bigtuple{\dontcare, m\bigobb{\bd{\dontcare} \extends P \extends \bd{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho \defneq e, \dontcare}} }
 %   { \jevalstep[\Delta]{E\big[O\obb{\gamma}(\bar{v}).m\obb{\tau}(\bar{v'})\big]}{E\big[ [O\obb{\gamma}(\bar{v})/\kwd{self}][\bar{v'/x}][\bar{\tau/P}]e \big]} }
 
 \bigskip
@@ -50,7 +50,7 @@
 %\infrule[R-Method-No-Static-Args]
 \infrule[R-Method]
   { \kwd{object} \; O\ob{\dontcare}(\bar{z:\dontcare}) \; \dontcare \; \kwd{end} \in \Delta \\[2pt]
-    \mathit{msa}(\Delta, O\obb{\gamma}, m, (\bar{ilk(v)})) = \bigset{\bigtuple{m\bigobb{\bd{\dontcare} \extends P \extends \bd{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho = e, \dontcare}} }
+    \mathit{msa}(\Delta, O\obb{\gamma}, m, (\bar{ilk(v)})) = \bigset{\bigtuple{\dontcare, m\bigobb{\bd{\dontcare} \extends P \extends \bd{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho \defneq e, \dontcare}} }
   { \jevalstep[\Delta]{E\big[O\obb{\gamma}(\bar{v}).m(\bar{v'})\big]}{E\big[ [O\obb{\gamma}(\bar{v})/\kwd{self}][\bar{\kwd{self}.z/z}][\bar{v'/x}][\bar{\tau/P}]e \big]} }
 
 \bigskip

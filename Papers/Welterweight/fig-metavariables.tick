@@ -2,11 +2,13 @@
 \begin{figure}[t]
 
 \begin{tabular}[t]{@{}l@{}}
+$p$ ranges over programs $p$ \\
 $\delta$ ranges over top-level declarations $\delta$ \\
 $V$ ranges over variances $V$ \\
-$\mu$ ranges over method declarations $\mu$ \\
+$\varphi$ ranges over function declarations $\varphi$ \\
+$\mu$ ranges over dotted method declarations $\mu$ \\
 $\beta$ ranges over simple type parameter bindings $\beta$ \\
-$\varphi$ ranges over full type parameter bindings $\varphi$ \\
+$\kappa$ ranges over complete type parameter bindings $\kappa$ \\
 $e$ ranges over expressions $e$ \\
 $t$ ranges over trait types $t$ \\
 $c$ ranges over constructed types $c$ \\
@@ -19,10 +21,17 @@ $f$ ranges over function names $f$ \\
 $m$ ranges over method names $m$ \\
 $\tau, \zeta, \xi, \omega$ range over types $\tau$ \\
 $\alpha, \gamma, \rho, \chi, \eta$ range over lattice types $\alpha$ \\
-$\kappa$ ranges over quantified types $\kappa$ \\
+$\Phi$ ranges over existentially quantified types $\Phi$ \\
+$\Psi$ ranges over universally quantified types $\Psi$ \\
 $\lambda$ ranges over lattice type parameter bindings $\lambda$ \\
 $\psi$ ranges over general type environment entries $\psi$ \\
 $I$ ranges over inference variables names $I$ \\
+$b$ ranges over bindable value names $b$ \\
+$\sigma$ ranges over type/parameter substitutions $\sigma$ \\
+$\theta$ ranges over procedure declarations $\theta$ \\
+$\Omega$ ranges over sets of overloaded procedures $\Omega$ \\
+$\Delta$ ranges over type-declaration environments $\Delta$ \\
+$\Gamma$ ranges over variable-type environments $\Gamma$ \\
 $v$ ranges over values $v$ \\
 $E$ ranges over evaluation contexts $E$ \\
 $R$ ranges over redexes $R$ \\[6pt]

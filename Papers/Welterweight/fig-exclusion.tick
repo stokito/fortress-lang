@@ -59,7 +59,7 @@
 \vspace*{-1em}
 
 \infrule
-  { \countof(\bar{\alpha})=\countof(\bar{\eta})  \andalso \jbexc{\alpha}{T}{\C} }
+  { \countof(\bar{\alpha})=\countof(\bar{\eta})  \andalso \jbexc{\alpha}{\eta}{\C} }
   { \jexc{(\bar{\alpha})}{(\bar{\eta})}{\bigvee\set{\C}} }
 
 \infrule
@@ -133,7 +133,8 @@
   { \jnsub{O\obb{\alpha}}{c}{\C} }
   { \jgconstrtemplate{O\obb{\alpha}}{\excro}{c}{\C} }
 
-\infax
+\infrule
+  { \mathit{distinct}(T,T') }
   { \jgconstrtemplate{T\obb{\alpha}}{\excrc}{T'\obb{\eta}}{\FALSE} }
 
 \infrule

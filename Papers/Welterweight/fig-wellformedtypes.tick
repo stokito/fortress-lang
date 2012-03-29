@@ -1,7 +1,7 @@
 \begin{figure}
 \typicallabel{W-Object}
 
-\newjudge{Well-formed types}{\jwftype{\kappa}}
+\newjudge{Well-formed types}{\jwftype{\alpha}}
 \bigskip
 
 % Stuff in \Delta is assumed to be well-formed
@@ -15,7 +15,7 @@
 \infrule[W-Trait]
   { \kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \; \dontcare \; \kwd{end} \in \set{\Delta} \\[2pt]
     \countof(\bar{\alpha}) = \countof(\bar{P})  \andalso  \jbwftype{\alpha} \\[3pt]
-    \jbsubtype{\alpha}{\underline{\Big[\bar{\alpha/P}\Big]}\xi} }
+    \jbsubtype{\alpha}{\underline{\Bigsubstb{\alpha}{P}}\xi} }
   { \jwftype{T\obb{\alpha}} }
 
 \bigskip
@@ -23,7 +23,7 @@
 \infrule[W-Object]
   { \kwd{object} \; O\bigobb{P \extends \bdb{\xi}} \; \dontcare \; \kwd{end} \in \set{\Delta} \\[2pt]
     \countof(\bar{\alpha}) = \countof(\bar{P})  \andalso  \jbwftype{\alpha} \\[3pt]
-    \jbsubtype{\alpha}{\underline{\Big[\bar{\alpha/P}\Big]}\xi} }
+    \jbsubtype{\alpha}{\underline{\Bigsubstb{\alpha}{P}}\xi} }
   { \jwftype{O\obb{\alpha}} }
 
 \bigskip

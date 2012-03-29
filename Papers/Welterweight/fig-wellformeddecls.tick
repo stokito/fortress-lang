@@ -8,7 +8,7 @@
 \bigskip
 
 \infrule[T-Program]
-  { p = \bar{\delta},e  \andalso  \mathit{distinct}(\bar{\delta})  \andalso  \setb{\Id} = \mathit{typeNames}(\Delta)  \andalso  \mathit{distinct}(\bar{\Id})  \andalso
+  { p = \bar{\delta},e  \andalso  \mathit{distinct}(\bar{\delta})  \andalso \countof(\mathit{typeNames}(\Delta)) = \countof(\mathit{typeDecls}(\Delta)) \andalso
     \jbwfdecl[\setb{\delta}]{\delta}  \andalso  \jtype[\setb{\delta};\emptyseq]{e}{\alpha} }
   { \jtype[]{p}{\alpha} }
 
@@ -24,7 +24,7 @@
     \jbsubtype[\Delta']{c}{\underline{T\obb{P}}} \\[2pt]
     \mathit{distinct}(T, \bar{A})  \andalso  \bar{\mathit{notOfTrait}(\underline{T}, t)}  \andalso  \bar{\mathit{notOfTrait}(\underline{T}, c)}  \andalso  
     \jbwfmeth[\Delta';\kwd{self}\COLON T\bigobb{P};\bar{P};\emptyseq]{\mu} }
-  { \jwfdecl{\kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \mathbin{\extends} \bigbdb{A\obb{\tau}} \mathbin{\exc} \bigbdb{t} \mathbin{\comprises} \bigbdb{c} \; \bar{\mu} \; \kwd{end}} }
+  { \jwfdecl{\kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \mathbin{\extends} \bigbdb{A\obb{\tau}} \mathbin{\comprises} \bigbdb{c} \mathbin{\exc} \bigbdb{t} \; \bar{\mu} \; \kwd{end}} }
 
 \bigskip
 
@@ -40,7 +40,7 @@
   { \Delta' = \Delta,\bar{\bd{\,} \extends P \extends \bdb{\xi}} \\[1pt]
     \jbwftype[\Delta']{\xi}  \andalso  \jbwftype[\Delta']{\tau}  \andalso  \jwftype[\Delta']{\omega} \andalso
     \jtype[\Delta';\bar{x\COLON\tau}]{e}{\rho}  \andalso  \jsubtype[\Delta']{\rho}{\omega} }
-  { \jwfdecl{f\bigobb{P \extends \bdb{\xi}} (\bar{x\COLON\tau})\COLON\omega = e} }
+  { \jwfdecl{f\bigobb{P \extends \bdb{\xi}} (\bar{x\COLON\tau})\COLON\omega \defneq e} }
 
 \bigskip
 
@@ -51,7 +51,7 @@
   { \Delta' = \Delta,\bar{\bdb{\zeta} \extends Q \extends \bdb{\xi}}  \andalso  \mathit{distinct}(\bar{P},\bar{Q})  \andalso  \mathit{distinct}(\bar{x},\bar{z}) \\[1pt]
     \jbwftype[\Delta']{\zeta}  \andalso   \jbwftype[\Delta']{\xi}  \andalso  \jbwftype[\Delta']{\tau}  \andalso  \jwftype[\Delta']{\omega} \andalso
     \jtype[\Delta';\Gamma,\bar{x\COLON\tau}]{e}{\rho}  \andalso  \jsubtype[\Delta']{\rho}{\omega} }
-  { \jwfmeth{m\bigobb{\bdb{\zeta} \extends Q \extends \bdb{\xi}} (\bar{x\COLON\tau})\COLON\omega = e} }
+  { \jwfmeth{m\bigobb{\bdb{\zeta} \extends Q \extends \bdb{\xi}} (\bar{x\COLON\tau})\COLON\omega \defneq e} }
 
 \medskip
 \caption{Program typing and Well-formed Definitions}

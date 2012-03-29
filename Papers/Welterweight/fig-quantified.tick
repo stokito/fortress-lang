@@ -6,23 +6,27 @@
 \bigskip
 
 \infrule
-  { \setb{P} \cap (\FV(\eta) \cup \FV(\bar{\zeta'}) \cup \FV(\bar{\xi'})) = \emptyset
+  { \mathit{parameters}(\setb{\lambda}) \cap (\FV(\eta) \cup \FV(\bar{\zeta}) \cup \FV(\bar{\xi})) = \emptyset
     \\[3pt]
     \Delta' = \Delta, \bar{\bdb{\zeta} \extends P \extends \bdb{\xi}}
     \andalso
-    \jbsubtype[\Delta']{\underline{\substb{\chi}{Q}}\bar{\zeta'}}{\chi}
+    \jbsubtype[\Delta']{\underline{\substb{\chi}{Q}}\bar{\zeta}}{\chi}
     \\[3pt]
     \jsubtype[\Delta']{\alpha}{\substb{\chi}{Q}\eta}
     \andalso
-    \jbsubtype[\Delta']{\chi}{\underline{\substb{\chi}{Q}}\bar{\xi'}}
+    \jbsubtype[\Delta']{\chi}{\underline{\substb{\chi}{Q}}\bar{\xi}}
   }
-  { \jleinner{\existstypeb{\bdb{\zeta} \extends P \extends \bdb{\xi}}{\alpha}}{\existstype{\bdb{\zeta'} \extends Q \extends \bdb{\xi'}}{\eta}} }
+  { \jleinnerusing{\existstypeb{\lambda}{\alpha}}{\existstype{\bdb{\zeta} \extends Q \extends \bdb{\xi}}{\eta}}{\substb{\chi}{Q}} }
 
 \bigskip
 
 \infrule
-  { \jtreds{\Phi}{\Phi'}{\dontcare} \andalso \jleinner{\Phi'}{\Phi''} }
-  { \jle{\Phi}{\Phi''}}
+  { \jtreds{\Phi}{\Phi'}{\dontcare} \andalso \jleinnerusing{\Phi'}{\Phi''}{\dontcare} }
+  { \jle{\Phi}{\Phi''} }
+
+\infrule
+  { \jtreds{\Phi}{\Phi'}{\dontcare} \andalso \jleinnerusing{\Phi'}{\Phi''}{\sigma} }
+  { \jleusing{\Phi}{\Phi''}{\sigma} }
 
 \bigskip
 
@@ -31,7 +35,7 @@
 \bigskip
 
 \infrule
-  { \setb{Q} \cap (\FV(\alpha) \cup \FV(\bar{\zeta}) \cup \FV(\bar{\xi})) = \emptyset
+  { \mathit{parameters}(\setb{\lambda}) \cap (\FV(\alpha) \cup \FV(\bar{\zeta}) \cup \FV(\bar{\xi})) = \emptyset
     \\[3pt]
     \Delta' = \Delta, \bar{\bdb{\zeta'} \extends Q \extends \bdb{\xi'}}
     \andalso
@@ -41,12 +45,12 @@
     \andalso
     \jbsubtype[\Delta']{\chi}{\underline{\substb{\chi}{P}}\bd{\xi}}
   }
-  { \jleinner{\foralltypeb{\bdb{\zeta} \extends P \extends \bdb{\xi}}{\alpha}}{\foralltypeb{\bdb{\zeta'} \extends Q \extends \bdb{\xi'}}{\eta}} }
+  { \jleinnerusing{\foralltypeb{\bdb{\zeta} \extends P \extends \bdb{\xi}}{\alpha}}{\foralltypeb{\lambda}{\eta}}{\substb{\chi}{Q}} }
 
 \bigskip
 
 \infrule
-  { \jleinner{\Psi}{\Psi''} \andalso \jtreds{\Psi'}{\Psi''}{\dontcare} }
+  { \jleinnerusing{\Psi}{\Psi''}{\dontcare} \andalso \jtreds{\Psi'}{\Psi''}{\dontcare} }
   { \jle{\Psi}{\Psi'} }
 
 \bigskip
@@ -64,7 +68,7 @@
 
 \infrule
   {\text{otherwise}}
-  {\jtreds{\existstypeb{\lambda}{\alpha}}{\existstypeb{\lambda}{\alpha}}{\subst{}{}}}
+  {\jtreds{\existstypeb{\lambda}{\alpha}}{\existstypeb{\lambda}{\alpha}}{\emptysubst}}
 
 \bigskip
   
@@ -74,7 +78,7 @@
 
 \infrule
   { \jtreds{\existstypeb{\lambda}{\alpha}}{\existstypeb{\lambda'}{\alpha'}}{\sigma} }
-  { \jtreds{\foralltypeb{\lambda}{\arrowtype{\alpha}{T\omega}}}{\foralltypeb{\lambda'}{\arrowtype{\alpha'}{\sigma(\omega)}}}{\sigma} }
+  { \jtreds{\foralltypeb{\lambda}{\arrowtype{\alpha}{\omega}}}{\foralltypeb{\lambda'}{\arrowtype{\alpha'}{\sigma(\omega)}}}{\sigma} }
 
 \medskip
 \caption{Typing Rules for Quantified Types. Note that alpha-renaming of type variables may be necessary 

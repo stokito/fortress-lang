@@ -22,6 +22,7 @@
 \newjudge{Distinct names}{\mathit{distinct}(\bar{\Id})}
 
 \bigskip
+
 \infrule[Distinct-Identifiers]
   { \left| \bigsetb{\Id} \right| = \countof(\bar{\Id}) }
   { \mathit{distinct}(\bar{\Id}) }
@@ -31,19 +32,56 @@
 \newjudge{Distinct declarations}{\mathit{distinct}(\bar{\delta})}
 
 \bigskip
+
 \infrule[Distinct-Declarations]
   { \left| \bigsetb{\delta} \right| = \countof(\bar{\delta}) }
   { \mathit{distinct}(\bar{\delta})}
-\end{minipage}&%
-\begin{minipage}[t]{.53\textwidth}
-\typicallabel{Parameters}
-\newjudge{Parameters in type environment}{\mathit{parameters}(\Delta)}
 
 \bigskip
-\infrule[Parameters]
-  { \Delta = \setb{\delta} }
-  { \mathit{parameters}(\Delta) = \bigcap \bigsetb{\mathit{oneParam}(\delta)} }
+
+\typicallabel{}
+
+\newjudge{Name of a function}{\name(\phi)}
+
 \bigskip
+
+\infax
+  { \name{f\obb{\beta}(\dontcare)\COLON \dontcare \defneq \dontcare} = f }
+
+\bigskip
+
+\newjudge{Name of a method}{\name(\mu)}
+
+\bigskip
+
+\infax
+  { \name{m\obb{\kappa}(\dontcare)\COLON \dontcare \defneq \dontcare} = m }
+
+\bigskip
+
+\newjudge{Methods of a constructed type}{\methods{c}}
+
+\bigskip
+
+\infrule
+  { \kwd{trait} \; T\obb{\dontcare\;P \extends \set{\dontcare}} \; \dontcare \exc \set{\dontcare} \bar{\mu} \; \kwd{end} \in \Delta }
+  { \methods{T\obb{\alpha}} = \LRsetb{\underline{\bigsubstb{\alpha}{P}}\mu} }
+
+\bigskip
+
+\infrule
+  { \kwd{object} \; O\obb{P \extends \set{\dontcare}}(\dontcare) \extends \set{\dontcare} \bar{\mu} \; \kwd{end} \in \Delta }
+  { \methods{O\obb{\alpha}} = \LRsetb{\underline{\bigsubstb{\alpha}{P}}\mu} }
+
+\bigskip
+
+\newjudge{Parameters in type environment}{\mathit{parameters}(\Delta)}
+
+\[
+\begin{array}{l}
+\mathit{parameters}(\Delta) = {\displaystyle \bigcup_{{\delta\in\Delta}} \mathit{oneParam}(\Delta)}
+\end{array}
+\]
 \[
 \begin{array}{l}
 \mathit{oneParam}(\bd{\dontcare} \extends P \extends \bd{\dontcare}) = \set{P} \\
@@ -56,35 +94,55 @@
 \bigskip
 \newjudge{Trait/object names in type environment}{\mathit{typeNames}(\Delta)}
 
-\bigskip
-\infrule[Names]
-  { \Delta = \setb{\delta} }
-  { \mathit{typeNames}(\Delta) = \bigcap \bigsetb{\mathit{oneName}(\delta)} }
-\bigskip
 \[
 \begin{array}{l}
-\mathit{oneParam}(\bd{\dontcare} \extends P \extends \bd{\dontcare}) = \set{\,} \\
-\mathit{oneParam}(\kwd{trait} \; T\ob{\dontcare} \; \dontcare \; \kwd{end}) = \set{T} \\
-\mathit{oneParam}(\kwd{object} \; O\ob{\dontcare} \; \dontcare \; \kwd{end}) = \set{O} \\
-\mathit{oneParam}(f\ob{\dontcare}(\dontcare)\COLON\dontcare = \dontcare) = \set{\,}
+\mathit{typeNames}(\Delta) = \bigcup \LRsetcomp{\mathit{oneName}(\Delta)}{\delta\in\Delta}
+\end{array}
+\]
+\[
+\begin{array}{l}
+\mathit{oneName}(\bd{\dontcare} \extends P \extends \bd{\dontcare}) = \set{\,} \\
+\mathit{oneName}(\kwd{trait} \; T\ob{\dontcare} \; \dontcare \; \kwd{end}) = \set{T} \\
+\mathit{oneName}(\kwd{object} \; O\ob{\dontcare} \; \dontcare \; \kwd{end}) = \set{O} \\
+\mathit{oneName}(f\ob{\dontcare}(\dontcare)\COLON\dontcare = \dontcare) = \set{\,}
+\end{array}
+\]
+
+\end{minipage}&%
+\begin{minipage}[t]{.53\textwidth}
+\typicallabel{}
+\newjudge{Trait/object declarations in type environment}{\mathit{typeDecls}(\Delta)}
+
+\[
+\begin{array}{l}
+\mathit{typeDecls}(\Delta) = \bigcup \LRsetcomp{\mathit{oneDecl}(\Delta)}{\delta\in\Delta}
+\end{array}
+\]
+\[
+\begin{array}{l}
+\mathit{oneDecl}(\bd{\dontcare} \extends P \extends \bd{\dontcare}) = \set{\,} \hbox{need to fix bugs here}\\
+\mathit{oneDecl}(\kwd{trait} \; T\ob{\dontcare} \; \dontcare \; \kwd{end}) = \set{T} \\
+\mathit{oneDecl}(\kwd{object} \; O\ob{\dontcare} \; \dontcare \; \kwd{end}) = \set{O} \\
+\mathit{oneDecl}(f\ob{\dontcare}(\dontcare)\COLON\dontcare = \dontcare) = \set{\,}
 \end{array}
 \]
 
 \bigskip
 
+\typicallabel{}
 \newjudge{Immediately extended traits}{\parents{c}}
 
 \bigskip
 
 \infrule
   { \kwd{trait} \; T\obb{V\;P <: \bd{\tau}} <: \setb{t} \; \dontcare \; \kwd{end} \in \Delta }
-  { \parents{T\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{\tau}t}}} }
+  { \parents{T\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{P}t}}} }
 
 \bigskip
 
 \infrule
-  { \kwd{trait} \; O\obb{P <: \bd{\tau}}(\dontcare) <: \setb{t} \; \dontcare \; \kwd{end} \in \Delta }
-  { \parents{O\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{\tau}}t}} }
+  { \kwd{object} \; O\obb{P <: \bd{\tau}}(\dontcare) <: \setb{t} \; \dontcare \; \kwd{end} \in \Delta }
+  { \parents{O\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{P}}t}} }
 
 \bigskip
 
@@ -102,8 +160,8 @@
 \bigskip
 
 \infrule
-  { \kwd{trait} \; T\obb{V\;P <: \bd{\tau}} \dontcare \; \exc \setb{t} \; \dontcare \; \kwd{end} \in \Delta }
-  { \excluded{T\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{\tau}}t}} }
+  { \kwd{trait} \; T\obb{V\;P <: \bd{\tau}} \; \dontcare \; \exc \setb{t} \; \dontcare \; \kwd{end} \in \Delta }
+  { \excluded{T\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{P}}t}} }
 
 \bigskip
 
@@ -112,15 +170,14 @@
 \bigskip
 
 \infrule
-  { \kwd{trait} \; T\obb{V\;P <: \bd{\tau}} \dontcare \; \exc \set{\dontcare} \; \kwd{end} \in \Delta }
+  { \kwd{trait} \; T\obb{V\;P <: \bd{\tau}} \extends \set{\dontcare} \exc \set{\dontcare} \; \dontcare \; \kwd{end} \in \Delta }
   { \comprised{T\obb{\alpha}} = \set{\Any} }
 
 \bigskip
 
 \infrule
-  { \kwd{trait} \; T\obb{V\;P <: \bd{\tau}} \dontcare \; \exc \set{\dontcare} \; \comprises \setb{c} \; \kwd{end} \in \Delta \\
-    \bar{\eta = \mathit{oneComprised}(\underline{\Delta},\tupleb{\alpha},\tupleb{P},c)} }
-  { \comprised{O\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{\tau}}c}} }
+  { \kwd{trait} \; T\obb{V\;P <: \bd{\tau}} \; \dontcare \; \comprises \setb{c} \; \dontcare \; \kwd{end} \in \Delta }
+  { \comprised{T\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{P}}c}} }
 \end{minipage}
 \end{tabular}
 \medskip

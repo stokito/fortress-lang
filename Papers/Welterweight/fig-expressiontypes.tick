@@ -5,8 +5,8 @@
 \bigskip
 
 \infrule[T-Variable]
-  { \Gamma = \bar{\vphantom{x}\smash{\dontcare}}, \var\COLON\alpha, \bar{x\COLON\dontcare}  \andalso  \var \not\in \bigsetb{x} }
-  { \jtype{\var}{\alpha} }
+  { \Gamma = \bar{b'\COLON\dontcare}, b\COLON\alpha, \bar{b''\COLON\dontcare}  \andalso  b \not\in \bigsetb{b''} }
+  { \jtype{b}{\alpha} }
 
 \bigskip
 
@@ -39,7 +39,7 @@
 \infrule[T-Field]
   { \jtype{e}{O\obb{\alpha}} \\
     \kwd{object} \; O\bigobb{P \extends \bd{\dontcare}} (\bar{z\COLON\tau}) \; \dontcare \; \kwd{end} \in \Delta }
-  { \jbtype{\underline{e}.z}{\underline{\Big[\bar{\alpha/P}\Big]}\tau} }
+  { \jbtype{\underline{e}.z}{\underline{\bigsubstb{\alpha}{P}}\tau} }
 
 \bigskip
 

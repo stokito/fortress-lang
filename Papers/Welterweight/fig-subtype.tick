@@ -92,8 +92,8 @@
   { \jsub{\arrowtype{\alpha}{\rho}}{\arrowtype{\alpha'}{\rho'}}{\C \wedge \C'} }
   
 \infrule
-  { \countof(\bar{U}) \neq 1 }
-  { \jsub{\arrowtype{\alpha}{\rho}}{(\bar{U})}{\FALSE} }
+  { \countof(\bar{\eta}) \neq 1 }
+  { \jsub{\arrowtype{\alpha}{\rho}}{(\bar{\eta})}{\FALSE} }
   
 \infrule
   { \countof(\bar{\alpha}) \neq 1 }

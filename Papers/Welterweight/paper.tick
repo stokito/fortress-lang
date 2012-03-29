@@ -8,6 +8,7 @@
 
 \newcommand{\kwd}[1]{\mathtt{#1}}
 
+\newcommand{\defneq}{\mathrel{\hbox{\tt =}}}
 \newcommand{\var}{\mathit{var}}
 \newcommand{\Id}{\mathit{Id}}
 \newcommand{\emptyseq}{\bullet}
@@ -17,6 +18,7 @@
 \newcommand{\ms}{\preceq}
 \renewcommand{\bar}{\overline}
 \newcommand{\meet}{\wedge}
+\newcommand{\existentialmeet}{\sqcap}
 \newcommand{\C}{\mathcal{C}}
 \newcommand{\quoted}[1]{\begin{quote}#1\end{quote}}
 \newcommand{\exc}{\mathrel{\lozenge}}
@@ -85,6 +87,16 @@
 \newcommand{\uniontype}[2]{\mbox{\ensuremath{({#1} \cup {#2})}}}
 \newcommand{\intersectiontype}[2]{\mbox{\ensuremath{({#1} \cap {#2})}}}
 
+\newcommand{\visiblefunc}[2][\Delta]{\ensuremath{\mathit{visible}(#1,#2)}}
+\newcommand{\visiblemeth}[3][\Delta]{\ensuremath{\mathit{visible}(#1,#2,#3)}}
+\newcommand{\defined}[3][\Delta]{\ensuremath{\mathit{defined}(#1,#2,#3)}}
+\newcommand{\name}[1]{\ensuremath{\mathit{name}(#1)}}
+\newcommand{\methods}[2][\Delta]{\ensuremath{\mathit{methods}(#1,#2)}}
+\newcommand{\applicable}[3][\Delta]{\ensuremath{\mathit{applicable}(#1,#2,#3)}}
+\newcommand{\mostspecific}[2][\Delta]{\ensuremath{\mathit{mostspecific}(#1,#2)}}
+\newcommand{\msafunc}[3][\Delta]{\ensuremath{\mathit{msa}(#1,#2,#3)}}
+\newcommand{\msameth}[4][\Delta]{\ensuremath{\mathit{msa}(#1,#2,#3,#4)}}
+
 \newcommand{\dom}{\ensuremath{\mathit{dom}}}
 \newcommand{\arrow}{\ensuremath{\mathit{arrow}}}
 \newcommand{\FV}{\ensuremath{\mathit{FV}}}
@@ -100,7 +112,12 @@
 \newcommand{\setb}[1]{\ensuremath{\{\bar{#1}\}}}
 \newcommand{\bigset}[1]{\ensuremath{\big\{{#1}\big\}}}
 \newcommand{\bigsetb}[1]{\ensuremath{\big\{\bar{#1}\big\}}}
+\newcommand{\LRset}[1]{\ensuremath{\left\{{#1}\right\}}}
 \newcommand{\LRsetb}[1]{\ensuremath{\left\{\bar{#1}\right\}}}
+
+\newcommand{\Bigsetcomp}[2]{\ensuremath{\Bigl\{{#1}\;\Bigm|\;{#2}\Bigr\}}}
+\newcommand{\LRsetcomp}[2]{\ensuremath{\left\{{#1}\;\left|\;{#2}\right\}\right.}}
+
 
 \newcommand{\listof}[1]{\ensuremath{\langle{#1}\rangle}}
 \newcommand{\listofb}[1]{\ensuremath{\langle\bar{#1}\rangle}}
@@ -123,8 +140,12 @@
 \newcommand{\syndef}{\ensuremath{\overset{\mathrm{def}}{=}}}
 % make a substitution
 \newcommand{\subst}[2]{\ensuremath{[#1/#2]}}
-% make a substitution with bars
-\newcommand{\substb}[2]{\ensuremath{[\bar{#1}/\bar{#2}]}}
+\newcommand{\substb}[2]{\ensuremath{[\bar{#1/#2}]}}
+\newcommand{\bigsubst}[2]{\ensuremath{\bigl[#1/#2\bigr]}}
+\newcommand{\bigsubstb}[2]{\ensuremath{\bigl[\bar{#1/#2}\bigr]}}
+\newcommand{\Bigsubst}[2]{\ensuremath{\Bigl[#1/#2\Bigr]}}
+\newcommand{\Bigsubstb}[2]{\ensuremath{\Bigl[\bar{#1/#2}\Bigr]}}
+\newcommand{\emptysubst}{\ensuremath{[\verythinmathspace]}}
 % type parameter list with bounds and oxford brackets
 \newcommand{\tplist}[2]{\ensuremath{\ob{\bds{#1}{#2}}}}
 % monomorphic fn decl
@@ -213,8 +234,10 @@
 
 
 % subtyping on quantified types
-\newcommand{\jle}[3][\Delta]{\jgtemplate[#1]{#2}{\le}{#3}}
+\newcommand{\jle}[3][\Delta]{\jgtemplate[#1]{#2}{\sqsubseteq}{#3}}
+\newcommand{\jleusing}[4][\Delta]{\jgtemplate[#1]{#2}{\le}{\sqsubseteq}\;\mathsf{using}\;{#4}}
 \newcommand{\jleinner}[3][\Delta]{\jgtemplate[#1]{#2}{\leinner}{#3}}
+\newcommand{\jleinnerusing}[4][\Delta]{\jgtemplate[#1]{#2}{\leinner}{#3}\;\mathsf{using}\;{#4}}
 
 % constrained judgments
 \newcommand{\jgconstrtemplate}[5][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{#3}\;{#4}\,\Leftarrow\,{#5}}}
