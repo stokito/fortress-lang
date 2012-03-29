@@ -1,0 +1,47 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+
+if [ -z "$FORTRESS_HOME" ]; then
+   export FORTRESS_HOME="`${0%comp/fcompile}fortress_home`"
+fi
+
+FHOME=$FORTRESS_HOME/default_repository/caches/bytecode_cache 
+NAME=`basename $1 .fss`
+
+if [ $# != 1 ]
+then
+    echo Usage: fcompile file.fss
+    exit
+fi
+
+if [ -d $FHOME/$NAME ]
+then
+    echo The fortress already contains a component with name $NAME
+    exit
+fi
+
+
+touch $1
+fortress compile $1
+
+if [ -f $FHOME/$NAME.jar ] 
+then
+    true
+else 
+    exit
+fi        
+
+jar -xf $FHOME/$NAME.jar
+mv $NAME.class $FHOME/$NAME/code_pool/
+rm $FHOME/$NAME.jar

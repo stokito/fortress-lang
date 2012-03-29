@@ -1,0 +1,25 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled5.bt
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.bt.fss:19:3:\n\
+\ Cannot infer type for variable b because it has reference cycle: b, c, a, b\n\
+${STATIC_TESTS_DIR}/Compiled5.bt.fss:23:3-58:\n\
+\ Cannot infer type for function isodd(x:ZZ32) because it has reference cycle: isodd(x:ZZ32), iseven(x:ZZ32), isodd(x:ZZ32)\n\
+${STATIC_TESTS_DIR}/Compiled5.bt.fss:26:3:\n\
+\ Cannot infer type for variable e because it has reference cycle: e, Foo.f(self:Foo), g, d, e\n\
+${STATIC_TESTS_DIR}/Compiled5.bt.fss:29:3-11:\n\
+\ Cannot infer type for function h() because it has reference cycle: h(), h()\n\
+${STATIC_TESTS_DIR}/Compiled5.bt.fss:30:3:\n\
+\ Cannot infer type for variable i because it has reference cycle: i, i\n\
+File Compiled5.bt.fss has 5 errors.\n
+compile_out_equals=

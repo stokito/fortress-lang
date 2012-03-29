@@ -1,0 +1,43 @@
+
+\begin{figure}[t]
+
+\begin{tabular}[t]{@{}l@{}}
+$p$ ranges over programs $p$ \\
+$\delta$ ranges over top-level declarations $\delta$ \\
+$V$ ranges over variances $V$ \\
+$\varphi$ ranges over function declarations $\varphi$ \\
+$\mu$ ranges over dotted method declarations $\mu$ \\
+$\beta$ ranges over simple type parameter bindings $\beta$ \\
+$\kappa$ ranges over complete type parameter bindings $\kappa$ \\
+$e$ ranges over expressions $e$ \\
+$t$ ranges over trait types $t$ \\
+$c$ ranges over constructed types $c$ \\
+$P, Q, S$ range over type parameter names $P$ \\
+$T, A, B$ range over trait names $T$ \\
+$O$ ranges over object names $O$ \\
+$x, y$ range over variable names $x$ \\
+$z$ ranges over field names $z$ \\
+$f$ ranges over function names $f$ \\
+$m$ ranges over method names $m$ \\
+$\tau, \zeta, \xi, \omega$ range over types $\tau$ \\
+$\alpha, \gamma, \rho, \chi, \eta$ range over lattice types $\alpha$ \\
+$\Phi$ ranges over existentially quantified types $\Phi$ \\
+$\Psi$ ranges over universally quantified types $\Psi$ \\
+$\lambda$ ranges over lattice type parameter bindings $\lambda$ \\
+$\psi$ ranges over general type environment entries $\psi$ \\
+$I$ ranges over inference variables names $I$ \\
+$b$ ranges over bindable value names $b$ \\
+$\sigma$ ranges over type/parameter substitutions $\sigma$ \\
+$\theta$ ranges over procedure declarations $\theta$ \\
+$\Omega$ ranges over sets of overloaded procedures $\Omega$ \\
+$\Delta$ ranges over type-declaration environments $\Delta$ \\
+$\Gamma$ ranges over variable-type environments $\Gamma$ \\
+$v$ ranges over values $v$ \\
+$E$ ranges over evaluation contexts $E$ \\
+$R$ ranges over redexes $R$ \\[6pt]
+$\pi$ and $\sigma$ do not range over any {\sc bnf} nonterminal
+\end{tabular}
+
+\caption{Metavariables Used in This Paper}
+\label{fig:metavariables}
+\end{figure}

@@ -1,0 +1,25 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled3.u
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled3.u.fss:15:46-52:\n\
+\ Could not check call to operator +\n\
+\ - (IntLiteral, IntLiteral)->IntLiteral is not applicable to an argument of type (String, String).\n\
+\ - (NN32, NN32)->NN32 is not applicable to an argument of type (String, String).\n\
+\ - (NN64, NN64)->NN64 is not applicable to an argument of type (String, String).\n\
+\ - (RR64, RR64)->RR64 is not applicable to an argument of type (String, String).\n\
+\ - (ZZ, ZZ)->ZZ is not applicable to an argument of type (String, String).\n\
+\ - (ZZ32, ZZ32)->ZZ32 is not applicable to an argument of type (String, String).\n\
+\ - (ZZ32Vector, ZZ32)->ZZ32Vector is not applicable to an argument of type (String, String).\n\
+\ - (ZZ64, ZZ64)->ZZ64 is not applicable to an argument of type (String, String).\n\
+File Compiled3.u.fss has 1 error.\n
+compile_out_equals=

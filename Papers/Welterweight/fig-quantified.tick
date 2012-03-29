@@ -1,0 +1,87 @@
+\begin{figure}
+\typicallabel{}
+
+\newjudge{Existential subtyping}{\jleinner{\Phi}{\Phi} \quad \jle{\Phi}{\Phi}}
+
+\bigskip
+
+\infrule
+  { \mathit{parameters}(\setb{\lambda}) \cap (\FV(\eta) \cup \FV(\bar{\zeta}) \cup \FV(\bar{\xi})) = \emptyset
+    \\[3pt]
+    \Delta' = \Delta, \bar{\bdb{\zeta} \extends P \extends \bdb{\xi}}
+    \andalso
+    \jbsubtype[\Delta']{\underline{\substb{\chi}{Q}}\bar{\zeta}}{\chi}
+    \\[3pt]
+    \jsubtype[\Delta']{\alpha}{\substb{\chi}{Q}\eta}
+    \andalso
+    \jbsubtype[\Delta']{\chi}{\underline{\substb{\chi}{Q}}\bar{\xi}}
+  }
+  { \jleinnerusing{\existstypeb{\lambda}{\alpha}}{\existstype{\bdb{\zeta} \extends Q \extends \bdb{\xi}}{\eta}}{\substb{\chi}{Q}} }
+
+\bigskip
+
+\infrule
+  { \jtreds{\Phi}{\Phi'}{\dontcare} \andalso \jleinnerusing{\Phi'}{\Phi''}{\dontcare} }
+  { \jle{\Phi}{\Phi''} }
+
+\infrule
+  { \jtreds{\Phi}{\Phi'}{\dontcare} \andalso \jleinnerusing{\Phi'}{\Phi''}{\sigma} }
+  { \jleusing{\Phi}{\Phi''}{\sigma} }
+
+\bigskip
+
+\newjudge{Universal subtyping}{\jleinner{\Psi}{\Psi} \quad \jle{\Psi}{\Psi}}
+
+\bigskip
+
+\infrule
+  { \mathit{parameters}(\setb{\lambda}) \cap (\FV(\alpha) \cup \FV(\bar{\zeta}) \cup \FV(\bar{\xi})) = \emptyset
+    \\[3pt]
+    \Delta' = \Delta, \bar{\bdb{\zeta'} \extends Q \extends \bdb{\xi'}}
+    \andalso
+    \jbsubtype[\Delta']{\underline{\substb{\chi}{P}}\bd{\zeta}}{\chi}
+    \\[3pt]
+    \jsubtype[\Delta']{\substb{\chi}{P}\alpha}{\eta}
+    \andalso
+    \jbsubtype[\Delta']{\chi}{\underline{\substb{\chi}{P}}\bd{\xi}}
+  }
+  { \jleinnerusing{\foralltypeb{\bdb{\zeta} \extends P \extends \bdb{\xi}}{\alpha}}{\foralltypeb{\lambda}{\eta}}{\substb{\chi}{Q}} }
+
+\bigskip
+
+\infrule
+  { \jleinnerusing{\Psi}{\Psi''}{\dontcare} \andalso \jtreds{\Psi'}{\Psi''}{\dontcare} }
+  { \jle{\Psi}{\Psi'} }
+
+\bigskip
+
+\newjudge{Existential Reduction}{\jtreds{\Phi}{\Phi}{\sigma}}
+
+\bigskip
+
+\infrule
+  {\jcnequiv{\alpha}{\Bottom}{\C} \andalso \toConstraint{\lambda}{\C'} \\
+   \jsolve{\C \wedge \C'}{\sigma}{\C''} \andalso \toBounds{\C''}{\lambda'}}
+  {\jtreds{\existstypeb{\lambda}{\alpha}}{\existstypeb{\lambda'}{\sigma(\alpha)}}{\sigma}}
+
+\bigskip
+
+\infrule
+  {\text{otherwise}}
+  {\jtreds{\existstypeb{\lambda}{\alpha}}{\existstypeb{\lambda}{\alpha}}{\emptysubst}}
+
+\bigskip
+  
+\newjudge{Universal Reduction}{\jtreds{\Psi}{\Psi}{\sigma}}
+
+\bigskip
+
+\infrule
+  { \jtreds{\existstypeb{\lambda}{\alpha}}{\existstypeb{\lambda'}{\alpha'}}{\sigma} }
+  { \jtreds{\foralltypeb{\lambda}{\arrowtype{\alpha}{\omega}}}{\foralltypeb{\lambda'}{\arrowtype{\alpha'}{\sigma(\omega)}}}{\sigma} }
+
+\medskip
+\caption{Typing Rules for Quantified Types. Note that alpha-renaming of type variables may be necessary 
+to apply these rules.}
+\label{fig:quantified}
+\end{figure}

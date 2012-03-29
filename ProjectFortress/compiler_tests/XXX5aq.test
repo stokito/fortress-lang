@@ -1,0 +1,23 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled5.aq
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.aq.fss:17:19:\n\
+\ Type V excludes U but it extends U.\n\
+${STATIC_TESTS_DIR}/Compiled5.aq.fss:17:19:\n\
+\ Types U and S exclude each other.  V must not extend them.\n\
+${STATIC_TESTS_DIR}/Compiled5.aq.fss:17:22:\n\
+\ Type V excludes S but it extends S.\n\
+${STATIC_TESTS_DIR}/Compiled5.aq.fss:17:22:\n\
+\ Types S and U exclude each other.  V must not extend them.\n\
+File Compiled5.aq.fss has 4 errors.\n
+compile_out_equals=
