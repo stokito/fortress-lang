@@ -1,0 +1,84 @@
+\begin{figure}
+\typicallabel{D-Trait}
+
+
+\newjudge{Method Meet Rule}{\jmethodmeetrule{\mu}{\mu}}
+
+\bigskip
+
+\infrule[Meet-Triv]
+  { (\mu=\mu') \vee (\name{\mu}\not=\name{\mu'}) }
+  { \jmethodmeetrule{\mu}{\mu'} }
+
+\bigskip
+
+\infrule[Meet-Excl]
+  { \mu\not=\mu' \andalso \name{\mu}=\name{\mu'} \\ \jexcludes{\dom(\mu)}{\dom(\mu')} }
+  { \jmethodmeetrule{\mu}{\mu'} }
+
+\bigskip
+
+\infrule[Meet-Spec]
+  { \mu\not=\mu' \andalso \name{\mu}=\name{\mu'} \\ \jle{\dom(\mu)}{\dom(\mu')} }
+  { \jmethodmeetrule{\mu}{\mu'} }
+
+\bigskip
+
+\infrule[Meet-Third]
+  { \mu''\in\Delta  \andalso  \mathit{distinct}(\mu,\mu',\mu'')  \\  \name{\mu}=\name{\mu'}=\name{\mu''} \\
+    \jequivalent{\dom(\mu'')}{\dom(\mu)\sqcap\dom(\mu')} }
+  { \jmethodmeetrule{\mu}{\mu'} }
+
+\bigskip
+
+\newjudge{Return Type Rule}{\jreturntyperule{T\obb{\mu}}{T\obb{\mu}}}
+
+\bigskip
+
+\infrule[Return-Triv]
+  { \Big((\mu=\mu') \vee (\name{\mu}\not=\name{\mu'}) \vee \null \\ \neg\big(\jle{\dom(\mu)}{\dom(\mu')}\big)\Big) }
+  { \jreturntyperule{\mu}{\mu'} }
+
+\bigskip
+
+\infrule[Return-Test]
+  { \mu = m\obb{\kappa}(\bar{x\COLON\alpha})\COLON\rho \defneq \dontcare
+    \andalso
+    \mu' = m\obb{\kappa'}(\bar{x'\COLON\alpha'})\COLON\rho' \defneq \dontcare
+    \\
+    \bar{\kappa = \bdb{\chi} \extends P \extends \bdb{\eta}}
+    \andalso
+    \bar{\kappa' = \bdb{\chi'} \extends Q \extends \bdb{\eta'}}
+    \\
+    \mu\neq\mu'
+    \andalso
+    \mathit{distinct}(\bar{P},\bar{Q})
+    \andalso
+    \jle{\dom(\mu)}{\dom(\mu')}
+    \\
+    \jle{\foralltypeb{\kappa}{\arrowtype{\tupleb{\alpha}}{\rho}}}{\foralltype{\bar{\kappa},\bar{\kappa'}}{\arrowtype{\intersectiontype{\tupleb{\alpha}}{\tupleb{\alpha'}}}{\rho'}}}
+  }
+  { \jreturntyperule{\mu}{\mu'} }
+
+\bigskip
+
+\newjudge{Ancestor Meet Rule}{\jancestormeetrule{T\obb{\alpha}}{T\obb{\alpha}}}
+
+\medskip
+
+\infrule[Meet-Diff]
+  { T \neq T' }
+  { \jancestormeetrule{T\obb{\alpha}}{T'\obb{\eta}} }
+
+\bigskip
+
+\infrule[Meet-Same]
+  { \kwd{trait} \; T\obb{V\;P \extends \set{\dontcare}} \; \dontcare \; \kwd{end} \in \Delta \\
+    T\obb{\gamma} \in \setb{\chi}  \andalso
+    \jbcertainlyvaries{\gamma}{V}{\alpha}  \andalso  \jbcertainlyvaries{\gamma}{V}{\eta} }
+  { \jancestormeetrule{T\obb{\alpha}}{T\obb{\eta}} }
+
+\medskip
+\caption{The Method Meet Rule, the Return Type Rule, and the Ancestor Meet Rule.  Note that alpha-renaming of type variables may be necessary to apply some of these rules.}
+\label{fig:meetrule}
+\end{figure}

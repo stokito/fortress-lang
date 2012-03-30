@@ -12,8 +12,8 @@
 
 TICKS = paper.tick notation.tick grammar.tick static.tick evaluation.tick subtyping.tick \
 	fig-constraints.tick fig-evaluation.tick fig-exclusion.tick fig-expressiontypes.tick fig-grammar.tick fig-internalsymbols.tick \
-	fig-metavariables.tick fig-miscjudgments.tick fig-miscsubtyping.tick fig-quantified.tick fig-subtyping.tick fig-values.tick \
-        fig-wellformeddecls.tick fig-wellformedtypes.tick
+	fig-meetrule.tick fig-metavariables.tick fig-miscjudgments.tick fig-miscsubtyping.tick fig-msa.tick fig-quantified.tick \
+	fig-subtyping.tick fig-values.tick fig-wellformeddecls.tick fig-wellformedtypes.tick
 
 TEXS = $(TICKS:.tick=.tex)
 

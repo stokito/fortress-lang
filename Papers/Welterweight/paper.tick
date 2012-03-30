@@ -22,6 +22,7 @@
 \newcommand{\C}{\mathcal{C}}
 \newcommand{\quoted}[1]{\begin{quote}#1\end{quote}}
 \newcommand{\exc}{\mathrel{\lozenge}}
+\newcommand{\existsexc}{\mathrel{\blacklozenge}}
 \newcommand{\nexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\lozenge}}
 \newcommand{\smalllozenge}{\vcenter{\hbox{\scalebox{.5}{$\lozenge$}}}}
 \newcommand{\normallozenge}{\vcenter{\hbox{$\lozenge$}}}
@@ -78,7 +79,8 @@
 \newcommand{\alphaequiv}{\ensuremath{\stackrel{\alpha}{\sim}}}
 \newcommand{\cequiv}{\ensuremath{\sim}}
 
-\newcommand{\arrowtype}[2]{\mbox{\ensuremath{({#1} \rightarrow {#2})}}}
+\newcommand{\arrowtype}[2]{\mbox{\ensuremath{(\barearrowtype{#1}{#2})}}}
+\newcommand{\barearrowtype}[2]{\mbox{\ensuremath{{#1} \rightarrow {#2}}}}
 \newcommand{\tuple}[1]{\ensuremath{(#1)}}
 \newcommand{\tupleb}[1]{\ensuremath{(\bar{#1})}}
 \newcommand{\bigtuple}[1]{\ensuremath{\big(#1\big)}}
@@ -159,7 +161,7 @@
 \newcommand{\ctext}{\ensuremath{\supseteq}}
 % a declaration set D
 \newcommand{\D}{\ensuremath{\mathcal{D}}}
-% a declaration set restricted to a function name
+% a declaration set restricted to a function namemeet	
 \newcommand{\Df}[1][f]{\D_{\!#1}}
 % existential type
 \newcommand{\existstype}[2]{\ensuremath{\exists\bigob{#1}{#2}}}
@@ -211,6 +213,10 @@
 \newcommand{\jtype}[3][\Delta;\Gamma]{\jgtemplate[#1]{#2}{\mathrel{:}}{#3}}
 \newcommand{\jbtype}[3][\Delta;\Gamma]{\jgbtemplate[#1]{#2}{\mathrel{:}}{#3}}
 
+%variance
+\newcommand{\jcertainlyvaries}[4][\Delta]{\jgtemplate[#1]{#2}{#3}{#4}}
+\newcommand{\jbcertainlyvaries}[4][\Delta]{\jgbtemplate[#1]{#2}{#3}{#4}}
+
 %subtyping
 \newcommand{\jsubtype}[3][\Delta]{\jgtemplate[#1]{#2}{\subtypeof}{#3}}
 \newcommand{\jbsubtype}[3][\Delta]{\jgbtemplate[#1]{#2}{\subtypeof}{#3}}
@@ -232,12 +238,23 @@
 \newcommand{\jwfmeth}[2][\Delta;\Gamma;\bar{P};\bar{z}]{\jgshorttemplate[#1]{#2}{\mathsf{ok}}}
 \newcommand{\jbwfmeth}[2][\Delta;\Gamma;\bar{P};\bar{z}]{\jgbshorttemplate[#1]{#2}{\mathsf{ok}}}
 
+% Meet and return type rules
+\newcommand{\jgruletemplate}[5][\Delta]{{#1}\,\turnstile\,{#2}\;{#3}\;{#4}\;{#5}}
+\newcommand{\jgbruletemplate}[5][\Delta]{{#1}\,\turnstile\,\bar{{#2}\;{#3}\;{#4}\;{#5}}}
+\newcommand{\jmethodmeetrule}[3][\Delta]{\jgruletemplate[#1]{#2}{\mathsf{method\;meet}}{#3}{\mathsf{ok}}}
+\newcommand{\jbmethodmeetrule}[3][\Delta]{\jgbruletemplate[#1]{#2}{\mathsf{method\;meet}}{#3}{\mathsf{ok}}}
+\newcommand{\jreturntyperule}[3][\Delta]{\jgruletemplate[#1]{#2}{\mathsf{return\;type}}{#3}{\mathsf{ok}}}
+\newcommand{\jbreturntyperule}[3][\Delta]{\jgbruletemplate[#1]{#2}{\mathsf{return\;type}}{#3}{\mathsf{ok}}}
+\newcommand{\jancestormeetrule}[3][\Delta;\bar{\chi}]{\jgruletemplate[#1]{#2}{\mathsf{ancestor\;meet}}{#3}{\mathsf{ok}}}
+\newcommand{\jbancestormeetrule}[3][\Delta;\bar{\chi}]{\jgbruletemplate[#1]{#2}{\mathsf{ancestor\;meet}}{#3}{\mathsf{ok}}}
 
 % subtyping on quantified types
 \newcommand{\jle}[3][\Delta]{\jgtemplate[#1]{#2}{\sqsubseteq}{#3}}
-\newcommand{\jleusing}[4][\Delta]{\jgtemplate[#1]{#2}{\le}{\sqsubseteq}\;\mathsf{using}\;{#4}}
+\newcommand{\jleusing}[4][\Delta]{\jgtemplate[#1]{#2}{\sqsubseteq}{#3}\;\mathsf{using}\;{#4}}
 \newcommand{\jleinner}[3][\Delta]{\jgtemplate[#1]{#2}{\leinner}{#3}}
 \newcommand{\jleinnerusing}[4][\Delta]{\jgtemplate[#1]{#2}{\leinner}{#3}\;\mathsf{using}\;{#4}}
+\newcommand{\jexcludes}[3][\Delta]{\jgtemplate[#1]{#2}{\existsexc}{#3}}
+\newcommand{\jequivalent}[3][\Delta]{\jgtemplate[#1]{#2}{\sequiv}{#3}}
 
 % constrained judgments
 \newcommand{\jgconstrtemplate}[5][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{#3}\;{#4}\,\Leftarrow\,{#5}}}

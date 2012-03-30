@@ -1,8 +1,6 @@
 \begin{figure*}
-
 \typicallabel{R-Function-No-Static-Args}
-
-\newjudge{Evaluation rules}{\jevalstep[\Delta]{E[R]}{E[e]}}
+\hbox to \textwidth{\hss\newjudge{Evaluation rules}{\jevalstep[\Delta]{E[R]}{E[e]}}\hss}
 
 \medskip
 

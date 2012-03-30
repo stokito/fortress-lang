@@ -72,6 +72,8 @@ means the same as three separately written judgments:
 \[\jgtemplate[\Gamma]{\tau_1}{\extends}{\tau'_1} \andalso \jgtemplate[\Gamma]{\tau_2}{\extends}{\tau'_2} \andalso \jgtemplate[\Gamma]{\tau_3}{\extends}{\tau'_3} \]
 \item If a judgment has nothing to the right of the turnstile, it is
 as if there were no judgment written at all.
+\item If an inference rule has several comma-separated expressions or judgments as premises, it is
+as if the premises had been separated by the customary wide whitespace (and thus treated as conjuncts).
 \item If an inference rule has several comma-separated expressions or judgments as consequents, it is
 as if there were several distinct inference rules, one containing each of the consequents.
 \item If an inference rule has no consequents, it is

@@ -26,7 +26,7 @@ b        & ::= &  x                                              & \hbox{\rm var
          &  |  &  \mu                                            & \hbox{\rm dotted method declaration} \\[4pt]
 \Omega   & ::= &  \setb{(\alpha,\theta,c)}                       & \hbox{\rm set of overloaded procedures} \\[4pt]
 \Delta   & ::= &  \setb{\psi}                                    & \hbox{\rm type-declaration environment} \\[4pt]
-\Gamma   & ::= &  \bar{\mathit{var}\COLON\alpha}                 & \hbox{\rm variable-type environment} \\[4pt]
+\Gamma   & ::= &  \bar{b\COLON\alpha}                            & \hbox{\rm variable-type environment} \\[4pt]
 \end{array}
 
 \caption{Symbols Not Used in the Concrete Syntax}

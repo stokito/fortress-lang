@@ -4,52 +4,123 @@
 
 \newjudge{Constrained type equivalence}{\jequiv{\alpha}{\alpha}{\C}}
 
+\medskip
+
 \infrule
   { \jsub{\alpha}{\eta}{\C}  \andalso  \jsub{\eta}{\alpha}{\C'} }
   { \jequiv{\alpha}{\eta}{\C \wedge \C'} }
 
+\medskip
+
 \newjudge{Unconditional subtyping}{\jsubtype{\alpha}{\alpha}}
+
+\medskip
 
 \infrule
   { \jsub{\alpha}{\eta}{\TRUE} }
   { \jsubtype{\alpha}{\eta} }
 
+\medskip
+
 \newjudge{Unconditional exclusion}{\jexctype{\alpha}{\alpha}}
+
+\medskip
 
 \infrule
   { \jexc{\alpha}{\eta}{\TRUE} }
   { \jexctype{\alpha}{\eta} }
 
+\medskip
+
 \newjudge{Unconditional type equivalence}{\jequivtype{\alpha}{\alpha}}
+
+\medskip
 
 \infrule
   { \jequiv{\alpha}{\eta}{\TRUE} }
   { \jequivtype{\alpha}{\eta} }
 
+\medskip
+
 \newjudge{Unconditional type not-equivalence}{\jnotequivtype{\alpha}{\alpha}}
+
+\medskip
 
 \infrule
   { \jnequiv{\alpha}{\eta}{\TRUE} }
   { \jnotequivtype{\alpha}{\eta} }
 
+\medskip
+
+\newjudge{Unconditional variance test}{\jcertainlyvaries{\alpha}{V}{\alpha}}
+
+\medskip
+
+\infrule
+  { \jvaries{\alpha}{V}{\eta}{\TRUE} }
+  { \jcertainlyvaries{\alpha}{V}p{\eta} }
+
+\medskip
+
 \newjudge{Conditional type equivalence}{\jequiv{\alpha}{\alpha}{\C}}
+
+\medskip
 
 \infrule
   {\jsub{\alpha}{\eta}{\C} \andalso \jsub{\eta}{\alpha}{\C'}}
   {\jequiv{\alpha}{\eta}{\C \wedge \C'}}
 
+\medskip
+
 \newjudge{Conditional type non-equivalence}{\jnequiv{\alpha}{\alpha}{\C}}
-  
+
+\medskip
+
 \infrule
   {\jnsub{\alpha}{\eta}{\C} \andalso \jnsub{\eta}{\alpha}{\C'}}
   {\jnequiv{\alpha}{\eta}{\C \vee \C'}}
 
-\vspace*{2ex}
+\medskip
+
 \newjudge{Converse type non-equivalence}{\jgcontratemplate{\alpha}{\not\equiv}{\alpha}{\C}}
+
+\medskip
   
 \infrule
   {\jequiv{\alpha}{\eta}{\C}}
   {\jcnequiv{\alpha}{\eta}{\neg(\C)}}
+
+\medskip
+
+\newjudge{Equivalence of existential types}{\jequivalent{\Phi}{\Phi}}
+
+\medskip
+
+\infrule
+  { \jle{\Phi}{\Phi'}  \andalso \jle{\Phi'}{\Phi} }
+  { \jequivalent{\Phi}{\Phi'} }
+
+\medskip
+
+\newjudge{Free variables in some number of types}{\FV(\bar{\alpha})=\bigsetb{P}}
+
+\medskip
+
+\[
+\begin{array}{l}
+\FV(\bar{\alpha}) = \bigcup \bigsetb{\mathit{oneFV}(\alpha)} \\[10pt]
+\mathit{oneFV}(P) = \set{P} \\
+\mathit{oneFV}(T\obb{\alpha}) = \FV(\bar{\alpha}) \\
+\mathit{oneFV}(O\obb{\alpha}) = \FV(\bar{\alpha}) \\
+\mathit{oneFV}(\tupleb{\alpha}) = \FV(\bar{\alpha}) \\
+\mathit{oneFV}(\arrowtype{\alpha}{\rho}) = \FV(\alpha,\rho) \\
+\mathit{oneFV}(\Any) = \set{\,} \\
+\mathit{oneFV}(\Object) = \set{\,} \\
+\mathit{oneFV}(\Bottom) = \set{\,} \\
+\mathit{oneFV}(\uniontype{\alpha}{\eta}) = \FV(\alpha,\eta) \\
+\mathit{oneFV}(\intersectiontype{\alpha}{\eta}) = \FV(\alpha,\eta)
+\end{array}
+\]
 
 \medskip
 \caption{Miscellaneous Typing Judgments}
