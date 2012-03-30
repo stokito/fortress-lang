@@ -20,6 +20,9 @@ unconditional versions of the subtyping, type exclusion, and type equivalence re
 Figure~\ref{fig:quantified} gives rules for deciding whether one existentially quantified type is a subtype of another,
 and whether one universally quantified type is a subtype of another.
 
+\input{fig-meetrule}
+
+
 \clearpage
 \clearpage
 \clearpage

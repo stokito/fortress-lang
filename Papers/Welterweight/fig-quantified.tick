@@ -1,28 +1,32 @@
 \begin{figure}
-\typicallabel{}
+\typicallabel{x}
 
 \newjudge{Existential subtyping}{\jleinner{\Phi}{\Phi} \quad \jle{\Phi}{\Phi}}
 
 \bigskip
 
 \infrule
-  { \mathit{parameters}(\setb{\lambda}) \cap (\FV(\eta) \cup \FV(\bar{\zeta}) \cup \FV(\bar{\xi})) = \emptyset
-    \\[3pt]
-    \Delta' = \Delta, \bar{\bdb{\zeta} \extends P \extends \bdb{\xi}}
+  { \Delta' = \Delta, \bar{\lambda}
     \andalso
-    \jbsubtype[\Delta']{\underline{\substb{\chi}{Q}}\bar{\zeta}}{\chi}
-    \\[3pt]
-    \jsubtype[\Delta']{\alpha}{\substb{\chi}{Q}\eta}
+    \bar{\lambda = \bdb{\chi} \extends P \extends \bdb{\eta}}
+    \\[2pt]
+    \setb{P} \cap \FV(\bar{\chi'},\bar{\eta'},{\alpha'}) = \emptyset
     \andalso
-    \jbsubtype[\Delta']{\chi}{\underline{\substb{\chi}{Q}}\bar{\xi}}
+    \jsubtype[\Delta']{\alpha}{\Bigsubstb{\gamma}{Q}\alpha'}
+    \\[6pt]
+    \jbsubtype[\Delta']{\underline{\Bigsubstb{\gamma}{Q}}\chi'}{\gamma}
+    \andalso
+    \jbsubtype[\Delta']{\gamma}{\underline{\Bigsubstb{\gamma}{Q}}\eta'}
   }
-  { \jleinnerusing{\existstypeb{\lambda}{\alpha}}{\existstype{\bdb{\zeta} \extends Q \extends \bdb{\xi}}{\eta}}{\substb{\chi}{Q}} }
+  { \jleinnerusing{\existstypeb{\lambda}{\alpha}}{\existstype{\bdb{\chi'} \extends Q \extends \bdb{\eta'}}{\alpha'}}{\Bigsubstb{\gamma}{Q}} }
 
 \bigskip
 
 \infrule
   { \jtreds{\Phi}{\Phi'}{\dontcare} \andalso \jleinnerusing{\Phi'}{\Phi''}{\dontcare} }
   { \jle{\Phi}{\Phi''} }
+
+\medskip
 
 \infrule
   { \jtreds{\Phi}{\Phi'}{\dontcare} \andalso \jleinnerusing{\Phi'}{\Phi''}{\sigma} }
@@ -35,17 +39,19 @@
 \bigskip
 
 \infrule
-  { \mathit{parameters}(\setb{\lambda}) \cap (\FV(\alpha) \cup \FV(\bar{\zeta}) \cup \FV(\bar{\xi})) = \emptyset
-    \\[3pt]
-    \Delta' = \Delta, \bar{\bdb{\zeta'} \extends Q \extends \bdb{\xi'}}
+  { \Delta' = \Delta, \bar{\lambda}
     \andalso
-    \jbsubtype[\Delta']{\underline{\substb{\chi}{P}}\bd{\zeta}}{\chi}
-    \\[3pt]
-    \jsubtype[\Delta']{\substb{\chi}{P}\alpha}{\eta}
+    \bar{\lambda = \bdb{\chi'} \extends Q \extends \bdb{\eta'}}
+    \\[2pt]
+    \setb{Q} \cap \FV(\bar{\chi},\bar{\eta},{\alpha}) = \emptyset
     \andalso
-    \jbsubtype[\Delta']{\chi}{\underline{\substb{\chi}{P}}\bd{\xi}}
+    \jsubtype[\Delta']{\Bigsubstb{\gamma}{P}\alpha}{\alpha'}
+    \\[6pt]
+    \jbsubtype[\Delta']{\underline{\Bigsubstb{\gamma}{P}}\chi}{\gamma}
+    \andalso
+    \jbsubtype[\Delta']{\gamma}{\underline{\Bigsubstb{\gamma}{P}}\eta}
   }
-  { \jleinnerusing{\foralltypeb{\bdb{\zeta} \extends P \extends \bdb{\xi}}{\alpha}}{\foralltypeb{\lambda}{\eta}}{\substb{\chi}{Q}} }
+  { \jleinnerusing{\foralltypeb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\alpha}}{\foralltypeb{\lambda}{\alpha'}}{\Bigsubstb{\gamma}{Q}} }
 
 \bigskip
 
@@ -80,8 +86,19 @@
   { \jtreds{\existstypeb{\lambda}{\alpha}}{\existstypeb{\lambda'}{\alpha'}}{\sigma} }
   { \jtreds{\foralltypeb{\lambda}{\arrowtype{\alpha}{\omega}}}{\foralltypeb{\lambda'}{\arrowtype{\alpha'}{\sigma(\omega)}}}{\sigma} }
 
+\bigskip
+
+\newjudge{Exclusion of existential types}{\jexcludes{\Phi}{\Phi}}
+
+\bigskip
+
+\infrule
+  { \mathit{distinct}(\bar{P},\bar{P'})  \\
+    \FV(\bar{\chi},\bar{eta},\alpha)\cap\setb{P'}=\FV(\bar{\chi'},\bar{eta'},\alpha')\cap\setb{P}=\emptyset \\
+    \jle{\existstype{\bar{\bdb{\chi} \extends P \extends {\eta}},\bar{\bdb{\chi'} \extends P' \extends {\eta'}}}{\alpha\cap\alpha'}}{\Bottom} }
+  { \jexcludes{\existstypeb{\bdb{\chi} \extends P \extends {\eta}}{\alpha}}{\existstypeb{\bdb{\chi'} \extends P' \extends {\eta'}}{\alpha'}} }
+
 \medskip
-\caption{Typing Rules for Quantified Types. Note that alpha-renaming of type variables may be necessary 
-to apply these rules.}
+\caption{Typing Rules for Quantified Types. Note that alpha-renaming of type variables may be necessary to apply these rules.}
 \label{fig:quantified}
 \end{figure}
