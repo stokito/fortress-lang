@@ -9,7 +9,9 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\part{Appendices}
+\newcommand{\appendixdir}{\home/Appendices}
+\appendix
+% \newpart{Appendices}{appendices}
 
 % We might want this to be several parts: 
 %  - Language details
@@ -28,4 +30,16 @@
 
 % Arguably, "libraries" should also be an appendix.
 
-\input{../appendices/grammar.tex}
+% The following should perhaps be a single appendix.
+%\input{\appendixdir/characters}
+%\input{\appendixdir/literals}
+%\input{\appendixdir/reserved-words}
+%\input{\appendixdir/operators}
+
+%\input{\appendixdir/ascii-to-unicode}
+
+%\input{\appendixdir/rendering}
+
+\input{\appendixdir/grammar}
+%\input{\appendixdir/future}
+%\input{\appendixdir/changes}

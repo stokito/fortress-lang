@@ -9,7 +9,10 @@ syntax: glob
 .scala_dependencies
 .svn
 *.a
+*.aux
+*.bbl
 *.bin
+*.blg
 *.class
 *.cma
 *.cmi
@@ -32,7 +35,12 @@ build/
 CommunityMetrics/ExternalContributors.numbers
 CommunityMetrics/ExternalContributors.xls
 default_repository/caches/
-Fortify/example/example.aux
+Documentation/Specification/Code/*.tex
+Documentation/Specification/Root/fortress-keywords.tex
+Documentation/Specification/Root/fortress-specialReservedWords.tex
+Documentation/Specification/Root/fortress-unitOperators.tex
+Documentation/Specification/Root/fortress.pdf
+Documentation/Specification/Root/fortress.toc
 Fortify/example/example.pdf
 Fortify/example/example.tex
 fortress_*.zip
@@ -40,6 +48,12 @@ junk
 Library/FortressAst.fsi
 Library/FortressAst.fss
 META
+Papers/Types/*.tex
+Papers/Types/*.pdf
+Papers/Types/*.ps
+Papers/Welterweight/*.tex
+Papers/Welterweight/*.pdf
+Papers/Welterweight/*.ps
 ProjectFortress/.dependencies/dependencies.txt
 ProjectFortress/*.tfi
 ProjectFortress/*.tfs

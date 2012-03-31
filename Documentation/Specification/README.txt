@@ -9,7 +9,8 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This is the root directory for the sources for the Fortress Language Specification.
+FORTRESS_HOME/Documentation/Specification/ is the root directory 
+for the sources for the Fortress Language Specification.
 It has several subdirectories corresponding to parts of the specification, 
 each of which has several files or subdirectories corresponding to chapters.
 In addition, it has the following subdirectories:

@@ -11,7 +11,15 @@
 
 \input{../../../Fortify/fortify.sty}
 
-%Cross-references
+% Sectioning
+\newcommand{\newpart}[2]{\part{#1}\partlabel{#2}}
+\newcommand{\newchap}[2]{\chapter{#1}\chaplabel{#2}}
+\newcommand{\newapp}[2]{\chapter{#1}\applabel{#2}}
+\newcommand{\newsec}[2]{\section{#1}\seclabel{#2}}
+\newcommand{\newsubsec}[2]{\subsection{#1}\seclabel{#2}}
+\newcommand{\newsubsubsec}[2]{\subsubsection{#1}\seclabel{#2}}
+
+% Cross-references
 \newcommand{\partref}[1]{Part~\ref{part:#1}}
 \newcommand{\partlabel}[1]{\label{part:#1}}
 \newcommand{\chapref}[1]{Chapter~\ref{chap:#1}}
@@ -25,7 +33,7 @@
 \newcommand{\see}[1]{see \secref{#1}}
 \newcommand{\See}[1]{See \secref{#1}}
 
-%Literal text
+% Literal text
 \newcommand{\txt}[1]{\mbox{\ttfamily\small{#1}}}
 \newcommand{\A}[1]{\underline{\texttt{#1}}}
 \newcommand{\txtr}[1]{\mbox{\ttfamily{#1}}}
