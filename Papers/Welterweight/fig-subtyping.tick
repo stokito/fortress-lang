@@ -92,8 +92,8 @@
   { \jsub{\arrowtype{\alpha}{\rho}}{\arrowtype{\alpha'}{\rho'}}{\C \wedge \C'} }
   
 \infrule
-  { \countof(\bar{U}) \neq 1 }
-  { \jsub{\arrowtype{\alpha}{\rho}}{(\bar{U})}{\FALSE} }
+  { \countof(\bar{\eta}) \neq 1 }
+  { \jsub{\arrowtype{\alpha}{\rho}}{\tupleb{\eta}}{\FALSE} }
   
 \infrule
   { \countof(\bar{\alpha}) \neq 1 }
@@ -114,19 +114,20 @@
 \textbf{Constructed types}
 
 \infrule
-  { \mathit{distinct}(T,T') \andalso
+  { \mathit{distinct}(T,T')  \andalso  \jwftype{T\obb{\alpha}}  \andalso  \jwftype{T'\obb{\eta}} \\[2pt]
     \setb{\tau} = \parents{T\obb{\alpha}} \andalso
     \jbsub{\tau}{\underline{T'\obb{\eta}}}{\C} }
   { \jsub{T\obb{\alpha}}{T'\obb{\eta}}{\bigvee\bigsetb{\C}} }
 
 \infrule
-  { \setb{\tau} = \parents{O\obb{\alpha}} \andalso
+  { \jwftype{O\obb{\alpha}}  \andalso  \jwftype{T'\obb{\eta}} \\[2pt]
+    \setb{\tau} = \parents{O\obb{\alpha}} \andalso
     \jbsub{\tau}{\underline{T'\obb{\eta}}}{\C} }
   { \jsub{O\obb{\alpha}}{T'\obb{\eta}}{\bigvee\bigsetb{\C}} }
 
 \infrule
   { \kwd{trait} \; T\bigob{\bar{V\;P \extends \bd{\dontcare}}} \; \dontcare \; \kwd{end} \in \set{\Delta} \\[1pt]
-     \jbvaries{\alpha}{V}{\eta}{\C} }
+     \jwftype{T\obb{\alpha}}  \andalso  \jwftype{T'\obb{\eta}}  \andalso  \jbvaries{\alpha}{V}{\eta}{\C} }
   { \jsub{T\obb{\alpha}}{T\obb{\eta}}{\bigwedge\bigsetb{\C}} }
 
 \end{minipage}%

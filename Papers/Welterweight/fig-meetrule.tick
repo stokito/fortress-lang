@@ -1,8 +1,8 @@
-\begin{figure}
+\begin{figure}[t]
 \typicallabel{D-Trait}
 
 
-\newjudge{Method Meet Rule}{\jmethodmeetrule{\mu}{\mu}}
+\newjudge{Meet Rule}{\jmethodmeetrule{\mu}{\mu}}
 
 \bigskip
 
@@ -13,20 +13,23 @@
 \bigskip
 
 \infrule[Meet-Excl]
-  { \mu\not=\mu' \andalso \name{\mu}=\name{\mu'} \\ \jexcludes{\dom(\mu)}{\dom(\mu')} }
+  { \mu\not=\mu' \andalso \name{\mu}=\name{\mu'} \\[1pt]
+    \jle{\bigtuple{\dom(\mu)\existentialmeet\dom(\mu')}}{\existstype{\verythinmathspace}{\Bottom}} }
   { \jmethodmeetrule{\mu}{\mu'} }
 
 \bigskip
 
 \infrule[Meet-Spec]
-  { \mu\not=\mu' \andalso \name{\mu}=\name{\mu'} \\ \jle{\dom(\mu)}{\dom(\mu')} }
+  { \mu\not=\mu' \andalso \name{\mu}=\name{\mu'} \\[1pt]
+    \jle{\dom(\mu)}{\dom(\mu')} }
   { \jmethodmeetrule{\mu}{\mu'} }
 
 \bigskip
 
 \infrule[Meet-Third]
-  { \mu''\in\Delta  \andalso  \mathit{distinct}(\mu,\mu',\mu'')  \\  \name{\mu}=\name{\mu'}=\name{\mu''} \\
-    \jequivalent{\dom(\mu'')}{\dom(\mu)\sqcap\dom(\mu')} }
+  { \mu''\in\Delta  \andalso  \mathit{distinct}(\mu,\mu',\mu'')  \\[1pt]
+    \name{\mu}=\name{\mu'}=\name{\mu''} \\[1pt]
+    \jequivalent{\dom(\mu'')}{\bigtuple{\dom(\mu)\sqcap\dom(\mu')}} }
   { \jmethodmeetrule{\mu}{\mu'} }
 
 \bigskip
@@ -36,7 +39,13 @@
 \bigskip
 
 \infrule[Return-Triv]
-  { \Big((\mu=\mu') \vee (\name{\mu}\not=\name{\mu'}) \vee \null \\ \neg\big(\jle{\dom(\mu)}{\dom(\mu')}\big)\Big) }
+  { (\mu=\mu') \vee (\name{\mu}\not=\name{\mu'}) }
+  { \jreturntyperule{\mu}{\mu'} }
+
+\bigskip
+
+\infrule[Return-Moot]
+  { \neg\big(\jle{\dom(\mu)}{\dom(\mu')}\big) }
   { \jreturntyperule{\mu}{\mu'} }
 
 \bigskip
@@ -45,40 +54,41 @@
   { \mu = m\obb{\kappa}(\bar{x\COLON\alpha})\COLON\rho \defneq \dontcare
     \andalso
     \mu' = m\obb{\kappa'}(\bar{x'\COLON\alpha'})\COLON\rho' \defneq \dontcare
-    \\
+    \\[3pt]
     \bar{\kappa = \bdb{\chi} \extends P \extends \bdb{\eta}}
     \andalso
     \bar{\kappa' = \bdb{\chi'} \extends Q \extends \bdb{\eta'}}
-    \\
+    \\[3pt]
     \mu\neq\mu'
     \andalso
     \mathit{distinct}(\bar{P},\bar{Q})
     \andalso
     \jle{\dom(\mu)}{\dom(\mu')}
-    \\
+    \\[3pt]
     \jle{\foralltypeb{\kappa}{\arrowtype{\tupleb{\alpha}}{\rho}}}{\foralltype{\bar{\kappa},\bar{\kappa'}}{\arrowtype{\intersectiontype{\tupleb{\alpha}}{\tupleb{\alpha'}}}{\rho'}}}
   }
   { \jreturntyperule{\mu}{\mu'} }
 
 \bigskip
 
-\newjudge{Ancestor Meet Rule}{\jancestormeetrule{T\obb{\alpha}}{T\obb{\alpha}}}
+\newjudge{Ancestors Rule}{\jancestormeetrule{T\obb{\alpha}}{T\obb{\alpha}}}
 
 \medskip
 
-\infrule[Meet-Diff]
+\infrule[Anc-Diff-Trait]
   { T \neq T' }
   { \jancestormeetrule{T\obb{\alpha}}{T'\obb{\eta}} }
 
 \bigskip
 
-\infrule[Meet-Same]
+\infrule[Anc-Same-Trait]
   { \kwd{trait} \; T\obb{V\;P \extends \set{\dontcare}} \; \dontcare \; \kwd{end} \in \Delta \\
-    T\obb{\gamma} \in \setb{\chi}  \andalso
-    \jbcertainlyvaries{\gamma}{V}{\alpha}  \andalso  \jbcertainlyvaries{\gamma}{V}{\eta} }
+    T\obb{\gamma} \in \setb{\chi}  \\
+    \jsubtype{T\obb{\gamma}}{T\obb{\alpha}}  \\
+    \jsubtype{T\obb{\gamma}}{T\obb{\eta}} }
   { \jancestormeetrule{T\obb{\alpha}}{T\obb{\eta}} }
 
 \medskip
-\caption{The Method Meet Rule, the Return Type Rule, and the Ancestor Meet Rule.  Note that alpha-renaming of type variables may be necessary to apply some of these rules.}
+\caption{The Meet Rule, the Return Type Rule, and the Ancestors Rule.  Note that alpha-renaming of type variables may be necessary to apply some of these rules.}
 \label{fig:meetrule}
 \end{figure}

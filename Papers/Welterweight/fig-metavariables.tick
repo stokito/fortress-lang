@@ -21,14 +21,15 @@ $f$ ranges over function names $f$ \\
 $m$ ranges over method names $m$ \\
 $\tau, \zeta, \xi, \omega$ range over types $\tau$ \\
 $\alpha, \gamma, \rho, \chi, \eta$ range over lattice types $\alpha$ \\
+$C$ ranges over lattice constructed types $C$ \\
 $\Phi$ ranges over existentially quantified types $\Phi$ \\
 $\Psi$ ranges over universally quantified types $\Psi$ \\
-$\lambda$ ranges over lattice type parameter bindings $\lambda$ \\
+$p$ ranges over lattice type parameter bindings $p$ \\
 $\psi$ ranges over general type environment entries $\psi$ \\
-$I$ ranges over inference variables names $I$ \\
+$I$ ranges over inference variable names $I$ \\
 $b$ ranges over bindable value names $b$ \\
 $\sigma$ ranges over type/parameter substitutions $\sigma$ \\
-$\theta$ ranges over procedure declarations $\theta$ \\
+$d$ ranges over procedure declarations $d$ \\
 $\Omega$ ranges over sets of overloaded procedures $\Omega$ \\
 $\Delta$ ranges over type-declaration environments $\Delta$ \\
 $\Gamma$ ranges over variable-type environments $\Gamma$ \\
@@ -37,7 +38,7 @@ $E$ ranges over evaluation contexts $E$ \\
 $R$ ranges over redexes $R$ \\
 $\kappa$ ranges over ilk types $\kappa$ \\
 $\theta$ ranges over types that can appear in ilks $\theta$\\[6pt]
-$\pi$ and $\sigma$ do not range over any {\sc bnf} nonterminal
+$\pi$ does not range over any {\sc bnf} nonterminal
 \end{tabular}
 
 \caption{Metavariables Used in This Paper}

@@ -7,13 +7,13 @@
 % Stuff in \Delta is assumed to be well-formed
 
 \infrule[W-Param]
-  { \bd{\dontcare} \extends P \extends \bd{\dontcare} \in \set{\Delta} }
+  { \bd{\dontcare} \extends P \extends \bd{\dontcare} \in \Delta }
   { \jwftype{P} }
 
 \bigskip
 
 \infrule[W-Trait]
-  { \kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \; \dontcare \; \kwd{end} \in \set{\Delta} \\[2pt]
+  { \kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \; \dontcare \; \kwd{end} \in \Delta \\[2pt]
     \countof(\bar{\alpha}) = \countof(\bar{P})  \andalso  \jbwftype{\alpha} \\[3pt]
     \jbsubtype{\alpha}{\underline{\Bigsubstb{\alpha}{P}}\xi} }
   { \jwftype{T\obb{\alpha}} }
@@ -21,7 +21,7 @@
 \bigskip
 
 \infrule[W-Object]
-  { \kwd{object} \; O\bigobb{P \extends \bdb{\xi}} \; \dontcare \; \kwd{end} \in \set{\Delta} \\[2pt]
+  { \kwd{object} \; O\bigobb{P \extends \bdb{\xi}} \; \dontcare \; \kwd{end} \in \Delta \\[2pt]
     \countof(\bar{\alpha}) = \countof(\bar{P})  \andalso  \jbwftype{\alpha} \\[3pt]
     \jbsubtype{\alpha}{\underline{\Bigsubstb{\alpha}{P}}\xi} }
   { \jwftype{O\obb{\alpha}} }
@@ -69,15 +69,15 @@
 
 \infrule[W-Exists]
   { \jbwftype{\chi}  \andalso  \jbwftype{\eta} \\[4pt]
-    \jwftype[\Delta, \bar{\bdb{\chi} \extends P \extends \bdb{\eta}}]{\alpha} }
-  { \jwftype{\existstypeb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\alpha}} }
+    \jwftype[\Delta \cup \setb{\bdb{\chi} \extends P \extends \bdb{\eta}}]{\alpha} }
+  { \jwftype{\existstypebigb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\alpha}} }
 
 \bigskip
 
 \infrule[W-Forall]
   { \jbwftype{\chi}  \andalso  \jbwftype{\eta} \\[4pt]
-    \jwftype[\Delta, \bar{\bdb{\chi} \extends P \extends \bdb{\eta}}]{\alpha} }
-  { \jwftype{\foralltypeb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\alpha}} }
+    \jwftype[\Delta \cup \setb{\bdb{\chi} \extends P \extends \bdb{\eta}}]{\alpha} }
+  { \jwftype{\foralltypebigb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\alpha}} }
 
 \medskip
 \caption{Well-formed Types}

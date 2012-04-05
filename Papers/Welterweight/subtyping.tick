@@ -22,8 +22,6 @@ and whether one universally quantified type is a subtype of another.
 
 \input{fig-meetrule}
 
+\clearpage
 
-\clearpage
-\clearpage
-\clearpage
-\clearpage
+\input{fig-altmsa}

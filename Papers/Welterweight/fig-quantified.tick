@@ -1,14 +1,14 @@
-\begin{figure}
+\begin{figure}[t]
 \typicallabel{x}
 
 \newjudge{Existential subtyping}{\jleinner{\Phi}{\Phi} \quad \jle{\Phi}{\Phi}}
 
-\bigskip
+\medskip
 
 \infrule
-  { \Delta' = \Delta, \bar{\lambda}
+  { \Delta' = \Delta \cup \setb{p}
     \andalso
-    \bar{\lambda = \bdb{\chi} \extends P \extends \bdb{\eta}}
+    \bar{p = \bdb{\chi} \extends P \extends \bdb{\eta}}
     \\[2pt]
     \setb{P} \cap \FV(\bar{\chi'},\bar{\eta'},{\alpha'}) = \emptyset
     \andalso
@@ -18,9 +18,9 @@
     \andalso
     \jbsubtype[\Delta']{\gamma}{\underline{\Bigsubstb{\gamma}{Q}}\eta'}
   }
-  { \jleinnerusing{\existstypeb{\lambda}{\alpha}}{\existstype{\bdb{\chi'} \extends Q \extends \bdb{\eta'}}{\alpha'}}{\Bigsubstb{\gamma}{Q}} }
+  { \jleinnerusing{\existstypeb{p}{\alpha}}{\existstypebigb{\bdb{\chi'} \extends Q \extends \bdb{\eta'}}{\alpha'}}{\Bigsubstb{\gamma}{Q}} }
 
-\bigskip
+\medskip
 
 \infrule
   { \jtreds{\Phi}{\Phi'}{\dontcare} \andalso \jleinnerusing{\Phi'}{\Phi''}{\dontcare} }
@@ -36,12 +36,12 @@
 
 \newjudge{Universal subtyping}{\jleinner{\Psi}{\Psi} \quad \jle{\Psi}{\Psi}}
 
-\bigskip
+\medskip
 
 \infrule
-  { \Delta' = \Delta, \bar{\lambda}
+  { \Delta' = \Delta \cup \setb{p}
     \andalso
-    \bar{\lambda = \bdb{\chi'} \extends Q \extends \bdb{\eta'}}
+    \bar{p = \bdb{\chi'} \extends Q \extends \bdb{\eta'}}
     \\[2pt]
     \setb{Q} \cap \FV(\bar{\chi},\bar{\eta},{\alpha}) = \emptyset
     \andalso
@@ -51,9 +51,9 @@
     \andalso
     \jbsubtype[\Delta']{\gamma}{\underline{\Bigsubstb{\gamma}{P}}\eta}
   }
-  { \jleinnerusing{\foralltypeb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\alpha}}{\foralltypeb{\lambda}{\alpha'}}{\Bigsubstb{\gamma}{Q}} }
+  { \jleinnerusing{\foralltypebigb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\alpha}}{\foralltypeb{p}{\alpha'}}{\Bigsubstb{\gamma}{Q}} }
 
-\bigskip
+\medskip
 
 \infrule
   { \jleinnerusing{\Psi}{\Psi''}{\dontcare} \andalso \jtreds{\Psi'}{\Psi''}{\dontcare} }
@@ -63,42 +63,42 @@
 
 \newjudge{Existential Reduction}{\jtreds{\Phi}{\Phi}{\sigma}}
 
-\bigskip
+\medskip
 
 \infrule
-  {\jcnequiv{\alpha}{\Bottom}{\C} \andalso \toConstraint{\lambda}{\C'} \\
-   \jsolve{\C \wedge \C'}{\sigma}{\C''} \andalso \toBounds{\C''}{\lambda'}}
-  {\jtreds{\existstypeb{\lambda}{\alpha}}{\existstypeb{\lambda'}{\sigma(\alpha)}}{\sigma}}
+  {\jcnequiv{\alpha}{\Bottom}{\C} \andalso \toConstraint{p}{\C'} \\
+   \jsolve{\C \wedge \C'}{\sigma}{\C''} \andalso \toBounds{\C''}{p'}}
+  {\jtreds{\existstypeb{p}{\alpha}}{\existstypeb{p'}{\sigma(\alpha)}}{\sigma}}
 
-\bigskip
+\medskip
 
 \infrule
   {\text{otherwise}}
-  {\jtreds{\existstypeb{\lambda}{\alpha}}{\existstypeb{\lambda}{\alpha}}{\emptysubst}}
+  {\jtreds{\existstypeb{p}{\alpha}}{\existstypeb{p}{\alpha}}{\emptysubst}}
 
 \bigskip
   
 \newjudge{Universal Reduction}{\jtreds{\Psi}{\Psi}{\sigma}}
 
-\bigskip
+\medskip
 
 \infrule
-  { \jtreds{\existstypeb{\lambda}{\alpha}}{\existstypeb{\lambda'}{\alpha'}}{\sigma} }
-  { \jtreds{\foralltypeb{\lambda}{\arrowtype{\alpha}{\omega}}}{\foralltypeb{\lambda'}{\arrowtype{\alpha'}{\sigma(\omega)}}}{\sigma} }
+  { \jtreds{\existstypeb{p}{\alpha}}{\existstypeb{p'}{\alpha'}}{\sigma} }
+  { \jtreds{\foralltypeb{p}{\arrowtype{\alpha}{\omega}}}{\foralltypeb{p'}{\arrowtype{\alpha'}{\sigma(\omega)}}}{\sigma} }
 
 \bigskip
 
-\newjudge{Exclusion of existential types}{\jexcludes{\Phi}{\Phi}}
+\newjudge{Intersection of existential types}{\Phi\existentialmeet\Phi}
 
-\bigskip
+\medskip
 
 \infrule
   { \mathit{distinct}(\bar{P},\bar{P'})  \\
-    \FV(\bar{\chi},\bar{eta},\alpha)\cap\setb{P'}=\FV(\bar{\chi'},\bar{eta'},\alpha')\cap\setb{P}=\emptyset \\
-    \jle{\existstype{\bar{\bdb{\chi} \extends P \extends {\eta}},\bar{\bdb{\chi'} \extends P' \extends {\eta'}}}{\alpha\cap\alpha'}}{\Bottom} }
-  { \jexcludes{\existstypeb{\bdb{\chi} \extends P \extends {\eta}}{\alpha}}{\existstypeb{\bdb{\chi'} \extends P' \extends {\eta'}}{\alpha'}} }
+    \FV(\bar{\chi},\bar{\eta},\alpha)\cap\setb{P'}=\FV(\bar{\chi'},\bar{\eta'},\alpha')\cap\setb{P}=\emptyset }
+  { \Bigtuple{\existstypeBigb{\bdb{\chi} \mathord{\extends} P \mathord{\extends} {\eta}}{\alpha}} \existentialmeet \Bigtuple{\existstypeBigb{\bdb{\chi'} \mathord{\extends} P' \mathord{\extends} {\eta'}}{\alpha'}} = \\[2pt]
+    \existstypeBig{\bar{\bdb{\chi} \mathord{\extends} P \mathord{\extends} {\eta}},\bar{\bdb{\chi'} \mathord{\extends} P' \mathord{\extends} {\eta'}}}{\intersectiontype{\alpha}{\alpha'}} }
 
 \medskip
-\caption{Typing Rules for Quantified Types. Note that alpha-renaming of type variables may be necessary to apply these rules.}
+\caption{Typing Rules for Quantified Types. Note that alpha-renaming of type variables may be necessary to apply some of these rules.}
 \label{fig:quantified}
 \end{figure}

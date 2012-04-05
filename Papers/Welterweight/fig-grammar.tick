@@ -22,7 +22,7 @@ e        & ::= &  x                                                             
          &  |  &  \pi_i(e)                                                           & \multicolumn{2}{@{}l@{}}{\hbox{\rm tuple projection}} \\
          &  |  &  ((\bar{x\COLON\tau})\COLON\tau \Rightarrow e)                      & \multicolumn{2}{@{}l@{}}{\hbox{\rm function creation}} \\
          &  |  &  e\apply(\bar{e})                                                   & \multicolumn{2}{@{}l@{}}{\hbox{\rm function application}} \\
-         &  |  &  e.z                                                                & \multicolumn{2}{@{}l@{}}{\hbox{\rm dotted field reference}} \\
+%%       &  |  &  e.z                                                                & \multicolumn{2}{@{}l@{}}{\hbox{\rm dotted field reference}} \\
          &  |  &  O\obb{\tau}(\bar{e})                                               & \multicolumn{2}{@{}l@{}}{\hbox{\rm object creation}} \\
          &  |  &  f(\bar{e})                                                         & \multicolumn{2}{@{}l@{}}{\hbox{\rm function invocation}} \\
          &  |  &  e.m(\bar{e})                                                       & \multicolumn{2}{@{}l@{}}{\hbox{\rm method dotted invocation}} \\

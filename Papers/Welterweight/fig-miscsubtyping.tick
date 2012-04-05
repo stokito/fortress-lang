@@ -4,7 +4,7 @@
 
 \newjudge{Constrained type equivalence}{\jequiv{\alpha}{\alpha}{\C}}
 
-\medskip
+\smallskip
 
 \infrule
   { \jsub{\alpha}{\eta}{\C}  \andalso  \jsub{\eta}{\alpha}{\C'} }
@@ -12,59 +12,64 @@
 
 \medskip
 
-\newjudge{Unconditional subtyping}{\jsubtype{\alpha}{\alpha}}
+\newjudge{Subtyping}{\jsubtype{\alpha}{\alpha} \quad \jnotsubtype{\alpha}{\alpha}}
 
-\medskip
+\smallskip
 
-\infrule
+\hbox{$
+\typesetrule
   { \jsub{\alpha}{\eta}{\TRUE} }
-  { \jsubtype{\alpha}{\eta} }
+  { \jsubtype{\alpha}{\eta} }\andalso
+\typesetrule
+  { \jnsub{\alpha}{\eta}{\TRUE} }
+  { \jnotsubtype{\alpha}{\eta} }
+$}
 
 \medskip
 
-\newjudge{Unconditional exclusion}{\jexctype{\alpha}{\alpha}}
+\newjudge{Exclusion}{\jexctype{\alpha}{\alpha} \quad \jnotexctype{\alpha}{\alpha}}
 
-\medskip
+\smallskip
 
-\infrule
+\hbox{$
+\typesetrule
   { \jexc{\alpha}{\eta}{\TRUE} }
-  { \jexctype{\alpha}{\eta} }
+  { \jexctype{\alpha}{\eta} }\andalso
+\typesetrule
+  { \jnexc{\alpha}{\eta}{\TRUE} }
+  { \jnotexctype{\alpha}{\eta} }
+$}
 
 \medskip
 
-\newjudge{Unconditional type equivalence}{\jequivtype{\alpha}{\alpha}}
+\newjudge{Equivalence}{\jequivtype{\alpha}{\alpha} \quad \jnotequivtype{\alpha}{\alpha}}
 
-\medskip
+\smallskip
 
-\infrule
+\hbox{$
+\typesetrule
   { \jequiv{\alpha}{\eta}{\TRUE} }
-  { \jequivtype{\alpha}{\eta} }
-
-\medskip
-
-\newjudge{Unconditional type not-equivalence}{\jnotequivtype{\alpha}{\alpha}}
-
-\medskip
-
-\infrule
+  { \jequivtype{\alpha}{\eta} }\andalso
+\typesetrule
   { \jnequiv{\alpha}{\eta}{\TRUE} }
   { \jnotequivtype{\alpha}{\eta} }
+$}
 
 \medskip
 
-\newjudge{Unconditional variance test}{\jcertainlyvaries{\alpha}{V}{\alpha}}
+\newjudge{Variance test}{\jcertainlyvaries{\alpha}{V}{\alpha}}
 
-\medskip
+\smallskip
 
 \infrule
   { \jvaries{\alpha}{V}{\eta}{\TRUE} }
-  { \jcertainlyvaries{\alpha}{V}p{\eta} }
+  { \jcertainlyvaries{\alpha}{V}{\eta} }
 
 \medskip
 
-\newjudge{Conditional type equivalence}{\jequiv{\alpha}{\alpha}{\C}}
+\newjudge{Conditional equivalence}{\jequiv{\alpha}{\alpha}{\C}}
 
-\medskip
+\smallskip
 
 \infrule
   {\jsub{\alpha}{\eta}{\C} \andalso \jsub{\eta}{\alpha}{\C'}}
@@ -72,9 +77,9 @@
 
 \medskip
 
-\newjudge{Conditional type non-equivalence}{\jnequiv{\alpha}{\alpha}{\C}}
+\newjudge{Conditional non-equivalence}{\jnequiv{\alpha}{\alpha}{\C}}
 
-\medskip
+\smallskip
 
 \infrule
   {\jnsub{\alpha}{\eta}{\C} \andalso \jnsub{\eta}{\alpha}{\C'}}
@@ -82,9 +87,9 @@
 
 \medskip
 
-\newjudge{Converse type non-equivalence}{\jgcontratemplate{\alpha}{\not\equiv}{\alpha}{\C}}
+\newjudge{Converse non-equivalence}{\jgcontratemplate{\alpha}{\not\equiv}{\alpha}{\C}}
 
-\medskip
+\smallskip
   
 \infrule
   {\jequiv{\alpha}{\eta}{\C}}
@@ -94,7 +99,7 @@
 
 \newjudge{Equivalence of existential types}{\jequivalent{\Phi}{\Phi}}
 
-\medskip
+\smallskip
 
 \infrule
   { \jle{\Phi}{\Phi'}  \andalso \jle{\Phi'}{\Phi} }
@@ -102,25 +107,16 @@
 
 \medskip
 
-\newjudge{Free variables in some number of types}{\FV(\bar{\alpha})=\bigsetb{P}}
+\newjudge{Free variables in given types}{\FV(\bar{\alpha})=\bigsetb{P}}
 
-\medskip
-
-\[
-\begin{array}{l}
-\FV(\bar{\alpha}) = \bigcup \bigsetb{\mathit{oneFV}(\alpha)} \\[10pt]
-\mathit{oneFV}(P) = \set{P} \\
-\mathit{oneFV}(T\obb{\alpha}) = \FV(\bar{\alpha}) \\
-\mathit{oneFV}(O\obb{\alpha}) = \FV(\bar{\alpha}) \\
-\mathit{oneFV}(\tupleb{\alpha}) = \FV(\bar{\alpha}) \\
-\mathit{oneFV}(\arrowtype{\alpha}{\rho}) = \FV(\alpha,\rho) \\
-\mathit{oneFV}(\Any) = \set{\,} \\
-\mathit{oneFV}(\Object) = \set{\,} \\
-\mathit{oneFV}(\Bottom) = \set{\,} \\
-\mathit{oneFV}(\uniontype{\alpha}{\eta}) = \FV(\alpha,\eta) \\
-\mathit{oneFV}(\intersectiontype{\alpha}{\eta}) = \FV(\alpha,\eta)
-\end{array}
-\]
+$\begin{array}{ll}
+\multicolumn{2}{l}{\FV(\bar{\alpha}) = \bigcup \bigsetb{\mathit{FV}'(\alpha)}} \\[10pt]
+\mathit{FV}'(P) = \set{P}                                     & \mathit{FV}'(\Any) = \set{\,} \\
+\mathit{FV}'(T\obb{\alpha}) = \FV(\bar{\alpha})               & \mathit{FV}'(\Object) = \set{\,} \\
+\mathit{FV}'(O\obb{\alpha}) = \FV(\bar{\alpha})               & \mathit{FV}'(\Bottom) = \set{\,} \\
+\mathit{FV}'(\tupleb{\alpha}) = \FV(\bar{\alpha})             & \mathit{FV}'(\uniontype{\alpha}{\eta}) = \FV(\alpha,\eta) \\
+\mathit{FV}'(\arrowtype{\alpha}{\rho}) = \FV(\alpha,\rho)     & \mathit{FV}'(\intersectiontype{\alpha}{\eta}) = \FV(\alpha,\eta)
+\end{array}$
 
 \medskip
 \caption{Miscellaneous Typing Judgments}
