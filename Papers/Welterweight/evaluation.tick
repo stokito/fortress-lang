@@ -10,14 +10,14 @@ of type $\alpha$.
 \input{fig-msa}
 
 Figure~\ref{fig:evaluation} gives rules for reducing an expression to a value.
-We use the conventional notation $[\bar{X/\Id}]X']$ to indicate a copy of $X'$
+We use the conventional notation $[\bar{X/\Id}]Y$ to indicate a copy of $Y$
 modified by simultaneous substitution of a copy of $X_1$ for each occurrence of $\Id_1$,
 a copy of $X_2$ for each occurrence of $\Id_2$, and so on.
 We use the conventional notation $E[e]$ to mean an evaluation context with its ````hole''
 replaced by the expression $e$ (that is, $[e/\Box]E$).
 
 Figure~\ref{fig:msa} gives rules for determining which is the most specific applicable
-function of method for a given tuple of argument types.
+function or method for a given tuple of argument types.
 
 In Welterweight Fortress there are three kinds of values: 
 objects, functions, and tuples;
