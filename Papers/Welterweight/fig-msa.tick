@@ -1,33 +1,76 @@
 \begin{figure*}
 \typicallabel{Visible-Functions}
 
-\infax[MSAV-Std]
-  { \msav{d}{\tupleb{\chi}} = \mostspecific{\applicable{\visible{d}}{\tupleb{\chi}}} }
+\infax{\relax
+\fbox{$
+\begin{array}{@{}c@{}}
+\msav{n}{\tupleb{\chi}} = \set{D} \quad
+\mostspecific{\setb{D}} = \set{D} \quad
+\morespecific{d}{d'} \quad
+\bigapplicable{\setb{d}}{\tupleb{\chi}} = \setb{D} \\[2pt]
+\dom\tuple{d} = \Xi \quad
+\arrow\tuple{d} = \Upsilon \quad
+\instantiate{d}{\sigma} = D \quad
+\visible{n} = \setb{d} \\[2pt]
+\defined{C}{m} = \setb{d} \quad
+\firstapplicable{\listofb{d}}{\tupleb{\chi}} = \set{D}
+\end{array}
+$}}
+
+\medskip
+
+\infax[MSAV-Standard]
+  { \msav{n}{\tupleb{\chi}} = \mostspecific{\applicable{\visible{n}}{\tupleb{\chi}}} }
 
 \medskip
 
 \infax[Most-Specific]
-  { \mostspecific{\Omega} = \Bigsetcomp{ d }{ d \in \Omega, {\displaystyle\bigwedge_{d' \in \Omega}\;\;\jmorespecific{d}{d'}}} }
+  { \mostspecific{\setb{D}} = \Bigsetcomp{ D' }{ D' \in \setb{D}, {\displaystyle\bigwedge_{D'' \in \setb{D}}\;\;\morespecific{D'}{D''}}} }
+
+\medskip
+
+\infax[More-Specific]
+  { \morespecific{d}{d'} = \jmorespecific{d}{d'} }
 
 \medskip
 
 \infax[Applicable]
-  { \applicable{\Omega}{\tupleb{\chi}} = \LRsetcomp{ \sigma d }{ d \in \Omega, \jleusing{\existstype{\verythinmathspace}{\tupleb{\chi}}}{\dom(d)}{\sigma} } }
+  { \bigapplicable{\setb{d}}{\tupleb{\chi}} = \LRsetcomp{ \instantiate{d'}{\sigma} }{ d' \in \setb{d}, \jleusing{\existstype{\verythinmathspace}{\tupleb{\chi}}}{\dom(d')}{\sigma} } }
 
 \medskip
 
 \infax[Dom-Function]
-  { \dom(f\obb{P \extends \bdb{\xi}}(\bar{x\COLON\alpha})\COLON \rho \defneq e) = \existstypebigb{\set{\,} \extends P \extends \bdb{\xi}}{\tupleb{\alpha}} }
+  { \dom\bigtuple{f\obb{P \extends \bdb{\xi}}(\bar{x\COLON\tau})\COLON \omega \defneq e} = \existstypebigb{\set{\,} \extends P \extends \bdb{\xi}}{\tupleb{\tau}} }
 
 \medskip
 
 \infax[Dom-Method]
-  { \dom(\bigtuple{C, m\obb{\bdb{\zeta} \extends P \extends \bdb{\xi}}(\bar{x\COLON\alpha})\COLON \rho \defneq e}) = \existstypebigb{\bdb{\zeta} \extends P \extends \bdb{\xi}}{(C,\bar{\alpha})} }
+  { \dom\bigtuple{\tuple{C, m\obb{\bdb{\chi} \extends P \extends \bdb{\eta}}(\bar{x\COLON\alpha})\COLON \rho \defneq e}} = \existstypebigb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\tuple{C,\bar{\alpha}}} }
+
+\medskip
+
+\infax[Arrow-Function]
+  { \arrow\bigtuple{f\obb{P \extends \bdb{\xi}}(\bar{x\COLON\tau})\COLON \omega \defneq e} = \foralltypebigb{\set{\,} \extends P \extends \bdb{\xi}}{\arrowtype{\tupleb{\tau}}{\omega}} }
+
+\medskip
+
+\infax[Arrow-Method]
+  { \arrow\bigtuple{\tuple{C, m\obb{\bdb{\chi} \extends P \extends \bdb{\eta}}(\bar{x\COLON\alpha})\COLON \rho \defneq e}} = \foralltypebigb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\arrowtype{\tuple{C,\bar{\alpha}}}{\rho}} }
+
+\medskip
+
+\infax[Instantiate-Function]
+  { \biginstantiate{f\obb{\dontcare}(\bar{x\COLON\tau})\COLON\omega \defneq e}{\sigma} = f\ob{\verythinmathspace}(\bar{x\COLON\sigma\tau})\COLON(\sigma\omega) \defneq \sigma e }
+
+\medskip
+
+\infax[Instantiate-Method]
+  { \biginstantiate{\tuple{C, m\obb{\dontcare}(\bar{x\COLON\alpha})\COLON\rho \defneq e}}{\sigma} = \bigtuple{C, m\ob{\verythinmathspace}(\bar{x\COLON\sigma\alpha})\COLON(\sigma\rho) \defneq \sigma e} }
 
 \medskip
 
 \infax[Visible-Functions]
-  { \visiblefunc{f} = \LRsetcomp{ \delta }{\varphi\in\Delta, \name{\varphi} = f } }
+  { \visiblefunc{f} = \LRsetcomp{ \varphi }{\varphi\in\Phi, \name{\varphi} = f } }
 
 \medskip
 
@@ -37,7 +80,22 @@
 \medskip
 
 \infax[Defined-Methods]
-  { \defined{C}{m} = \LRsetcomp{\tuple{C,\mu}}{\mu \in \methods{C}, \name{\mu} = m} }
+  { \defined{C}{m} = \LRsetcomp{\tuple{C,M}}{M \in \methods{C}, \name{M} = m} }
+
+\medskip
+\hrule
+\medskip
+
+\infax[MSAV-Alternate]
+  { \msav{n}{\tupleb{\chi}} = \firstapplicable{\topologicalsort{\curriedmorespecific}{\visible{n}}}{\tupleb{\chi}} }
+
+\medskip
+
+\infrule[First-Applicable]
+  { \listofb{d} = \listof{\bar{d'},d'',\bar{\dontcare}}  \andalso
+   \bar{\applicable[\underline{\Delta}]{d'}{\underline{\tupleb{\chi}}} = \set{\,}}  \andalso
+   \applicable{d''}{\tupleb{\chi}} = \set{D} }
+  { \firstapplicable{\listofb{d}}{\tupleb{\chi}} = \set{D} }
 
 \medskip
 \caption{Determining the most specific applicable visible function or method}

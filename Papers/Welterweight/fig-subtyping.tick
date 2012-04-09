@@ -1,26 +1,45 @@
 %%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}[htbp]
+\multiply\afterruleskip by 3 \divide\afterruleskip by 5
 \centering\leavevmode
-\newjudge{Subtyping Rules That Generate Constraints}{\jsub{\alpha}{\alpha}{\C}}
+\newjudge{Subtyping Rules That Generate Constraints}{\jsub{\alpha}{\alpha}{\C} \quad \jnsub{\alpha}{\alpha}{\C}}\quad(see text)
 \par\bigskip
 \begin{minipage}[t]{.3\textwidth}
 \centering
 \textbf{Logical rules}
 
 \infax
+  { \jsub{\alpha}{\alpha}{\TRUE} }
+
+\infax
   { \jsub{\Bottom}{\alpha}{\TRUE} }
 
 \infax
   { \jsub{c}{\Bottom}{\FALSE} }
-  
+
 \infax
-  { \jsub{\arrowtype{\alpha}{\rho}}{\Bottom}{\FALSE} }
+  { \jsub{\Any}{\Object}{\FALSE} }
+
+\infax
+  { \jsub{\Any}{\Bottom}{\FALSE} }
+
+\infax
+  { \jsub{\Object}{\Object}{\TRUE} }
+
+\infax
+  { \jsub{\Object}{\Bottom}{\FALSE} }
+
+\infax
+  { \jsub{\Object}{c}{\FALSE} }
+
+\infax
+  { \jsub{c}{\Object}{\TRUE} }
+
+\infax
+  { \jsub{\Any}{c}{\FALSE} }
   
 \infax
   { \jsub{\alpha}{\Any}{\TRUE} }
-
-\infax
-  { \jsub{\Any}{\arrowtype{\alpha}{\omega}}{\FALSE} }
 
 \infrule
   { \jsub{\alpha}{\eta}{\C} \\ \jsub{\alpha}{\chi}{\C'} }
@@ -62,16 +81,28 @@
   { \jsub{P}{P}{\TRUE} }
 
 \infrule
-  { \bd{\dontcare} \extends P \extends \bdb{\xi} \in \Delta }
+  { \bdb{\dontcare} \extends V\;P \extends \bdb{\xi} \in \Delta }
   { \jbsub{\underline{P}}{\xi}{\TRUE} }
 
 \infrule
-  { \bdb{\zeta} \extends P \extends \bd{\dontcare} \in \Delta }
+  { \bdb{\zeta} \extends V\;P \extends \bdb{\dontcare} \in \Delta }
   { \jbsub{\zeta}{\underline{P}}{\TRUE} }
 
 \infrule
   { \jsub{\alpha}{\Bottom}{\C} }
   { \jsub{\alpha}{P}{\C} }
+
+\infrule
+ { \bdb{\gamma} \extends V\;P \extends \bdb{\eta} \in \Delta  \\[2pt]
+   \jbnsub{\underline{\alpha}}{\gamma}{\C} \\[2pt]
+   \jbexc{\underline{\alpha}}{\eta}{\C'} }
+ { \jnsub{\alpha}{P}{\bigvee \set{\bar{\C},\bar{\C'}}} }
+
+\infrule
+ { \bdb{\dontcare} \extends V\;P \extends \bdb{\eta} \in \Delta  \\[2pt]
+   \jbnsub{\underline{\alpha}}{\eta}{\C} }
+ { \jnsub{P}{\alpha}{\bigvee \setb{\C}} }
+
 
 \end{minipage}%
 \begin{minipage}[t]{.4\textwidth}
@@ -105,33 +136,31 @@
 \infax
   { \jsub{c}{\arrowtype{\alpha}{\rho}}{\FALSE} }
 
+\infax
+  { \jsub{\arrowtype{\alpha}{\rho}}{\Bottom}{\FALSE} }
+
+\infax
+  { \jsub{\Any}{\arrowtype{\alpha}{\omega}}{\FALSE} }
+
+\infrule
+  { \countof(\bar{\alpha}) \neq 1 }
+  { \jsub{\Object}{\tupleb{\alpha}}{\FALSE} }
+
+\infrule
+  { \countof(\bar{\alpha}) \neq 1 }
+  { \jsub{\Any}{\tupleb{\alpha}}{\FALSE} }
+
+\infax
+  { \jsub{\Object}{\arrowtype{\alpha}{\rho}}{\FALSE} }
+
+\infax
+  { \jsub{\arrowtype{\alpha}{\rho}}{\Object}{\FALSE} }
+
 \end{minipage}
 
-\bigskip
+\par\vskip-3em
 
-\begin{minipage}[t]{.667\textwidth}
-\centering
-\textbf{Constructed types}
-
-\infrule
-  { \mathit{distinct}(T,T')  \andalso  \jwftype{T\obb{\alpha}}  \andalso  \jwftype{T'\obb{\eta}} \\[2pt]
-    \setb{\tau} = \parents{T\obb{\alpha}} \andalso
-    \jbsub{\tau}{\underline{T'\obb{\eta}}}{\C} }
-  { \jsub{T\obb{\alpha}}{T'\obb{\eta}}{\bigvee\bigsetb{\C}} }
-
-\infrule
-  { \jwftype{O\obb{\alpha}}  \andalso  \jwftype{T'\obb{\eta}} \\[2pt]
-    \setb{\tau} = \parents{O\obb{\alpha}} \andalso
-    \jbsub{\tau}{\underline{T'\obb{\eta}}}{\C} }
-  { \jsub{O\obb{\alpha}}{T'\obb{\eta}}{\bigvee\bigsetb{\C}} }
-
-\infrule
-  { \kwd{trait} \; T\bigob{\bar{V\;P \extends \bd{\dontcare}}} \; \dontcare \; \kwd{end} \in \set{\Delta} \\[1pt]
-     \jwftype{T\obb{\alpha}}  \andalso  \jwftype{T'\obb{\eta}}  \andalso  \jbvaries{\alpha}{V}{\eta}{\C} }
-  { \jsub{T\obb{\alpha}}{T\obb{\eta}}{\bigwedge\bigsetb{\C}} }
-
-\end{minipage}%
-\begin{minipage}[t]{.333\textwidth}
+\begin{minipage}[b]{.333\textwidth}
 \centering\leavevmode
 \newjudge{Variance test}{\jvaries{\alpha}{V}{\alpha}{\C}}
 
@@ -147,8 +176,36 @@
   { \jequiv{\alpha}{\eta}{\C} }
   { \jvaries{\alpha}{\kwd{invariant}}{\eta}{\C} }
 
+\end{minipage}%
+\begin{minipage}[b]{.667\textwidth}
+\centering
+\textbf{Constructed types}
+
+\infrule[Sub-T-Parents]
+  { \mathit{distinct}(T,T')  \andalso  \jwftype{T\obb{\alpha}}  \andalso  \jwftype{T'\obb{\eta}} \\[2pt]
+    \setb{\chi} = \parents{T\obb{\alpha}} \andalso
+    \jbsub{\chi}{\underline{T'\obb{\eta}}}{\C} }
+  { \jsub{T\obb{\alpha}}{T'\obb{\eta}}{\bigvee\bigsetb{\C}} }
+
+\infrule[Sub-O-Parents]
+  { \jwftype{O\obb{\alpha}}  \andalso  \jwftype{T'\obb{\eta}} \\[2pt]
+    \setb{\chi} = \parents{O\obb{\alpha}} \andalso
+    \jbsub{\chi}{\underline{T'\obb{\eta}}}{\C} }
+  { \jsub{O\obb{\alpha}}{T'\obb{\eta}}{\bigvee\bigsetb{\C}} }
+
+\infrule[Sub-Variance]
+  { \kwd{trait} \; T\bigob{\bar{V\;P \extends \bdb{\dontcare}}} \; \dontcare \; \kwd{end} \in \set{\Delta} \\[1pt]
+     \jwftype{T\obb{\alpha}}  \andalso  \jwftype{T\obb{\eta}}  \andalso  \jbvaries{\alpha}{V}{\eta}{\C} }
+  { \jsub{T\obb{\alpha}}{T\obb{\eta}}{\bigwedge\bigsetb{\C}} }
+
+\infrule[Sub-Comprises]
+  { \jwftype{T\obb{\alpha}}  \\[2pt]
+    \setb{\chi} = \comprised{T\obb{\alpha}} \andalso
+    \jbsub{\chi}{\underline{\eta}}{\C} }
+  { \jsub{T\obb{\alpha}}{\eta}{\bigwedge\bigsetb{\C}} }
+
 \end{minipage}
 
-  \caption{Algorithm for generating subtyping constraints. Apply the first rule that matches.}
+  \caption{Algorithm for generating subtyping constraints. (Adapted and extended from \cite{OOPSLA-2011-type-matching}.) Apply the first rule that matches.}
   \label{fig:subtyping}
 \end{figure*}
