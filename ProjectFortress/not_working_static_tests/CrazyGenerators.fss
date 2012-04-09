@@ -1,0 +1,36 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component CrazyGenerators
+  export Executable
+
+  trait CHolder
+    getC():Maybe[\String\]
+  end
+
+  stupidMethodIShouldntNeed(s1:String,s2:String):()
+
+  foo():() = do
+
+    for i <- (object extends CHolder
+                getC():Maybe[\String\] = Just[\String\]("Whoa")
+              end).getC(), j <- (object extends CHolder
+                                   getC():Maybe[\String\]=Just[\String\](i)
+                                 end).getC()
+    do
+       (* Enable the next line to see why we must pass constraints down. *)
+       (* ignore(i j) *)
+      stupidMethodIShouldntNeed(i,j)
+    end
+  end
+
+  run():() = ()
+end

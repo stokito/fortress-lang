@@ -1,0 +1,85 @@
+\begin{figure}
+\typicallabel{W-Object}
+
+\newjudge{Well-formed types}{\jwftype{\alpha}}
+\bigskip
+
+% Stuff in \Delta is assumed to be well-formed
+
+\infrule[W-Param]
+  { \bd{\dontcare} \extends P \extends \bd{\dontcare} \in \Delta }
+  { \jwftype{P} }
+
+\bigskip
+
+\infrule[W-Trait]
+  { \kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \; \dontcare \; \kwd{end} \in \Delta \\[2pt]
+    \countof(\bar{\alpha}) = \countof(\bar{P})  \andalso  \jbwftype{\alpha} \\[3pt]
+    \jbsubtype{\alpha}{\underline{\Bigsubstb{\alpha}{P}}\xi} }
+  { \jwftype{T\obb{\alpha}} }
+
+\bigskip
+
+\infrule[W-Object]
+  { \kwd{object} \; O\bigobb{P \extends \bdb{\xi}} \; \dontcare \; \kwd{end} \in \Delta \\[2pt]
+    \countof(\bar{\alpha}) = \countof(\bar{P})  \andalso  \jbwftype{\alpha} \\[3pt]
+    \jbsubtype{\alpha}{\underline{\Bigsubstb{\alpha}{P}}\xi} }
+  { \jwftype{O\obb{\alpha}} }
+
+\bigskip
+
+\infrule[W-Tuple]
+  { \jbwftype{\alpha} }
+  { \jwftype{(\bar{\alpha})} }
+
+\bigskip
+
+\infrule[W-Arrow]
+  { \jwftype{\alpha}  \andalso  \jwftype{\rho} }
+  { \jwftype{\arrowtype{\alpha}{\rho}} }
+
+\bigskip
+
+\infax[W-Any-Type]
+  { \jwftype{\Any} }
+
+\bigskip
+
+\infax[W-Object-Type]
+  { \jwftype{\Object} }
+
+\bigskip
+
+\infax[W-Bottom-Type]
+  { \jwftype{\Bottom} }
+
+\bigskip
+
+\infrule[W-Union]
+  { \jwftype{\alpha}  \andalso  \jwftype{\gamma} }
+  { \jwftype{\uniontype{\alpha}{\gamma}} }
+
+\bigskip
+
+\infrule[W-Intersection]
+  { \jwftype{\alpha}  \andalso  \jwftype{\gamma} }
+  { \jwftype{\intersectiontype{\alpha}{\gamma}} }
+
+\bigskip
+
+\infrule[W-Exists]
+  { \jbwftype{\chi}  \andalso  \jbwftype{\eta} \\[4pt]
+    \jwftype[\Delta \cup \setb{\bdb{\chi} \extends P \extends \bdb{\eta}}]{\alpha} }
+  { \jwftype{\existstypebigb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\alpha}} }
+
+\bigskip
+
+\infrule[W-Forall]
+  { \jbwftype{\chi}  \andalso  \jbwftype{\eta} \\[4pt]
+    \jwftype[\Delta \cup \setb{\bdb{\chi} \extends P \extends \bdb{\eta}}]{\alpha} }
+  { \jwftype{\foralltypebigb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\alpha}} }
+
+\medskip
+\caption{Well-formed Types}
+\label{fig:wellformedtypes}
+\end{figure}

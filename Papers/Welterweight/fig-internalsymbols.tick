@@ -1,0 +1,35 @@
+
+\begin{figure}
+
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 2em}l@{}}
+\alpha   & ::= &  P                                              & \hbox{\rm type parameter name} \\
+         &  |  &  C                                              & \hbox{\rm lattice constructed type} \\
+         &  |  &  (\bar{\alpha})                                 & \hbox{\rm tuple type} \\
+         &  |  &  \arrowtype{\alpha}{\alpha}                     & \hbox{\rm arrow type} \\
+         &  |  &  \Any                                           & \hbox{\rm special \Any\ type} \\
+         &  |  &  \Object                                        & \hbox{\rm special \Object\ type} \\
+         &  |  &  \Bottom                                        & \hbox{\rm special \Bottom\ type} \\
+         &  |  &  \uniontype{\alpha}{\alpha}                     & \hbox{\rm union type} \\
+         &  |  &  \intersectiontype{\alpha}{\alpha}              & \hbox{\rm intersection type} \\[4pt]
+C        & ::= &  T\obb{\alpha}                                  & \hbox{\rm lattice trait type} \\
+         &  |  &  O\obb{\alpha}                                  & \hbox{\rm lattice object type} \\[4pt]
+\Phi     & ::= &  \existstypeb{p}{\alpha}                        & \hbox{\rm existentially quantified type} \\[4pt]
+\Psi     & ::= &  \foralltypeb{p}{\alpha}                        & \hbox{\rm universally quantified type} \\[4pt]
+p        & ::= &  \bdb{\alpha} \extends P \extends \bdb{\alpha}  & \hbox{\rm lattice type parameter binding} \\[4pt]
+\psi     & ::= &  \delta                                         & \hbox{\rm program declaration} \\
+         &  |  &  p                                              & \hbox{\rm lattice type parameter binding} \\[4pt]
+I        & ::= &  \hbox{\rm identifier}                          & \hbox{\rm type inference variable name} \\[4pt]
+b        & ::= &  x                                              & \hbox{\rm variable name} \\
+         &  |  &  z                                              & \hbox{\rm field name} \\
+         &  |  &  \kwd{self}                                     & \hbox{\rm self keyword} \\[4pt]
+\sigma   & ::= &  \substb{\alpha}{P}                             & \hbox{\rm type/parameter substitution} \\[4pt]
+d        & ::= &  \varphi                                        & \hbox{\rm function declaration} \\
+         &  |  &  (C,\mu)                                        & \hbox{\rm method instance} \\[4pt]
+\Omega   & ::= &  \setb{d}                                       & \hbox{\rm set of overloaded procedures} \\[4pt]
+\Delta   & ::= &  \setb{\psi}                                    & \hbox{\rm type-declaration environment} \\[4pt]
+\Gamma   & ::= &  \bar{b\COLON\alpha}                            & \hbox{\rm variable-type environment} \\[4pt]
+\end{array}
+
+\caption{Symbols Not Used in the Concrete Syntax}
+\label{fig:internalsymbols}
+\end{figure}

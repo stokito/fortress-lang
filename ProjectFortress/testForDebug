@@ -1,0 +1,24 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2008, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+if (uname | egrep -q CYGWIN) ; then 
+  CP="build;third_party/junit/junit.jar;third_party/xtc/xtc.jar;third_party/jsr166y/jsr166y.jar;third_party/plt/plt.jar"
+else
+  CP="build:third_party/junit/junit.jar:third_party/xtc/xtc.jar:third_party/jsr166y/jsr166y.jar:third_party/plt/plt.jar"
+fi
+
+
+
+FORTRESS_THREADS=4 java -Xdebug -Xrunjdwp:transport=dt_socket,address=8001,server=y,suspend=n -cp "$CP" -Xmx512m -Xms256m \
+junit.swingui.TestRunner \
+com.sun.fortress.interpreter.drivers.SystemJUTests >& test.log

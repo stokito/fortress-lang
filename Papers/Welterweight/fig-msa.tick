@@ -1,0 +1,45 @@
+\begin{figure*}
+\typicallabel{Visible-Functions}
+
+\infax[MSAV-Std]
+  { \msav{d}{\tupleb{\chi}} = \mostspecific{\applicable{\visible{d}}{\tupleb{\chi}}} }
+
+\medskip
+
+\infax[Most-Specific]
+  { \mostspecific{\Omega} = \Bigsetcomp{ d }{ d \in \Omega, {\displaystyle\bigwedge_{d' \in \Omega}\;\;\jmorespecific{d}{d'}}} }
+
+\medskip
+
+\infax[Applicable]
+  { \applicable{\Omega}{\tupleb{\chi}} = \LRsetcomp{ \sigma d }{ d \in \Omega, \jleusing{\existstype{\verythinmathspace}{\tupleb{\chi}}}{\dom(d)}{\sigma} } }
+
+\medskip
+
+\infax[Dom-Function]
+  { \dom(f\obb{P \extends \bdb{\xi}}(\bar{x\COLON\alpha})\COLON \rho \defneq e) = \existstypebigb{\set{\,} \extends P \extends \bdb{\xi}}{\tupleb{\alpha}} }
+
+\medskip
+
+\infax[Dom-Method]
+  { \dom(\bigtuple{C, m\obb{\bdb{\zeta} \extends P \extends \bdb{\xi}}(\bar{x\COLON\alpha})\COLON \rho \defneq e}) = \existstypebigb{\bdb{\zeta} \extends P \extends \bdb{\xi}}{(C,\bar{\alpha})} }
+
+\medskip
+
+\infax[Visible-Functions]
+  { \visiblefunc{f} = \LRsetcomp{ \delta }{\varphi\in\Delta, \name{\varphi} = f } }
+
+\medskip
+
+\infax[Visible-Methods]
+  { \visiblemeth{C}{m} = {\displaystyle \bigcup_{C' \in \ancestors{C}} \;\;\defined{C'}{m}} }
+
+\medskip
+
+\infax[Defined-Methods]
+  { \defined{C}{m} = \LRsetcomp{\tuple{C,\mu}}{\mu \in \methods{C}, \name{\mu} = m} }
+
+\medskip
+\caption{Determining the most specific applicable visible function or method}
+\label{fig:msa}
+\end{figure*}

@@ -1,0 +1,54 @@
+\input{fig-values}
+
+Figure~\ref{fig:values} gives conventional grammars for redexes (a subset of expressions that are subject to evaluation reduction),
+values (expressions that contain no redexes), and evaluation contexts.  It also defines how to compute the ilk of a value.
+The notation $\listof{\arrowtype{\alpha}{\omega}}$ is the type of functions that produce a value of type $\omega$ when
+given an argument of type $\alpha$ \emph{and} furthermore go wrong (````get stuck'') when given an argument that is not
+of type $\alpha$.
+
+\input{fig-evaluation}
+\input{fig-msa}
+
+Figure~\ref{fig:evaluation} gives rules for reducing an expression to a value.
+We use the conventional notation $[\bar{X/\Id}]Y$ to indicate a copy of $Y$
+modified by simultaneous substitution of a copy of $X_1$ for each occurrence of $\Id_1$,
+a copy of $X_2$ for each occurrence of $\Id_2$, and so on.
+We use the conventional notation $E[e]$ to mean an evaluation context with its ````hole''
+replaced by the expression $e$ (that is, $[e/\Box]E$).
+
+Figure~\ref{fig:msa} gives rules for determining which is the most specific applicable
+function or method for a given tuple of argument types.
+
+In Welterweight Fortress there are three kinds of values: 
+objects, functions, and tuples;
+every object belongs to at least one constructed type,
+every function belongs to at least one arrow type,
+and every tuple belongs to at least one tuple type.
+No value belongs to $\Bottom$.
+
+Although a value may belong to more than one type, 
+every value $v$ belongs to a unique type $\mathit{ilk}(v)$
+(the \emph{ilk} of the value).
+For every type $\alpha$,
+if $v$ belongs to $\alpha$ then $\mathit{ilk}(v)$ is a subtype of $\alpha$.
+(This notion of \emph{ilk} corresponds to what is sometimes called the
+````class'' or ````run-time type'' of the value.\footnote{%
+We prefer the term ````ilk'' to ````run-time type'' 
+because the notion---and usefulness---of 
+the most specific type to which a value belongs 
+is not confined to run time.})
+
+The implementation significance of ilks is that it is possible to
+select the dynamically most specific applicable function
+from an overload set using only the ilks of the argument values; no
+other information about the arguments is needed.
+
+If the type system is sound, then
+if an expression is determined by the type system to have type $\alpha$,
+then every value computed by the expression at run time
+will belong to type $\alpha$;
+moreover, 
+whenever a function whose ilk is $\listof{\arrowtype{\alpha}{\omega}}$ is applied to an argument value,
+then the argument value must belong to type $\alpha$, and whenever a function or method is invoked,
+the argument values will belong to the types of the corresponding parameters.
+

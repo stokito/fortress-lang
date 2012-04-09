@@ -1,0 +1,94 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Shared and Local Data}
+\seclabel{threadlocal}
+
+\note{The method \VAR{copy} is not yet supported.}
+
+Every object in a Fortress program is considered to be either
+\emph{shared} or \emph{local} (collectively referred to as the
+\emph{sharedness} of the object).  A local object must be transitively
+reachable (through zero or more object references) from the variables
+of at most one running thread.  A local object may be accessed more
+cheaply than a shared object, particularly in the case of atomic reads
+and writes.  Sharedness is ordinarily managed implicitly by the
+Fortress implementation.
+Control over sharedness is intended to be a
+performance optimization; however, functions such as \VAR{isShared} and
+\VAR{localize} provided by the Fortress libraries
+can affect program semantics, and must be used with care.
+
+The sharedness of an object must be contrasted with its region.  The
+region of an object describes where that object is located on the
+machine.  The sharedness of an object describes whether the object is
+visible to one thread or to many.  A local object need not actually
+reside in a region near the thread to which it is visible (though
+ordinarily it will).
+
+The following rules govern sharedness:
+\begin{itemize}
+\item Reference objects are initially local when they are constructed.
+\item The sharedness of an object may change as the program executes.\footnote{Note, for example, that the present Fortress implementation immediately makes every object shared after construction, so that \VAR{isShared()} will always return \VAR{true}.}
+\item If an object is currently transitively reachable from more than
+  one running thread, it must be shared.
+\item When a reference to a local object is stored into a field of a
+  shared object, the local object must be \emph{published}: Its
+  sharedness is changed to shared, and all of the data to which it
+  refers is also published.
+\item The value of a local variable referenced by a thread must be
+  published before that thread may be run in parallel with the thread
+  which created it.  Values assigned to the variable while the
+  threads run in parallel must also be published.
+\item A field with value type is assigned by copying, and thus has the
+   sharedness of the containing object or closure.
+\end{itemize}
+
+Publishing can be expensive, particularly if the structure being
+broadcast is large and heavily nested; this can cause an apparently
+short \KWD{atomic} expression (a single write, say) to run arbitrarily
+long.  To avoid this, the library programmer can request that an
+object be published by calling the semantically transparent function
+\VAR{shared} provided by the Fortress libraries:
+\input{\home/advanced/examples/Parallel.Shared.a.tex}
+A local copy of an object can be obtained by calling \VAR{copy}, a
+method on trait \TYP{Any}:
+\note{Example is commented out because it is not yet supported nor run by the interpreter.}
+% %localVar := sharedVar.copy()
+% \begin{Fortress}
+% \(\VAR{localVar} \ASSIGN \VAR{sharedVar}.\VAR{copy}()\)
+% \end{Fortress}
+
+Two additional functions are provided which permit different choices of
+program behavior based on the sharedness of objects:
+\begin{itemize}
+\item The function \EXP{\VAR{isShared}(o)} returns \VAR{true} when
+\VAR{o} is shared, and \VAR{false} when it is local.  This permits
+the program to take different actions based on sharedness.
+\item The function \EXP{\VAR{localize}(o)} is provided that attempts to make a local version of object \VAR{o}, by copying if necessary
+equivalent to the following expression:
+\note{Example is commented out because it is not yet supported nor run by the interpreter.}
+%% \input{\home/advanced/examples/Parallel.Shared.b.tex}
+%% %% %if o.isShared then o.copy() else o end
+%% %% \begin{Fortress}
+%% %% \(\KWD{if} o.\VAR{isShared} \KWD{then} o.\VAR{copy}() \KWD{else} o \KWD{end}\)
+%% %% \end{Fortress}
+\end{itemize}
+These functions must be used with extreme caution.  For example,
+\VAR{localize} should be used only when there is a unique
+reference to the object being localized.  The \VAR{localize} function
+can have unexpected behavior if there is a reference to \VAR{o} from
+another local object \VAR{p}.  Updates to \VAR{o} will be visible
+through \VAR{p}; subsequent publication of \VAR{p} will publish
+\VAR{o}.  By contrast, if \VAR{o} was already shared, and referred to
+by another shared object, the newly-localized copy will be entirely
+distinct; changes to the copy will not be visible through \VAR{p}, and
+publishing \VAR{p} will not affect the locality of the copy.

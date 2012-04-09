@@ -1,0 +1,27 @@
+\input{fig-subtyping}
+
+Figure~\ref{fig:subtyping} gives rules for computing a set of constraints that, if satisfied, will guarantee a (reflexive) subtype relationship between two types.
+(Conversely, if the constraints are not satisfiable, then a subtype relationship does \emph{not} hold between the two types.)
+
+\input{fig-exclusion}
+
+Figure~\ref{fig:exclusion} gives rules for computing a set of constraints that, if satisfied, will guarantee an exclusion relationship between two types.
+(Conversely, if the constraints are not satisfiable, then an exclusion relationship does \emph{not} hold between the two types.)
+
+\clearpage
+
+\input{fig-miscsubtyping}
+
+Figure~\ref{fig:miscsubtyping} gives rules that define type equivalence in terms of subtyping and define
+unconditional versions of the subtyping, type exclusion, and type equivalence relationships.
+
+\input{fig-quantified}
+
+Figure~\ref{fig:quantified} gives rules for deciding whether one existentially quantified type is a subtype of another,
+and whether one universally quantified type is a subtype of another.
+
+\input{fig-meetrule}
+
+\clearpage
+
+\input{fig-altmsa}

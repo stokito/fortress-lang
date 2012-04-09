@@ -1,0 +1,196 @@
+
+\begin{figure*}
+\begin{tabular}{c@{\hskip0.04\textwidth}c}
+\begin{minipage}[t]{.43\textwidth}
+\typicallabel{NotOfTrait-Object}
+
+\newjudge{Distinct names}{\mathit{distinct}(\bar{\Id})}
+
+\medskip
+
+\infrule[Distinct-Identifiers]
+  { \left| \bigsetb{\Id} \right| = \countof(\bar{\Id}) }
+  { \mathit{distinct}(\bar{\Id}) }
+
+\medskip
+
+\newjudge{Distinct declarations}{\mathit{distinct}(\bar{\delta})}
+
+\medskip
+
+\infrule[Distinct-Declarations]
+  { \left| \bigsetb{\delta} \right| = \countof(\bar{\delta}) }
+  { \mathit{distinct}(\bar{\delta})}
+
+\medskip
+
+\newjudge{Name of a function}{\name(\varphi) = f}
+
+\medskip
+
+\infax
+  { \name{f\obb{\dontcare}(\dontcare)\COLON \dontcare \defneq \dontcare} = f }
+
+\medskip
+
+\newjudge{Name of a method}{\name(\mu) = m}
+
+\medskip
+
+\infax
+  { \name{m\obb{\dontcare}(\dontcare)\COLON \dontcare \defneq \dontcare} = m }
+
+\medskip
+
+\newjudge{Methods of a constructed type}{\methods{C} = \setb{\mu}}
+
+\medskip
+
+\infrule
+  { \kwd{trait} \; T\obb{\dontcare\;P \extends \set{\dontcare}} \; \dontcare \exc \set{\dontcare} \bar{\mu} \; \kwd{end} \in \Delta }
+  { \methods{T\obb{\alpha}} = \LRsetb{\underline{\bigsubstb{\alpha}{P}}\mu} }
+
+\medskip
+
+\infrule
+  { \kwd{object} \; O\obb{P \extends \set{\dontcare}}(\dontcare) \extends \set{\dontcare} \bar{\mu} \; \kwd{end} \in \Delta }
+  { \methods{O\obb{\alpha}} = \LRsetb{\underline{\bigsubstb{\alpha}{P}}\mu} }
+
+\medskip
+
+\newjudge{All visible methods}{\allvisible{C} = \setb{\mu}}
+
+\infax
+  { \allvisible{C} = {\displaystyle \bigcup_{C' \in \ancestors{C}} \;\;\methods{C'}} }
+
+\medskip
+
+\newjudge{Immediately extended traits}{\parents{C} = \setb{C}}
+
+\medskip
+
+\infrule
+  { \kwd{trait} \; T\obb{V\;P <: \bd{\tau}} <: \setb{t} \; \dontcare \; \kwd{end} \in \Delta }
+  { \parents{T\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{P}t}}} }
+
+\medskip
+
+\infrule
+  { \kwd{object} \; O\obb{P <: \bd{\tau}}(\dontcare) <: \setb{t} \; \dontcare \; \kwd{end} \in \Delta }
+  { \parents{O\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{P}}t}} }
+
+\medskip
+
+\newjudge{All extended traits}{\properancestors{C} = \setb{C}}
+
+\medskip
+
+\infax
+  { \properancestors{C} = \!\!{\displaystyle \bigcup_{C' \in \parents{C}} \!\!\ancestors{C'}} }
+
+\medskip
+
+\newjudge{All extended traits plus self}{\ancestors{C} = \setb{C}}
+
+\medskip
+
+\infax
+  { \ancestors{C} = \set{C} \cup \properancestors{C} }
+
+\end{minipage}&%
+\begin{minipage}[t]{.53\textwidth}
+
+\typicallabel{}
+
+\newjudge{Excluded traits}{\excluded{C} = \setb{C}}
+
+\medskip
+
+\infrule
+  { \kwd{trait} \; T\obb{V\;P <: \bd{\tau}} \; \dontcare \; \exc \setb{t} \; \dontcare \; \kwd{end} \in \Delta }
+  { \excluded{T\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{P}}t}} }
+
+\medskip
+
+\newjudge{Comprised types}{\comprised{C} = \setb{C}}
+
+\medskip
+
+\infrule
+  { \kwd{trait} \; T\obb{V\;P <: \bd{\tau}} \extends \set{\dontcare} \exc \set{\dontcare} \; \dontcare \; \kwd{end} \in \Delta }
+  { \comprised{T\obb{\alpha}} = \set{\Any} }
+
+\medskip
+
+\infrule
+  { \kwd{trait} \; T\obb{V\;P <: \bd{\tau}} \; \dontcare \; \comprises \setb{c} \; \dontcare \; \kwd{end} \in \Delta }
+  { \comprised{T\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{P}}c}} }
+
+\medskip
+
+\newjudge{Not constructed from $T$}{\mathit{notOfTrait}(T, c)}
+
+\medskip
+
+\infax[NotOfTrait-Object]
+  { \mathit{notOfTrait}(T, O\ob{\dontcare}) }
+
+\medskip
+
+\infrule[NotOfTrait-Trait]
+  { \mathit{distinct}(T, T') }
+  { \mathit{notOfTrait}(T, T'\ob{\dontcare}) }
+
+\medskip
+
+\newjudge{Parameters in type environment}{\mathit{parameters}(\Delta) = \setb{P} }
+
+\medskip
+
+\(
+\begin{array}{l}
+\mathit{parameters}(\Delta) = {\displaystyle \bigcup_{{\delta\in\Delta}} \mathit{oneParam}(\delta)} \\[14pt]
+\mathit{oneParam}(\bd{\dontcare} \extends P \extends \bd{\dontcare}) = \set{P} \\
+\mathit{oneParam}(\kwd{trait} \; \dontcare \; \kwd{end}) = \set{\,} \\
+\mathit{oneParam}(\kwd{object} \; \dontcare \; \kwd{end}) = \set{\,} \\
+\mathit{oneParam}(f\ob{\dontcare}(\dontcare)\COLON\dontcare = \dontcare) = \set{\,}
+\end{array}
+\)
+
+\medskip
+
+\newjudge{Trait/object names in environment}{\mathit{typeNames}(\Delta) = \setb{\Id}}
+
+\medskip
+
+\(
+\begin{array}{l}
+\mathit{typeNames}(\Delta) = \bigcup \LRsetcomp{\mathit{oneName}(\delta)}{\delta\in\Delta} \\[10pt]
+\mathit{oneName}(\bd{\dontcare} \extends P \extends \bd{\dontcare}) = \set{\,} \\
+\mathit{oneName}(\kwd{trait} \; T\ob{\dontcare} \; \dontcare \; \kwd{end}) = \set{T} \\
+\mathit{oneName}(\kwd{object} \; O\ob{\dontcare} \; \dontcare \; \kwd{end}) = \set{O} \\
+\mathit{oneName}(f\ob{\dontcare}(\dontcare)\COLON\dontcare = \dontcare) = \set{\,}
+\end{array}
+\)
+
+\medskip
+
+\newjudge{Trait/object names in given types}{\mathit{typeNames}(\setb{C}) = \setb{\Id}}
+
+\medskip
+
+\(
+\begin{array}{l}
+\mathit{typeNames}(\setb{C}) = \setb{\mathit{oneName}(C)} \\[10pt]
+\mathit{oneName}(T\obb{\dontcare}) = T \\
+\mathit{oneName}(O\obb{\dontcare}) = O 
+\end{array}
+\)
+
+\end{minipage}
+\end{tabular}
+
+\medskip
+\caption{Miscellaneous Judgments}
+\label{fig:miscjudgments}
+\end{figure*}

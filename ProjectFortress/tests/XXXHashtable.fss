@@ -1,0 +1,115 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXHashtable
+export Executable
+
+(* from the "Library" *)
+
+
+trait Rank[\ nat n \]
+end
+
+trait Indexed1[\ nat n \]
+end
+
+trait Indexed2[\ nat n \]
+end
+
+trait Array1[\T, nat b0, nat s0\] extends {Indexed1[\ s0 \], Rank[\ 1 \]}
+  (* Get and put come from implementation. *)
+  get(i:ZZ32):T
+  put(i:ZZ32, v:T)
+
+  opr[i:ZZ32]:T = self.get(i-b0)
+  opr[i:ZZ32]:= (v:T) = self.put(i-b0, v)
+
+end
+
+trait Array2[\T, nat b0, nat s0, nat b1, nat s1\] extends {
+  Indexed1[\ s0 \], Indexed2[\ s1 \] , Rank[\ 2 \]}
+  put(t:(ZZ32,ZZ32), v:T) = do
+     (i,j)=t
+     self[i-b0, j-b1] := v
+  end
+  get(i:ZZ32, j:ZZ32) = self[i-b0, j-b1]
+
+  opr[i:ZZ32, j:ZZ32] : T
+  opr[i:ZZ32, j:ZZ32]:= (v:T)
+end
+
+object DefaultArray2[\T, nat s0, nat s1\]() extends Array2[\T, 0, s0, 0, s1\]
+  mem:Array1[\T, 0, (s0 s1) \] = array1[\T, (s0 s1) \]()
+
+  opr[i:ZZ32, j:ZZ32] : T = self.mem.get((s1 i)+j)
+  opr[i:ZZ32, j:ZZ32]:= (v:T) = self.mem.put((s1 i)+j, v)
+end
+
+
+
+trait Hashable
+  hashcode():ZZ32
+end
+
+trait HashTable[\T extends Hashable\]
+  member(x:T):Boolean
+  add(x:T):()
+end
+
+error():ZZ32 = 1/0
+
+trait Option[\T\]
+  hasVal():Boolean
+  getVal():T
+end
+
+object Some[\T\](x:T)
+  hasVal() = True
+  getVal() = x
+end
+
+object None[\T\]() extends Option[\T\] (* where {T extends Object} *)
+  hasVal() = False
+  getVal() = error()
+end
+
+object SimpleHashTable[\T extends Hashable, nat startingSize\]() extends HashTable[\T\]
+  basis : Option[\T\][#] = array1[\Option[\T\],startingSize\]()
+  modulus : ZZ32 = startingSize
+
+  modulo(x,y) = x
+
+  calcHash(v:Hashable):ZZ32 = modulo(v.hashcode(),modulus)
+
+  member(x:T):Boolean = basis[calcHash(x)].hasVal()
+
+  add(x:T):() = (if member(x)
+                 then error()
+                 else (basis[calcHash(x)]=(Some(x))))
+
+end
+
+object Foo(x:ZZ32) extends Hashable
+  hashcode() = x
+end
+
+
+run():() = do
+  ht:HashTable[\Foo\] = SimpleHashTable[\Foo,100\]()
+  ht.add(Foo(10))
+  hasFoo:Boolean = ht.member(Foo(10))
+  if hasFoo
+  then print "yay"
+  else print "boo"
+  end
+end
+
+end

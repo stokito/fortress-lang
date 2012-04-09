@@ -1,0 +1,77 @@
+\begin{figure}
+\typicallabel{T-Field}
+
+\newjudge{Well-formed expressions and static types}{\jtype{e}{\alpha}}
+\bigskip
+
+\infrule[T-Variable]
+  { \Gamma = \dontcare, b\COLON\alpha, \bar{b''\COLON\dontcare}  \andalso  b \not\in \bigsetb{b''} }
+  { \jtype{b}{\alpha} }
+
+\bigskip
+
+\infrule[T-Tuple]
+  { \jbtype{e}{\alpha} }
+  { \jtype{(\bar{e})}{(\bar{\alpha})} }
+
+\bigskip
+
+\infrule[T-Project]
+  { \jtype{e}{\tupleb{\alpha}} }
+  { \jbtype{\pi(\underline{e})}{\alpha} }
+
+\bigskip
+
+\infrule[T-Func-Value]
+  { \jbwftype{\tau}  \andalso  \jtype[\Delta;\Gamma,\bar{x\COLON\tau}]{e}{\rho}  \\
+    \jwftype{\omega}  \andalso  \jsubtype{\rho}{\omega} }
+  { \jtype{((\bar{x\COLON\tau})\COLON\omega \Rightarrow e)}{\arrowtype{(\bar{\tau})}{\omega}} }
+
+\bigskip
+
+\infrule[T-Apply]
+  { \jtype{e}{\arrowtype{(\bar{\alpha})}{\rho}}  \\
+    \jtype{(\bar{e'})}{(\bar{\chi})} \andalso
+    \jbsubtype{\chi}{\alpha}  }
+  { \jtype{e\apply(\bar{e'})}{\rho} }
+
+% \bigskip
+
+% \infrule[T-Field]
+%   { \jtype{e}{O\obb{\alpha}} \\
+%     \kwd{object} \; O\bigobb{P \extends \bd{\dontcare}} (\bar{z\COLON\tau}) \; \dontcare \; \kwd{end} \in \Delta }
+%   { \jbtype{\underline{e}.z}{\underline{\Bigsubstb{\alpha}{P}}\tau} }
+
+\bigskip
+
+\infrule[T-Object]
+  { \kwd{object} \; O\bigobb{P \extends \bd{\dontcare}} (\bar{z\COLON\omega}) \; \dontcare \; \kwd{end} \in \Delta \\
+    \jwftype{O\obb{\tau}}  \andalso  \jbtype{e}{\eta}  \andalso  \jbsubtype{\eta}{\underline{\Bigsubstb{\tau}{P}}\omega} }
+  { \jtype{O\obb{\tau}(\bar{e})}{O\obb{\tau}} }
+
+\bigskip
+
+\infrule[T-Func]
+  { \msav{f}{\tupleb{\eta}} = \bigset{f\obb{\dontcare}(\bar{\dontcare})\COLON \omega \defneq \dontcare}  \\[1pt]
+    \jbtype{e}{\eta} }
+  { \jtype{f(\bar{e})}{\omega} }
+
+\bigskip
+
+\infrule[T-Method]
+  { \msav{\tuple{C,m}}{\tupleb{\eta}} = \bigset{m\obb{\dontcare}{\bar{\dontcare}}\COLON \omega \defneq \dontcare} \\[2pt]
+    \jtype{e}{C}  \andalso  \jbtype{e'}{\eta} }
+  { \jtype{e.m(\bar{e'})}{\omega} }
+
+\bigskip
+
+\infrule[T-Match]
+  { \jtype{e}{\alpha}  \andalso  \jwftype{\tau} \\
+    \jtype[\Delta;\Gamma,x\COLON(\alpha\cap\tau)]{e'}{\eta}  \\
+    \jtype{e''}{\chi} }
+  { \jtypetight{(e \; \kwd{match} \; x\COLON\tau \Rightarrow e' \, \kwd{else}\; e'')}{(\eta\cup\chi)} }
+
+\medskip
+\caption{Static Types of Expressions}
+\label{fig:expressiontypes}
+\end{figure}
