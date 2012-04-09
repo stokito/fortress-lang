@@ -184,7 +184,10 @@ import java com.sun.fortress.nativeHelpers.{simpleDoubleArith.floatToDouble => j
                                             simpleDoubleArith.parseDouble => jParseDouble,
                                             simpleDoubleArith.doubleAbs => jDoubleAbs,
                                             simpleDoubleArith.doublePow => jDoublePow,
-                                            simpleDoubleArith.doubleNanoTime => jNanoTime}
+                                            simpleDoubleArith.doubleNanoTime => jNanoTime,
+                                            simpleDoubleArith.doubleFloor => jDoubleFloor,
+                                            simpleDoubleArith.doubleCeiling => jDoubleCeiling,
+                                            simpleDoubleArith.doubleSQRT => jDoubleSQRT}
 import java com.sun.fortress.nativeHelpers.{simpleChar.charToString => jCharToString,
                                             simpleChar.charToExprString => jCharToExprString,
                                             simpleChar.charCodePointWithSpecialCompilerHackForCharacterArgumentType => jCodePoint,
@@ -722,6 +725,11 @@ trait RR64 extends { Number, Equality[\RR64\] } excludes ZZ64
 
         else (* other < 0 then *) 1.0 / (self^(-other))
         end
+    
+    opr |/self\| :RR64 = jDoubleCeiling(self)
+    opr |\self/| :RR64 = jDoubleFloor(self)
+    opr SQRT(self):RR64 = jDoubleSQRT(self)
+
 end
 
 trait RR32 extends { Number, Equality[\RR32\] } excludes { ZZ64, ZZ32, RR64 }

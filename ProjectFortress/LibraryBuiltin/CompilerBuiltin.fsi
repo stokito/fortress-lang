@@ -352,6 +352,11 @@ trait RR64 extends { Number, Equality[\RR64\] } excludes ZZ64
     opr MINMAXNUM(self, other:RR64): (RR64, RR64) 
     opr ^(self, other:RR64): RR64
     opr ^(self, other:ZZ32): RR64
+    opr |\self/|:RR64
+    opr |/self\|:RR64
+(*    ceiling(self):RR64
+    floor(self):RR64 *)
+    opr SQRT(self):RR64
 end
 
 trait RR32 extends { Number, Equality[\RR32\] } excludes { ZZ64, ZZ32, RR64 }
