@@ -1,13 +1,13 @@
 %%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}[htbp]
 \centering\leavevmode
-\newjudge{Exclusion Rules That Generate Constraints}{\jexc{\alpha}{\alpha}{\C}}
+\newjudge{Exclusion Rules That Generate Constraints}{\jexc{\alpha}{\alpha}{\C} \quad \jnexc{\alpha}{\alpha}{\C}}\quad(see text)
 \vspace*{1em}
 
 \begin{minipage}[t]{.4\textwidth}
+\multiply\afterruleskip by 1 \divide\afterruleskip by 2
 \centering  
 \textbf{Logical rules}
-\vspace*{-1em}
 
 \infax
   { \jexc{\Bottom}{\alpha}{\TRUE} }
@@ -35,7 +35,6 @@
 
 \vspace*{2ex}
 \textbf{Inference Variables}
-\vspace*{-1em}
 
 \infrule
   { I \not\in \mathit{parameters}(\Delta) }
@@ -47,16 +46,19 @@
 
 \vspace*{2ex}
 \textbf{Bound Variables}
-\vspace*{-1em}
 
 \infrule
-  { \bd{\dontcare} \extends P \extends \bdb{\xi} \in \Delta \\
+  { \bdb{\dontcare} \extends V\;P \extends \bdb{\xi} \in \Delta \\
     \jbexc{\xi}{\alpha}{\C} }
   { \jexc{P}{\alpha}{\bigvee\bigsetb{\C}} }
 
+\infrule
+ { \bdb{\dontcare} \extends V\;P \extends \bdb{\dontcare} \in \Delta  \\[2pt]
+   \jsub{\alpha}{P}{\C}  \andalso   \jnsub{\alpha}{\Bottom}{\C'} }
+  {\jnexc{P}{\alpha}{\C \wedge \C'}}
+
 \vspace*{2ex}
 \textbf{Structural rules}
-\vspace*{-1em}
 
 \infrule
   { \countof(\bar{\alpha})=\countof(\bar{\eta})  \andalso \jbexc{\alpha}{\eta}{\C} }
@@ -115,13 +117,13 @@
   { \jgconstrtemplate{T\obb{\alpha}}{\excro}{T\obb{\eta}}{\FALSE} }
 
 \infrule
-  { \mathit{distinct}(T,T')  \andalso  \setb{\chi} = \ancestors{T\obb{\alpha}} \\[1pt]
-    \setb{\omega} = \bigcup\setb{\excluded[\underline{\Delta}]{\chi}}  \andalso  \jbsub{\underline{T'\obb{\eta}}}{\omega}{\C} }
+  { \mathit{distinct}(T,T')  \andalso  \setb{\gamma} = \ancestors{T\obb{\alpha}} \\[1pt]
+    \setb{\chi} = \bigcup\setb{\excluded[\underline{\Delta}]{\gamma}}  \andalso  \jbsub{\underline{T'\obb{\eta}}}{\chi}{\C} }
   { \jgconstrtemplate{T\obb{\alpha}}{\excrx}{T'\obb{\eta}}{\bigvee\bigsetb{\C}} }
 
 \infrule
   { \mathit{distinct}(T,T')  \\
-    \setb{\omega} = \comprised{T\obb{\alpha}}  \andalso  \jbexc{\underline{T'\obb{\eta}}}{\omega}{\C}
+    \setb{\chi} = \comprised{T\obb{\alpha}}  \andalso  \jbexc{\underline{T'\obb{\eta}}}{\chi}{\C}
 }
   { \jgconstrtemplate{T\obb{\alpha}}{\excrc}{T'\obb{\eta}}{\bigwedge\bigsetb{\C}} }
 
@@ -138,9 +140,9 @@
   { \jgconstrtemplate{T\obb{\alpha}}{\excrc}{T'\obb{\eta}}{\FALSE} }
 
 \infrule
-  { \setb{\chi} = \ancestors{T\obb{\alpha}} \andalso
-    \setb{\omega} = \ancestors{T'\obb{\eta}} \\[3pt]
-    \jgbbconstrtemplate{\chi}{\bexcm}{\underline{\omega}}{\C} }
+  { \setb{\gamma} = \ancestors{T\obb{\alpha}} \andalso
+    \setb{\chi} = \ancestors{T'\obb{\eta}} \\[3pt]
+    \jgbbconstrtemplate{\gamma}{\bexcm}{\underline{\chi}}{\C} }
   { \jgconstrtemplate{T\obb{\alpha}}{\excm}{T'\obb{\eta}}{\bigvee\LRsetb{\bar{\C}}} }
 
 \infrule
@@ -152,7 +154,9 @@
   {\jgconstrtemplate{T\obb{\alpha}}{\bexcm}{T'\obb{\eta}}{\FALSE}}
 
 \end{minipage}
-  \caption{Algorithm for generating exclusion constraints. Each rule is symmetric; apply the first one that matches.}
+  \caption{Algorithm for generating exclusion constraints. (Adapted and extended from \cite{OOPSLA-2011-type-matching}.)
+Each rule is symmetric (because $\exc$ is a symmetric relation), so try it twice, with operands as given
+and with operands swapped; apply the first one that matches.}
   \label{fig:exclusion}
 \end{figure*} 
 
