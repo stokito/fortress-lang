@@ -1,6 +1,41 @@
 \documentclass[10pt,preprint]{sigplanconf}
-\usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem}
+\usepackage{amsmath,amssymb,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem,url,stmaryrd,xspace,algpseudocode}
+
 \advance \textheight by 4pt
+\renewcommand{\topfraction}{1.0}
+\setlength{\textfloatsep}{16pt plus 4pt minus 5pt}
+
+%\def\IF{\mbox{\bf if}}
+%\def\THEN{\mbox{\bf then}}
+%\def\ELSE{\mbox{\bf else}}
+\newcommand{\ANY}{\mbox{\it Any}}
+\newcommand{\EXTENDS}{\mbox{ extends}}
+\newcommand{\LOBR}{\llbracket}
+\newcommand{\ROBR}{\rrbracket}
+\newcommand{\OBR}[1]{\LOBR #1\ROBR}
+\newcommand{\SSmbox}[1]{\mbox{\scriptsize #1}}
+\newcommand{\PlaceHolder}[1]{$\langle$\textit{#1}$\rangle$}
+\newcommand{\NEGQQ}{\mskip-24\thinmuskip}
+
+\renewcommand{\algorithmiccomment}[1]{\ {\large$\circledast$}\rm\ #1 }
+\renewcommand{\algorithmicindent}{1em}%
+
+\algblockdefx[Name]{At}{End}[0]{\textbf{at }}[0]{\textbf{end}}
+\algblockdefx[Name]{Step}{EndStep}[1]{#1 = }[0]{\textbf{end}}
+\algblockdefx[Name]{Indent}{EndIndent}[0]{\relax}[0]{\relax}
+
+\algnotext{EndIf}
+\algnotext{EndFor}
+\algnotext{EndFunction}
+\algnotext{EndWhile}
+\algnotext{Indent}
+\algnotext{EndIndent}
+
+\makeatletter
+\newcommand{\slantverbatim}{\def\verbatim@font{\slshape\ttfamily\hyphenchar\font\m@ne\@noligs}}
+\makeatother
+
+
 
 % make a big red TODO label
 \newcommand{\TODO}[1]{\textbf{\emph{\textcolor{red}{TODO}}}: \textsf{\footnotesize #1}}
@@ -431,10 +466,10 @@
 % \CopyrightYear{2011}
 % \copyrightdata{978-1-4503-0940-0/11/10}
 
-\titlebanner{draft}        % These are ignored unless
-\preprintfooter{draft}     % 'preprint' option specified.
+\titlebanner{DRAFT}        % These are ignored unless
+\preprintfooter{DRAFT}     % 'preprint' option specified.
 
-\title{Welterweight Fortress DRAFT}
+\title{Dynamic Dispatch and Type Inference Semipredicates}
 \subtitle{}
 \authorinfo{David Chase}{Oracle Labs}{david.r.chase@oracle.com}
 \authorinfo{Justin Hilburn}{Oracle Labs}{justin.hilburn@oracle.com}
@@ -468,9 +503,34 @@
 
 
 \begin{abstract}
-%\input{abstract.tex}
 
-Fortress~\cite{fortress}
+In an object-oriented programming language with fully
+symmetric dynamic multimethod dispatch, it is frequently necessary to
+decide at run time whether a given method is applicable to a given set
+of arguments.  If furthermore the language features parametrically
+polymorphic types whose parameters are not ````erased'' at run time,
+it may be necessary, as part of the run-time determination of
+applicability, to compute, based on the ilks (````run-time types'') of
+the argument values, a type for each type parameter.  Thus the applicability
+test is a semipredicate: if it does not return \emph{false}, then it returns
+not just \emph{true}, but some useful information---in this case,
+a substitution of types for type parameters that validates the judgment
+of applicability.  Because this
+process may be required for every method call, it is desirable for this
+process to be efficient.
+
+We present algorithms for dispatch semipredicates in Fortress,
+a statically typed object-oriented programming language with
+type-parametric traits, objects, functions, and methods,
+symmetric multiple inheritance, and fully symmetric multiway dispatch
+for overloaded functions as well as overloaded methods.
+Type parameters of traits can be covariant, contravariant, or invariant.
+We explore some design tradeoffs; for example, certain difficult cases
+that are costly to process can be avoided if either contravariance
+or union types are eliminated from the model.
+To provide a rigorous expository framework for this presentation,
+we formally define Welterweight Fortress, a model that goes beyond the
+previously reported Featherweight Fortress.
 
 \end{abstract}
 
@@ -478,14 +538,15 @@ Fortress~\cite{fortress}
 
 \terms{Languages}
 
-\keywords{object-oriented programming, multiple dispatch, 
+\keywords{\hskip 0pt plus 0.5em minus 0.5em
+object-oriented programming, multiple dispatch, 
 symmetric dispatch, multiple inheritance, overloading, ilks, run-time types, static types,
 components, modularity, meet rule,
 methods, multimethods, separate compilation, Fortress}
 
-\section{Introduction}
+\section{Contributions}
 \label{sec:introduction}
-\input{introduction.tex}
+\input{introduction}
 
 
 \newpage
@@ -510,14 +571,7 @@ methods, multimethods, separate compilation, Fortress}
 \label{sec:subtyping}
 \input{subtyping}
 
-
-\section{Run-time Type Solving}
-\label{sec:solving}
-%\input{solving}
-
-\section{Examples}
-\label{sec:examples}
-%\input{examples}
+\input{dispatch}
 
 \section{Related Work}\label{sec:related}
 %\input{related-work}
@@ -540,7 +594,14 @@ methods, multimethods, separate compilation, Fortress}
 % 
 % \end{thebibliography}
 
-% \appendix
+\appendix
+
+
+\section{Detailed Description of Notation}
+\label{sec:notation-details}
+\input{notation-details}
+
+\input{proofs}
 
 \clearpage
 \clearpage

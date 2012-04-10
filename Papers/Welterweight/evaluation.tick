@@ -1,4 +1,7 @@
+
 \input{fig-values}
+
+\input{fig-msa}
 
 Figure~\ref{fig:values} gives conventional grammars for redexes (a subset of expressions that are subject to evaluation reduction),
 values (expressions that contain no redexes), and evaluation contexts.  It also defines how to compute the ilk of a value.
@@ -6,14 +9,16 @@ The notation $\listof{\barearrowtype{\alpha}{\omega}}$ is the type of functions 
 given an argument of type $\alpha$ \emph{and} furthermore go wrong (````get stuck'') when given an argument that is not
 of type $\alpha$.
 
-\input{fig-msa}
-
-\input{fig-evaluation}
-
 Figure~\ref{fig:evaluation} gives rules for reducing an expression to a value.
 
 Figure~\ref{fig:msa} gives rules for determining which is the most specific applicable
 function or method for a given tuple of argument types.
+
+
+\input{fig-evaluation}
+
+\input{fig-constraints}
+
 
 In Welterweight Fortress there are three kinds of values: 
 objects, functions, and tuples;
@@ -48,5 +53,7 @@ whenever a function whose ilk is $\listof{\barearrowtype{\alpha}{\omega}}$ is ap
 then the argument value must belong to type $\alpha$, and whenever a function or method is invoked,
 the argument values will belong to the types of the corresponding parameters.
 
-The big question is: do $\jtype[]{\Pi}{\theta}$ and $\jevalstar[]{\Pi}{v}$ (note that $v$ refers to a value)
-together imply $\jtype[\setb{\,}]{\Pi}{\theta}$ \quad?
+The two big questions, given $p=\bar{\psi},\bar{\varphi},e$ and letting $\Delta=\setb{\psi}$, are of course:
+(1) Termination: does $\jtype[]{p}{\theta}$ imply that evaluation reduction never gets ````stuck''?
+(2) Soundness: do $\jtype[]{p}{\theta}$ and $\jevalstar[]{p}{v}$ (note that $v$ refers to a value)
+together imply $\jsubtype{\ilk{v}}{\theta}\;$ ?

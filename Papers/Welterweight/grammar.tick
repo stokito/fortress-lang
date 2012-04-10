@@ -1,9 +1,15 @@
+
+\input{fig-metavariables}
+
 \input{fig-internalsymbols}
 
 \input{fig-wellformedtypes}
 
+\input{fig-expressiontypes}
 
 The grammar for Welterweight Fortress is given in Figure~\ref{fig:grammar}.
+Metavariables defined by this grammar and also in later figures are listed in Figure~\ref{fig:metavariables}.
+
 A program consists of declarations and an expression to be evaluated in the contex of those declarations.
 Each declaration defines a trait, an object, or a top-level function.
 
@@ -27,7 +33,10 @@ Top-level functions may be overloaded; that is, more than one function declarati
 Method declarations appearing in traits or objects are similar in form to function declarations; however, the keyword $\kwd{self}$
 may be used within its body expression to refer to a value (the \emph{target object}) for which the method was invoked.
 
-\input{fig-expressiontypes}
+
+\input{fig-wellformeddecls}
+
+\input{fig-covered}
 
 Traits, objects, functions, and methods all have a (possibly empty) list of \emph{static type parameters}.
 Associated with each static type parameter is (possibly empty) set of \emph{upper bounds}; any type used to instantiate the

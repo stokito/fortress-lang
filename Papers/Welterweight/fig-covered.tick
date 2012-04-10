@@ -7,9 +7,9 @@
 % Stuff in \Delta is assumed to be well-formed
 
 \infrule[Covered]
-  { \bar{\noselfdom(d) = \existstypeb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\alpha}} \andalso
+  { \bar{\noselfdom(d) = \existstypeb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\tau}} \andalso
     \mathit{distinct}\Bigtuple{\bar{\bar{P}}} \\[3pt]
-    \jle{\noselfdom(d')}{\existstypeBig{\bar{\bar{\bdb{\chi} \extends P \extends \bdb{\eta}}}}{\Bigtuple{\bigcup\setb{\alpha}}}} }
+    \jle{\noselfdom(d')}{\existstypeBig{\bar{\bar{\bdb{\chi} \extends P \extends \bdb{\eta}}}}{\Bigtuple{\bigcup\setb{\tau}}}} }
   { \jcoveredrule{d'}{\setb{d}} }
 
 
@@ -19,10 +19,10 @@
 
 \noindent\(
 \begin{array}{@{}l@{}}
-\noselfdom(f\obb{P \extends \bdb{\xi}}(\bar{x\COLON\alpha})\COLON \rho \defneq e) \\[1pt]
-\quad = \existstypebigb{\set{\,} \extends P \extends \bdb{\xi}}{\tupleb{\alpha}} \\[5pt]
-\noselfdom(\bigtuple{C, m\obb{\bdb{\zeta} \extends P \extends \bdb{\xi}}(\bar{x\COLON\alpha})\COLON \rho \defneq e}) \\[1pt]
-\quad = \existstypebigb{\bdb{\zeta} \extends P \extends \bdb{\xi}}{(\bar{\alpha})}
+\noselfdom(f\obb{P \extends \bdb{\xi}}(\bar{x\COLON\tau})\COLON \omega \defneq e) \\[1pt]
+\quad = \existstypebigb{\set{\,} \extends P \extends \bdb{\xi}}{\tupleb{\tau}} \\[5pt]
+\noselfdom(\bigtuple{C, m\obb{\bdb{\zeta} \extends P \extends \bdb{\xi}}(\bar{x\COLON\tau})\COLON \omega \defneq e}) \\[1pt]
+\quad = \existstypebigb{\bdb{\zeta} \extends P \extends \bdb{\xi}}{(\bar{\tau})}
 \end{array}
 \)
 

@@ -1,8 +1,8 @@
 
 \begin{figure*}
-\begin{tabular}{@{}c@{\hskip0.04\textwidth}c@{}}
-\begin{minipage}[t]{.4\textwidth}
-\typicallabel{NotOfTrait-Object}
+\begin{tabular}{@{}c@{\hskip0.02\textwidth}c@{}}
+\begin{minipage}[t]{.41\textwidth}
+\typicallabel{\relax}
 
 \newjudge{Distinct names}{\mathit{distinct}(\bar{\Id})}
 
@@ -14,14 +14,14 @@
 
 \medskip
 
-\newjudge{Distinct declarations}{\mathit{distinct}\tuple{\bar{\delta}} \quad \mathit{distinct}\tuple{\bar{\varphi}}}
+\newjudge{Distinct declarations}{\mathit{distinct}\tuple{\bar{\psi}} \quad \mathit{distinct}\tuple{\bar{\varphi}}}
 
 \medskip
 
 \hbox{\hskip3em
 \hbox{$\displaystyle\frac
-  { \left| \bigsetb{\delta} \right| = \countof(\bar{\delta}) }
-  { \mathit{distinct}(\bar{\delta}) }$}\relax
+  { \left| \bigsetb{\psi} \right| = \countof(\bar{\psi}) }
+  { \mathit{distinct}(\bar{\psi}) }$}\relax
 \hskip3em
 \hbox{$\displaystyle\frac
   { \left| \bigsetb{\varphi} \right| = \countof(\bar{\varphi}) }
@@ -39,7 +39,7 @@
 
 \medskip
 
-\newjudge{Name of constructed type}{\name{c} = \Id}
+\newjudge{Name of constructed type}{\name{C} = \Id}
 
 \medskip
 
@@ -50,34 +50,33 @@
 
 \newjudge{Name of a trait, object, or parameter}{\name{\delta} = \Id}
 
-\infax
-  { \bigname{\kwd{trait} \; T\obb{\dontcare} \; \dontcare \; \kwd{end}} = T }
+\smallskip
 
-\infax
-  { \bigname{\kwd{object} \; O\obb{\dontcare} \; \dontcare \; \kwd{end}} = O }
-
-\infax
-  { \bigname{\bdb{\dontcare} \extends V\;P \extends \bdb{\dontcare}} = P }
+\hbox{$ \bigname{\kwd{trait} \; T\obb{\dontcare} \; \dontcare \; \kwd{end}} = T $}
+\hbox{$ \bigname{\kwd{object} \; O\obb{\dontcare} \; \dontcare \; \kwd{end}} = O $}
+\hbox{$ \bigname{\bdb{\dontcare} \extends V\;P \extends \bdb{\dontcare}} = P $}
 
 \medskip
 
-\newjudge{Methods of a constructed type}{\methods{C} = \setb{M}}
+\newjudge{Methods of constructed type}{\methods{C} \mathbin{=} \setb{\tuple{\underline{C},M}}}
 
 \medskip
 
 \infrule
   { \kwd{trait} \; T\obb{\dontcare\;P \extends \bdb{\dontcare}} \; \dontcare \exc \set{\dontcare} \bar{\mu} \; \kwd{end} \in \Delta }
-  { \methods{T\obb{\alpha}} = \LRsetb{\underline{\bigsubstb{\alpha}{P}}\mu} }
+  { \methods{T\obb{\alpha}} = \LRsetb{\Bigtuple{\underline{T\obb{\alpha}},\underline{\bigsubstb{\alpha}{P}}\mu}} }
 
 \medskip
 
 \infrule
   { \kwd{object} \; O\obb{P \extends \bdb{\dontcare}}(\bar{\dontcare}) \extends \set{\dontcare} \bar{\mu} \; \kwd{end} \in \Delta }
-  { \methods{O\obb{\alpha}} = \LRsetb{\underline{\bigsubstb{\alpha}{P}}\mu} }
+  { \methods{O\obb{\alpha}} = \LRsetb{\Bigtuple{\underline{O\obb{\alpha}},\underline{\bigsubstb{\alpha}{P}}\mu}} }
 
 \medskip
 
-\newjudge{All visible methods}{\allvisible{C} = \setb{M}}
+\newjudge{All visible methods}{\allvisible{C} = \setb{\tuple{\underline{C},M}}}
+
+\smallskip
 
 \infax
   { \allvisible{C} = {\displaystyle \bigcup_{C' \in \ancestors{C}} \;\;\methods{C'}} }
@@ -117,7 +116,7 @@
   { \ancestors{C} = \set{C} \cup \properancestors{C} }
 
 \end{minipage}&%
-\begin{minipage}[t]{.48\textwidth}
+\begin{minipage}[t]{.47\textwidth}
 
 \typicallabel{}
 
@@ -177,19 +176,13 @@
 
 \medskip
 
-\newjudge{Trait/object names in types}{\mathit{typeNames}(\setb{C}) = \setb{\Id}}
+\newjudge{Trait/object names in types}{\mathit{typeNames}\bigtuple{\setb{C}} = \setb{\Id}}
 
 \medskip
 
-\(
-\begin{array}{@{}l@{}}
-\mathit{typeNames}(\setb{C}) = \setb{\mathit{oneName}(C)} \\[10pt]
-\mathit{oneName}(T\obb{\dontcare}) = T \\
-\mathit{oneName}(O\obb{\dontcare}) = O 
-\end{array}
-\)\par
+\hbox{$ \mathit{typeNames}\bigtuple{\setb{C}} = \setb{\name{C}} $}
 
-\medskip
+\bigskip
 
 \textbf{Sorting of function or method declarations:}
 \typicallabel{Ordered-Before}

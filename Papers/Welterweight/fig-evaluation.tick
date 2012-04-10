@@ -2,13 +2,13 @@
 \typicallabel{R-Induction}
 
 
-\newjudge{Program reduction}{\jevalstar[]{\Pi}{e}\hss}
+\newjudge{Program reduction}{\jevalstar[]{p}{e}\hss}
 
 \medskip
 
 \infrule[R-Program]
-  { \Pi = \bar{\psi},\bar{\varphi},e  \andalso  \jevalstar[\setb{\psi};\setb{\varphi}]{e}{e'} }
-  { \jevalstar[]{\Pi}{e'} }
+  { p = \bar{\psi},\bar{\varphi},e  \andalso  \jevalstar[\setb{\psi};\setb{\varphi}]{e}{e'} }
+  { \jevalstar[]{p}{e'} }
 
 \medskip
 

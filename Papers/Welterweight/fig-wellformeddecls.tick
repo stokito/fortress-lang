@@ -9,20 +9,22 @@
 \smallskip
 
 \infrule[T-Program]
-  { \Pi = \bar{\psi},\bar{\varphi},e  \hskip1.85em % \andalso
+  { p = \bar{\psi},\bar{\varphi},e  \hskip1.85em % \andalso
     \mathit{distinct}(\bar{\psi})  \hskip1.85em % \andalso
     \mathit{distinct}(\bar{\varphi})  \hskip1.85em % \andalso
-    \countof(\mathit{typeNames}(\setb{\psi})) = \countof(\psi) \hskip1.85em % \andalso
-    \jbwfdecl[\setb{\psi},\setb{\varphi}]{\psi}  \hskip1.85em % \andalso
-    \jbwfdecl[\setb{\psi},\setb{\varphi}]{\varphi}  \\[3pt]
+    \Delta = \setb{\psi}  \hskip1.85em % \andalso
+    \Phi = \setb{\varphi}  \hskip1.85em % \andalso
+    \countof(\mathit{typeNames}(\Delta)) = \countof(\bar{\psi}) \hskip1.85em % \andalso
+    \jbwfdecl{\psi}  \\[3pt]
+    \jbwfdecl{\varphi}  \andalso
     \setb{\varphi'} = \bigabstractdecls{\setb{\varphi}}  \andalso
-    \bar{\jcoveredrule{\varphi'}{\underline{\bigconcretedecls{\setb{\varphi}}}}}  \andalso
-    \jtype[\setb{\psi};\setb{\varphi};\emptyseq]{e}{\theta} \\[6pt]
+    \jbcoveredrule{\varphi'}{\underline{\bigconcretedecls{\setb{\varphi}}}}  \andalso
+    \jtype[\Delta;\Phi;\emptyseq]{e}{\theta} \\[6pt]
     \jbARROWnoduplicatesrule{\varphi}{\underline{\varphi}}  \hskip1.85em % \andalso
     \jbARROWmethodmeetrule{\varphi}{\underline{\varphi}} \hskip1.85em % \andalso
     \jbARROWreturntyperule{\varphi}{\underline{\varphi}} \hskip1.85em % \andalso
     \jbARROWreturntyperule{\underline{\varphi}}{\varphi} }
-  { \jtype[]{\Pi}{\theta} }
+  { \jtype[]{p}{\theta} }
 
 \smallskip
 
@@ -74,7 +76,7 @@
     \jbwfmeth[\Delta';\kwd{self}\COLON O\bigobb{P},\bar{x\COLON\tau};\bar{P}]{\mu} \andalso
     \setb{M} = \allvisible[\Delta']{O\obb{P}}  \\[4pt]
     \setb{M'} = \bigabstractdecls{\setb{M}}  \andalso
-    \bar{\jcoveredrule{M'}{\underline{\bigconcretedecls{\setb{M}}}}}  \\[6pt]
+    \jbcoveredrule{M'}{\underline{\bigconcretedecls{\setb{M}}}}  \\[6pt]
     \jbARROWnoduplicatesrule{M}{\underline{M}}  \hskip1.4em % \andalso
     \jbARROWmethodmeetrule{M}{\underline{M}}  \hskip1.4em % \andalso
     \jbARROWreturntyperule{M}{\underline{M}}  \hskip1.4em % \andalso
@@ -84,7 +86,7 @@
 
 \smallskip
 
-\newjudge{Well-formed function declarations}{\jwfdecl{\delta}}
+\newjudge{Well-formed function declarations}{\jwfdecl{\varphi}}
 
 \bigskip
 
