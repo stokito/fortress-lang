@@ -1,23 +1,27 @@
 \begin{figure*}
-\typicallabel{Visible-Functions}
+\typicallabel{\relax}
 
-\infax{\relax
+\infax{
 \fbox{$
 \begin{array}{@{}c@{}}
-\msav{n}{\tupleb{\chi}} = \set{D} \quad
-\mostspecific{\setb{D}} = \set{D} \quad
-\morespecific{d}{d'} \quad
-\bigapplicable{\setb{d}}{\tupleb{\chi}} = \setb{D} \\[2pt]
-\dom\tuple{d} = \Xi \quad
-\arrow\tuple{d} = \Upsilon \quad
-\instantiate{d}{\sigma} = D \quad
-\visible{n} = \setb{d} \\[2pt]
-\defined{C}{m} = \setb{d} \quad
+\quad
+\msav{n}{\tupleb{\chi}} = \set{D} \andalso
+\mostspecific{\setb{D}} = \set{D} \andalso
+\morespecific{d}{d'} \quad\null \\[2pt] \quad
+\bigapplicable{\setb{d}}{\tupleb{\chi}} = \setb{D} \andalso
+\dom\tuple{d} = \Xi \andalso
+\arrow\tuple{d} = \Upsilon  \quad\null \\[2pt] \quad
+\instantiate{d}{\sigma} = D  \andalso
+\visible{n} = \setb{d} \andalso
 \firstapplicable{\listofb{d}}{\tupleb{\chi}} = \set{D}
+\quad\null
 \end{array}
-$}}
+$}
+}
 
 \medskip
+
+\typicallabel{Visible-Functions}
 
 \infax[MSAV-Standard]
   { \msav{n}{\tupleb{\chi}} = \mostspecific{\applicable{\visible{n}}{\tupleb{\chi}}} }
@@ -75,12 +79,7 @@ $}}
 \medskip
 
 \infax[Visible-Methods]
-  { \visiblemeth{C}{m} = {\displaystyle \bigcup_{C' \in \ancestors{C}} \;\;\defined{C'}{m}} }
-
-\medskip
-
-\infax[Defined-Methods]
-  { \defined{C}{m} = \LRsetcomp{\tuple{C,M}}{M \in \methods{C}, \name{M} = m} }
+  { \visiblemeth{C}{m} = {\displaystyle \bigcup_{C' \in \ancestors{C}} \LRsetcomp{\tuple{C'',M}}{\tuple{C'',M} \in \methods{C'}, \name{M} = m}} }
 
 \medskip
 \hrule

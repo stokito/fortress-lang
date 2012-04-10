@@ -1,7 +1,7 @@
 \begin{figure*}
 
 \begin{tabular*}{\textwidth}{@{}l@{\extracolsep{0pt plus 1fil}}|l@{\extracolsep{0pt plus 1fil}}|l@{}}
-\begin{minipage}[t]{.37\textwidth}
+\begin{minipage}[t]{.35\textwidth}
 \(
 \begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip -5em}l@{}}
 E        & ::= &  \Box                                                               & \hbox{\rm evaluation context} \\
@@ -26,7 +26,7 @@ v        & ::= &  O\obb{\theta}(\bar{v})                              & \hbox{\r
 \end{array}
 \)
 \end{minipage}&%
-\begin{minipage}[t]{.33\textwidth}
+\begin{minipage}[t]{.31\textwidth}
 \(
 \begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip -2em}l@{}}
 R        & ::= &  \pi_i(v)                                                           & \hbox{\rm redex\hskip 2em} \\
@@ -61,8 +61,8 @@ k        & ::= &  O\obb{\theta}                                       & \hbox{\r
          &  |  &  \Object                                             \\
          &  |  &  \uniontype{\theta}{\theta}                          \\
          &  |  &  \intersectiontype{\theta}{\theta}                   \\[4pt]
-X        & ::= &  O\obb{\theta}                                       & \hbox{\rm ground constructed types} \\
-         &  |  &  T\obb{\theta}
+X        & ::= &  O\obb{\theta}                                       & \hbox{\rm ground} \\
+         &  |  &  T\obb{\theta}                                       & \hbox{\rm \quad constructed types}
 \end{array}
 \)
 \end{minipage}

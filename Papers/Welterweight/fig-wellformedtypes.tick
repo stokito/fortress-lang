@@ -1,4 +1,4 @@
-\begin{figure}
+\begin{figure}[p]
 \typicallabel{W-Object}
 
 \newjudge{Well-formed types}{\jwftype{\alpha}}

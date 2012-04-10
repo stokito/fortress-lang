@@ -60,15 +60,15 @@
 \medskip
 
 \infrule
-  {\jcnequiv{\alpha}{\Bottom}{\C} \andalso \toConstraint{\setb{p}}{\C'} \\
-   \jsolve{\C \wedge \C'}{\sigma}{\C''} \andalso \toBounds{\C''}{\setb{p'}}}
-  {\jtreds{\existstypeb{p}{\alpha}}{\existstypeb{p'}{\sigma(\alpha)}}{\sigma}}
+  {\jcnequiv{\alpha}{\Bottom}{\C} \andalso \toConstraint{\setb{K}}{\C'} \\
+   \jsolve{\C \wedge \C'}{\sigma}{\C''} \andalso \toBounds{\C''}{\setb{K'}}}
+  {\jtreds{\existstypeb{K}{\alpha}}{\existstypeb{K'}{\sigma(\alpha)}}{\sigma}}
 
 \medskip
 
 \infrule
   {\text{otherwise}}
-  {\jtreds{\existstypeb{p}{\alpha}}{\existstypeb{p}{\alpha}}{\emptysubst}}
+  {\jtreds{\existstypeb{K}{\alpha}}{\existstypeb{K}{\alpha}}{\emptysubst}}
 
 \bigskip
   
@@ -77,8 +77,8 @@
 \medskip
 
 \infrule
-  { \jtreds{\existstypeb{p}{\alpha}}{\existstypeb{p'}{\alpha'}}{\sigma} }
-  { \jtreds{\foralltypeb{p}{\arrowtype{\alpha}{\omega}}}{\foralltypeb{p'}{\arrowtype{\alpha'}{\sigma(\omega)}}}{\sigma} }
+  { \jtreds{\existstypeb{K}{\alpha}}{\existstypeb{K'}{\alpha'}}{\sigma} }
+  { \jtreds{\foralltypeb{K}{\arrowtype{\alpha}{\omega}}}{\foralltypeb{K'}{\arrowtype{\alpha'}{\sigma(\omega)}}}{\sigma} }
 
 \bigskip
 

@@ -1,4 +1,4 @@
-\begin{figure}
+\begin{figure}[t]
 \typicallabel{T-Field}
 
 \newjudge{Well-formed expressions and static types}{\jtypetight{e}{\alpha}}

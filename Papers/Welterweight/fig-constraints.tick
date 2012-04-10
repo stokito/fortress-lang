@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%% BEGIN CONSTRAINT FIGURE %%%%%%%%%%%%%%%
-\begin{figure}[tb]
+\begin{figure}[t]
 
 
 \begin{tabular}{@{}c@{}c@{}}
@@ -44,7 +44,7 @@
 \medskip
 \newjudge{Solve constraints}{\jsolve{\C}{\sigma}{\C}}
 
-  \caption{Constraints. The $\wedge$, $\vee$, and $\neg$ operators form a Boolean algebra.  Note that \textit{unify} and \textit{toBounds} are partial functions.}
+  \caption{Constraints. The $\wedge$, $\vee$, and $\neg$ operators form a Boolean algebra; \textit{unify} and \textit{toBounds} are partial functions.}
   \label{fig:constraints}
 \end{figure}
 %%%%%%%%%%%%%%% END CONSTRAINT FIGURE %%%%%%%%%%%%%%%%%
