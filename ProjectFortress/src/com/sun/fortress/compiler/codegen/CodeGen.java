@@ -5758,7 +5758,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (vcg == null) {
             debug("forVarRef fresh import ", v);
             Type ty = NodeUtil.getExprType(v).unwrap();
-            ty = TypeNormalizer.normalize(ty);
+            ty = typeAnalyzer.normalize(ty);
             /* TODO if ty is an intersection type,
              * need to be sure it really is normalized.
              * Because of bugs in static analysis, it is not.
