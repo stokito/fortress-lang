@@ -15,7 +15,7 @@ package com.sun.fortress.compiler.runtimeValues;
 
 public class MutableFValue {
 
-    FValue value;
+    volatile FValue value;
 
     public FValue getValue() {
         return value;

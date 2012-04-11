@@ -74,7 +74,19 @@ public class simpleDoubleArith {
     }
 
     public static double floatToDouble(float f) {
-return (double)f;
+        return (double)f;
+    }
+
+    public static double doubleSQRT(double a) {
+        return Math.sqrt(a);
+    }
+
+    public static double doubleFloor(double a) {
+        return Math.floor(a);
+    }
+
+    public static double doubleCeiling(double a) {
+        return Math.ceil(a);
     }
 
 }
