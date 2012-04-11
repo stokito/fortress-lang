@@ -29,7 +29,7 @@ The first is a type signature that may contain unbound static parameters,
 the second is the variance (encoded as +1, 0, and -1, where positive is covariant, 0 is invariant, and negative is contravariant),
 and the third is an actual type to be related to the signature, subject to the specified variance.
 If covariant, then $\textrm{actual} <: \textrm{signature}$, in the way that values normally match their static types.
-Invariance requires equality, and contravariance requires $\textrm{signature} <: \textrm{actual}$.
+Invariance requires equality, and contravariance requires $\textrm{signature} <: \textrm{actual}$.  This version of \textsc{Match}, however, does not handle the contravariant case.
 \textsc{Match} also relies on the set $S$ of type names being inferred, and for each type name $t \in S$ augments upper and lower bound constraint sets $U_t$ and $L_t$.  If the type and signature can be related, then \textsc{match} returns normally and adds necessary constraints to the upper and lower bound sets, which are the input to the constraint propagation step.
 If the type and signature cannot be related, then \textsc{match} fails.
 
@@ -286,36 +286,43 @@ Consider this contrived example:
 \begin{verbatim}
 trait S excludes N ... end // String, Number
 trait G[\ contravariant X, covariant Y \]
-                     extends Edible ... end
+                       extends Edible ... end
 object a extends G[\ S, S \] ... end
 object b extends G[\ N, N \] ... end
-object Pair[\W\](a:W,b:W) ... end
-p = Pair(a, b)
+object Pair[\ covariant W \](a:W,b:W) ... end
 trait Eat[\ contravariant Z extends
-                        Pair[\ Edible \] \]
-object E[\ Z \](z:Z) extends Eat[\ Z \] 
+                           Pair[\ Edible \]\]
+object E[\ Z extends Pair[\ Edible \]\](z:Z)
+                   extends Eat[\ Z \] ... end
+p = Pair(a, b)
 e = E(p)
 F[\T extends Edible\](
-     eat:Eat[\ Pair[\ G[\T,T\] \] \] = ...
+        eat:Eat[\ Pair[\ G[\T,T\] \] \] = ...
 \end{verbatim}
 }
 F's actual parameter eat has ilk $E\OBR{\textit{Pair}\OBR{G\OBR{N,N}\cup G\OBR{S,S}}}$,
 which matches if there is a binding for $T$ that makes the ilk a subtype of
 $\textit{Eat}\OBR{\textit{Pair}\OBR{G\OBR{T,T}}}$.
-Contravariance of \textit{Eat} reduces this to
+
+$E\OBR{\textit{Pair}\OBR{G\OBR{N,N}\cup G\OBR{S,S}}} <: \textit{Eat}\OBR{\textit{Pair}\OBR{G\OBR{T,T}}}$ if 
 \[\textit{Pair}\OBR{G\OBR{T,T}} <: \textit{Pair}\OBR{G\OBR{N,N}\cup G\OBR{S,S}},\]
-then to \[G\OBR{T,T} <: G\OBR{N,N}\cup G\OBR{S,S}.\]
+because $E\OBR{Z} <: \textit{Eat}\OBR{Z}$ and because \textit{Eat} is contravariant in its type parameter.
+\textit{Pair} is covariant, so this reduces to
+\[G\OBR{T,T} <: G\OBR{N,N}\cup G\OBR{S,S}.\]
 The co- and contra-variance of $G$'s parameters require that
 $G\OBR{T,T} <: G\OBR{N,N}$ iff $T=N$,
-and that $G\OBR{T,T} <: G\OBR{S,S}$ iff $T=S$.
-There is no single value of $T$ that will satisfy both constraints simultaneously.
+and that $G\OBR{T,T} <: G\OBR{S,S}$ iff $T=S$,
+but $T$ and $S$ are mutually exclusive types.
+There is no single value of $T$ that will satisfy both constraints simultaneously.  One choice or the other might be compatible with other constraints yet to be discovered.
 
 This example, however, is contrived and somewhat useless, and it may be the case that such combinatorial constraint checking will be rare in actual programs.  It is possible to identify easy cases.  Consider the general problem of matching $G\OBR{\bar{T}}$ to $A \cup B$ in a contravariant context; that is, $G\OBR{\bar{T}} <: A \cup B$, where $A$ and $B$ are trait or object types.  The two subproblems are $G\OBR{\bar{T}} <: A$ and $G\OBR{\bar{T}} <: B$; if either subproblem fails to match, then the result is the match of the other subproblem.  If either subproblem succeeds with an empty set of constraints, then the result is the empty set of constraints.
 
-This leaves the case where both subproblems match, and both produce non-empty sets of constraints.  This results when $G\OBR{\bar{\gamma}}$ is declared to (transitively) extend $H\OBR{\bar{\alpha}}$(=$A$) and $J\OBR{\bar{\beta}}$(=$B$), where some elements of $\bar{\gamma}$ appear in $\bar{\alpha}$ and in $\bar{\beta}$, and for each element of $\bar{\gamma}$ appearing in $\bar{\alpha}$ and/or $\bar{\beta}$, the variance for that element is the same in $\bar{\gamma}$, $\bar{\alpha}$, and $\bar{\beta}$.  This is required by the rules for variance context; X-variant static parameters may only appear in X-variant contexts, including supertypes.  As seen in the example, it is also possible that $H$ and $J$ are the same generic type stem, and they may be $G$.
+This leaves the case where both subproblems match, and both produce non-empty sets of constraints.  This results when $A = H\OBR{\LDOTS}$ and $B = J\OBR{\LDOTS}$ and $G\OBR{\bar{\gamma}}$ is declared to (transitively) extend $H\OBR{\bar{\alpha}}$ and $J\OBR{\bar{\beta}}$, where some elements of $\bar{\gamma}$ appear in $\bar{\alpha}$ and in $\bar{\beta}$, and for each element of $\bar{\gamma}$ appearing in $\bar{\alpha}$ and/or $\bar{\beta}$, the variance for that element is the same in $\bar{\gamma}$, $\bar{\alpha}$, and $\bar{\beta}$.  This is required by the rules for variance context; X-variant static parameters may only appear in X-variant contexts, including supertypes.  As seen in the example, it is also possible that $H$ and $J$ are the same generic type stem, and either or both may be $G$.
 
 Suppose $H$ and $J$ are both $G$.
 Then the two subproblems are $G\OBR{\bar{T_1}} <: G\OBR{\bar{U}}$ and $G\OBR{\bar{T_2}} <: G\OBR{\bar{V}}$; that is, $\bar{T_1} = \bar{U}$ and $\bar{T_2} = \bar{V}$.  Because $G\OBR{\bar{U}} \cup G\OBR{\bar{V}}$ is assumed to be in canonical form, there is no $\bar{T}$ such that $G\OBR{\bar{T}} = G\OBR{\bar{U}} \cup G\OBR{\bar{V}}$.  This is a hard subcase.
+
+If $H$ and $J$ are the same stem, this also leads to a hard subcase by the same reasoning.
 
 Suppose neither $H$ nor $J$ is $G$.
 In that case, $G\OBR{\bar{T_1}} <: H\OBR{\bar{U}}$ and $G\OBR{\bar{T_2}} <: J\OBR{\bar{V}}$.
@@ -423,10 +430,11 @@ The canonical form of union and intersection types is sorted disjunctive normal 
          \For{$1 \le j < k \le n$}
             \If{$X_j = G\OBR{\alpha} \;\textbf{and}\; X_k = G\OBR{\beta}$}
                \State replace $G\OBR{\alpha}$ and $G\OBR{\beta}$ with $G\OBR{\alpha \bigcirc \beta}$
-			    \State $\bigcirc$ is $\cup$ at covariant parameters, otherwise $\cap$
-		        \State Resulting parameters are subject to further canonicalization.
-                \State Excluding intersections and unequal invariant parameters become bottom.
-			 	 \State Generic-of-bottom is also bottom.
+			    \State $\bigcirc$ is $\cup$ at contravariant parameters, else $\cap$
+		        \State Resulting parameters are subject to further 
+                \State canonicalization.  Excluding intersections 
+			 	 \State and unequal invariant parameters become 
+				 \State bottom. Generic-of-bottom is also bottom.
             \EndIf
          \EndFor
       \EndIf
