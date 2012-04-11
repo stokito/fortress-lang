@@ -11,7 +11,7 @@
 
 package com.sun.fortress.runtimeSystem;
 
-import com.sun.fortress.interpreter.evaluator.tasks.FortressTaskRunnerGroup;
+
 import com.sun.fortress.nativeHelpers.systemHelper;
 import jsr166y.RecursiveAction;
 
@@ -20,7 +20,8 @@ import jsr166y.RecursiveAction;
  *  of it to the primordial task.  We need a run method here because
  *  the one in the generated class isn't visisble yet.
  */
-public abstract class FortressExecutable extends RecursiveAction {
+
+public abstract class FortressExecutable extends FortressAction {
     public static final int numThreads = getNumThreads();
     public static final int defaultSpawnThreshold = 5;
     public static final int spawnThreshold = getSpawnThreshold();
@@ -78,6 +79,7 @@ public abstract class FortressExecutable extends RecursiveAction {
             }
         }
     }
+
 
     /**
      * Should simply call through to static run() method in the

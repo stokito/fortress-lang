@@ -612,9 +612,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitInsn(DUP);
         mv.visitMethodInsn(INVOKESPECIAL, packageAndClassName, "<init>",
                            Naming.voidToVoid);
-
-        // .runExecutable(args)
         mv.visitVarInsn(ALOAD, 0);
+        // .runExecutable(args)
         mv.visitMethodInsn(INVOKEVIRTUAL,
                            NamingCzar.fortressExecutable,
                            NamingCzar.fortressExecutableRun,
@@ -625,6 +624,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv = cw.visitCGMethod(ACC_PUBLIC, "compute",
                             Naming.voidToVoid, null, null);
         mv.visitCode();
+        mv.visitVarInsn(ALOAD, mv.getThis());
+        mv.visitMethodInsn(INVOKESTATIC, 
+                           "com/sun/fortress/runtimeSystem/FortressAction",
+                           "setAction",
+                           "(Lcom/sun/fortress/runtimeSystem/FortressAction;)V");
+
         // Call through to static run method in this component.
         mv.visitMethodInsn(INVOKESTATIC, packageAndClassName, "run",
                            NamingCzar.voidToFortressVoid);
@@ -1486,10 +1491,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         pushVoid();
     }
 
-    public void forBlock(Block x) {
-        if (x.isAtomicBlock()) {
-            throw sayWhat(x, "Can't generate code for atomic block yet.");
-        }
+
+    public void forBlockHelper(Block x) {
         boolean oldInABlock = inABlock;
         inABlock = true;
         debug("forBlock ", x);
@@ -1497,6 +1500,53 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         inABlock=oldInABlock;
     }
 
+    public void forAtomicBlockHelper(Block x) {
+        mv.visitMethodInsn(INVOKESTATIC, 
+                           "com/sun/fortress/runtimeSystem/FortressAction", 
+                           "startTransaction", "()V");     
+        forBlockHelper(x);
+        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/FortressAction", 
+                           "endTransaction", "()V");
+    }
+
+    // For debugging        
+    public void printString(CodeGenMethodVisitor mv, String s) {
+        mv.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+        mv.visitLdcInsn(s);
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V");
+    }
+
+    public void forAtomicBlock(Block x) {
+        Label start = new Label();
+        Label end = new Label();
+        Label exit = new Label();
+        Label handler = new Label();
+        Label startOver = new Label();
+        String type = "com/sun/fortress/runtimeSystem/TransactionAbortException";
+
+        mv.visitLabel(startOver);
+        mv.visitTryCatchBlock(start, end, handler, type);
+        mv.visitLabel(start);
+        forAtomicBlockHelper(x);
+        mv.visitLabel(end);
+        mv.visitJumpInsn(GOTO, exit);
+        mv.visitLabel(handler);
+        mv.visitInsn(POP); // Pop the exception
+        // The following line will need to be fixed when we have nested transactions.
+        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/FortressAction", 
+                           "cleanupTransaction", "()V");
+        mv.visitJumpInsn(GOTO, startOver);
+        mv.visitLabel(exit);
+    }
+
+
+    public void forBlock(Block x) {
+        if (x.isAtomicBlock()) {
+            forAtomicBlock(x);
+        } else {
+            forBlockHelper(x);
+        }
+    }
 
 // I took a stab at this, but got stuck on the comparison operator.
 //   public void forCaseExpr(CaseExpr x) {
@@ -3757,6 +3807,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     	
     public void forLocalVarDecl(LocalVarDecl d) {
         debug("forLocalVarDecl", d);
+
         List<LValue> lhs = d.getLhs();
         int n = lhs.size();
         List<VarCodeGen> vcgs = new ArrayList(n);
@@ -4514,11 +4565,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         //
 
         mv.visitVarInsn(ALOAD, mv.getThis());
+        mv.visitInsn(DUP);
+        mv.visitMethodInsn(INVOKESTATIC, 
+                           "com/sun/fortress/runtimeSystem/FortressAction",
+                           "setAction", 
+                           "(Lcom/sun/fortress/runtimeSystem/FortressAction;)V");
 
         x.accept(this);
-
         mv.visitFieldInsn(PUTFIELD, className, "result", result);
-
         voidEpilogue();
     }
 
