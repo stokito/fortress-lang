@@ -3,20 +3,20 @@
 
 \begin{tabular*}{\textwidth}{@{}l@{\extracolsep{0pt plus 1fil}}|l@{}}
 \begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 1.5em}l@{\hskip 0em}l@{}}
-p        & ::= &  \bar{\delta}, e                                                    & \multicolumn{2}{@{}l@{}}{\hbox{\rm program (declarations plus expression)\hskip0.6em}} \\[4pt]
-\delta   & ::= &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{trait} \; T\bigobb{V\;\beta}
+p        & ::= &  \bar{\psi}, \bar{\varphi}, e                                       & \multicolumn{2}{@{}l@{}}{\hbox{\rm program (declarations plus expression)\hskip0.6em}} \\[4pt]
+\psi     & ::= &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{trait} \; T\bigobb{V\;\beta}
                               \mathbin{\extends} \bigbdb{t} \mathbin{\comprises} \bigbdb{c} \mathbin{\exc} \bigbdb{t} \; \bar{\mu} \; \kwd{end}            } & \hbox{\rm trait declaration} \\[1pt]
          &  |  &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{trait} \; T\bigobb{V\;\beta}
                               \mathbin{\extends} \bigbdb{t} \mathbin{\exc} \bigbdb{t} \; \bar{\mu} \; \kwd{end}                                            } & \hbox{\rm trait declaration} \\[1pt]
-         &  |  &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{object} \; O\bigobb{\beta} (\bar{z\COLON\tau}) \extends \bigbdb{t} \; \bar{\mu } \; \kwd{end} } & \hbox{\rm object declaration} \\[1pt]
-         &  |  &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \varphi                                                                                            } & \hbox{\rm function declaration} \\[4pt]
-\varphi  & ::= &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ f\bigobb{\beta} (\bar{x\COLON\tau})\COLON\tau \defneq e                                            } & \hbox{\rm function declaration} \\[4pt]
+         &  |  &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{object} \; O\bigobb{\beta} (\bar{x\COLON\tau}) \extends \bigbdb{t} \; \bar{\mu } \; \kwd{end} } & \hbox{\rm object declaration} \\[4pt]
 V        & ::= &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{covariant} \mid \kwd{contravariant} \mid \kwd{invariant}                                      } & \hbox{\rm variance} \\[4pt]
-\mu      & ::= &  m\bigobb{\kappa} (\bar{x\COLON\tau})\COLON\tau \defneq e           & \multicolumn{2}{@{}l@{}}{\hbox{\rm dotted method declaration}} \\[4pt]
+\varphi  & ::= &  f\bigobb{\beta} (\bar{x\COLON\tau})\COLON\tau \defneq e            & \multicolumn{2}{@{}l@{}}{\hbox{\rm function definition}} \\[1pt]
+         &  |  &  f\bigobb{\beta} (\bar{x\COLON\tau})\COLON\tau                      & \multicolumn{2}{@{}l@{}}{\hbox{\rm abstract function declaration}} \\[4pt]
+\mu      & ::= &  m\obb{\kappa} (\bar{x\COLON\tau})\COLON\tau \defneq e              & \multicolumn{2}{@{}l@{}}{\hbox{\rm dotted method definition}} \\
+         &  |  &  m\obb{\kappa} (\bar{x\COLON\tau})\COLON\tau                        & \multicolumn{2}{@{}l@{}}{\hbox{\rm abstract dotted method declaration}} \\[4pt]
 \beta    & ::= &  P \extends \bdb{\tau}                                              & \multicolumn{2}{@{}l@{}}{\hbox{\rm simple type parameter binding}} \\[4pt]
 \kappa   & ::= &  \bdb{\tau} \extends P \extends \bdb{\tau}                          & \multicolumn{2}{@{}l@{}}{\hbox{\rm complete type parameter binding}} \\[4pt]
-e        & ::= &  x                                                                  & \multicolumn{2}{@{}l@{}}{\hbox{\rm variable reference}} \\
-         &  |  &  z                                                                  & \multicolumn{2}{@{}l@{}}{\hbox{\rm field reference}} \\
+e        & ::= &  x                                                                  & \multicolumn{2}{@{}l@{}}{\hbox{\rm variable or field reference}} \\
          &  |  &  \kwd{self}                                                         & \multicolumn{2}{@{}l@{}}{\hbox{\rm self reference}} \\
          &  |  &  (\bar{e})                                                          & \multicolumn{2}{@{}l@{}}{\hbox{\rm tuple creation}} \\
          &  |  &  \pi_i(e)                                                           & \multicolumn{2}{@{}l@{}}{\hbox{\rm tuple projection}} \\
@@ -39,18 +39,18 @@ e        & ::= &  x                                                             
 c        & ::= &  O\obb{\tau}                               & \hbox{\rm object type} \\
          &  |  &  t                                         & \hbox{\rm trait type} \\[4pt]
 t        & ::= &  T\obb{\tau}                               & \hbox{\rm trait type} \\[4pt]
-P        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm type parameter name} \\[1pt]
-T        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm generic trait name} \\[1pt]
-O        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm generic object name} \\[1pt]
-x        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm variable name} \\[1pt]
-z        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm field name} \\[1pt]
-f        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm function name} \\[1pt]
+P        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm type parameter name} \\[3pt]
+T        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm generic trait name} \\[3pt]
+O        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm generic object name} \\[3pt]
+x        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm variable or field name} \\[3pt]
+%% z        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm field name} \\[3pt]
+f        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm function name} \\[3pt]
 m        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm method name} \\[4pt]
-Id       & ::= &  P                                         & \hbox{\rm names} \\
+\Id      & ::= &  P                                         & \hbox{\rm names} \\
          &  |  &  T \\
          &  |  &  O \\
          &  |  &  x \\
-         &  |  &  z \\
+%%         &  |  &  z \\
          &  |  &  f \\
          &  |  &  m
 \end{array}

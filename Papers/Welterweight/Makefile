@@ -10,10 +10,11 @@
 ################################################################################
 # very basic makefile
 
-TICKS = paper.tick notation.tick grammar.tick static.tick evaluation.tick subtyping.tick fig-altmsa.tick \
-	fig-constraints.tick fig-evaluation.tick fig-exclusion.tick fig-expressiontypes.tick fig-grammar.tick fig-internalsymbols.tick \
+TICKS = paper.tick introduction.tick notation.tick grammar.tick static.tick evaluation.tick subtyping.tick dispatch.tick fig-altmsa.tick \
+	fig-constraints.tick fig-covered.tick fig-evaluation.tick fig-exclusion.tick fig-expressiontypes.tick fig-grammar.tick fig-internalsymbols.tick \
 	fig-meetrule.tick fig-metavariables.tick fig-miscjudgments.tick fig-miscsubtyping.tick fig-msa.tick fig-quantified.tick \
-	fig-subtyping.tick fig-values.tick fig-wellformeddecls.tick fig-wellformedtypes.tick
+	fig-subtyping.tick fig-values.tick fig-wellformeddecls.tick fig-wellformedtypes.tick \
+        notation-details.tick proofs.tick
 
 TEXS = $(TICKS:.tick=.tex)
 

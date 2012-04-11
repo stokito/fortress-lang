@@ -1,75 +1,96 @@
 \begin{figure}[t]
-\typicallabel{D-Trait}
+\typicallabel{No-Dup-Not-Less}
 
+\newjudge{No Duplicates Rule}{\jnoduplicatesrule{d}{d}}
 
-\newjudge{Meet Rule}{\jmethodmeetrule{\mu}{\mu}}
+\medskip
 
-\bigskip
+\infrule[No-Dup-Triv]
+  { \name{d}\not=\name{d'} }
+  { \jnoduplicatesrule{d}{d'} }
+
+\medskip
+
+\infrule[No-Dup-Not-Less]
+  { \neg\bigtuple{\jle{\dom(d)}{\dom(d')}} }
+  { \jnoduplicatesrule{d}{d'} }
+
+\medskip
+
+\infrule[No-Dup-Not-Gtr]
+  { \neg\bigtuple{\jle{\dom(d')}{\dom(d)}} }
+  { \jnoduplicatesrule{d}{d'} }
+
+\medskip
+
+\newjudge{Meet Rule}{\jmethodmeetrule{d}{d}}
+
+\typicallabel{Meet-Third}
+
+\medskip
 
 \infrule[Meet-Triv]
-  { (\mu=\mu') \vee (\name{\mu}\not=\name{\mu'}) }
-  { \jmethodmeetrule{\mu}{\mu'} }
+  { \name{d}\not=\name{d'} }
+  { \jmethodmeetrule{d}{d'} }
 
-\bigskip
+\medskip
 
 \infrule[Meet-Excl]
-  { \mu\not=\mu' \andalso \name{\mu}=\name{\mu'} \\[1pt]
-    \jle{\bigtuple{\dom(\mu)\existentialmeet\dom(\mu')}}{\existstype{\verythinmathspace}{\Bottom}} }
-  { \jmethodmeetrule{\mu}{\mu'} }
+  { \jle{\bigtuple{\dom(d)\existentialmeet\dom(d')}}{\existstype{\verythinmathspace}{\Bottom}} }
+  { \jmethodmeetrule{d}{d'} }
 
-\bigskip
+\medskip
 
 \infrule[Meet-Spec]
-  { \mu\not=\mu' \andalso \name{\mu}=\name{\mu'} \\[1pt]
-    \jle{\dom(\mu)}{\dom(\mu')} }
-  { \jmethodmeetrule{\mu}{\mu'} }
+  { \jle{\dom(d)}{\dom(d')} }
+  { \jmethodmeetrule{d}{d'} }
 
-\bigskip
+\medskip
 
 \infrule[Meet-Third]
-  { \mu''\in\Delta  \andalso  \mathit{distinct}(\mu,\mu',\mu'')  \\[1pt]
-    \name{\mu}=\name{\mu'}=\name{\mu''} \\[1pt]
-    \jequivalent{\dom(\mu'')}{\bigtuple{\dom(\mu)\sqcap\dom(\mu')}} }
-  { \jmethodmeetrule{\mu}{\mu'} }
+  { d''\in\Delta  \\[1pt]
+    \name{d}=\name{d'}=\name{d''} \\[1pt]
+    \jequivalent{\dom(d'')}{\bigtuple{\dom(d)\sqcap\dom(d')}} }
+  { \jmethodmeetrule{d}{d'} }
 
-\bigskip
+\medskip
 
-\newjudge{Return Type Rule}{\jreturntyperule{T\obb{\mu}}{T\obb{\mu}}}
+\newjudge{Return Type Rule}{\jreturntyperule{d}{d}}
 
-\bigskip
+\typicallabel{Return-Moot}
+
+\medskip
 
 \infrule[Return-Triv]
-  { (\mu=\mu') \vee (\name{\mu}\not=\name{\mu'}) }
-  { \jreturntyperule{\mu}{\mu'} }
+  { \name{d}\not=\name{d'} }
+  { \jreturntyperule{d}{d'} }
 
-\bigskip
+\medskip
 
 \infrule[Return-Moot]
-  { \neg\big(\jle{\dom(\mu)}{\dom(\mu')}\big) }
-  { \jreturntyperule{\mu}{\mu'} }
+  { \neg\big(\jle{\dom(d)}{\dom(d')}\big) }
+  { \jreturntyperule{d}{d'} }
 
-\bigskip
+\medskip
 
 \infrule[Return-Test]
-  { \mu = m\obb{\kappa}(\bar{x\COLON\alpha})\COLON\rho \defneq \dontcare
+  { \arrow(d) = \foralltypeb{\kappa}{\arrowtype{\tupleb{\alpha}}{\rho}}
     \andalso
-    \mu' = m\obb{\kappa'}(\bar{x'\COLON\alpha'})\COLON\rho' \defneq \dontcare
-    \\[3pt]
     \bar{\kappa = \bdb{\chi} \extends P \extends \bdb{\eta}}
-    \andalso
+    \\[3pt]
+    \arrow(d') = \foralltypeb{\kappa'}{\arrowtype{\tupleb{\alpha'}}{\rho'}}
+    \quad  % tighter than \andalso
     \bar{\kappa' = \bdb{\chi'} \extends Q \extends \bdb{\eta'}}
     \\[3pt]
-    \mu\neq\mu'
-    \andalso
     \mathit{distinct}(\bar{P},\bar{Q})
     \andalso
-    \jle{\dom(\mu)}{\dom(\mu')}
+    \jleusing{\dom(d)}{\dom(d')}{\sigma}
     \\[3pt]
-    \jle{\foralltypeb{\kappa}{\arrowtype{\tupleb{\alpha}}{\rho}}}{\foralltype{\bar{\kappa},\bar{\kappa'}}{\arrowtype{\intersectiontype{\tupleb{\alpha}}{\tupleb{\alpha'}}}{\rho'}}}
+    \jle{\foralltypeb{\kappa}{\arrowtype{\tupleb{\alpha}}{\rho}}}{\foralltype{\bar{\kappa}}{\sigma\arrowtype{\intersectiontype{\tupleb{\alpha}}{\tupleb{\alpha'}}}{\rho'}}}
   }
-  { \jreturntyperule{\mu}{\mu'} }
+  { \jreturntyperule{d}{d'} }
 
-\bigskip
+\medskip
 
 \newjudge{Ancestors Rule}{\jancestormeetrule{T\obb{\alpha}}{T\obb{\alpha}}}
 
@@ -79,16 +100,16 @@
   { T \neq T' }
   { \jancestormeetrule{T\obb{\alpha}}{T'\obb{\eta}} }
 
-\bigskip
+\medskip
 
 \infrule[Anc-Same-Trait]
-  { \kwd{trait} \; T\obb{V\;P \extends \set{\dontcare}} \; \dontcare \; \kwd{end} \in \Delta \\
+  { \kwd{trait} \; T\obb{V\;P \extends \bdb{\dontcare}} \; \dontcare \; \kwd{end} \in \Delta  \andalso
     T\obb{\gamma} \in \setb{\chi}  \\
-    \jsubtype{T\obb{\gamma}}{T\obb{\alpha}}  \\
+    \jsubtype{T\obb{\gamma}}{T\obb{\alpha}}  \andalso
     \jsubtype{T\obb{\gamma}}{T\obb{\eta}} }
   { \jancestormeetrule{T\obb{\alpha}}{T\obb{\eta}} }
 
 \medskip
-\caption{The Meet Rule, the Return Type Rule, and the Ancestors Rule.  Note that alpha-renaming of type variables may be necessary to apply some of these rules.}
+\caption{The No Duplicates Rule, the Meet Rule, the Return Type Rule, and the Ancestors Rule.  Note that alpha-renaming of type variables may be necessary to apply some of these rules.}
 \label{fig:meetrule}
 \end{figure}

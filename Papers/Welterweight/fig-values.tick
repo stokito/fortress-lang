@@ -1,9 +1,10 @@
 \begin{figure*}
 
-\begin{tabular*}{\textwidth}{@{}l@{\extracolsep{0pt plus 1fil}}|l@{}}
-\begin{minipage}[t]{.5\textwidth}
-\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 2em}l@{}}
-E        & ::= &  \Box                                                               & \hbox{\rm evaluation context\hskip 2em} \\
+\begin{tabular*}{\textwidth}{@{}l@{\extracolsep{0pt plus 1fil}}|l@{\extracolsep{0pt plus 1fil}}|l@{}}
+\begin{minipage}[t]{.35\textwidth}
+\(
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip -5em}l@{}}
+E        & ::= &  \Box                                                               & \hbox{\rm evaluation context} \\
          &  |  &  (\bar{e}\,E\,\bar{e})                                              \\
          &  |  &  \pi_i(E)                                                           \\
          &  |  &  E\apply(\bar{e})                                                   \\
@@ -13,48 +14,59 @@ E        & ::= &  \Box                                                          
          &  |  &  f(\bar{e}\,E\,\bar{e})                                             \\
          &  |  &  E.m(\bar{e})                                                       \\
          &  |  &  e.m(\bar{e}\,E\,\bar{e})                                            \\
-         &  |  &  (E \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e)  \\[4pt]
-R        & ::= &  \pi_i(v)                                                           & \hbox{\rm redex} \\
+         &  |  &  (E \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e)
+\end{array}
+\)
+\par\medskip
+\(
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 2em}l@{}}
+v        & ::= &  O\obb{\theta}(\bar{v})                              & \hbox{\rm object instance\hskip 2em} \\
+         &  |  &  (\bar{v})                                           & \hbox{\rm tuple value} \\
+         &  |  &  ((\bar{x\COLON\theta})\COLON\theta \Rightarrow e)   & \hbox{\rm function value} \\[4pt]
+\end{array}
+\)
+\end{minipage}&%
+\begin{minipage}[t]{.31\textwidth}
+\(
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip -2em}l@{}}
+R        & ::= &  \pi_i(v)                                                           & \hbox{\rm redex\hskip 2em} \\
          &  |  &  (v)                                                                \\
          &  |  &  v\apply(\bar{v})                                                   \\
 %%       &  |  &  v.z                                                                \\
-         &  |  &  f\obb{\tau}(\bar{v})                                               \\
          &  |  &  f(\bar{v})                                                         \\
-         &  |  &  v.m\obb{\tau}(\bar{v})                                             \\
          &  |  &  v.m(\bar{v})                                                       \\
          &  |  &  (v \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e)
 \end{array}
-\end{minipage}&%
-\begin{minipage}[t]{.45\textwidth}
-\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 2em}l@{}}
-v        & ::= &  O\obb{\theta}(\bar{v})                          & \hbox{\rm object instance} \\
-         &  |  &  (\bar{v})                                       & \hbox{\rm tuple value} \\
-         &  |  &  ((\bar{x\COLON\tau})\COLON\tau \Rightarrow e)   & \hbox{\rm function value} \\[4pt]
-\kappa   & ::= &  O\obb{\theta}                                   & \hbox{\rm types that can be ilks} \\
-         &  |  &  \tupleb{\theta}                                 \\
-         &  |  &  \listof{\barearrowtype{\theta}{\theta}}         \\[4pt]
-\theta   & ::= &  O\obb{\theta}                                   & \hbox{\rm types that can appear within ilks} \\
-         &  |  &  T\obb{\theta}                                   \\
-         &  |  &  \tupleb{\theta}                                 \\
-         &  |  &  \arrowtype{\theta}{\theta}                      \\
-         &  |  &  \Any                                            \\
-         &  |  &  \Object                                         \\
-         &  |  &  \uniontype{\theta}{\theta}                      \\
-         &  |  &  \intersectiontype{\theta}{\theta}
-\end{array}
-\medskip
-\newjudge{Ilk of a value}{\mathit{ilk}(v) = \kappa}
+\)
+\par\medskip
+\newjudge{Ilk of a value}{\mathit{ilk}(v) = k}
 \(
 \begin{array}[t]{@{}l@{}}
-\mathit{ilk}(O\obb{\kappa}(\bar{v})) = O\obb{\kappa} \\[2pt]
+\mathit{ilk}(O\obb{\theta}(\bar{v})) = O\obb{\theta} \\[2pt]
 \mathit{ilk}((\bar{v})) = (\bar{\mathit{ilk}(v)}) \\[2pt]
-\mathit{ilk}(((\bar{x\COLON\tau})\COLON\tau' \Rightarrow e)) = \listof{\barearrowtype{(\bar{\tau})}{\tau'}}
+\mathit{ilk}(((\bar{x\COLON\theta})\COLON\theta' \Rightarrow e)) = \listof{\barearrowtype{(\bar{\theta})}{\theta'}}
+\end{array}
+\)
+\end{minipage}&%
+\begin{minipage}[t]{.28\textwidth}
+\(
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 2em}l@{}}
+k        & ::= &  O\obb{\theta}                                       & \hbox{\rm ilks} \\
+         &  |  &  \tupleb{\theta}                                     \\
+         &  |  &  \listof{\barearrowtype{\theta}{\theta}}             \\[4pt]
+\theta   & ::= &  X                                                   & \hbox{\rm ground types} \\
+         &  |  &  \tupleb{\theta}                                     \\
+         &  |  &  \arrowtype{\theta}{\theta}                          \\
+         &  |  &  \Any                                                \\
+         &  |  &  \Object                                             \\
+         &  |  &  \uniontype{\theta}{\theta}                          \\
+         &  |  &  \intersectiontype{\theta}{\theta}                   \\[4pt]
+X        & ::= &  O\obb{\theta}                                       & \hbox{\rm ground} \\
+         &  |  &  T\obb{\theta}                                       & \hbox{\rm \quad constructed types}
 \end{array}
 \)
 \end{minipage}
 \end{tabular*}
-\medskip
-\caption{Values, Evaluation Contexts, Redexes, and Ilks}
+\caption{Evaluation Contexts, Values, Redexes, Ilks, and Ground Types}
 \label{fig:values}
 \end{figure*}
-

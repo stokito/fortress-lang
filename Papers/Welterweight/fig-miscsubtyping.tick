@@ -97,19 +97,19 @@ $}
 
 \medskip
 
-\newjudge{Equivalence of existential types}{\jequivalent{\Phi}{\Phi}}
+\newjudge{Equivalence of existential types}{\jequivalent{\Xi}{\Xi}}
 
 \smallskip
 
 \infrule
-  { \jle{\Phi}{\Phi'}  \andalso \jle{\Phi'}{\Phi} }
-  { \jequivalent{\Phi}{\Phi'} }
+  { \jle{\Xi}{\Xi'}  \andalso \jle{\Xi'}{\Xi} }
+  { \jequivalent{\Xi}{\Xi'} }
 
 \medskip
 
 \newjudge{Free variables in given types}{\FV(\bar{\alpha})=\bigsetb{P}}
 
-$\begin{array}{ll}
+$\begin{array}{@{}ll@{}}
 \multicolumn{2}{l}{\FV(\bar{\alpha}) = \bigcup \bigsetb{\mathit{FV}'(\alpha)}} \\[10pt]
 \mathit{FV}'(P) = \set{P}                                     & \mathit{FV}'(\Any) = \set{\,} \\
 \mathit{FV}'(T\obb{\alpha}) = \FV(\bar{\alpha})               & \mathit{FV}'(\Object) = \set{\,} \\
