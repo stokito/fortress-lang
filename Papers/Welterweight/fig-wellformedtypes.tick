@@ -1,7 +1,7 @@
 \begin{figure}[p]
 \typicallabel{W-Object}
 
-\newjudge{Well-formed types}{\jwftype{\alpha}}
+\newjudge{Well-formed types}{\jwftype{\alpha} \quad \jwftype{\Xi} \quad \jwftype{\Upsilon}}
 \medskip
 
 % Stuff in \Delta is assumed to be well-formed

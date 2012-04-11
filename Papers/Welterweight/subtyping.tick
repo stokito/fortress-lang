@@ -1,7 +1,14 @@
+\input{fig-quantified}
 
+\input{fig-meetrule}
+
+Our subtyping judgments are constraint-based and rely in the general case on solving systems of constraints on type parameters.
+Figures~\ref{fig:constraints}, \ref{fig:subtyping}, \ref{fig:exclusion}, \ref{fig:misc-subtyping}, and~\ref{fig:quantified}
+are adapted and improved from our previously published work~\cite{oopsla-2011-type-checking}, and Figure~\ref{fig:meetrule}
+has been newly constructed based on material in the text of that paper.  We summarize the content of these figures briefly,
+using text that is in large part adapted and condensed from that earlier paper.  A notable improvement appears at the end of this section.
 
 Figure~\ref{fig:constraints} gives a grammar for type constraints.
-
 A primitive constraint is either {\it positive} ($T \subtypeof T'$ specifies that
 a $T$ is a subtype of $T'$, and $T \exc T'$ specifies that $T$ excludes $T'$) or {\it negative}
 ($T \nsubtypeof T'$ specifies that
@@ -23,18 +30,8 @@ has a partial inverse $\textit{toBound}(\C)$ that is defined whenever $\C$ can b
 (if $\C$ has multiple conjuncts of this form for a single $P$, then the resulting environment contains multiple upper bounds for $P$).
 The judgment $\jsolve{\C}{\sigma}{\C'}$ solves a set of constraints on inference variables using unification, producing a substitution $\sigma$ for the inference variables and a reduced set of constraints $\C'$ on type parameters that is free of inference variables.  (These are used in the definition of existential reduction in Figure~\ref{fig:quantified}.)
 
-
-\input{fig-subtyping}
-
-\input{fig-exclusion}
-
-\input{fig-miscsubtyping}
-
-
 Figure~\ref{fig:subtyping} gives rules for computing a set of constraints that, if satisfied, will guarantee a (reflexive) subtype relationship $\extends$ between two types.
 (Conversely, if the constraints are not satisfiable, then a subtype relationship does \emph{not} hold between the two types.)
-
-
 Figure~\ref{fig:exclusion} gives rules for computing a set of constraints that, if satisfied, will guarantee an exclusion relationship $\exc$ between two types.
 (Conversely, if the constraints are not satisfiable, then an exclusion relationship does \emph{not} hold between the two types.)
 
@@ -56,6 +53,7 @@ For example, from the rule
   { \jsub{\alpha}{\eta}{\C} \\ \jsub{\alpha}{\chi}{\C'} }
   { \jsub{\alpha}{\intersectiontype{\eta}{\chi}}{\C \wedge \C'} }
 
+\noindent
 we derive
 
 \infrule
@@ -69,22 +67,15 @@ inequivalence for an arbitrary instantiation of the type variables bound
 in $\Delta$, whereas the contrapositive assertion $\jcnequiv{T}{T'}{\C}$
 computes the constraint $\C$ that holds for any instantiation of $\Delta$ such that the inequivalence is true.
 
-
-\clearpage
-
-
 Figure~\ref{fig:miscsubtyping} gives rules that define type equivalence in terms of subtyping and define
 unconditional versions of the subtyping, type exclusion, and type equivalence relationships.
 
-\input{fig-quantified}
-
 Figure~\ref{fig:quantified} gives rules for deciding whether one existentially quantified type is a subtype of another,
-and whether one universally quantified type is a subtype of another.
+and whether one universally quantified type is a subtype of another.  This figure introduces new variants
+of these subtyping judgments that make available the substitution $\sigma$ deduced to justify the judgment.
+This allows us to make a substantial practical improvement to the Return Type Rule in Figure~\ref{fig:meetrule}.
 
-\input{fig-meetrule}
-
-This is the old meet rule from \cite{oopsla-2011-type-checking}:
-
+Here is the old meet rule from \cite{oopsla-2011-type-checking}:
 
 \infrule[Old-Return-Test]
   { \arrow(d) = \foralltypeb{\kappa}{\arrowtype{\tupleb{\alpha}}{\rho}}
@@ -103,6 +94,10 @@ This is the old meet rule from \cite{oopsla-2011-type-checking}:
   }
   { \jreturntyperule{d}{d'} }
 
+The problem here is that the last premise requires a difficult inference, because the two universal types have different sets of type parameters.
+The version presented here as rule \rn{Return-test} in Figure~\ref{fig:meetrule} takes advantage of the fact that
+the preceding premise $\jle{\dom(d)}{\dom(d')}$ has already had to compute a substitution that resolves
+the differences between the type parameters of the two functions or methods in question; replacing
+$\jle{\dom(d)}{\dom(d')}$ with $\jleusing{\dom(d)}{\dom(d')}{\sigma}$ makes this substitution $\sigma$ available
+for use in the final premise, which is then much easier to resolve.
 
-
-\clearpage

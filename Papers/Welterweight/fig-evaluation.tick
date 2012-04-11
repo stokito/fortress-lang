@@ -2,13 +2,13 @@
 \typicallabel{R-Induction}
 
 
-\newjudge{Program reduction}{\jevalstar[]{p}{e}\hss}
+\newjudge{Program reduction}{\jevalstar[]{\Pi}{e}\hss}
 
 \medskip
 
 \infrule[R-Program]
-  { p = \bar{\psi},\bar{\varphi},e  \andalso  \jevalstar[\setb{\psi};\setb{\varphi}]{e}{e'} }
-  { \jevalstar[]{p}{e'} }
+  { \Pi = \bar{\psi},\bar{\varphi},e  \andalso  \jevalstar[\setb{\psi};\setb{\varphi}]{e}{e'} }
+  { \jevalstar[]{\Pi}{e'} }
 
 \medskip
 
@@ -61,7 +61,7 @@
 \medskip
 
 %\infrule[R-Function-No-Static-Args]
-\infrule[R-Func]
+\infrule[R-Function]
   {  \msav{f}{\tupleb{\ilk{v}}} = \bigset{f\ob{\verythinmathspace}(\bar{x\COLON\dontcare})\COLON\dontcare \defneq e} }
   { \jevalstep{E\big[f(\bar{v})\big]}{E\big[ [\bar{v/x}]e \big]} }
 

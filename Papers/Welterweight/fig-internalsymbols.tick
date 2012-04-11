@@ -33,9 +33,9 @@ D        & ::= &  F                                                        & \hb
 \Phi     & ::= &  \setb{\varphi}                                           & \hbox{\rm function-declaration environment} \\[1pt]
 \Gamma   & ::= &  \bar{b\COLON\alpha}                                      & \hbox{\rm variable-type environment} \\[1pt]
 K        & ::= &  \bdb{\alpha} \extends P \extends \bdb{\alpha}            & \hbox{\rm instantiated complete binding} \\[1pt]
-F        & ::= &  f\ob{\verythinmathspace} (\bar{x\COLON\theta})\COLON\theta \defneq \epsilon  & \hbox{\rm instantiated function} \\[1pt]
+F        & ::= &  f\ob{\verythinmathspace} (\bar{x\COLON g})\COLON g \defneq \epsilon  & \hbox{\rm instantiated function} \\[1pt]
 M        & ::= &  m\obb{K} (\bar{x\COLON\alpha})\COLON\alpha \defneq u  & \hbox{\rm trait-instantiated method} \\[1pt]
-N        & ::= &  m\ob{\verythinmathspace} (\bar{x\COLON\theta})\COLON\theta \defneq \epsilon  & \hbox{\rm fully instantiated method} \\[1pt]
+N        & ::= &  m\ob{\verythinmathspace} (\bar{x\COLON g})\COLON g \defneq \epsilon  & \hbox{\rm fully instantiated method} \\[1pt]
 u        & ::= &  x                                                        & \hbox{\rm trait-instantiated expression} \\
          &  |  &  \kwd{self}                                               \\
          &  |  &  (\bar{u})                                                \\
@@ -51,13 +51,13 @@ u        & ::= &  x                                                        & \hb
          &  |  &  \kwd{self}                                               \\
          &  |  &  (\bar{\epsilon})                                         \\     
          &  |  &  \pi_i(\epsilon)                                          \\
-         &  |  &  ((\bar{x\COLON\theta})\COLON\theta \Rightarrow \epsilon) \\
+         &  |  &  ((\bar{x\COLON g})\COLON g \Rightarrow \epsilon)         \\
          &  |  &  \epsilon\apply(\bar{\epsilon})                           \\
 %%       &  |  &  \epsilon.z                                               \\
-         &  |  &  O\obb{\theta}(\bar{\epsilon})                            \\
+         &  |  &  O\obb{g}(\bar{\epsilon})                                 \\
          &  |  &  f(\bar{\epsilon})                                        \\
          &  |  &  \epsilon.m(\bar{\epsilon})                               \\
-         &  |  &  \hbox to 0pt{$(\epsilon \; \kwd{match} \; x\COLON\theta \Rightarrow \epsilon \; \kwd{else}\; \epsilon)$\hss}  \hskip-5em
+         &  |  &  \hbox to 0pt{$(\epsilon \; \kwd{match} \; x\COLON g \Rightarrow \epsilon \; \kwd{else}\; \epsilon)$\hss}  \hskip-5em
 \end{array}
 
 \caption{Symbols Not Used in the Concrete Syntax}

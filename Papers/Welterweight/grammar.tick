@@ -27,12 +27,14 @@ it has a parameter list containing names of fields and their types; an object cr
 provides a set of arguments that are simply used to initialize the declared fields, with no further action taken.
 An object declaration also has an extends clause, indicating what trait instances are supertypes of the object type.
 
-A top-level function has a parameter list containing names of parameters and their types, and also a return type and a body expression.
-Top-level functions may be overloaded; that is, more than one function declaration may have the same name $f$.
+A top-level function definition has a parameter list containing names of parameters and their types, and also a return type and a body expression.
+A top-level abstract function declaration is similar, but has no body expression.
+Top-level function declarations may be overloaded; that is, more than one function declaration may have the same name $f$.
 
-Method declarations appearing in traits or objects are similar in form to function declarations; however, the keyword $\kwd{self}$
+Method definitions appearing in trait or object declarations are similar in form to function definitions; however, the keyword $\kwd{self}$
 may be used within its body expression to refer to a value (the \emph{target object}) for which the method was invoked.
-
+An abstract method declaration is similar, but has no body expression.
+Method declarations may be overloaded; that is, more than one method declaration may have the same name $m$.
 
 \input{fig-wellformeddecls}
 
@@ -57,3 +59,4 @@ using them as values of predicates, and then writing
 $e_1\;\kwd{match}\;x'\COLON \mathrm{True}\ob{\verythinmathspace} \Rightarrow e_2 \;\kwd{else}\;e_3$.
 
 The type $\Any$ is a supertype of all types. The type $\Object$ is a supertype of every constructed type, that is, every trait type and every object type.
+(The {\sc bnf} nonterminal $\Id$ is not used in the grammar, but is used in later figures.)

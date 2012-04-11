@@ -55,9 +55,9 @@
 \newcommand{\kwd}[1]{\mathtt{#1}}
 
 \newcommand{\defneq}{\mathrel{\hbox{\tt =}}}
-\newcommand{\var}{\mathit{var}}
-\newcommand{\ilk}[1]{\mathit{ilk}\tuple{#1}}
-\newcommand{\Id}{\mathit{Id}}
+\newcommand{\var}{\textit{var}}
+\newcommand{\ilk}[1]{\textit{ilk}\tuple{#1}}
+\newcommand{\Id}{\textit{Id}}
 \newcommand{\emptyseq}{\bullet}
 \newcommand{\whennonempty}[2]{{\def\nonemptytempA{#1}\def\nonemptytempB{}\ifx\nonemptytempA\nonemptytempB\else#2\fi}}
 \newcommand{\turnstile}{\vdash}
@@ -112,8 +112,10 @@
 % \newcommand{\mycomprises}[1]{{#1}.\textit{comprises}}
 % \newcommand{\myextends}[1]{{#1}.\textit{extends}}
 
-\newcommand{\properancestors}[2][\Delta]{\textit{properAncestors}(#1,#2)}
-\newcommand{\ancestors}[2][\Delta]{\textit{ancestors}(#1,#2)}
+\newcommand{\properancestorsname}{\textit{properAncestors}}
+\newcommand{\properancestors}[2][\Delta]{\properancestorsname(#1,#2)}
+\newcommand{\ancestorsname}{\textit{ancestors}}
+\newcommand{\ancestors}[2][\Delta]{\ancestorsname(#1,#2)}
 \newcommand{\excluded}[2][\Delta]{\textit{excluded}(#1,#2)}
 \newcommand{\comprised}[2][\Delta]{\textit{comprised}(#1,#2)}
 \newcommand{\parents}[2][\Delta]{\textit{parents}(#1,#2)}
@@ -144,41 +146,42 @@
 \newcommand{\intersectiontype}[2]{\mbox{\ensuremath{({#1} \cap {#2})}}}
 \newcommand{\existentialmeettype}[2]{\mbox{\ensuremath{\left({#1} \existentialmeet {#2}\right)}}}
 
-\newcommand{\allvisible}[2][\Delta]{\ensuremath{\mathit{allVisible}(#1,#2)}}
-\newcommand{\visible}[2][\Delta,\Phi]{\ensuremath{\mathit{visible}(#1,#2)}}
-\newcommand{\visiblefunc}[2][\Delta,\Phi]{\ensuremath{\mathit{visible}(#1,#2)}}
-\newcommand{\visiblemeth}[3][\Delta,\Phi]{\ensuremath{\mathit{visible}(#1,(#2,#3))}}
-\newcommand{\defined}[3][\Delta]{\ensuremath{\mathit{defined}(#1,#2,#3)}}
-\newcommand{\name}[1]{\ensuremath{\mathit{name}\tuple{#1}}}
-\newcommand{\bigname}[1]{\ensuremath{\mathit{name}\bigtuple{#1}}}
-\newcommand{\FLAT}[1]{\ensuremath{\mathit{flat}(#1)}}
-\newcommand{\flip}[1]{\ensuremath{\mathit{flip}(#1)}}
-\newcommand{\methods}[2][\Delta]{\ensuremath{\mathit{methods}(#1,#2)}}
-\newcommand{\applicable}[3][\Delta]{\ensuremath{\mathit{applicable}\tuple{#1,#2,#3}}}
-\newcommand{\bigapplicable}[3][\Delta]{\ensuremath{\mathit{applicable}\bigtuple{#1,#2,#3}}}
-\newcommand{\instantiate}[2]{\ensuremath{\mathit{instantiate}\tuple{#1,#2}}}
-\newcommand{\biginstantiate}[2]{\ensuremath{\mathit{instantiate}\bigtuple{#1,#2}}}
-\newcommand{\firstapplicable}[3][\Delta]{\ensuremath{\mathit{firstApplicable}(#1,#2,#3)}}
-\newcommand{\mostspecific}[2][\Delta]{\ensuremath{\mathit{mostspecific}(#1,#2)}}
-\newcommand{\msavname}{\mathit{msav}}
+\newcommand{\allvisible}[2][\Delta]{\ensuremath{\textit{allVisible}(#1,#2)}}
+\newcommand{\visible}[2][\Delta,\Phi]{\ensuremath{\textit{visible}(#1,#2)}}
+\newcommand{\visiblefunc}[2][\Delta,\Phi]{\ensuremath{\textit{visible}(#1,#2)}}
+\newcommand{\visiblemeth}[3][\Delta,\Phi]{\ensuremath{\textit{visible}(#1,(#2,#3))}}
+\newcommand{\defined}[3][\Delta]{\ensuremath{\textit{defined}(#1,#2,#3)}}
+\newcommand{\name}[1]{\ensuremath{\textit{name}\tuple{#1}}}
+\newcommand{\bigname}[1]{\ensuremath{\textit{name}\bigtuple{#1}}}
+\newcommand{\FLAT}[1]{\ensuremath{\textit{flat}(#1)}}
+\newcommand{\flipname}{\textit{flip}}
+\newcommand{\flip}[1]{\ensuremath{\flipname(#1)}}
+\newcommand{\methods}[2][\Delta]{\ensuremath{\textit{methods}(#1,#2)}}
+\newcommand{\applicable}[3][\Delta]{\ensuremath{\textit{applicable}\tuple{#1,#2,#3}}}
+\newcommand{\bigapplicable}[3][\Delta]{\ensuremath{\textit{applicable}\bigtuple{#1,#2,#3}}}
+\newcommand{\instantiate}[2]{\ensuremath{\textit{instantiate}\tuple{#1,#2}}}
+\newcommand{\biginstantiate}[2]{\ensuremath{\textit{instantiate}\bigtuple{#1,#2}}}
+\newcommand{\firstapplicable}[3][\Delta]{\ensuremath{\textit{firstApplicable}(#1,#2,#3)}}
+\newcommand{\mostspecific}[2][\Delta]{\ensuremath{\textit{mostspecific}(#1,#2)}}
+\newcommand{\msavname}{\textit{msav}}
 \newcommand{\msav}[3][\Delta,\Phi]{\ensuremath{\msavname(#1,#2,#3)}}
 % \newcommand{\msavfunc}[3][\Delta,\Phi]{\ensuremath{\msavname(#1,#2,#3)}}
 % \newcommand{\msavmeth}[3][\Delta,\Phi]{\ensuremath{\msavname(#1,#2,#3)}}
-\newcommand{\topologicalsort}[2]{\ensuremath{\mathit{topologicalSort}(#1,#2)}}
+\newcommand{\topologicalsort}[2]{\ensuremath{\textit{topologicalSort}(#1,#2)}}
 \newcommand{\orderedin}[4]{\ensuremath{#1\;\mathsf{and}\;#2\;\mathsf{ordered}\;\mathsf{in}\;#3\;\mathsf{by}\;#4}}
 
-\newcommand{\abstractdecls}[1]{\ensuremath{\mathit{abstractDecls}\tuple{#1}}}
-\newcommand{\concretedecls}[1]{\ensuremath{\mathit{concreteDecls}\tuple{#1}}}
-\newcommand{\bigabstractdecls}[1]{\ensuremath{\mathit{abstractDecls}\bigtuple{#1}}}
-\newcommand{\bigconcretedecls}[1]{\ensuremath{\mathit{concreteDecls}\bigtuple{#1}}}
-\newcommand{\concrete}[1]{\ensuremath{\mathit{concrete}(#1)}}
+\newcommand{\abstractdecls}[1]{\ensuremath{\textit{abstractDecls}\tuple{#1}}}
+\newcommand{\concretedecls}[1]{\ensuremath{\textit{concreteDecls}\tuple{#1}}}
+\newcommand{\bigabstractdecls}[1]{\ensuremath{\textit{abstractDecls}\bigtuple{#1}}}
+\newcommand{\bigconcretedecls}[1]{\ensuremath{\textit{concreteDecls}\bigtuple{#1}}}
+\newcommand{\concrete}[1]{\ensuremath{\textit{concrete}(#1)}}
 
 
 
-\newcommand{\dom}{\ensuremath{\mathit{dom}}}
-\newcommand{\noselfdom}{\ensuremath{\mathit{noSelfDom}}}
-\newcommand{\arrow}{\ensuremath{\mathit{arrow}}}
-\newcommand{\FV}{\ensuremath{\mathit{FV}}}
+\newcommand{\dom}{\ensuremath{\textit{dom}}}
+\newcommand{\noselfdom}{\ensuremath{\textit{noSelfDom}}}
+\newcommand{\arrow}{\ensuremath{\textit{arrow}}}
+\newcommand{\FV}{\ensuremath{\textit{FV}}}
 
 % indented code block
 \newenvironment{ttquote}%
@@ -380,7 +383,7 @@
 \newcommand{\jexcludes}[3][\Delta]{\jgtemplate[#1]{#2}{\existsexc}{#3}}
 \newcommand{\jequivalent}[3][\Delta]{\jgtemplate[#1]{#2}{\equiv}{#3}}
 
-\newcommand{\curriedmorespecific}[1][\Delta]{\mathit{moreSpecific}\tuple{#1}}
+\newcommand{\curriedmorespecific}[1][\Delta]{\textit{moreSpecific}\tuple{#1}}
 \newcommand{\morespecific}[3][\Delta]{\curriedmorespecific[#1]{\tuple{{#2},{#3}}}}
 \newcommand{\jmorespecific}[3][\Delta]{\jgtemplate[#1]{\dom(#2)}{\morespec}{\dom(#3)}}
 
@@ -454,6 +457,7 @@
 \newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
 
 \theorembodyfont{\rm}
+\newtheorem{proposition}{Proposition}
 \newtheorem{lemma}{Lemma}
 \newtheorem{theorem}{Theorem}
 % Our proofs are more like proof sketches!! EricAllen 7/15/2011
@@ -571,6 +575,10 @@ methods, multimethods, separate compilation, Fortress}
 \label{sec:subtyping}
 \input{subtyping}
 
+\section{Run-time Type Inference}
+\label{sec:inference}
+\input{inference}
+
 \input{dispatch}
 
 \section{Related Work}\label{sec:related}
@@ -594,12 +602,14 @@ methods, multimethods, separate compilation, Fortress}
 % 
 % \end{thebibliography}
 
+\clearpage
 \appendix
-
 
 \section{Detailed Description of Notation}
 \label{sec:notation-details}
 \input{notation-details}
+
+\clearpage
 
 \input{proofs}
 

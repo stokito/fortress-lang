@@ -10,7 +10,7 @@
 ################################################################################
 # very basic makefile
 
-TICKS = paper.tick introduction.tick notation.tick grammar.tick static.tick evaluation.tick subtyping.tick dispatch.tick fig-altmsa.tick \
+TICKS = paper.tick introduction.tick notation.tick grammar.tick static.tick evaluation.tick subtyping.tick inference.tick dispatch.tick fig-altmsa.tick \
 	fig-constraints.tick fig-covered.tick fig-evaluation.tick fig-exclusion.tick fig-expressiontypes.tick fig-grammar.tick fig-internalsymbols.tick \
 	fig-meetrule.tick fig-metavariables.tick fig-miscjudgments.tick fig-miscsubtyping.tick fig-msa.tick fig-quantified.tick \
 	fig-subtyping.tick fig-values.tick fig-wellformeddecls.tick fig-wellformedtypes.tick \
