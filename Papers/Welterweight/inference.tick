@@ -22,9 +22,9 @@ is in fact a tuples of ilks, which contain no type parameters.  An even more sub
 is this proposition:
 
 \begin{proposition}
-When $\applicable$ is called at ````compile time'' (from rule \rn{T-Function} or \rn{T-Method}),
+When $\applicablename$ is called at ````compile time'' (from rule \rn{T-Function} or \rn{T-Method}),
 the type of each value parameter $x$ of each function or method considered is of the form $\tupleb{\alpha}$.
-But when $\applicable$ is called at ````run time'' (from rule \rn{R-Function} or \rn{R-Method}),
+But when $\applicablename$ is called at ````run time'' (from rule \rn{R-Function} or \rn{R-Method}),
 the type of each value parameter $x$ of each function or method considered is of the form $\tupleb{s}$;
 that is, it is a \emph{signature type}.
 \end{proposition}
