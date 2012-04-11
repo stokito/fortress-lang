@@ -1,0 +1,31 @@
+(********************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+********************************************************************************)
+
+component atomic4
+export Executable
+
+
+run():()=do
+   var count: ZZ32 := 0
+   var dracula:ZZ32 := 0
+
+
+   for i <- 1#10 do
+      atomic do count := count + 1 end
+      atomic do dracula := dracula + count end
+   end
+
+   println("count = " || count)
+   println("dracula = " || dracula)
+   assert(count = 10)
+   println("PASS");
+end
+end

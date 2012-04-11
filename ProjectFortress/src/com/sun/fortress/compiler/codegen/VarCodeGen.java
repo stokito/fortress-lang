@@ -547,9 +547,6 @@ public abstract class VarCodeGen {
                                "setValue",
                                "(Lcom/sun/fortress/compiler/runtimeValues/FValue;)V");
             mv.visitLabel(end);
-            // Another case of leaving something on the stack to meet expectations.
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.internalFortressVoid, NamingCzar.make,
-                           Naming.makeMethodDesc("", NamingCzar.descFortressVoid));
 
         }
 
