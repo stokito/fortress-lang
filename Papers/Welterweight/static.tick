@@ -1,16 +1,16 @@
-Figure~\ref{fig:internalsymbols} gives a grammar for symbols that do not appear in the concrete grammar
-of Figure~\ref{fig:grammar} but are used in later figures.
+\input{fig-miscjudgments}
+
+Figure~\ref{fig:internalsymbols} gives a grammar for certain symbols that do not appear in the concrete grammar
+of Figure~\ref{fig:grammar} but are used in later figures.  (Yet other symbols are defined in Figure~\ref{fig:values}.)
 
 Figure~\ref{fig:wellformedtypes} gives rules for deciding whether a type is well-formed, given a set of declarations $\Delta$.
 
 Figure~\ref{fig:expressiontypes} gives rules for determining the static type of an expression, given a set of declarations $\Delta$ and a variable-type environment $\Gamma$.
 
-\input{fig-wellformeddecls}
-
 Figure~\ref{fig:wellformeddecls} gives rules for deciding whether declarations are well-formed and well-typed, given the overall set of declarations $\Delta$,
 and for determining the type of a program.
 
-\input{fig-miscjudgments}
+Figure~\ref{fig:covered} gives rules for deciding whether abstract declarations have adequate concrete implementations.
 
 Figure~\ref{fig:miscjudgments} gives rules for miscellaneous subsidary judgments.
 

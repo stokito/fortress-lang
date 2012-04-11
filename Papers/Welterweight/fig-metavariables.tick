@@ -1,43 +1,56 @@
 
-\begin{figure}[t]
+\begin{figure}[p]
 
 \begin{tabular}[t]{@{}l@{}}
-$p$ ranges over programs $p$ \\
-$\delta$ ranges over top-level declarations $\delta$ \\
-$V$ ranges over variances $V$ \\
-$\varphi$ ranges over function declarations $\varphi$ \\
-$\mu$ ranges over dotted method declarations $\mu$ \\
-$\beta$ ranges over simple type parameter bindings $\beta$ \\
-$\kappa$ ranges over complete type parameter bindings $\kappa$ \\
-$e$ ranges over expressions $e$ \\
-$t$ ranges over trait types $t$ \\
-$c$ ranges over constructed types $c$ \\
-$P, Q, S$ range over type parameter names $P$ \\
-$T, A, B$ range over trait names $T$ \\
-$O$ ranges over object names $O$ \\
-$x, y$ range over variable names $x$ \\
-$z$ ranges over field names $z$ \\
-$f$ ranges over function names $f$ \\
-$m$ ranges over method names $m$ \\
-$\tau, \zeta, \xi, \omega$ range over types $\tau$ \\
-$\alpha, \gamma, \rho, \chi, \eta$ range over lattice types $\alpha$ \\
-$C$ ranges over lattice constructed types $C$ \\
-$\Phi$ ranges over existentially quantified types $\Phi$ \\
-$\Psi$ ranges over universally quantified types $\Psi$ \\
-$p$ ranges over lattice type parameter bindings $p$ \\
-$\psi$ ranges over general type environment entries $\psi$ \\
-$I$ ranges over inference variable names $I$ \\
-$b$ ranges over bindable value names $b$ \\
-$\sigma$ ranges over type/parameter substitutions $\sigma$ \\
-$d$ ranges over procedure declarations $d$ \\
-$\Omega$ ranges over sets of overloaded procedures $\Omega$ \\
-$\Delta$ ranges over type-declaration environments $\Delta$ \\
-$\Gamma$ ranges over variable-type environments $\Gamma$ \\
-$v$ ranges over values $v$ \\
-$E$ ranges over evaluation contexts $E$ \\
-$R$ ranges over redexes $R$ \\
-$\kappa$ ranges over ilk types $\kappa$ \\
-$\theta$ ranges over types that can appear in ilks $\theta$\\[6pt]
+Metavariables for {\sc bnf} nonterminals defined in Figure~\ref{fig:grammar}: \\[2pt]
+\quad$p$ ranges over programs $p$ \\
+\quad$\psi$ ranges over top-level declarations $\psi$ \\
+\quad$V$ ranges over variances $V$ \\
+\quad$\varphi$ ranges over function declarations $\varphi$ \\
+\quad$\mu$ ranges over dotted method declarations $\mu$ \\
+\quad$\beta$ ranges over simple type parameter bindings $\beta$ \\
+\quad$\kappa$ ranges over complete type parameter bindings $\kappa$ \\
+\quad$e$ ranges over expressions $e$ \\
+\quad$t$ ranges over trait types $t$ \\
+\quad$c$ ranges over constructed types $c$ \\
+\quad$P, Q$ range over type parameter names $P$ \\
+\quad$T, U, G, H, J$ range over trait names $T$ \\
+\quad$O$ ranges over object names $O$ \\
+\quad$x$ ranges over variable/field names $x$ \\
+\quad$f$ ranges over function names $f$ \\
+\quad$m$ ranges over method names $m$ \\
+\quad$\tau, \zeta, \xi, \omega$ range over expressible types $\tau$ \\[6pt]
+Metavariables for {\sc bnf} nonterminals defined in Figure~\ref{fig:internalsymbols}: \\[2pt]
+\quad$\alpha, \gamma, \rho, \chi, \eta$ range over lattice types $\alpha$ \\
+\quad$C$ ranges over lattice constructed types $C$ \\
+\quad$\Xi$ ranges over existentially quantified types $\Xi$ \\
+\quad$\Upsilon$ ranges over universally quantified types $\Upsilon$ \\
+\quad$B$ ranges over lattice type parameter bindings $B$ \\
+\quad$\delta$ ranges over type-declaration environment entries $\delta$ \\
+\quad$I$ ranges over inference variable names $I$ \\
+\quad$b$ ranges over bindable value names $b$ \\
+\quad$\sigma$ ranges over type/parameter substitutions $\sigma$ \\
+\quad$n$ ranges over generalized procedure names $n$ \\
+\quad$d$ ranges over procedure declarations $d$ \\
+\quad$D$ ranges over fully instantiated procedure declarations $D$ \\
+\quad$\Delta$ ranges over type-declaration environments $\Delta$ \\
+\quad$\Phi$ ranges over function-declaration environments $\Phi$ \\
+\quad$\Gamma$ ranges over variable-type environments $\Gamma$ \\
+\quad$K$ ranges over instantiated complete bindings $K$ \\
+\quad$F$ ranges over instantiated functions $F$ \\
+\quad$N$ ranges over trait-instantiated methods $N$ \\
+\quad$M$ ranges over fully instantiated methods $M$ \\
+\quad$u$ ranges over trait-instantiated expressions $u$ \\
+\quad$\epsilon$ ranges over fully instantiated expressions $\epsilon$ \\[6pt]
+Metavariables for {\sc bnf} nonterminals defined in Figure~\ref{fig:values}: \\[2pt]
+\quad$v$ ranges over values $v$ \\
+\quad$E$ ranges over evaluation contexts $E$ \\
+\quad$R$ ranges over redexes $R$ \\
+\quad$k$ ranges over ilks $k$ \\
+\quad$\theta$ ranges over ground types $\theta$ \\
+\quad$X$ ranges over ground constructed types $X$ \\[6pt]
+Metavariables for {\sc bnf} nonterminals defined in Figure~\ref{fig:constraints}: \\[2pt]
+\quad$\C$ ranges over type constraints $\C$ \\[8pt]
 $\pi$ does not range over any {\sc bnf} nonterminal
 \end{tabular}
 

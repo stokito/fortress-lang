@@ -4,104 +4,132 @@
 \typicallabel{D-Trait}
 
 
-\newjudge{Well-formed program and its static type}{\jtype[]{p}{\alpha}}
-\medskip
-
-\infrule[T-Program]
-  { p = \bar{\delta},e  \andalso  \mathit{distinct}(\bar{\delta})  \andalso \countof(\mathit{typeNames}(\Delta)) = \countof(\mathit{typeDecls}(\Delta)) \andalso
-    \jbwfdecl[\setb{\delta}]{\delta}  \andalso  \jtype[\setb{\delta};\emptyseq]{e}{\alpha} }
-  { \jtype[]{p}{\alpha} }
+\newjudge{Well-formed program and its static type}{\jtype[]{p}{\theta}}
 
 \smallskip
-\newjudge{Well-formed declarations}{\jwfdecl{\delta}}
-\medskip
+
+\infrule[T-Program]
+  { p = \bar{\psi},\bar{\varphi},e  \hskip1.85em % \andalso
+    \mathit{distinct}(\bar{\psi})  \hskip1.85em % \andalso
+    \mathit{distinct}(\bar{\varphi})  \hskip1.85em % \andalso
+    \Delta = \setb{\psi}  \hskip1.85em % \andalso
+    \Phi = \setb{\varphi}  \hskip1.85em % \andalso
+    \countof(\mathit{typeNames}(\Delta)) = \countof(\bar{\psi}) \hskip1.85em % \andalso
+    \jbwfdecl{\psi}  \\[3pt]
+    \jbwfdecl{\varphi}  \andalso
+    \setb{\varphi'} = \bigabstractdecls{\setb{\varphi}}  \andalso
+    \jbcoveredrule{\varphi'}{\underline{\bigconcretedecls{\setb{\varphi}}}}  \andalso
+    \jtype[\Delta;\Phi;\emptyseq]{e}{\theta} \\[6pt]
+    \jbARROWnoduplicatesrule{\varphi}{\underline{\varphi}}  \hskip1.85em % \andalso
+    \jbARROWmethodmeetrule{\varphi}{\underline{\varphi}} \hskip1.85em % \andalso
+    \jbARROWreturntyperule{\varphi}{\underline{\varphi}} \hskip1.85em % \andalso
+    \jbARROWreturntyperule{\underline{\varphi}}{\varphi} }
+  { \jtype[]{p}{\theta} }
+
+\smallskip
+
+\newjudge{Well-formed trait and object declarations}{\jwfdecl{\psi}}
+
+\bigskip
 
 % Stuff in \Delta is assumed to be well-formed
 
 {\def\andalso{\hbox to 1.8em{\hss}}   % need to tighten slightly
 \infrule[D-Trait]
-  { \Delta' = \Delta \cup \bigsetb{\bd{\,} \extends P \extends \bdb{\xi}}  \andalso
-    \setb{\chi} = \properancestors[\Delta']{T\obb{P}}  \andalso  \jbbancestormeetrule{\chi}{\underline{\chi}}   \\[3pt]
+  { \Delta' = \Delta \cup \bigsetb{\bd{\,} \extends V\;P \extends \bdb{\xi}}  \andalso
     \mathit{distinct}(\bar{P})  \andalso
-    \jbwftype[\Delta']{\xi}  \andalso  \jbwftype[\Delta']{t}  \andalso  \jbwftype[\Delta']{t'}  \andalso  \jbwftype[\Delta']{c}  \andalso
-    T \not\in \mathit{typeNames}\bigtuple{\setb{\chi}}
-    \\[3pt]
-    \bar{\mathit{notOfTrait}(\underline{T}, t')}  \andalso  \bar{\mathit{notOfTrait}(\underline{T}, c)}  \andalso
-    \jbbnotsubtype[\Delta']{c}{\underline{t'}} \andalso
-    \jbnotsubtype[\Delta']{\underline{T\obb{P}}}{t'} \andalso
-    \jbbnotsubtype[\Delta']{t}{\underline{c}} \\[3pt]
-    \jbsubtype[\Delta']{c}{\underline{T\obb{P}}} \andalso
-    \jbwfmeth[\Delta';\kwd{self}\COLON T\bigobb{P};\bar{P};\emptyseq]{\mu} \andalso
-    \setb{\mu'} = \allvisible[\Delta']{T\obb{P}}  \andalso  \jbbmethodmeetrule{\mu'}{\underline{\mu'}}
-    }
-  { \jwfdecl{\kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \mathbin{\extends} \bigbdb{t} \mathbin{\comprises} \bigbdb{c} \mathbin{\exc} \bigbdb{t'} \; \bar{\mu} \; \kwd{end}} }
-}
-
-\bigskip
-
-{\def\andalso{\hbox to 1.8em{\hss}}   % need to tighten slightly
-\infrule[D-Trait-No-Comprises]
-  { \Delta' = \Delta \cup \bigsetb{\bd{\,} \extends P \extends \bdb{\xi}}  \andalso
+    \jbwftype[\Delta']{\xi}  \andalso
     \setb{\chi} = \properancestors[\Delta']{T\obb{P}}  \\[3pt]
-    \mathit{distinct}(\bar{P})  \andalso
-    \jbwftype[\Delta']{\xi}  \andalso  \jbwftype[\Delta']{t}  \andalso  \jbwftype[\Delta']{t'}  \andalso  \jbbancestormeetrule{\chi}{\underline{\chi}}
-    \\[3pt]
-    \bar{\mathit{notOfTrait}(\underline{T}, t')}  \andalso
+    \jbwftype[\Delta']{t}  \andalso
+    \bar{\name{t'} \neq \underline{T}}  \andalso
+    \jbwftype[\Delta']{t'}  \andalso
+    T \not\in \mathit{typeNames}\bigtuple{\setb{\chi}}  \andalso
+    \mathit{distinct}(\bar{\mu})  \andalso
+    \jbARROWancestormeetrule{\chi}{\underline{\chi}}  \\[3pt]
+    \fbox{$ \bar{\name{c} \neq \underline{T}}  \andalso
+    \jbwftype[\Delta']{c}  \andalso
+    \forall\, t'' \in \setb{t'}.\bigtuple{\jbnotsubtype[\Delta']{c}{t''}\,} \andalso
+    \forall\, t'' \in \setb{t}.\bigtuple{\jbnotsubtype[\Delta']{t''}{c}\,}  \andalso
+    \jbsubtype[\Delta']{c}{\underline{T\obb{P}}} $} \\[7pt]
     \jbnotsubtype[\Delta']{\underline{T\obb{P}}}{t'}  \andalso
-    T \not\in \mathit{typeNames}\bigtuple{\setb{\chi}}  \\[3pt]
-    \jbwfmeth[\Delta';\kwd{self}\COLON T\bigobb{P};\bar{P};\emptyseq]{\mu} \andalso
-    \setb{\mu'} = \allvisible[\Delta']{T\obb{P}}  \andalso  \jbbmethodmeetrule{\mu'}{\underline{\mu'}}
+    \jbwfmeth[\Delta';\Phi;\kwd{self}\COLON T\bigobb{P};\bar{P}]{\mu}  \andalso
+    \setb{M} = \allvisible[\Delta']{T\obb{P}}  \\[4pt]
+    \jbARROWnoduplicatesrule{M}{\underline{M}}  \hskip1.4em % \andalso
+    \jbARROWmethodmeetrule{M}{\underline{M}} \hskip1.4em % \andalso
+    \jbARROWreturntyperule{M}{\underline{M}} \hskip1.4em % \andalso
+    \jbARROWreturntyperule{\underline{M}}{M}
     }
-  { \jwfdecl{\kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \mathbin{\extends} \bigbdb{t} \mathbin{\exc} \bigbdb{t'} \; \bar{\mu} \; \kwd{end}} }
+  { \jwfdecl{\kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \extends \bigbdb{t} \; \fbox{$\comprises \bigbdb{c}$} \exc \bigbdb{t'} \; \bar{\mu} \; \kwd{end}} }
 }
 
-\bigskip
+\medskip
 
 \infrule[D-Object]
-  { \Delta' = \Delta \cup \bigsetb{\bd{\,} \extends P \extends \bdb{\xi}}  \andalso  \setb{\chi} = \properancestors[\Delta']{O\obb{P}} \\[3pt]
-    \mathit{distinct}(\bar{P})  \andalso  \jbwftype[\Delta']{\xi}  \andalso  \jbwftype[\Delta']{\tau}  \andalso  \jbwftype[\Delta']{t}  \andalso
-    \jbbancestormeetrule{\chi}{\underline{\chi}}\\[3pt]
-    \jbwfmeth[\Delta';\kwd{self}\COLON O\bigobb{P},\bar{z\COLON\tau};\bar{P};\bar{z}]{\mu} \andalso
-    \setb{\mu'} = \allvisible[\Delta']{O\obb{P}}  \andalso  \jbbmethodmeetrule{\mu'}{\underline{\mu'}} }
-  { \jwfdecl{\kwd{object} \; O\bigobb{P \extends \bdb{\xi}} (\bar{z\COLON\tau}) \extends \bigbdb{t} \; \bar{\mu } \; \kwd{end}} }
+  { \Delta' = \Delta \cup \bigsetb{\bd{\,} \extends \kwd{invariant}\;P \extends \bdb{\xi}}  \andalso
+    \mathit{distinct}(\bar{P})  \andalso
+    \jbwftype[\Delta']{\xi}  \andalso
+    \setb{\chi} = \properancestors[\Delta']{O\obb{P}}  \\[3pt]
+    \jbwftype[\Delta']{\tau}  \andalso
+    \jbwftype[\Delta']{t}  \andalso
+    \mathit{distinct}(\bar{\mu})  \andalso
+    \jbARROWancestormeetrule{\chi}{\underline{\chi}}  \\[3pt]
+    \jbwfmeth[\Delta';\kwd{self}\COLON O\bigobb{P},\bar{x\COLON\tau};\bar{P}]{\mu} \andalso
+    \setb{M} = \allvisible[\Delta']{O\obb{P}}  \\[4pt]
+    \setb{M'} = \bigabstractdecls{\setb{M}}  \andalso
+    \jbcoveredrule{M'}{\underline{\bigconcretedecls{\setb{M}}}}  \\[6pt]
+    \jbARROWnoduplicatesrule{M}{\underline{M}}  \hskip1.4em % \andalso
+    \jbARROWmethodmeetrule{M}{\underline{M}}  \hskip1.4em % \andalso
+    \jbARROWreturntyperule{M}{\underline{M}}  \hskip1.4em % \andalso
+    \jbARROWreturntyperule{\underline{M}}{M}
+    }
+  { \jwfdecl{\kwd{object} \; O\bigobb{P \extends \bdb{\xi}} (\bar{x\COLON\tau}) \extends \bigbdb{t} \; \bar{\mu } \; \kwd{end}} }
+
+\smallskip
+
+\newjudge{Well-formed function declarations}{\jwfdecl{\varphi}}
 
 \bigskip
 
 \infrule[D-Function]
-  { \Delta' = \Delta \cup \bigsetb{\bd{\,} \extends P \extends \bdb{\xi}}  \andalso  \mathit{distinct}(\bar{P})  \\[1pt]
-    \jbwftype[\Delta']{\xi}  \andalso  \jbwftype[\Delta']{\tau}  \andalso  \jwftype[\Delta']{\omega} \andalso
-    \jtype[\Delta';\bar{x\COLON\tau}]{e}{\rho}  \andalso  \jsubtype[\Delta']{\rho}{\omega} }
-  { \jwfdecl{f\bigobb{P \extends \bdb{\xi}} (\bar{x\COLON\tau})\COLON\omega \defneq e} }
+  { \bar{\Delta' = \Delta \cup \bigset{\overcirclerightarrow{\bd{\,} \extends \kwd{invariant}\;P \extends \bdb{\xi}}}}  \andalso
+    \Delta'' = \Delta \cup \bigsetb{\bd{\,} \extends \kwd{invariant}\;P \extends \bdb{\xi}}  \andalso
+    \mathit{distinct}(\bar{P})  \\[3pt]
+    \bar{\jwftype[\flip{\Delta'}]{\xi}} \andalso
+    \jbwftype[\flip{\Delta''}]{\tau}  \andalso  \jwftype[\Delta'']{\omega} \andalso
+    \fbox{$ \jtype[\FLAT{\Delta''};\Phi;\bar{x\COLON\tau}]{e}{\rho}  \andalso  \jsubtype[\Delta'']{\rho}{\omega} $} }
+  { \jwfdecl{f\bigobb{P \extends \bdb{\xi}} (\bar{x\COLON\tau})\COLON\omega \; \fbox{$\defneq e \vphantom{X}$}} }
 
 \bigskip
 
-\newjudge{Well-formed methods}{\jwfmeth{\mu}}
+\newjudge{Well-formed method declarations}{\jwfmeth{\mu}}
+
 \bigskip
 
 \infrule[D-Method]
-  { \Delta' = \Delta \cup \bigsetb{\bdb{\zeta} \extends Q \extends \bdb{\xi}}  \andalso  \mathit{distinct}(\bar{P},\bar{Q})  \andalso  \mathit{distinct}(\bar{x},\bar{z}) \\[1pt]
-    \jbwftype[\Delta']{\zeta}  \andalso   \jbwftype[\Delta']{\xi}  \andalso  \jbwftype[\Delta']{\tau}  \andalso  \jwftype[\Delta']{\omega} \andalso
-    \jtype[\Delta';\Gamma,\bar{x\COLON\tau}]{e}{\rho}  \andalso  \jsubtype[\Delta']{\rho}{\omega} }
-  { \jwfmeth{m\bigobb{\bdb{\zeta} \extends Q \extends \bdb{\xi}} (\bar{x\COLON\tau})\COLON\omega \defneq e} }
+  { \bar{\Delta' = \Delta \cup \bigset{\overcirclerightarrow{\bdb{\zeta} \extends \kwd{invariant}\;Q \extends \bdb{\xi}}}}  \andalso
+    \Delta'' = \Delta \cup \bigsetb{\bdb{\zeta} \extends \kwd{invariant}\;Q \extends \bdb{\xi}}  \andalso
+    \mathit{distinct}(\bar{P},\bar{Q})  \\[3pt]
+    \bar{\jwftype[\Delta']{\zeta}}  \andalso  \bar{\jwftype[\flip{\Delta'}]{\xi}}  \andalso
+    \jbwftype[\flip{\Delta''}]{\tau}  \andalso  \jwftype[\Delta'']{\omega} \andalso
+    \fbox{$ \jtype[\FLAT{\Delta''};\Phi;\Gamma,\bar{x\COLON\tau}]{e}{\rho}  \andalso  \jsubtype[\Delta'']{\rho}{\omega} $} }
+  { \jwfmeth{m\bigobb{\bdb{\zeta} \extends Q \extends \bdb{\xi}} (\bar{x\COLON\tau})\COLON\omega \; \fbox{$\defneq e \vphantom{X}$}} }
 
 \medskip
 
-\newjudge{Type declarations in environment}{\mathit{typeDecls}(\Delta) = \Delta}
+\newjudge{Variance flattening}{\FLAT{\Delta} \mathbin{=} \Delta}
 
 \medskip
 
-\(
-\begin{array}{l}
-\mathit{typeDecls}(\Delta) = \bigcup \LRsetcomp{\mathit{td}(\delta)}{\delta\in\Delta} \\[10pt]
-\mathit{td}(\kwd{trait} \, T\bigobb{V\,P \mathbin{\extends} \bdb{\xi}} \mathbin{\extends} \bigbdb{A\obb{\tau}} \mathbin{\comprises} \bigbdb{c} \mathbin{\exc} \bigbdb{t} \, \bar{\mu} \, \kwd{end}) = 
-  \set{\kwd{trait} \, T\bigobb{V\,P \mathbin{\extends} \bdb{\xi}} \mathbin{\extends} \bigbdb{A\obb{\tau}} \mathbin{\comprises} \bigbdb{c} \mathbin{\exc} \bigbdb{t} \, \bar{\mu} \, \kwd{end}} \\[3pt]
-\mathit{td}(\kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \mathbin{\extends} \bigbdb{A\obb{\tau}} \mathbin{\exc} \bigbdb{t} \; \bar{\mu} \; \kwd{end}) =
-  \set{\kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \mathbin{\extends} \bigbdb{A\obb{\tau}} \mathbin{\exc} \bigbdb{t} \; \bar{\mu} \; \kwd{end}} \\[3pt]
-\mathit{td}(\kwd{object} \; O\bigobb{P \extends \bdb{\xi}} (\bar{z\COLON\tau}) \extends \bigbdb{t} \; \bar{\mu } \; \kwd{end}) =[3pt]
-  \set{\kwd{object} \; O\bigobb{P \extends \bdb{\xi}} (\bar{z\COLON\tau}) \extends \bigbdb{t} \; \bar{\mu } \; \kwd{end}} \\[3pt]
-\mathit{td}(f\obb{\dontcare}(\tupleb{\dontcare\COLON\dontcare})\COLON\dontcare \defneq \dontcare) = \set{\,}
+\noindent\(
+\begin{array}[t]{@{}l@{}}
+\FLAT{\Delta} = {\displaystyle \bigcup_{{\delta\in\Delta}} \mathit{oneFlat}(\delta)}
+\end{array} \hskip5em
+\begin{array}[t]{@{}l@{}}
+\mathit{oneFlat}\bigtuple{\bdb{\chi} \mathbin{\extends} V\;P \mathbin{\extends} \bdb{\eta}} = \bigset{\bdb{\chi} \mathbin{\extends} \kwd{invariant}\;P \mathbin{\extends} \bdb{\eta}} \\[1pt]
+\mathit{oneFlat}(\psi) = \set{\psi} \\[4pt]
 \end{array}
 \)
+
 \medskip
 \caption{Program typing and Well-formed Definitions}
 \label{fig:wellformeddecls}

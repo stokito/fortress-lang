@@ -1,69 +1,97 @@
-\begin{figure*}
-\typicallabel{R-Function-No-Static-Args}
-\hbox to \textwidth{\hss\newjudge{Evaluation rules}{\jevalstep[\Delta]{E[R]}{E[e]}}\hss}
+\begin{figure}
+\typicallabel{R-Induction}
+
+
+\newjudge{Program reduction}{\jevalstar[]{p}{e}\hss}
+
+\medskip
+
+\infrule[R-Program]
+  { p = \bar{\psi},\bar{\varphi},e  \andalso  \jevalstar[\setb{\psi};\setb{\varphi}]{e}{e'} }
+  { \jevalstar[]{p}{e'} }
+
+\medskip
+
+\newjudge{Expression reduction}{\jevalstar{E[R]}{E[e]}}
+
+\medskip
+
+\infax[R-Base]
+  { \jevalstar{e}{e} }
+
+\medskip
+
+\infrule[R-Induction]
+  { \jevalstar{e}{e'}  \andalso  \jevalstep{e'}{e''} }
+  { \jevalstar{e}{e''} }
+
+\medskip
+
+\newjudge{Expression reduction step}{\jevalstep{E[R]}{E[e]}}
+
+\typicallabel{R-Project-Tuple}
 
 \medskip
 
 \infax[R-Project-Tuple]
-  { \jbevalstep[\Delta]{\underline{E}\big[\pi(\underline{\bar{v}})\big]}{\underline{E}[v]} }
+  { \jbevalstep{\underline{E}\big[\pi(\underline{\bar{v}})\big]}{\underline{E}[v]} }
 
-\bigskip
+\medskip
 
 \infax[R-Singleton-Tuple]
-  { \jevalstep[\Delta]{(v)}{v} }
+  { \jevalstep{(v)}{v} }
 
-\bigskip
+\medskip
 
 \infax[R-Apply]
-%  { \jsubtype[\Delta]{(\bar{\mathit{ilk}(v)})}{(\bar{\tau})} }
-  { \jevalstep[\Delta]{{E\big[((\bar{x\COLON\tau})\COLON\tau \Rightarrow e)\apply(\bar{v})\big]}}{E\big[ [\bar{v/x}]e \big]} }
+  { \jevalsteptight{{E\big[((\bar{x\COLON\dontcare})\COLON\dontcare \Rightarrow e)\apply(\bar{v})\big]}}{E\big[ [\bar{v/x}]e \big]} }
 
-% \bigskip
+% \medskip
 
 % \infrule[R-Field-Access]
-%   {  \kwd{object} \; O\ob{\dontcare} (\bar{z\COLON\dontcare}) \;\dontcare \; \kwd{end} \in \Delta }
+%   {  \kwd{object} \; O\obb{\dontcare} (\bar{z\COLON\dontcare}) \;\dontcare \; \kwd{end} \in \Delta }
 %   { \jbevalstep[\Delta]{\underline{E}\big[\,\underline{O\obb{\alpha}(\bar{v})}.z\big]}{\underline{E}[v]} }
 
-% \bigskip
+% \medskip
 
 % \infrule[R-Function-Static-Args]
-%   {  \mathit{msa}(\Delta, f\obb{\tau}, (\bar{ilk(v)})) = \bigset{\bigtuple{\dontcare, f\bigobb{P \extends \bd{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho \defneq e, \dontcare}} }
+%   {  \mathit{msa}(\Delta, f\obb{\tau}, (\bar{ilk(v)})) = \bigset{\bigtuple{\dontcare, f\bigobb{P \extends \bdb{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho \defneq e, \dontcare}} }
 %   { \jevalstep[\Delta]{E\big[f\obb{\tau}(\bar{v})\big]}{E\big[ [\bar{v/x}]e \big]} }
 
-\bigskip
+\medskip
 
 %\infrule[R-Function-No-Static-Args]
-\infrule[R-Function]
-  {  \msav{f}{\tupleb{\ilk{v}}} = \bigset{f\bigobb{\dontcare}(\bar{x\COLON\dontcare})\COLON\dontcare \defneq e} }
-  { \jevalstep[\Delta]{E\big[f(\bar{v})\big]}{E\big[ [\bar{v/x}]e \big]} }
+\infrule[R-Func]
+  {  \msav{f}{\tupleb{\ilk{v}}} = \bigset{f\ob{\verythinmathspace}(\bar{x\COLON\dontcare})\COLON\dontcare \defneq e} }
+  { \jevalstep{E\big[f(\bar{v})\big]}{E\big[ [\bar{v/x}]e \big]} }
 
-% \bigskip
+% \medskip
 
 % \infrule[R-Method-Static-Args]
-%   {  \mathit{msa}(\Delta, O\obb{\gamma}, m\obb{\tau}, (\bar{ilk(v)})) = \bigset{\bigtuple{\dontcare, m\bigobb{\bd{\dontcare} \extends P \extends \bd{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho \defneq e, \dontcare}} }
-%   { \jevalstep[\Delta]{E\big[O\obb{\gamma}(\bar{v}).m\obb{\tau}(\bar{v'})\big]}{E\big[ [O\obb{\gamma}(\bar{v})/\kwd{self}][\bar{v/z}][\bar{v'/x}]e \big]} }
+%   {  \mathit{msa}(\Delta, O\obb{\gamma}, m\obb{\tau}, (\bar{ilk(v)})) = \bigset{\bigtuple{\dontcare, m\bigobb{\bdb{\dontcare} \extends P \extends \bdb{\dontcare}}(\bar{x\COLON\alpha})\COLON\rho \defneq e, \dontcare}} }
+%   { \jevalstep{E\big[O\obb{\gamma}(\bar{v}).m\obb{\tau}(\bar{v'})\big]}{E\big[ [O\obb{\gamma}(\bar{v})/\kwd{self}][\bar{v/z}][\bar{v'/x}]e \big]} }
 
-\bigskip
+\medskip
 
 %\infrule[R-Method-No-Static-Args]
 \infrule[R-Method]
-  { \kwd{object} \; O\ob{\dontcare}(\bar{z:\dontcare}) \; \dontcare \; \kwd{end} \in \Delta \\[2pt]
-    \msav{\tuple{O\obb{\gamma},m}}{\tuple{\ilk{v}}} = \bigset{m\bigobb{\dontcare}(\bar{x\COLON\dontcare})\COLON\dontcare \defneq e} }
-  { \jevalstep[\Delta]{E\big[O\obb{\gamma}(\bar{v}).m(\bar{v'})\big]}{E\big[ [O\obb{\gamma}(\bar{v})/\kwd{self}][\bar{v/z}][\bar{v'/x}]e \big]} }
+  { \kwd{object} \; O\obb{\dontcare}(\bar{x:\dontcare}) \; \dontcare \; \kwd{end} \in \Delta  \andalso  v'' = O\obb{\gamma}(\bar{v}) \\[2pt]
+    \msav{\tuple{O\obb{\gamma},m}}{\tuple{\ilk{v}}} = \bigset{m\ob{\verythinmathspace}(\bar{x'\COLON\dontcare})\COLON\dontcare \defneq e} }
+  { \jevalstep{E\big[v''.m(\bar{v'})\big]}{E\big[ [v''/\kwd{self}][\bar{v/x}][\bar{v'/x'}]e \big]} }
 
-\bigskip
+\medskip
 
 \infrule[R-Match-Succeeds]
-  { \jsubtype[\Delta]{\mathit{ilk}(v)}{\tau} }
-  { \jevalstep[\Delta]{E\big[(v \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e')\big]}{E\big[[v/x]e\big]} }
+  { \jsubtype{\mathit{ilk}(v)}{\tau} }
+  { \jevalstep{E\big[(v \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e')\big]}{E\big[[v/x]e\big]} }
 
-\bigskip
+\medskip
 
 \infrule[R-Match-Fails]
-  { \jnotsubtype[\Delta]{\mathit{ilk}(v)}{\tau} }
-  { \jevalstep[\Delta]{E\big[(v \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e')\big]}{E[e']} }
+  { \jnotsubtype{\mathit{ilk}(v)}{\tau} }
+  { \jevalstep{E\big[(v \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e')\big]}{E[e']} }
 
 \medskip
 \caption{Dynamic Semantics: Evaluation Rules}
 \label{fig:evaluation}
-\end{figure*}
+\end{figure}

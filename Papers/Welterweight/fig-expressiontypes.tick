@@ -1,33 +1,33 @@
-\begin{figure}
+\begin{figure}[t]
 \typicallabel{T-Field}
 
-\newjudge{Well-formed expressions and static types}{\jtype{e}{\alpha}}
-\bigskip
+\newjudge{Well-formed expressions and static types}{\jtypetight{e}{\alpha}}
+\medskip
 
 \infrule[T-Variable]
-  { \Gamma = \dontcare, b\COLON\alpha, \bar{b''\COLON\dontcare}  \andalso  b \not\in \bigsetb{b''} }
+  { \Gamma = \bar{\dontcare}, b\COLON\alpha, \bar{b'\COLON\dontcare}  \andalso  b \not\in \bigsetb{b'} }
   { \jtype{b}{\alpha} }
 
-\bigskip
+\medskip
 
 \infrule[T-Tuple]
   { \jbtype{e}{\alpha} }
   { \jtype{(\bar{e})}{(\bar{\alpha})} }
 
-\bigskip
+\medskip
 
 \infrule[T-Project]
   { \jtype{e}{\tupleb{\alpha}} }
   { \jbtype{\pi(\underline{e})}{\alpha} }
 
-\bigskip
+\medskip
 
 \infrule[T-Func-Value]
-  { \jbwftype{\tau}  \andalso  \jtype[\Delta;\Gamma,\bar{x\COLON\tau}]{e}{\rho}  \\
+  { \jbwftype[\Delta]{\tau}  \andalso  \jtype[\Delta;\Phi;\Gamma,\bar{x\COLON\tau}]{e}{\rho}  \\
     \jwftype{\omega}  \andalso  \jsubtype{\rho}{\omega} }
   { \jtype{((\bar{x\COLON\tau})\COLON\omega \Rightarrow e)}{\arrowtype{(\bar{\tau})}{\omega}} }
 
-\bigskip
+\medskip
 
 \infrule[T-Apply]
   { \jtype{e}{\arrowtype{(\bar{\alpha})}{\rho}}  \\
@@ -35,39 +35,39 @@
     \jbsubtype{\chi}{\alpha}  }
   { \jtype{e\apply(\bar{e'})}{\rho} }
 
-% \bigskip
+% \medskip
 
 % \infrule[T-Field]
 %   { \jtype{e}{O\obb{\alpha}} \\
-%     \kwd{object} \; O\bigobb{P \extends \bd{\dontcare}} (\bar{z\COLON\tau}) \; \dontcare \; \kwd{end} \in \Delta }
+%     \kwd{object} \; O\bigobb{P \extends \bdb{\dontcare}} (\bar{z\COLON\tau}) \; \dontcare \; \kwd{end} \in \Delta }
 %   { \jbtype{\underline{e}.z}{\underline{\Bigsubstb{\alpha}{P}}\tau} }
 
-\bigskip
+\medskip
 
 \infrule[T-Object]
-  { \kwd{object} \; O\bigobb{P \extends \bd{\dontcare}} (\bar{z\COLON\omega}) \; \dontcare \; \kwd{end} \in \Delta \\
+  { \kwd{object} \; O\bigobb{P \extends \bdb{\dontcare}} (\bar{x\COLON\omega}) \; \dontcare \; \kwd{end} \in \Delta \\
     \jwftype{O\obb{\tau}}  \andalso  \jbtype{e}{\eta}  \andalso  \jbsubtype{\eta}{\underline{\Bigsubstb{\tau}{P}}\omega} }
   { \jtype{O\obb{\tau}(\bar{e})}{O\obb{\tau}} }
 
-\bigskip
+\medskip
 
 \infrule[T-Func]
-  { \msav{f}{\tupleb{\eta}} = \bigset{f\obb{\dontcare}(\bar{\dontcare})\COLON \omega \defneq \dontcare}  \\[1pt]
+  { \msav{f}{\tupleb{\eta}} = \bigset{f\ob{\verythinmathspace}\tupleb{\dontcare}\COLON \omega \dontcare}  \\[1pt]
     \jbtype{e}{\eta} }
   { \jtype{f(\bar{e})}{\omega} }
 
-\bigskip
+\medskip
 
 \infrule[T-Method]
-  { \msav{\tuple{C,m}}{\tupleb{\eta}} = \bigset{m\obb{\dontcare}{\bar{\dontcare}}\COLON \omega \defneq \dontcare} \\[2pt]
+  { \msav{\tuple{C,m}}{\tupleb{\eta}} = \bigset{m\ob{\verythinmathspace}{\tupleb{\dontcare}}\COLON \omega \dontcare} \\[2pt]
     \jtype{e}{C}  \andalso  \jbtype{e'}{\eta} }
   { \jtype{e.m(\bar{e'})}{\omega} }
 
-\bigskip
+\medskip
 
 \infrule[T-Match]
   { \jtype{e}{\alpha}  \andalso  \jwftype{\tau} \\
-    \jtype[\Delta;\Gamma,x\COLON(\alpha\cap\tau)]{e'}{\eta}  \\
+    \jtype[\Delta;\Phi;\Gamma,x\COLON(\alpha\cap\tau)]{e'}{\eta}  \\
     \jtype{e''}{\chi} }
   { \jtypetight{(e \; \kwd{match} \; x\COLON\tau \Rightarrow e' \, \kwd{else}\; e'')}{(\eta\cup\chi)} }
 
