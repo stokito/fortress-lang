@@ -3,7 +3,7 @@
 
 \begin{tabular*}{\textwidth}{@{}l@{\extracolsep{0pt plus 1fil}}|l@{}}
 \begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 1.5em}l@{\hskip 0em}l@{}}
-p        & ::= &  \bar{\psi}, \bar{\varphi}, e                                       & \multicolumn{2}{@{}l@{}}{\hbox{\rm program (declarations plus expression)\hskip0.6em}} \\[4pt]
+\Pi      & ::= &  \bar{\psi}, \bar{\varphi}, e                                       & \multicolumn{2}{@{}l@{}}{\hbox{\rm program (declarations plus expression)\hskip0.6em}} \\[4pt]
 \psi     & ::= &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{trait} \; T\bigobb{V\;\beta}
                               \mathbin{\extends} \bigbdb{t} \mathbin{\comprises} \bigbdb{c} \mathbin{\exc} \bigbdb{t} \; \bar{\mu} \; \kwd{end}            } & \hbox{\rm trait declaration} \\[1pt]
          &  |  &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{trait} \; T\bigobb{V\;\beta}
@@ -20,8 +20,8 @@ e        & ::= &  x                                                             
          &  |  &  \kwd{self}                                                         & \multicolumn{2}{@{}l@{}}{\hbox{\rm self reference}} \\
          &  |  &  (\bar{e})                                                          & \multicolumn{2}{@{}l@{}}{\hbox{\rm tuple creation}} \\
          &  |  &  \pi_i(e)                                                           & \multicolumn{2}{@{}l@{}}{\hbox{\rm tuple projection}} \\
-         &  |  &  ((\bar{x\COLON\tau})\COLON\tau \Rightarrow e)                      & \multicolumn{2}{@{}l@{}}{\hbox{\rm function creation}} \\
-         &  |  &  e\apply(\bar{e})                                                   & \multicolumn{2}{@{}l@{}}{\hbox{\rm function application}} \\
+         &  |  &  ((\bar{x\COLON\tau})\COLON\tau \Rightarrow e)                      & \multicolumn{2}{@{}l@{}}{\hbox{\rm closure creation}} \\
+         &  |  &  e\apply(\bar{e})                                                   & \multicolumn{2}{@{}l@{}}{\hbox{\rm closure application}} \\
 %%       &  |  &  e.z                                                                & \multicolumn{2}{@{}l@{}}{\hbox{\rm dotted field reference}} \\
          &  |  &  O\obb{\tau}(\bar{e})                                               & \multicolumn{2}{@{}l@{}}{\hbox{\rm object creation}} \\
          &  |  &  f(\bar{e})                                                         & \multicolumn{2}{@{}l@{}}{\hbox{\rm function invocation}} \\

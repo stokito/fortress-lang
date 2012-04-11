@@ -1,8 +1,8 @@
-%\section{Proof that intersection distributes into covariant non-self generics}
-\section{Proof that intersection distributes into covariant  generics}
+\section{Proofs about simplifying a constructed types of a union or intersection type}
+\subsection{Covariant parameter receives intersection type}
 
 Consider a trait $G\ob{\kwd{covariant}\;P}$; we wish to show that
-$G\OBR{\alpha} \cap G\OBR{\eta} \equiv G\OBR{\alpha \cap \eta}$.  We do this by showing that
+$G\OBR{\alpha \cap \eta} \equiv G\OBR{\alpha} \cap G\OBR{\eta}$.  We do this by showing that
 $G\OBR{\alpha \cap \eta} <: G\OBR{\alpha} \cap G\OBR{\eta}$, and
 $G\OBR{\alpha} \cap G\OBR{\eta} <: G\OBR{\alpha \cap \eta}$.
 
@@ -18,17 +18,17 @@ From the definition of $\cap$, $G\OBR{\alpha \cap \eta} <: G\OBR{\alpha} \cap G\
 Then there must be some value $v$ that belongs to type $G\OBR{\alpha} \cap G\OBR{\eta}$ but not to type $G\OBR{\alpha \cap \eta}$;
 therefore  $\ilk{v} <: G\OBR{\alpha} \cap G\OBR{\eta}$ and $\ilk{v} \not<: G\OBR{\alpha \cap \eta}$,
 and $\ilk{v} <: G\OBR{\alpha} \cap G\OBR{\eta}$ implies both $\ilk{v} <: G\OBR{\alpha}$ and $\ilk{v} <: G\OBR{\eta}$.
-By the Ancestor Meet Rule, there must be some ancestor $G\OBR{\chi}$ of $\ilk{v}$ such that $G\OBR{\chi} <: G\OBR{\alpha}$ and $G\OBR{\chi} <: G\OBR{\eta}$.
-Because G is covariant, therefore $\chi <: \alpha$ and $\chi <: \eta$; therefore $\chi <: \alpha \cap \eta$; therefore $G\OBR{\chi} <: G\OBR{\alpha \cap \eta}$.
-But if $G\OBR{\chi}$ is an ancestor of $\ilk{v}$, then $\ilk{v} <: G\OBR{\chi}$, and by transitivity $\ilk{v} <:  G\OBR{\alpha \cap \eta}$.
-But that means $v$ belongs to type $G\OBR{\alpha \cap \eta}$, a contradiction.  Our original assumption was incorrect,
+By the Ancestor Meet Rule, there must exist some $\chi$ such that $\ilk{v} <: G\OBR{\chi}$ and $G\OBR{\chi} <: G\OBR{\alpha}$ and $G\OBR{\chi} <: G\OBR{\eta}$.
+Because $G$ is covariant, $\chi <: \alpha$ and $\chi <: \eta$; therefore $\chi <: \alpha \cap \eta$; therefore $G\OBR{\chi} <: G\OBR{\alpha \cap \eta}$.
+But $\ilk{v} <: G\OBR{\chi}$, so by transitivity $\ilk{v} <:  G\OBR{\alpha \cap \eta}$.
+That means $v$ belongs to type $G\OBR{\alpha \cap \eta}$, a contradiction.  Our original assumption was incorrect,
 therefore $G\OBR{\alpha} \cap G\OBR{\eta} <: G\OBR{\alpha \cap \eta}$.
 
 
-\section{Proof that intersection distributes into contravariant generics of unions}
+\subsection{Contravariant parameter receives union type}
 
 Consider a trait $G\ob{\kwd{contravariant}\;P}$; we wish to show
-$G\OBR{\alpha} \cap G\OBR{\eta} \equiv G\OBR{\alpha \cup \eta}$.  We do this by showing that
+$G\OBR{\alpha \cup \eta} \equiv G\OBR{\alpha} \cap G\OBR{\eta}$.  We do this by showing that
 $G\OBR{\alpha \cup \eta} <: G\OBR{\alpha} \cap G\OBR{\eta}$, and
 $G\OBR{\alpha} \cap G\OBR{\eta} <: G\OBR{\alpha \cup \eta}$.
 
@@ -44,10 +44,10 @@ From the definition of $\cap$, $G\OBR{\alpha \cup \eta} <: G\OBR{\alpha} \cap G\
 Then there must be some value $v$ that belongs to type $G\OBR{\alpha} \cap G\OBR{\eta}$ but not to type $G\OBR{\alpha \cup \eta}$;
 therefore  $\ilk{v} <: G\OBR{\alpha} \cap G\OBR{\eta}$ and $\ilk{v} \not<: G\OBR{\alpha \cup \eta}$,
 and $\ilk{v} <: G\OBR{\alpha} \cap G\OBR{\eta}$ implies both $\ilk{v} <: G\OBR{\alpha}$ and $\ilk{v} <: G\OBR{\eta}$.
-By the Ancestor Meet Rule, there must be some ancestor $G\OBR{\chi}$ of $\ilk{v}$ such that $G\OBR{\chi} <: G\OBR{\alpha}$ and $G\OBR{\chi} <: G\OBR{\eta}$.
-Because G is contravariant, $\alpha <: \chi$ and $\eta <: \chi$; therefore $\alpha \cup \eta <: \chi$; therefore $G\OBR{\chi} <: G\OBR{\alpha \cup \eta}$.
-But if $G\OBR{\chi}$ is an ancestor of $\ilk{v}$, then $\ilk{v} <: G\OBR{\chi}$, and by transitivity $\ilk{v} <:  G\OBR{\alpha \cup \eta}$.
-But that means $v$ belongs to type $G\OBR{\alpha \cup \eta}$, a contradiction.  Our original assumption was incorrect,
+By the Ancestor Meet Rule, there must exist some $\chi$ such that $\ilk{v} <: G\OBR{\chi}$ and $G\OBR{\chi} <: G\OBR{\alpha}$ and $G\OBR{\chi} <: G\OBR{\eta}$.
+Because $G$ is contravariant, $\alpha <: \chi$ and $\eta <: \chi$; therefore $\alpha \cup \eta <: \chi$; therefore $G\OBR{\chi} <: G\OBR{\alpha \cup \eta}$.
+But $\ilk{v} <: G\OBR{\chi}$, so by transitivity $\ilk{v} <:  G\OBR{\alpha \cup \eta}$.
+That means $v$ belongs to type $G\OBR{\alpha \cup \eta}$, a contradiction.  Our original assumption was incorrect,
 therefore $G\OBR{\alpha} \cap G\OBR{\eta} <: G\OBR{\alpha \cup \eta}$.
 
 

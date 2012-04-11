@@ -66,16 +66,14 @@ such that every comma and semicolon in the sequence is contained within at least
 \item Each occurrence of the symbol ````$\emptyseq$'' is deleted.  (This symbol is used as an explicit indication that an empty sequence of symbols is intended.)
 \end{itemize}
 
-When any of these shorthands is used in an overall context (such as a {\sc bnf} rule, inference rule, axiom, or expository sentence or paragraph), it is as if there were an infinite number of instantiations of that context, one for each possible expansion of the shorthand.  Three consistency constraints must be obeyed in performing the substitutions for any single such context:
+When any of these shorthands is used in an overall context (such as a {\sc bnf} rule, inference rule, axiom, or expository sentence or paragraph), it is as if there were an infinite number of instantiations of that context, one for each possible expansion of the shorthand.  Two consistency constraints must be obeyed in performing the substitutions for any single such context:
 \begin{itemize}
 \item
 If the same monogram (with identical decorations) has an additional subscript attached to it
 by more than one overbar construction, then all such overbar constructions are constrained to produce the same number of copies in any given instantiation of the rule;
-otherwise the choices for the number of copies produced by each overbar construction is free and independent.
+otherwise the choices for the number of copies produced by each overbar construction are free and independent.
 \item
 If the base letter of a monogram ranges over a {\sc bnf} nonterminal, then multiple identical occurrences of the monogram must be replaced by identical copies of a single generated token sequence.
-\item
-If two distinct monograms have the same base letter, and that base letter ranges over a {\sc bnf} nonterminal that expands to simply ````identifier'', then they must be replaced with different identifiers.
 \end{itemize}
 The last two constraints rely on metavariable declarations such as those in Figure~\ref{fig:metavariables}.  A declaration such as
 ````$e$ ranges over expressions $e$'' means 
@@ -123,9 +121,11 @@ As an extreme (but useful) example of the application of these conventions, cons
 \infax{ \jevalstep[\Delta]{E\big[\pi_1(v_1,v_2)]}{E[v_1]} \\[2pt]
         \jevalstep[\Delta]{E\big[\pi_2(v_1,v_2)]}{E[v_2]} }
 
-We use the conventional notation $[\bar{S/\Id}]Y$ to indicate a copy of string $Y$
+We use the conventional notation $[\bar{S/\Id}]Y$ to indicate a copy of string $Y$ (delimited on the right by commas, semicolons, and right enclosers)
 modified by simultaneous substitution of a copy of string $S_1$ for each occurrence of $\Id_1$,
 a copy of string $S_2$ for each occurrence of $\Id_2$, and so on; consecutive substitution constructs are processed from right to left.
+The substitution is permitted only if names of variables bound in $[\bar{S/\Id}]$, but alpha-conversion (systematic renaming of such bound variables to fresh names)
+may be performed on $Y$ in order to enable the substitution to take place.
 We use the conventional notation $E[e]$ to mean an evaluation context with its ````hole''
 replaced by the expression $e$ (that is, $[e/\Box]E$).
 

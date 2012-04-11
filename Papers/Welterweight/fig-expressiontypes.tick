@@ -1,7 +1,7 @@
 \begin{figure}[t]
 \typicallabel{T-Field}
 
-\newjudge{Well-formed expressions and static types}{\jtypetight{e}{\alpha}}
+\newjudge{Well-formed expressions, static types}{\jtypetight{e}{\alpha}}
 \medskip
 
 \infrule[T-Variable]
@@ -22,9 +22,9 @@
 
 \medskip
 
-\infrule[T-Func-Value]
-  { \jbwftype[\Delta]{\tau}  \andalso  \jtype[\Delta;\Phi;\Gamma,\bar{x\COLON\tau}]{e}{\rho}  \\
-    \jwftype{\omega}  \andalso  \jsubtype{\rho}{\omega} }
+\infrule[T-Closure]
+  { \mathit{distinct}\tupleb{x}  \andalso  \jbwftype[\Delta]{\tau}  \andalso  \jwftype{\omega}  \\
+    \jtype[\Delta;\Phi;\Gamma,\bar{x\COLON\tau}]{e}{\rho}  \andalso  \jsubtype{\rho}{\omega} }
   { \jtype{((\bar{x\COLON\tau})\COLON\omega \Rightarrow e)}{\arrowtype{(\bar{\tau})}{\omega}} }
 
 \medskip
@@ -44,22 +44,24 @@
 
 \medskip
 
+{\def\andalso{\hbox to 1.7em{\hss}}   % need to tighten slightly
 \infrule[T-Object]
   { \kwd{object} \; O\bigobb{P \extends \bdb{\dontcare}} (\bar{x\COLON\omega}) \; \dontcare \; \kwd{end} \in \Delta \\
     \jwftype{O\obb{\tau}}  \andalso  \jbtype{e}{\eta}  \andalso  \jbsubtype{\eta}{\underline{\Bigsubstb{\tau}{P}}\omega} }
   { \jtype{O\obb{\tau}(\bar{e})}{O\obb{\tau}} }
+}
 
 \medskip
 
-\infrule[T-Func]
-  { \msav{f}{\tupleb{\eta}} = \bigset{f\ob{\verythinmathspace}\tupleb{\dontcare}\COLON \omega \dontcare}  \\[1pt]
+\infrule[T-Function]
+  { \msav{f}{\tupleb{\eta}} = \bigset{f\ob{\verythinmathspace}\tupleb{\dontcare}\COLON \omega \; \dontcare}  \\[1pt]
     \jbtype{e}{\eta} }
   { \jtype{f(\bar{e})}{\omega} }
 
 \medskip
 
 \infrule[T-Method]
-  { \msav{\tuple{C,m}}{\tupleb{\eta}} = \bigset{m\ob{\verythinmathspace}{\tupleb{\dontcare}}\COLON \omega \dontcare} \\[2pt]
+  { \msav{\tuple{C,m}}{\tupleb{\eta}} = \bigset{m\ob{\verythinmathspace}{\tupleb{\dontcare}}\COLON \omega \; \dontcare} \\[2pt]
     \jtype{e}{C}  \andalso  \jbtype{e'}{\eta} }
   { \jtype{e.m(\bar{e'})}{\omega} }
 

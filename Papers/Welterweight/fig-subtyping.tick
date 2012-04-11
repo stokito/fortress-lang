@@ -105,6 +105,7 @@
 
 
 \end{minipage}%
+\multiply\afterruleskip by 2 \divide\afterruleskip by 3   %on top of the previous reduction
 \begin{minipage}[t]{.4\textwidth}
 \centering
 \textbf{Structural rules}
@@ -115,8 +116,12 @@
   { \jsub{\tupleb{\alpha}}{\tupleb{\eta}}{\big(\bigwedge\bigsetb{\C}\big) \vee \big(\bigvee\bigsetb{\C'}\big)} }
 
 \infrule
-  {\countof(\bar{\alpha}) \neq 1 \andalso \quad \jbsub{\alpha}{\Bottom}{\C} }
-  { \jsub{\tupleb{\alpha}}{\eta}{\bigvee\bigsetb{\C}} }
+  {\countof(\bar{\alpha}) \neq 1 \andalso \jbsub{\alpha}{\Bottom}{\C} }
+  { \jsub{\tupleb{\alpha}}{\Bottom}{\bigvee\bigsetb{\C}} }
+
+\infrule
+  {\jwftype{T\obb{\alpha}}  \andalso  \jbsub{\alpha}{\Bottom}{\C} }
+  { \jsub{T\obb{\alpha}}{\Bottom}{\bigvee\bigsetb{\C}} }
 
 \infrule
   { \jsub{\alpha'}{\alpha}{\C} \andalso \jsub{\rho}{\rho'}{\C'} }
@@ -161,7 +166,8 @@
 \par\vskip-3em
 
 \begin{minipage}[b]{.333\textwidth}
-\centering\leavevmode
+\centering
+\leavevmode
 \newjudge{Variance test}{\jvaries{\alpha}{V}{\alpha}{\C}}
 
 \infrule
@@ -206,6 +212,6 @@
 
 \end{minipage}
 
-  \caption{Algorithm for generating subtyping constraints. (Adapted and extended from \cite{OOPSLA-2011-type-matching}.) Apply the first rule that matches.}
+  \caption{Algorithm for generating subtyping constraints. (Adapted and extended from \cite{oopsla-2011-type-matching}.) Apply the first rule that matches.}
   \label{fig:subtyping}
 \end{figure*}

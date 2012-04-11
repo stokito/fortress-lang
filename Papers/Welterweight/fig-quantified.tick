@@ -1,11 +1,11 @@
-\begin{figure}[t]
+\begin{figure}[p]
 \typicallabel{x}
 
 \newjudge{Existential subtyping}{\begin{array}{@{}l@{}}\jleinnerusing{\Xi}{\Xi}{\sigma} \\ \jle{\Xi}{\Xi} \\ \jleusing{\Xi}{\Xi}{\sigma} \end{array}}
 
 \medskip
 
-\infrule
+\infrule[E-Sub]
   { \Delta' = \Delta \cup \setb{\bdb{\chi} \extends \kwd{invariant}\;P \extends \bdb{\eta}}
     \\[2pt]
     \setb{P} \cap \FV(\bar{\chi'},\bar{\eta'},{\alpha'}) = \emptyset
@@ -32,7 +32,7 @@
 
 \medskip
 
-\infrule
+\infrule[U-Sub]
   { \Delta' = \Delta \cup \setb{\bdb{\chi'} \extends \kwd{invariant}\;Q \extends \bdb{\eta'}}
     \\[2pt]
     \setb{Q} \cap \FV(\bar{\chi},\bar{\eta},{\alpha}) = \emptyset

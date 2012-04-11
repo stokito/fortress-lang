@@ -1,51 +1,57 @@
-\begin{figure}[t]
+\begin{figure}[p]
 \typicallabel{No-Dup-Not-Less}
 
 \newjudge{No Duplicates Rule}{\jnoduplicatesrule{d}{d}}
 
-\medskip
+\smallskip
 
 \infrule[No-Dup-Triv]
   { \name{d}\not=\name{d'} }
   { \jnoduplicatesrule{d}{d'} }
 
-\medskip
+\smallskip
+
+\infrule[No-Dup-Abs-Conc]
+  { \concrete{d}\not=\concrete{d'} }
+  { \jnoduplicatesrule{d}{d'} }
+
+\smallskip
 
 \infrule[No-Dup-Not-Less]
   { \neg\bigtuple{\jle{\dom(d)}{\dom(d')}} }
   { \jnoduplicatesrule{d}{d'} }
 
-\medskip
+\smallskip
 
 \infrule[No-Dup-Not-Gtr]
   { \neg\bigtuple{\jle{\dom(d')}{\dom(d)}} }
   { \jnoduplicatesrule{d}{d'} }
 
-\medskip
+\smallskip
 
 \newjudge{Meet Rule}{\jmethodmeetrule{d}{d}}
 
 \typicallabel{Meet-Third}
 
-\medskip
+\smallskip
 
 \infrule[Meet-Triv]
   { \name{d}\not=\name{d'} }
   { \jmethodmeetrule{d}{d'} }
 
-\medskip
+\smallskip
 
 \infrule[Meet-Excl]
   { \jle{\bigtuple{\dom(d)\existentialmeet\dom(d')}}{\existstype{\verythinmathspace}{\Bottom}} }
   { \jmethodmeetrule{d}{d'} }
 
-\medskip
+\smallskip
 
 \infrule[Meet-Spec]
   { \jle{\dom(d)}{\dom(d')} }
   { \jmethodmeetrule{d}{d'} }
 
-\medskip
+\smallskip
 
 \infrule[Meet-Third]
   { d''\in\Delta  \\[1pt]
@@ -110,6 +116,6 @@
   { \jancestormeetrule{T\obb{\alpha}}{T\obb{\eta}} }
 
 \medskip
-\caption{The No Duplicates Rule, the Meet Rule, the Return Type Rule, and the Ancestors Rule.  Note that alpha-renaming of type variables may be necessary to apply some of these rules.}
+\caption{The No Duplicates Rule, the Meet Rule, the Return Type Rule, and the Ancestors Rule.  Alpha-renaming of type variables may be necessary to apply these rules.}
 \label{fig:meetrule}
 \end{figure}
