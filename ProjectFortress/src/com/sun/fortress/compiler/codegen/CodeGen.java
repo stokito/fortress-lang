@@ -1531,7 +1531,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitLabel(end);
         mv.visitJumpInsn(GOTO, exit);
         mv.visitLabel(handler);
-        mv.visitInsn(POP);
+        mv.visitInsn(POP); // Pop the exception
         // The following line will need to be fixed when we have nested transactions.
         mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/FortressAction", 
                            "cleanupTransaction", "()V");
