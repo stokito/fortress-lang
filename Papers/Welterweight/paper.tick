@@ -157,8 +157,9 @@
 \newcommand{\flipname}{\textit{flip}}
 \newcommand{\flip}[1]{\ensuremath{\flipname(#1)}}
 \newcommand{\methods}[2][\Delta]{\ensuremath{\textit{methods}(#1,#2)}}
-\newcommand{\applicable}[3][\Delta]{\ensuremath{\textit{applicable}\tuple{#1,#2,#3}}}
-\newcommand{\bigapplicable}[3][\Delta]{\ensuremath{\textit{applicable}\bigtuple{#1,#2,#3}}}
+\newcommand{\applicablename}{\ensuremath{\textit{applicable}}}
+\newcommand{\applicable}[3][\Delta]{\ensuremath{\applicablename\tuple{#1,#2,#3}}}
+\newcommand{\bigapplicable}[3][\Delta]{\ensuremath{\applicablename\bigtuple{#1,#2,#3}}}
 \newcommand{\instantiate}[2]{\ensuremath{\textit{instantiate}\tuple{#1,#2}}}
 \newcommand{\biginstantiate}[2]{\ensuremath{\textit{instantiate}\bigtuple{#1,#2}}}
 \newcommand{\firstapplicable}[3][\Delta]{\ensuremath{\textit{firstApplicable}(#1,#2,#3)}}
