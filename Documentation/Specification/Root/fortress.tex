@@ -1,0 +1,64 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[openany,10pt]{book}
+
+%\input{build-options}
+
+\usepackage{amsfonts, graphicx, fullpage, times, wrapfig}
+\usepackage{stmaryrd}
+\usepackage{longtable} 
+
+
+\newcommand{\home}{..}
+
+\input{\home/Support/all-macros}
+
+% Need to add stuff from old preamble, but I'd like to do this incrementally, 
+% as we understand what we need.
+% Much of what is in old preamble should be in some support file.
+
+% What packages do we need? 
+% John: I had to bring this over temporarily, vistor, please let me know where you want this to go.
+\newcommand{\note}[1]{\framebox[\textwidth][t]{\parbox[t]{\textwidth}{#1}}}
+
+
+\title{The Fortress Language Specification}
+\author{}
+
+\begin{document}
+
+\frontmatter
+
+\maketitle
+% preamble
+\tableofcontents
+
+
+\mainmatter
+
+\input{\home/Preliminaries/preliminaries}
+\input{\home/Language/language}
+\input{\home/Libraries/libraries}
+\input{\home/Appendices/appendices}
+
+\backmatter
+
+
+% Remove the following line when things are getting serious!
+\nocite{*} 
+
+\bibliographystyle{plain}
+\bibliography{fortress}
+
+% Index (?)
+
+\end{document}

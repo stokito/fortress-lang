@@ -1,0 +1,31 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Trait.Method.a
+
+export Executable
+
+trait T excludes A end
+trait S excludes A end
+e1 = 1
+e2 = 2
+(** EXAMPLE **)
+trait A
+   f(self, t:T) = e1
+   f(s:S, self) = e2
+end
+(** END EXAMPLE **)
+
+run() = ()
+
+end

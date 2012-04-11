@@ -1,0 +1,156 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+TraitDecl = TraitMods? TraitHeaderFront TraitClauses (w GoInATrait)? w "end" ((s "trait")? s Id)?
+
+TraitHeaderFront =
+     "trait" w OpName (w StaticParams)? (w ExtendsWhere)? // Error production
+   / "trait" w Id (w StaticParams)? (w ExtendsWhere)?
+
+/* Each trait clause cannot appear more than once. */
+TraitClauses = (w TraitClause)*
+
+TraitClause =
+     Excludes
+   / Comprises
+   / Where
+   / ExtendsWhere    // Error production
+
+GoInATrait =
+     Coercions
+   / GoFrontInATrait br Coercions (br GoBackInATrait)?    // Error production
+   / GoFrontInATrait br GoBackInATrait br Coercions    // Error production
+   / GoBackInATrait br Coercions    // Error production
+   / GoBackInATrait br GoFrontInATrait    // Error production
+   / (Coercions br)? GoFrontInATrait (br GoBackInATrait)?
+   / (Coercions br)? GoBackInATrait
+
+Coercions = Coercion (br Coercion)*
+
+GoFrontInATrait = GoesFrontInATrait (br GoesFrontInATrait)*
+
+GoesFrontInATrait =
+     AbsFldDecl
+   / GetterSetterDecl
+   / PropertyDecl
+
+GoBackInATrait = GoesBackInATrait (br GoesBackInATrait)*
+
+GoesBackInATrait =
+      MdDecl
+    / PropertyDecl
+
+ObjectDecl = ObjectMods? ObjectHeader (w GoInAnObject)? w "end" ((s "object")? s Id)?
+
+ObjectHeader =
+      "object" w OpName (w StaticParams)? (w ObjectValParam)? (w ExtendsWhere)? FnClauses
+      // Error production
+   /  "object" w Id (w StaticParams)? (w ObjectValParam)? (w ExtendsWhere)? FnClauses
+
+ObjectValParam = "(" (w Params)? w ")"
+
+Varargs :=
+     "transient" w VarargsParam
+   / VarargsParam    // Error production
+
+Param :=
+     ParamFldMods? PlainParam
+   / "var" w "transient" w PlainParamWType
+   / ("transient" w)? "var" w PlainParamWType
+   / "transient" w PlainParam
+   / "var" w "transient" w PlainParam // Error production
+   / ("transient" w)? "var" w PlainParam // Error production
+
+PlainParamWType = BindId w IsType
+
+GoInAnObject =
+     Coercions
+   / GoFrontInAnObject br Coercions (br GoBackInAnObject)?    // Error production
+   / GoFrontInAnObject br GoBackInAnObject br Coercions    // Error production
+   / GoBackInAnObject br Coercions    // Error production
+   / GoBackInAnObject br GoFrontInAnObject    // Error production
+   / (Coercions br)? GoFrontInAnObject (br GoBackInAnObject)?
+   / (Coercions br)? GoBackInAnObject
+
+GoFrontInAnObject = GoesFrontInAnObject (br GoesFrontInAnObject)*
+
+GoesFrontInAnObject =
+     FldDecl
+   / GetterSetterDef
+   / PropertyDecl
+
+GoBackInAnObject = GoesBackInAnObject (br GoesBackInAnObject)*
+
+GoesBackInAnObject =
+      MdDef
+    / PropertyDecl
+
+AbsTraitDecl =
+      AbsTraitMods? TraitHeaderFront AbsTraitClauses (w AbsGoInATrait)? w "end" ((s "trait")? s Id)?
+
+/* Each trait clause cannot appear more than once. */
+AbsTraitClauses = (w AbsTraitClause)*
+
+AbsTraitClause =
+     Excludes
+   / AbsComprises
+   / Where
+   / ExtendsWhere    // Error production
+
+AbsGoInATrait =
+     AbsCoercions
+   / AbsGoFrontInATrait br AbsCoercions (br AbsGoBackInATrait)?    // Error production
+   / AbsGoFrontInATrait br AbsGoBackInATrait br AbsCoercions    // Error production
+   / AbsGoBackInATrait br AbsCoercions    // Error production
+   / AbsGoBackInATrait br AbsGoFrontInATrait    // Error production
+   / (AbsCoercions br)? AbsGoFrontInATrait (br AbsGoBackInATrait)?
+   / (AbsCoercions br)? AbsGoBackInATrait
+
+AbsCoercions = AbsCoercion (br AbsCoercion)*
+
+AbsGoFrontInATrait = AbsGoesFrontInATrait (br AbsGoesFrontInATrait)*
+
+AbsGoesFrontInATrait =
+     ApiFldDecl
+   / AbsGetterSetterDecl
+   / PropertyDecl
+
+AbsGoBackInATrait = AbsGoesBackInATrait (br AbsGoesBackInATrait)*
+
+AbsGoesBackInATrait =
+      AbsMdDecl
+    / PropertyDecl
+
+AbsObjectDecl = AbsObjectMods? ObjectHeader (w AbsGoInAnObject)? w "end" ((s "object")? s Id)?
+
+AbsGoInAnObject =
+     AbsCoercions
+   / AbsGoFrontInAnObject br AbsCoercions (br AbsGoBackInAnObject)?    // Error production
+   / AbsGoFrontInAnObject br AbsGoBackInAnObject br AbsCoercions    // Error production
+   / AbsGoBackInAnObject br AbsCoercions    // Error production
+   / AbsGoBackInAnObject br AbsGoFrontInAnObject    // Error production
+   / (AbsCoercions br)? AbsGoFrontInAnObject (br AbsGoBackInAnObject)?
+   / (AbsCoercions br)? AbsGoBackInAnObject
+
+AbsGoFrontInAnObject = AbsGoesFrontInAnObject (br AbsGoesFrontInAnObject)*
+
+AbsGoesFrontInAnObject =
+     ApiFldDecl
+   / AbsGetterSetterDecl
+   / PropertyDecl
+
+AbsGoBackInAnObject = AbsGoesBackInAnObject (br AbsGoesBackInAnObject)*
+
+AbsGoesBackInAnObject =
+      AbsMdDecl
+    / PropertyDecl
+\end{verbatim}
