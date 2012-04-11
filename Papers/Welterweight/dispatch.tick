@@ -6,18 +6,18 @@
 The entrypoints of an overloaded function can be statically ordered by specificity.
 By testing for applicability in most-to-least specific order, dynamic dispatch can be reduced to testing a can-apply predicate for each entrypoint until a match is found.  This reduces overloading resolution to the simpler problem of determining if a entrypoint can be applied to the actual parameters supplied.
 
-This same implementation strategy can also be used whenever there is an order among an overloaded function's entrypoints (for example, a user-specified preference for dispatch, or always using the most-recently-written applicable member).
-When the order depends on the same types used to test applicability there may be more efficient ways to perform the dispatch (for example, binary search if the types happen to be totally ordered -- non-applicability of a mid-point member implies non-applicability of all more-specific members), but that is a problem for later.
+This same implementation strategy can also be used whenever there is an order among an overloaded function's entrypoints (for example, a user-specified preference for dispatch, or always using the most-recently-written applicable entrypoint).
+When the order depends on the same types used to test applicability there may be more efficient ways to perform the dispatch (for example, binary search if the types happen to be totally ordered -- non-applicability of a mid-point entrypoint implies non-applicability of all more-specific entrypoints), but that is a problem for later.
 
 One goal for an implementation of overloading dispatch is to keep simple cases cheap.
 
 \subsection{Dispatch semi-predicate}
 
-The dispatch semi-predicate for a entrypoint of an overloaded function takes a sequence of dynamic types (ilks) as input, and either returns false (fails) if the member is not applicable, or returns true if the member is applicable, and in that case, also provides type bindings for any static type parameters present in the member's signature.  The dynamic types are type constant expressions; they contain no type variables, but may contain tuples, arrows, instantiated-with-constants generic types, unions, Any, trait, and object types.  Type signatures are composed of type variables, tuples, arrows, instantiated-with-signatures generic types, and type constants.  In particular, a type signature may contain a union type appearing as a type constant, but in that case the elements of the union type cannot contain type variables.  All types are also expressed in their canonical form, so it is known that if $A$ and $B$ are both terms of a union type, then neither is a subtype of the other.
+The dispatch semi-predicate for a entrypoint of an overloaded function takes a sequence of ilks as input, and either returns false (fails) if the entrypoint is not applicable, or returns true if the entrypoint is applicable, and in that case, also provides type bindings for any static type parameters present in the entrypoint's signature.  The ilks are type constant expressions; they contain no type variables, but may contain tuples, arrows, instantiated-with-constants generic types, unions, Any, trait, and object types.  Type signatures are composed of type variables, tuples, arrows, instantiated-with-signatures generic types, and type constants.  In particular, a type signature may contain a union type appearing as a type constant, but in that case the elements of the union type cannot contain type variables.  All types are also expressed in their canonical form, so it is known that if $A$ and $B$ are both terms of a union type, then neither is a subtype of the other.
 
-The simplest version of this algorithm supports covariant and invariant generics, but not contravariant generics or domain-contravariant arrows.  Union types are handled, but intersection types are not.  Self-typed generics appear as an optional step.  In the absence of contravariance, the semipredicate is organized into two phases:
+The simplest version of this algorithm supports covariant and invariant generics, but not contravariant generics or domain-contravariant arrows.  Union types are handled, but intersection types are not.  In the absence of contravariance, the semipredicate is organized into two phases:
 \begin{enumerate}
-\item match type parameters and contexts.  For each static parameter occurrence in the member's signature, note the ilk and variance of the occurrence.  The variance will be statically determined and can be compiled into the generated code; the ilk must be determined at runtime.
+\item match type parameters and contexts.  For each static parameter occurrence in the entrypoint's signature, note the ilk and variance of the occurrence.  The variance will be statically determined and can be compiled into the generated code; the ilk must be determined at runtime.
 \item propagate lower limits through type constraints, ordered from most-below (given the allowed constraints, most constrained) to least-below.  The goal of overloaded function dispatch is to discover the most specific applicable entrypoint, so inference also aims to obtain the most specific instantiation of an applicable entrypoint.
 \end{enumerate}
 
@@ -110,7 +110,6 @@ if a consistent set of type assignments can be discovered, the most specific one
 \begin{algorithmic}[1]
 \For{$t$ topologically ordered by lexical-<:}
   \State $l \gets \textrm{lsub}(L_t)$
-  \State (option) \PlaceHolder{Self-type step}
   \For{$T_{\SSmbox{rhs}}$ where $t <: T_{\SSmbox{rhs}}$}
      \If{$T_{\SSmbox{rhs}}$ is a type constant}
         \State \label{constant} add $T_{\SSmbox{rhs}}$ to $U_t$
@@ -129,25 +128,24 @@ if a consistent set of type assignments can be discovered, the most specific one
 \end{algorithmic}
 
 Each iteration of the inner loop
-begins by establishing the best possible lower bound for $t$.  ````Best'' is the most specific (lowest) single type that is above or equal to all the lower bounds of $t$.  The optional self-type step may increase this bound slightly, but at this point the lower bound has been established.  Because the constraints are topologically sorted in reverse order of definition, $t$ will not appear in subsequent constraints and thus its lower bound cannot be further modified.  Line \ref{constant} updates the upper bound of $t$.  Line \ref{generic} invokes {\sc match} to ensure that the lower bound of $t$ is structurally able to be a subtype of $T_{\SSmbox{rhs}}$, and to propagate necessary bounds to other static parameters that have not yet been checked and inferred. 
+begins by establishing the best possible lower bound for $t$.  ````Best'' is the most specific (lowest) single type that is above or equal to all the lower bounds of $t$.  Because the constraints are topologically sorted in reverse order of definition, $t$ will not appear in subsequent constraints and thus its lower bound cannot be further modified.  Line \ref{constant} updates the upper bound of $t$.  Line \ref{generic} invokes {\sc match} to ensure that the lower bound of $t$ is structurally able to be a subtype of $T_{\SSmbox{rhs}}$, and to propagate necessary bounds to other static parameters that have not yet been checked and inferred. 
 
-\subsection{Self-typed generics}
-{\it Explanation of how this works}
-
-\begin{algorithmic}
-\Step{\PlaceHolder{Self-type step}}
-\If{$l$ is bottom}
-\State do nothing
-\ElsIf{there are self type constraints $t <: S_i\OBR{t}$}
-\State search for $t'$ above $l$ such that $t' <: S_i\OBR{t'}$ for all $S_i$
-\If {$t'$ exists}
-\State $l \gets t'$
-\Else\ dispatch fails
-\EndIf
-\Else\ do nothing
-\EndIf
-\EndStep
-\end{algorithmic}
+%\subsection{Self-typed generics}
+%{\it Explanation of how this works}
+%\begin{algorithmic}
+%\Step{\PlaceHolder{Self-type step}}
+%\If{$l$ is bottom}
+%\State do nothing
+%\ElsIf{there are self type constraints $t <: S_i\OBR{t}$}
+%\State search for $t'$ above $l$ such that $t' <: S_i\OBR{t'}$ for all $S_i$
+%\If {$t'$ exists}
+%\State $l \gets t'$
+%\Else\ dispatch fails
+%\EndIf
+%\Else\ do nothing
+%\EndIf
+%\EndStep
+%\end{algorithmic}
 
 \subsection{Run-time type representations and operations}
 The run-time metadata for trait and object types must support the following three operations, ideally without too much waste of time or space:
@@ -157,7 +155,7 @@ The run-time metadata for trait and object types must support the following thre
 \item join, meet
 \end{itemize}
 
-For each trait or object type $T$, the longest erased path to any ($\textsc{lepa}(T)$) is calculated.  $\textsc{lepa}(\textit{Any})$ is defined to be zero; if $T$ is the trait Object or an arrow or tuple type, $\textsc{lepa}(T)$ is defined to be 1.  For other traits and objects, $\textsc{lepa}(T)$ is defined to be 1 plus the maximum of $\textsc{lepa}(U)$ where $T <:_{\SSmbox{stem}}\ U$.  $T <:_{\SSmbox{stem}}\ U$ can be defined syntactically from the declaration of $T$ by erasing static parameters from both $T$ and any types it is declared to extend.
+For each trait or object type $T$, the longest erased path to Any ($\textsc{lepa}(T)$) is calculated.  $\textsc{lepa}(\textit{Any})$ is defined to be zero; if $T$ is the trait Object or an arrow or tuple type, $\textsc{lepa}(T)$ is defined to be 1.  For other traits and objects, $\textsc{lepa}(T)$ is defined to be 1 plus the maximum of $\textsc{lepa}(U)$ where $T <:_{\SSmbox{stem}}\ U$.  $T <:_{\SSmbox{stem}}\ U$ can be defined syntactically from the declaration of $T$ by erasing static parameters from both $T$ and any types it is declared to extend.
 
 For an instantiated generic type $T$, $\textsc{args}(T)$ is the sequence of type arguments instantiating the generic, and $\textsc{variances}(T)$ is the corresponding sequence of variances (the same sequence for all instances of the same generic).  $\textsc{stem}(T)$ is the erased stem of a generic $T$.
 For non-generic types, \textsc{args} and \textsc{variances} both return the empty sequence, and \textsc{stem} returns the type itself.  As a convenience, for a tuple type $\textsc{stem}(T)$ is ````Tuple'' and $\textsc{args}(T)$ is the sequence of tuple element types. Similarly, \textsc{stem} of an arrow type is ````Arrow''.
@@ -215,11 +213,11 @@ A subtype query is slightly more involved.
 
 \section{Variations}
 
-The algorithm just described works with covariant and invariant generic types, union types, and a small set of constraints allowed on generic type parameters.  We might wish to relax some of these restrictions and accept more varied inputs, if possible.
+The algorithm just described works with covariant and invariant generic types, union types, and a set of constraints allowed on generic type parameters.  We might wish to relax some of these restrictions and accept more varied inputs, if possible.
 
 \subsection{Additional constraints}
 Odersky has noted that covariant data structures benefit from the ability to express type lower bounds[].
-Covariant, widening list-append is one example of an operation that benefits from this.  Without the ability to declare that the parameter $U$ is above $T$, there is no type-correct way to express this.
+Covariant, widening list-append is one example of an operation that benefits from this.  Without the ability to declare that the parameter $U$ is a supertype of $T$, there is no type-correct way to express this.
 {\slantverbatim
 \begin{verbatim}
 trait List[\ covariant T \]
@@ -289,18 +287,26 @@ Consider this contrived example:
 trait S excludes N ... end // String, Number
 trait G[\ contravariant X, covariant Y \]
    extends Edible ... end
-object a extends G[\ S, S \] 
-object b extends G[\ N, N \] 
-object Pair[\W\](a:W,b:W) 
+object a extends G[\ S, S \] ... end
+object b extends G[\ N, N \] ... end
+object Pair[\W\](a:W,b:W) ... end
 p = Pair(a, b)
-trait Eat[\ contravariant Z extends Edible \]
-object E[\ Z \](z:Z) extends Eat[\ Z \]
+trait Eat[\ contravariant Z extends Pair[\ Edible \] \]
+object E[\ Z \](z:Z) extends Eat[\ Z \] 
 e = E(p)
-F[\T\](eat:Eat[\ Pair[\ G[\T,T\] \] \] = ...
+F[\T extends Edible\](eat:Eat[\ Pair[\ G[\T,T\] \] \] = ...
 \end{verbatim}
 }
-F's actual parameter eat has ilk $E\OBR{\textit{Pair}\OBR{G\OBR{N,N}\cup G\OBR{S,S}}}$, which matches if there is a binding for $T$ that makes the ilk a subtype of $\textit{Eat}\OBR{\textit{Pair}\OBR{G\OBR{T,T}}}$.
-Contravariance of \textit{Eat} reduces this to \[\textit{Pair}\OBR{G\OBR{T,T}} <: \textit{Pair}\OBR{G\OBR{N,N}\cup G\OBR{S,S}},\] then to \[G\OBR{T,T} <: G\OBR{N,N}\cup G\OBR{S,S}.\]  The co- and contra-variance of $G$'s parameters require that $G\OBR{T,T} <: G\OBR{N,N}$ iff $T=N$, and that $G\OBR{T,T} <: G\OBR{S,S}$ iff $T=S$.  There is no single value of $T$ that will satisfy both constraints simultaneously.
+F's actual parameter eat has ilk $E\OBR{\textit{Pair}\OBR{G\OBR{N,N}\cup G\OBR{S,S}}}$,
+which matches if there is a binding for $T$ that makes the ilk a subtype of
+$\textit{Eat}\OBR{\textit{Pair}\OBR{G\OBR{T,T}}}$.
+Contravariance of \textit{Eat} reduces this to
+\[\textit{Pair}\OBR{G\OBR{T,T}} <: \textit{Pair}\OBR{G\OBR{N,N}\cup G\OBR{S,S}},\]
+then to \[G\OBR{T,T} <: G\OBR{N,N}\cup G\OBR{S,S}.\]
+The co- and contra-variance of $G$'s parameters require that
+$G\OBR{T,T} <: G\OBR{N,N}$ iff $T=N$,
+and that $G\OBR{T,T} <: G\OBR{S,S}$ iff $T=S$.
+There is no single value of $T$ that will satisfy both constraints simultaneously.
 
 This example, however, is contrived and somewhat useless, and it may be the case that such combinatorial constraint checking will be rare in actual programs.  It is possible to identify easy cases.  Consider the general problem of matching $G\OBR{\bar{T}}$ to $A \cup B$ in a contravariant context; that is, $G\OBR{\bar{T}} <: A \cup B$, where $A$ and $B$ are trait or object types.  The two subproblems are $G\OBR{\bar{T}} <: A$ and $G\OBR{\bar{T}} <: B$; if either subproblem fails to match, then the result is the match of the other subproblem.  If either subproblem succeeds with an empty set of constraints, then the result is the empty set of constraints.
 
