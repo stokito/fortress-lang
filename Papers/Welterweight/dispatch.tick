@@ -1,10 +1,10 @@
 \newcommand{\LDOTS}{\mathinner{\ldotp\hskip-0.4ex\ldotp\hskip-0.4ex\ldotp}}
 
-
 \section{Overloading and inference implementation strategy}
 
 The entrypoints of an overloaded function can be statically ordered by specificity.
-By testing for applicability in most-to-least specific order, dynamic dispatch can be reduced to testing a can-apply predicate for each entrypoint until a match is found.  This reduces overloading resolution to the simpler problem of determining if a entrypoint can be applied to the actual parameters supplied.
+By testing for applicability in most-to-least specific order, dynamic dispatch can be reduced to testing a can-apply predicate for each entrypoint until a match is found.
+This reduces overloading resolution to the simpler problem of determining if a entrypoint can be applied to the actual parameters supplied.
 
 This same implementation strategy can also be used whenever there is an order among an overloaded function's entrypoints (for example, a user-specified preference for dispatch, or always using the most-recently-written applicable entrypoint).
 When the order depends on the same types used to test applicability there may be more efficient ways to perform the dispatch (for example, binary search if the types happen to be totally ordered -- non-applicability of a mid-point entrypoint implies non-applicability of all more-specific entrypoints), but that is a problem for later.
@@ -108,7 +108,7 @@ The constraint propagation and checking algorithm uses a type operation ````lsub
 The constraint propagation algorithm merely ensures that whatever the definition of lsub is,
 if a consistent set of type assignments can be discovered, the most specific one will be found.
 \begin{algorithmic}[1]
-\For{$t$ topologically ordered by lexical-<:}
+\For{$t$ topologically ordered by lexical-$<:$}
   \State $l \gets \textrm{lsub}(L_t)$
   \For{$T_{\SSmbox{rhs}}$ where $t <: T_{\SSmbox{rhs}}$}
      \If{$T_{\SSmbox{rhs}}$ is a type constant}
@@ -227,7 +227,7 @@ end
 }
 In this use of a lower bound (on $U$), $T$ is effectively a constant because it is a parameter of the enclosing generic trait \textit{List} and not a parameter of the \textit{append} method.  This use of ````dominates'' does not present a problem for the algorithm.
 
-More generally, as long as new static parameter constraints can be described without forward references (for example, if they have left-to-right scoping in the parameter list), the <: relation will be cycle-free.
+More generally, as long as new static parameter constraints can be described without forward references (for example, if they have left-to-right scoping in the parameter list), the $<:$ relation will be cycle-free.
 
 {\it Careful: what about ````T dominates $G\OBR{U}$''?}
 
@@ -286,15 +286,17 @@ Consider this contrived example:
 \begin{verbatim}
 trait S excludes N ... end // String, Number
 trait G[\ contravariant X, covariant Y \]
-   extends Edible ... end
+                     extends Edible ... end
 object a extends G[\ S, S \] ... end
 object b extends G[\ N, N \] ... end
 object Pair[\W\](a:W,b:W) ... end
 p = Pair(a, b)
-trait Eat[\ contravariant Z extends Pair[\ Edible \] \]
+trait Eat[\ contravariant Z extends
+                        Pair[\ Edible \] \]
 object E[\ Z \](z:Z) extends Eat[\ Z \] 
 e = E(p)
-F[\T extends Edible\](eat:Eat[\ Pair[\ G[\T,T\] \] \] = ...
+F[\T extends Edible\](
+     eat:Eat[\ Pair[\ G[\T,T\] \] \] = ...
 \end{verbatim}
 }
 F's actual parameter eat has ilk $E\OBR{\textit{Pair}\OBR{G\OBR{N,N}\cup G\OBR{S,S}}}$,
