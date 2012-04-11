@@ -70,14 +70,14 @@ and invoking
          \Else \ dispatch fails
          \EndIf
   \ElsIf{$A$ is a union of types $A_1, \LDOTS, A_m$}
-     \State\Comment{$T$ is a generic type expression}
+     \State\Comment{$T$ is a generic type signature}
      \If{$V=0$} \ dispatch fails
      \Else
         \For{$1 \leq j \leq m$}\label{UnionSubtypesGeneric}
            \State \Call{match}{$T, V, A_j$}
         \EndFor
      \EndIf
-  \Else\Comment{$T$ is a generic type expression, $A$ is not union}
+  \Else\Comment{$T$ is a generic type signature, $A$ is not union}
     \State \textbf{let}  $G$ = the generic stem of $T$.
     \If{$\exists M,  A <: M, \textsc{stem}(M) = G, M \textrm{is minimal}$}
        \If{$V = 0 \wedge A \not= M$} \ dispatch fails
@@ -247,7 +247,7 @@ Processing the clauses of an intersection type extending a generic signature doe
 \begin{algorithmic}[1]
 \Step{\PlaceHolder{Intersection subtypes generic}}
   \If{$A$ is an intersection of types $A_1, \LDOTS, A_m$}
-     \State\Comment{$T$ is a generic type expression}
+     \State\Comment{$T$ is a generic type signature}
      \If{$V=0$} \ dispatch fails
      \Else
         \State Save existing upper and lower bound sets
