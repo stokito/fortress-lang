@@ -1,5 +1,5 @@
-With all the preceding sections as background, we now draw attention to a detail of
-rule \rn[E-red] in Figure~\ref{fig:quantified}: in order to carry out this inference
+We now draw attention to a detail of
+rule \rncite[E-Sub] in Figure~\ref{fig:quantified}: in order to carry out this inference
 rule, it is necessary to guess, compute, or pluck from thin air a substitution $\sigma$
 that validates the judgment in a type context in which type parameters $\setb{P}$ have been added.
 This process is not a great burden when performed statically (````at compile time''),
@@ -11,20 +11,18 @@ Rule \rm{MSAV-Alternate} at the bottom of the same figure takes an alternate app
 whether one procedure is more specific than another can be done statically, and the No Duplicates Rule
 ensures that there are no cycles in the relationship (therefore ````more specific'' is a partial order).
 So the set of methods visible at any call site can be statically sorted, using a topological sort,
-into an ordered list such that if procedure 1 is more specific than procedure 2 then it appears earlier in the list.
+into an ordered list such that if procedure 1 is more specific than procedure 2 then procedure 1 appears earlier in the list than procedure 2.
 Then all $\msavname$ needs to do at run time is to find the first method in this sorted list that is applicable.
-Therefore the only use of rule \rn{E-red} that occurs at run time is the one in rule \rn{Applicable}.
+Therefore the only use of rule \rncite{E-Sub} that occurs at run time is the one in rule \rncite{Applicable}.
 
-Regarding the use of rule \rn{E-red} in rule \rn{Applicable}, some further observations:
-the existential type to the left of the $\quantsubtypeof$ has no type parameters.  This is
+Regarding the use of rule \rncite{E-Sub} in rule \rncite{Applicable}, some further observations:
+the existential type to the left of the ````$\quantsubtypeof$'' has no type parameters.  This is
 related to the fact that when $\msavname$ is used at run time, the tuple $\tupleb{\chi}$
-is in fact a tuples of ilks, which contain no type parameters.  An even more subtle point
+is in fact a tuple of ilks, which contain no type parameters.  An even more subtle point
 is this proposition:
 
 \begin{proposition}
-When $\applicablename$ is called at ````compile time'' (from rule \rn{T-Function} or \rn{T-Method}),
-the type of each value parameter $x$ of each function or method considered is of the form $\tupleb{\alpha}$.
-But when $\applicablename$ is called at ````run time'' (from rule \rn{R-Function} or \rn{R-Method}),
+When $\applicablename$ is called at ````run time'' (from rule \rncite{R-Function} or \rncite{R-Method}),
 the type of each value parameter $x$ of each function or method considered is of the form $\tupleb{s}$;
 that is, it is a \emph{signature type}.
 \end{proposition}

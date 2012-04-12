@@ -1,4 +1,5 @@
 \section{Proofs about simplifying a constructed types of a union or intersection type}
+\label{sec:proofs}
 \subsection{Covariant parameter receives intersection type}
 
 Consider a trait $G\ob{\kwd{covariant}\;P}$; we wish to show that

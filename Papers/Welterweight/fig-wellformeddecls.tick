@@ -53,11 +53,11 @@
     \jbsubtype[\Delta']{c}{\underline{T\obb{P}}} $} \\[7pt]
     \jbnotsubtype[\Delta']{\underline{T\obb{P}}}{t'}  \andalso
     \jbwfmeth[\Delta';\Phi;\kwd{self}\COLON T\bigobb{P};\bar{P}]{\mu}  \andalso
-    \setb{\delta} = \bigsetb{\tuple{C,M}} = \allvisible[\Delta']{T\obb{P}}  \\[4pt]
-    \jbARROWnoduplicatesrule{\delta}{\underline{\delta}}  \andalso
-    \jbARROWmethodmeetrule{\delta}{\underline{\delta}} \andalso
-    \jbARROWreturntyperule{\delta}{\underline{\delta}} \andalso
-    \jbARROWreturntyperule{\underline{\delta}}{\delta}
+    \setb{d} = \bigsetb{\tuple{C,M}} = \allvisible[\Delta']{T\obb{P}}  \\[4pt]
+    \jbARROWnoduplicatesrule{d}{\underline{d}}  \andalso
+    \jbARROWmethodmeetrule{d}{\underline{d}} \andalso
+    \jbARROWreturntyperule{d}{\underline{d}} \andalso
+    \jbARROWreturntyperule{\underline{d}}{d}
     }
   { \jwfdecl{\kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \extends \bigbdb{t} \; \fbox{$\comprises \bigbdb{c}$} \exc \bigbdb{t'} \; \bar{\mu} \; \kwd{end}} }
 
@@ -74,13 +74,13 @@
     \mathit{distinct}(\bar{\mu})  \andalso
     \jbARROWancestormeetrule{\chi}{\underline{\chi}}  \\[3pt]
     \jbwfmeth[\Delta';\kwd{self}\COLON O\bigobb{P},\bar{x\COLON\tau};\bar{P}]{\mu} \andalso
-    \setb{\delta} = \bigsetb{\tuple{C,M}} = \allvisible[\Delta']{O\obb{P}}  \\[4pt]
-    \bigsetb{\tuple{C',M'}} = \bigabstractdecls{\setb{M}}  \andalso
-    \jbcoveredrule{\tuple{C',M'}}{\underline{\bigconcretedecls{\setb{\delta}}}}  \\[6pt]
-    \jbARROWnoduplicatesrule{\delta}{\underline{\delta}}  \andalso
-    \jbARROWmethodmeetrule{\delta}{\underline{\delta}}  \andalso
-    \jbARROWreturntyperule{\delta}{\underline{\delta}}  \andalso
-    \jbARROWreturntyperule{\underline{\delta}}{\delta}
+    \setb{d} = \bigsetb{\tuple{C,M}} = \allvisible[\Delta']{O\obb{P}}  \\[4pt]
+    \bigsetb{\tuple{C',M'}} = \bigabstractdecls{\setb{d}}  \andalso
+    \jbcoveredrule{\tuple{C',M'}}{\underline{\bigconcretedecls{\setb{d}}}}  \\[6pt]
+    \jbARROWnoduplicatesrule{d}{\underline{d}}  \andalso
+    \jbARROWmethodmeetrule{d}{\underline{d}}  \andalso
+    \jbARROWreturntyperule{d}{\underline{d}}  \andalso
+    \jbARROWreturntyperule{\underline{d}}{d}
     }
   { \jwfdecl{\kwd{object} \; O\bigobb{P \extends \bdb{\xi}} (\bar{x\COLON\tau}) \extends \bigbdb{t} \; \bar{\mu } \; \kwd{end}} }
 
@@ -112,7 +112,7 @@
     \Delta'' = \Delta \cup \bigsetb{\bdb{\zeta} \mathbin{\extends} \kwd{invariant}\;Q \mathbin{\extends} \bdb{\xi}}  \andalso
     \mathit{distinct}(\bar{P},\bar{Q})  \andalso
     \mathit{distinct}(\bar{x})  \\[3pt]
-    \bar{\jwftype[\Delta']{\zeta}}  \andalso  \bar{\jwftype[\flip{\Delta'}]{\xi}}  \andalso
+    \jbwftype{\zeta}  \andalso  \bar{\jwftype[\flip{\Delta'}]{\xi}}  \andalso
     \jbwftype[\flip{\Delta''}]{\tau}  \andalso  \jwftype[\Delta'']{\omega} \andalso
     \fbox{$ \jtype[\FLAT{\Delta''};\Phi;\Gamma,\bar{x\COLON\tau}]{e}{\rho}  \andalso  \jsubtype[\Delta'']{\rho}{\omega} $} }
   { \jwfmeth{m\bigobb{\bdb{\zeta} \extends Q \extends \bdb{\xi}} (\bar{x\COLON\tau})\COLON\omega \; \fbox{$\defneq e \vphantom{X}$}} }
