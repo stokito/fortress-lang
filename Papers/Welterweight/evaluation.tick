@@ -36,12 +36,12 @@ Figure~\ref{fig:msa} gives the rules for determining which is the most specific 
 function or method for a given tuple of argument types.  It also defines a function $\arrow$
 that is related to $\dom$ and is needed for the Return Type Rule in Figure~\ref{fig:meetrule}.
 Figure~\ref{fig:evaluation} gives rules for reducing an expression to a value.
-The rules \rn{R-Match-Succeeds} and \rn{R-Match-Fails} test the ilk of a value
-to decide which of two expressions to evaluate.  The rules \rn{R-Function} and \rn{R-Method}
-are the dyanamic counterparts to rules \rn{T-Function} and \rn{T-Method} of Figure~\ref{fig:expressiontypes}:
+The rules \rncite{R-Match-Succeeds} and \rncite{R-Match-Fails} test the ilk of a value
+to decide which of two expressions to evaluate.  The rules \rncite{R-Function} and \rncite{R-Method}
+are the dynamic counterparts to rules \rncite{T-Function} and \rncite{T-Method} of Figure~\ref{fig:expressiontypes}:
 they also use the function $\msavname$
 to find the \underline{m}ost \underline{s}pecific \underline{a}pplicable \underline{v}isible function or method
-for that invocation.  However, the last argument to $\msavname$ in rules \rn{R-Function} and \rn{R-Method}
+for that invocation.  However, the last argument to $\msavname$ in rules \rncite{R-Function} and \rncite{R-Method}
 is not a tuple of the static types of the argument expressions, but rather
 a tuple of the \emph{ilks} of the argument \emph{values};
 therefore these uses of $\msavname$ identifies the \emph{dynamically} most specific applicable visible function or method.
@@ -60,12 +60,12 @@ $\Pi=\bar{\psi},\bar{\varphi},e$ is given, let $\Delta=\setb{\psi}$,
 and assume $\Pi$ is well-formed (that is, $\jtype[]{\Pi}{g}$ for some $g$).
 
 \begin{proposition}
-Whenever rule \rn{T-Function} or \rn{T-Method} is used, $\msavname$ always identifies exactly one function or method (thanks in large part to the Meet Rule).
+Whenever rule \rncite{T-Function} or \rncite{T-Method} is used, $\msavname$ always identifies exactly one function or method (thanks in large part to the Meet Rule).
 \end{proposition}
 
 \begin{proposition}
-Whenever rule \rn{R-Function} is used, $\msavname$ always identifies exactly one function (thanks in large part to the Meet Rule),
-and the function identified is more specific (or the same as) the function identified by rule \rn{T-Function} for that call site.
+Whenever rule \rncite{R-Function} is used, $\msavname$ always identifies exactly one function (thanks in large part to the Meet Rule),
+and the function identified is more specific than (or the same as) the function identified by rule \rncite{T-Function} for that call site.
 \end{proposition}
 
 If our type system is sound, then the following propositions should also hold:
@@ -78,7 +78,7 @@ will belong to type $\alpha$.
 
 \begin{proposition}
 Whenever a closure whose ilk is $\listof{\barearrowtype{\alpha}{\omega}}$ is applied to an argument value
-by rule \rn{R-Apply}, the argument value will belong to type $\alpha$.
+by rule \rncite{R-Apply}, the argument value will belong to type $\alpha$.
 \end{proposition}
 
 \begin{proposition}
@@ -106,6 +106,6 @@ cases years).  Nevertheless, errors may have crept in
 as we have transcribed and codified these algorithms into the inference rules
 presented here.
 We do have experience in mechanizing proofs of properties of a smaller model,
-Featherweight Fortress~\cite{featherweight-fortress}, using COQ.
+Featherweight Fortress~\cite{featherweight-fortress}, using Coq.
 We expect that mechanizing proofs of the preceding propositions is feasible
 but will require many months of effort.

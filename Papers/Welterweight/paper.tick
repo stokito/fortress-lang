@@ -17,11 +17,13 @@
 \newcommand{\PlaceHolder}[1]{$\langle$\textit{#1}$\rangle$}
 \newcommand{\NEGQQ}{\mskip-24\thinmuskip}
 
-\renewcommand{\algorithmiccomment}[1]{\ {\large$\circledast$}\rm\ #1 }
+\newcommand{\commentalign}{{\hskip-1em}}
+\renewcommand{\algorithmiccomment}[1]{\quad{\large$\circledast$}\rm\ #1 }
 \renewcommand{\algorithmicindent}{1em}%
 
 \algblockdefx[Name]{At}{End}[0]{\textbf{at }}[0]{\textbf{end}}
 \algblockdefx[Name]{Step}{EndStep}[1]{#1 = }[0]{\textbf{end}}
+\algblockdefx[Name]{StepNoEnd}{EndStepNoEnd}[1]{#1 = }[0]{\textbf{end}}
 \algblockdefx[Name]{Indent}{EndIndent}[0]{\relax}[0]{\relax}
 
 \algnotext{EndIf}
@@ -30,10 +32,23 @@
 \algnotext{EndWhile}
 \algnotext{Indent}
 \algnotext{EndIndent}
+\algnotext{EndStepNoEnd}
 
 \makeatletter
 \newcommand{\slantverbatim}{\def\verbatim@font{\slshape\ttfamily\hyphenchar\font\m@ne\@noligs}}
 \makeatother
+
+%%Change rule names to appear in square brackets
+\newcommand{\rncite}[1]{[\rn{#1}]}
+\renewcommand{\inflabel}[1]{%
+  \ifsuppressrulenames\else
+    \def\lab{#1}%
+    \ifx\lab\empty
+      \relax
+    \else
+      \rncite{\lab}%
+  \fi\fi
+}
 
 
 
@@ -67,6 +82,10 @@
 \newcommand{\meet}{\wedge}
 \newcommand{\existentialmeet}{\sqcap}
 \newcommand{\C}{\mathcal{C}}
+\newcommand{\calP}{\mathcal{P}}
+\newcommand{\calS}{\mathcal{S}}
+\newcommand{\calL}{\mathcal{L}}
+\newcommand{\calU}{\mathcal{U}}
 \newcommand{\quoted}[1]{\begin{quote}#1\end{quote}}
 \newcommand{\exc}{\mathrel{\lozenge}}
 \newcommand{\existsexc}{\mathrel{\lozenge}}
@@ -145,6 +164,11 @@
 \newcommand{\uniontype}[2]{\mbox{\ensuremath{({#1} \cup {#2})}}}
 \newcommand{\intersectiontype}[2]{\mbox{\ensuremath{({#1} \cap {#2})}}}
 \newcommand{\existentialmeettype}[2]{\mbox{\ensuremath{\left({#1} \existentialmeet {#2}\right)}}}
+
+\newcommand{\minimalname}{\textit{minimal}}
+\newcommand{\minimal}[1]{\ensuremath{\minimalname(#1)}}
+\newcommand{\hasminimalname}{\textit{hasMinimal}}
+\newcommand{\hasminimal}[1]{\ensuremath{\hasminimalname(#1)}}
 
 \newcommand{\allvisible}[2][\Delta]{\ensuremath{\textit{allVisible}(#1,#2)}}
 \newcommand{\visible}[2][\Delta,\Phi]{\ensuremath{\textit{visible}(#1,#2)}}
@@ -471,8 +495,8 @@
 % \CopyrightYear{2011}
 % \copyrightdata{978-1-4503-0940-0/11/10}
 
-\titlebanner{DRAFT}        % These are ignored unless
-\preprintfooter{DRAFT}     % 'preprint' option specified.
+\titlebanner{}        % These are ignored unless
+\preprintfooter{PAPER SUBMITTED TO 2012 ACM SPLASH---OOPSLA RESEARCH PAPERS}     % 'preprint' option specified.
 
 \title{Dynamic Dispatch and Type Inference Semipredicates}
 \subtitle{}
@@ -534,7 +558,7 @@ We explore some design tradeoffs; for example, certain difficult cases
 that are costly to process can be avoided if either contravariance
 or union types are eliminated from the model.
 To provide a rigorous expository framework for this presentation,
-we formally define Welterweight Fortress, a model that goes beyond the
+we formally define Welterweight Fortress, a model much larger than the
 previously reported Featherweight Fortress.
 
 \end{abstract}
@@ -583,12 +607,12 @@ methods, multimethods, separate compilation, Fortress}
 \input{dispatch}
 
 \section{Related Work}\label{sec:related}
-%\input{related-work}
+\input{related-work}
 
-\section{Conclusion and Discussion}\label{sec:conclusion}
+%\section{Conclusion and Discussion}\label{sec:conclusion}
 %\input{conclusion}
 
-\section*{Acknowledgments}
+%\section*{Acknowledgments}
 % This work is supported in part by the Engineering Research Center of Excellence Program of Korea Ministry of Education,
 % Science and Technology(MEST) / National Research Foundation of Korea(NRF)
 % (Grant 2011-0000974).

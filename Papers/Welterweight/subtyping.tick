@@ -3,7 +3,7 @@
 \input{fig-meetrule}
 
 Our subtyping judgments are constraint-based and rely in the general case on solving systems of constraints on type parameters.
-Figures~\ref{fig:constraints}, \ref{fig:subtyping}, \ref{fig:exclusion}, \ref{fig:misc-subtyping}, and~\ref{fig:quantified}
+Figures~\ref{fig:constraints}, \ref{fig:subtyping}, \ref{fig:exclusion}, \ref{fig:miscsubtyping}, and~\ref{fig:quantified}
 are adapted and improved from our previously published work~\cite{oopsla-2011-type-checking}, and Figure~\ref{fig:meetrule}
 has been newly constructed based on material in the text of that paper.  We summarize the content of these figures briefly,
 using text that is in large part adapted and condensed from that earlier paper.  A notable improvement appears at the end of this section.
@@ -95,7 +95,7 @@ Here is the old meet rule from \cite{oopsla-2011-type-checking}:
   { \jreturntyperule{d}{d'} }
 
 The problem here is that the last premise requires a difficult inference, because the two universal types have different sets of type parameters.
-The version presented here as rule \rn{Return-test} in Figure~\ref{fig:meetrule} takes advantage of the fact that
+The version presented here as rule \rncite{Return-test} in Figure~\ref{fig:meetrule} takes advantage of the fact that
 the preceding premise $\jle{\dom(d)}{\dom(d')}$ has already had to compute a substitution that resolves
 the differences between the type parameters of the two functions or methods in question; replacing
 $\jle{\dom(d)}{\dom(d')}$ with $\jleusing{\dom(d)}{\dom(d')}{\sigma}$ makes this substitution $\sigma$ available

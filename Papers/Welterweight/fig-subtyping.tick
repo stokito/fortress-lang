@@ -212,6 +212,6 @@
 
 \end{minipage}
 
-  \caption{Algorithm for generating subtyping constraints. (Adapted and extended from \cite{oopsla-2011-type-matching}.) Apply the first rule that matches.}
+  \caption{Algorithm for generating subtyping constraints. (Adapted and extended from \cite{oopsla-2011-type-checking}.) Apply the first rule that matches.}
   \label{fig:subtyping}
 \end{figure*}
