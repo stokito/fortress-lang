@@ -310,7 +310,7 @@ In the \textsc{Match} algorithm (no pun intended; ````$\kwd{match}$'' and ````\t
 
 However, the restrictions on how traits may be extended prohibit mutually exclusive constraints from the two clauses of the intersection.
 For the $\kwd{match}$ construct, the intersection type results from an actual value with ilk $k$ that must satisfy all structural constraints on types.  Suppose that $g$ and $g'$ both extend instantiations of $G$, so $k <: g <: G\OBR{g_1}$ and $k <: g' <: G\OBR{g_2}$.  If $G$ is invariant, then $g_1$ and $g_2$ must be equal, and therefore the constraints for the two clauses are compatible.  If $G$ is covariant, then $g_1$ and $g_2$ may not be the same.
-Because $g <: G\OBR{T_1}$ and $g' <: G\OBR{T_2}$, we know that $g \cap g' <: G\OBR{g_1} \cap G\OBR{g_2} = G\OBR{g_1 \cap g_2}$.  This allows us to conclude that $g_1 \cap g_2$ is a valid lower bound for $g$.  Because the intersection is more specific than both $g_1$ and $g_2$, it also allows all combinations of $g_1$ and $g_2$ without the overhead of testing them separately.
+Because $g <: G\OBR{g_1}$ and $g' <: G\OBR{g_2}$, we know that $g \cap g' <: G\OBR{g_1} \cap G\OBR{g_2} = G\OBR{g_1 \cap g_2}$.  This allows us to conclude that $g_1 \cap g_2$ is a valid lower bound for $g$.  Because the intersection is more specific than both $g_1$ and $g_2$, it also allows all combinations of $g_1$ and $g_2$ without the overhead of testing them separately.
 
 Processing the clauses of an intersection type extending a generic signature does require one modification to the \textsc{Match} algorithm; if a clause fails to match, it does not by itself indicate dispatch failure for the current entrypoint.  Furthermore, any partial set of lower and upper bound constraints accumulated during the attempted match of a clause must be discarded. For a successful match, the lower bound sets computed for each of the clauses must all be intersected; effectively, the resulting bound sets are each the intersection of unions, which must then be combined with the existing lower bound sets.  Upper bound sets will be merged to form the union of intersections.  All this is handled by inserting lines~\hbox{\ref{intersectionstart}--\ref{intersectionend}} of the following code just before line~\ref{intersectiontestgoeshere} of the \textsc{Match} algorithm shown in Section~\ref{sec:match}.
 
@@ -354,7 +354,7 @@ Processing the clauses of an intersection type extending a generic signature doe
               \State $\calL_{P_i} \gets \calL_{P_i} \cup \set{\textrm{LBT}_{P_i}}$
            \EndIf
            \If{$\textrm{UBT}_{P_i} \not<: \Bottom$}
-              \State $\calU_{P_i} \gets \calU_{P_i} \cup \set{\textrm{LBT}_{P_i}}$
+              \State $\calU_{P_i} \gets \calU_{P_i} \cup \set{\textrm{UBT}_{P_i}}$
            \EndIf
         \EndFor
      \EndIf
