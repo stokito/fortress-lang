@@ -160,9 +160,9 @@ The loop on line \ref{UnionSubtypesGeneric} deals with the case where a union ty
 
 % {\it Careful -- our order, lexical-<:, ensures that beginning at the ````bottom'' is well-founded and cycle-free.  It's not just <:.}
 
-%The constraint propagation and checking algorithm uses a type operation ````\textsc{lsub}'' (Least Single Upper Bound).  For a lattice, this is lattice join, implemented in the Fortress type system with a type union operation where necessary to complete the type hierarchy to obtain a (semi)lattice (for tuple types, a union may not be necessary, and a comprises clause declares an implicit join type of all the comprised types).  In programming languages with single inheritance the join of any two types will always be a declared type; in other programming languages that support type multiple inheritance $\textsc{lsub}(T,U)$ may be defined in some other way, for instance as the least supertype dominating $T$ and $U$.  The \textsc{lsub} operation must obey the property that for a covariant generic $G$, $\textsc{lsub}(G\OBR{A}, G\OBR{B}) <: G\OBR{\textsc{lsub}(A,B)}$.
+%The constraint propagation and checking algorithm uses a type operation ````\textsc{lsub}'' (Least Single Upper Bound).  For a lattice, this is lattice join, implemented in the Fortress type system with a type union operation where necessary to complete the type hierarchy to obtain a (semi)lattice (for tuple types, a union may not be necessary, and a comprises clause declares an implicit join type of all the comprised types).  In programming languages with single inheritance the \textsc{lsub} of two constructed types will always be a declared type; in other programming languages that support type multiple inheritance $\textsc{lsub}(T,U)$ may be defined in some other way, for instance as the least supertype dominating $T$ and $U$.  The \textsc{lsub} operation must obey the property that for a covariant generic $G$, $\textsc{lsub}(G\OBR{A}, G\OBR{B}) <: G\OBR{\textsc{lsub}(A,B)}$.
 
-The constraint propagation and checking algorithm uses a type operation ````\textsc{lsub}'' (Least Single Upper Bound).  For a lattice, this is lattice join, implemented in the Fortress type system as a union type (which may then be simplified).  In programming languages with single inheritance, the join of any two types will always be a declared type; in other programming languages that support type multiple inheritance $\textsc{lsub}(T,U)$ may be defined in some other way, for instance as the least declared supertype dominating $T$ and $U$.  The \textsc{lsub} operation must obey the property that for a constructed type $G$ with a covariant parameter position, $\textsc{lsub}\setb{\underline{G}\OBR{\LDOTS,\alpha,\LDOTS}} <: G\OBR{\LDOTS,\textsc{lsub}\setb{\alpha},\LDOTS}$.
+The constraint propagation and checking algorithm uses a type operation ````\textsc{lsub}'' (Least Single Upper Bound).  For a lattice, this is lattice join, implemented in the Fortress type system as a union type (which may then be simplified).  In programming languages with single inheritance, the \textsc{lsub} of two constructed types can be defined as their unique least common ancestor; in other programming languages that support type multiple inheritance $\textsc{lsub}(T,U)$ may be defined in some other way, for instance as some least declared supertype dominating $T$ and $U$, perhaps with a tie-breaking rule.  The \textsc{lsub} operation must obey the property that for a constructed type $G$ with a covariant parameter position, $\textsc{lsub}\setb{\underline{G}\OBR{\LDOTS,\alpha,\LDOTS}} <: G\OBR{\LDOTS,\textsc{lsub}\setb{\alpha},\LDOTS}$.
 
 The constraint propagation algorithm merely ensures that, whatever the definition of \textsc{lsub} is,
 if a consistent set of type assignments can be discovered, the most specific one will be found.  Suppose that the entrypoint of interest has $n$ type parameters; we process them from right to left.
@@ -284,7 +284,7 @@ A subtype query is slightly more involved.  (For lack of space, we elide the han
 
 \section{Variations}
 
-The algorithm just described works with covariant and invariant generic types, union types, and a set of constraints allowed on generic type parameters.  We might wish to relax some of these restrictions and accept more varied inputs, if possible.
+The algorithm just described works with covariant and invariant generic types, union types, and a set of constraints allowed on generic type parameters.  We can relax some of these restrictions and accept more varied inputs.
 
 % \subsection{Additional constraints}
 % Odersky~\cite{OderskyXXX} has noted that covariant data structures benefit from the ability to express type lower bounds.
@@ -316,7 +316,7 @@ Processing the clauses of an intersection type extending a generic signature doe
 
 
 \begin{algorithmic}[1]
-\StepNoEnd{\PlaceHolder{Intersection subtypes generic}}
+\StepNoEnd{\PlaceHolder{intersection subtype of constructed signature type?}}
   \algrenewcommand\algorithmicif{\textbf{else if}}  % Cosmic fakeout
   \If{$g$ is an intersection of types $g_1, \LDOTS, g_m$}  \label{intersectionstart}
   \algrenewcommand\algorithmicif{\textbf{if}}  % End of cosmic fakeout
