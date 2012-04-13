@@ -47,14 +47,14 @@ For each rule in the figures
 that is not in a section marked ````bound variables,''
 make a new rule by replacing each occurrence of a
 relation symbol with its negation, replacing $\wedge$ with $\vee$ and vice versa,
-For example, from the rule
+For example, from the rule:
 
 \infrule
   { \jsub{\alpha}{\eta}{\C} \\ \jsub{\alpha}{\chi}{\C'} }
   { \jsub{\alpha}{\intersectiontype{\eta}{\chi}}{\C \wedge \C'} }
 
 \noindent
-we derive
+we derive:
 
 \infrule
   { \jnsub{\alpha}{\eta}{\C} \\ \jnsub{\alpha}{\chi}{\C'} }

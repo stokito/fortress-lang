@@ -98,7 +98,7 @@ $\textsc{Match}(k, +1, (G\OBR{P},H\OBR{P,Q},J\OBR{Q,S}))$ where $k$ is the argum
 \Function{match}{$g$:Type, $V$:Variance, $s$:Type}
   \If{$s$ is a ground type}  
      \If{$V \geq 0$}\Comment{co/invariant, require $g <: s$}
-.)        \If{$\neg(g <: s)$} \ dispatch fails \EndIf
+        \If{$\neg(g <: s)$} \ dispatch fails \EndIf
      \EndIf
      \If{$V \leq 0$}\Comment{contra/invariant, require $s <: g$}
         \If{$\neg(s <: g)$} \ dispatch fails \EndIf
@@ -113,7 +113,7 @@ $\textsc{Match}(k, +1, (G\OBR{P},H\OBR{P,Q},J\OBR{Q,S}))$ where $k$ is the argum
   \ElsIf{$s$ is an arrow type $s_{\SSmbox{domain}} \rightarrow s_{\SSmbox{range}}$} 
          \If{$g$ is an arrow type $g_{\SSmbox{domain}} \rightarrow g_{\SSmbox{range}}$}  
            \State \Call{match}{$g_{\SSmbox{domain}}$, 0, $s_{\SSmbox{domain}}$}
-           \State \Call{match}{$g_{\SSmbox{range}}$, V, $s_{\SSmbox{range}}$}
+           \State \Call{match}{$g_{\SSmbox{range}}$, $V$, $s_{\SSmbox{range}}$}
          \Else \ dispatch fails
          \EndIf
   \ElsIf{$s$ is a tuple type $(s_1, \LDOTS, s_m)$} 
@@ -326,8 +326,8 @@ Processing the clauses of an intersection type extending a generic signature doe
      \Else
         \For{$1 \leq i \leq n$} 
            \State Save existing bound sets $\calL_{P_i}$ and $\calU_{P_i}$
-           \State $\hbox to 0pt{$\textrm{LBT}_i \gets \Any$\hss}\hphantom{\textrm{UBT}_i \gets \Bottom}$ \Comment{Lower bound type}
-           \State $\textrm{UBT}_i \gets \Bottom$  \Comment{Upper bound type}
+           \State $\hbox to 0pt{$\textrm{LBT}_{P_i} \gets \Any$\hss}\hphantom{\textrm{UBT}_i \gets \Bottom}$ \Comment{Lower bound type}
+           \State $\textrm{UBT}_{P_i} \gets \Bottom$  \Comment{Upper bound type}
         \EndFor
         \State \textbf{var} $\textit{anymatch} = \textit{false}$
         \For{$1 \leq j \leq m$}\label{IntersectionSubtypesGeneric}
@@ -430,14 +430,14 @@ Adding contravariance to the type system creates the possibility of a combinator
 % This example, however, is contrived and somewhat useless, and it may be the case that such combinatorial constraint checking will be rare in actual programs.  It is possible to identify easy cases.  
 
 Consider the problem of matching an ilk $(g \cup g')$ with the signature type
-$G\obb{s}$; that is, we are trying to determine whether $G\OBR{\obb{s} <: (g \cup g')$, where $g$ and $g'$ are ground constructed types.  Then the two subproblems are $G\obb{s}} <: g$ and $G\obb{s} <: g'$.  There are a few easy cases. If both subproblems fail to match, the overall match fails.  If just one subproblem fails to match, then the result is exactly the successful match of the other subproblem.  If either subproblem succeeds with an empty set of constraints, then the result is the empty set of constraints.
+$G\obb{s}$; that is, we are trying to determine whether $G\obb{s} <: (g \cup g')$, where $g$ and $g'$ are ground constructed types.  Then the two subproblems are $G\obb{s} <: g$ and $G\obb{s} <: g'$.  There are a few easy cases. If both subproblems fail to match, the overall match fails.  If just one subproblem fails to match, then the result is exactly the successful match of the other subproblem.  If either subproblem succeeds with an empty set of constraints, then the result is the empty set of constraints.
 
 This leaves the case where both subproblems match, and both subproblems produce non-trivial constraints.  This results when $g = H\OBR{\LDOTS}$ and $g' = J\OBR{\LDOTS}$ and $G\OBR{\bar{\gamma}}$ is declared to (transitively) extend $H\OBR{\bar{\alpha}}$ and $J\OBR{\bar{\eta}}$, where some elements of $\bar{\gamma}$ appear in $\bar{\alpha}$ and in $\bar{\eta}$, and for each element of $\bar{\gamma}$ appearing in $\bar{\alpha}$ and/or $\bar{\eta}$, the variance for that element is the same in $\bar{\gamma}$, $\bar{\alpha}$, and $\bar{\eta}$.  This is required by the rules for variance context: covariant type parameters may appear only in covariant contexts, contravariant type parameters may appear only in contravariant contexts.  Note that it is also possible that $H$ and $J$ are the same name, and either or both may be the same name as $G$.
 
 Suppose $H$ and $J$ are both $G$.
 Then the two subproblems are $G\OBR{\bar{P_1}} <: G\OBR{\bar{U}}$ and $G\OBR{\bar{P_2}} <: G\OBR{\bar{V}}$.  Because $G\OBR{\bar{U}} \cup G\OBR{\bar{V}}$ is assumed to be in canonical form, there is no $\bar{P}$ such that $G\OBR{\bar{P}} = G\OBR{\bar{U}} \cup G\OBR{\bar{V}}$.  This is a hard subcase; it is necessary to explore each possibility separately, and if such choices are cascaded, the result can be an exponential blowup.
 
-If we have only that $H$ and $J$ are the same stem, different from $G$, this still leads to a hard subcase by similar (but more detailed) reasoning.
+If we have only that $H$ and $J$ are the same name, different from $G$, this still leads to a hard subcase by similar (but more detailed) reasoning.
 
 On the other hand, suppose neither $H$ nor $J$ is $G$.
 In that case, $G\OBR{\bar{P_1}} <: H\OBR{\bar{U}}$ and $G\OBR{\bar{P_2}} <: J\OBR{\bar{V}}$.

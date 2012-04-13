@@ -1,4 +1,4 @@
-\section{Proofs about simplifying a constructed types of a union or intersection type}
+\section{Proofs about simplifying a constructed type of a union or intersection type}
 \label{sec:proofs}
 \subsection{Covariant parameter receives intersection type}
 

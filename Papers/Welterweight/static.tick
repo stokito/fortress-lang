@@ -15,7 +15,7 @@ a set of function declarations $\Phi$, and a variable-type environment $\Gamma$.
 static type of the expression.  Note that rule \rncite{T-Project} effectively defines tuple projection functions $\pi_1, \pi_2, \pi_3, \ldots$ for tuples of
 all possible lengths.  The rule \rncite{T-Match} is of interest because it explicitly introduces both intersection and union types into the type calculus
 (though intersections and unions can also be introduced implicitly in other parts of the language).  The most interesting rules in this figure are
-\rncite{T-Function} and \rncite{T-Method}, which use a function $\msavname$ (defined later in Figure~\ref{fig:msa})
+\rncite{D-Function} and \rncite{D-Method}, which use a function $\msavname$ (defined later in Figure~\ref{fig:msa})
 to find the \underline{m}ost \underline{s}pecific \underline{a}pplicable \underline{v}isible function or method
 for that call site.  Note that the last argument to $\msavname$ in these rules is a tuple of the static types of the argument expressions;
 therefore these uses of $\msavname$ identify the \emph{statically} most specific applicable visible function or method.
@@ -65,10 +65,10 @@ the method is declared \emph{is} considered for the purposes of these other test
 
 Figure~\ref{fig:miscjudgments} gives rules for miscellaneous subsidary judgments used in Figure~\ref{fig:wellformeddecls} and elsewhere.
 
-Each of the rules \rncite{T-Trait}, \rncite{T-Object}, \rncite{T-Function}, and \rncite{T-Method} has two versions, one with all boxed material
+Each of the rules \rncite{D-Trait}, \rncite{D-Object}, \rncite{D-Function}, and \rncite{D-Method} has two versions, one with all boxed material
 included and one with all boxed material omitted.
 
-The rule \rncite{T-Trait} verifies that the names of its type parameters are distinct; that its method definitions are distinct;
+The rule \rncite{D-Trait} verifies that the names of its type parameters are distinct; that its method definitions are distinct;
 that all types mentioned are well-formed; that a trait does not extend, comprise, or exclude an instance of itself;
 that comprised types are subtypes of the comprising trait; that there are no cycles in the ````extends'' relationship;
 and that its methods (both those declared within it and those inherited from traits that it extends) obey the
@@ -80,7 +80,7 @@ and it provides a list of its type parameters so that the check for
 well-formedness of the method can ensure that the names of the method's type parameters
 are distinct from the names of the trait's type parameters.
 
-We introduce the Ancestors Meet Rule (see Figure~\ref{fig:meetrule}), which is used by \rncite{T-Trait} to check the
+We introduce the Ancestors Meet Rule (see Figure~\ref{fig:meetrule}), which is used by \rncite{D-Trait} to check the
 proper ancestors of the declared trait: if a trait extends (directly or indirectly) two different instances $T\obb{\alpha}$ and $T\obb{\eta}$
 of the same trait $T$, then it must extend some instance $T\ob{\gamma}$ of $T$ (which could be $T\obb{\alpha}$, $T\obb{\eta}$,
 or a third instance) such that $T\ob{\gamma}$ is a subtype of $T\ob{\alpha}$ and also a subtype of $T\obb{\eta}$.
@@ -88,7 +88,7 @@ A consequence is that if an object value belongs to one or more instances of som
 to which it belongs.  This is important because being able to identify this minimal instance quickly is essential to the efficient dynamic dispatch
 algorithms we present later.
 
-The rule \rncite{T-Object} is similar in many ways to rule \rncite{T-Trait};
+The rule \rncite{D-Object} is similar in many ways to rule \rncite{D-Trait};
 it verifies that the names of its type parameters are distinct; that
 its method definitions are distinct; that all types mentioned are
 well-formed; and that its methods (both those declared within it and
@@ -103,7 +103,7 @@ and it provides a list of its type parameters so that the check for
 well-formedness of the method can ensure that the names of the method's type parameters
 are distinct from the names of the object's type parameters.
 
-The rule \rncite{T-Function} verifies that the names of its type parameters are distinct;
+The rule \rncite{D-Function} verifies that the names of its type parameters are distinct;
 that the names of its value parameters are distinct; that all types mentioned are
 well-formed; and that its body expression (if present) is well-formed and has a static type that
 is a subtype of the declared return type $\omega$.  Of particular interest is the use of the
@@ -125,7 +125,7 @@ algorithms we present later.
 
 \input{fig-constraints}
 
-The rule \rncite{T-Method} is similar to rule \rncite{T-Function}, but
+The rule \rncite{D-Method} is similar to rule \rncite{D-Function}, but
 also verifies that the names of its type parameters are distinct
 one another and from the names of the type parameters of the
 containing object or trait.  One additional wrinkle is that lower bounds $\setb{\zeta}$
