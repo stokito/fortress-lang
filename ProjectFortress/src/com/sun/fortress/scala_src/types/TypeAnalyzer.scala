@@ -667,7 +667,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
         val l2 = l.filter(x => !isTrue(sub(x,a)))
         l2 ++ (if (l2.exists(x => isTrue(sub(a,x)))) Nil else List(a))
       })
-      println("normDisjunct:\n  " + x + "\n  " + result)
+      // println("normDisjunct:\n  " + x + "\n  " + result)
       result
   }
   
