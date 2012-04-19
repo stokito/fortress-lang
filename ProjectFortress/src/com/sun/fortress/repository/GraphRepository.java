@@ -23,12 +23,15 @@ import com.sun.fortress.exceptions.StaticError;
 import com.sun.fortress.exceptions.WrappedException;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes_util.ASTIO;
+import com.sun.fortress.nodes_util.NodeComparator;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.repository.graph.*;
 import com.sun.fortress.runtimeSystem.ByteCodeWriter;
 import com.sun.fortress.scala_src.typechecker.IndexBuilder;
+import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.Path;
 import com.sun.fortress.useful.Useful;
@@ -79,7 +82,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     private boolean link = false;
     
     static private Map<String, DerivedFiles<CompilationUnit>> otherCaches =
-            new HashMap<String, DerivedFiles<CompilationUnit>>();
+            new BATree<String, DerivedFiles<CompilationUnit>>(DefaultComparator.<String>normal());
 
     ForeignJava foreignJava = ForeignJava.only;
 
@@ -769,7 +772,7 @@ public class GraphRepository extends StubRepository implements FortressRepositor
     /* find all parsed APIs */
     public Map<APIName, ApiIndex> parsedApis(List<Api> unparsed) {
 
-        Map<APIName, ApiIndex> apis = new HashMap<APIName, ApiIndex>();
+        Map<APIName, ApiIndex> apis = new BATree<APIName, ApiIndex>(NodeComparator.apiNameComparer);
 
         for (GraphNode g : graph.nodes()) {
             if (g instanceof ApiGraphNode) {

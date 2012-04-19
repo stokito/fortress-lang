@@ -32,6 +32,7 @@ import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.scala_src.types.TypeSchemaAnalyzer;
 import com.sun.fortress.scala_src.useful.STypesUtil;
 import com.sun.fortress.compiler.phases.CodeGenerationPhase;
+import com.sun.fortress.exceptions.CompilerBug;
 import com.sun.fortress.exceptions.CompilerError;
 import com.sun.fortress.nodes.*;
 import com.sun.fortress.nodes.Type;
@@ -346,7 +347,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             }
         }
         
-        List<TopSortItemImpl<TaggedFunctionName>> specificFirst = TopSort.depthFirstArray(pofuns);
+        List<TopSortItemImpl<TaggedFunctionName>> specificFirst;
+        try {
+            specificFirst = TopSort.depthFirstArray(pofuns);
+        } catch (CycleInRelation ex) {
+            throw new CompilerBug(
+"Likely bug in static analysis, apparently malformed overload set not rejected.\n"+
+"Probable cause is a functional method and top level function with same signature.", ex);
+        }
         
         if (computeSubsets) {
             /*
