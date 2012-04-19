@@ -196,6 +196,15 @@ public class NodeComparator {
 	    return left.stringName().compareTo(right.stringName());
 	}
     }
+    public final static Comparator<IdOrOpOrAnonymousName> IoooanComparer =
+        new Comparator<IdOrOpOrAnonymousName>() {
+            @Override
+            public int compare(IdOrOpOrAnonymousName arg0,
+                    IdOrOpOrAnonymousName arg1) {
+                return NodeComparator.compare(arg0, arg1);
+            }
+        
+    };
 
     public static int compare(KeywordType left, KeywordType right) {
 	return compare(left.getName(), right.getName(),

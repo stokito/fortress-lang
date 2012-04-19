@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -157,12 +158,15 @@ import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
 import com.sun.fortress.runtimeSystem.RTHelpers;
 import com.sun.fortress.scala_src.overloading.OverloadingOracle;
+import com.sun.fortress.scala_src.typechecker.CFormula;
+import com.sun.fortress.scala_src.typechecker.Formula;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
 import com.sun.fortress.scala_src.useful.STypesUtil;
 import com.sun.fortress.useful.BASet;
 import com.sun.fortress.useful.BATree;
 import com.sun.fortress.useful.ConcatenatedList;
 import com.sun.fortress.useful.Debug;
+import com.sun.fortress.useful.DefaultComparator;
 import com.sun.fortress.useful.DeletedList;
 import com.sun.fortress.useful.F;
 import com.sun.fortress.useful.Fn;
@@ -5891,6 +5895,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         Type receiverType = exprType(obj);
+        receiverType = sanitizePossibleStupidIntersectionType(receiverType);
 //        if (!(receiverType instanceof TraitType)) {
 //            throw sayWhat(x, "receiver type "+receiverType+" is not TraitType in " + x);
 //        }
@@ -5996,6 +6001,39 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
     }
+
+    private Type sanitizePossibleStupidIntersectionType(Type receiverType) {
+        if (receiverType instanceof TraitSelfType) {
+            receiverType = ((TraitSelfType) receiverType).getNamed();
+        }
+        if (receiverType instanceof NamedType)
+            return receiverType;
+        if (receiverType instanceof IntersectionType) {
+            IntersectionType it = (IntersectionType) receiverType;
+            Type at = null;
+            for (Type t : it.getElements()) {
+                    t = sanitizePossibleStupidIntersectionType(t);
+                    if (at == null)
+                        at = t;
+                    else {
+                        CFormula c1 = typeAnalyzer.subtype(t, at);
+                        CFormula c2 = typeAnalyzer.subtype(at, t);
+                        if (Formula.isTrue(c1, typeAnalyzer)) {
+                            at = t;
+                        } else if (Formula.isTrue(c2, typeAnalyzer)) {
+                            // at is subtype, do nothing.
+                        } else {
+                            return receiverType;
+                        }
+                       
+                    }
+                
+            }
+            return at;
+        }
+        return receiverType;
+    }
+
 
     /**
      * @param prepended_domain
@@ -6384,7 +6422,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
        sizePartitionedOverloads(Relation<IdOrOpOrAnonymousName, ? extends Functional> fns) {
 
         Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> result =
-            new HashMap<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>>();
+            new BATree<IdOrOpOrAnonymousName,
+            MultiMap<Integer, Functional>>(NodeComparator.IoooanComparer);
+            // new HashMap<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>>();
 
         for (IdOrOpOrAnonymousName name : fns.firstSet()) {
             Set<? extends Functional> defs = fns.matchFirst(name);
@@ -6406,7 +6446,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     public static MultiMap<Integer,  Functional> partitionByArgCount(
             Set<? extends Functional> defs) {
         MultiMap<Integer, Functional> partitionedByArgCount =
-            new MultiMap<Integer, Functional>();
+            new MultiMap<Integer, Functional>(DefaultComparator.<Integer>normal());
 
         for (Functional d : defs) {
             partitionedByArgCount.putItem(d.parameters().size(), d);
@@ -6424,7 +6464,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             OverloadingOracle oa, 
             Set<? extends Functional> defs) {
         MultiMap<Integer, Functional> partitionedByArgCount =
-            new MultiMap<Integer, Functional>();
+            new MultiMap<Integer, Functional>(DefaultComparator.<Integer>normal());
 
         for (Functional d : defs) {
             partitionedByArgCount.putItem(d.parameters().size(), d);
