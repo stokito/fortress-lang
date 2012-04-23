@@ -14,6 +14,7 @@ package com.sun.fortress.compiler;
 import java.util.*;
 import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.desugarer.AssignmentAndSubscriptDesugarer;
+import com.sun.fortress.compiler.desugarer.TypecaseExprDesugarer;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.StaticError;
@@ -109,7 +110,14 @@ public class PreTypeCheckDesugarer {
         if (Shell.getAssignmentDesugaring()) {
             AssignmentAndSubscriptDesugarer assnDesugarer = new AssignmentAndSubscriptDesugarer();
             comp = (Component) assnDesugarer.walk(comp);
-	}
+        }
+        
+        // Desugar typecase expressions
+        if (Shell.getCompiledExprDesugaring()) {
+        	TypecaseExprDesugarer typecaseExprDesugarer = new TypecaseExprDesugarer();
+        	comp = (Component) comp.accept(typecaseExprDesugarer);
+        }
+        
 	comp = (Component) comp.accept( new PreTypeCheckDesugaringVisitor() );
 
         return comp;
