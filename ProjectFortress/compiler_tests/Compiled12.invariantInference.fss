@@ -52,9 +52,9 @@ supSub(x : Super) : Sub = SubO
 f(x : Any, z: Any, y : Any) = "Any"
 f[\X\](x : T[\X\], z : Any, y : Any) : String = x.asString || " None"
 f[\X\](x : T[\X\], z : T [\X\], y : Any) : String = x.asString || " Inv"
-f[\X\](x : T[\X\], z : Any, y : X -> X) : String = 
+f[\X1, X extends X1\](x : T[\X\], z : Any, y : X1 -> X) : String = 
     x.asString || " Co,Contra"
-f[\X\](x : T[\X\], z : T [\X\], y : X -> X) : String = 
+f[\X1, X extends X1\](x : T[\X\], z : T [\X\], y : X1 -> X) : String = 
     x.asString || " Inv,Co,Contra"
 f[\X\](x : T[\X\], z : Any, y : (X,X)) : String =
     x.asString || " Co"

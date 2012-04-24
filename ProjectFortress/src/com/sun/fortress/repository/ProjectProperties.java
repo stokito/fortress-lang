@@ -324,6 +324,9 @@ public class ProjectProperties {
 
     public final static boolean leakCheck = getBoolean("fortress.test.leaks", false);
 
+    public static final boolean DISABLE_CONTRAVARIANCE =
+        getBoolean("fortress.disable.contravariance", true);
+
 
     /**
      * Creates a new instance of ProjectProperties

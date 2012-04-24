@@ -39,6 +39,7 @@ import com.sun.fortress.nodes.Type;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
+import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.InitializedStaticField;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
@@ -995,7 +996,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 type_elements = Useful.<Type>list(domain, range);
             }
             int l = type_elements.size();
-            variances = arrayOfInt(l, -variance);
+            variances = arrayOfInt(l, ProjectProperties.DISABLE_CONTRAVARIANCE ? 0 : -variance);
             variances[l-1] = variance;
             rttiStem = Naming.ARROW_RTTI_TAG + l;
             
