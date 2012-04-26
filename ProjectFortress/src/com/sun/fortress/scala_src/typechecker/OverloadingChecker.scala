@@ -319,6 +319,11 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
 		       val (ga, gsp) = second
 		       val firstO = typeAndSpanToString(fa)
 		       val secondO = typeAndSpanToString(ga)
+		       for (i <- 1 to 100) {
+		           val for_debugging = validOverloading(first, second, signatures, isMethod, oracle)
+		         //  if (! for_debugging)
+		          //   println("Failed after failure")
+		       }
 		       val mismatch = if (firstO < secondO)
 					firstO + "\n and " + secondO
 				      else

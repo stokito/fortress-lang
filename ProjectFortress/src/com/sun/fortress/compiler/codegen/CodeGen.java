@@ -2238,7 +2238,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     Naming.NO_SELF, traitOrObjectName);
         
         String method_name = genericMethodName(new FnNameInfo(x, thisApi()), self_index);
-        
+        if (typeLevelOverloadedNamesAndSigs.contains(method_name))
+            method_name  = NamingCzar.mangleAwayFromOverload(method_name);
         generateGenericMethodClosureFinder(method_name, template_class_name, selfType, savedInATrait);
         
         
@@ -3252,7 +3253,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Naming.genericFunctionPkgClass(packageAndClassName, mname,
                         Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
         
-        if (topLevelOverloadedNamesAndSigs.contains(pair.PCN)) {
+        if (topLevelOverloadedNamesAndSigs.contains(pair.PCN) ||
+                topLevelOverloadedNamesAndSigs.contains(pair.PCNOuter)) { // Clash on file name, else we create a bad class file.
             mname = NamingCzar.mangleAwayFromOverload(mname);
             pair.PCN =
                 Naming.genericFunctionPkgClass(packageAndClassName, mname,
@@ -6403,6 +6405,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     // System.err.println("Adding "+s+" : "+ss);
                     overloaded_names_and_sigs.add(ss);
                 }
+                
+                overloaded_names_and_sigs.addAll(os.getOtherKeys());
 
            }
         }

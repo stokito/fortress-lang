@@ -611,8 +611,13 @@ object VoidReduction extends { CommutativeMonoidReduction[\()\] }
     join(a: (), b: ()): () = ()
 end
 
-run(): () = println "PASS"
+(*) run(): () = println "PASS"
 
+run(): () = do
+  a: ZZ32 = 3
+  (Just a).loop(fn (x: ZZ32) => println a)
+  println "PASS"
+end 
 end
 
 

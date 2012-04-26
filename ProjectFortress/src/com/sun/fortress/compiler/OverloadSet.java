@@ -186,6 +186,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     private BATree<String, OverloadSet> overloadSubsets =
         new BATree<String, OverloadSet>(DefaultComparator.<String>normal());
 
+    protected BASet<String> otherOverloadKeys =
+        new BASet<String>(DefaultComparator.<String>normal());
+    
     /**
      * Used to answer subtype questions.
      */
@@ -212,7 +215,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     /* in the event that the overloaded function is generic, these will be non-null after "split" */
     List<StaticParam> static_parameters = null;
     Naming.XlationData xldata = null; 
-    String PCN = null;
+    // String PCN = null;
 
     protected OverloadSet(APIName ifNone, IdOrOpOrAnonymousName name, TypeAnalyzer ta, OverloadingOracle oa,
                           Set<OverloadSet.TaggedFunctionName> lessSpecificThanSoFar,
@@ -343,6 +346,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         String overload_name = subset.compute_overload_name(f);
                             // I don't think this key is right for generics.
                         overloadSubsets.put(overload_name , subset);
+                        subset.addExtraKeys(f, otherOverloadKeys);
                     }
                 }
             }
@@ -371,6 +375,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         if (principalMember != null) {
             String overload_name = compute_overload_name(principalMember);
             overloadSubsets.put(overload_name, this);
+            addExtraKeys(principalMember, otherOverloadKeys);
         }
 
         /* Split set into dispatch tree. */
@@ -388,12 +393,33 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             genericSchema =
                 NamingCzar.makeArrowDescriptor(ifNone, overloadedDomain(), getRange());
             String packageAndClassName = NamingCzar.javaPackageClassForApi(ifNone);
-            PCN =
+            String PCNOuter = // PCNOuter???
                 Naming.genericFunctionPkgClass(packageAndClassName, filtered_name,
-                                                   sparamsType, genericSchema);
-            return PCN;
+                        // Naming.makeTemplateSParams(sparamsType),
+                        sparamsType,
+                        genericSchema);
+            return PCNOuter;
         } 
         return name.stringName()+jvmSignatureFor(f);
+    }
+    
+    private void addExtraKeys(TaggedFunctionName f, Set<String> s) {
+        String filtered_name = chooseName(name.stringName(), NodeUtil.nameSuffixString(name));
+        static_parameters = staticParametersOf(f.tagF);
+        if (static_parameters != null) {
+            xldata = CodeGen.xlationData(Naming.FUNCTION_GENERIC_TAG);
+            String sparamsType = NamingCzar.genericDecoration(static_parameters, xldata, ifNone);
+            genericSchema =
+                NamingCzar.makeArrowDescriptor(ifNone, overloadedDomain(), getRange());
+            String packageAndClassName = NamingCzar.javaPackageClassForApi(ifNone);
+            String PCNOuter = // PCNOuter???
+                Naming.genericFunctionPkgClass(packageAndClassName, filtered_name,
+                        Naming.makeTemplateSParams(sparamsType),
+                        // sparamsType,
+                        genericSchema);
+            s.add(PCNOuter);
+        } 
+        
     }
 
     private void splitInternal(List<TopSortItemImpl<TaggedFunctionName>> funsInSpecificOrder) {
@@ -1868,6 +1894,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         return overloadSubsets;
     }
     
+    public Set<String> getOtherKeys() {
+        return otherOverloadKeys;
+    }
+    
     protected int firstArg() {
         return 0;
     }
@@ -1980,6 +2010,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName _principalMember, OverloadSet parent) {
             OverloadSet subset = new ForTraitOrObject(ifNone, name, ta, childLSTSF, parent, paramCount, true, selfIndex, cnb, invokeOpcode, cg);
             subset.principalMember = _principalMember;
+            subset.otherOverloadKeys = parent.otherOverloadKeys;
             return subset;
         }
 
@@ -2085,10 +2116,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 String TO_method_name = cnb.stemClassName + Naming.UP_INDEX + overloaded_name;
                 Id gfid = NodeFactory.makeId(span, TO_method_name);
 
-                String template_class_name = cg.generateGenericFunctionClass(fnni_closure, gmbm, gfid, selfIndex, cg.traitOrObjectName);
                 boolean in_a_trait = invokeOpcode == Opcodes.INVOKEINTERFACE;
                 String selfType = in_a_trait ? cg.traitOrObjectName +  NamingCzar.springBoard : cg.traitOrObjectName;
                 String method_name = cg.genericMethodName(fnni, selfIndex);
+                otherOverloadKeys.add(method_name);
+                
+                String template_class_name = cg.generateGenericFunctionClass(fnni_closure, gmbm, gfid, selfIndex, cg.traitOrObjectName);
                 
                 cg.generateGenericMethodClosureFinder(method_name, template_class_name, selfType, in_a_trait);
 
@@ -2208,6 +2241,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 		protected OverloadSet makeSubset(Set<TaggedFunctionName> childLSTSF, TaggedFunctionName _principalMember, OverloadSet parent) {
             OverloadSet subset = new AmongApis(ifNone, name, ta, new OverloadingOracle(ta), childLSTSF, parent, paramCount);
             subset.principalMember = _principalMember;
+            subset.otherOverloadKeys = parent.otherOverloadKeys;
             return subset;
         }
 
