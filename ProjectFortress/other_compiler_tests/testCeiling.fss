@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2013 Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component testCeiling
+export Executable
+
+run():() = do
+    x:RR64 = 3.14159
+    y:RR64 = |\x/|
+    println("y = " || y)
+    assert(y = 3.0)
+    println("PASS");
+end
+end

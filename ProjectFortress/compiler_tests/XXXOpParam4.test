@@ -1,0 +1,18 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=OpParam4
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/OpParam4.fss:16:9-10:\n\
+\ Could not check call to operator BAR\n\
+\ - (Baz[\\*\\], Object)->Object is not applicable to an argument of type (Bar, Bar).\n\
+File OpParam4.fss has 1 error.\n
+compile_out_equals=

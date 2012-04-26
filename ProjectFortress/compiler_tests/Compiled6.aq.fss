@@ -1,0 +1,30 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(*) Test working subscripting assignments.
+
+  export Executable
+
+  object O(var s: String)
+    opr [i:ZZ32]: String = s
+    opr [i:ZZ32] := (x: String) = s := x
+  end
+
+  opr ||(a: (String, String), b: (String, String)): (String, String) = do
+    (a1,a2) = a
+    (b1,b2) = b
+    (a1 || b1, a2 || b2)
+  end
+
+  run() = do
+    var x: String = "hello"
+    ((O(x))[5], x) ||= (x, " world")
+  end

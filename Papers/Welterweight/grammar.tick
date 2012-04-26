@@ -1,0 +1,62 @@
+
+\input{fig-metavariables}
+
+\input{fig-internalsymbols}
+
+\input{fig-wellformedtypes}
+
+\input{fig-expressiontypes}
+
+The grammar for Welterweight Fortress is given in Figure~\ref{fig:grammar}.
+Metavariables defined by this grammar and also in later figures are listed in Figure~\ref{fig:metavariables}.
+
+A program consists of declarations and an expression to be evaluated in the contex of those declarations.
+Each declaration defines a trait, an object, or a top-level function.
+
+A trait is similar to a Java interface, but can contain method declarations.
+It also has an \emph{extends clause} \hbox{$\extends\,\bigsetb{t}$},
+an optional \emph{comprises clause} \hbox{$\comprises\,\setb{c}$},
+and an \emph{excludes clause} \hbox{$\exc\,\bigsetb{t}$}.
+The extends clause indicates what other trait instances are supertypes of the trait;
+the comprises clause, if present, indicates that no value can belong to the trait unless it also belongs
+to one of the comprised types;
+and the excludes clause indicates what other trait instances cannot have values in common with this trait.
+
+An object is similar to a Java class.  Rather than having a separately declared constructor method,
+it has a parameter list containing names of fields and their types; an object creation expression
+provides a set of arguments that are simply used to initialize the declared fields, with no further action taken.
+An object declaration also has an extends clause, indicating what trait instances are supertypes of the object type.
+
+A top-level function definition has a parameter list containing names of parameters and their types, and also a return type and a body expression.
+A top-level abstract function declaration is similar, but has no body expression.
+Top-level function declarations may be overloaded; that is, more than one function declaration may have the same name $f$.
+
+Method definitions appearing in trait or object declarations are similar in form to function definitions; however, the keyword $\kwd{self}$
+may be used within its body expression to refer to a value (the \emph{target object}) for which the method was invoked.
+An abstract method declaration is similar, but has no body expression.
+Method declarations may be overloaded; that is, more than one method declaration may have the same name $m$.
+
+\input{fig-wellformeddecls}
+
+\input{fig-covered}
+
+Traits, objects, functions, and methods all have a (possibly empty) list of \emph{static type parameters}.
+Associated with each static type parameter is (possibly empty) set of \emph{upper bounds}; any type used to instantiate the
+type parameter must be a subtype of each of the declared upper bounds.
+Each static type parameter of a method also has a (possibly empty) set of \emph{lower bounds}; any type used to instantiate the
+type parameter must be a supertype of each of the declared lower bounds.
+Each static type parameter of a trait has an associated \emph{variance}, which indicates ways in which different
+instances of the same trait may extend or exclude each other.
+
+Most of the forms of expression are fairly conventional.  The function creation expression
+might be called a ````typed lambda expression'' in other languages.  We use the symbol $\apply$ to
+distinguish application of function-typed values from invocation of (possibly overloaded) top-level functions.
+Function invocations and method invocations each come in two forms, depending on whether static type arguments
+are provided explicitly or are to be inferred.  The \emph{match expression} is a kind of compromise between
+a conventional $\kwd{if}$ expression and a conventional $\kwd{typecase}$ expression.  One can get the effect
+of $\kwd{if}\;e_1\;\kwd{then}\;e_2\;\kwd{else}\;e_3$ by declaring objects $\mathrm{True}\ob{\verythinmathspace}$ and $\mathrm{False}\ob{\verythinmathspace}$,
+using them as values of predicates, and then writing
+$e_1\;\kwd{match}\;x'\COLON \mathrm{True}\ob{\verythinmathspace} \Rightarrow e_2 \;\kwd{else}\;e_3$.
+
+The type $\Any$ is a supertype of all types. The type $\Object$ is a supertype of every constructed type, that is, every trait type and every object type.
+(The {\sc bnf} nonterminal $\Id$ is not used in the grammar, but is used in later figures.)

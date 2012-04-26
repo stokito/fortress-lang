@@ -1,0 +1,65 @@
+
+\begin{figure}[p]
+
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 1em}l@{}}
+\alpha   & ::= &  P                                                        & \hbox{\rm type parameter name} \\
+         &  |  &  C                                                        & \hbox{\rm lattice constructed type} \\
+         &  |  &  (\bar{\alpha})                                           & \hbox{\rm tuple type} \\
+         &  |  &  \arrowtype{\alpha}{\alpha}                               & \hbox{\rm arrow type} \\
+         &  |  &  \Any                                                     & \hbox{\rm special \Any\ type} \\
+         &  |  &  \Object                                                  & \hbox{\rm special \Object\ type} \\
+         &  |  &  \Bottom                                                  & \hbox{\rm special \Bottom\ type} \\
+         &  |  &  \uniontype{\alpha}{\alpha}                               & \hbox{\rm union type} \\
+         &  |  &  \intersectiontype{\alpha}{\alpha}                        & \hbox{\rm intersection type} \\[1pt]
+C        & ::= &  T\obb{\alpha}                                            & \hbox{\rm lattice trait type} \\
+         &  |  &  O\obb{\alpha}                                            & \hbox{\rm lattice object type} \\[1pt]
+\Xi      & ::= &  \existstypeb{K}{\alpha}                                  & \hbox{\rm existentially quantified type} \\[1pt]
+\Upsilon & ::= &  \foralltypeb{K}{\alpha}                                  & \hbox{\rm universally quantified type} \\[1pt]
+B        & ::= &  \bdb{\alpha} \extends V\;P \extends \bdb{\alpha}         & \hbox{\rm environment parameter binding} \\[1pt]
+\delta   & ::= &  \psi                                                     & \hbox{\rm program declaration} \\
+         &  |  &  B                                                        & \hbox{\rm environment parameter binding} \\[1pt]
+I        & ::= &  \hbox{\rm identifier}                                    & \hbox{\rm type inference variable name} \\[1pt]
+b        & ::= &  x                                                        & \hbox{\rm variable name} \\
+%%         &  |  &  z                                              & \hbox{\rm field name} \\
+         &  |  &  \kwd{self}                                               & \hbox{\rm self keyword} \\[1pt]
+\sigma   & ::= &  \substb{\alpha}{P}                                       & \hbox{\rm type/parameter substitution} \\[1pt]
+n        & ::= &  f                                                        & \hbox{\rm function name} \\
+         &  |  &  (C,m)                                                    & \hbox{\rm lattice type and method name} \\[1pt]
+d        & ::= &  \varphi                                                  & \hbox{\rm function declaration} \\
+         &  |  &  (C,M)                                                    & \hbox{\rm method instance} \\[1pt]
+D        & ::= &  F                                                        & \hbox{\rm instantiated function} \\
+         &  |  &  (X,N)                                                    & \hbox{\rm fully instantiated method} \\[1pt]
+\Delta   & ::= &  \setb{\delta}                                            & \hbox{\rm type-declaration environment} \\[1pt]
+\Phi     & ::= &  \setb{\varphi}                                           & \hbox{\rm function-declaration environment} \\[1pt]
+\Gamma   & ::= &  \bar{b\COLON\alpha}                                      & \hbox{\rm variable-type environment} \\[1pt]
+K        & ::= &  \bdb{\alpha} \extends P \extends \bdb{\alpha}            & \hbox{\rm instantiated complete binding} \\[1pt]
+F        & ::= &  f\ob{\verythinmathspace} (\bar{x\COLON g})\COLON g \defneq \epsilon  & \hbox{\rm instantiated function} \\[1pt]
+M        & ::= &  m\obb{K} (\bar{x\COLON\alpha})\COLON\alpha \defneq u  & \hbox{\rm trait-instantiated method} \\[1pt]
+N        & ::= &  m\ob{\verythinmathspace} (\bar{x\COLON g})\COLON g \defneq \epsilon  & \hbox{\rm fully instantiated method} \\[1pt]
+u        & ::= &  x                                                        & \hbox{\rm trait-instantiated expression} \\
+         &  |  &  \kwd{self}                                               \\
+         &  |  &  (\bar{u})                                                \\
+         &  |  &  \pi_i(u)                                                 \\
+         &  |  &  ((\bar{x\COLON\alpha})\COLON\alpha \Rightarrow u)        \\  
+         &  |  &  u\apply(\bar{u})                                         \\
+%%       &  |  &  u.z                                                      \\
+         &  |  &  O\obb{\alpha}(\bar{u})                                   \\
+         &  |  &  f(\bar{u})                                               \\
+         &  |  &  u.m(\bar{u})                                             \\
+         &  |  &  \hbox to 0pt{$(u \; \kwd{match} \; x\COLON\alpha \Rightarrow u \; \kwd{else}\; u)$\hss}  \\[1pt]
+\epsilon & ::= &  x                                                        & \hbox{\rm fully instantiated expression} \\
+         &  |  &  \kwd{self}                                               \\
+         &  |  &  (\bar{\epsilon})                                         \\     
+         &  |  &  \pi_i(\epsilon)                                          \\
+         &  |  &  ((\bar{x\COLON g})\COLON g \Rightarrow \epsilon)         \\
+         &  |  &  \epsilon\apply(\bar{\epsilon})                           \\
+%%       &  |  &  \epsilon.z                                               \\
+         &  |  &  O\obb{g}(\bar{\epsilon})                                 \\
+         &  |  &  f(\bar{\epsilon})                                        \\
+         &  |  &  \epsilon.m(\bar{\epsilon})                               \\
+         &  |  &  \hbox to 0pt{$(\epsilon \; \kwd{match} \; x\COLON g \Rightarrow \epsilon \; \kwd{else}\; \epsilon)$\hss}  \hskip-5em
+\end{array}
+
+\caption{Symbols Not Used in the Concrete Syntax}
+\label{fig:internalsymbols}
+\end{figure}

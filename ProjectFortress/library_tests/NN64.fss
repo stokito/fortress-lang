@@ -1,0 +1,121 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component NN64
+export Executable
+
+shouldOverflow(f: () -> NN64): Boolean =
+  try
+    ignore f()
+    false
+  catch e
+    IntegerOverflow => true
+    Exception => false
+  end
+
+shouldDivideByZero(f: () -> NN64): Boolean =
+  try
+    ignore f()
+    false
+  catch e
+    DivisionByZero => true
+    Exception => false
+  end
+
+run(): () = do
+  one: NN64 = 1
+  zero: NN64 = 0
+  two: NN64 = 2
+  three: NN64 = 3
+  four: NN64 = 4
+  five: NN64 = 5
+  six: NN64 = 6
+  seven: NN64 = 7
+  eight: NN64 = 8
+  bits: NN64 = 1100_16
+  morebits: NN64 = 1010_16
+  bigValue: NN64 = FFFFFFFFFFFF0000_16
+  maxValue: NN64 = FFFFFFFFFFFFFFFF_16
+  uValue: NN64 = 1FFFFFFFFFFFFFFF_16
+  nValue: NN64 = FFFFFFFFFFFFFFFD_16
+
+  assert(two < three)
+  deny(three < two)
+  assert(two < maxValue)
+  assert(bigValue < maxValue)
+  deny(maxValue < bigValue)
+  deny(three < three)
+  assert(three < five)
+  deny(five < three)  
+  assert(three <= five)
+  deny(five <= three) 
+  assert(two <= three)
+  deny(three <= two)
+  assert(two <= maxValue)
+  assert(bigValue <= maxValue)
+  deny(maxValue <= bigValue)
+  assert(three <= three)
+  deny(three > five)
+  assert(six > five)
+  assert(six >= five)
+  deny(three >= five)
+  assert(maxValue >= three)
+  assert(-1 >= -2)
+  assert(|four| = four)
+  assert (three + four = seven)
+  assert((five BOXPLUS seven) = 12)
+  assert((five DOTPLUS seven) = 12)
+  assert(five DOTPLUS maxValue = maxValue)
+  assert(five BOXPLUS maxValue = four)
+  assert(shouldOverflow(fn () => maxValue + five))    
+  assert (seven - three = four)
+  assert (seven DOTMINUS three = four)
+  assert (seven BOXMINUS three = four)
+  assert(zero BOXMINUS one = maxValue)
+  assert(zero DOTMINUS five = zero)
+  assert(shouldOverflow(fn () => zero - five))   
+  assert((seven BOXMINUS five) = 2)
+  assert((seven DOTMINUS five) = 2)
+  assert(six DIV three = two)
+  deny(six DIV three = one)
+  assert(shouldDivideByZero(fn () => seven DIV zero))
+  assert(shouldDivideByZero(fn () => zero DIV zero))
+  assert(shouldDivideByZero(fn () => maxValue DIV zero))
+  assert(two DIV maxValue = zero)
+  assert(maxValue DIV eight = uValue)
+  deny(maxValue DIV seven = uValue)
+  assert((four)(five) = 20)
+  assert((four) (five) = 20)
+  assert((seven) (five) = 35)
+  assert(seven five = 35)
+  assert(three DOT seven = 21)
+  assert(seven CROSS five = 35)
+  assert((seven BOXCROSS five) = 35)
+  assert((seven DOTCROSS five) = 35)
+  assert((maxValue DOTCROSS two) = maxValue)
+  assert(shouldOverflow(fn () => (maxValue BY two)))
+  assert((maxValue BOXCROSS three) = nValue)
+  assert(seven DIV two = 3)
+  assert(BITNOT (BITNOT seven) = seven)
+  assert((bits BITAND morebits) = 1000_16)
+  assert((bits BITOR morebits) = 1110_16)
+  assert((bits BITXOR morebits) = 0110_16)
+  assert(three MAX five = five)
+  assert(three MIN five = three)
+  assert(six MAX five = six)
+  assert(six MIN five = five)
+  assert(odd(five))
+  assert(even(four))
+
+  println("PASS")
+end
+
+end

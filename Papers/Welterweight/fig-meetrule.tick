@@ -1,0 +1,121 @@
+\begin{figure}[p]
+\typicallabel{No-Dup-Not-Less}
+
+\newjudge{No Duplicates Rule}{\jnoduplicatesrule{d}{d}}
+
+\smallskip
+
+\infrule[No-Dup-Triv]
+  { \name{d}\not=\name{d'} }
+  { \jnoduplicatesrule{d}{d'} }
+
+\smallskip
+
+\infrule[No-Dup-Abs-Conc]
+  { \concrete{d}\not=\concrete{d'} }
+  { \jnoduplicatesrule{d}{d'} }
+
+\smallskip
+
+\infrule[No-Dup-Not-Less]
+  { \neg\bigtuple{\jle{\dom(d)}{\dom(d')}} }
+  { \jnoduplicatesrule{d}{d'} }
+
+\smallskip
+
+\infrule[No-Dup-Not-Gtr]
+  { \neg\bigtuple{\jle{\dom(d')}{\dom(d)}} }
+  { \jnoduplicatesrule{d}{d'} }
+
+\smallskip
+
+\newjudge{Meet Rule}{\jmethodmeetrule{d}{d}}
+
+\typicallabel{Meet-Third}
+
+\smallskip
+
+\infrule[Meet-Triv]
+  { \name{d}\not=\name{d'} }
+  { \jmethodmeetrule{d}{d'} }
+
+\smallskip
+
+\infrule[Meet-Excl]
+  { \jle{\bigtuple{\dom(d)\existentialmeet\dom(d')}}{\existstype{\verythinmathspace}{\Bottom}} }
+  { \jmethodmeetrule{d}{d'} }
+
+\smallskip
+
+\infrule[Meet-Spec]
+  { \jle{\dom(d)}{\dom(d')} }
+  { \jmethodmeetrule{d}{d'} }
+
+\smallskip
+
+\infrule[Meet-Third]
+  { d''\in\Delta  \\[1pt]
+    \name{d}=\name{d'}=\name{d''} \\[1pt]
+    \jequivalent{\dom(d'')}{\bigtuple{\dom(d)\sqcap\dom(d')}} }
+  { \jmethodmeetrule{d}{d'} }
+
+\medskip
+
+\newjudge{Return Type Rule}{\jreturntyperule{d}{d}}
+
+\typicallabel{Return-Moot}
+
+\medskip
+
+\infrule[Return-Triv]
+  { \name{d}\not=\name{d'} }
+  { \jreturntyperule{d}{d'} }
+
+\medskip
+
+\infrule[Return-Moot]
+  { \neg\big(\jle{\dom(d)}{\dom(d')}\big) }
+  { \jreturntyperule{d}{d'} }
+
+\medskip
+
+\infrule[Return-Test]
+  { \arrow(d) = \foralltypeb{\kappa}{\arrowtype{\tupleb{\alpha}}{\rho}}
+    \andalso
+    \bar{\kappa = \bdb{\chi} \extends P \extends \bdb{\eta}}
+    \\[3pt]
+    \arrow(d') = \foralltypeb{\kappa'}{\arrowtype{\tupleb{\alpha'}}{\rho'}}
+    \quad  % tighter than \andalso
+    \bar{\kappa' = \bdb{\chi'} \extends Q \extends \bdb{\eta'}}
+    \\[3pt]
+    \mathit{distinct}(\bar{P},\bar{Q})
+    \andalso
+    \jleusing{\dom(d)}{\dom(d')}{\sigma}
+    \\[3pt]
+    \jle{\foralltypeb{\kappa}{\arrowtype{\tupleb{\alpha}}{\rho}}}{\foralltype{\bar{\kappa}}{\sigma\arrowtype{\intersectiontype{\tupleb{\alpha}}{\tupleb{\alpha'}}}{\rho'}}}
+  }
+  { \jreturntyperule{d}{d'} }
+
+\medskip
+
+\newjudge{Ancestors Rule}{\jancestormeetrule{T\obb{\alpha}}{T\obb{\alpha}}}
+
+\medskip
+
+\infrule[Anc-Diff-Trait]
+  { T \neq T' }
+  { \jancestormeetrule{T\obb{\alpha}}{T'\obb{\eta}} }
+
+\medskip
+
+\infrule[Anc-Same-Trait]
+  { \kwd{trait} \; T\obb{V\;P \extends \bdb{\dontcare}} \; \dontcare \; \kwd{end} \in \Delta  \andalso
+    T\obb{\gamma} \in \setb{\chi}  \\
+    \jsubtype{T\obb{\gamma}}{T\obb{\alpha}}  \andalso
+    \jsubtype{T\obb{\gamma}}{T\obb{\eta}} }
+  { \jancestormeetrule{T\obb{\alpha}}{T\obb{\eta}} }
+
+\medskip
+\caption{The No Duplicates Rule, the Meet Rule, the Return Type Rule, and the Ancestors Rule.  Alpha-renaming of type variables may be necessary to apply these rules.}
+\label{fig:meetrule}
+\end{figure}

@@ -1,0 +1,162 @@
+%%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}[htbp]
+\centering\leavevmode
+\newjudge{Exclusion Rules That Generate Constraints}{\jexc{\alpha}{\alpha}{\C} \quad \jnexc{\alpha}{\alpha}{\C}}\quad(see text)
+\vspace*{1em}
+
+\begin{minipage}[t]{.4\textwidth}
+\multiply\afterruleskip by 1 \divide\afterruleskip by 2
+\centering  
+\textbf{Logical rules}
+
+\infax
+  { \jexc{\Bottom}{\alpha}{\TRUE} }
+
+\infrule
+  { \jsub{\alpha}{\Bottom}{\C} }
+  { \jexc{\Any}{\alpha}{\C} }
+
+\infrule
+  { \countof(\bar{\alpha}) \neq 1 }
+  { \jexc{\tupleb{\alpha}}{\Object}{true} }
+
+\infax
+  { \jexc{\arrowtype{\alpha}{\rho}}{\Object}{true} }
+
+\infrule
+  { \jexc{\alpha}{\chi}{\C} \andalso 
+   \jexc{\eta}{\chi}{\C'} \\
+   \jsub{\intersectiontype{\alpha}{\eta}}{\Bottom}{\C''} }
+  { \jexc{\intersectiontype{\alpha}{\eta}}{\chi}{\C \vee \C' \vee \C''} }
+
+\infrule
+  { \jexc{\alpha}{\chi}{\C}  \andalso  \jexc{\eta}{\chi}{\C'} }
+  { \jexc{\uniontype{\alpha}{\eta}}{\chi}{\C \wedge \C'} }
+
+\vspace*{2ex}
+\textbf{Inference Variables}
+
+\infrule
+  { I \not\in \mathit{parameters}(\Delta) }
+  { \jexc{I}{I}{\FALSE} }
+  
+\infrule
+  { I \not\in \mathit{parameters}(\Delta) }
+  { \jexc{I}{\alpha}{I \exc \alpha} }
+
+\vspace*{2ex}
+\textbf{Bound Variables}
+
+\infrule
+  { \bdb{\dontcare} \extends V\;P \extends \bdb{\xi} \in \Delta \\
+    \jbexc{\xi}{\alpha}{\C} }
+  { \jexc{P}{\alpha}{\bigvee\bigsetb{\C}} }
+
+\infrule
+ { \bdb{\dontcare} \extends V\;P \extends \bdb{\dontcare} \in \Delta  \\[2pt]
+   \jsub{\alpha}{P}{\C}  \andalso   \jnsub{\alpha}{\Bottom}{\C'} }
+  {\jnexc{P}{\alpha}{\C \wedge \C'}}
+
+\vspace*{2ex}
+\textbf{Structural rules}
+
+\infrule
+  { \countof(\bar{\alpha})=\countof(\bar{\eta})  \andalso \jbexc{\alpha}{\eta}{\C} }
+  { \jexc{(\bar{\alpha})}{(\bar{\eta})}{\bigvee\set{\C}} }
+
+\infrule
+  { \countof(\bar{\alpha}) \neq \countof(\bar{\eta}) }
+  { \jexc{(\bar{\alpha})}{(\bar{\eta})}{\TRUE} }
+
+\infrule
+  { \countof(\bar{\eta}) \neq 1 }
+  { \jexc{c}{(\bar{\eta})}{\TRUE} }
+
+\infrule
+  { \countof(\bar{\eta}) \neq 1 }
+  { \jexc{\arrowtype{\alpha}{\rho}}{(\bar{\eta})}{\TRUE} }
+
+\infax
+  { \jexc{\arrowtype{\alpha}{\rho}}{\arrowtype{\alpha'}{\rho'}}{\FALSE} }
+
+\infax
+  { \jexc{c}{\arrowtype{\alpha}{\rho}}{\TRUE} }
+
+\end{minipage}%
+\begin{minipage}[t]{.6\textwidth}
+\centering
+\textbf{Constructed types}
+\vspace*{-1em}
+
+\infrule
+  { \jgconstrtemplate{c}{\excx}{c'}{\C_x} \andalso
+    \jgconstrtemplate{c}{\excc}{c'}{\C_c} \\
+    \jgconstrtemplate{c}{\exco}{c'}{\C_o} \andalso
+    \jgconstrtemplate{c}{\excm}{c'}{\C_m} }
+  { \jexc{c}{c'}{\C_x \vee \C_c \vee \C_o \vee \C_m} }
+
+\infrule
+  { \jgconstrtemplate{c}{\excrx}{c'}{\C} \andalso \jgconstrtemplate{c'}{\excrx}{c}{\C'} }
+  { \jgconstrtemplate{c}{\excx}{c'}{\C \vee \C'} }
+
+\infrule
+  { \jgconstrtemplate{c}{\excrc}{c'}{\C} \andalso \jgconstrtemplate{c'}{\excrc}{c}{\C'} }
+  { \jgconstrtemplate{c}{\excc}{c'}{\C \vee \C'} }
+
+\infrule
+  { \jgconstrtemplate{c}{\excro}{c'}{\C} \andalso \jgconstrtemplate{c'}{\excro}{c}{\C'} }
+  { \jgconstrtemplate{c}{\exco}{c'}{\C \vee \C'} }
+
+\infax
+  { \jgconstrtemplate{T\obb{\alpha}}{\excrx}{T\obb{\eta}}{\FALSE} }
+
+\infax
+  { \jgconstrtemplate{T\obb{\alpha}}{\excrc}{T\obb{\eta}}{\FALSE} }
+
+\infax
+  { \jgconstrtemplate{T\obb{\alpha}}{\excro}{T\obb{\eta}}{\FALSE} }
+
+\infrule
+  { \mathit{distinct}(T,T')  \andalso  \setb{\gamma} = \ancestors{T\obb{\alpha}} \\[1pt]
+    \setb{\chi} = \bigcup\setb{\excluded[\underline{\Delta}]{\gamma}}  \andalso  \jbsub{\underline{T'\obb{\eta}}}{\chi}{\C} }
+  { \jgconstrtemplate{T\obb{\alpha}}{\excrx}{T'\obb{\eta}}{\bigvee\bigsetb{\C}} }
+
+\infrule
+  { \mathit{distinct}(T,T')  \\
+    \setb{\chi} = \comprised{T\obb{\alpha}}  \andalso  \jbexc{\underline{T'\obb{\eta}}}{\chi}{\C}
+}
+  { \jgconstrtemplate{T\obb{\alpha}}{\excrc}{T'\obb{\eta}}{\bigwedge\bigsetb{\C}} }
+
+% \infrule
+%   {C \neq D \andalso \text{$C$ does not have a `comprises` clause}}
+%   {\jgconstrtemplate{`C[\S_bar\]`}{\excrc}{`D[\T_bar\]`}{\FALSE}}
+
+\infrule
+  { \jnsub{O\obb{\alpha}}{c}{\C} }
+  { \jgconstrtemplate{O\obb{\alpha}}{\excro}{c}{\C} }
+
+\infrule
+  { \mathit{distinct}(T,T') }
+  { \jgconstrtemplate{T\obb{\alpha}}{\excrc}{T'\obb{\eta}}{\FALSE} }
+
+\infrule
+  { \setb{\gamma} = \ancestors{T\obb{\alpha}} \andalso
+    \setb{\chi} = \ancestors{T'\obb{\eta}} \\[3pt]
+    \jgbbconstrtemplate{\gamma}{\bexcm}{\underline{\chi}}{\C} }
+  { \jgconstrtemplate{T\obb{\alpha}}{\excm}{T'\obb{\eta}}{\bigvee\LRsetb{\bar{\C}}} }
+
+\infrule
+  { \jbnequiv{\alpha}{\eta}{\C}}
+  {\jgconstrtemplate{T\obb{\alpha}}{\bexcm}{T\obb{\eta}}{\bigvee \bigsetb{\C}}}
+
+\infrule
+  { \mathit{distinct}(T,T') }
+  {\jgconstrtemplate{T\obb{\alpha}}{\bexcm}{T'\obb{\eta}}{\FALSE}}
+
+\end{minipage}
+  \caption{Algorithm for generating exclusion constraints. (Adapted and extended from \cite{oopsla-2011-type-checking}.)
+Each rule is symmetric (because $\exc$ is a symmetric relation), so try it twice, with operands as given
+and with operands swapped; apply the first one that matches.}
+  \label{fig:exclusion}
+\end{figure*} 
+

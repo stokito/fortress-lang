@@ -1,0 +1,26 @@
+An overbar indicates that the expression or token string beneath it may appear any number of times, including zero; if there are
+two or more copies, they are separated by commas.  Nonterminals from the {\sc bnf} grammars may be expanded differently in each copy, except that
+an underlined portion is expanded the \emph{same} way in each copy.  If two or more overbar constructions appear within a single
+context (such as an inference rule or expository paragraph) and the same {\sc bnf} nonterminal appears in both, then each of the overbar constructions
+must produce the same number of copies, and corresponding copies will expand the {\sc bnf} nonterminal in the same way.
+
+A novel ````overarrow'' notation is used in Figure~\ref{fig:wellformeddecls} in two idiomatic ways: (1)
+$\bar{\Delta = \set{\overcirclerightarrow{B}}}\vrule width 0pt height 3.0ex depth 1.3ex$
+defines a series of $\Delta$ values, each a set whose elements are a prefix
+of the sequence $\bar{B}$; if the overbar construction produces four copies, then there are four instances of $\Delta$, and the overall idiom produces the four items
+$\Delta_1 = \set{\,}$,
+$\Delta_2 = \set{B_1}$,
+$\Delta_3 = \set{B_1,B_2}$,
+$\Delta_4 = \set{B_1,B_2,B_3}$; and (2)
+$\bar{\overcirclerightarrow{d \mathbin{\mathsf{meets}} \underline{d}}}\vrule width 0pt height 3.5ex depth 1.3ex$
+expands to a copy of $d \mathbin{\mathsf{meets}} d$,
+for every pair of distinct $d$ instances---if the overbar construction produces four copies, for example, then there are four instances of $d$,
+and the overall idiom produces the six items
+$d_1 \mathbin{\mathsf{meets}} d_2$,
+$d_1 \mathbin{\mathsf{meets}} d_3$,
+$d_2 \mathbin{\mathsf{meets}} d_3$,
+$d_1 \mathbin{\mathsf{meets}} d_4$,
+$d_2 \mathbin{\mathsf{meets}} d_4$,
+$d_3 \mathbin{\mathsf{meets}} d_4$.
+Appendix~\ref{sec:notation-details} gives a precise description of our notation.
+

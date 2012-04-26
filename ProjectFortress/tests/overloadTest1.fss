@@ -1,0 +1,52 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component overloadTest1
+export Executable
+
+(* This test should pass because the overloadings have different numbers
+   of args. *)
+
+var a1c:ZZ32 = 0
+var a2c:ZZ32 = 0
+var a3c:ZZ32 = 0
+
+a(x:ZZ32):ZZ32=do
+  println("a1 called")
+  a1c := 1;
+  x
+end
+
+a(x:ZZ32, y:ZZ32):ZZ32=do
+  println("a2 called")
+  a2c := 1;
+  x+y
+end
+
+a(x:ZZ32, y:ZZ32, z:ZZ32):ZZ32=do
+  println("a3 called")
+  a3c := 1;
+  x+y+z
+end
+
+run():()=do
+  println(a(1))
+
+  println(a(1,2))
+
+  println(a(1,2,3))
+
+  println(
+  if a1c > 0 AND a2c > 0 AND a3c > 0 then "pass" else "fail" end
+  )
+end
+
+end

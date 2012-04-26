@@ -1,0 +1,79 @@
+\begin{figure}[t]
+\typicallabel{T-Field}
+
+\newjudge{Well-formed expressions, static types}{\jtypetight{e}{\alpha}}
+\medskip
+
+\infrule[T-Variable]
+  { \Gamma = \bar{\dontcare}, b\COLON\alpha, \bar{b'\COLON\dontcare}  \andalso  b \not\in \bigsetb{b'} }
+  { \jtype{b}{\alpha} }
+
+\medskip
+
+\infrule[T-Tuple]
+  { \jbtype{e}{\alpha} }
+  { \jtype{(\bar{e})}{(\bar{\alpha})} }
+
+\medskip
+
+\infrule[T-Project]
+  { \jtype{e}{\tupleb{\alpha}} }
+  { \jbtype{\pi(\underline{e})}{\alpha} }
+
+\medskip
+
+\infrule[T-Closure]
+  { \mathit{distinct}\tupleb{x}  \andalso  \jbwftype[\Delta]{\tau}  \andalso  \jwftype{\omega}  \\
+    \jtype[\Delta;\Phi;\Gamma,\bar{x\COLON\tau}]{e}{\rho}  \andalso  \jsubtype{\rho}{\omega} }
+  { \jtype{((\bar{x\COLON\tau})\COLON\omega \Rightarrow e)}{\arrowtype{(\bar{\tau})}{\omega}} }
+
+\medskip
+
+\infrule[T-Apply]
+  { \jtype{e}{\arrowtype{(\bar{\alpha})}{\rho}}  \\
+    \jtype{(\bar{e'})}{(\bar{\chi})} \andalso
+    \jbsubtype{\chi}{\alpha}  }
+  { \jtype{e\apply(\bar{e'})}{\rho} }
+
+% \medskip
+
+% \infrule[T-Field]
+%   { \jtype{e}{O\obb{\alpha}} \\
+%     \kwd{object} \; O\bigobb{P \extends \bdb{\dontcare}} (\bar{z\COLON\tau}) \; \dontcare \; \kwd{end} \in \Delta }
+%   { \jbtype{\underline{e}.z}{\underline{\Bigsubstb{\alpha}{P}}\tau} }
+
+\medskip
+
+{\def\andalso{\hbox to 1.7em{\hss}}   % need to tighten slightly
+\infrule[T-Object]
+  { \kwd{object} \; O\bigobb{P \extends \bdb{\dontcare}} (\bar{x\COLON\omega}) \; \dontcare \; \kwd{end} \in \Delta \\
+    \jwftype{O\obb{\tau}}  \andalso  \jbtype{e}{\eta}  \andalso  \jbsubtype{\eta}{\underline{\Bigsubstb{\tau}{P}}\omega} }
+  { \jtype{O\obb{\tau}(\bar{e})}{O\obb{\tau}} }
+}
+
+\medskip
+
+\infrule[T-Function]
+  { \msav{f}{\tupleb{\eta}} = \bigset{f\ob{\verythinmathspace}\tupleb{\dontcare}\COLON \omega \; \dontcare}  \\[1pt]
+    \jbtype{e}{\eta} }
+  { \jtype{f(\bar{e})}{\omega} }
+
+\medskip
+
+\infrule[T-Method]
+  { \msav{\tuple{C,m}}{\tupleb{\eta}} = \bigset{m\ob{\verythinmathspace}{\tupleb{\dontcare}}\COLON \omega \; \dontcare} \\[2pt]
+    \jtype{e}{C}  \andalso  \jbtype{e'}{\eta} }
+  { \jtype{e.m(\bar{e'})}{\omega} }
+
+\medskip
+
+\infrule[T-Match]
+  { \jtype{e}{\alpha}  \andalso  \jwftype{\tau} \\
+    \jtype[\Delta;\Phi;\Gamma,x\COLON(\alpha\cap\tau)]{e'}{\eta}  \\
+    \jtype{e''}{\chi} }
+  { \jtypetight{(e \; \kwd{match} \; x\COLON\tau \Rightarrow e' \, \kwd{else}\; e'')}{(\eta\cup\chi)} }
+
+\medskip
+\caption{Static Types of Expressions}
+\label{fig:expressiontypes}
+\end{figure}
