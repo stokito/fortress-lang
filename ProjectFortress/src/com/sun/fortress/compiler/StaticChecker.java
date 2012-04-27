@@ -270,7 +270,7 @@ public class StaticChecker {
                 result = addErrors(errors, result);
                 return result;
             }
-
+            
             // Check overloadings in this compilation unit.
             errors.addAll(new OverloadingChecker(index, env).checkOverloading());
             if ( ! errors.isEmpty() ) {
@@ -283,7 +283,7 @@ public class StaticChecker {
                 errors.addAll(ExportChecker.checkExports((ComponentIndex)index, env));
                 result = addErrors(errors, result);
             }
-
+            
             // Hack: don't run the variance checker if running the interpreter
             if (!isApi && Shell.getCompiledExprDesugaring()) { 
                 errors.addAll(VarianceChecker.run((Component) result.ast()));            	

@@ -87,7 +87,8 @@ class AbstractMethodChecker(component: ComponentIndex,
     // Add static parameters of the enclosing trait or object
     typeAnalyzer = typeAnalyzer.extend(toList(tth.getStaticParams), None)
     val tsa = new TypeSchemaAnalyzer()(typeAnalyzer)
-    val concreteMethods = methods.secondSet.filter(x => x match { case (meth, _, tt) => !isAbstractMethod(meth, tt)}).toList
+    val concreteMethods = methods.secondSet.filter(x => x match { case (meth, _, tt) => 
+      !isAbstractMethod(meth, tt)}).toList
     // For each abstract method, check to see whether it is covered by one or more concrete definitions.
     for ((meth, str, tt) <- methods.secondSet) {
       if (isAbstractMethod(meth, tt)) {
