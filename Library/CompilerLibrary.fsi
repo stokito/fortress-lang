@@ -114,8 +114,8 @@ __generate(p: Boolean, r: ReductionZZ32, f:()->ZZ32): ZZ32
 __loop(g: GeneratorZZ32, body: ZZ32->()): ()
 
 trait Range extends GeneratorZZ32 excludes { Number, String, Boolean, Character }
-  getter lowerBound(): ZZ32
-  getter upperBound(): ZZ32
+  abstract getter lowerBound(): ZZ32
+  abstract getter upperBound(): ZZ32
 end
 
 trait ReductionString
