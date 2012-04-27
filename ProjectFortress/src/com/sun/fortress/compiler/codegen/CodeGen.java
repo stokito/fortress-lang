@@ -2336,6 +2336,54 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return name + Naming.UP_INDEX + Naming.HEAVY_X + generic_arrow_type;
     }
     
+    /**
+     * @param name
+     * @param sparams
+     */
+    public String genericMethodClosureName(FnNameInfo x, int selfIndex) {
+        ArrowType at = fndeclToType(x, selfIndex);
+        String possiblyDottedName = Naming.fmDottedName(singleName(x.name), selfIndex);
+        
+        return genericMethodClosureName(possiblyDottedName, at);    
+    }
+    
+    private String genericMethodClosureName(Functional x, int selfIndex) {
+
+        IdOrOp name = x.name();
+        ArrowType at = fndeclToType(x, selfIndex);
+        String possiblyDottedName = Naming.fmDottedName(singleName(name), selfIndex);
+        
+        return genericMethodClosureName(possiblyDottedName, at);    
+    }
+    
+    // DRC-WIP
+
+    private String genericMethodClosureName(IdOrOp name, ArrowType at) {
+        String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
+                false);
+        
+        return genericMethodClosureName(name.getText(), generic_arrow_type);
+    }
+
+    private String genericMethodClosureName(String name, ArrowType at) {
+        String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
+                false);
+        
+        return genericMethodClosureName(name, generic_arrow_type);
+    }
+
+    private String genericMethodClosureName(String name, String generic_arrow_type) {
+        /* Just append the schema.
+         * TEMP FIX -- do sep w/HEAVY_X.
+         * Need to stop substitution on static parameters from the method itself.
+         * 
+           Do not separate with HEAVY_X, because schema may depend on 
+           parameters from parent trait/object.
+           (HEAVY_X stops substitution in instantiator).
+           */
+        return name + Naming.UP_INDEX + Naming.HEAVY_CROSS + generic_arrow_type;
+    }
+    
     private final static String genericMethodClosureFinderSig = "(JLjava/lang/String;)Ljava/lang/Object;";
     
     /**
@@ -3071,6 +3119,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             ArrowType invoked_at = fndeclToType(new FnNameInfo(new_fndecl, thisApi()), selfIndex);
             String method_name = genericMethodName(dottedName, invoked_at);
+            // don't need String method_closure_name = genericMethodClosureName(dottedName, invoked_at);
 
             Param self_param = params.get(selfIndex);
             Type self_type = (Type) self_param.getIdType().unwrap(); // better not be a pattern
@@ -3087,7 +3136,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 TupleType tpt = (TupleType) paramType;
                 List<Type> lt = tpt.getElements();
                 // need to fix the list call
-                prepended_domain = NodeFactory.makeTupleType(paramType.getInfo().getSpan(), new SwappedList(lt, selfIndex));
+                prepended_domain = NodeFactory.makeTupleType(paramType.getInfo().getSpan(), new SwappedList<Type>(lt, selfIndex));
             }
             
             // find closure
@@ -3253,8 +3302,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Naming.genericFunctionPkgClass(packageAndClassName, mname,
                         Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
         
-        if (topLevelOverloadedNamesAndSigs.contains(pair.PCN) ||
-                topLevelOverloadedNamesAndSigs.contains(pair.PCNOuter)) { // Clash on file name, else we create a bad class file.
+        if (topLevelOverloadedNamesAndSigs.contains(pair.PCN) 
+                // topLevelOverloadedNamesAndSigs.contains(pair.PCNOuter)
+                ) { // Clash on file name, else we create a bad class file.
             mname = NamingCzar.mangleAwayFromOverload(mname);
             pair.PCN =
                 Naming.genericFunctionPkgClass(packageAndClassName, mname,
