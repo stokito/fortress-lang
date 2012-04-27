@@ -310,6 +310,7 @@ object ExportChecker {
               missingDecls = g :: missingDecls
             }
           }
+          
         } else {
           for ( d <- toSet(fnsInAPI.matchFirst(f)) ) {
             d match {
@@ -425,7 +426,8 @@ object ExportChecker {
     }
     errors
   }
-
+  // End of checkExports
+  
   private def existsMatching(g: FnDecl, set: Set[FnDecl]): Boolean = {
     for ( f <- set ) {
       if ( equalFnHeaders(g.getHeader, f.getHeader, false) )
@@ -766,8 +768,14 @@ object ExportChecker {
     (inAPI, inComp) match {
       case (SVarDecl(_, lhsL, _), SVarDecl(_, lhsR, _)) =>
         equalListLValues(lhsL, lhsR)
-      case (SFnDecl(_,headerL,_,_,_), SFnDecl(_,headerR,_,_,_)) =>
-        equalFnHeaders(headerL, headerR, true)
+      case (SFnDecl(_,headerL,_,_,_), SFnDecl(_,headerR,_,e,_)) =>
+/*        if (e.isEmpty) { 
+        	val mods = headerR.getMods().combine(Modifiers.Abstract) 
+        	headerR match {
+        	  case SFnHeader(a,_,c,d,e,f,g,h) => equalFnHeaders(headerL, SFnHeader(a,mods,c,d,e,f,g,h), false) 
+        	}         	
+        }
+        else */ equalFnHeaders(headerL, headerR, false)
       case _ => false
     }
 

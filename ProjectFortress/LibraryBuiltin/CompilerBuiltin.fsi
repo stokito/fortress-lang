@@ -23,16 +23,16 @@ end Object
 nanoTime(): RR64
 
 trait String
-    getter asJavaString(): JavaString
-    getter isEmpty(): Boolean
+    abstract getter asJavaString(): JavaString
+    abstract getter isEmpty(): Boolean
     opr <(self, b: String): Boolean
     opr =(self, b: String): Boolean
-    opr |self| : ZZ32
-    opr || (self, b:Object): String
-    opr juxtaposition(self, b:Object): String
-    opr[i:ZZ32] : Character
-    substring(lo:ZZ32, hi:ZZ32): String
-    opr ^(self, n: ZZ32): String
+    abstract opr |self| : ZZ32
+    abstract opr || (self, b:Object): String
+    abstract opr juxtaposition(self, b:Object): String
+    abstract opr[i:ZZ32] : Character
+    abstract substring(lo:ZZ32, hi:ZZ32): String
+    abstract opr ^(self, n: ZZ32): String
 end
 
 trait JavaString extends String

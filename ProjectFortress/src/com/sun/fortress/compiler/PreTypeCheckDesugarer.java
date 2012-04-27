@@ -15,6 +15,7 @@ import java.util.*;
 import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.desugarer.AssignmentAndSubscriptDesugarer;
 import com.sun.fortress.compiler.desugarer.TypecaseExprDesugarer;
+import com.sun.fortress.compiler.desugarer.AbstractDesugarer;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.StaticError;
@@ -116,6 +117,12 @@ public class PreTypeCheckDesugarer {
         if (Shell.getCompiledExprDesugaring()) {
         	TypecaseExprDesugarer typecaseExprDesugarer = new TypecaseExprDesugarer();
         	comp = (Component) comp.accept(typecaseExprDesugarer);
+        }
+        
+        // Mark bodyless FnDecl as abstract
+        if (Shell.getCompiledExprDesugaring()) {
+        	AbstractDesugarer abstractDesugarer = new AbstractDesugarer();
+        	comp = (Component) comp.accept(abstractDesugarer);
         }
         
 	comp = (Component) comp.accept( new PreTypeCheckDesugaringVisitor() );
