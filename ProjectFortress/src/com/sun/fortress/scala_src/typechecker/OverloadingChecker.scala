@@ -358,10 +358,12 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
 				 oa: OverloadingOracle): Boolean = {
       val (fa, fsp) = first
       val (ga, gsp) = second
-      (oa.lteq(fa, ga) ||
-       oa.lteq(ga, fa) ||
-       oa.excludes(fa, ga) ||
-       meetRule(first, second, signatures, isMethod, oa))
+      val b1 = oa.lteq(fa, ga)
+      val b2 = oa.lteq(ga, fa)
+      val x = !( b1 && b2 ) && ( b1 || b2 ) 
+      val b3 = oa.excludes(fa, ga) 
+      val b4 = meetRule(first, second, signatures, isMethod, oa)
+      ( x || b3 || b4 )
     }
 
     private def meetRule(first: (ArrowType, Option[Int]),
