@@ -1,0 +1,86 @@
+\begin{figure*}
+
+\begin{tabular*}{\textwidth}{@{}l@{\extracolsep{0pt plus 1fil}}|l@{\extracolsep{0pt plus 1fil}}|l@{}}
+\begin{minipage}[t]{.295\textwidth}
+\(
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip -7.2em}l@{}}
+E        & ::= &  \Box                                                               & \hbox{\rm evaluation context} \\
+         &  |  &  (\bar{e}\,E\,\bar{e})                                              \\
+         &  |  &  \pi_i(E)                                                           \\
+         &  |  &  E\apply(\bar{e})                                                   \\
+         &  |  &  e\apply(\bar{e}\,E\,\bar{e})                                       \\
+%%       &  |  &  E.z                                                                \\
+         &  |  &  O\obb{\tau}(\bar{e}\,E\,\bar{e})                                   \\
+         &  |  &  f(\bar{e}\,E\,\bar{e})                                             \\
+         &  |  &  E.m(\bar{e})                                                       \\
+         &  |  &  e.m(\bar{e}\,E\,\bar{e})                                            \\
+         &  |  &  (E \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e)
+\end{array}
+\)
+\par\medskip
+\(
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip -2em}l@{}}
+R        & ::= &  \pi_i(v)                                                           & \hbox{\rm redex\hskip 2em} \\
+         &  |  &  (v)                                                                \\
+         &  |  &  v\apply(\bar{v})                                                   \\
+%%       &  |  &  v.z                                                                \\
+         &  |  &  f(\bar{v})                                                         \\
+         &  |  &  v.m(\bar{v})                                                       \\
+         &  |  &  (v \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e)
+\end{array}
+\)
+\end{minipage}&%
+\begin{minipage}[t]{.29\textwidth}
+\(
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 2em}l@{}}
+g        & ::= &  X                                         & \hbox{\rm ground types} \\
+         &  |  &  \tupleb{g}                                \\
+         &  |  &  \arrowtype{g}{g}                          \\
+         &  |  &  \Any                                      \\
+         &  |  &  \Object                                   \\
+         &  |  &  \uniontype{g}{g}                          \\
+         &  |  &  \intersectiontype{g}{g}
+\end{array}
+\)
+\par\medskip
+\(
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 2em}l@{}}
+k        & ::= &  O\obb{g}                                  & \hbox{\rm ilks} \\
+         &  |  &  \tupleb{g}                                \\
+         &  |  &  \listof{\barearrowtype{g}{g}}
+\end{array}
+\)
+\par\medskip
+\newjudge{Ilk of a value}{\mathit{ilk}(v) = k}
+\par\medskip
+\(
+\begin{array}[t]{@{}l@{}}
+\mathit{ilk}(O\obb{g}(\bar{v})) = O\obb{g} \\[2pt]
+\mathit{ilk}((\bar{v})) = (\bar{\mathit{ilk}(v)}) \\[2pt]
+\mathit{ilk}(((\bar{x\COLON g})\COLON g' \Rightarrow e)) = \listof{\barearrowtype{(\bar{g})}{g'}}
+\end{array}
+\)
+\end{minipage}&%
+\begin{minipage}[t]{.39\textwidth}
+\(
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 2em}l@{}}
+v        & ::= &  O\obb{g}(\bar{v})                           & \hbox{\rm object instance} \\
+         &  |  &  (\bar{v})                                   & \hbox{\rm tuple value} \\
+         &  |  &  ((\bar{x\COLON g})\COLON g \Rightarrow e)   & \hbox{\rm function value} \\[6pt]
+X        & ::= &  O\obb{g}                                    & \hbox{\hskip-2.2em\rm ground constructed types} \\
+         &  |  &  T\obb{g}                                    \\[6pt]
+s        & ::= &  g                                           & \hbox{\hskip-2.2em\rm signature types} \\
+         &  |  &  p                                           \\[6pt]
+p        & ::= &  P                                           & \hbox{\hskip-2.2em\rm parametric signature types} \\
+         &  |  &  O\obb{\bar{g},p,\bar{s}}                    \\
+         &  |  &  T\obb{\bar{g},p,\bar{s}}                    \\
+         &  |  &  \tupleb{\bar{g},p,\bar{s}}                  \\
+         &  |  &  \arrowtype{p}{s}                            \\
+         &  |  &  \arrowtype{g}{p}
+\end{array}
+\)
+\end{minipage}
+\end{tabular*}
+\caption{Evaluation Contexts, Values, Redexes, Ilks, and Ground Types}
+\label{fig:values}
+\end{figure*}

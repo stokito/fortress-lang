@@ -1,0 +1,103 @@
+\input{fig-quantified}
+
+\input{fig-meetrule}
+
+Our subtyping judgments are constraint-based and rely in the general case on solving systems of constraints on type parameters.
+Figures~\ref{fig:constraints}, \ref{fig:subtyping}, \ref{fig:exclusion}, \ref{fig:miscsubtyping}, and~\ref{fig:quantified}
+are adapted and improved from our previously published work~\cite{oopsla-2011-type-checking}, and Figure~\ref{fig:meetrule}
+has been newly constructed based on material in the text of that paper.  We summarize the content of these figures briefly,
+using text that is in large part adapted and condensed from that earlier paper.  A notable improvement appears at the end of this section.
+
+Figure~\ref{fig:constraints} gives a grammar for type constraints.
+A primitive constraint is either {\it positive} ($T \subtypeof T'$ specifies that
+a $T$ is a subtype of $T'$, and $T \exc T'$ specifies that $T$ excludes $T'$) or {\it negative}
+($T \nsubtypeof T'$ specifies that
+a $T$ is not a subtype of $T'$, and $T \nexc T'$ specifies that $T$ and $T'$ must have some value in common).
+A conjunction constraint $\C_1 \wedge \C_2$ is satisfied exactly
+when both $\C_1$ and $\C_2$ are satisfied,
+and a disjunction constraint $\C_1 \vee \C_2$ is satisfied exactly
+when one or both of $\C_1$ and $\C_2$ are satisfied.
+The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always satisfied. The equivalence constraint $T \equiv T'$ is derived as $T \subtypeof T' \wedge T' \subtypeof T$.
+
+Following Smith and Cartwright \cite{smith08}, in practice
+we normalize all constraint formulas into disjunctive normal form
+and simplify using absorption laws. 
+The negation $\neg \C$ of a constraint $\C$ has a standard de Morgan interpretation.
+Each type environment $\Delta$ naturally describes a constraint
+on the type parameters $\mathit{parameters}(\Delta)$,
+which we denote $\textit{toConstraint}(\Delta)$. This conversion
+has a partial inverse $\textit{toBound}(\C)$ that is defined whenever $\C$ can be written as a conjunction of constraints of the form $P \subtypeof \alpha$
+(if $\C$ has multiple conjuncts of this form for a single $P$, then the resulting environment contains multiple upper bounds for $P$).
+The judgment $\jsolve{\C}{\sigma}{\C'}$ solves a set of constraints on inference variables using unification, producing a substitution $\sigma$ for the inference variables and a reduced set of constraints $\C'$ on type parameters that is free of inference variables.  (These are used in the definition of existential reduction in Figure~\ref{fig:quantified}.)
+
+Figure~\ref{fig:subtyping} gives rules for computing a set of constraints that, if satisfied, will guarantee a (reflexive) subtype relationship $\extends$ between two types.
+(Conversely, if the constraints are not satisfiable, then a subtype relationship does \emph{not} hold between the two types.)
+Figure~\ref{fig:exclusion} gives rules for computing a set of constraints that, if satisfied, will guarantee an exclusion relationship $\exc$ between two types.
+(Conversely, if the constraints are not satisfiable, then an exclusion relationship does \emph{not} hold between the two types.)
+
+As explained in \cite{oopsla-2011-type-checking},
+we use negative judgments $\jnsub{T}{T}{\C}$ and $\jnexc{T}{T}{\C}$
+to determine constraints under which the negations hold.
+To save space, rather than completely defining negative judgments explicitly, 
+we describe how to derive most of their inference rules from their positive counterparts 
+according to de Morgan's laws.
+The rules for bound variables are given explicitly in Figures~\ref{fig:subtyping}
+and~\ref{fig:exclusion}.  All other rules are obtained as follows:
+For each rule in the figures
+that is not in a section marked ````bound variables,''
+make a new rule by replacing each occurrence of a
+relation symbol with its negation, replacing $\wedge$ with $\vee$ and vice versa,
+For example, from the rule:
+
+\infrule
+  { \jsub{\alpha}{\eta}{\C} \\ \jsub{\alpha}{\chi}{\C'} }
+  { \jsub{\alpha}{\intersectiontype{\eta}{\chi}}{\C \wedge \C'} }
+
+\noindent
+we derive:
+
+\infrule
+  { \jnsub{\alpha}{\eta}{\C} \\ \jnsub{\alpha}{\chi}{\C'} }
+  { \jnsub{\alpha}{\intersectiontype{\eta}{\chi}}{\C \vee \C'} }
+
+The negative judgment should not be confused with the derived contrapositive judgment $\jcnequiv{T}{T}{\C}$
+given in Figure~\ref{fig:miscsubtyping}, for the two judgments handle bound type variables very differently. 
+Intuitively, the negative assertion $\jnequiv{T}{T'}{\C}$ computes the constraint $\C$ that satisfies the
+inequivalence for an arbitrary instantiation of the type variables bound
+in $\Delta$, whereas the contrapositive assertion $\jcnequiv{T}{T'}{\C}$
+computes the constraint $\C$ that holds for any instantiation of $\Delta$ such that the inequivalence is true.
+
+Figure~\ref{fig:miscsubtyping} gives rules that define type equivalence in terms of subtyping and define
+unconditional versions of the subtyping, type exclusion, and type equivalence relationships.
+
+Figure~\ref{fig:quantified} gives rules for deciding whether one existentially quantified type is a subtype of another,
+and whether one universally quantified type is a subtype of another.  This figure introduces new variants
+of these subtyping judgments that make available the substitution $\sigma$ deduced to justify the judgment.
+This allows us to make a substantial practical improvement to the Return Type Rule in Figure~\ref{fig:meetrule}.
+
+Here is the old meet rule from \cite{oopsla-2011-type-checking}:
+
+\infrule[Old-Return-Test]
+  { \arrow(d) = \foralltypeb{\kappa}{\arrowtype{\tupleb{\alpha}}{\rho}}
+    \andalso
+    \bar{\kappa = \bdb{\chi} \extends P \extends \bdb{\eta}}
+    \\[3pt]
+    \arrow(d') = \foralltypeb{\kappa'}{\arrowtype{\tupleb{\alpha'}}{\rho'}}
+    \quad  % tighter than \andalso
+    \bar{\kappa' = \bdb{\chi'} \extends Q \extends \bdb{\eta'}}
+    \\[3pt]
+    \mathit{distinct}(\bar{P},\bar{Q})
+    \andalso
+    \jle{\dom(d)}{\dom(d')}
+    \\[3pt]
+    \jle{\foralltypeb{\kappa}{\arrowtype{\tupleb{\alpha}}{\rho}}}{\foralltype{\bar{\kappa},\bar{\kappa'}}{\arrowtype{\intersectiontype{\tupleb{\alpha}}{\tupleb{\alpha'}}}{\rho'}}}
+  }
+  { \jreturntyperule{d}{d'} }
+
+The problem here is that the last premise requires a difficult inference, because the two universal types have different sets of type parameters.
+The version presented here as rule \rncite{Return-test} in Figure~\ref{fig:meetrule} takes advantage of the fact that
+the preceding premise $\jle{\dom(d)}{\dom(d')}$ has already had to compute a substitution that resolves
+the differences between the type parameters of the two functions or methods in question; replacing
+$\jle{\dom(d)}{\dom(d')}$ with $\jleusing{\dom(d)}{\dom(d')}{\sigma}$ makes this substitution $\sigma$ available
+for use in the final premise, which is then much easier to resolve.
+

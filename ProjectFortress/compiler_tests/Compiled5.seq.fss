@@ -1,0 +1,30 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled5.seq
+export Executable
+
+(* Sequential version of fib by dint of (and in aid of testing) local
+   variable binding. *)
+
+fib(n: ZZ32): ZZ32 =
+    if n <= 2 then
+        r = 1
+        r
+    else
+        t1 = fib(n-1)
+        t2 = fib(n-2)
+        t1+t2
+    end
+
+run(): () = println(fib 20)
+
+end

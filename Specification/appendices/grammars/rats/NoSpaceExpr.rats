@@ -1,0 +1,28 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+ExprFront -= <Flow> , <Fn1> , <Fn2>
+NoSpaceExpr = ExprFront
+
+OpExpr :=
+     OpExprNoEnc
+   / OpExprLeftEncloser
+   / Encloser
+
+TightInfixRight -= <Primary>, <Loose>, <LeftLoose>
+
+OpExprPrimary -= <Primary>, <Loose>, <LeftLoose>
+
+OpExprPrefix -= <Primary>, <Prefix>, <Left>
+
+TightInfixPostfix -= <Primary>, <Prefix>, <Left>
+\end{verbatim}

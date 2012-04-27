@@ -1,0 +1,133 @@
+We use the term \emph{enclosers} to refer to symbols that are always used in properly nested matched pairs;
+examples are parentheses $(\,)$, brackets $[\,]$ and $\ob{\,}$, and braces $\{\,\}$.  In this paper
+we also treat the keyword tokens $\kwd{trait}$ and $\kwd{end}$ as matching enclosers, and likewise $\kwd{object}$ and $\kwd{end}$.
+The tokens and symbols between a matched pair of enclosers are said to be \emph{enclosed} by the pair.
+
+We use the term \emph{monogram} to refer to a single letter (Latin or Greek) that, rather than being
+used for decorative purposes, is itself possibly ````decorated'' with one or more prime marks and/or a
+sequence of one or more subscripts.  Examples of monograms are $x$, $\beta$, $e'$, $\alpha_2$, and $\tau'_{15\,27}$.
+
+We write $\bar{x}$ as shorthand for a possibly empty comma-separated sequence $x_1, x_2, \ldots, x_n$ for some freely chosen nonnegative integer $n$;
+thus $\bar{x}$ may expand to ```` '' or ````$x_1$'' or ````$x_1, x_2$'' or ````$x_1, x_2, x_3$'' or ````$x_1, x_2, x_3, x_4$'' and so on.
+More generally, for any expression, that same expression with an overbar is shorthand for a possibly empty comma-separated sequence
+of copies of that expression (indexed by $i$) with three transformations applied to each copy, in order:
+\begin{enumerate}
+\item First, any subexpression that is not underlined and has an arrow $\overcirclerightarrow{\phantom{x}}$
+above it is replaced in the $i$'th copy by a comma-separated sequence of $i-1$ copies of the
+subexpression (indexed by $j$) with two transformations applied to each copy of the subexpression:
+\begin{itemize}
+\item
+Any sub-subexpression that is a monogram and is not underlined is
+replaced by an underlined copy of that monogram with an additional subscript $j$ appended, where $j$ is the number
+of the copy of the subexpression (starting from the left with 1).  (The added underline is removed again in step 3 below;
+it prevents step 2 below from operating on this monogram.)
+\item Any subexpression that is underlined one or more times is replaced by a copy of that subexpression
+with one underline removed.
+\end{itemize}
+\item Next, any subexpression that is a monogram and is not underlined is replaced by a copy of that monogram with an additional
+subscript $i$ appended, where $i$ is the number of the copy (starting from the left with 1).
+\item Finally, any subexpression that is underlined one or more times is replaced by a copy of that subexpression
+with one underline removed.
+\end{enumerate}
+Thus $\bar{\underline{[\tau/P]}\tau'}$ means $[\tau/P]\tau'_1, [\tau/P]\tau'_2, \dots, [\tau/P]\tau'_n$,
+so one possible concrete expansion of this expression to 5 copies is $[\tau/P]\tau'_1, [\tau/P]\tau'_2, [\tau/P]\tau'_3, [\tau/P]\tau'_4, [\tau/P]\tau'_5$; likewise,
+$\bar{x+\underline{h}(\overcirclerightarrow{x})}$ might expand to, say, four copies, producing $x_1+h(),x_2+h(x_1),x_3+h(x_1,x_2),x_4+h(x_1,x_2,x_3)$.
+The expression $\bar{\overcirclerightarrow{\tuple{x,\underline{x}}}}$ can expand into all possible pairs of two distinct items out of $n$, preserving order, for example
+$\tuple{x_1,x_2}, \tuple{x_1,x_3}, \tuple{x_2,x_3}, \tuple{x_1,x_4}, \tuple{x_2,x_4}, \tuple{x_3,x_4}$.
+
+If an overbar or arrow construction expands to zero copies and there is a comma adjacent to the construction
+(or perhaps two, one on each side), then exactly one adjacent comma is deleted.
+
+If overbar constructions are nested, they are expanded outermost first.
+Therefore the shorthand
+$f\bigobb{P \extends \bdb{\tau}}$ means $f\bigob{P_1 \extends \bdb{\tau_1}, P_2 \extends \bdb{\tau_2}, \ldots, P_n \extends \bdb{\tau_n}}$, which in turn means:
+\[ \begin{array}{l@{}l}
+    f \big\llbracket \mskip0.5\thinmuskip & P_1 \extends \bd{\tau_{1\,1}, \tau_{1\,2}, \ldots, \tau_{1\,{n_1}}}, \\
+                                          & P_2 \extends \bd{\tau_{2\,1}, \tau_{2\,2}, \ldots, \tau_{2\,{n_2}}}, \\
+                                          & \ldots, \\
+                                          & P_n \extends \bd{\tau_{m\,1}, \tau_{m\,2}, \ldots, \tau_{m\,{n_m}}} \mskip 0.5\thinmuskip \big\rrbracket
+\end{array} \]
+so one possible concrete expansion is:
+\[ \begin{array}{l@{}l}
+    f \big\llbracket \mskip0.5\thinmuskip & P_1 \extends \bd{\tau_{1\,1}, \tau_{1\,2}, \tau_{1\,3}}, \\
+                                          & P_2 \extends \bd{\tau_{2\,1}}, \\
+                                          & P_3 \extends \bd{\,}, \\
+                                          & P_4 \extends \bd{\tau_{4\,1}, \tau_{4\,2}, \tau_{4\,3}, \tau_{4\,4}, \tau_{4\,5}, \tau_{4\,6}} \mskip 0.5\thinmuskip \big\rrbracket
+\end{array} \]
+Note the use of whitespace between subscripts so that $\tau_{4\,12}$ is clearly different from $\tau_{41\,2}$.
+
+The function $\countof$ returns an integer saying how many arguments it was given; thus $\countof(\bar{x})$ tells the length of the sequence into which $\bar{x}$ has expanded.
+
+After all occurrences of the overbar construction have been expanded, three other shorthand substitutions take place, in the following order:
+\begin{itemize}
+\item Every occurrence of a {\sc bnf} nonterminal and every monogram whose base letter has been described as \emph{ranging over} a {\sc bnf} nonterminal of a specified grammar is replaced by a token sequence generated by the grammar from that nonterminal.
+\item Each occurrence of the symbol ````$\dontcare$'' is replaced by any sequence of tokens that is correctly balanced with respect to enclosing pairs of all kinds,
+such that every comma and semicolon in the sequence is contained within at least one matched pair of enclosers. (This is used as a ````don't care'' indication when asking whether any of a set of constructs matches a certain syntactic pattern.  Note that an underline differs from a ````don't care'' indication in two ways: an underline is below the baseline rather than on the baselne, and an underline always has nonblank symbols above it.)  If a ````$\dontcare$'' expands to an empty token sequence and there is a comma adjacent to the ````$\dontcare$'' (or perhaps two, one on each side), then exactly one adjacent comma is deleted.
+\item Each occurrence of the symbol ````$\emptyseq$'' is deleted.  (This symbol is used as an explicit indication that an empty sequence of symbols is intended.)
+\end{itemize}
+
+When any of these shorthands is used in an overall context (such as a {\sc bnf} rule, inference rule, axiom, or expository sentence or paragraph), it is as if there were an infinite number of instantiations of that context, one for each possible expansion of the shorthand.  Two consistency constraints must be obeyed in performing the substitutions for any single such context:
+\begin{itemize}
+\item
+If the same monogram (with identical decorations) has an additional subscript attached to it
+by more than one overbar construction, then all such overbar constructions are constrained to produce the same number of copies in any given instantiation of the rule;
+otherwise the choices for the number of copies produced by each overbar construction are free and independent.
+\item
+If the base letter of a monogram ranges over a {\sc bnf} nonterminal, then multiple identical occurrences of the monogram must be replaced by identical copies of a single generated token sequence.
+\end{itemize}
+The last two constraints rely on metavariable declarations such as those in Figure~\ref{fig:metavariables}.  A declaration such as
+````$e$ ranges over expressions $e$'' means 
+````monograms with base letter $e$ expand into expressions generated by {\sc bnf} nonterminal $e$'';
+this may seem redundant, but only because by convention we frequently use a single-letter identifier as a {\sc bnf} nonterminal
+and then go on to use that same single-letter identifier as a base letter for monograms.
+A declaration such as
+````$\alpha, \gamma, \rho, \chi, \eta$ range over lattice types $\alpha$'' means 
+````monograms with base letter $\alpha$ or $\gamma$ or $\rho$ or $\chi$ or $\eta$ expand into expressions generated by {\sc bnf} nonterminal $\alpha$''
+which is more clearly not a redundant statement.
+
+As an additional convenience using these shorthands:
+\begin{itemize}
+\item If a judgment has several comma-separated expressions to the right of the turnstile ````$\turnstile$'', it is
+as if there were several distinct judgments, one containing each of the expressions to the right of the turnstile.
+Thus the judgment $\jgTHREEtemplate{\Gamma}{\tau_1}{\extends}{\tau'_1}{\tau_2}{\tau'_2}{\tau_3}{\tau'_3}$
+means the same as three separately written judgments:
+\[\jgtemplate[\Gamma]{\tau_1}{\extends}{\tau'_1} \andalso \jgtemplate[\Gamma]{\tau_2}{\extends}{\tau'_2} \andalso \jgtemplate[\Gamma]{\tau_3}{\extends}{\tau'_3} \]
+\item If a judgment has nothing to the right of the turnstile, it is
+as if there were no judgment written at all.
+\item If an inference rule has several comma-separated expressions or judgments as premises, it is
+as if the premises had been separated by the customary wide whitespace (and thus treated as conjuncts).
+\item If an inference rule has multiple consequents or several comma-separated expressions or judgments as consequents, it is
+as if there were several distinct inference rules, one containing each of the consequents.
+\item If an inference rule has no consequents, it is
+as if there were no inference rule written at all.
+\item If an inference rule has portions enclosed in framed boxes, then there is a choice when instantiating it:
+either include the contents of all framed boxes, or omit the content of all framed boxes.
+\end{itemize}
+
+As an extreme (but useful) example of the application of these conventions, consider this axiom:
+
+\infax{ \jbevalstep[\Delta]{\underline{E}\big[\pi(\underline{\bar{v}})\big]}{\underline{E}[v]} }
+
+\noindent In order to apply this axiom to a particular case, we may freely choose to expand the largest overbar construction to produce, say, two copies:
+
+\infax{ \jevalstepTWO[\Delta]{E\big[\pi_1(\bar{v})\big]}{E[v_1]}{E\big[\pi_2(\bar{v})\big]}{E[v_2]} }
+
+\noindent Note that both the $\pi$ symbol and the second occurrence of $v$ receive subscripts in each copy, but the underlines (which are removed as part of the expansion process) prevent the first occurrence of $v$ (which happens to have a second overbar) and the two occurrences of $E$ from receiving subscripts.  Now we expand the remaining overbars, but because they will attach subscripts to the monogram $v$, and $v$ has already had subscripts attached by the larger overbar, we must choose the same number of copies (two) for each of these overbars:
+
+\infax{ \jevalstepTWO[\Delta]{E\big[\pi_1(v_1,v_2)\big]}{E[v_1]}{E\big[\pi_2(v_1,v_2)\big]}{E[v_2]} }
+
+\noindent Then this judgment with two comma-separated expressions to the right of the turnstile is understood to mean two distinct judgments:
+
+\infax{ \jevalstep[\Delta]{E\big[\pi_1(v_1,v_2)]}{E[v_1]} \\[2pt]
+        \jevalstep[\Delta]{E\big[\pi_2(v_1,v_2)]}{E[v_2]} }
+
+We use the conventional notation $[\bar{S/\Id}]Y$ to indicate a copy of string $Y$ (delimited on the right by commas, semicolons, and right enclosers)
+modified by simultaneous substitution of a copy of string $S_1$ for each occurrence of $\Id_1$,
+a copy of string $S_2$ for each occurrence of $\Id_2$, and so on; consecutive substitution constructs are processed from right to left.
+The substitution is permitted only if names of variables bound in $[\bar{S/\Id}]$, but alpha-conversion (systematic renaming of such bound variables to fresh names)
+may be performed on $Y$ in order to enable the substitution to take place.
+We use the conventional notation $E[e]$ to mean an evaluation context with its ````hole''
+replaced by the expression $e$ (that is, $[e/\Box]E$).
+
+A final note: we sometimes use enclosers of different sizes within an expression purely to enhance readability;
+the size of such a symbol does not affect its meaning in the formalism.

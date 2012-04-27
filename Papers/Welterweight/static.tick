@@ -1,0 +1,141 @@
+\input{fig-miscjudgments}
+
+Figure~\ref{fig:internalsymbols} gives a grammar for certain symbols that do not appear in the concrete grammar
+of Figure~\ref{fig:grammar} but are used in later figures.  (Yet other symbols are defined in Figure~\ref{fig:values}.)
+
+Figure~\ref{fig:wellformedtypes} gives rules for deciding whether a type is well-formed, given a set of type declarations $\Delta$.
+These rules also perform \emph{variance checking}, similar to that performed by Scala~\cite{scala}, to ensure that a covariant or contravariant type parameter
+is used only in appropriate contexts.  That is why the rules allow a type parameter to be used only if it is marked
+$\kwd{invariant}$ or $\kwd{covariant}$.  In other places, the rules use the function $\flipname$ to invert the variance
+of covariant and contravariant parameters in the type environment before checking certain parts of the type expression,
+such as the domain of an arrow type, which is a contravariant context.
+
+Figure~\ref{fig:expressiontypes} gives rules for deciding whether an expression is well-formed, given a set of type declarations $\Delta$,
+a set of function declarations $\Phi$, and a variable-type environment $\Gamma$.  These rules also compute the
+static type of the expression.  Note that rule \rncite{T-Project} effectively defines tuple projection functions $\pi_1, \pi_2, \pi_3, \ldots$ for tuples of
+all possible lengths.  The rule \rncite{T-Match} is of interest because it explicitly introduces both intersection and union types into the type calculus
+(though intersections and unions can also be introduced implicitly in other parts of the language).  The most interesting rules in this figure are
+\rncite{D-Function} and \rncite{D-Method}, which use a function $\msavname$ (defined later in Figure~\ref{fig:msa})
+to find the \underline{m}ost \underline{s}pecific \underline{a}pplicable \underline{v}isible function or method
+for that call site.  Note that the last argument to $\msavname$ in these rules is a tuple of the static types of the argument expressions;
+therefore these uses of $\msavname$ identify the \emph{statically} most specific applicable visible function or method.
+
+Figure~\ref{fig:wellformeddecls} gives rules for deciding whether declarations are well-formed and well-typed, given the overall set of declarations $\Delta$,
+and for determining the type of a program.
+
+The rule \rncite{T-Program} verifies that no two declarations are identical, that declared traits and objects all have distinct names,
+and that the declaratins and the expression are well-formed.  It also verifies that any abstract function declarations are ````covered''
+by concrete implementations.  The notion of ````covering'' is a generalization of the notion of ````overriding,'' because an abstract function
+with an argument that is a trait type with a comprises clause
+is considered to be covered if it is implemented for all the types comprised.
+For example:
+\[
+\begin{array}{@{}l@{}}
+\kwd{trait}\;\mathrm{Color}\ob{} \extends \set{\,} \comprises \set{\mathrm{Red}\ob{}, \mathrm{Green}\ob{}} \exc \set{\,} \; \kwd{end} \\[1pt]
+\kwd{trait}\;\mathrm{Green}\ob{}() \extends \set{\mathrm{Color}\ob{}} \kwd{end} \\[1pt]
+\kwd{trait}\;\mathrm{Red}\ob{}() \extends \set{\mathrm{Color}\ob{}} \kwd{end} \\[1pt]
+\mathrm{toggle}\ob{}\bigtuple{x: \mathrm{Color}\ob{}}: \mathrm{Color}\ob{} \\[1pt]
+\mathrm{toggle}\ob{}\bigtuple{y: \mathrm{Green}\ob{}}: \mathrm{Color}\ob{} = \mathrm{Red}\ob{}() \\[1pt]
+\mathrm{toggle}\ob{}\bigtuple{y: \mathrm{Red}\ob{}}: \mathrm{Color}\ob{} = \mathrm{Green}\ob{}()
+\end{array}
+\]
+The abstract function $\mathrm{toggle}$ that takes an argument of type $\mathrm{Color}\ob{}$ is considered to be implemented
+by the two concrete definitions of $\mathrm{toggle}$ because they collectively accept all the types comprised by $\mathrm{Color}\ob{}$.
+The rules for checking such covering are actually more general than that, and appear in Figure~\ref{fig:covered}.
+The basic idea is that the domain type of an abstract function (the tuple of argument types, with any type parameters of the function existentially quantified~\cite{oopsla-2011-type-checking})
+must be a subtype of the union of the domains of the concrete definitions.  The function $\noselfdom$ is used to compute these domain types;
+the wrinkle is that the same rules are used to check methods as well as functions, and for methods, the type of the trait of object within which
+the method is declared is \emph{not} considered for the purposes of this particular test.
+
+The rule \rncite{T-Program} furthermore ensure that the function declarations obey the No Duplicates Rule, the Meet Rule,
+and the Return Type Rule~\cite{oopsla-2011-type-checking}:
+\begin{itemize}
+\item The domain types of two distinct function declarations with the same name may not be identical unless one is abstract and the other is not.
+\item If two function declarations have the same name, then either (i) their domain types exclude each other (are disjoint),
+(ii) the domain type of one is a subtype of the domain type of the other, or (iii) there is a third function declaration with the same
+name whose domain type is a subtype of the domain types of the other two.
+\item If two function declarations have the same name and the domain type of one is a subtype of the domain type of the other,
+then intuitively, to ensure type soundness, the return type of the first must be a subtype of the return type of the other---but the
+details get rather technical when type parameters are involved.
+\end{itemize}
+The inference rules for enforcing these relationships appear later in Figure~\ref{fig:meetrule}.  It is worth noting here,
+however, that the same rules are used for checking both functions and methods, and when methods are considered,
+the function $\dom$ (defined in Figure~\ref{fig:msa}) is used to compute domain types, so that the type of the trait or object within which
+the method is declared \emph{is} considered for the purposes of these other tests.
+
+Figure~\ref{fig:miscjudgments} gives rules for miscellaneous subsidary judgments used in Figure~\ref{fig:wellformeddecls} and elsewhere.
+
+Each of the rules \rncite{D-Trait}, \rncite{D-Object}, \rncite{D-Function}, and \rncite{D-Method} has two versions, one with all boxed material
+included and one with all boxed material omitted.
+
+The rule \rncite{D-Trait} verifies that the names of its type parameters are distinct; that its method definitions are distinct;
+that all types mentioned are well-formed; that a trait does not extend, comprise, or exclude an instance of itself;
+that comprised types are subtypes of the comprising trait; that there are no cycles in the ````extends'' relationship;
+and that its methods (both those declared within it and those inherited from traits that it extends) obey the
+No Duplicates Rule, the Meet Rule, and the Return Type Rule.
+When verifying the well-formedness of methods
+declared within it, it provides a variable-type environment
+that has an entry for the special keyword $\kwd{self}$,
+and it provides a list of its type parameters so that the check for
+well-formedness of the method can ensure that the names of the method's type parameters
+are distinct from the names of the trait's type parameters.
+
+We introduce the Ancestors Meet Rule (see Figure~\ref{fig:meetrule}), which is used by \rncite{D-Trait} to check the
+proper ancestors of the declared trait: if a trait extends (directly or indirectly) two different instances $T\obb{\alpha}$ and $T\obb{\eta}$
+of the same trait $T$, then it must extend some instance $T\ob{\gamma}$ of $T$ (which could be $T\obb{\alpha}$, $T\obb{\eta}$,
+or a third instance) such that $T\ob{\gamma}$ is a subtype of $T\ob{\alpha}$ and also a subtype of $T\obb{\eta}$.
+A consequence is that if an object value belongs to one or more instances of some trait $T$, there is a \emph{unique minimal instance} of $T$
+to which it belongs.  This is important because being able to identify this minimal instance quickly is essential to the efficient dynamic dispatch
+algorithms we present later.
+
+The rule \rncite{D-Object} is similar in many ways to rule \rncite{D-Trait};
+it verifies that the names of its type parameters are distinct; that
+its method definitions are distinct; that all types mentioned are
+well-formed; and that its methods (both those declared within it and
+those inherited from traits that it extends) obey the No Duplicates
+Rule, the Meet Rule, and the Return Type Rule.
+In addition, it verifies that its field names are distinct and
+that all abstract declarations it inherits are covered by concrete
+implementations.  When verifying the well-formedness of methods
+declared within it, it provides a variable-type environment
+that has entries for all its field names and for the special keyword $\kwd{self}$,
+and it provides a list of its type parameters so that the check for
+well-formedness of the method can ensure that the names of the method's type parameters
+are distinct from the names of the object's type parameters.
+
+The rule \rncite{D-Function} verifies that the names of its type parameters are distinct;
+that the names of its value parameters are distinct; that all types mentioned are
+well-formed; and that its body expression (if present) is well-formed and has a static type that
+is a subtype of the declared return type $\omega$.  Of particular interest is the use of the
+$\overcirclerightarrow{\phantom{x}}$ construction to define many type environments $\Delta'_1, \Delta'_2,  \ldots$;
+what is going on here is that in Welterweight Fortress the type parameters of functions and methods
+(but not traits and objects) have a scope that extends to the right of their point of declaration but not to the left,
+so the upper bounds $\setb{\xi}$ for a type parameter $P$ cannot refer to $P$ or to any type parameter
+declared to the right of $P$, but only to type parameters declared to the left of $P$.
+This is a change to the Fortress language relative to Fortress 1.0~\cite{Fortress};
+this change does not seem to inhibit expressiveness unduly, and introducing this restriction
+is also essential to the efficient dynamic dispatch
+algorithms we present later.
+
+\input{fig-values}
+
+\input{fig-msa}
+
+\input{fig-evaluation}
+
+\input{fig-constraints}
+
+The rule \rncite{D-Method} is similar to rule \rncite{D-Function}, but
+also verifies that the names of its type parameters are distinct
+one another and from the names of the type parameters of the
+containing object or trait.  One additional wrinkle is that lower bounds $\setb{\zeta}$
+are checked using the type environment $\Delta$ rather than one of the instances of $\Delta'$;
+the effect is that type parameters of a method may not appear in any lower bound $\zeta$.
+(However, type parameters of the enclosing trait \emph{are} allowed to appear in lower bounds $\zeta$.)
+This is another change to the Fortress language relative to Fortress 1.0~\cite{Fortress};
+this change also does not seem to inhibit expressiveness unduly, and is essential to the
+efficient dynamic dispatch algorithms we present later.
+
+The rules for typing and well-formedness depend on judgments about subtyping
+and type exclusion, which are addressed later in Section~\ref{sec:subtyping}.
+
