@@ -68,6 +68,7 @@ trait TestTotalComparison
         else TestEqualTo
         end
     opr <(self, other:TestUnordered): Boolean = false
+    opr <(self, other:TestComparison): Boolean = false
     opr >=(self, other:TestUnordered): Boolean = false
     opr >=(self, other:TestComparison): Boolean = NOT (other < self)
     opr LEXICO(self, other:TestTotalComparison): TestTotalComparison =
