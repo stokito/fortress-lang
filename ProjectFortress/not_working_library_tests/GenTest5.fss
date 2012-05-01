@@ -457,7 +457,8 @@ value object Just[\E20\](x: E20) extends Maybe[\E20\]
 (*)     opr IN(y:E20, self): Boolean = (y = x)
 (*)     opr =(self,other:Just[\E20\]): Boolean = (x = other.x)
 (*)     opr SQCAP(self, other:Just[\E20\]): Maybe[\E20\] = if other.x = x then self else NothingObject[\E20\] end
-    cond[\G15\](t: E20 -> G15, e: () -> G15): G15 = t(x)
+(*)    cond[\G15\](t: E20 -> G15, e: () -> G15): G15 = t(x)
+    cond[\G10\](t: E20 -> G10, e: () -> G10): G10 = t(x)
 end
 
 value object NothingObject[\E21\] extends Maybe[\E21\]

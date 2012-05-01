@@ -567,17 +567,22 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         String fn = is_forwarding_closure ? suffix.substring(0,env_loc): Naming.APPLIED_METHOD; 
         String ft = suffix.substring(env_loc+2); // skip $ following ENVELOPE
 
-        // Normalize out leading HEAVY_X, if there is one.
-        if (ft.charAt(0) == Naming.HEAVY_X_CHAR)
-            ft = ft.substring(1);
-        int left = ft.indexOf(Naming.LEFT_OXFORD);
-        int right = ft.lastIndexOf(Naming.RIGHT_OXFORD);
-        List<String> parameters = RTHelpers.extractStringParameters(ft, left, right);
-        if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
-        	parameters = parameters.subList(1,2);
+        // Normalize out leading HEAVY_CROSS, if there is one.
+        {
+            if (ft.charAt(0) == Naming.HEAVY_CROSS_CHAR)
+                ft = ft.substring(1);
+            int left = ft.indexOf(Naming.LEFT_OXFORD);
+            int right = ft.lastIndexOf(Naming.RIGHT_OXFORD);
+            List<String> parameters = RTHelpers.extractStringParameters(ft, left, right);
+            if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
+                parameters = parameters.subList(1,2);
 
-        if (sig == null)
-            sig = arrowParamsToJVMsig(parameters);
+            if (sig == null)
+                sig = arrowParamsToJVMsig(parameters);
+        }
+        
+        SignatureParser sp = new SignatureParser(sig);
+
 
         /*
          * Recipe:
@@ -637,7 +642,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             staticClass = api;
         staticClass = staticClass.replace(".","/");
 
-        if (LOG_LOADS) System.err.println(name + ".apply" + sig + " concrete\nparams = " + parameters);
+        if (LOG_LOADS)
+            System.err.println(name + ".apply" + sig + " concrete\nparams = " + sp);
 
         // KBN 06/2011 handled above now
         // Monkey business to deal with case of "void" args.
@@ -655,7 +661,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // different class.
         forwardingMethod(cw, Naming.APPLY_METHOD, ACC_PUBLIC, 0,
                 staticClass, fn, INVOKESTATIC,
-                sig, sig, parameters.size(), false, forceCastParam0);
+                sig, sig, sp.paramCount()+1, false, forceCastParam0);
         
         return fn;
 

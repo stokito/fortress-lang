@@ -2287,24 +2287,27 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param name
      * @param sparams
      */
+    // many call sites
     public String genericMethodName(FnNameInfo x, int selfIndex) {
-        ArrowType at = fndeclToType(x, selfIndex);
+        ArrowType at = fndeclToType(x, selfIndex); // This looks wrong, too.
         String possiblyDottedName = Naming.fmDottedName(singleName(x.name), selfIndex);
         
         return genericMethodName(possiblyDottedName, at);    
     }
     
+    // generateForwardingFor
     private String genericMethodName(Functional x, int selfIndex) {
+        return genericMethodName(new FnNameInfo(x, thisApi()), selfIndex);    
 
-        IdOrOp name = x.name();
-        ArrowType at = fndeclToType(x, selfIndex);
-        String possiblyDottedName = Naming.fmDottedName(singleName(name), selfIndex);
-        
-        return genericMethodName(possiblyDottedName, at);    
+//        IdOrOp name = x.name();
+//        ArrowType at = fndeclToType(x, selfIndex);
+//        String possiblyDottedName = Naming.fmDottedName(singleName(name), selfIndex);
+//        
+//        return genericMethodName(possiblyDottedName, at);    
     }
     
     // DRC-WIP
-
+    // forMethodInvocation
     private String genericMethodName(IdOrOp name, ArrowType at) {
         String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
                 false);
@@ -2333,7 +2336,55 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
            parameters from parent trait/object.
            (HEAVY_X stops substitution in instantiator).
            */
-        return name + Naming.UP_INDEX + Naming.HEAVY_X + generic_arrow_type;
+        return name + Naming.UP_INDEX + Naming.HEAVY_X + "@@@" + generic_arrow_type + "!!!";
+    }
+    
+    /**
+     * @param name
+     * @param sparams
+     */
+    public String genericMethodClosureName(FnNameInfo x, int selfIndex) {
+        ArrowType at = fndeclToType(x, selfIndex);
+        String possiblyDottedName = Naming.fmDottedName(singleName(x.name), selfIndex);
+        
+        return genericMethodClosureName(possiblyDottedName, at);    
+    }
+    
+    private String genericMethodClosureName(Functional x, int selfIndex) {
+
+        IdOrOp name = x.name();
+        ArrowType at = fndeclToType(x, selfIndex);
+        String possiblyDottedName = Naming.fmDottedName(singleName(name), selfIndex);
+        
+        return genericMethodClosureName(possiblyDottedName, at);    
+    }
+    
+    // DRC-WIP
+
+    private String genericMethodClosureName(IdOrOp name, ArrowType at) {
+        String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
+                false);
+        
+        return genericMethodClosureName(name.getText(), generic_arrow_type);
+    }
+
+    private String genericMethodClosureName(String name, ArrowType at) {
+        String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
+                false);
+        
+        return genericMethodClosureName(name, generic_arrow_type);
+    }
+
+    private String genericMethodClosureName(String name, String generic_arrow_type) {
+        /* Just append the schema.
+         * TEMP FIX -- do sep w/HEAVY_X.
+         * Need to stop substitution on static parameters from the method itself.
+         * 
+           Do not separate with HEAVY_X, because schema may depend on 
+           parameters from parent trait/object.
+           (HEAVY_X stops substitution in instantiator).
+           */
+        return name + Naming.UP_INDEX + Naming.HEAVY_CROSS + generic_arrow_type;
     }
     
     private final static String genericMethodClosureFinderSig = "(JLjava/lang/String;)Ljava/lang/Object;";
@@ -2906,7 +2957,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param selfIndex
      * @return
      */
-    private ArrowType fndeclToType(Functional x, int selfIndex) {
+    static ArrowType fndeclToType(Functional x, int selfIndex) {
         Type rt = x.getReturnType().unwrap();
         List<Param> lp = x.parameters();
         if (selfIndex != Naming.NO_SELF)
@@ -2921,7 +2972,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param lp
      * @return
      */
-    private ArrowType typeAndParamsToArrow(Span span, Type rt, List<Param> lp) {
+    private static ArrowType typeAndParamsToArrow(Span span, Type rt, List<Param> lp) {
         Type dt = null;
         switch (lp.size()) {
         case 0:
@@ -3004,8 +3055,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         List<StaticParam> trait_sparams = trait_header.getStaticParams();
         //String uaname = NamingCzar.idOrOpToString(x.getUnambiguousName());
 
-        String dottedName = Naming.fmDottedName(singleName(name), selfIndex);
-
         FnHeader header = x.getHeader();
         List<Param> params = header.getParams();
         com.sun.fortress.nodes.Type returnType = header.getReturnType()
@@ -3069,8 +3118,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
             // Next need to perform a generic method invocation.
 
+            String dottedName = Naming.fmDottedName(singleName(name), selfIndex);
+            FnNameInfo fnni = new FnNameInfo(new_fndecl, thisApi());
             ArrowType invoked_at = fndeclToType(new FnNameInfo(new_fndecl, thisApi()), selfIndex);
             String method_name = genericMethodName(dottedName, invoked_at);
+            String alt_method_name = genericMethodName(fnni, selfIndex);
+            // don't need String method_closure_name = genericMethodClosureName(dottedName, invoked_at);
 
             Param self_param = params.get(selfIndex);
             Type self_type = (Type) self_param.getIdType().unwrap(); // better not be a pattern
@@ -3087,7 +3140,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 TupleType tpt = (TupleType) paramType;
                 List<Type> lt = tpt.getElements();
                 // need to fix the list call
-                prepended_domain = NodeFactory.makeTupleType(paramType.getInfo().getSpan(), new SwappedList(lt, selfIndex));
+                prepended_domain = NodeFactory.makeTupleType(paramType.getInfo().getSpan(), new SwappedList<Type>(lt, selfIndex));
             }
             
             // find closure
@@ -3123,6 +3176,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         } else {
         
+            String dottedName = Naming.fmDottedName(singleName(name), selfIndex);
         if (trait_sparams.size() == 0) {
 
             // Check for sparams on the function itself; if so, emit a generic
@@ -3253,8 +3307,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             Naming.genericFunctionPkgClass(packageAndClassName, mname,
                         Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
         
-        if (topLevelOverloadedNamesAndSigs.contains(pair.PCN) ||
-                topLevelOverloadedNamesAndSigs.contains(pair.PCNOuter)) { // Clash on file name, else we create a bad class file.
+        if (topLevelOverloadedNamesAndSigs.contains(pair.PCN) 
+                // topLevelOverloadedNamesAndSigs.contains(pair.PCNOuter)
+                ) { // Clash on file name, else we create a bad class file.
             mname = NamingCzar.mangleAwayFromOverload(mname);
             pair.PCN =
                 Naming.genericFunctionPkgClass(packageAndClassName, mname,
