@@ -13,7 +13,9 @@ package com.sun.fortress.compiler.codegen;
 import java.util.List;
 
 import com.sun.fortress.compiler.NamingCzar;
+import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnHeader;
 import com.sun.fortress.nodes.Id;
@@ -82,5 +84,15 @@ public class FnNameInfo {
         this.ifNone = ifNone;
         span = NodeUtil.getSpan(x);
         name = (IdOrOp) (x.getHeader().getName());
+    }
+    
+    public FnNameInfo(Functional x, APIName ifNone) {
+        static_params = x.staticParameters();
+        ArrowType at = CodeGen.fndeclToType(x, Naming.NO_SELF);
+        returnType = at.getRange();
+        paramType = at.getDomain();
+        this.ifNone = ifNone;
+        span =x.getSpan();
+        name = x.name();
     }
 }
