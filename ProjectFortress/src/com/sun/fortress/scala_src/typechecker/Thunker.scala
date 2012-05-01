@@ -14,6 +14,7 @@ package com.sun.fortress.scala_src.typechecker
 import _root_.java.util.{Set => JavaSet}
 import com.sun.fortress.compiler.index.{Unit=>JUnit,_}
 import com.sun.fortress.exceptions.InterpreterBug.bug
+import com.sun.fortress.exceptions.TypeError
 import com.sun.fortress.nodes._
 import com.sun.fortress.scala_src.nodes._
 import com.sun.fortress.scala_src.useful.Options._
@@ -86,7 +87,10 @@ class Thunker(var typeChecker: STypeChecker)
       // Add field declarations (getters/setters?) to method_checker
       typeChecker = decls.foldRight(typeChecker)
                                       {(d:Decl, c:STypeChecker) => d match {
-                                        case SVarDecl(_,lhs,_) => c.extend(lhs)
+                                        case SVarDecl(_,lhs,_) => {
+                                          if (! lhs.forall( lvalue => lvalue.getIdType().isSome())) throw TypeError.make("Must provide type for initializer " + lhs,d.getInfo().getSpan())
+                                          else c.extend(lhs)
+                                        }
                                         case _ => c }}
       toOption(typeChecker.traits.typeCons(name.asInstanceOf[Id])) match {
         case Some(to:ObjectTraitIndex) =>
