@@ -167,6 +167,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         for ( f <- toSet(functions) ; if isDeclaredName(f) ) {
           val name = f.asInstanceOf[IdOrOp].getText
           var set = getFunctionsFromCompilationUnit(compilation_unit, f)
+
           for ( i <- importNames ) {
             for ( n <- toListFromImmutable(i.getAliasedNames) ) {
               if ( n.getAlias.isSome &&
@@ -180,6 +181,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
               }
             }
           }
+          
           for ( i <- importStars ) {
             val index = globalEnv.lookup(i.getApiName)
             val excepts = toListFromImmutable(i.getExceptNames).asInstanceOf[List[IdOrOp]]
@@ -192,11 +194,41 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
               }
             }
           }
+          
           // debugging probe: TypeError.b3(name, f, set)
           checkFunctionOverloading(kindAndName, f, set, globalOracle)
           
           val dFunctions = getDeclaredFunctions(compilation_unit, f)
-          val fMethods = getFunctionalMethods(compilation_unit, f)
+
+          var fMethods = getFunctionalMethods(compilation_unit, f)
+
+          for ( i <- importNames ) {
+            for ( n <- toListFromImmutable(i.getAliasedNames) ) {
+              if ( n.getAlias.isSome &&
+                   n.getAlias.unwrap.asInstanceOf[IdOrOp].getText.equals(name) ) {
+                // get the JavaFunctionals from the api and add them to set
+                fMethods ++= getFunctionalMethods(globalEnv.lookup(i.getApiName), n.getName)
+              } else if ( n.getAlias.isNone &&
+                          n.getName.asInstanceOf[IdOrOp].getText.equals(name) ) {
+                // get the JavaFunctionals from the api and add them to set
+                fMethods ++= getFunctionalMethods(globalEnv.lookup(i.getApiName), f)
+              }
+            }
+          }
+          
+          for ( i <- importStars ) {
+            val index = globalEnv.lookup(i.getApiName)
+            val excepts = toListFromImmutable(i.getExceptNames).asInstanceOf[List[IdOrOp]]
+            for ( n <- toSet(index.functions.firstSet).++(toSet(index.variables.keySet)) ) {
+              val text = n.asInstanceOf[IdOrOp].getText
+              if ( text.equals(name) &&
+                   ! excepts.contains((m:IdOrOp) => m.getText.equals(text)) ) {
+                // get the JavaFunctionals from the api and add them to set
+                fMethods ++= getFunctionalMethods(index, f)
+              }
+            }
+          }          
+          
           checkFancyRule(f, dFunctions, fMethods, globalOracle)
           
         }
