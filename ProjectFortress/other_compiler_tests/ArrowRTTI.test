@@ -7,7 +7,7 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests=ArrowRTTI ArrowRTTI2 ArrowRTTI3 ArrowRTTI4 ArrowRTTI5 ArrowRTTI6
+tests=ArrowRTTI ArrowRTTI2 ArrowRTTI3 ArrowRTTI4 
 link
 run
 run_out_contains=ok\n
