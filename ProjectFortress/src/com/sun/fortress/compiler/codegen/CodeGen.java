@@ -2283,18 +2283,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private static BAlongTree sampleLookupTable = new BAlongTree();
 
 
-    /**
-     * @param name
-     * @param sparams
-     */
-    // many call sites
-    public String genericMethodName(FnNameInfo x, int selfIndex) {
-        ArrowType at = fndeclToType(x, selfIndex); // This looks wrong, too.
-        String possiblyDottedName = Naming.fmDottedName(singleName(x.name), selfIndex);
-        
-        return genericMethodName(possiblyDottedName, at);    
-    }
-    
     // generateForwardingFor
     private String genericMethodName(Functional x, int selfIndex) {
         return genericMethodName(new FnNameInfo(x, thisApi()), selfIndex);    
@@ -2306,6 +2294,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 //        return genericMethodName(possiblyDottedName, at);    
     }
     
+    /**
+     * @param name
+     * @param sparams
+     */
+    // many call sites
+    public String genericMethodName(FnNameInfo x, int selfIndex) {
+        ArrowType at = fndeclToType(x, selfIndex); // This looks wrong, too.
+        String possiblyDottedName = Naming.fmDottedName(singleName(x.name), selfIndex);
+        
+        String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
+                false);
+        return genericMethodName(possiblyDottedName, generic_arrow_type);    
+    }
+    
     // DRC-WIP
     // forMethodInvocation
     private String genericMethodName(IdOrOp name, ArrowType at) {
@@ -2313,13 +2315,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 false);
         
         return genericMethodName(name.getText(), generic_arrow_type);
-    }
-
-    private String genericMethodName(String name, ArrowType at) {
-        String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
-                false);
-        
-        return genericMethodName(name, generic_arrow_type);
     }
 
     /**
@@ -3118,11 +3113,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             
             // Next need to perform a generic method invocation.
 
-            String dottedName = Naming.fmDottedName(singleName(name), selfIndex);
-            FnNameInfo fnni = new FnNameInfo(new_fndecl, thisApi());
-            ArrowType invoked_at = fndeclToType(new FnNameInfo(new_fndecl, thisApi()), selfIndex);
-            String method_name = genericMethodName(dottedName, invoked_at);
-            String alt_method_name = genericMethodName(fnni, selfIndex);
+//            FnNameInfo fnni = new FnNameInfo(new_fndecl, thisApi());
+//            String dottedName = Naming.fmDottedName(singleName(name), selfIndex);
+//            ArrowType invoked_at = fndeclToType(new FnNameInfo(new_fndecl, thisApi()), selfIndex);
+//            String method_name2 = genericMethodName(dottedName, invoked_at);
+            String method_name = genericMethodName(new FnNameInfo(new_fndecl, thisApi()), selfIndex);
+//            String alt_method_name = genericMethodName(fnni, selfIndex);
+//            if (! method_name.equals(method_name2)) {
+//                throw new Error("mismatched names:\n" + method_name + "\n" + method_name2+ "\n" + alt_method_name);
+//            }
             // don't need String method_closure_name = genericMethodClosureName(dottedName, invoked_at);
 
             Param self_param = params.get(selfIndex);
