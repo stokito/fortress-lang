@@ -426,7 +426,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
       val b2 = oa.lteq(ga, fa) 
       val b3 = oa.excludes(fa, ga) 
       val b4 = meetRule(first, second, signatures, isMethod, oa)
-      //if (b1) !b2 else ( b2 || b3 || b4 )
+      //if (b1) !b2 else ( b2 || b3 || b4 )  //JT: It looks like the duplicate rule IS enforced somewhere else
       (b1 || b2 || b3 || b4)
     }
 

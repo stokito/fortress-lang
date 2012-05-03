@@ -24,6 +24,7 @@ nanoTime(): RR64
 
 trait String
     abstract getter asJavaString(): JavaString
+    abstract getter asString(): String
     abstract getter isEmpty(): Boolean
     opr <(self, b: String): Boolean
     opr =(self, b: String): Boolean
@@ -286,11 +287,8 @@ trait IntLiteral extends { Number, Equality[\IntLiteral\] } excludes {ZZ32, ZZ64
     abstract getter asZZ32(): ZZ32
     abstract getter asZZ64(): ZZ64
     abstract getter asNN32(): NN32
-(*
-    abstract getter asNN32(): NN32
     abstract getter asZZ(): ZZ
-    abstract getter asRR32(): RR32
-*)
+    abstract getter asNN64(): NN64
     abstract getter asRR64(): RR64
 
     opr |self| : IntLiteral

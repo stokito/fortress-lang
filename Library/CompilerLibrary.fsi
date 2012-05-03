@@ -96,6 +96,7 @@ trait GeneratorZZ32 excludes { Boolean }
 end
 
 trait SeqGeneratorZZ32 extends GeneratorZZ32
+    abstract getter asString(): String
     abstract filter(f: ZZ32 -> Boolean): SeqGeneratorZZ32
 end
 

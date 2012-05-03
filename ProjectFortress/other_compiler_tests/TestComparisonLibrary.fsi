@@ -28,7 +28,7 @@ trait TestComparison
     opr =(self, other:TestComparison): Boolean
     (*) This stuff ought to be provided by StandardPartialOrder.
     opr CMP(self, other:TestComparison): TestComparison
-    opr <(self, other:TestComparison): Boolean
+    abstract opr <(self, other:TestComparison): Boolean
     opr >(self, other:TestComparison): Boolean
     opr <=(self, other:TestComparison): Boolean
     opr >=(self, other:TestComparison): Boolean

@@ -10,5 +10,7 @@
  ******************************************************************************)
 
 api Compiled3.f
-  trait T end
+  trait T   
+    abstract f(x: String): ()
+  end
 end
