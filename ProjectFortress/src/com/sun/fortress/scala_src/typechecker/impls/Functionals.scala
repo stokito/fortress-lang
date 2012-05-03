@@ -30,6 +30,7 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.scala_src.typechecker._
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.useful.{HasAt, NI}
+import com.sun.fortress.repository.ProjectProperties
 /**
  * Provides the implementation of cases relating to functionals and functional
  * application.
@@ -676,7 +677,9 @@ trait Functionals { self: STypeChecker with Common =>
 
       // We know the arg pattern match succeeds because all app candidates
       // generated for functions include a single arg.
-      val AppCandidate(bestArrow, bestSargs, List(bestArg), _) = candidates.head
+      // is method not None?
+      val AppCandidate(bestArrow, bestSargs, List(bestArg),
+                       opt_overloading) = candidates.head
 
       // Rewrite the applicand to include the arrow and unlifted static args
       // and update the application.
@@ -698,6 +701,15 @@ trait Functionals { self: STypeChecker with Common =>
                staticArgs, _, origName: Id,
                names, iOverloadings, newOverloadings, overloadingType, overloadingSchema) if selfPos == -1 =>
           val selfRef = checkExpr(EF.makeVarRef(span, "self"))
+          if (true || ProjectProperties.DEBUG_METHOD_TAGGING) {
+              if (opt_overloading.isSome()) {
+                  val ov = opt_overloading.get.getUnambiguousName()
+                  val xxx = env.lookup(ov).get.fnIndices
+                  System.err.println(xxx);
+              } else {
+                  System.err.println("No overloading seen for " + expr)
+              }
+          }
           val res : MethodInvocation =
               SMethodInvocation(info, selfRef, origName, staticArgs, bestArg,
                                 overloadingType, overloadingSchema)
