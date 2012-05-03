@@ -696,6 +696,9 @@ object ExportChecker {
         val equalDecls = equalListMembers(declsL, declsR, cause)
         if ( ! equalDecls._1 )
           cause = addMessage(cause, equalDecls._2)
+        val abstractOK = allAbstractsMadePublic(declsL, declsR, cause)
+        if ( ! abstractOK._1 )
+          cause = addMessage(cause, abstractOK._2)  
         (cause.equals(""), cause)
     }
 
@@ -736,6 +739,26 @@ object ExportChecker {
     NodeUtil.isComprisesEllipses(declInAPI) &&
     toOptList(NodeUtil.getComprisesClause(declInAPI)).map(_.isEmpty).getOrElse(true)
 
+  /*
+   * Returns true if abstract members of a component are declared in the corresponding api  
+   */
+    
+  private def allAbstractsMadePublic(inAPI: List[Decl], inComp: List[Decl], original: String): (Boolean, String) = {
+    var cause = original
+    (inComp.forall( 
+    	d => d match {
+    	  case SFnDecl(_,h,_,_,_) => if (h.getMods().isAbstract()) {
+    	    val b = inAPI.exists(r => equalMember(d,r))
+    	    if (b) true else { cause = addMessage(cause, "Asbtract method " + h.getName() + " @ " + NodeUtil.getSpan(d) + " is not declared in the API") ; false }
+    	  }  else true
+    	  case _ => true
+    	}
+        
+    ),cause)
+  }                  	
+                                 
+    
+    
   /* Returns true if members in traits and objects in an API have
    * corresponding members in the component.
    */
