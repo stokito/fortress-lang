@@ -2104,7 +2104,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 Span span = NodeUtil.getSpan(name);
                 List<Type> t1 = overloadedDomain();
                 Type domain = t1.size() == 1 ? t1.get(0) : NodeFactory.makeTupleType(t1);
-                
+                // DRC why not fnni = new FnNameInfo(principalMember.tagF, cg.thisApi())?
+                // could be a name problem
                 FnNameInfo fnni = new FnNameInfo(sargs, getRange(), domain, cg.thisApi(), (IdOrOp) name, span );
                 FnNameInfo fnni_closure = fnni.convertGenericMethodToClosureDecl(selfIndex,
                         cg.currentTraitObjectDecl.getHeader().getStaticParams());
@@ -2160,14 +2161,19 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
          * @return
          */
         protected List<StaticParam> staticParametersOf(Functional fu) {
-            List<StaticParam> params = null;
-            if (fu instanceof FunctionalMethod) {
-                params = ((FunctionalMethod) fu).staticParameters();
-                if (params.size() == 0)
-                    params = null;
-            } else {
-                params = super.staticParametersOf(fu);
-            }
+            // unlike top-level functional methods only "have" their own 
+            // static parameters (i.e., trait static parameters are ignored).
+            List<StaticParam> params = fu.staticParameters();
+            if (params.size() == 0)
+                params = null;
+//            List<StaticParam> params = null;
+//            if (fu instanceof FunctionalMethod) {
+//                params = ((FunctionalMethod) fu).staticParameters();
+//                if (params.size() == 0)
+//                    params = null;
+//            } else {
+//                params = super.staticParametersOf(fu);
+//            }
             return params;
         }
 

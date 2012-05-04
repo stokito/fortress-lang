@@ -91,7 +91,7 @@ object STypesUtil {
    * @param overloading Optional Overloading node for this candidate. Should
    *    exist for all candidates of overloaded functions.
    */
-  case class PreAppCandidate(arrow: ArrowType, overloading: Option[Overloading])
+  case class PreAppCandidate(arrow: ArrowType, overloading: Option[Overloading], fnl:Option[Functional])
 
   /**
    * A function application candidate.
@@ -106,7 +106,8 @@ object STypesUtil {
   case class AppCandidate(arrow: ArrowType,
     sargs: List[StaticArg],
     args: List[Expr],
-    overloading: Option[Overloading]) {
+    overloading: Option[Overloading],
+    fnl:Option[Functional]) {
 
     /**
      * Combine all the args in this candidate into a single, perhaps tuple arg
@@ -115,7 +116,7 @@ object STypesUtil {
      */
     def mergeArgs(loc: Span): AppCandidate = {
       val newArg = EF.makeArgumentExpr(loc, toJavaList(args))
-      AppCandidate(arrow, sargs, List(newArg), overloading)
+      AppCandidate(arrow, sargs, List(newArg), overloading, fnl)
     }
   }
 
@@ -1043,8 +1044,8 @@ object STypesUtil {
   def moreSpecificCandidate(candidate1: AppCandidate,
     candidate2: AppCandidate)(implicit coercions: CoercionOracle): Boolean = {
 
-    val AppCandidate(SArrowType(_, domain1, range1, _, _, mi1), _, args1, _) = candidate1
-    val AppCandidate(SArrowType(_, domain2, range2, _, _, mi2), _, args2, _) = candidate2
+    val AppCandidate(SArrowType(_, domain1, range1, _, _, mi1), _, args1, _, _) = candidate1
+    val AppCandidate(SArrowType(_, domain2, range2, _, _, mi2), _, args2, _, _) = candidate2
 
     // If these are dotted methods, add in the self type as an implicit first
     // parameter. The new domains will be a tuple of the form
@@ -1116,7 +1117,7 @@ object STypesUtil {
             skipOverloads: Boolean)(implicit analyzer: TypeAnalyzer): Expr = {
 
     // Pull out the info for the winning candidate.
-    val sma@AppCandidate(bestArrow, bestSargs, _, bestOverloading) = candidates.head
+    val sma@AppCandidate(bestArrow, bestSargs, _, bestOverloading, bestFnl) = candidates.head
 
     fn match {
       case fn: FunctionalRef =>
@@ -1777,7 +1778,7 @@ object STypesUtil {
    */
   object AppCandidateMethodInfo {
     def unapply(c: AppCandidate): Option[(Type, Int)] = c match {
-      case AppCandidate(SArrowType(_, _, _, _, _, Some(SMethodInfo(t, p))), _, _, _) =>
+      case AppCandidate(SArrowType(_, _, _, _, _, Some(SMethodInfo(t, p))), _, _, _, _) =>
         Some((t, p))
       case _ => None
     }
