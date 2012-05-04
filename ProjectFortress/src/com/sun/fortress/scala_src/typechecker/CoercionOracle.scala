@@ -211,7 +211,7 @@ class CoercionOracle(traits: TraitTable,
     // Build app candidates and sort them to find the SMA.
     val candidates = coercionsAndArgs.map { caa => {
       if (false) {
-          AppCandidate(caa._2, caa._3, List(arg), None)
+          AppCandidate(caa._2, caa._3, List(arg), None, None)
       } else {
           // Trying to fake an overloading to see if we can get the schema right
           // So far this breaks things, but why?
@@ -221,13 +221,13 @@ class CoercionOracle(traits: TraitTable,
                        caa_ast.getUnambiguousName,
                        caa_ast.getHeader.getName,
                        Some(caa._2),
-                       Some(caa._4))))
+                       Some(caa._4))), None)
           }
       }
     }.toList.sortWith { (c1, c2) =>
       moreSpecificCandidate(c1, c2)(this)
     }
-    val AppCandidate(bestArrow, bestSargs, _, bestOverload) = candidates.head
+    val AppCandidate(bestArrow, bestSargs, _, bestOverload, bestFnl) = candidates.head
     val coercionId = makeCoercionId(u)
     
     // Make an overloading for each lifted coercion to U.
