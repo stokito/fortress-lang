@@ -26,6 +26,7 @@ import com.sun.fortress.compiler.index.DeclaredMethod;
 import com.sun.fortress.compiler.index.FieldGetterOrSetterMethod;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
+import com.sun.fortress.compiler.index.HasTraitStaticParameters;
 import com.sun.fortress.scala_src.overloading.OverloadingOracle;
 import com.sun.fortress.scala_src.typechecker.Formula;
 import com.sun.fortress.scala_src.types.TypeAnalyzer;
@@ -2106,7 +2107,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 Type domain = t1.size() == 1 ? t1.get(0) : NodeFactory.makeTupleType(t1);
                 // DRC why not fnni = new FnNameInfo(principalMember.tagF, cg.thisApi())?
                 // could be a name problem
-                FnNameInfo fnni = new FnNameInfo(sargs, getRange(), domain, cg.thisApi(), (IdOrOp) name, span );
+                FnNameInfo fnni = new FnNameInfo(sargs,
+                        ((HasTraitStaticParameters)(principalMember.tagF)).traitStaticParameters(),
+                        getRange(), domain, cg.thisApi(), (IdOrOp) name, span );
                 FnNameInfo fnni_closure = fnni.convertGenericMethodToClosureDecl(selfIndex,
                         cg.currentTraitObjectDecl.getHeader().getStaticParams());
                 CodeGen.GenericMethodBodyMaker gmbm = new CodeGen.GenericMethodBodyMaker () {

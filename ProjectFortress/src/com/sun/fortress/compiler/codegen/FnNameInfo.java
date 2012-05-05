@@ -14,6 +14,7 @@ import java.util.List;
 
 import com.sun.fortress.compiler.NamingCzar;
 import com.sun.fortress.compiler.index.Functional;
+import com.sun.fortress.compiler.index.HasTraitStaticParameters;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.FnDecl;
@@ -34,17 +35,20 @@ import com.sun.fortress.useful.Useful;
 
 public class FnNameInfo {
     final List<StaticParam> static_params;
+    final List<StaticParam> trait_static_params;
     final Type returnType;
     final Type paramType;
     final APIName ifNone;
     final IdOrOp name;
     final Span span;
     
-    public FnNameInfo(List<StaticParam> static_params, Type returnType,
+    public FnNameInfo(List<StaticParam> static_params,
+            List<StaticParam> trait_static_params, Type returnType,
             Type paramType, APIName ifNone, IdOrOp name, Span span) {
         
         super();
         this.static_params = static_params;
+        this.trait_static_params = trait_static_params;
         this.returnType = returnType;
         this.paramType = paramType;
         this.ifNone = ifNone;
@@ -72,13 +76,15 @@ public class FnNameInfo {
             new ConcatenatedList<StaticParam>(
                     new InsertedList<StaticParam>(static_params, 0, new_sp),
                 to_static_params);
-        return new FnNameInfo(new_sparams, returnType, new_param_type,ifNone, name, span);
+        // This use of trait_static_params is perhaps a little dubious; we'll see.
+        return new FnNameInfo(new_sparams, trait_static_params, returnType, new_param_type,ifNone, name, span);
     }
 
-    public FnNameInfo(FnDecl x, APIName ifNone) {
+    public FnNameInfo(FnDecl x, List<StaticParam> trait_static_params, APIName ifNone) {
         FnHeader header = x.getHeader();
 
         static_params = x.getHeader().getStaticParams();
+        this.trait_static_params = trait_static_params;
         returnType = header.getReturnType().unwrap();
         paramType = NodeUtil.getParamType(x);
         this.ifNone = ifNone;
@@ -87,6 +93,8 @@ public class FnNameInfo {
     }
     
     public FnNameInfo(Functional x, APIName ifNone) {
+        HasTraitStaticParameters htsp = (HasTraitStaticParameters) x;
+        trait_static_params = htsp.traitStaticParameters();
         static_params = x.staticParameters();
         ArrowType at = CodeGen.fndeclToType(x, Naming.NO_SELF);
         returnType = at.getRange();

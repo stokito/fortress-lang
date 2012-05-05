@@ -32,7 +32,7 @@ import java.util.List;
  * Note that this is a {@link Function}, not a {@link Method}, despite the name
  * (methods have distinct receivers).
  */
-public class FunctionalMethod extends Function implements HasSelfType {
+public class FunctionalMethod extends Function implements HasSelfType, HasTraitStaticParameters {
     protected final FnDecl _ast;
     protected final Id _declaringTrait;
     protected final List<StaticParam> _traitParams;
