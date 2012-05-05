@@ -926,7 +926,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             scala.Tuple3<Functional, StaticTypeReplacer, TraitType> tup = assoc.second();
             TraitType tupTrait = tup._3();
             StaticTypeReplacer inst = tup._2();
-            Functional fnl = tup._1();
+            Functional fnl = (tup._1()); // better be true
             //System.err.println("  "+assoc.first()+" "+tupTrait+" "+fnl);
             /* Skip non-definitions. */
             if (!fnl.body().isSome()) {
@@ -1263,7 +1263,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 //		    System.out.println("  narrowed_func = " + narrowed_func);
 //		    System.out.println("  super_inst = " + super_inst);
 //		    System.out.println("  currentTraitObjectType = " + currentTraitObjectType);
-                    generateForwardingFor(super_func, narrowed_func, false, super_inst, currentTraitObjectType, currentTraitObjectType, true); // swapped
+                    generateForwardingFor( super_func, narrowed_func, false, super_inst, currentTraitObjectType, currentTraitObjectType, true); // swapped
                     // TODO emit the forwarding method
                     continue;
                 }
@@ -2229,15 +2229,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // This is not right yet -- the name is wrong.
         String TO_method_name = currentTraitObjectDecl.getHeader().getName().stringName() + Naming.UP_INDEX + name.getText();
         
+        List<StaticParam> trait_static_parameters = currentTraitObjectDecl.getHeader().getStaticParams();
+        
         String selfType = savedInATrait ? traitOrObjectName +  NamingCzar.springBoard : traitOrObjectName;
         // Bug here, not getting the type name right.
         Id gfid = NodeFactory.makeId(sp_span, TO_method_name);
         String template_class_name = 
-            generateGenericFunctionClass(new FnNameInfo(new_fndecl, thisApi()),
+            generateGenericFunctionClass(new FnNameInfo(new_fndecl, trait_static_parameters, thisApi()),
                     new GenericMethodBodyMakerFnDecl(new_fndecl), gfid,
                     Naming.NO_SELF, traitOrObjectName);
         
-        String method_name = genericMethodName(new FnNameInfo(x, thisApi()), self_index);
+        String method_name = genericMethodName(new FnNameInfo(x, trait_static_parameters, thisApi()), self_index);
         if (typeLevelOverloadedNamesAndSigs.contains(method_name))
             method_name  = NamingCzar.mangleAwayFromOverload(method_name);
         generateGenericMethodClosureFinder(method_name, template_class_name, selfType, savedInATrait);
@@ -2892,7 +2894,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         // throw sayWhat(x, "Generic methods not yet implemented.");
 
                     } else {
-                        generateGenericFunctionClass(new FnNameInfo(x, thisApi()),
+                        List<StaticParam> tsp = null;
+                        generateGenericFunctionClass(new FnNameInfo(x, tsp, thisApi()),
                                 new GenericMethodBodyMakerFnDecl(x), (IdOrOp)name, selfIndex, null);
                     }
                  } else if (savedInATrait) {
@@ -3082,7 +3085,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
              * Step 3: call the appropriate, returned, closure.
              */
             
-            PCNforClosure pair = nonCollidingClosureName(new FnNameInfo(x, thisApi()), Naming.NO_SELF, name,
+            PCNforClosure pair = nonCollidingClosureName(new FnNameInfo(x, trait_sparams, thisApi()), Naming.NO_SELF, name,
                     f_method_static_params);
             
             String PCN = pair.PCN;
@@ -3117,7 +3120,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 //            String dottedName = Naming.fmDottedName(singleName(name), selfIndex);
 //            ArrowType invoked_at = fndeclToType(new FnNameInfo(new_fndecl, thisApi()), selfIndex);
 //            String method_name2 = genericMethodName(dottedName, invoked_at);
-            String method_name = genericMethodName(new FnNameInfo(new_fndecl, thisApi()), selfIndex);
+            String method_name = genericMethodName(new FnNameInfo(new_fndecl, trait_sparams, thisApi()), selfIndex);
 //            String alt_method_name = genericMethodName(fnni, selfIndex);
 //            if (! method_name.equals(method_name2)) {
 //                throw new Error("mismatched names:\n" + method_name + "\n" + method_name2+ "\n" + alt_method_name);
@@ -3338,7 +3341,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             int invocation, String dottedName, int selfIndex,
             List<Param> params, int modifiers) {
                 
-        PCNforClosure pair = nonCollidingClosureName(new FnNameInfo(x, thisApi()), Naming.NO_SELF,
+        List<StaticParam> tsp = currentTraitObjectDecl.getHeader().getStaticParams();
+
+        PCNforClosure pair = nonCollidingClosureName(new FnNameInfo(x, tsp, thisApi()), Naming.NO_SELF,
                 (IdOrOp) x.getHeader().getName(),
                 static_params);
         
@@ -6599,7 +6604,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             if (sparams.size() > 0) {
                 // Not handling overload-based name-forwarding of generic methods yet.
-                String method_name = genericMethodName(new FnNameInfo(f, thisApi()), selfIndex);
+                List<StaticParam> tsp = currentTraitObjectDecl.getHeader().getStaticParams();
+
+                String method_name = genericMethodName(new FnNameInfo(f, tsp, thisApi()), selfIndex);
                 CodeGenMethodVisitor mv = cw.visitCGMethod(ACC_ABSTRACT + ACC_PUBLIC, method_name, genericMethodClosureFinderSig, null, null);
                 mv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
                 mv.visitEnd();
