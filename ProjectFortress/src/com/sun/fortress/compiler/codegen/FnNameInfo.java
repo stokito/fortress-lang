@@ -40,9 +40,9 @@ import com.sun.fortress.useful.Useful;
 
 public class FnNameInfo {
     final List<StaticParam> static_params;
-    final List<StaticParam> trait_static_params;
-     final Type returnType;
-     final Type paramType;
+    private final List<StaticParam> trait_static_params;
+    private final Type returnType;
+    private final Type paramType;
     final APIName ifNone;
     final IdOrOp name;
     final Span span;
@@ -152,8 +152,7 @@ public class FnNameInfo {
         return NodeFactory.makeArrowType(NodeFactory.makeSpan(dt,rt), dt, rt);
     }
 
-    public Type normalizedSchema() {
-        Type at = NodeFactory.makeArrowType(paramType.getInfo().getSpan(), paramType, returnType);
+    public ArrowType normalizedSchema(Type at) {
         // make list of params by concatenating trait and method params
         // make list of synthesized args in form "1t", "2t", ..., "1m", "2m", ..
         // use STR to normalize the return type.
@@ -163,15 +162,17 @@ public class FnNameInfo {
         for (StaticParam sp : trait_static_params) {
             lsp.add(sp);
             lsa.add(NodeFactory.makeTypeArg(NodeFactory.makeVarType(sp.getInfo().getSpan(), i + "t")));
+            i++;
         }
         i = 1;
         for (StaticParam sp : static_params) {
             lsp.add(sp);
             lsa.add(NodeFactory.makeTypeArg(NodeFactory.makeVarType(sp.getInfo().getSpan(), i + "m")));
+            i++;
         }
         StaticTypeReplacer str = new StaticTypeReplacer(lsp, lsa);
-        at =  str.replaceIn(at);
-        return at;
+        ArrowType new_at =  (ArrowType) (str.replaceIn(at));
+        return  new_at;
     }
 
     /**
@@ -201,7 +202,7 @@ public class FnNameInfo {
     }
     
     ArrowType methodArrowType(int selfIndex) {
-        return methodArrowType(this, selfIndex);
+        return normalizedSchema(methodArrowType(this, selfIndex));
     }
 
     ArrowType functionArrowType() {

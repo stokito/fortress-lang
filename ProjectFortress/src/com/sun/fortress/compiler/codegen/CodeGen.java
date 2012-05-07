@@ -2041,11 +2041,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         List<StaticParam> static_params = x.static_params;
         
-        Type returnType = x.returnType;
-
         String sig =
-            NamingCzar.jvmSignatureFor(x.paramType,
-                                       returnType, component.getName());
+            NamingCzar.jvmSignatureFor(x.functionArrowType(), component.getName());
 
         /* TODO Really, the canonicalization of the type names should occur
          * in static analysis.  This has to use names that will be known
