@@ -2908,13 +2908,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     }
 
-    private ArrowType fndeclToType(FnNameInfo x) {
-        return x.methodArrowType(Naming.NO_SELF);
-    }
-    
-
-
-
     private String genericDecoration(FnDecl x, Naming.XlationData xldata) {
         List<StaticParam> sparams = x.getHeader().getStaticParams();
         return NamingCzar.genericDecoration(sparams, xldata, thisApi());
@@ -3191,7 +3184,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     public PCNforClosure nonCollidingClosureName(FnNameInfo x, int self_index, IdOrOp name,
             List<StaticParam> f_method_static_params) {
-        ArrowType at = fndeclToType(x); // type schema from old
+        ArrowType at = x.functionArrowType(); // type schema from old
         String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
                    false);
         return nonCollidingClosureName(generic_arrow_type, self_index, name, f_method_static_params);
