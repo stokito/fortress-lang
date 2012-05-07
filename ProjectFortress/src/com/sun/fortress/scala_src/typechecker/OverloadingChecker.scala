@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2012, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -32,6 +32,7 @@ import com.sun.fortress.compiler.index.{FunctionalMethod => JavaFunctionalMethod
 import com.sun.fortress.compiler.index.{Method => JavaMethod}
 import com.sun.fortress.compiler.index.{Variable => JavaVariable}
 import com.sun.fortress.compiler.index.{HasSelfType => JavaHasSelfType}
+import com.sun.fortress.compiler.index.DeclaredFunction
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer
 import com.sun.fortress.exceptions.InterpreterBug
 import com.sun.fortress.exceptions.InterpreterBug.bug
@@ -98,6 +99,22 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
       else fns
     }
 
+    private def getFunctionalMethods(index: CompilationUnitIndex, f: IdOrOpOrAnonymousName): List[(ArrowType,Option[Int])] = {
+      
+        val fndecls = toSet(index.functions.matchFirst(f)).asInstanceOf[Set[JavaFunctional]]
+        val fndeclsfiltered = fndecls.filter(f => f.isInstanceOf[JavaFunctionalMethod])
+        toFunctionArrows(fndeclsfiltered, false)
+
+    }
+    
+    private def getDeclaredFunctions(index: CompilationUnitIndex, f: IdOrOpOrAnonymousName): List[(ArrowType,Option[Int])] = {
+      
+        val fndecls = toSet(index.functions.matchFirst(f)).asInstanceOf[Set[JavaFunctional]]
+        val fndeclsfiltered = fndecls.filter(f => f.isInstanceOf[DeclaredFunction])
+        toFunctionArrows(fndeclsfiltered, false)
+
+    }    
+    
     private def toFunctionArrows(set: Set[JavaFunctional], onlyConcrete: Boolean):
         List[(ArrowType,Option[Int])] =
       set.filter(s => isFunction(s) &&
@@ -145,10 +162,12 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
         val importItems = toListFromImmutable(ast.getImports)
         val importStars = importItems.filter(_.isInstanceOf[ImportStar]).map(_.asInstanceOf[ImportStar])
         val importNames = importItems.filter(_.isInstanceOf[ImportNames]).map(_.asInstanceOf[ImportNames])
-	// First check names of functions declared in this component.
+
+        // First check names of functions declared in this component.
         for ( f <- toSet(functions) ; if isDeclaredName(f) ) {
           val name = f.asInstanceOf[IdOrOp].getText
           var set = getFunctionsFromCompilationUnit(compilation_unit, f)
+
           for ( i <- importNames ) {
             for ( n <- toListFromImmutable(i.getAliasedNames) ) {
               if ( n.getAlias.isSome &&
@@ -162,6 +181,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
               }
             }
           }
+          
           for ( i <- importStars ) {
             val index = globalEnv.lookup(i.getApiName)
             val excepts = toListFromImmutable(i.getExceptNames).asInstanceOf[List[IdOrOp]]
@@ -174,10 +194,45 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
               }
             }
           }
+          
           // debugging probe: TypeError.b3(name, f, set)
           checkFunctionOverloading(kindAndName, f, set, globalOracle)
-        }
+          
+          val dFunctions = getDeclaredFunctions(compilation_unit, f)
 
+          var fMethods = getFunctionalMethods(compilation_unit, f)
+
+          for ( i <- importNames ) {
+            for ( n <- toListFromImmutable(i.getAliasedNames) ) {
+              if ( n.getAlias.isSome &&
+                   n.getAlias.unwrap.asInstanceOf[IdOrOp].getText.equals(name) ) {
+                // get the JavaFunctionals from the api and add them to set
+                fMethods ++= getFunctionalMethods(globalEnv.lookup(i.getApiName), n.getName)
+              } else if ( n.getAlias.isNone &&
+                          n.getName.asInstanceOf[IdOrOp].getText.equals(name) ) {
+                // get the JavaFunctionals from the api and add them to set
+                fMethods ++= getFunctionalMethods(globalEnv.lookup(i.getApiName), f)
+              }
+            }
+          }
+          
+          for ( i <- importStars ) {
+            val index = globalEnv.lookup(i.getApiName)
+            val excepts = toListFromImmutable(i.getExceptNames).asInstanceOf[List[IdOrOp]]
+            for ( n <- toSet(index.functions.firstSet).++(toSet(index.variables.keySet)) ) {
+              val text = n.asInstanceOf[IdOrOp].getText
+              if ( text.equals(name) &&
+                   ! excepts.contains((m:IdOrOp) => m.getText.equals(text)) ) {
+                // get the JavaFunctionals from the api and add them to set
+                fMethods ++= getFunctionalMethods(index, f)
+              }
+            }
+          }          
+          
+          checkFancyRule(f, dFunctions, fMethods, globalOracle)
+          
+        }
+        
         // Overloading checking for imported functionals that are not declared in this component
         for ( f <- importNames ) {
           for ( g <- toListFromImmutable(f.getAliasedNames);
@@ -222,8 +277,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
 
         // Now check trait and object declarations.
         val typesInComp = compilation_unit.typeConses
-        for ( t <- toSet(typesInComp.keySet) ;
-              if NU.isTraitOrObject(typesInComp.get(t)) ) {
+        for ( t <- toSet(typesInComp.keySet) ; if NU.isTraitOrObject(typesInComp.get(t)) ) {
             val traitOrObject = typesInComp.get(t).asInstanceOf[TraitIndex]
             val traitKindAndName = (compilation_unit match { case _:ObjectTraitIndex => "object "; case _ => "trait " }) + NU.getName(traitOrObject.ast)
             // Extend the type analyzer with the collected static parameters
@@ -253,22 +307,34 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
             }
 
             val tt = STypesUtil.declToTraitType(traitOrObject.ast)
-	    val methodsR = allMethods(tt, typeAnalyzer)
+	        val methodsR = allMethods(tt, typeAnalyzer)
 
-	    for (f <- toSet(methodsR.firstSet) ; if isDeclaredName(f) ) {
-              val mset = toSet(methodsR.matchFirst(f))
-	      val dottedMethods = mset.filter(x => x match { case (m, str, tt) => m.isInstanceOf[JavaMethod] &&
-	      	  		  		     	     	      m.asInstanceOf[JavaMethod].selfType.isSome })  // unsure why this second condition
-	      checkMethodOverloading(traitKindAndName, f, toMethodArrows(dottedMethods), oracle)
-	      val functionalMethods = mset.filter(x => x match { case (m, str, tt) => m.isInstanceOf[JavaFunction]})
-	      checkMethodOverloading(traitKindAndName, f, toFunctionalMethodArrows(functionalMethods), oracle)
-	    }
+	        for (f <- toSet(methodsR.firstSet) ; if isDeclaredName(f) ) {
+                  val mset = toSet(methodsR.matchFirst(f))
+	              val dottedMethods = mset.filter(x => x match { case (m, str, tt) => m.isInstanceOf[JavaMethod] &&
+	      	      		  		     	     	      m.asInstanceOf[JavaMethod].selfType.isSome })  // unsure why this second condition
+	              checkMethodOverloading(traitKindAndName, f, toMethodArrows(dottedMethods), oracle)
+	              val functionalMethods = mset.filter(x => x match { case (m, str, tt) => m.isInstanceOf[JavaFunction]})
+	              checkMethodOverloading(traitKindAndName, f, toFunctionalMethodArrows(functionalMethods), oracle)
+	        }
             typeAnalyzer = oldTypeAnalyzer
         }
         toJavaList(errors)
     }
 
 
+    private def checkFancyRule(name: IdOrOpOrAnonymousName, dFunctions: List[(ArrowType,Option[Int])], fMethods: List[(ArrowType,Option[Int])], oracle: OverloadingOracle) = {
+      
+      // These variables are used to improve the error message
+      var x: ArrowType = null 
+      var y: ArrowType = null  
+      if (!dFunctions.forall(f => fMethods.forall( m => if (!(oracle.lteq(f._1,m._1))) true else { x = f._1; y = m._1; false } )))
+        error(x.getInfo().getSpan(),"Overload violation: the declaration of top-level function " + name + " on line " + 
+             x.getInfo().getSpan() + " is more specific than the declaration of the functional method " + name + " on line " + 
+             y.getInfo().getSpan())
+      
+    }
+    
     /* Checks the validity of the overloaded method declarations. */
     private def checkMethodOverloading(containingKindAndName: String,
     	    			       name: IdOrOpOrAnonymousName,
@@ -291,52 +357,50 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                                  pairs: List[(ArrowType,Option[Int])],
                                  isMethod: Boolean,
 				 oracle: OverloadingOracle)
-                                : Unit = pairs.size match {
-      case 0 =>
-      case 1 =>
-      case _ =>
-        var signatures = List[(ArrowType,Option[Int])]()
-        for ( sig@(at, sp) <- pairs ) {
-          signatures.find(p => p match { case (at2, sp2) => oracle.equiv(at, at2) && sp == sp2 }) match {
-            case Some((at2: ArrowType,sp2)) =>
-              error(mergeSpan(at, at2),
-                    "There are multiple declarations of " +
-                    name + " with the same parameter type: " + globalOracle.sa.makeDomainFromArrow(at, isMethod))
-            case None =>
-          }
-          if ( checkBoundAny(at.getDomain, toListFromImmutable(at.getInfo.getStaticParams)) ) {
-	    error(NU.getSpan(at), "A functional which takes a single parameter " +
-                        "of a parametric type bound by Any\n    cannot be overloaded.")
-          }
-	  signatures = sig :: signatures
-        }
-        var index = 1
-        for ( first <- signatures ) {
-          signatures.slice(index, signatures.length)
-          .foreach(second =>
-	             if (! validOverloading(first, second, signatures, isMethod, oracle) ) {
-		       val (fa, fsp) = first
-		       val (ga, gsp) = second
-		       val firstO = typeAndSpanToString(fa)
-		       val secondO = typeAndSpanToString(ga)
-		       for (i <- 1 to 100) {
-		           val for_debugging = validOverloading(first, second, signatures, isMethod, oracle)
-		         //  if (! for_debugging)
-		          //   println("Failed after failure")
-		       }
-		       val mismatch = if (firstO < secondO)
-					firstO + "\n and " + secondO
-				      else
-					secondO + "\n and " + firstO
-		       error(mergeSpan(fa, ga),
-			     "Invalid overloading of " + name + " in " + containingKindAndName +
-			     ":\n     " + mismatch)
-		     } else {
-		       returnTypeCheck(name, first, second, oracle)
-		       returnTypeCheck(name, second, first, oracle)
-		     } )
-          index += 1
-        }
+                                : Unit = 
+        pairs.size match {
+                case 0 =>
+                case 1 =>
+                case _ => var signatures = List[(ArrowType,Option[Int])]()
+                          for ( sig@(at, sp) <- pairs ) {
+                        	  signatures.find(p => p match { case (at2, sp2) => oracle.equiv(at, at2) && sp == sp2 }) match {
+                                	case Some((at2: ArrowType,sp2)) =>
+                                	error(mergeSpan(at, at2),
+                                			"There are multiple declarations of " +
+                                					name + " with the same parameter type: " + globalOracle.sa.makeDomainFromArrow(at, isMethod))
+                                	case None =>	
+                              }	
+                              if ( checkBoundAny(at.getDomain, toListFromImmutable(at.getInfo.getStaticParams)) ) {
+                                		error(NU.getSpan(at), "A functional which takes a single parameter " +
+                                				"of a parametric type bound by Any\n    cannot be overloaded.")
+                              }
+                                	signatures = sig :: signatures
+                           }
+                           var index = 1
+                           for ( first <- signatures ) {
+                               signatures.slice(index, signatures.length).foreach(second =>
+                                       if (! validOverloading(first, second, signatures, isMethod, oracle) ) {
+                                	      val (fa, fsp) = first
+                                	      val (ga, gsp) = second
+                                	      val firstO = typeAndSpanToString(fa)
+                                	      val secondO = typeAndSpanToString(ga)
+                                	      for (i <- 1 to 100) {
+                                		      val for_debugging = validOverloading(first, second, signatures, isMethod, oracle)
+                                									//  if (! for_debugging)
+                                									//   println("Failed after failure")
+                                	      } 
+                                	      val mismatch = if (firstO < secondO) firstO + "\n and " + secondO
+                                				         else secondO + "\n and " + firstO
+                                					      	error(mergeSpan(fa, ga),
+                                								"Invalid overloading of " + name + " in " + containingKindAndName +
+                                								":\n     " + mismatch)
+                                       } else {
+                                	      returnTypeCheck(name, first, second, oracle)
+                                	      returnTypeCheck(name, second, first, oracle)
+                                       } 
+                                 )
+                                 index += 1
+                           }
     }
 
     /* A functional which takes a single parameter of a parametric type
@@ -358,10 +422,12 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
 				 oa: OverloadingOracle): Boolean = {
       val (fa, fsp) = first
       val (ga, gsp) = second
-      (oa.lteq(fa, ga) ||
-       oa.lteq(ga, fa) ||
-       oa.excludes(fa, ga) ||
-       meetRule(first, second, signatures, isMethod, oa))
+      val b1 = oa.lteq(fa, ga)
+      val b2 = oa.lteq(ga, fa) 
+      val b3 = oa.excludes(fa, ga) 
+      val b4 = meetRule(first, second, signatures, isMethod, oa)
+      //if (b1) !b2 else ( b2 || b3 || b4 )  //JT: It looks like the duplicate rule IS enforced somewhere else
+      (b1 || b2 || b3 || b4)
     }
 
     private def meetRule(first: (ArrowType, Option[Int]),

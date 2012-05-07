@@ -23,7 +23,7 @@ trait A2 extends A1
     f ( self, y : General -> Specific) = "A2gs"
 end
 
-f (x : A1, y : General -> Specific) = "A1gs-"
+(*)f (x : A1, y : General -> Specific) = "A1gs-"
 
 object A1o extends A1 end
 object A2o extends A2 end
