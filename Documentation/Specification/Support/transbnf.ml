@@ -328,7 +328,7 @@ let print_keywords g =
     List.map extract_nt (List.filter filter_nt (get_all g)) 
 
 let read_and_parse_bnf () = 
-  let ic = open_in "../Data/bnf.txt" in
+  let ic = open_in "./Data/bnf.txt" in
   let line_counter = ref 1 in
   let in_file = ref [] in
   let _ = 
@@ -356,7 +356,7 @@ let pretty_print_full_grammar () =
   let kwds = List.fold_left (fun s -> fun elt -> S.add elt s) S.empty kwds in
   S.iter (fun x -> Printf.printf "%s   %!" x) kwds;
   Printf.printf "\n%!";
-  let oc = open_out "../Data/bnf.tex" in
+  let oc = open_out "./Generated/Data/bnf.tex" in
   let g = pp_grammar g in
   List.iter (fun x -> let x = x ^ "\n" in output_string oc x) g;
   close_out oc

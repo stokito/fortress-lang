@@ -18,9 +18,15 @@
 \usepackage{longtable} 
 
 
-\newcommand{\home}{..}
+% This file should be processed from Documentation/Specification/Generated/Root
 
-\input{\home/Support/all-macros}
+\newcommand{\prosedir}{../Prose}                % Specification/Generated/Prose
+\newcommand{\codedir}{../Code}                  % Specification/Generated/Code
+\newcommand{\datadir}{../Data}                  % Specification/Generated/Data
+\newcommand{\supportdir}{../../Support}         % Specification/Support
+\newcommand{\fortifydir}{../../../../Fortify}
+
+\input{\supportdir/all-macros}
 
 % Need to add stuff from old preamble, but I'd like to do this incrementally, 
 % as we understand what we need.
@@ -28,7 +34,14 @@
 
 % What packages do we need? 
 % John: I had to bring this over temporarily, vistor, please let me know where you want this to go.
-\newcommand{\note}[1]{\framebox[\textwidth][t]{\parbox[t]{\textwidth}{#1}}}
+\newdimen\notewidth
+\newcommand{\note}[1]{{\ifhmode\unskip\hfill\break\else\noindent\fi
+    \notewidth=\textwidth  \advance\notewidth by -2em
+                \framebox[\textwidth][t]{\parbox[t]{\notewidth}{#1}}\break}}
+% \newcommand{\note}[1]{{\let\endstuff\relax\ifhmode\def\endstuff{\break}\hfill\break\fi
+%     \notewidth=\textwidth  \advance\notewidth by -2em
+%     \framebox[\textwidth][t]{\parbox[t]{\notewidth}{#1}}\endstuff}}
+
 
 
 \title{The Fortress Language Specification}
@@ -45,10 +58,10 @@
 
 \mainmatter
 
-\input{\home/Preliminaries/preliminaries}
-\input{\home/Language/language}
-\input{\home/Libraries/libraries}
-\input{\home/Appendices/appendices}
+\input{\prosedir/Preliminaries/preliminaries}
+\input{\prosedir/Language/language}
+\input{\prosedir/Libraries/libraries}
+\input{\prosedir/Appendices/appendices}
 
 \backmatter
 

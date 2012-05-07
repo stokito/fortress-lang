@@ -75,8 +75,8 @@ let fetch_grammar l =
     (before, nt, after)
 
 let process nt = 
-  let header = "\n\\begin{longtable}[l]{p{3cm}ll}" in
-  let footer = "\\end{longtable} \\hfill \n" in
+  let header = "\\begin{longtable}[l]{p{3cm}ll}" in
+  let footer = "\\end{longtable} \\hfill" in
   header :: (Transbnf.select_and_print nt) @ [footer]
 
 let rec transform l = 
