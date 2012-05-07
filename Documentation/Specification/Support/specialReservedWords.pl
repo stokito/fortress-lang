@@ -13,9 +13,16 @@ use strict;
 
 # Generates fortress-specialReservedWords.tex
 
-my $file = '../Data/fortress-specialReservedWords';
-open IN, "<$file";
-open OUT, '>>fortress-specialReservedWords.tex';
+# Working directory must be SPEC_HOME
+
+# Input file comes from SPEC_HOME/Data/fortress-specialReservedWords
+# Output file is SPEC_HOME/Generated/Data/fortress-specialReservedWords.tex
+
+my $infile = 'Data/fortress-specialReservedWords';
+my $outfile = 'Generated/Data/fortress-specialReservedWords.tex';
+
+open IN, "<$infile";
+open OUT, ">$outfile";
 
 print OUT "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
 print OUT "%   Copyright 2012, Oracle and/or its affiliates.\n";

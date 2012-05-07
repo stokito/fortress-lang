@@ -9,6 +9,4 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\newchap{Simplified Grammar for Application Programmers and Library Writers}{grammar}
-
-\input{../Data/bnf.tex}
+\newchap{Exceptions}{exceptions}

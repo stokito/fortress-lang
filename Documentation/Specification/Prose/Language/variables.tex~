@@ -9,5 +9,4 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\input{\supportdir/macros}
-\input{\supportdir/spec-macros}
+\newchap{Variables}{variables}
