@@ -9,5 +9,7 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\input{\supportdir/macros}
-\input{\supportdir/spec-macros}
+\newchap{Programs}{programs}
+
+
+

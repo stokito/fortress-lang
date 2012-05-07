@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 ################################################################################
-#    Copyright 2009, Oracle and/or its affiliates.
+#    Copyright 2009,2012 Oracle and/or its affiliates.
 #    All rights reserved.
 #
 #
@@ -13,9 +13,16 @@ use strict;
 
 # Generates fortress-keywords.tex
 
-my $file = '../Data/fortress-keywords';
-open IN, "<$file";
-open OUT, '>>fortress-keywords.tex';
+# Working directory must be SPEC_HOME
+
+# Input file comes from SPEC_HOME/Data/fortress-keywords
+# Output file is SPEC_HOME/Generated/Data/fortress-keywords.tex
+
+my $infile = 'Data/fortress-keywords';
+my $outfile = 'Generated/Data/fortress-keywords.tex';
+
+open IN, "<$infile";
+open OUT, ">$outfile";
 
 print OUT "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
 print OUT "%   Copyright 2012, Oracle and/or its affiliates.\n";
