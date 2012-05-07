@@ -31,6 +31,7 @@ import com.sun.fortress.scala_src.typechecker._
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.useful.{HasAt, NI}
 import com.sun.fortress.repository.ProjectProperties
+import com.sun.fortress.compiler.codegen.FnNameInfo
 /**
  * Provides the implementation of cases relating to functionals and functional
  * application.
@@ -601,6 +602,8 @@ trait Functionals { self: STypeChecker with Common =>
       if (bestFnl.isNone) {
          signal(expr, errorMsg("Method Invocation best Fnl is none"))
       }
+      val modifiedSchema = Some(new FnNameInfo(bestFnl.get.asInstanceOf[DeclaredMethod].originalMethod, null).normalizedSchema(bestOver.getSchema.get));
+
       // Rewrite the new expression with its type and checked args.
       SMethodInvocation(SExprInfo(span, paren, Some(bestArrow.getRange)),
                         checkedObj,
@@ -608,7 +611,7 @@ trait Functionals { self: STypeChecker with Common =>
                         newSargs,
                         bestArg,
                         Some(bestArrow),
-                        bestOver.getSchema)
+                        modifiedSchema)
     }
 
     case fn@SFunctionalRef(_, sargs, _, name, _, _, overloadings, _, _) => {
@@ -721,9 +724,13 @@ trait Functionals { self: STypeChecker with Common =>
             signal(expr, "No overloading for for method invocation ");
         }
 
+        val declaredMethod = env.lookup(opt_overloading.get.getUnambiguousName()).get.fnIndices.first
+        // Not happy about passing null for defaultApi, but don't think it is necessary for schema normalization
+        val modifiedSchema = Some(new FnNameInfo(declaredMethod, null).normalizedSchema(overloadingSchema.get));
+        
         val res : MethodInvocation =
           SMethodInvocation(info, selfRef, origName, staticArgs, bestArg,
-                  overloadingType, overloadingSchema)
+                  overloadingType, modifiedSchema)
                   // System.err.println(span+": app of "+checkedFn+
                   //                    "\n  selfType="+selfType+
                   //                    "\n  self: "+getType(selfRef)+
