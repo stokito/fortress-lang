@@ -173,7 +173,8 @@ public class Naming {
     public final static String INDEX = "\u261e";  // "__"; // "\u261e"; // white right point index (for dotted of functional methods)
     public final static String BOX = "\u2610"; // ballot box, used to indicate prefix or postfix.
     
-    public final static String HEAVY_X = "\u2716"; // heavy X -- stop rewriting in an instantiation, for schema tags
+    public final static String HEAVY_X = "\u2716"; // heavy X -- stop rewriting in an instantiation, for method_schema tags
+    public final static String HEAVY_CROSS = "\u271A"; // heavy CROSS -- stop rewriting in an instantiation, for closure schema tags
 
     public static final String UP_INDEX = "\u261d"; // Special static parameter for static type of self in generic method invocation
     
@@ -192,6 +193,7 @@ public class Naming {
     public final static char NORMAL_TAG_CHAR = NORMAL_TAG.charAt(0);
     
     public static final char HEAVY_X_CHAR = HEAVY_X.charAt(0);
+    public static final char HEAVY_CROSS_CHAR = HEAVY_CROSS.charAt(0);
 
     public final static String GEAR = "\u2699";
 
@@ -1003,7 +1005,7 @@ public class Naming {
     public static String genericFunctionPkgClass(String component_pkg_class, String simple_name,
             String static_parameters, String generic_arrow_schema) {
         return component_pkg_class + GEAR +"$" +
-        simple_name + static_parameters + ENVELOPE + "$" + HEAVY_X + generic_arrow_schema;
+        simple_name + static_parameters + ENVELOPE + "$" + HEAVY_CROSS + generic_arrow_schema;
     }
 
 
@@ -1189,7 +1191,7 @@ public class Naming {
         public static final String NON_OVERLOADED_TAG = "\u2659"; // Pawn
         public static final String METHOD_SPECIALS =
             NON_OVERLOADED_TAG + INDEX + GENERIC_SEPARATOR +
-            LEFT_HEAVY_ANGLE + RIGHT_HEAVY_ANGLE + HEAVY_X;
+            LEFT_HEAVY_ANGLE + RIGHT_HEAVY_ANGLE + HEAVY_X + HEAVY_CROSS;
         
 
     

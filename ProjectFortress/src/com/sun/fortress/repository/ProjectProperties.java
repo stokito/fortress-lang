@@ -327,6 +327,8 @@ public class ProjectProperties {
     public static final boolean DISABLE_CONTRAVARIANCE =
         getBoolean("fortress.disable.contravariance", true);
 
+    public static final boolean DEBUG_METHOD_TAGGING = 
+        getBoolean("fortress.debug.method.tagging", false);
 
     /**
      * Creates a new instance of ProjectProperties

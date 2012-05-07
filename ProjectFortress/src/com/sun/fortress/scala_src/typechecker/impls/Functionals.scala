@@ -30,6 +30,7 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
 import com.sun.fortress.scala_src.typechecker._
 import com.sun.fortress.exceptions.StaticError
 import com.sun.fortress.useful.{HasAt, NI}
+import com.sun.fortress.repository.ProjectProperties
 /**
  * Provides the implementation of cases relating to functionals and functional
  * application.
@@ -143,7 +144,7 @@ trait Functionals { self: STypeChecker with Common =>
     val mOpNames = mOpName match {
       case Some(opName) => 
         // If we are checking an operator the overloading in preCandidate should be some
-        val PreAppCandidate(_, Some(ovName)) = preCandidate
+        val PreAppCandidate(_, Some(ovName), _) = preCandidate // DRC breakpoint
         Some((opName, ovName.getOriginalName.asInstanceOf[Op]))
       case None => None
     }
@@ -162,7 +163,7 @@ trait Functionals { self: STypeChecker with Common =>
 
     // If applicable, then inject the lifted static args into the result.
     candidateOrError.left.map { c =>
-      AppCandidate(c.arrow, liftedSargs ++ c.sargs, c.args, c.overloading)
+      AppCandidate(c.arrow, liftedSargs ++ c.sargs, c.args, c.overloading, c.fnl)
     }
   }
 
@@ -251,7 +252,8 @@ trait Functionals { self: STypeChecker with Common =>
         Left(AppCandidate(resultArrow,
                           sargs,
                           newArgs.map(_.left.get),
-                          preCandidate.overloading))
+                          preCandidate.overloading,
+                          preCandidate.fnl))
       }
     }
 
@@ -319,7 +321,8 @@ trait Functionals { self: STypeChecker with Common =>
         Left(AppCandidate(arrow,
                           Nil,
                           newArgs.map(_.left.get),
-                          preCandidate.overloading))
+                          preCandidate.overloading,
+                          preCandidate.fnl))
       else
         Right(errorFactory.makeNotApplicableError(originalArrow, args))
     }
@@ -465,29 +468,29 @@ trait Functionals { self: STypeChecker with Common =>
       case m => Some(m)
     }
     val methods = findMethodsInTraitHierarchy(name, recvrType).toList.flatMap(noGetterSetter)
-    var arrowsAndSchemata = methods.flatMap{ m =>
+    var arrowsAndSchemataAndMethods = methods.flatMap{ m =>
       (makeArrowFromFunctional(m), makeArrowFromFunctional(m.originalMethod)) match {
-        case (Some(s), Some(t)) => Some((s,t))
+        case (Some(s), Some(t)) => Some((s,t,m))
         case _ => None
       }
     }
     // Make sure all of the functions had return types declared or inferred
     // TODO: This could be handled more gracefully
-    if (arrowsAndSchemata.size != methods.size) {
+    if (arrowsAndSchemataAndMethods.size != methods.size) {
       signal(loc, "The return type for %s could not be inferred".format(name))
       return None
     }
 
     // Instantiate the arrows if you were given static args
     if (!sargs.isEmpty) {
-      arrowsAndSchemata = arrowsAndSchemata.
+      arrowsAndSchemataAndMethods = arrowsAndSchemataAndMethods.
         flatMap(a => staticInstantiationForApp(sargs, a._1).
-            map(x => (x.asInstanceOf[ArrowType],a._2)))
+            map(x => (x.asInstanceOf[ArrowType],a._2, a._3)))
     }
 
     // Methods have no Overloading nodes.
-    Some(arrowsAndSchemata.map(a => PreAppCandidate(a._1, 
-        Some(SOverloading(a._1.getInfo, name, name, Some(a._1), Some(a._2))))))
+    Some(arrowsAndSchemataAndMethods.map(a => PreAppCandidate(a._1, 
+        Some(SOverloading(a._1.getInfo, name, name, Some(a._1), Some(a._2))), Some(a._3))))
   }
 
   /**
@@ -506,12 +509,12 @@ trait Functionals { self: STypeChecker with Common =>
           // The fn has already been type checked, so each overloading has an
           // arrow type.
           val arrow = ov.getType.get.asInstanceOf[ArrowType]
-          PreAppCandidate(arrow, Some(ov))
+          PreAppCandidate(arrow, Some(ov), None) //DRC break here, None is wrong
         }
       case _ =>
         conjuncts(fnType).toList.map { t =>
           val arrow = t.asInstanceOf[ArrowType]
-          PreAppCandidate(arrow, None)
+          PreAppCandidate(arrow, None, None) //DRC break here, None is wrong
         }
     })
   }
@@ -561,7 +564,7 @@ trait Functionals { self: STypeChecker with Common =>
         checkApplication(preCandidates, subs, expected).getOrElse(return expr)
 
       // We only care about the most specific one.
-      val AppCandidate(bestArrow, bestSargs, bestSubs, _) = candidates.head
+      val AppCandidate(bestArrow, bestSargs, bestSubs, _, _), _ = candidates.head
       val newSargs = if (sargs.isEmpty) bestSargs.filter(!_.isLifted) else sargs
 
       // Rewrite the new expression with its type and checked args.
@@ -592,9 +595,12 @@ trait Functionals { self: STypeChecker with Common =>
       // We only care about the most specific one. We know the args pattern
       // match succeeds because all app candidates generated for method
       // invocations include only a single arg.
-      val AppCandidate(bestArrow, bestSargs, List(bestArg), Some(bestOver)) = candidates.head
+      val AppCandidate(bestArrow, bestSargs, List(bestArg), Some(bestOver), bestFnl) = candidates.head
       val newSargs = if (sargs.isEmpty) bestSargs.filter(!_.isLifted) else sargs
 
+      if (bestFnl.isNone) {
+         signal(expr, errorMsg("Method Invocation best Fnl is none"))
+      }
       // Rewrite the new expression with its type and checked args.
       SMethodInvocation(SExprInfo(span, paren, Some(bestArrow.getRange)),
                         checkedObj,
@@ -676,7 +682,10 @@ trait Functionals { self: STypeChecker with Common =>
 
       // We know the arg pattern match succeeds because all app candidates
       // generated for functions include a single arg.
-      val AppCandidate(bestArrow, bestSargs, List(bestArg), _) = candidates.head
+      // is method not None?
+      val AppCandidate(bestArrow, bestSargs, List(bestArg),
+                       opt_overloading, fnl) = candidates.head
+      // Believe that fnl will be useless here, must do lookup instead below
 
       // Rewrite the applicand to include the arrow and unlifted static args
       // and update the application.
@@ -691,22 +700,36 @@ trait Functionals { self: STypeChecker with Common =>
         // and therefore doesn't include any locally-defined methods unless they
         // implement or override superclass methods].
         // TODO: is method overloading going to cause this pattern match to fail?
-        case SFnRef(exprInfo@
-               SExprInfo(span, paren,
-                         Some(SArrowType(typeInfo, dom, rng, effect, io,
-                                         Some(mi@SMethodInfo(selfType, selfPos))))),
-               staticArgs, _, origName: Id,
-               names, iOverloadings, newOverloadings, overloadingType, overloadingSchema) if selfPos == -1 =>
-          val selfRef = checkExpr(EF.makeVarRef(span, "self"))
-          val res : MethodInvocation =
-              SMethodInvocation(info, selfRef, origName, staticArgs, bestArg,
-                                overloadingType, overloadingSchema)
-          // System.err.println(span+": app of "+checkedFn+
-          //                    "\n  selfType="+selfType+
-          //                    "\n  self: "+getType(selfRef)+
-          //                    "\n  REWRITTEN TO: "+res.toStringReadable())
-          res
-        case _ =>
+      case SFnRef(exprInfo@
+              SExprInfo(span, paren,
+                      Some(SArrowType(typeInfo, dom, rng, effect, io,
+                              Some(mi@SMethodInfo(selfType, selfPos))))),
+                              staticArgs, _, origName: Id,
+                              names, iOverloadings, newOverloadings, overloadingType, overloadingSchema) if selfPos == -1 =>
+        val selfRef = checkExpr(EF.makeVarRef(span, "self"))
+        if (opt_overloading.isSome()) {
+            val ov = opt_overloading.get.getUnambiguousName()
+            val xxx = env.lookup(ov).get.fnIndices
+            if (ProjectProperties.DEBUG_METHOD_TAGGING) 
+               System.err.println(xxx);
+            if (xxx.size != 1) {
+                signal(expr, "Lookup for " + ov + " for method invocation failed");
+            }
+        } else {
+            if (ProjectProperties.DEBUG_METHOD_TAGGING) 
+                System.err.println("No overloading seen for " + expr)
+            signal(expr, "No overloading for for method invocation ");
+        }
+
+        val res : MethodInvocation =
+          SMethodInvocation(info, selfRef, origName, staticArgs, bestArg,
+                  overloadingType, overloadingSchema)
+                  // System.err.println(span+": app of "+checkedFn+
+                  //                    "\n  selfType="+selfType+
+                  //                    "\n  self: "+getType(selfRef)+
+                  //                    "\n  REWRITTEN TO: "+res.toStringReadable())
+                  res
+      case _ =>
           S_RewriteFnApp(info, newFn, bestArg)
       }
     }
@@ -720,7 +743,7 @@ trait Functionals { self: STypeChecker with Common =>
       // Type check the application.
       val candidates = checkApplication(preCandidates, args, expected, Some(opName)).
                          getOrElse(return expr)
-      val AppCandidate(bestArrow, bestSargs, bestArgs, _) = candidates.head
+      val AppCandidate(bestArrow, bestSargs, bestArgs, _, _) = candidates.head
 
       // Rewrite the applicand to include the arrow and static args
       // and update the application.

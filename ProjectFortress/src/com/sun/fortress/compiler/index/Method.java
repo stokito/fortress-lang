@@ -30,9 +30,11 @@ import java.util.List;
 /**
  * Comprises DeclaredMethod, FieldGetterMethod, and FieldSetterMethod.
  */
-public abstract class Method extends Functional implements HasSelfType {
+public abstract class Method extends Functional implements HasSelfType, HasTraitStaticParameters {
     public abstract Node ast();
     public abstract Method originalMethod();
+    public abstract List<StaticParam> traitStaticParameters();
+
     
     /**
      * Returns a version of this Functional, with params replaced with args.

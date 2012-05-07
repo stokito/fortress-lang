@@ -36,6 +36,10 @@ public class SignatureParser implements Opcodes {
      */
     private final String signature;
 
+    public String toString() {
+        return arguments + "->" + result;
+    }
+    
     // private final String prefix = "com/sun/fortress/interpreter/evaluator/values/";
 
     public static boolean unsayable(String s) {
@@ -83,7 +87,7 @@ public class SignatureParser implements Opcodes {
 
     /**
      * Converts s, the signature of an existing Java method, into
-     * the 
+     * a lsit of parameter types and a return type.
      */
     public SignatureParser(String s) {
         arguments = new ArrayList<String>();
@@ -222,4 +226,8 @@ public class SignatureParser implements Opcodes {
         
     }
 
+    public int paramCount() {
+        return arguments.size();
+    }
+    
 }

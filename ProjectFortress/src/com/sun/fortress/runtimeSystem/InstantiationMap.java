@@ -349,7 +349,7 @@ public class InstantiationMap  {
                  ch != ';' && 
                  ch != Naming.RIGHT_OXFORD_CHAR && 
                  ch != Naming.RIGHT_HEAVY_ANGLE_CHAR) {
-             if (ch == Naming.HEAVY_X_CHAR)
+             if (ch == Naming.HEAVY_X_CHAR || ch == Naming.HEAVY_CROSS_CHAR)
                  disabled = true;
                  if (!maybeVar) {
                  accum.append(ch);
@@ -414,7 +414,7 @@ public class InstantiationMap  {
                  maybeChunk(input, accum, at, last);
                  accum.append(ch);
                  last=at+1;
-                 if (ch == Naming.HEAVY_X_CHAR) {
+                 if (ch == Naming.HEAVY_X_CHAR || ch == Naming.HEAVY_CROSS_CHAR) {
                      accum.append(input.substring(last));
                      return;
                  }
@@ -490,12 +490,15 @@ public class InstantiationMap  {
     }
 
     /**
-     * @param s
+     * @param s 
      * @return
      */
     public static int templateClosingRightOxford(String s) {
         int heavy_x = s.indexOf(Naming.HEAVY_X);
-        int rightBracket = (heavy_x == -1 ? s : s.substring(0, heavy_x)).lastIndexOf(Naming.RIGHT_OXFORD);
+        int heavy_c = s.indexOf(Naming.HEAVY_CROSS);
+        // Assume s can contain cross or X but not both.
+        int heavy_max = Math.max(heavy_x, heavy_c);
+        int rightBracket = (heavy_max == -1 ? s : s.substring(0, heavy_max)).lastIndexOf(Naming.RIGHT_OXFORD);
         return rightBracket;
     }
 
