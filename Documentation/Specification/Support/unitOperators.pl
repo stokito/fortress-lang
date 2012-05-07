@@ -13,9 +13,16 @@ use strict;
 
 # Generates fortress-unitOperators.tex
 
-my $file = '../Data/fortress-unitOperators';
-open IN, "<$file";
-open OUT, '>>fortress-unitOperators.tex';
+# Working directory must be SPEC_HOME
+
+# Input file comes from SPEC_HOME/Data/fortress-unitOperators
+# Output file is SPEC_HOME/Generated/Data/fortress-unitOperators.tex
+
+my $infile = 'Data/fortress-unitOperators';
+my $outfile = 'Generated/Data/fortress-unitOperators.tex';
+
+open IN, "<$infile";
+open OUT, ">$outfile";
 
 print OUT "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
 print OUT "%   Copyright 2012, Oracle and/or its affiliates.\n";
