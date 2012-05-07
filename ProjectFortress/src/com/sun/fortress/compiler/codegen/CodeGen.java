@@ -2302,7 +2302,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      */
     // many call sites
     public String genericMethodName(FnNameInfo x, int selfIndex) {
-        ArrowType at = fndeclToType(x, selfIndex); // This looks wrong, too.
+        ArrowType at = x.methodArrowType(selfIndex); // This looks wrong, too.
         String possiblyDottedName = Naming.fmDottedName(singleName(x.name), selfIndex);
         
         String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
@@ -2341,28 +2341,20 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
      * @param sparams
      */
     public String genericMethodClosureName(FnNameInfo x, int selfIndex) {
-        ArrowType at = fndeclToType(x, selfIndex);
+        ArrowType at = x.methodArrowType(selfIndex);
         String possiblyDottedName = Naming.fmDottedName(singleName(x.name), selfIndex);
         
         return genericMethodClosureName(possiblyDottedName, at);    
     }
     
     private String genericMethodClosureName(Functional x, int selfIndex) {
-
-        IdOrOp name = x.name();
-        ArrowType at = fndeclToType(x, selfIndex);
-        String possiblyDottedName = Naming.fmDottedName(singleName(name), selfIndex);
-        
-        return genericMethodClosureName(possiblyDottedName, at);    
+        return genericMethodClosureName(new FnNameInfo(x, thisApi()), selfIndex);
     }
     
     // DRC-WIP
 
     private String genericMethodClosureName(IdOrOp name, ArrowType at) {
-        String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(),
-                false);
-        
-        return genericMethodClosureName(name.getText(), generic_arrow_type);
+        return genericMethodClosureName(name.getText(), at);
     }
 
     private String genericMethodClosureName(String name, ArrowType at) {
@@ -2917,78 +2909,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     private ArrowType fndeclToType(FnNameInfo x) {
-        return fndeclToType(x, Naming.NO_SELF);
+        return x.methodArrowType(Naming.NO_SELF);
     }
     
-    /**
-     * Returns the ArrowType of a method where the self parameter (if any)
-     * has been removed from the domain.  This is used to create signatures
-     * for the method part of a functional method.
-     * 
-     * @param x
-     * @param selfIndex
-     * @return
-     */
-    private ArrowType fndeclToType(FnNameInfo x, int selfIndex) {
-        Type rt = x.returnType;
-        Type dt = x.paramType;
-        if (selfIndex != Naming.NO_SELF) {
-            if (dt instanceof TupleType) {
-                List<Type> types = ((TupleType) dt).getElements();
-                types = new DeletedList<Type>(types, selfIndex);
-                dt = types.size() == 1 ?
-                        types.get(0) :
-                        NodeFactory.makeTupleType(NodeUtil.getSpan(dt), types);
-            } else {
-               dt = NodeFactory.makeVoidType(x.span);
-            }
-        }
-        return NodeFactory.makeArrowType(NodeFactory.makeSpan(dt,rt), dt, rt);
-    }
-    
-    /**
-     * Returns the ArrowType of a method where the self parameter (if any)
-     * has been removed from the domain.  This is used to create signatures
-     * for the method part of a functional method.
-     * 
-     * @param x
-     * @param selfIndex
-     * @return
-     */
-    static ArrowType fndeclToType(Functional x, int selfIndex) {
-        Type rt = x.getReturnType().unwrap();
-        List<Param> lp = x.parameters();
-        if (selfIndex != Naming.NO_SELF)
-            lp = new DeletedList<Param>(lp, selfIndex);
-        return typeAndParamsToArrow(x.getSpan(), rt, lp);
-    }
 
-
-    /**
-     * @param x
-     * @param rt
-     * @param lp
-     * @return
-     */
-    private static ArrowType typeAndParamsToArrow(Span span, Type rt, List<Param> lp) {
-        Type dt = null;
-        switch (lp.size()) {
-        case 0:
-            dt = NodeFactory.makeVoidType(span);
-            break;
-        case 1:
-            dt = (Type)lp.get(0).getIdType().unwrap(); // TODO varargs
-            break;
-        default:
-            dt = NodeFactory.makeTupleType(Useful.applyToAll(lp, new Fn<Param,Type>() {
-                @Override
-                public Type apply(Param x) {
-                    return (Type)x.getIdType().unwrap(); // TODO varargs
-                }}));
-            break;
-        }
-        return NodeFactory.makeArrowType(NodeFactory.makeSpan(dt,rt), dt, rt);
-    }
 
 
     private String genericDecoration(FnDecl x, Naming.XlationData xldata) {
@@ -4098,19 +4022,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
             if (cnb.isGeneric) {
                 ArrowType at =
-                    typeAndParamsToArrow(NodeUtil.getSpan(x),
+                    FnNameInfo.typeAndParamsToArrow(NodeUtil.getSpan(x),
                             NodeFactory.makeTraitType(classId,
                                     STypesUtil.staticParamsToArgs(original_static_params)),
                                     original_params.unwrap());
                 String generic_arrow_type = NamingCzar.jvmTypeDesc(at, thisApi(), false);
                 
-//                mname = nonCollidingSingleName(x.getHeader().getName(), sig, generic_arrow_type);
-//                PCN =
-//                    Naming.genericFunctionPkgClass(packageAndClassName, mname,
-//                                                       sparams_part, generic_arrow_type);
-//                PCNOuter =
-//                    Naming.genericFunctionPkgClass(packageAndClassName, mname,
-//                                Naming.makeTemplateSParams(sparams_part) , generic_arrow_type);
 
                 PCNforClosure pair = nonCollidingClosureName(generic_arrow_type, Naming.NO_SELF, (IdOrOp) x.getHeader().getName(),
                         original_static_params);
