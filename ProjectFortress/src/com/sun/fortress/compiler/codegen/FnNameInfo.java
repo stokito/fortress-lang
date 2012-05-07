@@ -203,4 +203,8 @@ public class FnNameInfo {
     ArrowType methodArrowType(int selfIndex) {
         return methodArrowType(this, selfIndex);
     }
+
+    ArrowType functionArrowType() {
+        return methodArrowType(this, Naming.NO_SELF);
+    }
 }
