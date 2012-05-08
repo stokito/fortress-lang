@@ -2332,7 +2332,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
            parameters from parent trait/object.
            (HEAVY_X stops substitution in instantiator).
            */
-        return name + Naming.UP_INDEX + Naming.HEAVY_X + "@@@" + generic_arrow_type + "!!!";
+        return name + Naming.UP_INDEX + Naming.HEAVY_X + generic_arrow_type ;
     }
     
     /**
@@ -5905,7 +5905,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 StaticArg receiverStaticArg = NodeFactory.makeTypeArg(receiverType);
                 List<StaticArg> prepended_method_sargs = Useful.prepend(receiverStaticArg, method_sargs);
                 
-                boolean anySymbolic = Useful.orReduction(method_sargs, isSymbolic);
+                boolean anySymbolic = Useful.orReduction(prepended_method_sargs, isSymbolic);
                 
                 Type prepended_domain = null;
                 /* I think we start to have a problem here in the future,
