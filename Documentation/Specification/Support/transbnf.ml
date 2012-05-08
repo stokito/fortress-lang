@@ -117,6 +117,23 @@ let identify c len =
 
 let escape s = 
   match s with
+    | "[[[" -> "[\\"
+    | "]]]" -> "\\]"
+    | "[([" -> "("
+    | "])]" -> ")"
+    | "[|]" -> "|"
+    | "[+]" -> "+"
+    | "[*]" -> "*"
+    | "[?]" -> "?"
+    | "kBIGSUM" -> "SUM"
+    | "kBIGPROD" -> "PROD"
+    | "kBIG" -> "BIG"
+    | "kTIMES" -> "TIMES"
+    | _ -> s
+
+(*
+let escape s = 
+  match s with
     | "{" -> "\\{"
     | "}" -> "\\}"
     | "^" -> "\\wedge" 
@@ -129,12 +146,17 @@ let escape s =
     | "<-" -> "\\leftarrow"
     | "[([" -> "("
     | "])]" -> ")"
+    | "[|]" -> "|"
+    | "[+]" -> "+"
+    | "[*]" -> "*"
+    | "[?]" -> "?"
     | "=>" -> "\\Rightarrow"
     | "kBIGSUM" -> "\\sum"
     | "kBIGPROD" -> "\\prod"
     | "kBIG" -> "BIG"
     | "kTIMES" -> "\\times"
     | _ -> s
+*)
 
 let rec explode s: choice = 
   if length s <= 0 then [] else
@@ -174,11 +196,11 @@ let rec pp_prere p =
     | PStar -> "$^*$"
     | POpt -> "$^?$"
     | PPlus -> "$^+$"
-    | PNonterminal s -> Printf.sprintf " $\\mathsf{%s}$" s
-    | PKeyword s -> Printf.sprintf " $\\mathbf{%s}$" s
+    | PNonterminal s -> Printf.sprintf " $\\formatNT{%s}$" s
+    | PKeyword s -> Printf.sprintf " `%s`" s
     | PGroup l -> " $\\big($ " ^ concat "" (List.map pp_prere l) ^ " $\\big)$"
-    | PLpar -> failwith "A regexp has a left parenthis while pretty printing"
-    | PRpar -> failwith "A regexp has a right parenthis while pretty printing"
+    | PLpar -> failwith "A regexp has a left parenthesis while pretty printing"
+    | PRpar -> failwith "A regexp has a right parenthesis while pretty printing"
 
 let parse_regexp l: choice = 
   let nl = scan_regexp l in
@@ -230,21 +252,39 @@ let rec parse_grammar l =
     | g,[] -> g
     | g,rem -> failwith "BNF parsing error"
 
-let pp_choice (choice: choice) = " & $\\big|$" ^ " & " ^ (concat "" (List.map pp_prere choice)) ^ " \\\\"
+let pp_choice (choice: choice) = " & $|$" ^ " & {\\tt " ^ (concat "" (List.map pp_prere choice)) ^ "} \\\\"
 
 let pp_choices (choices: choices) = List.map pp_choice choices
 
+let linespacing_amount = "2pt"
+
+let pp_improve_linespacing strs =
+  match List.rev strs with
+    | lastone :: others -> List.rev ((lastone ^ "[" ^ linespacing_amount ^ "]") :: others)
+    | [] -> []
+
+let pp_strip_linespacing str =
+  let n = 4 + String.length linespacing_amount in
+  if String.length str < n then str
+  else if (String.sub str (String.length str - n) n) = ("\\\\[" ^ linespacing_amount ^ "]") then String.sub str 0 (String.length str - n)
+  else str
+
+let pp_strip_last_linespacing lines =
+  match List.rev lines with
+    | lastone :: others -> List.rev ((pp_strip_linespacing lastone) :: others)
+    | _ -> []
+
 let pp_entry ((header,choices): string * choices)  = 
   let first = List.hd choices in
-  let s = "$\\mathsf{" ^ header ^ "}$ & " ^ " $\\mathsf{::=}$ " ^ " &" ^ (concat "" (List.map pp_prere first)) ^ " \\\\"  in
-  s :: (pp_choices (List.tl choices))
+  let s = "$\\defineNT{" ^ header ^ "}$ & " ^ " $\\mathsf{::=}$ " ^ " & {\\tt " ^ (concat "" (List.map pp_prere first)) ^ "} \\\\"  in
+  pp_improve_linespacing (s :: pp_choices (List.tl choices))
 
-let pp_entries entries = List.flatten (List.map pp_entry entries)
+let pp_entries entries = pp_strip_last_linespacing (List.flatten (List.map pp_entry entries))
 
 let pp_section (title,entries): string list = 
   let sec = Printf.sprintf "\\section{%s} \n" title in
-  let h = Printf.sprintf " \n\\begin{longtable}[l]{p{3cm}rl}" in
-  let e = Printf.sprintf "\\end{longtable} \\hfill \n" in
+  let h = Printf.sprintf " \n{\\FortressMathsurround=0pt\\begin{longtable}[l]{p{3cm}rl}" in
+  let e = Printf.sprintf "\\end{longtable} }\n" in
   sec :: h :: ((pp_entries entries) @ [e])
 
 let pp_sections sections: string list = 
@@ -256,6 +296,24 @@ let rec select_entries entries nt =
   match entries with
     | [] -> []
     | (s,_) as hd :: tl ->
+      if s = nt then hd :: select_entries tl nt 
+      else select_entries tl nt
+
+let rec select_sections sections nt = 
+  match sections with
+    | [] -> []
+    | (_,entries) :: tl -> select_entries entries nt @ select_sections tl nt
+
+let rec select_nt_entries sections nts =
+  match nts with
+    | [] -> []
+    | nt :: tl -> select_sections sections nt @ select_nt_entries sections tl
+
+(*
+let rec select_entries entries nt =
+  match entries with
+    | [] -> []
+    | (s,_) as hd :: tl ->
       if List.mem s nt then hd :: select_entries tl nt 
       else select_entries tl nt
 
@@ -263,6 +321,7 @@ let rec select_sections sections nt =
   match sections with
     | [] -> []
     | (_,entries) :: tl -> select_entries entries nt @ select_sections tl nt
+*)
 
 let map_entries f (g: grammar) =
   List.flatten (List.map (fun (_,es) -> List.map f es) g)
@@ -345,7 +404,7 @@ let read_and_parse_bnf () =
 
 let select_and_print nt = 
   let g = read_and_parse_bnf() in
-  let entries = select_sections g nt in
+  let entries = select_nt_entries g nt in
   pp_entries entries
 
 let pretty_print_full_grammar () = 
@@ -356,7 +415,7 @@ let pretty_print_full_grammar () =
   let kwds = List.fold_left (fun s -> fun elt -> S.add elt s) S.empty kwds in
   S.iter (fun x -> Printf.printf "%s   %!" x) kwds;
   Printf.printf "\n%!";
-  let oc = open_out "./Generated/Data/bnf.tex" in
+  let oc = open_out "./Generated/Data/bnf.tick" in
   let g = pp_grammar g in
   List.iter (fun x -> let x = x ^ "\n" in output_string oc x) g;
   close_out oc

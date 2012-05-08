@@ -1,0 +1,47 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newsec{While Loops}{while}
+
+The `while` statement executes a test and a `do` expression, sequentially and repeatedly, until the test fails.
+The test may be either a Boolean expression or a generator binding.
+
+%%%%% GRAMMAR %%%%%
+%WhileExpr
+%GeneratorBinding
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+
+
+A `while` expression with an expression is executed by first evaluating \NT{Expr}.  [page \pageref{nonterminal:Expr}]
+(It is a static error if the static type of \NT{Expr} does not conform to `Boolean`.)
+If this evaluation completes abruptly for some reason, evaluation of the `while` expression completes abruptly for the same reason.
+Otherwise, execution continues by making a choice based on the resulting value $v$.
+If $v$ is `false`, no further action is taken; execution of the `while` expression completes normally with value `()`.
+But if $v$ is `true`, then the \NT{Do} expression is evaluated.
+If this evaluation completes abruptly for some reason, evaluation of the `while` expression completes abruptly for the same reason;
+otherwise, the entire `while` expression is executed again (beginning by re-evaluating \NT{Expr}).
+For example:
+
+\input{\codedir/WhileLoop1.tex}
+
+A `while` expression with a generator binding is executed by first evaluating \NT{Expr}.
+(It is a static error if the static type of \NT{Expr} does not conform to `Condition[\T\]` for some `T`.)
+If this evaluation completes abruptly for some reason, evaluation of the `while` expression completes abruptly for the same reason.
+Otherwise, execution continues by making a choice based on the resulting value $v$.
+If $v$ does not contain a value, no further action is taken; execution of the `while` expression completes normally with value `()`.
+If $v$ contains a value $w$, then the pattern in the generator binding is matched to that value @w@ and then the \NT{Do} expression is evaluated
+(variables bound by the pattern are visible within the \NT{Do} expression).
+If this evaluation completes abruptly for some reason, evaluation of the `while` expression completes abruptly for the same reason;
+otherwise, the entire `while` expression is executed again (beginning by re-evaluating \NT{Expr}).
+For example:
+
+\input{\codedir/WhileLoop2.tex}

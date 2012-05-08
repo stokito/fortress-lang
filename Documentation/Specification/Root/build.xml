@@ -26,7 +26,7 @@ This distribution may include materials developed by third parties.
   <property name="code.home"
             value="${spec.home}/Generated/Code"/>
   <property name="ticksource.home"
-            value="${spec.home}/Generated/Prose"/>
+            value="${spec.home}/Generated"/>
   <property name="latex.home"
             value="${spec.home}/Generated/Root"/>
   <property name="example.home"
@@ -117,25 +117,25 @@ This distribution may include materials developed by third parties.
 	    </exec>
   </target>
 
-  <target name="processBNF" depends="copySources, doTicks">
-	    <exec executable="ocaml" dir="${spec.home}">
+  <target name="processBNF" depends="copySources">
+	    <exec executable="ocaml" failonerror="true" dir="${spec.home}">
 		    <arg value="${spec.home}/Generated/Support/transbnf.ml" />
 	    </exec>	
-	    <exec executable="ocamlc" dir="${spec.home}/Generated/Support/">
+	    <exec executable="ocamlc" failonerror="true" dir="${spec.home}/Generated/Support/">
 		    <arg value="${spec.home}/Generated/Support/transbnf.ml" />
 	    </exec>
-	    <exec executable="ocamlc" dir="${spec.home}/Generated/Support/">
+	    <exec executable="ocamlc" failonerror="true" dir="${spec.home}/Generated/Support/">
 		    <arg value="${spec.home}/Generated/Support/transbnf.cmo" />
 		    <arg value="${spec.home}/Generated/Support/grammar_preprocessor.ml" />
 		    <arg value="-o" />
 		    <arg value="${spec.home}/Generated/Support/gp" />
 	    </exec>
-	    <exec executable="${spec.home}/Generated/Support/gp" dir="${spec.home}">
+	    <exec executable="${spec.home}/Generated/Support/gp" failonerror="true" dir="${spec.home}">
 		    <arg value="${spec.home}/Generated/Prose/" />
 	    </exec>	
   </target>
 
-  <target name="doTicks" depends="copySources">
+  <target name="doTicks" depends="processBNF, copySources">
     <fortick>
       <fileset dir="${ticksource.home}" includes="**/*.tick"/>
     </fortick>

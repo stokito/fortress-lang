@@ -557,30 +557,26 @@ GeneratorList ::=
      | Generator( , Generator)*
 
 Generator ::=
+     | GeneratorBinding
+     | Expr
+
+GeneratorBinding ::=
      | Id <- Expr
      | [([ Id , IdList ])] <- Expr
-     | Expr
 
 $$$$$ Expressions Enclosed by Keywords
 
 DelimitedExpr ::=
      | TupleExpr
-     | object Extends? GoInAnObject end
+     | ObjectExpr
      | Do
-     | label Id BlockElems end Id
-     | while Expr Do
-     | for GeneratorList DoFront end
-     | if Expr then BlockElems Elifs? Else? end
-     | ( if Expr then BlockElems Elifs? Else end ?)
-     | case Expr Op? of CaseClauses CaseElse? end
-     | typecase TypecaseBindings of TypecaseClauses CaseElse? end
-     | try BlockElems Catch? ( finally BlockElems)? end
-
-Do ::=
-     | (DoFront also )* DoFront end
-
-DoFront ::=
-     | ( at Expr)? atomic ? do BlockElems?
+     | LabelExpr
+     | WhileExpr
+     | ForExpr
+     | IfExpr
+     | CaseExpr
+     | TypecaseExpr
+     | TryExpr
 
 TupleExpr ::=
      | ( (Expr , )* (Expr ... , )? Binding ( , Binding)* )
@@ -590,14 +586,37 @@ NoKeyTuple ::=
      | ( (Expr , )* Expr ... )
      | ( (Expr , )* Expr )
 
-Elifs ::=
-     | Elif+
+ObjectExpr ::=
+     | object Extends? GoInAnObject end
+
+Do ::=
+     | (DoFront also )* DoFront end
+
+DoFront ::=
+     | ( at Expr)? atomic ? do BlockElems?
+
+LabelExpr ::=
+     | label Id BlockElems end Id
+
+WhileExpr ::=
+     | while Expr Do
+     | while GeneratorBinding Do
+
+ForExpr ::=
+     | for GeneratorList DoFront end
+
+IfExpr ::=
+     | if Expr then BlockElems Elif* Else? end
+     | ( if Expr then BlockElems Elif* Else end ?)
 
 Elif ::=
      | elif Expr then BlockElems
 
 Else ::=
      | else BlockElems
+
+CaseExpr ::=
+     | case Expr Op? of CaseClauses CaseElse? end
 
 CaseClauses ::=
      | CaseClause+
@@ -607,6 +626,9 @@ CaseClause ::=
 
 CaseElse ::=
      | else => BlockElems
+
+TypecaseExpr ::=
+     | typecase TypecaseBindings of TypecaseClauses CaseElse? end
 
 TypecaseBindings ::=
      | [([ BindingList ])]
@@ -628,6 +650,9 @@ TypecaseClause ::=
 TypecaseTypeRefs ::=
      | [([ TypeRefList ])]
      | TypeRef
+
+TryExpr ::=
+     | try BlockElems Catch? ( finally BlockElems)? end
 
 Catch ::=
      | catch Id CatchClauses

@@ -190,3 +190,12 @@
 \newcommand{\Ys}{\mathit{Y}}
 \newcommand{\Os}{\mathit{O}}
 \newcommand{\Cs}{\mathit{C}}
+
+\newif\ifdefiningNT
+\definingNTfalse
+\makeatletter
+\newcommand\defineNT[1]{{\formatNT{#1} \ifdefiningNT\def\@currentlabel{\formatNT{#1}}\label{nonterminal:#1}\fi}}
+\makeatother
+\newcommand\NT[1]{\ref{nonterminal:#1}}
+\newcommand\NTpageref[1]{\pageref{nonterminal:#1}}
+\newcommand\formatNT[1]{\ensuremath{\mathsf{#1}}}
