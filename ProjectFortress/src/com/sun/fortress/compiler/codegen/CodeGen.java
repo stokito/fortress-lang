@@ -1219,7 +1219,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                      *   shadowing and collisions.
                      *  
                      */
-                    if (name.toString().contains("getDefault")) {
+                    if (name.toString().contains("nest") &&
+                            currentTraitObjectType.toString().startsWith("Condition")) {
                         boolean a = oa.lteq(noself_domain, super_noself_domain);
                         boolean b = oa.lteq(noself_domain, super_noself_domain);
                         boolean c = oa.lteq(noself_domain, super_noself_domain);
