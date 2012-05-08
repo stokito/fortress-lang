@@ -102,6 +102,14 @@ public class StaticTypeReplacer extends NodeUpdateVisitor {
         return (Type)t.accept(this); // TODO safe?
     }
 
+    public Type replaceInEverything(Type t) {
+        boolean savedReplaceStaticParams = replaceStaticParams;
+        replaceStaticParams = true;
+        t =  replaceIn(t); // TODO safe?
+        replaceStaticParams = savedReplaceStaticParams;
+        return t;
+    }
+
     public IdOrOpOrAnonymousName replaceIn(IdOrOpOrAnonymousName t) {
         return (IdOrOpOrAnonymousName)t.accept(this); // TODO safe?
     }

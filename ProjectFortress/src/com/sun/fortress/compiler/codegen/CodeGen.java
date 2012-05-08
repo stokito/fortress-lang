@@ -1183,13 +1183,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 Functional narrowed_func = null;
                 
                 Type raw_super_ret = oa.getRangeType(super_func);
-                Type super_ret = super_inst.replaceIn(raw_super_ret);
+                Type super_ret = super_inst.replaceInEverything(raw_super_ret);
                 int super_self_index = NodeUtil.selfParameterIndex(super_func.parameters());
                 Type raw_super_noself_domain = oa.getNoSelfDomainType(super_func);
-                Type super_noself_domain = super_inst.replaceIn(raw_super_noself_domain);
+                Type super_noself_domain = super_inst.replaceInEverything(raw_super_noself_domain);
 
                 for (Functional func : funcs) {
-                    Type ret = local_inst.replaceIn(oa.getRangeType(func));
+                    Type ret = local_inst.replaceInEverything(oa.getRangeType(func));
                     int self_index = NodeUtil.selfParameterIndex(func.parameters());
                     if (self_index != super_self_index) {
                         /*
@@ -1206,7 +1206,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                      * but it is not far wrong.
                      */
                     Type raw_noself_domain = oa.getNoSelfDomainType(func);
-                    Type noself_domain = local_inst.replaceIn(raw_noself_domain);
+                    Type noself_domain = local_inst.replaceInEverything(raw_noself_domain);
 
                     // Classify potential override
 
@@ -1219,8 +1219,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                      *   shadowing and collisions.
                      *  
                      */
-                    if (name.toString().contains("nest") &&
-                            currentTraitObjectType.toString().startsWith("Condition")) {
+                    if (true || (name.toString().contains("nest") &&
+                            currentTraitObjectType.toString().startsWith("Condition"))) {
+                        super_noself_domain = super_inst.replaceInEverything(raw_super_noself_domain);
                         boolean a = oa.lteq(noself_domain, super_noself_domain);
                         boolean b = oa.lteq(noself_domain, super_noself_domain);
                         boolean c = oa.lteq(noself_domain, super_noself_domain);
