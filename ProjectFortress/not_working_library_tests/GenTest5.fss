@@ -612,11 +612,23 @@ object VoidReduction extends { CommutativeMonoidReduction[\()\] }
     join(a: (), b: ()): () = ()
 end
 
+
+object IntPlusReduction extends { CommutativeMonoidReduction[\ZZ32\] }
+    getter asString(): String = "IntPlusReduction"
+    getter reverse() = IntPlusReduction
+    getter id(): ZZ32 = 0
+    join(a: ZZ32, b: ZZ32): ZZ32 = a+b
+end
+
 (*) run(): () = println "PASS"
 
 run(): () = do
   a: ZZ32 = 3
-  (Just a).loop(fn (x: ZZ32) => println a)
+  b: ZZ32 = 4
+  (Just a).loop(fn (x: ZZ32) => println x)
+  println((Just a).reduce(IntPlusReduction))
+(*)  (Just a).cross(Just b).loop(fn (x: (ZZ32,ZZ32)) => println x)
+(*)  println((Just a).generate(IntPlusReduction, fn (x: ZZ32): ZZ32 => x+43))
   println "PASS"
 end 
 end
