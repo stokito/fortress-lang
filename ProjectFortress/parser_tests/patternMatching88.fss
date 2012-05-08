@@ -1,0 +1,49 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(* Pattern Matching Test 8
+   with the function expressions       *)
+
+import List.{...}
+export Executable
+
+trait T end
+
+object O(d:RR64, e:ZZ32 = 3)
+   f:List[\ZZ\] = <|[\ZZ\] 2, 3, 4, 5 |>
+end
+
+object T1(a:ZZ, b:String) extends T
+    c = 6
+end
+
+testfunc (p : T, v : O) : ZZ = do
+(*
+   ((q, r, s), (w, x, y)) = ((p.a, p.b, p.c), (v.d, v.f, v.e))
+*)
+   (q, r, s) = (p.a, p.b, p.c)
+   (w, x, y) = (v.d, v.f, v.e)
+   assert(q, 2, "The test failed!!")
+   assert(r, "Test", "The test failed!!")
+   assert(s, 6, "The test failed!!")
+   assert(w, 3.2, "The test failed!!")
+   assert(x, <|[\ZZ\] 2, 3, 4, 5 |>, "The test failed!!")
+   assert(y, 4, "The test failed!!")
+   println "The test is successful."
+   0
+end
+
+run():() = do
+   pp : T = T1(2, "Test")
+   vv : O = O(3.2, 4)
+
+   testfunc(pp, vv)
+end

@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(* Multiple declarations for A, B, C and D in different namespaces.
+   Within the declaration of trait C,
+   method declarations shadow top-level value declarations,
+   but trait names should still be in scope.
+   This should be allowed. *)
+
+export Executable
+
+trait A end
+trait B extends A end
+trait C
+  A() = label A
+    D = 1
+    if D + B() = 3 then exit A end
+  end A
+  B(): ZZ32 = 2
+  B(D: A): B = E(B()+13)
+  C(self): C = self
+end
+trait D extends C end
+object E(D: ZZ32) extends {B, D} end
+
+var A: String = "A string"
+B() = "Another string"
+
+run(): () = label D
+  D = E(5)
+  if D.D = D.B() AND B() = A then exit D end
+end D

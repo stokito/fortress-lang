@@ -1,0 +1,480 @@
+\section{Components and API} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{File}$ &  $\mathsf{::=}$  & $\mathsf{CompilationUnit}$ \\
+ & $\big|$ &  $\mathsf{Imports}$$^?$ $\mathsf{Exports}$ $\mathsf{Decls}$$^?$ \\
+ & $\big|$ &  $\mathsf{Imports}$$^?$ $\mathsf{AbsDecls}$ \\
+ & $\big|$ &  $\mathsf{Imports}$ $\mathsf{AbsDecls}$$^?$ \\
+$\mathsf{CompilationUnit}$ &  $\mathsf{::=}$  & $\mathsf{Component}$ \\
+ & $\big|$ &  $\mathsf{Api}$ \\
+$\mathsf{Component}$ &  $\mathsf{::=}$  & $\mathbf{component}$ $\mathsf{DottedId}$ $\mathsf{Imports}$$^?$ $\mathsf{Exports}$ $\mathsf{Decls}$$^?$ $\mathbf{end}$ \\
+$\mathsf{Api}$ &  $\mathsf{::=}$  & $\mathbf{api}$ $\mathsf{DottedId}$ $\mathsf{Imports}$$^?$ $\mathsf{AbsDecls}$$^?$ $\mathbf{end}$ \\
+$\mathsf{Imports}$ &  $\mathsf{::=}$  & $\mathsf{Import}$$^+$ \\
+$\mathsf{Import}$ &  $\mathsf{::=}$  & $\mathbf{import}$ $\mathsf{ImportFrom}$ \\
+ & $\big|$ &  $\mathbf{import}$ $\mathsf{AliasedDottedIds}$ \\
+$\mathsf{ImportFrom}$ &  $\mathsf{::=}$  & $\mathbf{*}$ $\big($  $\mathbf{except}$ $\mathsf{Names}$ $\big)$$^?$ $\mathbf{from}$ $\mathsf{DottedId}$ \\
+ & $\big|$ &  $\mathsf{AliasedNames}$ $\mathbf{from}$ $\mathsf{DottedId}$ \\
+$\mathsf{Names}$ &  $\mathsf{::=}$  & $\mathsf{Name}$ \\
+ & $\big|$ &  $\mathbf{\{}$ $\mathsf{NameList}$ $\mathbf{\}}$ \\
+$\mathsf{NameList}$ &  $\mathsf{::=}$  & $\mathsf{Name}$ $\big($  $\mathbf{,}$ $\mathsf{Name}$ $\big)$$^*$ \\
+$\mathsf{AliasedNames}$ &  $\mathsf{::=}$  & $\mathsf{AliasedName}$ \\
+ & $\big|$ &  $\mathbf{\{}$ $\mathsf{AliasedNameList}$ $\mathbf{\}}$ \\
+$\mathsf{AliasedName}$ &  $\mathsf{::=}$  & $\mathsf{Id}$ $\big($  $\mathbf{as}$ $\mathsf{DottedId}$ $\big)$$^?$ \\
+ & $\big|$ &  $\mathbf{opr}$ $\mathsf{Op}$ $\big($  $\mathbf{as}$ $\mathsf{Op}$ $\big)$$^?$ \\
+ & $\big|$ &  $\mathbf{opr}$ $\mathsf{LeftEncloser}$ $\mathsf{RightEncloser}$ $\big($  $\mathbf{as}$ $\mathsf{LeftEncloser}$ $\mathsf{RightEncloser}$ $\big)$$^?$ \\
+$\mathsf{AliasedNameList}$ &  $\mathsf{::=}$  & $\mathsf{AliasedName}$ $\big($  $\mathbf{,}$ $\mathsf{AliasedName}$ $\big)$$^*$ \\
+$\mathsf{AliasedDottedIds}$ &  $\mathsf{::=}$  & $\mathsf{AliasedDottedId}$ \\
+ & $\big|$ &  $\mathbf{\{}$ $\mathsf{AliasedDottedIdList}$ $\mathbf{\}}$ \\
+$\mathsf{AliasedDottedId}$ &  $\mathsf{::=}$  & $\mathsf{DottedId}$ $\big($  $\mathbf{as}$ $\mathsf{DottedId}$ $\big)$$^?$ \\
+$\mathsf{AliasedDottedIdList}$ &  $\mathsf{::=}$  & $\mathsf{AliasedDottedId}$ $\big($  $\mathbf{,}$ $\mathsf{AliasedDottedId}$ $\big)$$^*$ \\
+$\mathsf{Exports}$ &  $\mathsf{::=}$  & $\mathsf{Export}$$^+$ \\
+$\mathsf{Export}$ &  $\mathsf{::=}$  & $\mathbf{export}$ $\mathsf{DottedIds}$ \\
+$\mathsf{DottedIds}$ &  $\mathsf{::=}$  & $\mathsf{DottedId}$ \\
+ & $\big|$ &  $\mathbf{\{}$ $\mathsf{DottedIdList}$ $\mathbf{\}}$ \\
+$\mathsf{DottedIdList}$ &  $\mathsf{::=}$  & $\mathsf{DottedId}$ $\big($  $\mathbf{,}$ $\mathsf{DottedId}$ $\big)$$^*$ \\
+\end{longtable} \hfill 
+
+\section{Top-level Declarations} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{Decls}$ &  $\mathsf{::=}$  & $\mathsf{Decl}$$^+$ \\
+$\mathsf{Decl}$ &  $\mathsf{::=}$  & $\mathsf{TraitDecl}$ \\
+ & $\big|$ &  $\mathsf{ObjectDecl}$ \\
+ & $\big|$ &  $\mathsf{VarDecl}$ \\
+ & $\big|$ &  $\mathsf{FnDecl}$ \\
+$\mathsf{AbsDecls}$ &  $\mathsf{::=}$  & $\mathsf{AbsDecl}$$^+$ \\
+$\mathsf{AbsDecl}$ &  $\mathsf{::=}$  & $\mathsf{AbsTraitDecl}$ \\
+ & $\big|$ &  $\mathsf{AbsObjectDecl}$ \\
+ & $\big|$ &  $\mathsf{AbsVarDecl}$ \\
+ & $\big|$ &  $\mathsf{AbsFnDecl}$ \\
+\end{longtable} \hfill 
+
+\section{Trait Declaration} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{TraitDecl}$ &  $\mathsf{::=}$  & $\mathsf{TraitHeader}$ $\mathsf{GoInATrait}$$^?$ $\mathbf{end}$ \\
+$\mathsf{TraitHeader}$ &  $\mathsf{::=}$  & $\mathsf{TraitMods}$$^?$ $\mathbf{trait}$ $\mathsf{Id}$ $\mathsf{StaticParams}$$^?$ $\mathsf{Extends}$$^?$ $\mathsf{TraitClauses}$$^?$ \\
+$\mathsf{TraitClauses}$ &  $\mathsf{::=}$  & $\mathsf{TraitClause}$$^+$ \\
+$\mathsf{TraitClause}$ &  $\mathsf{::=}$  & $\mathsf{Excludes}$ \\
+ & $\big|$ &  $\mathsf{Comprises}$ \\
+$\mathsf{GoInATrait}$ &  $\mathsf{::=}$  & $\mathsf{GoFrontInATrait}$ $\mathsf{GoBackInATrait}$$^?$ \\
+ & $\big|$ &  $\mathsf{GoBackInATrait}$ \\
+$\mathsf{GoFrontInATrait}$ &  $\mathsf{::=}$  & $\mathsf{GoesFrontInATrait}$$^+$ \\
+$\mathsf{GoesFrontInATrait}$ &  $\mathsf{::=}$  & $\mathsf{AbsFldDecl}$ \\
+ & $\big|$ &  $\mathsf{GetterSetterDecl}$ \\
+$\mathsf{GoBackInATrait}$ &  $\mathsf{::=}$  & $\mathsf{GoesBackInATrait}$$^+$ \\
+$\mathsf{GoesBackInATrait}$ &  $\mathsf{::=}$  & $\mathsf{MdDecl}$ \\
+$\mathsf{AbsTraitDecl}$ &  $\mathsf{::=}$  & $\mathsf{TraitHeader}$ $\mathsf{AbsGoInATrait}$$^?$ $\mathbf{end}$ \\
+$\mathsf{AbsGoInATrait}$ &  $\mathsf{::=}$  & $\mathsf{AbsGoFrontInATrait}$ $\mathsf{AbsGoBackInATrait}$$^?$ \\
+ & $\big|$ &  $\mathsf{AbsGoBackInATrait}$ \\
+$\mathsf{AbsGoFrontInATrait}$ &  $\mathsf{::=}$  & $\mathsf{AbsGoesFrontInATrait}$$^+$ \\
+$\mathsf{AbsGoesFrontInATrait}$ &  $\mathsf{::=}$  & $\mathsf{ApiFldDecl}$ \\
+ & $\big|$ &  $\mathsf{AbsGetterSetterDecl}$ \\
+$\mathsf{AbsGoBackInATrait}$ &  $\mathsf{::=}$  & $\mathsf{AbsGoesBackInATrait}$$^+$ \\
+$\mathsf{AbsGoesBackInATrait}$ &  $\mathsf{::=}$  & $\mathsf{AbsMdDecl}$ \\
+ & $\big|$ &  $\mathsf{AbsCoercion}$ \\
+\end{longtable} \hfill 
+
+\section{Object declaration} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{ObjectDecl}$ &  $\mathsf{::=}$  & $\mathsf{ObjectHeader}$ $\mathsf{GoInAnObject}$$^?$ $\mathbf{end}$ \\
+$\mathsf{ObjectHeader}$ &  $\mathsf{::=}$  & $\mathsf{ObjectMods}$$^?$ $\mathbf{object}$ $\mathsf{Id}$ $\mathsf{StaticParams}$$^?$ $\mathsf{ObjectValParam}$$^?$ $\mathsf{Extends}$$^?$ $\mathsf{FnClauses}$ \\
+$\mathsf{ObjectValParam}$ &  $\mathsf{::=}$  & $\big($  $\mathsf{ObjectParams}$$^?$ $\big)$ \\
+$\mathsf{ObjectParams}$ &  $\mathsf{::=}$  & $\big($  $\mathsf{ObjectParam}$ $\mathbf{,}$ $\big)$$^*$ $\mathsf{ObjectKeyword}$ $\big($  $\mathbf{,}$ $\mathsf{ObjectKeyword}$ $\big)$$^*$ \\
+ & $\big|$ &  $\mathsf{ObjectParam}$ $\big($  $\mathbf{,}$ $\mathsf{ObjectParam}$ $\big)$$^*$ \\
+$\mathsf{ObjectKeyword}$ &  $\mathsf{::=}$  & $\mathsf{ObjectParam}$ $\mathbf{=}$ $\mathsf{Expr}$ \\
+$\mathsf{ObjectParam}$ &  $\mathsf{::=}$  & $\mathsf{FldMods}$$^?$ $\mathsf{Param}$ \\
+ & $\big|$ &  $\mathbf{transient}$ $\mathsf{Param}$ \\
+$\mathsf{GoInAnObject}$ &  $\mathsf{::=}$  & $\mathsf{GoFrontInAnObject}$ $\mathsf{GoBackInAnObject}$$^?$ \\
+ & $\big|$ &  $\mathsf{GoBackInAnObject}$ \\
+$\mathsf{GoFrontInAnObject}$ &  $\mathsf{::=}$  & $\mathsf{GoesFrontInAnObject}$$^+$ \\
+$\mathsf{GoesFrontInAnObject}$ &  $\mathsf{::=}$  & $\mathsf{FldDecl}$ \\
+ & $\big|$ &  $\mathsf{GetterSetterDef}$ \\
+$\mathsf{GoBackInAnObject}$ &  $\mathsf{::=}$  & $\mathsf{GoesBackInAnObject}$$^+$ \\
+$\mathsf{GoesBackInAnObject}$ &  $\mathsf{::=}$  & $\mathsf{MdDef}$ \\
+$\mathsf{AbsObjectDecl}$ &  $\mathsf{::=}$  & $\mathsf{ObjectHeader}$ $\mathsf{AbsGoInAnObject}$$^?$ $\mathbf{end}$ \\
+$\mathsf{AbsGoInAnObject}$ &  $\mathsf{::=}$  & $\mathsf{AbsGoFrontInAnObject}$ $\mathsf{AbsGoBackInAnObject}$$^?$ \\
+ & $\big|$ &  $\mathsf{AbsGoBackInAnObject}$ \\
+$\mathsf{AbsGoFrontInAnObject}$ &  $\mathsf{::=}$  & $\mathsf{AbsGoesFrontInAnObject}$$^+$ \\
+$\mathsf{AbsGoesFrontInAnObject}$ &  $\mathsf{::=}$  & $\mathsf{ApiFldDecl}$ \\
+ & $\big|$ &  $\mathsf{AbsGetterSetterDecl}$ \\
+$\mathsf{AbsGoBackInAnObject}$ &  $\mathsf{::=}$  & $\mathsf{AbsGoesBackInAnObject}$$^+$ \\
+$\mathsf{AbsGoesBackInAnObject}$ &  $\mathsf{::=}$  & $\mathsf{AbsMdDecl}$ \\
+ & $\big|$ &  $\mathsf{AbsCoercion}$ \\
+\end{longtable} \hfill 
+
+\section{Variable Declaration} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{VarDecl}$ &  $\mathsf{::=}$  & $\mathsf{VarWTypes}$ $\mathsf{InitVal}$ \\
+ & $\big|$ &  $\mathsf{VarWoTypes}$ $\mathbf{=}$ $\mathsf{Expr}$ \\
+ & $\big|$ &  $\mathsf{VarWoTypes}$ $\mathbf{:}$ $\mathsf{TypeRef}$ $\mathbf{...}$ $\mathsf{InitVal}$ \\
+ & $\big|$ &  $\mathsf{VarWoTypes}$ $\mathbf{:}$ $\mathsf{SimpleTupleType}$ $\mathsf{InitVal}$ \\
+$\mathsf{VarWTypes}$ &  $\mathsf{::=}$  & $\mathsf{VarWType}$ \\
+ & $\big|$ &  $\big($  $\mathsf{VarWType}$ $\big($  $\mathbf{,}$ $\mathsf{VarWType}$ $\big)$$^+$ $\big)$ \\
+$\mathsf{VarWType}$ &  $\mathsf{::=}$  & $\mathsf{VarMods}$$^?$ $\mathsf{Id}$ $\mathsf{IsType}$ \\
+$\mathsf{VarWoTypes}$ &  $\mathsf{::=}$  & $\mathsf{VarWoType}$ \\
+ & $\big|$ &  $\big($  $\mathsf{VarWoType}$ $\big($  $\mathbf{,}$ $\mathsf{VarWoType}$ $\big)$$^+$ $\big)$ \\
+$\mathsf{VarWoType}$ &  $\mathsf{::=}$  & $\mathsf{VarMods}$$^?$ $\mathsf{Id}$ \\
+$\mathsf{InitVal}$ &  $\mathsf{::=}$  & $\big($  $\mathbf{=}$ $\big|$ $\mathbf{:=}$ $\big)$ $\mathsf{Expr}$ \\
+$\mathsf{AbsVarDecl}$ &  $\mathsf{::=}$  & $\mathsf{VarWTypes}$ \\
+ & $\big|$ &  $\mathsf{VarWoTypes}$ $\mathbf{:}$ $\mathsf{TypeRef}$ $\mathbf{...}$ \\
+ & $\big|$ &  $\mathsf{VarWoTypes}$ $\mathbf{:}$ $\mathsf{SimpleTupleType}$ \\
+\end{longtable} \hfill 
+
+\section{Function Declaration} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{FnDecl}$ &  $\mathsf{::=}$  & $\mathsf{FnDef}$ \\
+ & $\big|$ &  $\mathsf{AbsFnDecl}$ \\
+$\mathsf{FnDef}$ &  $\mathsf{::=}$  & $\mathsf{FnMods}$$^?$ $\mathsf{FnHeaderFront}$ $\mathsf{FnHeaderClause}$ $\mathbf{=}$ $\mathsf{Expr}$ \\
+$\mathsf{AbsFnDecl}$ &  $\mathsf{::=}$  & $\mathsf{FnMods}$$^?$ $\mathsf{FnHeaderFront}$ $\mathsf{FnHeaderClause}$ \\
+ & $\big|$ &  $\mathsf{Name}$ $\mathbf{:}$ $\mathsf{ArrowType}$ \\
+$\mathsf{FnHeaderFront}$ &  $\mathsf{::=}$  & $\mathsf{Id}$ $\mathsf{StaticParams}$$^?$ $\mathsf{ValParam}$ \\
+ & $\big|$ &  $\mathsf{OpHeaderFront}$ \\
+\end{longtable} \hfill 
+
+\section{Headers} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{Extends}$ &  $\mathsf{::=}$  & $\mathbf{extends}$ $\mathsf{TraitTypes}$ \\
+$\mathsf{Excludes}$ &  $\mathsf{::=}$  & $\mathbf{excludes}$ $\mathsf{TraitTypes}$ \\
+$\mathsf{Comprises}$ &  $\mathsf{::=}$  & $\mathbf{comprises}$ $\mathsf{ComprisingTypes}$ \\
+$\mathsf{TraitTypes}$ &  $\mathsf{::=}$  & $\mathsf{TraitType}$ \\
+ & $\big|$ &  $\mathbf{\{}$ $\mathsf{TraitTypeList}$ $\mathbf{\}}$ \\
+$\mathsf{TraitTypeList}$ &  $\mathsf{::=}$  & $\mathsf{TraitType}$ $\big($  $\mathbf{,}$ $\mathsf{TraitType}$ $\big)$$^*$ \\
+$\mathsf{ComprisingTypes}$ &  $\mathsf{::=}$  & $\mathsf{TraitType}$ \\
+ & $\big|$ &  $\mathbf{\{}$ $\mathsf{ComprisingTypeList}$ $\mathbf{\}}$ \\
+$\mathsf{ComprisingTypeList}$ &  $\mathsf{::=}$  & $\mathbf{.}$ $\mathbf{.}$ $\mathbf{.}$ \\
+ & $\big|$ &  $\mathsf{TraitType}$ $\big($  $\mathbf{,}$ $\mathsf{TraitType}$ $\big)$$^*$ $\big($  $\mathbf{,}$ $\mathbf{.}$ $\mathbf{.}$ $\mathbf{.}$ $\big)$$^?$ \\
+$\mathsf{FnHeaderClause}$ &  $\mathsf{::=}$  & $\mathsf{IsType}$$^?$ $\mathsf{FnClauses}$ \\
+$\mathsf{FnClauses}$ &  $\mathsf{::=}$  & $\mathsf{Throws}$$^?$ \\
+$\mathsf{Throws}$ &  $\mathsf{::=}$  & $\mathbf{throws}$ $\mathsf{MayTraitTypes}$ \\
+$\mathsf{MayTraitTypes}$ &  $\mathsf{::=}$  & $\mathbf{\{}$ $\mathbf{\}}$ \\
+ & $\big|$ &  $\mathsf{TraitTypes}$ \\
+$\mathsf{CoercionClauses}$ &  $\mathsf{::=}$  & $\mathsf{Throws}$$^?$ \\
+$\mathsf{UniversalMod}$ &  $\mathsf{::=}$  & $\mathbf{private}$ \\
+$\mathsf{TraitMod}$ &  $\mathsf{::=}$  & $\mathbf{value}$ \\
+ & $\big|$ &  $\mathsf{UniversalMod}$ \\
+$\mathsf{TraitMods}$ &  $\mathsf{::=}$  & $\mathsf{TraitMod}$$^+$ \\
+$\mathsf{ObjectMods}$ &  $\mathsf{::=}$  & $\mathsf{TraitMods}$ \\
+$\mathsf{FnMod}$ &  $\mathsf{::=}$  & $\mathsf{LocalFnMod}$ \\
+ & $\big|$ &  $\mathsf{UniversalMod}$ \\
+$\mathsf{FnMods}$ &  $\mathsf{::=}$  & $\mathsf{FnMod}$$^+$ \\
+$\mathsf{VarMod}$ &  $\mathsf{::=}$  & $\mathbf{var}$ \\
+ & $\big|$ &  $\mathsf{UniversalMod}$ \\
+$\mathsf{VarMods}$ &  $\mathsf{::=}$  & $\mathsf{VarMod}$$^+$ \\
+$\mathsf{AbsFldMod}$ &  $\mathsf{::=}$  & $\mathbf{hidden}$ $\big|$ $\mathbf{settable}$ $\big|$ $\mathsf{UniversalMod}$ \\
+$\mathsf{AbsFldMods}$ &  $\mathsf{::=}$  & $\mathsf{AbsFldMod}$$^+$ \\
+$\mathsf{FldMod}$ &  $\mathsf{::=}$  & $\mathbf{var}$ \\
+ & $\big|$ &  $\mathsf{AbsFldMod}$ \\
+$\mathsf{FldMods}$ &  $\mathsf{::=}$  & $\mathsf{FldMod}$$^+$ \\
+$\mathsf{ApiFldMod}$ &  $\mathsf{::=}$  & $\mathbf{hidden}$ $\big|$ $\mathbf{settable}$ $\big|$ $\mathsf{UniversalMod}$ \\
+$\mathsf{ApiFldMods}$ &  $\mathsf{::=}$  & $\mathsf{ApiFldMod}$$^+$ \\
+$\mathsf{LocalFnMod}$ &  $\mathsf{::=}$  & $\mathbf{atomic}$ \\
+$\mathsf{LocalFnMods}$ &  $\mathsf{::=}$  & $\mathsf{LocalFnMod}$$^+$ \\
+$\mathsf{StaticParams}$ &  $\mathsf{::=}$  & $\mathbf{\llbracket}$ $\mathsf{StaticParamList}$ $\mathbf{\rrbracket}$ \\
+$\mathsf{StaticParamList}$ &  $\mathsf{::=}$  & $\mathsf{StaticParam}$ $\big($  $\mathbf{,}$ $\mathsf{StaticParam}$ $\big)$$^*$ \\
+$\mathsf{StaticParam}$ &  $\mathsf{::=}$  & $\mathsf{Id}$ $\mathsf{Extends}$$^?$ \\
+ & $\big|$ &  $\mathbf{nat}$ $\mathsf{Id}$ \\
+ & $\big|$ &  $\mathbf{int}$ $\mathsf{Id}$ \\
+ & $\big|$ &  $\mathbf{bool}$ $\mathsf{Id}$ \\
+ & $\big|$ &  $\mathbf{opr}$ $\mathsf{Op}$ \\
+ & $\big|$ &  $\mathbf{ident}$ $\mathsf{Id}$ \\
+\end{longtable} \hfill 
+
+\section{Parameters} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{ValParam}$ &  $\mathsf{::=}$  & $\mathsf{BindId}$ \\
+ & $\big|$ &  $\big($  $\mathsf{Params}$$^?$ $\big)$ \\
+$\mathsf{Params}$ &  $\mathsf{::=}$  & $\big($  $\mathsf{Param}$ $\mathbf{,}$ $\big)$$^*$ $\mathsf{Keyword}$ $\big($  $\mathbf{,}$ $\mathsf{Keyword}$ $\big)$$^*$ \\
+ & $\big|$ &  $\big($  $\mathsf{Param}$ $\mathbf{,}$ $\big)$$^*$ \\
+ & $\big|$ &  $\mathsf{Param}$ $\big($  $\mathbf{,}$ $\mathsf{Param}$ $\big)$$^*$ \\
+$\mathsf{Keyword}$ &  $\mathsf{::=}$  & $\mathsf{Param}$ $\mathbf{=}$ $\mathsf{Expr}$ \\
+$\mathsf{PlainParam}$ &  $\mathsf{::=}$  & $\mathsf{BindId}$ $\mathsf{IsType}$$^?$ \\
+ & $\big|$ &  $\mathsf{TypeRef}$ \\
+$\mathsf{Param}$ &  $\mathsf{::=}$  & $\mathsf{PlainParam}$ \\
+$\mathsf{OpHeaderFront}$ &  $\mathsf{::=}$  & $\mathbf{opr}$ $\mathsf{StaticParams}$$^?$ $\big($  $\mathsf{LeftEncloser}$ $\big|$ $\mathsf{Encloser}$ $\big)$ $\mathsf{Params}$ $\big($  $\mathsf{RightEncloser}$ $\big|$ $\mathsf{Encloser}$ $\big)$ $\big($  $\mathbf{:=}$ $\big($  $\mathsf{SubscriptAssignParam}$ $\big)$ $\big)$$^?$ \\
+ & $\big|$ &  $\mathbf{opr}$ $\mathsf{StaticParams}$$^?$ $\mathsf{ValParam}$ $\mathsf{Op}$ \\
+ & $\big|$ &  $\mathbf{opr}$ $\big($  $\mathsf{Op}$ $\big|$ $\mathsf{Encloser}$ $\big)$ $\mathsf{StaticParams}$$^?$ $\mathsf{ValParam}$ \\
+$\mathsf{SubscriptAssignParam}$ &  $\mathsf{::=}$  & $\mathsf{Param}$ \\
+\end{longtable} \hfill 
+
+\section{Method Declaration} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{MdDecl}$ &  $\mathsf{::=}$  & $\mathsf{MdDef}$ \\
+ & $\big|$ &  $\mathsf{AbsMdDecl}$ \\
+$\mathsf{MdDef}$ &  $\mathsf{::=}$  & $\mathsf{FnMods}$$^?$ $\mathsf{MdHeaderFront}$ $\mathsf{FnHeaderClause}$ $\mathbf{=}$ $\mathsf{Expr}$ \\
+ & $\big|$ &  $\mathsf{Coercion}$ \\
+$\mathsf{AbsMdDecl}$ &  $\mathsf{::=}$  & $\mathbf{abstract}$ $\mathbf{?}$ $\mathsf{FnMods}$$^?$ $\mathsf{MdHeaderFront}$ $\mathsf{FnHeaderClause}$ \\
+$\mathsf{MdHeaderFront}$ &  $\mathsf{::=}$  & $\big($  $\mathsf{Receiver}$ $\mathbf{.}$ $\big)$$^?$ $\mathsf{Id}$ $\mathsf{StaticParams}$$^?$ $\mathsf{MdValParam}$ \\
+ & $\big|$ &  $\mathsf{OpHeaderFront}$ \\
+$\mathsf{Receiver}$ &  $\mathsf{::=}$  & $\mathsf{Id}$ \\
+ & $\big|$ &  $\mathbf{self}$ \\
+$\mathsf{GetterSetterDecl}$ &  $\mathsf{::=}$  & $\mathsf{GetterSetterDef}$ \\
+ & $\big|$ &  $\mathsf{AbsGetterSetterDecl}$ \\
+$\mathsf{GetterSetterDef}$ &  $\mathsf{::=}$  & $\mathsf{FnMods}$$^?$ $\mathsf{GetterSetterMod}$ $\mathsf{MdHeaderFront}$ $\mathsf{FnHeaderClause}$ $\mathbf{=}$ $\mathsf{Expr}$ \\
+$\mathsf{GetterSetterMod}$ &  $\mathsf{::=}$  & $\mathbf{getter}$ $\big|$ $\mathbf{setter}$ \\
+$\mathsf{AbsGetterSetterDecl}$ &  $\mathsf{::=}$  & $\mathbf{abstract}$ $\mathbf{?}$ $\mathsf{FnMods}$$^?$ $\mathsf{GetterSetterMod}$ $\mathsf{MdHeaderFront}$ $\mathsf{FnHeaderClause}$ \\
+$\mathsf{Coercion}$ &  $\mathsf{::=}$  & $\mathbf{widening}$$^?$ $\mathbf{coercion}$ $\mathsf{StaticParams}$$^?$ $\mathbf{(}$ $\mathsf{Id}$ $\mathsf{IsType}$ $\mathbf{)}$ $\mathsf{CoercionClauses}$ $\mathbf{=}$ $\mathsf{Expr}$ \\
+$\mathsf{AbsCoercion}$ &  $\mathsf{::=}$  & $\mathbf{widening}$$^?$ $\mathbf{coercion}$ $\mathsf{StaticParams}$$^?$ $\mathbf{(}$ $\mathsf{Id}$ $\mathsf{IsType}$ $\mathbf{)}$ $\mathsf{CoercionClauses}$ \\
+\end{longtable} \hfill 
+
+\section{Method Parameters} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{MdValParam}$ &  $\mathsf{::=}$  & $\big($  $\mathsf{MdParams}$$^?$ $\big)$ \\
+$\mathsf{MdParams}$ &  $\mathsf{::=}$  & $\big($  $\mathsf{MdParam}$ $\mathbf{,}$ $\big)$$^*$ $\mathsf{MdKeyword}$ $\big($  $\mathbf{,}$ $\mathsf{MdKeyword}$ $\big)$$^*$ \\
+ & $\big|$ &  $\big($  $\mathsf{MdParam}$ $\mathbf{,}$ $\big)$$^*$ \\
+ & $\big|$ &  $\mathsf{MdParam}$ $\big($  $\mathbf{,}$ $\mathsf{MdParam}$ $\big)$$^*$ \\
+$\mathsf{MdKeyword}$ &  $\mathsf{::=}$  & $\mathsf{MdParam}$ $\mathbf{=}$ $\mathsf{Expr}$ \\
+$\mathsf{MdParam}$ &  $\mathsf{::=}$  & $\mathsf{Param}$ \\
+ & $\big|$ &  $\mathbf{self}$ \\
+\end{longtable} \hfill 
+
+\section{Field Declarations} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{FldDecl}$ &  $\mathsf{::=}$  & $\mathsf{FldWTypes}$ $\mathsf{InitVal}$ \\
+ & $\big|$ &  $\mathsf{FldWoTypes}$ $\mathbf{=}$ $\mathsf{Expr}$ \\
+ & $\big|$ &  $\mathsf{FldWoTypes}$ $\mathbf{:}$ $\mathsf{TypeRef}$ $\mathbf{...}$ $\mathsf{InitVal}$ \\
+ & $\big|$ &  $\mathsf{FldWoTypes}$ $\mathbf{:}$ $\mathsf{SimpleTupleType}$ $\mathsf{InitVal}$ \\
+$\mathsf{FldWTypes}$ &  $\mathsf{::=}$  & $\mathsf{FldWType}$ \\
+ & $\big|$ &  $\big($  $\mathsf{FldWType}$ $\big($  $\mathbf{,}$ $\mathsf{FldWType}$ $\big)$$^+$ $\big)$ \\
+$\mathsf{FldWType}$ &  $\mathsf{::=}$  & $\mathsf{FldMods}$$^?$ $\mathsf{Id}$ $\mathsf{IsType}$ \\
+$\mathsf{FldWoTypes}$ &  $\mathsf{::=}$  & $\mathsf{FldWoType}$ \\
+ & $\big|$ &  $\big($  $\mathsf{FldWoType}$ $\big($  $\mathbf{,}$ $\mathsf{FldWoType}$ $\big)$$^+$ $\big)$ \\
+$\mathsf{FldWoType}$ &  $\mathsf{::=}$  & $\mathsf{FldMods}$$^?$ $\mathsf{Id}$ \\
+\end{longtable} \hfill 
+
+\section{Abstract Filed Declaration} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{AbsFldDecl}$ &  $\mathsf{::=}$  & $\mathsf{AbsFldWTypes}$ \\
+ & $\big|$ &  $\mathsf{AbsFldWoTypes}$ $\mathbf{:}$ $\mathsf{TypeRef}$ $\mathbf{...}$ \\
+ & $\big|$ &  $\mathsf{AbsFldWoTypes}$ $\mathbf{:}$ $\mathsf{SimpleTupleType}$ \\
+$\mathsf{AbsFldWTypes}$ &  $\mathsf{::=}$  & $\mathsf{AbsFldWType}$ \\
+ & $\big|$ &  $\big($  $\mathsf{AbsFldWType}$ $\big($  $\mathbf{,}$ $\mathsf{AbsFldWType}$ $\big)$$^+$ $\big)$ \\
+$\mathsf{AbsFldWType}$ &  $\mathsf{::=}$  & $\mathsf{AbsFldMods}$$^?$ $\mathsf{Id}$ $\mathsf{IsType}$ \\
+$\mathsf{AbsFldWoTypes}$ &  $\mathsf{::=}$  & $\mathsf{AbsFldWoType}$ \\
+ & $\big|$ &  $\big($  $\mathsf{AbsFldWoType}$ $\big($  $\mathbf{,}$ $\mathsf{AbsFldWoType}$ $\big)$$^+$ $\big)$ \\
+$\mathsf{AbsFldWoType}$ &  $\mathsf{::=}$  & $\mathsf{AbsFldMods}$$^?$ $\mathsf{Id}$ \\
+$\mathsf{ApiFldDecl}$ &  $\mathsf{::=}$  & $\mathsf{ApiFldMods}$$^?$ $\mathsf{Id}$ $\mathsf{IsType}$ \\
+\end{longtable} \hfill 
+
+\section{Expressions} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{Expr}$ &  $\mathsf{::=}$  & $\mathsf{AssignLefts}$ $\mathsf{AssignOp}$ $\mathsf{Expr}$ \\
+ & $\big|$ &  $\mathsf{OpExpr}$ \\
+ & $\big|$ &  $\mathsf{DelimitedExpr}$ \\
+ & $\big|$ &  $\mathsf{FlowExpr}$ \\
+ & $\big|$ &  $\mathbf{fn}$ $\mathsf{ValParam}$ $\mathsf{IsType}$$^?$ $\mathsf{Throws}$$^?$ $\mathbf{\Rightarrow}$ $\mathsf{Expr}$ \\
+ & $\big|$ &  $\mathsf{Expr}$ $\mathbf{as}$ $\mathsf{TypeRef}$ \\
+ & $\big|$ &  $\mathsf{Expr}$ $\mathbf{asif}$ $\mathsf{TypeRef}$ \\
+$\mathsf{AssignLefts}$ &  $\mathsf{::=}$  & $\big($  $\mathsf{AssignLeft}$ $\big($  $\mathbf{,}$ $\mathsf{AssignLeft}$ $\big)$$^*$ $\big)$ \\
+ & $\big|$ &  $\mathsf{AssignLeft}$ \\
+$\mathsf{AssignLeft}$ &  $\mathsf{::=}$  & $\mathsf{SubscriptExpr}$ \\
+ & $\big|$ &  $\mathsf{FieldSelection}$ \\
+ & $\big|$ &  $\mathsf{BindId}$ \\
+$\mathsf{SubscriptExpr}$ &  $\mathsf{::=}$  & $\mathsf{Primary}$ $\mathbf{[}$ $\mathsf{ExprList}$$^?$ $\mathbf{]}$ \\
+$\mathsf{FieldSelection}$ &  $\mathsf{::=}$  & $\mathsf{Primary}$ $\mathbf{.}$ $\mathsf{Id}$ \\
+$\mathsf{OpExpr}$ &  $\mathsf{::=}$  & $\mathsf{EncloserOp}$ $\mathsf{OpExpr}$$^?$ $\mathsf{EncloserOp}$$^?$ \\
+ & $\big|$ &  $\mathsf{OpExpr}$ $\mathsf{EncloserOp}$ $\mathsf{OpExpr}$$^?$ \\
+ & $\big|$ &  $\mathsf{Primary}$ \\
+$\mathsf{EncloserOp}$ &  $\mathsf{::=}$  & $\mathsf{Encloser}$ \\
+ & $\big|$ &  $\mathsf{Op}$ \\
+$\mathsf{Primary}$ &  $\mathsf{::=}$  & $\mathsf{Comprehension}$ \\
+ & $\big|$ &  $\mathsf{Id}$ $\mathbf{\llbracket}$ $\mathsf{StaticArgList}$ $\mathbf{\rrbracket}$ \\
+ & $\big|$ &  $\mathsf{BaseExpr}$ \\
+ & $\big|$ &  $\mathsf{LeftEncloser}$ $\mathsf{ExprList}$$^?$ $\mathsf{RightEncloser}$ \\
+ & $\big|$ &  $\mathsf{Primary}$ $\mathbf{[}$ $\mathsf{ExprList}$$^?$ $\mathbf{]}$ \\
+ & $\big|$ &  $\mathsf{Primary}$ $\mathbf{.}$ $\mathsf{Id}$ $\big($  $\mathbf{\llbracket}$ $\mathsf{StaticArgList}$ $\mathbf{\rrbracket}$ $\big)$$^?$ $\mathsf{TupleExpr}$ \\
+ & $\big|$ &  $\mathsf{Primary}$ $\mathbf{.}$ $\mathsf{Id}$ $\big($  $\mathbf{\llbracket}$ $\mathsf{StaticArgList}$ $\mathbf{\rrbracket}$ $\big)$$^?$ $\mathbf{(}$ $\mathbf{)}$ \\
+ & $\big|$ &  $\mathsf{Primary}$ $\mathbf{.}$ $\mathsf{Id}$ \\
+ & $\big|$ &  $\mathsf{Primary}$ $\mathbf{\wedge}$ $\mathsf{BaseExpr}$ \\
+ & $\big|$ &  $\mathsf{Primary}$ $\mathsf{ExponentOp}$ \\
+ & $\big|$ &  $\mathsf{Primary}$ $\mathsf{TupleExpr}$ \\
+ & $\big|$ &  $\mathsf{Primary}$ $\mathbf{(}$ $\mathbf{)}$ \\
+ & $\big|$ &  $\mathsf{Primary}$ $\mathsf{Primary}$ \\
+ & $\big|$ &  $\mathsf{TraitType}$ $\mathbf{.}$ $\mathbf{coercion}$ $\big($  $\mathbf{\llbracket}$ $\mathsf{StaticArgList}$ $\mathbf{\rrbracket}$ $\big)$$^?$ $\big($  $\mathsf{Expr}$ $\big)$ \\
+$\mathsf{FlowExpr}$ &  $\mathsf{::=}$  & $\mathbf{exit}$ $\mathsf{Id}$$^?$ $\big($  $\mathbf{with}$ $\mathsf{Expr}$ $\big)$$^?$ \\
+ & $\big|$ &  $\mathsf{Accumulator}$ $\big($  $\mathbf{[}$ $\mathsf{GeneratorList}$ $\mathbf{]}$ $\big)$$^?$ $\mathsf{Expr}$ \\
+ & $\big|$ &  $\mathbf{atomic}$ $\mathsf{AtomicBack}$ \\
+ & $\big|$ &  $\mathbf{tryatomic}$ $\mathsf{AtomicBack}$ \\
+ & $\big|$ &  $\mathbf{throw}$ $\mathsf{Expr}$ \\
+$\mathsf{AtomicBack}$ &  $\mathsf{::=}$  & $\mathsf{AssignLefts}$ $\mathsf{AssignOp}$ $\mathsf{Expr}$ \\
+ & $\big|$ &  $\mathsf{OpExpr}$ \\
+ & $\big|$ &  $\mathsf{DelimitedExpr}$ \\
+$\mathsf{GeneratorList}$ &  $\mathsf{::=}$  & $\mathsf{Generator}$ $\big($  $\mathbf{,}$ $\mathsf{Generator}$ $\big)$$^*$ \\
+$\mathsf{Generator}$ &  $\mathsf{::=}$  & $\mathsf{Id}$ $\mathbf{\leftarrow}$ $\mathsf{Expr}$ \\
+ & $\big|$ &  $\mathbf{(}$ $\mathsf{Id}$ $\mathbf{,}$ $\mathsf{IdList}$ $\mathbf{)}$ $\mathbf{\leftarrow}$ $\mathsf{Expr}$ \\
+ & $\big|$ &  $\mathsf{Expr}$ \\
+\end{longtable} \hfill 
+
+\section{Expressions Enclosed by Keywords} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{DelimitedExpr}$ &  $\mathsf{::=}$  & $\mathsf{TupleExpr}$ \\
+ & $\big|$ &  $\mathbf{object}$ $\mathsf{Extends}$$^?$ $\mathsf{GoInAnObject}$ $\mathbf{end}$ \\
+ & $\big|$ &  $\mathsf{Do}$ \\
+ & $\big|$ &  $\mathbf{label}$ $\mathsf{Id}$ $\mathsf{BlockElems}$ $\mathbf{end}$ $\mathsf{Id}$ \\
+ & $\big|$ &  $\mathbf{while}$ $\mathsf{Expr}$ $\mathsf{Do}$ \\
+ & $\big|$ &  $\mathbf{for}$ $\mathsf{GeneratorList}$ $\mathsf{DoFront}$ $\mathbf{end}$ \\
+ & $\big|$ &  $\mathbf{if}$ $\mathsf{Expr}$ $\mathbf{then}$ $\mathsf{BlockElems}$ $\mathsf{Elifs}$$^?$ $\mathsf{Else}$$^?$ $\mathbf{end}$ \\
+ & $\big|$ &  $\big($  $\mathbf{if}$ $\mathsf{Expr}$ $\mathbf{then}$ $\mathsf{BlockElems}$ $\mathsf{Elifs}$$^?$ $\mathsf{Else}$ $\mathbf{end}$ $\mathbf{?}$ $\big)$ \\
+ & $\big|$ &  $\mathbf{case}$ $\mathsf{Expr}$ $\mathsf{Op}$$^?$ $\mathbf{of}$ $\mathsf{CaseClauses}$ $\mathsf{CaseElse}$$^?$ $\mathbf{end}$ \\
+ & $\big|$ &  $\mathbf{typecase}$ $\mathsf{TypecaseBindings}$ $\mathbf{of}$ $\mathsf{TypecaseClauses}$ $\mathsf{CaseElse}$$^?$ $\mathbf{end}$ \\
+ & $\big|$ &  $\mathbf{try}$ $\mathsf{BlockElems}$ $\mathsf{Catch}$$^?$ $\big($  $\mathbf{finally}$ $\mathsf{BlockElems}$ $\big)$$^?$ $\mathbf{end}$ \\
+$\mathsf{Do}$ &  $\mathsf{::=}$  & $\big($  $\mathsf{DoFront}$ $\mathbf{also}$ $\big)$$^*$ $\mathsf{DoFront}$ $\mathbf{end}$ \\
+$\mathsf{DoFront}$ &  $\mathsf{::=}$  & $\big($  $\mathbf{at}$ $\mathsf{Expr}$ $\big)$$^?$ $\mathbf{atomic}$ $\mathbf{?}$ $\mathbf{do}$ $\mathsf{BlockElems}$$^?$ \\
+$\mathsf{TupleExpr}$ &  $\mathsf{::=}$  & $\big($  $\big($  $\mathsf{Expr}$ $\mathbf{,}$ $\big)$$^*$ $\big($  $\mathsf{Expr}$ $\mathbf{...}$ $\mathbf{,}$ $\big)$$^?$ $\mathsf{Binding}$ $\big($  $\mathbf{,}$ $\mathsf{Binding}$ $\big)$$^*$ $\big)$ \\
+ & $\big|$ &  $\mathsf{NoKeyTuple}$ \\
+$\mathsf{NoKeyTuple}$ &  $\mathsf{::=}$  & $\big($  $\big($  $\mathsf{Expr}$ $\mathbf{,}$ $\big)$$^*$ $\mathsf{Expr}$ $\mathbf{...}$ $\big)$ \\
+ & $\big|$ &  $\big($  $\big($  $\mathsf{Expr}$ $\mathbf{,}$ $\big)$$^*$ $\mathsf{Expr}$ $\big)$ \\
+$\mathsf{Elifs}$ &  $\mathsf{::=}$  & $\mathsf{Elif}$$^+$ \\
+$\mathsf{Elif}$ &  $\mathsf{::=}$  & $\mathbf{elif}$ $\mathsf{Expr}$ $\mathbf{then}$ $\mathsf{BlockElems}$ \\
+$\mathsf{Else}$ &  $\mathsf{::=}$  & $\mathbf{else}$ $\mathsf{BlockElems}$ \\
+$\mathsf{CaseClauses}$ &  $\mathsf{::=}$  & $\mathsf{CaseClause}$$^+$ \\
+$\mathsf{CaseClause}$ &  $\mathsf{::=}$  & $\mathsf{Expr}$ $\mathbf{\Rightarrow}$ $\mathsf{BlockElems}$ \\
+$\mathsf{CaseElse}$ &  $\mathsf{::=}$  & $\mathbf{else}$ $\mathbf{\Rightarrow}$ $\mathsf{BlockElems}$ \\
+$\mathsf{TypecaseBindings}$ &  $\mathsf{::=}$  & $\mathbf{(}$ $\mathsf{BindingList}$ $\mathbf{)}$ \\
+ & $\big|$ &  $\mathsf{Binding}$ \\
+ & $\big|$ &  $\mathsf{Id}$ \\
+$\mathsf{BindingList}$ &  $\mathsf{::=}$  & $\mathsf{Binding}$ $\big($  $\mathbf{,}$ $\mathsf{Binding}$ $\big)$$^*$ \\
+$\mathsf{Binding}$ &  $\mathsf{::=}$  & $\mathsf{BindId}$ $\mathbf{=}$ $\mathsf{Expr}$ \\
+$\mathsf{TypecaseClauses}$ &  $\mathsf{::=}$  & $\mathsf{TypecaseClause}$$^+$ \\
+$\mathsf{TypecaseClause}$ &  $\mathsf{::=}$  & $\mathsf{TypecaseTypeRefs}$ $\mathbf{\Rightarrow}$ $\mathsf{BlockElems}$ \\
+$\mathsf{TypecaseTypeRefs}$ &  $\mathsf{::=}$  & $\mathbf{(}$ $\mathsf{TypeRefList}$ $\mathbf{)}$ \\
+ & $\big|$ &  $\mathsf{TypeRef}$ \\
+$\mathsf{Catch}$ &  $\mathsf{::=}$  & $\mathbf{catch}$ $\mathsf{Id}$ $\mathsf{CatchClauses}$ \\
+$\mathsf{CatchClauses}$ &  $\mathsf{::=}$  & $\mathsf{CatchClause}$$^+$ \\
+$\mathsf{CatchClause}$ &  $\mathsf{::=}$  & $\mathsf{TraitType}$ $\mathbf{\Rightarrow}$ $\mathsf{BlockElems}$ \\
+$\mathsf{Comprehension}$ &  $\mathsf{::=}$  & $\mathbf{\{}$ $\mathsf{Expr}$ $\big|$ $\mathsf{GeneratorList}$ $\mathbf{\}}$ \\
+ & $\big|$ &  $\mathbf{\{}$ $\mathsf{Entry}$ $\big|$ $\mathsf{GeneratorList}$ $\mathbf{\}}$ \\
+ & $\big|$ &  $\mathbf{<}$ $\mathsf{Expr}$ $\big|$ $\mathsf{GeneratorList}$ $\mathbf{>}$ \\
+ & $\big|$ &  $\mathbf{[}$ $\mathsf{ArrayComprehensionClause}$$^+$ $\mathbf{]}$ \\
+$\mathsf{Entry}$ &  $\mathsf{::=}$  & $\mathsf{Expr}$ $\mathbf{\mapsto}$ $\mathsf{Expr}$ \\
+$\mathsf{ArrayComprehensionLeft}$ &  $\mathsf{::=}$  & $\mathsf{IdOrInt}$ $\mathbf{\mapsto}$ $\mathsf{Expr}$ \\
+ & $\big|$ &  $\big($  $\mathsf{IdOrInt}$ $\mathbf{,}$ $\mathsf{IdOrIntList}$ $\big)$ $\mathbf{\mapsto}$ $\mathsf{Expr}$ \\
+$\mathsf{ArrayComprehensionClause}$ &  $\mathsf{::=}$  & $\mathsf{ArrayComprehensionLeft}$ \\
+ & $\big|$ &  $\mathsf{GeneratorList}$ \\
+$\mathsf{IdOrInt}$ &  $\mathsf{::=}$  & $\mathsf{Id}$ \\
+ & $\big|$ &  $\mathsf{IntLiteral}$ \\
+$\mathsf{IdOrIntList}$ &  $\mathsf{::=}$  & $\mathsf{IdOrInt}$ $\big($  $\mathbf{,}$ $\mathsf{IdOrInt}$ $\big)$$^*$ \\
+$\mathsf{BaseExpr}$ &  $\mathsf{::=}$  & $\mathsf{NoKeyTuple}$ \\
+ & $\big|$ &  $\mathsf{Literal}$ \\
+ & $\big|$ &  $\mathsf{Id}$ \\
+ & $\big|$ &  $\mathbf{self}$ \\
+$\mathsf{ExprList}$ &  $\mathsf{::=}$  & $\mathsf{Expr}$ $\big($  $\mathbf{,}$ $\mathsf{Expr}$ $\big)$$^*$ \\
+\end{longtable} \hfill 
+
+\section{Local Declarations} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{BlockElems}$ &  $\mathsf{::=}$  & $\mathsf{BlockElem}$$^+$ \\
+$\mathsf{BlockElem}$ &  $\mathsf{::=}$  & $\mathsf{LocalVarFnDecl}$ \\
+ & $\big|$ &  $\mathsf{Expr}$ $\big($  $\mathbf{,}$ $\mathsf{GeneratorList}$ $\big)$$^?$ \\
+$\mathsf{LocalVarFnDecl}$ &  $\mathsf{::=}$  & $\mathsf{LocalFnDecl}$$^+$ \\
+ & $\big|$ &  $\mathsf{LocalVarDecl}$ \\
+$\mathsf{LocalFnDecl}$ &  $\mathsf{::=}$  & $\mathsf{LocalFnMods}$$^?$ $\mathsf{FnHeaderFront}$ $\mathsf{FnHeaderClause}$ $\mathbf{=}$ $\mathsf{Expr}$ \\
+$\mathsf{LocalVarDecl}$ &  $\mathsf{::=}$  & $\mathsf{LocalVarWTypes}$ $\mathsf{InitVal}$ \\
+ & $\big|$ &  $\mathsf{LocalVarWTypes}$ \\
+ & $\big|$ &  $\mathsf{LocalVarWoTypes}$ $\mathbf{=}$ $\mathsf{Expr}$ \\
+ & $\big|$ &  $\mathsf{LocalVarWoTypes}$ $\mathbf{:}$ $\mathsf{TypeRef}$ $\mathbf{...}$ $\mathsf{InitVal}$$^?$ \\
+ & $\big|$ &  $\mathsf{LocalVarWoTypes}$ $\mathbf{:}$ $\mathsf{SimpleTupleType}$ $\mathsf{InitVal}$$^?$ \\
+$\mathsf{LocalVarWTypes}$ &  $\mathsf{::=}$  & $\mathsf{LocalVarWType}$ \\
+ & $\big|$ &  $\big($  $\mathsf{LocalVarWType}$ $\big($  $\mathbf{,}$ $\mathsf{LocalVarWType}$ $\big)$$^+$ $\big)$ \\
+$\mathsf{LocalVarWType}$ &  $\mathsf{::=}$  & $\mathbf{var}$ $\mathbf{?}$ $\mathsf{Id}$ $\mathsf{IsType}$ \\
+$\mathsf{LocalVarWoTypes}$ &  $\mathsf{::=}$  & $\mathsf{LocalVarWoType}$ \\
+ & $\big|$ &  $\big($  $\mathsf{LocalVarWoType}$ $\big($  $\mathbf{,}$ $\mathsf{LocalVarWoType}$ $\big)$$^+$ $\big)$ \\
+$\mathsf{LocalVarWoType}$ &  $\mathsf{::=}$  & $\mathbf{var}$ $\mathbf{?}$ $\mathsf{Id}$ \\
+\end{longtable} \hfill 
+
+\section{Literals} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{Literal}$ &  $\mathsf{::=}$  & $\mathbf{(}$ $\mathbf{)}$ \\
+ & $\big|$ &  $\mathsf{NumericLiteral}$ \\
+ & $\big|$ &  $\mathsf{CharLiteral}$ \\
+ & $\big|$ &  $\mathsf{StringLiteral}$ \\
+ & $\big|$ &  $\mathbf{\{}$ $\mathsf{Entry}$ $\big($  $\mathbf{,}$ $\mathsf{Entry}$ $\big)$$^*$ $\mathbf{\}}$ \\
+ & $\big|$ &  $\mathbf{[}$ $\mathsf{RectElements}$ $\mathbf{]}$ \\
+$\mathsf{RectElements}$ &  $\mathsf{::=}$  & $\mathsf{Expr}$ $\mathsf{MultiDimCons}$$^*$ \\
+$\mathsf{MultiDimCons}$ &  $\mathsf{::=}$  & $\mathsf{RectSeparator}$ $\mathsf{Expr}$ \\
+$\mathsf{RectSeparator}$ &  $\mathsf{::=}$  & $\mathbf{;}$ $\mathbf{+}$ \\
+ & $\big|$ &  $\mathsf{Whitespace}$ \\
+\end{longtable} \hfill 
+
+\section{Types} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{IsType}$ &  $\mathsf{::=}$  & $\mathbf{:}$ $\mathsf{TypeRef}$ \\
+$\mathsf{TypeRef}$ &  $\mathsf{::=}$  & $\mathsf{TraitType}$ \\
+ & $\big|$ &  $\mathsf{ArrowType}$ \\
+ & $\big|$ &  $\mathsf{TupleType}$ \\
+ & $\big|$ &  $\big($  $\mathsf{TypeRef}$ $\mathbf{?}$ $\big)$ \\
+$\mathsf{TraitType}$ &  $\mathsf{::=}$  & $\mathsf{DottedId}$ $\big($  $\mathbf{\llbracket}$ $\mathsf{StaticArgList}$ $\mathbf{\rrbracket}$ $\big)$$^?$ \\
+ & $\big|$ &  $\mathbf{\{}$ $\mathsf{TypeRef}$ $\mathbf{\mapsto}$ $\mathsf{TypeRef}$ $\mathbf{\}}$ \\
+ & $\big|$ &  $\mathbf{<}$ $\mathsf{TypeRef}$ $\mathbf{>}$ \\
+ & $\big|$ &  $\mathsf{TypeRef}$ $\mathbf{[}$ $\mathsf{ArraySize}$$^?$ $\mathbf{]}$ \\
+ & $\big|$ &  $\mathsf{TypeRef}$ $\mathbf{\wedge}$ $\mathsf{IntLiteral}$ \\
+ & $\big|$ &  $\mathsf{TypeRef}$ $\mathbf{\wedge}$ $\big($  $\mathsf{ExtentRange}$ $\big($  $\mathbf{\times}$ $\mathsf{ExtentRange}$ $\big)$$^*$ $\big)$ \\
+$\mathsf{ArrowType}$ &  $\mathsf{::=}$  & $\mathsf{TypeRef}$ $\mathbf{\rightarrow}$ $\mathsf{TypeRef}$ $\mathsf{Throws}$$^?$ \\
+$\mathsf{TupleType}$ &  $\mathsf{::=}$  & $\big($  $\big($  $\mathsf{TypeRef}$ $\mathbf{,}$ $\big)$$^*$ $\big($  $\mathsf{TypeRef}$ $\mathbf{...}$ $\mathbf{,}$ $\big)$$^?$ $\mathsf{KeywordType}$ $\big($  $\mathbf{,}$ $\mathsf{KeywordType}$ $\big)$$^*$ $\big)$ \\
+ & $\big|$ &  $\big($  $\big($  $\mathsf{TypeRef}$ $\mathbf{,}$ $\big)$$^*$ $\mathsf{TypeRef}$ $\mathbf{...}$ $\big)$ \\
+ & $\big|$ &  $\mathsf{SimpleTupleType}$ \\
+$\mathsf{KeywordType}$ &  $\mathsf{::=}$  & $\mathsf{Id}$ $\mathbf{=}$ $\mathsf{TypeRef}$ \\
+$\mathsf{SimpleTupleType}$ &  $\mathsf{::=}$  & $\big($  $\mathsf{TypeRef}$ $\mathbf{,}$ $\mathsf{TypeRefList}$ $\big)$ \\
+$\mathsf{TypeRefList}$ &  $\mathsf{::=}$  & $\mathsf{TypeRef}$ $\big($  $\mathbf{,}$ $\mathsf{TypeRef}$ $\big)$$^*$ \\
+$\mathsf{StaticArgList}$ &  $\mathsf{::=}$  & $\mathsf{StaticArg}$ $\big($  $\mathbf{,}$ $\mathsf{StaticArg}$ $\big)$$^*$ \\
+$\mathsf{StaticArg}$ &  $\mathsf{::=}$  & $\mathsf{Op}$ \\
+ & $\big|$ &  $\mathsf{TypeRef}$ \\
+ & $\big|$ &  $\mathbf{(}$ $\mathsf{StaticArg}$ $\mathbf{)}$ \\
+$\mathsf{ArraySize}$ &  $\mathsf{::=}$  & $\mathsf{ExtentRange}$ $\big($  $\mathbf{,}$ $\mathsf{ExtentRange}$ $\big)$$^*$ \\
+$\mathsf{ExtentRange}$ &  $\mathsf{::=}$  & $\mathsf{StaticArg}$$^?$ $\mathbf{\#}$ $\mathsf{StaticArg}$$^?$ \\
+ & $\big|$ &  $\mathsf{StaticArg}$$^?$ $\mathbf{:}$ $\mathsf{StaticArg}$$^?$ \\
+ & $\big|$ &  $\mathsf{StaticArg}$ \\
+\end{longtable} \hfill 
+
+\section{Symbols and Operators} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{AssignOp}$ &  $\mathsf{::=}$  & $\mathbf{:=}$ \\
+ & $\big|$ &  $\mathsf{Op}$ $\mathbf{=}$ \\
+$\mathsf{Accumulator}$ &  $\mathsf{::=}$  & $\mathbf{\sum}$ $\big|$ $\mathbf{\prod}$ $\big|$ $\mathbf{BIG}$ $\mathsf{Op}$ \\
+\end{longtable} \hfill 
+
+\section{Identifiers} 
+
+ 
+\begin{longtable}[l]{p{3cm}rl}
+$\mathsf{IdList}$ &  $\mathsf{::=}$  & $\mathsf{Id}$ $\big($  $\mathbf{,}$ $\mathsf{Id}$ $\big)$$^*$ \\
+$\mathsf{Name}$ &  $\mathsf{::=}$  & $\mathsf{Id}$ \\
+ & $\big|$ &  $\mathbf{opr}$ $\mathsf{Op}$ \\
+$\mathsf{DottedId}$ &  $\mathsf{::=}$  & $\mathsf{Id}$ $\big($  $\mathbf{.}$ $\mathsf{Id}$ $\big)$$^*$ \\
+$\mathsf{BindId}$ &  $\mathsf{::=}$  & $\mathsf{Id}$ \\
+ & $\big|$ &  $\mathbf{\_}$ \\
+\end{longtable} \hfill 
+

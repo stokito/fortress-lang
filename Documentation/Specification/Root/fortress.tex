@@ -1,0 +1,77 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[openany,10pt]{book}
+
+%\input{build-options}
+
+\usepackage{amsfonts, graphicx, fullpage, times, wrapfig}
+\usepackage{stmaryrd}
+\usepackage{longtable} 
+
+
+% This file should be processed from Documentation/Specification/Generated/Root
+
+\newcommand{\prosedir}{../Prose}                % Specification/Generated/Prose
+\newcommand{\codedir}{../Code}                  % Specification/Generated/Code
+\newcommand{\datadir}{../Data}                  % Specification/Generated/Data
+\newcommand{\supportdir}{../../Support}         % Specification/Support
+\newcommand{\fortifydir}{../../../../Fortify}
+
+\input{\supportdir/all-macros}
+
+% Need to add stuff from old preamble, but I'd like to do this incrementally, 
+% as we understand what we need.
+% Much of what is in old preamble should be in some support file.
+
+% What packages do we need? 
+% John: I had to bring this over temporarily, vistor, please let me know where you want this to go.
+\newdimen\notewidth
+\newcommand{\note}[1]{{\ifhmode\unskip\hfill\break\else\noindent\fi
+    \notewidth=\textwidth  \advance\notewidth by -2em
+                \framebox[\textwidth][t]{\parbox[t]{\notewidth}{#1}}\break}}
+% \newcommand{\note}[1]{{\let\endstuff\relax\ifhmode\def\endstuff{\break}\hfill\break\fi
+%     \notewidth=\textwidth  \advance\notewidth by -2em
+%     \framebox[\textwidth][t]{\parbox[t]{\notewidth}{#1}}\endstuff}}
+
+
+
+\title{The Fortress Language Specification}
+\author{}
+
+\begin{document}
+
+\frontmatter
+
+\maketitle
+% preamble
+\tableofcontents
+
+
+\mainmatter
+
+\input{\prosedir/Preliminaries/preliminaries}
+\input{\prosedir/Language/language}
+\input{\prosedir/Libraries/libraries}
+\input{\prosedir/Appendices/appendices}
+
+\backmatter
+
+
+% Remove the following line when things are getting serious!
+\nocite{*} 
+
+\bibliographystyle{plain}
+\bibliography{fortress}
+
+% Index (?)
+
+\end{document}

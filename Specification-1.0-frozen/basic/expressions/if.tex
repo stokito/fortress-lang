@@ -1,0 +1,76 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{If Expressions}
+\seclabel{if-expr}
+
+\begin{Grammar}
+\emph{DelimitedExpr}
+&::=& \KWD{if} \emph{GeneratorClause} \KWD{then} \emph{BlockElems} \option{\emph{Elifs}}
+\option{\emph{Else}} \KWD{end}\\
+&$|$& \texttt{(}\KWD{if} \emph{GeneratorClause} \KWD{then} \emph{BlockElems}
+\option{\emph{Elifs}} \emph{Else} \option{\KWD{end}}\texttt{)}\\
+
+
+\emph{Elifs} &::=& \emph{Elif}$^+$\\
+
+\emph{Elif} &$::=$& \KWD{elif} \emph{GeneratorClause} \KWD{then} \emph{BlockElems}\\
+
+\emph{Else} &$::=$& \KWD{else} \emph{BlockElems}\\
+
+\emph{GeneratorClause}
+&::=& \emph{GeneratorBinding}\\
+&$|$& \emph{Expr} \\
+
+\emph{GeneratorBinding}
+&::=& \emph{BindIdOrBindIdTuple}\EXP{\leftarrow}\emph{Expr} \\
+\end{Grammar}
+
+
+An \KWD{if} expression consists of \KWD{if} followed by a generator clause
+(discussed in \secref{generators}), followed by \KWD{then}, an expression block,
+an optional sequence of \KWD{elif} clauses (each consisting of \KWD{elif}
+followed by a generator clause, \KWD{then}, and an expression block),
+an optional \KWD{else} clause (consisting of \KWD{else} followed by
+an expression block), and finally \KWD{end}.
+Each clause forms an expression block and has the various
+properties of expression blocks (described in \secref{block-expr}).
+%
+An \KWD{if} expression first evaluates the expression of its generator clause
+(\emph{condition expression}).
+If the generator clause is a generator binding,
+the type of the condition expression must be a subtype of
+\EXP{\TYP{Condition}\llbracket{}E\rrbracket} for some \VAR{E}
+and the type of the identifiers bound in the clause must be a subtype of \VAR{E}.
+A \TYP{Condition} is a generator that generates 0 or 1 element.
+Otherwise, the generator clause must be an expression of type \TYP{Boolean}.
+Note in particular that \VAR{true} is a \TYP{Boolean} value yielding \EXP{()}
+exactly once, while \VAR{false} is a \TYP{Boolean} value that yields no elements.
+If the evaluation of the condition expression completes normally and generates
+exactly one element, the \KWD{then} clause is evaluated.
+If the condition expression generates no elements,
+the next clause (either \KWD{elif} or \KWD{else}), if any, is evaluated.
+An \KWD{elif} clause works just as the original \KWD{if},
+evaluating its condition expression and continuing with its \KWD{then} clause
+if the condition generates exactly one element.
+%
+An \KWD{else} clause simply evaluates its expression block.
+The type of an \KWD{if} expression is the union of the types of the
+expression blocks of each clause.  If there is no \KWD{else} clause in an
+\KWD{if} expression, then every clause must have type \EXP{()}.
+The result of the \KWD{if} expression is the result of the expression block
+which is evaluated; if no expression block is evaluated it is \EXP{()}.
+The reserved word \KWD{end} may be elided if the \KWD{if} expression
+is immediately enclosed by parentheses.  In such a case, an \KWD{else}
+clause is required.
+
+For example,
+\input{\home/basic/examples/Expr.If.tex}

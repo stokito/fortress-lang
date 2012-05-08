@@ -1,0 +1,490 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Cfa
+import List.{...}
+import Map.{...}
+import Set.{...}
+import Syntax.{...}
+import DynamicSemantics.{...}
+import System.{args}
+export Executable
+
+(* Control flow analysis helper table ******************************************)
+(* function name |-> function id *)
+fids  : Map[\String, ZZ32\] := {[\String, ZZ32\]}
+(* function id   |-> function declaration *)
+fdecls: Map[\ZZ32, FnDecl\] := {[\ZZ32, FnDecl\]}
+(* function id   |-> function expression *)
+fexprs: Map[\ZZ32, FnExpr\] := {[\ZZ32, FnExpr\]}
+(* function id   |-> function body *)
+bodies: Map[\ZZ32, Expr\]   := {[\ZZ32, Expr\]}
+(* function id   |-> parameter name *)
+params: Map[\ZZ32, String\] := {[\ZZ32, String\]}
+emptySet: Set[\ZZ32\] = set[\ZZ32\]()
+
+(* For a given function id,
+   returns the corresponding function declaration or function expression.
+ *)
+fidToFunction(id: ZZ32) =
+  if fd <- fdecls.member(id)
+  then fd
+  else if f <- fexprs.member(id)
+       then f
+       else throw FailCalled("Function not found: " id)
+       end
+  end
+
+(* Initialize the helper tables before analyzing the program *******************)
+init() = do
+  atomic cfa_eqns := {[\ZZ32, Set[\ZZ32\]\]}
+  atomic new_eqn  := true
+  atomic iteration:= 0
+  atomic fids   := {[\String, ZZ32\]}
+  atomic fdecls := {[\ZZ32, FnDecl\]}
+  atomic fexprs := {[\ZZ32, FnExpr\]}
+  atomic bodies := {[\ZZ32, Expr\]}
+  atomic params := {[\ZZ32, String\]}
+end
+
+init(p: Program) = do
+  init()
+  initSyntax()
+  initDynamic()
+  init(fd), fd <- p.decls
+  init(p.expr)
+end
+
+(* For each function declaration,
+   add the following mappings to the tables:
+       function name |-> function id
+       function id   |-> function declaration
+       function id   |-> function body
+       function id   |-> parameter name
+   and initialize the helper tables from the function body
+ *)
+init(fd: FnDecl) = do
+  id = fd.getId()
+  atomic fids   := fids.add(fd.name, id)
+  atomic fdecls := fdecls.add(id, fd)
+  atomic params := params.add(id, fd.param)
+  atomic bodies := bodies.add(id, fd.body)
+  init(fd.body)
+end
+
+(* Var, True, and False do nothing. *)
+init(e: Expr) = ()
+
+(* For each function expression,
+   add the following mappings to the tables:
+       function id   |-> function expression
+       function id   |-> function body
+       function id   |-> parameter name
+   and initialize the helper tables from the function body
+ *)
+init(e: FnExpr) = do
+  id = e.getId()
+  atomic fexprs := fexprs.add(id, e)
+  atomic params := params.add(id, e.param)
+  atomic bodies := bodies.add(id, e.body)
+  init(e.body)
+end
+
+(* For each application expression,
+   initialize the helper tables from its subexpressions.
+ *)
+init(e: App) = do _ = (init(e.function), init(e.argument)) end
+
+(* For each if expression,
+   initialize the helper tables from its subexpressions.
+ *)
+init(e: If) = do _ = (init(e.cond), init(e.thenB), init(e.elseB)) end
+
+(* Debugging *******************************************************************)
+debug: Boolean := false
+indent = "    "
+
+(* print the helper tables *****************************************************)
+dumpHelperTables() =
+  if debug
+  then
+    println "(* print the helper tables ***************************************)"
+    println "(* fids  : function name |-> function id *)"
+    println fids//
+    println "(* fdecls: function id   |-> function declaration *)"
+    println fdecls//
+    println "(* bodies: function id   |-> function body *)"
+    println bodies//
+    println "(* params: function id   |-> parameter name *)"
+    println params//
+  end
+
+(* print the equation tables ***************************************************)
+dumpEquationsTables() =
+  if debug
+  then
+    println "(* print the equation tables *************************************)"
+    println "(* cfa_eqns: function id |-> { function id } *)"
+    println (indent "{")
+    println (indent indent cfa_eqn), cfa_eqn <- cfa_eqns
+    println (indent "}")//
+  end
+
+(* Control flow analysis table *************************************************)
+(* function id |-> { function id } *)
+cfa_eqns: Map[\ZZ32, Set[\ZZ32\]\] := {[\ZZ32, Set[\ZZ32\]\]}
+new_eqn: Boolean := true
+
+(* Add a (id, s) pair to the cfa_eqns table. *)
+add(id: ZZ32, s: Set[\ZZ32\]) = do
+  if debug then println("add(" id ", " s ")") end
+  atomic cfa_eqns := cfa_eqns.add(id, s)
+end
+
+(* Map id to s. *)
+update(id: ZZ32, s: Set[\ZZ32\]) = do
+  if debug then println("update(" id ", " s ")") end
+  atomic cfa_eqns := cfa_eqns.update(id, s)
+end
+
+(* Build control flow equations in the cfa_eqns table. *************************)
+iteration: ZZ32 := 0
+(* Build equations from the function declarations and the body expression.
+   Repeat it until no new equation is generated.
+ *)
+buildEquations(p: Program) = do
+  while new_eqn do
+    atomic iteration += 1
+    if debug then println("(* buildEquations iteration: " iteration
+                          " ****************)") end
+    atomic new_eqn := false
+    buildEquations(fd), fd <- p.decls
+    buildEquations(p.expr)
+    if debug then println "" end
+  end
+end
+
+(* For each function declaration,
+   add the following equation into the cfa_eqns table:
+
+       its_function_id CONTAINS its_function_id
+
+   and build equations from its body expression.
+ *)
+buildEquations(fd: FnDecl) = do
+  addEquation(fd.getId())
+  buildEquations(fd.body)
+end
+
+(* For each expression,
+   build equations into the cfa_eqns table.
+   True and False do not generate any equations.
+*)
+buildEquations(e: Expr) = ()
+
+(* For each function expression,
+   add the following equation into the cfa_eqns table:
+
+       its_function_id CONTAINS its_function_id
+
+   and build equations from its body expression.
+ *)
+buildEquations(e: FnExpr) = do
+  addEquation(e.getId())
+  buildEquations(e.body)
+end
+
+(* For each named function,
+   add the following equation into the cfa_eqns table:
+
+       the_variable_id CONTAINS its_function_id
+ *)
+buildEquations(e: Var) =
+  if id <- fids.member(e.name)
+  then addEquation(e.id, { id })
+  end
+
+(* For each if expression,
+   if its 'then' branch has a set of function ids, s, in the cfa_eqns table
+   then if its else branch has a set of function ids, s',
+        then add the following equation into the cfa_eqns table:
+
+            the_if_expression_id INCLUDES s UNION s'
+
+        else add the following equation into the cfa_eqns table:
+
+            the_if_expression_id INCLUDES s
+
+   else if its 'else' branch has a set of function ids, s',
+        then add the following equation into the cfa_eqns table:
+
+            the_if_expression_id INCLUDES s'
+
+   and build equations from its "then" and "else" branches.
+ *)
+buildEquations(e: If) = do
+  _ = (buildEquations(e.thenB), buildEquations(e.elseB))
+
+  id = e.getId()
+  if s <- cfa_eqns.member(e.thenB.getId())
+  then if s' <- cfa_eqns.member(e.elseB.getId())
+       then addEquation(id, s UNION s')
+       else addEquation(id, s)
+       end
+  else if s' <- cfa_eqns.member(e.elseB.getId())
+       then addEquation(id, s')
+       end
+  end
+end
+
+(* There are two kinds of equation building in this function:
+
+   For each function application, e1 e2,
+   if e1 has a set of function ids, ftns, in the cfa_eqns table
+   then for each function ftn in ftns
+        if ftn's body has a set of function ids, ftns' in the cfa_eqns table
+        then add the following equation into the cfa_eqns table:
+
+            the_appication_id INCLUDES ftns'
+
+   For each function application e1 e2,
+   if e1 has a set of function ids, ftns, in the cfa_eqns table
+   then for each function ftn in ftns and its parameter x
+        if e2 has a set of function ids, ftns', in the cfa_eqns table
+        then add the following equation into the cfa_eqns table:
+
+            x's_id INCLUDES ftns'
+
+   and build equations from its "then" and "else" branches.
+ *)
+buildEquations(e: App) = do
+  e1 = e.function
+  e2 = e.argument
+
+  if debug
+  then println("App(" e.getId() ", " e1.getId() ", " e2.getId() ") = " e)
+  end
+
+  _ = (buildEquations(e1), buildEquations(e2))
+
+  if ftns <- cfa_eqns.member(e1.getId())
+  then for ftn <- ftns do
+         if ftns' <- cfa_eqns.member(bodies[ftn].getId())
+         then addEquation(e.getId(), ftns')
+         end
+
+         if ftns' <- cfa_eqns.member(e2.getId())
+         then addEquation(x, ftns'), x <- collectVars(params[ftn], bodies[ftn])
+         end
+       end
+  end
+end
+
+(* Collect a set of variable ids of the given name in a given expression *******)
+(* There are no variables in True and False *)
+collectVars(name: String, e: Expr) = emptySet
+
+(* If a variable has the same name as the given name
+   then returns a singleton set of the variable's id
+   else returns an empty set
+ *)
+collectVars(name: String, e: Var) =
+  if name = e.name then { e.getId() } else emptySet end
+
+(* If a function expression's parameter has the same name as the given name
+   then returns an empty set
+   else returns a set of variable ids of the given name in the function body
+ *)
+collectVars(name: String, e: FnExpr) =
+  if name = e.param then emptySet else collectVars(name, e.body) end
+
+(* For an function application expression
+   collect a set of variable ids of the given name
+   in its function and argument expressions.
+ *)
+collectVars(name: String, e: App) =
+  collectVars(name, e.function) UNION collectVars(name, e.argument)
+
+(* For an if expression
+   collect a set of variable ids of the given name
+   in its true and false branches.
+ *)
+collectVars(name: String, e: If) =
+  collectVars(name, e.thenB) UNION collectVars(name, e.elseB)
+
+(* Add control flow equations into the cfa_eqns table. *************************)
+(* For a given function id,
+   if there exists an equation:
+
+            the_function_id INCLUDES function_ids_set
+
+   then if the function id is in the function_ids_set
+        then new equation is not generated.
+        else update the equation as follows:
+
+            the_function_id INCLUDES the_function_id UNION { the_function_id }
+
+   else add the following equation into the cfa_eqns table:
+
+            the_function_id CONTAINS the_function_id
+
+   if a new equation is generated, set the new_eqn flag.
+ *)
+addEquation(id: ZZ32) =
+  if fids' <- cfa_eqns.member(id)
+  then if NOT(id IN fids')
+       then atomic update(id, fids' UNION {[\ZZ32\]id})
+            atomic new_eqn  := true
+       end
+  else atomic add(id, {[\ZZ32\]id})
+       atomic new_eqn  := true
+  end
+
+(* For a given function id, 'id' and a set of function ids, 's',
+   if there exists an equation:
+
+            id INCLUDES s'
+
+   then if s is a subset or equal to s'
+        then new equation is not generated.
+        else update the equation as follows:
+
+            id INCLUDES s UNION s'
+
+   else add the following equation into the cfa_eqns table:
+
+            id INCLUDES s
+
+   if a new equation is generated, set the new_eqn flag.
+ *)
+addEquation(id: ZZ32, s: Set[\ZZ32\]) =
+  if s' <- cfa_eqns.member(id)
+  then if NOT(s SUBSETEQ s')
+       then atomic update(id, s UNION s')
+            atomic new_eqn := true
+       end
+  else atomic add(id, s)
+       atomic new_eqn := true
+  end
+(* '*)
+
+(* Control flow analysis main engin ********************************************)
+cfa(p: Program) = do
+  init(p)
+  dumpHelperTables()
+  buildEquations(p)
+  dumpEquationsTables()
+  if result <- cfa_eqns.member(p.expr.getId())
+  then result
+  else emptySet
+  end
+end
+
+(* Driver of the control flow analysis for a program *)
+doit(p: Program) = do
+  (* controfl flow analysis ****************************************************)
+  cfa_result = cfa(p)
+
+  (* print the result **********************************************************)
+  println "Test Program:"
+  if debug
+  then println (p.asString)//
+  else println (p.toSource())//
+  end
+
+  println "Evaluated value:"
+  result = (VDASH p).getValue()
+  if debug
+  then println (indent result.asString)//
+  else println (indent result.toSource())//
+  end
+
+  println "Control flow analysis result with " iteration " iterations:"
+  println (indent "{")
+  println (indent indent (fidToFunction(fid).toSource())), fid <- cfa_result
+  println (indent "}")//
+end
+
+(* test programs ***************************************************************)
+(* test program 1 *)
+test1() = do
+  println "(* Test program 1 **************************************************)"
+  (* f(x) = x
+     g(y) = f(y)
+     h(z) = f(z)
+     if f(true) then g(fn x => x) else h(fn y => false) end
+   *)
+  fd = FnDecl("f", "x", Var("x"))
+  gd = FnDecl("g", "y", App(Var("f"), Var("y")))
+  hd = FnDecl("h", "z", App(Var("f"), Var("z")))
+  fds = <|fd, gd, hd|>
+  body = If(App(Var("f"), False),
+            App(Var("g"), FnExpr("x", Var("x"))),
+            App(Var("h"), FnExpr("y", False)))
+  Program(fds, body)
+end
+
+(* test program 2 *)
+test2() = do
+  println "(* Test program 2 **************************************************)"
+  (* f(x) = true
+     g(y) = false
+     h(z) = if z then f else g end
+     (h(true)) false
+   *)
+  fd = FnDecl("f", "x", True)
+  gd = FnDecl("g", "y", False)
+  hd = FnDecl("h", "z", If(Var("z"), Var("f"), Var("g")))
+  fds = <|fd, gd, hd|>
+  body = App(App(Var("h"), True), False)
+  Program(fds, body)
+end
+
+(* test program 3 *)
+test3() = do
+  println "(* Test program 3 **************************************************)"
+  (* f_0(x) = x
+     ...
+     f_n(x) = f_{n-1}(x)
+     f_n(fn y => false)
+   *)
+  n = 50
+  fd0 = FnDecl("f_0", "x", Var("x"))
+  fds = <| FnDecl("f_" i, "x", App(Var("f_" (i-1)), Var("x"))) | i <- 1:n |>.addLeft(fd0)
+  body = App(Var("f_" n), FnExpr("y", False))
+  Program(fds, body)
+end
+
+(* Run test programs. *)
+tests() = do
+  doit(test1())
+  doit(test2())
+  recordTime(6.847)
+  doit(test3())
+  printTime(6.847)
+end
+
+printUsage() = println "Usage: fortress Cfa.fss [-[-]debug]"
+
+run() =
+  if |args| > 1
+  then printUsage()
+  else if |args| = 1
+       then if args[0] = "-debug" OR args[0] = "--debug"
+            then debug := true
+                 tests()
+            else printUsage()
+            end
+       else tests()
+       end
+  end
+
+end

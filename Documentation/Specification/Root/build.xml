@@ -1,0 +1,242 @@
+<?xml version="1.0" ?>
+
+<!--
+Copyright 2012, Oracle and/or its affiliates.
+All rights reserved.
+
+
+Use is subject to license terms.
+
+This distribution may include materials developed by third parties.
+
+-->
+
+<project name="FortressSpec" default="spec">
+  <description>
+    The Fortress specification, written in LaTeX.
+  </description>
+
+  <property environment="env"/>
+  <property name="fortress.home"
+            value="${env.FORTRESS_HOME}"/>
+  <property name="compiler.home"
+            value="${fortress.home}/ProjectFortress"/>
+  <property name="spec.home"
+            value="${fortress.home}/Documentation/Specification"/>
+  <property name="code.home"
+            value="${spec.home}/Generated/Code"/>
+  <property name="ticksource.home"
+            value="${spec.home}/Generated"/>
+  <property name="latex.home"
+            value="${spec.home}/Generated/Root"/>
+  <property name="example.home"
+            value="${spec.home}/Code"/>
+  <property name="library.example.home"
+            value="${spec.home}/Code/Libraries"/>
+  <property name="library.api.home"
+            value="${fortress.home}/Library"/>
+  <property name="library.builtin.home"
+            value="${compiler.home}/LibraryBuiltin"/>
+  <property name="library.api"      value="${basedir}/../library/apis"/>
+  <property name="texinputs"        value=".:${fortress.home}/Fortify:"/>
+  <property name="compiler.classpath"
+            value="${compiler.home}/build:${compiler.home}/third_party/xtc/xtc.jar:${compiler.home}/third_party/jsr166y/jsr166y.jar:${compiler.home}/third_party/plt/plt.jar:${compiler.home}/third_party/junit/junit.jar"/>
+
+
+  <taskdef name="fortress"
+           classname="com.sun.fortress.ant_tasks.FortressTask"
+	   classpath="${compiler.classpath}"/>
+
+  <taskdef name="fortex"
+           classname="com.sun.fortress.ant_tasks.FortexTask"
+           classpath="${compiler.classpath}"/>
+
+  <taskdef name="fortick"
+           classname="com.sun.fortress.ant_tasks.FortickTask"
+           classpath="${compiler.classpath}"/>
+
+  <taskdef name="foreg"
+           classname="com.sun.fortress.ant_tasks.ForegTask"
+           classpath="${compiler.classpath}"/>
+
+
+  <target name="spec" depends="genSource, makeExs, bib">
+    <exec executable="pdflatex" failonerror="true" dir="${latex.home}">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+    <copy overwrite="yes" todir="${spec.home}">
+      <fileset dir="${latex.home}" includes="fortress.pdf"/>
+    </copy>
+  </target>
+
+  <target name="tex" depends="genSource, bib">
+    <exec executable="pdflatex" failonerror="true" dir="${latex.home}">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+  </target>
+
+  <target name="onlyTex">
+    <exec executable="pdflatex" failonerror="true" dir="${latex.home}">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+    <exec executable="pdflatex" failonerror="true" dir="${latex.home}">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+  </target>
+
+  <target name="bib">
+    <exec executable="pdflatex" failonerror="true" dir="${latex.home}">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+    <exec executable="bibtex" failonerror="true" dir="${latex.home}">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+    <exec executable="pdflatex" failonerror="true" dir="${latex.home}">
+      <arg value="fortress"/>
+      <env key="TEXINPUTS" value="${texinputs}" />
+    </exec>
+  </target>
+
+  <target name="genSource" depends="makeReservedWordsFiles, processBNF, texExs, doTicks"/>
+
+  <target name="makeReservedWordsFiles" depends="copySources">
+	    <exec executable="perl" dir="${spec.home}">
+	      <arg value="Support/keywords.pl"/>
+	    </exec>
+	    <exec executable="perl" dir="${spec.home}">
+	      <arg value="Support/unitOperators.pl"/>
+	    </exec>
+	    <exec executable="perl" dir="${spec.home}">
+	      <arg value="Support/specialReservedWords.pl"/>
+	    </exec>
+  </target>
+
+  <target name="processBNF" depends="copySources">
+	    <exec executable="ocaml" failonerror="true" dir="${spec.home}">
+		    <arg value="${spec.home}/Generated/Support/transbnf.ml" />
+	    </exec>	
+	    <exec executable="ocamlc" failonerror="true" dir="${spec.home}/Generated/Support/">
+		    <arg value="${spec.home}/Generated/Support/transbnf.ml" />
+	    </exec>
+	    <exec executable="ocamlc" failonerror="true" dir="${spec.home}/Generated/Support/">
+		    <arg value="${spec.home}/Generated/Support/transbnf.cmo" />
+		    <arg value="${spec.home}/Generated/Support/grammar_preprocessor.ml" />
+		    <arg value="-o" />
+		    <arg value="${spec.home}/Generated/Support/gp" />
+	    </exec>
+	    <exec executable="${spec.home}/Generated/Support/gp" failonerror="true" dir="${spec.home}">
+		    <arg value="${spec.home}/Generated/Prose/" />
+	    </exec>	
+  </target>
+
+  <target name="doTicks" depends="processBNF, copySources">
+    <fortick>
+      <fileset dir="${ticksource.home}" includes="**/*.tick"/>
+    </fortick>
+  </target>
+
+  <target name="texExs" depends="copySources">
+    <foreg>
+      <fileset dir="${code.home}">
+        <include name="**/*.fss"/>
+      </fileset>
+    </foreg>
+
+  	<!--
+    <fortex>
+      <fileset dir="${library.api.home}">
+        <include name="*.fsi"/>
+      </fileset>
+    </fortex>
+
+    <fortex>
+      <fileset dir="${library.builtin.home}">
+        <include name="*.fsi"/>
+      </fileset>
+    </fortex>
+    -->
+    
+  </target>
+
+  <target name="makeExs" depends="texExs"/>    <!-- removed evalExs, compileApis, evalLibExs -->
+
+  <target name="evalExs">
+    <fortress>
+      <env key="JAVA_FLAGS" value="-Xmx768m" />
+      <fileset dir="${example.home}">
+        <include name="**/*.fss"/>
+        <exclude name="**/*.compile.fss"/>
+        <exclude name="**/library/*.fss"/>
+      </fileset>
+    </fortress>
+  </target>
+
+  <target name="compileApis">
+    <fortress compile="yes">
+      <fileset dir="${example.home}">
+        <include name="**/*.fsi"/>
+        <include name="**/*.compile.fss"/>
+        <exclude name="**/library/*.fss"/>
+      </fileset>
+    </fortress>
+  </target>
+
+   <!--
+  <target name="evalLibExs">
+    <fortress parse="yes">
+      <fileset dir="${library.example.home}">
+        <include name="**/*.fss"/>
+        <include name="**/*.fsi"/>
+      </fileset>
+    </fortress>
+  </target>
+  -->
+
+  <target name="copySources"
+          description="Copy all original source files to working directory">
+    <copy overwrite="yes" todir="${spec.home}/Generated/Root">
+      <fileset dir="${spec.home}/Root" includes="fortress.tex fortress.bib build-options"/>
+    </copy>
+    <copy overwrite="yes" todir="${spec.home}/Generated/Support">
+      <fileset dir="${spec.home}/Support" includes="*.ml"/>
+    </copy>
+    <copy overwrite="yes" todir="${spec.home}/Generated/Prose/Preliminaries">
+      <fileset dir="${spec.home}/Prose/Preliminaries" includes="*.tick *.tex"/>
+    </copy>
+    <copy overwrite="yes" todir="${spec.home}/Generated/Prose/Language">
+      <fileset dir="${spec.home}/Prose/Language" includes="*.tick *.tex"/>
+    </copy>
+    <copy overwrite="yes" todir="${spec.home}/Generated/Prose/Language/Expressions">
+      <fileset dir="${spec.home}/Prose/Language/Expressions" includes="*.tick *.tex"/>
+    </copy>
+    <copy overwrite="yes" todir="${spec.home}/Generated/Prose/Libraries">
+      <fileset dir="${spec.home}/Prose/Libraries" includes="*.tick *.tex"/>
+    </copy>
+    <copy overwrite="yes" todir="${spec.home}/Generated/Prose/Appendices">
+      <fileset dir="${spec.home}/Prose/Appendices" includes="*.tick *.tex"/>
+    </copy>
+    <copy overwrite="yes" todir="${spec.home}/Generated/Code">
+      <fileset dir="${spec.home}/Code" includes="*.fs*"/>
+    </copy>
+  </target>
+
+  <target name="clean"
+          description="Delete the generated files.">
+    <delete>
+      <fileset defaultexcludes="no" dir="${basedir}" includes="**/*~" />
+      <fileset defaultexcludes="no" dir="${basedir}" includes="**/*#" />
+      <fileset dir="${spec.home}/Generated/Root" includes="*.tex *.bib *.aux *.blg *.bbl *.dvi *.log *.out *.pdf *.ps *.toc" />
+      <fileset dir="${spec.home}/Generated/Support" includes="*.ml *.cmi *.cmo gp" />
+      <fileset dir="${spec.home}/Generated/Prose" includes="**/*.tick **/*.tex" />
+      <fileset dir="${spec.home}/Generated/Code" includes="**/*.fss **/*.fsi **/*.tex " />
+      <fileset dir="${spec.home}/Generated/Data" includes="**/*.tex" />
+    </delete>
+  </target>
+
+</project>

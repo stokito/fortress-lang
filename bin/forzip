@@ -1,0 +1,60 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2008,2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+if [ $# -lt 1 ] ; then
+  echo forzip directory-and-zipfile-name
+  exit 1
+fi
+
+ourname="$1"
+
+parent=`hg summary | egrep '^parent: '`
+branch=`hg summary | egrep '^branch: '`
+commit=`hg summary | egrep '^commit: '`
+update=`hg summary | egrep '^update: '`
+ver=`echo $parent | sed '1,$s/parent: *\([0-9]*\):.*/\1/'`
+
+if ( echo $parent | egrep -q ' tip$' &&
+     echo $branch | egrep -q ' default$' &&
+     echo $commit | egrep -q ' \(clean\)$' &&
+     echo $update | egrep -q ' \(current\)$') ; then
+echo "Cleaning"
+./ant clean compile
+echo "Echo zipping version ${ver}, logged in zip_${ver}.log"
+ln -s `pwd` ../${ourname}
+( cd .. ; find -L ${ourname} \( -name .svn -o \
+           -name "fortress_*.zip" -o \
+           -name .hg -o \
+           -name tmp -o \
+           -name .manager -o \
+           -name test-tmp -o \
+           -name SvnStats -o \
+           -name "*.log" -o \
+           -name "*.bin" -o \
+           -name "*~" -o \
+           -name .dependencies -o \
+           -name "TEST-RESULTS" \) -prune -o -print | \
+           zip -9 fortress_${ver}.zip '-@' \
+  > zip_${ver}.log )
+
+else
+  echo "Repository needs to be in default state.  'Hg summary' reports:"
+  hg summary
+  echo
+  echo "Expected to see: "
+  echo "parent: ... tip"
+  echo "..."
+  echo "branch: default"
+  echo "commit: ... (clean)"
+  echo "update: (current)"
+fi

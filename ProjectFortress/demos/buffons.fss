@@ -1,0 +1,50 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component buffons
+
+export Executable
+
+run():()=do
+   needleLength:RR64 = 20.0
+   numRows:RR64 = 10.0
+   tableHeight:RR64 = needleLength numRows
+
+   var hits : RR64 := 0.0
+   var n : RR64 := 0.0
+
+   time:RR64 = nanoTime()
+
+   println("Starting parallel Buffons")
+   for i <- 1#3000 do
+      delta_X = random(2.0) - 1.0
+      delta_Y = random(2.0) - 1.0
+      rsq = delta_X^2 + delta_Y^2
+     if 0.0 < rsq < 1.0 then
+        y1 = tableHeight random(1.0)
+        y2 = y1 + needleLength (delta_Y / SQRT rsq)
+        (y_L, y_H) = (y1 MIN y2, y1 MAX y2)
+        temp1:RR64 = y_L / needleLength
+        temp2:RR64 = y_H / needleLength
+
+         if |/ temp1 \| = |\ temp2 /| then 
+               atomic do hits:= hits + 1.0 end  
+         end  
+        atomic do n:= n + 1.0 end 
+      end  
+   end
+   probability = hits/n
+   pi_est = 2.0/probability
+   elapsed = (nanoTime() - time) / 1000000000.0
+   println("hits = " || hits || " n = " || n)
+   println("Buffons: estimated Pi = "  || pi_est || " took time " || elapsed)
+end
+end

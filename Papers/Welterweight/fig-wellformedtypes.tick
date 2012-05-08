@@ -1,0 +1,105 @@
+\begin{figure}[p]
+\typicallabel{W-Object}
+
+\newjudge{Well-formed types}{\jwftype{\alpha} \quad \jwftype{\Xi} \quad \jwftype{\Upsilon}}
+\medskip
+
+% Stuff in \Delta is assumed to be well-formed
+
+\infrule[W-Param-In]
+  { \bdb{\dontcare} \extends \kwd{invariant}\;P \extends \bdb{\dontcare} \in \Delta }
+  { \jwftype{P} }
+
+\medskip
+
+\infrule[W-Param-Co]
+  { \bdb{\dontcare} \extends \kwd{covariant}\;P \extends \bdb{\dontcare} \in \Delta }
+  { \jwftype{P} }
+
+\medskip
+
+\infrule[W-Trait]
+  { \kwd{trait} \; T\bigobb{V\;P \extends \bdb{\xi}} \; \dontcare \; \kwd{end} \in \Delta \\[2pt]
+    \countof(\bar{\alpha}) = \countof(\bar{P})  \andalso  \bar{\jwftype[\flip{V,\underline{\Delta}}]{\alpha}} \\[3pt]
+    \jbsubtype{\alpha}{\underline{\Bigsubstb{\alpha}{P}}\xi} }
+  { \jwftype{T\obb{\alpha}} }
+
+\medskip
+
+\infrule[W-Object]
+  { \kwd{object} \; O\bigobb{P \extends \bdb{\xi}} \; \dontcare \; \kwd{end} \in \Delta \\[2pt]
+    \countof(\bar{\alpha}) = \countof(\bar{P})  \andalso  \jbwftype{\alpha} \\[3pt]
+    \jbsubtype{\alpha}{\underline{\Bigsubstb{\alpha}{P}}\xi} }
+  { \jwftype{O\obb{\alpha}} }
+
+\medskip
+
+\infrule[W-Tuple]
+  { \jbwftype{\alpha} }
+  { \jwftype{(\bar{\alpha})} }
+
+\medskip
+
+\infrule[W-Arrow]
+  { \jwftype[\flip{\Delta}]{\alpha}  \andalso  \jwftype{\rho} }
+  { \jwftype{\arrowtype{\alpha}{\rho}} }
+
+\medskip
+
+\infax[W-Any-Type]
+  { \jwftype{\Any} }
+
+\smallskip
+
+\infax[W-Object-Type]
+  { \jwftype{\Object} }
+
+\smallskip
+
+\infax[W-Bottom-Type]
+  { \jwftype{\Bottom} }
+
+\medskip
+
+\infrule[W-Union-Int]
+  { \jwftype{\alpha}  \andalso  \jwftype{\gamma} }
+  { \jwftype{\uniontype{\alpha}{\gamma}}  \andalso  \jwftype{\intersectiontype{\alpha}{\gamma}} }
+
+\medskip
+
+\infrule[W-Exists]
+  { \jbwftype{\chi}  \andalso  \jbwftype{\eta} \\[2pt]
+    \jwftypetight[\Delta \cup \setb{\bdb{\chi} \mathbin{\extends} \kwd{invariant}\;P \mathbin{\extends} \bdb{\eta}}]{\alpha} }
+  { \jwftype{\existstypebigb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\alpha}} }
+
+\medskip
+
+\infrule[W-Forall]
+  { \jbwftype{\chi}  \andalso  \jbwftype{\eta} \\[2pt]
+    \jwftypetight[\Delta \cup \setb{\bdb{\chi} \verythinmathspace\mathord{\extends}\verythinmathspace \kwd{invariant}\;P \verythinmathspace\mathord{\extends}\verythinmathspace \bdb{\eta}}]{\alpha} }
+  { \jwftype{\foralltypebigb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\alpha}} }
+
+\medskip
+
+\newjudge{Variance flip}{\flip{\Delta} \verythinmathspace\mathord{=}\verythinmathspace \Delta \hskip0.7em \flip{V} \verythinmathspace\mathord{=}\verythinmathspace V \hskip0.7em \flip{V,\Delta} \verythinmathspace\mathord{=}\verythinmathspace \Delta}
+
+\medskip
+
+\noindent\(
+\begin{array}{@{}l@{}}
+\flip{\Delta} = {\displaystyle \bigcup_{{\delta\in\Delta}} \mathit{oneFlip}(\delta)} \\[14pt]
+\mathit{oneFlip}(\bdb{\chi} \verythinmathspace\mathord{\extends}\verythinmathspace V\;P \verythinmathspace\mathord{\extends}\verythinmathspace \bdb{\eta}) = \set{\bdb{\chi} \verythinmathspace\mathord{\extends}\verythinmathspace \flip{V}\;P \verythinmathspace\mathord{\extends}\verythinmathspace \bdb{\eta}} \\
+\mathit{oneFlip}(\psi) = \set{\psi} \\[4pt]
+\flip{\kwd{covariant}} = \kwd{contravariant} \\
+\flip{\kwd{contravariant}} = \kwd{covariant} \\
+\flip{\kwd{invariant}} = \kwd{invariant} \\[4pt]
+\flip{\kwd{covariant}, \Delta} = \Delta \\
+\flip{\kwd{contravariant}, \Delta} = \flip{\Delta} \\
+\flip{\kwd{invariant}, \Delta} = \FLAT{\Delta}   \hskip5.6em\hbox{(see Figure~\ref{fig:wellformeddecls})}
+\end{array}
+\)
+
+\medskip
+\caption{Well-formed Types}
+\label{fig:wellformedtypes}
+\end{figure}
