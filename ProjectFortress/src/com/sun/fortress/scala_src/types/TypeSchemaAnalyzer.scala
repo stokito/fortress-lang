@@ -163,9 +163,14 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
   }
 
   // Subtyping for existential domains
-  private def subtypeEDInner(s: Type, t: Type) = 
-    subED(normalizeED(alphaRenameTypeSchema(s, ta.env)), normalizeED(alphaRenameTypeSchema(t, ta.env)))
-  
+  private def subtypeEDInner(s: Type, t: Type) = {
+    val arn1 = alphaRenameTypeSchema(s, ta.env)
+    val arn2 = alphaRenameTypeSchema(t, ta.env)
+    val tsa1 = this.extend(getStaticParams(arn1), getWhere(arn1))
+    val tsa12 = tsa1.extend(getStaticParams(arn2), getWhere(arn2))
+    tsa12.subED(tsa12.normalizeED(arn1), tsa12.normalizeED(arn2))
+  }
+
   private def subED(s: Type, t: Type): Boolean = !subEDsolution(s, t).isEmpty
 
   // At this point, the types should have been alpha-renamed if necessary so that type parameters do not conflict.
