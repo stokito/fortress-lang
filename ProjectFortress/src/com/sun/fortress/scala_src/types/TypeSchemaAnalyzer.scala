@@ -403,11 +403,13 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
        println("   os = " + os)
     }
     val nub = cMap(ub, ts, os)
+    val nieNotBottom = cMap(ieNotBottom, ts, os)
     if (debug) {
        println("   nub = " + nub)
+       println("   nieNotBottom = " + nieNotBottom)
     }
 //    if (implies(nub, nc)) {                   // GLS 2/10/12: broken
-    if (impliesWithDebug(and(nub, ieNotBottom), nc, debug)) {   // GLS 2/10/12: alternatively, strip occurrences of BottomType out of nu slots of nc, leaving only upper bounds?
+    if (impliesWithDebug(and(nub, nieNotBottom), nc, debug)) {   // GLS 2/10/12: alternatively, strip occurrences of BottomType out of nu slots of nc, leaving only upper bounds?
       // Need conjugate s by the map that sends static args to inference variables
       val sub = iv compose ts compose vi
       val nsp = boundsSubstitution(sub, sp).getOrElse{return None}
