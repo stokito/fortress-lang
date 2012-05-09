@@ -16,6 +16,7 @@ The test may be either a Boolean expression or a generator binding.
 
 %%%%% GRAMMAR %%%%%
 %WhileExpr
+%Generator
 %GeneratorBinding
 %%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%
