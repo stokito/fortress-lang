@@ -599,24 +599,23 @@ LabelExpr ::=
      | label Id BlockElems end Id
 
 WhileExpr ::=
-     | while Expr Do
-     | while GeneratorBinding Do
+     | while Generator Do
 
 ForExpr ::=
      | for GeneratorList DoFront end
 
 IfExpr ::=
-     | if Expr then BlockElems Elif* Else? end
-     | ( if Expr then BlockElems Elif* Else end ?)
+     | if Generator then BlockElems ElifClause* ElseClause? end
+     | [(] if Generator then BlockElems ElifClause* ElseClause end? [)]
 
-Elif ::=
+ElifClause ::=
      | elif Expr then BlockElems
 
-Else ::=
+ElseClause ::=
      | else BlockElems
 
 CaseExpr ::=
-     | case Expr Op? of CaseClauses CaseElse? end
+     | case Expr Op? of CaseClauses CaseElseClause? end
 
 CaseClauses ::=
      | CaseClause+
@@ -624,11 +623,11 @@ CaseClauses ::=
 CaseClause ::=
      | Expr => BlockElems
 
-CaseElse ::=
+CaseElseClause ::=
      | else => BlockElems
 
 TypecaseExpr ::=
-     | typecase TypecaseBindings of TypecaseClauses CaseElse? end
+     | typecase TypecaseBindings of TypecaseClauses CaseElseClause? end
 
 TypecaseBindings ::=
      | [([ BindingList ])]
