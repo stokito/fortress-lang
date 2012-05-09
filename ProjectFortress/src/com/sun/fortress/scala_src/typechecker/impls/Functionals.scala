@@ -724,7 +724,7 @@ trait Functionals { self: STypeChecker with Common =>
             signal(expr, "No overloading for for method invocation ");
         }
 
-        val declaredMethod = env.lookup(opt_overloading.get.getUnambiguousName()).get.fnIndices.first
+        val declaredMethod = env.lookup(opt_overloading.get.getUnambiguousName()).get.fnIndices.head
         // Not happy about passing null for defaultApi, but don't think it is necessary for schema normalization
         val modifiedSchema = Some(new FnNameInfo(declaredMethod, null).normalizedSchema(overloadingSchema.get));
         
