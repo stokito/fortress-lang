@@ -1780,6 +1780,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     protected void generateAnOverloadDefinitionInner(String _name, CodeGenClassWriter cv) {
 
+        if (principalMember == null)
+            return;
+        
         // "(" anOverloadedArg^N ")" returnType
         // Not sure what to do with return type.
         String signature = getSignature();
