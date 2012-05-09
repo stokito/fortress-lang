@@ -207,8 +207,11 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     subED(s, t) && subED(t, s)
   
   // Normalizes existential domains using exclusion as in the paper
-  def normalizeED(e: Type): Type = {
-    reduceED(e).getOrElse(return e)._1
+  def normalizeED(e: Type, debug:Boolean = false): Type = {
+    val tmp = reduceED(e, debug)
+    if (debug)
+      println(""+tmp)
+    tmp.getOrElse(return e)._1
   }
   
   // Normalizes universal arrows using exclusion as in the paper
@@ -223,7 +226,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
   }
   
   // The meet of two existential types
-  def meetED(x: Type, y: Type): Type = {
+  def meetED(x: Type, y: Type, debug:Boolean = false): Type = {
     val ax = alphaRenameTypeSchema(x, ta.env)
     val ay = alphaRenameTypeSchema(y, ta.env)
     val xp = getStaticParams(ax)
@@ -234,8 +237,9 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
     val meet = insertStaticParams(makeIntersectionType(Set(clearStaticParams(ax), clearStaticParams(ay))),
                                   xp ++ yp)
     // Try to reduce this existential type.
-    val result = normalizeED(meet)
-//    println("The \"ugly meet\" of " + x + " aka " + ax + " and " + y + " aka " + ay + " is " + meet + ", which normalizes to " + result)
+    val result = normalizeED(meet, debug)
+    if (debug)
+       println("The \"ugly meet\" of " + x + " aka " + ax + " and " + y + " aka " + ay + " is " + typeToString(meet) + ", which normalizes to " + typeToString(result))
     result
   }
   
@@ -354,7 +358,7 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
    * more details, see Section 5.3 of our paper and the "Existential
    * reduction" definition.
    */
-  private def reduceED(ed: Type): Option[(Type, Type => Type)] = {
+  private def reduceED(ed: Type, debug:Boolean=false): Option[(Type, Type => Type)] = {
 //    println("reduceED on " + typeToString(ed) + "[[" + getStaticParams(ed) + "]]")
     // Insert inference variables for type parameters
     val spd = getStaticParams(ed)
@@ -378,23 +382,32 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
       case _ => None
     }
     val ub = and(ubConjuncts)
-//       println("reduceED:")
-//       println("   e[sp] = " + e + "[" + sp + "]")
-//       println("   ia = " + ia)
-//       println("   ie = " + ie)
-//       println("   ubConjuncts = " + ubConjuncts)
-//       println("   ub = " + ub)
+    if (debug) {
+       println("reduceED:")
+       println("   e[sp] = " + e + "[" + sp + "]")
+       println("   ia = " + ia)
+       println("   ie = " + ie)
+       println("   ubConjuncts = " + ubConjuncts)
+       println("   ub = " + ub)
+    }
     val ieNotBottom = negate(ta.equivalent(ie, BOTTOM))
     val c = and(ieNotBottom, ub)
-    val (nc, ts, os) = unify(c).getOrElse(return None)
-//       println("    c = " + c)
-//       println("   nc = " + nc)
-//       println("   ts = " + ts)
-//       println("   os = " + os)
+    if (debug) {
+       println("   ieNotBottom = " + ieNotBottom)
+       println("    c = " + c)
+    }
+    val (nc, ts, os) = unifyWithDebug(c, debug).getOrElse(return None)
+    if (debug) {
+       println("   nc = " + nc)
+       println("   ts = " + ts)
+       println("   os = " + os)
+    }
     val nub = cMap(ub, ts, os)
-//       println("   nub = " + nub)
+    if (debug) {
+       println("   nub = " + nub)
+    }
 //    if (implies(nub, nc)) {                   // GLS 2/10/12: broken
-    if (implies(and(nub, ieNotBottom), nc)) {   // GLS 2/10/12: alternatively, strip occurrences of BottomType out of nu slots of nc, leaving only upper bounds?
+    if (impliesWithDebug(and(nub, ieNotBottom), nc, debug)) {   // GLS 2/10/12: alternatively, strip occurrences of BottomType out of nu slots of nc, leaving only upper bounds?
       // Need conjugate s by the map that sends static args to inference variables
       val sub = iv compose ts compose vi
       val nsp = boundsSubstitution(sub, sp).getOrElse{return None}
@@ -405,7 +418,8 @@ class TypeSchemaAnalyzer(implicit val ta: TypeAnalyzer) {
       Some((nty, sub))
     }
     else {
-//       println("reduceED produces None")
+      if (debug)
+       println("reduceED produces None")
       None
     }
   }

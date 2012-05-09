@@ -197,16 +197,23 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
 //   }
   
   //Checks whether f is the meet of g and h
-  def isMeet(fa: ArrowType, ga: ArrowType, ha: ArrowType, isMethod: Boolean): Boolean = {
+  def isMeet(fa: ArrowType, ga: ArrowType, ha: ArrowType, isMethod: Boolean, debug:Boolean = false): Boolean = {
     val fd = sa.makeDomainFromArrow(fa, isMethod)
     val gd = sa.makeDomainFromArrow(ga, isMethod)
     val hd = sa.makeDomainFromArrow(ha, isMethod)
-    val md = sa.meetED(gd, hd)
+    val md = sa.meetED(gd, hd, debug)
 //     println("isMeet: fd = " + typeToString(fd))
 //     println("        gd = " + typeToString(gd))
 //     println("        hd = " + typeToString(hd))
 //     println("        md = " + typeToString(md))
     val result = sa.equivalentED(fd, md)
+    if (debug) {
+       println("isMeet: fd = " + typeToString(fd))
+       println("        gd = " + typeToString(gd))
+       println("        hd = " + typeToString(hd))
+       println("        md = " + typeToString(md))
+       println(result)
+    }
 //     println("    result = " + result)
     result
   }
