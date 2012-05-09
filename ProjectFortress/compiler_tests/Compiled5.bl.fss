@@ -1,0 +1,24 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+
+  object Foo end
+
+  map(f:ZZ32->String, _:Foo) : String = "Simplestring"
+
+  (* Here's something that looks like it should work but should not.
+     These fns will be right associated. *)
+  foo(n:RR64, x:RR64, one:RR64) : RR64 = do
+    map (fn (a:ZZ32):String => "S") Foo
+  end
+
+  run():()= ()

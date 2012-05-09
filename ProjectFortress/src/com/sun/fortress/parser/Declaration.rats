@@ -1,0 +1,92 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress top-level declarations.
+ */
+module com.sun.fortress.parser.Declaration(TraitObject, Function, Variable,
+                                           Other, NoNewlineExpr, Spacing, Syntax);
+
+import TraitObject;
+import Function;
+import Variable;
+import Other;
+import NoNewlineExpr;
+import Spacing;
+import Syntax;
+
+/* Decls ::= Decl (br Decl)* */
+List<Decl> Decls = a1:Decl a2s:(br Decl)*
+     { for (List<Decl> ds : a2s.list())  a1.addAll(ds);
+       yyValue = a1;
+     };
+
+/* Decl ::=
+     TraitDecl
+   | ObjectDecl
+   | VarDecl
+   | FnDecl
+   | DimUnitDecl
+   | TypeAlias
+   | TestDecl
+   | PropertyDecl
+*/
+List<Decl> Decl =
+     a1:TraitDecl      { yyValue = Useful.list((Decl)a1); }
+   / a1:ObjectDecl     { yyValue = Useful.list((Decl)a1); }
+   / a1:VarDecl        { yyValue = Useful.list((Decl)a1); }
+   / a1:TopLevelFnDecl { yyValue = Useful.list((Decl)a1); }
+   / DimUnitDecl
+   / a1:TypeAlias      { yyValue = Useful.list((Decl)a1); }
+   / a1:TestDecl       { yyValue = Useful.list((Decl)a1); }
+   / a1:PropertyDecl   { yyValue = Useful.list((Decl)a1); }
+   ;
+
+/* AbsDecls ::= AbsDecl (br AbsDecl)* */
+List<Decl> AbsDecls = a1:AbsDecl a2s:(br AbsDecl)*
+     { for (List<Decl> ds : a2s.list())  a1.addAll(ds);
+       yyValue = a1;
+     };
+
+/* AbsDecl ::=
+     AbsTraitDecl
+   | AbsObjectDecl
+   | AbsVarDecl
+   | AbsFnDecl
+   | DimUnitDecl
+   | TypeAlias
+   | TestDecl
+   | PropertyDecl
+   | GrammarDef
+ */
+List<Decl> AbsDecl =
+     a1:AbsTraitDecl  { yyValue = Useful.list((Decl)a1); }
+   / a1:AbsObjectDecl { yyValue = Useful.list((Decl)a1); }
+   / a1:AbsVarDecl    { yyValue = Useful.list((Decl)a1); }
+   / a1:VarDecl
+     { log(NodeUtil.getSpan(a1),
+           "A variable declaration with an initializing expression " +
+           "is not allowed in an API.");
+       yyValue = new ArrayList<Decl>();
+     }
+   / a1:FnDecl
+     { if ( a1.getBody().isSome() ) {
+           log(NodeUtil.getSpan(a1),
+               "A function declaration with an initializing expression " +
+               "is not allowed in an API.");
+           yyValue = new ArrayList<Decl>();
+        } else yyValue = Useful.list((Decl)a1);
+     }
+   / DimUnitDecl
+   / a1:TypeAlias     { yyValue = Useful.list((Decl)a1); }
+   / a1:TestDecl      { yyValue = Useful.list((Decl)a1); }
+   / a1:PropertyDecl  { yyValue = Useful.list((Decl)a1); }
+   / a1:GrammarDef    { yyValue = Useful.list((Decl)a1); };

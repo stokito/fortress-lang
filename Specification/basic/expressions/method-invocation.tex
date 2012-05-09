@@ -1,0 +1,70 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Dotted Method Invocations}
+\seclabel{dotted-method-calls}
+
+\note{Should be a static check that there is an applicable declaration.}
+
+\begin{Grammar}
+\emph{Primary}
+&::=& \emph{Primary}\EXP{.}\emph{Id}
+\option{\emph{StaticArgs}} \emph{ParenthesisDelimited}\\
+
+\emph{ParenthesisDelimited}
+&::=& \emph{Parenthesized}\\
+&$|$& \emph{ArgExpr}\\
+&$|$& \texttt(\texttt)\\
+
+\emph{Parenthesized} &::=& \texttt( \emph{Expr} \texttt)\\
+
+\emph{ArgExpr}
+&::=& \emph{TupleExpr}\\
+&$|$& \texttt( (\emph{Expr}\EXP{,})$^*$ \emph{Expr}\EXP{...} \texttt)\\
+
+\emph{TupleExpr}
+&::=& \texttt( (\emph{Expr}\EXP{,})$^+$ \emph{Expr} \texttt)\\
+
+\end{Grammar}
+
+A \emph{dotted method invocation} consists of a subexpression
+(called the receiver expression), followed by `\txt{.}',
+followed by an identifier, an optional list of static arguments
+(described in \chapref{functions})
+and a subexpression (called the \emph{argument expression}).
+Unlike in function calls (described in \secref{function-calls}),
+the argument expression must be parenthesized, even if it is not a tuple.
+There must be no whitespace on the left-hand side of the `\txt{.}' and
+the left-hand side of the left parenthesis of the argument expression.
+The receiver expression evaluates to the receiver of the invocation (bound
+to the \KWD{self} parameter (discussed in \secref{methods}) of the method).
+A method invocation may include explicit instantiations of static parameters
+but most method invocations do not include them; the static arguments
+are statically inferred from the context of the method invocation (as
+described in \chapref{type-inference}).
+
+The receiver and arguments of a method invocation are each evaluated
+in parallel in a separate implicit thread (see
+\secref{threads-parallelism}).  After this thread group completes
+normally, the body of the method is evaluated with the parameter of
+the method bound to the value of the argument expression (thus
+evaluation of the body occurs after evaluation of the receiver and
+arguments in dynamic program order).  The value and the type of a
+dotted method invocation are the value and the type of the method
+body.
+
+We say that methods or functions (collectively called as
+\emph{functionals}) may be \emph{applied to}
+(also ``\emph{invoked on}'' or ``\emph{called with}'') an argument.
+We use ``call'', ``invocation'', and ``application'' interchangeably.
+
+Here are some examples:
+\input{\home/basic/examples/Expr.MthIvk.tex}

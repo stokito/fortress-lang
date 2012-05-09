@@ -1,0 +1,50 @@
+%%%%%%%%%%%%%%% BEGIN CONSTRAINT FIGURE %%%%%%%%%%%%%%%
+\begin{figure}[t]
+
+
+\begin{tabular}{@{}c@{}c@{}}
+\begin{minipage}[t]{.19\textwidth}
+\textbf{Constraint Grammar}
+\par\medskip
+\noindent\(
+\begin{array}{@{}lcl@{}}
+\C &::=& T <: T' \\
+  &\mid& T \exc T' \\
+  &\mid& T \not<: T' \\
+  &\mid& T \nexc T' \\
+  &\mid& \C \wedge \C \\
+  &\mid& \C \vee \C \\
+  &\mid& \FALSE \\
+  &\mid& \TRUE \\
+  \end{array}
+\)
+\end{minipage}
+&\quad
+\begin{minipage}[t]{.28\textwidth}
+\textbf{Constraint negation:}\hskip0.5em\fbox{\ensuremath{\neg \C = \C}}
+\par\medskip
+\noindent\(
+\begin{array}{@{}lcl@{}}
+\neg(T \subtypeof T') &=& T \nsubtypeof T' \\
+\neg(T \exc T') &=& T \nexc T' \\
+\neg(T \nsubtypeof T') &=& T \subtypeof T' \\
+\neg(T \nexc T') &=& T \exc T' \\
+\neg(\C \wedge \C) &=& \neg(\C) \vee \neg(\C) \\
+\neg(\C \vee \C) &=& \neg(\C) \wedge \neg(\C) \\
+\neg(\FALSE) &=& \TRUE \\
+\neg(\TRUE) &=& \FALSE \\
+\end{array}
+\)
+\end{minipage}
+\end{tabular}
+\par\medskip
+\newjudge{Convert type env to constraints}{\toConstraint{\Delta}{\C}}
+\medskip
+\newjudge{Convert constraints to type env}{\toBounds{\C}{\Delta}}
+\medskip
+\newjudge{Solve constraints}{\jsolve{\C}{\sigma}{\C}}
+
+  \caption{Constraints. The $\wedge$, $\vee$, and $\neg$ operators form a Boolean algebra; \textit{unify} and \textit{toBounds} are partial functions.}
+  \label{fig:constraints}
+\end{figure}
+%%%%%%%%%%%%%%% END CONSTRAINT FIGURE %%%%%%%%%%%%%%%%%

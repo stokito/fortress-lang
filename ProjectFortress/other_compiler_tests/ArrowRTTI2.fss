@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+******************************************************************************)
+
+export Executable
+
+f(x:Any) : String = "any"
+
+f(x : Specific -> General) = "sg"
+
+f(x : General -> Specific) = "gs"
+
+trait General end
+trait Specific extends General end
+
+object G extends General end
+object S extends Specific end
+
+sg(s : Specific) : General = G
+gs(g : General) : Specific = S
+
+run() : () = do
+    x : Any = gs
+    y : Any = sg
+    result : String = f(x) || f(y)
+    
+    if (result = "gssg") 
+        then println("ok")
+        else println("fail")
+    end
+end

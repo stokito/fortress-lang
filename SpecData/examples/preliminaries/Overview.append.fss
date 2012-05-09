@@ -1,0 +1,40 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Overview.append
+
+export Executable
+
+trait List
+  cons(x: Object, self): List
+  append(xs: List, self): List
+end
+object Cons(hd: Object, tl: List) extends List
+  cons(x: Object, self) = Cons(x, self)
+  append(xs: List, self) = append(append(xs, Cons(hd, Empty)), tl)
+end
+object Empty extends List
+  cons(x: Object, self) = Cons(x, self)
+  append(xs: List, self) = xs
+end
+
+run() = do
+  l1 = Empty
+  l2 = Empty
+(** EXAMPLE **)
+  append(l1, l2)
+(** END EXAMPLE **)
+  ()
+end
+
+end

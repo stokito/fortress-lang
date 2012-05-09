@@ -1,0 +1,78 @@
+% Our central theorem about overloaded sets of function declarations
+% mirrors the age-old description of sound type systems that says ````well-typed
+% programs don't go wrong.'' In particular, it describes a form of
+% \emph{overloading safety} for multiple dynamic dispatch which comprises
+% three important properties:
+% \begin{itemize}
+%   \item if a function application has any meaning, then it has a unique most
+%   specific meaning,
+%   \item if it has a unique most specific meaning at compile time, then it
+%   has a (possibly different) unique most specific meaning at run time, and
+%   \item the ilk of the value returned at run time will be a subtype of
+% the type determined statically at compile time of the function application expression.
+% \end{itemize}
+% %% \TODO{Relate these properties to prior work?}
+% %
+% We formulate the Overloading Safety Theorem in terms of class table extension
+% to generalize (while also making precise) the notion that ````run time''
+% describes a world that consistently extends that of ````compile time.''
+
+We now prove the main theorem of this paper, 
+that a valid set of overloaded generic function declarations 
+is safe 
+even if the class table is extended.
+Before proving the theorem we establish two lemmas. 
+First, we show that if a set of declarations is valid for a given class table, 
+then it is valid for any (well-formed) extension of that class table.
+Second, we show that if a set of overloaded declarations is valid, 
+then there is always a single best choice of declaration 
+to which to dispatch any (legal) call to that function 
+(i.e., the unique most specific declaration applicable to the arguments).
+
+% The first is the more critical one:
+% it shows that one does not invalidate a valid set of
+% overloaded function declarations by extending the class
+% table for which it was proved valid.
+% Effectively the second lemma states that
+% there is always a single best choice for the meaning of a function
+% application.
+
+\begin{lemma}[Extensibility]
+\label{lem:mod}
+If $\Df$ is valid with respect to the class table $\T$,
+then $\Df$ is valid with respect to any extension $\T'$ of $\T$.
+\end{lemma}
+\begin{psketch}
+In Section~\ref{sec:checking} we will show that checking the validity of
+$\Df$ can be reduced to examining subtype relationships
+between existential and universal types, which are constructed solely from
+types
+appearing in $\Df$ and hence $\T$. Extension of the class table
+preserves subtype relationships between types in $\T$ and hence preserves
+validity of $\Df$.
+\end{psketch}
+
+\begin{lemma}[Unambiguity]
+If $\Df$ is valid with respect to the class table $\T$,
+then for every type $T \in \T$ such that $\Df(T)$ is nonempty, there is a unique most specific declaration in $\Df(T)$.
+\end{lemma}
+\begin{proof}
+Let $T \in \T$ be a type such that $\Df(T)$ is nonempty. This set is valid
+by Lemma~\ref{lem:subsetvalid} and thus contains a unique most specific
+declaration by Lemma~\ref{lem:leastelement}.
+\end{proof}
+
+\begin{theorem}[Overloading Safety]
+\label{thm:safety}
+Suppose $\Df$ is valid with respect to the class table $\T$.
+Then for any type $S \in \T' \ctext \T$,
+if $\Df(S)$ is nonempty then there exists a unique most specific declaration $d_{S} \in \Df(S)$.
+Furthermore for any declaration $d \in \Df(S)$ and instance $\decl{f}{T}{U}$
+of $d$, there exists an instance
+$\decl{f}{V}{W}$ of $d_{S}$ that is applicable to $S$ such that $W \subtypeof U$.
+\end{theorem}
+\begin{proof}
+The Extensibility Lemma lets us consider only the case when $\T' = \T$. 
+Now the Unambiguity Lemma entails that such a $d_{S}$ exists, and the Return Type Rule
+entails the rest.
+\end{proof}

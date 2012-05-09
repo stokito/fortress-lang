@@ -1,0 +1,20 @@
+2007-09-11  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* fortress-mode.el (fortress-ucs-to-string): removed because this function is no longer used.
+
+2007-08-04  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* fortress-mode.el (fortress-with-unicode-char): defined the macro to use unicode characters(mathematical symbols).
+	(fortress-ucs-to-string): defined the function that returns string of given ucs code.
+
+2007-07-31  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* fortress-mode.el (fortress-font-lock-keywords): add mathematical functions
+	(fortress-mode-init-variables): add face `font-lock-fortress-type-face' for pretty rendering of builtin types.
+
+2007-07-30  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* fortress-mode.el: initial version
+	* fortress-mode.el (fortress-command): add fortress-command variable
+	
+

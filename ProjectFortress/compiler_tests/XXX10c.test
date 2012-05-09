@@ -1,0 +1,21 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled10.c
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled10.c.fss:20:22:\n\
+\ A requires clause has type ZZ32, but it must have Boolean type.\n\
+${STATIC_TESTS_DIR}/Compiled10.c.fss:23:22:\n\
+\ An ensures clause has type ZZ32, but it must have Boolean type.\n\
+${STATIC_TESTS_DIR}/Compiled10.c.fss:24:40:\n\
+\ A provided clause has type IntLiteral, but it must have Boolean type.\n\
+File Compiled10.c.fss has 3 errors.\n
+compile_out_equals=

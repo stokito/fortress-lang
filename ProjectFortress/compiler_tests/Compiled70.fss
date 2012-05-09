@@ -1,0 +1,30 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled70
+export Executable
+
+(* Local overloading.
+   WORKS.
+ *)
+
+trait A end
+object O extends A end
+object P extends A end
+
+anA():A = O
+f(o:O):() = println("pass with O")
+f(a:A):() = println("FAIL WITH A")
+f(p:P):() = println("FAIL WITH P")
+
+run():() = f(anA())
+
+end

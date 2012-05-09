@@ -1,0 +1,48 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component generatorTest
+export Executable
+
+tst(a:Number, b:Number, c:String): () =
+    if a=/=b then
+        fail(c ": " a "=/=" b)
+    else
+        println(c " OK")
+    end
+
+run():() = do
+    r1 = 1#5
+    r2 = 50#9
+    r3 = 7#0
+    r4 = 9#1
+    r5 = 0#2
+    add(y: RR64) = fn (x: Number): RR64 => x + y
+    sum = SumReduction
+    rum = SumReduction
+    tst(|r1|, 5, "r1.size")
+    tst(r1.generate[\Number\](sum, fn (x) => 1), |r1|, "length 1#5")
+    tst(r1.generate[\Number\](sum, identity[\Number\]), 15, "sum 1#5")
+    tst(|r2|, 9, "r2.size")
+    tst(r2.generate[\Number\](sum, fn (x)=> 1), |r2|, "length r2")
+    tst(r2.generate[\Number\](rum, add(0.5)), 454.5+36.0, "sum r2")
+    tst(|r3|, 0, "r3.size")
+    tst(r3.generate[\Number\](sum, fn (x)=> 1), |r3|, "length r3")
+    tst(r3.generate[\Number\](rum, add(0.999)), 0, "sum r3")
+    tst(|r4|, 1, "r4.size")
+    tst(r4.generate[\Number\](sum, fn (x)=> 1), |r4|, "length r4")
+    tst(r4.generate[\Number\](rum, add(0.21)), 9.21, "sum r4")
+    tst(|r5|, 2, "r5.size")
+    tst(r5.generate[\Number\](sum, fn (x)=> 1), |r5|, "length r5")
+    tst(r5.generate[\Number\](rum, add(12.5)), 26.0, "sum r5")
+end
+
+end

@@ -1,0 +1,33 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled10.k
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled10.k.fss:27:5-9:\n\
+\ Could not check call to function k\n\
+\ - Q->() is not applicable to an argument of type (T[\\U\\] & {U}).\n\
+${STATIC_TESTS_DIR}/Compiled10.k.fss:30:5-7:\n\
+\ Could not check call to function j\n\
+\ - U->() is not applicable to an argument of type T[\\U\\].\n\
+${STATIC_TESTS_DIR}/Compiled10.k.fss:31:5-7:\n\
+\ Could not check call to function k\n\
+\ - Q->() is not applicable to an argument of type T[\\U\\].\n\
+${STATIC_TESTS_DIR}/Compiled10.k.fss:35:5-7:\n\
+\ Could not check call to function k\n\
+\ - Q->() is not applicable to an argument of type U.\n\
+${STATIC_TESTS_DIR}/Compiled10.k.fss:37:5-7:\n\
+\ Could not check call to function i\n\
+\ - T[\\U\\]->() is not applicable to an argument of type Q.\n\
+${STATIC_TESTS_DIR}/Compiled10.k.fss:38:5-7:\n\
+\ Could not check call to function j\n\
+\ - U->() is not applicable to an argument of type Q.\n\
+File Compiled10.k.fss has 6 errors.\n
+compile_out_equals=

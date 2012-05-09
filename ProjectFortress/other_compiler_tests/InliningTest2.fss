@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component InliningTest2
+export Executable
+
+fun(x: RR64): RR64 = x (x x + 1.0)
+
+integrate_fo'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, tol: RR64): RR64 = do
+    w = 0.5 (h-l)
+    println(w)
+    hw = 0.5 w
+    println(hw)
+    m = l + w
+    println(m)
+    fm = fun(m)
+    println(fm)
+    al = hw (fl + fm)
+    println(al)
+    ah = hw (fm + fh)
+    println(ah)
+    alh = al + ah
+    println(alh)
+    alh 
+  end
+
+run(): () = do
+   foo = integrate_fo'(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+   println(foo)
+end
+end

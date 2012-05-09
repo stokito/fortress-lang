@@ -1,0 +1,68 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Test multiple inheritance of method implementation
+   in combination with abstract methods. *)
+
+trait T comprises { U, V }
+  abstract getter asString(): String
+  abstract getter foo(): String
+  abstract m(t:T): T
+  abstract mv(v:V): T
+  abstract leaf(): T
+end
+
+object U extends T
+  getter asString(): String = "U"
+  getter foo(): String = "U"
+  m(t:T): T = t
+  mv(v:V): T = v
+  leaf(): T = self
+end
+
+trait V extends T comprises { W, X }
+  getter foo(): String = "V"
+  getter k(): String
+  m(t:T): T = t.mv(self)
+  mv(v:V): T = self
+end
+
+object W extends V
+  getter asString(): String = "W"
+  getter k(): String = "WW"
+  leaf(): T = self
+end
+
+object X extends V
+  getter asString(): String = "X"
+  getter k(): String = "XX"
+  leaf(): T = self
+end
+
+run() = do
+    println("U" U.m(U).asString)
+    println("W" U.m(W).asString)
+    println("X" U.m(X).asString)
+    println("W" W.m(U).asString)
+    println("W" W.m(W).asString)
+    println("X" W.m(X).asString)
+    println("X" X.m(U).asString)
+    println("W" X.m(W).asString)
+    println("X" X.m(X).asString)
+    println("U" U.foo)
+    println("V" W.foo)
+    println("V" X.foo)
+    println("U" U.leaf().asString)
+    println("W" W.leaf().asString)
+    println("X" X.leaf().asString)
+  end

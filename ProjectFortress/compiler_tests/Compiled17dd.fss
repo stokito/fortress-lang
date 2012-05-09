@@ -1,0 +1,46 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+object Gz(e1: ZZ32, e2:ZZ32)
+  generate[\ R \](body: ZZ32->R, combine : (R,R) -> R) : R = 
+    if e1 = e2 then body(e1) else 
+      mid = (e1 + e2) DIV 2
+      combine(Gz(e1, mid).generate[\R\](body, combine),
+              Gz(mid+1, e2).generate[\R\](body, combine))
+    end
+end
+
+object Gs(e:String)
+  generate[\ R \](body: String->R, combine : (R,R) -> R) : R = do
+    l = |e|
+    if l <= 1 then body(e) else 
+      mid = (l DIV 2) (*) 2 -> (0,1)
+      combine(Gs(e.substring(0,mid)).generate[\R\](body, combine),
+              Gs(e.substring(mid,l)).generate[\R\](body, combine))
+    end
+   end
+end
+
+cat(x:String, y:String):String = x || y
+
+rcat(x:String, y:String):String = y || x
+id(x:String):String = x
+
+somebody(x:ZZ32):String = x.asString
+
+run():() = do
+  s = Gz(1, 10).generate[\String\](somebody, cat)
+  println s
+  t = Gs(s).generate[\String\](id, rcat)
+  println t
+end

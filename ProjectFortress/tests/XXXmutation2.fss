@@ -1,0 +1,33 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXmutation2
+export Executable
+
+object foo(var n:ZZ32)
+
+    var field:ZZ32 := 0
+    f() = do
+
+        field := "world"
+        42
+
+    end
+
+end
+
+run() = do
+
+    q = foo(2)
+    q.f()
+
+end
+end

@@ -1,0 +1,48 @@
+(*******************************************************************************
+    Copyright 2010 Kang Seonghoon, KAIST
+    All rights reserved.
+ ******************************************************************************)
+
+export Executable
+import QuickCheck.{...}
+import ReflectiveQuickCheck.{...}
+import Random.{...}
+import List.{...}
+import Set.{...}
+import Map.{...}
+
+object Properties extends GenericProperties
+    (* Tests a non-generic property. *)
+    propAssociativeAddition(a:ZZ32, b:ZZ32, c:ZZ32): Boolean =
+        (a + b) + c = a + (b + c)
+
+    (* Tests a polymorphic property and its desugared form. *)
+    (* XXX RR32 + RR64 doesn't work correctly! *)
+    propCommutativeAddition(a:Number, b:Number): Boolean =
+        (*)a + b = b + a
+        1.0 a + 1.0 b = 1.0 b + 1.0 a
+    propCommutativeAddition'[\A extends Number, B extends Number\](a:A, b:B): Boolean =
+        (*)a + b = b + a
+        1.0 a + 1.0 b = 1.0 b + 1.0 a
+
+    (* Tests several variants of same property. *)
+    propDoubleReversal[\T\](g:Generator[\T\]): Boolean =
+        (list g.reverse.reverse = list g)
+    propDoubleReversalList[\T\](g:List[\T\]): Boolean =
+        (list g.reverse.reverse = list g)
+    propDoubleReversalSet[\T\](g:Set[\T\]): Boolean =
+        (list g.reverse.reverse = list g)
+    propDoubleReversalMap[\K,V\](g:Map[\K,V\]): Boolean =
+        (list g.reverse.reverse = list g)
+
+    (* Specific properties for `Map`. *)
+    propMapSizeInvariant1[\Key,Val\](map:Map[\Key,Val\], k:Key, v:Val): Boolean =
+        (0 <= |map.add(k,v)| - |map| <= 1)
+    propMapSizeInvariant2[\Key,Val,Res\](map:Map[\Key,Val\], f:(Key,Val)->Maybe[\Res\]): Boolean =
+        (|map.mapFilter[\Res\](f)| <= |map|)
+end
+
+run(): () = do
+    checkGeneric(Properties, 100)
+end
+

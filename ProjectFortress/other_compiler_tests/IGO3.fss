@@ -1,0 +1,50 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(*
+ The overloading for F has two members, both are generic
+ but one is more specific than the other on account of a
+ non-generic parameter.  The generic parameter is in
+ an invariant position, meaning that if either function
+ applies, the parameter must be the same.
+ *)
+
+trait T
+  getter s():String
+end
+
+object O extends T
+  getter s():String = "o"
+end
+
+object P extends T
+  getter s():String = "p"
+end
+
+object Inv[\ Y extends T \]( y:Y ) extends T
+  getter s():String = y.s
+end
+
+f[\ X extends T \]( x:Inv[\X\], y: T) : String = "InvT" x.s y.s
+f[\ Y extends T \]( x:Inv[\Y\], y: O) : String = "InvO" x.s y.s
+
+run() = do
+  
+  t1:Inv[\O\] = Inv(O)
+  t2:T = O
+  t3:T = P
+  
+  println(f(t1,t2)) (*) InvOoo -- t2 is an O
+  println(f(t1,t3)) (*) InvTop -- t3 is NOT an O
+  
+end

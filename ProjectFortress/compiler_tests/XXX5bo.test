@@ -1,0 +1,26 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled5.bo
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.bo.fss:15:6-16:\n\
+\ Could not determine all parameter types of function expression.\n\
+${STATIC_TESTS_DIR}/Compiled5.bo.fss:16:6-27:\n\
+\ Could not determine all parameter types of function expression.\n\
+${STATIC_TESTS_DIR}/Compiled5.bo.fss:17:30:\n\
+\ Function body has type ZZ32, but declared return type is String.\n\
+${STATIC_TESTS_DIR}/Compiled5.bo.fss:18:22-40:\n\
+\ Right-hand side has type String->String, but declared type is ZZ32->String.\n\
+${STATIC_TESTS_DIR}/Compiled5.bo.fss:19:22-23:2:\n\
+\ Right-hand side has type ZZ32->ZZ32, but declared type is ZZ32->String.\n\
+File Compiled5.bo.fss has 5 errors.\n
+
+compile_out_equals=
