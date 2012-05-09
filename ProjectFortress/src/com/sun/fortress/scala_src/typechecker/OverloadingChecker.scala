@@ -378,17 +378,38 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                            }
                            var index = 1
                            for ( first <- signatures ) {
-                               signatures.slice(index, signatures.length).foreach(second =>
-                                       if (! validOverloading(first, second, signatures, isMethod, oracle) ) {
+                               signatures.slice(index, signatures.length).foreach(second => {
+                                       val a1 = validOverloading(first, second, signatures, isMethod, oracle)
+                                       if (false) {
+                                           val a2 = validOverloading(first, second, signatures, isMethod, oracle)
+                                           val a3 = validOverloading(first, second, signatures, isMethod, oracle)
+                                           val a4 = validOverloading(first, second, signatures, isMethod, oracle)
+                                           val a5 = validOverloading(first, second, signatures, isMethod, oracle)
+                                           val a6 = validOverloading(first, second, signatures, isMethod, oracle)
+                                           val a7 = validOverloading(first, second, signatures, isMethod, oracle)
+                                           val a8 = validOverloading(first, second, signatures, isMethod, oracle)
+                                           val a9 = validOverloading(first, second, signatures, isMethod, oracle)
+                                           val a10 = validOverloading(first, second, signatures, isMethod, oracle)
+                                           val a11 = validOverloading(first, second, signatures, isMethod, oracle)
+                                           if (a1 != a2 || a2 != a3 || a3 != a4 ||
+                                                   a4 != a5 || a5 != a6 || a6 != a7 ||
+                                                   a7 != a8 || a8 != a9 || a9 != a10 ||
+                                                   a10 != a11) {
+                                               println("Inconsistent overloading validity results")
+                                               for (i <- 1 to 100) {
+                                                   val for_debugging = validOverloading(first, second, signatures, isMethod, oracle, true)
+                                                   if (! for_debugging)
+                                                       println("Subsequent failure at " + i)
+                                                       else
+                                                           println("----------")
+                                               } 
+                                           }
+                                       }
+                                       if (! a1 ) {
                                 	      val (fa, fsp) = first
                                 	      val (ga, gsp) = second
                                 	      val firstO = typeAndSpanToString(fa)
                                 	      val secondO = typeAndSpanToString(ga)
-                                	      for (i <- 1 to 100) {
-                                		      val for_debugging = validOverloading(first, second, signatures, isMethod, oracle)
-                                									//  if (! for_debugging)
-                                									//   println("Failed after failure")
-                                	      } 
                                 	      val mismatch = if (firstO < secondO) firstO + "\n and " + secondO
                                 				         else secondO + "\n and " + firstO
                                 					      	error(mergeSpan(fa, ga),
@@ -398,6 +419,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                                 	      returnTypeCheck(name, first, second, oracle)
                                 	      returnTypeCheck(name, second, first, oracle)
                                        } 
+                               }
                                  )
                                  index += 1
                            }
@@ -419,13 +441,14 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                                  second: (ArrowType, Option[Int]),
                                  signatures: List[(ArrowType, Option[Int])],
 				 isMethod: Boolean,
-				 oa: OverloadingOracle): Boolean = {
+				 oa: OverloadingOracle,
+				 debug:Boolean=false): Boolean = {
       val (fa, fsp) = first
       val (ga, gsp) = second
       val b1 = oa.lteq(fa, ga)
       val b2 = oa.lteq(ga, fa) 
       val b3 = oa.excludes(fa, ga) 
-      val b4 = meetRule(first, second, signatures, isMethod, oa)
+      val b4 = meetRule(first, second, signatures, isMethod, oa, debug)
       //if (b1) !b2 else ( b2 || b3 || b4 )  //JT: It looks like the duplicate rule IS enforced somewhere else
       (b1 || b2 || b3 || b4)
     }
@@ -434,12 +457,24 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
     	                 second: (ArrowType, Option[Int]),
 			 signatures: List[(ArrowType, Option[Int])],
 			 isMethod: Boolean,
-			 oa: OverloadingOracle): Boolean = {
+			 oa: OverloadingOracle,
+			 debug : Boolean = false): Boolean = {
       val (fa, fsp) = first
       val (ga, gsp) = second
-      (fsp == gsp) &&
-      signatures.exists(third => third match { case (ha, hsp) => (hsp == fsp) && oa.lteq(ha, fa) && oa.lteq(ha, ga) && oa.isMeet(ha, fa, ga, isMethod)})
-   }
+      val b1 = fsp == gsp
+      val b2 = (fsp == gsp) &&
+      signatures.exists(third => third match {
+           case (ha, hsp) => {
+              val a1 = (hsp == fsp) 
+              val a2 = a1 && oa.lteq(ha, fa) 
+              val a3 = a2 && oa.lteq(ha, ga) 
+              val a4 = a3 && oa.isMeet(ha, fa, ga, isMethod, debug)
+     //         if (debug)
+     //             println("" + ha + " " + a1 + a2 + a3 + a4)
+                   
+              a4}})
+      b2
+    }
 
     private def returnTypeCheck(name: IdOrOpOrAnonymousName,
     	    			first: (ArrowType, Option[Int]),

@@ -151,19 +151,35 @@ object Formula{
     bs.forall{b => as.exists(a => b.forall(x => a.exists(eq(x, _))))}
   }
   
+  def impliesWithDebug(c1: CFormula, c2: CFormula, debug:Boolean=false)(implicit ta: TypeAnalyzer) =
+    imp(reduce(c1), reduce(c2), debug)
+
   def implies(c1: CFormula, c2: CFormula)(implicit ta: TypeAnalyzer) =
     imp(reduce(c1), reduce(c2))
 
-  private def imp(c1: CFormula, c2: CFormula)(implicit ta: TypeAnalyzer): Boolean = (c1, c2) match {
+  private def imp(c1: CFormula, c2: CFormula, debug:Boolean=false)(implicit ta: TypeAnalyzer): Boolean = {
+    if (debug)
+      println("imp: c1 = " + c1 + ", c2 = " + c2)
+    val result = (c1, c2) match {
+  
     case (False, _) => true
     case (_, False) => false
     case (_, True) => true
     case (True, _) => false
     // Checks whether every constraint in c2 is in c1
-    case (And(as, os), And(bs, ps)) =>
-     forall(as, bs, tImplies, tUnit) && forall(ps, os, oImplies, oUnit)
+    case (And(as, os), And(bs, ps)) => {
+       val a1 = forall(as, bs, tImplies, tUnit)
+       val a2 = forall(ps, os, oImplies, oUnit)
+       if (debug)
+         println("a1, a2 = " + a1 + ", " + a2)
+       a1 && a2
+    }
     case (c1, Or(cs)) => cs.exists(imp(c1, _))
     case (Or(cs), c2) => cs.forall(imp(_, c2))
+    }
+    if (debug)
+      println("imp: result = " + result)
+    result
   }
 
   private def tImplies(p: TPrimitive, q: TPrimitive)(implicit ta: TypeAnalyzer): Boolean = {
@@ -481,6 +497,13 @@ object Formula{
       un(eq).map{case (ts, os) => (cMap(c, ts, os), ts, os)}
   }
   
+  def unifyWithDebug(c: CFormula, debug:Boolean=false)(implicit ta: TypeAnalyzer): Option[(CFormula, Type => Type, Op => Op)] = {
+      val eq = getEquality(c)
+      if (debug)
+          println("Unify " + c + " produces " + eq)
+      un(eq).map{case (ts, os) => (cMapWithDebug(c, ts, os, debug), ts, os)}
+  }
+  
   /*
    * This method factors all of the type equalities out of an inequality constraint
    * since they are better solved through unification than the algorithm in Dan Smith's
@@ -597,19 +620,28 @@ object Formula{
     }
   }
   
-  def cMap(form: CFormula, tSub: Type => Type = tEmptySub, oSub: Op => Op = oEmptySub)(implicit ta: TypeAnalyzer): CFormula = form match {
+  def cMap(form: CFormula, tSub: Type => Type = tEmptySub, oSub: Op => Op = oEmptySub)(implicit ta: TypeAnalyzer): CFormula = 
+    cMapWithDebug(form, tSub, oSub, false)
+    
+  def cMapWithDebug(form: CFormula, tSub: Type => Type = tEmptySub, oSub: Op => Op = oEmptySub, debug:Boolean)(implicit ta: TypeAnalyzer): CFormula =
+  {
+    if (debug)
+      println("cMap("+form+", "+tSub+", "+oSub+")")
+    form match {
     case And(ts, os) =>
       val tForm = and(ts.map{
         case (k, TPrimitive(pl,nl,pu,nu,pe,ne)) =>
           val sk = tSub(k)
-//	  println("cMap substitutes " + sk + " for " + k)
+  	  if (debug)
+  	    println("cMap substitutes " + sk + " for " + k)
 	  val plf = ta.subtype(tSub(ta.join(pl)), sk)
 	  val nlf = and(nl.map(t => ta.notSubtype(tSub(t),sk)))
 	  val puf = ta.subtype(sk, tSub(ta.meet(pu)))
 	  val nuf = and(nu.map(t => ta.notSubtype(sk, tSub(t))))
 	  val pef = and(pe.map(t => ta.excludes(sk,tSub(t))))
 	  val nef = and(ne.map(t => ta.notExcludes(sk, tSub(t))))
-//	  println("cMap produces AND(" + plf + "," + nlf + "," + puf + "," + nuf + "," + pef + "," + nef + ")")
+	  if (debug)
+	    println("cMap produces AND(" + plf + "," + nlf + "," + puf + "," + nuf + "," + pef + "," + nef + ")")
           and(plf, and(nlf, and(puf, and(nuf, and(pef, nef)))))})
       val oForm = and(os.map{
         case (k, OPrimitive(po, no)) =>
@@ -620,7 +652,7 @@ object Formula{
     case Or(cs) => dis(cs.map(cMap(_, tSub, oSub)))
     case _ => form
   }
-  
+  }
   def eMap(form: EFormula, tSub: Type => Type = tEmptySub, oSub: Op => Op = oEmptySub)(implicit ta: TypeAnalyzer): EFormula = form match {
     case Conjuncts(ts, os) => reduce(Conjuncts(ts.map(_.map(tSub)), os.map(_.map(oSub))))
     case Disjuncts(es) => dis(es.map(eMap(_, tSub, oSub)))
