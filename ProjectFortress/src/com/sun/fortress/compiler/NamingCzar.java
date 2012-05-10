@@ -1204,7 +1204,16 @@ public class NamingCzar {
             IntersectionType ut = (IntersectionType) t;
             return makeBoxedIntersectionName(ut, ifNone);
         }
-        else
+        else if (t instanceof BottomType) {
+            // For code that can never be executed.
+            // But it might fail to verify, because there is
+            // a Java context that is probably more specific
+            // than Object.  The tickling example is a FnExpr
+            // with return type Bottom.
+            
+            return "java/lang/Object";
+            
+        } else
             throw new CompilerError(t, " How did we get here? type = " +
                                      t + " of class " + t.getClass());
     }
