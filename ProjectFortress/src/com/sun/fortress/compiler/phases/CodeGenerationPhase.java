@@ -15,6 +15,7 @@ import com.sun.fortress.compiler.AnalyzeResult;
 import com.sun.fortress.compiler.GlobalEnvironment;
 import com.sun.fortress.compiler.OverloadSet;
 import com.sun.fortress.compiler.codegen.CodeGen;
+import com.sun.fortress.compiler.codegen.FreeVarTypes;
 import com.sun.fortress.compiler.codegen.ParallelismAnalyzer;
 import com.sun.fortress.compiler.codegen.FreeVariables;
 import com.sun.fortress.compiler.index.ApiIndex;
@@ -176,13 +177,16 @@ public class CodeGenerationPhase extends Phase {
             // task creation.
             FreeVariables lbv = new FreeVariables();
             component.accept(lbv);
+            
+            FreeVarTypes fvt = new FreeVarTypes();
+            component.accept(fvt);
 
             // Temporary code
             ParallelismAnalyzer pa = new ParallelismAnalyzer();
             component.accept(pa);
             pa.printTable();
 
-            CodeGen c = new CodeGen(component, sta, pa, lbv, ci, apiEnv);
+            CodeGen c = new CodeGen(component, sta, pa, lbv, fvt, ci, apiEnv);
             component.accept(c);
         }
 
