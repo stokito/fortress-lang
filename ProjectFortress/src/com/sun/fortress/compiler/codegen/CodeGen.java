@@ -225,6 +225,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     private final TypeAnalyzer typeAnalyzer;
     private final ParallelismAnalyzer pa;
     private final FreeVariables fv;
+    private final FreeVarTypes fvt;
     private final Map<IdOrOpOrAnonymousName, MultiMap<Integer, Functional>> topLevelOverloads;
     private final MultiMap<String, Function> exportedToUnambiguous;
     /**
@@ -341,6 +342,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.typeAnalyzer = new_ta;
         this.pa = c.pa;
         this.fv = c.fv;
+        this.fvt = c.fvt;
         this.topLevelOverloads = c.topLevelOverloads;
         this.typeLevelOverloadedNamesAndSigs = c.typeLevelOverloadedNamesAndSigs;
         this.exportedToUnambiguous = c.exportedToUnambiguous;
@@ -366,7 +368,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     public CodeGen(Component c,
                    TypeAnalyzer ta, ParallelismAnalyzer pa, FreeVariables fv,
-                   ComponentIndex ci, GlobalEnvironment env) {
+                   FreeVarTypes fvt, ComponentIndex ci, GlobalEnvironment env) {
         component = c;
         packageAndClassName = NamingCzar.javaPackageClassForApi(c.getName());
         String dotted = NamingCzar.javaPackageClassForApi(c.getName(), ".");
@@ -381,6 +383,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         this.typeAnalyzer = ta;
         this.pa = pa;
         this.fv = fv;
+        this.fvt = fvt;
         this.ci = ci;
         this.exportedToUnambiguous = new MultiMap<String, Function> ();
         this.orphanedFunctionalMethods = new MultiMap<IdOrOp, FunctionalMethod>(NodeComparator.idOrOpComparer);
@@ -1772,6 +1775,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String tDesc = NamingCzar.jvmBoxedTypeDesc(t, component.getName());
             // Find free vars of arg
             List<VarCodeGen> freeVars = getFreeVars(arg);
+            BASet<VarType> fvts = fvt.freeVarTypes(arg);
 
             // Generate descriptor for init method of task
             String init = taskConstructorDesc(freeVars);
@@ -3337,6 +3341,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         if (!returnType.isSome())
             throw new CompilerError(x, "No return type");
         Type rt = returnType.unwrap();
+        BASet<VarType> fvts = fvt.freeVarTypes(x);
+        List<VarCodeGen> freeVars = getFreeVars(body);
 
 
         //      Create the Class
@@ -3347,9 +3353,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cg.cw.visitSource(NodeUtil.getSpan(x).begin.getFileName(), null);
 
         String className = NamingCzar.gensymArrowClassName(Naming.deDot(thisApi().getText()), x.getInfo().getSpan());
-
+        String classFileName = className;
+        Naming.XlationData xldata = null;
+        if (fvts.size() > 0) {
+            // TODO Need to use proper conventions for this.
+            className += Useful.listInDelimiters(Naming.LEFT_OXFORD, fvts, Naming.RIGHT_OXFORD);
+            classFileName += Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD;
+            xldata = xlationData(Naming.FUNCTION_GENERIC_TAG);
+            for (VarType v : fvts)
+                xldata.addKindAndNameToStaticParams(Naming.XL_TYPE, v.getName().getText());
+        }
         debug("forFnExpr className = ", className, " desc = ", desc);
-        List<VarCodeGen> freeVars = getFreeVars(body);
         cg.lexEnv = cg.createTaskLexEnvVariables(className, freeVars);
         cg.cw.visit(InstantiatingClassloader.JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER,
                     className, null, desc, new String[] {idesc});
@@ -3374,7 +3388,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         body.accept(cg);
 
         cg.methodReturnAndFinish();
-        cg.cw.dumpClass(className);
+        cg.cw.dumpClass(classFileName, xldata);
 
         constructWithFreeVars(className, freeVars, init);
     }
@@ -4651,6 +4665,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String tDesc = NamingCzar.jvmBoxedTypeDesc(t, component.getName());
             // Find free vars of arg
             List<VarCodeGen> freeVars = getFreeVars(arg);
+            BASet<VarType> fvts = fvt.freeVarTypes(arg);
+            // TO DO if fvts non-empty, will need to make a generic task
 
             // Generate descriptor for init method of task
             String init = taskConstructorDesc(freeVars);

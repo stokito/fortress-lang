@@ -82,7 +82,7 @@ public class BASet<T> extends AbstractSet<T> implements Set<T> {
         if (root != null) root.ok(comp);
     }
 
-    public String toString() {
+    public String toDebugString() {
         return root == null ? "()" : root.recursiveToString();
     }
 

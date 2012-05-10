@@ -343,6 +343,14 @@ public class NodeComparator {
 	return compare(left.getName(), right.getName());
     }
 
+    public static class VarTypeComparer implements Comparator<VarType>, Serializable {
+        public int compare(VarType left, VarType right) {
+            return NodeComparator.compare(left, right);
+        }
+        }
+    public final static VarTypeComparer varTypeComparer = new VarTypeComparer();
+
+    
     static int subtypeCompareTo(Indices left, Indices right) {
 	throw new InterpreterBug(left,
 				 "subtypeCompareTo(" + left.getClass() + " " +
