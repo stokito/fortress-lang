@@ -21,7 +21,7 @@ prdebug(t:Treap): () =
 expect(t:Treap, e:String): () = do
     (* assert(t.asString,e,t) *)
     println(t.asString)
-    if expectShow then println(e " expected") end
+    if expectShow then println(e "expected") end
     prdebug(t)
   end
 
@@ -84,8 +84,8 @@ trait Treap comprises { NonEmpty, Empty }
     private getter w(): ZZ32
     getter min(): Treap
     getter max(): Treap
-    getter asString(): String = "{" mkString(false) "}"
-    getter asDebugString(): String = "(" mkString(true) ")"
+    getter asString(): String = "{" || mkString(false) || "}"
+    getter asDebugString(): String = "(" || mkString(true) || ")"
     private mkString(withParens: Boolean): String
     (*
     (* Split tree at key. *)
@@ -184,9 +184,9 @@ private object Leaf1(w0: ZZ32, k0: ZZ32, v0: String) extends NonEmpty
     getter min(): Treap = self
     getter max(): Treap = self
     mkString(withParens: Boolean): String = do
-        r = k0.asString "|->" v0
+        r = k0.asString || "|->" || v0
         if withParens then
-            "<" w0.asString ">" r
+            "<" || w0.asString || ">" || r
         else
             r
         end
@@ -248,13 +248,12 @@ private object Node(left: Treap, w0: ZZ32, k0: ZZ32, v0: String, right: Treap)
     getter max(): Treap =
         if right.isEmpty then self.root else right.max end
     mkString(withParens: Boolean): String = do
-        mid = k0.asString "|->" v0
+        mid = k0.asString || "|->" || v0
         (l,r) = (left.mkString(withParens), right.mkString(withParens))
         if withParens then
-            "(" l ") <" w0.asString ">" mid " (" r ")"
+            "(" || l || ") <" || w0.asString || ">" || mid || " (" || r || ")"
         else
-            lh = if l.isEmpty then mid else l " " mid end
-            if r.isEmpty then lh else lh " " r end
+            l mid r
         end
       end
     (*

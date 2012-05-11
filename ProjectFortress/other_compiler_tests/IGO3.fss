@@ -35,8 +35,8 @@ object Inv[\ Y extends T \]( y:Y ) extends T
   getter s():String = y.s
 end
 
-f[\ X extends T \]( x:Inv[\X\], y: T) : String = "InvT" x.s y.s
-f[\ Y extends T \]( x:Inv[\Y\], y: O) : String = "InvO" x.s y.s
+f[\ X extends T \]( x:Inv[\X\], y: T) : String = "InvT" || x.s || y.s
+f[\ Y extends T \]( x:Inv[\Y\], y: O) : String = "InvO" || x.s || y.s
 
 run() = do
   

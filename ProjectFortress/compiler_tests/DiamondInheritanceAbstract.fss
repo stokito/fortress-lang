@@ -21,7 +21,7 @@ trait T extends R
 end
 
 object O(x:ZZ32,y:ZZ32) extends {S,T}
-  m(a:String, b:String): String = ("O(" x.asString "," y.asString ").m " a b)
+  m(a:String, b:String): String = ("O(" || x.asString || "," || y.asString || ").m " || a || b)
 end
 
 e(r:R): String = r.m("c","d")

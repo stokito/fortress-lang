@@ -291,7 +291,7 @@ $\f(\Qs)$ if $\Ps \strictsubtype \Qs$.  Similarly, a declaration
 $\Ps_0.\f(\Ps)$ is more specific than a declaration $\Qs_0.\f(\Qs)$
 if $\Ps_0 \strictsubtype \Qs_0$ and $\Ps \strictsubtype \Qs$.
 (See \secref{resolving-coercion} for how coercion
-changes the definition of `more specific''.)
+changes the definition of ````more specific''.)
 Restrictions on the definition of overloaded procedures
 (see \chapref{overloaded-declarations})
 guarantee that among all applicable declarations,

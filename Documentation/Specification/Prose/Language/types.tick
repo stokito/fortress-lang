@@ -14,7 +14,7 @@
 
 
 \note{This chapter should be revised according to Victor's tuple story
-(his email titled `Tuple story'' on 12/07/07).}
+(his email titled ````Tuple story'' on 12/07/07).}
 
 \note{No dimensions and units.}
 
@@ -358,7 +358,7 @@ If there is no \KWD{throws} clause, the set of exception types is empty.
 
 
 The parameter type of an arrow type may end
-with a `varargs entry'', \EXP{T\ldots}.
+with a ````varargs entry'', \EXP{T\ldots}.
 The resulting parameter type is not a first-class type;
 rather, it is the union of all the types
 that result from replacing the varargs entry
@@ -379,8 +379,8 @@ A type parameter can be instantiated with an arrow type.
 Arrow types cannot be extended by trait types.
 Arrow types are covariant in their return type and exception types
 and contravariant in their parameter type; that is,
-arrow type `\EXP{A \rightarrow B \KWD{throws}\:C}'' is a subtype of arrow type
-`\EXP{D \rightarrow E \KWD{throws}\:F}'' if and only if:
+arrow type ````\EXP{A \rightarrow B \KWD{throws}\:C}'' is a subtype of arrow type
+````\EXP{D \rightarrow E \KWD{throws}\:F}'' if and only if:
 \begin{itemize}
 \item $D$ is a subtype of $A$,
 \item $B$ is a subtype of $E$, and
@@ -486,7 +486,7 @@ programmers must not write \TYP{BottomType}.
 Victor's comments
    The complex numbers have precision like the integers, but are they
    intended to be only integral complex numbers?  That seems odd to me.
-   Also, why say `imaginary and complex'',
+   Also, why say ````imaginary and complex'',
    since we don't provide a separate type for just the imaginary numbers?
  Guy's going to provide APIs for complex numbers.}
 
@@ -495,7 +495,7 @@ Victor's comments
 
 \Library\ define simple standard types for literals such as
 \EXP{\TYP{BooleanLiteral}\llbracket{}b\rrbracket},
-\TYP{()} (pronounced `void''),
+\TYP{()} (pronounced ````void''),
 \TYP{Character}, \TYP{String}, and
 \EXP{\TYP{Numeral}\llbracket{}n,m,r,v\rrbracket}
 for appropriate values of \VAR{b}, \VAR{n}, \VAR{m}, \VAR{r}, and \VAR{v}

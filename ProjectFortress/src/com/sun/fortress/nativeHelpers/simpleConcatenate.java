@@ -17,6 +17,12 @@ public class simpleConcatenate {
         return s1 + s2;
     }
 
+    public static String nativeSmartConcatenate(String s1, String s2) {
+        if (s1.length() == 0) return s2;
+        else if (s2.length() == 0) return s1;
+        else return s1 + " " + s2;
+    }
+
     public static int nativeStrlen(String s1) {
         return s1.length();
     }

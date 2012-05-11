@@ -15,11 +15,11 @@ trait T
 end
 
 trait S
-  m(z:String, t:String) = (z t)
+  m(z:String, t:String) = (z || t)
 end
 
 object O(a:ZZ32,b:ZZ32) extends S
-  m(x:ZZ32, y:String) = (y y)
+  m(x:ZZ32, y:String) = (y || y)
 end
 
 run() = do

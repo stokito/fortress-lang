@@ -1,3 +1,4 @@
+(** COPYRIGHT **)
 (*******************************************************************************
     Copyright 2009,2012, Oracle and/or its affiliates.
     All rights reserved.
@@ -8,6 +9,7 @@
     This distribution may include materials developed by third parties.
 
  ******************************************************************************)
+(** END COPYRIGHT **)
 
 component HelloWorld
 (** EXAMPLE **)

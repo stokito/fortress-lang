@@ -33,7 +33,7 @@ trait V extends T
 end
 
 object W(s:String) extends { U, V }
-  getter asString(): String = "W" s
+  getter asString(): String = "W" || s
   w(self, t:T): T = self
 end
 

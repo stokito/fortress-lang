@@ -49,6 +49,6 @@ run() = do
   tricksy = A(O1, O2, P1, P2)
   o:Object = O1
   p:Object = P2
-  println(tricksy.f(O1) tricksy.f(P2) ) (*) "PASS", if we're lucky
-  println(tricksy.f(o) tricksy.f(p) ) (*) "PASS", if we're lucky
+  println(tricksy.f(O1) || tricksy.f(P2) ) (*) "PASS", if we're lucky
+  println(tricksy.f(o) || tricksy.f(p) ) (*) "PASS", if we're lucky
 end
