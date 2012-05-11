@@ -28,7 +28,7 @@ object P extends T
 end
 
 object Pair[\U extends T\](a:U, b:U) extends T
-  getter s():String = "pair( " a.s ", " b.s " )"
+  getter s():String = "pair( " || a.s || ", " || b.s || " )"
 end
 
 run() = do

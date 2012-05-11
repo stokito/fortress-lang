@@ -502,7 +502,7 @@ Expr ::=
      | Expr asif TypeRef
 
 AssignLefts ::=
-     | ( AssignLeft( , AssignLeft)* )
+     | [(] AssignLeft ( , AssignLeft)* ])]
      | AssignLeft
 
 AssignLeft ::=
@@ -569,7 +569,7 @@ $$$$$ Expressions Enclosed by Keywords
 DelimitedExpr ::=
      | TupleExpr
      | ObjectExpr
-     | Do
+     | DoExpr
      | LabelExpr
      | WhileExpr
      | ForExpr
@@ -583,36 +583,36 @@ TupleExpr ::=
      | NoKeyTuple
 
 NoKeyTuple ::=
-     | ( (Expr , )* Expr ... )
-     | ( (Expr , )* Expr )
+     | [([ (Expr , )* Expr ... ])]
+     | [([ (Expr , )* Expr ])]
 
 ObjectExpr ::=
      | object Extends? GoInAnObject end
 
-Do ::=
-     | (DoFront also )* DoFront end
+DoExpr ::=
+     | ( DoFront also )* DoFront end
 
 DoFront ::=
-     | ( at Expr)? atomic ? do BlockElems?
+     | ( at Expr )? atomic? do Block?
 
 LabelExpr ::=
-     | label Id BlockElems end Id
+     | label Id Block end Id
 
 WhileExpr ::=
-     | while Generator Do
+     | while Generator DoExpr
 
 ForExpr ::=
      | for GeneratorList DoFront end
 
 IfExpr ::=
-     | if Generator then BlockElems ElifClause* ElseClause? end
-     | [(] if Generator then BlockElems ElifClause* ElseClause end? [)]
+     | if Generator then Block ElifClause* ElseClause? end
+     | [(] if Generator then Block ElifClause* ElseClause end? [)]
 
 ElifClause ::=
-     | elif Expr then BlockElems
+     | elif Expr then Block
 
 ElseClause ::=
-     | else BlockElems
+     | else Block
 
 CaseExpr ::=
      | case Expr Op? of CaseClauses CaseElseClause? end
@@ -621,10 +621,10 @@ CaseClauses ::=
      | CaseClause+
 
 CaseClause ::=
-     | Expr => BlockElems
+     | Expr => Block
 
 CaseElseClause ::=
-     | else => BlockElems
+     | else => Block
 
 TypecaseExpr ::=
      | typecase TypecaseBindings of TypecaseClauses CaseElseClause? end
@@ -644,14 +644,14 @@ TypecaseClauses ::=
      | TypecaseClause+
 
 TypecaseClause ::=
-     | TypecaseTypeRefs => BlockElems
+     | TypecaseTypeRefs => Block
 
 TypecaseTypeRefs ::=
      | [([ TypeRefList ])]
      | TypeRef
 
 TryExpr ::=
-     | try BlockElems Catch? ( finally BlockElems)? end
+     | try Block Catch? ( finally Block)? end
 
 Catch ::=
      | catch Id CatchClauses
@@ -660,7 +660,7 @@ CatchClauses ::=
      | CatchClause+
 
 CatchClause ::=
-     | TraitType => BlockElems
+     | TraitType => Block
 
 Comprehension ::=
      | { Expr      | GeneratorList }
@@ -697,10 +697,10 @@ ExprList ::=
 
 $$$$$ Local Declarations
 
-BlockElems ::=
-     | BlockElem+
+Block ::=
+     | BlockElement+
 
-BlockElem ::=
+BlockElement ::=
      | LocalVarFnDecl
      | Expr ( , GeneratorList)?
 

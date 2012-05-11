@@ -23,6 +23,7 @@
 \input{\exprdir/aggregates}
 \input{\exprdir/function-exp}
 %\input{\exprdir/object-exp}
+\input{\exprdir/blocks}
 \input{\exprdir/do-also}
 \input{\exprdir/label-exit}
 \input{\exprdir/while}

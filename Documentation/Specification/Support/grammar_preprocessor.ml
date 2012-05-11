@@ -91,24 +91,22 @@ let preprocess path =
   let file = transform file in
   write_file path file  
 
-let is_tex_or_tick_file s = 
-  if String.length s < 4 then false
-  else if String.sub s (String.length s - 4) 4 = ".tex" then true
-  else if String.length s < 5 then false
+let is_tick_file s = 
+  if String.length s < 5 then false
   else if String.sub s (String.length s - 5) 5 = ".tick" then true
   else false
 
-let rec find_all_tex_or_tick_files path = 
+let rec find_all_tick_files path = 
   let files = Array.to_list (Sys.readdir path) in
   let files = List.map (fun x -> path ^ "/" ^ x) files in
   let directories = List.filter Sys.is_directory files in
-  let tex_or_tick_files = List.filter is_tex_or_tick_file files in
-  let res = List.map find_all_tex_or_tick_files directories in
-  tex_or_tick_files @ List.flatten res
+  let tick_files = List.filter is_tick_file files in
+  let res = List.map find_all_tick_files directories in
+  tick_files @ List.flatten res
 
 let _ = 
   let path = Array.get Sys.argv 1 in
-  let texfiles = find_all_tex_or_tick_files path in
+  let texfiles = find_all_tick_files path in
   List.iter preprocess texfiles
 
 

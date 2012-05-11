@@ -11,12 +11,12 @@
 export Executable
 
 trait S
-  m(z:String, t:String) = (z t)
+  m(z:String, t:String) = (z || t)
 end
 
 object O(x:ZZ32,y:ZZ32) extends S
-  n():String = "O(" x.asString "," y.asString ").n " self.m("a","b")
-  p():String = "O(" x.asString "," y.asString ").p " m("e","f")
+  n():String = "O(" || x.asString || "," || y.asString || ").n " || self.m("a","b")
+  p():String = "O(" || x.asString || "," || y.asString || ").p " || m("e","f")
   q():String = n()
 end
 

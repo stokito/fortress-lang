@@ -31,7 +31,7 @@ trait V[\X\] extends T[\X\]
 end
 
 object W[\X\](s:String) extends { U[\X\], V[\X\] }
-  getter asString(): String = "W" s
+  getter asString(): String = "W" || s
   w(t:T[\X\]): T[\X\] = self
 end
 

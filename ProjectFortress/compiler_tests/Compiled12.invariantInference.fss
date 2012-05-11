@@ -37,7 +37,7 @@ trait T[\X\]
 end
 
 object W[\X\](s:String) extends T[\X\]
-  getter asString(): String = "W" s
+  getter asString(): String = "W" || s
 end
 
 trait Top end

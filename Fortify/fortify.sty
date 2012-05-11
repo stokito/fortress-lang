@@ -30,8 +30,9 @@
 \setlength{\FortressCodeIndent}{1em}
 \newlength{\FortressParSkip}
 \setlength{\FortressParSkip}{\parskip}
-\def\Fortress{\list{}{\leftmargin \FortressCodeIndent
-                      \itemindent\listparindent
+\def\Fortress{\list{}{\leftmargin\FortressCodeIndent
+                      \rightmargin 0pt
+                      \itemindent\FortressCodeIndent
                       \parsep 0pt plus 1pt}\item
                       \begingroup\FortressInnerMacros\tabbing}
 \makeatletter
@@ -155,8 +156,9 @@
   \let\]=\fortressendcommentalignblock
   \def\digitblank{{\setbox0=\hbox{0}\hbox to \wd0{\hss}}}%
   \fortresscommentalignblockfalse
-  \topsep=4pt plus 2pt   \parsep=\parskip  \partopsep=1pt plus 1pt
-  \trivlist
+  \trivlist  \leftmargin\FortressCodeIndent  \rightmargin 0pt
+             \itemindent\FortressCodeIndent
+             \topsep=4pt plus 2pt  \parsep=\parskip  \partopsep=1pt plus 1pt
   \item[]%
   % The \mathopen in the next line prevents a leading \mathrel (as for a keyword) from inserting glue.
   \fortressbeginline\iffortresspng\mathopen{\hbox to 0pt{\hskip\hsize\color{almostwhite}\vrule height 0.001pt width 0.001pt\hss}}\fi\ignorespaces}
@@ -214,8 +216,10 @@
 %\newcommand\fortresslinecommentsymbol{\hbox{\raise 0.37ex\hbox{\hbox to 0pt{$\scriptstyle\otimes$}\hbox{$\scriptstyle\oplus$}}}}
 %\newcommand\fortresslinecommentsymbol{\hbox{\setbox0=\hbox{$\scriptstyle\odot$}\relax
 %  \hbox{\raise 0.2ex\hbox to \wd0{\hss$\ast$\hss}\raise 0.37ex\hbox to 0pt{\hss\box0}}}}
+%\newcommand\fortresslinecommentsymbol{\hbox{\setbox0=\hbox{$\scriptstyle\odot$\hss}\relax
+%  \hbox{\raise 0.07ex\hbox to \wd0{\hss\tt*\hss}\raise 0.37ex\hbox to 0pt{\hss\box0}}}}
 \newcommand\fortresslinecommentsymbol{\hbox{\setbox0=\hbox{$\scriptstyle\odot$\hss}\relax
-  \hbox{\raise 0.07ex\hbox to \wd0{\hss\tt*\hss}\raise 0.37ex\hbox to 0pt{\hss\box0}}}}
+  \raise 0.37ex\hbox{\hbox{\vbox to \ht0{\vss\vskip 0.26ex\hbox to \wd0{\hss\tt*\hss}\vss}\hbox to 0pt{\hss\box0}}}}}
 \newcommand\fortresslinecomment[1]{\fortresslinecommentsymbol\hbox{\FortressOuterMacros\def~{\penalty10000\ }\rm#1}}
 \newcommand\fortressalignedlinecomment[1]{\fortressendfield
   \leavevmode\box\fortresscodeline&\setbox\fortresscodeline=\hbox{}\fortressbeginfield

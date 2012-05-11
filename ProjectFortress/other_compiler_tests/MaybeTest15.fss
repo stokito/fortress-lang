@@ -41,7 +41,7 @@ value trait TestMaybe[\T extends Equality[\T\]\] extends { Equality[\TestMaybe[\
 end
 
 value object TestJust[\U extends Equality[\U\]\](x: U) extends TestMaybe[\U\]
-    getter asString(): String = "TestJust(" x.asString ")"
+    getter asString(): String = "TestJust(" || x.asString || ")"
     getter size(): ZZ32 = 1
     getter get() = x
     getter holds() = true
