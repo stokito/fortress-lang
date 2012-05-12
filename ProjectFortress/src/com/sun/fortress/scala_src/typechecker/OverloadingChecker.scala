@@ -382,7 +382,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                            for ( first <- signatures ) {
                                signatures.slice(index, signatures.length).foreach(second => {
                                        val a1 = validOverloading(first, second, signatures, isMethod, oracle)
-                                       if (false) {  // Set non-false for debugging purposes (and disable overload-check caching!)
+                                      /* if (false) {
                                            val a2 = validOverloading(first, second, signatures, isMethod, oracle)
                                            val a3 = validOverloading(first, second, signatures, isMethod, oracle)
                                            val a4 = validOverloading(first, second, signatures, isMethod, oracle)
@@ -406,7 +406,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
                                                            println("----------")
                                                } 
                                            }
-                                       }
+                                       }*/
                                        if (! a1 ) {
                                 	      val (fa, fsp, _) = first
                                 	      val (ga, gsp, _) = second
@@ -470,12 +470,31 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
 				      debug:Boolean=false): Boolean = {
       val (fa, fsp, _) = first
       val (ga, gsp, _) = second
+      true
+      
+      if (oa.lteq(fa, ga)) { true }
+      else if (oa.lteq(ga, fa)) { true }
+      else if (meetRule(first, second, signatures, isMethod, oa, debug)) { true }
+      else { oa.excludes(fa, ga) } 
+    
+      
+  /*    
+      println("Specificity\n")
       val b1 = oa.lteq(fa, ga)
+      if (b1) true 
       val b2 = oa.lteq(ga, fa) 
-      val b3 = oa.excludes(fa, ga) 
-      val b4 = meetRule(first, second, signatures, isMethod, oa, debug)
+      if (b2) return true
+      println("Meet Rule\n")
+      val b3 = meetRule(first, second, signatures, isMethod, oa, debug)
+      if (b3) return true
+      println("Exclusion\n")
+      val b4 = oa.excludes(fa, ga) 
+      println("Done")
+      return b4
+  */
+
       //if (b1) !b2 else ( b2 || b3 || b4 )  //JT: It looks like the duplicate rule IS enforced somewhere else
-      (b1 || b2 || b3 || b4)
+      //(b1 || b2 || b3 || b4)
     }
 
     private def meetRule(first: (ArrowType,Option[Int],Option[JavaFunctional]),
