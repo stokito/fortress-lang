@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Util
+
+  export Util
+
+  trait Reduction[\L\]
+    empty(): L
+    join(a: L, b: L): L
+  end
+  
+  trait Generator[\E\]
+    generate[\R\](r: Reduction[\R\], body: E -> R): R 
+  end  
+
+  __generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R =
+      g.generate[\R\](r,b)
+
+  trait BigOperator[\I,R\]
+    getter reduction(): Reduction[\R\]
+    getter body(): I->R
+  end
+
+  __bigOperator[\I,R\](o:BigOperator[\I,R\],desugaredClauses:(Reduction[\R\],I->R)->R): R = 
+     desugaredClauses(o.reduction,o.body)
+
+  object BigReduction[\R\](reduction:Reduction[\R\]) extends BigOperator[\R,R\]
+    getter body(): R->R = fn x => x
+  end
+
+  object Comprehension[\I,R\](reduction: Reduction[\R\], body:I->R) extends BigOperator[\I,R\]
+  end
+
+end
