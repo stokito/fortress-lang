@@ -264,32 +264,33 @@ public class StaticChecker {
             if( errors.isEmpty() && STypesUtil.assertAfterTypeChecking(result.ast()) )
                 bug("Result of typechecking still contains intermediate nodes.\n" +
                     result.ast());
-
+            //System.out.println("WF");
             errors.addAll(new TypeWellFormedChecker(index, env, typeAnalyzer).check());
             if ( ! errors.isEmpty() ) {
                 result = addErrors(errors, result);
                 return result;
             }
-            
+            //System.out.println("Overloading\n");
             // Check overloadings in this compilation unit.
             errors.addAll(new OverloadingChecker(index, env).checkOverloading());
             if ( ! errors.isEmpty() ) {
                 result = addErrors(errors, result);
                 return result;
             }
-
+            //System.out.println("Export\n");
             if (!isApi) {
                 // Check the set of exported APIs in this component.
                 errors.addAll(ExportChecker.checkExports((ComponentIndex)index, env));
                 result = addErrors(errors, result);
             }
             
+            //System.out.println("Variance\n");
             // Hack: don't run the variance checker if running the interpreter
             if (!isApi && Shell.getCompiledExprDesugaring()) { 
                 errors.addAll(VarianceChecker.run((Component) result.ast()));            	
                 result = addErrors(errors, result);
             }
-            
+            //System.out.println("Done\n");
             return result;
         } else {
             return new TypeCheckerResult(index.ast(), IterUtil.<StaticError>empty());
