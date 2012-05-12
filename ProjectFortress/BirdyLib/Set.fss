@@ -85,27 +85,29 @@ set[\E extends StandardTotalOrder[\E\]\](): Set[\E\] = EmptySet[\E\]
 set[\E extends StandardTotalOrder[\E\]\](g: Generator[\E\]): Set[\E\] =
     g.generate[\Set[\E\]\](Union[\E\], singleton[\E\])
 
-object Union[\E extends StandardTotalOrder[\E\]\] extends Reduction[\Set[\E\]\] 
+opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Comprehension[\T,Set[\T\],Set[\T\],Set[\T\]\] =
+    Comprehension[\T,Set[\T\],Set[\T\],Set[\T\]\](fn x => x,Union[\T\],fn (x: T) => singleton(x))
+
+object Union[\E extends StandardTotalOrder[\E\]\] extends MonoidReduction[\Set[\E\]\] 
     getter asString(): String = "Union reduction"
     empty():Set[\E\] = EmptySet[\E\]
     join(a:Set[\E\], b:Set[\E\]): Set[\E\] = a UNION b
 end
 
-opr BIG UNION[\R extends StandardTotalOrder[\R\]\](): BigReduction[\Set[\R\]\] =
-    BigReduction[\Set[\R\]\](Union[\R\])
+opr BIG UNION[\R extends StandardTotalOrder[\R\]\](): BigReduction[\Set[\R\],Set[\R\]\] =
+    BigReduction[\Set[\R\],Set[\R\]\](Union[\R\])
 
-opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Comprehension[\T,Set[\T\]\] =
-    Comprehension[\T,Set[\T\]\](Union[\T\],fn (x: T) => singleton(x))
-
-object Intersection[\E extends StandardTotalOrder[\E\]\] extends Reduction[\Set[\E\]\] 
+object Intersection[\E extends StandardTotalOrder[\E\]\]
+        extends { AssociativeReduction[\Set[\E\]\], ReductionWithZeroes[\Set[\E\],Maybe[\Set[\E\]\]\] }
     getter asString(): String = "Intersection reduction"
-    empty():Set[\E\] = EmptySet[\E\]
-    join(a:Set[\E\], b:Set[\E\]):Set[\E\] = a INTERSECTION b
-end 
+    simpleJoin(a:Set[\E\], b:Set[\E\]):Set[\E\] = a INTERSECTION b
+    isZero(s:Set[\E\]): Boolean = s.isEmpty
+end
 
 opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\]():
-        BigReduction[\Set[\R\]\] =
-    BigReduction[\Set[\R\]\](Intersection[\R\])
+        BigReduction[\Set[\R\],Maybe[\Set[\R\]\]\] =
+    BigReduction[\Set[\R\],Maybe[\Set[\R\]\]\](Intersection[\R\])
+
 
 (*
 
