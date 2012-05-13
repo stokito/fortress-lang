@@ -24,10 +24,13 @@ object EmptyIntersection extends UncheckedException end
  * must support comparison using $<$ and $=$.  When generated, these sets
  * produce their elements in sorted order.
  **)
-trait Set[\E extends StandardTotalOrder[\E\]\] 
+trait Set[\E extends StandardTotalOrder[\E\]\] extends SequentialGenerator[\E\]
  
    abstract getter isEmpty(): Boolean
 
+   seq(self): SequentialGenerator[\E\]
+   abstract seqgen[\R\](r: Reduction[\R\], body: E->R): R
+   abstract ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
    abstract getVal():E
    abstract getLeftChild():Set[\E\]  (*) Not pleasant, revaling implementation detail. Should be part of another trait
    abstract getRightChild():Set[\E\]
@@ -75,20 +78,14 @@ set[\E extends StandardTotalOrder[\E\]\](g: Generator[\E\]): Set[\E\]
 
 opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Comprehension[\T,Set[\T\],Set[\T\],Set[\T\]\]
 opr BIG UNION[\R extends StandardTotalOrder[\R\]\](): BigReduction[\Set[\R\],Set[\R\]\]
+opr BIG UNION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]\]): Set[\R\]
 opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\](): BigReduction[\Set[\R\],Maybe[\Set[\R\]\]\]
 
 (*
 
-
 opr {[\E\] es: E... }: Set[\E\]
 opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Comprehension[\T,Set[\T\],AnyCovColl,AnyCovColl\]
 opr BIG {[\T extends StandardTotalOrder[\T\]\] g: Generator[\T\]} : Set[\T\]
-
-opr BIG UNION[\R extends StandardTotalOrder[\R\]\](): BigReduction[\Set[\R\],Set[\R\]\]
-opr BIG UNION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]\]): Set[\R\]
-
-opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\]():
-        BigReduction[\Set[\R\],AnyMaybe\]
 opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]\]): Set[\R\]
 
 *)

@@ -30,6 +30,15 @@ component Util
     unlift(r:R): R = r
   end
 
+  object MIMapReduceReduction[\R\](j:(R,R)->R, z:R) extends MonoidReduction[\R\]
+    getter asString():String="MIMapReduceReduction from embiggen"
+    empty(): R = z
+    join(a:R, b:R): R = (j)(a,b)
+  end
+
+  embiggen[\T\](j:(T,T)->T, z:T) : Comprehension[\T,T,T,T\] =
+      Comprehension[\T,T,T,T\](fn (x) => x, MIMapReduceReduction[\T\](j,z), fn (x) => x)
+
   trait AssociativeReduction[\R\] extends ActualReduction[\R,Maybe[\R\]\]
     empty(): Nothing[\R\] = Nothing[\R\]
     join(a: Maybe[\R\], b: Maybe[\R\]): Maybe[\R\] =
@@ -62,6 +71,11 @@ component Util
     generate[\R\](r: Reduction[\R\], body: E -> R): R 
   end  
 
+  trait SequentialGenerator[\E\] extends { Generator[\E\] }
+    getter asString(): String = "seq"
+    seq(self): SequentialGenerator[\E\] = self
+  end SequentialGenerator
+
   __generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R =
       g.generate[\R\](r,b)
 
@@ -76,6 +90,9 @@ component Util
     (*)body(i: I): L = r.lift((o.body)(i))
     (o.unwrap)(r.unlift(desugaredClauses(r,fn i => r.lift((o.body)(i)))))
   end
+
+  __bigOperatorSugar[\I,O,R,L\](o:BigOperator[\I,O,R,L\],g:Generator[\I\]): O =
+      __bigOperator[\I,O,R,L\](o, fn (r,u) => __generate[\I,L\](g, r, u))
 
   object BigReduction[\R,L\](reduction:ActualReduction[\R,L\]) extends BigOperator[\R,R,R,L\]
     getter body(): R->R = fn x => x

@@ -14,6 +14,7 @@ component Map
 import Set.{Set, set}
 import Maybe.{...}
 import Comparison.{...}
+import Util.{...}
 
 export Map
 
@@ -30,14 +31,15 @@ end
     Methods that operate on a particular key leave the rest of the map
     untouched unless otherwise specified. **)
 trait Map[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] } \]
+     extends SequentialGenerator[\(Key,Val)\]
 
     getter isEmpty():Boolean
     getter asDebugString():String
-    (*
     seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R
+    generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R 
+    ivgen[\R\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32,(Key,Val))->R): R
     seq(self): SequentialGenerator[\(Key,Val)\] =
         SeqMapGenerator[\Key,Val\](self)
-    *)
     dom(self):Set[\Key\]
     opr |self| : ZZ32
     getPair():(Key, Val) throws NotFound
@@ -146,11 +148,21 @@ singleton[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object 
     NodeMap[\Key,Val\](k,v,e,e)
   end
 
-(*
-mapping[\Key,Val\](): Map[\Key,Val\] = EmptyMap[\Key,Val\]
-mapping[\Key,Val\](g: Generator[\(Key,Val)\]): Map[\Key,Val\] =
+mapping[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\](): Map[\Key,Val\] = EmptyMap[\Key,Val\]
+mapping[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\](g: Generator[\(Key,Val)\]): Map[\Key,Val\] =
     g.generate[\Map[\Key,Val\]\](DisjointMapUnion[\Key,Val\],
                                  singleton[\Key,Val\])
+
+opr {[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\] }:Map[\Key,Val\] = mapping[\Key,Val\]()
+
+opr BIG UNION[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] =
+    embiggen[\ Map[\Key,Val\] \](fn (a,b) => a UNION b, EmptyMap[\Key,Val\])
+
+opr BIG UPLUS[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] =
+    embiggen[\ Map[\Key,Val\] \](fn (a,b) => a UPLUS b, EmptyMap[\Key,Val\])
+
+(*
+
 mapping[\Key,Val\](g: ReadableArray[\(Key,Val),ZZ32\]): Map[\Key,Val\] = do
     a = array[\(Key,Val)\](|g|)
     a.init0(i,g.get(i)), i <- a.indices
@@ -189,7 +201,7 @@ fromSortedArrayFragment[\Key,Val\](a: Array[\(Key,Val),ZZ32\], lo:ZZ32, hi:ZZ32)
 opr {|->[\Key,Val\] xs:(Key,Val)... }:Map[\Key,Val\] =
     mapping[\Key,Val\](xs)
 
-opr {[\Key,Val\] }:Map[\Key,Val\] = mapping[\Key,Val\]()
+
 
 opr BIG {|->[\Key,Val\] } : Comprehension[\(Key,Val),Map[\Key,Val\],AnyCovColl,AnyCovColl\] =
     covariantCompr[\(Key,Val),Map[\Key,Val\]\](fn cc => fromCovariantCollection(cc))
@@ -209,7 +221,9 @@ opr BIG UPLUS[\Key,Val\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Any,An
 opr BIG UPLUS[\Key,Val\](g: Generator[\Map[\Key,Val\]\]):Map[\Key,Val\] =
     __bigOperatorSugar[\Map[\Key,Val\],Map[\Key,Val\],Any,Any\](BIG UPLUS[\Key,Val\](), g)
 
-object SeqMapGenerator[\Key,Val\](o:Map[\Key,Val\])
+*)
+
+object SeqMapGenerator[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\](o:Map[\Key,Val\])
     extends SequentialGenerator[\(Key,Val)\]
   generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = o.seqgen[\R\](r,body)
 end
@@ -221,18 +235,15 @@ object DisjointMapUnion[\Key extends {StandardTotalOrder[\Key\], Object},Val ext
         a UPLUS b
 end
 
-*)
-
 object EmptyMap[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\] extends Map[\Key,Val\]
     getter size():ZZ32 = 0
     getter isEmpty():Boolean = true
     getter asDebugString():String = "[]"
     getter asString():String = "{}"
     opr |self| : ZZ32 = 0
-    (*
     generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
     seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
-    *)
+    ivgen[\R\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32,(Key,Val))->R): R = r.empty()
     dom(self):Set[\Key\] = set[\Key\]()
     getPair():(Key, Val) = throw NotFound
     getKey():Key = throw NotFound
@@ -286,7 +297,7 @@ object NodeMap[\Key extends {StandardTotalOrder[\Key\] , Object},Val extends { O
     getter asString():String = "{" || ", " || "}" (*) .join[\String\](self.map[\String\](fn(k:Key,v:Val):String => k "|->" v)) TODO
 
     opr |self| : ZZ32 = sz
-    (*
+
     generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R =
       r.join(r.join(left.generate[\R\](r,body),body(key,val)),
              right.generate[\R\](r,body))
@@ -302,7 +313,6 @@ object NodeMap[\Key extends {StandardTotalOrder[\Key\] , Object},Val extends { O
         rr = right.seqgen[\R\](r,body)
         r.join(lm,rr)
       end
-    *)
 
     dom(self): Set[\Key\] = dom(left).concat3(key,dom(right))
 

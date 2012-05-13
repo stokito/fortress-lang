@@ -14,6 +14,7 @@ api Map
 import Comparison.{...}
 import Maybe.{...}
 import Set.{Set}
+import Util.{...}
 
 object KeyOverlap[\Key extends Object, Val extends { Object, Equality[\Val\] }\](key: Key, val1: Val, val2: Val)
     extends UncheckedException
@@ -25,9 +26,14 @@ end
     Methods that operate on a particular key leave the rest of the map
     untouched unless otherwise specified. **)
 trait Map[\Key extends { StandardTotalOrder[\Key\], Object }, Val extends { Object, Equality[\Val\] }\]
+    extends SequentialGenerator[\(Key,Val)\]
+    
     abstract getter isEmpty(): Boolean
     abstract getter asDebugString(): String
 
+    abstract seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R
+    abstract generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R 
+    abstract ivgen[\R\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32,(Key,Val))->R): R
     abstract dom(self): Set[\Key\]
     abstract opr | self |: ZZ32
     abstract getPair(): (Key, Val) throws NotFound
@@ -68,9 +74,15 @@ end
     
 singleton[\Key extends { StandardTotalOrder[\Key\], Object },
         Val extends { Object, Equality[\Val\] }\](k: Key, v: Val): Map[\Key, Val\]    
+  
+opr BIG UPLUS[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] 
+  
+opr BIG UNION[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] 
+    
+mapping[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\](g: Generator[\(Key,Val)\]): Map[\Key,Val\]  
     
 (*
-mapping[\Key,Val\](g: Generator[\(Key,Val)\]): Map[\Key,Val\]
+
 
 opr {|->[\Key,Val\] xs:(Key,Val)... }: Map[\Key,Val\]
 
