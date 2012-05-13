@@ -16,7 +16,7 @@ import Maybe.{...}
 import Set.{Set}
 import Util.{...}
 
-object KeyOverlap[\Key extends Object, Val extends { Object, Equality[\Val\] }\](key: Key, val1: Val, val2: Val)
+object KeyOverlap[\Key extends Object, Val extends { Object }\](key: Key, val1: Val, val2: Val)
     extends UncheckedException
     getter asString(): String
 end
@@ -25,7 +25,7 @@ end
     fresh map rather than updating the receiving map in place.
     Methods that operate on a particular key leave the rest of the map
     untouched unless otherwise specified. **)
-trait Map[\Key extends { StandardTotalOrder[\Key\], Object }, Val extends { Object, Equality[\Val\] }\]
+trait Map[\Key extends { StandardTotalOrder[\Key\], Object }, Val extends { Object }\]
     extends SequentialGenerator[\(Key,Val)\]
     
     abstract getter isEmpty(): Boolean
@@ -63,26 +63,30 @@ trait Map[\Key extends { StandardTotalOrder[\Key\], Object }, Val extends { Obje
     abstract balancedAdd(k: Key, v: Val, left: Map[\Key, Val\], right: Map[\Key, Val\]): Map[\Key, Val\]
     abstract concat(t2: Map[\Key, Val\]): Map[\Key, Val\]
     abstract concat3(k: Key, v: Val, t2: Map[\Key, Val\]): Map[\Key, Val\]
-    abstract combine[\That extends { Object, Equality[\That\] }, Result extends { Object, Equality[\Result\] }\](f: (Key, Val, That)->Maybe[\Result\], doThis: (Key, Val)->Maybe[\Result\],
+    abstract combine[\That extends { Object}, Result extends { Object }\](f: (Key, Val, That)->Maybe[\Result\], doThis: (Key, Val)->Maybe[\Result\],
             doThat: (Key, That)->Maybe[\Result\],
             mapThis: Map[\Key, Val\]->Map[\Key, Result\],
             mapThat: Map[\Key, That\]->Map[\Key, Result\],
             that: Map[\Key, That\]): Map[\Key, Result\]
-    abstract mapFilter[\Result extends { Object, Equality[\Result\] }\](f: (Key, Val)->Maybe[\Result\]): Map[\Key, Result\]
-    abstract opr =(self, other: Map[\Key, Val\]): Boolean
+    abstract mapFilter[\Result extends { Object }\](f: (Key, Val)->Maybe[\Result\]): Map[\Key, Result\]
+    (*)abstract opr =(self, other: Map[\Key, Val\]): Boolean
 end    
     
 singleton[\Key extends { StandardTotalOrder[\Key\], Object },
-        Val extends { Object, Equality[\Val\] }\](k: Key, v: Val): Map[\Key, Val\]    
+        Val extends { Object }\](k: Key, v: Val): Map[\Key, Val\]    
   
 
-opr BIG UPLUS[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] 
+opr BIG UPLUS[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] 
   
-opr BIG UNION[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] 
+opr BIG UNION[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] 
     
-mapping[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\](g: Generator[\(Key,Val)\]): Map[\Key,Val\]  
+mapping[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\](g: Generator[\(Key,Val)\]): Map[\Key,Val\]  
 
-opr {|->[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]}:Map[\Key,Val\]
+opr {[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\] }:Map[\Key,Val\]
+
+opr {|->[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\]}:Map[\Key,Val\]
+    
+opr BIG {|->[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\] } : Comprehension[\(Key,Val),Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\]    
     
 (*
 

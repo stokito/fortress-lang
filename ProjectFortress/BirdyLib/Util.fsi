@@ -51,6 +51,8 @@ trait SequentialGenerator[\E\] extends { Generator[\E\] }
   seq(self): SequentialGenerator[\E\] 
 end SequentialGenerator
 
+trait Indexed[\E, I\] extends Generator[\E\] end
+
 __generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R 
 
 trait BigOperator[\I,O,R,L\]

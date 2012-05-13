@@ -47,5 +47,6 @@ component Maybe
   end
 
   __cond[\E,R\](c:Maybe[\E\], t:E->R, e:()->R): R = c.cond[\R\](t,e)
+  __cond[\E\](c:Maybe[\E\], t:E->()): () = c.cond[\()\](t,fn () => ())
 
 end
