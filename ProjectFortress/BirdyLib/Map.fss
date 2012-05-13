@@ -161,6 +161,8 @@ opr BIG UNION[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Obj
 opr BIG UPLUS[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] =
     embiggen[\ Map[\Key,Val\] \](fn (a,b) => a UPLUS b, EmptyMap[\Key,Val\])
 
+opr {|->[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]}:Map[\Key,Val\] = EmptyMap[\Key,Val\]
+
 (*
 
 mapping[\Key,Val\](g: ReadableArray[\(Key,Val),ZZ32\]): Map[\Key,Val\] = do

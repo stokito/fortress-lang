@@ -62,6 +62,22 @@ end
 
 List[\E\](): List[\E\] = EmptyList[\E\]
 
+emptyList[\E\](): List[\E\] = EmptyList[\E\]
+
+opr <|[\T\]|>: List[\T\] = EmptyList[\T\]
+
+object Cat[\T\] extends MonoidReduction[\List[\T\]\]
+    getter asString(): String = "List red"
+    empty(): List[\T\] = EmptyList[\T\]
+    join(x: List[\T\], y: List[\T\]) = x || y  
+end
+
+opr BIG <|[\T\]|> : Comprehension[\T,List[\T\],List[\T\],List[\T\]\] =
+    Comprehension[\T,List[\T\],List[\T\],List[\T\]\](fn x => x,Cat[\T\],fn (x: T) => singleton(x))
+
+opr BIG ||[\T\]() : BigReduction[\List[\T\],List[\T\]\] =
+  BigReduction[\List[\T\],List[\T\]\](Cat[\T\])
+
 (*
 
 List[\E extends StandardTotalOrder[\E\], T extends E\](g: ReadableArray[\T,ZZ32\]): List[\E\] = do

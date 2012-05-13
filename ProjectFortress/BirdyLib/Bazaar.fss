@@ -1,0 +1,37 @@
+component Bazaar
+
+  import Util.{...}
+  import Maybe.{...}
+  export Bazaar
+
+  object AndRed extends MonoidReduction[\Boolean\]
+    getter asString(): String = "And cat"
+    empty(): Boolean = true
+    join(x: Boolean, y: Boolean) = x AND y
+  end
+
+  opr BIG AND() :BigReduction[\Boolean,Boolean\] = BigReduction[\Boolean,Boolean\](AndRed)
+
+  object SumRed extends MonoidReduction[\ZZ32\]
+    getter asString(): String = "Plus red"
+    empty(): ZZ32 = 0
+    join(x: ZZ32, y: ZZ32) = x + y    
+  end
+
+  opr BIG +() :BigReduction[\ZZ32,ZZ32\] = BigReduction[\ZZ32,ZZ32\](SumRed) 
+
+  object ProdRed extends MonoidReduction[\ZZ32\]
+    getter asString(): String = "Prod red"
+    empty(): ZZ32 = 1
+    join(x: ZZ32, y: ZZ32) = x y    
+  end
+
+  opr PROD() :BigReduction[\ZZ32,ZZ32\] = BigReduction[\ZZ32,ZZ32\](ProdRed) 
+
+  object BXRed extends AssociativeReduction[\ZZ32\]
+    simpleJoin(x: ZZ32, y: ZZ32): ZZ32 = x BITXOR y
+  end
+
+  opr BIG BITXOR(): BigReduction[\ZZ32,Maybe[\ZZ32\]\] = BigReduction[\ZZ32,Maybe[\ZZ32\]\](BXRed)
+
+end
