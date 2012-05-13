@@ -46,6 +46,11 @@ trait Generator[\E\]
   abstract generate[\R\](r: Reduction[\R\], body: E -> R): R 
 end  
 
+trait SequentialGenerator[\E\] extends { Generator[\E\] }
+  getter asString(): String 
+  seq(self): SequentialGenerator[\E\] 
+end SequentialGenerator
+
 __generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R 
 
 trait BigOperator[\I,O,R,L\]
@@ -56,6 +61,8 @@ end
 
 __bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O
 
+__bigOperatorSugar[\I,O,R,L\](o:BigOperator[\I,O,R,L\],g:Generator[\I\]): O
+
 object BigReduction[\R,L\](r:ActualReduction[\R,L\]) extends BigOperator[\R,R,R,L\]
     getter body(): R->R
     getter unwrap(): R -> R
@@ -64,5 +71,7 @@ end
 object Comprehension[\I,O,R,L\](unwrap: R -> O, reduction: ActualReduction[\R,L\], body:I->R) 
    extends BigOperator[\I,O,R,L\]
 end
+
+embiggen[\T\](j:(T,T)->T, z:T) : Comprehension[\T,T,T,T\]
 
 end
