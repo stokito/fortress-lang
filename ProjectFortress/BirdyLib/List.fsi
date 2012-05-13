@@ -45,6 +45,13 @@ trait List[\E\]
 
 end
 
+emptyList[\E\](): List[\E\]
+opr <|[\T\]|>: List[\T\]
+
+opr BIG <|[\T\]|> : Comprehension[\T,List[\T\],List[\T\],List[\T\]\]
+
+opr BIG ||[\T\]() : BigReduction[\List[\T\],List[\T\]\]
+
 (*
 
 (** Vararg factory for lists; provides aggregate list constants: *)
@@ -62,7 +69,7 @@ list[\E\](g:Generator[\E\]):List[\E\]
 (** Flatten a list of lists *)
 concat[\E\](x:List[\List[\E\]\]):List[\E\]
 
-emptyList[\E\](): List[\E\]
+
 
 (** %emptyList[\E\](n)% allocates an empty list that can accept %n%
     %addRight% operations without reallocating the underlying storage. **)

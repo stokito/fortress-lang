@@ -75,16 +75,20 @@ end
 singleton[\Key extends { StandardTotalOrder[\Key\], Object },
         Val extends { Object, Equality[\Val\] }\](k: Key, v: Val): Map[\Key, Val\]    
   
+
 opr BIG UPLUS[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] 
   
 opr BIG UNION[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] 
     
 mapping[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\](g: Generator[\(Key,Val)\]): Map[\Key,Val\]  
+
+opr {|->[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]}:Map[\Key,Val\]
     
 (*
 
 
-opr {|->[\Key,Val\] xs:(Key,Val)... }: Map[\Key,Val\]
+opr {|->[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\] xs:(Key,Val)... }: Map[\Key,Val\]  
+  
 
 opr {[\Key,Val\] }: Map[\Key,Val\]
 
