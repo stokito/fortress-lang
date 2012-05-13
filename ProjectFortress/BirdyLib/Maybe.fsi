@@ -24,5 +24,6 @@ api Maybe
   object Nothing[\T\] extends Maybe[\T\] end
 
   __cond[\E,R\](c:Maybe[\E\], t:E->R, e:()->R): R 
+  __cond[\E\](c:Maybe[\E\], t:E->()): ()
 
 end

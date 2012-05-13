@@ -20,7 +20,7 @@ export Map
 
 weight:ZZ32 = 4
 
-object KeyOverlap[\Key extends Object,Val extends { Object , Equality[\Val\] }\](key:Key, val1:Val, val2:Val)
+object KeyOverlap[\Key extends Object,Val extends { Object  }\](key:Key, val1:Val, val2:Val)
         extends UncheckedException
     getter asString(): String =
         "Map.KeyOverlap: " key " |-> " val1 " and |-> " val2
@@ -30,7 +30,7 @@ end
     fresh map rather than updating the receiving map in place.
     Methods that operate on a particular key leave the rest of the map
     untouched unless otherwise specified. **)
-trait Map[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] } \]
+trait Map[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  } \]
      extends SequentialGenerator[\(Key,Val)\]
 
     getter isEmpty():Boolean
@@ -129,7 +129,7 @@ trait Map[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object 
             can pass through or discard whole submaps without traversing
             them).
      **)
-    combine[\That extends { Object, Equality[\That\] },Result extends { Object, Equality[\Result\]}\](f:(Key,Val,That)->Maybe[\Result\],
+    combine[\That extends { Object },Result extends { Object }\](f:(Key,Val,That)->Maybe[\Result\],
                            doThis:(Key,Val)->Maybe[\Result\],
                            doThat:(Key,That)->Maybe[\Result\],
                            mapThis:Map[\Key,Val\]->Map[\Key,Result\],
@@ -139,29 +139,33 @@ trait Map[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object 
           { k |-> v'  |  (k,v) <- self, v' <- f(k,v) }
         It fuses generation, mapping, and filtering.
      **)
-    mapFilter[\Result extends { Object, Equality[\Result\]}\](f:(Key,Val)->Maybe[\Result\]): Map[\Key,Result\]
-    opr =(self,other:Map[\Key,Val\]):Boolean
+    mapFilter[\Result extends { Object }\](f:(Key,Val)->Maybe[\Result\]): Map[\Key,Result\]
+    (*)opr =(self,other:Map[\Key,Val\]):Boolean
 end
 
-singleton[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\](k:Key,v:Val): Map[\Key,Val\] = do
+singleton[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\](k:Key,v:Val): Map[\Key,Val\] = do
     e = EmptyMap[\Key,Val\]
     NodeMap[\Key,Val\](k,v,e,e)
   end
 
-mapping[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\](): Map[\Key,Val\] = EmptyMap[\Key,Val\]
-mapping[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\](g: Generator[\(Key,Val)\]): Map[\Key,Val\] =
+mapping[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\](): Map[\Key,Val\] = EmptyMap[\Key,Val\]
+mapping[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\](g: Generator[\(Key,Val)\]): Map[\Key,Val\] =
     g.generate[\Map[\Key,Val\]\](DisjointMapUnion[\Key,Val\],
                                  singleton[\Key,Val\])
 
-opr {[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\] }:Map[\Key,Val\] = mapping[\Key,Val\]()
+opr {[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\] }:Map[\Key,Val\] = mapping[\Key,Val\]()
 
-opr BIG UNION[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] =
+opr BIG UNION[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] =
     embiggen[\ Map[\Key,Val\] \](fn (a,b) => a UNION b, EmptyMap[\Key,Val\])
 
-opr BIG UPLUS[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] =
+opr BIG UPLUS[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] =
     embiggen[\ Map[\Key,Val\] \](fn (a,b) => a UPLUS b, EmptyMap[\Key,Val\])
 
-opr {|->[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\]}:Map[\Key,Val\] = EmptyMap[\Key,Val\]
+opr {|->[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\]}:Map[\Key,Val\] = EmptyMap[\Key,Val\]
+
+opr BIG {|->[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\] } : Comprehension[\(Key,Val),Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] =
+    Comprehension[\(Key,Val),Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\](fn x => x,DisjointMapUnion[\Key,Val\],fn (x) => singleton(x))
+
 
 (*
 
@@ -225,19 +229,19 @@ opr BIG UPLUS[\Key,Val\](g: Generator[\Map[\Key,Val\]\]):Map[\Key,Val\] =
 
 *)
 
-object SeqMapGenerator[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\](o:Map[\Key,Val\])
+object SeqMapGenerator[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\](o:Map[\Key,Val\])
     extends SequentialGenerator[\(Key,Val)\]
   generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = o.seqgen[\R\](r,body)
 end
 
-object DisjointMapUnion[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\] extends MonoidReduction[\Map[\Key,Val\]\]
+object DisjointMapUnion[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\] extends MonoidReduction[\Map[\Key,Val\]\]
     getter asString(): String = "Disjoint map union reduction"
     empty():Map[\Key,Val\] = EmptyMap[\Key,Val\]
     join(a:Map[\Key,Val\], b:Map[\Key,Val\]): Map[\Key,Val\] =
         a UPLUS b
 end
 
-object EmptyMap[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object , Equality[\Val\] }\] extends Map[\Key,Val\]
+object EmptyMap[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\] extends Map[\Key,Val\]
     getter size():ZZ32 = 0
     getter isEmpty():Boolean = true
     getter asDebugString():String = "[]"
@@ -277,19 +281,19 @@ object EmptyMap[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { O
         NodeMap[\Key,Val\] = NodeMap[\Key,Val\](k,v,self,self)
     concat(t2:Map[\Key,Val\]): Map[\Key,Val\] = t2
     concat3(k:Key, v:Val, t2:Map[\Key,Val\]): Map[\Key,Val\] = t2.add(k,v)
-    combine[\That extends { Object, Equality[\That\] },Result extends { Object, Equality[\Result\]}\](f:(Key,Val,That)->Maybe[\Result\],
+    combine[\That extends { Object },Result extends { Object }\](f:(Key,Val,That)->Maybe[\Result\],
                            doThis:(Key,Val)->Maybe[\Result\],
                            doThat:(Key,That)->Maybe[\Result\],
                            mapThis:Map[\Key,Val\]->Map[\Key,Result\],
                            mapThat:Map[\Key,That\]->Map[\Key,Result\],
                            that: Map[\Key,That\]): Map[\Key,Result\] =
       mapThat(that)
-    mapFilter[\Result extends { Object, Equality[\Result\]}\](f:(Key,Val)->Maybe[\Result\]): Map[\Key,Result\] =
+    mapFilter[\Result extends { Object }\](f:(Key,Val)->Maybe[\Result\]): Map[\Key,Result\] =
       EmptyMap[\Key,Result\]
-    opr =(self,other:Map[\Key,Val\]):Boolean = other.isEmpty
+    (*)opr =(self,other:Map[\Key,Val\]):Boolean = other.isEmpty
 end
 
-object NodeMap[\Key extends {StandardTotalOrder[\Key\] , Object},Val extends { Object , Equality[\Val\] }\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,Val\])
+object NodeMap[\Key extends {StandardTotalOrder[\Key\] , Object},Val extends { Object  }\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,Val\])
         extends Map[\Key,Val\]
     sz:ZZ32 = 1 + |left| + |right|
     getter isEmpty():Boolean = false
@@ -442,7 +446,7 @@ object NodeMap[\Key extends {StandardTotalOrder[\Key\] , Object},Val extends { O
                 NodeMap[\Key,Val\](k,v,self,t2)
         end
 
-    combine[\That extends { Object, Equality[\That\] },Result extends { Object, Equality[\Result\]}\](f:(Key,Val,That)->Maybe[\Result\],
+    combine[\That extends { Object  },Result extends { Object }\](f:(Key,Val,That)->Maybe[\Result\],
                            doThis:(Key,Val)->Maybe[\Result\],
                            doThat:(Key,That)->Maybe[\Result\],
                            mapThis:Map[\Key,Val\]->Map[\Key,Result\],
@@ -460,14 +464,14 @@ object NodeMap[\Key extends {StandardTotalOrder[\Key\] , Object},Val extends { O
             then lc.concat3(key,c,rc)
             else lc.concat(rc) end
         end
-    mapFilter[\Result extends { Object, Equality[\Result\]}\](f:(Key,Val)->Maybe[\Result\]): Map[\Key,Result\] = do
+    mapFilter[\Result extends { Object }\](f:(Key,Val)->Maybe[\Result\]): Map[\Key,Result\] = do
         (lf,nv,rf) = (left.mapFilter[\Result\](f), f(key,val),
                       right.mapFilter[\Result\](f))
         if v <- nv
         then lf.concat3(key,v,rf)
         else lf.concat(rf) end
       end
-
+(*
     opr =(self,other:Map[\Key,Val\]): Boolean =
         if self SEQV other then true
         elif other.isEmpty then false
@@ -477,7 +481,7 @@ object NodeMap[\Key extends {StandardTotalOrder[\Key\] , Object},Val extends { O
             then (val=v) AND: (left=l AND right=r)
             else false end
         end
-
+*)
     balancedDelete(r:Map[\Key,Val\]):Map[\Key,Val\] =
         if (min_k, min_v, del_min) <- r.extractMinimum() then
             balancedAdd(min_k, min_v, self, del_min)

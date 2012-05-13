@@ -23,7 +23,7 @@ weight:ZZ32 = 4
 
 (** The natural order of the List, and indexing on the List, yields List
     elements in ascending order. **)
-trait List[\E\]
+trait List[\E\] extends Generator[\E\]
     (*
     getter indexValuePairs():ZeroIndexed[\(ZZ32,E)\] =
         IndexValueListGenerator[\E\](self)
@@ -52,6 +52,7 @@ trait List[\E\]
     split(n: ZZ32): (List[\E\],List[\E\]) = splitIndex(n)      
     splitIndex(x:ZZ32):(List[\E\],List[\E\])
     concat3(v:E, t2:List[\E\]):List[\E\]
+    
 
 end
 
@@ -366,5 +367,8 @@ object NodeList[\E\](val:E,  leftL:List[\E\], rightL:List[\E\])
         NodeList[\E\](b, NodeList[\E\](a, x,y1), NodeList[\E\](c,y2,z))
       end
 end
+
+transpose[\E,F\](xys: List[\(E,F)\]): (List[\E\], List[\F\]) =
+  ( <|[\E\] x | (x, _) <- xys |>, <|[\F\] y | (_, y) <- xys |> )
 
 end

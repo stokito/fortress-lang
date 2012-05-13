@@ -13,8 +13,9 @@ api List
 
 import Util.{...}
 import Maybe.{...}
+import Comparison.{...}
 
-trait List[\E\] 
+trait List[\E\] extends Generator[\E\]
 
   abstract getter isEmpty():Boolean    
   abstract extractLeft(): Maybe[\(E,List[\E\])\]
@@ -35,6 +36,7 @@ trait List[\E\]
   abstract concat(t2:List[\E\]):List[\E\]
   abstract splitIndex(x:ZZ32):(List[\E\],List[\E\])
   abstract concat3(v:E, t2:List[\E\]):List[\E\]
+  
   
   (*)zip[\F\](other: List[\F\]): Generator[\(E,F)\]
   (*)filter(p: E -> Boolean): List[\E\]
@@ -83,8 +85,9 @@ object Concat[\E\] extends MonoidReduction[\ List[\E\] \]
   join(a:List[\E\], b:List[\E\]): List[\E\]
 end
 
+*)
+
 transpose[\E,F\](xs: List[\(E,F)\]): (List[\E\], List[\F\])
 
-*)
 
 end

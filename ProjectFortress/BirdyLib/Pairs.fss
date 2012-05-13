@@ -15,6 +15,8 @@ import List.{...}
 import Map.{...}
 import Util.{...}
 import Maybe.{...}
+import Bazaar.{...}
+import Comparison.{...}
 export Pairs
 
 pairs[\T\](g: Generator[\T\]): Generator[\(T,T)\] = Pairs(g)
@@ -70,50 +72,54 @@ object TripleReduction[\T,R\](red: Reduction[\R\], m:(T,T,T)->R)
     else right end
 end
 
+geometricMean(xs: List[\RR64\]): RR64 = (PROD xs)^(1.0/((|xs|).asRR64()))
+
+opr UNIONCAT[\T extends { Object, StandardTotalOrder[\T\] },U\](a: Map[\T, List[\U\]\], b: Map[\T, List[\U\]\]): Map[\T, List[\U\]\] =
+  a.union(fn(k,x,y) => x || y, b)
+
+opr UNIONPLUS[\T extends { Object, StandardTotalOrder[\T\] }\](a: Map[\T, ZZ32\], b: Map[\T, ZZ32\]): Map[\T, ZZ32\] =
+  a.union(fn(k,x,y) => x + y, b)
+
+opr BIG UNIONCAT[\T extends { Object, StandardTotalOrder[\T\] },U\](): Comprehension[\Map[\T, List[\U\]\],Map[\T, List[\U\]\],Map[\T, List[\U\]\],Map[\T, List[\U\]\]\] =
+  embiggen[\Map[\T, List[\U\]\]\](fn(a,b) => a UNIONCAT b, {[\T,List[\U\]\]})
+
+
+opr BIG UNIONPLUS[\T extends { Object, StandardTotalOrder[\T\] }\](): Comprehension[\Map[\T, ZZ32\],Map[\T, ZZ32\],Map[\T, ZZ32\],Map[\T, ZZ32\]\] =
+  embiggen[\Map[\T, ZZ32\]\](fn(a,b) => a UNIONPLUS b, {[\T,ZZ32\]})
+
 (*
-runRanges(x: Indexed[\Boolean,ZZ32\]): List[\CompactFullRange[\ZZ32\]\] =
-  (BIG BOXPLUS[i <- 0 # |x|] (if x[i] then RangeSet(0, <|[\CompactFullRange[\ZZ32\]\] i:i |>, 0) else SingleRange(1))).ranges
+runRanges(x: Indexed[\Boolean,ZZ32\]): List[\Range\] =
+  (BIG BOXPLUS[i <- 0 # |x|] (if x[i] then RangeSet(0, <|[\Range\] i:i |>, 0) else SingleRange(1))).ranges
 *)
-(*
-opr BIG BOXPLUS[\T\](): BigReduction[\RunRanges, RunRanges\] =
+
+(***** STILL WORKING ON IT
+
+opr BIG BOXPLUS[\T\](): Comprehension[\RunRanges, RunRanges, RunRanges, RunRanges\] =
    embiggen[\RunRanges\](fn(a,b) => a BOXPLUS b, SingleRange(0))
 
 trait RunRanges comprises { SingleRange, RangeSet }
-  getter ranges(): List[\CompactFullRange[\ZZ32\]\]
+  getter ranges(): List[\Range\]
   opr BOXPLUS(self, x: RunRanges): RunRanges
 end
 
 object SingleRange(n: ZZ32) extends RunRanges
-  getter ranges() = <|[\CompactFullRange[\ZZ32\]\] |>
+  getter ranges() = <|[\Range\] |>
   opr BOXPLUS(self, other: SingleRange) = SingleRange(n + other.n)
   opr BOXPLUS(self, other: RangeSet) = RangeSet(n + other.left, other.ranges, other.right)
 end
 
-object RangeSet(left: ZZ32, ranges: List[\CompactFullRange[\ZZ32\]\], right: ZZ32) extends RunRanges
-  opr BOXPLUS(self, other: SingleRange) = RangeSet(left, ranges, right + other.n)
+object RangeSet(left: ZZ32, ranges: List[\Range\], right: ZZ32) extends RunRanges
+  opr BOXPLUS(self, other: SingleRange) = RangeSet(left, ranges(), right + other.n)
   opr BOXPLUS(self, other: RangeSet) =
     if right + other.left >= 2 then
-      RangeSet(left, ranges || other.ranges, other.right)
+      RangeSet(left, ranges() || other.ranges, other.right)
     else
-      (ps, p) = ranges.extractRight.get
-      (q, qs) = other.ranges.extractLeft.get
-      RangeSet(left, ps || <| p.lower:q.upper |> || qs, other.right)
+      (ps, p) = if x <- ranges().extractRight() then x else throw MatchFailure end
+      (q, qs) = if x <- other.ranges.extractLeft() then x else throw MatchFailure end
+      RangeSet(left, ps || <| p.lowerBound:q.upperBound |> || qs, other.right)
     end
 end
 
-geometricMean(xs: List[\RR64\]): RR64 = (PROD xs)^(1.0/(|xs|))
-
-opr UNIONCAT[\T,U\](a: Map[\T, List[\U\]\], b: Map[\T, List[\U\]\]): Map[\T, List[\U\]\] =
-  a.union(fn(k,x,y) => x || y, b)
-
-opr BIG UNIONCAT[\T,U\](): BigReduction[\Map[\T, List[\U\]\],Map[\T, List[\U\]\]\] =
-  embiggen[\Map[\T, List[\U\]\]\](fn(a,b) => a UNIONCAT b, {[\T,List[\U\]\]})
-
-opr UNIONPLUS[\T\](a: Map[\T, ZZ32\], b: Map[\T, ZZ32\]): Map[\T, ZZ32\] =
-  a.union(fn(k,x,y) => x + y, b)
-
-opr BIG UNIONPLUS[\T\](): BigReduction[\Map[\T, ZZ32\],Map[\T, ZZ32\]\] =
-  embiggen[\Map[\T, ZZ32\]\](fn(a,b) => a UNIONPLUS b, {[\T,List[\U\]\]})
-*)
+*****)
 
 end

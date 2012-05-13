@@ -2,6 +2,7 @@ component Bazaar
 
   import Util.{...}
   import Maybe.{...}
+  import List.{...}
   export Bazaar
 
   object AndRed extends MonoidReduction[\Boolean\]
@@ -26,12 +27,35 @@ component Bazaar
     join(x: ZZ32, y: ZZ32) = x y    
   end
 
+
   opr PROD() :BigReduction[\ZZ32,ZZ32\] = BigReduction[\ZZ32,ZZ32\](ProdRed) 
+
+  object ProdRedRR64 extends MonoidReduction[\RR64\]
+    getter asString(): String = "Prod red RR64"
+    empty(): RR64 = 1.0
+    join(x: RR64, y: RR64) = x y    
+  end
+
+  (*)opr PROD() :BigReduction[\RR64,RR64\] = BigReduction[\RR64,RR64\](ProdRedRR64) 
+
+  opr PROD(g: Generator[\RR64\]): RR64 =
+    __bigOperatorSugar[\RR64,RR64,RR64,RR64\](BigReduction[\RR64,RR64\](ProdRedRR64) , g) 
 
   object BXRed extends AssociativeReduction[\ZZ32\]
     simpleJoin(x: ZZ32, y: ZZ32): ZZ32 = x BITXOR y
   end
 
   opr BIG BITXOR(): BigReduction[\ZZ32,Maybe[\ZZ32\]\] = BigReduction[\ZZ32,Maybe[\ZZ32\]\](BXRed)
+
+  object MinRed extends AssociativeReduction[\RR64\]
+    simpleJoin(x: RR64, y: RR64): RR64 = x MIN y
+  end
+
+  opr BIG MIN() : BigReduction[\RR64,Maybe[\RR64\]\] = BigReduction[\RR64,Maybe[\RR64\]\](MinRed)
+
+  strToFloat(s: String): RR64 = 1.0
+
+  opr <|g: Generator[\ZZ32\]|>: List[\ZZ32\] = <|[\ZZ32\] x | x <- g |>
+
 
 end

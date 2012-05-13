@@ -76,6 +76,8 @@ component Util
     seq(self): SequentialGenerator[\E\] = self
   end SequentialGenerator
 
+  trait Indexed[\E, I\] extends Generator[\E\] end
+
   __generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R =
       g.generate[\R\](r,b)
 
