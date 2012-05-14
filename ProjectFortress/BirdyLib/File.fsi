@@ -15,7 +15,7 @@ import FlatString.FlatString
 import FileSupport.{...}
 import Util.{...}
 
-object FileReadStream(filename: String) extends ReadStream 
+object FileReadStream(filename: JavaString) extends ReadStream 
     getter fileName():String
     getter eof():Boolean
     getter ready():Boolean

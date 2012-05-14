@@ -68,7 +68,7 @@ trait ReadStream extends { Closeable, Consumable }
     uncheckedReadChar(): Character
 
     eofCheckedReadChar():ZZ32 = do
-        r = uncheckedReadChar()
+        r = getNumericValue(uncheckedReadChar())
         if r = -1 then 0 else r end (*) JT: Used to  be char(_)  
       end
 
@@ -118,7 +118,7 @@ trait ReadStream extends { Closeable, Consumable }
         consume()
         FileGenerator[\Character\](self, n,
             fn (r:ReadStream): Maybe[\Character\] => do
-               c = r.uncheckedReadChar()
+               c = getNumericValue(r.uncheckedReadChar())
                (if c = -1 then Nothing[\Character\] else Just makeCharacter(c) )
             end)
       end
@@ -159,9 +159,8 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
         if consumed then
             fail("Using consumed generator of " reader)
         end
-    generate[\R\](r: Reduction[\R\], body: S->R): R = do
-        consume()
-        go(n:ZZ32): R =
+    
+    private go[\R\](n:ZZ32, r: Reduction[\R\], body: S->R): R =
             if reader.eof then r.empty()
             else
                 (* First read must block, and not check reader.ready *)
@@ -172,15 +171,18 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
                     i := 1
                 end
                 (* Subsequent reads contingent on reader.ready *)
-                while (i<n AND: NOT reader.eof AND: reader.ready) do
+                (*while (i<n AND: NOT reader.eof AND: reader.ready) do
                     if s <- readOne(reader) then
                         bu.init(i,s)
                         i += 1
                     end
-                end
-                r.join(bu[0#i].generate[\R\](r,body),go((2 n) MAX up))
-            end
-        a = go(8 MIN up)
+                end*)
+                r.join(bu[0#i].generate[\R\](r,body),go((2 n) MAX up,r,body))
+            end  
+              
+    generate[\R\](r: Reduction[\R\], body: S->R): R = do
+        consume()
+        a = go(8 MIN up,r,body)
         reader.close()
         a
       end
@@ -190,9 +192,7 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
         SeqFileGenerator[\S\](reader, readOne)
       end
 
-    loop(f:S->()): () = do
-        consume()
-        go(n:ZZ32): () =
+    go2(n:ZZ32,f:S->()): () =
             if reader.eof then ()
             else
                 (* First read must block, and not check reader.ready *)
@@ -203,16 +203,19 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
                     i := 1
                 end
                 (* Subsequent reads contingent on reader.ready *)
-                while (i<n AND: NOT reader.eof AND: reader.ready) do
+                (*while (i<n AND: NOT reader.eof AND: reader.ready) do
                     if s <- readOne(reader) then
                         bu.init(i,s)
                     end
                     i += 1
-                end
-                (a,b) = (bu[0#i].loop(f), go((2 n) MAX up)) (*) JT: mention this to VL and GS
+                end*)
+                (a,b) = (bu[0#i].loop(f), go2((2 n) MAX up,f)) (*) JT: mention this to VL and GS
                 ()
             end
-        go(8 MIN up)
+
+    loop(f:S->()): () = do
+        consume()
+        go2(8 MIN up, f)
         reader.close()
       end
 end
@@ -228,12 +231,12 @@ object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> Maybe[\S\]
     generate[\R\](r: Reduction[\R\], body: S->R): R = do
         consume()
         a:R := r.empty()
-        while (NOT reader.eof) do
+        (*while (NOT reader.eof) do
             if s <- readOne(reader) then
                 v = body(s)
                 a := r.join(a,v)
             end
-        end
+        end*)
         reader.close()
         a
       end
@@ -242,11 +245,11 @@ object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> Maybe[\S\]
 
     loop(body:S->()): () = do
         consume()
-        while (NOT reader.eof) do
+        (*while (NOT reader.eof) do
             if s <- readOne(reader) then
                 body(s)
             end
-        end
+        end*)
         reader.close()
       end
 end
