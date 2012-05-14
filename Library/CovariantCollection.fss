@@ -1,0 +1,148 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component CovariantCollection
+export CovariantCollection
+
+private upward[\R, I extends R, T extends R\]
+      (_: Empty[\I\], s: Empty[\T\]): Empty[\R\] = Empty[\R\]
+private upward[\R, I extends R, T extends R\]
+      (_: Empty[\I\], s: NonEmpty[\T\]): Singleton[\R\] =
+    fail("upward: NonEmpty but not Singleton/Append")
+private upward[\R, I extends R, T extends R\]
+      (_: Empty[\I\], s: Singleton[\T\]): Singleton[\R\] =
+    Singleton[\R\](s.x)
+private upward[\R, I extends R, T extends R, A extends T, B extends T\]
+      (_: Empty[\I\], c: Append[\T,A,B\]): Append[\R,A,B\] =
+    Append[\R,A,B\](c.a, c.b)
+
+opr APPCOV[\T, A extends T, B extends T\]
+          (a: CovariantCollection[\A\], b: CovariantCollection[\B\]):
+          CovariantCollection[\T\] =
+    typecase (a,b) of
+        (a':Empty[\A\], b':CovariantCollection[\T\]) => b'
+        (a':Empty[\A\], b':CovariantCollection[\B\]) => upward(Empty[\T\], b')
+        (a':NonEmpty[\T\], b':Empty[\B\]) => a'
+        (a':NonEmpty[\A\], b':Empty[\B\]) => upward(Empty[\T\], a')
+        (a':NonEmpty[\A\], b':NonEmpty[\B\]) => Append[\T,A,B\](a',b')
+    end
+
+
+opr APPCOV(a: AnyCovColl, b: AnyCovColl): AnyCovColl =
+    fail(a " APPCOV " b " have no common supertype!")
+
+
+private initArrayFrom[\R, T extends R\]
+                 (a: ReadableArray[\R,ZZ32\], i:ZZ32, c:CovariantCollection[\T\]): () =
+    typecase c of
+        Empty[\T\] => ()
+        c':Singleton[\T\] => a.init(i,c'.x)
+        else => iaf(a,i,c)
+    end
+private iaf[\R, T extends R, A extends T, B extends T\]
+           (a: ReadableArray[\R,ZZ32\], i:ZZ32, c: Append[\T,A,B\]): () = do
+        initArrayFrom[\R,A\](a, i, c.a)
+    also do
+        initArrayFrom[\R,B\](a, i + |c.a|, c.b)
+    end
+
+private assignArrayFrom[\R, T extends R\]
+                   (a: Array[\R,ZZ32\], i:ZZ32, c:CovariantCollection[\T\]): () =
+    typecase c of
+        Empty[\T\] => ()
+        c':Singleton[\T\] => a[i] := c'.x
+        else => aaf(a,i,c)
+  end
+private aaf[\R, T extends R, A extends T, B extends T\]
+           (a: Array[\R,ZZ32\], i:ZZ32, c: Append[\T,A,B\]): () = do
+        assignArrayFrom(a, i, c.a)
+    also do
+        assignArrayFrom(a, i + |c.a|, c.b)
+    end
+
+trait AnyCovColl
+    dirtyIAF[\R\](a:ImmutableArray[\R,ZZ32\], i:ZZ32): ()
+end
+
+trait CovariantCollection[\T\]
+        extends { AnyCovColl }
+        comprises { Empty[\T\], NonEmpty[\T\] }
+    toImmutableArray(): ImmutableArray[\T,ZZ32\] = do
+        res = immutableArray[\T\](|self|)
+        initArrayFrom(res,0,self)
+        res
+      end
+    toArray(): Array[\T,ZZ32\] = do
+        res = array[\T\](|self|)
+        initArrayFrom(res,0,self)
+        res
+      end
+    assignToArray(res:Array[\T,ZZ32\]): () = do
+        assignArrayFrom(res,0,self)
+      end
+    cata[\R\](e:R, s:T->R, a:(ZZ32,R,R)->R): R
+end
+
+trait AnyEmpty extends AnyCovColl end
+
+object Empty[\T\] extends {AnyEmpty, CovariantCollection[\T\] }
+    getter isEmpty(): Boolean = true
+    opr |self|: ZZ32 = 0
+    cata[\R\](e:R, s:T->R, a:(ZZ32,R,R)->R): R = e
+    dirtyIAF[\R\](a:ImmutableArray[\R,ZZ32\], i:ZZ32): () = ()
+end
+
+trait NonEmpty[\T\] extends CovariantCollection[\T\]
+        (* comprises { Singleton[\T\], Append[\T,A,B\] } *)
+    getter isEmpty(): Boolean = false
+end
+
+trait AnySingleton extends AnyCovColl
+    getter x(): Any
+end
+
+object Singleton[\T\](x:T) extends { AnySingleton, NonEmpty[\T\] }
+    opr |self|: ZZ32 = 1
+    cata[\R\](e:R, s:T->R, a:(ZZ32,R,R)->R): R = s(x)
+    dirtyIAF[\R\](a:ImmutableArray[\R,ZZ32\], i:ZZ32): () = a.init(i,x)
+end
+
+trait AnyAppend extends AnyCovColl
+    getter a(): Any
+    getter b(): Any
+end
+
+private object Append[\T,A extends T, B extends T\](a:NonEmpty[\A\], b:NonEmpty[\B\])
+        extends { AnyAppend, NonEmpty[\T\] }
+    sz = |a| + |b|
+    opr |self|: ZZ32 = sz
+    unapp[\R\](k:(NonEmpty[\A\], NonEmpty[\B\])->R): R = k(a,b)
+    cata[\R\](e:R, s:T->R, app:(ZZ32,R,R)->R): R = app(sz,a.cata[\R\](e,s,app),b.cata[\R\](e,s,app))
+    dirtyIAF[\R\](arr:ImmutableArray[\R,ZZ32\], i:ZZ32): () = do
+        a.dirtyIAF[\R\](arr,i)
+      also do
+        b.dirtyIAF[\R\](arr,i + |a|)
+      end
+end
+
+object CVReduction[\T\] extends MonoidReduction[\AnyCovColl\]
+    getter asString():String = "CV Reduction"
+    empty(): AnyCovColl = Empty[\T\]
+    join(a:AnyCovColl, b:AnyCovColl): AnyCovColl = a APPCOV b
+end
+
+CVSingleton(a:Any): AnyCovColl = Singleton(a)
+
+covariantCompr[\T,R\](unwrap:AnyCovColl->R):Comprehension[\T,R,AnyCovColl,AnyCovColl\] =
+    Comprehension[\T,R,AnyCovColl,AnyCovColl\](
+        fn xs => unwrap(upward(Empty[\T\],xs)), CVReduction[\T\], CVSingleton)
+
+end

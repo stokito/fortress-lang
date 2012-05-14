@@ -1,0 +1,763 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress expressions.
+ */
+module com.sun.fortress.parser.Expression(Param, NoNewlineHeader,
+                                          MayNewlineHeader, Type, DelimitedExpr,
+                                          Literal, NoSpaceLiteral, Identifier,
+                                          Keyword, Symbol, Spacing);
+
+import Param;
+import NoNewlineHeader;
+import MayNewlineHeader;
+import Type;
+import DelimitedExpr;
+import Literal;
+import NoSpaceLiteral;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* Expr ::=
+     AssignExpr
+   | OpExpr
+   | DelimitedExpr
+   | FlowExpr
+   | fn w BindId (w Throws)? w => w Expr
+   | fn w ( (w Params)? w ) (w IsType)? (w Throws)? w => w Expr
+   | Expr w typed w Type
+   | Expr w asif w Type
+ */
+Expr Expr =
+     seed:ExprFront list:ExprTail* { yyValue = (Expr)apply(list, seed); };
+
+Expr ExprFront =
+     <AssignExpr> AssignExpr
+   / OpExpr
+   / DelimitedExpr
+   / <Flow> FlowExpr
+   / <Fn1> fn w a1:BindId a2:(w Throws)? w match w a3:Expr
+     { yyValue = ExprFactory.makeFnExpr(createSpan(yyStart,yyCount),
+                                        Useful.list(NodeFactory.makeParam(a1)),
+                                        Option.<Type>none(),
+                                        Option.<List<Type>>wrap(a2), a3);
+     }
+   / <Fn2> fn w openparen a1:(w Params)? w closeparen a2:(w IsType)? a3:(w Throws)? w match w a4:Expr
+     { if (a1 == null) a1 = Collections.<Param>emptyList();
+       yyValue = ExprFactory.makeFnExpr(createSpan(yyStart,yyCount), a1,
+                                        Option.<Type>wrap(a2),
+                                        Option.<List<Type>>wrap(a3), a4);
+     }
+   / <ErrorProduction1> fn w ValParam (w IsType)? (w Throws)? w match w Expr
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Parentheses are required around the parameter of an anonymous function expression.");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
+     }
+   / <ErrorProduction2> fn w ValParam (w IsType)? (w Throws)? w Expr
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Anonymous function expression is missing \"=>\".");
+       yyValue = ExprFactory.makeVoidLiteralExpr(span);
+     };
+
+constant transient Action<Expr> ExprTail =
+     <As> As
+   / <Asif> AsIf
+   ;
+
+constant inline Action<Expr> As =
+     w typed w a1:Type
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               return ExprFactory.makeAsExpr(createSpan(yyStart,yyCount),
+                                             (Expr)base, a1);
+           }};
+     };
+
+constant inline Action<Expr> AsIf =
+     w asif w a1:Type
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               return ExprFactory.makeAsIfExpr(createSpan(yyStart,yyCount),
+                                               (Expr)base, a1);
+           }};
+     };
+
+/* AssignExpr ::= AssignLefts w AssignOp w Expr */
+Expr AssignExpr = a1:AssignLefts w a2:AssignOp w a3:Expr
+    { yyValue = ExprFactory.makeAssignment(createSpan(yyStart,yyCount),
+                                           a1, a2, a3);
+    };
+
+/* AssignLefts ::=
+     ( w AssignLeft (w , w AssignLeft)* w )
+   | AssignLeft
+ */
+List<Lhs> AssignLefts =
+     openparen w a1:AssignLeft a2s:(w comma w AssignLeft)* w closeparen
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / a1:AssignLeft
+     { yyValue = Useful.list(a1); };
+
+/* AssignLeft ::=
+     SubscriptExpr
+   | FieldSelection
+   | QualifiedName
+   SubscriptExpr ::= Primary LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
+   FieldSelection ::= Primary . Id
+ */
+Lhs AssignLeft =
+     seed:PrimaryFront list:AssignLeftTail+
+     { Expr left = (Expr)apply(list, seed);
+       if (left instanceof Lhs) yyValue = (Lhs)left;
+       else {
+           Span span = NodeUtil.getSpan(left);
+           log(span,
+               "The left-hand side of the assignment expression is not valid.");
+           yyValue = ExprFactory.makeVarRef(span, NodeFactory.bogusId(span));
+       }
+     }
+   / a1:QualifiedName
+     { yyValue = ExprFactory.makeVarRef(NodeUtil.getSpan(a1), a1); };
+
+constant transient Action<Expr> AssignLeftTail =
+     SubscriptAssign
+   / FieldSelectionAssign
+   ;
+
+constant inline Action<Expr> SubscriptAssign =
+     a1:LeftEncloser a2:(w StaticArgs)? a3:(w ExprList)? w a4:RightEncloser
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+             Span span = NodeUtil.spanTwo(base, a4);
+             List<StaticArg> sargs =
+                 (a2 == null) ? Collections.<StaticArg>emptyList() : a2;
+             List<Expr> es = (a3 == null) ? Collections.<Expr>emptyList() : a3;
+             Op op = NodeFactory.makeEnclosing(NodeUtil.spanTwo(a1,a4),
+                                               a1.getText(), a4.getText(), true, false);
+             return ExprFactory.makeSubscriptExpr(span, base, es,
+                                                  Option.<Op>some(op), sargs);
+            }};
+     };
+
+constant inline Action<Expr> FieldSelectionAssign =
+    dot a1:(Reserved / Id)
+    { yyValue = new Action<Expr>() {
+          public Expr run(Expr base) {
+              Span span = NodeUtil.spanTwo(base, a1);
+              if ( NodeUtil.isKeyword(a1) )
+                  log(span, "Keyword " + a1 + " cannot be used as an identifier.");
+              return ExprFactory.makeFieldRef(span, base, a1);
+          }};
+    };
+
+/* OpExpr ::=
+     OpExprNoEnc
+   | OpExprLeftEncloser
+   | Encloser
+ */
+Expr OpExpr =
+     <FIRST> a1:OpExprNoEnc
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = Resolver.resolveOps(writer, span, a1); }
+   / a1:OpExprLeftEncloser
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = Resolver.resolveOps(writer, span, a1); }
+   / a1:Encloser
+     { Span span = createSpan(yyStart,yyCount);
+       PrecedenceOpExpr e = new RealExpr(ASTUtil.nofix(NodeUtil.getSpan(a1), a1));
+       yyValue = Resolver.resolveOps(writer, span, PureList.make(e));
+     };
+
+/* OpExprNoEnc ::=
+     OpExprPrimary
+   | OpExprPrefix
+   | Op
+ */
+PureList<PrecedenceOpExpr> OpExprNoEnc =
+     <FIRST> OpExprPrimary
+   / OpExprPrefix
+   / caret
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       PrecedenceOpExpr e = new RealExpr(ASTUtil.nofix(span, op));
+       yyValue = PureList.make(e);
+       log(span, "^ is always an infix operator but used as a nofix operator.");
+     }
+   / a1:Op
+     { PrecedenceOpExpr e = new RealExpr(ASTUtil.nofix(NodeUtil.getSpan(a1), a1));
+       yyValue = PureList.make(e);
+     };
+
+/* TightInfixRight ::=
+     Encloser OpExprPrimary
+   | Encloser OpExprPrefix
+   | Encloser wr OpExprPrimary
+   | Encloser wr LooseInfix
+   | Encloser wr LeftLooseInfix
+   | Encloser
+ */
+PureList<PrecedenceOpExpr> TightInfixRight =
+     a1:Encloser a2:OpExprPrimary
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightInfix(a1)); }
+   / a1:Encloser a2:OpExprPrefix
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightInfix(a1)); }
+   / <Primary>   a1:Encloser wr a2:OpExprPrimary
+     { yyValue = a2.cons((PrecedenceOpExpr)new Right(a1)); }
+   / <Loose>     a1:Encloser wr a2:LooseInfix
+     { yyValue = a2.cons((PrecedenceOpExpr)new Right(a1)); }
+   / <LeftLoose> a1:Encloser wr a2:LeftLooseInfix
+     { yyValue = a2.cons((PrecedenceOpExpr)new Right(a1)); }
+   / a1:Encloser
+     { yyValue = PureList.make((PrecedenceOpExpr)new Right(a1)); };
+
+/* LeftLooseInfix ::=
+     OpExprLeftEncloser
+   | Encloser wr OpExprPrimary
+   | Encloser wr OpExprPrefix
+   | Encloser wr OpExprLeftEncloser
+ */
+PureList<PrecedenceOpExpr> LeftLooseInfix =
+     OpExprLeftEncloser
+   / <Primary> a1:Encloser wr a2:OpExprPrimary
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); }
+   / <Prefix>  a1:Encloser wr a2:OpExprPrefix
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); }
+   / <Left>    a1:Encloser wr a2:OpExprLeftEncloser
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); };
+
+/* OpExprLeftEncloser ::= Encloser OpExprNoEnc */
+PureList<PrecedenceOpExpr> OpExprLeftEncloser =
+     a1:Encloser a2:OpExprNoEnc
+     { yyValue = a2.cons(new Left(a1)); };
+
+/* OpExprPrimary ::=
+     Primary TightInfixPostfix
+   | Primary TightInfixRight
+   | Primary wr OpExprPrimary
+   | Primary wr LooseInfix
+   | Primary wr LeftLooseInfix
+   | Primary
+ */
+PureList<PrecedenceOpExpr> OpExprPrimary =
+     a1:Primary a2:TightInfixPostfix
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); }
+   / a1:Primary a2:TightInfixRight
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); }
+   / <Primary>   a1:Primary wr a2:OpExprPrimary
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); }
+   / <Loose>     a1:Primary wr a2:LooseInfix
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); }
+   / <LeftLoose> a1:Primary wr a2:LeftLooseInfix
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); }
+   / a1:Primary
+     { yyValue = PureList.make((PrecedenceOpExpr)new RealExpr(ExprFactory.buildPrimary(a1))); };
+
+/* OpExprPrefix ::=
+     Op OpExprPrimary
+   | Op OpExprPrefix
+   | Op OpExprLeftEncloser
+   | Op wr OpExprPrimary
+   | Op wr OpExprPrefix
+   | Op wr OpExprLeftEncloser
+ */
+PureList<PrecedenceOpExpr> OpExprPrefix =
+     a1:Op a2:OpExprPrimary
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightPrefix(a1)); }
+   / a1:Op a2:OpExprPrefix
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightPrefix(a1)); }
+   / a1:Op a2:OpExprLeftEncloser
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightPrefix(a1)); }
+   / <Primary> a1:Op wr a2:OpExprPrimary
+     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); }
+   / <Prefix>  a1:Op wr a2:OpExprPrefix
+     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); }
+   / <Left>    a1:Op wr a2:OpExprLeftEncloser
+     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); }
+   / caret w a2:OpExprPrimary
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(op));
+       log(span, "^ is always an infix operator but used as a prefix operator.");
+     }
+   / caret w a2:OpExprPrefix
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(op));
+       log(span, "^ is always an infix operator but used as a prefix operator.");
+     }
+   / caret w a2:OpExprLeftEncloser
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(op));
+       log(span, "^ is always an infix operator but used as a prefix operator.");
+     };
+
+/* TightInfixPostfix ::=
+     Op OpExprPrimary
+   | Op OpExprPrefix
+   | Op OpExprLeftEncloser
+   | Op wr OpExprPrimary
+   | Op wr OpExprPrefix
+   | Op wr OpExprLeftEncloser
+   | Op
+ */
+PureList<PrecedenceOpExpr> TightInfixPostfix =
+     a1:Op a2:OpExprPrimary
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightInfix(a1)); }
+   / a1:Op a2:OpExprPrefix
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightInfix(a1)); }
+   / a1:Op a2:OpExprLeftEncloser
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightInfix(a1)); }
+   / <Primary> a1:Op wr a2:OpExprPrimary
+     { yyValue = a2.cons((PrecedenceOpExpr)new Postfix(a1)); }
+   / <Prefix>  a1:Op wr a2:OpExprPrefix
+     { yyValue = a2.cons((PrecedenceOpExpr)new Postfix(a1)); }
+   / <Left>    a1:Op wr a2:OpExprLeftEncloser
+     { yyValue = a2.cons((PrecedenceOpExpr)new Postfix(a1)); }
+   / caret wr a2:OpExprPrimary
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       yyValue = a2.cons((PrecedenceOpExpr)new Postfix(op));
+       log(span, "^ is always an infix operator but used as a postfix operator.");
+     }
+   / caret wr a2:OpExprPrefix
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       yyValue = a2.cons((PrecedenceOpExpr)new Postfix(op));
+       log(span, "^ is always an infix operator but used as a postfix operator.");
+     }
+   / caret wr a2:OpExprLeftEncloser
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       yyValue = a2.cons((PrecedenceOpExpr)new Postfix(op));
+       log(span, "^ is always an infix operator but used as a postfix operator.");
+     }
+   / caret
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeOpUnknown(span, "^");
+       yyValue = PureList.make((PrecedenceOpExpr)new Postfix(op));
+       log(span, "^ is always an infix operator but used as a postfix operator.");
+     }
+   / a1:Op
+     { yyValue = PureList.make((PrecedenceOpExpr)new Postfix(a1)); };
+
+/* LooseInfix ::=
+     Op wr OpExprPrimary
+   | Op wr OpExprPrefix
+   | Op wr OpExprLeftEncloser
+ */
+PureList<PrecedenceOpExpr> LooseInfix =
+     a1:Op wr a2:OpExprPrimary
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); }
+   / a1:Op wr a2:OpExprPrefix
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); }
+   / <Left> a1:Op wr a2:OpExprLeftEncloser
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); };
+
+/* Primary ::= PrimaryItem (w , w PrimaryItem)* */
+constant PureList<Expr> Primary =
+    a1:PrimaryItem a2s:(w comma w PrimaryItem)+
+    &(Encloser (wr / br / w comma / w RightEncloser))
+     { List<Expr> es = new ArrayList<Expr>();
+       for (PureList<Expr> elist : Useful.cons(a1, a2s.list())) {
+           es.add(ExprFactory.buildPrimary(elist));
+       }
+       yyValue = PureList.make((Expr)ExprFactory.makeTupleExpr(createSpan(yyStart,yyCount), es));
+     }
+   / PrimaryItem ;
+
+/* PrimaryItem ::=
+     LeftAssociatedPrimary
+   | MathPrimary
+ */
+constant PureList<Expr> PrimaryItem =
+     a1:(LeftAssociatedPrimary / MathPrimary)
+     { yyValue = PureList.make(a1); };
+
+/* LeftAssociatedPrimary ::=
+     DottedIdChain (w StaticArgs)? Subscripting* ParenthesisDelimited* Selector*
+   | PrimaryFront Subscripting* ParenthesisDelimited* Selector+
+ */
+constant Expr LeftAssociatedPrimary =
+     a1:DottedIdChain w a2:StaticArgs a3:ParenthesisDelimited
+     a4s:ParenthesisDelimitedLeft* a5s:Selector*
+     { Id last = IterUtil.last(a1);
+       Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
+       Span span = NodeUtil.spanTwo(receiver, a3);
+       Expr e1 = ExprFactory.makeMethodInvocation(span, receiver, last, a2, a3);
+       Expr e2 = (Expr)apply(a4s, e1);
+       yyValue = (Expr)apply(a5s, e2);
+     }
+   / a1:DottedIdChain a2s:SubscriptingLeft+ a3s:ParenthesisDelimitedLeft*
+     a4s:Selector*
+     { Id last = IterUtil.last(a1);
+       Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
+       Expr e1 = ExprFactory.makeFieldRef(NodeUtil.spanTwo(receiver, last),
+                                          receiver, last);
+       Expr e2 = (Expr)apply(a2s, e1);
+       Expr e3 = (Expr)apply(a3s, e2);
+       yyValue = (Expr)apply(a4s, e3);
+     }
+   / a1:DottedIdChain a2:ParenthesisDelimited a3s:ParenthesisDelimitedLeft*
+     a4s:Selector*
+     { Id last = IterUtil.last(a1);
+       Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
+       Expr e1 = ExprFactory.makeMethodInvocation(NodeUtil.spanTwo(receiver, a2),
+                                                  receiver, last, a2);
+       Expr e2 = (Expr)apply(a3s, e1);
+       yyValue = (Expr)apply(a4s, e2);
+     }
+   / a1:DottedIdChain a2s:Selector*
+     { Id last = IterUtil.last(a1);
+       Expr receiver = ExprFactory.makeReceiver(IterUtil.skipLast(a1));
+       Expr e1 = ExprFactory.makeFieldRef(NodeUtil.spanTwo(receiver, last),
+                                          receiver, last);
+       yyValue = (Expr)apply(a2s, e1);
+     }
+   / a1:PrimaryFront a2s:SubscriptingLeft* a3s:ParenthesisDelimitedLeft*
+     a4s:Selector+
+     { Expr e1 = (Expr)apply(a2s, a1);
+       Expr e2 = (Expr)apply(a3s, e1);
+       yyValue = (Expr)apply(a4s, e2);
+     };
+
+/* A primary expression is always left-associated if it contains any dot
+   (i.e., ".") not within parentheses or some pair of enclosing operators.
+   If such a primary expression begins with an identifier immediately
+   followed by a dot then the maximal prefix of identifiers separated by
+   dots (whitespace may follow but not precede the dots) is collected into
+   a "dotted id chain", which is subsequently partitioned into the longest
+   prefix, if any, that is a qualified name, and the remaining dots and
+   identifiers, which are interpreted as selectors.  If the last identifier
+   in the dotted id chain is part of a selector (i.e., the entire dotted id
+   chain is not a qualified name), and it is immediately followed by a left
+   parenthesis, then the last selector together with the subsequent parenthesis-
+   delimited term is a method selector.
+ */
+/* QualifiedName is not yet implemented in the interpreter. */
+/* DottedIdChain ::= Id(. w Id)+ */
+List<Id> DottedIdChain =
+    a1:(Reserved / Id) a2s:(dot w (Reserved / Id))+
+    { List<Id> ids = new ArrayList<Id>(a2s.list().size() + 1);
+      ids.add(a1);
+      ids.addAll(a2s.list());
+      for (Id id : ids) {
+          if ( NodeUtil.isKeyword(id) )
+              log(NodeUtil.getSpan(id),
+                  "Keyword " + id + " cannot be used as an identifier.");
+      }
+      yyValue = Useful.cons(a1, a2s.list());
+    };
+
+/* MathPrimary ::= PrimaryFront MathItem* */
+constant Expr MathPrimary =
+    a1:PrimaryFront a2s:MathItem*
+    { Span span = createSpan(yyStart,yyCount);
+      List<MathItem> mis = a2s.list();
+      if (mis.size() == 0)
+          yyValue = a1;
+      else if (mis.size() == 1)
+          yyValue = ExprFactory.simplifyMathPrimary(span, a1, mis.get(0));
+      else // mis.size() > 1
+          yyValue = ExprFactory.makeMathPrimary(span, a1, mis);
+    };
+
+/* PrimaryFront ::=
+     ArrayExpr
+   | MapExpr
+   | Comprehension
+   | LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
+   | ParenthesisDelimited
+   | LiteralExpr
+   | VarOrFnRef
+   | self
+ */
+Expr PrimaryFront =
+     ArrayExpr
+   / MapExpr
+   / Comprehension
+   / a1:LeftEncloser a2:(w StaticArgs)? a3:(w ExprList)? w a4:RightEncloser
+     { if (a3 == null) a3 = Collections.<Expr>emptyList();
+       Span span = createSpan(yyStart,yyCount);
+       if (a2 == null) yyValue = ASTUtil.enclosing(writer, span, a1, a3, a4);
+       else            yyValue = ASTUtil.enclosing(writer, span, a1, a2, a3, a4);
+     }
+   / ParenthesisDelimited
+   / LiteralExpr
+   / VarOrFnRef
+   / a1:self
+     { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); };
+
+/* ArrayExpr is defined in NoNewlineHeader.rats because it uses NoSpaceExpr. */
+
+/* VarOrFnRef ::= Id (w StaticArgs)? */
+Expr VarOrFnRef =
+     a1:Id w a2:StaticArgs
+     { yyValue = ExprFactory.makeFnRef(createSpan(yyStart,yyCount), a1, a2); }
+   / a1:Id
+     { yyValue = ExprFactory.makeVarRef(NodeUtil.getSpan(a1), a1); };
+
+/* Subscripting ::=
+     [ (w StaticArgs)? (w ExprList)? w ]
+   | { (w StaticArgs)? (w ExprList)? w }
+   | LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
+ */
+constant inline Action<Expr> SubscriptingLeft =
+     a1:(opensquare / opencurly) a2:(w StaticArgs)? a3:(w ExprList)? w
+     a4:(closesquare / closecurly)
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               Span span = NodeUtil.spanTwo(NodeUtil.getSpan(base),
+                                            createSpan(yyStart,yyCount));
+               if (PrecedenceMap.ONLY.matchedBrackets(a1, a4)) {
+                   List<StaticArg> ss =
+                       (a2 == null) ? Collections.<StaticArg>emptyList() : a2;
+                   return ExprFactory.makeSubscripting(span, a1, a4, base, a3, ss);
+               } else {
+                   log(span, "Mismatched subscripting operator: " +
+                       a1 + " and " + a4);
+                   return ExprFactory.makeVoidLiteralExpr(span);
+               }
+           }};
+     }
+   / a1:LeftEncloser a2:(w StaticArgs)? a3:(w ExprList)? w a4:RightEncloser
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               Span span = NodeUtil.spanTwo(base, a4);
+               List<StaticArg> ss =
+                   (a2 == null) ? Collections.<StaticArg>emptyList() : a2;
+               return ExprFactory.makeSubscripting(span, base, a1.getText(),
+                                                   a4.getText(), a3, ss);
+           }};
+     };
+
+/* ParenthesisDelimited ::=
+     Parenthesized
+   | ArgExpr
+   | ( w )
+ */
+constant inline Action<Expr> ParenthesisDelimitedLeft =
+    a1:ParenthesisDelimited
+    { yyValue = new Action<Expr>() {
+          public Expr run(Expr base) {
+              return ExprFactory.makeTightJuxt(NodeUtil.spanTwo(base, a1),
+                                               false, Useful.list(base, a1));
+          }};
+    };
+
+Expr ParenthesisDelimited =
+     Parenthesized
+   / ArgExpr
+   / openparen w closeparen
+     { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); };
+
+/* Selector ::=
+     MethodInvocation ParenthesisDelimited*
+   | FieldSelection Subscripting* ParenthesisDelimited*
+   MethodInvocation ::= . w Id (w StaticArgs)? ParenthesisDelimited
+   FieldSelection ::= . w Id
+ */
+constant transient Action<Expr> Selector =
+     MethodInvocationSelector
+   / FieldSelectionSelector
+   ;
+
+constant inline Action<Expr> MethodInvocationSelector = /* REVERSE ORDER */
+     dot w a1:(Reserved / Id) a2:(w StaticArgs)? a3:ParenthesisDelimited
+     a4s:ParenthesisDelimitedLeft*
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               Span span = NodeUtil.spanTwo(base, a3);
+               if ( NodeUtil.isKeyword(a1) )
+                   log(span, "Keyword " + a1 + " cannot be used as an identifier.");
+               List<StaticArg> sargs =
+                   (a2 == null) ? Collections.<StaticArg>emptyList() : a2;
+               Expr mtdInv =
+                   ExprFactory.makeMethodInvocation(span, base, a1, sargs, a3);
+               return (Expr)apply(a4s, mtdInv);
+           }};
+     };
+
+constant inline Action<Expr> FieldSelectionSelector =
+     dot w a1:(Reserved / Id) a2s:SubscriptingLeft* a3s:ParenthesisDelimitedLeft*
+     { yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               Span span = NodeUtil.spanTwo(base, a1);
+               if ( NodeUtil.isKeyword(a1) )
+                   log(span, "Keyword " + a1 + " cannot be used as an identifier.");
+               Expr fldSel = ExprFactory.makeFieldRef(span, base, a1);
+               return (Expr)apply(a3s, (Expr)apply(a2s, fldSel));
+           }};
+     };
+
+/* MathItem ::=
+     Subscripting
+   | Exponentiation
+   | ParenthesisDelimited
+   | LiteralExpr
+   | VarOrFnRef
+   | self
+ */
+MathItem MathItem =
+     Subscripting
+   / Exponentiation
+   / a1:ParenthesisDelimited
+     { yyValue = ExprFactory.makeParenthesisDelimitedMI(NodeUtil.getSpan(a1), a1); }
+   / a1:LiteralExpr
+     { yyValue = ExprFactory.makeNonParenthesisDelimitedMI(NodeUtil.getSpan(a1), a1); }
+   / a1:VarOrFnRef
+     { yyValue = ExprFactory.makeNonParenthesisDelimitedMI(NodeUtil.getSpan(a1), a1); }
+   / a1:self
+     { Span span = createSpan(yyStart,yyCount);
+       Expr expr = ExprFactory.makeVarRef(span, a1);
+       yyValue = ExprFactory.makeNonParenthesisDelimitedMI(span, expr);
+     };
+
+/* Subscripting ::=
+     [ (w StaticArgs)? (w ExprList)? w ]
+   | { (w StaticArgs)? (w ExprList)? w }
+   | LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
+ */
+SubscriptingMI Subscripting =
+     a1:(opensquare / opencurly) a2:(w StaticArgs)? a3:(w ExprList)? w
+     a4:(closesquare / closecurly)
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeEnclosing(span, a1, a4, true, false);
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       if (a3 == null) a3 = Collections.<Expr>emptyList();
+       if (! PrecedenceMap.ONLY.matchedBrackets(a1, a4))
+           log(span, "Mismatched subscripting operator: " + a1 + " and " + a4);
+       yyValue = ExprFactory.makeSubscriptingMI(span, op, a3, a2);
+     }
+   / a1:LeftEncloser a2:(w StaticArgs)? a3:(w ExprList)? w a4:RightEncloser
+     { Span span = createSpan(yyStart,yyCount);
+       Op op = NodeFactory.makeEnclosing(span, a1.getText(),a4.getText(), true, false);
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       if (a3 == null) a3 = Collections.<Expr>emptyList();
+       yyValue = ExprFactory.makeSubscriptingMI(span, op, a3, a2);
+     };
+
+/* Exponentiation ::=
+     ^ Exponent
+   | ExponentOp
+ */
+ExponentiationMI Exponentiation =
+     a1:caret a2:hasW a3:Exponent
+     { Span span = createSpan(yyStart,yyCount);
+       if ( a2.booleanValue() )
+           log(span, "Space is not allowed immediately after '^'.");
+       yyValue = ExprFactory.makeExponentiationMI(span,
+                                                  ExprFactory.makeOpRef(NodeFactory.makeOpInfix(span, a1)),
+                                                  Option.<Expr>some(a3));
+     }
+   / a1:ExponentOp
+     { yyValue = ExprFactory.makeExponentiationMI(NodeUtil.getSpan(a1),
+                                                  ExprFactory.makeOpRef(a1),
+                                                  Option.<Expr>none());
+     };
+
+/* Exponent ::=
+     ParenthesisDelimited
+   | LiteralExpr
+   | Id
+   | self
+ */
+Expr Exponent =
+     ParenthesisDelimited
+   / LiteralExpr
+   / a1:Id { yyValue = ExprFactory.makeVarRef(a1); }
+   / a1:self
+     { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); };
+
+/* FlowExpr ::=
+     exit (w Id)? (w with w Expr)?
+   | Accumulator (w StaticArgs)? (w [ w GeneratorClauseList w ])? w Expr
+   | BIG w LeftEncloser w |-> (w StaticArgs)? w RightEncloser w Expr
+   | BIG w LeftEncloser (w StaticArgs)? w RightEncloser w Expr
+   | atomic w AtomicBack
+   | tryatomic w AtomicBack
+   | spawn w Expr
+   | throw w Expr
+ */
+Expr FlowExpr =
+     exit a1:(w Id)? a2:(w with w Expr)?
+     { Option<Id> name = (a1 == null) ? Option.<Id>none() : Option.<Id>some(a1);
+       yyValue = ExprFactory.makeExit(createSpan(yyStart,yyCount),
+                                      Option.<Type>none(), name,
+                                      Option.<Expr>wrap(a2));
+     }
+   / a1:Accumulator a2:(w StaticArgs)?
+     a3:(w void:opensquare w GeneratorClauseList w void:closesquare)? w a4:Expr
+     { Span span = createSpan(yyStart,yyCount);
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       if (a3 == null)
+           yyValue = ExprFactory.makeOpExpr(span, a1, a4, a2);
+       else
+           yyValue = ExprFactory.makeAccumulator(span, a2, a1, a3, a4);
+     }
+   / BIG w a1:LeftEncloser w mapsto a2:(w StaticArgs)? w a3:RightEncloser w a4:Expr
+     { Span span = createSpan(yyStart,yyCount);
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       Op opr = NodeFactory.makeEnclosing(span, "BIG " + a1.getText() + "|->",
+                                          "BIG " + a3.getText());
+       yyValue = ExprFactory.makeOpExpr(span, opr, a4, a2);
+     }
+   / BIG w a1:LeftEncloser a2:(w StaticArgs)? w a3:RightEncloser w a4:Expr
+     { Span span = createSpan(yyStart,yyCount);
+       if (a2 == null) a2 = Collections.<StaticArg>emptyList();
+       Op opr = NodeFactory.makeEnclosing(span, "BIG " + a1.getText(),
+                                          "BIG " + a3.getText());
+       yyValue = ExprFactory.makeOpExpr(span, opr, a4, a2);
+     }
+   / atomic w a1:AtomicBack
+     { yyValue = ExprFactory.makeAtomicExpr(createSpan(yyStart,yyCount), a1); }
+   / tryatomic w a1:AtomicBack
+     { yyValue = ExprFactory.makeTryAtomicExpr(createSpan(yyStart,yyCount), a1); }
+   / spawn w a1:Expr
+     { yyValue = ExprFactory.makeSpawn(createSpan(yyStart,yyCount), a1); }
+   / throw w a1:Expr
+     { yyValue = ExprFactory.makeThrow(createSpan(yyStart,yyCount), a1); };
+
+/* AtomicBack ::=
+     AssignExpr
+   | OpExpr
+   | DelimitedExpr
+ */
+Expr AtomicBack =
+     AssignExpr
+   / OpExpr
+   / DelimitedExpr ;
+
+/* GeneratorClauseList ::= GeneratorBinding (w , w GeneratorClause)* */
+List<GeneratorClause> GeneratorClauseList =
+     a1:GeneratorBinding a2s:(w comma w GeneratorClause)*
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* GeneratorBinding ::= BindIdOrBindIdTuple w <- w Expr */
+GeneratorClause GeneratorBinding =
+     a1:BindIdOrBindIdTuple w leftarrow w a2:Expr
+     { yyValue = ExprFactory.makeGeneratorClause(createSpan(yyStart,yyCount),
+                                                 a1, a2);
+     };
+
+/* GeneratorClause ::=
+     GeneratorBinding
+   | Expr
+ */
+GeneratorClause GeneratorClause =
+     GeneratorBinding
+   / a1:Expr
+     { yyValue = NodeFactory.makeGeneratorClause(NodeUtil.getSpan(a1),
+                                                 Collections.<Id>emptyList(), a1);
+     };

@@ -1,0 +1,295 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Overloading and Multiple Dispatch}
+\chaplabel{multiple-dispatch}
+
+\note{Keyword and varargs parameters are not yet supported.}
+
+Fortress allows functions and methods (collectively called \emph{functionals})
+to be \emph{overloaded}.  That is,
+there may be multiple declarations for the same functional name
+visible in a single scope (which may include inherited method declarations),
+and several of them may be applicable to any particular functional call.
+
+However, with these benefits comes the potential for ambiguous calls at run time.
+For an overloaded functional call,
+the most specific applicable declaration is chosen, if any.
+Otherwise, any of the applicable declarations such that
+no other applicable declaration is more specific than them is chosen.
+
+
+In this chapter, we describe how to determine which declarations
+are \emph{applicable} to a particular functional call,
+and when several are applicable, how to select among them.
+We also provide overloading rules for the declarations of functionals
+to eliminate \emph{some possibility} of ambiguous calls at run time,
+whether or not these calls actually appear in the program.
+\secref{overloading-terms} introduces some terminology and notation.
+In \secref{functional-applicability},
+we show how to determine which declarations
+are applicable to a \emph{named functional call}
+(a function call described in \secref{function-calls}
+or a naked method invocation described in \secref{naked-method-calls})
+when all declarations have only ordinary parameters
+(without varargs or keyword
+parameters).
+We discuss how to handle dotted method calls
+(described in \secref{dotted-method-calls})
+in \secref{dotted-method-applicability},
+and declarations with varargs and keyword
+parameters in \secref{applicability-with-special-params}.
+Determining which declaration is applied,
+if several are applicable,
+is discussed in \secref{resolving-overloading}.
+
+
+\section{Principles of Overloading}
+\seclabel{overloading-terms}
+
+Fortress allows multiple functional declarations of the same name to
+be declared in a single scope.  However, recall from \chapref{names}
+the following shadowing rules:
+\begin{itemize}
+\item
+dotted method declarations shadow top-level function declarations with
+the same name, and
+\item
+dotted method declarations provided by a trait or object declaration
+or object expression
+shadow functional method declarations with the same name that are
+provided by a different trait or object declaration
+or object expression.
+\end{itemize}
+Also, note that a trait or object declaration
+or object expression must not have a
+functional method declaration and a dotted method declaration with the
+same name, either directly or by inheritance.
+Therefore, top-level functions can overload
+with other top-level functions and functional methods,
+dotted methods with other dotted methods,
+and functional methods with other functional methods and top-level functions.
+It is a static error if any top-level function declaration is
+more specific than any functional method declaration.
+If a top-level function declaration is overloaded with a functional method
+declaration, the top-level function declaration must not be more specific than
+the functional method declaration.
+
+
+Operator declarations with the same name but different fixity
+are not a valid overloading; they are unambiguous declarations.
+An operator method declaration whose name is one of the operator parameters
+(described in \secref{opr-ident})
+of its enclosing trait or object may be overloaded with other operator
+declarations in the same component.
+Therefore, such an operator method declaration
+must satisfy the overloading rules
+(described in \chapref{overloaded-declarations})
+with every operator declaration in the same component.
+
+\note{This restriction will be relaxed.}
+
+Although there may be multiple declarations
+with the same functional name,
+it is an error for their static parameters to differ
+(up to $\alpha$-equivalence),
+or for one declaration to have static parameters
+and another to not have them.
+Hence, static parameters do not enter into the determination of which
+declarations are applicable,
+so we ignore them for most of this chapter.
+
+
+
+Recall from \chapref{types} that we write
+$T \Ovrsubtype U$ when $T$ is a subtype of $U$,
+and $T \strictsubtype U$ when $T \Ovrsubtype U$ and $T \neq U$.
+
+
+\section{Applicability to Named Functional Calls}
+\seclabel{functional-applicability}
+In this section, we show how to determine which declarations are
+applicable to a named functional call when all declarations have only
+ordinary parameters (i.e., neither varargs nor keyword parameters).
+
+For the purpose of defining applicability, a named functional call can
+be characterized by the name of the functional and its argument type.
+Recall that a functional has a single parameter, which may be a tuple
+(a dotted method has a receiver as well).
+ We abuse notation by using
+\emph{static call $\f(\As)$} to refer to a named functional call with
+name $\f$ and whose argument has static type $\As$, and
+\emph{dynamic call $\f(\Xs)$} to refer to a named functional call with
+We use \emph{call $\f(\Cs)$} to refer to a named functional call with
+name $\f$ and whose argument, when evaluated, has dynamic type $\Cs$.
+(Note that if the type system is sound---and we certainly hope that
+it is!---then $\Xs \Ovrsubtype \As$ for all well-typed calls to $\f$.)
+We use the term \emph{call $\f(\Cs)$} to refer to static and dynamic calls
+collectively.
+We assume throughout this chapter that all static variables in functional calls
+have been instantiated or inferred.
+
+
+We also use \emph{function declaration $\f(\Ps):\Us$} to refer to a
+function declaration with function name $\f$, parameter type $\Ps$,
+and return type $\Us$.
+
+
+For method declarations, we must take into account the self parameter,
+as follows:
+
+A \emph{dotted method declaration $\Ps_0.\f(\Ps):\Us$} is a dotted
+method declaration with name $f$, where $\Ps_0$ is the trait or object
+type in which the declaration appears, $\Ps$ is the parameter type,
+and $\Us$ is the return type.  (Note that despite the suggestive
+notation, a dotted method declaration does not explicitly list its
+self parameter.)
+
+A \emph{functional method declaration $\f(\Ps):\Us$ with self
+parameter at $i$} is a functional method declaration with name $f$,
+with the parameter \EXP{\mathord{\KWD{self}}} in the $i$th position
+of the parameter type $\Ps$, and return type $\Us$.  Note that the static
+type of the self parameter is the trait or object trait type in which
+the declaration $\f(\Ps):\Us$ occurs.  In the following, we will use
+$\Ps_i$ to refer to the $i$th element of $\Ps$.
+
+We elide the return type of a declaration, writing $\f(\Ps)$ and
+$\Ps_0.\f(\Ps)$, when the return type is not relevant to the
+discussion.
+Note that static parameters may appear in the types $\Ps_0$, $\Ps$, and $\Us$.
+
+
+A declaration $\f(\Ps)$ is \emph{applicable} to a call $\f(\Cs)$
+if the call is in the scope of the declaration and $\Cs \Ovrsubtype \Ps$.
+(See \chapref{names} for the definition of scope.)
+If the parameter type $\Ps$ includes static parameters,
+they are inferred as described in \chapref{type-inference}
+before checking the applicability of the declaration to the call.
+
+
+
+Note that a named functional call $\f(\Cs)$ may invoke a dotted method
+declaration if the declaration is provided by the trait or object
+enclosing the call.  To account for this, let $\Cs_0$ be the trait or
+object declaration immediately enclosing the call.
+%
+Then we consider a named functional call $\f(\Cs)$ as $\Cs_0.\f(\Cs)$
+if $\Cs_0$ provides dotted method declarations applicable to $\f(\Cs)$, and
+use the rule for applicability to dotted method calls (described in
+\secref{dotted-method-applicability}) to determine which declarations
+are applicable to $\Cs_0.\f(\Cs)$.
+
+
+
+\section{Applicability to Dotted Method Calls}
+\seclabel{dotted-method-applicability}
+
+Dotted method applications can be characterized similarly to named
+functional applications, except that, analogously to dotted method declarations,
+we use $\Cs_0$ to denote the dynamic type of the receiver object,
+and, as for named functional calls, $\Cs$ to denote the dynamic
+type of the argument of a  dotted method call.
+We write $\Cs_0.\f(\Cs)$ to refer to the  call.
+
+A dotted method declaration $\Ps_0.\f(\Ps)$ is \emph{applicable}
+to a dotted method call $\Cs_0.\f(\Cs)$ if $\Cs_0 \Ovrsubtype
+\Ps_0$ and $\Cs \Ovrsubtype \Ps$.
+If the types $\Ps_0$ and $\Ps$ include static parameters,
+they are inferred as described in \chapref{type-inference}
+before checking the applicability of the declaration to the call.
+
+
+
+\section{Applicability for Functionals with Varargs and Keyword Parameters}
+\seclabel{applicability-with-special-params}
+
+The basic idea for handling varargs and keyword
+parameters is that we
+can think of a functional declaration that has such parameters as
+though it were (possibly infinitely) many declarations, one for each
+set of arguments it may be called with.  In other words, we expand
+these declarations so that there exists a declaration for each number
+of arguments that can be passed to it.
+
+
+A declaration with a varargs parameter corresponds to an infinite
+number of declarations, one for every number of arguments that may be
+passed to the varargs parameter.  In practice, we can bound that
+number by the maximum number of arguments that the functional is
+called with anywhere in the program (in other words, a given program
+will contain only a finite number of calls with different numbers of
+arguments).  The expansion described here is a conceptual one to
+simplify the description of the semantics; we do not expect a real
+implementation to actually expand these declarations at compile time.
+%
+For example, the following declaration:
+%f(x : ZZ, y : ZZ, z : ZZ...):ZZ
+\begin{Fortress}
+\(f(x \mathrel{\mathtt{:}} \mathbb{Z}, y \mathrel{\mathtt{:}} \mathbb{Z}, z \mathrel{\mathtt{:}} \mathbb{Z}\ldots)\COLONOP\mathbb{Z}\)
+\end{Fortress}
+would be expanded into:
+%f(x : ZZ, y : ZZ):ZZ
+%f(x : ZZ, y : ZZ, z1 : ZZ):ZZ
+%f(x : ZZ, y : ZZ, z1 : ZZ, z2 : ZZ):ZZ
+%f(x : ZZ, y : ZZ, z1 : ZZ, z2 : ZZ, z3 : ZZ):ZZ
+%...
+\begin{Fortress}
+\(f(x \mathrel{\mathtt{:}} \mathbb{Z}, y \mathrel{\mathtt{:}} \mathbb{Z})\COLONOP\mathbb{Z}\)\\
+\(f(x \mathrel{\mathtt{:}} \mathbb{Z}, y \mathrel{\mathtt{:}} \mathbb{Z}, z_{1} \mathrel{\mathtt{:}} \mathbb{Z})\COLONOP\mathbb{Z}\)\\
+\(f(x \mathrel{\mathtt{:}} \mathbb{Z}, y \mathrel{\mathtt{:}} \mathbb{Z}, z_{1} \mathrel{\mathtt{:}} \mathbb{Z}, z_{2} \mathrel{\mathtt{:}} \mathbb{Z})\COLONOP\mathbb{Z}\)\\
+\(f(x \mathrel{\mathtt{:}} \mathbb{Z}, y \mathrel{\mathtt{:}} \mathbb{Z}, z_{1} \mathrel{\mathtt{:}} \mathbb{Z}, z_{2} \mathrel{\mathtt{:}} \mathbb{Z}, z_{3} \mathrel{\mathtt{:}} \mathbb{Z})\COLONOP\mathbb{Z}\)\\
+\(\ldots\)
+\end{Fortress}
+A declaration with a varargs parameter is applicable to a call if
+any one of the expanded declarations is applicable.
+
+
+
+\section{Overloading Resolution}
+\seclabel{resolving-overloading}
+
+\note{
+Victor: Does this paragraph, other than the last sentence,
+really belong in this section?}
+
+To evaluate a given functional call,
+it is necessary to determine which functional declaration
+to dispatch to.
+To do so,
+we consider the declarations that are applicable to that call at run time.
+If there is exactly one such declaration,
+then the call dispatches to that declaration.
+If there is no such declaration,
+then the call is \emph{undefined}, which is a static error.
+(However, see \secref{applicability-with-coercion}
+for how coercion may add to the set of applicable declarations.)
+If multiple declarations are applicable to the call at run time,
+then we choose an arbitrary declaration among the declarations such that
+no other applicable declaration is more specific than them.
+
+
+
+We use the subtype relation to compare parameter types to determine
+a more specific declaration.
+Formally, a declaration $\f(\Ps)$ is \emph{more specific} than a declaration
+$\f(\Qs)$ if $\Ps \strictsubtype \Qs$.  Similarly, a declaration
+$\Ps_0.\f(\Ps)$ is more specific than a declaration $\Qs_0.\f(\Qs)$
+if $\Ps_0 \strictsubtype \Qs_0$ and $\Ps \strictsubtype \Qs$.
+(See \secref{resolving-coercion} for how coercion
+changes the definition of ``more specific''.)
+Restrictions on the definition of overloaded functionals
+(see \chapref{overloaded-declarations})
+guarantee that among all applicable declarations,
+one is more specific than all the others.
+If the declarations include static parameters,
+they are inferred as described in \chapref{type-inference}
+before comparing their parameter types
+to determine which declaration is more specific.

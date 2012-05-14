@@ -1,0 +1,41 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXending.Name
+export Executable
+
+trait T end T
+
+trait T' end trait T'
+
+trait T'' end
+
+(*
+trait T end trait S
+
+trait T end S
+*)
+
+object O end O
+
+object O' end object O'
+
+object O'' end
+
+(*
+object O end P
+
+object O end object P
+*)
+
+run() = ()
+
+end component XxXending.Name

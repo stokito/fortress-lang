@@ -1,0 +1,32 @@
+\begin{figure}
+\typicallabel{First-Applicable}
+
+{\def\andalso{\hbox to 1.8em{\hss}}   % need to tighten slightly
+\infrule[Top-Sort]
+  { \bar{d' \in \underline{\setb{d}}}  \andalso
+    \bar{\bar{\orderedin{d''}{\underline{d'''}}{\underline{\underline{d'}}}{\mathit{lteq}}}} }
+  { \topologicalsort{\mathit{lteq}}{\setb{d}} = \listofb{d'} }
+}
+
+\medskip
+
+\infrule[Ordered-Before]
+  { \mathit{lteq}(d'',d''')  \andalso  \neg(\mathit{lteq}(d''',d''))  \\  \listof{d'} = \listof{\bar{\dontcare}, d'', \bar{\dontcare}, d''', \bar{\dontcare}} }
+  { \orderedin{d''}{d'''}{d'}{\mathit{lteq}} }
+
+\medskip
+
+\infrule[Ordered-After]
+  { \neg(\mathit{lteq}(d'',d'''))  \andalso  \mathit{lteq}(d''',d'')  \\  \listof{d'} = \listof{\bar{\dontcare}, d''', \bar{\dontcare}, d'', \bar{\dontcare}} }
+  { \orderedin{d''}{d'''}{d'}{\mathit{lteq}} }
+
+\medskip
+
+\infrule[Ordered-Neither]
+  { \mathit{lteq}(d'',d''') = \mathit{lteq}(d''',d'')  }
+  { \orderedin{d''}{d'''}{d'}{\mathit{lteq}} }
+
+\medskip
+\caption{Alternate definition of $\msavname$ (compare to Figure~\ref{fig:msa})}
+\label{fig:altmsa}
+\end{figure}

@@ -1,0 +1,32 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait T
+    x():ZZ32
+end
+
+object O(v:ZZ32)
+    foo(): ZZ32 = 3
+    (* After we move checking of method calls to be after
+       type inference, remove the explicit return type T. *)
+    bar():T = object extends T
+                x():ZZ32 = 4
+            end
+    quack(): ZZ32 = self.v
+end
+
+run():() = do
+    o:O = O(3);
+    println o.v
+    println o.bar().x()
+end

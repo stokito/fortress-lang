@@ -1,0 +1,188 @@
+\begin{figure}
+\typicallabel{S-Parameter-Sub}
+
+\newjudge{Subtyping (part 1 of 2)}{\jsubtype{\kappa}{\kappa}}
+
+\bigskip
+
+\infax[S-Reflexive]
+  { \jsubtype{\kappa}{\kappa} }
+
+\bigskip
+
+\infrule[S-Transitive]
+  { \jsubtype{\kappa}{\kappa'}  \andalso  \jsubtype{\kappa'}{\kappa''} }
+  { \jsubtype{\kappa}{\kappa''} }
+
+\bigskip
+
+\infrule[S-Equivalent]
+  { \jequivtype{\kappa}{\kappa'} }
+  { \jsubtype{\kappa}{\kappa'} }
+
+\bigskip
+
+\infrule[S-Parameter-Sub]
+  { \bd{\dontcare} \extends P \extends \bdb{\alpha} \in \set{\Delta} }
+  { \jbsubtype{P}{\alpha} }
+
+\bigskip
+
+\infrule[S-Parameter-Super]
+  { \bdb{\alpha} \extends P \extends \bd{\dontcare} \in \set{\Delta} }
+  { \jbsubtype{\alpha}{P} }
+
+\bigskip
+
+\infax[S-Any]
+  { \jsubtype{\kappa}{\Any} }
+
+\bigskip
+
+\infax[S-Bottom]
+  { \jsubtype{\Bottom}{\kappa} }
+
+\bigskip
+
+\infax[S-Object]
+  { \jsubtype{c}{\Object} }
+
+\bigskip
+
+\infrule[S-Tuple]
+  { \countof(\bar{\alpha}) = \countof(\bar{\eta})  \andalso  \jbsubtype{\alpha}{\eta} }
+  { \jsubtype{\tupleb{\alpha}}{\tupleb{\eta}} }
+
+\bigskip
+
+\infrule[S-Arrow]
+  { \jsubtype{\alpha'}{\alpha}  \andalso  \jsubtype{\rho}{\rho'} }
+  { \jsubtype{\arrowtype{\alpha}{\rho}}{\arrowtype{\alpha'}{\rho'}} }
+
+\bigskip
+
+\infax[S-Union-Super]
+  { \jsubtype{\alpha}{\uniontype{\alpha}{\eta}} }
+
+\bigskip
+
+\infax[S-Intersection-Sub]
+  { \jsubtype{\intersectiontype{\alpha}{\eta}}{\alpha} }
+
+\bigskip
+
+\infrule[S-Union-Sub]
+  { \jsubtype{\uniontype{\alpha}{\eta}}{\chi} }
+  { \jsubtype{\alpha}{\chi} }
+
+\bigskip
+
+\infrule[S-Intersection-Super]
+  { \jsubtype{\chi}{\intersectiontype{\alpha}{\eta}} }
+  { \jsubtype{\chi}{\alpha} }
+
+\medskip
+
+\caption{Subtyping (part 1 of 2)}
+\label{fig:subtyping1}
+\end{figure}
+
+
+\begin{figure*}
+\typicallabel{S-Contravariant}
+
+\newjudge{Subtyping (part 2 of 2)}{\jsubtype{\kappa}{\kappa}}
+
+\bigskip
+
+\infrule[S-Covariant]
+  { \kwd{trait} \; T\bigob{\bar{V\;P \extends \bd{\dontcare}}, \kwd{covariant}\;Q \extends \bd{\dontcare}, \bar{V'\;S \extends \bd{\dontcare}}} \; \dontcare \; \kwd{end} \in \set{\Delta} \\[1pt]
+    \jsubtype{\gamma}{\gamma'}  \andalso  \countof(\bar{\alpha}) = \countof(\bar{P})  \andalso  \countof(\bar{\eta}) = \countof(\bar{S}) \andalso
+    \jwftype{T\ob{\bar{\alpha},\gamma,\bar{\eta}}}  \andalso  \jwftype{T\ob{\bar{\alpha},\gamma',\bar{\eta}}} }
+  { \jsubtype{T\ob{\bar{\alpha},\gamma,\bar{\eta}}}{T\ob{\bar{\alpha},\gamma',\bar{\eta}}} }
+
+\bigskip
+
+\infrule[S-Contravariant]
+  { \kwd{trait} \; T\bigob{\bar{V\;P \extends \bd{\dontcare}}, \kwd{contravariant}\;Q \extends \bd{\dontcare}, \bar{V'\;S \extends \bd{\dontcare}}} \; \dontcare \; \kwd{end} \in \set{\Delta} \\[1pt]
+    \jsubtype{\gamma'}{\gamma}  \andalso  \countof(\bar{\alpha}) = \countof(\bar{P})  \andalso  \countof(\bar{\eta}) = \countof(\bar{S}) \andalso
+    \jwftype{T\ob{\bar{\alpha},\gamma,\bar{\eta}}}  \andalso  \jwftype{T\ob{\bar{\alpha},\gamma',\bar{\eta}}} }
+  { \jsubtype{T\ob{\bar{\alpha},\gamma,\bar{\eta}}}{T\ob{\bar{\alpha},\gamma',\bar{\eta}}} }
+
+\bigskip
+
+\infrule[S-Trait-Extends]
+  { \kwd{trait} \; T\bigob{\bar{V\;P \extends \bd{\dontcare}}} \extends \bdb{t} \; \dontcare \; \kwd{end} \in \set{\Delta}  \andalso  \jwftype{T\obb{\alpha}} }
+  { \jsubtype{T\obb{\alpha}}{\big[\,\bar{\alpha/P}\,\big]t} }
+
+\bigskip
+
+\infrule[S-Object-Extends]
+  { \kwd{object} \; O\bigob{\bar{P \extends \bd{\dontcare}}}(\dontcare) \extends \bdb{t} \; \dontcare \; \kwd{end} \in \set{\Delta}  \andalso  \jwftype{O\obb{\alpha}} }
+  { \jsubtype{O\obb{\alpha}}{\big[\,\bar{\alpha/P}\,\big]t} }
+
+\medskip
+\caption{Subtyping (part 2 of 2)}
+\label{fig:subtyping2}
+\end{figure*}
+
+
+\begin{figure}
+\typicallabel{E-Tuple-Bottom}
+
+\newjudge{Type equivalence}{\jequivtype{\kappa}{\kappa}}
+
+\bigskip
+
+\infrule[E-Symmetric]
+  { \jequivtype{\kappa}{\kappa'} }
+  { \jequivtype{\kappa'}{\kappa} }
+
+\bigskip
+
+\infax[E-Singleton-Tuple]
+  { \jequivtype{(\kappa)}{\kappa} }
+
+\bigskip
+
+\infrule[E-Tuple-Bottom]
+  { \kappa' \in \setb{\kappa}  \andalso  \jsubtype{\kappa'}{\Bottom} }
+  { \jequivtype{(\bar{\kappa})}{\Bottom} }
+
+\bigskip
+
+\infax[U-Commutative]
+  { \jequivtype{\uniontype{\alpha}{\eta}}{\uniontype{\eta}{\alpha}} }
+
+\bigskip
+
+\infax[U-Associative]
+  { \jequivtype{\uniontype{\alpha}{\uniontype{\eta}{\chi}}}{\uniontype{\uniontype{\alpha}{\eta}}{\chi}} }
+
+\bigskip
+
+\infrule[U-Absorption]   % From this and properties of `Any` and `Bottom` we have identity, zero, and idempotence
+  { \jsubtype{\alpha}{\eta} }
+  { \jequivtype{\uniontype{\alpha}{\eta}}{\eta} }
+
+\bigskip
+
+\infax[I-Commutative]
+  { \jequivtype{\intersectiontype{\alpha}{\eta}}{\intersectiontype{\eta}{\alpha}} }
+
+\bigskip
+
+\infax[I-Associative]
+  { \jequivtype{\intersectiontype{\alpha}{\intersectiontype{\eta}{\chi}}}{\intersectiontype{\intersectiontype{\alpha}{\eta}}{\chi}} }
+
+\bigskip
+
+\infrule[I-Absorption]   % From this and properties of `Any` and `Bottom` we have identity, zero, and idempotence
+  { \jsubtype{\alpha}{\eta} }
+  { \jequivtype{\intersectiontype{\alpha}{\eta}}{\alpha} }
+
+\medskip
+\caption{Type equivalence}
+\label{fig:equivalence}
+\end{figure}
+

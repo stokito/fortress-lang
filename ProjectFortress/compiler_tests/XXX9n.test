@@ -1,0 +1,21 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled9.n.fss
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled9.n.fss:17:9-20:7:\n\
+\ do-also expression has type Boolean, but it must have () type.\n\
+${STATIC_TESTS_DIR}/Compiled9.n.fss:20:10-23:7:\n\
+\ do-also expression has type Boolean, but it must have () type.\n\
+${STATIC_TESTS_DIR}/Compiled9.n.fss:23:10-26:6:\n\
+\ do-also expression has type Boolean, but it must have () type.\n\
+File Compiled9.n.fss has 3 errors.\n
+compile_out_equals=

@@ -1,0 +1,366 @@
+(*******************************************************************************
+  This program is copyrighted free software by Kento Emoto
+  <emoto[at]ipl.t.u-tokyo.ac.jp> developed under the collaborative
+  research on Fortress Programming Language between Sun Microsystems,
+  Inc. and the University of Tokyo.
+
+  You can redistribute it and/or modify it under the following
+  BSD-style license or the Sun Contributor Agreement that Kento Emoto signed.
+
+
+  Copyright 2009 by Kento Emoto
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+      * Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+      * Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer
+        in the documentation and/or other materials provided with the
+        distribution.
+      * Neither the name of Kento Emoto nor the names of its
+        contributors may be used to endorse or promote products derived
+        from this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+ ******************************************************************************)
+
+(*****************************************************************************
+This program was translated from Fortran program
+cgstab_org_commented.f90, which implements BiCGSTAB method for 7-band
+matrices. The Fortran program is available on the following URL.
+
+  http://www.ipl.t.u-tokyo.ac.jp/~emoto/cgstab_sentinel.f90
+
+Also, a report about the translation is abailable on the follwoing URL.
+
+  http://www.ipl.t.u-tokyo.ac.jp/~emoto/BiCGSTAB-report-eng.pdf
+
+
+The Fortran program was originally provided by Dr. Kajita (Nagoya
+Municipal Industrial Research Institute, Japan), which is available on
+the following blog (Japanese).
+
+  http://atsim.hpc.co.jp/portal/article.php?story=20090325171921177
+
+We started the translation from a little modified version of his program.
+
+This program is a straightforward translation of the Fortran program;
+it uses arrays of one-based indexing.  However, this prohibits us from
+using instances of Vector and algebraic operations on vectors, because
+an array of non-zero-based indexing cannot be a vector in Fortress.
+This point is improved in the next translation BiCGSTAB2.fss .
+*)
+
+component BiCGSTAB
+
+export Executable
+
+
+run(args : String...) : () = do
+  println("BiCGSTAB")
+  testrun[\16,16,16\]();
+  (*testrun[\2,2,2\]();*)
+end
+
+(* Makes sample matrix A and vector b s.t. the answer of A x = b is x = 1 . *)
+initilization[\nat imax, nat jmax, nat kmax\]() =
+do
+  Ap = array3[\RR64, imax, jmax, kmax\]().shift((1,1,1))
+  Ae = array3[\RR64, imax, jmax, kmax\]().shift((1,1,1))
+  Aw = array3[\RR64, imax, jmax, kmax\]().shift((1,1,1))
+  An = array3[\RR64, imax, jmax, kmax\]().shift((1,1,1))
+  As = array3[\RR64, imax, jmax, kmax\]().shift((1,1,1))
+  At = array3[\RR64, imax, jmax, kmax\]().shift((1,1,1))
+  Ab = array3[\RR64, imax, jmax, kmax\]().shift((1,1,1))
+  Ap.fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):RR64 => 2.0)
+  Ae.fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):RR64 => 1.0)
+  Aw.fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):RR64 => 1.0)
+  An.fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):RR64 => 1.0)
+  As.fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):RR64 => 1.0)
+  At.fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):RR64 => 1.0)
+  Ab.fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):RR64 => 1.0)
+
+  for j <- 1:jmax do
+    for k <- 1:kmax do
+      Aw[1,j,k]    := 0.0
+      Ae[imax,j,k] := 0.0
+    end
+  end
+  for i <- 1:imax do
+    for k <- 1:kmax do
+      As[i,1,k]    := 0.0
+      An[i,jmax,k] := 0.0
+    end
+  end
+  for i <- 1:imax do
+    for j <- 1:jmax do
+      Ab[i,j,1]    := 0.0
+      At[i,j,kmax] := 0.0
+    end
+  end
+
+  (*  PrintMatrix[\imax,jmax,kmax\](Ap, Ae, Aw, An, As, At, Ab) *)
+  (*
+  oops! we cant use negative indices! ... nat is only for non-negative...
+  b = array1[\RR64, imax jmax kmax + 2 jmax imax\]().shift(1 - jmax imax)
+  c = array1[\RR64, imax jmax kmax + 2 jmax imax\]().shift(1 - jmax imax)
+
+  i will shift them in the product loop.
+  *)
+
+  b = array1[\RR64, (imax jmax kmax) + (2 jmax imax)\]().shift(1)
+  x = array1[\RR64, (imax jmax kmax) + (2 jmax imax)\]().shift(1)
+
+  x.fill(fn (i:ZZ32):RR64 => 0.0)
+  b.fill(fn (i:ZZ32):RR64 => 0.0)
+
+  for i <- 1:imax do
+    for j <- 1:jmax do
+      for k <- 1:kmax do
+        m = i + imax (j-1) + imax jmax (k-1) + imax jmax
+        b[m] := 2.0
+        if (i>1) AND (i<imax) then
+          b[m] := b[m] + 2.0
+        else
+          b[m] := b[m] + 1.0
+        end
+
+        if (j>1) AND (j<jmax) then
+          b[m] := b[m] + 2.0
+        else
+          b[m] := b[m] + 1.0
+        end
+
+        if (k>1) AND (k<kmax) then
+          b[m] := b[m] + 2.0
+        else
+          b[m] := b[m] + 1.0
+        end
+      end
+    end
+  end
+  (* the answer of Ax=b is x = 1. *)
+  (Ap, Ae, Aw, An, As, At, Ab, b, x)
+end
+
+(* A sample driver for the BiCGSTAB method. *)
+testrun[\nat imax, nat jmax, nat kmax\]() : () =
+do
+  (Ap, Ae, Aw, An, As, At, Ab, b, x) = initilization[\imax, jmax, kmax\]()
+(*
+  PrintVector[\imax, jmax, kmax\](b)
+  PrintMatrixVector[\imax, jmax, kmax\](Ap, Ae, Aw, An, As, At, Ab, b)
+  MatrixVectorProduct[\imax, jmax, kmax\](Ap, Ae, Aw, An, As, At, Ab, b, x)
+  PrintVector[\imax, jmax, kmax\](x)
+  *)
+
+  st = nanoTime()
+  bicg_stab_band[\imax, jmax, kmax\](Ap,Ae,Aw,An,As,At,Ab,x,b)
+  et = nanoTime()
+  t = et - st
+  ss = t / 1000000000.0
+  println("elapsed time " t " ns ( " ss " s)")
+end
+(* Note
+b must be of [1-imax jamx : imax jmax kmax + imax jmax] for simplicity
+oops! we cant use negative indices for arrays!!!!!!
+ok. i will shift the indices by + imax jmax
+
+conditions for sentinels (zero-valued extra computatios on boundaries)
+Aw(1,_,_)    = 0
+Ae(imax,_,_) = 0
+As(_,1,_)    = 0
+An(_,jmax,_) = 0
+Ab(_,_,1)    = 0
+At(_,_,kmax) = 0
+
+*)
+(* BiCGSTAB method for band matrix A and vector b.
+   The matrix A is ristricted to a 7-band matrix here.
+   We could generalize it by letting A be a function from vectors to vectors.
+ *)
+bicg_stab_band[\nat imax, nat jmax, nat kmax\](Ap,Ae,Aw,An,As,At,Ab,x,b) : (ZZ32, RR64) =
+do
+  dot_product(u, v) = SUM [i <- (1 + imax jmax)#(imax jmax kmax)] u[i] v[i]
+
+  r  = b.copy()
+  r' = b.copy()
+  p  = b.copy()
+  y  = b.copy()
+  e  = b.copy()
+  v  = b.copy()
+  c  = b.copy()
+  (* we dont need so many iterations because the matrix is a band matrix. *)
+  itrmax = imax jmax kmax
+  er0 = 1.0 10^(-4)
+
+  MatrixVectorProduct[\imax,jmax,kmax\](Ap,Ae,Aw,An,As,At,Ab,x,c)
+
+(*
+  PrintVector[\imax, jmax, kmax\](x)
+  PrintMatrixVector[\imax, jmax, kmax\](Ap, Ae, Aw, An, As, At, Ab, x)
+  PrintVector[\imax, jmax, kmax\](c)
+  PrintVector[\imax, jmax, kmax\](b)
+  *)
+
+  (* We can use 'r := b - c' if they are vactors (an array staring from 0).
+     However, the index in the original program starts from 1,
+     and I use arrays of one-based indexing in this program
+     respecting the original program.
+     This prohibits us from using algebraic operations for vectors,
+     since an array of one-based index is not a vector in Fortress.
+     Also, point-wise operations lead to inefficiency because of
+     excessive boundary checking.
+     *)
+  r[i] := b[i] - c[i], i <- x.indices
+  c1 : RR64 := dot_product(r, r) (* r DOT r *)
+
+  label MainLoop
+    if (c1 < er0) then exit MainLoop with () end
+    p[i] = r[i], i <- r.indices  (* p = r *)
+    r'[i] = r[i], i <- r.indices (* r' = r *)
+
+(*
+    PrintVector[\imax, jmax, kmax\](p)
+    PrintVector[\imax, jmax, kmax\](r')
+*)
+    it : ZZ32 := 1
+    rr : RR64 := 0
+    while it <= itrmax do
+      MatrixVectorProduct[\imax,jmax,kmax\](Ap,Ae,Aw,An,As,At,Ab,p,y)
+      c2 = dot_product(r', y) (* r' DOT y *)
+      alp = c1 / c2
+      e[i] := r[i] - alp y[i], i <- r.indices (* e = r - alp y *)
+      MatrixVectorProduct[\imax,jmax,kmax\](Ap,Ae,Aw,An,As,At,Ab,e,v)
+      ev = dot_product(e, v) (* e DOT v *)
+      vv = dot_product(v, v) (* v DOT v *)
+      (* We get ev=vv=0 when imax=jmax=kmax=2. Thus, we need to avoid NaN. *)
+      c3 = if (vv=0) AND (ev=0) then 1 else ev / vv end
+      x[i] := x[i] + alp p[i] + c3 e[i], i <- x.indices (* x = x + alp p + c3 e *)
+      r[i] := e[i] - c3 v[i], i <- e.indices (* r = e - c3 v *)
+      rr := dot_product(r, r) (* r DOT r *)
+      println(it " residual = " rr)
+      if (rr < er0) then exit MainLoop with (it,rr) end
+      c1 := dot_product(r', r) (* r' DOT r *)
+
+      bet = c1 / (c2 c3)
+      p[i] := r[i] + bet (p[i] - c3 y[i]), i <- p.indices (* p = r + bet (p - c3 y) *)
+
+      it += 1
+    end
+    (it,rr)
+  end MainLoop
+end
+
+(* A product of a 7-band matrix and a vector. *)
+MatrixVectorProduct[\nat imax, nat jmax, nat kmax\]
+(Ap, Ae, Aw, An, As, At, Ab, b, c) : () =
+do
+  for k <- 1:kmax do
+    for j <- 1:jmax do
+      for i <- 1:imax do
+        m = i + imax (j-1) + imax jmax (k-1) + imax jmax
+        c[m] := Ap[i,j,k] b[m] + Aw[i,j,k] b[m - 1] + Ae[i,j,k] b[m + 1] + As[i,j,k] b[m - imax] + An[i,j,k] b[m + imax] + Ab[i,j,k] b[m - imax jmax] + At[i,j,k] b[m + imax jmax]
+      end
+    end
+  end
+end
+(* A pretty printer for a 7-band matrix.*)
+PrintMatrix[\nat imax, nat jmax, nat kmax\]
+(Ap, Ae, Aw, An, As, At, Ab) : () =
+do
+  for k <- seq(1:kmax) do
+    for j <- seq(1:jmax) do
+      for i <- seq(1:imax) do
+        m = i + (imax (j-1)) + (imax jmax (k-1)) (* mth row *)
+        p : ZZ32 := 1
+        while p <= imax jmax kmax do
+          v = case p of
+                m             => Ap[i,j,k]
+                m - 1         => Aw[i,j,k]
+                m + 1         => Ae[i,j,k]
+                m - imax      => As[i,j,k]
+                m + imax      => An[i,j,k]
+                m - imax jmax => Ab[i,j,k]
+                m + imax jmax => At[i,j,k]
+                else          => 0.0
+              end
+          print(v " ")
+          p += 1
+        end
+        println()
+      end
+    end
+  end
+end
+
+(* A pretty printer for a vector (an array). *)
+PrintVector[\nat imax, nat jmax, nat kmax\]
+(s, b) : () =
+do
+print(s " : ")
+PrintVector[\imax, jmax, kmax\](b)
+end
+
+(* A pretty printer for a vector (an array). *)
+PrintVector[\nat imax, nat jmax, nat kmax\]
+(b) : () =
+do
+  for k <- seq(1:kmax) do
+    for j <- seq(1:jmax) do
+      for i <- seq(1:imax) do
+        m = i + (imax (j-1)) + (imax jmax (k-1)) + imax jmax (* mth row *)
+        print(b[m] " ")
+      end
+    end
+  end
+  println()
+end
+
+(* A pretty printer for the pair of a 7-band matrix and a vector (an array). *)
+PrintMatrixVector[\nat imax, nat jmax, nat kmax\]
+(Ap, Ae, Aw, An, As, At, Ab, b) : () =
+do
+  for k <- seq(1:kmax) do
+    for j <- seq(1:jmax) do
+      for i <- seq(1:imax) do
+        m = i + (imax (j-1)) + (imax jmax (k-1)) (* mth row *)
+        p : ZZ32 := 1
+        while p <= imax jmax kmax do
+          v = case p of
+                m             => Ap[i,j,k]
+                m - 1         => Aw[i,j,k]
+                m + 1         => Ae[i,j,k]
+                m - imax      => As[i,j,k]
+                m + imax      => An[i,j,k]
+                m - imax jmax => Ab[i,j,k]
+                m + imax jmax => At[i,j,k]
+                else          => 0.0
+              end
+          print(v " ")
+          p += 1
+        end
+        println(": " b[m + imax jmax])
+      end
+    end
+  end
+end
+
+
+end

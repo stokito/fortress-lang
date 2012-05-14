@@ -1,0 +1,21 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+
+  foo(a:ZZ32,b:ZZ32,c:ZZ32):() = do
+    (a = b)
+    (b = c)
+    (c = a)
+    ()
+  end
+
+  run():() = ()

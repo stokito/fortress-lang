@@ -1,0 +1,18 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled4.a
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled4.a.fss:19:20-27:\n\
+\ Could not check call to operator !\n\
+\ - ZZ32->ZZ32 is not applicable to an argument of type String.\n\
+File Compiled4.a.fss has 1 error.\n
+compile_out_equals=

@@ -1,0 +1,64 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait Collection[\E\]
+  opr |self| : ZZ32;
+  get():E
+  split():(G[\E\],
+           G[\E\])
+end
+
+object ZCollection(x:ZZ32, y:ZZ32) extends Collection[\ZZ32\]
+  opr |self| = 1 + y - x
+  get() = x
+  split():(G[\ZZ32 \],
+           G[\ZZ32 \]) = do
+     mid = (x+y) DIV 2
+     (*) println("split returns [" x.asString ", " mid.asString "] and [" (mid+1).asString ", " y.asString "]")
+     (G[\ZZ32\](ZCollection(x,mid)),
+      G[\ZZ32\](ZCollection(mid+1,y))) 
+  end
+  asString():String = "[" x.asString "," y.asString "]"
+end
+
+object G[\E\](e:Collection[\E\])
+  reduce[\ R \](body: E->R, combine : (R,R) -> R) : R = do
+    l = |e|
+    if l <= 1 then body(e.get()) else 
+      (left, right) = e.split()
+      combine(left.reduce[\R\](body, combine),
+              right.reduce[\R\](body, combine))
+    end
+   end
+end
+
+cat(x:String, y:String):String = do
+  (*) println("cat " x " " y )
+  x || y
+end
+
+rcat(x:String, y:String):String = y || x
+id(x:String):String = do
+  x
+end
+
+somebody(x:ZZ32):String = do
+  (*) println("somebody " x.asString)
+  x.asString
+end
+
+run():() = do
+  s = G[\ZZ32\](ZCollection(1,10)).reduce[\String\](somebody, cat)
+  println s
+  println G[\ZZ32\](ZCollection(1,10)).reduce[\String\](somebody, rcat)
+end

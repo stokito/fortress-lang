@@ -1,0 +1,26 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2008, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+FORTRESS_HOME="`pwd`"
+
+if (uname | egrep CYGWIN > /dev/null) ; then
+  SEP=";"
+else
+  SEP=":"
+fi
+
+CP="$FORTRESS_HOME/ProjectFortress/build${SEP}$FORTRESS_HOME/ProjectFortress/third_party/junit/junit.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/asm/asm-3.1.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/xtc/xtc.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/jsr166y/jsr166y.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/plt/plt.jar${SEP}$JAVA_HOME/lib/tools.jar${SEP}$FORTRESS_HOME/ProjectFortress/third_party/unsigned/unsigned.jar${SEP}$CP"
+
+java -cp "$CP" -Xmx320m -Xms192m \
+junit.swingui.TestRunner \
+com.sun.fortress.unit_tests.NotPassingYet >& test.log

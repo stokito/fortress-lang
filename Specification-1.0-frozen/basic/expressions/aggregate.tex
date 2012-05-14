@@ -1,0 +1,199 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009,2010, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Aggregate Expressions}
+\seclabel{aggregate-expr}
+
+\note{Some operators and matrix unpasting are not yet supported.}
+
+\note{\EXP{\mapsto} is a special syntax only in two contexts:
+map aggregates and map comprehensions. (02/12/09)
+}
+
+\begin{Grammar}
+\emph{Primary}
+&::=& \emph{LeftEncloser} \option{\emph{StaticArgs}} \option{\emph{ExprList}} \emph{RightEncloser} \\
+
+\emph{ExprList} &::=& \emph{Expr}(\EXP{,} \emph{Expr})$^*$ \\
+
+\emph{ArrayExpr} &::=& \texttt{[} \option{\emph{StaticArgs}} \emph{RectElements} \texttt{]}\\
+
+\emph{RectElements} &::=& \emph{Expr} \emph{MultiDimCons}$^*$\\
+
+\emph{MultiDimCons} &::=& \emph{RectSeparator} \emph{Expr}\\
+
+\emph{RectSeparator} &::=& \EXP{;}+\\
+&$|$& \emph{Whitespace}\\
+
+\emph{MapExpr} &::=& \{ \option{\emph{StaticArgs}} \option{\emph{EntryList}} \}\\
+\end{Grammar}
+
+\emph{Aggregate expressions} evaluate to values that are themselves
+homogeneous collections of values.  Each subexpression of an aggregate
+expression is evaluated in parallel in a separate implicit thread (see
+\secref{threads-parallelism}).
+With the exception of array expressions, the resulting
+values are passed to the appropriate bracketing operator, which is a
+function with a varargs parameter constructing the aggregate.
+The array aggregate operations
+construct the aggregate directly, after all
+subexpressions have completed normally.  Any aggregate expression may
+reserve storage for its result before its elements complete
+evaluation.
+
+Functions defining aggregate expressions are provided in \library\
+for sets, maps, lists, matrices, vectors, and arrays.
+
+\subsection{Set Expressions}
+\seclabel{set-expr}
+
+Set element expressions are enclosed in braces and separated by commas.
+The type of a set expression is
+\EXP{\TYP{Set}\llbracket T\rrbracket},
+where \VAR{T} is the union type
+of the types of all element expressions of the set expression.
+
+
+Set containment is checked with the operator $\in$
+and the subset relationship is checked with the operator \EXP{\subseteq}.
+For example:
+\input{\home/basic/examples/Expr.Set.tex}
+evaluates to \VAR{true}.
+and
+\marginnote{This example should be added to the SpecData directory when it works.}
+\begin{center}
+\EXP{\{0, 1, 2\} \subseteq \{0, 3, 2\}}
+\end{center}
+evaluates to \VAR{false}.
+
+
+\subsection{Map Expressions}
+
+Map entries are enclosed in curly braces, separated by commas, and
+matching pairs are separated by $\mapsto$.
+The type of a map expression is
+\EXP{\TYP{Map}\llbracket{}K,V\rrbracket} where \VAR{K}
+is the union of the types of all left-hand-side expressions of the map
+entries, and \VAR{V} is the union of the types of all right-hand-side
+expressions of the map entries.
+
+A map \VAR{m} is indexed by placing an element in the domain of \VAR{m}
+enclosed in brackets immediately after an expression evaluating to \VAR{m}.
+\marginnote{The new fortify fixes this.}
+Thus, the index is rendered as a subscript.
+For example, if:
+\input{\home/basic/examples/Expr.Map.tex}
+then \EXP{m_{\hbox{\rm``\STR{b}''}}} evaluates to \EXP{1}.
+In contrast, \EXP{m_{\hbox{\rm``\STR{x}''}}} throws a \TYP{NotFound} exception,
+as \EXP{\hbox{\rm``\STR{x}''}} is not an index of \VAR{m}.
+
+\subsection{List Expressions}
+\seclabel{list-expr}
+
+List element expressions are enclosed in
+angle brackets $\llbracket$ and $\rrbracket$ and are separated by commas.
+The type of a list expression is \EXP{\TYP{List}\llbracket{}T\rrbracket}
+ where \VAR{T}
+is the union type of the types of all element expressions.
+
+A list \VAR{l} is indexed by placing an index enclosed in square brackets
+immediately after an expression evaluating to \VAR{l}.
+\marginnote{The new fortify fixes this.}
+Thus, the index is rendered as a subscript.
+Lists are always indexed from \EXP{0}.
+For example:
+\input{\home/basic/examples/Expr.List.tex}
+evaluates to \EXP{1}.
+
+
+\subsection{Array Expressions}
+\seclabel{array-expr}
+
+Array element expressions are enclosed in brackets. Element expressions
+along a row are separated only by whitespace.
+Two dimensional array expressions are written by separating rows with
+newlines or semicolons.  If a semicolon appears, whitespace before
+and after the semicolon is ignored.
+The parts of higher-dimensional array expressions are separated
+by repeated-semicolons, where the dimensionality
+of the result is equal to one plus the number
+of repeated semicolons.
+The type of a $k$-dimensional array expression is
+\EXP{\TYP{Array}k\llbracket{}T, 0, n_{\mathrm{0}}, \cdots,
+         0, n_{k-1}\rrbracket},
+where \VAR{T} is the union type of the types of the element expressions and
+$n_0, ..., n_{k-1}$
+are the sizes of the array in each dimension\footnote{
+As of March 2008, the Fortress library provides \EXP{\TYP{Array}k} types for
+$1 \le k \le 3$.}. This type can be abbreviated as
+\EXP{T [n_{\mathrm{0}}, \cdots, n_{k-1}]}.
+
+
+
+
+A $k$-dimensional array \VAR{A} is indexed by placing a sequence of
+$k$ indices enclosed in brackets, and separated by commas, after an expression
+evaluating to \VAR{A}.
+Thus, the index is rendered as a subscript.
+By default, arrays are indexed from 0.  The
+horizontal dimension of an array is the last dimension mentioned in the
+array index.  For example:
+\input{\home/basic/examples/Expr.Array.a.tex}
+then \EXP{A_{1,0}} evaluates to \EXP{4}.
+
+An array of two
+\marginnote{two or more -- Jan: I continue to disbelieve.}
+dimensions whose elements are a subtype of \TYP{Number}
+is a matrix.
+\marginnote{
+can be coerced to a matrix.
+Matrix types are written
+\EXP{\TYP{Matrix}\llbracket{}T\rrbracket [n_{\mathrm{0}} \times \ldots \times n_{k-1}]},
+where $k > 1$.
+A type of this form can be abbreviated as
+\EXP{T^{n_0 \times \ldots \times n_{k-1}}}.}
+Matrices are indexed in the same manner as arrays.
+
+A one-dimensional array whose elements are a subtype of \TYP{Number}
+is a vector.
+\marginnote{
+can be coerced to a vector.
+Vector types are written \EXP{\TYP{Vector}\llbracket{}T\rrbracket [n]}.
+A type of this form can be abbreviated as
+\EXP{T^{n}}, unless \VAR{T} is declared in the enclosing scope
+to be a physical dimension or unit.
+
+Matrices occurring inside a matrix literal on the same row are
+pasted along dimension 0. Each row is pasted along dimension 1 and the
+resulting matrix is ``flattened''.  This works because matrices never
+contain other matrices as elements.
+}
+
+The element expressions in an array expression may be either scalars or
+array expressions themselves.  If an element is an array expression,
+it is ``flattened'' (pasted) into the enclosing expression.
+This pasting works because array expressions never
+contain other arrays as elements.  The elements along
+a row (or column) must have the same number of columns (or rows),
+though two elements in different rows (columns) need not have the
+same number of columns (rows).
+See \secref{unpasting} for a discussion of matrix unpasting.
+
+
+
+The following four examples are all equivalent:
+\input{\home/basic/examples/Expr.Array.b.tex}
+\input{\home/basic/examples/Expr.Array.c.tex}
+\input{\home/basic/examples/Expr.Array.d.tex}
+\input{\home/basic/examples/Expr.Array.e.tex}
+%Here is a $3\times3\times3\times2$ matrix example:
+Here is a $3\times3\times3$ matrix example:
+\input{\home/basic/examples/Expr.Array.f.tex}

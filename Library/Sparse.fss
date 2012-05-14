@@ -1,0 +1,198 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Sparse
+export Sparse
+
+trim[\T\](v:Array[\T,ZZ32\],l:ZZ32):Array[\T,ZZ32\] = v[#l].copy()
+
+(** Sparse vector, represented as ordered sequence of index/value pairs.
+    Absent entries are 0. *)
+object SparseVector[\T extends Number, nat n\](mem:Array[\(ZZ32,T),ZZ32\])
+        extends Vector[\T,n\]
+    getter asString():String = do
+        elt(t:ZZ32,v:T):String = " " t "->" v
+        join(a:String,b:String):String = a b
+        "Sparse[" n "] = [" self.indexValuePairs.mapReduce[\String\](elt,join,"") "]"
+      end
+    getter indexValuePairs(): Generator[\(ZZ32,T)\] = mem
+    (* Indexing proceeds by binary search *)
+    get(i:ZZ32):T = do
+      b = mem.bounds.lower
+      lo:ZZ32 := -1
+      hi:ZZ32 := |mem|
+      while lo + 1 < hi do
+        mid = (lo+hi) DIV 2
+        (ii,_) = mem[b+mid]
+        if ii <= i then lo := mid else hi := mid end
+      end
+      if lo>=0 then
+        (ii,t) = mem[b+lo]
+        if i=ii then t else 0 end
+      else 0 end
+    end
+    put(i:ZZ32, v:T):() = fail("put: SparseVector is immutable")
+    init0(i:ZZ32, v:T):() = fail("init: SparseVector is immutable")
+    (** Scalar multiplication *)
+    scale(x:T):SparseVector[\T,n\] = do
+      elt(i:ZZ32,t:(ZZ32,T)):T = do (j,y) = t; (j, x y) end
+      SparseVector[\T,n\](mem.map(elt))
+    end
+    negate():SparseVector[\T,n\] = scale(-1)
+    foldMatches[\U,R\](f:(ZZ32,T,U,R)->R, v: SparseVector[\U,n\],r:R):R = do
+        i1: ZZ32 := 0
+        t1 = |v.mem|
+        (j1: ZZ32, v1: T) := (-2, 0)
+        res: T := r
+        for i0 <- sequential(0 # |mem|) do
+            (j0,v0) = mem.get(i0)
+            while j0>j1 AND i1<t1 do
+                (j1,v1) := v.mem.get(i1)
+                i1 += 1
+            end
+            if j0=j1 then
+                res := f(j0,v0,v1,res)
+            end
+        end
+        res
+      end
+
+    (* vector * vector elementwise product.  Use a specialized (but
+       serial) algorithm if both arguments are sparse.  Otherwise
+       follow the structure of the sparse argument. *)
+    pmul(v: SparseVector[\T,n\]): SparseVector[\T,n\] =
+        if |mem| > |v.mem| then
+            v.pmul(self)
+        else
+            res = mem.replica[\(ZZ32,T)\]()
+            f(i: ZZ32, x: T, y: T, entry: ZZ32) = do
+                res[entry] := (i, x y)
+                entry + 1
+              end
+            entries = foldMatches[\T,ZZ32\](f,v,0)
+            SparseVector[\T,n\](trim(res,entries))
+        end
+    pmul(v: Vector[\T,n\]): SparseVector[\T,n\] = do
+        (** Result will have the same structure as the input;
+            we do not attempt to detect zeroes in v. *)
+        newMem = mem.replica[\T\]()
+        for (position,t) <- mem.indexValuePairs do
+            (index,val) = t
+            newVal = val v[index]
+            newMem.init(position,(index,newVal))
+        end
+        SparseVector[\T,n\](newMem)
+      end
+    (** vector * vector multiply.  Again uses a specialized serial algorithm if both
+        arguments are sparse, and otherwise follows the sparse argument structure. *)
+    dot(other:Vector[\T,n\]):T = SUM [(i,v) <- mem] v other[i]
+    dot(other:SparseVector[\T,n\]):T = do
+        (* We perform sparse vector-vector multiply serially due to the
+           absence of reduction variables, and the fact that this allows
+           us to do it with linear work. *)
+        f(i: ZZ32, x: T, y: T, r: T): T = r + x y
+        foldMatches[\T,T\](f,other,0)
+      end
+end
+
+(** %sparse% constructs a sparse vector from dense vector. *)
+sparse[\T extends Number,nat n\](me:Array1[\RR64,0,n\]):SparseVector[\RR64,n\] = do
+   sz = me.mapReduce[\ZZ32\](fn (v:RR64):ZZ32=>if v=0 then 0 else 1 end,
+                             fn (a:ZZ32,b:ZZ32):ZZ32 => a+b, 0)
+   res:Array[\(ZZ32,RR64),ZZ32\] := array[\(ZZ32,RR64)\](sz)
+   j : ZZ32 := res.bounds.lower
+   for (i,v) <- sequential(me.indexValuePairs), v=/=0 do
+       res.init(j,(i,v))
+       j += 1
+   end
+   SparseVector[\RR64,n\](res)
+end
+
+(** Compressed sparse row representation.
+    A dense array sparse row vectors. *)
+object Csr[\N extends Number, nat n, nat m\]
+                 (rows:Array1[\SparseVector[\N,m\],0,n\])
+        extends Matrix[\N,n,m\]
+    getter indexValuePairs():Generator[\((ZZ32,ZZ32),N)\] =
+        SparseGen[\N,((ZZ32,ZZ32),N)\](rows,
+            fn (i:ZZ32,j:ZZ32,nn:N):((ZZ32,ZZ32),N) => ((i,j),nn))
+    get(t1:(ZZ32,ZZ32)):N = do (i,j)=t1; (rows[i])[j] end
+    put(t1:(ZZ32,ZZ32), v:N):() = fail("put: Csr is immutable")
+    init0(t1:(ZZ32,ZZ32), v:N):() = fail("init: Csr is immutable")
+    replica[\U\]():() = fail("Csr replica undefined")
+    zeroIndices():Generator[\(ZZ32,ZZ32)\] =
+        SparseGen[\N,(ZZ32,ZZ32)\](rows,
+            fn (i:ZZ32,j:ZZ32,_:N):((ZZ32,ZZ32),N) => (i,j))
+    t():Csc[\N,m,n\] = Csc[\N,m,n\](rows)
+    (** Sparse matrix * dense vector multiply (yields dense vector) *)
+    rmul(other:Vector[\N,m\]): Vector[\N,n\] = do
+        (* Layout of result should resemble layout of columns *)
+        result = rows.replica[\N\]()
+        (* Sparse dot products, each sparse row in parallel;
+           vector "other" is read shared *)
+        result.init(i, r DOT other), (i,r) <- rows.indexValuePairs
+        result
+      end
+    (* TODO: make overloaded *)
+    (* Right now uncommenting unearths an obscure unification bug.
+    mul[\nat p\](other: Csc[\N,m,p\]):Matrix[\N,n,p\] = do
+            (* Follow the structure of our rows, return Csr matrix. *)
+            resultRows = rows.replica[\SparseVector[\N,p\]\]()
+            resultRows.init(i,sparse(row other)),  (i,row)<-rows.indexValuePairs
+            Csr[\N,n,p\](resultRows)
+      end
+    *)
+    mul[\nat p\](other: Matrix[\N,m,p\]):Matrix[\N,n,p\] =
+      typecase other of
+        other':Csc[\N,m,p\] =>
+            (* Follow the structure of our rows, return Csr matrix. *)
+            resultRows = rows.replica[\SparseVector[\N,p\]\]()
+            resultRows.init(i,sparse(row other')),  (i,row)<-rows.indexValuePairs
+            Csr[\N,n,p\](resultRows)
+        else => other.t().mul[\n\](self.t())
+      end
+end
+
+(** A compressed sparse column matrix is just the transpose of a Csr matrix. *)
+object Csc[\N extends Number, nat n, nat m\]
+                 (cols:Array1[\SparseVector[\N,n\],0,m\])
+        extends Matrix[\N,n,m\]
+    getter indexValuePairs():Generator[\((ZZ32,ZZ32),N)\] =
+        SparseGen[\N,((ZZ32,ZZ32),N)\](cols,
+            fn (i:ZZ32,j:ZZ32,nn:N):((ZZ32,ZZ32),N) => ((j,i),nn))
+    get(t1:(ZZ32,ZZ32)):N = do (i,j)=t;  (cols[j])[i] end
+    put(t1:(ZZ32,ZZ32), v:N):() = fail("put: Csc is immutable")
+    init0(t1:(ZZ32,ZZ32), v:N):() = fail("init: Csc is immutable")
+    replica[\U\]():() = fail("Csc replica undefined")
+    zeroIndices():Generator[\(ZZ32,ZZ32)\] =
+        SparseGen[\N,(ZZ32,ZZ32)\](cols,
+            fn (i:ZZ32,j:ZZ32,_:N):((ZZ32,ZZ32),N) => (j,i))
+    t():Csr[\N,m,n\] = Csr[\N,m,n\](cols)
+    lmul(other:Vector[\N,n\]): Vector[\N,m\] = t().rmul(other)
+end
+
+private object SparseGen[\N extends Number, M\]
+                (arr:Array[\Array[\N,ZZ32\],ZZ32\], f:(ZZ32,ZZ32,N)->M)
+        extends Generator[\M\]
+    generate[\R\](r: Reduction[\R\], body: M->R): R =
+        arr.indexValuePairs.generate[\R\](r,
+            fn (i:ZZ32, v:Array[\N,ZZ32\]): R =>
+                v.indexValuePairs.generate[\R\](r,
+                    fn (j:ZZ32, n:N): R => body(f(i,j,n))))
+    loop(body:M->()): () =
+        arr.indexValuePairs.loop(
+            fn (i:ZZ32, v:Array[\N,ZZ32\]): () =>
+                v.indexValuePairs.loop(fn (j:ZZ32, n:N):() => body(f(i,j,n))))
+
+    map[\G\](f': M->G): Generator[\G\] = SparseGen[\N,G\](arr, f' COMPOSE f)
+end
+
+end

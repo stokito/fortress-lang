@@ -1,0 +1,38 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newchap{Lexical Structure}{lexical-structure}
+
+
+
+
+\section{Reserved Words}
+\seclabel{reserved-words}
+
+The following tokens are \emph{reserved words}:\\
+\input{\datadir/fortress-keywords.tex}
+
+\note{Victor: I don't think ``or'' should be reserved.
+  It is only so for its occurrence in ``widens or coerces''
+  but we can recognize it specially in that context,
+  which is never ambiguous because ``widens'' and ``coerces'' are reserved.}
+
+The following operators on units are also reserved words:\\
+\input{\datadir/fortress-unitOperators.tex}
+
+To avoid confusion, Fortress reserves the following tokens:\\
+\input{\datadir/fortress-specialReservedWords.tex}
+
+They do not have any special meanings but they cannot be used as
+identifiers.
+
+\note{Victor: Some other words we might want to reserve:
+  subtype, subtypes, is, coercion, function, exception, match}

@@ -1,0 +1,174 @@
+(*******************************************************************************
+Copyright 2012 Michael Zody and Oracle 
+All rights reserved.
+
+Oracle is the Copyright owner of the Fortress programming language software,
+and Michael Zody is the developer of the algorithm which this software implements and the
+Copyright owner of the software implementation of the algorithm, to which Oracle
+has a perpetual, irrevocable, royalty free right and license to use and distribute. 
+
+Use is subject to license terms accompanying the software.
+ ******************************************************************************)
+
+component GenomeUtil2c
+
+import File.{...}
+import FileSupport.{...}
+import FlatString.{...}
+import List.{...}
+import Pairs.{...}
+import Util.{...}
+import Maybe.{...}
+import Bazaar.{...}
+
+export GenomeUtil2c
+
+encodeACGT(c: Character): ZZ32 = case c of 'A' => 0; 'C' => 1; 'G' => 2; 'T' => 3; end
+
+color(c1:Character, c2:Character): Character =
+  if (c1 = 'N') OR (c2 = 'N') then '4' else makeCharacter('0'.codePoint + (encodeACGT(c1) BITXOR encodeACGT(c2))) end
+
+colorsFromACGT(strACGT: String): String = BIG || <| color(p,q) | (p,q)<-pairs(strACGT) |>
+
+colorsToACGT(start: Character, colorstr: String): String =
+  start || (BIG || [i <- 0 # |colorstr|] "ACGT"[encodeACGT(start) BITXOR (BIG BITXOR[k <- 0#(i+1)] (colorstr[k].codePoint BITAND 3))])
+
+trait ReferenceGenome extends { SequentialGenerator[\ReferenceGenomeChunk\] } end
+
+object ReferenceGenomeChunk(start: ZZ32, length: ZZ32, buffer: String, padLength: ZZ32)
+  getter range(): Range = start # length
+  getACGT(r: Range): String = do
+    buffer.substring(padLength + (r.lowerBound - start),padLength + (r.lowerBound - start) + |r|)
+  end
+  getColors(r: Range): String = do
+    colorsFromACGT buffer.substring(padLength + (r.lowerBound - start),padLength + (r.lowerBound - start) + |r| + 1)
+  end
+end ReferenceGenomeChunk
+
+object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ32)
+    extends ReferenceGenome
+  private padLength: ZZ32 = maxReadSize + 1
+  private fg: SequentialGenerator[\ReferenceGenomeChunk\] = seq(FileGenerator[\ReferenceGenomeChunk\](rs, 0, nextChunk))
+  private buffer: String := ("N")^padLength
+  private currentChunkStart: ZZ32 := 0
+  private currentChunkLength: ZZ32 := 0
+
+  nextChunk(rs': ReadStream): Maybe[\ReferenceGenomeChunk\] = do
+    buffer := buffer[currentChunkLength:]
+    currentChunkStart += currentChunkLength
+    currentChunkLength := 0
+    while currentChunkLength < (chunkSize + padLength) AND: NOT rs'.eof do
+      line = rs'.uncheckedReadLine()
+      if |line| > 0 AND: line[0] =/= '>' then
+        buffer ||= line
+        currentChunkLength += |line|
+      end
+    end
+    if rs'.eof then
+      buffer ||= ("N")^padLength
+    else
+      currentChunkLength -= padLength
+    end
+    buffer := buffer.asFlatString
+    Just ReferenceGenomeChunk(currentChunkStart, currentChunkLength, buffer.asFlatString, padLength)
+  end
+
+  generate[\T\](red: Reduction[\T\], body: ReferenceGenomeChunk->T): T = fg.generate(red, body)
+  loop[\T\](body: ReferenceGenomeChunk->()): () = fg.loop(body)
+end FileBasedReferenceGenome
+
+getReferenceGenomeFromFile(fileName: String, chunkSize: ZZ32, maxReadSize: ZZ32): ReferenceGenome =
+  FileBasedReferenceGenome(FileReadStream(fileName), chunkSize, maxReadSize)
+
+trait ReadList
+  getReads(refChunk: ReferenceGenomeChunk): List[\Read\]
+end ReadList
+
+private object FileBasedReadList(rs: ReadStream, maxReadSize: ZZ32) extends ReadList
+  private currentSet: List[\Read\] := <|[\Read\] |>
+  private peekAhead: Maybe[\Read\] := Nothing[\Read\]
+  private currentRange: Range := 0#0
+
+  private getNextRange(refChunk: ReferenceGenomeChunk): () = do
+    refRange = refChunk.range
+    if refRange.lowerBound =/= currentRange.upperBound + 1 then
+      fail("ReadList not properly synchronized with ReferenceGenome (" currentRange " then " refRange ")")
+    end
+    currentRange := refRange
+    currentSet := <|[\Read\] rd.withNewChunk(refChunk) | rd <- currentSet, rd.range.lowerBound <= refRange.upperBound AND refRange.lowerBound <= rd.range.upperBound |>
+    if rd <- peekAhead then
+      if rd.range.upper < refRange.lowerBound then
+        peekAhead := Nothing[\Read\]
+      elif rd.range.lower <= refRange.upperBound then
+        currentSet ||= <| rd.withNewChunk(refChunk) |>
+        peekAhead := Nothing[\Read\]
+        inputMoreReads(refChunk)
+      end
+    else
+      inputMoreReads(refChunk)
+    end
+  end
+
+  private inputMoreReads(refChunk: ReferenceGenomeChunk) = do
+    refRange = refChunk.range
+    label gobble
+      while NOT rs.eof do
+        if rd <- parseOneRead(rs, refChunk) then
+          if refRange.upperBound < rd.range.lowerBound then
+            peekAhead := Just rd
+            exit gobble
+          elif refRange.lowerBound <= rd.range.upperBound then
+            currentSet ||= <| rd |>
+          end
+        end
+      end
+    end gobble
+  end
+
+  getReads(refChunk: ReferenceGenomeChunk): List[\Read\] = do
+    if currentRange =/= refChunk.range then getNextRange(refChunk) end
+    currentSet
+  end
+end FileBasedReadList
+
+getReadListFromFile(fileName: String, maxReadSize: ZZ32): ReadList =
+  FileBasedReadList(FileReadStream(fileName), maxReadSize)
+
+object Read(header: String, sequence: String, name: String, pos: ZZ32, length: ZZ32, seqend: ZZ32,
+            negativeOrientation: Boolean, refChunk: ReferenceGenomeChunk)
+  range: Range = pos#length
+  getter asString(): String =  "Read" (*)pos "  " name "  " sequence
+  (*) It's important that the following not be cached early; they cannot be computed until the read is current with the ref.
+  getter refACGT(): String = refChunk.getACGT(pos : seqend + 1).asFlatString
+  getter refColors(): String = refChunk.getColors(pos : seqend + 1).asFlatString
+  getter sampleColors(): FlatString = do
+    temp = sequence.substring(1,|sequence| - 1)
+    result = (if (negativeOrientation) then
+                temp.substring(0, |temp| - 2) || self.refColors[|temp| - 1] (*) TODO (reverse(temp))[0 : |temp| - 2] || self.refColors[|temp| - 1]
+              else
+                self.refColors[0] || temp[1:]
+              end)
+    result.asFlatString
+  end
+  private withNewChunk(newRefChunk: ReferenceGenomeChunk): Read =
+    Read(header, sequence, name, pos, length, seqend, negativeOrientation, newRefChunk)
+end Read
+
+private parseOneRead(r: ReadStream, refChunk: ReferenceGenomeChunk): Maybe[\Read\] = do
+  header: String = r.uncheckedReadLine()
+  sequence: String = r.uncheckedReadLine()
+  if header = "" OR: sequence = "" then Nothing[\Read\] else
+    if header[0] =/= '>' OR sequence[0] = '>' then
+      fail("File of 'reads' not in expected alternating-line format")
+    end
+    name: String = header.upto(',')
+    loc: String = header.beyond(',').beyond('_').upto('.')
+    length: ZZ32 = |sequence| - 1
+    negativeOrientation: Boolean = (loc[0] = '-')
+    pos: ZZ32 = if (negativeOrientation) then strToInt(loc[1:]) - length + 1 else strToInt(loc) - 1 end
+    seqend: ZZ32 = pos + length - 1
+    Just Read(header, sequence, name, pos, length, seqend, negativeOrientation, refChunk)
+  end
+end
+
+end
