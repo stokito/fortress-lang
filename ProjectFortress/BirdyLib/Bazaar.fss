@@ -57,5 +57,14 @@ component Bazaar
 
   opr <|g: Generator[\ZZ32\]|>: List[\ZZ32\] = <|[\ZZ32\] x | x <- g |>
 
+  opr |r: Range|: ZZ32 = r.upperBound - r.lowerBound
+
+  object StrRed extends MonoidReduction[\String\]
+    getter asString(): String = "String concat reduction"
+    empty(): String = ""
+    join(x: String, y: String) = x || y      
+  end
+
+  opr BIG ||() : BigReduction[\String,String\] = BigReduction[\String,String\](StrRed)
 
 end

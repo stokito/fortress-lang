@@ -19,28 +19,28 @@ import Maybe.{...}
  ***********************************************************)
 
 trait Closeable
-    close():()
+    abstract close():()
 end
 
 trait FileStream extends Closeable
-    getter fileName():String
+    abstract getter fileName():String
 end
 
 trait Consumable
-    consume():()
-    whenUnconsumed():()
+    abstract consume():()
+    abstract whenUnconsumed():()
 end
 
 trait ReadStream extends { Closeable, Consumable }
     (** eof returns true if an end-of-file condition has been
         encountered on the stream.
      **)
-    getter eof():Boolean
+    abstract getter eof():Boolean
 
     (** ready returns true if there is currently input from the stream
         available to be consumed.
      **)
-    getter ready():Boolean
+    abstract getter ready():Boolean
 
     (** Returns the next available line from the stream, discarding
         line termination characters.  Returns "" on eof.
@@ -60,11 +60,11 @@ trait ReadStream extends { Closeable, Consumable }
 
     read():String
 
-    uncheckedReadLine():String
+    abstract uncheckedReadLine():String
 
-    uncheckedReadChar():ZZ32
+    abstract uncheckedReadChar():ZZ32
 
-    uncheckedRead(k:ZZ32):String
+    abstract uncheckedRead(k:ZZ32):String
 
     (** All file generators yield file contents in parallel by
         default, with a natural ordering corresponding to the order

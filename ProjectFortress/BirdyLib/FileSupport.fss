@@ -69,7 +69,7 @@ trait ReadStream extends { Closeable, Consumable }
 
     eofCheckedReadChar():ZZ32 = do
         r = uncheckedReadChar()
-        if r = -1 then makeCharacter(0) else makeCharacter(r) end
+        if r = -1 then 0 else r end (*) JT: Used to  be char(_)  
       end
 
     uncheckedRead(k:ZZ32):String
@@ -165,7 +165,7 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
             if reader.eof then r.empty()
             else
                 (* First read must block, and not check reader.ready *)
-                bu: Array[\ZZ32\] = array[\ZZ32\](n)
+                bu: Array[\S\] = array[\S\](n)
                 i : ZZ32 := 0
                 if s0 <- readOne(reader) then
                     bu.init(0,s0)
@@ -196,7 +196,7 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
             if reader.eof then ()
             else
                 (* First read must block, and not check reader.ready *)
-                bu: Array[\ZZ32\] = array[\ZZ32\](n)
+                bu: Array[\S\] = array[\S\](n)
                 i : ZZ32 := 0
                 if s0 <- readOne(reader) then
                     bu.init(0,s0)
@@ -209,7 +209,7 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
                     end
                     i += 1
                 end
-                (bu[0#i].loop(f), go((2 n) MAX up))
+                (a,b) = (bu[0#i].loop(f), go((2 n) MAX up)) (*) JT: mention this to VL and GS
                 ()
             end
         go(8 MIN up)
@@ -238,7 +238,7 @@ object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> Maybe[\S\]
         a
       end
 
-    seq(self): SequentialGenerator[\String\] = self
+    seq(self): SequentialGenerator[\S\] = self
 
     loop(body:S->()): () = do
         consume()

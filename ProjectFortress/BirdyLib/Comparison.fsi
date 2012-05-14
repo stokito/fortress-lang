@@ -11,10 +11,6 @@
 
 api Comparison
 
-  trait Equality[\T extends Equality[\T\]\]
-    abstract opr =(self, other: T): Boolean 
-  end
-
   trait Comparison comprises { LessThan , GreaterThan, EqualTo, Unordered } end
   object LessThan extends Comparison end
   object GreaterThan extends Comparison end
