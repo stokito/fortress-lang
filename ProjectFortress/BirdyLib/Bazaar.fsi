@@ -22,4 +22,8 @@ api Bazaar
 
   opr <|g: Generator[\ZZ32\]|>: List[\ZZ32\]
 
+  opr |r: Range|: ZZ32
+
+  opr BIG ||() : BigReduction[\String,String\]
+
 end

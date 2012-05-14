@@ -26,7 +26,7 @@ export GenomeUtil2c
 encodeACGT(c: Character): ZZ32 = case c of 'A' => 0; 'C' => 1; 'G' => 2; 'T' => 3; end
 
 color(c1:Character, c2:Character): Character =
-  if (c1 = 'N') OR (c2 = 'N') then '4' else Character('0'.codePoint + (encodeACGT(c1) BITXOR encodeACGT(c2))) end
+  if (c1 = 'N') OR (c2 = 'N') then '4' else makeCharacter('0'.codePoint + (encodeACGT(c1) BITXOR encodeACGT(c2))) end
 
 colorsFromACGT(strACGT: String): String = BIG || <| color(p,q) | (p,q)<-pairs(strACGT) |>
 
@@ -38,10 +38,10 @@ trait ReferenceGenome extends { SequentialGenerator[\ReferenceGenomeChunk\] } en
 object ReferenceGenomeChunk(start: ZZ32, length: ZZ32, buffer: String, padLength: ZZ32)
   getter range(): Range = start # length
   getACGT(r: Range): String = do
-    buffer[padLength + (r.lower - start) # |r|]
+    buffer.substring(padLength + (r.lowerBound - start),padLength + (r.lowerBound - start) + |r|)
   end
   getColors(r: Range): String = do
-    colorsFromACGT buffer[padLength + (r.lower - start) # |r| + 1]
+    colorsFromACGT buffer.substring(padLength + (r.lowerBound - start),padLength + (r.lowerBound - start) + |r| + 1)
   end
 end ReferenceGenomeChunk
 
@@ -57,14 +57,14 @@ object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ
     buffer := buffer[currentChunkLength:]
     currentChunkStart += currentChunkLength
     currentChunkLength := 0
-    while currentChunkLength < (chunkSize + padLength) AND: NOT rs'.eof() do
+    while currentChunkLength < (chunkSize + padLength) AND: NOT rs'.eof do
       line = rs'.uncheckedReadLine()
       if |line| > 0 AND: line[0] =/= '>' then
         buffer ||= line
         currentChunkLength += |line|
       end
     end
-    if rs'.eof() then
+    if rs'.eof then
       buffer ||= ("N")^padLength
     else
       currentChunkLength -= padLength
@@ -91,15 +91,15 @@ private object FileBasedReadList(rs: ReadStream, maxReadSize: ZZ32) extends Read
 
   private getNextRange(refChunk: ReferenceGenomeChunk): () = do
     refRange = refChunk.range
-    if refRange.lower =/= currentRange.upper + 1 then
+    if refRange.lowerBound =/= currentRange.upperBound + 1 then
       fail("ReadList not properly synchronized with ReferenceGenome (" currentRange " then " refRange ")")
     end
     currentRange := refRange
-    currentSet := <|[\Read\] rd.withNewChunk(refChunk) | rd <- currentSet, rd.range.lower <= refRange.upper AND refRange.lower <= rd.range.upper |>
+    currentSet := <|[\Read\] rd.withNewChunk(refChunk) | rd <- currentSet, rd.range.lowerBound <= refRange.upperBound AND refRange.lowerBound <= rd.range.upperBound |>
     if rd <- peekAhead then
-      if rd.range.upper < refRange.lower then
+      if rd.range.upper < refRange.lowerBound then
         peekAhead := Nothing[\Read\]
-      elif rd.range.lower <= refRange.upper then
+      elif rd.range.lower <= refRange.upperBound then
         currentSet ||= <| rd.withNewChunk(refChunk) |>
         peekAhead := Nothing[\Read\]
         inputMoreReads(refChunk)
@@ -112,12 +112,12 @@ private object FileBasedReadList(rs: ReadStream, maxReadSize: ZZ32) extends Read
   private inputMoreReads(refChunk: ReferenceGenomeChunk) = do
     refRange = refChunk.range
     label gobble
-      while NOT rs.eof() do
+      while NOT rs.eof do
         if rd <- parseOneRead(rs, refChunk) then
-          if refRange.upper < rd.range.lower then
+          if refRange.upperBound < rd.range.lowerBound then
             peekAhead := Just rd
             exit gobble
-          elif refRange.lower <= rd.range.upper then
+          elif refRange.lowerBound <= rd.range.upperBound then
             currentSet ||= <| rd |>
           end
         end
@@ -137,14 +137,14 @@ getReadListFromFile(fileName: String, maxReadSize: ZZ32): ReadList =
 object Read(header: String, sequence: String, name: String, pos: ZZ32, length: ZZ32, seqend: ZZ32,
             negativeOrientation: Boolean, refChunk: ReferenceGenomeChunk)
   range: Range = pos#length
-  getter asString(): String = pos "  " name "  " sequence
+  getter asString(): String =  "Read" (*)pos "  " name "  " sequence
   (*) It's important that the following not be cached early; they cannot be computed until the read is current with the ref.
   getter refACGT(): String = refChunk.getACGT(pos : seqend + 1).asFlatString
   getter refColors(): String = refChunk.getColors(pos : seqend + 1).asFlatString
   getter sampleColors(): FlatString = do
-    temp = sequence[1:]
+    temp = sequence.substring(1,|sequence| - 1)
     result = (if (negativeOrientation) then
-                (temp)[0 : |temp| - 2] || self.refColors[|temp| - 1] (*) TODO (reverse(temp))[0 : |temp| - 2] || self.refColors[|temp| - 1]
+                temp.substring(0, |temp| - 2) || self.refColors[|temp| - 1] (*) TODO (reverse(temp))[0 : |temp| - 2] || self.refColors[|temp| - 1]
               else
                 self.refColors[0] || temp[1:]
               end)

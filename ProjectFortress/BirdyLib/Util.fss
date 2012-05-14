@@ -105,4 +105,10 @@ component Util
      extends BigOperator[\I,O,R,L\]
   end
 
+  object VoidReduction extends Reduction[\()\]
+    getter asString(): String = "VoidReduction"
+    empty(): () = ()
+    join(a: (), b: ()): () = ()
+  end
+
 end

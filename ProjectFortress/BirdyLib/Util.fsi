@@ -76,4 +76,10 @@ end
 
 embiggen[\T\](j:(T,T)->T, z:T) : Comprehension[\T,T,T,T\]
 
+  object VoidReduction extends Reduction[\()\]
+    getter asString(): String 
+    empty(): ()
+    join(a: (), b: ()): () 
+  end
+
 end
