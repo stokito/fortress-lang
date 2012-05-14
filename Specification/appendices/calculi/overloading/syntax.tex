@@ -1,0 +1,49 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Syntax}
+\seclabel{overloading-syntax}
+
+The syntax for \overloadingcore\ is provided in \figref{overloading-syntax}.  
+
+\begin{figure*}[htbp!]
+\[
+\begin{array}{llll}
+\tvone, \tvtwo&& &  \mbox{type variables}\\
+\fname&& &  \mbox{function or method name}\\
+\vname&& &  \mbox{field name}\\
+\tname&& &  \mbox{trait name}\\
+\oname&& &  \mbox{object name}\\
+\ty, \prm\ty, \prm{\prm\tau} &::=& \tvone&\mbox{type}\\
+         &|& \tynontv \\
+\tynontv&::=& \tappone& \mbox{type that is not a type variable}\\
+         &|& \oapp \\
+\tappone, \tapptwo, \tappthree &::=& \tapp 
+& \mbox{type that can be a type bound}\\
+         &|& \obj\\
+\exp   &::=& \vname & \mbox{expression}\\
+         &|& \self\\
+         &|& \objexp\\
+         &|& \fldacc\\
+         &|& \mthinvk\\
+         &|& \fncall\\
+\fd &::=& \fdsyntax& \mbox{function or method definition}\\
+\td &::=& \tdsyntax& \mbox{trait definition}\\
+\od &::=& \odsyntax& \mbox{object definition}\\
+\d &::=& \fd & \mbox{definition}\\
+   &|  & \td \\
+   &|  & \od \\
+\pgm &::=& \pd & \mbox{program}\\
+\end{array}
+\]
+\caption{Syntax of \overloadingcore}
+\figlabel{overloading-syntax}
+\end{figure*}

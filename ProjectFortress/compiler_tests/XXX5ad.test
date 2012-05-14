@@ -1,0 +1,50 @@
+#    Copyright 2009,2011, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled5.ad
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+\${STATIC_TESTS_DIR}/Compiled5.ad.fss:15:12-16:\n\
+\    Could not check call to operator <\n\
+\    - (Character, Character)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (IntLiteral, IntLiteral)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (NN32, NN32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (NN64, NN64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (RR64, RR64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (String, String)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (ZZ, ZZ)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\${STATIC_TESTS_DIR}/Compiled5.ad.fss:15:16-20:\n\
+\    Could not check call to operator <\n\
+\    - (Character, Character)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (IntLiteral, IntLiteral)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (NN32, NN32)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (NN64, NN64)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (RR64, RR64)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (String, String)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (ZZ, ZZ)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\    - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (String, ZZ32).\n\
+\${STATIC_TESTS_DIR}/Compiled5.ad.fss:16:6-10:\n\
+\    Could not check call to operator =\n\
+\    - (Boolean, Boolean)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (Character, Character)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (GeneratorZZ32, GeneratorZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (IntLiteral, IntLiteral)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (NN32, NN32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (NN64, NN64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (RR64, RR64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (String, String)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (ZZ, ZZ)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (ZZ32, ZZ32)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\    - (ZZ64, ZZ64)->Boolean is not applicable to an argument of type (ZZ32, String).\n\
+\File Compiled5.ad.fss has 3 errors.\n
+compile_out_equals=

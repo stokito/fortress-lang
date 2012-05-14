@@ -1,0 +1,261 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+ignore(_:Any):() = ()
+
+identity[\T extends Any\](x:T):T = x
+
+(* Function composition *)
+opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
+
+trait Equality[\Self extends Equality[\Self\]\]
+    opr =(self, other:Self): Boolean = self SEQV other
+end
+
+
+
+(** Total ordering *)
+
+trait Comparison
+        extends { StandardPartialOrder[\Comparison\] }
+        comprises { Unordered, TotalComparison }
+    getter asString(): String
+    opr =(self, other:Comparison): Boolean = false
+    (** Lexicographic ordering.  First non-equal comparison dictates result. *)
+    opr LEXICO(self, other:Comparison): Comparison = Unordered
+    (** Symmetric comparison (total orders only).  All comparisons
+        must be compatible, or Unordered results.  Compatible means
+        "all the same sense or EqualTo" in which case the sense is the
+        result (EqualTo if everything's EqualTo). *)
+    opr SYMMETRIC_PARTIAL(self, other:Comparison): Comparison = Unordered
+    opr SYMMETRIC_PARTIAL(self, other:()->Comparison): Comparison = self SYMMETRIC_PARTIAL other()
+    opr INVERSE(self): Comparison
+end
+
+(** Unordered is the outcome of a CMP b when a and b are partially
+    ordered and no ordering relationship exists between them. **)
+object Unordered extends Comparison
+    getter asString(): String = "Unordered"
+    opr =(self, other:Unordered): Boolean = true
+    opr <(self, other:Comparison): Boolean = false
+    opr SYMMETRIC_PARTIAL(self, other:()->Comparison): Comparison = Unordered
+    opr INVERSE(self): Comparison = Unordered
+end
+
+trait TotalComparison
+        extends { Comparison, StandardTotalOrder[\TotalComparison\] }
+        comprises { LessThan, EqualTo, GreaterThan }
+    (* We're both a partial order (including Unordered) and a total
+       order (TotalComparison alone).  Avoid ambiguity between the
+       default definitions of CMP and >=. *)
+    opr =(self, other:TotalComparison): Boolean = false
+    opr =(self, other:Unordered): Boolean = false
+    opr CMP(self, other:Unordered): Comparison = Unordered
+    opr <(self, other:Unordered): Boolean = false
+    opr >=(self, other:Unordered): Boolean = false
+    opr >=(self, other:Comparison): Boolean = NOT (other < self)
+    opr LEXICO(self, other:TotalComparison): TotalComparison = self
+    opr LEXICO(self, other:()->TotalComparison): TotalComparison = self
+    opr INVERSE(self): TotalComparison
+end
+
+object LessThan extends TotalComparison
+    getter asString(): String = "LessThan"
+    opr =(self, other:LessThan): Boolean = true
+    opr CMP(self, other:LessThan): TotalComparison = EqualTo
+    opr CMP(self, other:TotalComparison): TotalComparison = GreaterThan
+    opr <(self, other:LessThan): Boolean = false
+    opr <(self, other:TotalComparison): Boolean = true
+    opr SYMMETRIC_PARTIAL(self, other:LessThan): LessThan = LessThan
+    opr SYMMETRIC_PARTIAL(self, other:EqualTo): LessThan = LessThan
+    opr INVERSE(self): TotalComparison = GreaterThan
+end
+
+object GreaterThan extends TotalComparison
+    getter asString(): String = "GreaterThan"
+    opr =(self, other:GreaterThan): Boolean = true
+    opr CMP(self, other:GreaterThan): TotalComparison = EqualTo
+    opr CMP(self, other:TotalComparison): TotalComparison = LessThan
+    opr <(self, other:TotalComparison): Boolean = false
+    opr SYMMETRIC_PARTIAL(self, other:GreaterThan): GreaterThan = GreaterThan
+    opr SYMMETRIC_PARTIAL(self, other:EqualTo): GreaterThan = GreaterThan
+    opr INVERSE(self): TotalComparison = LessThan
+end
+
+object EqualTo extends TotalComparison
+    getter asString(): String = "EqualTo"
+    opr =(self, other:EqualTo): Boolean = true
+    opr CMP(self, other:TotalComparison): TotalComparison = INVERSE other
+    opr <(self, other:GreaterThan): Boolean = true
+    opr <(self, other:TotalComparison): Boolean = false
+    opr LEXICO(self, other:TotalComparison): TotalComparison = other
+    opr LEXICO(self, other:()->TotalComparison): TotalComparison = other()
+    opr SYMMETRIC_PARTIAL(self, other: Comparison): Comparison = other
+    opr INVERSE(self): TotalComparison = EqualTo
+end
+
+(** StandardPartialOrder is partial ordering using <,>,<=,>=,=, and CMP.
+    This is primarily for floating-point values.  Minimal complete
+    definition: CMP or { <, = }. **)
+trait StandardPartialOrder[\Self extends StandardPartialOrder[\Self\]\]
+        extends { Equality[\Self\] }
+    opr CMP(self, other:Self): Comparison =
+        if self < other then LessThan
+        elif other < self then GreaterThan
+        elif self = other then EqualTo
+        else Unordered
+        end
+    opr <(self, other:Self): Boolean = LessThan = (self CMP other)
+    opr >(self, other:Self): Boolean = other < self
+    opr =(self, other:Self): Boolean = EqualTo = (self CMP other)
+    opr <=(self, other:Self): Boolean = other >= self
+    opr >=(self, other:Self): Boolean = (self = other OR: self > other)
+end
+
+(** %StandardMin% is a MIN operator; most types that implement %MIN%
+    will implement a corresponding total order.  It's a separate type
+    to account for the existence of floating point numbers, for which
+    NaN counts as a bottom that is less than anything else but doesn't
+    actually participate in the standard total ordering.  It is
+    otherwise the case that %a MIN b = a% when %a <= b% and that
+    %a MIN b = b MIN a%. **)
+trait StandardMin[\T extends StandardMin[\T\]\]
+    opr MIN(self, other:T): T
+end
+
+(** %StandardMax% is a MAX operator; most types that implement %MAX%
+    will implement a corresponding total order.  It's a separate type
+    to account for the existence of floating point numbers, for which
+    NaN counts as a bottom that is less than anything else but doesn't
+    actually participate in the standard total ordering.  It is
+    otherwise the case that %a MAX b = a% when %a <= b% and that
+    %a MAX b = b MAX a%. **)
+trait StandardMax[\T extends StandardMax[\T\]\]
+    opr MAX(self, other:T): T
+end
+
+(** %StandardMinMax% combines MIN and MAX operators, and provides a
+    combined MINMAX operator.  This operator returns both its
+    arguments; if equality is possible, self should be the leftmost
+    result.  This effectively means that %(a MINMAX b)% stably sorts
+    %a% and %b%.  In addition, %a MINMAX b = (a MIN b, a MAX b)% must
+    always hold. **)
+
+trait StandardMinMax[\T extends StandardMinMax[\T\]\]
+        extends { StandardMin[\T\], StandardMax[\T\] }
+    opr MINMAX(self, other:T): (T,T)
+    opr MIN(self, other:T): (T,T) = do (r,_) = self MINMAX other; r end
+    opr MAX(self, other:T): (T,T) = do (_,r) = self MINMAX other; r end
+end
+
+(** StandardTotalOrder is the usual total order using <,>,<=,>=,=, and
+    CMP.  Most values that define a comparison should do so using
+    this.  Minimal complete definition: either CMP or < (it's
+    advisable to define = in the latter case).  As noted above, %MIN%
+    and %MAX% respect the total order and are defined in the obvious
+    way. **)
+trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
+        extends { StandardPartialOrder[\Self\], StandardMinMax[\Self\] }
+    opr CMP(self, other:Self): TotalComparison =
+        if self < other then LessThan
+        elif other < self then GreaterThan
+        else EqualTo
+        end
+    opr >=(self, other:Self): Boolean = NOT (self < other)
+    opr <=(self, other:Self): Boolean = NOT (other < self)
+    opr MIN(self, other:Self): Self = if other < self then other else self end
+    opr MAX(self, other:Self): Self = if other < self then self else other end
+    opr MINMAX(self, other:Self): (Self,Self) =
+        if other < self then (other, self) else (self, other) end
+end
+
+(** Assertion *)
+assert(flag:Boolean): () =
+    if NOT flag then
+        fail("Assertion failed!")
+    end
+
+assert(flag: Boolean, failMsg: String): () =
+    if NOT flag then
+        fail(failMsg)
+    end
+
+deny(flag:Boolean): () = assert(NOT flag)
+
+deny(flag: Boolean, failMsg: String): () = assert(NOT flag, failMsg)
+
+(*
+
+Not yet ready for these.
+
+assert(x:Any, y:Any, failMsg: Any...): () =
+    if x =/= y then
+        msg = x.asDebugString " =/= " y.asDebugString "; " (BIG || failMsg)  (* use || here instead of loose juxt *)
+        fail(msg)
+    end
+
+deny(x:Any, y:Any, failMsg: Any...): () =
+    if x = y then
+        msg = x.asDebugString " = " y.asDebugString "; " (BIG || failMsg)
+        fail(msg)
+    end
+    
+    
+object LexicographicPartialReduction
+        extends { MonoidReduction[\Comparison\],
+                  ReductionWithZeroes[\Comparison, Comparison\] }
+    getter asString():String = "Lexicographic reduction on partial order"
+    empty(): Comparison = EqualTo
+    join(a:Comparison, b:Comparison):Comparison = a LEXICO b
+    isZero(_:Unordered): Boolean = true
+    isZero(_:Comparison): Boolean = false
+end
+
+object LexicographicReduction
+        extends { MonoidReduction[\TotalComparison\],
+                  ReductionWithZeroes[\TotalComparison, TotalComparison\] }
+    getter asString():String = "Lexicographic reduction on total order"
+    empty(): TotalComparison = EqualTo
+    join(a:TotalComparison, b:TotalComparison):TotalComparison = a LEXICO b
+    isLeftZero(_:EqualTo): Boolean = false
+    isLeftZero(_:Comparison): Boolean = true
+end
+
+opr BIG LEXICO(): BigReduction[\TotalComparison, TotalComparison\] =
+    BigReduction[\TotalComparison,TotalComparison\](LexicographicReduction)
+
+opr BIG LEXICO(g: Generator[\TotalComparison\]) =
+    __bigOperatorSugar[\TotalComparison,TotalComparison,TotalComparison,TotalComparison\](BIG LEXICO(), g)
+
+*)
+
+(* ****************** *) 
+
+trait Generator[\E\] excludes { Number } 
+    abstract generate[\R\](body: E->R, combine : (R,R) -> R): R
+end
+
+
+
+
+
+cat(x:String, y:String):String = x || y
+
+rcat(x:String, y:String):String = y || x
+id(x:String):String = x
+
+somebody(x:ZZ32):String = x.asString
+
+run():() = do
+
+end

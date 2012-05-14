@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component LocalVar
+
+export Executable
+
+f(x) = x
+g(x) =
+  do
+    fx =
+      f(x)
+    fx + 3 x fx
+  end
+
+run() = assert(g(2) = 14)
+
+end

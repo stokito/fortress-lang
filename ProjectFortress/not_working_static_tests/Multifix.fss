@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Multifix
+  export Executable
+
+  object Foo end
+  object Gnar end
+
+  opr +(a:Foo, b:Foo):Foo = a
+  opr +(a:Foo, b:Gnar):Gnar = b
+
+  opr +(a:Foo, b:Foo, c:Foo, d:Foo, e:Foo...):String = "Surprise!"
+
+  (* We should be able to call multi-fix operators. *)
+  foo(f:Foo) : String = f+f+f+f
+
+  (* But if no function taking the same number of arguments
+     exists, we use the binary operation. *)
+  bar(f:Foo) : Foo = f+f+f
+
+  (* Also we use the binary operator if types are incompatible.
+     So overloading should be taken into account *)
+  quux(a:Foo,b:Gnar) : Gnar = a+a+a+b
+
+  run():() = do
+    assert(foo(Foo), "Surprise!")
+    assert(bar(Foo), Foo)
+    assert(quux(Foo, Gnar), Gnar)
+  end
+end

@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Generic methods of generic types
+   But NO OVERLOADING *)
+
+f'(x: ZZ32): ZZ32 = x
+(* g(x: String) = println x  *)
+
+trait T[\S extends ZZ32\]
+  f(self):S
+  g[\U extends ZZ32\](u: U):ZZ32
+end
+
+object O[\S extends ZZ32\](x: S) extends T[\S\]
+  f(self):S = x
+  g[\U extends ZZ32\](u: U):ZZ32 = f(self) + u
+end
+
+run() =do
+  o = O[\ZZ32\](3)
+  a: ZZ32 = 3 (*) f(o)             (*) 3
+  b: ZZ32 = o.g[\ZZ32\](5)       (*) 8
+  c: ZZ32 = 4 (*) f'(4)            (*) 4
+
+  println(
+  if (a=3 AND b=8 AND c=4)
+     then "pass" else "fail" end
+  )
+end

@@ -1,0 +1,45 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component InliningTest12
+export Executable
+
+fun(x: RR64): RR64 = x (x x + 1.0)
+curry(f:(RR64,RR64)->RR64): RR64 -> (RR64 -> RR64) = fn (a:RR64) => fn (b:RR64) => f(a,b)
+opr AP(f: RR64 -> RR64, a: () -> RR64): RR64 = f(a())
+opr APP(f: RR64 -> (RR64->RR64), a: () -> RR64): (RR64->RR64) = f(a())
+
+(* Even higher-order functions (this found some more bugs in type names for curry etc) *)
+integrate_ho(l: RR64, h:RR64, f: RR64->RR64, tol: RR64): RR64 =
+    integrate_ho'(l,h,f(l),f(h),0.0,f,tol)
+
+integrate_ho'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, f: RR64->RR64, tol: RR64): RR64 = do
+   w = 0.5 (h-l)
+    hw = 0.5 w
+    m = l + w
+    fm = f(m)
+    al = hw (fl + fm)
+    ah = hw (fm + fh)
+    alh = al + ah
+    if |alh - a| <= |alh| tol OR: w <= tol then
+        alh
+    else
+        (curry(fn (x,y) => x+y) APP:
+         integrate_ho'(l,m,fl,fm,al,f,tol)) AP:
+        integrate_ho'(m,h,fm,fh,ah,f,tol)
+    end
+  end
+
+run(): () = do
+   foo = integrate_ho(0.0, 1536.0, fun, 0.0009);
+   println(foo)
+end
+end

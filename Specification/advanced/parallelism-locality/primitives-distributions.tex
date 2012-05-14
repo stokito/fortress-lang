@@ -1,0 +1,48 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Placing Threads}
+\seclabel{parallelism-fundamentals}
+
+A thread can be placed in a particular region by using an \KWD{at}
+expression:
+\input{\home/advanced/examples/Parallel.At.a.tex}
+
+In this example, two implicit threads are created; the first computes
+\EXP{a_i} locally, the second computes \EXP{a_j} in the region where
+the $j^{th}$ element of $a$ resides, specified by
+\EXP{a.\VAR{region}(j)}.  The expression after \KWD{at} must return a
+value of type \TYP{Region}, and the block immediately following
+\KWD{do} is run in that region; the result of the block is the result
+of the \KWD{at} expression as a whole.  Often it is more graceful to
+use the \EXP{\KWD{also}\;\KWD{do}} construct
+(described in\secref{also-block})
+in these cases:
+\input{\home/advanced/examples/Parallel.At.b.tex}
+
+We can also use \KWD{at} with a \KWD{spawn} expression:
+\input{\home/advanced/examples/Parallel.At.c.tex}
+
+Finally, note that it is possible to use an \KWD{at} expression within
+a block:
+\input{\home/advanced/examples/Parallel.At.d.tex}
+We can think of this as the degenerate case of \EXP{\KWD{also}\;
+  \KWD{do}}: a thread group is created with a single implicit thread
+running the contents of the \KWD{at} expression in the given region; when
+this thread completes control returns to the original location.
+
+Note that the regions given in an \KWD{at} expression are non-binding:
+the Fortress implementation may choose to run the computations
+elsewhere---for example, thread migration might not be possible within
+an \KWD{atomic} expression, or load balancing might cause code to be
+executed in a different region.  In general, however, implementations
+should attempt to respect thread placement annotations when they are
+given.

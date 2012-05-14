@@ -1,0 +1,254 @@
+(*******************************************************************************
+    Copyright 2012,, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component FileSupport
+
+import Util.{...}
+import Maybe.{...}
+import Array.{...}
+
+export FileSupport
+
+(***********************************************************
+ * Types to support file input and output
+ ***********************************************************)
+
+trait Closeable
+    close():()
+end
+
+trait FileStream extends Closeable
+    getter fileName():String
+end
+
+trait Consumable
+    consume():()
+    whenUnconsumed():()
+end
+
+trait ReadStream extends { Closeable, Consumable }
+    (** eof returns true if an end-of-file condition has been
+        encountered on the stream.
+     **)
+    getter eof():Boolean
+
+    (** ready returns true if there is currently input from the stream
+        available to be consumed.
+     **)
+    getter ready():Boolean
+
+    (** Returns the next available line from the stream, discarding
+        line termination characters.  Returns "" on eof.
+     **)
+    readLine():String = do whenUnconsumed(); uncheckedReadLine() end
+
+    (** Returns the next available character from the stream, or %char(0)% on eof.
+     **)
+    readChar():Character = do whenUnconsumed(); makeCharacter(eofCheckedReadChar()) end
+
+    (** Returns the next k characters from the stream.  It will block
+        until at least one character is available, and will then
+        return as many characters as are ready.  Will return "" on end
+        of file.  If k<=0 or absent a default value is chosen.
+     **)
+    read(k:ZZ32):String = do whenUnconsumed(); uncheckedRead(k) end
+
+    read():String = read(0)
+
+    uncheckedReadLine():String
+
+    uncheckedReadChar():ZZ32
+
+    eofCheckedReadChar():ZZ32 = do
+        r = uncheckedReadChar()
+        if r = -1 then 0 else r end (*) JT: Used to  be char(_)  
+      end
+
+    uncheckedRead(k:ZZ32):String
+
+    (** All file generators yield file contents in parallel by
+        default, with a natural ordering corresponding to the order
+        data occurs in the underlying file.  The file is closed if all
+        its contents have been read.
+
+        These generators pull in multiple chunks of data (where a
+        "chunk" is a line, a character, or a block) before it is
+        processed.  The maximum number of chunks to pull in before
+        processing is given by the last optional argument in every
+        case; if it is <=0 or absent a default value is chosen.
+
+        It is possible to read from a ReadStream before invoking any
+        of the following methods.  Previously-read data is ignored,
+        and only the remaining data is provided by the generator.
+
+        At the moment it is illegal to read from a ReadStream once any
+        of these methods has been called; we do not check for this
+        condition.  However, the sequential versions of these
+        generators may use label/exit or throw in order to escape from
+        a loop, and the ReadStream will remain open and ready for
+        reading.
+
+        Once the ReadStream has been completely consumed it is closed.
+     **)
+
+
+    (** lines yields the lines found in the file a la readLine().
+     **)
+    lines(n:ZZ32):Generator[\String\] = do
+        consume()
+        FileGenerator[\String\](self, n,
+            fn (r:ReadStream): Maybe[\String\] => do
+               s = r.uncheckedReadLine()
+               (if |s| = 0 AND: r.eof then Nothing[\String\] else Just s)
+            end)
+      end
+    lines():Generator[\String\] = lines(0)
+
+    (** characters yields the characters found in the file a la %readChar()%.
+     **)
+    characters(n:ZZ32):Generator[\Character\] = do
+        consume()
+        FileGenerator[\Character\](self, n,
+            fn (r:ReadStream): Maybe[\Character\] => do
+               c = r.uncheckedReadChar()
+               (if c = -1 then Nothing[\Character\] else Just makeCharacter(c) )
+            end)
+      end
+    characters():Generator[\Character\] = characters(0)
+
+    (** chunks returns chunks of characters found in the file, in the
+        sense of read().  The first argument is equivalent to the
+        argument k to read, the second (if present) is the number of
+        chunks at a time.
+     **)
+    chunks(n:ZZ32,m:ZZ32):Generator[\String\] = do
+        consume()
+        FileGenerator[\String\](self, m,
+            fn (r:ReadStream): Maybe[\String\] => (if r.eof then Nothing[\String\] else Just r.uncheckedRead(n)))
+      end
+    chunks(n:ZZ32): Generator[\String\] = chunks(n,0)
+    chunks(): Generator[\String\] = chunks(0,0)
+end
+
+(** A FileGenerator generates values from the contents of a
+    ReadStream.  Unlike other generators its contents can be consumed
+    exactly once.
+
+    A FileGenerator generates file contents in parallel in chunks.
+    These chunks get larger as we proceed through the file, until we
+    reach some upper bound on the number of chunks being consumed at
+    once.  This upper bound is specified by upper, except that
+    meaningless values of upper <= 0 are replaced by the default value
+    of 1024.
+ **)
+object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
+                          readOne:ReadStream -> Maybe[\S\])
+        extends { Consumable, Generator[\S\] }
+    consumed : Boolean := false
+    up : ZZ32 = if upper <= 0 then 1024 else upper end
+    consume():() = atomic do whenUnconsumed(); consumed := true end
+    whenUnconsumed():() =
+        if consumed then
+            fail("Using consumed generator of " reader)
+        end
+    generate[\R\](r: Reduction[\R\], body: S->R): R = do
+        consume()
+        go(n:ZZ32): R =
+            if reader.eof then r.empty()
+            else
+                (* First read must block, and not check reader.ready *)
+                bu: Array[\S\] = array[\S\](n)
+                i : ZZ32 := 0
+                if s0 <- readOne(reader) then
+                    bu.init(0,s0)
+                    i := 1
+                end
+                (* Subsequent reads contingent on reader.ready *)
+                while (i<n AND: NOT reader.eof AND: reader.ready) do
+                    if s <- readOne(reader) then
+                        bu.init(i,s)
+                        i += 1
+                    end
+                end
+                r.join(bu[0#i].generate[\R\](r,body),go((2 n) MAX up))
+            end
+        a = go(8 MIN up)
+        reader.close()
+        a
+      end
+
+    seq(self): SequentialGenerator[\S\] = do
+        consume()
+        SeqFileGenerator[\S\](reader, readOne)
+      end
+
+    loop(f:S->()): () = do
+        consume()
+        go(n:ZZ32): () =
+            if reader.eof then ()
+            else
+                (* First read must block, and not check reader.ready *)
+                bu: Array[\S\] = array[\S\](n)
+                i : ZZ32 := 0
+                if s0 <- readOne(reader) then
+                    bu.init(0,s0)
+                    i := 1
+                end
+                (* Subsequent reads contingent on reader.ready *)
+                while (i<n AND: NOT reader.eof AND: reader.ready) do
+                    if s <- readOne(reader) then
+                        bu.init(i,s)
+                    end
+                    i += 1
+                end
+                (a,b) = (bu[0#i].loop(f), go((2 n) MAX up)) (*) JT: mention this to VL and GS
+                ()
+            end
+        go(8 MIN up)
+        reader.close()
+      end
+end
+
+object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> Maybe[\S\])
+        extends { Consumable, SequentialGenerator[\S\] }
+    consumed : Boolean := false
+    consume():() = atomic do whenUnconsumed(); consumed := true end
+    whenUnconsumed():() =
+        if consumed then
+            fail("Using consumed generator of " reader)
+        end
+    generate[\R\](r: Reduction[\R\], body: S->R): R = do
+        consume()
+        a:R := r.empty()
+        while (NOT reader.eof) do
+            if s <- readOne(reader) then
+                v = body(s)
+                a := r.join(a,v)
+            end
+        end
+        reader.close()
+        a
+      end
+
+    seq(self): SequentialGenerator[\S\] = self
+
+    loop(body:S->()): () = do
+        consume()
+        while (NOT reader.eof) do
+            if s <- readOne(reader) then
+                body(s)
+            end
+        end
+        reader.close()
+      end
+end
+
+end

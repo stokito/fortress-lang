@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled6.k
+export Executable
+
+object O
+  getter x() = ()
+  getter x(y:ZZ32) = ()
+end
+
+run(): () = ()
+
+end

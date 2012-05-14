@@ -1,0 +1,124 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component rangeOperators
+export Executable
+
+object Op(s:String)
+    getter asString(): String = "(" s ")"
+end
+
+opr :(x:String, y:String): Op = Op(x ":" y)
+opr #(x:String, y:String): Op = Op(x "#" y)
+opr ::(x:String, y:String): Op = Op(x "::" y)
+
+opr :(x:Op, y:String): Op = Op(x ":" y)
+opr #(x:Op, y:String): Op = Op(x "#" y)
+opr ::(x:Op, y:String): Op = Op(x "::" y)
+
+opr :(x:String, y:Op): Op = Op(x ":" y)
+opr #(x:String, y:Op): Op = Op(x "#" y)
+opr ::(x:String, y:Op): Op = Op(x "::" y)
+
+opr :(x:String): Op = Op(":" x)
+opr #(x:String): Op = Op("#" x)
+opr ::(x:String): Op = Op("::" x)
+
+opr :(x:Op): Op = Op(x ":")
+opr #(x:Op): Op = Op(x "#")
+opr ::(x:Op): Op = Op(x "::")
+
+opr (x:String): : Op = Op(x ":")
+opr (x:String)# : Op = Op(x "#")
+opr (x:String):: : Op = Op(x "::")
+
+opr (x:Op): : Op = Op(x ":")
+opr (x:Op)# : Op = Op(x "#")
+opr (x:Op):: : Op = Op(x "::")
+
+(*
+((A:B):C)
+((A#B):C)
+((:A):B)
+((#A):B)
+((::A):B)
+
+(A:(B#C))
+(A:(B:))
+(A:(B#))
+(A:(B::))
+
+((A#B)#C)
+((:A)#B)
+((#A)#B)
+((::A)#B)
+
+(A#(B:))
+(A#(B#))
+(A#(B::))
+
+((A::B)::C)
+((A#B)::C)
+((A:B)::C)
+((:A)::B)
+((#A)::B)
+((::A)::B)
+
+(A::(B#C))
+(A::(B:C))
+(A::(B:))
+(A::(B#))
+(A::(B::))
+*)
+
+
+(* TODO: CHECK RESULTS! *)
+run() = do
+    assert(("A":"B":"C").toString,  "((A:B):C)")
+    assert(("A"#"B":"C").toString,  "((A#B):C)")
+    assert(("A":"B"#"C").toString,  "((A:B)#C)")
+    assert(("A"#"B"#"C").toString,  "((A#B)#C)")
+(*
+    assert(("A"::"B"::"C").toString,"")
+    assert(("A"#"B"::"C").toString, "")
+    assert(("A"::"B"#"C").toString, "")
+    assert(("A"::"B":"C").toString, "")
+    assert(("A":"B"::"C").toString, "")
+*)
+    assert((:"A":"B").toString,     "((:A):B)")
+    assert((:"A"#"B").toString,     "((:A)#B)")
+(*
+    assert((:"A"::"B").toString,    "")
+*)
+    assert((#"A":"B").toString,     "((#A):B)")
+    assert((#"A"#"B").toString,     "((#A)#B)")
+(*
+    assert((#"A"::"B").toString,    "")
+*)
+    assert((::"A":"B").toString,    "((::A):B)")
+    assert((::"A"#"B").toString,    "((::A)#B)")
+    assert((::"A"::"B").toString,   "((::A)::B)")
+(*
+    assert(("A":"B":).toString,     "")
+    assert(("A"#"B":).toString,     "")
+    assert(("A"::"B":).toString,    "")
+*)
+    assert(("A":"B"#).toString,     "(A:(B#))")
+    assert(("A"#"B"#).toString,     "(A#(B#))")
+(*
+    assert(("A"::"B"#).toString,    "")
+    assert(("A":"B"::).toString,    "")
+    assert(("A"#"B"::).toString,    "")
+    assert(("A"::"B"::).toString,   "")
+*)
+  end
+
+end

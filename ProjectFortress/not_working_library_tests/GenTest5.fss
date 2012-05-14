@@ -1,0 +1,636 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component GenTest5
+import CompilerAlgebra.{ ... }
+export Executable
+
+(***\
+   The type `Container[\T\]` "contains" objects of type `T`, in the sense
+   that we can check whether a `T` is a member of a `Container[\T\]` using
+   `opr IN` and its ken, or using a `case` expression.  Moreover, we require
+   that containers be generators.
+
+   The minimal complete definition of a Container is the `IN` operator.
+   (Because every container is a generator, we could have chosen to define
+   the `IN` operator as `BIG OR [y <- self] elt=y`, but this is rarely
+   the best implementation, so it has been left abstract here.)
+ \***)
+
+trait Container[\T extends Equality[\T\]\] extends Generator[\T\]
+    (** `IN` indicates whether `self` contains `elt`.  **)
+    opr IN(elt: T, self): Boolean
+    opr NOTIN(elt: T, self): Boolean = NOT (elt IN self)
+    opr NI(self, elt: T): Boolean = (elt IN self)
+    opr NOTNI(self, elt: T): Boolean = NOT (self NI elt)
+end
+
+(***\
+   An object of type Generator[\E\] can "generate values of type E."
+   Such generated values are called the //elements// of the generator.
+
+   Generators are used to express iteration in Fortress.  Every
+   generated expression in Fortress (such as `for` loops and comprehensions)
+   is desugared into calls to methods of `Generator`, chiefly the `generate`
+   method.
+
+   Every generator has a notion of a "natural order" (which by default is
+   unspecified), which describes the ordering of reduction operations,
+   and also describes the order in which elements are produced by the
+   sequential version of the same generator (given by the seq(self)
+   method).  The default implementation of seq(self) guarantees that these
+   orders will match.
+
+   Note in particular that the natural order of a Generator must be
+   consistent; that is, if `a SEQV `b then `a` and `b` must yield equivalent
+   elements in the same natural order.  However, note that unless a type
+   specifically documents otherwise, no particular element ordering is
+   guaranteed, nor is it necessary to guarantee that `a=b` implies that
+   generators `a` and `b` have the same natural order.
+
+   Note that there are a number of more complex derived generators that
+   are specified further down in this file.  These have the same notions
+   of natural order and by default are defined in terms of the
+   generate() method.
+
+   The `Generator` trait does not assume that equality `=` is defined for
+   the generated type.
+
+   The minimal complete definition of a `Generator` is the `generate` method.
+ *)
+
+trait Generator[\E1\] excludes { Number, Character }
+(*)    getter asString(): String = (BIG ||[i <- self] "," i)[1:]
+
+    (** Returns a generator that generates the same objects as this generator
+        but using a natural order that is the reverse of this generator's
+        natural order. *)
+    getter reverse(): Generator[\E1\] = SimpleReversedGenerator[\E1\](self)
+
+    (** Method `generate` is the core of the `Generator` trait.  It generates
+        elements of type `E1` and passes them to the `body` function.
+        This generation can occur using any mixture of serial and
+        parallel execution desired by the author of the generator; by
+        default, uses of a generator must assume every call to the
+        body occurs in parallel.
+
+        The results of generation are combined using the reduction
+        object R, which specifies a monoidal operation (associative
+        and with an identity).  Body results must be combined together
+        following the natural order of the generator.  The author of
+        the generator is free to use the identity element anywhere
+        desired in this computation, and to group reductions in any
+        way desired; if no elements are generated, the identity must be
+        returned. *)
+    generate[\R\](r: Reduction[\R\], body: E1->R): R
+
+    (** Transforming generators into new generators *)
+    (** `map` returns a new generator that generates the results of
+        applying the function `f` to the elements of this generator.
+        It is not specified whether any of the applications of `f`
+        occur before the new generator is returned.  The resulting
+        generator must have the same ordering and cross product
+        properties as the generator from which it is derived. *)
+    map[\Gyy\](f: E1->Gyy): Generator[\Gyy\] = SimpleMappedGenerator[\E1,Gyy\](self, f)
+
+    (** seq produces a sequential version of the same generator, which
+        produces elements in a temporal order that matches this generator's
+        natural order. *)
+    seq(self): SequentialGenerator[\E1\] = self.seq()
+    seq(): SequentialGenerator[\E1\]
+
+    (** Nesting of generators: the argument `f` is a function from
+        elements of this generator to new generators.  This allows an
+        inner generator expression to be data-dependent on this (outer)
+        generator.  The result is a new generator that will produce all
+        the elements of all the generators resulting from applying `f` to
+        every element of this generator.  Appropriate overloading of this
+        method allows the production of specialized implementations
+        when particular sorts of generators are nested.  The natural order
+        of the new generator is the concatenation of the natural orders of the
+        inner generators, where such concatenation is done in the natural order
+        of this generator.  So for example, if we write:
+          (0#3).nest[\ZZ32\](\(n:ZZ32):Generator[\ZZ32\] => (n*100#4))
+        then the twelve elements of the result should appear in the natural
+        order as 0, 1, 2, 3, 100, 101, 102, 103, 200, 201, 202, 203.
+     **)
+    nest[\G1\](f: E1 -> Generator[\G1\]): Generator[\G1\] =
+        SimpleNestedGenerator[\E1,G1\](self,f)
+
+    (** Filtering data from a generator.  Only elements that satisfy
+        the predicate p are retained.  Natural order and cross product
+        properties are otherwise preserved. **)
+    filter(f: E1 -> Condition[\()\]): Generator[\E1\] =
+        SimpleFilterGenerator[\E1\](self,f)
+
+    (** Cross product of two generators.  This is specifically
+        designed to be overloaded, such that pairs of independent
+        generators can be combined to produce a generator which
+        possibly interleaves the iteration spaces of the two
+        generators.  For example, we might combine `(0#16).cross(0#32)`
+        such that it first splits the second range in half, then the
+        first range in half, then the second, and so forth.
+
+        Consider a grid for which the rows are labeled from top to
+        bottom with the elements of a in natural order, and the
+        columns are labeled from left to right with the elements of g
+        in natural order.  Each point in the grid corresponds to a
+        pair (a,b) that must be generated by self.cross(g).  In the
+        natural order of the cross product, an element must occur
+        after those that lie above and to the left of it in the grid.
+        By default the natural order of the cross product is
+        left-to-right, top to bottom.  Programmers must not rely on
+        the default order, except that cross products involving one or
+        more sequential generators are always performed in the default
+        order.  Note that this means that the following have the same
+        natural order:
+           seq(a).cross(b)
+           a.cross(seq(b))
+           seq(a).cross(seq(b))
+        But seq(a.cross(b)) may have a different natural order. *)
+    cross[\G2\](g: Generator[\G2\]): Generator[\(E1,G2)\] =
+        SimplePairGenerator[\E1,G2\](self, g)
+
+    (** Derived generation operations *)
+    (** mapReduce is equivalent to generate, but takes an explicit `join` function
+        and an identity value `id` that can have any type.  It still assumes `join` is
+        associative and that `id` is the identity of `join`. *)
+    mapReduce[\R\](body: E1->R, join: (R,R)->R, id: R): R =
+        generate[\R\](MapReduceReduction[\R\](join, id), body)
+
+    (** `reduce` is like `generate` or `mapReduce` but takes no `body` function *)
+    reduce(r: Reduction[\E1\]): E1 = generate[\E1\](r, fn(e:E1)=>e)
+    reduce(join: (E1,E1)->E1, id: E1): E1 = mapReduce[\E1\](fn (e:E1)=>e, join, id)
+
+    (** `loop` is a version of `generate` that requires a body of void type.
+        It is used to translate `for` loops.  This default implementation uses
+        `VoidReduction` to reduce many void values to one, thus synchronizing
+        completion of the `for` loop. *)
+    loop(body :E1->()): () = generate[\()\](VoidReduction, body)
+
+end Generator
+
+trait SequentialGenerator[\E2\] extends { Generator[\E2\] }
+    getter reverse(): SequentialGenerator[\E2\] =
+        SimpleSequentialReversedGenerator[\E2\](self)
+    seq(): SequentialGenerator[\E2\] = self
+    map[\G3\](f: E2->G3): SequentialGenerator[\G3\] =
+        SimpleSequentialMappedGenerator[\E2,G3\](self,f)
+    (* This is an overloading, so that nesting two sequential
+       generators will produce a sequential generator. *)
+    nest[\G4\](f: E2 -> SequentialGenerator[\G4\]): SequentialGenerator[\G4\] =
+        SimpleSequentialNestedGenerator[\E2,G4\](self,f)
+    filter(f: E2 -> Condition[\()\]): SequentialGenerator[\E2\] =
+        SimpleSequentialFilterGenerator[\E2\](self,f)
+    (* This is an overloading, so that crossing two sequential
+       generators will produce a sequential generator. *)
+    cross[\F1\](g: SequentialGenerator[\F1\]): Generator[\(E2,F1)\] =
+        SimpleSequentialPairGenerator[\E2,F1\](self,g)
+end SequentialGenerator
+
+
+(* Reversed generators *)
+
+trait ReversedGenerator[\E3\] extends Generator[\E3\] comprises { SimpleReversedGenerator[\E3\], SimpleSequentialReversedGenerator[\E3\] }
+    getter g():Generator[\E3\]
+    getter reverse(): Generator[\E3\] = self.g
+    generate[\R\](r:Reduction[\R\], body:E3->R): R = self.g.generate[\R\](r.reverse, body)
+    map[\G5\](f: E3->G5): Generator[\G5\] = self.g.map[\G5\](f).reverse
+    filter(f: E3 -> Condition[\()\]): Generator[\E3\] = self.g.filter(f).reverse
+end
+
+object SimpleReversedGenerator[\E4\](g0:Generator[\E4\]) extends ReversedGenerator[\E4\]
+    getter g(): Generator[\E4\] = g0
+    getter asString(): String = "SimpleReversedGenerator(" self.g.asString ")"
+    seq(): SimpleSequentialReversedGenerator[\E4\] = SimpleSequentialReversedGenerator(seq(g0))
+end
+
+object SimpleSequentialReversedGenerator[\E5\](g0:SequentialGenerator[\E5\])
+        extends { ReversedGenerator[\E5\], SequentialGenerator[\E5\] }
+    getter g(): SequentialGenerator[\E5\] = g0
+    getter asString(): String = "seq(SimpleReversedGenerator(" self.g.asString "))"
+    getter reverse(): SequentialGenerator[\E5\] = self.g
+    map[\G6\](f: E5->G6): SequentialGenerator[\G6\] = self.g.map[\G6\](f).reverse
+    filter(f: E5 -> Condition[\()\]): SequentialGenerator[\E5\] = self.g.filter(f).reverse
+end
+
+
+(* Mapped generators *)
+
+trait AnyMappedGenerator end
+
+trait MappedGenerator[\E6,F2\] extends { Generator[\F2\], AnyMappedGenerator }
+        comprises {  SimpleMappedGenerator[\E6,F2\], SimpleSequentialMappedGenerator[\E6,F2\] }
+    getter g(): Generator[\E6\]
+    getter f(): E6 -> F2
+    getter reverse(): SimpleMappedGenerator[\E6,F2\] =
+        SimpleMappedGenerator[\E6,F2\](self.g.reverse, self.f)
+    generate[\R\](r: Reduction[\R\], m: F2->R): R =
+        self.g.generate[\R\](r, fn (x: E6): R => m((self.f)(x)))
+    reduce(r: Reduction[\F2\]): F2 =
+        self.g.generate[\F2\](r, self.f)
+    map[\G7\](f': F2->G7): MappedGenerator[\E6,G7\] =
+        SimpleMappedGenerator[\E6,G7\](self.g, fn (x: E6): G7 => f'((self.f)(x)))
+    seq(): SimpleSequentialMappedGenerator[\E6,F2\] =
+        SimpleSequentialMappedGenerator[\E6,F2\](seq(self.g),self.f)
+end
+
+object SimpleMappedGenerator[\E7,F3\](g0: Generator[\E7\], f0: E7->F3)
+        extends MappedGenerator[\E7,F3\]
+    getter g(): Generator[\E7\] = g0
+    getter f(): E7->F3 = f0
+    getter asString(): String = "mapped(" self.g.asString ")"
+end
+
+object SimpleSequentialMappedGenerator[\E8,F4\](g0: SequentialGenerator[\E8\], f0: E8->F4)
+        extends { MappedGenerator[\E8,F4\], SequentialGenerator[\F4\] }
+    getter g(): SequentialGenerator[\E8\] = g0
+    getter f(): E8->F4 = f0
+    getter asString() = "mapped(seq(" self.g.asString "))"
+    getter reverse(): SimpleSequentialMappedGenerator[\E8,F4\] =
+        SimpleSequentialMappedGenerator[\E8,F4\](self.g.reverse, self.f)
+    map[\G73\](f': F4->G73): SimpleSequentialMappedGenerator[\E8,G73\] =
+        SimpleSequentialMappedGenerator[\E8,G73\](self.g, fn (x: E8): G73 => f'((self.f)(x)))
+    seq(): SimpleSequentialMappedGenerator[\E8,F4\] = self
+end
+
+(* Nested generators *)
+
+
+trait NestedGenerator[\E9,F5\] extends Generator[\F5\]
+        comprises { SimpleNestedGenerator[\E9,F5\], SimpleSequentialNestedGenerator[\E9,F5\] }
+    getter g(): Generator[\E9\]
+    getter f(): E9 -> Generator[\F5\]
+    getter reverse(): NestedGenerator[\E9,F5\] =
+        SimpleNestedGenerator[\E9,F5\](self.g.reverse,
+            fn(e:E9):Generator[\F5\] => (self.f)(e).reverse)
+    generate[\R\](r: Reduction[\R\], body: F5->R): R =
+        self.g.generate[\R\](r,fn (e:E9):R => (self.f)(e).generate[\R\](r,body))
+    map[\G8\](h:F5->G8): Generator[\G8\] =
+        self.g.nest[\G8\](fn (e:E9): Generator[\G8\] => (self.f)(e).map[\G8\](h))
+    nest[\G9\](h:F5->Generator[\G9\]): Generator[\G9\] =
+        self.g.nest[\G9\](fn (e:E9): Generator[\G9\] => (self.f)(e).nest[\G9\](h))
+    nest[\G19\](h:F5->SequentialGenerator[\G19\]): Generator[\G19\] =   (*) ***
+        self.g.nest[\G19\](fn (e:E9): Generator[\G19\] => (self.f)(e).nest[\G19\](h))
+    mapReduce[\R\](body: F5->R, join:(R,R)->R, id:R): R =
+        self.g.mapReduce[\R\](
+            fn (e:E9): R => (self.f)(e).mapReduce[\R\](body,join,id),
+            join, id)
+    reduce(r: Reduction[\F5\]): F5 =
+        self.g.generate[\F5\](r,fn (e:E9):F5 => (self.f)(e).reduce(r))
+    reduce(join:(F5,F5)->F5, id:F5):F5 =
+        self.g.mapReduce[\F5\](fn (e:E9): F5 => (self.f)(e).reduce(join,id), join, id)
+    loop(body:F5->()): () =
+        self.g.loop(fn (e:E9) => (self.f)(e).loop(body))
+end
+
+object SimpleNestedGenerator[\E10,F6\](g0: Generator[\E10\], f0: E10->Generator[\F6\])
+        extends { NestedGenerator[\E10,F6\] }
+    getter g(): Generator[\E10\] = g0
+    getter f(): E10->Generator[\F6\] = f0
+    getter asString() = "(" self.g ").nest(f)"
+    seq(): SequentialGenerator[\F6\] =
+      SimpleSequentialNestedGenerator[\E10,F6\](seq(self.g),
+          typecase self.f of
+            f': (E10 -> SequentialGenerator[\F6\]) => f'
+            else => (fn (e:E10): SequentialGenerator[\F6\] => seq((self.f)(e)))
+          end)
+end
+
+object SimpleSequentialNestedGenerator[\E11,F7\]
+        (g0: SequentialGenerator[\E11\], f0: E11->SequentialGenerator[\F7\])
+        extends { NestedGenerator[\E11,F7\], SequentialGenerator[\F7\] }
+    getter g(): SequentialGenerator[\E11\] = g0
+    getter f(): E11->SequentialGenerator[\F7\] = f0
+    getter asString() = "seq((" self.g ").nest(f))"
+    map[\G83\](h:F7->G83): SequentialGenerator[\G83\] =
+        self.g.nest[\G83\](fn (e:E11): SequentialGenerator[\G83\] => (self.f)(e).map[\G83\](h))
+    nest[\G20\](h:F7->SequentialGenerator[\G20\]): SequentialGenerator[\G20\] =
+        self.g.nest[\G20\](fn (e:E11):SequentialGenerator[\G20\] => (self.f)(e).nest[\G20\](h))
+end
+
+(* Cross-product generators *)
+
+trait PairGenerator[\E12,F8\] extends Generator[\(E12,F8)\]
+  comprises { SimplePairGenerator[\E12,F8\], SimpleSequentialPairGenerator[\E12,F8\] }
+    getter e(): Generator[\E12\]
+    getter f(): Generator[\F8\]
+    getter reverse(): PairGenerator[\E12,F8\] =
+        SimplePairGenerator[\E12,F8\](self.e.reverse, self.f.reverse)
+    generate[\R\](r: Reduction[\R\], m:(E12,F8)->R): R =
+        self.e.generate[\R\](r, fn (a: E12): R =>
+                              self.f.generate[\R\](r, fn (b: F8): R => m(a,b)))
+end
+
+object SimplePairGenerator[\E13,F9\](e0: Generator[\E13\], f0: Generator[\F9\])
+        extends PairGenerator[\E13,F9\]
+    getter e(): Generator[\E13\] = e0
+    getter f(): Generator[\F9\] = f0
+    getter asString() = "(" self.e " CROSS " self.f ")"
+    seq(): SequentialGenerator[\(E13,F9)\] = SimpleSequentialPairGenerator[\E13,F9\](seq(self.e),seq(self.f))
+end
+
+object SimpleSequentialPairGenerator[\E14,F10\]
+        (e0: SequentialGenerator[\E14\], f0: SequentialGenerator[\F10\])
+        extends { PairGenerator[\E14,F10\], SequentialGenerator[\(E14,F10)\] }
+    getter e(): SequentialGenerator[\E14\] = e0
+    getter f(): SequentialGenerator[\F10\] = f0
+    getter asString() = "seq(" self.e " CROSS " self.f ")"
+    getter reverse(): SimpleSequentialPairGenerator[\E14,F10\] =
+        SimpleSequentialPairGenerator[\E14,F10\](self.e.reverse, self.f.reverse)
+end
+
+(* Filters *)
+
+trait FilterGenerator[\E15\] extends Generator[\E15\]    (*) excludes { AnyMappedGenerator }
+        comprises { SimpleFilterGenerator[\E15\], SimpleSequentialFilterGenerator[\E15\] }
+    getter g(): Generator[\E15\]
+    getter p(): E15 -> Condition[\()\]
+    getter reverse(): FilterGenerator[\E15\] = SimpleFilterGenerator[\E15\](self.g.reverse, self.p)
+    generate[\R\](r:Reduction[\R\], m: E15->R): R =
+        self.g.generate[\R\](r, fn(e:E15):R => if (self.p)(e).holds then m(e) else r.id end)
+    reduce(r: Reduction[\E15\]): E15 =
+        self.g.generate[\E15\](r, fn(e:E15):E15 => if (self.p)(e).holds then e else r.id end)
+    filter(p': E15 -> Condition[\()\]): FilterGenerator[\E15\] =
+        SimpleFilterGenerator[\E15\](self.g, fn(e:E15): Condition[\()\] => if (self.p)(e).holds then p'(e) else NothingObject[\()\] end)
+    seq(): SimpleSequentialFilterGenerator[\E15\] =
+        SimpleSequentialFilterGenerator[\E15\](seq(self.g),self.p)
+end
+
+object SimpleFilterGenerator[\E16\](g0:Generator[\E16\], p0: E16->Condition[\()\])
+        extends FilterGenerator[\E16\]
+    getter g(): Generator[\E16\] = g0
+    getter p(): E16 -> Condition[\()\] = p0
+    getter asString(): String = self.g.asString ".filter(p)"
+end
+
+object SimpleSequentialFilterGenerator[\E17\](g0: SequentialGenerator[\E17\], p0: E17->Condition[\()\])
+        extends { FilterGenerator[\E17\], SequentialGenerator[\E17\] }
+    getter g(): SequentialGenerator[\E17\] = g0
+    getter p(): E17 -> Condition[\()\] = p0
+    getter asString() = "seq(" self.g.asString ".filter(p))"
+    getter reverse(): SimpleSequentialFilterGenerator[\E17\] =
+        SimpleSequentialFilterGenerator[\E17\](self.g.reverse, self.p)
+    seq(): SimpleSequentialFilterGenerator[\E17\] = self
+    filter(p': E17 -> Condition[\()\]): SimpleSequentialFilterGenerator[\E17\] =
+        SimpleSequentialFilterGenerator[\E17\](self.g, fn(e:E17):Condition[\()\] => if (self.p)(e).holds then p'(e) else NothingObject[\()\] end)
+end
+
+
+(* Conditions *)
+
+(** A Condition is a Generator that generates 0 or 1 element.
+    Conditions can be used as nullary comprehension generators or
+    as predicates in an if expression. **)
+trait Condition[\E18\]
+(*)      extends { ZeroIndexed[\E18\], SequentialGenerator[\E18\] }
+      extends { SequentialGenerator[\E18\] }
+(*)     getter isEmpty(): Boolean = NOT self.holds
+(*)     getter nonEmpty(): Boolean = NOT self.isEmpty
+     getter holds(): Boolean = cond[\Boolean\](fn (_:E18):Boolean => true, fn () => false)
+(*)     getter size(): ZZ32 = if self.holds then 1 else 0 end
+(*)     getter get(): E18 throws NotFound = cond[\E18\](identity[\E18\], fn () => throw NotFound)
+(*)     getter bounds(): CompactFullRange[\ZZ32\] = 0 # |self|
+(*)     getter indices(): Generator[\ZZ32\] = self.bounds
+(*)     getter indexValuePairs(): Condition[\(ZZ32,E18)\] =
+(*)         cond[\E18\](fn (e:E18) => Just[\(ZZ32,E18)\](0,e), fn () => Nothing[\(ZZ32,E18)\])
+    getter reverse() : Condition[\E18\] = self
+(*)     opr |self|: ZZ32 = if self.holds then 1 else 0 end
+(*)     opr [i:ZZ32]:E18 throws NotFound = if i=0 then self.get else throw NotFound end
+(*)     opr [r:Range[\ZZ32\]]: Condition[\E18\] =
+(*)         cond[\E18\](fn (e:E18): Condition[\E18\] => do
+(*)                     r1 = (0#1).narrowToRange(r)
+(*)                     if r1.isEmpty then Nothing[\E18\] else self end
+(*)                   end,
+(*)                 fn (): Condition[\E18\] => do r1 = (0#0).narrowToRange(r); self end)
+(*)     getDefault(e:E18): E18 = cond[\E18\](identity[\E18\], fn () => e)
+    cond[\G10\](t: E18 -> G10, e: () -> G10): G10
+    generate[\G11\](r:Reduction[\G11\], body: E18 -> G11): G11 = cond[\G11\](body,fn () => r.id)
+
+    (** For a Condition, these methods run eagerly. **)
+    map[\G12\](f: E18->G12): Condition[\G12\] =
+        cond(fn (e:E18) => Just[\G12\](f(e)), fn () => NothingObject[\G12\])
+(*)     ivmap[\G\](f: (ZZ32,E18)->G): Condition[\G\] =
+(*)         cond[\G\](fn (e:E18) => Just[\G\](f(0,e)), fn () => Nothing[\G\])
+    nest[\G13\](f: E18 -> Generator[\G13\]): Generator[\G13\] =
+        cond(f, fn () => NothingObject[\G13\])
+    nest[\G18\](f: E18 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\] =
+        cond(f, fn () => NothingObject[\G18\])
+    cross[\G14\](g: Generator[\G14\]): Generator[\(E18,G14)\] =
+        cond(fn (e:E18):Generator[\(E18,G14)\] => g.map[\(E18,G14)\](fn (g':G14):(E18,G14) => (e,g')),
+             fn () => NothingObject[\(E18,G14)\])
+    cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E18,G17)\] =
+        cond(fn (e:E18):SequentialGenerator[\(E18,G17)\] => g.map[\(E18,G17)\](fn (g':G17):(E18,G17) => (e,g')),
+             fn () => NothingObject[\(E18,G17)\])
+    mapReduce[\R\](body: E18->R, _:(R,R)->R, id:R): R =
+        cond(body, fn () => id)
+    reduce(_:(E18,E18)->E18, id:E18):E18 = cond[\E18\](identity[\E18\], fn ():E18 => id)
+    reduce(r: Reduction[\E18\]):E18 = cond[\E18\](identity[\E18\], fn ():E18 => r.id)
+    loop(f:E18->()): () = cond[\()\](f,fn ():() => ())
+(*)     opr IN(x:E18, self):Boolean = cond[\Boolean\](fn (e:E18):Boolean => x=e, fn () => false)
+end Condition
+
+
+(* Maybe type *)
+
+value trait Maybe[\E19\] extends { Condition[\E19\] }
+        comprises { NothingObject[\E19\], Just[\E19\] }
+(*)    opr SQCAP(self, other: Maybe[\E19\]): Maybe[\E19\] = other
+  coerce(_: Nothing) = NothingObject[\E19\]
+end
+
+value object Just[\E20\](x: E20) extends Maybe[\E20\]
+    getter asString(): String = "Just(" "XXX" ")"
+(*)     getter size(): ZZ32 = 1
+(*)     getter get() = x
+(*)     getter holds() = true
+(*)     opr |self| : ZZ32 = 1
+(*)     getDefault(_: E20): E20 = x
+(*)     opr IN(y:E20, self): Boolean = (y = x)
+(*)     opr =(self,other:Just[\E20\]): Boolean = (x = other.x)
+(*)     opr SQCAP(self, other:Just[\E20\]): Maybe[\E20\] = if other.x = x then self else NothingObject[\E20\] end
+(*)    cond[\G15\](t: E20 -> G15, e: () -> G15): G15 = t(x)
+    cond[\G10\](t: E20 -> G10, e: () -> G10): G10 = t(x)
+end
+
+value object NothingObject[\E21\] extends Maybe[\E21\]
+    getter asString():String = "Nothing"
+(*)     getter size(): ZZ32 = 0
+(*)     getter get() = throw NotFound
+(*)     getter holds() = false
+(*)     opr |self| : ZZ32 = 0
+(*)     getDefault(defaultValue: E21):E21 = defaultValue
+(*)     opr IN(x:E21, self): Boolean = false
+(*)     opr SQCAP(self, other: Maybe[\E21\]): NothingObject[\E21\] = self
+    cond[\G16\](t: E21 -> G16, e: () -> G16): G16 = e()
+end
+
+value object Nothing end
+
+
+(************************************************************
+* Reductions
+************************************************************)
+
+(* This is the trait that the `generate` method of a `Generator` needs to accept.
+   In order to encourage parallelism, we require all reductions to be associative.
+   In order to make programming the common case of generators easier, we require
+   all reductions to have an identity; in situations where the natural join operation
+   does not have an identity, trait `NonemptyReduction` can be used to lift that
+   operation to a new one that does have an identity. *)
+
+trait Reduction[\R\]
+    getter reverse(): Reduction[\R\] = ReversedReduction[\R\](self)
+    getter id(): R
+    join(a: R, b: R): R
+(*)     property FORALL(a: R) join(a, self.id) = a
+(*)     property FORALL(a: R) join(self.id, a) = a
+(*)     property FORALL(a: R, b: R, c: R) join(join(a,b), c) = join(a,join(b,c))
+end
+
+object ReversedReduction[\R\](r: Reduction[\R\]) extends Reduction[\R\]
+  getter asString(): String = "ReversedReduction(" r.asString ")"
+  getter reverse(): Reduction[\R\] = r
+  getter id(): R = r.id
+  join(x:R, y:R): R = r.join(y, x)
+end
+
+(* Reduction that projects the "body type" `B` onto type `R`,
+   reduces within type `R`, then projects final result onto type `F21`.
+   This is the trait that the overall implementation of a big operator
+   or a comprehension has to deal with. *)
+
+trait GeneralReduction[\B,R,F21\] extends Reduction[\R\]
+    getter reverse(): GeneralReduction[\B,R,F21\] = ReversedGeneralReduction[\B,R,F21\](self)
+    lift(x: B): R
+    finish(y: R): F21
+end
+
+object ReversedGeneralReduction[\B,R,F22\](r: GeneralReduction[\B,R,F22\]) extends GeneralReduction[\B,R,F22\]
+  getter asString(): String = "ReversedGeneralReduction(" r.asString ")"
+  getter reverse(): GeneralReduction[\B,R,F22\] = r
+  getter id(): R = r.id
+  join(x:R, y:R): R = r.join(y, x)
+  lift(x: B): R = r.lift(x)
+  finish(y: R): F22 = r.finish(y)
+end
+
+
+
+(** The usual lifting to Maybe for identity-less operators **)
+(*) trait NonemptyReduction[\B\] extends GeneralReduction[\B, Maybe[\B\], B\]
+(*)     getter id() = NothingObject[\B\]
+(*)     join(a: Maybe[\B\], b: Maybe[\B\]): Maybe[\B\] =
+(*)         if av <- a then
+(*)             if bv <- b then
+(*)                 Just(simpleJoin(av,bv))
+(*)             else
+(*)                 a
+(*)             end
+(*)         else
+(*)             b
+(*)         end
+(*)     simpleJoin(a:Any, b:Any): Any
+(*)     lift(r: B) = Just r
+(*)     unlift(r: Maybe[\B\]): B =
+(*)         if res <- r then
+(*)             res
+(*)         else
+(*)             throw EmptyReduction
+(*)         end
+(*) end
+
+trait CommutativeReduction[\R\] extends Reduction[\R\]
+    getter reverse(): CommutativeReduction[\R\] = self
+(*)     property FORALL(a: R, b: R) join(a,b) = join(b,a)
+end
+
+trait CommutativeGeneralReduction[\B,R,F23\]
+      extends { CommutativeReduction[\R\], GeneralReduction[\B,R,F23\] }
+    getter reverse(): CommutativeGeneralReduction[\B,R,F23\] = self
+end
+
+(** Monoids have lift and finish operation that are the identity function. **)
+trait MonoidReduction[\R\] extends GeneralReduction[\R,R,R\]
+    lift(r: R): R = r
+    finish(r: R): R = r
+end
+
+(** A `MapReduceReduction` takes an associative binary function `j` on
+    arguments of type `R`, and the identity of that function `id`, and
+    returns the corresponding reduction. **)
+object MapReduceReduction[\R\](j:(R,R)->R, id:R) extends MonoidReduction[\R\]
+    getter asString(): String = "mapReduceReduction"
+    join(a:R, b:R): R = (j)(a,b)
+end
+
+trait CommutativeMonoidReduction[\R\]
+      extends { MonoidReduction[\R\], CommutativeGeneralReduction[\R,R,R\] }
+end
+
+trait ReductionWithZeroes[\R\] extends Reduction[\R\]
+    isLeftZero(r: R): Boolean = isZero(r)
+    isRightZero(r: R): Boolean = isZero(r)
+    isZero(r: R): Boolean = false
+end
+
+trait GeneralReductionWithZeroes[\B,R,F24\]
+      extends { ReductionWithZeroes[\R\],  GeneralReduction[\B,R,F24\] }
+end
+
+trait BigOperator[\I,B,R,F25,O\]
+    getter body(): I->B
+    getter reduction(): GeneralReduction[\B,R,F25\]
+    getter unwrap(): F25->O
+end
+
+object BigReduction[\B,R,F26\](reduction:GeneralReduction[\B,R,F26\]) extends BigOperator[\B,B,R,F26,F26\]
+    getter body(): B->B = fn x => x
+    getter unwrap(): F26->F26 = fn x => x
+end
+
+object Comprehension[\I,B,R,F27,O\](body:I->B, reduction: GeneralReduction[\B,R,F27\], unwrap: F27->O)
+        extends BigOperator[\I,B,R,F27,O\]
+end
+
+(** VoidReduction is usually done for effect, so we pretend that
+    the completion performs the effects.  This rules out things
+    distributing over void (that would change the number of effects in
+    our program) but not void distributing over other things. **)
+object VoidReduction extends { CommutativeMonoidReduction[\()\] }
+    getter asString(): String = "VoidReduction"
+    getter reverse() = VoidReduction
+    getter id(): () = ()
+    join(a: (), b: ()): () = ()
+end
+
+
+object IntPlusReduction extends { CommutativeMonoidReduction[\ZZ32\] }
+    getter asString(): String = "IntPlusReduction"
+    getter reverse() = IntPlusReduction
+    getter id(): ZZ32 = 0
+    join(a: ZZ32, b: ZZ32): ZZ32 = a+b
+end
+
+(*) run(): () = println "PASS"
+
+run(): () = do
+  a: ZZ32 = 3
+  b: ZZ32 = 4
+  (Just a).loop(fn (x: ZZ32) => println x)
+  println((Just a).reduce(IntPlusReduction))
+  (Just a).cross(Just b).loop(fn (x: (ZZ32,ZZ32)) => println x)
+(*)  println((Just a).generate(IntPlusReduction, fn (x: ZZ32): ZZ32 => x+43))
+  println "PASS"
+end 
+end
+
+

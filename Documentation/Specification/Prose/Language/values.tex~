@@ -1,0 +1,77 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2011, 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Values}
+\seclabel{values}
+
+\note{Comments:
+1. Operators are bound in an environment just like functions.
+    Methods are not values.  They are bound in a type.
+
+2. I'm distinguishing fields from captured variables, even though
+   there is no semantic distinction, except that captured variables
+   could be shared (but they might not be, and if they are immutable,
+   we can't tell anyway).}
+
+\note{Jan: perform promised fixes to definition and usage of environment.
+ In particular, environments permit sharing of mutable fields.}
+
+A \emph{value} is the result of normal completion of the evaluation of an expression.
+(See \secref{eval-completion} for a discussion of completion of evaluation.)
+A value is an object, a tuple or the void value \EXP{()}.
+Every value has an \emph{ilk},
+which is the most specific \emph{type} to which it belongs,
+and every object has an environment (see \secref{environments}).
+See \chapref{types} for a description of types.
+The ilk of a value, and the environment of an object, 
+are determined when the value is `constructed'', 
+as described below, 
+and does not change thereafter.
+
+An object may be a \emph{value object},
+a \emph{reference object},
+or a \emph{function}.
+The ilk of a function specifies the types of arguments with which it may be invoked, 
+and the types of the values it may return and/or throw.
+The ilk of a nonfunction object 
+specifies a finite set of \emph{fields} and \emph{methods}.
+% the names and types of these fields are specified by the ilk of the object.
+% The ilk of a nonfunction object also specifies its methods.
+A field consists of a name, a type, and either a value or a location:
+in value objects, fields have values;
+in reference objects, locations.
+The name of a field is either an identifier or an index.
+Only values of type \TYP{LinearSequence}
+(defined in \secref{lib:LinearSequence}) or \TYP{HeapSequence}
+(defined in \secref{lib:HeapSequence}) have fields named by indices.
+Every field in a value object is \emph{immutable}.
+Reference objects may have both \emph{mutable} and \emph{immutable} fields.
+No two distinct values share any mutable field.
+
+Values are constructed:
+\begin{enumerate}
+\item by top-level function declarations (see \secref{function-decls})
+and singleton declarations (see \secref{object-decls}),
+and
+\item by evaluating an object expression (see \secref{object-expr}),
+a function expression (see \secref{func-expr}),
+a local function declaration (see \secref{local-fn-decls}),
+a call to an object constructor
+(declared by a constructor declaration; see \chapref{objects}),
+a literal (see \secref{literals}),
+a \KWD{spawn} expression (see \secref{spawn}),
+a tuple expression (see \secref{tuple-expr}),
+an aggregate expression (see \secref{aggregate-expr}),
+or a comprehension (see \secref{comprehensions}).
+\end{enumerate}
+In the latter case,
+the constructed value is the result of
+the normal completion of such an evaluation.

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2008,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+FORTRESS_HOME=`${0%pfjava}fortress_home`
+
+CP="`"${FORTRESS_HOME}"/bin/run_classpath`"
+
+java $JAVA_FLAGS -cp "expanded.jar;$CP" "$@"

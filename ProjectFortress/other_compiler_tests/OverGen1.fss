@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait T[\A\]
+end
+
+f(x:Object):() = println("FAIL")
+
+f[\A\](x:T[\A\]):() = println("PASS")
+
+object O extends T[\O\] end
+
+o:Object = O
+
+run():() = f(o)

@@ -1,0 +1,31 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled10.s
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled10.s.fss:16:19-27:\n\
+\ Types Bar[\\O,P\\] and Bar[\\P,O\\] exclude each other.  O must not extend them.\n\
+${STATIC_TESTS_DIR}/Compiled10.s.fss:16:19-28:\n\
+\ Type O excludes Bar but it extends Bar.\n\
+${STATIC_TESTS_DIR}/Compiled10.s.fss:16:32-40:\n\
+\ Types Bar[\\P,O\\] and Bar[\\O,P\\] exclude each other.  O must not extend them.\n\
+${STATIC_TESTS_DIR}/Compiled10.s.fss:16:32-41:\n\
+\ Type O excludes Bar but it extends Bar.\n\
+${STATIC_TESTS_DIR}/Compiled10.s.fss:17:19-27:\n\
+\ Types Bar[\\O,P\\] and Bar[\\P,O\\] exclude each other.  P must not extend them.\n\
+${STATIC_TESTS_DIR}/Compiled10.s.fss:17:19-28:\n\
+\ Type P excludes Bar but it extends Bar.\n\
+${STATIC_TESTS_DIR}/Compiled10.s.fss:17:32-40:\n\
+\ Types Bar[\\P,O\\] and Bar[\\O,P\\] exclude each other.  P must not extend them.\n\
+${STATIC_TESTS_DIR}/Compiled10.s.fss:17:32-41:\n\
+\ Type P excludes Bar but it extends Bar.\n\
+File Compiled10.s.fss has 8 errors.\n
+compile_out_equals=

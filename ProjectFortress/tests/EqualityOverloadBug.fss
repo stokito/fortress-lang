@@ -1,0 +1,30 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component EqualityOverloadBug
+export Executable
+
+object Bar extends Equality[\Bar\]
+  getter asString():Bar = "Bar"
+  opr =(self, _:Bar): Boolean = do println("OK Bar"); true end
+end
+
+run():() = do
+  assert(Bar,Bar,"Bar")
+  assert(17,17,"ZZ32")
+  assert(18.5,18.5,"RR64")
+  assert("Howdy","Howdy","String")
+(*
+  assert(Baz,Baz,"Baz")
+*)
+end
+
+end
