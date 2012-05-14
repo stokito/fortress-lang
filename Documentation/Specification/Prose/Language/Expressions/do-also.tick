@@ -10,3 +10,47 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newsec{Do and Do-Also Expressions}{do-also}
+
+In the simplest case, the keywords `do` and `end` surround a single block to be executed.
+In the more general case, a `do` expression can contain multiple blocks to be executed
+independently (perhaps but not necessarily, concurrently).
+%Each block may be governed by its own `at` modifier and/or `atomic` modifier.
+Each block may be governed by its own `atomic` modifier.
+
+%%%%% GRAMMAR %%%%%
+%DoExpr
+%DoFront
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+
+If a `do` expression contains a single \NT{Block}, then the type of the `do` expresssion is the type of the block.
+If a `do` expression contains two or more blocks (separated by `also`), then the type of the `do` expression is `()`,
+and it is a static error if any of the blocks has a type that is not `()`.
+
+%If the `do` keyword preceding any block of a multi-block `do` expression is preceded by an `at` modifier and/or `atomic` modifier,
+If the `do` keyword preceding any block of a multi-block `do` expression is preceded by an `atomic` modifier,
+it is as if (a) the following block were enclosed by a new pair of `do` and `end` keywords to form a single-block `do` expression,
+%and (b) the modifier(s) appeared instead before that single-block `do` expression, thus forming an `at` expression and/or `atomic`
+and (b) the `atomic` modifier appeared instead before that single-block `do` expression, thus forming an `atomic`
+expression.
+%Thus, allowing `at` and `atomic`
+Thus, allowing `atomic`
+to appear as part of a multi-block `do` expression is merely a syntactic convenience
+that allows programs to be slightly shorter and perhaps read more naturally.  For example:
+
+\codesample{DoAbbrev1}
+
+is simply an abbreviation of
+
+\codesample{DoAbbrev2}
+
+A `do` expression with a single block is evaluated by evaluating the block.
+If the block completes abruptly for some reason, then the `do` expression completes abruptly for the same reason.
+Otherwise, the value of the `do` expression is the value of the block.
+
+A `do` expression with multiple blocks block is evaluated by evaluating all the blocks independently (perhaps, but not necessarily, concurrently).
+If more blocks complete abruptly for some reason, then the `do` expression completes abruptly for one of those reasons
+(evaluation of other blocks may or may not be completed, but evaluation of the `do` expression is not complete until
+the evaluations of all blocks have been terminated).
+Otherwise, evaluation of the `do` expression completes only after evaluation of all blocks is complete, and
+the value of the `do` expression is `()`.

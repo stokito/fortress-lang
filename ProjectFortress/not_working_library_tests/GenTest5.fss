@@ -426,10 +426,10 @@ trait Condition[\E18\]
         cond(f, fn () => NothingObject[\G18\])
     cross[\G14\](g: Generator[\G14\]): Generator[\(E18,G14)\] =
         cond(fn (e:E18):Generator[\(E18,G14)\] => g.map[\(E18,G14)\](fn (g':G14):(E18,G14) => (e,g')),
-               fn () => NothingObject[\(E18,G14)\])
+             fn () => NothingObject[\(E18,G14)\])
     cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E18,G17)\] =
         cond(fn (e:E18):SequentialGenerator[\(E18,G17)\] => g.map[\(E18,G17)\](fn (g':G17):(E18,G17) => (e,g')),
-               fn () => NothingObject[\(E18,G17)\])
+             fn () => NothingObject[\(E18,G17)\])
     mapReduce[\R\](body: E18->R, _:(R,R)->R, id:R): R =
         cond(body, fn () => id)
     reduce(_:(E18,E18)->E18, id:E18):E18 = cond[\E18\](identity[\E18\], fn ():E18 => id)
@@ -627,7 +627,7 @@ run(): () = do
   b: ZZ32 = 4
   (Just a).loop(fn (x: ZZ32) => println x)
   println((Just a).reduce(IntPlusReduction))
-(*)  (Just a).cross(Just b).loop(fn (x: (ZZ32,ZZ32)) => println x)
+  (Just a).cross(Just b).loop(fn (x: (ZZ32,ZZ32)) => println x)
 (*)  println((Just a).generate(IntPlusReduction, fn (x: ZZ32): ZZ32 => x+43))
   println "PASS"
 end 
