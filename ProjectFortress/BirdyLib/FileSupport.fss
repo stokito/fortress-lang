@@ -65,7 +65,7 @@ trait ReadStream extends { Closeable, Consumable }
 
     uncheckedReadLine():String
 
-    uncheckedReadChar():ZZ32
+    uncheckedReadChar(): Character
 
     eofCheckedReadChar():ZZ32 = do
         r = uncheckedReadChar()
