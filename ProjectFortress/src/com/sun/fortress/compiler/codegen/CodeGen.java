@@ -1242,8 +1242,11 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     if (d_a_le_b && d_b_le_a) {
                         // equal domains
                         if (r_a_le_b) { // sub is LE
-                            if (r_b_le_a) {
+                            if (r_b_le_a ||
+                                func.staticParameters().size() > 0) {
                                 // eq
+                                // note that GENERIC methods all have same Java return type,
+                                // hence "equal".
                                 shadowed = true; // could "continue" here
                                 if (DEBUG_OVERLOADED_METHOD_CHAINING)
                                     System.err.println("  "+ func + " shadows " + super_func);
@@ -3372,7 +3375,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         String init = taskConstructorDesc(freeVars);
         cg.generateTaskInit(desc, init, freeVars);
 
-        String applyDesc = NamingCzar.jvmSignatureFor(params, NamingCzar.jvmTypeDesc(rt, thisApi()),
+        String applyDesc = NamingCzar.jvmSignatureFor(params, NamingCzar.jvmBoxedTypeDesc(rt, thisApi()),
                                                       thisApi());
 
         // Generate the apply method
