@@ -62,7 +62,7 @@ trait ReadStream extends { Closeable, Consumable }
 
     abstract uncheckedReadLine():String
 
-    abstract uncheckedReadChar():ZZ32
+    abstract uncheckedReadChar():Character
 
     abstract uncheckedRead(k:ZZ32):String
 
