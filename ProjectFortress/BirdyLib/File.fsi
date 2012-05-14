@@ -15,9 +15,7 @@ import FlatString.FlatString
 import FileSupport.{...}
 import Util.{...}
 
-FileReadStream(filename: String): FileReadStream
-
-object FileReadStream(filename:FlatString) extends { FileStream, ReadStream }
+object FileReadStream(filename: String) extends ReadStream 
     getter fileName():String
     getter eof():Boolean
     getter ready():Boolean
@@ -26,13 +24,6 @@ object FileReadStream(filename:FlatString) extends { FileStream, ReadStream }
     readCharacter():Character
     read(k:ZZ32):String
     read():String
-    lines(n:ZZ32):Generator[\String\]
-    lines():Generator[\String\]
-    characters(n:ZZ32):Generator[\Character\]
-    characters():Generator[\String\]
-    chunks(n:ZZ32,m:ZZ32):Generator[\String\]
-    chunks(n:ZZ32): Generator[\String\]
-    chunks(): Generator[\String\]
 end
 
 
