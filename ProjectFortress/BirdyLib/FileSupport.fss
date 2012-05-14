@@ -13,13 +13,16 @@ component FileSupport
 
 import Util.{...}
 import Maybe.{...}
-import Array.{...}
 
 export FileSupport
 
 (***********************************************************
  * Types to support file input and output
  ***********************************************************)
+
+object FileReadError extends UncheckedException 
+  asString() = "FileReadError"
+end
 
 trait Closeable
     close():()
@@ -159,7 +162,7 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
         if consumed then
             fail("Using consumed generator of " reader)
         end
-    
+    (*
     private go[\R\](n:ZZ32, r: Reduction[\R\], body: S->R): R =
             if reader.eof then r.empty()
             else
@@ -179,10 +182,20 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
                 end*)
                 r.join(bu[0#i].generate[\R\](r,body),go((2 n) MAX up,r,body))
             end  
+    *)
+    
+        private go[\R\](r: Reduction[\R\], body: S->R): R =
+            if reader.eof then r.empty()
+            else
+                if s0 <- readOne(reader) then
+                    r.join(body(s0),go(r,body))
+                else throw FileReadError    
+                end
+            end     
               
     generate[\R\](r: Reduction[\R\], body: S->R): R = do
         consume()
-        a = go(8 MIN up,r,body)
+        a = go(r,body) (*) go(8 MIN up,r,body)
         reader.close()
         a
       end
@@ -192,6 +205,7 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
         SeqFileGenerator[\S\](reader, readOne)
       end
 
+    (*
     go2(n:ZZ32,f:S->()): () =
             if reader.eof then ()
             else
@@ -212,10 +226,21 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
                 (a,b) = (bu[0#i].loop(f), go2((2 n) MAX up,f)) (*) JT: mention this to VL and GS
                 ()
             end
+        *)
+        
+        go2(f:S->()): () =
+            if reader.eof then ()
+            else
+                if s0 <- readOne(reader) then
+                  (a,b) = (f(s0), go2(f)) (*) JT: mention this to VL and GS
+                  ()
+                else throw FileReadError
+                end                
+            end    
 
     loop(f:S->()): () = do
         consume()
-        go2(8 MIN up, f)
+        go2(f)
         reader.close()
       end
 end
