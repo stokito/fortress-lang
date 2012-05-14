@@ -14,7 +14,6 @@ component GenomeUtil2c
 
 import File.{...}
 import FileSupport.{...}
-import FlatString.{...}
 import List.{...}
 import Pairs.{...}
 import Util.{...}
@@ -69,8 +68,8 @@ object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ
     else
       currentChunkLength -= padLength
     end
-    buffer := buffer.asFlatString
-    Just ReferenceGenomeChunk(currentChunkStart, currentChunkLength, buffer.asFlatString, padLength)
+    buffer := buffer.asJavaString
+    Just ReferenceGenomeChunk(currentChunkStart, currentChunkLength, buffer.asJavaString, padLength)
   end
 
   generate[\T\](red: Reduction[\T\], body: ReferenceGenomeChunk->T): T = fg.generate(red, body)
@@ -139,16 +138,16 @@ object Read(header: String, sequence: String, name: String, pos: ZZ32, length: Z
   range: Range = pos#length
   getter asString(): String =  "Read" (*)pos "  " name "  " sequence
   (*) It's important that the following not be cached early; they cannot be computed until the read is current with the ref.
-  getter refACGT(): String = refChunk.getACGT(pos : seqend + 1).asFlatString
-  getter refColors(): String = refChunk.getColors(pos : seqend + 1).asFlatString
-  getter sampleColors(): FlatString = do
+  getter refACGT(): String = refChunk.getACGT(pos : seqend + 1).asJavaString
+  getter refColors(): String = refChunk.getColors(pos : seqend + 1).asJavaString
+  getter sampleColors(): JavaString = do
     temp = sequence.substring(1,|sequence| - 1)
     result = (if (negativeOrientation) then
                 temp.substring(0, |temp| - 2) || self.refColors[|temp| - 1] (*) TODO (reverse(temp))[0 : |temp| - 2] || self.refColors[|temp| - 1]
               else
                 self.refColors[0] || temp[1:]
               end)
-    result.asFlatString
+    result.asJavaString
   end
   private withNewChunk(newRefChunk: ReferenceGenomeChunk): Read =
     Read(header, sequence, name, pos, length, seqend, negativeOrientation, newRefChunk)
