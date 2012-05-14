@@ -1,0 +1,41 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component abortBlock
+export Executable
+
+run():()=do
+    iters : ZZ32 = 3000
+    flag : Boolean := true
+    t = spawn do
+          label foo
+            atomic do
+                if flag then
+                    printThreadInfo("Aborting")
+                    abort()
+                    (* Uncommenting this line causes things to work. *)
+                    fail("Control should never get past abort!")
+                end
+                exit foo
+            end
+          end foo
+        end
+   var count:ZZ32 := 0
+    for i <- seq(0#iters) do
+        count += 1
+        if count = 100
+            then print("."); count := 0; end
+    end
+    assert(t.ready(),false,"Thread appears to have terminated before condition")
+    flag := false
+    t.val()
+  end
+end

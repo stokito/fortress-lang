@@ -1,0 +1,37 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.MthIvk
+
+export Executable
+
+object myString
+  toUppercase() = ()
+  replace(x:String, y:String) = ()
+end
+object otherNum end
+object myNum
+  add(x:otherNum) = ()
+end
+
+f() = do
+(** EXAMPLE **)
+myString.toUppercase()
+myString.replace("foo", "few")
+myNum.add(otherNum) (* NOT myNum.add otherNum *)
+(** END EXAMPLE **)
+end
+
+run() = f()
+
+end

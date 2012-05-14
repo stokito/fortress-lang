@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ImportImportCollision
+import TestImports1.{...}
+import TestImports2.T
+export Executable
+
+trait U
+  s():String = "s from ImportImportCollision.U"
+end
+
+object V extends U
+end
+
+object W extends T
+  myname():String = "ImportImportCollision.W"
+end
+
+run():()=do
+  assert( V.s() = "s from ImportImportCollision.U", "V's s() comes from local U")
+  assert( W.s() = "s from TestImports2.S object ImportImportCollision.W", "W's s() comes from TestImport2.S")
+  assert( W.t() = "t from TestImports2.T ImportImportCollision.W", "W's t() comes from TestImport2.T")
+  println "All's well that ends well"
+end
+
+end

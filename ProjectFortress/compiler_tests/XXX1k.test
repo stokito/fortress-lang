@@ -1,0 +1,17 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled1.k
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled1.k.fss:16:8:\n\
+\ Exponentiation followed by subscripting is illegal.\n\
+File Compiled1.k.fss has 1 error.\n
+compile_out_equals=

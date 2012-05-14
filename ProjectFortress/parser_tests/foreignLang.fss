@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component foreignLang
+import Map.{...}
+import java java.util.{List}
+import "java" java.util.{Map.Entry}
+export Executable
+
+run() = do
+ println("Hello, World!")
+end
+
+end

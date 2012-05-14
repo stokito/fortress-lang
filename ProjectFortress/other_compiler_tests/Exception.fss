@@ -1,0 +1,76 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Exception
+export Executable
+
+object Scooby extends CheckedException
+   getter asString(): String = "ScoobyDoobyDoo"
+end
+
+object Shaggy extends CheckedException
+   getter asString() : String = "RuhRohRaggy"
+end
+
+test1():() = do
+   try
+      throw Scooby
+      println("fail throw")
+   catch e
+      Shaggy => println("fail catch")
+      Scooby => println("good catch")
+   end
+   ()
+end
+
+bar():ZZ32 = do
+   try
+      for i <- 1#1000 do
+         if i = 237 then throw Scooby end
+      end
+      1
+   catch e
+      Shaggy => 2
+      Scooby => 3
+   finally 7
+   end
+end
+
+baz():ZZ32 = do
+   try
+      throw Scooby
+   catch e
+      Shaggy => 2
+      Scooby => 3
+   finally 7
+   end
+end
+
+   
+test2():() = do
+(* Wish we had case statements *)
+   x = baz()
+   if (x = 1) then println("Fail: We finished loop despite throw") 
+   elif (x = 2) then println("Fail: We caught the wrong exception") 
+   elif (x = 3) then println("Success") 
+   elif (x = 7) then println("We didn't catch the exception we should have") 
+   else println("OOPS") end
+end
+
+
+run():()=do
+   println("test 1")
+   test1() 
+   println("test 2")
+   test2()
+   ()
+end
+end

@@ -1,0 +1,68 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component stringJuxt
+import Constants.{...}
+export Executable
+
+run():() = do
+  a:String = "Hello "
+  n:ZZ32 = 4
+  f:String = a a
+  p:String = a||a
+  assert(f,"Hello Hello ")
+  assert(f, p)
+  g:String = a n
+  assert(g,"Hello 4")
+  (* assert(g, a||n) *)
+  h:String = a pi
+  assert(h,"Hello 3.141592653589793")
+  (* assert(h,a||pi) *)
+  i:String = n a
+  assert(i,"4Hello ")
+  (* assert(i,n||a) *)
+  j:String = pi a
+  assert(j,"3.141592653589793Hello ")
+  (* assert(j,pi||a) *)
+  try
+      a[-2]
+      fail("a[-2] didn't throw.")
+  catch x
+    IndexOutOfBounds[\ZZ32\] => ()
+  end
+  try
+      a[-1]
+      fail("a[-1] didn't throw.")
+  catch x
+    IndexOutOfBounds[\ZZ32\] => ()
+  end
+  assert(a[0],'H')
+  assert(a[1],'e')
+  assert(a[2],'l')
+  assert(a[3],'l')
+  assert(a[4],'o')
+  assert(a[5],' ')
+  try
+      a[6]
+      fail("a[6] didn't throw.")
+  catch x
+    IndexOutOfBounds[\ZZ32\] => ()
+  end
+  assert(a[0#3],"Hel")
+  assert(a[2:4],"llo")
+  assert(a[#5],"Hello")
+  assert(a[3:],"lo ")
+  assert(a[4#],"o ")
+  assert(a[6:],"")
+  assert(a[:4],"Hello")
+end
+
+end

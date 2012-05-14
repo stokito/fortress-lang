@@ -1,0 +1,80 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+
+if [ -z "$FORTRESS_HOME" ]; then
+   export FORTRESS_HOME="`${0%comp/frun}fortress_home`"
+fi
+
+FHOME=$FORTRESS_HOME/default_repository/caches/bytecode_cache
+FULL=$FHOME/$1
+
+if [ $# != 1 ]
+then
+    echo Usage: frun component 
+    exit
+fi
+if [ -s $FULL/imports ]
+then 
+    echo This component still has imports
+    exit
+fi    
+
+# Rewrite of the class files
+
+cat $FULL/rewrites |
+(
+    while read line
+    do
+        arr=($line) 
+        mv $FULL/code_pool/${arr[0]}.class $FULL/code_pool/tmp.class 
+        #echo Rewriting ${arr[1]} into ${arr[2]}
+        rewrite $FULL/code_pool/tmp.class $FULL/code_pool/${arr[0]}.class ${arr[1]} ${arr[2]}
+        rm $FULL/code_pool/tmp.class
+    done
+) 
+
+cat $FULL/exports |
+(
+    while read line 
+    do
+        arr=($line)
+        if [ ${arr[2]} == "Executable" ]
+        then
+            if [ -z "$FORTRESS_HOME" ]; then
+                export FORTRESS_HOME="`${0%run}fortress_home`"
+            fi
+            
+            CP="`"$FORTRESS_HOME"/bin/run_classpath`"
+            
+            if [ -z "$JAVA_HOME" ] ; then
+                JAVACMD=java
+            else
+                JAVACMD="$JAVA_HOME/bin/java"
+            fi
+
+            if [ -z "$JAVA_FLAGS" ] ; then
+                JAVA_FLAGS="-Xmx768m"
+            fi
+
+            JAVA_FLAGS+=" -Dfile.encoding=UTF-8 -Xfuture"
+            
+            "$JAVACMD" $JAVA_FLAGS -cp "$CP:$FULL/code_pool/" com.sun.fortress.runtimeSystem.MainWrapper "${arr[0]}"
+            exit
+        fi 
+    done
+    echo This component is not executable
+)
+
+
+

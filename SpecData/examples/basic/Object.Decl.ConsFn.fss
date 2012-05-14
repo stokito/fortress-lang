@@ -1,0 +1,39 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Object.Decl.ConsFn
+
+export Executable
+
+trait List[\T\]
+  append(List[\T\]):List[\T\]
+end
+
+object Empty[\T\]
+  extends List[\T\]
+  cons(x) = Cons(x,self)
+  append(xs:List[\T\]):List[\T\] = xs
+end
+
+object Cons[\T\](firstitem:T, rest:List[\T\])
+  extends List[\T\]
+  cons(x) = Cons(x,self)
+  append(xs:List[\T\]):List[\T\] = Cons(firstitem,rest.append(xs))
+end
+(** EXAMPLE **)
+Cons[\T\](firstitem:T) = Cons(firstitem,Empty)
+(** END EXAMPLE **)
+
+run() = ()
+
+end

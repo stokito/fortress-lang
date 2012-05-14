@@ -1,0 +1,31 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ifTest
+export Executable
+
+a()=do
+  println(if 1=1 then "a pass" else "a fail")
+end
+
+b()=do
+  println(if 0=1 then "b fail" else "b pass")
+end
+
+
+run():()=do
+  a()
+  b()
+  a()
+  b()
+end
+
+end

@@ -1,0 +1,235 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Frequently Asked Questions}
+
+\begin{itemize}
+\item Are spaces by tabulation allowed?
+
+No.  It is a static error for a Fortress program to contain CHARACTER TABULATION (U+0009) or LINE TABULATION (U+000B) outside a comment.  See \secref{characters}.
+
+\item Cyclic definitions of top-level variables
+
+\item \KWD{par} and \KWD{seq} and \KWD{for}
+
+\item ``immediate supertype'' vs ``explicit supertype'' and
+``immediately extend'' vs ``explicitly extend''
+
+\item The term ``structural type'' historically means a type that corresponds to
+the structure of its values.  Tuple types are structural, as are record types
+and arrow types (depending on your view of the structure of a function).
+Union, intersection, and fixed point types can be either structural or
+nominal depending on the types they're composed of.
+
+I suggest we use the term ``structured type'' to refer to types composed of
+other types, like those you mention above, as well as generic types.
+A purely nominal type system can include structured types, but not structural
+types.  If it includes structured types, it's possible for two syntactically
+distinct types to have the same extension (e.g., A U B and B U A).  In fact,
+if there are type aliases, even two unstructured types can have the same
+extension.
+
+Note, BTW, that all structural types are (necessarily) structured.  A type
+is structural by virtue of the fact that its structure corresponds to the
+structure of its values.
+
+Also, perhaps arrow types are better described as nominal.  It's really not
+the structure of the function that they represent; it's the behavior of the
+function.  We can think of the ``name'' of the type as ``->''; it's a generic
+type parameterized by its input and output type.  They're often characterized
+as structural, but this may be more of a historical accident; they first
+appeared in languages with mostly structural types.
+
+\item Spawn is considered an IO operation.  Why is that?
+
+We did this because we don't want you to use spawn within an atomic expression.  A lot of tricky issues arise when you do this, and we just want to avoid them for now.  Eventually, we will probably relax this restriction (as we may also want to do for IO operations more generally).
+
+\item How can a programmer create variable-sized arrays in Fortress, and how to take advantage of the static bounds checking offered by the language at the same time?
+
+\url{http://projectfortress.sun.com/Projects/Community/wiki/AnySizeArrays}
+
+\item Why does Fortress have a multiple dispatch instead of a single dispatch?
+
+We want to disallow ambiguous calls such as the following:
+% trait T
+%     f(ZZ32) = 1
+% end
+% object S extends T
+%     f(Number) = 2
+% end
+% z: ZZ32 = 3
+% S.(z)
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:T\)\\
+{\tt~~~~}\pushtabs\=\+\(     f(\mathbb{Z}32) = 1\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{object}\:S \KWD{extends}\:T\)\\
+{\tt~~~~}\pushtabs\=\+\(     f(\TYP{Number}) = 2\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( z\COLON \mathbb{Z}32 = 3\)\\
+\( S.(z)\)\-\\\poptabs
+\end{Fortress}
+
+
+\item A function type may be an intersection of several arrow types
+instead of an arrow type.
+
+\item Rendering issues vs ASCII conversion issues
+
+\item Functional methods rewriting rules are for scoping
+not for overloading checking.
+
+\item Operator: \KWD{juxtaposition}
+  \begin{itemize}
+  \item It is a reserved word because it cannot be used as an identifier.
+  \item It is the only operator name that is not composed of ALLCAPS.
+  \end{itemize}
+
+\item Hacks: arrow types in mathematical notation
+  \begin{itemize}
+  \item Functions can be declared with arrow types unless they have
+  generic types.
+  \item Arrow types can use $\times$ instead of tuple types unless they are
+  generic types.
+  \item Method declarations cannot use these hacks.
+  \item Field declarations can use arrow types unless they have generic
+  types.
+  \end{itemize}
+
+\item Terminology
+  \begin{itemize}
+  \item A declaration is either an abstract declaration or a concrete
+  declarations which is a definition.
+  \item Special reserved words are ``keywords''.  Special words that are
+  not reserved include context-sensitive keywords such as \KWD{name}.  We
+  want to use \VAR{name} as an identifier in value contexts and use
+  \KWD{name} as a keyword in type contexts.  However, we don't support this
+  yet.  Currently, \KWD{name} is a special reserved word.  Finally,
+  reserved words that are not special include not-yet special reserved
+  words such as \KWD{private} and forbidden identifiers such as
+  \VAR{alpha}.
+  \end{itemize}
+
+\item The Fortress Core Library and the Fortress Standard Library
+  \begin{itemize}
+  \item While the Fortress Standard Library can be written in Fortress, the
+  Fortress Core Library cannot be written in real Fortress.  We provide the
+  ``fictitious'' Fortress Core Library in Fortress to help programmers
+  understand the Fortress Core Library.
+  \item While the Fortress Standard Library can be redefined in Fortress, the
+  Fortress Core Library cannot be redefined in real Fortress.
+  For example, the top-level variables \VAR{true} and \VAR{false} declared in
+  the Fortress Core Library cannot be redefined.
+  \item While unit operators such as \TYP{per}, \TYP{cubic}, and
+  \TYP{squared} are defined in the Fortress Standard Library and can be
+  redefined, they are operators only in the unit contexts.
+  \end{itemize}
+
+\item Why not single inheritance between objects?
+  \begin{itemize}
+  \item We can do that but...
+  \item we can mimic the functionality by using wrapped fields;
+  \item we can enjoy nice property of objects being leaves of type
+  hierarchy such as excluding each other.
+  \end{itemize}
+
+\item Meaning of extension: how is it different from subtyping?
+
+Extension means there exists an \KWD{extends} clause.
+
+\item \TYP{BottomType}
+  \begin{itemize}
+\item Can a programmer write \TYP{BottomType}?  No.
+\item \EXP{(\TYP{BottomType}\ldots)} is not \TYP{BottomType}.
+  \end{itemize}
+
+\item Spaces
+
+We allow spaces between enclosing operators and static arguments: \verb+<| [\ZZ32\] 3 |>+.
+Also for the functional names and static arguments.
+
+\item Abstract methods in a trait and implementing concrete methods in an object
+
+An abstract method can be implemented by concrete methods whose return types are
+subtypes of the abstract method.
+
+\item \KWD{label} / \KWD{exit} across object / function expressions (07/28/08)
+  \begin{itemize}
+\item one-shot continuation semantics
+\item How to do the closure conversion?
+% label foo
+%   object extends Bar
+%     m() = exit foo with 5
+%   end
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{label}\:\VAR{foo}\)\\
+{\tt~~}\pushtabs\=\+\(   \KWD{object}\;\;\KWD{extends}\:\TYP{Bar}\)\\
+{\tt~~}\pushtabs\=\+\(     m() = \;\KWD{exit}\:\VAR{foo} \KWD{with} 5\)\-\\\poptabs
+\(   \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+is desugared to
+% object Bar'(xit: ZZ32 -> BottomType) extends Bar
+%   m() = xit(5)
+% end
+% label foo
+%   Bar'(fn (e:ZZ32): BottomType => exit foo with e)
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{object}\:\TYP{Bar}'(\VAR{xit}\COLON \mathbb{Z}32 \rightarrow \TYP{BottomType}) \KWD{extends}\:\TYP{Bar}\)\\
+{\tt~~}\pushtabs\=\+\(   m() = \VAR{xit}(5)\)\-\\\poptabs
+\( \KWD{end}\)\\
+\( \KWD{label}\:\VAR{foo}\)\\
+{\tt~~}\pushtabs\=\+\(   \TYP{Bar}'(\KWD{fn} (e\COLONOP\mathbb{Z}32)\COLON \TYP{BottomType} \Rightarrow\;\KWD{exit}\:\VAR{foo} \KWD{with}\:e)\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+Even though Fortress programmers are not allowed to write \TYP{BottomType},
+the desugarer can use it internally.
+  \end{itemize}
+
+\item How can I re-export stuff I
+imported without having to maintain cut-and-pasted declarations in my api?
+
+%% api A
+%%   trait T
+%%   f(T)
+%% end
+
+%% component C
+%%   import A.{...}
+%%   object O extends T
+%%   f(O)
+%% end
+
+%% component D
+%%   import A.{T}
+%%   object O extends T
+%%   f(O)
+%% end
+\begin{Fortress}
+\(\KWD{api}\:A\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{trait}\:T\)\\
+\(  f(T)\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{component}\:C\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{import}\:A.\{\ldots\}\)\\
+\(  \KWD{object}\:O \KWD{extends}\:T\)\\
+\(  f(O)\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{component}\:D\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{import}\:A.\{T\}\)\\
+\(  \KWD{object}\:O \KWD{extends}\:T\)\\
+\(  f(O)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+\end{itemize}

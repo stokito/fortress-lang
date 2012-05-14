@@ -1,0 +1,111 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Comparison2
+export Executable
+
+(*) Test comparison operators on the type Comparison.
+
+run(): () = do
+  L = LessThan
+  E = EqualTo
+  G = GreaterThan
+  U = Unordered
+
+  assert((L CMP L) = E)
+  assert((L CMP E) = L)
+  assert((L CMP G) = L)
+  assert((L CMP U) = L)
+  assert((E CMP L) = G)
+  assert((E CMP E) = E)
+  assert((E CMP G) = L)
+  assert((E CMP U) = L)
+  assert((G CMP L) = G)
+  assert((G CMP E) = G)
+  assert((G CMP G) = E)
+  assert((G CMP U) = L)
+  assert((U CMP L) = G)
+  assert((U CMP E) = G)
+  assert((U CMP G) = G)
+  assert((U CMP U) = E)
+
+  deny(L < L)
+  assert(L < E)
+  assert(L < G)
+  assert(L < U)
+  deny(E < L)
+  deny(E < E)
+  assert(E < G)
+  assert(E < U)
+  deny(G < L)
+  deny(G < E)
+  deny(G < G)
+  assert(G < U)
+  deny(U < L)
+  deny(U < E)
+  deny(U < G)
+  deny(U < U)
+
+  assert(L <= L)
+  assert(L <= E)
+  assert(L <= G)
+  assert(L <= U)
+  deny(E <= L)
+  assert(E <= E)
+  assert(E <= G)
+  assert(E <= U)
+  deny(G <= L)
+  deny(G <= E)
+  assert(G <= G)
+  assert(G <= U)
+  deny(U <= L)
+  deny(U <= E)
+  deny(U <= G)
+  assert(U <= U)
+
+  assert(L >= L)
+  deny(L >= E)
+  deny(L >= G)
+  deny(L >= U)
+  assert(E >= L)
+  assert(E >= E)
+  deny(E >= G)
+  deny(E >= U)
+  assert(G >= L)
+  assert(G >= E)
+  assert(G >= G)
+  deny(G >= U)
+  assert(U >= E)
+  assert(U >= L)
+  assert(U >= G)
+  assert(U >= U)
+
+  deny(L > L)
+  deny(L > E)
+  deny(L > G)
+  deny(L > U)
+  assert(E > L)
+  deny(E > E)
+  deny(E > G)
+  deny(E > U)
+  assert(G > L)
+  assert(G > E)
+  deny(G > G)
+  deny(G > U)
+  assert(U > E)
+  assert(U > L)
+  assert(U > G)
+  deny(U > U)
+
+  println("PASS")
+end
+
+end

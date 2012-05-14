@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component simplify1
+export Executable
+
+trait Red[\ R \]
+    getter asString() = "A Reduction without an asString() of its own"
+    empty(): R
+    join(a: R, b: R): R
+end
+
+
+object Mrr[\R\](j:(R,R)->R, z:R) extends Red[\R\]
+    getter asString()="mapReduce.Reduction"
+    empty() = z
+    join(a:R, b:R): R = j(a,b)
+end
+
+run():()=do
+  joinString(a:String, b:String):String = a b
+  r1 = Mrr[\String\](joinString, "")
+  catdog = r1.join("cat", "dog")
+  println (if catdog = "catdog" then "PASS" else "FAIL")
+end
+
+end

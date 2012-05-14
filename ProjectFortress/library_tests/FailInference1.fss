@@ -1,0 +1,31 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component FailInference1
+export Executable
+
+object TestFailCalled(s:String) extends UncheckedException
+    getter asString(): String = "FAIL: " s
+end
+
+testFail[\T extends Any\](s:String):T = do
+    errorPrintln("FAIL: " s)
+    throw TestFailCalled(s)
+end
+
+testAssert(flag:Boolean): () =
+    if NOT flag then
+        testFail[\()\]("Assertion failed!")
+    end
+
+run() = do testAssert(false); println "PASS" end
+
+end

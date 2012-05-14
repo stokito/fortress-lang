@@ -1,0 +1,32 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component StatParam.Opr.MyIdentity
+
+export Executable
+
+(*
+trait IdentityOp[\T extends IdentityOp[\T,ODOT\], opr ODOT\]
+  opr ODOT(self):T = self
+end
+*)
+
+(** EXAMPLE **)
+(* BROKEN...
+object MyIdentity extends IdentityOp[\MyIdentity, IDENTITY\] end
+*)
+(** END EXAMPLE **)
+
+run() = ()
+
+end
