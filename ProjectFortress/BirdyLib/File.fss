@@ -17,10 +17,10 @@ component File
 
 
 
-  object FileReadStream(filename: String) extends ReadStream
+  object FileReadStream(filename: JavaString) extends ReadStream
       jbr: JavaBufferedReader = makeJavaBufferedReader(filename)
 
-      getter fileName():String = filename
+      getter fileName():String = filename.asString
       getter asString():String = jbr.asString
       getter eof():Boolean = jbr.eof()
       getter ready():Boolean = jbr.ready()
