@@ -19,6 +19,7 @@ import com.sun.fortress.compiler.index.HasTraitStaticParameters;
 import com.sun.fortress.compiler.typechecker.StaticTypeReplacer;
 import com.sun.fortress.nodes.APIName;
 import com.sun.fortress.nodes.ArrowType;
+import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.FnHeader;
 import com.sun.fortress.nodes.Id;
@@ -28,6 +29,7 @@ import com.sun.fortress.nodes.StaticArg;
 import com.sun.fortress.nodes.StaticParam;
 import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeArg;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -151,7 +153,18 @@ public class FnNameInfo {
         }
         return NodeFactory.makeArrowType(NodeFactory.makeSpan(dt,rt), dt, rt);
     }
-
+    
+    public TypeArg boundsFor(StaticParam sp) {
+        List<BaseType> tl = sp.getExtendsClause();
+        if (tl.size() == 0) {
+            return NodeFactory.makeTypeArg(NodeFactory.makeTraitType(sp.getInfo().getSpan(), "Object"));
+        } else if (tl.size() == 1) {
+            return NodeFactory.makeTypeArg(tl.get(0));
+        } else {
+            return NodeFactory.makeTypeArg(NodeFactory.makeIntersectionType(tl));
+        }
+    }
+    
     public ArrowType normalizedSchema(Type at) {
         // make list of params by concatenating trait and method params
         // make list of synthesized args in form "1t", "2t", ..., "1m", "2m", ..
@@ -161,13 +174,15 @@ public class FnNameInfo {
         int i = 1;
         for (StaticParam sp : trait_static_params) {
             lsp.add(sp);
-            lsa.add(NodeFactory.makeTypeArg(NodeFactory.makeVarType(sp.getInfo().getSpan(), i + "t")));
+            lsa.add(boundsFor(sp));
+            // lsa.add(NodeFactory.makeTypeArg(NodeFactory.makeVarType(sp.getInfo().getSpan(), i + "t")));
             i++;
         }
         i = 1;
         for (StaticParam sp : static_params) {
             lsp.add(sp);
-            lsa.add(NodeFactory.makeTypeArg(NodeFactory.makeVarType(sp.getInfo().getSpan(), i + "m")));
+            lsa.add(boundsFor(sp));
+            // lsa.add(NodeFactory.makeTypeArg(NodeFactory.makeVarType(sp.getInfo().getSpan(), i + "m")));
             i++;
         }
         StaticTypeReplacer str = new StaticTypeReplacer(lsp, lsa);
