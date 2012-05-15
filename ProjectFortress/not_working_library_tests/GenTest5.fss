@@ -231,7 +231,7 @@ trait MappedGenerator[\E6,F2\] extends { Generator[\F2\], AnyMappedGenerator }
         comprises {  SimpleMappedGenerator[\E6,F2\], SimpleSequentialMappedGenerator[\E6,F2\] }
     getter g(): Generator[\E6\]
     getter f(): E6 -> F2
-    getter reverse(): SimpleMappedGenerator[\E6,F2\] =
+    getter reverse(): MappedGenerator[\E6,F2\] = (*) was SimpleMappedGenerator
         SimpleMappedGenerator[\E6,F2\](self.g.reverse, self.f)
     generate[\R\](r: Reduction[\R\], m: F2->R): R =
         self.g.generate[\R\](r, fn (x: E6): R => m((self.f)(x)))

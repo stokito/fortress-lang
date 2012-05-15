@@ -1222,12 +1222,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                      *   shadowing and collisions.
                      *  
                      */
-                    if (true || (name.toString().contains("nest") &&
-                            currentTraitObjectType.toString().startsWith("Condition"))) {
-                        super_noself_domain = super_inst.replaceInEverything(raw_super_noself_domain);
-                        boolean a = oa.lteq(noself_domain, super_noself_domain);
-                        boolean b = oa.lteq(noself_domain, super_noself_domain);
-                        boolean c = oa.lteq(noself_domain, super_noself_domain);
+                    if ((name.toString().contains("reverse") &&
+                            currentTraitObjectType.toString().startsWith("SimpleSequentialMappedGenerator"))) {
+                        boolean d_a_le_b = oa.lteq(noself_domain, super_noself_domain) ;
+                        boolean d_b_le_a = oa.lteq(super_noself_domain, noself_domain) ;
+                        boolean r_a_le_b = oa.lteq(ret, super_ret);
+                        boolean r_b_le_a = oa.lteq(super_ret, ret);
                     }
                     boolean d_a_le_b = oa.lteq(noself_domain, super_noself_domain) ;
                     boolean d_b_le_a = oa.lteq(super_noself_domain, noself_domain) ;
