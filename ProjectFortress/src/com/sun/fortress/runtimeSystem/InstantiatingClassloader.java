@@ -920,7 +920,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * with java/lang/Object, for use in certain contexts (coerced arrows
      * for casts, also for dynamically instantiated generic functions).  The
      * third apply method is generated if there is more than parameter to the
-     * function, in which case the parameters are wrapped in a tuple.
+     * function, in which case the parameters are wrapped in a tuple, or if the
+     * first parameter is a Tuple, in which case they will be unwrapped.
+     * 
      * For example, Arrow[\T;U;V\] will have the apply methods (ignore
      * both Fortress and JVM dangerous characters mangling issues for now):
      * 
@@ -962,11 +964,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         /* If more than one domain parameter, then also include the tupled apply method. */
         int l = parameters.size();
-        if (l > 2) {
-//            String tupleType = stringListToTuple(parameters.subList(0, l-1));
-//            List<String> tupled_parameters = Useful.<String>list(tupleType,
-//                        parameters.get(l-1)  );
-           
+        if (tupled_parameters != null) {
             String sig = arrowParamsToJVMsig(tupled_parameters);
             if (LOG_LOADS) System.err.println(name+".apply"+sig+" abstract");
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,

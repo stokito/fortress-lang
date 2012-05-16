@@ -29,7 +29,7 @@ object Node(left: Tree, item: ZZ32, right: Tree)
        extends Tree
   getter depth(): ZZ32 = 1 + (left.depth MAX right.depth)
 end
-
+ 
 object Leaf(item: ZZ32) extends Tree
   getter depth(): ZZ32 = 1
 end
@@ -44,6 +44,7 @@ sum(t: Tree): ZZ32 =
   end
 
 rotate(x:Tree): Tree
+rotate(x:Node(Tree, _, _)): Tree = x (*) never called
 rotate(x:Node(y:Node(p,q,r),s,t)) = Node(p,q,Node(r,s,t))
 rotate(x:Node(Leaf, _, _)) = x
 rotate(x:Leaf) = x

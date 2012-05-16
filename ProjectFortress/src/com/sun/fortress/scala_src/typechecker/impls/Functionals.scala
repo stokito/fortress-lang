@@ -499,6 +499,7 @@ trait Functionals { self: STypeChecker with Common =>
    * overloading.
    */
   def getCandidatesForFunction(fn: Expr, loc: HasAt): Option[List[PreAppCandidate]] = {
+    TypeError.b1(fn);
     val fnType = getType(fn).getOrElse(return None)
     if (!isArrows(fnType)) {
       signal(loc, "Applicand has a type that is not an arrow: %s".format(normalize(fnType)))
