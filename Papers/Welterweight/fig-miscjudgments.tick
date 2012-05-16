@@ -1,0 +1,223 @@
+
+\begin{figure*}
+\begin{tabular}{@{}c@{\hskip0.02\textwidth}c@{}}
+\begin{minipage}[t]{.41\textwidth}
+\typicallabel{\relax}
+
+\newjudge{Distinct names}{\mathit{distinct}(\bar{\Id})}
+
+\medskip
+
+\infrule
+  { \left| \bigsetb{\Id} \right| = \countof(\bar{\Id}) }
+  { \mathit{distinct}(\bar{\Id}) }
+
+\medskip
+
+\newjudge{Distinct declarations}{\mathit{distinct}\tuple{\bar{\psi}} \quad \mathit{distinct}\tuple{\bar{\varphi}}}
+
+\medskip
+
+\hbox{\hskip3em
+\hbox{$\displaystyle\frac
+  { \left| \bigsetb{\psi} \right| = \countof(\bar{\psi}) }
+  { \mathit{distinct}(\bar{\psi}) }$}\relax
+\hskip3em
+\hbox{$\displaystyle\frac
+  { \left| \bigsetb{\varphi} \right| = \countof(\bar{\varphi}) }
+  { \mathit{distinct}(\bar{\varphi}) }$}\relax
+}
+
+\medskip
+
+\newjudge{Name of function or method}{\name{d} = \Id}
+
+\medskip
+
+\hbox{$ \bigname{f\obb{\dontcare}(\bar{\dontcare})\COLON \dontcare} = f $\quad\quad
+      $ \bigname{\tuple{\dontcare, m\obb{\dontcare}(\bar{\dontcare})\COLON \dontcare}} = m $}
+
+\medskip
+
+\newjudge{Name of constructed type}{\name{C} = \Id}
+
+\medskip
+
+\hbox{$ \bigname{T\obb{\dontcare}} = T $\quad\quad
+      $ \bigname{O\obb{\dontcare}} = O $}
+
+\medskip
+
+\newjudge{Name of a trait, object, or parameter}{\name{\delta} = \Id}
+
+\smallskip
+
+\hbox{$ \bigname{\kwd{trait} \; T\obb{\dontcare} \; \dontcare \; \kwd{end}} = T $}
+\hbox{$ \bigname{\kwd{object} \; O\obb{\dontcare} \; \dontcare \; \kwd{end}} = O $}
+\hbox{$ \bigname{\bdb{\dontcare} \extends V\;P \extends \bdb{\dontcare}} = P $}
+
+\medskip
+
+\newjudge{Methods of constructed type}{\methods{C} \mathbin{=} \setb{\tuple{\underline{C},M}}}
+
+\medskip
+
+\infrule
+  { \kwd{trait} \; T\obb{\dontcare\;P \extends \bdb{\dontcare}} \; \dontcare \exc \set{\dontcare} \bar{\mu} \; \kwd{end} \in \Delta }
+  { \methods{T\obb{\alpha}} = \LRsetb{\Bigtuple{\underline{T\obb{\alpha}},\underline{\bigsubstb{\alpha}{P}}\mu}} }
+
+\medskip
+
+\infrule
+  { \kwd{object} \; O\obb{P \extends \bdb{\dontcare}}(\bar{\dontcare}) \extends \set{\dontcare} \bar{\mu} \; \kwd{end} \in \Delta }
+  { \methods{O\obb{\alpha}} = \LRsetb{\Bigtuple{\underline{O\obb{\alpha}},\underline{\bigsubstb{\alpha}{P}}\mu}} }
+
+\medskip
+
+\newjudge{All visible methods}{\allvisible{C} = \setb{\tuple{\underline{C},M}}}
+
+\smallskip
+
+\infax
+  { \allvisible{C} = {\displaystyle \bigcup_{C' \in \ancestors{C}} \;\;\methods{C'}} }
+
+\medskip
+
+\newjudge{Immediately extended traits}{\parents{C} = \setb{C}}
+
+\medskip
+
+\infrule
+  { \kwd{trait} \; T\obb{V\;P \extends \bd{\tau}} \extends \setb{t} \; \dontcare \; \kwd{end} \in \Delta }
+  { \parents{T\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{P}t}}} }
+
+\medskip
+
+\infrule
+  { \kwd{object} \; O\obb{P \extends \bd{\tau}}(\bar{\dontcare}) \extends \setb{t} \; \dontcare \; \kwd{end} \in \Delta }
+  { \parents{O\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{P}}t}} }
+
+\medskip
+
+\newjudge{All extended traits}{\properancestors{C} = \setb{C}}
+
+\medskip
+
+\infax
+  { \properancestors{C} = \!\!{\displaystyle \bigcup_{C' \in \parents{C}} \!\!\ancestors{C'}} }
+
+\medskip
+
+\newjudge{All extended traits plus self}{\ancestors{C} = \setb{C}}
+
+\medskip
+
+\infax
+  { \ancestors{C} = \set{C} \cup \properancestors{C} }
+
+\end{minipage}&%
+\begin{minipage}[t]{.47\textwidth}
+
+\typicallabel{}
+
+\newjudge{Excluded traits}{\excluded{C} = \setb{C}}
+
+\medskip
+
+\infrule
+  { \kwd{trait} \; T\obb{V\;P \extends \bd{\tau}} \; \dontcare \; \exc \setb{t} \; \dontcare \; \kwd{end} \in \Delta }
+  { \excluded{T\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{P}}t}} }
+
+\medskip
+
+\newjudge{Comprised types}{\comprised{C} = \setb{C}}
+
+\medskip
+
+\infrule
+  { \kwd{trait} \; T\obb{V\;P \extends \bd{\tau}} \extends \setb{\dontcare} \exc \setb{\dontcare} \; \dontcare \; \kwd{end} \in \Delta }
+  { \comprised{T\obb{\alpha}} = \set{\Any} }
+
+\medskip
+
+\infrule
+  { \kwd{trait} \; T\obb{V\;P \extends \bd{\tau}} \; \dontcare \; \comprises \setb{c} \; \dontcare \; \kwd{end} \in \Delta }
+  { \comprised{T\obb{\alpha}} = \bigset{\bar{\underline{\substb{\alpha}{P}}c}} }
+
+\medskip
+
+\newjudge{Parameters in type env}{\mathit{parameters}(\Delta) = \setb{P} }
+
+\medskip
+
+\(
+\begin{array}{@{}l@{}}
+\mathit{parameters}(\Delta) = {\displaystyle \bigcup_{{\delta\in\Delta}} \mathit{oneParam}(\delta)} \\[14pt]
+\mathit{oneParam}\bigtuple{\bdb{\dontcare} \extends V\;P \extends \bdb{\dontcare}} = \set{P} \\[1pt]
+\mathit{oneParam}(\kwd{trait} \; \bar{\dontcare} \; \kwd{end}) = \set{\,} \\[1pt]
+\mathit{oneParam}(\kwd{object} \; \bar{\dontcare} \; \kwd{end}) = \set{\,}
+\end{array}
+\)
+
+\medskip
+
+\newjudge{Trait/object names in env}{\mathit{typeNames}(\Delta) = \setb{\Id}}
+
+\medskip
+
+\(
+\begin{array}{@{}l@{}}
+\mathit{typeNames}(\Delta) = \bigcup \LRsetcomp{\mathit{oneName}(\delta)}{\delta\in\Delta} \\[10pt]
+\mathit{oneName}\bigtuple{\bdb{\dontcare} \extends V\;P \extends \bdb{\dontcare}} = \set{\,} \\[1pt]
+\mathit{oneName}(\kwd{trait} \; T\obb{\dontcare} \; \bar{\dontcare} \; \kwd{end}) = \set{T} \\[1pt]
+\mathit{oneName}(\kwd{object} \; O\obb{\dontcare} \; \bar{\dontcare} \; \kwd{end}) = \set{O}
+\end{array}
+\)
+
+\medskip
+
+\newjudge{Trait/object names in types}{\mathit{typeNames}\bigtuple{\setb{C}} = \setb{\Id}}
+
+\medskip
+
+\hbox{$ \mathit{typeNames}\bigtuple{\setb{C}} = \setb{\name{C}} $}
+
+\bigskip
+
+\textbf{Sorting of function or method declarations:}
+\typicallabel{Ordered-Before}
+
+\medskip
+
+{\def\andalso{\hbox to 1.8em{\hss}}   % need to tighten slightly
+\infrule[Topological-Sort]
+  { \bar{d' \in \underline{\setb{d}}}  \\
+    \forall\, d''\in\setb{d}, d'''\in\setb{d}.\bigtuple{\orderedin{d''}{d'''}{d'}{\mathit{lteq}}} }
+  { \topologicalsort{\mathit{lteq}}{\setb{d}} = \listofb{d'} }
+}
+
+\medskip
+
+\infrule[Ordered-Before]
+  { \mathit{lteq}(d'',d''')  \andalso  \neg(\mathit{lteq}(d''',d''))  \\  \listof{d'} = \listof{\bar{\dontcare}, d'', \bar{\dontcare}, d''', \bar{\dontcare}} }
+  { \orderedin{d''}{d'''}{d'}{\mathit{lteq}} }
+
+\medskip
+
+\infrule[Ordered-After]
+  { \neg(\mathit{lteq}(d'',d'''))  \andalso  \mathit{lteq}(d''',d'')  \\  \listof{d'} = \listof{\bar{\dontcare}, d''', \bar{\dontcare}, d'', \bar{\dontcare}} }
+  { \orderedin{d''}{d'''}{d'}{\mathit{lteq}} }
+
+\medskip
+
+\infrule[Ordered-Neither]
+  { \mathit{lteq}(d'',d''') = \mathit{lteq}(d''',d'')  }
+  { \orderedin{d''}{d'''}{d'}{\mathit{lteq}} }
+
+\end{minipage}
+\end{tabular}
+
+\medskip
+\caption{Miscellaneous Judgments}
+\label{fig:miscjudgments}
+\end{figure*}

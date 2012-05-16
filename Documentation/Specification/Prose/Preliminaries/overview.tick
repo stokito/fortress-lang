@@ -1,0 +1,24 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newchap{Overview of Fortress}{overview}
+
+%     - goals and principles
+%        - growing a language
+%        - multicore programming
+%        - mathematical syntax
+%     - main concepts
+%       - object-oriented
+%       - symmetric multiple dispatch (mention nonambiguity?)
+%       - parallelism
+%       - mathematical syntax
+%       - modular system
+

@@ -1,0 +1,38 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Ignoring Values}
+\seclabel{ignore}
+
+For convenience, the function \VAR{ignore} (equivalent to the
+\texttt{ignore} function in the Objective Caml programming language) is
+included in \library:
+%% ignore(x: Any) = ()
+\begin{Fortress}
+\(\VAR{ignore}(x\COLON \TYP{Any}) = ()\)
+\end{Fortress}
+The function discards the value of its argument and
+returns \EXP{()}.  For example, the following:
+\marginnote{
+I manually added space between $f$ and $x$
+-- Sukyoung}
+%ignore(f x)
+\begin{Fortress}
+\(\VAR{ignore}(f\ x)\)
+\end{Fortress}
+is equivalent to:
+\marginnote{
+I manually added space between $f$ and $x$
+-- Sukyoung}
+%do f x; () end
+\begin{Fortress}
+\(\KWD{do} f\ x; () \KWD{end}\)
+\end{Fortress}

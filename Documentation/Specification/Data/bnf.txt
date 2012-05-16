@@ -1,0 +1,832 @@
+$$$$$ Components and API
+
+File ::=
+     | CompilationUnit
+     | Imports? Exports Decls?
+     | Imports? AbsDecls
+     | Imports AbsDecls?
+
+CompilationUnit ::=
+     | Component
+     | Api
+
+Component ::=
+     | component DottedId Imports? Exports Decls? end
+
+Api ::=
+     | api DottedId Imports? AbsDecls? end
+
+Imports ::=
+     | Import+
+
+Import ::=
+     | import ImportFrom
+     | import AliasedDottedIds
+
+ImportFrom ::=
+     | * ( except Names)? from DottedId
+     | AliasedNames from DottedId
+
+Names ::=
+     | Name
+     | { NameList } 
+
+NameList ::=
+     | Name( , Name)*
+
+AliasedNames ::=
+     | AliasedName
+     | { AliasedNameList } 
+
+AliasedName ::=
+     | Id ( as DottedId)?
+     | opr Op ( as Op)?
+     | opr LeftEncloser RightEncloser ( as LeftEncloser RightEncloser)?
+
+AliasedNameList ::=
+     | AliasedName( , AliasedName)*
+
+AliasedDottedIds ::=
+     | AliasedDottedId
+     | { AliasedDottedIdList } 
+
+AliasedDottedId ::=
+     | DottedId ( as DottedId)?
+
+AliasedDottedIdList ::=
+     | AliasedDottedId( , AliasedDottedId)*
+
+Exports ::=
+     | Export+
+
+Export ::=
+     | export DottedIds
+
+DottedIds ::=
+     | DottedId
+     | { DottedIdList } 
+
+DottedIdList ::=
+     | DottedId( , DottedId)*
+
+$$$$$ Top-level Declarations
+
+Decls ::=
+     | Decl+
+
+Decl ::=
+     | TraitDecl
+     | ObjectDecl
+     | VarDecl
+     | FnDecl
+
+AbsDecls ::=
+     | AbsDecl+
+
+AbsDecl ::=
+     | AbsTraitDecl
+     | AbsObjectDecl
+     | AbsVarDecl
+     | AbsFnDecl
+
+$$$$$ Trait Declaration
+
+TraitDecl ::=
+     | TraitHeader GoInATrait? end
+
+TraitHeader ::=
+     | TraitMods? trait Id StaticParams? Extends? TraitClauses?
+
+TraitClauses ::=
+     | TraitClause+
+
+TraitClause ::=
+     | Excludes
+     | Comprises
+
+GoInATrait ::=
+     | GoFrontInATrait GoBackInATrait?
+     | GoBackInATrait
+
+GoFrontInATrait ::=
+     | GoesFrontInATrait+
+
+GoesFrontInATrait ::=
+     | AbsFldDecl
+     | GetterSetterDecl
+
+GoBackInATrait ::=
+     | GoesBackInATrait+
+
+GoesBackInATrait ::=
+     | MdDecl
+
+AbsTraitDecl ::=
+     | TraitHeader AbsGoInATrait? end
+
+AbsGoInATrait ::=
+     | AbsGoFrontInATrait AbsGoBackInATrait?
+     | AbsGoBackInATrait
+
+AbsGoFrontInATrait ::=
+     | AbsGoesFrontInATrait+
+
+AbsGoesFrontInATrait ::=
+     | ApiFldDecl
+     | AbsGetterSetterDecl
+
+AbsGoBackInATrait ::=
+     | AbsGoesBackInATrait+
+
+AbsGoesBackInATrait ::=
+     | AbsMdDecl
+     | AbsCoercion
+
+$$$$$ Object declaration
+
+ObjectDecl ::=
+     | ObjectHeader GoInAnObject? end
+
+ObjectHeader ::=
+     | ObjectMods? object Id StaticParams? ObjectValParam? Extends? FnClauses
+
+ObjectValParam ::=
+     | ( ObjectParams? )
+
+ObjectParams ::=
+     | (ObjectParam , )* ObjectKeyword( , ObjectKeyword)*
+     | ObjectParam ( , ObjectParam)*
+
+ObjectKeyword ::=
+     | ObjectParam = Expr
+
+ObjectParam ::=
+     | FldMods? Param
+     | transient Param
+
+GoInAnObject ::=
+     | GoFrontInAnObject GoBackInAnObject?
+     | GoBackInAnObject
+
+GoFrontInAnObject ::=
+     | GoesFrontInAnObject+
+
+GoesFrontInAnObject ::=
+     | FldDecl
+     | GetterSetterDef
+
+GoBackInAnObject ::=
+     | GoesBackInAnObject+
+
+GoesBackInAnObject ::=
+     | MdDef
+
+AbsObjectDecl ::=
+     | ObjectHeader AbsGoInAnObject? end
+
+AbsGoInAnObject ::=
+     | AbsGoFrontInAnObject AbsGoBackInAnObject?
+     | AbsGoBackInAnObject
+
+AbsGoFrontInAnObject ::=
+     | AbsGoesFrontInAnObject+
+
+AbsGoesFrontInAnObject ::=
+     | ApiFldDecl
+     | AbsGetterSetterDecl
+
+AbsGoBackInAnObject ::=
+     | AbsGoesBackInAnObject+
+
+AbsGoesBackInAnObject ::=
+     | AbsMdDecl
+     | AbsCoercion
+
+$$$$$ Variable Declaration
+
+VarDecl ::=
+     | VarWTypes InitVal
+     | VarWoTypes = Expr
+     | VarWoTypes : TypeRef ... InitVal
+     | VarWoTypes : SimpleTupleType InitVal
+
+VarWTypes ::=
+     | VarWType
+     | ( VarWType( , VarWType)+ )
+
+VarWType ::=
+     | VarMods? Id IsType
+
+VarWoTypes ::=
+     | VarWoType
+     | ( VarWoType( , VarWoType)+ )
+
+VarWoType ::=
+     | VarMods? Id
+
+InitVal ::=
+     | ( = | := ) Expr    
+
+AbsVarDecl ::=
+     | VarWTypes
+     | VarWoTypes : TypeRef ...
+     | VarWoTypes : SimpleTupleType
+
+$$$$$ Function Declaration
+
+FnDecl ::=
+     | FnDef
+     | AbsFnDecl
+
+FnDef ::=
+     | FnMods? FnHeaderFront FnHeaderClause = Expr
+
+AbsFnDecl ::=
+     | FnMods? FnHeaderFront FnHeaderClause
+     | Name : ArrowType
+
+FnHeaderFront ::=
+     | Id StaticParams? ValParam
+     | OpHeaderFront
+
+$$$$$ Headers
+
+Extends ::=
+     | extends TraitTypes
+
+Excludes ::=
+     | excludes TraitTypes
+
+Comprises ::=
+     | comprises ComprisingTypes
+
+TraitTypes ::=
+     | TraitType
+     | { TraitTypeList } 
+
+TraitTypeList ::=
+     | TraitType( , TraitType)*
+
+ComprisingTypes ::=
+     | TraitType
+     | { ComprisingTypeList } 
+
+ComprisingTypeList ::=
+     | . . .
+     | TraitType( , TraitType)* ( , . . . )?
+
+FnHeaderClause ::=
+     | IsType? FnClauses
+
+FnClauses ::=
+     | Throws? 
+
+Throws ::=
+     | throws MayTraitTypes
+
+MayTraitTypes ::=
+     | { }
+     | TraitTypes
+
+CoercionClauses ::=
+     | Throws? 
+
+UniversalMod ::=
+     | private      
+
+TraitMod ::=
+     | value      
+     | UniversalMod
+
+TraitMods ::=
+     | TraitMod+
+
+ObjectMods ::=
+     | TraitMods
+
+FnMod ::=
+     | LocalFnMod      
+     | UniversalMod
+
+FnMods ::=
+     | FnMod+
+
+VarMod ::=
+     | var      
+     | UniversalMod
+
+VarMods ::=
+     | VarMod+
+
+AbsFldMod ::=
+     | hidden | settable | UniversalMod
+
+AbsFldMods ::=
+     | AbsFldMod+
+
+FldMod ::=
+     | var      
+     | AbsFldMod
+
+FldMods ::=
+     | FldMod+
+
+
+ApiFldMod ::=
+     | hidden | settable | UniversalMod
+
+ApiFldMods ::=
+     | ApiFldMod+
+
+LocalFnMod ::=
+     | atomic      
+
+LocalFnMods ::=
+     | LocalFnMod+
+
+StaticParams ::=
+     | [[[ StaticParamList ]]]  
+
+StaticParamList ::=
+     | StaticParam( , StaticParam)*
+
+StaticParam ::=
+     | Id Extends? 
+     | nat Id
+     | int Id
+     | bool Id
+     | opr Op
+     | ident Id
+
+$$$$$ Parameters
+
+ValParam ::=
+     | BindId
+     | (Params?)
+
+Params ::=
+     | (Param , )* Keyword( , Keyword)*
+     | (Param , )* 
+     | Param( , Param)*
+
+Keyword ::=
+     | Param = Expr
+
+PlainParam ::=
+     | BindId IsType?
+     | TypeRef
+
+Param ::=
+     | PlainParam
+
+OpHeaderFront ::=
+     | opr StaticParams? (LeftEncloser      | Encloser) Params (RightEncloser      | Encloser)( := ( SubscriptAssignParam ))?
+     | opr StaticParams? ValParam Op
+     | opr (Op      | Encloser) StaticParams? ValParam
+
+SubscriptAssignParam ::=
+     | Param
+
+$$$$$ Method Declaration
+
+MdDecl ::=
+     | MdDef
+     | AbsMdDecl
+
+MdDef ::=
+     | FnMods? MdHeaderFront FnHeaderClause = Expr
+     | Coercion
+
+AbsMdDecl ::=
+     | abstract ? FnMods? MdHeaderFront FnHeaderClause
+
+MdHeaderFront ::=
+     | ( Receiver . )?Id StaticParams? MdValParam
+     | OpHeaderFront
+
+Receiver ::=
+     | Id
+     | self
+
+GetterSetterDecl ::=
+     | GetterSetterDef
+     | AbsGetterSetterDecl
+
+GetterSetterDef ::=
+     | FnMods? GetterSetterMod MdHeaderFront FnHeaderClause = Expr
+
+GetterSetterMod ::=
+     | getter      | setter
+
+AbsGetterSetterDecl ::=
+     | abstract ? FnMods? GetterSetterMod MdHeaderFront FnHeaderClause
+
+Coercion ::=
+     | widening? coercion StaticParams? [([ Id IsType ])] CoercionClauses = Expr
+
+AbsCoercion ::=
+     | widening? coercion StaticParams? [([ Id IsType ])] CoercionClauses      
+
+$$$$$ Method Parameters
+
+MdValParam ::=
+     | ( MdParams? )
+
+MdParams ::=
+     | (MdParam , )* MdKeyword( , MdKeyword)*
+     | (MdParam , )* 
+     | MdParam( , MdParam)*
+
+MdKeyword ::=
+     | MdParam = Expr
+
+MdParam ::=
+     | Param
+     | self
+
+$$$$$ Field Declarations
+
+FldDecl ::=
+     | FldWTypes InitVal
+     | FldWoTypes = Expr
+     | FldWoTypes : TypeRef ... InitVal
+     | FldWoTypes : SimpleTupleType InitVal
+
+FldWTypes ::=
+     | FldWType
+     | ( FldWType( , FldWType)+ )
+
+FldWType ::=
+     | FldMods? Id IsType
+
+FldWoTypes ::=
+     | FldWoType
+     | ( FldWoType( , FldWoType)+ )
+
+FldWoType ::=
+     | FldMods? Id
+
+$$$$$ Abstract Filed Declaration
+
+AbsFldDecl ::=
+     | AbsFldWTypes
+     | AbsFldWoTypes : TypeRef ...
+     | AbsFldWoTypes : SimpleTupleType
+
+AbsFldWTypes ::=
+     | AbsFldWType
+     | ( AbsFldWType( , AbsFldWType)+ )
+
+AbsFldWType ::=
+     | AbsFldMods? Id IsType
+
+AbsFldWoTypes ::=
+     | AbsFldWoType
+     | ( AbsFldWoType( , AbsFldWoType)+ )
+
+AbsFldWoType ::=
+     | AbsFldMods? Id
+
+ApiFldDecl ::=
+     | ApiFldMods? Id IsType
+
+$$$$$ Expressions
+
+Expr ::=
+     | AssignLefts AssignOp Expr
+     | OpExpr
+     | DelimitedExpr
+     | FlowExpr
+     | fn ValParam IsType? Throws? => Expr
+     | Expr as TypeRef
+     | Expr asif TypeRef
+
+AssignLefts ::=
+     | [(] AssignLeft ( , AssignLeft)* ])]
+     | AssignLeft
+
+AssignLeft ::=
+     | SubscriptExpr
+     | FieldSelection
+     | BindId
+
+SubscriptExpr ::=
+     | Primary [ ExprList? ]
+
+FieldSelection ::=
+     | Primary . Id
+
+OpExpr ::=
+     | EncloserOp OpExpr? EncloserOp?
+     | OpExpr EncloserOp OpExpr?
+     | Primary
+
+EncloserOp ::=
+     | Encloser
+     | Op
+
+Primary ::=
+     | Comprehension
+     | Id [[[ StaticArgList ]]]
+     | BaseExpr
+     | LeftEncloser ExprList? RightEncloser
+     | Primary [ ExprList? ]
+     | Primary . Id ( [[[ StaticArgList ]]] )? TupleExpr
+     | Primary . Id ( [[[ StaticArgList ]]] )? [([ ])]
+     | Primary . Id
+     | Primary ^ BaseExpr
+     | Primary ExponentOp
+     | Primary TupleExpr
+     | Primary [([ ])]
+     | Primary Primary
+     | TraitType . coercion ( [[[ StaticArgList ]]] )?(Expr)
+
+FlowExpr ::=
+     | exit Id? (with Expr)?
+     | Accumulator ( [ GeneratorList ] )? Expr
+     | atomic AtomicBack
+     | tryatomic AtomicBack
+     | throw Expr
+
+AtomicBack ::=
+     | AssignLefts AssignOp Expr
+     | OpExpr
+     | DelimitedExpr
+
+GeneratorList ::=
+     | Generator( , Generator)*
+
+Generator ::=
+     | GeneratorBinding
+     | Expr
+
+GeneratorBinding ::=
+     | Id <- Expr
+     | [([ Id , IdList ])] <- Expr
+
+$$$$$ Expressions Enclosed by Keywords
+
+DelimitedExpr ::=
+     | TupleExpr
+     | ObjectExpr
+     | DoExpr
+     | LabelExpr
+     | WhileExpr
+     | ForExpr
+     | IfExpr
+     | CaseExpr
+     | TypecaseExpr
+     | TryExpr
+
+TupleExpr ::=
+     | ( (Expr , )* (Expr ... , )? Binding ( , Binding)* )
+     | NoKeyTuple
+
+NoKeyTuple ::=
+     | [([ (Expr , )* Expr ... ])]
+     | [([ (Expr , )* Expr ])]
+
+ObjectExpr ::=
+     | object Extends? GoInAnObject end
+
+DoExpr ::=
+     | ( DoFront also )* DoFront end
+
+DoFront ::=
+     | ( at Expr )? atomic? do Block?
+
+LabelExpr ::=
+     | label Id Block end Id
+
+WhileExpr ::=
+     | while Generator DoExpr
+
+ForExpr ::=
+     | for GeneratorList DoFront end
+
+IfExpr ::=
+     | if Generator then Block ElifClause* ElseClause? end
+     | [(] if Generator then Block ElifClause* ElseClause end? [)]
+
+ElifClause ::=
+     | elif Expr then Block
+
+ElseClause ::=
+     | else Block
+
+CaseExpr ::=
+     | case Expr Op? of CaseClauses CaseElseClause? end
+
+CaseClauses ::=
+     | CaseClause+
+
+CaseClause ::=
+     | Expr => Block
+
+CaseElseClause ::=
+     | else => Block
+
+TypecaseExpr ::=
+     | typecase TypecaseBindings of TypecaseClauses CaseElseClause? end
+
+TypecaseBindings ::=
+     | [([ BindingList ])]
+     | Binding
+     | Id
+
+BindingList ::=
+     | Binding( , Binding)*
+
+Binding ::=
+     | BindId = Expr
+
+TypecaseClauses ::=
+     | TypecaseClause+
+
+TypecaseClause ::=
+     | TypecaseTypeRefs => Block
+
+TypecaseTypeRefs ::=
+     | [([ TypeRefList ])]
+     | TypeRef
+
+TryExpr ::=
+     | try Block Catch? ( finally Block)? end
+
+Catch ::=
+     | catch Id CatchClauses
+
+CatchClauses ::=
+     | CatchClause+
+
+CatchClause ::=
+     | TraitType => Block
+
+Comprehension ::=
+     | { Expr      | GeneratorList }
+     | { Entry      | GeneratorList }
+     | < Expr      | GeneratorList  > 
+     | [ ArrayComprehensionClause+ ]
+
+Entry ::=
+     | Expr |-> Expr   
+
+ArrayComprehensionLeft ::=
+     | IdOrInt |-> Expr
+     | ( IdOrInt , IdOrIntList ) |-> Expr
+
+ArrayComprehensionClause ::=
+     | ArrayComprehensionLeft      
+     | GeneratorList
+
+IdOrInt ::=
+     | Id
+     | IntLiteral
+
+IdOrIntList ::=
+     | IdOrInt( , IdOrInt)*
+
+BaseExpr ::=
+     | NoKeyTuple
+     | Literal
+     | Id
+     | self
+
+ExprList ::=
+     | Expr( , Expr)*
+
+$$$$$ Local Declarations
+
+Block ::=
+     | BlockElement+
+
+BlockElement ::=
+     | LocalVarFnDecl
+     | Expr ( , GeneratorList)?
+
+LocalVarFnDecl ::=
+     | LocalFnDecl+
+     | LocalVarDecl
+
+LocalFnDecl ::=
+     | LocalFnMods? FnHeaderFront FnHeaderClause = Expr
+
+LocalVarDecl ::=
+     | LocalVarWTypes InitVal
+     | LocalVarWTypes
+     | LocalVarWoTypes = Expr
+     | LocalVarWoTypes : TypeRef ... InitVal?
+     | LocalVarWoTypes : SimpleTupleType InitVal?
+
+LocalVarWTypes ::=
+     | LocalVarWType
+     | ( LocalVarWType( , LocalVarWType)+ )
+
+LocalVarWType ::=
+     | var ? Id IsType
+
+LocalVarWoTypes ::=
+     | LocalVarWoType
+     | ( LocalVarWoType( , LocalVarWoType)+ )
+
+LocalVarWoType ::=
+     | var ? Id
+
+
+$$$$$ Literals
+
+Literal ::=
+     | [([ ])]
+     | NumericLiteral
+     | CharLiteral
+     | StringLiteral
+     | { Entry ( , Entry)* }
+     | [ RectElements ]
+
+RectElements ::=
+     | Expr MultiDimCons*
+
+MultiDimCons ::=
+     | RectSeparator Expr
+
+RectSeparator ::=
+     | ; +
+     | Whitespace
+
+$$$$$ Types
+
+IsType ::=
+     | : TypeRef
+
+TypeRef ::=
+     | TraitType
+     | ArrowType
+     | TupleType
+     | (TypeRef ?)
+
+TraitType ::=
+     | DottedId ( [[[ StaticArgList ]]] )?
+     | { TypeRef |-> TypeRef }
+     | < TypeRef >
+     | TypeRef [ ArraySize? ]
+     | TypeRef ^ IntLiteral
+     | TypeRef ^ ( ExtentRange (kTIMES ExtentRange)* )
+
+ArrowType ::=
+     | TypeRef -> TypeRef Throws?
+
+TupleType ::=
+     | ( (TypeRef , )* (TypeRef ... , )? KeywordType( , KeywordType)* )
+     | ( (TypeRef , )* TypeRef ... )
+     | SimpleTupleType
+
+KeywordType ::=
+     | Id = TypeRef
+
+SimpleTupleType ::=
+     | ( TypeRef , TypeRefList )
+
+TypeRefList ::=
+     | TypeRef ( , TypeRef )*
+
+StaticArgList ::=
+     | StaticArg( , StaticArg)*
+
+StaticArg ::=
+     | Op
+     | TypeRef
+     | [([ StaticArg ])]
+
+ArraySize ::=
+     | ExtentRange( , ExtentRange)*
+
+ExtentRange ::=
+     | StaticArg? # StaticArg?
+     | StaticArg? : StaticArg?
+     | StaticArg
+
+$$$$$ Symbols and Operators
+
+AssignOp ::=
+     | :=      
+     | Op =
+
+Accumulator ::=
+     | kBIGSUM | kBIGPROD | kBIG Op
+
+$$$$$ Identifiers
+
+IdList ::=
+     | Id( , Id)*
+
+Name ::=
+     | Id
+     | opr Op
+
+DottedId ::=
+     | Id( . Id)*
+
+BindId ::=
+     | Id
+     | _
+

@@ -1,0 +1,232 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{\fortifydir/fortify.sty}
+
+% Sectioning
+\newcommand{\newpart}[2]{\part{#1}\partlabel{#2}}
+\newcommand{\newchap}[2]{\chapter{#1}\chaplabel{#2}}
+\newcommand{\newapp}[2]{\chapter{#1}\applabel{#2}}
+\newcommand{\newsec}[2]{\section{#1}\seclabel{#2}}
+\newcommand{\newsubsec}[2]{\subsection{#1}\seclabel{#2}}
+\newcommand{\newsubsubsec}[2]{\subsubsection{#1}\seclabel{#2}}
+
+% Cross-references
+\newcommand{\partref}[1]{Part~\ref{part:#1}}
+\newcommand{\partlabel}[1]{\label{part:#1}}
+\newcommand{\chapref}[1]{Chapter~\ref{chap:#1}}
+\newcommand{\chaplabel}[1]{\label{chap:#1}}
+\newcommand{\appref}[1]{Appendix~\ref{app:#1}}
+\newcommand{\applabel}[1]{\label{app:#1}}
+\newcommand{\secref}[1]{Section~\ref{sec:#1}}
+\newcommand{\seclabel}[1]{\label{sec:#1}}
+\newcommand{\figref}[1]{Figure~\ref{fig:#1}}
+\newcommand{\figlabel}[1]{\label{fig:#1}}
+\newcommand{\see}[1]{see \secref{#1}}
+\newcommand{\See}[1]{See \secref{#1}}
+
+% Literal text
+\newcommand{\txt}[1]{\mbox{\ttfamily\small{#1}}}
+\newcommand{\A}[1]{\underline{\texttt{#1}}}
+\newcommand{\txtr}[1]{\mbox{\ttfamily{#1}}}
+\newcommand{\csdot}{\thinspace\cdot\thinspace}
+\newcommand{\scap}[1]{\textsc{#1}}
+
+% Tabbing in teletype font, so we can embed formulas, italics, roman, etc...
+\newenvironment{ttt}{%
+\begin{tt}
+\begin{tabbing}
+}{%
+\end{tabbing}
+\end{tt}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% brackets, braces, and parentheses %%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\set}[1]{\ensuremath{\{#1\}}}
+\newcommand{\braces}[1]{\ensuremath{\code\{#1\code\}}}
+\newcommand{\parens}[1]{\ensuremath{\code(#1\code)}}
+\newcommand{\brackets}[1]{\ensuremath{\code[#1\code]}}
+%% brackets for type parameters
+\newcommand{\bTPl}{\ensuremath{\llbracket}}
+\newcommand{\bTPr}{\ensuremath{\rrbracket}}
+\newcommand{\bsTP}[1]{\bTPl#1\bTPr}
+\newcommand{\bINTl}{\ensuremath{\langle\!|}}
+\newcommand{\bINTr}{\ensuremath{|\!\rangle}}
+\newcommand{\bsINT}[1]{\bINTl#1\bINTr}
+%% brackets for lists
+\newcommand{\bLISTl}{\ensuremath{\langle}}
+\newcommand{\bLISTr}{\ensuremath{\rangle}}
+\newcommand{\bsLIST}[1]{\bLISTl#1\bLISTr}
+%% brackets for where clauses
+\newcommand{\bWHl}{\ensuremath{\{}}
+\newcommand{\bWHr}{\ensuremath{\}}}
+\newcommand{\bsWH}[1]{\bWHl#1\bWHr}
+
+%% Numeric type names
+\newcommand{\ZZ}{\ensuremath{\mathbb{Z}}}
+\newcommand{\RR}{\ensuremath{\mathbb{R}}}
+
+\newcommand{\AmBYn}[3]{$\txtr{#1}^{\txtr{#2}\BY\txtr{#3}}$}
+\newcommand{\aSUBmBYn}[3]{$\txtr{#1}_{\txtr{#2}\BY\txtr{#3}}$}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\unicode}{Unicode 5.0}
+%% shell command rendering used in the Overview chapter
+\newcommand{\shellcommand}[1]{\txt{#1}}
+\newcommand{\library}{the Fortress standard libraries}
+\newcommand{\Library}{The Fortress standard libraries}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Stuff for the grammar excerpt %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\option}[1]{#1?}
+\newcommand{\options}[1]{(#1)?}
+
+
+\def\Grammar{\list{}{\leftmargin 2em
+                      \itemindent\listparindent
+                      \parsep 0pt plus 1pt}
+\item[{\sf Syntax:}]
+\item
+                      \begingroup\tabbing\begin{tabular}{llll}}
+\makeatletter
+\def\endGrammar{\end{tabular}\unskip\@stopfield\@addfield\ifdim\wd\@curline>0pt\@startfield\@stopline\fi
+  \ifnum\@tabpush >\z@ \@badpoptabs \fi\endtrivlist\endgroup\endlist}
+\makeatother
+
+\def\GrammarTwo{\list{}{\leftmargin 2em
+                      \itemindent\listparindent
+                      \parsep 0pt plus 1pt}
+\item
+                      \begingroup\tabbing\begin{tabular}{llll}}
+\makeatletter
+\def\endGrammarTwo{\end{tabular}\unskip\@stopfield\@addfield\ifdim\wd\@curline>0pt\@startfield\@stopline\fi
+  \ifnum\@tabpush >\z@ \@badpoptabs \fi\endtrivlist\endgroup\endlist}
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Sectioning commands for libraries %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\makeatletter
+\newcommand\librarysection{\@ifstar{\vskip-\lastskip  \vskip-\parskip
+   \@startsection{section}{1}{\z@}{\z@}%
+                 {2.3ex \@plus .2ex}{\normalfont\Large\bfseries}}{%
+   \vskip 0pt plus .00001fil\nobreak\null
+   \@startsection{section}{1}{\z@}{-3.5ex\@plus -1ex \@minus -.2ex}%
+                 {2.3ex \@plus .2ex}{\normalfont\Large\bfseries}}}
+\newcommand\librarysubsection{\@ifstar{\vskip-\lastskip  \vskip-\parskip
+   \@startsection{subsection}{2}{\z@}{\z@}%
+                 {0.5ex \@plus .2ex}{\normalfont\bfseries}}{%
+   \vskip 0pt plus .00001fil\nobreak\null
+   \@startsection{subsection}{2}{\z@}{-3.25ex\@plus -1ex \@minus -.2ex}%
+                 {0.5ex \@plus .2ex}{\normalfont\bfseries}}}
+\makeatother
+\newcommand\Trait[1]{\librarysection{The Trait #1}}
+\newcommand\Object[1]{\librarysection{The Object #1}}
+\newcommand\Method{\librarysubsection}
+\newcommand\Function{\librarysubsection}
+\newcommand\Variable{\librarysubsection}
+
+%%%%%%%%%%%%%%%%%%%%%
+%% API vs api %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\apiN}{\mbox{API}}
+\newcommand{\apisN}{\mbox{APIs}}
+\newcommand{\Api}{API}
+\newcommand{\Apis}{APIs}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% mathematical characters not already covered by LaTeX %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\OverStrike}[2]{{\setbox1\hbox{${#1}$}\setbox2\hbox{${#2}$}\relax
+   \setbox3\vbox{\box1\box2}\hbox{\hbox to \wd3{\hfil${#1}$\hfil}\hskip-\wd3
+                                  \hbox to \wd3{\hfil${#2}$\hfil}}}}
+\newcommand{\UPTRI}{\vbox to 0pt{\vss\hbox{\raise 0.1em\hbox{\large$\bigtriangleup$}}}}
+\newcommand{\DOWNTRI}{\vbox to 0pt{\vss\hbox{\lower 0.2em\hbox{\large$\bigtriangledown$}}}}
+
+\newcommand{\upplus}{\mathbin{\OverStrike{\UPTRI}{\scriptstyle +}}}
+\newcommand{\upminus}{\mathbin{\OverStrike{\UPTRI}{\scriptstyle -}}}
+\newcommand{\uptimes}{\mathbin{\OverStrike{\UPTRI}{\scriptstyle\times}}}
+\newcommand{\updot}{\mathbin{\OverStrike{\UPTRI}{\cdot}}}
+\newcommand{\upslash}{\mathbin{\OverStrike{\UPTRI}{\scriptstyle\diagup}}}
+\newcommand{\downplus}{\mathbin{\OverStrike{\DOWNTRI}{\raise0.1ex\hbox{$\scriptstyle +$}}}}
+\newcommand{\downminus}{\mathbin{\OverStrike{\DOWNTRI}{\raise0.1ex\hbox{$\scriptstyle -$}}}}
+\newcommand{\downtimes}{\mathbin{\OverStrike{\DOWNTRI}{\raise0.1ex\hbox{$\scriptstyle\times$}}}}
+\newcommand{\downdot}{\mathbin{\OverStrike{\DOWNTRI}{\raise0.1ex\hbox{$\cdot$}}}}
+\newcommand{\downslash}{\mathbin{\OverStrike{\DOWNTRI}{\raise0.1ex\hbox{$\scriptstyle\diagup$}}}}
+\newcommand{\chopplus}{\mathbin{\OverStrike{\sqcup}{\raise0.1ex\hbox{$\scriptstyle +$}}}}
+\newcommand{\chopminus}{\mathbin{\OverStrike{\sqcup}{\raise0.1ex\hbox{$\scriptstyle -$}}}}
+\newcommand{\choptimes}{\mathbin{\OverStrike{\sqcup}{\raise0.1ex\hbox{$\scriptstyle\times$}}}}
+\newcommand{\chopdot}{\mathbin{\OverStrike{\sqcup}{\raise0.1ex\hbox{$\cdot$}}}}
+\newcommand{\chopslash}{\mathbin{\OverStrike{\sqcup}{\raise0.1ex\hbox{$\scriptstyle\diagup$}}}}
+\newcommand{\exactplus}{\mathbin{\OverStrike{\diamond}{\scriptstyle +}}}
+\newcommand{\exactminus}{\mathbin{\OverStrike{\diamond}{\scriptstyle -}}}
+\newcommand{\exacttimes}{\mathbin{\OverStrike{\diamond}{\scriptstyle\times}}}
+\newcommand{\exactdot}{\mathbin{\OverStrike{\diamond}{\cdot}}}
+\newcommand{\exactslash}{\mathbin{\OverStrike{\diamond}{\scriptstyle\diagup}}}
+\newcommand{\totallss}{\mathbin{\OverStrike{\bigcirc}{\scriptstyle>}}}
+\newcommand{\totalleq}{\mathbin{\OverStrike{\bigcirc}{\scriptstyle\leq}}}
+\newcommand{\totalgeq}{\mathbin{\OverStrike{\bigcirc}{\scriptstyle\geq}}}
+\newcommand{\totalgtr}{\mathbin{\OverStrike{\bigcirc}{\scriptstyle<}}}
+\newcommand{\xor}{\mathbin{\underline{\vee}}}
+\newcommand{\nand}{\mathbin{\overline{\wedge}}}
+\newcommand{\nor}{\mathbin{\overline{\vee}}}
+\newcommand{\twointersectnot}{\mathbin{\OverStrike{\raise0.3ex\hbox{$\neg$}}{\lower0.2ex\hbox{$\neg$}}}}
+\newcommand{\lhfloor}{\mathopen{\lfloor\mskip-1.8\thinmuskip\lfloor}}
+\newcommand{\rhfloor}{\mathclose{\rfloor\mskip-1.8\thinmuskip\rfloor}}
+\newcommand{\lhceil}{\mathopen{\lceil\mskip-1.8\thinmuskip\lceil}}
+\newcommand{\rhceil}{\mathclose{\rceil\mskip-1.8\thinmuskip\rceil}}
+\newcommand{\lhhfloor}{\mathopen{\lfloor\mskip-1.8\thinmuskip\lfloor\mskip-1.8\thinmuskip\lfloor}}
+\newcommand{\rhhfloor}{\mathclose{\rfloor\mskip-1.8\thinmuskip\rfloor\mskip-1.8\thinmuskip\rfloor}}
+\newcommand{\lhhceil}{\mathopen{\lceil\mskip-1.8\thinmuskip\lceil\mskip-1.8\thinmuskip\lceil}}
+\newcommand{\rhhceil}{\mathclose{\rceil\mskip-1.8\thinmuskip\rceil\mskip-1.8\thinmuskip\rceil}}
+\newcommand{\dotminus}{\mathbin{\dot{-}}}
+\newcommand{\dottimes}{\mathbin{\dot{\times}}}
+%\newcommand{\sequiv}{\mathrel{\OverStrike{\raise0.45ex\hbox{$=$}}{\lower0.4ex\hbox{$=$}}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% object trait vs object trait type %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\objecttype}{object trait type}
+\newcommand{\objecttypes}{object trait types}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% identifier parameter %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\nameparam}{\KWD{ident}}
+
+%Token
+\newcommand{\T}[1]{\textsc{#1}}
+%Nonterminal
+\newcommand{\N}[1]{\textit{#1}}
+
+%subscripted nonterminals
+\newcommand{\NS}[1]{$\textit{#1}_\sigma$}
+\newcommand{\NWO}[1]{$\textit{#1}_{\not\hookleftarrow}$}
+\newcommand{\NWN}[1]{$\textit{#1}_{\emptyset}$}
+
+% Whitespace glyphs
+\newcommand{\WW}{$\Diamond$}%Any white, including empty
+\newcommand{\WP}{$\Box$}%Non-empty white
+\newcommand{\WO}{$\not\hookleftarrow$}%Any white except newline
+\newcommand{\WN}{$\emptyset$}%White containing at least one newline
+\newcommand{\NL}{$\hookleftarrow$}%A new line
+
+%Troublesome characters
+\newcommand{\OR}{$|$}
+\newcommand{\GT}{>}
+\newcommand{\LT}{<}
+\newcommand{\HAT}{\boldmath$\hat{\ }$}
+\def\BY{\ensuremath{\times}}

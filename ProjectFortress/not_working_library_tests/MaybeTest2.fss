@@ -1,0 +1,51 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component MaybeTest2
+export Executable
+
+trait Equality[\Self\] comprises Self
+    opr =(self, other:Self): Boolean = self SEQV other
+end
+
+value trait UniqueItem[\T extends Equality[\T\]\]
+        comprises { NotUniqueObject[\T\], Maybe[\T\] }
+    opr SQCAP(self, other: UniqueItem[\T\]): UniqueItem[\T\] = NothingObject[\T\]
+end
+
+value object NotUniqueObject[\T extends Equality[\T\]\] extends UniqueItem[\T\]
+    getDefault(t:T):T = t
+    opr SQCAP(self, other: UniqueItem[\T\]): UniqueItem[\T\] = other
+end
+
+value trait Maybe[\T extends Equality[\T\]\]
+        extends { UniqueItem[\T\] }
+        comprises { NothingObject[\T\], Just[\T\] }
+    opr SQCAP(self, o: Maybe[\T\]): Maybe[\T\] = NothingObject[\T\]
+end
+
+value object Just[\T extends Equality[\T\]\](x: T) extends Maybe[\T\]
+    getDefault(_: T): T = x
+    opr SQCAP(self, o:NotUniqueObject[\T\]): Just[\T\] = self
+    opr SQCAP(self, o:Just[\T\]): Maybe[\T\] = if o.x = x then self else NothingObject[\T\] end
+end
+
+value object NothingObject[\T extends Equality[\T\]\] extends Maybe[\T\]
+    getDefault(defaultValue: T):T = defaultValue
+    opr SQCAP(self, other: Maybe[\T\]): NothingObject[\T\] = self
+    opr SQCAP(self, other: UniqueItem[\T\]): NothingObject[\T\] = self
+end
+
+object Baz extends Equality[\Baz\] end
+
+run(): () = println(if Just(Baz).getDefault(Baz) = Baz then "PASS" else "FAIL" end)
+
+end

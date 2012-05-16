@@ -1,0 +1,46 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component gauntlet2
+import System.{args}
+export Executable
+
+(* Check that root is the integer square-root of x *)
+inrange(x:ZZ64, root:ZZ64):Boolean = root^2 <= x < (root+1)^2
+
+(* isqrt using Newton's method; use the argument as the initial guess *)
+isqrt(x:ZZ64):ZZ64 = do
+    approx:ZZ64 := x
+    while NOT inrange (x, approx)
+      do approx -= (approx - (x DIV approx) + 1) DIV 2 end
+    approx
+end
+
+getTimeMS() = (nanoTime() + (500 TIMES 1000)) DIV (1000 TIMES 1000)
+timingRuns = 5
+timeIt (whatToTime) = do
+    averageTime = (SUM [jj <- seq(1:timingRuns)] do
+      t = getTimeMS(); whatToTime(); getTimeMS() - t end) DIV timingRuns
+    "average of "timingRuns" runs (ms) = " averageTime
+end
+
+run() = do
+    max = if |args| = 1 then strToInt args[0] else 100 TIMES 1000 end
+    check (x) = assert (inrange (x, isqrt (widen x)))
+
+    println ("[0, "max"] in parallel, "
+      timeIt (fn () => for x<-    0:max  do check x end))
+
+    println ("[0, "max"] sequentially, "
+      timeIt (fn () => for x<-seq(0:max) do check x end))
+end
+
+end gauntlet2

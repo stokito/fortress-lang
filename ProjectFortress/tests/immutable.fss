@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component immutable
+export Executable
+
+run():()=do
+
+  x:ZZ32
+  if true then
+    x = 1
+  else
+    x = 2
+  end
+
+  println("x = " x)
+end
+
+end

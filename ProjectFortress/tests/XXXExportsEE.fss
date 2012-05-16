@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXExportsEE
+
+exports Executable
+
+    run() = do
+            println "a very long string"
+    end
+
+end XXXExportsEE
+
+(* The problem here is that I miss-spelled export as exports.
+    The error report is "Syntax Error" at the colon after args at line 5 *)

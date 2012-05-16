@@ -1,0 +1,39 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Overview.Function.printFirst
+
+export Executable
+
+object Error extends UncheckedException end
+
+object SizeReduction[\N extends Number\]() extends MonoidReduction[\N\]
+  getter asString() = "Size Reduction"
+  empty(): N = 0
+  join(a: N, b: N): N = if a+b=0 then 0 else 2 end
+end
+
+(*
+printFirst(xs: ZZ32...) =
+  if |xs| > 0 then println xs[0]
+  else throw Error end
+ *)
+(** EXAMPLE **)
+printFirst(xs: ZZ32...) =
+  if xs.reduce(SizeReduction[\ZZ32\]()) > 0 then println xs[0]
+  else throw Error end
+(** END EXAMPLE **)
+
+run() = printFirst(3, 2, 1)
+
+end

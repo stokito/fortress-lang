@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component simpleExp
+export Executable
+
+(* Tests that we can write compound constants, and that Int and Long
+   exponentiation work (largely) as expected. *)
+run():()= do
+  x : RR64 = 10000000000000000000000000^(-1)
+  y : RR64 = 1000000000000000^(-1)
+  a : RR64 = 7.07106781186547462 10^(-1)
+  b : RR64 = 0.707106781186547462
+  if a =/= b then
+    fail(a "=/=" b)
+  end
+end
+
+end

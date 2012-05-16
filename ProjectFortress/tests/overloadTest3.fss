@@ -1,0 +1,53 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component overloadTest3
+export Executable
+
+(* This should pass because overloading uses different numbers of arguments,
+   even though there is no type.  This requires the interpreter to be
+   careful about how it treats type-info-less 1-argument functions,
+   which can match tuples of arguments (but an explicit tuple of
+   arguments should count as more specific). *)
+
+var a1c:ZZ32 = 0
+var a2c:ZZ32 = 0
+var a3c:ZZ32 = 0
+
+a(x)=do
+  println("a1 called")
+  a1c := 1;
+  x
+end
+
+a(x, y)=do
+  println("a2 called")
+  a2c := 1;
+  x+y
+end
+
+a(x, y, z)=do
+  println("a3 called")
+  a3c := 1;
+  x+y+z
+end
+
+run():()=do
+  println(a(1))
+
+  println(a(1,2))
+
+  println(a(1,2,3))
+
+  assert(a1c > 0 AND a2c > 0 AND a3c > 0, "missed calls")
+end
+
+end

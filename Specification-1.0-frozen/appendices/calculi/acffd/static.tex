@@ -1,0 +1,373 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Static Semantics}\label{acffd-static}
+A static semantics for \acffdcore\ is provided in
+Figures~\ref{fig:acffd-static1}, \ref{fig:acffd-static2},
+and \ref{fig:acffd-static3}.
+
+\begin{figure}[htbp]
+Environments\\
+
+$
+\begin{array}{llll}
+\tvenv &::=& \seq{\tvone \subtype \tappone}\rulesep\rulesep
+&\mbox{bound environment}\\
+\tyenv &::=& \seq{\vname:\ty}
+&\mbox{type environment}\\ \\
+\end{array}
+$
+
+Program typing: \fbox{\provesP{\pgm}{\ty}} \\ \\
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\pgm = \seq{\d}~\exp
+\rulesep
+\provesD{\seq{\d}}
+\rulesep
+\provesE{\emptyset}{\emptyset}{\exp}{\ty}
+\rulesep
+\acyclic{\seq{\d}}
+\end{array}
+}
+{\provesP{\pgm}{\ty}}
+{\tProgramRule} \\ \\
+\end{tabular}
+
+Acyclic type hierarchy: \fbox{\acyclic{\seq{\d}}} \\ \\
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+{\trait\tname\tparams\extends\set{\superstwo}\ignore\ \mt{end}
+\in\seq{\d}
+\rulesep 1 \leq i \leq |\seq{\tvone}| 
+}
+\\
+\begin{array}{lll}
+(1)&
+\supertwo_i \not= \tname\bsTP{\ignore}\quad
+\mbox{implies}&
+\pgm; \ignore \vdash 
+\substseq{\ty}{\tvone} {\superstwo_i} \not<: \tname\bsTP{\tys}
+\\
+&
+\lefteqn{\mbox{\emph{
+(The type names excluding self-extensions form an acyclic
+    hierarchy.)}}} 
+\\
+(2)&\supertwo_i = \tname\bsTP{\ignore}
+\quad
+\mbox{implies}
+&
+\supertwo_j \not= \tname\bsTP{\ignore}\quad
+1 \le j \le |\superstwo|\quad
+i \not=j
+\\
+(3)&\supertwo_i = \tapp
+\quad
+\mbox{implies}
+&
+(\ty_i = \tvone_i) \vee (\ty_i = \super_i) \vee (\ty_i = \tvone_j \wedge \tvone_i = \super_j) 
+\quad
+1 \leq j \leq |\seq{\tvone}| 
+\quad i \neq j
+\end{array}
+\end{array}
+}
+{\acyclic{\seq{\d}}}
+{\acyclicRule} \\ \\
+\end{tabular}
+
+Definition typing: \fbox{\provesD{\d}} \\ \\
+
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\tvenv = \seq{\tvone \subtype \tappone}
+\rulesep
+\provesW{\seq{\tappone}}\rulesep
+\provesW{\seq{\tapptwo}}\rulesep
+\provesM{\self:\tname\bsTP{\seq{\tvone}}}{T}{\seq{\fd}}\\
+%% \forall \fname \in\set{\seq{\Fname(\fd)}}. |\ownerF{\tname}| \leq 1
+\oneOwner(\tname)
+\end{array}
+}
+{\provesD{\tdsyntaxTD}}
+{\tTraitDefRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\tvenv = \seq{\tvone \subtype \tappone}\rulesep
+\provesW{\seq{\tappone}}\rulesep
+\provesW{\tys}\rulesep
+\provesW{\seq{\tapptwo}}\\
+\seq{\vd} = \seq{\vname'\colon\tyP\equal\exp}\rulesep
+\provesV{\seq{\vname:\ty}~~\vname_1':\ty_1'\ \ldots\ \vname_{i-1}':\ty_{i-1}'}
+{\vname_i'\colon\ty_i'\equal\exp_i}\quad 1\le i\le n\\
+\provesM{\self:\oname\bsTP{\seq{\tvone}}~~\seq{\vname:\ty}~~\seq{\vname':\tyP}}
+{O}{\seq{\fd}}\rulesep
+\oneOwner(\oname)
+\end{array}
+}
+{\provesD{\odsyntaxOD}}
+{\tObjectDefRule} \\ \\
+\end{tabular}
+
+One owner for all the visible methods: \fbox{\oneOwner(\cname)} \\ \\
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\forall\fname\in\visible(\cname)~.~
+\mbox{$f$ \emph{only occurs once in }}\visible(\cname)
+%% |\set{\fname_i~|~\fname_i\in\visible(\cname), \fname_i = \fname}| = 1
+\end{array}
+}
+{\oneOwner(\cname)}
+{\oneOwnerRule}\\ \\
+\end{tabular}
+
+Method typing: \fbox{\provesM{\tyenv}{C}{\fd}} \\ \\
+
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\dsyntaxMT \inp
+\rulesep
+\override(\fname, \set{\seq{\tapptwo}}, \ftnty)
+\\
+\prm\tvenv = \tvenv~\seq{\tvone \subtype \tappone}
+\rulesep
+\provesWD{\prm\tvenv}{\seq{\tappone}}\rulesep
+\provesWD{\prm\tvenv}{\tys}\rulesep
+\provesWD{\prm\tvenv}{\retty}\rulesep
+\\
+{\provesE {\prm\tvenv}
+          {\tyenv~\seq{\vname:\ty}}
+          {\exp}{\tyP}}\rulesep
+\provesSD{\prm\tvenv}{\tyP}{\retty}
+\end{array}
+}
+{\provesM{\tyenv}{C}{\fdsyntaxMD}}
+{\tMethodDefRule}
+\end{tabular}
+
+\caption{Static Semantics of \acffdcore\ (I)}\label{fig:acffd-static1}
+\end{figure}
+
+\begin{figure}[htbp]
+Field typing: \fbox{\provesV{\tyenv}{\vd}} \\ \\
+
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\provesW{\ty}\rulesep
+\provesEd{\exp}{\tyP}\rulesep
+\provesS{\tyP}{\ty}
+\end{array}
+}
+{\provesV{\tyenv}{\vname\mt:\ \ty\ \mt=\ \exp}}
+{\tFieldDefRule} \\ \\
+\end{tabular}
+
+Expression typing: \fbox{\provesEd{\iexp}{\ty}} \\ \\
+
+\begin{tabular}{lc}
+\newrule{\provesEd{\vname}{\tyenv(\vname)}}{\tVarRule} \\ \\
+
+\newrule{\provesEd{\self}{\tyenv(\self)}}{\tSelfRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\odsyntaxObj\inp\rulesep
+\provesW{\oapp}\\
+\provesEd{\seq{\iexp}}{\seq{\tyPP}}\rulesep
+\provesS{\seq{\tyPP}}{\substseq{\ty}{\tvone}\seq{\tyP}}
+\end{array}
+}
+{\provesEd{\oapp\iargs}{\oapp}}
+{\tObjectRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\odsyntaxIObj\inp\\
+\seq{\vname^1}\seq{\vname^2} = \seq{\vname'}\seq{\vname''}\rulesep
+\seq{\iexp^1}\seq{\iexp^2} = \seq{\iexp'}\seq{\iexp''}\rulesep
+\provesEd{\oapp\iargsP}{\oapp}\\
+\provesE{\Delta}{\Gamma \ \seq{\vname' \isTy'} \ \seq{\vname'' \isTy''}}{\seq{\iexp''}}{\seq{\tyPPP}}\rulesep
+\provesS{\substseq{\ty}{\tvone}\seq{\tyPPP}}{\substseq{\ty}{\tvone}\seq{\tyPP}}
+\end{array}
+}
+{\provesEd{\oapp\set{\seq{\vname^1\mapsto\iexp^1};\
+\seq{\vname^2\mapsto\iexp^2}}}{\oapp}}
+{\tIObjectRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\provesEd{\iexp}{\retty}\rulesep
+\boundF(\retty) = \oname\bsTP{\seq{\ty^o}}\\
+\odsyntaxFld\inp\rulesep
+\seq\vname = \seq{\vname'}\seq{\vname''}\rulesep
+\tys = \tysP\tysPP
+\end{array}
+}
+{\provesEd{\iexp\mt{.}\sub\vname i}{\substseq{\ty^o}{\tvone}{\tyn i}}}
+{\tFieldRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\provesEd{\iexp}{\retty}\rulesep
+\mtypeF{\boundF(\retty)} = \set{\ftntyone}\\
+\provesW{\tys}\rulesep
+\provesS{\tys}{\substseq{\ty}{\tvone}\seq\tappone}\\
+\provesEd{\seq\iexp}{\seq{\tyPP}}\rulesep
+\provesS{\seq{\tyPP}}{\substseq{\ty}{\tvone}\tysP}\\
+\end{array}
+}
+{\provesEd{\invoke{\iexp}{\ftapp\iargs}}{\substseq{\ty}{\tvone}\rettytwo}}
+{\tInvkRule} \\ \\
+\end{tabular}
+
+Subtyping: \fbox{\provesS{\ty}{\ty}}\\\\
+
+\begin{tabular}{lc}
+\newrule{{\provesS{\ty}{\obj}}}{\sObjRule} \\ \\
+
+\newrule{{\provesS{\ty}{\ty}}}{\sReflRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\provesS{\tyn 1}{\tyn 2}\rulesep
+\provesS{\tyn 2}{\tyn 3}
+\end{array}
+}
+{\provesS{\tyn 1}{\tyn 3}}{\sTransRule} \\ \\
+
+\newrule{\provesS{\tvone}{\tvenv(\tvone)}}{\sVarRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\dsyntaxSB\inp\rulesep
+\end{array}
+}
+{\provesS{\capp}{\substseq{\ty}{\tvone}\sub\tappone i}}{\sBothRule} \\ \\
+\end{tabular}
+
+\caption{Static Semantics of \acffdcore\ (II)}\label{fig:acffd-static2}
+\end{figure}
+
+\begin{figure}[htbp]
+Well-formed types: \fbox{\provesW\ty} \\ \\
+\begin{tabular}{lc}
+\newrule{\provesW{\obj}}{\wObjRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\tvone\in\me{dom}(\tvenv)
+\end{array}
+}
+{\provesW{\tvone}}{\wVarRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\dsyntaxWB\inp\rulesep
+\provesW{\tys}\rulesep
+\provesS{\tys}{\substseq{\ty}{\tvone}\seq\tappone}
+\end{array}
+}
+{\provesW{\capp}}{\wBothRule}\\ \\
+\end{tabular}
+
+
+Method overriding: \fbox{\overrideTemplate} \\ \\
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+{
+\bigcup_{\sub\tappthree i\in\set{\seq{\tappthree}}} 
+\mtypeF{\sub\tappthree i} = \set{\ftntytwo}
+}
+\\
+\seq{\tappone} = \substseq{\tvone}{\tvtwo}\seq{\tapptwo}\rulesep 
+\tys = \substseq{\tvone}{\tvtwo}\seq{\tyP}\rulesep 
+\provesSD{\tvenv~\tvenvone}{\retty}{\substseq{\tvone}{\tvtwo}\rettytwo}
+\end{array}
+}
+{\overrideD}
+{\overrideRule} \\ \\
+\end{tabular}
+
+
+Method type lookup: \fbox{\mtypeF{\ty} = \set{\ftntyTemplate}}\\
+
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\dsyntaxMB\inp\rulesep
+\fname\tparamstwo\vparamsR\colon\rettytwo \equal \ignore\in\set{\seq\fd}
+\end{array}
+}
+{\mtypeF{\capp} = \set{\substseq{\ty}{\tvone}\ftntytwo}}
+{\mtBothRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\dsyntaxMS\inp\rulesep
+\fname\not\in\set{\seq{\Fname(\fd)}}
+\end{array}
+}
+{\mtypeF{\capp} = 
+\bigcup_{\sub\tappone i\in{\set{\seq\tappone}} }
+ \mtypeF{\substseq{\ty}{\tvone}\sub\tappone i}}
+{\mtSuperRule} \\ \\
+
+\newrule{\mtypeF\obj = \emptyset}{\mtObjRule}\\ \\
+
+\end{tabular}
+
+Auxiliary functions for methods:
+\fbox{\defined~/~\inherited~/~\visible(\cname) = \set{\seq\fname}}\\
+
+$
+\begin{array}{rlll}
+\defined(\cname) = & 
+\set{\seq{\Fname(\fd)}}
+& \mbox{where } \ignore\ \cname\ignore\fds\ignore\ \inp
+\\ \\
+
+\inherited(\cname) = & 
+\biguplus_{\tappone_i\in\set{\seq\tappone}}\
+\set{\fname_i~|~
+\fname_i\in\visible(\tappone_i),
+\fname_i\not\in\defined(\cname)}
+& \mbox{where } \dsyntaxOVER \inp 
+\\ \\
+
+\visible(\cname) = & \defined(\cname) \uplus\ \inherited(\cname)
+\\ \\
+\end{array}
+$
+
+Bound of type: \fbox{\boundF(\ty) = \ty} \\
+
+$\begin{array}{lcl}
+\boundF(\tvone) &=& \tvenv(\tvone)\\
+\boundF(\tappone) &=& \tappone \\
+\boundF(\oapp) &=& \oapp \\
+\end{array}$
+
+\caption{Static Semantics of \acffdcore\ (III)}\label{fig:acffd-static3}
+\end{figure}
+
+We proved the type soundness of \acffdcore\ and the acyclic type hierarchy
+of a well-type program in \acffdcore\ using the standard
+technique of proving a progress theorem and a subject reduction
+theorem.

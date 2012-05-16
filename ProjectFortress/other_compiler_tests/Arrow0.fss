@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Arrow0
+
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+export Executable
+
+f(x:ZZ32):ZZ32 = x + 1
+
+g(x:ZZ32, h:ZZ32->ZZ32):ZZ32 = 2 (* h(h(x)) *)
+
+run():() = 
+  if g(0,f)=2 then
+     println("Ok!")
+  else
+     println("FAIL")
+  end
+  
+end
