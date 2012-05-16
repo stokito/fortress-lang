@@ -141,6 +141,7 @@ import com.sun.fortress.nodes.VarDecl;
 import com.sun.fortress.nodes.VarRef;
 import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes.VoidLiteralExpr;
+import com.sun.fortress.nodes.While;
 import com.sun.fortress.nodes._RewriteFnApp;
 import com.sun.fortress.nodes._RewriteFnOverloadDecl;
 import com.sun.fortress.nodes_util.ExprFactory;
@@ -5837,6 +5838,30 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         pushVoid();
     }
     
+    public void forWhile(While x) {
+        GeneratorClause testExpr = x.getTestExpr();
+        Do body = x.getBody();
+
+        org.objectweb.asm.Label start = new org.objectweb.asm.Label();
+        org.objectweb.asm.Label done = new org.objectweb.asm.Label();
+        
+        // Run the test, if it true, run the body and go back to the
+        // start, if it's not, jump to done.
+        mv.visitLabel(start);
+        
+        testExpr.getInit().accept(this);
+        mv.visitMethodInsn(INVOKEVIRTUAL,
+                           NamingCzar.internalFortressBoolean, "getValue",
+                           Naming.makeMethodDesc("", NamingCzar.descBoolean));
+        mv.visitJumpInsn(IFEQ, done);
+
+        body.accept(this);
+        mv.visitInsn(POP);
+        mv.visitJumpInsn(GOTO, start);
+        
+        mv.visitLabel(done);
+        pushVoid();
+    }
     
     private static final F<StaticArg, Boolean> isSymbolic = new F<StaticArg, Boolean>() {
 
