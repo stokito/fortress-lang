@@ -190,7 +190,8 @@ public class Lex {
         StringBuilder sb = new StringBuilder();
         if (skipLeadingWhite) white();
         int c = read();
-        if (c == '(' || c == ')' || c == '[' || c == ']' || c == '@' || c == '=' || c == ',' || c == ':' || c == '~' ||
+        if (c == '(' || c == ')' || c == '[' || c == ']' || c == '@' ||
+            c == '=' || c == ',' || c == ':' || c == '~' || c == '#' ||
             c == '!') {
             sb.append((char) c);
             read();

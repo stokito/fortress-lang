@@ -22,11 +22,12 @@ import com.sun.fortress.nodes_util.Modifiers
 import com.sun.fortress.nodes_util.{NodeFactory => NF}
 import com.sun.fortress.nodes_util.{NodeUtil => NU}
 import com.sun.fortress.scala_src.nodes._
-import com.sun.fortress.scala_src.useful.ErrorLog;
+import com.sun.fortress.scala_src.useful.ErrorLog
 import com.sun.fortress.scala_src.useful.Lists._
 import com.sun.fortress.scala_src.useful.Options._
-import com.sun.fortress.useful.HasAt;
+import com.sun.fortress.useful.HasAt
 import com.sun.fortress.useful.Useful
+import com.sun.fortress.nodes_util.Span
 
 /**
  * Desugars all patterns.
@@ -372,7 +373,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
                     ds_unambiname, Some(final_body), implement)
    
           }
-        val new_span = NF.makeSpan("PMdesugarer-generated")
+        val new_span = new Span(span, DU.genSerNo()); // NF.makeSpan("PMdesugarer-generated")
         // a new function declaration
         val added_Fndecl = SFnDecl(NF.makeSpanInfo(new_span),
                                    SFnHeader(sps, mods, new_FnName, where, throwsC,

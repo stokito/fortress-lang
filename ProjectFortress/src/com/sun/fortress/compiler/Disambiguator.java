@@ -332,7 +332,7 @@ public class Disambiguator {
             comp = (Component) new PatternMatchingDesugaredSimplifier(comp).simplifier();
             pattern_matched_comps.add(comp);
 
-            if (true)
+            if (false)
 			try {
 				ASTIO.writeJavaAst(comp, "aaa.tfs", System.out);
 			} catch (IOException e) {}
