@@ -92,6 +92,10 @@ public class DesugarerUtil {
      */
     private static int tempCount = 0;
 
+    public static int genSerNo() {
+        return (++tempCount);
+    }
+    
     public static String gensym(String prefix) {
         return prefix + Naming.GENERATED + (++tempCount);
     }
