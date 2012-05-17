@@ -20,7 +20,7 @@ public class InstantiationMap  {
     private final static InstantiationMap EMPTY = new InstantiationMap(new HashMap<String, String>());
     
     /* Controls expansion of tuple types occurring in */
-    private final static boolean DEFAULT_TUPLE_FLATTENING = true;
+    private final static boolean DEFAULT_TUPLE_FLATTENING = false;
     
     Map<String, String> p;
 
@@ -231,6 +231,7 @@ public class InstantiationMap  {
      */
     int maybeVarInOxfords(String input, int begin, StringBuilder accum,
             boolean unwrap_expanded_tuples_in_arrows) {
+        unwrap_expanded_tuples_in_arrows = false; // Quit flattening tuples!
         return mVIO(input, "", begin, accum,
                 unwrap_expanded_tuples_in_arrows, Naming.RIGHT_OXFORD_CHAR);
      }
@@ -272,7 +273,7 @@ public class InstantiationMap  {
                      String domain = params.get(0);
                      if (domain.startsWith(Naming.TUPLE_OX)) {
                          String in_pat = input.substring(original_begin);
-                         if (unwrap_expanded_tuples_in_arrows ||
+                         if (unwrap_expanded_tuples_in_arrows && // WAS ||, seems dubious.
                              in_pat.startsWith(Naming.TUPLE_OX))
                              params.set(0, domain.substring(6, domain.length()-1));
                      }
@@ -339,6 +340,7 @@ public class InstantiationMap  {
      int maybeBareVar(String input, int begin, StringBuilder accum,
              boolean inOxfords, boolean xlate_specials,
              boolean unwrap_expanded_tuples_in_arrows) {
+         unwrap_expanded_tuples_in_arrows = false; // quit flattening tuples in arrows
          int at = begin;
          char ch = input.charAt(at++);
          boolean maybeVar = true;
@@ -444,7 +446,7 @@ public class InstantiationMap  {
     int maybeVarInMethodSig(String input, int begin, StringBuilder accum) {
         return maybeVarInMethodSig(input, begin, accum, DEFAULT_TUPLE_FLATTENING);
     }
-        int maybeVarInMethodSig(String input, int begin, StringBuilder accum, boolean unwrap_expanded_tuples_in_arrows) {
+    int maybeVarInMethodSig(String input, int begin, StringBuilder accum, boolean unwrap_expanded_tuples_in_arrows) {
          int at = begin;
          char ch = input.charAt(at++);
          // Begin with "("

@@ -3345,8 +3345,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             throw new CompilerError(x, "No return type");
         Type rt = returnType.unwrap();
         BASet<VarType> fvts = fvt.freeVarTypes(x);
-        List<VarCodeGen> freeVars = getFreeVars(body);
-
+        // This below catches references to the "self" type in a generic context.
+        // It appears as the up-pointing-finger VarType of "self".
+        // This may not catch all references to the type; that needs to be
+        // figured out later, as tests go blooie.  The signature of this error
+        // would be unreplaced occurrences of the up-arrow in executed code,
+        // leading to verify errors of various sorts.
+        List<VarCodeGen> freeVars = getFreeVars(body, fvts);
 
         //      Create the Class
         String desc = NamingCzar.makeAbstractArrowDescriptor(params, rt, thisApi());
@@ -4485,6 +4490,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     // This returns a list rather than a set because the order matters;
     // we should guarantee that we choose a consistent order every time.
     private List<VarCodeGen> getFreeVars(Node n) {
+       return getFreeVars(n, null);
+    }
+    private List<VarCodeGen> getFreeVars(Node n, BASet<VarType> free_type_vars) {
         BASet<IdOrOp> allFvs = fv.freeVars(n);
         List<VarCodeGen> vcgs = new ArrayList<VarCodeGen>();
         if (allFvs == null)
@@ -4492,7 +4500,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         else {
             for (IdOrOp v : allFvs) {
                 VarCodeGen vcg = getLocalVarOrNull(v);
-                if (vcg != null) vcgs.add(vcg);
+                if (vcg != null) {
+                    vcgs.add(vcg);
+                    Type t = vcg.fortressType;
+                    if (free_type_vars != null && t instanceof VarType) {
+                        free_type_vars.add((VarType) t);
+                    }
+                }
             }
             return vcgs;
         }
@@ -5933,7 +5947,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                  */
                 if (domain_type instanceof TupleType) {
                     TupleType tt = (TupleType) domain_type;
-                    prepended_domain = NodeFactory.makeTupleType(tt, Useful.prepend(receiverType, tt.getElements()));
+                    prepended_domain = NodeFactory.makeTupleTypeOrType(tt, Useful.prepend(receiverType, tt.getElements()));
                 } else {
                     prepended_domain = NodeFactory.makeTupleType(domain_type.getInfo().getSpan(), Useful.list(receiverType, domain_type));
                 }

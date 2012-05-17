@@ -53,8 +53,10 @@ public class Instantiater extends ClassAdapter {
         for (int i = 0; i < interfaces.length; i++) {
             new_interfaces[i] = types.getTypeName(interfaces[i]);
         }
+        String translated_type_name = types.getTypeName(name);
+        // Compiled17ddd⚙$\=G☝reduce⟦Compiled17ddd\%G⟦com\|sun\|fortress\|compiler\|runtimeValues\|FZZ32⟧,fortress\|CompilerBuiltin\%String,com\|sun\|fortress\|compiler\|runtimeValues\|FZZ32⟧✉$✚Arrow⟦Tuple⟦☝,Arrow⟦E,R⟧,Arrow⟦R,R,R⟧⟧,R⟧
         super.visit(version, access,
-                types.getTypeName(name),
+                translated_type_name,
                 // instanceName, 
                 signature,
                 types.getTypeName(superName), new_interfaces);

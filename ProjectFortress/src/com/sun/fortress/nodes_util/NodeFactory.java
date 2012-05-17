@@ -857,6 +857,12 @@ public class NodeFactory {
         return makeTupleType(NodeUtil.getSpan(t), tys);
     }
 
+    public static Type makeTupleTypeOrType(TupleType t, List<Type> tys) {
+        if (tys.size() == 1)
+            return tys.get(0);
+        return makeTupleType(NodeUtil.getSpan(t), tys);
+    }
+
     public static TupleType makeTupleType(List<Type> elements) {
         return makeTupleType(NodeUtil.spanAll(elements), elements);
     }
