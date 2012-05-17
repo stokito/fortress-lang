@@ -112,6 +112,9 @@ public class Unprinter extends NodeReflection {
      * 18:19~20 (range of columns)<br>
      * 21:22<br>
      *
+     * Addition: a possible "#123" suffix for serial numbers for pattern-matcher
+     * generated code.
+     *
      * @throws IOException
      */
     public String readSpan() throws IOException {
@@ -150,7 +153,13 @@ public class Unprinter extends NodeReflection {
             }
             ending = new SourceLocRats(fname, line, column, 0);
         }
-        lastSpan = new Span(beginning, ending);
+        int serial = 0;
+        if (Printer.serial.equals(next)) {
+            next=l.name(false);
+            serial = Integer.valueOf(next);
+            next = l.name(false);
+        }
+        lastSpan = new Span(beginning, ending, serial);
         if (next.length() == 0) {
             next = l.name();
         } else if (!(")".equals(next))) {
