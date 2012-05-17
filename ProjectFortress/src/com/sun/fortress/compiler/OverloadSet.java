@@ -783,7 +783,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             }
         } else  for (int i = 0; i < paramCount; i++) {      
             res.add(overloadedParamType(i));
-        }       
+        }
         return res;
     }
 
@@ -1511,7 +1511,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 
                 //cast to object arrow
                 int numParams = f.getParameters().size();
-                String objectAbstractArrow = objectAbstractArrowTypeForNParams(numParams);
+                String objectAbstractArrow = NamingCzar.objectAbstractArrowTypeForNParams(numParams);
                 InstantiatingClassloader.generalizedCastTo(mv, objectAbstractArrow);
                 
                 
@@ -1525,7 +1525,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 }
                 
                 //call apply method
-                String objectArrow = objectArrowTypeForNParams(numParams);
+                String objectArrow = NamingCzar.objectArrowTypeForNParams(numParams);
                 String applySig = InstantiatingClassloader.jvmSignatureForNTypes(numParams, NamingCzar.internalObject, Naming.internalToDesc(NamingCzar.internalObject));
                 mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, objectArrow, Naming.APPLY_METHOD, applySig);
                 
@@ -1630,20 +1630,6 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         mv.visitInsn(Opcodes.POP2);
         mv.visitJumpInsn(Opcodes.GOTO, lookahead);
         mv.visitLabel(next);
-    }
-    
-    private String objectAbstractArrowTypeForNParams(int numParams) {
-        StringBuilder ret = new StringBuilder(Naming.ABSTRACT_ARROW + Naming.LEFT_OXFORD);
-        for (int i = 0; i < numParams; i++) ret.append(NamingCzar.internalObject + Naming.GENERIC_SEPARATOR); // params
-        ret.append(NamingCzar.internalObject + Naming.RIGHT_OXFORD); // return
-        return ret.toString();
-    }
-    
-    private String objectArrowTypeForNParams(int numParams) {
-        StringBuilder ret = new StringBuilder("Arrow" + Naming.LEFT_OXFORD);
-        for (int i = 0; i < numParams; i++) ret.append(NamingCzar.internalObject + Naming.GENERIC_SEPARATOR); // params
-        ret.append(NamingCzar.internalObject + Naming.RIGHT_OXFORD); // return
-        return ret.toString();
     }
     
     protected void loadThisForMethods(MethodVisitor mv) {
