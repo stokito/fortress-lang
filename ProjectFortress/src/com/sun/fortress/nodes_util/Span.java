@@ -22,25 +22,37 @@ import com.sun.fortress.useful.NI;
 public class Span implements Serializable, HasAt {
     public final SourceLoc begin;
     public final SourceLoc end;
+    public final int serialNumber;
 
     @Override
     public int hashCode() {
         return begin.hashCode() * MagicNumbers.p + end.hashCode()
-                * MagicNumbers.a;
+                * MagicNumbers.a + serialNumber * MagicNumbers.s;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof Span) {
             Span sp = (Span) o;
-            return begin.equals(sp.begin) && end.equals(sp.end);
+            return begin.equals(sp.begin) && end.equals(sp.end) &&
+                serialNumber == sp.serialNumber;
         }
         return false;
     }
 
     public Span(SourceLoc b, SourceLoc e) {
+        this(b,e,0);
+    }
+    public Span(SourceLoc b, SourceLoc e, int serial) {
         begin = b;
         end = e;
+        serialNumber = serial;
+    }
+    
+    public Span(Span other, int serial) {
+        begin = other.begin;
+        end = other.end;
+        serialNumber = serial;
     }
 
     private static boolean beginsEarlierThan(Span a, Span b) {
@@ -69,6 +81,7 @@ public class Span implements Serializable, HasAt {
         } else {
             end = b.getEnd();
         }
+        serialNumber = 0;
     }
 
     /**
@@ -90,6 +103,10 @@ public class Span implements Serializable, HasAt {
      */
     public SourceLoc getEnd() {
         return end;
+    }
+    
+    public int getSerial() {
+        return serialNumber;
     }
 
     @Override
@@ -162,6 +179,10 @@ public class Span implements Serializable, HasAt {
                 w.append(":");
             }
             w.append(String.valueOf(right_col));
+        }
+        if (serialNumber != 0) {
+            w.append(Printer.serial);
+            w.append(String.valueOf(serialNumber));
         }
         return w;
     }

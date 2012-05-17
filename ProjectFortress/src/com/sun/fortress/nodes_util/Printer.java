@@ -35,6 +35,7 @@ public class Printer extends NodeReflection {
     int oneLinerNesting;
 
     public final static String tilde = "~";
+    public final static String serial = "#";
 
     public final static String nl = (System.getProperty("line.separator"));
 
@@ -84,7 +85,8 @@ public class Printer extends NodeReflection {
                 || lastSpan.begin.column() != span.begin.column()
                 || lastSpan.end.column() != span.end.column()
                 || lastSpan.begin.getLine() != span.begin.getLine()
-                || lastSpan.end.getLine() != span.end.getLine()) {
+                || lastSpan.end.getLine() != span.end.getLine()
+                || lastSpan.getSerial() != span.getSerial()) {
             span.appendTo(w, do_file, true);
         }
         lastSpan = span;

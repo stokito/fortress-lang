@@ -1050,6 +1050,32 @@ public class NamingCzar {
         makeArrowDescriptor(t,ifNone);
     }
 
+    // Refugee from Overloadset, DID NOT BELONG THERE 
+    public static String objectAbstractArrowTypeForNParams(int numParams) {
+        return objectFooTypeForNParams(Naming.ABSTRACT_ARROW, numParams);
+    }
+    public static String objectFooTypeForNParams(String foo, int numParams) {
+        StringBuilder ret = new StringBuilder(foo + Naming.LEFT_OXFORD);
+        if (numParams > 1) {
+            ret.append(Naming.TUPLE_OX ); // return
+            for (int i = 0; i < numParams; i++) {
+                ret.append(NamingCzar.internalObject ); // params
+                if (i < numParams-1)
+                    ret.append(Naming.GENERIC_SEPARATOR); // sep among tuple
+            }
+            ret.append(Naming.RIGHT_OXFORD);
+            ret.append(Naming.GENERIC_SEPARATOR); // sep after tuple
+        } else
+            for (int i = 0; i < numParams; i++) ret.append(NamingCzar.internalObject + Naming.GENERIC_SEPARATOR); // params
+        ret.append(NamingCzar.internalObject + Naming.RIGHT_OXFORD); // return
+        return ret.toString();
+    }
+    
+    // Refugee from Overloadset, DID NOT BELONG THERE 
+    public static  String objectArrowTypeForNParams(int numParams) {
+        return objectFooTypeForNParams(Naming.ARROW_TAG, numParams);
+    }
+    
     // forFnExpr
     public static String makeAbstractArrowDescriptor(
             List<com.sun.fortress.nodes.Param> params,
@@ -1068,6 +1094,9 @@ public class NamingCzar {
             List<com.sun.fortress.nodes.Type> params,
             com.sun.fortress.nodes.Type rt, APIName ifNone, String result) {
         result += Naming.LEFT_OXFORD;
+        // Always normalize to tuple types.
+        if (params.size() > 1)
+            params = Useful.<com.sun.fortress.nodes.Type>list(NodeFactory.makeTupleType(params));
         if (params.size() > 0) {
             StringBuilder buf = new StringBuilder();
             buf.append(result);
@@ -1089,6 +1118,10 @@ public class NamingCzar {
         for (com.sun.fortress.nodes.Param p : params) {
             res.add(NodeUtil.optTypeOrPatternToType(p.getIdType()).unwrap());
         }
+        // Always normalize to tuple types.
+        if (res.size() > 1) {
+            res = Useful.<com.sun.fortress.nodes.Type>list(NodeFactory.makeTupleType(res));
+        }
         return res;
     }
 
@@ -1105,8 +1138,9 @@ public class NamingCzar {
             APIName ifNone,
             com.sun.fortress.nodes.Type params,
             com.sun.fortress.nodes.Type rt) {
-        List<com.sun.fortress.nodes.Type> list_of_type =
-            (params instanceof TupleType) ? ((TupleType) params).getElements() : Useful.list(params);
+        List<com.sun.fortress.nodes.Type> list_of_type = Useful.list(params);
+        // Always normalize to tuple types.
+          //  (params instanceof TupleType) ? ((TupleType) params).getElements() : Useful.list(params);
         return makeAnArrowDescriptor(list_of_type, rt, ifNone, "Arrow");
     }
 
@@ -1406,7 +1440,7 @@ public class NamingCzar {
 
 
     /* Clone of above, to clean things out, TYPE DESCRIPTORS != METHOD DESCRIPTORS */
-    // Codegen.reloveMethodAndSignature
+    // Codegen.resolveMethodAndSignature
     public static String jvmMethodDesc(com.sun.fortress.nodes.Type type,
             final APIName ifNone)  {
         return type.accept(new NodeAbstractVisitor<String>() {

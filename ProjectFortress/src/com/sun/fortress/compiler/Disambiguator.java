@@ -332,12 +332,12 @@ public class Disambiguator {
             comp = (Component) new PatternMatchingDesugaredSimplifier(comp).simplifier();
             pattern_matched_comps.add(comp);
 
-/* For testing ...
+            if (false)
 			try {
-				ASTIO.writeJavaAst(comp, "aaa.tfs");
-				} catch (IOException e) {}
-*/
-            // Filter env based on what this component imports
+				ASTIO.writeJavaAst(comp, "aaa.tfs", System.out);
+			} catch (IOException e) {}
+
+				// Filter env based on what this component imports
 //       	 	Map<APIName,ApiIndex> filtered = filterApis(globalEnv.apis(), comp);
 //       	 	GlobalEnvironment filtered_global_env = new GlobalEnvironment.FromMap(filtered);
             NameEnv env = new TopLevelEnv(globalEnv, index, errors);

@@ -574,11 +574,16 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             int left = ft.indexOf(Naming.LEFT_OXFORD);
             int right = ft.lastIndexOf(Naming.RIGHT_OXFORD);
             List<String> parameters = RTHelpers.extractStringParameters(ft, left, right);
-            if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
-                parameters = parameters.subList(1,2);
+
+            Triple<List<String>, List<String>, String> stuff =
+                normalizeArrowParameters(parameters);
+            List<String> flat_params_and_ret = stuff.getA();
+
+            if (flat_params_and_ret.size() == 2 && flat_params_and_ret.get(0).equals(Naming.INTERNAL_SNOWMAN))
+                flat_params_and_ret = flat_params_and_ret.subList(1,2);
 
             if (sig == null)
-                sig = arrowParamsToJVMsig(parameters);
+                sig = arrowParamsToJVMsig(flat_params_and_ret);
         }
         
         SignatureParser sp = new SignatureParser(sig);
@@ -596,7 +601,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         FieldVisitor fv;
         MethodVisitor mv;
-        String superClass = ABSTRACT_+ft;
+        String superClass = ABSTRACT_+ft; // ft is assumed to begin with "Arrow"
         name = api.replace(".", "/") + '$' + suffix;
         final String final_name = name;
         
@@ -920,7 +925,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * with java/lang/Object, for use in certain contexts (coerced arrows
      * for casts, also for dynamically instantiated generic functions).  The
      * third apply method is generated if there is more than parameter to the
-     * function, in which case the parameters are wrapped in a tuple.
+     * function, in which case the parameters are wrapped in a tuple, or if the
+     * first parameter is a Tuple, in which case they will be unwrapped.
+     * 
      * For example, Arrow[\T;U;V\] will have the apply methods (ignore
      * both Fortress and JVM dangerous characters mangling issues for now):
      * 
@@ -962,11 +969,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         /* If more than one domain parameter, then also include the tupled apply method. */
         int l = parameters.size();
-        if (l > 2) {
-//            String tupleType = stringListToTuple(parameters.subList(0, l-1));
-//            List<String> tupled_parameters = Useful.<String>list(tupleType,
-//                        parameters.get(l-1)  );
-           
+        if (tupled_parameters != null) {
             String sig = arrowParamsToJVMsig(tupled_parameters);
             if (LOG_LOADS) System.err.println(name+".apply"+sig+" abstract");
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
@@ -1029,14 +1032,19 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         Triple<List<String>, List<String>, String> stuff =
             normalizeArrowParameters(parameters);
         
-        List<String> unwrapped_parameters = stuff.getA();
-        List<String> tupled_parameters = stuff.getB();
+        List<String> flat_params_and_ret = stuff.getA();
+        List<String> tupled_params_and_ret = stuff.getB();
         String tupleType = stuff.getC();
 
-        String extendsClass = stringListToGeneric(ABSTRACT_ARROW, unwrapped_parameters);
-        List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
+        List<String> flat_obj_params_and_ret = Useful.applyToAll(flat_params_and_ret, toJLO);
+        List<String> norm_obj_params_and_ret = normalizeArrowParametersAndReturn(flat_obj_params_and_ret);
+        List<String> norm_params_and_ret = normalizeArrowParametersAndReturn(flat_params_and_ret);
+
+        String extendsClass = stringListToGeneric(ABSTRACT_ARROW, norm_params_and_ret);
+        
+        // List<String> objectified_parameters = Useful.applyToAll(flat_params_and_ret, toJLO);
         //String obj_sig = stringListToGeneric("AbstractArrow", objectified_parameters);
-        String obj_intf_sig = stringListToGeneric(Naming.ARROW_TAG, objectified_parameters);
+        String obj_intf_sig = stringListToGeneric(Naming.ARROW_TAG, norm_obj_params_and_ret);
         String wrappee_name = "wrappee";
         
         //extends AbstractArrow[\parameters\]
@@ -1078,16 +1086,16 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         //  public range_parameter apply( domain_parameters ) = 
         //    (range_parameter) wrappee.apply( domain_parameters )
         
-        String unwrapped_apply_sig;
+        String flattened_apply_sig;
         if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
-        	unwrapped_apply_sig = arrowParamsToJVMsig(parameters.subList(1,2));
+        	flattened_apply_sig = arrowParamsToJVMsig(parameters.subList(1,2));
         else
-        	unwrapped_apply_sig= arrowParamsToJVMsig(unwrapped_parameters);
+        	flattened_apply_sig= arrowParamsToJVMsig(flat_params_and_ret);
        
-        String obj_apply_sig = arrowParamsToJVMsig(objectified_parameters);
+        String obj_apply_sig = arrowParamsToJVMsig(flat_obj_params_and_ret);
   
         mv = cw.visitMethod(ACC_PUBLIC, Naming.APPLY_METHOD,
-                unwrapped_apply_sig,
+                flattened_apply_sig,
                 null, null);
         mv.visitCode();
 
@@ -1098,8 +1106,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         // Push parameters.
         // i is indexed so that it corresponds to parameters pushed, even though
         // the types are ignored here (for now).
-        for (int i = 0; i < unwrapped_parameters.size()-1; i++) {
-            String t = unwrapped_parameters.get(i);
+        for (int i = 0; i < flat_params_and_ret.size()-1; i++) {
+            String t = flat_params_and_ret.get(i);
             if (!t.equals(Naming.INTERNAL_SNOWMAN)) {
                 mv.visitVarInsn(ALOAD, i+1);
             } else {
@@ -1119,7 +1127,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         mv.visitMethodInsn(INVOKEINTERFACE, obj_intf_sig, Naming.APPLY_METHOD, obj_apply_sig);
         
         // mv.visitTypeInsn(Opcodes.CHECKCAST, parameters.get(parameters.size()-1));
-        generalizedCastTo(mv, parameters.get(parameters.size()-1));
+        generalizedCastTo(mv, flat_params_and_ret.get(flat_params_and_ret.size()-1));
         
         // done
         mv.visitInsn(ARETURN);
@@ -1178,37 +1186,42 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         Triple<List<String>, List<String>, String> stuff =
             normalizeArrowParameters(parameters);
         
-        List<String> unwrapped_parameters = stuff.getA();
-        List<String> tupled_parameters = stuff.getB();
+        List<String> flat_params_and_ret = stuff.getA();
+        List<String> tupled_params_and_ret = stuff.getB();
         String tupleType = stuff.getC();
         
-        List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
-        String obj_sig = stringListToGeneric(ABSTRACT_ARROW, objectified_parameters);
-        String obj_intf_sig = stringListToGeneric(Naming.ARROW_TAG, objectified_parameters);
-        String wrapped_sig = stringListToGeneric(WRAPPED_ARROW, unwrapped_parameters);
-        String typed_intf_sig = stringListToGeneric(Naming.ARROW_TAG, unwrapped_parameters);
+        List<String> flat_obj_params_and_ret = Useful.applyToAll(flat_params_and_ret, toJLO);
+        List<String> norm_obj_params_and_ret = normalizeArrowParametersAndReturn(flat_obj_params_and_ret);
+        List<String> norm_params_and_ret = normalizeArrowParametersAndReturn(flat_params_and_ret);
+        
+        String obj_sig = stringListToGeneric(ABSTRACT_ARROW, norm_obj_params_and_ret);
+        String obj_intf_sig = stringListToGeneric(Naming.ARROW_TAG, norm_obj_params_and_ret);
+        String wrapped_sig = stringListToGeneric(WRAPPED_ARROW, norm_params_and_ret);
+        String typed_intf_sig = stringListToGeneric(Naming.ARROW_TAG, norm_params_and_ret);
         String unwrapped_apply_sig;
 
         if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
         	unwrapped_apply_sig = arrowParamsToJVMsig(parameters.subList(1,2));
         else
-        	unwrapped_apply_sig= arrowParamsToJVMsig(unwrapped_parameters);
+        	unwrapped_apply_sig= arrowParamsToJVMsig(flat_params_and_ret);
         
-        String obj_apply_sig = arrowParamsToJVMsig(objectified_parameters);
+        String obj_apply_sig = arrowParamsToJVMsig(flat_obj_params_and_ret);
     
-        String[] interfaces = tupled_parameters == null ?
-                  new String[] { stringListToArrow(unwrapped_parameters) }
-                : new String[] { stringListToArrow(unwrapped_parameters),
-                                 stringListToArrow(tupled_parameters) };
-                  
-        String typed_tupled_intf_sig = tupled_parameters == null ? null :
-            stringListToGeneric(Naming.ARROW_TAG, tupled_parameters);
+        String[] interfaces = 
+                  new String[] { stringListToArrow(norm_params_and_ret) }
+                ;
+        /*
+         * Note that in the case of foo -> bar,
+         * normalized = flattened, and tupled does not exist (is null).
+         */
+        String typed_tupled_intf_sig = tupled_params_and_ret == null ? null :
+            stringListToGeneric(Naming.ARROW_TAG, tupled_params_and_ret);
         String objectified_tupled_intf_sig =
-            tupled_parameters == null ? null :
+            tupled_params_and_ret == null ? null :
             stringListToGeneric(Naming.ARROW_TAG,
-                        Useful.applyToAll(tupled_parameters, toJLO));
+                        Useful.applyToAll(tupled_params_and_ret, toJLO));
 
-        boolean is_all_objects = objectified_parameters.equals(unwrapped_parameters);
+        boolean is_all_objects = norm_obj_params_and_ret.equals(norm_params_and_ret);
                   
         String _super = is_all_objects ? "java/lang/Object" : obj_sig ;
 
@@ -1230,10 +1243,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             
             mv.visitVarInsn(Opcodes.ALOAD, 0); // this
             
-            int unwrapped_l = unwrapped_parameters.size();
+            int unwrapped_l = flat_params_and_ret.size();
 
             for (int i = 0; i < unwrapped_l-1; i++) {
-                String t = unwrapped_parameters.get(i);
+                String t = flat_params_and_ret.get(i);
                 if (!t.equals(Naming.INTERNAL_SNOWMAN)) {
                     mv.visitVarInsn(Opcodes.ALOAD, i+1); // element
                     // mv.visitTypeInsn(CHECKCAST, t);
@@ -1355,7 +1368,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitEnd();            
         } 
 
-        if (typed_tupled_intf_sig != null && !typed_tupled_intf_sig.equals(typed_intf_sig))
+        if (typed_tupled_intf_sig != null )
         {
             /*
              *  If arg0 instanceof typed_intf_sig
@@ -1423,7 +1436,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitEnd(); // return this
         }
         
-        if (tupled_parameters == null) {
+        if (tupled_params_and_ret == null) {
             /* Single abstract method */
             if (LOG_LOADS) System.err.println(name + ".apply" + unwrapped_apply_sig+" abstract for abstract");
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
@@ -1437,7 +1450,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
              * the eventual implementer will break the cycle.
              * 
              */
-            String tupled_apply_sig = arrowParamsToJVMsig(tupled_parameters);
+            String tupled_apply_sig = arrowParamsToJVMsig(tupled_params_and_ret);
 
             {
                 /* Given tupled args, extract, and invoke apply. */
@@ -1449,10 +1462,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 
                 mv.visitVarInsn(Opcodes.ALOAD, 0); // closure
                 
-                int unwrapped_l = unwrapped_parameters.size();
+                int unwrapped_l = flat_params_and_ret.size();
                 
                 for (int i = 0; i < unwrapped_l-1; i++) {
-                    String param = unwrapped_parameters.get(i);
+                    String param = flat_params_and_ret.get(i);
                     mv.visitVarInsn(Opcodes.ALOAD, 1); // tuple
                     mv.visitMethodInsn(INVOKEINTERFACE, tupleType, TUPLE_TYPED_ELT_PFX + (Naming.TUPLE_ORIGIN + i), "()" + Naming.internalToDesc(param));
                 }
@@ -1472,13 +1485,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 
                 mv.visitVarInsn(Opcodes.ALOAD, 0); // closure
                 
-                int unwrapped_l = unwrapped_parameters.size();
+                int unwrapped_l = flat_params_and_ret.size();
 
                 for (int i = 0; i < unwrapped_l-1; i++) {
                     mv.visitVarInsn(Opcodes.ALOAD, i+1); // element
                 }
 
-                List<String> tuple_elements = unwrapped_parameters.subList(0,unwrapped_l-1);
+                List<String> tuple_elements = flat_params_and_ret.subList(0,unwrapped_l-1);
                 
                 String make_sig = toJvmSig(tuple_elements,
                                   Naming.javaDescForTaggedFortressType(tupleType));
@@ -2336,6 +2349,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String tupleType = stuff.getC();
             
             List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
+            objectified_parameters = normalizeArrowParametersAndReturn(objectified_parameters);
             String obj_sig = stringListToGeneric(Naming.ARROW_TAG, objectified_parameters);
 
            String sig = "(L" + obj_sig + ";)L" + cast_to + ";";
@@ -2345,6 +2359,20 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String type = cast_to.equals(Naming.INTERNAL_SNOWMAN) ? Naming.specialFortressTypes.get(Naming.INTERNAL_SNOWMAN) : cast_to;
         	mv.visitTypeInsn(Opcodes.CHECKCAST, type);
         }
+    }
+
+    /**
+     * @param params_and_return_list
+     * @return
+     */
+    private static List<String> normalizeArrowParametersAndReturn(
+            List<String> params_and_return_list) {
+        int l = params_and_return_list.size();
+        if (l > 2) {
+            String tuple_sig = stringListToGeneric(Naming.TUPLE_TAG, params_and_return_list.subList(0,l-1));
+            params_and_return_list = Useful.<String>list(tuple_sig, params_and_return_list.get(l-1));
+        }
+        return params_and_return_list;
     }
 
     /**
