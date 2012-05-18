@@ -1,0 +1,20 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled6.c
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled6.c.fss:18:1-19:2:\n\
+\ Invalid comprises clause: T has a comprises clause\n\
+\ but its immediate subtype Mumble is not eligible to extend it.\n\
+${STATIC_TESTS_DIR}/Compiled6.c.fss:18:23:\n\
+\ Type Mumble excludes T but it extends T.\n\
+File Compiled6.c.fss has 2 errors.\n
+compile_out_equals=

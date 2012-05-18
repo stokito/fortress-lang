@@ -1,0 +1,30 @@
+\input{fig-grammar}
+
+The contributions of this paper are:
+
+(1) To define Welterweight Fortress,
+which goes beyond Featherweight Fortress~\cite{featherweight-fortress} to present
+a substantial model of a statically typed object-oriented programming language with
+multiple inheritance of type-parametric methods from type-parametric traits whose type parameters can be covariant, contravariant, or invariant; type-parametric functions;
+abstract functions and methods; explicitly declared ````excludes'' and ````comprises'' type relationships;
+and fully symmetric multimethod dispatch.  This model includes a complete formal codification
+of the No Duplicates Rule, the Meet Rule, and the Return Type Rule discussed in \cite{oopsla-2011-type-checking},
+which, as part of static type checking, guarantee that at run time a dynamically most specific applicable visible method or function
+always exists and is unique.
+
+(2) To present an improved, more practical formulation of the Return Type Rule.
+
+(3) To introduce an ````Ancestor Meet Rule'' that, together with left-to-right scoping of
+the type parameters of methods and functions, enables an implementation of
+fully symmetric multimethod dispatch that is almost always quite efficient.
+
+(4) The real meat of the paper, for which Welterweight Fortress serves as the expository framework:
+To describe in detail algorithms for determining, at run time, whether a type-parametric function or method
+is applicable to a given tuple of argument values, and if so, what types should be assigned to the type parameters
+during execution of the function or method.  This matters because in Fortress, unlike Java~\cite{JavaSpec} or Scala~\cite{scala},
+generic types are not erased.
+We characterize cases in which exponential search may be required and argue
+that they are unlikely to arise in practice.
+
+(5) In passing, to describe a more rigorous and expressive version of the customary ````overline'' metanotation.
+Use of underlines and special overarrows allows a more compact and more accurate presentation of complex judgments.

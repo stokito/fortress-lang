@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait aa(c:ZZ32, d:ZZ32) end
+
+object bb(left:ZZ32, right:ZZ32) extends aa
+    c : ZZ32 = 3
+    d : ZZ32 = 4
+end
+
+object cc(one : bb, two :ZZ32) extends aa
+  c :ZZ32 = 1
+  d : ZZ32= 2
+end
+
+
+run():() = do
+  a : aa = bb(4, 5)
+  tc = typecase (3, 4)  of
+         (x, y) => println x
+         (*  typecase x of
+             String => println "String"
+             ZZ32 => println "ZZ32"
+             else => println "else"
+           end *)
+         else => println 3
+       end
+  println "end"
+end

@@ -1,0 +1,35 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Parallel.Shared.a
+export Executable
+
+trait List end
+object Cons(x:ZZ32, xs: List) extends List end
+object Empty extends List end
+
+f() = do
+x = 1
+xs = Empty
+var y: List
+(** EXAMPLE **)
+y := shared Cons(x, xs)
+shared(y)
+(** END EXAMPLE **)
+end
+
+run() = do
+  f()
+end
+
+end

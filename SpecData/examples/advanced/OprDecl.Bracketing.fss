@@ -1,0 +1,32 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component OprDecl.Bracketing
+
+export Executable
+
+(** EXAMPLE **)
+(* angle bracket notation for inner product *)
+opr <|[\T extends Number, nat k\] x: Vector[\T,k\], y: Vector[\T,k\]|> =
+    SUM[i <- x.indices()]x[i] DOT y[i]
+(** END EXAMPLE **)
+
+vector1 = vector[\ZZ32, 2\](2)
+vector2 = vector[\ZZ32, 2\](3)
+
+run() = do
+  assert( <|vector1, vector2|> = 12)
+  println("OprDecl.Bracketing.fss passed.")
+end
+
+end

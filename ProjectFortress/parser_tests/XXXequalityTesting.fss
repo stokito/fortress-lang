@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXequalityTesting
+export Executable
+
+run() = do
+  a:ZZ32[2] = [ 3 5 ]
+  a[0] = a[1]           (* should be parenthesized, should have type () *)
+  println (a[0] = a[1])
+  a[0] = a[1]           (* should be parenthesized *)
+end
+
+end

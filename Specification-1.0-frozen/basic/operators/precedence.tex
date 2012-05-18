@@ -1,0 +1,209 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Operator Precedence and Associativity}
+\seclabel{operator-precedence}
+
+Fortress specifies that certain operators have higher precedence than
+certain other operators and certain operators are associative,
+so that one need not use parentheses in all
+cases where operators are mixed in an expression.  (See
+\appref{operator-precedence} for a detailed description of operator
+precedence and associativity in Fortress.)  However, Fortress
+does not follow the practice of other programming languages in
+simply assigning an integer to each operator and then saying that
+the precedence of any two operators can be compared by comparing
+their assigned integers.  Instead, Fortress relies on defining traditional
+groups of operators based on their meaning and shape, and specifies
+specific precedence relationships between some of these groups.
+If there is no specific precedence relationship between two
+operators, then parentheses must be used.  For example, Fortress
+does not accept the expression \EXP{a + b \cup c};
+one must write either \EXP{(a + b) \cup c} or \EXP{a + (b \cup c)}.
+(Whether or not the result then makes any sense depends on what definitions
+have been made for the \EXP{+} and \EXP{\cup} operators---see
+\chapref{operatordefs}.)
+
+Here are the basic principles of operator precedence and associativity
+in Fortress:
+
+\begin{itemize}
+\item
+Member selection (\txt{.}) and method invocation
+(\EXP{.\VAR{name}(\ldots)}) are not operators.  They have higher precedence
+than any operator listed below.
+
+\item
+Subscripting (\txt{[ ]} and any kind of subscripting operators,
+which can be any kind of enclosing operators),
+superscripting (\txt{{\char'136}}),
+and postfix operators have higher precedence than any operator
+listed below; within this group, these operations are left-associative
+(performed left-to-right).
+
+\item
+\emph{Tight juxtaposition}, that is, juxtaposition without intervening
+whitespace, has higher precedence than any operator listed below.  The
+associativity of tight juxtaposition is type-dependent;
+see \secref{juxtameaning}.
+
+\item
+Next, \emph{tight fractions}, that is,
+the use of the operator `\EXP{/}' with no whitespace on either side,
+have higher precedence than any operator listed below.
+The tight-fraction operator has no precedence compared with itself,
+so it is not permitted to be used more than once in a tight fraction
+without use of parentheses.
+
+\item
+\emph{Loose juxtaposition}, that is, juxtaposition with intervening
+whitespace, has higher precedence than any operator listed below.  The
+associativity of loose juxtaposition is type-dependent and is
+different from that for tight juxtaposition; see \secref{juxtameaning}.
+Note that \emph{lopsided juxtaposition}
+(having whitespace on one side but not the other) is a static error as
+described in \secref{operator-fixity}.
+
+
+\item
+Prefix operators have higher precedence than any operator listed below.
+However, it is a static error for an operand of a loose prefix operator
+to be an operand of a tight infix operator.
+
+\item
+The infix operators are partitioned into certain traditional groups, as
+explained below.  They have higher precedence than any operator listed below.
+
+\item
+The equal symbol `\EXP{=}' in binding context,
+the assignment operator `\EXP{\ASSIGN}', and
+compound assignment operators (\EXP{\mathrel{+}=}, \EXP{-=}, \EXP{\wedge=},
+\EXP{\vee=}, \EXP{\cap=}, \EXP{\cup=}, and so on as described in
+\secref{operator-app-expr})
+have lower precedence than any operator listed above.
+Note that compound assignment operators themselves are not operator names.
+\end{itemize}
+
+The infix binary operators are divided into four general categories: arithmetic,
+relational, boolean, and other.  The arithmetic operators are further categorized as
+multiplication/division/intersection, addition/subtraction/union, and other.
+The relational operators are further categorized as equivalence,
+inequivalence, ordering, and other.
+The boolean operators
+are further categorized as conjunctive, disjunctive, and other.
+
+The arithmetic and relational operators are further divided into groups based on shape:
+\begin{itemize}
+\item ``ordinary'' operators:
+\EXP{+ - \cdot \times / \pm \mp \oplus \ominus
+\odot \otimes \oslash
+\boxplus \boxminus \boxdot \boxtimes < \leq \geq > \ll \lll \ggg \gg
+\nless \nleq \ngeq \ngtr} etc.
+
+The arithmetic operations in this group are further subdivided into
+``plain'' (\EXP{+ - \cdot \times / \pm \mp} etc.),
+``circled'' (\EXP{\oplus \ominus \odot \otimes \oslash} etc.),
+``boxed'' (\EXP{\boxplus \boxminus \boxdot \boxtimes} etc.), and so on;
+ any of these groups may be used with
+the plain relational operators
+(\EXP{< \leq \geq > \ll \lll \ggg \gg \nless \nleq \ngeq \ngtr} etc.),
+but the groups might not be mixed.
+
+\item ``rounded horseshoe'' or ``set'' operators:
+\EXP{\cap \Cap \cup \Cup \uplus \subset \subseteq \supseteq \supset
+\Subset \Supset \not\subset \nsubseteq \nsupseteq \not\supset}  etc.
+
+\item ``square horseshoe'' operators:
+\EXP{\sqcap \sqcup \sqsubset \sqsubseteq \sqsupseteq \sqsupset
+\not\sqsubseteq \not\sqsupseteq} etc.
+
+\item ``curly'' operators:
+\EXP{\curlywedge \curlyvee \prec \preceq \succeq \succ
+\nprec \not\preccurlyeq \not\succcurlyeq \nsucc} etc.
+
+\item ``triangular'' relations:
+\EXP{\lhd \unlhd \unrhd \rhd
+\ntriangleleft \ntrianglelefteq \ntrianglerighteq \ntriangleright} etc.
+
+\item ``chickenfoot'' relations: \EXP{<\!\llap{-} \rlap{-}\!>} etc.
+\end{itemize}
+The principles of precedence for binary operators are then as follows:
+\begin{itemize}
+\item
+A multiplication or division or intersection operator has higher precedence than any addition or subtraction or union
+operator that is in the same shape group.
+
+\item Certain addition and subtraction operators come in pairs,
+such as \EXP{+} and \EXP{-}, or \EXP{\oplus} and \EXP{\ominus},
+ which are considered to have the
+same precedence and so may be mixed within an expression and are grouped
+left-associatively.  These addition-subtraction pairs are the \emph{only}
+cases where two different operators are considered to have the same precedence.
+
+\item An arithmetic operator has higher precedence than any equivalence or inequivalence operator.
+
+\item An arithmetic operator has higher precedence than any relational operator that is in the same shape group.
+
+\item A relational operator has higher precedence than any boolean operator.
+
+\item A conjunctive boolean operator has higher precedence than any disjunctive boolean operator.
+\end{itemize}
+
+While the rules of precedence are complicated, they
+are intended to be both unsurprising and conservative.
+Note that operator precedence in Fortress is not always transitive;
+for example,  while \EXP{+} has higher precedence than \EXP{<}
+(so you can write \EXP{a~+~b~<~c} without parentheses), and \EXP{<} has higher precedence than
+\EXP{\vee} (so you can write \EXP{a~<~b~\vee~c~<~d} without
+parentheses), it is \emph{not} true
+that \EXP{+} has higher precedence than \EXP{\vee}---the expression
+\EXP{a~\vee~b~+~c} is not permitted,
+and one must instead write \EXP{(a~\vee~b)~+~c} or \EXP{a~\vee~(b~+~c)}.
+
+Another point is that the various multiplication and division operators
+do \emph{not} have ``the same precedence''; they may not be mixed freely with each other.
+For example, one cannot write
+%% \EXP{u~\cdot~v~\times~w};
+\EXP{u~\cdot~v~\times~w};
+one must write \EXP{(u~\cdot~v)~\times~w} or (more likely)
+\EXP{u~\cdot~(v~\times~w)}.
+Similarly, one cannot write
+%% \EXP{a~\cdot~b~/~c~\cdot~d};
+\EXP{a~\odot~b~/~c~\odot~d};
+but juxtaposition
+does bind more tightly than a loose (whitespace-surrounded) division
+slash, so one is allowed to write \EXP{a~b~/~c~d}, and this means the
+same as \EXP{(a~b)/(c~d)}.
+On the other hand, loose juxtaposition binds less tightly than a tight
+division slash,
+so that \EXP{a~b/c~d} means the same as \EXP{a~(b/c)~d}.  On the other
+other hand,
+tight juxtaposition binds more tightly than tight division, so that
+\EXP{(n+1)/(n+2)(n+3)}
+means the same as \EXP{(n+1)/((n+2)(n+3))}.
+
+There are two additional rules intended to catch misleading code:
+it is a static error for an operand of a tight infix or tight prefix operator
+to be a loose juxtaposition, and
+it is a static error if the rules of precedence determine that a use
+of infix operator \VAR{a} has higher or equal precedence
+than a use of infix operator \VAR{b}, but that particular use of
+\VAR{a} is loose  and that particular
+use of \VAR{b} is tight.  Thus, for example, the expression
+\EXP{\sin~x~+~y} is permitted, but \EXP{\sin~x\!+\!y} is not permitted.
+Similarly, the expression \EXP{a~\cdot~b~+~c} is permitted,
+as are \EXP{a{\cdot}b~+~c} and \EXP{a{\cdot}b\!+\!c}, but
+\EXP{a~\cdot~b\!+\!c} is not permitted.
+(The rule detects only the presence or absence of whitespace, not the
+amount of whitespace,
+so \EXP{a~~~\cdot~b~+~c} is permitted.  You have to draw the line somewhere.)
+
+When in doubt, just use parentheses.  If there's a problem, the compiler will (probably) let you know.

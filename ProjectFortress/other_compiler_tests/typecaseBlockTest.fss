@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component typecaseBlockTest
+export Executable
+
+run():()=do
+   typecase "One Two Three " of
+      String => y = "block test"
+                println("pass: " y)
+      ZZ32 => println("FAIL ")
+      else => println("FAIL ")
+   end
+end
+end

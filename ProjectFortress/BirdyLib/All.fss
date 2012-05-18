@@ -1,0 +1,17 @@
+component All
+
+  import Comparison.{...}
+  import Util.{...}
+  import Maybe.{...}
+  import File.{...}
+  import FileSupport.{...}
+  import Set.{...}
+  import Map.{...}
+  import List.{...}
+  import Tuple.{...}
+  import Pairs.{...}
+  export Executable
+    
+  run() = ()
+
+end

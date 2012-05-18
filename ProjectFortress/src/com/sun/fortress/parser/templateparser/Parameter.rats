@@ -1,0 +1,29 @@
+/*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress parameters.
+ */
+module com.sun.fortress.parser.templateparser.Parameter(NoNewlineHeader, MayNewlineHeader,
+                                         Type, Expr, Identifier, Keyword,
+                                         Symbol, Spacing);
+
+import NoNewlineHeader;
+import MayNewlineHeader;
+import Type;
+import Expr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+modify com.sun.fortress.parser.Parameter(NoNewlineHeader,
+MayNewlineHeader, Type, Expr, Identifier, Keyword, Symbol, Spacing);

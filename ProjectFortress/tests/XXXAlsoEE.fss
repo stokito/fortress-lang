@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXAlsoEE
+export Executable
+
+    run() = do
+        do
+            println "a very long string"
+        also
+            println "an even longer string"
+        end
+    end
+
+end XXXAlsoEE
+
+(*  Another "do" is needed ater the "also".  The message I get is
+    /Users/black/Development/PFC/Sandbox/alsoEE.fss:9:13: Syntax Error
+*)

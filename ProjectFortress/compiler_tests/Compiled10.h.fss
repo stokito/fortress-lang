@@ -1,0 +1,32 @@
+(********************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+********************************************************************************)
+export Executable
+
+(* (2) Modification to syntax of `comprises` clauses. *)
+
+(*  b) For each trait T
+ *     for each naked type variable V in T's comprises clause
+ *     the instance of T by using all its static parameter names as
+ *     corresponding static arguments to the trait is implicitly
+ *     regarded as one of the bounds on that static parameter V
+ *     (in addition to any other bounds it might have).
+ *)
+trait T[\U, S\] comprises {U, S, Q} end
+object O extends T[\O, P\] end
+object P extends T[\O, P\] end
+object Q extends T[\Q, Q\] end
+
+f(x:T[\Q, Q\]) = ()
+
+run() = do
+  f(Q)
+  f(P)
+end

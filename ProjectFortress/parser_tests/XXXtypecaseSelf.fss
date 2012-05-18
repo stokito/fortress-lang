@@ -1,0 +1,24 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXtypecaseSelf
+import System.{args}
+export Executable
+
+run() = do
+  x = |args|
+  typecase _ = self of
+    ZZ32 => println x
+    else => println (x " is not ZZ32.")
+  end
+end
+
+end

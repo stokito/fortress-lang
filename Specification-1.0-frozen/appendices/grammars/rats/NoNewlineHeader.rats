@@ -1,0 +1,108 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009,2010, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+ExtendsWhere =
+     extends w TraitTypeWhere
+   / extends w opencurly w TraitTypeWhere (w comma w TraitTypeWhere)*
+     w closecurly
+
+TraitTypeWhere =
+     TraitTypeWithError (w Where)?
+
+Extends = extends w TraitTypes
+
+Excludes = excludes w TraitTypes
+
+TraitTypes =
+     TraitTypeWithError
+   / opencurly w TraitTypeWithError (w comma w TraitTypeWithError)* w closecurly
+
+Comprises =
+     comprises w ComprisingTypes
+   / comprises w opencurly (w AbsComprisingTypeList)? w closecurly
+
+AbsComprisingTypeList =
+     ellipses
+   / ComprisingTypeList (w comma w ellipses)?
+
+ComprisingTypes =
+     ComprisingTypeWithError
+   / opencurly w ComprisingTypeList w closecurly
+
+ComprisingTypeList =
+     ComprisingTypeWithError (w comma w ComprisingTypeWithError)*
+
+ComprisingTypeWithError =
+     TraitTypeWithError
+   / Id
+
+Where =
+     where w opendoublesquare w WhereBinding (w comma w WhereBinding)* w
+     closedoublesquare (w opencurly w WhereConstraintList w closecurly)?
+   / where w opencurly w WhereConstraintList w closecurly
+
+WhereBinding =
+     nat w IdOrOpName
+   / int w IdOrOpName
+   / bool w IdOrOpName
+   / unit w IdOrOpName
+   / IdOrOpName (w Extends)?
+   / <ErrorProduction> opendoublesquare
+
+FnHeaderClause = (w NoNewlineIsType)? FnClauses
+
+FnClauses = FnClause*
+FnClause =
+     w Throws
+   / w Where
+   / w Requires
+   / w Ensures
+   / w Invariant
+   / w ExtendsWhere
+
+Throws =
+     throws w opencurly w closecurly
+   / throws w TraitTypes
+
+Mods = (Mod w)+
+
+Mod =
+     abstract
+   / atomic
+   / getter
+   / hidden
+   / io
+   / override
+   / private
+   / settable
+   / setter
+   / test
+   / value
+   / var
+   / wrapped
+
+StaticParams =
+     opendoublesquare w StaticParam (w comma w StaticParam)* w
+     closedoublesquare
+
+StaticParam =
+     nat w IdOrOpName
+   / int w IdOrOpName
+   / bool w IdOrOpName
+   / dim w IdOrOpName
+   / unit w IdOrOpName (w colon w NoNewlineType)? (w absorbs w unit)?
+   / opr w Op
+   / IdOrOpName w Extends (w absorbs w unit)?
+   / Id (w Extends)? (w absorbs w unit)?
+   / <ErrorProduction>
+     opendoublesquare
+\end{verbatim}

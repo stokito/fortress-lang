@@ -1,0 +1,48 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+import CompilerSystem.args
+export { Executable }
+
+(* WORKS.
+   Tested by Compiled90.test *)
+
+trait List
+  nth(n:ZZ32):ZZ32
+  append(self,xs:List):List
+  reverse():List
+  (*) asString():String
+end
+
+object Cons(car:ZZ32, cdr:List) extends List
+  nth(n:ZZ32):ZZ32 =
+    if n = 0 then car
+    else cdr.nth(n-1) end
+  append(self,xs:List):List = Cons(car,append(cdr,xs))
+  reverse():List = append(cdr.reverse(),Cons(car,Empty))
+  (*) asString():String = "[" car.asString " " cdr.asString "]"
+end
+
+object Empty extends List
+  nth(n:ZZ32):ZZ32 = nth(n)
+  append(self,xs:List):List = xs
+  reverse():List = self
+  (*) asString():String = "[]"
+end
+
+run():() = do
+  ns = Cons(1,Cons(2,Cons(3,Cons(4,Empty))))
+  if NOT (ns.reverse().nth(0) = 4) then println "FAIL" end
+  if NOT (ns.reverse().nth(1) = 3) then println "FAIL" end
+  if NOT (ns.reverse().nth(2) = 2) then println "FAIL" end
+  if NOT (ns.reverse().nth(3) = 1) then println "FAIL" end
+  println "pass"
+end

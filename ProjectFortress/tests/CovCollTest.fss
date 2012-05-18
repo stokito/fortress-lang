@@ -1,0 +1,90 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component CovCollTest
+import CovariantCollection.{...}
+import List.{...}
+import Timing.{...}
+import File.{...}
+import System.{args}
+export Executable
+
+(**
+ * Performance tuning for CovariantCollection
+ * Large list comprehensions (O(10^5) elements) run very slowly
+ * (slower than prime sieving to 10^6 for example).
+ * Problems:
+ * 1) O(n lg n) append time.  By building up separate lists and appending them
+ *    we end up performing O(n lg n) copying work.  But the overhead of this
+ *    is almost exactly the same as allocating a PureList, in spite of the
+ *    latter's perfect (?) amortized bounds.  So just allocating a tree of
+ *    list elements isn't going to work.  We'll need a smart re-think.
+ * 2) append work at leaves.  We can increase minimum leaf size
+ *    and hope to minimize this.
+ *
+ * Here we try the totally naive solution to the problem.
+ *)
+
+secs(start:ZZ64,fin:ZZ64):RR64 = ((fin-start)/10.0^9)
+
+(* is n of the form i(i+1) / 2?
+   ie is 2n of the form i(i+1)
+   i^2 + i - 2n = 0
+   i = -1 +- SQRT(8n+1) / 2
+ *)
+isTriangular(n:ZZ32): Boolean = do
+    r : RR64 = (SQRT(8.0 n + 1.0) - 1.0) / 2.0
+    (r = |\r/|)
+  end
+
+run():() = do
+    (sz, warm) = if |args| = 1 then (strToInt(args[0]),100) else (11,10) end
+    c'n'p : String := ""
+    for i <- seq(0:sz) do
+        gensize = narrow(2^i)
+        nlogn = (i+1) gensize
+        outtime(t) =
+            println(t "\tn: " |\t.usecs / gensize/| "\tn lg n: " |\t.usecs / nlogn/|)
+        for j <- seq(1 : (warm DIV gensize)) do
+            rs = ("Warmup " gensize " " j) PRINTTIME: (do
+                   cc = (0#gensize).generate[\AnyCovColl\](CVReduction[\ZZ32\], CVSingleton)
+                   (Empty[\ZZ32\] APPCOV cc).toImmutableArray()
+                 end)
+            rs' = ("Warm L " gensize " " j) PRINTTIME:
+                  (0#gensize).generate[\List[\ZZ32\]\](Concat[\ZZ32\], singleton[\ZZ32\])
+        end
+        (rs', tc) = ("Via covariant collection " gensize) TIMING: (do (*'*)
+            cc = ("CC " gensize) PRINTTIME:
+                 (0#gensize).generate[\AnyCovColl\](CVReduction[\ZZ32\], CVSingleton)
+            (ar,ti) = ("toArray " gensize) TIMING:
+                      (Empty[\ZZ32\] APPCOV cc).toImmutableArray()
+            println(ti)
+            list(ar)
+          end)
+        outtime(tc)
+        (rs, tl) = ("List                     " gensize) TIMING:
+                 (0#gensize).generate[\List[\ZZ32\]\](Concat[\ZZ32\], singleton[\ZZ32\])
+        outtime(tl)
+        assert(rs,rs') (*'*)
+        println("Ratio                    " gensize " = " (|\1000 tl.secs / tc.secs/| / 1000.0))
+        ctime(t) = "\t" t.secs
+        cdiv(t) =  "\t" (t.secs/gensize) "\t" (t.secs/nlogn)
+        c'n'p //= gensize ctime(tl) ctime(tc) cdiv(tl) cdiv(tc)
+    end
+(*
+    s = FileWriteStream("/Users/jmaessen/CovColl.dat")
+    s.write(c'n'p[1:])
+    s.close()
+*)
+    println(c'n'p)
+  end
+
+end

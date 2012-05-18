@@ -1,0 +1,72 @@
+\section{Proofs about simplifying a constructed type of a union or intersection type}
+\label{sec:proofs}
+\subsection{Covariant parameter receives intersection type}
+
+Consider a trait $G\ob{\kwd{covariant}\;P}$; we wish to show that
+$G\OBR{\alpha \cap \eta} \equiv G\OBR{\alpha} \cap G\OBR{\eta}$.  We do this by showing that
+$G\OBR{\alpha \cap \eta} <: G\OBR{\alpha} \cap G\OBR{\eta}$, and
+$G\OBR{\alpha} \cap G\OBR{\eta} <: G\OBR{\alpha \cap \eta}$.
+
+\medskip
+\noindent
+(i) $G$ is covariant and $\alpha \cap \eta <: \alpha$, so $G\OBR{\alpha \cap \eta} <: G\OBR{\alpha}$.
+Similarly, $\alpha \cap \eta <: \eta$, so $G\OBR{\alpha \cap \eta} <: G\OBR{\eta}$.
+From the definition of $\cap$, $G\OBR{\alpha \cap \eta} <: G\OBR{\alpha} \cap G\OBR{\eta}$.
+
+\medskip
+\noindent
+(ii) Suppose $G\OBR{\alpha} \cap G\OBR{\eta} \not<: G\OBR{\alpha \cap \eta}$.
+Then there must be some value $v$ that belongs to type $G\OBR{\alpha} \cap G\OBR{\eta}$ but not to type $G\OBR{\alpha \cap \eta}$;
+therefore  $\ilk{v} <: G\OBR{\alpha} \cap G\OBR{\eta}$ and $\ilk{v} \not<: G\OBR{\alpha \cap \eta}$,
+and $\ilk{v} <: G\OBR{\alpha} \cap G\OBR{\eta}$ implies both $\ilk{v} <: G\OBR{\alpha}$ and $\ilk{v} <: G\OBR{\eta}$.
+By the Ancestor Meet Rule, there must exist some $\chi$ such that $\ilk{v} <: G\OBR{\chi}$ and $G\OBR{\chi} <: G\OBR{\alpha}$ and $G\OBR{\chi} <: G\OBR{\eta}$.
+Because $G$ is covariant, $\chi <: \alpha$ and $\chi <: \eta$; therefore $\chi <: \alpha \cap \eta$; therefore $G\OBR{\chi} <: G\OBR{\alpha \cap \eta}$.
+But $\ilk{v} <: G\OBR{\chi}$, so by transitivity $\ilk{v} <:  G\OBR{\alpha \cap \eta}$.
+That means $v$ belongs to type $G\OBR{\alpha \cap \eta}$, a contradiction.  Our original assumption was incorrect,
+therefore $G\OBR{\alpha} \cap G\OBR{\eta} <: G\OBR{\alpha \cap \eta}$.
+
+
+\subsection{Contravariant parameter receives union type}
+
+Consider a trait $G\ob{\kwd{contravariant}\;P}$; we wish to show
+$G\OBR{\alpha \cup \eta} \equiv G\OBR{\alpha} \cap G\OBR{\eta}$.  We do this by showing that
+$G\OBR{\alpha \cup \eta} <: G\OBR{\alpha} \cap G\OBR{\eta}$, and
+$G\OBR{\alpha} \cap G\OBR{\eta} <: G\OBR{\alpha \cup \eta}$.
+
+\medskip
+\noindent
+(i) $G$ is contravariant and $\alpha <: \alpha \cup \eta$, so $G\OBR{\alpha \cup \eta} <: G\OBR{\alpha}$.
+Similarly, $\eta <: \alpha \cup \eta$, so $G\OBR{\alpha \cup \eta} <: G\OBR{\eta}$.
+From the definition of $\cap$, $G\OBR{\alpha \cup \eta} <: G\OBR{\alpha} \cap G\OBR{\eta}$.
+
+\medskip
+\noindent
+(ii) Suppose $G\OBR{\alpha} \cap G\OBR{\eta} \not<: G\OBR{\alpha \cup \eta}$.
+Then there must be some value $v$ that belongs to type $G\OBR{\alpha} \cap G\OBR{\eta}$ but not to type $G\OBR{\alpha \cup \eta}$;
+therefore  $\ilk{v} <: G\OBR{\alpha} \cap G\OBR{\eta}$ and $\ilk{v} \not<: G\OBR{\alpha \cup \eta}$,
+and $\ilk{v} <: G\OBR{\alpha} \cap G\OBR{\eta}$ implies both $\ilk{v} <: G\OBR{\alpha}$ and $\ilk{v} <: G\OBR{\eta}$.
+By the Ancestor Meet Rule, there must exist some $\chi$ such that $\ilk{v} <: G\OBR{\chi}$ and $G\OBR{\chi} <: G\OBR{\alpha}$ and $G\OBR{\chi} <: G\OBR{\eta}$.
+Because $G$ is contravariant, $\alpha <: \chi$ and $\eta <: \chi$; therefore $\alpha \cup \eta <: \chi$; therefore $G\OBR{\chi} <: G\OBR{\alpha \cup \eta}$.
+But $\ilk{v} <: G\OBR{\chi}$, so by transitivity $\ilk{v} <:  G\OBR{\alpha \cup \eta}$.
+That means $v$ belongs to type $G\OBR{\alpha \cup \eta}$, a contradiction.  Our original assumption was incorrect,
+therefore $G\OBR{\alpha} \cap G\OBR{\eta} <: G\OBR{\alpha \cup \eta}$.
+
+
+
+
+% Suppose $G\OBR{T}$ is contravariant in $T$.\\
+% Then \[G\OBR{A} \cap G\OBR{B} <: G\OBR{A \cup B}\]
+% and \[G\OBR{A \cup B} <: G\OBR{A} \cap G\OBR{B};\]
+% that is, \[G\OBR{A} \cap G\OBR{B} = G\OBR{A \cup B}.\]\\
+% \\
+% Because $A <: A \cup B $ and $G$ is contravariant, $G\OBR{A \cup B} <: G\OBR{A}$.\\
+% Similarly,  $G\OBR{A \cup B} <: G\OBR{B} $.\\
+% Therefore, $G\OBR{A \cup B} <: G\OBR{A} \cap G\OBR{B}$.\\
+% \\
+% Suppose there is some value $V$ with type $O$ in $G\OBR{A} \cap G\OBR{B}$.\\
+% Then $O <: G\OBR{A}$ and $O <: G\OBR{B}$.\\
+% By type rules (existence of minimal instance, with related static parameters),
+% if $O$ extends both $G\OBR{A}$ and $G\OBR{B}$,
+% then there must be a $T$ such that $A <: T$ and $B <: T$ and $O <: G\OBR{T}$.\\
+% Since $A <: T$ and $B <: T$, we see that $A \cup B <: T$ and therefore $O <: G\OBR{T} <: G\OBR{A \cap B}$.\\
+% Therefore, $G\OBR{A} \cap G\OBR{B} <: G\OBR{A \cup B} $

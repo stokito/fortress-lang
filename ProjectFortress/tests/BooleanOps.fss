@@ -1,0 +1,57 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component BooleanOps
+export Executable
+
+asseq(s:String,a:Boolean,b:Boolean,x:Boolean,y:Boolean): () =
+    if a then
+        if b then
+            ()
+        else
+            println("FAIL: " x s y " expected " a " got " b)
+        end
+    else
+        if b then
+            println("FAIL: " x s y " expected " a " got " b)
+        else
+            ()
+        end
+    end
+
+binop(op:(Boolean,Boolean)->Boolean,
+      s:String,tt:Boolean,tf:Boolean,ft:Boolean,ff:Boolean): () = do
+    tt' = op(true, true)
+    asseq(s,tt,tt',true,true)
+    tf' = op(true, false)
+    asseq(s,tf,tf',true,false)
+    ft' = op(false, true)
+    asseq(s,ft,ft',false,true)
+    ff' = op(false, false)
+    asseq(s,ff,ff',false,false)
+  end
+
+run():() = do
+    binop(fn (a,b) => (a SEQV b)," SEQV ",true,false,false,true)
+    binop(fn (a,b) => (a=b),"=",true,false,false,true)
+    binop(fn (a,b) => (a<->b),"<->",true,false,false,true)
+    binop(fn (a,b) => (a AND b)," AND ",true,false,false,false)
+    binop(fn (a,b) => (a OR b)," OR ",true,true,true,false)
+    binop(fn (a,b) => (a->b),"->",true,false,true,true)
+    binop(fn (a,b) => (a<b),"<",false,false,true,false)
+    binop(fn (a,b) => (a<=b),"<=",true,false,true,true)
+    binop(fn (a,b) => (a>b),">",false,true,false,false)
+    binop(fn (a,b) => (a>=b),">=",true,true,false,true)
+    asseq("NOT",true,NOT false,true,false)
+    asseq("NOT",false,NOT true,false,true)
+  end
+
+end

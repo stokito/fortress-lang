@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled5.Binding
+export Executable
+
+(* Like Compiled5, but uses multiple-value binding.  Does this
+   cause task creation where appropriate?  Does it even compile? *)
+
+fib(n: ZZ32): ZZ32 =
+    if n <= 2 then 1 else
+        (n1,n2) = (n-1,n-2)
+        (f1,f2) = (fib(n1),fib(n2))
+        f1+f2
+    end
+
+run(): () = println(fib 20)
+
+end

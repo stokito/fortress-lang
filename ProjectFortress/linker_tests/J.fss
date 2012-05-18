@@ -1,0 +1,7 @@
+component J
+  import I.{...}
+  export J
+  
+  j() = i()
+
+end

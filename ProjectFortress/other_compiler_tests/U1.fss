@@ -1,0 +1,42 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+ (*
+   Simple case of union types
+ *)
+
+trait T
+  getter s():String
+end
+
+object O extends T
+  getter s():String = "o"
+end
+
+object P extends T
+  getter s():String = "p"
+end
+
+object Pair[\U extends T\](a:U, b:U) extends T
+  getter s():String = "pair( " || a.s || ", " || b.s || " )"
+end
+
+run() = do
+  t1 = O
+  t2 = P
+  
+  p1 = Pair(t1, t2)
+  
+  println(p1.s)
+  
+end

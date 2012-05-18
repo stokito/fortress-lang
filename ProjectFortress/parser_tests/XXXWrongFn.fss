@@ -1,0 +1,16 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXWrongFn
+export Executable
+
+run() = fn (x:ZZ32) 3
+end
