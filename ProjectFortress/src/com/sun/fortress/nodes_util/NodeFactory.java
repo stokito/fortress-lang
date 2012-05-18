@@ -858,20 +858,24 @@ public class NodeFactory {
     }
 
     public static Type makeTupleTypeOrType(TupleType t, List<Type> tys) {
-        if (tys.size() == 1)
-            return tys.get(0);
-        return makeTupleType(NodeUtil.getSpan(t), tys);
+        return makeTupleTypeOrType(NodeUtil.getSpan(t), tys);
     }
 
     public static TupleType makeTupleType(List<Type> elements) {
         return makeTupleType(NodeUtil.spanAll(elements), elements);
     }
 
-    public static TupleType makeTupleType(Span span, List<Type> elements) {
-        return makeTupleType(span, false, elements, Option.<Type>none(),
-                             Collections.<KeywordType>emptyList());
+    public static Type makeTupleTypeOrType(Span span, List<Type> elements) {
+            if (elements.size() == 1)
+                return elements.get(0);
+            return makeTupleType(span, elements);
     }
 
+    public static TupleType makeTupleType(Span span, List<Type> elements) {
+        return makeTupleType(span, false, elements, Option.<Type>none(),
+                Collections.<KeywordType>emptyList());
+    }
+    
     public static TupleType makeTupleType(Span span, boolean parenthesized,
                                           List<Type> elements,
                                           Option<Type> varargs,
