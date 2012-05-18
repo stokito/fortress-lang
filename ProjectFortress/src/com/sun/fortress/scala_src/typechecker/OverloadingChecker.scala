@@ -594,7 +594,7 @@ class OverloadingChecker(compilation_unit: CompilationUnitIndex,
       }
       val elems = toListFromImmutable(params).map(paramToType)
       if (elems.forall(_.isDefined))
-        NodeFactory.makeTupleType(span, toJavaList(List(self) ++ elems.map(_.get)))
+        NodeFactory.makeTupleTypeOrType(span, toJavaList(List(self) ++ elems.map(_.get)))
       else {
         error(span,
               "Type checking couldn't infer the type of " + params)
