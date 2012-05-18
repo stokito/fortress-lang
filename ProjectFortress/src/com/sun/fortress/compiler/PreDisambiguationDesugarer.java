@@ -14,7 +14,9 @@ package com.sun.fortress.compiler;
 import java.util.HashSet;
 import java.util.Map;
 
+import com.sun.fortress.Shell;
 import com.sun.fortress.compiler.desugarer.PreDisambiguationDesugaringVisitor;
+import com.sun.fortress.compiler.desugarer.ChainExprDesugarer;
 import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.exceptions.StaticError;
@@ -89,6 +91,13 @@ public class PreDisambiguationDesugarer {
                                              GlobalEnvironment env) {
         Component comp = (Component) component.ast();
         comp = (Component) comp.accept( new PreDisambiguationDesugaringVisitor() );
+
+        // Desugar chain exprs into compound operator expressions.
+        if (Shell.getChainExprDesugaring()) {
+            ChainExprDesugarer chainExprDesugarer = new ChainExprDesugarer();
+            comp = (Component) chainExprDesugarer.walk(comp);
+        }
+
         return comp;
     }
 }

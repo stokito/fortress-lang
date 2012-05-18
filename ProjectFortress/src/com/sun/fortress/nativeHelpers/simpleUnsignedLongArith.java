@@ -187,6 +187,38 @@ public class simpleUnsignedLongArith {
     	return a ^ b;
     }
 
+    public static long unsignedLongLeftShiftByIntMod64(long a, int b) {
+        return a << b;
+    }
+
+    public static long unsignedLongRightShiftByIntMod64(long a, int b) {
+        return a >>> b;
+    }
+
+    public static long unsignedLongLeftShiftByLongMod64(long a, long b) {
+        return a << b;
+    }
+
+    public static long unsignedLongRightShiftByLongMod64(long a, long b) {
+        return a >>> b;
+    }
+
+    // This version handles signed shift distances and checks for arithmetic overflow.
+    public static long unsignedLongShift(long a, int b) {
+	if (b < 0) {
+	    if (b < -63) return 0;
+	    else return a >>> (-b);
+        } else if (b > 63) {
+	    if (a == 0) return 0;
+	    else throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+        }
+	else {
+	    long result = a << b;
+	    if ((result >>> b) == a) return result;
+	    else throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+	}
+    }
+
     // NIY
     public static long unsignedLongExp(long a, long b) {  
     	return a + b;

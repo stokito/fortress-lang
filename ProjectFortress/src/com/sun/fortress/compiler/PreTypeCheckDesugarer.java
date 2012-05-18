@@ -112,17 +112,17 @@ public class PreTypeCheckDesugarer {
             AssignmentAndSubscriptDesugarer assnDesugarer = new AssignmentAndSubscriptDesugarer();
             comp = (Component) assnDesugarer.walk(comp);
         }
-        
+
         // Desugar typecase expressions
         if (Shell.getCompiledExprDesugaring()) {
-        	TypecaseExprDesugarer typecaseExprDesugarer = new TypecaseExprDesugarer();
-        	comp = (Component) comp.accept(typecaseExprDesugarer);
+	    TypecaseExprDesugarer typecaseExprDesugarer = new TypecaseExprDesugarer();
+	    comp = (Component) comp.accept(typecaseExprDesugarer);
         }
         
         // Mark bodyless FnDecl as abstract
         if (Shell.getCompiledExprDesugaring()) {
-        	AbstractDesugarer abstractDesugarer = new AbstractDesugarer();
-        	comp = (Component) comp.accept(abstractDesugarer);
+	    AbstractDesugarer abstractDesugarer = new AbstractDesugarer();
+	    comp = (Component) comp.accept(abstractDesugarer);
         }
         
 	comp = (Component) comp.accept( new PreTypeCheckDesugaringVisitor() );

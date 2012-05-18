@@ -921,12 +921,10 @@ interface Node() extends HasAt;
                          * chain expression
                          * Certain infix mathematical operators that are
                          * traditionally regarded as relational operators,
-                         * delivering boolean results, may be chained.
+                         * delivering boolean (or boolean-like) results, may be chained.
                          * e.g.) A SUBSETEQ B SUBSET C SUBSETEQ D
                          */
-                        ChainExpr(Expr first,
-                                  List<Link> links,
-                                  FunctionalRef andOp);
+                        ChainExpr(Expr first, List<Link> links);
                         /**
                          * coercion invocation
                          * internal node created by static analysis
@@ -1917,7 +1915,8 @@ interface Node() extends HasAt;
                     CharacterInterval(String beginSymbol, String endSymbol);
             /*
              * A Link in a ChainExpr is a pair of FunctionalRef and the next Expr in the chain.
-             * e.g.) < 5
+             * It also has slots for type checking to record a conjunct type,
+             * an updated "and" operator, and a "conjunction" type.
              */
             Link(FunctionalRef op, Expr expr);
 

@@ -116,11 +116,14 @@ trait ZZ extends { Number, Equality[\ZZ\] } excludes { RR64, ZZ64, ZZ32, NN32, N
     opr BITAND(self, other:ZZ): ZZ 
     opr BITOR(self, other:ZZ): ZZ 
     opr BITXOR(self, other:ZZ): ZZ
+    opr <<<(self, other:ZZ32): ZZ
     opr MIN(self, other:ZZ): ZZ 
     opr MAX(self, other:ZZ): ZZ 
     opr MINMAX(self, other:ZZ): (ZZ, ZZ) 
     even(self): Boolean
     odd(self): Boolean
+    floorAverage(self, other: ZZ): ZZ
+    ceilingAverage(self, other: ZZ): ZZ
 end
 
 trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 , ZZ }
@@ -154,12 +157,26 @@ trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 , ZZ }
     opr BITAND(self, other:ZZ64): ZZ64 
     opr BITOR(self, other:ZZ64): ZZ64 
     opr BITXOR(self, other:ZZ64): ZZ64
+    opr <<(self, other:ZZ32): ZZ64
+    opr <<(self, other:ZZ64): ZZ64
+    opr <<(self, other:NN32): ZZ64
+    opr <<(self, other:NN64): ZZ64
+    opr >>(self, other:ZZ32): ZZ64
+    opr >>(self, other:ZZ64): ZZ64
+    opr >>(self, other:NN32): ZZ64
+    opr >>(self, other:NN64): ZZ64
+    opr <<<(self, other:ZZ32): ZZ64
+    opr <<<(self, other:ZZ64): ZZ64
+    opr <<<(self, other:NN32): ZZ64
+    opr <<<(self, other:NN64): ZZ64
     opr MIN(self, other:ZZ64): ZZ64 
     opr MAX(self, other:ZZ64): ZZ64 
     opr MINMAX(self, other:ZZ64): (ZZ64, ZZ64) 
     opr CHOOSE(self, other:ZZ64): ZZ64
     even(self): Boolean
     odd(self): Boolean
+    floorAverage(self, other: ZZ64): ZZ64
+    ceilingAverage(self, other: ZZ64): ZZ64
 end
 
 trait ZZ32 extends { Number, Equality[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
@@ -192,6 +209,18 @@ trait ZZ32 extends { Number, Equality[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
     opr BITAND(self, other:ZZ32): ZZ32 
     opr BITOR(self, other:ZZ32): ZZ32 
     opr BITXOR(self, other:ZZ32): ZZ32
+    opr <<(self, other:ZZ32): ZZ32
+    opr <<(self, other:ZZ64): ZZ32
+    opr <<(self, other:NN32): ZZ32
+    opr <<(self, other:NN64): ZZ32
+    opr >>(self, other:ZZ32): ZZ32
+    opr >>(self, other:ZZ64): ZZ32
+    opr >>(self, other:NN32): ZZ32
+    opr >>(self, other:NN64): ZZ32
+    opr <<<(self, other:ZZ32): ZZ32
+    opr <<<(self, other:ZZ64): ZZ32
+    opr <<<(self, other:NN32): ZZ32
+    opr <<<(self, other:NN64): ZZ32
     opr MIN(self, other:ZZ32): ZZ32 
     opr MAX(self, other:ZZ32): ZZ32 
     opr MINMAX(self, other:ZZ32): (ZZ32, ZZ32)
@@ -200,7 +229,6 @@ trait ZZ32 extends { Number, Equality[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
     odd(self): Boolean
     opr ^(self, other:ZZ32): ZZ32
     asRR64(): RR64
-
 end
 
 trait NN32 extends { Number, Equality[\NN32\] } excludes { ZZ32, ZZ64, RR32, RR64 }
@@ -234,12 +262,26 @@ trait NN32 extends { Number, Equality[\NN32\] } excludes { ZZ32, ZZ64, RR32, RR6
     opr BITAND(self, other:NN32): NN32
     opr BITOR(self, other:NN32): NN32
     opr BITXOR(self, other:NN32): NN32
+    opr <<(self, other:ZZ32): NN32
+    opr <<(self, other:ZZ64): NN32
+    opr <<(self, other:NN32): NN32
+    opr <<(self, other:NN64): NN32
+    opr >>(self, other:ZZ32): NN32
+    opr >>(self, other:ZZ64): NN32
+    opr >>(self, other:NN32): NN32
+    opr >>(self, other:NN64): NN32
+    opr <<<(self, other:ZZ32): NN32
+    opr <<<(self, other:ZZ64): NN32
+    opr <<<(self, other:NN32): NN32
+    opr <<<(self, other:NN64): NN32
     opr MIN(self, other:NN32): NN32
     opr MAX(self, other:NN32): NN32
     opr MINMAX(self, other:NN32): (NN32, NN32)
     opr CHOOSE(self, other:NN32): NN32
     even(self): Boolean
     odd(self): Boolean
+    floorAverage(self, other: NN32): NN32
+    ceilingAverage(self, other: NN32): NN32
     opr ^(self, other:NN32):NN32
     asRR64(): RR64
 end
@@ -275,11 +317,25 @@ trait NN64 extends { Number, Equality[\NN64\] } excludes { ZZ32, ZZ64, RR32, RR6
     opr BITAND(self, other:NN64): NN64
     opr BITOR(self, other:NN64): NN64
     opr BITXOR(self, other:NN64): NN64
+    opr <<(self, other:ZZ32): NN64
+    opr <<(self, other:ZZ64): NN64
+    opr <<(self, other:NN32): NN64
+    opr <<(self, other:NN64): NN64
+    opr >>(self, other:ZZ32): NN64
+    opr >>(self, other:ZZ64): NN64
+    opr >>(self, other:NN32): NN64
+    opr >>(self, other:NN64): NN64
+    opr <<<(self, other:ZZ32): NN64
+    opr <<<(self, other:ZZ64): NN64
+    opr <<<(self, other:NN32): NN64
+    opr <<<(self, other:NN64): NN64
     opr MIN(self, other:NN64): NN64
     opr MAX(self, other:NN64): NN64
     opr MINMAX(self, other:NN64): (NN64, NN64)
     even(self): Boolean
     odd(self): Boolean
+    floorAverage(self, other: NN64): NN64
+    ceilingAverage(self, other: NN64): NN64
     opr ^(self, other:NN64):NN64
 end
 

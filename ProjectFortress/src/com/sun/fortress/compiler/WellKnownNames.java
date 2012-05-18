@@ -72,6 +72,11 @@ public class WellKnownNames {
     public final static String containsTypeName = "Contains";
     public final static String containsMatchName = "MATCH";
 
+    public final static String operatorNameJuxtaposition = "juxtaposition";
+    public final static String operatorNameEQUALS = "=";
+    public final static String operatorNameIN = "IN";
+    public final static String operatorNameAND = "AND";
+
     public final static String forbiddenException = "ForbiddenException";
     public final static String tryatomicFailureException = "TryAtomicFailure";
     public final static String matchFailureException = "MatchFailure";

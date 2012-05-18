@@ -737,11 +737,12 @@ $$$$$ Literals
 
 Literal ::=
      | [([ ])]
-     | NumericLiteral
-     | CharLiteral
+     | BooleanLiteral
+     | CharacterLiteral
      | StringLiteral
-     | { Entry ( , Entry)* }
-     | [ RectElements ]
+     | NumericLiteral
+#     | { Entry ( , Entry)* }
+#     | [ RectElements ]
 
 RectElements ::=
      | Expr MultiDimCons*

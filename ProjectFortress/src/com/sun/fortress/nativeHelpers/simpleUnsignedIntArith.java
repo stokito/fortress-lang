@@ -183,6 +183,38 @@ public class simpleUnsignedIntArith {
         return a ^ b;
     }
 
+    public static int unsignedIntLeftShiftByIntMod32(int a, int b) {
+        return a << b;
+    }
+
+    public static int unsignedIntRightShiftByIntMod32(int a, int b) {
+        return a >>> b;
+    }
+
+    public static int unsignedIntLeftShiftByLongMod32(int a, long b) {
+        return a << b;
+    }
+
+    public static int unsignedIntRightShiftByLongMod32(int a, long b) {
+        return a >>> b;
+    }
+
+    // This version handles signed shift distances and checks for arithmetic overflow.
+    public static int unsignedIntShift(int a, int b) {
+	if (b < 0) {
+	    if (b < -31) return 0;
+	    else return a >>> (-b);
+        } else if (b > 31) {
+	    if (a == 0) return 0;
+	    else throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+        }
+	else {
+	    int result = a << b;
+	    if ((result >>> b) == a) return result;
+	    else throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+	}
+    }
+
     public static int unsignedIntExp(int a, int b) {  
         double result = java.lang.Math.pow(unsignedIntToDouble(a),unsignedIntToDouble(b));
         if (result > 0x00000000FFFFFFFFL)

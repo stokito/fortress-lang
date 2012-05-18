@@ -319,4 +319,36 @@ public class simpleLongArith {
         return a ^ b;
     }
 
+    public static long longLeftShiftByIntMod64(long a, int b) {
+        return a << b;
+    }
+
+    public static long longRightShiftByIntMod64(long a, int b) {
+        return a >> b;
+    }
+
+    public static long longLeftShiftByLongMod64(long a, long b) {
+        return a << b;
+    }
+
+    public static long longRightShiftByLongMod64(long a, long b) {
+        return a >> b;
+    }
+
+    // This version handles signed shift distances and checks for arithmetic overflow.
+    public static long longShift(long a, int b) {
+	if (b < 0) {
+	    if (b < -63) return a >> 63;
+	    else return a >> (-b);
+        } else if (b > 63) {
+	    if (a == 0) return 0;
+	    else throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+        }
+	else {
+	    long result = a << b;
+	    if ((result >> b) == a) return result;
+	    else throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+	}
+    }
+
 }

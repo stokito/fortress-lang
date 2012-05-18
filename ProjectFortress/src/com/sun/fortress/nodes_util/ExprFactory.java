@@ -1322,16 +1322,16 @@ public class ExprFactory {
 
     public static ChainExpr makeChainExpr(Expr e, Op _op, Expr _expr) {
         List<Link> links = new ArrayList<Link>(1);
-        Link link = new Link(NodeFactory.makeSpanInfo(NodeFactory.makeSpan(_op, _expr)),
-                             makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
+        Link link = NodeFactory.makeLink(NodeFactory.makeSpan(_op, _expr),
+                                         makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
         links.add(link);
         return makeChainExpr(NodeFactory.makeSpan(e, _expr), e, links);
     }
 
     public static ChainExpr makeChainExpr(Span sp, Expr e, Op _op, Expr _expr) {
         List<Link> links = new ArrayList<Link>(1);
-        Link link = new Link(NodeFactory.makeSpanInfo(NodeFactory.makeSpan(_op, _expr)),
-                             makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
+        Link link = NodeFactory.makeLink(NodeFactory.makeSpan(_op, _expr),
+                                         makeOpRef(NodeFactory.makeOpInfix(_op)), _expr);
         links.add(link);
         return makeChainExpr(sp, e, links);
     }
@@ -1346,7 +1346,7 @@ public class ExprFactory {
                                           Option<Type> ty,
                                           Expr first, List<Link> links) {
         ExprInfo info = NodeFactory.makeExprInfo(span, parenthesized, ty);
-        return new ChainExpr(info, first, links, makeInfixAnd(span));
+        return new ChainExpr(info, first, links);
     }
 
     public static _RewriteFnApp make_RewriteFnApp(Expr e_1, Expr e_2) {
@@ -1733,23 +1733,23 @@ public class ExprFactory {
     }
 
     public static FunctionalRef makeMultiJuxt(Span span) {
-        return makeOpRef(NodeFactory.makeOpMultifix(NodeFactory.makeOp(span,"juxtaposition")));
+        return makeOpRef(NodeFactory.makeOpMultifix(NodeFactory.makeOp(span,WellKnownNames.operatorNameJuxtaposition)));
     }
 
     public static FunctionalRef makeInfixJuxt(Span span) {
-        return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp(span,"juxtaposition")));
+        return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp(span,WellKnownNames.operatorNameJuxtaposition)));
     }
 
     public static FunctionalRef makeInfixEq(Span span){
-        return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp(span, "=")));
+        return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp(span, WellKnownNames.operatorNameEQUALS)));
     }
 
     public static FunctionalRef makeInfixIn(Span span){
-        return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp(span, "IN")));
+        return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp(span, WellKnownNames.operatorNameIN)));
     }
 
     public static FunctionalRef makeInfixAnd(Span span){
-        return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp(span, "AND")));
+        return makeOpRef(NodeFactory.makeOpInfix(NodeFactory.makeOp(span, WellKnownNames.operatorNameAND)));
     }
 
     public static Expr makeReceiver(Iterable<Id> ids) {

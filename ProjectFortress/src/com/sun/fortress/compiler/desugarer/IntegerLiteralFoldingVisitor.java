@@ -109,7 +109,7 @@ public class IntegerLiteralFoldingVisitor extends NodeUpdateVisitor {
 	}
 	
 	@Override
-    public Node forChainExprOnly(ChainExpr that, ExprInfo info_result, Expr first_result, List<Link> links_result, FunctionalRef andOp_result) {
+    public Node forChainExprOnly(ChainExpr that, ExprInfo info_result, Expr first_result, List<Link> links_result) {
 
 		if (first_result instanceof IntLiteralExpr) {
 			if (links_result.size() == 0) throw new CompilerError("The list of links is empty");
@@ -124,7 +124,7 @@ public class IntegerLiteralFoldingVisitor extends NodeUpdateVisitor {
 							return ExprFactory.makeBooleanLiteralExpr(info_result,false);
 						else {
 							Expr e = links_result.remove(0).getExpr(); 
-						    return forChainExprOnly(that,info_result,e,links_result,andOp_result);
+						    return forChainExprOnly(that,info_result,e,links_result);
 						}
 					}
 					else 
@@ -135,8 +135,8 @@ public class IntegerLiteralFoldingVisitor extends NodeUpdateVisitor {
 			
 		}
 		
-		if (that.getInfo() == info_result && that.getFirst() == first_result && that.getLinks() == links_result && that.getAndOp() == andOp_result) return that;
-        return new ChainExpr(info_result, first_result, links_result, andOp_result);
+		if (that.getInfo() == info_result && that.getFirst() == first_result && that.getLinks() == links_result) return that;
+        return new ChainExpr(info_result, first_result, links_result);
     }
     	
 	@Override

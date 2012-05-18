@@ -1609,30 +1609,31 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 //     }
 
     public void forChainExpr(ChainExpr x) {
-        debug( "forChainExpr", x);
-        Expr first = x.getFirst();
-        List<Link> links = x.getLinks();
-        debug( "forChainExpr", x, " about to call accept on ",
-               first, " of class ", first.getClass());
-        first.accept(this);
-        Iterator<Link> i = links.iterator();
-        if (links.size() != 1)
-            throw new CompilerError(x, x + "links.size != 1");
-        Link link = i.next();
-        link.getExpr().accept(this);
-        debug( "forChainExpr", x, " about to call accept on ",
-               link.getOp(), " of class ", link.getOp().getClass());
-        int savedParamCount = paramCount;
-        try {
-            // TODO is this the general formula?
-            paramCount = links.size() + 1;
-            link.getOp().accept(this);
-        } finally {
-            paramCount = savedParamCount;
-        }
+        throw sayWhat(x, "ChainExpr should have been desugared earlier");
+//         debug( "forChainExpr", x);
+//         Expr first = x.getFirst();
+//         List<Link> links = x.getLinks();
+//         debug( "forChainExpr", x, " about to call accept on ",
+//                first, " of class ", first.getClass());
+//         first.accept(this);
+//         Iterator<Link> i = links.iterator();
+//         if (links.size() != 1)
+//             throw new CompilerError(x, x + "links.size != 1");
+//         Link link = i.next();
+//         link.getExpr().accept(this);
+//         debug( "forChainExpr", x, " about to call accept on ",
+//                link.getOp(), " of class ", link.getOp().getClass());
+//         int savedParamCount = paramCount;
+//         try {
+//             // TODO is this the general formula?
+//             paramCount = links.size() + 1;
+//             link.getOp().accept(this);
+//         } finally {
+//             paramCount = savedParamCount;
+//         }
 
-        debug( "We've got a link ", link, " an op ", link.getOp(),
-               " and an expr ", link.getExpr(), " What do we do now");
+//         debug( "We've got a link ", link, " an op ", link.getOp(),
+//                " and an expr ", link.getExpr(), " What do we do now");
     }
 
     public void forComponent(Component x) {

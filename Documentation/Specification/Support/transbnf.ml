@@ -14,6 +14,7 @@ type kind =
   | Section of string 
   | Entry of string 
   | Choice of string list
+  | Comment of string list
 
 type prere = 
   | PNonterminal of string
@@ -43,6 +44,7 @@ let print_kind k =
     | Section s -> Printf.printf "Section %s\n" s
     | Entry s -> Printf.printf "Entry %s\n" s
     | Choice l -> print_line l
+    | Comment l -> print_line l
 
 let rec split_aux line n word words = 
   if n = length line then 
@@ -66,16 +68,18 @@ let split line =
 
 let analyze line line_counter = 
   let l = split line in
-  let b1 = List.mem "$$$$$" l
+  let b0 = (List.length l > 0) && (List.hd l = "#")
+  and b1 = List.mem "$$$$$" l
   and b2 = List.mem "::=" l
   and b3 = List.mem "|" l in
-  match b1, b2, b3 with
-    | true, false, false -> 
+  match b0, b1, b2, b3 with
+    | true, _, _, _ -> Comment l
+    | false, true, false, false -> 
       if List.nth l 0 = "$$$$$" then Section (concat " " (List.tl l)) 
       else
 	let error_msg = "Error: pattern $$$$$ does not start line " ^ (string_of_int line_counter) ^ " |" ^ line ^ "| " in
 	failwith error_msg
-    | false, true, false -> 
+    | false, false, true, false -> 
       if List.length l != 2 
       then 
 	let error_msg = "Error: line " ^ (string_of_int line_counter) ^ " has a pattern ::= but more than two elements" ^ " |" ^ line ^ "| "
@@ -87,13 +91,13 @@ let analyze line line_counter =
 	  print_string (List.nth l 1);
 	  failwith error_msg
 	else Entry (List.nth l 0)
-    | false, false, true ->
+    | false, false, false, true ->
       if (List.nth l 0) <> "|"
       then 
 	let error_msg = "Error: pattern | does not start line " ^ (string_of_int line_counter) ^ " |" ^ line ^ "| " ^ (List.nth l 0 ) ^ " instead"  in
 	failwith error_msg
       else Choice (List.tl l)
-    | false, false, false -> 
+    | false, false, false, false -> 
       let error_msg = "Error: cannot recognize line " ^ (string_of_int line_counter) ^ " |" ^ line ^ "| "  in 
       failwith error_msg
     | _ -> 
@@ -212,6 +216,7 @@ let parse_regexp l: choice =
 
 let rec parse_choices l: choices * kind list =
   match l with
+    | Comment _ :: tl -> parse_choices tl
     | Choice rhs :: tl -> 
       let (choices,l) = parse_choices tl in
       (parse_regexp rhs :: choices, l)
@@ -219,6 +224,7 @@ let rec parse_choices l: choices * kind list =
 
 let rec parse_entry l: entry option * kind list =
   match l with
+    | Comment _ :: tl -> parse_entry tl
     | Entry e :: tl -> 
       let (choices,rem) = parse_choices tl in
       (Some (e,choices), rem) 
@@ -231,8 +237,9 @@ let rec parse_entries l: entries * kind list =
       (((e,choices) :: entries), rem)
     | _ -> ([],l)
 
-let parse_section l: section option * kind list = 
+let rec parse_section l: section option * kind list = 
   match l with
+    | Comment _ :: tl -> parse_section tl
     | Section s :: tl -> 
       let (res,rem) = parse_entries tl in
       (Some (s,res),rem)

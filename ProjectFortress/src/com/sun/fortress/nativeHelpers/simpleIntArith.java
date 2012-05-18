@@ -97,6 +97,18 @@ public class simpleIntArith {
         return c;
     }
 
+    public static int longLowHalfToInt(long l) {
+	return (int)l;
+    }
+
+    public static int longHighHalfToInt(long l) {
+	return (int)(l >> 32);
+    }
+
+    public static int longMaskedToInt(long l, int m) {
+	return ((int)l) & m;   // Masking means overflow cannot occur
+    }
+
     // Multiply non-negative ints only, returning -1 on overflow
     private static int intCautiousNonNegativeMul(int a, int b) {
 	long l = (long)a * (long)b;
@@ -320,6 +332,38 @@ public class simpleIntArith {
 
     public static int intBitXor(int a, int b) {
         return a ^ b;
+    }
+
+    public static int intLeftShiftByIntMod32(int a, int b) {
+        return a << b;
+    }
+
+    public static int intRightShiftByIntMod32(int a, int b) {
+        return a >> b;
+    }
+
+    public static int intLeftShiftByLongMod32(int a, long b) {
+        return a << b;
+    }
+
+    public static int intRightShiftByLongMod32(int a, long b) {
+        return a >> b;
+    }
+
+    // This version handles signed shift distances and checks for arithmetic overflow.
+    public static int intShift(int a, int b) {
+	if (b < 0) {
+	    if (b < -31) return a >> 31;
+	    else return a >> (-b);
+        } else if (b > 31) {
+	    if (a == 0) return 0;
+	    else throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+        }
+	else {
+	    int result = a << b;
+	    if ((result >> b) == a) return result;
+	    else throw Utility.makeFortressException("fortress.CompilerBuiltin$IntegerOverflow");
+	}
     }
 
     public static int intToIntPower(int a, int b) {

@@ -1,5 +1,5 @@
 /*******************************************************************************
-    Copyright 2009,2010, Oracle and/or its affiliates.
+    Copyright 2009,2010,2012, Oracle and/or its affiliates.
     All rights reserved.
 
 
@@ -33,6 +33,8 @@ import com.sun.fortress.scala_src.useful.STypesUtil._
  *      (t1, t2, t3, t4, t5) = (a, b, c, d, e)
  *      (((t1 < t2) AND (t2 = t3)) AND (t3 = t4)) AND (t4 < t5)
  *   end
+ * Note that all five expressions are included in the tuple and bound to temporary variables;
+ * among other advantages, this ensures maximum implicit parallelism.
  */
 class ChainExprDesugarer extends Walker {
 
@@ -44,23 +46,24 @@ class ChainExprDesugarer extends Walker {
 
   /** Walk the AST, recursively desugaring any ChainExpr nodes. */
   override def walk(node: Any) = node match {
-    case SChainExpr(info, first, links, andop) => 
+    case SChainExpr(info, first, links) => 
         // Recursively desugar the constituent expressions.
 	val recurredFirst = walk(first).asInstanceOf[Expr]
         val recurredLinks = links.map(walk(_).asInstanceOf[Link])
-	desugarChainExpr(SChainExpr(info, recurredFirst, recurredLinks, andop))
+	desugarChainExpr(SChainExpr(info, recurredFirst, recurredLinks))
     case _ => super.walk(node)
   }
 
   /** Desugar the given ChainExpr. */
   def desugarChainExpr(ce: ChainExpr): Expr = {
-    val SChainExpr(info, first, links, _) = ce
-    val andOp = addSpan(ce.getAndOp, info.getSpan()).asInstanceOf[FunctionalRef]
+    val SChainExpr(info, first, links) = ce
+
+//    val andOp = addSpan(ce.getAndOp, info.getSpan()).asInstanceOf[FunctionalRef]
 
     val result = links match {
         case SLink(info, op, expr) :: Nil =>
 	    // Common case: just 1 operator, so no temporary variables needed.
-            EF.makeOpExpr(NU.getSpan(ce), BOOLEAN, op, first, expr);
+            EF.makeOpExpr(NU.getSpan(ce), op, first, expr);
         case _ =>
 	    // Create the decl to bind new vars to all exprs.
 	    val linkExprs = links.map(_.getExpr)
@@ -70,15 +73,17 @@ class ChainExprDesugarer extends Walker {
 	    val decl = TempVarDecl(allVars, first :: linkExprs)
 
 	    // Create the conjuncts.
-	    val conjuncts = (allVars, links, linkVars).zipped.map {
-	      case (left, SLink(_, op, _), right) =>
-		setParenthesized(EF.makeOpExpr(NU.spanTwo(left, right), BOOLEAN, op, left, right), true)
+	    val conjuncts = (links.map(_.getOp), allVars, linkVars).zipped.map {
+	      case (op, left, right) =>
+		setParenthesized(EF.makeOpExpr(NU.spanTwo(left, right), op, left, right), true)
 	    }
 
 	    // Build up the conjunction.
-	    val conjunction = conjuncts.reduceLeft { (lhs: Expr, next: Expr) =>
-	      setParenthesized(EF.makeOpExpr(NU.spanTwo(lhs, next), BOOLEAN, andOp, lhs, next), true)
+            def makeConjunction(e1: Expr, e2: Expr): Expr = {
+		val andOp = EF.makeInfixAnd(info.getSpan)
+		setParenthesized(EF.makeOpExpr(NU.spanTwo(e1, e2), andOp, e1, e2), true)
 	    }
+	    val conjunction = conjuncts.tail.foldLeft(conjuncts.head)(makeConjunction)
 
 	    // Wrap a declaring do block around the conjunction.
 	    val block = decl.makeLocalVarDeclDo(NU.getSpan(ce), conjunction)

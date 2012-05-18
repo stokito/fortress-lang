@@ -625,9 +625,22 @@ end
 run(): () = do
   a: ZZ32 = 3
   b: ZZ32 = 4
+  s: String = "quux"
+  (*) The following tests work (or have worked in the past).
   (Just a).loop(fn (x: ZZ32) => println x)
+  NothingObject[\ZZ32\].loop(fn (x: ZZ32) => println x)
   println((Just a).reduce(IntPlusReduction))
+  println(NothingObject[\ZZ32\].reduce(IntPlusReduction))
+  println((Just a).holds)
+  println(NothingObject[\ZZ32\].holds)
+  println((Just a).reverse)
+  println(NothingObject[\ZZ32\].reverse)
+  println((Just s).mapReduce(fn (x:String):ZZ32 => |x|, fn (p: ZZ32, q: ZZ32): ZZ32 => p+q, a))
+  println(NothingObject[\String\].mapReduce(fn (x:String):ZZ32 => |x|, fn (p: ZZ32, q: ZZ32): ZZ32 => p+q, a))
+  (*) Stuff below is not yet working
   (Just a).cross(Just b).loop(fn (x: (ZZ32,ZZ32)) => println x)
+  println((Just a).map(fn (x: ZZ32): ZZ32 => x+43))
+  println(NothingObject[\ZZ32\].map(fn (x: ZZ32): ZZ32 => x+43))
 (*)  println((Just a).generate(IntPlusReduction, fn (x: ZZ32): ZZ32 => x+43))
   println "PASS"
 end 

@@ -89,6 +89,10 @@ public class simpleArbitraryPrecisionArith {
     public static BigInteger xor(BigInteger a, BigInteger b) {
     	return a.xor(b);
     }
+
+    public static BigInteger shiftLeft(BigInteger a, int k) {
+    	return a.shiftLeft(k);
+    }
 	
     public static BigInteger ZZtoBI(BigInteger i) {
     	return i;

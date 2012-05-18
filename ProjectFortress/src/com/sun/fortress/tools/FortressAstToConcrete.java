@@ -1944,8 +1944,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     public String forChainExprOnly(ChainExpr that,
                                    String info,
                                    String first_result,
-                                   List<String> links_result,
-                                   String and_result) {
+                                   List<String> links_result) {
         StringBuilder s = new StringBuilder();
 
         s.append(first_result);
@@ -2845,7 +2844,7 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-    public String forLinkOnly(Link that, String info, String op_result, String expr_result) {
+	public String forLinkOnly(Link that, String info, String op_result, String expr_result) {
         StringBuilder s = new StringBuilder();
         s.append(" ").append(op_result).append(" ").append(expr_result);
         return s.toString();

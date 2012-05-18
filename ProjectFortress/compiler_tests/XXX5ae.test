@@ -11,13 +11,11 @@ tests=Compiled5.ae
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled5.ae.fss:20:12-16:\n\
-\ The chained expression had type ZZ32, but should have type Boolean.\n\
-${STATIC_TESTS_DIR}/Compiled5.ae.fss:20:16-20:\n\
-\ The chained expression had type ZZ32, but should have type Boolean.\n\
-${STATIC_TESTS_DIR}/Compiled5.ae.fss:20:20-24:\n\
-\ The chained expression had type ZZ32, but should have type Boolean.\n\
-${STATIC_TESTS_DIR}/Compiled5.ae.fss:21:6-10:\n\
-\ The chained expression had type ZZ32, but should have type Boolean.\n\
-File Compiled5.ae.fss has 4 errors.\n
+${STATIC_TESTS_DIR}/Compiled5.ae.fss:19:47-22:4:\n\
+\ Function body has type ZZ32, but declared return type is Boolean.\n\
+${STATIC_TESTS_DIR}/Compiled5.ae.fss:20:12-20:\n\
+\ Could not check call to operator AND\n\
+\ - (Boolean, ()->Boolean)->Boolean is not applicable to an argument of type (ZZ32, ZZ32).\n\
+\ - (Boolean, Boolean)->Boolean is not applicable to an argument of type (ZZ32, ZZ32).\n\
+File Compiled5.ae.fss has 2 errors.\n
 compile_out_equals=
