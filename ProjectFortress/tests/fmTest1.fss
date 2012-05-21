@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component fmTest1
+export Executable
+
+object xyzzy(i:ZZ32, j:ZZ32)
+  getI(self):ZZ32 = i
+  getZ(self):ZZ32 = j
+end
+
+run():()=do
+  a:xyzzy = xyzzy(3,4);
+  println(
+  if (getI(a) + getZ(a) = 7) then "pass" else "fail" end
+  )
+end
+
+end

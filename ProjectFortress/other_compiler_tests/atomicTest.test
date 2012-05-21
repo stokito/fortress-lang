@@ -1,0 +1,14 @@
+#    Copyright 2012, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests= atomic0 atomic1 atomic2 atomic3 atomic4 atomic5 atomic6 nestedTransactions0 nestedTransactions1 
+link
+run
+run_out_contains=PASS
+run_out_does_not_contain=FAIL

@@ -1,0 +1,21 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=XXXPreparser.aa
+PREPARSER_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/parser_tests
+compile
+compile_err_equals=\
+${PREPARSER_TESTS_DIR}/XXXPreparser.aa.fss:15:9-17:12:\n\
+\ Opening label must match closing label.\n\
+${PREPARSER_TESTS_DIR}/XXXPreparser.aa.fss:15:15-20:\n\
+\ Mismatched identifiers for a label expression:\n\
+\ 'myBlock' at ${PREPARSER_TESTS_DIR}/XXXPreparser.aa.fss:15:15-20 and\n\
+\ 'yourBlock' at ${PREPARSER_TESTS_DIR}/XXXPreparser.aa.fss:17:5-12\n\
+File XXXPreparser.aa.fss has 2 errors.\n
+compile_out_equals=

@@ -1,0 +1,647 @@
+\documentclass[10pt,preprint]{sigplanconf}
+\usepackage{amsmath,amssymb,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem,url,stmaryrd,xspace,algpseudocode}
+
+\advance \textheight by 4pt
+\renewcommand{\topfraction}{1.0}
+\setlength{\textfloatsep}{16pt plus 4pt minus 5pt}
+
+%\def\IF{\mbox{\bf if}}
+%\def\THEN{\mbox{\bf then}}
+%\def\ELSE{\mbox{\bf else}}
+\newcommand{\ANY}{\mbox{\it Any}}
+\newcommand{\EXTENDS}{\mbox{ extends}}
+\newcommand{\LOBR}{\llbracket}
+\newcommand{\ROBR}{\rrbracket}
+\newcommand{\OBR}[1]{\LOBR #1\ROBR}
+\newcommand{\SSmbox}[1]{\mbox{\scriptsize #1}}
+\newcommand{\PlaceHolder}[1]{$\langle$\textit{#1}$\rangle$}
+\newcommand{\NEGQQ}{\mskip-24\thinmuskip}
+
+\newcommand{\commentalign}{{\hskip-1em}}
+\renewcommand{\algorithmiccomment}[1]{\quad{\large$\circledast$}\rm\ #1 }
+\renewcommand{\algorithmicindent}{1em}%
+
+\algblockdefx[Name]{At}{End}[0]{\textbf{at }}[0]{\textbf{end}}
+\algblockdefx[Name]{Step}{EndStep}[1]{#1 = }[0]{\textbf{end}}
+\algblockdefx[Name]{StepNoEnd}{EndStepNoEnd}[1]{#1 = }[0]{\textbf{end}}
+\algblockdefx[Name]{Indent}{EndIndent}[0]{\relax}[0]{\relax}
+
+\algnotext{EndIf}
+\algnotext{EndFor}
+\algnotext{EndFunction}
+\algnotext{EndWhile}
+\algnotext{Indent}
+\algnotext{EndIndent}
+\algnotext{EndStepNoEnd}
+
+\makeatletter
+\newcommand{\slantverbatim}{\def\verbatim@font{\slshape\ttfamily\hyphenchar\font\m@ne\@noligs}}
+\makeatother
+
+%%Change rule names to appear in square brackets
+\newcommand{\rncite}[1]{[\rn{#1}]}
+\renewcommand{\inflabel}[1]{%
+  \ifsuppressrulenames\else
+    \def\lab{#1}%
+    \ifx\lab\empty
+      \relax
+    \else
+      \rncite{\lab}%
+  \fi\fi
+}
+
+
+
+% make a big red TODO label
+\newcommand{\TODO}[1]{\textbf{\emph{\textcolor{red}{TODO}}}: \textsf{\footnotesize #1}}
+% \newcommand{\TODO}[1]{}
+
+\makeatletter
+\def\overcirclerightarrow{\mathpalette\overcirclerightarrow@}
+\def\overcirclerightarrow@#1#2{\vbox{\ialign{$##$\cr
+     \noalign{\kern -0.4ex\nointerlineskip}
+     \raise0.18ex\hbox{$\scriptstyle\circ$}\mkern-3mu#1{-}\mkern-6mu\cleaders\hbox{$#1\mkern-2mu{-}\mkern-2mu$}\hfill
+     \mkern-6mu{\to}\cr
+     \noalign{\kern -1\p@\nointerlineskip}
+     \hfil#1#2\hfil\cr}}}
+\makeatother
+
+
+\newcommand{\kwd}[1]{\mathtt{#1}}
+
+\newcommand{\defneq}{\mathrel{\hbox{\tt =}}}
+\newcommand{\var}{\textit{var}}
+\newcommand{\ilk}[1]{\textit{ilk}\tuple{#1}}
+\newcommand{\Id}{\textit{Id}}
+\newcommand{\emptyseq}{\bullet}
+\newcommand{\whennonempty}[2]{{\def\nonemptytempA{#1}\def\nonemptytempB{}\ifx\nonemptytempA\nonemptytempB\else#2\fi}}
+\newcommand{\turnstile}{\vdash}
+%newcommand
+\newcommand{\ms}{\preceq}
+\renewcommand{\bar}{\overline}
+\newcommand{\meet}{\wedge}
+\newcommand{\existentialmeet}{\sqcap}
+\newcommand{\C}{\mathcal{C}}
+\newcommand{\calP}{\mathcal{P}}
+\newcommand{\calS}{\mathcal{S}}
+\newcommand{\calL}{\mathcal{L}}
+\newcommand{\calU}{\mathcal{U}}
+\newcommand{\quoted}[1]{\begin{quote}#1\end{quote}}
+\newcommand{\exc}{\mathrel{\lozenge}}
+\newcommand{\existsexc}{\mathrel{\lozenge}}
+\newcommand{\nexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\lozenge}}
+\newcommand{\smalllozenge}{\vcenter{\hbox{\scalebox{.5}{$\lozenge$}}}}
+\newcommand{\normallozenge}{\vcenter{\hbox{$\lozenge$}}}
+% \newcommand{\altlozenge}{\ooalign{\hfil$\normallozenge$\hfil\cr\hfil$\smalllozenge$\hfil}}
+\newcommand{\altlozenge}{\ooalign{\hfil$\vcenter{\hbox{$\lozenge$}}$\hfil\cr\hfil$\cdot$\hfil}}
+\newcommand{\bexc}{\mathrel{\altlozenge}}
+\newcommand{\bexcm}{\mathrel{\altlozenge}_\textrm{m}}
+\newcommand{\bnexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\altlozenge}}
+
+\newcommand{\countof}{\hbox{\tt\#}}
+\newcommand{\apply}{\hbox{\tt\char'100}}
+\newcommand{\comprises}{\mathrel{\mathord{\equiv}\mathord{\bigcup}}}
+
+\newcommand{\fresh}[1]{\textit{fresh}({#1})}
+\newcommand{\freeVar}[1]{\textit{freeVars({#1})}}
+
+%\newcommand{\dontcare}{\_\!\_}
+\newcommand{\dontcare}{\vbox to 0pt{\vss\hrule width 1ex}\vphantom{x}}
+\newcommand{\excr}{\triangleright}
+\newcommand{\excl}{\triangleleft}
+\newcommand{\excrx}{\excr_\textrm{x}}
+\newcommand{\exclx}{\excl_\textrm{x}}
+\newcommand{\excrc}{\excr_\textrm{c}}
+\newcommand{\exclc}{\excl_\textrm{c}}
+\newcommand{\excro}{\excr_\textrm{o}}
+\newcommand{\exclo}{\excl_\textrm{o}}
+% \newcommand{\excrp}{\excr_\textrm{m}}
+% \newcommand{\exclp}{\excl_\textrm{m}}
+
+\newcommand{\excx}{\exc_\textrm{x}}
+\newcommand{\excc}{\exc_\textrm{c}}
+\newcommand{\exco}{\exc_\textrm{o}}
+\newcommand{\excm}{\exc_\textrm{m}}
+
+\newcommand{\propop}{\ensuremath{\mathrel{\ast}}}
+
+% \newcommand{\ancestors}{\textit{ancestors}}
+% \newcommand{\ancexcludes}{\textit{excludes}^*}
+% \newcommand{\myexcludes}[1]{{#1}.\textit{excludes}}
+% \newcommand{\mycomprises}[1]{{#1}.\textit{comprises}}
+% \newcommand{\myextends}[1]{{#1}.\textit{extends}}
+
+\newcommand{\properancestorsname}{\textit{properAncestors}}
+\newcommand{\properancestors}[2][\Delta]{\properancestorsname(#1,#2)}
+\newcommand{\ancestorsname}{\textit{ancestors}}
+\newcommand{\ancestors}[2][\Delta]{\ancestorsname(#1,#2)}
+\newcommand{\excluded}[2][\Delta]{\textit{excluded}(#1,#2)}
+\newcommand{\comprised}[2][\Delta]{\textit{comprised}(#1,#2)}
+\newcommand{\parents}[2][\Delta]{\textit{parents}(#1,#2)}
+
+\newcommand{\extends}{\ensuremath{<:}}
+\newcommand{\subtypeof}{\ensuremath{<:}}
+\newcommand{\nsubtypeof}{\not \subtypeof}
+\newcommand{\supertypeof}{\ensuremath{:>}}
+\newcommand{\leinner}{\ensuremath{\lesssim}}
+\newcommand{\quantsubtypeof}{\ensuremath{\sqsubseteq}}
+\newcommand{\morespec}{\ensuremath{\sqsubseteq}}
+
+\newcommand{\alphaequiv}{\ensuremath{\stackrel{\alpha}{\sim}}}
+\newcommand{\cequiv}{\ensuremath{\sim}}
+
+\newcommand{\arrowtype}[2]{\mbox{\ensuremath{(\barearrowtype{#1}{#2})}}}
+\newcommand{\barearrowtype}[2]{\mbox{\ensuremath{{#1} \rightarrow {#2}}}}
+\newcommand{\tuple}[1]{\ensuremath{(#1)}}
+\newcommand{\tupleb}[1]{\ensuremath{(\bar{#1})}}
+\newcommand{\bigtuple}[1]{\ensuremath{\big(#1\big)}}
+\newcommand{\bigtupleb}[1]{\ensuremath{\big(\bar{#1}\big)}}
+\newcommand{\Bigtuple}[1]{\ensuremath{\Big(#1\Big)}}
+\newcommand{\Bigtupleb}[1]{\ensuremath{\Big(\bar{#1}\Big)}}
+\newcommand{\LRtuple}[1]{\ensuremath{\left(#1\right)}}
+\newcommand{\LRtupleb}[1]{\ensuremath{\left(\bar{#1}\right)}}
+
+\newcommand{\uniontype}[2]{\mbox{\ensuremath{({#1} \cup {#2})}}}
+\newcommand{\intersectiontype}[2]{\mbox{\ensuremath{({#1} \cap {#2})}}}
+\newcommand{\existentialmeettype}[2]{\mbox{\ensuremath{\left({#1} \existentialmeet {#2}\right)}}}
+
+\newcommand{\minimalname}{\textit{minimal}}
+\newcommand{\minimal}[1]{\ensuremath{\minimalname(#1)}}
+\newcommand{\hasminimalname}{\textit{hasMinimal}}
+\newcommand{\hasminimal}[1]{\ensuremath{\hasminimalname(#1)}}
+
+\newcommand{\allvisible}[2][\Delta]{\ensuremath{\textit{allVisible}(#1,#2)}}
+\newcommand{\visible}[2][\Delta,\Phi]{\ensuremath{\textit{visible}(#1,#2)}}
+\newcommand{\visiblefunc}[2][\Delta,\Phi]{\ensuremath{\textit{visible}(#1,#2)}}
+\newcommand{\visiblemeth}[3][\Delta,\Phi]{\ensuremath{\textit{visible}(#1,(#2,#3))}}
+\newcommand{\defined}[3][\Delta]{\ensuremath{\textit{defined}(#1,#2,#3)}}
+\newcommand{\name}[1]{\ensuremath{\textit{name}\tuple{#1}}}
+\newcommand{\bigname}[1]{\ensuremath{\textit{name}\bigtuple{#1}}}
+\newcommand{\FLAT}[1]{\ensuremath{\textit{flat}(#1)}}
+\newcommand{\flipname}{\textit{flip}}
+\newcommand{\flip}[1]{\ensuremath{\flipname(#1)}}
+\newcommand{\methods}[2][\Delta]{\ensuremath{\textit{methods}(#1,#2)}}
+\newcommand{\applicablename}{\ensuremath{\textit{applicable}}}
+\newcommand{\applicable}[3][\Delta]{\ensuremath{\applicablename\tuple{#1,#2,#3}}}
+\newcommand{\bigapplicable}[3][\Delta]{\ensuremath{\applicablename\bigtuple{#1,#2,#3}}}
+\newcommand{\instantiate}[2]{\ensuremath{\textit{instantiate}\tuple{#1,#2}}}
+\newcommand{\biginstantiate}[2]{\ensuremath{\textit{instantiate}\bigtuple{#1,#2}}}
+\newcommand{\firstapplicable}[3][\Delta]{\ensuremath{\textit{firstApplicable}(#1,#2,#3)}}
+\newcommand{\mostspecific}[2][\Delta]{\ensuremath{\textit{mostspecific}(#1,#2)}}
+\newcommand{\msavname}{\textit{msav}}
+\newcommand{\msav}[3][\Delta,\Phi]{\ensuremath{\msavname(#1,#2,#3)}}
+% \newcommand{\msavfunc}[3][\Delta,\Phi]{\ensuremath{\msavname(#1,#2,#3)}}
+% \newcommand{\msavmeth}[3][\Delta,\Phi]{\ensuremath{\msavname(#1,#2,#3)}}
+\newcommand{\topologicalsort}[2]{\ensuremath{\textit{topologicalSort}(#1,#2)}}
+\newcommand{\orderedin}[4]{\ensuremath{#1\;\mathsf{and}\;#2\;\mathsf{ordered}\;\mathsf{in}\;#3\;\mathsf{by}\;#4}}
+
+\newcommand{\abstractdecls}[1]{\ensuremath{\textit{abstractDecls}\tuple{#1}}}
+\newcommand{\concretedecls}[1]{\ensuremath{\textit{concreteDecls}\tuple{#1}}}
+\newcommand{\bigabstractdecls}[1]{\ensuremath{\textit{abstractDecls}\bigtuple{#1}}}
+\newcommand{\bigconcretedecls}[1]{\ensuremath{\textit{concreteDecls}\bigtuple{#1}}}
+\newcommand{\concrete}[1]{\ensuremath{\textit{concrete}(#1)}}
+
+
+
+\newcommand{\dom}{\ensuremath{\textit{dom}}}
+\newcommand{\noselfdom}{\ensuremath{\textit{noSelfDom}}}
+\newcommand{\arrow}{\ensuremath{\textit{arrow}}}
+\newcommand{\FV}{\ensuremath{\textit{FV}}}
+
+% indented code block
+\newenvironment{ttquote}%
+{\begin{quote}\begin{alltt}}
+{\end{alltt}\end{quote}}
+
+\newcommand{\verythinmathspace}{\mskip0.5\thinmuskip}
+
+\newcommand{\set}[1]{\ensuremath{\{{#1}\}}}
+\newcommand{\setb}[1]{\ensuremath{\{\bar{#1}\}}}
+\newcommand{\bigset}[1]{\ensuremath{\big\{{#1}\big\}}}
+\newcommand{\bigsetb}[1]{\ensuremath{\big\{\bar{#1}\big\}}}
+\newcommand{\LRset}[1]{\ensuremath{\left\{{#1}\right\}}}
+\newcommand{\LRsetb}[1]{\ensuremath{\left\{\bar{#1}\right\}}}
+
+\newcommand{\Bigsetcomp}[2]{\ensuremath{\Bigl\{\,{#1}\;\Bigm|\;{#2}\,\Bigr\}}}
+\newcommand{\LRsetcomp}[2]{\ensuremath{\left\{\,{#1}\;\left|\;{#2}\,\right\}\right.}}
+
+
+\newcommand{\listof}[1]{\ensuremath{\langle{#1}\rangle}}
+\newcommand{\listofb}[1]{\ensuremath{\langle\bar{#1}\rangle}}
+\newcommand{\biglistof}[1]{\ensuremath{\big\langle{#1}\big\rangle}}
+\newcommand{\biglistofb}[1]{\ensuremath{\big\langle\bar{#1}\big\rangle}}
+\newcommand{\LRlistofb}[1]{\ensuremath{\left\langle\bar{#1}\right\rangle}}
+
+% put in oxford brackets
+\newcommand{\ob}[1]{\ensuremath{\llbracket\verythinmathspace {#1} \verythinmathspace\rrbracket}}
+\newcommand{\bigob}[1]{\ensuremath{\big\llbracket\verythinmathspace {#1} \verythinmathspace\big\rrbracket}}
+\newcommand{\Bigob}[1]{\ensuremath{\Big\llbracket\verythinmathspace {#1} \verythinmathspace\Big\rrbracket}}
+% put in oxford brackets and an overbar
+\newcommand{\obb}[1]{\ensuremath{\llbracket\verythinmathspace \bar{#1} \verythinmathspace\rrbracket}}
+\newcommand{\bigobb}[1]{\ensuremath{\big\llbracket\verythinmathspace \bar{#1} \verythinmathspace\big\rrbracket}}
+\newcommand{\Bigobb}[1]{\ensuremath{\Big\llbracket\verythinmathspace \bar{#1} \verythinmathspace\Big\rrbracket}}
+% make a type param bound with the given name
+\newcommand{\bd}[1]{\ensuremath{\{{#1}\}}}
+\newcommand{\bigbd}[1]{\ensuremath{\big\{{#1}\big\}}}
+\newcommand{\bdb}[1]{\ensuremath{\{\bar{#1}\}}}
+\newcommand{\bigbdb}[1]{\ensuremath{\big\{\bar{#1}\big\}}}
+% syntactic definition
+\newcommand{\syndef}{\ensuremath{\overset{\mathrm{def}}{=}}}
+% make a substitution
+\newcommand{\subst}[2]{\ensuremath{[#1/#2]}}
+\newcommand{\substb}[2]{\ensuremath{[\bar{#1/#2}]}}
+\newcommand{\bigsubst}[2]{\ensuremath{\bigl[#1/#2\bigr]}}
+\newcommand{\bigsubstb}[2]{\ensuremath{\bigl[\bar{#1/#2}\bigr]}}
+\newcommand{\Bigsubst}[2]{\ensuremath{\Bigl[#1/#2\Bigr]}}
+\newcommand{\Bigsubstb}[2]{\ensuremath{\Bigl[\bar{#1/#2}\Bigr]}}
+\newcommand{\emptysubst}{\ensuremath{[\verythinmathspace]}}
+% type parameter list with bounds and oxford brackets
+\newcommand{\tplist}[2]{\ensuremath{\ob{\bds{#1}{#2}}}}
+% monomorphic fn decl
+\newcommand{\decl}[3]{\mbox{\ensuremath{{#1}\,{#2}\!:\!{#3}}}}
+% a generic function declaration 
+\newcommand{\declg}[5]{\mbox{\ensuremath{#1 \tplist{#2}{#3}\, #4\!:\!#5}}}
+\newcommand{\hdeclg}[4]{\mbox{\ensuremath{#1 \ob{#2}\, #3\!:\!#4}}}
+% a class table T
+\newcommand{\T}{\ensuremath{\mathcal{T}}}
+% class table extension
+\newcommand{\ctext}{\ensuremath{\supseteq}}
+% a declaration set D
+\newcommand{\D}{\ensuremath{\mathcal{D}}}
+% a declaration set restricted to a function namemeet	
+\newcommand{\Df}[1][f]{\D_{\!#1}}
+% existential type
+\newcommand{\existstype}[2]{\ensuremath{\exists\ob{#1}{#2}}}
+\newcommand{\existstypeb}[2]{\ensuremath{\exists\obb{#1}{#2}}}
+\newcommand{\existstypebig}[2]{\ensuremath{\exists\bigob{#1}{#2}}}
+\newcommand{\existstypebigb}[2]{\ensuremath{\exists\bigobb{#1}{#2}}}
+\newcommand{\existstypeBig}[2]{\ensuremath{\exists\Bigob{#1}{#2}}}
+\newcommand{\existstypeBigb}[2]{\ensuremath{\exists\Bigobb{#1}{#2}}}
+% universal type
+\newcommand{\foralltype}[2]{\ensuremath{\forall\ob{#1}{#2}}}
+\newcommand{\foralltypeb}[2]{\ensuremath{\forall\obb{#1}{#2}}}
+\newcommand{\foralltypebig}[2]{\ensuremath{\forall\bigob{#1}{#2}}}
+\newcommand{\foralltypebigb}[2]{\ensuremath{\forall\bigobb{#1}{#2}}}
+\newcommand{\foralltypeBig}[2]{\ensuremath{\forall\Bigob{#1}{#2}}}
+\newcommand{\foralltypeBigb}[2]{\ensuremath{\forall\Bigobb{#1}{#2}}}
+% reduced existential type
+\newcommand{\reduce}[1]{\ensuremath{{#1}_r}}
+
+%%%%% Any and Bottom %%%%
+
+\newcommand{\Any}{\TYP{Any}}
+\newcommand{\Object}{\TYP{Object}}
+\newcommand{\Bottom}{\TYP{Bottom}}
+
+\newcommand{\FALSE}{\textrm{false}}
+\newcommand{\TRUE}{\textrm{true}}
+
+\newcommand{\NONE}{\bullet}
+
+\newcommand{\eqred}{\overset{\equiv}{\longrightarrow}}
+
+%%%%%%% JUDGMENTS %%%%%%%%
+
+%%% NEW SYNTACTIC JUDGMENT
+%\newcommand{\newjudge}[2]{\fbox{\textbf{#1:} \quad \ensuremath{#2}}}
+\newcommand{\newjudge}[2]{\hbox{\textbf{#1:}\hskip0.5em\fbox{\ensuremath{#2}}}}
+
+% non constrained judgements
+\newcommand{\jgtemplate}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{#3}\;{#4}}}
+\newcommand{\jgbtemplate}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\bar{{#2}\;{#3}\;{#4}}}}
+\newcommand{\jgbbtemplate}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\bar{\bar{{#2}\;{#3}\;{#4}}}}}
+\newcommand{\jgbARROWtemplate}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\bar{\overcirclerightarrow{{#2}\;{#3}\;{#4}}}}}
+\newcommand{\jgtemplatetight}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\verythinmathspace}\turnstile\verythinmathspace{#2}\,{#3}\,{#4}}}
+\newcommand{\jgbtemplatetight}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\verythinmathspace}\turnstile\verythinmathspace\bar{{#2}\,{#3}\,{#4}}}}
+\newcommand{\jgTHREEtemplate}[8]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{#3}\;{#4}, {#5}\;{#3}\;{#6}, {#7}\;{#3}\;{#8}}}
+
+\newcommand{\jgshorttemplate}[3][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{#3}}}
+\newcommand{\jgbshorttemplate}[3][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\bar{{#2}\;{#3}}}}
+\newcommand{\jgshorttemplatetight}[3][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\verythinmathspace}\turnstile\verythinmathspace{#2}\;{#3}}}
+\newcommand{\jgbshorttemplatetight}[3][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\verythinmathspace}\turnstile\verythinmathspace\bar{{#2}\;{#3}}}}
+
+% ground subtyping
+\newcommand{\jgsub}[3][\Delta]{\jgtemplate[#1]{#2}{\subtypeof}{#3}}
+\newcommand{\jgnequiv}[3][\Delta]{\jgtemplate[#1]{#2}{\not \equiv}{#3}}
+
+% evaluation
+\newcommand{\jevalstep}[3][\Delta;\Phi]{\jgtemplate[#1]{#2}{\longrightarrow}{#3}}
+\newcommand{\jevalsteptight}[3][\Delta;\Phi]{\jgtemplatetight[#1]{#2}{\longrightarrow}{#3}}
+\newcommand{\jevalstepTWO}[5][\Delta\;Phi]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{\longrightarrow}\;{#3}, {#4}\;{\longrightarrow}\;{#5}}}
+\newcommand{\jbevalstep}[3][\Delta;\Phi]{\jgbtemplate[#1]{#2}{\longrightarrow}{#3}}
+\newcommand{\jevalstar}[3][\Delta;\Phi]{\jgtemplate[#1]{#2}{\longrightarrow^*}{#3}}
+
+% typing
+\newcommand{\jtype}[3][\Delta;\Phi;\Gamma]{\jgtemplate[#1]{#2}{\mathrel{:}}{#3}}
+\newcommand{\jbtype}[3][\Delta;\Phi;\Gamma]{\jgbtemplate[#1]{#2}{\mathrel{:}}{#3}}
+\newcommand{\jtypetight}[3][\Delta;\Phi;\Gamma]{\jgtemplatetight[#1]{#2}{\mathrel{:}}{#3}}
+\newcommand{\jbtypetight}[3][\Delta;\Phi;\Gamma]{\jgntemplatetight[#1]{#2}{\mathrel{:}}{#3}}
+
+%variance
+\newcommand{\jcertainlyvaries}[4][\Delta]{\jgtemplate[#1]{#2}{#3}{#4}}
+\newcommand{\jbcertainlyvaries}[4][\Delta]{\jgbtemplate[#1]{#2}{#3}{#4}}
+
+%subtyping
+\newcommand{\jsubtype}[3][\Delta]{\jgtemplate[#1]{#2}{\subtypeof}{#3}}
+\newcommand{\jbsubtype}[3][\Delta]{\jgbtemplate[#1]{#2}{\subtypeof}{#3}}
+\newcommand{\jbnotsubtype}[3][\Delta]{\jgbtemplate[#1]{#2}{\not\subtypeof}{#3}}
+\newcommand{\jbbnotsubtype}[3][\Delta]{\jgbbtemplate[#1]{#2}{\not\subtypeof}{#3}}
+\newcommand{\jnotsubtype}[3][\Delta]{\jgtemplate[#1]{#2}{\not\subtypeof}{#3}}
+\newcommand{\jexctype}[3][\Delta]{\jgtemplate[#1]{#2}{\exc}{#3}}
+\newcommand{\jbexctype}[3][\Delta]{\jgbtemplate[#1]{#2}{\exc}{#3}}
+\newcommand{\jnotexctype}[3][\Delta]{\jgtemplate[#1]{#2}{\nexc}{#3}}
+\newcommand{\jequivtype}[3][\Delta]{\jgtemplate[#1]{#2}{\equiv}{#3}}
+\newcommand{\jbequivtype}[3][\Delta]{\jgbtemplate[#1]{#2}{\equiv}{#3}}
+\newcommand{\jnotequivtype}[3][\Delta]{\jgtemplate[#1]{#2}{\not\equiv}{#3}}
+
+% well-formed types
+\newcommand{\jwftype}[2][\Delta]{\jgshorttemplate[#1]{#2}{\mathsf{ok}}}
+\newcommand{\jbwftype}[2][\Delta]{\jgbshorttemplate[#1]{#2}{\mathsf{ok}}}
+\newcommand{\jwftypetight}[2][\Delta]{\jgshorttemplatetight[#1]{#2}{\mathsf{ok}}}
+\newcommand{\jbwftypetight}[2][\Delta]{\jgbshorttemplatetight[#1]{#2}{\mathsf{ok}}}
+
+\newcommand{\jwfdecl}[2][\Delta,\Phi]{\jgshorttemplate[#1]{#2}{\mathsf{ok}}}
+\newcommand{\jbwfdecl}[2][\Delta,\Phi]{\jgbshorttemplate[#1]{#2}{\mathsf{ok}}}
+
+\newcommand{\jwfmeth}[2][\Delta;\Phi;\Gamma;\bar{P}]{\jgshorttemplate[#1]{#2}{\mathsf{ok}}}
+\newcommand{\jbwfmeth}[2][\Delta;\Phi;\Gamma;\bar{P}]{\jgbshorttemplate[#1]{#2}{\mathsf{ok}}}
+
+% Meet and return type rules
+\newcommand{\jgruletemplate}[5][\Delta]{{#1}\,\turnstile\,{#2}\;{#3}\;{#4}\;{#5}}
+\newcommand{\jgbruletemplate}[5][\Delta]{{#1}\,\turnstile\,\bar{{#2}\;{#3}\;{#4}\;{#5}}}
+\newcommand{\jgbbruletemplate}[5][\Delta]{{#1}\,\turnstile\,\bar{\bar{{#2}\;{#3}\;{#4}\;{#5}}}}
+\newcommand{\jgbARROWruletemplate}[5][\Delta]{{#1}\,\turnstile\,\bar{\overcirclerightarrow{{#2}\;{#3}\;{#4}\;{#5}}}}
+\newcommand{\jmethodmeetrule}[3][\Delta]{\jgruletemplate[#1]{#2}{\mathsf{meet}}{#3}{\mathsf{ok}}}
+\newcommand{\jbmethodmeetrule}[3][\Delta]{\jgbruletemplate[#1]{#2}{\mathsf{meet}}{#3}{\mathsf{ok}}}
+\newcommand{\jbbmethodmeetrule}[3][\Delta]{\jgbbruletemplate[#1]{#2}{\mathsf{meet}}{#3}{\mathsf{ok}}}
+\newcommand{\jbARROWmethodmeetrule}[3][\Delta]{\jgbARROWruletemplate[#1]{#2}{\mathsf{meet}}{#3}{\mathsf{ok}}}
+\newcommand{\jreturntyperule}[3][\Delta]{\jgruletemplate[#1]{#2}{\mathsf{return\;type\;wrt}}{#3}{\mathsf{ok}}}
+\newcommand{\jbreturntyperule}[3][\Delta]{\jgbruletemplate[#1]{#2}{\mathsf{return\;type\;wrt}}{#3}{\mathsf{ok}}}
+\newcommand{\jbbreturntyperule}[3][\Delta]{\jgbbruletemplate[#1]{#2}{\mathsf{return\;type\;wrt}}{#3}{\mathsf{ok}}}
+\newcommand{\jbARROWreturntyperule}[3][\Delta]{\jgbARROWruletemplate[#1]{#2}{\mathsf{return\;type\;wrt}}{#3}{\mathsf{ok}}}
+
+\newcommand{\jgfunnyruletemplate}[5][\Delta]{{#1}\,\turnstile\,{#2}\;\mathsf{and}\;{#3}\;{#4}\;{#5}}
+\newcommand{\jgbfunnyruletemplate}[5][\Delta]{{#1}\,\turnstile\,\bar{{#2}\;\mathsf{and}\;{#3}\;{#4}\;{#5}}}
+\newcommand{\jgbbfunnyruletemplate}[5][\Delta]{{#1}\,\turnstile\,\bar{\bar{{#2}\;\mathsf{and}\;{#3}\;{#4}\;{#5}}}}
+\newcommand{\jgbARROWfunnyruletemplate}[5][\Delta]{{#1}\,\turnstile\,\bar{\overcirclerightarrow{{#2}\;\mathsf{and}\;{#3}\;{#4}\;{#5}}}}
+\newcommand{\jancestormeetrule}[3][\Delta;\bar{\chi}]{\jgfunnyruletemplate[#1]{#2}{#3}{\mathsf{ancestors}}{\mathsf{ok}}}
+\newcommand{\jbancestormeetrule}[3][\Delta;\bar{\chi}]{\jgbfunnyruletemplate[#1]{#2}{#3}{\mathsf{ancestors}}{\mathsf{ok}}}
+\newcommand{\jbbancestormeetrule}[3][\Delta;\bar{\chi}]{\jgbbfunnyruletemplate[#1]{#2}{#3}{\mathsf{ancestors}}{\mathsf{ok}}}
+\newcommand{\jbARROWancestormeetrule}[3][\Delta;\bar{\chi}]{\jgbARROWfunnyruletemplate[#1]{#2}{#3}{\mathsf{ancestors}}{\mathsf{ok}}}
+
+\newcommand{\jnoduplicatesrule}[3][\Delta]{\jgtemplate[#1]{#2}{\mathsf{not}\;\mathsf{duplicate}\;\mathsf{of}}{#3}}
+\newcommand{\jbnoduplicatesrule}[3][\Delta]{\jgbtemplate[#1]{#2}{\mathsf{not}\;\mathsf{duplicate}\;\mathsf{of}}{#3}}
+\newcommand{\jbbnoduplicatesrule}[3][\Delta]{\jgbbtemplate[#1]{#2}{\mathsf{not}\;\mathsf{duplicate}\;\mathsf{of}}{#3}}
+\newcommand{\jbARROWnoduplicatesrule}[3][\Delta]{\jgbARROWtemplate[#1]{#2}{\mathsf{not}\;\mathsf{duplicate}\;\mathsf{of}}{#3}}
+
+\newcommand{\jcoveredrule}[3][\Delta]{\jgtemplate[#1]{#2}{\mathsf{covered}\;\mathsf{by}}{#3}}
+\newcommand{\jbcoveredrule}[3][\Delta]{\jgbtemplate[#1]{#2}{\mathsf{covered}\;\mathsf{by}}{#3}}
+\newcommand{\jbbcoveredrule}[3][\Delta]{\jgbbtemplate[#1]{#2}{\mathsf{covered}\;\mathsf{by}}{#3}}
+\newcommand{\jbARROWcoveredrule}[3][\Delta]{\jgbARROWtemplate[#1]{#2}{\mathsf{covered}\;\mathsf{by}}{#3}}
+
+% subtyping on quantified types
+\newcommand{\jle}[3][\Delta]{\jgtemplate[#1]{#2}{\quantsubtypeof}{#3}}
+\newcommand{\jleusing}[4][\Delta]{\jgtemplate[#1]{#2}{\quantsubtypeof}{#3}\;\mathsf{using}\;{#4}}
+\newcommand{\jleinner}[3][\Delta]{\jgtemplate[#1]{#2}{\leinner}{#3}}
+\newcommand{\jleinnerusing}[4][\Delta]{\jgtemplate[#1]{#2}{\leinner}{#3}\;\mathsf{using}\;{#4}}
+\newcommand{\jleinnerusingtight}[4][\Delta]{\jgtemplatetight[#1]{#2}{\leinner}{#3}\;\mathsf{using}\;{#4}}
+\newcommand{\jexcludes}[3][\Delta]{\jgtemplate[#1]{#2}{\existsexc}{#3}}
+\newcommand{\jequivalent}[3][\Delta]{\jgtemplate[#1]{#2}{\equiv}{#3}}
+
+\newcommand{\curriedmorespecific}[1][\Delta]{\textit{moreSpecific}\tuple{#1}}
+\newcommand{\morespecific}[3][\Delta]{\curriedmorespecific[#1]{\tuple{{#2},{#3}}}}
+\newcommand{\jmorespecific}[3][\Delta]{\jgtemplate[#1]{\dom(#2)}{\morespec}{\dom(#3)}}
+
+
+% constrained judgments
+\newcommand{\jgconstrtemplate}[5][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{#3}\;{#4}\,\Leftarrow\,{#5}}}
+\newcommand{\jgbconstrtemplate}[5][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\bar{{#2}\;{#3}\;{#4}\,\Leftarrow\,{#5}}}}
+\newcommand{\jgbbconstrtemplate}[5][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\bar{\bar{{#2}\;{#3}\;{#4}\,\Leftarrow\,{#5}}}}}
+% ground subtyping with constraints
+\newcommand{\jsub}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\subtypeof}{#3}{#4}}
+\newcommand{\jbsub}[4][\Delta]{\jgbconstrtemplate[#1]{#2}{\subtypeof}{#3}{#4}}
+% not subtype
+\newcommand{\jnsub}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\not \subtypeof}{#3}{#4}}
+\newcommand{\jbnsub}[4][\Delta]{\jgbconstrtemplate[#1]{#2}{\not \subtypeof}{#3}{#4}}
+% type exclusion
+\newcommand{\jexc}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\exc}{#3}{#4}}
+\newcommand{\jbexc}[4][\Delta]{\jgbconstrtemplate[#1]{#2}{\exc}{#3}{#4}}
+% type non-exclusion
+\newcommand{\jnexc}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\nexc}{#3}{#4}}
+% equivalence
+\newcommand{\jequiv}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\equiv}{#3}{#4}}
+% nonequivalence
+\newcommand{\jnequiv}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\not\equiv}{#3}{#4}}
+\newcommand{\jbnequiv}[4][\Delta]{\jgbconstrtemplate[#1]{#2}{\not\equiv}{#3}{#4}}
+
+% ground subtyping with constraints
+\newcommand{\jvaries}[5][\Delta]{\jgconstrtemplate[#1]{#2}{#3}{#4}{#5}}
+\newcommand{\jbvaries}[5][\Delta]{\jgbconstrtemplate[#1]{#2}{#3}{#4}{#5}}
+
+
+% contrapositive judgements
+\newcommand{\jgcontratemplate}[5][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,{#2}\;{#3}\;{#4}\,\Rightarrow\,{#5}}}
+% ground subtyping with constraints
+\newcommand{\jcsub}[4][\Delta]{\jgcontratemplate[#1]{#2}{\subtypeof}{#3}{#4}}
+% not subtype
+\newcommand{\jcnsub}[4][\Delta]{\jgcontratemplate[#1]{#2}{\not \subtypeof}{#3}{#4}}
+% type exclusion
+\newcommand{\jcexc}[4][\Delta]{\jgcontratemplate[#1]{#2}{\exc}{#3}{#4}}
+% type non-exclusion
+\newcommand{\jcnexc}[4][\Delta]{\jgcontratemplate[#1]{#2}{\nexc}{#3}{#4}}
+% equivalence
+\newcommand{\jcequiv}[4][\Delta]{\jgcontratemplate[#1]{#2}{\equiv}{#3}{#4}}
+% nonequivalence
+\newcommand{\jcnequiv}[4][\Delta]{\jgcontratemplate[#1]{#2}{\not\equiv}{#3}{#4}}
+
+
+% applicability of a domain or fndecl to a type
+\newcommand{\japp}[3][\Delta]{\jgtemplate[#1]{#2}{\ni}{#3}}
+% specificity between fndecls
+\newcommand{\jms}[3][\Delta]{\jgtemplate[#1]{#2}{\ms}{#3}}
+
+% constraints
+% convert a bound environment into a constraint
+\newcommand{\toConstraint}[2]{\ensuremath{\textit{toConstraint}({#1})\,=\,{#2}}}
+% convert a constraint into a bound environment
+\newcommand{\toBounds}[2]{\ensuremath{\textit{toBounds}({#1})\,=\,{#2}}}
+
+% apply substitution to constraint
+\newcommand{\japply}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\textit{apply}({#2}, {#3})\,=\,{#4}}}
+% solve constraint to get a substitution and the residual constraints
+\newcommand{\jsolve}[4][\Delta]{\ensuremath{\whennonempty{#1}{{#1}\,}\turnstile\,\textit{unify}({#2})\,=\,({#3}, {#4})}}
+
+
+
+% type reduction
+\newcommand{\jtred}[2]{\ensuremath{\Delta \turnstile\,{#1} \eqred {#2}}}
+\newcommand{\jtreds}[3]{\ensuremath{\Delta \turnstile\,{#1} \eqred {#2}\;\mathsf{using}\;{#3}}}
+
+
+% for tabularx environments to have a right-aligned, stretched col
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
+
+\theorembodyfont{\rm}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+% Our proofs are more like proof sketches!! EricAllen 7/15/2011
+\newenvironment{proof}{\noindent \textbf{Proof:} }{\hfill $\Box$}
+\newenvironment{psketch}{\noindent \textbf{Proof sketch:} }{\hfill $\Box$}
+
+\begin{document}
+
+% \conferenceinfo{OOPSLA '11}{October 22--27, 2011, Portland, Oregon, USA.}
+% \CopyrightYear{2011}
+% \copyrightdata{978-1-4503-0940-0/11/10}
+
+\titlebanner{}        % These are ignored unless
+\preprintfooter{PAPER SUBMITTED TO 2012 ACM SPLASH---OOPSLA RESEARCH PAPERS}     % 'preprint' option specified.
+
+\title{Dynamic Dispatch and Type Inference Semipredicates}
+\subtitle{}
+\authorinfo{David Chase}{Oracle Labs}{david.r.chase@oracle.com}
+\authorinfo{Justin Hilburn}{Oracle Labs}{justin.hilburn@oracle.com}
+\authorinfo{Victor Luchangco}{Oracle Labs}{victor.luchangco@oracle.com}
+\authorinfo{Karl Naden}{Oracle Labs}{karl.naden@oracle.com}
+\authorinfo{Sukyoung Ryu}{KAIST}{sryu.cs@kaist.ac.kr}
+\authorinfo{Guy L. Steele Jr.}{Oracle Labs}{guy.steele@oracle.com}
+\authorinfo{Jean-Baptiste Tristan}{Oracle Labs}{jean.baptiste.tristan@oracle.com}
+
+\makeatletter
+\def \@maketitle {%
+ \begin{center}
+ \@settitlebanner
+ \let \thanks = \titlenote
+ \noindent \LARGE \bfseries \@titletext \par
+ %\vskip 6pt
+ %\noindent \Large \@subtitletext \par
+ \vskip 6pt
+   \noindent \@setauthor{9pc}{i}{\@false}\hspace{1.5pc}%
+             \@setauthor{9pc}{ii}{\@false}\hspace{1.5pc}%
+             \@setauthor{10pc}{iii}{\@false}\hspace{1.5pc}%
+             \@setauthor{9pc}{iv}{\@true}\par
+\vspace{12pt plus 2pt}
+ \noindent \@setauthor{9pc}{v}{\@false}\hspace{1.5pc}%
+           \@setauthor{9pc}{vi}{\@false}\hspace{1.5pc}%
+           \@setauthor{11pc}{vii}{\@false}\par
+\vspace{10pt plus 2pt}
+ \end{center}}
+\makeatother
+\maketitle
+
+
+\begin{abstract}
+
+In an object-oriented programming language with fully
+symmetric dynamic multimethod dispatch, it is frequently necessary to
+decide at run time whether a given method is applicable to a given set
+of arguments.  If furthermore the language features parametrically
+polymorphic types whose parameters are not ````erased'' at run time,
+it may be necessary, as part of the run-time determination of
+applicability, to compute, based on the ilks (````run-time types'') of
+the argument values, a type for each type parameter.  Thus the applicability
+test is a semipredicate: if it does not return \emph{false}, then it returns
+not just \emph{true}, but some useful information---in this case,
+a substitution of types for type parameters that validates the judgment
+of applicability.  Because this
+process may be required for every method call, it is desirable for this
+process to be efficient.
+
+We present algorithms for dispatch semipredicates in Fortress,
+a statically typed object-oriented programming language with
+type-parametric traits, objects, functions, and methods,
+symmetric multiple inheritance, and fully symmetric multiway dispatch
+for overloaded functions as well as overloaded methods.
+Type parameters of traits can be covariant, contravariant, or invariant.
+We explore some design tradeoffs; for example, certain difficult cases
+that are costly to process can be avoided if either contravariance
+or union types are eliminated from the model.
+To provide a rigorous expository framework for this presentation,
+we formally define Welterweight Fortress, a model much larger than the
+previously reported Featherweight Fortress.
+
+\end{abstract}
+
+\category{D.3.3}{Programming Languages}{Language Constructs and Features---classes and objects, inheritance, modules, packages, polymorphism}
+
+\terms{Languages}
+
+\keywords{\hskip 0pt plus 0.5em minus 0.5em
+object-oriented programming, multiple dispatch, 
+symmetric dispatch, multiple inheritance, overloading, ilks, run-time types, static types,
+components, modularity, meet rule,
+methods, multimethods, separate compilation, Fortress}
+
+\section{Contributions}
+\label{sec:introduction}
+\input{introduction}
+
+
+\newpage
+
+\section{Notation}
+\label{sec:notation}
+\input{notation}
+
+\section{Grammar}
+\label{sec:grammar}
+\input{grammar}
+
+\section{Wellformedness and Static Typing}
+\label{sec:static}
+\input{static}
+
+\section{Dynamic Evaluation Semantics}
+\label{sec:evaluation}
+\input{evaluation}
+
+\section{Subtyping and Type Exclusion}
+\label{sec:subtyping}
+\input{subtyping}
+
+\section{Run-time Type Inference}
+\label{sec:inference}
+\input{inference}
+
+\input{dispatch}
+
+\section{Related Work}\label{sec:related}
+\input{related-work}
+
+%\section{Conclusion and Discussion}\label{sec:conclusion}
+%\input{conclusion}
+
+%\section*{Acknowledgments}
+% This work is supported in part by the Engineering Research Center of Excellence Program of Korea Ministry of Education,
+% Science and Technology(MEST) / National Research Foundation of Korea(NRF)
+% (Grant 2011-0000974).
+
+\bibliographystyle{plain}
+% The bibliography should be embedded for final submission.
+\bibliography{paper}
+% \begin{thebibliography}{}
+% \softraggedright
+% 
+% \input{biblio.tex}
+% 
+% \end{thebibliography}
+
+\clearpage
+\appendix
+
+\section{Detailed Description of Notation}
+\label{sec:notation-details}
+\input{notation-details}
+
+\clearpage
+
+\input{proofs}
+
+\clearpage
+\clearpage
+\clearpage
+\clearpage
+\clearpage
+\clearpage
+\end{document}

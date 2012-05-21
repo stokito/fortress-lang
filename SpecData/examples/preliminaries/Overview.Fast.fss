@@ -1,0 +1,33 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Overview.Fast
+
+export Executable
+
+trait Tangible end
+trait RR extends Number end
+
+trait Moving extends { Tangible, Object }
+  position(): RR^3
+  velocity(): RR^3
+end
+(** EXAMPLE **)
+trait Fast extends Moving
+  velocity() = [0 0 299792458]
+end
+(** END EXAMPLE **)
+
+run() = ()
+
+end

@@ -1,0 +1,34 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* New type checking rules for if exprs and coercions. *)
+
+object A end
+object B extends D end
+object C end
+trait D
+  coerce(a: A) = Da
+  coerce(c: C) = Dc
+end
+object Da extends D end
+object Dc extends D end
+
+(* Right hand side should have type D. *)
+run() = do
+  x: D = Da
+  y: A = if true then A
+         elif true then B
+         elif true then C
+         else x end
+  ()
+end

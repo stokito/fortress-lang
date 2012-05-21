@@ -1,0 +1,478 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009,2010, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Overloaded Functional Declarations}
+\chaplabel{overloaded-declarations}
+
+\note{Keyword and varargs parameters are not yet supported.}
+
+\note{Return types are required for overloaded functional declarations.}
+
+Fortress allows multiple functional declarations to be in scope of a
+particular program point.  We call this overloading.
+\chapref{multiple-dispatch} describes
+how to determine which overloaded declarations are
+applicable to a particular functional call, and when several
+are applicable, how to select the most specific one among them.
+In this chapter, we give a
+set of rules on overloaded declarations that guarantee there
+exists a most specific declaration for any given functional call.
+These rules are complicated by the presence of coercion, which may
+enlarge the set of declarations that are applicable to a functional
+call, as discussed in \chapref{conversions-coercions}.
+
+
+
+\section{Principles of Overloading}
+\seclabel{principles-overloading}
+
+Fortress allows multiple functional declarations of the same name to
+be declared in a single scope.  However, recall from \chapref{names}
+the following shadowing rules:
+\begin{itemize}
+\item
+dotted method declarations shadow top-level function declarations with
+the same name, and
+\item
+dotted method declarations provided by a trait or object declaration
+or object expression
+shadow functional method declarations with the same name that are
+provided by a different trait or object declaration
+or object expression.
+\end{itemize}
+Also, note that a trait or object declaration
+or object expression must not have a
+functional method declaration and a dotted method declaration with the
+same name, either directly or by inheritance.
+Therefore, top-level functions can overload
+with other top-level functions and functional methods, dotted methods with
+other dotted methods, and functional methods with other functional methods
+and top-level functions.
+
+Overloading functional declarations allows the benefits of polymorphic
+declarations.  However, with these benefits comes the potential for
+ambiguous calls at run time.  Fortress provides overloading rules for the
+\emph{declarations} of functionals to eliminate the \emph{possibility}
+of ambiguous calls at run time, whether or not these calls actually
+appear in the program.
+
+For each functional application expression, it should be a static error
+if there does not exist a statically most applicable declaration for
+that expression.
+Furthermore, these rules are checked statically.
+In fact, the overloading rules
+in Fortress allow the compiler to identify the
+statically most specific declaration for a particular call.  Therefore
+an implementation strategy may be used in which the statically most
+specific declaration is identified statically, and the runtime
+dispatch mechanism need only consider dispatching among that
+declaration plus declarations that are more specific than that
+declaration (proof of this is given in \secref{proof-overloading-resolution}).
+
+This chapter outlines several criteria for valid functional
+overloading.  At any given program point, there is a set of overloaded
+declarations that are in scope.  Fortress determines whether there is
+a possibility for ambiguous calls from this set by comparing
+declarations pairwise.  The following three sections each describes a
+rule to accept a pair of overloaded functional declarations.  If a
+pair of overloaded declarations satisfies any one of the three rules,
+it is considered a valid overloading.
+
+The overloading rules given in this chapter are disjoint.  That is, at
+most one rule applies to each pair of overloaded declarations.  It is
+possible for new rules to be added which allow additional
+overloadings.
+
+\label{adv-over-kwd}
+Overloaded declarations must have static parameters that are identical
+(up to $\alpha$-equivalence).  Also, valid overloadings for
+declarations that contain keyword or
+varargs parameters are determined
+by analyzing the expansion of these declarations as described in
+\secref{applicability-with-special-params}.  Therefore, static
+parameters, keyword parameters,
+and varargs parameters are ignored in
+the remainder of this chapter.
+
+An operator method declaration whose name is one of the operator parameters
+(described in \secref{opr-ident})
+of its enclosing trait or object may be overloaded with other operator
+declarations in the same component.  Therefore, such an operator method
+declaration must satisfy the overloading rules
+with every operator declaration in the same component.
+
+
+
+In addition, a functional which takes a single parameter of type
+a naked type parameter of bound \TYP{Any} cannot be
+overloaded.  This restriction prevents ambiguous overloadings such as
+the following:
+%makeSet[\T extends Any\](x: T): Set[\T\]
+%makeSet[\T extends Any\](x: T, y: T): Set[\T\]
+\begin{Fortress}
+\(\VAR{makeSet}\llbracket{}T \KWD{extends}\mskip 4mu plus 4mu\TYP{Any}\rrbracket(x\COLON T)\COLON \TYP{Set}\llbracket{}T\rrbracket\)\\
+\(\VAR{makeSet}\llbracket{}T \KWD{extends}\mskip 4mu plus 4mu\TYP{Any}\rrbracket(x\COLON T, y\COLON T)\COLON \TYP{Set}\llbracket{}T\rrbracket\)
+\end{Fortress}
+The type parameter of \EXP{\VAR{makeSet}} may be instantiated with
+\TYP{(\mathbb{Z}, \mathbb{Z})} or \TYP{\mathbb{Z}}.  If this is the
+case then the call \EXP{\VAR{makeSet}(3, 4)}, where 3 and 4 have type
+\TYP{\mathbb{Z}}, is ambiguous.
+
+\secref{subtype-rule} states the \emph{Subtype Rule}, which stipulates
+that the parameter type of one declaration be a subtype of the
+parameter type of the other.  In this case, there is no possibility of
+ambiguous calls, because one declaration is more specific than the
+other.  This section also places a restriction on the return types of
+the overloaded declarations to ensure that type safety is not
+violated.  \secref{incompatibility-rule} defines the \emph{
+Incompatibility Rule} that, if satisfied by a pair of declarations,
+guarantees that neither declaration is applicable to the same
+functional call.  In \secref{more-specific-rule}, the \emph{Meet Rule}
+requires the existence of a declaration that is more specific than
+both overloaded declarations in the situation that both are applicable
+to a given call.
+
+In the remainder of this chapter, we build on the terminology and
+notation defined in \chapref{multiple-dispatch}
+and \chapref{conversions-coercions}.
+
+
+
+\section{Subtype Rule}
+\seclabel{subtype-rule}
+
+If the parameter type of one declaration is a subtype of the parameter
+type of another (and they are not the same) then there is no
+ambiguity between these two declarations: for every call to which both
+are applicable, the first is more specific.  This is the basis of the
+Subtype Rule.
+
+The Subtype Rule also requires a relationship between the return types
+of the two declarations.  Without such a requirement, a program may
+violate type safety.
+
+\paragraph{The Subtype Rule for Functions and Functional Methods:}
+Suppose that $\f(\Ps) : \Us$ and $\f(\Qs) : \Vs$ are two distinct
+function or functional method declarations in a single scope.
+If $\Ps \strictsubtype \Qs$ and $\Us \Ovrsubtype \Vs$ then $\f(\Ps)$ and
+$\f(\Qs)$ are a valid overloading.
+
+\paragraph{The Subtype Rule for Dotted Methods:}
+Suppose that $\Ps_0.\f(\Ps) : \Us$ and $\Qs_0.\f(\Qs) : \Vs$ are two
+distinct dotted method declarations provided by a trait or object $C$.
+If $\Ps_0 \strictsubtype \Qs_0$, $\Ps \strictsubtype \Qs$,
+and $\Us \Ovrsubtype
+\Vs$ then $\Ps_0.\f(\Ps)$ and $\Qs_0.\f(\Qs)$ are a valid overloading.
+
+\section{Incompatibility Rule}
+\seclabel{incompatibility-rule}
+
+The basic idea behind the Incompatibility Rule is that if there is no
+call to which two overloaded declarations are both applicable
+then there is no potential for ambiguous calls.  In such a case, we say
+that the declarations are incompatible.
+Without coercion, incompatibility is equivalent to exclusion.
+However, the presence of coercion complicates the definition of
+incompatibility.  To formally define incompatibility we first define the
+following notation.
+%
+For types $T$ and $U$,
+we say that $T$ and $U$ \emph{do not share coercions}, and write
+$T \noshare U$, if any type that coerces to $T$ excludes any type
+that coerces to $U$:
+\[
+T \noshare U \iff \forall A,B: A \coercedefto T \logicand B \coercedefto U
+                               \implies A \excludes B.
+\]
+%
+We say that $T$ \emph{is incompatible with} $U$, and write $T
+\incompatible U$, if $T$ and $U$ exclude, reject each other, and do
+not share coercions:
+\begin{align*}
+T \incompatible U \iff
+&T \excludes U \logicand T \rejects U \logicand U \rejects T \logicand  T \noshare U \\
+\iff
+&\phantom{\logicand\ } T \excludes U \\
+&\logicand\ (\forall A: A \coercedefto T \implies A \excludes U) \\
+&\logicand\ (\forall B: B \coercedefto U \implies B \excludes T) \\
+&\logicand\ (\forall A,B: A \coercedefto T \logicand B \coercedefto U
+                          \implies A \excludes B)
+\end{align*}
+Note that if $T \incompatible U$ then no type is substitutable for
+both $T$ and $U$.
+
+\paragraph{The Incompatibility Rule for Functions and Functional Methods:}
+
+Suppose that $\f(\Ps)$ and $\f(\Qs)$ are two distinct function or
+functional method declarations in a single scope.
+If $\Ps \incompatible \Qs$ then $\f(\Ps)$ and $\f(\Qs)$ are a valid overloading.
+
+\paragraph{The Incompatibility Rule for Dotted Methods:}
+Suppose that $\Ps_0.\f(\Ps)$ and $\Qs_0.\f(\Qs)$ are two distinct
+dotted method declarations provided by a trait or object $C$.  If
+$\Ps \incompatible \Qs$ then $\Ps_0.\f(\Ps)$ and $\Qs_0.\f(\Qs)$ are
+a valid overloading.
+
+\section{Meet Rule}
+\seclabel{more-specific-rule}
+
+If neither the Subtype Rule nor the Incompatibility Rule holds 
+for a pair of overloaded declarations 
+then the declarations introduce the possibility of ambiguity.  
+To avoid this ambiguity, 
+we require a \emph{disambiguating declaration}:
+for any possible arguments to which both declarations are applicable, 
+there must be another more specific declaration that is also applicable.  
+Thus, 
+if the functional is called with such arguments, 
+neither of the pair of declarations is executed 
+because the disambiguating declaration is also applicable, 
+and it is more specific than both.
+
+\note{What is "an intersection of two declarations"?
+-- Sukyoung
+
+For function declarations we require that the disambiguating
+declaration be the intersection of the pair of overloaded
+declarations.}
+
+\paragraph{The Meet Rule for Functions:}
+Suppose that $\f(\Ps)$ and $\f(\Qs)$ are two function
+declarations in a single scope
+such that neither $\Ps$ nor $\Qs$ is a subtype of the other and $\Ps$ and
+$\Qs$ are not incompatible with one another.
+Let $\mathpzc{S}$ be the set of types that $\Ps$ defines coercions from
+and $\mathpzc{T}$ be the set of types that $\Qs$ defines coercions from.
+$\f(\Ps)$ and $\f(\Qs)$ are a valid overloading if
+there is a declaration $\f(\Ps \inter \Qs)$ in the scope.
+
+all of the following hold:
+\begin{itemize}
+\item
+either $\Ps \excludes \Qs$ or there is a declaration $\f(\Ps \inter
+\Qs)$ in the scope,
+and
+\item
+either $\Ps \morespecific \Qs$ or $\Qs \morespecific \Ps$ or for all
+$\Ps' \in \mathpzc{S}$ and $\Qs' \in \mathpzc{T}$ one of the two
+conditions holds:
+\begin{itemize}
+\item
+$\Ps' \excludes \Qs'$, or
+\item
+there is a declaration $\f(\Ps' \inter \Qs')$ in the scope.
+\end{itemize}
+\end{itemize}
+
+Recall that $\Ps \inter \Qs$ is the intersection of types $\Ps$ and $\Qs$
+as defined in \secref{internal-types}.
+We write $\Ps \inter \Qs$ to denote the intersection of types $\Ps$ and $\Qs$.
+If for some type $S$ we have $S \Ovrsubtype P$ and $S \Ovrsubtype Q$ then
+$S \Ovrsubtype (P \intersect Q)$, but it is not necessarily the
+case that $S = (P \intersect Q)$ since another type may be more
+specific than both $P$ and $Q$.
+\label{adv-over-comprises}
+For example, suppose the following:
+%trait S comprises {U,V} end
+%trait T comprises {V,W} end
+%trait U extends S excludes W end
+%trait V extends {S,T} end
+%trait W extends T end
+%
+%f(s:S) = 1
+%f(t:T) = 1
+%f(v:V) = 1
+\begin{Fortress}
+\(\KWD{trait} S \KWD{comprises} \{U,V\} \KWD{end}\)\\
+\(\KWD{trait} T \KWD{comprises} \{V,W\} \KWD{end}\)\\
+\(\KWD{trait} U \KWD{extends} S \KWD{excludes} W \KWD{end}\)\\
+\(\KWD{trait} V \KWD{extends} \{S,T\} \KWD{end}\)\\
+\(\KWD{trait} W \KWD{extends} T \KWD{end}\)\\[4pt]
+\(f(s\COLONOP{}S) = 1\)\\
+\(f(t\COLONOP{}T) = 1\)\\
+\(f(v\COLONOP{}V) = 1\)
+\end{Fortress}
+Because of the \KWD{comprises} clauses of $S$ and $T$ and the \KWD{excludes}
+clause of $U$, any subtype of both $S$ and $T$ must be a subtype of
+$V$.  Thus, $V = S \inter T$, and the declaration $f(V)$
+``disambiguates'' $f(S)$ and $f(T)$, i.e., it is applicable to and more
+specific for any call to which both $f(S)$ and $f(T)$ are applicable.
+
+The Meet Rule shall not be difficult to obey, especially because
+the compiler can give useful feedback.  For example:
+
+%  foo(x:Number, y:ZZ64) = ...
+%  foo(x:ZZ64, y:Number) = ...
+\begin{Fortress}
+{\tt~~}\pushtabs\=\+\(  \VAR{foo}(x\COLONOP\TYP{Number}, y\COLONOP\mathbb{Z}64) = \ldots\)\\
+\(  \VAR{foo}(x\COLONOP\mathbb{Z}64, y\COLONOP\TYP{Number}) = \ldots\)\-\\\poptabs
+\end{Fortress}
+
+Assuming that \(\hbox{\ZZ64} \prec \hbox{\TYP{Number}}\), the compiler
+reports that these two declarations are a problem because of ambiguity
+and suggests that a new declaration for \EXP{\VAR{foo}({\ZZ64},
+{\ZZ64})} would resolve the ambiguity. As another example, consider:
+
+% bar(x:Printable) = ...
+% bar(x:Throwable) = ...
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \VAR{bar}(x\COLONOP\TYP{Printable}) = \ldots\)\\
+\( \VAR{bar}(x\COLONOP\TYP{Throwable}) = \ldots\)\-\\\poptabs
+\end{Fortress}
+
+Assuming that $\hbox{\TYP{Printable}}$ and $\hbox{\TYP{Throwable}}$
+are neither comparable by the subtyping relation nor disjoint, the
+compiler reports that these two declarations are a problem because
+\TYP{Printable} and \TYP{Throwable} are incomparable but possibly
+overlapping types.
+As a result, these two declarations are statically rejected.
+
+Unlike for functions, the Meet Rule for dotted methods only applies to
+dotted methods that are provided by the same trait or object.  This is
+possible because two dotted methods are applicable to a given call
+$\As_0.f(\As)$ only if they are both provided by the trait or object
+$\As_0$.
+
+\paragraph{The Meet Rule for Dotted Methods:}
+Suppose that $\Ps_0.\f(\Ps)$ and $\Qs_0.\f(\Qs)$ are two dotted method
+declarations provided by a trait or object $C$ such that neither
+$(\Ps_0, \Ps)$ nor $(\Qs_0, \Qs)$ is a subtype of the other and $\Ps$
+and $\Qs$ are not incompatible with one another.
+Let $\mathpzc{S}$ be the set of
+types that $\Ps$ defines coercions from and $\mathpzc{T}$ be the set
+of types that $\Qs$ defines coercions from.
+$\Ps_0.\f(\Ps)$ and
+$\Qs_0.\f(\Qs)$ are a valid overloading if
+there is a declaration $\Rs_0.\f(\Ps
+\inter \Qs)$ provided by $C$ with $\Rs_0 \Ovrsubtype (\Ps_0 \inter
+\Qs_0)$.
+
+all of the following hold:
+\begin{itemize}
+\item
+either $\Ps \excludes \Qs$ or there is a declaration $\Rs_0.\f(\Ps
+\inter \Qs)$ provided by $C$ with $\Rs_0 \Ovrsubtype (\Ps_0 \inter
+\Qs_0)$, and
+\item
+either $\Ps \morespecific \Qs$ or $\Qs \morespecific \Ps$ or
+for all $\Ps' \in \mathpzc{S}$ and
+$\Qs' \in \mathpzc{T}$ one of the two conditions holds:
+\begin{itemize}
+\item
+$\Ps' \excludes \Qs'$, or
+\item
+there is a declaration $\Rs_0.\f(\Ps' \inter \Qs')$ provided by $C$
+with $\Rs_0 \Ovrsubtype (\Ps_0 \inter \Qs_0)$.
+\end{itemize}
+\end{itemize}
+
+Recall that functional methods can be viewed semantically as top-level
+functions, as described in \secref{methods}.  However, treating
+functional methods as top-level functions for determining valid
+overloading is too restrictive.  In the following example:
+\input{\home/advanced/examples/Overloading.tex}
+if the functional methods were interpreted as top-level functions then
+this program would define two top-level functions with parameter types
+\EXP{\mathbb{Z}} and \EXP{\mathbb{R}}.
+These declarations would be
+statically rejected as
+an invalid overloading because there is no
+relation between \EXP{\mathbb{Z}} and \EXP{\mathbb{R}}; another trait
+may extend them both without declaring its own version of the
+functional method which may lead to an ambiguous call at run time.
+However, notice that declaraions are ambiguous only for calls on
+arguments that extend both \EXP{\mathbb{Z}} and \EXP{\mathbb{R}}, and
+any type that extends both can include a new declaration that
+disambiguates them.  We use this intuition to allow such overloadings.
+
+\paragraph{The Meet Rule for Functional Methods:}
+Suppose that $\f(\Ps)$ and $\f(\Qs)$ are two functional method
+declarations occurring in trait or object declarations or object expressions
+such that neither $\Ps$ nor $\Qs$ is a subtype of the other and $\Ps$ and $\Qs$
+are not incompatible with one another.  Let $\f(\Ps)$ and $\f(\Qs)$
+have self parameters at $i$ and $j$ respectively.
+$\f(\Ps)$ and $\f(\Qs)$ are a valid
+overloading if all of the following hold:
+\begin{itemize}
+\item
+$i = j$
+\item if there exists a trait or object $C$
+that provides both $\f(\Ps)$ and $\f(\Qs)$ then $\Ps \neq \Qs$ and
+there is a declaration $\f(\Ps \inter \Qs)$ provide by $C$
+having self parameter at $i$.
+\end{itemize}
+
+Also, let $\mathpzc{S}$ be the set of types that $\Ps$
+defines coercions from and $\mathpzc{T}$ be the set of types that
+$\Qs$ defines coercions from.  $\f(\Ps)$ and $\f(\Qs)$ are a valid
+overloading if all of the following hold:
+\begin{itemize}
+\item
+$i = j$
+\item
+either $\Ps \excludes \Qs$ or if there exists a trait or object $C$
+that provides both $\f(\Ps)$ and $\f(\Qs)$ then $\Ps \neq \Qs$ and
+there is a declaration $\f(\Ps \inter \Qs)$ provide by $C$, and
+\item
+either $\Ps \morespecific \Qs$ or $\Qs \morespecific \Ps$ or
+for all $\Ps' \in \mathpzc{S}$ and
+$\Qs' \in \mathpzc{T}$ one of the two conditions holds:
+\begin{itemize}
+\item
+$\Ps' \excludes \Qs'$, or
+\item
+there is a declaration $\f(\Ps' \inter \Qs')$ provided by $C$.
+\end{itemize}
+\end{itemize}
+
+Notice that the Meet Rule for functional methods requires the self
+parameters of two overloaded declarations to be in the same position.
+This requirement guarantees that no ambiguity is caused by the
+position of the self parameter.  Two declarations which differ in the
+position of the self parameter must satisfy either the Subtype Rule or
+the Incompatibility Rule to be a valid overloading.
+
+Functional method declarations can overload with function declaraions.
+A valid overloading between a functional method declaration and
+a function declaration is
+determined by applying the (more restrictive) Meet Rule for functions
+to both declarations.
+
+\section{Coercion and Overloading Resolution}
+
+The overloading rules given in this chapter are
+sufficient to prove the following two facts:
+\begin{enumerate}
+\item
+If no declaration is applicable to a static call but there is a
+declaration that is applicable with coercion then there exists a
+single most specific declaration that is applicable with coercion to
+the static call.
+\item
+If any declaration is applicable to a static call then there exists a
+single most specific declaration that is applicable to the static call
+and a single most specific declaration that is applicable to the
+corresponding dynamic call.
+\end{enumerate}
+
+Moreover, we can prove that the most specific declaration that is
+applicable to a dynamic call is more specific than the most specific
+declaration that is applicable to the corresponding static call.
+
+\appref{overloaded-functional} formally proves that
+the rules discussed in the previous sections guarantee the static resolution of
+coercion (described in \secref{resolving-coercion}) is well defined
+for functions (the case for methods is analogous).  Also in
+\appref{overloaded-functional} is a proof that
+the overloading rules for
+ function declarations are sufficient to guarantee no
+undefined nor ambiguous calls at run time (again,
+the case for methods is analogous).

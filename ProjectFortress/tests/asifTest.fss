@@ -1,0 +1,116 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component asifTest
+import List.{...}
+export Executable
+
+(* For still-not-working cases involving self parameters, see
+   commented-out code below, and non-commented version in
+   not_passing_yet/asifSelf.fss; also see bug #63. *)
+
+propAsif[\T extends Foo\](x:T, y:T): Boolean =
+    (x = (y asif T))
+
+trait Quux
+    passQuux(): Boolean = true
+end
+
+trait Foo extends { Quux, Equality[\Foo\] }
+    passFoo(): Boolean = true
+    passBar(): Boolean = false
+    opr =(self, x:Foo): Boolean = false
+end
+
+object Bar extends Foo
+    getter asString(): String = "Bar"
+    passFoo(): Boolean = false
+    passBar(): Boolean = true
+    passQuux(): Boolean = false
+    opr =(self, x:Bar): Boolean = true
+end
+
+object Baz extends Foo
+    getter asString(): String = "Baz"
+    passFoo(): Boolean = false
+    passQuux(): Boolean = false
+    opr =(self, x:Baz): Boolean = true
+end
+
+opr EEK(x:Foo, y:Foo): Boolean = false
+opr EEK(x:Bar, y:Bar): Boolean = true
+opr EEK(x:Baz, y:Baz): Boolean = true
+opr NEEK(x:Foo, y:Foo): Boolean = NOT (x EEK y)
+
+run():() = do
+    (* Generic non-overloaded function *)
+    x : List[\Foo\] = <| Bar asif Foo, Bar, Bar |>
+    y : List[\Foo\] = <| Baz asif Foo, Baz |>
+    (* Now appending the two ought to work. *)
+    println(x || y)
+
+    (* Top-level overloading *)
+    a : List[\RR64\] = <| 1.0 asif RR64, 2.0, 3.0, 4.0 |>
+    assert(a,<|1 asif RR64,2,3,4|>," lists ought to compare at RR64")
+
+    assert(Bar EEK Bar, true, " Bar unequal")
+    assert(Baz EEK Baz, true, " Baz unequal")
+    assert(Bar EEK Baz, false, " Bar EEK Baz")
+    assert(Baz EEK Bar, false, " Baz EEK Bar")
+    assert((Bar asif Foo) EEK Bar, false, " Foo EEK Bar")
+    assert(Bar EEK (Bar asif Foo), false, " Bar EEK Foo")
+    assert((Bar asif Foo) EEK (Bar asif Foo), false, " Foo EEK Foo")
+    assert((Bar asif Foo) NEEK (Bar asif Foo), false,
+           " Bar NEEK Bar failed to strip an asif!")
+
+    (* Functional method *)
+    assert(Bar = Bar, true, " Bar unequal")
+    assert(Baz = Baz, true, " Baz unequal")
+    assert(Bar = Baz, false, " Bar=Baz")
+    assert(Baz = Bar, false, " Baz=Bar")
+    assert(Bar = (Bar asif Foo), false, " Bar = Foo")
+    assert(Bar =/= (Bar asif Foo), false, " Bar =/= Bar failed to strip asif!")
+    assert((Bar asif Foo) = (Baz asif Foo), false, " Foo = Foo")
+    assert((Bar asif Foo) =/= Bar, false,
+           " Foo=/=Foo failed to strip an asif!")
+    assert((Bar asif Foo) = Bar, false, " Foo = Bar")
+
+    (* Dotted method *)
+    assert(Bar.passBar(), true, "NOT Bar.passBar()")
+    assert(Baz.passBar(), false, "Baz.passBar()")
+    assert(Bar.passFoo(), false, "Bar.passFoo()")
+    assert(Bar.passQuux(), false, "Bar.passQuux()")
+    assert((Bar asif Foo).passFoo(), true, "NOT Foo.passFoo()")
+    assert((Bar asif Foo).passBar(), false, "NOT Foo.passFoo()")
+    assert((Bar asif Foo).passQuux(), true, "NOT Bar.passQuux()")
+
+    (* Propagation *)
+    assert(propAsif(Bar, Bar), true, "NOT propAsif(Bar,Bar)")
+    assert(propAsif(Baz, Bar), false, "propAsif(Baz,Bar)")
+    assert(propAsif(Bar asif Foo, Bar), false, "propAsif(Foo,Bar)")
+    assert(propAsif(Bar, Bar asif Foo), false, "propAsif(Bar,Foo)")
+
+    (* Mixed generic and overloaded method, at supertype. *)
+    z = (3 asif RR64) + 17
+    typecase z of
+        z':ZZ64 => println("FAIL, got ZZ64 " z')
+        z':RR64 => println("PASS, got RR64 " z')
+        else => println("Got unknown typed " z)
+    end
+
+    (* Comprehension
+    b : List[\Foo\] = <| Bar asif Foo | _ <- 0#3 |>
+    println(b)
+    assert(b,x," ought to compare at Foo")
+    *)
+  end
+
+end

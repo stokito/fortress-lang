@@ -1,0 +1,33 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component DXXArrayElement
+  export Executable
+
+  foo() : () = do
+    var a1 : Array1[\String,0,1\] (*
+    var a2 : Array[\String,ZZ32\]
+    var a3 : Array1[\Any,0,1\] *)
+
+    (* not a subtype of explicit type *)
+    a1 := [[\ZZ32,0,1\]"NelsRulesSuckers"]
+
+    (*
+    a1 := ["NelsRulesSuckers"]
+
+    a2 := [[\String,0,1\]"NelsRulesSuckers"]
+    a2 := ["NelsRulesSuckers"]
+
+    a3 := [[\Any,0,1\]"NelsRulesSuckers"] *)
+end
+
+  run():()= ()
+end

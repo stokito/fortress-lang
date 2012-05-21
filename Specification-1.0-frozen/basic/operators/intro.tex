@@ -1,0 +1,72 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\note{Multifix operators and dimensions and units
+are not yet supported.}
+
+\note{Synonym Operators: Victor's email titled ``Synonyms [Fwd: Re: What the heck are 0-width spaces for?]'' on 09/12/07}
+
+Operators are like functions or methods; operator declarations are
+described in \chapref{operatordefs} and operator applications are
+described in \secref{operator-app-expr}, \secref{reduction-expr}, and
+\secref{comprehensions}.
+Operators are not values; when an operator is passed as an argument to a
+function, it should be eta expanded.
+Just as functions or methods may be overloaded (see
+\chapref{multiple-dispatch} for a discussion of overloading),
+so operators may have overloaded declarations of the same fixity.
+Operator declarations with the same operator name but with different fixities
+are valid declarations because it is always unambiguous which declaration
+shall be applied to an application of the operator.
+Calls to overloaded operators are resolved first via the
+fixity of the operators based on the context of the calls.
+Then, among the applicable declarations with that fixity,
+the most specific declaration is chosen.
+
+Most operators can be used as prefix, infix, postfix, or
+nofix operators as described in \secref{operator-fixity}
+(nofix operators take no arguments);
+the fixity of an operator is determined syntactically,
+and the same operator may have declarations for multiple fixities.
+A simple example is that `\EXP{-}' may be either infix or prefix,
+as is conventional.
+As another example, `\EXP{!}' may be a
+postfix operator that computes factorial when applied to integers.
+These operators might not be used as enclosing operators.
+
+
+Several pairs of operators can be used as enclosing operators.  Any number
+of `\txt{|}' (vertical line) can be used as both infix operators and
+enclosing operators.
+
+
+Some operators are always postfix: a `\txt{\char'136}' followed by
+any ordinary operator (with no intervening whitespace) is considered to be a
+superscripted postfix operator.  For example, `\EXP{\txt{\char'136}*}' and
+`\EXP{\txt{\char'136}{+}}' and `\EXP{\txt{\char'136}?}'
+are available for use as part
+of the syntax of extended regular expressions.  As a very special case,
+`\EXP{\txt{\char'136}T}' is also considered to be a superscripted
+postfix operator,
+typically used to signify matrix transposition.
+
+
+Finally, there are special operators such as juxtaposition
+and operators on dimensions and units.
+Juxtaposition may be a function application or
+an infix operator in Fortress.
+When the left-hand-side expression is a function, juxtaposition performs
+function application; when the left-hand-side expression is a number,
+juxtaposition conventionally performs multiplication; when the
+left-hand-side expression is a string,
+juxtaposition conventionally performs string concatenation.
+Fortress provides several operators on dimensions and units
+as described in \chapref{dimunits}.

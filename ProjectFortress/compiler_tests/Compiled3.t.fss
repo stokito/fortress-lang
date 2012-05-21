@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled3.t
+export Executable
+
+trait T comprises { O, P } end
+
+trait O extends T comprises { Q, R } end
+
+object Q extends O end
+
+object R extends O end
+
+trait P extends T comprises { S, U } end
+
+object S extends P end
+
+object U extends P end
+
+f(): () = ()
+f(x: O): () = ()
+f(x: P): () = ()
+
+run(): () = ()
+
+end

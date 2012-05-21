@@ -1,0 +1,170 @@
+ (*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ChunkedSparseArray
+import NatReflect.{...}
+import List.{...}
+export ChunkedSparseArray
+
+popCount(x0:ZZ64): ZZ32 = do
+    (* Not actually a very good pop count algorithm, but not the *most* naive. *)
+    x : ZZ64 := x0
+    pop : ZZ32 := 0
+    while x =/= 0 do
+        x BITAND= x-1
+        pop += 1
+    end
+    pop
+  end
+
+(*
+bitNum(x : ZZ64): ZZ32 = do
+    test(m,v) = if (m BITAND x) = 0 then 0 else v
+    test(-268435456,32) + test(-281470681808896,16) + test(-71777214294589696,8) +
+      test(-1085102592571150096,4) + test(-3689348814741910324,2) +
+        test(-6148914691236517206,1)
+  end
+
+value object Bits(x0:ZZ64) extends SequentialGenerator[\ZZ32\]
+    generate[\R\](r: Reduction[\R\], body: E -> R): R =
+        x : ZZ64 := x0
+        res : R := r.empty()
+        while x =/= 0 do
+            x1 = x - 1
+            loBit = popCount(x1 BITAND (-x))
+        end
+      end
+end
+*)
+
+object ChunkedSparseArray[\T, nat n\](defaultValue : T) extends Array1[\T,0,n\]
+    emptyArray : Array1[\T,0,0\] = array1[\T,0\]()
+    (* We use an array of tuples rather than a pair of arrays for
+       synchronization reasons.  We can automatically retrieve
+       pairs atomically. *)
+    data : Array[\(ZZ64,Array[\T,ZZ32\]),ZZ32\] =
+                        array[\(ZZ64,Array[\T,ZZ32\])\]((n+63) DIV 64).fill(0,emptyArray)
+    getter indices(): Generator[\ZZ32\] =
+        data.indexValuePairs.nest[\ZZ32\](
+            fn (i:ZZ32, t:(ZZ64,Array[\T,ZZ32\])): Generator[\ZZ32\] => do
+                (fe, d) = t
+                if fe = 0 then
+                    Nothing[\ZZ32\]
+                else
+                    i64 = 64 i
+                    present(b:ZZ32):Maybe[\ZZ32\] =
+                        if ((widen(1) LSHIFT b) BITAND fe) = 0 then
+                            Nothing[\ZZ32\]
+                        else
+                            Just[\ZZ32\](b + i64)
+                        end
+                    (0#64).nest[\ZZ32\](present)
+                end
+              end)
+    getter asString(): String =
+        "[" self.bounds "] = [" (BIG ||[(i,v) <- self.indexValuePairs] " " i "|->" v) " ]"
+    getter asDebugString(): String = data.asString
+    indexAndMask(i:ZZ32) : (ZZ32,ZZ64) = (i RSHIFT 6, widen(1) LSHIFT (i BITAND 63))
+    secondaryIndex(fe:ZZ64, mask:ZZ64):ZZ32 = popCount((mask-1) BITAND fe)
+    isSet(i:ZZ32): Boolean = isSet0(offset(i))
+    isSet0(i:ZZ32): Boolean = do
+        (i1, m) = indexAndMask(i)
+        (fe, d) = data[i1]
+        ((m BITAND fe) =/= 0)
+      end
+    get(i:ZZ32): T = do
+        (i1, m) = indexAndMask(i)
+        (fe, d) = data[i1]
+        if (m BITAND fe) = 0 then
+            defaultValue
+        else
+            d[secondaryIndex(fe,m)]
+        end
+      end
+    put(i:ZZ32, v:T): () = do
+        (i1, m) = indexAndMask(i)
+        atomic do
+            (fe, d) = data[i1]
+            i2 = secondaryIndex(fe,m)
+            if (m BITAND fe) = 0 then
+                init00(fe,d,i1,m,i2,v)
+            else
+                d[i2] := v
+            end
+        end
+      end
+    init0(i:ZZ32, v:T): () = do
+        (i1, m) = indexAndMask(i)
+        atomic do
+            (fe, d) = data[i1]
+            if (m BITAND fe) = 0 then
+                init00(fe,d,i1,m,secondaryIndex(fe,m),v)
+            else
+                fail("ChunkedSparseArray.init0: duplicate initialization at " i)
+            end
+        end
+      end
+    init00(fe:ZZ64,d:Array[\T,ZZ32\],i1:ZZ32,m:ZZ64,i2:ZZ32,v:T):() = do
+        d1 = array[\T\](|d| + 1)
+        d1.init(i,d[i]), i <- 0:(i2-1)
+        d1.init(i2,v)
+        d1.init(i+1,d[i]), i <- i2:(|d| - 1)
+        data[i1] := (m BITOR fe, d1)
+      end
+end
+
+chunkedSparseArray[\T\](n:ZZ32,t:T): Array[\T,ZZ32\] = csa(reflect(n),t asif T)
+
+csa[\T, nat n\](_:N[\n\], t:T): Array[\T,ZZ32\] = ChunkedSparseArray[\T,n\](t)
+
+chk(d:String,i:ZZ32,n:ZZ32,s:Boolean,m:ZZ32): () =
+    if (i MOD m) = 0 then
+        if n =/= i OR NOT s then
+            println("FAIL: " d ": unexpected value " n " at " i "; isSet = " s)
+        end
+    elif n =/= -1 OR s then
+        println("FAIL: " d " : value " n " should be absent at " i "; isSet = " s)
+    end
+
+chki(d:String,i:ZZ32,n:ZZ32,m:ZZ32): ZZ32 =
+    if (i MOD m) = 0 then
+        if n =/= i then
+            println("FAIL: " d ": unexpected value " n " at " i)
+            0
+        else
+            1
+        end
+    else
+        println("FAIL: Index " i " is uninitialized and should be skipped.")
+        0
+    end
+
+test go(): () = do
+    a : ZZ32[1077] = chunkedSparseArray[\ZZ32\](1077,-1)
+    b : ZZ32[1077] = ChunkedSparseArray[\ZZ32,1077\](-1)
+    a.init(123 i, 123 i), i <- 0 # ((1077+122) DIV 123)
+    b[23 i] := 23 i, i <- 0 # ((1077+22) DIV  23)
+    for i <- a.bounds do
+        chk("a",i,a[i],a.isSet(i),123)
+    end
+    for i <- b.bounds do
+        chk("b",i,b[i],b.isSet(i),23)
+    end
+    e_b = SUM [i <- b.indices, b.isSet(i)] chki("bi",i,b[i],23)
+    assert(e_b, (1077+22) DIV 23, "Wrong number of set elements in ",b)
+    e_a = SUM [(i,n) <- a.indexValuePairs, a.isSet(i)] chki("bi",i,n,123)
+    assert(e_a, (1077+122) DIV 123, "Wrong number of set elements in ",a)
+    println("Tests complete.")
+  end
+
+test run():() = ()
+
+end
