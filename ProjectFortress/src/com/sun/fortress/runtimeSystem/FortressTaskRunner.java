@@ -16,7 +16,7 @@ import java.util.concurrent.Callable;
 
 public class FortressTaskRunner extends ForkJoinWorkerThread {
 
-    public volatile FortressAction action;
+    public volatile BaseTask task;
     private int retries;
     private static long startTime = System.currentTimeMillis();
 
@@ -39,31 +39,31 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
         return runner.retries;
     }
 
-    public FortressAction action() {
-        return action;
+    public BaseTask task() {
+        return task;
     }
 
-    public static FortressAction getAction() {
+    public static BaseTask getTask() {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-        return runner.action;
+        return runner.task;
     }
 
     public static Transaction transaction() {
-        return getAction().transaction();
+        return getTask().transaction();
     }
 
     public static boolean inATransaction() {
         return transaction() != null;
     }
 
-    public void setAction(FortressAction t) {
-        action = t;
+    public void setTask(BaseTask t) {
+        task = t;
     }
 
-//     public static void setCurrentTask(BaseTask task) {
-//         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
-//         runner.setTask(task);
-//     }
+    public static void setCurrentTask(BaseTask task) {
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+        runner.setTask(task);
+    }
 
 
     public FortressTaskRunner(FortressTaskRunnerGroup group) {
@@ -84,7 +84,7 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
     public static void debugPrintln(String msg) {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
         long t = System.currentTimeMillis() - startTime;
-        System.out.println(runner.getName() + ":" + runner.action() + ":" + t + "ms " + msg);
+        System.out.println(runner.getName() + ":" + runner.getTask() + ":" + t + "ms " + msg);
     }
 
     /**
