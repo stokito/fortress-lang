@@ -74,6 +74,7 @@ component Util
   trait SequentialGenerator[\E\] extends { Generator[\E\] }
     getter asString(): String = "seq"
     seq(self): SequentialGenerator[\E\] = self
+    loop(f:E->()): () = generate[\()\](VoidReduction, f)
   end SequentialGenerator
 
   trait Indexed[\E, I\] extends Generator[\E\] end
