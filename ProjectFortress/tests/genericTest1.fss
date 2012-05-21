@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component genericTest1
+export Executable
+
+f[\nat n\]():ZZ32 = n
+g[\nat n, nat m\]():ZZ32 = n+m
+
+run():()=do
+
+  println(
+  if (f[\1\]() + g[\2,3\]() = 6) then "pass" else "fail" end
+  )
+end
+
+end

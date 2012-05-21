@@ -1,0 +1,13 @@
+component ComplexJar
+
+import I.{...}
+export Executable
+
+object A 
+   s() = i()
+end
+
+run(): () = 
+  println(A.s())
+
+end

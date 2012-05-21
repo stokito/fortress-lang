@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component FuncOfFuncTest
+export Executable
+
+trait Either[\A,B\] comprises { Left[\A,B\], Right[\A,B\] }
+    getter unLeft(): A = fail("unLeft")
+    getter unRight(): B = fail("unRight")
+  end
+
+object Left[\A,B\](datum: A) extends { Either[\A,B\] }
+    getter unLeft(): A = datum
+  end
+
+object Right[\A,B\](datum: B) extends { Either[\A,B\] }
+    getter unRight(): B = datum
+  end
+
+either[\A,B,R\](it: Left[\A,B\], lefter: A -> R, _: B -> R): R = lefter(it.unLeft())
+either[\A,B,R\](it: Right[\A,B\], _: A -> R, righter: B -> R): R = righter(it.unRight())
+
+run():() = do
+  l : Either[\ZZ32,RR64\] = Left[\ZZ32,RR64\](32)
+  r : Either[\ZZ32,RR64\] = Right[\ZZ32,RR64\](64.0)
+  (* Deleting the type instantiations in either of these will cause a
+     nasty crash with a null pointer exception. *)
+  println(either(l, identity[\ZZ32\], fn _ => 17))
+  println(either(r, fn _ => 17.0, identity[\RR64\]))
+end
+
+end

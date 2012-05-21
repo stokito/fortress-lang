@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Generic top-level functions using generic types *)
+
+f[\T extends ZZ32\](x:T):T = x
+g[\T extends ZZ32, S\](x:T):ZZ32 = f[\T\](x) + 5
+
+run() =do
+  a = f[\ZZ32\](0)        (*) 0
+  b = g[\ZZ32,String\](0) (*) 5
+  c : ZZ32 = f[\ZZ32\](1 + 4)
+  d : ZZ32 = f[\ZZ32\](0+0)
+
+  println(
+  if (a=d=0 AND b=c=5)
+     then "PASS" else "FAIL" end
+  )
+end

@@ -1,0 +1,194 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component RangeTest
+import List.{...}
+export Executable
+
+chkOrder[\T\](a:Range[\T\], b:Range[\T\], expect: Comparison): () = do
+    (* println("Comparing " a " and " b " expect " expect) *)
+    i = a INTERSECTION b
+    (* First cross-check the lattice property!  That tells us what we *should* say. *)
+    (ca,cb,cc) = (i CMP a, i CMP b, expect)
+    typecase (ca,cb,cc) of
+        (EqualTo, LessThan, LessThan) => ()
+        (LessThan, EqualTo, GreaterThan) => ()
+        (EqualTo, EqualTo, EqualTo) => ()
+        (LessThan, LessThan, Unordered) => ()
+        else =>
+            fail("Intersection has the wrong relationships to comparison.\n"
+                 a " INTERSECTION " b " = " i " which is " ca " wrt former and " cb " wrt latter.\n"
+                 "Expected relationship: " expect)
+    end
+    assert(a CMP b, expect, "Comparing ", a, " and ", b)
+
+    assert(b CMP a, INVERSE expect, "InvComp ", a, " and ", b)
+    typecase expect of
+        LessThan =>
+            assert(a < b, "Not <")
+            assert(a <= b, "Not <=")
+            assert(NOT (a > b), ">")
+            assert(NOT (a >= b), ">=")
+            assert(NOT (a = b), "< =")
+            assert(b > a, "< Not >")
+            assert(b >= a, "< Not >=")
+            assert(NOT (b < a), "< <")
+            assert(NOT (b <= a), "< <=")
+            assert(NOT (b = a), "< ='")
+        EqualTo =>
+            assert(a = b, "Not =")
+            assert(a <= b, "= Not <=")
+            assert(a >= b, "= Not >=")
+            assert(NOT (a < b), "= <")
+            assert(NOT (a > b), "= >")
+            assert(b = a, "Not ='")
+            assert(b >= a, "= Not >=")
+            assert(b <= a, "= Not <=")
+            assert(NOT (b > a), "= >'")
+            assert(NOT (b < a), "= <'")
+        GreaterThan =>
+            assert(a > b, "Not >")
+            assert(a >= b, "Not >=")
+            assert(NOT (a < b), "<")
+            assert(NOT (a = b), "> =")
+            assert(b < a, "> Not <")
+            assert(b <= a, "> Not <=")
+            assert(NOT (b > a), "> >")
+            assert(NOT (b = a), "> ='")
+        Unordered =>
+            assert(NOT (a = b), "U =")
+            assert(NOT (a < b), "U <")
+            assert(NOT (a <= b), "U <=")
+            assert(NOT (a > b), "U >")
+            assert(NOT (a >= b), "U >=")
+            assert(NOT (b = a), "U ='")
+            assert(NOT (b < a), "U <'")
+            assert(NOT (b <= a), "U <='")
+            assert(NOT (b > a), "U >'")
+            assert(NOT (b >= a), "U >='")
+      end
+  end
+
+run():() = do
+    mt : Range[\ZZ32\] = openRange[\ZZ32\]()
+    llo : Range[\ZZ32\] = 0:
+    hlo : Range[\ZZ32\] = 5#
+    lsz : Range[\ZZ32\] = #3
+    hsz : Range[\ZZ32\] = #7
+    lhi : Range[\ZZ32\] = :4
+    hhi : Range[\ZZ32\] = :8
+    ll  : Range[\ZZ32\] = 0#4
+    lm  : Range[\ZZ32\] = 0:7
+    lh  : Range[\ZZ32\] = 0#10
+    lh' : Range[\ZZ32\] = 0:9
+    mm  : Range[\ZZ32\] = 6:7
+    mh  : Range[\ZZ32\] = 6:10
+    hh  : Range[\ZZ32\] = 8:10
+    assert(mt >> 7, mt)
+    assert(llo >> 7, 7:)
+    assert(hlo >> 7, 12#)
+    assert(lsz >> 7, lsz)
+    assert(hsz >> 5, hsz)
+    assert(lhi >> 7, :11)
+    assert(hhi >> 7, :15)
+    assert(ll >> 7, 7#4)
+    assert(lm  >> 6,  6:13)
+    assert(lh  >> 7, 7#10)
+    assert(lh' >> 7, 7:16)
+    assert(mm  >> 5, 11:12)
+    assert(mh  >> 7,  13:17)
+    assert(hh  >> 7, 15:17)
+
+    assert(mt << 5, mt)
+    assert(llo << 5, (-5):)
+    assert(hlo << 5, 0#)
+    assert(lsz << 5, lsz)
+    assert(hsz << 5, hsz)
+    assert(lhi << 5, :-1)
+    assert(hhi << 5, :3)
+    assert(ll  << 5, -5#4)
+    assert(lm  << 5,  (-5):2)
+    assert(lh  << -5, lh >> 5)
+    assert(lh' << -5, lh' >> 5)
+    assert(mm  << 5, 1:2)
+    assert(mh  << 5,  1:5)
+    assert(hh  << 5, 3:5)
+(*    TODO: write the Expr String methods
+    assert((0:).asExprString, "0:")
+    assert((5#).asExprString, "5#")
+    assert((#3).asExprString, "#3")
+    assert((:4).asExprString, ":4")
+    assert((0#4).asExprString, "0#4")
+    assert((2:5).asExprString, "2:5")
+    assert((1:10:2).asExprString, "(1:10):2")
+    assert((::4).asExprString, "::4")
+*)
+    chkOrder(mt,mt,EqualTo)
+    for i <- <|llo, hlo, lsz, hsz, lhi, hhi, ll, lm, lh', lh, mm, mh, hh|> do
+        chkOrder(mt,i,GreaterThan)
+        chkOrder(i,i,EqualTo)
+    end
+    chkOrder(llo,hlo,GreaterThan)
+    for i <- <|lsz,hsz|> do
+        chkOrder(llo,i,Unordered)
+        chkOrder(hlo,i,Unordered)
+    end
+    for i <- <|lhi,hhi|> do
+        chkOrder(llo,i,Unordered)
+        chkOrder(hlo,i,Unordered)
+    end
+    for i <- <|ll,lm,lh',lh|> do (*'*)
+        chkOrder(llo,i,GreaterThan)
+        chkOrder(hlo,i,Unordered)
+    end
+    for i <- <|mm,mh,hh|> do
+        chkOrder(llo,i,GreaterThan)
+        chkOrder(hlo,i,GreaterThan)
+    end
+    chkOrder(lsz,hsz,LessThan)
+    for i <- <|lhi,hhi,lm,lh',lh|> do (*'*)
+        chkOrder(lsz,i,Unordered)
+        chkOrder(hsz,i,Unordered)
+    end
+    for i <- <|ll,mh|> do
+        chkOrder(lsz,i,Unordered)
+        chkOrder(hsz,i,GreaterThan)
+    end
+    for i <- <|mm,hh|> do
+        chkOrder(lsz,i,GreaterThan)
+        chkOrder(hsz,i,GreaterThan)
+    end
+    chkOrder(lhi,hhi,LessThan)
+    chkOrder(lhi,ll,GreaterThan)
+    chkOrder(hhi,ll,GreaterThan)
+    for i <- <|lm,mm|> do
+        chkOrder(lhi,i,Unordered)
+        chkOrder(hhi,i,GreaterThan)
+    end
+    for i <- <|lh,mh,hh|> do
+        chkOrder(lhi,i,Unordered)
+        chkOrder(hhi,i,Unordered)
+    end
+    chkOrder(ll,lm,LessThan)
+    chkOrder(ll,lh',LessThan)
+    chkOrder(ll,lh,LessThan)
+    chkOrder(ll,i,Unordered), i <- <|mm,mh,hh|>
+    chkOrder(lm,lh',LessThan)
+    chkOrder(lm,lh,LessThan)
+    chkOrder(lm,i,Unordered), i <- <|mh,hh|>
+    chkOrder(lh,i,Unordered), i <- <|mh,hh|>
+    chkOrder(mm,i,LessThan), i <- <|lm,lh',lh,mh|>
+    chkOrder(mm,hh,Unordered)
+    chkOrder(lh,lh',EqualTo)
+    chkOrder(lh',lh,EqualTo)
+  end
+
+end

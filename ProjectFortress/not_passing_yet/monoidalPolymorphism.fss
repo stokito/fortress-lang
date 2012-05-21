@@ -1,0 +1,94 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component monoidalPolymorphism
+export Executable
+
+object Identity[\opr OPLUS\]()
+end
+
+object Zero[\opr OTIMES\]()
+end
+
+trait Monoid[\T extends Monoid[\T,OPLUS\], opr OPLUS\]
+  opr OPLUS(self, other:T):T
+end
+
+trait EquivalenceRelation[\T extends EquivalenceRelation[\T, ~\], opr ~\]
+  opr ~(self, other:T):Boolean
+end
+
+trait TotalOrder[\T extends TotalOrder[\T,<,<=,=,>=,>\],opr <,opr <=,opr =,opr >=,opr >\]
+    extends { EquivalenceRelation[\T, =\] }
+  opr <(self, other:T):Boolean = NOT (self >= other)
+  opr <=(self, other:T):Boolean
+  opr >(self, other:T):Boolean = NOT (self <= other)
+  opr >=(self, other:T):Boolean = other <= self
+end
+
+object Nn(x:ZZ32)
+  extends { Monoid[\Nn, OTIMES\], Monoid[\Nn, OPLUS\], Monoid[\Nn, MAX\],
+            TotalOrder[\Nn, LESS, LESSEQ, EQ, GREATEQ, GREAT\] }
+    opr OPLUS(self, other:Nn):Nn = Nn(x + other.x)
+    opr OTIMES(self, other:Nn):Nn = Nn(x other.x)
+    opr MAX(self, other:Nn):Nn = Nn(x MAX other.x)
+    opr EQ(self, other:Nn):Boolean = (x = other.x)
+    opr LESSEQ(self, other:Nn):Boolean = (x <= other.x)
+end
+
+c[\T extends TotalOrder[\T,LTT,LEE,EEQ,GEE,GTT\],opr LTT, opr LEE, opr EEQ, opr GEE, opr GTT\](x:T, y:T): () =
+    if x LTT y then
+        assert(x LEE y,"< not LEE")
+        assert(NOT (x EEQ y),"< EEQ")
+        assert(NOT (x GEE y),"< GEE")
+        assert(NOT (x GTT y),"< GTT")
+        assert(y GTT x,"< not GTT")
+        assert(y GEE x,"< not GEE")
+        assert(NOT (y EEQ x),"< EEQ r")
+        assert(NOT (y LEE x),"< LEE")
+        assert(NOT (y LTT x),"< LTT")
+        println("LTT OK")
+    elif x GTT y then
+        assert(x GEE y,"> not GEE")
+        assert(NOT (x EEQ y),"> EEQ")
+        assert(NOT (x LEE y),"> LEE")
+        assert(y LTT x,"> not LTT")
+        assert(y LEE x,"> not LEE")
+        assert(NOT (y EEQ x),"> EEQ r")
+        assert(NOT (y GEE x),"> GEE")
+        assert(NOT (y GTT x),"> GTT")
+        println("GTT OK")
+    else
+        assert(x EEQ y,"= not EEQ")
+        assert(y EEQ x,"= not EEQ r")
+        assert(x GEE y,"= not GEE")
+        assert(y GEE x,"= not GEE r")
+        assert(x LEE y,"= not LEE")
+        assert(y LEE x,"= not LEE r")
+        assert(NOT (x GTT y),"= GTT")
+        assert(NOT (y GTT x),"= GTT r")
+        assert(NOT (x LTT y),"= LTT")
+        assert(NOT (y LTT x),"= LTT r")
+        println("EEQ OK")
+    end
+
+run() = do
+  n1 = Nn(1)
+  n2 = Nn(2)
+  println(n1.x " and " n2.x)
+  (* Neither explicit instantiation nor inference work. *)
+  c[\Nn,LESS,LESSEQ,EQ,GREATEQ,GREAT\](n1,n1)
+  c(n2,n2)
+  c(n1,n2)
+  c(n2,n1)
+end
+
+end

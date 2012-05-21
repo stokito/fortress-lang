@@ -1,0 +1,21 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+
+if [ -z "$FORTRESS_HOME" ]; then
+   export FORTRESS_HOME="`${0%comp/finit}fortress_home`"
+fi
+
+$FORTRESS_HOME/ant cleanCache > /dev/null
+$FORTRESS_HOME/bin/fortress link ProjectFortress/LibraryBuiltin/CompilerBuiltin.fss > /dev/null
+

@@ -1,0 +1,43 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\exprdir}{\langdir/Expressions}
+
+\newchap{Expressions}{expressions}
+
+
+\input{\exprdir/literals}
+\input{\exprdir/references}
+\input{\exprdir/field-access}
+\input{\exprdir/function-calls}
+\input{\exprdir/operator-applications}
+\input{\exprdir/tuples}
+\input{\exprdir/aggregates}
+\input{\exprdir/function-exp}
+%\input{\exprdir/object-exp}
+\input{\exprdir/blocks}
+\input{\exprdir/do-also}
+\input{\exprdir/label-exit}
+\input{\exprdir/while}
+\input{\exprdir/generators}
+\input{\exprdir/for}
+\input{\exprdir/ranges}
+\input{\exprdir/reductions}
+\input{\exprdir/comprehensions}
+\input{\exprdir/if}
+\input{\exprdir/case}
+\input{\exprdir/typecase}
+\input{\exprdir/atomic}
+\input{\exprdir/throw}
+\input{\exprdir/try}
+\input{\exprdir/typed}
+\input{\exprdir/asif}
+%\input{\exprdir/spawn}

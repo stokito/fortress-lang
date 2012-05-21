@@ -1,0 +1,33 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Parallel Do Expressions}
+\seclabel{also-block}
+
+\note{Reduction variables are not yet supported.}
+
+A series of blocks may be run in parallel using the \KWD{also}
+construct.  Any number of contiguous blocks may be joined together by
+\KWD{also}.  Each block is run in a separate
+implicit thread; these threads together form a group.  The expression
+as a whole completes when the group is complete.
+A thread can be placed in a particular region by using an \KWD{at} expression
+as described in \secref{parallelism-fundamentals}.
+When multiple
+expression blocks are separated by \KWD{also}, each expression block must
+have type \EXP{()}; the result and type of the parallel \KWD{do}
+expression is also \EXP{()}.
+
+
+For example:
+\input{\home/basic/examples/Expr.Do.treeSum.tex}
+Note the use of the reduction variable \VAR{accum}
+(\secref{reduction-vars}) within the threads in the group.

@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+object Point(x:RR64, y:RR64)
+  getX():RR64 = x
+  getY():RR64 = y
+end
+
+run():() = do
+  p1 = Point(0.0, 0.0)
+  p2 = Point(1.0, 1.0)
+end

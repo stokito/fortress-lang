@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+
+  trait Bunny[\S\]
+    getter myFirst():S
+  end
+
+  trait Roger extends Bunny[\ZZ32\]
+    foo():ZZ32 = self.myFirst
+  end
+
+  run():() = ()

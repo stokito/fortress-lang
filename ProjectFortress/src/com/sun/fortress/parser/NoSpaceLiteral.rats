@@ -1,0 +1,45 @@
+/*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress literals using NoSpaceExpr.
+ */
+module com.sun.fortress.parser.NoSpaceLiteral(MayNewlineHeader, NoSpaceExpr,
+                                              Symbol, Spacing);
+
+import MayNewlineHeader;
+import NoSpaceExpr;
+import Symbol;
+import Spacing;
+
+/* ArrayExpr ::= [ (w StaticArgs)? w RectElements w ] */
+/* RectElements ::= NoSpaceExpr MultiDimCons* */
+ArrayElements ArrayExpr =
+     void:opensquare a1:(w StaticArgs)? w a2:NoSpaceExpr a3s:MultiDimCons* w
+     void:closesquare
+     { ArrayElements rectElements;
+       if (a3s == null || a3s.isEmpty()) {
+           List<ArrayExpr> list = new ArrayList<ArrayExpr>();
+           list.add(ExprFactory.makeArrayElement(a2));
+           rectElements = ExprFactory.makeArrayElements(NodeUtil.getSpan(a2),
+                                                        1, list);
+       } else
+           rectElements = ExprFactory.multiDimCons(writer, a2, a3s.list());
+       if (a1 == null)
+           yyValue = ExprFactory.finalizeArrayExpr(rectElements);
+       else
+           yyValue = ExprFactory.addStaticArgsToArrayExpr(a1, rectElements);
+     };
+
+/* MultiDimCons ::= RectSeparator NoSpaceExpr */
+com.sun.fortress.useful.Pair<Integer,Expr> MultiDimCons =
+     a1:RectSeparator a2:NoSpaceExpr
+     { yyValue = new com.sun.fortress.useful.Pair<Integer,Expr>(a1,a2); };
