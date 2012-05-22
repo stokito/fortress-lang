@@ -79,6 +79,11 @@ public abstract class VarCodeGen {
     public boolean isAMutableLocalVar() {
         if (this instanceof LocalMutableVar) return true; else return false;
     }
+
+    public boolean isAMutableTaskVar() {
+        if (this instanceof MutableTaskVarCodeGen) return true; else return false;
+    }
+
     /** Generate code to push the value of this variable onto the Java stack.
      */
     public abstract void pushValue(CodeGenMethodVisitor mv);
@@ -366,12 +371,12 @@ public abstract class VarCodeGen {
             Label end = new Label();
             
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, 
-                               "com/sun/fortress/runtimeSystem/FortressAction",
+                               "com/sun/fortress/runtimeSystem/BaseTask",
                                "inATransaction",
                                "()Z");
             mv.visitJumpInsn(Opcodes.IFEQ, atomicEnd);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                               "com/sun/fortress/runtimeSystem/FortressAction",
+                               "com/sun/fortress/runtimeSystem/BaseTask",
                                "getCurrentTransaction",
                                "()Lcom/sun/fortress/runtimeSystem/Transaction;");
             mv.visitInsn(Opcodes.SWAP);            
@@ -404,12 +409,12 @@ public abstract class VarCodeGen {
             Label atomicEnd = new Label();
             Label end = new Label();
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, 
-                               "com/sun/fortress/runtimeSystem/FortressAction",
+                               "com/sun/fortress/runtimeSystem/BaseTask",
                                "inATransaction",
                                "()Z");
             mv.visitJumpInsn(Opcodes.IFEQ, atomicEnd);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                               "com/sun/fortress/runtimeSystem/FortressAction",
+                               "com/sun/fortress/runtimeSystem/BaseTask",
                                "getCurrentTransaction",
                                "()Lcom/sun/fortress/runtimeSystem/Transaction;");
             mv.visitVarInsn(Opcodes.ALOAD, offset);
@@ -504,6 +509,16 @@ public abstract class VarCodeGen {
                           null, null);
         }
 
+        public MutableTaskVarCodeGen(MutableTaskVarCodeGen mtvcg, String taskClass, APIName ifNone,
+                                     ClassWriter cw, CodeGenMethodVisitor mv) {
+            super(mtvcg.name, mtvcg.fortressType);
+            this.taskClass = taskClass;
+            this.ifNone = ifNone;
+            cw.visitField(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, mtvcg.name,
+                          "Lcom/sun/fortress/compiler/runtimeValues/MutableFValue;",
+                          null, null);
+        }
+
         public void assignHandle(CodeGenMethodVisitor mv) {
             mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
             mv.visitInsn(Opcodes.SWAP);
@@ -516,12 +531,12 @@ public abstract class VarCodeGen {
             Label end = new Label();
             
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, 
-                               "com/sun/fortress/runtimeSystem/FortressAction",
+                               "com/sun/fortress/runtimeSystem/BaseTask",
                                "inATransaction",
                                "()Z");
             mv.visitJumpInsn(Opcodes.IFEQ, atomicEnd);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                               "com/sun/fortress/runtimeSystem/FortressAction",
+                               "com/sun/fortress/runtimeSystem/BaseTask",
                                "getCurrentTransaction",
                                "()Lcom/sun/fortress/runtimeSystem/Transaction;");
             mv.visitInsn(Opcodes.SWAP);            
@@ -561,12 +576,12 @@ public abstract class VarCodeGen {
             Label atomicEnd = new Label();
             Label end = new Label();
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, 
-                               "com/sun/fortress/runtimeSystem/FortressAction",
+                               "com/sun/fortress/runtimeSystem/BaseTask",
                                "inATransaction",
                                "()Z");
             mv.visitJumpInsn(Opcodes.IFEQ, atomicEnd);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                               "com/sun/fortress/runtimeSystem/FortressAction",
+                               "com/sun/fortress/runtimeSystem/BaseTask",
                                "getCurrentTransaction",
                                "()Lcom/sun/fortress/runtimeSystem/Transaction;");
             mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
@@ -603,4 +618,20 @@ public abstract class VarCodeGen {
         }
  
     }
+
+    public static class BaseTaskVar extends ParamVar {
+        public BaseTaskVar(CodeGen cg) {
+            super(NodeFactory.makeId(NodeFactory.internalSpan, "ParentTask"),
+                  NodeFactory.makeVarType(NodeFactory.internalSpan, NodeFactory.makeId(NodeFactory.internalSpan, "com/sun/fortress/runtimeSystem/BaseTask")),
+                  cg);
+        }
+
+         public void pushValue(CodeGenMethodVisitor mv) {
+             mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/sun/fortress/runtimeSystem/BaseTask", 
+                          "getCurrentTask",
+                          "()Lcom/sun/fortress/runtimeSystem/BaseTask;");
+         }
+    }
+
+
 }

@@ -27,10 +27,10 @@ encodeACGT(c: Character): ZZ32 = case c of 'A' => 0; 'C' => 1; 'G' => 2; 'T' => 
 color(c1:Character, c2:Character): Character =
   if (c1 = 'N') OR (c2 = 'N') then '4' else makeCharacter('0'.codePoint + (encodeACGT(c1) BITXOR encodeACGT(c2))) end
 
-colorsFromACGT(strACGT: String): String = BIG || <| color(p,q) | (p,q)<-pairs(strACGT) |>
+colorsFromACGT(strACGT: String): String = BIG || <|[\Character\] color(p,q) | (p,q)<-pairs(toGenString(strACGT)) |>
 
 colorsToACGT(start: Character, colorstr: String): String =
-  start || (BIG || [i <- 0 # |colorstr|] "ACGT"[encodeACGT(start) BITXOR (BIG BITXOR[k <- 0#(i+1)] (colorstr[k].codePoint BITAND 3))])
+  start || (BIG || [i <- toGenZZ32(0 # |colorstr|)] ("ACGT"[encodeACGT(start) BITXOR (BIG BITXOR[k <- toGenZZ32(0#(i+1))] (colorstr[k].codePoint BITAND 3))]).asString)
 
 trait ReferenceGenome extends { SequentialGenerator[\ReferenceGenomeChunk\] } end
 
@@ -44,16 +44,18 @@ object ReferenceGenomeChunk(start: ZZ32, length: ZZ32, buffer: String, padLength
   end
 end ReferenceGenomeChunk
 
+
+
 object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ32)
     extends ReferenceGenome
   private padLength: ZZ32 = maxReadSize + 1
-  private fg: SequentialGenerator[\ReferenceGenomeChunk\] = seq(FileGenerator[\ReferenceGenomeChunk\](rs, 0, nextChunk))
   private buffer: String := ("N")^padLength
   private currentChunkStart: ZZ32 := 0
   private currentChunkLength: ZZ32 := 0
-
-  nextChunk(rs': ReadStream): Maybe[\ReferenceGenomeChunk\] = do
-    buffer := buffer[currentChunkLength:]
+  private fg: SequentialGenerator[\ReferenceGenomeChunk\] = 
+    seq(FileGenerator[\ReferenceGenomeChunk\](rs, 0, 
+    fn (rs': ReadStream) => do
+    buffer := buffer.substring(currentChunkLength,|buffer| - 1) (*) HERE buffer[currentChunkLength:]
     currentChunkStart += currentChunkLength
     currentChunkLength := 0
     while currentChunkLength < (chunkSize + padLength) AND: NOT rs'.eof do
@@ -69,15 +71,38 @@ object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ
       currentChunkLength -= padLength
     end
     buffer := buffer.asJavaString
-    Just ReferenceGenomeChunk(currentChunkStart, currentChunkLength, buffer.asJavaString, padLength)
+    Just(ReferenceGenomeChunk(currentChunkStart, currentChunkLength, buffer.asJavaString, padLength))
   end
-
+    
+    
+    ))
+(*
+  nextChunk(rs': ReadStream): Maybe[\ReferenceGenomeChunk\] = do
+    buffer := buffer.substring(currentChunkLength,|buffer| - 1) (*) HERE buffer[currentChunkLength:]
+    currentChunkStart += currentChunkLength
+    currentChunkLength := 0
+    while currentChunkLength < (chunkSize + padLength) AND: NOT rs'.eof do
+      line = rs'.uncheckedReadLine()
+      if |line| > 0 AND: line[0] =/= '>' then
+        buffer ||= line
+        currentChunkLength += |line|
+      end
+    end
+    if rs'.eof then
+      buffer ||= ("N")^padLength
+    else
+      currentChunkLength -= padLength
+    end
+    buffer := buffer.asJavaString
+    Just(ReferenceGenomeChunk(currentChunkStart, currentChunkLength, buffer.asJavaString, padLength))
+  end
+*)
   generate[\T\](red: Reduction[\T\], body: ReferenceGenomeChunk->T): T = fg.generate(red, body)
   loop[\T\](body: ReferenceGenomeChunk->()): () = fg.loop(body)
 end FileBasedReferenceGenome
 
 getReferenceGenomeFromFile(fileName: String, chunkSize: ZZ32, maxReadSize: ZZ32): ReferenceGenome =
-  FileBasedReferenceGenome(FileReadStream(fileName), chunkSize, maxReadSize)
+  FileBasedReferenceGenome(FileReadStream(fileName.asJavaString), chunkSize, maxReadSize)
 
 trait ReadList
   getReads(refChunk: ReferenceGenomeChunk): List[\Read\]
@@ -94,12 +119,12 @@ private object FileBasedReadList(rs: ReadStream, maxReadSize: ZZ32) extends Read
       fail("ReadList not properly synchronized with ReferenceGenome (" currentRange " then " refRange ")")
     end
     currentRange := refRange
-    currentSet := <|[\Read\] rd.withNewChunk(refChunk) | rd <- currentSet, rd.range.lowerBound <= refRange.upperBound AND refRange.lowerBound <= rd.range.upperBound |>
+    (*)currentSet := <|[\Read\] rd.withNewChunk(refChunk) | rd <- currentSet, toBoolGen(rd.range.lowerBound <= refRange.upperBound AND refRange.lowerBound <= rd.range.upperBound) |>
     if rd <- peekAhead then
-      if rd.range.upper < refRange.lowerBound then
+      if rd.range.upperBound < refRange.lowerBound then
         peekAhead := Nothing[\Read\]
-      elif rd.range.lower <= refRange.upperBound then
-        currentSet ||= <| rd.withNewChunk(refChunk) |>
+      elif rd.range.lowerBound <= refRange.upperBound then
+        currentSet ||= singleton(rd.withNewChunk(refChunk))
         peekAhead := Nothing[\Read\]
         inputMoreReads(refChunk)
       end
@@ -117,7 +142,7 @@ private object FileBasedReadList(rs: ReadStream, maxReadSize: ZZ32) extends Read
             peekAhead := Just rd
             exit gobble
           elif refRange.lowerBound <= rd.range.upperBound then
-            currentSet ||= <| rd |>
+            currentSet ||= singleton(rd)
           end
         end
       end
@@ -131,7 +156,7 @@ private object FileBasedReadList(rs: ReadStream, maxReadSize: ZZ32) extends Read
 end FileBasedReadList
 
 getReadListFromFile(fileName: String, maxReadSize: ZZ32): ReadList =
-  FileBasedReadList(FileReadStream(fileName), maxReadSize)
+  FileBasedReadList(FileReadStream(fileName.asJavaString), maxReadSize)
 
 object Read(header: String, sequence: String, name: String, pos: ZZ32, length: ZZ32, seqend: ZZ32,
             negativeOrientation: Boolean, refChunk: ReferenceGenomeChunk)
@@ -145,7 +170,7 @@ object Read(header: String, sequence: String, name: String, pos: ZZ32, length: Z
     result = (if (negativeOrientation) then
                 temp.substring(0, |temp| - 2) || self.refColors[|temp| - 1] (*) TODO (reverse(temp))[0 : |temp| - 2] || self.refColors[|temp| - 1]
               else
-                self.refColors[0] || temp[1:]
+                self.refColors[0] || temp.substring(1,|temp| - 1) (*) MOD
               end)
     result.asJavaString
   end
@@ -160,11 +185,11 @@ private parseOneRead(r: ReadStream, refChunk: ReferenceGenomeChunk): Maybe[\Read
     if header[0] =/= '>' OR sequence[0] = '>' then
       fail("File of 'reads' not in expected alternating-line format")
     end
-    name: String = header.upto(',')
-    loc: String = header.beyond(',').beyond('_').upto('.')
+    name: String = upto(header,',')
+    loc: String = upto(beyond(beyond(header,','),'_'),'.')
     length: ZZ32 = |sequence| - 1
     negativeOrientation: Boolean = (loc[0] = '-')
-    pos: ZZ32 = if (negativeOrientation) then strToInt(loc[1:]) - length + 1 else strToInt(loc) - 1 end
+    pos: ZZ32 = if (negativeOrientation) then strToInt(loc.substring(1,|loc| - 1)) - length + 1 else strToInt(loc) - 1 end (*) HERE
     seqend: ZZ32 = pos + length - 1
     Just Read(header, sequence, name, pos, length, seqend, negativeOrientation, refChunk)
   end

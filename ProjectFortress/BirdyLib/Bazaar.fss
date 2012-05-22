@@ -78,4 +78,44 @@ component Bazaar
 
   opr BIG ||() : BigReduction[\String,String\] = BigReduction[\String,String\](StrRed)
 
+  opr BIG||(g: Generator[\String\]): String =
+    __bigOperatorSugar(BIG ||(),g)
+    
+  opr ||(c: Character, s: String): String = c.asString || s  
+
+  opr =/=(x: Range, y: Range): Boolean = x.lowerBound = y.lowerBound  AND x.upperBound = y.upperBound
+
+  object CharGen(s: String) extends Generator[\Character\] 
+    generate[\R\](r: Reduction[\R\], body: Character->R): R =  
+      r.join(body(s[0]),CharGen(s.substring(1,|s| - 1)).generate(r,body))
+  end
+  
+  toGenString(s: String) : Generator[\Character\] = CharGen(s)
+  
+  object ZZ32Gen(x: Range) extends Generator[\ZZ32\]
+    generate[\R\](r: Reduction[\R\], body: ZZ32->R): R = 
+      do dis = x.upperBound - x.lowerBound 
+         if dis = 0 then body(x.lowerBound) else 
+              do firsthalf = dis DIV 2
+                 range1 = ZZ32Gen(x.lowerBound#firsthalf)
+                 range2 = ZZ32Gen((x.lowerBound + firsthalf + 1):x.upperBound)  (*) WATCH OUT
+                 r.join(range1.generate(r,body),range2.generate(r,body))
+              end
+        end
+      end   
+  end
+
+  toGenZZ32(x: Range): Generator[\ZZ32\] = ZZ32Gen(x)
+
+  object BoolGen(b: Boolean) extends Generator[\Boolean\]
+     generate[\R\](r: Reduction[\R\], body: Boolean->R): R =  
+      body(b)
+  end
+
+  toBoolGen(x: Boolean): Generator[\Boolean\] = BoolGen(x)
+
+  upto(s: String,c: Character): String = s
+  
+  beyond(s: String,c: Character): String = s
+
 end

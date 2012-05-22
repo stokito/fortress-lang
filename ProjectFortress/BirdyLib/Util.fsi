@@ -49,6 +49,7 @@ end
 trait SequentialGenerator[\E\] extends { Generator[\E\] }
   getter asString(): String 
   seq(self): SequentialGenerator[\E\] 
+  loop(f:E->()): () 
 end SequentialGenerator
 
 trait Indexed[\E, I\] extends Generator[\E\] end

@@ -21,7 +21,7 @@ import jsr166y.RecursiveAction;
  *  the one in the generated class isn't visisble yet.
  */
 
-public abstract class FortressExecutable extends FortressAction {
+public abstract class FortressExecutable extends RecursiveAction {
     public static final int numThreads = getNumThreads();
     public static final int defaultSpawnThreshold = 5;
     public static final int spawnThreshold = getSpawnThreshold();
@@ -30,7 +30,7 @@ public abstract class FortressExecutable extends FortressAction {
         new FortressTaskRunnerGroup(numThreads);
     public static final boolean useHelpJoin = getHelpJoin();
 
-    static int getNumThreads() {
+    public static int getNumThreads() {
         String numThreadsString = System.getenv("FORTRESS_THREADS");
         if (numThreadsString != null) return Integer.parseInt(numThreadsString);
         else {
@@ -62,23 +62,23 @@ public abstract class FortressExecutable extends FortressAction {
                s.substring(0,1).matches("[TtYy]");
     }
 
-    public final void runExecutable(String args[]) {
-        try {
-            systemHelper.registerArgs(args);
-            //group.invoke(this);
-            group.execute(this);
-            this.join();
-        } finally {
-            String printOnOutput = System.getenv("FORTRESS_THREAD_STATISTICS");
-            if (envToBoolean(printOnOutput)) {
-                System.err.println("numThreads = " + numThreads +
-                                   ", spawnThreshold = " + spawnThreshold +
-                                   " helpJoin = " + useHelpJoin);
-                System.err.println("activeThreads = " + group.getActiveThreadCount());
-                System.err.println(group);
-            }
-        }
-    }
+//     public final void runExecutable(String args[]) {
+//         try {
+//             systemHelper.registerArgs(args);
+//             //group.invoke(this);
+//             group.execute(primordialTask);
+//             this.join();
+//         } finally {
+//             String printOnOutput = System.getenv("FORTRESS_THREAD_STATISTICS");
+//             if (envToBoolean(printOnOutput)) {
+//                 System.err.println("numThreads = " + numThreads +
+//                                    ", spawnThreshold = " + spawnThreshold +
+//                                    " helpJoin = " + useHelpJoin);
+//                 System.err.println("activeThreads = " + group.getActiveThreadCount());
+//                 System.err.println(group);
+//             }
+//         }
+//     }
 
 
     /**

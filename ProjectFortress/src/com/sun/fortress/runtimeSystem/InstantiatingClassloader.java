@@ -571,6 +571,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         {
             if (ft.charAt(0) == Naming.HEAVY_CROSS_CHAR)
                 ft = ft.substring(1);
+            
+            // Allow bound-specific disambiguation in a suffix
+            int hvy_x = ft.indexOf(Naming.HEAVY_X_CHAR);
+            if (hvy_x != -1)
+                ft = ft.substring(0, hvy_x);
+            
             int left = ft.indexOf(Naming.LEFT_OXFORD);
             int right = ft.lastIndexOf(Naming.RIGHT_OXFORD);
             List<String> parameters = RTHelpers.extractStringParameters(ft, left, right);

@@ -37,4 +37,22 @@ api Bazaar
 
   opr BIG ||() : BigReduction[\String,String\]
 
+  opr BIG||(g: Generator[\String\]): String
+  
+  opr BIG||(g: Generator[\Character\]): String
+
+  opr ||(c: Character, s: String): String
+
+  opr =/=(x: Range, y: Range): Boolean
+
+  toGenString(s: String) : Generator[\Character\]
+
+  toGenZZ32(x: Range): Generator[\ZZ32\]
+
+  toBoolGen(x: Boolean): Generator[\Boolean\]
+
+  upto(s: String,c: Character): String
+  
+  beyond(s: String,c: Character): String
+
 end
