@@ -525,7 +525,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
 
         String extendedJavaClass =
-            exportsExecutable ? NamingCzar.fortressExecutable :
+            exportsExecutable ? "com/sun/fortress/runtimeSystem/BaseTask" :
                                 NamingCzar.fortressComponent ;
 
         cw.visit(InstantiatingClassloader.JVM_BYTECODE_VERSION, ACC_PUBLIC + ACC_SUPER,
@@ -617,35 +617,43 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv = cw.visitCGMethod(ACC_PUBLIC + ACC_STATIC, "main",
                             NamingCzar.stringArrayToVoid, null, null);
         mv.visitCode();
-        // new packageAndClassName()
-        mv.visitTypeInsn(NEW, packageAndClassName);
-        mv.visitInsn(DUP);
-        mv.visitMethodInsn(INVOKESPECIAL, packageAndClassName, "<init>",
-                           Naming.voidToVoid);
         mv.visitVarInsn(ALOAD, 0);
-        // .runExecutable(args)
-        mv.visitMethodInsn(INVOKEVIRTUAL,
-                           NamingCzar.fortressExecutable,
-                           NamingCzar.fortressExecutableRun,
-                           NamingCzar.fortressExecutableRunType);
+        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/nativeHelpers/systemHelper", "registerArgs", NamingCzar.stringArrayToVoid);
 
+        // new packageAndClassName()
+        mv.visitTypeInsn(NEW, "com/sun/fortress/runtimeSystem/FortressTaskRunnerGroup");
+        mv.visitInsn(DUP);
+        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/BaseTask", "getNumThreads", "()I");
+        mv.visitMethodInsn(INVOKESPECIAL, "com/sun/fortress/runtimeSystem/FortressTaskRunnerGroup",
+                           "<init>",
+                           "(I)V");
+
+        mv.visitTypeInsn(NEW, packageAndClassName);
+        mv.visitInsn(DUP);        
+        mv.visitMethodInsn(INVOKESPECIAL, packageAndClassName,
+                           "<init>",
+                           "()V");
+        mv.visitMethodInsn(INVOKEVIRTUAL, 
+                           "com/sun/fortress/runtimeSystem/FortressTaskRunnerGroup",                           
+                           "invoke",
+                           "(Ljsr166y/ForkJoinTask;)Ljava/lang/Object;");
+        mv.visitInsn(POP);
         voidEpilogue();
 
         mv = cw.visitCGMethod(ACC_PUBLIC, "compute",
-                            Naming.voidToVoid, null, null);
-        mv.visitCode();
-        mv.visitVarInsn(ALOAD, mv.getThis());
-        mv.visitMethodInsn(INVOKESTATIC, 
-                           "com/sun/fortress/runtimeSystem/FortressAction",
-                           "setAction",
-                           "(Lcom/sun/fortress/runtimeSystem/FortressAction;)V");
+                             Naming.voidToVoid, null, null);
+         mv.visitCode();
 
-        // Call through to static run method in this component.
-        mv.visitMethodInsn(INVOKESTATIC, packageAndClassName, "run",
-                           NamingCzar.voidToFortressVoid);
-        // Discard the FVoid that results
-        mv.visitInsn(POP);
-        voidEpilogue();
+         mv.visitVarInsn(ALOAD, mv.getThis());
+         mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/BaseTask", "setTask", "(Lcom/sun/fortress/runtimeSystem/BaseTask;)V");
+
+         mv.visitVarInsn(ALOAD, mv.getThis());
+         // Call through to static run method in this component.
+         mv.visitMethodInsn(INVOKESTATIC, packageAndClassName, "run",
+                            NamingCzar.voidToFortressVoid);
+         // Discard the FVoid that results
+         mv.visitInsn(POP);
+         voidEpilogue();
     }
 
     private void cgWithNestedScope(ASTNode n) {
@@ -1470,6 +1478,85 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
     }
 
+    private void genParallelExprs(List<? extends Expr> args, Type domain_type, List<VarCodeGen> vcgs, boolean clearStackAtEnd) {
+        final int n = args.size();
+        if (n <= 0) return;
+        
+        List<Type> domain_types;
+        if (NodeUtil.isVoidType(domain_type)) {
+            domain_types = new ArrayList<Type>();
+            for (int i = 0; i < n; i++)
+                domain_types.add(domain_type);
+        } else if (args.size() != 1 && domain_type instanceof TupleType) {
+            TupleType tdt = (TupleType) domain_type;
+            domain_types = tdt.getElements();
+        } else {
+            domain_types = Collections.singletonList(domain_type);
+        }
+        
+        String [] tasks = new String[n];
+        String [] results = new String[n];
+        int [] taskVars = new int[n];
+
+        if (vcgs != null && vcgs.size() != n) {
+            System.out.println("vcgs size = " + vcgs.size() + " n = " + n);
+            throw sayWhat(args.get(0), "Internal error: number of args does not match number of consumers.");
+        }
+
+        // Push arg tasks from right to left, so
+        // that local evaluation of args will proceed left to right.
+        // IMPORTANT: ALWAYS fork and join stack fashion,
+        // ie always join with the most recent fork first.
+        for (int i = n-1; i > 0; i--) {
+            Expr arg = args.get(i);
+            // Make sure arg has type info (we'll need it to generate task)
+            Option<Type> ot = NodeUtil.getExprType(arg);
+            if (!ot.isSome())
+                throw sayWhat(arg, "Missing type information for argument " + arg);
+            Type t = ot.unwrap();
+            String tDesc = NamingCzar.jvmBoxedTypeDesc(t, component.getName());
+            // Find free vars of arg
+            List<VarCodeGen> freeVars = getFreeVars(arg);
+            BASet<VarType> fvts = fvt.freeVarTypes(arg);
+            // TO DO if fvts non-empty, will need to make a generic task
+
+            // Generate descriptor for init method of task
+            String init = taskConstructorDesc(freeVars);
+
+            String task = delegate(arg, tDesc, init, freeVars);
+            tasks[i] = task;
+            results[i] = tDesc;
+            constructWithFreeVars(task, freeVars, init);
+
+            mv.visitInsn(DUP);
+            int taskVar = mv.createCompilerLocal(task, // Naming.mangleIdentifier(task),
+                                                 Naming.internalToDesc(task));
+            taskVars[i] = taskVar;
+            mv.visitVarInsn(ASTORE, taskVar);
+            mv.visitMethodInsn(INVOKEVIRTUAL, task, "forkIfProfitable", "()V");
+        }
+
+        // arg 0 gets compiled in place, rather than turned into work.
+        args.get(0).accept(this);
+        conditionallyCastParameter(args.get(0), domain_types.get(0));
+        if (vcgs != null) vcgs.get(0).assignValue(mv);
+        if (clearStackAtEnd) popAll(mv, 0); 
+
+        // join / perform work locally left to right, leaving results on stack.
+        for (int i = 1; i < n; i++) {
+            int taskVar = taskVars[i];
+            mv.visitVarInsn(ALOAD, taskVar);
+            mv.disposeCompilerLocal(taskVar);
+            mv.visitInsn(DUP);
+            String task = tasks[i];
+            mv.visitMethodInsn(INVOKEVIRTUAL, task, "joinOrRun", "()V");
+            mv.visitFieldInsn(GETFIELD, task, "result", results[i]);
+            conditionallyCastParameter(args.get(i), domain_types.get(i));
+            if (vcgs != null) vcgs.get(i).assignValue(mv);
+            if (clearStackAtEnd) popAll(mv, 1);  // URGH!!!  look into better stack management...            
+        }
+    }
+
     public void defaultCase(Node x) {
         throw sayWhat(x);
     }
@@ -1517,10 +1604,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     public void forAtomicBlockHelper(Block x) {
         mv.visitMethodInsn(INVOKESTATIC, 
-                           "com/sun/fortress/runtimeSystem/FortressAction", 
+                           "com/sun/fortress/runtimeSystem/BaseTask", 
                            "startTransaction", "()V");     
         forBlockHelper(x);
-        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/FortressAction", 
+        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/BaseTask", 
                            "endTransaction", "()V");
     }
 
@@ -1547,8 +1634,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitJumpInsn(GOTO, exit);
         mv.visitLabel(handler);
         mv.visitInsn(POP); // Pop the exception
-        // The following line will need to be fixed when we have nested transactions.
-        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/FortressAction", 
+        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/BaseTask", 
                            "cleanupTransaction", "()V");
         mv.visitJumpInsn(GOTO, startOver);
         mv.visitLabel(exit);
@@ -1742,84 +1828,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
     // ForDoParallel is just like forExprsParallel except we need to clear the stack
     // of those pesky FVoids for the arms of the DO.
-
     public void forDoParallel(List<? extends Expr> args, Type domain_type, List<VarCodeGen> vcgs) {
-        final int n = args.size();
-        if (n <= 0) return;
-        
-        List<Type> domain_types;
-        if (NodeUtil.isVoidType(domain_type)) {
-            domain_types = new ArrayList<Type>();
-            for (int i = 0; i < n; i++)
-                domain_types.add(domain_type);
-        } else if (args.size() != 1 && domain_type instanceof TupleType) {
-            TupleType tdt = (TupleType) domain_type;
-            domain_types = tdt.getElements();
-        } else {
-            domain_types = Collections.singletonList(domain_type);
-        }
-        
-        String [] tasks = new String[n];
-        String [] results = new String[n];
-        int [] taskVars = new int[n];
-
-        if (vcgs != null && vcgs.size() != n) {
-            System.out.println("vcgs size = " + vcgs.size() + " n = " + n);
-            throw sayWhat(args.get(0), "Internal error: number of args does not match number of consumers.");
-        }
-
-        // Push arg tasks from right to left, so
-        // that local evaluation of args will proceed left to right.
-        // IMPORTANT: ALWAYS fork and join stack fashion,
-        // ie always join with the most recent fork first.
-        for (int i = n-1; i > 0; i--) {
-            Expr arg = args.get(i);
-            // Make sure arg has type info (we'll need it to generate task)
-            Option<Type> ot = NodeUtil.getExprType(arg);
-            if (!ot.isSome())
-                throw sayWhat(arg, "Missing type information for argument " + arg);
-            Type t = ot.unwrap();
-            String tDesc = NamingCzar.jvmBoxedTypeDesc(t, component.getName());
-            // Find free vars of arg
-            List<VarCodeGen> freeVars = getFreeVars(arg);
-            BASet<VarType> fvts = fvt.freeVarTypes(arg);
-
-            // Generate descriptor for init method of task
-            String init = taskConstructorDesc(freeVars);
-
-            String task = delegate(arg, tDesc, init, freeVars);
-            tasks[i] = task;
-            results[i] = tDesc;
-            constructWithFreeVars(task, freeVars, init);
-
-            mv.visitInsn(DUP);
-            int taskVar = mv.createCompilerLocal(task, // Naming.mangleIdentifier(task),
-                    Naming.internalToDesc(task));
-            taskVars[i] = taskVar;
-            mv.visitVarInsn(ASTORE, taskVar);
-            mv.visitMethodInsn(INVOKEVIRTUAL, task, "forkIfProfitable", "()V");
-        }
-        // arg 0 gets compiled in place, rather than turned into work.
-        args.get(0).accept(this);
-        conditionallyCastParameter(args.get(0), domain_types.get(0));
-        if (vcgs != null) vcgs.get(0).assignValue(mv);
-        popAll(mv, 0); 
-
-        // join / perform work locally left to right, leaving results on stack.
-        for (int i = 1; i < n; i++) {
-            int taskVar = taskVars[i];
-            mv.visitVarInsn(ALOAD, taskVar);
-            mv.disposeCompilerLocal(taskVar);
-            mv.visitInsn(DUP);
-            String task = tasks[i];
-            mv.visitMethodInsn(INVOKEVIRTUAL, task, "joinOrRun", "()V");
-            mv.visitFieldInsn(GETFIELD, task, "result", results[i]);
-            conditionallyCastParameter(args.get(i), domain_types.get(i));
-            if (vcgs != null) vcgs.get(i).assignValue(mv);
-            popAll(mv, 1);  // URGH!!!  look into better stack management...            
-        }
+        boolean clearStackAtEnd = true;
+        genParallelExprs(args, domain_type, vcgs, clearStackAtEnd);
     }
-
 
     public void forDo(Do x) {
         debug("forDo ", x);
@@ -3382,7 +3394,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         // Generate the constructor (initializes captured free vars from param list)
         String init = taskConstructorDesc(freeVars);
-        cg.generateTaskInit(desc, init, freeVars);
+        cg.generateFnExprInit(desc, init, freeVars);
+
 
         String applyDesc = NamingCzar.jvmSignatureFor(params, NamingCzar.jvmBoxedTypeDesc(rt, thisApi()),
                                                       thisApi());
@@ -3401,7 +3414,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         cg.methodReturnAndFinish();
         cg.cw.dumpClass(classFileName, xldata);
-
         constructWithFreeVars(className, freeVars, init);
     }
 
@@ -4486,9 +4498,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         cw.dumpClass( classFileOuter );
 
         cw = prev;
-
-
-
     }
 
     // This returns a list rather than a set because the order matters;
@@ -4516,16 +4525,29 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
     }
 
+    // This returns a list of free vars plus the current BaseTask.
+    private List<VarCodeGen> getTaskFreeVars(Node n) {
+        List<VarCodeGen> vcgs = new ArrayList<VarCodeGen>();
+        vcgs.add(new VarCodeGen.BaseTaskVar(this));
+        vcgs.addAll(getFreeVars(n));
+        return vcgs;
+    }
+
     private BATree<String, VarCodeGen>
             createTaskLexEnvVariables(String taskClass, List<VarCodeGen> freeVars) {
 
         BATree<String, VarCodeGen> result =
             new BATree<String, VarCodeGen>(StringHashComparer.V);
+
         for (VarCodeGen v : freeVars) {
             String name = v.getName();
             
             if (v.isAMutableLocalVar())
                 result.put(name, new VarCodeGen.MutableTaskVarCodeGen((VarCodeGen.LocalMutableVar) v,
+                                                                      taskClass,
+                                                                      thisApi(), cw, mv));
+            else if (v.isAMutableTaskVar())
+                result.put(name, new VarCodeGen.MutableTaskVarCodeGen((VarCodeGen.MutableTaskVarCodeGen) v,
                                                                       taskClass,
                                                                       thisApi(), cw, mv));
             else result.put(name, new VarCodeGen.TaskVarCodeGen(v, taskClass, thisApi(), cw));
@@ -4540,10 +4562,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv = cw.visitCGMethod(ACC_PUBLIC, "<init>", initDesc, null, null);
         mv.visitCode();
 
-        // Call superclass constructor
+        // Call task superclass constructor
         mv.visitVarInsn(ALOAD, mv.getThis());
+
+        mv.visitMethodInsn(INVOKESTATIC, baseClass, "getCurrentTask", "()Lcom/sun/fortress/runtimeSystem/BaseTask;");
         mv.visitMethodInsn(INVOKESPECIAL, baseClass,
-                              "<init>", Naming.voidToVoid);
+                           "<init>", "(Lcom/sun/fortress/runtimeSystem/BaseTask;)V");
+
         // mv.visitVarInsn(ALOAD, mv.getThis());
 
         // Stash away free variables Warning: freeVars contains
@@ -4556,8 +4581,42 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             mv.visitVarInsn(ALOAD, varIndex++);
             v.assignHandle(mv);
         }
+
         voidEpilogue();
     }
+
+    private void generateFnExprInit(String baseClass,
+                                  String initDesc,
+                                  List<VarCodeGen> freeVars) {
+
+        mv = cw.visitCGMethod(ACC_PUBLIC, "<init>", initDesc, null, null);
+        mv.visitCode();
+
+        // Call task superclass constructor
+        mv.visitVarInsn(ALOAD, mv.getThis());
+
+        //        mv.visitMethodInsn(INVOKESTATIC, baseClass, "getCurrentTask", "()Lcom/sun/fortress/runtimeSystem/BaseTask;");
+        //        mv.visitMethodInsn(INVOKESPECIAL, baseClass,
+        //                           "<init>", "(Lcom/sun/fortress/runtimeSystem/BaseTask;)V");
+
+        mv.visitMethodInsn(INVOKESPECIAL, baseClass, "<init>", "()V");
+        // mv.visitVarInsn(ALOAD, mv.getThis());
+
+        // Stash away free variables Warning: freeVars contains
+        // VarCodeGen objects from the parent context, we must look
+        // these up again in the child context or we'll get incorrect
+        // code (or more usually the compiler will complain).
+        int varIndex = 1;
+        for (VarCodeGen v0 : freeVars) {
+            VarCodeGen v = lexEnv.get(v0.getName());
+            mv.visitVarInsn(ALOAD, varIndex++);
+            v.assignHandle(mv);
+        }
+
+        voidEpilogue();
+    }
+
+
 
     private void generateTaskCompute(String className, Expr x, String result) {
         mv = cw.visitCGMethod(ACC_PUBLIC + ACC_FINAL,
@@ -4576,9 +4635,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         mv.visitVarInsn(ALOAD, mv.getThis());
         mv.visitInsn(DUP);
         mv.visitMethodInsn(INVOKESTATIC, 
-                           "com/sun/fortress/runtimeSystem/FortressAction",
-                           "setAction", 
-                           "(Lcom/sun/fortress/runtimeSystem/FortressAction;)V");
+                           "com/sun/fortress/runtimeSystem/BaseTask",
+                           "setTask", 
+                           "(Lcom/sun/fortress/runtimeSystem/BaseTask;)V");
 
         x.accept(this);
         mv.visitFieldInsn(PUTFIELD, className, "result", result);
@@ -4590,12 +4649,13 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return task;
     }
 
+
     public String taskConstructorDesc(List<VarCodeGen> freeVars) {
         // And their types
         String result = "(";
 
         for (VarCodeGen v : freeVars) {
-            if (v.isAMutableLocalVar())
+            if (v.isAMutableLocalVar()  || v.isAMutableTaskVar())
                 result = result + NamingCzar.descFortressMutableFValueInternal;
             else result = result + NamingCzar.jvmTypeDesc(v.fortressType, thisApi());
         }
@@ -4633,6 +4693,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return className;
     }
 
+    public void constructTaskWithFreeVars(String cname, List<VarCodeGen> freeVars, String sig) {
+            mv.visitTypeInsn(NEW, cname);
+            mv.visitInsn(DUP);
+
+            for (VarCodeGen v : freeVars) {
+                v.pushHandle(mv);
+            }
+            mv.visitMethodInsn(INVOKESPECIAL, cname, "<init>", sig);
+    }
+
     public void constructWithFreeVars(String cname, List<VarCodeGen> freeVars, String sig) {
             mv.visitTypeInsn(NEW, cname);
             mv.visitInsn(DUP);
@@ -4648,84 +4718,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     // Leave the results (in the order given) on the stack when vcgs==null;
     // otherwise use the provided vcgs to bind corresponding values.
     public void forExprsParallel(List<? extends Expr> args, Type domain_type, List<VarCodeGen> vcgs) {
-        final int n = args.size();
-        if (n <= 0) return;
-        
-        List<Type> domain_types;
-        if (NodeUtil.isVoidType(domain_type)) {
-            domain_types = new ArrayList<Type>();
-            for (int i = 0; i < n; i++)
-                domain_types.add(domain_type);
-        } else if (args.size() != 1 && domain_type instanceof TupleType) {
-            TupleType tdt = (TupleType) domain_type;
-            domain_types = tdt.getElements();
-        } else {
-            domain_types = Collections.singletonList(domain_type);
-        }
-        
-        String [] tasks = new String[n];
-        String [] results = new String[n];
-        int [] taskVars = new int[n];
-
-        if (vcgs != null && vcgs.size() != n) {
-            System.out.println("vcgs size = " + vcgs.size() + " n = " + n);
-            throw sayWhat(args.get(0), "Internal error: number of args does not match number of consumers.");
-        }
-
-        // Push arg tasks from right to left, so
-        // that local evaluation of args will proceed left to right.
-        // IMPORTANT: ALWAYS fork and join stack fashion,
-        // ie always join with the most recent fork first.
-        for (int i = n-1; i > 0; i--) {
-            Expr arg = args.get(i);
-            // Make sure arg has type info (we'll need it to generate task)
-            Option<Type> ot = NodeUtil.getExprType(arg);
-            if (!ot.isSome())
-                throw sayWhat(arg, "Missing type information for argument " + arg);
-            Type t = ot.unwrap();
-            String tDesc = NamingCzar.jvmBoxedTypeDesc(t, component.getName());
-            // Find free vars of arg
-            List<VarCodeGen> freeVars = getFreeVars(arg);
-            BASet<VarType> fvts = fvt.freeVarTypes(arg);
-            // TO DO if fvts non-empty, will need to make a generic task
-
-            // Generate descriptor for init method of task
-            String init = taskConstructorDesc(freeVars);
-
-            String task = delegate(arg, tDesc, init, freeVars);
-            tasks[i] = task;
-            results[i] = tDesc;
-            constructWithFreeVars(task, freeVars, init);
-
-            mv.visitInsn(DUP);
-            int taskVar = mv.createCompilerLocal(task, // Naming.mangleIdentifier(task),
-                    Naming.internalToDesc(task));
-            taskVars[i] = taskVar;
-            mv.visitVarInsn(ASTORE, taskVar);
-            mv.visitMethodInsn(INVOKEVIRTUAL, task, "forkIfProfitable", "()V");
-        }
-        // arg 0 gets compiled in place, rather than turned into work.
-        args.get(0).accept(this);
-        conditionallyCastParameter(args.get(0),
-                domain_types.get(0));
-        if (vcgs != null) vcgs.get(0).assignValue(mv);
-
-
-        // join / perform work locally left to right, leaving results on stack.
-        for (int i = 1; i < n; i++) {
-            VarCodeGen vcg = vcgs != null ? vcgs.get(i) : null;
-            int taskVar = taskVars[i];
-            mv.visitVarInsn(ALOAD, taskVar);
-            mv.disposeCompilerLocal(taskVar);
-            mv.visitInsn(DUP);
-            String task = tasks[i];
-            mv.visitMethodInsn(INVOKEVIRTUAL, task, "joinOrRun", "()V");
-            mv.visitFieldInsn(GETFIELD, task, "result", results[i]);
-            conditionallyCastParameter(args.get(i),
-                    domain_types.get(i));
-            if (vcg != null)
-                vcg.assignValue(mv);
-        }
+        boolean clearStackAtEnd = false;
+        genParallelExprs(args, domain_type, vcgs, clearStackAtEnd);
     }
 
     // Evaluate args serially, from left to right.

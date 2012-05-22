@@ -409,8 +409,8 @@ object FilteredRange(lo: ZZ32, hi:ZZ32, p: ZZ32 -> Boolean) extends Range
         FilteredRange(lo, hi, fn n => p(n) AND: q(n))
 end
 
-opr :(lo:ZZ32, hi:ZZ32): GeneratorZZ32 = FilteredRange(lo, hi, fn (n) => true)
-opr #(lo:ZZ32, sz:ZZ32): GeneratorZZ32 = lo : (lo+sz-1)
+opr :(lo:ZZ32, hi:ZZ32): Range = FilteredRange(lo, hi, fn (n) => true)
+opr #(lo:ZZ32, sz:ZZ32): Range = lo : (lo+sz-1)
 
 trait ReductionString
     empty(): String

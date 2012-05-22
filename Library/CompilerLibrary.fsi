@@ -148,8 +148,8 @@ object ZZ32Max extends ReductionZZ32
     join(a: ZZ32, b: ZZ32): ZZ32
 end
 
-opr :(lo:ZZ32, hi:ZZ32): GeneratorZZ32
-opr #(lo:ZZ32, sz:ZZ32): GeneratorZZ32
+opr :(lo:ZZ32, hi:ZZ32): Range
+opr #(lo:ZZ32, sz:ZZ32): Range
 
 (*
 opr BIG ||(): ReductionString

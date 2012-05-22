@@ -232,26 +232,26 @@ object NodeList[\E\](val:E,  leftL:List[\E\], rightL:List[\E\])
     left():Just[\E\] = do
         notDone : Boolean := true
         t : NodeList[\E\] := self
-        (*while notDone do
+        while notDone do
             l = t.getLeftChild()
             typecase l of
                 l':NodeList[\E\] => t := l'
                 else => notDone := false
             end
-        end*)
+        end
         Just[\E\](t.getVal())
       end
 
     right():Just[\E\] = do
         notDone : Boolean := true
         t : NodeList[\E\] := self
-        (*while notDone do
+        while notDone do
             l = t.getRightChild()
             typecase l of
                 l':NodeList[\E\] => t := l'
                 else => notDone := false
             end
-        end*)
+        end
         Just[\E\](t.getVal())
       end
 

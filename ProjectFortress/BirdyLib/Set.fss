@@ -303,26 +303,26 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
     minimum():Just[\E\] = do
         notDone : Boolean := true
         t : NodeSet[\E\] := self
-        (*while notDone do
+        while notDone do
             l = t.getLeftChild()
             typecase l of
                 l':NodeSet[\E\] => t := l'
                 else => notDone := false
             end
-        end*)
+        end
         Just[\E\](t.getVal())
       end
 
     maximum():Just[\E\] = do
         notDone : Boolean := true
         t : NodeSet[\E\] := self
-        (*while notDone do
+        while notDone do
             l = t.getRightChild()
             typecase l of
                 l':NodeSet[\E\] => t := l'
                 else => notDone := false
             end
-        end*)
+        end
         Just[\E\](t.getVal())
       end
 

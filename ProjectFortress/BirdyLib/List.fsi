@@ -48,6 +48,7 @@ trait List[\E\] extends Generator[\E\]
 end
 
 emptyList[\E\](): List[\E\]
+singleton[\E\](x:E): List[\E\]
 opr <|[\T\]|>: List[\T\]
 
 opr BIG <|[\T\]|> : Comprehension[\T,List[\T\],List[\T\],List[\T\]\]

@@ -33,7 +33,7 @@ import static com.sun.fortress.runtimeSystem.FortressExecutable.useHelpJoin;
  *    tmp.joinOrRun();
  *    ... use tmp.result (compiler-inserted field) if desired ...
  */
-public abstract class BaseTask extends FortressAction {
+public abstract class BaseTask extends FortressExecutable {
     // Could get this by hacking ForkJoinTask's status field, but
     // not touching that for now as it's too changeable
     private static final int UNFORKED = 0;
@@ -42,15 +42,20 @@ public abstract class BaseTask extends FortressAction {
     private int actuallyForked = UNFORKED;
 
     BaseTask parent;
-
+    Transaction transaction;
 
   // Debugging
     private static Boolean debug = false;
     private static AtomicInteger counter = new AtomicInteger();
-    private int count;
+    public int count;
     public int depth;
     public String name;
 
+
+   private static void debug(String s) {
+        if (debug)
+            System.out.println("BaseTaskDebug: " + Thread.currentThread().getName() + ":" + s);
+    }
 
     int depth() { return depth;}
     String name() {return name;}
@@ -67,26 +72,21 @@ public abstract class BaseTask extends FortressAction {
     // The constructor used by the primordial task.
     public BaseTask() {
         super();
-        parent = null;
-        depth = 0;
-        name = "PrimordialTask";
-        count = 0;
+        this.parent = null;
+        this.transaction = null;
+        this.depth = 0;
+        this.count = counter.getAndIncrement();
+        this.name = "" + this.count;
     }
-        
-    // The constructor used by all compiled instances (right now)
-    public BaseTask(BaseTask p) {
+
+    public BaseTask(BaseTask parent) {
         super();
-        parent = p;
-        transaction = p.transaction();
-        depth = p.depth() + 1;
-        if (debug) {
-            count = counter.getAndIncrement();
-            name = p.name() + "." + count;
-        } else {
-            name = "BaseTask";
-            count = 0;
-        }
-    }
+        this.parent = parent;
+        this.transaction = parent.transaction;
+        this.depth = parent.depth + 1;
+        this.count = counter.getAndIncrement();
+        this.name = parent.name + "." + this.count;
+       }
 
     // Corner case: we attempted to spawn work from a class
     // initializer.  That doesn't work as the initializer isn't run in
@@ -122,4 +122,75 @@ public abstract class BaseTask extends FortressAction {
             this.join();
         }
     }
+
+   public static void startTransaction() {
+        FortressTaskRunner ftr = (FortressTaskRunner) Thread.currentThread();
+        BaseTask currentTask = ftr.getTask();
+        debug("startTransaction: ftr = " + ftr + " current task = " + currentTask);
+
+        Transaction transaction = Transaction.TXBegin(currentTask.transaction());
+        debug("Start transaction ftr = " + ftr + " current action = " + currentTask + " trans = " + transaction);
+        currentTask.setTransaction(transaction);
+    }
+
+    public static void endTransaction() {
+        FortressTaskRunner ftr = (FortressTaskRunner) Thread.currentThread();
+        BaseTask currentTask = ftr.getTask();
+        debug("endTransaction: ftr = " + ftr + " current task = " + currentTask);
+        Transaction transaction = ftr.getTask().transaction();
+        debug("End transaction ftr = " + ftr + " current action = " + currentTask + " trans = " + transaction);
+        if (transaction != null) {
+            transaction.TXCommit();
+            currentTask.setTransaction(transaction.getParent());
+        }
+    }
+
+    public static void cleanupTransaction() {
+        FortressTaskRunner ftr = (FortressTaskRunner) Thread.currentThread();
+        BaseTask currentTask = ftr.getTask();
+        Transaction transaction = ftr.getTask().transaction();
+        debug("Cleanup transaction ftr = " + ftr + " current action = " + currentTask + " trans = " + transaction);
+        if (transaction != null)
+            currentTask.setTransaction(transaction.getParent());
+        else
+            currentTask.setTransaction(null);
+    }
+
+    public static Transaction getCurrentTransaction() {
+        FortressTaskRunner ftr = (FortressTaskRunner) Thread.currentThread();
+        debug("getCurrentTransaction: ftr = " + ftr );
+        if (ftr.getTask() != null)
+            return ftr.getTask().transaction();
+        else return null;
+    }
+
+    public static BaseTask getCurrentTask() {
+        FortressTaskRunner ftr = (FortressTaskRunner) Thread.currentThread();
+        debug("getCurrentTask: ftr = " + ftr );
+        return ftr.getTask();
+    }
+
+    public static boolean inATransaction() {
+        FortressTaskRunner ftr = (FortressTaskRunner) Thread.currentThread();
+        debug("inATransaction: ftr = " + ftr + " task = " + ftr.getTask());
+
+        if (ftr.getTask() != null) 
+            if (ftr.getTask().transaction() != null)
+                return true;
+        return false;
+    }
+
+    public static void setTask(BaseTask t) {
+        FortressTaskRunner ftr = (FortressTaskRunner) Thread.currentThread();
+        debug("setTask: ftr = " + ftr + " task = " + t);
+        ftr.setTask(t);
+    }
+
+    Transaction transaction() {
+        return transaction;
+    }
+
+    public void setTransaction(Transaction t) {
+        transaction = t;
+    }    
 }
