@@ -130,6 +130,7 @@ trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 , ZZ }
     coerce(x: IntLiteral)
     coerce(x: ZZ32) 
     getter asZZ32(): ZZ32 
+    getter bitsAsNN64(): NN64
     opr |self| : ZZ64
     opr -(self): ZZ64
     opr BOXMINUS(self): ZZ64
@@ -182,6 +183,7 @@ end
 trait ZZ32 extends { Number, Equality[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
     coerce(x: IntLiteral)
     getter asZZ32(): ZZ32
+    getter bitsAsNN32(): NN32
     opr |self| : ZZ32
     opr -(self): ZZ32
     opr BOXMINUS(self): ZZ32
@@ -234,6 +236,7 @@ end
 trait NN32 extends { Number, Equality[\NN32\] } excludes { ZZ32, ZZ64, RR32, RR64 }
     coerce(x: IntLiteral)
     getter asNN32(): NN32
+    getter bitsAsZZ32(): ZZ32
     getter asString(): String
     opr |self| : NN32
     opr -(self): NN32 
@@ -288,7 +291,9 @@ end
 
 trait NN64 extends { Number, Equality[\NN64\] } excludes { ZZ32, ZZ64, RR32, RR64, NN32, ZZ, IntLiteral }
     coerce(x: IntLiteral)
+    coerce(x: NN32)
     getter asNN64(): NN64
+    getter bitsAsZZ64(): ZZ64
     getter asString(): String
     opr |self| : NN64
     opr -(self): NN64 
@@ -552,6 +557,86 @@ trait JavaBufferedWriter excludes { String, Number, Boolean, Character, JavaBuff
 end
 
 makeJavaBufferedWriter(s: String): JavaBufferedWriter throws FileNotFoundException
+
+
+(************************************************************
+ * Generators and Reducers
+ ************************************************************)
+
+trait AllGenerators end
+
+trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
+    abstract getter reverse(): Generator[\E1\]
+    abstract generate[\R\](r: Reduction[\R\], body: E1->R): R
+    abstract map[\Gyy\](f: E1->Gyy): Generator[\Gyy\]
+(*)    abstract seq(self): SequentialGenerator[\E1\]
+    abstract seq(): SequentialGenerator[\E1\]
+    abstract nest[\G1\](f: E1 -> Generator[\G1\]): Generator[\G1\]
+    abstract filter(f: E1 -> Condition[\()\]): Generator[\E1\]
+    abstract cross[\G2\](g: Generator[\G2\]): Generator[\(E1,G2)\]
+    abstract mapReduce[\R\](body: E1->R, join: (R,R)->R, id: R): R
+    abstract reduce(r: Reduction[\E1\]): E1
+    abstract reduce(join: (E1,E1)->E1, id: E1): E1
+    abstract loop(body :E1->()): ()
+end Generator
+
+trait SequentialGenerator[\E2\] extends { Generator[\E2\] }
+    abstract getter reverse(): SequentialGenerator[\E2\]
+    abstract seq(): SequentialGenerator[\E2\]
+    abstract map[\G3\](f: E2->G3): SequentialGenerator[\G3\]
+    abstract nest[\G4\](f: E2 -> SequentialGenerator[\G4\]): SequentialGenerator[\G4\]
+    abstract filter(f: E2 -> Condition[\()\]): SequentialGenerator[\E2\]
+    abstract cross[\F1\](g: SequentialGenerator[\F1\]): SequentialGenerator[\(E2,F1)\]
+end SequentialGenerator
+
+trait Reduction[\R\]
+    getter reverse(): Reduction[\R\]
+    abstract getter id(): R
+    abstract join(a: R, b: R): R
+end
+
+trait Condition[\E18\] extends { SequentialGenerator[\E18\] }
+(*)        excludes { String, ZZ, ZZ32, ZZ64, NN32, NN64, IntLiteral, RR32, RR64, ZZ32Vector, StringVector }
+    abstract getter isEmpty(): Boolean 
+    abstract getter nonEmpty(): Boolean
+    abstract getter holds(): Boolean
+    abstract getter size(): ZZ32
+    abstract getter get(): E18 throws NotFound
+    abstract getter reverse(): Condition[\E18\]
+    abstract getDefault(defaultValue: E18): E18
+(*)    abstract opr |self| : ZZ32
+    abstract generate[\G11\](r: Reduction[\G11\], body: E18 -> G11): G11
+    abstract map[\G12\](f: E18->G12): Condition[\G12\]
+    seq(): Condition[\E18\]
+    abstract nest[\G13\](f: E18 -> Generator[\G13\]): Generator[\G13\]
+    abstract nest[\G18\](f: E18 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\]
+    abstract cross[\G14\](g: Generator[\G14\]): Generator[\(E18,G14)\]
+    abstract cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E18,G17)\]
+    abstract mapReduce[\R\](body: E18->R, _:(R,R)->R, id:R): R
+    abstract reduce(_:(E18,E18)->E18, id:E18): E18
+    abstract reduce(r: Reduction[\E18\]): E18
+    abstract loop(f:E18->()): ()
+    abstract cond[\G10\](t: E18 -> G10, e: () -> G10): G10
+(*)    abstract opr OR(self, other: () -> E18): E18
+end Condition
+
+
+(* Option type *)
+
+value trait Option[\E19\] extends { Condition[\E19\] }
+        comprises { NothingObject[\E19\], Some[\E19\] }
+  coerce(_: Nothing)
+(*)  opr SQCAP(self, other: Option[\E19\]): Option[\E19\]
+  seq(): Option[\E19\]
+  abstract filter(f: E19 -> Condition[\()\]): Option[\E19\]
+end
+
+value object Some[\E20\](x: E20) extends Option[\E20\] end
+
+value object NothingObject[\E21\] extends Option[\E21\] end
+
+value object Nothing end
+
 
 (************************************************************
 * Comparison values

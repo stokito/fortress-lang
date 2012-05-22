@@ -31,13 +31,13 @@ import java.util.Set;
 public abstract class TraitIndex extends TypeConsIndex {
 
     private final TraitObjectDecl _ast;
-    private final Map<Id, Method> _getters;
-    private final Map<Id, Method> _setters;
+    private final Map<Id, FieldGetterMethod> _getters;
+    private final Map<Id, FieldSetterMethod> _setters;
     private final Set<Coercion> _coercions;
     private final Relation<IdOrOpOrAnonymousName, DeclaredMethod> _dottedMethods;
     private final Relation<IdOrOpOrAnonymousName, FunctionalMethod> _functionalMethods;
 
-    public TraitIndex(TraitObjectDecl ast, Map<Id, Method> getters, Map<Id, Method> setters, Set<Coercion> coercions, Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods, Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods) {
+    public TraitIndex(TraitObjectDecl ast, Map<Id, FieldGetterMethod> getters, Map<Id, FieldSetterMethod> setters, Set<Coercion> coercions, Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods, Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods) {
         _ast = ast;
         _getters = getters;
         _setters = setters;
@@ -78,11 +78,11 @@ public abstract class TraitIndex extends TypeConsIndex {
         return NodeUtil.getExtendsClause(_ast);
     }
 
-    public Map<Id, Method> getters() {
+    public Map<Id, FieldGetterMethod> getters() {
         return _getters;
     }
 
-    public Map<Id, Method> setters() {
+    public Map<Id, FieldSetterMethod> setters() {
         return _setters;
     }
 

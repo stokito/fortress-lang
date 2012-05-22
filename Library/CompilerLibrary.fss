@@ -108,6 +108,25 @@ deny(x: Any, y: Any, failMsg: Any...): () =
     end
 *)
 
+debugString(x: Any): String = "<function or long tuple>"
+debugString(x: Object): String = x.asString
+debugString(): String = "()"
+debugString(a: Any, b: Any): String =
+  ("(" || debugString(a) || ", " || debugString(b) || ")")
+debugString(a: Any, b: Any, c: Any): String =
+  ("(" || debugString(a) || ", " || debugString(b) || ", " || debugString(c) || ")")
+debugString(a: Any, b: Any, c: Any, d: Any): String =
+  ("(" || debugString(a) || ", " || debugString(b) || ", " || debugString(c) || ", " || debugString(d) || ")")
+debugString(a: Any, b: Any, c: Any, d: Any, e: Any): String =
+  ("(" || debugString(a) || ", " || debugString(b) || ", " || debugString(c) || ", " ||
+          debugString(d) || ", " || debugString(e) || ")")
+debugString(a: Any, b: Any, c: Any, d: Any, e: Any, f: Any): String =
+  ("(" || debugString(a) || ", " || debugString(b) || ", " || debugString(c) || ", " ||
+          debugString(d) || ", " || debugString(e) || ", " || debugString(f) || ")")
+debugString(a: Any, b: Any, c: Any, d: Any, e: Any, f: Any, g: Any): String =
+  ("(" || debugString(a) || ", " || debugString(b) || ", " || debugString(c) || ", " ||
+          debugString(d) || ", " || debugString(e) || ", " || debugString(f) || ", " || debugString(g) || ")")
+
 (************************************************************
 * Exception hierarchy
 ************************************************************)
@@ -163,6 +182,11 @@ end
 (* Should this be called "IndexNotFound" instead? *)
 object NotFound extends UncheckedException
     getter asString(): String = "Not found"
+end
+
+(* Should this be called "IndexNotFound" instead? *)
+object NoValueForKey(x: Any) extends UncheckedException
+    getter asString(): String = "No value for key" debugString(x)
 end
 
 (*
@@ -241,7 +265,7 @@ opr SEQV(a:Any, b:Any) = jSEQV(a,b)
  * Simple Range support
  ************************************************************)
 
-trait GeneratorZZ32 excludes { Boolean }
+trait GeneratorZZ32 excludes { Boolean }  (*) excludes { Boolean, AllGenerators }
     getter asString(): String
     seq(self): SeqGeneratorZZ32 = SeqGenZZ32(self)
     loop(body:ZZ32->()): ()
@@ -483,15 +507,29 @@ randomZZ32(x:ZZ32): ZZ32 = jRandomInt(0,x)
 *)
 
 (************************************************************
-* Matrices (stub)
-************************************************************)
+ * Matrices (stub)
+ ************************************************************)
 trait Matrix[\T, nat s0, nat s1\] extends Object end
 
-(************************************************************
-* Character properties
-************************************************************)
 
-characterMinSupplementaryCodePoint: ZZ32 = 65536
+(************************************************************
+ * Number properties
+ ************************************************************)
+
+ZZ32_MIN: ZZ32 = 8000'0000_16
+ZZ32_MAX: ZZ32 = 7FFF'FFFF_16
+ZZ64_MIN: ZZ64 = 8000'0000'0000'0000_16
+ZZ64_MAX: ZZ64 = 7FFF'FFFF'FFFF'FFFF_16
+NN32_MIN: NN32 = 0000'0000_16
+NN32_MAX: NN32 = FFFF'FFFF_16
+NN64_MIN: NN64 = 0000'0000'0000'0000_16
+NN64_MAX: NN64 = FFFF'FFFF'FFFF'FFFF_16
+
+(************************************************************
+ * Character properties
+ ************************************************************)
+
+characterMinSupplementaryCodePoint: ZZ32 = 1'0000_16
 characterMinRadix: ZZ32 = 2
 characterMaxRadix: ZZ32 = 36
 

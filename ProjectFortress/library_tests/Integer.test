@@ -7,7 +7,7 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests= Integer1 Integer2 Integer3 Integer4 IntegerChoose1 IntegerChoose2
+tests= Integer1 Integer2 Integer3 Integer4 IntegerChoose1 IntegerChoose2 ShiftTest ShiftTest2 AverageTest
 compile
 link
 run

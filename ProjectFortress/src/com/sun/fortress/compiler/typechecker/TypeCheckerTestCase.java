@@ -77,8 +77,8 @@ public abstract class TypeCheckerTestCase extends TestCase {
                                                   Option.<List<NamedType>>none(), false,
                                                   Option.<SelfType>none());
         return new ProperTraitIndex(ast,
-                                    Collections.<Id, Method>emptyMap(),
-                                    Collections.<Id, Method>emptyMap(),
+                                    Collections.<Id, FieldGetterMethod>emptyMap(),
+                                    Collections.<Id, FieldSetterMethod>emptyMap(),
                                     Collections.<Coercion>emptySet(),
                                     CollectUtil.<IdOrOpOrAnonymousName, DeclaredMethod>emptyRelation(),
                                     CollectUtil.<IdOrOpOrAnonymousName, FunctionalMethod>emptyRelation());

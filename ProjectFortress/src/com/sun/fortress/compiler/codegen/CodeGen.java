@@ -41,6 +41,8 @@ import com.sun.fortress.compiler.index.ApiIndex;
 import com.sun.fortress.compiler.index.ComponentIndex;
 import com.sun.fortress.compiler.index.DeclaredFunction;
 import com.sun.fortress.compiler.index.DeclaredMethod;
+import com.sun.fortress.compiler.index.FieldGetterMethod;
+import com.sun.fortress.compiler.index.FieldSetterMethod;
 import com.sun.fortress.compiler.index.Function;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
@@ -1102,10 +1104,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             new MultiMap<IdOrOpOrAnonymousName, Functional>();
         
         // Sort defined methods into map from single names to sets of defs
-        for (Map.Entry<Id, Method> ent: ti.getters().entrySet()) {
+        for (Map.Entry<Id, FieldGetterMethod> ent: ti.getters().entrySet()) {
             nameToFSets.putItem(ent.getKey(), ent.getValue());
         }
-        for (Map.Entry<Id, Method> ent: ti.setters().entrySet()) {
+        for (Map.Entry<Id, FieldSetterMethod> ent: ti.setters().entrySet()) {
             nameToFSets.putItem(ent.getKey(), ent.getValue());
         }
         /*

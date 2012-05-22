@@ -275,8 +275,8 @@ object IndexBuilder {
                          parametricOperators: JavaSet[ParametricOperator],
                          errors: JavaList[StaticError]) = {
     val name = NU.getName(ast)
-    val getters: JavaMap[Id, Method] = new JavaHashMap[Id, Method]()
-    val setters: JavaMap[Id, Method] = new JavaHashMap[Id, Method]()
+    val getters: JavaMap[Id, JavaFieldGetterMethod] = new JavaHashMap[Id, JavaFieldGetterMethod]()
+    val setters: JavaMap[Id, JavaFieldSetterMethod] = new JavaHashMap[Id, JavaFieldSetterMethod]()
     val coercions: JavaSet[Coercion] = new JavaHashSet[Coercion]()
     val dottedMethods: Relation[IdOrOpOrAnonymousName, JavaDeclaredMethod] =
       new IndexedRelation[IdOrOpOrAnonymousName, JavaDeclaredMethod](false)
@@ -322,8 +322,8 @@ object IndexBuilder {
     val name = NU.getName(ast)
     val fields: JavaMap[Id, Variable] = new JavaHashMap[Id, Variable]()
     val initializers: JavaSet[VarDecl] = new JavaHashSet[VarDecl]()
-    val getters: JavaMap[Id, Method] = new JavaHashMap[Id, Method]()
-    val setters: JavaMap[Id, Method] = new JavaHashMap[Id, Method]()
+    val getters: JavaMap[Id, JavaFieldGetterMethod] = new JavaHashMap[Id, JavaFieldGetterMethod]()
+    val setters: JavaMap[Id, JavaFieldSetterMethod] = new JavaHashMap[Id, JavaFieldSetterMethod]()
     val coercions: JavaSet[Coercion] = new JavaHashSet[Coercion]()
     val dottedMethods: Relation[IdOrOpOrAnonymousName, JavaDeclaredMethod] =
       new IndexedRelation[IdOrOpOrAnonymousName, JavaDeclaredMethod](false)
@@ -389,8 +389,8 @@ object IndexBuilder {
    * abstract fields.
    */
   private def buildTraitFields(ast: VarDecl, traitDecl: TraitObjectDecl,
-                               getters: JavaMap[Id, Method],
-                               setters: JavaMap[Id, Method]) =
+                               getters: JavaMap[Id, JavaFieldGetterMethod],
+                               setters: JavaMap[Id, JavaFieldSetterMethod]) =
     for (b <- ast.getLhs) {
       val mods = b.getMods
       val name = b.getName
@@ -406,8 +406,8 @@ object IndexBuilder {
    */
   private def buildFields(ast: VarDecl, traitDecl: TraitObjectDecl,
                           fields: JavaMap[Id, Variable],
-                          getters: JavaMap[Id, Method],
-                          setters: JavaMap[Id, Method]) =
+                          getters: JavaMap[Id, JavaFieldGetterMethod],
+                          setters: JavaMap[Id, JavaFieldSetterMethod]) =
     for (b <- ast.getLhs) {
       val mods = b.getMods
       val name = b.getName
@@ -463,8 +463,8 @@ object IndexBuilder {
                           apiName: Option[APIName],
                           traitDecl: TraitObjectDecl,
                           enclosingParams: JavaList[StaticParam],
-                          getters: JavaMap[Id, Method],
-                          setters: JavaMap[Id, Method],
+                          getters: JavaMap[Id, JavaFieldGetterMethod],
+                          setters: JavaMap[Id, JavaFieldSetterMethod],
                           coercions: JavaSet[Coercion],
                           dottedMethods: Relation[IdOrOpOrAnonymousName, JavaDeclaredMethod],
                           functionalMethods: Relation[IdOrOpOrAnonymousName, JavaFunctionalMethod],

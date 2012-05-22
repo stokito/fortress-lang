@@ -32,8 +32,8 @@ public class ObjectTraitIndex extends TraitIndex {
                             Option<Constructor> constructor,
                             Map<Id, Variable> fields,
                             Set<VarDecl> fieldInitializers,
-                            Map<Id, Method> getters,
-                            Map<Id, Method> setters,
+                            Map<Id, FieldGetterMethod> getters,
+                            Map<Id, FieldSetterMethod> setters,
                             Set<Coercion> coercions,
                             Relation<IdOrOpOrAnonymousName, DeclaredMethod> dottedMethods,
                             Relation<IdOrOpOrAnonymousName, FunctionalMethod> functionalMethods) {
