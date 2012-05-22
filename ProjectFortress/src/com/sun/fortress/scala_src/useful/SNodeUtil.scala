@@ -364,7 +364,7 @@ object SNodeUtil {
     }
     
     // Keep trying to generate a name not already in `env`.
-    val MAX_I = 10000
+    val MAX_I = freshNameCounter + 10000
     for (i <- freshNameCounter.to(MAX_I)) {
       val fresh = mkname(i)
       if (isFresh(fresh)) {

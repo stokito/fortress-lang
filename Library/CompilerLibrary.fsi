@@ -37,6 +37,8 @@ assert(flag: Boolean, failMsg: String): ()
 deny(flag: Boolean): ()
 deny(flag: Boolean, failMsg: String): ()
 
+debugString(x: Any): String
+
 (************************************************************
 * \subsection*{Exception hierarchy}
 ************************************************************)
@@ -64,6 +66,8 @@ object ForbiddenException(chain : Exception) extends UncheckedException end
 (* Should this be called "IndexNotFound" instead? *)
 object NotFound extends UncheckedException end
 
+object NoValueForKey(x: Any) extends UncheckedException end
+
 (*
 object IndexOutOfBounds[\I\](range:Range[\I\],index:I) extends UncheckedException end
 *)
@@ -82,7 +86,7 @@ object CastException extends UncheckedException end
  * Simple Range support
  ************************************************************)
 
-trait GeneratorZZ32 excludes { Boolean }
+trait GeneratorZZ32 excludes { Boolean }   (*) excludes { Boolean, AllGenerators  }
     abstract getter asString(): String
     seq(self): SeqGeneratorZZ32
     abstract loop(body:ZZ32->()): ()
@@ -221,13 +225,26 @@ randomZZ32(x:ZZ32): ZZ32
 *)
 
 (************************************************************
-* Matrices (stub)
-************************************************************)
+ * Matrices (stub)
+ ************************************************************)
 trait Matrix[\T, nat s0, nat s1\] extends Object end
 
 (************************************************************
-* Character properties
-************************************************************)
+ * Number properties
+ ************************************************************)
+
+ZZ32_MIN: ZZ32
+ZZ32_MAX: ZZ32
+ZZ64_MIN: ZZ64
+ZZ64_MAX: ZZ64
+NN32_MIN: NN32
+NN32_MAX: NN32
+NN64_MIN: NN64
+NN64_MAX: NN64
+
+(************************************************************
+ * Character properties
+ ************************************************************)
 
 characterMinSupplementaryCodePoint: ZZ32
 characterMinRadix: ZZ32

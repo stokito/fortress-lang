@@ -36,12 +36,12 @@ class TraitTable(current: CompilationUnitIndex, globalEnv: GlobalEnvironment) ex
          ( ast.isInstanceOf[Api] && ast.getName.equals(name.getApiName.unwrap) ) ||
          ( ast.isInstanceOf[Component] &&
            ast.asInstanceOf[Component].getExports.contains(name.getApiName.unwrap) ) ) {
-      JOption.some(current.typeConses.get(simpleName))
+      JOption.wrap(current.typeConses.get(simpleName))
     }
     else {
       val api = globalEnv.api(name.getApiName.unwrap)
       if (api == null) JOption.none[TypeConsIndex]
-      else JOption.some(api.typeConses().get(simpleName))
+      else JOption.wrap(api.typeConses().get(simpleName))
     }
   }
 

@@ -556,7 +556,7 @@ class TryChecker(current: CompilationUnitIndex,
     try {
       val checkedExpr = super.checkExpr(expr)
       if (getType(checkedExpr).isNone)
-        bug("TryChecker returned an untyped expr!")
+        bug("TryChecker returned an untyped expr: " + expr.toStringReadable)
       Some(checkedExpr)
     }
     catch {
@@ -569,7 +569,10 @@ class TryChecker(current: CompilationUnitIndex,
     try {
       val checkedExpr = super.checkExpr(expr, expected)
       if (getType(checkedExpr).isNone)
-        bug("TryChecker returned an untyped expr!")
+        if (expected.isEmpty)
+          bug("TryChecker returned an untyped expr: " + expr.toStringReadable)
+        else
+          bug("TryChecker returned an untyped expr: " + expr.toStringReadable + "\nPossible expected type was: " + expected.get.toStringReadable)
       Some(checkedExpr)
     }
     catch {
@@ -585,7 +588,7 @@ class TryChecker(current: CompilationUnitIndex,
     try {
       val checkedExpr = super.checkExpr(expr, typ)
       if (getType(checkedExpr).isNone)
-        bug("TryChecker returned an untyped expr!")
+        bug("TryChecker returned an untyped expr: " + expr.toStringReadable + "\nExpected type was: " + typ.toStringReadable)
       Some(checkedExpr)
     }
     catch {

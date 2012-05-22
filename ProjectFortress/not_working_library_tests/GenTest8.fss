@@ -1,0 +1,55 @@
+(*******************************************************************************
+    Copyright 2011,2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component GenTest8
+import CompilerAlgebra.{ ... }
+import GeneratorLibrary.{ ... }
+export Executable
+
+object IntPlusReduction extends { CommutativeMonoidReduction[\ZZ32\] }
+    getter asString(): String = "IntPlusReduction"
+    getter reverse() = IntPlusReduction
+    getter id(): ZZ32 = 0
+    join(a: ZZ32, b: ZZ32): ZZ32 = a+b
+end
+
+run(): () = do
+  a: ZZ32 = 3
+  b: ZZ32 = 4
+  z: ZZ32 = 0
+  s: String = "quux"
+  (*) The following tests work (or have worked in the past).
+  (Some a).loop(fn (x: ZZ32) => println x)
+  NothingObject[\ZZ32\].loop(fn (x: ZZ32) => println x)
+  println((Some a).reduce(IntPlusReduction))
+  println(NothingObject[\ZZ32\].reduce(IntPlusReduction))
+  println((Some a).holds)
+  println(NothingObject[\ZZ32\].holds)
+  println((Some a).reverse)
+  println(NothingObject[\ZZ32\].reverse)
+  println((Some s).mapReduce(fn (x:String):ZZ32 => |x|, fn (p: ZZ32, q: ZZ32): ZZ32 => p+q, a))
+  println(NothingObject[\String\].mapReduce(fn (x:String):ZZ32 => |x|, fn (p: ZZ32, q: ZZ32): ZZ32 => p+q, a))
+  (Some a).cross(Some b).loop(fn (x: (ZZ32,ZZ32)) => println x)
+  (Some a).cross(NothingObject[\ZZ32\]).loop(fn (x: (ZZ32,ZZ32)) => println x)
+  (NothingObject[\ZZ32\]).cross(Some b).loop(fn (x: (ZZ32,ZZ32)) => println x)
+  (NothingObject[\ZZ32\]).cross(NothingObject[\ZZ32\]).loop(fn (x: (ZZ32,ZZ32)) => println x)
+  println((Some a).map(fn (x: ZZ32): ZZ32 => x+43))
+  println(NothingObject[\ZZ32\].map(fn (x: ZZ32): ZZ32 => x+43))
+  println((Some a).generate(IntPlusReduction, fn (x: ZZ32): ZZ32 => x+43))
+(*)   println((Some a) OR: b)
+(*)   println(NothingObject[\ZZ32\] OR: b)
+  println((Some a).nest(fn (x: ZZ32): Option[\String\] => (if x=0 then NothingObject[\String\] elif odd x then Some "odd" else Some "even")))
+  println((Some b).nest(fn (x: ZZ32): Option[\String\] => (if x=0 then NothingObject[\String\] elif odd x then Some "odd" else Some "even")))
+  println((Some z).nest(fn (x: ZZ32): Option[\String\] => (if x=0 then NothingObject[\String\] elif odd x then Some "odd" else Some "even")))
+  println(NothingObject[\ZZ32\].nest(fn (x: ZZ32): Option[\String\] => (if x=0 then NothingObject[\String\] elif odd x then Some "odd" else Some "even")))
+  println "PASS"
+end 
+end

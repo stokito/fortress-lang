@@ -240,7 +240,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
             if (suffix) {
                 arg = thunk(arg);
             }
-            res = ExprFactory.makeOpExpr(sp, qop, res, arg);
+            res = ExprFactory.makeOpExpr(sp, NodeUtil.isParenthesized(opExp), qop, res, arg);
         }
         return res;
     }
