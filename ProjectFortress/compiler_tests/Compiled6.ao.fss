@@ -1,0 +1,54 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(*) Test working ordinary assignments.
+
+  export Executable
+
+  object Foo
+
+  end
+
+  trait Quux
+
+  end
+
+  object Bar extends Quux
+
+  end
+
+  typeTest():() = do
+    var a:Foo
+    b:() = (a:=Foo)
+  end
+
+
+  run():() = do
+    var a : ZZ32
+    a := 1
+
+    var a:Foo
+    a := Foo
+
+    (a) := Foo
+    (a) := (Foo)
+    a := (Foo)
+
+    (* Tuples *)
+
+    var b : Bar
+    var c : Quux
+    (a,b) := (Foo,Bar)
+    (a,c) := (Foo,Bar)
+
+    (* Other operators *)
+  end
+

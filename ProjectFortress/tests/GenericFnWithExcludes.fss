@@ -1,0 +1,48 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component GenericFnWithExcludes
+export Executable
+
+x:ZZ32 := 0
+
+trait T
+  f(): ()
+end
+
+trait X[\nat n\] extends {T} excludes {Y[\n+1\]} end
+trait Y[\nat m\] extends {T} (* excludes {X[\m+1\]} *) end
+
+object O extends {X[\1\]}
+  f() = do println("O"); x += 1; end
+end
+
+object P extends {Y[\2\]}
+  f() = do println("P"); x += 2; end
+end
+
+object Q extends {Y[\3\]}
+  f() = do println("Q"); x += 4; end
+end
+
+g[\U, V\](u:U, v:V)
+   where [\nat n\]{U extends {X[\n\]}, V extends {Y[\n\]}} =
+   do
+     u.f()
+     v.f()
+   end
+
+run():() = do
+  g(O,P)
+  println( if x=3 then "PASS" else "FAIL" end )
+end
+
+end

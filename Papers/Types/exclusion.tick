@@ -1,0 +1,176 @@
+% \input{exc-intro}
+% \subsection{Constraints and Inference}
+% \input{constraints}
+% \subsection{Exclusion under Constraints}
+% \input{doesnotexclude}
+% %% \subsection{Not Bottom}
+% %% \input{notbottom}
+% \subsection{Subtyping}
+% \input{reduce}
+
+Although the rules in Section~\ref{sec:rules} 
+allow programmers to write valid sets 
+of overloaded generic function declarations,
+they sometimes reject overloaded definitions 
+that might seem to be valid.
+For example, 
+given the type system as we have described it thus far,
+the overloaded `tail` function from the introduction 
+would be rejected by the overloading rules.
+
+These are not false negatives:
+multiple inheritance can introduce ambiguities 
+by extending two incomparable types, 
+as discussed in the introduction.
+Because we allow class tables to be extended by unknown modules, 
+we cannot generally infer that two types have no common nontrivial subtype 
+from the lack of any such declared type.
+Therefore, 
+the Meet Rule requires the programmer 
+to provide a disambiguating definition 
+for any pair of overloaded definitions whose domain types are incomparable.
+
+This problem is not new with parametric polymorphism, 
+as the `print` example in the introduction shows.
+To address the problem, 
+Fortress defines an \emph{exclusion relation} $\exc$ over types
+such that two types that exclude each other 
+have no common nontrivial subtypes;
+that is, 
+if $T \exc U$ then $T \cap U$ is synonymous with \Bottom.
+Thus, overloaded definitions whose domain types exclude each other
+trivially satisfy the Meet Rule: 
+there are no types (other than \Bottom) 
+to which both definitions are applicable.
+Exclusion allows us to describe explicitly what is 
+typically implicit in single-inheritance class hierarchies.
+
+In our previous work on Fortress without generics~\cite{allen07}, 
+we provided a special rule---the \emph{Exclusion Rule}---%
+to exploit this information.
+However, 
+the Exclusion Rule can also be viewed, 
+as we do in this paper, 
+as a special case of the Meet Rule, 
+where there are no nontrivial types 
+to which both definitions are applicable.
+
+Fortress provides three mechanisms to explicitly declare exclusion \cite{Fortress}:
+an `object` declaration, a `comprises` clause and an `excludes` clause.
+We describe these precisely in Section~\ref{sec:exc-spec}, 
+but for now, we simply note that 
+they do not help with the overloaded `tail` function.
+Specifically,
+even with these exclusion mechanisms, 
+we cannot define `List` 
+so that the definitions for `tail` satisfy the Return Type Rule.
+
+To see this, 
+consider the following overloaded definitions (from Section~\ref{sec:intro}):
+
+\small
+`  tail[\T\](x: List[\T\]): List[\T\]
+  tail(x: List[\ZZ\]): List[\ZZ\]
+`
+\normalsize
+and the following type constructor declaration:
+
+\small
+`  BadList <: { List[\ZZ\], List[\String\] }
+`
+\normalsize
+Both definitions of `tail` are applicable to the type `BadList`,
+and the monomorphic one is more specific.
+Two instances of the generic definition are applicable to this type:
+
+\small
+`  tail(List[\ZZ\]): List[\ZZ\]
+  tail(List[\String\]): List[\String\]
+`
+\normalsize
+The Return Type Rule requires that 
+the return type of each of these instances 
+be a supertype of the return type of the monomorphic definition
+(the monomorphic definition is its only one instance); 
+that is, it requires 
+`List[\ZZ\] <: List[\ZZ\]` 
+and `List[\ZZ\] <: List[\String\]`.
+The latter is clearly false.
+%% \TODO{Explain why we must not allow the overloading?
+%% That is, currently we simply say it doesn't satisfy the Return Type Rule, 
+%% but we don't explain why we should want it to do so.}
+
+A similar issue arises 
+when trying to satisfy the Meet Rule 
+by providing a disambiguating definition 
+for incomparable definitions, 
+as in the following example 
+(where `ZZ <: RR`):
+
+\small
+`  minimum[\X <: RR, Y <: ZZ\](p: Pair[\X,Y\]): RR
+  minimum[\X <: ZZ, Y <: RR\](p: Pair[\X,Y\]): RR
+  minimum[\X <: ZZ, Y <: ZZ\](p: Pair[\X,Y\]): ZZ
+`
+\normalsize
+The first definition is applicable to exactly those arguments 
+of type `Pair[\X,Y\]` for some `X <: RR` and `Y <: ZZ`;
+the second is applicable to exactly those arguments
+of type `Pair[\X,Y\]` for some `X <: ZZ` and `Y <: RR`.
+So we might think that both definitions are applicable 
+to exactly those arguments of type `Pair[\X,Y\]` for some `X <: ZZ` and `Y <: ZZ`, 
+which is exactly when the third definition is applicable.
+However, 
+this is not true!
+We could, for example, have the following type constructor declaration:
+
+\small
+`  BadPair <: { Pair[\RR,ZZ\], Pair[\ZZ,RR\] }
+`
+\normalsize
+The first two definitions of `minimum` are both applicable to `BadPair` 
+but the third is not.
+
+We might say that the problem with the above examples 
+is not with the definitions of `tail` and `minimum`, 
+but with the definitions of `BadList` and `BadPair`;
+we must reject the idea
+that a value may belong to `List[\ZZ\]` or `List[\String\]`---%
+or to `Pair[\ZZ,RR\]` or `Pair[\RR,ZZ\]`---%
+but not to both.
+Indeed, Fortress imposes a rule that forbids 
+\emph{multiple instantiation inheritance} \cite{kennedy07}, 
+in which a type (other than \Bottom) 
+is a subtype of distinct applications of a type constructor.\!\footnote{%
+This definition suffices for the type system described in this paper, 
+in which all type parameters are invariant.
+It is straightforward, 
+but beyond the scope of this paper, 
+to extend this definition to systems 
+that support covariant and contravariant type parameters.}
+We call this rule \emph{multiple instantiation exclusion}
+and adopt it here.
+
+Multiple instantiation exclusion is easy to enforce statically, 
+and experience suggests that it is not onerous in practice: 
+it is already required in Java, for example~\cite{JavaSpec}.
+Also, 
+Kennedy and Pierce have shown that 
+in systems that enforce multiple instantiation exclusion 
+(along with some technical restrictions),
+nominal subtyping is decidable~\cite{kennedy07}.\!\footnote{%
+They also show that forbidding contravariant type parameters 
+results in decidable nominal subtyping, 
+so subtyping in our type system is decidable in any case.}
+
+
+\subsection{Well-Formed Class Tables with Exclusion}
+\label{sec:exc-spec}
+\input{exc-spec}
+
+
+% \subsection{Overloading Rule with Polymorphic Exclusion}
+% \subsection{Polymorphic Exclusion}
+% \label{sec:exc-polyrules}
+% \input{exc-poly}
+

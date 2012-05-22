@@ -1,0 +1,490 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress literals.
+ */
+module com.sun.fortress.parser.Literal(Symbol, Spacing);
+
+import Symbol;
+import Spacing;
+import Keyword;
+
+/* LiteralExpr ::=
+     ( w )
+   | VoidLiteralExpr  
+   | NumericLiteralExpr
+   | CharLiteralExpr
+   | StringLiteralExpr
+   | BooleanLiteralExpr
+ */
+Expr LiteralExpr =
+     <VOID> VoidLiteralExpr
+   / <NUMERICAL> NumericLiteralExpr
+   / <CHAR> CharLiteralExpr
+   / <STRING> StringLiteralExpr
+   / <BOOLEAN> BooleanLiteralExpr
+   ;
+
+Expr VoidLiteralExpr =
+     <FIRST> openparen w closeparen
+     { yyValue = ExprFactory.makeVoidLiteralExpr(createSpan(yyStart,yyCount)); };
+
+BooleanLiteralExpr BooleanLiteralExpr =
+     b:BooleanLiteral { yyValue = ExprFactory.makeBooleanLiteralExpr(createSpan(yyStart,yyCount),b.equals("true")?1:0);};
+
+transient String BooleanLiteral =
+     true
+   / false  
+   ;
+
+transient IntLiteralExpr IntLiteralExpr =
+     <FIRST> a1:NumericLiteralExpr &{ (a1 instanceof IntLiteralExpr) }
+     { yyValue = (IntLiteralExpr)a1; };
+
+NumberLiteralExpr NumericLiteralExpr =
+     NumericLiteralWithRadix
+   / a1:NumericWord a2s:RestNumericWord* &{ Character.isDigit(a1.charAt(0)) }
+     { String numeral;
+       StringBuilder buf = new StringBuilder();
+       buf.append(a1);
+       for (String n: a2s.list()) buf.append(n);
+       numeral = buf.toString();
+       Span span = createSpan(yyStart,yyCount);
+       if ( NodeUtil.validNumericLiteral(writer, span, numeral) ) {
+           if ( NodeUtil.validIntLiteral(numeral) )
+               yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
+           else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);
+       }
+       else yyValue = ExprFactory.makeIntLiteralExpr(span, "0");
+     };
+
+private NumberLiteralExpr NumericLiteralWithRadix =
+     a1:NumericWord a2s:RestNumericWord* "_" a3:RadixSpecifier
+     { String numeral;
+       StringBuilder buf = new StringBuilder();
+       buf.append(a1);
+       for (String n: a2s.list()) buf.append(n);
+       numeral = buf.toString();
+       Span span = createSpan(yyStart,yyCount);
+       if ( NodeUtil.validNumericLiteral(writer, span, numeral, a3) ) {
+           numeral += "_"+NodeUtil.radix2Number(a3);
+           if ( NodeUtil.validIntLiteral(numeral) )
+               yyValue = ExprFactory.makeIntLiteralExpr(span, numeral);
+           else yyValue = ExprFactory.makeFloatLiteralExpr(span, numeral);
+       }
+       else yyValue = ExprFactory.makeIntLiteralExpr(span, "0");
+     };
+
+private transient String NumericWord =
+     a1s:NumericCharacter+
+     { yyValue = "";
+       StringBuilder buf = new StringBuilder();
+       for (String n: a1s.list()) buf.append(n);
+       yyValue = buf.toString();
+     };
+private transient String NumericCharacter = [0-9a-zA-Z];
+
+private transient String RestNumericWord =
+    a1:NumericSeparator a2:NumericWord { yyValue = a1+a2; };
+
+private transient String NumericSeparator = NumericSpace / "." ;
+private transient String NumericSpace = "'" / "\u202f" ;
+
+private transient String RadixSpecifier =
+     a1:DigitString !([a-zA-Z]) &{ NodeUtil.validRadix(writer, createSpan(yyStart,yyCount), a1) }
+   / RadixNames ;
+
+private transient String DigitString = [0-9]+;
+
+private transient String RadixNames =
+     "SIXTEEN"
+   / "FIFTEEN"
+   / "FOURTEEN"
+   / "THIRTEEN"
+   / "TWELVE"
+   / "ELEVEN"
+   / "TEN"
+   / "NINE"
+   / "EIGHT"
+   / "SEVEN"
+   / "SIX"
+   / "FIVE"
+   / "FOUR"
+   / "THREE"
+   / "TWO" ;
+
+CharLiteralExpr CharLiteralExpr =
+     <FIRST> "'" a1:CharLiteralContent "'"
+     { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount), a1); }
+   / "`" a1:CharLiteralContent "'"
+     { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount), a1); }
+   / "\u2018" a1:CharLiteralContent "\u2019"
+     { yyValue = ExprFactory.makeCharLiteralExpr(createSpan(yyStart,yyCount), a1); }
+   / <ErrorProduction1> "'" a1:CharLiteralContent "\u2019"
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "The opening and closing marks of a character literal must match.");
+       yyValue = ExprFactory.makeCharLiteralExpr(span, "");
+     }
+   / <ErrorProduction2> "`" a1:CharLiteralContent "\u2019"
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "The opening and closing marks of a character literal must match.");
+       yyValue = ExprFactory.makeCharLiteralExpr(span, "");
+     }
+   / <ErrorProduction3> "\u2018" a1:CharLiteralContent "'"
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "The opening and closing marks of a character literal must match.");
+       yyValue = ExprFactory.makeCharLiteralExpr(span, "");
+     };
+
+StringLiteralExpr StringLiteralExpr =
+     <FIRST> ["] a1:StringLiteralContent* ["]
+     { String str = "";
+       for (String c : (List<String>)a1.list()) str = str.concat(c);
+       yyValue = ExprFactory.makeStringLiteralExpr(createSpan(yyStart,yyCount), str);
+     }
+   / "\u201c" a1:StringLiteralContent* "\u201d"
+     { String str = "";
+       for (String c : (List<String>)a1.list()) str = str.concat(c);
+       yyValue = ExprFactory.makeStringLiteralExpr(createSpan(yyStart,yyCount), str);
+     }
+   / <ErrorProduction1> ["] a1:StringLiteralContent* "\u201d"
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "The opening and closing marks of a string literal must match.");
+       yyValue = ExprFactory.makeStringLiteralExpr(span, "");
+     }
+   / <ErrorProduction2> "\u201c" a1:StringLiteralContent* ["]
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "The opening and closing marks of a string literal must match.");
+       yyValue = ExprFactory.makeStringLiteralExpr(span, "");
+     };
+private String StringLiteralContent =
+     EscapeSequence
+   / a1:(!InvalidStringLiteralContent _) { yyValue = String.valueOf(a1); };
+
+private void InvalidStringLiteralContent =
+     void:["\u201c\u201d]
+   / a1:[\\]
+     { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + a1); }
+   / a1:[\n\f\r\u0009\u000b\u001c\u001d\u001e\u001f\u2028\u2029]
+     { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + a1); }
+   / c:_ &{ Character.getType(c) == Character.CONTROL }
+     { log(createSpan(yyStart,yyCount), "Invalid string literal content: " + c); };
+
+private String EscapeSequence =
+     '\\' a1:[btnfr"\\]
+     { switch (a1) {
+           case 'b': { yyValue = "\b"; break; }
+           case 't': { yyValue = "\t"; break; }
+           case 'n': { yyValue = "\n"; break; }
+           case 'f': { yyValue = "\f"; break; }
+           case 'r': { yyValue = "\r"; break; }
+           case '"': { yyValue = "\""; break; }
+           case '\\': { yyValue = "\\"; break; }
+           default: { yyValue = ""; }
+       }
+     }
+   / '\\' [\u201c] { yyValue = "\u201c"; }
+   / '\\' [\u201d] { yyValue = "\u201d"; };
+
+private String CharLiteralContent =
+     EscapeSequence
+   / UnicodeCharLiteralContent
+   / "ALPHA" { yyValue = "\u0391"; }
+   / "BETA" { yyValue = "\u0392"; }
+   / "GAMMA" { yyValue = "\u0393"; }
+   / "DELTA" { yyValue = "\u0394"; }
+   / "EPSILON" { yyValue = "\u0395"; }
+   / "ZETA" { yyValue = "\u0396"; }
+   / "ETA" { yyValue = "\u0397"; }
+   / "THETA" { yyValue = "\u0398"; }
+   / "IOTA" { yyValue = "\u0399"; }
+   / "KAPPA" { yyValue = "\u039A"; }
+   / "LAMBDA" { yyValue = "\u039B"; }
+   / "MU" { yyValue = "\u039C"; }
+   / "NU" { yyValue = "\u039D"; }
+   / "XI" { yyValue = "\u039E"; }
+   / "OMICRON" { yyValue = "\u039F"; }
+   / "PI" { yyValue = "\u03A0"; }
+   / "RHO" { yyValue = "\u03A1"; }
+   / "SIGMA" { yyValue = "\u03A3"; }
+   / "TAU" { yyValue = "\u03A4"; }
+   / "UPSILON" { yyValue = "\u03A5"; }
+   / "PHI" { yyValue = "\u03A6"; }
+   / "CHI" { yyValue = "\u03A7"; }
+   / "PSI" { yyValue = "\u03A8"; }
+   / "OMEGA" { yyValue = "\u03A9"; }
+   / "alpha" { yyValue = "\u03B1"; }
+   / "beta" { yyValue = "\u03B2"; }
+   / "gamma" { yyValue = "\u03B3"; }
+   / "delta" { yyValue = "\u03B4"; }
+   / "epsilon" { yyValue = "\u03B5"; }
+   / "zeta" { yyValue = "\u03B6"; }
+   / "eta" { yyValue = "\u03B7"; }
+   / "theta" { yyValue = "\u03B8"; }
+   / "iota" { yyValue = "\u03B9"; }
+   / "kappa" { yyValue = "\u03BA"; }
+   / "lambda" { yyValue = "\u03BB"; }
+   / "mu" { yyValue = "\u03BC"; }
+   / "nu" { yyValue = "\u03BD"; }
+   / "xi" { yyValue = "\u03BE"; }
+   / "omicron" { yyValue = "\u03BF"; }
+   / "pi" { yyValue = "\u03C0"; }
+   / "rho" { yyValue = "\u03C1"; }
+   / "sigma" { yyValue = "\u03C3"; }
+   / "tau" { yyValue = "\u03C4"; }
+   / "upsilon" { yyValue = "\u03C5"; }
+   / "phi" { yyValue = "\u03C6"; }
+   / "chi" { yyValue = "\u03C7"; }
+   / "psi" { yyValue = "\u03C8"; }
+   / "omega" { yyValue = "\u03C9"; }
+   / "BOTTOM" { yyValue = "\u22A5"; }
+   / "TOP" { yyValue = "\u22A4"; }
+   / "INF" { yyValue = "\u221E"; }
+   / "FORALL" { yyValue = "\u2200"; }
+   / "EXISTS" { yyValue = "\u2203"; }
+   / "TIMES" { yyValue = "\u00D7"; }
+   / "BY" { yyValue = "\u00D7"; }
+   / "OTIMES" { yyValue = "\u2297"; }
+   / "ODOT" { yyValue = "\u2299"; }
+   / "CIRCLEDAST" { yyValue = "\u229B"; }
+   / "BOXTIMES" { yyValue = "\u22A0"; }
+   / "BOXDOT" { yyValue = "\u22A1"; }
+   / "BOXAST" { yyValue = "\u29C6"; }
+   / "CROSS" { yyValue = "\u2A2F"; }
+   / "DOTTIMES" { yyValue = "\u2A30"; }
+   / "TRITIMES" { yyValue = "\u2A3B"; }
+   / "DIVIDES" { yyValue = "\u2223"; }
+   / "DIV" { yyValue = "\u00F7"; }
+   / "OSLASH" { yyValue = "\u2298"; }
+   / "BOXSLASH" { yyValue = "\u29C4"; }
+   / "ODIV" { yyValue = "\u2A38"; }
+   / "DOTPLUS" { yyValue = "\u2214"; }
+   / "DOTMINUS" { yyValue = "\u2238"; }
+   / "TRIPLUS" { yyValue = "\u2A39"; }
+   / "TRIMINUS" { yyValue = "\u2A3A"; }
+   / "OPLUS" { yyValue = "\u2295"; }
+   / "OMINUS" { yyValue = "\u2296"; }
+   / "BOXPLUS" { yyValue = "\u229E"; }
+   / "BOXMINUS" { yyValue = "\u229F"; }
+   / "CAPCAP" { yyValue = "\u22D2"; }
+   / "CAP" { yyValue = "\u2229"; }
+   / "INTERSECT" { yyValue = "\u2229"; }
+   / "CUPCUP" { yyValue = "\u22D3"; }
+   / "CUP" { yyValue = "\u222A"; }
+   / "UNION" { yyValue = "\u222A"; }
+   / "UPLUS" { yyValue = "\u228E"; }
+   / "SETMINUS" { yyValue = "\u2216"; }
+   / "SQCAPCAP" { yyValue = "\u2A4E"; }
+   / "SQCAP" { yyValue = "\u2293"; }
+   / "SQCUPCUP" { yyValue = "\u2A4F"; }
+   / "SQCUP" { yyValue = "\u2294"; }
+   / "CURLYAND" { yyValue = "\u22CF"; }
+   / "CURLYOR" { yyValue = "\u22CE"; }
+   / "SIMEQ" { yyValue = "\u2243"; }
+   / "APPROXEQ" { yyValue = "\u224A"; }
+   / "APPROX" { yyValue = "\u2248"; }
+   / "BUMPEQV" { yyValue = "\u224E"; }
+   / "DOTEQDOT" { yyValue = "\u2251"; }
+   / "EQRING" { yyValue = "\u2256"; }
+   / "RINGEQ" { yyValue = "\u2257"; }
+   / "EQDEL" { yyValue = "\u225C"; }
+   / "EQDEF" { yyValue = "\u225D"; }
+   / "EQV" { yyValue = "\u2261"; }
+   / "EQUIV" { yyValue = "\u2261"; }
+   / "SEQV" { yyValue = "\u2263"; }
+   / "NSIMEQ" { yyValue = "\u2244"; }
+   / "NAPPROX" { yyValue = "\u2249"; }
+   / "NEQV" { yyValue = "\u2262"; }
+   / "NEARROW" { yyValue = "\u2197"; }
+   / "NE" { yyValue = "\u2260"; }
+   / "LT" { yyValue = "\u003C"; }
+   / "<=>" { yyValue = "\u21D4"; }
+   / "<=" { yyValue = "\u2264"; }
+   / "LEADSTO" { yyValue = "\u219D"; }
+   / "DOTLT" { yyValue = "\u22D6"; }
+   / "<<<" { yyValue = "\u22D8"; }
+   / "<<" { yyValue = "\u226A"; }
+   / "GT" { yyValue = "\u003E"; }
+   / ">=" { yyValue = "\u2265"; }
+   / "GE" { yyValue = "\u2265"; }
+   / ">>>" { yyValue = "\u22D9"; }
+   / ">>" { yyValue = "\u226B"; }
+   / "DOTGT" { yyValue = "\u22D7"; }
+   / "NLT" { yyValue = "\u226E"; }
+   / "NGT" { yyValue = "\u226F"; }
+   / "NLE" { yyValue = "\u2270"; }
+   / "NGE" { yyValue = "\u2271"; }
+   / "SUBSETEQ" { yyValue = "\u2286"; }
+   / "SUBSETNEQ" { yyValue = "\u228A"; }
+   / "SUBSET" { yyValue = "\u2282"; }
+   / "SUBSUB" { yyValue = "\u22D0"; }
+   / "SUPSETEQ" { yyValue = "\u2287"; }
+   / "SUPSETNEQ" { yyValue = "\u228B"; }
+   / "SUPSET" { yyValue = "\u2283"; }
+   / "SUPSUP" { yyValue = "\u22D1"; }
+   / "NSUBSETEQ" { yyValue = "\u2288"; }
+   / "NSUPSETEQ" { yyValue = "\u2289"; }
+   / "NSUBSET" { yyValue = "\u2284"; }
+   / "NSUPSET" { yyValue = "\u2285"; }
+   / "SQSUBSETEQ" { yyValue = "\u2291"; }
+   / "SQSUBSET" { yyValue = "\u228F"; }
+   / "SQSUPSETEQ" { yyValue = "\u2292"; }
+   / "SQSUPSET" { yyValue = "\u2290"; }
+   / "PRECEQ" { yyValue = "\u227C"; }
+   / "PRECSIM" { yyValue = "\u227E"; }
+   / "PRECNSIM" { yyValue = "\u22E8"; }
+   / "PREC" { yyValue = "\u227A"; }
+   / "EQPREC" { yyValue = "\u22DE"; }
+   / "SUCCEQ" { yyValue = "\u227D"; }
+   / "SUCCSIM" { yyValue = "\u227F"; }
+   / "SUCCNSIM" { yyValue = "\u22E9"; }
+   / "SUCC" { yyValue = "\u227B"; }
+   / "EQSUCC" { yyValue = "\u22DF"; }
+   / "EQ" { yyValue = "\u003D"; }
+   / "NPREC" { yyValue = "\u2280"; }
+   / "NSUCC" { yyValue = "\u2281"; }
+   / "SMALLEREQ" { yyValue = "\u2AAC"; }
+   / "SMALLER" { yyValue = "\u2AAA"; }
+   / "LARGEREQ" { yyValue = "\u2AAD"; }
+   / "LARGER" { yyValue = "\u2AAB"; }
+   / "INTEGRAL" { yyValue = "\u222B"; }
+   / "IN" { yyValue = "\u2208"; }
+   / "NOTIN" { yyValue = "\u2209"; }
+   / "CONTAINS" { yyValue = "\u220B"; }
+   / "AND" { yyValue = "\u2227"; }
+   / "OR" { yyValue = "\u2228"; }
+   / "->" { yyValue = "\u2192"; }
+   / "IMPLIES" { yyValue = "\u2192"; }
+   / "<->" { yyValue = "\u2194"; }
+   / "IFF" { yyValue = "\u2194"; }
+   / "CENTS" { yyValue = "\u00A2"; }
+   / "DEGREES" { yyValue = "\u00B0"; }
+   / "!!" { yyValue = "\u203C"; }
+   / "<-/-" { yyValue = "\u219A"; }
+   / "<-" { yyValue = "\u2190"; }
+   / "UPARROW" { yyValue = "\u2191"; }
+   / "DOWNARROW" { yyValue = "\u2193"; }
+   / "UPDOWNARROW" { yyValue = "\u2195"; }
+   / "NWARROW" { yyValue = "\u2196"; }
+   / "SEARROW" { yyValue = "\u2198"; }
+   / "SWARROW" { yyValue = "\u2199"; }
+   / "-/->" { yyValue = "\u219B"; }
+   / "LEFTHARPOONUP" { yyValue = "\u21BC"; }
+   / "LEFTHARPOONDOWN" { yyValue = "\u21BD"; }
+   / "UPHARPOONRIGHT" { yyValue = "\u21BE"; }
+   / "UPHARPOONLEFT" { yyValue = "\u21BF"; }
+   / "RIGHTHARPOONUP" { yyValue = "\u21C0"; }
+   / "RIGHTHARPOONDOWN" { yyValue = "\u21C1"; }
+   / "DOWNHARPOONRIGHT" { yyValue = "\u21C2"; }
+   / "DOWNHARPOONLEFT" { yyValue = "\u21C3"; }
+   / "RIGHTLEFTARROWS" { yyValue = "\u21C4"; }
+   / "LEFTRIGHTARROWS" { yyValue = "\u21C6"; }
+   / "LEFTLEFTARROWS" { yyValue = "\u21C7"; }
+   / "UPUPARROWS" { yyValue = "\u21C8"; }
+   / "RIGHTRIGHTARROWS" { yyValue = "\u21C9"; }
+   / "DOWNDOWNARROWS" { yyValue = "\u21CA"; }
+   / "RIGHTLEFTHARPOONS" { yyValue = "\u21CC"; }
+   / "LE" { yyValue = "\u2264"; }
+   / "=>" { yyValue = "\u21D2"; }
+   / "DEL" { yyValue = "\u2202"; }
+   / "PRODUCT" { yyValue = "\u220F"; }
+   / "COPRODUCT" { yyValue = "\u2210"; }
+   / "SUM" { yyValue = "\u2211"; }
+   / "CIRCLEDRING" { yyValue = "\u229A"; }
+   / "CIRC" { yyValue = "\u2218"; }
+   / "RING" { yyValue = "\u2218"; }
+   / "COMPOSE" { yyValue = "\u2218"; }
+   / "BULLET" { yyValue = "\u2219"; }
+   / "SQRT" { yyValue = "\u221A"; }
+   / "CBRT" { yyValue = "\u221B"; }
+   / "FOURTHROOT" { yyValue = "\u221C"; }
+   / "PROPTO" { yyValue = "\u221D"; }
+   / "PARALLEL" { yyValue = "\u2225"; }
+   / "NPARALLEL" { yyValue = "\u2226"; }
+   / "WREATH" { yyValue = "\u2240"; }
+   / "BUMPEQ" { yyValue = "\u224F"; }
+   / "DOTEQ" { yyValue = "\u2250"; }
+   / "DOT" { yyValue = "\u00B7"; }
+   / "VDASH" { yyValue = "\u22A2"; }
+   / "TURNSTILE" { yyValue = "\u22A2"; }
+   / "DASHV" { yyValue = "\u22A3"; }
+   / "BIGAND" { yyValue = "\u22C0"; }
+   / "ALL" { yyValue = "\u22C0"; }
+   / "BIGOR" { yyValue = "\u22C1"; }
+   / "ANY" { yyValue = "\u22C1"; }
+   / "BIGCAP" { yyValue = "\u22C2"; }
+   / "BIGINTERSECT" { yyValue = "\u22C2"; }
+   / "BIGCUP" { yyValue = "\u22C3"; }
+   / "BIGUNION" { yyValue = "\u22C3"; }
+   / "DIAMOND" { yyValue = "\u22C4"; }
+   / "STAR" { yyValue = "\u22C6"; }
+   / "PERP" { yyValue = "\u27C2"; }
+   / "BIGODOT" { yyValue = "\u2A00"; }
+   / "BIGOPLUS" { yyValue = "\u2A01"; }
+   / "BIGOTIMES" { yyValue = "\u2A02"; }
+   / "BIGUDOT" { yyValue = "\u2A03"; }
+   / "BIGUPLUS" { yyValue = "\u2A04"; }
+   / "BIGSQCAP" { yyValue = "\u2A05"; }
+   / "BIGSQCUP" { yyValue = "\u2A06"; }
+   / "BIGTIMES" { yyValue = "\u2A09"; }
+   / "JOIN" { yyValue = "\u2A1D"; }
+   / "EMPTYSET" { yyValue = "\u2205"; }
+   / "NOTSUBSETEQ" { yyValue = "\u2288"; }
+   / "NOTSUBSET" { yyValue = "\u2284"; }
+   / "NOTEQUIV" { yyValue = "\u2262"; }
+   / "NOTIN" { yyValue = "\u2209"; }
+   / "NOT" { yyValue = "\u00AC"; }
+   / "XOR" { yyValue = "\u22BB"; }
+   / a1:(!InvalidCharLiteralContent _) " " a2:UnicodeCharLiteralContent &{ Integer.parseInt(a2, 16) == ((int) a1) }
+     { yyValue = a1 + " " + a2; }
+   / <ErrorProduction1> a1:_ " " a2:UnicodeCharLiteralContent
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Syntax Error: The character in a redundant character literal is invalid or does not match the given hexadecimal codepoint.");
+       yyValue = ""; }
+   / a1:(!InvalidCharLiteralContent _) { yyValue = String.valueOf(a1); }
+   ;
+
+private String UnicodeCharLiteralContent =
+     UnicodeHexChar
+   / "U+" a1:UnicodeHexChar { yyValue = a1; };
+
+private String UnicodeHexChar =
+     [0-9A-F] [0-9A-F] [0-9A-F] [0-9A-F] [0-9A-F]?
+   / [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f]?
+   / "10" [0-9A-F] [0-9A-F] [0-9A-F] [0-9A-F]
+   / "10" [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f] 
+   / <ErrorProduction1> ( [0-9A-F] [0-9A-F] [0-9A-F] [0-9A-F] [0-9A-F] [0-9A-F]+
+                        / [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f] [0-9a-f]+ )
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Syntax Error: a hexadecimal character literal " +
+                 "has a value larger than 10FFFF.");
+     }
+   / <ErrorProduction2> ( [0-9A-F] [0-9A-F] [0-9A-F]? / [0-9a-f] [0-9a-f] [0-9a-f]? )
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Syntax Error: a hexadecimal character literal " +
+                 "has fewer than four hexadecimal digits.");
+     }
+   / <ErrorProduction3> [0-9A-Fa-f][0-9A-Fa-f]+
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Syntax Error: a hexadecimal character literal " +
+                 "contains both uppercase and lowercase letters.");
+     };
+
+private String InvalidCharLiteralContent =
+     a1:[\\\n\f\r\u0009\u000b\u001c\u001d\u001e\u001f"\u201c\u201d\u2028\u2029]
+     { log(createSpan(yyStart,yyCount), "Invalid character literal: " + a1);
+       yyValue = "";
+     }
+   / c:_ &{ Character.getType(c) == Character.CONTROL }
+     { log(createSpan(yyStart,yyCount), "Invalid character literal: " + c);
+       yyValue = "";
+     };

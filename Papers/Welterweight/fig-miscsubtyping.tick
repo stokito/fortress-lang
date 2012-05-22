@@ -1,0 +1,124 @@
+
+\begin{figure}
+\typicallabel{NotOfTrait-Object}
+
+\newjudge{Constrained type equivalence}{\jequiv{\alpha}{\alpha}{\C}}
+
+\smallskip
+
+\infrule
+  { \jsub{\alpha}{\eta}{\C}  \andalso  \jsub{\eta}{\alpha}{\C'} }
+  { \jequiv{\alpha}{\eta}{\C \wedge \C'} }
+
+\medskip
+
+\newjudge{Subtyping}{\jsubtype{\alpha}{\alpha} \quad \jnotsubtype{\alpha}{\alpha}}
+
+\smallskip
+
+\hbox{$
+\typesetrule
+  { \jsub{\alpha}{\eta}{\TRUE} }
+  { \jsubtype{\alpha}{\eta} }\andalso
+\typesetrule
+  { \jnsub{\alpha}{\eta}{\TRUE} }
+  { \jnotsubtype{\alpha}{\eta} }
+$}
+
+\medskip
+
+\newjudge{Exclusion}{\jexctype{\alpha}{\alpha} \quad \jnotexctype{\alpha}{\alpha}}
+
+\smallskip
+
+\hbox{$
+\typesetrule
+  { \jexc{\alpha}{\eta}{\TRUE} }
+  { \jexctype{\alpha}{\eta} }\andalso
+\typesetrule
+  { \jnexc{\alpha}{\eta}{\TRUE} }
+  { \jnotexctype{\alpha}{\eta} }
+$}
+
+\medskip
+
+\newjudge{Equivalence}{\jequivtype{\alpha}{\alpha} \quad \jnotequivtype{\alpha}{\alpha}}
+
+\smallskip
+
+\hbox{$
+\typesetrule
+  { \jequiv{\alpha}{\eta}{\TRUE} }
+  { \jequivtype{\alpha}{\eta} }\andalso
+\typesetrule
+  { \jnequiv{\alpha}{\eta}{\TRUE} }
+  { \jnotequivtype{\alpha}{\eta} }
+$}
+
+\medskip
+
+\newjudge{Variance test}{\jcertainlyvaries{\alpha}{V}{\alpha}}
+
+\smallskip
+
+\infrule
+  { \jvaries{\alpha}{V}{\eta}{\TRUE} }
+  { \jcertainlyvaries{\alpha}{V}{\eta} }
+
+\medskip
+
+\newjudge{Conditional equivalence}{\jequiv{\alpha}{\alpha}{\C}}
+
+\smallskip
+
+\infrule
+  {\jsub{\alpha}{\eta}{\C} \andalso \jsub{\eta}{\alpha}{\C'}}
+  {\jequiv{\alpha}{\eta}{\C \wedge \C'}}
+
+\medskip
+
+\newjudge{Conditional non-equivalence}{\jnequiv{\alpha}{\alpha}{\C}}
+
+\smallskip
+
+\infrule
+  {\jnsub{\alpha}{\eta}{\C} \andalso \jnsub{\eta}{\alpha}{\C'}}
+  {\jnequiv{\alpha}{\eta}{\C \vee \C'}}
+
+\medskip
+
+\newjudge{Converse non-equivalence}{\jgcontratemplate{\alpha}{\not\equiv}{\alpha}{\C}}
+
+\smallskip
+  
+\infrule
+  {\jequiv{\alpha}{\eta}{\C}}
+  {\jcnequiv{\alpha}{\eta}{\neg(\C)}}
+
+\medskip
+
+\newjudge{Equivalence of existential types}{\jequivalent{\Xi}{\Xi}}
+
+\smallskip
+
+\infrule
+  { \jle{\Xi}{\Xi'}  \andalso \jle{\Xi'}{\Xi} }
+  { \jequivalent{\Xi}{\Xi'} }
+
+\medskip
+
+\newjudge{Free variables in given types}{\FV(\bar{\alpha})=\bigsetb{P}}
+
+$\begin{array}{@{}ll@{}}
+\multicolumn{2}{l}{\FV(\bar{\alpha}) = \bigcup \bigsetb{\mathit{FV}'(\alpha)}} \\[10pt]
+\mathit{FV}'(P) = \set{P}                                     & \mathit{FV}'(\Any) = \set{\,} \\
+\mathit{FV}'(T\obb{\alpha}) = \FV(\bar{\alpha})               & \mathit{FV}'(\Object) = \set{\,} \\
+\mathit{FV}'(O\obb{\alpha}) = \FV(\bar{\alpha})               & \mathit{FV}'(\Bottom) = \set{\,} \\
+\mathit{FV}'(\tupleb{\alpha}) = \FV(\bar{\alpha})             & \mathit{FV}'(\uniontype{\alpha}{\eta}) = \FV(\alpha,\eta) \\
+\mathit{FV}'(\arrowtype{\alpha}{\rho}) = \FV(\alpha,\rho)     & \mathit{FV}'(\intersectiontype{\alpha}{\eta}) = \FV(\alpha,\eta)
+\end{array}$
+
+\medskip
+\caption{Miscellaneous Typing Judgments}
+\label{fig:miscsubtyping}
+\end{figure}

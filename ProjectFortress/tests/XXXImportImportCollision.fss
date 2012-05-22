@@ -1,0 +1,37 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXImportImportCollision
+import TestImports1.{...}
+import TestImports2.{...}
+export Executable
+
+trait U
+  s():String = "s from ImportImportCollision.U"
+end
+
+object V extends U
+end
+
+(* Fails to define W, because T is multiply defined
+   from TestImports1 and TestImports2 *)
+
+object W extends T
+  myname():String = "ImportImportCollision.W"
+end
+
+run():()=do
+  println V.s()
+  println W.s()
+  println W.t()
+end
+
+end

@@ -1,0 +1,117 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress method declarations.
+ */
+module com.sun.fortress.parser.Method(Param, NoNewlineHeader, MayNewlineHeader,
+                                      Type, NoNewlineExpr, Identifier, Keyword,
+                                      Symbol, Spacing);
+
+import Param;
+import NoNewlineHeader;
+import MayNewlineHeader;
+import Type;
+import NoNewlineExpr;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* MdDecl ::=
+     MdDef
+   | AbsMdDecl
+   AbsMdDecl ::= Mods? AbsMdHeaderFront FnHeaderClause
+ */
+FnDecl MdDecl =
+     MdDef
+   / a1:Mods? a2:AbsMdHeaderFront a3:FnHeaderClause
+     { Span span = createSpan(yyStart,yyCount);
+       NodeUtil.checkSubscriptedAssignment(writer, span, a2, a3);
+       yyValue = NodeFactory.mkFnDecl(span, Modifiers.nonNull(a1), a2, a3);
+     };
+
+/* MdDef ::= MdMods? MdHeaderFront FnHeaderClause w = w NoNewlineExpr */
+FnDecl MdDef =
+     a1:Mods? a2:MdHeaderFront a3:FnHeaderClause w equals w a4:NoNewlineExpr
+     { Span span = createSpan(yyStart,yyCount);
+       NodeUtil.checkSubscriptedAssignment(writer, span, a2, a3);
+       yyValue = NodeFactory.mkFnDecl(span, Modifiers.nonNull(a1), a2, a3, a4);
+     };
+
+/* MdHeaderFront ::=
+     NamedMdHeaderFront
+   | OpMdHeaderFront
+ */
+private FnHeaderFront MdHeaderFront =
+     NamedMdHeaderFront
+   / OpHeaderFront ;
+
+/* AbsMdHeaderFront ::=
+     AbsNamedMdHeaderFront
+   | AbsOpMdHeaderFront
+ */
+private FnHeaderFront AbsMdHeaderFront =
+     AbsNamedMdHeaderFront
+   / AbsOpHeaderFront ;
+
+/* NamedMdHeaderFront ::= Id (w StaticParams)? w MdValParam */
+FnHeaderFront NamedMdHeaderFront =
+     a1:Id a2:(w StaticParams)? w a3:ValParam
+     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
+       yyValue = new FnHeaderFront(a1, a2, a3);
+     };
+
+/* AbsNamedMdHeaderFront ::= Id (w StaticParams)? w AbsMdValParam */
+FnHeaderFront AbsNamedMdHeaderFront =
+     a1:Id a2:(w StaticParams)? w a3:AbsValParam
+     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
+       yyValue = new FnHeaderFront(a1, a2, a3);
+     };
+
+/* Coercion ::=
+     coerce (w StaticParams)? w ( w BindId w IsTypeOrPattern w ) CoercionClauses (w widens)?
+     w = w NoNewlineExpr
+   AbsCoercion ::=
+     coerce (w StaticParams)? w ( w BindId w IsType w ) CoercionClauses (w widens)?
+   CoercionClauses ::= (w CoercionWhere)? (w Ensures)? (w Invariant)?
+   CoercionWhere ::=
+     where w [\ w WhereBindingList w \] (w { w CoercionWhereConstraintList w })?
+   | where w { w CoercionWhereConstraintList w }
+   CoercionWhereConstraintList ::=
+     CoercionWhereConstraint (w , w CoercionWhereConstraint)*
+ */
+Decl Coercion =
+     coerce a1:(w StaticParams)? w openparen w a2:BindId a3:(w IsTypeOrPattern)? w closeparen
+     a4:FnClauses a5:(w widens)? a6:(w void:equals w NoNewlineExpr)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a1 == null) a1 = Collections.<StaticParam>emptyList();
+       List<Param> params;
+       if (a3 == null) {
+           log(span, "A coercion declaration should explicitly declare its parameter type.");
+           params = Useful.list(NodeFactory.makeParam(a2));
+       } else params = Useful.list(NodeFactory.makeParam(a2, a3));
+       Modifiers mods = Modifiers.possible(a5,Modifiers.Widens);
+       NodeUtil.checkCoercionClauses(writer, span, a4);
+       yyValue = NodeFactory.mkFnDecl(span, mods, NodeFactory.makeId(span,"coerce"),
+                                      a1, params, a4, Option.<Expr>wrap(a6));
+     }
+   / coerce a1:(w StaticParams)? w a2:ValParam a3:(w IsType)?
+     a4:FnClauses a5:(w widens)? a6:(w void:equals w NoNewlineExpr)?
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "A coercion declaration should have exactly one parameter.");
+       if (a4 != null)
+           log(span, "A coercion declaration should not have an explicitly declared return type.");
+       yyValue = NodeFactory.makeFnDecl(span, Modifiers.None,
+                                        NodeFactory.makeId(span,"coerce"),
+                                        Collections.<StaticParam>emptyList(),
+                                        a2, Option.<Type>wrap(a3));
+     };

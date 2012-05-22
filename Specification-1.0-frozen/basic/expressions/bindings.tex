@@ -1,0 +1,121 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Assignments}
+\seclabel{assignment}
+
+\note{Qualified names are not yet supported.}
+
+\begin{Grammar}
+\emph{AssignExpr}
+&::=& \emph{AssignLefts} \emph{AssignOp} \emph{Expr}\\
+
+\emph{AssignLefts}
+&::=& \texttt( \emph{AssignLeft}(\EXP{,} \emph{AssignLeft})$^*$ \texttt)\\
+&$|$& \emph{AssignLeft}\\
+
+\emph{AssignLeft}
+&::=& \emph{SubscriptExpr}\\
+&$|$& \emph{FieldSelection}\\
+&$|$& \emph{QualifiedName}\\
+
+\emph{SubscriptExpr} &::=&
+\emph{Primary} \emph{LeftEncloser} \option{\emph{StaticArgs}} \option{\emph{ExprList}} \emph{RightEncloser} \\
+
+\emph{FieldSelection} &::=& \emph{Primary}\EXP{.}\emph{Id}\\
+
+\emph{AssignOp} &::=& \EXP{\ASSIGN} $|$ (\emph{Encloser} $|$ \emph{Op})\EXP{=}
+
+\end{Grammar}
+
+An assignment expression consists of a left-hand side
+(\emph{AssignLefts}) indicating one or more variables, subscripted
+expressions (as described in \secref{subscripted-assignment}), or
+field accesses to be updated, an assignment token, and a
+right-hand-side expression.  Multiple left-hand sides must be grouped
+using tuple notation (comma-separated and parenthesized).  Variables
+updated in an assignment expression must already be declared.
+
+The assignment token `\EXP{\ASSIGN}' indicates ordinary assignment.
+Ordinary assignment proceeds in two phases.  In the first, the evaluation phase, the
+right-hand-side expression is evaluated in parallel with each of the
+left-hand-side subexpressions, forming an implicit thread group.
+Evaluating a left-hand variable does nothing.  Evaluating a left-hand
+field reference evaluates the receiving object.  Evaluating a
+left-hand subscripting operation evaluates the receiving object and
+the index in parallel in a nested thread group.  After the outer
+implicit thread group completes normally, the assignment phase begins.  Each component of the right-hand-side value is
+assigned to the corresponding component of the left-hand side in
+parallel, forming an implicit thread group.  Assigning a left-hand
+variable simply changes the binding for the variable's location to
+contain the new value.
+Assigning a left-hand field reference calls
+the corresponding setter method on the reiver object, passing the new value.
+Assigning a left-hand subscript simply calls the subscripted
+assignment operation on the corresponding object with the new value.
+
+Any operator (other than `\EXP{\COLONOP}' or `\EXP{=}' or `\EXP{<}' or
+`\EXP{>}') followed by `\EXP{=}' with no intervening whitespace
+indicates compound (updating) assignment.  This adds an additional
+phase to assignment between the two phases of ordinary assignment.
+In the first phase, a
+left-hand field reference invokes the getter for
+the corresponding field after the receiving object has been evaluated.
+A left-hand subscripting operation invokes the subscripting operator
+on the receiving object once receiver and index have been evaluated.  A
+left-hand variable simply returns the current value of the location
+associated with that variable.  In the new second phase, the operator
+indicated in the assignment is invoked.  The left-hand argument is the
+value of the left-hand expression evaluated in the first phase; the
+right-hand argument is the value evaluated for the right-hand side of
+the assignment expression.  When the operator evaluation completes
+normally, the assignment phase is run as in ordinary assignment.
+
+The important point to understand is that compound assignment evaluates
+its subexpressions exactly once, and that the parts of assignment
+proceed implicitly in parallel where possible.
+The value and type of an assignment expression is \EXP{()}.
+The type of the right-hand side must be a subtype of the type of the left-hand
+side.
+
+Consider the following assignment:
+%(a[i], b.x, c) += f(t,u,v)
+\input{\home/basic/examples/Expr.Assign.a.tex}
+Here in the first phase we evaluate \VAR{a} and \VAR{i} in parallel,
+then when this completes we invoke the indexing method of
+\VAR{a} to evaluate \EXP{a_i}.
+In parallel, we evaluate \VAR{b} and then
+call the getter method \EXP{b.x}.
+In parallel, we look up the value of variable \VAR{c}.
+Finally, we evaluate \EXP{f(t,u,v)} in parallel with all of
+these left-hand sides.
+In the second phase, we combine the results using the \EXP{+} operator,
+to evaluate \EXP{(a_i,b.x,c) \mathrel{+} f(t,u,v)}.
+This must return a tuple of three values \EXP{(p,q,r)}.
+In the final phase, in parallel we
+call the indexed assignment operator \EXP{a_i \ASSIGN p},
+call the setter \EXP{b.x\ASSIGN{}q},
+and perform the local assignment
+\EXP{c\ASSIGN{}r}.
+
+Here are some simpler and more commonplace examples of assignment:
+\input{\home/basic/examples/Expr.Assign.b.tex}
+
+\subsection{Definite Assignment}
+\seclabel{definite-assignment}
+
+\note{Definite assignment check is not supported yet.}
+
+References to uninitialized variables are statically forbidden. As with the
+Java Programming Language, this static constraint is ensured with a specific
+conservative flow analysis. In essence, an initialization of a variable
+must occur on every possible execution path to each reference to a
+variable.

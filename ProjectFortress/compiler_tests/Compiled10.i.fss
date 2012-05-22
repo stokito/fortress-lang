@@ -1,0 +1,33 @@
+(********************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+********************************************************************************)
+export Executable
+
+(* (3) Eligibility to extend *)
+
+(*  A trait 'T' is eligible to extend trait 'U' if either:
+ *   1) the declaration of trait 'U' has no 'comprises' clause, or
+ *   2) trait 'T' is a subtype of (and perhaps the same as) some trait
+ *      mentioned in the 'comprises' clause of 'U', or
+ *   3) trait 'T' has a 'comprises' clause, and every trait mentioned
+ *      in the 'comprises' clause of 'T' is eligible to extend 'U'.
+ *)
+trait U end
+trait T extends U end
+
+trait Uu comprises Ttt end
+trait TT extends Uu end  (* No *)
+trait Ttt extends Uu end
+trait Tttt extends Ttt end
+trait S extends Ttt comprises { O, P } end
+object O extends S end
+object P extends S end
+
+run() = ()

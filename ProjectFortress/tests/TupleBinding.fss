@@ -1,0 +1,33 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component TupleBinding
+
+export Executable
+
+(key, val):(String, ZZ32) = ("test", 8)
+baz = ("first", "second")
+(foo, bar) = baz
+
+ick(a:String, b:String) = do
+  println a; println b
+end
+
+run() = do
+  println key
+  println val
+  println foo
+  println bar
+
+  ick baz
+  end
+
+end

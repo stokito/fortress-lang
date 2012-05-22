@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component printTests
+export Executable
+
+(* We can't easilly test that the right stuff is output, but we can test that
+   there is an overlaoding for each formulation *)
+
+  run() = do
+    print ()
+    print "Hello"
+    print 1
+    print ((1,2))
+    print ((1, 2, 3))
+    print ((1, 2, 3, 4))
+    print ((1, 2, 3, 4, 5))
+    print ((1, 2, 3, 4, 5, 6))
+
+    println ()
+    println "Hello"
+    println 1
+    println ((1,2))
+    println ((1, 2, 3))
+    println ((1, 2, 3, 4))
+    println ((1, 2, 3, 4, 5))
+    println ((1, 2, 3, 4, 5, 6))
+  end
+
+end

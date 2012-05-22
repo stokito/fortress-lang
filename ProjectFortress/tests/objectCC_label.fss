@@ -1,0 +1,205 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component objectCC_label
+export Executable
+
+trait T
+    m(val:ZZ32):ZZ32
+end
+
+trait X
+    m1():ZZ32
+    m2():ZZ32
+    m3():ZZ32
+end
+
+trait TVoid
+    m():()
+end
+
+
+exitDefinedLabel():ZZ32 = do
+    t:T = object extends T
+            m(val:ZZ32):ZZ32 = label quit
+                    exit quit with val
+                end quit
+        end
+    t.m(5)
+end
+
+exitNamedLabel(x:ZZ32):ZZ32 = do
+    label quit
+        if x =/= 0 then
+            t:T = object extends T
+                    m(val:ZZ32):ZZ32 = exit quit with (val + x)
+                  end
+            t.m(3)
+        else
+            0
+        end
+    end quit
+end
+
+exitNestedNamedLabels(x:ZZ32):ZZ32 = do
+    label outer
+        y:ZZ32 = label inner
+            if x =/= 0 then
+                t:T = object extends T
+                        m(val:ZZ32):ZZ32 = exit outer with (val + x)
+                      end
+                t.m(7)
+            else
+                exit inner with x
+            end
+        end inner
+        y + 1
+    end outer
+end
+
+exitUnnamedLabel(x:ZZ32):ZZ32 = do
+    label quit
+        if x =/= 0 then
+            t:T = object extends T
+                    m(val:ZZ32):ZZ32 = exit with (val + x)
+                  end
+            t.m(3)
+        else
+            exit with x
+        end
+    end quit
+end
+
+exitNestedUnnamedLabel(x:ZZ32):ZZ32 = do
+    label outer
+        t:T
+        _ = label inner
+                if x =/= 0 then
+                    t = object extends T
+                            m(val:ZZ32):ZZ32 = exit with (val + x)
+                        end
+                else
+                    t = object extends T
+                            m(val:ZZ32):ZZ32 = val
+                        end
+                end
+            end inner
+        t.m(3) (* this should throw an exception if x =/= 0 *)
+    end outer
+end
+
+exitMultipleLabels(i:ZZ32):ZZ32 = do
+    label label1
+        label label2
+            label label3
+                val:ZZ32 = 10
+                x:X = object extends X
+                        m1():ZZ32 = exit label1 with val + 1
+                        m2():ZZ32 = exit label2 with val + 2
+                        m3():ZZ32 = exit label3 with val + 3
+                end
+                if i = 1 then
+                    x.m1()
+                elif i = 2 then
+                    x.m2()
+                else
+                    x.m3()
+                end
+            end label3
+        end label2
+    end label1
+end
+
+(* exit label with a mutable var captured from enclosing *)
+object O1(var x:ZZ32)
+    foo():ZZ32 = label quit
+            if x =/= 0 then
+                t:T = object extends T
+                        m(val:ZZ32):ZZ32 = exit quit with (val + x)
+                      end
+                t.m(110)
+            else
+                exit quit with x
+            end
+        end quit
+
+    inc():() = (x := x + 1)
+end
+
+object O2(var x:ZZ32)
+    val:ZZ32 = 3
+    foo():ZZ32 = do
+        label quit
+            t:TVoid = object extends TVoid
+                    m():() = do
+                                 x := x + val
+                                 exit quit
+                             end
+                  end
+            _ = t.m()
+            x := 0  (* This is dead code *)
+        end quit
+        x
+    end
+end
+
+
+run():() = do
+    v0:ZZ32 = exitDefinedLabel()
+    assert(5, v0, "exitDefinedLabel() failed.");
+
+    v1:ZZ32 = exitNamedLabel(8)
+    assert(11, v1, "exitNamedLabel(8) failed.");
+
+    v2:ZZ32 = exitNamedLabel(0)
+    assert(0, v2, "exitNamedLabel(0) failed.");
+
+    v3:ZZ32 = exitNestedNamedLabels(8)
+    assert(15, v3, "exitNestedNamedLabel(8) failed.");
+
+    v4:ZZ32 = exitNestedNamedLabels(0)
+    assert(1, v4, "exitNestedNamedLabel(0) failed.");
+
+    v5:ZZ32 = exitUnnamedLabel(7)
+    assert(10, v5, "exitUnnamedLabel(7) failed.");
+
+    v6:ZZ32 = exitUnnamedLabel(0)
+    assert(0, v6, "exitUnnamedLabel(0) failed.");
+
+    assert(11, exitMultipleLabels(1), "exitMultipleLabels(1) failed.");
+    assert(12, exitMultipleLabels(2), "exitMultipleLabels(2) failed.");
+    assert(13, exitMultipleLabels(3), "exitMultipleLabels(3) failed.");
+
+    var v7:ZZ32 = 0
+    _ = try exitNestedUnnamedLabel(1)
+        catch e
+            LabelException => v7 := 1
+        end
+    assert(1, v7, "exitNestedUnnamedLabel(1) failed.");
+
+    v8:ZZ32 = exitNestedUnnamedLabel(0)
+    assert(3, v8, "exitNestedUnnamedLabel(0) failed.");
+
+    o1:O1 = O1(0)
+    x1 = o1.foo()
+    assert(0, x1, "o1.foo() with x = 0 failed.");
+
+    o1.inc()
+    x2 = o1.foo()
+    assert(111, x2, "o1.foo() with x =/= 0 failed.");
+
+    o2:O2 = O2(9)
+    x3 = o2.foo()
+    assert(12, x3, "o2.foo() failed.");
+
+end
+
+end

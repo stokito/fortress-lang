@@ -1,0 +1,17 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled6.aj
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled6.aj.fss:17:21-18:2:\n\
+\ Parentheses are required around the parameter of an anonymous function expression.\n\
+File Compiled6.aj.fss has 1 error.\n
+compile_out_equals=

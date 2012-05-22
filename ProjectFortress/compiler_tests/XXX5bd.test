@@ -1,0 +1,18 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled5.bd
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.bd.fss:23:22-28:\n\
+\ Could not check method invocation C.foo\n\
+\ - [\\T extends B\\]T->T is not applicable to an argument of type A.\n\
+File Compiled5.bd.fss has 1 error.\n
+compile_out_equals=

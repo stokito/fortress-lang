@@ -1,0 +1,1421 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Operator Precedence, Associativity, Chaining, and Enclosure}
+\applabel{operator-precedence}
+\applabel{operators}
+
+\newcommand{\UnicodeOp}[4]{~~\texttt{#1}\>\texttt{\footnotesize #2}\>{#3}\>{#4}}
+\newcommand{\UnicodeKillLine}{~~\texttt{U+0000}~~\={\footnotesize\texttt{LESS-THAN ABOVE SLANTED EQUAL ABOVE GREATER-THAN ABOVE SLANTED EQUAL}}~~\=\quad\quad\=\kill}
+
+
+This appendix contains the detailed rules
+for which \unicode\ characters may be used as operators,
+which operators form enclosing pairs,
+which operators may be chained,
+which operators are associative,
+and what precedence relationships exist among the various operators.
+An infix operator is left associative, nonassociative, or chainable.
+If no precedence relationship is stated explicitly
+for any given pair of operators,
+then there is no precedence relationship between those two operators.
+Remember that precedence is not transitive in Fortress.
+
+In each of the character lists below,
+each line gives the Unicode codepoint,
+the full \unicode\ name,
+a rendering of the character in \TeX\ (if possible),
+and any ASCII shorthand or short names for the character.
+
+
+
+\section{Bracket Pairs for Static Type Information}
+\seclabel{oxford-bracket-pairs}
+
+These brackets are the exception: they are \emph{not} operators, but are used to enclose static parameters
+and static arguments.
+
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+27E6}{MATHEMATICAL LEFT WHITE SQUARE BRACKET}{$[\![$}{\texttt{[{\char'134}}} \\
+\UnicodeOp{U+27E7}{MATHEMATICAL RIGHT WHITE SQUARE BRACKET}{$]\!]$}{\texttt{{\char'134}]}}
+\end{tabbing}
+
+\section{Bracket Pairs for Enclosing Operators}
+\seclabel{bracket-pairs}
+
+Here are the bracket pairs that may be used as enclosing operators.
+Note that there is one group of four brackets; within that group,
+either left bracket may be paired with either right bracket to form
+an enclosing operator.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+005B}{LEFT SQUARE BRACKET}{[}{\texttt{[}} \\
+\UnicodeOp{U+005D}{RIGHT SQUARE BRACKET}{]}{\texttt{]}} \\[4pt]
+\UnicodeOp{U+007B}{LEFT CURLY BRACKET}{\{}{\texttt{{\char'173}}} \\
+\UnicodeOp{U+007D}{RIGHT CURLY BRACKET}{\}}{\texttt{\char'175}} \\[4pt]
+\UnicodeOp{U+2045}{LEFT SQUARE BRACKET WITH QUILL}{}{\texttt{[./}} \\
+\UnicodeOp{U+2046}{RIGHT SQUARE BRACKET WITH QUILL}{}{\texttt{/.]}} \\[4pt]
+\UnicodeOp{U+2308}{LEFT CEILING}{$\lceil$}{\texttt{|/}} \\
+\UnicodeOp{U+2309}{RIGHT CEILING}{$\rceil$}{\texttt{{\char'134}|}} \\[4pt]
+\UnicodeOp{U+230A}{LEFT FLOOR}{$\lfloor$}{\texttt{|{\char'134}}} \\
+\UnicodeOp{U+230B}{RIGHT FLOOR}{$\rfloor$}{\texttt{/|}} \\[4pt]
+\UnicodeOp{U+27C5}{LEFT S-SHAPED BAG DELIMITER}{}{\texttt{|.{\char'134}}} \\
+\UnicodeOp{U+27C6}{RIGHT S-SHAPED BAG DELIMITER}{}{\texttt{/.|}} \\[4pt]
+\UnicodeOp{U+27E8}{MATHEMATICAL LEFT ANGLE BRACKET}{$\langle$}{\texttt{<|}} \\
+\UnicodeOp{U+27E9}{MATHEMATICAL RIGHT ANGLE BRACKET}{$\rangle$}{\texttt{|>}} \\[4pt]
+\UnicodeOp{U+27EA}{MATHEMATICAL LEFT DOUBLE ANGLE BRACKET}{$\langle\!\langle$}{\texttt{<<|}} \\
+\UnicodeOp{U+27EB}{MATHEMATICAL RIGHT DOUBLE ANGLE BRACKET}{$\rangle\!\rangle$}{\texttt{|>>}} \\[4pt]
+\UnicodeOp{U+2983}{LEFT WHITE CURLY BRACKET}{$\{\!|$}{\texttt{{\char'173}{\char'134}}} \\
+\UnicodeOp{U+2984}{RIGHT WHITE CURLY BRACKET}{$|\!\}$}{\texttt{{\char'134}{\char'175}}} \\[4pt]
+\UnicodeOp{U+2985}{LEFT WHITE PARENTHESIS}{}{\texttt{(.{\char'134}}} \\
+\UnicodeOp{U+2986}{RIGHT WHITE PARENTHESIS}{}{\texttt{{\char'134}.)}} \\[4pt]
+\UnicodeOp{U+2987}{Z NOTATION LEFT IMAGE BRACKET}{}{\texttt{(./}} \\
+\UnicodeOp{U+2988}{Z NOTATION RIGHT IMAGE BRACKET}{}{\texttt{/.)}} \\[4pt]
+\UnicodeOp{U+2989}{Z NOTATION LEFT BINDING BRACKET}{}{\texttt{<||}} \\
+\UnicodeOp{U+298A}{Z NOTATION RIGHT BINDING BRACKET}{}{\texttt{||>}} \\[4pt]
+\UnicodeOp{U+298B}{LEFT SQUARE BRACKET WITH UNDERBAR}{}{\texttt{[.\char'134}} \\
+\UnicodeOp{U+298C}{RIGHT SQUARE BRACKET WITH UNDERBAR}{}{\texttt{\char'134.]}} \\[4pt]
+\UnicodeOp{U+298D}{LEFT SQUARE BRACKET WITH TICK IN TOP CORNER}{}{\texttt{[.//}} \\
+\UnicodeOp{U+298E}{RIGHT SQUARE BRACKET WITH TICK IN BOTTOM CORNER}{}{\texttt{//.]}} \\[4pt]
+\UnicodeOp{U+298F}{LEFT SQUARE BRACKET WITH TICK IN BOTTOM CORNER}{}{\texttt{[.\char'134\char'134}} \\
+\UnicodeOp{U+2990}{RIGHT SQUARE BRACKET WITH TICK IN TOP CORNER}{}{\texttt{\char'134\char'134.]}} \\[4pt]
+\UnicodeOp{U+2991}{LEFT ANGLE BRACKET WITH DOT}{}{\texttt{<.|}} \\
+\UnicodeOp{U+2992}{RIGHT ANGLE BRACKET WITH DOT}{}{\texttt{|.>}} \\[4pt]
+\UnicodeOp{U+2993}{LEFT ARC LESS-THAN BRACKET}{}{\texttt{(.<}} \\
+\UnicodeOp{U+2994}{RIGHT ARC GREATER-THAN BRACKET}{}{\texttt{>.)}} \\[4pt]
+\UnicodeOp{U+2995}{DOUBLE LEFT ARC GREATER-THAN BRACKET}{}{\texttt{((.>}} \\
+\UnicodeOp{U+2996}{DOUBLE RIGHT ARC LESS-THAN BRACKET}{}{\texttt{<.))}} \\[4pt]
+\UnicodeOp{U+2997}{LEFT BLACK TORTOISE SHELL BRACKET}{}{\texttt{[*/}} \\
+\UnicodeOp{U+2998}{RIGHT BLACK TORTOISE SHELL BRACKET}{}{\texttt{/*]}} \\[4pt]
+\UnicodeOp{U+29D8}{LEFT WIGGLY FENCE}{}{\texttt{[/\char'134/}} \\
+\UnicodeOp{U+29D9}{RIGHT WIGGLY FENCE}{}{\texttt{/\char'134/]}} \\[4pt]
+\UnicodeOp{U+29DA}{LEFT DOUBLE WIGGLY FENCE}{}{\texttt{[/\char'134/\char'134/}} \\
+\UnicodeOp{U+29DB}{RIGHT DOUBLE WIGGLY FENCE}{}{\texttt{/\char'134/\char'134/]}} \\[4pt]
+\UnicodeOp{U+29FC}{LEFT-POINTING CURVED ANGLE BRACKET}{}{\texttt{<|||}} \\
+\UnicodeOp{U+29FD}{RIGHT-POINTING CURVED ANGLE BRACKET}{}{\texttt{|||>}} \\[4pt]
+\UnicodeOp{U+300C}{LEFT CORNER BRACKET}{$\ulcorner$}{\texttt{</}} \\
+\UnicodeOp{U+300D}{RIGHT CORNER BRACKET}{$\urcorner$}{\texttt{{\char'134}>}} \\[4pt]
+\UnicodeOp{U+300E}{LEFT WHITE CORNER BRACKET}{}{\texttt{<</}} \\
+\UnicodeOp{U+300F}{RIGHT WHITE CORNER BRACKET}{}{\texttt{{\char'134}>>}} \\[4pt]
+\UnicodeOp{U+3010}{LEFT BLACK LENTICULAR BRACKET}{}{\texttt{{\char'173}*/}} \\
+\UnicodeOp{U+3011}{RIGHT BLACK LENTICULAR BRACKET}{}{\texttt{/*{\char'175}}} \\[4pt]
+\UnicodeOp{U+3018}{LEFT WHITE TORTOISE SHELL BRACKET}{}{\texttt{[//}} \\
+\UnicodeOp{U+3014}{LEFT TORTOISE SHELL BRACKET}{}{\texttt{[/}} \\
+\UnicodeOp{U+3015}{RIGHT TORTOISE SHELL BRACKET}{}{\texttt{/]}} \\
+\UnicodeOp{U+3019}{RIGHT WHITE TORTOISE SHELL BRACKET}{}{\texttt{//]}} \\[4pt]
+\UnicodeOp{U+3016}{LEFT WHITE LENTICULAR BRACKET}{}{\texttt{{\char'173}/}} \\
+\UnicodeOp{U+3017}{RIGHT WHITE LENTICULAR BRACKET}{}{\texttt{/{\char'175}}}
+\end{tabbing}
+
+
+
+\section{Vertical-Line Operators}
+\seclabel{vertical-line-ops}
+
+The following are vertical-line operators.  They are left associative
+when they are used as infix operators.
+
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+007C}{VERTICAL LINE}{$|$}{\texttt{|}} \\
+\UnicodeOp{U+2016}{DOUBLE VERTICAL LINE}{$\|$}{\texttt{||}} \\
+\UnicodeOp{U+2AF4}{TRIPLE VERTICAL BAR BINARY RELATION}{}{\texttt{|||}} \\
+\end{tabbing}
+
+
+
+\section{Arithmetic Operators}
+\seclabel{precedence:arithops}
+
+\subsection{Multiplication and Division}
+\seclabel{precedence:multdivops}
+
+The following are multiplication operators.  They are left associative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+002A}{ASTERISK}{*}{\texttt{*}} \\
+\UnicodeOp{U+00B7}{MIDDLE DOT}{$\cdot$}{\texttt{DOT}} \\
+\UnicodeOp{U+00D7}{MULTIPLICATION SIGN}{$\times$}{\texttt{TIMES}~~\texttt{BY}} \\
+\UnicodeOp{U+2217}{ASTERISK OPERATOR}{$\ast$}{\texttt{*}} \\
+\UnicodeOp{U+228D}{MULTISET MULTIPLICATION}{}{} \\
+\UnicodeOp{U+2297}{CIRCLED TIMES}{$\otimes$}{\texttt{OTIMES}} \\
+\UnicodeOp{U+2299}{CIRCLED DOT OPERATOR}{$\odot$}{\texttt{ODOT}} \\
+\UnicodeOp{U+229B}{CIRCLED ASTERISK OPERATOR}{$\circledast$}{\texttt{CIRCLEDAST}} \\
+\UnicodeOp{U+22A0}{SQUARED TIMES}{$\boxtimes$}{\texttt{BOXTIMES}} \\
+\UnicodeOp{U+22A1}{SQUARED DOT OPERATOR}{$\boxdot$}{\texttt{BOXDOT}} \\
+\UnicodeOp{U+22C5}{DOT OPERATOR}{$\cdot$}{} \\
+\UnicodeOp{U+29C6}{SQUARED ASTERISK}{}{\texttt{BOXAST}} \\
+\UnicodeOp{U+29D4}{TIMES WITH LEFT HALF BLACK}{}{} \\
+\UnicodeOp{U+29D5}{TIMES WITH RIGHT HALF BLACK}{}{} \\
+\UnicodeOp{U+2A2F}{VECTOR OR CROSS PRODUCT}{$\times$}{\texttt{CROSS}} \\
+\UnicodeOp{U+2A30}{MULTIPLICATION SIGN WITH DOT ABOVE}{}{\texttt{DOTTIMES}} \\
+\UnicodeOp{U+2A31}{MULTIPLICATION SIGN WITH UNDERBAR}{}{} \\
+\UnicodeOp{U+2A34}{MULTIPLICATION SIGN IN LEFT HALF CIRCLE}{}{} \\
+\UnicodeOp{U+2A35}{MULTIPLICATION SIGN IN RIGHT HALF CIRCLE}{}{} \\
+\UnicodeOp{U+2A36}{CIRCLED MULTIPLICATION SIGN WITH CIRCUMFLEX ACCENT}{}{} \\
+\UnicodeOp{U+2A37}{MULTIPLICATION SIGN IN DOUBLE CIRCLE}{}{} \\
+\UnicodeOp{U+2A3B}{MULTIPLICATION SIGN IN TRIANGLE}{}{\texttt{TRITIMES}}
+\end{tabbing}
+
+The following are division operators.  They are nonassociative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+002F}{SOLIDUS}{/}{\texttt{/}} \\
+\UnicodeOp{U+00F7}{DIVISION SIGN}{$\div$}{\texttt{DIV}} \\
+\UnicodeOp{U+2215}{DIVISION SLASH}{$/$}{\texttt{/}} \\
+\UnicodeOp{U+2298}{CIRCLED DIVISION SLASH}{$\oslash$}{\texttt{OSLASH}} \\
+\UnicodeOp{U+29B8}{CIRCLED REVERSE SOLIDUS}{}{} \\
+\UnicodeOp{U+29BC}{CIRCLED ANTICLOCKWISE-ROTATED DIVISION SIGN}{}{} \\
+\UnicodeOp{U+29C4}{SQUARED RISING DIAGONAL SLASH}{}{\texttt{BOXSLASH}} \\
+\UnicodeOp{U+29F5}{REVERSE SOLIDUS OPERATOR}{$\backslash$}{\texttt{\char'134}} \\
+\UnicodeOp{U+29F8}{BIG SOLIDUS}{$\bigl/$}{} \\
+\UnicodeOp{U+29F9}{BIG REVERSE SOLIDUS}{$\bigl\backslash$}{} \\
+\UnicodeOp{U+2A38}{CIRCLED DIVISION SIGN}{}{\texttt{ODIV}} \\
+\UnicodeOp{U+2AFD}{DOUBLE SOLIDUS OPERATOR}{$//$}{\texttt{//}} \\
+\UnicodeOp{U+2AFB}{TRIPLE SOLIDUS BINARY RELATION}{}{\texttt{///}}
+\end{tabbing}
+Note also that \txt{per} is treated as a division operator.
+
+\subsection{Addition and Subtraction}
+\seclabel{precedence:addsubops}
+
+Addition and subtraction operators are left associative.
+
+The following three operators have the same precedence and may be mixed.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+002B}{PLUS SIGN}{$+$}{\texttt{+}} \\
+\UnicodeOp{U+002D}{HYPHEN-MINUS}{$-$}{\texttt{-}} \\
+\UnicodeOp{U+2212}{MINUS SIGN}{$-$}{\texttt{-}}
+\end{tabbing}
+They each have lower precedence than any of the following multiplication and division operators:
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+002A}{ASTERISK}{*}{\texttt{*}} \\
+\UnicodeOp{U+002F}{SOLIDUS}{/}{\texttt{/}} \\
+\UnicodeOp{U+00B7}{MIDDLE DOT}{$\cdot$}{\texttt{DOT}} \\
+\UnicodeOp{U+00D7}{MULTIPLICATION SIGN}{$\times$}{\texttt{TIMES}~~\texttt{BY}} \\
+\UnicodeOp{U+00F7}{DIVISION SIGN}{$\div$}{\texttt{DIV}} \\
+\UnicodeOp{U+2215}{DIVISION SLASH}{$/$}{\texttt{/}} \\
+\UnicodeOp{U+2217}{ASTERISK OPERATOR}{$\ast$}{\texttt{*}} \\
+\UnicodeOp{U+22C5}{DOT OPERATOR}{$\cdot$}{} \\
+\UnicodeOp{U+2A2F}{VECTOR OR CROSS PRODUCT}{$\times$}{\texttt{CROSS}}
+\end{tabbing}
+
+The following two operators have the same precedence and may be mixed.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2214}{DOT PLUS}{$\dotplus$}{\texttt{DOTPLUS}} \\
+\UnicodeOp{U+2238}{DOT MINUS}{$\dot{-}$}{\texttt{DOTMINUS}}
+\end{tabbing}
+They each have lower precedence than this multiplication operator:
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2A30}{MULTIPLICATION SIGN WITH DOT ABOVE}{}{\texttt{DOTTIMES}}
+\end{tabbing}
+
+The following two operators have the same precedence and may be mixed.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2A25}{PLUS SIGN WITH DOT BELOW}{}{} \\
+\UnicodeOp{U+2A2A}{MINUS SIGN WITH DOT BELOW}{}{}
+\end{tabbing}
+
+The following two operators have the same precedence and may be mixed.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2A39}{PLUS SIGN IN TRIANGLE}{}{\texttt{TRIPLUS}} \\
+\UnicodeOp{U+2A3A}{MINUS SIGN IN TRIANGLE}{}{\texttt{TRIMINUS}}
+\end{tabbing}
+They each have lower precedence than this multiplication operator:
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2A3B}{MULTIPLICATION SIGN IN TRIANGLE}{}{\texttt{TRITIMES}}
+\end{tabbing}
+
+The following two operators have the same precedence and may be mixed.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2295}{CIRCLED PLUS}{$\oplus$}{\texttt{OPLUS}} \\
+\UnicodeOp{U+2296}{CIRCLED MINUS}{$\ominus$}{\texttt{OMINUS}}
+\end{tabbing}
+They each have lower precedence than any of the following multiplication and division operators:
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2297}{CIRCLED TIMES}{$\otimes$}{\texttt{OTIMES}} \\
+\UnicodeOp{U+2298}{CIRCLED DIVISION SLASH}{$\oslash$}{\texttt{OSLASH}} \\
+\UnicodeOp{U+2299}{CIRCLED DOT OPERATOR}{$\odot$}{\texttt{ODOT}} \\
+\UnicodeOp{U+229B}{CIRCLED ASTERISK OPERATOR}{$\circledast$}{\texttt{CIRCLEDAST}} \\
+\UnicodeOp{U+2A38}{CIRCLED DIVISION SIGN}{}{\texttt{ODIV}}
+\end{tabbing}
+
+The following two operators have the same precedence and may be mixed.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+229E}{SQUARED PLUS}{$\boxplus$}{\texttt{BOXPLUS}} \\
+\UnicodeOp{U+229F}{SQUARED MINUS}{$\boxminus$}{\texttt{BOXMINUS}}
+\end{tabbing}
+They each have lower precedence than any of these multiplication or division operators:
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+22A0}{SQUARED TIMES}{$\boxtimes$}{\texttt{BOXTIMES}} \\
+\UnicodeOp{U+22A1}{SQUARED DOT OPERATOR}{$\boxdot$}{\texttt{BOXDOT}} \\
+\UnicodeOp{U+29C4}{SQUARED RISING DIAGONAL SLASH}{}{\texttt{BOXSLASH}} \\
+\UnicodeOp{U+29C6}{SQUARED ASTERISK}{}{\texttt{BOXAST}} \\
+\end{tabbing}
+
+These are other miscellaneous addition and subtraction operators:
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+00B1}{PLUS-MINUS SIGN}{$\pm$}{} \\
+\UnicodeOp{U+2213}{MINUS-OR-PLUS SIGN}{$\mp$}{} \\
+\UnicodeOp{U+2242}{MINUS TILDE}{}{} \\
+\UnicodeOp{U+2A22}{PLUS SIGN WITH SMALL CIRCLE ABOVE}{$\overset{\circ}{+}$}{} \\
+\UnicodeOp{U+2A23}{PLUS SIGN WITH CIRCUMFLEX ACCENT ABOVE}{$\Hat{+}$}{} \\
+\UnicodeOp{U+2A24}{PLUS SIGN WITH TILDE ABOVE}{$\overset{\sim}{+}$}{} \\
+\UnicodeOp{U+2A26}{PLUS SIGN WITH TILDE BELOW}{$\underset{\sim}{+}$}{} \\
+\UnicodeOp{U+2A27}{PLUS SIGN WITH SUBSCRIPT TWO}{$\hbox{$+$}_2$}{} \\
+\UnicodeOp{U+2A28}{PLUS SIGN WITH BLACK TRIANGLE}{}{} \\
+\UnicodeOp{U+2A29}{MINUS SIGN WITH COMMA ABOVE}{$\overset{,}{-}$}{} \\
+\UnicodeOp{U+2A2B}{MINUS SIGN WITH FALLING DOTS}{}{} \\
+\UnicodeOp{U+2A2C}{MINUS SIGN WITH RISING DOTS}{}{} \\
+\UnicodeOp{U+2A2D}{PLUS SIGN IN LEFT HALF CIRCLE}{}{} \\
+\UnicodeOp{U+2A2E}{PLUS SIGN IN RIGHT HALF CIRCLE}{}{}
+\end{tabbing}
+
+
+\subsection{Miscellaneous Arithmetic Operators}
+\seclabel{precedence:miscarithops}
+
+The operators \texttt{MAX}, \texttt{MIN}, \texttt{REM}, \texttt{MOD}, \texttt{GCD},
+\texttt{LCM}, \texttt{CHOOSE}, and \texttt{per}, none of which corresponds to a single
+Unicode character, are considered to be arithmetic operators, having
+higher precedence than certain relational operators, as described in
+a later section.
+Among these operators, \texttt{MAX}, \texttt{MIN}, \texttt{GCD}, and \texttt{LCM}
+are left associative and \texttt{REM}, \texttt{MOD}, \texttt{CHOOSE}, and
+\texttt{per} are nonassociative.
+
+\subsection{Set Intersection, Union, and Difference}
+\seclabel{precedence:setops}
+
+The following are the set intersection operators.  They are left associative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2229}{INTERSECTION}{$\cap$}{\texttt{CAP}~~\texttt{INTERSECT}} \\
+\UnicodeOp{U+22D2}{DOUBLE INTERSECTION}{$\Cap$}{\texttt{CAPCAP}} \\
+\UnicodeOp{U+2A40}{INTERSECTION WITH DOT}{}{} \\
+\UnicodeOp{U+2A43}{INTERSECTION WITH OVERBAR}{$\overline{\cap}$}{} \\
+\UnicodeOp{U+2A44}{INTERSECTION WITH LOGICAL AND}{}{} \\
+\UnicodeOp{U+2A4B}{INTERSECTION BESIDE AND JOINED WITH INTERSECTION}{}{} \\
+\UnicodeOp{U+2A4D}{CLOSED INTERSECTION WITH SERIFS}{}{} \\
+\UnicodeOp{U+2ADB}{TRANSVERSAL INTERSECTION}{}{}
+\end{tabbing}
+
+The following are the set union operators.  They are left associative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+222A}{UNION}{$\cup$}{\texttt{CUP}~~\texttt{UNION}} \\
+\UnicodeOp{U+228E}{MULTISET UNION}{$\uplus$}{\texttt{UPLUS}} \\
+\UnicodeOp{U+22D3}{DOUBLE UNION}{$\Cup$}{\texttt{CUPCUP}} \\
+\UnicodeOp{U+2A41}{UNION WITH MINUS SIGN}{}{} \\
+\UnicodeOp{U+2A42}{UNION WITH OVERBAR}{$\overline{\cup}$}{} \\
+\UnicodeOp{U+2A45}{UNION WITH LOGICAL OR}{}{} \\
+\UnicodeOp{U+2A4A}{UNION BESIDE AND JOINED WITH UNION}{}{} \\
+\UnicodeOp{U+2A4C}{CLOSED UNION WITH SERIFS}{}{} \\
+\UnicodeOp{U+2A50}{CLOSED UNION WITH SERIFS AND SMASH PRODUCT}{}{}
+\end{tabbing}
+They each have lower precedence than any of the set intersection operators.
+
+This is a miscellaneous set operator.  It is nonassociative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2216}{SET MINUS}{$\setminus$}{\texttt{SETMINUS}}
+\end{tabbing}
+
+
+\subsection{Square Arithmetic Operators}
+\seclabel{precedence:squareops}
+
+Square arithmetic operators are left associative.
+
+The following are the square intersection operators.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2293}{SQUARE CAP}{$\sqcap$}{\texttt{SQCAP}} \\
+\UnicodeOp{U+2A4E}{DOUBLE SQUARE INTERSECTION}{}{\texttt{SQCAPCAP}}
+\end{tabbing}
+
+The following are the square union operators:
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2294}{SQUARE CUP}{$\sqcup$}{\texttt{SQCUP}} \\
+\UnicodeOp{U+2A4F}{DOUBLE SQUARE UNION}{}{\texttt{SQCUPCUP}}
+\end{tabbing}
+They each have lower precedence than either of the square intersection operators.
+
+
+\subsection{Curly Arithmetic Operators}
+\seclabel{precedence:curlyops}
+
+Curly arithmetic operators are left associative.
+
+The following is the curly intersection operator:
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+22CF}{CURLY LOGICAL AND}{$\curlywedge$}{\texttt{CURLYAND}}
+\end{tabbing}
+
+The following is the curly union operator:
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+22CE}{CURLY LOGICAL OR}{$\curlyvee$}{\texttt{CURLYOR}}
+\end{tabbing}
+It has lower precedence than the curly intersection operator.
+
+\section{Relational Operators}
+\seclabel{precedence:relops}
+
+\subsection{Equivalence and Inequivalence Operators}
+\seclabel{precedence:equivops}
+
+Every operator listed in this section
+has lower precedence than any operator listed in
+\secref{precedence:arithops}.
+
+The following are equivalence operators.  They may be chained.
+Moreover, they may be chained with any other single group of
+chainable relational operators, as described in later sections.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+003D}{EQUALS SIGN}{$=$}{\texttt{EQ}} \\
+\UnicodeOp{U+2243}{ASYMPTOTICALLY EQUAL TO}{$\simeq$}{\texttt{SIMEQ}} \\
+\UnicodeOp{U+2245}{APPROXIMATELY EQUAL TO}{$\cong$}{} \\
+\UnicodeOp{U+2246}{APPROXIMATELY BUT NOT ACTUALLY EQUAL TO}{}{} \\
+\UnicodeOp{U+2248}{ALMOST EQUAL TO}{$\approx$}{\texttt{APPROX}} \\
+\UnicodeOp{U+224A}{ALMOST EQUAL OR EQUAL TO}{$\approxeq$}{\texttt{APPROXEQ}} \\
+\UnicodeOp{U+224C}{ALL EQUAL TO}{}{} \\
+\UnicodeOp{U+224D}{EQUIVALENT TO}{$\asymp$}{} \\
+\UnicodeOp{U+224E}{GEOMETRICALLY EQUIVALENT TO}{$\Bumpeq$}{\texttt{BUMPEQV}} \\
+\UnicodeOp{U+2251}{GEOMETRICALLY EQUAL TO}{$\doteqdot$}{\texttt{DOTEQDOT}} \\
+\UnicodeOp{U+2252}{APPROXIMATELY EQUAL TO OR THE IMAGE OF}{$\fallingdotseq$}{} \\
+\UnicodeOp{U+2253}{IMAGE OF OR APPROXIMATELY EQUAL TO}{$\risingdotseq$}{} \\
+\UnicodeOp{U+2256}{RING IN EQUAL TO}{$\eqcirc$}{\texttt{EQRING}} \\
+\UnicodeOp{U+2257}{RING EQUAL TO}{$\circeq$}{\texttt{RINGEQ}} \\
+\UnicodeOp{U+225B}{STAR EQUALS}{}{} \\
+\UnicodeOp{U+225C}{DELTA EQUAL TO}{$\triangleq$}{\texttt{EQDEL}} \\
+\UnicodeOp{U+225D}{EQUAL TO BY DEFINITION}{}{\texttt{EQDEF}} \\
+\UnicodeOp{U+225F}{QUESTIONED EQUAL TO}{}{} \\
+\UnicodeOp{U+2261}{IDENTICAL TO}{$\equiv$}{\texttt{EQV}~~\texttt{EQUIV}} \\
+\UnicodeOp{U+2263}{STRICTLY EQUIVALENT TO}{}{\texttt{===}~~\texttt{SEQV}} \\
+\UnicodeOp{U+229C}{CIRCLED EQUALS}{}{} \\
+\UnicodeOp{U+22CD}{REVERSED TILDE EQUALS}{$\backsimeq$}{} \\
+\UnicodeOp{U+22D5}{EQUAL AND PARALLEL TO}{}{} \\
+\UnicodeOp{U+29E3}{EQUALS SIGN AND SLANTED PARALLEL}{}{} \\
+\UnicodeOp{U+29E4}{EQUALS SIGN AND SLANTED PARALLEL WITH TILDE ABOVE}{}{} \\
+\UnicodeOp{U+29E5}{IDENTICAL TO AND SLANTED PARALLEL}{}{} \\
+\UnicodeOp{U+2A66}{EQUALS SIGN WITH DOT BELOW}{}{} \\
+\UnicodeOp{U+2A67}{IDENTICAL WITH DOT ABOVE}{}{} \\
+\UnicodeOp{U+2A6C}{SIMILAR MINUS SIMILAR}{}{} \\
+\UnicodeOp{U+2A6E}{EQUALS WITH ASTERISK}{}{} \\
+\UnicodeOp{U+2A6F}{ALMOST EQUAL TO WITH CIRCUMFLEX ACCENT}{}{} \\
+\UnicodeOp{U+2A70}{APPROXIMATELY EQUAL OR EQUAL TO}{}{} \\
+\UnicodeOp{U+2A71}{EQUALS SIGN ABOVE PLUS SIGN}{}{} \\
+\UnicodeOp{U+2A72}{PLUS SIGN ABOVE EQUALS SIGN}{}{} \\
+\UnicodeOp{U+2A73}{EQUALS SIGN ABOVE TILDE OPERATOR}{}{} \\
+\UnicodeOp{U+2A75}{TWO CONSECUTIVE EQUALS SIGNS}{}{} \\
+\UnicodeOp{U+2A76}{THREE CONSECUTIVE EQUALS SIGNS}{}{} \\
+\UnicodeOp{U+2A77}{EQUALS SIGN WITH TWO DOTS ABOVE AND TWO DOTS BELOW}{}{} \\
+\UnicodeOp{U+2A78}{EQUIVALENT WITH FOUR DOTS ABOVE}{}{} \\
+\UnicodeOp{U+2AAE}{EQUALS SIGN WITH BUMPY ABOVE}{}{} \\
+\UnicodeOp{U+FE66}{SMALL EQUALS SIGN}{}{} \\
+\UnicodeOp{U+FF1D}{FULLWIDTH EQUALS SIGN}{}{}
+\end{tabbing}
+
+The following are inequivalence operators.  They might not be chained
+and they are nonassociative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2244}{NOT ASYMPTOTICALLY EQUAL TO}{$\not\simeq$}{\texttt{NSIMEQ}} \\
+\UnicodeOp{U+2247}{NEITHER APPROXIMATELY NOR ACTUALLY EQUAL TO}{$\ncong$}{} \\
+\UnicodeOp{U+2249}{NOT ALMOST EQUAL TO}{$\not\approx$}{\texttt{NAPPROX}} \\
+\UnicodeOp{U+2260}{NOT EQUAL TO}{$\neq$}{\texttt{=/=}~~\texttt{NE}} \\
+\UnicodeOp{U+2262}{NOT IDENTICAL TO}{$\not\equiv$}{\texttt{NEQV}} \\
+\UnicodeOp{U+226D}{NOT EQUIVALENT TO}{$\not\asymp$}{}
+\end{tabbing}
+
+
+\subsection{Plain Comparison Operators}
+
+Every operator listed in this section
+has lower precedence than any operator listed in
+Sections~\ref{sec:precedence:multdivops}, \ref{sec:precedence:addsubops},
+and \ref{sec:precedence:miscarithops}.
+
+The following are less-than operators.  They may be mixed and chained
+with each other and with equivalence operators
+(\see{precedence:equivops}).
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+003C}{LESS-THAN SIGN}{$<$}{\texttt{<}~~\texttt{LT}} \\
+\UnicodeOp{U+2264}{LESS-THAN OR EQUAL TO}{$\leq$}{\texttt{<=}~~\texttt{LE}} \\
+\UnicodeOp{U+2266}{LESS-THAN OVER EQUAL TO}{$\leqq$}{} \\
+\UnicodeOp{U+2268}{LESS-THAN BUT NOT EQUAL TO}{$\lneqq$}{} \\
+\UnicodeOp{U+226A}{MUCH LESS-THAN}{$\ll$}{\texttt{<<}} \\
+\UnicodeOp{U+2272}{LESS-THAN OR EQUIVALENT TO}{$\lesssim$}{} \\
+\UnicodeOp{U+22D6}{LESS-THAN WITH DOT}{$\lessdot$}{\texttt{DOTLT}} \\
+\UnicodeOp{U+22D8}{VERY MUCH LESS-THAN}{$\lll$}{\texttt{<<<}} \\
+\UnicodeOp{U+22DC}{EQUAL TO OR LESS-THAN}{}{} \\
+\UnicodeOp{U+22E6}{LESS-THAN BUT NOT EQUIVALENT TO}{$\lnsim$}{} \\
+\UnicodeOp{U+29C0}{CIRCLED LESS-THAN}{}{} \\
+\UnicodeOp{U+2A79}{LESS-THAN WITH CIRCLE INSIDE}{}{} \\
+\UnicodeOp{U+2A7B}{LESS-THAN WITH QUESTION MARK ABOVE}{}{} \\
+\UnicodeOp{U+2A7D}{LESS-THAN OR SLANTED EQUAL TO}{}{} \\
+\UnicodeOp{U+2A7F}{LESS-THAN OR SLANTED EQUAL TO WITH DOT INSIDE}{}{} \\
+\UnicodeOp{U+2A81}{LESS-THAN OR SLANTED EQUAL TO WITH DOT ABOVE}{}{} \\
+\UnicodeOp{U+2A83}{LESS-THAN OR SLANTED EQUAL TO WITH DOT ABOVE RIGHT}{}{} \\
+\UnicodeOp{U+2A85}{LESS-THAN OR APPROXIMATE}{}{} \\
+\UnicodeOp{U+2A87}{LESS-THAN AND SINGLE-LINE NOT EQUAL TO}{}{} \\
+\UnicodeOp{U+2A89}{LESS-THAN AND NOT APPROXIMATE}{}{} \\
+\UnicodeOp{U+2A8D}{LESS-THAN ABOVE SIMILAR OR EQUAL}{}{} \\
+\UnicodeOp{U+2A95}{SLANTED EQUAL TO OR LESS-THAN}{}{} \\
+\UnicodeOp{U+2A97}{SLANTED EQUAL TO OR LESS-THAN WITH DOT INSIDE}{}{} \\
+\UnicodeOp{U+2A99}{DOUBLE-LINE EQUAL TO OR LESS-THAN}{}{} \\
+\UnicodeOp{U+2A9B}{DOUBLE-LINE SLANTED EQUAL TO OR LESS-THAN}{}{} \\
+\UnicodeOp{U+2A9D}{SIMILAR OR LESS-THAN}{}{} \\
+\UnicodeOp{U+2A9F}{SIMILAR ABOVE LESS-THAN ABOVE EQUALS SIGN}{}{} \\
+\UnicodeOp{U+2AA1}{DOUBLE NESTED LESS-THAN}{}{} \\
+\UnicodeOp{U+2AA3}{DOUBLE NESTED LESS-THAN WITH UNDERBAR}{}{} \\
+\UnicodeOp{U+2AA6}{LESS-THAN CLOSED BY CURVE}{}{} \\
+\UnicodeOp{U+2AA8}{LESS-THAN CLOSED BY CURVE ABOVE SLANTED EQUAL}{}{} \\
+\UnicodeOp{U+2AF7}{TRIPLE NESTED LESS-THAN}{}{} \\
+\UnicodeOp{U+2AF9}{DOUBLE-LINE SLANTED LESS-THAN OR EQUAL TO}{}{} \\
+\UnicodeOp{U+FE64}{SMALL LESS-THAN SIGN}{}{} \\
+\UnicodeOp{U+FF1C}{FULLWIDTH LESS-THAN SIGN}{}{}
+\end{tabbing}
+
+The following are greater-than operators.  They may be mixed and chained
+with each other and with equivalence operators
+(\see{precedence:equivops}).
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+003E}{GREATER-THAN SIGN}{$>$}{\texttt{>}~~\texttt{GT}} \\
+\UnicodeOp{U+2265}{GREATER-THAN OR EQUAL TO}{$\geq$}{\texttt{>=}~~\texttt{GE}} \\
+\UnicodeOp{U+2267}{GREATER-THAN OVER EQUAL TO}{$\geqq$}{} \\
+\UnicodeOp{U+2269}{GREATER-THAN BUT NOT EQUAL TO}{$\gneqq$}{} \\
+\UnicodeOp{U+226B}{MUCH GREATER-THAN}{$\gg$}{\texttt{>>}} \\
+\UnicodeOp{U+2273}{GREATER-THAN OR EQUIVALENT TO}{$\gtrsim$}{} \\
+\UnicodeOp{U+22D7}{GREATER-THAN WITH DOT}{$\gtrdot$}{\texttt{DOTGT}} \\
+\UnicodeOp{U+22D9}{VERY MUCH GREATER-THAN}{$\ggg$}{\texttt{>>>}} \\
+\UnicodeOp{U+22DD}{EQUAL TO OR GREATER-THAN}{}{} \\
+\UnicodeOp{U+22E7}{GREATER-THAN BUT NOT EQUIVALENT TO}{$\gnsim$}{} \\
+\UnicodeOp{U+29C1}{CIRCLED GREATER-THAN}{}{} \\
+\UnicodeOp{U+2A7A}{GREATER-THAN WITH CIRCLE INSIDE}{}{} \\
+\UnicodeOp{U+2A7C}{GREATER-THAN WITH QUESTION MARK ABOVE}{}{} \\
+\UnicodeOp{U+2A7E}{GREATER-THAN OR SLANTED EQUAL TO}{}{} \\
+\UnicodeOp{U+2A80}{GREATER-THAN OR SLANTED EQUAL TO WITH DOT INSIDE}{}{} \\
+\UnicodeOp{U+2A82}{GREATER-THAN OR SLANTED EQUAL TO WITH DOT ABOVE}{}{} \\
+\UnicodeOp{U+2A84}{GREATER-THAN OR SLANTED EQUAL TO WITH DOT ABOVE LEFT}{}{} \\
+\UnicodeOp{U+2A86}{GREATER-THAN OR APPROXIMATE}{}{} \\
+\UnicodeOp{U+2A88}{GREATER-THAN AND SINGLE-LINE NOT EQUAL TO}{}{} \\
+\UnicodeOp{U+2A8A}{GREATER-THAN AND NOT APPROXIMATE}{}{} \\
+\UnicodeOp{U+2A8E}{GREATER-THAN ABOVE SIMILAR OR EQUAL}{}{} \\
+\UnicodeOp{U+2A96}{SLANTED EQUAL TO OR GREATER-THAN}{}{} \\
+\UnicodeOp{U+2A98}{SLANTED EQUAL TO OR GREATER-THAN WITH DOT INSIDE}{}{} \\
+\UnicodeOp{U+2A9A}{DOUBLE-LINE EQUAL TO OR GREATER-THAN}{}{} \\
+\UnicodeOp{U+2A9C}{DOUBLE-LINE SLANTED EQUAL TO OR GREATER-THAN}{}{} \\
+\UnicodeOp{U+2A9E}{SIMILAR OR GREATER-THAN}{}{} \\
+\UnicodeOp{U+2AA0}{SIMILAR ABOVE GREATER-THAN ABOVE EQUALS SIGN}{}{} \\
+\UnicodeOp{U+2AA2}{DOUBLE NESTED GREATER-THAN}{}{} \\
+\UnicodeOp{U+2AA7}{GREATER-THAN CLOSED BY CURVE}{}{} \\
+\UnicodeOp{U+2AA9}{GREATER-THAN CLOSED BY CURVE ABOVE SLANTED EQUAL}{}{} \\
+\UnicodeOp{U+2AF8}{TRIPLE NESTED GREATER-THAN}{}{} \\
+\UnicodeOp{U+2AFA}{DOUBLE-LINE SLANTED GREATER-THAN OR EQUAL TO}{}{} \\
+\UnicodeOp{U+FE65}{SMALL GREATER-THAN SIGN}{}{} \\
+\UnicodeOp{U+FF1E}{FULLWIDTH GREATER-THAN SIGN}{}{}
+\end{tabbing}
+
+The following are miscellaneous plain comparison operators.
+They might not be mixed or chained and they are nonassociative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+226E}{NOT LESS-THAN}{$\nless$}{\texttt{NLT}} \\
+\UnicodeOp{U+226F}{NOT GREATER-THAN}{$\ngtr$}{\texttt{NGT}} \\
+\UnicodeOp{U+2270}{NEITHER LESS-THAN NOR EQUAL TO}{$\nleq$}{\texttt{NLE}} \\
+\UnicodeOp{U+2271}{NEITHER GREATER-THAN NOR EQUAL TO}{$\ngeq$}{\texttt{NGE}} \\
+\UnicodeOp{U+2274}{NEITHER LESS-THAN NOR EQUIVALENT TO}{$\not\lesssim$}{} \\
+\UnicodeOp{U+2275}{NEITHER GREATER-THAN NOR EQUIVALENT TO}{$\not\gtrsim$}{} \\
+\UnicodeOp{U+2276}{LESS-THAN OR GREATER-THAN}{$\lessgtr$}{} \\
+\UnicodeOp{U+2277}{GREATER-THAN OR LESS-THAN}{$\gtrless$}{} \\
+\UnicodeOp{U+2278}{NEITHER LESS-THAN NOR GREATER-THAN}{}{} \\
+\UnicodeOp{U+2279}{NEITHER GREATER-THAN NOR LESS-THAN}{}{} \\
+\UnicodeOp{U+22DA}{LESS-THAN EQUAL TO OR GREATER-THAN}{$\lesseqgtr$}{} \\
+\UnicodeOp{U+22DB}{GREATER-THAN EQUAL TO OR LESS-THAN}{$\gtreqless$}{} \\
+\UnicodeOp{U+2A8B}{LESS-THAN ABOVE DOUBLE-LINE EQUAL ABOVE GREATER-THAN}{}{} \\
+\UnicodeOp{U+2A8C}{GREATER-THAN ABOVE DOUBLE-LINE EQUAL ABOVE LESS-THAN}{}{} \\
+\UnicodeOp{U+2A8F}{LESS-THAN ABOVE SIMILAR ABOVE GREATER-THAN}{}{} \\
+\UnicodeOp{U+2A90}{GREATER-THAN ABOVE SIMILAR ABOVE LESS-THAN}{}{} \\
+\UnicodeOp{U+2A91}{LESS-THAN ABOVE GREATER-THAN ABOVE DOUBLE-LINE EQUAL}{}{} \\
+\UnicodeOp{U+2A92}{GREATER-THAN ABOVE LESS-THAN ABOVE DOUBLE-LINE EQUAL}{}{} \\
+\UnicodeOp{U+2A93}{LESS-THAN ABOVE SLANTED EQUAL ABOVE GREATER-THAN ABOVE SLANTED EQUAL}{}{} \\
+\UnicodeOp{U+2A94}{GREATER-THAN ABOVE SLANTED EQUAL ABOVE LESS-THAN ABOVE SLANTED EQUAL}{}{} \\
+\UnicodeOp{U+2AA4}{GREATER-THAN OVERLAPPING LESS-THAN}{}{} \\
+\UnicodeOp{U+2AA5}{GREATER-THAN BESIDE LESS-THAN}{}{}
+\end{tabbing}
+
+The following are not really comparison operators, but it is convenient to list them here
+because they also have lower precedence than any operator listed in
+Sections~\ref{sec:precedence:multdivops}, \ref{sec:precedence:addsubops},
+and \ref{sec:precedence:miscarithops}.
+They are left associative and they have the same precedence.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+0023}{NUMBER SIGN}{\#}{\texttt{\#}} \\
+\UnicodeOp{U+003A}{COLON}{:}{\texttt{:}} \\
+\UnicodeOp{U+2237}{PROPORTION}{}{\texttt{::}}
+\end{tabbing}
+
+\subsection{Set Comparison Operators}
+
+Every operator listed in this section
+has lower precedence than any operator listed in \secref{precedence:setops}.
+
+The following are subset comparison operators.  They may be mixed and chained
+with each other and with equivalence operators
+(\see{precedence:equivops}).
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2282}{SUBSET OF}{$\subset$}{\texttt{SUBSET}} \\
+\UnicodeOp{U+2286}{SUBSET OF OR EQUAL TO}{$\subseteq$}{\texttt{SUBSETEQ}} \\
+\UnicodeOp{U+228A}{SUBSET OF WITH NOT EQUAL TO}{$\subsetneq$}{\texttt{SUBSETNEQ}} \\
+\UnicodeOp{U+22D0}{DOUBLE SUBSET}{$\Subset$}{\texttt{SUBSUB}} \\
+\UnicodeOp{U+27C3}{OPEN SUBSET}{}{} \\
+\UnicodeOp{U+2ABD}{SUBSET WITH DOT}{}{} \\
+\UnicodeOp{U+2ABF}{SUBSET WITH PLUS SIGN BELOW}{}{} \\
+\UnicodeOp{U+2AC1}{SUBSET WITH MULTIPLICATION SIGN BELOW}{}{} \\
+\UnicodeOp{U+2AC3}{SUBSET OF OR EQUAL TO WITH DOT ABOVE}{}{} \\
+\UnicodeOp{U+2AC5}{SUBSET OF ABOVE EQUALS SIGN}{}{} \\
+\UnicodeOp{U+2AC7}{SUBSET OF ABOVE TILDE OPERATOR}{}{} \\
+\UnicodeOp{U+2AC9}{SUBSET OF ABOVE ALMOST EQUAL TO}{}{} \\
+\UnicodeOp{U+2ACB}{SUBSET OF ABOVE NOT EQUAL TO}{}{} \\
+\UnicodeOp{U+2ACF}{CLOSED SUBSET}{}{} \\
+\UnicodeOp{U+2AD1}{CLOSED SUBSET OR EQUAL TO}{}{} \\
+\UnicodeOp{U+2AD5}{SUBSET ABOVE SUBSET}{}{}
+\end{tabbing}
+
+The following are superset comparison operators.  They may be mixed and chained
+with each other and with equivalence operators
+(\see{precedence:equivops}).
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2283}{SUPERSET OF}{$\supset$}{\texttt{SUPSET}} \\
+\UnicodeOp{U+2287}{SUPERSET OF OR EQUAL TO}{$\supseteq$}{\texttt{SUPSETEQ}} \\
+\UnicodeOp{U+228B}{SUPERSET OF WITH NOT EQUAL TO}{$\supsetneq$}{\texttt{SUPSETNEQ}} \\
+\UnicodeOp{U+22D1}{DOUBLE SUPERSET}{$\Supset$}{\texttt{SUPSUP}} \\
+\UnicodeOp{U+27C4}{OPEN SUPERSET}{}{} \\
+\UnicodeOp{U+2ABE}{SUPERSET WITH DOT}{}{} \\
+\UnicodeOp{U+2AC0}{SUPERSET WITH PLUS SIGN BELOW}{}{} \\
+\UnicodeOp{U+2AC2}{SUPERSET WITH MULTIPLICATION SIGN BELOW}{}{} \\
+\UnicodeOp{U+2AC4}{SUPERSET OF OR EQUAL TO WITH DOT ABOVE}{}{} \\
+\UnicodeOp{U+2AC6}{SUPERSET OF ABOVE EQUALS SIGN}{}{} \\
+\UnicodeOp{U+2AC8}{SUPERSET OF ABOVE TILDE OPERATOR}{}{} \\
+\UnicodeOp{U+2ACA}{SUPERSET OF ABOVE ALMOST EQUAL TO}{}{} \\
+\UnicodeOp{U+2ACC}{SUPERSET OF ABOVE NOT EQUAL TO}{}{} \\
+\UnicodeOp{U+2AD0}{CLOSED SUPERSET}{}{} \\
+\UnicodeOp{U+2AD2}{CLOSED SUPERSET OR EQUAL TO}{}{} \\
+\UnicodeOp{U+2AD6}{SUPERSET ABOVE SUPERSET}{}{}
+\end{tabbing}
+
+The following are miscellaneous set comparison operators.
+They might not be mixed or chained and they are nonassociative.
+
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2284}{NOT A SUBSET OF}{$\not\subset$}{\texttt{NSUBSET}} \\
+\UnicodeOp{U+2285}{NOT A SUPERSET OF}{$\not\supset$}{\texttt{NSUPSET}} \\
+\UnicodeOp{U+2288}{NEITHER A SUBSET OF NOR EQUAL TO}{$\nsubseteq$}{\texttt{NSUBSETEQ}} \\
+\UnicodeOp{U+2289}{NEITHER A SUPERSET OF NOR EQUAL TO}{$\nsupseteq$}{\texttt{NSUPSETEQ}} \\
+\UnicodeOp{U+2AD3}{SUBSET ABOVE SUPERSET}{}{} \\
+\UnicodeOp{U+2AD4}{SUPERSET ABOVE SUBSET}{}{} \\
+\UnicodeOp{U+2AD7}{SUPERSET BESIDE SUBSET}{}{} \\
+\UnicodeOp{U+2AD8}{SUPERSET BESIDE AND JOINED BY DASH WITH SUBSET}{}{}
+\end{tabbing}
+
+\subsection{Square Comparison Operators}
+
+Every operator listed in this section
+has lower precedence than any operator listed in \secref{precedence:squareops}.
+
+The following are square ``image of'' comparison operators.  They may be mixed and chained
+with each other and with equivalence operators
+(\see{precedence:equivops}).
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+228F}{SQUARE IMAGE OF}{$\sqsubset$}{\texttt{SQSUBSET}} \\
+\UnicodeOp{U+2291}{SQUARE IMAGE OF OR EQUAL TO}{$\sqsubseteq$}{\texttt{SQSUBSETEQ}} \\
+\UnicodeOp{U+22E4}{SQUARE IMAGE OF OR NOT EQUAL TO}{}{}
+\end{tabbing}
+
+The following are square ``original of'' comparison operators.  They may be mixed and chained
+with each other and with equivalence operators (\see{precedence:equivops}).
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2290}{SQUARE ORIGINAL OF}{$\sqsupset$}{\texttt{SQSUPSET}} \\
+\UnicodeOp{U+2292}{SQUARE ORIGINAL OF OR EQUAL TO}{$\sqsupseteq$}{\texttt{SQSUPSETEQ}} \\
+\UnicodeOp{U+22E5}{SQUARE ORIGINAL OF OR NOT EQUAL TO}{}{}
+\end{tabbing}
+
+The following are miscellaneous square comparison operators.
+They might not be mixed or chained and they are nonassociative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+22E2}{NOT SQUARE IMAGE OF OR EQUAL TO}{$\not\sqsubseteq$}{} \\
+\UnicodeOp{U+22E3}{NOT SQUARE ORIGINAL OF OR EQUAL TO}{$\not\sqsupseteq$}{}
+\end{tabbing}
+
+\subsection{Curly Comparison Operators}
+
+Every operator listed in this section
+has lower precedence than any operator listed in \secref{precedence:curlyops}.
+
+The following are curly ``precedes'' comparison operators.  They may be mixed and chained
+with each other and with equivalence operators (\see{precedence:equivops}).
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+227A}{PRECEDES}{$\prec$}{\texttt{PREC}} \\
+\UnicodeOp{U+227C}{PRECEDES OR EQUAL TO}{$\preccurlyeq$}{\texttt{PRECEQ}} \\
+\UnicodeOp{U+227E}{PRECEDES OR EQUIVALENT TO}{$\precsim$}{\texttt{PRECSIM}} \\
+\UnicodeOp{U+22B0}{PRECEDES UNDER RELATION}{}{} \\
+\UnicodeOp{U+22DE}{EQUAL TO OR PRECEDES}{$\curlyeqprec$}{\texttt{EQPREC}} \\
+\UnicodeOp{U+22E8}{PRECEDES BUT NOT EQUIVALENT TO}{$\precnsim$}{\texttt{PRECNSIM}} \\
+\UnicodeOp{U+2AAF}{PRECEDES ABOVE SINGLE-LINE EQUALS SIGN}{}{} \\
+\UnicodeOp{U+2AB1}{PRECEDES ABOVE SINGLE-LINE NOT EQUAL TO}{}{} \\
+\UnicodeOp{U+2AB3}{PRECEDES ABOVE EQUALS SIGN}{}{} \\
+\UnicodeOp{U+2AB5}{PRECEDES ABOVE NOT EQUAL TO}{}{} \\
+\UnicodeOp{U+2AB7}{PRECEDES ABOVE ALMOST EQUAL TO}{}{} \\
+\UnicodeOp{U+2AB9}{PRECEDES ABOVE NOT ALMOST EQUAL TO}{}{} \\
+\UnicodeOp{U+2ABB}{DOUBLE PRECEDES}{}{}
+\end{tabbing}
+
+The following are curly ``succeeds'' comparison operators.  They may be mixed and chained
+with each other and with equivalence operators (\see{precedence:equivops}).
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+227B}{SUCCEEDS}{$\succ$}{\texttt{SUCC}} \\
+\UnicodeOp{U+227D}{SUCCEEDS OR EQUAL TO}{$\succcurlyeq$}{\texttt{SUCCEQ}} \\
+\UnicodeOp{U+227F}{SUCCEEDS OR EQUIVALENT TO}{$\succsim$}{\texttt{SUCCSIM}} \\
+\UnicodeOp{U+22B1}{SUCCEEDS UNDER RELATION}{}{} \\
+\UnicodeOp{U+22DF}{EQUAL TO OR SUCCEEDS}{$\curlyeqsucc$}{\texttt{EQSUCC}} \\
+\UnicodeOp{U+22E9}{SUCCEEDS BUT NOT EQUIVALENT TO}{$\succnsim$}{\texttt{SUCCNSIM}} \\
+\UnicodeOp{U+2AB0}{SUCCEEDS ABOVE SINGLE-LINE EQUALS SIGN}{}{} \\
+\UnicodeOp{U+2AB2}{SUCCEEDS ABOVE SINGLE-LINE NOT EQUAL TO}{}{} \\
+\UnicodeOp{U+2AB4}{SUCCEEDS ABOVE EQUALS SIGN}{}{} \\
+\UnicodeOp{U+2AB6}{SUCCEEDS ABOVE NOT EQUAL TO}{}{} \\
+\UnicodeOp{U+2AB8}{SUCCEEDS ABOVE ALMOST EQUAL TO}{}{} \\
+\UnicodeOp{U+2ABA}{SUCCEEDS ABOVE NOT ALMOST EQUAL TO}{}{} \\
+\UnicodeOp{U+2ABC}{DOUBLE SUCCEEDS}{}{}
+\end{tabbing}
+
+The following are miscellaneous curly comparison operators.
+They might not be mixed or chained and they are nonassociative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2280}{DOES NOT PRECEDE}{$\nprec$}{\texttt{NPREC}} \\
+\UnicodeOp{U+2281}{DOES NOT SUCCEED}{$\nsucc$}{\texttt{NSUCC}} \\
+\UnicodeOp{U+22E0}{DOES NOT PRECEDE OR EQUAL}{$\not\preccurlyeq$}{} \\
+\UnicodeOp{U+22E1}{DOES NOT SUCCEED OR EQUAL}{$\not\succcurlyeq$}{}
+\end{tabbing}
+
+\subsection{Triangular Comparison Operators}
+
+The following are triangular ``subgroup'' comparison operators.  They may be mixed and chained
+with each other and with equivalence operators
+(\see{precedence:equivops}).
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+22B2}{NORMAL SUBGROUP OF}{$\lhd$}{} \\
+\UnicodeOp{U+22B4}{NORMAL SUBGROUP OF OR EQUAL TO}{$\unlhd$}{}
+\end{tabbing}
+
+The following are triangular ``contains as subgroup'' comparison operators.  They may be mixed and chained
+with each other and with equivalence operators
+(\see{precedence:equivops}).
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+22B3}{CONTAINS AS NORMAL SUBGROUP}{$\rhd$}{} \\
+\UnicodeOp{U+22B5}{CONTAINS AS NORMAL SUBGROUP OR EQUAL TO}{$\unrhd$}{}
+\end{tabbing}
+
+The following are miscellaneous triangular comparison operators.
+They might not be mixed or chained and they are nonassociative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+22EA}{NOT NORMAL SUBGROUP OF}{$\ntriangleleft$}{} \\
+\UnicodeOp{U+22EB}{DOES NOT CONTAIN AS NORMAL SUBGROUP}{$\ntriangleright$}{} \\
+\UnicodeOp{U+22EC}{NOT NORMAL SUBGROUP OF OR EQUAL TO}{$\ntrianglelefteq$}{} \\
+\UnicodeOp{U+22ED}{DOES NOT CONTAIN AS NORMAL SUBGROUP OR EQUAL}{$\ntrianglerighteq$}{}
+\end{tabbing}
+
+\subsection{Chickenfoot Comparison Operators}
+
+The following are chickenfoot ``smaller than'' comparison operators.  They may be mixed and chained
+with each other and with equivalence operators (\see{precedence:equivops}).
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2AAA}{SMALLER THAN}{$<\!\llap{$-$}$}{\texttt{SMALLER}} \\
+\UnicodeOp{U+2AAC}{SMALLER THAN OR EQUAL TO}{$\leq\!\llap{\raisebox{.15ex}[0cm][0cm]{$-$}}$}{\texttt{SMALLEREQ}}
+\end{tabbing}
+
+The following are chickenfoot ``larger than'' comparison operators.  They may be mixed and chained
+with each other and with equivalence operators (\see{precedence:equivops}).
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2AAB}{LARGER THAN}{$\rlap{$-$}\!>$}{\texttt{LARGER}} \\
+\UnicodeOp{U+2AAD}{LARGER THAN OR EQUAL TO}{$\rlap{\raisebox{.15ex}[0cm][0cm]{$-$}}\!\geq$}{\texttt{LARGEREQ}}
+\end{tabbing}
+
+
+\subsection{Miscellaneous Relational Operators}
+
+The following operators are considered to be relational operators, having
+higher precedence than certain boolean operators,
+as described in a later section.  They are nonassociative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2208}{ELEMENT OF}{$\in$}{\texttt{IN}} \\
+\UnicodeOp{U+2209}{NOT AN ELEMENT OF}{$\notin$}{\texttt{NOTIN}} \\
+\UnicodeOp{U+220A}{SMALL ELEMENT OF}{$\hbox{\footnotesize$\in$}$}{} \\
+\UnicodeOp{U+220B}{CONTAINS AS MEMBER}{$\ni$}{\texttt{CONTAINS}} \\
+\UnicodeOp{U+220C}{DOES NOT CONTAIN AS MEMBER}{$\not\ni$}{} \\
+\UnicodeOp{U+220D}{SMALL CONTAINS AS MEMBER}{$\hbox{\footnotesize$\ni$}$}{} \\
+\UnicodeOp{U+22F2}{ELEMENT OF WITH LONG HORIZONTAL STROKE}{}{} \\
+\UnicodeOp{U+22F3}{ELEMENT OF WITH VERTICAL BAR AT END OF HORIZONTAL STROKE}{}{} \\
+\UnicodeOp{U+22F4}{SMALL ELEMENT OF WITH VERTICAL BAR AT END OF HORIZONTAL STROKE}{}{} \\
+\UnicodeOp{U+22F5}{ELEMENT OF WITH DOT ABOVE}{$\dot{\in}$}{} \\
+\UnicodeOp{U+22F6}{ELEMENT OF WITH OVERBAR}{$\overline{\in}$}{} \\
+\UnicodeOp{U+22F7}{SMALL ELEMENT OF WITH OVERBAR}{$\hbox{\footnotesize$\overline{\in}$}$}{} \\
+\UnicodeOp{U+22F8}{ELEMENT OF WITH UNDERBAR}{$\underline{\in}$}{} \\
+\UnicodeOp{U+22F9}{ELEMENT OF WITH TWO HORIZONTAL STROKES}{}{} \\
+\UnicodeOp{U+22FA}{CONTAINS WITH LONG HORIZONTAL STROKE}{}{} \\
+\UnicodeOp{U+22FB}{CONTAINS WITH VERTICAL BAR AT END OF HORIZONTAL STROKE}{}{} \\
+\UnicodeOp{U+22FC}{SMALL CONTAINS WITH VERTICAL BAR AT END OF HORIZONTAL STROKE}{}{} \\
+\UnicodeOp{U+22FD}{CONTAINS WITH OVERBAR}{$\overline{\ni}$}{} \\
+\UnicodeOp{U+22FE}{SMALL CONTAINS WITH OVERBAR}{$\hbox{\footnotesize$\overline{\ni}$}$}{} \\
+\UnicodeOp{U+22FF}{Z NOTATION BAG MEMBERSHIP}{}{}
+\end{tabbing}
+
+
+\section{Boolean Operators}
+
+Every operator listed in this section
+has lower precedence than any operator listed in
+\secref{precedence:relops}.
+
+The following are the boolean conjunction operators.
+They are left associative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2227}{LOGICAL AND}{$\wedge$}{\texttt{AND}} \\
+\UnicodeOp{U+27D1}{AND WITH DOT}{}{} \\
+\UnicodeOp{U+2A51}{LOGICAL AND WITH DOT ABOVE}{$\dot{\wedge}$}{} \\
+\UnicodeOp{U+2A53}{DOUBLE LOGICAL AND}{}{} \\
+\UnicodeOp{U+2A55}{TWO INTERSECTING LOGICAL AND}{$\twointersectand$}{} \\
+\UnicodeOp{U+2A5A}{LOGICAL AND WITH MIDDLE STEM}{}{} \\
+\UnicodeOp{U+2A5C}{LOGICAL AND WITH HORIZONTAL DASH}{}{} \\
+\UnicodeOp{U+2A5E}{LOGICAL AND WITH DOUBLE OVERBAR}{}{} \\
+\UnicodeOp{U+2A60}{LOGICAL AND WITH DOUBLE UNDERBAR}{}{}
+\end{tabbing}
+
+The following are the boolean disjunction operators.
+They are left associative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2228}{LOGICAL OR}{$\vee$}{\texttt{OR}} \\
+\UnicodeOp{U+2A52}{LOGICAL OR WITH DOT ABOVE}{$\dot{\vee}$}{} \\
+\UnicodeOp{U+2A54}{DOUBLE LOGICAL OR}{}{} \\
+\UnicodeOp{U+2A56}{TWO INTERSECTING LOGICAL OR}{$\twointersector$}{} \\
+\UnicodeOp{U+2A5B}{LOGICAL OR WITH MIDDLE STEM}{}{} \\
+\UnicodeOp{U+2A5D}{LOGICAL OR WITH HORIZONTAL DASH}{}{} \\
+\UnicodeOp{U+2A62}{LOGICAL OR WITH DOUBLE OVERBAR}{}{} \\
+\UnicodeOp{U+2A63}{LOGICAL OR WITH DOUBLE UNDERBAR}{}{}
+\end{tabbing}
+They each have lower precedence than any of the boolean conjunction operators.
+
+The following are miscellaneous boolean operators that are nonassociative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+2192}{RIGHTWARDS ARROW}{$\rightarrow$}{\texttt{->}~~\texttt{IMPLIES}} \\
+\UnicodeOp{U+2194}{LEFT RIGHT ARROW}{$\leftrightarrow$}{\texttt{<->}~~\texttt{IFF}} \\
+\UnicodeOp{U+22BC}{NAND}{$\barwedge$}{} \\
+\UnicodeOp{U+22BD}{NOR}{$\overline{\vee}$}{}
+\end{tabbing}
+
+
+The following is a miscellaneous boolean operator that is left associative.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+22BB}{XOR}{$\veebar$}{} \\
+\end{tabbing}
+
+\section{Other Operators}
+All the operators listed in this section are nonassociative.
+
+As specified in \secref{operator-precedence},
+the following operator has higher precedence than any other operator.
+
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+005E}{CIRCUMFLEX ACCENT}{$\texttt{{\char'136}}$}{\texttt{\char'136}} \\
+\end{tabbing}
+
+Each of the following operators has no defined precedence relationships
+to any of the other operators listed in this appendix.
+\begin{tabbing}
+\UnicodeKillLine
+\UnicodeOp{U+0021}{EXCLAMATION MARK}{!}{\texttt{!}} \\
+\UnicodeOp{U+0024}{DOLLAR SIGN}{\$}{\texttt{\$}} \\
+\UnicodeOp{U+0025}{PERCENT SIGN}{\%}{\texttt{\%}} \\
+\UnicodeOp{U+003F}{QUESTION MARK}{?}{\texttt{?}} \\
+\UnicodeOp{U+0040}{COMMERCIAL AT}{@}{\texttt{@}} \\
+\UnicodeOp{U+007E}{TILDE}{{\char'176}}{\texttt{\char'176}} \\
+\UnicodeOp{U+00A1}{INVERTED EXCLAMATION MARK}{\char'74}{} \\
+\UnicodeOp{U+00A2}{CENT SIGN}{}{\texttt{CENTS}} \\
+\UnicodeOp{U+00A3}{POUND SIGN}{}{} \\
+\UnicodeOp{U+00A4}{CURRENCY SIGN}{}{} \\
+\UnicodeOp{U+00A5}{YEN SIGN}{}{} \\
+\UnicodeOp{U+00A6}{BROKEN BAR}{}{} \\
+\UnicodeOp{U+00AC}{NOT SIGN}{$\neg$}{\texttt{NOT}} \\
+\UnicodeOp{U+00B0}{DEGREE SIGN}{${}^\circ$}{\texttt{DEGREES}} \\
+\UnicodeOp{U+00BF}{INVERTED QUESTION MARK}{\char'76}{} \\
+\UnicodeOp{U+2020}{DAGGER}{$\dagger$}{} \\
+\UnicodeOp{U+2021}{DOUBLE DAGGER}{$\ddagger$}{} \\
+\UnicodeOp{U+203C}{DOUBLE EXCLAMATION MARK}{$!!$}{\texttt{!!}} \\
+\UnicodeOp{U+2190}{LEFTWARDS ARROW}{$\leftarrow$}{\texttt{<-}} \\
+\UnicodeOp{U+2191}{UPWARDS ARROW}{$\uparrow$}{\texttt{UPARROW}} \\
+\UnicodeOp{U+2193}{DOWNWARDS ARROW}{$\downarrow$}{\texttt{DOWNARROW}} \\
+\UnicodeOp{U+2195}{UP DOWN ARROW}{$\updownarrow$}{\texttt{UPDOWNARROW}} \\
+\UnicodeOp{U+2196}{NORTH WEST ARROW}{$\nwarrow$}{\texttt{NWARROW}} \\
+\UnicodeOp{U+2197}{NORTH EAST ARROW}{$\nearrow$}{\texttt{NEARROW}} \\
+\UnicodeOp{U+2198}{SOUTH EAST ARROW}{$\searrow$}{\texttt{SEARROW}} \\
+\UnicodeOp{U+2199}{SOUTH WEST ARROW}{$\swarrow$}{\texttt{SWARROW}} \\
+\UnicodeOp{U+219A}{LEFTWARDS ARROW WITH STROKE}{$\nleftarrow$}{\texttt{<-/-}} \\
+\UnicodeOp{U+219B}{RIGHTWARDS ARROW WITH STROKE}{$\nrightarrow$}{\texttt{-/->}} \\
+\UnicodeOp{U+219C}{LEFTWARDS WAVE ARROW}{}{} \\
+\UnicodeOp{U+219D}{RIGHTWARDS WAVE ARROW}{$\leadsto$}{\texttt{LEADSTO}} \\
+\UnicodeOp{U+219E}{LEFTWARDS TWO HEADED ARROW}{}{} \\
+\UnicodeOp{U+219F}{UPWARDS TWO HEADED ARROW}{}{} \\
+\UnicodeOp{U+21A0}{RIGHTWARDS TWO HEADED ARROW}{}{} \\
+\UnicodeOp{U+21A1}{DOWNWARDS TWO HEADED ARROW}{}{} \\
+\UnicodeOp{U+21A2}{LEFTWARDS ARROW WITH TAIL}{}{} \\
+\UnicodeOp{U+21A3}{RIGHTWARDS ARROW WITH TAIL}{}{} \\
+\UnicodeOp{U+21A4}{LEFTWARDS ARROW FROM BAR}{}{} \\
+\UnicodeOp{U+21A5}{UPWARDS ARROW FROM BAR}{}{} \\
+\UnicodeOp{U+21A6}{RIGHTWARDS ARROW FROM BAR}{$\mapsto$}{\texttt{MAPSTO}~~\texttt{|->}} \\
+\UnicodeOp{U+21A7}{DOWNWARDS ARROW FROM BAR}{}{} \\
+\UnicodeOp{U+21A8}{UP DOWN ARROW WITH BASE}{}{} \\
+\UnicodeOp{U+21A9}{LEFTWARDS ARROW WITH HOOK}{}{} \\
+\UnicodeOp{U+21AA}{RIGHTWARDS ARROW WITH HOOK}{}{} \\
+\UnicodeOp{U+21AB}{LEFTWARDS ARROW WITH LOOP}{}{} \\
+\UnicodeOp{U+21AC}{RIGHTWARDS ARROW WITH LOOP}{}{} \\
+\UnicodeOp{U+21AD}{LEFT RIGHT WAVE ARROW}{}{} \\
+\UnicodeOp{U+21AE}{LEFT RIGHT ARROW WITH STROKE}{}{} \\
+\UnicodeOp{U+21AF}{DOWNWARDS ZIGZAG ARROW}{}{} \\
+\UnicodeOp{U+21B0}{UPWARDS ARROW WITH TIP LEFTWARDS}{}{} \\
+\UnicodeOp{U+21B1}{UPWARDS ARROW WITH TIP RIGHTWARDS}{}{} \\
+\UnicodeOp{U+21B2}{DOWNWARDS ARROW WITH TIP LEFTWARDS}{}{} \\
+\UnicodeOp{U+21B3}{DOWNWARDS ARROW WITH TIP RIGHTWARDS}{}{} \\
+\UnicodeOp{U+21B4}{RIGHTWARDS ARROW WITH CORNER DOWNWARDS}{}{} \\
+\UnicodeOp{U+21B5}{DOWNWARDS ARROW WITH CORNER LEFTWARDS}{}{} \\
+\UnicodeOp{U+21B6}{ANTICLOCKWISE TOP SEMICIRCLE ARROW}{}{} \\
+\UnicodeOp{U+21B7}{CLOCKWISE TOP SEMICIRCLE ARROW}{}{} \\
+\UnicodeOp{U+21B8}{NORTH WEST ARROW TO LONG BAR}{}{} \\
+\UnicodeOp{U+21B9}{LEFTWARDS ARROW TO BAR OVER RIGHTWARDS ARROW TO BAR}{}{} \\
+\UnicodeOp{U+21BA}{ANTICLOCKWISE OPEN CIRCLE ARROW}{}{} \\
+\UnicodeOp{U+21BB}{CLOCKWISE OPEN CIRCLE ARROW}{}{} \\
+\UnicodeOp{U+21BC}{LEFTWARDS HARPOON WITH BARB UPWARDS}{$\leftharpoonup$}{\texttt{LEFTHARPOONUP}} \\
+\UnicodeOp{U+21BD}{LEFTWARDS HARPOON WITH BARB DOWNWARDS}{$\leftharpoondown$}{\texttt{LEFTHARPOONDOWN}} \\
+\UnicodeOp{U+21BE}{UPWARDS HARPOON WITH BARB RIGHTWARDS}{$\upharpoonright$}{\texttt{UPHARPOONRIGHT}} \\
+\UnicodeOp{U+21BF}{UPWARDS HARPOON WITH BARB LEFTWARDS}{$\upharpoonleft$}{\texttt{UPHARPOONLEFT}} \\
+\UnicodeOp{U+21C0}{RIGHTWARDS HARPOON WITH BARB UPWARDS}{$\rightharpoonup$}{\texttt{RIGHTHARPOONUP}} \\
+\UnicodeOp{U+21C1}{RIGHTWARDS HARPOON WITH BARB DOWNWARDS}{$\rightharpoondown$}{\texttt{RIGHTHARPOONDOWN}} \\
+\UnicodeOp{U+21C2}{DOWNWARDS HARPOON WITH BARB RIGHTWARDS}{$\downharpoonright$}{\texttt{DOWNHARPOONRIGHT}} \\
+\UnicodeOp{U+21C3}{DOWNWARDS HARPOON WITH BARB LEFTWARDS}{$\downharpoonleft$}{\texttt{DOWNHARPOONLEFT}} \\
+\UnicodeOp{U+21C4}{RIGHTWARDS ARROW OVER LEFTWARDS ARROW}{$\rightleftarrows$}{\texttt{RIGHTLEFTARROWS}} \\
+\UnicodeOp{U+21C5}{UPWARDS ARROW LEFTWARDS OF DOWNWARDS ARROW}{}{} \\
+\UnicodeOp{U+21C6}{LEFTWARDS ARROW OVER RIGHTWARDS ARROW}{$\leftrightarrows$}{\texttt{LEFTRIGHTARROWS}} \\
+\UnicodeOp{U+21C7}{LEFTWARDS PAIRED ARROWS}{$\leftleftarrows$}{\texttt{LEFTLEFTARROWS}} \\
+\UnicodeOp{U+21C8}{UPWARDS PAIRED ARROWS}{$\upuparrows$}{\texttt{UPUPARROWS}} \\
+\UnicodeOp{U+21C9}{RIGHTWARDS PAIRED ARROWS}{$\rightrightarrows$}{\texttt{RIGHTRIGHTARROWS}} \\
+\UnicodeOp{U+21CA}{DOWNWARDS PAIRED ARROWS}{$\downdownarrows$}{\texttt{DOWNDOWNARROWS}} \\
+\UnicodeOp{U+21CB}{LEFTWARDS HARPOON OVER RIGHTWARDS HARPOON}{}{} \\
+\UnicodeOp{U+21CC}{RIGHTWARDS HARPOON OVER LEFTWARDS HARPOON}{$\rightleftharpoons$}{\texttt{RIGHTLEFTHARPOONS}} \\
+\UnicodeOp{U+21CD}{LEFTWARDS DOUBLE ARROW WITH STROKE}{$\nLeftarrow$}{\texttt{}} \\
+\UnicodeOp{U+21CE}{LEFT RIGHT DOUBLE ARROW WITH STROKE}{$\nLeftrightarrow$}{\texttt{}} \\
+\UnicodeOp{U+21CF}{RIGHTWARDS DOUBLE ARROW WITH STROKE}{$\nRightarrow$}{\texttt{}} \\
+\UnicodeOp{U+21D0}{LEFTWARDS DOUBLE ARROW}{$\Leftarrow$}{} \\
+\UnicodeOp{U+21D1}{UPWARDS DOUBLE ARROW}{$\Uparrow$}{} \\
+\UnicodeOp{U+21D2}{RIGHTWARDS DOUBLE ARROW}{$\Rightarrow$}{\texttt{=>}} \\
+\UnicodeOp{U+21D3}{DOWNWARDS DOUBLE ARROW}{$\Downarrow$}{} \\
+\UnicodeOp{U+21D4}{LEFT RIGHT DOUBLE ARROW}{$\Leftrightarrow$}{\texttt{<=>}} \\
+\UnicodeOp{U+21D5}{UP DOWN DOUBLE ARROW}{$\Updownarrow$}{} \\
+\UnicodeOp{U+21D6}{NORTH WEST DOUBLE ARROW}{}{} \\
+\UnicodeOp{U+21D7}{NORTH EAST DOUBLE ARROW}{}{} \\
+\UnicodeOp{U+21D8}{SOUTH EAST DOUBLE ARROW}{}{} \\
+\UnicodeOp{U+21D9}{SOUTH WEST DOUBLE ARROW}{}{} \\
+\UnicodeOp{U+21DA}{LEFTWARDS TRIPLE ARROW}{$\Lleftarrow$}{} \\
+\UnicodeOp{U+21DB}{RIGHTWARDS TRIPLE ARROW}{$\Rrightarrow$}{} \\
+\UnicodeOp{U+21DC}{LEFTWARDS SQUIGGLE ARROW}{}{} \\
+\UnicodeOp{U+21DD}{RIGHTWARDS SQUIGGLE ARROW}{$\rightsquigarrow$}{} \\
+\UnicodeOp{U+21DE}{UPWARDS ARROW WITH DOUBLE STROKE}{}{} \\
+\UnicodeOp{U+21DF}{DOWNWARDS ARROW WITH DOUBLE STROKE}{}{} \\
+\UnicodeOp{U+21E0}{LEFTWARDS DASHED ARROW}{$\dashleftarrow$}{} \\
+\UnicodeOp{U+21E1}{UPWARDS DASHED ARROW}{}{} \\
+\UnicodeOp{U+21E2}{RIGHTWARDS DASHED ARROW}{$\dashrightarrow$}{} \\
+\UnicodeOp{U+21E3}{DOWNWARDS DASHED ARROW}{}{} \\
+\UnicodeOp{U+21E4}{LEFTWARDS ARROW TO BAR}{}{} \\
+\UnicodeOp{U+21E5}{RIGHTWARDS ARROW TO BAR}{}{} \\
+\UnicodeOp{U+21E6}{LEFTWARDS WHITE ARROW}{}{} \\
+\UnicodeOp{U+21E7}{UPWARDS WHITE ARROW}{}{} \\
+\UnicodeOp{U+21E8}{RIGHTWARDS WHITE ARROW}{}{} \\
+\UnicodeOp{U+21E9}{DOWNWARDS WHITE ARROW}{}{} \\
+\UnicodeOp{U+21EA}{UPWARDS WHITE ARROW FROM BAR}{}{} \\
+\UnicodeOp{U+21EB}{UPWARDS WHITE ARROW ON PEDESTAL}{}{} \\
+\UnicodeOp{U+21EC}{UPWARDS WHITE ARROW ON PEDESTAL WITH HORIZONTAL BAR}{}{} \\
+\UnicodeOp{U+21ED}{UPWARDS WHITE ARROW ON PEDESTAL WITH VERTICAL BAR}{}{} \\
+\UnicodeOp{U+21EE}{UPWARDS WHITE DOUBLE ARROW}{}{} \\
+\UnicodeOp{U+21EF}{UPWARDS WHITE DOUBLE ARROW ON PEDESTAL}{}{} \\
+\UnicodeOp{U+21F0}{RIGHTWARDS WHITE ARROW FROM WALL}{}{} \\
+\UnicodeOp{U+21F1}{NORTH WEST ARROW TO CORNER}{}{} \\
+\UnicodeOp{U+21F2}{SOUTH EAST ARROW TO CORNER}{}{} \\
+\UnicodeOp{U+21F3}{UP DOWN WHITE ARROW}{}{} \\
+\UnicodeOp{U+21F4}{RIGHT ARROW WITH SMALL CIRCLE}{}{} \\
+\UnicodeOp{U+21F5}{DOWNWARDS ARROW LEFTWARDS OF UPWARDS ARROW}{}{} \\
+\UnicodeOp{U+21F6}{THREE RIGHTWARDS ARROWS}{}{} \\
+\UnicodeOp{U+21F7}{LEFTWARDS ARROW WITH VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+21F8}{RIGHTWARDS ARROW WITH VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+21F9}{LEFT RIGHT ARROW WITH VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+21FA}{LEFTWARDS ARROW WITH DOUBLE VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+21FB}{RIGHTWARDS ARROW WITH DOUBLE VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+21FC}{LEFT RIGHT ARROW WITH DOUBLE VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+21FD}{LEFTWARDS OPEN-HEADED ARROW}{}{} \\
+\UnicodeOp{U+21FE}{RIGHTWARDS OPEN-HEADED ARROW}{}{} \\
+\UnicodeOp{U+21FF}{LEFT RIGHT OPEN-HEADED ARROW}{}{} \\
+\UnicodeOp{U+2201}{COMPLEMENT}{$\complement$}{} \\
+\UnicodeOp{U+2202}{PARTIAL DIFFERENTIAL}{$\partial$}{\texttt{DEL}} \\
+\UnicodeOp{U+2204}{THERE DOES NOT EXIST}{$\not\exists$}{} \\
+\UnicodeOp{U+2206}{INCREMENT}{$\Delta$}{} \\
+\UnicodeOp{U+220F}{N-ARY PRODUCT}{$\prod$}{\texttt{PROD}} \\
+\UnicodeOp{U+2210}{N-ARY COPRODUCT}{$\coprod$}{\texttt{COPROD}} \\
+\UnicodeOp{U+2211}{N-ARY SUMMATION}{$\sum$}{\texttt{SUM}} \\
+\UnicodeOp{U+2218}{RING OPERATOR}{$\circ$}{\texttt{CIRC}~~\texttt{RING}~~\texttt{COMPOSE}} \\
+\UnicodeOp{U+2219}{BULLET OPERATOR}{$\bullet$}{} \\
+\UnicodeOp{U+221A}{SQUARE ROOT}{$\surd$}{\texttt{SQRT}} \\
+\UnicodeOp{U+221B}{CUBE ROOT}{}{\texttt{CBRT}} \\
+\UnicodeOp{U+221C}{FOURTH ROOT}{}{\texttt{FOURTHROOT}} \\
+\UnicodeOp{U+221D}{PROPORTIONAL TO}{$\propto$}{\texttt{PROPTO}} \\
+\UnicodeOp{U+2223}{DIVIDES}{$\mid$}{\texttt{DIVIDES}} \\
+\UnicodeOp{U+2224}{DOES NOT DIVIDE}{$\nmid$}{} \\
+\UnicodeOp{U+2225}{PARALLEL TO}{$\parallel$}{\texttt{PARALLEL}} \\
+\UnicodeOp{U+2226}{NOT PARALLEL TO}{$\nparallel$}{\texttt{NPARALLEL}} \\
+\UnicodeOp{U+222B}{INTEGRAL}{$\int$}{} \\
+\UnicodeOp{U+222C}{DOUBLE INTEGRAL}{}{} \\
+\UnicodeOp{U+222D}{TRIPLE INTEGRAL}{}{} \\
+\UnicodeOp{U+222E}{CONTOUR INTEGRAL}{$\oint$}{} \\
+\UnicodeOp{U+222F}{SURFACE INTEGRAL}{}{} \\
+\UnicodeOp{U+2230}{VOLUME INTEGRAL}{}{} \\
+\UnicodeOp{U+2231}{CLOCKWISE INTEGRAL}{}{} \\
+\UnicodeOp{U+2232}{CLOCKWISE CONTOUR INTEGRAL}{}{} \\
+\UnicodeOp{U+2233}{ANTICLOCKWISE CONTOUR INTEGRAL}{}{} \\
+\UnicodeOp{U+2234}{THEREFORE}{$\therefore$}{} \\
+\UnicodeOp{U+2235}{BECAUSE}{$\because$}{} \\
+\UnicodeOp{U+2236}{RATIO}{}{} \\
+\UnicodeOp{U+2239}{EXCESS}{}{} \\
+\UnicodeOp{U+223A}{GEOMETRIC PROPORTION}{}{} \\
+\UnicodeOp{U+223B}{HOMOTHETIC}{}{} \\
+\UnicodeOp{U+223C}{TILDE OPERATOR}{$\sim$}{} \\
+\UnicodeOp{U+223D}{REVERSED TILDE}{$\backsim$}{} \\
+\UnicodeOp{U+223E}{INVERTED LAZY S}{}{} \\
+\UnicodeOp{U+223F}{SINE WAVE}{}{} \\
+\UnicodeOp{U+2240}{WREATH PRODUCT}{$\wr$}{\texttt{WREATH}} \\
+\UnicodeOp{U+2241}{NOT TILDE}{$\nsim$}{} \\
+\UnicodeOp{U+224B}{TRIPLE TILDE}{}{} \\
+\UnicodeOp{U+224F}{DIFFERENCE BETWEEN}{$\bumpeq$}{\texttt{BUMPEQ}} \\
+\UnicodeOp{U+2250}{APPROACHES THE LIMIT}{$\doteq$}{\texttt{DOTEQ}} \\
+\UnicodeOp{U+2258}{CORRESPONDS TO}{}{} \\
+\UnicodeOp{U+2259}{ESTIMATES}{}{} \\
+\UnicodeOp{U+225A}{EQUIANGULAR TO}{}{} \\
+\UnicodeOp{U+225E}{MEASURED BY}{}{} \\
+\UnicodeOp{U+226C}{BETWEEN}{$\between$}{} \\
+\UnicodeOp{U+228C}{MULTISET}{}{} \\
+\UnicodeOp{U+229A}{CIRCLED RING OPERATOR}{$\circledcirc$}{\texttt{CIRCLEDRING}} \\
+\UnicodeOp{U+229D}{CIRCLED DASH}{$\circleddash$}{} \\
+\UnicodeOp{U+22A2}{RIGHT TACK}{$\vdash$}{\texttt{VDASH}~~\texttt{TURNSTILE}} \\
+\UnicodeOp{U+22A3}{LEFT TACK}{$\dashv$}{\texttt{DASHV}} \\
+\UnicodeOp{U+22A6}{ASSERTION}{$\vdash$}{} \\
+\UnicodeOp{U+22A7}{MODELS}{$\vDash$}{} \\
+\UnicodeOp{U+22A8}{TRUE}{$\models$}{} \\
+\UnicodeOp{U+22A9}{FORCES}{$\Vdash$}{} \\
+\UnicodeOp{U+22AA}{TRIPLE VERTICAL BAR RIGHT TURNSTILE}{$\Vvdash$}{} \\
+\UnicodeOp{U+22AB}{DOUBLE VERTICAL BAR DOUBLE RIGHT TURNSTILE}{}{} \\
+\UnicodeOp{U+22AC}{DOES NOT PROVE}{$\nvdash$}{} \\
+\UnicodeOp{U+22AD}{NOT TRUE}{}{} \\
+\UnicodeOp{U+22AE}{DOES NOT FORCE}{$\nVdash$}{} \\
+\UnicodeOp{U+22AF}{NEGATED DOUBLE VERTICAL BAR DOUBLE RIGHT TURNSTILE}{$\nVDash$}{} \\
+\UnicodeOp{U+22B6}{ORIGINAL OF}{}{} \\
+\UnicodeOp{U+22B7}{IMAGE OF}{}{} \\
+\UnicodeOp{U+22B8}{MULTIMAP}{$\multimap$}{} \\
+\UnicodeOp{U+22B9}{HERMITIAN CONJUGATE MATRIX}{}{} \\
+\UnicodeOp{U+22BA}{INTERCALATE}{$\intercal$}{} \\
+\UnicodeOp{U+22BE}{RIGHT ANGLE WITH ARC}{}{} \\
+\UnicodeOp{U+22BF}{RIGHT TRIANGLE}{}{} \\
+\UnicodeOp{U+22C0}{N-ARY LOGICAL AND}{$\bigwedge$}{\texttt{BIGAND}~~\texttt{ALL}} \\
+\UnicodeOp{U+22C1}{N-ARY LOGICAL OR}{$\bigvee$}{\texttt{BIGOR}~~\texttt{ANY}} \\
+\UnicodeOp{U+22C2}{N-ARY INTERSECTION}{$\bigcap$}{\texttt{BIGCAP}~~\texttt{BIGINTERSECT}} \\
+\UnicodeOp{U+22C3}{N-ARY UNION}{$\bigcup$}{\texttt{BIGCUP}~~\texttt{BIGUNION}} \\
+\UnicodeOp{U+22C4}{DIAMOND OPERATOR}{$\diamond$}{\texttt{DIAMOND}} \\
+\UnicodeOp{U+22C6}{STAR OPERATOR}{$\star$}{\texttt{STAR}} \\
+\UnicodeOp{U+22C7}{DIVISION TIMES}{$\divideontimes$}{} \\
+\UnicodeOp{U+22C8}{BOWTIE}{$\bowtie$}{} \\
+\UnicodeOp{U+22C9}{LEFT NORMAL FACTOR SEMIDIRECT PRODUCT}{$\ltimes$}{} \\
+\UnicodeOp{U+22CA}{RIGHT NORMAL FACTOR SEMIDIRECT PRODUCT}{$\rtimes$}{} \\
+\UnicodeOp{U+22CB}{LEFT SEMIDIRECT PRODUCT}{$\leftthreetimes$}{} \\
+\UnicodeOp{U+22CC}{RIGHT SEMIDIRECT PRODUCT}{$\rightthreetimes$}{} \\
+\UnicodeOp{U+22D4}{PITCHFORK}{$\pitchfork$}{} \\
+\UnicodeOp{U+22EE}{VERTICAL ELLIPSIS}{}{} \\
+\UnicodeOp{U+22EF}{MIDLINE HORIZONTAL ELLIPSIS}{}{} \\
+\UnicodeOp{U+22F0}{UP RIGHT DIAGONAL ELLIPSIS}{}{} \\
+\UnicodeOp{U+22F1}{DOWN RIGHT DIAGONAL ELLIPSIS}{}{} \\
+\UnicodeOp{U+27C0}{THREE DIMENSIONAL ANGLE}{}{} \\
+\UnicodeOp{U+27C1}{WHITE TRIANGLE CONTAINING SMALL WHITE TRIANGLE}{}{} \\
+\UnicodeOp{U+27C2}{PERPENDICULAR}{}{\texttt{PERP}} \\
+\UnicodeOp{U+27D0}{WHITE DIAMOND WITH CENTRED DOT}{}{} \\
+\UnicodeOp{U+27D2}{ELEMENT OF OPENING UPWARDS}{}{} \\
+\UnicodeOp{U+27D3}{LOWER RIGHT CORNER WITH DOT}{}{} \\
+\UnicodeOp{U+27D4}{UPPER LEFT CORNER WITH DOT}{}{} \\
+\UnicodeOp{U+27D5}{LEFT OUTER JOIN}{}{} \\
+\UnicodeOp{U+27D6}{RIGHT OUTER JOIN}{}{} \\
+\UnicodeOp{U+27D7}{FULL OUTER JOIN}{}{} \\
+\UnicodeOp{U+27D8}{LARGE UP TACK}{}{} \\
+\UnicodeOp{U+27D9}{LARGE DOWN TACK}{}{} \\
+\UnicodeOp{U+27DA}{LEFT AND RIGHT DOUBLE TURNSTILE}{}{} \\
+\UnicodeOp{U+27DB}{LEFT AND RIGHT TACK}{}{} \\
+\UnicodeOp{U+27DC}{LEFT MULTIMAP}{}{} \\
+\UnicodeOp{U+27DD}{LONG RIGHT TACK}{}{} \\
+\UnicodeOp{U+27DE}{LONG LEFT TACK}{}{} \\
+\UnicodeOp{U+27DF}{UP TACK WITH CIRCLE ABOVE}{}{} \\
+\UnicodeOp{U+27E0}{LOZENGE DIVIDED BY HORIZONTAL RULE}{}{} \\
+\UnicodeOp{U+27E1}{WHITE CONCAVE-SIDED DIAMOND}{}{} \\
+\UnicodeOp{U+27E2}{WHITE CONCAVE-SIDED DIAMOND WITH LEFTWARDS TICK}{}{} \\
+\UnicodeOp{U+27E3}{WHITE CONCAVE-SIDED DIAMOND WITH RIGHTWARDS TICK}{}{} \\
+\UnicodeOp{U+27E4}{WHITE SQUARE WITH LEFTWARDS TICK}{}{} \\
+\UnicodeOp{U+27E5}{WHITE SQUARE WITH RIGHTWARDS TICK}{}{} \\
+\UnicodeOp{U+27F0}{UPWARDS QUADRUPLE ARROW}{}{} \\
+\UnicodeOp{U+27F1}{DOWNWARDS QUADRUPLE ARROW}{}{} \\
+\UnicodeOp{U+27F2}{ANTICLOCKWISE GAPPED CIRCLE ARROW}{}{} \\
+\UnicodeOp{U+27F3}{CLOCKWISE GAPPED CIRCLE ARROW}{}{} \\
+\UnicodeOp{U+27F4}{RIGHT ARROW WITH CIRCLED PLUS}{}{} \\
+\UnicodeOp{U+27F5}{LONG LEFTWARDS ARROW}{}{} \\
+\UnicodeOp{U+27F6}{LONG RIGHTWARDS ARROW}{}{} \\
+\UnicodeOp{U+27F7}{LONG LEFT RIGHT ARROW}{}{} \\
+\UnicodeOp{U+27F8}{LONG LEFTWARDS DOUBLE ARROW}{}{} \\
+\UnicodeOp{U+27F9}{LONG RIGHTWARDS DOUBLE ARROW}{}{} \\
+\UnicodeOp{U+27FA}{LONG LEFT RIGHT DOUBLE ARROW}{}{} \\
+\UnicodeOp{U+27FB}{LONG LEFTWARDS ARROW FROM BAR}{}{} \\
+\UnicodeOp{U+27FC}{LONG RIGHTWARDS ARROW FROM BAR}{}{} \\
+\UnicodeOp{U+27FD}{LONG LEFTWARDS DOUBLE ARROW FROM BAR}{}{} \\
+\UnicodeOp{U+27FE}{LONG RIGHTWARDS DOUBLE ARROW FROM BAR}{}{} \\
+\UnicodeOp{U+27FF}{LONG RIGHTWARDS SQUIGGLE ARROW}{}{} \\
+\UnicodeOp{U+2900}{RIGHTWARDS TWO-HEADED ARROW WITH VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+2901}{RIGHTWARDS TWO-HEADED ARROW WITH DOUBLE VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+2902}{LEFTWARDS DOUBLE ARROW WITH VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+2903}{RIGHTWARDS DOUBLE ARROW WITH VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+2904}{LEFT RIGHT DOUBLE ARROW WITH VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+2905}{RIGHTWARDS TWO-HEADED ARROW FROM BAR}{}{} \\
+\UnicodeOp{U+2906}{LEFTWARDS DOUBLE ARROW FROM BAR}{}{} \\
+\UnicodeOp{U+2907}{RIGHTWARDS DOUBLE ARROW FROM BAR}{}{} \\
+\UnicodeOp{U+2908}{DOWNWARDS ARROW WITH HORIZONTAL STROKE}{}{} \\
+\UnicodeOp{U+2909}{UPWARDS ARROW WITH HORIZONTAL STROKE}{}{} \\
+\UnicodeOp{U+290A}{UPWARDS TRIPLE ARROW}{}{} \\
+\UnicodeOp{U+290B}{DOWNWARDS TRIPLE ARROW}{}{} \\
+\UnicodeOp{U+290C}{LEFTWARDS DOUBLE DASH ARROW}{}{} \\
+\UnicodeOp{U+290D}{RIGHTWARDS DOUBLE DASH ARROW}{}{} \\
+\UnicodeOp{U+290E}{LEFTWARDS TRIPLE DASH ARROW}{}{} \\
+\UnicodeOp{U+290F}{RIGHTWARDS TRIPLE DASH ARROW}{}{} \\
+\UnicodeOp{U+2910}{RIGHTWARDS TWO-HEADED TRIPLE DASH ARROW}{}{} \\
+\UnicodeOp{U+2911}{RIGHTWARDS ARROW WITH DOTTED STEM}{}{} \\
+\UnicodeOp{U+2912}{UPWARDS ARROW TO BAR}{}{} \\
+\UnicodeOp{U+2913}{DOWNWARDS ARROW TO BAR}{}{} \\
+\UnicodeOp{U+2914}{RIGHTWARDS ARROW WITH TAIL WITH VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+2915}{RIGHTWARDS ARROW WITH TAIL WITH DOUBLE VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+2916}{RIGHTWARDS TWO-HEADED ARROW WITH TAIL}{}{} \\
+\UnicodeOp{U+2917}{RIGHTWARDS TWO-HEADED ARROW WITH TAIL WITH VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+2918}{RIGHTWARDS TWO-HEADED ARROW WITH TAIL WITH DOUBLE VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+2919}{LEFTWARDS ARROW-TAIL}{}{} \\
+\UnicodeOp{U+291A}{RIGHTWARDS ARROW-TAIL}{}{} \\
+\UnicodeOp{U+291B}{LEFTWARDS DOUBLE ARROW-TAIL}{}{} \\
+\UnicodeOp{U+291C}{RIGHTWARDS DOUBLE ARROW-TAIL}{}{} \\
+\UnicodeOp{U+291D}{LEFTWARDS ARROW TO BLACK DIAMOND}{}{} \\
+\UnicodeOp{U+291E}{RIGHTWARDS ARROW TO BLACK DIAMOND}{}{} \\
+\UnicodeOp{U+291F}{LEFTWARDS ARROW FROM BAR TO BLACK DIAMOND}{}{} \\
+\UnicodeOp{U+2920}{RIGHTWARDS ARROW FROM BAR TO BLACK DIAMOND}{}{} \\
+\UnicodeOp{U+2921}{NORTH WEST AND SOUTH EAST ARROW}{}{} \\
+\UnicodeOp{U+2922}{NORTH EAST AND SOUTH WEST ARROW}{}{} \\
+\UnicodeOp{U+2923}{NORTH WEST ARROW WITH HOOK}{}{} \\
+\UnicodeOp{U+2924}{NORTH EAST ARROW WITH HOOK}{}{} \\
+\UnicodeOp{U+2925}{SOUTH EAST ARROW WITH HOOK}{}{} \\
+\UnicodeOp{U+2926}{SOUTH WEST ARROW WITH HOOK}{}{} \\
+\UnicodeOp{U+2927}{NORTH WEST ARROW AND NORTH EAST ARROW}{}{} \\
+\UnicodeOp{U+2928}{NORTH EAST ARROW AND SOUTH EAST ARROW}{}{} \\
+\UnicodeOp{U+2929}{SOUTH EAST ARROW AND SOUTH WEST ARROW}{}{} \\
+\UnicodeOp{U+292A}{SOUTH WEST ARROW AND NORTH WEST ARROW}{}{} \\
+\UnicodeOp{U+292B}{RISING DIAGONAL CROSSING FALLING DIAGONAL}{}{} \\
+\UnicodeOp{U+292C}{FALLING DIAGONAL CROSSING RISING DIAGONAL}{}{} \\
+\UnicodeOp{U+292D}{SOUTH EAST ARROW CROSSING NORTH EAST ARROW}{}{} \\
+\UnicodeOp{U+292E}{NORTH EAST ARROW CROSSING SOUTH EAST ARROW}{}{} \\
+\UnicodeOp{U+292F}{FALLING DIAGONAL CROSSING NORTH EAST ARROW}{}{} \\
+\UnicodeOp{U+2930}{RISING DIAGONAL CROSSING SOUTH EAST ARROW}{}{} \\
+\UnicodeOp{U+2931}{NORTH EAST ARROW CROSSING NORTH WEST ARROW}{}{} \\
+\UnicodeOp{U+2932}{NORTH WEST ARROW CROSSING NORTH EAST ARROW}{}{} \\
+\UnicodeOp{U+2933}{WAVE ARROW POINTING DIRECTLY RIGHT}{}{} \\
+\UnicodeOp{U+2934}{ARROW POINTING RIGHTWARDS THEN CURVING UPWARDS}{}{} \\
+\UnicodeOp{U+2935}{ARROW POINTING RIGHTWARDS THEN CURVING DOWNWARDS}{}{} \\
+\UnicodeOp{U+2936}{ARROW POINTING DOWNWARDS THEN CURVING LEFTWARDS}{}{} \\
+\UnicodeOp{U+2937}{ARROW POINTING DOWNWARDS THEN CURVING RIGHTWARDS}{}{} \\
+\UnicodeOp{U+2938}{RIGHT-SIDE ARC CLOCKWISE ARROW}{}{} \\
+\UnicodeOp{U+2939}{LEFT-SIDE ARC ANTICLOCKWISE ARROW}{}{} \\
+\UnicodeOp{U+293A}{TOP ARC ANTICLOCKWISE ARROW}{}{} \\
+\UnicodeOp{U+293B}{BOTTOM ARC ANTICLOCKWISE ARROW}{}{} \\
+\UnicodeOp{U+293C}{TOP ARC CLOCKWISE ARROW WITH MINUS}{}{} \\
+\UnicodeOp{U+293D}{TOP ARC ANTICLOCKWISE ARROW WITH PLUS}{}{} \\
+\UnicodeOp{U+293E}{LOWER RIGHT SEMICIRCULAR CLOCKWISE ARROW}{}{} \\
+\UnicodeOp{U+293F}{LOWER LEFT SEMICIRCULAR ANTICLOCKWISE ARROW}{}{} \\
+\UnicodeOp{U+2940}{ANTICLOCKWISE CLOSED CIRCLE ARROW}{}{} \\
+\UnicodeOp{U+2941}{CLOCKWISE CLOSED CIRCLE ARROW}{}{} \\
+\UnicodeOp{U+2942}{RIGHTWARDS ARROW ABOVE SHORT LEFTWARDS ARROW}{}{} \\
+\UnicodeOp{U+2943}{LEFTWARDS ARROW ABOVE SHORT RIGHTWARDS ARROW}{}{} \\
+\UnicodeOp{U+2944}{SHORT RIGHTWARDS ARROW ABOVE LEFTWARDS ARROW}{}{} \\
+\UnicodeOp{U+2945}{RIGHTWARDS ARROW WITH PLUS BELOW}{}{} \\
+\UnicodeOp{U+2946}{LEFTWARDS ARROW WITH PLUS BELOW}{}{} \\
+\UnicodeOp{U+2947}{RIGHTWARDS ARROW THROUGH X}{}{} \\
+\UnicodeOp{U+2948}{LEFT RIGHT ARROW THROUGH SMALL CIRCLE}{}{} \\
+\UnicodeOp{U+2949}{UPWARDS TWO-HEADED ARROW FROM SMALL CIRCLE}{}{} \\
+\UnicodeOp{U+294A}{LEFT BARB UP RIGHT BARB DOWN HARPOON}{}{} \\
+\UnicodeOp{U+294B}{LEFT BARB DOWN RIGHT BARB UP HARPOON}{}{} \\
+\UnicodeOp{U+294C}{UP BARB RIGHT DOWN BARB LEFT HARPOON}{}{} \\
+\UnicodeOp{U+294D}{UP BARB LEFT DOWN BARB RIGHT HARPOON}{}{} \\
+\UnicodeOp{U+294E}{LEFT BARB UP RIGHT BARB UP HARPOON}{}{} \\
+\UnicodeOp{U+294F}{UP BARB RIGHT DOWN BARB RIGHT HARPOON}{}{} \\
+\UnicodeOp{U+2950}{LEFT BARB DOWN RIGHT BARB DOWN HARPOON}{}{} \\
+\UnicodeOp{U+2951}{UP BARB LEFT DOWN BARB LEFT HARPOON}{}{} \\
+\UnicodeOp{U+2952}{LEFTWARDS HARPOON WITH BARB UP TO BAR}{}{} \\
+\UnicodeOp{U+2953}{RIGHTWARDS HARPOON WITH BARB UP TO BAR}{}{} \\
+\UnicodeOp{U+2954}{UPWARDS HARPOON WITH BARB RIGHT TO BAR}{}{} \\
+\UnicodeOp{U+2955}{DOWNWARDS HARPOON WITH BARB RIGHT TO BAR}{}{} \\
+\UnicodeOp{U+2956}{LEFTWARDS HARPOON WITH BARB DOWN TO BAR}{}{} \\
+\UnicodeOp{U+2957}{RIGHTWARDS HARPOON WITH BARB DOWN TO BAR}{}{} \\
+\UnicodeOp{U+2958}{UPWARDS HARPOON WITH BARB LEFT TO BAR}{}{} \\
+\UnicodeOp{U+2959}{DOWNWARDS HARPOON WITH BARB LEFT TO BAR}{}{} \\
+\UnicodeOp{U+295A}{LEFTWARDS HARPOON WITH BARB UP FROM BAR}{}{} \\
+\UnicodeOp{U+295B}{RIGHTWARDS HARPOON WITH BARB UP FROM BAR}{}{} \\
+\UnicodeOp{U+295C}{UPWARDS HARPOON WITH BARB RIGHT FROM BAR}{}{} \\
+\UnicodeOp{U+295D}{DOWNWARDS HARPOON WITH BARB RIGHT FROM BAR}{}{} \\
+\UnicodeOp{U+295E}{LEFTWARDS HARPOON WITH BARB DOWN FROM BAR}{}{} \\
+\UnicodeOp{U+295F}{RIGHTWARDS HARPOON WITH BARB DOWN FROM BAR}{}{} \\
+\UnicodeOp{U+2960}{UPWARDS HARPOON WITH BARB LEFT FROM BAR}{}{} \\
+\UnicodeOp{U+2961}{DOWNWARDS HARPOON WITH BARB LEFT FROM BAR}{}{} \\
+\UnicodeOp{U+2962}{LEFTWARDS HARPOON WITH BARB UP ABOVE LEFTWARDS HARPOON WITH BARB DOWN}{}{} \\
+\UnicodeOp{U+2963}{UPWARDS HARPOON WITH BARB LEFT BESIDE UPWARDS HARPOON WITH BARB RIGHT}{}{} \\
+\UnicodeOp{U+2964}{RIGHTWARDS HARPOON WITH BARB UP ABOVE RIGHTWARDS HARPOON WITH BARB DOWN}{}{} \\
+\UnicodeOp{U+2965}{DOWNWARDS HARPOON WITH BARB LEFT BESIDE DOWNWARDS HARPOON WITH BARB RIGHT}{}{} \\
+\UnicodeOp{U+2966}{LEFTWARDS HARPOON WITH BARB UP ABOVE RIGHTWARDS HARPOON WITH BARB UP}{}{} \\
+\UnicodeOp{U+2967}{LEFTWARDS HARPOON WITH BARB DOWN ABOVE RIGHTWARDS HARPOON WITH BARB DOWN}{}{} \\
+\UnicodeOp{U+2968}{RIGHTWARDS HARPOON WITH BARB UP ABOVE LEFTWARDS HARPOON WITH BARB UP}{}{} \\
+\UnicodeOp{U+2969}{RIGHTWARDS HARPOON WITH BARB DOWN ABOVE LEFTWARDS HARPOON WITH BARB DOWN}{}{} \\
+\UnicodeOp{U+296A}{LEFTWARDS HARPOON WITH BARB UP ABOVE LONG DASH}{}{} \\
+\UnicodeOp{U+296B}{LEFTWARDS HARPOON WITH BARB DOWN BELOW LONG DASH}{}{} \\
+\UnicodeOp{U+296C}{RIGHTWARDS HARPOON WITH BARB UP ABOVE LONG DASH}{}{} \\
+\UnicodeOp{U+296D}{RIGHTWARDS HARPOON WITH BARB DOWN BELOW LONG DASH}{}{} \\
+\UnicodeOp{U+296E}{UPWARDS HARPOON WITH BARB LEFT BESIDE DOWNWARDS HARPOON WITH BARB RIGHT}{}{} \\
+\UnicodeOp{U+296F}{DOWNWARDS HARPOON WITH BARB LEFT BESIDE UPWARDS HARPOON WITH BARB RIGHT}{}{} \\
+\UnicodeOp{U+2970}{RIGHT DOUBLE ARROW WITH ROUNDED HEAD}{}{} \\
+\UnicodeOp{U+2971}{EQUALS SIGN ABOVE RIGHTWARDS ARROW}{}{} \\
+\UnicodeOp{U+2972}{TILDE OPERATOR ABOVE RIGHTWARDS ARROW}{}{} \\
+\UnicodeOp{U+2973}{LEFTWARDS ARROW ABOVE TILDE OPERATOR}{}{} \\
+\UnicodeOp{U+2974}{RIGHTWARDS ARROW ABOVE TILDE OPERATOR}{}{} \\
+\UnicodeOp{U+2975}{RIGHTWARDS ARROW ABOVE ALMOST EQUAL TO}{}{} \\
+\UnicodeOp{U+2976}{LESS-THAN ABOVE LEFTWARDS ARROW}{}{} \\
+\UnicodeOp{U+2977}{LEFTWARDS ARROW THROUGH LESS-THAN}{}{} \\
+\UnicodeOp{U+2978}{GREATER-THAN ABOVE RIGHTWARDS ARROW}{}{} \\
+\UnicodeOp{U+2979}{SUBSET ABOVE RIGHTWARDS ARROW}{}{} \\
+\UnicodeOp{U+297A}{LEFTWARDS ARROW THROUGH SUBSET}{}{} \\
+\UnicodeOp{U+297B}{SUPERSET ABOVE LEFTWARDS ARROW}{}{} \\
+\UnicodeOp{U+297C}{LEFT FISH TAIL}{}{} \\
+\UnicodeOp{U+297D}{RIGHT FISH TAIL}{}{} \\
+\UnicodeOp{U+297E}{UP FISH TAIL}{}{} \\
+\UnicodeOp{U+297F}{DOWN FISH TAIL}{}{} \\
+\UnicodeOp{U+2980}{TRIPLE VERTICAL BAR DELIMITER}{}{} \\
+\UnicodeOp{U+2981}{Z NOTATION SPOT}{}{} \\
+\UnicodeOp{U+2982}{Z NOTATION TYPE COLON}{}{} \\
+\UnicodeOp{U+2999}{DOTTED FENCE}{}{} \\
+\UnicodeOp{U+299A}{VERTICAL ZIGZAG LINE}{}{} \\
+\UnicodeOp{U+299B}{MEASURED ANGLE OPENING LEFT}{}{} \\
+\UnicodeOp{U+299C}{RIGHT ANGLE VARIANT WITH SQUARE}{}{} \\
+\UnicodeOp{U+299D}{MEASURED RIGHT ANGLE WITH DOT}{}{} \\
+\UnicodeOp{U+299E}{ANGLE WITH S INSIDE}{}{} \\
+\UnicodeOp{U+299F}{ACUTE ANGLE}{}{} \\
+\UnicodeOp{U+29A0}{SPHERICAL ANGLE OPENING LEFT}{}{} \\
+\UnicodeOp{U+29A1}{SPHERICAL ANGLE OPENING UP}{}{} \\
+\UnicodeOp{U+29A2}{TURNED ANGLE}{}{} \\
+\UnicodeOp{U+29A3}{REVERSED ANGLE}{}{} \\
+\UnicodeOp{U+29A4}{ANGLE WITH UNDERBAR}{}{} \\
+\UnicodeOp{U+29A5}{REVERSED ANGLE WITH UNDERBAR}{}{} \\
+\UnicodeOp{U+29A6}{OBLIQUE ANGLE OPENING UP}{}{} \\
+\UnicodeOp{U+29A7}{OBLIQUE ANGLE OPENING DOWN}{}{} \\
+\UnicodeOp{U+29A8}{MEASURED ANGLE WITH OPEN ARM ENDING IN ARROW POINTING UP AND RIGHT}{}{} \\
+\UnicodeOp{U+29A9}{MEASURED ANGLE WITH OPEN ARM ENDING IN ARROW POINTING UP AND LEFT}{}{} \\
+\UnicodeOp{U+29AA}{MEASURED ANGLE WITH OPEN ARM ENDING IN ARROW POINTING DOWN AND RIGHT}{}{} \\
+\UnicodeOp{U+29AB}{MEASURED ANGLE WITH OPEN ARM ENDING IN ARROW POINTING DOWN AND LEFT}{}{} \\
+\UnicodeOp{U+29AC}{MEASURED ANGLE WITH OPEN ARM ENDING IN ARROW POINTING RIGHT AND UP}{}{} \\
+\UnicodeOp{U+29AD}{MEASURED ANGLE WITH OPEN ARM ENDING IN ARROW POINTING LEFT AND UP}{}{} \\
+\UnicodeOp{U+29AE}{MEASURED ANGLE WITH OPEN ARM ENDING IN ARROW POINTING RIGHT AND DOWN}{}{} \\
+\UnicodeOp{U+29AF}{MEASURED ANGLE WITH OPEN ARM ENDING IN ARROW POINTING LEFT AND DOWN}{}{} \\
+\UnicodeOp{U+29B0}{REVERSED EMPTY SET}{}{} \\
+\UnicodeOp{U+29B1}{EMPTY SET WITH OVERBAR}{}{} \\
+\UnicodeOp{U+29B2}{EMPTY SET WITH SMALL CIRCLE ABOVE}{}{} \\
+\UnicodeOp{U+29B3}{EMPTY SET WITH RIGHT ARROW ABOVE}{}{} \\
+\UnicodeOp{U+29B4}{EMPTY SET WITH LEFT ARROW ABOVE}{}{} \\
+\UnicodeOp{U+29B5}{CIRCLE WITH HORIZONTAL BAR}{}{} \\
+\UnicodeOp{U+29B6}{CIRCLED VERTICAL BAR}{}{} \\
+\UnicodeOp{U+29B7}{CIRCLED PARALLEL}{}{} \\
+\UnicodeOp{U+29B9}{CIRCLED PERPENDICULAR}{}{} \\
+\UnicodeOp{U+29BA}{CIRCLE DIVIDED BY HORIZONTAL BAR AND TOP HALF DIVIDED BY VERTICAL BAR}{}{} \\
+\UnicodeOp{U+29BB}{CIRCLE WITH SUPERIMPOSED X}{}{} \\
+\UnicodeOp{U+29BD}{UP ARROW THROUGH CIRCLE}{}{} \\
+\UnicodeOp{U+29BE}{CIRCLED WHITE BULLET}{}{} \\
+\UnicodeOp{U+29BF}{CIRCLED BULLET}{}{} \\
+\UnicodeOp{U+29C2}{CIRCLE WITH SMALL CIRCLE TO THE RIGHT}{}{} \\
+\UnicodeOp{U+29C3}{CIRCLE WITH TWO HORIZONTAL STROKES TO THE RIGHT}{}{} \\
+\UnicodeOp{U+29C5}{SQUARED FALLING DIAGONAL SLASH}{}{} \\
+\UnicodeOp{U+29C7}{SQUARED SMALL CIRCLE}{}{} \\
+\UnicodeOp{U+29C8}{SQUARED SQUARE}{}{} \\
+\UnicodeOp{U+29C9}{TWO JOINED SQUARES}{}{} \\
+\UnicodeOp{U+29CA}{TRIANGLE WITH DOT ABOVE}{}{} \\
+\UnicodeOp{U+29CB}{TRIANGLE WITH UNDERBAR}{}{} \\
+\UnicodeOp{U+29CC}{S IN TRIANGLE}{}{} \\
+\UnicodeOp{U+29CD}{TRIANGLE WITH SERIFS AT BOTTOM}{}{} \\
+\UnicodeOp{U+29CE}{RIGHT TRIANGLE ABOVE LEFT TRIANGLE}{}{} \\
+\UnicodeOp{U+29CF}{LEFT TRIANGLE BESIDE VERTICAL BAR}{}{} \\
+\UnicodeOp{U+29D0}{VERTICAL BAR BESIDE RIGHT TRIANGLE}{}{} \\
+\UnicodeOp{U+29D1}{BOWTIE WITH LEFT HALF BLACK}{}{} \\
+\UnicodeOp{U+29D2}{BOWTIE WITH RIGHT HALF BLACK}{}{} \\
+\UnicodeOp{U+29D3}{BLACK BOWTIE}{}{} \\
+\UnicodeOp{U+29D6}{WHITE HOURGLASS}{}{} \\
+\UnicodeOp{U+29D7}{BLACK HOURGLASS}{}{} \\
+\UnicodeOp{U+29DC}{INCOMPLETE INFINITY}{}{} \\
+\UnicodeOp{U+29DD}{TIE OVER INFINITY}{}{} \\
+\UnicodeOp{U+29DE}{INFINITY NEGATED WITH VERTICAL BAR}{}{} \\
+\UnicodeOp{U+29DF}{DOUBLE-ENDED MULTIMAP}{}{} \\
+\UnicodeOp{U+29E0}{SQUARE WITH CONTOURED OUTLINE}{}{} \\
+\UnicodeOp{U+29E1}{INCREASES AS}{}{} \\
+\UnicodeOp{U+29E2}{SHUFFLE PRODUCT}{}{} \\
+\UnicodeOp{U+29E6}{GLEICH STARK}{}{} \\
+\UnicodeOp{U+29E7}{THERMODYNAMIC}{}{} \\
+\UnicodeOp{U+29E8}{DOWN-POINTING TRIANGLE WITH LEFT HALF BLACK}{}{} \\
+\UnicodeOp{U+29E9}{DOWN-POINTING TRIANGLE WITH RIGHT HALF BLACK}{}{} \\
+\UnicodeOp{U+29EA}{BLACK DIAMOND WITH DOWN ARROW}{}{} \\
+\UnicodeOp{U+29EB}{BLACK LOZENGE}{}{} \\
+\UnicodeOp{U+29EC}{WHITE CIRCLE WITH DOWN ARROW}{}{} \\
+\UnicodeOp{U+29ED}{BLACK CIRCLE WITH DOWN ARROW}{}{} \\
+\UnicodeOp{U+29EE}{ERROR-BARRED WHITE SQUARE}{}{} \\
+\UnicodeOp{U+29EF}{ERROR-BARRED BLACK SQUARE}{}{} \\
+\UnicodeOp{U+29F0}{ERROR-BARRED WHITE DIAMOND}{}{} \\
+\UnicodeOp{U+29F1}{ERROR-BARRED BLACK DIAMOND}{}{} \\
+\UnicodeOp{U+29F2}{ERROR-BARRED WHITE CIRCLE}{}{} \\
+\UnicodeOp{U+29F3}{ERROR-BARRED BLACK CIRCLE}{}{} \\
+\UnicodeOp{U+29F4}{RULE-DELAYED}{}{} \\
+\UnicodeOp{U+29F6}{SOLIDUS WITH OVERBAR}{}{} \\
+\UnicodeOp{U+29F7}{REVERSE SOLIDUS WITH HORIZONTAL STROKE}{}{} \\
+\UnicodeOp{U+29FA}{DOUBLE PLUS}{}{\texttt{++}} \\
+\UnicodeOp{U+29FB}{TRIPLE PLUS}{}{\texttt{+++}} \\
+\UnicodeOp{U+29FE}{TINY}{}{} \\
+\UnicodeOp{U+29FF}{MINY}{}{} \\
+\UnicodeOp{U+2A00}{N-ARY CIRCLED DOT OPERATOR}{$\bigodot$}{\texttt{BIGODOT}} \\
+\UnicodeOp{U+2A01}{N-ARY CIRCLED PLUS OPERATOR}{$\bigoplus$}{\texttt{BIGOPLUS}} \\
+\UnicodeOp{U+2A02}{N-ARY CIRCLED TIMES OPERATOR}{$\bigotimes$}{\texttt{BIGOTIMES}} \\
+\UnicodeOp{U+2A03}{N-ARY UNION OPERATOR WITH DOT}{}{\texttt{BIGUDOT}} \\
+\UnicodeOp{U+2A04}{N-ARY UNION OPERATOR WITH PLUS}{}{\texttt{BIGUPLUS}} \\
+\UnicodeOp{U+2A05}{N-ARY SQUARE INTERSECTION OPERATOR}{}{\texttt{BIGSQCAP}} \\
+\UnicodeOp{U+2A06}{N-ARY SQUARE UNION OPERATOR}{}{\texttt{BIGSQCUP}} \\
+\UnicodeOp{U+2A07}{TWO LOGICAL AND OPERATOR}{}{} \\
+\UnicodeOp{U+2A08}{TWO LOGICAL OR OPERATOR}{}{} \\
+\UnicodeOp{U+2A09}{N-ARY TIMES OPERATOR}{}{\texttt{BIGTIMES}} \\
+\UnicodeOp{U+2A0A}{MODULO TWO SUM}{}{} \\
+\UnicodeOp{U+2A10}{CIRCULATION FUNCTION}{}{} \\
+\UnicodeOp{U+2A11}{ANTICLOCKWISE INTEGRATION}{}{} \\
+\UnicodeOp{U+2A12}{LINE INTEGRATION WITH RECTANGULAR PATH AROUND POLE}{}{} \\
+\UnicodeOp{U+2A13}{LINE INTEGRATION WITH SEMICIRCULAR PATH AROUND POLE}{}{} \\
+\UnicodeOp{U+2A14}{LINE INTEGRATION NOT INCLUDING THE POLE}{}{} \\
+\UnicodeOp{U+2A1D}{JOIN}{$\Join$}{\texttt{JOIN}} \\
+\UnicodeOp{U+2A1E}{LARGE LEFT TRIANGLE OPERATOR}{}{} \\
+\UnicodeOp{U+2A1F}{Z NOTATION SCHEMA COMPOSITION}{}{} \\
+\UnicodeOp{U+2A20}{Z NOTATION SCHEMA PIPING}{}{} \\
+\UnicodeOp{U+2A21}{Z NOTATION SCHEMA PROJECTION}{}{} \\
+\UnicodeOp{U+2A32}{SEMIDIRECT PRODUCT WITH BOTTOM CLOSED}{}{} \\
+\UnicodeOp{U+2A33}{SMASH PRODUCT}{}{} \\
+\UnicodeOp{U+2A3C}{INTERIOR PRODUCT}{}{} \\
+\UnicodeOp{U+2A3D}{RIGHTHAND INTERIOR PRODUCT}{}{} \\
+\UnicodeOp{U+2A3E}{Z NOTATION RELATIONAL COMPOSITION}{}{} \\
+\UnicodeOp{U+2A3F}{AMALGAMATION OR COPRODUCT}{}{} \\
+\UnicodeOp{U+2A57}{SLOPING LARGE OR}{}{} \\
+\UnicodeOp{U+2A58}{SLOPING LARGE AND}{}{} \\
+\UnicodeOp{U+2A61}{SMALL VEE WITH UNDERBAR}{}{} \\
+\UnicodeOp{U+2A64}{Z NOTATION DOMAIN ANTIRESTRICTION}{}{} \\
+\UnicodeOp{U+2A65}{Z NOTATION RANGE ANTIRESTRICTION}{}{} \\
+\UnicodeOp{U+2A68}{TRIPLE HORIZONTAL BAR WITH DOUBLE VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+2A69}{TRIPLE HORIZONTAL BAR WITH TRIPLE VERTICAL STROKE}{}{} \\
+\UnicodeOp{U+2A6A}{TILDE OPERATOR WITH DOT ABOVE}{}{} \\
+\UnicodeOp{U+2A6B}{TILDE OPERATOR WITH RISING DOTS}{}{} \\
+\UnicodeOp{U+2A6D}{CONGRUENT WITH DOT ABOVE}{}{} \\
+\UnicodeOp{U+2ACD}{SQUARE LEFT OPEN BOX OPERATOR}{}{} \\
+\UnicodeOp{U+2ACE}{SQUARE RIGHT OPEN BOX OPERATOR}{}{} \\
+\UnicodeOp{U+2AD9}{ELEMENT OF OPENING DOWNWARDS}{}{} \\
+\UnicodeOp{U+2ADA}{PITCHFORK WITH TEE TOP}{}{} \\
+\UnicodeOp{U+2ADC}{FORKING}{}{} \\
+\UnicodeOp{U+2ADD}{NONFORKING}{}{} \\
+\UnicodeOp{U+2ADE}{SHORT LEFT TACK}{}{} \\
+\UnicodeOp{U+2ADF}{SHORT DOWN TACK}{}{} \\
+\UnicodeOp{U+2AE0}{SHORT UP TACK}{}{} \\
+\UnicodeOp{U+2AE1}{PERPENDICULAR WITH S}{}{} \\
+\UnicodeOp{U+2AE2}{VERTICAL BAR TRIPLE RIGHT TURNSTILE}{}{} \\
+\UnicodeOp{U+2AE3}{DOUBLE VERTICAL BAR LEFT TURNSTILE}{}{} \\
+\UnicodeOp{U+2AE4}{VERTICAL BAR DOUBLE LEFT TURNSTILE}{}{} \\
+\UnicodeOp{U+2AE5}{DOUBLE VERTICAL BAR DOUBLE LEFT TURNSTILE}{}{} \\
+\UnicodeOp{U+2AE6}{LONG DASH FROM LEFT MEMBER OF DOUBLE VERTICAL}{}{} \\
+\UnicodeOp{U+2AE7}{SHORT DOWN TACK WITH OVERBAR}{}{} \\
+\UnicodeOp{U+2AE8}{SHORT UP TACK WITH UNDERBAR}{}{} \\
+\UnicodeOp{U+2AE9}{SHORT UP TACK ABOVE SHORT DOWN TACK}{}{} \\
+\UnicodeOp{U+2AEA}{DOUBLE DOWN TACK}{}{} \\
+\UnicodeOp{U+2AEB}{DOUBLE UP TACK}{}{} \\
+\UnicodeOp{U+2AEC}{DOUBLE STROKE NOT SIGN}{}{} \\
+\UnicodeOp{U+2AED}{REVERSED DOUBLE STROKE NOT SIGN}{}{} \\
+\UnicodeOp{U+2AEE}{DOES NOT DIVIDE WITH REVERSED NEGATION SLASH}{}{} \\
+\UnicodeOp{U+2AEF}{VERTICAL LINE WITH CIRCLE ABOVE}{}{} \\
+\UnicodeOp{U+2AF0}{VERTICAL LINE WITH CIRCLE BELOW}{}{} \\
+\UnicodeOp{U+2AF1}{DOWN TACK WITH CIRCLE BELOW}{}{} \\
+\UnicodeOp{U+2AF2}{PARALLEL WITH HORIZONTAL STROKE}{}{} \\
+\UnicodeOp{U+2AF3}{PARALLEL WITH TILDE OPERATOR}{}{} \\
+\UnicodeOp{U+2AF5}{TRIPLE VERTICAL BAR WITH HORIZONTAL STROKE}{}{} \\
+\UnicodeOp{U+2AF6}{TRIPLE COLON OPERATOR}{}{} \\
+\UnicodeOp{U+2AFC}{LARGE TRIPLE VERTICAL BAR OPERATOR}{}{} \\
+\UnicodeOp{U+2AFE}{WHITE VERTICAL BAR}{}{} \\
+\UnicodeOp{U+2AFF}{N-ARY WHITE VERTICAL BAR}{}{}
+\end{tabbing}

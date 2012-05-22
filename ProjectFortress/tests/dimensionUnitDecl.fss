@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component dimensionUnitDecl
+
+export Executable
+
+dim Length SI_unit meter meters m
+
+dim Mass default Kilogram
+unit inch inches: Length
+unit feet: Length = foot
+unit radian = 1 meter per meter
+unit meter_squared = square meter
+
+trait Float1[\unit U absorbs unit, nat e, nat s\] end
+
+run() = println "Hello, World!"
+
+end

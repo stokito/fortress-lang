@@ -1,0 +1,31 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Structure of the Fortress Libraries}
+\chaplabel{library-structure}
+
+The Fortress libraries are divided into two basic categories.  The
+first, covered in \chapref{default-libraries}, are the libraries that
+are automatically imported by every Fortress component and API,
+chiefly \TYP{FortressLibrary} and \TYP{FortressBuiltin}.  These
+libraries provide the basic numeric types, generators, arrays,
+booleans, exceptions, and the like.  The second, covered in
+\chapref{optional-libraries}, are libraries that must be explicitly
+imported by the programmer.  These include \TYP{List}, \TYP{Set}, and
+\TYP{Map}.
+
+The documentation in \partref{library} is largely automatically
+generated from the API code for the libraries themselves, and
+describes the state of the libraries as of the release date of this
+specification.  The libraries are presently in a state of flux, and
+programmers using a more recent version of the Fortress implementation
+may find differences between the APIs presented here and those found
+in the actual implementation.

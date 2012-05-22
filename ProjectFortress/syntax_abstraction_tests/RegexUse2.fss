@@ -1,0 +1,45 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component RegexUse2
+
+import Regex.{...}
+import List.{...}
+export Executable
+
+testit(r:Regexp, s:String) = do
+    if NOT (r CONTAINS s) then
+        println "Failure: " r " != " s
+    end
+end
+
+testnotit(r:Regexp, s:String) = do
+    if r CONTAINS s then
+        println "Failure: " r " = " s
+    end
+end
+
+run() = do
+    testit( (/a/), "a" )
+    testnotit( (/a/), "b" )
+    testit( (/ab/), "ab" )
+    testit( (/.*a$/), "fooa" )
+    testnotit( (/.*a$/), "fooafoo" )
+    testit( (/[abc][^abc]/), "ad" )
+    testnotit( (/[abc][^abc]/), "ab" )
+    testit( (/\d{2}(Hello)*/), "05HelloHello" )
+    testnotit( (/\d{2}(Hello)*/), "5HelloHello" )
+    testit( (/#{BIG || <| "123", "456" |>}/), "123456" )
+    testit( (/hi#{BIG || <| "123", "456" |>}there/), "hi123456there" )
+    testnotit( (/hi#{BIG || <| "123", "456" |>}there/), "something different" )
+end
+
+end

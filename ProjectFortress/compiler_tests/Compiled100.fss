@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled100
+export Executable
+
+(* Dotted methods. Also, inheritance of methods (or not).
+   WORKS - tested by Compiled90.test.
+ *)
+
+trait A
+  m(a:A):String = a.m(self)
+end
+
+object O extends A
+  m(a:A):String = "pass"
+end
+
+object P extends A
+  m(a:A):String = "FAIL"
+end
+
+anO():A = O
+anA():A = P
+
+run():() = do
+  println(anO().m(anA()))
+end
+
+end

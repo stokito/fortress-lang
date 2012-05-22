@@ -1,0 +1,37 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(* Identical to Compiled9.e.fss except for the import statement (and name and comments). *)
+
+export Executable
+
+import Names.a.{...}
+(* Names.a declares foo as a trait and a variable, bar as a trait, and baz as a variable. *)
+
+(* This is not allowed:
+   foo is declared in the type and value namespaces here
+   and in the imported Names.a. *)
+
+bar: String = baz
+
+trait baz extends bar
+  baz() = label bar
+    label baz
+      label foo
+        exit bar with bar
+      end foo
+    end baz
+  end bar
+end (*) trait baz
+
+object foo extends baz end
+
+run() = println foo.baz()

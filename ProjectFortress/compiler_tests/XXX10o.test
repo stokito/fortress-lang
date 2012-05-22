@@ -1,0 +1,24 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled10.o
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled10.o.fss:24:3-12:\n\
+\ Could not check call to function f\n\
+\ - Bar->() is not applicable to an argument of type Hoo[\\Bar\\].\n\
+${STATIC_TESTS_DIR}/Compiled10.o.fss:25:3-12:\n\
+\ Could not check call to function f\n\
+\ - Bar->() is not applicable to an argument of type Hoo[\\Baz\\].\n\
+${STATIC_TESTS_DIR}/Compiled10.o.fss:28:3-12:\n\
+\ Could not check call to function g\n\
+\ - Foo[\\Bar\\]->() is not applicable to an argument of type Hoo[\\Baz\\].\n\
+File Compiled10.o.fss has 3 errors.\n
+compile_out_equals=

@@ -1,0 +1,7 @@
+component C
+
+  export I
+  
+  i() = "component C"
+
+end

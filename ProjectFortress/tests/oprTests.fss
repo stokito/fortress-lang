@@ -1,0 +1,67 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component oprTests
+export Executable
+
+opr SUBSETEQ(x:ZZ32, y:ZZ32) = false
+opr SUBSET(x:ZZ32, y:ZZ32) = false
+opr SUBSET(x:Boolean, y:Boolean) = x AND y
+
+run() = do
+  a = 3
+  b = 2
+  c = 7
+  d = 8
+  u = 3
+  v = 4
+  w = 5
+  n = 6
+  x = 3.141592
+  y = 2
+(* Rightly rejected
+  a + b CUP c
+ *)
+  e = a + b < c
+  g = a < b OR c < d
+(* Rightly rejected
+  a OR b + c
+  u DOT v BY w
+  a ODOT b / c ODOT d
+ *)
+  a b / c d
+  a b/c d
+  (n+1)/(n+2)(n+3)
+  sin x + y
+(* Rightly rejected
+  sin x+y
+ *)
+  a DOT b + c
+  (a)DOT(b) + c
+  (a)DOT(b)+c
+(* Rightly rejected
+  a DOT b+c
+ *)
+  a    DOT  b + c
+  a SUBSETEQ b SUBSET c SUBSETEQ d
+  a SUBSETEQ b = c SUBSET d
+(* Rightly rejected
+  a SUBSETEQ b SUPERSET c
+ *)
+  n (n + 1) sin 3 n x log log x
+  aa: ZZ32[3] = [1 2 3]
+  reduce(_:(ZZ32,ZZ32)->ZZ32) = fn (xx:ZZ32[3]) => 1
+  f(_:ZZ32,_:ZZ32):ZZ32 = 0
+  reduce(f)(aa)(x + 1)atan(x + 2)
+  println d
+end
+
+end
