@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component CompileMath
+import java java.lang.{Math.random => jrandom}
+import java com.sun.fortress.nativeHelpers.{simplePrintRR64.nativePrintRR64 => jPrintRR64}
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+export Executable
+
+run(): () = do
+   jPrintRR64(jrandom())
+   println("Pass")
+end
+
+end

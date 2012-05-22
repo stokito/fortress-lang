@@ -1,0 +1,23 @@
+################################################################################
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+# These are "names" collected as part of member_metrics, that are
+# not external contributors, and should be excluded from that list.
+
+add
+authenticated
+approved
+chfknits@gmail.com
+christine.h.flood@gmail.com
+jmaessen
+johndoe
+jrhil47@mail.utexas.edu
+victorl

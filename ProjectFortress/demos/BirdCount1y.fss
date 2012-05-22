@@ -1,0 +1,225 @@
+(*******************************************************************************
+Copyright 2010 Michael Zody and Sun Microsystems, Inc. 
+All rights reserved.
+
+Sun Microsystems, Inc. is the Copyright owner of the Fortress programming language software, and Michael Zody is the developer of the algorithm which this software implements and the Copyright owner of the software implementation of the algorithm, to which Sun Microsystems, Inc. has a perpetual, irrevocable, royalty free right and license to use and distribute. 
+
+Use is subject to license terms accompanying the software.
+ ******************************************************************************)
+
+component BirdCount1y
+
+import File.{...}; import FileSupport.{...}; import FlatString.{...}; import List.{...}
+import Map.{...}; import Pairs.{...}; import Set.{...}; import System.{getProperty}
+import GenomeUtil1y.{...}
+import Tuple.{...}
+
+export Executable
+
+homeDir: String = getProperty("fortress.autohome",".")
+referenceFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head" 
+sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
+errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
+sampleFilesFileName = "chr10.csfasta.ma.sorted.head"
+errorFilesFileName = "composite_error_model.txt"
+
+sampleNames: List[\String\] = <|[\String\]
+    "10a_LA_Frag35_20080704_white_leghorn_A",
+    "10b_LA_Frag35_20080704_white_leghorn_B"
+(*)    "17_LA_Frag35_20080909_high_grow_line",
+(*)    "18_LA_Frag35_20080909_low_grow_line",
+(*)    "17.1_LA_Frag35_20080925_high_grow_line",
+(*)    "18.1_LA_Frag35_20080925_low_grow_line",
+(*)    "16_LA_Frag35_20080829_broiler",
+(*)    "22_LA_Frag35_20081016_RJF",
+(*)    "16.1_LA_Frag35_20080925_broiler",
+(*)    "22.1_LA_Frag35_20081114_RJF"
+|>
+
+chunkSize: ZZ32 = 100000
+
+object Event(s: Read, diffs: String, startPos: ZZ32, len: ZZ32, errorProb: RR64, fileName: String)
+  refStart: ZZ32 = s.pos + startPos
+  refEnd: ZZ32 = refStart + len - 1
+  refColorsSnip = s.refColorsSnip[startPos # len]
+  sampleColorsSnip = s.sampleColorsSnip[startPos # len]
+  sampleDiffSnip: String = colorsToACGT(s.refACGTSnip[startPos], s.sampleColorsSnip[startPos#len])
+  refACGTSnip: String = s.refACGTSnip[startPos # len+1]
+  valid: Boolean = (if startPos + len = |s.sampleColorsSnip|
+                    then isValidTransitionString(refColorsSnip[0#len-1], sampleColorsSnip[0#len-1])
+                    else isValidTransitionString(refColorsSnip, sampleColorsSnip))
+  getter asString(): String =
+    (fileName || "    " || refStart || "    " || refEnd || "    " ||
+     refColorsSnip || "    " || sampleColorsSnip || "   " ||
+     refACGTSnip || "    " || sampleDiffSnip || "   " || errorProb)
+  getter asDetailedString() = do
+    (s.header "  " errorProb " "  refStart "  " refEnd "  " refColorsSnip "  " sampleColorsSnip "  "
+     (if valid then "VALID" else "inv") "  " refACGTSnip "   "
+     (if valid then sampleDiffSnip else ("x")^(len+1)) "    " startPos)
+  end
+end Event
+
+isValidTransitionString(ref: String, sample: String) =
+  BIG AND[i <- 0 # |ref| - 1]  ((ref[i].codePoint BITXOR ref[i+1].codePoint) = (sample[i].codePoint BITXOR sample[i+1].codePoint))
+
+object MergedEvent(count: ZZ32, refStart: ZZ32, refEnd: ZZ32, 
+                   refNumberFormat: String, sampleNumberFormat: String,
+                   refACGTFormat: String, sampleACGTFormat: String,
+                   totalCoverage: RR64, probability: RR64, eventList: List[\Event\])
+  getter asString(): String = 
+    (count || "  " || refStart || "  " || refEnd || "  " || refNumberFormat || "  " || sampleNumberFormat || "  " ||
+     refACGTFormat || "  " || sampleACGTFormat || "  " || totalCoverage || "  " || probability || "  ")
+end MergedEvent
+
+readSize:ZZ32 = 35   (*) This may change with newer technology, but for now it is OK.
+
+calculateCoverage(fileName: String, refEnd: ZZ32, coverage: Map[\String, Map[\ZZ32,ZZ32\]\]):ZZ32 =
+  SUM[i <- seq(refEnd - readSize + 1 : refEnd)] coverage[fileName].member(i,0)
+
+calculateBonferroniLibrary(fileName: String, events: List[\Event\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]): RR64 = do
+  gmp = geometricMean <|[\RR64\] e.errorProb | e <- events |>
+  cov = calculateCoverage(fileName, events.left.get.refEnd, coverage)
+  SUM[j <- seq((|events|):cov)] gmp^j (cov CHOOSE j)
+end
+
+calculateBonferroniTotal(eventsByFile: Map[\String, List[\Event\]\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]): RR64 = do
+  totcov = SUM[(file, events) <- eventsByFile] calculateCoverage(file, events.left.get.refEnd, coverage)
+  totcalls = SUM[(_, events) <- eventsByFile] |events|
+  gmp = geometricMean <|[\RR64\] e.errorProb | (_, events) <- seq(eventsByFile), e <- seq(events) |>
+  SUM[j <- seq(totcalls:totcov)] gmp^j (totcov CHOOSE j)
+end
+
+calculateBonferroni(eventsByFile: Map[\String, List[\Event\]\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]): RR64 = do
+  minlibpval: RR64 = BIG MIN[(file, events) <- eventsByFile] calculateBonferroniLibrary(file, events, coverage)
+  combpval: RR64 = calculateBonferroniTotal(eventsByFile, coverage)
+  2 (combpval MIN minlibpval)
+end
+
+validEventsByChange(events: List[\Event\]) =
+  BIG UNIONCAT[\String,Event\] [e <- events, e.valid] {[\String, List[\Event\]\] e.sampleDiffSnip |-> <|[\Event\] e |> }
+
+makeMergedDatabase(database: Map[\ZZ32, List[\Event\]\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]):
+    Map[\(ZZ32,String), List[\MergedEvent\]\] =
+  BIG UPLUS[\(ZZ32,String), List[\MergedEvent\]\][(key, events) <- database,
+                                                  (change, changeEvents) <- validEventsByChange(events),
+                                                  |changeEvents| > 0] mergeEvents(key, change, changeEvents, coverage)
+
+mergeEvents(key: ZZ32, change: String, changeEvents: List[\Event\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]):
+    Map[\(ZZ32, String),List[\MergedEvent\]\] = do
+  firstEvent: Event = changeEvents.left.get
+  eventsByFile: Map[\String, List[\Event\]\] =
+    BIG UNIONCAT[\String,Event\] [e <- changeEvents] {[\String, List[\Event\]\] e.fileName |-> <|[\Event\] e |> }
+  totalCoverage: ZZ32 = SUM[(file, events) <- eventsByFile] calculateCoverage(file, events.left.get.refEnd, coverage)
+  {[\(ZZ32, String),List[\MergedEvent\]\] (key, change) |->
+   <| MergedEvent(|changeEvents|, firstEvent.refStart, firstEvent.refEnd, 
+                  firstEvent.refColorsSnip, firstEvent.sampleColorsSnip,
+                  firstEvent.refACGTSnip, firstEvent.sampleDiffSnip,
+                  totalCoverage, calculateBonferroni(eventsByFile, coverage), changeEvents) |> }
+end
+
+errorProbability(ref: String, sample: String, r: CompactFullRange[\ZZ32\], name: String, er: ErrorRates): RR64 =
+  if (|r| = 2) then er.single[r.lower] else PROD[i <- seq(r), sample[i] =/= ref[i]] er.multiple[i] end
+
+object ErrorRates(single: List[\RR64\], multiple: List[\RR64\]) end
+
+readErrorRateFile(name: String): ErrorRates =
+  ErrorRates (transpose <|[\(RR64, RR64)\] (strToFloat(line.beyond('\t').beyond('\t')),
+                                            strToFloat(line.beyond('\t').upto('\t'))) |
+                          line <- FileReadStream(name).lines() |>)
+
+(*
+eventGenerator(s: Read, name: String, sampleErrorRates: ErrorRates): Map[\ZZ32, List[\Event\]\] = do
+  ref = s.refColorsSnip
+  sample = s.sampleColorsSnip
+  mismatches = <| q OR (p AND r) | (p,q,r) <- triples (<| false |> || <| sample[i]=/=ref[i] | i <- 0 # |sample| |> || <| false |>) |> 
+  diffs = BIG || [i <- seq(0 # |sample|)] (if mismatches[i] then "X" else ".")
+  {[\ZZ32, List[\Event\]\] s.pos + r.lower |->
+   <|[\Event\] Event(s, diffs, r.lower, |r|, errorProbability(ref, sample, r, name, sampleErrorRates), name) |> |
+     r <- runRanges mismatches, |r| > 1 }
+end
+
+processSample(name:String, refACGT: String, refColors: String): (Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32, ZZ32\]\]) = do
+  sampleErrorRates: ErrorRates = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
+  rs = FileReadStream(sampleFilesDir || "/" || name || "/" || sampleFilesFileName)
+  fg = FileGenerator[\Maybe[\Read\]\](rs, 60, fn(r: ReadStream) => parseOneRead(r, refACGT, refColors))
+  snipData = <| (eventGenerator(snip, name, sampleErrorRates), snip.pos) | maybesnip <- fg, snip <- maybesnip |>
+  database = BIG UNIONCAT[\ZZ32,Event\][sd <- snipData] first(sd)
+  coverageDatabase = BIG UNIONPLUS[\ZZ32\][sd <- snipData] {[\ZZ32, ZZ32\] second(sd) |-> 1 }
+  (database, {[\String, Map[\ZZ32, ZZ32\]\] name |-> coverageDatabase })
+end
+
+readReferenceFile(name: String): String = BIG || <| line | line<-FileReadStream(name).lines(), line[0] =/= '>' |>
+
+run() = do
+  refACGT = readReferenceFile(referenceFile)
+  refColors = colorsFromACGT(refACGT.asFlatString)
+  (databaseData, coverageData) = transpose <|[\(Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32,ZZ32\]\])\]
+                                             processSample(sample, refACGT, refColors) | sample <- seq(sampleNames) |>
+  database: Map[\ZZ32, List[\Event\]\] = BIG UNIONCAT[x <- databaseData] x
+  coverage: Map[\String, Map[\ZZ32,ZZ32\]\] = BIG UPLUS[\String, Map[\ZZ32,ZZ32\]\] coverageData
+
+  mergedDatabase: Map[\(ZZ32,String), List[\MergedEvent\]\] = makeMergedDatabase(database, coverage)
+
+  println("Events")
+  for (_, entries) <- seq(database), entry <- seq(entries) do println(entry.asDetailedString) end
+
+  println("Merged Events:")
+  for (_, events) <- seq(mergedDatabase), event <- seq(events) do
+    println(event)
+    for e <- seq(event.eventList) do println(e) end
+    println("-------")
+  end
+end
+
+*)
+
+eventGenerator(s: Read, name: String, er: ErrorRates, range: CompactFullRange[\ZZ32\]): Map[\ZZ32, List[\Event\]\] = do
+  ref = s.refColorsSnip
+  sample = s.sampleColorsSnip
+  mismatches = <| q OR (p AND r) | (p,q,r) <- triples (<| false |> || <| sample[i]=/=ref[i] | i <- 0 # |sample| |> || <| false |>) |> 
+  diffs = BIG || [i <- seq(0 # |sample|)] (if mismatches[i] then "X" else ".")
+  {[\ZZ32, List[\Event\]\] s.pos + r.lower |->
+   <|[\Event\] Event(s, diffs, r.lower, |r|, errorProbability(ref, sample, r, name, er), name) |> |
+     r <- runRanges mismatches, |r| > 1, (s.pos + r.lower) IN range }
+end
+
+processSample(name:String, rl: ReadList, er: ErrorRates, range: CompactFullRange[\ZZ32\]): (Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32, ZZ32\]\]) = do
+  rl.nextRange()
+  snipData = <| (eventGenerator(snip, name, er, range), snip.pos) | snip <- rl.getReads() |>
+  database = BIG UNIONCAT[\ZZ32,Event\][sd <- snipData] first(sd)
+  coverageDatabase = BIG UNIONPLUS[\ZZ32\][sd <- snipData] {[\ZZ32, ZZ32\] second(sd) |-> 1 }
+  (database, {[\String, Map[\ZZ32, ZZ32\]\] name |-> coverageDatabase })
+end
+
+getSampleData(name: String, ref: ReferenceGenome): (String, ReadList, ErrorRates) = do
+  rl = getReadListFromFile(sampleFilesDir || "/" || name || "/" || sampleFilesFileName, readSize, ref)
+  er = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
+  (name, rl, er)
+end
+
+run() = do
+  ref = getReferenceGenomeFromFile(referenceFile, chunkSize, readSize)
+  samples = <|[\(String, ReadList, ErrorRates)\] getSampleData(name, ref) | name <- sampleNames |>
+  while |ref.currentChunkRange()| > 0 do
+    (databaseData, coverageData) = transpose <|[\(Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32,ZZ32\]\])\]
+                                                  processSample(name, rl, er, ref.currentChunkRange()) | (name, rl, er) <- samples |>
+    database: Map[\ZZ32, List[\Event\]\] = BIG UNIONCAT[x <- databaseData] x
+    coverage: Map[\String, Map[\ZZ32,ZZ32\]\] = BIG UPLUS[\String, Map[\ZZ32,ZZ32\]\] coverageData
+
+    mergedDatabase: Map[\(ZZ32,String), List[\MergedEvent\]\] = makeMergedDatabase(database, coverage)
+
+    println("Events")
+    for (_, entries) <- seq(database), entry <- seq(entries) do println(entry.asDetailedString) end
+
+    println("Merged Events:")
+    for (_, events) <- seq(mergedDatabase), event <- seq(events) do
+      println(event)
+      for e <- seq(event.eventList) do println(e) end
+      println("-------")
+    end
+    ref.nextChunk()
+  end
+end
+
+
+end

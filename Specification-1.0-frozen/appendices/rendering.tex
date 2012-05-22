@@ -1,0 +1,451 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Rendering of Fortress Code}
+\applabel{app-rendering}
+
+\note{Identifiers including connecting punctuations are not yet supported.}
+
+In order to more closely approximate mathematical notation,
+Fortress mandates standard rendering for various input elements,
+particularly for numerals and identifiers,
+as specified in \secref{rendering}.
+
+In this appendix, we describe the detailed rules
+for rendering an identifier, as well as rules used for rendering other constructions.
+
+\section{Rendering of Fortress Identifiers}
+\seclabel{rendering-identifiers}
+
+If an identifier consists of letters and possibly digits,
+but no underscores, %or other connecting punctuation,
+prime marks, or apostrophes, then the rules are fairly simple:
+
+(a) If the identifier consists of two ASCII capital letters that are the same,
+possibly followed by digits, then a single capital letter is rendered
+double-struck, followed by full-sized (not subscripted) digits in roman font.
+
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+   \STR{QQ} & \emph{is rendered as} & \EXP{\mathbb{Q}} &
+   \STR{RR64} & \emph{is rendered as} & \EXP{\mathbb{R}64} \\
+   \STR{ZZ} & \emph{is rendered as} & \EXP{\mathbb{Z}} &
+   \STR{ZZ512} & \emph{is rendered as} & \EXP{\mathbb{Z}512}
+\end{tabular}
+
+(b) Otherwise, if the identifier has more than two characters and
+begins with a capital letter, then it is rendered in roman font.
+(Such names are typically used as names of types in Fortress.
+Note that an identifier cannot consist entirely of capital letters,
+because such a token is considered to be an operator.)
+
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+   \STR{Integer} & \emph{is rendered as} & \TYP{Integer} &
+   \STR{Matrix} & \emph{is rendered as} & \TYP{Matrix} \\
+   \STR{TotalOrder} & \emph{is rendered as} & \TYP{TotalOrder} &
+   \STR{BooleanAlgebra} & \emph{is rendered as} & \TYP{BooleanAlgebra} \\
+   \STR{Fred17} & \emph{is rendered as} & \TYP{Fred17} &
+   \STR{R2D2} & \emph{is rendered as} & \TYP{R2D2}
+\end{tabular}
+
+(c) Otherwise, if the identifier consists of one or more letters
+followed by one or more digits, then the letters are rendered in italic
+and the digits are rendered as roman subscripts.
+
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+   \STR{a3} & \emph{is rendered as} & \EXP{a_{3}} &
+   \STR{foo7} & \emph{is rendered as} & \EXP{{foo}_{7}} \\
+   \STR{M1} & \emph{is rendered as} & \EXP{M_{1}} &
+   \STR{z128} & \emph{is rendered as} & \EXP{z_{128}} \\
+   \txt{OMEGA13} & \emph{is rendered as} & \EXP{\Omega{}_{13}} &
+   \STR{myFavoriteThings1625} & \emph{is rendered as} & \EXP{{myFavoriteThings}_{1625}}
+
+\end{tabular}
+
+(d) The following names are always rendered in roman type out of respect for tradition:
+
+\begin{tabular}{llllll}
+   \EXP{\mathrm{sin}} & \EXP{\mathrm{cos}} & \EXP{\mathrm{tan}} & \EXP{\mathrm{cot}} & \EXP{\mathrm{sec}} & \EXP{\mathrm{csc}} \\
+   \EXP{\mathrm{sinh}} & \EXP{\mathrm{cosh}} & \EXP{\mathrm{tanh}} & \EXP{\mathrm{coth}} & \EXP{\mathrm{sech}} & \EXP{\mathrm{csch}} \\
+   \EXP{\mathrm{arcsin}} & \EXP{\mathrm{arccos}} & \EXP{\mathrm{arctan}} & \EXP{\mathrm{arccot}} & \EXP{\mathrm{arcsec}} & \EXP{\mathrm{arccsc}} \\
+   \EXP{\mathrm{arsinh}} & \EXP{\mathrm{arcosh}} & \EXP{\mathrm{artanh}} & \EXP{\mathrm{arcoth}} & \EXP{\mathrm{arsech}} & \EXP{\mathrm{arcsch}} \\
+   \EXP{\mathrm{arg}} & \EXP{\mathrm{deg}} & \EXP{\mathrm{det}} & \EXP{\mathrm{exp}} & \EXP{\mathrm{inf}} & \EXP{\mathrm{sup}} \\
+   \EXP{\mathrm{lg}} & \EXP{\mathrm{ln}} & \EXP{\mathrm{log}} & \EXP{\mathrm{gcd}} & \EXP{\mathrm{max}} & \EXP{\mathrm{min}}
+\end{tabular}
+
+(e) Otherwise the identifier is simply rendered entirely in italic type.
+
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+   \STR{a} & \emph{is rendered as} & \VAR{a} &
+   \STR{foobar} & \emph{is rendered as} & \VAR{foobar} \\
+   \STR{length} & \emph{is rendered as} & \VAR{length} &
+   \STR{isInstanceOf} & \emph{is rendered as} & \VAR{isInstanceOf} \\
+   \STR{foo7a} & \emph{is rendered as} & \VAR{foo7a} &
+   \STR{l33tsp33k} & \emph{is rendered as} & \VAR{l33tsp33k}
+\end{tabular}
+
+If the identifier begins or ends with an underscore, or both,
+but has no other underscores,
+%% or other connecting punctuation,
+or prime marks, or apostrophes:
+
+(f) If the identifier, ignoring its underscores, consists of two ASCII capital
+letters that are the same, possibly followed by one or more digits,
+then a single capital letter is rendered in sans-serif (for a leading
+underscore), script (for a trailing underscore), or italic san-serif
+(for both a leading and a trailing underscore), and any digits are
+rendered as roman subscripts.
+
+(g) Otherwise, the identifier without its underscores is rendered
+in boldface (for a leading underscore), roman (for a trailing underscore),
+or bold italic (for both a leading and a trailing underscore);
+except that if the identifier, ignoring its underscores, consists of
+one or more letters followed by one or more digits, then the
+digits are rendered as roman subscripts regardless of the underscores.
+
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+      \txt{m\_} & \emph{is rendered as} & \EXP{\mathrm{m}} &
+      \txt{s\_} & \emph{is rendered as} & \EXP{\mathrm{s}} \\
+      \txt{km\_} & \emph{is rendered as} & \EXP{\mathrm{km}} &
+      \txt{kg\_} & \emph{is rendered as} & \EXP{\mathrm{kg}} \\
+      \txt{V\_} & \emph{is rendered as} & \EXP{\mathrm{V}} &
+      \txt{kW\_} & \emph{is rendered as} & \EXP{\mathrm{kW}} \\
+      \txt{\_v} & \emph{is rendered as} & \EXP{\mathbf{v}} &
+      \txt{\_foo13} & \emph{is rendered as} & \EXP{\mathbf{foo}_{13}}
+\end{tabular}
+
+(Roman identifiers are typically used for names of SI dimensional units.
+See sections 6.1.1 and 6.2.1 of~\cite{nistSP811}
+for style questions with respect to dimensions and units.)
+
+These last two rules are actually special cases of the following general
+rules that apply whenever an identifier contains at least one underscore,
+%% other connecting punctuation,
+prime mark, or apostrophe:
+
+An identifier containing underscores is divided into portions by its underscores;
+in addition, any apostrophe, prime, or double prime character
+separates portions and is also itself a portion.
+
+(h) If any portion is empty other than the first or last, then the entire identifier
+is rendered in italics, underscores and all.
+
+Otherwise, the
+portions are rendered as follows.  The idea is that there is
+a \emph{principal portion} that may be preceded and/or followed
+by modifiers, and there may also be a \emph{face portion}:
+\begin{itemize}
+\item If the first portion is not empty, \txt{script}, \txt{fraktur}, \txt{sansserif}, or \txt{monospace},
+then the principal portion is the first portion and there is no face portion.
+\item If the first portion is \txt{script}, \txt{fraktur}, \txt{sansserif}, or \txt{monospace},
+then the principal portion is the second portion and the face portion is the first portion.
+\item If the first portion is empty and the second portion is not
+\txt{script}, \txt{fraktur}, \txt{sansserif}, or \txt{monospace},
+then the principal portion is the second portion and there is no face portion.
+\item Otherwise the principal portion is the third portion and the face portion is the second portion.
+\end{itemize}
+If there is no face portion, the principal portion will be rendered in ordinary italics.
+However, if the first portion is empty
+(that is, the identifier begins with a leading underscore), then the
+principal portion is to be rendered in roman boldface.
+If the last portion is empty (that is, the identifier ends
+with a trailing underscore), then the principal portion
+will be roman rather than italic, or bold italic rather than bold.
+
+If there is a face portion, then that describes an alternate typeface to be used
+in rendering the principal portion.  If there is no face portion,
+but the principal portion consists of two copies of the same letter,
+then it is rendered as a single letter in a double-struck face
+(also known as ``blackboard bold''), sans-serif, script, or italic sans-serif
+font according to whether the first and last portions are (not empty, not
+empty), (empty, not empty), (not empty, empty), or (empty, empty),
+respectively.  Otherwise, if the first portion is empty
+(that is, the identifier begins with a leading underscore), then the
+principal portion is to be rendered in a bold version of the selected face,
+and if the last portion is empty (that is, the identifier ends
+with a trailing underscore), then the principal portion
+to be rendered in an italic (or bold italic) version of the selected face.
+The bold and italic modifiers may be used only in combination with certain faces; the
+following are the allowed combinations:
+
+\begin{tabular}{l}
+        \txt{script}\\
+        \txt{bold script}\\
+        \txt{fraktur}\\
+        \txt{bold fraktur}\\
+        \txt{double-struck}\\
+        \txt{sans-serif}\\
+        \txt{bold sans-serif}\\
+        \txt{italic sans-serif}\\
+        \txt{bold italic sans-serif}\\
+        \txt{monospace}
+\end{tabular}
+
+If a combination can be properly rendered, then the principal
+portion is rendered but not any preceding portions or underscores.
+If a combination cannot be properly rendered, then the principal portion
+and all portions and underscores preceding it are rendered all in italics
+if possible, and otherwise all in some other default face.
+
+If the principal portion consists of a sequence of letters followed by a sequence
+of digits, then the letters are rendered in the chosen face and
+the digits are rendered as roman subscripts.  Otherwise the
+entire principal portion is rendered in the chosen face.
+The remaining portions (excepting the last, if it is empty)
+are then processed according to the following rules:
+\begin{itemize}
+\item If a portion is \txt{bar}, then a bar is rendered
+above what has already been rendered, excluding superscripts and subscripts.
+For example, \STR{x{\char'137}bar} is rendered as \EXP{\bar{\VAR{x}}},
+\STR{x17{\char'137}bar} is rendered as \EXP{\bar{\VAR{x}}_{17}},
+\STR{x{\char'137}bar{\char'137}bar} is rendered as \EXP{\bar{\bar{\VAR{x}}}},
+and \STR{foo{\char'137}bar} is rendered as \EXP{\overline{\VAR{foo}}}.
+(Contrast this last with \STR{foo{\char'137}baz}, which is rendered as \EXP{\VAR{foo{\tt\_}baz}}.)
+
+\item If a portion is \txt{vec}, then a right-pointing arrow is rendered
+above what has already been rendered, excluding superscripts and subscripts.
+For example, \STR{v{\char'137}vec} is rendered as \EXP{\vec{\VAR{v}}},
+\STR{v17{\char'137}vec} is rendered as \EXP{\vec{\VAR{v}}_{17}}, and
+\STR{zoom{\char'137}vec} is rendered as \EXP{\overrightarrow{\VAR{zoom}}}.
+
+\item If a portion is \txt{hat}, then a hat is rendered above what has already
+been rendered, excluding superscripts and subscripts.  For example,
+\STR{x17{\char'137}hat} is rendered as \EXP{\hat{\VAR{x}}_{17}}.
+
+\item If a portion is \txt{dot}, then a dot is rendered above what has already
+been rendered, excluding superscripts and subscripts; but if the preceding portion was also \txt{dot},
+then the new dot is rendered appropriately relative to the previous dot(s).
+Up to four dots will be rendered side-by-side rather than vertically.
+For example,
+\STR{a{\char'137}dot} is rendered as \EXP{\dot{\VAR{a}}},
+\STR{a{\char'137}dot{\char'137}dot} is rendered as \EXP{\ddot{\VAR{a}}},
+\STR{a{\char'137}dot{\char'137}dot{\char'137}dot} is rendered as \EXP{\dddot{\VAR{a}}},
+\STR{a{\char'137}dot{\char'137}dot{\char'137}dot{\char'137}dot} is rendered as \EXP{\ddddot{\VAR{a}}}.
+Also, \STR{a{\char'137}vec{\char'137}dot} is rendered as \EXP{\dot{\vec{\VAR{v}}}}.
+
+\item If a portion is \txt{star}, then an asterisk \STR{*} is rendered as a superscript.
+For example,
+\STR{a{\char'137}star} is rendered as \EXP{a^*},
+\STR{a{\char'137}star{\char'137}star} is rendered as\EXP{a^{**}},
+\STR{ZZ{\char'137}star} is rendered as \EXP{\mathbb{Z}^*}.
+
+\item If a portion is \txt{splat}, then a number sign \STR{{\char'43}} is rendered as a superscript.
+For example, \STR{QQ{\char'137}splat} is rendered as \EXP{\mathbb{Q}^{\#}}.
+
+\item If a portion is \txt{prime}, then a prime mark is rendered as a superscript.
+
+\item A prime character is treated the same as \txt{prime}, and a double prime character
+is treated the same as two consecutive \txt{prime} portions.  An apostrophe is treated
+the same as a prime character, but only if all characters following it in the
+identifier, if any, are also apostrophes.  For example,
+\STR{a'} is rendered as \EXP{a'},
+\STR{a13'} is rendered as \EXP{a_{13}'}, and
+\STR{a''} is rendered as \EXP{a''},
+but \STR{don't} is rendered as \EXP{\hbox{\emph{don't}}}.
+
+\item If a portion is \txt{super} and another portion follows, then that other
+portion is rendered as a superscript in roman type, and enclosed in parentheses
+if it is all digits.
+
+\item If a portion is \txt{sub} and another portion follows, then that other
+portion is rendered as a subscript in roman type, and enclosed in parentheses
+if it is all digits, and preceded by a subscript-separating comma if this
+portion was immediately preceded by another portion that was rendered
+as a subscript.
+
+\item If a portion consists entirely of capital letters and would,
+if considered by itself as an identifier, be the name of a non-letter Unicode character
+that would be subject to replacement by preprocessing, then that Unicode character
+is rendered as a subscript.  For example,
+\STR{id{\char'137}OPLUS} is rendered as \EXP{\VAR{id}_{\oplus}},
+\STR{ZZ{\char'137}GT} is rendered as \EXP{\mathbb{Z}_{>}}, and
+\STR{QQ{\char'137}star{\char'137}LE} is rendered as \EXP{\mathbb{Q}^*_{\leq}}.
+
+\item If the portion is the last portion, and the principal
+portion was a single letter (or two letters indicating a double-struck letter),
+and none of the preceding rules in this list applies,
+it is rendered as a subscript in roman type.
+For example,
+\STR{T{\char'137}min} is rendered as \EXP{T_{\mathrm{min}}}.
+Note that \STR{T{\char'137}MAX} is rendered simply as \OPR{T{\char'137}MAX}---because
+all its letters are capital letters, it is considered to be an operator---but
+\STR{T{\char'137}sub{\char'137}MAX} is rendered as \EXP{T_{\mathrm{MAX}}}.
+
+\item Otherwise, this portion and all succeeding portions are rendered
+in italics, along with any underscores that appear adjacent to any of them.
+\end{itemize}
+
+Examples:
+
+\begin{tabular}{rclrcl}
+        \txt{M} & \emph{is rendered as} & $M$ &
+        \txt{\_M} & \emph{is rendered as} & $\mathbf{M}$ \\
+        \txt{v\_vec} & \emph{is rendered as} & $\vec{v}$ &
+        \txt{\_v\_vec} & \emph{is rendered as} & $\vec{\mathbf{v}}$ \\
+        \txt{v1} & \emph{is rendered as} & $v_1$ &
+        \txt{v\_x} & \emph{is rendered as} & $v_{\mathrm{x}}$ \\
+        \txt{\_v1} & \emph{is rendered as} & $\mathbf{v}_1$ &
+        \txt{\_v\_x} & \emph{is rendered as} & $\mathbf{v}_{\mathrm{x}}$ \\
+        \txt{a\_dot} & \emph{is rendered as} & $\dot{a}$ &
+        \txt{a\_dot\_dot} & \emph{is rendered as} & $\ddot{a}$ \\
+        \txt{a\_dot\_dot\_dot} & \emph{is rendered as} & $\dddot{a}$ &
+        \txt{a\_dot\_dot\_dot\_dot} & \emph{is rendered as} & $\ddddot{a}$ \\
+        \txt{a\_dot\_dot\_dot\_dot\_dot} & \emph{is rendered as} & $\dot{\ddddot{a}}$ &
+        \txt{p13'} & \emph{is rendered as} & $p_{13}'$ \\
+        \txt{p'} & \emph{is rendered as} & $p'$ &
+        \txt{p\_prime} & \emph{is rendered as} & $p'$ \\
+        \txt{T\_min} & \emph{is rendered as} & $T_{\mathrm{min}}$ &
+        \txt{T\_max} & \emph{is rendered as} & $T_{\mathrm{max}}$ \\
+        \txt{foo\_bar} & \emph{is rendered as} & $\overline{\mathit{foo}}$ &
+        \txt{foo\_baz} & \emph{is rendered as} & $\mathit{foo\_baz}$
+\end{tabular}
+
+In this way, through the use of underscore characters and annotation portions
+delimited by underscores, the programmer can exercise considerable typographical control
+over the rendering of variable names; but if no underscores are used, the rendering
+rules are quite simple.
+
+\section{Rendering of Other Fortress Constructs}
+\seclabel{rendering-other}
+
+A parameterized type of the form \verb+T[\S\]+ is rendered by replacing
+the brackets \verb+[\+ and \verb+\]+ with
+\EXP{\llbracket} (U+27E6, \txt{MATHEMATICAL LEFT WHITE SQUARE BRACKET}) and
+\EXP{\rrbracket} (U+27E7, \txt{MATHEMATICAL RIGHT WHITE} \txt{SQUARE BRACKET}),
+respectively.
+
+
+An expression of the form \STR{a{\char'136}b} or \STR{a{\char'136}(b)} is rendered by making the expression
+\VAR{b} a superscript, and possibly removing an outer set of parentheses, if it is reasonably simple;
+otherwise it is rendered as if \STR{{\char'136}} were an ordinary binary operator.
+
+\begin{center}
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+\STR{x{\char'136}y} & \emph{is rendered as} & \EXP{x^{y}} \\
+\STR{x{\char'136}43} & \emph{is rendered as} & \EXP{x^{43}} \\
+\STR{x{\char'136}(n+1)} & \emph{is rendered as} & \EXP{x^{n+1}} \\
+\STR{x{\char'136}(|s.substring(a,b)|)} & \emph{is rendered as} &
+   \EXP{x\STR{{\char'136}}(\left|s.\VAR{substring}(a,b)\right|)}
+\end{tabular}
+\end{center}
+
+An expression of the form \STR{a[b]} is rendered by making the expression
+\VAR{b} a subscript, if it is reasonably simple.
+
+\begin{center}
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+\STR{a[43]} & \emph{is rendered as} & \EXP{a_{43}} \\
+\STR{a[k]} & \emph{is rendered as} & \EXP{a_k} \\
+\STR{a[n{\char'137}max]} & \emph{is rendered as} & \EXP{a_{n_{\mathrm{\max}}}} \\
+\STR{a[k+k']} & \emph{is rendered as} & \EXP{a_{k+k'}} \\
+\STR{a[b-c]} & \emph{is rendered as} & \EXP{a_{b-c}} \\
+\STR{a[3~k~+~1]} & \emph{is rendered as} & \EXP{a_{3 k + 1}} \\
+\STR{a[b[c[d]]]} & \emph{is rendered as} & \EXP{a[b[c_d]]} \\
+\STR{a[s.substring(p,q)]} & \emph{is rendered as} & \EXP{a[s.\VAR{substring}(p,q)]}
+\end{tabular}
+\end{center}
+
+If there is more than one subscript expression, then they are rendered as subscripts
+only if each subscript is a single letter or digit, or a single letter followed
+by digits and/or prime marks:
+
+\begin{center}
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+\STR{a[1,1]} & \emph{is rendered as} & \EXP{a_{11}} \\
+\STR{a[1,n]} & \emph{is rendered as} & \EXP{a_{1n}} \\
+\STR{a[j,m,n]} & \emph{is rendered as} & \EXP{a_{jmn}} \\
+\STR{a[n1,n2,n3]} & \emph{is rendered as} & \EXP{a_{n_{1}n_{2}n_{3}}} \\
+\STR{a[k,k',k'']} & \emph{is rendered as} & \EXP{a_{kk'k''}} \\
+\STR{a[1,n-1]} & \emph{is rendered as} & \EXP{a[1,n-1]}
+\end{tabular}
+\end{center}
+
+\noindent (There is, of course, some opportunity here to make the rules for
+subscripted rendering more elaborate.)
+
+If there is whitespace
+adjacent to the subscripting brackets or any separating comma, then actual subscripts are not used
+and the brackets remain (so putting spaces after the commas of a multidimensional subscript is a simple
+way to guarantee that bracket syntax will be used in the formatted version):
+
+\begin{center}
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+\STR{a[i,j]} & \emph{is rendered as} & \EXP{a_{ij}} \\
+\STR{a[i,~j]} & \emph{is rendered as} & \EXP{a[i, j]} \\
+\STR{a[b[c[ d ]]]} & \emph{is rendered as} & \EXP{a[b[c[\,d\,]]]}
+\end{tabular}
+\end{center}
+
+The presence or absence of whitespace inside and adjacent to enclosing operators is
+reflected in the rendered form by the presence or absence of a thin space:
+
+\begin{center}
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+    \STR{a[s.substring(p,q)]} & \emph{is rendered as} & \EXP{a[s.\VAR{substring}(p,q)]} \\
+    \STR{a[~s.substring(p,q)~]} & \emph{is rendered as} & \EXP{a[\,s.\VAR{substring}(p,q)\,]} \\
+    \STR{{\char'173}{}1,2{\char'175}} & \emph{is rendered as} & \EXP{\{1,2\}} \\
+    \STR{{\char'173}~1,~2~{\char'175}} & \emph{is rendered as} & \EXP{\{\,1, 2\,\}} \\
+    \STR{<|1,2,3|>} & \emph{is rendered as} & \EXP{\langle{}1,2,3\rangle} \\
+    \STR{<|~x+y~|~x<-a,~y<-b~|>} & \emph{is rendered as} & \EXP{\langle\,x+y \mid x\leftarrow{}a, y\leftarrow{}b\,\rangle}
+\end{tabular}
+\end{center}
+
+\noindent
+Rendered comprehensions look best if there is whitespace inside the enclosers
+and on both sides of the separating vertical bar.
+
+The presence or absence
+of whitespace on either side of a colon is also handled especially carefully.
+In general, one should put a space on both sides, or neither side, of a colon
+that is used as an operator to construct a range; on the other hand,
+one should put a space after,
+but \emph{not} before, a colon that separates a variable or function header from a type.
+This will produce the best rendered spacing.  (The assignment operator \EXP{\ASSIGN}
+is recognized separately and whitespace doesn't matter.)
+
+\begin{center}
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+    \STR{for~i~<-~1:10~do~print~i~end}
+    & \emph{is rendered as} &
+    \EXP{\KWD{for}\:i \leftarrow 1\COLONOP{}10 \:\KWD{do}\:\VAR{print}\:i\:\KWD{end}} \\
+    \STR{for~i~<-~0~:~n+1~do~print~i~end}
+    & \emph{is rendered as} &
+    \EXP{\KWD{for}\: i \leftarrow 0 {}\mathrel{\mathtt{:}} n+1 \:\KWD{do}\: \VAR{print}\:i\:\KWD{end}} \\
+    \STR{k:~ZZ32~:=~5}
+    & \emph{is rendered as} &
+    \EXP{k\COLON \mathbb{Z}32 \ASSIGN 5} \\
+    \STR{factorial(n:~NN):~NN}
+    & \emph{is rendered as} &
+    \EXP{\VAR{factorial}(n\COLON \mathbb{N})\COLON \mathbb{N}} \\
+    \STR{a:=b}
+    & \emph{is rendered as} &
+    \EXP{a\ASSIGN{}b}
+\end{tabular}
+\end{center}
+
+
+Generators and filters in brackets after a reduction operator are rendered by stacking them
+beneath the operator:
+
+\begin{center}
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+    \STR{PROD[k<-1{\char'43}n]~n}
+    & \emph{is rendered as} &
+    \EXP{\prod\limits_{k\leftarrow{}1\mathinner{\hbox{\tt\char'43}}n} n} \\
+\\
+    \STR{SUM[i<-1:n,~j<-1:p,~prime~j]~a[i]~x{\char'136}j}
+    & \emph{is rendered as} &
+    \EXP{\sum\limits_{\genfrac{}{}{0pt}{1}{\genfrac{}{}{0pt}{1}{i\leftarrow{}1\COLONOP{}n}{j\leftarrow{}1\COLONOP{}p}}{\VAR{prime}\:j}}\:a_i\:x^{j}} \\
+\\
+    \STR{MAX[j<-S,~k<-j:j+m]~a[k]}
+    & \emph{is rendered as} &
+    \EXP{\mathop{\OPR{MAX}}\limits_{\genfrac{}{}{0pt}{1}{j\leftarrow{}S}{k\leftarrow{}j\COLONOP{}j+m}}\:a_k}
+\end{tabular}
+\end{center}

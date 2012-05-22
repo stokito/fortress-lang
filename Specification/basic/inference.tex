@@ -1,0 +1,27 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Type Inference}
+\chaplabel{type-inference}
+
+\note{This chapter will include the Fortress static type inference mechanism.}
+
+\note{ \begin{itemize}
+ \item
+ There seems to be a circular dependency between inference and juxtaposition
+ disambiguation -- you have to know if the subexpressions have arrow types
+ to disambiguate, but you can't do that without using inference, which
+ requires knowing how the variable of unknown type is used.
+\item Type Inference (Dan's email titled ``Comments on a first reading of the spec'' on 06/05/07)
+\item Do we want to forbid such cases where type inference infers
+\TYP{BottomType}s for static parameters?
+ \end{itemize}
+}

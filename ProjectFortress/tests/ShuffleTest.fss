@@ -1,0 +1,45 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ShuffleTest
+export Executable
+import Shuffle.{...}
+import List.{...}
+import QuickSort.{...}
+
+run(): () = do
+    lt(a:ZZ32,b:ZZ32): Boolean = a < b
+    a = array[\ZZ32\](50).fill(fn i => i)
+    matches : ZZ32 := 0
+    for _ <- seq(1#10) do
+        println(a)
+        shuffle(a)
+        c = a.copy()
+        quicksort(lt,c)
+        bads = <| i | i <- a.indices, i =/= c[i] |>
+        if NOT bads.isEmpty then
+            println("Bad indices in shuffle " bads)
+            for v <- a.indices do
+                if v NOTIN a then
+                    println("Value " v " missing from shuffle")
+                elif v NOTIN c then
+                    println("Value " v " missing from quicksort")
+                end
+            end
+        end
+        if (a=c) then
+            atomic matches += 1
+        end
+    end
+    assert(matches < 10, true, "No shuffling ever occurred!")
+  end
+
+end

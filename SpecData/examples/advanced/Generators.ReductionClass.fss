@@ -1,0 +1,33 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Generators.ReductionClass
+export Executable
+
+(** EXAMPLE **)
+object SumZZ32 extends CommutativeMonoidReduction[\ZZ32\]
+    asString():String = "SumZZ32"
+    empty(): ZZ32 = 0
+    join(a: ZZ32, b: ZZ32): ZZ32 = a+b
+end
+
+z = (1#100).generate[\ZZ32\](SumZZ32, fn (x) => 3 x + 2)
+(** END EXAMPLE **)
+
+run() = do
+    y = SUM [x <- 1#100] 3 x + 2
+    assert(z,y,"Sums unequal")
+    println(z)
+  end
+
+end

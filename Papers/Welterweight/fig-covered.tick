@@ -1,0 +1,47 @@
+\begin{figure}
+\typicallabel{W-Object}
+
+\newjudge{Covering an abstract declaration}{\jcoveredrule{d}{\setb{d}}}
+\medskip
+
+% Stuff in \Delta is assumed to be well-formed
+
+\infrule[Covered]
+  { \bar{\noselfdom(d) = \existstypeb{\bdb{\chi} \extends P \extends \bdb{\eta}}{\tau}} \andalso
+    \mathit{distinct}\Bigtuple{\bar{\bar{P}}} \\[3pt]
+    \jle{\noselfdom(d')}{\existstypeBig{\bar{\bar{\bdb{\chi} \extends P \extends \bdb{\eta}}}}{\Bigtuple{\bigcup\setb{\tau}}}} }
+  { \jcoveredrule{d'}{\setb{d}} }
+
+
+\medskip
+
+\newjudge{Selfless domain of a declaration}{\noselfdom(d) = \Xi}
+
+\noindent\(
+\begin{array}{@{}l@{}}
+\noselfdom(f\obb{P \extends \bdb{\xi}}(\bar{x\COLON\tau})\COLON \omega \defneq e) \\[1pt]
+\quad = \existstypebigb{\set{\,} \extends P \extends \bdb{\xi}}{\tupleb{\tau}} \\[5pt]
+\noselfdom(\bigtuple{C, m\obb{\bdb{\zeta} \extends P \extends \bdb{\xi}}(\bar{x\COLON\tau})\COLON \omega \defneq e}) \\[1pt]
+\quad = \existstypebigb{\bdb{\zeta} \extends P \extends \bdb{\xi}}{(\bar{\tau})}
+\end{array}
+\)
+
+\medskip
+
+\textbf{Concrete and abstract declarations}
+
+\medskip
+
+\noindent\(
+\begin{array}{@{}l@{}}
+\concretedecls{\setb{d}} = \LRsetcomp{d'}{d'\in\setb{d}, \concrete{d'}} \\[4pt]
+\abstractdecls{\setb{d}} = \LRsetcomp{d'}{d'\in\setb{d}, \neg\concrete{d'}} \\[4pt]
+\concrete{d} = (d = f \; \dontcare \defneq e) \vee (d = (\dontcare, m \; \dontcare \defneq e))
+\end{array}
+\)
+
+\medskip
+
+\caption{Determining whether an abstract declaration is ````covered'' by concrete implementations.  Alpha-renaming of type variables may be necessary to apply these rules.}
+\label{fig:covered}
+\end{figure}

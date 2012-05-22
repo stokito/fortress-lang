@@ -1,0 +1,21 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled9.z.fss
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled9.z.fss:15:1-40:\n\
+\ Invalid comprises clause: Bar[\\U,T\\] is included in the comprises clause of Foo\n\
+\ but Bar does not extend Foo[\\T,U\\].\n\
+${STATIC_TESTS_DIR}/Compiled9.z.fss:15:1-40:\n\
+\ Invalid comprises clause: Foo has a comprises clause\n\
+\ but its immediate subtype Bar is not eligible to extend it.\n\
+File Compiled9.z.fss has 2 errors.\n
+compile_out_equals=

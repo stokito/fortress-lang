@@ -1,0 +1,29 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+
+if [ -z "$FORTRESS_HOME" ]; then
+   export FORTRESS_HOME="`${0%comp/fremove}fortress_home`"
+fi
+
+FHOME=$FORTRESS_HOME/default_repository/caches/bytecode_cache
+
+rm -Rf $FHOME/$1
+if [ -f $FHOME/$1.jar ]
+then 
+    rm $FHOME/$1.jar
+fi
+if [ -f $FHOME/$1.class ]    
+then 
+    rm $FHOME/$1.class
+fi

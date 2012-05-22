@@ -1,0 +1,87 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SkipListTest
+import SkipList.{...}
+export Executable
+
+
+database1:SkipList[\String,ZZ32,2\] := NewList[\String,ZZ32,2\]()
+database2:SkipList[\String,ZZ32,2\] := NewList[\String,ZZ32,2\]()
+
+add(database:SkipList[\String,ZZ32,2\], name:String, ranking: ZZ32) = database.add(name, ranking)
+
+remove(database:SkipList[\String,ZZ32,2\], name:String) = database.remove(name)
+
+run():() = do
+
+  database1 := add(database1, "David", 3)
+  database1 := add(database1, "Emily", 2)
+  database1 := add(database1, "Nathi", 5)
+  database1 := add(database1, "John", 13)
+  database1 := add(database1, "Cathy", 4)
+  database1 := add(database1, "Paul", 7)
+
+  println(database1.asString)
+  println(|database1|)
+
+  database2 := add(database2, "Michael", 0)
+  database2 := add(database2, "Aaron", 13)
+  database2 := add(database2, "Jacob", 7)
+  database2 := add(database2, "Benny", 2)
+  database2 := add(database2, "Larry", 3)
+  database2 := add(database2, "Smeagol", 73)
+
+  println(database2.asString)
+  println(|database2|)
+
+  println(database1.merge(database2).asString)
+
+  println(database1.asString)
+
+  database1 := remove(database1, "Emily")
+  println(database1.asString)
+  database1 := remove(database1, "David")
+  println(database1.asString)
+  database1 := remove(database1, "Nathi")
+  println(database1.asString)
+  database1 := remove(database1, "Paul")
+  println(database1.asString)
+  database1 := remove(database1, "John")
+  println(database1.asString)
+  database1 := remove(database1, "Cathy")
+  println(database1.asString)
+  println(|database1|)
+
+
+  (* Test duplicates
+  init("David", 3)
+  init("David", 3)
+  init("David", 3)
+  init("David", 3)
+  init("David", 3)
+  init("David", 3)
+  println(database.asString)
+  println(database.getSize())
+  remove("David")
+  remove("David")
+  remove("David")
+  println(database.asString)
+  println(database.getSize())
+  remove("David")
+  remove("David")
+  remove("David")
+  println(database.asString)
+  println(database.getSize())
+  *)
+end
+
+end

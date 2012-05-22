@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Tuple
+
+export Tuple
+
+(* Should we deprecate tuple and use identity instead?  Decision: no. *)
+tuple[\T\](x:T):T = x
+
+first[\T1,T2\](x:(T1,T2)): T1 = do (a,_) = x; a end
+second[\T1,T2\](x:(T1,T2)): T2 = do (_,b) = x; b end
+first[\T1,T2,T3\](x:(T1,T2,T3)): T1 = do (a,_,_) = x; a end
+second[\T1,T2,T3\](x:(T1,T2,T3)): T2 = do (_,b,_) = x; b end
+third[\T1,T2,T3\](x:(T1,T2,T3)): T3 = do (_,_,c) = x; c end
+first[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T1 = do (a,_,_,_) = x; a end
+second[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T2 = do (_,b,_,_) = x; b end
+third[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T3 = do (_,_,c,_) = x; c end
+fourth[\T1,T2,T3,T4\](x:(T1,T2,T3,T4)): T4 = do (_,_,_,d) = x; d end
+
+end

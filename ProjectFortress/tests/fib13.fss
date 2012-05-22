@@ -1,0 +1,36 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component fib13
+export Executable
+
+phi = (1 + SQRT 5) / 2
+
+fib13[\I\](n:I): I requires { n >= 0 } = do
+    |\ phi^n / SQRT 5 + 1/2 /|
+  end
+
+run():()=do
+  assert(fib13(20),6765,"fib(20) wrong")
+  assert(fib13(25),75025,"fib(25) wrong")
+  assert(fib13[\ZZ\](20),6765,"fib(20) wrong")
+  assert(fib13[\ZZ\](25),75025,"fib(25) wrong")
+  assert(fib13[\ZZ32\](20),6765,"fib(20) wrong")
+  assert(fib13[\ZZ32\](25),75025,"fib(25) wrong")
+  assert(fib13[\ZZ64\](20),6765,"fib(20) wrong")
+  assert(fib13[\ZZ64\](25),75025,"fib(25) wrong")
+  assert(fib13[\NN32\](unsigned(20)),6765,"fib(20) wrong")
+  assert(fib13[\NN32\](unsigned(25)),75025,"fib(25) wrong")
+  assert(fib13[\NN64\](unsigned(20)),6765,"fib(20) wrong")
+  assert(fib13[\NN64\](unsigned(25)),75025,"fib(25) wrong")
+end
+
+end

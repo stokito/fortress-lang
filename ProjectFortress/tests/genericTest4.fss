@@ -1,0 +1,41 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component genericTest4
+export Executable
+
+object A[\T\](i:ZZ32, j:ZZ32)
+  eff(x:T):ZZ32 = f(x) (* I think this uses interpreter-only sleight-of-type *)
+  getI():ZZ32 = i
+  getZ():ZZ32 = j
+end
+
+var c1:ZZ32 = 0
+var c2:ZZ32 = 0
+
+f(x:String):ZZ32=17
+
+f(x:ZZ32):ZZ32=11
+
+t(b:Boolean) = println (if b then "pass" else "fail")
+
+run():()=do
+  a1:A[\String\] = A[\String\](3,4)
+  a2:A[\ZZ32\] = A[\ZZ32\](5,9)
+
+  t((a1.getI()+a1.getZ()=7))
+  t((a2.getI()+a2.getZ()=14))
+  t((a1.eff("cat")=17))
+  t((a2.eff(42)=11))
+
+end
+
+end

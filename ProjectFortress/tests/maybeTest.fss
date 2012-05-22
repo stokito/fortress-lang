@@ -1,0 +1,50 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component maybeTest
+export Executable
+
+run():() = do
+  a = Nothing[\ZZ32\]
+  b = Just[\Boolean\](true)
+  println(b)
+  assert(NOT a.holds, "Nothing holds")
+  assert(b.holds,"NOT b.holds")
+  if a then fail("Nothing holds in if") end
+  if b then () else fail("b holds in if") end
+  if r <- b then assert(r,"NOT r <- b (single clause)") end
+  if r <- b then assert(r,"NOT r <- b") else fail("r<-b does not hold") end
+  assert(b.get,"NOT b.get")
+  assert(a, Nothing[\ZZ32\], "nothing =/= nothing")
+  deny(a, b, "nothing = just")
+  deny(a, Just[\ZZ32\](0), "nothing = just'")
+  assert(b,Just[\Boolean\](true),"just=/=just")
+  deny(b, Just[\Boolean\](false),"just T=just F")
+  assert(|a|,0,"nothing size")
+  assert(|b|,1,"just size")
+  assert(17 NOTIN a,"17 in nothing")
+  assert(true IN b,"T NOTIN Just(T)")
+  assert(false NOTIN b,"F IN Just(T)")
+  for x <- a do
+    println("WRONG: Generated stuff from Nothing.")
+    fail(x)
+  end
+  times: ZZ32 := 0
+  for x <- b do
+    assert(x)
+    atomic times += 1
+  end
+  assert(times,1," WRONG number of times.")
+  assert(a.asString,"Nothing","Nothing.asString")
+  assert(b.asString,"Just(true)", "Just(true).asString")
+end
+
+end

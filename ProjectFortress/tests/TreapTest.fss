@@ -1,0 +1,64 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+import Treap.{...}
+
+debugShow: Boolean = false
+
+prdebug(t:Treap): () =
+    if debugShow then println(t.asDebugString) else println(t.rootValue("FAIL")) end
+
+expect(t:Treap, e:String): () = do
+    (* assert(t.asString,e,t) *)
+    println(t.asString)
+    println(e " expected")
+    prdebug(t)
+  end
+
+expectEmpty(t:Treap): () =
+    if NOT t.isEmpty then
+      println(t.asString " FAIL")
+      println("{} expected")
+    end
+
+run(): () = do
+    for i <- seq(1#8) do
+      t0 = empty.add(1,"Aone").add(0,"Azero").add(3,"Athree").add(4,"Afour").add(2,"Atwo")
+      t0S = "{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}"
+      expect(t0,t0S)
+      expect(t0.min,"{0|->Azero}")
+      expect(t0.max,"{4|->Afour}")
+      t1 = singleton(1, "Bone") UNION singleton(3, "Bthree") UNION singleton(5, "Bfive") UNION singleton(7, "Bseven")
+      expect(t1,"{1|->Bone 3|->Bthree 5|->Bfive 7|->Bseven}")
+      expect(t0 UNION t1,"{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour 5|->Bfive 7|->Bseven}")
+      expect(t1 UNION t0,"{0|->Azero 1|->Bone 2|->Atwo 3|->Bthree 4|->Afour 5|->Bfive 7|->Bseven}")
+      expectEmpty(empty UNION empty)
+      expect(empty UNION t0,"{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}")
+      expect(t0 UNION empty,"{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}")
+      expect(t0 UNION t0, t0S)
+      expect(t0 INTERSECTION t1,"{1|->Aone 3|->Athree}")
+      expect(t1 INTERSECTION t0,"{1|->Bone 3|->Bthree}")
+      expectEmpty(t0 INTERSECTION empty)
+      expectEmpty(empty INTERSECTION t0)
+      expect(t0 INTERSECTION t0, t0S)
+      expect(t0 DIFFERENCE t1,"{0|->Azero 2|->Atwo 4|->Afour}")
+      expect(t1 DIFFERENCE t0,"{5|->Bfive 7|->Bseven}")
+      expect(t0 DIFFERENCE empty, t0S)
+      expectEmpty(empty DIFFERENCE t0)
+      expectEmpty(t0 DIFFERENCE t0)
+      expect(t0 SYMDIFF t1,"{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}")
+      expect(t1 SYMDIFF t0,"{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}")
+      expect(empty SYMDIFF t0, t0S)
+      expect(t0 SYMDIFF empty, t0S)
+      expectEmpty(t0 SYMDIFF t0)
+    end
+  end

@@ -1,0 +1,303 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Static Semantics}\label{basic-static}
+A static semantics for \basiccore\ is provided in
+Figures~\ref{fig:basic-static1}, \ref{fig:basic-static2}, and
+\ref{fig:basic-static3}.
+The \basiccore\ static semantics is based on the static
+semantics of Featherweight Generic Java (FGJ)~\cite{fgj}. The major
+difference is the division of classes into traits and objects. 
+Both trait and object definitions
+include method definitions but only object definitions include field
+definitions. With traits, \basiccore\ supports multiple inheritance.
+However, due to the similarity of traits and objects, many of the rules
+in the \basiccore\ dynamic and static semantics combine
+the two cases.  Note that \basiccore\ allows parametric 
+polymorphism, subtype polymorphism, and overriding in much the
+same way that FGJ does.
+
+\begin{figure}[htbp!]
+Environments\\
+
+$
+\begin{array}{llll}
+\tvenv &::=& \seq{\tvone \subtype \tappone}\rulesep\rulesep
+ & \mbox{bound environment}\\
+\tyenv &::=& \seq{\vname:\ty} & \mbox{type environment}\\ \\
+\end{array}
+$
+
+Program typing: \fbox{\provesP{\pgm}{\ty}} \\ \\
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\pgm = \seq{\d}~\exp
+\rulesep
+\provesD{\seq{\d}}
+\rulesep
+\provesE{\emptyset}{\emptyset}{\exp}{\ty}
+\end{array}
+}
+{\provesP{\pgm}{\ty}}
+{\tProgramRule} \\ \\
+\end{tabular}
+
+Definition typing: \fbox{\provesD{\d}} \\ \\
+
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\tvenv = \seq{\tvone \subtype \tappone}
+\rulesep
+\provesW{\seq{\tappone}}\rulesep
+\provesW{\seq{\tapptwo}}\rulesep
+\provesM{\self:\tname\bsTP{\seq{\tvone}}}{T}{\seq{\fd}}\\
+\oneOwner(\tname)
+\end{array}
+}
+{\provesD{\tdsyntaxTD}}
+{\tTraitDefRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\tvenv = \seq{\tvone \subtype \tappone}\rulesep
+\provesW{\seq{\tappone}}\rulesep
+\provesW{\tys}\rulesep
+\provesW{\seq{\tapptwo}}\\
+\provesM{\self:\oname\bsTP{\seq{\tvone}}~\seq{\vname:\ty}}{O}{\seq{\fd}}
+\rulesep
+\oneOwner(\oname)
+\end{array}
+}
+{\provesD{\odsyntaxOD}}
+{\tObjectDefRule} \\ \\
+
+\end{tabular}
+
+Method typing: \fbox{\provesM{\tyenv}{C}{\fd}} \\ \\
+
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\dsyntaxMT \inp
+\rulesep
+\override(\fname, \set{\seq{\tapptwo}}, \ftnty)
+\\
+\prm\tvenv = \tvenv~\seq{\tvone \subtype \tappone}
+\rulesep
+\provesWD{\prm\tvenv}{\seq{\tappone}}\rulesep
+\provesWD{\prm\tvenv}{\tys}\rulesep
+\provesWD{\prm\tvenv}{\retty}\rulesep
+\\
+{\provesE {\prm\tvenv}
+          {\tyenv~\seq{\vname:\ty}}
+          {\exp}{\tyP}}\rulesep
+\provesSD{\prm\tvenv}{\tyP}{\retty}
+\end{array}
+}
+{\provesM{\tyenv}{C}{\fdsyntaxMD}}
+{\tMethodDefRule} \\ \\
+\end{tabular}
+
+Method overriding: \fbox{\overrideTemplate} \\ \\
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+{
+\bigcup_{\sub\tappthree i\in\set{\seq{\tappthree}}} 
+\mtypeF{\sub\tappthree i} = \set{\ftntytwo}
+}
+\\
+\begin{array}{c}
+\seq{\tappone} = \substseq{\tvone}{\tvtwo}\seq{\tapptwo}\rulesep 
+\tys = \substseq{\tvone}{\tvtwo}\seq{\tyP}\rulesep 
+\provesSD{\tvenvone}{\retty}{\substseq{\tvone}{\tvtwo}\rettytwo}
+\end{array}
+\end{array}
+}
+{\overrideD}
+{\overrideRule}\\ \\
+\end{tabular}
+
+Method type lookup: \fbox{\mtypeF{\ty} = \set{\ftntyTemplate}}\\
+
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\dsyntaxMB\inp\rulesep
+\fdsyntaxMTB\in\set{\seq\fd}
+\end{array}
+}
+{\mtypeF{\capp} = \set{\substseq{\ty}{\tvone}\ftntytwo}}
+{\mtBothRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\dsyntaxMS\inp\rulesep
+\fname\not\in\set{\seq{\Fname(\fd)}}
+\end{array}
+}
+{\mtypeF{\capp} = 
+\bigcup_{\sub\tappone i\in{\set{\seq\tappone}} }
+ \mtypeF{\substseq{\ty}{\tvone} \sub\tappone i}}
+{\mtSuperRule} \\ \\
+
+\newrule{\mtypeF\obj = \emptyset}{\mtObjRule}\\ \\
+
+\end{tabular}
+
+\caption{Static Semantics of \basiccore\ (I)}\label{fig:basic-static1}
+\end{figure}
+
+\begin{figure}[htbp]
+Expression typing: \fbox{\provesEd{\exp}{\ty}} \\ \\
+
+\begin{tabular}{lc}
+\newrule{\provesEd{\vname}{\tyenv(\vname)}}{\tVarRule} \\ \\
+
+\newrule{\provesEd{\self}{\tyenv(\self)}}{\tSelfRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\odsyntaxObj\inp\rulesep
+\provesW{\oapp}\\
+\provesEd{\seq{\exp}}{\seq{\tyPP}}\rulesep
+\provesS{\seq{\tyPP}}{\substseq{\ty}{\tvone}\seq{\tyP}}
+\end{array}
+}
+{\provesEd{\oapp\eargs}{\oapp}}
+{\tObjectRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\provesEd{\sub\exp 0}{\retty}\rulesep
+\boundF(\retty) = \oappP\rulesep
+\odsyntaxFld\inp
+\end{array}
+}
+{\provesEd{\sub\exp 0\mt{.}\sub\vname i}{\substseq{\tyP}{\tvone}{\tyn i}}}
+{\tFieldRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\provesEd{\sub\exp 0}{\retty}\rulesep
+\mtypeF{\boundF(\retty)} = \set{\ftntyone}\\
+\provesW{\tys}\rulesep
+\provesS{\tys}{\substseq{\ty}{\tvone}\seq\tappone}\\
+\provesEd{\seq\exp}{\seq{\tyPP}}\rulesep
+\provesS{\seq{\tyPP}}{\substseq{\ty}{\tvone}\tysP}\\
+\end{array}
+}
+{\provesEd{\invoke{\exp_0}{\ftapp\eargs}}{\substseq{\ty}{\tvone}\rettytwo}}
+{\tInvkRule} \\ \\
+\end{tabular}
+
+Subtyping: \fbox{\provesS{\ty}{\ty}}\\\\
+
+\begin{tabular}{lc}
+\newrule{{\provesS{\ty}{\obj}}}{\sObjRule} \\ \\
+
+\newrule{{\provesS{\ty}{\ty}}}{\sReflRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\provesS{\tyn 1}{\tyn 2}\rulesep
+\provesS{\tyn 2}{\tyn 3}
+\end{array}
+}
+{\provesS{\tyn 1}{\tyn 3}}{\sTransRule} \\ \\
+
+\newrule{\provesS{\tvone}{\tvenv(\tvone)}}{\sVarRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\dsyntaxSB\inp\rulesep
+\end{array}
+}
+{\provesS{\capp}{\substseq{\ty}{\tvone}\sub\tappone i}}{\sBothRule} \\ \\
+\end{tabular}
+
+Well-formed types: \fbox{\provesW\ty} \\ \\
+\begin{tabular}{lc}
+\newrule{\provesW{\obj}}{\wObjRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\tvone\in\me{dom}(\tvenv)
+\end{array}
+}
+{\provesW{\tvone}}{\wVarRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\dsyntaxWB\inp\rulesep
+\provesW{\tys}\rulesep
+\provesS{\tys}{\substseq{\ty}{\tvone}\seq\tappone}
+\end{array}
+}
+{\provesW{\capp}}{\wBothRule} \\ \\
+\end{tabular}
+
+\caption{Static Semantics of \basiccore\ (II)}\label{fig:basic-static2}
+\end{figure}
+
+\begin{figure}[htbp]
+
+
+Bound of type: \fbox{\boundF(\ty) = \tynontv} \\
+
+$\begin{array}{lcl}
+\boundF(\tvone) &=& \tvenv(\tvone)\\
+\boundF(\tynontv) &=& \tynontv \\
+\end{array}$\\ \\
+
+One owner for all the visible methods: \fbox{\oneOwner(\cname)} \\ \\
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\forall\fname\in\visible(\cname)~.~
+\mbox{$f$ \emph{only occurs once in }}\visible(\cname)
+\end{array}
+}
+{\oneOwner(\cname)}
+{\oneOwnerRule}\\ \\
+\end{tabular}
+
+Auxiliary functions for methods:
+\fbox{\defined~/~\inherited~/~\visible(\cname) = \set{\seq\fname}}\\
+
+$
+\begin{array}{rlll}
+\defined(\cname) = & 
+\set{\seq{\Fname(\fd)}}
+& \mbox{where } \ignore\ \cname\ignore\fds\ignore\ \inp
+\\ \\
+
+\inherited(\cname) = & 
+\biguplus_{\tappone_i\in\set{\seq\tappone}}\
+\set{\fname_i~|~
+\fname_i\in\visible(\tappone_i),
+\fname_i\not\in\defined(\cname)}
+& \mbox{where } \dsyntaxOVER \inp 
+\\ \\
+
+\visible(\cname) = & \defined(\cname) \uplus\ \inherited(\cname)
+\\ \\
+\end{array}
+$
+
+\caption{Static Semantics of \basiccore\ (III)}\label{fig:basic-static3}
+\end{figure}
+
+We proved the type soundness of \basiccore\ using the standard
+technique of proving a progress theorem and a subject reduction
+theorem.

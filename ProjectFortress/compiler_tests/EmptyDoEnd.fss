@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Test fix for #362: Empty do/end blocks fail during codegen and/or class loading. *)
+
+f(z : ZZ32): () = do
+  end
+
+g(s : String): String = do
+    do end
+    s
+  end
+
+run(): () = do
+    f(5)
+    println(g("OK"))
+  end

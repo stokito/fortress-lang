@@ -1,0 +1,53 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+DimUnitDecl =
+     "dim" w OpName (w "=" w NoNewlineType)? s ("unit" / "SI_unit") w Id (wr Id)*
+       (w "=" w NoNewlineExpr)? // Error production
+   / "dim" w Id (w "=" w NoNewlineType)? s ("unit" / "SI_unit") w OpName (wr Id)*
+       (w "=" w NoNewlineExpr)? // Error production
+   / "dim" w Id (w "=" w NoNewlineType)? s ("unit" / "SI_unit") w Id (wr Id)*
+       (w "=" w NoNewlineExpr)?
+   / "dim" w OpName (w "=" w NoNewlineType)? (w "default" w Id)? // Error production
+   / "dim" w Id (w "=" w NoNewlineType)? w "default" w OpName // Error production
+   / "dim" w Id (w "=" w NoNewlineType)? (w "default" w Id)?
+   / ("unit" / "SI_unit") w OpName (wr Id)* (w ":" w NoNewlineType)? (w "=" w NoNewlineExpr)?
+     // Error production
+   / ("unit" / "SI_unit") w Id (wr Id)* (w ":" w NoNewlineType)? (w "=" w NoNewlineExpr)?
+
+TypeAlias =
+     "type" w Id (w StaticParams)? w "=" w NoNewlineType
+   / "type" w OpName (w StaticParams)? w "=" w NoNewlineType // Error production
+
+TestDecl =
+     "test" w Id w "[" w GeneratorClauseList w "]" w "=" w NoNewlineExpr
+   / "test" w OpName w "[" w GeneratorClauseList w "]" w "=" w NoNewlineExpr // Error production
+
+PropertyDecl =
+     "property" (w Id w "=")? (w "FORALL" w ValParam)? w NoNewlineExpr
+   / "property" (w OpName w "=")? (w "FORALL" w ValParam)? w NoNewlineExpr // Error production
+
+ExternalSyntax = "syntax" w OpenExpander w Id w CloseExpander w "=" w NoNewlineExpr
+
+OpenExpander =
+     Id
+   / LeftEncloser
+   / Encloser
+
+CloseExpander =
+     Id
+   / RightEncloser
+   / Encloser
+   / "end"
+
+AbsExternalSyntax = "syntax" w OpenExpander w Id w CloseExpander
+\end{verbatim}

@@ -1,0 +1,32 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+object FailCalled(s:String) extends UncheckedException
+    getter asString(): String = "FAIL: " s
+end
+
+ignore(_:Any):() = ()
+
+identity[\T extends Any\](x:T):T = x
+
+(* Function composition *)
+opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
+
+fail[\T\](s:String):T = do
+    println("FAIL: " s)
+    throw FailCalled(s) 
+  end
+
+run():() = do
+
+end

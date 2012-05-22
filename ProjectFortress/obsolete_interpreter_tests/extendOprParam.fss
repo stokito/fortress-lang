@@ -1,0 +1,30 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component extendOprParam
+export Executable
+
+trait Monoidish[\ T, opr OPLUS \]
+  where { T extends Monoidish[\ T, OPLUS \] }
+    ident() : T
+    opr OPLUS(self, other:T):T
+end
+
+value object Chicken extends Monoidish[\ Chicken, EGG \]
+  opr EGG(self, other:Chicken):Chicken = Chicken
+  ident() = Chicken
+  isChicken() = true
+end
+
+run():() =
+  println(if (Chicken EGG Chicken).isChicken() then "PASS" else "FAIL")
+
+end
