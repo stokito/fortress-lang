@@ -118,4 +118,16 @@ component Bazaar
   
   beyond(s: String,c: Character): String = s
 
+  reverse(s: String): String = s
+
+  list_filter[\T\](l: List[\T\], p : T -> Boolean): List[\T\] = 
+    if |l| = 0 then emptyList[\T\]()
+    else if |l| = 1 then if p(l.getVal()) then l else emptyList[\T\]() end
+         else do (left,right) = l.split()
+                 (list_filter(left,p)).concat(list_filter(right,p))
+              end
+         end
+    end
+  
+
 end
