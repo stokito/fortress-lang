@@ -154,7 +154,7 @@ end
  **)
 object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
                           readOne:ReadStream -> Maybe[\S\])
-        extends { Consumable, Generator[\S\] }
+        extends { Consumable, Generator[\S\], SequentialGenerator[\S\] }
     consumed : Boolean := false
     up : ZZ32 = if upper <= 0 then 1024 else upper end
     consume():() = atomic do whenUnconsumed(); consumed := true end

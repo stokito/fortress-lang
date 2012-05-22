@@ -20,8 +20,8 @@ colorsToACGT(start: Character, colorstr: String): String
 
 trait ReferenceGenome extends { SequentialGenerator[\ReferenceGenomeChunk\] } end
 
-trait ReferenceGenomeChunk comprises {...}
-  currentChunkRange(): Range
+object ReferenceGenomeChunk(start: ZZ32, length: ZZ32, buffer: String, padLength: ZZ32)
+  getter range(): Range
   getACGT(r: Range): String
   getColors(r: Range): String
 end ReferenceGenomeChunk
@@ -29,18 +29,13 @@ end ReferenceGenomeChunk
 getReferenceGenomeFromFile(fileName: String, chunkSize: ZZ32, maxReadSize: ZZ32): ReferenceGenome
 
 trait ReadList
-  getReads(refChunk: ReferenceGenomeChunk): List[\Read\]
+  abstract getReads(refChunk: ReferenceGenomeChunk): List[\Read\]
 end ReadList
 
 getReadListFromFile(fileName: String, maxReadSize: ZZ32): ReadList
 
-trait Read comprises {...}
-  header: String
-  sampleACGT: String
-  name: String
-  pos: ZZ32
-  length: ZZ32
-  seqend: ZZ32
+object Read(header: String, sequence: String, name: String, pos: ZZ32, length: ZZ32, seqend: ZZ32,
+            negativeOrientation: Boolean, refChunk: ReferenceGenomeChunk)
   getter asString(): String
   getter refACGT(): String
   getter refColors(): String
