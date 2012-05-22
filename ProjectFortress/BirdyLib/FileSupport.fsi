@@ -114,7 +114,11 @@ end
 
 object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
                           readOne:ReadStream -> Maybe[\S\])
-        extends { Consumable, Generator[\S\] }
+        extends { Consumable, Generator[\S\], SequentialGenerator[\S\] }
 end
+
+object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> Maybe[\S\])
+        extends { Consumable, SequentialGenerator[\S\] }
+end        
 
 end

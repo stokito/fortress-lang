@@ -51,7 +51,7 @@ trait Map[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object 
     mem(k:Key): Map[\Key,Val\] = do
         n : Map[\Key,Val\] := self
         notDone : Boolean := true
-        (*while notDone do
+        while notDone do
             typecase n of
                 ni:NodeMap[\Key,Val\] =>
                     typecase k CMP ni.getKey() of
@@ -61,7 +61,7 @@ trait Map[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object 
                     end
                 else => notDone := false
             end
-        end*)
+        end
         n
       end
     member(x:Key): Maybe[\Val\] =
@@ -331,12 +331,12 @@ object NodeMap[\Key extends {StandardTotalOrder[\Key\] , Object},Val extends { O
     minimum():Just[\(Key,Val)\] = do
         t : NodeMap[\Key,Val\] := self
         notDone : Boolean := true
-        (*while notDone do
+        while notDone do
             typecase t.getLeftChild() of
                 l:NodeMap[\Key,Val\] => t := l
                 else => notDone := false
             end
-        end*)
+        end
         Just[\(Key,Val)\](t.getPair())
       end
     extractMinimum():Just[\(Key,Val,Map[\Key,Val\])\] =
@@ -348,12 +348,12 @@ object NodeMap[\Key extends {StandardTotalOrder[\Key\] , Object},Val extends { O
     maximum():Just[\(Key,Val)\] = do
         t : NodeMap[\Key,Val\] := self
         notDone : Boolean := true
-        (*while notDone do
+        while notDone do
             typecase t.getRightChild() of
                 r:NodeMap[\Key,Val\] => t := r
                 else => notDone := false
             end
-        end*)
+        end
         Just[\(Key,Val)\](t.getPair())
       end
     extractMaximum():Just[\(Key,Val,Map[\Key,Val\])\] =
