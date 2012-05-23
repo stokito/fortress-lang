@@ -256,12 +256,12 @@ object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> Maybe[\S\]
     generate[\R\](r: Reduction[\R\], body: S->R): R = do
         consume()
         a:R := r.empty()
-        (*while (NOT reader.eof) do
+        while (NOT reader.eof) do
             if s <- readOne(reader) then
                 v = body(s)
                 a := r.join(a,v)
             end
-        end*)
+        end
         reader.close()
         a
       end
@@ -270,11 +270,11 @@ object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> Maybe[\S\]
 
     loop(body:S->()): () = do
         consume()
-        (*while (NOT reader.eof) do
+        while (NOT reader.eof) do
             if s <- readOne(reader) then
                 body(s)
             end
-        end*)
+        end
         reader.close()
       end
 end
