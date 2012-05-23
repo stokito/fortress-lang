@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component overloadedLocalFunctions
+  export Executable
+  run() = do
+    printType(x: Any) = println (x ": " typeName x)
+    typeName(_: ())      = "()"
+    typeName(_: ZZ32)    = "ZZ32"
+    typeName(_: RR64)    = "RR64"
+    typeName(_: Boolean) = "Boolean"
+    typeName(_: Char)    = "Char"
+    typeName(_: String)  = "String"
+    typeName(_: Any)     = "Any"
+    printType 5.7; printType true; printType 'c'
+  end
+end

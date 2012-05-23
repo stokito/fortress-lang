@@ -1,0 +1,90 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Operator Applications}
+\seclabel{operator-app-expr}
+
+\note{Examples/discussion of juxtaposition as an operator.
+
+Should be a static check that an applicable declaration exists.
+}
+
+\begin{Grammar}
+\emph{OpExpr}
+&::=& \emph{EncloserOp} \option{\emph{OpExpr}} \option{\emph{EncloserOp}} \\
+&$|$& \emph{OpExpr} \emph{EncloserOp} \option{\emph{OpExpr}} \\
+&$|$& \emph{Primary}\\
+
+\emph{EncloserOp} &::=& \emph{Encloser}\\
+&$|$& \emph{Op}\\
+
+\emph{Primary}
+&::=& \emph{LeftEncloser} \option{\emph{StaticArgs}} \option{\emph{ExprList}} \emph{RightEncloser} \\
+&$|$& \emph{Primary} \verb+^+ \emph{Exponent}\\
+&$|$& \emph{Primary} \emph{ExponentOp}\\
+
+\emph{Exponent}
+&::=& \emph{Id}\\
+&$|$& \emph{ParenthesisDelimited}\\
+&$|$& \emph{LiteralExpr}\\
+&$|$& \KWD{self}\\
+
+\emph{ExponentOp} &::=& \verb+^T+ $|$ \verb+^+(\emph{Encloser} $|$ \emph{Op})\\
+
+\end{Grammar}
+
+To support a rich mathematical notation, Fortress allows most Unicode
+characters that are specified to be mathematical operators to be used as
+operators in Fortress expressions, as well as various tokens described in
+\chapref{operators}.
+Most of the operators can be used as prefix, infix, postfix, or
+nofix operators as described in \secref{operator-fixity};
+the fixity of an operator is determined syntactically, and
+the same operator may have definitions for multiple fixities.
+
+Syntactically, an operator application consists of an operator and its
+argument expressions.  If the operator is a prefix operator, it is followed
+by its argument expression.  If the operator is an infix operator, its two
+argument expressions come both sides of the operator.  If the operator is a
+postfix operator, it comes right after its argument expression.
+Like function calls,
+argument expressions are evaluated \emph{in parallel} in separate implicit threads.
+After evaluation of arguments completes normally,
+the body of the operator definition is evaluated
+with the parameters of the operator bound to the values of the argument
+expressions.  The value and the type of an operator application are the
+value and the type of the operator body.
+See \chapref{operators} for a detailed description of operators.
+
+
+Here are some examples:
+\input{\home/basic/examples/Expr.OprApp.tex}
+
+
+\note{The following examples are not yet working:}
+% a[k] b[n-k]
+% 17.3 meter/second
+% 17.3 m/s
+% u DOT (v CROSS w)
+% (A CUP B) INTERSECT C
+% (A CUP B) CAP C
+% i < j <= k AND p PREC q
+% <|2, 3, 4, 5|>
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( a_k\:b_{n-k}\)\\
+\( 17.3\,\TYP{meter}/\TYP{second}\)\\
+\( 17.3 m/s\)\\
+\( u \cdot (v \times w)\)\\
+\( (A \cup B) \OPR{INTERSECT}\:C\)\\
+\( (A \cup B) \cap C\)\\
+\( i < j \leq k \wedge p \prec q\)\\
+\( \langle{}2, 3, 4, 5\rangle\)\-\\\poptabs
+\end{Fortress}

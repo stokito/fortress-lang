@@ -1,0 +1,41 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(* Pattern Matching Test 2
+   with the keyword value parameter      *)
+
+import List.{...}
+export Executable
+
+trait T(a:ZZ, b:String)
+   c : NN32
+end
+
+object O(d:RR64, e:ZZ32 = 3)
+   f:List[\ZZ\] = <|[\ZZ\] 2, 3, 4, 5 |>
+end
+
+object T1(a:ZZ, b:String) extends T
+    c = 6
+end
+
+run():() = do
+   p : T(q, r, s=c) = T1(2, "Test")
+   v : O(w, x=f, y=e) = O(3.2, 4)
+
+   assert(q, 2, "The test failed!!")
+   assert(r, "Test", "The test failed!!")
+   assert(s, 6, "The test failed!!")
+   assert(w, 3.2, "The test failed!!")
+   assert(x, <|[\ZZ\] 2, 3, 4 5 |>, "The test failed!!")
+   assert(y, 4, "The test failed!!")
+   println "The test is successful."
+end

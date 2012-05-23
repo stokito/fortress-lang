@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component DeclTest
+export Executable
+
+type IntList = List[\ZZ32\]
+
+test fxLessThnFy[x <- E, y <- F] = assert(f(x) < f(y))
+
+property fIsMonotonic = FORALL(x: ZZ, y: ZZ) (x < y) IMPLIES (f(x) < f(y))
+
+run() = ()
+
+end

@@ -1,0 +1,24 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Multiple variable declarations in a single line with and without type annotations *)
+
+b: ZZ32 = 5
+(m: String, n) = (b, b)
+
+
+run() = do
+  a: ZZ32 = 3
+  (x: String, y) = (a, a)
+  println x
+end

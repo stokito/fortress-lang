@@ -1,0 +1,115 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+
+component SkipTreeTest
+import SkipTree.{...}
+import PureList.{...}
+export Executable
+
+    testBinarySearch():() = do
+        testList = <| 5, 10, 15, 20 |>
+        assert(binarySearch[\ZZ32\](testList, 2), -1)
+        assert(binarySearch[\ZZ32\](testList, 5), 0)
+        assert(binarySearch[\ZZ32\](testList, 7), -2)
+        assert(binarySearch[\ZZ32\](testList, 10), 1)
+        assert(binarySearch[\ZZ32\](testList, 13), -3)
+        assert(binarySearch[\ZZ32\](testList, 15), 2)
+        assert(binarySearch[\ZZ32\](testList, 17), -4)
+        assert(binarySearch[\ZZ32\](testList, 20), 3)
+        assert(binarySearch[\ZZ32\](testList, 23), -5)
+    end
+
+    testLeafInsert1():() = do
+        a = LeafNode[\ZZ32,String\](7,"foo",3)
+        observed = a.insert(5, "bar", 2)
+
+        keys = <| 7 |>
+        values = <| "foo" |>
+        children = <|[\Maybe[\Node[\ZZ32,String\]\]\]
+            Just[\Node[\ZZ32,String\]\](LeafNode[\ZZ32,String\](5,"bar",2)),
+            Nothing[\Node[\ZZ32,String\]\] |>
+
+        expected = Node[\ZZ32,String\](keys,values,children,3)
+
+        assert(observed,expected)
+
+    end
+
+    testLeafInsert2():() = do
+        a = LeafNode[\ZZ32,String\](7,"foo",3)
+        observed = a.insert(5, "bar", 3)
+
+        keys = <| 5,7 |>
+        values = <| "bar","foo" |>
+        children = <|[\Maybe[\Node[\ZZ32,String\]\]\]
+            Nothing[\Node[\ZZ32,String\]\],
+            Nothing[\Node[\ZZ32,String\]\],
+            Nothing[\Node[\ZZ32,String\]\] |>
+
+        expected = Node[\ZZ32,String\](keys,values,children,3)
+
+        assert(observed,expected)
+
+    end
+
+    testLeafInsert3():() = do
+        a = LeafNode[\ZZ32,String\](7,"foo",3)
+        observed = a.insert(5, "bar", 4)
+
+        keys = <| 5 |>
+        values = <| "bar" |>
+        children = <|[\Maybe[\Node[\ZZ32,String\]\]\]
+             Nothing[\Node[\ZZ32,String\]\],
+             Just[\Node[\ZZ32,String\]\](LeafNode[\ZZ32,String\](7,"foo",3)) |>
+
+
+        expected = Node[\ZZ32,String\](keys,values,children,4)
+
+        assert(observed,expected)
+
+    end
+
+
+
+    testProbabilisticSkipTreeInsert():() = do
+        for i <- 1 # 4 do
+            tree:SkipTree[\ZZ32,ZZ32\] := EmptySkipTree[\ZZ32,ZZ32\]
+            for j <- seq(1 # narrow(|\ random(64) /|)) do
+                newkey = narrow(|\ random(1024) /|)
+                newvalue = newkey
+                oldvalue = tree.find(newkey)
+                newTree = tree.insert(newkey, newvalue)
+                newTree.verify()
+                if oldvalue.isEmpty() AND (|tree| + 1 =/= |newTree|) then
+                    fail("Skip Tree has not grown on attempt to insert a new key!")
+                elif NOT oldvalue.isEmpty() AND (|tree| =/= |newTree|) then
+                    fail("Skip Tree has grown on attempt to insert an existing key!")
+                end
+                tree := newTree
+            end
+            (* println tree.toDotString("WallE") *)
+            (* println (|tree| / tree.count()) *)
+        end
+    end
+
+
+    run():() = do
+        testBinarySearch()
+        testLeafInsert1()
+        testLeafInsert2()
+        testLeafInsert3()
+        testProbabilisticSkipTreeInsert()
+
+
+    end
+
+end (* component SkipTreeTest *)

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2008, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+FORTRESS_HOME="`${0%fortify}fortress_home`"
+
+USE_EMACS=${USE_EMACS:-emacs}
+[ -n "$EMACS" ] && unset EMACSLOADPATH
+"${USE_EMACS}" -batch "$@" -l "$FORTRESS_HOME/Fortify/fortify.el" -f batch-fortify

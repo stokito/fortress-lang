@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component AliasedGetterTest
+export Executable
+
+object Test(testField: ZZ32)
+    getter testField(): ZZ32 = testField + 8
+    actualTestField(): ZZ32 = testField
+    internalGetter(): ZZ32 = self.testField
+end
+
+run():() = do
+    t : Test = Test(7)
+    assert(t.actualTestField(),7)
+    assert(t.testField,15)
+    assert(t.internalGetter(),15)
+end
+
+end

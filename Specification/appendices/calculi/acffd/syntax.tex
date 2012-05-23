@@ -1,0 +1,47 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Syntax}\label{acffd-syntax}
+The syntax for \acffdcore\ is provided in Figure
+\ref{fig:acffd-syntax}.  
+
+\begin{figure*}[htbp!]
+\[
+\begin{array}{llll}
+\tvone, \tvtwo&& &  \mbox{type variables}\\
+\fname&& &  \mbox{method name}\\
+\vname, y, z&& &  \mbox{field names}\\
+\tname&& &  \mbox{trait name}\\
+\oname&& &  \mbox{object name}\\
+\ty, \prm\ty, \prm{\prm\tau} &::=& \tvone &\mbox{type}\\
+         &|& \tynontv\\ 
+\tynontv&::=& \tappone & \mbox{type that is not a type variable}\\
+         &|& \oapp \\
+\tappone, \tapptwo, \tappthree &::=& \tapp
+& \mbox{type that can be a type bound}\\
+         &|& \obj\\
+\exp   &::=& \vname & \mbox{expression}\\
+         &|& \self\\
+         &|& \objexp\\
+         &|& \fldacc\\
+         &|& \mthinvk\\
+\fd &::=& \fdsyntax& \mbox{method definition}\\
+\vd &::=& \vdsyntax& \mbox{field definition}\\
+\td &::=& \tdsyntax& \mbox{trait definition}\\
+\od &::=& \odsyntax& \mbox{object definition}\\
+\d &::=& \td & \mbox{definition}\\
+   &|  & \od \\
+\pgm &::=& \pd & \mbox{program}\\
+\end{array}
+\]
+\caption{Syntax of \acffdcore}
+\label{fig:acffd-syntax}
+\end{figure*}

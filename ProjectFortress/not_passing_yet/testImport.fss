@@ -1,0 +1,30 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component testImport
+
+import Foo.{...} except z
+import TestNative.{ TNFoo => MyFoo }
+
+export Executable
+
+y:ZZ32 = 17
+z:ZZ32 = 11
+
+run() = do
+    println("f(3) = " f(3))
+    println("x = " x)
+    println("y = " y)
+    println("z = " z)
+    assert("PASS! PASS! PASS! PASS!",MyFoo[\2\]("PASS!").bar(),"MyFoo[\\2\\]")
+end
+
+end

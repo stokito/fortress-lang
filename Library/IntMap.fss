@@ -1,0 +1,714 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component IntMap
+export IntMap
+import CovariantCollection.{...}
+
+(** Map from an integer key to an arbitrary value.  Based on bitwise
+    binary tries.  Purely functional and quite efficient. **)
+
+object KeyOverlap[\Val\](key:ZZ64, val1:Val, val2:Val) extends UncheckedException
+    getter asString(): String =
+        "IntMap.KeyOverlap: " key " |-> " val1 " and |-> " val2
+end
+
+trait IntMap[\Val\]
+        extends { Generator[\(ZZ64,Val)\], Equality[\IntMap[\Val\]\] }
+        comprises { EmptyIM[\Val\], NonEmptyIntMap[\Val\] }
+    getter isEmpty(): Boolean
+    getter asDebugString(): String
+    getter asString(): String
+    asDot(pre:String): String
+    toDot(): String =
+        ("strict digraph IntMap {" //
+         "graph [concentrate=true,fontsize=14,label=\"IntMap\",style=bold];" //
+         "node [fontsize=14,shape=box,style=outline];" //
+         self.asDot("") // "}")
+    dotLabel(pre:String): String
+    private seqgen[\R\](r: Reduction[\R\], body: (ZZ64,Val)->R): R
+    seq(self): SequentialGenerator[\(ZZ64,Val)\] = SeqIMGenerator[\Val\](self)
+    opr =(self, other:IntMap[\Val\]): Boolean = false
+    opr |self|: ZZ32
+    opr[k:ZZ64]: Val throws NotFound
+    member(x:ZZ64): Maybe[\Val\]
+    (** The two-argument version of %member% returns the default value %v%
+        if the key is absent from the map. **)
+    member(x:ZZ64, v:Val): Val
+    (** %minimum% and %maximum% refer to the key. **)
+    minimum():Maybe[\(ZZ64,Val)\]
+    deleteMinimum():IntMap[\Val\]
+    extractMinimum():Maybe[\(ZZ64,Val, IntMap[\Val\])\]
+    maximum(): Maybe[\(ZZ64,Val)\]
+    deleteMaximum():IntMap[\Val\]
+    extractMaximum():Maybe[\(ZZ64,Val, IntMap[\Val\])\]
+
+    (** If no mapping presently exists, maps %k% to %v%. **)
+    add(k:ZZ64, v:Val):NonEmptyIntMap[\Val\]
+    private add(s:SingletonIM[\Val\]):NonEmptyIntMap[\Val\]
+    (** As %add%, but throws %KeyOverlap% if %k% is already mapped. **)
+    addNew(k:ZZ64, v:Val): NonEmptyIntMap[\Val\] = addNew(SingletonIM[\Val\](k,v))
+    (** Internal: add given singleton node, complain if already mapped. **)
+    private addNew(s:SingletonIM[\Val\]): NonEmptyIntMap[\Val\]
+    (** Maps %k% to %v%. **)
+    update(k:ZZ64, v:Val):NonEmptyIntMap[\Val\] = update(SingletonIM[\Val\](k,v))
+    (** Internal: update with given singleton node **)
+    private update(n:SingletonIM[\Val\]): NonEmptyIntMap[\Val\]
+    (** Eliminate any mapping for key %k%. **)
+    delete(k:ZZ64):IntMap[\Val\]
+    (** Process mapping for key %k% with function %f%:
+        \begin{itemize}
+        \item If no mapping exists, %f% is passed %Nothing[\Val\]%
+        \item If %k% maps to value %v%, %f% is passed %Just[\Val\](v)%
+        \end{itemize}
+        If %f% returns %Nothing%, any mapping for %k% is deleted; otherwise,
+        %k% is mapped to the value contained in the result.
+     **)
+    updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:ZZ64): IntMap[\Val\]
+    (** %UNION% favors the leftmost value when a key occurs in both maps. **)
+    opr UNION(self, other: IntMap[\Val\]): IntMap[\Val\]
+    (** %UPLUS% (disjoint union) throws the %KeyOverlap% exception when a key
+        occurs in both maps. **)
+    opr UPLUS(self, other: IntMap[\Val\]): IntMap[\Val\]
+    (** The %union% method takes a function %f% used to combine the values
+        of keys that overlap.  **)
+    union(f:(ZZ64,Val,Val)->Val, other: IntMap[\Val\]): IntMap[\Val\]
+    (** %INTERSECTION% restricts the leftmost map to keys contained in the right map. **)
+    intersectionOp[\V\](other: IntMap[\V\]): IntMap[\(Val,V)\]
+    (** The %intersection% method takes a function %f% used to combine the values
+        of keys that overlap.  **)
+    intersection[\V,R\](f:(ZZ64,Val,V)->R, other: IntMap[\V\]): IntMap[\R\]
+(*
+    (** %DIFFERENCE% restricts the leftmost map to keys contained in the right map. **)
+    differenceOp[\V\](other: IntMap[\V\]): IntMap[\V\]
+*)
+    (** %SYMDIFF% returns the key/value mappings contained in exactly one input map. **)
+    opr SYMDIFF(self, other: IntMap[\Val\]): IntMap[\Val\]
+    (** %combine% is the ``swiss army knife'' combinator on pairs of maps.
+        We call %f% on keys present in both input maps.
+        %mapThis% must be equivalent to %mapFilter(doThis)% and
+        %mapThat% must be equivalent to %mapFilter(doThat)% for
+        some functions %doThis% and %doThat%.  They are called
+        for subtrees that are present only in one of the input maps.
+     **)
+    combine[\That,Result\](f:(ZZ64,Val,That)->Maybe[\Result\],
+                        mapThis:NonEmptyIntMap[\Val\]->IntMap[\Result\],
+                        mapThat:NonEmptyIntMap[\That\]->IntMap[\Result\],
+                        that: IntMap[\That\]): IntMap[\Result\] = do
+        cs(k:ZZ64,a:SingletonIM[\Val\],b:SingletonIM[\That\]): IntMap[\Result\] =
+            if v <- f(k,a.val,b.val) then
+                SingletonIM[\Result\](k,v)
+            else
+                EmptyIM[\Result\]
+            end
+        genComb[\That,Result\](cs,mapThis,mapThat,that)
+      end
+    (** %self.mapFilter(f)% is equivalent to:
+          %{ k |-> v'  |  (k,v) <- self, v' <- f(k,v) }
+        It fuses generation, mapping, and filtering.
+     **)
+    mapFilter[\Result\](f:(ZZ64,Val)->Maybe[\Result\]): IntMap[\Result\]
+    map[\R\](f:(ZZ64,Val)->R): IntMap[\R\]
+
+    (** Helper methods **)
+    private ordJoin(other:IntMap[\Val\]): IntMap[\Val\]
+    private ordJoin(k: ZZ64, other:IntMap[\Val\]): IntMap[\Val\]
+    (** %genComb% is like %combine%, but with a slightly nicer type for %f%. **)
+    private genComb[\That,Result\](f:(ZZ64,SingletonIM[\Val\],SingletonIM[\That\])->IntMap[\Result\],
+                        mapThis:NonEmptyIntMap[\Val\]->IntMap[\Result\],
+                        mapThat:NonEmptyIntMap[\That\]->IntMap[\Result\],
+                        that: IntMap[\That\]): IntMap[\Result\]
+    check(): IntMap[\Val\]
+    private checkL(l:ZZ64, d: ZZ64): Boolean
+    private checkU(u:ZZ64, d: ZZ64): Boolean
+    private checkLU(l:ZZ64, u:ZZ64, d: ZZ64): Boolean
+end IntMap
+
+(** Work around bug with generic functional method type inference in interpreter. **)
+opr INTERSECTION[\V,W\](this:IntMap[\V\], other:IntMap[\W\]): IntMap[\(V,W)\] =
+    this.intersectionOp[\W\](other)
+
+opr DIFFERENCE[\V,W\](this:IntMap[\V\], other:IntMap[\W\]):IntMap[\V\] =
+    this.differenceOp[\W\](other)
+
+private object EmptyIM[\Val\] extends IntMap[\Val\]
+    getter isEmpty(): Boolean = true
+    getter asDebugString(): String = "{}"
+    getter asString(): String = "{}"
+    asDot(pre:String): String = pre "empty [label=\"{}\"];"
+    dotLabel(pre:String): String = pre "empty"
+    generate[\R\](r: Reduction[\R\], body: (ZZ64,Val)->R): R = r.empty
+    seqgen[\R\](r: Reduction[\R\], body: (ZZ64,Val)->R): R = r.empty
+    opr |self|: ZZ32 = 0
+    opr =(self, other:EmptyIM[\Val\]): Boolean = true
+    opr[k:ZZ64]: Val throws NotFound = throw NotFound
+    member(x:ZZ64): Nothing[\Val\] = Nothing[\Val\]
+    (** The two-argument version of %member% returns the default value %v%
+        if the key is absent from the map. **)
+    member(x:ZZ64, v:Val): Val = v
+    (** %minimum% and %maximum% refer to the key. **)
+    minimum(): Nothing[\(ZZ64,Val)\] = Nothing[\(ZZ64,Val)\]
+    deleteMinimum(): IntMap[\Val\] = self
+    extractMinimum(): Nothing[\(ZZ64,Val, IntMap[\Val\])\] = Nothing[\(ZZ64,Val, IntMap[\Val\])\]
+    maximum(): Nothing[\(ZZ64,Val)\] = Nothing[\(ZZ64,Val)\]
+    deleteMaximum(): IntMap[\Val\] = self
+    extractMaximum(): Nothing[\(ZZ64,Val, IntMap[\Val\])\] = Nothing[\(ZZ64,Val, IntMap[\Val\])\]
+
+    (** If no mapping presently exists, maps %k% to %v%. **)
+    add(k:ZZ64, v:Val): SingletonIM[\Val\] = SingletonIM[\Val\](k,v)
+    private add(s:SingletonIM[\Val\]): SingletonIM[\Val\] = s
+    (** As %add%, but throws %KeyOverlap% if %k% is already mapped. **)
+    addNew(s:SingletonIM[\Val\]): NonEmptyIntMap[\Val\] = s
+    (** Internal: update with given singleton node **)
+    update(n:SingletonIM[\Val\]): NonEmptyIntMap[\Val\] = n
+    (** Eliminate any mapping for key %k%. **)
+    delete(k:ZZ64): EmptyIM[\Val\] = self
+    (** Process mapping for key %k% with function %f%:
+        \begin{itemize}
+        \item If no mapping exists, %f% is passed %Nothing[\Val\]%
+        \item If %k% maps to value %v%, %f% is passed %Just[\Val\](v)%
+        \end{itemize}
+        If %f% returns %Nothing%, any mapping for %k% is deleted; otherwise,
+        %k% is mapped to the value contained in the result.
+     **)
+    updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:ZZ64): IntMap[\Val\] =
+        if v <- f(Nothing[\Val\]) then SingletonIM[\Val\](k,v) else self end
+    (** %UNION% favors the leftmost value when a key occurs in both maps. **)
+    opr UNION(self, other: IntMap[\Val\]): IntMap[\Val\] = other
+    (** %UPLUS% (disjoint union) throws the %KeyOverlap% exception when a key
+        occurs in both maps. **)
+    opr UPLUS(self, other: IntMap[\Val\]): IntMap[\Val\] = other
+    (** The %union% method takes a function %f% used to combine the values
+        of keys that overlap.  **)
+    union(f:(ZZ64,Val,Val)->Val, other: IntMap[\Val\]): IntMap[\Val\] = other
+    (** %INTERSECTION% restricts the leftmost map to keys contained in the right map. **)
+    intersectionOp[\V\](other: IntMap[\V\]): IntMap[\(Val,V)\] = EmptyIM[\(Val,V)\]
+    (** The %intersection% method takes a function %f% used to combine the values
+        of keys that overlap.  **)
+    intersection[\V,R\](f:(ZZ64,Val,V)->R, other: IntMap[\V\]): IntMap[\R\] = EmptyIM[\R\]
+    (** %DIFFERENCE% restricts the leftmost map to keys contained in the right map. **)
+    differenceOp[\V\](other: IntMap[\V\]): IntMap[\V\] = self
+    (** %SYMDIFF% returns the key/value mappings contained in exactly one input map. **)
+    opr SYMDIFF(self, other: IntMap[\Val\]): IntMap[\Val\] = other
+    (** %self.mapFilter(f)% is equivalent to:
+          %{ k |-> v'  |  (k,v) <- self, v' <- f(k,v) }
+        It fuses generation, mapping, and filtering.
+     **)
+    mapFilter[\Result\](f:(ZZ64,Val)->Maybe[\Result\]): EmptyIM[\Result\] = self
+    map[\R\](f:(ZZ64,Val)->R): IntMap[\R\] = EmptyIM[\R\]
+
+    (** Helper methods **)
+    ordJoin(other:IntMap[\Val\]): IntMap[\Val\] = other
+    ordJoin(other:NonEmptyIntMap[\Val\]): NonEmptyIntMap[\Val\] = other
+    ordJoin(_:ZZ64, other:IntMap[\Val\]): IntMap[\Val\] = other
+    ordJoin(_:ZZ64, other:NonEmptyIntMap[\Val\]): NonEmptyIntMap[\Val\] = other
+    check(): IntMap[\Val\] = self
+    checkL(l:ZZ64, d: ZZ64): Boolean = do errorPrintln("Empty in NonEmpty"); false end
+    checkU(u:ZZ64, d: ZZ64): Boolean = self.checkL(u,d)
+    checkLU(l:ZZ64, u:ZZ64, d: ZZ64): Boolean = self.checkL(l,d)
+end EmptyIM
+
+trait NonEmptyIntMap[\Val\] extends IntMap[\Val\]
+        comprises { SingletonIM[\Val\], NodeIM[\Val\] }
+    getter isEmpty(): Boolean = false
+    getter topKey(): ZZ64
+    (** %minimum% and %maximum% refer to the key. **)
+    minimum():Just[\(ZZ64,Val)\]
+    extractMinimum():Just[\(ZZ64,Val, IntMap[\Val\])\]
+    maximum(): Just[\(ZZ64,Val)\]
+    extractMaximum():Just[\(ZZ64,Val, IntMap[\Val\])\]
+
+    (** %UNION% favors the leftmost value when a key occurs in both maps. **)
+    opr UNION(self, other: IntMap[\Val\]): NonEmptyIntMap[\Val\]
+    (** %UPLUS% (disjoint union) throws the %KeyOverlap% exception when a key
+        occurs in both maps. **)
+    opr UPLUS(self, other: IntMap[\Val\]): NonEmptyIntMap[\Val\]
+    (** The %union% method takes a function %f% used to combine the values
+        of keys that overlap.  **)
+    union(f:(ZZ64,Val,Val)->Val, other: IntMap[\Val\]): NonEmptyIntMap[\Val\]
+
+    (** Helper methods **)
+    private ordJoin(other:IntMap[\Val\]): NonEmptyIntMap[\Val\]
+    private ordJoin(_:ZZ64, other:IntMap[\Val\]): NonEmptyIntMap[\Val\] = self (* other empty *)
+    private ordJoin(tk:ZZ64, other:NonEmptyIntMap[\Val\]): NodeIM[\Val\] = (* other singleton *)
+        nodeIM[\Val\](self, tk, other)
+
+    (** Find nearest %SingletonIM% to %k% **)
+    private seek(k:ZZ64): SingletonIM[\Val\] = label done
+        n : NonEmptyIntMap[\Val\] := self
+        while true do
+            curr = n
+            typecase curr of
+                curr':NodeIM[\Val\] =>
+                    n := if k < curr'.key then curr'.left else curr'.right end
+                curr':SingletonIM[\Val\] => exit done with curr'
+                else => fail("Should not happen!")
+            end
+        end
+      end done
+end NonEmptyIntMap
+
+private object SingletonIM[\Val\](key:ZZ64, val:Val) extends NonEmptyIntMap[\Val\]
+    getter topKey(): ZZ64 = key
+    getter asDebugString(): String = self.asString
+    getter asString(): String = "{" key ||| "|->" ||| val "}"
+    dotLabel(pre:String): String = if key < 0 then pre "sn" (-key) else pre "s" key end
+    asDot(pre:String): String = self.dotLabel(pre) " [ label=\"" key "|->" val "\"];"
+    generate[\R\](r: Reduction[\R\], body: (ZZ64,Val)->R): R = body(key,val)
+    seqgen[\R\](r: Reduction[\R\], body: (ZZ64,Val)->R): R = body(key,val)
+    opr |self|: ZZ32 = 1
+    opr =(self, other:SingletonIM[\Val\]): Boolean = key=other.key AND: val=other.val
+    opr[k:ZZ64]: Val throws NotFound = if k=key then val else throw NotFound end
+    member(x:ZZ64): Maybe[\Val\] =
+        if x=key then Just[\Val\](val) else Nothing[\Val\] end
+    (** The two-argument version of %member% returns the default value %v%
+        if the key is absent from the map. **)
+    member(x:ZZ64, v:Val): Val =
+        if x=key then val else v end
+    (** %minimum% and %maximum% refer to the key. **)
+    minimum():Just[\(ZZ64,Val)\] = Just[\(ZZ64,Val)\](key,val)
+    deleteMinimum():IntMap[\Val\] = EmptyIM[\Val\]
+    extractMinimum():Just[\(ZZ64,Val, IntMap[\Val\])\] =
+        Just[\(ZZ64,Val, IntMap[\Val\])\](key,val, EmptyIM[\Val\])
+    maximum(): Just[\(ZZ64,Val)\] = minimum()
+    deleteMaximum():IntMap[\Val\] = EmptyIM[\Val\]
+    extractMaximum():Just[\(ZZ64,Val, IntMap[\Val\])\] = extractMinimum()
+
+    (** If no mapping presently exists, maps %k% to %v%. **)
+    add(k:ZZ64, v:Val):NonEmptyIntMap[\Val\] =
+        if k=key then self
+        else addU(k,v) end
+    add(s:SingletonIM[\Val\]):NonEmptyIntMap[\Val\] =
+        if s.key=key then self else addU(s) end
+    (** As %add%, but throws %KeyOverlap% if %k% is already mapped. **)
+    addNew(s:SingletonIM[\Val\]): NonEmptyIntMap[\Val\] =
+    if s.key=key then throw KeyOverlap(key,val,s.val)
+        else addU(s) end
+    (** Internal: update with given singleton node **)
+    update(n:SingletonIM[\Val\]): NonEmptyIntMap[\Val\] =
+        if n.key = key then n
+        else addU(n) end
+    addU(k:ZZ64, v:Val): NonEmptyIntMap[\Val\] = addU(SingletonIM[\Val\](k,v))
+    addU(s:SingletonIM[\Val\]): NonEmptyIntMap[\Val\] =
+        if s.key < key then s.ordJoin(self)
+        else self.ordJoin(s)
+        end
+    (** Eliminate any mapping for key %k%. **)
+    delete(k:ZZ64):IntMap[\Val\] = if k=key then EmptyIM[\Val\] else self end
+    (** Process mapping for key %k% with function %f%:
+        \begin{itemize}
+        \item If no mapping exists, %f% is passed %Nothing[\Val\]%
+        \item If %k% maps to value %v%, %f% is passed %Just[\Val\](v)%
+        \end{itemize}
+        If %f% returns %Nothing%, any mapping for %k% is deleted; otherwise,
+        %k% is mapped to the value contained in the result.
+     **)
+    updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:ZZ64): IntMap[\Val\] =
+        if k=key then
+            if v <- f(Just[\Val\](val)) then
+                SingletonIM[\Val\](k,v)
+            else
+                EmptyIM[\Val\]
+            end
+        elif v <- f(Nothing[\Val\]) then
+            self.add(k,v)
+        else
+            self
+        end
+    (** %UNION% favors the leftmost value when a key occurs in both maps. **)
+    opr UNION(self, other: IntMap[\Val\]): NonEmptyIntMap[\Val\] =
+        other.update(self)
+    (** %UPLUS% (disjoint union) throws the %KeyOverlap% exception when a key
+        occurs in both maps. **)
+    opr UPLUS(self, other: IntMap[\Val\]): NonEmptyIntMap[\Val\] =
+        other.addNew(self)
+    (** The %union% method takes a function %f% used to combine the values
+        of keys that overlap.  **)
+    union(f:(ZZ64,Val,Val)->Val, other: IntMap[\Val\]): NonEmptyIntMap[\Val\] = do
+        mf(mv: Maybe[\Val\]): Just[\Val\] =
+            Just[\Val\](if v <- mv then f(key,val,v) else val end)
+        other.updateWith(mf, key)
+      end
+    (** %INTERSECTION% restricts the leftmost map to keys contained in the right map. **)
+    intersectionOp[\V\](other: IntMap[\V\]): IntMap[\(Val,V)\] =
+        if v <- other.member(key) then SingletonIM[\(Val,V)\](key, (val,v))
+        else EmptyIM[\(Val,V)\] end
+    (** The %intersection% method takes a function %f% used to combine the values
+        of keys that overlap.  **)
+    intersection[\V,R\](f:(ZZ64,Val,V)->R, other: IntMap[\V\]): IntMap[\R\] =
+        if v <- other.member(key) then SingletonIM[\Val\](key,f(key,val,v))
+        else EmptyIM[\Val\] end
+    (** %DIFFERENCE% restricts the leftmost map to keys contained in the right map. **)
+    differenceOp[\V\](other: IntMap[\V\]): IntMap[\V\] =
+        if other.member(key).holds then EmptyIM[\Val\] else self end
+    (** %SYMDIFF% returns the key/value mappings contained in exactly one input map. **)
+    opr SYMDIFF(self, other: IntMap[\Val\]): IntMap[\Val\] =
+        other.updateWith(fn (mv) => if mv.holds then Nothing[\Val\] else Just[\Val\](val) end,
+                         key)
+    (** %self.mapFilter(f)% is equivalent to:
+          %{ k |-> v'  |  (k,v) <- self, v' <- f(k,v) }
+        It fuses generation, mapping, and filtering.
+     **)
+    mapFilter[\Result\](f:(ZZ64,Val)->Maybe[\Result\]): IntMap[\Result\] =
+        if v <- f(key,val) then SingletonIM[\Result\](key,v)
+        else EmptyIM[\Result\] end
+    map[\R\](f:(ZZ64,Val)->R): IntMap[\R\] = SingletonIM[\R\](key,f(key,val))
+
+    (** Helper methods **)
+    ordJoin(other:IntMap[\Val\]): NonEmptyIntMap[\Val\] = self (* other empty *)
+    ordJoin(other:NonEmptyIntMap[\Val\]): NodeIM[\Val\] = (* other singleton *)
+        nodeIM[\Val\](self,keySplit(key+1,other.key),other)
+    ordJoin(other:NodeIM[\Val\]): NodeIM[\Val\] = do
+        ok = other.topKey
+        tk = keySplit(key+1, ok)
+        if ok=tk then
+            nodeIM[\Val\](self.ordJoin(other.left),tk,other.right)
+        else
+            nodeIM[\Val\](self,tk,other)
+        end
+      end
+    check(): IntMap[\Val\] = self
+    checkL(l:ZZ64, d: ZZ64): Boolean =
+        if l <= key then
+            true
+        else
+            errorPrintln("Lower bound " l " > leaf " self)
+            false
+        end
+    checkU(u:ZZ64, d: ZZ64): () =
+        if key <= u then
+            true
+        else
+            errorPrintln("Upper bound " u " < leaf " self)
+            false
+        end
+    checkLU(l:ZZ64, u:ZZ64, d: ZZ64): () =
+        if l > key then
+            errorPrintln("Lower bound " l " > leaf " self)
+            false
+        elif key <= u then
+            true
+        else
+            errorPrintln("Upper bound " u " < leaf " self)
+            false
+        end
+end SingletonIM
+
+
+private object NodeIM[\Val\](left: NonEmptyIntMap[\Val\], key:ZZ64, right: NonEmptyIntMap[\Val\])
+        extends NonEmptyIntMap[\Val\]
+    getter topKey(): ZZ64 = key
+    getter asDebugString(): String =
+        "{" ||| left.asDebugString ||| "U" key ||| right.asDebugString ||| "}"
+    getter asString(): String = do
+        (mk,mv,rest) = extractMaximum().get
+        ("{" ||| (BIG |||[(k,v) <- rest] k ||| "|->" ||| v ",") ||| mk ||| "|->" ||| mv ||| "}" )
+      end
+    asDot(pre:String): String = do
+        l = self.dotLabel(pre)
+        (l " [ label=\"" key "\", shape=ellipse ];" // left.asDot(pre) // right.asDot(pre) //
+         l " -> " left.dotLabel(pre) ";" // l " -> " right.dotLabel(pre) ";")
+      end
+    dotLabel(pre:String): String = if key < 0 then pre "nn" (-key) else pre "n" key end
+    generate[\R\](r: Reduction[\R\], body: (ZZ64,Val)->R): R =
+        r.join(left.generate[\R\](r,body), right.generate[\R\](r,body))
+    seqgen[\R\](r: Reduction[\R\], body: (ZZ64,Val)->R): R = do
+        ll = left.seqgen[\R\](r,body)
+        rr = right.seqgen[\R\](r,body)
+        r.join(ll,rr)
+      end
+    opr |self|: ZZ32 = |left| + |right|
+    (* Note that unlike most other trees, tries have identical structure when
+       they're equal.  So we can check keys and fail fast before recurring.
+       If we wanted to do a *really* good job here we'd do it all using a local
+       function and exit...with on failure. *)
+    opr =(self, other:NodeIM[\Val\]): Boolean =
+        key=other.key AND: (left=other.left AND right=other.right)
+    opr[k:ZZ64]: Val throws NotFound = (self.seek(k))[k]
+    member(x:ZZ64): Maybe[\Val\] = self.seek(x).member(x)
+    (** The two-argument version of %member% returns the default value %v%
+        if the key is absent from the map. **)
+    member(x:ZZ64, v:Val): Val = self.seek(x).member(x,v)
+    (** %minimum% and %maximum% refer to the key. **)
+    minimum():Just[\(ZZ64,Val)\] = left.minimum()
+    deleteMinimum():IntMap[\Val\] = left.deleteMinimum().ordJoin(key,right)
+    extractMinimum():Just[\(ZZ64,Val, IntMap[\Val\])\] = do
+        (mk,mv,ll) = left.extractMinimum().get
+        Just[\(ZZ64,Val, IntMap[\Val\])\](mk,mv, ll.ordJoin(key,right))
+      end
+    maximum(): Just[\(ZZ64,Val)\] = right.maximum()
+    deleteMaximum():IntMap[\Val\] = left.ordJoin(key,right.deleteMaximum())
+    extractMaximum():Just[\(ZZ64,Val, IntMap[\Val\])\] = do
+        (mk,mv,rr) = right.extractMaximum().get
+        Just[\(ZZ64,Val, IntMap[\Val\])\](mk,mv, left.ordJoin(key,rr))
+      end
+
+    (** If no mapping presently exists, maps %k% to %v%. **)
+    add(k:ZZ64, v:Val):NonEmptyIntMap[\Val\] =
+        if k < key then left.add(k,v).ordJoin(right)
+        else left.ordJoin(right.add(k,v)) end
+    add(s:SingletonIM[\Val\]): NonEmptyIntMap[\Val\] =
+        if s.key < key then left.add(s).ordJoin(right)
+        else left.ordJoin(right.add(s)) end
+    (** As %add%, but throws %KeyOverlap% if %k% is already mapped. **)
+    addNew(s:SingletonIM[\Val\]): NonEmptyIntMap[\Val\] =
+        if s.key < key then left.addNew(s).ordJoin(right)
+        else left.ordJoin(right.addNew(s)) end
+    (** Maps %k% to %v%. **)
+    update(s:SingletonIM[\Val\]):NonEmptyIntMap[\Val\] =
+        if s.key < key then left.update(s).ordJoin(right)
+        else left.ordJoin(right.update(s)) end
+    (** Eliminate any mapping for key %k%. **)
+    delete(k:ZZ64):IntMap[\Val\] =
+        if k < key then left.delete(k).ordJoin(key,right)
+        else left.ordJoin(key,right.delete(k)) end
+    (** Process mapping for key %k% with function %f%:
+        \begin{itemize}
+        \item If no mapping exists, %f% is passed %Nothing[\Val\]%
+        \item If %k% maps to value %v%, %f% is passed %Just[\Val\](v)%
+        \end{itemize}
+        If %f% returns %Nothing%, any mapping for %k% is deleted; otherwise,
+        %k% is mapped to the value contained in the result.
+     **)
+    updateWith(f:Maybe[\Val\]->Maybe[\Val\], k:ZZ64): IntMap[\Val\] =
+        if k < key then left.updateWith(f,k).ordJoin(right)
+        else left.ordJoin(right.updateWith(f,k)) end
+    (** %UNION% favors the leftmost value when a key occurs in both maps. **)
+    opr UNION(self, other: IntMap[\Val\]): NodeIM[\Val\] = self
+    opr UNION(self, other: SingletonIM[\Val\]): NodeIM[\Val\] = self.add(other)
+    opr UNION(self, other: NodeIM[\Val\]): NodeIM[\Val\] = do
+        (l1,l2,k,r1,r2) = self.nodeNode[\Val\](other)
+        (l1 UNION l2).ordJoin(k, r1 UNION r2)
+      end
+    (** %UPLUS% (disjoint union) throws the %KeyOverlap% exception when a key
+        occurs in both maps. **)
+    opr UPLUS(self, other: IntMap[\Val\]): NonEmptyIntMap[\Val\] = self
+    opr UPLUS(self, other: SingletonIM[\Val\]): NodeIM[\Val\] = self.add(other)
+    opr UPLUS(self, other: NodeIM[\Val\]): NodeIM[\Val\] = do
+        (l1,l2,k,r1,r2) = self.nodeNode[\Val\](other)
+        (l1 UPLUS l2).ordJoin(k, r1 UPLUS r2)
+      end
+    (** The %union% method takes a function %f% used to combine the values
+        of keys that overlap.  **)
+    union(f:(ZZ64,Val,Val)->Val, other: IntMap[\Val\]): NonEmptyIntMap[\Val\] = self
+    union(f:(ZZ64,Val,Val)->Val, other: SingletonIM[\Val\]): NodeIM[\Val\] = do
+        k = other.key
+        v = other.val
+        mf(mv: Maybe[\Val\]): Just[\Val\] =
+            Just[\Val\](if val <- mv then f(k,val,v) else v end)
+        self.updateWith(mf, k)
+      end
+    union(f:(ZZ64,Val,Val)->Val, other: NodeIM[\Val\]): NodeIM[\Val\] = do
+        (l1,l2,k,r1,r2) = self.nodeNode[\Val\](other)
+        l1.union(f,l2).ordJoin(k, r1.union(f,r2))
+      end
+    (** %INTERSECTION% restricts the leftmost map to keys contained in the right map. **)
+    intersectionOp[\V\](other: IntMap[\V\]): IntMap[\(Val,V)\] =
+        typecase other of
+            other':SingletonIM[\V\] => self.seek(other'.key) INTERSECTION other'
+            other':NodeIM[\V\] =>
+                (l1,l2,k,r1,r2) = self.nodeNode[\V\](other')
+                (l1 INTERSECTION l2).ordJoin(k, r1 INTERSECTION r2)
+            else => EmptyIM[\(Val,V)\]
+        end
+    (** The %intersection% method takes a function %f% used to combine the values
+        of keys that overlap.  **)
+    intersection[\V,R\](f:(ZZ64,Val,V)->R, other: IntMap[\V\]): IntMap[\R\] =
+        typecase other of
+            other':SingletonIM[\R\] =>
+                self.seek(other'.key).intersection[\V,R\](f,other')
+            other':NodeIM[\R\] =>
+                (l1,l2,k,r1,r2) = self.nodeNode[\Val\](other')
+                l1.intersection[\V,R\](f,l2).ordJoin(k, r1.intersection[\V,R\](f,r2))
+            else => EmptyIM[\R\]
+        end
+    (** %DIFFERENCE% restricts the leftmost map to keys contained in the right map. **)
+    differenceOp[\V\](other: IntMap[\V\]): IntMap[\V\] =
+        typecase other of
+            other':SingletonIM[\V\] => self.delete(other'.key)
+            other':NodeIM[\V\] =>
+                (l1,l2,k,r1,r2) = self.nodeNode[\V\](other')
+                (l1 DIFFERENCE l2).ordJoin(k, r1 DIFFERENCE r2)
+            else => self
+        end
+    (** %SYMDIFF% returns the key/value mappings contained in exactly one input map. **)
+    opr SYMDIFF(self, other: IntMap[\Val\]): IntMap[\Val\] = self
+    opr SYMDIFF(self, other: SingletonIM[\Val\]): IntMap[\Val\] =
+        self.seek(other.key) SYMDIFF other
+    opr SYMDIFF(self, other: NodeIM[\Val\]): IntMap[\Val\] = do
+        (l1,l2,k,r1,r2) = self.nodeNode[\Val\](other)
+        (l1 SYMDIFF l2).ordJoin(k, r1 SYMDIFF r2)
+      end
+    (** %self.mapFilter(f)% is equivalent to:
+          %{ k |-> v'  |  (k,v) <- self, v' <- f(k,v) }
+        It fuses generation, mapping, and filtering.
+     **)
+    mapFilter[\Result\](f:(ZZ64,Val)->Maybe[\Result\]): IntMap[\Result\] =
+        left.mapFilter[\Result\](f).ordJoin(key, right.mapFilter[\Result\](f))
+    map[\R\](f:(ZZ64,Val)->R): IntMap[\R\] = left.map[\R\](f).ordJoin(key, right.map[\R\](f))
+
+    (** Helper methods **)
+    nodeNode[\V\](other: NodeIM[\V\]): (IntMap[\Val\],IntMap[\V\],ZZ64,IntMap[\Val\],IntMap[\V\]) = do
+        ok = other.key
+        if key = ok then
+            (left,other.left,key,right,other.right)
+        elif key < ok then
+            tk = keySplit(key, ok)
+            if tk = key then
+                (left,EmptyIM[\V\],tk,right,other)
+            elif tk = ok then
+                (self,other.left,tk,EmptyIM[\Val\],other.right)
+            else
+                (self,EmptyIM[\V\],tk,EmptyIM[\Val\],other)
+            end
+        else
+            tk = keySplit(key, ok)
+            if tk = key then
+                (left,other,tk,right,EmptyIM[\V\])
+            elif tk = ok then
+                (EmptyIM[\Val\],other.left,tk,self,other.right)
+            else
+                (EmptyIM[\Val\],other,tk,self,EmptyIM[\V\])
+            end
+        end
+      end
+
+    ordJoin(other:IntMap[\Val\]): NodeIM[\Val\] = self (* other empty *)
+    ordJoin(other:NonEmptyIntMap[\Val\]): NodeIM[\Val\] = do (* other singleton *)
+        tk = keySplit(key, other.topKey)
+        if key=tk then
+            nodeIM[\Val\](left, tk, right.ordJoin(other))
+        else
+            nodeIM[\Val\](self, tk, other)
+        end
+      end
+    ordJoin(other:NodeIM[\Val\]): NodeIM[\Val\] = do
+        ok = other.topKey
+        tk = keySplit(key, ok)
+        if tk=key then
+            nodeIM[\Val\](left, tk, right.ordJoin(other))
+        elif tk=ok then
+            nodeIM[\Val\](self.ordJoin(other.left), tk, other.right)
+        else
+            nodeIM[\Val\](self, tk, other)
+        end
+      end
+    ordJoin(_:ZZ64, other:IntMap[\Val\]): NodeIM[\Val\] = self (* other empty *)
+    ordJoin(k:ZZ64, other:NonEmptyIntMap[\Val\]): NodeIM[\Val\] =
+        nodeIM[\Val\](self,k,other)
+    check(): IntMap[\Val\] = do
+        ld = key - left.topKey
+        rd = right.topKey - key
+        if NOT (left.checkU(key, ld) AND right.checkL(key, rd)) then
+            fail("Trouble with " self.asDebugString)
+        end
+        self
+      end
+    getD(d: ZZ64): (ZZ64,ZZ64,Boolean) = do
+        ld = key - left.topKey
+        rd = right.topKey - key
+        ok : Boolean := true
+        if d < ld then
+            errorPrintln("Left nodes too far apart; were " ld ", should be < " d " in " self.asDebugString)
+            ok := false
+        end
+        if d <= rd then
+            errorPrintln("Right nodes too far apart; were " rd ", should be < " d " in " self.asDebugString)
+            ok := false
+        end
+        (ld,rd,ok)
+      end
+    checkL(l:ZZ64, d: ZZ64): () = do
+        ok : Boolean := true
+        if l >= key then
+            errorPrintln(l " isn't < top " key " of " self.asDebugString)
+            ok := false
+        end
+        (ld,rd,okk) = getD(d)
+        (left.checkLU(l, key-1, ld), right.checkL(key, rd))
+        (ok AND okk)
+      end
+    checkU(u:ZZ64, d: ZZ64): () = do
+        ok : Boolean := true
+        if key > u then
+            errorPrintln(u " isn't > top " key " of " self.asDebugString)
+            ok := false
+        end
+        (ld,rd,okk) = getD(d)
+        (left.checkU(key-1, ld), right.checkLU(key, u, rd))
+        (ok AND okk)
+      end
+    checkLU(l:ZZ64, u:ZZ64, d: ZZ64): () = do
+        ok : Boolean := true
+        if l >= key then
+            errorPrintln(l " isn't < top " key " of " self.asDebugString)
+            ok := false
+        end
+        if key > u then
+            errorPrintln(u " isn't > top " key " of " self.asDebugString)
+            ok := false
+        end
+        (ld,rd,okk) = getD(d)
+        (left.checkLU(l, key-1, ld), right.checkLU(key, u, rd))
+        (ok AND okk)
+      end
+end NodeIM
+
+(* Extra indirection to permit checking. *)
+nodeIM[\Val\](left: NonEmptyIntMap[\Val\], key:ZZ64, right: NonEmptyIntMap[\Val\]): NodeIM[\Val\] =
+    NodeIM[\Val\](left,key,right)
+
+private object SeqIMGenerator[\Val\](m: IntMap[\Val\]) extends SequentialGenerator[\(ZZ64,Val)\]
+    generate[\R\](r: Reduction[\R\], body: (ZZ64,Val)->R): R = m.seqgen[\R\](r,body)
+end
+
+keySplit(k1:ZZ64, k2:ZZ64): ZZ64 = do
+    (mn,mx) = if k1 <= k2 then (k1,k2) else (k2,k1) end
+    p = partitionL(((mn-1) BITXOR mx)+1)
+    (-p) BITAND mx
+  end
+
+opr {|->[\Val\] kvs:(ZZ64,Val)... }:IntMap[\Val\] =
+    {[\Val\] k |-> v | (k,v) <- kvs }
+
+opr {[\Val\] }:IntMap[\Val\] = EmptyIM[\Val\]
+
+private fromCC[\Val\](cc: CovariantCollection[\(ZZ64,Val)\]): IntMap[\Val\] = do
+    uni(_:ZZ32, a:IntMap[\Val\], b:IntMap[\Val\]): IntMap[\Val\] = a UPLUS b
+    cc.cata[\IntMap[\Val\]\](EmptyIM[\Val\],SingletonIM[\Val\],uni)
+  end
+
+opr BIG {|->[\Val\] }: IntMap[\Val\] =
+    covariantCompr[\(ZZ64,Val),IntMap[\Val\]\](fn cc => fromCC(cc))
+
+opr BIG {|->[\Val\] g: Generator[\(ZZ64,Val)\] }: IntMap[\Val\] =
+    __bigOperatorSugar[\(ZZ64,Val),IntMap[\Val\],AnyCovColl,AnyCovColl\](BIG {|->[\Val\] }(), g)
+
+opr BIG UNION[\Val\]() : Comprehension[\IntMap[\Val\],IntMap[\Val\],Any,Any\] =
+    embiggen[\ IntMap[\Val\] \](fn (a,b) => a UNION b, EmptyIM[\Val\])
+
+opr BIG UNION[\Val\](g: Generator[\IntMap[\Val\]\]):IntMap[\Val\] =
+    __bigOperatorSugar[\IntMap[\Val\],IntMap[\Val\],Any,Any\](BIG UNION[\Val\](), g)
+
+opr BIG UPLUS[\Val\]() : Comprehension[\IntMap[\Val\],IntMap[\Val\],Any,Any\] =
+    embiggen[\ IntMap[\Val\] \](fn (a,b) => a UPLUS b, EmptyIM[\Val\])
+
+opr BIG UPLUS[\Val\](g: Generator[\IntMap[\Val\]\]):IntMap[\Val\] =
+    __bigOperatorSugar[\IntMap[\Val\],IntMap[\Val\],Any,Any\](BIG UPLUS[\Val\](), g)
+
+toDots[\Val\](maps: IntMap[\Val\]...): String =
+        ("strict digraph IntMap {" //
+         "graph [concentrate=true,fontsize=14,label=\"IntMap\",style=bold];" //
+         "node [fontsize=14,shape=box,style=outline];" //
+         (BIG //[(i,m) <- maps.indexValuePairs] m.asDot("g" i)) // "}")
+
+
+end

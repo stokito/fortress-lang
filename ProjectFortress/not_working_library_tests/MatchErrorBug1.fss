@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component MatchErrorBug1
+export MatchErrorBug1
+
+(** `StandardMinMax` combines MIN and MAX operators, and provides a
+    combined MINMAX operator.  This operator returns both its
+    arguments; if equality is possible, self should be the leftmost
+    result.  This effectively means that `(a MINMAX b)` stably sorts
+    `a` and `b`.  In addition, `a MINMAX b = (a MIN b, a MAX b)` must
+    always hold. **)
+
+trait StandardMinMax[\T\]
+        comprises T
+    opr MINMAX(self, other:T): (T,T)
+end
+
+(** StandardTotalOrder is the usual total order using <,>,<=,>=,=, and CMP.
+    Most values that define a comparison should do so using this.
+    Minimal complete definition: either CMP or < (it's advisable to
+    define = in the latter case).  The `MIN` and `MAX` operators
+    respect the total order and are defined in the obvious way. **)
+trait StandardTotalOrder[\Self\]
+        extends { StandardMinMax[\ StandardTotalOrder[\Self\] \] }
+        comprises Self
+    opr <(other:Self, self): Boolean
+    opr MINMAX(self, other:Self): (Self,Self) =
+        if other < self then (other, self) else (self, other) end
+end
+
+end

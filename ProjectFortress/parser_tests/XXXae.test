@@ -1,0 +1,28 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=XXXPreparser.ae
+PREPARSER_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/parser_tests
+compile
+compile_err_equals=\
+${PREPARSER_TESTS_DIR}/XXXPreparser.ae.fss:15:9-14:\n\
+\ Mismatched Enclosers: <| and ]\n\
+${PREPARSER_TESTS_DIR}/XXXPreparser.ae.fss:15:9-15:\n\
+\ Unmatched delimiters \"<|\" and \"\\]\".\n\
+${PREPARSER_TESTS_DIR}/XXXPreparser.ae.fss:15:9-17:2:\n\
+\ Resolution of operator property failed for:\n\
+\ ${PREPARSER_TESTS_DIR}/XXXPreparser.ae.fss:15.20: Loose operators | and <- have incomparable precedence.\n\
+\ RealExpr: expr = ()\n\
+\ RealExpr: expr = x\n\
+\ LooseInfix: op = |\n\
+\ RealExpr: expr = x\n\
+\ LooseInfix: op = <-\n\
+\ RealExpr: expr = xset\n\
+File XXXPreparser.ae.fss has 3 errors.\n
+compile_out_equals=

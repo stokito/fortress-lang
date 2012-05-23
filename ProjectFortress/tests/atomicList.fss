@@ -1,0 +1,54 @@
+(********************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+********************************************************************************)
+
+component atomicList
+export Executable
+
+trait List[\E\] comprises {Elem[\E\], Empty[\E\]}
+   getter isEmpty():Boolean
+   getter asString():()
+   car():E
+   cdr():List[\E\]
+   cons(x:E):List[\E\]
+   count():ZZ32
+end
+
+object ListError(msg:String) extends Exception end
+
+object Empty[\E\] extends List[\E\]
+   getter asString() = " Empty"
+   getter isEmpty() = true
+   car():E = throw ListError("Empty List has no car")
+   cdr():List[\E\] = throw ListError(" Empty List has no cdr")
+   cons(z:E) =  Elem[\E\](z, self)
+   count() = 0
+end
+
+object Elem[\E\](val:E, rest:List[\E\]) extends List[\E\]
+   getter asString() = " " val ", " rest.asString
+   getter isEmpty() = false
+   car():E = val
+   cdr():List[\E\] = rest
+   cons(z:E) = Elem[\E\](z,self)
+   count() = 1 + cdr().count()
+end
+
+run():()=do
+   init:List[\ZZ32\] := Empty[\ZZ32\]
+   for i<-1#10 do
+      atomic do
+         init := init.cons(i)
+      end
+   end
+   if init.count() = 10 then println("Pass") else println("Fail") end
+
+end
+end

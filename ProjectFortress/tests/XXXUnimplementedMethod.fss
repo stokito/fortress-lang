@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXUnimplementedMethod
+export Executable
+
+trait Base
+end
+
+trait Sub1 extends Base excludes {Sub2}
+end
+
+trait Sub2 extends Base excludes {Sub1}
+end
+
+trait T
+  a(x:Base, y:Sub2):ZZ32 = 1
+  a(x:Sub1, y:Base):ZZ32 = 2
+  a(x:Sub1, y:Sub2):ZZ32 = 3
+  a(x:Sub2, y:Sub1):ZZ32 (* Missing *)
+end
+
+object O() extends T
+  a(x:Sub1, y:Sub2):ZZ32 = 4
+end
+
+run():()=do
+  o:O = O()
+  println("o.b()=" o.b())
+end
+
+end

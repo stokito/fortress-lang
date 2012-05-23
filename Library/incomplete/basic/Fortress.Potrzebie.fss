@@ -1,0 +1,120 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+import { Length, Volume, Mass, Time, Force, Energy, Power, Temperature, Angle,
+         millimeters, kilogram, liter } from Fortress.SIunits
+export Fortress.Potrzebie
+
+(* Reference: Donald Knuth, The Potrzebie System of Weights and Measures,
+   MAD #33 (June 1957), pp. 36--37.
+   Reprinted in "Like, Mad". *)
+
+farshimmelt = 0.000001
+furshlugginer = 1000000
+
+unit potrzebie potrzebies p_: Length =
+ 2.263348517438173216473 millimeters (* thickness of MAD #26 *)
+unit fp_: Length = farshimmelt potrzebie
+unit millipotrzebie millipotrzebies mp_: Length = 1/1000 potrzebie
+unit centipotrzebie centipotrzebies cp_: Length = 1/100 potrzebie
+unit decipotrzebie decipotrzebies dp_: Length = 1/10 potrzebie
+unit dekapotrzebie dekapotrzebies Dp_: Length = 10 potrzebies
+unit hectopotrzebie hectopotrzebies Hp_: Length = 100 potrzebies
+unit kilopotrzebie kilopotrzebies Kp_: Length = 1000 potrzebies
+unit Fp_: Length = furshlugginer potrzebie
+
+unit ngogn ngogns n_: Volume = cubic dekapotrzebie
+unit fn_: Volume = farshimmelt ngogn
+unit millingogn millingogns mn_: Volume = 1/1000 ngogn
+unit centingogn centingogns cn_: Volume = 1/100 ngogn
+unit decingogn decingogns dn_: Volume = 1/10 ngogn
+unit dekangogn dekangogns Dn_: Volume = 10 ngogns
+unit hectongogn hectongogns Hn_: Volume = 100 ngogns
+unit kilongogn kilongogns Kn_: Volume = 1000 ngogns
+unit Fn_: Volume = furshlugginer ngogn
+
+(* According to the reference:  Halavah, of course, is a form of "pie",
+   and it has a specific gravity of 3.1416 and a specific heat of 0.31416.
+
+   We assume the specific gravity of water is 1, and that the mass of
+   1 liter of water is 1 kilogram, so the mass of 1 ngogn of halavah
+   is 3.1416 (1 kilogram/liter) (liter/ngogn) (1 ngogn).
+*)
+
+unit blintz blintzes b_: Mass =
+ 3.1416 (1 kilogram/liter) (liter/ngogn) (1 ngogn)
+unit fb_: Mass = farshimmelt blintz
+unit milliblintz milliblintzes mb_: Mass = 1/1000 blintz
+unit centiblintz centiblintzes cb_: Mass = 1/100 blintz
+unit deciblintz deciblintzes db_: Mass = 1/10 blintz
+unit dekablintz dekablintzes Db_: Mass = 10 blintzes
+unit hectoblintz hectoblintzes Hb_: Mass = 100 blintzes
+unit kiloblintz kiloblintzes Kb_: Mass = 1000 blintzes
+unit Fb_: Mass = furshlugginer blintz
+
+(* There seem to be some typos in the definition of time units in the original
+   publication.  We assume that the factors of 1000 or 100 in the definitions
+   of kovac, martin, and wood should have been 10. *)
+
+unit clarke clarkes cl_: Time = 1 day
+unit wolverton wolvertons wl_: Time = 1/10000 clarke
+unit kovac kovacs kv_: Time = 1/1000 clarke
+unit martin martins mn_: Time = 1/100 clarke
+unit wood woods wd_: Time = 1/10 clarke
+unit mingo mingos mi_: Time = 10 clarkes
+unit cowznofski cowznofskis cow_: Time = 100 clarkes
+
+unit blintzal blintzals b_al_:  Force = blintz potrzebie per kovac squared
+unit fb_al_: Force = farshimmelt blintzal
+unit milliblintzal milliblintzals mb_al_: Force = 1/1000 blintzal
+unit centiblintzal centiblintzals cb_al_: Force = 1/100 blintzal
+unit deciblintzal deciblintzals db_al_: Force = 1/10 blintzal
+unit dekablintzal dekablintzals Db_al_: Force = 10 blintzals
+unit hectoblintzal hectoblintzals Hb_al_: Force = 100 blintzals
+unit kiloblintzal kiloblintzals Kb_al_: Force = 1000 blintzals
+unit Fb_al_: Force = furshlugginer blintzal
+
+(* To conform to standard style, we change "b-al" to "b_al". *)
+
+unit hoo hoos h_: Energy = blintzal potrzebie
+unit fh_: Energy = farshimmelt hoo
+unit millihoo millihoos mh_: Energy = 1/1000 hoo
+unit centihoo centihoos ch_: Energy = 1/100 hoo
+unit decihoo decihoos dh_: Energy = 1/10 hoo
+unit dekahoo dekahoos Dh_: Energy = 10 hoos
+unit hectohoo hectohoos Hh_: Energy = 100 hoos
+unit kilohoo kilohoos Kh_: Energy = 1000 hoos
+unit Fh_: Energy = furshlugginer hoo
+unit hah hahs hh_: Energy = Fh_
+
+unit whatmeworry WMW_: Power = hah per kovac
+unit fWMW_: Energy = farshimmelt whatmeworry
+unit milliwhatmeworry milliwhatmeworrys mWMW_: Energy = 1/1000 whatmeworry
+unit centiwhatmeworry centiwhatmeworrys cWMW_: Energy = 1/100 whatmeworry
+unit deciwhatmeworry deciwhatmeworrys dWMW_: Energy = 1/10 whatmeworry
+unit dekawhatmeworry dekawhatmeworrys DWMW_: Energy = 10 whatmeworrys
+unit hectowhatmeworry hectowhatmeworrys HWMW_: Energy = 100 whatmeworrys
+unit kilowhatmeworry kilowhatmeworrys KWMW_: Energy = 1000 whatmeworrys
+unit FWMW_: Energy = furshlugginer whatmeworry
+
+(* To conform to standard style, we change "A.P." to "AP". *)
+
+unit aeolipower AP_: Power = 100 KWMW__
+
+(* We assume that an absolute temperature of 0 degrees Smurdley is the same as
+   an absolute temperature of 0 degrees Celsius.  Then a relative temperature
+   of 1 degree Smurdley is 27/100 degree Celsius = 0.27 kelvin. *)
+
+unit degreeSmurdley: Temperature = 0.27 kelvin
+
+unit zygo: Angle = 1/100 (2 pi radian)
+unit zorch: Angle = 1/100 zygo
+unit quircit quircits: Angle = 1/100 zorch

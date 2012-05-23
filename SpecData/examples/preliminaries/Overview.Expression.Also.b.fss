@@ -1,0 +1,36 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Overview.Expression.Also.b
+
+export Executable
+
+f() =
+(** EXAMPLE **)
+do
+  x: ZZ32 := 0
+  y: ZZ32 := 0
+  z: ZZ32 := 0
+  atomic do
+    x += 1
+    y += 1
+  also atomic do
+    z := x + y
+  end
+  z
+end
+(** END EXAMPLE **)
+
+run() = println f()
+
+end
