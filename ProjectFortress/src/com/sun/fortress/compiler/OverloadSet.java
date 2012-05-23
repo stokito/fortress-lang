@@ -11,10 +11,18 @@
 
 package com.sun.fortress.compiler;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.objectweb.asm.*;
-import org.objectweb.asm.util.*;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 import com.sun.fortress.compiler.codegen.ClassNameBundle;
 import com.sun.fortress.compiler.codegen.CodeGen;
@@ -27,16 +35,34 @@ import com.sun.fortress.compiler.index.FieldGetterOrSetterMethod;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.index.FunctionalMethod;
 import com.sun.fortress.compiler.index.HasTraitStaticParameters;
-import com.sun.fortress.scala_src.overloading.OverloadingOracle;
-import com.sun.fortress.scala_src.typechecker.Formula;
-import com.sun.fortress.scala_src.types.TypeAnalyzer;
-import com.sun.fortress.scala_src.types.TypeSchemaAnalyzer;
-import com.sun.fortress.scala_src.useful.STypesUtil;
+import com.sun.fortress.compiler.index.Method;
 import com.sun.fortress.compiler.phases.CodeGenerationPhase;
 import com.sun.fortress.exceptions.CompilerBug;
 import com.sun.fortress.exceptions.CompilerError;
-import com.sun.fortress.nodes.*;
+import com.sun.fortress.nodes.APIName;
+import com.sun.fortress.nodes.AbbreviatedType;
+import com.sun.fortress.nodes.AnyType;
+import com.sun.fortress.nodes.ArrowType;
+import com.sun.fortress.nodes.BaseType;
+import com.sun.fortress.nodes.BottomType;
+import com.sun.fortress.nodes.Id;
+import com.sun.fortress.nodes.IdOrOp;
+import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
+import com.sun.fortress.nodes.IntersectionType;
+import com.sun.fortress.nodes.NamedType;
+import com.sun.fortress.nodes.Op;
+import com.sun.fortress.nodes.OpArg;
+import com.sun.fortress.nodes.Param;
+import com.sun.fortress.nodes.StaticArg;
+import com.sun.fortress.nodes.StaticParam;
+import com.sun.fortress.nodes.TraitSelfType;
+import com.sun.fortress.nodes.TraitType;
+import com.sun.fortress.nodes.TupleType;
 import com.sun.fortress.nodes.Type;
+import com.sun.fortress.nodes.TypeArg;
+import com.sun.fortress.nodes.TypeOrPattern;
+import com.sun.fortress.nodes.UnionType;
+import com.sun.fortress.nodes.VarType;
 import com.sun.fortress.nodes_util.NodeFactory;
 import com.sun.fortress.nodes_util.NodeUtil;
 import com.sun.fortress.nodes_util.Span;
@@ -44,25 +70,31 @@ import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.InitializedStaticField;
 import com.sun.fortress.runtimeSystem.InstantiatingClassloader;
 import com.sun.fortress.runtimeSystem.Naming;
-import com.sun.fortress.useful.*;
-
-import edu.rice.cs.plt.tuple.Option;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-
-import scala.collection.JavaConversions;
+import com.sun.fortress.scala_src.overloading.OverloadingOracle;
+import com.sun.fortress.scala_src.types.TypeAnalyzer;
+import com.sun.fortress.scala_src.types.TypeSchemaAnalyzer;
+import com.sun.fortress.scala_src.useful.STypesUtil;
+import com.sun.fortress.useful.BASet;
+import com.sun.fortress.useful.BATree;
+import com.sun.fortress.useful.CycleInRelation;
+import com.sun.fortress.useful.DefaultComparator;
+import com.sun.fortress.useful.F;
+import com.sun.fortress.useful.MagicNumbers;
+import com.sun.fortress.useful.MultiMap;
+import com.sun.fortress.useful.TopSort;
+import com.sun.fortress.useful.TopSortItemImpl;
+import com.sun.fortress.useful.Useful;
 
 abstract public class OverloadSet implements Comparable<OverloadSet> {
     
-    
+    //partial order Type
     static class POType extends TopSortItemImpl<Type> {
         public POType(Type x) {
             super(x);
         }
     }
 
+    //partial order tagged function
     static class POTFN extends TopSortItemImpl<TaggedFunctionName> {
         public POTFN(TaggedFunctionName x) {
             super(x);
@@ -266,7 +298,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     /**
      * Creates a subset overload set; one that can be named independently as an overloaded function.
      *
-     * @param childLSTSF
+     * @param childLSTSF - "less specific than so far"
      * @param parent TODO
      * @param principalMember
      * @return
@@ -834,7 +866,11 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
         return string_exceptions;
     }
-
+    
+    protected String generateClosureTableName(Functional f) {
+            throw new CompilerError("need to determine naming scheme for function instantiated closure tables");
+    }
+    
     
     
     /**
@@ -1459,6 +1495,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 }
                 
                 //load instance cache table to avoid classloader when possible
+                //String tableNamePrefix = genericMethodName(new FnNameInfo(f.tagF, this.ifNone));
+                    
+                
                 String tableName = Naming.cacheTableName(f.tagF.unambiguousName().getText());
                 String tableOwner = Naming.dotToSep(f.tagA.getText());
                 mv.visitFieldInsn(Opcodes.GETSTATIC, tableOwner, tableName, Naming.CACHE_TABLE_DESC);
@@ -2116,7 +2155,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
                 boolean in_a_trait = invokeOpcode == Opcodes.INVOKEINTERFACE;
                 String selfType = in_a_trait ? cg.traitOrObjectName +  NamingCzar.springBoard : cg.traitOrObjectName;
-                String method_name = cg.genericMethodName(fnni, selfIndex);
+                String method_name = NamingCzar.genericMethodName(fnni, selfIndex, cg.thisApi());
                 otherOverloadKeys.add(method_name);
                 
                 String template_class_name = cg.generateGenericFunctionClass(fnni_closure, gmbm, gfid, selfIndex, cg.traitOrObjectName);
@@ -2168,8 +2207,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 //            }
             return params;
         }
-
-
+        
+//        protected String generateClosureTableName(TaggedFunctionName f) {
+//            String tableName = this.cg.genericMethodName(new FnNameInfo(f.tagF, this.ifNone),((Method)f).selfPosition());
+//            //if (this.cg.typeLevelOverloadedNamesAndSigs.contains(tableName))
+//            //    tableName  = NamingCzar.mangleAwayFromOverload(tableName);
+//            return tableName;
+//        }
     }
 
     static public class AmongApis extends OverloadSet {
