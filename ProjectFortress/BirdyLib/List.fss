@@ -67,6 +67,8 @@ emptyList[\E\](): List[\E\] = EmptyList[\E\]
 
 opr <|[\T\]|>: List[\T\] = EmptyList[\T\]
 
+opr <|[\T\] x1: T, x2: T |>: List[\T\] = EmptyList[\T\].addLeft(x2).addLeft(x1)
+
 object Cat[\T\] extends MonoidReduction[\List[\T\]\]
     getter asString(): String = "List red"
     empty(): List[\T\] = EmptyList[\T\]
