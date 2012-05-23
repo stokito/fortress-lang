@@ -44,8 +44,56 @@ object ReferenceGenomeChunk(start: ZZ32, length: ZZ32, buffer: String, padLength
   end
 end ReferenceGenomeChunk
 
+object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ32)
+    extends ReferenceGenome
+  consumed : Boolean := false   
+  private padLength: ZZ32 = maxReadSize + 1
+  private buffer: String := ("N")^padLength
+  private currentChunkStart: ZZ32 := 0
+  private currentChunkLength: ZZ32 := 0
 
 
+  whenUnconsumed():() =
+        if consumed then
+            fail("Using consumed generator of " rs)
+        end
+  consume():() = atomic do whenUnconsumed(); consumed := true end 
+
+  readOne(rs': ReadStream): Maybe[\ReferenceGenomeChunk\] = do
+    buffer := buffer.substring(currentChunkLength,|buffer| - 1) 
+    currentChunkStart += currentChunkLength
+    currentChunkLength := 0
+    while currentChunkLength < (chunkSize + padLength) AND: NOT rs'.eof do
+      line = rs'.uncheckedReadLine()
+      if |line| > 0 AND: line[0] =/= '>' then
+        buffer ||= line
+        currentChunkLength += |line|
+      end
+    end
+    if rs'.eof then
+      buffer ||= ("N")^padLength
+    else
+      currentChunkLength -= padLength
+    end
+    buffer := buffer.asJavaString
+    Just(ReferenceGenomeChunk(currentChunkStart, currentChunkLength, buffer.asJavaString, padLength))
+  end
+
+  generate[\T\](red: Reduction[\T\], body: ReferenceGenomeChunk->T): T = red.empty() (*) WATCH OUT
+  
+  loop[\T\](body: ReferenceGenomeChunk->()): () = do
+        consume()
+        while (NOT rs.eof) do
+            if s <- readOne(rs) then
+                body(s)
+            end
+        end
+        rs.close()
+      end
+  
+end FileBasedReferenceGenome
+
+(*
 object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ32)
     extends ReferenceGenome
   private padLength: ZZ32 = maxReadSize + 1
@@ -53,8 +101,9 @@ object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ
   private currentChunkStart: ZZ32 := 0
   private currentChunkLength: ZZ32 := 0
   private fg: SequentialGenerator[\ReferenceGenomeChunk\] = 
-    seq(FileGenerator[\ReferenceGenomeChunk\](rs, 0, 
-    fn (rs': ReadStream) => do
+    seq(FileGenerator[\ReferenceGenomeChunk\](rs, 0, readOne))
+
+  readOne(rs': ReadStream): Maybe[\ReferenceGenomeChunk\] = do
     buffer := buffer.substring(currentChunkLength,|buffer| - 1) 
     currentChunkStart += currentChunkLength
     currentChunkLength := 0
@@ -73,33 +122,11 @@ object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ
     buffer := buffer.asJavaString
     Just(ReferenceGenomeChunk(currentChunkStart, currentChunkLength, buffer.asJavaString, padLength))
   end
-    
-    
-    ))
-(*
-  nextChunk(rs': ReadStream): Maybe[\ReferenceGenomeChunk\] = do
-    buffer := buffer.substring(currentChunkLength,|buffer| - 1) 
-    currentChunkStart += currentChunkLength
-    currentChunkLength := 0
-    while currentChunkLength < (chunkSize + padLength) AND: NOT rs'.eof do
-      line = rs'.uncheckedReadLine()
-      if |line| > 0 AND: line[0] =/= '>' then
-        buffer ||= line
-        currentChunkLength += |line|
-      end
-    end
-    if rs'.eof then
-      buffer ||= ("N")^padLength
-    else
-      currentChunkLength -= padLength
-    end
-    buffer := buffer.asJavaString
-    Just(ReferenceGenomeChunk(currentChunkStart, currentChunkLength, buffer.asJavaString, padLength))
-  end
-*)
+
   generate[\T\](red: Reduction[\T\], body: ReferenceGenomeChunk->T): T = fg.generate(red, body)
   loop[\T\](body: ReferenceGenomeChunk->()): () = fg.loop(body)
 end FileBasedReferenceGenome
+*)
 
 getReferenceGenomeFromFile(fileName: String, chunkSize: ZZ32, maxReadSize: ZZ32): ReferenceGenome =
   FileBasedReferenceGenome(FileReadStream(fileName.asJavaString), chunkSize, maxReadSize)
@@ -195,5 +222,6 @@ private parseOneRead(r: ReadStream, refChunk: ReferenceGenomeChunk): Maybe[\Read
     Just Read(header, sequence, name, pos, length, seqend, negativeOrientation, refChunk)
   end
 end
+
 
 end
