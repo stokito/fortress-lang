@@ -12,12 +12,21 @@
 component whileassigned
 export Executable
 
+object Test
+   var n:ZZ32 := 0
+   test1(): () = do
+      while (n < 10) do n := n + 1 end
+      assert(n = 10)
+   end
+end
+
 run() : () = do
   var foo : ZZ32 = 7
   while (foo > 0) do
     println(foo)
     foo := foo - 1
   end
+  Test.test1()
   println("PASS")
 end
 

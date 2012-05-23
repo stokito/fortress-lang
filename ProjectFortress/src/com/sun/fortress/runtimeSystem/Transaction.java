@@ -27,7 +27,7 @@ public class Transaction {
     Hashtable<MutableFValue, FValue> reads;
     Hashtable<MutableFValue, FValue> writes;
     private Transaction topLevelTransaction;
-    private static boolean debug = false;
+    private static boolean debug = true;
     private static AtomicInteger counter = new AtomicInteger(0);
     private int transactionNumber;
 
