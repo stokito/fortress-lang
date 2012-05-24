@@ -30,7 +30,7 @@ cast[\T extends Any\](x: Any): T
 opr ===(a:Any, b:Any):Boolean
 opr NEQV(a:Any, b:Any):Boolean
 
-fail(s: String): None
+fail(s: String): Zilch
 
 assert(flag: Boolean): ()
 assert(flag: Boolean, failMsg: String): ()
