@@ -236,7 +236,7 @@ end
 
 object DisjointMapUnion[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\] extends MonoidReduction[\Map[\Key,Val\]\]
     getter asString(): String = "Disjoint map union reduction"
-    empty():Map[\Key,Val\] = EmptyMap[\Key,Val\]
+    getter id():Map[\Key,Val\] = EmptyMap[\Key,Val\]
     join(a:Map[\Key,Val\], b:Map[\Key,Val\]): Map[\Key,Val\] =
         a UPLUS b
 end
@@ -247,9 +247,9 @@ object EmptyMap[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { O
     getter asDebugString():String = "[]"
     getter asString():String = "{}"
     opr |self| : ZZ32 = 0
-    generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
-    seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.empty()
-    ivgen[\R\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32,(Key,Val))->R): R = r.empty()
+    generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.id
+    seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R = r.id
+    ivgen[\R\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32,(Key,Val))->R): R = r.id
     dom(self):Set[\Key\] = set[\Key\]()
     getPair():(Key, Val) = throw NotFound
     getKey():Key = throw NotFound
