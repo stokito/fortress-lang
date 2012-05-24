@@ -1,0 +1,49 @@
+
+Castagna \emph{et al.} proposed rules for defining overloaded functions
+to ensure type safety~\cite{castagna95}.
+The type hierarchy is required to be a meet semilattice 
+(to ensure that any two types have a greatest lower bound).
+
+Millstein and Chambers devised the language \emph{Dubious} to study 
+how to modularly ensure safety for 
+overloaded functions with symmetric multiple dynamic dispatch (\emph{multimethods})
+in a type system supporting multiple inheritance \cite{millstein02,millstein03}.
+With Clifton and Leavens, 
+they developed MultiJava \cite{multijava}, 
+an extension of Java with Dubious' semantics for multimethods.
+Lee and Chambers presented F(E\textsc{ml}) \cite{feml}, 
+a language with classes, symmetric multiple dispatch, and parameterized modules.
+In previous work,
+we built on the work of Millstein and Chambers 
+to give modular rules for a core of the Fortress language~\cite{Fortress};
+for detailed comparison of modularity and dispatch 
+for these systems, 
+see the related work section of our previous paper \cite{allen07}.
+
+None of the systems described above support polymorphic functions or types. 
+F(E\textsc{ml})'s parameterized modules (\emph{functors}) 
+provide a form of parametricity 
+but they cannot be applied implicitly.
+
+Overloading and multiple dispatch in the context of polymorphism 
+has previously been studied by Bourdoncle and Merz \cite{bourdoncle97}. 
+Their system, ML$_\le$, integrates parametric polymorphism, 
+class-based object orientation, and multimethods,
+but lacks multiple inheritance.
+Each multimethod (overloaded set) requires a unique specification (principal type), 
+which greatly simplifies the checking of their equivalent of the Return Type Rule: 
+the return type of each definition needs to be compared 
+only with the return type of the principal type.
+Also, 
+their type system does not provide any exclusion relation.
+On the other hand, ML$_\le$, unlike Fortress allows variance annotations on type constructors.
+
+Litvinov~\cite{litvinov98} developed a type system for the Cecil language,
+which supports bounded parametric polymorphism and multimethods.
+Because Cecil has a type-erasure semantics, 
+statically checked parametric polymorphism has no effect on run-time dispatch.
+
+The relatively new language ParaSail~\cite{ParaSail} also constrains the scope of type parameters,
+prohibiting a bound on a type parameter from referring to type parameter bindings to its left,
+so that dynamic type inference can be fast.  However, ParaSail apparently does not support covariant
+and contravariant types parameters.

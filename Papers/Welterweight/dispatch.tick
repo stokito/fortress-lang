@@ -1,0 +1,564 @@
+\newcommand{\LDOTS}{\mathinner{\ldotp\hskip-0.4ex\ldotp\hskip-0.4ex\ldotp}}
+
+\section{Dispatch Implementation Strategy}
+
+We use the term \emph{entrypoint} to refer to any of the concrete definitions of a function or method of a given name that are statically visible at a call site under consideration.  The task of dynamic dispatch, given a set of argument values at run time, is to select an appropriate entrypoint.
+
+The dispatch implementation strategy outlined here is applicable to any language for which preferences among the entrypoints of an overloaded function are described by a statically determinable partial order.  For Fortress, the partial order is determined purely by specificity (the subtype relationship on the domains of the procedures), but other languages might rely instead, or additionally, on user-specified preferences or on the order in which traits or methods are declared or mentioned in the program text.
+
+By testing for applicability in most-to-least specific order, dynamic dispatch consists simply of invoking the dispatch semipredicate for each entrypoint in the list until some semipredicate succeeds.  The goal is then to keep dispatch semipredicates cheap to execute, and in particular to keep simple, common cases especially cheap.  We note that if a program is well-formed---that is, passes static type checking---then it is not possible for all of the semipredicates to fail.  Therefore it is never necessary to call the dispatch semipredicate for the last entrypoint in a list---and if there is only one entrypoint in the list (an important common case), then no dispatch semipredicate need be called at all.
+
+% This reduces overloading resolution to the simpler problem of determining if a entrypoint can be applied to the actual parameters supplied.
+
+% This same implementation strategy can also be used whenever there is an order among an overloaded function's entrypoints (for example, a user-specified preference for dispatch, or always using the most-recently-written applicable entrypoint).
+% When the order depends on the same types used to test applicability there may be more efficient ways to perform the dispatch (for example, binary search if the types happen to be totally ordered -- non-applicability of a mid-point entrypoint implies non-applicability of all more-specific entrypoints), but that is a problem for later.
+
+% One goal for an implementation of overloading dispatch is to keep simple cases cheap.
+
+\subsection{Dispatch semipredicate}
+
+The dispatch semipredicate for an entrypoint takes an ilk (a tuple of the ilks of the argument values) as input, and either fails (returns false) if the entrypoint is not applicable, or returns a non-false result if the entrypoint is applicable, and that non-false result is in fact a set of type bindings for the static type parameters of that entrypoint.  (If the entrypoint has no static type parameters, then the result is an empty set of type bindings, which is not the same as ````false'').
+
+We actually describe the dispatch semipredicate computation as a function of \emph{two} arguments. The first argument is the ilk already mentioned; the second is a signature type (a tuple of the declared types of the value parameters of the entrypoint).  Note that if methods rather than functions are under consideration, then the signature type may involve union and intersection types because of substitution of such types for type parameters of the trait or object in which the method was declared; however, type parameters of the method cannot appear within the operands of such unions and intersections.  To put it another way, all union types and intersection types appearing within a signature type are necessarily ground types.  This fact simplifies the dispatch process.  The ilk is not known until run time, but the signature type is known at compile time.  We also note that, for each occurrence of a type parameter within a signature type, the variance of the occurrence may be determined statically.  Therefore the dispatch process as we describe it here may be understood as a staged computation, and portions that rely only on the signature type may be ````unwound'' or ````inlined'' at compile time.
+
+\subsection{Normal forms for types}
+
+We assume that both signature types and ground types are kept in a canonical form, namely sorted disjunctive normal form.  For this purpose we regard $\cup$ and $\cap$ as n-ary operators rather than binary operators.  The production of such a normal form from a given type may be described in two steps:
+\begin{enumerate}
+\item
+(\emph{Flatten constructed types with certain union/intersection arguments}.)
+At type parameter positions where $G$ is covariant, replace $G\OBR{\LDOTS, \cap\tupleb{\alpha}, \LDOTS}$ with $\cap\tupleb{G\OBR{\LDOTS,\alpha,\LDOTS}}$, and
+at type parameter positions where $G$ is contravariant, replace $G\OBR{\LDOTS, \cup\tupleb{\alpha}, \LDOTS}$ with $\cap\tupleb{G\OBR{\LDOTS,\alpha,\LDOTS}}$.
+(See Appendix~\ref{sec:proofs} for a proof sketch that in each case a type is replaced with an equivalent type.  The proof relies on the Ancestor Meet Rule.)
+\item
+(\emph{Sorted DNF}.)
+Reduce the entire type, as well as any subexpression involving union or intersection types, to sorted disjunctive normal form, wherein the operands of every $\cap$ operator and then every $\cup$ operator are sorted according to some fixed total order (such as lexicographic).  Before the sorting, unions and intersections are simplified by using absorption laws, as well as the rule that any intersection containing two types that exclude each other may be replaced with $\Bottom$.
+% \item
+% (\emph{Reconstitute constructed types with certain union or intersection arguments}.)
+% Within each intersection, if there are two or more operands that are instances of the same type constructor $G$, then replace them with a single instance of $G$.  If any two of the instances have inequivalent type arguments at a type parameter position for which $G$ is invariant, replace the entire intersection with $\Bottom$.  Otherwise, the single instance of $G$ has as its type arguments:
+% \begin{itemize}
+% \item
+% For a type parameter position that is covariant or invariant, the intersection of the type arguments for that type parameter position from all the original instances of $G$, reduced to canonical form.
+% \item
+% For a type parameter position that is contravariant, the union of the type arguments for that type parameter position from all the original instances of $G$, reduced to canonical form.
+% \end{itemize}
+% As an example, if $G$ is covariant in its first type parameter, invariant in its second, and contravariant in its third,
+% $\cap\tuple{G\OBR{\tau,\zeta,\omega}, G\OBR{\tau',\zeta,\omega'}, G\OBR{\tau'',\zeta,\omega''}, H\OBR{\tau''',\zeta,\omega'''}}$
+% would by this reconstitution process eventually become
+% $\cap\tuple{G\OBR{\cap\tuple{\tau,\tau',\tau''},\zeta,\cup\tuple{\omega,\omega',\omega''}}, H\OBR{\tau''',\zeta,\omega'''}}$.
+% \item
+% (Simplify $\Bottom$.)
+% Repeat this step until no more replacements are possible:
+% replace any constructed type that has a type argument equivalent to $\Bottom$ with $\Bottom$,
+% replace any intersection containing $\Bottom$ with $\Bottom$, delete any occurrences of $\Bottom$ within a union,
+% replace any intersection or union with just one operand with that operand,
+% and replace any union having no operands with $\Bottom$.
+\end{enumerate}
+Because types are expressed in canonical form, one can know, for example, that if $s$ and $s'$ are
+operands of the same $\cap$ or $\cup$ operator, then neither is a subtype of the other.
+
+%The ilks are type constant expressions; they contain no type variables, but may contain tuples, arrows, instantiated-with-constants generic types, unions, Any, trait, and object types.  Type signatures are composed of type variables, tuples, arrows, instantiated-with-signatures generic types, and type constants.  In particular, a type signature may contain a union type appearing as a type constant, but in that case the elements of the union type cannot contain type variables.  All types are also expressed in their canonical form, so it is known that if $A$ and $B$ are both terms of a union type, then neither is a subtype of the other.
+
+\subsection{Simplified version: no contravariance or $\cap$}
+
+The simplest version of this algorithm supports covariant and invariant type parameters, but not contravariant type parameters or domain-contravariant arrow types.  (Domain-invariant arrow types can be handled by this simplified version).  Union types are handled, but intersection types are not.  In the absence of contravariance, the semipredicate is organized into two phases:
+\begin{enumerate}
+\item Match ilk against signature type.  This proceeds by structural recursion on the signature type, keeping track of variance as we go.  (Recall that because variance depends only on the signature type and not the ilk, it can be computed statically.)
+\item Propagate lower limits through type constraints, ordered from most-constrained to least-constrained.  Because of the way that type parameters of functions and methods are scoped in Welterweight Fortress, this means that type parameters will be processed in right-to-left order.  The goal of overloaded function dispatch is to discover the most specific applicable entrypoint, so inference also aims to obtain the most specific instantiation of an applicable entrypoint.
+\end{enumerate}
+
+\subsubsection{Match ilk against signature type}
+\label{sec:match}
+
+The recursive \textsc{Match} procedure is presented here as if it were called as a subroutine of the dispatch semipredicate.  However, most of the code is conditional on the structure of the signature type of the entrypoint and can be rendered in an open-coded form by a compiler, including only those cases required by a particular entrypoint's signature.
+
+\textsc{Match} takes three parameters: a ground type $g$, the current variance $V$ (encoded as $+1$ for covariant, $0$ for invariant, and $-1$ for contravariant), and a signature type $s$.
+% The first is a type signature that may contain unbound static parameters,
+% the second is the variance (encoded as +1, 0, and -1, where positive is covariant, 0 is invariant, and negative is contravariant),
+% and the third is an actual type to be related to the signature, subject to the specified variance.
+If the current variance $V$ is $+1$, then we require $g <: s$ for success; if $V=0$, then we require $g \equiv s$; if $V=-1$, then we require $s <: g$.
+
+%Invariance requires equality, and contravariance requires $\textrm{signature} <: \textrm{actual}$.  This version of \textsc{Match}, however, does not handle the contravariant case.
+
+Before the \textsc{Match} procedure is called, the dispatch semipredicate establishes, for each type parameter $P$ of the entrypoint,
+lower and upper bound constraint sets $\calL_P$ and $\calU_P$.  For a function entrypoint, $\calL_P$ is initially empty; for a method entrypoint,
+$\calL_P$ initially contains all the declared lower bounds of the type parameter (which are all ground types at this point, because trait parameters have been substituted for and method parameters cannot appear in lower bounds).  For both kinds of entrypoint, $\calU_P$ initially contains all the declared upper bounds of the type parameter that happen to be ground types.  (Upper bounds that are parametric signature types are processed in a later step.)
+
+If the type and signature can be properly related, then \textsc{Match} succeeds after adding further necessary constraints to the lower and upper bound sets.  If the type and signature cannot be properly related, then \textsc{Match} fails, indicating that the entrypoint is not applicable.
+
+For example, the dispatch predicate for this entrypoint:
+\[f\OBR{P,Q,S}(a\COLON G\OBR{P}, b\COLON H\OBR{P,Q}, c\COLON J\OBR{Q,S})\COLON \dontcare \defneq \dontcare\]
+allocates six empty constraint sets $\calL_P$, $\calL_Y$, $\calL_S$, $\calU_P$, $\calU_Y$, $\calU_S$,
+then invokes
+$\textsc{Match}(k, +1, (G\OBR{P},H\OBR{P,Q},J\OBR{Q,S}))$ where $k$ is the argument ilk.  (Note: all ilks are ground types.)
+
+\medskip
+
+\begin{algorithmic}[1]
+\Function{match}{$g$:Type, $V$:Variance, $s$:Type}
+  \If{$s$ is a ground type}  
+     \If{$V \geq 0$}\Comment{co/invariant, require $g <: s$}
+        \If{$\neg(g <: s)$} \ dispatch fails \EndIf
+     \EndIf
+     \If{$V \leq 0$}\Comment{contra/invariant, require $s <: g$}
+        \If{$\neg(s <: g)$} \ dispatch fails \EndIf
+     \EndIf
+  \ElsIf{$s$ is a type parameter $P$}
+     \If{$V \geq 0$}\Comment{co/invariant, require $g <: P$}
+       \State insert $g$ into $L_P$
+     \EndIf
+     \If{$V \leq 0$}\Comment{contra/invariant, require $P <: g$}
+       \State insert $g$ into $U_P$
+     \EndIf
+  \ElsIf{$s$ is an arrow type $s_{\SSmbox{domain}} \rightarrow s_{\SSmbox{range}}$} 
+         \If{$g$ is an arrow type $g_{\SSmbox{domain}} \rightarrow g_{\SSmbox{range}}$}  
+           \State \Call{match}{$g_{\SSmbox{domain}}$, 0, $s_{\SSmbox{domain}}$}
+           \State \Call{match}{$g_{\SSmbox{range}}$, $V$, $s_{\SSmbox{range}}$}
+         \Else \ dispatch fails
+         \EndIf
+  \ElsIf{$s$ is a tuple type $(s_1, \LDOTS, s_m)$} 
+         \If{$g$ is a same-length tuple type $(g_1, \LDOTS, g_m)$}
+           \For{$1 \leq j \leq m$}
+             \State \Call{match}{$g_j, V, s_j$}
+           \EndFor
+         \Else \ dispatch fails
+         \EndIf
+  \ElsIf{$g$ is a union of types $g_1, \LDOTS, g_m$}
+     \State\commentalign\Comment{$s$ is a constructed signature type}
+     \If{$V=0$} \ dispatch fails
+     \Else
+        \For{$1 \leq j \leq m$}\label{UnionSubtypesGeneric}
+           \State \Call{match}{$g_j, V, s$}
+        \EndFor
+     \EndIf
+  \Else \label{intersectiontestgoeshere}
+    \State\commentalign\Comment{$s$ is a constructed signature type $T\OBR{s'_1, \LDOTS, s'_m}$}
+    \State\commentalign\Comment{$g$ is not a union or intersection}
+    \If{$g$ is a constructed type that has some ancestor \\ \hskip 6em of the form $T\obb{\dontcare}$}
+       \State \textbf{let} $g'$ = the minimal ancestor $T\OBR{g_1, \LDOTS, g_m}$ of $g$
+       \State \quad that has the form $T\obb{\dontcare}$
+       \If{$(V = 0) \wedge (g \neq g')$} \ dispatch fails\EndIf
+       \State \textbf{let} $(V_1, \LDOTS, V_m)$ = variances of $T$'s parameters
+       \For{$1 \leq j \leq m$}
+           \State \Call{match}{$g_j, V \times V_j, s'_j$}
+       \EndFor
+    \Else \ dispatch fails
+    \EndIf
+  \EndIf
+  \EndFunction
+\end{algorithmic}
+%Correctness: induction on type structure, finiteness of signature and actual types.  Most steps are uncomplicated.
+
+The loop on line \ref{UnionSubtypesGeneric} deals with the case where a union type $g$ must be a subtype of a constructed type $G\obb{\dontcare}$.  The loop ensures that each term $g_j$ in the union contributes to the constraints on the type parameters in $s$.
+
+% If and when the second phase finds an assignment of type parameters $\bar{P}_j$ such that $A_j <: G\OBR{\bar{P}_j}$.  This in turn ensures that $A = \bigcup_j A_j <: \bigcup_j G\OBR{\bar{P}_j}$, and accumulates all the upper and lower bound constraints necessary to ensure that all the subtypes are simultaneously true.  If none of the bounded intervals are empty, then any $\bar{P}$ within that set provides that  $A <: G\OBR{\bar{P}}$.
+
+\subsubsection{Propagate lower limits through type constraints}
+
+% The restriction on parameter constraint dependence ensures that a cycle-free order exists, and that the constraints can be topologically sorted according to this dependence order (these are the constraints in the declaration of a particular generic entrypoint).  To propagate limits on type parameters, the type parameters are topologically sorted using their constraint declarations to infer an order; a constraint $T_1 <: T_2$ means that $T_1$ precedes $T_2$ in the sort order.
+% In Fortress where type parameter scoping is left-to-right and newly declared parameters can only be constrained to subtype already declared parameters, processing type parameters in right-to-left scope order satisifies this restriction.
+
+% {\it Careful -- our order, lexical-<:, ensures that beginning at the ````bottom'' is well-founded and cycle-free.  It's not just <:.}
+
+%The constraint propagation and checking algorithm uses a type operation ````\textsc{lsub}'' (Least Single Upper Bound).  For a lattice, this is lattice join, implemented in the Fortress type system with a type union operation where necessary to complete the type hierarchy to obtain a (semi)lattice (for tuple types, a union may not be necessary, and a comprises clause declares an implicit join type of all the comprised types).  In programming languages with single inheritance the \textsc{lsub} of two constructed types will always be a declared type; in other programming languages that support type multiple inheritance $\textsc{lsub}(T,U)$ may be defined in some other way, for instance as the least supertype dominating $T$ and $U$.  The \textsc{lsub} operation must obey the property that for a covariant generic $G$, $\textsc{lsub}(G\OBR{A}, G\OBR{B}) <: G\OBR{\textsc{lsub}(A,B)}$.
+
+The constraint propagation and checking algorithm uses a type operation ````\textsc{lsub}'' (Least Single Upper Bound).  For a lattice, this is lattice join, implemented in the Fortress type system as a union type (which may then be simplified).  In programming languages with single inheritance, the \textsc{lsub} of two constructed types can be defined as their unique least common ancestor; in other programming languages that support type multiple inheritance $\textsc{lsub}(T,U)$ may be defined in some other way, for instance as some least declared supertype dominating $T$ and $U$, perhaps with a tie-breaking rule.  The \textsc{lsub} operation must obey the property that for a constructed type $G$ with a covariant parameter position, $\textsc{lsub}\setb{\underline{G}\OBR{\LDOTS,\alpha,\LDOTS}} <: G\OBR{\LDOTS,\textsc{lsub}\setb{\alpha},\LDOTS}$.
+
+The constraint propagation algorithm merely ensures that, whatever the definition of \textsc{lsub} is,
+if a consistent set of type assignments can be discovered, the most specific one will be found.  Suppose that the entrypoint of interest has $n$ type parameters; we process them from right to left.
+
+\begin{algorithmic}[1]
+\For{$j$ sequentially from $n$ down to $1$}
+  \State $l_j \gets \textsc{lsub}(\calL_{P_j})$
+  \If{$l_j \not<: \Bottom$}
+     \For{each declared upper bound $\xi$ of $P_j$}
+	\If{$\xi$ is a parametric signature type}
+	   \State \label{generic} \Call{match}{$l_j$, $+1$, $\xi$}
+	\EndIf
+     \EndFor
+     \For{each $u$ in $\calU_{P_j}$}
+       \If{$l_j \not <: u$} \label{bounds}
+	 \State dispatch fails
+       \EndIf
+     \EndFor
+  \EndIf
+\EndFor
+\end{algorithmic}
+
+Each iteration of the outer loop
+begins by establishing the best possible lower bound $l_j$ for $P_j$.
+%, that is, the most specific single type that is above or equal to all the lower bounds of $t$.
+Because the parameters are processed right-to-left, $P_j$ will not appear in subsequent constraints and thus its lower bound cannot be further modified.  Line \ref{generic} invokes {\sc match} to ensure that the lower bound of $P_j$ is structurally able to be a subtype of each declared upper bound $\xi$, and to propagate necessary bounds to other type parameters that have not yet been checked and inferred. 
+
+If the match and propagation processes complete successfully, then $l_j$ is the type inferred for $P_j$, and the dispatch semipredicate returns the substitution $\substb{l}{P}$.
+
+%\subsection{Self-typed generics}
+%{\it Explanation of how this works}
+%\begin{algorithmic}
+%\Step{\PlaceHolder{Self-type step}}
+%\If{$l$ is bottom}
+%\State do nothing
+%\ElsIf{there are self type constraints $t <: S_i\OBR{t}$}
+%\State search for $t'$ above $l$ such that $t' <: S_i\OBR{t'}$ for all $S_i$
+%\If {$t'$ exists}
+%\State $l \gets t'$
+%\Else\ dispatch fails
+%\EndIf
+%\Else\ do nothing
+%\EndIf
+%\EndStep
+%\end{algorithmic}
+
+(It should be noted that the Return Type Rule may require one final adjustment step, which may replace each $l_j$ in the computed substitution with a type that is a supertype of $l_j$ but still a subtype of every type in $\calU_j$. However, this step always succeeds and can be performed after the entrypoint is been chosen by the dispatch process, so we do not consider it to be a part of the dispatch semipredicate.)
+
+
+\subsection{Run-time type representations and operations}
+The run-time metadata for trait and object types must support the following three operations, ideally with low cost:
+\begin{itemize}
+\item Is $\alpha$ a subtype of $\eta$?
+\item Find minimal instance of $G$ that is an ancestor of $k$.
+\item Meet and join (intersection and union) operations.
+\end{itemize}
+Here we describe an implementation strategy.
+
+For each type $\alpha$, the ````longest erased path to $\Any$,'' $\textsc{lepa}(\alpha)$, is calculated.  $\textsc{lepa}(\Any)$ is defined to be zero; if $\alpha$ is $\Object$ or an arrow or tuple type, $\textsc{lepa}(\alpha)$ is defined to be 1.  If $\alpha$ is a constructed type $C$, $\textsc{lepa}(\alpha)$ is defined to be 1 plus the maximum of 1 and all values $\textsc{lepa}(U)$ such that some instance of $U$ appears in the extends clause of the declaration of the trait or object of which $C$ is an instance.
+
+For constructed type $C$, $\textsc{args}(C)$ is the sequence of type arguments in $C$, and $\textsc{variances}(C)$ is the corresponding sequence of variances (the same sequence for all instances of the same trait or object).
+
+%For non-generic types, \textsc{args} and \textsc{variances} both return the empty sequence, and \textsc{stem} returns the type itself.  As a convenience, for a tuple type $\textsc{stem}(C)$ is ````Tuple'' and $\textsc{args}(C)$ is the sequence of tuple element types. Similarly, \textsc{stem} of an arrow type is ````Arrow''.
+
+For a given trait or object type $C$, all its ancestors are encoded into an array
+$\textsc{supers}(C)$ of maps from type names to types.
+Entry $\textsc{supers}(C)_i$ contains the map of supertypes of $C$ whose \textsc{lepa} is $i$; the domain of the map is the names of the ancestors, and each name is mapped to the (unerased) minimal instance of that generic type among the ancestors of $C$.
+%For non-generic supertypes the stem is the type itself, and the type maps to itself.
+The \textsc{supers} array for $C$ includes an entry for $C$ itself: $\textsc{supers}(C)_{\textsc{lepa}(C)}(\name{C}) = C$.
+Each map may of course be implemented as a simple list of pairs, a sorted list, an ordered binary tree, a hashmap, or other suitable data structure.
+Given this data structure, the minimal instance of a type constructor $G$ among the ancestors of $C$ is $\textsc{Supers}(C)_{\textsc{LEPA}(G)}(G)$.
+
+A subtype query is slightly more involved.  (For lack of space, we elide the handling of tuples, arrows, $\Any$, $\Object$, $\Bottom$, and unions and intersections and show just the code for comparing two constructed types.)
+
+\medskip
+\begin{algorithmic}[1]
+\Function{Subtype}{$\alpha$, $\eta$}
+  \State\commentalign\Comment{Return true if $\alpha$ is a subtype of $\eta$}
+  \If{\ldots}
+    \State $\langle$handling of tuples, arrows, etc., elided here$\rangle$
+  % \If{$\alpha = \eta \vee \eta = ````\textit{Any}''$} true
+  % \ElsIf{$\textsc{stem}(\alpha) = ````\textrm{Tuple}''$}
+  %    \State $\textsc{stem}(\eta) = ````\textrm{Tuple}'' \;\wedge\NEGQQ\displaystyle\bigwedge_{(V,W) \in \textrm{zip}(\textsc{args}(\alpha), \textsc{args}(\eta))}\NEGQQ\Call{Subtype}{V,W}$ %AND(Subtype(V,\eta) | V in Args(\alpha))
+  % \ElsIf{$\textsc{stem}(\alpha) = ````\textrm{Arrow}''$}    
+  %    \State \parbox{3in}{\begin{multline*}
+  %           \textsc{stem}(\eta) = ````\textrm{Arrow}'' \,\wedge\, \\
+  %           \Call{Subtype}{\textsc{range}(\alpha), \textsc{range}(\eta)} \wedge \\
+  %           \Call{Equal}{\textsc{domain}(\alpha), \textsc{domain}(\eta)}
+  %    \end{multline*}}
+  %    %$\textrm{stem}(\eta) = ````\textrm{Arrow}'' \,\wedge\, \Call{Subtype}{\textsc{range}(\alpha), \textsc{range}(\eta)} \wedge \Call{Equal}{\textsc{domain}(\alpha), \textsc{domain}(\eta)}$
+  % \ElsIf{$\textsc{stem}(\alpha) = ````\cup''$}
+  %    $\!\!\!\!\!\!\displaystyle\bigwedge_{V \in \textsc{args}(\alpha)}\!\!\!\!\!\!\!\!\Call{Subtype}{V,\eta}$ %AND(Subtype(V,\eta) | V in Args(\alpha))
+  % \ElsIf{$\textsc{stem}(\alpha) = ````\cap''$} 
+  %    $\!\!\!\!\!\!\displaystyle  \bigvee_{V \in \textsc{args}(\alpha)}\!\!\!\!\!\!\!\!\Call{Subtype}{V,\eta}$ %OR(Subtype(V,\eta) | V in Args(\alpha))
+  % \ElsIf{$\textsc{stem}(\eta) = ````\cup''$} 
+  %    $\!\!\!\!\!\!\displaystyle  \bigvee_{V \in \textsc{args}(\eta)}\!\!\!\!\!\!\!\!\Call{Subtype}{\alpha,V}$ % res :=  OR( Subtype(\alpha,V) | V in ArgsU )
+  % \ElsIf{$\textsc{stem}(\eta) = ````\cap''$} 
+  %    $\!\!\!\!\!\!\displaystyle\bigwedge_{V \in \textsc{args(\eta)}}\!\!\!\!\!\!\!\!\Call{Subtype}{\alpha,V}$ %res := AND( Subtype(\alpha,V) | V in ArgsU )
+  \ElsIf{$\textsc{lepa}(\alpha) < \textsc{lepa}(\eta)$}  false
+  \ElsIf{$\name{\eta} \not\in\textsc{supers}(\alpha)_{\textsc{lepa}(\eta)}$} false
+  \Else
+    \State $\textit{U} = \textsc{args}(\eta)$
+    \State $\textit{candidate} = \textsc{supers}(\alpha)_{\textsc{LEPA}(\eta)}(\name{\eta})$
+    \State $\textit{Y} = \textsc{args}(\textit{candidate})$
+    \State $\textit{vars} = \textsc{variances}(\textit{candidate})$
+    \State $\textbf{var}\,\textit{result}:\textrm{Boolean} = \textrm{true}$
+    \For{$i$ sequentially from $1$ up to $\left|\textit{Y}\right|$} 
+       \State \textbf{case} $\textit{vars}_i$ \textbf{of}
+       \Indent
+          \State $+1 \Rightarrow \textit{result} \gets \textit{result} \wedge \Call{Subtype}{\textit{Y}_i, \textit{U}_i}$
+          \State  $0 \Rightarrow \textit{result} \gets \textit{result} \wedge (\textit{Y}_i = \textit{U}_i$)
+          \State $-1 \Rightarrow \textit{result} \gets \textit{result} \wedge \Call{Subtype}{\textit{U}_i, \textit{Y}_i}$
+       \EndIndent
+    \EndFor
+    \State \textit{result}
+  \EndIf
+\EndFunction
+\end{algorithmic}
+
+\section{Variations}
+
+The algorithm just described works with covariant and invariant generic types, union types, and a set of constraints allowed on generic type parameters.  We can relax some of these restrictions and accept more varied inputs.
+
+% \subsection{Additional constraints}
+% Odersky~\cite{OderskyXXX} has noted that covariant data structures benefit from the ability to express type lower bounds.
+% Covariant, widening list-append is one example of an operation that benefits from this.  Without the ability to declare that the parameter $U$ is a supertype of $T$, there is no type-correct way to express this.
+% {\slantverbatim
+% \begin{verbatim}
+% trait List[\ covariant T \]
+%    append[\ U dominates T \](x:U) : List[\ U \]
+% end
+% \end{verbatim}
+% }
+% In this use of a lower bound (on $U$), $T$ is effectively a constant because it is a parameter of the enclosing generic trait \textit{List} and not a parameter of the \textit{append} method.  This use of ````dominates'' does not present a problem for the algorithm.
+
+% More generally, as long as new static parameter constraints can be described without forward references (for example, if they have left-to-right scoping in the parameter list), the $<:$ relation will be cycle-free.
+
+% {\it Careful: what about ````T dominates $G\OBR{U}$''?}
+
+\subsection{Intersection types from typecase}
+
+Intersection types can arise in the Welterweight Fortress $\kwd{match}$ construct, and such types can then make their way into ilks such as $\textrm{List}\OBR{\textrm{Serializable} \cap \textrm{Cloneable}}$.
+
+In the \textsc{Match} algorithm (no pun intended; ````$\kwd{match}$'' and ````\textsc{Match}'' are in different fonts), intersection types can introduce complications when a constructed signature type, for example $G\OBR{P}$, must covariantly match an intersection type $(g \cap g')$; this requires $(g \cap g') <: G\OBR{P}$ for success.  This will be true if either $g <: G\OBR{T}$ or $g' <: G\OBR{T}$ (or both).  In principle, constraint checking must be performed for each of these combinations, with the most specific (both) case being preferred.  If neither clause matches, then dispatch fails; if $g$ matches but not $g'$ (or vice versa), then there are no alternatives and no combinatorial explosion.  But if both clauses match locally, it may be that only one of the two is compatible with other constraints inferred for the entrypoint under consideration, so on the face of it there is a need to check all possible combinations separately.
+
+However, the restrictions on how traits may be extended prohibit mutually exclusive constraints from the two clauses of the intersection.
+For the $\kwd{match}$ construct, the intersection type results from an actual value with ilk $k$ that must satisfy all structural constraints on types.  Suppose that $g$ and $g'$ both extend instantiations of $G$, so $k <: g <: G\OBR{g_1}$ and $k <: g' <: G\OBR{g_2}$.  If $G$ is invariant, then $g_1$ and $g_2$ must be equal, and therefore the constraints for the two clauses are compatible.  If $G$ is covariant, then $g_1$ and $g_2$ may not be the same.
+Because $g <: G\OBR{g_1}$ and $g' <: G\OBR{g_2}$, we know that $g \cap g' <: G\OBR{g_1} \cap G\OBR{g_2} = G\OBR{g_1 \cap g_2}$.  This allows us to conclude that $g_1 \cap g_2$ is a valid lower bound for $g$.  Because the intersection is more specific than both $g_1$ and $g_2$, it also allows all combinations of $g_1$ and $g_2$ without the overhead of testing them separately.
+
+Processing the clauses of an intersection type extending a generic signature does require one modification to the \textsc{Match} algorithm; if a clause fails to match, it does not by itself indicate dispatch failure for the current entrypoint.  Furthermore, any partial set of lower and upper bound constraints accumulated during the attempted match of a clause must be discarded. For a successful match, the lower bound sets computed for each of the clauses must all be intersected; effectively, the resulting bound sets are each the intersection of unions, which must then be combined with the existing lower bound sets.  Upper bound sets will be merged to form the union of intersections.  All this is handled by inserting lines~\hbox{\ref{intersectionstart}--\ref{intersectionend}} of the following code just before line~\ref{intersectiontestgoeshere} of the \textsc{Match} algorithm shown in Section~\ref{sec:match}.
+
+
+\begin{algorithmic}[1]
+\StepNoEnd{\PlaceHolder{intersection subtype of constructed signature type?}}
+  \algrenewcommand\algorithmicif{\textbf{else if}}  % Cosmic fakeout
+  \If{$g$ is an intersection of types $g_1, \LDOTS, g_m$}  \label{intersectionstart}
+  \algrenewcommand\algorithmicif{\textbf{if}}  % End of cosmic fakeout
+     \State\commentalign\Comment{$s$ is a constructed signature type}
+     \State\commentalign\Comment{$n$ is the number of method type parameters}
+     \If{$V=0$} \ dispatch fails
+     \Else
+        \For{$1 \leq i \leq n$} 
+           \State Save existing bound sets $\calL_{P_i}$ and $\calU_{P_i}$
+           \State $\hbox to 0pt{$\textrm{LBT}_{P_i} \gets \Any$\hss}\hphantom{\textrm{UBT}_i \gets \Bottom}$ \Comment{Lower bound type}
+           \State $\textrm{UBT}_{P_i} \gets \Bottom$  \Comment{Upper bound type}
+        \EndFor
+        \State \textbf{var} $\textit{anymatch} = \textit{false}$
+        \For{$1 \leq j \leq m$}\label{IntersectionSubtypesGeneric}
+           \For{$1 \leq i \leq n$} 
+              \State $\calL_{P_i} \gets \set{\,}$
+              \State $\calU_{P_i} \gets \set{\,}$
+           \EndFor
+           \State \textbf{try}
+           \Indent
+           \State \Call{match}{$g_j, V, s$} \Comment{sole use of $j$ is here}
+           \For{$1 \leq i \leq n$} 
+              \State $\textrm{LBT}_{P_i} \gets \textrm{LBT}_{P_i} \cap {\displaystyle\bigcup_{g' \in \calL_{P_i}} g'}$
+              \State $\textrm{UBT}_{P_i} \gets \textrm{UBT}_{P_i} \cup {\displaystyle\bigcap_{g' \in \calU_{P_i}} g'}$
+           \EndFor
+           \State $\textit{anymatch} \gets \textit{true}$
+           \EndIndent
+           \State \textbf{catch} dispatch failure
+        \EndFor
+        \If{$\neg \textit{anymatch}$ } \ dispatch fails
+        \EndIf
+        \For{$1 \leq i \leq n$}
+           \State Restore saved bound sets $\calL_{P_i}$ and $\calU_{P_i}$
+           \If{$\Any \not<: \textrm{LBT}_{P_i}$}
+              \State $\calL_{P_i} \gets \calL_{P_i} \cup \set{\textrm{LBT}_{P_i}}$
+           \EndIf
+           \If{$\textrm{UBT}_{P_i} \not<: \Bottom$}
+              \State $\calU_{P_i} \gets \calU_{P_i} \cup \set{\textrm{UBT}_{P_i}}$
+           \EndIf
+        \EndFor
+     \EndIf
+   \EndIf \label{intersectionend}
+\EndStepNoEnd
+\end{algorithmic}
+
+\subsection{Contravariance}
+
+Adding contravariance to the type system creates the possibility of a combinatorial blowup in constraint matching when a union type must match a generic signature in a contravariant context.  Because of space constraints, we do not present a complete solution here, but we make some general remarks about the nature of the difficulty.
+
+% Consider this contrived example program (for S and N, think ````String'' and ````Number''):
+
+% % {\slantverbatim
+% % \begin{verbatim}
+% % trait S excludes N ... end // String, Number
+% % trait G[\ contravariant X, covariant Y \]
+% %                        extends Edible ... end
+% % object a extends G[\ S, S \] ... end
+% % object b extends G[\ N, N \] ... end
+% % object Pair[\ covariant W \](a:W,b:W) ... end
+% % trait Eat[\ contravariant Z extends
+% %                            Pair[\ Edible \]\]
+% % object E[\ Z extends Pair[\ Edible \]\](z:Z)
+% %                    extends Eat[\ Z \] ... end
+% % p = Pair(a, b)
+% % e = E(p)
+% % F[\T extends Edible\](
+% %         eat:Eat[\ Pair[\ G[\T,T\] \] \] = ...
+% % \end{verbatim}
+% % }
+
+% \par\medskip\noindent
+% $\begin{array}{@{}l@{}}
+% \kwd{trait} \; \textrm{S}\ob{} \extends \set{} \exc \set{} \; \dontcare \; \kwd{end}, \\[1pt]
+% \kwd{trait} \; \textrm{N}\ob{} \extends \set{} \exc \set{\textrm{S}} \; \dontcare \; \kwd{end}, \\[1pt]
+% \kwd{trait} \; \textrm{Edible}\ob{} \extends \set{} \exc \set{} \; \dontcare \; \kwd{end}, \\[1pt]
+% \kwd{trait} \; \textrm{G}\bigob{\kwd{contravariant}\;\textrm{E} \extends \bd{},\kwd{covariant}\;\textrm{F} \extends \bd{}} \\
+% \hphantom{\kwd{trait} \; \textrm{G}} \extends \set{\textrm{Edible}} \exc \set{} \; \dontcare \; \kwd{end}, \\[1pt]
+% \kwd{object} \; \textrm{A}\ob{}() \extends \bigset{\textrm{G}\ob{\textrm{S},\textrm{S}}} \; \dontcare \; \kwd{end}, \\[1pt]
+% \kwd{object} \; \textrm{B}\ob{}() \extends \bigset{\textrm{G}\ob{\textrm{N},\textrm{N}}} \; \dontcare \; \kwd{end}, \\[1pt]
+% \kwd{trait} \; \textrm{Pair}\ob{\kwd{covariant}\;Y} \extends \set{} \exc \set{} \; \dontcare \; \kwd{end}, \\[1pt]
+% \kwd{object} \; \textrm{P}\ob{\textrm{Y}}(\textrm{a}\COLON \textrm{Y},\textrm{b}\COLON \textrm{Y}) \extends \bigset{\textrm{Pair}\ob{\textrm{Y}}} \; \dontcare \; \kwd{end}, \\[1pt]
+% \kwd{trait} \; \textrm{Eat}\bigob{\kwd{contravariant}\;\textrm{Z} \extends \bd{\textrm{Pair}\ob{\textrm{Edible}}}} \\
+% \hphantom{\kwd{trait} \; \textrm{Eat}}\extends \set{} \exc \set{} \; \dontcare \; \kwd{end}, \\[1pt]
+% \kwd{object} \; \textrm{E}\bigob{\textrm{Z} \extends \bd{\textrm{Pair}\ob{\textrm{Edible}}}}(\textrm{z}\COLON \textrm{Z}) \extends \bigset{\textrm{Eat}\ob{\textrm{Z}}} \; \dontcare \; \kwd{end}, \\[1pt]
+% \textrm{g}\ob{\textrm{W}}(\textrm{a}\COLON \textrm{W}, \textrm{b}\COLON \textrm{W})\COLON \textrm{Eat}\ob{\textrm{W}} \defneq \textrm{E}\ob{\textrm{W}}(\textrm{P}\ob{\textrm{W}}(a, b)), \\[1pt]
+% \textrm{f}\ob{\textrm{T}}(\textrm{q} \COLON \textrm{Eat}\ob{\textrm{Pair}\ob{\textrm{G}\ob{\textrm{T},\textrm{T}}}})\COLON \dontcare \defneq \dontcare, \\[1pt]
+% \textrm{f}\bigtuple{\textrm{g}\bigtuple{\textrm{A}\ob{}(),\textrm{B}\ob{}()}}
+% \end{array}$
+% \par\medskip
+
+% For the call to \textrm{g}, the arguments have ilks $\textrm{A}\ob{}$ and $\textrm{B}\ob{}$, so the dispatch semipredicate for \textrm{g} computes the type $\textrm{A}\ob{} \cup \textrm{B}\ob{}$ for the type parameter $\textrm{W}$.  Therefore the value returned by \textrm{g}, which becomes the argument value for \textrm{f}, has ilk $\textrm{E}\ob{\textrm{P}\ob{\textrm{A}\ob{} \cup \textrm{B}\ob{}}}$.  This will be accepted by the dispatch semipredicate for \textrm{f} if this ilk can be successfully matched to the signature type $\textrm{Eat}\ob{\textrm{Pair}\ob{\textrm{G}\ob{\textrm{T},\textrm{T}}}}$.  For this match to succeed, we need
+% \[ \textrm{E}\ob{\textrm{P}\ob{\textrm{A}\ob{} \cup \textrm{B}\ob{}}} <: \textrm{Eat}\ob{\textrm{Pair}\ob{\textrm{G}\ob{\textrm{T},\textrm{T}}}} \]
+% Because the unique minimal ancestor of $\textrm{E}\ob{\textrm{Z}}$ with name \textrm{Eat} is $\textrm{Eat}\OBR{\textrm{Z}}$, this problem reduces to
+% \[ \textrm{Eat}\ob{\textrm{P}\ob{\textrm{A}\ob{} \cup \textrm{B}\ob{}}} <: \textrm{Eat}\ob{\textrm{Pair}\ob{\textrm{G}\ob{\textrm{T},\textrm{T}}}} \]
+% Because \textrm{Eat} is contravariant in its type parameter \textrm{Z}, this then becomes
+% \[ \textrm{Pair}\ob{\textrm{G}\ob{\textrm{T},\textrm{T}}} <: \textrm{P}\ob{\textrm{A}\ob{} \cup \textrm{B}\ob{}} \]
+
+
+% {\bf XXXX At this point we appear to get stuck, because no instance of \textrm{Pair} is a subtype of any instance of \textrm{P}.
+%   And we had to use separate Pair and P because objects cannot have covariant type parameters.}
+
+% The trait \textrm{Pair} is covariant in its type parameter \textrm{Y}, so this reduces to
+% \[ \textrm{G}\ob{\textrm{T},\textrm{T}} <: \textrm{A}\ob{} \cup \textrm{B}\ob{} \]
+% \[\textrm{G}\OBR{\textrm{T},\textrm{T}} <: \textrm{G}\OBR{N,N}\cup G\OBR{S,S}.\]
+% The co- and contra-variance of $G$'s parameters require that
+% $G\OBR{T,T} <: G\OBR{N,N}$ iff $T=N$,
+% and that $G\OBR{T,T} <: G\OBR{S,S}$ iff $T=S$,
+% but $T$ and $S$ are mutually exclusive types.
+% There is no single value of $T$ that will satisfy both constraints simultaneously.  One choice or the other might be compatible with other constraints yet to be discovered.
+
+% This example, however, is contrived and somewhat useless, and it may be the case that such combinatorial constraint checking will be rare in actual programs.  It is possible to identify easy cases.  
+
+Consider the problem of matching an ilk $(g \cup g')$ with the signature type
+$G\obb{s}$; that is, we are trying to determine whether $G\obb{s} <: (g \cup g')$, where $g$ and $g'$ are ground constructed types.  Then the two subproblems are $G\obb{s} <: g$ and $G\obb{s} <: g'$.  There are a few easy cases. If both subproblems fail to match, the overall match fails.  If just one subproblem fails to match, then the result is exactly the successful match of the other subproblem.  If either subproblem succeeds with an empty set of constraints, then the result is the empty set of constraints.
+
+This leaves the case where both subproblems match, and both subproblems produce non-trivial constraints.  This results when $g = H\OBR{\LDOTS}$ and $g' = J\OBR{\LDOTS}$ and $G\OBR{\bar{\gamma}}$ is declared to (transitively) extend $H\OBR{\bar{\alpha}}$ and $J\OBR{\bar{\eta}}$, where some elements of $\bar{\gamma}$ appear in $\bar{\alpha}$ and in $\bar{\eta}$, and for each element of $\bar{\gamma}$ appearing in $\bar{\alpha}$ and/or $\bar{\eta}$, the variance for that element is the same in $\bar{\gamma}$, $\bar{\alpha}$, and $\bar{\eta}$.  This is required by the rules for variance context: covariant type parameters may appear only in covariant contexts, contravariant type parameters may appear only in contravariant contexts.  Note that it is also possible that $H$ and $J$ are the same name, and either or both may be the same name as $G$.
+
+Suppose $H$ and $J$ are both $G$.
+Then the two subproblems are $G\OBR{\bar{P_1}} <: G\OBR{\bar{U}}$ and $G\OBR{\bar{P_2}} <: G\OBR{\bar{V}}$.  Because $G\OBR{\bar{U}} \cup G\OBR{\bar{V}}$ is assumed to be in canonical form, there is no $\bar{P}$ such that $G\OBR{\bar{P}} = G\OBR{\bar{U}} \cup G\OBR{\bar{V}}$.  This is a hard subcase; it is necessary to explore each possibility separately, and if such choices are cascaded, the result can be an exponential blowup.
+
+If we have only that $H$ and $J$ are the same name, different from $G$, this still leads to a hard subcase by similar (but more detailed) reasoning.
+
+On the other hand, suppose neither $H$ nor $J$ is $G$.
+In that case, $G\OBR{\bar{P_1}} <: H\OBR{\bar{U}}$ and $G\OBR{\bar{P_2}} <: J\OBR{\bar{V}}$.
+Because $H$ and $J$ are not $G$, canonical form of the union does not preclude the possibility that $G\OBR{\bar{P_1}}$ and $G\OBR{\bar{P_2}}$ are related.
+When that occurs (for example, if $G\OBR{\bar{P_1}} <: G\OBR{\bar{P_2}}$), then one subproblem subsumes the other, and the solution for the larger problem is the set of constraints from the subsuming subproblem.      
+
+% Type inference in contravariant contexts can also generate intersection types that are not directly derived from ilks.
+% Canonicalization reduces malformed intersections to bottom; if $A$ excludes $B$, then $A \cap B$ is canonically bottom.  This avoids the combinatorial blowup in the same way that it is avoided for typecase.
+
+\subsection{No union types}
+
+It is possible to use a type system in which union types do not appear.  Many programming languages pseudo-join two types by choosing their nearest dominator in the type hierarchy instead of forming a union type.  This allows contravariant generic types without the combinatorial cost of a contravariant generic-to-union match.
+
+% \section{Canonicalization}
+
+% The canonical form of union and intersection types is sorted disjunctive normal form without negation.  Exclusion relationships between types allows easy elimination of intersection terms.  Intersections of two types with same generic stem are first flattened before canonicalization, and reconstituted afterwards.  Arrows and tuples are treated as a special case of generic types with the appropriate variance.
+% \begin{algorithmic}[1]
+% \Function{Canonicalize}{T}
+%    \State \Comment{Args of union and intersection are assumed to be in canonical form.}
+%    \State $s \gets \textrm{stem}(T)$
+%    \If{$s \ne \textrm{````$\cup$''} \wedge s \ne \textrm{````$\cap$''}$}
+%       \State \Return{$T$}
+%    \Else \Comment{$\cup/\cap\OBR{\textit{arg}_1,\LDOTS,\textit{arg}_i,\LDOTS}$}
+%      \State \PlaceHolder{Flatten/factor generic-of-$\cup$/$\cap$ variant args}
+%      \If{$s = \textrm{````$\cup$''}$}
+%        \State \PlaceHolder{Flatten union args}
+%      \Else \Comment{````$\cap$''}
+%        \State \PlaceHolder{Flatten intersection args}
+%        \State \PlaceHolder{Distribute union args}
+%      \EndIf
+%      \State \PlaceHolder{Eliminate redundant terms}
+%      \State \PlaceHolder{Reconstitute generics of intersections and unions}
+%      \State \PlaceHolder{Sort terms}
+%    \EndIf
+% \EndFunction
+% \end{algorithmic}
+
+% \begin{algorithmic}[1]
+% \Step{\PlaceHolder{Flatten/factor generic-of-$\cup$/$\cap$ variant args}}{}
+% \While{any generic of union/intersection variant args exist}
+% \At{covariant parameters of G}
+% \State  $G\OBR{\LDOTS, \cap(A,B), \LDOTS} \Rightarrow G\OBR{\LDOTS,A,\LDOTS] \cap G[\LDOTS,B,\LDOTS}$
+% \End
+% \At{contravariant parameters of G}
+% \State  $G\OBR{\LDOTS, \cup(A,B), \LDOTS} \Rightarrow G\OBR{\LDOTS,A,\LDOTS] \cap G[\LDOTS,B,\LDOTS}$
+% \End
+% \EndWhile
+% \EndStep
+% \end{algorithmic}
+
+% \begin{algorithmic}[1]
+% \Step{\PlaceHolder{Flatten union args}}{}
+% \State \parbox{3in}{\begin{multline*}
+%             \textrm{Replace} \cup\OBR{X_1, \LDOTS, X_{iA} \cup X_{iB}, \LDOTS, X_m}\\
+% 		    \textrm{with} \cup\OBR{X_1, \LDOTS, X_{iA}, X_{iB}, \LDOTS, X_m}
+%             \end{multline*}}
+% \EndStep
+% \end{algorithmic}
+
+% \begin{algorithmic}[1]
+% \Step{\PlaceHolder{Flatten intersection args}}{}
+% \State\ 
+% \EndStep
+% \end{algorithmic}
+
+
+% \begin{algorithmic}[1]
+% \Step{\PlaceHolder{Distribute union args}}{}
+% \State\ 
+% \EndStep
+% \end{algorithmic}
+
+% \begin{algorithmic}[1]
+% \Step{\PlaceHolder{Eliminate redundant terms}}
+% \State \Comment{Simplifying $\cup(T_1, T_2, \LDOTS, T_i, \LDOTS, T_n)$}
+%    \For{$1\le i \le n$}
+%      \If{$T_i = \cap\OBR{X_1, \LDOTS, X_m}$}
+%        \For{$1 \le j,k \le m, j \not= k$}
+%          \If{$X_j \;\textrm{excludes}\; X_k$}
+%            \State{remove $T_i$ from union terms}
+%            \State{\textbf{next}\ $i$}
+%          \EndIf
+%        \EndFor
+       
+%        \For{$1 \le j,k \le m, j \not= k$}
+%          \If{$X_j <: X_k$}
+%            \State{remove $X_k$ from intersection terms}
+%          \EndIf
+%        \EndFor
+%      \EndIf
+%    \EndFor
+%    \For{$1 \le i,j \le n, i \not= j$}
+%        \If{$T_j <: T_i$}
+%          \State remove $T_j$ from union terms
+%        \EndIf
+%    \EndFor
+% \EndStep
+% \end{algorithmic}
+
+% \begin{algorithmic}[1]
+% \Step{\PlaceHolder{Reconstitute generics of intersections and unions}}
+% \State \Comment{Simplifying $\cup(T_1, T_2, \LDOTS, T_i, \LDOTS, T_n)$}
+%    \For{$1\le i \le n$}
+%       \If{$T_i = \cap\OBR{X_1, \LDOTS, X_m}$}
+%          \For{$1 \le j < k \le n$}
+%             \If{$X_j = G\OBR{\alpha} \;\textbf{and}\; X_k = G\OBR{\eta}$}
+%                \State replace $G\OBR{\alpha}$ and $G\OBR{\eta}$ with $G\OBR{\alpha \bigcirc \eta}$
+% 			    \State $\bigcirc$ is $\cup$ at contravariant parameters, else $\cap$
+% 		        \State Resulting parameters are subject to further 
+%                 \State canonicalization.  Excluding intersections 
+% 			 	 \State and unequal invariant parameters become 
+% 				 \State bottom. Generic-of-bottom is also bottom.
+%             \EndIf
+%          \EndFor
+%       \EndIf
+%   \EndFor
+% \EndStep
+% \end{algorithmic}
+
+% \begin{algorithmic}[1]
+% \Step{\PlaceHolder{Sort terms}}
+% \State\ 
+% \EndStep
+% \end{algorithmic}

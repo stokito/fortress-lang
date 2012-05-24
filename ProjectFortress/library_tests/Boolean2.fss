@@ -1,0 +1,64 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Boolean2
+export Executable
+
+(*) Test Boolean operators AND, OR, XOR, OPLUS, NEQV, EQV, <->, ->
+
+run(): () = do
+  T = true
+  F = false
+  if NOT ((F AND F) = F) then fail("Wanted (F AND F) = F")
+  elif NOT ((F AND T) = F) then fail("Wanted (F AND T) = F")
+  elif NOT ((T AND F) = F) then fail("Wanted (T AND F) = F")
+  elif NOT ((T AND T) = T) then fail("Wanted (T AND T) = T")
+  elif NOT ((F OR F) = F) then fail("Wanted (F OR F) = F")
+  elif NOT ((F OR T) = T) then fail("Wanted (F OR T) = T")
+  elif NOT ((T OR F) = T) then fail("Wanted (T OR F) = T")
+  elif NOT ((T OR T) = T) then fail("Wanted (T OR T) = T")
+  elif NOT ((F XOR F) = F) then fail("Wanted (F XOR F) = F")
+  elif NOT ((F XOR T) = T) then fail("Wanted (F XOR T) = T")
+  elif NOT ((T XOR F) = T) then fail("Wanted (T XOR F) = T")
+  elif NOT ((T XOR T) = F) then fail("Wanted (T XOR T) = F")
+  elif NOT ((F OPLUS F) = F) then fail("Wanted (F OPLUS F) = F")
+  elif NOT ((F OPLUS T) = T) then fail("Wanted (F OPLUS T) = T")
+  elif NOT ((T OPLUS F) = T) then fail("Wanted (T OPLUS F) = T")
+  elif NOT ((T OPLUS T) = F) then fail("Wanted (T OPLUS T) = F")
+  elif NOT ((F NEQV F) = F) then fail("Wanted (F NEQV F) = F")
+  elif NOT ((F NEQV T) = T) then fail("Wanted (F NEQV T) = T")
+  elif NOT ((T NEQV F) = T) then fail("Wanted (T NEQV F) = T")
+  elif NOT ((T NEQV T) = F) then fail("Wanted (T NEQV T) = F")
+  elif NOT ((F EQV F) = T) then fail("Wanted (F EQV F) = T")
+  elif NOT ((F EQV T) = F) then fail("Wanted (F EQV T) = F")
+  elif NOT ((T EQV F) = F) then fail("Wanted (T EQV F) = F")
+  elif NOT ((T EQV T) = T) then fail("Wanted (T EQV T) = T")
+  elif NOT ((F <-> F) = T) then fail("Wanted (F <-> F) = T")
+  elif NOT ((F <-> T) = F) then fail("Wanted (F <-> T) = F")
+  elif NOT ((T <-> F) = F) then fail("Wanted (T <-> F) = F")
+  elif NOT ((T <-> T) = T) then fail("Wanted (T <-> T) = T")
+  elif NOT ((F -> F) = T) then fail("Wanted (F -> F) = T")
+  elif NOT ((F -> T) = T) then fail("Wanted (F -> T) = T")
+  elif NOT ((T -> F) = F) then fail("Wanted (T -> F) = F")
+  elif NOT ((T -> T) = T) then fail("Wanted (T -> T) = T")
+  elif NOT ((F NAND F) = T) then fail("Wanted (F NAND F) = T")
+  elif NOT ((F NAND T) = T) then fail("Wanted (F NAND T) = T")
+  elif NOT ((T NAND F) = T) then fail("Wanted (T NAND F) = T")
+  elif NOT ((T NAND T) = F) then fail("Wanted (T NAND T) = F")
+  elif NOT ((F NOR F) = T) then fail("Wanted (F NOR F) = T")
+  elif NOT ((F NOR T) = F) then fail("Wanted (F NOR T) = F")
+  elif NOT ((T NOR F) = F) then fail("Wanted (T NOR F) = F")
+  elif NOT ((T NOR T) = F) then fail("Wanted (T NOR T) = F")
+  else println("PASS")
+  end
+end
+
+end

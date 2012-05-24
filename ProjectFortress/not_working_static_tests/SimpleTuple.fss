@@ -1,0 +1,21 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SimpleTuple
+export Executable
+
+(* Check a simple tuple expression works. *)
+run():() = do
+  ignore(5, true, 1.0)
+  ()
+end
+
+end

@@ -1,0 +1,24 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ExternalConstructor
+  import File.{...}
+  export Executable
+
+
+  (* Constructors from other APIs still work.
+     Earlier we had a problem where their Ids would
+     not be fully qualified. *)
+
+  foo(file_name:String):FileReadStream = FileReadStream(file_name)
+
+  run():() = ()
+end

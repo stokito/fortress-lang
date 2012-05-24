@@ -1,0 +1,21 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+
+  (* Originally, this check for equality failed
+     saying no '=' could be found for two ZZ32s. *)
+
+  object Const(n:ZZ32)
+    opr =(self, t:Const): Boolean = n = t.n
+  end
+
+  run():() = ()

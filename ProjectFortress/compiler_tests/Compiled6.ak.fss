@@ -1,0 +1,20 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+f(x: ZZ32) = ()
+f[\T extends Any\](x: T) = ()
+
+h[\T extends Any\](x: ZZ32) = ()
+h[\T extends Any\](x: T) = ()
+
+run() = ()

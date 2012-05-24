@@ -1,0 +1,33 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled160
+export Executable
+
+(* Array aggregates and spawn.
+   Actually pretty low priority right now... *)
+
+run():() = do
+  a:ZZ32[5] = [1 2 3 4 5 6]
+  prod1:ZZ32 := 1
+  prod2:ZZ32 := 1
+  s = spawn
+        for i <- a do
+          prod1 TIMES= i
+        end
+  t = spawn
+        for i <- a.indices do
+          prod2 TIMES= a[i]
+        end
+  if s.val = t.val = 720 then println "pass" else println "FAIL" end
+end
+
+end

@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled1.ag
+  export Executable
+
+  (* Check that self's type, which is fully qualified,
+     matches the declared type which is not. *)
+
+  object BigObject
+    getABigObject() : BigObject = self
+  end
+
+  run():() = ()
+end

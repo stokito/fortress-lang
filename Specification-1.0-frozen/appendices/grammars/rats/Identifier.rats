@@ -1,0 +1,61 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+PrimeCharacter = [\u2032-\u2037]
+id      = s:(idstart idrest*) &{ !FORTRESS_KEYWORDS.contains(s) }
+idstart = UnicodeIdStart / [_]
+idrest  = UnicodeIdStart / ['] / PrimeCharacter / UnicodeIdRest
+
+IdText  = a1:id &{ NodeUtil.validId(a1) }
+
+reserved = s:(idstart idrest*) &{ FORTRESS_KEYWORDS.contains(s) }
+Reserved = reserved
+
+Id =
+     <FIRST> IdText
+
+IdOrOpName =
+     Id
+   / OpName
+
+BindId =
+     Id
+   / "_"
+
+BindIdList =
+     BindId (w comma w BindId)+
+   / BindId (w commaOrNot w BindId)+
+   / BindId
+
+BindIdOrBindIdTuple =
+     <FIRST> BindId
+   / openparen w BindId w comma w BindIdList w closeparen
+
+commaOrNot = "," / w
+
+SimpleName =
+     Id
+   / opr (w BIG)? w (Encloser / Op)
+   / opr (w BIG)? w EncloserPair
+
+idOrKeyword = (idstart idrest*) &{ true }
+
+APIName =
+     idOrKeyword &(w ellipses)
+   / idOrKeyword (dot idOrKeyword)* &(w ellipses)
+   / idOrKeyword (dot idOrKeyword)*
+
+QualifiedName =
+     Id &(w ellipses)
+   / Id (dot Id)* &(w ellipses)
+   / Id (dot Id)*
+\end{verbatim}

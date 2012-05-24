@@ -1,0 +1,116 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component FileReadWrite
+import File.{...}
+import FileSupport.{...}
+import Writer.{...}
+import Stream.{...}
+export Executable
+
+shouldBeTheSame(a:String, b:String, diag:String,f:String):() =
+   if a =/= b then
+       println("FAIL: " diag f)
+       println("--------expected--------------------------------------------")
+       println("|" a "| length = " |a|)
+       println("--------got-------------------------------------------------")
+       println("|" b "| length = " |b|)
+       println("------------------------------------------------------------")
+   end
+
+streamTest(s:String, inter:String, op: ReadStream -> String, desc:String) = do
+    println("************************* " desc)
+    rs = FileReadStream("testFile.txt")
+    res : String := op(rs)
+    while NOT (rs.eof()) do
+        res := res inter op(rs)
+    end
+    rs.close()
+    shouldBeTheSame(s,res,"ReadStream using ",desc)
+  end
+
+genTest[\S\](s:String, inter:String, gen: ReadStream -> Generator[\S\], desc: String) = do
+    println("************************* par " desc)
+    rs = FileReadStream("testFile.txt")
+    res = BIG ||[l<-gen(rs)] l inter
+    rs.close()
+    shouldBeTheSame(s,res,"Generated using ",desc)
+    println("************************* seq " desc)
+    rss = FileReadStream("testFile.txt")
+    ress : String := ""
+    for l <- seq(gen(rss)) do
+        ress := ress l inter
+    end
+    rss.close()
+    shouldBeTheSame(s,ress,"Generated sequentially using ",desc)
+    println("************************* seq gen " desc)
+    rs3 = FileReadStream("testFile.txt")
+    res3 = BIG ||[l <- seq(gen(rs3))] l inter
+    rs3.close()
+    shouldBeTheSame(s,res3,"Generated sequentially via comprehension using ",desc)
+  end
+
+createTestFile(closeit: Boolean, fout: WriteStream): String = do
+      s0 = "Writing into a file..."//
+      s1 = "Writing again..."//
+      s2 = "And an unterminated line."
+      s = s0 s1 s2
+      fout.write(s0)
+      fout.write(s1)
+      fout.write(s2)
+      if closeit then fout.close() else fout.flush() end
+      s
+  end
+
+run() = do
+  (* This used to crash on the second set of output because we were
+     accidentally closing stdout!  Closing stdout also silently dropped
+     all subsequent attempts to use System.out. *)
+  t = createTestFile(false, stdOut)
+  u = createTestFile(false, stdOut)
+
+  s = createTestFile(true, Writer("testFile.txt"))
+
+  (* Note that we can't distinguish the non-terminated final line when
+     we use readLine.  We'll always get a final empty line. *)
+  streamTest(s//, "\n", fn (rs) => rs.readLine(),"readLine")
+  rdChar(rs:ReadStream): String = do
+      c = rs.readChar()
+      if c = char(0) then "" else "" c end
+    end
+  streamTest(s, "", rdChar, "readChar")
+  streamTest(s, "", fn (rs) => rs.read(16),"read(16)")
+  streamTest(s, "", fn (rs) => rs.read(),"read()")
+
+  genTest[\String\](s//, "\n", fn (rs) => rs.lines(), "lines")
+  genTest[\Char\](s, "", fn (rs) => rs.characters(), "characters")
+  genTest[\String\](s, "", fn (rs) => rs.chunks(16), "chunks(16)")
+  genTest[\String\](s, "", fn (rs) => rs.chunks(), "chunks()")
+  genTest[\Char\](s, "", fn (rs) => rs.chunks().nest[\Char\](identity[\String\]),
+               "exploded characters")
+
+  _ = createTestFile(true,BufferedWriter(Writer("testFile.txt"), 23))
+  streamTest(s, "", fn (rs) => rs.read(16),"read(16)")
+end
+
+test outputTest():() = do
+    stdOut.write("Hello World")
+    stdOut.write("\n")
+    stdOut.flush()
+end
+
+test errortest():() = do
+    stdErr.write("\nHello World\n")
+    stdErr.flush()
+end
+
+
+end

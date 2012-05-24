@@ -1,0 +1,275 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress symbols and operators.
+ */
+module com.sun.fortress.parser.Symbol(DelimitedExpr, LocalDecl, NoNewlineExpr,
+                                      Type, Identifier, Spacing, Keyword);
+
+import DelimitedExpr;
+import LocalDecl;
+import NoNewlineExpr;
+import Type;
+import Identifier;
+import Spacing;
+import Keyword;
+
+option setOfString(FORTRESS_KEYWORDS);
+
+Op Encloser = a1:encloser
+     { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount), a1); };
+
+Op LeftEncloser = !(opendoublesquare) a1:leftEncloser
+     { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount), a1); };
+
+Op RightEncloser = a1:rightEncloser
+     { yyValue = NodeFactory.makeOpEnclosing(createSpan(yyStart,yyCount), a1); };
+
+Op ExponentOp = a1:exponentOp
+     { yyValue = NodeFactory.makeOpPostfix(createSpan(yyStart,yyCount), a1); };
+
+/* EncloserPair ::=
+     (LeftEncloser | Encloser) (w DOT)? w (RightEncloser | Encloser)
+ */
+Op EncloserPair =
+     a1:(LeftEncloser / Encloser) (w DOT)? w a2:(RightEncloser / Encloser)
+     { if (! PrecedenceMap.ONLY.matchedBrackets(a1.getText(), a2.getText()))
+           log(NodeUtil.getSpan(a2), "Mismatched Enclosers: " + a1 + " and " + a2);
+       yyValue = NodeFactory.makeEnclosing(createSpan(yyStart,yyCount),
+                                           a1.getText(), a2.getText());
+     };
+
+transient void bar = &("|" wr GeneratorClauseList closingComprehension) "|";
+transient private void closingComprehension =
+     w rightEncloser
+   / w closecurly
+   / w closeangle
+   / br ArrayComprehensionClause
+   / w closesquare
+   ;
+transient private String sd = [*.]? ;
+transient private String bars = "|" (sd "|")* ;
+transient private String slashes = "/" (sd "/")*
+                                 / "\\" (sd "\\")* ;
+transient private String lesses = "<" (sd "<")*;
+transient private String greaters = ">" (sd ">")*;
+
+transient private String encloser =
+     !(bar) bars !([*.>/\\] / "->")
+   / "\u2016"
+   / "\u2af4" ;
+
+transient private String leftEncloser =
+     leftEncloserMulti &{PrecedenceMap.ONLY.isLeft(yyValue)}
+   / c:_ &{c != '|' && PrecedenceMap.ONLY.isLeft(""+c)} { yyValue = ""+c; }
+   ;
+
+transient private String leftEncloserMulti =
+     "(." ("/"+ / "\\"+)
+   / "[/\\/\\/" / "[/\\/"
+   / "[" (sd slashes)
+   / "{" (sd slashes)
+   / lesses sd (slashes / bars)
+   / bars sd slashes
+   / "{*" /  "[*"
+   / "((.>" / "(.<"
+   ;
+
+transient private String rightEncloser =
+     rightEncloserMulti &{ PrecedenceMap.ONLY.isRight(yyValue) }
+   / c:_ &{c != '|' && PrecedenceMap.ONLY.isRight(""+c)} { yyValue = ""+c; }
+   ;
+
+transient private String rightEncloserMulti =
+     "/"+ ".)"
+   / "\\"+ ".)"
+   / slashes sd (greaters / bars / [\]}])
+   / bars sd greaters
+   / "*]" / "*}"
+   / "]" / "}"
+   / ">.)" / "<.))"
+   / "/\\/\\/]" / "/\\/]"
+   ;
+
+/* ExponentOp ::= ^T | ^(Encloser | Op) */
+transient private String exponentOp =
+     "^T"
+   / a1:"^" a2:(encloser / op) { yyValue = a1+a2; };
+
+/* Finally, a nonreserved word that is made up of a mixture of uppercase
+ * letters and underscores (but no digits), does not begin or end with an
+ * underscore, and contains at least two distinct letters is also an
+ * operator.  For example: MAX MIN SQRT TIMES
+ *
+ * Note that NodeUtil.validOp just checks whether the string is
+ * all-caps with underscores; it doesn't look it up anywhere, and
+ * shouldn't since this set of operators is open-ended.
+ */
+String OpName =
+     opn:id &{NodeUtil.validOp(opn) };
+
+Op Op =
+     a1:(condOp / op !(equalsOp) / compOp) !(Symbol)
+     { yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart, yyCount), a1); }
+   / a1:Symbols
+     { log(createSpan(yyStart,yyCount),
+           a1 + " is not a valid operator in Fortress.");
+       yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart, yyCount), a1);
+     };
+
+transient private String Symbols =
+     a1s:Symbol+
+     { StringBuilder buf = new StringBuilder();
+       for (String n: a1s.list()) buf.append(n);
+       yyValue = buf.toString();
+     };
+
+transient private String Symbol = [+] ;
+//transient private String Symbol = [!-/:-@[-`{-~] ;
+
+transient private String compOp =
+     "==="
+   / "=/="
+   / "<="
+   / ">=" ;
+
+private String condOp =
+     <ErrorProduction> ":::"
+     { log(createSpan(yyStart,yyCount),
+           "Three or more colons are not valid operators in Fortress.");
+       yyValue = "";
+     }
+   / a1:":" a2:(encloser / op) a3:colon { yyValue = a1+a2+a3; }
+   / a1:(encloser / op) a2:colon        { yyValue = a1+a2; };
+
+private String multiOp =
+     "-/->"
+   / "<-/-"
+   / "-->"
+   / "==>"
+   / ">>>"
+   / mapstoOp
+   / "<<<"
+   / "<->"
+   / leftarrowOp
+   / "<=>"
+   / "->"
+   / doublerightarrow
+   / ">>"
+   / "<<"
+   / "!!"
+   / "::"
+   / !(rightEncloserMulti) "///"
+   / !(rightEncloserMulti) "//"
+   ;
+
+transient private String singleOp =
+     !(encloser / leftEncloser / rightEncloser / multiOp / compOp / match)
+     a1:_ !("*") &{ PrecedenceMap.ONLY.isOperator("" + a1) }
+     { yyValue = "" + a1; } ;
+
+String op =
+     OpName
+   / multiOp
+   / singleOp ;
+
+/* CompoundOp ::= (Encloser | Op)= */
+FunctionalRef CompoundOp =
+     a1:(encloser / op) equalsOp
+     { yyValue = ExprFactory.makeOpRef(NodeFactory.makeOpInfix(createSpan(yyStart, yyCount), a1)); };
+
+/* The operator "=>" should not be in the left-hand sides of
+   case/typecase expressions. */
+String doublerightarrow = "=>" &(w BlockElems w match);
+
+/* The operator "BY" should not be used with ExtentRange. */
+String crossOp = "BY":OpName &(w ExtentRange) / "\u2a2f":singleOp;
+
+transient String leftarrow = "<-" / "\u2190";
+
+transient String caret = "^" !("T");
+transient String colonequals = ":=" / "\u2254";
+transient String equals = "=" (!op);
+transient String equalsOp = "=":singleOp / "\u003d":singleOp;
+transient String semicolon = ";";
+transient String one = "1";
+
+transient String colon = ":" (!op);
+transient String colonOp = ":":singleOp / "\u003a":singleOp;
+transient String closecurly = "}";
+transient String opencurly = !(leftEncloserMulti) "{":leftEncloser;
+transient String closesquare = "]";
+transient String opensquare = !(opendoublesquare) "[":leftEncloser;
+transient String ellipses = "...";
+
+transient String lessthanequal    = "<=":op / "LE":op / "\u2264":op;
+transient String lessthan         = "<":op  / "LT":op / "\u003c":op;
+transient String greaterthanequal = ">=":op / "GE":op / "\u2265":op;
+transient String greaterthan      = ">":op  / "GT":op / "\u003e":op;
+
+transient String NOT     = "NOT":op / "\u00ac":op;
+transient String OR      = "OR":op / "\u2228":op;
+transient String AND     = "AND":op / "\u2227":op;
+transient String IMPLIES = "IMPLIES":op / "\u2192":op;
+
+transient String DOT = "DOT":OpName / "\u00b7":op;
+transient String slash = "/":singleOp / "\u002f":singleOp;
+transient String rightarrow = "->" / "\u2192";
+transient String underscore = "_";
+
+transient void closeangle = "|>" / "\u27e9";
+transient void closedoublesquare = "\\]" / "\u27e7";
+transient void closeparen = ")";
+transient void cross = "BY" / "\u2a2f";
+transient void mapsto = "|->" / "\u21a6";
+transient void match = "=>" / "\u21d2";
+transient void minus = "-":singleOp / "\u2212":singleOp;
+transient void openangle = "<|":leftEncloser / "\u27e8":leftEncloser;
+transient void opendoublesquare = "[\\" / "\u27e6";
+transient void openparen = !(leftEncloser) "(";
+transient void plus = "+":singleOp / "\u002b":singleOp;
+transient void pound = "#":singleOp / "\u0023":singleOp;
+transient void star = !("**") "*":singleOp;
+
+transient void comma = ",";
+transient void commaOrNot = "," / w ;
+transient void dot   = ".";
+
+/* AssignOp ::= := | CompoundOp */
+transient Option<FunctionalRef> AssignOp =
+     colonequals   { yyValue = Option.<FunctionalRef>none(); }
+   / a1:CompoundOp { yyValue = Option.<FunctionalRef>some(a1); };
+
+transient Op SUM = "SUM"
+     { yyValue = NodeFactory.makeOpBig(createSpan(yyStart,yyCount), "BIG +"); };
+transient Op PROD = "PROD"
+     { yyValue = NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
+                                       "BIG juxtaposition");
+     };
+
+/* Accumulator ::= SUM | PROD | BIG w (Encloser | Op) */
+transient Op Accumulator =
+     SUM
+   / PROD
+   / void:BIG w a1:(Encloser / Op)
+     { yyValue = NodeFactory.makeOpBig(createSpan(yyStart,yyCount),
+                                       "BIG " + a1.getText());
+     };
+
+/* ArrayComprehensionClause ::=
+     ArrayComprehensionLeft wr | wr GeneratorClauseList
+ */
+ArrayComprehensionClause ArrayComprehensionClause =
+     a1:ArrayComprehensionLeft wr bar wr a2:GeneratorClauseList
+     { yyValue = NodeFactory.makeArrayComprehensionClause(createSpan(yyStart,yyCount),
+                                                          a1.getA(), a1.getB(), a2);
+     };

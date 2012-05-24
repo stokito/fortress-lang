@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXimmutableTopLevel
+export Executable
+
+a=x
+b=y
+c:ZZ32=x
+d:ZZ32=y
+f=e;
+e=w
+
+x:ZZ32=1
+y=2
+z:ZZ32:=3
+w=e+g
+g=e
+
+
+run():()=do
+  println("x = " x)
+  println("y = " y)
+  println("z = " z)
+  println("a = " a)
+  println("b = " b)
+  println("c = " c)
+  println("d = " d)
+end
+
+end

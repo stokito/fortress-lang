@@ -1,0 +1,23 @@
+/*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress expressions within array expressions.
+ */
+module com.sun.fortress.parser.templateparser.NoSpaceExpr(Expr, Keyword, Symbol, Spacing);
+
+import Expr;
+import Keyword;
+import Symbol;
+import Spacing;
+
+modify com.sun.fortress.parser.NoSpaceExpr(Expr, Keyword,
+Symbol, Spacing);

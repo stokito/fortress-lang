@@ -1,0 +1,53 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Type Ascription}
+\seclabel{type-ascription}
+
+\begin{Grammar}
+\emph{Expr} &::=& \emph{Expr} \KWD{typed} \emph{Type}
+\end{Grammar}
+
+An expression consisting of a single subexpression, followed by
+\KWD{typed}, followed by a type, is a \emph{type ascription}.  The value
+of the expression is the value of the subexpression.  The static type
+of the expression is the ascribed type.
+The type of the subexpression must be a subtype of the ascribed type.
+A type ascription does not affect the dynamic type of the value the
+expression evaluates to
+(unlike a type assumption described in \secref{type-assumption}).
+Type ascription can be used to provide
+type information when type inference (see \chapref{type-inference})
+cannot infer a type for an expression.
+
+
+\section{Type Assumption}
+\seclabel{type-assumption}
+
+\begin{Grammar}
+\emph{Expr} &::=& \emph{Expr} \KWD{asif} \emph{Type}
+\end{Grammar}
+
+An expression consisting of a single subexpression, followed by
+\KWD{asif}, followed by a type, is a
+\emph{type assumption}.
+The value of the expression is the value of the subexpression.
+The static type of the expression is the given type.
+The type of the subexpression must be a subtype of the given type.
+A type assumption considers both the static and the dynamic type of the value
+of the expression to be the specified type for the purposes of the
+immediately enclosing function, method, or operator invocation or
+field access.  This is in contrast to type ascription, which only
+gives a \emph{static} type to an expression.  Type assumption is used
+to access a method provided by a supertrait when multiple supertraits
+provide different methods with the same name.  Fortress thus provides
+a richer version of type assumption operations such as \texttt{super}
+in the Java Programming Language.

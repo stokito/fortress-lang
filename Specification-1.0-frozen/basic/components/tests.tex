@@ -1,0 +1,26 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Tests in Components and \Apis}
+\seclabel{component-tests}
+
+A component may include definitions of tests,
+as described in \chapref{tests}.
+These definitions are allowed to refer to both test and non-test code defined in the same
+component or declared in \apisN\ imported by the component.
+
+An \apiN\ may also include definitions of tests.
+These definitions may refer to all declarations in the \apiN\ as well as in
+any \apisN\ it imports. Tests defined in \apisN\ should be thought of as ``executable documentation''
+that partially specifies the required behavior of the declared entities.
+
+See \secref{basicops} for an explanation of how tests
+defined in components and \apisN\ are executed.

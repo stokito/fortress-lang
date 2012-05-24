@@ -1,0 +1,18 @@
+component OpParam4
+
+export Executable
+
+
+trait Baz[\ opr ASTERISK \]
+  opr ASTERISK(self, y: Object): Object = y
+end
+
+object Bar extends Baz[\ASTERISK\]
+end
+
+
+run() = ()
+
+foo() = Bar BAR Bar
+
+end

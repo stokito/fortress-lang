@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+
+  trait Foo
+    setter m(new_m:ZZ32):()
+  end
+
+  foo(a:ZZ32,f:Foo):ZZ32 = do
+    f.m += a
+    a
+  end
+
+  run():() = ()

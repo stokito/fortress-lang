@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+
+  f(s:String):String = s
+  g[\T extends Any\](x:T):T = x
+
+run():() = do
+  var s:String
+
+  s := f("asdad")
+  s := g[\String\]("asdad")
+  ()
+end

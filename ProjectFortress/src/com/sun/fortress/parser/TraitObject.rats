@@ -1,0 +1,340 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress trait and object declarations.
+ */
+module com.sun.fortress.parser.TraitObject(Method, Variable, Param, Other, Header,
+                                           Identifier, Keyword, Symbol, Spacing);
+
+import Method;
+import Variable;
+modify Param;
+import Other;
+import Header;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* TraitDecl ::=
+     Mods? TraitHeaderFront TraitClauses (w GoInATrait)? w end ((s trait)? s Id)?
+ */
+TraitDecl TraitDecl =
+     a1:Mods? a2:TraitHeaderFront a3:TraitClauses a4:(w GoInATrait)? w end
+     a5:((s trait)? s Id)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a5 != null && !a2.getName().getText().equals(a5.getText()))
+           log(span, "A trait declaration of " + a2.getName() +
+                     " has the different name " + a5 + " at the end.");
+       if (a1 == null) a1 = Modifiers.None;
+       if (a4 == null) a4 = Collections.<Decl>emptyList();
+       yyValue = NodeFactory.makeTraitDecl(span, a1, a2.getName(),
+                                           a2.getStaticParams(), a2.getParams(),
+                                           a2.getExtendsClause(), a3.getWhere(),
+                                           a4, a3.getExcludes(),
+                                           a3.getComprises(), a3.getEllipses(),
+                                           Option.<SelfType>none());
+     };
+
+/* TraitHeaderFront ::= trait w Id (w StaticParams)? (w TraitValParam)? (w ExtendsWhere)? */
+private TraitHeader TraitHeaderFront =
+     <ErrorProduction>
+     trait w a1:OpName a2:(w StaticParams)? a3:(w TraitValParam)? a4:(w ExtendsWhere)?
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid trait name.");
+       yyValue = new TraitHeader(NodeFactory.bogusId(span),
+                                 Collections.<StaticParam>emptyList(),
+                                 Option.<List<Param>>none(),
+                                 Collections.<TraitTypeWhere>emptyList());
+     }
+     / trait w a1:Id a2:(w StaticParams)? a3:(w TraitValParam)? a4:(w ExtendsWhere)?
+     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
+       if (a4 == null) a4 = Collections.<TraitTypeWhere>emptyList();
+       yyValue = new TraitHeader(a1, a2, Option.<List<Param>>wrap(a3), a4);
+     };
+
+/* TraitValParam ::= ( (w TraitParams)? w ) */
+private List<Param> TraitValParam = openparen a1:(w TraitParams)? w closeparen
+     { yyValue = (a1 == null) ? Collections.<Param>emptyList() : a1; };
+
+/* TraitParams ::= TraitParam (w , w TraitParam)* */
+transient List<Param> TraitParams =
+     a1:TraitParam a2s:(w comma w TraitParam)+
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / a1:TraitParam a2s:(w commaOrNot w TraitParam)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / a1:TraitParam
+     { yyValue = Useful.list(a1); };
+
+/* TraitParam ::= BindId w IsType */
+transient Param TraitParam =
+     a1:BindId w a2:IsType
+     { yyValue = NodeFactory.makeParam(a1, a2); };
+
+/* Each trait clause cannot appear more than once. */
+/* TraitClauses ::= (w TraitClause)* */
+private TraitClauses TraitClauses = a1s:(w TraitClause)*
+     { yyValue = new TraitClauses();
+       for (TraitClause t : (List<TraitClause>)a1s.list()) {
+           yyValue.set(t);
+           if ( t instanceof Comprises && ((Comprises)t).hasEllipses() ) {
+               String file = createSpan(yyStart,yyCount).begin.getFileName();
+               if ( file.length() > 4 &&
+                    file.substring( file.length()-3).equals("fss") )
+                   log(t.span(), "Comprises clauses can include \"...\" only in APIs.");
+           }
+       }
+     };
+
+/* TraitClause ::=
+     Excludes
+   | Comprises
+   | Where
+ */
+private TraitClause TraitClause =
+     a1:Excludes  { yyValue = new Excludes(createSpan(yyStart,yyCount), a1); }
+   / a1:Comprises
+   / a1:Where
+     { yyValue = new Where(createSpan(yyStart,yyCount),
+                           Option.<WhereClause>some(a1));
+       NodeUtil.checkWhereClauses(writer, a1);
+     }
+   / <ErrorProduction>
+     ExtendsWhere
+     { Span span = createSpan(yyStart,yyCount);
+       log(span,
+           "Extends clauses should come before excludes/comprises/where clauses.");
+       yyValue = new Where(span, Option.<WhereClause>none());
+     };
+
+/* GoInATrait ::=
+     (Coercions br)? GoFrontInATrait (br GoBackInATrait)?
+   | (Coercions br)? GoBackInATrait
+   | Coercions
+ */
+private List<Decl> GoInATrait =
+     a1:GoesInATrait a2s:(br GoesInATrait)*
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkMembers(writer, yyValue);
+     };
+
+/* GoesFrontInATrait ::= AbsVarDecl | GetterSetterDecl | PropertyDecl */
+/* GoesBackInATrait  ::= MdDecl | PropertyDecl */
+private Decl GoesInATrait =
+     Coercion
+   / AbsVarDecl
+   / MdDecl
+   / PropertyDecl ;
+
+/* ObjectDecl ::= Mods? ObjectHeader (w GoInAnObject)? w end ((s object)? s Id)?
+ */
+ObjectDecl ObjectDecl =
+     a1:Mods? a2:ObjectHeader a3:(w GoInAnObject)? w end a4:((s object)? s Id)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a4 != null && !a2.getName().getText().equals(a4.getText()))
+           log(span, "An object declaration of " + a2.getName() +
+               " has the different name " + a4 + " at the end.");
+       if (a1 == null) a1 = Modifiers.None;
+       if (a3 == null) a3 = Collections.<Decl>emptyList();
+       FnHeaderClause fhc = a2.getFnHeaderClause();
+       yyValue = NodeFactory.makeObjectDecl(span, a1, a2.getName(),
+                                            a2.getStaticParams(),
+                                            a2.getExtendsClause(),
+                                            fhc.getWhereClause(),
+                                            a3, a2.getParams(),
+                                            fhc.getThrowsClause(),
+                                            fhc.getContractClause(),
+                                            Option.<SelfType>none());
+     };
+
+/* ObjectHeader ::=
+    object w Id (w StaticParams)? (s ObjectValParam)? (w ExtendsWhere)? FnClauses
+ */
+private ObjectHeader ObjectHeader =
+     <ErrorProduction>
+     object w a1:OpName a2:(w StaticParams)? a3:(w ObjectValParam)?
+     a4:(w ExtendsWhere)? a5:FnClauses
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, a1 + " is not a valid object name.");
+       NodeUtil.checkWhereClauses(writer, a5.getWhereClause());
+       yyValue = new ObjectHeader(NodeFactory.bogusId(span),
+                                  Collections.<StaticParam>emptyList(),
+                                  Option.<List<Param>>none(),
+                                  Collections.<TraitTypeWhere>emptyList(), a5);
+     }
+   / object w a1:Id a2:(w StaticParams)? a3:(w ObjectValParam)?
+     a4:(w ExtendsWhere)? a5:FnClauses
+     { if (a2 == null) a2 = Collections.<StaticParam>emptyList();
+       if (a4 == null) a4 = Collections.<TraitTypeWhere>emptyList();
+       NodeUtil.checkWhereClauses(writer, a5.getWhereClause());
+       yyValue = new ObjectHeader(a1, a2, Option.<List<Param>>wrap(a3), a4, a5);
+     };
+
+/* ObjectValParam ::= ( (w ObjectParams)? w ) */
+private List<Param> ObjectValParam = openparen a1:(w Params)? w closeparen
+     { yyValue = (a1 == null) ? Collections.<Param>emptyList() : a1; };
+
+/* ObjectParams  ::=
+     (ObjectParam w , w)* ObjectKeyword (w , w ObjectKeyword)*
+   |  ObjectParam (w , w ObjectParam)*
+   ObjectKeyword ::= ObjectParam w = w Expr
+   ObjectParam   ::= ParamFldMods? Param
+ */
+Param Varargs :=
+     <ErrorProduction>
+     VarargsParam
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Varargs parameters of objects are not allowed.");
+       yyValue = NodeFactory.bogusParam(span);
+     };
+
+Param Param :=
+     a1:Mods? a2:PlainParam
+     { yyValue = (a1 != null) ? NodeFactory.makeParam(a2, a1) : a2; };
+
+/* GoInAnObject ::=
+     (Coercions br)? GoFrontInAnObject (br GoBackInAnObject)?
+   | (Coercions br)? GoBackInAnObject
+   | Coercions
+ */
+List<Decl> GoInAnObject =
+     a1:GoesInAnObject a2s:(br GoesInAnObject)*
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkMembers(writer, yyValue);
+     };
+
+/* GoesFrontInAnObject ::= VarDecl | GetterSetterDef | PropertyDecl */
+/* GoesBackInAnObject ::= MdDef | PropertyDecl */
+private Decl GoesInAnObject =
+     Coercion
+   / VarDecl
+   / MdDecl
+   / PropertyDecl ;
+
+/* AbsTraitDecl ::=
+     Mods? TraitHeaderFront AbsTraitClauses (w AbsGoInATrait)? w end
+     ((s trait)? s Id)?
+ */
+TraitDecl AbsTraitDecl =
+     a1:Mods? a2:TraitHeaderFront a3:AbsTraitClauses
+     a4:(w AbsGoInATrait)? w end a5:((s trait)? s Id)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a5 != null && !a2.getName().getText().equals(a5.getText())) {
+           log(span, "A trait declaration of " + a2.getName() +
+               " has the different name " + a5 + " at the end.");
+       }
+       if (a1 == null) a1 = Modifiers.None;
+       if (a4 == null) a4 = Collections.<Decl>emptyList();
+       yyValue = NodeFactory.makeTraitDecl(span, a1, a2.getName(),
+                                           a2.getStaticParams(), a2.getParams(),
+                                           a2.getExtendsClause(), a3.getWhere(),
+                                           a4, a3.getExcludes(),
+                                           a3.getComprises(), a3.getEllipses(),
+                                           Option.<SelfType>none());
+     };
+
+/* Each trait clause cannot appear more than once. */
+/* AbsTraitClauses ::= (w AbsTraitClause)* */
+/* AbsTraitClause ::=
+     Excludes
+   | AbsComprises
+   | Where
+ */
+private TraitClauses AbsTraitClauses = a1s:(w TraitClause)*
+     { yyValue = new TraitClauses();
+       for (TraitClause t : (List<TraitClause>)a1s.list()) yyValue.set(t);
+     };
+
+/* AbsGoInATrait ::=
+     (AbsCoercions br)? AbsGoFrontInATrait (br AbsGoBackInATrait)?
+   | (AbsCoercions br)? AbsGoBackInATrait
+   | AbsCoercions
+ */
+private List<Decl> AbsGoInATrait =
+     a1:AbsGoesInATrait a2s:(br AbsGoesInATrait)*
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkAbsMembers(writer, yyValue);
+     };
+
+/* AbsGoesFrontInATrait ::= AbsVarDecl | AbsGetterSetterDecl | PropertyDecl */
+/* AbsGoesBackInATrait  ::= AbsMdDecl | PropertyDecl */
+private Decl AbsGoesInATrait =
+     Coercion
+   / yyValue:VarDecl
+     { log(NodeUtil.getSpan(yyValue),
+           "A field declaration with an initializing expression " +
+           "is not allowed in an API.");
+     }
+   / AbsVarDecl
+   / yyValue:MdDecl
+     { if ( ((FnDecl)yyValue).getBody().isSome() )
+           log(NodeUtil.getSpan(yyValue),
+               "A method declaration with a body expression " +
+               "is not allowed in an API.");
+     }
+   / PropertyDecl ;
+
+/* AbsObjectDecl ::= Mods? ObjectHeader (w AbsGoInAnObject)? w end
+                     ((s object)? s Id)?
+ */
+ObjectDecl AbsObjectDecl =
+     a1:Mods? a2:ObjectHeader a3:(w AbsGoInAnObject)? w end
+     a4:((s object)? s Id)?
+     { Span span = createSpan(yyStart,yyCount);
+       if (a4 != null && !a2.getName().getText().equals(a4.getText())) {
+           log(span, "An object declaration of " + a2.getName() +
+               " has the different name " + a4 + " at the end.");
+       }
+       if (a1 == null) a1 = Modifiers.None;
+       if (a3 == null) a3 = Collections.<Decl>emptyList();
+       FnHeaderClause fhc = a2.getFnHeaderClause();
+       Option<List<Param>> params = a2.getParams();
+       NodeUtil.checkNoWrapped(writer, params);
+       yyValue = NodeFactory.makeObjectDecl(span, a1, a2.getName(),
+                                            a2.getStaticParams(),
+                                            a2.getExtendsClause(),
+                                            fhc.getWhereClause(), a3, params,
+                                            fhc.getThrowsClause(),
+                                            fhc.getContractClause(),
+                                            Option.<SelfType>none());
+     };
+
+/* AbsGoInAnObject ::=
+     (AbsCoercions br)? AbsGoFrontInAnObject (br AbsGoBackInAnObject)?
+   | (AbsCoercions br)? AbsGoBackInAnObject
+   | AbsCoercions
+ */
+List<Decl> AbsGoInAnObject =
+     a1:AbsGoesInAnObject a2s:(br AbsGoesInAnObject)*
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.checkAbsMembers(writer, yyValue);
+     };
+
+/* AbsGoesFrontInAnObject ::= AbsVarDecl | AbsGetterSetterDecl | PropertyDecl */
+/* AbsGoesBackInAnObject ::= AbsMdDecl | PropertyDecl */
+private Decl AbsGoesInAnObject =
+     Coercion
+   / yyValue:VarDecl
+     { log(NodeUtil.getSpan(yyValue),
+           "A field declaration with an initializing expression " +
+           "is not allowed in an API.");
+     }
+   / AbsVarDecl
+   / yyValue:MdDecl
+     { if ( ((FnDecl)yyValue).getBody().isSome() )
+           log(NodeUtil.getSpan(yyValue),
+               "A method declaration with a body expression " +
+               "is not allowed in an API.");
+     }
+   / PropertyDecl ;

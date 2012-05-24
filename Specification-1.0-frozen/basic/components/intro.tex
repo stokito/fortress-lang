@@ -1,0 +1,182 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\note{This chapter including various syntax is out of date.
+
+Imported functionals may be overloaded with declared top-level functions.
+
+Reject identical import statements.
+
+At most one on-demand import statement from a single API.
+
+The component/API names should be the same as their enclosing file names.
+
+Only a single component/API declaration should occur in a single file.
+
+No order between \KWD{import} and \KWD{export} statements.
+
+Import aliasing syntax should use \EXP{\Rightarrow} instead of \KWD{as}.
+
+Eric's email titled ``Proposal: Compound APIs'' on 06/08/09:
+\EXP{\KWD{api}\:\TYP{Foo} \KWD{comprises} \{\TYP{Foo1}, \TYP{Foo2}, \TYP{Foo3}, \TYP{Foo4}\} \KWD{end}}
+
+Declaration exported by multiple APIs:
+A definition in a component must not match more than one declaration in exported APIs.
+
+Jan's email titled ``Proposed changes: scripting interface, args in a library''
+on 02/05/09
+}
+
+\note{ \begin{itemize}
+\item
+It is a static error if
+a name specified by an import %%-unqualified
+statement
+is also declared by a top-level or functional method declaration
+in the importing component or API,
+or if it is also specified by another import %%-unqualified
+statement,
+unless all top-level or functional declarations for that name
+in the importing component or any of APIs
+imported by an import %%-unqualified
+statement that specifies that name
+form a valid set of overloaded declarations.
+It is also a static error if any specified name
+is not declared by a declaration imported from the API.
+\item
+In addition, it is a static error if in a set of overloaded declarations,
+any of the following are true:
+\begin{enumerate}
+\item Any declaration imported on demand is more specific than any explicit declaration.
+\item Any top-level function declaration is more specific than any functional method declaration.
+(This rule actually applies to declarations in a single component as well.)
+\item
+Any top-level function declaration imported on demand is more specific than any other declaration not in the same API as the top-level function declaration.
+\end{enumerate}
+It is also a static error to explicitly import a name from an API
+that does not declare it, or to have multiple import-on-demand statements
+with the same API.
+
+ \end{itemize}
+}
+
+\note{API integration
+  \begin{itemize}
+\item
+We agreed to extend Fortress to allow APIs to extend other APIs.
+If an API \VAR{A} extends another API \VAR{B},
+then every declaration of \VAR{B} is also a declaration of \VAR{A}.
+It is a static error if a name declared in \VAR{B} is also declared in \VAR{A}
+unless both declarations are of top-level functions or functional methods,
+in which case, the declarations are overloaded.
+
+The extension relation among APIs must be acyclic.
+\item Selective extension of specific types
+%% api FortressLibrary
+%%   extends Whatever.{Boolean}
+%%   extends Whatever2.{Thread}
+%%   ...
+%% end
+\begin{Fortress}
+\(\KWD{api}\:\TYP{FortressLibrary}\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{extends}\:\TYP{Whatever}.\{\TYP{Boolean}\}\)\\
+\(  \KWD{extends}\:\TYP{Whatever2}.\{\TYP{Thread}\}\)\\
+\(  \ldots\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+  \end{itemize}
+
+}
+
+\note{Resolve ambiguity in favor of longest API name. (07/23/09)
+
+If there are an API \EXP{A.B} and an API \VAR{A} which declares a trait \VAR{B}
+declaring a method \VAR{f}, \EXP{A.B.f} in a component importing both \EXP{A.B} and \VAR{A}
+is ambiguous. We agreed with the following:
+\begin{itemize}
+\item Importing an API: \EXP{\KWD{import}\;\;\KWD{api}\:A.B}
+\item Importing an entity: \EXP{\KWD{import}\:A.B},
+ \EXP{\KWD{import}\:A.\{B\:\VAR{as} \OPR{B{\char'137}A}\}}
+\item Resolve ambiguity in favor of longest API name.
+\end{itemize}
+}
+
+\note{Component and Value Namespace
+% component Surprise
+% import api Foo
+% export Executable
+
+% object Foo
+%   foo():String = "foo"
+%   bar():String = "foo"
+%   baz():String = "foo"
+% end
+
+% run(args:String...) = do
+%   Foo.foo()
+%   Foo.bar()
+%   Foo.baz()
+% end
+
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{component}\:\TYP{Surprise}\)\\
+\( \KWD{import}\;\;\KWD{api}\:\TYP{Foo}\)\\
+\( \KWD{export}\:\TYP{Executable}\)\\[4pt]
+\( \KWD{object}\:\TYP{Foo}\)\\
+{\tt~~}\pushtabs\=\+\(   \VAR{foo}()\COLONOP\TYP{String} =\;\;\hbox{\rm``\STR{foo}''}\)\\
+\(   \VAR{bar}()\COLONOP\TYP{String} =\;\;\hbox{\rm``\STR{foo}''}\)\\
+\(   \VAR{baz}()\COLONOP\TYP{String} =\;\;\hbox{\rm``\STR{foo}''}\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \VAR{run}(\VAR{args}\COLONOP\TYP{String}\ldots) = \;\KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(   \TYP{Foo}.\VAR{foo}()\)\\
+\(   \TYP{Foo}.\VAR{bar}()\)\\
+\(   \TYP{Foo}.\VAR{baz}()\)\-\\\poptabs
+\( \KWD{end}\)\\[4pt]
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+Static error for the declaration of the object \TYP{Foo} in the above example.
+}
+
+\note{Importing operators:
+
+Operators with different fixities are not overloaded but different.
+When an ordinary operator (i.e., not a ``vertical-line operator'') is imported,
+all the operators with different fixities are imported.
+When a vertical-line operator is imported, only one fixity is imported.
+}
+
+\note{``\EXP{\KWD{import}\:A.f}'' does not imply
+ ``\EXP{\KWD{import}\;\;\KWD{api}\:A}''.
+
+``\EXP{\KWD{api}\:A; \KWD{import}\;\;\KWD{api}\:B; \KWD{end}}''
+ does not export \VAR{B}.
+}
+
+Fortress programs
+are developed, compiled, and deployed as
+\emph{encapsulated upgradable components}
+that exist not only as programming language features, but also as
+self-contained run-time entities that are managed
+throughout the life of the software.
+The imported and exported references of a component
+are described with explicit \emph{\apisN}.
+With components and \apisN, Fortress
+provides the stability benefits of
+static linking with the sharing and upgrading benefits of
+dynamic linking.
+\footnote{The system described in this chapter is based on that
+described in \cite{allen-05-components}.}
+In addition to an informal description of the component system in this
+chapter, we also formally specify key functionality of the system,
+and illustrate how we can reason about the correctness of the system
+in \appref{components}.

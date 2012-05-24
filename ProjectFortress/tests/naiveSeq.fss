@@ -1,0 +1,61 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component naiveSeq
+export Executable
+
+tst(a:Number, b:Number, c:String): () =
+    if a=/=b then
+        fail(c ": " a "=/=" b)
+    else
+        println(c " OK")
+    end
+
+object NewRange(lo:ZZ32,sz:ZZ32) extends Generator[\ZZ32\]
+  getter size() = sz
+  getter asString() = "[" lo "#" sz "]"
+  opr |self| : ZZ32 = sz
+  generate[\R\](r:Reduction[\R\], m:ZZ32->R): R =
+    if sz < 1 then
+      r.empty()
+    else
+      gen(l,s) = if s <= 1 then
+                   m(l)
+                 else
+                   (s1,s2) = partition(s)
+                   r.join(gen(l,s1),gen(l+s1,s2))
+                 end
+      gen(lo,sz)
+    end
+end
+
+run():() = do
+    r1 = NewRange(1,11)
+    s2 : ZZ32 := 0
+    for i <- seq(r1) do
+      s2 += i
+    end
+    s1 = SUM r1
+    tst(s1,s2,"sum")
+    tst(s1,66,"actualSum")
+    v : ZZ32 := 0
+    for i <- seq(r1) do
+      v := 2 v + i
+    end
+    tst(v,4083,"2v+i")
+    w : ZZ32 := 0
+    for i <- seq(1#11) do
+      w := 2 w + i
+    end
+    tst(v,w,"1#11")
+  end
+
+end

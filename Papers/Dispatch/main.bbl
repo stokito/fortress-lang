@@ -1,0 +1,161 @@
+\begin{thebibliography}{10}
+
+
+\bibitem{FORTRESS-TYPE-POPL-SUBMISSION}
+Type-checking modular multiple dispatch with parametric polymorphism and
+  multiple inheritance.
+\newblock Submitted to OOPSLA 2011.
+
+\bibitem{FORTRESS-1-0}
+E.~Allen, D.~Chase, J.~Hallett, V.~Luchangco, J.-W. Maessen, S.~Ryu, G.~L.
+  {Steele Jr.}, S.~Tobin-Hochstadt, J.~Dias, C.~Eastlund, C.~Flood, Y.~Lev,
+  C.~McCosh, J.~D. Nielsen, and D.~Smith.
+\newblock The {Fortress} Language Specification, version 1.0.
+\newblock Technical report, Sun Microsystems Laboratories, Burlington, MA, Mar.
+  2008.
+
+\bibitem{FORTRESS-MODULAR-MULTIPLE-DISPATCH}
+E.~Allen, J.~J. Hallett, V.~Luchangco, S.~Ryu, and G.~Steele.
+\newblock Modular multiple dispatch with multiple inheritance.
+\newblock In {\em SAC '07: Proc. 2007 ACM Symposium on Applied Computing},
+  pages 1117--1121, New York, NY, USA, 2007. ACM.
+
+\bibitem{CLOS-SPECIFICATION}
+D.~G. Bobrow, L.~G. DeMichiel, R.~P. Gabriel, S.~E. Keene, G.~Kiczales, and
+  D.~A. Moon.
+\newblock Common {L}isp {O}bject {S}ystem specification.
+\newblock {\em SIGPLAN Notices}, 23(special issue):1--142, 1988.
+
+\bibitem{BRUCE-ON-BINARY-METHODS}
+K.~Bruce, L.~Cardelli, G.~T. Leavens, and B.~Pierce.
+\newblock On binary methods.
+\newblock {\em Theory and Practice of Object Systems}, 1(3):221--242, 1995.
+
+\bibitem{LFP92-OVERLOADED-FUNCTIONS-WITH-SUBTYPING}
+G.~Castagna, G.~Ghelli, and G.~Longo.
+\newblock A calculus for overloaded functions with subtyping.
+\newblock In {\em LFP '92: Proc. 1992 ACM Conference on LISP and Functional
+  Programming}, pages 182--192, New York, NY, USA, 1992. ACM.
+
+% \bibitem{CHAMBERLAIN-2007-CHAPEL-PARALLEL-PROGRAMMABILITY}
+% B.~L. Chamberlain, D.~Callahan, and H.~P. Zima.
+% \newblock Parallel programmability and the {Chapel} language.
+% \newblock {\em Int. J. High Perform. Comput. Appl.}, 21(3):291--312, 2007.
+
+\bibitem{CECIL-MULTIMETHODS}
+C.~Chambers.
+\newblock Object-oriented multi-methods in {Cecil}.
+\newblock In {\em ECOOP '92: Proceedings of the European Conference on
+  Object-Oriented Programming}, pages 33--56, London, UK, 1992.
+  Springer-Verlag.
+
+\bibitem{CECIL-REPORT-1993}
+C.~Chambers.
+\newblock The {Cecil} language: {Specification} and rationale.
+\newblock Technical Report UW-CSE-93-03-05, University of Washington, Seattle,
+  WA, Mar. 1993.
+
+\bibitem{CECIL-REPORT-2004}
+C.~Chambers et~al.
+\newblock The {Cecil} language: {Specification} and rationale.
+\newblock Technical report, University of Washington, Seattle, WA, Feb. 2004.
+
+\bibitem{MULTIJAVA-OOPSLA-2000}
+C.~Clifton, G.~T. Leavens, C.~Chambers, and T.~Millstein.
+\newblock {MultiJava}: {Modular} open classes and symmetric multiple dispatch
+  for {Java}.
+\newblock In {\em OOPSLA '00: Proc. 15th ACM SIGPLAN Conference on
+  Object-Oriented Programming, Systems, Languages, and Applications}, pages
+  130--145, New York, NY, USA, 2000. ACM.
+
+\bibitem{MULTIJAVA-TOPLAS-2006}
+C.~Clifton, T.~Millstein, G.~T. Leavens, and C.~Chambers.
+\newblock {MultiJava}: {Design} rationale, compiler implementation, and
+  applications.
+\newblock {\em ACM Trans. Program. Lang. Syst.}, 28(3):517--575, 2006.
+
+\bibitem{CSHARP-ECMA-334-2001}
+ECMA.
+\newblock {\em C\# Language Specification}, Dec. 2001.
+\newblock Standard ECMA-334.
+
+\bibitem{ECOOP87-CLOS}
+R.~P. Gabriel and L.~DeMichiel.
+\newblock An overview of the {Common Lisp Object System}.
+\newblock In {\em Proceedings of the European Conference on Object-Oriented
+  Programming ECOOP 1987}, pages 151--170, Paris, July 1987.
+\newblock Proceedings published by Springer-Verlag as LNCS 276.
+
+\bibitem{CACM-CLOS}
+R.~P. Gabriel, J.~L. White, and D.~G. Bobrow.
+\newblock {CLOS}: Integrating object-oriented and functional programming.
+\newblock {\em Comm. ACM}, 34(9):29--38, 1991.
+
+\bibitem{JLS1}
+J.~Gosling, B.~Joy, and G.~Steele.
+\newblock {\em The Java Language Specification}.
+\newblock Addison-Wesley, Reading, Massachusetts, 1996.
+
+\bibitem{JAVA-6-HOTSPOT-COMPILER}
+T.~Kotzmann, C.~Wimmer, H.~M\"{o}ssenb\"{o}ck, T.~Rodriguez, K.~Russell, and
+  D.~Cox.
+\newblock Design of the {Java} {HotSpot}\texttrademark client compiler for
+  {Java} 6.
+\newblock {\em ACM Trans. Arch. Code Optim.}, 5(1):1--32, 2008.
+
+\bibitem{TOPLAS-EML-MODULAR-TYPECHECKING}
+T.~Millstein, C.~Bleckner, and C.~Chambers.
+\newblock Modular typechecking for hierarchically extensible datatypes and
+  functions.
+\newblock {\em ACM Trans. Program. Lang. Syst.}, 26(5):836--889, 2004.
+
+\bibitem{MODULAR-STATICALLY-TYPED-MULTIMETHODS}
+T.~Millstein and C.~Chambers.
+\newblock Modular statically typed multimethods.
+\newblock {\em Information and Computation}, 175(1):76--118, 2002.
+
+\bibitem{traitsOOPSLA04}
+E.~R. Murphy-Hill and A.~P. Black.
+\newblock Traits: {E}xperience with a language feature.
+\newblock In {\em OOPSLA '04: Companion to the 19th annual ACM SIGPLAN
+  conference on Object-oriented programming systems, languages, and
+  applications}, pages 275--282, New York, NY, USA, 2004. ACM Press.
+
+\bibitem{SCALA-ABSTRACTIONS}
+M.~Odersky and M.~Zenger.
+\newblock Scalable component abstractions.
+\newblock In {\em OOPSLA '05: Proc. 20th annual ACM SIGPLAN Conference on
+  Object-Oriented Programming, Systems, Languages, and Applications}, pages
+  41--57, New York, NY, USA, 2005. ACM.
+
+% \bibitem{PPOPP-2007-X10}
+% V.~A. Saraswat, V.~Sarkar, and C.~von Praun.
+% \newblock X10: {Concurrent} programming for modern architectures.
+% \newblock In {\em PPoPP '07: Proc. 12th ACM SIGPLAN symposium on Principles and
+%   Practice of Parallel Programming}, pages 271--271, New York, NY, USA, 2007.
+%   ACM.
+
+\bibitem{traits}
+N.~Sch{\"a}rli, S.~Ducasse, O.~Nierstrasz, and A.~Black.
+\newblock Traits: {C}omposable units of behavior.
+\newblock In {\em Proceedings of the 17th European Conference on
+  Object-Oriented Programming}. Springer, July 2003.
+
+% \bibitem{GROWING-A-LANGUAGE}
+% G.~L. {Steele Jr.}
+% \newblock Growing a language.
+% \newblock {\em Higher Order Symbol. Comput.}, 12(3):221--236, 1999.
+
+\bibitem{CLTL2}
+G.~L. {Steele Jr.}, S.~E. Fahlman, R.~P. Gabriel, D.~A. Moon, D.~L. Weinreb,
+  D.~G. Bobrow, L.~G. DeMichiel, S.~E. Keene, G.~Kiczales, C.~Perdue, K.~M.
+  Pitman, R.~C. Waters, and J.~L. White.
+\newblock {\em Common Lisp: The Language (Second Edition)}.
+\newblock Digital Press, Bedford, MA, 1990.
+
+\bibitem{C-PLUS-PLUS}
+B.~Stroustrup.
+\newblock {\em The {C}++ Programming Language}.
+\newblock Addison-Wesley, Reading, Massachusetts, 1986.
+
+\end{thebibliography}
