@@ -15,11 +15,6 @@ component Util
 
   export Util
 
-  trait Reduction[\L\]
-    empty(): L
-    join(a: L, b: L): L
-  end
-
   trait ActualReduction[\R,L\] extends Reduction[\L\]
     lift(r: R): L
     unlift(l:L): R
@@ -32,7 +27,7 @@ component Util
 
   object MIMapReduceReduction[\R\](j:(R,R)->R, z:R) extends MonoidReduction[\R\]
     getter asString():String="MIMapReduceReduction from embiggen"
-    empty(): R = z
+    getter id(): R = z
     join(a:R, b:R): R = (j)(a,b)
   end
 
@@ -40,7 +35,7 @@ component Util
       Comprehension[\T,T,T,T\](fn (x) => x, MIMapReduceReduction[\T\](j,z), fn (x) => x)
 
   trait AssociativeReduction[\R\] extends ActualReduction[\R,Maybe[\R\]\]
-    empty(): Nothing[\R\] = Nothing[\R\]
+    getter id(): Nothing[\R\] = Nothing[\R\]
     join(a: Maybe[\R\], b: Maybe[\R\]): Maybe[\R\] =
         if av <- a then
             if bv <- b then
@@ -66,16 +61,6 @@ component Util
     isRightZero(l:L): Boolean = isZero(l)
     isZero(l:L): Boolean = false
   end
-  
-  trait Generator[\E\]
-    generate[\R\](r: Reduction[\R\], body: E -> R): R 
-  end  
-
-  trait SequentialGenerator[\E\] extends { Generator[\E\] }
-    getter asString(): String = "seq"
-    seq(self): SequentialGenerator[\E\] = self
-    loop(f:E->()): () = generate[\()\](VoidReduction, f)
-  end SequentialGenerator
 
   trait Indexed[\E, I\] extends Generator[\E\] end
 
@@ -108,7 +93,7 @@ component Util
 
   object VoidReduction extends Reduction[\()\]
     getter asString(): String = "VoidReduction"
-    empty(): () = ()
+    getter id(): () = ()
     join(a: (), b: ()): () = ()
   end
 
