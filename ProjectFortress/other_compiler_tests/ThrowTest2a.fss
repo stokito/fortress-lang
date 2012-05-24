@@ -16,6 +16,6 @@ object TestFailCalled(s:String) extends UncheckedException
     getter asString(): String = s
 end
 
-testFail(s:String): None = throw TestFailCalled(s)
+testFail(s:String): Zilch = throw TestFailCalled(s)
 
 end

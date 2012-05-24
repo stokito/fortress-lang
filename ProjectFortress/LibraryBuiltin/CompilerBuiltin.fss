@@ -858,11 +858,11 @@ trait Boolean
 (*)   generate[\R\](r: Reduction[\R\], b: ()->R): R =
 (*)       if self then b() else r.id end
 (*)   map[\G\](f: ()->G): Option[\G\] =
-(*)       if self then Some[\G\](f()) else NothingObject[\G\] end
+(*)       if self then Some[\G\](f()) else NoneObject[\G\] end
 (*)   cross[\G\](g: Generator[\G\]): Generator[\((),G)\] =
 (*)       if self
 (*)       then g.map[\((),G)\](fn (e:G):((),G) => ((),e))
-(*)       else NothingObject[\((),G)\] end
+(*)       else NoneObject[\((),G)\] end
 (*)   mapReduce[\R\](b: ()->R, _:(R,R)->R, z:R): R =
 (*)       if self then b() else z end
 (*)   loop(f:()->()): () = if self then f() end
@@ -1233,8 +1233,8 @@ end Condition
 (* Option type *)
 
 value trait Option[\E19\] extends { Condition[\E19\] }
-        comprises { NothingObject[\E19\], Some[\E19\] }
-  coerce(_: Nothing) = NothingObject[\E19\]
+        comprises { NoneObject[\E19\], Some[\E19\] }
+  coerce(_: None) = NoneObject[\E19\]
   getter isEmpty(): Boolean = NOT self.holds
   getter nonEmpty(): Boolean = self.holds
   getter reverse(): Option[\E19\] = self
@@ -1252,12 +1252,12 @@ value object Some[\E20\](x: E20) extends Option[\E20\]
     getDefault(_: E20): E20 = x
 (*)     opr IN(y:E20, self): Boolean = (y = x)
 (*)     opr =(self,other:Some[\E20\]): Boolean = (x = other.x)
-(*)    opr SQCAP(self, other:Some[\E20\]): Option[\E20\] = if other.x = x then self else NothingObject[\E20\] end
+(*)    opr SQCAP(self, other:Some[\E20\]): Option[\E20\] = if other.x = x then self else NoneObject[\E20\] end
     generate[\G11\](r:Reduction[\G11\], body: E20 -> G11): G11 = body(x)
     map[\G12\](f: E20->G12): Condition[\G12\] = Some[\G12\](f(x))
     nest[\G13\](f: E20 -> Generator[\G13\]): Generator[\G13\] = f(x)
     nest[\G18\](f: E20 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\] = f(x)
-    filter(f: E20 -> Condition[\()\]): Option[\E20\] = if f(x).holds then self else NothingObject[\E20\] end
+    filter(f: E20 -> Condition[\()\]): Option[\E20\] = if f(x).holds then self else NoneObject[\E20\] end
     cross[\G14\](g: Generator[\G14\]): Generator[\(E20,G14)\] =
       g.map[\(E20,G14)\](fn (y:G14):(E20,G14) => (x,y))
     cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E20,G17)\] =
@@ -1269,21 +1269,21 @@ value object Some[\E20\](x: E20) extends Option[\E20\]
     cond[\G10\](t: E20 -> G10, e: () -> G10): G10 = t(x)
 end
 
-value object NothingObject[\E21\] extends Option[\E21\]
-    getter asString():String = "Nothing"
+value object NoneObject[\E21\] extends Option[\E21\]
+    getter asString():String = "None"
     getter size(): ZZ32 = 0
     getter get() = throw NotFound
     getter holds() = false
     getDefault(defaultValue: E21): E21 = defaultValue
 (*)     opr IN(x:E21, self): Boolean = false
-(*)     opr SQCAP(self, other: Option[\E21\]): NothingObject[\E21\] = self
+(*)     opr SQCAP(self, other: Option[\E21\]): NoneObject[\E21\] = self
     generate[\G11\](r: Reduction[\G11\], body: E21 -> G11): G11 = r.id
-    map[\G12\](f: E21->G12): Condition[\G12\] = NothingObject[\G12\]
-    nest[\G13\](f: E21 -> Generator[\G13\]): Generator[\G13\] = NothingObject[\G13\]
-    nest[\G18\](f: E21 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\] = NothingObject[\G18\]
+    map[\G12\](f: E21->G12): Condition[\G12\] = NoneObject[\G12\]
+    nest[\G13\](f: E21 -> Generator[\G13\]): Generator[\G13\] = NoneObject[\G13\]
+    nest[\G18\](f: E21 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\] = NoneObject[\G18\]
     filter(f: E21 -> Condition[\()\]): Option[\E21\] = self
-    cross[\G14\](g: Generator[\G14\]): Generator[\(E21,G14)\] = NothingObject[\(E21,G14)\]
-    cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E21,G17)\] = NothingObject[\(E21,G17)\]
+    cross[\G14\](g: Generator[\G14\]): Generator[\(E21,G14)\] = NoneObject[\(E21,G14)\]
+    cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E21,G17)\] = NoneObject[\(E21,G17)\]
     mapReduce[\R\](body: E21->R, _:(R,R)->R, id:R): R = id
     reduce(_:(E21,E21)->E21, id:E21):E21 = id
     reduce(r: Reduction[\E21\]):E21 = r.id
@@ -1291,7 +1291,7 @@ value object NothingObject[\E21\] extends Option[\E21\]
     cond[\G16\](t: E21 -> G16, e: () -> G16): G16 = e()
 end
 
-value object Nothing end
+value object None end
 
 
 (************************************************************
