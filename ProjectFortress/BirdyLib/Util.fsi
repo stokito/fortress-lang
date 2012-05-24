@@ -13,11 +13,6 @@ api Util
 
 import Maybe.{...}
 
-trait Reduction[\L\]
-    abstract empty(): L
-    abstract join(a: L, b: L): L
-end
-
 trait ActualReduction[\R,L\] extends Reduction[\L\]
   abstract lift(r: R): L
   abstract unlift(l:L): R
@@ -29,7 +24,7 @@ trait MonoidReduction[\R\] extends ActualReduction[\R,R\]
 end
 
 trait AssociativeReduction[\R\] extends ActualReduction[\R,Maybe[\R\]\]
-    empty(): Nothing[\R\] 
+    getter id(): Nothing[\R\] 
     join(a: Maybe[\R\], b: Maybe[\R\]): Maybe[\R\] 
     abstract simpleJoin(a:R, b:R): R
     lift(r:R): Maybe[\R\] 
@@ -41,16 +36,6 @@ trait ReductionWithZeroes[\R,L\] extends ActualReduction[\R,L\]
     isRightZero(l:L): Boolean
     isZero(l:L): Boolean 
 end
-
-trait Generator[\E\]
-  abstract generate[\R\](r: Reduction[\R\], body: E -> R): R 
-end  
-
-trait SequentialGenerator[\E\] extends { Generator[\E\] }
-  getter asString(): String 
-  seq(self): SequentialGenerator[\E\] 
-  loop(f:E->()): () 
-end SequentialGenerator
 
 trait Indexed[\E, I\] extends Generator[\E\] end
 
@@ -79,7 +64,7 @@ embiggen[\T\](j:(T,T)->T, z:T) : Comprehension[\T,T,T,T\]
 
   object VoidReduction extends Reduction[\()\]
     getter asString(): String 
-    empty(): ()
+    getter id(): ()
     join(a: (), b: ()): () 
   end
 
