@@ -88,7 +88,7 @@ opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Comprehension[\T,Set[\T\],Set[
 
 object Union[\E extends StandardTotalOrder[\E\]\] extends MonoidReduction[\Set[\E\]\] 
     getter asString(): String = "Union reduction"
-    empty():Set[\E\] = EmptySet[\E\]
+    id():Set[\E\] = EmptySet[\E\]
     join(a:Set[\E\], b:Set[\E\]): Set[\E\] = a UNION b
 end
 
@@ -193,9 +193,9 @@ object EmptySet[\E extends StandardTotalOrder[\E\]\] extends Set[\E\]
     end
     *)
     indexOfI(_:ZZ32, e:E):Maybe[\ZZ32\] = Nothing[\ZZ32\]
-    generate[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
-    ivgen[\R\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = r.empty()
-    seqgen[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
+    generate[\R\](r: Reduction[\R\], body: E->R): R = r.id
+    ivgen[\R\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = r.id
+    seqgen[\R\](r: Reduction[\R\], body: E->R): R = r.id
     getVal():E = fail("Empty set: cannot getVal()")
     getLeftChild():Set[\E\] = self
     getRightChild():Set[\E\] = self
