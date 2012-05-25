@@ -638,6 +638,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                            "invoke",
                            "(Ljsr166y/ForkJoinTask;)Ljava/lang/Object;");
         mv.visitInsn(POP);
+        
         voidEpilogue();
 
         mv = cw.visitCGMethod(ACC_PUBLIC, "compute",
@@ -653,6 +654,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                             NamingCzar.voidToFortressVoid);
          // Discard the FVoid that results
          mv.visitInsn(POP);
+         mv.visitVarInsn(ALOAD, mv.getThis());
+         mv.visitMethodInsn(INVOKEVIRTUAL, "com/sun/fortress/runtimeSystem/BaseTask", "printStatistics", "()V");
          voidEpilogue();
     }
 
