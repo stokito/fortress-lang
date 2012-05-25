@@ -696,7 +696,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
   // Accessor methods for trait table
   def typeCons(x: Id): TypeConsIndex =
 //    toOption(traits.typeCons(x)).getOrElse(bug(x, x + " is not in the trait table"))
-    toOption(traits.typeCons(x)).getOrElse(throw new RuntimeException("Foobaz " + x.toStringReadable))
+    toOption(traits.typeCons(x)).getOrElse(throw new RuntimeException("Not in the trait table: " + x.toStringReadable + " @ " + x.at))
 
   def comprisesClause(t: TraitType): Set[TraitType] = typeCons(t.getName) match {
     case ti: ProperTraitIndex =>

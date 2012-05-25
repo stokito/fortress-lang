@@ -10,7 +10,7 @@
  ******************************************************************************)
 
 component RecursiveApiTest3c
-import RecursiveApiTest3a.{ MaybeFoo, Foo, Zilch }
+import RecursiveApiTest3a.{ MaybeFoo, Foo, Zilchness }
 import RecursiveApiTest3b.{ MaybeBar, Bar, Nada }
 export Executable
 
@@ -26,6 +26,6 @@ testsome(a: Foo, b: Nada): () = println("fail")
 
 testmore(a: Foo, b: MaybeFoo): () = ()
 testmore(a: Foo, b: Foo): () = println(if a === b then "pass" else "fail" end)
-testmore(a: Foo, b: Zilch): () = println("fail")
+testmore(a: Foo, b: Zilchness): () = println("fail")
 
 end

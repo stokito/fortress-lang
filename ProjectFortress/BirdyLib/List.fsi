@@ -51,6 +51,8 @@ emptyList[\E\](): List[\E\]
 singleton[\E\](x:E): List[\E\]
 opr <|[\T\]|>: List[\T\]
 
+opr <|[\T\] x1: T, x2: T |>: List[\T\]
+
 opr BIG <|[\T\]|> : Comprehension[\T,List[\T\],List[\T\],List[\T\]\]
 
 opr BIG ||[\T\]() : BigReduction[\List[\T\],List[\T\]\]
