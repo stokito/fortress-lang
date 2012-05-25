@@ -566,27 +566,27 @@ makeJavaBufferedWriter(s: String): JavaBufferedWriter throws FileNotFoundExcepti
 trait AllGenerators end
 
 trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
-    abstract getter reverse(): Generator[\E1\]
+    (*)abstract getter reverse(): Generator[\E1\]
     abstract generate[\R\](r: Reduction[\R\], body: E1->R): R
-    abstract map[\Gyy\](f: E1->Gyy): Generator[\Gyy\]
+    (*)abstract map[\Gyy\](f: E1->Gyy): Generator[\Gyy\]
 (*)    abstract seq(self): SequentialGenerator[\E1\]
-    abstract seq(): SequentialGenerator[\E1\]
-    abstract nest[\G1\](f: E1 -> Generator[\G1\]): Generator[\G1\]
-    abstract filter(f: E1 -> Condition[\()\]): Generator[\E1\]
-    abstract cross[\G2\](g: Generator[\G2\]): Generator[\(E1,G2)\]
-    abstract mapReduce[\R\](body: E1->R, join: (R,R)->R, id: R): R
-    abstract reduce(r: Reduction[\E1\]): E1
-    abstract reduce(join: (E1,E1)->E1, id: E1): E1
-    abstract loop(body :E1->()): ()
+    (*)abstract seq(): SequentialGenerator[\E1\]
+    (*)abstract nest[\G1\](f: E1 -> Generator[\G1\]): Generator[\G1\]
+    (*)abstract filter(f: E1 -> Condition[\()\]): Generator[\E1\]
+    (*)abstract cross[\G2\](g: Generator[\G2\]): Generator[\(E1,G2)\]
+    (*)abstract mapReduce[\R\](body: E1->R, join: (R,R)->R, id: R): R
+    (*)abstract reduce(r: Reduction[\E1\]): E1
+    (*)abstract reduce(join: (E1,E1)->E1, id: E1): E1
+    (*)abstract loop(body :E1->()): ()
 end Generator
 
 trait SequentialGenerator[\E2\] extends { Generator[\E2\] }
-    abstract getter reverse(): SequentialGenerator[\E2\]
-    abstract seq(): SequentialGenerator[\E2\]
-    abstract map[\G3\](f: E2->G3): SequentialGenerator[\G3\]
-    abstract nest[\G4\](f: E2 -> SequentialGenerator[\G4\]): SequentialGenerator[\G4\]
-    abstract filter(f: E2 -> Condition[\()\]): SequentialGenerator[\E2\]
-    abstract cross[\F1\](g: SequentialGenerator[\F1\]): SequentialGenerator[\(E2,F1)\]
+    (*)abstract getter reverse(): SequentialGenerator[\E2\]
+    (*)abstract seq(): SequentialGenerator[\E2\]
+    (*)abstract map[\G3\](f: E2->G3): SequentialGenerator[\G3\]
+    (*)abstract nest[\G4\](f: E2 -> SequentialGenerator[\G4\]): SequentialGenerator[\G4\]
+    (*)abstract filter(f: E2 -> Condition[\()\]): SequentialGenerator[\E2\]
+    (*)abstract cross[\F1\](g: SequentialGenerator[\F1\]): SequentialGenerator[\(E2,F1)\]
 end SequentialGenerator
 
 trait Reduction[\R\]
@@ -610,8 +610,8 @@ trait Condition[\E18\] extends { SequentialGenerator[\E18\] }
     seq(): Condition[\E18\]
     abstract nest[\G13\](f: E18 -> Generator[\G13\]): Generator[\G13\]
     abstract nest[\G18\](f: E18 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\]
-    abstract cross[\G14\](g: Generator[\G14\]): Generator[\(E18,G14)\]
-    abstract cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E18,G17)\]
+    (*)abstract cross[\G14\](g: Generator[\G14\]): Generator[\(E18,G14)\]
+    (*)abstract cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E18,G17)\]
     abstract mapReduce[\R\](body: E18->R, _:(R,R)->R, id:R): R
     abstract reduce(_:(E18,E18)->E18, id:E18): E18
     abstract reduce(r: Reduction[\E18\]): E18
@@ -625,7 +625,7 @@ end Condition
 
 value trait Option[\E19\] extends { Condition[\E19\] }
         comprises { NothingObject[\E19\], Some[\E19\] }
-  coerce(_: Nothing)
+  (*)coerce(_: Nothing)
 (*)  opr SQCAP(self, other: Option[\E19\]): Option[\E19\]
   seq(): Option[\E19\]
   abstract filter(f: E19 -> Condition[\()\]): Option[\E19\]
@@ -635,7 +635,7 @@ value object Some[\E20\](x: E20) extends Option[\E20\] end
 
 value object NothingObject[\E21\] extends Option[\E21\] end
 
-value object Nothing end
+(*)value object Nothing end
 
 
 (************************************************************

@@ -13,12 +13,12 @@ api RecursiveApiTest3a
 import RecursiveApiTest3b.{ MaybeBar, Bar, Nada }
 
 
-trait MaybeFoo comprises { Foo, Zilch } end
+trait MaybeFoo comprises { Foo, Zilchness } end
 
 object Foo(x: MaybeBar) extends MaybeFoo
   peek(): MaybeBar
 end
 
-object Zilch extends MaybeFoo end
+object Zilchness extends MaybeFoo end
 
 end

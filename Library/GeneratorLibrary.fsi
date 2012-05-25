@@ -224,7 +224,7 @@ end
 
 (** The usual lifting to Option for identity-less operators **)
 (*) trait NonemptyReduction[\B\] extends GeneralReduction[\B, Option[\B\], B\]
-(*)     getter id() = NothingObject[\B\]
+(*)     getter id() = NoneObject[\B\]
 (*)     join(a: Option[\B\], b: Option[\B\]): Option[\B\] =
 (*)         if av <- a then
 (*)             if bv <- b then
