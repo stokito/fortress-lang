@@ -70,7 +70,7 @@ opr ===(a:Boolean, b:Boolean):Boolean = a<->b
 
 opr NEQV(a:Any, b:Any):Boolean = NOT (a === b)
 
-fail(s: String): None = do
+fail(s: String): Zilch = do
     errorPrintln("FAIL: " s)
     throw FailCalled(s)
 end

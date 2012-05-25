@@ -624,8 +624,8 @@ end Condition
 (* Option type *)
 
 value trait Option[\E19\] extends { Condition[\E19\] }
-        comprises { NothingObject[\E19\], Some[\E19\] }
-  coerce(_: Nothing)
+        comprises { NoneObject[\E19\], Some[\E19\] }
+  coerce(_: None)
 (*)  opr SQCAP(self, other: Option[\E19\]): Option[\E19\]
   seq(): Option[\E19\]
   abstract filter(f: E19 -> Condition[\()\]): Option[\E19\]
@@ -633,9 +633,9 @@ end
 
 value object Some[\E20\](x: E20) extends Option[\E20\] end
 
-value object NothingObject[\E21\] extends Option[\E21\] end
+value object NoneObject[\E21\] extends Option[\E21\] end
 
-value object Nothing end
+value object None end
 
 
 (************************************************************

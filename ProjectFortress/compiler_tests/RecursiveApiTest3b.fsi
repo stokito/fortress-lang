@@ -10,7 +10,7 @@
  ******************************************************************************)
 
 api RecursiveApiTest3b
-import RecursiveApiTest3a.{ MaybeFoo, Foo, Zilch }
+import RecursiveApiTest3a.{ MaybeFoo, Foo, Zilchness }
 
 
 trait MaybeBar comprises { Bar, Nada } end

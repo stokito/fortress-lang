@@ -326,7 +326,7 @@ trait FilterGenerator[\E15\] extends DefaultGeneratorImplementation[\E15\]    (*
     reduce(r: Reduction[\E15\]): E15 =
         self.g.generate[\E15\](r, fn(e:E15):E15 => if (self.p)(e).holds then e else r.id end)
     filter(p': E15 -> Condition[\()\]): FilterGenerator[\E15\] =
-        SimpleFilterGenerator[\E15\](self.g, fn(e:E15): Condition[\()\] => if (self.p)(e).holds then p'(e) else NothingObject[\()\] end)
+        SimpleFilterGenerator[\E15\](self.g, fn(e:E15): Condition[\()\] => if (self.p)(e).holds then p'(e) else NoneObject[\()\] end)
     seq(): SimpleSequentialFilterGenerator[\E15\] =
         SimpleSequentialFilterGenerator[\E15\](self.g.seq(),self.p)
 end
@@ -347,7 +347,7 @@ object SimpleSequentialFilterGenerator[\E17\](g0: SequentialGenerator[\E17\], p0
         SimpleSequentialFilterGenerator[\E17\](self.g.reverse, self.p)
     seq(): SimpleSequentialFilterGenerator[\E17\] = self
     filter(p': E17 -> Condition[\()\]): SimpleSequentialFilterGenerator[\E17\] =
-        SimpleSequentialFilterGenerator[\E17\](self.g, fn(e:E17):Condition[\()\] => if (self.p)(e).holds then p'(e) else NothingObject[\()\] end)
+        SimpleSequentialFilterGenerator[\E17\](self.g, fn(e:E17):Condition[\()\] => if (self.p)(e).holds then p'(e) else NoneObject[\()\] end)
 end
 
 
@@ -379,7 +379,7 @@ end
 
 (** The usual lifting to Option for identity-less operators **)
 (*) trait NonemptyReduction[\B\] extends GeneralReduction[\B, Option[\B\], B\]
-(*)     getter id() = NothingObject[\B\]
+(*)     getter id() = NoneObject[\B\]
 (*)     join(a: Option[\B\], b: Option[\B\]): Option[\B\] =
 (*)         if av <- a then
 (*)             if bv <- b then
