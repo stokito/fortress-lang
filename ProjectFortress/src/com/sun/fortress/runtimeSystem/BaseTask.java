@@ -193,4 +193,9 @@ public abstract class BaseTask extends FortressExecutable {
     public void setTransaction(Transaction t) {
         transaction = t;
     }    
+
+    public void printStatistics() {
+        FortressTaskRunnerGroup ftrg = (FortressTaskRunnerGroup) getPool();
+        ftrg.printStatistics();
+    }
 }
