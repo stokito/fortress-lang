@@ -20,7 +20,7 @@ body {
   static {
     add(FORTRESS_KEYWORDS, new String[] {
         "FORALL",
-        "None",
+        "Zilch",
 
         "goto",         "idiom",        "public",       "pure",
         "reciprocal",   "static",
@@ -61,7 +61,7 @@ transient String square = "square" !(idrest);
 transient String squared = "squared" !(idrest);
 
 transient void FORALL = "FORALL" !(idrest);
-transient void None = "None" !(idrest);
+transient void Zilch = "Zilch" !(idrest);
 transient void goto = "goto" !(idrest);
 transient void idiom = "idiom" !(idrest);
 transient void public = "public" !(idrest);

@@ -14,6 +14,6 @@ api ThrowTest2a
 object TestFailCalled(s:String) extends UncheckedException
 end
 
-testFail(s:String): None
+testFail(s:String): Zilch
 
 end

@@ -1069,7 +1069,7 @@ trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
     (** Returns a generator that generates the same objects as this generator
         but using a natural order that is the reverse of this generator's
         natural order. *)
-    getter reverse(): Generator[\E1\]
+    (*)getter reverse(): Generator[\E1\]
 
     (** Method `generate` is the core of the `Generator` trait.  It generates
         elements of type `E1` and passes them to the `body` function.
@@ -1095,13 +1095,13 @@ trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
         occur before the new generator is returned.  The resulting
         generator must have the same ordering and cross product
         properties as the generator from which it is derived. *)
-    map[\Gyy\](f: E1->Gyy): Generator[\Gyy\]
+    (*)map[\Gyy\](f: E1->Gyy): Generator[\Gyy\]
 
     (** seq produces a sequential version of the same generator, which
         produces elements in a temporal order that matches this generator's
         natural order. *)
 (*)    seq(self): SequentialGenerator[\E1\]
-    seq(): SequentialGenerator[\E1\]
+    (*)seq(): SequentialGenerator[\E1\]
 
     (** Nesting of generators: the argument `f` is a function from
         elements of this generator to new generators.  This allows an
@@ -1118,12 +1118,12 @@ trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
         then the twelve elements of the result should appear in the natural
         order as 0, 1, 2, 3, 100, 101, 102, 103, 200, 201, 202, 203.
      **)
-    nest[\G1\](f: E1 -> Generator[\G1\]): Generator[\G1\]
+    (*)nest[\G1\](f: E1 -> Generator[\G1\]): Generator[\G1\]
 
     (** Filtering data from a generator.  Only elements that satisfy
         the predicate p are retained.  Natural order and cross product
         properties are otherwise preserved. **)
-    filter(f: E1 -> Condition[\()\]): Generator[\E1\]
+    (*)filter(f: E1 -> Condition[\()\]): Generator[\E1\]
 
     (** Cross product of two generators.  This is specifically
         designed to be overloaded, such that pairs of independent
@@ -1150,33 +1150,33 @@ trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
            a.cross(seq(b))
            seq(a).cross(seq(b))
         But seq(a.cross(b)) may have a different natural order. *)
-    cross[\G2\](g: Generator[\G2\]): Generator[\(E1,G2)\]
+    (*)cross[\G2\](g: Generator[\G2\]): Generator[\(E1,G2)\]
 
     (** Derived generation operations *)
     (** mapReduce is equivalent to generate, but takes an explicit `join` function
         and an identity value `id` that can have any type.  It still assumes `join` is
         associative and that `id` is the identity of `join`. *)
-    mapReduce[\R\](body: E1->R, join: (R,R)->R, id: R): R
+    (*)mapReduce[\R\](body: E1->R, join: (R,R)->R, id: R): R
 
     (** `reduce` is like `generate` or `mapReduce` but takes no `body` function *)
-    reduce(r: Reduction[\E1\]): E1
-    reduce(join: (E1,E1)->E1, id: E1): E1
+    (*)reduce(r: Reduction[\E1\]): E1
+    (*)reduce(join: (E1,E1)->E1, id: E1): E1
 
     (** `loop` is a version of `generate` that requires a body of void type.
         It is used to translate `for` loops.  This default implementation uses
         `VoidReduction` to reduce many void values to one, thus synchronizing
         completion of the `for` loop. *)
-    loop(body :E1->()): ()
+    (*)loop(body :E1->()): ()
 
 end Generator
 
 trait SequentialGenerator[\E2\] extends { Generator[\E2\] }
-    getter reverse(): SequentialGenerator[\E2\]
-    seq(): SequentialGenerator[\E2\]
-    map[\G3\](f: E2->G3): SequentialGenerator[\G3\]
-    nest[\G4\](f: E2 -> SequentialGenerator[\G4\]): SequentialGenerator[\G4\]
-    filter(f: E2 -> Condition[\()\]): SequentialGenerator[\E2\]
-    cross[\F1\](g: SequentialGenerator[\F1\]): SequentialGenerator[\(E2,F1)\]
+    (*)getter reverse(): SequentialGenerator[\E2\]
+    (*)seq(): SequentialGenerator[\E2\]
+    (*)map[\G3\](f: E2->G3): SequentialGenerator[\G3\]
+    (*)nest[\G4\](f: E2 -> SequentialGenerator[\G4\]): SequentialGenerator[\G4\]
+    (*)filter(f: E2 -> Condition[\()\]): SequentialGenerator[\E2\]
+    (*)cross[\F1\](g: SequentialGenerator[\F1\]): SequentialGenerator[\(E2,F1)\]
 end SequentialGenerator
 
 (* This is the trait that the `generate` method of a `Generator` needs to accept.
@@ -1219,8 +1219,8 @@ trait Condition[\E18\] extends { SequentialGenerator[\E18\] }
     seq(): Condition[\E18\] = self
     nest[\G13\](f: E18 -> Generator[\G13\]): Generator[\G13\]
     nest[\G18\](f: E18 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\]
-    cross[\G14\](g: Generator[\G14\]): Generator[\(E18,G14)\]
-    cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E18,G17)\]
+    (*)cross[\G14\](g: Generator[\G14\]): Generator[\(E18,G14)\]
+    (*)cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E18,G17)\]
     mapReduce[\R\](body: E18->R, _:(R,R)->R, id:R): R
     reduce(_:(E18,E18)->E18, id:E18): E18
     reduce(r: Reduction[\E18\]): E18
@@ -1234,7 +1234,7 @@ end Condition
 
 value trait Option[\E19\] extends { Condition[\E19\] }
         comprises { NothingObject[\E19\], Some[\E19\] }
-  coerce(_: Nothing) = NothingObject[\E19\]
+  (*)coerce(_: Nothing) = NothingObject[\E19\]
   getter isEmpty(): Boolean = NOT self.holds
   getter nonEmpty(): Boolean = self.holds
   getter reverse(): Option[\E19\] = self
@@ -1258,10 +1258,10 @@ value object Some[\E20\](x: E20) extends Option[\E20\]
     nest[\G13\](f: E20 -> Generator[\G13\]): Generator[\G13\] = f(x)
     nest[\G18\](f: E20 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\] = f(x)
     filter(f: E20 -> Condition[\()\]): Option[\E20\] = if f(x).holds then self else NothingObject[\E20\] end
-    cross[\G14\](g: Generator[\G14\]): Generator[\(E20,G14)\] =
-      g.map[\(E20,G14)\](fn (y:G14):(E20,G14) => (x,y))
-    cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E20,G17)\] =
-      g.map[\(E20,G17)\](fn (y:G17):(E20,G17) => (x,y))
+    (*)cross[\G14\](g: Generator[\G14\]): Generator[\(E20,G14)\] =
+      (*)g.map[\(E20,G14)\](fn (y:G14):(E20,G14) => (x,y))
+    (*)cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E20,G17)\] =
+     (*) g.map[\(E20,G17)\](fn (y:G17):(E20,G17) => (x,y))
     mapReduce[\R\](body: E20->R, _:(R,R)->R, id:R): R = body(x)
     reduce(_:(E20,E20)->E20, id:E20):E20 = x
     reduce(r: Reduction[\E20\]):E20 = x
@@ -1291,7 +1291,7 @@ value object NothingObject[\E21\] extends Option[\E21\]
     cond[\G16\](t: E21 -> G16, e: () -> G16): G16 = e()
 end
 
-value object Nothing end
+(*)value object Nothing end
 
 
 (************************************************************

@@ -205,11 +205,11 @@ LValue NoNewlineVarWType = a1:BindId s a2:NoNewlineIsType
 /* NoNewlineIsType ::= : w NoNewlineType */
 Type NoNewlineIsType = void:colon w NoNewlineType ;
 
-/* NoNewlineIsTypeOrNone ::= : w NoNewlineTypeOrNone */
-Type NoNewlineIsTypeOrNone = void:colon w NoNewlineTypeOrNone ;
+/* NoNewlineIsTypeOrZilch ::= : w NoNewlineTypeOrZilch */
+Type NoNewlineIsTypeOrZilch = void:colon w NoNewlineTypeOrZilch ;
 
-/* NoNewlineTypeOrNone ::= NoNewlineType | None */
-Type NoNewlineTypeOrNone =
+/* NoNewlineTypeOrZilch ::= NoNewlineType | Zilch */
+Type NoNewlineTypeOrZilch =
      NoNewlineType
-   / None
+   / Zilch
      { yyValue = NodeFactory.makeBottomType(createSpan(yyStart,yyCount)); };
