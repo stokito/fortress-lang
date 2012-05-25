@@ -484,8 +484,8 @@ public abstract class VarCodeGen {
                               getName(),
                               NamingCzar.jvmTypeDesc(fortressType, ifNone)
                               );
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.internalFortressVoid, NamingCzar.make,
-                           Naming.makeMethodDesc("", NamingCzar.descFortressVoid));
+//            mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.internalFortressVoid, NamingCzar.make,
+//                           Naming.makeMethodDesc("", NamingCzar.descFortressVoid));
         }
 
         public void outOfScope(CodeGenMethodVisitor mv) {
