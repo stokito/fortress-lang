@@ -11,7 +11,7 @@
 
 api File
 
-import FlatString.FlatString
+(*) import FlatString.FlatString
 import FileSupport.{...}
 import Util.{...}
 
