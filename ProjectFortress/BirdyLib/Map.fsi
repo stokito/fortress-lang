@@ -15,6 +15,7 @@ import Comparison.{...}
 import Maybe.{...}
 import Set.{Set}
 import Util.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation}
 
 object KeyOverlap[\Key extends Object, Val extends { Object }\](key: Key, val1: Val, val2: Val)
     extends UncheckedException
@@ -26,7 +27,7 @@ end
     Methods that operate on a particular key leave the rest of the map
     untouched unless otherwise specified. **)
 trait Map[\Key extends { StandardTotalOrder[\Key\], Object }, Val extends { Object }\]
-    extends SequentialGenerator[\(Key,Val)\]
+    extends DefaultGeneratorImplementation[\(Key,Val)\]
     
     abstract getter isEmpty(): Boolean
     abstract getter asDebugString(): String
