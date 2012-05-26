@@ -36,7 +36,25 @@ class TraitTable(current: CompilationUnitIndex, globalEnv: GlobalEnvironment) ex
          ( ast.isInstanceOf[Api] && ast.getName.equals(name.getApiName.unwrap) ) ||
          ( ast.isInstanceOf[Component] &&
            ast.asInstanceOf[Component].getExports.contains(name.getApiName.unwrap) ) ) {
-      JOption.wrap(current.typeConses.get(simpleName))
+      val result = JOption.wrap(current.typeConses.get(simpleName))
+      if (result.isSome) return result
+      else {
+	// A terrible search hack to try to get around the apiName bug.  GLS 5/25/12
+//	println("Need a search for: " + simpleName)
+	for (name: APIName <- globalEnv.apiNames) {
+	  val candidate = JOption.wrap(globalEnv.api(name).typeConses().get(simpleName))
+	  if (candidate.isSome && name.toString == "CompilerBuiltin") return candidate
+	}
+	for (name: APIName <- globalEnv.apiNames) {
+	  val candidate = JOption.wrap(globalEnv.api(name).typeConses().get(simpleName))
+	  if (candidate.isSome && name.toString == "CompilerLibrary") return candidate
+	}
+// 	for (name: APIName <- globalEnv.apiNames) {
+// 	  val candidate = JOption.wrap(globalEnv.api(name).typeConses().get(simpleName))
+// 	  if (candidate.isSome) return candidate
+// 	}
+	return JOption.wrap(null)
+      }
     }
     else {
       val api = globalEnv.api(name.getApiName.unwrap)
