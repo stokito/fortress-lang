@@ -56,6 +56,10 @@ public abstract class GlobalEnvironment {
         return result;
     }
 
+    public Iterable<APIName> apiNames() {
+        return apis().keySet();
+    }
+
     public boolean contains(APIName api1, APIName api2) {
         // Degeneratively, every API contains itself.
         if (api1.equals(api2)) {
