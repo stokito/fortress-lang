@@ -15,6 +15,7 @@ api Set
 import Maybe.{...}
 import Comparison.{...}
 import Util.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation}
 
 (** Thrown when taking big intersection of no sets. **)
 object EmptyIntersection extends UncheckedException end
@@ -24,7 +25,7 @@ object EmptyIntersection extends UncheckedException end
  * must support comparison using $<$ and $=$.  When generated, these sets
  * produce their elements in sorted order.
  **)
-trait Set[\E extends StandardTotalOrder[\E\]\] extends SequentialGenerator[\E\]
+trait Set[\E extends StandardTotalOrder[\E\]\] extends DefaultGeneratorImplementation[\E\]
  
    abstract getter isEmpty(): Boolean
 

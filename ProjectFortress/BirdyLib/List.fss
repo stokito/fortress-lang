@@ -14,6 +14,7 @@ component List
 import Maybe.{...}
 import Comparison.{...}
 import Util.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation}
 export List
 
 (** Thrown when taking big intersection of no Lists. **)
@@ -23,7 +24,7 @@ weight:ZZ32 = 4
 
 (** The natural order of the List, and indexing on the List, yields List
     elements in ascending order. **)
-trait List[\E\] extends Generator[\E\]
+trait List[\E\] extends DefaultGeneratorImplementation[\E\]
     (*
     getter indexValuePairs():ZeroIndexed[\(ZZ32,E)\] =
         IndexValueListGenerator[\E\](self)

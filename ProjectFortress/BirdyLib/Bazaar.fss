@@ -14,6 +14,7 @@ component Bazaar
   import Util.{...}
   import Maybe.{...}
   import List.{...}
+  import GeneratorLibrary.{DefaultGeneratorImplementation}
   export Bazaar
 
   object AndRed extends MonoidReduction[\Boolean\]
@@ -85,14 +86,14 @@ component Bazaar
 
   opr =/=(x: Range, y: Range): Boolean = x.lowerBound = y.lowerBound  AND x.upperBound = y.upperBound
 
-  object CharGen(s: String) extends Generator[\Character\] 
+  object CharGen(s: String) extends DefaultGeneratorImplementation[\Character\] 
     generate[\R\](r: Reduction[\R\], body: Character->R): R =  
       r.join(body(s[0]),CharGen(s.substring(1,|s| - 1)).generate(r,body))
   end
   
   toGenString(s: String) : Generator[\Character\] = CharGen(s)
   
-  object ZZ32Gen(x: Range) extends Generator[\ZZ32\]
+  object ZZ32Gen(x: Range) extends DefaultGeneratorImplementation[\ZZ32\]
     generate[\R\](r: Reduction[\R\], body: ZZ32->R): R = 
       do dis = x.upperBound - x.lowerBound 
          if dis = 0 then body(x.lowerBound) else 
@@ -107,7 +108,7 @@ component Bazaar
 
   toGenZZ32(x: Range): Generator[\ZZ32\] = ZZ32Gen(x)
 
-  object BoolGen(b: Boolean) extends Generator[\Boolean\]
+  object BoolGen(b: Boolean) extends DefaultGeneratorImplementation[\Boolean\]
      generate[\R\](r: Reduction[\R\], body: Boolean->R): R =  
       body(b)
   end

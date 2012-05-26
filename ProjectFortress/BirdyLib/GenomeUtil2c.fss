@@ -19,6 +19,7 @@ import Pairs.{...}
 import Util.{...}
 import Maybe.{...}
 import Bazaar.{...}
+import GeneratorLibrary.{DefaultSequentialGeneratorImplementation}
 
 export GenomeUtil2c
 
@@ -32,7 +33,7 @@ colorsFromACGT(strACGT: String): String = BIG || <|[\Character\] color(p,q) | (p
 colorsToACGT(start: Character, colorstr: String): String =
   start || (BIG || [i <- toGenZZ32(0 # |colorstr|)] ("ACGT"[encodeACGT(start) BITXOR (BIG BITXOR[k <- toGenZZ32(0#(i+1))] (colorstr[k].codePoint BITAND 3))]).asString)
 
-trait ReferenceGenome extends { SequentialGenerator[\ReferenceGenomeChunk\] } end
+trait ReferenceGenome extends { DefaultSequentialGeneratorImplementation[\ReferenceGenomeChunk\] } end
 
 object ReferenceGenomeChunk(start: ZZ32, length: ZZ32, buffer: String, padLength: ZZ32)
   getter range(): Range = start # length
@@ -163,18 +164,17 @@ private object FileBasedReadList(rs: ReadStream, maxReadSize: ZZ32) extends Read
 
   private inputMoreReads(refChunk: ReferenceGenomeChunk) = do
     refRange = refChunk.range
-    label gobble
-      while NOT rs.eof do
+    var gobble: Boolean := true
+      while ((NOT rs.eof) AND gobble) do
         if rd <- parseOneRead(rs, refChunk) then
           if refRange.upperBound < rd.range.lowerBound then
             peekAhead := Just rd
-            exit gobble
+            gobble := false
           elif refRange.lowerBound <= rd.range.upperBound then
             currentSet ||= singleton(rd)
           end
         end
       end
-    end gobble
   end
 
   getReads(refChunk: ReferenceGenomeChunk): List[\Read\] = do

@@ -14,6 +14,7 @@ component Set
 import Maybe.{...}
 import Comparison.{...}
 import Util.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation,DefaultSequentialGeneratorImplementation}
 export Set
 
 (** Thrown when taking big intersection of no sets. **)
@@ -23,7 +24,7 @@ weight:ZZ32 = 4
 
 (** The natural order of the set, and indexing on the set, yields set
     elements in ascending order. **)
-trait Set[\E extends StandardTotalOrder[\E\]\] extends SequentialGenerator[\E\]
+trait Set[\E extends StandardTotalOrder[\E\]\] extends DefaultGeneratorImplementation[\E\]
     (*
     getter indexValuePairs():ZeroIndexed[\(ZZ32,E)\] =
         IndexValueSetGenerator[\E\](self)
@@ -110,7 +111,7 @@ opr BIG UNION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]\]):Set
     __bigOperatorSugar[\Set[\R\],Set[\R\],Set[\R\],Set[\R\]\](BIG UNION[\R\](), g)
 
 value object SeqSetGenerator[\E extends StandardTotalOrder[\E\]\](s: Set[\E\])
-       extends SequentialGenerator[\E\]
+       extends DefaultSequentialGeneratorImplementation[\E\]
     getter size(): ZZ32 = |s|
     getter isEmpty(): Boolean = s.isEmpty
     opr |self| : ZZ32 = |s|

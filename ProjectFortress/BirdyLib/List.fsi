@@ -14,8 +14,9 @@ api List
 import Util.{...}
 import Maybe.{...}
 import Comparison.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation}
 
-trait List[\E\] extends Generator[\E\]
+trait List[\E\] extends DefaultGeneratorImplementation[\E\]
 
   abstract getter isEmpty():Boolean    
   abstract extractLeft(): Maybe[\(E,List[\E\])\]

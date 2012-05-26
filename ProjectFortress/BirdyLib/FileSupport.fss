@@ -13,6 +13,7 @@ component FileSupport
 
 import Util.{...}
 import Maybe.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation,DefaultSequentialGeneratorImplementation}
 
 export FileSupport
 
@@ -154,7 +155,7 @@ end
  **)
 object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
                           readOne:ReadStream -> Maybe[\S\])
-        extends { Consumable, Generator[\S\], SequentialGenerator[\S\] }
+        extends { Consumable, DefaultGeneratorImplementation[\S\] }
     consumed : Boolean := false
     up : ZZ32 = if upper <= 0 then 1024 else upper end
     consume():() = atomic do whenUnconsumed(); consumed := true end
@@ -246,7 +247,7 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
 end
 
 object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> Maybe[\S\])
-        extends { Consumable, SequentialGenerator[\S\] }
+        extends { Consumable, DefaultSequentialGeneratorImplementation[\S\] }
     consumed : Boolean := false
     consume():() = atomic do whenUnconsumed(); consumed := true end
     whenUnconsumed():() =

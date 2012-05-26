@@ -17,11 +17,12 @@ import Util.{...}
 import Maybe.{...}
 import Bazaar.{...}
 import Comparison.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation}
 export Pairs
 
 pairs[\T\](g: Generator[\T\]): Generator[\(T,T)\] = Pairs(g)
 
-object Pairs[\T\](g: Generator[\T\]) extends { Generator[\(T,T)\] }
+object Pairs[\T\](g: Generator[\T\]) extends DefaultGeneratorImplementation[\(T,T)\] 
     generate[\R\](red: Reduction[\R\], m:(T,T)->R): R =
     if (l,v,r) <- g.generate[\Maybe[\(T,R,T)\]\](PairReduction[\T,R\](red,m),
                              fn (t:T) => Just[\(T,R,T)\](t, red.id, t))
@@ -42,7 +43,7 @@ end
 
 triples[\T\](g: Generator[\T\]): Generator[\(T,T,T)\] = Triples(g)
 
-object Triples[\T\](g: Generator[\T\]) extends { Generator[\(T,T,T)\] }
+object Triples[\T\](g: Generator[\T\]) extends DefaultGeneratorImplementation[\(T,T,T)\] 
     generate[\R\](red: Reduction[\R\], m:(T,T,T)->R): R =
     if (s,l,l',v,r',r) <- g.generate[\Maybe[\(Boolean,T,T,R,T,T)\]\](TripleReduction[\T,R\](red,m),
                              fn (t:T) => Just[\(Boolean,T,T,R,T,T)\](true, t, t, red.id, t, t))
