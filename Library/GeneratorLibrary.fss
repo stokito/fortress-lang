@@ -33,7 +33,7 @@ trait Container[\T extends Equality[\T\]\] extends Generator[\T\]
     opr NOTNI(self, elt: T): Boolean = NOT (self NI elt)
 end
 
-trait DefaultGeneratorImplementation[\E1\] extends Generator[\E1\] excludes { Number, Character }
+trait DefaultGeneratorImplementation[\E1 extends Any\] extends Generator[\E1\] excludes { Number, Character }
 (*)    getter asString(): String = (BIG ||[i <- self] "," i)[1:]
 
     (** Returns a generator that generates the same objects as this generator
@@ -56,7 +56,7 @@ trait DefaultGeneratorImplementation[\E1\] extends Generator[\E1\] excludes { Nu
         desired in this computation, and to group reductions in any
         way desired; if no elements are generated, the identity must be
         returned. *)
-    generate[\R\](r: Reduction[\R\], body: E1->R): R
+    generate[\R extends Any\](r: Reduction[\R\], body: E1->R): R
 
     (** Transforming generators into new generators *)
     (** `map` returns a new generator that generates the results of
@@ -65,7 +65,7 @@ trait DefaultGeneratorImplementation[\E1\] extends Generator[\E1\] excludes { Nu
         occur before the new generator is returned.  The resulting
         generator must have the same ordering and cross product
         properties as the generator from which it is derived. *)
-    map[\Gyy\](f: E1->Gyy): Generator[\Gyy\] = SimpleMappedGenerator[\E1,Gyy\](self, f)
+    map[\Gyy extends Any\](f: E1->Gyy): Generator[\Gyy\] = SimpleMappedGenerator[\E1,Gyy\](self, f)
 
     (** seq produces a sequential version of the same generator, which
         produces elements in a temporal order that matches this generator's
@@ -88,7 +88,7 @@ trait DefaultGeneratorImplementation[\E1\] extends Generator[\E1\] excludes { Nu
         then the twelve elements of the result should appear in the natural
         order as 0, 1, 2, 3, 100, 101, 102, 103, 200, 201, 202, 203.
      **)
-    nest[\G1\](f: E1 -> Generator[\G1\]): Generator[\G1\] =
+    nest[\G1 extends Any\](f: E1 -> Generator[\G1\]): Generator[\G1\] =
         SimpleNestedGenerator[\E1,G1\](self,f)
 
     (** Filtering data from a generator.  Only elements that satisfy
@@ -122,14 +122,14 @@ trait DefaultGeneratorImplementation[\E1\] extends Generator[\E1\] excludes { Nu
            a.cross(seq(b))
            seq(a).cross(seq(b))
         But seq(a.cross(b)) may have a different natural order. *)
-    cross[\G2\](g: Generator[\G2\]): Generator[\(E1,G2)\] =
+    cross[\G2 extends Any\](g: Generator[\G2\]): Generator[\(E1,G2)\] =
         SimplePairGenerator[\E1,G2\](self, g)
 
     (** Derived generation operations *)
     (** mapReduce is equivalent to generate, but takes an explicit `join` function
         and an identity value `id` that can have any type.  It still assumes `join` is
         associative and that `id` is the identity of `join`. *)
-    mapReduce[\R\](body: E1->R, join: (R,R)->R, id: R): R =
+    mapReduce[\R extends Any\](body: E1->R, join: (R,R)->R, id: R): R =
         generate[\R\](MapReduceReduction[\R\](join, id), body)
 
     (** `reduce` is like `generate` or `mapReduce` but takes no `body` function *)
@@ -144,47 +144,47 @@ trait DefaultGeneratorImplementation[\E1\] extends Generator[\E1\] excludes { Nu
 
 end DefaultGeneratorImplementation
 
-trait DefaultSequentialGeneratorImplementation[\E2\] extends { SequentialGenerator[\E2\], DefaultGeneratorImplementation[\E2\] }
+trait DefaultSequentialGeneratorImplementation[\E2 extends Any\] extends { SequentialGenerator[\E2\], DefaultGeneratorImplementation[\E2\] }
     getter reverse(): SequentialGenerator[\E2\] =
         SimpleSequentialReversedGenerator[\E2\](self)
     seq(): SequentialGenerator[\E2\] = self
-    map[\G3\](f: E2->G3): SequentialGenerator[\G3\] =
+    map[\G3 extends Any\](f: E2->G3): SequentialGenerator[\G3\] =
         SimpleSequentialMappedGenerator[\E2,G3\](self,f)
     (* This is an overloading, so that nesting two sequential
        generators will produce a sequential generator. *)
-    nest[\G4\](f: E2 -> SequentialGenerator[\G4\]): SequentialGenerator[\G4\] =
+    nest[\G4 extends Any\](f: E2 -> SequentialGenerator[\G4\]): SequentialGenerator[\G4\] =
         SimpleSequentialNestedGenerator[\E2,G4\](self,f)
     filter(f: E2 -> Condition[\()\]): SequentialGenerator[\E2\] =
         SimpleSequentialFilterGenerator[\E2\](self,f)
     (* This is an overloading, so that crossing two sequential
        generators will produce a sequential generator. *)
-    cross[\F1\](g: SequentialGenerator[\F1\]): SequentialGenerator[\(E2,F1)\] =
+    cross[\F1 extends Any\](g: SequentialGenerator[\F1\]): SequentialGenerator[\(E2,F1)\] =
         SimpleSequentialPairGenerator[\E2,F1\](self,g)
 end DefaultSequentialGeneratorImplementation
 
 
 (* Reversed generators *)
 
-trait ReversedGenerator[\E3\] extends DefaultGeneratorImplementation[\E3\] comprises { SimpleReversedGenerator[\E3\], SimpleSequentialReversedGenerator[\E3\] }
+trait ReversedGenerator[\E3 extends Any\] extends DefaultGeneratorImplementation[\E3\] comprises { SimpleReversedGenerator[\E3\], SimpleSequentialReversedGenerator[\E3\] }
     getter g():Generator[\E3\]
     getter reverse(): Generator[\E3\] = self.g
-    generate[\R\](r:Reduction[\R\], body:E3->R): R = self.g.generate[\R\](r.reverse, body)
-    map[\G5\](f: E3->G5): Generator[\G5\] = self.g.map[\G5\](f).reverse
+    generate[\R extends Any\](r:Reduction[\R\], body:E3->R): R = self.g.generate[\R\](r.reverse, body)
+    map[\G5 extends Any\](f: E3->G5): Generator[\G5\] = self.g.map[\G5\](f).reverse
     filter(f: E3 -> Condition[\()\]): Generator[\E3\] = self.g.filter(f).reverse
 end
 
-object SimpleReversedGenerator[\E4\](g0:Generator[\E4\]) extends ReversedGenerator[\E4\]
+object SimpleReversedGenerator[\E4 extends Any\](g0:Generator[\E4\]) extends ReversedGenerator[\E4\]
     getter g(): Generator[\E4\] = g0
     getter asString(): String = "SimpleReversedGenerator(" self.g.asString ")"
     seq(): SimpleSequentialReversedGenerator[\E4\] = SimpleSequentialReversedGenerator(g0.seq())
 end
 
-object SimpleSequentialReversedGenerator[\E5\](g0:SequentialGenerator[\E5\])
+object SimpleSequentialReversedGenerator[\E5 extends Any\](g0:SequentialGenerator[\E5\])
         extends { ReversedGenerator[\E5\], DefaultSequentialGeneratorImplementation[\E5\] }
     getter g(): SequentialGenerator[\E5\] = g0
     getter asString(): String = "seq(SimpleReversedGenerator(" self.g.asString "))"
     getter reverse(): SequentialGenerator[\E5\] = self.g
-    map[\G6\](f: E5->G6): SequentialGenerator[\G6\] = self.g.map[\G6\](f).reverse
+    map[\G6 extends Any\](f: E5->G6): SequentialGenerator[\G6\] = self.g.map[\G6\](f).reverse
     filter(f: E5 -> Condition[\()\]): SequentialGenerator[\E5\] = self.g.filter(f).reverse
 end
 
@@ -193,37 +193,37 @@ end
 
 trait AnyMappedGenerator end
 
-trait MappedGenerator[\E6,F2\] extends { DefaultGeneratorImplementation[\F2\], AnyMappedGenerator }
+trait MappedGenerator[\E6 extends Any, F2 extends Any\] extends { DefaultGeneratorImplementation[\F2\], AnyMappedGenerator }
         comprises {  SimpleMappedGenerator[\E6,F2\], SimpleSequentialMappedGenerator[\E6,F2\] }
     getter g(): Generator[\E6\]
     getter f(): E6 -> F2
     getter reverse(): MappedGenerator[\E6,F2\] = (*) was SimpleMappedGenerator
         SimpleMappedGenerator[\E6,F2\](self.g.reverse, self.f)
-    generate[\R\](r: Reduction[\R\], m: F2->R): R =
+    generate[\R extends Any\](r: Reduction[\R\], m: F2->R): R =
         self.g.generate[\R\](r, fn (x: E6): R => m((self.f)(x)))
     reduce(r: Reduction[\F2\]): F2 =
         self.g.generate[\F2\](r, self.f)
-    map[\G7\](f': F2->G7): MappedGenerator[\E6,G7\] =
+    map[\G7 extends Any\](f': F2->G7): MappedGenerator[\E6,G7\] =
         SimpleMappedGenerator[\E6,G7\](self.g, fn (x: E6): G7 => f'((self.f)(x)))
     seq(): SimpleSequentialMappedGenerator[\E6,F2\] =
         SimpleSequentialMappedGenerator[\E6,F2\](self.g.seq(),self.f)
 end
 
-object SimpleMappedGenerator[\E7,F3\](g0: Generator[\E7\], f0: E7->F3)
+object SimpleMappedGenerator[\E7 extends Any, F3 extends Any\](g0: Generator[\E7\], f0: E7->F3)
         extends MappedGenerator[\E7,F3\]
     getter g(): Generator[\E7\] = g0
     getter f(): E7->F3 = f0
     getter asString(): String = "mapped(" self.g.asString ")"
 end
 
-object SimpleSequentialMappedGenerator[\E8,F4\](g0: SequentialGenerator[\E8\], f0: E8->F4)
+object SimpleSequentialMappedGenerator[\E8 extends Any, F4 extends Any\](g0: SequentialGenerator[\E8\], f0: E8->F4)
         extends { MappedGenerator[\E8,F4\], DefaultSequentialGeneratorImplementation[\F4\] }
     getter g(): SequentialGenerator[\E8\] = g0
     getter f(): E8->F4 = f0
     getter asString() = "mapped(seq(" self.g.asString "))"
     getter reverse(): SimpleSequentialMappedGenerator[\E8,F4\] =
         SimpleSequentialMappedGenerator[\E8,F4\](self.g.reverse, self.f)
-    map[\G73\](f': F4->G73): SimpleSequentialMappedGenerator[\E8,G73\] =
+    map[\G73 extends Any\](f': F4->G73): SimpleSequentialMappedGenerator[\E8,G73\] =
         SimpleSequentialMappedGenerator[\E8,G73\](self.g, fn (x: E8): G73 => f'((self.f)(x)))
     seq(): SimpleSequentialMappedGenerator[\E8,F4\] = self
 end
@@ -231,22 +231,22 @@ end
 (* Nested generators *)
 
 
-trait NestedGenerator[\E9,F5\] extends DefaultGeneratorImplementation[\F5\]
+trait NestedGenerator[\E9 extends Any,F5 extends Any\] extends DefaultGeneratorImplementation[\F5\]
         comprises { SimpleNestedGenerator[\E9,F5\], SimpleSequentialNestedGenerator[\E9,F5\] }
     getter g(): Generator[\E9\]
     getter f(): E9 -> Generator[\F5\]
     getter reverse(): NestedGenerator[\E9,F5\] =
         SimpleNestedGenerator[\E9,F5\](self.g.reverse,
             fn(e:E9):Generator[\F5\] => (self.f)(e).reverse)
-    generate[\R\](r: Reduction[\R\], body: F5->R): R =
+    generate[\R extends Any\](r: Reduction[\R\], body: F5->R): R =
         self.g.generate[\R\](r,fn (e:E9):R => (self.f)(e).generate[\R\](r,body))
-    map[\G8\](h:F5->G8): Generator[\G8\] =
+    map[\G8 extends Any\](h:F5->G8): Generator[\G8\] =
         self.g.nest[\G8\](fn (e:E9): Generator[\G8\] => (self.f)(e).map[\G8\](h))
-    nest[\G9\](h:F5->Generator[\G9\]): Generator[\G9\] =
+    nest[\G9 extends Any\](h:F5->Generator[\G9\]): Generator[\G9\] =
         self.g.nest[\G9\](fn (e:E9): Generator[\G9\] => (self.f)(e).nest[\G9\](h))
-    nest[\G19\](h:F5->SequentialGenerator[\G19\]): Generator[\G19\] =   (*) ***
+    nest[\G19 extends Any\](h:F5->SequentialGenerator[\G19\]): Generator[\G19\] =   (*) ***
         self.g.nest[\G19\](fn (e:E9): Generator[\G19\] => (self.f)(e).nest[\G19\](h))
-    mapReduce[\R\](body: F5->R, join:(R,R)->R, id:R): R =
+    mapReduce[\R extends Any\](body: F5->R, join:(R,R)->R, id:R): R =
         self.g.mapReduce[\R\](
             fn (e:E9): R => (self.f)(e).mapReduce[\R\](body,join,id),
             join, id)
@@ -258,7 +258,7 @@ trait NestedGenerator[\E9,F5\] extends DefaultGeneratorImplementation[\F5\]
         self.g.loop(fn (e:E9) => (self.f)(e).loop(body))
 end
 
-object SimpleNestedGenerator[\E10,F6\](g0: Generator[\E10\], f0: E10->Generator[\F6\])
+object SimpleNestedGenerator[\E10 extends Any, F6 extends Any\](g0: Generator[\E10\], f0: E10->Generator[\F6\])
         extends { NestedGenerator[\E10,F6\] }
     getter g(): Generator[\E10\] = g0
     getter f(): E10->Generator[\F6\] = f0
@@ -271,32 +271,32 @@ object SimpleNestedGenerator[\E10,F6\](g0: Generator[\E10\], f0: E10->Generator[
           end)
 end
 
-object SimpleSequentialNestedGenerator[\E11,F7\]
+object SimpleSequentialNestedGenerator[\E11 extends Any, F7 extends Any\]
         (g0: SequentialGenerator[\E11\], f0: E11->SequentialGenerator[\F7\])
         extends { NestedGenerator[\E11,F7\], DefaultSequentialGeneratorImplementation[\F7\] }
     getter g(): SequentialGenerator[\E11\] = g0
     getter f(): E11->SequentialGenerator[\F7\] = f0
     getter asString() = "seq((" self.g ").nest(f))"
-    map[\G83\](h:F7->G83): SequentialGenerator[\G83\] =
+    map[\G83 extends Any\](h:F7->G83): SequentialGenerator[\G83\] =
         self.g.nest[\G83\](fn (e:E11): SequentialGenerator[\G83\] => (self.f)(e).map[\G83\](h))
-    nest[\G20\](h:F7->SequentialGenerator[\G20\]): SequentialGenerator[\G20\] =
+    nest[\G20 extends Any\](h:F7->SequentialGenerator[\G20\]): SequentialGenerator[\G20\] =
         self.g.nest[\G20\](fn (e:E11):SequentialGenerator[\G20\] => (self.f)(e).nest[\G20\](h))
 end
 
 (* Cross-product generators *)
 
-trait PairGenerator[\E12,F8\] extends DefaultGeneratorImplementation[\(E12,F8)\]
+trait PairGenerator[\E12 extends Any, F8 extends Any\] extends DefaultGeneratorImplementation[\(E12,F8)\]
   comprises { SimplePairGenerator[\E12,F8\], SimpleSequentialPairGenerator[\E12,F8\] }
     getter e(): Generator[\E12\]
     getter f(): Generator[\F8\]
     getter reverse(): PairGenerator[\E12,F8\] =
         SimplePairGenerator[\E12,F8\](self.e.reverse, self.f.reverse)
-    generate[\R\](r: Reduction[\R\], m:(E12,F8)->R): R =
+    generate[\R extends Any\](r: Reduction[\R\], m:(E12,F8)->R): R =
         self.e.generate[\R\](r, fn (a: E12): R =>
                               self.f.generate[\R\](r, fn (b: F8): R => m(a,b)))
 end
 
-object SimplePairGenerator[\E13,F9\](e0: Generator[\E13\], f0: Generator[\F9\])
+object SimplePairGenerator[\E13 extends Any, F9 extends Any\](e0: Generator[\E13\], f0: Generator[\F9\])
         extends PairGenerator[\E13,F9\]
     getter e(): Generator[\E13\] = e0
     getter f(): Generator[\F9\] = f0
@@ -304,7 +304,7 @@ object SimplePairGenerator[\E13,F9\](e0: Generator[\E13\], f0: Generator[\F9\])
     seq(): SequentialGenerator[\(E13,F9)\] = SimpleSequentialPairGenerator[\E13,F9\](self.e.seq(),self.f.seq())
 end
 
-object SimpleSequentialPairGenerator[\E14,F10\]
+object SimpleSequentialPairGenerator[\E14 extends Any, F10 extends Any\]
         (e0: SequentialGenerator[\E14\], f0: SequentialGenerator[\F10\])
         extends { PairGenerator[\E14,F10\], DefaultSequentialGeneratorImplementation[\(E14,F10)\] }
     getter e(): SequentialGenerator[\E14\] = e0
@@ -316,12 +316,12 @@ end
 
 (* Filters *)
 
-trait FilterGenerator[\E15\] extends DefaultGeneratorImplementation[\E15\]    (*) excludes { AnyMappedGenerator }
+trait FilterGenerator[\E15 extends Any\] extends DefaultGeneratorImplementation[\E15\]    (*) excludes { AnyMappedGenerator }
         comprises { SimpleFilterGenerator[\E15\], SimpleSequentialFilterGenerator[\E15\] }
     getter g(): Generator[\E15\]
     getter p(): E15 -> Condition[\()\]
     getter reverse(): FilterGenerator[\E15\] = SimpleFilterGenerator[\E15\](self.g.reverse, self.p)
-    generate[\R\](r:Reduction[\R\], m: E15->R): R =
+    generate[\R extends Any\](r:Reduction[\R\], m: E15->R): R =
         self.g.generate[\R\](r, fn(e:E15):R => if (self.p)(e).holds then m(e) else r.id end)
     reduce(r: Reduction[\E15\]): E15 =
         self.g.generate[\E15\](r, fn(e:E15):E15 => if (self.p)(e).holds then e else r.id end)
@@ -331,14 +331,14 @@ trait FilterGenerator[\E15\] extends DefaultGeneratorImplementation[\E15\]    (*
         SimpleSequentialFilterGenerator[\E15\](self.g.seq(),self.p)
 end
 
-object SimpleFilterGenerator[\E16\](g0:Generator[\E16\], p0: E16->Condition[\()\])
+object SimpleFilterGenerator[\E16 extends Any\](g0:Generator[\E16\], p0: E16->Condition[\()\])
         extends FilterGenerator[\E16\]
     getter g(): Generator[\E16\] = g0
     getter p(): E16 -> Condition[\()\] = p0
     getter asString(): String = self.g.asString ".filter(p)"
 end
 
-object SimpleSequentialFilterGenerator[\E17\](g0: SequentialGenerator[\E17\], p0: E17->Condition[\()\])
+object SimpleSequentialFilterGenerator[\E17 extends Any\](g0: SequentialGenerator[\E17\], p0: E17->Condition[\()\])
         extends { FilterGenerator[\E17\], DefaultSequentialGeneratorImplementation[\E17\] }
     getter g(): SequentialGenerator[\E17\] = g0
     getter p(): E17 -> Condition[\()\] = p0
@@ -360,13 +360,13 @@ end
    This is the trait that the overall implementation of a big operator
    or a comprehension has to deal with. *)
 
-trait GeneralReduction[\B,R,F21\] extends Reduction[\R\]
+trait GeneralReduction[\B extends Any, R extends Any, F21 extends Any\] extends Reduction[\R\]
     getter reverse(): GeneralReduction[\B,R,F21\] = ReversedGeneralReduction[\B,R,F21\](self)
     lift(x: B): R
     finish(y: R): F21
 end
 
-object ReversedGeneralReduction[\B,R,F22\](r: GeneralReduction[\B,R,F22\]) extends GeneralReduction[\B,R,F22\]
+object ReversedGeneralReduction[\B extends Any, R extends Any, F22 extends Any\](r: GeneralReduction[\B,R,F22\]) extends GeneralReduction[\B,R,F22\]
   getter asString(): String = "ReversedGeneralReduction(" r.asString ")"
   getter reverse(): GeneralReduction[\B,R,F22\] = r
   getter id(): R = r.id
@@ -378,7 +378,7 @@ end
 
 
 (** The usual lifting to Option for identity-less operators **)
-(*) trait NonemptyReduction[\B\] extends GeneralReduction[\B, Option[\B\], B\]
+(*) trait NonemptyReduction[\B extends Any\] extends GeneralReduction[\B, Option[\B\], B\]
 (*)     getter id() = NoneObject[\B\]
 (*)     join(a: Option[\B\], b: Option[\B\]): Option[\B\] =
 (*)         if av <- a then
@@ -400,18 +400,18 @@ end
 (*)         end
 (*) end
 
-trait CommutativeReduction[\R\] extends Reduction[\R\]
+trait CommutativeReduction[\R extends Any\] extends Reduction[\R\]
     getter reverse(): CommutativeReduction[\R\] = self
 (*)     property FORALL(a: R, b: R) join(a,b) = join(b,a)
 end
 
-trait CommutativeGeneralReduction[\B,R,F23\]
+trait CommutativeGeneralReduction[\B extends Any, R extends Any, F23 extends Any\]
       extends { CommutativeReduction[\R\], GeneralReduction[\B,R,F23\] }
     getter reverse(): CommutativeGeneralReduction[\B,R,F23\] = self
 end
 
 (** Monoids have lift and finish operation that are the identity function. **)
-trait MonoidReduction[\R\] extends GeneralReduction[\R,R,R\]
+trait MonoidReduction[\R extends Any\] extends GeneralReduction[\R,R,R\]
     lift(r: R): R = r
     finish(r: R): R = r
 end
@@ -419,37 +419,37 @@ end
 (** A `MapReduceReduction` takes an associative binary function `j` on
     arguments of type `R`, and the identity of that function `id`, and
     returns the corresponding reduction. **)
-object MapReduceReduction[\R\](j:(R,R)->R, id:R) extends MonoidReduction[\R\]
+object MapReduceReduction[\R extends Any\](j:(R,R)->R, id:R) extends MonoidReduction[\R\]
     getter asString(): String = "mapReduceReduction"
     join(a:R, b:R): R = (j)(a,b)
 end
 
-trait CommutativeMonoidReduction[\R\]
+trait CommutativeMonoidReduction[\R extends Any\]
       extends { MonoidReduction[\R\], CommutativeGeneralReduction[\R,R,R\] }
 end
 
-trait ReductionWithZeroes[\R\] extends Reduction[\R\]
+trait ReductionWithZeroes[\R extends Any\] extends Reduction[\R\]
     isLeftZero(r: R): Boolean = isZero(r)
     isRightZero(r: R): Boolean = isZero(r)
     isZero(r: R): Boolean = false
 end
 
-trait GeneralReductionWithZeroes[\B,R,F24\]
+trait GeneralReductionWithZeroes[\B extends Any, R extends Any, F24 extends Any\]
       extends { ReductionWithZeroes[\R\],  GeneralReduction[\B,R,F24\] }
 end
 
-trait BigOperator[\I,B,R,F25,O\]
+trait BigOperator[\I extends Any, B extends Any, R extends Any, F25 extends Any, O extends Any\]
     getter body(): I->B
     getter reduction(): GeneralReduction[\B,R,F25\]
     getter unwrap(): F25->O
 end
 
-object BigReduction[\B,R,F26\](reduction:GeneralReduction[\B,R,F26\]) extends BigOperator[\B,B,R,F26,F26\]
+object BigReduction[\B extends Any, R extends Any, F26 extends Any\](reduction:GeneralReduction[\B,R,F26\]) extends BigOperator[\B,B,R,F26,F26\]
     getter body(): B->B = fn x => x
     getter unwrap(): F26->F26 = fn x => x
 end
 
-object Comprehension[\I,B,R,F27,O\](body:I->B, reduction: GeneralReduction[\B,R,F27\], unwrap: F27->O)
+object Comprehension[\I extends Any, B extends Any, R extends Any, F27 extends Any, O extends Any\](body:I->B, reduction: GeneralReduction[\B,R,F27\], unwrap: F27->O)
         extends BigOperator[\I,B,R,F27,O\]
 end
 

@@ -13,11 +13,11 @@ component VarianceTest2
 
   export Executable
 
-  trait Test[\contravariant T\] 
+  trait Test[\contravariant T extends Any\] 
     f(x: T): () 
   end
 
-  object Impl[\T\]() extends Test[\T\] 
+  object Impl[\T extends Any\]() extends Test[\T\] 
     f(x: T): () = ()
   end
 
