@@ -22,10 +22,9 @@ trait List[\E\] extends DefaultGeneratorImplementation[\E\]
   abstract extractLeft(): Maybe[\(E,List[\E\])\]
   abstract extractRight(): Maybe[\(List[\E\],E)\]
   opr ||(self, other:List[\E\]): List[\E\]
-  abstract getVal():E
+  abstract getValWithDefault(x: E):E
   abstract getLeftChild():List[\E\]
   abstract getRightChild():List[\E\]
-  abstract subscript(i:ZZ32):E
   abstract generate[\R\](r: Reduction[\R\], body: E->R): R
   abstract addLeft(e:E):List[\E\]
   abstract addRight(e:E):List[\E\]

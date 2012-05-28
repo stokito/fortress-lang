@@ -34,7 +34,7 @@ component Maybe
 
     extract() : T throws NothingInHere = extract(self) 
   
-    cond[\R\](t: T -> R, e: () -> R): R = throw NothingInHere (*) Quick hack, have better things to do 
+    cond[\R\](t: T -> R, e: () -> R): R = e() (*) Quick hack, have better things to do 
   
   end
 
