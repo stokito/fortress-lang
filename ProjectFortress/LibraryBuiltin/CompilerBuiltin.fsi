@@ -10,9 +10,8 @@
  ******************************************************************************)
 
 api CompilerBuiltin
-import CompilerAlgebra.{ Equality }
+import CompilerAlgebra.{ Equality, StandardTotalOrder }
 import AnyType.{Any}
-
 
 trait Object extends Any
     getter asString(): String
@@ -180,7 +179,7 @@ trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 , ZZ }
     ceilingAverage(self, other: ZZ64): ZZ64
 end
 
-trait ZZ32 extends { Number, Equality[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
+trait ZZ32 extends { Number, Equality[\ZZ32\], StandardTotalOrder[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
     coerce(x: IntLiteral)
     getter asZZ32(): ZZ32
     getter bitsAsNN32(): NN32
