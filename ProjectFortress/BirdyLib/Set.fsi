@@ -13,8 +13,8 @@ api Set
 
 
 import Maybe.{...}
-import Comparison.{...}
 import Util.{...}
+import CompilerAlgebra.{...}
 import GeneratorLibrary.{DefaultGeneratorImplementation}
 
 (** Thrown when taking big intersection of no sets. **)
@@ -32,7 +32,8 @@ trait Set[\E extends StandardTotalOrder[\E\]\] extends DefaultGeneratorImplement
    seq(self): SequentialGenerator[\E\]
    abstract seqgen[\R\](r: Reduction[\R\], body: E->R): R
    abstract ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
-   abstract getVal():E
+   (*)abstract getVal():E
+   abstract getValWithDefault(x: E):E
    abstract getLeftChild():Set[\E\]  (*) Not pleasant, revaling implementation detail. Should be part of another trait
    abstract getRightChild():Set[\E\]
    abstract showTree():String      
@@ -40,7 +41,7 @@ trait Set[\E extends StandardTotalOrder[\E\]\] extends DefaultGeneratorImplement
    printTree():() 
    abstract opr | self | : ZZ32   
 
-   abstract subscipt(i:ZZ32):E
+   (*)abstract subscipt(i:ZZ32):E
 
    abstract minimum():Maybe[\E\]
    abstract maximum():Maybe[\E\]

@@ -75,7 +75,6 @@ component Util
 
   __bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O = do
     r: ActualReduction[\R,L\] = o.reduction
-    (*)body(i: I): L = r.lift((o.body)(i))
     (o.unwrap)(r.unlift(desugaredClauses(r,fn i => r.lift((o.body)(i)))))
   end
 
