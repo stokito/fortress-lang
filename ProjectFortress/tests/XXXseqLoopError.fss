@@ -1,0 +1,37 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXseqLoopError
+export Executable
+
+object O(x:String)
+end
+
+run() = do
+  o = O("Should never print this")
+  r : ZZ32 := 0
+  s : ZZ32 := 0
+  for i <- seq(0#100) do
+    atomic r+=1
+    v = o.nonexistentfield
+    println("Should never reach here")
+    atomic s+=1
+  end
+  println(o.x)
+  if r=/=100 then
+    println("Buggy. r = " r)
+  end
+  if s=/=100 then
+    println("Very buggy. s = " s)
+  end
+end
+
+end

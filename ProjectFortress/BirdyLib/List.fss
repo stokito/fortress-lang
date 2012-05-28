@@ -1,0 +1,377 @@
+(*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component List
+
+import Maybe.{...}
+import Comparison.{...}
+import Util.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation}
+export List
+
+(** Thrown when taking big intersection of no Lists. **)
+object EmptyIntersection extends UncheckedException end
+
+weight:ZZ32 = 4
+
+(** The natural order of the List, and indexing on the List, yields List
+    elements in ascending order. **)
+trait List[\E\] extends DefaultGeneratorImplementation[\E\]
+    (*
+    getter indexValuePairs():ZeroIndexed[\(ZZ32,E)\] =
+        IndexValueListGenerator[\E\](self)
+    *)
+    getter isEmpty():Boolean
+    (*
+    seqgen[\R\](r: Reduction[\R\], body: E->R): R
+    ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
+    seq(self): SequentialGenerator[\E\] = SeqListGenerator[\E\](self)
+    *)
+    opr ||(self, other:List[\E\]): List[\E\] = self.concat(other)
+    getVal():E
+    getLeftChild():List[\E\]
+    getRightChild():List[\E\]
+    subscript(i:ZZ32):E
+    generate[\R\](r: Reduction[\R\], body: E->R): R
+    left():Maybe[\E\]
+    right():Maybe[\E\]
+    extractLeft():Maybe[\(E, List[\E\])\]
+    extractRight():Maybe[\(List[\E\], E)\]
+    addLeft(z:E):List[\E\]
+    addRight(z:E):List[\E\]
+    opr | self | : ZZ32
+    concat(t2:List[\E\]):List[\E\]
+    split(): (List[\E\],List[\E\]) = splitIndex(|self| DIV 2)  
+    split(n: ZZ32): (List[\E\],List[\E\]) = splitIndex(n)      
+    splitIndex(x:ZZ32):(List[\E\],List[\E\])
+    concat3(v:E, t2:List[\E\]):List[\E\]
+    
+
+end
+
+singleton[\E\](x:E): List[\E\] = do
+    e = EmptyList[\E\]
+    NodeList[\E\](x,e,e)
+end
+
+List[\E\](): List[\E\] = EmptyList[\E\]
+
+emptyList[\E\](): List[\E\] = EmptyList[\E\]
+
+opr <|[\T\]|>: List[\T\] = EmptyList[\T\]
+
+opr <|[\T\] x1: T, x2: T |>: List[\T\] = EmptyList[\T\].addLeft(x2).addLeft(x1)
+
+object Cat[\T\] extends MonoidReduction[\List[\T\]\]
+    getter asString(): String = "List red"
+    getter id(): List[\T\] = EmptyList[\T\]
+    join(x: List[\T\], y: List[\T\]) = x || y  
+end
+
+opr BIG <|[\T\]|> : Comprehension[\T,List[\T\],List[\T\],List[\T\]\] =
+    Comprehension[\T,List[\T\],List[\T\],List[\T\]\](fn x => x,Cat[\T\],fn (x: T) => singleton(x))
+
+opr BIG ||[\T\]() : BigReduction[\List[\T\],List[\T\]\] =
+  BigReduction[\List[\T\],List[\T\]\](Cat[\T\])
+
+(*
+
+List[\E extends StandardTotalOrder[\E\], T extends E\](g: ReadableArray[\T,ZZ32\]): List[\E\] = do
+    a = array[\E\](|g|)
+    a.init0(i,g.get(i)), i <- a.indices
+    fromCopiedArray(a)
+  end
+
+fromCopiedArray[\E extends StandardTotalOrder[\E\], T extends E\](a: Array[\T,ZZ32\]): List[\E\] = do
+    quicksort[\T\](a)
+    j : ZZ32 := 1
+    for i <- seq(a.indices), i > 0, a[i-1]=/=a[i] do
+        a[j] := a[i]
+        j += 1
+    end
+    fromSortedArrayFragment[\E,T\](a,0,(j MIN |a|) - 1)
+  end
+
+fromSortedArrayFragment[\E extends StandardTotalOrder[\E\], T extends E\]
+                       (a: Array[\T,ZZ32\], lo:ZZ32, hi:ZZ32): List[\E\] =
+    if hi < lo then
+        EmptyList[\E\]
+    else
+        mid = (hi+lo) DIV 2
+        (l,r) = (fromSortedArrayFragment[\E,T\](a,lo,mid-1),
+                 fromSortedArrayFragment[\E,T\](a,mid+1,hi))
+        NodeList[\E\](a[mid],l,r)
+    end
+
+opr {[\E extends StandardTotalOrder[\E\]\] es: E... }: List[\E\] =
+    es.generate[\List[\E\]\](Union[\E\], fn (e:E): List[\E\] => singleton[\E\](e))
+
+opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Comprehension[\T,List[\T\],AnyCovColl,AnyCovColl\] =
+    covariantCompr[\T,List[\T\]\](fn cc => fromCopiedArray(cc.toArray()))
+
+opr BIG {[\T extends StandardTotalOrder[\T\]\] g:Generator[\T\]}:List[\T\] =
+    __bigOperatorSugar[\T,List[\T\],AnyCovColl,AnyCovColl\](BIG {[\T\]}(), g)
+
+opr BIG UNION[\R extends StandardTotalOrder[\R\]\](g: Generator[\List[\R\]\]):List[\R\] =
+    __bigOperatorSugar[\List[\R\],List[\R\],List[\R\],List[\R\]\](BIG UNION[\R\](), g)
+
+opr BIG INTERSECTION[\R extends StandardTotalOrder[\R\]\](g: Generator[\List[\R\]\]):List[\R\] =
+    __bigOperatorSugar[\List[\R\],List[\R\],List[\R\],AnyMaybe\](BIG INTERSECTION[\R\](), g)
+
+value object SeqListGenerator[\E extends StandardTotalOrder[\E\]\](s: List[\E\])
+       extends SequentialGenerator[\E\]
+    getter size(): ZZ32 = |s|
+    getter isEmpty(): Boolean = s.isEmpty
+    opr |self| : ZZ32 = |s|
+    generate[\R\](r: Reduction[\R\], body: E->R): R =
+        s.seqgen[\R\](r,body)
+end
+
+value object IndexValueListGenerator[\E extends StandardTotalOrder[\E\]\](s: List[\E\])
+        extends ZeroIndexed[\(ZZ32,E)\]
+    getter size(): ZZ32 = |s|
+    getter indices(): Generator[\ZZ32\] = s.indices()
+    getter isEmpty(): Boolean = s.isEmpty
+    opr |self| : ZZ32 = |s|
+    generate[\R\](r: Reduction[\R\], body: (ZZ32,E)->R): R =
+       s.ivgen[\R\](0,r,body)
+    opr[ x: ZZ32 ]: (ZZ32,E) = (x,s[x])
+    opr[ r: Range[\ZZ32\] ]: ZeroIndexed[\(ZZ32,E)\] = s[r].indexValuePairs
+    indexOf(i:ZZ32,v:E): Maybe[\ZZ32\] = if s[i]=v then Just[\ZZ32\](i) else Nothing[\ZZ32\] end
+end
+
+*)
+
+object EmptyList[\E\] extends List[\E\]
+    getter size():ZZ32 = 0
+    (*
+    getter bounds():CompactFullRange[\ZZ32\] = 0#0
+    *)
+    getter isEmpty():Boolean = true
+    getter asString(): String = "{}"
+    opr |self| : ZZ32 = 0
+    subscript(i:ZZ32):E = fail("Empty List: cannot use subscript operator.")
+    opr[i:ZZ32]:E = fail("Empty List: cannot use subscript operator.")
+    (*
+    opr[r:Range[\ZZ32\]] : List[\E\] = do
+        rr = self.bounds.narrowToRange(r)
+        self
+    end
+    *)
+    indexOfI(_:ZZ32, e:E):Maybe[\ZZ32\] = Nothing[\ZZ32\]
+    generate[\R\](r: Reduction[\R\], body: E->R): R = r.id
+    (*
+    ivgen[\R\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = r.id
+    seqgen[\R\](r: Reduction[\R\], body: E->R): R = r.id
+    *)
+    getVal():E = fail("Empty List: cannot getVal()")
+    getLeftChild():List[\E\] = self
+    getRightChild():List[\E\] = self
+    left():Nothing[\E\] = Nothing[\E\]
+    extractLeft():Nothing[\(E, List[\E\])\] = Nothing[\(E, List[\E\])\]
+    right():Nothing[\E\] = Nothing[\E\]
+    extractRight():Nothing[\(List[\E\], E)\] = Nothing[\(List[\E\], E)\]
+    addLeft(z:E):List[\E\] = NodeList[\E\](z,self,self)
+    addRight(z:E):List[\E\] = NodeList[\E\](z,self,self)
+    balancedAdd(val:E,  leftL:List[\E\], rightL:List[\E\]):NodeList[\E\] = NodeList[\E\](val,self,self)
+    concat(t2:List[\E\]):List[\E\] = t2
+    splitIndex(x:ZZ32):(List[\E\],List[\E\]) = (self,self)
+    concat3(v:E, t2:List[\E\]):List[\E\] = t2.addLeft(v)
+end
+
+object NodeList[\E\](val:E,  leftL:List[\E\], rightL:List[\E\])
+        extends List[\E\]
+    sz:ZZ32 = 1 + |leftL| + |rightL|
+    getter size():ZZ32 = sz
+    getter isEmpty():Boolean = false
+    getter asString():String = "{" || "," || "}" (*) .join[\E\](self) TODO
+    opr |self| : ZZ32 = sz
+    subscript(i:ZZ32):E = if i < |leftL| then leftL.subscript(i)
+       elif i = |leftL| then val
+       else rightL.subscript(i - |leftL| - 1) end
+    opr[i:ZZ32]:E = if 0 <= i < sz then subscript(i)
+                    else fail("" self "[" i "] is out of bounds.") end
+                    (*
+    opr[r:Range[\ZZ32\]] : List[\E\] = do
+        r' = self.bounds.narrowToRange(r)
+        (lside,rside) = splitIndex( r'.lower )
+        (lside',rside') = rside.splitIndex( |r'| )
+        lside'
+      end
+      *)
+        
+    generate[\R\](r: Reduction[\R\], body: E->R): R =
+       r.join(r.join(leftL.generate[\R\](r,body),body(val)),
+              rightL.generate[\R\](r,body))
+    (*          
+    ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = do
+        mi = |left| + i0
+        r.join(r.join(left.ivgen[\R\](i0,r,body),body(mi,val)),
+               right.ivgen[\R\](mi+1,r,body))
+      end
+    seqgen[\R\](r: Reduction[\R\], body: E->R): R = do
+        lg = left.seqgen[\R\](r,body)
+        vg = body(val)
+        mg = r.join(lg,vg)
+        rg = right.seqgen[\R\](r,body)
+        r.join(mg,rg)
+      end
+      *)
+    getVal():E = val
+    getLeftChild():List[\E\] = leftL
+    getRightChild():List[\E\] = rightL
+
+    addLeft(z:E):List[\E\] = balancedAdd(val,leftL.addLeft(z),rightL)
+    addRight(z:E):List[\E\] = balancedAdd(val,leftL,rightL.addRight(z))
+
+    left():Just[\E\] = do
+        notDone : Boolean := true
+        t : NodeList[\E\] := self
+        while notDone do
+            l = t.getLeftChild()
+            typecase l of
+                l':NodeList[\E\] => t := l'
+                else => notDone := false
+            end
+        end
+        Just[\E\](t.getVal())
+      end
+
+    right():Just[\E\] = do
+        notDone : Boolean := true
+        t : NodeList[\E\] := self
+        while notDone do
+            l = t.getRightChild()
+            typecase l of
+                l':NodeList[\E\] => t := l'
+                else => notDone := false
+            end
+        end
+        Just[\E\](t.getVal())
+      end
+
+    extractLeft(): Just[\(E,List[\E\])\] =
+        if (min, delmin) <- leftL.extractLeft() then
+            Just[\(E,List[\E\])\](min, balancedAdd(val,delmin,rightL))
+        else
+            Just[\(E,List[\E\])\](val,rightL)
+        end
+
+    extractRight(): Just[\(List[\E\], E)\] =
+        if (delmax, max) <- rightL.extractRight() then
+            Just[\(List[\E\],E)\](balancedAdd(val,leftL,delmax), max)
+        else
+            Just[\(List[\E\],E)\](leftL, val)
+        end
+
+    concat(t2:List[\E\]):List[\E\] =
+        if (min, delmin) <- t2.extractLeft() then
+            concat3(min, delmin)
+        else
+            self
+        end
+
+    splitIndex(x:ZZ32):(List[\E\],List[\E\]) =
+        if x < |leftL| then
+            (ll,rl) = leftL.splitIndex(x)
+            (ll,rl.concat3(val,rightL))
+        elif |leftL| < x then
+            (lr,rr) = rightL.splitIndex(x - |leftL| - 1)
+            (leftL.concat3(val,lr),rr)
+        else
+            (leftL,rightL.addLeft(val))
+        end
+
+    concat3(v:E, t2:NodeList[\E\]):NodeList[\E\] = do
+        v1 = val
+        n1 = sz
+        l1 = leftL
+        r1 = rightL
+        v2 = t2.getVal()
+        n2 = |t2|
+        l2 = t2.getLeftChild()
+        r2 = t2.getRightChild()
+        if   weight n1 < n2 then balancedAdd(v2,concat3(v,l2),r2)
+        elif weight n2 < n1 then balancedAdd(v1,l1,r1.concat3(v,t2))
+        else NodeList[\E\](v,self,t2) end
+      end
+    concat3(v:E, t2:List[\E\]):List[\E\] = addRight(v)
+
+    balancedAdd(val':E,  left':List[\E\], right':List[\E\]):NodeList[\E\] = do
+        ln = |left'|
+        rn = |right'|
+        if ln + rn < weight then NodeList[\E\](val', left', right')
+        elif rn > weight ln then
+            rl = right'.getLeftChild()
+            rr = right'.getRightChild()
+            rln = |rl|
+            rrn = |rr|
+            if rln < rrn
+            then single_L(val', left', right')
+            else double_L(val', left', right') end
+        elif ln > weight rn then
+            ll = left'.getLeftChild()
+            lr = left'.getRightChild()
+            lln = |ll|
+            lrn = |lr|
+            if lrn < lln
+            then single_R(val', left', right')
+            else double_R(val',left',right') end
+        else NodeList[\E\](val',left',right') end
+      end
+
+    single_L(val':E,  left':List[\E\], right':List[\E\]):NodeList[\E\] = do
+        a = val'
+        x = left'
+        b = right'.getVal()
+        y = right'.getLeftChild()
+        z = right'.getRightChild()
+        NodeList[\E\](b, NodeList[\E\](a, x, y), z)
+      end
+
+    single_R(val':E,  left':List[\E\], right':List[\E\]):NodeList[\E\] = do
+        b = val'
+        a = left'.getVal()
+        x = left'.getLeftChild()
+        y = left'.getRightChild()
+        z = right'
+        NodeList[\E\](a,x,NodeList[\E\](b,y,z))
+      end
+
+    double_L(val':E,  left':List[\E\], right':List[\E\]):NodeList[\E\] = do
+        a = val'
+        x = left'
+        c = right'.getVal()
+        b = right'.getLeftChild().getVal()
+        y1 = right'.getLeftChild().getLeftChild()
+        y2 = right'.getLeftChild().getRightChild()
+        z = right'.getRightChild()
+        (* println("double_L " a " " b) *)
+        NodeList[\E\](b, NodeList[\E\](a,x,y1),NodeList[\E\](c,y2,z))
+      end
+
+    double_R(val':E,  left':List[\E\], right':List[\E\]):NodeList[\E\] = do
+        c = val'
+        a = left'.getVal()
+        x = left'.getLeftChild()
+        b = left'.getRightChild().getVal()
+        y1 = left'.getRightChild().getLeftChild()
+        y2 = left'.getRightChild().getRightChild()
+        z = right'
+        (* println("double_R " a " " b " " c) *)
+        NodeList[\E\](b, NodeList[\E\](a, x,y1), NodeList[\E\](c,y2,z))
+      end
+end
+
+transpose[\E,F\](xys: List[\(E,F)\]): (List[\E\], List[\F\]) =
+  ( <|[\E\] x | (x, _) <- xys |>, <|[\F\] y | (_, y) <- xys |> )
+
+end

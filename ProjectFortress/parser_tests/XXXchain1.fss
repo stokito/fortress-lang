@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXchain1
+export Executable
+
+t(x:Boolean) = println( if x then "PASS" else "FAIL" end )
+
+run() = do
+
+t ( 0 <= 0 < 1 = 1 > 2 <= 2 )   (* SHOULD NOT PARSE *)
+
+end
+
+end

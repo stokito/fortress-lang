@@ -1,0 +1,134 @@
+%%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}[htbp]
+\centering
+\newjudge{Subtyping Rules}{\jsub{T}{T}{\C}}
+\vspace*{1em}
+
+\begin{minipage}[t]{.5\textwidth}
+\centering
+
+\textbf{Logical rules}
+\vspace*{-1em}
+
+\infrule
+  {}
+  {\jsub{\Bottom}{T}{\TRUE}}
+
+\infrule
+  {}
+  {\jsub{M}{\Bottom}{\FALSE}}
+  
+\infrule
+  {}
+  {\jsub{`S -> T`}{\Bottom}{\FALSE}}
+  
+\infrule
+  {}
+  {\jsub{T}{\Any}{\TRUE}}
+
+\infrule
+  {}
+  {\jsub{\Any}{`S -> T`}{\FALSE}}
+
+
+\infrule
+  {\jsub{T}{U}{\C} \andalso \jsub{T}{V}{\C'}}
+  {\jsub{T}{U \cap V}{\C \wedge \C'}}
+
+\infrule
+  {\jsub{S}{U}{\C} \andalso \jsub{T}{U}{\C'} \\
+   \jexc{S}{T}{\C''}}
+  {\jsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
+  
+\infrule
+  {\jsub{T}{U}{\C} \andalso \jsub{T}{V}{\C'}}
+  {\jsub{T}{U \cup V}{\C \vee \C'}}
+  
+\infrule
+  {\jsub{S}{U}{\C} \andalso \jsub{T}{U}{\C'}}
+  {\jsub{S \cup T}{U}{\C \wedge \C'}}
+
+\vspace*{2ex}
+\textbf{Inference Variables}
+\vspace*{-1em}
+
+\infrule
+  {`I` \not \in \Delta}
+  {\jsub{I}{I}{\TRUE}}
+
+\infrule
+  {`I` \not \in \Delta}
+  {\jsub{I}{T}{`I` \subtypeof `T`}}
+ 
+\infrule
+  {`I` \not \in \Delta}
+  {\jsub{S}{I}{`S` \subtypeof `I`}}
+ 
+\vspace*{2ex}
+\textbf{Bound Variables}
+\vspace*{-1em}
+ 
+\infrule
+  {}
+  {\jsub{X}{X}{\TRUE}}
+
+\infrule
+  {\jsub{\Delta(X)}{T}{\C}}
+  {\jsub{X}{T}{\C}}
+
+\infrule
+  {\jsub{S}{\Bottom}{\C}}
+  {\jsub{S}{X}{\C}}
+
+\end{minipage}%
+\begin{minipage}[t]{.5\textwidth}
+\centering
+\textbf{Structural rules}
+% \vspace*{-1em}
+
+\infrule
+  {|\bar{S}| = |\bar{T}| \andalso \forall  i . \quad \jsub{S_i}{T_i}{\C_i} \\
+   \forall i . \quad \jsub{S_i}{\Bottom}{\D_i}}
+  {\jsub{(\bar{S})}{(\bar{T})}{(\bigwedge \C_i) \vee (\bigvee \D_i)}}
+
+\infrule
+  {|\bar{S}| \neq 1 \andalso \forall i . \quad \jsub{S_i}{\Bottom}{\C_i}}
+  {\jsub{(\bar{S})}{T}{\bigvee \C_i}}
+
+\infrule
+  {\jsub{U}{S}{\C} \andalso \jsub{T}{V}{\C'}}
+  {\jsub{`S -> T`}{`U -> V`}{\C \wedge \C'}}
+  
+\infrule
+  {|\bar{U}| \neq 1}
+  {\jsub{`S -> T`}{(\bar{U})}{\FALSE}}
+  
+\infrule
+  {|\bar{T}| \neq 1}
+  {\jsub{M}{(\bar{T})}{\FALSE}}
+
+\infrule
+  {}
+  {\jsub{`S -> T`}{M}{\FALSE}}
+
+\infrule
+  {}
+  {\jsub{M}{`S -> T`}{\FALSE}}
+
+\vspace*{2ex}
+\textbf{Constructed types}
+% \vspace*{-1em}
+
+\infrule
+  {C \neq D \andalso \forall M \in `C[\S_bar\]`.extends. \quad \jsub{M}{`D[\T_bar\]`}{\C_M}}
+  {\jsub{`C[\S_bar\]`}{`D[\T_bar\]`}{\bigvee \C_M}}
+
+\infrule
+  {\forall i . \quad \jequiv{S_i}{T_i}{C_i}}
+  {\jsub{`C[\S_bar\]`}{`C[\T_bar\]`}{\bigwedge C_i}}
+
+\end{minipage}
+
+  \caption{Algorithm for generating subtyping constraints. Apply the first rule that matches.}
+  \label{fig:jsub}
+\end{figure*}

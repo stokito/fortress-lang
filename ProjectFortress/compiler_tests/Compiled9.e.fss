@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+import Names.a.{bar, baz}  (*) bar is a trait, baz is a variable
+(* Names.a also declares foo as a trait and a top-level variable,
+   but these declarations are not imported even though bar extends foo. *)
+
+(* bar and baz have multiple declarations in different namespaces.
+   This should be allowed. *)
+
+bar: String = baz
+
+trait baz extends bar
+  baz() = label bar
+    label baz
+      label foo
+        exit bar with bar
+      end foo
+    end baz
+  end bar
+end (*) trait baz
+
+object foo extends baz end
+
+run() = println foo.baz()

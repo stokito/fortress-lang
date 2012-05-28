@@ -1,0 +1,32 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component booleanGuard
+import List.{...}
+export Executable
+
+run():() = do
+    a = <|0+0,1,2,3,5,6,7|>
+    c = <| x | x <- a, true |>
+    assert(c,a," true")
+    b = <| x | x <- a, x>2 |>
+    assert(b,a.filter(fn (x)=>x>2)," x>2")
+    d = <| x | x <- a, false |>
+    assert(d.isEmpty, "not isEmpty false")
+    e = <| 17 | _ <- true |>
+    assert(e,<|17|>,"true =/= <|17|>")
+    q = <| q | q <- Just[\(ZZ32,ZZ32)\](17,3) |>
+    assert(q,<|(17,3),(17,3)|>.drop(1), " Just")
+    f = <| x | x <- true |>
+    assert(f,<|(),()|>.drop(1), " void")
+  end
+
+end

@@ -1,0 +1,166 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ShiftTest
+export Executable
+
+(*) Test shifting operators
+
+run(): () = do
+  threeInt: ZZ32 = 3
+  threeUnsignedInt: NN32 = 3
+  threeLong: ZZ64 = 3
+  threeUnsignedLong: NN64 = 3
+  seventeenInt: ZZ32 = 17
+  seventeenUnsignedInt: NN32 = 17
+  seventeenLong: ZZ64 = 17
+  seventeenUnsignedLong: NN64 = 17
+  fortythreeInt: ZZ32 = 43
+  fortythreeUnsignedInt: NN32 = 43
+  fortythreeLong: ZZ64 = 43
+  fortythreeUnsignedLong: NN64 = 43
+  minusfourteenInt: ZZ32 = -14
+  minusfourteenLong: ZZ64 = -14
+  mostnegUnsignedInt: NN32 = 8000'0000_16
+  mostnegUnsignedLong: NN64 = 8000'0000'0000'0000_16
+
+  assert((threeInt << threeInt) = 24)
+  assert((threeInt << threeUnsignedInt) = 24)
+  assert((threeInt << threeLong) = 24)
+  assert((threeInt << threeUnsignedLong) = 24)
+  assert((threeInt << seventeenInt) = 0006'0000_16)
+  assert((threeInt << seventeenUnsignedInt) = 0006'0000_16)
+  assert((threeInt << seventeenLong) = 0006'0000_16)
+  assert((threeInt << seventeenUnsignedLong) = 0006'0000_16)
+
+  assert((threeLong << threeInt) = 24)
+  assert((threeLong << threeUnsignedInt) = 24)
+  assert((threeLong << threeLong) = 24)
+  assert((threeLong << threeUnsignedLong) = 24)
+  assert((threeLong << seventeenLong) = 0006'0000_16)
+  assert((threeLong << seventeenUnsignedInt) = 0006'0000_16)
+  assert((threeLong << seventeenLong) = 0006'0000_16)
+  assert((threeLong << seventeenUnsignedLong) = 0006'0000_16)
+  assert((threeLong << fortythreeLong) = 0000'1800'0000'0000_16)
+  assert((threeLong << fortythreeUnsignedInt) = 0000'1800'0000'0000_16)
+  assert((threeLong << fortythreeLong) = 0000'1800'0000'0000_16)
+  assert((threeLong << fortythreeUnsignedLong) = 0000'1800'0000'0000_16)
+
+  assert((threeUnsignedInt << threeInt) = 24)
+  assert((threeUnsignedInt << threeUnsignedInt) = 24)
+  assert((threeUnsignedInt << threeLong) = 24)
+  assert((threeUnsignedInt << threeUnsignedLong) = 24)
+  assert((threeUnsignedInt << seventeenInt) = 0006'0000_16)
+  assert((threeUnsignedInt << seventeenUnsignedInt) = 0006'0000_16)
+  assert((threeUnsignedInt << seventeenLong) = 0006'0000_16)
+  assert((threeUnsignedInt << seventeenUnsignedLong) = 0006'0000_16)
+
+  assert((threeUnsignedLong << threeInt) = 24)
+  assert((threeUnsignedLong << threeUnsignedInt) = 24)
+  assert((threeUnsignedLong << threeLong) = 24)
+  assert((threeUnsignedLong << threeUnsignedLong) = 24)
+  assert((threeUnsignedLong << seventeenLong) = 0006'0000_16)
+  assert((threeUnsignedLong << seventeenUnsignedInt) = 0006'0000_16)
+  assert((threeUnsignedLong << seventeenLong) = 0006'0000_16)
+  assert((threeUnsignedLong << seventeenUnsignedLong) = 0006'0000_16)
+  assert((threeUnsignedLong << fortythreeLong) = 0000'1800'0000'0000_16)
+  assert((threeUnsignedLong << fortythreeUnsignedInt) = 0000'1800'0000'0000_16)
+  assert((threeUnsignedLong << fortythreeLong) = 0000'1800'0000'0000_16)
+  assert((threeUnsignedLong << fortythreeUnsignedLong) = 0000'1800'0000'0000_16)
+
+  assert((minusfourteenInt >> threeInt) = -2)
+  assert((minusfourteenInt >> threeUnsignedInt) = -2)
+  assert((minusfourteenInt >> threeLong) = -2)
+  assert((minusfourteenInt >> threeUnsignedLong) = -2)
+
+  assert((minusfourteenLong >> threeInt) = -2)
+  assert((minusfourteenLong >> threeUnsignedInt) = -2)
+  assert((minusfourteenLong >> threeLong) = -2)
+  assert((minusfourteenLong >> threeUnsignedLong) = -2)
+
+  assert((mostnegUnsignedInt >> seventeenInt) = 0000'4000_16)
+  assert((mostnegUnsignedInt >> seventeenUnsignedInt) = 0000'4000_16)
+  assert((mostnegUnsignedInt >> seventeenLong) = 0000'4000_16)
+  assert((mostnegUnsignedInt >> seventeenUnsignedLong) = 0000'4000_16)
+
+  assert((mostnegUnsignedLong >> seventeenLong) = 0000'4000'0000'0000_16)
+  assert((mostnegUnsignedLong >> seventeenUnsignedInt) = 0000'4000'0000'0000_16)
+  assert((mostnegUnsignedLong >> seventeenLong) = 0000'4000'0000'0000_16)
+  assert((mostnegUnsignedLong >> seventeenUnsignedLong) = 0000'4000'0000'0000_16)
+
+  assert((mostnegUnsignedLong >> fortythreeInt) = 0000'0000'0010'0000_16)
+  assert((mostnegUnsignedLong >> fortythreeUnsignedInt) = 0000'0000'0010'0000_16)
+  assert((mostnegUnsignedLong >> fortythreeLong) = 0000'0000'0010'0000_16)
+  assert((mostnegUnsignedLong >> fortythreeUnsignedLong) = 0000'0000'0010'0000_16)
+
+  assert((threeInt <<< threeInt) = 24)
+  assert((threeInt <<< threeUnsignedInt) = 24)
+  assert((threeInt <<< threeLong) = 24)
+  assert((threeInt <<< threeUnsignedLong) = 24)
+  assert((threeInt <<< seventeenInt) = 0006'0000_16)
+  assert((threeInt <<< seventeenUnsignedInt) = 0006'0000_16)
+  assert((threeInt <<< seventeenLong) = 0006'0000_16)
+  assert((threeInt <<< seventeenUnsignedLong) = 0006'0000_16)
+
+  assert((threeLong <<< threeInt) = 24)
+  assert((threeLong <<< threeUnsignedInt) = 24)
+  assert((threeLong <<< threeLong) = 24)
+  assert((threeLong <<< threeUnsignedLong) = 24)
+  assert((threeLong <<< seventeenLong) = 0006'0000_16)
+  assert((threeLong <<< seventeenUnsignedInt) = 0006'0000_16)
+  assert((threeLong <<< seventeenLong) = 0006'0000_16)
+  assert((threeLong <<< seventeenUnsignedLong) = 0006'0000_16)
+  assert((threeLong <<< fortythreeLong) = 0000'1800'0000'0000_16)
+  assert((threeLong <<< fortythreeUnsignedInt) = 0000'1800'0000'0000_16)
+  assert((threeLong <<< fortythreeLong) = 0000'1800'0000'0000_16)
+  assert((threeLong <<< fortythreeUnsignedLong) = 0000'1800'0000'0000_16)
+
+  assert((threeUnsignedInt <<< threeInt) = 24)
+  assert((threeUnsignedInt <<< threeUnsignedInt) = 24)
+  assert((threeUnsignedInt <<< threeLong) = 24)
+  assert((threeUnsignedInt <<< threeUnsignedLong) = 24)
+  assert((threeUnsignedInt <<< seventeenInt) = 0006'0000_16)
+  assert((threeUnsignedInt <<< seventeenUnsignedInt) = 0006'0000_16)
+  assert((threeUnsignedInt <<< seventeenLong) = 0006'0000_16)
+  assert((threeUnsignedInt <<< seventeenUnsignedLong) = 0006'0000_16)
+
+  assert((threeUnsignedLong <<< threeInt) = 24)
+  assert((threeUnsignedLong <<< threeUnsignedInt) = 24)
+  assert((threeUnsignedLong <<< threeLong) = 24)
+  assert((threeUnsignedLong <<< threeUnsignedLong) = 24)
+  assert((threeUnsignedLong <<< seventeenLong) = 0006'0000_16)
+  assert((threeUnsignedLong <<< seventeenUnsignedInt) = 0006'0000_16)
+  assert((threeUnsignedLong <<< seventeenLong) = 0006'0000_16)
+  assert((threeUnsignedLong <<< seventeenUnsignedLong) = 0006'0000_16)
+  assert((threeUnsignedLong <<< fortythreeLong) = 0000'1800'0000'0000_16)
+  assert((threeUnsignedLong <<< fortythreeUnsignedInt) = 0000'1800'0000'0000_16)
+  assert((threeUnsignedLong <<< fortythreeLong) = 0000'1800'0000'0000_16)
+  assert((threeUnsignedLong <<< fortythreeUnsignedLong) = 0000'1800'0000'0000_16)
+
+  assert((minusfourteenInt <<< -threeInt) = -2)
+  assert((minusfourteenInt <<< -threeLong) = -2)
+
+  assert((minusfourteenLong <<< -threeInt) = -2)
+  assert((minusfourteenLong <<< -threeLong) = -2)
+
+  assert((mostnegUnsignedInt <<< -seventeenInt) = 0000'4000_16)
+  assert((mostnegUnsignedInt <<< -seventeenLong) = 0000'4000_16)
+
+  assert((mostnegUnsignedLong <<< -seventeenLong) = 0000'4000'0000'0000_16)
+  assert((mostnegUnsignedLong <<< -seventeenLong) = 0000'4000'0000'0000_16)
+
+  assert((mostnegUnsignedLong <<< -fortythreeInt) = 0000'0000'0010'0000_16)
+  assert((mostnegUnsignedLong <<< -fortythreeLong) = 0000'0000'0010'0000_16)
+
+  println("PASS")
+end
+
+end

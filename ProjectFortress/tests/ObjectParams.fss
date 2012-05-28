@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ObjectParams
+
+export Executable
+
+object O(var mutable: ZZ32)
+  x = do mutable := 3; 0 end
+  y = mutable := 5
+end
+
+object P
+  var mutable:ZZ32 := 3
+end
+
+run() = do println O(1).mutable; println O(1).x end
+
+end

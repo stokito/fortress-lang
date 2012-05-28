@@ -1,0 +1,49 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component MethodInvocationSimple
+  export Executable
+
+  (* Check that some method call does in fact exist.
+     No complicated overloading or inference. *)
+
+  trait Foo
+    singleArg(s:String):String
+
+    doFoo[\A\](a:ZZ32,b:String):String
+    doFoo[\A\](a:ZZ64,b:String):String
+
+    doFoo[\A\](g:Generator[\A\],b:String) : ZZ32
+
+    (* This is just TightJuxt actually. *)
+    callLocalMethod(s:String):String = singleArg(s)
+  end
+
+  object Bar
+    doIt():() = ()
+  end
+
+  methodCaller(a1:ZZ32, b1:String,f1:Foo, g:Generator[\ZZ32\]) : () = do
+    var s:String
+    s := f1.doFoo[\ZZ32\](a1,b1)
+
+    (* Ensure that when we call a different one it does return
+       a different static type. *)
+    var i:ZZ32
+    i := f1.doFoo[\ZZ32\](g,b1)
+
+    (* I hope single args work, because we create a tuple type. *)
+    s := f1.singleArg(b1)
+  end
+
+  run():() = Bar.doIt()
+
+end

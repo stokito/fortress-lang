@@ -1,0 +1,48 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component overloadTest8
+export Executable
+
+(* Used to
+   Need this to get excludes relationship that ought to be
+   derived automatically for any two object types.
+
+   Ought to work as of r1071
+
+   But now doesn't anymore, as RR64 is no longer closed due to absence
+   of where clauses preventing Integral closure. *)
+
+trait notRR64 excludes {RR64} end
+
+trait super extends {notRR64} end
+
+object O extends {super} end
+object P end
+
+x:ZZ32 := 0
+
+f[\S extends super\](o:S) = do println("f(O) called"); x += 1; end
+
+f(p:P) = do println("f(P) called"); x += 16; end
+
+f(y:RR64) = do println("f(RR64) called"); x += 4; end
+
+
+run():() = do
+  f(1.0)
+  f(O)
+  f(P)
+  println("x=" x)
+  println( if x=21 then "PASS" else "FAIL" end )
+end
+
+end

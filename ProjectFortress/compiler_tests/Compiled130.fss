@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled130
+export Executable
+
+run():() = do
+  n:ZZ32 := 0
+  while n < 10 do
+    n += 1
+  end
+  println n
+end
+
+end

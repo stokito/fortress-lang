@@ -1,0 +1,30 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component seqv
+export Executable
+
+trait T end
+object P extends T end
+object Q extends T end
+
+run() = do
+ println ""
+ println( if P===P then "PASS P===P" else "FAIL P===P" end )
+ println( if "cat"==="cat" then "PASS 'cat'==='cat'" else "FAIL 'cat'==='cat'" end )
+ 
+ println( if P NEQV Q then "PASS P NEQV Q" else "FAIL P NEQV Q" end )
+ println( if "cat" NEQV "dog" then "PASS 'cat' NEQV 'dog'" else "FAIL 'cat' NEQV 'dog'" end )
+
+ println("Hello, World!")
+end
+
+end

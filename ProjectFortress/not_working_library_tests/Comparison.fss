@@ -1,0 +1,62 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Comparison
+export Executable
+
+(*) Test various operators on the type Comparison.
+
+run(): () = do
+  U = Unordered
+  L = LessThan
+  G = GreaterThan
+  E = EqualTo
+  if NOT(U LEXICO U = U) then fail("Wanted U LEXICO U = U")
+  elif NOT(U LEXICO L = U) then fail("Wanted U LEXICO L = U")
+  elif NOT(U LEXICO G = U) then fail("Wanted U LEXICO G = U")
+  elif NOT(U LEXICO E = U) then fail("Wanted U LEXICO E = U")
+  elif NOT(L LEXICO U = L) then fail("Wanted L LEXICO U = L")
+  elif NOT(L LEXICO L = L) then fail("Wanted L LEXICO L = L")
+  elif NOT(L LEXICO G = L) then fail("Wanted L LEXICO G = L")
+  elif NOT(L LEXICO E = L) then fail("Wanted L LEXICO E = L")
+  elif NOT(G LEXICO U = G) then fail("Wanted G LEXICO U = G")
+  elif NOT(G LEXICO L = G) then fail("Wanted G LEXICO L = G")
+  elif NOT(G LEXICO G = G) then fail("Wanted G LEXICO G = G")
+  elif NOT(G LEXICO E = G) then fail("Wanted G LEXICO E = G")
+  elif NOT(E LEXICO U = U) then fail("Wanted E LEXICO U = U")
+  elif NOT(E LEXICO L = L) then fail("Wanted E LEXICO L = L")
+  elif NOT(E LEXICO G = G) then fail("Wanted E LEXICO G = G")
+  elif NOT(E LEXICO E = E) then fail("Wanted E LEXICO E = E")
+  elif NOT(U SQCAP U = U) then fail("Wanted U SQCAP U = U")
+  elif NOT(U SQCAP L = U) then fail("Wanted U SQCAP L = U")
+  elif NOT(U SQCAP G = U) then fail("Wanted U SQCAP G = U")
+  elif NOT(U SQCAP E = U) then fail("Wanted U SQCAP E = U")
+  elif NOT(L SQCAP U = U) then fail("Wanted L SQCAP U = U")
+  elif NOT(L SQCAP L = L) then fail("Wanted L SQCAP L = L")
+  elif NOT(L SQCAP G = U) then fail("Wanted L SQCAP G = U")
+  elif NOT(L SQCAP E = L) then fail("Wanted L SQCAP E = L")
+  elif NOT(G SQCAP U = U) then fail("Wanted G SQCAP U = U")
+  elif NOT(G SQCAP L = U) then fail("Wanted G SQCAP L = U")
+  elif NOT(G SQCAP G = G) then fail("Wanted G SQCAP G = G")
+  elif NOT(G SQCAP E = G) then fail("Wanted G SQCAP E = G")
+  elif NOT(E SQCAP U = U) then fail("Wanted E SQCAP U = U")
+  elif NOT(E SQCAP L = L) then fail("Wanted E SQCAP L = L")
+  elif NOT(E SQCAP G = G) then fail("Wanted E SQCAP G = G")
+  elif NOT(E SQCAP E = E) then fail("Wanted E SQCAP E = E")
+  elif NOT(CONVERSE U = U) then fail("Wanted CONVERSE U = U")
+  elif NOT(CONVERSE L = G) then fail("Wanted CONVERSE L = G")
+  elif NOT(CONVERSE G = L) then fail("Wanted CONVERSE G = L")
+  elif NOT(CONVERSE E = E) then fail("Wanted CONVERSE E = E")
+  else println("PASS")
+  end
+end
+
+end

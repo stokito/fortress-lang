@@ -1,0 +1,489 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Use and Definition of Generators}
+\seclabel{defining-generators}
+
+Several expressions in Fortress make use of \emph{generator clause
+  lists} to express parallel iteration (see \secref{generators}).  A
+generator clause list binds a series of variables to the values produced by a
+series of objects that extend the trait \TYP{Generator}.  A generator clause
+list is simply syntactic sugar for a nested series of invocations of
+methods on these objects.
+
+A type that extends \EXP{\TYP{Generator}\llbracket{}E\rrbracket} acts
+as a generator of elements of type \VAR{E}.  An instance of
+\EXP{\TYP{Generator}\llbracket{}E\rrbracket} only needs to define the
+\VAR{generate} method:
+%    generate[\R\](r:Reduction[\R\], body: E->R): R
+\begin{Fortress}
+{\tt~~~~}\pushtabs\=\+\(    \VAR{generate}\llbracket{}R\rrbracket(r\COLONOP\TYP{Reduction}\llbracket{}R\rrbracket, \VAR{body}\COLON E\rightarrow{}R)\COLON R\)\-\\\poptabs
+\end{Fortress}
+The mechanics of object generation are embedded entirely in the
+\VAR{generate} method.  This method takes two arguments.  The \VAR{generate} method invokes \VAR{body} once for each
+object which is to be generated, passing the generated object as an
+argument.  Each call to \VAR{body} returns a result of type \VAR{R}; these results are combined using the reduction \VAR{r}, which encapsulates a monoidal operator on objects of type \VAR{R}.    \emph{All the parallelism provided by a
+  particular generator is specified by definition of the \VAR{generate} method.}
+
+In practice, calls to \VAR{generate} are produced by desugaring
+expressions with generator clause lists, as described below
+(\secref{desugaring-generators}).  However it is possible to call the
+\VAR{generate} method directly, as in the following example:
+\input{\home/advanced/examples/Generators.ReductionClass.tex}
+
+Any reduction must define two methods: an associative binary operation
+\VAR{join}, and \VAR{empty}, a method that returns the identity of
+this operation.  Here we define reduction \TYP{SumZZ32} representing integer
+addition.  We use this to compute the sum of \EXP{3 x + 2} for \VAR{x}
+drawn from the range \EXP{1\mathinner{\hbox{\tt\char'43}}100},
+yielding the expected answer of 15350.
+
+\begin{figure}
+\input{\home/advanced/examples/Generators.GeneratorDefn.tex}
+\caption{\figlabel{generatorDefn}Sample \TYP{Generator} definition: blocked integer ranges.}
+\end{figure}
+
+For non-commutative reductions such as the \TYP{Concat} reduction used for
+list comprehensions in \figref{generatedExpressions}, it is important to
+note that results must be combined in the natural order of the
+generator.  If \VAR{join} is not associative, or \VAR{empty} is not
+the identity of \VAR{join}, passing the reduction to \VAR{generate}
+will produce unpredictable results.  A generator is permitted to group
+reduction operations in any way it likes consistent with its natural
+order, and insert an arbitrary number of \VAR{empty} elements.
+
+\figref{generatorDefn} defines a generator that generates the integers
+between \VAR{lo} and \VAR{hi} in sequential blocks of size at most
+\VAR{b}.  In this example, we divide the range in half if it is larger
+than the block size \VAR{b}; these two halves are computed in parallel
+(recall that the arguments to the method call
+\EXP{\VAR{reduction}.\VAR{join}} are evaluated in parallel).  If the
+range is smaller than \VAR{b}, then it is enumerated serially using a
+\KWD{while} loop, accumulating the result \VAR{r} as it goes.  Observe
+that the parallelism obtained from a generator is \emph{dictated by
+  the code of the \VAR{generate} method}.  While programmers using a
+generator should assume that calls to \VAR{body} may occur in
+parallel, the library programmer is free to choose the amount of
+parallelism that is actually exposed.
+
+This example uses \emph{recursive subdivision} to divide a blocked
+range into approximately equal-sized chunks of work.  Recursive
+subdivision is the recommended technique for exposing large amounts of
+parallelism in a Fortress program because it adjusts easily to varying
+machine sizes and can be dynamically load balanced.
+
+\TYP{Generator} defines the functional method
+\EXP{\VAR{seq}(\KWD{self})} that returns an equivalent generator that
+runs iterations of the body sequentially in natural order.  In most
+cases (such as in this example), it is prudent to override the default
+definition of this method; the default implementation of \VAR{seq}
+effectively collects the generated elements together in parallel and
+traverses the result sequentially.
+
+\note{
+Note that at the moment there is no way to tell the compiler for
+performance reasons that we really mean it when we ask for
+sequentiality, as opposed to saying that we should preserve sequential
+semantics.  Future versions of this specification may use the
+\TYP{Local} distribution for this purpose, or provide additional
+functions on generators which guarantee serial execution (rather than
+simply providing sequential semantics).
+}
+
+The remainder of this section describes in detail the desugaring of
+expressions with generator clause lists into invocations of the
+\VAR{generate} methods of the generators in the
+generator clause list.
+\note{
+It then outlines how method overloading may be used
+to specialize the behavior of particular combinations of generators
+and reductions.}
+
+\subsection{Simple Desugaring of Expressions with Generators}
+\seclabel{desugaring-generators}
+
+\note{NOTE: tweaked by hand by Jan, as above.}
+
+\begin{figure}
+\begin{tabular}{l@{\:\emph{body}\;\;=\;\;}l}
+%BIG OP[ ]
+\(\mathcal{C}[\;\;]\)
+&
+%u(body)
+\(u(\emph{body})\)
+\\
+%BIG OP[ x <- g, gs ]
+\(\mathcal{C}[\,x \leftarrow g, \emph{gs}\,]\)
+&
+%g.generate(r, fn (x) => BIG OP [gs] body)
+\(g.\VAR{generate}(r, \KWD{fn} (x) \Rightarrow \mathcal{C}[\emph{gs}]\:\emph{body})\)
+\\
+%BIG OP[ p, gs ]
+\(\mathcal{C}[\,p, \emph{gs}\,]\)
+&
+%p.generate(r, fn () => BIG OP [gs] body)
+\(p.\VAR{generate}(r, \KWD{fn} () \Rightarrow \mathcal{C} [\emph{gs}]\:\emph{body})\)
+\end{tabular}
+\caption{\figlabel{simpleDesugar}Simple syntax-directed desugaring of
+  a generator clause list.  Here the reduction $r$ and unit $u$ are
+  variables chosen by the desugarer to be distinct from the variables
+  in \emph{gs} and \emph{body}. }
+\end{figure}
+
+\begin{figure}
+%%\begin{tabular}{ll|ll>{$\;\;\llbracket$}c<{$\rrbracket$}}
+\begin{tabular}{ll|llc}
+expr & type & \VAR{wrapper} & \EXP{u(\VAR{body})} & $r$ \\
+\hline
+
+% SUM [ gs ] e
+\EXP{\sum\limits_{\VAR{gs}} e}
+&
+$N$
+&
+\EXP{\OPR{SUM}\llbracket{}N\rrbracket}
+&
+\EXP{\VAR{identity}\llbracket{}N\rrbracket(e)}
+&
+\EXP{\TYP{SumReduction}\llbracket{}N\rrbracket}
+\\
+
+% <| e | gs |>
+\( \langle\,e \mid \VAR{gs}\,\rangle\)
+&
+% List[\E\]
+\( \TYP{List}\llbracket{}E\rrbracket\)
+&
+\EXP{\OPR{BIG} \langle\llbracket{}E\rrbracket\,\rangle}
+&
+\( \VAR{singleton\llbracket{}E\rrbracket}(e)\)
+&
+\EXP{\TYP{Concat}\llbracket{}E\rrbracket}
+\\
+
+% lv := e, gs
+\( \VAR{lv} \ASSIGN e, \VAR{gs}\)
+&
+\EXP{()}
+&
+built in
+&
+$\VAR{ignore}(\VAR{lv} \ASSIGN e)$
+&
+\TYP{NoReduction}
+
+\end{tabular}
+\caption{Examples of wrappers for expressions with generator clause
+  lists.  Top to bottom: big operators (here \EXP{\sum} is used as an
+  example; the appropriate library function is called on the
+  right-hand side), comprehensions (here list comprehensions are
+  shown; other comprehensions are similar to list comprehensions) and
+  generated assignment.}
+\figlabel{generatedExpressions}
+\end{figure}
+
+An expression with a generator clause list \emph{gs} and body expression \emph{body} is desugared into the following general form:
+\note{
+NOTE: tweaked by hand by Jan.  Replaced BIG OP by $\mathcal{C}$,
+emph'd gs and body.}
+%wrapper(fn (r, u) => BIG OP[gs] body)
+\begin{Fortress}
+\( \VAR{wrapper}(\KWD{fn} (r, u) \Rightarrow \mathcal{C}[\emph{gs}]\:\emph{body})\)
+\end{Fortress}
+The generator clause list and body can be desugared using the
+syntax-directed desugaring $\mathcal{C}$ defined in
+\figref{simpleDesugar}.  This yields a function that is in turn passed
+as an argument to \VAR{wrapper}.  The particular choice of the
+function \VAR{wrapper} depends upon the construct that is being
+desugared.  For a reduction or a comprehension, the wrapper function
+is the corresponding big operator definition; see
+\secref{reduction-expr} and \secref{comprehensions}.  For a \KWD{for}
+loop (\secref{for-expr}) or a generated expression
+(\secref{generated}), a special built-in wrapper is used.
+Examples are shown in \figref{generatedExpressions}.
+A wrapper function always has the following type:
+%% wrapper( g:(Reduction[\R0\],T->R0)->R0): R
+\begin{Fortress}
+\(\VAR{wrapper}( g\COLONOP(\TYP{Reduction}\llbracket{}R_{0}\rrbracket,T\rightarrow{}R_{0})\rightarrow{}R_{0})\COLON R\)
+\end{Fortress}
+Here the type $T$ is the type of values returned by the body expression,
+and \EXP{R_{0}} and \VAR{R} are arbitrary types chosen by the wrapper function.
+
+Note that the function $g$ passed to the wrapper has essentially the
+same type signature as the \VAR{generate} method itself.  It is
+instructive to think of \VAR{wrapper} as having the following similar
+type signature:\footnote{In future, it is likely that Fortress will use
+  a desugaring that in fact yields a \TYP{Generator} rather than a
+  higher-order function.  This permits type-directed nesting and
+  composition of generators.}
+%% wrapper'( g: Generator[\T\] ): R  (* NOT THE ACTUAL TYPE *)
+\begin{Fortress}
+\(\VAR{wrapper}'( g\COLON \TYP{Generator}\llbracket{}T\rrbracket )\COLON R  \mathtt{(*}\;\hbox{\rm  NOT THE ACTUAL TYPE \unskip}\;\mathtt{*)}\)
+\end{Fortress}
+
+\note{From here till the end of this chapter, copied from F1.0$\beta$.}
+
+An array comprehension simply desugars into a factory function call
+and a series of assignments:
+\begin{center}
+\begin{tabular}[c]{@{}l@{}}
+% [ i1 = e1 | gs1
+%   i2 = e2 | gs2
+%   ...
+%   i_n = e_n | gs_n ]
+\EXP{[\,\,\,i_{1} = e_{1} \mid {gs}_{1}}\\
+~~~\EXP{i_{2} = e_{2} \mid {gs}_{2}} \\
+~~~$\ldots$ \\
+~~~\EXP{i_n = e_n \mid \VAR{gs}_n\,]}
+\end{tabular}
+\hspace{6em}
+$\longrightarrow$
+\hspace{6em}
+\begin{tabular}[c]{@{}l@{}}
+\( \KWD{do}\;a = \VAR{array}()\)\\
+~~~~~~\(    a[i_{1}] \ASSIGN e_{1}, {gs}_{1}\)\\
+~~~~~~\(    a[i_{2}] \ASSIGN e_{2}, {gs}_{2}\)\\
+~~~~~~\(    \ldots\)\\
+~~~~~~\(    a[i_n] \ASSIGN e_n, \VAR{gs}_n\)\\
+~~~~~~\(    a\) \\
+\( \KWD{end}\)
+\end{tabular}
+\end{center}
+
+The desugaring of a \KWD{for} loop depends upon the set of reduction
+variables.
+We conceptually desugar the \KWD{for} loop with reduction variables,
+$r_1$, $r_2$, $\ldots$, $r_n$, reduced using the reduction operator
+\EXP{\oplus} for type \EXP{(T_{1}, T_{2}, \ldots T_n)}
+%% with the identity \EXP{(z_{1}, z_{2}, \ldots z_n)}
+as follows:
+\begin{center}
+\EXP{\KWD{for} \VAR{gs} \KWD{do} \VAR{block} \KWD{end}}
+\\
+$\longrightarrow$
+\\[2em]
+\begin{tabular}[c]{l@{}l@{}l@{}l}
+\EXP{(r_{1}, r_{2}, \ldots r_n)\; \mathord{\oplus}\!\!= }&
+\EXP{\mathcal{T}
+\llbracket(T_{1}, T_{2}, \ldots T_n), \oplus
+\rrbracket[\VAR{gs}]} &\EXP{(\KWD{do}}&\\
+&&&\EXP{(r_{1}, r_{2}, \ldots r_{\mathrm{n}}) \mathrel{\mathtt{:}} (T_{1}, T_{2}, \ldots T_{\mathrm{n}}) \ASSIGN \TYP{Identity}\llbracket\oplus\rrbracket} \\
+&&&\EXP{\VAR{block}} \\
+&&&\EXP{(r_{1}, r_{2}, \ldots r_n)}\\
+&&\EXP{\;\KWD{end})}\\
+\end{tabular}
+\end{center}
+In practice, a tuple type is not a monoid.  If there is only one
+reduction variable, this is not a problem.  If there are no reduction
+variables, we simply use the type \TYP{NoReduction} used in desugaring
+assignments.  When there are multiple reduction variables, we use
+nested applications of types extending the trait \TYP{ReductionPair}.
+These types encode the common properties of the variables being
+reduced.  Recall that every reduction variable must at least have type
+\TYP{Monoid}, so it is not difficult to guarantee that
+\TYP{ReductionPair} itself also extends \TYP{Monoid}.
+
+\subsection{Accounting for Dependencies among Generators}
+\seclabel{generators-dependencies}
+
+The naive desugaring for generator lists in
+\figref{simpleDesugar} assumes there are always data
+dependencies among generators.  The actual desugaring makes use of the
+\VAR{join} method in the \TYP{Generator} trait to group together
+generators that have no data dependencies.  The goal is to permit
+library code to define more efficient merged generators for generator
+pairs.  For example, it is possible for the \VAR{join} method to take
+the generator list \EXP{i \leftarrow
+  1\mathinner{\hbox{\tt\char'43}}100, j \leftarrow
+  2\mathinner{\hbox{\tt\char'43}}200} and generate a blocked
+two-dimensional traversal.  This could then be joined with \EXP{k
+  \leftarrow 3\mathinner{\hbox{\tt\char'43}}300} to obtain a
+three-dimensional blocked traversal.
+
+However, most generators will simply make use of the default
+definition of \VAR{join} which calls \TYP{SimplePairGenerator}:
+% object SimplePairGenerator[\ A extends Any, B extends Any \]
+%         (outer : Generator[\ A \], inner : Generator[\ B \]) extends Generator[\ (A, B) \]
+%   size : ZZ64 = outer.size DOT inner.size
+%   generate[\ R extends Monoid[\ R, OPLUS \], opr OPLUS \](body : (A, B) -> R):R =
+%     outer.generate(fn (a : A) => inner.generate(fn (b : B) => body (a,b)))
+%   join[\ N extends Any \](other : Generator[\ N \]) : Generator[\ ((A,B), N) \] =
+%     SimpleMapGenerator(outer.join(inner.join(other)),
+%                        (fn (a,(b,n)) => ((a,b),n)))
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{object}\mskip 4mu plus 4mu\TYP{SimplePairGenerator}\llbracket\,A \KWD{extends}\mskip 4mu plus 4mu\TYP{Any}, B \KWD{extends}\mskip 4mu plus 4mu\TYP{Any}\,\rrbracket\)\\
+{\tt~~~~~~~~}\pushtabs\=\+\(         (\VAR{outer} \mathrel{\mathtt{:}}\mskip 4mu plus 4mu\TYP{Generator}\llbracket\,A\,\rrbracket, \VAR{inner} \mathrel{\mathtt{:}}\mskip 4mu plus 4mu\TYP{Generator}\llbracket\,B\,\rrbracket) \KWD{extends}\mskip 4mu plus 4mu\TYP{Generator}\llbracket\,(A, B)\,\rrbracket\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(   \VAR{size} \mathrel{\mathtt{:}}\mskip 4mu plus 4mu\mathbb{Z}64 = \VAR{outer}.\VAR{size} \cdot \VAR{inner}.\VAR{size}\)\\
+\(   \VAR{generate}\llbracket\,R \KWD{extends}\mskip 4mu plus 4mu\TYP{Monoid}\llbracket\,R, \oplus\,\rrbracket, \KWD{opr} \mathord{\oplus}\,\rrbracket(\VAR{body} \mathrel{\mathtt{:}} (A, B) \rightarrow R)\COLONOP{}R =\)\\
+{\tt~~}\pushtabs\=\+\(     \VAR{outer}.\VAR{generate}(\KWD{fn} (a \mathrel{\mathtt{:}}\mskip 4mu plus 4mu{A}) \Rightarrow \VAR{inner}.\VAR{generate}(\KWD{fn} (b \mathrel{\mathtt{:}}\mskip 4mu plus 4mu{B}) \Rightarrow \VAR{body} (a,b)))\)\-\\\poptabs
+\(   \VAR{join}\llbracket\,N \KWD{extends}\mskip 4mu plus 4mu\TYP{Any}\,\rrbracket(\VAR{other} \mathrel{\mathtt{:}}\mskip 4mu plus 4mu\TYP{Generator}\llbracket\,N\,\rrbracket) \mathrel{\mathtt{:}}\mskip 4mu plus 4mu\TYP{Generator}\llbracket\,((A,B), N)\,\rrbracket =\)\\
+{\tt~~}\pushtabs\=\+\(     \TYP{SimpleMapGenerator}( \null\)\pushtabs\=\+\(\VAR{outer}.\VAR{join}(\VAR{inner}.\VAR{join}(\VAR{other})),\)\\
+\(                        (\KWD{fn} (a,(b,n)) \Rightarrow ((a,b),n)))\)\-\-\-\\\poptabs\poptabs\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+Note how \TYP{SimplePairGenerator} itself overrides the \VAR{join}
+method.  When we attempt to join an existing pair of joined
+generators, we first attempt to \VAR{join} the \VAR{inner} generator
+of the pair with the \VAR{other} generator (the new innermost
+generator) passed in.  This means that every generator will have the
+opportunity to combine with both its left and right neighbors if
+neither has a dependency which prevents it.  Note that we use a
+\TYP{SimpleMapGenerator}, which simply applies a function to the
+result of another generator, to re-nest the tuples produced by the
+nested \VAR{join} operation.
+
+Which pairs of adjacent traversals are combined using \VAR{join}?
+This question is complicated by examples such as
+% i<-1:100, j<-1:100, k<-i:100, l<-j:100.
+\EXP{i\leftarrow{}1\COLONOP{}100, j\leftarrow{}1\COLONOP{}100,
+  k\leftarrow{}i\COLONOP{}100, l\leftarrow{}j\COLONOP{}100}.  We can
+either combine \VAR{i} and \VAR{j} traversals, or we can combine
+\VAR{j} and \VAR{k} traversals.  In the former case we can also
+combine \VAR{k} and \VAR{l} traversals.  The Fortress compiler is free
+to choose any grouping subject to the following constraints:
+\begin{itemize}
+\item Two generators may not be combined using \VAR{join} if the second is data dependent upon the first.
+\item Generator order must be preserved when invoking \VAR{join}.
+\item When a chain of three or more generators is joined, the
+  traversals must be combined left-associatively.
+\end{itemize}
+We can obtain a simple greedy desugaring which joins together
+traversals in accordance with the above rules by simply adding the
+following desugaring rule which takes precedence over those given in
+\figref{simpleDesugar} when each variable bound in $v_1$ does not occur free in $g_2$.
+\begin{center}
+%T[\R,BOXPLUS\][ v1 <- g1, v2 <- g2, gs ] body
+\EXP{\mathcal{T}\llbracket{}R,\boxplus\rrbracket[\,v_{1} \leftarrow g_{1}, v_{2} \leftarrow g_{2}, \VAR{gs}\,]\;\VAR{body}
+\;\;=\;\;
+%T[\R,BOXPLUS\][ (v1,v2) <- g1.join(g2), gs ] body
+\mathcal{T}\llbracket{}R,\boxplus\rrbracket[\,(v_{1},v_{2}) \leftarrow g_{1}.\VAR{join}(g_{2}), \VAR{gs}\,]\;\VAR{body}}
+%%\\
+%%\hfill when $\VAR{BV}[v_{1}]$ does not intersect $\VAR{FV}[g_2]$
+\end{center}
+%where the set of bound variables in $v_1$ does not intersect with the set of
+%free variables in $g_2$.
+
+
+\subsection{Using Overloading to Adapt Generators and Traversals}
+
+Overloaded instances of the \VAR{generate} method can be used to adapt
+a generator to the particular properties of the reduction being
+performed.  For example, a commutative monoid need only maintain a
+single variable \VAR{result} containing the reduced value so far:
+% value object BlockedRange(lo: ZZ64, hi: ZZ64, b: ZZ64) extends Generator[\ZZ64\]
+%   ...
+%   generate[\R extends CommutativeMonoid[\ R, OPLUS\], opr OPLUS\](body : ZZ64 -> R) : R = do
+%     result : R = Identity[\OPLUS\]
+%     traverse(l,u) =
+%       if u-l+1 <= max(b,1) then
+%         i : ZZ64 = l
+%         while i <= u do
+%           t = body(i)
+%           atomic result := result OPLUS t
+%           i += 1
+%         end
+%         ()
+%       else
+%         mid = LC l/2 RC + LF u/2 RF
+%         (traverse(l,mid), traverse(mid+1,u))
+%         ()
+%       end
+%     traverse(lo, hi)
+%     result
+%   end
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{value}\;\;\KWD{object} \TYP{BlockedRange}(\VAR{lo}\COLON \mathbb{Z}64, \VAR{hi}\COLON \mathbb{Z}64, b\COLON \mathbb{Z}64) \KWD{extends} \TYP{Generator}\llbracket\mathbb{Z}64\rrbracket\)\\
+{\tt~~}\pushtabs\=\+\(   \ldots\)\\
+\(   \VAR{generate}\llbracket{}R \KWD{extends} \TYP{CommutativeMonoid}\llbracket\,R, \oplus\rrbracket, \KWD{opr} \mathord{\oplus}\rrbracket(\VAR{body} \mathrel{\mathtt{:}} \mathbb{Z}64 \rightarrow R) \mathrel{\mathtt{:}} R = \;\KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(     \VAR{result} \mathrel{\mathtt{:}} R = \TYP{Identity}\llbracket\mathord{\oplus}\rrbracket\)\\
+\(     \VAR{traverse}(l,u) =\)\\
+{\tt~~}\pushtabs\=\+\(       \KWD{if} u-l+1 \leq \max(b,1) \KWD{then}\)\\
+{\tt~~}\pushtabs\=\+\(         i \mathrel{\mathtt{:}} \mathbb{Z}64 = l\)\\
+\(         \KWD{while} i \leq u \KWD{do}\)\\
+{\tt~~}\pushtabs\=\+\(           t = \VAR{body}(i)\)\\
+\(           \KWD{atomic} \VAR{result} \ASSIGN \VAR{result} \oplus t\)\\
+\(           i \mathrel{+}= 1\)\-\\\poptabs
+\(         \KWD{end}\)\\
+\(         ()\)\-\\\poptabs
+\(       \KWD{else}\)\\
+{\tt~~}\pushtabs\=\+\(         \VAR{mid} = \lceil l/2 \rceil + \lfloor u/2 \rfloor\)\\
+\(         (\VAR{traverse}(l,\VAR{mid}), \VAR{traverse}(\VAR{mid}+1,u))\)\\
+\(         ()\)\-\\\poptabs
+\(       \KWD{end}\)\-\\\poptabs
+\(     \VAR{traverse}(\VAR{lo}, \VAR{hi})\)\\
+\(     \VAR{result}\)\-\\\poptabs
+\(   \KWD{end}\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+The choice of whether to apply this transformation is left up to the
+author of the generator; when many iterations run in parallel the
+\VAR{result} variable becomes a scalability bottleneck and this
+technique should not be used.
+
+Various other properties of the reduction operator can be exploited:
+\begin{itemize}
+\item Idempotent reductions permit redundant computation.  For
+  example, when computing the maximum element of a set it might be
+  simpler to enumerate set elements more than once.
+
+\item On the other hand, sometimes a more efficient non-idempotent
+  operator can be used for a reduction if the generator promises never
+  to produce duplicates---this fact can be used to advantage in set,
+  multiset, or map comprehensions.
+
+\item If the reduction operator has a zero, this can be used to exit
+  early from a partial computation.  This requires that the body
+  expression have no visible side effects such as writes or \KWD{io} actions.
+\end{itemize}
+
+At the moment, the author of a \TYP{Generator} is responsible for
+taking advantage of opportunities such as these.  In future, we expect
+some standardized support for efficient versions of various traversals
+based on experience with the definitions provided here.
+
+\subsection{Making a Serial Version of a Generator or Distribution}
+\seclabel{serial-generator}
+
+\note{
+TODO: the mechanism for generator serialization is once again magic.
+Formerly we constrained generator structure so the serialization was
+straightforward (but this probably made things slow).}
+
+A generator \VAR{g} can be made sequential simply by calling the builtin function \VAR{sequential} as follows:
+%v <- sequential(g)
+\begin{Fortress}
+\(v \leftarrow \VAR{sequential}(g)\)
+\end{Fortress}
+The resulting generator yields its elements in the natural order
+specified by the original generator.  Several builtin generators (such
+as those for array indices) have an associated distribution.  For
+these generators, \VAR{sequential} function simply re-distributes the
+underlying object as follows:
+%sequential(r) = Sequential.distribute(r)
+\begin{Fortress}
+\(\VAR{sequential}(r) = \TYP{Sequential}.\VAR{distribute}(r)\)
+\end{Fortress}
+As a convenient shorthand, the \VAR{sequential} function is also
+defined to work for distributions themselves.  The complete declarations of
+the overloaded \VAR{sequential} function are as follows:
+%sequential[\ E extends Any \](g : Generator[\E\]) : Generator[\E\]
+%sequential[\ E extends Any \](d : Distribution) : Distribution
+\begin{Fortress}
+\(\VAR{sequential}\llbracket\,E \KWD{extends}\mskip 4mu plus 4mu\TYP{Any}\,\rrbracket(g \mathrel{\mathtt{:}}\mskip 4mu plus 4mu\TYP{Generator}\llbracket{}E\rrbracket) \mathrel{\mathtt{:}}\mskip 4mu plus 4mu\TYP{Generator}\llbracket{}E\rrbracket\)\\
+\(\VAR{sequential}\llbracket\,E \KWD{extends}\mskip 4mu plus 4mu\TYP{Any}\,\rrbracket(d \mathrel{\mathtt{:}}\mskip 4mu plus 4mu\TYP{Distribution}) \mathrel{\mathtt{:}}\mskip 4mu plus 4mu\TYP{Distribution}\)
+\end{Fortress}
+The \VAR{sequential} function has special meaning to the Fortress
+implementation; there is no need to distinguish reduction variables in
+loops for which generator is surrounded by a direct call to
+\VAR{sequential}.

@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SymbolicOverloadBug
+export Executable
+
+(*
+
+Symbolic types are being indexed by type name instead of by type
+bounds.  This is a problem as the normalized type has generic bounds
+information that's wrong!  We also report spurious collisions between
+type instantiations.  The following will claim that the "T extends
+ZZ32" and "T extends String" instances both have T extending ZZ32
+(dicovered by dumping exclusion relationships).
+
+When given distinct names there are no problems, and we also appear to
+detect overlaps correctly (eg T extends ZZ32 and I extends ZZ32).
+
+*)
+
+opr AXX[\T extends ZZ32\](a:T, b:T): ZZ32 = 0
+opr AXX[\T extends String\](a:T, b:T): ZZ32 = 1
+opr AXX[\A extends HasRank\](a:A,b:A): ZZ32 = 2
+
+run():() = do
+  a : ZZ32[3] = [0 1 2]
+  assert(a AXX a, 2, "array AXX array")
+  assert("a" AXX "b", 1, "string AXX string")
+  assert(5 AXX 7, 0, "ZZ32 AXX ZZ32")
+end
+
+end

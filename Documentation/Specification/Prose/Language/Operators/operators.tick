@@ -1,0 +1,26 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\oprdir}{\langdir/Operators}
+
+\newchap{Operators}{operators}
+
+\input{\oprdir/intro}
+\input{\oprdir/operator-names}
+\input{\oprdir/precedence}
+\input{\oprdir/operator-fixity}
+\input{\oprdir/chained-multifix}
+\input{\oprdir/enclosingops}
+\input{\oprdir/conditionalops}
+\input{\oprdir/big-operators}
+\input{\oprdir/juxtameaning}
+\input{\oprdir/operator-decls}
+\input{\oprdir/operator-overview}

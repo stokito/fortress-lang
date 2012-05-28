@@ -1,0 +1,34 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component wrapZZ
+
+export Executable
+
+(* This tests functional methods, among other things *)
+object WrapZZ(n : ZZ32)
+  opr +(self, o:WrapZZ) = WrapZZ(n + o.n)
+  opr juxtaposition(self, o:WrapZZ) = WrapZZ(n o.n)
+end
+
+run():() = do
+  x : WrapZZ = WrapZZ(5)
+  y : WrapZZ = WrapZZ(7)
+  z = x y
+  w = x + y
+  println("z = " z.n // "w = " w.n)
+  if z.n =/= 35 OR w.n =/= 12 then
+    println("EXPECTED 35 and 12")
+    1 / 0
+  end
+end
+
+end

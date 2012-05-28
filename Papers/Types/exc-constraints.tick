@@ -1,0 +1,205 @@
+Up to this point the precise definitions of subtyping and exclusion between
+types (and quantifier reduction) have remained unspecified. In this section
+we describe a small language of type constraints 
+and we define subtyping and exclusion with respect to constraints. 
+Finally, with constraint-based subtyping and exclusion defined, we explain
+in more detail the notion of quantifier reduction used in the $\le$ judgments (and thus in our rule-checking).
+
+\subsection{Inference Variables}
+
+Until now we have only considered types whose free variables are bound in an explicit type environment. To gather constraints, however, we must check
+subtype and exclusion relationships between types with unbound \emph{inference} variables.
+Intuitively, we have no control over the constraints on a bound type variable (which are fixed by the associated type environment), but we may introduce constraints on an inference variable.
+While the syntax of type variables is uniform, we conventionally distinguish them by using the metavariables $X$ and $Y$ for bound type variables and $I$ and $J$ for inference type variables.
+
+\subsection{Judgment Forms}
+\input{fig-judgements}
+
+In Figure \ref{fig:judge}, 
+we list the judgments for generating constraints.
+A judgment of the form
+$\jgconstrtemplate{S}{\ast}{T}{\C}$
+states that under the assumptions $\Delta$, 
+the constraint $\C$ on the inference variables implies the proposition $S \propop T$,
+where $\propop$ ranges over $\subtypeof$, $\nsubtypeof$, $\exc$, $\nexc$,
+$\equiv$, and $\not\equiv$.
+If $S$ and $T$ contain no inference variables the judgment behaves like an unconditional judgment (i.e., it only produces the constraints $\TRUE$ or $\FALSE$).
+
+Similarly, the judgment of the form
+\[\jgcontratemplate{S}{\propop}{T}{\C}\]
+states that under the assumptions $\Delta$, if the proposition $S \propop T$ holds, then $\C$ must be true of the inference variables. 
+In particular, 
+when $\C$ holds of the inference variables, 
+$S \propop T$ does not have to hold 
+for every valid instantiation of the bound type variables. 
+(Note that we only make use of this judgment where $\propop$ is $\not\equiv$.)
+
+An important point about both kinds of judgments is that the types $S$ and $T$ should be considered \emph{inputs} and the
+constraint $\C$ should be considered an \emph{output}.
+
+\subsection{Constraint Forms}
+\input{fig-constraints}
+Our grammar for type constraints is defined in Figure \ref{fig:constraints}.
+A primitive constraint is either {\it positive} or {\it negative}. We define
+positive primitive constraints: $S \subtypeof T$ specifies that
+a $S$ is a subtype of $T$, and $S \exc T$ specifies that $S$ must exclude $T$.
+Similarly, we define negative primitive constraints: $S \nsubtypeof T$ and $S \nexc T$ with the obvious interpretations.
+A conjunction constraint $\C_1 \wedge \C_2$ is satisfied exactly
+when both $\C_1$ and $\C_2$ are satisfied,
+and a disjunction constraint $\C_1 \vee \C_2$ is satisfied exactly
+when one or both of $\C_1$ and $\C_2$ are satisfied.
+The constraint $\FALSE$ is never satisfied, and the constraint $\TRUE$ is always satisfied. The equivalence constraint $S \equiv T$ is derived as $S \subtypeof T \wedge T \subtypeof S$.
+
+Following Smith and Cartwright \cite{smith08}, 
+% on which we based our constraint rules, 
+we normalize all constraint formulas into disjunctive normal form
+and simplify away obvious contradictions and redundancies. We further make use
+of some auxiliary meta-level definitions, defined in Figure~\ref{fig:constraints}. 
+The negation $\neg \C$ of a constraint $\C$ has a standard de Morgan interpretation.
+Each type environment $\Delta = \bds{X}{M}$ naturally describes a constraint
+on the variables $\bar{X}$,
+which we denote $\textit{toConstraint}(\Delta)$. This conversion
+has a partial inverse $\textit{toBound}(\C)$ that is defined whenever $\C$ can be written as a conjunction of constraints of the form $X \subtypeof M$.%
+\footnote{If $\C$ has multiple conjuncts of this form for a single $X$, then the resulting environment contains multiple bounds for $X$ using the $\bd{M}$ notation.}
+
+\subsection{Subtyping}
+\input{fig-subtype}
+Figure~\ref{fig:jsub} presents the full definition of our constraint-based subtyping algorithm
+as inference rules for the judgment $\jsub{T}{T}{\C}$. Note that our algorithm requires that these rules be processed in the given order.
+
+Smith and Cartwright similarly define a sound and complete algorithm 
+for generating constraints from the Java subtyping relation \cite{smith08}. 
+We essentially preserve their semantics with two notable differences. 
+First, our definition includes additional rules for tuple types 
+to account for the fact that 
+any tuple is equivalent to \Bottom\ 
+if any of its element types is equivalent to \Bottom.
+
+\infrule
+  {|\bar{S}| = |\bar{T}| \andalso \forall  i . \quad \jsub{S_i}{T_i}{\C_i} \\
+   \forall i . \quad \jsub{S_i}{\Bottom}{\C'_i}}
+  {\jsub{(\bar{S})}{(\bar{T})}{(\bigwedge \C_i) \vee (\bigvee \C'_i)}}
+
+\infrule
+  {|\bar{S}| \neq 1 \andalso \forall i . \quad \jsub{S_i}{\Bottom}{\C_i}}
+  {\jsub{(\bar{S})}{T}{\bigvee \C_i}}
+
+\noindent Second, our definition includes an additional rule for intersection types to account for
+exclusion since the intersection of excluding types is equivalent to
+$\Bottom$. 
+This rule makes our exclusion and subtyping rules mutually dependent.
+
+\infrule
+  {\jsub{S}{U}{\C} \andalso \jsub{T}{U}{\C'} \\
+   \jexc{S}{T}{\C''}}
+  {\jsub{S \cap T}{U}{\C \vee \C' \vee \C''}}
+  
+We formally define the subtyping judgment from Section~\ref{sec:pre} as a trivial application of
+constraint-based subtyping with the following rule:
+
+\infrule
+  {\jsub{S}{T}{\TRUE}}
+  {\jgsub{S}{T}}
+
+
+\subsection{Exclusion}
+\input{fig-exclusion}
+Figure~\ref{fig:jexc} presents our definition of constraint-based exclusion
+as inference rules for the judgment $\jexc{T}{T}{\C}$. 
+As with subtyping, 
+our algorithm requires that these rules be processed in order. Additionally, if no rule matches, then the l.h.s. and r.h.s. types should be swapped and the rules tried again.
+
+To make these rules algorithmic, 
+we break the exclusion relation on constructed types 
+into four subrelations $\exce$, $\excc$, $\exco$, and $\excp$. 
+The first three relations are further decomposed 
+into the asymmetric relations $\excre$, $\excrc$, and $\excro$.
+\begin{enumerate}
+\item `C[\ S_bar \]`\,$\excre$\,`D[\ T_bar \]` determines whether `D[\ T_bar \]` has a super type $N$ such that $N$ appears in the excludes clause of an ancestor of `C[\ S_bar \]`.
+\item `C[\ S_bar \]`\,$\excrc$\,`D[\ T_bar \]` determines whether `D[\ T_bar \]` excludes every type in the (nontrivial) comprises clause of `C[\ S_bar \]`.
+\item `C[\ S_bar \]`\,$\excro$\,`D[\ T_bar \]` determines whether `C[\ S_bar \]` is an object and `D[\ T_bar \]` is not a supertype of `C[\ S_bar \]`.
+\item `C[\ S_bar \]`\,$\excp$\,`D[\ T_bar \]` determines whether there is a pair of types $(M, N)$ such that $M$ is an ancestor of `C[\ S_bar \]`, $N$ is an ancestor of `D[\ T_bar \]`, and
+$M$ and $N$ are distinct applications of the same type constructor.
+\end{enumerate}
+
+As with subtyping, we formally define the exclusion judgment described in Section~\ref{sec:exclusion} as a trivial application
+of constraint-based exclusion with the following rule:
+
+\infrule
+  {\jexc{S}{T}{\TRUE}}
+  {\jgtemplate{S}{\exc}{T}}
+
+\subsection{Negative Judgments and Negation}
+In the rules for constraint-based exclusion (Figure~\ref{fig:jexc}),
+we use the negative judgments $\jnsub{T}{T}{\C}$ and $\jnexc{T}{T}{\C}$
+to determine constraints under which the negations hold. 
+Instead of defining negative judgments explicitly, 
+we describe how to derive them from their positive counterparts 
+according to de Morgan's laws.
+
+For the negative subtyping judgment $\jnsub{T}{T}{\C}$,
+the rules for bound variables are given below:
+\[
+\frac
+  {`X` \in \Delta}
+  {\jnsub{X}{T}{\FALSE}}
+\qquad
+\frac
+  {\jnsub{S}{\Delta(X)}{\C}}
+  {\jnsub{S}{X}{\C}}
+\]
+The other rules for $\jnsub{T}{T}{\C}$ are obtained as follows:
+For each rule of $\jsub{T}{T}{\C}$
+that is not in the section marked ````bound variables,''
+make a new rule for $\jnsub{T}{T}{\C}$ by replacing each occurrence of a
+relation symbol $\propop$ with its negation, 
+and by swapping each $\wedge$ with $\vee$ and $\TRUE$ with $\FALSE$, and vice versa. 
+For example, the rule for intersection types on the r.h.s.
+\infrule
+  {\jsub{T}{U}{\C} \andalso \jsub{T}{V}{\C'}}
+  {\jsub{T}{U \cap V}{\C \wedge \C'}}
+becomes the following rule in the negative subtyping judgment
+\infrule
+  {\jnsub{T}{U}{\C} \andalso \jnsub{T}{V}{\C'}}
+  {\jnsub{T}{U \cap V}{\C \vee \C'}}
+
+The rules for the negative exclusion judgment $\jnexc{T}{T}{\C}$ are derived from
+those of $\jexc{T}{T}{\C}$ according to the process above. The rule for bound variables is
+\infrule
+  {`X` \in \Delta}
+  {\jnexc{X}{T}{\FALSE}}
+
+The negative subtyping judgment should not be confused with the derived contrapositive judgment $\jcnequiv{T}{T}{\C}$
+given in Figure~\ref{fig:judge}, for the two judgments handle bound type variables very differently. Intuitively, the negative assertion $\jnequiv{S}{T}{\C}$ computes the constraint $\C$ that satisfies the
+inequivalence for an arbitrary instantiation of the type variables bound
+in $\Delta$. Whereas the contrapositive assertion $\jcnequiv{S}{T}{\C}$
+computes the constraint $\C$ that holds for any instantiation of $\Delta$ such that the inequivalence is true. The following derivable assertions further illustrate this
+distinction, for $\Delta = \text{`X <: Any, Y <:Any`}$:\\[.5em]
+\begin{tabular}{l}
+  $\jnequiv{\text{`(Pair[\X, I\] CAP Pair[\Y, J\])`}}{\Bottom}%
+           {\FALSE}$ \\[.2em]
+  $\jcnequiv{\text{`(Pair[\X, I\] CAP Pair[\Y, J\])`}}{\Bottom}%
+            {I \equiv J}$ \\[.3em]
+\end{tabular}
+
+
+% For
+% example
+% \[\jnsub[`X <: ZZ`]{ZZ}{X}{\FALSE}\]
+% and
+% \[\jcnsub[`X <: ZZ`]{ZZ}{X}{\TRUE}\]
+% Intuitively, $\jnsub[`X <: ZZ`]{ZZ}{X}{\C}$ is asking is there any constraint on the inference variables that can make $`X` \not \subtypeof `ZZ`$ for every instantiation valid `X` satisfying the bounds. Where
+% as the judgment $\jcnsub[`X <: ZZ`]{`ZZ`}{`X`}{\C}$ asks what constraints on the inference variables I can deduce from the knowledge that $`X` \not \subtypeof `ZZ`$.
+
+\subsection{Unification}
+Suppose that $\C$ is a conjunction of type equivalences. A \emph{unifier} of $\C$ is a substitution
+$\phi$ of types for inference type variables such that $\phi(\C) = \TRUE$. We say that a unifier $\phi$ is more general than a unifier $\psi$ if there exists a substitution $\tau$
+such that $\tau \circ \phi = \psi$. In other words $\phi$ is more general than $\psi$ if $\psi$ factors throughout $\phi$.
+
+We can extend the notion of a unifier to an arbitrary conjunction $\C$ in
+the case that $\C$ can be expressed as a conjunction $\C' \wedge \C''$
+where $\C'$ is entirely equivalences and $\C''$ contains no type equivalences. Then we define a unifier of $\C$ to be a unifier
+of $\C'$. Finally, we can extend the notion of unifier to a constraint $\C$ in disjunctive normal form to be a unifier of any disjunct of $\C$.
+
+The (partial) function $\textit{unify}$ in Figure~\ref{fig:constraints} takes a constraint $\C$ and produces a most general unifier $\phi$ if one exists. This is always the case if $\C$ consists of a single conjunct. \textit{unify} additionally produces the substituted leftover
+part, $\phi(\C'')$.

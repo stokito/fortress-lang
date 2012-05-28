@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Generic functional methods
+   OVERLOADING HAS BEEN REMOVED *)
+
+f'[\S extends ZZ32\](x: S): S = x
+g(x: String) = println x
+
+trait T
+  abstract getter x():ZZ32
+  f[\S extends ZZ32\](self):ZZ32 = self.x
+end
+
+object O(x: ZZ32) extends T 
+  g[\S extends ZZ32, U\](self):ZZ32 = f[\S\](self) + 5
+end
+
+run() =do
+  o = O(3)
+  a = f[\ZZ32\](o)         (*) 3
+  b = g[\ZZ32,String\](o)  (*) 8
+  c = f'[\ZZ32\](4)        (*) 4
+
+  println(
+  if (a=3 AND b=8 AND c=4)
+     then "pass" else "fail" end
+  )
+end

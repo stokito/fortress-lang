@@ -1,0 +1,44 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait T
+  getter z(): ZZ32 = 0
+end
+
+object O(x:ZZ32) extends T
+  getter y(): String = "y"
+  m() = do
+    println z               (* 27 No *)
+    println z()             (* 28 No *)
+    println self.z          (* 29 Ok *)
+    println self.z()        (* 30 No *)
+
+    println x               (* 32 Ok *)
+    println x()             (* 33 No *)
+    println self.x          (* 34 Ok *)
+
+    println y                   (* 36 No *)
+    println y()                 (* 37 No *)
+    println self.y              (* 38 Ok *)
+    println self.y()            (* 39 No *)
+  end
+end
+
+run(): () = do
+  o = O(3)
+  println o.x               (* 45 Ok *)
+  println o.z               (* 46 Ok *)
+  println o.z()             (* 47 No *)
+  println o.y                   (* 48 Ok *)
+  println o.y()                 (* 49 No *)
+end

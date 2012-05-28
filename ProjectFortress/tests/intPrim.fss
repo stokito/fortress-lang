@@ -1,0 +1,52 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component intPrim
+export Executable
+
+tst(s:String,a:Boolean):() = assert(a,s)
+
+tstEq(s:String, a:ZZ32, b:ZZ32):() = assert(a,b,s)
+
+run() = do
+    a:ZZ32 = 0
+    tstEq("Minimum", a.minimum - 1, a.maximum)
+    tstEq("Maximum", a.maximum + 1, a.minimum)
+    tstEq("Add",  124867 + -(234597), -109730 )
+    tstEq("Sub",  124867 -  234597, -109730 )
+    tstEq("Mul1", 5872  8124,  47704128 )
+    tstEq("Mul2", 5872 (-(8124)), -47704128 )
+    tstEq("Div1", 65536 DIV 35, 1872)
+    tstEq("Rem1", 65536 REM 35, 16)
+    tstEq("Mod1", 65536 MOD 35, 16)
+    tstEq("Div2", -65536 DIV 35, -1872)
+    tstEq("Rem2", -65536 REM 35, -16)
+    tstEq("Mod2", -65536 MOD 35, 19)
+    tst("Divides1", 256 DIVIDES 65536)
+    tst("Divides2", -256 DIVIDES 65536)
+    tst("Divides3", 256 DIVIDES -65536)
+    tst("Divides4", -256 DIVIDES -65536)
+    tst("Divides5", NOT (17 DIVIDES 65536))
+    tst("Divides0", 256 DIVIDES 0)
+    tst("Divides00", NOT (0 DIVIDES 0))
+    tstEq("Gcd", 65535 GCD 32769, 3)
+    tstEq("Lcm", 65535 LCM 32769,715838805)
+    tstEq("Choose", 23 CHOOSE 14, 817190 )
+    tstEq("And", 5 BITAND 6, 4)
+    tstEq("Or", 5 BITOR 6, 7)
+    tstEq("Xor", 5 BITXOR 6, 3)
+    tstEq("Not", BITNOT 6, -7)
+    tstEq("Lsh", (-3) LSHIFT 3, (-24))
+    tstEq("Rsh", (-24) RSHIFT 3, (-3))
+    tst("LT", -3425234 <= 23145)
+end
+
+end

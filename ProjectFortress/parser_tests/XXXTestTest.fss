@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXTestTest
+export Executable
+
+fact(x:ZZ32) = do
+   if (x = 0) then 1 else x fact(x-1) end
+end
+
+test testFactorial() = do
+   assert(fact(0) = 1)
+   assert(fact(5) = 120)
+   assert(fact(7) = 129)
+end
+
+run():()=do
+        testFactorial()
+	end
+end

@@ -1,0 +1,21 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled10.f
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled10.f.fss:30:18-24:\n\
+\ Ill-formed type: T[\\O,P\\]\n\
+\ The static argument P does not satisfy the corresponding bound T[\\O,P\\].\n\
+${STATIC_TESTS_DIR}/Compiled10.f.fss:31:18-24:\n\
+\ Ill-formed type: T[\\P,O\\]\n\
+\ The static argument O does not satisfy the corresponding bound T[\\P,O\\].\n\
+File Compiled10.f.fss has 2 errors.\n
+compile_out_equals=

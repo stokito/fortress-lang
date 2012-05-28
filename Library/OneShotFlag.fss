@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component OneShotFlag
+export OneShotFlag
+
+object OneShot( var canTryIt : Boolean )
+    getter canTry(): Boolean = canTryIt
+    tryOnce() : Boolean =
+        atomic if canTryIt then canTryIt := false; true else false end
+end
+
+noShot: OneShot = OneShot(false)
+
+oneShot(): OneShot = OneShot(true)
+
+end
