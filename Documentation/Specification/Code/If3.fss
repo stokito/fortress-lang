@@ -1,0 +1,26 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component If3
+
+import Set.{...}
+export Executable
+
+f() =
+(** EXAMPLE **)
+  println(x "is" (if v > 0 then "positive" else "nonpositive"))
+(** END EXAMPLE **)
+
+run() = f()
+
+end
