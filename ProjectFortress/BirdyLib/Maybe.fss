@@ -17,7 +17,7 @@ component Maybe
     getter asString(): String = "Maybe... not!"
   end
 
-  trait Maybe[\T\] comprises { Just[\T\] , Nothing[\T\] } 
+  trait Maybe[\T extends Any\] comprises { Just[\T\] , Nothing[\T\] } 
     isSome(self): Boolean = 
       typecase self of 
         Just[\T\] => true
@@ -34,19 +34,19 @@ component Maybe
 
     extract() : T throws NothingInHere = extract(self) 
   
-    cond[\R\](t: T -> R, e: () -> R): R = e() (*) Quick hack, have better things to do 
+    cond[\R extends Any\](t: T -> R, e: () -> R): R = e() (*) Quick hack, have better things to do 
   
   end
 
-  object Just[\T\](content: T) extends Maybe[\T\] 
-    cond[\R\](t: T -> R,e: () -> R) = t(content)
+  object Just[\T extends Any\](content: T) extends Maybe[\T\] 
+    cond[\R extends Any\](t: T -> R,e: () -> R) = t(content)
   end
 
-  object Nothing[\T\] extends Maybe[\T\] 
-    cond[\R\](t: T -> R,e: () -> R) = e()
+  object Nothing[\T extends Any\] extends Maybe[\T\] 
+    cond[\R extends Any\](t: T -> R,e: () -> R) = e()
   end
 
-  __cond[\E,R\](c:Maybe[\E\], t:E->R, e:()->R): R = c.cond[\R\](t,e)
-  __cond[\E\](c:Maybe[\E\], t:E->()): () = c.cond[\()\](t,fn () => ())
+  __cond[\E extends Any,R extends Any\](c:Maybe[\E\], t:E->R, e:()->R): R = c.cond[\R\](t,e)
+  __cond[\E extends Any\](c:Maybe[\E\], t:E->()): () = c.cond[\()\](t,fn () => ())
 
 end

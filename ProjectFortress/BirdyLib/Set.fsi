@@ -30,8 +30,8 @@ trait Set[\E extends StandardTotalOrder[\E\]\] extends DefaultGeneratorImplement
    abstract getter isEmpty(): Boolean
 
    seq(self): SequentialGenerator[\E\]
-   abstract seqgen[\R\](r: Reduction[\R\], body: E->R): R
-   abstract ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
+   abstract seqgen[\R extends Any\](r: Reduction[\R\], body: E->R): R
+   abstract ivgen[\R extends Any\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
    (*)abstract getVal():E
    abstract getValWithDefault(x: E):E
    abstract getLeftChild():Set[\E\]  (*) Not pleasant, revaling implementation detail. Should be part of another trait
@@ -54,7 +54,7 @@ trait Set[\E extends StandardTotalOrder[\E\]\] extends DefaultGeneratorImplement
    abstract opr IN(x:E, self):Boolean
    
    abstract balancedDelete(r:Set[\E\]):Set[\E\]
-   abstract generate[\R\](r: Reduction[\R\], body: E->R): R
+   abstract generate[\R extends Any\](r: Reduction[\R\], body: E->R): R
    
    abstract opr UNION(self,t2:Set[\E\]):Set[\E\]
    abstract opr INTERSECTION(self,t2:Set[\E\]):Set[\E\]

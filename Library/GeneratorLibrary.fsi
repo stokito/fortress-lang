@@ -22,7 +22,7 @@ end
 trait DefaultGeneratorImplementation[\E1 extends Any\] extends Generator[\E1\] excludes { Number, Character }
     getter reverse(): Generator[\E1\]
     abstract generate[\R extends Any\](r: Reduction[\R\], body: E1->R): R
-    map[\Gyy\](f: E1->Gyy): Generator[\Gyy\]
+    map[\Gyy extends Any\](f: E1->Gyy): Generator[\Gyy\]
 (*)    seq(self): SequentialGenerator[\E1\]
     seq(): SequentialGenerator[\E1\]
     nest[\G1 extends Any\](f: E1 -> Generator[\G1\]): Generator[\G1\]
