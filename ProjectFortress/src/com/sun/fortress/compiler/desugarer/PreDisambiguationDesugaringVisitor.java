@@ -131,17 +131,20 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
                                        header_result, that.getSelfType());
     }
 
-    @Override
-    public Node forStaticParam(StaticParam that) {
-        ASTNodeInfo info_result = (ASTNodeInfo) recur(that.getInfo());
-        IdOrOp name_result = (IdOrOp) recur(that.getName());
-        List<BaseType> extendsClause_result = recurOnListOfBaseType(that.getExtendsClause());
-        List<BaseType> dominatesClause_result = recurOnListOfBaseType(that.getDominatesClause());
-        Option<Type> dimParam_result = recurOnOptionOfType(that.getDimParam());
-        StaticParamKind kind_result = (StaticParamKind) recur(that.getKind());
-	extendsClause_result = rewriteStaticParamExtendsClause(that, extendsClause_result);
-        return forStaticParamOnly(that, info_result, name_result, extendsClause_result, dominatesClause_result, dimParam_result, kind_result);
-    }
+
+    // Commented out for now: it seems to give the interpreter tests grief.  GLS 5/29/12
+    // When put back into action, tests XXX6b[uv] need to be updated to add " extends Object".
+//     @Override
+//     public Node forStaticParam(StaticParam that) {
+//         ASTNodeInfo info_result = (ASTNodeInfo) recur(that.getInfo());
+//         IdOrOp name_result = (IdOrOp) recur(that.getName());
+//         List<BaseType> extendsClause_result = recurOnListOfBaseType(that.getExtendsClause());
+//         List<BaseType> dominatesClause_result = recurOnListOfBaseType(that.getDominatesClause());
+//         Option<Type> dimParam_result = recurOnOptionOfType(that.getDimParam());
+//         StaticParamKind kind_result = (StaticParamKind) recur(that.getKind());
+// 	extendsClause_result = rewriteStaticParamExtendsClause(that, extendsClause_result);
+//         return forStaticParamOnly(that, info_result, name_result, extendsClause_result, dominatesClause_result, dimParam_result, kind_result);
+//     }
 
     @Override
     public Node forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
