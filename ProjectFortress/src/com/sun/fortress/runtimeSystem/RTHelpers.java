@@ -14,7 +14,7 @@ import com.sun.fortress.compiler.runtimeValues.RTTI;
 import com.sun.fortress.useful.MagicNumbers;
 import com.sun.fortress.useful.Useful;
 
-public class RTHelpers {
+public class RTHelpers {   
     static public Class getRTTIclass(String stem, RTTI[] params) {
         int lh_angle_index = stem.indexOf(Naming.LEFT_HEAVY_ANGLE);
         List<String> opr_params = null;
@@ -129,7 +129,9 @@ public class RTHelpers {
             String class_we_want) throws Error {
         Class cl;
         try {
-            cl = Class.forName(class_we_want);
+            ClassLoader icl = MainWrapper.icl;
+            cl = icl.loadClass(Naming.sepToDot(class_we_want));
+            // cl = Class.forName(class_we_want, true, icl);
             synchronized (t) {
                 Object o = t.get(l);
                 if (o == null) {
