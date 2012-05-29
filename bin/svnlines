@@ -1,0 +1,19 @@
+#!/bin/bash
+
+FORTRESS_HOME="`${0%svnlines}fortress_home`"
+
+cd $FORTRESS_HOME
+
+if [ $# -lt 2 ] ; then
+  echo svnlines beginning-revision ending-revision
+  echo 'Calculates number of lines added or removed in the included revisions'
+  echo 'Records results in FORTRESS_HOME/SvnStats/<revision number>.lines'
+  echo "Use this before calculating metrics"
+  exit 1
+fi
+
+r=$1
+e=$2
+e=$(( e+1 ))
+
+while [ $r -lt $e ] ; do echo $r; svn diff -c $r | awk -f bin/svnlinecount.awk > SvnStats/${r}.lines; r=$(( r+1 )); done

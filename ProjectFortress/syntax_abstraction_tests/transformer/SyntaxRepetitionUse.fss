@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+component SyntaxRepetitionUse
+
+  import SyntaxRepetition.{Select1, Select2, SelectQuery}
+  import List.{...}
+
+  export Executable
+
+  run() = do
+                          println (SELECT a a  a from)
+                          println (SELECT b b b b from)
+                          println (SELECT world)
+(*                          println (SELECT b b world)  *)
+                          println 42
+                        end
+end

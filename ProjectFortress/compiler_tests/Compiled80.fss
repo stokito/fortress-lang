@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled80
+export Executable
+
+(* asif -- we may defer this, since it is hard and not widely used. *)
+
+trait A end
+object O extends A end
+object P extends A end
+
+anA():A = O
+f(o:O):() = println("FAIL WITH O")
+f(a:A):() = println("A")
+f(p:P):() = println("FAIL WITH P")
+
+run():() = f(anA() asif A)
+
+end

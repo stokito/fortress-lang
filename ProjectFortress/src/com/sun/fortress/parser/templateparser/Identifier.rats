@@ -1,0 +1,35 @@
+/*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress identifiers.
+ */
+module com.sun.fortress.parser.templateparser.Identifier(Keyword, Symbol, Unicode,
+                                          Spacing, Gaps);
+
+import Keyword;
+import Symbol;
+import Unicode;
+import Spacing;
+import Gaps;
+
+modify com.sun.fortress.parser.Identifier(Keyword, Symbol, Unicode,
+Spacing);
+
+
+Id Id += 
+     NameGap
+   / IdGap
+   / <FIRST> ... ;
+
+List<Id> BindIdOrBindIdTuple +=
+     BindIdOrBindIdTupleGap
+   / <FIRST> ... ;

@@ -1,0 +1,31 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component MemModel.Aliases.g
+
+export Executable
+
+(** EXAMPLE **)
+g(x: ZZ64[2], y: ZZ64[2]): ZZ64 = do
+  x[0] := 17
+  y[0]
+end
+(** END EXAMPLE **)
+
+run() = do
+  a = array1[\ZZ64, 2\]()
+  g(a, a)
+  println a[0]
+end
+
+end

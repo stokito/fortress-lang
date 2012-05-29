@@ -1,0 +1,30 @@
+(*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+component VarianceTest6
+
+  export Executable
+
+  trait Test[\contravariant T\]
+    setter x(y: T): ()
+  end
+
+  object Impl[\T\]() extends Test[\T\] 
+    setter x(y: T): () = ()
+  end
+
+  trait Foo end
+    
+  run() = do
+    x: Test[\Foo\] = Impl[\Any\]()
+    ()
+  end
+
+end

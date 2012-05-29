@@ -1,0 +1,153 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component FunctionalMethodLookup
+export Executable
+
+trait Comp
+        extends { StdPartialOrder[\Comp\] }
+        comprises { Unord, TotalComp }
+    opr EQL(self, other:Comp): Boolean = do
+        println("Comp " self " EQL " other)
+        false
+      end
+    opr LEXICO(self, other:Comp): Comp = Unord
+    opr INVERSE(self): Comp
+end
+
+(** Unord is the outcome of a CMP b when a and b are partially
+    ordered and no ordering relationship exists between them. **)
+object Unord extends Comp
+    getter asString(): String = "Unord"
+    opr EQL(self, other:Unord): Boolean = do
+        println("Unord EQL Unord")
+        true
+      end
+    opr LSTH(self, other:Comp): Boolean = do println("Unord LSTH"); false end
+    opr INVERSE(self): Comp = Unord
+end
+
+trait TotalComp
+    extends { Comp, StdTotalOrder[\TotalComp\] }
+    comprises { LessTh, EqTo, GreaterTh }
+    (* We're both a partial order (including Unord) and a total
+       order (TotalComp alone).  Avoid ambiguity between the
+       default definitions of CMP and GREQ. *)
+    opr EQL(self, other:Comp): Boolean = do
+        println("TotalComp " self " EQL " other)
+        false
+      end
+    opr CMP(self, other:Unord): Comp = Unord
+    opr GREQ(self, other:Unord): Boolean = false
+    opr GREQ(self, other:Comp): Boolean = NOT (other LSTH self)
+    opr LSTH(self, other:Unord): Boolean = false
+    opr LEXICO(self, other:TotalComp): TotalComp = self
+    opr LEXICO(self, other:()->TotalComp): TotalComp = self
+    opr INVERSE(self): TotalComp
+end
+
+object LessTh extends TotalComp
+    getter asString(): String = "LessTh"
+    opr EQL(self, other:LessTh): Boolean = do
+        println("LessTh EQL LessTh")
+        true
+      end
+    opr CMP(self, other:LessTh): Comp = EqTo
+    opr CMP(self, other:TotalComp): Comp = GreaterTh
+    opr LSTH(self, other:LessTh): Boolean = false
+    opr LSTH(self, other:TotalComp): Boolean = true
+    opr INVERSE(self): TotalComp = GreaterTh
+end
+
+object GreaterTh extends TotalComp
+    getter asString(): String = "GreaterTh"
+    opr EQL(self, other:GreaterTh): Boolean = do
+        println("GreaterTh EQL GreaterTh")
+        true
+      end
+    opr CMP(self, other:GreaterTh): Comp = EqTo
+    opr CMP(self, other:TotalComp): Comp = LessTh
+    opr LSTH(self, other:Comp): Boolean = false
+    opr INVERSE(self): TotalComp = LessTh
+end
+
+object EqTo extends TotalComp
+    getter asString(): String = "EqTo"
+    opr EQL(self, other:EqTo): Boolean = do
+        println("EqTo EQL EqTo")
+        true
+      end
+    opr CMP(self, other:Comp): Comp = INVERSE other
+    opr LSTH(self, other:LessTh): Boolean = true
+    opr LSTH(self, other:TotalComp): Boolean = false
+    opr LEXICO(self, other:TotalComp): TotalComp = other
+    opr LEXICO(self, other:()->TotalComp): TotalComp = other()
+    opr INVERSE(self): TotalComp = EqTo
+end
+
+trait Equty[\T extends Equty[\T\]\]
+    opr EQL(self, other:T): Boolean
+end
+
+(** StdPartialOrder is partial ordering using LSTH,GRTH,LSEQ,GREQ,EQL, and CMP.
+    This is primarily for floating-point values.  Minimal complete
+    definition: either CMP or { LSTH, = }. **)
+trait StdPartialOrder[\T extends StdPartialOrder[\T\]\]
+    opr CMP(self, other:T): Comp =
+        if self LSTH other then LessTh
+        elif other GRTH self then GreaterTh
+        else
+        println("Equty test for " self " EQL " other)
+        if self EQL other then EqTo
+        else Unord
+        end
+        end
+    opr LSTH(self, other:T): Boolean = LessTh EQL (self CMP other)
+    opr GRTH(self, other:T): Boolean = other LSTH self
+    opr EQL(self, other:T): Boolean = do
+        println("spo " self " EQL " other)
+        EqTo EQL (self CMP other)
+      end
+    opr LSEQ(self, other:T): Boolean = other GREQ self
+    opr GREQ(self, other:T): Boolean = (self EQL other) OR: (self GRTH other)
+end
+
+(** StdTotalOrder is the usual total order using LSTH,GRTH,LSEQ,GREQ,EQL, and CMP.
+    Most values that define a comparison should do so using this.
+    Minimal complete definition: either CMP or LSTH (it's advisable to
+    define EQL in the latter case). **)
+trait StdTotalOrder[\T extends StdTotalOrder[\T\]\]
+        extends StdPartialOrder[\T\]
+    opr CMP(self, other:T): Comp =
+        if self LSTH other then LessTh
+        elif other LSTH self then GreaterTh
+        else EqTo
+        end
+    opr GREQ(self, other:T): Boolean = NOT (self LSTH other)
+end
+
+object Foo extends StdPartialOrder[\Foo\]
+    getter asString():String = "Foo"
+    opr CMP(self, other:Foo):Comp = EqTo
+end
+
+run():() = do
+(*
+    assert((Foo CMP Foo) EQL EqTo, "CMP")
+    assert(Foo EQL Foo, "=")
+    assert(Foo GREQ Foo, ">=")
+    assert(Foo LSEQ Foo, "<=")
+    assert(NOT(Foo GRTH Foo), ">")
+*)
+    assert(NOT(Foo LSTH Foo), "<")
+  end
+
+end

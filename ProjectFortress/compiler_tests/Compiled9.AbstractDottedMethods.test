@@ -1,0 +1,17 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests= SingleInheritanceAbstract MultipleInheritanceAbstract \
+       DiamondInheritanceAbstract DiamondInheritance1 \
+       DiamondInheritance2 DiamondInheritance3 DiamondInheritance4 \
+       DiamondInheritance5 DiamondInheritance6
+compile
+link
+run
+run_out_matches=(O[(]1,2[)].m cd\n){2,}+

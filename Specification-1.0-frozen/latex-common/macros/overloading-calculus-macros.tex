@@ -1,0 +1,111 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%% Overloading macros %%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\renewcommand{\mdInvkVal}{\ensuremath{
+\invoke{\objval}{\ftappP\vargsP}}}
+\renewcommand{\mthinvk}{\ensuremath{\exp\code.\fname\targs\eargs}}
+\renewcommand{\provesM}[2]{\ensuremath{\pgm; \tvenv; {#1} \vdash {#2}~\ok}}
+
+\newcommand{\substN}{\ensuremath{S}}
+
+\newcommand{\excludesF}{\ensuremath{\mathit{excludes}_p}}
+\newcommand{\excludesFD}[3]{\ensuremath{\excludesF({#1}, \set{\seq{#2}}, \set{\seq{#3}})}}
+\newcommand{\boundsF}{\ensuremath{\mathit{bounds}_p}}
+\newcommand{\boundsFD}[1]{\ensuremath{\boundsF(T, \set{\seq{#1})}}}
+\newcommand{\applicableN}{\ensuremath{\mathit{applicable}}}
+\newcommand{\applicableF}{\ensuremath{\applicableN_{\pgm; \tvenv}}}
+\newcommand{\applicableFD}[1]{\ensuremath{\applicableN_{\pgm; {#1}}}}
+\newcommand{\mostspecificN}{\ensuremath{\mathit{mostSpecificDef}}}
+\newcommand{\mostspecificF}{\ensuremath{\mostspecificN_{\pgm; \tvenv}}}
+\newcommand{\mostspecificFD}[1]{\ensuremath{\mostspecificN_{\pgm; {#1}}}}
+
+\renewcommand{\mtype}{\ensuremath{\mathit{mtype}_{\pgm; \tvenv}}}
+\newcommand{\mtypeD}[1]{\ensuremath{\mathit{mtype}_{\pgm; {#1}}}}
+
+\newcommand{\validRule}{\ruleLabel{Valid}}
+\newcommand{\valid}{\ensuremath{\pgm\vdash \mathit{valid}}}
+\newcommand{\validTemplate}{\ensuremath{\valid(
+\fname, \set{\seq{\tappone}}, \tparams~\mkftnty\ty\ty)}}
+\newcommand{\validD}{\ensuremath{\valid(
+\fname, \set{\seq{\tappthree}}, \tparams~\mkftnty\ty{\sub\ty 0})}}
+\newcommand{\validDW}{\ensuremath{\valid(\fname, \cname,
+\tparams~\mkftnty\ty{\sub\ty 0})}}
+\newcommand{\meetName}{\mathit{mostSpecificType}}
+\newcommand{\meetF}[2]{\ensuremath{
+{\pgm; \tvenv}\vdash \meetName(\set{#1},{#2})}}
+\newcommand{\meetFD}[3]{\ensuremath{
+{\pgm; {#1}}\vdash \meetName(\set{#2},{#3})}}
+
+\renewcommand{\tdsyntax}{\ensuremath{
+\trait \tname\tparams\extends\{\supers\}\ \fds\ \code{end}}}
+\renewcommand{\odsyntax}{\ensuremath{\object \oname\tparams\vparams
+\extends\{\supers\}\ \fds\ \code{end}}}
+\renewcommand{\tdsyntaxTD}{\ensuremath{
+\trait \tname\tparams\extends\{\superstwo\}\ \fds\ \cend}}
+\renewcommand{\odsyntaxOD}{\ensuremath{\object \oname\tparams\vparams
+\extends\{\superstwo\}\ \fds\ \cend}}
+
+
+\renewcommand{\bound}{\ensuremath{\tvone\extends\super}}
+\renewcommand{\boundtwo}{\ensuremath{\tvtwo\extends\supertwo}}
+\newcommand{\boundthree}{\ensuremath{\tvthree\extends\superthree}}
+\renewcommand{\boundP}{\ensuremath{\tvone'\extends\super'}}
+\renewcommand{\boundPP}{\ensuremath{\tvone''\extends\super''}}
+\newcommand{\tparamsthree}{\ensuremath{\bsTP{\seq{\boundthree}}}}
+\newcommand{\superthree}{\ensuremath{\tappthree}}
+\renewcommand{\vparamPP}{\ensuremath{\vname''\isTyPP}}
+\renewcommand{\vparamR}{\ensuremath{\ignore\isTy}}
+\renewcommand{\vparamRP}{\ensuremath{\ignore\colon\tyP}}
+\newcommand{\vparamRPP}{\ensuremath{\ignore\colon\tyPP}}
+\renewcommand{\vparamsRP}{\ensuremath{\parens{\seq{\vparamRP}}}}
+\newcommand{\vparamsRPP}{\ensuremath{\parens{\seq{\vparamRPP}}}}
+\newcommand{\tparamsLPP}{\ensuremath{\bsTP{\seq{\boundLPP}}}}
+\newcommand{\boundLPP}{\ensuremath{\tvone''\extends\ignore}}
+
+\renewcommand{\fdsyntaxMD}{\ensuremath{\fname\tparams\vparams\colon\sub\ty 0 \equal \exp}}
+\renewcommand{\fdsyntaxMTB}{\ensuremath{\fname\tparams
+\parens{\seq{\ignore\colon\ty}}\colon\retty \equal \ignore}}
+
+\renewcommand{\odsyntaxRM}{\ensuremath{\object \oname\ignore\
+\vparamsRMS\ignore\ \cend}}
+
+\renewcommand{\tvenvoneP}{\ensuremath{\seq{\tvone'\subtype\tappone'}}}
+\renewcommand{\dsyntaxOVER}{\ensuremath{
+\ignore\ \cname\bsTP{\seq{\tvone\extends\ignore}}
+ \ignore \extends \set{\seq\tappone}\ignore}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%% Function overloading macros %%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\fncall}{\ensuremath{\fname\targs\eargs}}
+\newcommand{\tFunMthDefRule}{\ruleLabel{T-FunMethDef}}
+\newcommand{\tMthDefRule}{\ruleLabel{T-MethDef}}
+\renewcommand{\provesD}[1]{\ensuremath{\pgm; \emptyset; \emptyset \vdash {#1}~\ok}}
+\newcommand{\validMeth}{\ensuremath{\pgm\vdash \mathit{validMeth}}}
+\newcommand{\validMethRule}{\ruleLabel{ValidMeth}}
+\newcommand{\validFun}{\ensuremath{\pgm\vdash \mathit{validFun}}}
+\newcommand{\validFunRule}{\ruleLabel{ValidFun}}
+\newcommand{\validFunMeth}{\ensuremath{\pgm\vdash \mathit{validFunMeth}}}
+\newcommand{\validFunMethRule}{\ruleLabel{ValidFunMeth}}
+\newcommand{\tFunRule}{\ruleLabel{T-Function}}
+\newcommand{\ftype}{\ensuremath{\mathit{ftype}_{\pgm; \tvenv}}}
+\newcommand{\rFunRule}{\ruleLabel{R-Function}}
+\newcommand{\fbody} {\ensuremath{\mathit{fbody}_p}}
+\renewcommand{\odsyntaxRM}{\ensuremath{\object \oname\tparams\vparamsRMS\ignore\ \cend}}
+\newcommand{\csyntaxSRthmMthOverload}{\ensuremath{\ignore \cname\tparamsPP\ignore\ \fds \ \ignore}}
+\newcommand{\visibleN}{\ensuremath{visible}}
+\renewcommand{\cPPapp}{\ensuremath{\cname\bsTP{\seq{\tvone''}}}}
+\newcommand{\targsPPSub} {\ensuremath{\bsTP{\substseq{\ty}{\tvone}\seq{\ty''}}}}
+\newcommand{\ftappPPSub} {\ensuremath{\fappName\targsPPSub\!}}

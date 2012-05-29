@@ -1,0 +1,170 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress identifiers.
+ */
+module com.sun.fortress.parser.Identifier(Keyword, Symbol, Unicode,
+                                          Spacing);
+
+import Keyword;
+import Symbol;
+import Unicode;
+import Spacing;
+
+option setOfString(FORTRESS_KEYWORDS);
+
+/* A word is an identifier if it begins with a letter and is not a reserved
+   word, an operator, or all or part of a numeral.
+ */
+/*
+        String id      = s1:idstart s2:idrest*
+        { String s = s1;
+          for (String ss : s2.list()) {
+              s += ss;
+          }
+          if (!FORTRESS_KEYWORDS.contains(s))
+              yyValue = difference(yyStart, yyResult.index);
+          else {        // Error production
+              return yyError.select(s + " is a keyword!", yyError.index + 10);
+          }
+        };
+*/
+private transient String PrimeCharacter = [\u2032-\u2037] ;
+transient String id      = s:(idstart idrest*) &{ !FORTRESS_KEYWORDS.contains(s) };
+transient String idstart = UnicodeIdStart / [_] ;
+transient String idrest  = UnicodeIdStart / ['] / PrimeCharacter / UnicodeIdRest ; // '
+
+private String IdText  = a1:id &{ NodeUtil.validId(a1) } ;
+
+transient String reserved = s:(idstart idrest*) &{ FORTRESS_KEYWORDS.contains(s) };
+Id Reserved = a1:reserved
+     { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount), a1); };
+
+Id Id =
+     <FIRST> a1:IdText
+     { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount), a1); };
+
+/* IdOrOpName ::= Id | OpName */
+transient IdOrOp IdOrOpName =
+     Id
+   / a1:OpName
+     { yyValue = NodeFactory.makeOpUnknown(createSpan(yyStart, yyCount), a1); };
+
+/* BindId ::= Id | _ */
+Id BindId =
+     Id
+   / a1:"_" { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount), a1); };
+
+/* BindIdList ::= BindId (w , w BindId)* */
+List<Id> BindIdList =
+     a1:BindId a2s:(w comma w BindId)+
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / a1:BindId a2s:(w commaOrNot w BindId)+
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / a1:BindId
+     { yyValue = Useful.list(a1); };
+
+/* BindIdOrBindIdTuple ::=
+     BindId
+   | "(" w BindId w "," w BindIdList w ")"
+ */
+List<Id> BindIdOrBindIdTuple =
+     <FIRST> a1:BindId
+     { yyValue = Useful.list(a1); }
+   / openparen w a1:BindId w comma w a2s:BindIdList w closeparen
+     { yyValue = Useful.cons(a1, a2s); };
+
+private transient void commaOrNot = "," / w ;
+
+/* SimpleName ::=
+     Id
+   | opr (w BIG)? w (Encloser | Op)
+   | opr (w BIG)? w EncloserPair
+ */
+IdOrOpOrAnonymousName SimpleName =
+     Id
+   / opr big:(w BIG)? w a1:(Encloser / Op)
+     { if (big != null) yyValue = NodeFactory.makeBig(a1);
+       else yyValue = a1;
+     }
+   / opr big:(w BIG)? w a1:EncloserPair
+     { if (big != null) yyValue = NodeFactory.makeBig(a1);
+       else yyValue = a1;
+     };
+
+private String idOrKeyword = (idstart idrest*) &{ true };
+
+/* APIName ::= Id(.Id)* */
+/* This says that if we find ellipses, the dot doesn't count */
+APIName APIName =
+     a1:idOrKeyword &(w ellipses)
+     { Span span = createSpan(yyStart,yyCount);
+       Id bogusId = NodeFactory.bogusId(span);
+       if (FORTRESS_KEYWORDS.contains(a1)) {
+           log(span, a1 + " is a Fortress keyword.");
+           yyValue = NodeFactory.makeAPIName(span, bogusId);
+       } else if (NodeUtil.validId(a1)) {
+           yyValue = NodeFactory.makeAPIName(span, NodeFactory.makeId(span, a1));
+       } else if (NodeUtil.validOp(a1)) {
+           log(span, a1 + " is not a valid Fortress identifier.");
+           yyValue = NodeFactory.makeAPIName(span, bogusId);
+       } else {
+           log(span, a1 + " is not a valid Fortress identifier.");
+           yyValue = NodeFactory.makeAPIName(span, bogusId);
+       }
+     }
+   / a1:idOrKeyword a2s:(dot idOrKeyword)* &(w ellipses)
+     { Span span = createSpan(yyStart,yyCount);
+       List<Id> ids = new ArrayList<Id>(a2s.list().size()+1);
+       ids.add(NodeFactory.makeId(span, a1));
+       for ( String name : a2s.list() ) ids.add(NodeFactory.makeId(span, name));
+       Id bogusId = NodeFactory.bogusId(span);
+       for (Id _id : ids) {
+           String id = _id.getText();
+           if (FORTRESS_KEYWORDS.contains(id))
+               log(span, id + " is a Fortress keyword.");
+           else if (NodeUtil.validOp(id))
+               log(span, id + " is not a valid Fortress identifier.");
+           else if (!NodeUtil.validId(id))
+               log(span, id + " is not a valid Fortress identifier.");
+       }
+       yyValue = NodeFactory.makeAPIName(span, ids);
+     }
+   / a1:idOrKeyword a2s:(dot idOrKeyword)*
+     { Span span = createSpan(yyStart,yyCount);
+       List<Id> ids = new ArrayList<Id>(a2s.list().size()+1);
+       ids.add(NodeFactory.makeId(span, a1));
+       for ( String name : a2s.list() ) ids.add(NodeFactory.makeId(span, name));
+       Id bogusId = NodeFactory.bogusId(span);
+       for (Id _id : ids) {
+           String id = _id.getText();
+           if (FORTRESS_KEYWORDS.contains(id))
+               log(span, id + " is a Fortress keyword.");
+           else if (NodeUtil.validOp(id))
+               log(span, id + " is not a valid Fortress identifier.");
+           else if (!NodeUtil.validId(id))
+               log(span, id + " is not a valid Fortress identifier.");
+       }
+       yyValue = NodeFactory.makeAPIName(span, ids);
+     };
+
+/* QualifiedName ::= Id(.Id)* */
+/* Maybe a qualified name; includes an unqualified name */
+/* This says that if we find ellipses, the dot doesn't count */
+Id QualifiedName =
+     yyValue:Id &(w ellipses)
+   / a1:Id a2s:(dot Id)* &(w ellipses)
+     { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount),a1,a2s.list()); }
+   / a1:Id a2s:(dot Id)*
+     { yyValue = NodeFactory.makeId(createSpan(yyStart,yyCount),a1,a2s.list()); };

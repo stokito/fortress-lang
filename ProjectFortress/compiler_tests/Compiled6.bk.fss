@@ -1,0 +1,21 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+
+  (* This trait can be read but not assigned to with [] *)
+  trait Sub
+    opr [i:ZZ32] : String = "Can't assign me!"
+  end
+
+  foo(i:ZZ32,s:Sub) : () = s[i] := "Failure!"
+
+  run():() = ()

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2008,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+export FORTRESS_HOME="`${0%fortress}fortress_home`"
+
+if [ "$1" = "run" ] ; then
+    shift
+    $FORTRESS_HOME/bin/run "$@"
+else
+    CP="`"${FORTRESS_HOME}"/bin/fortress_classpath`"
+
+    if [ -z "$JAVA_HOME" ] ; then
+      JAVACMD=java
+    else
+      JAVACMD="$JAVA_HOME/bin/java"
+    fi
+
+    if [ -z "$JAVA_FLAGS" ] ; then
+      JAVA_FLAGS="-Xmx256m  -Xss32m"
+    fi
+    JAVA_FLAGS+=" -Dfile.encoding=UTF-8"
+    "$JAVACMD" $JAVA_FLAGS -cp "$CP" com.sun.fortress.Shell "$@"
+fi

@@ -1,0 +1,906 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Conversions and Coercions}
+\chaplabel{conversions-coercions}
+
+\note{Widening and where clauses are not yet supported.
+
+The examples in this chapter are not tested nor run by the interpreter.}
+
+\note{
+\begin{itemize}
+ \item ``has a type'' vs ``is a subtype of the type or could be coerced to the type''
+\item Coercion between tuple types (Victor's email titled ``Coercion between tuple types'' on 07/16/07) and arrow types
+
+\item Vectors and matrices: \secref{aggregate-expr}
+
+\item Do we allow coercion declarations in object expressions?
+
+\item If tests and coercion
+
+Suppose a test in an expression has a type that is not \TYP{Boolean}
+(or a subtype of \TYP{Boolean}) but is coercible to \TYP{Boolean}.
+Presumably, that is not a static error? But note that F1.0 beta
+makes no mention of this case; all tests in an if expression must be of
+type \TYP{Boolean}. There are similar problems with other expression types;
+we need to revisit them all in light of the coercion facility...
+
+\end{itemize}
+}
+
+Fortress provides a mechanism, called \emph{coercion}, to allow a
+value of one type to be automatically converted to a value of another
+type.  Programmers can define coercions (described in
+\secref{coercion-declarations}) and coercions may change the set of
+applicable declarations for a call (as described in
+\secref{applicability-with-coercion}).  If multiple coercions can be
+applied to a particular functional call then the most appropriate
+coercion is chosen statically.  Restrictions on coercion declarations
+(described in \secref{restrictions-coercion}) guarantee that the
+static resolution of coercion (described in
+\secref{resolving-coercion}) is well-defined.  Fortress provides
+implicit coercions for tuple types and arrow types (described in
+\secref{coercion-tuple-arrow}).  Fortress also provides an additional
+feature of coercion that allows ``widest-need'' evaluation of
+numerical expressions (described in \secref{widening}).
+
+\section{Principles of Coercion}
+\seclabel{coercion}
+
+In certain situations it is convenient to be able to use a value of
+one type \VAR{T} as if it were a value of another type \VAR{U} even
+though \VAR{T} is not a subtype of \VAR{U}.  For example, it is
+convenient to be able to use an integer-valued expression
+in a floating-point expression even though its
+type is not a subtype of any floating-point type.  Fortress supports
+the automatic conversion of integer values to floating-point values (the
+technical term for this kind of automatic conversion is coercion).  In
+this way one can write \EXP{(x + 1)/2} rather than \EXP{(x +
+1.0)/2.0}, for example.  Such coercion applies generally to function
+and method (collectively called as functional) calls as well as to
+operators; one can write \EXP{\ln 2} rather than \EXP{\ln 2.0}, or
+\EXP{\arctan(1,1)} rather than \EXP{\arctan(1.0,1.0)}, for example.
+
+One way to think about coercion is that if type \VAR{T} can be coerced
+to type \VAR{U}, then a value of type \VAR{T} can be used to ``stand
+in'' for a value of type \VAR{U} in a functional call, for example.  This is
+different from actually \emph{being} of type \VAR{U}; it means only
+that, given any value of type \VAR{T}, an appropriate value of type
+\VAR{U} can be computed to substitute for it.  Also, coercion occurs
+only when the declared type of the corresponding parameter in the
+functional declaration is exactly the type \VAR{U} being coerced to
+ not if it is a supertype of \VAR{U}.  Note, however, that if type
+ \VAR{T} can be coerced to type \VAR{U} then any subtype of \VAR{T}
+ can also be coerced to type \VAR{U}.
+
+Coercion from \VAR{T} to \VAR{U} may occur in an expression context
+where the context expects the expression to have type \VAR{U} and
+the type of the expression is a subtype of \VAR{T} except for the following
+cases:
+\begin{itemize}
+\item type ascriptions (see \secref{type-ascription})
+\item type assumptions (see \secref{type-assumption})
+\end{itemize}
+For example, a coercion may occur in a variable definition when the
+declared type of the variable is \VAR{U} and the type of the expression on
+the right-hand side is a subtype of \VAR{T}.
+
+
+The expression contexts where a coercion can occur are:
+\begin{itemize}
+\item the right-hand sides of variable and field declarations where the
+  left-hand sides have declared types
+\item arguments to functionals and constructors where the corresponding
+  parameters have declared types
+\item body expressions of functionals and constructors where the return
+  types are declared
+\item the right-hand sides of test and property declarations
+\item expressions in contracts
+\item expressions whose enclosing expressions constrain the types of
+  their subexpressions
+\end{itemize}
+\chapref{expressions} describes the type constraints for each expression in
+Fortress.
+
+\note{
+  \begin{itemize}
+\item assignment expressions with type on the left-hand sides
+\item filter in a generator
+\item spawn
+\item throw
+\item while Expr
+\item if Expr
+\item if . then Expr end
+\item at Expr
+  \end{itemize}
+}
+
+Coercion is \emph{not} automatically chained in Fortress, unlike some
+other programming languages: even if type \VAR{T} can be coerced to
+type \VAR{U} and type \VAR{U} can be coerced to type \VAR{V}, it is
+not necessarily the case that type \VAR{T} can be coerced to type
+\VAR{V}.  Type \VAR{T} can be coerced to type \VAR{V} only if this
+coercion is explicitly defined.
+
+The basic principles behind coercion are (1) a decision by the
+designer of a trait \VAR{U} that, in all circumstances where a
+functional is to be called, an actual argument of some other type
+\VAR{T} may be used to satisfy a parameter of type
+\VAR{T}, and (2) a language mechanism for putting this decision into
+effect automatically and concisely.
+
+Example 1: For any floating-point parameter, a decimal integer literal
+argument may be used.
+
+Example 2: For any floating-point parameter, a floating-point argument
+of a shorter format may be used.
+
+Example 3: For any floating-point interval parameter, a non-interval
+floating-point argument (of the same or shorter floating-point format) may be used.
+
+
+
+\section{Coercion Declarations}
+\seclabel{coercion-declarations}
+
+\begin{Grammar}
+\emph{Coercion} &::=&
+\KWD{coerce}\option{\emph{StaticParams}}\texttt(\emph{BindId} \emph{IsType}\texttt)\emph{CoercionClauses} \option{\KWD{widens}} \EXP{=} \emph{Expr}\\
+
+\emph{CoercionClauses} &::=&
+\option{\emph{CoercionWhere}}
+\option{\emph{Ensures}} \option{\emph{Invariant}}\\
+
+\emph{CoercionWhere}
+&::=& \KWD{where} \bTPl\ \emph{WhereBindingList} \bTPr\
+\options{\{ \emph{CoercionWhereConstraintList} \}}\\
+&$|$& \KWD{where} \{ \emph{CoercionWhereConstraintList} \}\\
+
+\emph{CoercionWhereConstraintList} &::=& \emph{CoercionWhereConstraint}(\EXP{,}
+\emph{CoercionWhereConstraint})$^*$ \\
+
+\emph{CoercionWhereConstraint} &::=& \emph{WhereConstraint}\\
+&$|$& \emph{Type} \KWD{widens} \KWD{or} \KWD{coerces} \emph{Type}\\
+\end{Grammar}
+
+
+To declare that trait \VAR{U} allows a coercion from type \VAR{T},
+the declaration of trait \VAR{U} must provide a coercion declaration
+whose parameter type is \VAR{T}.
+Coercion declarations are like functional declarations, except that
+\KWD{coerce} is actually a reserved word,
+a coercion declaration may have special \KWD{where}-clause constraints
+(described below),
+it is not allowed to have a \KWD{throws} clause or a \KWD{requires} clause, and
+it is not permitted to specify a return type, because the
+return type must be the very trait in whose declaration the coercion
+declaration appears.  The coercion body is required; there is
+no such thing as an abstract coercion declaration.
+Within a trait or object declaration, coercion declarations appear before any
+field declarations.
+
+
+Coercions may have static parameters (described in
+\chapref{trait-parameters}) and a \KWD{where} clause (described in
+\secref{where-clauses}), just like functionals.  The \KWD{where}
+clause may contain one of the following special constraints:
+%% Type1 coerces Type2
+%% Type1 widens  Type2
+%% Type1 widens or coerces Type2
+\begin{Fortress}
+\(\TYP{Type}_1 \KWD{coerces} \TYP{Type}_2\)\\
+\(\TYP{Type}_1 \KWD{widens}  \TYP{Type}_2\)\\
+\(\TYP{Type}_1 \KWD{widens}\;\;\KWD{or}\;\;\KWD{coerces} \TYP{Type}_2\)
+\end{Fortress}
+The first is true if trait \EXP{\TYP{Type}_{1}} has a coercion from
+\EXP{\TYP{Type}_{2}}.  The second is true if trait
+\EXP{\TYP{Type}_{1}} has a widening coercion (described in \secref{widening})
+from \EXP{\TYP{Type}_{2}}.  The third may be used only in a coercion with
+the ``\KWD{widens}'' reserved word; it is true if
+\EXP{\TYP{Type}_{1}} has a coercion from \EXP{\TYP{Type}_{2}}, and
+furthermore the coercion declaration to which the \KWD{where} clause
+belongs is widening only if \EXP{\TYP{Type}_{1}} has a widening
+coercion from \EXP{\TYP{Type}_{2}}.  For example:
+%trait Vector[\T extends Number\]
+%  coerce[\S extends Number\](x: Vector[\S\])
+%    where {T widens or coerces S} = ...
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{Vector}\llbracket{}T \KWD{extends}\:\TYP{Number}\rrbracket\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{coerce}\llbracket{}S \KWD{extends}\:\TYP{Number}\rrbracket(x\COLON \TYP{Vector}\llbracket{}S\rrbracket)\)\\
+{\tt~~}\pushtabs\=\+\(    \KWD{where} \{T \KWD{widens}\;\;\KWD{or}\;\;\KWD{coerces}\:S\} = \ldots\)\-\-\\\poptabs\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+Coercions, unlike methods, are not inherited.  If trait \VAR{V}
+extends trait \VAR{U}, and trait \VAR{U} has a coercion from type
+\VAR{T}, then \VAR{V} does \emph{not} thereby have a coercion from
+type \VAR{T}.  (It may, however, have its own coercion from type
+\VAR{T}, separately defined within the body of \VAR{V}.)  For example,
+given the following declarations,
+%trait A
+%  coerce(b:B) = ...
+%end
+%object B end
+%trait C extends A end
+%
+%f(c:C) = 5
+\begin{Fortress}
+\(\KWD{trait} A\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{coerce}(b\COLONOP{}B) = \ldots\)\-\\\poptabs
+\(\KWD{end}\)\\
+\(\KWD{object} B \KWD{end}\)\\
+\(\KWD{trait} C \KWD{extends} A \KWD{end}\)\\[4pt]
+\(f(c\COLONOP{}C) = 5\)
+\end{Fortress}
+a call to \EXP{f(B)} is considered a static error because trait
+\VAR{C} does not inherit a coercion from type \VAR{B}.
+
+
+
+\section{Coercion Invocations}
+\seclabel{using-coercion}
+
+One way to think about coercion is that explicit calls to the
+\EXP{\mathrm{coerce}}
+function are automatically inserted into the expression in a context
+where a coercion can occur.  For example, if trait \VAR{U} has a coercion
+from type \VAR{T}, then whenever a functional, \VAR{f}, is declared
+with a parameter of type \VAR{U}, a call \EXP{f(t)} where \VAR{t} has
+type \VAR{T} can be rewritten to
+%f(coerce_[\U\](t))
+\EXP{f(\mathrm{coerce}\llbracket{}U\rrbracket(t))}
+making the declaration of \VAR{f} applicable to the call.  However, this
+rewriting does not occur if there exists a declaration that is
+applicable to the call before the rewriting (see
+\secref{resolving-coercion} for further discussion).
+
+If coercion is possible for more than one element of a tuple
+argument, a cross-product effect is obtained.  For example, in this code:
+%object X
+%  coerce(kiki:Y) = ...
+%  coerce(tutu:Q) = ...
+%  hack(other:X) = 1
+%end
+%object Y end
+%object Q end
+
+%foo(dodo:X) = 2
+
+%bar(hyar:X, yon:X) = 3
+%bar(hyar:Q, yon:Q) = 4
+\begin{Fortress}
+\(\KWD{object}\:X\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{coerce}(\VAR{kiki}\COLONOP{}Y) = \ldots\)\\
+\(  \KWD{coerce}(\VAR{tutu}\COLONOP{}Q) = \ldots\)\\
+\(  \VAR{hack}(\VAR{other}\COLONOP{}X) = 1\)\-\\\poptabs
+\(\KWD{end}\)\\
+\(\KWD{object}\:Y \KWD{end}\)\\
+\(\KWD{object}\:Q \KWD{end}\)\\[4pt]
+\(\VAR{foo}(\VAR{dodo}\COLONOP{}X) = 2\)\\[4pt]
+\(\VAR{bar}(\VAR{hyar}\COLONOP{}X, \VAR{yon}\COLONOP{}X) = 3\)\\
+\(\VAR{bar}(\VAR{hyar}\COLONOP{}Q, \VAR{yon}\COLONOP{}Q) = 4\)
+\end{Fortress}
+the following method invocations are valid:
+%X.hack(Y)
+%X.hack(Q)
+\begin{Fortress}
+\(X.\VAR{hack}(Y)\)\\
+\(X.\VAR{hack}(Q)\)
+\end{Fortress}
+Because there is no declaration of \VAR{hack} applicable to \VAR{Y} and
+\VAR{Q}, these invocations are rewritten to:
+%X.hack(X.coercion(Y))
+%X.hack(X.coercion(Q))
+
+%X.hack(coerce_[\X\](Y))
+%X.hack(coerce_[\X\](Q))
+\begin{Fortress}
+\(X.\VAR{hack}(\mathrm{coerce}\llbracket{}X\rrbracket(Y))\)\\
+\(X.\VAR{hack}(\mathrm{coerce}\llbracket{}X\rrbracket(Q))\)
+\end{Fortress}
+Similarly, the function calls in the left-hand side of the following are
+valid and rewritten to the right-hand side:
+
+\begin{tabular}{rcl}
+\EXP{\VAR{foo}(Y)} & \emph{is rewritten to} & \EXP{\VAR{foo}(\mathrm{coerce}\llbracket{}X\rrbracket(Y))}\\
+\EXP{\VAR{foo}(Q)} & \emph{is rewritten to} & \EXP{\VAR{foo}(\mathrm{coerce}\llbracket{}X\rrbracket(Q))}\\[4pt]
+\EXP{\VAR{bar}(Y, X)} & \emph{is rewritten to} & \EXP{\VAR{bar}(\mathrm{coerce}\llbracket{}X\rrbracket(Y), X)}\\
+\EXP{\VAR{bar}(Q, X)} & \emph{is rewritten to} & \EXP{\VAR{bar}(\mathrm{coerce}\llbracket{}X\rrbracket(Q), X)}\\
+\EXP{\VAR{bar}(X, Y)} & \emph{is rewritten to} & \EXP{\VAR{bar}(X, \mathrm{coerce}\llbracket{}X\rrbracket(Y))}\\
+\EXP{\VAR{bar}(X, Q)} & \emph{is rewritten to} & \EXP{\VAR{bar}(X, \mathrm{coerce}\llbracket{}X\rrbracket(Q))}\\
+\EXP{\VAR{bar}(Y, Y)} & \emph{is rewritten to} & \EXP{\VAR{bar}(\mathrm{coerce}\llbracket{}X\rrbracket(Y), \mathrm{coerce}\llbracket{}X\rrbracket(Y))}\\
+\EXP{\VAR{bar}(Q, Q)} & \emph{is rewritten to} & \EXP{\VAR{bar}(Q, Q)}\\
+\EXP{\VAR{bar}(Q, Y)} & \emph{is rewritten to} & \EXP{\VAR{bar}(\mathrm{coerce}\llbracket{}X\rrbracket(Q), \mathrm{coerce}\llbracket{}X\rrbracket(Y))}\\
+\EXP{\VAR{bar}(Y, Q)} & \emph{is rewritten to} & \EXP{\VAR{bar}(\mathrm{coerce}\llbracket{}X\rrbracket(Y), \mathrm{coerce}\llbracket{}X\rrbracket(Q))}\\
+\end{tabular}
+
+Note that the call \EXP{\VAR{bar}(Q, Q)} remains unchanged because there
+exists a declaration for \VAR{bar} that is applicable without
+coercion.
+
+To continue the example, let us illustrate a point about type parameters.
+If we add the following definitions:
+%trait Frobboz
+%  frob(item:X) = 5
+%  coerce(m:Matrix) = ...  (* irrelevant! *)
+%end
+%
+%object Bozo[\T extends Frobboz\](t:T)  ... end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Frobboz}\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{frob}(\VAR{item}\COLONOP{}X) = 5\)\\
+\(  \KWD{coerce}(m\COLONOP\TYP{Matrix}) = \ldots  \mathtt{(*}\;\hbox{\rm  irrelevant! \unskip}\;\mathtt{*)}\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{object} \TYP{Bozo}\llbracket{}T \KWD{extends} \TYP{Frobboz}\rrbracket(t\COLONOP{}T)  \ldots \KWD{end}\)
+\end{Fortress}
+then this says nothing about whether the type parameter \VAR{T} of \TYP{Bozo}
+has coercions, because coercions are not inherited.  (In fact, we can
+make a stronger statement: types named by type parameters \emph{do not have coercions}!)
+But it is guaranteed that the following method invocations are valid
+if they occur within the declaration of \TYP{Bozo}:
+\note{(if $t$ has type \TYP{Bozo}:[???]) -- Sukyoung}
+%% frob(item:X)
+%% frob(item:Y)
+%% frob(item:Q)
+%\begin{Fortress}
+%\(\VAR{frob}(\VAR{item}\COLONOP{}X)\)\\
+%\(\VAR{frob}(\VAR{item}\COLONOP{}Y)\)\\
+%\(\VAR{frob}(\VAR{item}\COLONOP{}Q)\)
+%\end{Fortress}
+%t.frob(X)
+%t.frob(Y)
+%t.frob(Q)
+\begin{Fortress}
+\(t.\VAR{frob}(X)\)\\
+\(t.\VAR{frob}(Y)\)\\
+\(t.\VAR{frob}(Q)\)
+\end{Fortress}
+because \VAR{T} inherits the method declaration
+\EXP{\VAR{frob}(\VAR{item}\COLONOP{}X)}
+from \TYP{Frobboz} and \VAR{X} contains coercions from \VAR{Y} and \VAR{Q}.
+
+
+
+\section{Applicability with Coercion}
+\seclabel{applicability-with-coercion}
+
+As discussed in the previous section, coercion in Fortress alters the
+set of applicable declarations for a particular functional call.  In
+this section we formally define the applicability of declarations with
+coercion.  (This level of formality is necessary to discuss the
+interaction of overloading and coercion.)
+We build on the terminology and notation defined in
+\chapref{multiple-dispatch}.
+
+A \emph{coercion} from $T$ to $U$ is defined in the declaration of $U$.
+We write $T \coercedefto U$ if $U$ defines a coercion from $T$.
+We say that $T$ \emph{can be coerced to} $U$, and we write $T \coercesto
+U$, if $U$ defines a coercion from $T$ or any supertype of $T$; that
+is, $T \coercesto U \iff \exists T': T \Ovrsubtype T' \logicand T'
+\coercedefto U$.
+
+We define coercion between tuple types and arrow types in
+\secref{coercion-tuple-arrow}.
+
+Because of automatic coercion, a declaration may be applicable even if
+its parameter type is not a supertype of the argument type of the
+call.  We define a new relation, \emph{substitutability}, that takes
+coercion into account.
+
+We say that a type $T$ is \emph{substitutable} for type $U$, and we
+write $T \substitutable U$, if $T$ is a subtype of $U$ or $T$ can be
+coerced to $U$; that is,
+\[
+T \substitutable U \iff T \Ovrsubtype U \logicor T \coercesto U.
+\]
+
+Note that $\substitutable$ need not be transitive.  This is a result
+of the fact that coercion does not chain.
+However, if $T$ is substitutable for $U$ then so are $T$'s subtypes;
+that is, $A \Ovrsubtype T \logicand T \substitutable U \implies A
+\substitutable U$.
+
+A declaration $\f(\Ps)$ is \emph{applicable with coercion} to a
+call $\f(\Cs)$ if the call is in the scope of the declaration and
+$\Cs \substitutable \Ps$.
+(See \chapref{names} for the definition of scope.)
+
+Recall a rewriting of
+named functional calls into dotted method calls when no declarations
+are applicable to the named functional call.  This rewriting is also
+used to determine applicability with coercion.  If there is no
+declaration applicable with coercion to a named functional call then
+the call is rewritten into a dotted method call.
+Applicable declarations are then
+determined by the rules for applicability with coercion for dotted
+method calls.
+
+Similarly, a dotted method declaration $\Ps_0.\f(\Ps)$ is
+\emph{applicable with coercion} to a dotted method call
+$\Cs_0.\f(\Cs)$ if it $\Cs_0 \Ovrsubtype \Ps_0$ and $\Cs
+\substitutable \Ps$.  Notice that the receiver is compared using the
+subtype relation instead of the substitutable relation.  This reflects
+the restriction that receivers of dotted methods cannot be
+coerced.  However, \KWD{self} parameters of functional methods can be
+coerced.  This distinction is consistent with the intuition that
+functional methods are rewritten into top-level functions.
+
+Note that the only difference between applicability and applicability
+with coercion is that substitutability is used instead of subtyping
+to compare the parameter types of the declarations.
+
+Also note that the definition of applicability with coercion does not
+take keyword parameters or varargs parameters into account.  Such
+declarations are conceptually rewritten into numerous declarations
+which cannot be called with elided arguments nor with variable number of
+arguments (as described in \secref{applicability-with-special-params}).  If
+one of the expanded declarations is applicable with coercion to a call,
+then the original declaration (with keyword or varargs parameters) is
+applicable with coercion to the call.
+
+
+
+\section{Coercion Resolution}
+\seclabel{resolving-coercion}
+For a given functional call, we first determine whether there exists a
+declaration that is applicable without coercion.  If so, the most
+specific declaration is selected; if not, then coercions are
+explicitly added to the functional call.  If more than one coercion is
+possible then the coercion that yields the most specific type is
+chosen.  \secref{restrictions-coercion} and
+\chapref{overloaded-declarations} describe overloading rules for the
+declarations of coercions and overloaded functionals that guarantee
+there exists always a most specific coercion when two or more are possible.
+
+We first define a notion of more specific types in the presence of coercion.
+Recall from \secref{type-relations} that Fortress defines an
+\emph{exclusion} relation between types which is denoted by $\excludes$.
+
+For types $T$ and $U$, we say that $T$ \emph{rejects} $U$,
+and write $T \rejects U$, if for all coercions to $T$, the type coerced
+from excludes $U$:
+\[
+T \rejects U \iff \forall A: A \coercedefto T \implies A \excludes U.
+\]
+Note that $T \rejects U$ implies $U \not\coercesto T$.
+
+We say that $T$ is \emph{no less specific} than $U$, and write $T
+\morespecificeq U$, if $T$ is a subtype of $U$ or $T$ excludes, can be
+coerced to, and rejects $U$:
+\[
+T \morespecificeq U \iff
+T \Ovrsubtype U \logicor
+(T \excludes U \logicand T \coercesto U \logicand T \rejects U).
+\]
+
+The $\morespecificeq$ relation is reflexive and antisymmetric but not
+necessarily transitive.  It is possible, for example, for
+three types, $T$, $U$ and $V$, each excluding the other two,
+to have coercions from $T$ to $U$ and from $U$ to $V$.  In
+this case, $T \morespecificeq U$ and $U \morespecificeq V$ but
+$T \not\morespecificeq V$.
+
+Notice that if two tuple types have a bijective correspondence
+between their element types then the $\morespecificeq$ relationship between
+the tuple types is equivalent to applying the $\morespecificeq$
+relation elementwise.
+
+We say that $T$ is \emph{more specific} than $U$, and write $T
+\morespecific U$, if $T \morespecificeq U \logicand T \neq U$.
+
+We extend the definitions of no less specific and more specific to
+declarations.  We say that a declaration $\f(\Ps)$ is \emph{no less
+specific} than a declaration $\f(\Qs)$ if $\Ps \morespecificeq \Qs$.
+Similarly, we say that a declaration $\Ps_0.\f(\Ps)$ is \emph{no less
+specific} than a declaration $\Qs_0.\f(\Qs)$ if $(\Ps_0, \Ps)
+\morespecificeq (\Qs_0, \Qs)$.  A declaration $\f(\Ps)$ is \emph{more
+specific} than a declaration $\f(\Qs)$ if $\Ps \morespecific \Qs$.
+Similarly, a declaration $\Ps_0.\f(\Ps)$ is \emph{more specific} than
+a declaration $\Qs_0.\f(\Qs)$ if $(\Ps_0, \Ps) \morespecific (\Qs_0,
+\Qs)$.
+
+Now we describe how to determine which coercion is applied to a given
+call in terms of rewriting functional calls.  The rewriting is
+for pedagogical purposes; implementation techniques may vary.
+
+Consider a static call $\f(\As)$ or $\As_0.\f(\As)$.  Let $\Sigma$ be
+the set of parameter types of functional declarations of $\f$ that are
+applicable to the call.
+Let $\Sigma'$ be the set of parameter types of
+functional declarations of $\f$ that are
+applicable with coercion to the call.
+If $\Sigma$ is not empty then we use the overloading resolution
+described in \secref{resolving-overloading} to determine which
+element of $\Sigma$ is called.
+If $\Sigma$ is empty but $\Sigma'$ is not, then we rewrite the call as
+follows.  Define: \[\mathpzc{C} = \{T \in \Sigma' \mid S \coercedefto T
+\logicand \As \Ovrsubtype S\}.\] Let $T \in \mathpzc{C}$ be the most
+specific element of $\mathpzc{C}$.  In other words, there does not exist
+$T' \in \mathpzc{C}$ such that $T' \morespecific T$.  The restrictions
+given in \secref{restrictions-coercion} and
+\chapref{overloaded-declarations} guarantee that such a $T$
+exists and that it is unique.  The call $\f(\As)$ or $\As_0.\f(\As)$ is
+rewritten to \EXP{f(\mathrm{coercion}\llbracket{T}\rrbracket(\TYP{A}))} or
+\EXP{A_{0}.f(\mathrm{coerce}\llbracket{T}\rrbracket(A))}
+and the declaration with parameter
+type $T$ is applied to the call.
+
+As an example, consider the following definitions:
+%trait ZZ32 end
+%trait ZZ64
+%  coerce(z:ZZ32) = ...
+%end
+%trait ZZ128
+%  coerce(z:ZZ32) = ...
+%  coerce(z:ZZ64) = ...
+%end
+%
+%f(z:ZZ64) = 1
+%f(z:ZZ128) = 2
+\begin{Fortress}
+\(\KWD{trait} \mathbb{Z}32 \KWD{end}\)\\
+\(\KWD{trait} \mathbb{Z}64\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{coerce}(z\COLONOP\mathbb{Z}32) = \ldots\)\-\\\poptabs
+\(\KWD{end}\)\\
+\(\KWD{trait} \mathbb{Z}128\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{coerce}(z\COLONOP\mathbb{Z}32) = \ldots\)\\
+\(  \KWD{coerce}(z\COLONOP\mathbb{Z}64) = \ldots\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(f(z\COLONOP\mathbb{Z}64) = 1\)\\
+\(f(z\COLONOP\mathbb{Z}128) = 2\)
+\end{Fortress}
+Then the call \EXP{f(\mathbb{Z}32)} resolves to the
+declaration \EXP{f(\mathbb{Z}64)} because $\EXP{\mathbb{Z}64}
+\morespecific \EXP{\mathbb{Z}128}$, which follows from the fact that
+\EXP{\mathbb{Z}64} coerces to \EXP{\mathbb{Z}128}.
+
+Notice that coercion is resolved statically.  Once a coercion is
+statically chosen for a call, this coercion is conceptually inserted
+into the call.
+This means that the statically chosen coercion is applied at run time.
+
+For example, in the following program:
+%trait A
+%  coerce(c:C) = ...
+%end
+%trait B excludes A end
+%trait C end
+%object D extends {B,C} end
+%
+%f(a:A) = 3
+%f(b:B) = 4
+%
+%c : C = D
+%f(c)
+\begin{Fortress}
+\(\KWD{trait} A\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{coerce}(c\COLONOP{}C) = \ldots\)\-\\\poptabs
+\(\KWD{end}\)\\
+\(\KWD{trait} B \KWD{excludes} A \KWD{end}\)\\
+\(\KWD{trait} C \KWD{end}\)\\
+\(\KWD{object} D \KWD{extends} \{B,C\} \KWD{end}\)\\[4pt]
+\(f(a\COLONOP{}A) = 3\)\\
+\(f(b\COLONOP{}B) = 4\)\\[4pt]
+\(c \mathrel{\mathtt{:}} C = D\)\\
+\(f(c)\)
+\end{Fortress}
+the call to \EXP{f(C)} resolves to the declaration
+%\EXP{f(a\COLONOP{}A)}
+\EXP{f(A)} despite the fact that the declaration
+%\EXP{f(b\COLONOP{}B)}
+\EXP{f(B)} is
+%dynamically directly
+applicable to the dynamic call \EXP{f(D)} and does not require
+coercion.
+
+
+
+
+\section{Restrictions on Coercion Declarations}
+\seclabel{restrictions-coercion}
+We place two restrictions on coercion declarations to ensure that it is
+always possible to resolve coercions.
+
+It is a static error for a type to define a coercion from any of its
+subtypes.  For example, the following program is statically rejected:
+%trait Number
+%  coerce(z:ZZ) = ...
+%end
+
+%trait ZZ extends Number end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Number}\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{coerce}(z\COLONOP\mathbb{Z}) = \ldots\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{trait} \mathbb{Z} \KWD{extends} \TYP{Number} \KWD{end}\)
+\end{Fortress}
+Instead, \VAR{z} of type \EXP{\mathbb{Z}} can be coerced to type
+\TYP{Number} by
+%coerce_[\Number\](z)
+``\EXP{\mathrm{coerce}\llbracket\TYP{Number}\rrbracket(z)}''
+where \EXP{\mathrm{coerce}} is defined in \library\
+(as described in \secref{coercion-expr}).
+
+
+It is also a static error for cycles to exist in the type hierarchy
+produced by extension and coercion declarations.  Such cycles may be
+composed of solely subtype relationships or solely coercion or a
+mixture of the two.  In all cases the cycles are statically rejected.
+An example showing a cycle that is a mixture of subtype and coercion
+relationships follows:
+%trait A end
+
+%trait B extends A end
+
+%trait C extends B
+%  coerce(a:A) = ...
+%end
+\begin{Fortress}
+\(\KWD{trait} A \KWD{end} \)\\[4pt]
+\(\KWD{trait} B \KWD{extends} A \KWD{end}\)\\[4pt]
+\(\KWD{trait} C \KWD{extends} B\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{coerce}(a\COLONOP{}A) = \ldots\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+
+
+\section{Coercions for Tuple and Arrow Types}
+\seclabel{coercion-tuple-arrow}
+
+Unlike other types, tuple types (described in \secref{tuple-types}) and
+arrow types (described in \secref{arrow-types}) are
+not defined explicitly.  Therefore coercions to these types are also
+not defined explicitly.  Instead, the following rules describe when
+these coercions are implicitly defined.
+
+There is a coercion from a tuple type $\VAR{X}$ to a tuple type
+$\VAR{Y}$ if all the following conditions hold:
+\begin{enumerate}
+\item
+$\VAR{X}$ is not a subtype of $\VAR{Y}$;
+\item
+for every plain type $\VAR{T}$ in $\VAR{Y}$, there is a corresponding
+plain type in $\VAR{X}$ whose type is substitutable for $\VAR{T}$;
+\item
+if neither $\VAR{X}$ nor $\VAR{Y}$ has a varargs type, then they have
+the same number of plain types;
+\item
+if $\VAR{X}$ has a varargs type, then $\VAR{Y}$ has a varargs type,
+the type $\VAR{S}$ of the varargs type $\VAR{S}...$ in $\VAR{X}$ is
+substitutable for the type $\VAR{T}$ of the varargs type
+$\VAR{T}...$ in $\VAR{Y}$, and $\VAR{X}$ and $\VAR{Y}$ have the same
+number of plain types;
+\item
+if $\VAR{X}$ has no varargs type and $\VAR{Y}$ has a varargs type
+$\VAR{T}...$, then every plain type in $\VAR{X}$ that has no
+corresponding plain type in $\VAR{Y}$ is substitutable for $\VAR{T}$; and
+\item
+the correspondence between keyword-type pairs in $\VAR{X}$ and
+$\VAR{Y}$ is bijective, and the type of each such pair in $\VAR{X}$ is
+substitutable for the type in the corresponding pair in $\VAR{Y}$.
+\end{enumerate}
+
+Tuple type coercions are invoked by distributing the coercion
+elementwise.  However, if an element type of the tuple type being coerced
+from is a subtype of the corresponding element type of the tuple type being
+coerced to, the coercion is ignored.  For example, the following coercions:
+%coerce_[\(A, B)\](x, y)
+%coerce_[\(kwd=A)\](kwd=x)
+\begin{Fortress}
+\(\mathrm{coerce}\llbracket(A, B)\rrbracket(x, y)\)\\
+\(\mathrm{coerce}\llbracket(\VAR{kwd}=A)\rrbracket(\VAR{kwd}=x)\)
+\end{Fortress}
+are rewritten to:
+%(coerce_[\A\](x), coerce_[\B\](y))
+%(coerce_[\(kwd=A)\](x))
+\begin{Fortress}
+\((\mathrm{coerce}\llbracket{}A\rrbracket(x), \mathrm{coerce}\llbracket{}B\rrbracket(y))\)\\
+\((\mathrm{coerce}\llbracket(\VAR{kwd}=A)\rrbracket(x))\)
+\end{Fortress}
+However, if the type of \VAR{y} were a subtype of \VAR{B} then the
+first coercion would instead be rewritten to:
+%(coerce_[\A\](x), y)
+\begin{Fortress}
+\((\mathrm{coerce}\llbracket{}A\rrbracket(x), y)\)
+\end{Fortress}
+
+Coercions to varargs types such as the following:
+%coerce_[\(A...)\](x, y)
+\begin{Fortress}
+\(\mathrm{coerce}\llbracket(A\ldots)\rrbracket(x, y)\)
+\end{Fortress}
+are invoked by applying the coercion to the type in the varargs type,
+\VAR{A} in this example, to each of the elements of the tuple.
+Additionally, there is a coercion from any type \VAR{T} to a tuple type
+solely with varargs type \EXP{(T\ldots)}.
+
+
+
+There is a coercion from arrow type
+``\EXP{A \rightarrow B \KWD{throws} C}'' to arrow type
+``\EXP{D \rightarrow E \KWD{throws} F}'' if all of the following
+conditions hold:
+\begin{enumerate}
+\item ``\EXP{A \rightarrow B \KWD{throws} C}'' is not a subtype of
+``\EXP{D \rightarrow E \KWD{throws} F}'';
+\item
+$\VAR{D}$ is substitutable for $\VAR{A}$;
+\item
+$\VAR{B}$ is substitutable for $\VAR{E}$; and
+\item for all $X$ in $C$, there exists $Y$ in $F$ such that $X$ is
+ substitutable for $Y$.
+\end{enumerate}
+
+Arrow type coercions are invoked by wrapping the argument function of the
+coercion in a function expression that applies the appropriate
+coercions to the argument and result of the function.  For example,
+assuming that \VAR{f} is a function from type $\VAR{A}$ to type
+$\VAR{B}$ the following coercion:
+%coerce_[\C -> D\](f)
+\begin{Fortress}
+\(\mathrm{coerce}\llbracket{}C \rightarrow D\rrbracket(f)\)
+\end{Fortress}
+is rewritten to:
+%fn x => coerce_[\D\](f(coerce_[\A\](x)))
+\begin{Fortress}
+\(\KWD{fn}\:x \Rightarrow \mathrm{coerce}\llbracket{}D\rrbracket(f(\mathrm{coerce}\llbracket{}A\rrbracket(x)))\)
+\end{Fortress}
+
+
+\section{Automatic Widening}
+\seclabel{widening}
+
+\begin{Grammar}
+\emph{Coercion} &::=&
+\KWD{coerce}\option{\emph{StaticParams}}\texttt(\emph{BindId} \emph{IsType}\texttt)\emph{CoercionClauses} \KWD{widens} \EXP{=} \emph{Expr}\\
+
+\end{Grammar}
+
+
+Fortress supports what is sometimes called ``widest-need'' evaluation
+of numerical expressions.  To see the problem, suppose that \VAR{a}
+and \VAR{b} are 32-bit floating-point numbers and \VAR{c} is a 64-bit
+floating-point number.  It is easy, and tempting, to write an
+expression such as
+%% c = c + a \cdot b
+\begin{Fortress}
+\(c = c + a \cdot b\)
+\end{Fortress}
+but if you stop to think about it, if interpreted naively it will
+compute the product \EXP{a \cdot b} as a 32-bit floating-point number,
+and the impression that the sum may be accurate to the precision of a
+64-bit floating-point number is only an illusion.  Widest-need
+processing takes context into account and ``widens'' (or ``upgrades'')
+the operands \VAR{a} and \VAR{b} to 64-bit floating-point numbers
+before the product is computed, so that the product will be computed
+as a 64-bit result.
+
+Before widening is considered, a Fortress compiler,
+in its normal course of operation, analyzes
+an expression bottom-up.  For every functional invocation, it needs
+to statically identify a specific declaration to be invoked.
+Once this is done, then for %every argument position of
+every functional invocation, one of two conditions holds:
+(a) The type of the argument expression is a subtype of the
+    type of the parameter in the identified declaration.
+(b) The type of the argument expression can be coerced to the
+    type of the parameter in the identified declaration.
+
+This process has to be done bottom-up because in order to select a
+specific declaration for a functional invocation, it is necessary to
+know the types of the argument expressions, and if an argument
+expression is itself a functional invocation, it is necessary to
+select the specific declaration for that invocation in order to find
+out the return type of the invocation.
+
+Once an expression has been fully analyzed in this way, then widening
+is performed as a top-down process.  For each functional invocation
+that appears in a context where a coercion can occur, ask
+whether the argument expression (which, remember, is a functional invocation)
+falls under case (a) or case (b) above.  If case (b), coercion of the
+functional result is required; if the relevant coercion declaration is
+a ``widening'' coercion, then this functional invocation is a
+candidate for widening.  Call the type of the functional invocation
+\VAR{T}, and call the expected type of the coercion context, \VAR{U}.
+
+
+When the functional call was considered during the bottom-up analysis,
+in general many overloaded declarations may have been considered; of
+all those that were applicable with coercion
+to the static call, the most specific one was chosen.
+When considering widening, we consider the same set of declarations, but
+first discard all declarations whose return types are not subtypes of
+\VAR{U}.  Then if any remain, and there is a unique most specific one
+among them, then that declaration is attached to the functional call
+instead.  In this way a coercion step is eliminated (coercion is no
+longer needed to convert the result of the functional invocation from
+type \VAR{T} to type \VAR{U}), possibly at the expense of requiring
+a new coercion in a subexpression---but this is exactly the desired
+effect.  Once this is done, then the subexpressions of the functional
+call are processed recursively.
+
+
+This process is general enough not only to provide for
+widening floating-point precision, but to handle two other cases
+of interest as well: widening point computations to interval computations,
+and widening computations involving aggregate data structures whose
+components are widenable.  For example, in \EXP{d (v \times w)} suppose that
+\VAR{d} is of type $\mathbb{R}64$ and \VAR{v} and \VAR{w} are 3-vectors with components
+of type $\mathbb{R}32$; this strategy is capable of promoting \VAR{v} and \VAR{w}
+to 3-vectors with components of type $\mathbb{R}64$ and then performing all
+computations with $\mathbb{R}64$ precision.
+
+Let's go through the example of \EXP{c + a \cdot b} in detail.
+The relevant declarations might look something like this:
+%trait RR32
+%  ...
+%end
+%
+%trait RR64
+%  coerce(x:RR32) widens = ...
+%  ...
+%end
+
+%opr DOT(l: RR32, r: RR32): RR32 = ... (* 1 *)
+%opr DOT(l: RR64, r: RR64): RR64 = ... (* 2 *)
+%opr +(l: RR32, r: RR32): RR32 = ... (* 3 *)
+%opr +(l: RR64, r: RR64): RR64 = ... (* 4 *)
+\begin{Fortress}
+\(\KWD{trait}\:\mathbb{R}32\)\\
+{\tt~~}\pushtabs\=\+\(  \ldots\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{trait}\:\mathbb{R}64\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{coerce}(x\COLONOP\mathbb{R}32) \KWD{widens}\: = \ldots\)\\
+\(  \ldots\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\KWD{opr} \mathord{\cdot}(l\COLON \mathbb{R}32, r\COLON \mathbb{R}32)\COLON \mathbb{R}32 = \ldots \mathtt{(*}\;\hbox{\rm  1 \unskip}\;\mathtt{*)}\)\\
+\(\KWD{opr} \mathord{\cdot}(l\COLON \mathbb{R}64, r\COLON \mathbb{R}64)\COLON \mathbb{R}64 = \ldots \mathtt{(*}\;\hbox{\rm  2 \unskip}\;\mathtt{*)}\)\\
+\(\KWD{opr} +(l\COLON \mathbb{R}32, r\COLON \mathbb{R}32)\COLON \mathbb{R}32 = \ldots \mathtt{(*}\;\hbox{\rm  3 \unskip}\;\mathtt{*)}\)\\
+\(\KWD{opr} +(l\COLON \mathbb{R}64, r\COLON \mathbb{R}64)\COLON \mathbb{R}64 = \ldots \mathtt{(*}\;\hbox{\rm  4 \unskip}\;\mathtt{*)}\)
+\end{Fortress}
+
+The bottom-up analysis observes that \VAR{a} and \VAR{b} are both of type
+\EXP{\mathbb{R}32}, and discovers that declarations \EXP{1} and \EXP{2}
+are both applicable to the product, but declaration \EXP{1}
+would be chosen because it requires no coercion and declaration \EXP{2}
+would require coercion of both arguments to type \EXP{\mathbb{R}64}.
+The analysis then observes that \VAR{c} has type \EXP{\mathbb{R}64}
+and the product expression has type \EXP{\mathbb{R}32}, so declaration
+\EXP{3} is not applicable but declaration \EXP{4} is applicable
+(though requiring a coercion from \EXP{\mathbb{R}32} to \EXP{\mathbb{R}64} for its second argument).
+
+Now the top-down widening analysis is performed.  The product is
+a functional call that is an argument to another functional call,
+and its result requires coercion, and that coercion is a widening
+coercion.  Therefore the compiler reconsiders the applicable
+declarations, which were declarations \EXP{1} and \EXP{2}.
+The result type of declaration \EXP{1} is not a subtype
+of \EXP{\mathbb{R}64}, but the result type of declaration \EXP{2}
+is a subtype of \EXP{\mathbb{R}64} (in fact, it \emph{is} \EXP{\mathbb{R}64}).
+Declaration \EXP{2} is the most specific among the applicable declarations
+with that property (in fact, in this example it's the only one),
+so declaration \EXP{2} replaces declaration \EXP{1} for the
+product invocation.  This in turn requires \VAR{a} and \VAR{b}
+to be coerced from type \EXP{\mathbb{R}32} to \EXP{\mathbb{R}64}
+before the product is performed.
+
+Widening is a tricky business, best left to expert library designers.
+When used judiciously, it can greatly improve the precision of
+numerical computations without requiring a great deal of thought on
+the part of the application programmer and without cluttering up code
+with explicit conversions.
+
+
+\emph{Future versions of this specification will include tables of
+  coercions and widening coercions supported by \library.}

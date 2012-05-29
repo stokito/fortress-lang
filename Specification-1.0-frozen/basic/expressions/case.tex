@@ -1,0 +1,116 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Case Expressions}
+\seclabel{case-expr}
+
+\begin{Grammar}
+\emph{DelimitedExpr}&::=&
+\KWD{case} \emph{Expr} \option{(\emph{Encloser} $|$ \emph{Op})} \KWD{of} \emph{CaseClauses}
+\option{\emph{CaseElse}} \KWD{end} \\
+
+\emph{CaseClauses} &::=& \emph{CaseClause}$^+$\\
+
+\emph{CaseClause} &::=& \emph{Expr} \EXP{\Rightarrow} \emph{BlockElems}\\
+
+\emph{CaseElse} &::=& \KWD{else} \EXP{\Rightarrow} \emph{BlockElems}\\
+
+\end{Grammar}
+
+A \KWD{case} expression begins with \KWD{case}
+followed by a condition expression, followed by an optional operator,
+\KWD{of}, a sequence of case clauses (each consisting
+of a \emph{guarding expression} followed by the token $\Rightarrow$,
+followed by an expression block), an optional
+\KWD{else} clause (consisting of
+\KWD{else} followed by the token $\Rightarrow$,
+ followed by an expression block), and finally \KWD{end}.
+
+A \KWD{case} expression evaluates its condition expression and checks
+each case clause to determine which case clause matches.  To find a
+matched case clause, the guarding expression of each case clause is
+evaluated in order and compared to the value of the condition
+expression.  For the first clause, the condition expression and
+guarding expression are evaluated in separate implicit threads; for
+subsequent clauses the value of the condition expression is retained
+and only the guarding expression is evaluated.  Once both guard and
+condition expressions have completed normally, the two values are
+compared according to an optional operator specified.  If the
+operator is omitted, it defaults to \EXP{=} or $\in$.
+If the type of the guarding expression is a subtype of type \TYP{Contains}
+and the condition expression does not,
+the default operator is $\in$;
+otherwise, it is \EXP{=}.
+It is a static error
+if the specified operator is not defined for these types
+or if the operator's return type is not \TYP{Boolean}.
+
+If the operator application completes normally and returns \VAR{true}, the
+corresponding expression block is evaluated (see \secref{block-expr})
+and its value is returned.  If the operator application returns \VAR{false},
+matching continues with the next clause.
+If no matched clause is found, a \TYP{MatchFailure} exception is thrown.
+The optional \KWD{else} clause always matches without requiring a comparison.
+The value of a \KWD{case} expression is the value of the right-hand side
+of the matched clause.  The type of a \KWD{case} expression is the
+union of the types of all right-hand sides of the case clauses.
+
+For example, the following \KWD{case} expression specifies the operator
+$\in$:
+\input{\home/basic/examples/Expr.Case.a.tex}
+but the following does not:
+\input{\home/basic/examples/Expr.Case.b.tex}
+
+
+
+\section{Extremum Expressions}
+\seclabel{extremum-expr}
+
+\note{Reduction variables are not yet supported.}
+
+\begin{Grammar}
+\emph{DelimitedExpr}&::=&
+\KWD{case} \KWD{most} (\emph{Encloser} $|$ \emph{Op}) \KWD{of}
+\emph{CaseClauses} \KWD{end}\\
+\emph{CaseClauses} &::=& \emph{CaseClause}$^+$\\
+
+\emph{CaseClause} &::=& \emph{Expr} \EXP{\Rightarrow} \emph{BlockElems}\\
+\end{Grammar}
+
+An extremum expression uses the same syntax as a \KWD{case} expression
+(described in \secref{case-expr}) except that \KWD{most} is used
+where a \KWD{case} expression would have a condition expression,
+the specified operator is not optional,
+and an extremum expression does not have an optional \KWD{else} clause.
+
+All guarding expressions are evaluated in parallel in separate implicit threads
+as part of the same group in which the guarding expressions themselves
+are evaluated, in a manner analogous to reduction (see \secref{reduction-vars}).
+The values of the guarding expressions are
+compared in parallel according to the operator specified.
+The specified operator must be a total order operator.
+Which pairs of guarding expressions are
+compared is unspecified, except that the pairwise comparisons
+performed will be sufficient to determine that the chosen clause is
+indeed the extremum (largest or smallest depending on the specified operator)
+assuming a total order.  Any or all pairwise comparisons may be considered.
+
+
+The expression block of the clause with the extremum
+guarding expression (and only that clause) is evaluated.  If more than
+one guarding expressions are tied for the extremum, the first
+clause in textual order is evaluated to yield the result of the
+extremum expression.  The type of an extremum expression is the union
+of the types of all right-hand sides of the clauses.
+
+For example, the following code:
+\input{\home/basic/examples/Expr.Extremum.tex}
+evaluates to \EXP{\hbox{\rm``\STR{miles~are~larger}''}}.

@@ -1,0 +1,49 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Timing
+export Timing
+
+w10 : ZZ64 = widen(10)
+
+(** A Timing represents the duration of a computation. **)
+object Timing(desc:String, duration: ZZ64)
+    getter asString(): String = desc ||| self.durationString
+    getter durationString(): String =
+        if duration < w10^2 then
+            duration "ns"
+        elif duration < w10^5 then
+            (self.usecs) "us"
+        elif duration < w10^8 then
+            (self.msecs) "ms"
+        else
+            (self.secs) "s"
+        end
+    getter secs(): RR64 = duration / 10.0^9
+    getter msecs(): RR64 = duration / 10.0^6
+    getter usecs(): RR64 = duration / 1000.0
+    getter nsecs(): ZZ64 = duration
+end
+
+opr PRINTTIME[\R\](desc:String, thunk:()->R): R = do
+    (r, timing) = desc TIMING thunk
+    println(timing)
+    r
+  end
+
+opr TIMING[\R\](desc:String, thunk:()->R): (R, Timing) = do
+    start = nanoTime()
+    r = thunk()
+    fin = nanoTime()
+    (r,Timing(desc, fin-start))
+  end
+
+end

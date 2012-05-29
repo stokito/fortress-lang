@@ -1,0 +1,50 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component typecaseTest
+export Executable
+
+run():()=do
+   typecase "One Two Three " of
+      x:String => print("pass " x)
+      ZZ32 => print("FAIL ")
+      else => print("FAIL ")
+   end
+
+   typecase 3.1415 of
+      String => print("FAIL ")
+      ZZ32 => print("FAIL ")
+      y:Number => print("pass " y)
+   end
+
+   typecase (1, 3.1415, "Hurrah") of
+    (Number, Number, Number) => print("FAIL ")
+    (a:Number, b:Number, c:String) => print("pass " a "," b "," c)
+   end
+
+   (* Check that typecase returns a value! *)
+   z = 3.1415
+   q = typecase z of
+         String => "FAIL "
+         ZZ32 => "FAIL "
+         else => "pass " z
+       end
+   print(q)
+
+   (* From a clause, too. *)
+   p = typecase 5 of
+          String => "FAIL"
+          w:ZZ32 => "pass" w
+          else => "FAIL"
+       end
+   println(p)
+end
+end

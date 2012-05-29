@@ -1,0 +1,203 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(* This is an interactive demo where you can play tic-tac-toe versus
+ * a computer player. It uses a hack of reading /dev/stdin, so this demo
+ * won't work on Windows. When Fortress gets proper stdin reading that
+ * should be used instead.
+ *)
+
+component newtictactoe
+import List.{...}
+import File.{...}
+export Executable
+
+playerOne = Just[\String\] "X"
+playerTwo = Just[\String\] "O"
+
+object IllegalMove(n) extends Exception
+    getter asString() = "Illegal move at " n
+end
+
+(* Returns a string copied x times *)
+opr ^(x: String, y: Number) = BIG ||[n <- 0#y] x
+
+(* Replaces an element of a list at the indicated (1-origin) posiiton with val *)
+update(z:List[\Maybe[\String\]\], position: ZZ32, val: Maybe[\String\]) =
+    z.take(position-1).addRight(val) || z.drop(position)
+
+(* Represents the tic-tac-toe board *)
+object Board(N: ZZ32, locs: List[\Maybe[\String\]\])
+
+    getter asString() = BIG || [i <- 0#N] ((if i=0 then "" else (("+---")^N)[1:] "\n" end) || renderRow(i))
+
+    (*) A board may be indexed by a move number from 1 to `N^2`.
+    opr [i: ZZ32]: Maybe[\String\] = locs[i-1]
+
+    (*) A board may also be indexed by a pair of indices, each from 0 to `N-1`.
+    opr [i: ZZ32, j: ZZ32]: Maybe[\String\] = locs[i N + j]
+
+    squareLabel(i: ZZ32, j: ZZ32): String = do
+      lab = if p <- self[i,j] then p else "" (i N + j + 1) end
+      case |lab| of
+        0 => "   "
+        1 => " " lab " "
+        2 => lab " "
+        else => lab.take(3)
+      end
+    end
+
+    renderRow(i: ZZ32) = BIG || [j <- 0#N] (squareLabel(i, j) || (if j=N-1 then "\n" else "|"))
+
+    (*) `BIG SQCUP`: if there is one winner, you get `Just` that winner.
+    (*) Two winners produces `NotUnique`; zero winners produces `Nothing`.
+    winner(): UniqueItem[\String\] =
+        (BIG SQCUP[\String\] [i <- 0#N] winnerHorizontal(i)) SQCUP
+        (BIG SQCUP[\String\] [j <- 0#N] winnerVertical(j)) SQCUP
+        winnerLeftDiagonal() SQCUP winnerRightDiagonal()
+
+    (*) `BIG SQCAP`: If every item is the same, you get that item; otherwise, you get `Nothing`.
+    winnerHorizontal(i: ZZ32): Maybe[\String\] = BIG SQCAP[\String\][j <- 0#N] self[i,j]
+
+    winnerVertical(j: ZZ32): Maybe[\String\] = BIG SQCAP[\String\][i <- 0#N] self[i,j]
+
+    winnerLeftDiagonal(): Maybe[\String\] = BIG SQCAP[\String\][i <- 0#N] self[i,i]
+
+    winnerRightDiagonal(): Maybe[\String\] = BIG SQCAP[\String\][i <- 0#N] self[i,N - 1 - i]
+
+    isFull() = BIG AND[i <- 0#N, j <- 0#N] self[i,j].nonEmpty
+
+    isGameOver() = (winner() =/= Nothing[\String\]) OR: isFull()
+
+    (* returns a list of positions that are empty in the board *)
+    emptySquares() = <| i | i <- 1#N^2, self[i].isEmpty |>
+
+    (* true if the move is legal, false otherwise *)
+    isLegal(position) = position > 0 AND: position <= N^2 AND: self[position].isEmpty
+
+    (* set the position to the players id and return a new board *)
+    move(position, id) =
+        if isLegal(position) then
+          Board(N, update(locs, position, id))
+        else
+          throw IllegalMove(position)
+        end
+end
+
+dumbAi(board) = do
+    empty = board.emptySquares()
+    index = narrow(truncate(random(|empty|)))
+    empty[index]
+end
+
+(* Computer player. Returns a move position. *)
+smartAi(board) = do
+    label answer
+        for i <- board.emptySquares() do
+            if board.move(i,playerTwo).winner() = playerTwo then
+                exit answer with i
+            end
+        end
+        for i <- board.emptySquares() do
+            if board.move(i,playerOne).winner() = playerOne then
+                exit answer with i
+            end
+        end
+        dumbAi(board)
+    end answer
+end
+
+(* Blank tic-tac-toe board *)
+emptyBoard(N: ZZ32) = Board(N, <|[\Maybe[\String\]\] Nothing[\String\] | n <- 0#N^2 |>)
+
+(* Hack to read user input.  Only works in unix. *)
+readLine() = do
+    input = FileReadStream("/dev/stdin")
+    input.readLine()
+end
+
+isNo(x) = (x = "no")
+
+(* Plays the game *)
+playGame(name: String, N: ZZ32): Boolean = label quit
+
+    play(board) = do
+        println()
+        println board
+        if board.isGameOver() then
+            announceGameEnd(board)
+        else
+            try
+                println "Your turn, " name
+                line = readLine()
+                if (|line| = 0)
+                then
+                    println "Invalid response."
+                    exit quit with false
+                else
+                    yourMove = strToInt(line)
+                    newBoard = board.move(yourMove, playerOne)
+                    if newBoard.isGameOver() then
+                        announceGameEnd(newBoard)
+                    else
+                        myMove = smartAi(newBoard)
+                        println "I play " myMove
+                        play(newBoard.move(myMove, playerTwo))
+                    end
+                end
+            catch e
+                IllegalMove => do
+                    println "You cannot move there. Choose again."
+                    play(board)
+                end
+            end
+        end
+    end
+
+    announceGameEnd(board) = do
+        winner = board.winner()
+        if w <- winner then
+            case w of
+                playerOne => println "You win!"
+                playerTwo => println "You lose!"
+                else => println "Error"
+            end
+        elif winner.isEmpty then
+          println "Tie game!"     (*) Game over but no winner
+        else
+          println "Two winners?"  (*) Not unique winner: should not happen
+        end
+    end
+
+    println play(emptyBoard(N))
+    println "Do you want to play again? Type 'no' to quit or anything else for yes"
+    NOT isNo(readLine())
+end quit
+
+run() = do
+    println "Welcome to Tic Tac Toe!"
+    println "What's your name, friend?"
+    name = readLine()
+    println "What size board?"
+    line = readLine()
+    if (|line| = 0)
+    then
+        println "Invalid response."
+    else
+        N = strToInt(line)
+        while playGame(name, N) do
+            println ""
+        end
+    end
+    println "Bye!"
+end
+
+end newtictactoe

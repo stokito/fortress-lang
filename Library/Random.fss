@@ -1,0 +1,387 @@
+(*******************************************************************************
+    Copyright 2010 Kang Seonghoon, KAIST
+    All rights reserved.
+ ******************************************************************************)
+
+component Random
+
+export Random
+import RangeInternals.{...}
+
+(** Any random number generator that can be used for generating any desired
+    random generators. It doesn't expose the raw random number generator
+    interface. **)
+trait AnyRandomGen
+    (** See `RandomGen.distributed`. **)
+    abstract distributed[\U\](dist:RandomDistribution[\U\]): RandomGen[\U\]
+end
+
+(** Abstract interface for (possibly pseudo-) random number generators.
+
+    Minimal complete definition of a `RandomGen` is `min`, `max` and `random`
+    methods. It is recommended, but not required, for generators to override
+    `randomMany`, `randomR` and `randomManyR` methods with efficient versions
+    if possible. **)
+trait RandomGen[\T extends Number\] extends AnyRandomGen excludes Indexed[\T,ZZ32\]
+    (** The lower bound (infimum) of the output of the generator, or `Nothing`
+        if it is unbounded. **)
+    getter left(): Maybe[\T\] = self.min
+    (** The minimum value of the output of the generator, or `Nothing`
+        if the lower bound doesn't exist or it exists but it is excluded
+        from the range. **)
+    abstract getter min(): Maybe[\T\]
+    (** The maximum value of the output of the generator, or `Nothing`
+        if the upper bound doesn't exist or it exists but it is excluded
+        from the range. **)
+    abstract getter max(): Maybe[\T\]
+    (** The upper bound (supremum) of the output of the generator, or `Nothing`
+        if it is unbounded. **)
+    getter right(): Maybe[\T\] = self.max
+
+    (** Generates a random number. **)
+    abstract random(): T
+    (** Generates `n` random numbers. The generator may override `randomMany`
+        method if it has certain means to generate multiple random numbers
+        efficiently. **)
+    randomMany(n:ZZ32): ReadableArray[\T,ZZ32\] = do
+        arr = array[\T\](n)
+        for i <- seq(0#n) do arr[i] := random() end
+        arr
+    end
+
+    (** Generates a uniform random number from the given `range`. It makes
+        use of `UniformDistribution` distribution defined below. **)
+    (* XXX fix some glitches around general FullScalarRange[\U\] traits *)
+    randomR(*[\U\]*)(range:FullScalarRange[\ZZ32(*U*)\]): ZZ32(*U*) =
+        UniformDistribution[\ZZ32(*U*)\](range).generate[\T\](self)
+    (** Same as `randomR` but generates multiple random numbers. **)
+    randomManyR(*[\U\]*)(n:ZZ32, range:FullScalarRange[\ZZ32(*U*)\]): ReadableArray[\ZZ32(*U*),ZZ32\] = do
+        arr = array[\ZZ32(*U*)\](n)
+        for i <- seq(0#n) do arr[i] := randomR(*[\U\]*)(range) end
+        arr
+    end
+
+    (** A proxy `RandomGen` that is adapted to the given `RandomDistribution`.
+        The original generator can be used later, but both the original
+        generator and new generator share the same state. **)
+    distributed[\U\](dist:RandomDistribution[\U\]): RandomGen[\U\] =
+        RandomGenWithDistribution(self, dist)
+end
+
+(** Similar to `AnyRandomGen`, but also includes `perturbed` method in
+    `SeededRandomGen`. **)
+trait AnySeededRandomGen extends AnyRandomGen
+    (** See `SeededRandomGen.perturbed`. **)
+    abstract perturbed(perturbvec:Generator[\ZZ32\]): AnySeededRandomGen
+    abstract perturbed(perturbvec:ZZ32...): AnySeededRandomGen
+end
+
+(** `RandomGen` with a capability to initialize states deterministically
+    ("reseeding"). By convention `SeededRandomGen` objects receives the
+    initial seed as the first argument to the constructor.
+
+    The notable example of non-reseedable `RandomGen` would be an external
+    random source. **)
+trait SeededRandomGen[\T,Seed\] extends { RandomGen[\T\], AnySeededRandomGen }
+    (** The minimal size of `seedvec` argument to `reseed` method. It is
+        unrelated to the size of internal states. **)
+    abstract getter seedSize(): ZZ32
+
+    (** Reseed the generator with given seed vector.
+
+        The implementation of `reseed` should:
+        * Accept all the possible `seedvec` of size equal to or greater than
+          `self.seedSize`;
+        * Return itself (not a copy of itself), and
+        * Behave deterministically, i.e. for any valid `seedvec`, `reseed`
+          call followed by a series of `random`-like calls should result in
+          the same result. **)
+    abstract reseed(seedvec:Indexed[\Seed,ZZ32\]): SeededRandomGen[\T,Seed\]
+    (** Reseed the generator with given seed value. It is only applicable
+        when `self.seedSize` is 1, and equivalent to `reseed` method with
+        a vector of size 1. **)
+    reseed(seedval:Seed): SeededRandomGen[\T,Seed\] = reseed(vector(seedval))
+
+    (** Perturb the generator with given perturbation vector. `perturbed` is
+        a generalization of `split` method found in Haskell: one can always
+        write `split` method by calling `perturbed` method twice with arbitrary
+        different numbers (say, 1 and 2).
+
+        The implementation of `perturbed` should:
+        * Accept all the possible `perturbvec` of size 1 or more;
+        * Take and perturb the internal state of the generator with respect to
+          `perturbvec`;
+        * Return a **copy** of the generator, i.e. `perturbed` call should not
+          affect the other `random`-like calls, and
+        * Behave deterministically, i.e. for any valid `seedvec` and
+          `perturbvec`, `reseed` call followed by `perturbed` call and a series
+          of `random`-like calls to the new generator should result in the same
+          result.
+
+        The implementation may choose to return the copy of itself
+        if `perturbvec` is a vector with one element equal to 0, but it doesn't
+        have to do so. `perturbed` calls are also not composable; for example,
+        `self.perturbed(1).perturbed(2)` may differ from `self.perturbed(1, 2)`.
+        **)
+    abstract perturbed(perturbvec:Generator[\ZZ32\]): SeededRandomGen[\T,Seed\]
+    (** Perturb the generator with given perturbation values. It is a shortcut
+        to the generic `perturbed` method. **)
+    perturbed(perturbvals:ZZ32...): SeededRandomGen[\T,Seed\] = perturbed(perturbvals)
+
+    (** For `SeededRandomGen`, a proxy generator from `distributed` behaves
+        as like the original generator for `reseed` and `perturbed` calls. **)
+    distributed[\U\](dist:RandomDistribution[\U\]): SeededRandomGen[\U,Seed\] =
+        SeededRandomGenWithDistribution(self, dist)
+end
+
+(** A random distribution, which takes a "raw" generator to generate random
+    numbers with the desired population. **)
+trait RandomDistribution[\U\]
+    (** The lower bound (infimum) of the output of the resulting generator. **)
+    left[\T extends Integral[\T\]\](gen:RandomGen[\T\]): Maybe[\U\] = min(gen)
+    (** The minimum value of the output of the resulting generator. **)
+    abstract min[\T extends Integral[\T\]\](gen:RandomGen[\T\]): Maybe[\U\]
+    (** The maximum value of the output of the resulting generator. **)
+    abstract max[\T extends Integral[\T\]\](gen:RandomGen[\T\]): Maybe[\U\]
+    (** The upper bound (supremum) of the output of the resulting generator. **)
+    right[\T extends Integral[\T\]\](gen:RandomGen[\T\]): Maybe[\U\] = max(gen)
+
+    (** Take a `RandomGen` and generates a random number. It may call
+        `random`-like methods zero or multiple times. **)
+    abstract generate[\T extends Integral[\T\]\](gen:RandomGen[\T\]): U
+    (* TODO: generateMany? *)
+end
+
+(** A proxy generator. **)
+object RandomGenWithDistribution[\T,U\](gen:RandomGen[\T\], dist:RandomDistribution[\U\])
+    extends RandomGen[\U\]
+
+    getter left(): Maybe[\T\] = dist.left(gen)
+    getter min(): Maybe[\T\] = dist.min(gen)
+    getter max(): Maybe[\T\] = dist.max(gen)
+    getter right(): Maybe[\T\] = dist.right(gen)
+
+    random(): T = dist.generate[\T\](gen)
+
+    distributed[\U2\](newdist:RandomDistribution[\U2\]): RandomGen[\U2\] = 
+        RandomGenWithDistribution(gen, newdist)
+end
+
+(** A proxy generator with the "reseeding" capability. **)
+object SeededRandomGenWithDistribution[\T,U,Seed\](gen:SeededRandomGen[\T,Seed\],
+        dist:RandomDistribution[\U\])
+    extends SeededRandomGen[\U,Seed\]
+
+    getter left(): Maybe[\T\] = dist.left(gen)
+    getter min(): Maybe[\T\] = dist.min(gen)
+    getter max(): Maybe[\T\] = dist.max(gen)
+    getter right(): Maybe[\T\] = dist.right(gen)
+
+    random(): T = dist.generate[\T\](gen)
+
+    perturbed(perturbvec:Generator[\ZZ32\]): SeededRandomGen[\T,Seed\] =
+        gen.perturbed(perturbvec).distributed(dist)
+
+    distributed[\U2\](newdist:RandomDistribution[\U2\]): SeededRandomGen[\U2,Seed\] = 
+        SeededRandomGenWithDistribution(gen, newdist)
+end
+
+(**********************************************************)
+
+private __systemRandom(): RR64 = random(1.0)
+
+(** System-provided random number generator, based on `random` built-in
+    function. Note that only 53 random bits are available (not 64 bits). **)
+object SystemRandomGen extends RandomGen[\ZZ64\]
+    getter min(): Just[\ZZ64\] = just 0
+    getter max(): Just[\ZZ64\] = just 9007199254740991 (* 2^53 - 1 *)
+
+    random(): ZZ64 = widen(|\ 9007199254740992 (* 2^53 *) __systemRandom() /|)
+        (*
+        (* This code returns a uniform ZZ32 random number and may be useful for
+           a box with very slow floating number instructions. This is not the case
+           with the current machine however. *)
+        label loop
+        while true do
+            bits: ZZ64 := random(1.0).rawBits
+            if bits >= 4463067230724161536 (* (1023-32) 2^52 *) then
+                bits := ((bits RSHIFT 20) BITAND 4294967295 (* 2^32-1 *)) - 2147483648 (* 2^31 *)
+                exit loop with narrow(bits)
+            end
+        end
+        end loop
+        *)
+end
+
+(** Linear congruential generator.
+
+    It's not appropriate for applications where high-quality randomness is
+    critical. Thus it is mainly used for legacy applications and an initial
+    vector of other high-quality random number generator, such as
+    `MersenneTwister`. **)
+object LinearCongruential[\N\](seed:N, mult:N, add:N, modulus:N)
+    extends SeededRandomGen[\N,N\]
+
+    getter min(): Just[\N\] = just 0
+    getter max(): Just[\N\] = just (modulus-1)
+    getter seedSize(): ZZ32 = 1
+
+    var state: N = seed MOD modulus
+
+    reseed(seedvec:Indexed[\N,ZZ32\]): LinearCongruential[\N\] =
+        do state := seedvec[0] MOD modulus; self end
+
+    random(): N =
+        do state := (mult widen(state) + add) MOD modulus; state end
+
+    perturbed(perturbvec:Generator[\ZZ32\]): LinearCongruential[\N\] = do
+        (*) XXX Not statistically tested!
+        newseed: N := state
+        for p <- seq(perturbvec) do
+            newseed := (mult widen(newseed BITXOR p) + add) MOD modulus
+        end
+        LinearCongruential[\N\](newseed, mult, add, modulus)
+    end
+end
+
+(* XXX This is not a same generator with Java, which truncates lower 16 bits
+   to get 32 bits of output. Do we need a bit mask parameter in
+   `LinearCongruential`?! *)
+(** A particular random number generator which is used in Java in part.
+    Period: $2^{48}$. **)
+linearCongruential(seed:ZZ64): LinearCongruential[\ZZ64\] =
+    LinearCongruential[\ZZ64\](seed, 25214903917, 11, 281474976710656 (* 2^48 *))
+(** Same to `linearCongruential` but uses a random seed. **)
+linearCongruential(): LinearCongruential[\ZZ64\] =
+    linearCongruential(SystemRandomGen.random())
+
+(** Mersenne twister, as proposed by Makoto Matsumoto and Takuji Nishimura in 1997.
+
+    It is recommended for most applications, as it is reasonably fast and
+    still produces high-quality random numbers. Mostly used with the parameters
+    in `mersenneTwister` below. **)
+object MersenneTwister[\N, nat wordsize, nat degree\]
+        (seed:Vector[\N,degree\], coeff:N, middle:ZZ32, pivot:ZZ32,
+         tampershift0:ZZ32, tampershift1:ZZ32, tampershift2:ZZ32, tampershift3:ZZ32,
+         tampermask1:N, tampermask2:N)
+    extends SeededRandomGen[\N,N\]
+
+    getter min(): Just[\N\] = just 0
+    getter max(): Just[\N\] = just (((1 asif N) LSHIFT wordsize) - 1)
+    getter seedSize(): ZZ32 = degree
+
+    var state: Vector[\N,degree\] = refresh(seed)
+    var current: ZZ32 = 0
+
+    (** Called once per every `degree` random numbers generated. **)
+    private refresh(s:Vector[\N,degree\]): Vector[\N,degree\] = do
+        wordmask = ((1 asif N) LSHIFT wordsize) - 1
+        lowermask = ((1 asif N) LSHIFT pivot) - 1
+        uppermask = wordmask - lowermask
+        s': Vector[\N,degree\] := s.copy()
+        for i <- seq(0#degree) do
+            y: N := (s'[i] BITAND uppermask) BITOR (s'[(i+1) MOD degree] BITAND lowermask)
+            x: N := s'[(i+middle) MOD degree] BITXOR (y RSHIFT 1)
+            if odd y then x := x BITXOR coeff end
+            s'[i] := x BITAND wordmask
+        end
+        s'
+    end
+    private refresh(s:Indexed[\N,ZZ32\]): Vector[\N,degree\] =
+        refresh(vector[\N,degree\](fn i => seed.get(i)))
+
+    reseed(seedvec:Indexed[\N,ZZ32\]): MersenneTwister[\N,wordsize,degree\] =
+        do state := refresh(seedvec); current := 0; self end
+
+    random(): N = do
+        if current = degree then
+            state := refresh(state)
+            current := 0
+        end
+        y: N := state[current]
+        y := y BITXOR (y RSHIFT tampershift0)
+        y := y BITXOR ((y LSHIFT tampershift1) BITAND tampermask1)
+        y := y BITXOR ((y LSHIFT tampershift2) BITAND tampermask2)
+        y := y BITXOR (y RSHIFT tampershift3)
+        current += 1
+        y
+    end
+
+    perturbed(perturbvec:Generator[\ZZ32\]): MersenneTwister[\N,wordsize,degree\] = do
+        (*) XXX Not statistically tested!
+        perturbgen = MersenneTwisterInit(0)
+        perturbvec' = perturbgen.perturbed(perturbvec).randomMany(degree)
+        newseed = vector[\ZZ64,degree\](fn i => state[i] BITXOR perturbvec'[i])
+        MersenneTwister[\N,wordsize,degree\](newseed, coeff, middle, pivot, tampershift0,
+            tampershift1, tampershift2, tampershift3, tampermask1, tampermask2)
+    end
+end
+
+(** A modified linear congruential generator used for the initialization of
+    MT19937 generator. **)
+object MersenneTwisterInit(seed:ZZ64) extends SeededRandomGen[\ZZ64,ZZ64\]
+    getter min(): Just[\ZZ64\] = just 0
+    getter max(): Just[\ZZ64\] = just 4294967295 (* 2^32-1 *)
+    getter seedSize(): ZZ32 = 1
+
+    var state: ZZ64 = seed BITAND 4294967295 (* 2^32-1 *)
+
+    reseed(seedvec:Indexed[\ZZ64,ZZ32\]): MersenneTwisterInit = do
+        state := seedvec[0] BITAND 4294967295 (* 2^32-1 *)
+        self
+    end
+
+    random(): ZZ64 = do
+        state_old = state
+        state := (1812433253 (state BITXOR (state RSHIFT 30)) + 1) BITAND 4294967295 (* 2^32-1 *)
+        state_old
+    end
+
+    perturbed(perturbvec:Indexed[\ZZ32,ZZ32\]): MersenneTwisterInit = do
+        (*) XXX Not statistically tested!
+        newseed: ZZ64 := state
+        for p <- seq(perturbvec) do
+            newseed := (1812433253 widen(newseed BITXOR p) + 1) BITAND 4294967295 (* 2^32-1 *)
+        end
+        MersenneTwisterInit(newseed)
+    end
+end
+
+(** 32-bit MT19937 generator. (Its seed vector is of `ZZ64` due to the overflow
+    mechanism.) Period: $2^{19937} - 1$, equidistributed in ~623 dimensions.
+
+    The size of the seed vector should be 624. **)
+mersenneTwister(seed:Vector[\ZZ64,624\]): MersenneTwister[\ZZ64,32,624\] =
+    MersenneTwister[\ZZ64,32,624\](seed, 2567483615, 397, 31, 11, 7, 15, 18,
+                                   2636928640, 4022730752)
+(** Same to `mersenneTwister` but uses a single number plus modified LCG to
+    seed the generator. This is equivalent to the reference implementation. **)
+mersenneTwister(seed:ZZ64): MersenneTwister[\ZZ64,32,624\] =
+    mersenneTwister(MersenneTwisterInit(seed).randomMany(624))
+(** Same to `mersenneTwister` but uses a random seed. **)
+mersenneTwister(): MersenneTwister[\ZZ64,32,624\] =
+    mersenneTwister(SystemRandomGen.random())
+
+(**********************************************************)
+
+(** Uniform random distribution within the given `range`. It uses a classic
+    retrial method. **)
+object UniformDistribution[\T\](range:FullScalarRange[\T\])
+    extends RandomDistribution[\T\]
+
+    min[\N extends Integral[\N\]\](gen:RandomGen[\N\]): Just[\T\] = just range.lower
+    max[\N extends Integral[\N\]\](gen:RandomGen[\N\]): Just[\T\] = just range.upper
+
+    (* XXX the current implementation requires the range of N is greater than
+       the range of T *)
+    generate[\N extends Integral[\N\]\](gen:RandomGen[\N\]): T = do
+        spacing = (gen.max.get - gen.min.get + 1) DIV |range|
+        retrybound = gen.min.get + |range| spacing
+        x: N := gen.random()
+        while x >= retrybound do x := gen.random() end
+        range[narrow((x - gen.min.get) DIV spacing)]
+    end
+end
+
+end
+

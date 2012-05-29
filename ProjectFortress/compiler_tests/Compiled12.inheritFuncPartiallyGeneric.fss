@@ -1,0 +1,51 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Test multiple inheritance of functional
+   method implementation in the presence of
+   abstract functional methods. *)
+
+(** TODO: Re-insert generics a la Compiled12.inherit2 *)
+
+trait T
+  getter asString(): String
+  u(self, t:T): T
+  abstract v(self, t:T): T
+  abstract w(self, t:T): T
+end
+
+trait U[\X\] extends T
+  u(self, t:T): T = self
+end
+
+trait V[\X\] extends T
+  v(self, t:T): T = self
+end
+
+object W[\X\](s:String) extends { U[\X\], V[\X\] }
+  getter asString(): String = "W" || s
+  w(self, t:T): T = self
+end
+
+run() = do
+    w1 : T = W[\ZZ32\]("1")
+    w2 : U[\ZZ32\] = W[\ZZ32\]("2")
+    println(w1.asString)
+    println(u(w1,w2).asString)
+    println(v(w1,w2).asString)
+    println(w(w1,w2).asString)
+    println(w2.asString)
+    println(u(w2,w1).asString)
+    println(v(w2,w1).asString)
+    println(w(w2,w1).asString)
+  end

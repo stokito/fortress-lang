@@ -1,0 +1,49 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SimpleOverload5
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.bar => jBar}
+
+import java com.sun.fortress.nativeHelpers.{simpleOverload.baz => jBaz}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.duo => jDuo}
+
+export Executable
+
+print2(x:String, y:String):() = do
+  jPrintln(jDuo(x.asJavaString,y.asJavaString))
+end
+
+(* jDuo(x:String, y:ZZ32):String = do
+   jPrintln("cat");
+   jPrintln("dog");
+   "catdog"
+end *)
+
+local(x:String):String = "baz"
+local(x:ZZ32, y:ZZ32):String = "11"
+
+run(): () = do
+  print2("PA","SS")
+
+  (* Sorta-bug:
+        Set breakpoint in com.sun.fortress.compiler.OverloadRewriteVisitor
+        forFnRefOnly, if fns.size > 1
+        Problem is that overload disambiguate identifies a single function,
+        but the inferred type is insufficiently precise.
+  *)
+
+  jPrintln(local("b").asJavaString)
+  jPrintln(local(5,6).asJavaString)
+
+end
+
+end

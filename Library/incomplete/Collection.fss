@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Collection
+export Collection
+
+(* Proposed convention for dotted vs functional methods:
+   If it updates or is a getter or setter (including indexing), dotted.
+   Otherwise it should be a functional method.
+*)
+
+trait Collection[\alpha\] extends Generator[\alpha\]
+  opr DOUBLE_PLUS(self, other: Collection[\alpha\]): Collection[\alpha\]
+  addIfNeeded(a:alpha, self): (Boolean, Collection[\alpha\])
+  add(a:alpha, self): Collection[\alpha\] = fst
+  remove(a:alpha, Collection[\alpha\]): Boolean
+end
+
+end

@@ -1,0 +1,34 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component nestedInst
+export Executable
+
+(* We want to support polymorphic recursion without falling off a
+   cliff instantiating types with ever deeper nesting.  This is
+   extracted from the FingerTree code. *)
+
+trait D14[\E\]
+  nodes3():D14[\D14[\E\]\] = D1[\D14[\E\]\]()
+end
+
+object D1[\E\]() extends { D14[\E\] }
+  getter asString()="1"
+end
+
+run():() = do
+  println("Starting instantiation")
+  e = D1[\ZZ32\]()
+  println(e.asString)
+  ()
+end
+
+end
