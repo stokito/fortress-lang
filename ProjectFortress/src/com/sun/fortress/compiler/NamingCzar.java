@@ -292,6 +292,10 @@ public class NamingCzar {
 
     static APIName fortLib =
         NodeFactory.makeAPIName(span, WellKnownNames.fortressBuiltin());
+    
+    static public APIName fortressLibrary() {
+        return fortLib;
+    }
 
     static APIName anyLib =
         NodeFactory.makeAPIName(span, WellKnownNames.anyTypeLibrary());

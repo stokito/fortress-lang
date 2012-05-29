@@ -11,6 +11,7 @@
 package com.sun.fortress.compiler.codegen;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.sun.fortress.compiler.NamingCzar;
@@ -39,6 +40,8 @@ import com.sun.fortress.useful.DeletedList;
 import com.sun.fortress.useful.Fn;
 import com.sun.fortress.useful.InsertedList;
 import com.sun.fortress.useful.Useful;
+
+import edu.rice.cs.plt.tuple.Option;
 
 public class FnNameInfo {
     final List<StaticParam> static_params;
@@ -101,7 +104,9 @@ public class FnNameInfo {
     
     public FnNameInfo(Functional x, APIName ifNone) {
         HasTraitStaticParameters htsp = (HasTraitStaticParameters) x;
-        trait_static_params = htsp.traitStaticParameters();
+        trait_static_params =  x instanceof HasTraitStaticParameters ?
+            ((HasTraitStaticParameters)x).traitStaticParameters():
+                Collections.<StaticParam>emptyList();
         static_params = x.staticParameters();
         ArrowType at = fndeclToType(x, Naming.NO_SELF);
         returnType = at.getRange();
@@ -157,7 +162,9 @@ public class FnNameInfo {
     public TypeArg boundsFor(StaticParam sp) {
         List<BaseType> tl = sp.getExtendsClause();
         if (tl.size() == 0) {
-            return NodeFactory.makeTypeArg(NodeFactory.makeTraitType(sp.getInfo().getSpan(), "Object"));
+            return NodeFactory.makeTypeArg(NodeFactory.makeTraitType(
+                    NodeFactory.makeId(sp.getInfo().getSpan(),
+                            Option.<APIName>some(NamingCzar.fortressLibrary()), "Object")));
         } else if (tl.size() == 1) {
             return NodeFactory.makeTypeArg(tl.get(0));
         } else {
