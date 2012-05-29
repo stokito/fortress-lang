@@ -16,6 +16,8 @@ import com.sun.fortress.useful.Useful;
 
 public class MainWrapper {
 
+    public static ClassLoader icl;
+    
     /**
      * @param args
      * @throws ClassNotFoundException
@@ -57,7 +59,7 @@ public class MainWrapper {
             
             // ensure that FortressExecutable is loaded and statically initialized
             // so that there is a task pool before any user code is run.
-            ClassLoader icl = InstantiatingClassloader.ONLY;
+            icl = InstantiatingClassloader.ONLY;
             Class cl = Class.forName(whatToRun, true, icl);
             java.lang.reflect.Method m = cl.getDeclaredMethod("main", String[].class);
             try {
