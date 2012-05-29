@@ -16,20 +16,20 @@ import Map.{...}
 import Util.{...}
 import Maybe.{...}
 import Bazaar.{...}
-import Comparison.{...}
+import CompilerAlgebra.{...}
 import GeneratorLibrary.{DefaultGeneratorImplementation}
 export Pairs
 
 pairs[\T\](g: Generator[\T\]): Generator[\(T,T)\] = Pairs(g)
 
 object Pairs[\T\](g: Generator[\T\]) extends DefaultGeneratorImplementation[\(T,T)\] 
-    generate[\R\](red: Reduction[\R\], m:(T,T)->R): R =
+    generate[\R extends Any\](red: Reduction[\R\], m:(T,T)->R): R =
     if (l,v,r) <- g.generate[\Maybe[\(T,R,T)\]\](PairReduction[\T,R\](red,m),
                              fn (t:T) => Just[\(T,R,T)\](t, red.id, t))
         then v else red.id end
 end
 
-object PairReduction[\T,R\](red: Reduction[\R\], m:(T,T)->R)
+object PairReduction[\T,R extends Any\](red: Reduction[\R\], m:(T,T)->R)
         extends { Reduction[\Maybe[\(T,R,T)\]\] }
     getter id():Maybe[\(T,R,T)\] = Nothing[\(T,R,T)\]
     join(left:Maybe[\(T,R,T)\], right:Maybe[\(T,R,T)\]) : Maybe[\(T,R,T)\]=
@@ -44,13 +44,13 @@ end
 triples[\T\](g: Generator[\T\]): Generator[\(T,T,T)\] = Triples(g)
 
 object Triples[\T\](g: Generator[\T\]) extends DefaultGeneratorImplementation[\(T,T,T)\] 
-    generate[\R\](red: Reduction[\R\], m:(T,T,T)->R): R =
+    generate[\R extends Any\](red: Reduction[\R\], m:(T,T,T)->R): R =
     if (s,l,l',v,r',r) <- g.generate[\Maybe[\(Boolean,T,T,R,T,T)\]\](TripleReduction[\T,R\](red,m),
                              fn (t:T) => Just[\(Boolean,T,T,R,T,T)\](true, t, t, red.id, t, t))
         then v else red.id end
 end
 
-object TripleReduction[\T,R\](red: Reduction[\R\], m:(T,T,T)->R)
+object TripleReduction[\T,R extends Any\](red: Reduction[\R\], m:(T,T,T)->R)
         extends { Reduction[\Maybe[\(Boolean,T,T,R,T,T)\]\] }
     getter id():Maybe[\(Boolean,T,T,R,T,T)\] = Nothing[\(Boolean,T,T,R,T,T)\]
     join(left:Maybe[\(Boolean,T,T,R,T,T)\], right:Maybe[\(Boolean,T,T,R,T,T)\]) : Maybe[\(Boolean,T,T,R,T,T)\]=

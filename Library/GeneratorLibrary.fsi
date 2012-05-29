@@ -74,7 +74,7 @@ end
 
 trait AnyMappedGenerator end
 
-trait MappedGenerator[\E6,F2\] extends { DefaultGeneratorImplementation[\F2\], AnyMappedGenerator }
+trait MappedGenerator[\E6, F2\] extends { DefaultGeneratorImplementation[\F2\], AnyMappedGenerator }
         comprises {  SimpleMappedGenerator[\E6,F2\], SimpleSequentialMappedGenerator[\E6,F2\] }
     abstract getter g(): Generator[\E6\]
     abstract getter f(): E6 -> F2
@@ -85,14 +85,14 @@ trait MappedGenerator[\E6,F2\] extends { DefaultGeneratorImplementation[\F2\], A
     seq(): SimpleSequentialMappedGenerator[\E6,F2\]
 end
 
-object SimpleMappedGenerator[\E7,F3\](g0: Generator[\E7\], f0: E7->F3)
+object SimpleMappedGenerator[\E7, F3\](g0: Generator[\E7\], f0: E7->F3)
         extends MappedGenerator[\E7,F3\]
     getter g(): Generator[\E7\]
     getter f(): E7->F3
     getter asString(): String
 end
 
-object SimpleSequentialMappedGenerator[\E8,F4\](g0: SequentialGenerator[\E8\], f0: E8->F4)
+object SimpleSequentialMappedGenerator[\E8, F4\](g0: SequentialGenerator[\E8\], f0: E8->F4)
         extends { MappedGenerator[\E8,F4\], DefaultSequentialGeneratorImplementation[\F4\] }
     getter g(): SequentialGenerator[\E8\]
     getter f(): E8->F4
@@ -105,7 +105,7 @@ end
 
 (* Nested generators *)
 
-trait NestedGenerator[\E9,F5\] extends DefaultGeneratorImplementation[\F5\]
+trait NestedGenerator[\E9, F5\] extends DefaultGeneratorImplementation[\F5\]
         comprises { SimpleNestedGenerator[\E9,F5\], SimpleSequentialNestedGenerator[\E9,F5\] }
     abstract getter g(): Generator[\E9\]
     abstract getter f(): E9 -> Generator[\F5\]
@@ -120,7 +120,7 @@ trait NestedGenerator[\E9,F5\] extends DefaultGeneratorImplementation[\F5\]
     loop(body:F5->()): ()
 end
 
-object SimpleNestedGenerator[\E10,F6\](g0: Generator[\E10\], f0: E10->Generator[\F6\])
+object SimpleNestedGenerator[\E10, F6\](g0: Generator[\E10\], f0: E10->Generator[\F6\])
         extends { NestedGenerator[\E10,F6\] }
     getter g(): Generator[\E10\]
     getter f(): E10->Generator[\F6\]
@@ -128,7 +128,7 @@ object SimpleNestedGenerator[\E10,F6\](g0: Generator[\E10\], f0: E10->Generator[
     seq(): SequentialGenerator[\F6\]
 end
 
-object SimpleSequentialNestedGenerator[\E11,F7\]
+object SimpleSequentialNestedGenerator[\E11, F7\]
         (g0: SequentialGenerator[\E11\], f0: E11->SequentialGenerator[\F7\])
         extends { NestedGenerator[\E11,F7\], DefaultSequentialGeneratorImplementation[\F7\] }
     getter g(): SequentialGenerator[\E11\]
@@ -140,7 +140,7 @@ end
 
 (* Cross-product generators *)
 
-trait PairGenerator[\E12,F8\] extends DefaultGeneratorImplementation[\(E12,F8)\]
+trait PairGenerator[\E12, F8\] extends DefaultGeneratorImplementation[\(E12,F8)\]
   comprises { SimplePairGenerator[\E12,F8\], SimpleSequentialPairGenerator[\E12,F8\] }
     abstract getter e(): Generator[\E12\]
     abstract getter f(): Generator[\F8\]
@@ -148,7 +148,7 @@ trait PairGenerator[\E12,F8\] extends DefaultGeneratorImplementation[\(E12,F8)\]
     generate[\R\](r: Reduction[\R\], m:(E12,F8)->R): R
 end
 
-object SimplePairGenerator[\E13,F9\](e0: Generator[\E13\], f0: Generator[\F9\])
+object SimplePairGenerator[\E13, F9\](e0: Generator[\E13\], f0: Generator[\F9\])
         extends PairGenerator[\E13,F9\]
     getter e(): Generator[\E13\]
     getter f(): Generator[\F9\]
@@ -156,7 +156,7 @@ object SimplePairGenerator[\E13,F9\](e0: Generator[\E13\], f0: Generator[\F9\])
     seq(): SequentialGenerator[\(E13,F9)\]
 end
 
-object SimpleSequentialPairGenerator[\E14,F10\]
+object SimpleSequentialPairGenerator[\E14, F10\]
         (e0: SequentialGenerator[\E14\], f0: SequentialGenerator[\F10\])
         extends { PairGenerator[\E14,F10\], DefaultSequentialGeneratorImplementation[\(E14,F10)\] }
     getter e(): SequentialGenerator[\E14\]
@@ -205,13 +205,13 @@ end
    This is the trait that the overall implementation of a big operator
    or a comprehension has to deal with. *)
 
-trait GeneralReduction[\B,R,F21\] extends Reduction[\R\]
+trait GeneralReduction[\B, R, F21\] extends Reduction[\R\]
     getter reverse(): GeneralReduction[\B,R,F21\]
     abstract lift(x: B): R
     abstract finish(y: R): F21
 end
 
-object ReversedGeneralReduction[\B,R,F22\](r: GeneralReduction[\B,R,F22\]) extends GeneralReduction[\B,R,F22\]
+object ReversedGeneralReduction[\B, R, F22\](r: GeneralReduction[\B,R,F22\]) extends GeneralReduction[\B,R,F22\]
   getter asString(): String
   getter reverse(): GeneralReduction[\B,R,F22\]
   getter id(): R
@@ -250,7 +250,7 @@ trait CommutativeReduction[\R\] extends Reduction[\R\]
 (*)     property FORALL(a: R, b: R) join(a,b) = join(b,a)
 end
 
-trait CommutativeGeneralReduction[\B,R,F23\]
+trait CommutativeGeneralReduction[\B, R, F23\]
       extends { CommutativeReduction[\R\], GeneralReduction[\B,R,F23\] }
     getter reverse(): CommutativeGeneralReduction[\B,R,F23\]
 end
@@ -279,22 +279,22 @@ trait ReductionWithZeroes[\R\] extends Reduction[\R\]
     isZero(r: R): Boolean
 end
 
-trait GeneralReductionWithZeroes[\B,R,F24\]
+trait GeneralReductionWithZeroes[\B, R, F24\]
       extends { ReductionWithZeroes[\R\],  GeneralReduction[\B,R,F24\] }
 end
 
-trait BigOperator[\I,B,R,F25,O\]
+trait BigOperator[\I, B, R, F25, O\]
     abstract getter body(): I->B
     abstract getter reduction(): GeneralReduction[\B,R,F25\]
     abstract getter unwrap(): F25->O
 end
 
-object BigReduction[\B,R,F26\](reduction:GeneralReduction[\B,R,F26\]) extends BigOperator[\B,B,R,F26,F26\]
+object BigReduction[\B, R, F26\](reduction:GeneralReduction[\B,R,F26\]) extends BigOperator[\B,B,R,F26,F26\]
     getter body(): B->B
     getter unwrap(): F26->F26
 end
 
-object Comprehension[\I,B,R,F27,O\](body:I->B, reduction: GeneralReduction[\B,R,F27\], unwrap: F27->O)
+object Comprehension[\I, B, R, F27, O\](body:I->B, reduction: GeneralReduction[\B,R,F27\], unwrap: F27->O)
         extends BigOperator[\I,B,R,F27,O\]
 end
 

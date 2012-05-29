@@ -1,0 +1,33 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2009,2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component WhileLoop1
+  export Executable
+
+(** EXAMPLE **)
+object Chain(item: ZZ, link: Maybe[\Chain\]) end
+  
+printValues(x: Maybe[\Chain\]): () = do
+    cursor: Maybe[\Chain\] = x
+    while (next <- cursor) do
+      println(next.item)
+      cursor := next.link
+    end
+  end
+end
+
+run() = printValues(Just Chain(1, Just Chain(2, Just Chain(3, Just Chain(4, None)))))
+(** END EXAMPLE **)
+
+
+end

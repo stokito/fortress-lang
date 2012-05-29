@@ -14,16 +14,16 @@ export Executable
 hello() : () = println("Hello")
 world() : () = println("World!")
 
-trait list[\ T \] 
+trait list[\T extends Any\] 
     getter elt() : T
     getter rest() : list[\T\]
 end
 
-object listCell[\T\](head : T, rest : list[\T\]) extends list[\T\] 
+object listCell[\T extends Any\](head : T, rest : list[\T\]) extends list[\T\] 
     getter elt() : T = head
 end
 
-object listEnd[\T\](head : T) extends list[\T\]
+object listEnd[\T extends Any\](head : T) extends list[\T\]
     getter elt() : T = head
     getter rest() : list[\T\]  = self
 end

@@ -11,7 +11,7 @@
 
 export Executable
 
-object G[\ I,O \](f:I->O)
+object G[\ I extends Any, O extends Any \](f:I->O)
   app(x:I):O = f x
 end
 

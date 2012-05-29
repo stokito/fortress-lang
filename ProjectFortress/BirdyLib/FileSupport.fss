@@ -185,7 +185,7 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
             end  
     *)
     
-        private go[\R\](r: Reduction[\R\], body: S->R): R =
+        private go[\R extends Any\](r: Reduction[\R\], body: S->R): R =
             if reader.eof then r.id
             else
                 if s0 <- readOne(reader) then
@@ -194,7 +194,7 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
                 end
             end     
               
-    generate[\R\](r: Reduction[\R\], body: S->R): R = do
+    generate[\R extends Any\](r: Reduction[\R\], body: S->R): R = do
         consume()
         a = go(r,body) (*) go(8 MIN up,r,body)
         reader.close()
@@ -254,7 +254,7 @@ object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> Maybe[\S\]
         if consumed then
             fail("Using consumed generator of " reader)
         end
-    generate[\R\](r: Reduction[\R\], body: S->R): R = do
+    generate[\R extends Any\](r: Reduction[\R\], body: S->R): R = do
         consume()
         a:R := r.id
         while (NOT reader.eof) do

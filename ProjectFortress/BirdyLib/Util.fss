@@ -15,17 +15,17 @@ component Util
 
   export Util
 
-  trait ActualReduction[\R,L\] extends Reduction[\L\]
+  trait ActualReduction[\R extends Any,L extends Any\] extends Reduction[\L\]
     lift(r: R): L
     unlift(l:L): R
   end
   
-  trait MonoidReduction[\R\] extends ActualReduction[\R,R\]
+  trait MonoidReduction[\R extends Any\] extends ActualReduction[\R,R\]
     lift(r:R): R = r
     unlift(r:R): R = r
   end
 
-  object MIMapReduceReduction[\R\](j:(R,R)->R, z:R) extends MonoidReduction[\R\]
+  object MIMapReduceReduction[\R extends Any\](j:(R,R)->R, z:R) extends MonoidReduction[\R\]
     getter asString():String="MIMapReduceReduction from embiggen"
     getter id(): R = z
     join(a:R, b:R): R = (j)(a,b)
@@ -34,7 +34,7 @@ component Util
   embiggen[\T\](j:(T,T)->T, z:T) : Comprehension[\T,T,T,T\] =
       Comprehension[\T,T,T,T\](fn (x) => x, MIMapReduceReduction[\T\](j,z), fn (x) => x)
 
-  trait AssociativeReduction[\R\] extends ActualReduction[\R,Maybe[\R\]\]
+  trait AssociativeReduction[\R extends Any\] extends ActualReduction[\R,Maybe[\R\]\]
     getter id(): Nothing[\R\] = Nothing[\R\]
     join(a: Maybe[\R\], b: Maybe[\R\]): Maybe[\R\] =
         if av <- a then
@@ -56,7 +56,7 @@ component Util
         end
   end
 
-  trait ReductionWithZeroes[\R,L\] extends ActualReduction[\R,L\]
+  trait ReductionWithZeroes[\R extends Any,L extends Any\] extends ActualReduction[\R,L\]
     isLeftZero(l:L): Boolean = isZero(l)
     isRightZero(l:L): Boolean = isZero(l)
     isZero(l:L): Boolean = false
@@ -64,30 +64,29 @@ component Util
 
   trait Indexed[\E, I\] extends Generator[\E\] end
 
-  __generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R =
+  __generate[\E extends Any,R extends Any\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R =
       g.generate[\R\](r,b)
 
-  trait BigOperator[\I,O,R,L\]
+  trait BigOperator[\I extends Any,O extends Any,R extends Any,L extends Any\]
     getter reduction(): ActualReduction[\R,L\]
     getter body(): I->R
     getter unwrap(): R->O
   end
 
-  __bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O = do
+  __bigOperator[\I extends Any,O extends Any,R extends Any,L extends Any\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O = do
     r: ActualReduction[\R,L\] = o.reduction
-    (*)body(i: I): L = r.lift((o.body)(i))
     (o.unwrap)(r.unlift(desugaredClauses(r,fn i => r.lift((o.body)(i)))))
   end
 
-  __bigOperatorSugar[\I,O,R,L\](o:BigOperator[\I,O,R,L\],g:Generator[\I\]): O =
+  __bigOperatorSugar[\I extends Any,O extends Any,R extends Any,L extends Any\](o:BigOperator[\I,O,R,L\],g:Generator[\I\]): O =
       __bigOperator[\I,O,R,L\](o, fn (r,u) => __generate[\I,L\](g, r, u))
 
-  object BigReduction[\R,L\](reduction:ActualReduction[\R,L\]) extends BigOperator[\R,R,R,L\]
+  object BigReduction[\R extends Any,L extends Any\](reduction:ActualReduction[\R,L\]) extends BigOperator[\R,R,R,L\]
     getter body(): R->R = fn x => x
     getter unwrap() : R -> R = fn x => x
   end
 
-  object Comprehension[\I,O,R,L\](unwrap: R -> O, reduction: ActualReduction[\R,L\], body:I->R) 
+  object Comprehension[\I extends Any,O extends Any,R extends Any,L extends Any\](unwrap: R -> O, reduction: ActualReduction[\R,L\], body:I->R) 
      extends BigOperator[\I,O,R,L\]
   end
 
