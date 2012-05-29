@@ -315,7 +315,7 @@ import java com.sun.fortress.nativeHelpers.{simpleArbitraryPrecisionArith.parse 
                                             }
                                        
 import AnyType.{Any}
-import CompilerAlgebra.{ Equality }
+import CompilerAlgebra.{ Equality, StandardTotalOrder }
 export CompilerBuiltin
 
 nanoTime(): RR64 = jNanoTime()
@@ -554,7 +554,7 @@ trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 , ZZ }
     ceilingAverage(self, other: ZZ64): ZZ64 = (self BITOR other) - ((self BITXOR other) >> 1)
 end
 
-trait ZZ32 extends { Number, Equality[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
+trait ZZ32 extends { Number, Equality[\ZZ32\], StandardTotalOrder[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
     coerce(x: IntLiteral) = x.asZZ32
     getter asZZ32(): ZZ32 = self
     getter asZZ64(): ZZ32 = self

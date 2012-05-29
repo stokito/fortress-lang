@@ -23,7 +23,7 @@
 \input{\langdir/objects}
 \input{\langdir/Expressions/expressions}
 \input{\langdir/exceptions}
-\input{\langdir/operators}
+\input{\langdir/Operators/operators}
 \input{\langdir/overloading}
 \input{\langdir/coercion}
 \input{\langdir/type-inference}

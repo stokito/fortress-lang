@@ -200,6 +200,18 @@ This distribution may include materials developed by third parties.
 
   <target name="copySources"
           description="Copy all original source files to working directory">
+    <mkdir dir="${spec.home}/Generated"/>
+    <mkdir dir="${spec.home}/Generated/Root"/>
+    <mkdir dir="${spec.home}/Generated/Support"/>
+    <mkdir dir="${spec.home}/Generated/Prose"/>
+    <mkdir dir="${spec.home}/Generated/Prose/Preliminaries"/>
+    <mkdir dir="${spec.home}/Generated/Prose/Language"/>
+    <mkdir dir="${spec.home}/Generated/Prose/Language/Expressions"/>
+    <mkdir dir="${spec.home}/Generated/Prose/Language/Operators"/>
+    <mkdir dir="${spec.home}/Generated/Prose/Libraries"/>
+    <mkdir dir="${spec.home}/Generated/Prose/Appendices"/>
+    <mkdir dir="${spec.home}/Generated/Code"/>
+    <mkdir dir="${spec.home}/Generated/Data"/>
     <copy overwrite="yes" todir="${spec.home}/Generated/Root">
       <fileset dir="${spec.home}/Root" includes="fortress.tex fortress.bib build-options"/>
     </copy>
@@ -214,6 +226,9 @@ This distribution may include materials developed by third parties.
     </copy>
     <copy overwrite="yes" todir="${spec.home}/Generated/Prose/Language/Expressions">
       <fileset dir="${spec.home}/Prose/Language/Expressions" includes="*.tick *.tex"/>
+    </copy>
+    <copy overwrite="yes" todir="${spec.home}/Generated/Prose/Language/Operators">
+      <fileset dir="${spec.home}/Prose/Language/Operators" includes="*.tick *.tex"/>
     </copy>
     <copy overwrite="yes" todir="${spec.home}/Generated/Prose/Libraries">
       <fileset dir="${spec.home}/Prose/Libraries" includes="*.tick *.tex"/>

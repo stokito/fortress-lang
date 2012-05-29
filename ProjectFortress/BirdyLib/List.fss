@@ -12,7 +12,6 @@
 component List
 
 import Maybe.{...}
-import Comparison.{...}
 import Util.{...}
 import GeneratorLibrary.{DefaultGeneratorImplementation}
 export List
@@ -24,23 +23,14 @@ weight:ZZ32 = 4
 
 (** The natural order of the List, and indexing on the List, yields List
     elements in ascending order. **)
-trait List[\E\] extends DefaultGeneratorImplementation[\E\]
-    (*
-    getter indexValuePairs():ZeroIndexed[\(ZZ32,E)\] =
-        IndexValueListGenerator[\E\](self)
-    *)
+trait List[\E extends Any\] extends DefaultGeneratorImplementation[\E\]
+
     getter isEmpty():Boolean
-    (*
-    seqgen[\R\](r: Reduction[\R\], body: E->R): R
-    ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
-    seq(self): SequentialGenerator[\E\] = SeqListGenerator[\E\](self)
-    *)
     opr ||(self, other:List[\E\]): List[\E\] = self.concat(other)
-    getVal():E
+    getValWithDefault(x: E):E
     getLeftChild():List[\E\]
     getRightChild():List[\E\]
-    subscript(i:ZZ32):E
-    generate[\R\](r: Reduction[\R\], body: E->R): R
+    generate[\R extends Any\](r: Reduction[\R\], body: E->R): R
     left():Maybe[\E\]
     right():Maybe[\E\]
     extractLeft():Maybe[\(E, List[\E\])\]
@@ -150,29 +140,14 @@ end
 
 *)
 
-object EmptyList[\E\] extends List[\E\]
+object EmptyList[\E extends Any\] extends List[\E\]
     getter size():ZZ32 = 0
-    (*
-    getter bounds():CompactFullRange[\ZZ32\] = 0#0
-    *)
     getter isEmpty():Boolean = true
-    getter asString(): String = "{}"
+    getter asString(): String = ""
     opr |self| : ZZ32 = 0
-    subscript(i:ZZ32):E = fail("Empty List: cannot use subscript operator.")
-    opr[i:ZZ32]:E = fail("Empty List: cannot use subscript operator.")
-    (*
-    opr[r:Range[\ZZ32\]] : List[\E\] = do
-        rr = self.bounds.narrowToRange(r)
-        self
-    end
-    *)
     indexOfI(_:ZZ32, e:E):Maybe[\ZZ32\] = Nothing[\ZZ32\]
-    generate[\R\](r: Reduction[\R\], body: E->R): R = r.id
-    (*
-    ivgen[\R\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = r.id
-    seqgen[\R\](r: Reduction[\R\], body: E->R): R = r.id
-    *)
-    getVal():E = fail("Empty List: cannot getVal()")
+    generate[\R extends Any\](r: Reduction[\R\], body: E->R): R = r.id
+    getValWithDefault(x: E):E = x
     getLeftChild():List[\E\] = self
     getRightChild():List[\E\] = self
     left():Nothing[\E\] = Nothing[\E\]
@@ -187,76 +162,32 @@ object EmptyList[\E\] extends List[\E\]
     concat3(v:E, t2:List[\E\]):List[\E\] = t2.addLeft(v)
 end
 
-object NodeList[\E\](val:E,  leftL:List[\E\], rightL:List[\E\])
+object NodeList[\E extends Any\](val:E,  leftL:List[\E\], rightL:List[\E\])
         extends List[\E\]
     sz:ZZ32 = 1 + |leftL| + |rightL|
     getter size():ZZ32 = sz
     getter isEmpty():Boolean = false
-    getter asString():String = "{" || "," || "}" (*) .join[\E\](self) TODO
+    getter asString():String = "" || leftL.asString || " " || "elt" || " " || rightL.asString (*) .join[\E\](self) TODO
     opr |self| : ZZ32 = sz
-    subscript(i:ZZ32):E = if i < |leftL| then leftL.subscript(i)
-       elif i = |leftL| then val
-       else rightL.subscript(i - |leftL| - 1) end
-    opr[i:ZZ32]:E = if 0 <= i < sz then subscript(i)
-                    else fail("" self "[" i "] is out of bounds.") end
-                    (*
-    opr[r:Range[\ZZ32\]] : List[\E\] = do
-        r' = self.bounds.narrowToRange(r)
-        (lside,rside) = splitIndex( r'.lower )
-        (lside',rside') = rside.splitIndex( |r'| )
-        lside'
-      end
-      *)
+
         
-    generate[\R\](r: Reduction[\R\], body: E->R): R =
+    generate[\R extends Any\](r: Reduction[\R\], body: E->R): R =
        r.join(r.join(leftL.generate[\R\](r,body),body(val)),
               rightL.generate[\R\](r,body))
-    (*          
-    ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = do
-        mi = |left| + i0
-        r.join(r.join(left.ivgen[\R\](i0,r,body),body(mi,val)),
-               right.ivgen[\R\](mi+1,r,body))
-      end
-    seqgen[\R\](r: Reduction[\R\], body: E->R): R = do
-        lg = left.seqgen[\R\](r,body)
-        vg = body(val)
-        mg = r.join(lg,vg)
-        rg = right.seqgen[\R\](r,body)
-        r.join(mg,rg)
-      end
-      *)
+
     getVal():E = val
+    getValWithDefault(x: E):E = val
     getLeftChild():List[\E\] = leftL
     getRightChild():List[\E\] = rightL
 
     addLeft(z:E):List[\E\] = balancedAdd(val,leftL.addLeft(z),rightL)
     addRight(z:E):List[\E\] = balancedAdd(val,leftL,rightL.addRight(z))
 
-    left():Just[\E\] = do
-        notDone : Boolean := true
-        t : NodeList[\E\] := self
-        while notDone do
-            l = t.getLeftChild()
-            typecase l of
-                l':NodeList[\E\] => t := l'
-                else => notDone := false
-            end
-        end
-        Just[\E\](t.getVal())
-      end
+    left(): Maybe[\E\] = 
+      if leftL.isEmpty then Just(val) else leftL.left() end
 
-    right():Just[\E\] = do
-        notDone : Boolean := true
-        t : NodeList[\E\] := self
-        while notDone do
-            l = t.getRightChild()
-            typecase l of
-                l':NodeList[\E\] => t := l'
-                else => notDone := false
-            end
-        end
-        Just[\E\](t.getVal())
-      end
+    right(): Maybe[\E\] =
+      if rightL.isEmpty then Just(val) else rightL.right() end
 
     extractLeft(): Just[\(E,List[\E\])\] =
         if (min, delmin) <- leftL.extractLeft() then
@@ -295,7 +226,7 @@ object NodeList[\E\](val:E,  leftL:List[\E\], rightL:List[\E\])
         n1 = sz
         l1 = leftL
         r1 = rightL
-        v2 = t2.getVal()
+        v2 = t2.getValWithDefault(v)
         n2 = |t2|
         l2 = t2.getLeftChild()
         r2 = t2.getRightChild()
@@ -331,7 +262,7 @@ object NodeList[\E\](val:E,  leftL:List[\E\], rightL:List[\E\])
     single_L(val':E,  left':List[\E\], right':List[\E\]):NodeList[\E\] = do
         a = val'
         x = left'
-        b = right'.getVal()
+        b = right'.getValWithDefault(val')
         y = right'.getLeftChild()
         z = right'.getRightChild()
         NodeList[\E\](b, NodeList[\E\](a, x, y), z)
@@ -339,7 +270,7 @@ object NodeList[\E\](val:E,  leftL:List[\E\], rightL:List[\E\])
 
     single_R(val':E,  left':List[\E\], right':List[\E\]):NodeList[\E\] = do
         b = val'
-        a = left'.getVal()
+        a = left'.getValWithDefault(val')
         x = left'.getLeftChild()
         y = left'.getRightChild()
         z = right'
@@ -349,8 +280,8 @@ object NodeList[\E\](val:E,  leftL:List[\E\], rightL:List[\E\])
     double_L(val':E,  left':List[\E\], right':List[\E\]):NodeList[\E\] = do
         a = val'
         x = left'
-        c = right'.getVal()
-        b = right'.getLeftChild().getVal()
+        c = right'.getValWithDefault(val')
+        b = right'.getLeftChild().getValWithDefault(val')
         y1 = right'.getLeftChild().getLeftChild()
         y2 = right'.getLeftChild().getRightChild()
         z = right'.getRightChild()
@@ -360,9 +291,9 @@ object NodeList[\E\](val:E,  leftL:List[\E\], rightL:List[\E\])
 
     double_R(val':E,  left':List[\E\], right':List[\E\]):NodeList[\E\] = do
         c = val'
-        a = left'.getVal()
+        a = left'.getValWithDefault(val')
         x = left'.getLeftChild()
-        b = left'.getRightChild().getVal()
+        b = left'.getRightChild().getValWithDefault(val')
         y1 = left'.getRightChild().getLeftChild()
         y2 = left'.getRightChild().getRightChild()
         z = right'
@@ -370,8 +301,9 @@ object NodeList[\E\](val:E,  leftL:List[\E\], rightL:List[\E\])
         NodeList[\E\](b, NodeList[\E\](a, x,y1), NodeList[\E\](c,y2,z))
       end
 end
-
+(*
 transpose[\E,F\](xys: List[\(E,F)\]): (List[\E\], List[\F\]) =
   ( <|[\E\] x | (x, _) <- xys |>, <|[\F\] y | (_, y) <- xys |> )
+*)
 
 end

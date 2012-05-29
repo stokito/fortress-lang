@@ -12,11 +12,11 @@ component VarianceTest8
 
   export Executable
 
-  trait Test[\contravariant T\]
+  trait Test[\contravariant T extends Any\]
     hidden settable my: T
   end
 
-  object Impl[\T\]() extends Test[\T\] 
+  object Impl[\T extends Any\]() extends Test[\T\] 
   end
 
   trait Foo end

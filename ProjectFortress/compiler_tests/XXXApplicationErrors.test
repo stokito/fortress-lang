@@ -11,23 +11,21 @@ tests=Compiled7.ApplicationErrors
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:15:13-37:\n\
-\ Could not check call to function identity1\n\
-\ - [\\T\\]T->T is not applicable to any type of the form _->_.\n\
+${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:15:31-36:\n\
+\ No such method Any.foo.\n\
+\ ${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:15:23-37:\n\
+\ Possibly because x: Any after argument inference\n\
 ${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:18:27-32:\n\
 \ No such method IntLiteral.foo.\n\
 \ ${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:18:19-35:\n\
 \ Possibly because x: IntLiteral after argument inference\n\
-${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:21:21-38:\n\
-\ Could not infer parameter type for function expression.\n\
-${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:21:38-52:\n\
-\ Could not infer parameter type for function expression.\n\
 ${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:25:14-22:\n\
 \ Could not check call to operator *\n\
 \ - (Object->String, ZZ32)->String is not applicable to any type of the form (_->_, IntLiteral).\n\
 \ - (ZZ32->String, ZZ32)->String is not applicable to any type of the form (_->_, IntLiteral).\n\
-${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:31:13-32:\n\
-\ Could not check call to function baz\n\
-\ - [\\T\\]T->T is not applicable to any type of the form _->ZZ32.\n\
-File Compiled7.ApplicationErrors.fss has 5 errors.\n
+${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:31:32:\n\
+\ Function body has type Any, but declared return type is ZZ32.\n\
+\ ${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:31:17-32:\n\
+\ Possibly because x: Any after argument inference\n\
+File Compiled7.ApplicationErrors.fss has 4 errors.\n
 compile_out_equals=
