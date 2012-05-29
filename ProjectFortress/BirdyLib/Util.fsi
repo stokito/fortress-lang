@@ -13,17 +13,17 @@ api Util
 
 import Maybe.{...}
 
-trait ActualReduction[\R,L\] extends Reduction[\L\]
+trait ActualReduction[\R extends Any,L extends Any\] extends Reduction[\L\]
   abstract lift(r: R): L
   abstract unlift(l:L): R
 end
 
-trait MonoidReduction[\R\] extends ActualReduction[\R,R\]
+trait MonoidReduction[\R extends Any\] extends ActualReduction[\R,R\]
     lift(r:R): R 
     unlift(r:R): R 
 end
 
-trait AssociativeReduction[\R\] extends ActualReduction[\R,Maybe[\R\]\]
+trait AssociativeReduction[\R extends Any\] extends ActualReduction[\R,Maybe[\R\]\]
     getter id(): Nothing[\R\] 
     join(a: Maybe[\R\], b: Maybe[\R\]): Maybe[\R\] 
     abstract simpleJoin(a:R, b:R): R
@@ -31,7 +31,7 @@ trait AssociativeReduction[\R\] extends ActualReduction[\R,Maybe[\R\]\]
     unlift(r:Maybe[\R\]): R 
 end
 
-trait ReductionWithZeroes[\R,L\] extends ActualReduction[\R,L\]
+trait ReductionWithZeroes[\R extends Any,L extends Any\] extends ActualReduction[\R,L\]
     isLeftZero(l:L): Boolean 
     isRightZero(l:L): Boolean
     isZero(l:L): Boolean 
@@ -39,24 +39,24 @@ end
 
 trait Indexed[\E, I\] extends Generator[\E\] end
 
-__generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R 
+__generate[\E extends Any,R extends Any\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R 
 
-trait BigOperator[\I,O,R,L\]
+trait BigOperator[\I extends Any,O extends Any,R extends Any,L extends Any\]
     abstract getter reduction(): ActualReduction[\R,L\]
     abstract getter body(): I->R
     abstract getter unwrap(): R->O
 end
 
-__bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O
+__bigOperator[\I extends Any,O extends Any,R extends Any,L extends Any\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O
 
-__bigOperatorSugar[\I,O,R,L\](o:BigOperator[\I,O,R,L\],g:Generator[\I\]): O
+__bigOperatorSugar[\I extends Any,O extends Any,R extends Any,L extends Any\](o:BigOperator[\I,O,R,L\],g:Generator[\I\]): O
 
-object BigReduction[\R,L\](r:ActualReduction[\R,L\]) extends BigOperator[\R,R,R,L\]
+object BigReduction[\R extends Any,L extends Any\](r:ActualReduction[\R,L\]) extends BigOperator[\R,R,R,L\]
     getter body(): R->R
     getter unwrap(): R -> R
 end
 
-object Comprehension[\I,O,R,L\](unwrap: R -> O, reduction: ActualReduction[\R,L\], body:I->R) 
+object Comprehension[\I extends Any,O extends Any,R extends Any,L extends Any\](unwrap: R -> O, reduction: ActualReduction[\R,L\], body:I->R) 
    extends BigOperator[\I,O,R,L\]
 end
 

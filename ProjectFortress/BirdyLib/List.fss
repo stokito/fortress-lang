@@ -12,7 +12,6 @@
 component List
 
 import Maybe.{...}
-import Comparison.{...}
 import Util.{...}
 import GeneratorLibrary.{DefaultGeneratorImplementation}
 export List
@@ -24,14 +23,14 @@ weight:ZZ32 = 4
 
 (** The natural order of the List, and indexing on the List, yields List
     elements in ascending order. **)
-trait List[\E\] extends DefaultGeneratorImplementation[\E\]
+trait List[\E extends Any\] extends DefaultGeneratorImplementation[\E\]
 
     getter isEmpty():Boolean
     opr ||(self, other:List[\E\]): List[\E\] = self.concat(other)
     getValWithDefault(x: E):E
     getLeftChild():List[\E\]
     getRightChild():List[\E\]
-    generate[\R\](r: Reduction[\R\], body: E->R): R
+    generate[\R extends Any\](r: Reduction[\R\], body: E->R): R
     left():Maybe[\E\]
     right():Maybe[\E\]
     extractLeft():Maybe[\(E, List[\E\])\]
@@ -141,13 +140,13 @@ end
 
 *)
 
-object EmptyList[\E\] extends List[\E\]
+object EmptyList[\E extends Any\] extends List[\E\]
     getter size():ZZ32 = 0
     getter isEmpty():Boolean = true
     getter asString(): String = ""
     opr |self| : ZZ32 = 0
     indexOfI(_:ZZ32, e:E):Maybe[\ZZ32\] = Nothing[\ZZ32\]
-    generate[\R\](r: Reduction[\R\], body: E->R): R = r.id
+    generate[\R extends Any\](r: Reduction[\R\], body: E->R): R = r.id
     getValWithDefault(x: E):E = x
     getLeftChild():List[\E\] = self
     getRightChild():List[\E\] = self
@@ -163,7 +162,7 @@ object EmptyList[\E\] extends List[\E\]
     concat3(v:E, t2:List[\E\]):List[\E\] = t2.addLeft(v)
 end
 
-object NodeList[\E\](val:E,  leftL:List[\E\], rightL:List[\E\])
+object NodeList[\E extends Any\](val:E,  leftL:List[\E\], rightL:List[\E\])
         extends List[\E\]
     sz:ZZ32 = 1 + |leftL| + |rightL|
     getter size():ZZ32 = sz
@@ -172,7 +171,7 @@ object NodeList[\E\](val:E,  leftL:List[\E\], rightL:List[\E\])
     opr |self| : ZZ32 = sz
 
         
-    generate[\R\](r: Reduction[\R\], body: E->R): R =
+    generate[\R extends Any\](r: Reduction[\R\], body: E->R): R =
        r.join(r.join(leftL.generate[\R\](r,body),body(val)),
               rightL.generate[\R\](r,body))
 
@@ -302,8 +301,9 @@ object NodeList[\E\](val:E,  leftL:List[\E\], rightL:List[\E\])
         NodeList[\E\](b, NodeList[\E\](a, x,y1), NodeList[\E\](c,y2,z))
       end
 end
-
+(*
 transpose[\E,F\](xys: List[\(E,F)\]): (List[\E\], List[\F\]) =
   ( <|[\E\] x | (x, _) <- xys |>, <|[\F\] y | (_, y) <- xys |> )
+*)
 
 end
