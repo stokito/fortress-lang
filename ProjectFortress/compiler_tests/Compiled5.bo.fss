@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled5.bo
+export Executable
+
+f1 = fn (x) => x
+f2 = fn (x: String, y) => y
+f3 = fn (x: ZZ32): String => x
+f4: ZZ32 -> String = fn (x: String) => x
+f5: ZZ32 -> String = fn (x: ZZ32): ZZ32 => x
+
+run() = ()
+
+end

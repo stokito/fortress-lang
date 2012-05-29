@@ -1,0 +1,21 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled9.s.fss
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled9.s.fss:15:5-9:\n\
+\ Non-last expression in a block has type String, but it must have () type.\n\
+${STATIC_TESTS_DIR}/Compiled9.s.fss:21:5-18:\n\
+\ Non-last expression in a block has type String, but it must have () type.\n\
+${STATIC_TESTS_DIR}/Compiled9.s.fss:27:5-43:\n\
+\ Non-last expression in a block has type String, but it must have () type.\n\
+File Compiled9.s.fss has 3 errors.\n
+compile_out_equals=

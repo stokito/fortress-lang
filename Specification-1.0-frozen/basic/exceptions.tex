@@ -1,0 +1,203 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Exceptions}
+\chaplabel{exceptions}
+
+\note{Methods and fields of exceptions, chained exceptions,
+and static checking of checked exceptions are not yet supported.
+
+Fortress examples in this chapter are not run by the interpreter.}
+
+Exceptions are values that can be thrown and caught, via \KWD{throw}
+expressions (described in \secref{throw-expr})
+and \KWD{catch} clauses of \KWD{try} expressions (described in
+\secref{try-expr}).
+When a \KWD{throw} expression ``\EXP{ \KWD{throw} e}''
+is evaluated, the subexpression \VAR{e} is evaluated to an exception.
+The static type of \VAR{e} must be a subtype of \TYP{Exception}.
+Then the \KWD{throw} expression tries to transfer control to
+its \emph{dynamically containing block} (described in
+\chapref{evaluation}), from the innermost outward, until
+either (\emph{i}) an enclosing \KWD{try} expression is reached, with a
+\KWD{catch} clause matching a type of the thrown exception, or (\emph{ii})
+the outermost dynamically containing block is reached.
+
+If a matching \KWD{catch} clause is reached,
+the right-hand side of the first matching subclause is evaluated.  If no
+matching \KWD{catch} clause is found before the outermost dynamically
+containing block is reached, the outermost dynamically containing block
+completes abruptly whose cause is the thrown exception.
+
+If an enclosing \KWD{try} expression of a \KWD{throw} expression
+includes a \KWD{finally} clause, and the \KWD{try} expression completes
+abruptly, the \KWD{finally} clause is evaluated before control is
+transferred to the dynamically containing block.
+
+
+\section{Causes of Exceptions}
+
+Every exception is thrown for one of the following reasons:
+\begin{enumerate}
+\item A \KWD{throw} expression is evaluated.
+\item An implementation resource is exceeded (e.g., an attempt is made to
+  allocate beyond the set of available locations).
+\end{enumerate}
+
+
+\section{Types of Exceptions}
+\seclabel{exception-types}
+
+All exceptions are subtypes of the type \TYP{Exception} declared as follows:
+%% \input{\home/library/examples/ExceptionLibrary.tex}
+%trait Exception comprises { CheckedException, UncheckedException }
+%  settable message: Maybe[\String\]
+%  settable chain: Maybe[\Exception\]
+%  printStackTrace(): ()
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{Exception} \KWD{comprises} \{\,\TYP{CheckedException}, \TYP{UncheckedException}\,\}\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{settable}\:\VAR{message}\COLON \TYP{Maybe}\llbracket\TYP{String}\rrbracket\)\\
+\(  \KWD{settable}\:\VAR{chain}\COLON \TYP{Maybe}\llbracket\TYP{Exception}\rrbracket\)\\
+\(  \VAR{printStackTrace}()\COLON ()\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+Every exception is a subtype of either type
+\TYP{CheckedException} or \TYP{UncheckedException}:
+\input{\home/library/examples/Exceptions.tex}
+
+A functional declaration (described in \secref{methods}
+and \secref{function-decls})
+includes an optional \KWD{throws} clause in its
+header listing the \TYP{CheckedException}s (also written
+\emph{checked exceptions})
+that can be thrown by invocation of the functional.  If a \KWD{throws}
+clause is not explicitly provided, the \KWD{throws} clause of the
+functional declaration is empty.  The body of a
+functional is statically checked to ensure that no checked exceptions
+are thrown by any subexpression of the functional
+body other than those listed in the \KWD{throws} clause.
+This static check is performed by examining each \KWD{throw} expression and
+functional invocation $I$, determining the static
+type of the functional $f$ invoked in $I$, and determining the
+\KWD{throws} clause of
+$f$. (If $f$ is polymorphic, or occurs in a polymorphic context,
+instantiations of type variables free in the \KWD{throws} clause
+of $f$  are substituted for formal type variables).
+For each checked exception thrown in $I$, the enclosing expressions of
+$I$ are checked for a matching \KWD{catch} clause.
+The set $A$ of all
+checked exceptions thrown by all invocations without a matching
+\KWD{catch} clause in the functional body is accumulated and compared
+against the \KWD{throws} clause of the enclosing functional declaration. If an
+exception that is not a subtype of an exception
+listed in the \KWD{throws} clause occurs in $A$, it is a static error.
+
+A similar analysis is performed on top-level variable declarations.
+If it is determined that their initialization expressions
+can throw a checked exception, it is a static error.
+
+\section{Information of Exceptions}
+\seclabel{chained-exceptions}
+
+Every exception has optional fields: a message and a chained exception.
+These fields are default to \TYP{Nothing} as follows:
+%trait Exception comprises { CheckedException, UncheckedException }
+%  getter message(): Maybe[\String\] = Nothing
+%  setter message(Maybe[\String\]):()
+%  getter chain(): Maybe[\Exception\] = Nothing
+%  setter chain(Maybe[\Exception)\]:()
+%  printStackTrace(): ()
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Exception} \KWD{comprises} \{\,\TYP{CheckedException}, \TYP{UncheckedException}\,\}\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{getter} \VAR{message}()\COLON \TYP{Maybe}\llbracket\TYP{String}\rrbracket = \TYP{Nothing}\)\\
+\(  \KWD{setter} \VAR{message}(\TYP{Maybe}\llbracket\TYP{String}\rrbracket)\COLONOP()\)\\
+\(  \KWD{getter} \VAR{chain}()\COLON \TYP{Maybe}\llbracket\TYP{Exception}\rrbracket = \TYP{Nothing}\)\\
+\(  \KWD{setter} \VAR{chain}(\TYP{Maybe}\llbracket\TYP{Exception}\rrbracket)\COLONOP()\)\\
+\(  \VAR{printStackTrace}()\COLON ()\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+where an optional value \VAR{v} is either \TYP{Nothing} or
+\EXP{\TYP{Just}(v)}.
+The \VAR{chain} field can be set at most once.  If it is set more than
+once, an \TYP{InvalidChain} exception is thrown.
+It is generally set when the exception is created.
+
+
+When an exception is created, the execution stack of its thread at the time
+of the exception creation is captured in the exception.  The invocation of
+\VAR{printStackTrace} prints the captured stack trace.
+There is no way to update the captured stack trace.
+If a programmer wants to catch a thrown exception and rethrow it, and
+capture the stack trace at the time of the second throwing of the
+exception, the programmer has to create a new exception (perhaps with the
+original exception as its \VAR{chain} field).
+
+When an exception is thrown, its \VAR{message} and \VAR{chain} fields may
+be set.
+For example, if a checked exception is caught in a \KWD{catch} clause, and
+the \KWD{catch} clause in turn throws an unchecked exception, the unchecked
+exception can be chained so that an examination of the unchecked exception
+reveals information about the original exception.  For example:
+%read(fileName) =
+%  try
+%    readFile(fileName)
+%  catch e
+%    IOFailure => throw Error("This code can't handle IOFailures", e)
+%  end
+\begin{Fortress}
+\(\VAR{read}(\VAR{fileName}) = \)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{try}\)\\
+{\tt~~}\pushtabs\=\+\(    \VAR{readFile}(\VAR{fileName})\)\-\\\poptabs
+\(  \KWD{catch} e\)\\
+{\tt~~}\pushtabs\=\+\(    \TYP{IOFailure} \Rightarrow\ \KWD{throw} \TYP{Error}(\hbox{\rm``\STR{This~code~can't~handle~IOFailures}''}, e)\)\-\\\poptabs
+\(  \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+where the \VAR{message} and \VAR{chain} fields of \TYP{Error} are set to
+\EXP{\hbox{\rm``\STR{This~code~can't~handle~IOFailures}''}} and
+\TYP{IOFailure} respectively.
+
+
+By default, a \KWD{forbid} clause in a \KWD{try} expression
+throws a new \TYP{ForbiddenException} by \emph{chaining}
+the exception thrown by the \KWD{try} block in the \KWD{try}
+expression that is a subtype of the exception type listed in the
+\KWD{forbid} clause.
+For example, the following \VAR{read} function:
+%read(fileName) =
+%  try
+%    readFile(fileName)
+%  forbid IOFailure
+%  end
+\begin{Fortress}
+\(\VAR{read}(\VAR{fileName}) = \)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{try}\)\\
+{\tt~~}\pushtabs\=\+\(    \VAR{readFile}(\VAR{fileName})\)\-\\\poptabs
+\(  \KWD{forbid} \TYP{IOFailure}\)\\
+\(  \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+is equivalent to:
+%read(fileName) =
+%  try
+%    readFile(fileName)
+%  catch e
+%    IOFailure => throw ForbiddenException(e)
+%  end
+\begin{Fortress}
+\(\VAR{read}(\VAR{fileName}) = \)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{try}\)\\
+{\tt~~}\pushtabs\=\+\(    \VAR{readFile}(\VAR{fileName})\)\-\\\poptabs
+\(  \KWD{catch} e\)\\
+{\tt~~}\pushtabs\=\+\(    \TYP{IOFailure} \Rightarrow \KWD{throw} \TYP{ForbiddenException}(e)\)\-\\\poptabs
+\(  \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+where the \VAR{chain} of \TYP{ForbiddenException} is set to \TYP{IOFailure}.

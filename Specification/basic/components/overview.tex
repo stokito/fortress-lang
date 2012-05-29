@@ -1,0 +1,78 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Overview}
+\begin{Grammar}
+\emph{File} &::=& \emph{CompilationUnit}\\
+&$|$& \option{\emph{Imports}} \emph{Exports} \option{\emph{Decls}}\\
+&$|$& \option{\emph{Imports}} \emph{AbsDecls}\\
+&$|$& \emph{Imports} \option{\emph{AbsDecls}}\\
+
+\emph{CompilationUnit} &::=& \emph{Component}\\
+&$|$&\emph{Api}\\
+\end{Grammar}
+
+Components are the fundamental structure of Fortress programs.
+They export and import \apisN,
+which serve as ``interfaces'' of the components.
+A key design choice we make
+is to require that components never refer
+to other components directly;
+all external references are to \apisN.
+This requirement allows programmers
+to extend and test existing components more easily,
+swapping new implementations of libraries in and out of programs at will.
+External references are resolved by linking components together:
+the references of a component to an imported \apiN\
+are resolved to a component that exports that \apiN.
+Linking components produces new components,
+whose \emph{constituents} are the components that were linked together.
+
+Components are similar to modules in other programming languages,
+such as those of ML and Scheme \cite{SML, OCaml, Scheme}.
+But, unlike modules in those languages, components
+are designed for use during both development and deployment of software.
+In addition to compilation and linking,
+components can be produced by upgrading one component
+using another component that exports
+some of the \apisN\ exported by the first component.
+
+A key aspect of Fortress components is that they are encapsulated,
+so that upgrading one component does not affect any other component,
+even those produced by linking with the component that was upgraded.
+Abstractly, each component has its own copy of its constituents.
+However, implementations are expected to share common constituents
+when possible.
+
+Users do not manipulate components directly.
+Instead,
+every component is installed in a persistent database on the system.
+We think of this database,
+which we call a \emph{fortress},
+as the agent that actually performs operations
+such as compilation, linking, upgrading,
+and execution of components:
+a virtual machine, a compiler, and a library registry all rolled into one.
+A fortress also maintains a list of \apisN\ that are installed on it.
+A fortress also provides a shell
+by which the user can issue commands to it.
+Components and \apisN\ are immutable objects.
+A fortress maps names to components installed on the system.
+The fortress operations are modeled
+as methods of the fortress that change the mapping.
+
+
+The ways in which fortresses are actually realized on particular platforms
+are beyond the scope of this specification.
+An implementor might choose to instantiate a fortress as a process, or as
+a persistent object database stored in a file system,
+with fortress operations being implemented as scripts
+that manipulate this database.

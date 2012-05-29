@@ -1,0 +1,17 @@
+#    Copyright 2009,2011, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled9.r.fss
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled9.r.fss:16:7-14:\n\
+\ Non-last expression in a block has type Boolean, but it must have () type.\n\
+File Compiled9.r.fss has 1 error.\n
+compile_out_equals=

@@ -1,0 +1,58 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component QuickSort
+import List.{...}
+export QuickSort
+
+(* http://en.wikipedia.org/wiki/Quicksort *)
+swap[\T\](arr:Array[\T,ZZ32\], x: ZZ32, y: ZZ32):() = do
+    t = arr.get(x)
+    arr.put(x,arr.get(y))
+    arr.put(y,t)
+  end
+mypartition[\T\](lt:(T,T)->Boolean, arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32, pivotIndex:ZZ32):ZZ32 =
+  do
+    pivotValue = arr[pivotIndex]
+    swap[\T\](arr, pivotIndex, right)
+    storeIndex:ZZ32 := left
+    for i <- seq(left#(right-left)) do
+      if lt(arr.get(i), pivotValue)
+      then swap[\T\](arr, storeIndex, i)
+           storeIndex += 1
+      end
+    end
+    swap[\T\](arr, right, storeIndex)
+    storeIndex
+  end
+quicksort[\T\](lt:(T,T)->Boolean, arr:Array[\T,ZZ32\], left:ZZ32, right:ZZ32):() =
+  if right > left
+  then pivotIndex = (left+right) DIV 2  (* Avoid blatant degeneration for sorted arrays *)
+       pivotNewIndex = mypartition(lt, arr, left, right, pivotIndex)
+       do
+         quicksort(lt, arr, left, pivotNewIndex-1)
+       also do
+         quicksort(lt, arr, pivotNewIndex+1, right)
+       end
+  end
+quicksort[\T\](lt:(T,T)->Boolean, arr:Array[\T,ZZ32\]):() =
+  quicksort[\T\](lt,arr, 0, |arr| - 1)
+quicksort[\T extends StandardTotalOrder[\T\]\](arr:Array[\T,ZZ32\]):() =
+  quicksort[\T\](fn (a:T,b:T):Boolean => a < b, arr, 0, |arr| - 1)
+
+quicksort[\T\](lt:(T,T)->Boolean, xs:List[\T\]):List[\T\] = do
+    a = toArray(xs)
+    quicksort[\T\](lt,a)
+    list[\T\](a)
+  end
+quicksort[\T\](xs:List[\T\]):List[\T\] = quicksort[\T\](fn (a:T,b:T):Boolean => a < b, xs)
+
+end

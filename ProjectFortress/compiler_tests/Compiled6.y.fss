@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait T
+  getter z(): ZZ32 = 0
+end
+
+object O extends T
+  getter y(): String = "y"
+end
+
+run(): () = do
+  println O.z               (* 29 Ok *)
+  println O.z()             (* 30 No *)
+  println O.y                   (* 31 Ok *)
+  println O.y()                 (* 32 No *)
+end

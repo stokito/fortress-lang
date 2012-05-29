@@ -1,0 +1,48 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component GenTest3
+import CompilerAlgebra.{ ... }
+export Executable
+trait Generator[\Exx\] excludes { Number, Character }
+    map[\Gxx\](f: Exx->Gxx): Generator[\Gxx\]
+end Generator
+
+
+trait Condition[\E\] extends { Generator[\E\] }
+    cond[\G\](t: E -> G, e: () -> G): G
+    map[\G\](f: E->G): Condition[\G\] =
+        cond(fn (e:E) => Just[\G\](f(e)), fn () => NothingObject[\G\])
+end Condition
+
+
+(* Maybe type *)
+
+value trait Maybe[\E\] extends { Condition[\E\] }
+        comprises { NothingObject[\E\], Just[\E\] }
+end
+
+value object Just[\E\](x: E) extends Maybe[\E\]
+    getter asString(): String = "Just(" "XXX" ")"
+    cond[\G\](t: E -> G, e: () -> G): G = t(x)
+end
+
+value object NothingObject[\E\] extends Maybe[\E\]
+    getter asString():String = "Nothing"
+    cond[\G\](t: E -> G, e: () -> G): G = e()
+end
+
+
+run(): () = println "PASS"
+
+end
+
+

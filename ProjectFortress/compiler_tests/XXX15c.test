@@ -1,0 +1,22 @@
+#    Copyright 2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled15.c
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+
+compile
+
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled15.c.fss:17:19:\n\
+\ Right-hand side has type ZZ32, but declared type is String.\n\
+${STATIC_TESTS_DIR}/Compiled15.c.fss:22:21:\n\
+\ Right-hand side has type ZZ32, but declared type is String.\n\
+File Compiled15.c.fss has 2 errors.\n
+
+compile_out_equals=

@@ -1,0 +1,95 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component sudoku
+
+import Set.{...}
+export Executable
+
+emptySet = set[\ZZ32\]()
+
+initialSet(): Set[\ZZ32\] = set(1#9)
+
+(* DANGER: Race condition!  Last write of b[i,j] must actually cas... *)
+removeElement(b:Set[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):()= do
+   s:Set[\ZZ32\] = b[i,j]
+   if elem IN s then      (* Don't delete if it's a no-op *)
+      r = s.delete(elem)
+      b[i,j] := r
+   end
+end
+
+propagateRow(b:Set[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() =
+   for k <- 0#9 do
+      if j =/= k then removeElement(b,i,k,elem) end
+   end
+
+
+propagateColumn(b:Set[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() =
+   for k <- 0#9 do
+     if i =/= k then removeElement(b,k,j,elem) end
+   end
+
+propagateSquare(b:Set[\ZZ32\][9,9],i:ZZ32, j:ZZ32, elem:ZZ32):() = do
+   starti:ZZ32 = narrow(truncate(i/3)) 3
+   startj:ZZ32 = narrow(truncate(j/3)) 3
+   for k <-starti#3, l <- startj#3 do
+      if i=/=k OR j=/=l then removeElement(b,k,l,elem) end
+   end
+end
+
+propagateSingleton(board:Set[\ZZ32\][9,9], i:ZZ32, j:ZZ32, elem:ZZ32):()=do
+   propagateRow(board, i, j, elem)
+   propagateColumn(board, i, j, elem)
+   propagateSquare(board, i, j, elem)
+end
+
+(* This version involves a barrier between propagation steps. *)
+propagate(board:Set[\ZZ32\][9,9]):() = do
+   prevUnsolved : ZZ32 := 82
+   unsolved : ZZ32 := 81
+   while 0 < unsolved < prevUnsolved do
+      (* Fixed point iteration.  This will tolerate data race in
+         propagateSingleton, though we'd be just as happy without it. *)
+      prevUnsolved := unsolved
+      unsolved := 0
+      for i <- 0#9, j<- 0#9 do
+         if |board[i,j]| = 1 then
+            elem = board[i,j].minimum.get
+            propagateSingleton(board, i, j, elem)
+         else
+            atomic do unsolved += 1 end (* Bug requires do block here *)
+         end
+      end
+      println("**** " unsolved)
+   end
+   assert(unsolved, 0, "Left stuff unsolved!\n",board)
+end
+
+run():()=do
+   init = initialSet()
+   board:Set[\ZZ32\][9,9] = [ {8}  init {6}  {1}  init {9}  {3}  init {5} ;
+                             init {9}  init init {8}  init {4}  init init;
+                             init {7}  {1}  init init init init init {6} ;
+                             init init init {9}  {2}  init {5}  {3}  init;
+                             init init {9}  init {6}  init {7}  init init;
+                             init {3}  {4}  init {7}  {8}  init init init;
+                             {3}  init init init init init {1}  {4}  init;
+                             init init {5}  init {1}  init init {9}  init;
+                             {9}  init {7}  {8}  init {4}  {6}  init {2} ]
+   println(board.asString)
+   println("Starting parallel sudoku solver")
+   recordTime(6.847)
+   propagate(board)
+   printTime(6.847)
+   println(board.asString)
+end
+end

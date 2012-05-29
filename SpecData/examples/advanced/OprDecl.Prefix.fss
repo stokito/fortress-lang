@@ -1,0 +1,31 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component OprDecl.Prefix
+
+export Executable
+
+object Widget
+  invert() = 0
+end
+
+(** EXAMPLE **)
+opr INV(x: Widget): Widget = x.invert()
+(** END EXAMPLE **)
+
+run() = do
+  assert(INV Widget = 0)
+  println("OprDecl.Prefix.fss passed.")
+end
+
+end

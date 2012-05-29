@@ -1,0 +1,67 @@
+This is BibTeX, Version 0.99c (Web2C 7.5.7)
+The top-level auxiliary file: main.aux
+The style file: abbrv.bst
+Database file #1: main.bib
+Warning--I didn't find a database entry for "LFP92-OVERLOADED-FUNCTIONS-WITH-SUBTYPING"
+Warning--I didn't find a database entry for "BRUCE-ON-BINARY-METHODS"
+Warning--I didn't find a database entry for "JLS1"
+Warning--I didn't find a database entry for "C-PLUS-PLUS"
+Warning--I didn't find a database entry for "CSHARP-ECMA-334-2001"
+Warning--I didn't find a database entry for "ECOOP87-CLOS"
+Warning--I didn't find a database entry for "CLOS-SPECIFICATION"
+Warning--I didn't find a database entry for "CLTL2"
+Warning--I didn't find a database entry for "CACM-CLOS"
+Warning--I didn't find a database entry for "MULTIJAVA-OOPSLA-2000"
+Warning--I didn't find a database entry for "MULTIJAVA-TOPLAS-2006"
+Warning--I didn't find a database entry for "SCALA-ABSTRACTIONS"
+Warning--I didn't find a database entry for "FORTRESS-MODULAR-MULTIPLE-DISPATCH"
+Warning--I didn't find a database entry for "FORTRESS-1-0"
+Warning--I didn't find a database entry for "JAVA-6-HOTSPOT-COMPILER"
+Warning--I didn't find a database entry for "FORTRESS-TYPE-POPL-SUBMISSION"
+Warning--I didn't find a database entry for "MODULAR-STATICALLY-TYPED-MULTIMETHODS"
+Warning--I didn't find a database entry for "CECIL-MULTIMETHODS"
+Warning--I didn't find a database entry for "CECIL-REPORT-1993"
+Warning--I didn't find a database entry for "CECIL-REPORT-2004"
+Warning--I didn't find a database entry for "TOPLAS-EML-MODULAR-TYPECHECKING"
+You've used 2 entries,
+            2118 wiz_defined-function locations,
+            659 strings with 7141 characters,
+and the built_in function-call counts, 834 in all, are:
+= -- 85
+> -- 36
+< -- 1
++ -- 14
+- -- 12
+* -- 53
+:= -- 134
+add.period$ -- 8
+call.type$ -- 2
+change.case$ -- 12
+chr.to.int$ -- 0
+cite$ -- 2
+duplicate$ -- 37
+empty$ -- 68
+format.name$ -- 12
+if$ -- 185
+int.to.chr$ -- 0
+int.to.str$ -- 2
+missing$ -- 2
+newline$ -- 13
+num.names$ -- 4
+pop$ -- 17
+preamble$ -- 1
+purify$ -- 10
+quote$ -- 0
+skip$ -- 25
+stack$ -- 0
+substring$ -- 42
+swap$ -- 12
+text.length$ -- 1
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 8
+warning$ -- 0
+while$ -- 7
+width$ -- 3
+write$ -- 26
+(There were 21 warnings)

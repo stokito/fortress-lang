@@ -1,0 +1,44 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(* Functional Method, does it work? *)
+
+component Afm3
+export Executable
+
+trait U
+end
+
+trait T extends U
+  n(self):String = "P PASS"
+end
+
+object O(x:String) extends T
+  n(self):String = x
+end
+
+object P() extends T
+end
+
+object Q() extends U
+end
+
+n(u:U):String = "Q PASS"
+
+run():() = do
+  x:U = O("O PASS")
+  y:U = P()
+  z:U = Q()
+  println(n(x))
+  println(n(y))
+  println(n(z))
+end
+end

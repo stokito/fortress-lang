@@ -1,0 +1,57 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2012, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+find_ant(){
+  # Strip "." from the path, and look for ant.
+  # This avoids infinite regress if this is the first or only "ant" on the normal PATH.
+  export NODOTPATH="`echo "$PATH" | sed -e '1,$s/^[.]://g'`"
+  NODOTPATH="`echo "$NODOTPATH" | sed -e '1,$s/:[.]:/:/g'`"
+  NODOTPATH="`echo "$NODOTPATH" | sed -e '1,$s/:[.]$//g'`"
+  result="`(PATH="$NODOTPATH" which ant 2>/dev/null)`"
+  if [ -z "$result" ]; then
+    echo "Could not find ant. You need to install it. See http://ant.apache.org/ for details." >&2
+    exit 1
+  fi
+  echo $result
+  exit 0
+}
+
+ant_exec="`find_ant`"
+n=$?
+if [ $n -ne 0 ]; then
+        exit $n
+fi
+
+if [ -z "$JAVACMD" ] ; then
+  export JAVACMD="`which java`"
+  echo Using JAVACMD="\"$JAVACMD\""
+fi
+
+# Options common to all things Unix.
+# Large heap necessary for Scala compilation.
+# Large stack necessary on some platforms, harmless on others.
+
+if [ -z "$ANT_OPTS" ] ; then
+  export ANT_OPTS="-Xmx512m -Xss8m"
+  echo Using ANT_OPTS="\"$ANT_OPTS\""
+fi
+
+if [ "$FORTRESS_HOME" == "" ] ; then
+  echo "FORTRESS_HOME needs to be set to build the spec."
+  echo "It should refer to the root (directory containing bin, ProjectFortress, etc)"
+  echo "of a checked-out, compiled, Fortress source tree."
+  exit 1
+fi
+export PATH="$FORTRESS_HOME/bin":"$PATH"
+
+"$ant_exec" -noclasspath -lib ../../ProjectFortress/third-party/ant "$@"

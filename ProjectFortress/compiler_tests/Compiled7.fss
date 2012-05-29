@@ -1,0 +1,125 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled7
+import CompilerSystem.{...}
+export Executable
+
+(* Bindings gratuitously out of order to test top-level binding dependency analysis *)
+expect : RR64 = integ(finish) - integ(start)
+start : RR64 = 0.0
+finish : RR64 = 1536.0
+logTol : ZZ32 = if |args| < 1 then 9 else strToInt(args[0]) end
+errorTolerance : RR64 = 10.0^(-logTol) (* should be 10^(-12) *)
+reps : ZZ32 = if |args| < 2 then 10 else strToInt(args[1]) end
+
+fun(x: RR64): RR64 = x (x x + 1.0)
+
+(* integral fun(x) dx from 0 to x *)
+integ(x: RR64): RR64 = do
+    x2 = x x
+    0.25 x2 (x2 + 2.0)
+  end
+
+(* First-order version of integration that can only integrate fun, above. *)
+integrate_fo(l: RR64, h:RR64, tol: RR64): RR64 =
+    integrate_fo'(l,h,fun(l),fun(h),0.0,tol)
+
+integrate_fo'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, tol: RR64): RR64 = do
+    w = 0.5 (h-l)
+    hw = 0.5 w
+    m = l + w
+    fm = fun(m)
+    al = hw (fl + fm)
+    ah = hw (fm + fh)
+    alh = al + ah
+    if |alh - a| <= |alh| tol OR: w <= tol then
+        alh
+    else
+        integrate_fo'(l,m,fl,fm,al,tol) + integrate_fo'(m,h,fm,fh,ah,tol)
+    end
+  end
+
+(* The same integration, generalized to an arbitrary function f. *)
+integrate(l: RR64, h:RR64, f: RR64->RR64, tol: RR64): RR64 =
+    integrate'(l,h,f(l),f(h),0.0,f,tol)
+
+integrate'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, f: RR64->RR64, tol: RR64): RR64 = do
+    w = 0.5 (h-l)
+    hw = 0.5 w
+    m = l + w
+    fm = f(m)
+    al = hw (fl + fm)
+    ah = hw (fm + fh)
+    alh = al + ah
+    if |alh - a| <= |alh| tol OR: w <= tol then (* OR: breaks it *)
+        alh
+    else
+        integrate'(l,m,fl,fm,al,f,tol) + integrate'(m,h,fm,fh,ah,f,tol)
+    end
+  end
+
+(** Add in a bunch more higher-order function goodness to Compiled7. **)
+
+(* Why is -> on types not right-associative? *)
+curry(f:(RR64,RR64)->RR64): RR64 -> (RR64 -> RR64) = fn (a:RR64) => fn (b:RR64) => f(a,b)
+
+opr AP(f: RR64 -> RR64, a: () -> RR64): RR64 = f(a())
+opr APP(f: RR64 -> (RR64->RR64), a: () -> RR64): (RR64->RR64) = f(a())
+
+(* Even higher-order functions (this found some more bugs in type names for curry etc) *)
+integrate_ho(l: RR64, h:RR64, f: RR64->RR64, tol: RR64): RR64 =
+    integrate_ho'(l,h,f(l),f(h),0.0,f,tol)
+
+integrate_ho'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, f: RR64->RR64, tol: RR64): RR64 = do
+    w = 0.5 (h-l)
+    hw = 0.5 w
+    m = l + w
+    fm = f(m)
+    al = hw (fl + fm)
+    ah = hw (fm + fh)
+    alh = al + ah
+    if |alh - a| <= |alh| tol OR: w <= tol then
+        alh
+    else
+        (curry(fn (x,y) => x+y) APP:
+         integrate_ho'(l,m,fl,fm,al,f,tol)) AP:
+        integrate_ho'(m,h,fm,fh,ah,f,tol)
+    end
+  end
+
+
+elapsedSec(init:RR64, final:RR64): RR64 =
+    (final - init) / (10.0^9)
+
+runTest(desc:String, theTest: ()->RR64): () = do
+    startTime = nanoTime()
+    a = theTest()
+    endTime = nanoTime()
+    if |a - expect| > a errorTolerance then
+        println(desc " FAIL: Bad error tolerance!")
+    end
+    println(elapsedSec(startTime,endTime).asString "\t" a.asString "\t" desc)
+  end
+
+run(): () = do
+    println("Expect\t\t" expect.asString)
+    println("Tolerance\t" errorTolerance.asString)
+    println("Time(s)\t\tArea")
+    for _ <- seq(0#reps) do
+        runTest("First-order", fn () => integrate_fo(start, finish, errorTolerance))
+        runTest("Higher-order", fn () => integrate(start, finish, fn x => x (x x + 1.0), errorTolerance))
+        runTest("Crazy curry", fn () => integrate_ho(start, finish, fun, errorTolerance)) 
+    end
+    println("Done")
+  end
+
+end

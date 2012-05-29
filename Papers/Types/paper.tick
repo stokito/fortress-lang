@@ -1,0 +1,386 @@
+\documentclass[10pt]{sigplanconf}
+\usepackage{amsmath,graphicx,url,color,alltt,fortify,verbatim,bcprules,tabularx,theorem}
+\advance \textheight by 4pt
+
+% make a big red TODO label
+\newcommand{\TODO}[1]{\textbf{\emph{\textcolor{red}{TODO}}}: \textsf{\footnotesize #1}}
+% \newcommand{\TODO}[1]{}
+
+%newcommand
+\newcommand{\ms}{\preceq}
+\renewcommand{\bar}{\overline}
+\newcommand{\meet}{\wedge}
+\newcommand{\C}{\mathcal{C}}
+\newcommand{\quoted}[1]{\begin{quote}#1\end{quote}}
+\newcommand{\exc}{\mathrel{\lozenge}}
+\newcommand{\nexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\lozenge}}
+\newcommand{\smalllozenge}{\vcenter{\hbox{\scalebox{.5}{$\lozenge$}}}}
+\newcommand{\normallozenge}{\vcenter{\hbox{$\lozenge$}}}
+% \newcommand{\altlozenge}{\ooalign{\hfil$\normallozenge$\hfil\cr\hfil$\smalllozenge$\hfil}}
+\newcommand{\altlozenge}{\ooalign{\hfil$\vcenter{\hbox{$\lozenge$}}$\hfil\cr\hfil$\cdot$\hfil}}
+\newcommand{\bexc}{\mathrel{\altlozenge}}
+\newcommand{\bexcp}{\mathrel{\altlozenge}_\textrm{m}}
+\newcommand{\bnexc}{\mathrel{\hbox to 0pt{$\mskip -1.4mu\not$\hss}\altlozenge}}
+
+\newcommand{\fresh}[1]{\textit{fresh}({#1})}
+\newcommand{\freeVar}[1]{\textit{freeVars({#1})}}
+
+\newcommand{\excr}{\triangleright}
+\newcommand{\excl}{\triangleleft}
+\newcommand{\excre}{\excr_\textrm{x}}
+\newcommand{\excle}{\excl_\textrm{x}}
+\newcommand{\excrc}{\excr_\textrm{c}}
+\newcommand{\exclc}{\excl_\textrm{c}}
+\newcommand{\excro}{\excr_\textrm{o}}
+\newcommand{\exclo}{\excl_\textrm{o}}
+% \newcommand{\excrp}{\excr_\textrm{m}}
+% \newcommand{\exclp}{\excl_\textrm{m}}
+\newcommand{\excrx}{\excr_*}
+\newcommand{\exclx}{\excl_*}
+\newcommand{\excx}{\exc_*}
+
+\newcommand{\exce}{\exc_\textrm{x}}
+\newcommand{\excc}{\exc_\textrm{c}}
+\newcommand{\exco}{\exc_\textrm{o}}
+\newcommand{\excp}{\exc_\textrm{m}}
+
+\newcommand{\propop}{\ensuremath{\mathrel{\ast}}}
+
+\newcommand{\ancestors}{\textit{ancestors}}
+\newcommand{\ancexcludes}{\textit{excludes}^*}
+\newcommand{\myexcludes}[1]{{#1}.\textit{excludes}}
+\newcommand{\mycomprises}[1]{{#1}.\textit{comprises}}
+\newcommand{\myextends}[1]{{#1}.\textit{extends}}
+
+\newcommand{\extends}{\ensuremath{<:}}
+\newcommand{\subtypeof}{\ensuremath{<:}}
+\newcommand{\nsubtypeof}{\not \subtypeof}
+\newcommand{\supertypeof}{\ensuremath{:>}}
+\newcommand{\leinner}{\ensuremath{\lesssim}}
+
+\newcommand{\alphaequiv}{\ensuremath{\stackrel{\alpha}{\sim}}}
+\newcommand{\cequiv}{\ensuremath{\sim}}
+
+\newcommand{\arrowtype}[2]{\mbox{\ensuremath{{#1} \rightarrow {#2}}}}
+\newcommand{\tuple}[1]{\ensuremath{#1}}
+
+\newcommand{\dom}{\ensuremath{\mathit{dom}}}
+\newcommand{\arrow}{\ensuremath{\mathit{arrow}}}
+\newcommand{\FV}{\ensuremath{\mathit{FV}}}
+
+% indented code block
+\newenvironment{ttquote}%
+{\begin{quote}\begin{alltt}}
+{\end{alltt}\end{quote}}
+
+% put in oxford brackets
+\newcommand{\ob}[1]{\ensuremath{\llbracket {#1} \rrbracket}}
+% put in oxford brackets and an overbar
+\newcommand{\obb}[1]{\ensuremath{\llbracket \bar{#1} \rrbracket}}
+% make a type param bound with the given name
+\newcommand{\bd}[1]{\ensuremath{\{\bar{#1}\}}}
+% syntactic definition
+\newcommand{\syndef}{\ensuremath{\overset{\mathrm{def}}{=}}}
+% make a substitution
+\newcommand{\subst}[2]{\ensuremath{[#1/#2]}}
+% make a substitution with bars
+\newcommand{\substb}[2]{\ensuremath{[\bar{#1}/\bar{#2}]}}
+% list of bounds/type environment
+\newcommand{\bds}[2]{\ensuremath{\bar{{#1} \extends \bd{#2}}}}
+% type parameter list with bounds and oxford brackets
+\newcommand{\tplist}[2]{\ensuremath{\ob{\bds{#1}{#2}}}}
+% monomorphic fn decl
+\newcommand{\decl}[3]{\mbox{\ensuremath{{#1}\,{#2}\!:\!{#3}}}}
+% a generic function declaration 
+\newcommand{\declg}[5]{\mbox{\ensuremath{#1 \tplist{#2}{#3}\, #4\!:\!#5}}}
+\newcommand{\hdeclg}[4]{\mbox{\ensuremath{#1 \ob{#2}\, #3\!:\!#4}}}
+% a class table T
+\newcommand{\T}{\ensuremath{\mathcal{T}}}
+% class table extension
+\newcommand{\ctext}{\ensuremath{\supseteq}}
+% a declaration set D
+\newcommand{\D}{\ensuremath{\mathcal{D}}}
+% a declaration set restricted to a function name
+\newcommand{\Df}[1][f]{\D_{\!#1}}
+% existential type
+\newcommand{\exttype}[2][\Delta]{\ensuremath{\exists\ob{#1}{#2}}}
+% universal type
+\newcommand{\unitype}[2][\Delta]{\ensuremath{\forall\ob{#1}{#2}}}
+% reduced existential type
+\newcommand{\reduce}[1]{\ensuremath{{#1}_r}}
+
+%%%%% Any and Bottom %%%%
+
+\newcommand{\Any}{\TYP{Any}}
+\newcommand{\Bottom}{\TYP{Bottom}}
+
+\newcommand{\FALSE}{\textrm{false}}
+\newcommand{\TRUE}{\textrm{true}}
+
+\newcommand{\NONE}{\bullet}
+
+\newcommand{\eqred}{\overset{\equiv}{\longrightarrow}}
+
+%%%%%%% JUDGMENTS %%%%%%%%
+
+%%% NEW SYNTACTIC JUDGMENT
+\newcommand{\newjudge}[2]{\fbox{\textbf{#1:} \quad \ensuremath{#2}}}
+
+% non constrained judgements
+\newcommand{\jgtemplate}[4][\Delta]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}}}
+% ground subtyping
+\newcommand{\jgsub}[3][\Delta]{\jgtemplate[#1]{#2}{\subtypeof}{#3}}
+\newcommand{\jgnequiv}[3][\Delta]{\jgtemplate[#1]{#2}{\not \equiv}{#3}}
+
+% subtyping on quantified types
+\newcommand{\jle}[3][\Delta]{\jgtemplate[#1]{#2}{\le}{#3}}
+\newcommand{\jleinner}[3][\Delta]{\jgtemplate[#1]{#2}{\leinner}{#3}}
+
+% constrained judgments
+\newcommand{\jgconstrtemplate}[5][\Delta]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}\,\Leftarrow\,{#5}}}
+% ground subtyping with constraints
+\newcommand{\jsub}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\subtypeof}{#3}{#4}}
+% not subtype
+\newcommand{\jnsub}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\not \subtypeof}{#3}{#4}}
+% type exclusion
+\newcommand{\jexc}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\exc}{#3}{#4}}
+% type non-exclusion
+\newcommand{\jnexc}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\nexc}{#3}{#4}}
+% equivalence
+\newcommand{\jequiv}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\equiv}{#3}{#4}}
+% nonequivalence
+\newcommand{\jnequiv}[4][\Delta]{\jgconstrtemplate[#1]{#2}{\not\equiv}{#3}{#4}}
+
+
+% contrapositive judgements
+\newcommand{\jgcontratemplate}[5][\Delta]{\ensuremath{{#1}\,\vdash\,{#2}\;{#3}\;{#4}\,\Rightarrow\,{#5}}}
+% ground subtyping with constraints
+\newcommand{\jcsub}[4][\Delta]{\jgcontratemplate[#1]{#2}{\subtypeof}{#3}{#4}}
+% not subtype
+\newcommand{\jcnsub}[4][\Delta]{\jgcontratemplate[#1]{#2}{\not \subtypeof}{#3}{#4}}
+% type exclusion
+\newcommand{\jcexc}[4][\Delta]{\jgcontratemplate[#1]{#2}{\exc}{#3}{#4}}
+% type non-exclusion
+\newcommand{\jcnexc}[4][\Delta]{\jgcontratemplate[#1]{#2}{\nexc}{#3}{#4}}
+% equivalence
+\newcommand{\jcequiv}[4][\Delta]{\jgcontratemplate[#1]{#2}{\equiv}{#3}{#4}}
+% nonequivalence
+\newcommand{\jcnequiv}[4][\Delta]{\jgcontratemplate[#1]{#2}{\not\equiv}{#3}{#4}}
+
+
+% applicability of a domain or fndecl to a type
+\newcommand{\japp}[3][\Delta]{\jgtemplate[#1]{#2}{\ni}{#3}}
+% specificity between fndecls
+\newcommand{\jms}[3][\Delta]{\jgtemplate[#1]{#2}{\ms}{#3}}
+
+% constraints
+% convert a bound environment into a constraint
+\newcommand{\toConstraint}[2]{\ensuremath{\textit{toConstraint}({#1})\,=\,{#2}}}
+% convert a constraint into a bound environment
+\newcommand{\toBounds}[2]{\ensuremath{\textit{toBounds}({#1})\,=\,{#2}}}
+
+% apply substitution to constraint
+\newcommand{\japply}[4][\Delta]{\ensuremath{{#1}\,\vdash\,\textit{apply}({#2}, {#3})\,=\,{#4}}}
+% solve constraint to get a substitution and the residual constraints
+\newcommand{\jsolve}[4][\Delta]{\ensuremath{{#1}\,\vdash\,\textit{unify}({#2})\,=\,{#3}\,,\;{#4}}}
+
+
+
+% type reduction
+\newcommand{\jtred}[2]{\ensuremath{\Delta \vdash\,{#1} \eqred {#2}}}
+\newcommand{\jtreds}[3]{\ensuremath{\Delta \vdash\,{#1} \eqred {#2}\,,\;{#3}}}
+
+
+% for tabularx environments to have a right-aligned, stretched col
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
+
+\theorembodyfont{\rm}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+% Our proofs are more like proof sketches!! EricAllen 7/15/2011
+\newenvironment{proof}{\noindent \textbf{Proof:} }{\hfill $\Box$}
+\newenvironment{psketch}{\noindent \textbf{Proof sketch:} }{\hfill $\Box$}
+
+\begin{document}
+
+\conferenceinfo{OOPSLA '11}{October 22--27, 2011, Portland, Oregon, USA.}
+\CopyrightYear{2011}
+\copyrightdata{978-1-4503-0940-0/11/10}
+
+\titlebanner{draft}        % These are ignored unless
+\preprintfooter{draft}     % 'preprint' option specified.
+
+\title{Type Checking Modular Multiple Dispatch with Parametric Polymorphism and Multiple Inheritance}
+\subtitle{}
+\authorinfo{Eric Allen}{Oracle Labs}{eric.allen@oracle.com}
+\authorinfo{Justin Hilburn}{Oracle Labs}{justin.hilburn@oracle.com}
+\authorinfo{Scott Kilpatrick}{University of Texas \\ at Austin}{scottk@cs.utexas.edu}
+\authorinfo{Victor Luchangco}{Oracle Labs}{victor.luchangco@oracle.com}
+\authorinfo{Sukyoung Ryu}{KAIST}{sryu.cs@kaist.ac.kr}
+\authorinfo{David Chase}{Oracle Labs}{david.r.chase@oracle.com}
+\authorinfo{Guy L. Steele Jr.}{Oracle Labs}{guy.steele@oracle.com}
+
+\makeatletter
+\def \@maketitle {%
+ \begin{center}
+ \@settitlebanner
+ \let \thanks = \titlenote
+ \noindent \LARGE \bfseries \@titletext \par
+ %\vskip 6pt
+ %\noindent \Large \@subtitletext \par
+ \vskip 6pt
+   \noindent \@setauthor{9pc}{i}{\@false}\hspace{1.5pc}%
+             \@setauthor{9pc}{ii}{\@false}\hspace{1.5pc}%
+             \@setauthor{9pc}{iii}{\@false}\hspace{1.5pc}%
+             \@setauthor{9pc}{iv}{\@true}\par
+\vspace{12pt plus 2pt}
+ \noindent \@setauthor{9pc}{v}{\@false}\hspace{1.5pc}%
+           \@setauthor{9pc}{vi}{\@false}\hspace{1.5pc}%
+           \@setauthor{9pc}{vii}{\@false}\par
+\vspace{10pt plus 2pt}
+ \end{center}}
+\makeatother
+\maketitle
+
+
+%% llncs
+%% \title{Type-checking Modular Multiple Dispatch with Parametric Polymorphism and
+%% \mbox{Multiple Inheritance}}
+%% \titlerunning{Modular Multiple Dispatch with Polymorphism and Multiple Inheritance}
+
+%% \author{Eric Allen\inst{1} \and
+%% Justin Hilburn\inst{2} \and
+%% Scott Kilpatrick\inst{3} \and
+%% Sukyoung Ryu\inst{4} \and\\
+%% David Chase\inst{1} \and
+%% Victor Luchangco\inst{1} \and
+%% Guy L. Steele Jr.\inst{1}
+%% }
+%% \authorrunning{Allen, Hilburn, Kilpatrick, Ryu, Chase, Luchangco, and Steele Jr.}
+%% %
+%% %%%% list of authors for the TOC (use if author list has to be modified)
+%% %% \tocauthor{Ivar Ekeland, Roger Temam, Jeffrey Dean, David Grove,
+%% %% Craig Chambers, Kim B. Bruce, and Elisa Bertino}
+%% %
+%% \institute{Sun Labs / Oracle, USA
+%% %\email{\{firstname.lastname, david.r.chase\}@oracle.com}
+%% \and
+%% University of Oregon, USA
+%% %\email{jhilburn@uoregon.edu}
+%% \and
+%% MPI-SWS, Germany
+%% %\email{skilpat@mpi-sws.org}
+%% \and
+%% KAIST, Korea
+%% %\email{sryu@cs.kaist.ac.kr}
+%% }
+
+%% \maketitle
+
+\begin{abstract}
+\input{abstract.tex}
+\end{abstract}
+
+\category{D.3.3}{Programming Languages}{Language Constructs and Features---classes and objects, inheritance, modules, packages, polymorphism}
+
+\terms{Languages}
+
+\keywords{object-oriented programming, multiple dispatch, 
+symmetric dispatch, multiple inheritance, overloading, modularity, methods, 
+multimethods, static types, run-time types, ilks, 
+components, separate compilation, Fortress, meet rule}
+
+\section{Introduction}\label{sec:intro}
+\input{introduction.tex}
+% INTRO
+% Symmetric Multiple Dispatch
+% Ambiguity
+% State the old rules
+% Parametric polymorphism
+% Dispatch
+
+\section{Preliminaries}\label{sec:pre}
+\input{setup}
+
+% TYPES
+% Classes
+% Class Table
+% Subtyping
+% Tuples + Arrows
+
+% OVERLOADED FUNCTIONS
+% Dispatch: Static vs Dynamics
+% Modularity: Class table never complete
+% Old Overloading Rules
+% Dispatch: Parametric functions
+
+\section{Overloading Rules and Resolution}\label{sec:rules}
+\input{rules}
+% GENERALIZED RULES
+% subtyping on domain = more specific for arrows
+% subtyping for existential types = more specific for universal arrows
+% using Derek's extension of System F_sub
+% no duplicates rule
+% meet rule
+% exclusion rule
+% subtype rule
+% Nothing satisfies them
+
+\subsection{Overloading Resolution Safety}\label{sec:safety}
+\input{safety}
+
+\section{Exclusion}
+\label{sec:exclusion}
+% EXCLUSION
+% Exclusion on base types
+% Exclusion on parametric types
+%   restriction in kennedy-pierce paper
+% Powerful for computing meets
+\input{exclusion}
+
+\section{Examples}
+\label{sec:examples}
+\input{examples}
+
+
+\section{Overloading Rules Checking}
+\label{sec:checking}
+\input{overloading-check}
+
+\section{Constraint-Based Judgments}\label{sec:constraints}
+\input{exc-constraints}
+
+\subsection{Quantifier Reduction}
+\label{sec:exred}
+\input{exc-reduction}
+
+
+\section{Overloading Across Modules}
+\label{sec:discussion}
+\input{discussion}
+
+\section{Related Work}\label{sec:related}
+\input{related-work}
+
+\section{Conclusion and Discussion}\label{sec:conclusion}
+\input{conclusion}
+
+\section*{Acknowledgments}
+This work is supported in part by the Engineering Research Center of Excellence Program of Korea Ministry of Education,
+Science and Technology(MEST) / National Research Foundation of Korea(NRF)
+(Grant 2011-0000974).
+
+\bibliographystyle{plain}
+% The bibliography should be embedded for final submission.
+\bibliography{paper}
+% \begin{thebibliography}{}
+% \softraggedright
+% 
+% \input{biblio.tex}
+% 
+% \end{thebibliography}
+
+% \appendix
+% \section{Subtyping Rules}
+% \input{fig-subtype}
+\end{document}

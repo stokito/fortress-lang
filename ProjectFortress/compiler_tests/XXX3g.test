@@ -1,0 +1,22 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled3.g
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled3.g.fss:12:11-21:\n\
+\ The following declarations in API Compiled3.g are not matched\n\
+\ by the declarations in component Compiled3.g.\n\
+\ Unmatched declarations: {\n\
+\     (TraitDecl T at ${FORTRESS_AUTOHOME}/ProjectFortress/test_library/Compiled3.g.fsi:13.3,\n\
+\      due to different excludes clauses for traits)\n\
+\ }\n\
+File Compiled3.g.fss has 1 error.\n
+compile_out_equals=
