@@ -1,0 +1,84 @@
+(*******************************************************************************
+    Copyright 2011,2012 Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled12.invariantInference
+
+export Executable
+
+(* Test that dynamic inference works
+   as expected in the case where there is
+   an invariant instance along with
+    - another invariant instances
+    - co- and contra-variant instances
+    - a combination
+   if the function matches AND there is
+   a valid instantiation for the type
+   variables (which must be the invariant
+   instance), then the function is called
+   otherwise the more general function with
+   only a single invariant instance is called
+   
+   NOTE - when created, there was a bug in the
+   typechecker that made it necessary to have
+   an Any version of the function - this should
+   not be the case - see Compiled12.invariantInference2.fss
+*)
+
+trait T[\X\]
+  getter asString(): String
+end
+
+object W[\X\](s:String) extends T[\X\]
+  getter asString(): String = "W" || s
+end
+
+trait Top end
+trait Super extends Top end
+object SuperO extends Super end
+trait Sub extends Super end 
+object SubO extends Sub end
+
+subSup(x : Sub) : Super = SuperO
+supSub(x : Super) : Sub = SubO
+
+f(x : Any, z: Any, y : Any) = "Any"
+f[\X\](x : T[\X\], z : Any, y : Any) : String = x.asString || " None"
+f[\X\](x : T[\X\], z : T [\X\], y : Any) : String = x.asString || " Inv"
+f[\X1, X extends X1\](x : T[\X\], z : Any, y : X1 -> X) : String = 
+    x.asString || " Co,Contra"
+f[\X1, X extends X1\](x : T[\X\], z : T [\X\], y : X1 -> X) : String = 
+    x.asString || " Inv,Co,Contra"
+f[\X\](x : T[\X\], z : Any, y : (X,X)) : String =
+    x.asString || " Co"
+f[\X\](x : T[\X\], z : T[\X\], y : (X,X)) : String =
+    x.asString || " Inv,Co"
+
+run() = do
+    subTest : T[\Sub\] = W[\Sub\]("sub")
+    supTest : T[\Super\] = W[\Super\]("super")
+    subTestAny : Any = subTest
+    supTestAny : Any = supTest
+    
+    println(f(subTestAny,supTestAny,subSup)) (*) Wsub None
+    println(f(subTestAny,subTestAny,subSup)) (*) Wsub Inv
+    println(f(subTestAny,supTestAny,supSub)) (*) Wsub Co,Contra
+    println(f(subTestAny,subTestAny,supSub)) (*) Wsub Inv,Co,Contra
+    println(f(supTestAny,subTestAny,subSup)) (*) Wsuper None
+    println(f(supTestAny,subTestAny,supSub)) (*) Wsuper Co,Contra
+    println(f(supTestAny,supTestAny,subSup)) (*) Wsuper Inv
+    println(f(supTestAny,supTestAny,supSub)) (*) Wsuper Inv,Co,Contra
+    println(f(supTestAny,supTestAny,(SuperO,SuperO))) (*) Wsuper Inv,Co
+    println(f(supTestAny,supTestAny,(SubO,SubO))) (*) Wsuper Inv,Co
+    println(f(supTestAny,subTestAny,(SubO,SubO))) (*) Wsuper Co
+    println(f(subTestAny,subTestAny,(SuperO,SuperO))) (*) Wsub Inv
+end
+
+end

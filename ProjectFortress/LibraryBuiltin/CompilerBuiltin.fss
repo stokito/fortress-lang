@@ -1,0 +1,1360 @@
+(*******************************************************************************
+    Copyright 2008,2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component CompilerBuiltin
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrint => jPrint,
+                                            simplePrintln.nativePrintln => jPrintln,
+                                            simplePrintln.nativeErrorPrint => jErrorPrint,
+                                            simplePrintln.nativeErrorPrintln => jErrorPrintln}
+import java com.sun.fortress.nativeHelpers.{simpleConcatenate.nativeConcatenate => jConcatenate,
+                                            simpleConcatenate.nativeSmartConcatenate => jSmartConcatenate,
+                                            simpleConcatenate.nativeStrlen => jStrlen}
+import java com.sun.fortress.nativeHelpers.{simpleBoolean.booleanAnd => jBooleanAnd,
+                                            simpleBoolean.booleanOr => jBooleanOr,
+                                            simpleBoolean.booleanXor => jBooleanXor,
+                                            simpleBoolean.booleanEqv => jBooleanEqv,
+                                            simpleBoolean.booleanNot => jBooleanNot}
+import java com.sun.fortress.nativeHelpers.{simpleIntArith.intToString => jIntToString,
+                                            simpleIntArith.parseInt => jParseInt,
+                                            simpleIntArith.intAdd => jIntAdd,
+                                            simpleIntArith.intSub => jIntSub,
+                                            simpleIntArith.intMul => jIntMul,
+                                            simpleIntArith.intDiv => jIntDiv,
+                                            simpleIntArith.intNeg => jIntNeg,
+                                            simpleIntArith.intAbs => jIntAbs,
+                                            simpleIntArith.longToInt => jLongToInt,
+                                            simpleIntArith.intOverflowingAdd => jIntOverflowingAdd,
+                                            simpleIntArith.intOverflowingSub => jIntOverflowingSub,
+                                            simpleIntArith.intOverflowingMul => jIntOverflowingMul,
+                                            simpleIntArith.intOverflowingDiv => jIntOverflowingDiv,
+                                            simpleIntArith.intOverflowingNeg => jIntOverflowingNeg,
+                                            simpleIntArith.intOverflowingAbs => jIntOverflowingAbs,
+                                            simpleIntArith.longOverflowingToInt => jLongOverflowingToInt,
+                                            simpleIntArith.longLowHalfToInt => jLongLowHalfToInt,
+                                            simpleIntArith.longHighHalfToInt => jLongHighHalfToInt,
+                                            simpleIntArith.longMaskedToInt => jLongMaskedToInt,
+                                            simpleIntArith.intOverflowingChoose => jIntOverflowingChoose,
+                                            simpleIntArith.intWrappingAdd => jIntWrappingAdd,
+                                            simpleIntArith.intWrappingSub => jIntWrappingSub,
+                                            simpleIntArith.intWrappingMul => jIntWrappingMul,
+                                            simpleIntArith.intWrappingDiv => jIntWrappingDiv,
+                                            simpleIntArith.intWrappingNeg => jIntWrappingNeg,
+                                            simpleIntArith.intWrappingAbs => jIntWrappingAbs,
+                                            simpleIntArith.longWrappingToInt => jLongWrappingToInt,
+                                            simpleIntArith.intSaturatingAdd => jIntSaturatingAdd,
+                                            simpleIntArith.intSaturatingSub => jIntSaturatingSub,
+                                            simpleIntArith.intSaturatingMul => jIntSaturatingMul,
+                                            simpleIntArith.intSaturatingDiv => jIntSaturatingDiv,
+                                            simpleIntArith.intSaturatingNeg => jIntSaturatingNeg,
+                                            simpleIntArith.intSaturatingAbs => jIntSaturatingAbs,
+                                            simpleIntArith.longSaturatingToInt => jLongSaturatingToInt,
+                                            simpleIntArith.intLT => jIntLT,
+                                            simpleIntArith.intLE => jIntLE,
+                                            simpleIntArith.intGT => jIntGT,
+                                            simpleIntArith.intGE => jIntGE,
+                                            simpleIntArith.intEQ => jIntEQ,
+                                            simpleIntArith.intBitNot => jIntBitNot,
+                                            simpleIntArith.intBitAnd => jIntBitAnd,
+                                            simpleIntArith.intBitOr => jIntBitOr,
+                                            simpleIntArith.intBitXor => jIntBitXor,
+                                            simpleIntArith.intLeftShiftByIntMod32 => jIntLeftShiftByIntMod32,
+                                            simpleIntArith.intRightShiftByIntMod32 => jIntRightShiftByIntMod32,
+                                            simpleIntArith.intLeftShiftByLongMod32 => jIntLeftShiftByLongMod32,
+                                            simpleIntArith.intRightShiftByLongMod32 => jIntRightShiftByLongMod32,
+                                            simpleIntArith.intShift => jIntShift,
+                                            simpleIntArith.intExp => jIntExp,
+                                            simpleIntArith.intToDouble => jIntToDouble}
+import java com.sun.fortress.nativeHelpers.{simpleUnsignedIntArith.makeNN32FromZZ32WithSpecialCompilerHackForNN32ResultType => jMakeNN32FromZZ32,
+                                            simpleUnsignedIntArith.makeZZ32FromNN32WithSpecialCompilerHackForNN32ArgumentType => jMakeZZ32FromNN32,
+                                            simpleUnsignedIntArith.unsignedIntToString => jUnsignedIntToString,
+                                            simpleUnsignedIntArith.parseUnsignedInt => jParseUnsignedInt,
+                                            simpleUnsignedIntArith.unsignedIntOverflowingAdd => jUnsignedIntOverflowingAdd,
+                                            simpleUnsignedIntArith.unsignedIntOverflowingSub => jUnsignedIntOverflowingSub,
+                                            simpleUnsignedIntArith.unsignedIntOverflowingMul => jUnsignedIntOverflowingMul,
+                                            simpleUnsignedIntArith.unsignedIntOverflowingDiv => jUnsignedIntOverflowingDiv,
+                                            simpleUnsignedIntArith.unsignedIntOverflowingNeg => jUnsignedIntOverflowingNeg,
+                                            simpleUnsignedIntArith.unsignedIntOverflowingAbs => jUnsignedIntOverflowingAbs,
+                                            simpleUnsignedIntArith.longOverflowingToUnsignedInt => jLongOverflowingToUnsignedInt,
+                                            simpleUnsignedIntArith.unsignedIntOverflowingChoose => jUnsignedIntOverflowingChoose,
+                                            simpleUnsignedIntArith.unsignedIntWrappingAdd => jUnsignedIntWrappingAdd,
+                                            simpleUnsignedIntArith.unsignedIntWrappingSub => jUnsignedIntWrappingSub,
+                                            simpleUnsignedIntArith.unsignedIntWrappingMul => jUnsignedIntWrappingMul,
+                                            simpleUnsignedIntArith.unsignedIntWrappingDiv => jUnsignedIntWrappingDiv,
+                                            simpleUnsignedIntArith.unsignedIntWrappingNeg => jUnsignedIntWrappingNeg,
+                                            simpleUnsignedIntArith.unsignedIntWrappingAbs => jUnsignedIntWrappingAbs,
+                                            simpleUnsignedIntArith.longWrappingToUnsignedInt => jLongWrappingToUnsignedInt,
+                                            simpleUnsignedIntArith.unsignedIntSaturatingAdd => jUnsignedIntSaturatingAdd,
+                                            simpleUnsignedIntArith.unsignedIntSaturatingSub => jUnsignedIntSaturatingSub,
+                                            simpleUnsignedIntArith.unsignedIntSaturatingMul => jUnsignedIntSaturatingMul,
+                                            simpleUnsignedIntArith.unsignedIntSaturatingDiv => jUnsignedIntSaturatingDiv,
+                                            simpleUnsignedIntArith.unsignedIntSaturatingNeg => jUnsignedIntSaturatingNeg,
+                                            simpleUnsignedIntArith.unsignedIntSaturatingAbs => jUnsignedIntSaturatingAbs,
+                                            simpleUnsignedIntArith.longSaturatingToUnsignedInt => jLongSaturatingToUnsignedInt,
+                                            simpleUnsignedIntArith.unsignedIntLT => jUnsignedIntLT,
+                                            simpleUnsignedIntArith.unsignedIntLE => jUnsignedIntLE,
+                                            simpleUnsignedIntArith.unsignedIntGT => jUnsignedIntGT,
+                                            simpleUnsignedIntArith.unsignedIntGE => jUnsignedIntGE,
+                                            simpleUnsignedIntArith.unsignedIntEQ => jUnsignedIntEQ,
+                                            simpleUnsignedIntArith.unsignedIntBitNot => jUnsignedIntBitNot,
+                                            simpleUnsignedIntArith.unsignedIntBitAnd => jUnsignedIntBitAnd,
+                                            simpleUnsignedIntArith.unsignedIntBitOr => jUnsignedIntBitOr,
+                                            simpleUnsignedIntArith.unsignedIntBitXor => jUnsignedIntBitXor,
+                                            simpleUnsignedIntArith.unsignedIntLeftShiftByIntMod32 => jUnsignedIntLeftShiftByIntMod32,
+                                            simpleUnsignedIntArith.unsignedIntRightShiftByIntMod32 => jUnsignedIntRightShiftByIntMod32,
+                                            simpleUnsignedIntArith.unsignedIntLeftShiftByLongMod32 => jUnsignedIntLeftShiftByLongMod32,
+                                            simpleUnsignedIntArith.unsignedIntRightShiftByLongMod32 => jUnsignedIntRightShiftByLongMod32,
+                                            simpleUnsignedIntArith.unsignedIntShift => jUnsignedIntShift,
+                                            simpleUnsignedIntArith.unsignedIntExp => jUnsignedIntExp,
+                                            simpleUnsignedIntArith.unsignedIntToDouble => jUnsignedIntToDouble}
+import java com.sun.fortress.nativeHelpers.{simpleUnsignedLongArith.makeNN64FromZZ64WithSpecialCompilerHackForNN64ResultType => jMakeNN64FromZZ64,
+                                            simpleUnsignedLongArith.makeZZ64FromNN64WithSpecialCompilerHackForNN64ArgumentType => jMakeZZ64FromNN64,
+                                            simpleUnsignedLongArith.unsignedLongToString => junsignedLongToString,
+                                            simpleUnsignedLongArith.parseUnsignedLong => jParseUnsignedLong,
+                                            simpleUnsignedLongArith.unsignedLongOverflowingAdd => junsignedLongOverflowingAdd,
+                                            simpleUnsignedLongArith.unsignedLongOverflowingSub => junsignedLongOverflowingSub,
+                                            simpleUnsignedLongArith.unsignedLongOverflowingMul => junsignedLongOverflowingMul,
+                                            simpleUnsignedLongArith.unsignedLongOverflowingDiv => junsignedLongOverflowingDiv,
+                                            simpleUnsignedLongArith.unsignedLongOverflowingNeg => junsignedLongOverflowingNeg,
+                                            simpleUnsignedLongArith.unsignedLongOverflowingAbs => junsignedLongOverflowingAbs,
+                                            simpleUnsignedLongArith.unsignedLongWrappingAdd => junsignedLongWrappingAdd,
+                                            simpleUnsignedLongArith.unsignedLongWrappingSub => junsignedLongWrappingSub,
+                                            simpleUnsignedLongArith.unsignedLongWrappingMul => junsignedLongWrappingMul,
+                                            simpleUnsignedLongArith.unsignedLongWrappingDiv => junsignedLongWrappingDiv,
+                                            simpleUnsignedLongArith.unsignedLongWrappingNeg => junsignedLongWrappingNeg,
+                                            simpleUnsignedLongArith.unsignedLongWrappingAbs => junsignedLongWrappingAbs,
+                                            simpleUnsignedLongArith.unsignedLongSaturatingAdd => junsignedLongSaturatingAdd,
+                                            simpleUnsignedLongArith.unsignedLongSaturatingSub => junsignedLongSaturatingSub,
+                                            simpleUnsignedLongArith.unsignedLongSaturatingMul => junsignedLongSaturatingMul,
+                                            simpleUnsignedLongArith.unsignedLongSaturatingDiv => junsignedLongSaturatingDiv,
+                                            simpleUnsignedLongArith.unsignedLongSaturatingNeg => junsignedLongSaturatingNeg,
+                                            simpleUnsignedLongArith.unsignedLongSaturatingAbs => junsignedLongSaturatingAbs,
+                                            simpleUnsignedLongArith.unsignedLongLT => junsignedLongLT,
+                                            simpleUnsignedLongArith.unsignedLongLE => junsignedLongLE,
+                                            simpleUnsignedLongArith.unsignedLongGT => junsignedLongGT,
+                                            simpleUnsignedLongArith.unsignedLongGE => junsignedLongGE,
+                                            simpleUnsignedLongArith.unsignedLongEQ => junsignedLongEQ,
+                                            simpleUnsignedLongArith.unsignedLongBitNot => junsignedLongBitNot,
+                                            simpleUnsignedLongArith.unsignedLongBitAnd => junsignedLongBitAnd,
+                                            simpleUnsignedLongArith.unsignedLongBitOr => junsignedLongBitOr,
+                                            simpleUnsignedLongArith.unsignedLongBitXor => junsignedLongBitXor,
+                                            simpleUnsignedLongArith.unsignedLongLeftShiftByIntMod64 => jUnsignedLongLeftShiftByIntMod64,
+                                            simpleUnsignedLongArith.unsignedLongRightShiftByIntMod64 => jUnsignedLongRightShiftByIntMod64,
+                                            simpleUnsignedLongArith.unsignedLongLeftShiftByLongMod64 => jUnsignedLongLeftShiftByLongMod64,
+                                            simpleUnsignedLongArith.unsignedLongRightShiftByLongMod64 => jUnsignedLongRightShiftByLongMod64,
+                                            simpleUnsignedLongArith.unsignedLongShift => jUnsignedLongShift,
+                                            simpleUnsignedLongArith.unsignedLongExp => junsignedLongExp}
+import java com.sun.fortress.nativeHelpers.{simpleLongArith.longToString => jLongToString,
+                                            simpleLongArith.parseLong => jParseLong,
+                                            simpleLongArith.longAdd => jLongAdd,
+                                            simpleLongArith.longSub => jLongSub,
+                                            simpleLongArith.longMul => jLongMul,
+                                            simpleLongArith.longDiv => jLongDiv,
+                                            simpleLongArith.longNeg => jLongNeg,
+                                            simpleLongArith.longAbs => jLongAbs,
+                                            simpleLongArith.longOverflowingAdd => jLongOverflowingAdd,
+                                            simpleLongArith.longOverflowingSub => jLongOverflowingSub,
+                                            simpleLongArith.longOverflowingMul => jLongOverflowingMul,
+                                            simpleLongArith.longOverflowingDiv => jLongOverflowingDiv,
+                                            simpleLongArith.longOverflowingNeg => jLongOverflowingNeg,
+                                            simpleLongArith.longOverflowingAbs => jLongOverflowingAbs,
+                                            simpleLongArith.longOverflowingChoose => jLongOverflowingChoose,
+                                            simpleLongArith.longWrappingAdd => jLongWrappingAdd,
+                                            simpleLongArith.longWrappingSub => jLongWrappingSub,
+                                            simpleLongArith.longWrappingMul => jLongWrappingMul,
+                                            simpleLongArith.longWrappingDiv => jLongWrappingDiv,
+                                            simpleLongArith.longWrappingNeg => jLongWrappingNeg,
+                                            simpleLongArith.longWrappingAbs => jLongWrappingAbs,
+                                            simpleLongArith.longSaturatingAdd => jLongSaturatingAdd,
+                                            simpleLongArith.longSaturatingSub => jLongSaturatingSub,
+                                            simpleLongArith.longSaturatingMul => jLongSaturatingMul,
+                                            simpleLongArith.longSaturatingDiv => jLongSaturatingDiv,
+                                            simpleLongArith.longSaturatingNeg => jLongSaturatingNeg,
+                                            simpleLongArith.longSaturatingAbs => jLongSaturatingAbs,
+                                            simpleLongArith.longLT => jLongLT,
+                                            simpleLongArith.longLE => jLongLE,
+                                            simpleLongArith.longGT => jLongGT,
+                                            simpleLongArith.longGE => jLongGE,
+                                            simpleLongArith.longEQ => jLongEQ,
+                                            simpleLongArith.intToLong => jIntToLong,
+                                            simpleLongArith.longBitNot => jLongBitNot,
+                                            simpleLongArith.longBitAnd => jLongBitAnd,
+                                            simpleLongArith.longBitOr => jLongBitOr,
+                                            simpleLongArith.longBitXor => jLongBitXor,
+                                            simpleLongArith.longLeftShiftByIntMod64 => jLongLeftShiftByIntMod64,
+                                            simpleLongArith.longRightShiftByIntMod64 => jLongRightShiftByIntMod64,
+                                            simpleLongArith.longLeftShiftByLongMod64 => jLongLeftShiftByLongMod64,
+                                            simpleLongArith.longRightShiftByLongMod64 => jLongRightShiftByLongMod64,
+                                            simpleLongArith.longShift => jLongShift}
+import java com.sun.fortress.nativeHelpers.{simpleDoubleArith.floatToDouble => jFloatToDouble,
+                                            simpleDoubleArith.doubleToString => jDoubleToString,
+                                            simpleDoubleArith.doubleAdd => jDoubleAdd,
+                                            simpleDoubleArith.doubleSub => jDoubleSub,
+                                            simpleDoubleArith.doubleMul => jDoubleMul,
+                                            simpleDoubleArith.doubleDiv => jDoubleDiv,
+                                            simpleDoubleArith.doubleLT => jDoubleLT,
+                                            simpleDoubleArith.doubleLE => jDoubleLE,
+                                            simpleDoubleArith.doubleGT => jDoubleGT,
+                                            simpleDoubleArith.doubleGE => jDoubleGE,
+                                            simpleDoubleArith.doubleEQ => jDoubleEQ,
+                                            simpleDoubleArith.doubleNeg => jDoubleNeg,
+                                            simpleDoubleArith.parseDouble => jParseDouble,
+                                            simpleDoubleArith.doubleAbs => jDoubleAbs,
+                                            simpleDoubleArith.doublePow => jDoublePow,
+                                            simpleDoubleArith.doubleNanoTime => jNanoTime,
+                                            simpleDoubleArith.doubleFloor => jDoubleFloor,
+                                            simpleDoubleArith.doubleCeiling => jDoubleCeiling,
+                                            simpleDoubleArith.doubleSQRT => jDoubleSQRT}
+import java com.sun.fortress.nativeHelpers.{simpleChar.charToString => jCharToString,
+                                            simpleChar.charToExprString => jCharToExprString,
+                                            simpleChar.charCodePointWithSpecialCompilerHackForCharacterArgumentType => jCodePoint,
+                                            simpleChar.charMakeCharacterWithSpecialCompilerHackForCharacterResultType => jMakeCharacter,
+                                            simpleChar.charLT => jCharLT,
+                                            simpleChar.charLE => jCharLE,
+                                            simpleChar.charGT => jCharGT,
+                                            simpleChar.charGE => jCharGE,
+                                            simpleChar.charEQ => jCharEQ,
+                                            simpleChar.charNE => jCharNE,
+                                            simpleChar.charLessNotSim => jCharLessNotSim,
+                                            simpleChar.charLessSim => jCharLessSim,
+                                            simpleChar.charGreaterNotSim => jCharGreaterNotSim,
+                                            simpleChar.charGreaterSim => jCharGreaterSim,
+                                            simpleChar.charSimEq => jCharSimEq,
+                                            simpleChar.charNotSimEq => jCharNotSimEq,
+                                            simpleChar.charGetDirectionality => jCharGetDirectionality,
+                                            simpleChar.charGetNumericValue => jCharGetNumericValue,
+                                            simpleChar.charGetType => jCharGetType,
+                                            simpleChar.charIsDefined => jCharIsDefined,
+                                            simpleChar.charIsDigit => jCharIsDigit,
+                                            simpleChar.charIsFortressIdentifierPart => jCharIsFortressIdentifierPart,
+                                            simpleChar.charIsFortressIdentifierStart => jCharIsFortressIdentifierStart,
+                                            simpleChar.charIsHighSurrogate => jCharIsHighSurrogate,
+                                            simpleChar.charIsIdentifierIgnorable => jCharIsIdentifierIgnorable,
+                                            simpleChar.charIsISOControl => jCharIsISOControl,
+                                            simpleChar.charIsJavaIdentifierPart => jCharIsJavaIdentifierPart,
+                                            simpleChar.charIsJavaIdentifierStart => jCharIsJavaIdentifierStart,
+                                            simpleChar.charIsLetter => jCharIsLetter,
+                                            simpleChar.charIsLetterOrDigit => jCharIsLetterOrDigit,
+                                            simpleChar.charIsLowerCase => jCharIsLowerCase,
+                                            simpleChar.charIsLowSurrogate => jCharIsLowSurrogate,
+                                            simpleChar.charIsMirrored => jCharIsMirrored,
+                                            simpleChar.charIsSpaceChar => jCharIsSpaceChar,
+                                            simpleChar.charIsSupplementaryCodePoint => jCharIsSupplementaryCodePoint,
+                                            simpleChar.charIsSurrogatePair => jCharIsSurrogatePair,
+                                            simpleChar.charIsTitleCase => jCharIsTitleCase,
+                                            simpleChar.charIsUnicodeIdentifierPart => jCharIsUnicodeIdentifierPart,
+                                            simpleChar.charIsUnicodeIdentifierStart => jCharIsUnicodeIdentifierStart,
+                                            simpleChar.charIsUpperCase => jCharIsUpperCase,
+                                            simpleChar.charIsValidCodePoint => jCharIsValidCodePoint,
+                                            simpleChar.charIsWhitespace => jCharIsWhitespace,
+                                            simpleChar.charJavaDigit => jCharJavaDigit,
+                                            simpleChar.charToLowerCase => jCharToLowerCase,
+                                            simpleChar.charToTitleCase => jCharToTitleCase,
+                                            simpleChar.charToUpperCase => jCharToUpperCase}
+import java com.sun.fortress.nativeHelpers.{LocalRandom.localRandomDouble => jRandomDouble,
+                                            LocalRandom.localRandomInt => jRandomInt }
+import java com.sun.fortress.nativeHelpers.{stringOps.compareTo => jCompareTo,
+                                            stringOps.substring => jSubstring,
+                                            stringOps.charAt => jCharAt,
+                                            stringOps.asString => jAsString}
+import java com.sun.fortress.nativeHelpers.{fileOps.jbrOpen => jJavaBufferedReaderOpen,
+                                            fileOps.jbrAsString => jJavaBufferedReaderAsString,
+                                            fileOps.jbrRead => jJavaBufferedReaderRead,
+                                            fileOps.jbrReadLine => jJavaBufferedReaderReadLine,
+                                            fileOps.jbrReadk => jJavaBufferedReaderReadk,
+                                            fileOps.jbrEof => jJavaBufferedReaderEof,
+                                            fileOps.jbrReady => jJavaBufferedReaderReady,
+                                            fileOps.jbrClose => jJavaBufferedReaderClose,
+                                            fileOps.jbrWhenUnconsumed => jJavaBufferedReaderWhenUnconsumed,
+                                            fileOps.jbrConsume => jJavaBufferedReaderConsume,
+                                            fileOps.jbwOpen => jJavaBufferedWriterOpen,
+                                            fileOps.jbwAsString => jJavaBufferedWriterAsString,
+                                            fileOps.jbwWriteChar => jJavaBufferedWriterWriteChar,
+                                            fileOps.jbwWriteString => jJavaBufferedWriterWriteString,
+                                            fileOps.jbwNewLine => jJavaBufferedWriterNewLine,
+                                            fileOps.jbwFlush => jJavaBufferedWriterFlush,
+                                            fileOps.jbwClose => jJavaBufferedWriterClose }
+import java com.sun.fortress.nativeHelpers.{simpleIntVector.getIndexedValue => jIntVectorGet,
+                                            simpleIntVector.putIndexedValue => jIntVectorPut,
+                                            simpleIntVector.getSize => jIntVectorGetSize,
+                                            simpleIntVector.make => jIntVectorMake,
+                                            simpleIntVector.asString => jIntVectorAsString,
+                                            simpleIntVector.getRows => jIntVectorGetRows,
+                                            simpleIntVector.getCols => jIntVectorGetCols }
+import java com.sun.fortress.nativeHelpers.{simpleStringVector.getIndexedValue => jStringVectorGet,
+                                            simpleStringVector.putIndexedValue => jStringVectorPut,
+                                            simpleStringVector.getSize => jStringVectorGetSize,
+                                            simpleStringVector.make => jStringVectorMake }
+import java com.sun.fortress.nativeHelpers.{simpleArbitraryPrecisionArith.parse => jAPParse,
+                                            simpleArbitraryPrecisionArith.toString => jAPToString,
+                                            simpleArbitraryPrecisionArith.add => jAPAdd,
+                                            simpleArbitraryPrecisionArith.sub => jAPSub ,
+                                            simpleArbitraryPrecisionArith.mul => jAPMul , 
+                                            simpleArbitraryPrecisionArith.div => jAPDiv ,
+                                            simpleArbitraryPrecisionArith.neg => jAPNeg ,
+                                            simpleArbitraryPrecisionArith.abs => jAPAbs ,
+                                            simpleArbitraryPrecisionArith.lt => jAPLt ,
+                                            simpleArbitraryPrecisionArith.le => jAPLe ,
+                                            simpleArbitraryPrecisionArith.gt => jAPGt ,
+                                            simpleArbitraryPrecisionArith.ge => jAPGe ,
+                                            simpleArbitraryPrecisionArith.eq => jAPEq ,
+                                            simpleArbitraryPrecisionArith.not => jAPNot,
+                                            simpleArbitraryPrecisionArith.and => jAPAnd,
+                                            simpleArbitraryPrecisionArith.oor => jAPOr,
+                                            simpleArbitraryPrecisionArith.xor => jAPXor,
+                                            simpleArbitraryPrecisionArith.shiftLeft => jAPShiftLeft,
+                                            simpleArbitraryPrecisionArith.ZZtoBI => ZZtoBI,
+                                            simpleArbitraryPrecisionArith.BItoZZ => BItoZZ
+                                            }
+                                       
+import AnyType.{Any}
+import CompilerAlgebra.{ Equality, StandardTotalOrder }
+export CompilerBuiltin
+
+nanoTime(): RR64 = jNanoTime()
+
+trait Object extends Any
+   getter asString(): String = jAsString(self)
+   getter asExprString(): String = "[no expression for "  self.asString "]"
+   getter asDebugString(): String = self.asString
+(*)     getter asDebugString(): String  = do  (* for debugging; may contain more information *)
+(*)         ilk = self.ilkName
+(*)         firstChar = ilk[0]
+(*)         article = if firstChar = 'a' OR: firstChar = 'e' OR: firstChar = 'i' OR: firstChar = 'o' OR:
+(*)           (firstChar = 'h' AND: |ilk| >= 4 AND: ilk[0:3] = "hono") OR:
+(*)           (firstChar = 'u' AND:
+(*)              (do ilkNameLength = |ilk|
+(*)                ilkNameLength >= 3 AND:
+(*)                  (do (secondChar, thirdChar) = (ilk[1], ilk[2])
+(*)                    (secondChar = 'b' AND thirdChar = 'i') OR:
+(*)                    (secondChar = 'n' AND thirdChar = 'i' AND:
+(*)                      (ilkNameLength = 3 OR:
+(*)                    (case ilk[3] of
+(*)                            'd' => ilkNameLength < 6 OR: (ilk[4:5] =/= "en" AND: ilk[4:5] =/= "io")
+(*)                            'm' => ilkNameLength < 5 OR: (ilk[4] =/= 'a' AND: ilk[4] =/= 'p')
+(*)                            'n' => ilkNameLength >= 5 AND: (ilk[4] = 'u')
+(*)                            'r' => ilkNameLength < 6 OR: ilk[4:5] =/= "on"
+(*)                        else => true))) OR:
+(*)                    (secondChar = 'r' AND
+(*)                  (thirdChar = 'a' OR: thirdChar = 'e' OR: thirdChar = 'i' OR: thirdChar = 'o' OR:
+(*)                    (thirdChar = 'u' AND: (ilkNameLength = 3 OR: ilk[3] =/= 'g')))) OR:
+(*)                    (secondChar = 't' AND
+(*)                  (thirdChar = 'a' OR: thirdChar = 'e' OR: thirdChar = 'i' OR: thirdChar = 'o'))
+(*)                    (secondChar = 'v' AND
+(*)                  (thirdChar = 'a' OR: thirdChar = 'e' OR: thirdChar = 'i' OR: thirdChar = 'u')))))
+(*)             then "an " else "a " end
+(*)         article ilk ": " self.asString
+(*)         self.asString
+(*) end
+end Object
+
+trait String
+    getter isEmpty(): Boolean
+    getter asString(): String
+    getter asJavaString(): JavaString
+    opr |self| : ZZ32
+    opr <(self, b: String): Boolean = false    (*) Needs to be replaced by generic definition once big operators work
+    opr =(self, b: String): Boolean = false    (*) Needs to be replaced by generic definition once big operators work
+    opr ||(self, b:Object): String
+    opr |||(self, b:Object): String
+    opr juxtaposition(self, b:Object): String = self ||| b
+    opr [i:ZZ32] : Character
+    substring(lo:ZZ32, hi:ZZ32): String
+    opr ^(self, n: ZZ32): String
+end
+
+trait JavaString extends String
+    getter isEmpty(): Boolean = (jStrlen(self) = 0)
+    getter asString(): String = self
+    getter asJavaString(): JavaString = self
+    opr |self| : ZZ32 = jStrlen(self)
+    opr <(self, b: JavaString): Boolean = (jCompareTo(self, b) < 0)
+    opr =(self, b: JavaString): Boolean = (jCompareTo(self, b) = 0)
+    opr ||(self, b:Object): JavaString =  jConcatenate(self, b.asString.asJavaString)
+    opr |||(self, b:Object): JavaString = jSmartConcatenate(self, b.asString.asJavaString)
+    opr [i:ZZ32] : Character = jMakeCharacter(jCharAt(self, i))
+    substring(lo:ZZ32, hi:ZZ32): JavaString = jSubstring(self, lo, hi)
+    opr ^(self, n: ZZ32): JavaString =
+      if n <= 1 then
+        if n=1 then self elif n=0 then ("").asJavaString else throw NegativeLength end
+      else
+        x = (self || self)^(n DIV 2)
+        if odd n then x || self else x end
+      end
+end
+
+print(x:Object):() = jPrint(x.asString.asJavaString)
+(*) print(s:String):() = jPrint(s.asJavaString)
+(*) print(s:JavaString):() = jPrint(s)
+(*) print(c:Character):() = jPrint(c.asString)
+(*) print(x:ZZ32):() = jPrint(x.asString)
+(*) print(x:ZZ64):() = jPrint(x.asString)
+(*) print(x:RR64):() = jPrint(x.asString)
+
+println(x:Object):() = jPrintln(x.asString.asJavaString)
+(*) println(s:String):() = jPrintln(s.asJavaString)
+(*) println(s:JavaString):() = jPrintln(s)
+(*) println(c:Character):() = jPrintln(c.asString)
+(*) println():() = jPrintln("")
+(*) println(x:Any):() = jPrintln("<any>")
+
+(*) println(x:ZZ32):() = jPrintln(x.asString)
+(*) println(x:ZZ64):() = jPrintln(x.asString)
+(*) println(x:RR32):() = jPrintln(x.asString)
+(*) println(x:RR64):() = jPrintln(x.asString)
+println(a: Any, b: Any): () = jPrintln(("(" str(a) ", " str(b) ")").asJavaString)
+println(a: Any, b: Any, c: Any): () = jPrintln(("(" str(a) ", " str(b) ", " str(c) ")").asJavaString)
+println(a: Any, b: Any, c: Any, d: Any): () = jPrintln(("(" str(a) ", " str(b) ", " str(c) ", " str(d) ")").asJavaString)
+(*) println[\A,B,C,D,E\](x: (A,B,C,D,E)):() = jPrintln(str(x))
+(*) println[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):() = jPrintln(str(x))
+(*) println[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):() = jPrintln(str(x))
+
+errorPrintln(x:Object):() = jErrorPrintln(x.asString.asJavaString)
+(*) errorPrintln(s:String):() = jErrorPrintln(s.asJavaString)
+(*) errorPrintln(s:JavaString):() = jErrorPrintln(s)
+(*) errorPrintln(c:Character):() = jErrorPrintln(c.asString)
+(*) errorPrintln(x:Object): () = jErrorPrintln(x.asString)
+(*) errorPrintln():() = jErrorPrintln("")
+(*) errorPrintln(x:Any):() = jErrorPrintln("<big tuple>")
+
+(*) errorPrintln(x:ZZ32):() = jErrorPrintln(x.asString)
+(*) errorPrintln(x:ZZ64):() = jErrorPrintln(x.asString)
+(*) errorPrintln(x:RR32):() = jErrorPrintln(x.asString)
+(*) errorPrintln(x:RR64):() = jErrorPrintln(x.asString)
+(*) errorPrintln[\A,B\](x: (A,B)):() = jErrorPrintln(str(x))
+(*) errorPrintln[\A,B,C\](x: (A,B,C)):() = jErrorPrintln(str(x))
+(*) errorPrintln[\A,B,C,D\](x: (A,B,C,D)):() = jErrorPrintln(str(x))
+(*) errorPrintln[\A,B,C,D,E\](x: (A,B,C,D,E)):() = jErrorPrintln(str(x))
+(*) errorPrintln[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)):() = jErrorPrintln(str(x))
+(*) errorPrintln[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)):() = jErrorPrintln(str(x))
+
+(*) Utility routine for converting tuples to strings
+private str(x: Any): JavaString = ("<big tuple>").asJavaString
+private str(x: Object): JavaString = x.asString.asJavaString
+private str(): JavaString = ("()").asJavaString
+private str(a: Any, b: Any): JavaString = ("(" str(a) ", " str(b) ")").asJavaString
+private str(a: Any, b: Any, c: Any): JavaString = ("(" str(a) ", " str(b) ", " str(c) ")").asJavaString
+private str(a: Any, b: Any, c: Any, d: Any): JavaString = ("(" str(a) ", " str(b) ", " str(c) ", " str(d) ")").asJavaString
+(*) private str[\A,B,C,D,E\](x: (A,B,C,D,E)): JavaString = do (a,b,c,d,e) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ")" end
+(*) private str[\A,B,C,D,E,F\](x: (A,B,C,D,E,F)): JavaString = do (a,b,c,d,e,f) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ", " str(f) ")" end
+(*) private str[\A,B,C,D,E,F,G\](x: (A,B,C,D,E,F,G)): JavaString = do (a,b,c,d,e,f,g) = x; "(" str(a) ", " str(b) ", " str(c) ", " str(d) ", " str(e) ", " str(f) ", " str(g) ")" end
+
+strToInt(s:String):ZZ32 = jParseInt(s.asJavaString)
+
+trait Number excludes { String }
+end
+
+value object Infinity extends Number end
+value object NegativeInfinity extends Number end
+value object IndefiniteNumber extends Number end
+
+trait ZZ extends { Number, Equality[\ZZ\] } excludes { RR64, ZZ64, ZZ32, NN32, NN64, IntLiteral }
+    coerce(x: IntLiteral) = x.asZZ
+    getter asString(): String = jAPToString(ZZtoBI(self))
+    opr |self| : ZZ = BItoZZ(jAPAbs(ZZtoBI(self)))
+    opr -(self): ZZ = BItoZZ(jAPNeg(ZZtoBI(self)))
+    opr BOXMINUS(self): ZZ = BItoZZ(jAPNeg(ZZtoBI(self)))
+    opr DOTMINUS(self): ZZ = BItoZZ(jAPNeg(ZZtoBI(self)))
+    opr +(self, other:ZZ): ZZ = BItoZZ(jAPAdd(ZZtoBI(self),ZZtoBI(other)))
+    opr BOXPLUS(self, other:ZZ): ZZ = BItoZZ(jAPAdd(ZZtoBI(self),ZZtoBI(other)))
+    opr DOTPLUS(self, other:ZZ): ZZ = BItoZZ(jAPAdd(ZZtoBI(self),ZZtoBI(other)))
+    opr -(self, other:ZZ): ZZ = BItoZZ(jAPSub(ZZtoBI(self),ZZtoBI(other)))
+    opr BOXMINUS(self, other:ZZ): ZZ = BItoZZ(jAPSub(ZZtoBI(self),ZZtoBI(other)))
+    opr DOTMINUS(self, other:ZZ): ZZ = BItoZZ(jAPSub(ZZtoBI(self),ZZtoBI(other)))
+    opr DOT(self, other:ZZ): ZZ = BItoZZ(jAPMul(ZZtoBI(self),ZZtoBI(other)))
+    opr BOXDOT(self, other:ZZ): ZZ = BItoZZ(jAPMul(ZZtoBI(self),ZZtoBI(other)))
+    opr CROSS(self, other:ZZ): ZZ = BItoZZ(jAPMul(ZZtoBI(self),ZZtoBI(other)))
+    opr BOXCROSS(self, other:ZZ): ZZ = BItoZZ(jAPMul(ZZtoBI(self),ZZtoBI(other)))
+    opr DOTCROSS(self, other:ZZ): ZZ = BItoZZ(jAPMul(ZZtoBI(self),ZZtoBI(other)))
+    opr DIV(self, other:ZZ): ZZ = BItoZZ(jAPDiv(ZZtoBI(self),ZZtoBI(other)))
+    opr <(self, other:ZZ): Boolean = jAPLt(ZZtoBI(self),ZZtoBI(other))
+    opr <=(self, other:ZZ): Boolean = jAPLe(ZZtoBI(self),ZZtoBI(other))
+    opr >(self, other:ZZ): Boolean = jAPGt(ZZtoBI(self),ZZtoBI(other))
+    opr >=(self, other:ZZ): Boolean = jAPGe(ZZtoBI(self),ZZtoBI(other))
+    opr =(self, other:ZZ): Boolean = jAPEq(ZZtoBI(self),ZZtoBI(other))
+    opr =/=(self, other:ZZ): Boolean = NOT (self = other)
+    opr juxtaposition(self,other:ZZ) = BItoZZ(jAPMul(ZZtoBI(self),ZZtoBI(other)))
+    opr BITNOT(self): ZZ = BItoZZ(jAPNot(ZZtoBI(self)))
+    opr BITAND(self, other:ZZ): ZZ = BItoZZ(jAPAnd(ZZtoBI(self),ZZtoBI(other)))
+    opr BITOR(self, other:ZZ): ZZ = BItoZZ(jAPOr(ZZtoBI(self),ZZtoBI(other)))
+    opr BITXOR(self, other:ZZ): ZZ = BItoZZ(jAPXor(ZZtoBI(self),ZZtoBI(other)))
+    opr <<<(self, other:ZZ32): ZZ = BItoZZ(jAPShiftLeft(ZZtoBI(self),other))
+    opr MIN(self, other:ZZ): ZZ = if self <= other then self else other end
+    opr MAX(self, other:ZZ): ZZ = if self >= other then self else other end
+    opr MINMAX(self, other:ZZ): (ZZ, ZZ) = if self <= other then (self, other) else (other, self) end
+    even(self): Boolean = ((self BITAND 1) = 0)
+    odd(self): Boolean = NOT (even self)
+    (*) `floorAverage` computes `|\ (self+other)/2 /|` efficiently and without overflow.
+    floorAverage(self, other: ZZ): ZZ = (self + other) <<< (-1)
+    (*) `ceilingAverage` computes `|/ (self+other)/2 \|` efficiently and without overflow.
+    ceilingAverage(self, other: ZZ): ZZ = (self + other + 1) <<< (-1)
+end
+
+trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 , ZZ }
+    coerce(x: IntLiteral) = x.asZZ64
+    coerce(x: ZZ32) = jIntToLong(x)
+    getter asZZ32(): ZZ32 = jLongOverflowingToInt(self)
+    getter bitsAsNN64(): NN64 = jMakeNN64FromZZ64(self)
+    getter asString(): String = jLongToString(self)
+    opr |self| : ZZ64 = jLongOverflowingAbs(self)
+    opr -(self): ZZ64 = jLongOverflowingNeg(self)
+    opr BOXMINUS(self): ZZ64 = jLongWrappingNeg(self)
+    opr DOTMINUS(self): ZZ64 = jLongSaturatingNeg(self)
+    opr +(self, other:ZZ64): ZZ64 = jLongOverflowingAdd(self,other)
+    opr BOXPLUS(self, other:ZZ64): ZZ64 = jLongWrappingAdd(self,other)
+    opr DOTPLUS(self, other:ZZ64): ZZ64 = jLongSaturatingAdd(self,other)
+    opr -(self, other:ZZ64): ZZ64 = jLongOverflowingSub(self,other)
+    opr BOXMINUS(self, other:ZZ64): ZZ64 = jLongWrappingSub(self,other)
+    opr DOTMINUS(self, other:ZZ64): ZZ64 = jLongSaturatingSub(self,other)
+    opr DOT(self, other:ZZ64): ZZ64 = jLongOverflowingMul(self,other)
+    opr BOXDOT(self, other:ZZ64): ZZ64 = jLongWrappingMul(self,other)
+    opr CROSS(self, other:ZZ64): ZZ64 = jLongOverflowingMul(self,other)
+    opr BOXCROSS(self, other:ZZ64): ZZ64 = jLongWrappingMul(self,other)
+    opr DOTCROSS(self, other:ZZ64): ZZ64 = jLongSaturatingMul(self,other)
+    opr DIV(self, other:ZZ64): ZZ64 = jLongOverflowingDiv(self,other)
+    opr <(self, other:ZZ64): Boolean = jLongLT(self,other)
+    opr <=(self, other:ZZ64): Boolean = jLongLE(self,other)
+    opr >(self, other:ZZ64): Boolean = jLongGT(self,other)
+    opr >=(self, other:ZZ64): Boolean = jLongGE(self,other)
+    opr =(self, other:ZZ64): Boolean = jLongEQ(self,other)
+    opr =/=(self, other:ZZ64): Boolean = NOT (self = other)
+    opr juxtaposition(self, other:ZZ64): ZZ64 = jLongOverflowingMul(self,other)
+    opr BITNOT(self): ZZ64 = jLongBitNot(self)
+    opr BITAND(self, other:ZZ64): ZZ64 = jLongBitAnd(self,other)
+    opr BITOR(self, other:ZZ64): ZZ64 = jLongBitOr(self,other)
+    opr BITXOR(self, other:ZZ64): ZZ64 = jLongBitXor(self,other)
+    opr <<(self, other:ZZ32): ZZ64 = jLongLeftShiftByIntMod64(self,other)
+    opr <<(self, other:ZZ64): ZZ64 = jLongLeftShiftByLongMod64(self,other)
+    opr <<(self, other:NN32): ZZ64 = jLongLeftShiftByIntMod64(self,jMakeZZ32FromNN32(other))
+    opr <<(self, other:NN64): ZZ64 = jLongLeftShiftByLongMod64(self,jMakeZZ64FromNN64(other))
+    opr >>(self, other:ZZ32): ZZ64 = jLongRightShiftByIntMod64(self,other)
+    opr >>(self, other:ZZ64): ZZ64 = jLongRightShiftByLongMod64(self,other)
+    opr >>(self, other:NN32): ZZ64 = jLongRightShiftByIntMod64(self,jMakeZZ32FromNN32(other))
+    opr >>(self, other:NN64): ZZ64 = jLongRightShiftByLongMod64(self,jMakeZZ64FromNN64(other))
+    opr <<<(self, other:ZZ32): ZZ64 = jLongShift(self,other)
+    opr <<<(self, other:ZZ64): ZZ64 = jLongShift(self,jLongLowHalfToInt(-64 MAX (other MIN 64)))
+    opr <<<(self, other:NN32): ZZ64 = jLongShift(self,jMakeZZ32FromNN32(other MIN 64))
+    opr <<<(self, other:NN64): ZZ64 = jLongShift(self,jLongLowHalfToInt(jMakeZZ64FromNN64(other MIN 64)))
+    opr MIN(self, other:ZZ64): ZZ64 = if self <= other then self else other end
+    opr MAX(self, other:ZZ64): ZZ64 = if self >= other then self else other end
+    opr MINMAX(self, other:ZZ64): (ZZ64, ZZ64) = if self <= other then (self, other) else (other, self) end
+    opr CHOOSE(self, other:ZZ64): ZZ64 = jLongOverflowingChoose(self,other)
+    even(self): Boolean = ((self BITAND 1) = 0)
+    odd(self): Boolean = NOT (even self)
+    (*) `floorAverage` computes `|\ (self+other)/2 /|` efficiently and without overflow.
+    floorAverage(self, other: ZZ64): ZZ64 = (self BITAND other) + ((self BITXOR other) >> 1)
+    (*) `ceilingAverage` computes `|/ (self+other)/2 \|` efficiently and without overflow.
+    ceilingAverage(self, other: ZZ64): ZZ64 = (self BITOR other) - ((self BITXOR other) >> 1)
+end
+
+trait ZZ32 extends { Number, Equality[\ZZ32\], StandardTotalOrder[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
+    coerce(x: IntLiteral) = x.asZZ32
+    getter asZZ32(): ZZ32 = self
+    getter asZZ64(): ZZ32 = self
+    getter bitsAsNN32(): NN32 = jMakeNN32FromZZ32(self)
+    getter asString(): String = jIntToString(self)
+    opr |self| : ZZ32 = jIntOverflowingAbs(self)
+    opr -(self): ZZ32 = jIntOverflowingNeg(self)
+    opr BOXMINUS(self): ZZ32 = jIntWrappingNeg(self)
+    opr DOTMINUS(self): ZZ32 = jIntSaturatingNeg(self)
+    opr +(self, other:ZZ32): ZZ32 = jIntOverflowingAdd(self,other)
+    opr BOXPLUS(self, other:ZZ32): ZZ32 = jIntWrappingAdd(self,other)
+    opr DOTPLUS(self, other:ZZ32): ZZ32 = jIntSaturatingAdd(self,other)
+    opr -(self, other:ZZ32): ZZ32 = jIntOverflowingSub(self,other)
+    opr BOXMINUS(self, other:ZZ32): ZZ32 = jIntWrappingSub(self,other)
+    opr DOTMINUS(self, other:ZZ32): ZZ32 = jIntSaturatingSub(self,other)
+    opr DOT(self, other:ZZ32): ZZ32 = jIntOverflowingMul(self,other)
+    opr BOXDOT(self, other:ZZ32): ZZ32 = jIntWrappingMul(self,other)
+    opr CROSS(self, other:ZZ32): ZZ32 = jIntOverflowingMul(self,other)
+    opr BOXCROSS(self, other:ZZ32): ZZ32 = jIntWrappingMul(self,other)
+    opr DOTCROSS(self, other:ZZ32): ZZ32 = jIntSaturatingMul(self,other)
+    opr DIV(self, other:ZZ32): ZZ32 = jIntOverflowingDiv(self,other)
+    opr <(self, other:ZZ32): Boolean = jIntLT(self,other)
+    opr <=(self, other:ZZ32): Boolean = jIntLE(self,other)
+    opr >(self, other:ZZ32): Boolean = jIntGT(self,other)
+    opr >=(self, other:ZZ32): Boolean = jIntGE(self,other)
+    opr =(self, other:ZZ32): Boolean = jIntEQ(self,other)
+    opr =/=(self, other:ZZ32): Boolean = NOT (self = other)
+    opr juxtaposition(self, other:ZZ32): ZZ32 = jIntOverflowingMul(self,other)
+    opr BITNOT(self): ZZ32 = jIntBitNot(self)
+    opr BITAND(self, other:ZZ32): ZZ32 = jIntBitAnd(self,other)
+    opr BITOR(self, other:ZZ32): ZZ32 = jIntBitOr(self,other)
+    opr BITXOR(self, other:ZZ32): ZZ32 = jIntBitXor(self,other)
+    opr <<(self, other:ZZ32): ZZ32 = jIntLeftShiftByIntMod32(self,other)
+    opr <<(self, other:ZZ64): ZZ32 = jIntLeftShiftByLongMod32(self,other)
+    opr <<(self, other:NN32): ZZ32 = jIntLeftShiftByIntMod32(self,jMakeZZ32FromNN32(other))
+    opr <<(self, other:NN64): ZZ32 = jIntLeftShiftByLongMod32(self,jMakeZZ64FromNN64(other))
+    opr >>(self, other:ZZ32): ZZ32 = jIntRightShiftByIntMod32(self,other)
+    opr >>(self, other:ZZ64): ZZ32 = jIntRightShiftByLongMod32(self,other)
+    opr >>(self, other:NN32): ZZ32 = jIntRightShiftByIntMod32(self,jMakeZZ32FromNN32(other))
+    opr >>(self, other:NN64): ZZ32 = jIntRightShiftByLongMod32(self,jMakeZZ64FromNN64(other))
+    opr <<<(self, other:ZZ32): ZZ32 = jIntShift(self,other)
+    opr <<<(self, other:ZZ64): ZZ32 = jIntShift(self,jLongLowHalfToInt(-32 MAX (other MIN 32)))
+    opr <<<(self, other:NN32): ZZ32 = jIntShift(self,jMakeZZ32FromNN32(other MIN 32))
+    opr <<<(self, other:NN64): ZZ32 = jIntShift(self,jLongLowHalfToInt(jMakeZZ64FromNN64(other MIN 32)))
+    opr MIN(self, other:ZZ32): ZZ32 = if self <= other then self else other end
+    opr MAX(self, other:ZZ32): ZZ32 = if self >= other then self else other end
+    opr MINMAX(self, other:ZZ32): (ZZ32, ZZ32) = if self <= other then (self, other) else (other, self) end
+    opr CHOOSE(self, other:ZZ32): ZZ32 = jIntOverflowingChoose(self,other)
+    even(self): Boolean = ((self BITAND 1) = 0)
+    odd(self): Boolean = NOT (even self)
+    opr ^(self, other:ZZ32):ZZ32 = jIntExp(self, other)
+    asRR64(): RR64 = jIntToDouble(self)
+    (*) `floorAverage` computes `|\ (self+other)/2 /|` efficiently and without overflow.
+    floorAverage(self, other: ZZ32): ZZ32 = (self BITAND other) + ((self BITXOR other) >> (1).asZZ32)
+    (*) `ceilingAverage` computes `|/ (self+other)/2 \|` efficiently and without overflow.
+    ceilingAverage(self, other: ZZ32): ZZ32 = (self BITOR other) - ((self BITXOR other) >> (1).asZZ32)
+end
+
+trait NN32 extends { Number, Equality[\NN32\] } excludes { ZZ32, ZZ64, RR32, RR64 }
+    coerce(x: IntLiteral) = x.asNN32
+    getter asNN32(): NN32 = self
+    getter bitsAsZZ32(): ZZ32 = jMakeZZ32FromNN32(self)
+    getter asString(): String = jUnsignedIntToString(jMakeZZ32FromNN32(self))
+    opr |self| : NN32 = self
+    opr -(self): NN32 = 
+         if (self = 0) 
+         then 0
+         else throw IntegerOverflow
+         end
+    opr BOXMINUS(self): NN32 = jMakeNN32FromZZ32(jUnsignedIntWrappingNeg(jMakeZZ32FromNN32(self)))
+    opr DOTMINUS(self): NN32 = jMakeNN32FromZZ32(jUnsignedIntSaturatingNeg(jMakeZZ32FromNN32(self)))
+    opr +(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntOverflowingAdd(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr BOXPLUS(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntWrappingAdd(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr DOTPLUS(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntSaturatingAdd(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr -(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntOverflowingSub(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr BOXMINUS(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntWrappingSub(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr DOTMINUS(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntSaturatingSub(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr DOT(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntOverflowingMul(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr BOXDOT(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntWrappingMul(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr CROSS(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntOverflowingMul(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr BOXCROSS(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntWrappingMul(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr DOTCROSS(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntSaturatingMul(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr DIV(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntOverflowingDiv(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr <(self, other:NN32): Boolean = jUnsignedIntLT(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other))
+    opr <=(self, other:NN32): Boolean = jUnsignedIntLE(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other))
+    opr >(self, other:NN32): Boolean = jUnsignedIntGT(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other))
+    opr >=(self, other:NN32): Boolean = jUnsignedIntGE(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other))
+    opr =(self, other:NN32): Boolean = jIntEQ(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other))
+    opr =/=(self, other:NN32): Boolean = NOT (jMakeZZ32FromNN32(self) = jMakeZZ32FromNN32(other))
+    opr juxtaposition(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntOverflowingMul(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr BITNOT(self): NN32 = jMakeNN32FromZZ32(jUnsignedIntBitNot(jMakeZZ32FromNN32(self)))
+    opr BITAND(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntBitAnd(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr BITOR(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntBitOr(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr BITXOR(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntBitXor(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr <<(self, other:ZZ32): NN32 = jMakeNN32FromZZ32(jUnsignedIntLeftShiftByIntMod32(jMakeZZ32FromNN32(self),other))
+    opr <<(self, other:ZZ64): NN32 = jMakeNN32FromZZ32(jUnsignedIntLeftShiftByIntMod32(jMakeZZ32FromNN32(self),jLongLowHalfToInt(other)))
+    opr <<(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntLeftShiftByIntMod32(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr <<(self, other:NN64): NN32 = jMakeNN32FromZZ32(jUnsignedIntLeftShiftByIntMod32(jMakeZZ32FromNN32(self),jLongLowHalfToInt(jMakeZZ64FromNN64(other))))
+    opr >>(self, other:ZZ32): NN32 = jMakeNN32FromZZ32(jUnsignedIntRightShiftByIntMod32(jMakeZZ32FromNN32(self),other))
+    opr >>(self, other:ZZ64): NN32 = jMakeNN32FromZZ32(jUnsignedIntRightShiftByIntMod32(jMakeZZ32FromNN32(self),jLongLowHalfToInt(other)))
+    opr >>(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntRightShiftByIntMod32(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    opr >>(self, other:NN64): NN32 = jMakeNN32FromZZ32(jUnsignedIntRightShiftByIntMod32(jMakeZZ32FromNN32(self),jLongLowHalfToInt(jMakeZZ64FromNN64(other))))
+    opr <<<(self, other:ZZ32): NN32 = jMakeNN32FromZZ32(jUnsignedIntShift(jMakeZZ32FromNN32(self),other))
+    opr <<<(self, other:ZZ64): NN32 = jMakeNN32FromZZ32(jUnsignedIntShift(jMakeZZ32FromNN32(self),jLongLowHalfToInt(-32 MAX (other MIN 32))))
+    opr <<<(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntShift(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other MIN 32)))
+    opr <<<(self, other:NN64): NN32 = jMakeNN32FromZZ32(jUnsignedIntShift(jMakeZZ32FromNN32(self),jLongLowHalfToInt(jMakeZZ64FromNN64(other MIN 32))))
+    opr MIN(self, other:NN32): NN32 = if self <= other then self else other end
+    opr MAX(self, other:NN32): NN32 = if self >= other then self else other end
+    opr MINMAX(self, other:NN32): (NN32, NN32) = if self <= other then (self, other) else (other, self) end
+    opr CHOOSE(self, other:NN32): NN32 = jMakeNN32FromZZ32(jUnsignedIntOverflowingChoose(jMakeZZ32FromNN32(self),jMakeZZ32FromNN32(other)))
+    even(self): Boolean = ((self BITAND 1) = 0)
+    odd(self): Boolean = NOT (even self)
+    opr ^(self, other:NN32):NN32 = jMakeNN32FromZZ32(jUnsignedIntExp(jMakeZZ32FromNN32(self), jMakeZZ32FromNN32(other)))
+    asRR64(): RR64 = jUnsignedIntToDouble(jMakeZZ32FromNN32(self))
+    (*) `floorAverage` computes `|\ (self+other)/2 /|` efficiently and without overflow.
+    floorAverage(self, other: NN32): NN32 = (self BITAND other) + ((self BITXOR other) >> (1).asNN32)
+    (*) `ceilingAverage` computes `|/ (self+other)/2 \|` efficiently and without overflow.
+    ceilingAverage(self, other: NN32): NN32 = (self BITOR other) - ((self BITXOR other) >> (1).asNN32)
+end
+
+trait NN64 extends { Number, Equality[\NN64\] } excludes { ZZ32, ZZ64, RR32, RR64, NN32, ZZ, IntLiteral }
+    coerce(x: IntLiteral) = x.asNN64
+    coerce(x: NN32) = jMakeNN64FromZZ64(jIntToLong(jMakeZZ32FromNN32(x)))
+    getter asNN64(): NN64 = self
+    getter bitsAsZZ64(): ZZ64 = jMakeZZ64FromNN64(self)
+    getter asString(): String = junsignedLongToString(jMakeZZ64FromNN64(self))
+    opr |self| : NN64 = self
+    opr -(self): NN64 = 
+         if (self = 0) 
+         then 0
+         else throw IntegerOverflow
+         end
+    opr BOXMINUS(self): NN64 = jMakeNN64FromZZ64(junsignedLongWrappingNeg(jMakeZZ64FromNN64(self)))
+    opr DOTMINUS(self): NN64 = jMakeNN64FromZZ64(junsignedLongSaturatingNeg(jMakeZZ64FromNN64(self)))
+    opr +(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongOverflowingAdd(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr BOXPLUS(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongWrappingAdd(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr DOTPLUS(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongSaturatingAdd(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr -(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongOverflowingSub(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr BOXMINUS(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongWrappingSub(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr DOTMINUS(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongSaturatingSub(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr DOT(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongOverflowingMul(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr BOXDOT(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongWrappingMul(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr CROSS(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongOverflowingMul(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr BOXCROSS(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongWrappingMul(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr DOTCROSS(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongSaturatingMul(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr DIV(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongOverflowingDiv(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr <(self, other:NN64): Boolean = junsignedLongLT(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other))
+    opr <=(self, other:NN64): Boolean = junsignedLongLE(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other))
+    opr >(self, other:NN64): Boolean = junsignedLongGT(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other))
+    opr >=(self, other:NN64): Boolean = junsignedLongGE(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other))
+    opr =(self, other:NN64): Boolean = junsignedLongEQ(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other))
+    opr =/=(self, other:NN64): Boolean = NOT (jMakeZZ64FromNN64(self) = jMakeZZ64FromNN64(other))
+    opr juxtaposition(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongOverflowingMul(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr BITNOT(self): NN64 = jMakeNN64FromZZ64(junsignedLongBitNot(jMakeZZ64FromNN64(self)))
+    opr BITAND(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongBitAnd(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr BITOR(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongBitOr(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr BITXOR(self, other:NN64): NN64 = jMakeNN64FromZZ64(junsignedLongBitXor(jMakeZZ64FromNN64(self),jMakeZZ64FromNN64(other)))
+    opr <<(self, other:ZZ32): NN64 = jMakeNN64FromZZ64(jUnsignedLongLeftShiftByIntMod64(jMakeZZ64FromNN64(self),other))
+    opr <<(self, other:ZZ64): NN64 = jMakeNN64FromZZ64(jUnsignedLongLeftShiftByLongMod64(jMakeZZ64FromNN64(self),jLongLowHalfToInt(other)))
+    opr <<(self, other:NN32): NN64 = jMakeNN64FromZZ64(jUnsignedLongLeftShiftByIntMod64(jMakeZZ64FromNN64(self),jMakeZZ32FromNN32(other)))
+    opr <<(self, other:NN64): NN64 = jMakeNN64FromZZ64(jUnsignedLongLeftShiftByLongMod64(jMakeZZ64FromNN64(self),jLongLowHalfToInt(jMakeZZ64FromNN64(other))))
+    opr >>(self, other:ZZ32): NN64 = jMakeNN64FromZZ64(jUnsignedLongRightShiftByIntMod64(jMakeZZ64FromNN64(self),other))
+    opr >>(self, other:ZZ64): NN64 = jMakeNN64FromZZ64(jUnsignedLongRightShiftByLongMod64(jMakeZZ64FromNN64(self),jLongLowHalfToInt(other)))
+    opr >>(self, other:NN32): NN64 = jMakeNN64FromZZ64(jUnsignedLongRightShiftByIntMod64(jMakeZZ64FromNN64(self),jMakeZZ32FromNN32(other)))
+    opr >>(self, other:NN64): NN64 = jMakeNN64FromZZ64(jUnsignedLongRightShiftByLongMod64(jMakeZZ64FromNN64(self),jLongLowHalfToInt(jMakeZZ64FromNN64(other))))
+    opr <<<(self, other:ZZ32): NN64 = jMakeNN64FromZZ64(jUnsignedLongShift(jMakeZZ64FromNN64(self),other))
+    opr <<<(self, other:ZZ64): NN64 = jMakeNN64FromZZ64(jUnsignedLongShift(jMakeZZ64FromNN64(self),jLongLowHalfToInt(-64 MAX (other MIN 64))))
+    opr <<<(self, other:NN32): NN64 = jMakeNN64FromZZ64(jUnsignedLongShift(jMakeZZ64FromNN64(self),jMakeZZ32FromNN32(other MIN 64)))
+    opr <<<(self, other:NN64): NN64 = jMakeNN64FromZZ64(jUnsignedLongShift(jMakeZZ64FromNN64(self),jLongLowHalfToInt(jMakeZZ64FromNN64(other MIN 64))))
+    opr MIN(self, other:NN64): NN64 = if self <= other then self else other end
+    opr MAX(self, other:NN64): NN64 = if self >= other then self else other end
+    opr MINMAX(self, other:NN64): (NN64, NN64) = if self <= other then (self, other) else (other, self) end
+    even(self): Boolean = ((self BITAND 1) = 0)
+    odd(self): Boolean = NOT (even self)
+    (*) `floorAverage` computes `|\ (self+other)/2 /|` efficiently and without overflow.
+    floorAverage(self, other: NN64): NN64 = (self BITAND other) + ((self BITXOR other) >> 1)
+    (*) `ceilingAverage` computes `|/ (self+other)/2 \|` efficiently and without overflow.
+    ceilingAverage(self, other: NN64): NN64 = (self BITOR other) - ((self BITXOR other) >> 1)
+    opr ^(self, other:NN64):NN64 = jMakeNN64FromZZ64(junsignedLongExp(jMakeZZ64FromNN64(self), jMakeZZ64FromNN64(other)))
+end
+
+trait IntLiteral extends { Number, Equality[\IntLiteral\] } excludes {ZZ32, ZZ64, NN32, RR64, RR32, Character, Boolean, String, NN64, ZZ}
+    getter asString(): String = self.asZZ32.asString
+    getter asZZ(): ZZ   
+    getter asZZ32(): ZZ32
+    getter asZZ64(): ZZ64
+    getter asNN32(): NN32
+    getter asNN64(): NN64
+(*
+    getter asZZ(): ZZ
+    getter asRR32(): RR32
+*)
+    getter asRR64(): RR64
+
+    opr |self| : IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr -(self): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BOXMINUS(self): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr DOTMINUS(self): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr +(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BOXPLUS(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr DOTPLUS(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr -(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BOXMINUS(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr DOTMINUS(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr DOT(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BOXDOT(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr CROSS(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BOXCROSS(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr DOTCROSS(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr DIV(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr <(self, other:IntLiteral): Boolean = throw CompilerFailureDetectedAtRunTime
+    opr <=(self, other:IntLiteral): Boolean = throw CompilerFailureDetectedAtRunTime
+    opr >(self, other:IntLiteral): Boolean = throw CompilerFailureDetectedAtRunTime
+    opr >=(self, other:IntLiteral): Boolean = throw CompilerFailureDetectedAtRunTime
+    opr =(self, other:IntLiteral): Boolean = throw CompilerFailureDetectedAtRunTime
+    opr =/=(self, other:IntLiteral): Boolean = throw CompilerFailureDetectedAtRunTime
+    opr juxtaposition(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BITNOT(self): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BITAND(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BITOR(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr BITXOR(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr MIN(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr MAX(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    opr MINMAX(self, other:IntLiteral): (IntLiteral, IntLiteral) = throw CompilerFailureDetectedAtRunTime
+    opr CHOOSE(self, other:IntLiteral): IntLiteral = throw CompilerFailureDetectedAtRunTime
+    even(self): Boolean = throw CompilerFailureDetectedAtRunTime
+    odd(self): Boolean = throw CompilerFailureDetectedAtRunTime
+end
+
+trait RR64 extends { Number, Equality[\RR64\] } excludes ZZ64
+    coerce(x: FloatLiteral) = x.asRR64
+    coerce(x: RR32) = jFloatToDouble(x)
+    getter asString(): String = jDoubleToString(self)
+    getter isNaN(): Boolean = NOT (self = self)
+    opr |self| : RR64 = jDoubleAbs(self)
+    opr -(self): RR64 = jDoubleNeg(self)
+    opr +(self, other:RR64): RR64 = jDoubleAdd(self,other)
+    opr -(self, other:RR64): RR64 = jDoubleSub(self,other)
+    opr <(self, other:RR64): Boolean = jDoubleLT(self,other)
+    opr <=(self, other:RR64): Boolean = jDoubleLE(self,other)
+    opr >(self, other:RR64): Boolean = jDoubleGT(self,other)
+    opr >=(self, other:RR64): Boolean = jDoubleGE(self,other)
+    opr =(self, other:RR64): Boolean = jDoubleEQ(self,other)
+    opr juxtaposition(self, other:RR64): RR64 = jDoubleMul(self,other)
+    opr DOT(self, other:RR64): RR64 = jDoubleMul(self,other)
+    opr /(self, other:RR64): RR64 = jDoubleDiv(self,other)
+    opr MIN(self, other:RR64): RR64 = if self <= other then self elif other <= self then other elif self.isNaN then self else other end
+    opr MAX(self, other:RR64): RR64 = if self >= other then self elif other >= self then other elif self.isNaN then self else other end
+    opr MINNUM(self, other:RR64): RR64 = if self <= other then self elif other <= self then other elif self.isNaN then other else self end
+    opr MAXNUM(self, other:RR64): RR64 = if self >= other then self elif other >= self then other elif self.isNaN then other else self end
+    opr MINNUMMAX(self, other:RR64): (RR64, RR64) = if self <= other then (self, other) elif other <= self then (other, self) elif other.isNaN then (self, other) else (other, self) end
+    opr MINMAXNUM(self, other:RR64): (RR64, RR64) = if self <= other then (self, other) elif other <= self then (other, self) elif self.isNaN then (self, other) else (other, self) end
+    opr ^(self, other:RR64): RR64 = jDoublePow(self,other)
+    opr ^(self, other:ZZ32): RR64 =
+        if other > 2 then
+            mid = other DIV 2
+            if (mid + mid) = other then
+                (self self)^mid
+            else
+                self (self self)^mid
+            end
+        elif other = 2 then self self
+        elif other = 1 then self
+        elif other = 0 then 1.0
+        elif other = -other then
+          (* Screw case of most negative `ZZ32` value *)
+          1.0 / (self^(-(other DIV 2)))^2
+
+        else (* other < 0 then *) 1.0 / (self^(-other))
+        end
+    
+    opr |/self\| :RR64 = jDoubleCeiling(self)
+    opr |\self/| :RR64 = jDoubleFloor(self)
+    opr SQRT(self):RR64 = jDoubleSQRT(self)
+
+end
+
+trait RR32 extends { Number, Equality[\RR32\] } excludes { ZZ64, ZZ32, RR64 }
+    coerce(x: FloatLiteral) = x.asRR32
+end
+
+trait FloatLiteral excludes {RR32, RR64}
+    getter asRR32(): RR32
+    getter asRR64(): RR64
+end
+
+trait Boolean 
+    extends { Equality[\Boolean\] }
+(*)    extends { Equality[\Boolean\], Condition[\()\] }
+    excludes { String, Number }
+  getter isEmpty(): Boolean = NOT self
+  getter nonEmpty(): Boolean = self
+  getter holds(): Boolean = self
+  getter reverse(): Boolean = self
+  getter get(): () = ()
+  getter asString(): String = self.asExprString
+  getter asExprString(): String = if self then "true" else "false" end
+  getter size(): ZZ32 = |self|
+  opr |self| : ZZ32 = if self then 1 else 0 end
+(*)   cond[\R\](t: ()->R, e: ()->R) : R = if self then t() else e() end
+(*)   generate[\R\](r: Reduction[\R\], b: ()->R): R =
+(*)       if self then b() else r.id end
+(*)   map[\G\](f: ()->G): Option[\G\] =
+(*)       if self then Some[\G\](f()) else NoneObject[\G\] end
+(*)   cross[\G\](g: Generator[\G\]): Generator[\((),G)\] =
+(*)       if self
+(*)       then g.map[\((),G)\](fn (e:G):((),G) => ((),e))
+(*)       else NoneObject[\((),G)\] end
+(*)   mapReduce[\R\](b: ()->R, _:(R,R)->R, z:R): R =
+(*)       if self then b() else z end
+(*)   loop(f:()->()): () = if self then f() end
+
+  opr NOT(self):Boolean = jBooleanNot(self)
+  opr AND(self, other:Boolean):Boolean = jBooleanAnd(self, other)
+  opr AND(self, other:()->Boolean):Boolean = if self then other() else self end
+  opr OR(self, other:Boolean):Boolean = jBooleanOr(self, other)
+  opr OR(self, other:()->Boolean):Boolean = if self then self else other() end
+  opr XOR(self, other:Boolean):Boolean = jBooleanXor(self, other)
+  opr OPLUS(self, other:Boolean):Boolean = jBooleanXor(self, other)
+  opr NEQV(self, other:Boolean):Boolean = jBooleanXor(self, other)
+  opr EQV(self, other:Boolean):Boolean = jBooleanEqv(self, other)
+  opr <->(self, other:Boolean):Boolean = jBooleanEqv(self, other)
+  opr ->(self, other:Boolean):Boolean = (NOT self) OR other
+  opr NAND(self, other:Boolean):Boolean = NOT (self AND other)
+  opr NOR(self, other:Boolean):Boolean = NOT (self OR other)
+
+  opr =(self, other:Boolean): Boolean = jBooleanEqv(self, other)
+(*)   opr <(self, other:Boolean): Boolean = (NOT self) AND other
+(*)   opr CMP(self, other:Boolean): TotalComparison =
+(*)       if self then
+(*)           if other then EqualTo else GreaterThan end
+(*)       else
+(*)           if other then LessThan else EqualTo end
+(*)       end
+end
+
+(*)true: Boolean = do x: ZZ32 = 0; (x=x) end
+(*)false: Boolean = do x: ZZ32 = 0; (x=/=x) end
+
+makeCharacter(n: ZZ32): Character =
+    if characterMinCodePoint <= n <= characterMaxCodePoint
+    then jMakeCharacter(n)
+    else throw IntegerOverflow   (*) Really should be IndexOutOfRange
+    end
+
+trait Character extends Equality[\Character\]  excludes { String, Number, Boolean }
+    getter asString() : String = jCharToString(jCodePoint(self))
+    getter asExprString() : String = jCharToExprString(jCodePoint(self))
+    getter codePoint(): ZZ32 = jCodePoint(self)
+
+    opr <(self, other:Character): Boolean = jCharLT(jCodePoint(self), jCodePoint(other))
+    opr <=(self, other:Character): Boolean = jCharLE(jCodePoint(self), jCodePoint(other))
+    opr >(self, other:Character): Boolean = jCharGT(jCodePoint(self), jCodePoint(other))
+    opr >=(self, other:Character): Boolean = jCharGE(jCodePoint(self), jCodePoint(other))
+    opr =(self, other:Character): Boolean = jCharEQ(jCodePoint(self), jCodePoint(other))
+    opr =/=(self, other:Character): Boolean = jCharNE(jCodePoint(self), jCodePoint(other))
+
+    opr LNSIM(self, other:Character): Boolean = jCharLessNotSim(jCodePoint(self), jCodePoint(other))
+    opr LESSSIM(self, other:Character): Boolean = jCharLessSim(jCodePoint(self), jCodePoint(other))
+    opr GNSIM(self, other:Character): Boolean = jCharGreaterNotSim(jCodePoint(self), jCodePoint(other))
+    opr GTRSIM(self, other:Character): Boolean = jCharGreaterSim(jCodePoint(self), jCodePoint(other))
+    opr SIMEQ(self, other:Character): Boolean = jCharSimEq(jCodePoint(self), jCodePoint(other))
+    opr NSIMEQ(self, other:Character): Boolean = jCharNotSimEq(jCodePoint(self), jCodePoint(other))
+
+    getDirectionality(self): ZZ32 = jCharGetDirectionality(jCodePoint(self))
+    getNumericValue(self): ZZ32 = jCharGetNumericValue(jCodePoint(self))
+    getType(self): ZZ32 = jCharGetType(jCodePoint(self))
+    isDefined(self): Boolean = jCharIsDefined(jCodePoint(self))
+    isDigit(self): Boolean = jCharIsDigit(jCodePoint(self))
+    isFortressIdentifierPart(self): Boolean = jCharIsFortressIdentifierPart(jCodePoint(self))
+    isFortressIdentifierStart(self): Boolean = jCharIsFortressIdentifierStart(jCodePoint(self))
+    isHighSurrogate(self): Boolean = jCharIsHighSurrogate(jCodePoint(self))
+    isIdentifierIgnorable(self): Boolean = jCharIsIdentifierIgnorable(jCodePoint(self))
+    isISOControl(self): Boolean = jCharIsISOControl(jCodePoint(self))
+    isJavaIdentifierPart(self): Boolean = jCharIsJavaIdentifierPart(jCodePoint(self))
+    isJavaIdentifierStart(self): Boolean = jCharIsJavaIdentifierStart(jCodePoint(self))
+    isLetter(self): Boolean = jCharIsLetter(jCodePoint(self))
+    isLetterOrDigit(self): Boolean = jCharIsLetterOrDigit(jCodePoint(self))
+    isLowerCase(self): Boolean = jCharIsLowerCase(jCodePoint(self))
+    isLowSurrogate(self): Boolean = jCharIsLowSurrogate(jCodePoint(self))
+    isMirrored(self): Boolean = jCharIsMirrored(jCodePoint(self))
+    isSpaceChar(self): Boolean = jCharIsSpaceChar(jCodePoint(self))
+    isSupplementaryCodePoint(self): Boolean = jCharIsSupplementaryCodePoint(jCodePoint(self))
+    isSurrogatePair(self, low: Character): Boolean = jCharIsSurrogatePair(jCodePoint(self), jCodePoint(low))
+    isTitleCase(self): Boolean = jCharIsTitleCase(jCodePoint(self))
+    isUnicodeIdentifierPart(self): Boolean = jCharIsUnicodeIdentifierPart(jCodePoint(self))
+    isUnicodeIdentifierStart(self): Boolean = jCharIsUnicodeIdentifierStart(jCodePoint(self))
+    isUpperCase(self): Boolean = jCharIsUpperCase(jCodePoint(self))
+    isValidCodePoint(self): Boolean = jCharIsValidCodePoint(jCodePoint(self))
+    isWhitespace(self): Boolean = jCharIsWhitespace(jCodePoint(self))
+    javaDigit(self, radix: ZZ32): ZZ32 = jCharJavaDigit(jCodePoint(self), radix)
+    toLowerCase(self): Character = jMakeCharacter(jCharToLowerCase(jCodePoint(self)))
+    toTitleCase(self): Character = jMakeCharacter(jCharToTitleCase(jCodePoint(self)))
+    toUpperCase(self): Character = jMakeCharacter(jCharToUpperCase(jCodePoint(self)))
+end
+
+trait ZZ32Vector excludes { String, Number, Boolean, Character }
+   getter asString(): String = jIntVectorAsString(self)
+   getter shape(): (ZZ32, ZZ32) = (jIntVectorGetRows(self), jIntVectorGetCols(self))
+   getter nrows(): ZZ32 = jIntVectorGetRows(self)
+   getter ncols(): ZZ32 = jIntVectorGetCols(self)
+   getter copy(): ZZ32Vector = makeZZ32Vector(self.nrows).fill(fn (i) => self[i])    (*) Handles only 1D case
+   getValue(i:ZZ32): ZZ32 = jIntVectorGet(self, i)
+   getValue(i:ZZ32, j:ZZ32): ZZ32 = jIntVectorGet(self, i, j)
+   putValue(i:ZZ32, v:ZZ32): () = jIntVectorPut(self, i, v)
+   putValue(i:ZZ32, j:ZZ32, v:ZZ32): () = jIntVectorPut(self, i, j, v)
+   opr[i:ZZ32]: ZZ32 = getValue(i)
+   opr[i:ZZ32, j:ZZ32]: ZZ32 = getValue(i,j)
+   opr[i:ZZ32] := (v: ZZ32): () = putValue(i,v)
+   opr[i:ZZ32, j:ZZ32] := (v: ZZ32): () = putValue(i,j,v)
+   opr |self| : ZZ32 = jIntVectorGetSize(self)
+   fill(v: ZZ32): ZZ32Vector = do
+     for i <- 0 # |self| do
+       self[i] := v
+     end
+     self
+   end
+   fill(f: ZZ32 -> ZZ32): ZZ32Vector = do
+     for i <- 0 # |self| do
+       self[i] := f(i)
+     end
+     self
+   end
+   fill2(f: (ZZ32, ZZ32) -> ZZ32): ZZ32Vector = do
+     for i <- 0 # self.nrows, j <- 0 # self.ncols do
+       self[i,j] := f(i,j)
+     end
+     self
+   end
+end
+
+__makeZZ32Vector(l1: ZZ32, d1: ZZ32, l2: ZZ32, d2: ZZ32): ZZ32Vector = jIntVectorMake(l1, d1, l2, d2)
+
+makeStringVector(i:ZZ32): StringVector = jStringVectorMake(i)
+
+trait StringVector 
+   getValue(i:ZZ32): String = jStringVectorGet(self, i)
+   putValue(i:ZZ32, v:String): () = jStringVectorPut(self, i, v.asJavaString)
+   opr[i:ZZ32]: String = getValue(i)
+   opr |self| : ZZ32 = jStringVectorGetSize(self)
+end
+
+trait JavaBufferedReader excludes { String, Number, Boolean, Character }
+  getter asString(): String = jJavaBufferedReaderAsString(self)
+  read(): Character throws IOException = jMakeCharacter(jJavaBufferedReaderRead(self))
+  readLine(): String throws IOException = jJavaBufferedReaderReadLine(self)
+  readk(k: ZZ32): String throws IOException = jJavaBufferedReaderReadk(self, k)
+  eof(): Boolean = jJavaBufferedReaderEof(self)
+  ready(): Boolean throws IOException = jJavaBufferedReaderReady(self)
+  close(): () throws IOException = jJavaBufferedReaderClose(self)
+  whenUnconsumed(): () throws IOException = jJavaBufferedReaderWhenUnconsumed(self)
+  consume(): () = jJavaBufferedReaderConsume(self)
+end
+
+makeJavaBufferedReader(s: String): JavaBufferedReader throws FileNotFoundException = jJavaBufferedReaderOpen(s.asJavaString)
+
+trait JavaBufferedWriter excludes { String, Number, Boolean, Character, JavaBufferedReader }
+  getter asString(): String = jJavaBufferedWriterAsString(self)
+  write(c: Character): () throws IOException = jJavaBufferedWriterWriteChar(self, jCodePoint(c))
+  write(s: String): () throws IOException = jJavaBufferedWriterWriteString(self, s.asJavaString)
+  newLine(): () throws IOException = jJavaBufferedWriterNewLine(self)
+  flush(): () throws IOException = jJavaBufferedWriterFlush(self)
+  close(): () throws IOException = jJavaBufferedWriterClose(self)
+end
+
+makeJavaBufferedWriter(s: String): JavaBufferedWriter throws FileNotFoundException = jJavaBufferedWriterOpen(s.asJavaString)
+
+
+(************************************************************
+ * Generators and Reducers
+ ************************************************************)
+
+(***\
+   An object of type Generator[\E\] can "generate values of type E."
+   Such generated values are called the //elements// of the generator.
+
+   Generators are used to express iteration in Fortress.  Every
+   generated expression in Fortress (such as `for` loops and comprehensions)
+   is desugared into calls to methods of `Generator`, chiefly the `generate`
+   method.
+
+   Every generator has a notion of a "natural order" (which by default is
+   unspecified), which describes the ordering of reduction operations,
+   and also describes the order in which elements are produced by the
+   sequential version of the same generator (given by the seq(self)
+   method).  The default implementation of seq(self) guarantees that these
+   orders will match.
+
+   Note in particular that the natural order of a Generator must be
+   consistent; that is, if `a SEQV `b then `a` and `b` must yield equivalent
+   elements in the same natural order.  However, note that unless a type
+   specifically documents otherwise, no particular element ordering is
+   guaranteed, nor is it necessary to guarantee that `a=b` implies that
+   generators `a` and `b` have the same natural order.
+
+   Note that there are a number of more complex derived generators that
+   are specified further down in this file.  These have the same notions
+   of natural order and by default are defined in terms of the
+   generate() method.
+
+   The `Generator` trait does not assume that equality `=` is defined for
+   the generated type.
+
+   The minimal complete definition of a `Generator` is the `generate` method.
+ *)
+
+trait AllGenerators end
+
+trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
+(*)    getter asString(): String = (BIG ||[i <- self] "," i)[1:]
+
+    (** Returns a generator that generates the same objects as this generator
+        but using a natural order that is the reverse of this generator's
+        natural order. *)
+    getter reverse(): Generator[\E1\]
+
+    (** Method `generate` is the core of the `Generator` trait.  It generates
+        elements of type `E1` and passes them to the `body` function.
+        This generation can occur using any mixture of serial and
+        parallel execution desired by the author of the generator; by
+        default, uses of a generator must assume every call to the
+        body occurs in parallel.
+
+        The results of generation are combined using the reduction
+        object R, which specifies a monoidal operation (associative
+        and with an identity).  Body results must be combined together
+        following the natural order of the generator.  The author of
+        the generator is free to use the identity element anywhere
+        desired in this computation, and to group reductions in any
+        way desired; if no elements are generated, the identity must be
+        returned. *)
+    generate[\R\](r: Reduction[\R\], body: E1->R): R
+
+    (** Transforming generators into new generators *)
+    (** `map` returns a new generator that generates the results of
+        applying the function `f` to the elements of this generator.
+        It is not specified whether any of the applications of `f`
+        occur before the new generator is returned.  The resulting
+        generator must have the same ordering and cross product
+        properties as the generator from which it is derived. *)
+    map[\Gyy\](f: E1->Gyy): Generator[\Gyy\]
+
+    (** seq produces a sequential version of the same generator, which
+        produces elements in a temporal order that matches this generator's
+        natural order. *)
+(*)    seq(self): SequentialGenerator[\E1\]
+    seq(): SequentialGenerator[\E1\]
+
+    (** Nesting of generators: the argument `f` is a function from
+        elements of this generator to new generators.  This allows an
+        inner generator expression to be data-dependent on this (outer)
+        generator.  The result is a new generator that will produce all
+        the elements of all the generators resulting from applying `f` to
+        every element of this generator.  Appropriate overloading of this
+        method allows the production of specialized implementations
+        when particular sorts of generators are nested.  The natural order
+        of the new generator is the concatenation of the natural orders of the
+        inner generators, where such concatenation is done in the natural order
+        of this generator.  So for example, if we write:
+          (0#3).nest[\ZZ32\](\(n:ZZ32):Generator[\ZZ32\] => (n*100#4))
+        then the twelve elements of the result should appear in the natural
+        order as 0, 1, 2, 3, 100, 101, 102, 103, 200, 201, 202, 203.
+     **)
+    nest[\G1\](f: E1 -> Generator[\G1\]): Generator[\G1\]
+
+    (** Filtering data from a generator.  Only elements that satisfy
+        the predicate p are retained.  Natural order and cross product
+        properties are otherwise preserved. **)
+    filter(f: E1 -> Condition[\()\]): Generator[\E1\]
+
+    (** Cross product of two generators.  This is specifically
+        designed to be overloaded, such that pairs of independent
+        generators can be combined to produce a generator which
+        possibly interleaves the iteration spaces of the two
+        generators.  For example, we might combine `(0#16).cross(0#32)`
+        such that it first splits the second range in half, then the
+        first range in half, then the second, and so forth.
+
+        Consider a grid for which the rows are labeled from top to
+        bottom with the elements of a in natural order, and the
+        columns are labeled from left to right with the elements of g
+        in natural order.  Each point in the grid corresponds to a
+        pair (a,b) that must be generated by self.cross(g).  In the
+        natural order of the cross product, an element must occur
+        after those that lie above and to the left of it in the grid.
+        By default the natural order of the cross product is
+        left-to-right, top to bottom.  Programmers must not rely on
+        the default order, except that cross products involving one or
+        more sequential generators are always performed in the default
+        order.  Note that this means that the following have the same
+        natural order:
+           seq(a).cross(b)
+           a.cross(seq(b))
+           seq(a).cross(seq(b))
+        But seq(a.cross(b)) may have a different natural order. *)
+    cross[\G2\](g: Generator[\G2\]): Generator[\(E1,G2)\]
+
+    (** Derived generation operations *)
+    (** mapReduce is equivalent to generate, but takes an explicit `join` function
+        and an identity value `id` that can have any type.  It still assumes `join` is
+        associative and that `id` is the identity of `join`. *)
+    mapReduce[\R\](body: E1->R, join: (R,R)->R, id: R): R
+
+    (** `reduce` is like `generate` or `mapReduce` but takes no `body` function *)
+    reduce(r: Reduction[\E1\]): E1
+    reduce(join: (E1,E1)->E1, id: E1): E1
+
+    (** `loop` is a version of `generate` that requires a body of void type.
+        It is used to translate `for` loops.  This default implementation uses
+        `VoidReduction` to reduce many void values to one, thus synchronizing
+        completion of the `for` loop. *)
+    loop(body :E1->()): ()
+
+end Generator
+
+trait SequentialGenerator[\E2\] extends { Generator[\E2\] }
+    getter reverse(): SequentialGenerator[\E2\]
+    seq(): SequentialGenerator[\E2\]
+    map[\G3\](f: E2->G3): SequentialGenerator[\G3\]
+    nest[\G4\](f: E2 -> SequentialGenerator[\G4\]): SequentialGenerator[\G4\]
+    filter(f: E2 -> Condition[\()\]): SequentialGenerator[\E2\]
+    cross[\F1\](g: SequentialGenerator[\F1\]): SequentialGenerator[\(E2,F1)\]
+end SequentialGenerator
+
+(* This is the trait that the `generate` method of a `Generator` needs to accept.
+   In order to encourage parallelism, we require all reductions to be associative.
+   In order to make programming the common case of generators easier, we require
+   all reductions to have an identity; in situations where the natural join operation
+   does not have an identity, trait `NonemptyReduction` can be used to lift that
+   operation to a new one that does have an identity. *)
+
+trait Reduction[\R\]
+    getter reverse(): Reduction[\R\] = ReversedReduction[\R\](self)
+    getter id(): R
+    join(a: R, b: R): R
+(*)     property FORALL(a: R) join(a, self.id) = a
+(*)     property FORALL(a: R) join(self.id, a) = a
+(*)     property FORALL(a: R, b: R, c: R) join(join(a,b), c) = join(a,join(b,c))
+(*)     property FORALL(a: R) self.reverse.join(a, b) = join(b, a)
+end
+
+private object ReversedReduction[\R\](r: Reduction[\R\]) extends Reduction[\R\]
+  getter asString(): String = "ReversedReduction(" || r.asString || ")"
+  getter reverse(): Reduction[\R\] = r
+  getter id(): R = r.id
+  join(x:R, y:R): R = r.join(y, x)
+end
+
+
+trait Condition[\E18\] extends { SequentialGenerator[\E18\] }
+(*)        excludes { String, ZZ, ZZ32, ZZ64, NN32, NN64, IntLiteral, RR32, RR64, ZZ32Vector, StringVector }
+    getter isEmpty(): Boolean
+    getter nonEmpty(): Boolean
+    getter holds(): Boolean
+    getter size(): ZZ32
+    getter get(): E18 throws NotFound
+    getter reverse(): Condition[\E18\]
+    getDefault(defaultValue: E18): E18
+(*)    opr |self| : ZZ32     (*) Problem here GLS 5/21/12
+    generate[\G11\](r: Reduction[\G11\], body: E18 -> G11): G11
+    map[\G12\](f: E18->G12): Condition[\G12\]
+    seq(): Condition[\E18\] = self
+    nest[\G13\](f: E18 -> Generator[\G13\]): Generator[\G13\]
+    nest[\G18\](f: E18 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\]
+    cross[\G14\](g: Generator[\G14\]): Generator[\(E18,G14)\]
+    cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E18,G17)\]
+    mapReduce[\R\](body: E18->R, _:(R,R)->R, id:R): R
+    reduce(_:(E18,E18)->E18, id:E18): E18
+    reduce(r: Reduction[\E18\]): E18
+    loop(f:E18->()): ()
+    cond[\G10\](t: E18 -> G10, e: () -> G10): G10
+(*)    opr OR(self, other: () -> E18): E18
+end Condition
+
+
+(* Option type *)
+
+value trait Option[\E19\] extends { Condition[\E19\] }
+        comprises { NoneObject[\E19\], Some[\E19\] }
+  coerce(_: None) = NoneObject[\E19\]
+  getter isEmpty(): Boolean = NOT self.holds
+  getter nonEmpty(): Boolean = self.holds
+  getter reverse(): Option[\E19\] = self
+(*)  opr |self| : ZZ32 = self.size
+  seq(): Option[\E19\] = self
+  filter(f: E19 -> Condition[\()\]): Option[\E19\]
+(*)  opr SQCAP(self, other: Option[\E19\]): Option[\E19\]
+end
+
+value object Some[\E20\](x: E20) extends Option[\E20\]
+    getter asString(): String = "Some(" || debugString(x) || ")"
+    getter size(): ZZ32 = 1
+    getter get() = x
+    getter holds() = true
+    getDefault(_: E20): E20 = x
+(*)     opr IN(y:E20, self): Boolean = (y = x)
+(*)     opr =(self,other:Some[\E20\]): Boolean = (x = other.x)
+(*)    opr SQCAP(self, other:Some[\E20\]): Option[\E20\] = if other.x = x then self else NoneObject[\E20\] end
+    generate[\G11\](r:Reduction[\G11\], body: E20 -> G11): G11 = body(x)
+    map[\G12\](f: E20->G12): Condition[\G12\] = Some[\G12\](f(x))
+    nest[\G13\](f: E20 -> Generator[\G13\]): Generator[\G13\] = f(x)
+    nest[\G18\](f: E20 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\] = f(x)
+    filter(f: E20 -> Condition[\()\]): Option[\E20\] = if f(x).holds then self else NoneObject[\E20\] end
+    cross[\G14\](g: Generator[\G14\]): Generator[\(E20,G14)\] =
+      g.map[\(E20,G14)\](fn (y:G14):(E20,G14) => (x,y))
+    cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E20,G17)\] =
+      g.map[\(E20,G17)\](fn (y:G17):(E20,G17) => (x,y))
+    mapReduce[\R\](body: E20->R, _:(R,R)->R, id:R): R = body(x)
+    reduce(_:(E20,E20)->E20, id:E20):E20 = x
+    reduce(r: Reduction[\E20\]):E20 = x
+    loop(f:E20->()): () = f(x)
+    cond[\G10\](t: E20 -> G10, e: () -> G10): G10 = t(x)
+end
+
+value object NoneObject[\E21\] extends Option[\E21\]
+    getter asString():String = "None"
+    getter size(): ZZ32 = 0
+    getter get() = throw NotFound
+    getter holds() = false
+    getDefault(defaultValue: E21): E21 = defaultValue
+(*)     opr IN(x:E21, self): Boolean = false
+(*)     opr SQCAP(self, other: Option[\E21\]): NoneObject[\E21\] = self
+    generate[\G11\](r: Reduction[\G11\], body: E21 -> G11): G11 = r.id
+    map[\G12\](f: E21->G12): Condition[\G12\] = NoneObject[\G12\]
+    nest[\G13\](f: E21 -> Generator[\G13\]): Generator[\G13\] = NoneObject[\G13\]
+    nest[\G18\](f: E21 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\] = NoneObject[\G18\]
+    filter(f: E21 -> Condition[\()\]): Option[\E21\] = self
+    cross[\G14\](g: Generator[\G14\]): Generator[\(E21,G14)\] = NoneObject[\(E21,G14)\]
+    cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E21,G17)\] = NoneObject[\(E21,G17)\]
+    mapReduce[\R\](body: E21->R, _:(R,R)->R, id:R): R = id
+    reduce(_:(E21,E21)->E21, id:E21):E21 = id
+    reduce(r: Reduction[\E21\]):E21 = r.id
+    loop(f:E21->()): () = ()
+    cond[\G16\](t: E21 -> G16, e: () -> G16): G16 = e()
+end
+
+value object None end
+
+
+(************************************************************
+* Comparison values
+************************************************************)
+
+(*) Material not present for now.  See CompilerBuiltinComparison.txt
+
+
+(************************************************************
+* Exception hierarchy
+************************************************************)
+
+trait Exception comprises { UncheckedException, CheckedException }
+end
+
+trait UncheckedException extends Exception excludes CheckedException
+end
+
+object NegativeLength extends UncheckedException
+    getter asString(): String = "Negative length"
+end
+
+object DivisionByZero extends UncheckedException
+    getter asString(): String = "Division by zero"
+end
+
+object IntegerOverflow extends UncheckedException
+    getter asString(): String = "Integer overflow"
+end
+
+trait CheckedException extends Exception excludes UncheckedException
+end
+
+trait IOException extends CheckedException
+end
+
+object CompilerFailureDetectedAtRunTime extends UncheckedException
+    getter asString(): String = "Compiler failure detected at runtime"
+end
+
+object IOFailure(s: String) extends IOException
+    getter asString(): String = "[I/O failure: " s "]"
+end
+
+object FileNotFoundException(s: String) extends IOException
+    getter asString(): String = "[File not found: " s "]"
+end
+
+
+(************************************************************
+* Random numbers
+************************************************************)
+
+random(i:RR64): RR64 = jRandomDouble(i)
+randomZZ32(x:ZZ32): ZZ32 = jRandomInt(0,x)
+
+
+(************************************************************
+* Character properties
+************************************************************)
+
+characterMinCodePoint: ZZ32 = 0
+characterMaxCodePoint: ZZ32 = 1114111
+
+end

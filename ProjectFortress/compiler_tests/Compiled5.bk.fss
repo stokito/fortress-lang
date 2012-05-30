@@ -1,0 +1,36 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export TypesInAPI
+
+trait T
+  y: String
+  m(s: String): ()
+  n(u) = ()
+end
+
+object O(s, t)
+  x = "field"
+  m(u) = ()
+end
+
+foo(s) = ()
+bar(s) = s
+
+baz = fn s => ()
+baz2: (ZZ32, String) -> String = fn (y, s) => s
+baz3: (ZZ32, String) -> String = fn (y: Number, s) => s
+baz4: (ZZ32, String) -> Object = fn (y: Number, s: String) => y
+baz5 = fn (y: ZZ32) => y
+
+fur(_: String) = ()
+
+x = 0

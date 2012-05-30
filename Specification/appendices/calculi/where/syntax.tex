@@ -1,0 +1,91 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Syntax}\label{where-syntax}
+
+The syntax for \wherecore\ is provided in Figure \ref{fig:where-syntax}.
+For simplicity, we use the following notational conventions:
+\begin{itemize}
+\renewcommand{\subtype}{\ensuremath{<:}}
+\item
+We abbreviate a sequence of relations
+$\tvone_1 \extends \set{\seq{\tappone_1}}$ $\more$ $\tvone_n \extends
+  \set{\seq{\tappone_n}}$ to \seq{\tvone \extends \set{\seq{\tappone}}} and
+$\ty_1\subtype\tapptwo_{11}$ \mbox{$\ty_1\subtype\tapptwo_{12}$} \more\
+$\ty_1\subtype\tapptwo_{1l}$ $\ty_2\subtype\tapptwo_{21}$ \more\
+$\ty_n\subtype\tapptwo_{nm}$ to $\tys\subtype\seq{\seq{\tapptwo}}$.
+\renewcommand{\subtype}{\ensuremath{\:<:\:}}
+
+\item
+Substitutions of \vname\ with \val\ and \tvone\ with \ty\ are denoted
+as \subst{\val}{\vname} and \subst{\ty}{\tvone}, respectively.
+A sequence of substitutions represents the composition of those
+substitutions where the right-most substitution is applied first.
+For example, $S_n \more\ S_1 \ty$ represents
+$S_n (\more\ S_2(S_1 \ty)\more)$.
+\end{itemize}
+
+\begin{figure}[t]
+\[
+\begin{array}{llll}
+\tvone, \tvtwo&& &  \mbox{type variables}\\
+\fname&& &  \mbox{method name}\\
+\vname&& &  \mbox{field name}\\
+\tname&& &  \mbox{trait name}\\
+\oname&& &  \mbox{object name}\\
+\cname&& &  \mbox{trait or object name}\\
+%%
+\ty, \prm\ty, \prm{\prm\tau} &::=& \tvone &\mbox{type}\\
+         &|& \tynontv\\
+\tynontv&::=& \tappfour& \mbox{type that is not a type variable}\\
+%% &\mbox{super trait}\\
+         &|& \oapp\\
+%% & \mbox{object type}\\
+\tappfour, M, L &::=& \tapp
+& \mbox{super trait}\\
+         &|& \obj \\
+\tappone, \tapptwo, \tappthree &::=&\tvone &\mbox{bound on a type variable}\\
+         &|& \tappfour \\
+\exp   &::=& \vname  & \mbox{expression}\\
+         &|& \self   \\% & \mbox{\self\ reference}\\
+         &|& \objexp \\% & \mbox{object creation}\\
+         &|& \fldacc \\% & \mbox{field access}\\
+         &|& \mthinvk \\% & \mbox{method invocation}\\
+         &|& \typecase{\exp}{\seq{\ty \Rightarrow \exp}}{\exp}\\
+%& \mbox{type-dependent operation}
+\fd &::=& \fdsyntax
+\quad\quad\quad\quad
+\quad\quad\quad\quad
+\quad\quad\quad\quad\quad\quad
+& \mbox{method definition}\\
+\td &::=& \lefteqn{\tdsyntax
+\quad\quad\quad\quad
+\mbox{trait definition}}\\
+\od &::=& \lefteqn{\odsyntax\quad \mbox{object definition}}\\
+\d &::=& \td &\mbox{definition}\\
+   &|  & \od \\
+\pgm &::=& \pd & \mbox{program}\\
+\end{array}
+\]
+\caption{Syntax of \wherecore}
+\label{fig:where-syntax}
+\end{figure}
+
+Most of the syntax is a straightforward extension of \basiccore.
+ %% in Section~\ref{basic-syntax}.
+An object or trait definition may include \wc.
+Every method invocation is annotated with three kinds of static
+types by type inference: the static types of the receiver, the
+arguments, and the result.
+These type annotations appear in \wherecore\ in a form of \tyAsc\ \ty.
+If the annotated types are not enough (to find
+``witnesses'' for the where-clauses variables), type checking rejects the
+program and requires more type information from the programmer.

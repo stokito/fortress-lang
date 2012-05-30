@@ -1,0 +1,445 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Objects}
+\chaplabel{objects}
+
+\note{Value objects and properties are not yet supported.}
+
+\emph{Objects} are values that have \objecttypes\ described in
+\secref{object-traits}.
+Objects contain \emph{methods} (described in \secref{methods}) and
+\emph{fields} (described in \secref{fields}).
+
+An object is a \emph{value object}, a \emph{reference object},
+or a \emph{function object}:
+It is a function object if it has an arrow type,
+a reference object if it has an object trait type
+that is not declared with the \KWD{value} modifier
+(see \secref{value-objects}),
+and a value object otherwise
+(i.e., if it has a tuple type, the type (),
+or an object trait type declared
+with the \KWD{value} modifier).
+
+A value object cannot have mutable fields,
+and it is completely determined by its type,
+environment and its fields:
+Value objects with the same type, environment and fields
+are indistinguishable.
+Thus, an implementation may freely copy value objects.
+Most objects with simple standard types,
+such as booleans,
+numeric literals,
+IEEE floating-point numbers,
+and integers are value objects.
+%
+In contrast,
+reference objects are thought to ``reside in memory'',
+and are identified by an \emph{object reference}.
+A new object reference is created
+whenever a reference object is constructed,
+so that reference objects constructed separately are always distinct.
+What about reference objects that have no mutable fields?
+Reference objects include
+arbitrary-precision numbers
+and aggregates such as arrays, lists and sets.
+%
+Function objects are immutable and have no fields.  Identity is not
+well-defined for function objects, and attempting to check whether two
+functions are equivalent returns an approximate result.
+\secref{equivalence} describes object equivalence in further detail.
+
+
+
+\section{Object Declarations}
+\seclabel{object-decls}
+
+\note{The \KWD{transient} modifier and varargs parameters are eliminated.}
+
+\note{What does it mean to have an invariant on an object?
+
+Christine: The easy answer is that on entrance and exit of every method the invariant is true. Unfortunately I could be in the middle of a method with the invariant violated and want to call another method.
+
+Guy: One might argue that invariants should hold on entry and exit of methods that appear in the API. This can be approximated as: invariants must hold before and after every method that is not marked private.
+
+Need a more concrete proposal.
+
+Does the modifier \KWD{atomic} on a functional check its contract also?
+}
+
+\begin{Grammar}
+\emph{ObjectDecl}  &::=& \option{\emph{ObjectMods}}
+\emph{ObjectHeader} \option{\emph{GoInAnObject}} \KWD{end}
+\options{\option{\KWD{object}} \emph{Id}} \\
+
+\emph{ObjectHeader} &::=& \KWD{object} \emph{Id}
+\option{\emph{StaticParams}} \option{\emph{ObjectValParam}}
+\option{\emph{ExtendsWhere}} \emph{FnClauses} \\
+
+\emph{ObjectMods} &::=& \emph{TraitMods}\\
+
+\emph{ObjectValParam} &::=& \texttt( \option{\emph{ObjectParams}} \texttt) \\
+
+\emph{ObjectParams}
+&::=&
+(\emph{ObjectParam} \EXP{,})$^*$ \options{\emph{ObjectVarargs} \EXP{,}}
+      \emph{ObjectKeyword}(\EXP{,}\emph{ObjectKeyword})$^*$\\
+&$|$&
+(\emph{ObjectParam} \EXP{,})$^*$ \emph{ObjectVarargs}\\
+&$|$& \emph{ObjectParam} (\EXP{,} \emph{ObjectParam})$^*$\\
+
+\emph{ObjectVarargs} &::=& \KWD{transient} \emph{Varargs}\\
+
+\emph{ObjectKeyword} &::=& \emph{ObjectParam}\EXP{=}\emph{Expr}\\
+
+\emph{ObjectParam} &::=&
+ \option{\emph{ParamFldMods}}
+ \emph{Param} \\
+&$|$& \KWD{var} \KWD{transient} \emph{ParamWType} \\
+&$|$& \option{\KWD{transient}} \KWD{var} \emph{ParamWType} \\
+&$|$& \KWD{transient} \emph{Param} \\
+
+\emph{ParamWType} &::=& \emph{BindId} \option{\emph{IsType}} \\
+
+\emph{ParamFldMods} &::=& \emph{ParamFldMod}$^+$\\
+
+\emph{ParamFldMod} &::=& $|$ \KWD{hidden} $|$ \KWD{settable} $|$ \KWD{wrapped}\\
+
+\emph{GoInAnObject}
+&::=& \option{\emph{Coercions}}
+\emph{GoFrontInAnObject} \option{\emph{GoBackInAnObject}}\\
+&$|$& \option{\emph{Coercions}}
+\emph{GoBackInAnObject} \\
+&$|$& \emph{Coercions}\\
+
+\emph{Coercions} &::=& \emph{Coercion}$^+$\\
+
+\emph{GoFrontInAnObject} &::=& \emph{GoesFrontInAnObject}$^+$\\
+
+\emph{GoesFrontInAnObject}
+&::=& \emph{FldDecl} \\
+&$|$& \emph{GetterSetterDef} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{GoBackInAnObject} &::=& \emph{GoesBackInAnObject}$^+$\\
+
+\emph{GoesBackInAnObject}
+&::=& \emph{MdDef} \\
+&$|$& \emph{PropertyDecl} \\
+
+\emph{FnClauses} &::=& \option{\emph{Throws}} \option{\emph{Where}}
+\emph{Contract} \\
+
+\emph{Throws} &::=& \KWD{throws} \emph{MayTraitTypes}\\
+
+\end{Grammar}
+
+Object declarations declare both object values and \objecttypes.
+Object declarations extend a
+set of traits from which they inherit methods.
+An object declaration inherits the
+concrete methods of its supertraits and must include a definition for every
+method declared but not defined by its supertraits.
+Especially, an object declaration must not include abstract methods
+(discussed in \secref{methods});
+it must define all abstract methods inherited from its supertraits.
+It is also allowed to define overloaded declarations of concrete methods
+inherited from its supertraits.
+
+
+
+Syntactically, an object declaration begins with
+an optional sequence of modifiers followed by
+\KWD{object}, followed by
+the identifier of the object, optional static parameters
+(described in \chapref{trait-parameters}), optional
+value parameters, optional traits the object extends,
+an optional declaration of thrown checked exceptions
+(discussed in \chapref{exceptions}),
+an optional \KWD{where} clause
+(discussed in \secref{where-clauses}),
+a contract for the object
+(discussed in \secref{contracts}),
+zero or more declarations of fields,
+getter methods, and setter methods,
+and zero or more declarations of methods, that are not getter or setter,
+separated by newlines or semicolons,
+and finally \KWD{end}.
+An object declaration may end with an optional \KWD{object} and its name again.
+It is a static error
+if the identifier after \KWD{end} is not the name of the object being declared.
+Property declarations (described in \secref{property-decls}) can be freely
+commingled with the field and method declarations.
+Method declarations in object declarations are syntactically identical to
+method declarations in trait declarations.
+If an object declaration has no \KWD{extends} clause,
+the object implicitly extends only trait \TYP{Object}.
+A \KWD{throws} clause does not include naked type variables.
+Every element in a \KWD{throws} clause is a subtype of
+\TYP{CheckedException}.
+A contract of an object declaration is evaluated
+when the object is created, as with a function contract (see \secref{contracts}).
+
+There are two kinds of object declarations:
+singleton declarations and constructor declarations.
+A singleton declaration declares a sole, stand-alone, singleton object.
+It may have static parameters but it does not have a list of value parameters;
+every instantiation of such an object with the same static
+arguments yields the same singleton object.
+A constructor declaration declares an object constructor function.
+It may have static parameters and it includes a list of value parameters;
+every call to the constructor of such an object with the same argument
+yields a new object.
+Initialization of singleton objects is nondeterministic
+as described in \chapref{execution}.
+The type of an object constructor function is an arrow type
+consisting of the object's value parameter type followed by
+the token \EXP{\rightarrow}, followed by the object trait type.
+
+A constructor declaration has a (possibly empty) parenthesized list of
+value parameters.  Each value parameter of a constructor declaration
+may be preceded by the special modifier \KWD{transient} or by a
+sequence of field modifiers.  A value parameter preceded by the
+modifier \KWD{transient} does not correspond to a field in an
+instantiation of the object: \KWD{transient} parameters are not in
+scope in the object's method declarations, but are in scope when
+the initial-value expressions of the fields
+are evaluated during object creation.
+
+For example, the following leaf object extending trait \TYP{Tree}:
+\input{\home/basic/examples/Object.Decl.Leaf.tex}
+has no fields and two methods.
+
+
+
+Here is an example of a \TYP{Cons} object constructor extending
+trait \EXP{\TYP{List}\llbracket{}T\rrbracket}:
+\input{\home/basic/examples/Object.Decl.Cons.tex}
+Note that this declaration introduces the ``factory'' function
+%Cons[\T\](first:T,rest:List[\T\]):Cons[\T\]
+\EXP{\TYP{Cons}\llbracket{}T\rrbracket(\VAR{first}\COLONOP{}T,\VAR{rest}\COLONOP\TYP{List}\llbracket{}T\rrbracket)\COLONOP\TYP{Cons}\llbracket{}T\rrbracket}
+which is used in the body of the object declaration to define the \VAR{cons}
+and \VAR{append} methods.
+Multiple factory functions can be defined by overloading an
+object constructor with functions.  For example:
+\input{\home/basic/examples/Object.Decl.ConsFn.tex}
+
+
+
+\section{Field Declarations}
+\seclabel{fields}
+
+\begin{Grammar}
+\emph{FldDecl}
+&::=& \option{\emph{FldMods}} \emph{FldWTypes} \emph{InitVal} \\
+&$|$& \emph{BindIdOrBindIdTuple} \EXP{=} \emph{Expr}\\
+&$|$& \option{\emph{FldMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{Type}\EXP{...}
+\emph{InitVal} \\
+&$|$& \option{\emph{FldMods}} \emph{BindIdOrBindIdTuple} \EXP{\mathrel{\mathtt{:}}} \emph{TupleType}
+\emph{InitVal} \\
+
+\emph{FldMods} &::=& \emph{FldMod}$^+$\\
+
+\emph{FldMod} &::=& \KWD{var} $|$ \emph{AbsFldMod}\\
+
+\emph{AbsFldMod} &::=& \emph{ApiFldMod} $|$ \KWD{wrapped} $|$ \KWD{private}\\
+
+\emph{ApiFldMod} &::=& \KWD{hidden} $|$ \KWD{settable} $|$ \KWD{test}\\
+
+\emph{FldWTypes} &::=& \emph{FldWType} \\
+&$|$& \texttt{(} \emph{FldWType}(\EXP{,} \emph{FldWType})$^+$ \texttt{)}\\
+
+\emph{FldWType} &::=& \emph{BindId} \emph{IsType}\\
+
+\end{Grammar}
+
+
+\note{I think this should be phrased differently.
+When I originally read that, I took it to mean
+that fields were always ``private.'' -- Scott}
+Fields are variables local to an object.
+They must not be referred to outside their enclosing object declarations.
+Each field is either a non-transient value parameter of a constructor
+declaration, or it is explicitly defined by a field declaration within the body of a constructor
+declaration, a singleton declaration, or an object expression
+(described in \secref{object-expr}).
+A field declaration in an object declaration is syntactically identical to
+a top-level variable declaration (described in \secref{top-var-decls}),
+with the same meanings attached to the form of variable declarations.
+Additional modifiers apply to fields, as described in \secref{abstract-fields}.  Unlike with an abstract field in a trait declaration, an object declaration may declare a \KWD{hidden} field which is not \KWD{settable}.
+
+Each field declaration includes an \emph{initial-value} expression,
+which specifies the initial value of that field.
+Field initialization occurs in textual program order:
+evaluation of each initial-value expression
+must complete before evaluation of the next initial-value expression,
+and all previous field names
+(and the parameters of the constructor,
+in a constructor declaration)
+are in scope when evaluating an initial-value expression
+(see~\secref{scope}).
+All fields of an object are initialized
+before that object is made available for subsequent computation;
+thus,
+it is illegal to invoke methods on
+an object being initialized:
+\KWD{self} is \emph{not} implicitly declared by a field declaration.
+
+\note{
+Victor: Is the following code legal:
+
+% trait T
+%   x: ZZ
+%   f() = object extends T
+%           x = self.g()  (* self here is bound by f *)
+%         end
+%   g() = 4
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:T\)\\
+{\tt~~}\pushtabs\=\+\(   x\COLON \mathbb{Z}\)\\
+\(   f() =  \null\)\pushtabs\=\+\(\KWD{object}\;\;\KWD{extends}\:T\)\\
+{\tt~~~~~~~~}\pushtabs\=\+\(           x = \mathord{\KWD{self}}.g()  \mathtt{(*}\;\hbox{\rm  self here is bound by f \unskip}\;\mathtt{*)}\)\-\\\poptabs
+\(         \KWD{end}\)\-\\\poptabs
+\(   g() = 4\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+
+What about:
+% trait T
+%   x: ZZ
+%   f() = object extends T
+%           x = g()
+%         end
+%   g() = 4
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{trait}\:T\)\\
+{\tt~~}\pushtabs\=\+\(   x\COLON \mathbb{Z}\)\\
+\(   f() =  \null\)\pushtabs\=\+\(\KWD{object}\;\;\KWD{extends}\:T\)\\
+{\tt~~~~~~~~}\pushtabs\=\+\(           x = g()\)\-\\\poptabs
+\(         \KWD{end}\)\-\\\poptabs
+\(   g() = 4\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+}
+
+\note{Victor: This may not belong here, but not sure where!}
+Within an object declaration or object expression,
+a field can be accessed by a ``naked'' identifier reference
+(see \secref{idn-ref}).
+Unlike within trait declarations,
+such a reference does \emph{not}
+invoke the getter or setter method of that name.
+To invoke a getter or setter of that name,
+it is necessary to use dotted field access
+(see \secref{field-access}).
+
+\section{Value Objects}
+\seclabel{value-objects}
+
+An object declaration with the modifier \KWD{value} declares a value object
+that is called in many languages a \emph{primitive} value.
+The \objecttype\ declared by a value object implicitly has the modifier
+\KWD{value}.
+
+
+
+The fields of a \KWD{value} object are immutable;
+they cannot be changed directly or it is a static error.
+However, Fortress allows value objects to have settable fields
+as an abbreviation for constructing a new value object with a different
+value for one field.
+If a value object has a setter method or a subscripted assignment operator
+method (described in \secref{subscripted-assignment}),
+then the return type of the method must be the value object trait type
+instead of \EXP{()}.  When such a method is invoked, the receiver
+must itself be assignable, and the value returned by the method
+is assigned to the receiver.
+
+
+For example, here is a value object \TYP{Complex} number:
+%value object Complex(settable real:Double, settable imaginary:Double=0)
+%  opr +(self,other:Complex) = Complex(real + other.real, imaginary + other.imaginary)
+%end
+\begin{Fortress}
+\(\KWD{value}\;\;\KWD{object} \TYP{Complex}(\KWD{settable} \VAR{real}\COLONOP\TYP{Double}, \KWD{settable} \VAR{imaginary}\COLONOP\TYP{Double}=0)\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{opr} +(\KWD{self},\VAR{other}\COLONOP\TYP{Complex}) = \TYP{Complex}(\VAR{real} + \VAR{other}.\VAR{real}, \VAR{imaginary} + \VAR{other}.\VAR{imaginary})\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+When a mutable variable \VAR{z}:
+%var z : Complex = Complex(0)
+\begin{Fortress}
+\(\KWD{var} z \mathrel{\mathtt{:}} \TYP{Complex} = \TYP{Complex}(0)\)
+\end{Fortress}
+updates its \VAR{imaginary} field, the following syntax:
+%z.imaginary := v
+\begin{Fortress}
+\(z.\VAR{imaginary} \ASSIGN v\)
+\end{Fortress}
+can be used as an abbreviation for:
+%z := Complex(z.real, v)
+\begin{Fortress}
+\(z \ASSIGN \TYP{Complex}(z.\VAR{real}, v)\)
+\end{Fortress}
+So the setter for the field \VAR{imaginary} in \TYP{Complex} would do the
+work of constructing and returning
+%Complex(z.real, v)
+\EXP{\TYP{Complex}(z.\VAR{real}, v)}, and the assignment:
+%z.imaginary := v
+\begin{Fortress}
+\(z.\VAR{imaginary} \ASSIGN v\)
+\end{Fortress}
+would be construed to mean:
+%z := z.imaginary(v)
+\begin{Fortress}
+\(z \ASSIGN z.\VAR{imaginary}(v)\)
+\end{Fortress}
+
+
+Note that modifying a settable field directly within the value object is
+not allowed.  For example, the following:
+%imaginary := 3
+\begin{Fortress}
+\(\VAR{imaginary} \ASSIGN 3\)
+\end{Fortress}
+within the \TYP{Complex} object means:
+%self.imaginary := 3
+\begin{Fortress}
+\(\mathord{\KWD{self}}.\VAR{imaginary} \ASSIGN 3\)
+\end{Fortress}
+and because \EXP{\mathord{\KWD{self}}} is not mutable, the assignment is
+disallowed.
+
+
+\section{Object Equivalence}
+\seclabel{equivalence}
+
+The trait \TYP{Any} declares the object equivalence operator
+\EXP{\sequiv}.  This operator is automatically defined for all
+objects; it is a static error for the programmer to override it.  The
+\EXP{\sequiv} operator is used to decide whether its two arguments
+refer to ``the same object'' in the strictest sense possible.  If the
+arguments have different dynamic types---including the instantiations
+of all static parameters---the result is always \VAR{false}.  If both
+arguments are value objects with the same type, then the result is
+\VAR{true} if and only if corresponding fields of the objects are
+themselves equivalent as defined by this operator; in particular, two
+binary words are strictly equivalent if and only if they contain the
+same bit pattern.  If both arguments are object references, then the
+result is \VAR{true} if and only if the two object references refer to
+the identical reference object (in implementation terms, occupying the
+same memory locations in the heap).  If both arguments are functions,
+the result is \VAR{true} only if the functions behave identically for
+any choice of type-correct arguments.  Even if two functions behave
+identically, the fortress implementation is free to return \VAR{false}
+when they are compared for object equivalence.

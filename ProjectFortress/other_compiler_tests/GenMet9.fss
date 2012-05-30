@@ -1,0 +1,32 @@
+(*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+export Executable
+
+trait a[\U extends Object\]
+  m[\T extends Object\](f:U->T):a[\T\]
+  p():()
+end
+
+trait b[\U extends Object\] extends a[\U\]
+  m[\T extends Object\](f:U->T):b[\T\]
+end
+
+object o[\U extends Object\](x:U) extends b[\U\]
+  m[\T extends Object\](f:U->T):b[\T\] = o[\T\](f(x))
+  p() = println x
+end
+
+id(x:String):String = x
+
+run():() = do
+  aa:a[\String\] = o[\String\]("cat")
+  aa.m(id).p()
+end

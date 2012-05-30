@@ -1,0 +1,52 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(* Pattern Matching Test 5
+   with a nested patterns       *)
+
+export Executable
+
+trait T(a:U, b:V) end
+trait U(c:ZZ) end
+trait V(d:RR64, e:T) end
+
+object TT(a:U, b:V) extends T end
+object UU(c:ZZ) extends U end
+object VV(d:RR64, e:T) extends V end
+object WW extends T
+  a:U = UU(0)
+  b:V = VV(3.5, WW)
+end
+
+run():() = do
+   u_x : U = UU(4) (*) u_x -> U(x)
+   v_v : V = VV(2.8, WW)
+   w_pq : T = TT(u_x, v_v) (*) w_pq -> W(p, q)
+   v_yw : V = VV(3.2, w_pq) (*) v_yw -> V(y, W(p,q))
+(*
+   ss : T(U(x), V(y, T(p, q))) = TT(u_x, v_yw)
+*)
+
+(*
+T(u_x, v_yw) -->
+T(UU(4), VV(3.2, w_pq)) -->
+T(UU(4), VV(3.2, TT(u_x, v_v))) -->
+T(UU(4), VV(3.2, TT(UU(4), VV(2.8, WW))))
+T( U(x),  V(y  ,  T(p    , q)))
+*)
+
+   assert(x, 4, "The test failed!!")
+   assert(y, 3.2, "The test failed!!")
+   assert(p.c, 4, "The test failed!!")
+   assert(q.d, 2.8, "The test failed!!")
+   mm : T(fst, snd) = q.e
+   println "The test is successful."
+end

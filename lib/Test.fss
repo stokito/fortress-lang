@@ -1,0 +1,18 @@
+component Test
+
+  import Queue.{...}
+  import List.{...}
+  export Executable
+  
+  supersnoc[\T\](l: List[\T\]) : Queue[\T\] = 
+    if isEmpty(l) 
+      then emptyNaiveQueue[\T\]() 
+      else snoc(supersnoc(tail(l)),head(l)) end 
+  
+  run() : () = do
+    one: ZZ32 = 1
+    q: Queue[\ZZ32\] = supersnoc(<|one,one,one,one|>)
+    print(q, fn (x: ZZ32) => println(x)) (*) 
+  end
+
+end

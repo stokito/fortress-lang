@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+run():() = do
+  a:ZZ32[5] = [0 1 2 3 4 5]
+  prod1:ZZ32 := 1
+  prod2:ZZ32 := 1
+  s = spawn
+        for i <- a do
+          prod1 TIMES= i
+        end
+  t = spawn
+        for i <- a.indices do
+          prod2 TIMES= a[i]
+        end
+  println s.value
+  println t.value
+end

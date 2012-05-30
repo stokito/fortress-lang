@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component oddJuxt
+import oddJuxtComp.{...}
+export Executable
+
+(** Based on bug found by Sorin Miklós Zsejki
+    We spuriously use the definition of juxtaposition found in
+    oddJuxtComp, rather than doing a function call.  This doesn't
+    happen if the juxtaposition definition occurs locally. **)
+
+run() = do
+    t = Nothing[\ZZ32\]
+    println t
+    println Nothing[\ZZ32\]
+  end
+
+end

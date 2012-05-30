@@ -1,0 +1,129 @@
+\begin{thebibliography}{10}
+
+\bibitem{Fortress}
+Eric Allen, David Chase, Joe Hallett, Victor Luchangco, Jan-Willem Maessen,
+  Sukyoung Ryu, Guy~L. {Steele~Jr.}, and Sam Tobin-Hochstadt.
+\newblock {The Fortress Language Specification Version 1.0}, March 2008.
+
+\bibitem{allen07}
+Eric Allen, J.~J. Hallett, Victor Luchangco, Sukyoung Ryu, and Guy~L.
+  {Steele~Jr.}
+\newblock Modular multiple dispatch with multiple inheritance.
+\newblock In {\em SAC '07: Proceedings of the 2007 ACM Symposium on Applied
+  Computing}, pages 1117--1121, New York, NY, USA, 2007. ACM.
+
+\bibitem{baldan99}
+Paolo Baldan, Giorgio Ghelli, and Alessandra Raffaet\`{a}.
+\newblock Basic theory of f-bounded quantification.
+\newblock {\em Information and Computation}, 153:173--237, September 1999.
+
+\bibitem{bourdoncle97}
+Fran\c{c}ois Bourdoncle and Stephan Merz.
+\newblock Type checking higher-order polymorphic multi-methods.
+\newblock In {\em POPL '97: Proceedings of the 24th ACM SIGPLAN-SIGACT
+  Symposium on Principles of Programming Languages}, pages 302--315, New York,
+  NY, USA, 1997. ACM.
+
+\bibitem{canning89}
+Peter Canning, William Cook, Walter Hill, Walter Olthoff, and John~C. Mitchell.
+\newblock F-bounded polymorphism for object-oriented programming.
+\newblock In {\em FPCA '89: Proceedings of the 4th International Conference on
+  Functional Programming Languages and Computer Architecture}, pages 273--280,
+  New York, NY, USA, 1989. ACM.
+
+\bibitem{castagna95}
+Giuseppe Castagna, Giorgio Ghelli, and Giuseppe Longo.
+\newblock A calculus for overloaded functions with subtyping.
+\newblock {\em Information and Computation}, 117(1):115--135, 1995.
+
+\bibitem{multijava}
+Curtis Clifton, Todd Millstein, Gary~T. Leavens, and Craig Chambers.
+\newblock {MultiJava}: Design rationale, compiler implementation, and
+  applications.
+\newblock {\em ACM Trans. Program. Lang. Syst.}, 28(3):517--575, 2006.
+
+\bibitem{damas82}
+Luis Damas and Robin Milner.
+\newblock Principal type-schemes for functional programs.
+\newblock In {\em POPL '82: Proceedings of the 9th ACM SIGPLAN-SIGACT Symposium
+  on Principles of Programming Languages}, pages 207--212, New York, NY, USA,
+  1982. ACM.
+
+\bibitem{dreyer07}
+Derek Dreyer, Robert Harper, and Manuel M.~T. Chakravarty.
+\newblock Modular type classes.
+\newblock In {\em POPL '07: Proceedings of the 34th ACM SIGPLAN-SIGACT
+  Symposium on Principles of Programming Languages}, pages 63--70, New York,
+  NY, USA, 2007. ACM.
+
+\bibitem{JavaSpec}
+James Gosling, Bill Joy, Guy Steele, and Gilad Bracha.
+\newblock {\em The Java Language Specification, Third Edition}.
+\newblock Addison-Wesley Longman, Amsterdam, 3 edition, June 2005.
+
+\bibitem{kennedy07}
+Andrew~J. Kennedy and Benjamin~C. Pierce.
+\newblock On decidability of nominal subtyping with variance, September 2006.
+\newblock FOOL-WOOD '07.
+
+\bibitem{feml}
+Keunwoo Lee and Craig Chambers.
+\newblock Parameterized modules for classes and extensible functions.
+\newblock In {\em ECOOP ’06 : Proceedings of the 20th European Conference on
+  Object-Oriented Programming}, pages 353--378. Springer-Verlag, 2006.
+
+\bibitem{litvinov98}
+Vassily Litvinov.
+\newblock Constraint-based polymorphism in {Cecil}: Towards a practical and
+  static type system.
+\newblock In {\em Proceedings of the 13th ACM Conference on Object-Oriented
+  Programming Systems, Languages and Applications}, pages 388--411. ACM Press,
+  1998.
+
+\bibitem{millstein02}
+Todd Millstein and Craig Chambers.
+\newblock Modular statically typed multimethods.
+\newblock {\em Information and Computation}, 175(1):76--118, 2002.
+
+\bibitem{millstein03}
+Todd~David Millstein.
+\newblock {\em Reconciling software extensibility with modular program
+  reasoning}.
+\newblock PhD thesis, University of Washington, 2003.
+
+\bibitem{scala}
+Martin Odersky.
+\newblock {\em {The Scala Language Specification, Version 2.7}}.
+\newblock EPFL Lausanne, Switzerland, 2009.
+
+\bibitem{siek05}
+Jeremy~G. Siek.
+\newblock {\em A language for generic programming}.
+\newblock PhD thesis, Indiana University, Indianapolis, IN, USA, 2005.
+
+\bibitem{simonet07}
+Vincent Simonet and Fran\c{c}ois Pottier.
+\newblock A constraint-based approach to guarded algebraic data types.
+\newblock {\em ACM Trans. Program. Lang. Syst.}, 29(1):1, 2007.
+
+\bibitem{smith08}
+Daniel Smith and Robert Cartwright.
+\newblock Java type inference is broken: can we fix it?
+\newblock In {\em OOPSLA '08: Proceedings of the 23rd ACM SIGPLAN Conference on
+  Object-Oriented Programming Systems Languages and Applications}, pages
+  505--524, New York, NY, USA, 2008. ACM.
+
+\bibitem{wadler89}
+P.~Wadler and S.~Blott.
+\newblock How to make ad-hoc polymorphism less ad hoc.
+\newblock In {\em POPL '89: Proceedings of the 16th ACM SIGPLAN-SIGACT
+  Symposium on Principles of Programming Languages}, pages 60--76, New York,
+  NY, USA, 1989. ACM.
+
+\bibitem{wehr07}
+Stefan Wehr, Ralf Lämmel, and Peter Thiemann.
+\newblock {JavaGI}: Generalized interfaces for {Java}.
+\newblock In {\em ECOOP 2007, Proceedings. LNCS, Springer-Verlag (2007) 25},
+  pages 347--372. Springer-Verlag, 2007.
+
+\end{thebibliography}

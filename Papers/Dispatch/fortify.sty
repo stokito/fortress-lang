@@ -1,0 +1,550 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%    Copyright 2010 Sun Microsystems, Inc.,
+%%    4150 Network Circle, Santa Clara, California 95054, U.S.A.
+%%    All rights reserved.
+%%
+%%    U.S. Government Rights - Commercial software.
+%%    Government users are subject to the Sun Microsystems, Inc. standard
+%%    license agreement and applicable provisions of the FAR and its supplements.
+%%
+%%    Use is subject to license terms.
+%%
+%%    This distribution may include materials developed by third parties.
+%%
+%%    Sun, Sun Microsystems, the Sun logo and Java are trademarks or registered
+%%    trademarks of Sun Microsystems, Inc. in the U.S. and other countries.
+%%
+%%
+%% Stuff for the EMACS "fortify" command (M-&) %%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{color}
+\usepackage{amssymb} %maths
+\usepackage{amsmath} %maths
+\usepackage{stmaryrd}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc} %useful to type directly accentuated characters
+
+
+\newcommand\twointersectand{\mathbin{\wedge\mskip-8mu\wedge}}
+\newcommand\twointersector{\mathbin{\vee\mskip-8mu\vee}}
+\newcommand\twointersectxor{\mathbin{\underline{\vee\mskip-8mu\vee}}}
+
+
+
+\newlength{\FortressCodeIndent}
+\setlength{\FortressCodeIndent}{1em}
+\newlength{\FortressParSkip}
+\setlength{\FortressParSkip}{\parskip}
+\def\Fortress{\list{}{\leftmargin \FortressCodeIndent
+                      \itemindent\listparindent
+                      \parsep 0pt plus 1pt}\item
+                      \begingroup\FortressInnerMacros\tabbing}
+\makeatletter
+% Need to be slightly different from \endtabbing
+\def\endFortress{\unskip\@stopfield\@addfield\ifdim\wd\@curline>0pt\@startfield\@stopline\fi
+  \ifnum\@tabpush >\z@ \@badpoptabs \fi\endtrivlist\endgroup\endlist}
+\makeatother
+\newdimen\FortressMathsurround   \FortressMathsurround=0.166666em
+\newcommand\FortressMathsurroundFixup[1]{\ifdim \lastskip = 0pt \hskip-#1\FortressMathsurround \fi}
+
+\newcommand\FortressOuterKWD[1]{{\FortressMathsurroundFixup{1}\ensuremath{\mathtt{#1}\mathsurround=\FortressMathsurround}}}
+\newcommand\FortressOuterKWDVAR[1]{{\FortressMathsurroundFixup{1}\ensuremath{\mathtt{#1}\mathsurround=\FortressMathsurround}}}
+\newcommand\FortressOuterOPR[1]{{\FortressMathsurroundFixup{1}\ensuremath{\mathtt{#1}\mathsurround=\FortressMathsurround}}}
+\newcommand\FortressOuterTYP[1]{{\FortressMathsurroundFixup{0.5}\ensuremath{\mathrm{#1}\mathsurround=0.5\FortressMathsurround}}}
+\newcommand\FortressOuterVAR[1]{{\FortressMathsurroundFixup{0.5}\ensuremath{\mathit{#1}\mathsurround=0.5\FortressMathsurround}}}
+\newcommand\FortressOuterSTR[1]{{\FortressMathsurroundFixup{1}\ensuremath{\hbox{\tt\usefont{T1}{pcr}{m}{n}\selectfont#1}\mathsurround=\FortressMathsurround}}}
+\newcommand\EXP[1]{{\FortressMathsurroundFixup{1}\ensuremath{{\protect\FortressInnerMacros\let\*=\fortresslinecomment#1}\mathsurround=\FortressMathsurround}}}
+\newcommand\FortressOuterMacros{\let\KWD\FortressOuterKWD \let\KWDVAR\FortressOuterKWDVAR
+  \let\OPR\FortressOuterOPR \let\TYP\FortressOuterTYP \let\VAR\FortressOuterVAR \let\STR\FortressOuterSTR}
+
+\FortressOuterMacros
+
+\newcommand\FortressInnerKWD[1]{\mathrel{\mathtt{#1}}}
+\newcommand\FortressInnerKWDVAR[1]{\mathord{\mathtt{#1}}}
+\newcommand\FortressInnerOPR[1]{\mathbin{\mathtt{#1}}}
+\newcommand\FortressInnerBIGOPR[1]{\mathop{\lower0.4ex\hbox{\vrule height 1.2em depth 0.1em width 0pt\Large$\mathtt{#1}$}}}
+\newcommand\FortressInnerBIGOP[1]{\mathop{\lower0.2ex\hbox{\Large$#1$}}}
+\newcommand\FortressInnerTYP[1]{\mathord{\mathrm{#1}}}
+\newcommand\FortressInnerVAR[1]{\mathord{\mathit{#1}}}
+\newcommand\FortressInnerSTR[1]{\hbox{\tt\usefont{T1}{pcr}{m}{n}\selectfont#1}}
+\newcommand\FortressInnerMacros{\let\KWD\FortressInnerKWD \let\KWDVAR\FortressInnerKWDVAR
+  \let\OPR\FortressInnerOPR \let\BIGOPR\FortressInnerBIGOPR \let\BIGOP\FortressInnerBIGOP
+  \let\TYP\FortressInnerTYP \let\VAR\FortressInnerVAR \let\STR\FortressInnerSTR}
+
+\newcommand\CONDEQ{\mathrel{\mathtt{:}}=\mathrel{\mathtt{:}}}
+\newcommand\ASSIGN{\mathrel{\mathtt{:}}=}
+\newcommand\COLON{\mathpunct{\mathtt{:}}}
+\newcommand\COLONOP{\mathinner{\mathtt{:}}}
+\newcommand\SHORTCUT[1]{\mathrel{\mathord{#1}\mathord{:}}}
+\newcommand\verythin{{\ensuremath{\mskip 1.5mu}}}
+\newcommand\ultrathin{{\ensuremath{\mskip 0.75mu}}}
+\def\Vvert{\mathrel{\vert\mskip-1.5mu\vert\mskip-1.5mu\vert}}
+\def\VVert{\mathrel{\vert\mskip-1.5mu\vert\mskip-1.5mu\vert\mskip-1.5mu\vert}}
+\def\sequiv{\mathrel{\hbox{\raise0.215ex\hbox to 0pt{$\equiv$\hss}\lower0.215ex\hbox{$\equiv$}}}}
+
+\newcommand\bigllbracket{\bigl[\mkern-5mu\bigl[}
+\newcommand\bigrrbracket{\bigr]\mkern-5mu\bigr]}
+\newcommand\Bigllbracket{\Bigl[\mkern-5.5mu\Bigl[}
+\newcommand\Bigrrbracket{\Bigr]\mkern-5.5mu\Bigr]}
+\newcommand\biggllbracket{\biggl[\mkern-6mu\biggl[}
+\newcommand\biggrrbracket{\biggr]\mkern-6mu\biggr]}
+\newcommand\Biggllbracket{\Biggl[\mkern-6.5mu\Biggl[}
+\newcommand\Biggrrbracket{\Biggr]\mkern-6.5mu\Biggr]}
+\newcommand\leftllbracket{\left[\mkern-5.5mu\left[}
+\newcommand\rightrrbracket{\right]\mkern-5.5mu\right]}
+
+
+\newcommand\FortressUnknownCharacter[1]{{\fboxsep=0.166666em\fbox{\small\tt#1}}}
+
+%% The old FortressDoc (introduced in r1437) is not working any more.
+%% It is going to be replaced by the new fortify tool soon.
+%% We'll not adjust the indentation of the Fortress documentation
+%% embedded in the Fortress code for now.
+%%
+\newenvironment{FortressDoc}[1]{\tt {#1}}{}
+% \newenvironment{FortressDoc}[1]{\vspace{0.5ex}%
+% \begin{list}{}{%
+%   \setlength{\parskip}{\FortressParSkip}
+%   \settowidth{\leftmargin}{{\tt {#1}}}%
+%   \addtolength{\leftmargin}{\FortressCodeIndent}}%
+%      \item[]\raggedright%
+% }{\unskip\end{list}\vspace{-3ex}}
+
+
+\newcommand\FortexSettings{%
+\setlength{\FortressCodeIndent}{0em}%
+}
+
+\medmuskip=4mu plus 2mu minus 1mu\relax      %Normal LaTeX has 4mu plus 2mu minus 4mu
+
+
+\newdimen\fortressblanklineskip  \fortressblanklineskip=4pt
+\newdimen\fortresscommentparskip  \fortresscommentparskip=4pt
+\newdimen\fortresscommentrulethickness  \fortresscommentrulethickness=0.5pt
+\newdimen\fortressleftindentincrement
+\newdimen\fortressrightindentincrement  \fortressrightindentincrement=1em
+\newdimen\fortresscommentruleraise
+\newdimen\fortresscommentrulemargin
+\newdimen\fortresscommentrulecorner
+\newdimen\fortresscommentparensoffset
+
+\newbox\fortresscodeline
+\newbox\fortresstempbox
+\newbox\fortressresultbox
+\newbox\fortresscommentbox
+\newbox\fortresstabstack
+\newbox\fortresssavedtabstack
+\newdimen\fortresstempdimen
+\newdimen\fortresscurindent
+\newdimen\fortressnewindent
+\newif\iffortresstopcommentline
+\newif\iffortressbottomcommentline
+\newif\iffortresscommentalignblock
+\newif\iffortresspng  \fortresspngfalse
+
+\definecolor{almostwhite}{rgb}{0.99,0.99,0.99}
+
+\newcommand\FortressCode{\lineskip=1.5pt\lineskiplimit=1.5pt
+  \setbox\fortresssavedtabstack=\box\fortresstabstack
+  \global\setbox\fortresstabstack=\hbox{\hbox{}}\relax
+  \FortressInnerMacros
+  \let\+=\fortresspushtab
+  \let\-=\fortresspoptab
+  \let\1=\fortresscodeindentone
+  \let\2=\fortresscodeindenttwo
+  \let\3=\fortresscodeindentthree
+  \let\*=\fortresslinecomment
+  \def~{{\tt\ }}\let\\=\fortressline
+  \let\[=\fortressbegincommentalignblock
+  \let\]=\fortressendcommentalignblock
+  \def\digitblank{{\setbox0=\hbox{0}\hbox to \wd0{\hss}}}%
+  \fortresscommentalignblockfalse
+  \topsep=4pt plus 2pt   \parsep=\parskip  \partopsep=1pt plus 1pt
+  \trivlist
+  \item[]%
+  % The \mathopen in the next line prevents a leading \mathrel (as for a keyword) from inserting glue.
+  \fortressbeginline\iffortresspng\mathopen{\hbox to 0pt{\hskip\hsize\color{almostwhite}\vrule height 0.001pt width 0.001pt\hss}}\fi\ignorespaces}
+\def\endFortressCode{\fortressendline\endtrivlist
+  \global\setbox\fortresstabstack=\box\fortresssavedtabstack}
+
+\newcommand\fortressbeginline{\fortressretrievenewindent
+  \fortresscurindent=\fortressnewindent
+  \setbox\fortresscodeline=\hbox{\iffortresspng\hbox to 0pt{\color{almostwhite}\vrule height 0.001pt width 0.001pt\hss}\fi
+       \hskip\fortresscurindent\strut}%
+  \fortressbeginfield}
+\newcommand\fortressendline{\unskip\fortressendfield
+  \ifdim \wd\fortresscodeline > \fortresscurindent
+    \noindent\box\fortresscodeline\par
+  \else
+    \iffortresscommentalignblock
+      \noalign{\vskip\fortressblanklineskip}\relax
+    \else
+      \vskip\fortressblanklineskip
+    \fi
+  \fi}
+\newcommand\fortresscancelline{\fortressendfield}
+
+\newcommand\fortressbeginfield{\setbox\fortresscodeline=\hbox\bgroup
+  \box\fortresscodeline\(\displaystyle\ignorespaces}
+  
+\newcommand\fortressendfield{\null\)\egroup}
+
+\newcommand\fortresspushtab{\fortressendfield
+  \fortressnewindent=\wd\fortresscodeline
+  \global\setbox\fortresstabstack=\hbox{\unhbox\fortresstabstack
+                                        \hbox to \fortressnewindent{\hss}}\relax
+  \fortressbeginfield}
+  
+\newcommand\fortresspoptab{\fortressendfield
+  \global\setbox\fortresstabstack=\hbox{\unhbox\fortresstabstack
+                                        \setbox\fortresstempbox=\lastbox}\relax
+  \fortressretrievenewindent
+  \fortressbeginfield}
+
+\newcommand\fortressretrievenewindent{\relax
+  \global\setbox\fortresstabstack=\hbox{\unhbox\fortresstabstack
+                                        \global\setbox\fortresstempbox=\lastbox}\relax
+  \fortressnewindent=\wd\fortresstempbox
+  \global\setbox\fortresstabstack=\hbox{\unhbox\fortresstabstack
+                                        \box\fortresstempbox}}
+
+\newcommand\fortresscodeindentone{\mskip 8mu }
+\newcommand\fortresscodeindenttwo{\1\1}
+\newcommand\fortresscodeindentthree{\1\1\1}
+
+\newcommand\fortresscommentsep{\hskip 1.5em }
+
+%\newcommand\fortresslinecommentsymbol{\hbox{\raise 2pt\hbox{$\scriptscriptstyle\circledast$}}}
+%\newcommand\fortresslinecommentsymbol{\hbox{\raise 0.37ex\hbox{\hbox to 0pt{$\scriptstyle\otimes$}\hbox{$\scriptstyle\oplus$}}}}
+%\newcommand\fortresslinecommentsymbol{\hbox{\setbox0=\hbox{$\scriptstyle\odot$}\relax
+%  \hbox{\raise 0.2ex\hbox to \wd0{\hss$\ast$\hss}\raise 0.37ex\hbox to 0pt{\hss\box0}}}}
+\newcommand\fortresslinecommentsymbol{\hbox{\setbox0=\hbox{$\scriptstyle\odot$\hss}\relax
+  \hbox{\raise 0.07ex\hbox to \wd0{\hss\tt*\hss}\raise 0.37ex\hbox to 0pt{\hss\box0}}}}
+\newcommand\fortresslinecomment[1]{\fortresslinecommentsymbol\hbox{\FortressOuterMacros\def~{\penalty10000\ }\rm#1}}
+\newcommand\fortressalignedlinecomment[1]{\fortressendfield
+  \leavevmode\box\fortresscodeline&\setbox\fortresscodeline=\hbox{}\fortressbeginfield
+  \fortresslinecommentsymbol\hbox{\FortressOuterMacros\def~{\penalty10000\ }\rm#1}}  
+
+\newcommand\fortressonelinecomment[3]{\hbox{{\tt#1}\FortressOuterMacros\def~{\penalty10000\ }\rm#2{\tt#3}}}
+
+\newcommand\fortressline{\fortressendline\fortressbeginline}
+\newcommand\fortresscommentalignblockline{\fortressendfield
+  \leavevmode\box\fortresscodeline\cr}
+
+\newcommand\fortressbegincommentalignblock{\fortresscancelline\begingroup
+  \let\\=\fortresscommentalignblockline
+  \let\*=\fortressalignedlinecomment
+  \tabskip=0pt\halign\bgroup
+  \fortressbeginline##\hfil&##\hfil\cr}
+\newcommand\fortressendcommentalignblock{\egroup\endgroup\fortressbeginline}
+
+\newcommand\FortressBeginComment{\fortressblockcomment{}{}}
+\newcommand\FortressBeginFlushComment{\fortressblockcomment{\leftskip=0pt\rightskip=0pt}{}}
+\newcommand\FortressBeginFlushLeftComment{\fortressblockcomment{\leftskip=0pt}{}}
+\newcommand\FortressBeginFlushRightComment{\fortressblockcomment{\rightskip=0pt}{}}
+\newcommand\FortressTaggedBeginComment{\fortressblockcomment{}}
+\newcommand\FortressTaggedBeginFlushComment{\fortressblockcomment{\leftskip=0pt\rightskip=0pt}}
+\newcommand\FortressTaggedBeginFlushLeftComment{\fortressblockcomment{\leftskip=0pt}}
+\newcommand\FortressTaggedBeginFlushRightComment{\fortressblockcomment{\rightskip=0pt}}
+
+%%% Important invariant in block comments: whenever you are in horizontal mode, you are
+%%% within a \begingroup, and returning to vertical mode must always end that group.
+
+\newcommand\fortressblockcomment[2]{\fortresscancelline
+  \begingroup\lineskip=1pt\lineskiplimit=1pt
+  \setbox\fortresscommentbox=\vbox\bgroup
+  \advance\hsize by -\fortresscurindent
+  \setbox\fortresstempbox=\hbox{\tt (*~}\leftskip=\wd\fortresstempbox
+  \setbox\fortresstempbox=\hbox{\tt ~*)}\rightskip=\wd\fortresstempbox
+  \sloppy
+  #1\relax
+  \FortressOuterMacros
+  \let\item=\fortressitem
+  \let\enum=\fortressenum
+  \let\desc=\fortressdesc
+  \let\lind=\fortressleftindent
+  \def~{\penalty10000\ }
+  \let\\=\fortressendcommentparagraph
+  \let\fortressdocommentrule=\relax
+  \def\leftrule{\def\fortressdocommentrule{\fortresscommentrule{\fortresspositionleftrule}}}\relax
+  \def\rightrule{\def\fortressdocommentrule{\fortresscommentrule{\fortresspositionrightrule}}}\relax
+  \def\leftrightrule{\def\fortressdocommentrule{\fortresscommentrule{\fortresspositionleftrightrule}}}\relax
+  \fortresstopcommentlinefalse
+  \fortressbottomcommentlinefalse
+  \def\topcommentline{\fortresscommentline{\rightskip}{0pt}{0pt}\fortresstopcommentlinetrue\par\endgroup}\relax
+  \def\bottomcommentline{\ifhmode\par\endgroup\fi\begingroup\leavevmode
+    \fortresscommentline{\leftskip}{0pt}{0pt}\fortressbottomcommentlinetrue}\relax
+  \def\toprightcommentline{\fortresscommentline{\rightskip}{0pt}{\fortresscommentrulemargin}\fortresstopcommentlinetrue\par\endgroup}\relax
+  \def\bottomleftcommentline{\ifhmode\par\endgroup\fi\begingroup\leavevmode
+    \fortresscommentline{\leftskip}{\fortresscommentrulemargin}{0pt}\fortressbottomcommentlinetrue}\relax
+  \setbox\fortresstempbox=\hbox{99.$\mskip 7mu$}\relax
+  \fortressleftindentincrement=\wd\fortresstempbox
+  \parindent=0pt
+  \parskip=\fortresscommentparskip
+  \tt \fortresscommentruleraise=0.6ex
+      \fortresscommentrulecorner=0.5ex
+      \fortresscommentparensoffset=0.3ex
+      \setbox\fortresstempbox=\hbox{\tt ~}\relax
+      \fortresscommentrulemargin=0.8\wd\fortresstempbox
+  \rm
+  \leavevmode\begingroup
+  \hbox{\hskip -\leftskip \hskip-\fortresscommentparensoffset{\tt (*#2~}\hskip\fortresscommentparensoffset}}
+
+\newcommand\FortressEndCommentLeft{\ifhmode\par\fortressendcommentendgroup\fi\leavevmode
+  \hbox{\hskip -\leftskip \hskip-\fortresscommentparensoffset{\tt ~*)}\hskip\fortresscommentparensoffset}\relax
+  \fortressendblockcomment}
+
+\newcommand\FortressEndComment{\ifhmode\fortressendcommentendgroup\else\leavevmode\fi
+  \penalty10000\hfill
+  \hbox{\hskip\fortresscommentparensoffset
+        {\tt ~*)}\hskip-\fortresscommentparensoffset\hskip -\rightskip}\relax
+        \fortressendblockcomment}
+
+\newcommand\FortressTaggedEndCommentLeft[1]{\ifhmode\par\fortressendcommentendgroup\fi\leavevmode
+%\newcommand\FortressTaggedEndCommentLeft[1]{\ifhmode\par\endgroup\fi\fortressendcommentendgroup\leavevmode
+  \hbox{\hskip -\leftskip \hskip-\fortresscommentparensoffset{\tt ~#1*)}\hskip\fortresscommentparensoffset}\relax
+  \fortressendblockcomment}
+
+\newcommand\FortressTaggedEndComment[1]{\ifhmode\fortressendcommentendgroup\else\leavevmode\fi
+  \penalty10000\hfill
+  \hbox{\hskip\fortresscommentparensoffset{\tt ~#1*)}\hskip -\fortresscommentparensoffset
+        \hskip -\rightskip}\fortressendblockcomment}
+
+\newcommand\fortressendcommentendgroup{\global\let\fortresstemp=\fortressdocommentrule
+  \iffortressbottomcommentline \global\fortresstempdimen=1pt \else \global\fortresstempdimen=0pt \fi
+  \endgroup
+  \let\fortressdocommentrule=\fortresstemp
+  \ifdim \fortresstempdimen > 0pt \fortressbottomcommentlinetrue \else \fortressbottomcommentlinefalse \fi}
+
+\newcommand\fortressendblockcomment{\par
+  \fortressdocommentrule\egroup
+  \unvbox\fortresscommentbox\endgroup
+  \fortressbeginline}
+  
+\newcommand\fortresscommentline[3]{{\fortresstempdimen=\hsize
+  \advance\fortresstempdimen by -#1\relax
+  \setbox\fortresstempbox=\hbox{\tt (*~}\relax
+  \advance\fortresstempdimen by -\wd\fortresstempbox
+  \leavevmode
+  \raise \fortresscommentruleraise\hbox{\hbox to 0pt{\hss
+        \vrule height \fortresscommentrulethickness
+               width \ifdim \leftskip=0pt #2 \else\fortresscommentrulemargin\fi}\relax
+        \vrule height \fortresscommentrulethickness
+               width \fortresstempdimen
+        \hbox to 0pt{\relax
+          \vrule height \fortresscommentrulethickness
+               width\ifdim \rightskip=0pt #3 \else\fortresscommentrulemargin\fi\hss}\relax}}}
+
+\newcommand\fortressrightindent[1]{\advance\rightskip by #1\fortressrightindentincrement}
+
+\newcommand\fortressleftindent[1]{\ifhmode\par\endgroup\fi\begingroup
+  \advance\leftskip by #1\fortressleftindentincrement
+  \leavevmode\ignorespaces}
+
+\newcommand\fortressitem[2]{\fortressleftindent{#1}%
+  \hbox to 0pt{\hss\csname fortressitem\romannumeral#2\endcsname$\mskip 7mu$}\ignorespaces}
+  
+\newcommand\fortressitemi{\raise 0.2ex\hbox{$\scriptstyle\bullet$}}
+\newcommand\fortressitemii{\raise 0.2ex\hbox{$\scriptstyle\circ$}}
+\newcommand\fortressitemiii{\raise 0.2ex\hbox{$\scriptscriptstyle\blacktriangleright$}}
+\newcommand\fortressitemiv{\raise 0.2ex\hbox{$\scriptstyle\triangleright$}}
+\newcommand\fortressitemv{$\star$}
+\newcommand\fortressitemvi{$\diamond$}
+\newcommand\fortressitemvii{$\sim$}
+\newcommand\fortressitemviii{$\cdot$}
+
+\newcommand\fortressenum[3]{\fortressleftindent{#1}%
+  \hbox to 0pt{\hss\csname fortressenum\romannumeral#2\endcsname{#3}$\mskip 7mu$}\ignorespaces}
+
+\newcommand\fortressenumi[1]{(\number #1)}
+\newcommand\fortressenumii[1]{(\romanletter{#1})}
+\newcommand\fortressenumiii[1]{(\romannumeral #1)}
+\newcommand\fortressenumiv[1]{(\Romanletter{#1})}
+\newcommand\fortressenumv[1]{\number #1.}
+\newcommand\fortressenumvi[1]{\Romanletter{#1}.}
+\newcommand\fortressenumvii[1]{\romannumeral #1.}
+\newcommand\fortressenumviii[1]{\romanletter{#1}.}
+
+\makeatletter
+\newcommand\romanletter[1]{\@alph{#1}}   % Makes use of LaTeX internals
+\newcommand\Romanletter[1]{\@Alph{#1}}   % Makes use of LaTeX internals
+\makeatother
+
+% \FortressDescription{level}{labeltext}{leftindent}
+\newcommand\fortressdesc[3]{\ifhmode\par\endgroup\fi\begingroup
+  \advance\leftskip by #1\fortressleftindentincrement
+  \advance\leftskip by #3\fortressleftindentincrement
+  \advance\leftskip by -\fortressleftindentincrement
+ \setbox\fortresstempbox=\hbox{\hskip-#3\fortressleftindentincrement
+                               \hbox{#2}\relax   % This inner \hbox makes \FortressMathsurroundFixup work properly
+                               \quad}\relax
+  \leavevmode\copy\fortresstempbox
+  \ifdim \wd\fortresstempbox < 0pt \hskip-\wd\fortresstempbox \fi
+  \ignorespaces}
+
+\newcommand\fortressendcommentparagraph{\ifhmode\par\endgroup\else\vskip\parskip\fi}
+
+\newskip\fortressskipA
+\newskip\fortressskipB
+\newskip\fortressskipC
+\newskip\fortressskipD
+\newskip\fortressskipE
+\newskip\fortressskipF
+\newcount\fortresspenaltyA
+\newcount\fortresspenaltyB
+\newcount\fortresspenaltyC
+\newcount\fortresspenaltyD
+\newcount\fortresspenaltyE
+\newcount\fortresspenaltyF
+\newbox\fortressboxA
+\newbox\fortressboxB
+\newif\iffortress
+
+\newcommand\fortresscommentrule[1]{\begingroup
+    \fortressskipF=\lastskip \unskip
+    \fortresspenaltyF=\lastpenalty \unpenalty
+    \fortressskipE=\lastskip \unskip
+    \fortresspenaltyE=\lastpenalty \unpenalty
+    \fortressskipD=\lastskip \unskip
+    \fortresspenaltyD=\lastpenalty \unpenalty
+    \setbox\fortressboxB\lastbox
+    \setbox\fortressresultbox=\vbox{
+      \hbox{#1{\fortressbottomleftrule}{\fortressbottomrightrule}\relax
+            \box\fortressboxB}
+      \penalty\fortresspenaltyD\fortressrulevskip{#1}{\fortressskipD}
+      \penalty\fortresspenaltyE\fortressrulevskip{#1}{\fortressskipE}
+      \penalty\fortresspenaltyF\fortressrulevskip{#1}{\fortressskipF}}
+    \fortressskipC=\lastskip \unskip
+    \fortresspenaltyC=\lastpenalty \unpenalty
+    \fortressskipB=\lastskip \unskip
+    \fortresspenaltyB=\lastpenalty \unpenalty
+    \fortressskipA=\lastskip \unskip
+    \fortresspenaltyA=\lastpenalty \unpenalty
+    \setbox\fortressboxA\lastbox
+    \iffortressbottomcommentline
+      \fortressskipC=0pt
+      \fortressskipA=0pt
+    \fi
+  \loop
+    \fortressskipF=\fortressskipC
+    \fortresspenaltyF=\fortresspenaltyC
+    \fortressskipE=\fortressskipB
+    \fortresspenaltyE=\fortresspenaltyB
+    \fortressskipD=\fortressskipA
+    \fortresspenaltyD=\fortresspenaltyA
+    \setbox\fortressboxB=\box\fortressboxA
+    \fortressskipC=\lastskip \unskip
+    \fortresspenaltyC=\lastpenalty \unpenalty
+    \fortressskipB=\lastskip \unskip
+    \fortresspenaltyB=\lastpenalty \unpenalty
+    \fortressskipA=\lastskip \unskip
+    \fortresspenaltyA=\lastpenalty \unpenalty
+    \setbox\fortressboxA=\lastbox
+    \ifvoid\fortressboxA \fortressfalse \else \fortresstrue \fi
+  \iffortress
+    \setbox\fortressresultbox=\vbox{
+      \hbox{#1{\fortressmaincommentrule}{\fortressmaincommentrule}\relax
+            \box\fortressboxB}
+      \penalty\fortresspenaltyD\fortressrulevskip{#1}{\fortressskipD}
+      \penalty\fortresspenaltyE\fortressrulevskip{#1}{\fortressskipE}
+      \penalty\fortresspenaltyF\fortressrulevskip{#1}{\fortressskipF}
+      \unvbox\fortressresultbox}
+  \repeat
+  \penalty\fortresspenaltyA\vskip\fortressskipA
+  \penalty\fortresspenaltyB\vskip\fortressskipB
+  \penalty\fortresspenaltyC\vskip\fortressskipC
+  \hbox{#1{\fortresstopleftrule}{\fortresstoprightrule}\relax
+        \box\fortressboxB}
+  \iffortresstopcommentline\else
+    \penalty\fortresspenaltyD\fortressrulevskip{#1}{\fortressskipD}
+  \fi
+  \penalty\fortresspenaltyE\fortressrulevskip{#1}{\fortressskipE}
+  \iffortresstopcommentline\else
+    \penalty\fortresspenaltyF\fortressrulevskip{#1}{\fortressskipF}
+  \fi
+  \unvbox\fortressresultbox
+  \endgroup}
+
+\newcommand\fortressmaincommentrule{\vrule width \fortresscommentrulethickness
+                                           height \ht\fortressboxB
+                                           depth \dp\fortressboxB}
+\newcommand\fortresstopleftrule{\begingroup
+             \fortresstempdimen=\fortresscommentrulethickness
+             \advance\fortresstempdimen by \fortresscommentruleraise
+             \vrule width \fortresscommentrulethickness
+                    height \fortresstempdimen
+                    depth \dp\fortressboxB
+             \iffortresstopcommentline
+               \raise \fortresscommentruleraise\hbox to 0pt{\relax
+                 \vrule width \fortresscommentrulecorner
+                        height \fortresscommentrulethickness
+                        depth 0pt\hss}\fi
+           \endgroup}
+\newcommand\fortresstoprightrule{\begingroup
+             \fortresstempdimen=\fortresscommentrulethickness
+             \advance\fortresstempdimen by \fortresscommentruleraise
+             \vrule width \fortresscommentrulethickness
+                    height \fortresstempdimen
+                    depth \dp\fortressboxB
+           \endgroup}
+\newcommand\fortressbottomleftrule{\begingroup
+                 \fortresstempdimen=\ht\fortressboxB
+                 \advance\fortresstempdimen by -\fortresscommentruleraise
+                 \raise \fortresscommentruleraise\hbox{\relax
+                   \vrule width \fortresscommentrulethickness
+                          height \fortresstempdimen
+                          depth 0pt}\relax
+               \endgroup}
+\newcommand\fortressbottomrightrule{\begingroup
+                 \fortresstempdimen=\ht\fortressboxB
+                 \advance\fortresstempdimen by -\fortresscommentruleraise
+                 \raise \fortresscommentruleraise\hbox{\relax
+                   \iffortressbottomcommentline
+                      \hbox to 0pt{\hss
+                         \vrule width \fortresscommentrulecorner
+                                height \fortresscommentrulethickness
+                                depth 0pt}\fi
+                   \vrule width \fortresscommentrulethickness
+                          height \fortresstempdimen
+                          depth 0pt}\relax
+               \endgroup}
+
+\newcommand\fortressrulevskip[2]{\cleaders\vbox{\hbox to 0pt{\relax
+  \vrule width 0pt height #2\relax
+  \vbox to 0pt{\vss
+               #1{\fortressgluerule{#2}}{\fortressgluerule{#2}}\relax
+               \vskip -1pt}\hss}}\vskip#2}
+
+\newcommand\fortressgluerule[1]{\begingroup
+                    \fortresstempdimen=#1\relax
+                    \advance\fortresstempdimen by 1pt
+                    \vrule width \fortresscommentrulethickness
+                           height \fortresstempdimen
+                           depth 1pt
+                  \endgroup}
+
+\newcommand\fortresspositionleftrule[2]{\hbox to 0pt{\hskip\leftskip
+  \hbox to 0pt{\hss#1\hskip\fortresscommentrulemargin}\hss}}
+
+\newcommand\fortresspositionrightrule[2]{\hbox to 0pt{\hskip\hsize \hskip-\rightskip
+  \hskip\fortresscommentrulemargin{#2}\hss}}
+ 
+\newcommand\fortresspositionleftrightrule[2]{\hbox to 0pt{\hskip\leftskip
+  \hbox to 0pt{\hss#1\hskip\fortresscommentrulemargin}\hskip-\leftskip
+  \hskip\hsize \hskip-\rightskip \hskip\fortresscommentrulemargin{#2}\hss}}
+
+\newcommand\FortressTable[1]{\ifhmode\par\endgroup\fi
+  \leavevmode\begingroup
+  \advance\leftskip by #1\fortressleftindentincrement
+  \begin{tabular}}
+\newcommand\FortressEndTable{\end{tabular}\par\endgroup}
+
+\newcommand\FortressParagraphImage[1]{%
+  \fortresstempdimen=\hsize
+  \advance\fortresstempdimen by -\leftskip
+  \advance\fortresstempdimen by -\rightskip
+  \edef\fortresstemp{[width=\the\fortresstempdimen]}
+  \expandafter\includegraphics\fortresstemp{#1}}
+
+\newcommand\FortressInlineImage[1]{\includegraphics[width=1in]{#1}}

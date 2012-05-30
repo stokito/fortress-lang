@@ -1,0 +1,95 @@
+component List
+
+  export List
+
+  object BrokeInvariant extends UncheckedException
+    getter asString() = "Blob"
+  end
+
+  object EmptyListEx extends UncheckedException
+    getter asString() = "Head of an empty list"
+  end
+  
+  object OutOfBounds extends UncheckedException
+    getter asString() = "Out of bounds"
+  end
+    
+  (** List-the-abstract-datatype **)  
+    
+  trait List[\T\] 
+ 
+    cons(x: T, self) : List[\T\]    
+    isEmpty(self): Boolean
+    head(self): T
+    tail(self): List[\T\]   
+    view(self): View[\T\]
+ 
+    opr ::(x:T, self): List[\T\] = cons(x,self)    
+    fold[\U\](self,init: U, f: (T,U) -> U): U = 
+      if isEmpty(self) then init else fold(tail(self), f(head(self), init), f) end
+    
+    private revapp(self, l: List[\T\]): List[\T\] = if isEmpty(self) then l else revapp(tail(self),cons(head(self),l)) end
+    reverse(self): List[\T\] (*) What am I supposed to do? = revapp(self,Empty)  
+    opr +(self,l: List[\T\]): List[\T\] = revapp(reverse(self),l)
+    
+    private length(self): ZZ32 = if isEmpty(self) then 0 else 1 + length(tail(self)) end    
+    opr |self|: ZZ32 = length(self) 
+    
+    index(self,n: ZZ32): T = 
+      if |self| = 0 then throw OutOfBounds else if n = 0 then head(self) else index(tail(self),n-1) end end
+    
+    opr [n:ZZ32]: T = index(self,n)
+    
+    drop(self,n: ZZ32): List[\T\] = 
+      if n = 0 then self else drop(tail(self),n-1) end
+    
+  end
+ 
+  (** A view of List-the-abstract-dadatype as a List-the-algebraic-datatype to offer pattern matching to the user **)
+ 
+  trait View[\T\] comprises { Cons[\T\] , Nil[\T\] } end
+  object Cons[\T\](hd: T, tl: List[\T\]) extends View[\T\] end
+  object Nil[\T\] extends View[\T\] end 
+ 
+ (** For convenience, an EmptyList trait that can probably be reused by any implementation of List-the-abstract-datatype **)
+ 
+  trait EmptyList[\T\] extends List[\T\]
+    isEmpty(self) = true
+    head(self): T = throw EmptyListEx
+    tail(self) = self  
+    view(self) = N[\T\]
+   end
+      
+  (** List-the-abstract-datatype implemented as a Linked list **)
+
+  trait LinkedList[\T\] extends List[\T\] comprises { C[\T\] , N[\T\] }
+    reverse(self): List[\T\] = revapp(self,N[\T\])  
+  end
+
+  object N[\T\] extends { LinkedList[\T\], EmptyList[\T\] }
+    cons(x: T, self) = C[\T\](x,self) 
+  end
+
+  object C[\T\](x: T, l: List[\T\]) extends LinkedList[\T\]
+    cons(y: T, self) = Cons[\T\](y,self)
+    isEmpty(self) = false
+    head(self) = x
+    tail(self) = l
+    view(self) = Cons(x,l) 
+  end
+
+
+  opr <|[\T extends Object\]|>: List[\T\] = N[\T\]
+  opr <|[\T extends Object\]x1: T|>: List[\T\] = C(x1,N[\T\])
+  opr <|[\T extends Object\]x1: T, x2: T|>: List[\T\] = C(x1,C(x2,N[\T\]))
+  opr <|[\T extends Object\]x1: T, x2: T, x3: T|>: List[\T\] = C(x1,C(x2,C(x3,N[\T\])))
+  opr <|[\T extends Object\]x1: T, x2: T, x3: T, x4: T|>: List[\T\] = C(x1,C(x2,C(x3,C(x4,N[\T\]))))
+
+
+  
+  
+ 
+
+  emptyList[\T\]() = N[\T\]
+
+end

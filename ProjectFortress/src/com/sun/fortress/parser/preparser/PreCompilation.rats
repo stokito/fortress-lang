@@ -1,0 +1,137 @@
+/*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress components and APIs that are accepted by the preparser.
+ */
+module com.sun.fortress.parser.preparser.PreCompilation(PreLiteral, Identifier, Keyword,
+                                                        Symbol, Spacing);
+
+import PreLiteral;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+option stateful(PreParserState), setOfString(FORTRESS_KEYWORDS);
+
+public resetting void File =
+     Whitespace* "(*" CommentContents EndOfFile
+     { initParser();
+       log(createSpan(yyStart,yyCount), "Unbalanced comment: '*)' is expected.");
+       writer.close();
+     }
+   / initParser Program closeParser ;
+
+// Error productions in Spacing.rats interfere with delimiter matching.
+transient private void Whitespace =
+     void:" " / void:"\f"
+   / "&" s Whitespace
+   / InvalidSpace
+   / "(*)" NNCommentContents
+   / "(*" NNCommentContents "*)"
+   / "&" s NewlineComment
+   / void:"\r\n" / void:"\r" !("\n") / void:"\n" / void:[\u2028\u2029]
+   / "(*" CommentContents "*)"
+   ;
+
+void initParser  = w { initParser(); yyState.init(writer); };
+void closeParser = w EndOfFile
+     { try {
+           yyState.report();
+           writer.close();
+       } catch (IOException error) {
+           error("Closing a log file for the parser failed!");
+       }
+     };
+
+void Program = (Token w)+ ;
+
+stateful void Token =
+     LiteralExpr
+   / import w api // ignore the api keyword
+   / api         { yyState.left(createSpan(yyStart,yyCount), "api"); }
+   / case        { yyState.left(createSpan(yyStart,yyCount), "case"); }
+   / component   { yyState.left(createSpan(yyStart,yyCount), "component"); }
+   / grammar     { yyState.left(createSpan(yyStart,yyCount), "grammar"); }
+   / "(if"       { yyState.left(createSpan(yyStart,yyCount), "(if"); }
+   / if          { yyState.left(createSpan(yyStart,yyCount), "if"); }
+   / label w a1:Id { yyState.left(createSpan(yyStart,yyCount), "label$"+a1); }
+   / label         { log(createSpan(yyStart,yyCount),
+                         "Missing label from a label expression."); }
+   / object      { yyState.left(createSpan(yyStart,yyCount), "object"); }
+   / trait       { yyState.left(createSpan(yyStart,yyCount), "trait"); }
+   / try         { yyState.beginBlock();
+                   yyState.left(createSpan(yyStart,yyCount), "try"); }
+   / typecase    { yyState.left(createSpan(yyStart,yyCount), "typecase"); }
+   / also        { yyState.left(createSpan(yyStart,yyCount), "also"); }
+   / end w a1:Id { yyState.handleLabelEnd(createSpan(yyStart,yyCount), a1); }
+   / end s component // ignore the component keyword
+                 { yyState.right(createSpan(yyStart,yyCount), "end"); }
+   / end s api   // ignore the api keyword
+                 { yyState.right(createSpan(yyStart,yyCount), "end"); }
+   / end s trait // ignore the trait keyword
+                 { yyState.right(createSpan(yyStart,yyCount), "end"); }
+   / end s object // ignore the object keyword
+                 { yyState.right(createSpan(yyStart,yyCount), "end"); }
+   / end         { yyState.handleEnd(createSpan(yyStart,yyCount)); }
+   / do          { yyState.handleDo(createSpan(yyStart,yyCount)); }
+   / at          { yyState.handleAt(createSpan(yyStart,yyCount)); }
+   / opr         { yyState.handleOpr(createSpan(yyStart,yyCount)); }
+   / then        { yyState.beginBlock(); }
+   / fn          { yyState.handleFn(); }
+   / "=>"        { yyState.handleDoubleArrow(); }
+   / QualifiedName w "=>" w Id
+   / Encloser    // ignore vertical bars
+   / a1:LeftEncloser  { yyState.left(a1); }
+   / a1:RightEncloser { yyState.right(a1); }
+   / a1:"("      { yyState.left(createSpan(yyStart,yyCount), a1); }
+   / a1:")"      { yyState.right(createSpan(yyStart,yyCount), a1); }
+   / a1:Opening  { yyState.left(createSpan(yyStart,yyCount), a1); }
+   / a1:Closing  { yyState.right(createSpan(yyStart,yyCount), a1); }
+   / a1:["] { yyState.quote(createSpan(yyStart,yyCount), "\\\""); }
+//   / a1:['] { yyState.quote(createSpan(yyStart,yyCount), "'"); } // '
+   / Numbers
+   / OtherKeywords
+   / OtherSymbols
+   / QualifiedName
+   / NumericSeparator
+   / AssignOp
+   / Op
+   / NoNewlineComment
+   / NewlineComment
+   / a1:(_ (!w))+
+     { Debug.debug( Debug.Type.PARSER, 1, "Got the token: ", a1 ); };
+
+stateful private transient String Opening =
+     opendoublesquare / opensquare / opencurly / "\u201c" / "\u2018" / "`";
+
+stateful private transient String Closing =
+     closedoublesquare / closesquare / closecurly / "\u201d" / "\u2019";
+
+stateful private transient String OtherKeywords =
+     s:(idstart idrest*) &{ FORTRESS_KEYWORDS.contains(s) };
+
+stateful private transient void NumericSeparator = "'" / "\u202f" / "." ;
+stateful private transient void Numbers = [0-9]+;
+
+stateful private transient void OtherSymbols =
+     openparen w closeparen
+   / comma / colonequals / colon / ellipses / dot / semicolon
+   / equals w end
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "Missing function body.");
+       yyState.right(span, "end");
+     }
+   / equals / ExponentOp / caret / SUM / PROD
+   / bar+ / "\u2016" / "\u2af4" / match / mapsto / leftarrow / cross / rightarrow
+   / underscore
+   ;

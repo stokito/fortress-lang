@@ -1,0 +1,224 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(*
+   Implementation in the Fortress Programming Language of an Interpreter for the
+   dynamic semantics of Featherweight Java, as defined in:
+
+   Featherweight Java: A Minimal Core Calculus for Java and GJ,
+   Atsushi Igarashi and Benjamin C. Pierce,
+   ACM Transactions on Programming Languages and Systems, Vol. 23, No. 3,
+   May 2001, Pages 396-450.
+
+   Author: Eric Allen, January 2008.
+ *)
+
+component FeatherweightJava
+import List.{...}
+import Map.{...}
+export Executable
+
+(* Classes and Class tables *)
+
+object ClassTable(defs: Map[\String, Class\])
+  lookup(typ: Type) = defs[typ.name]
+
+
+  subtype(s: Type, t: Type) =
+    (s = t) OR: ((s.name =/= "Object") AND: (subtype(lookup(s).ext, t)))
+
+
+  field(v: New, n: String) requires {v.isVal()} = do
+    fields_v: List[\Decl\] = fields(v.tag)
+
+    label find
+      for i <- fields_v.indices do
+        if n = fields_v[i].name then
+          exit find with v.args[i]
+        end
+      end
+      fail("Field " n " not found in class " v.tag.name ".")
+    end find
+  end
+
+
+  fields(c: Type): List[\Decl\] = do
+    if c.name = "Object" then <|[\Decl\] |>
+    else
+      c_def: Class = defs[c.name]
+      c_def.fields.appendR[\Decl\](fields(c_def.ext))
+    end
+  end
+
+  mbody(typ: Type, m_name: String): Meth = do
+    if typ.name = "Object" then
+      fail("Method " m_name " not found.")
+    else
+      class: Class = defs[typ.name]
+
+      label find
+        for meth <- class.meths do
+          if m_name = meth.name then
+            exit find with meth
+          end
+        end
+        mbody(class.ext, m_name)
+      end find
+    end
+  end
+end
+
+
+object Class(name: String, ext: Type,
+             fields: List[\Decl\], cons: Cons, meths: List[\Meth\])
+end
+
+(* Exprs *)
+trait Expr
+  getter asString(): String
+  isVal(): Boolean = false
+  eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr
+    ensures { outcome.isVal() }
+end
+
+object Var(x: String) extends Expr
+  getter asString(): String = x
+  opr =(self, other: Var) = (x = other.x)
+  eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr = theta[x]
+end
+
+object New(tag: Type, args: List[\Expr\]) extends Expr
+  getter asString() = "new " tag.asString <|[\String\] a.asString | a <- args|>
+
+  isVal() = BIG AND[arg <- args] arg.isVal()
+
+  opr =(self, other: New) =
+    (tag = other.tag) AND (BIG AND[i <- args.indices] args[i] = other.args[i])
+
+  eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr =
+    New(tag, <|[\Expr\] arg.eval(CT_, theta) | arg <- args |>)
+end
+
+object Proj(receiver: Expr, field: String) extends Expr
+  getter asString() = (receiver.asString "." field)
+
+  opr =(self, other: Proj) =
+    (receiver = other.receiver) AND (field = other.field)
+
+  eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr =
+    CT_.field(cast[\New\](receiver.eval(CT_, theta)), field)
+end
+
+object Invk(receiver: Expr, m_name: String, args: List[\Expr\]) extends Expr
+  getter asString() = (receiver.asString "." m_name args)
+
+  opr =(self, other: Invk) =
+    (receiver = other.receiver) AND (m_name = other.m_name) AND (args = other.args)
+
+  eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr = do
+    rec_v = cast[\New\](receiver.eval(CT_, theta))
+    args_v = <|[\Expr\] arg.eval(CT_, theta) | arg <- sequential(args) |>
+    m = CT_.mbody(rec_v.tag, m_name)
+    theta' = {[\String, Expr\]"this" |-> rec_v asif Expr} UNION
+      {[\String, Expr\] x.name |-> e | (x,e) <- m.params.zip[\Expr\](args_v)}
+
+    m.body.eval(CT_, theta')
+  end
+end
+
+object Cast(typ: Type, term: Expr) extends Expr
+  getter asString() = ("(" typ.asString ")" term.asString)
+
+  opr =(self, other: Cast) = (typ = other.typ) AND (term = other.term)
+
+  eval(CT_: ClassTable, theta: Map[\String, Expr\]): Expr = do
+    cast_v = cast[\New\](term.eval(CT_, theta))
+    if (CT_ VDASH (cast_v.tag < typ)) then cast_v
+    else fail("Class cast exception: " cast_v.typ
+               " is not a subtype of " typ) end
+  end
+end
+
+(* Types *)
+object Type(name: String)
+  getter asString() = name
+  opr =(self, other:Type) = (name = other.name)
+end
+
+
+(* Syntactic Subcomponents *)
+object Decl(typ: Type, name: String)
+  getter asString() = typ " " name ";"
+end
+object Cons(tag: Type, params: List[\Decl\],
+            super: List[\Var\], this: List[\Init\])
+end
+object Init(left: String, right: String) end
+
+object Meth(return: Type, name: String, params: List[\Decl\],
+            body: Expr)
+end
+
+(* Operators *)
+opr VDASH(context: (ClassTable, Map[\String, Expr\]), terms: EvalThunk) = do
+  (terms.t1.eval(context) = terms.t2)
+end
+
+opr VDASH(context: ClassTable, types: SubtypeThunk) = do
+  context.subtype(types.typ1, types.typ2)
+end
+
+object EvalThunk(t1: Expr, t2: Expr) end
+object SubtypeThunk(typ1: Type, typ2: Type) end
+
+opr ->(t1: Expr, t2: Expr) = EvalThunk(t1, t2)
+
+opr <(typ1: Type, typ2: Type) = SubtypeThunk(typ1, typ2)
+
+(* Testing *)
+run() = do
+  obj = Type("Object")
+  newObj = New(obj, <|[\Expr\] |>)
+  x = Var("x")
+  y = Var("y")
+  this = Var("this")
+  c = Type("c")
+  n = New(c, <|newObj asif Expr|>)
+  d = Decl(obj,"_x")
+  dx = Decl(obj, "x")
+  dy = Decl(obj, "y")
+  i = Init("x","_x")
+  e = <|d|>
+  k = Cons(c, e, <|[\Var\] |>, <| i |>)
+  m = Meth(obj, "m", <|dy|>, y)
+  m' = Meth(obj, "n", <|d|>, Proj(this, "x"))
+  l = Class("c", obj, <|dx|>, k, <|m, m'|>)
+  t = {[\String,Class\]"c" |-> l}
+  p = Proj(x, "x")
+  v = Invk(x, "m", <|n asif Expr|>)
+  cst1 = Cast(c, x)
+  cst2 = Cast(obj, x)
+  v' = Invk(x, "n", <|n asif Expr|>)
+  CT_ = ClassTable(t)
+  theta0 = {[\String, Expr\]}
+  theta1 = {[\String,Expr\]"x" |-> n asif Expr, "y" |-> newObj}
+
+  assert((CT_, theta0) VDASH (n -> n))
+  assert((CT_, theta1) VDASH (x -> n))
+  assert((CT_, theta1) VDASH (y -> newObj))
+  assert((CT_, theta1) VDASH (p -> newObj))
+  assert((CT_, theta1) VDASH (v -> n))
+  assert((CT_, theta1) VDASH (v' -> newObj))
+  assert((CT_, theta1) VDASH (cst1 -> n))
+  assert((CT_, theta1) VDASH (cst2 -> n))
+end
+
+end

@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+assert(b: Boolean) = if NOT b then println "fail" end
+
+run() = do
+  (* Test coercion from IntLiterals and ZZ32s *)
+  m: ZZ32 = 306 544 635
+  n: ZZ64 = 535 235 235
+  p: ZZ64 = m
+
+  (* Test arithmetic operations *)
+  q: ZZ64 = 209 n 
+  r: ZZ64 = 4 294 967 296 + q
+  (* TODO assert(q = 111 864 164 115) *)
+  (* TODO assert(r = 116 159 131 411) *)
+end

@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+
+  foo(a:String):() = do
+    var b:String
+
+    b := typecase a of
+      (String,String,String) => a
+      else => "Nothin"
+    end
+
+    ()
+  end
+
+  run() : () = ()

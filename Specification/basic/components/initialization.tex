@@ -1,0 +1,30 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Initialization Order for Components}
+\seclabel{initialization}
+
+To ensure that all objects and all variables are initialized before their
+use, execution of program components
+proceeds according to the procedure defined in this section.
+This procedure assumes that the program's type hierarchy is already checked
+to be acyclic.
+
+
+If a component is a compound component,
+all constituent components are initialized nondeterministically, but before
+first use.
+If a simple component has imports,
+take the transitive closure of all imported \apisN.  Collect all
+  declarations in this transitive closure, in any order, and prepend
+  them to the component definition.
+Finally, for a simple component without imports,
+initialize all top-level variables and singleton object fields.

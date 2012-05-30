@@ -1,0 +1,61 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+object CastError extends CheckedException
+    getter asString(): String = "Cast error"
+end
+cast[\T extends Any\](x:Any):T =
+  typecase x of
+    x':T => x'
+    else => throw CastError
+  end
+opr MAX(x: ZZ32, y: ZZ32) = if y < x then x else y end
+
+trait Tree(item: ZZ32) comprises { Node, Leaf }
+  getter depth(): ZZ32
+end
+
+object Node(left: Tree, item: ZZ32, right: Tree)
+       extends Tree
+  getter depth(): ZZ32 = 1 + (left.depth MAX right.depth)
+end
+ 
+object Leaf(item: ZZ32) extends Tree
+  getter depth(): ZZ32 = 1
+end
+
+sum(t: Tree): ZZ32 =
+  typecase t of
+    Leaf(i) => i
+    Node(Leaf(l), i, Leaf(r)) => l + i + r
+    Node(Leaf(l), i, r) => l + i + sum(r)
+    Node(l, i, Leaf(r)) => sum(l) + i + r
+    Node(l, i, r) => sum(l) + i + sum(r)
+  end
+
+rotate(x:Tree): Tree
+(*)rotate(x:Node(Tree, _, _)): Tree = x (*) never called
+rotate(x:Node(y:Node(p,q,r),s,t)) = Node(p,q,Node(r,s,t))
+rotate(x:Node(Leaf, _, _)) = x
+rotate(x:Leaf) = x
+
+run():() = do
+  tree1: Tree(k) = Leaf(1)
+  tree2: Node(l,i,r) = Node(tree1, 2, tree1)
+  tree3: Node(l':Tree, i': ZZ32, r', d = depth) = Node(tree2, 3, tree1)
+  var tree4: Tree(k') = Node(tree1, 4, tree3)
+  tree5: Node(Node(l'', i'', r''), item, right:Leaf(i''')) = Node(tree2, 5, tree1)
+  tuple_tree:(Leaf(i_t'), Node(l_t, i_t, r_t)) = (tree1, tree2)
+  f = fn (node: Node(l_f, i_f, r_f)): Node => Node(r_f, i_f, l_f)
+  ()
+end

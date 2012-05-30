@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled6.p
+export Executable
+
+trait A extends B
+  coerce(x:B) = x.element
+  element: A
+end
+trait B
+  element: A
+end
+
+run(): () = ()
+
+end

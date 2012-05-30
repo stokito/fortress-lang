@@ -1,0 +1,114 @@
+/*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress spacing including comments.
+ *
+ * Whitespace Convention in grammar productions:
+ * Every production which can be empty "owns" its leading whitespace.
+ * Exception: Modifiers own their trailing whitespace.
+ */
+module com.sun.fortress.parser.Spacing(Symbol);
+
+import Symbol;
+
+transient void EndOfFile  = "\u001a"? w !_ ;
+
+transient private void Whitespace =
+     Space
+   / Newline ;
+transient private void Space      =
+     void:" "
+   / void:"\f"
+   / "&" s Whitespace
+   / InvalidSpace
+   / NoNewlineComment ;
+transient void InvalidSpace =
+     <ErrorProduction1> ("\t" / "\u000b")
+     { log(createSpan(yyStart,yyCount),
+           "Tab characters are not allowed in Fortress programs except in comments.");
+     }
+   / <ErrorProduction2> ("\u001c" / "\u001d" / "\u001e" / "\u001f")
+     { log(createSpan(yyStart,yyCount),
+           "An invalid whitespace character is used.");
+     };
+transient private void Newline =
+     void:"\r\n" / void:"\r" !("\n") / void:"\n" / void:[\u2028\u2029]
+   / !("&") NewlineComment ;
+void Comment =
+     "(*" CommentContents "*)"
+   / <ErrorProduction> "(*" CommentContents w EndOfFile
+     { log(createSpan(yyStart,yyCount),
+           "Unbalanced comment: '*)' is expected.");
+     };
+
+void NoNewlineComment =
+     "(*)" NNCommentContents
+   / "(*" NNCommentContents "*)"
+   / "&" s NewlineComment
+   / <ErrorProduction> "(*" CommentContents w EndOfFile
+     { log(createSpan(yyStart,yyCount),
+           "Unbalanced comment: '*)' is expected.");
+     };
+
+transient void CommentContents =
+     CommentContent*;
+
+transient void NNCommentContents =
+     NNCommentContent*;
+
+transient private void WhitespaceCharacters =
+     [\u0009\u000a\u000b\u000c\u000d\u001c\u001d\u001e\u001f\u2028\u2029] ;
+
+transient private void NoNewlineWhitespaceCharacters =
+     [\u0009\u000b\u000c\u001c\u001d\u001e\u001f] ;
+
+transient void CommentContent =
+     "(*)"
+   / Comment
+   / '*' !')'
+   / WhitespaceCharacters
+   / c:_ &{ c != '*' && Character.getType(c) != Character.CONTROL }
+   ;
+
+transient private void NNCommentContent =
+     "(*)"
+   / NoNewlineComment
+   / '*' !')'
+   / NoNewlineWhitespaceCharacters
+   / c:_ &{ c != '*' && c != '\n' && c != '\r' && Character.getType(c) != Character.CONTROL }
+   ;
+
+transient void NewlineComment = Comment;
+
+transient void w  = Whitespace*; // whitespace optional
+transient void wr = Whitespace+; // whitespace required
+
+transient void s  = Space*;      // space optional
+transient void sr = Space+;      // space required
+
+transient void nl = s Newline w ; // required newline in whitespace
+transient void br = nl / s semicolon w;      // line break
+
+transient private String WhitespaceString =
+     Space   { yyValue = " "; }
+   / Newline { yyValue = "\n"; };
+transient Boolean hasW =
+     a1s:WhitespaceString*
+     { if ( a1s == null || a1s.size() == 0 ) yyValue = false;
+       else                                  yyValue = true;
+     };
+
+/* RectSeparator ::= (w ;)+ w / nl / sr */
+transient Integer RectSeparator =
+     a1s:(w semicolon)+ w { yyValue = a1s.size() + 1; }
+   / nl                   { yyValue = 2; }
+   / sr                   { yyValue = 1; };
