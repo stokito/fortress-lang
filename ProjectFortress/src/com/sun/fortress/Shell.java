@@ -377,7 +377,7 @@ public final class Shell {
     }
 
     public static void useInterpreterLibraries() {
-	setExtendsObjectPreDesugaring(false};
+	setExtendsObjectPreDesugaring(false);
 	setAssignmentPreDesugaring(false);
 	setAssignmentDesugaring(true);
 	setCompiledExprDesugaring(false);
