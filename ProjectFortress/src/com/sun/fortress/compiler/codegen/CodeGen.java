@@ -1256,8 +1256,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     if (d_a_le_b && d_b_le_a) {
                         // equal domains
                         if (r_a_le_b) { // sub is LE
-                            if (r_b_le_a ||
-                                func.staticParameters().size() > 0) {
+                            if (r_b_le_a) {
                                 // eq
                                 // note that GENERIC methods all have same Java return type,
                                 // hence "equal".
@@ -1285,8 +1284,45 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 //		    System.out.println("  narrowed_func = " + narrowed_func);
 //		    System.out.println("  super_inst = " + super_inst);
 //		    System.out.println("  currentTraitObjectType = " + currentTraitObjectType);
-                    generateForwardingFor( super_func, narrowed_func, false, super_inst, currentTraitObjectType, currentTraitObjectType, true); // swapped
-                    // TODO emit the forwarding method
+                    if (narrowed_func.staticParameters().size() > 0) {
+                        if (DEBUG_OVERLOADED_METHOD_CHAINING)
+                            System.err.println("Generic narrowing, " + narrowed_func + " narrows " + super_func);
+                        int selfIndex = ((HasSelfType)super_func).selfPosition();
+                        String from_name = genericMethodName(super_func, selfIndex);
+                        String to_name = genericMethodName(narrowed_func, selfIndex);
+                        String sig = genericMethodClosureFinderSig;
+                        int arity = 3; // Magic number, number of parameters to generic method closure finder
+                        // TODO This could be bogus, but for now, let's try it.
+                        String receiverClass = NamingCzar.jvmTypeDescAsTrait(currentTraitObjectType, component.getName());
+                        
+                        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, from_name, sig, null, null);
+                        mv.visitCode();
+                        
+                        mv.visitVarInsn(ALOAD, 0);
+                        mv.visitVarInsn(LLOAD, 1);
+                        mv.visitVarInsn(ALOAD, 3);
+                        mv.visitMethodInsn(inATrait ? INVOKEINTERFACE : INVOKEVIRTUAL, receiverClass, to_name, genericMethodClosureFinderSig);
+                        
+//                        // a widening cast
+//                        Type prepended_domain = receiverPrependedDomainType(
+//                                traitDeclaringMethod, super_noself_domain);
+//
+//                        String castToArrowType = NamingCzar.makeArrowDescriptor(thisApi(), prepended_domain, super_ret); 
+//                        // Would be better to compute the right one and return it directly,
+//                        // or force the subtyping, but too much trouble for now.
+//                        InstantiatingClassloader.generalizedCastTo(mv, castToArrowType);
+                        
+                        mv.visitInsn(ARETURN);
+                        mv.visitMaxs(1,1);
+                        mv.visitEnd();
+                        
+//                        InstantiatingClassloader.forwardingMethod(cw, from_name, ACC_PUBLIC,
+//                                          0,   // ZERO is also a magic number
+//                                receiverClass, to_name, inATrait ? INVOKEINTERFACE : INVOKEVIRTUAL,
+//                                sig, sig, arity, false, null);
+                    } else {
+                        generateForwardingFor( super_func, narrowed_func, false, super_inst, currentTraitObjectType, currentTraitObjectType, true); // swapped
+                    }
                     continue;
                 }
                 perhapsOverloaded.add((Functional)(((HasSelfType)super_func).instantiateTraitStaticParameters(ti.staticParameters(), super_inst)));  // GLS 3/12/2012
@@ -5965,17 +6001,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 
                 boolean anySymbolic = Useful.orReduction(prepended_method_sargs, isSymbolic);
                 
-                Type prepended_domain = null;
-                /* I think we start to have a problem here in the future,
-                 * when generics can be parametrized by tuples.
-                 * We need to figure out what this means.
-                 */
-                if (domain_type instanceof TupleType) {
-                    TupleType tt = (TupleType) domain_type;
-                    prepended_domain = NodeFactory.makeTupleTypeOrType(tt, Useful.prepend(receiverType, tt.getElements()));
-                } else {
-                    prepended_domain = NodeFactory.makeTupleType(domain_type.getInfo().getSpan(), Useful.list(receiverType, domain_type));
-                }
+                Type prepended_domain = receiverPrependedDomainType(
+                        receiverType, domain_type);
                 
                 // DRC-WIP
                 
@@ -6028,6 +6055,27 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             paramCount = savedParamCount;
         }
 
+    }
+
+
+    /**
+     * @param receiverType
+     * @param domain_type
+     * @return
+     */
+    private Type receiverPrependedDomainType(Type receiverType, Type domain_type) {
+        Type prepended_domain = null;
+        /* I think we start to have a problem here in the future,
+         * when generics can be parametrized by tuples.
+         * We need to figure out what this means.
+         */
+        if (domain_type instanceof TupleType) {
+            TupleType tt = (TupleType) domain_type;
+            prepended_domain = NodeFactory.makeTupleTypeOrType(tt, Useful.prepend(receiverType, tt.getElements()));
+        } else {
+            prepended_domain = NodeFactory.makeTupleType(domain_type.getInfo().getSpan(), Useful.list(receiverType, domain_type));
+        }
+        return prepended_domain;
     }
 
     private Type sanitizePossibleStupidIntersectionType(Type receiverType) {
@@ -6114,7 +6162,9 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         
         String castToArrowType = NamingCzar.makeArrowDescriptor(thisApi(), prepended_domain, range_type); 
-        mv.visitTypeInsn(CHECKCAST, castToArrowType);
+        //mv.visitTypeInsn(CHECKCAST, castToArrowType);
+        // got to do the more heavyweight thing, just in case.
+        InstantiatingClassloader.generalizedCastTo(mv, castToArrowType);
 
         // swap w/ TOS
         mv.visitInsn(SWAP);

@@ -955,17 +955,21 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         Triple<List<String>, List<String>, String> stuff =
             normalizeArrowParameters(parameters);
         
-        List<String> unwrapped_parameters = stuff.getA();
-        List<String> tupled_parameters = stuff.getB();
+        List<String> flat_params_and_ret = stuff.getA();
+        List<String> tupled_params_and_ret = stuff.getB();
         String tuple_type = stuff.getC();
-        List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
-        String obj_sig = stringListToGeneric("Arrow", objectified_parameters);
-
-        boolean is_all_objects = objectified_parameters.equals(unwrapped_parameters);
+        List<String> flat_obj_params_and_ret = Useful.applyToAll(flat_params_and_ret, toJLO);
+        List<String> norm_obj_params_and_ret = normalizeArrowParametersAndReturn(flat_obj_params_and_ret);
+        List<String> norm_params_and_ret = normalizeArrowParametersAndReturn(flat_params_and_ret);
         
+        String obj_sig = stringListToGeneric("Arrow", flat_obj_params_and_ret);
+        String norm_obj_sig = stringListToGeneric("Arrow", norm_obj_params_and_ret);
+            
+        boolean is_all_objects = flat_obj_params_and_ret.equals(flat_params_and_ret);
+        // might need to make Tuple also subtype Object
         String[] super_interfaces = null;
         if (!is_all_objects) {
-            super_interfaces = new String[] { obj_sig };
+            super_interfaces = new String[] { norm_obj_sig };
         } else {
         	super_interfaces = new String[] { "fortress/AnyType$Any" };
         }
@@ -975,8 +979,8 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
         /* If more than one domain parameter, then also include the tupled apply method. */
         int l = parameters.size();
-        if (tupled_parameters != null) {
-            String sig = arrowParamsToJVMsig(tupled_parameters);
+        if (tupled_params_and_ret != null) {
+            String sig = arrowParamsToJVMsig(tupled_params_and_ret);
             if (LOG_LOADS) System.err.println(name+".apply"+sig+" abstract");
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
                                 sig,
@@ -989,7 +993,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             if (parameters.size() == 2 && parameters.get(0).equals(Naming.INTERNAL_SNOWMAN))
             	sig = arrowParamsToJVMsig(parameters.subList(1,2));
             else
-            	sig = arrowParamsToJVMsig(unwrapped_parameters);
+            	sig = arrowParamsToJVMsig(flat_params_and_ret);
             if (LOG_LOADS) System.err.println(name+".apply"+sig+" abstract");
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, Naming.APPLY_METHOD,
                                 sig,
@@ -997,7 +1001,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitEnd();
         }
         {      
-            String sig = "()"+Naming.internalToDesc(obj_sig);
+            String sig = "()"+Naming.internalToDesc(norm_obj_sig);
             if (LOG_LOADS) System.err.println(name+".getWrappee"+sig+" abstract");
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, getWrappee,
                                 sig,

@@ -10,20 +10,23 @@
  ******************************************************************************)
 export Executable
 
-trait a
-  m(x:Object) = println("a" x)
+trait a[\U extends Object\]
+  m[\T extends Object\](f:U->T):a[\T\]
+  p():()
 end
 
-trait b extends a
-  m[\T extends String\](x:T) = println("b" x)
+trait b[\U extends Object\] extends a[\U\]
+  m[\T extends Object\](f:U->T):b[\T\]
 end
 
-object o extends b end
+object o[\U extends Object\](x:U) extends b[\U\]
+  m[\T extends Object\](f:U->T):b[\T\] = o[\T\](f(x))
+  p() = println x
+end
+
+id(x:String):String = x
 
 run():() = do
-  cat:Object = "cat"
-  three:Object = 3
-  o.m(cat) (*) Currently wrong -- prints "a cat" not "b cat"
-  o.m(three)
-  o.m[\String\]("cat")
+  aa:a[\String\] = o[\String\]("cat")
+  aa.m(id).p()
 end
