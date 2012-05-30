@@ -43,6 +43,17 @@ public class DeclaredMethod extends Method {
         if (NodeUtil.getReturnType(_ast).isSome())
             _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(NodeUtil.getReturnType(_ast)));
     }
+    
+    // KBN - temp fix trying to transform methods in Overloading set
+    // like done in CodeGen.convertGenericMethodToClosureDecl
+    public DeclaredMethod(FnDecl ast, DeclaredMethod original) {
+        _originalMethod = this;
+        _ast = ast;
+        _declaringTrait = original._declaringTrait;
+        _selfType = original._selfType;
+        _traitParams = original._traitParams;
+        _thunk = original._thunk;
+    }
 
     /**
      * Copy another DeclaredMethod, performing a substitution with the visitor.
