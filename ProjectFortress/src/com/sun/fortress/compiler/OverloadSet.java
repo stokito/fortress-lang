@@ -880,11 +880,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     }
     
     protected String generateClosureTableName(TaggedFunctionName f) {
-        throw new CompilerError("need to determine naming scheme for function instantiated closure tables");
+        //throw new CompilerError("need to determine naming scheme for function instantiated closure tables");
+        return Naming.cacheTableName(f.tagF.unambiguousName().getText());
     }
     
     protected String generateClosureTableOwner(TaggedFunctionName f) {
-        throw new CompilerError("need to determine naming scheme for function instantiated closure tables");
+        //throw new CompilerError("need to determine naming scheme for function instantiated closure tables");
+        return Naming.dotToSep(f.tagA.getText());
     }
     
     /**
@@ -1319,11 +1321,15 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 // Will need lookahead for the next one.
                 lookahead = new Label();
 
+                // if this was a generic method, we need to include the receiver argument
+                // in the inference even if the firstArgIndex is 1
+                //KBN-WIP is there a cleaner way to do this?
+                int offset = (f_type_structures.length == f.getParameters().size()) ? firstArgIndex : 0; 
                 
                 for (int j = 0; j < f_type_structures.length; j++) {
                     // Load actual parameter
                     if (j != selfIndex()) {
-                        mv.visitVarInsn(Opcodes.ALOAD, j ); //+ firstArgIndex); KBN - in inference the type of the receiver is included, so we need this for methods regardless
+                        mv.visitVarInsn(Opcodes.ALOAD, j + offset); //+ firstArgIndex); KBN - in inference the type of the receiver is included, so we need this for methods regardless
                         f_type_structures[j].emitInstanceOf(mv, lookahead, true);
                         //inference needed if the type structure contains generics TODO: do generics not appearing in the parameters make sense?  probably not, but might need to deal with them.
                         if (f_type_structures[j].containsTypeVariables)
