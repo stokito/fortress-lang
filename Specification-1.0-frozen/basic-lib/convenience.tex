@@ -1,0 +1,53 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Convenience Functions and Types}
+\chaplabel{lib:convenience}
+
+\section{Convenience Functions}
+\seclabel{convenience-functions}
+
+%tuple[\T extends Tuple\](x: T): T
+
+\Method{\(\VAR{tuple}\llbracket{}T \KWD{extends}\mskip 4mu plus 4mu\TYP{Tuple}\rrbracket(x\COLON T)\COLON T\)}
+
+The function \VAR{tuple} returns its argument as a tuple expression.
+
+%coerce_[\T\](x: T): T
+
+\Method{\(\mathrm{coerce}\llbracket{}T\rrbracket(x\COLON T)\COLON T\)}
+
+The function \EXP{\mathrm{coerce}} returns its argument as the given type.
+
+
+\section{Convenience Types}
+\seclabel{convenience-types}
+
+An optional value \VAR{v} is either \TYP{Nothing} or
+\EXP{\TYP{Just}(v)} declared as follows:
+%(* Optional Values *)
+%trait Maybe[\T\] comprises { Nothing, Just[\T\] }
+%  isNothing: Boolean
+%end
+%object Nothing extends Maybe[\T\] excludes Just[\T\] where {T extends Object}
+%end
+%object Just[\T\](just: T) extends Maybe[\T\]
+%end
+\begin{Fortress}
+\(\mathtt{(*}\;\hbox{\rm  Optional Values \unskip}\;\mathtt{*)}\)\\
+\(\KWD{trait} \TYP{Maybe}\llbracket{}T\rrbracket \KWD{comprises} \{\,\TYP{Nothing}, \TYP{Just}\llbracket{}T\rrbracket\,\}\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{isNothing}\COLON \TYP{Boolean}\)\-\\\poptabs
+\(\KWD{end}\)\\
+\(\KWD{object} \TYP{Nothing} \KWD{extends} \TYP{Maybe}\llbracket{}T\rrbracket \KWD{excludes} \TYP{Just}\llbracket{}T\rrbracket \KWD{where} \{T \KWD{extends} \TYP{Object}\}\)\\
+\(\KWD{end}\)\\
+\(\KWD{object} \TYP{Just}\llbracket{}T\rrbracket(\VAR{just}\COLON T) \KWD{extends} \TYP{Maybe}\llbracket{}T\rrbracket\)\\
+\(\KWD{end}\)
+\end{Fortress}

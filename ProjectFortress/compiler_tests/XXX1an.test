@@ -1,0 +1,28 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled1.an
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled1.an.fss:12:11-22:\n\
+\ Component Compiled1.an exports API DXXmatchingDecls\n\
+\ but does not define all declarations in DXXmatchingDecls.\n\
+\ Missing declarations: {z:String at ${STATIC_TESTS_DIR}/DXXmatchingDecls.fsi:15:3-12}\n\
+${STATIC_TESTS_DIR}/Compiled1.an.fss:12:11-22:\n\
+\ The following declarations in API DXXmatchingDecls are not matched\n\
+\ by the declarations in component Compiled1.an.\n\
+\ Unmatched declarations: {\n\
+\ (x:String,\n\
+\ due to different types),\n\
+\ (test var y:String,\n\
+\ due to different modifiers, different mutabilities)\n\
+\ }\n\
+File Compiled1.an.fss has 2 errors.\n
+compile_out_equals=

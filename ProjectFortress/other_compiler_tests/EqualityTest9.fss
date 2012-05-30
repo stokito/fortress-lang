@@ -1,0 +1,20 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component EqualityTest9
+import EqualityTest9a.{ TestEquality, opr TESTNOTEQUAL }
+export Executable
+
+object Baz extends TestEquality[\Baz\] end
+
+run(): () = println(if Baz TESTNOTEQUAL Baz then "FAIL" else "PASS" end)
+
+end

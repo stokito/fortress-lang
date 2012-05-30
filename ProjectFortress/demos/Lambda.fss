@@ -1,0 +1,344 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+component Lambda
+import OneShotFlag.{...}
+import Map.{...}
+import List.{...}
+import File.{...}
+import System.{...}
+export Executable
+
+emptyMap = {[\String,Term\]}
+
+globalEnv: Map[\String,Term\] := emptyMap
+
+parens(gp:ZZ32, p:ZZ32, s:String):String =
+    if gp <= p then "(" s ")" else s end
+
+trait Term extends Equality[\Term\]
+        comprises { Lambda, App, Var, FreeVar, Const }
+    getter asString(): String = pretty(0)
+    getter inst(): Term = self
+    pretty(p:ZZ32): String = ugly()
+    ugly(): String
+    plambda(): String = ". " pretty(0)
+    opr =(self, t:Term): Boolean = false
+    subst(v:Var, val:Term): Term
+    hasFreeVar(v:Var): Boolean
+    varNotIn(): BoundVar = do
+        r : BoundVar := Gensym.gen()
+        while hasFreeVar(r) do
+            r := Gensym.gen()
+        end
+        r
+      end
+    whnf(): Term = self
+    cbv(): Term = self
+    apply(rand, post: Term -> Term): Term = app(self, rand)
+    nf(): Term = whnf().nf2()
+    nf2(): Term = self
+end
+
+object Gensym
+    uniq : ZZ32 := 0
+    gen(): BoundVar = do
+        u = atomic do
+                r = uniq
+                uniq := r+1
+                r
+            end
+        vv("u" u)
+      end
+end
+
+object Const(n:ZZ32) extends Term
+    ugly(): String = "" n
+    opr =(self, t:Const) = n = t.n
+    subst(_:Var, _:Term): Const = self
+    hasFreeVar(v:Var): Boolean = false
+end
+
+object App(rator:Term, rand:Term) extends Term
+    pretty(p:ZZ32): String = parens(2, p, rator.pretty(1) " " rand.pretty(2))
+    ugly(): String = "(" rator.ugly() " " rand.ugly() ")"
+    opr =(self, t:App) = rator = t.rator AND: rand = t.rand
+    subst(v:Var, val:Term): Term = app(rator.subst(v,val),rand.subst(v,val))
+    hasFreeVar(v:Var): Boolean = rator.hasFreeVar(v) OR: rand.hasFreeVar(v)
+    whnf(): Term = rator.whnf().apply(rand, fn (r:Term) => r.whnf())
+    cbv(): Term = rator.cbv().apply(rand.cbv(), fn (r:Term) => r.cbv())
+    nf2(): Term = app(rator.nf2(),rand.nf())
+end
+
+app(rator:Term, rand:Term): App = App(rator, rand)
+
+trait Var extends Term comprises { FreeVar, BoundVar }
+    getter name(): String
+    pretty(_:ZZ32): String = self.name
+    subst(v:Var, val:Term): Term = if self=v then val else self end
+    hasFreeVar(v:Var): Boolean = self = v
+end
+
+object BoundVar(nm:String) extends Var
+    getter name(): String = nm
+    ugly(): String = nm
+    opr =(self,x:Var): Boolean = nm = x.nm
+end
+
+vv(n: String): BoundVar = BoundVar(n)
+
+object FreeVar(nm:String) extends Var
+    getter name(): String = nm
+    ugly(): String = nm "[g]"
+    opr =(self,x:FreeVar): Boolean = nm = x.nm
+    changed(init:Term,final:Term): Term =
+        if init = final then
+            self
+        else
+            final
+        end
+    apply(rand:Term, post: Term -> Term): Term =
+        if d <- globalEnv.member(nm) then
+            d.apply(rand, post)
+        else
+            app(self,rand)
+        end
+    whnf(): Term =
+        if d <- globalEnv.member(nm) then
+            changed(d,d.whnf())
+        else
+            self
+        end
+    nf2(): Term =
+        if d <- globalEnv.member(nm) then
+            changed(d,d.nf())
+        else
+            self
+        end
+end
+
+fv(n: String): FreeVar = FreeVar(n)
+
+object Lambda(def: BoundVar, body: Term) extends { Term }
+    pretty(p:ZZ32): String = parens(1, p, "\\" def body.plambda())
+    ugly(): String = "(\\" def.ugly() " . " body.ugly() ")"
+    plambda(): String = " " def body.plambda()
+    opr =(self,x:Lambda): Boolean =
+        (body = x.body.subst(x.def,def))
+    hasFreeVar(v:Var): Boolean = NOT (def=v) AND body.hasFreeVar(v)
+    subst(v:Var, val:Term): Term =
+        if v=def OR: NOT body.hasFreeVar(v) then self
+        elif NOT val.hasFreeVar(def) then Lambda(def,body.subst(v,val))
+        else
+            def' = app(val,body).varNotIn()
+            body' = body.subst(def,def')
+            Lambda(def', body'.subst(v,val))
+        end
+    apply(rand:Term, post: Term -> Term): Term = post(body.subst(def,rand))
+    nf2(): Term = Lambda(def, body.nf())
+end
+
+lambda(name:String, body: Var->Term): Lambda = do
+    d = vv(name)
+    bod = body(d)
+    r = Lambda(d,bod)
+    r
+  end
+
+freeDef(name:String, defn:Term): () = do
+        globalEnv := globalEnv.add(name,defn)
+    end
+
+dumpGlobals():() =
+    for (k,v) <- globalEnv do
+        println(k " = " v )
+    end
+
+uglyGlobals():() =
+    for (k,v) <- globalEnv do
+        println(k " = " v.ugly())
+    end
+
+lookup(global:String):Term =
+    if t <- globalEnv.member(global) then
+        t
+    else
+        fv(global)
+    end
+
+forms(t:Term): () = do
+    println(t " -->>")
+    w = t.whnf()
+    println(w " -->>>")
+    println(w.nf())
+  end
+
+_ = noShot (* cheap hack to break a dependence *)
+
+spaces : String = " \t\n"
+terminators : String = spaces || char(0) || "().="
+separators : String = char(0) || ")\n."
+object Parser(f:FileReadStream)
+    curr : Char := ' '
+    next(): Char = do
+        curr := f.readChar()
+        curr
+      end
+    getNonSpace(newlineOK: Boolean): Char = do
+        while curr=' ' OR curr='\t' OR (newlineOK AND curr='\n') do
+            next()
+        end
+        curr
+      end
+    skip(newlineOK: Boolean): Char = do
+        next()
+        getNonSpace(newlineOK)
+      end
+    parseNum(): ZZ32 = do
+        res : ZZ32 := 0
+        while d <- digit(curr) do
+            res := 10 res + d
+            next()
+        end
+        res
+      end
+    parseConst(newlineOK:Boolean): Const = do
+        r = Const(parseNum())
+        getNonSpace(newlineOK)
+        r
+      end
+    parseId(): String = do
+        res : String := "" curr
+        while next() NOTIN terminators do
+            res := res || curr
+        end
+        res
+      end
+    parseVar(newlineOK:Boolean): FreeVar = do
+        r = fv(parseId())
+        getNonSpace(newlineOK)
+        r
+      end
+    parseLambda(newlineOK:Boolean): Lambda = do
+        skip(true)
+        parseLambdaF(newlineOK)
+      end
+    parseLambdaF(newlineOK:Boolean): Lambda = do
+        id = parseId()
+        getNonSpace(true)
+        case curr of
+            '.'  => mkLambda(id, parseReqTerm(newlineOK))
+            char(0) => fail ("unexpected eof in arg list, last arg " id)
+            ')'  => fail ("unexpected ')' in arg list, last arg " id)
+            else => if isDigit(curr) then
+                        fail ("unexpected digit " curr.asString " in arg list")
+                    else
+                        mkLambda(id,parseLambdaF(newlineOK))
+                    end
+        end
+      end
+    mkLambda(id:String, body:Term): Lambda = do
+        x = vv(id)
+        xf = fv(id)
+        Lambda(x, body.subst(xf,x))
+      end
+    parseParens(newlineOK:Boolean): Term = do
+        r = parseReqTerm(true)
+        if curr=/=')' then
+            fail("unexpected terminator " curr.asString ", expected ')'")
+        end
+        skip(newlineOK)
+        r
+      end
+    parseOrApp(t:Term, newlineOK: Boolean): Term = do
+        if curr='\\' then
+            app(t,parseLambda(newlineOK))
+        elif curr='(' then
+            r = parseParens(newlineOK)
+            parseOrApp(app(t,r), newlineOK)
+        elif isDigit(curr) then
+            r = parseConst(newlineOK)
+            parseOrApp(app(t,r), newlineOK)
+        elif curr IN separators then
+            t
+        else
+            r = parseVar(newlineOK)
+            parseOrApp(app(t,r), newlineOK)
+        end
+      end
+    parseVarOrApp(newlineOK: Boolean): Term = do
+        r = parseVar(newlineOK)
+        parseOrApp(r,newlineOK)
+      end
+    parseNumberOrApp(newlineOK: Boolean): Term = do
+        r = parseConst(newlineOK)
+        parseOrApp(r,newlineOK)
+      end
+    parseParensOrApp(newlineOK: Boolean): Term = do
+        r = parseParens(newlineOK)
+        parseOrApp(r,newlineOK)
+      end
+    parseReqTerm(newlineOK: Boolean): Term = do
+        skip(true)
+        if f.eof() then
+            fail "unexpected eof in term"
+        elif curr='.' then
+            fail "unexpected '.' in term"
+        elif curr=')' then
+            fail "unexpected ')' in term"
+        elif curr='\\' then
+            parseLambda(newlineOK)
+        elif curr='(' then
+            parseParensOrApp(newlineOK)
+        elif isDigit(curr) then
+            parseNumberOrApp(newlineOK)
+        else
+            parseVarOrApp(newlineOK)
+        end
+      end
+    parseIdOrBindingOrApp(): () = do
+        id = parseId()
+        getNonSpace(false)
+        if curr = '=' then
+            t = parseReqTerm(false)
+            freeDef(id,t)
+            println("Defining " id " = " t)
+        else
+            forms(parseOrApp(fv(id),false))
+        end
+      end
+    parseTop(): () =
+        case getNonSpace(true) of
+            '\\' => forms(parseLambda(false))
+            '(' => forms(parseParensOrApp(false))
+            char(0) => ()
+            '.' => fail("Error: misplaced '.' at top level.")
+            ')' => fail("Error: misplaced ')' at top level.")
+            else =>
+                if isDigit(curr) then
+                    forms(parseNumberOrApp(false))
+                else
+                    parseIdOrBindingOrApp()
+                end
+        end
+end
+
+run():() = do
+    fname = (toDirectoryName(getProperty("fortress.autohome",""))
+             "ProjectFortress/demos/Lambda.tests")
+    rs = FileReadStream(fname)
+    p = Parser(rs)
+    while NOT rs.eof() do
+        p.parseTop()
+    end
+    rs.close()
+  end
+
+end

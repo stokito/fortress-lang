@@ -1,0 +1,22 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Generated Expressions}
+\seclabel{generated}
+
+If a subexpression of a \KWD{do} expression has type \TYP{()}, the
+expression may be followed by a `\EXP{,}' and a generator clause list
+(described in \secref{generators}).  Writing ``\EXP{\VAR{expr},
+\VAR{gens}}'' is equivalent to writing ``\EXP{\KWD{for}\mskip 4mu plus
+4mu\VAR{gens} \KWD{do}\mskip 4mu plus 4mu\VAR{expr} \KWD{end}}''.  See
+\secref{for-expr} for the semantics of the \KWD{for} expression.  Note
+in particular that \VAR{expr} can be a reducing assignment of the form
+``\EXP{\VAR{variable}\; \mathrel{\OPR{OP}}= \VAR{expr}}''.

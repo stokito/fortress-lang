@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component arrayComp
+export Executable
+
+run():() = do
+  a : ZZ32[17] = [ i |-> i | i <- 0#17 ]
+  for i <- 0#17 do
+    print(a[i] " ")
+  end
+  println("\n")
+end
+
+end

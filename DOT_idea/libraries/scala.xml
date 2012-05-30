@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="scala">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/scala/scala-compiler-2.7.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/ProjectFortress/third_party/scala/scala-library-2.7.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

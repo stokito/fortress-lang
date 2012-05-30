@@ -1,0 +1,64 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Fortress.Standard
+
+(* BooleanInterval *)
+(* object BooleanInterval Not Yet Implemented *)
+True: BooleanInterval = { true }
+False: BooleanInterval = { false }
+Uncertain: BooleanInterval = { true, false }
+Impossible: BooleanInterval = { }
+test testData[ ] = { True, False, Uncertain, Impossible }
+
+(* Exceptions *)
+trait Exception comprises { CheckedException, UncheckedException }
+  getter message(): Maybe[\String\] = Nothing
+  setter message(String):()
+  getter chain(): Maybe[\Exception\] = Nothing
+  setter chain(Exception):()
+  printStackTrace(): ()
+end
+
+trait CheckedException
+  extends { Exception }
+  excludes { UncheckedException }
+end
+
+trait UncheckedException
+  extends { Exception }
+  excludes { CheckedException }
+end
+
+(* Threads *)
+object Stopped extends UncheckedException end
+
+trait Thread[\T extends Any\]
+  val(): T
+  wait(): ()
+  ready(): Boolean
+  stop(): () throws Stopped
+end
+
+(* Tests *)
+test object TestSuite(testFunctions = {})
+  add(f: () -> ()) = testFunctions.insert(f)
+  run() =
+    for t <- testFunctions do
+      t()
+    end
+end
+
+object TestFailure extends UncheckedException end
+
+test fail(message: String) =
+  print message
+  throw TestFailure

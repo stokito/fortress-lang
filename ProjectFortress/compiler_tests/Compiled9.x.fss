@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+  (* An exit with an invalid target label should generate error. *)
+
+  run():() = do
+
+    x = 5
+    label l
+      exit x (* target is something other than a label *)
+    end l
+
+  end

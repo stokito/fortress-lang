@@ -1,0 +1,130 @@
+/*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress literals.
+ */
+module com.sun.fortress.parser.templateparser.Gaps(Symbol, Spacing, Identifier);
+
+import Symbol;
+import Spacing;
+import Identifier;
+
+List<Id> ParamList =
+     openparen a1:Id a2s:(w comma w Id)+ closeparen
+     { yyValue = Useful.cons(a1, a2s.list()); }
+   / openparen a1:Id a2s:(w commaOrNot w Id)+ closeparen
+     { log(createSpan(yyStart,yyCount), "Missing comma.");
+       yyValue = Useful.cons(a1, a2s.list());
+     }
+   / openparen a1:Id closeparen
+     { yyValue = Useful.list(a1); };
+
+String prefix = "<!@#$%^&*<";
+String suffix = ">*&^%$#@!>";
+
+Expr ExprGap =
+     <GAP> prefix "Expr" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapExpr(createSpan(yyStart,yyCount), a1, params);
+     };
+
+Expr SimpleExprGap =
+     <GAP> prefix "SimpleExpr" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapSimpleExpr(createSpan(yyStart,yyCount), a1, params);
+     };
+
+Expr PrimaryGap =
+     <GAP> prefix "Primary" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapPrimary(createSpan(yyStart,yyCount), a1, params);
+     };
+
+FnExpr FnExprGap =
+     <GAP> prefix "FnExpr" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapFnExpr(createSpan(yyStart,yyCount), a1, params);
+     };
+
+Juxt LooseJuxtGap =
+     <GAP> prefix "LooseJuxt" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapJuxt(createSpan(yyStart,yyCount), a1, params);
+     };
+
+List<Id> BindIdOrBindIdTupleGap =
+     <GAP> prefix "List<Id>" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       TemplateGapId t = ExprFactory.makeTemplateGapId(createSpan(yyStart,yyCount), a1, params);
+       yyValue = Useful.list((Id)t);
+     };
+
+Name NameGap =
+     <GAP> prefix "Name" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapName(createSpan(yyStart,yyCount), a1, params);
+     };
+
+Id IdGap =
+     <GAP> prefix "Id" w a1:Id params:ParamList? w suffix w DoubleStar
+     { if (params == null) params = new LinkedList<Id>();
+       /* yyValue = ExprFactory.makeTemplateGapId(createSpan(yyStart,yyCount), a1, params); */
+       yyValue = new _EllipsesId(NodeFactory.makeSpanInfo(createSpan(yyStart, yyCount)),
+                                 ExprFactory.makeTemplateGapId(createSpan(yyStart,yyCount), a1, params));
+     }
+     / <GAP2> prefix "Id" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       /* yyValue = ExprFactory.makeTemplateGapId(createSpan(yyStart,yyCount), a1, params); */
+       yyValue = ExprFactory.makeTemplateGapId(createSpan(yyStart,yyCount), a1, params);
+     };
+
+LiteralExpr LiteralExprGap =
+     <GAP> prefix "LiteralExpr" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapNumberLiteralExpr(createSpan(yyStart,yyCount), a1, params);
+     };
+
+NumberLiteralExpr NumberLiteralExprGap =
+     <GAP> prefix "NumberLiteralExpr" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapNumberLiteralExpr(createSpan(yyStart,yyCount), a1, params);
+     };
+
+FloatLiteralExpr FloatLiteralExprGap =
+     <GAP> prefix "FloatLiteralExpr" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapFloatLiteralExpr(createSpan(yyStart,yyCount), a1, params);
+     };
+
+IntLiteralExpr IntLiteralExprGap =
+     <GAP> prefix "IntLiteralExpr" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapIntLiteralExpr(createSpan(yyStart,yyCount), a1, params);
+     };
+
+CharLiteralExpr CharLiteralExprGap =
+     <GAP> prefix "CharLiteralExpr" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapCharLiteralExpr(createSpan(yyStart,yyCount), a1, params);
+     };
+
+StringLiteralExpr StringLiteralExprGap =
+     <GAP> prefix "StringLiteralExpr" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapStringLiteralExpr(createSpan(yyStart,yyCount), a1, params);
+     };
+
+VoidLiteralExpr VoidLiteralExprGap =
+     <GAP> prefix "Void" w a1:Id params:ParamList? w suffix
+     { if (params == null) params = new LinkedList<Id>();
+       yyValue = ExprFactory.makeTemplateGapVoidLiteralExpr(createSpan(yyStart,yyCount), a1, params);
+     };

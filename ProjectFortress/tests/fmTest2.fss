@@ -1,0 +1,45 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component fmTest2
+export Executable
+
+opr OPLUS(x:ZZ32,y:ZZ32):ZZ32 = x+y
+opr OTIMES(x:ZZ32,y:ZZ32):ZZ32 = x y
+
+object rat(i:ZZ32, j:ZZ32)
+
+  getter asString():String = "(" i ", " j ")"
+  (* Not sure why, but "self.i" fails below *)
+  opr OPLUS(self, other:rat):rat = rat(i OPLUS other.i, j OPLUS other.j)
+  opr OTIMES(self, other:rat):rat = rat(i OTIMES other.i, j OTIMES other.j)
+  opr OTIMES(self, other:ZZ32):rat = rat(i OTIMES other, j OTIMES other)
+  (* this next is not called, but it makes for a tricky overloading *)
+  opr OTIMES(other:ZZ32, self):rat = rat(self.i OTIMES other, self.j OTIMES other)
+  area():ZZ32 = i OTIMES j
+end
+
+run():()=do
+  a:rat = rat(1,0)
+  println a.asString
+
+  b:rat = rat(0,1)
+  println b.asString
+
+  c = a OPLUS b
+  println c.asString
+
+  d = c OTIMES (2 OTIMES 2)
+  println d.asString
+
+end
+
+end

@@ -1,0 +1,33 @@
+(*******************************************************************************
+    Copyright 2008,2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component nestedTransactions0
+
+export Executable
+
+test1():() = do
+    var count : ZZ32 = 0
+    atomic do
+            count := count + 1
+            atomic do
+               count := count + 1
+            end
+     end
+   println("count = " || count)
+   assert(count=2)
+   println("PASS")
+end
+
+run():()=do
+    println("Starting test")
+    test1()
+end
+end

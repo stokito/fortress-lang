@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled110
+export Executable
+
+
+trait A
+  x:A
+  getter asString(): String = "FAIL"
+end
+
+object N extends A
+  getter x(): A = self
+  getter asString(): String = "pass"
+end
+
+object O(x:A) extends A end
+
+object P extends A
+  x:A = O(N).x
+end
+
+anA():A = P
+
+run():() = do
+  println(anA().x.asString)
+end
+
+end

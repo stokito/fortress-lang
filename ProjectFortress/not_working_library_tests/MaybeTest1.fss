@@ -1,0 +1,137 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component MaybeTest1
+export Executable
+
+trait Equality[\Self\] comprises Self
+    getter asString(): String = "Heh!"
+    opr =(self, other:Self): Boolean = self SEQV other
+end
+
+object Baz extends Equality[\Baz\] end
+
+value trait Maybe[\T extends Equality[\T\]\]
+        extends { 
+(*)               Condition[\T\],
+                  UniqueItem[\T\] }
+        comprises { NothingObject[\T\], Just[\T\] }
+    opr SQCAP(self, o: Maybe[\T\]): Maybe[\T\] = NothingObject[\T\]    (*) semilattice "meet" operator
+end
+
+value object Just[\T extends Equality[\T\]\](x: T) extends Maybe[\T\]
+    getter size(): ZZ32 = 1
+    getter asString(): String = "Just(" x.asString ")"
+(*)    getter get() = x
+    opr |self| : ZZ32 = 1
+    getDefault(_: T): T = x
+(*)     cond[\R\](t: T->R, _: ()->R): R = t(x)
+(*)     generate[\R\](_:Reduction[\R\],m:T->R): R = m(x)
+(*)     opr[i:ZZ32]:T = if i=0 then x else fail("Maybe[" i "] nonzero index") end
+
+(*)     map[\G\](f: T->G): Just[\G\] = Just[\G\](f(x))
+(*)     cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] =
+(*)         g.map[\(T,G)\](fn (e:G):(T,G) => (x,e))
+
+(*)     mapReduce[\R\](m: T->R, _:(R,R)->R, _:R): R = m(x)
+(*)     reduce(_:(T,T)->T, _:T):T = x
+(*)     reduce(_: Reduction[\T\]):T = x
+(*)     loop(f:T->()): () = f(x)
+    opr IN(y:T, self): Boolean = (x=y)
+    opr =(self,o:Just[\T\]): Boolean = (x=o.x)
+    opr SQCAP(self, o:NotUniqueObject[\T\]): Just[\T\] = self
+    opr SQCAP(self, o:Just[\T\]): Maybe[\T\] = if o.x = x then self else NothingObject[\T\] end
+    opr SQCUP(self, o:NothingObject[\T\]): Just[\T\] = self
+    opr SQCUP(self, o:Just[\T\]): UniqueItem[\T\] = if o.x = x then self else NotUniqueObject[\T\] end
+    unique(self): Maybe[\T\] = self
+end
+
+value object NothingObject[\T extends Equality[\T\]\] extends Maybe[\T\]
+    coerce(_: Nothing) = NothingObject[\T\]
+    getter size()=0
+    getter holds() = false
+(*)    getter get() = throw NotFound
+    getter asString():String = "Nothing"
+    opr |self| : ZZ32 = 0
+    getDefault(defaultValue: T):T = defaultValue
+(*)     cond[\R\](_:T->R, e:()->R): R = e()
+(*)     generate[\R\](r:Reduction[\R\],_:T->R): R = r.empty()
+(*)     opr[_:ZZ32]: T = fail("Cannot index Nothing")
+
+(*)     map[\G\](f: T->G): NothingObject[\G\] = NothingObject[\G\]
+(*)     cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] = NothingObject[\(T,G)\]
+
+(*)     mapReduce[\R\](_: T->R, _:(R,R)->R, z:R): R = z
+(*)     reduce(_:(T,T)->T, z:T):T = z
+(*)     reduce(r: Reduction[\T\]):T = r.empty()
+(*)     loop(f:T->()): () = ()
+    opr IN(x:T, self): Boolean = false
+    opr =(self,_:NothingObject[\T\]) = true
+    opr SQCAP(self, other: Maybe[\T\]): NothingObject[\T\] = self
+    opr SQCAP(self, other: UniqueItem[\T\]): NothingObject[\T\] = self
+    opr SQCUP(self, other: UniqueItem[\T\]): UniqueItem[\T\] = other
+end
+
+object Nothing end
+object NotUnique end
+
+(* This makes excludes work without where clauses, and allows opr =()
+   to remain non-parametric. *)
+value trait AnyUniqueItem
+(*)      extends Equality[\AnyUniqueItem\]
+      excludes Number
+    getter holds() : Boolean = true
+    opr =(self, other:AnyUniqueItem): Boolean = false
+end
+
+(** The type UniqueItem[\T\] extends Maybe[\T\] from a semilattice
+    to a lattice by adjoining a top element NotUniqueObject[\T\].  An
+    object of type %UniqueItem[\T\]% can be used as a generator; it is either
+    empty (%Nothing% or %NotUnique%) or generates the single element yielded by
+    %get%, so there is no issue of canonical order or parallelism. *)
+value trait UniqueItem[\T extends Equality[\T\]\]
+        extends { AnyUniqueItem
+(*)               , Condition[\T\]
+                }
+        comprises { NotUniqueObject[\T\], Maybe[\T\] }
+    opr SQCAP(self, other: UniqueItem[\T\]): UniqueItem[\T\] = NothingObject[\T\]    (*) lattice "meet" operator
+    opr SQCUP(self, other: UniqueItem[\T\]): UniqueItem[\T\] = NotUniqueObject[\T\]  (*) lattice "join" operator
+    unique(self): Maybe[\T\] = NothingObject[\T\]
+end
+
+value object NotUniqueObject[\T extends Equality[\T\]\] extends UniqueItem[\T\]
+    getter size()=0
+    getter holds() = false
+(*)    getter get() = throw NotFound
+    getter asString():String = "NotUnique"
+    opr |self| : ZZ32 = 0
+    getDefault(t:T):T = t
+(*)     cond[\R\](_:T->R, e:()->R): R = e()
+(*)     generate[\R\](r:Reduction[\R\],_:T->R): R = r.empty()
+(*)     opr[_:ZZ32]: T = fail("Cannot index NotUnique")
+
+(*)     map[\G\](f: T->G): NotUniqueObject[\G\] = NotUniqueObject[\G\]
+(*)     cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] =
+(*)       if g === NothingObject[\G\] then NothingObject[\(T,G)\] else NotUniqueObject[\(T,G)\] end
+
+(*)     mapReduce[\R\](_: T->R, _:(R,R)->R, z:R): R = z
+(*)     reduce(_:(T,T)->T, z:T):T = z
+(*)     reduce(r: Reduction[\T\]):T = r.empty()
+(*)     loop(f:T->()): () = ()
+    opr IN(x:T, self): Boolean = false
+    opr =(self,_:NotUniqueObject[\T\]) = true
+    opr SQCAP(self, other: UniqueItem[\T\]): UniqueItem[\T\] = other
+    opr SQCUP(self, other: UniqueItem[\T\]): NotUniqueObject[\T\] = self
+end
+
+run(): () = println(if Just(Baz).getDefault(Baz) = Baz then "PASS" else "FAIL" end)
+
+end
