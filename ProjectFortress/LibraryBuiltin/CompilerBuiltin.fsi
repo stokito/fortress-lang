@@ -564,37 +564,37 @@ makeJavaBufferedWriter(s: String): JavaBufferedWriter throws FileNotFoundExcepti
 
 trait AllGenerators end
 
-trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
+trait Generator[\E1 extends Any\] extends { AllGenerators } excludes { Number, Character }
     abstract getter reverse(): Generator[\E1\]
-    abstract generate[\R\](r: Reduction[\R\], body: E1->R): R
-    abstract map[\Gyy\](f: E1->Gyy): Generator[\Gyy\]
+    abstract generate[\R extends Any\](r: Reduction[\R\], body: E1->R): R
+    abstract map[\Gyy extends Any\](f: E1->Gyy): Generator[\Gyy\]
 (*)    abstract seq(self): SequentialGenerator[\E1\]
     abstract seq(): SequentialGenerator[\E1\]
-    abstract nest[\G1\](f: E1 -> Generator[\G1\]): Generator[\G1\]
+    abstract nest[\G1 extends Any\](f: E1 -> Generator[\G1\]): Generator[\G1\]
     abstract filter(f: E1 -> Condition[\()\]): Generator[\E1\]
-    abstract cross[\G2\](g: Generator[\G2\]): Generator[\(E1,G2)\]
-    abstract mapReduce[\R\](body: E1->R, join: (R,R)->R, id: R): R
+    abstract cross[\G2 extends Any\](g: Generator[\G2\]): Generator[\(E1,G2)\]
+    abstract mapReduce[\R extends Any\](body: E1->R, join: (R,R)->R, id: R): R
     abstract reduce(r: Reduction[\E1\]): E1
     abstract reduce(join: (E1,E1)->E1, id: E1): E1
     abstract loop(body :E1->()): ()
 end Generator
 
-trait SequentialGenerator[\E2\] extends { Generator[\E2\] }
+trait SequentialGenerator[\E2 extends Any\] extends { Generator[\E2\] }
     abstract getter reverse(): SequentialGenerator[\E2\]
     abstract seq(): SequentialGenerator[\E2\]
-    abstract map[\G3\](f: E2->G3): SequentialGenerator[\G3\]
-    abstract nest[\G4\](f: E2 -> SequentialGenerator[\G4\]): SequentialGenerator[\G4\]
+    abstract map[\G3 extends Any\](f: E2->G3): SequentialGenerator[\G3\]
+    abstract nest[\G4 extends Any\](f: E2 -> SequentialGenerator[\G4\]): SequentialGenerator[\G4\]
     abstract filter(f: E2 -> Condition[\()\]): SequentialGenerator[\E2\]
-    abstract cross[\F1\](g: SequentialGenerator[\F1\]): SequentialGenerator[\(E2,F1)\]
+    abstract cross[\F1 extends Any\](g: SequentialGenerator[\F1\]): SequentialGenerator[\(E2,F1)\]
 end SequentialGenerator
 
-trait Reduction[\R\]
+trait Reduction[\R extends Any\]
     getter reverse(): Reduction[\R\]
     abstract getter id(): R
     abstract join(a: R, b: R): R
 end
 
-trait Condition[\E18\] extends { SequentialGenerator[\E18\] }
+trait Condition[\E18 extends Any\] extends { SequentialGenerator[\E18\] }
 (*)        excludes { String, ZZ, ZZ32, ZZ64, NN32, NN64, IntLiteral, RR32, RR64, ZZ32Vector, StringVector }
     abstract getter isEmpty(): Boolean 
     abstract getter nonEmpty(): Boolean
@@ -604,25 +604,25 @@ trait Condition[\E18\] extends { SequentialGenerator[\E18\] }
     abstract getter reverse(): Condition[\E18\]
     abstract getDefault(defaultValue: E18): E18
 (*)    abstract opr |self| : ZZ32
-    abstract generate[\G11\](r: Reduction[\G11\], body: E18 -> G11): G11
-    abstract map[\G12\](f: E18->G12): Condition[\G12\]
+    abstract generate[\G11 extends Any\](r: Reduction[\G11\], body: E18 -> G11): G11
+    abstract map[\G12 extends Any\](f: E18->G12): Condition[\G12\]
     seq(): Condition[\E18\]
-    abstract nest[\G13\](f: E18 -> Generator[\G13\]): Generator[\G13\]
-    abstract nest[\G18\](f: E18 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\]
-    abstract cross[\G14\](g: Generator[\G14\]): Generator[\(E18,G14)\]
-    abstract cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E18,G17)\]
-    abstract mapReduce[\R\](body: E18->R, _:(R,R)->R, id:R): R
+    abstract nest[\G13 extends Any\](f: E18 -> Generator[\G13\]): Generator[\G13\]
+    abstract nest[\G18 extends Any\](f: E18 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\]
+    abstract cross[\G14 extends Any\](g: Generator[\G14\]): Generator[\(E18,G14)\]
+    abstract cross[\G17 extends Any\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E18,G17)\]
+    abstract mapReduce[\R extends Any\](body: E18->R, _:(R,R)->R, id:R): R
     abstract reduce(_:(E18,E18)->E18, id:E18): E18
     abstract reduce(r: Reduction[\E18\]): E18
     abstract loop(f:E18->()): ()
-    abstract cond[\G10\](t: E18 -> G10, e: () -> G10): G10
+    abstract cond[\G10 extends Any\](t: E18 -> G10, e: () -> G10): G10
 (*)    abstract opr OR(self, other: () -> E18): E18
 end Condition
 
 
 (* Option type *)
 
-value trait Option[\E19\] extends { Condition[\E19\] }
+value trait Option[\E19 extends Any\] extends { Condition[\E19\] }
         comprises { NoneObject[\E19\], Some[\E19\] }
   coerce(_: None)
 (*)  opr SQCAP(self, other: Option[\E19\]): Option[\E19\]
@@ -630,9 +630,9 @@ value trait Option[\E19\] extends { Condition[\E19\] }
   abstract filter(f: E19 -> Condition[\()\]): Option[\E19\]
 end
 
-value object Some[\E20\](x: E20) extends Option[\E20\] end
+value object Some[\E20 extends Any\](x: E20) extends Option[\E20\] end
 
-value object NoneObject[\E21\] extends Option[\E21\] end
+value object NoneObject[\E21 extends Any\] extends Option[\E21\] end
 
 value object None end
 

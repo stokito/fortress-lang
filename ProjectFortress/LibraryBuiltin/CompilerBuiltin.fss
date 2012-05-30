@@ -1063,7 +1063,7 @@ makeJavaBufferedWriter(s: String): JavaBufferedWriter throws FileNotFoundExcepti
 
 trait AllGenerators end
 
-trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
+trait Generator[\E1 extends Any\] extends { AllGenerators } excludes { Number, Character }
 (*)    getter asString(): String = (BIG ||[i <- self] "," i)[1:]
 
     (** Returns a generator that generates the same objects as this generator
@@ -1086,7 +1086,7 @@ trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
         desired in this computation, and to group reductions in any
         way desired; if no elements are generated, the identity must be
         returned. *)
-    generate[\R\](r: Reduction[\R\], body: E1->R): R
+    generate[\R extends Any\](r: Reduction[\R\], body: E1->R): R
 
     (** Transforming generators into new generators *)
     (** `map` returns a new generator that generates the results of
@@ -1095,7 +1095,7 @@ trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
         occur before the new generator is returned.  The resulting
         generator must have the same ordering and cross product
         properties as the generator from which it is derived. *)
-    map[\Gyy\](f: E1->Gyy): Generator[\Gyy\]
+    map[\Gyy extends Any\](f: E1->Gyy): Generator[\Gyy\]
 
     (** seq produces a sequential version of the same generator, which
         produces elements in a temporal order that matches this generator's
@@ -1118,7 +1118,7 @@ trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
         then the twelve elements of the result should appear in the natural
         order as 0, 1, 2, 3, 100, 101, 102, 103, 200, 201, 202, 203.
      **)
-    nest[\G1\](f: E1 -> Generator[\G1\]): Generator[\G1\]
+    nest[\G1 extends Any\](f: E1 -> Generator[\G1\]): Generator[\G1\]
 
     (** Filtering data from a generator.  Only elements that satisfy
         the predicate p are retained.  Natural order and cross product
@@ -1150,13 +1150,13 @@ trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
            a.cross(seq(b))
            seq(a).cross(seq(b))
         But seq(a.cross(b)) may have a different natural order. *)
-    cross[\G2\](g: Generator[\G2\]): Generator[\(E1,G2)\]
+    cross[\G2 extends Any\](g: Generator[\G2\]): Generator[\(E1,G2)\]
 
     (** Derived generation operations *)
     (** mapReduce is equivalent to generate, but takes an explicit `join` function
         and an identity value `id` that can have any type.  It still assumes `join` is
         associative and that `id` is the identity of `join`. *)
-    mapReduce[\R\](body: E1->R, join: (R,R)->R, id: R): R
+    mapReduce[\R extends Any\](body: E1->R, join: (R,R)->R, id: R): R
 
     (** `reduce` is like `generate` or `mapReduce` but takes no `body` function *)
     reduce(r: Reduction[\E1\]): E1
@@ -1170,13 +1170,13 @@ trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
 
 end Generator
 
-trait SequentialGenerator[\E2\] extends { Generator[\E2\] }
+trait SequentialGenerator[\E2 extends Any\] extends { Generator[\E2\] }
     getter reverse(): SequentialGenerator[\E2\]
     seq(): SequentialGenerator[\E2\]
-    map[\G3\](f: E2->G3): SequentialGenerator[\G3\]
-    nest[\G4\](f: E2 -> SequentialGenerator[\G4\]): SequentialGenerator[\G4\]
+    map[\G3 extends Any\](f: E2->G3): SequentialGenerator[\G3\]
+    nest[\G4 extends Any\](f: E2 -> SequentialGenerator[\G4\]): SequentialGenerator[\G4\]
     filter(f: E2 -> Condition[\()\]): SequentialGenerator[\E2\]
-    cross[\F1\](g: SequentialGenerator[\F1\]): SequentialGenerator[\(E2,F1)\]
+    cross[\F1 extends Any\](g: SequentialGenerator[\F1\]): SequentialGenerator[\(E2,F1)\]
 end SequentialGenerator
 
 (* This is the trait that the `generate` method of a `Generator` needs to accept.
@@ -1186,7 +1186,7 @@ end SequentialGenerator
    does not have an identity, trait `NonemptyReduction` can be used to lift that
    operation to a new one that does have an identity. *)
 
-trait Reduction[\R\]
+trait Reduction[\R extends Any\]
     getter reverse(): Reduction[\R\] = ReversedReduction[\R\](self)
     getter id(): R
     join(a: R, b: R): R
@@ -1196,7 +1196,7 @@ trait Reduction[\R\]
 (*)     property FORALL(a: R) self.reverse.join(a, b) = join(b, a)
 end
 
-private object ReversedReduction[\R\](r: Reduction[\R\]) extends Reduction[\R\]
+private object ReversedReduction[\R extends Any\](r: Reduction[\R\]) extends Reduction[\R\]
   getter asString(): String = "ReversedReduction(" || r.asString || ")"
   getter reverse(): Reduction[\R\] = r
   getter id(): R = r.id
@@ -1204,7 +1204,7 @@ private object ReversedReduction[\R\](r: Reduction[\R\]) extends Reduction[\R\]
 end
 
 
-trait Condition[\E18\] extends { SequentialGenerator[\E18\] }
+trait Condition[\E18 extends Any\] extends { SequentialGenerator[\E18\] }
 (*)        excludes { String, ZZ, ZZ32, ZZ64, NN32, NN64, IntLiteral, RR32, RR64, ZZ32Vector, StringVector }
     getter isEmpty(): Boolean
     getter nonEmpty(): Boolean
@@ -1214,25 +1214,25 @@ trait Condition[\E18\] extends { SequentialGenerator[\E18\] }
     getter reverse(): Condition[\E18\]
     getDefault(defaultValue: E18): E18
 (*)    opr |self| : ZZ32     (*) Problem here GLS 5/21/12
-    generate[\G11\](r: Reduction[\G11\], body: E18 -> G11): G11
-    map[\G12\](f: E18->G12): Condition[\G12\]
+    generate[\G11 extends Any\](r: Reduction[\G11\], body: E18 -> G11): G11
+    map[\G12 extends Any\](f: E18->G12): Condition[\G12\]
     seq(): Condition[\E18\] = self
-    nest[\G13\](f: E18 -> Generator[\G13\]): Generator[\G13\]
-    nest[\G18\](f: E18 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\]
-    cross[\G14\](g: Generator[\G14\]): Generator[\(E18,G14)\]
-    cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E18,G17)\]
-    mapReduce[\R\](body: E18->R, _:(R,R)->R, id:R): R
+    nest[\G13 extends Any\](f: E18 -> Generator[\G13\]): Generator[\G13\]
+    nest[\G18 extends Any\](f: E18 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\]
+    cross[\G14 extends Any\](g: Generator[\G14\]): Generator[\(E18,G14)\]
+    cross[\G17 extends Any\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E18,G17)\]
+    mapReduce[\R extends Any\](body: E18->R, _:(R,R)->R, id:R): R
     reduce(_:(E18,E18)->E18, id:E18): E18
     reduce(r: Reduction[\E18\]): E18
     loop(f:E18->()): ()
-    cond[\G10\](t: E18 -> G10, e: () -> G10): G10
+    cond[\G10 extends Any\](t: E18 -> G10, e: () -> G10): G10
 (*)    opr OR(self, other: () -> E18): E18
 end Condition
 
 
 (* Option type *)
 
-value trait Option[\E19\] extends { Condition[\E19\] }
+value trait Option[\E19 extends Any\] extends { Condition[\E19\] }
         comprises { NoneObject[\E19\], Some[\E19\] }
   coerce(_: None) = NoneObject[\E19\]
   getter isEmpty(): Boolean = NOT self.holds
@@ -1244,7 +1244,7 @@ value trait Option[\E19\] extends { Condition[\E19\] }
 (*)  opr SQCAP(self, other: Option[\E19\]): Option[\E19\]
 end
 
-value object Some[\E20\](x: E20) extends Option[\E20\]
+value object Some[\E20 extends Any\](x: E20) extends Option[\E20\]
     getter asString(): String = "Some(" || debugString(x) || ")"
     getter size(): ZZ32 = 1
     getter get() = x
@@ -1253,23 +1253,23 @@ value object Some[\E20\](x: E20) extends Option[\E20\]
 (*)     opr IN(y:E20, self): Boolean = (y = x)
 (*)     opr =(self,other:Some[\E20\]): Boolean = (x = other.x)
 (*)    opr SQCAP(self, other:Some[\E20\]): Option[\E20\] = if other.x = x then self else NoneObject[\E20\] end
-    generate[\G11\](r:Reduction[\G11\], body: E20 -> G11): G11 = body(x)
-    map[\G12\](f: E20->G12): Condition[\G12\] = Some[\G12\](f(x))
-    nest[\G13\](f: E20 -> Generator[\G13\]): Generator[\G13\] = f(x)
-    nest[\G18\](f: E20 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\] = f(x)
+    generate[\G11 extends Any\](r:Reduction[\G11\], body: E20 -> G11): G11 = body(x)
+    map[\G12 extends Any\](f: E20->G12): Condition[\G12\] = Some[\G12\](f(x))
+    nest[\G13 extends Any\](f: E20 -> Generator[\G13\]): Generator[\G13\] = f(x)
+    nest[\G18 extends Any\](f: E20 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\] = f(x)
     filter(f: E20 -> Condition[\()\]): Option[\E20\] = if f(x).holds then self else NoneObject[\E20\] end
-    cross[\G14\](g: Generator[\G14\]): Generator[\(E20,G14)\] =
+    cross[\G14 extends Any\](g: Generator[\G14\]): Generator[\(E20,G14)\] =
       g.map[\(E20,G14)\](fn (y:G14):(E20,G14) => (x,y))
-    cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E20,G17)\] =
+    cross[\G17 extends Any\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E20,G17)\] =
       g.map[\(E20,G17)\](fn (y:G17):(E20,G17) => (x,y))
-    mapReduce[\R\](body: E20->R, _:(R,R)->R, id:R): R = body(x)
+    mapReduce[\R extends Any\](body: E20->R, _:(R,R)->R, id:R): R = body(x)
     reduce(_:(E20,E20)->E20, id:E20):E20 = x
     reduce(r: Reduction[\E20\]):E20 = x
     loop(f:E20->()): () = f(x)
-    cond[\G10\](t: E20 -> G10, e: () -> G10): G10 = t(x)
+    cond[\G10 extends Any\](t: E20 -> G10, e: () -> G10): G10 = t(x)
 end
 
-value object NoneObject[\E21\] extends Option[\E21\]
+value object NoneObject[\E21 extends Any\] extends Option[\E21\]
     getter asString():String = "None"
     getter size(): ZZ32 = 0
     getter get() = throw NotFound
@@ -1277,18 +1277,18 @@ value object NoneObject[\E21\] extends Option[\E21\]
     getDefault(defaultValue: E21): E21 = defaultValue
 (*)     opr IN(x:E21, self): Boolean = false
 (*)     opr SQCAP(self, other: Option[\E21\]): NoneObject[\E21\] = self
-    generate[\G11\](r: Reduction[\G11\], body: E21 -> G11): G11 = r.id
-    map[\G12\](f: E21->G12): Condition[\G12\] = NoneObject[\G12\]
-    nest[\G13\](f: E21 -> Generator[\G13\]): Generator[\G13\] = NoneObject[\G13\]
-    nest[\G18\](f: E21 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\] = NoneObject[\G18\]
+    generate[\G11 extends Any\](r: Reduction[\G11\], body: E21 -> G11): G11 = r.id
+    map[\G12 extends Any\](f: E21->G12): Condition[\G12\] = NoneObject[\G12\]
+    nest[\G13 extends Any\](f: E21 -> Generator[\G13\]): Generator[\G13\] = NoneObject[\G13\]
+    nest[\G18 extends Any\](f: E21 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\] = NoneObject[\G18\]
     filter(f: E21 -> Condition[\()\]): Option[\E21\] = self
-    cross[\G14\](g: Generator[\G14\]): Generator[\(E21,G14)\] = NoneObject[\(E21,G14)\]
-    cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E21,G17)\] = NoneObject[\(E21,G17)\]
-    mapReduce[\R\](body: E21->R, _:(R,R)->R, id:R): R = id
+    cross[\G14 extends Any\](g: Generator[\G14\]): Generator[\(E21,G14)\] = NoneObject[\(E21,G14)\]
+    cross[\G17 extends Any\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E21,G17)\] = NoneObject[\(E21,G17)\]
+    mapReduce[\R extends Any\](body: E21->R, _:(R,R)->R, id:R): R = id
     reduce(_:(E21,E21)->E21, id:E21):E21 = id
     reduce(r: Reduction[\E21\]):E21 = r.id
     loop(f:E21->()): () = ()
-    cond[\G16\](t: E21 -> G16, e: () -> G16): G16 = e()
+    cond[\G16 extends Any\](t: E21 -> G16, e: () -> G16): G16 = e()
 end
 
 value object None end

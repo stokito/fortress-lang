@@ -24,7 +24,7 @@ weight:ZZ32 = 4
 object KeyOverlap[\Key,Val\](key:Key, val1:Val, val2:Val)
         extends UncheckedException
     getter asString(): String =
-        "Map.KeyOverlap: " key " |-> " val1 " and |-> " val2
+        "Map.KeyOverlap:" key "|->" val1 "and |->" val2
 end
 
 (** Note that the map interface is purely functional; methods return a
@@ -303,7 +303,7 @@ object NodeMap[\Key extends StandardTotalOrder[\Key\],Val\](key:Key, val:Val, le
     getter isEmpty():Boolean = false
     getter size():ZZ32 = sz
     getter asDebugString():String =
-      "[" left.asDebugString " (" key "," val ") " right.asDebugString "]"
+      "[" || left.asDebugString || " (" || key || "," || val || ") " || right.asDebugString || "]"
     getter asString():String = "{" || ", " || "}" (*) .join[\String\](self.map[\String\](fn(k:Key,v:Val):String => k "|->" v)) TODO
 
     opr |self| : ZZ32 = sz

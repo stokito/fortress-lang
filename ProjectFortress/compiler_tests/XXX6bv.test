@@ -13,6 +13,6 @@ compile
 compile_err_equals=\
 ${STATIC_TESTS_DIR}/Compiled6.bv.fss:21:11-20:\n\
 \ Could not check method invocation Foo.doIt\n\
-\ - [\\T\\](T, String)->T is not applicable to an argument of type (ZZ32, ZZ32).\n\
+\ - [\\T extends Object\\](T, String)->T is not applicable to an argument of type (ZZ32, ZZ32).\n\
 File Compiled6.bv.fss has 1 error.\n
 compile_out_equals=

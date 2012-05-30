@@ -273,6 +273,10 @@ public final class Shell {
         return compileProperties.assignment_pre_desugar;
     }
 
+    public static boolean getExtendsObjectPreDesugaring(){
+        return compileProperties.extendsObject_pre_desugar;
+    }
+
     public static boolean getCoercionDesugaring(){
         return compileProperties.use_scala && compileProperties.coercion_desugar;
     }
@@ -315,6 +319,10 @@ public final class Shell {
 
     public static void setAssignmentPreDesugaring(boolean desugar){
         compileProperties.assignment_pre_desugar = desugar;
+    }
+
+    public static void setExtendsObjectPreDesugaring(boolean desugar){
+        compileProperties.extendsObject_pre_desugar = desugar;
     }
 
     public static void setCoercionDesugaring(boolean desugar){
@@ -361,6 +369,7 @@ public final class Shell {
     }
 
     public static void useCompilerLibraries() {
+	setExtendsObjectPreDesugaring(true);
 	setAssignmentPreDesugaring(false);
 	setAssignmentDesugaring(true);
         WellKnownNames.useCompilerLibraries();
@@ -368,6 +377,7 @@ public final class Shell {
     }
 
     public static void useInterpreterLibraries() {
+	setExtendsObjectPreDesugaring(false};
 	setAssignmentPreDesugaring(false);
 	setAssignmentDesugaring(true);
 	setCompiledExprDesugaring(false);
@@ -1269,6 +1279,7 @@ public final class Shell {
         boolean test_coercion = ProjectProperties.getBoolean("fortress.compile.testcoercion",false); // test coercion
         boolean assignment_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.assignment",true); // run assignment desugaring or not
         boolean assignment_pre_desugar = ProjectProperties.getBoolean("fortress.compile.predesugar.assignment",false); // run predisambiguation assignment desugaring or not
+        boolean extendsObject_pre_desugar = ProjectProperties.getBoolean("fortress.compile.predesugar.extendsobject",false); // run predisambiguation extendsObject desugaring or not
         boolean coercion_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.coercion",true); // run coercion desugaring or not
         boolean chainexpr_desugar = ProjectProperties.getBoolean("fortress.compile.desugar.chainexpr",true); // run chain expr desugaring or not
         boolean compiled_expr_desugarer = true;
