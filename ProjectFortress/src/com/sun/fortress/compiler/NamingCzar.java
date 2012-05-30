@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.objectweb.asm.Type;
 
+import com.sun.fortress.compiler.codegen.FnNameInfo;
 import com.sun.fortress.compiler.environments.TopLevelEnvGen;
 import com.sun.fortress.compiler.index.Functional;
 import com.sun.fortress.compiler.runtimeValues.FortressBufferedReader;
@@ -779,6 +780,50 @@ public class NamingCzar {
         mname += Naming.NON_OVERLOADED_TAG;
         return mname;
     }
+    
+    /**
+     * functions for generating the name of a generic method used in codegeneration
+     */
+    /**
+     * @param name
+     * @param sparams
+     */
+    // many call sites
+    static public String genericMethodName(FnNameInfo x, int selfIndex, APIName ifNone) {
+        ArrowType at = x.methodArrowType(selfIndex); // This looks wrong, too.
+        String possiblyDottedName = Naming.fmDottedName(idOrOpToString(x.getName()), selfIndex);
+        
+        String generic_arrow_type = NamingCzar.jvmTypeDesc(at, ifNone,
+                false);
+        return genericMethodName(possiblyDottedName, generic_arrow_type);    
+    }
+    
+    // DRC-WIP
+    // forMethodInvocation
+    static public String genericMethodName(IdOrOp name, ArrowType at, APIName ifNone) {
+        String generic_arrow_type = NamingCzar.jvmTypeDesc(at, ifNone,
+                false);
+        
+        return genericMethodName(name.getText(), generic_arrow_type);
+    }
+
+    /**
+     * @param name
+     * @param generic_arrow_type
+     * @return
+     */
+    static public String genericMethodName(String name, String generic_arrow_type) {
+        /* Just append the schema.
+         * TEMP FIX -- do sep w/HEAVY_X.
+         * Need to stop substitution on static parameters from the method itself.
+         * 
+           Do not separate with HEAVY_X, because schema may depend on 
+           parameters from parent trait/object.
+           (HEAVY_X stops substitution in instantiator).
+           */
+        return name + Naming.UP_INDEX + Naming.HEAVY_X + generic_arrow_type ;
+    }
+    
 
     private static int taskCount = 0;
     public static String gensymTaskName(String packageAndClassName) {
@@ -1405,7 +1450,7 @@ public class NamingCzar {
 
                 // TODO work in progress -- need to expand with StaticArg if those are available.
                 if (sargs.size() > 0) {
-                    result = makeInnerClassName(api,id, genericDecoration(sargs, ifNone));
+                    result = makeInnerClassName(api,id, instantiatedGenericDecoration(sargs, ifNone));
                     if (sparams.size() > 0)
                         throw new CompilerError(id,"Static args and params both non-empty, what wins? " +  type);
                 } else
@@ -1892,8 +1937,12 @@ public class NamingCzar {
     }
 
     /**
-     * @param xlation
-     * @param sparams
+     * generates string representing the genericity based on the list of static type parameters
+     * adds information to xldata if non-null
+     *
+     * @param sparams - static parameter list
+     * @param xldata - translation data: information added when used to generate output, can be null
+     * @param ifMissing - default API
      * @return
      */
     public static String genericDecoration(List<StaticParam> sparams,
@@ -1902,7 +1951,16 @@ public class NamingCzar {
             ) {
         return genericDecoration(null, sparams, xldata, ifMissing);
     }
-    
+    /**
+     * generates string representing the genericity based on the list of static type parameters
+     * adds information to xldata if non-null
+     * 
+     * @param receiverType - Type of the receiver added when converting methods to java static methods.  May be null.
+     * @param sparams - static parameter list
+     * @param xldata - translation data: information added when used to generate output, can be null
+     * @param ifMissing - default API
+     * @return
+     */
     public static String genericDecoration(com.sun.fortress.nodes.Type receiverType, List<StaticParam> sparams,
             Naming.XlationData xldata,
             APIName ifMissing
@@ -1936,7 +1994,14 @@ public class NamingCzar {
         return Useful.substring(frag, 0, -1) + Naming.RIGHT_OXFORD;
     }
 
-    public static String genericDecoration(List<StaticArg> sargs,
+    /**
+     * NOTE: similar to genericDecoration, but intended for an instantiated generic
+     * 
+     * @param sargs - list of instantiated static type arguments
+     * @param ifMissing - default API
+     * @return string representing the generic instantiation
+     */
+    public static String instantiatedGenericDecoration(List<StaticArg> sargs,
             APIName ifMissing) {
         // TODO we need to make the conventions for Arrows and other static types converge.
         if (sargs.size() == 0)

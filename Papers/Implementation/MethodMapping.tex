@@ -13,15 +13,15 @@
 %\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
 \title{Fortress function and method encodings}
 
-% Code 2000 versions of Oxford brackets are better looking than STIXGeneral
-
-\def\LOBR{\mbox{\fontspec{Code2000}⟦}}
-\def\TLOBR{\mbox{\fontspec{Code2000}\,⟦}} % LOBR preceded by thin space, useful in math mode
-\def\ROBR{\mbox{\fontspec{Code2000}⟧}}
+\def\LOBR{\mbox{\fontspec{STIXGeneral}⟦\,}} %spacing better if ROBR is followed by a thin space
+\def\TLOBR{\mbox{\fontspec{STIXGeneral}\,⟦\,}} % LOBR preceded by thin space, useful in math mode
+\def\ROBR{\mbox{\fontspec{STIXGeneral}\,⟧}} %spacing better if ROBR is preceded by a thin space
+\def\LROB{\mbox{\fontspec{STIXGeneral}⟦⟧}}
 \def\LOPR{\mbox{\fontspec{Zapf Dingbats}❮}} % brackets for opr parameters in RTTI
 \def\ROPR{\mbox{\fontspec{Zapf Dingbats}❯}}
 \def\SNOW{\mbox{\fontspec{Code2000}☃}}
 \def\HVYX{\mbox{\fontspec{Zapf Dingbats}✖}}
+\def\HVYP{\mbox{\fontspec{Zapf Dingbats}✚}}
 \def\GEAR{\mbox{\fontspec{Apple Symbols}⚙}}
 \def\UNDX{\mbox{\fontspec{Apple Symbols}☝}}
 \def\RNDX{\mbox{\fontspec{Zapf Dingbats}☞}}
@@ -48,7 +48,7 @@
 \newcommand{\slantverbatim}{\def\verbatim@font{\slshape\ttfamily\hyphenchar\font\m@ne\@noligs}}
 \makeatother
 
-\author{David Chase}
+\author{David Chase and Karl Naden}
 %\date{}                                           % Activate to display a given date or no date
 %\setmainfont{Georgia}
 \begin{document}
@@ -60,15 +60,22 @@
 % Footnote hack from http://www.latex-community.org/forum/viewtopic.php?f=5&t=2768
 \makeatletter{\renewcommand*{\@makefnmark}{}
 \footnotetext{Copyright {\normalsize\CPYRT}\ 2010, 2011 Sun Microsystems, Inc.}\makeatother}
+
+The following documents the naming conventions used in the Fortress compiler and explains the meaning
+and rationale behind the design.
+
 \section{Closures}
 
-Closures, meaning, function values derived from the naming of a top-level function, are compiled into a reference to an oddly-named class, which triggers code generation when the class is loaded.
+Top level functions can be passed around as first-class values.  In order to support this functionality, the compiler
+generates a reference to an oddly-named class that triggers dynamic code generation of a wrapper class that forwards to the 
+referenced function.
 
 The general form of the class name is $\mbox{\it packageClass}\,\$\mbox{\it function}\,\NVLP\$\mbox{Arrow}\LOBR{}{\mbox{\it domain}};{\mbox{\it range}}\ROBR$ where
 \begin{itemize}
 \item {\it packageClass} is the Java package and class derived from the Api or Component containing the top level function.
 \item {\it function} is the name of the function itself.
-\item {\it domain} is the translation of the function's domain; \SNOW if it is void "()", a single translated type for a single input, multiple semi-colon-separated translated types for multiple inputs.
+\item {\it domain} is the translation of the function's domain; \SNOW if it is void "()", a single translated type for a single input, or a tuple
+	type if there are multiple parameters.
 \item {\it range} is the translation of the function's range
 \end{itemize}
 For example, a non-call reference to
@@ -90,31 +97,55 @@ The Fortress classloader checks for an occurrence of ``\NVLP" in a requested cla
 
 \section{Generic functions}
 Generic function references are also compiled into references to an oddly named class.  The generic function class is also a closure.
-The form of the generated name is \begin{center}
-{\it packageClass}\,\GEAR\${\it function}\,\LOBR{\it static\_arguments}\ROBR\NVLP\$\HVYX{}Arrow\LOBR{}{\it domain},{\it range}\ROBR
-\end{center}
-Unlike closures, the class resulting from a reference is not synthesized from just its name, but is instead created by expanding a template ``class" where the static parameters appear in the place of the static arguments (just the names, no extends annotations). 
-The template is stored in a ``.class" file with basename 
+The form of the generated name is
+%
 \begin{center}
-{\it packageClass}\,\GEAR\${\it function}\,\LOBR\ROBR\NVLP\$\HVYX{}Arrow\LOBR{}{\it domain},{\it range}\ROBR
+{\it packageClass}\,\GEAR\${\it function}\LOBR{\it static\_arguments}\ROBR\NVLP\$\HVYP{}Arrow\LOBR{}{\it domain},{\it range}\ROBR
 \end{center}
-Note the lack of static parameters in the signature; this is actually a lurking bug, once we implement overloading of generic functions.  The expansion of a generic function proceeds exactly the same as the expansion of a generic trait or object.  A second file with suffix ``.xlation" contains info about the static parameters, including their names, whether they are types, oprs, or nats, and their variance relation with the generic type.
+%
+Unlike closures, the class resulting from a reference is not synthesized from just its name, 
+but is instead created by expanding a template ``class"  with the {\it static arguments} which
+represent the instantiation of the function's static type parameters.
+The template is stored in a ``.class" file with basename 
+%
+\begin{center}
+{\it packageClass}\,\GEAR\${\it function}\LROB\NVLP\$\HVYP{}Arrow\LOBR{}{\it domain},{\it range}\ROBR
+\end{center}
+%
+The \fit{packageClass}\ and \fit{function}\ are the same as in closures.
+The \HVYP\ character serves a special purpose; it blocks further translation within a name during generic expansion by the classloader.  
+The arrow schema serves to disambiguate different generic functions overloading the same name.  
 
-The \fit{packageClass}\ and {\fit function}\ are the same as in closures; the static parameters are those supplied in the definition of the function.
-The schema serves to disambiguate different generic functions overloading the same name; currently it is just the arrow type of the generic function, as declared (but this is not sufficient, that is the lurking bug).  The \HVYX\ character serves a special purpose; it blocks further translation within a name occurring with a template that is expanded by the classloader.
+Because function names can be overloaded the {\it domain} and {\it range} must be formulated in order to ensure
+that each function declaration is given a unique name. The domain and range as defined for closures could include static
+parameters which are not necessarily unique between function declarations.  For instance the declarations from a package P
+%
+\begin{verbatim}
+f[\T extends Object\](x:T):() = ...
+f[\T extends ZZ32\](x:T):() = ...
+\end{verbatim}
+%
+constitute a valid overloading, but both would generate the a template file with name
+%
+\begin{center}
+P\,\GEAR\$f\LROB\NVLP\$\HVYP{}Arrow\LOBR{}T,\SNOW\ROBR
+\end{center}
+%
+Therefore, mentions of static parameters are replaced with their upper bounds in domain and range.  The overloading
+rules ensure that no two functions can have the same arrow type using this translation as otherwise they would both be equally specific.
+For instance, the second declaration above would generate a template file with the non-mangled name
+
+\begin{center}
+P\,\GEAR\$f\LROB\NVLP\$\HVYP{}Arrow\LOBR{}com/sun/fortress/compiler/runtimeValues/FZZ32,\SNOW\ROBR
+\end{center}
+
+A second file with suffix ``.xlation" contains info about the static parameters, including their names, whether they are types, oprs, or nats, and their variance relation with the generic type.
+
+****TODO: update the following 2 paragraphs****
 
 The purpose of the oddly named container file and the non-rewritten schema is to help work around the lack of a linker in the current implementation, and to simplify linking when one is finally needed.  Ideally (for the code generator and classloader, if not for error reporting and humans trying to read generated code) static parameter names would be normalized at both declaration and reference, but currently they are not.  Lacking that, the Fortress classloader needs a way to find the template for a given generic function.  It does this by stripping out the static parameters and using the name that results, together with the schema for the function.  The schema is not rewritten, and thus matches between definition and use sites (assuming some consistency in static parameter names between the api's declaration and the components definition of the same generic function).  Note that the schema has no particular semantic meaning; it merely serves to disambiguate multiple generic functions with the same name, and it could in principle be the source location in the api declaring the function (or component, if it is not exported to an api).
 
 The Fortress classloader checks for an occurrence of ``\GEAR'' to detect generic functions.  This check occurs before the closure test.
-
-For example, the generic function \ftt{g[\BS T extends ZZ32, S\BS](x:T):ZZ32} in component C11 generates .class and .xlation files with the mangled basename
-\begin{center}
-\verb+C11+\GEAR\verb+$g+\LOBR\ROBR\NVLP\verb+$\=+\HVYX\verb+Arrow+\LOBR\verb+T,com\|sun\|fortress\|compiler\|runtimeValues\|FZZ32+\ROBR
-\end{center}
-which unmangles to
-\begin{center}
-\verb+C11+\GEAR\verb+$g+\LOBR\ROBR\NVLP\verb+$+\HVYX\verb+Arrow+\LOBR\verb+T,com/sun/fortress/compiler/runtimeValues/FZZ32+\ROBR
-\end{center}
 
 Note that closure bits for the generic function are not synthesized at run time, but instead come from part of the generic template.
 (However, the same code stamps out templates and synthesizes closures, it is simply called from different contexts).
@@ -152,17 +183,22 @@ This is not true for the new overloading story; this needs to be corrected.}
 
 \section{Generic methods}
 
-Generic methods are compiled very differently from ordinary methods, and also have a different calling convention.
-Because the JVM does not allow new methods to be added to an already-loaded class, these cannot be template-expanded as methods.
-Instead, each generic method leads to the creation of a lookup method, a generic top-level function, and a static lookup table.  The lookup method has the same name as the generic method, but always takes two parameters, the first a hashcode of a string, and the second parameter that string, a representation of the static arguments to the generic method instantiation.
+Because the JVM does not allow new methods to be added to an already-loaded class, generic methods cannot be template-expanded
+in the same fashion as generic traits can be.  Instead, the body of a generic method is compiled into a separate template class
+similar to a generic function.  The method is first converted into a function by prepending a parameter for self.  Since the actual type
+of self will be determined dynamically, a static parameter for the type of self is also added to the type parameter list.
 
-The lookup data structure and sample code are as if they were compiled from this Java:
+A lookup method is created that returns a particular instantiation of the generic method.
+The lookup method has the same name as the generic method, but always takes two parameters, the first a hashcode of a string, 
+and the second parameter that string which represents the static arguments for the instantiation.  The lookup
+method will load the class representing the particular instantiation and return an instance of it.  In addition, a table is used to cache previously loaded
+instantiations.  In Java, the generated code would follow the form:
 \begin{verbatim}
 private static BAlongTree sampleLookupTable = new BAlongTree();
 public Object sampleLookup(long hashcode, String signature) {
     Object o = sampleLookupTable.get(hashcode);
     if (o == null) 
-         o = InstantiatingClassloader.
+         o = RTHelpers.
              findGenericMethodClosure(
                   hashcode,
                   sampleLookupTable,
@@ -172,23 +208,33 @@ public Object sampleLookup(long hashcode, String signature) {
 }
 \end{verbatim}
 
-The generic top level function has an additional first parameter for self; after it is instantiated, it is returned and called as if it were a top-level function.  The static arguments passed to the lookup function and used to instantiate the top level function are modified to include a type argument describing the static type of self at the call site.  This is necessary because of limitations of the JVM and its type system.  The Object returned from the lookup method must be cast to an Arrow type so it can be invoked.  However, which Arrow type is it?  Recall that function types (Arrows, in this context) are contravariant in their domain type, and this cannot easily be encoded directly into the JVM's type system (Integer extends Number extends Object, but Object\RARW... extends Number\RARW... extends Integer\RARW...; it requires global knowledge to figure out the upside-down Arrow hierarchy, and most of the casts are probably never performed).  Therefore, by convention, Fortress Arrow types are invariant in their domains {\it when regarded as Java types, which is what matters for JVM verification}, and an actual Fortress subtype test will be open-coded to check the domains for appropriate relationships.  This means that the static type of self and the type of the self parameter in the returned closure must match.  {\it Strictly speaking, could be assignable-to, but the upper bound of all the traits declaring the generic method might not be representable, therefore this route was not pursued.}  By providing a type parameter to specify the exact self type for the Arrow, a match can be ensured.  {\it Note that this means that casting of arrow types may result in generation of wrapper code to both make the JVM happy and to apply the appropriate casts to the arguments when they are passed in.}
-
-The generated closure is slightly modified from the usual, because its ``apply" method contains a downcast to the known actual type of the trait or object defining the generic method.
+To make the JVM happy when using the returned closure object, it must be cast to an arrow type with an apply method.
+Since it is possible that the runtime instantiation may be different (more specific) than the static instantiation,
+the exact type of the arrow is not known statically.  However, since the number of parameters
+(including the receiver) that the closure must take is know, the closure can be cast to the arrow type
+with the correct number of parameters of type {\tt Object} that also returns an {\tt Object}.  Then the apply
+method will take care of casting the parameters correctly and all that is required from the client
+is to cast the result to the expected static type (which is guaranteed by the type system to succeed).\footnote{A potential
+optimization is to make the lookup method return the Objectified Arrow.}
 
 The calling convention for a generic method closure is as follows:
 \begin{enumerate}
 \item evaluate the object expression
 \item \jvm{DUP}\ the object value
-\item push the hashcode and string for the static-self-prepended generic arguments.  Note that in a generic context, these generic arguments may mention arguments bound in an outer instantiation; in that case special methods are used that are replaced with the appropriate instructions when the outer generic is template-instantiated.
-\item invoke {\it object}.{\it methodName}
-\item cast the returned Java Object to the appropriate Arrow type (same as original method signature, but with static self prepended.
+\item push the hashcode and string for the static-self-prepended generic arguments (Note that in a generic context, these generic arguments may mention arguments bound in an outer instantiation; in that case special methods are used that are replaced with the appropriate instructions when the outer generic is template-instantiated)
+\item invoke the lookup method name
+\item cast the returned Java Object to the appropriate Objectified Arrow type (one additional input parameter)
 \item \jvm{SWAP}\ closure and object
 \item evaluate arguments
 \item invoke closure
+\item cast result to return type
 \end{enumerate}
 
-There is a naming convention for the closure that provides the body of the generic method, but the name is not directly exposed to referencing code.  The compiler and the \verb+findGenericMethodClosure+ method of \verb+InstantiatingClassloader+ are the producer and consumer of the name.  As an example, suppose that component \verb+C16+ contains a trait \verb+T+ with a generic method \verb+f+\LOBR\verb+S+\ROBR\ mapping \verb+S+ to \verb+Foo+.
+In order to find the closure template class, the helper method \verb+findGenericMethodClosure+ method of \verb+RTHelpers+ must be given
+the {\it template\verb+_+class\verb+_+name}.  The name generated by the compiler follows the same pattern as for generic functions.  The only difference
+is that the function name is replaced by the string \verb+T+\UNDX\verb+m+.  
+As an example, suppose that component \verb+C16+ contains a trait \verb+T+ with a 
+generic method \verb+f+\LOBR\verb+S+\ROBR\ mapping \verb+S+ to \verb+Foo+.
 \begin{verbatim}
 component C16
 trait Foo end
@@ -196,13 +242,17 @@ trait T
   f[\S\](s:S):Foo
 end
 \end{verbatim}
-The closure name is 
+The name of the template file\footnote{The current compiler passes the class name of the template,
+which includes the names of the static parameters so that each instantiation will have a unique class name, eg 
+{\tt C16}\GEAR{\tt \$T}\UNDX{\tt f}\LOBR\UNDX{\tt ,S}\ROBR\NVLP{\tt \$}\HVYP{\tt Arrow}\LOBR{\tt S,C16/Foo}\ROBR.
+However, this extra information is immediately discarded and could be removed as an optimization.}
+ will be
 \\
-\verb+C16+\GEAR\verb+$T+\UNDX\verb+f+\LOBR\UNDX\verb+,S+\ROBR\NVLP\verb+$+\HVYX\verb+Arrow+\LOBR\verb+S,C16/Foo+\ROBR
+\verb+C16+\GEAR\verb+$T+\UNDX\verb+f+\LROB\NVLP\verb+$+\HVYP\verb+Arrow+\LOBR\verb+S,C16/Foo+\ROBR
 \\
 or with dangerous-characters mangling
 \\
-\verb+C16+\GEAR\verb+$T+\UNDX\verb+f+\LOBR\UNDX\verb+,S+\ROBR\NVLP\verb+$\=+\HVYX\verb+Arrow+\LOBR\verb+S,C16\|Foo+\ROBR
+\verb+C16+\GEAR\verb+$T+\UNDX\verb+f+\LROB\NVLP\verb+$\=+\HVYP\verb+Arrow+\LOBR\verb+S,C16\|Foo+\ROBR
 
 {\it This would be a great place for an example invocation.}
 

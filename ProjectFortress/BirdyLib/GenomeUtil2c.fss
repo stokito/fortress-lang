@@ -45,15 +45,14 @@ object ReferenceGenomeChunk(start: ZZ32, length: ZZ32, buffer: String, padLength
   end
 end ReferenceGenomeChunk
 
-object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ32)
+makeFileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ32): FileBasedReferenceGenome = do
+  padLength = maxReadSize + 1
+  FileBasedReferenceGenome(rs, chunkSize, maxReadSize, false, padLength, ("N")^padLength, 0, 0)
+end
+
+object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ32,
+  var consumed: Boolean, padLength: ZZ32, var buffer: String, var currentChunkStart: ZZ32, var currentChunkLength: ZZ32)       
     extends ReferenceGenome
-  consumed : Boolean := false   
-  private padLength: ZZ32 = maxReadSize + 1
-  private buffer: String := ("N")^padLength
-  private currentChunkStart: ZZ32 := 0
-  private currentChunkLength: ZZ32 := 0
-
-
   whenUnconsumed():() =
         if consumed then
             fail("Using consumed generator of " rs)
@@ -130,7 +129,7 @@ end FileBasedReferenceGenome
 *)
 
 getReferenceGenomeFromFile(fileName: String, chunkSize: ZZ32, maxReadSize: ZZ32): ReferenceGenome =
-  FileBasedReferenceGenome(FileReadStream(fileName.asJavaString), chunkSize, maxReadSize)
+  makeFileBasedReferenceGenome(FileReadStream(fileName.asJavaString), chunkSize, maxReadSize)
 
 trait ReadList
   getReads(refChunk: ReferenceGenomeChunk): List[\Read\]

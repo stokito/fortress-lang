@@ -24,6 +24,5 @@ run():() = do
   cat:Object = "cat"
   three:Object = 3
   o.m(cat) (*) Currently wrong -- prints "a cat" not "b cat"
-  o.m(three)
-  o.m[\String\]("cat")
+  o.m(three) (*) Current throws and exception
 end
