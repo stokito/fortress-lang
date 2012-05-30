@@ -24,6 +24,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import com.sun.fortress.compiler.OverloadSet.TaggedFunctionName;
 import com.sun.fortress.compiler.codegen.ClassNameBundle;
 import com.sun.fortress.compiler.codegen.CodeGen;
 import com.sun.fortress.compiler.codegen.CodeGenClassWriter;
@@ -45,6 +46,7 @@ import com.sun.fortress.nodes.AnyType;
 import com.sun.fortress.nodes.ArrowType;
 import com.sun.fortress.nodes.BaseType;
 import com.sun.fortress.nodes.BottomType;
+import com.sun.fortress.nodes.FnDecl;
 import com.sun.fortress.nodes.Id;
 import com.sun.fortress.nodes.IdOrOp;
 import com.sun.fortress.nodes.IdOrOpOrAnonymousName;
@@ -263,6 +265,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         this.paramCount = paramCount;
     }
 
+    
+
     protected OverloadSet(IdOrOpOrAnonymousName name, TypeAnalyzer ta, OverloadingOracle oa,
                           Set<OverloadSet.TaggedFunctionName> lessSpecificThanSoFar,
                           int paramCount, APIName ifNone) {
@@ -424,8 +428,15 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         if (static_parameters != null) {
             xldata = CodeGen.xlationData(Naming.FUNCTION_GENERIC_TAG);
             String sparamsType = NamingCzar.genericDecoration(static_parameters, xldata, ifNone);
-            genericSchema =
-                NamingCzar.makeArrowDescriptor(ifNone, overloadedDomain(), getRange());
+            
+            //KBN - testing - test this later - is temp the same as genericSchema? - fnNameInfo not ready for functions yet
+            //FnNameInfo methodName = new FnNameInfo(f.tagF,ifNone);
+            //ArrowType methodArrow = methodName.methodArrowType(Naming.NO_SELF);
+            //String temp = NamingCzar.jvmTypeDesc(methodArrow, ifNone, false);
+            
+            genericSchema = //KBN - think that this is wrong for generic methods - need to add the self type to the arrow descriptor
+                            // see CodeGen.nonCollidingClosureName - DRC: need a version for the ForTraitOrObject Overload set
+                instanceArrowSchema(f);
             String packageAndClassName = NamingCzar.javaPackageClassForApi(ifNone);
             String PCNOuter = // PCNOuter???
                 Naming.genericFunctionPkgClass(packageAndClassName, filtered_name,
@@ -534,6 +545,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
     protected int selfIndex() {
         return -1;
     }
+
     public String getSignature(int param_to_skip) {
         if (principalMember != null)
             return jvmSignatureFor(principalMember);
@@ -867,8 +879,56 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         return string_exceptions;
     }
     
-    protected String generateClosureTableName(Functional f) {
-            throw new CompilerError("need to determine naming scheme for function instantiated closure tables");
+    protected String generateClosureTableName(TaggedFunctionName f) {
+        throw new CompilerError("need to determine naming scheme for function instantiated closure tables");
+    }
+    
+    protected String generateClosureTableOwner(TaggedFunctionName f) {
+        throw new CompilerError("need to determine naming scheme for function instantiated closure tables");
+    }
+    
+    /**
+     * 
+     * may want to refactor this and version for methods in ForTraitOrObject subtype
+     * 
+     * @param f - not used 
+     * @return
+     */
+    protected String instanceArrowSchema(TaggedFunctionName f) {
+        return NamingCzar.makeArrowDescriptor( f.getParameters(), f.getReturnType(), ifNone);
+    }
+    
+    /**
+     * 
+     * just the function name for normal functions
+     * 
+     * @param f
+     * @return
+     */
+    protected String functionName(TaggedFunctionName f) {
+        return NamingCzar.idOrOpToString(f.tagF.name());
+    }
+    
+//    /**
+//     * 
+//     * For a normal function, we just use the number of parameters provided
+//     * 
+//     * @param f
+//     * @return
+//     */
+//    protected int functionParamNum(TaggedFunctionName f) {
+//        return f.getParameters().size();
+//    }
+    
+    /**
+     * 
+     * for normal functions, return the given TFN 
+     * 
+     * @param f
+     * @return
+     */
+    protected TaggedFunctionName getFunctionToCall(TaggedFunctionName f) {
+        return f;
     }
     
     
@@ -1187,13 +1247,18 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
         int l = specificDispatchOrder.length;
 
+        TaggedFunctionName[] functionsToCall = new TaggedFunctionName[l];
+        for(int i = 0; i < l; i++) {
+            functionsToCall[i] = getFunctionToCall(specificDispatchOrder[i]);
+        }
+        
         //  create type structures for parameter types.
         TypeStructure[][] type_structures = new TypeStructure[l][];
         MultiMap[] spmaps = new MultiMap[l];
         TypeStructure[] return_type_structures = new TypeStructure[l];
         
         for (int i = 0; i < l; i++) {
-            TaggedFunctionName f = specificDispatchOrder[i];
+            TaggedFunctionName f = functionsToCall[i];
             Functional eff = f.getF();
             List<Param> parameters = f.getParameters();
             MultiMap<String, TypeStructure> spmap = new MultiMap<String, TypeStructure>();
@@ -1239,7 +1304,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         
         
         for (int i = 0; i < l; i++) {
-            TaggedFunctionName f = specificDispatchOrder[i];
+            TaggedFunctionName f = functionsToCall[i];
             TypeStructure[] f_type_structures = type_structures[i];                
             Label lookahead = null;
             boolean infer = false;
@@ -1258,7 +1323,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 for (int j = 0; j < f_type_structures.length; j++) {
                     // Load actual parameter
                     if (j != selfIndex()) {
-                        mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
+                        mv.visitVarInsn(Opcodes.ALOAD, j ); //+ firstArgIndex); KBN - in inference the type of the receiver is included, so we need this for methods regardless
                         f_type_structures[j].emitInstanceOf(mv, lookahead, true);
                         //inference needed if the type structure contains generics TODO: do generics not appearing in the parameters make sense?  probably not, but might need to deal with them.
                         if (f_type_structures[j].containsTypeVariables)
@@ -1495,18 +1560,19 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 }
                 
                 //load instance cache table to avoid classloader when possible
-                //String tableNamePrefix = genericMethodName(new FnNameInfo(f.tagF, this.ifNone));
-                    
-                
-                String tableName = Naming.cacheTableName(f.tagF.unambiguousName().getText());
-                String tableOwner = Naming.dotToSep(f.tagA.getText());
+                String tableName = this.generateClosureTableName(specificDispatchOrder[i]); //use original function for table name
+                String tableOwner = this.generateClosureTableOwner(f);
                 mv.visitFieldInsn(Opcodes.GETSTATIC, tableOwner, tableName, Naming.CACHE_TABLE_DESC);
                 
                 //load template class name
-                String arrow = NamingCzar.makeArrowDescriptor(f.getParameters(), f.getReturnType(),f.tagA);
-                String owner = Naming.genericFunctionPkgClass(
-                        Naming.dotToSep(f.tagA.getText()), f.tagF.name().getText(), Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD, arrow);
-                mv.visitLdcInsn(owner);
+                String arrow = this.instanceArrowSchema(f); //NamingCzar.makeArrowDescriptor(f.getParameters(), f.getReturnType(),f.tagA);
+                String functionName = this.functionName(f);
+                
+                
+                String templateClass = Naming.genericFunctionPkgClass(
+                        Naming.dotToSep(f.tagA.getText()), functionName, Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD, arrow);
+                
+                mv.visitLdcInsn(templateClass);
                 
                 String ic_sig;
                 if (staticParams.size() > 6) { //use an array
@@ -1553,12 +1619,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 String objectAbstractArrow = NamingCzar.objectAbstractArrowTypeForNParams(numParams);
                 InstantiatingClassloader.generalizedCastTo(mv, objectAbstractArrow);
                 
+                //if a method parameters converted
+                //loadThisForMethods(mv);
                 
                 //load parameters
                 for (int j = 0; j < f_type_structures.length; j++) {
                     // Load actual parameter
                     if (j != selfIndex()) {
-                        mv.visitVarInsn(Opcodes.ALOAD, j + firstArgIndex);
+                        mv.visitVarInsn(Opcodes.ALOAD, j); // + firstArgIndex); KBN if a method, parameters already converted
                         //no cast needed here - done by apply method
                     }
                 }
@@ -1671,9 +1739,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         mv.visitLabel(next);
     }
     
-    protected void loadThisForMethods(MethodVisitor mv) {
-        // default does nothing
-    }
+        protected void loadThisForMethods(MethodVisitor mv) {
+            // default does nothing
+        }
     
     
 
@@ -2048,8 +2116,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             return subset;
         }
 
+        /**
+         * Only load if this is not a functional method
+         * (selfIndex is not NO_SELF)
+         */
         protected void loadThisForMethods(MethodVisitor mv) {
-            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            //if (selfIndex == Naming.NO_SELF)
+                mv.visitVarInsn(Opcodes.ALOAD, 0);
         }
 
         protected String chooseName(String callers_name,
@@ -2060,9 +2133,10 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         protected int firstArg() {
             return selfIndex() == Naming.NO_SELF ? 1 : 0;
         }
-
+        
+        @Override
         protected int selfIndex() {
-            return selfIndex;
+            return this.selfIndex;
         }
 
         /**
@@ -2156,11 +2230,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 boolean in_a_trait = invokeOpcode == Opcodes.INVOKEINTERFACE;
                 String selfType = in_a_trait ? cg.traitOrObjectName +  NamingCzar.springBoard : cg.traitOrObjectName;
                 String method_name = NamingCzar.genericMethodName(fnni, selfIndex, cg.thisApi());
+                String table_name = Naming.cacheTableName(method_name); //closure table uses unmangled generic method name
                 otherOverloadKeys.add(method_name);
                 
                 String template_class_name = cg.generateGenericFunctionClass(fnni_closure, gmbm, gfid, selfIndex, cg.traitOrObjectName);
                 
-                cg.generateGenericMethodClosureFinder(method_name, template_class_name, selfType, in_a_trait);
+                cg.generateGenericMethodClosureFinder(method_name, table_name, template_class_name, selfType, in_a_trait);
 
                 // throw new CompilerError("Not yet ready for overloaded generic methods:\n>> " + principalMember + "\n" + this);
 
@@ -2208,12 +2283,129 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             return params;
         }
         
-//        protected String generateClosureTableName(TaggedFunctionName f) {
-//            String tableName = this.cg.genericMethodName(new FnNameInfo(f.tagF, this.ifNone),((Method)f).selfPosition());
-//            //if (this.cg.typeLevelOverloadedNamesAndSigs.contains(tableName))
-//            //    tableName  = NamingCzar.mangleAwayFromOverload(tableName);
-//            return tableName;
+        /**
+         * table name for a generic method of a trait is the unmangled generic method name
+         * with a table suffix
+         */
+        @Override
+        protected String generateClosureTableName(TaggedFunctionName f) {
+            String tableName = NamingCzar.genericMethodName(new FnNameInfo(f.tagF, f.tagA),((Method)f.tagF).selfPosition(),f.tagA);
+            return Naming.cacheTableName(tableName);
+        }
+        
+        
+        /**
+         * Table owner is the springboard (DefaultTraitMethods) for the declaring trait or object
+         * of the functional in provided TaggedFunctionName
+         */
+        @Override
+        protected String generateClosureTableOwner(TaggedFunctionName f) {
+            FnNameInfo info = new FnNameInfo(f.tagF, f.tagA);
+            ClassNameBundle cnb = this.cg.new_ClassNameBundle(((Method) f.tagF).declaringTrait(), 
+                                                              info.getTrait_static_params(), 
+                                                              null);
+            return  cnb.className + NamingCzar.springBoard;
+        }
+        
+        /**
+         * version for methods - for right now it is a copy of the original with extra logic
+         * to add the self type parameter to the disambiguating arrow schema for generic methods.
+         */
+//        @Override
+//        protected String compute_overload_name(TaggedFunctionName f) {
+//            
+//            String filtered_name = chooseName(name.stringName(), NodeUtil.nameSuffixString(name));
+//            static_parameters = staticParametersOf(f.tagF);
+//            if (static_parameters != null) {
+//                xldata = CodeGen.xlationData(Naming.FUNCTION_GENERIC_TAG);
+//                String sparamsType = NamingCzar.genericDecoration(static_parameters, xldata, ifNone);
+//                
+//                genericSchema = instanceArrowSchema(f);
+//                String packageAndClassName = NamingCzar.javaPackageClassForApi(ifNone);
+//                String PCNOuter = // PCNOuter???
+//                    Naming.genericFunctionPkgClass(packageAndClassName, filtered_name,
+//                            // Naming.makeTemplateSParams(sparamsType),
+//                            sparamsType,
+//                            genericSchema);
+//                return PCNOuter;
+//            } 
+//            return name.stringName()+jvmSignatureFor(f);
 //        }
+        
+        /**
+         *  generates the arrow schema for the tagged function
+         *  in this case, it will be a method and so the self-type
+         *  will be added as a generic parameter
+         */
+        @Override
+        protected String instanceArrowSchema(TaggedFunctionName f) {
+            
+            //DONE previously now
+            //NOTE selfIndex should be NO_SELF since this is a (non-functional) method overload set
+            //FnDecl new_fndecl = cg.convertGenericMethodToClosureDecl(((FnDecl) ((Method)f.tagF).ast()), selfIndex, f.tagF.getSpan());
+            
+            FnNameInfo methodName = new FnNameInfo(f.tagF,f.tagA);
+            
+            //KBN - this will not work correctly for functional methods
+            //consider refactoring the function in a better way
+            // the two possibilities seem to not be very similar
+            ArrowType methodArrow = methodName.functionArrowType();
+            String arrow = NamingCzar.jvmTypeDesc(methodArrow, f.tagA, false);
+            
+            return arrow;
+            
+           
+        }
+        
+        /**
+         * 
+         * since this is a method, the name includes the trait and functional
+         * name separated by the up finger character
+         * 
+         * @param f
+         * @return
+         */
+        @Override
+        protected String functionName(TaggedFunctionName f) {
+            Method m = (Method)f.tagF;
+            String methodName = NamingCzar.idOrOpToString(m.name());
+            String traitName = NamingCzar.idOrOpToString(m.declaringTrait());
+            return traitName + Naming.UP_INDEX + methodName;
+        }
+        
+//        /**
+//         * 
+//         * f will be a (nonfunctional) method so the this parameter
+//         * is appended to the start of the parameter list
+//         * 
+//         * @param f
+//         * @return
+//         */
+//        @Override
+//        protected int functionParamNum(TaggedFunctionName f) {
+//            return f.getParameters().size() + 1;
+//        }
+        
+        /**
+         * if the function is generic, then
+         * converts into a top-level function with self as the first
+         * parameter
+         * 
+         * @param f
+         * @return
+         */
+        @Override
+        protected TaggedFunctionName getFunctionToCall(TaggedFunctionName f) {
+            if (f.tagF.staticParameters().size() > 0) {
+                //NOTE selfIndex should be NO_SELF since this is a (non-functional) method overload set
+                //  Also know that f.tagF will be a DeclaredMethod
+                FnDecl new_fndecl = cg.convertGenericMethodToClosureDecl(((FnDecl) ((Method)f.tagF).ast()), selfIndex, f.tagF.getSpan());
+                Functional new_functional = new DeclaredMethod(new_fndecl, (DeclaredMethod)f.tagF);
+                
+                return new TaggedFunctionName(f.tagA, new_functional);
+            } else
+                return f;
+        }
     }
 
     static public class AmongApis extends OverloadSet {

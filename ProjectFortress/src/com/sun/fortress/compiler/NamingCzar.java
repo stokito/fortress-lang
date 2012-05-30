@@ -1446,7 +1446,7 @@ public class NamingCzar {
 
                 // TODO work in progress -- need to expand with StaticArg if those are available.
                 if (sargs.size() > 0) {
-                    result = makeInnerClassName(api,id, genericDecoration(sargs, ifNone));
+                    result = makeInnerClassName(api,id, instantiatedGenericDecoration(sargs, ifNone));
                     if (sparams.size() > 0)
                         throw new CompilerError(id,"Static args and params both non-empty, what wins? " +  type);
                 } else
@@ -1933,8 +1933,12 @@ public class NamingCzar {
     }
 
     /**
-     * @param xlation
-     * @param sparams
+     * generates string representing the genericity based on the list of static type parameters
+     * adds information to xldata if non-null
+     *
+     * @param sparams - static parameter list
+     * @param xldata - translation data: information added when used to generate output, can be null
+     * @param ifMissing - default API
      * @return
      */
     public static String genericDecoration(List<StaticParam> sparams,
@@ -1943,7 +1947,16 @@ public class NamingCzar {
             ) {
         return genericDecoration(null, sparams, xldata, ifMissing);
     }
-    
+    /**
+     * generates string representing the genericity based on the list of static type parameters
+     * adds information to xldata if non-null
+     * 
+     * @param receiverType - Type of the receiver added when converting methods to java static methods.  May be null.
+     * @param sparams - static parameter list
+     * @param xldata - translation data: information added when used to generate output, can be null
+     * @param ifMissing - default API
+     * @return
+     */
     public static String genericDecoration(com.sun.fortress.nodes.Type receiverType, List<StaticParam> sparams,
             Naming.XlationData xldata,
             APIName ifMissing
@@ -1977,7 +1990,14 @@ public class NamingCzar {
         return Useful.substring(frag, 0, -1) + Naming.RIGHT_OXFORD;
     }
 
-    public static String genericDecoration(List<StaticArg> sargs,
+    /**
+     * NOTE: similar to genericDecoration, but intended for an instantiated generic
+     * 
+     * @param sargs - list of instantiated static type arguments
+     * @param ifMissing - default API
+     * @return string representing the generic instantiation
+     */
+    public static String instantiatedGenericDecoration(List<StaticArg> sargs,
             APIName ifMissing) {
         // TODO we need to make the conventions for Arrows and other static types converge.
         if (sargs.size() == 0)

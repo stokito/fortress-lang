@@ -220,11 +220,18 @@ public class FnNameInfo {
         return normalizedSchema(methodArrowType(this, selfIndex));
     }
 
-    ArrowType functionArrowType() {
+    public ArrowType functionArrowType() {
         return methodArrowType(this, Naming.NO_SELF);
     }
 
     public IdOrOp getName() {
         return name;
+    }
+    
+    public List<StaticParam> getTrait_static_params() {
+        return trait_static_params;
+    }
+    public List<StaticParam> getStatic_params() {
+        return static_params;
     }
 }
