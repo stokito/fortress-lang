@@ -256,11 +256,15 @@ public class Transaction {
                 MutableFValue key = entry.getKey();
                 FValue val = entry.getValue();
                 FValue ancestrialValue = parent.AncestrialWrite(key);
-                if (ancestrialValue == null) {
+
+                // This is subtle.  If the child read a value written by a grandparent, then it has to go in the 
+                // the parent's read set, because otherwise a cousin transaction could update the value written
+                // in the grandparent and the parent transaction wouldn't know to abort.
+                if (parent.writes.get(key) == null) {
                     parent.reads.put(key, val);
-                    debug("TXCommitting: read to parent: snapshot = " + snapshot + " time = " + time + " key = " + key + " val = " + val);
+                    debug("TXCommitting: read to parent without ancestrial write: snapshot = " + snapshot + " time = " + time + " key = " + key + " val = " + val);
                 }
-             }
+            }
 
 
             for (Map.Entry<MutableFValue,FValue> entry : writes.entrySet()) {
