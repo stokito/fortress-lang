@@ -1,0 +1,30 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Generic top-level overloaded functions
+   THIS WORKS
+*)
+
+f[\T\]():ZZ32 = 2
+f[\T extends ZZ32\](x: T):ZZ32 = f[\T\]() + x
+
+run() =do
+  a = f[\ZZ32\](3)      (*) 5
+  b = f[\ZZ32\](8)      (*) 10
+  c = f[\String\]()     (*) 2
+
+  println(
+  if (a=5 AND b=10 AND c=2)
+     then "pass" else "fail" end
+  )
+end

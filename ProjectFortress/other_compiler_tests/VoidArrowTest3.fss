@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+hello() : () = println("Hello")
+world() : () = println("World!")
+
+trait list[\T extends Any\] 
+    getter elt() : T
+    getter rest() : list[\T\]
+end
+
+object listCell[\T extends Any\](head : T, rest : list[\T\]) extends list[\T\] 
+    getter elt() : T = head
+end
+
+object listEnd[\T extends Any\](head : T) extends list[\T\]
+    getter elt() : T = head
+    getter rest() : list[\T\]  = self
+end
+
+apply(x : () -> ()) : () = x ();
+
+run():() = do
+    hw : list[\ () -> () \] = listCell(hello,listEnd(world))
+    apply(hw.elt)
+    w : list[\ () -> () \] = hw.rest
+    apply(w.elt)
+end

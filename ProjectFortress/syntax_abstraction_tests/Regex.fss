@@ -1,0 +1,108 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Regex
+import List.{...}
+export Regex
+
+    trait Element
+    end
+
+    object Regexp( elements : List[\Element\] )
+        getter asString():String = "/" (BIG || [x<-elements] x) "/"
+        raw():String = (BIG || [x<-elements] x)
+        (*
+        opr =(self,s:String):Boolean = match(self.raw(),s)
+        opr =(self,r:Regexp):Boolean = self SEQV r
+        *)
+        opr =(self,r:Regexp):Boolean =
+          BIG AND [(x,y)<-self.elements.zip[\Element\](r.elements)] (x.asString = y.asString)
+        opr CONTAINS(self,s:String):Boolean = match(self.raw(),s)
+        opr IN(s:String,self):Boolean = match(self.raw(),s)
+    end
+
+    object RepeatElement(e:Element) extends Element
+        getter asString():String = e "*"
+    end
+
+    object RepeatNonGreedyElement(e:Element) extends Element
+        getter asString():String = e "*?"
+    end
+
+    object RepeatExactlyElement(e:Element, n:ZZ32) extends Element
+        getter asString():String = e "{" n "}"
+    end
+
+    object RepeatMinElement(e:Element, n:ZZ32) extends Element
+        getter asString():String = e "{" n ",}"
+    end
+
+    object RepeatMaxElement(e:Element, n:ZZ32) extends Element
+        getter asString():String = e "{," n "}"
+    end
+
+    object RepeatBetweenElement(e:Element, n1:ZZ32, n2:ZZ32) extends Element
+        getter asString():String = e "{" n1 ", " n2 "}"
+    end
+
+    object RepeatOneElement(e:Element) extends Element
+        getter asString():String = e "+"
+    end
+
+    object RepeatOneNonGreedyElement(e:Element) extends Element
+        getter asString():String = e "+?"
+    end
+
+    object MaybeElement(e:Element) extends Element
+        getter asString():String = e "?"
+    end
+
+    object GroupElement(e:List[\Element\]) extends Element
+        getter asString():String = "(" (BIG || [x<-e] x) ")"
+    end
+
+    object RangeElement(s1:String,s2:String) extends Element
+        getter asString():String = s1 "-" s2
+    end
+
+    object ClassElement(e:List[\Element\]) extends Element
+        getter asString():String = "[" (BIG || [x<-e] x) "]"
+    end
+
+    object InverseClassElement(e:List[\Element\]) extends Element
+        getter asString():String = "[^" (BIG || [x<-e] x) "]"
+    end
+
+    object StartElement() extends Element
+        getter asString():String = "^"
+    end
+
+    object AnyElement() extends Element
+        getter asString():String = "."
+    end
+
+    object EndElement() extends Element
+        getter asString():String = "$"
+    end
+
+    object CharElement(s:String) extends Element
+        getter asString():String = s
+    end
+
+    object EscapedElement(s:String) extends Element
+        getter asString():String = "\\" s
+    end
+
+    object AlternateElement() extends Element
+        getter asString():String = "|"
+    end
+
+end

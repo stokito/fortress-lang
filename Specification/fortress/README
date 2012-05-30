@@ -1,0 +1,14 @@
+This directory contains the master file for the Fortress language
+specification, along with an accompanying build script, helper scripts,
+and some machine-generated helper files. 
+
+To build the specification, call, you must have Ant installed, and you must 
+set FORTRESS_HOME, so that Ant can locate the interpreter, fortify
+tool, and libraries. Once FORTRESS_HOME is set, you can build the spec
+by typing "./ant tex". Doing so will cause all machine-generated
+helper files to be regenerated, and for the specification to be
+recompiled. 
+
+To regenerate all machine-generated files, without recompiling the
+spec, call "./ant genSource". 
+

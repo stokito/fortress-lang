@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+
+  (* Check that some method call does in fact exist.
+     No complicated overloading or inference. *)
+
+  trait Foo
+    doFoo[\A\](a:ZZ32,b:String):String
+  end
+
+  methodCaller(a1:ZZ32, b1:String,f1:Foo) : () = do
+    var s:String
+    s := f1.doFoo[\ZZ32\](a1)
+  end
+
+  run():() = ()

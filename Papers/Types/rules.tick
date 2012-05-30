@@ -1,0 +1,332 @@
+In this section, 
+we define the ````meaning'' of overloaded generic functions; 
+that is,
+we define how a call to such a function is dispatched, 
+and we give rules for overloaded declarations 
+that ensure that our dispatch procedure is well-defined, 
+as Castagna \emph{et al.} 
+do for overloaded monomorphic functions \cite{castagna95}.
+The basic idea is simple:
+For any set of overloaded function declarations, 
+we define a partial order on the declarations---%
+we call this order the \emph{specificity relation}---%
+and dispatch any call to the most specific declaration applicable to the call,
+based on the ilks of the arguments.
+The rules for valid overloading ensure
+that the most specific declaration is well-defined (i.e., unique) for any call 
+(assuming that some declaration is applicable to the arguments), 
+and that the return type of a declaration 
+is a subtype of the return type of any less specific declaration.
+The latter property is necessary for type preservation for dynamic dispatch:
+a more specific declaration may be applicable 
+% the most specific declaration applicable 
+to the ilks of the arguments 
+than 
+% may be more specific that 
+the most specific declaration applicable 
+to the static types of the argument expressions, 
+so we must ensure that the return type of this more specific declaration 
+is a subtype of the return type used to type check the program 
+(i.e., at compile time).
+
+Specifically, 
+we define three rules:\footnote{%
+The meet rule of Castagna \emph{et al.} 
+requires the existence and uniqueness of the meet.
+We split these into two rules.}
+the \emph{No Duplicates Rule} ensures that no two declarations are equally specific; 
+the \emph{Meet Rule} ensures that the set of overloaded declarations
+form a meet semilattice under the specificity relation; 
+and the \emph{Return Type Rule} ensures type preservation for dynamic dispatch.
+We prove that any set of overloaded function declarations 
+satisfying these three properties is safe,
+even if the class table is extended 
+(Theorem~\ref{thm:safety}).
+
+% require there is a unique such most specific declaration for any call
+% For monomorphic functions, 
+% this specificity relation is simply the subtyping relation 
+% on the domain types of the function declarations, 
+% but for a generic function,
+% subtyping may depend on the instantiation of the declaration's type parameters.
+
+% they impose two conditions on overload sets, 
+% a ````meet rule'' that requires, 
+% for any two overloaded declarations, 
+% that there is a unique declaration 
+% whose domain type is the meet of the domin types of the two declarations, 
+% and a ````return type rule'' 
+% that requires that whenever one declaration's domain type 
+% is a subtype of another declaration's domain type, 
+% then the first declaration's return type 
+% is also a subtype of the second declaration's return type.
+
+% we define three rules---%
+% the \emph{No Duplicates Rule}, 
+% \emph{Meet Rule}, 
+% and \emph{Return Type Rule}---%
+% for valid overloading of generic functions.
+% % for pairs of overloaded function declarations.
+% A set of overloaded function declarations is \emph{valid} 
+% % with respect to a class table
+% if every pair of declarations in the set satisfies these rules. 
+% % using the subtyping relation induced by that class table.
+% % In Section~\ref{sec:safety},
+% We show that any valid set of overloaded function declarations is safe.
+% In Section~\ref{sec:checking},
+% we describe how to mechanically check these rules in a modular way
+% in terms of subtyping relations on universal and existential types.
+
+%% \TODO{Discuss intended minimality of these rules?}
+
+\subsection{Specificity of Generic Function Declarations}
+
+For monomorphic function declarations, 
+the specificity relation is just subtyping on their domain types.
+However,
+the domain type of a generic function declaration 
+may include type parameters of the declaration, 
+and type parameters of distinct declarations 
+bear no particular relation to each other.
+Furthermore, the subtyping relation between their domain types of 
+may depend on the instantiation of their type parameters, 
+as illustrated by `foo` and `quux` in the introduction.
+
+Instead of using subtyping,
+we adopt the following intuitive notion of specificity:
+One declaration is more specific than another 
+if the second is applicable to every argument 
+that the first is applicable to.
+That is, 
+for any $d_1, d_2 \in \Df$, 
+$d_1$ is \emph{more specific} than $d_2$ 
+(written $d_1 \ms d_2$) if 
+% and only if 
+$d_1 \in \Df(T)$ implies $d_2 \in \Df(T)$
+% such that $d_1$ is applicable to $T$, 
+% $d_2$ is also applicable to $T$.
+for every well-formed type $T$.
+Neatly, 
+this turns out to be equivalent 
+subtyping over domain types 
+where the domain type of a generic function declaration 
+is interpreted as an existential type~\cite{bourdoncle97};
+we use that formulation 
+to mechanically check the overloading rules 
+(see Section~\ref{sec:checking}).
+
+This definition of specificity 
+introduces a type inference problem for dynamic dispatch:
+If $d_2$ is the most specific declaration applicable 
+to the static types of the argument expressions, 
+and $d_1 \ms d_2$ is the most specific declaration applicable 
+to the ilks of the arguments, 
+then the type parameter instantiations derived by static type inference 
+are relevant to $d_2$, but not to $d_1$.
+Because the call is dispatched to $d_1$, 
+we require type parameters for $d_1$ to be inferred \emph{dynamically}.
+Showing how to do so
+is beyond the scope of this paper.
+
+
+\subsection{Overloading Rules}
+\label{sec:threerules}
+
+Given a class table $\T$, 
+a set $\D$ of generic function declarations for $\T$, 
+and a function name $f$, 
+the set $\Df$ is \emph{valid} 
+(or is a \emph{valid overloading}) 
+if it 
+% VL: quantification over pairs occurs *within* the rules
+% every pair of declarations in $\Df$ 
+satisfies the following three rules:
+
+% In this section, we describe the rules for valid overloading.
+% For each function name $f$,
+% we determine whether a set of overloaded function declarations $\Df$ is valid
+% by independently considering every pair of declarations in the set.
+% A set of declarations is a valid overloading 
+% if every pair of distinct declarations in the set
+% satisfies the three rules described below with respect to a class
+% table $\T$, and a set $\Df$ is valid
+% with respect to $\T$ if every pair of declarations in the set is valid with
+% respect to $\T$.
+
+\begin{description}
+
+\item[No Duplicates Rule]
+For every $d_1, d_2 \in \Df$, 
+if $d_1 \ms d_2$ and $d_2 \ms d_1$ 
+%then $d_1$ and $d_2$ denote the same declaration. 
+then $d_1 = d_2$.
+
+\item[Meet Rule]
+For every $d_1, d_2 \in \Df$,
+there exists a declaration $d_0 \in \Df$ (possibly $d_1$ or $d_2$) 
+such that,
+% for every type $T \in \T$, $d_0$ is applicable to $T$ 
+% if and only if both $d_1$ and $d_2$ are applicable to $T$.
+$d_0 \ms d_1$ and $d_0 \ms d_2$ 
+and $d_0$ is applicable to any type $T \in \T$ 
+to which both $d_1$ and $d_2$ are applicable.
+
+\item[Return Type Rule]
+For every $d_1, d_2 \in \Df$ with $d_1 \ms d_2$,
+and every type $T \not\equiv \Bottom$ such that $d_1 \in \Df(T)$,
+% (and thus $d_2 \in \Df(T)$),
+if an instance $\decl{f}{S_2}{T_2}$ of $d_2$ is applicable to $T$,
+then there is an instance \decl{f}{S_1}{T_1} of $d_1$
+that is applicable to $T$ with \mbox{$T_1 <: T_2$}.
+
+\end{description}
+
+The No Duplicates Rule forbids distinct declarations from being equally specific 
+(i.e., each more specific than the other).
+
+The Meet Rule requires every pair of declarations 
+to have a \emph{disambiguating declaration}, 
+which is more specific than both 
+and applicable whenever both are applicable.
+(If one of the pair is more specific than the other, 
+then it is the disambiguating declaration.)
+
+The Return Type Rules guarantees that
+whenever the type checker might have used an instance of a declaration $d_2$ 
+to check a program,
+and then a more specific declaration $d_1$ is selected by dynamic dispatch,
+then there is some instance of $d_1$ that is applicable to the argument 
+and whose return type is a subtype 
+of the return type of the instance of $d_2$ 
+the type checker used, 
+which is necessary for type preservation, 
+as discussed above.
+
+Since $\Bottom$ is well-formed, 
+% with respect to any class table, 
+and tuple types with different numbers of arguments 
+have no common subtype other than \Bottom,
+the Meet Rule requires that 
+an overloaded function with declarations that take different numbers of arguments 
+have a declaration applicable only to \Bottom.
+Such a declaration would never be applied 
+(because no value belongs to \Bottom), 
+and it cannot be written in Fortress 
+(because \Bottom\ is not first-class).
+To avoid this technicality, 
+we implicitly augment every set $\Df$ 
+with a declaration $\decl{f}{\Bottom}{\Bottom}$.
+This declaration is strictly more specific 
+than any declaration that a programmer can write,
+and its return type is a subtype of every type, 
+so it trivially satisfies all three rules 
+when checked with any other declaration in $\Df$.
+
+This technicality raises the following question:
+Must the Meet Rule hold for every $T \in \T$?
+Could we not, for example, 
+have excluded \Bottom\ from consideration, 
+as in the Return Type Rule, 
+and avoided the technicality?
+If so, 
+for which types is it necessary that the Meet Rule hold?
+The answer is,
+we must check the Meet Rule for a type $T \in \T$ 
+to which both $d_1$ and $d_2$ are applicable
+if there could be a value of type $T$ 
+such that for any type $T' \in \T$ 
+to which the value belongs, $T \subtypeof T'$.
+In other words, 
+we must check it for all ````leaf'' types.
+Thus, if we did not require extensibility, 
+we can check the Meet Rule only for those types that are ilks of values.
+However, 
+because we require extensibility, 
+and we support multiple inheritance,
+we use intersection types instead.
+
+
+\subsection{Properties of Overloaded Functions}
+With the rules for valid overloading laid out, we now describe some useful
+properties of valid overloaded sets and of the rules themselves.
+
+\begin{lemma}
+\label{lem:strictms}
+If $d_1$ and $d_2$ are declarations in $\Df$ such that
+$d_1 \ms d_2$ and $d_2 \not\ms d_1$, then the pair $(d_1, d_2)$ satisfies the
+No Duplicates Rule and the Meet Rule.
+\end{lemma}
+\begin{proof}
+The No Duplicates Rule is vacuously satisfied, and the Meet Rule is satisfied
+with $d_0 = d_1$ since $d_1 \ms d_2$ implies that $d_1$ is applicable to a type $T$ if and only if both $d_1$ and $d_2$ are applicable to $T$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:subsetvalid}
+For every type $T \in \T$, if $\Df$ is a valid set with respect to $\T$ then
+so is $\Df(T)$.
+\end{lemma}
+\begin{proof}
+The No Duplicates Rule and Return Type Rule are straightforward applications
+of the respective rules on $\Df$.
+
+Let $d_1, d_2$ be declarations in $\Df(T)$ and let $d_0 \in \Df$ be its
+disambiguating declaration guaranteed by the Meet Rule on $\Df$. Then $d_0$ is applicable to exactly those types $U$ to which $d_1$ and $d_2$ are
+both applicable. Since $d_1$ and $d_2$ are by definition both applicable
+to $T$, $d_0$ must also be applicable to $T$, and hence $d_0 \in \Df(T)$.
+Therefore the Meet Rule on $\Df(T)$ is satisfied.
+\end{proof}
+
+To further characterize valid sets of overloaded definitions and the
+more specific relation $\ms$, we interpret them as
+meet semilattices. A partially ordered set $(A, \sqsubseteq)$ forms a
+\emph{meet semilattice} if, for every pair of elements $a,b \in A$, their
+greatest lower bound, or \emph{meet}, is also in $A$.
+\begin{lemma}
+\label{lem:meetsemilattice}
+A valid set of overloaded function declarations forms a meet semilattice with
+the more specific relation.
+\end{lemma}
+\begin{proof}
+Suppose $\Df$ is a valid set of overloaded function declarations
+with respect to class table $\T$.
+First, $(\Df, \ms)$ forms a partially ordered set: clearly $\ms$ is
+reflexive and transitive, and antisymmetry is a direct corollary of the
+No Duplicates Rule.
+
+Second, we must
+show that (i) for every $d_1, d_2 \in \Df$ there exists a $d_0 \in \Df$
+such that $d_0 \ms d_1$ and $d_0 \ms d_2$ and (ii) if there exists a
+$d_0' \in \Df$ such that $d_0' \ms d_1$ and $d_0' \ms d_2$ then
+$d_0' \ms d_0$.
+
+Let $d_1$ and $d_2$ be declarations in $\Df$. By the Meet Rule, there
+exists a declaration $d_0 \in \Df$ that is applicable to a type $T \in \T$
+if and only if both $d_1$ and $d_2$ are too. Since for every $T$ to which
+$d_0$ is applicable we have that $d_1$ and $d_2$ are also applicable to it,
+we know that $d_0 \ms d_1$ and $d_0 \ms d_2$.
+
+Now let $d_0' \in \Df$ be more specific than both $d_1$ and $d_2$.
+Then for every type $T \in \T$ such that $d_0'$ is applicable
+to $T$, $d_1$ and $d_2$ are also applicable to $T$; thus $d_0$ is
+applicable to $T$ and $d_0' \ms d_0$.
+\end{proof}
+
+The No Duplicates Rule and the Meet Rule each
+corresponds to a defining property of
+meet semilattices (antisymmetry and the existence of meets,
+respectively), while the Return Type
+Rule guarantees that this interpretation is consistent with the
+semantics of multiple dynamic dispatch.
+
+\begin{lemma}
+\label{lem:leastelement}
+A valid set of overloaded function declarations $\Df(T)$ has a unique
+most specific declaration.
+\end{lemma}
+\begin{psketch}
+The set $\Df(T)$ forms a meet semilattice by the previous lemma and moreover
+it is clearly finite. By straightforward induction a finite meet semilattice
+has a least element, so there exists a unique declaration in $\Df(T)$ that
+is more specific than all others.
+\end{psketch}

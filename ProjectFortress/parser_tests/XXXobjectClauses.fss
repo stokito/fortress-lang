@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXobjectClauses
+export Executable
+
+object Exn extends Exception end
+trait T end
+object U throws Exn ensures { true } extends T end
+object V extends T end
+
+run() = println "OK"
+
+end

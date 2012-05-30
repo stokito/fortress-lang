@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Gt0b
+export Executable
+
+trait T[\S\]
+  m():String = "FAIL"
+end
+
+object O[\S\] extends T[\S\]
+  m():String = "PASS"
+end
+
+run():() = do
+  x:T[\String\] = O[\String\]
+  println(x.m())
+end
+end

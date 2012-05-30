@@ -1,0 +1,54 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+s1:String = "s" "1"
+s2:String = "s" "2"
+n1:ZZ32 = 1+0
+n2:ZZ32 = 2+0
+
+tuSZ = (s1, n2)
+tuZZ = (n1, n2)
+tuSS = (s1, s2)
+tuZS = (n1, s2)
+
+o(x:Any):Any = x
+
+f(d:String, s:String):String = "string " s
+f(d:String, n:ZZ32):String = "number " n.asString
+f(d:String, x:Object):String = "object"
+f(d:String, a:Any):String = "any"
+
+f(d:String, t:(Object, ZZ32) ) = do
+  (ts, tz) = t
+  "tuple (" "object" "," tz.asString ")"
+end
+
+f(d:String, t:(String, ZZ32) ) = do
+  (ts, tz) = t
+  "tuple (" ts "," tz.asString ")"
+end
+
+f(d:String, t:(String, Object) ) = do
+  (ts, tz) = t
+  "tuple (" ts "," "object" ")"
+end
+
+
+run():() = do
+  println(f("dummy",   o(s1)))
+  println(f("dummy",   o(n1)))
+  println(f("dummy",   o(tuSZ)))
+  println(f("dummy",   o(tuZZ)))
+  println(f("dummy",   o(tuZS)))
+  println(f("dummy",   o(tuSS)))
+  end

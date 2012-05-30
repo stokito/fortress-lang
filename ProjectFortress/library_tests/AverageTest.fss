@@ -1,0 +1,147 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component AverageTest
+export Executable
+
+(*) Test integer averaging operators
+
+testIntAverage(x: ZZ32, y: ZZ32): () = do
+  p = floorAverage(x, y)
+  q = ceilingAverage(x, y)
+  correction = ((x BITXOR y) BITAND 1) 
+  if x <= y then
+    if ((x = ZZ32_MIN) AND (y = ZZ32_MAX)) then
+      assert(p = -1)
+      assert(q = 0)
+    else
+      assert(x <= p <= q <= y)
+      assert((p-x) + correction = (y-p))
+      assert((q-x) = (y-q) + correction)
+    end
+  else
+    if ((y = ZZ32_MIN) AND (x = ZZ32_MAX)) then
+      assert(p = -1)
+      assert(q = 0)
+    else
+      assert(y <= p <= q <= x)
+      assert((p-y) + correction = (x-p))
+      assert((q-y) = (x-q) + correction)
+    end
+  end
+end
+
+testLongAverage(x: ZZ64, y: ZZ64): () = do
+  p = floorAverage(x, y)
+  q = ceilingAverage(x, y)
+  correction = ((x BITXOR y) BITAND 1) 
+  if x <= y then
+    if ((x = ZZ64_MIN) AND (y = ZZ64_MAX)) then
+      assert(p = -1)
+      assert(q = 0)
+    else
+      assert(x <= p <= q <= y)
+      assert((p-x) + correction = (y-p))
+      assert((q-x) = (y-q) + correction)
+    end
+  else
+    if ((y = ZZ64_MIN) AND (x = ZZ64_MAX)) then
+      assert(p = -1)
+      assert(q = 0)
+    else
+      assert(y <= p <= q <= x)
+      assert((p-y) + correction = (x-p))
+      assert((q-y) = (x-q) + correction)
+    end
+  end
+end
+
+testUnsignedIntAverage(x: NN32, y: NN32): () = do
+  p = floorAverage(x, y)
+  q = ceilingAverage(x, y)
+  correction = ((x BITXOR y) BITAND 1) 
+  if x <= y then
+    assert(x <= p <= q <= y)
+    assert((p-x) + correction = (y-p))
+    assert((q-x) = (y-q) + correction)
+  else
+    assert(y <= p <= q <= x)
+    assert((p-y) + correction = (x-p))
+    assert((q-y) = (x-q) + correction)
+  end
+end
+
+testUnsignedLongAverage(x: NN64, y: NN64): () = do
+  p = floorAverage(x, y)
+  q = ceilingAverage(x, y)
+  correction = ((x BITXOR y) BITAND 1) 
+  if x <= y then
+    assert(x <= p <= q <= y)
+    assert((p-x) + correction = (y-p))
+    assert((q-x) = (y-q) + correction)
+  else
+    assert(y <= p <= q <= x)
+    assert((p-y) + correction = (x-p))
+    assert((q-y) = (x-q) + correction)
+  end
+end
+
+fixedAverageTests(): () = do
+  testIntAverage(ZZ32_MIN, ZZ32_MAX)
+  testIntAverage(ZZ32_MAX, ZZ32_MIN)
+  testLongAverage(ZZ64_MIN, ZZ64_MAX)
+  testLongAverage(ZZ64_MAX, ZZ64_MIN)
+  testUnsignedIntAverage(NN32_MIN, NN32_MAX)
+  testUnsignedIntAverage(NN32_MAX, NN32_MIN)
+  testUnsignedLongAverage(NN64_MIN, NN64_MAX)
+  testUnsignedLongAverage(NN64_MAX, NN64_MIN)
+  for i <- 0:7, j <- 0:7 do
+    testIntAverage(i, j)
+    testLongAverage(i, j)
+    testUnsignedIntAverage(i.bitsAsNN32, j.bitsAsNN32)
+    testUnsignedLongAverage(i.bitsAsNN32, j.bitsAsNN32)
+  end
+end
+
+run(): () = do
+  fixedAverageTests()
+  var intSeed: ZZ32 = 3827'A6BF_16
+  var longSeed: ZZ64 = 3827'A6BF'9387'5641_16
+  var unsignedIntSeed: NN32 = 9387'5641_16
+  var unsignedLongSeed: NN64 = 3827'A6BF'9387'5641_16
+  intMult: ZZ32 = 19841          (*) a prime number
+  unsignedIntMult: NN32 = 19841  (*) a prime number
+  for i <- seq(1:1000) do
+    intSeed := intSeed BOXCROSS intMult
+    i1 = intSeed
+    intSeed := intSeed BOXCROSS intMult
+    i2 = intSeed
+    testIntAverage(i1, i2)
+    longSeed := longSeed BOXCROSS intMult
+    l1 = longSeed
+    longSeed := longSeed BOXCROSS intMult
+    l2 = longSeed
+    testLongAverage(l1, l2)
+    unsignedIntSeed := unsignedIntSeed BOXCROSS unsignedIntMult
+    u1 = unsignedIntSeed
+    unsignedIntSeed := unsignedIntSeed BOXCROSS unsignedIntMult
+    u2 = unsignedIntSeed
+    testUnsignedIntAverage(u1, u2)
+    unsignedLongSeed := unsignedLongSeed BOXCROSS unsignedIntMult
+    ul1 = unsignedLongSeed
+    unsignedLongSeed := unsignedLongSeed BOXCROSS unsignedIntMult
+    ul2 = unsignedLongSeed
+    testUnsignedLongAverage(ul1, ul2)
+  end
+  println("PASS")
+end
+
+end

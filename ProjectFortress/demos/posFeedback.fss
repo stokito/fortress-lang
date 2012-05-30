@@ -1,0 +1,197 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component posFeedback
+
+export Executable
+
+(* We have an entity, which knows both positive and negative facts,
+ * and has a positivity score.  At every tick, there is a base 5%
+ * chance positivity will change by 1 in either direction (10% total chance
+ * of change).  However, each point of positivity adds a 5% chance of
+ * positive change, and each point of negativity adds a 5% chance of
+ * negative change; thus it's a probabilistic positive-feedback
+ * process.
+ *
+ * There is a bank of 10 facts.  Each time a transition occurs a fact
+ * is "learned" uniformly at random.  Assume a positive transition
+ * (negative works the same way).  If the chosen fact is known
+ * positively nothing happens.  If it is unknown it becomes known
+ * positively.  If it is known negatively, it becomes unknown.
+ *
+ * Some initial facts are known positively or negatively, possibly
+ * including some of the 10.  If the total number of known facts
+ * is >= 10, and there's more than twice as many facts of one type,
+ * that type has "won" and the simulation ends.
+ *
+ * We record a histogram of results.  Ticks are daily for a year.
+ *)
+
+(* Express a/b as a nearest percentage.  Why use integer math?
+   I'm just that kind of wierdo. *)
+percent(a:ZZ32, b:ZZ32): String = fmt3((200 a + b) DIV (2 b))
+
+object Stats
+    maxTime = 365
+    posOut = 1
+    negOut = 0
+    histogram = array2[\ZZ32,2,365\](0)
+    overAYear : ZZ32 := 0
+    getter asString() = do
+        (n0,med) = median(0#365, fn (i) =>
+                                     histogram[posOut,i]+histogram[negOut,i])
+        n = n0 + overAYear
+        (pos,posMed) = median(0#365, fn (i) => histogram[posOut,i])
+        (neg,negMed) = median(0#365, fn (i) => histogram[negOut,i])
+        maxEntry = BIG MAX histogram
+        scale : RR64 = 30.0 / maxEntry
+        barlen(i:ZZ32): ZZ32 = if i > 0 then (narrow |\ scale i /|) MAX 1
+                               else 0 end
+        showHist(i:ZZ32): String = do
+            (ng,ps) = (histogram[negOut,i], histogram[posOut,i])
+            if ng+ps =/= 0 then
+                h = // fmt3(i) ":" fmt3(ps) "|" fmt3(ng)
+                scn = barlen(ng)
+                scp = barlen(ps)
+                h repeat(32-scp," ") repeat(scp,"+") "|" repeat(scn,"-")
+            else
+                // fmt3(i)
+            end
+          end
+        histo = BIG ||[i<-0#365] showHist(i)
+        ("Stats:" //
+         "n   = " fmt3(n) "\t\tmedian = " fmt3(med) //
+         "pos = " fmt3(pos) "\t" percent(pos,n) "%\tmedian = " fmt3(posMed) //
+         "neg = " fmt3(neg) "\t" percent(neg,n) "%\tmedian = " fmt3(negMed) //
+         "over= " fmt3(overAYear) "\t" percent(overAYear,n) "%" //
+         "Histogram:" histo)
+      end
+    recordOver(): () = atomic do
+        overAYear += 1
+      end
+    record(time: ZZ32, result: ZZ32): () =
+        if time >= maxTime then
+            fail("Recording overtime " time)
+        else
+            atomic histogram[result,time] += 1
+        end
+end
+
+fmt3(i:ZZ32): String =
+    (if i < 10 then "   " elif i < 100 then "  " elif i < 1000 then " " else "" end) i
+
+
+median[\I\](gen: Generator[\I\], bucket: I -> ZZ32): (ZZ32,I) = do
+    n = SUM [i <- gen] bucket i
+    half = n DIV 2
+    s: ZZ32 := 0
+    var med: I
+    for i <- seq(gen) do
+        if s <= half then
+            med := i
+            s += bucket i
+        end
+    end
+    (n, med)
+  end
+
+repeat(i:ZZ32, s:String): String = BIG ||[_ <- 0#i] s
+
+object Entity(var positivity: ZZ32,
+              known: ZZ32[2], initFacts: ZZ32[2])
+    time : ZZ32 := -1
+    factNeg = -1
+    factPos = 1
+    factUnk = 0
+    facts = do
+        negFacts = initFacts[0]
+        totFacts = negFacts+initFacts[1]
+        filler(i:ZZ32): ZZ32 =
+            if i < negFacts then factNeg
+            elif i < totFacts then factPos
+            else factUnk end
+        array1[\ZZ32,10\](filler)
+      end
+
+    getter asString(): String =
+        ("Entity(" positivity ", [" known[0] " " known[1] "]) t = " time //
+         facts.asString)
+
+    otherResult(result: ZZ32): ZZ32 = 1 - result
+    eventToResult(kind: ZZ32): ZZ32 = (kind+1) DIV 2
+
+    unlearn(fact: ZZ32, kind: ZZ32): () = do
+        facts[fact] := factUnk
+        result = otherResult(eventToResult(kind))
+        known[result] -= 1
+        if known[result] < 0 then
+            fail("Result " result " dipped below 0!")
+        end
+      end
+
+    learn(fact: ZZ32, kind: ZZ32): Boolean = do
+        facts[fact] := kind
+        result = eventToResult(kind)
+        known[result] += 1
+        if known[0]+known[1] >= 10 AND
+           (known[result] >= 2 known[otherResult(result)]) then
+            Stats.record(time, result)
+            true
+        else
+            false
+        end
+      end
+
+    event(kind: ZZ32): Boolean = do
+        positivity += kind
+        fact = narrow |\random(10.0)/|
+        case facts[fact] of
+            kind => false
+            0 => learn(fact,kind)
+            else => unlearn(fact,kind); false
+        end
+      end
+
+    (* tick performs one tick, returns true if terminated. *)
+    tick(): Boolean = do
+        time := time + 1
+        roll = |\random(20.0)/|
+        (bot,top) = if positivity >= 0 then
+                      (1+positivity, 19)
+                    else
+                      (1,19+positivity)
+                    end
+        if time >= 365 then
+            Stats.recordOver()
+            true
+        elif roll < (bot MIN 19) then
+            event(factPos)
+        elif roll >= top then
+            event(factNeg)
+        else
+            false
+        end
+      end
+end
+
+run():() = do
+    for i <- 0#5000 do
+        known: ZZ32[2] = [1 5]
+        kfacts: ZZ32[2] = [0 0]
+        entity = Entity(0,known,kfacts)
+        while NOT entity.tick() do
+        end
+        (* println(entity) *)
+    end
+    println(Stats)
+end
+
+end

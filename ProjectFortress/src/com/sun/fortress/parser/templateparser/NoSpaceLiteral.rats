@@ -1,0 +1,24 @@
+/*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress literals using NoSpaceExpr.
+ */
+module com.sun.fortress.parser.templateparser.NoSpaceLiteral(MayNewlineHeader, NoSpaceExpr,
+                                                             Symbol, Spacing, Gaps);
+
+import MayNewlineHeader;
+import NoSpaceExpr;
+import Symbol;
+import Spacing;
+import Gaps;
+
+modify com.sun.fortress.parser.NoSpaceLiteral(MayNewlineHeader, NoSpaceExpr, Symbol, Spacing);

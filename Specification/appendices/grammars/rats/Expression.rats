@@ -1,0 +1,232 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009,2010, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+Expr =
+     ExprFront ExprTail*
+
+ExprFront =
+     <AssignExpr> AssignExpr
+   / OpExpr
+   / DelimitedExpr
+   / <Flow> FlowExpr
+   / <Fn1> fn w BindId (w Throws)? w match w Expr
+   / <Fn2> fn w openparen (w Params)? w closeparen (w IsType)? (w Throws)? w match w Expr
+   / <ErrorProduction1> fn w ValParam (w IsType)? (w Throws)? w match w Expr
+   / <ErrorProduction2> fn w ValParam (w IsType)? (w Throws)? w Expr
+
+ExprTail =
+     <As> As
+   / <Asif> AsIf
+
+As =
+     w typed w Type
+
+AsIf =
+     w asif w Type
+
+AssignExpr = AssignLefts w AssignOp w Expr
+
+AssignLefts =
+     openparen w AssignLeft (w comma w AssignLeft)* w closeparen
+   / AssignLeft
+
+AssignLeft =
+     PrimaryFront AssignLeftTail+
+   / QualifiedName
+
+AssignLeftTail =
+     SubscriptAssign
+   / FieldSelectionAssign
+
+SubscriptAssign =
+     LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
+
+FieldSelectionAssign =
+    dot (Reserved / Id)
+
+OpExpr =
+     <FIRST> OpExprNoEnc
+   / OpExprLeftEncloser
+   / Encloser
+
+OpExprNoEnc =
+     <FIRST> OpExprPrimary
+   / OpExprPrefix
+   / caret
+   / Op
+
+TightInfixRight =
+     Encloser OpExprPrimary
+   / Encloser OpExprPrefix
+   / <Primary>   Encloser wr OpExprPrimary
+   / <Loose>     Encloser wr LooseInfix
+   / <LeftLoose> Encloser wr LeftLooseInfix
+   / Encloser
+
+LeftLooseInfix =
+     OpExprLeftEncloser
+   / <Primary> Encloser wr OpExprPrimary
+   / <Prefix>  Encloser wr OpExprPrefix
+   / <Left>    Encloser wr OpExprLeftEncloser
+
+OpExprLeftEncloser =
+     Encloser OpExprNoEnc
+
+OpExprPrimary =
+     Primary TightInfixPostfix
+   / Primary TightInfixRight
+   / <Primary>   Primary wr OpExprPrimary
+   / <Loose>     Primary wr LooseInfix
+   / <LeftLoose> Primary wr LeftLooseInfix
+   / Primary
+
+OpExprPrefix =
+     Op OpExprPrimary
+   / Op OpExprPrefix
+   / Op OpExprLeftEncloser
+   / <Primary> Op wr OpExprPrimary
+   / <Prefix>  Op wr OpExprPrefix
+   / <Left>    Op wr OpExprLeftEncloser
+   / caret w OpExprPrimary
+   / caret w OpExprPrefix
+   / caret w OpExprLeftEncloser
+
+TightInfixPostfix =
+     Op OpExprPrimary
+   / Op OpExprPrefix
+   / Op OpExprLeftEncloser
+   / <Primary> Op wr OpExprPrimary
+   / <Prefix>  Op wr OpExprPrefix
+   / <Left>    Op wr OpExprLeftEncloser
+   / caret wr OpExprPrimary
+   / caret wr OpExprPrefix
+   / caret wr OpExprLeftEncloser
+   / caret
+   / Op
+
+LooseInfix =
+     Op wr OpExprPrimary
+   / Op wr OpExprPrefix
+   / <Left> Op wr OpExprLeftEncloser
+
+Primary =
+    PrimaryItem (w comma w PrimaryItem)+
+    &(Encloser (wr / br / w comma / w RightEncloser))
+   / PrimaryItem
+
+PrimaryItem =
+     (LeftAssociatedPrimary / MathPrimary)
+
+LeftAssociatedPrimary =
+     DottedIdChain w StaticArgs ParenthesisDelimited
+     ParenthesisDelimitedLeft* Selector*
+   / DottedIdChain SubscriptingLeft+ ParenthesisDelimitedLeft*
+     Selector*
+   / DottedIdChain ParenthesisDelimited ParenthesisDelimitedLeft*
+     Selector*
+   / DottedIdChain Selector*
+   / PrimaryFront SubscriptingLeft* ParenthesisDelimitedLeft*
+     Selector+
+
+DottedIdChain =
+    (Reserved / Id) (dot w (Reserved / Id))+
+
+MathPrimary =
+    PrimaryFront MathItem*
+
+PrimaryFront =
+     ArrayExpr
+   / MapExpr
+   / Comprehension
+   / LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
+   / ParenthesisDelimited
+   / LiteralExpr
+   / VarOrFnRef
+   / self
+
+VarOrFnRef =
+     Id w StaticArgs
+   / Id
+
+SubscriptingLeft =
+     (opensquare / opencurly) (w StaticArgs)? (w ExprList)? w
+     (closesquare / closecurly)
+   / LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
+
+ParenthesisDelimitedLeft =
+    ParenthesisDelimited
+
+ParenthesisDelimited =
+     Parenthesized
+   / ArgExpr
+   / openparen w closeparen
+
+Selector =
+     MethodInvocationSelector
+   / FieldSelectionSelector
+
+MethodInvocationSelector = /* REVERSE ORDER */
+     dot w (Reserved / Id) (w StaticArgs)? ParenthesisDelimited
+     ParenthesisDelimitedLeft*
+
+FieldSelectionSelector =
+     dot w (Reserved / Id) SubscriptingLeft* ParenthesisDelimitedLeft*
+
+MathItem =
+     Subscripting
+   / Exponentiation
+   / ParenthesisDelimited
+   / LiteralExpr
+   / VarOrFnRef
+   / self
+
+Subscripting =
+     (opensquare / opencurly) (w StaticArgs)? (w ExprList)? w
+     (closesquare / closecurly)
+   / LeftEncloser (w StaticArgs)? (w ExprList)? w RightEncloser
+
+Exponentiation =
+     caret hasW Exponent
+   / ExponentOp
+
+Exponent =
+     ParenthesisDelimited
+   / LiteralExpr
+   / Id
+   / self
+
+FlowExpr =
+     exit (w Id)? (w with w Expr)?
+   / Accumulator (w StaticArgs)?
+     (w opensquare w GeneratorClauseList w closesquare)? w Expr
+   / BIG w LeftEncloser w mapsto (w StaticArgs)? w RightEncloser w Expr
+   / BIG w LeftEncloser (w StaticArgs)? w RightEncloser w Expr
+   / atomic w AtomicBack
+   / tryatomic w AtomicBack
+   / spawn w Expr
+   / throw w Expr
+
+AtomicBack =
+     AssignExpr
+   / OpExpr
+   / DelimitedExpr
+
+GeneratorClauseList =
+     GeneratorBinding (w comma w GeneratorClause)*
+
+GeneratorBinding =
+     BindIdOrBindIdTuple w leftarrow w Expr
+
+GeneratorClause =
+     GeneratorBinding
+   / Expr
+\end{verbatim}

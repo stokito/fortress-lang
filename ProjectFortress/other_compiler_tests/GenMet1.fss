@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+export Executable
+
+trait a
+  m[\T extends String\](x:T) = println("a" x)
+end
+
+trait b extends a
+  m[\U extends String\](x:U) = println("b" x)
+end
+
+object o extends b end
+
+run():() = do
+  o.m[\String\]("cat")
+end
