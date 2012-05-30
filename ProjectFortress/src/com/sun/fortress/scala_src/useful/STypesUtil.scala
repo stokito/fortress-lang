@@ -1412,11 +1412,10 @@ object STypesUtil {
                 case id: IdOrOp => oneMethod(id, t.second)
                 case _ => ()
               }
-            def oneMapping(t: JMap.Entry[Id, Method]) = oneMethod(t.getKey, t.getValue)
             ti.dottedMethods.foreach(onePair)
             ti.functionalMethods.foreach(onePair)
-            ti.getters.entrySet.foreach(oneMapping)
-            ti.setters.entrySet.foreach(oneMapping)
+            ti.getters.entrySet.foreach((e: JMap.Entry[Id, FieldGetterMethod]) => oneMethod(e.getKey, e.getValue))
+            ti.setters.entrySet.foreach((e: JMap.Entry[Id, FieldSetterMethod]) => oneMethod(e.getKey, e.getValue))
             }
             val instantiated_extends_types =
               toListFromImmutable(ti.extendsTypes).map(_.accept(paramsToArgs)
@@ -1608,8 +1607,9 @@ object STypesUtil {
 
     ti.dottedMethods.foreach(onePair)
     ti.functionalMethods.foreach(onePair)
-    ti.getters.entrySet.foreach(oneMapping)
-    ti.setters.entrySet.foreach(oneMapping)
+    ti.getters.entrySet.foreach((e: JMap.Entry[Id, FieldGetterMethod]) => oneMethod(e.getKey, e.getValue))
+    ti.setters.entrySet.foreach((e: JMap.Entry[Id, FieldSetterMethod]) => oneMethod(e.getKey, e.getValue))
+
     result
   }
 

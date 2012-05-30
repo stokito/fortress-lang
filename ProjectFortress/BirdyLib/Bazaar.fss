@@ -14,11 +14,12 @@ component Bazaar
   import Util.{...}
   import Maybe.{...}
   import List.{...}
+  import GeneratorLibrary.{DefaultGeneratorImplementation}
   export Bazaar
 
   object AndRed extends MonoidReduction[\Boolean\]
     getter asString(): String = "And cat"
-    empty(): Boolean = true
+    getter id(): Boolean = true
     join(x: Boolean, y: Boolean) = x AND y
   end
 
@@ -26,7 +27,7 @@ component Bazaar
 
   object SumRed extends MonoidReduction[\ZZ32\]
     getter asString(): String = "Plus red"
-    empty(): ZZ32 = 0
+    getter id(): ZZ32 = 0
     join(x: ZZ32, y: ZZ32) = x + y    
   end
 
@@ -34,7 +35,7 @@ component Bazaar
 
   object ProdRed extends MonoidReduction[\ZZ32\]
     getter asString(): String = "Prod red"
-    empty(): ZZ32 = 1
+    getter id(): ZZ32 = 1
     join(x: ZZ32, y: ZZ32) = x y    
   end
 
@@ -43,7 +44,7 @@ component Bazaar
 
   object ProdRedRR64 extends MonoidReduction[\RR64\]
     getter asString(): String = "Prod red RR64"
-    empty(): RR64 = 1.0
+    getter id(): RR64 = 1.0
     join(x: RR64, y: RR64) = x y    
   end
 
@@ -72,7 +73,7 @@ component Bazaar
 
   object StrRed extends MonoidReduction[\String\]
     getter asString(): String = "String concat reduction"
-    empty(): String = ""
+    getter id(): String = ""
     join(x: String, y: String) = x || y      
   end
 
@@ -85,15 +86,15 @@ component Bazaar
 
   opr =/=(x: Range, y: Range): Boolean = x.lowerBound = y.lowerBound  AND x.upperBound = y.upperBound
 
-  object CharGen(s: String) extends Generator[\Character\] 
-    generate[\R\](r: Reduction[\R\], body: Character->R): R =  
+  object CharGen(s: String) extends DefaultGeneratorImplementation[\Character\] 
+    generate[\R extends Any\](r: Reduction[\R\], body: Character->R): R =  
       r.join(body(s[0]),CharGen(s.substring(1,|s| - 1)).generate(r,body))
   end
   
   toGenString(s: String) : Generator[\Character\] = CharGen(s)
   
-  object ZZ32Gen(x: Range) extends Generator[\ZZ32\]
-    generate[\R\](r: Reduction[\R\], body: ZZ32->R): R = 
+  object ZZ32Gen(x: Range) extends DefaultGeneratorImplementation[\ZZ32\]
+    generate[\R extends Any\](r: Reduction[\R\], body: ZZ32->R): R = 
       do dis = x.upperBound - x.lowerBound 
          if dis = 0 then body(x.lowerBound) else 
               do firsthalf = dis DIV 2
@@ -107,8 +108,8 @@ component Bazaar
 
   toGenZZ32(x: Range): Generator[\ZZ32\] = ZZ32Gen(x)
 
-  object BoolGen(b: Boolean) extends Generator[\Boolean\]
-     generate[\R\](r: Reduction[\R\], body: Boolean->R): R =  
+  object BoolGen(b: Boolean) extends DefaultGeneratorImplementation[\Boolean\]
+     generate[\R extends Any\](r: Reduction[\R\], body: Boolean->R): R =  
       body(b)
   end
 
@@ -117,5 +118,20 @@ component Bazaar
   upto(s: String,c: Character): String = s
   
   beyond(s: String,c: Character): String = s
+
+  reverse(s: String): String = s
+
+  extract_val[\T\](l : List[\T\]): T =
+    if x <- l.left() then x else throw MatchFailure end
+
+  list_filter[\T\](l: List[\T\], p : T -> Boolean): List[\T\] = 
+    if |l| = 0 then emptyList[\T\]()
+    else if |l| = 1 then if p(extract_val(l)) then l else emptyList[\T\]() end
+         else do (left,right) = l.split()
+                 (list_filter(left,p)).concat(list_filter(right,p))
+              end
+         end
+    end
+  
 
 end

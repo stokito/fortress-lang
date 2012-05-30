@@ -13,6 +13,7 @@ component FileSupport
 
 import Util.{...}
 import Maybe.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation,DefaultSequentialGeneratorImplementation}
 
 export FileSupport
 
@@ -154,7 +155,7 @@ end
  **)
 object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
                           readOne:ReadStream -> Maybe[\S\])
-        extends { Consumable, Generator[\S\], SequentialGenerator[\S\] }
+        extends { Consumable, DefaultGeneratorImplementation[\S\] }
     consumed : Boolean := false
     up : ZZ32 = if upper <= 0 then 1024 else upper end
     consume():() = atomic do whenUnconsumed(); consumed := true end
@@ -184,8 +185,8 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
             end  
     *)
     
-        private go[\R\](r: Reduction[\R\], body: S->R): R =
-            if reader.eof then r.empty()
+        private go[\R extends Any\](r: Reduction[\R\], body: S->R): R =
+            if reader.eof then r.id
             else
                 if s0 <- readOne(reader) then
                     r.join(body(s0),go(r,body))
@@ -193,7 +194,7 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
                 end
             end     
               
-    generate[\R\](r: Reduction[\R\], body: S->R): R = do
+    generate[\R extends Any\](r: Reduction[\R\], body: S->R): R = do
         consume()
         a = go(r,body) (*) go(8 MIN up,r,body)
         reader.close()
@@ -246,22 +247,22 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
 end
 
 object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> Maybe[\S\])
-        extends { Consumable, SequentialGenerator[\S\] }
+        extends { Consumable, DefaultSequentialGeneratorImplementation[\S\] }
     consumed : Boolean := false
     consume():() = atomic do whenUnconsumed(); consumed := true end
     whenUnconsumed():() =
         if consumed then
             fail("Using consumed generator of " reader)
         end
-    generate[\R\](r: Reduction[\R\], body: S->R): R = do
+    generate[\R extends Any\](r: Reduction[\R\], body: S->R): R = do
         consume()
-        a:R := r.empty()
-        (*while (NOT reader.eof) do
+        a:R := r.id
+        while (NOT reader.eof) do
             if s <- readOne(reader) then
                 v = body(s)
                 a := r.join(a,v)
             end
-        end*)
+        end
         reader.close()
         a
       end
@@ -270,11 +271,11 @@ object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> Maybe[\S\]
 
     loop(body:S->()): () = do
         consume()
-        (*while (NOT reader.eof) do
+        while (NOT reader.eof) do
             if s <- readOne(reader) then
                 body(s)
             end
-        end*)
+        end
         reader.close()
       end
 end

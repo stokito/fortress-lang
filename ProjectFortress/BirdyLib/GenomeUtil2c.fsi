@@ -14,11 +14,12 @@ api GenomeUtil2c
 
 import List.{...}
 import Util.{...}
+import GeneratorLibrary.{DefaultSequentialGeneratorImplementation}
 
 colorsFromACGT(strACGT: String): String
 colorsToACGT(start: Character, colorstr: String): String
 
-trait ReferenceGenome extends { SequentialGenerator[\ReferenceGenomeChunk\] } end
+trait ReferenceGenome extends { DefaultSequentialGeneratorImplementation[\ReferenceGenomeChunk\] } end
 
 object ReferenceGenomeChunk(start: ZZ32, length: ZZ32, buffer: String, padLength: ZZ32)
   getter range(): Range

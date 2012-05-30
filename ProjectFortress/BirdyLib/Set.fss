@@ -12,8 +12,9 @@
 component Set
 
 import Maybe.{...}
-import Comparison.{...}
 import Util.{...}
+import CompilerAlgebra.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation,DefaultSequentialGeneratorImplementation}
 export Set
 
 (** Thrown when taking big intersection of no sets. **)
@@ -23,26 +24,27 @@ weight:ZZ32 = 4
 
 (** The natural order of the set, and indexing on the set, yields set
     elements in ascending order. **)
-trait Set[\E extends StandardTotalOrder[\E\]\] extends SequentialGenerator[\E\]
+trait Set[\E extends StandardTotalOrder[\E\]\] extends DefaultGeneratorImplementation[\E\]
     (*
     getter indexValuePairs():ZeroIndexed[\(ZZ32,E)\] =
         IndexValueSetGenerator[\E\](self)
     *)
     getter isEmpty():Boolean
     getter asDebugString():String = "Set: " || self.showTree()
-    seqgen[\R\](r: Reduction[\R\], body: E->R): R
-    ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
+    seqgen[\R extends Any\](r: Reduction[\R\], body: E->R): R
+    ivgen[\R extends Any\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
     seq(self): SequentialGenerator[\E\] = SeqSetGenerator[\E\](self)
-    getVal():E
+    (*)getVal():E
+    getValWithDefault(x: E):E
     getLeftChild():Set[\E\]
     getRightChild():Set[\E\]
     showTree():String
     printTree(): () = println(showTree())
-    subscript(i:ZZ32):E
+    (*)subscript(i:ZZ32):E
     opr IN(x:E, self):Boolean
     indexOf(x:E): Maybe[\ZZ32\] = self.indexOfI(0,x)
     indexOfI(i:ZZ32, x:E): Maybe[\ZZ32\]
-    generate[\R\](r: Reduction[\R\], body: E->R): R
+    generate[\R extends Any\](r: Reduction[\R\], body: E->R): R
     minimum():Maybe[\E\]
     maximum():Maybe[\E\]
     deleteMinimum():Set[\E\] =
@@ -65,7 +67,12 @@ trait Set[\E extends StandardTotalOrder[\E\]\] extends SequentialGenerator[\E\]
     splitIndex(x:ZZ32):(Set[\E\],Set[\E\])
     splitAt(x:E):(Set[\E\],Boolean,Set[\E\])
     concat3(v:E, t2:Set[\E\]):Set[\E\]
-    opr SUBSET(self, other:Set[\E\]): Boolean = true (*) (self SETCMP other) = LessThan TODO
+    opr SUBSET(self, other:Set[\E\]): Boolean = 
+      typecase (self SETCMP other) of 
+        LessThan =>  true 
+        else =>  false 
+      end  
+    (*) (self SETCMP other) = LessThan TODO
     opr SUBSETEQ(self, other:Set[\E\]): Boolean
     opr SUPSET(self, other:Set[\E\]): Boolean = other SUBSET self
     opr SUPSETEQ(self, other:Set[\E\]): Boolean = other SUBSETEQ self
@@ -88,7 +95,7 @@ opr BIG {[\T extends StandardTotalOrder[\T\]\]} : Comprehension[\T,Set[\T\],Set[
 
 object Union[\E extends StandardTotalOrder[\E\]\] extends MonoidReduction[\Set[\E\]\] 
     getter asString(): String = "Union reduction"
-    empty():Set[\E\] = EmptySet[\E\]
+    id():Set[\E\] = EmptySet[\E\]
     join(a:Set[\E\], b:Set[\E\]): Set[\E\] = a UNION b
 end
 
@@ -110,11 +117,11 @@ opr BIG UNION[\R extends StandardTotalOrder[\R\]\](g: Generator[\Set[\R\]\]):Set
     __bigOperatorSugar[\Set[\R\],Set[\R\],Set[\R\],Set[\R\]\](BIG UNION[\R\](), g)
 
 value object SeqSetGenerator[\E extends StandardTotalOrder[\E\]\](s: Set[\E\])
-       extends SequentialGenerator[\E\]
+       extends DefaultSequentialGeneratorImplementation[\E\]
     getter size(): ZZ32 = |s|
     getter isEmpty(): Boolean = s.isEmpty
     opr |self| : ZZ32 = |s|
-    generate[\R\](r: Reduction[\R\], body: E->R): R =
+    generate[\R extends Any\](r: Reduction[\R\], body: E->R): R =
         s.seqgen[\R\](r,body)
 end
 
@@ -184,8 +191,8 @@ object EmptySet[\E extends StandardTotalOrder[\E\]\] extends Set[\E\]
     getter isEmpty():Boolean = true
     getter asString(): String = "{}"
     opr |self| : ZZ32 = 0
-    subscript(i:ZZ32):E = fail("Empty set: cannot use subscript operator.")
-    opr[i:ZZ32]:E = fail("Empty set: cannot use subscript operator.")
+    (*)subscript(i:ZZ32):E = fail("Empty set: cannot use subscript operator.")
+    (*)opr[i:ZZ32]:E = fail("Empty set: cannot use subscript operator.")
     (*
     opr[r:Range[\ZZ32\]] : Set[\E\] = do
         rr = self.bounds.narrowToRange(r)
@@ -193,10 +200,11 @@ object EmptySet[\E extends StandardTotalOrder[\E\]\] extends Set[\E\]
     end
     *)
     indexOfI(_:ZZ32, e:E):Maybe[\ZZ32\] = Nothing[\ZZ32\]
-    generate[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
-    ivgen[\R\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = r.empty()
-    seqgen[\R\](r: Reduction[\R\], body: E->R): R = r.empty()
-    getVal():E = fail("Empty set: cannot getVal()")
+    generate[\R extends Any\](r: Reduction[\R\], body: E->R): R = r.id
+    ivgen[\R extends Any\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = r.id
+    seqgen[\R extends Any\](r: Reduction[\R\], body: E->R): R = r.id
+    (*)getVal():E = fail("Empty set: cannot getVal()")
+    getValWithDefault(x: E):E = x
     getLeftChild():Set[\E\] = self
     getRightChild():Set[\E\] = self
     showTree():String = "ε"
@@ -229,13 +237,13 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
     sz:ZZ32 = 1 + |left| + |right|
     getter size():ZZ32 = sz
     getter isEmpty():Boolean = false
-    getter asString():String = "{" || "," || "}" (*) .join[\E\](self) TODO
+    getter asString():String = "{" || left.asString || "," || val.asString || "," || right.asString || "}" (*) .join[\E\](self) TODO
     opr |self| : ZZ32 = sz
-    subscript(i:ZZ32):E = if i < |left| then left.subscript(i)
+    (* subscript(i:ZZ32):E = if i < |left| then left.subscript(i)
        elif i = |left| then val
        else right.subscript(i - |left| - 1) end
     opr[i:ZZ32]:E = if 0 <= i < sz then subscript(i)
-                    else fail("" self "[" i "] is out of bounds.") end
+                    else fail("" self "[" i "] is out of bounds.") end *)
                     (*
     opr[r:Range[\ZZ32\]] : Set[\E\] = do
         r' = self.bounds.narrowToRange(r)
@@ -251,15 +259,15 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
             GreaterThan => right.indexOfI(i + |left| + 1,e)
         end
         
-    generate[\R\](r: Reduction[\R\], body: E->R): R =
+    generate[\R extends Any\](r: Reduction[\R\], body: E->R): R =
        r.join(r.join(left.generate[\R\](r,body),body(val)),
               right.generate[\R\](r,body))        
-    ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = do
+    ivgen[\R extends Any\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R = do
         mi = |left| + i0
         r.join(r.join(left.ivgen[\R\](i0,r,body),body(mi,val)),
                right.ivgen[\R\](mi+1,r,body))
       end
-    seqgen[\R\](r: Reduction[\R\], body: E->R): R = do
+    seqgen[\R extends Any\](r: Reduction[\R\], body: E->R): R = do
         lg = left.seqgen[\R\](r,body)
         vg = body(val)
         mg = r.join(lg,vg)
@@ -267,6 +275,7 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
         r.join(mg,rg)
       end
     getVal():E = val
+    getValWithDefault(x: E):E = val
     getLeftChild():Set[\E\] = left
     getRightChild():Set[\E\] = right
 
@@ -300,32 +309,41 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
             self
         end
 
+    minimum(): Maybe[\E\] = 
+      if left.isEmpty then Just(val) else left.minimum() end
+
+(*
     minimum():Just[\E\] = do
         notDone : Boolean := true
-        t : NodeSet[\E\] := self
+        t : Set[\E\] := self
         while notDone do
             l = t.getLeftChild()
             typecase l of
-                l':NodeSet[\E\] => t := l'
+                l':NodeSet[\E\] => t := l (*) JT replace l by l' and runtime crash 
                 else => notDone := false
             end
         end
-        Just[\E\](t.getVal())
+        Just[\E\](t.getValWithDefault(val))
       end
+*)
 
+  maximum(): Maybe[\E\] = 
+    if right.isEmpty then Just(val) else right.minimum() end
+  
+(*
     maximum():Just[\E\] = do
         notDone : Boolean := true
         t : NodeSet[\E\] := self
         while notDone do
             l = t.getRightChild()
             typecase l of
-                l':NodeSet[\E\] => t := l'
+                l':NodeSet[\E\] => t := l' (*) SAME as above
                 else => notDone := false
             end
         end
         Just[\E\](t.getVal())
       end
-
+*)
     extractMinimum(): Just[\(E,Set[\E\])\] =
         if (min, delmin) <- left.extractMinimum() then
             Just[\(E,Set[\E\])\](min, balancedAdd(val,delmin,right))
@@ -392,7 +410,7 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
         else
             (l,m,r) = other.splitAt(val)
             typecase left SETCMP l of
-                (*)Unordered => Unordered
+                Unordered => Unordered
                 LessThan =>
                     if m AND: right SUBSETEQ r then
                         LessThan
@@ -478,7 +496,7 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
     single_L(val':E,  left':Set[\E\], right':Set[\E\]):NodeSet[\E\] = do
         a = val'
         x = left'
-        b = right'.getVal()
+        b = right'.getValWithDefault(val')
         y = right'.getLeftChild()
         z = right'.getRightChild()
         NodeSet[\E\](b, NodeSet[\E\](a, x, y), z)
@@ -486,7 +504,7 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
 
     single_R(val':E,  left':Set[\E\], right':Set[\E\]):NodeSet[\E\] = do
         b = val'
-        a = left'.getVal()
+        a = left'.getValWithDefault(val')
         x = left'.getLeftChild()
         y = left'.getRightChild()
         z = right'
@@ -496,8 +514,8 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
     double_L(val':E,  left':Set[\E\], right':Set[\E\]):NodeSet[\E\] = do
         a = val'
         x = left'
-        c = right'.getVal()
-        b = right'.getLeftChild().getVal()
+        c = right'.getValWithDefault(val')
+        b = right'.getLeftChild().getValWithDefault(val')
         y1 = right'.getLeftChild().getLeftChild()
         y2 = right'.getLeftChild().getRightChild()
         z = right'.getRightChild()
@@ -507,9 +525,9 @@ object NodeSet[\E extends StandardTotalOrder[\E\]\](val:E,  left:Set[\E\], right
 
     double_R(val':E,  left':Set[\E\], right':Set[\E\]):NodeSet[\E\] = do
         c = val'
-        a = left'.getVal()
+        a = left'.getValWithDefault(val')
         x = left'.getLeftChild()
-        b = left'.getRightChild().getVal()
+        b = left'.getRightChild().getValWithDefault(val')
         y1 = left'.getRightChild().getLeftChild()
         y2 = left'.getRightChild().getRightChild()
         z = right'

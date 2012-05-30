@@ -315,7 +315,7 @@ import java com.sun.fortress.nativeHelpers.{simpleArbitraryPrecisionArith.parse 
                                             }
                                        
 import AnyType.{Any}
-import CompilerAlgebra.{ Equality }
+import CompilerAlgebra.{ Equality, StandardTotalOrder }
 export CompilerBuiltin
 
 nanoTime(): RR64 = jNanoTime()
@@ -501,6 +501,7 @@ trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 , ZZ }
     coerce(x: IntLiteral) = x.asZZ64
     coerce(x: ZZ32) = jIntToLong(x)
     getter asZZ32(): ZZ32 = jLongOverflowingToInt(self)
+    getter bitsAsNN64(): NN64 = jMakeNN64FromZZ64(self)
     getter asString(): String = jLongToString(self)
     opr |self| : ZZ64 = jLongOverflowingAbs(self)
     opr -(self): ZZ64 = jLongOverflowingNeg(self)
@@ -553,9 +554,11 @@ trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 , ZZ }
     ceilingAverage(self, other: ZZ64): ZZ64 = (self BITOR other) - ((self BITXOR other) >> 1)
 end
 
-trait ZZ32 extends { Number, Equality[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
+trait ZZ32 extends { Number, Equality[\ZZ32\], StandardTotalOrder[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
     coerce(x: IntLiteral) = x.asZZ32
     getter asZZ32(): ZZ32 = self
+    getter asZZ64(): ZZ32 = self
+    getter bitsAsNN32(): NN32 = jMakeNN32FromZZ32(self)
     getter asString(): String = jIntToString(self)
     opr |self| : ZZ32 = jIntOverflowingAbs(self)
     opr -(self): ZZ32 = jIntOverflowingNeg(self)
@@ -613,6 +616,7 @@ end
 trait NN32 extends { Number, Equality[\NN32\] } excludes { ZZ32, ZZ64, RR32, RR64 }
     coerce(x: IntLiteral) = x.asNN32
     getter asNN32(): NN32 = self
+    getter bitsAsZZ32(): ZZ32 = jMakeZZ32FromNN32(self)
     getter asString(): String = jUnsignedIntToString(jMakeZZ32FromNN32(self))
     opr |self| : NN32 = self
     opr -(self): NN32 = 
@@ -666,14 +670,16 @@ trait NN32 extends { Number, Equality[\NN32\] } excludes { ZZ32, ZZ64, RR32, RR6
     opr ^(self, other:NN32):NN32 = jMakeNN32FromZZ32(jUnsignedIntExp(jMakeZZ32FromNN32(self), jMakeZZ32FromNN32(other)))
     asRR64(): RR64 = jUnsignedIntToDouble(jMakeZZ32FromNN32(self))
     (*) `floorAverage` computes `|\ (self+other)/2 /|` efficiently and without overflow.
-    floorAverage(self, other: NN32): NN32 = (self BITAND other) + ((self BITXOR other) >> 1)
+    floorAverage(self, other: NN32): NN32 = (self BITAND other) + ((self BITXOR other) >> (1).asNN32)
     (*) `ceilingAverage` computes `|/ (self+other)/2 \|` efficiently and without overflow.
-    ceilingAverage(self, other: NN32): NN32 = (self BITOR other) - ((self BITXOR other) >> 1)
+    ceilingAverage(self, other: NN32): NN32 = (self BITOR other) - ((self BITXOR other) >> (1).asNN32)
 end
 
 trait NN64 extends { Number, Equality[\NN64\] } excludes { ZZ32, ZZ64, RR32, RR64, NN32, ZZ, IntLiteral }
     coerce(x: IntLiteral) = x.asNN64
+    coerce(x: NN32) = jMakeNN64FromZZ64(jIntToLong(jMakeZZ32FromNN32(x)))
     getter asNN64(): NN64 = self
+    getter bitsAsZZ64(): ZZ64 = jMakeZZ64FromNN64(self)
     getter asString(): String = junsignedLongToString(jMakeZZ64FromNN64(self))
     opr |self| : NN64 = self
     opr -(self): NN64 = 
@@ -835,24 +841,28 @@ trait FloatLiteral excludes {RR32, RR64}
     getter asRR64(): RR64
 end
 
-trait Boolean extends { Equality[\Boolean\] }
+trait Boolean 
+    extends { Equality[\Boolean\] }
+(*)    extends { Equality[\Boolean\], Condition[\()\] }
     excludes { String, Number }
+  getter isEmpty(): Boolean = NOT self
+  getter nonEmpty(): Boolean = self
   getter holds(): Boolean = self
+  getter reverse(): Boolean = self
   getter get(): () = ()
   getter asString(): String = self.asExprString
   getter asExprString(): String = if self then "true" else "false" end
   getter size(): ZZ32 = |self|
   opr |self| : ZZ32 = if self then 1 else 0 end
-(*)   cond[\R\](t:()->R, e:()->R) : R = if self then t() else e() end
-(*)   generate[\R\](r:Reduction[\R\],b:()->R): R =
-(*)       if self then b() else r.empty() end
-(*)   map[\G\](f: ()->G): Maybe[\G\] =
-(*)       if self then Just[\G\](f()) else Nothing[\G\] end
+(*)   cond[\R\](t: ()->R, e: ()->R) : R = if self then t() else e() end
+(*)   generate[\R\](r: Reduction[\R\], b: ()->R): R =
+(*)       if self then b() else r.id end
+(*)   map[\G\](f: ()->G): Option[\G\] =
+(*)       if self then Some[\G\](f()) else NoneObject[\G\] end
 (*)   cross[\G\](g: Generator[\G\]): Generator[\((),G)\] =
 (*)       if self
 (*)       then g.map[\((),G)\](fn (e:G):((),G) => ((),e))
-(*)       else Nothing[\((),G)\] end
-
+(*)       else NoneObject[\((),G)\] end
 (*)   mapReduce[\R\](b: ()->R, _:(R,R)->R, z:R): R =
 (*)       if self then b() else z end
 (*)   loop(f:()->()): () = if self then f() end
@@ -1011,6 +1021,277 @@ trait JavaBufferedWriter excludes { String, Number, Boolean, Character, JavaBuff
 end
 
 makeJavaBufferedWriter(s: String): JavaBufferedWriter throws FileNotFoundException = jJavaBufferedWriterOpen(s.asJavaString)
+
+
+(************************************************************
+ * Generators and Reducers
+ ************************************************************)
+
+(***\
+   An object of type Generator[\E\] can "generate values of type E."
+   Such generated values are called the //elements// of the generator.
+
+   Generators are used to express iteration in Fortress.  Every
+   generated expression in Fortress (such as `for` loops and comprehensions)
+   is desugared into calls to methods of `Generator`, chiefly the `generate`
+   method.
+
+   Every generator has a notion of a "natural order" (which by default is
+   unspecified), which describes the ordering of reduction operations,
+   and also describes the order in which elements are produced by the
+   sequential version of the same generator (given by the seq(self)
+   method).  The default implementation of seq(self) guarantees that these
+   orders will match.
+
+   Note in particular that the natural order of a Generator must be
+   consistent; that is, if `a SEQV `b then `a` and `b` must yield equivalent
+   elements in the same natural order.  However, note that unless a type
+   specifically documents otherwise, no particular element ordering is
+   guaranteed, nor is it necessary to guarantee that `a=b` implies that
+   generators `a` and `b` have the same natural order.
+
+   Note that there are a number of more complex derived generators that
+   are specified further down in this file.  These have the same notions
+   of natural order and by default are defined in terms of the
+   generate() method.
+
+   The `Generator` trait does not assume that equality `=` is defined for
+   the generated type.
+
+   The minimal complete definition of a `Generator` is the `generate` method.
+ *)
+
+trait AllGenerators end
+
+trait Generator[\E1\] extends { AllGenerators } excludes { Number, Character }
+(*)    getter asString(): String = (BIG ||[i <- self] "," i)[1:]
+
+    (** Returns a generator that generates the same objects as this generator
+        but using a natural order that is the reverse of this generator's
+        natural order. *)
+    getter reverse(): Generator[\E1\]
+
+    (** Method `generate` is the core of the `Generator` trait.  It generates
+        elements of type `E1` and passes them to the `body` function.
+        This generation can occur using any mixture of serial and
+        parallel execution desired by the author of the generator; by
+        default, uses of a generator must assume every call to the
+        body occurs in parallel.
+
+        The results of generation are combined using the reduction
+        object R, which specifies a monoidal operation (associative
+        and with an identity).  Body results must be combined together
+        following the natural order of the generator.  The author of
+        the generator is free to use the identity element anywhere
+        desired in this computation, and to group reductions in any
+        way desired; if no elements are generated, the identity must be
+        returned. *)
+    generate[\R\](r: Reduction[\R\], body: E1->R): R
+
+    (** Transforming generators into new generators *)
+    (** `map` returns a new generator that generates the results of
+        applying the function `f` to the elements of this generator.
+        It is not specified whether any of the applications of `f`
+        occur before the new generator is returned.  The resulting
+        generator must have the same ordering and cross product
+        properties as the generator from which it is derived. *)
+    map[\Gyy\](f: E1->Gyy): Generator[\Gyy\]
+
+    (** seq produces a sequential version of the same generator, which
+        produces elements in a temporal order that matches this generator's
+        natural order. *)
+(*)    seq(self): SequentialGenerator[\E1\]
+    seq(): SequentialGenerator[\E1\]
+
+    (** Nesting of generators: the argument `f` is a function from
+        elements of this generator to new generators.  This allows an
+        inner generator expression to be data-dependent on this (outer)
+        generator.  The result is a new generator that will produce all
+        the elements of all the generators resulting from applying `f` to
+        every element of this generator.  Appropriate overloading of this
+        method allows the production of specialized implementations
+        when particular sorts of generators are nested.  The natural order
+        of the new generator is the concatenation of the natural orders of the
+        inner generators, where such concatenation is done in the natural order
+        of this generator.  So for example, if we write:
+          (0#3).nest[\ZZ32\](\(n:ZZ32):Generator[\ZZ32\] => (n*100#4))
+        then the twelve elements of the result should appear in the natural
+        order as 0, 1, 2, 3, 100, 101, 102, 103, 200, 201, 202, 203.
+     **)
+    nest[\G1\](f: E1 -> Generator[\G1\]): Generator[\G1\]
+
+    (** Filtering data from a generator.  Only elements that satisfy
+        the predicate p are retained.  Natural order and cross product
+        properties are otherwise preserved. **)
+    filter(f: E1 -> Condition[\()\]): Generator[\E1\]
+
+    (** Cross product of two generators.  This is specifically
+        designed to be overloaded, such that pairs of independent
+        generators can be combined to produce a generator which
+        possibly interleaves the iteration spaces of the two
+        generators.  For example, we might combine `(0#16).cross(0#32)`
+        such that it first splits the second range in half, then the
+        first range in half, then the second, and so forth.
+
+        Consider a grid for which the rows are labeled from top to
+        bottom with the elements of a in natural order, and the
+        columns are labeled from left to right with the elements of g
+        in natural order.  Each point in the grid corresponds to a
+        pair (a,b) that must be generated by self.cross(g).  In the
+        natural order of the cross product, an element must occur
+        after those that lie above and to the left of it in the grid.
+        By default the natural order of the cross product is
+        left-to-right, top to bottom.  Programmers must not rely on
+        the default order, except that cross products involving one or
+        more sequential generators are always performed in the default
+        order.  Note that this means that the following have the same
+        natural order:
+           seq(a).cross(b)
+           a.cross(seq(b))
+           seq(a).cross(seq(b))
+        But seq(a.cross(b)) may have a different natural order. *)
+    cross[\G2\](g: Generator[\G2\]): Generator[\(E1,G2)\]
+
+    (** Derived generation operations *)
+    (** mapReduce is equivalent to generate, but takes an explicit `join` function
+        and an identity value `id` that can have any type.  It still assumes `join` is
+        associative and that `id` is the identity of `join`. *)
+    mapReduce[\R\](body: E1->R, join: (R,R)->R, id: R): R
+
+    (** `reduce` is like `generate` or `mapReduce` but takes no `body` function *)
+    reduce(r: Reduction[\E1\]): E1
+    reduce(join: (E1,E1)->E1, id: E1): E1
+
+    (** `loop` is a version of `generate` that requires a body of void type.
+        It is used to translate `for` loops.  This default implementation uses
+        `VoidReduction` to reduce many void values to one, thus synchronizing
+        completion of the `for` loop. *)
+    loop(body :E1->()): ()
+
+end Generator
+
+trait SequentialGenerator[\E2\] extends { Generator[\E2\] }
+    getter reverse(): SequentialGenerator[\E2\]
+    seq(): SequentialGenerator[\E2\]
+    map[\G3\](f: E2->G3): SequentialGenerator[\G3\]
+    nest[\G4\](f: E2 -> SequentialGenerator[\G4\]): SequentialGenerator[\G4\]
+    filter(f: E2 -> Condition[\()\]): SequentialGenerator[\E2\]
+    cross[\F1\](g: SequentialGenerator[\F1\]): SequentialGenerator[\(E2,F1)\]
+end SequentialGenerator
+
+(* This is the trait that the `generate` method of a `Generator` needs to accept.
+   In order to encourage parallelism, we require all reductions to be associative.
+   In order to make programming the common case of generators easier, we require
+   all reductions to have an identity; in situations where the natural join operation
+   does not have an identity, trait `NonemptyReduction` can be used to lift that
+   operation to a new one that does have an identity. *)
+
+trait Reduction[\R\]
+    getter reverse(): Reduction[\R\] = ReversedReduction[\R\](self)
+    getter id(): R
+    join(a: R, b: R): R
+(*)     property FORALL(a: R) join(a, self.id) = a
+(*)     property FORALL(a: R) join(self.id, a) = a
+(*)     property FORALL(a: R, b: R, c: R) join(join(a,b), c) = join(a,join(b,c))
+(*)     property FORALL(a: R) self.reverse.join(a, b) = join(b, a)
+end
+
+private object ReversedReduction[\R\](r: Reduction[\R\]) extends Reduction[\R\]
+  getter asString(): String = "ReversedReduction(" || r.asString || ")"
+  getter reverse(): Reduction[\R\] = r
+  getter id(): R = r.id
+  join(x:R, y:R): R = r.join(y, x)
+end
+
+
+trait Condition[\E18\] extends { SequentialGenerator[\E18\] }
+(*)        excludes { String, ZZ, ZZ32, ZZ64, NN32, NN64, IntLiteral, RR32, RR64, ZZ32Vector, StringVector }
+    getter isEmpty(): Boolean
+    getter nonEmpty(): Boolean
+    getter holds(): Boolean
+    getter size(): ZZ32
+    getter get(): E18 throws NotFound
+    getter reverse(): Condition[\E18\]
+    getDefault(defaultValue: E18): E18
+(*)    opr |self| : ZZ32     (*) Problem here GLS 5/21/12
+    generate[\G11\](r: Reduction[\G11\], body: E18 -> G11): G11
+    map[\G12\](f: E18->G12): Condition[\G12\]
+    seq(): Condition[\E18\] = self
+    nest[\G13\](f: E18 -> Generator[\G13\]): Generator[\G13\]
+    nest[\G18\](f: E18 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\]
+    cross[\G14\](g: Generator[\G14\]): Generator[\(E18,G14)\]
+    cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E18,G17)\]
+    mapReduce[\R\](body: E18->R, _:(R,R)->R, id:R): R
+    reduce(_:(E18,E18)->E18, id:E18): E18
+    reduce(r: Reduction[\E18\]): E18
+    loop(f:E18->()): ()
+    cond[\G10\](t: E18 -> G10, e: () -> G10): G10
+(*)    opr OR(self, other: () -> E18): E18
+end Condition
+
+
+(* Option type *)
+
+value trait Option[\E19\] extends { Condition[\E19\] }
+        comprises { NoneObject[\E19\], Some[\E19\] }
+  coerce(_: None) = NoneObject[\E19\]
+  getter isEmpty(): Boolean = NOT self.holds
+  getter nonEmpty(): Boolean = self.holds
+  getter reverse(): Option[\E19\] = self
+(*)  opr |self| : ZZ32 = self.size
+  seq(): Option[\E19\] = self
+  filter(f: E19 -> Condition[\()\]): Option[\E19\]
+(*)  opr SQCAP(self, other: Option[\E19\]): Option[\E19\]
+end
+
+value object Some[\E20\](x: E20) extends Option[\E20\]
+    getter asString(): String = "Some(" || debugString(x) || ")"
+    getter size(): ZZ32 = 1
+    getter get() = x
+    getter holds() = true
+    getDefault(_: E20): E20 = x
+(*)     opr IN(y:E20, self): Boolean = (y = x)
+(*)     opr =(self,other:Some[\E20\]): Boolean = (x = other.x)
+(*)    opr SQCAP(self, other:Some[\E20\]): Option[\E20\] = if other.x = x then self else NoneObject[\E20\] end
+    generate[\G11\](r:Reduction[\G11\], body: E20 -> G11): G11 = body(x)
+    map[\G12\](f: E20->G12): Condition[\G12\] = Some[\G12\](f(x))
+    nest[\G13\](f: E20 -> Generator[\G13\]): Generator[\G13\] = f(x)
+    nest[\G18\](f: E20 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\] = f(x)
+    filter(f: E20 -> Condition[\()\]): Option[\E20\] = if f(x).holds then self else NoneObject[\E20\] end
+    cross[\G14\](g: Generator[\G14\]): Generator[\(E20,G14)\] =
+      g.map[\(E20,G14)\](fn (y:G14):(E20,G14) => (x,y))
+    cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E20,G17)\] =
+      g.map[\(E20,G17)\](fn (y:G17):(E20,G17) => (x,y))
+    mapReduce[\R\](body: E20->R, _:(R,R)->R, id:R): R = body(x)
+    reduce(_:(E20,E20)->E20, id:E20):E20 = x
+    reduce(r: Reduction[\E20\]):E20 = x
+    loop(f:E20->()): () = f(x)
+    cond[\G10\](t: E20 -> G10, e: () -> G10): G10 = t(x)
+end
+
+value object NoneObject[\E21\] extends Option[\E21\]
+    getter asString():String = "None"
+    getter size(): ZZ32 = 0
+    getter get() = throw NotFound
+    getter holds() = false
+    getDefault(defaultValue: E21): E21 = defaultValue
+(*)     opr IN(x:E21, self): Boolean = false
+(*)     opr SQCAP(self, other: Option[\E21\]): NoneObject[\E21\] = self
+    generate[\G11\](r: Reduction[\G11\], body: E21 -> G11): G11 = r.id
+    map[\G12\](f: E21->G12): Condition[\G12\] = NoneObject[\G12\]
+    nest[\G13\](f: E21 -> Generator[\G13\]): Generator[\G13\] = NoneObject[\G13\]
+    nest[\G18\](f: E21 -> SequentialGenerator[\G18\]): SequentialGenerator[\G18\] = NoneObject[\G18\]
+    filter(f: E21 -> Condition[\()\]): Option[\E21\] = self
+    cross[\G14\](g: Generator[\G14\]): Generator[\(E21,G14)\] = NoneObject[\(E21,G14)\]
+    cross[\G17\](g: SequentialGenerator[\G17\]): SequentialGenerator[\(E21,G17)\] = NoneObject[\(E21,G17)\]
+    mapReduce[\R\](body: E21->R, _:(R,R)->R, id:R): R = id
+    reduce(_:(E21,E21)->E21, id:E21):E21 = id
+    reduce(r: Reduction[\E21\]):E21 = r.id
+    loop(f:E21->()): () = ()
+    cond[\G16\](t: E21 -> G16, e: () -> G16): G16 = e()
+end
+
+value object None end
 
 
 (************************************************************

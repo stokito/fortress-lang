@@ -1,0 +1,27 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newsec{Conditional Operators}{conditional-operators}
+
+If a binary operator other than ``\txt{:}' and ``\txt{::}' is immediately followed by a ``\txt{:}'
+then it is \emph{conditional}: evaluation of the right-hand operand
+cannot begin until evaluation of the left-hand operand has completed,
+and whether or not the right-hand operand is evaluated may depend on
+the value of the left-hand operand.  If the left-hand operand throws
+an exception, then the right-hand operand is not evaluated.
+
+
+\Library\ define several conditional operators
+on boolean values including \EXP{\wedge\mathinner{\mathtt{:}}} and
+\EXP{\vee\mathinner{\mathtt{:}}}.
+
+\See{conditional-operators-impl} for a discussion of how conditional operators
+are declared.

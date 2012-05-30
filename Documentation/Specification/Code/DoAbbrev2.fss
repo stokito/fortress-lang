@@ -1,0 +1,61 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2009,2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component HelloWorld
+
+export Executable
+
+f() = do
+  var x: ZZ32 = 0
+  var y: ZZ32 = 0
+  var b: ZZ32 = 0
+  remoteTask() = ()
+  mysteriousTask() = ()
+(** EXAMPLE **)
+do
+  atomic do
+    x += 1
+    y += 2
+  end
+also do
+  atomic do
+    b += 1
+    y += 3
+  end
+end
+(** END EXAMPLE **)
+
+(*
+do
+  atomic do
+    x += 1
+    y += 2
+  end
+also do
+  atomic do
+    b += 1
+    y += 3
+  end
+also do
+  at knownRegion do remoteTask() end
+also do
+  at secretRegion atomic do
+    mysteriousTask()
+    y += 4
+  end
+end
+*)
+
+run () = f()
+
+end

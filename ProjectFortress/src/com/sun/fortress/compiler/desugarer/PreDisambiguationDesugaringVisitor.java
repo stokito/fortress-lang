@@ -36,7 +36,9 @@ import static com.sun.fortress.nodes_util.DesugarerUtil.*;
 import static com.sun.fortress.exceptions.InterpreterBug.bug;
 
 /** Run desugaring phases that must occur before disambiguation.
- *  1) Rewrite trait, object, and object expressions to explicitly extend Object.
+ *  1) Rewrite trait, object, and object expressions to explicitly extend Object
+ *     if no explicit bounds were given.  Also rewrite static parameter bindings
+ *     to explicitly extend Object if no explicit bounds were given.
  *  2) Remove conditional operators, replacing their operands with thunks.
  *  Desugar conditional operators into operators that take thunks.
  *  This desugaring is described in section 22.8 of the specification.
@@ -67,6 +69,20 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         TraitType typeObject = NodeFactory.makeTraitType(objectId);
         TraitTypeWhere extendsObject = NodeFactory.makeTraitTypeWhere(typeObject);
         return Collections.singletonList(extendsObject);
+    }
+
+    /** If the extends clause of a static parameter is empty,
+     *  then replace the empty extends clause with {Object}.
+     */
+    private List<BaseType> rewriteStaticParamExtendsClause(Node whence,
+                                                           List<BaseType> extendsClause) {
+        if (extendsClause.size() > 0) return extendsClause;
+        if ( ! ( whence instanceof ASTNode ) )
+            bug(whence, "Only ASTNodes are supported.");
+        Id objectId = NodeFactory.makeId(NodeUtil.getSpan((ASTNode)whence),
+                                         WellKnownNames.objectTypeName);
+        TraitType typeObject = NodeFactory.makeTraitType(objectId);
+        return Collections.singletonList((BaseType)typeObject);
     }
 
     @Override
@@ -114,6 +130,21 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
         return super.forObjectDeclOnly(that, that.getInfo(),
                                        header_result, that.getSelfType());
     }
+
+
+    // Commented out for now: it seems to give the interpreter tests grief.  GLS 5/29/12
+    // When put back into action, tests XXX6b[uv] need to be updated to add " extends Object".
+//     @Override
+//     public Node forStaticParam(StaticParam that) {
+//         ASTNodeInfo info_result = (ASTNodeInfo) recur(that.getInfo());
+//         IdOrOp name_result = (IdOrOp) recur(that.getName());
+//         List<BaseType> extendsClause_result = recurOnListOfBaseType(that.getExtendsClause());
+//         List<BaseType> dominatesClause_result = recurOnListOfBaseType(that.getDominatesClause());
+//         Option<Type> dimParam_result = recurOnOptionOfType(that.getDimParam());
+//         StaticParamKind kind_result = (StaticParamKind) recur(that.getKind());
+// 	extendsClause_result = rewriteStaticParamExtendsClause(that, extendsClause_result);
+//         return forStaticParamOnly(that, info_result, name_result, extendsClause_result, dominatesClause_result, dimParam_result, kind_result);
+//     }
 
     @Override
     public Node forAmbiguousMultifixOpExpr(AmbiguousMultifixOpExpr that) {
@@ -240,7 +271,7 @@ public class PreDisambiguationDesugaringVisitor extends NodeUpdateVisitor {
             if (suffix) {
                 arg = thunk(arg);
             }
-            res = ExprFactory.makeOpExpr(sp, qop, res, arg);
+            res = ExprFactory.makeOpExpr(sp, NodeUtil.isParenthesized(opExp), qop, res, arg);
         }
         return res;
     }

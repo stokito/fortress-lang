@@ -13,6 +13,7 @@ api FileSupport
 
 import Util.{...}
 import Maybe.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation,DefaultSequentialGeneratorImplementation}
 
 (***********************************************************
  * Types to support file input and output
@@ -114,11 +115,11 @@ end
 
 object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
                           readOne:ReadStream -> Maybe[\S\])
-        extends { Consumable, Generator[\S\], SequentialGenerator[\S\] }
+        extends { Consumable, DefaultGeneratorImplementation[\S\] }
 end
 
 object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> Maybe[\S\])
-        extends { Consumable, SequentialGenerator[\S\] }
+        extends { Consumable, DefaultSequentialGeneratorImplementation[\S\] }
 end        
 
 end

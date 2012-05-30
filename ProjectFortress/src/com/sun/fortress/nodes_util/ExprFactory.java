@@ -200,6 +200,12 @@ public class ExprFactory {
                           Arrays.asList(first, second));
     }
 
+    public static OpExpr makeOpExpr(Span span, boolean parenthesized, Op op, Expr first,
+                                    Expr second) {
+        return makeOpExpr(span, parenthesized, Option.<Type>none(), makeOpRef(op),
+                          Arrays.asList(first, second));
+    }
+
     public static OpExpr makeOpExpr(Span span, Op op, List<StaticArg> staticArgs) {
         return makeOpExpr(span, makeOpRef(op, staticArgs));
     }
@@ -875,7 +881,15 @@ public class ExprFactory {
                                     Option<Type> returnType,
                                     Option<List<Type>> throwsClause,
                                     Expr body) {
-        return makeFnExpr(span, false, Option.<Type>none(),
+        return makeFnExpr(span, false, params, returnType, throwsClause, body);
+    }
+
+    public static FnExpr makeFnExpr(Span span, boolean parenthesized,
+				    List<Param> params,
+                                    Option<Type> returnType,
+                                    Option<List<Type>> throwsClause,
+                                    Expr body) {
+        return makeFnExpr(span, parenthesized, Option.<Type>none(),
                           makeAnonymousFnName(span, Option.<APIName>none()),
                           Collections.<StaticParam>emptyList(), params,
                           returnType, Option.<WhereClause>none(),

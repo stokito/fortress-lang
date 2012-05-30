@@ -13,8 +13,9 @@ api Set
 
 
 import Maybe.{...}
-import Comparison.{...}
 import Util.{...}
+import CompilerAlgebra.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation}
 
 (** Thrown when taking big intersection of no sets. **)
 object EmptyIntersection extends UncheckedException end
@@ -24,14 +25,15 @@ object EmptyIntersection extends UncheckedException end
  * must support comparison using $<$ and $=$.  When generated, these sets
  * produce their elements in sorted order.
  **)
-trait Set[\E extends StandardTotalOrder[\E\]\] extends SequentialGenerator[\E\]
+trait Set[\E extends StandardTotalOrder[\E\]\] extends DefaultGeneratorImplementation[\E\]
  
    abstract getter isEmpty(): Boolean
 
    seq(self): SequentialGenerator[\E\]
-   abstract seqgen[\R\](r: Reduction[\R\], body: E->R): R
-   abstract ivgen[\R\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
-   abstract getVal():E
+   abstract seqgen[\R extends Any\](r: Reduction[\R\], body: E->R): R
+   abstract ivgen[\R extends Any\](i0:ZZ32, r: Reduction[\R\], body: (ZZ32,E)->R): R
+   (*)abstract getVal():E
+   abstract getValWithDefault(x: E):E
    abstract getLeftChild():Set[\E\]  (*) Not pleasant, revaling implementation detail. Should be part of another trait
    abstract getRightChild():Set[\E\]
    abstract showTree():String      
@@ -39,7 +41,7 @@ trait Set[\E extends StandardTotalOrder[\E\]\] extends SequentialGenerator[\E\]
    printTree():() 
    abstract opr | self | : ZZ32   
 
-   abstract subscipt(i:ZZ32):E
+   (*)abstract subscipt(i:ZZ32):E
 
    abstract minimum():Maybe[\E\]
    abstract maximum():Maybe[\E\]
@@ -52,7 +54,7 @@ trait Set[\E extends StandardTotalOrder[\E\]\] extends SequentialGenerator[\E\]
    abstract opr IN(x:E, self):Boolean
    
    abstract balancedDelete(r:Set[\E\]):Set[\E\]
-   abstract generate[\R\](r: Reduction[\R\], body: E->R): R
+   abstract generate[\R extends Any\](r: Reduction[\R\], body: E->R): R
    
    abstract opr UNION(self,t2:Set[\E\]):Set[\E\]
    abstract opr INTERSECTION(self,t2:Set[\E\]):Set[\E\]

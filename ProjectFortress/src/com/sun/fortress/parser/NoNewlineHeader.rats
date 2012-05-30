@@ -204,7 +204,7 @@ transient WhereBinding WhereBinding =
      };
 
 /* FnHeaderClause ::= (w NoNewlineIsTypeOrThrow)? FnClauses */
-FnHeaderClause FnHeaderClause = a1:(w NoNewlineIsTypeOrNone)? a2:FnClauses
+FnHeaderClause FnHeaderClause = a1:(w NoNewlineIsTypeOrZilch)? a2:FnClauses
      { NodeUtil.checkWhereClauses(writer, a2.getWhereClause());
        yyValue = new FnHeaderClause(a2.getThrowsClause(), a2.getWhereClause(),
                                     a2.getContractClause(), Option.<Type>wrap(a1));

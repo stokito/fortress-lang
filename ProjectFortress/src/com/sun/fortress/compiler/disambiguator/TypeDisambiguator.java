@@ -85,6 +85,13 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
     @Override
     public Node forTraitDecl(final TraitDecl that) {
         TypeDisambiguator v = this.extend(NodeUtil.getStaticParams(that));
+        List<TraitTypeWhere> before = NodeUtil.getExtendsClause(that);
+        List<TraitTypeWhere> after = v.recurOnListOfTraitTypeWhere(before);
+// 	System.out.print(">>>  [ ");
+//         for (TraitTypeWhere x : before) System.out.print(x.getBaseType().toStringReadable().replace('\n', '#') + " ");
+// 	System.out.print("] => [ ");
+//         for (TraitTypeWhere x : after) System.out.print(x.getBaseType().toStringReadable().replace('\n', '#') + " ");
+// 	System.out.println("] @ " + that.at());
         TraitTypeHeader header =
                 (TraitTypeHeader) forTraitTypeHeaderOnly(that.getHeader(),
                                                          v.recurOnListOfStaticParam(NodeUtil.getStaticParams(that)),
@@ -92,7 +99,7 @@ public class TypeDisambiguator extends NodeUpdateVisitor {
                                                          v.recurOnOptionOfWhereClause(NodeUtil.getWhereClause(that)),
                                                          Option.<List<Type>>none(),
                                                          Option.<Contract>none(),
-                                                         v.recurOnListOfTraitTypeWhere(NodeUtil.getExtendsClause(that)),
+                                                         after,
                                                          v.recurOnOptionOfListOfParam(NodeUtil.getParams(that)),
                                                          v.recurOnListOfDecl(NodeUtil.getDecls(that)));
         return forTraitDeclOnly(that,

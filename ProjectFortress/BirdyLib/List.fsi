@@ -13,19 +13,18 @@ api List
 
 import Util.{...}
 import Maybe.{...}
-import Comparison.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation}
 
-trait List[\E\] extends Generator[\E\]
+trait List[\E extends Any\] extends DefaultGeneratorImplementation[\E\]
 
   abstract getter isEmpty():Boolean    
   abstract extractLeft(): Maybe[\(E,List[\E\])\]
   abstract extractRight(): Maybe[\(List[\E\],E)\]
   opr ||(self, other:List[\E\]): List[\E\]
-  abstract getVal():E
+  abstract getValWithDefault(x: E):E
   abstract getLeftChild():List[\E\]
   abstract getRightChild():List[\E\]
-  abstract subscript(i:ZZ32):E
-  abstract generate[\R\](r: Reduction[\R\], body: E->R): R
+  abstract generate[\R extends Any\](r: Reduction[\R\], body: E->R): R
   abstract addLeft(e:E):List[\E\]
   abstract addRight(e:E):List[\E\]
   split(n:ZZ32): (List[\E\], List[\E\])
@@ -50,6 +49,8 @@ end
 emptyList[\E\](): List[\E\]
 singleton[\E\](x:E): List[\E\]
 opr <|[\T\]|>: List[\T\]
+
+opr <|[\T\] x1: T, x2: T |>: List[\T\]
 
 opr BIG <|[\T\]|> : Comprehension[\T,List[\T\],List[\T\],List[\T\]\]
 
@@ -88,7 +89,7 @@ end
 
 *)
 
-transpose[\E,F\](xs: List[\(E,F)\]): (List[\E\], List[\F\])
+(*)transpose[\E,F\](xs: List[\(E,F)\]): (List[\E\], List[\F\])
 
 
 end

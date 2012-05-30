@@ -12,8 +12,8 @@
 component Compiled3.n
 export Executable
 
-trait S[\X\] end
-trait T[\X\] excludes S[\()\] end
+trait S[\X extends Any\] end
+trait T[\X extends Any\] excludes S[\()\] end
 
 f():() = ()
 f(x: T[\String\]):() = ()
