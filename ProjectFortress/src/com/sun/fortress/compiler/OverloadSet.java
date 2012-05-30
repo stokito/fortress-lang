@@ -1321,15 +1321,17 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 // Will need lookahead for the next one.
                 lookahead = new Label();
 
-                // if this was a generic method, we need to include the receiver argument
-                // in the inference even if the firstArgIndex is 1
+                // if this was a generic method that needs inference, we need to include the receiver argument
+                // in the inference even if the firstArgIndex is 1 so that we can include it in inference
+                // and dispatch
                 //KBN-WIP is there a cleaner way to do this?
-                int offset = (f_type_structures.length == f.getParameters().size()) ? firstArgIndex : 0; 
+                int offset = (f_type_structures.length == specificDispatchOrder[i].getParameters().size()) ? 
+                                firstArgIndex : 0; 
                 
                 for (int j = 0; j < f_type_structures.length; j++) {
                     // Load actual parameter
                     if (j != selfIndex()) {
-                        mv.visitVarInsn(Opcodes.ALOAD, j + offset); //+ firstArgIndex); KBN - in inference the type of the receiver is included, so we need this for methods regardless
+                        mv.visitVarInsn(Opcodes.ALOAD, j + offset); 
                         f_type_structures[j].emitInstanceOf(mv, lookahead, true);
                         //inference needed if the type structure contains generics TODO: do generics not appearing in the parameters make sense?  probably not, but might need to deal with them.
                         if (f_type_structures[j].containsTypeVariables)
