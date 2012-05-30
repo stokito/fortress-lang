@@ -28,7 +28,8 @@ component Test
      println(s'' SUBSET s3)
      if foo <- s3.minimum() then println(foo) else println("bar") end
      if bar <- s3.maximum() then println(bar) end
-     (*)y: ZZ32 =  s'.generate[\ZZ32\](SumRed,fn z => z z) 
+     y: ZZ32 =  s'.generate[\ZZ32\](SumRed,fn z => z z) 
+     println(y)
      (*)y: ZZ32 = BIG + [z <- s'] z z
      println("PASS")
   end

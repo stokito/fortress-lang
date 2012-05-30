@@ -43,7 +43,7 @@ trait Map[\Key extends StandardTotalOrder[\Key\], Val\]
     abstract getLeftChild(): Map[\Key, Val\]
     abstract getRightChild(): Map[\Key, Val\]
     (*)opr[k:Key]: Val throws NotFound
-    mem(k: Key): Map[\Key, Val\]
+    abstract mem(k: Key): Map[\Key, Val\]
     member(x: Key): Maybe[\Val\]
     member(x: Key, v: Val): Val
     abstract minimum(): Maybe[\(Key, Val)\]
