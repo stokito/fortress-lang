@@ -21,7 +21,7 @@ end
 
 object o[\U extends Object\](x:U) extends b[\U\]
   m[\T extends Object\](f:U->T):b[\T\] = o[\T\](f(x))
-  p() = println x
+  p() = println "b" x
 end
 
 id(x:String):String = x

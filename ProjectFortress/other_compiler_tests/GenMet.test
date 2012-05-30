@@ -7,7 +7,7 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests= GenMet0 GenMet1 GenMet2 GenMet3 GenMet4 
+tests= GenMet0 GenMet1 GenMet2 GenMet3 GenMet4 GenMet9
 compile
 link
 run
