@@ -213,8 +213,8 @@ public abstract class VarCodeGen {
             mv.visitVarInsn(Opcodes.ALOAD,0);
             mv.visitInsn(Opcodes.SWAP);
             mv.visitFieldInsn(Opcodes.PUTFIELD, packageAndClassName, objectFieldName, classDesc);
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.internalFortressVoid, NamingCzar.make,
-                               Naming.makeMethodDesc("", NamingCzar.descFortressVoid));
+            //            mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.internalFortressVoid, NamingCzar.make,
+            //                               Naming.makeMethodDesc("", NamingCzar.descFortressVoid));
         }
 
         public String toString() {
@@ -484,8 +484,8 @@ public abstract class VarCodeGen {
                               getName(),
                               NamingCzar.jvmTypeDesc(fortressType, ifNone)
                               );
-            mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.internalFortressVoid, NamingCzar.make,
-                           Naming.makeMethodDesc("", NamingCzar.descFortressVoid));
+//            mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.internalFortressVoid, NamingCzar.make,
+//                           Naming.makeMethodDesc("", NamingCzar.descFortressVoid));
         }
 
         public void outOfScope(CodeGenMethodVisitor mv) {

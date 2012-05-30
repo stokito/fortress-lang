@@ -1,0 +1,29 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component If4
+
+import Set.{...}
+export Executable
+
+f(x: ZZ32): ZZ32 =
+(** EXAMPLE **)
+  z = if x < 0 then 0
+      elif x IN {1, 2, 3} then 3
+      elif x IN {4, 5, 6} then 6
+      else 9 end
+(** END EXAMPLE **)
+
+run() = println f(3)
+
+end

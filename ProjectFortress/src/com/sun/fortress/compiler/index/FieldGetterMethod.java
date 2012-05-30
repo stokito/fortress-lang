@@ -50,7 +50,7 @@ public class FieldGetterMethod extends FieldGetterOrSetterMethod {
         super(that, params, visitor);
     }
 
-    /** Make a Binding for this setter from the given function. */
+    /** Make a Binding for this getter from the given function. */
     private static Binding makeBinding(FnDecl f) {
         Modifiers mods = NodeUtil.getMods(f);
         return new LValue(f.getInfo(),

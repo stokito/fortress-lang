@@ -28,4 +28,15 @@ public class FortressTaskRunnerGroup extends ForkJoinPool {
     public FortressTaskRunnerGroup(int groupSize) {
         super(groupSize, factory);
     }
+
+    private static boolean envToBoolean(String s) {
+        return s != null && s.length() > 0 &&
+               s.substring(0,1).matches("[TtYy]");
+    }
+
+    public void printStatistics() {
+        String printOnOutput = System.getenv("FORTRESS_THREAD_STATISTICS");
+        if (envToBoolean(printOnOutput))
+            System.out.println(toString());
+    }
 }

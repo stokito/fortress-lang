@@ -22,6 +22,8 @@ import com.sun.fortress.nodes.StaticParam
 import com.sun.fortress.nodes.Param
 import com.sun.fortress.nodes.StaticArg
 import com.sun.fortress.nodes.Type
+import com.sun.fortress.nodes.AnyType
+import com.sun.fortress.nodes.BottomType
 import com.sun.fortress.nodes.TraitType
 import com.sun.fortress.nodes.TupleType
 import com.sun.fortress.nodes.ArrowType
@@ -149,7 +151,7 @@ private def verifyTraitDeclaration(decl: Decl, traitStaticParameters: List[Stati
            scan(lvalues, { verifyVarDecl(_:LValue)(traitStaticParameters) } )
 
          case _ => 
-           error("Variance checker: unknow form of declaration: " + decl,decl)
+           error("Variance checker: Unknown form of declaration: " + decl,decl)
            false
        
        }
@@ -200,7 +202,7 @@ private def verifyType(ty: Type, polarity: Int)(implicit traitStaticParameters:L
      case t: VarType =>
        scan(traitStaticParameters, { verifyParam(_: StaticParam,t.getName().getText(),polarity,ty) })
 
-     case t:TraitType =>
+     case t: TraitType =>
        val traitParams = scalaify(t.getTraitStaticParams()).asInstanceOf[List[StaticParam]]
        val traitArgs = scalaify(t.getArgs()).asInstanceOf[List[StaticArg]]
        val traitInfo = traitParams.zip(traitArgs)
@@ -235,8 +237,12 @@ private def verifyType(ty: Type, polarity: Int)(implicit traitStaticParameters:L
         val types = scalaify(t.getElements()).asInstanceOf[List[Type]]
         scan(types, { verifyType(_: Type,polarity) })
 
+     case t: AnyType => true
+
+     case t: BottomType => true
+
      case t =>
-       error("Variance checker: unknow form of type: " + t,t)
+       error("Variance checker: Unknown form of type: " + t,t)
        false
 
    }

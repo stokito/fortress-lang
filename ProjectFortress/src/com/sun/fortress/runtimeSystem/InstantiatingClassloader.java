@@ -2869,6 +2869,7 @@ class ClassLoadChecker {
             || name.startsWith("sun.")
             || name.startsWith("com.sun.fortress.runtimeSystem.InitializedStaticField")
             || name.startsWith("com.sun.fortress.runtimeSystem.BAlongTree")
+            || name.startsWith("com.sun.fortress.runtimeSystem.MainWrapper")
             || name.startsWith("com.sun.fortress.compiler.codegen.ManglingClassWriter")
             || name.startsWith("com.sun.fortress.repository.ProjectProperties")
             || name.startsWith("com.sun.fortress.useful.")

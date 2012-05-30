@@ -586,6 +586,13 @@ public class NodeUtil {
                 // line is the first non-comment/non-blank line
                 String[] split = line.split(" ");
                 String name;
+                Span span1 = NodeFactory.makeSpan(absolutePath,
+                        lineNo, 0,
+                        split[0].length());
+                if (split.length == 1) 
+                    return error(span1,
+                            "    Component/API names must be named." +
+                            "\n    File name: " + absolutePath);
                 if ( split[0].equals("component") || split[0].equals("api") ) {
                     Span span = NodeFactory.makeSpan(absolutePath,
                                                      lineNo, split[0].length()+2,

@@ -11,12 +11,13 @@
 
 api Map
 
-import Comparison.{...}
 import Maybe.{...}
 import Set.{Set}
 import Util.{...}
+import CompilerAlgebra.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation}
 
-object KeyOverlap[\Key extends Object, Val extends { Object }\](key: Key, val1: Val, val2: Val)
+object KeyOverlap[\Key, Val\](key: Key, val1: Val, val2: Val)
     extends UncheckedException
     getter asString(): String
 end
@@ -25,23 +26,23 @@ end
     fresh map rather than updating the receiving map in place.
     Methods that operate on a particular key leave the rest of the map
     untouched unless otherwise specified. **)
-trait Map[\Key extends { StandardTotalOrder[\Key\], Object }, Val extends { Object }\]
-    extends SequentialGenerator[\(Key,Val)\]
+trait Map[\Key extends StandardTotalOrder[\Key\], Val\]
+    extends DefaultGeneratorImplementation[\(Key,Val)\]
     
     abstract getter isEmpty(): Boolean
     abstract getter asDebugString(): String
 
-    abstract seqgen[\R\](r: Reduction[\R\], body: (Key,Val)->R): R
-    abstract generate[\R\](r: Reduction[\R\], body: (Key,Val)->R): R 
-    abstract ivgen[\R\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32,(Key,Val))->R): R
+    abstract seqgen[\R extends Any\](r: Reduction[\R\], body: (Key,Val)->R): R
+    abstract generate[\R extends Any\](r: Reduction[\R\], body: (Key,Val)->R): R 
+    abstract ivgen[\R extends Any\](i0: ZZ32, r: Reduction[\R\], body: (ZZ32,(Key,Val))->R): R
     abstract dom(self): Set[\Key\]
     abstract opr | self |: ZZ32
-    abstract getPair(): (Key, Val) throws NotFound
-    abstract getKey(): Key throws NotFound
-    abstract getVal(): Val throws NotFound
+    (*)abstract getPair(): (Key, Val) throws NotFound
+    (*)abstract getKey(): Key throws NotFound
+    (*)abstract getVal(): Val throws NotFound
     abstract getLeftChild(): Map[\Key, Val\]
     abstract getRightChild(): Map[\Key, Val\]
-    opr[k:Key]: Val throws NotFound
+    (*)opr[k:Key]: Val throws NotFound
     mem(k: Key): Map[\Key, Val\]
     member(x: Key): Maybe[\Val\]
     member(x: Key, v: Val): Val
@@ -72,21 +73,20 @@ trait Map[\Key extends { StandardTotalOrder[\Key\], Object }, Val extends { Obje
     (*)abstract opr =(self, other: Map[\Key, Val\]): Boolean
 end    
     
-singleton[\Key extends { StandardTotalOrder[\Key\], Object },
-        Val extends { Object }\](k: Key, v: Val): Map[\Key, Val\]    
+singleton[\Key extends StandardTotalOrder[\Key\],Val\](k: Key, v: Val): Map[\Key, Val\]    
   
 
-opr BIG UPLUS[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] 
+opr BIG UPLUS[\Key extends StandardTotalOrder[\Key\],Val\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] 
   
-opr BIG UNION[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] 
+opr BIG UNION[\Key extends StandardTotalOrder[\Key\],Val\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] 
     
-mapping[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\](g: Generator[\(Key,Val)\]): Map[\Key,Val\]  
+mapping[\Key extends StandardTotalOrder[\Key\],Val\](g: Generator[\(Key,Val)\]): Map[\Key,Val\]  
 
-opr {[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\] }:Map[\Key,Val\]
+opr {[\Key extends StandardTotalOrder[\Key\],Val\] }:Map[\Key,Val\]
 
-opr {|->[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\]}:Map[\Key,Val\]
+opr {|->[\Key extends StandardTotalOrder[\Key\],Val\]}:Map[\Key,Val\]
     
-opr BIG {|->[\Key extends {StandardTotalOrder[\Key\], Object},Val extends { Object  }\] } : Comprehension[\(Key,Val),Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\]    
+opr BIG {|->[\Key extends StandardTotalOrder[\Key\],Val\] } : Comprehension[\(Key,Val),Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\]    
     
 (*
 

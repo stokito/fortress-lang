@@ -1,0 +1,215 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ShiftTest2
+export Executable
+
+(*) Test shifting operators
+
+intLowMask(k: ZZ32) = do
+  assert(1 <= |k| <= 31)
+  p = 2^(k-1)
+  p BITOR (p-1)
+end
+
+fakeIntLeftShift(x: ZZ32, y: ZZ32) = do
+  var result: ZZ32 := x
+  var k: ZZ32 := y BITAND 1F_16
+  while k > 0 do
+    result := result BOXCROSS 2    (*) Overflow is ignored
+    k := k - 1
+  end
+  result
+end
+
+fakeUnsignedIntLeftShift(x: NN32, y: ZZ32) = do
+  var result: NN32 := x
+  var k: ZZ32 := y BITAND 1F_16
+  while k > 0 do
+    result := result BOXCROSS 2    (*) Overflow is ignored
+    k := k - 1
+  end
+  result
+end
+
+fakeLongLeftShift(x: ZZ64, y: ZZ32) = do
+  var result: ZZ64 := x
+  var k: ZZ32 := y BITAND 3F_16
+  while k > 0 do
+    result := result BOXCROSS 2    (*) Overflow is ignored
+    k := k - 1
+  end
+  result
+end
+
+fakeUnsignedLongLeftShift(x: NN64, y: ZZ32) = do
+  var result: NN64 := x
+  var k: ZZ32 := y BITAND 3F_16
+  while k > 0 do
+    result := result BOXCROSS 2    (*) Overflow is ignored
+    k := k - 1
+  end
+  result
+end
+
+fakeIntRightShift(x: ZZ32, y: ZZ32) = do
+  var result: ZZ32 := x
+  var k: ZZ32 := y BITAND 1F_16
+  while k > 0 do
+    result := (result DIV 2) - (if result < 0 AND odd(result) then 1 else 0)
+    k := k - 1
+  end
+  result
+end
+
+fakeUnsignedIntRightShift(x: NN32, y: ZZ32) = do
+  var result: NN32 := x
+  var k: ZZ32 := y BITAND 1F_16
+  while k > 0 do
+    result := (result DIV 2) - (if result < 0 AND odd(result) then 1 else 0)
+    k := k - 1
+  end
+  result
+end
+
+fakeLongRightShift(x: ZZ64, y: ZZ32) = do
+  var result: ZZ64 := x
+  var k: ZZ32 := y BITAND 3F_16
+  while k > 0 do
+    result := (result DIV 2) - (if result < 0 AND odd(result) then 1 else 0)
+    k := k - 1
+  end
+  result
+end
+
+fakeUnsignedLongRightShift(x: NN64, y: ZZ32) = do
+  var result: NN64 := x
+  var k: ZZ32 := y BITAND 3F_16
+  while k > 0 do
+    result := (result DIV 2) - (if result < 0 AND odd(result) then 1 else 0)
+    k := k - 1
+  end
+  result
+end
+
+testIntShift(x: ZZ32, y: ZZ32): () = do
+  y' = y BITAND 1F_16
+  y_long: ZZ64 = y
+  y_unsigned: NN32 = y.bitsAsNN32
+  y_unsignedLong: NN64 = y_unsigned
+  if y' = 0 then
+    assert((x << y) = x)
+    assert((x >> y) = x)
+  else
+    assert((x << y) = (x << y'))
+    assert((x >> y) = (x >> y'))
+    assert((x << y) = fakeIntLeftShift(x, y))    
+    assert((x >> y) = fakeIntRightShift(x, y))    
+    assert((x << y_long) = (x << y))
+    assert((x >> y_long) = (x >> y))
+    assert((x << y_unsigned) = (x << y))
+    assert((x >> y_unsigned) = (x >> y))
+    assert((x << y_unsignedLong) = (x << y))
+    assert((x >> y_unsignedLong) = (x >> y))
+  end
+end
+
+testLongShift(x: ZZ64, y: ZZ32): () = do
+  y' = y BITAND 3F_16
+  y_long: ZZ64 = y
+  y_unsigned: NN32 = y.bitsAsNN32
+  y_unsignedLong: NN64 = y_unsigned
+  if y' = 0 then
+    assert((x << y) = x)
+    assert((x >> y) = x)
+  else
+    assert((x << y) = (x << y'))
+    assert((x >> y) = (x >> y'))
+    assert((x << y) = fakeLongLeftShift(x, y))    
+    assert((x >> y) = fakeLongRightShift(x, y))    
+    assert((x << y_long) = (x << y))
+    assert((x >> y_long) = (x >> y))
+    assert((x << y_unsigned) = (x << y))
+    assert((x >> y_unsigned) = (x >> y))
+    assert((x << y_unsignedLong) = (x << y))
+    assert((x >> y_unsignedLong) = (x >> y))
+  end
+end
+
+testUnsignedIntShift(x: NN32, y: ZZ32): () = do
+  y' = y BITAND 1F_16
+  y_long: ZZ64 = y
+  y_unsigned: NN32 = y.bitsAsNN32
+  y_unsignedLong: NN64 = y_unsigned
+  if y' = 0 then
+    assert((x << y) = x)
+    assert((x >> y) = x)
+  else
+    assert((x << y) = (x << y'))
+    assert((x >> y) = (x >> y'))
+    assert((x << y) = fakeUnsignedIntLeftShift(x, y))    
+    assert((x >> y) = fakeUnsignedIntRightShift(x, y))    
+    assert((x << y_long) = (x << y))
+    assert((x >> y_long) = (x >> y))
+    assert((x << y_unsigned) = (x << y))
+    assert((x >> y_unsigned) = (x >> y))
+    assert((x << y_unsignedLong) = (x << y))
+    assert((x >> y_unsignedLong) = (x >> y))
+  end
+end
+
+testUnsignedLongShift(x: NN64, y: ZZ32): () = do
+  y' = y BITAND 3F_16
+  y_long: ZZ64 = y
+  y_unsigned: NN32 = y.bitsAsNN32
+  y_unsignedLong: NN64 = y_unsigned
+  if y' = 0 then
+    assert((x << y) = x)
+    assert((x >> y) = x)
+  else
+    assert((x << y) = (x << y'))
+    assert((x >> y) = (x >> y'))
+    assert((x << y) = fakeUnsignedLongLeftShift(x, y))    
+    assert((x >> y) = fakeUnsignedLongRightShift(x, y))    
+    assert((x << y_long) = (x << y))
+    assert((x >> y_long) = (x >> y))
+    assert((x << y_unsigned) = (x << y))
+    assert((x >> y_unsigned) = (x >> y))
+    assert((x << y_unsignedLong) = (x << y))
+    assert((x >> y_unsignedLong) = (x >> y))
+  end
+end
+
+run(): () = do
+  var intSeed: ZZ32 = 3827'A6BF_16
+  var longSeed: ZZ64 = 3827'A6BF'9387'5641_16
+  var unsignedIntSeed: NN32 = 9387'5641_16
+  var unsignedLongSeed: NN64 = 3827'A6BF'9387'5641_16
+  var yseed: ZZ32 = 1357'FDB9_16
+  intMult: ZZ32 = 19841          (*) a prime number
+  unsignedIntMult: NN32 = 19841  (*) a prime number
+  ymult: ZZ32 = 92573            (*) a prime number
+  for i <- seq(1:1000) do
+    yseed := yseed BOXCROSS ymult
+    yshift = (yseed DIV 1'0000_16) BITXOR (yseed BOXCROSS 1'0000_16)
+    intSeed := intSeed BOXCROSS intMult
+    testIntShift(intSeed, yshift)
+    longSeed := longSeed BOXCROSS intMult
+    testLongShift(longSeed, yshift)
+    unsignedIntSeed := unsignedIntSeed BOXCROSS unsignedIntMult
+    testUnsignedIntShift(unsignedIntSeed, yshift)
+    unsignedLongSeed := unsignedLongSeed BOXCROSS unsignedIntMult
+    testUnsignedLongShift(unsignedLongSeed, yshift)
+  end
+  println("PASS")
+end
+
+end

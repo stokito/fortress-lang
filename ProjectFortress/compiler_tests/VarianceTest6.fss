@@ -12,11 +12,11 @@ component VarianceTest6
 
   export Executable
 
-  trait Test[\contravariant T\]
+  trait Test[\contravariant T extends Any\]
     setter x(y: T): ()
   end
 
-  object Impl[\T\]() extends Test[\T\] 
+  object Impl[\T extends Any\]() extends Test[\T\] 
     setter x(y: T): () = ()
   end
 

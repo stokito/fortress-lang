@@ -14,7 +14,7 @@ api Pairs
 import List.{...}
 import Map.{...}
 import Util.{...}
-import Comparison.{...}
+import CompilerAlgebra.{...}
 
 pairs[\T\](g: Generator[\T\]): Generator[\(T,T)\]
 triples[\T\](g: Generator[\T\]): Generator[\(T,T,T)\]

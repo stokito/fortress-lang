@@ -13,17 +13,17 @@ api Maybe
 
   object NothingInHere extends CheckedException end
 
-  trait Maybe[\T\] comprises { Just[\T\] , Nothing[\T\] } 
+  trait Maybe[\T extends Any\] comprises { Just[\T\] , Nothing[\T\] } 
     isSome(): Boolean
     isSome(self): Boolean
     extract() : T throws NothingInHere
     extract(self): T throws NothingInHere
   end
   
-  object Just[\T\](content: T) extends Maybe[\T\] end
-  object Nothing[\T\] extends Maybe[\T\] end
+  object Just[\T extends Any\](content: T) extends Maybe[\T\] end
+  object Nothing[\T extends Any\] extends Maybe[\T\] end
 
-  __cond[\E,R\](c:Maybe[\E\], t:E->R, e:()->R): R 
-  __cond[\E\](c:Maybe[\E\], t:E->()): ()
+  __cond[\E extends Any,R extends Any\](c:Maybe[\E\], t:E->R, e:()->R): R 
+  __cond[\E extends Any\](c:Maybe[\E\], t:E->()): ()
 
 end

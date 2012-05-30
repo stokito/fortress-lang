@@ -81,10 +81,12 @@ class ApiTypeExtractor(component: ComponentIndex,
         if ( typeConses.keySet.contains(owner) &&
              NodeUtil.isTraitOrObject(typeConses.get(owner)) ) {
           val tindex = typeConses.get(owner).asInstanceOf[TraitIndex]
-          if ( tindex.getters.keySet.contains(name) )
-            return reportFnDecl(api, tindex.getters.get(name).ast.asInstanceOf[FnDecl])
-          if ( tindex.setters.keySet.contains(name) )
-            return reportFnDecl(api, tindex.setters.get(name).ast.asInstanceOf[FnDecl])
+          if ( tindex.getters.keySet.contains(name) ) {
+            return reportFnDecl(api, tindex.getters.get(name).fnDecl.get)
+          }
+          if ( tindex.setters.keySet.contains(name) ) {
+            return reportFnDecl(api, tindex.setters.get(name).fnDecl.get)
+          }
           if ( tindex.dottedMethods.firstSet.contains(name) )
             for ( g <- toSet(tindex.dottedMethods.matchFirst(name)) ) {
               g match {

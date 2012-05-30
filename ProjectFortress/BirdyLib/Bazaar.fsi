@@ -51,8 +51,12 @@ api Bazaar
 
   toBoolGen(x: Boolean): Generator[\Boolean\]
 
-  upto(s: String,c: Character): String
+  upto(s: String,c: Character): String (*) TODO
   
-  beyond(s: String,c: Character): String
+  beyond(s: String,c: Character): String (*) TODO
+  
+  reverse(s: String): String (*) TODO
+  
+  list_filter[\T\](l: List[\T\], p: T -> Boolean): List[\T\]
 
 end

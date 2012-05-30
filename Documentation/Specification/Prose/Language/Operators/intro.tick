@@ -1,0 +1,73 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\note{Multifix operators and dimensions and units
+are not yet supported.}
+
+\note{Synonym Operators: Victor's email titled ````Synonyms [Fwd: Re: What the heck are 0-width spaces for?]'' on 09/12/07}
+
+Fortress operators provide a rich alternate syntax for defining and invoking certain functions and methods.  The goal is to support
+a wide variety of notations traditionally used in mathematics and domain-specific fields of application.  There are several
+distinct kinds of operator syntax:
+\begin{itemize}
+\item Use of a single symbol as a one-operand \emph{prefix} operator (example: `-x`)
+\item Use of a single symbol or a superscripted symbol as a one-operand \emph{postfix} operator (example: `n!`)
+\item Use of a single symbol as a zero-operand \emph{nofix} operator (this is rare, but is used to implement the use of colon as a ````select entire axis'' subscript, as in `x[:]`)
+\item Use of a single symbol as a two-operand \emph{infix} operator (example: `x+y`)
+\item Use of \emph{juxtaposition} as a two-operand infix operator, typically to express multiplication (example: `(n+1)(n+2)`)
+\item Use of a matching pair of symbols as an \emph{enclosing} operator, taking any number of operands separated by commas (example: `<|a,b,c|>`)
+\item Use of a matching pair of symbols as a \emph{subscripting} operator, taking a preceding operand plus any number of enclosed operands separated by commas (example: `x[m, n]`)
+\item Use of a matching pair of symbols plus `:=` as a \emph{subscripting assignment} operator, taking a preceding operand, any number of enclosed operands separated by commas, and a following operand (example: `x[m, n] := 3`)
+\item Use of a matching pair of symbols plus a vertical bar `|` as a \emph{comprehension}  (example: `{ x | x <- a, x > 0 }`)
+\item Use of a symbol as part of \emph{big operator} syntax (examples: `SUM[i<-0:9] x[ i ]` and `BIG MAX[i<-0:0] x[ i ]`)
+\end{itemize}
+In addition, there are special rules for treating clusters of infix operators as if they were either \emph{chained} (example: treating `0<=j<k<=n` as meaning
+`(0<=j) AND (j<k) AND (j<=n)`)
+or a single \emph{multifix} operator (example: treating `A TIMES B TIMES C TIMES D` as a single operator named `TIMES` with four operands).
+
+The fixity of an operator use is determined syntactically,
+and the same operator may have declarations for multiple fixities.
+A simple example is that ``\EXP{-}' may be either infix or prefix,
+as is conventional.
+In addition, an operator may have multiple (overloaded) declarations of the same fixity,
+just as functions or methods may be overloaded (see \chapref{multiple-dispatch} for a discussion of overloading).
+An invocation of an overloaded operator is resolved first via the
+fixity of the operator;
+then, among the visible declarations for the operator with that fixity,
+the most specific applicable declaration is chosen.
+
+Special syntax rules, explained in \secref{operator-fixity}, govern the analysis of any operator consisting of one or more vertical bars,
+such as `|` and `||` and `|||`; these rules allow vertical bars to be used both as infix operators (as in `k | m`) and as enclosing operators
+(as in `|x|`).
+
+Operators are not values.  If it is desired to pass an operator as an argument,
+the correct approach is usually to use a function expression; for example,
+to pass the `+` operation to a function `f`, one might write `f(fn (x, y) => x+y)`.
+
+Operator declarations are
+described in \chapref{operatordefs} and operator applications are
+described in \secref{operator-app-expr}, \secref{reduction-expr}, and
+\secref{comprehensions}.
+
+
+Finally, there are special operators such as juxtaposition
+and operators on dimensions and units.
+Juxtaposition may be a function application or
+an infix operator in Fortress.
+When the left-hand-side expression is a function, juxtaposition performs
+function application; when the left-hand-side expression is a number,
+juxtaposition conventionally performs multiplication; when the
+left-hand-side expression is a string,
+juxtaposition conventionally performs string concatenation.
+
+Fortress provides several operators on dimensions and units
+as described in \chapref{dimunits}.
