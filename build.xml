@@ -899,7 +899,8 @@ testOtherCompiler, testCruiseControl
                tests during nightly and CruiseControl testing. -->
           <exclude name="**/TopLevelEnvGenJUTest.class"/>
           <exclude name="**/NightlyCompilerJUTest.class"/>
-
+		  <exclude name ="**/SpecDataJUTest.class"/>
+  		  <exclude name ="**/SystemJUTest.class"/>        	
           <exclude name="**/*$*.class"/>
           <exclude name="**/SyntaxAbstractionJUTestAll.class"/>
           <exclude name="**/ObjectExpressionVisitorJUTest.class"/>

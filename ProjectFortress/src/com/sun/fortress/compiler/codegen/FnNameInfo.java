@@ -49,7 +49,7 @@ public class FnNameInfo {
     private final Type returnType;
     private final Type paramType;
     final APIName ifNone;
-    final IdOrOp name;
+    private final IdOrOp name;
     final Span span;
     
     public FnNameInfo(List<StaticParam> static_params,
@@ -87,7 +87,7 @@ public class FnNameInfo {
                     new InsertedList<StaticParam>(static_params, 0, new_sp),
                 to_static_params);
         // This use of trait_static_params is perhaps a little dubious; we'll see.
-        return new FnNameInfo(new_sparams, trait_static_params, returnType, new_param_type,ifNone, name, span);
+        return new FnNameInfo(new_sparams, trait_static_params, returnType, new_param_type,ifNone, getName(), span);
     }
 
     public FnNameInfo(FnDecl x, List<StaticParam> trait_static_params, APIName ifNone) {
@@ -223,11 +223,22 @@ public class FnNameInfo {
         return NodeFactory.makeArrowType(NodeFactory.makeSpan(dt,rt), dt, rt);
     }
     
-    ArrowType methodArrowType(int selfIndex) {
+    public ArrowType methodArrowType(int selfIndex) {
         return normalizedSchema(methodArrowType(this, selfIndex));
     }
 
-    ArrowType functionArrowType() {
+    public ArrowType functionArrowType() {
         return methodArrowType(this, Naming.NO_SELF);
+    }
+
+    public IdOrOp getName() {
+        return name;
+    }
+    
+    public List<StaticParam> getTrait_static_params() {
+        return trait_static_params;
+    }
+    public List<StaticParam> getStatic_params() {
+        return static_params;
     }
 }

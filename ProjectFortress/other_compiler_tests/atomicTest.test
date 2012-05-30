@@ -7,7 +7,7 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests= atomic0 atomic1 atomic2 atomic3 atomic4 atomic5 atomic6 nestedTransactions0 
+tests= atomic0 atomic1 atomic2 atomic3 atomic4 atomic5 atomic6 nestedTransactions0 nestedTransactions1 nestedTransactions2
 link
 run
 run_out_contains=PASS
