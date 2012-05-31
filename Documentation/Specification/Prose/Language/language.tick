@@ -14,8 +14,8 @@
 %\newpart{Language}{language}
 
 \input{\langdir/programs}
-\input{\langdir/types}
 \input{\langdir/lexical-structure}
+\input{\langdir/types}
 \input{\langdir/declarations}
 \input{\langdir/variables}
 \input{\langdir/functions}

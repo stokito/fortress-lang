@@ -36,7 +36,7 @@
 %\input{\appendixdir/reserved-words}
 %\input{\appendixdir/operators}
 
-%\input{\appendixdir/ascii-to-unicode}
+\input{\appendixdir/lexical-preprocessing}
 
 %\input{\appendixdir/rendering}
 
