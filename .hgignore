@@ -36,11 +36,9 @@ CommunityMetrics/ExternalContributors.numbers
 CommunityMetrics/ExternalContributors.xls
 default_repository/caches/
 Documentation/Specification/Code/*.tex
-Documentation/Specification/Root/fortress-keywords.tex
-Documentation/Specification/Root/fortress-specialReservedWords.tex
-Documentation/Specification/Root/fortress-unitOperators.tex
 Documentation/Specification/Root/fortress.pdf
 Documentation/Specification/Root/fortress.toc
+Documentation/Specification/Generated
 Fortify/example/example.pdf
 Fortify/example/example.tex
 fortress_*.zip
@@ -59,8 +57,6 @@ ProjectFortress/*.tfi
 ProjectFortress/*.tfs
 ProjectFortress/bin/
 ProjectFortress/build
-ProjectFortress/build/
-ProjectFortress/build/*
 ProjectFortress/FortressLibrary.ast
 ProjectFortress/FortressLibrary.jst
 ProjectFortress/jrat.output
