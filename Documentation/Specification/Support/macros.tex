@@ -11,6 +11,16 @@
 
 \input{\fortifydir/fortify.sty}
 
+% Notes
+
+\newdimen\notewidth
+\newcommand{\note}[1]{{\ifhmode\unskip\hfill\break\else\noindent\fi
+    \notewidth=\textwidth  \advance\notewidth by -2em
+                \framebox[\textwidth][t]{\parbox[t]{\notewidth}{#1}}\break}}
+
+\newcommand{\redundant}[1][other parts of the specification]{\note{This is redundant with {#1}.}}
+% Typical usage: \redundant[\secref{label}]
+
 % Sectioning
 \newcommand{\newpart}[2]{\part{#1}\partlabel{#2}}
 \newcommand{\newchap}[2]{\chapter{#1}\chaplabel{#2}}
@@ -23,13 +33,20 @@
 \newcommand{\partref}[1]{Part~\ref{part:#1}}
 \newcommand{\partlabel}[1]{\label{part:#1}}
 \newcommand{\chapref}[1]{Chapter~\ref{chap:#1}}
+\newcommand{\chaprefs}[2]{Chapters~\ref{chap:#1} and~\ref{chap:#2}}
+% Victor: To handle general case, could split into two commands, 
+%   one to produce Chapters and first ref, the other to produce other refs.
 \newcommand{\chaplabel}[1]{\label{chap:#1}}
 \newcommand{\appref}[1]{Appendix~\ref{app:#1}}
+\newcommand{\apprefs}[2]{Appendices~\ref{app:#1} and~\ref{app:#2}}
 \newcommand{\applabel}[1]{\label{app:#1}}
 \newcommand{\secref}[1]{Section~\ref{sec:#1}}
+\newcommand{\secrefs}[2]{Sections~\ref{sec:#1} and~\ref{sec:#2}}
 \newcommand{\seclabel}[1]{\label{sec:#1}}
 \newcommand{\figref}[1]{Figure~\ref{fig:#1}}
+\newcommand{\figrefs}[2]{Figures~\ref{fig:#1} and~\ref{fig:#2}}
 \newcommand{\figlabel}[1]{\label{fig:#1}}
+% Victor: we should eliminate the following commands
 \newcommand{\see}[1]{see \secref{#1}}
 \newcommand{\See}[1]{See \secref{#1}}
 
@@ -81,6 +98,8 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\unicode}{Unicode 5.0}
+% Victor: Do we want to specify the version?
+
 %% shell command rendering used in the Overview chapter
 \newcommand{\shellcommand}[1]{\txt{#1}}
 \newcommand{\library}{the Fortress standard libraries}
@@ -133,11 +152,11 @@
    \@startsection{subsection}{2}{\z@}{-3.25ex\@plus -1ex \@minus -.2ex}%
                  {0.5ex \@plus .2ex}{\normalfont\bfseries}}}
 \makeatother
-\newcommand\Trait[1]{\librarysection{The Trait #1}}
-\newcommand\Object[1]{\librarysection{The Object #1}}
-\newcommand\Method{\librarysubsection}
-\newcommand\Function{\librarysubsection}
-\newcommand\Variable{\librarysubsection}
+\newcommand\traitdecl[1]{\librarysection{The Trait #1}}
+\newcommand\objectdecl[1]{\librarysection{The Object #1}}
+\newcommand\methoddecl{\librarysubsection}
+\newcommand\functiondecl{\librarysubsection}
+\newcommand\variabledecl{\librarysubsection}
 
 %%%%%%%%%%%%%%%%%%%%%
 %% API vs api %%%%%%%
@@ -230,3 +249,22 @@
 \newcommand{\LT}{<}
 \newcommand{\HAT}{\boldmath$\hat{\ }$}
 \def\BY{\ensuremath{\times}}
+
+% Types
+
+\newcommand{\Any}{\TYP{Any}}
+\newcommand{\Bottom}{\TYP{Bottom}}
+\newcommand{\Void}{\TYP{()}}
+\newcommand{\Object}{\TYP{Object}}
+
+\newcommand{\arrow}[2]{\ensuremath{{#1} \rightarrow {#2}}}
+\newcommand{\ioarrow}[2]{\ensuremath{\texttt{io} {#1} \rightarrow {#2}}}
+\newcommand{\arrowthrows}[3]{\ensuremath{{#1} \rightarrow {#2} \texttt{throws} {#3}}}
+\newcommand{\ioarrowthrows}[3]{\ensuremath{\texttt{io} {#1} \rightarrow {#2} \texttt{throws} {#3}}}
+
+\newcommand{\uniontype}[2]{\ensuremath{{#1} \cup {#2}}}
+\newcommand{\intertype}[2]{\ensuremath{{#1} \cap {#2}}}
+
+\newcommand{\univtype}[2]{\ensuremath{\forall [{#1}] {#2}}}
+\newcommand{\existype}[2]{\ensuremath{\exists [{#1}] {#2}}}
+

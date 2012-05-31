@@ -15,6 +15,7 @@
 
 \usepackage{amsfonts, graphicx, fullpage, times, wrapfig}
 \usepackage{stmaryrd}
+\usepackage{hyperref, array, color}
 \usepackage{longtable} 
 
 
@@ -30,18 +31,9 @@
 
 % Need to add stuff from old preamble, but I'd like to do this incrementally, 
 % as we understand what we need.
-% Much of what is in old preamble should be in some support file.
+% Much of what is in old preamble should be in macros.tex in Support
 
 % What packages do we need? 
-% John: I had to bring this over temporarily, vistor, please let me know where you want this to go.
-\newdimen\notewidth
-\newcommand{\note}[1]{{\ifhmode\unskip\hfill\break\else\noindent\fi
-    \notewidth=\textwidth  \advance\notewidth by -2em
-                \framebox[\textwidth][t]{\parbox[t]{\notewidth}{#1}}\break}}
-% \newcommand{\note}[1]{{\let\endstuff\relax\ifhmode\def\endstuff{\break}\hfill\break\fi
-%     \notewidth=\textwidth  \advance\notewidth by -2em
-%     \framebox[\textwidth][t]{\parbox[t]{\notewidth}{#1}}\endstuff}}
-
 
 %Adjustments to document styles
 

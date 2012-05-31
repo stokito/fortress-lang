@@ -275,7 +275,8 @@ public class DesugarerUtil {
     private static TupleExpr nestedGeneratorOpportunity(List<GeneratorClause> gens, Expr body) {
         // Make sure there are outer generators.
         int gs = gens.size();
-        if (gs==0) return null;
+	//        if (gs==0) return null;
+        if (gs==0 || gs != 0) return null;
         Op theOpr = null;
         Accumulator bodyAccum = null;
         List<StaticArg> staticArgs = null;

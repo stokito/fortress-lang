@@ -15,10 +15,12 @@
 %        - growing a language
 %        - multicore programming
 %        - mathematical syntax
+%        - (not backward compatible)
 %     - main concepts
 %       - object-oriented
 %       - symmetric multiple dispatch (mention nonambiguity?)
 %       - parallelism
 %       - mathematical syntax
 %       - modular system
+%       - type safety
 
