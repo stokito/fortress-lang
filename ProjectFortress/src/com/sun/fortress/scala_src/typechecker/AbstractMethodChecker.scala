@@ -105,6 +105,7 @@ class AbstractMethodChecker(component: ComponentIndex,
 //    	println("More specific concrete methods and domains: " + moreSpecificConcreteMethodsAndDomains)
 //    	println("Domain union of " + domainList + " is " + domainUnion)
         if (!tsa.subtypeED(thisDomain, domainUnion)) {
+	  // GLS 5/30/12 The following println produces a lousy message because the bounds of any method type parameters are not printted, and that matters.
   	  println("Domain " + thisDomain + " is not a subtype of " + domainUnion)
 	  error(NU.getSpan(od),
 		"The inherited abstract method " + meth.asInstanceOf[HasSelfType].ast + " from the trait " + tt +

@@ -9,7 +9,10 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\newchap{Lexical Structure}{lexical-structure}
+\newapp{Lexical Preprocessing}{lexical-preprocessing}
 
-
-
+Preprocessing consists of three steps:
+````pasting'' words across line terminators; 
+replacing chunks of ASCII characters with single Unicode characters; 
+and replacing apostrophes with the ````digit-group separator'' 
+(see \secref{numerals}).
