@@ -2314,8 +2314,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         
         String method_name = NamingCzar.genericMethodName(new FnNameInfo(x, trait_static_parameters, thisApi()), self_index, thisApi());
         String table_name = Naming.cacheTableName(method_name);  //closure table uses the unmangled method name
-        if (typeLevelOverloadedNamesAndSigs.contains(method_name))
+        if (typeLevelOverloadedNamesAndSigs.contains(method_name)) {
             method_name  = NamingCzar.mangleAwayFromOverload(method_name);
+            table_name  = NamingCzar.mangleAwayFromOverload(table_name);
+        }
         generateGenericMethodClosureFinder(method_name, table_name, template_class_name, selfType, savedInATrait);
         
         
