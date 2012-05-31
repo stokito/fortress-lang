@@ -1,0 +1,100 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+
+if [ -z "$FORTRESS_HOME" ]; then
+   export FORTRESS_HOME="`${0%comp/flink}fortress_home`"
+fi
+
+FHOME=$FORTRESS_HOME/default_repository/caches/bytecode_cache 
+CMP=$FHOME/$1
+LEFT=$FHOME/$2
+RIGHT=$FHOME/$3
+
+if [ $# != 3 ]
+then
+    echo Usage: flink target first_component second_component
+    exit
+fi    
+
+if [ -d $CMP ]
+then
+    echo The fortress already contains a component with name $1
+    exit
+fi
+
+for l1 in `cat $LEFT/exports | awk '{print $3}'`
+do
+    for l2 in `cat $RIGHT/exports | awk '{print $3}'`
+    do
+        if [ $l1 == $l2 ]
+        then
+            echo API $l1 is exported both by component $2 and $3
+            exit
+        fi 
+    done
+done
+
+mkdir $CMP
+
+# Computation of the constituents
+touch $CMP/constituents
+echo `basename $2` >> $CMP/constituents
+echo `basename $3` >> $CMP/constituents
+cp -R $LEFT $CMP/
+cp -R $RIGHT $CMP/
+
+# Computation of the code pool
+mkdir $CMP/code_pool
+cp $LEFT/code_pool/* $CMP/code_pool/
+cp $RIGHT/code_pool/* $CMP/code_pool/
+
+# Computation of the exports
+touch $CMP/exports
+cat $LEFT/exports >> $CMP/exports
+cat $RIGHT/exports >> $CMP/exports
+
+# Computation of the rewrites & imports
+
+touch $CMP/rewrites
+touch $CMP/imports
+cat $RIGHT/imports | 
+(
+    while read line 
+    do
+        arr=($line)
+        cat $LEFT/exports |
+        (
+            while read inline 
+            do
+                inarr=($inline)
+                if [ ${arr[2]} == ${inarr[2]} ]
+                then
+                    echo ${arr[0]} ${arr[2]} ${inarr[0]} >> $CMP/rewrites
+                    continue 2  
+                fi    
+            done
+            echo ${arr[0]} i ${arr[2]} >> $CMP/imports
+        )
+    done
+)
+
+cat $LEFT/imports >> $CMP/imports
+cat $LEFT/rewrites >> $CMP/rewrites
+cat $RIGHT/rewrites >> $CMP/rewrites
+
+# Computation of the symbolics
+touch $CMP/symbolics
+cat $LEFT/symbolics | sed 's/___TMP\///g' >> $CMP/symbolics
+cat $RIGHT/symbolics >> $CMP/symbolics
+echo "flink $1 $2 $3" >> $CMP/symbolics

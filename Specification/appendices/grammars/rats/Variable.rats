@@ -1,0 +1,55 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+VarDecl =
+     VarMods? NoNewlineVarWTypes w InitVal
+   / VarImmutableMods? BindIdOrBindIdTuple w "=" w NoNewlineExpr
+   / VarMods? BindIdOrBindIdTuple w ":" w Type w "..." w InitVal
+   / VarMods? BindIdOrBindIdTuple w ":" w TupleType w InitVal
+   / "var" w BindIdOrBindIdTuple w "=" w NoNewlineExpr // Error production
+
+/* Each modifier cannot appear more than once. */
+VarMods = (VarMod w)+
+
+/* Each modifier cannot appear more than once. */
+VarImmutableMods = (VarImmutableMod w)+
+
+VarMod =
+     AbsVarMod
+   / "private"
+
+VarImmutableMod =
+     AbsVarImmutableMod
+   / "private"
+
+VarWTypes =
+     VarWType
+   / "(" w VarWType (w "," w VarWType)+ w ")"
+
+VarWType = BindId w IsType
+
+InitVal = ("=" / ":=") w NoNewlineExpr
+
+AbsVarDecl =
+     AbsVarMods? VarWTypes
+   / AbsVarMods? BindIdOrBindIdTuple w ":" w Type w "..."
+   / AbsVarMods? BindIdOrBindIdTuple w ":" w TupleType
+
+/* Each modifier cannot appear more than once. */
+AbsVarMods = (AbsVarMod w)+
+
+AbsVarMod =
+     "var"
+   / AbsVarImmutableMod
+
+AbsVarImmutableMod = "test"
+\end{verbatim}

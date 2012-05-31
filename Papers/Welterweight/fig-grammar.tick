@@ -1,0 +1,62 @@
+
+\begin{figure*}
+
+\begin{tabular*}{\textwidth}{@{}l@{\extracolsep{0pt plus 1fil}}|l@{}}
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 1.5em}l@{\hskip 0em}l@{}}
+\Pi      & ::= &  \bar{\psi}, \bar{\varphi}, e                                       & \multicolumn{2}{@{}l@{}}{\hbox{\rm program (declarations plus expression)\hskip0.6em}} \\[4pt]
+\psi     & ::= &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{trait} \; T\bigobb{V\;\beta}
+                              \mathbin{\extends} \bigbdb{t} \mathbin{\comprises} \bigbdb{c} \mathbin{\exc} \bigbdb{t} \; \bar{\mu} \; \kwd{end}            } & \hbox{\rm trait declaration} \\[1pt]
+         &  |  &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{trait} \; T\bigobb{V\;\beta}
+                              \mathbin{\extends} \bigbdb{t} \mathbin{\exc} \bigbdb{t} \; \bar{\mu} \; \kwd{end}                                            } & \hbox{\rm trait declaration} \\[1pt]
+         &  |  &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{object} \; O\bigobb{\beta} (\bar{x\COLON\tau}) \extends \bigbdb{t} \; \bar{\mu } \; \kwd{end} } & \hbox{\rm object declaration} \\[4pt]
+V        & ::= &  \multicolumn{2}{@{}l@{\hskip 1.5em}}{ \kwd{covariant} \mid \kwd{contravariant} \mid \kwd{invariant}                                      } & \hbox{\rm variance} \\[4pt]
+\varphi  & ::= &  f\bigobb{\beta} (\bar{x\COLON\tau})\COLON\tau \defneq e            & \multicolumn{2}{@{}l@{}}{\hbox{\rm function definition}} \\[1pt]
+         &  |  &  f\bigobb{\beta} (\bar{x\COLON\tau})\COLON\tau                      & \multicolumn{2}{@{}l@{}}{\hbox{\rm abstract function declaration}} \\[4pt]
+\mu      & ::= &  m\obb{\kappa} (\bar{x\COLON\tau})\COLON\tau \defneq e              & \multicolumn{2}{@{}l@{}}{\hbox{\rm dotted method definition}} \\
+         &  |  &  m\obb{\kappa} (\bar{x\COLON\tau})\COLON\tau                        & \multicolumn{2}{@{}l@{}}{\hbox{\rm abstract dotted method declaration}} \\[4pt]
+\beta    & ::= &  P \extends \bdb{\tau}                                              & \multicolumn{2}{@{}l@{}}{\hbox{\rm simple type parameter binding}} \\[4pt]
+\kappa   & ::= &  \bdb{\tau} \extends P \extends \bdb{\tau}                          & \multicolumn{2}{@{}l@{}}{\hbox{\rm complete type parameter binding}} \\[4pt]
+e        & ::= &  x                                                                  & \multicolumn{2}{@{}l@{}}{\hbox{\rm variable or field reference}} \\
+         &  |  &  \kwd{self}                                                         & \multicolumn{2}{@{}l@{}}{\hbox{\rm self reference}} \\
+         &  |  &  (\bar{e})                                                          & \multicolumn{2}{@{}l@{}}{\hbox{\rm tuple creation}} \\
+         &  |  &  \pi_i(e)                                                           & \multicolumn{2}{@{}l@{}}{\hbox{\rm tuple projection}} \\
+         &  |  &  ((\bar{x\COLON\tau})\COLON\tau \Rightarrow e)                      & \multicolumn{2}{@{}l@{}}{\hbox{\rm closure creation}} \\
+         &  |  &  e\apply(\bar{e})                                                   & \multicolumn{2}{@{}l@{}}{\hbox{\rm closure application}} \\
+%%       &  |  &  e.z                                                                & \multicolumn{2}{@{}l@{}}{\hbox{\rm dotted field reference}} \\
+         &  |  &  O\obb{\tau}(\bar{e})                                               & \multicolumn{2}{@{}l@{}}{\hbox{\rm object creation}} \\
+         &  |  &  f(\bar{e})                                                         & \multicolumn{2}{@{}l@{}}{\hbox{\rm function invocation}} \\
+         &  |  &  e.m(\bar{e})                                                       & \multicolumn{2}{@{}l@{}}{\hbox{\rm method dotted invocation}} \\
+         &  |  &  (e \; \kwd{match} \; x\COLON\tau \Rightarrow e \; \kwd{else}\; e)  & \multicolumn{2}{@{}l@{}}{\hbox{\rm match expression}}
+\end{array}
+&
+\begin{array}[t]{@{}l@{\;}c@{\;}l@{\hskip 1.5em}l@{}}
+\tau     & ::= &  P                                         & \hbox{\rm type parameter reference} \\
+         &  |  &  c                                         & \hbox{\rm constructed type} \\
+         &  |  &  (\bar{\tau})                              & \hbox{\rm tuple type} \\
+         &  |  &  \arrowtype{\tau}{\tau}                    & \hbox{\rm arrow type} \\
+         &  |  &  \Any                                      & \hbox{\rm special \Any\ type} \\
+         &  |  &  \Object                                   & \hbox{\rm special \Object type} \\[4pt]
+c        & ::= &  O\obb{\tau}                               & \hbox{\rm object type} \\
+         &  |  &  t                                         & \hbox{\rm trait type} \\[4pt]
+t        & ::= &  T\obb{\tau}                               & \hbox{\rm trait type} \\[4pt]
+P        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm type parameter name} \\[3pt]
+T        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm generic trait name} \\[3pt]
+O        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm generic object name} \\[3pt]
+x        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm variable or field name} \\[3pt]
+%% z        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm field name} \\[3pt]
+f        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm function name} \\[3pt]
+m        & ::= &  \hbox{\rm identifier}                     & \hbox{\rm method name} \\[4pt]
+\Id      & ::= &  P                                         & \hbox{\rm names} \\
+         &  |  &  T \\
+         &  |  &  O \\
+         &  |  &  x \\
+%%         &  |  &  z \\
+         &  |  &  f \\
+         &  |  &  m
+\end{array}
+\end{tabular*}
+
+\caption{Grammar for Welterweight Fortress}
+\label{fig:grammar}
+\end{figure*}
+

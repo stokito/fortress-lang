@@ -1,0 +1,41 @@
+
+\begin{abstract}
+
+The Fortress programming language integrates traditional mathematical
+notation into an object-oriented framework based on traits with
+multiple inheritance, overloading (of both methods and functions)
+resolved by symmetric dynamic dispatch, static types, and separately
+compiled modules.  One innovation is
+\emph{functional methods}, which (like conventional ``dotted methods'')
+are declared within traits and may be inherited, but are invoked by
+ordinary function calls (or mathematical operator syntax) rather
+than conventional ``dotted method calls,'' and therefore compete
+in overloading resolution with ordinary function declarations.
+A component/API system governs visibility of traits, objects, and
+functions, and allows separate compilation of components.
+
+A longstanding problem with multiple inheritance is what to do when
+methods inherited from several parents conflict.  Many approaches have
+been explored in the literature; most fail to obey the
+intuitively desirable requirement that the function or method invoked
+be the uniquely most specific one that is both accessible and
+applicable.  Fortress requires that the signatures in every overload
+set form a meet-bounded lattice; therefore it is impossible for any
+function or method call to be ambiguous.  This idea goes back nearly
+two decades, but Fortress appears to be the first programming language
+to adopt and statically enforce it.  Because this rule guarantees
+confluence, it enables a distributed implementation of dispatching
+that allows selective export and selective optimization.
+
+We exhibit a source-to-source rewrite from a source language
+(a stripped-down version of Fortress) to a related target language
+that is simpler than the Java\texttrademark\ programming language and is readily
+supported by the Java Virtual Machine.  The demonstrated rewriting is
+a practical basis for separate compilation and is easily extended to
+explicitly type-parameterized methods and functions.
+
+\end{abstract}
+
+
+
+

@@ -1,0 +1,15 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests= GenMet0 GenMet1 GenMet2 GenMet3 GenMet4 GenMet9
+compile
+link
+run
+run_out_equals=b cat\n
+run_out_does_not_contain=FAIL

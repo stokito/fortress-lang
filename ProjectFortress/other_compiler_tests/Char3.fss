@@ -1,0 +1,176 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+******************************************************************************)
+
+component Char3
+export Executable
+
+(*) Test basic comparison operations on characters
+run():() = do
+  LJ_char = '01C7'
+  Lj_char = '01C8'
+  lj_char = '01C9'
+  directionalityLeftToRight = 0
+  lowercaseLetter = 2
+
+  assert(getDirectionality('a') = directionalityLeftToRight)
+
+  assert(getNumericValue('3') = 3)
+
+  assert(getType('a') = lowercaseLetter)
+
+  assert(isDefined('a'))
+  deny(isDefined('FFFF'))
+
+  deny(isDigit('a'))
+  assert(isDigit('3'))
+
+  assert(isFortressIdentifierPart('a'))
+  assert(isFortressIdentifierPart('K'))
+  assert(isFortressIdentifierPart('0'))
+  assert(isFortressIdentifierPart('_'))
+  deny(isFortressIdentifierPart('$'))
+  deny(isFortressIdentifierPart('+'))
+
+  assert(isFortressIdentifierStart('a'))
+  assert(isFortressIdentifierStart('K'))
+  deny(isFortressIdentifierStart('0'))
+  assert(isFortressIdentifierStart('_'))
+  deny(isFortressIdentifierStart('$'))
+  deny(isFortressIdentifierStart('+'))
+
+  deny(isHighSurrogate('a'))
+  assert(isHighSurrogate('D9AB'))
+  deny(isHighSurrogate('DEAD'))
+
+  deny(isIdentifierIgnorable('a'))
+  deny(isIdentifierIgnorable('+'))
+  assert(isIdentifierIgnorable('0012'))
+
+  assert(isISOControl('000A'))
+  assert(isISOControl('0014'))
+  assert(isISOControl('007F'))
+  assert(isISOControl('008A'))
+  deny(isISOControl(' '))
+  deny(isISOControl('a'))
+
+  assert(isJavaIdentifierPart('a'))
+  assert(isJavaIdentifierPart('V'))
+  assert(isJavaIdentifierPart('6'))
+  assert(isJavaIdentifierPart('_'))
+  assert(isJavaIdentifierPart('$'))
+  deny(isJavaIdentifierPart('+'))
+
+  assert(isJavaIdentifierStart('a'))
+  assert(isJavaIdentifierStart('V'))
+  deny(isJavaIdentifierStart('7'))
+  assert(isJavaIdentifierStart('_'))
+  assert(isJavaIdentifierStart('$'))
+  deny(isJavaIdentifierStart('+'))
+
+  assert(isLetter('a'))
+  assert(isLetter('V'))
+  deny(isLetter('0'))
+  deny(isLetter('_'))
+  deny(isLetter('$'))
+  deny(isLetter('+'))
+
+  assert(isLetterOrDigit('h'))
+  assert(isLetterOrDigit('Q'))
+  assert(isLetterOrDigit('5'))
+  deny(isLetterOrDigit('_'))
+  deny(isLetterOrDigit('$'))
+  deny(isLetterOrDigit('+'))
+
+  assert(isLowerCase('a'))
+  deny(isLowerCase('Z'))
+  deny(isLowerCase('$'))
+  deny(isLowerCase(LJ_char))
+  deny(isLowerCase(Lj_char))
+  assert(isLowerCase(lj_char))
+
+  deny(isLowSurrogate('a'))
+  deny(isLowSurrogate('D9AB'))
+  assert(isLowSurrogate('DEAD'))
+
+  deny(isMirrored('a'))
+  assert(isMirrored('('))
+
+  assert(isSpaceChar(' '))
+  deny(isSpaceChar('a'))
+
+  deny(isSupplementaryCodePoint('a'))
+  assert(isSupplementaryCodePoint('1D11E'))
+
+  deny(isSurrogatePair('a', 'z'))
+  assert(isSurrogatePair('D9AB', 'DEAD'))
+
+  deny(isTitleCase('a'))
+  deny(isTitleCase('Z'))
+  deny(isTitleCase('$'))
+  deny(isTitleCase(LJ_char))
+  assert(isTitleCase(Lj_char))
+  deny(isTitleCase(lj_char))
+
+  assert(isUnicodeIdentifierPart('a'))
+  assert(isUnicodeIdentifierPart('Z'))
+  assert(isUnicodeIdentifierPart('0'))
+  deny(isUnicodeIdentifierPart('+'))
+
+  assert(isUnicodeIdentifierStart('a'))
+  assert(isUnicodeIdentifierStart('Z'))
+  deny(isUnicodeIdentifierStart('0'))
+  deny(isUnicodeIdentifierStart('+'))
+
+  deny(isUpperCase('a'))
+  assert(isUpperCase('Z'))
+  deny(isUpperCase('$'))
+  assert(isUpperCase(LJ_char))
+  deny(isUpperCase(Lj_char))
+  deny(isUpperCase(lj_char))
+
+  assert(isValidCodePoint('a'))
+
+  assert(isWhitespace(' '))
+  assert(isWhitespace('000A'))
+  deny(isWhitespace('1000A'))
+  deny(isWhitespace('a'))
+
+  assert(javaDigit('6', 10) = 6)
+  assert(javaDigit('E', 16) = 14)
+
+  assert(toLowerCase('a') = 'a')
+  assert(toLowerCase('Z') = 'z')
+  assert(toLowerCase('SIGMA') = 'sigma')
+  assert(toLowerCase('tau') = 'tau')
+  assert(toLowerCase(LJ_char) = lj_char)
+  assert(toLowerCase(Lj_char) = lj_char)
+  assert(toLowerCase(lj_char) = lj_char)
+
+  assert(toTitleCase('a') = 'A')
+  assert(toTitleCase('Z') = 'Z')
+  assert(toTitleCase('SIGMA') = 'SIGMA')
+  assert(toTitleCase('tau') = 'TAU')
+  assert(toTitleCase(LJ_char) = Lj_char)
+  assert(toTitleCase(Lj_char) = Lj_char)
+  assert(toTitleCase(lj_char) = Lj_char)
+
+  assert(toUpperCase('a') = 'A')
+  assert(toUpperCase('Z') = 'Z')
+  assert(toUpperCase('SIGMA') = 'SIGMA')
+  assert(toUpperCase('tau') = 'TAU')
+  assert(toUpperCase(LJ_char) = LJ_char)
+  assert(toUpperCase(Lj_char) = LJ_char)
+  assert(toUpperCase(lj_char) = LJ_char)
+
+  println("PASS")
+end
+
+end

@@ -1,0 +1,133 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ComparisonLibrary
+import CompilerAlgebra.{ Equality, opr = }
+export ComparisonLibrary
+
+(*
+  The four values of type `Comparison` are `LessThan`, `EqualTo`, `GreaterThan`, and `Unordered`;
+  they are used as the results of comparison operators such as `CMP` and `SQCMP`.
+
+  The comparison operators `<` and `<=` and `>=` and `>` treat these four values themselves as
+  being totally ordered in the order just given.
+
+  The combining operator `LEXICO` combines two comparison values in a manner that is convenient
+  for computing lexicographic order between two tuples:
+    `((a, b, c) CMP (d, e, f)) = ((a CMP d) LEXICO (b CMP e) LEXICO (c CMP f))`
+
+  The combining operator `SQCAP` combines two comparison values in a manner that is convenient
+  for computing product order between two tuples:
+    `((a, b, c) SQCMP (d, e, f)) = ((a CMP d) SQCAP (b CMP e) SQCAP (c CMP f))`
+
+  The unary operator `CONVERSE` converts a comparison result to the result that would have
+  occurred with the operands switched:
+    `CONVERSE (a CMP b) = (b CMP a)`
+ *)
+
+trait Comparison
+(*)        extends { StandardPartialOrder[\Comparison\] }
+(*)          extends { SnerdEquality[\Comparison\] }
+        extends { Equality[\Comparison\] }
+        comprises { Unordered, TotalComparison }
+        excludes { Number, Boolean, Character, String }
+    getter asExprString(): String = self.asString
+    (*) Default opr = is suitable for Comparison
+    (** Lexicographic ordering.  An associative operator.
+        Leftmost non-equal comparison dictates result. *)
+    opr LEXICO(self, other:Comparison): Comparison =
+        if self=EqualTo then other else self end
+    opr LEXICO(self, other:()->Comparison): Comparison =
+        if self=EqualTo then other() else self end
+    (** Symmetric comparison (product ordering).  A commutative
+        and associative operator. *)
+    opr SQCAP(self, other:Comparison): Comparison = Unordered
+    opr SQCAP(self, other:()->Comparison): Comparison = self SQCAP other()
+    opr CONVERSE(self): Comparison = Unordered
+    (*) This stuff ought to be provided by Equality[\Comparison\].
+    opr =(self, other:Comparison): Boolean = (self === other)
+    (*) This stuff ought to be provided by StandardPartialOrder[\Comparison\].
+    opr CMP(self, other:Comparison): Comparison =
+        if self < other then LessThan
+        elif other < self then GreaterThan
+        elif self = other then EqualTo
+        else Unordered
+        end
+    opr <(self, other:Comparison): Boolean
+    opr >(self, other:Comparison): Boolean = (other < self)
+    opr <=(self, other:Comparison): Boolean = (self = other OR: self < other)
+    opr >=(self, other:Comparison): Boolean = (other <= self)
+end
+
+(** Unordered is the outcome of a CMP b when a and b are partially
+    ordered and no ordering relationship exists between them. **)
+object Unordered extends Comparison
+    getter asString(): String = "Unordered"
+    opr <(self, other:Comparison): Boolean = false
+    opr SQCAP(self, other:()->Comparison): Comparison = Unordered
+    opr CONVERSE(self): Comparison = Unordered
+end
+
+trait TotalComparison
+(*)     extends { Comparison, StandardTotalOrder[\TotalComparison\] }
+        extends { Comparison }
+        comprises { LessThan, EqualTo, GreaterThan }
+    (* We're both a partial order (including Unordered) and a total
+       order (TotalComparison alone).  Avoid ambiguity between the
+       default definitions of CMP and >=. *)
+    opr CMP(self, other:Unordered): Comparison = Unordered
+    opr CMP(self, other:TotalComparison): TotalComparison =
+        if self < other then LessThan
+        elif other < self then GreaterThan
+        else EqualTo
+        end
+    opr <(self, other:Unordered): Boolean = false
+    opr >=(self, other:Unordered): Boolean = false
+    opr >=(self, other:Comparison): Boolean = NOT (other < self)
+    opr LEXICO(self, other:TotalComparison): TotalComparison =
+        if self=EqualTo then other else self end
+    opr LEXICO(self, other:()->TotalComparison): TotalComparison =
+        if self=EqualTo then other() else self end
+    opr CONVERSE(self): TotalComparison = EqualTo
+end
+
+object LessThan extends TotalComparison
+    getter asString(): String = "LessThan"
+    opr CMP(self, other:LessThan): TotalComparison = EqualTo
+    opr CMP(self, other:TotalComparison): TotalComparison = GreaterThan
+    opr <(self, other:LessThan): Boolean = false
+    opr <(self, other:TotalComparison): Boolean = true
+    opr SQCAP(self, other:LessThan): LessThan = LessThan
+    opr SQCAP(self, other:EqualTo): LessThan = LessThan
+    opr CONVERSE(self): GreaterThan = GreaterThan
+end
+
+object EqualTo extends TotalComparison
+    getter asString(): String = "EqualTo"
+    opr CMP(self, other:TotalComparison): TotalComparison = CONVERSE other
+    opr <(self, other:GreaterThan): Boolean = true
+    opr <(self, other:TotalComparison): Boolean = false
+    opr SQCAP(self, other: Comparison): Comparison = other
+    opr CONVERSE(self): EqualTo = EqualTo
+end
+
+object GreaterThan extends TotalComparison
+    getter asString(): String = "GreaterThan"
+    opr CMP(self, other:GreaterThan): TotalComparison = EqualTo
+    opr CMP(self, other:TotalComparison): TotalComparison = LessThan
+    opr <(self, other:TotalComparison): Boolean = false
+    opr SQCAP(self, other:GreaterThan): GreaterThan = GreaterThan
+    opr SQCAP(self, other:EqualTo): GreaterThan = GreaterThan
+    opr CONVERSE(self): LessThan = LessThan
+end
+
+
+end

@@ -1,0 +1,27 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Overview.factorial
+
+export Executable
+
+(** EXAMPLE **)
+opr (n: ZZ32)! = PROD[i <- 1:n]i
+(** END EXAMPLE **)
+
+run() = do
+  assert((5!) = 120)
+  println("OprDecl.Postfix.fss passed.")
+end
+
+end

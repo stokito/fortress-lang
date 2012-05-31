@@ -1,0 +1,17 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests= SingleInheritance
+compile
+link
+run
+run_out_equals=cd\n\
+O(1,2).n ab\n\
+O(1,2).p ef\n\
+O(1,2).n ab\n

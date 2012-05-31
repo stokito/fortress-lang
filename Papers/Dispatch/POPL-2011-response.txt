@@ -1,0 +1,134 @@
+We thank the reviewers for their thoughtful critique of our submission
+"Implementing Fully Modular, Statically Typed, Symmetric Multimethod Dispatch".
+
+We agree with the comments to the effect that we failed to lay out a
+sufficiently clear problem statement in section 1.  This may be, in
+part, because our paper addresses more than one problem, and we were
+reluctant to salami-slice the material into multiple papers because
+several of these problems have a common solution: the adoption of the
+Meet Rule (the restriction of Castagna et al. that every overload set
+must form a meet-bounded lattice).
+
+Fortress brings together several big ideas:
+
+(1) fully symmetric treatment of types and supertypes, including fully
+    symmetric inheritance (we note that while MultiJava treats types
+    symmetrically with respect to defining the subtype relationship,
+    it does not treat types symmetrically with respect to either
+    inheritance of concrete methods or what types may be used as
+    specializers: classes are privileged over interfaces)
+
+(2) fully symmetric multimethod dispatch (with respect to both types
+    and argument positions)
+
+(3) functional methods, effectively allowing overload sets to include
+    both functions and methods
+
+(4) a component system allowing selective import and renaming of types,
+    generic functions, AND the individual member functions of a generic
+    function
+
+The interaction of these features is tricky.  The goal of our paper
+was to exhibit a "moderately formal" implementation strategy for this
+combination of features that, while perhaps indeed boring in its
+attention to detail, explains this interaction in terms of an existing
+well-understood language (that is, something close to Java) and
+therefore effectively serves as a specification of the semantics.
+
+We would appreciate further guidance on how better to present the
+language grammar.  We are aware that standard POPL practice is to
+present grammars in an extremely concise form, typically using single
+capital letters as nonterminals.  Our judgment was that this works
+very well for grammars with ten to twenty productions, but we worried
+that a grammar with 46 nonterminals would become alphabet soup, and so
+chose to use mnemonic phrases for the nonterminals, in a style that is
+indeed reminiscent of the sort of language grammar one might find in a
+language specification.  The actual Fortress grammar is 21 pages long
+(for comparison, the full language grammar in the first edition of
+_The_Java_Language_Specification_ is 14 pages); we thought we were
+doing well to pare it down to a core grammar that would fit in 3/4 of
+a page, given that it needed to encompass declarations of types with
+inheritance; dotted methods, functions, functional methods;
+constructors; a component/API system with import and export
+statements; tuple and arrow types; function and method invocations;
+the "self" and "asif" keywords; and enough in the way of expressions
+(if-then-else and DO blocks) to credibly form a complete language.
+We admit that in the original draft of the paper, before compression
+for POPL submission, we had complete and explicit rewrite rules
+covering field access and assignment, and at the last minute condensed
+section 5.2 to two paragraphs.  Perhaps we could simply eliminate that
+section, and two or three productions from the grammar.  We would
+appreciate other suggestions as to how we could make the grammar "more
+compact".
+
+We find this reviewer comment very helpful:
+
+    Furthermore, the authors don't even bother stating, let alone proving, 
+    the one theorem a POPL audience might be interested in hearing about, 
+    namely that a well-typed Fortress source program can be translated to 
+    a well-typed Java-like target program. 
+
+We believe such a theorem to be true for the subset of Fortress
+described in our paper, and would very much like to make that claim,
+but we have not yet constructed that complete proof.  (Moreover, we
+believe that a proper proof would exceed the POPL page limit.)  We
+believe that such a theorem would NOT be true for full Fortress, which
+has type-parametric traits as well as type-parametric methods, because
+of certain limitations of the JVM; we believe that our general approach
+of rewriting a source language into a simpler target language could
+still be used, but the target language would have to be extended in such
+a way that perhaps we could no longer describe it as being "Java-like".
+
+To answer a question from reviewer 158B: yes, if another scope sees all the
+methods, it will check the meet rule there.
+
+To answer another question from reviewer 158B: For lack of space, we failed
+to provide motivation for using an "arbitrarily chosen dispatch set"
+other than U.  The answer is the possibility of low-level optimization.
+It might be, for example, that in a particular implementation of a particular
+set of types, there is available a cheap way to map these types to small
+integers.  It might then be desirable to replace the if-then-else chain
+in a "$dispatch" function (section 5.9) with a "case" or "switch" statement,
+in which case there might well be no extra cost for including extra possibilities
+in the jump table.  Doing so would make the code faster when such possibilities
+apply because it would eliminate one function call from the dispatch process.
+
+Thirdly, reviewer 158B asks: "if there is at least one definition d'
+in Sf such that d is more specific than d'" I thought that by
+definition of Sf, d' must be more specific than d, so how is the
+reverse also possible?  The answer is that this sentence refers
+to Sf, the maximal set of function declarations and definitions
+that have the same name f and whose scopes are co-extensive.
+It is a different set, Skf, that consists of definitions in Sf
+that are strictly more specific than d.
+
+And to answer a fourth question from reviewer 158B: yes, the question
+of "co-extensive" scopes is determined on a per-component basis.
+It may be that we need to work harder on the terminology of "scope".
+An important point of this design is that scopes are confined to
+components, and importation of a function in effect creates a new
+function that trampolines to the original but whose name has a
+different scope.  On the other hand, dotted methods are NOT subject to
+importation (and possible renaming); access to a dotted method is
+controlled by whether its containing trait is (explicitly or
+implicitly) accessible, as is traditional.  Functional methods provide a
+mixture of features: they are inherited like methods, but scoped like
+functions.
+
+To answer a question from reviewer 158D: the rewriting presented in
+the paper is an abstraction of the compilation mechanisms in actual
+use in the current open-source Fortress compiler, which organizes the
+dispatch process as described but does not literally perform
+source-to-source rewrites.  We do not yet have systematic measurements
+of execution speed to report.
+
+We would appreciate having the reviewers' advice on this question:
+if this paper is not accepted for POPL and we wish to submit this
+material to another conference, would it be considered salami-slicing
+if we were to split this material into two papers, one to address just
+the implementation of multimethod dispatch and functional methods
+within a single component, and a second paper that would address the
+scoping issues that arise when components and APIs are added?  (The
+motivation would be to allow more space in each paper for problem
+statement, background, and comparison with prior work.  In particular,
+we need to make a much more detailed comparison to MultiJava.)

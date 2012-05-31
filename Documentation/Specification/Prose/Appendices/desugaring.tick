@@ -1,0 +1,118 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newchap{Desugaring}{desugaring}
+
+
+\newsec{Do Expressions}
+
+
+
+\newsec{For Expressions}
+
+\newsec{Reduction Expressions}
+
+\newsec{Comprehensions}
+
+
+\newsec{If Expressions}
+
+If an `if` expression contains any generator bindings, then it is desugared in two steps.
+
+\newsubsec{Eliminate `elif` clauses}
+
+An `if` expression with `elif` clauses is desugared to a series of nested `if` expressions
+containing no `elif` clauses.  For example,
+```
+if test1 then block1
+elif test2 then block2
+elif test3 then block3
+elif test4 then block4
+...
+elif test9 then block9
+else finalBlock
+end
+```
+is desugared to
+```
+if test1 then block1 else
+if test2 then block2 else
+if test3 then block3 else
+if test4 then block4 else
+...
+if test9 then block9 else
+  finalBlock
+end ... end end end end
+```
+An `if` expression with `elif` clauses but no `else` clause is desugared similarly:
+```
+if test1 then block1
+elif test2 then block2
+elif test3 then block3
+elif test4 then block4
+...
+elif test9 then block9
+end
+```
+is desugared to
+```
+if test1 then block1 else
+if test2 then block2 else
+if test3 then block3 else
+if test4 then block4 else
+...
+if test9 then block9
+end ... end end end end
+```
+
+\newsubsec{Eliminate generator binding}
+
+Each `if` expression with a generator binding is desugared into a call to the function `__cond`.
+```
+if b <- e then x else y end
+```
+is desugared to
+```
+__cond(e, fn (b) => x, fn () => y)
+```
+Similarly,
+```
+if b <- e then x end
+```
+is desugared to
+```
+__cond(e, fn (b) => x)
+```
+The standard library definition for `__cond` is:
+```
+__cond[\E,R\](c: Condition[\E\], t: E->R, e: ()->R): R =
+  c.cond[\R\](t, e)
+__cond[\E\](c: Condition[\E\], t: E->()): () =
+  c.cond[\()\](t, fn () => ())
+```
+
+\newsec{While Loops}
+
+Each `while` loop with a generator binding is desugared into a `while` loop
+that has an empty block and an expression that is a call to the function `__whileCond`.
+
+```
+while b <- e do block end
+```
+is desugared to
+```
+while __whileCond(e, fn (b) => do block end) do end
+```
+The standard library definition for `__whileCond` is:
+```
+__whileCond[\E\](c: Condition[\E\], f: E->()): () =
+    c.cond[\Boolean\](fn (e): Boolean => do f(e); true end, fn (): Boolean => false)
+```

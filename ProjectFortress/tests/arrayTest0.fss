@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component arrayTest0
+export Executable
+
+run():()=do
+  (* This used to use FlatStorageMaker, which no longer extends
+     Array1. *)
+  z:Array1[\String, 0, 3\] = array1[\String, 3\]()
+  z[0]:="cat"
+  z[1]:="dog"
+  z[2]:="bat"
+  println( z[0] " " z[1] " " z[2] );
+
+  println( z.get(1) )
+
+  println( z.rank() )
+end
+
+end

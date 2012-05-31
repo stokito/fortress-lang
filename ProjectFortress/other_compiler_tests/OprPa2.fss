@@ -1,0 +1,48 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+******************************************************************************)
+
+(*)  need generic overloading for this to work I guess...
+
+export Executable
+
+trait Compareish[\ T, opr <=, opr > \] comprises T
+   opr <=(self, other:T): Boolean
+   opr >(self, other:T): Boolean
+end
+
+object Foo(x:ZZ32) extends Compareish[\ Foo, BELOWEQ, ABOVE \]
+   opr BELOWEQ(self, other:Foo) = x <= other.x
+   opr ABOVE(self, other:Foo) = x > other.x
+end
+
+run() : () = do
+    a = Foo(0)
+    b = Foo(1)
+    println "Begin BELOWEQ tests"
+    c = a BELOWEQ b
+    d = b BELOWEQ a
+    e = a BELOWEQ a
+    println "End BELOWEQ tests"
+
+    println "Begin ABOVE tests"
+    f = a ABOVE b
+    g = b ABOVE a
+    h = a ABOVE a
+    println "End ABOVE tests"
+
+    println c
+    println d
+    println e
+    println f
+    println g
+    println h
+
+end

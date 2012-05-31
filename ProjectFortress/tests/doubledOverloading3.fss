@@ -1,0 +1,42 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component doubledOverloading3
+export Executable
+
+(*
+A parametric type can't have a functional method right now, because
+we end up with top-level overloadings that aren't provably disjoint.
+But we've ruled out multiple extension of a single type a different
+parameterizations (right?), so we should consider these instantiations
+to be disjoint (right right?).
+
+Here we get
+ @"tests/doubledOverloading3.fss",40:2~41:0: and
+ @"tests/doubledOverloading3.fss",40:2~41:0: first parameters self:[A[\Boolean\]] and self:[A[\ZZ32\]] are unrelated (neither subtype, excludes, nor equal) and no excluding pair is present
+	at com.sun.fortress.interpreter.evaluator.ProgramError.error(ProgramError.java:102)
+	at com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.finishInitializingSecondPart(OverloadedFunction.java:248)
+        ...
+*)
+
+(* A must be parametric.
+   A must be a trait, not an object. *)
+trait A[\T\]
+  (* f must be a functional method or the bug doesn't manifest. *)
+  f(self):Boolean = true
+end
+
+object P extends A[\ZZ32\] end
+object Q extends A[\Boolean\] end
+
+run(): () = ()
+
+end

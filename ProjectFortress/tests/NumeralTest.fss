@@ -1,0 +1,61 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component NumeralTest
+import Set.{...}
+import Constants.{ pi }
+export Executable
+
+run() = do
+  assert(17, f_SIXTEEN + 2)
+  assert(7fff_16, strToInt("7fff", 16))
+  assert(0fff_SIXTEEN, strToInt("fff", 16))
+  assert(10101101_2, strToInt("10101101", 2))
+  assert(XE_12, strToInt("XE", 12))
+  assert(3.14159265, 3.14159265)
+  assert(3.14159265 + 2, 5.14159265)
+  assert(DEAD.BEEF_16, DEAD.BEEF_SIXTEEN)
+  assert(DEAD.BEEF_16 + 1, 57006.745834350586)
+  assert(1000_2, 8)
+  assert(1000_3, 27)
+  assert(1000_4, 64)
+  assert(1000_5, 125)
+  assert(1000_6, 216)
+  assert(1000_7, 343)
+  assert(1000_8, 512)
+  assert(1000_9, 729)
+  assert(1000_10, 1000)
+  assert(1000_11, 1331)
+  assert(1000_12, 1728)
+  assert(1000_13, 2197)
+  assert(1000_14, 2744)
+  assert(1000_15, 3375)
+  assert(1000_16, 4096)
+  assert(1xe_12, 275)
+  assert(123'456'789, 123456789)
+  assert(DEAD'BEEF_16, DEADBEEF_16)
+  assert(DE'AD'BE'EF_16, DEADBEEF_16)
+  assert(DE AD BE EF_16, 1101 1110 1010 1101 1011 1110 1110 1111_2)
+  assert(3.14159265358979, 3.141 592 653 589 79)
+  assert(10101001010101110101101_2, 101'0100'1010'1011'1010'1101_2)
+
+(* Rightly rejected:
+  wrong1 = 0.a
+  wrong2 = 0x6A35
+  wrong3 = FF_EIGHT
+  wrong4 = 12.52.23
+  wrong5 = 57_50
+  wrong6 = PI_FIFTEEN
+  wrong7 = dead.BEEF_16
+ *)
+end
+
+end

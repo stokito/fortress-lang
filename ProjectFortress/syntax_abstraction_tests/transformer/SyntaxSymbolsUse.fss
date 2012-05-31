@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SyntaxSymbolsUse
+
+  import SyntaxSymbols.{...}
+
+  export Executable
+
+  run() = do
+    println "Escapetest: " FORMFEED T G P world
+    println "FunnyThingstest  : " hello ( world )
+    println "Operatortest     : " hello gnu abeabe worldhello
+    println "Hashtest         : " foo hellohellohellohelloworldbar
+    println "Nottest          : " oof
+    println "Andtest          : " bar
+    println "Spacetest        : " fnug fnug   fnug
+    println "Tabtest          : "  blob	blob	blob TABTAB sTAB
+    println "Returntest       : " rr
+rr rr RETURNRETURN sRETURN
+    println "NewlineTest      : " nl
+nl nl NEWLINENEWLINE sNEWLINE
+    println "SPACETest        : "  sp   sp sp SPACESPACE sSPACE
+    println "AnyCharTest      : " boz J sbar a baz boz T
+  end
+
+end
+
+(*  println "Formfeedtest     : "
+    println "BackspaceTest    : "
+*)

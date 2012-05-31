@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ListComprehensionDoesNotRespectAsif
+
+import List.{...}
+
+export Executable
+
+
+trait A end
+object B extends A end
+
+run() = do
+    ls:List[\A\] = <| (B asif A) |>
+    cs:List[\A\] = <| ( x asif A ) | x <- ls |>
+end
+
+end

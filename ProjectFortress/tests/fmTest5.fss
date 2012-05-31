@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component fmTest5
+export Executable
+
+trait Mumble[\T\]
+  mumble(self): Mumble[\T\] = MumbleD[\T\]("mumble(" mutter() ")")
+  mutter():String = "Mumble"
+end
+
+object MumbleD[\T\](s:String) extends Mumble[\T\]
+  mumble(self): Mumble[\T\] = MumbleD[\T\](s)
+  mutter():String = "MumbleD " s
+end
+
+run():()=do
+  println(mumble(MumbleD[\ZZ32\]("Howdy")).mutter())
+end
+
+end

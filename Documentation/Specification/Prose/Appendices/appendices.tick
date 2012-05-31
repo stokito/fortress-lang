@@ -1,0 +1,45 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\appendixdir}{\prosedir/Appendices}
+\appendix
+% \newpart{Appendices}{appendices}
+
+% We might want this to be several parts: 
+%  - Language details
+%     - grammar(s)
+%     - detailed lexical structure, including ASCII encoding, various tables (e.g., operators)
+%  - Foreign function interface (esp. with respect to Java)
+%  - Future features
+%      - dimensions and units
+%      - regions/locality
+%  - Tools
+%      - Pretty printing (e.g., Fortify)
+%      - Linker, etc.
+%  - Formalization (i.e., calculi)
+%  - Implementation/system issues (i.e., running on JVM)
+%  - Differences from previous versions
+
+% Arguably, "libraries" should also be an appendix.
+
+% The following should perhaps be a single appendix.
+%\input{\appendixdir/characters}
+%\input{\appendixdir/literals}
+%\input{\appendixdir/reserved-words}
+%\input{\appendixdir/operators}
+
+%\input{\appendixdir/ascii-to-unicode}
+
+%\input{\appendixdir/rendering}
+
+\input{\appendixdir/grammar}
+%\input{\appendixdir/future}
+%\input{\appendixdir/changes}

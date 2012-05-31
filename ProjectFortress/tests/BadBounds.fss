@@ -1,0 +1,62 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component BadBounds
+export Executable
+run() :() = do
+  b:ZZ32[3,2] = [1 2
+                 3 4
+                 5 6]
+  println ("b lower bounds " b.bounds.lower )
+  println ("b upper bounds " b.bounds.upper )
+  println ("b.bounds = " b.bounds)
+
+  bShifted = b.bounds ≫ (2,5)
+  assert(b.bounds.extent, bShifted.extent)
+  println b.bounds.ilkName
+  assert(bShifted.lower, (2, 5))
+
+  assert(bShifted ≪ (2,5), b.bounds)
+
+  for (i,j) <- b.indices do
+      println("b[" i "," j "] = " b[i,j])
+  end
+
+  for (i,j) <- sequential(b.indices) do
+      println("b[" i "," j "] = " b[i,j])
+  end
+
+  c :ZZ32[3,4,2] = [ 1  2  3  4
+                     5  6  7  8
+                     9 10 11 12;; 13 14 15 16
+                                  17 18 19 20
+                                  21 22 23 24 ]
+
+  cShifted = c.bounds ≫ (2,5,8)
+  assert(c.bounds.extent, cShifted.extent)
+  println c.bounds.ilkName
+  assert(cShifted.lower, (2, 5, 8))
+
+  assert(cShifted ≪ (2, 5, 8), c.bounds)
+
+  for (i,j,k) <- c.indices do
+            println ("c[" i "," j "," k "] = " c[i,j,k] )
+  end
+  for (i,j,k) <- sequential(c.indices) do
+            println ("c[" i "," j "," k "] = " c[i,j,k] )
+  end
+  println ("c lower bounds " c.bounds.lower )
+  println ("c upper bounds " c.bounds.upper )
+  println ("c.bounds = " c.bounds)
+
+end
+
+end
