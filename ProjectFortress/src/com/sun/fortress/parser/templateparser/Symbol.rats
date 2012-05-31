@@ -1,0 +1,29 @@
+/*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress symbols and operators.
+ */
+module com.sun.fortress.parser.templateparser.Symbol(DelimitedExpr, LocalDecl, NoNewlineExpr,
+                                      Type, Identifier, Spacing, Keyword);
+
+import DelimitedExpr;
+import LocalDecl;
+import NoNewlineExpr;
+import Type;
+import Identifier;
+import Spacing;
+import Keyword;
+
+modify com.sun.fortress.parser.Symbol(DelimitedExpr, LocalDecl,
+ NoNewlineExpr, Type, Identifier, Spacing, Keyword);
+
+transient void DoubleStar = "**";

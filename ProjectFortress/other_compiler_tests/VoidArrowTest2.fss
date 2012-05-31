@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+hello(v : (),s : String) : String = "Hello"
+world(): String = "World!"
+
+object VoidMethods
+   zeroVoid() : () = ()
+   oneVoid(x : () ) = ()
+   oneVoidOneString(x : (), y : String) = ()
+   oneStringOneVoid(x : String, y : ()) = ()
+   twoVoid(y : (), z : ()) : () = ()
+   voidInTheMiddle(x : String, y : (), z : String) = ()
+   moreVoid(w : (), x : (), y :(), z : ()) : () = ()
+   
+end
+
+run():() = do
+    VoidMethods.zeroVoid()
+    VoidMethods.oneVoid(())
+    VoidMethods.oneVoidOneString((),"test")
+    VoidMethods.oneStringOneVoid("test",())
+    VoidMethods.twoVoid((),())
+    VoidMethods.voidInTheMiddle("test",(),"test")
+    VoidMethods.moreVoid((),(),(),())
+    println(hello((),"test"))
+    println(world())
+end

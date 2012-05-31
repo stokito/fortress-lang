@@ -1,0 +1,28 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Overview.Expression.tuple
+
+export Executable
+
+h() =
+(** EXAMPLE **)
+("this", "is", "a", "tuple", "of", "mostly", "strings", 0)
+(** END EXAMPLE **)
+
+run() = do
+  (a, b, c, d, e, f, g, _) = h()
+  println (a b c d e f g)
+end
+
+end

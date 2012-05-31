@@ -1,0 +1,31 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled9.q.fss
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled9.q.fss:19:3-21:4:\n\
+\ An 'if' clause without corresponding 'else' has type IntLiteral instead of type ().\n\
+${STATIC_TESTS_DIR}/Compiled9.q.fss:24:3-28:4:\n\
+\ An 'if' clause without corresponding 'else' has type IntLiteral instead of type ().\n\
+${STATIC_TESTS_DIR}/Compiled9.q.fss:31:3-36:4:\n\
+\ An 'if' clause without corresponding 'else' has type IntLiteral instead of type ().\n\
+${STATIC_TESTS_DIR}/Compiled9.q.fss:32:5:\n\
+\ Non-last expression in a block has type IntLiteral, but it must have () type.\n\
+${STATIC_TESTS_DIR}/Compiled9.q.fss:39:3-44:4:\n\
+\ An 'if' clause without corresponding 'else' has type IntLiteral instead of type ().\n\
+${STATIC_TESTS_DIR}/Compiled9.q.fss:42:5:\n\
+\ Non-last expression in a block has type IntLiteral, but it must have () type.\n\
+${STATIC_TESTS_DIR}/Compiled9.q.fss:49:5:\n\
+\ Non-last expression in a block has type IntLiteral, but it must have () type.\n\
+${STATIC_TESTS_DIR}/Compiled9.q.fss:52:5:\n\
+\ Non-last expression in a block has type IntLiteral, but it must have () type.\n\
+File Compiled9.q.fss has 8 errors.\n
+compile_out_equals=

@@ -1,0 +1,15 @@
+component Test2
+
+  import Maybe.{...}
+  export Executable
+    
+  run() = 
+  do x: ZZ32 = 4
+     j = Just(x)
+     if y <- j then println(y) else println("bar") end  
+     if foo <- j then println(foo) end
+     if quux <- Nothing[\ZZ32\] then println("whaaaat?") else println("great!") end   
+     println("PASS")
+  end
+
+end

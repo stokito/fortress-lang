@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXcaseTest
+
+export Executable
+
+test1()=do
+    case 2 + 2 of
+        64 => ()
+        128  => ()
+    end
+end
+
+run():()=do
+   test1()
+end
+end

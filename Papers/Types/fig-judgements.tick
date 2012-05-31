@@ -1,0 +1,50 @@
+%%%%%%%%%%%%%%% BEGIN JUDGMENT FIGURE %%%%%%%%%%%%%%%
+\begin{figure}
+\begin{minipage}[ht]{.5\textwidth}
+\centering
+
+\newjudge{Primitive Judgments}{\jgconstrtemplate{T}{\ast}{T}{\C}}
+
+% \vspace{\afterruleskip}
+% \jsub{S}{T}{\C}
+% \vspace{\afterruleskip}
+% 
+% \jnsub{S}{T}{\C}
+% \vspace{\afterruleskip}
+% 
+% \jexc{S}{T}{\C}
+% \vspace{\afterruleskip}
+% 
+% \jnexc{S}{T}{\C}
+% \vspace{\afterruleskip}
+
+$$
+\begin{array}{l@{\hspace{2em}}l}
+\jsub{S}{T}{\C}  & \jexc{S}{T}{\C} \\[.5em]
+\jnsub{S}{T}{\C} & \jnexc{S}{T}{\C} \\
+\end{array}
+$$
+
+\vspace*{2ex}
+\newjudge{Derived Judgments}{\jgconstrtemplate{T}{\ast}{T}{\C}}
+
+\infrule
+  {\jsub{S}{T}{\C} \andalso \jsub{T}{S}{\C'}}
+  {\jequiv{S}{T}{\C \wedge \C'}}
+  
+\infrule
+  {\jnsub{S}{T}{\C} \andalso \jnsub{T}{S}{\C'}}
+  {\jnequiv{S}{T}{\C \vee \C'}}
+
+\vspace*{2ex}
+\newjudge{Derived Judgments}{\jgcontratemplate{T}{\ast}{T}{\C}}
+  
+\infrule
+  {\jequiv{S}{T}{\C}}
+  {\jcnequiv{S}{T}{\neg \C}}
+
+\end{minipage}
+  \caption{Constraint-based judgment forms.}
+  \label{fig:judge}
+\end{figure}
+%%%%%%%%%%%%%%% END JUDGMENT FIGURE %%%%%%%%%%%%%%%%%

@@ -1,0 +1,35 @@
+/*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress expressions that do not include any newlines.
+ */
+module com.sun.fortress.parser.templateparser.NoNewlineExpr(Expr, NoNewlineType, Keyword,
+                                             Symbol, Spacing);
+
+import Expr;
+import NoNewlineType;
+import Keyword;
+import Symbol;
+import Spacing;
+
+modify com.sun.fortress.parser.NoNewlineExpr(Expr, NoNewlineType, Keyword,
+Symbol, Spacing);
+
+Action<Expr> ExprTail += NoNewlineEllipsesExpr / <As> ...;
+
+constant inline Action<Expr> NoNewlineEllipsesExpr =
+	s DoubleStar
+	{ yyValue = new Action<Expr>() {
+		public Expr run(Expr base) {
+			return new _EllipsesExpr(NodeFactory.makeExprInfo(createSpan(yyStart,yyCount)), base);
+		}};
+	};

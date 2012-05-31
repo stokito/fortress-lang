@@ -1,0 +1,62 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component staticParamNotFound
+export Executable
+
+trait T[\X\]
+    x():ZZ32
+    y():ZZ32
+    z():Boolean
+    a():X
+end
+
+trait Y
+    getX():String
+    getS():String
+    getZ():ZZ32
+end
+
+object O[\X extends String, bool b, nat n\](var v:ZZ32, s:X)
+    foo():ZZ32 = 3
+    (* After we move checking of method calls to be after
+       type inference, remove the explicit return type T. *)
+    bar():T[\X\] = object extends T[\X\]
+                x():ZZ32 = foo()
+                y():ZZ32 = quack()
+                z():ZZ32 = do
+                    o = O[\X, b, 3\](v, s)
+                    if b then n else (n-1) end
+                end
+                a():X = s
+            end
+    quack():ZZ32 = self.v
+    name():X = s
+end
+
+(* Nested FnDecls within the object decl which declares more static params *)
+object O4[\X extends String, S extends String\](x:X, s:S)
+    foo[\Z1 extends ZZ32\](z1:Z1):Y = do
+        nested[\Z2 extends ZZ32\](z2:Z2):Y = object extends Y
+            getX():String = x
+            getS():String = s
+            getZ():ZZ32 = z1 + z2
+            end
+        nested[\ZZ32\](3)
+        end
+end
+
+run():() = do
+    o4:O4[\String, String\] = O4[\String, String\]("str3", "str4")
+    y2:Y = o4.foo[\ZZ32\](7)
+end
+
+end

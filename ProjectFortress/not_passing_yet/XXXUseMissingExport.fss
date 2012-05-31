@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXUseMissingExport
+import XXXMissingExport.{...}
+export Executable
+
+g(u) = f(u)
+
+run():() = do
+    if (17^2 < 25^3) then
+        println("Should have caught missing f (which is even sorta used).")
+    else
+        println(g(17))
+        println("Unreachable!  Should not succeed.")
+    end
+  end
+
+end

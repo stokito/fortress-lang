@@ -1,0 +1,50 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2010,2011, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+# Minor special-case acceleration here.
+if [ -z "$FORTRESS_HOME" ]; then
+   export FORTRESS_HOME="`${0%runOpt}fortress_home`"
+fi
+
+if [ -z "$MORE_PATH" ] ; then
+  true
+else
+  CP="${CP}:${MORE_PATH}"
+fi
+
+if (uname | egrep CYGWIN > /dev/null) ; then
+  SEP=";"
+else
+  SEP=":"
+fi
+
+CP="`"$FORTRESS_HOME"/bin/run_classpath`"
+CP=$FORTRESS_HOME/default_repository/caches/optimizedbytecode_cache/${SEP}$FORTRESS_HOME/default_repository/caches/optimizedbytecode_cache/*${SEP}$CP
+echo $CP
+
+if [ -z "$JAVA_HOME" ] ; then
+  JAVACMD=java
+else
+  JAVACMD="$JAVA_HOME/bin/java"
+fi
+
+if [ -z "$JAVA_FLAGS" ] ; then
+  JAVA_FLAGS="-Xmx768m"
+fi
+
+JAVA_FLAGS+=" -Dfile.encoding=UTF-8 -Xfuture"
+
+# echo "$JAVACMD" $JAVA_FLAGS "-Xbootclasspath/p:$CP" "$@"
+
+"$JAVACMD" $JAVA_FLAGS -cp "$CP" com.sun.fortress.runtimeSystem.MainWrapper "$@"
+

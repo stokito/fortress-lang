@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled1.p
+  export Executable
+  object Blah[\int n\]
+   foo():ZZ32 = n
+  end
+
+  run():()=do
+    b = bar[\1\]()
+  end
+  bar[\int n\]():ZZ32 = Blah[\m\].foo()
+
+end

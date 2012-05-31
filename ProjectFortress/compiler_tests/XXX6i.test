@@ -1,0 +1,18 @@
+#    Copyright 2009,2012 Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled6.i
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled6.i.fss:16:3-21:\n\
+${STATIC_TESTS_DIR}/Compiled6.i.fss:17:3-21:\n\
+\    There are multiple declarations of x with the same parameter type: (ZZ32)\n\
+File Compiled6.i.fss has 1 error.\n
+compile_out_equals=

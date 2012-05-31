@@ -1,0 +1,11 @@
+component B
+  import I.{...}
+  import J.{...}
+  export Executable
+  run():() = do
+    print("In B, API I is implemented by ")
+    println(i())
+    print("In J, API I is implemented by ")    
+    println(j())
+  end   
+end

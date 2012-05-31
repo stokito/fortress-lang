@@ -1,0 +1,97 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009,2010, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+BlockElems =
+     BlockElemCollection
+
+BlockElemCollection =
+     BlockElem br BlockElemCollection
+   / BlockElem w semicolon
+     &(w elif / w also / w end / w catch / w forbid / w finally / w closeparen)
+   / BlockElem
+     &(w elif / w also / w end / w catch / w forbid / w finally / w closeparen)
+   / BlockElem &(w Else / br CaseClause / br TypecaseTypes / br CaseElse)
+   / BlockElem w semicolon  &(w Else)
+
+BlockElem =
+     LocalVarFnDecl
+   / NoNewlineExpr (s comma w NoNewlineGeneratorClauseList)?
+
+LocalVarFnDecl =
+     LocalFnDecl (br LocalFnDecl)*
+   / LocalVarDecl
+
+LocalFnDecl =
+     Mods? Id (w StaticParams)? w ValParam FnHeaderClause w equals
+     w NoNewlineExpr
+
+ValParam =
+     openparen (w Params)? w closeparen
+   / BindId
+
+Params =
+     <ErrorProduction1>
+     (Param w comma w)+ (Keyword w comma w)+ Varargs
+   / <ErrorProduction2>
+     Varargs w comma w (Keyword w comma w)+ Param (w comma w Param)*
+   / <ErrorProduction3>
+     Varargs (w comma w Param)+ (w comma w Keyword)*
+   / (Param w comma w)* (Varargs w comma w)? Keyword
+       (w comma w Keyword)*
+   / (Param w comma w)* Varargs
+   / Param (w comma w Param)*
+
+Param =
+     BindId (s colon s NoNewlineType)?
+
+Varargs = BindId s colon s NoNewlineType s ellipses
+
+Keyword = Param s equals w NoNewlineExpr
+
+LocalVarDecl =
+     Mods? VarMayTypes s equals w NoNewlineExpr
+   / Mods? NoNewlineVarWTypes s colonequals w NoNewlineExpr
+   / Mods? NoNewlineVarWTypes
+   / VarWoTypes s equals w NoNewlineExpr
+   / Mods? VarWoTypes s colon s NoNewlineType s ellipses (s InitVal)?
+   / Mods? VarWoTypes s colon s NoNewlineTupleType (s InitVal)?
+
+VarMayTypes =
+     VarMayType
+   / openparen w VarMayType (w comma w VarMayType)+ w closeparen
+
+VarMayType = BindId (s colon s NoNewlineType)?
+
+VarWoTypes =
+     VarWoType
+   / openparen w VarWoType (w comma w VarWoType)+ w closeparen
+
+VarWoType =
+     BindId
+   / Unpasting
+
+Unpasting =
+     opensquare w UnpastingElems w closesquare
+
+UnpastingElems =
+     UnpastingElem RectSeparator UnpastingElems
+   / UnpastingElem
+
+UnpastingElem =
+     BindId (opensquare w UnpastingDim w closesquare)?
+   / Unpasting
+
+UnpastingDim =
+     NoNewlineExtentRange (w cross w NoNewlineExtentRange)+
+
+CaseClause = NoNewlineExpr w match w BlockElems
+\end{verbatim}

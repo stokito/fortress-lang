@@ -1,0 +1,116 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component DynamicSemantics
+import Map.{...}
+import Syntax.{...}
+export DynamicSemantics
+
+(* Runtime value ***************************************************************)
+trait RuntimeValue comprises { Val, FnValue }
+  getter asString(): String
+  getValue(): Value
+  toSource(): String
+end
+
+object Val(v: Value) extends RuntimeValue
+  getter asString() = v.asString
+  getValue() = v
+  toSource() = v.toSource()
+end
+
+object FnValue(fun: FnExpr, sigma: Map[\String, RuntimeValue\])
+  extends RuntimeValue
+  getter asString() = "(" fun.asString ", " sigma ")"
+  getValue() = fun
+  toSource() = fun.toSource()
+end
+
+(* Runtime value factories *****************************************************)
+val(expr: Value) = Val(expr)
+val(expr: FnExpr, sigma: Map[\String, RuntimeValue\]) = FnValue(expr, sigma)
+
+(* Function table **************************************************************)
+(* function name |-> function expression *)
+fdecls: Map[\String, FnExpr\] := {[\String, FnExpr\]}
+
+(* Initialize the helper table *)
+initDynamic() = atomic fdecls := {[\String, FnExpr\]}
+
+(* Dynamic environment *********************************************************)
+(* variable name |-> runtime value *)
+emptyEnv: Map[\String, RuntimeValue\] = {[\String, RuntimeValue\]}
+
+(* Evaluate a given expression in a given environment *)
+(* True is a value which does not require further evaluation. *)
+opr VDASH(sigma: Map[\String, RuntimeValue\], expr: True) = val(expr)
+
+(* False is a value which does not require further evaluation. *)
+opr VDASH(sigma: Map[\String, RuntimeValue\], expr: False) = val(expr)
+
+(* A pair of FnExpr and its defined environment is a value
+   which do not require further evaluation.
+ *)
+opr VDASH(sigma: Map[\String, RuntimeValue\], expr: FnExpr) = val(expr, sigma)
+
+(* If a given variable is a function name
+   then returns the corresponding function expression of the function
+   else get the value of a given variable from the environment.
+        Throws an unbound variable exception
+        if the variable is not found in the environment.
+ *)
+opr VDASH(sigma: Map[\String, RuntimeValue\], expr: Var) = do
+  name = expr.name
+  if f <- fdecls.member(name)
+  then val(f, emptyEnv)
+  else if v <- sigma.member(name)
+       then v
+       else throw FailCalled("Unbound variable: " expr.name)
+       end
+  end
+end
+
+(* Evaluate the function expression and the argument expression.
+   Bound the parameter of the function value to the argument value.
+   Evaluate the body expression of the function value.
+ *)
+opr VDASH(sigma: Map[\String, RuntimeValue\], expr: App) = do
+  f = sigma VDASH expr.function
+  typecase f of
+    f':FnValue => function = f'.fun
+               sigma' = f'.sigma.add(function.param, sigma VDASH expr.argument)
+               sigma' VDASH function.body
+    else    => throw FailCalled("Type error: " f)
+  end
+end
+
+(* If the condition expression evaluates to True
+   then evaluate the "then" branch
+   else evaluate the "else" branch.
+   Throws a type error
+   if the condition expression does not evaluate to True or False.
+ *)
+opr VDASH(sigma: Map[\String, RuntimeValue\], expr: If) = do
+  c = (sigma VDASH expr.cond).getValue()
+  typecase c of
+    True  => sigma VDASH expr.thenB
+    False => sigma VDASH expr.elseB
+    else  => throw FailCalled("Type error: " c)
+  end
+end
+
+(* Evaluate a given program. *)
+opr VDASH(p: Program) = do
+  atomic fdecls := fdecls.add(fd.name, FnExpr(fd.param, fd.body)), fd <- p.decls
+  emptyEnv VDASH p.expr
+end
+
+end

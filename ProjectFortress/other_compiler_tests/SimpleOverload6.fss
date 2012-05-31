@@ -1,0 +1,32 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SimpleOverload6
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.bar => jBar}
+
+import java com.sun.fortress.nativeHelpers.{simpleOverload.baz => jBaz}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.duo => jDuo}
+
+export Executable
+
+print2(x:String, y:String):() = do
+  jPrintln(jDuo(x.asJavaString,y.asJavaString))
+end
+
+run(): () = do
+  print2("PA","SS")
+
+  jPrintln(jDuo("11".asJavaString))
+
+end
+
+end

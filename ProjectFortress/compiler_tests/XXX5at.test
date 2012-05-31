@@ -1,0 +1,27 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled5.at
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.at.fss:16:5-6:\n\
+\ Operator declarations are not allowed in block expressions.\n\
+${STATIC_TESTS_DIR}/Compiled5.at.fss:27:21-22:\n\
+\ Operator declarations are not allowed in block expressions.\n\
+${STATIC_TESTS_DIR}/Compiled5.at.fss:39:7-8:\n\
+\ Operator declarations are not allowed in block expressions.\n\
+${STATIC_TESTS_DIR}/Compiled5.at.fss:45:5-6:\n\
+\ Operator declarations are not allowed in block expressions.\n\
+${STATIC_TESTS_DIR}/Compiled5.at.fss:57:5-6:\n\
+\ Operator declarations are not allowed in block expressions.\n\
+${STATIC_TESTS_DIR}/Compiled5.at.fss:65:5-6:\n\
+\ Operator declarations are not allowed in block expressions.\n\
+File Compiled5.at.fss has 6 errors.\n
+compile_out_equals=

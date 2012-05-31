@@ -1,0 +1,114 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component IntegrationStats
+import System.{...}
+import StatDigest.{...}
+export Executable
+
+trait Histogram comprises { EmptyH, Bucket }
+    getter stats(): StatDigest
+    getter asString():String
+    merge(other: Histogram): Histogram
+    mergeB(other: Bucket): Bucket
+end
+
+object EmptyH extends Histogram
+    getter stats(): StatDigest = emptySD
+    getter asString():String = ""
+    merge(other: Histogram): Histogram = other
+    mergeB(other: Bucket): Bucket = other
+end
+
+object Bucket(val: RR64, n: RR64, rest:Histogram) extends Histogram
+    getter stats(): StatDigest = rest.stats.add(n, val)
+    getter asString():String = "\t" val.asString ": " n.asString rest.asString
+    merge(other: Histogram): Histogram = other.mergeB(self)
+    mergeB(other: Bucket): Bucket =
+        if other.val < val then
+            Bucket(other.val, other.n, other.rest.mergeB(self))
+        elif other.val > val then
+            Bucket(val, n, rest.mergeB(other))
+        else
+            Bucket(val, n + other.n, rest.merge(other.rest))
+        end
+end
+
+histLeaf(val: RR64): Bucket = Bucket(val, 1.0, EmptyH)
+
+object Result(sum: RR64, hist: Histogram)
+    combine(other: Result): Result = Result(sum + other.sum, hist.merge(other.hist))
+end
+
+leaf(val: RR64, depth: RR64) = Result(val, histLeaf(depth))
+
+(* Bindings gratuitously out of order to test top-level binding dependency analysis *)
+expect : RR64 = integ(finish) - integ(start)
+start : RR64 = 0.0
+finish : RR64 = 1536.0
+logTol : ZZ32 = if |args| < 1 then 9 else strToInt(args[0]) end
+errorTolerance : RR64 = 10.0^(-logTol) (* should be 10^(-12) *)
+reps : ZZ32 = 10
+
+fun(x: RR64): RR64 = x (x x + 1.0)
+
+(* integral fun(x) dx from 0 to x *)
+integ(x: RR64): RR64 = do
+    x2 = x x
+    0.25 x2 (x2 + 2.0)
+  end
+
+(* First-order version of integration that can only integrate fun, above. *)
+integrate_fo(l: RR64, h:RR64, tol: RR64): Result =
+    integrate_fo'(l,h,fun(l),fun(h),0.0,tol,0.0)
+
+integrate_fo'(l: RR64, h:RR64, fl: RR64, fh:RR64, a:RR64, tol: RR64, depth:RR64): Result = do
+    w = 0.5 (h-l)
+    hw = 0.5 w
+    m = l + w
+    fm = fun(m)
+    al = hw (fl + fm)
+    ah = hw (fm + fh)
+    alh = al + ah
+    if |alh - a| <= |alh| tol OR: w <= tol then
+        leaf(alh, depth)
+    else
+        d1 = depth + 1.0
+        (r_l, r_r) = (integrate_fo'(l,m,fl,fm,al,tol, d1),integrate_fo'(m,h,fm,fh,ah,tol, d1))
+        r_l.combine(r_r)
+    end
+  end
+
+elapsedSec(init:RR64, final:RR64): RR64 =
+    (final - init) / (10.0^9)
+
+runTest(theTest: ()->Result): () = do
+    startTime = nanoTime()
+    a = theTest()
+    endTime = nanoTime()
+    if |a.sum - expect| > a.sum errorTolerance then
+        println("FAIL: Bad error tolerance!")
+    end
+    println(elapsedSec(startTime,endTime).asString "\t"
+            a.hist.stats.asString
+            a.hist.asString)
+  end
+
+run(): () = do
+    println("Tolerance\t" errorTolerance.asString)
+    println("Time(s)\t\tn\t\tavg\t\t\tvar")
+    for _ <- seq(0#reps) do
+        runTest(fn () => integrate_fo(start, finish, errorTolerance))
+    end
+    println("Done")
+  end
+
+end

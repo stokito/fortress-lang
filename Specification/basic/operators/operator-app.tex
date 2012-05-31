@@ -1,0 +1,38 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Operator Names}
+\seclabel{operator-names}
+
+\note{Victor: This should refer to the appropriate sections of Lexical Structure
+Operator names are either operator tokens or special operator characters,
+or a few reserved words.}
+
+To support a rich mathematical notation, Fortress allows most Unicode
+characters
+that are specified to be mathematical operators to be used as operators in
+Fortress expressions, as well as these characters:
+\begin{ttt}
+!~~~{\char'100}~~~{\char'43}~~~{\char'44}~~~{\char'45}~~~*~~~+~~~-~~~=~~~{\char'174}~~~:~~~<~~~>~~~/~~~?~~~{\char'136}~~~{\verb+~+} \\
+->~~~-->~~~=>~~~==>~~~<=~~~>=~~~=/=~~~!!~~~{\char'174}{\char'174}~~~{\char'174}{\char'174}{\char'174}\\
+<<~~~<<<~~~>>~~~>>>~~~<->~~~<-/-~~~-/->~~~<=>~~~===
+\end{ttt}
+In addition, a token that is made up of a mixture of uppercase letters and underscores
+(but no digits), does not begin or end with an underscore, and contains at least two
+different letters is also considered to be an operator:
+\begin{ttt}
+MAX~~~MIN
+\end{ttt}
+The above operators are rendered as:
+\EXP{\OPR{MAX}~~~\OPR{MIN}}.
+(See \secref{lexical-operators} and
+\appref{operator-precedence} for detailed descriptions of operator
+names in Fortress.)

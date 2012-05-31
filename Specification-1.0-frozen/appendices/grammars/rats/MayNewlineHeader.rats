@@ -1,0 +1,147 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009,2010, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+IsType = colon w Type
+
+WhereConstraintList =
+     WhereConstraint (w comma w WhereConstraint)*
+
+WhereConstraint =
+     IdOrOpName w Extends
+   / TypeAlias
+   / Type w coerces w Type
+   / Type w widens w Type
+   / UnitConstraint
+   / QualifiedName w equals w QualifiedName
+   / IntConstraint
+   / BoolExpr
+   / Type w widens w or w coerces w Type
+
+UnitConstraint =
+     "dimensionless" w equals w IdOrOpName
+   / IdOrOpName w equals w "dimensionless"
+
+IntConstraint =
+     IntExpr w lessthanequal w IntExpr
+   / IntExpr w lessthan w IntExpr
+   / IntExpr w greaterthanequal w IntExpr
+   / IntExpr w greaterthan w IntExpr
+   / IntExpr w equals w IntExpr
+
+IntVal =
+     IntLiteralExpr
+   / QualifiedName
+
+IntExpr =
+     SumExpr IntExprTail*
+IntExprTail =
+     SumIntExpr
+   / MinusIntExpr
+SumIntExpr =
+     w plus w SumExpr
+MinusIntExpr =
+     w minus w SumExpr
+
+SumExpr =
+     MulExpr SumExprTail*
+SumExprTail =
+     ProductIntExpr
+ProductIntExpr =
+     (w DOT w / sr) MulExpr
+
+MulExpr =
+     IntBase caret IntVal
+   / IntBase
+
+IntBase =
+     IntVal
+   / openparen w IntExpr w closeparen
+
+BoolExpr = OpBool
+
+OpBool =
+     BoolPrimary
+   / BoolPrefix
+
+BoolPrimary =
+     BoolPrimaryFront BoolPrefix
+   / BoolPrimaryFront wr BoolPrimary
+   / BoolPrimaryFront wr Op wr OpBool
+   / BoolPrimaryFront
+
+BoolPrefix =
+     Op OpBool
+   / Op wr OpBool
+
+BoolPrimaryFront =
+     "true"
+   / "false"
+   / QualifiedName
+   / openparen w OpBool w closeparen
+
+UnitVal =
+     "dimensionless"
+   / QualifiedName
+
+UnitExpr =
+     MulDivUnit UnitExprTail*
+UnitExprTail =
+     ProductUnitExpr
+   / QuotientUnitExpr
+ProductUnitExpr =
+     (w DOT w / sr) MulDivUnit
+QuotientUnitExpr =
+     (slash / per) MulDivUnit
+
+MulDivUnit =
+     UnitBase caret UnitVal
+   / UnitBase
+
+UnitBase =
+     UnitVal
+   / openparen w UnitExpr w closeparen
+
+Requires = requires w opencurly (w ExprList)? w closecurly
+
+Ensures =
+     ensures w opencurly (w EnsuresClauseList)? w closecurly
+
+EnsuresClauseList =
+     EnsuresClause (w comma w EnsuresClause)*
+
+EnsuresClause = Expr (w provided w Expr)?
+
+Invariant =
+     invariant w opencurly (w ExprList)? w closecurly
+
+StaticArgs =
+    opendoublesquare w StaticArgList w closedoublesquare
+
+StaticArgList = StaticArg (w comma w StaticArg)*
+
+StaticArg =
+     Op &(w comma / w closedoublesquare)
+   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
+                      w opendoublesquare / w opensquare / w rightarrow /
+                      w OR / w AND / w IMPLIES / w equals) /
+       "Unity" / "dimensionless" / "true" / "false")
+     IntExpr
+   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
+                      w opendoublesquare / w opensquare / w rightarrow) /
+       "Unity" / "dimensionless")
+     BoolExpr
+   / "true"
+   / "false"
+   / !(QualifiedName (w DOT / w slash / w per / w DimPostfixOp) / "dimensionless")
+     Type
+   / UnitExpr
+\end{verbatim}

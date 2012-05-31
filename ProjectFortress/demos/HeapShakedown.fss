@@ -1,0 +1,179 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component HeapShakedown
+import Heap.{...}
+import List.{...}
+export Executable
+
+appending[\T\](xs: List[\T\]...): List[\T\] =
+    xs.generate[\List[\T\]\](Concat[\T\], identity[\List[\T\]\])
+
+showData(headers: List[\String\], data:List[\List[\RR64\]\]): () = do
+    n = |headers|
+    for datum <- data do
+        sz = |datum|
+        if (sz < n) then
+            fail("FAIL: only " sz " data points, expected " n)
+        elif (n < sz) then
+            println("FAIL: too many!  Expected " n " data points, got " sz)
+            println("  and will discard the extras.")
+        end
+    end
+    println(
+        BIG ||[(i,l) <- headers.indexValuePairs]
+            //l (BIG ||[row <- data] "," row[i]))
+  end
+
+checkFull(h0: Heap[\ZZ32,ZZ32\], n:ZZ32): () =
+    if h0.isEmpty then
+        if NOT (n=0) then fail("empty with n=/=0") end
+    else
+        flags : Array[\Boolean,ZZ32\] = array[\Boolean\](n).fill(false)
+        (k:ZZ32, v:ZZ32, h:Heap[\ZZ32,ZZ32\]) := h0.extractMinimum().get
+        k_prev : ZZ32 := k
+        expected: ZZ32 := 1
+        flags[v] := true
+        failed : Boolean := false
+        while NOT h.isEmpty AND expected <= n do
+            (k,v,h) := h.extractMinimum().get
+            if k < k_prev then
+                println("FAIL: Keys " k_prev " and " k " out of order.")
+                failed := true
+            end
+            if flags[v] then
+                println("FAIL: Duplicate value " v " found.")
+                failed := true
+            end
+            (k_prev, flags[v]) := (k,true)
+            expected += 1
+        end
+        if NOT h.isEmpty then
+            println("FAIL: Too many elements.")
+            failed := true
+        elif expected < n then
+            println("FAIL: Not enough elements.")
+            failed := true
+        end
+        if failed then
+            h := h0
+            expected := 0
+            println(h.asDebugString)
+            while NOT h.isEmpty AND expected <= n do
+                (k,v,h) := h.extractMinimum().get
+                println(expected ": min = (" k "," v ")")
+                println(h.asDebugString)
+                expected += 1
+            end
+        end
+    end
+
+object TestReduction extends AssociativeReduction[\(ZZ32,ZZ32,ZZ32)\]
+    getter asString(): String = "HeapShakedown.TestReduction"
+    simpleJoin(a:Any, b:Any): Any = fail("Bogus non-tuple data in TestReduction")
+    simpleJoin(a:(ZZ32,ZZ32,ZZ32), b:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do
+        (mn_a,sz_a,mx_a) = a
+        (mn_b,sz_b,mx_b) = b
+        assert(mx_a <= mn_b, "Left max " mx_a " larger than right min " mn_b)
+        (mn_a,sz_a+sz_b,mx_a)
+      end
+end
+
+checkGen(h:Heap[\ZZ32,ZZ32\], n:ZZ32): () = do
+    flags : Array[\Boolean,ZZ32\] = array[\Boolean\](n).fill(false)
+    sing(k:ZZ32,v:ZZ32): Maybe[\(ZZ32,ZZ32,ZZ32)\] = do
+        dup = atomic do d = flags[v]; flags[v] := true; d end
+        if dup then
+            println("FAIL: dup of " k "," v)
+        end
+        Just[\(ZZ32,ZZ32,ZZ32)\](k,1,k)
+      end
+    (mn,sz,mx) = h.generate[\AnyMaybe\](TestReduction, sing).getDefault(0,0,0)
+    assert(n,sz," size versus computed size")
+    if (sz > 0) then
+        (mn_k, mn_v) = h.minimum.get
+        assert(mn,mn_k," computed minimum versus .minimum")
+    end
+  end
+
+timeDiffMS(start:ZZ64, fin:ZZ64): RR64 =
+    (fin-start) / 10^6
+
+lg(n:ZZ32):ZZ32 =
+    if n <= 1 then 0
+    else 1 + lg(n DIV 2) end
+
+spread(n:ZZ32):(ZZ32,ZZ32) = do
+    c1 : ZZ32 = -761155213
+    c2 : ZZ32 = -412293886
+    (c1 n + c2, n)
+  end
+
+timeHdr(desc:String): List[\String\] = do
+    print(".")
+    res : List[\String\] = <|[\String\] desc, desc "/n", desc "/nlgn" |>
+    res
+  end
+
+timeDump(s,slgs,t): List[\RR64\] = do
+    print(".")
+    <| t asif RR64, t/s, t/slgs |>
+  end
+
+testHeap(s:ZZ32,c:Generator[\(ZZ32,ZZ32)\]->Heap[\ZZ32,ZZ32\],
+                g:Generator[\(ZZ32,ZZ32)\]):() = do
+    slgs = s lg s
+    print(".")
+    startTime = nanoTime()
+    h = c(g)
+    build = nanoTime()
+    checkFull(h,s)
+    consume=nanoTime()
+    checkGen(h,s)
+    gen=nanoTime()
+    print(".")
+    appending[\RR64\](
+        timeDump(s,slgs,timeDiffMS(startTime,build)),
+        timeDump(s,slgs,timeDiffMS(build,consume)),
+        timeDump(s,slgs,timeDiffMS(consume,gen)))
+  end
+
+run():() = do
+    samples: List[\ZZ32\] = <|0 asif ZZ32,1,2,4,16,64,256,1024,4096|>
+    headers: List[\String\] = appending[\String\](
+            <|[\String\]"" "n","n lg n"|>,
+            timeHdr("lbuild"),
+            timeHdr("lconsume"),
+            timeHdr("lgen"),
+            timeHdr("ulbuild"),
+            timeHdr("ulconsume"),
+            timeHdr("ulgen"),
+            timeHdr("build"),
+            timeHdr("consume"),
+            timeHdr("gen"),
+            timeHdr("ubuild"),
+            timeHdr("uconsume"),
+            timeHdr("ugen") )
+    table: List[\List[\RR64\]\] = samples.generate[\List[\List[\RR64\]\]\](
+        Concat[\List[\RR64\]\],
+        fn (s: ZZ32): List[\List[\RR64\]\] =>
+          singleton[\List[\RR64\]\](
+            appending[\RR64\](
+              <| 1.0 s, s lg s |>,
+              testHeap(s,lazy[\ZZ32,ZZ32\],(0#s).indexValuePairs),
+              testHeap(s,lazy[\ZZ32,ZZ32\],(0#s).map[\(ZZ32,ZZ32)\](spread)),
+              testHeap(s,pairing[\ZZ32,ZZ32\],(0#s).indexValuePairs),
+              testHeap(s,pairing[\ZZ32,ZZ32\],(0#s).map[\(ZZ32,ZZ32)\](spread))
+        )))
+    showData(headers,table)
+  end
+
+end
