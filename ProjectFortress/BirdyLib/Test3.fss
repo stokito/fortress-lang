@@ -13,9 +13,9 @@ component Test3
      l3 = <|[\ZZ32\] |> || l2
      println(l3)
      l4 = l1 || l2
-     (*)if (beg,last) <- l2.extractRight() then println(last) end
+     if (beg,last) <- l2.extractRight() then println(last) end
      if foo <- l1.left() then println(foo) end
-     (*)if (hd,tl) <- l2.extractLeft() then println(hd) end
+     if (hd,tl) <- l2.extractLeft() then println(hd) end
      
      println("PASS")
   end
