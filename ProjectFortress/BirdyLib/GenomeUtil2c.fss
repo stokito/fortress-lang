@@ -82,8 +82,9 @@ object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ
   end
 
   generate[\T extends Any\](red: Reduction[\T\], body: ReferenceGenomeChunk->T): T = red.id (*) WATCH OUT
+
   
-  loop[\T extends Any\](body: ReferenceGenomeChunk->()): () = do
+  loop(body: ReferenceGenomeChunk->()): () = do
         consume()
         while (NOT rs.eof) do
             if s <- readOne(rs) then
