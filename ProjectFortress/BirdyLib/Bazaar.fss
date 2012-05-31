@@ -118,7 +118,8 @@ component Bazaar
   split(s: String): (String,String) =
   do l = |s| 
      ld = l DIV 2
-     (s.substring(0,ld),s.substring(ld + 1, l - 1))
+     (*)println("ld:" || ld)
+     (s.substring(0,ld),s.substring(ld, l))
   end
 
   upto(s: String,c: Character): String = 
@@ -132,25 +133,22 @@ component Bazaar
                end
     end
   
-   (*) if |s| = 0 then s else if s[0] = c then "" else s[0].asString || upto(s.substring(1,|s| - 1),c) end end
-  
   beyond(s: String,c: Character): String = 
     if |s| = 0 then s 
                else if |s| = 1 then if s[0] = c then "" 
                                     else s end 
                     else do (left,right) = split(s)
-                            (utl,utr) = (upto(left,c),upto(right,c))
+                            (utl,utr) = (beyond(left,c),beyond(right,c))
                             if |utr| < |right| then utr else utl || utr end 
                     end
                end
     end    
-    
-    
-    (*)if |s| = 0 then s else if s[0] = c then s.substring(1,|s| - 1) else beyond(s.substring(1,|s| - 1),c) end end
 
   reverse(s: String): String = 
   if |s| = 0 OR |s| = 1 then s else 
     do (left,right) = split(s)
+       (*)println("left:" || left)
+       (*)println("right:" || right)
        reverse(right) || reverse(left) 
     end
   end  

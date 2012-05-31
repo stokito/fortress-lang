@@ -30,7 +30,8 @@ component Test
      if bar <- s3.maximum() then println(bar) end
      y: ZZ32 =  s'.generate[\ZZ32\](SumRed,fn z => z z) 
      println(y)
-     (*)y: ZZ32 = BIG + [z <- s'] z z
+     foo: ZZ32 = BIG + [bar <- s'] bar bar
+     println(foo)
      println("PASS")
   end
   
