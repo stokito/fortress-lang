@@ -6221,9 +6221,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     }
                 }
                
-            } else if (arg_t instanceof VarType) { 
+            } else if (arg_t instanceof VarType ) { 
                 arg.accept(this);
                 conditionallyCastParameter(arg, arg_t);
+            } else if (domain_type instanceof ArrowType) { 
+                arg.accept(this);
+                conditionallyCastParameter(arg, domain_type);
             } else {
                 arg.accept(this);
             }

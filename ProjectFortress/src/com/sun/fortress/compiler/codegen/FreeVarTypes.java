@@ -99,4 +99,28 @@ public class FreeVarTypes extends NodeCollectingVisitor<BASet<VarType>> {
         return set(i);
     }
 
+    public BASet<VarType> forFnRef(FnRef that) {
+        BASet<VarType> info_result = recur(that.getInfo());
+        List<BASet<VarType>> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
+        BASet<VarType> originalName_result = recur(that.getOriginalName());
+        List<BASet<VarType>> names_result = recurOnListOfIdOrOp(that.getNames());
+        List<BASet<VarType>> interpOverloadings_result = recurOnListOfOverloading(that.getInterpOverloadings());
+        List<BASet<VarType>> newOverloadings_result = recurOnListOfOverloading(that.getNewOverloadings());
+        Option<BASet<VarType>> overloadingType_result = recurOnOptionOfType(that.getOverloadingType());
+        Option<BASet<VarType>> overloadingSchema_result = Option.none();// recurOnOptionOfType(that.getOverloadingSchema());
+        return forFnRefOnly(that, info_result, staticArgs_result, originalName_result, names_result, interpOverloadings_result, newOverloadings_result, overloadingType_result, overloadingSchema_result);
+    }
+
+    public BASet<VarType> forOpRef(OpRef that) {
+        BASet<VarType> info_result = recur(that.getInfo());
+        List<BASet<VarType>> staticArgs_result = recurOnListOfStaticArg(that.getStaticArgs());
+        BASet<VarType> originalName_result = recur(that.getOriginalName());
+        List<BASet<VarType>> names_result = recurOnListOfIdOrOp(that.getNames());
+        List<BASet<VarType>> interpOverloadings_result = recurOnListOfOverloading(that.getInterpOverloadings());
+        List<BASet<VarType>> newOverloadings_result = recurOnListOfOverloading(that.getNewOverloadings());
+        Option<BASet<VarType>> overloadingType_result = recurOnOptionOfType(that.getOverloadingType());
+        Option<BASet<VarType>> overloadingSchema_result = Option.none(); // recurOnOptionOfType(that.getOverloadingSchema());
+        return forOpRefOnly(that, info_result, staticArgs_result, originalName_result, names_result, interpOverloadings_result, newOverloadings_result, overloadingType_result, overloadingSchema_result);
+    }
+
 }

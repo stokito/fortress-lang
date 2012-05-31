@@ -1,4 +1,4 @@
-component Test
+component Test1
   
   import Set.{...}
   import Bazaar.{...}
