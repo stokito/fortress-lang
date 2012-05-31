@@ -1272,9 +1272,23 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                 // eq
                                 // note that GENERIC methods all have same Java return type,
                                 // hence "equal".
-                                shadowed = true; // could "continue" here
-                                if (DEBUG_OVERLOADED_METHOD_CHAINING)
-                                    System.err.println("  "+ func + " shadows " + super_func);
+                                boolean schema_narrowed = false;
+                                if (func.staticParameters().size() > 0) {
+                                    int selfIndex = ((HasSelfType)super_func).selfPosition();
+                                    String from_name = genericMethodName(super_func, selfIndex);
+                                    String to_name = genericMethodName(func, selfIndex);
+                                    schema_narrowed = ! from_name.equals(to_name);
+                                } 
+                                if (schema_narrowed) {
+                                    narrowed = true; // could "continue" here
+                                    narrowed_func = func;
+                                    if (DEBUG_OVERLOADED_METHOD_CHAINING)
+                                        System.err.println("  "+ func + " schema-narrows " + super_func);
+                                } else {
+                                    shadowed = true; // could "continue" here
+                                    if (DEBUG_OVERLOADED_METHOD_CHAINING)
+                                        System.err.println("  "+ func + " shadows " + super_func);
+                                }
 
                             } else {
                                 // lt
@@ -1315,23 +1329,10 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         mv.visitVarInsn(ALOAD, 3);
                         mv.visitMethodInsn(inATrait ? INVOKEINTERFACE : INVOKEVIRTUAL, receiverClass, to_name, genericMethodClosureFinderSig);
                         
-//                        // a widening cast
-//                        Type prepended_domain = receiverPrependedDomainType(
-//                                traitDeclaringMethod, super_noself_domain);
-//
-//                        String castToArrowType = NamingCzar.makeArrowDescriptor(thisApi(), prepended_domain, super_ret); 
-//                        // Would be better to compute the right one and return it directly,
-//                        // or force the subtyping, but too much trouble for now.
-//                        InstantiatingClassloader.generalizedCastTo(mv, castToArrowType);
-                        
                         mv.visitInsn(ARETURN);
                         mv.visitMaxs(1,1);
                         mv.visitEnd();
                         
-//                        InstantiatingClassloader.forwardingMethod(cw, from_name, ACC_PUBLIC,
-//                                          0,   // ZERO is also a magic number
-//                                receiverClass, to_name, inATrait ? INVOKEINTERFACE : INVOKEVIRTUAL,
-//                                sig, sig, arity, false, null);
                     } else {
                         generateForwardingFor( super_func, narrowed_func, false, super_inst, currentTraitObjectType, currentTraitObjectType, true); // swapped
                     }
