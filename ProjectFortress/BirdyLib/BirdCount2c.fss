@@ -67,6 +67,7 @@ sampleNames: List[\String\] = <|[\String\]
 
 run() = do
   ref = getReferenceGenomeFromFile(referenceFile, chunkSize, readSize)
+  ref.loop(fn o => println("hello"))
   println("OK!")
 end
 

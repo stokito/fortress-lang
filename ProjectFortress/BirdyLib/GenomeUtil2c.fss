@@ -79,7 +79,7 @@ object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ
     Just(ReferenceGenomeChunk(currentChunkStart, currentChunkLength, buffer.asJavaString, padLength))
   end
 
-  generate[\T\](red: Reduction[\T\], body: ReferenceGenomeChunk->T): T = red.id (*) WATCH OUT
+  generate[\T extends Any\](red: Reduction[\T\], body: ReferenceGenomeChunk->T): T = red.id (*) WATCH OUT
   
   loop[\T\](body: ReferenceGenomeChunk->()): () = do
         consume()

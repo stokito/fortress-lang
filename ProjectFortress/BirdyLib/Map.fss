@@ -24,7 +24,7 @@ weight:ZZ32 = 4
 object KeyOverlap[\Key,Val\](key:Key, val1:Val, val2:Val)
         extends UncheckedException
     getter asString(): String =
-        "Map.KeyOverlap:" key "|->" val1 "and |->" val2
+        "Map.KeyOverlap: " key " |-> " val1 " and |-> " val2
 end
 
 (** Note that the map interface is purely functional; methods return a
@@ -52,6 +52,21 @@ trait Map[\Key extends StandardTotalOrder[\Key\],Val \]
     getLeftChild():Map[\Key,Val\]
     getRightChild():Map[\Key,Val\]
     (*)opr[k:Key]: Val throws NotFound = mem(k).getVal()
+
+    mem(k: Key): Map[\Key,Val\]
+    
+(*    
+    mem(k: Key): Map[\Key,Val\] = 
+      if self.isEmpty then EmptyMap[\Key,Val\] 
+                      else typecase k CMP getKeyWithDefault(k) of (*) YUK YUK 
+                              LessThan => getLeftChild().mem(k)
+                              EqualTo  => self
+                              else     => getRightChild().mem(k)
+                           end
+                      end      
+                      *)          
+    
+(*    
     mem(k:Key): Map[\Key,Val\] = do
         n : Map[\Key,Val\] := self
         notDone : Boolean := true
@@ -67,7 +82,9 @@ trait Map[\Key extends StandardTotalOrder[\Key\],Val \]
             end
         end
         n
-      end
+      end 
+*)      
+      
     member(x:Key): Maybe[\Val\] =
         typecase mem(x) of
             t:NodeMap[\Key,Val\] => Just[\Val\](t.getVal())
@@ -295,6 +312,7 @@ object EmptyMap[\Key extends StandardTotalOrder[\Key\],Val\] extends Map[\Key,Va
     mapFilter[\Result extends { Object }\](f:(Key,Val)->Maybe[\Result\]): Map[\Key,Result\] =
       EmptyMap[\Key,Result\]
     (*)opr =(self,other:Map[\Key,Val\]):Boolean = other.isEmpty
+    mem(k: Key): Map[\Key,Val\] = self
 end
 
 object NodeMap[\Key extends StandardTotalOrder[\Key\],Val\](key:Key, val:Val, left:Map[\Key,Val\], right:Map[\Key,Val\])
@@ -303,7 +321,7 @@ object NodeMap[\Key extends StandardTotalOrder[\Key\],Val\](key:Key, val:Val, le
     getter isEmpty():Boolean = false
     getter size():ZZ32 = sz
     getter asDebugString():String =
-      "[" || left.asDebugString || " (" || key || "," || val || ") " || right.asDebugString || "]"
+      "[" left.asDebugString " (" key "," val ") " right.asDebugString "]"
     getter asString():String = "{" || ", " || "}" (*) .join[\String\](self.map[\String\](fn(k:Key,v:Val):String => k "|->" v)) TODO
 
     opr |self| : ZZ32 = sz
@@ -490,6 +508,9 @@ object NodeMap[\Key extends StandardTotalOrder[\Key\],Val\](key:Key, val:Val, le
             else false end
         end
 *)
+    
+    mem(k: Key): Map[\Key,Val\] = if key = k then self else if k < key then left.mem(k) else right.mem(k) end end
+    
     balancedDelete(r:Map[\Key,Val\]):Map[\Key,Val\] =
         if (min_k, min_v, del_min) <- r.extractMinimum() then
             balancedAdd(min_k, min_v, self, del_min)
