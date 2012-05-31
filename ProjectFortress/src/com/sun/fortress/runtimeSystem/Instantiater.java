@@ -151,9 +151,14 @@ public class Instantiater extends ClassAdapter {
         		    	altMv.visitVarInsn(Opcodes.ALOAD, i);
         		    }
         		    altMv.visitMethodInsn(Opcodes.INVOKESTATIC, InstantiatingClassloader.CONCRETE_ + tuple_params, "make", make_sig);  //create a tuple from the parameters
-        		    altMv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, this.instanceName, name, newDesc);		//call original method
-                    
-                    altMv.visitInsn(Opcodes.ARETURN); //return
+        		    
+        		    if (name.equals("<init>")) {
+                        altMv.visitMethodInsn(Opcodes.INVOKESPECIAL, this.instanceName, name, newDesc);     //call original method
+                        altMv.visitInsn(Opcodes.RETURN); //return
+        		    } else {
+                        altMv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, this.instanceName, name, newDesc);     //call original method
+                        altMv.visitInsn(Opcodes.ARETURN); //return
+        		    }
                     altMv.visitMaxs(Naming.ignoredMaxsParameter, Naming.ignoredMaxsParameter);
         		    altMv.visitEnd();   
         		}
