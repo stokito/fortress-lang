@@ -1,6 +1,5 @@
 component All
 
-  import Comparison.{...}
   import Util.{...}
   import Maybe.{...}
   import File.{...}
