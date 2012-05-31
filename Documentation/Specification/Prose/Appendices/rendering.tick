@@ -1,0 +1,341 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newapp{Rendering of Identifiers and Other Input Elements}{rendering}
+
+This appendix describes the detailed rules for rendering Fortress code,
+as mentioned in \secref{rendering}.
+We refer to fonts using names suggestive of their intended appearance:
+\begin{itemize}
+\item roman
+\item italic
+\item math (often identical to italic)
+\item script
+\item fraktur
+\item sans-serif
+\item italic sans-serif
+\item monospace
+\item double-struck (also known as ````blackboard bold'')
+\end{itemize}
+The following fonts may be additionally specified to be bold: 
+roman, italic, script, fraktur, sans-serif, 
+and italic sans-serif.
+However, 
+a particular environment may substitute different fonts 
+either because of local practice 
+or because the desired fonts are not available.
+
+\newsec{Identifiers}{rendering-identifiers}
+
+For an identifier consists of letters and possibly digits,
+but no underscores, prime marks or apostrophes, 
+the rules are fairly simple:
+\begin{enumerate}
+
+\item
+If the identifier consists of two ASCII capital letters that are the same,
+possibly followed by digits, 
+then a single capital letter is rendered double-struck, 
+followed by full-sized (not subscripted) digits in roman font.
+
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+   \STR{QQ} & \emph{is rendered} & `Q` &
+   \STR{RR64} & \emph{is rendered} & `R64` \\
+   \STR{ZZ} & \emph{is rendered} & `Z` &
+   \STR{ZZ512} & \emph{is rendered} & `Z512`}
+%   \STR{QQ} & \emph{is rendered} & \EXP{\mathbb{Q}} &
+%   \STR{RR64} & \emph{is rendered} & \EXP{\mathbb{R}64} \\
+%   \STR{ZZ} & \emph{is rendered} & \EXP{\mathbb{Z}} &
+%   \STR{ZZ512} & \emph{is rendered} & \EXP{\mathbb{Z}512}
+\end{tabular}
+
+\item
+Otherwise, 
+if the identifier has more than two characters 
+and begins with a capital letter, 
+then it is rendered in roman font.
+(Such names are typically used as names of types in Fortress.
+Note that an identifier cannot consist entirely of capital letters,
+because such a token is an operator.)
+
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+   \STR{Integer} & \emph{is rendered} & \TYP{Integer} &
+   \STR{Matrix} & \emph{is rendered} & \TYP{Matrix} \\
+   \STR{TotalOrder} & \emph{is rendered} & \TYP{TotalOrder} &
+   \STR{BooleanAlgebra} & \emph{is rendered} & \TYP{BooleanAlgebra} \\
+   \STR{Fred17} & \emph{is rendered} & \TYP{Fred17} &
+   \STR{R2D2} & \emph{is rendered} & \TYP{R2D2}
+\end{tabular}
+
+\item
+Otherwise, 
+if the identifier consists of one or more letters
+followed by one or more digits, 
+then the letters are rendered in italic
+and the digits are rendered as roman subscripts.
+
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+   \STR{a3} & \emph{is rendered} & \EXP{a_{3}} &
+   \STR{foo7} & \emph{is rendered} & \EXP{{foo}_{7}} \\
+   \STR{M1} & \emph{is rendered} & \EXP{M_{1}} &
+   \STR{z128} & \emph{is rendered} & \EXP{z_{128}} \\
+   \txt{OMEGA13} & \emph{is rendered} & \EXP{\Omega{}_{13}} &
+   \STR{myFavoriteThings1625} & \emph{is rendered} & \EXP{{myFavoriteThings}_{1625}}
+
+\end{tabular}
+
+\item
+The following names are always rendered in roman type out of respect for tradition:
+
+\begin{tabular}{llllll}
+   \EXP{\mathrm{sin}} & \EXP{\mathrm{cos}} & \EXP{\mathrm{tan}} & \EXP{\mathrm{cot}} & \EXP{\mathrm{sec}} & \EXP{\mathrm{csc}} \\
+   \EXP{\mathrm{sinh}} & \EXP{\mathrm{cosh}} & \EXP{\mathrm{tanh}} & \EXP{\mathrm{coth}} & \EXP{\mathrm{sech}} & \EXP{\mathrm{csch}} \\
+   \EXP{\mathrm{arcsin}} & \EXP{\mathrm{arccos}} & \EXP{\mathrm{arctan}} & \EXP{\mathrm{arccot}} & \EXP{\mathrm{arcsec}} & \EXP{\mathrm{arccsc}} \\
+   \EXP{\mathrm{arsinh}} & \EXP{\mathrm{arcosh}} & \EXP{\mathrm{artanh}} & \EXP{\mathrm{arcoth}} & \EXP{\mathrm{arsech}} & \EXP{\mathrm{arcsch}} \\
+   \EXP{\mathrm{arg}} & \EXP{\mathrm{deg}} & \EXP{\mathrm{det}} & \EXP{\mathrm{exp}} & \EXP{\mathrm{inf}} & \EXP{\mathrm{sup}} \\
+   \EXP{\mathrm{lg}} & \EXP{\mathrm{ln}} & \EXP{\mathrm{log}} & \EXP{\mathrm{gcd}} & \EXP{\mathrm{max}} & \EXP{\mathrm{min}}
+\end{tabular}
+
+\item
+Otherwise the identifier is simply rendered entirely in italic type.
+
+\begin{tabular}{rcl@{\qquad\qquad}rcl}
+   \STR{a} & \emph{is rendered} & \VAR{a} &
+   \STR{foobar} & \emph{is rendered} & \VAR{foobar} \\
+   \STR{length} & \emph{is rendered} & \VAR{length} &
+   \STR{isInstanceOf} & \emph{is rendered} & \VAR{isInstanceOf} \\
+   \STR{foo7a} & \emph{is rendered} & \VAR{foo7a} &
+   \STR{l33tsp33k} & \emph{is rendered} & \VAR{l33tsp33k}
+\end{tabular}
+
+\end{enumerate}
+
+An identifier containing underscores is divided into portions by its underscores
+(underscores not in any portion).
+In addition, any apostrophe, prime, or double prime character
+separates portions and is also itself a portion.
+
+If any portion is empty other than the first or last
+(i.e., the identifier contains two consecutive underscores 
+or an underscore immediately preceded or followed 
+by an apostrophe, prime or double prime character), 
+then the entire identifier is rendered in italics, 
+underscores and all.
+
+Otherwise, the portions are rendered as follows.  
+The idea is that there is a \emph{principal portion} 
+that may be preceded and/or followed by modifiers, 
+and there may also be a \emph{face portion}:
+\begin{itemize}
+
+\item 
+If the first portion is not empty
+(i.e., the identifier does not begin with an underscore), 
+\txt{script}, \txt{fraktur}, \txt{sansserif}, or \txt{monospace},
+then the principal portion is the first portion
+and there is no face portion.
+
+\item 
+If the first portion is \txt{script}, \txt{fraktur}, \txt{sansserif}, or \txt{monospace},
+then the principal portion is the second portion 
+and the face portion is the first portion.
+
+\item 
+If the first portion is empty 
+and the second portion is not \txt{script}, \txt{fraktur}, \txt{sansserif}, or \txt{monospace},
+then the principal portion is the second portion 
+and there is no face portion.
+
+\item 
+Otherwise, 
+the principal portion is the third portion 
+and the face portion is the second portion.
+
+\end{itemize}
+
+If there is no face portion, 
+the principal portion is rendered 
+according to whether the identifier begins or ends with an underscore, 
+or the principal portion consists of two copies of the same letter, 
+as follows:
+\note{Victor:
+possibly followed by digits?
+Must the letter be an ASCII capital letter?
+Also, 
+I changed the rule here to be whether there is a trailing underscore 
+rather than whether the last portion is empty 
+because the identifier might end in an apostrophe, prime or double prime character, 
+and thus might be construed as having an empty last portion.
+However, 
+we probably want to clarify that issue in any case, 
+because I'm not sure we want to consider two consecutive apostrophes, for example, 
+to have an empty portion between them.}
+\begin{tabular}{l|cccc}
+& \multicolumn{2}{c}{not two copies of same letter} & \multicolumn{2}{c}{two copies of same letter} \\
+\hline
+& no trailing underscore & trailing underscore & no trailing underscore & trailing underscore \\
+\hline
+no leading underscore & italic & bold italic & double-struck & script \\
+leading underscore & roman bold & roman & sans-serif &  italic sans-serif 
+\end{tabular}
+
+If there is a face portion, 
+then it describes an alternate typeface to be used in rendering the principal portion.  
+If the first portion is empty
+(that is, the identifier begins with a leading underscore), 
+then the principal portion is rendered in a bold version of the selected face,
+and if the last portion is empty 
+(that is, the identifier ends with a trailing underscore), 
+then the principal portion to be rendered in an italic (or bold italic) version of the selected face.
+The bold and italic modifiers may be used only in combination with certain faces; the
+following are the allowed combinations:
+\begin{tabular}{l}
+        \txt{script}\\
+        \txt{bold script}\\
+        \txt{fraktur}\\
+        \txt{bold fraktur}\\
+        \txt{double-struck}\\
+        \txt{sans-serif}\\
+        \txt{bold sans-serif}\\
+        \txt{italic sans-serif}\\
+        \txt{bold italic sans-serif}\\
+        \txt{monospace}
+\end{tabular}
+
+If a combination can be properly rendered, 
+then the principal portion is rendered 
+but not any preceding portions or underscores.
+If a combination cannot be properly rendered, 
+then the principal portion
+and all portions and underscores preceding it are rendered all in italics
+if possible, and otherwise all in some other default face.
+
+If the principal portion consists of a sequence of letters 
+followed by a sequence of digits, 
+then the letters are rendered in the chosen face 
+and the digits are rendered as roman subscripts.  
+Otherwise the entire principal portion is rendered in the chosen face.
+The remaining portions (excepting the last, if it is empty)
+are then processed according to the following rules:
+\begin{itemize}
+\item If a portion is \txt{bar}, then a bar is rendered
+above what has already been rendered, excluding superscripts and subscripts.
+For example, \STR{x{\char'137}bar} is rendered \EXP{\bar{\VAR{x}}},
+\STR{x17{\char'137}bar} is rendered \EXP{\bar{\VAR{x}}_{17}},
+\STR{x{\char'137}bar{\char'137}bar} is rendered \EXP{\bar{\bar{\VAR{x}}}},
+and \STR{foo{\char'137}bar} is rendered \EXP{\overline{\VAR{foo}}}.
+(Contrast this last with \STR{foo{\char'137}baz}, which is rendered \EXP{\VAR{foo{\tt\_}baz}}.)
+
+\item If a portion is \txt{vec}, then a right-pointing arrow is rendered
+above what has already been rendered, excluding superscripts and subscripts.
+For example, \STR{v{\char'137}vec} is rendered \EXP{\vec{\VAR{v}}},
+\STR{v17{\char'137}vec} is rendered \EXP{\vec{\VAR{v}}_{17}}, and
+\STR{zoom{\char'137}vec} is rendered \EXP{\overrightarrow{\VAR{zoom}}}.
+
+\item If a portion is \txt{hat}, then a hat is rendered above what has already
+been rendered, excluding superscripts and subscripts.  For example,
+\STR{x17{\char'137}hat} is rendered \EXP{\hat{\VAR{x}}_{17}}.
+
+\item If a portion is \txt{dot}, then a dot is rendered above what has already
+been rendered, excluding superscripts and subscripts; but if the preceding portion was also \txt{dot},
+then the new dot is rendered appropriately relative to the previous dot(s).
+Up to four dots will be rendered side-by-side rather than vertically.
+For example,
+\STR{a{\char'137}dot} is rendered \EXP{\dot{\VAR{a}}},
+\STR{a{\char'137}dot{\char'137}dot} is rendered \EXP{\ddot{\VAR{a}}},
+\STR{a{\char'137}dot{\char'137}dot{\char'137}dot} is rendered \EXP{\dddot{\VAR{a}}},
+\STR{a{\char'137}dot{\char'137}dot{\char'137}dot{\char'137}dot} is rendered \EXP{\ddddot{\VAR{a}}}.
+Also, \STR{a{\char'137}vec{\char'137}dot} is rendered \EXP{\dot{\vec{\VAR{v}}}}.
+
+\item If a portion is \txt{star}, then an asterisk \STR{*} is rendered as a superscript.
+For example,
+\STR{a{\char'137}star} is rendered \EXP{a^*},
+\STR{a{\char'137}star{\char'137}star} is rendered\EXP{a^{**}},
+\STR{ZZ{\char'137}star} is rendered \EXP{\mathbb{Z}^*}.
+
+\item If a portion is \txt{splat}, then a number sign \STR{{\char'43}} is rendered as a superscript.
+For example, \STR{QQ{\char'137}splat} is rendered \EXP{\mathbb{Q}^{\#}}.
+
+\item If a portion is \txt{prime}, then a prime mark is rendered as a superscript.
+
+\item A prime character is treated the same as \txt{prime}, and a double prime character
+is treated the same as two consecutive \txt{prime} portions.  An apostrophe is treated
+the same as a prime character, but only if all characters following it in the
+identifier, if any, are also apostrophes.  For example,
+\STR{a'} is rendered \EXP{a'},
+\STR{a13'} is rendered \EXP{a_{13}'}, and
+\STR{a''} is rendered \EXP{a''},
+but \STR{don't} is rendered \EXP{\hbox{\emph{don't}}}.
+
+\item If a portion is \txt{super} and another portion follows, then that other
+portion is rendered as a superscript in roman type, and enclosed in parentheses
+if it is all digits.
+
+\item If a portion is \txt{sub} and another portion follows, then that other
+portion is rendered as a subscript in roman type, and enclosed in parentheses
+if it is all digits, and preceded by a subscript-separating comma if this
+portion was immediately preceded by another portion that was rendered
+as a subscript.
+
+\item If a portion consists entirely of capital letters and would,
+if considered by itself as an identifier, be the name of a non-letter Unicode character
+that would be subject to replacement by preprocessing, then that Unicode character
+is rendered as a subscript.  For example,
+\STR{id{\char'137}OPLUS} is rendered \EXP{\VAR{id}_{\oplus}},
+\STR{ZZ{\char'137}GT} is rendered \EXP{\mathbb{Z}_{>}}, and
+\STR{QQ{\char'137}star{\char'137}LE} is rendered \EXP{\mathbb{Q}^*_{\leq}}.
+
+\item If the portion is the last portion, and the principal
+portion is a single letter (or two letters indicating a double-struck letter),
+and none of the preceding rules in this list applies,
+it is rendered as a subscript in roman type.
+For example,
+\STR{T{\char'137}min} is rendered \EXP{T_{\mathrm{min}}}.
+Note that \STR{T{\char'137}MAX} is rendered simply as \OPR{T{\char'137}MAX}---because
+all its letters are capital letters, it is considered to be an operator---but
+\STR{T{\char'137}sub{\char'137}MAX} is rendered \EXP{T_{\mathrm{MAX}}}.
+
+\item Otherwise, this portion and all succeeding portions are rendered
+in italics, along with any underscores that appear adjacent to any of them.
+\end{itemize}
+
+Examples:
+
+\begin{tabular}{rclrcl}
+        \txt{M} & \emph{is rendered} & $M$ &
+        \txt{\_M} & \emph{is rendered} & $\mathbf{M}$ \\
+        \txt{v\_vec} & \emph{is rendered} & $\vec{v}$ &
+        \txt{\_v\_vec} & \emph{is rendered} & $\vec{\mathbf{v}}$ \\
+        \txt{v1} & \emph{is rendered} & $v_1$ &
+        \txt{v\_x} & \emph{is rendered} & $v_{\mathrm{x}}$ \\
+        \txt{\_v1} & \emph{is rendered} & $\mathbf{v}_1$ &
+        \txt{\_v\_x} & \emph{is rendered} & $\mathbf{v}_{\mathrm{x}}$ \\
+        \txt{a\_dot} & \emph{is rendered} & $\dot{a}$ &
+        \txt{a\_dot\_dot} & \emph{is rendered} & $\ddot{a}$ \\
+        \txt{a\_dot\_dot\_dot} & \emph{is rendered} & $\dddot{a}$ &
+        \txt{a\_dot\_dot\_dot\_dot} & \emph{is rendered} & $\ddddot{a}$ \\
+        \txt{a\_dot\_dot\_dot\_dot\_dot} & \emph{is rendered} & $\dot{\ddddot{a}}$ &
+        \txt{p13'} & \emph{is rendered} & $p_{13}'$ \\
+        \txt{p'} & \emph{is rendered} & $p'$ &
+        \txt{p\_prime} & \emph{is rendered} & $p'$ \\
+        \txt{T\_min} & \emph{is rendered} & $T_{\mathrm{min}}$ &
+        \txt{T\_max} & \emph{is rendered} & $T_{\mathrm{max}}$ \\
+        \txt{foo\_bar} & \emph{is rendered} & $\overline{\mathit{foo}}$ &
+        \txt{foo\_baz} & \emph{is rendered} & $\mathit{foo\_baz}$
+\end{tabular}
+
+In this way, through the use of underscore characters and annotation portions
+delimited by underscores, the programmer can exercise considerable typographical control
+over the rendering of variable names; but if no underscores are used, the rendering
+rules are quite simple.
+
+\newsec{Other Constructs}{rendering-others}
+
