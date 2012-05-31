@@ -1,0 +1,244 @@
+\documentclass[11pt]{article}
+
+% THIS REQUIRES XELATEX OR LUATEX, AND SOME FONTS.
+
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+%\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{pifont}
+\usepackage{verbatim}
+%\usepackage{epstopdf}
+\usepackage{fontspec}
+%\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+\title{Mapping Fortress type relationships onto the JVM type system}
+
+% Code 2000 versions of Oxford brackets are better looking than STIXGeneral
+
+\def\LOBR{\mbox{\fontspec{Code2000}⟦}}
+\def\TLOBR{\mbox{\fontspec{Code2000}\,⟦}} % LOBR preceded by thin space, useful in math mode
+\def\ROBR{\mbox{\fontspec{Code2000}⟧}}
+\def\SNOW{\mbox{\fontspec{Code2000}☃}}
+\def\HVYX{\mbox{\fontspec{Zapf Dingbats}✖}}
+\def\GEAR{\mbox{\fontspec{Apple Symbols}⚙}}
+\def\UNDX{\mbox{\fontspec{Apple Symbols}☝}}
+\def\RNDX{\mbox{\fontspec{Zapf Dingbats}☞}}
+\def\NVLP{\mbox{\fontspec{STIXGeneral}✉}}
+\def\DNGR{\mbox{\fontspec{STIXGeneral}⚠}}
+\def\RARW{\mbox{\fontspec{STIXGeneral}→}}
+\def\CPYRT{\mbox{\fontspec{STIXGeneral}©}} % \copyright blank in luatex, why???
+
+\newcommand{\fit}[1]{\mbox{\it #1}}
+\newcommand{\jvm}[1]{{\tt #1}}
+\newcommand{\ftt}[1]{{\tt\slshape{#1}}}
+
+\def\SELF{\fit{self}}
+\def\OBJ{\fit{Object}}
+\def\obj{\fit{object}}
+\def\ext{\fit{extends}}
+\def\zz32{\mathbb{Z}_{32}}
+\def\BS{\textbackslash}
+
+\makeatletter
+\newcommand{\slantverbatim}{\def\verbatim@font{\slshape\ttfamily\hyphenchar\font\m@ne\@noligs}}
+\makeatother
+\author{David Chase}
+%\date{}                                           % Activate to display a given date or no date
+%\setmainfont{Georgia}
+\begin{document}
+\maketitle
+%\section{}
+%\subsection{}
+
+Fortress is currently compiled onto the JVM.  The JVM has a statically and dynamically enforced type system, which means that some accommodation must be reached between Fortress's type system and the JVM's type system.
+
+A subset of Fortress's type system is isomorphic in time, structure, and combinatorial size to the JVM type system; the remainder of the type system is not.  The problem is further complicated by the existence of types in the Fortress run time (FRT) that cannot be named in Fortress source code. 
+
+\section{Overview}
+At the implementation level, Fortress's type system includes
+\begin{itemize}
+\item Directly representable types, meaning object types, trait types, Any, and instantiated generic types.
+\item Generic types (uninstantiated).  Non-generic types are ground types.  These are not really Fortress types, but JVM types are created for this to help implement certain type queries.
+\item Tuple types
+\item Arrow types
+\item Covariant and contravariant generic types
+\item Union and intersection types (of ground types)
+% \item Type intervals (an encoding of static information; not really a type)
+\end{itemize}
+
+Conventions: Fortress types will be written in math/italic font; JVM types will appear in a typewriter font (where possible; there is some Unicode involved).  Where it is necessary to write Fortress in its ``ASCII" input form, an oblique typewriter font will be used, like so: \ftt{SomeTT[\BS\ X,Y,Z \BS]}.
+
+\subsection{Changes}
+Older versions of the mapping used semicolons to separate static parameters to generics; instead, commas are now used, for the following reasons: to remove a gratuitous difference between source and generated code; to reduce the need for dangerous-characters mangling; to sidestep incompatibilities with ASM's tools, which rely on identifiers not containing embedded semicolons (pre-mangling).
+
+\section{Directly representable types}
+\subsection{Traits}
+A Fortress trait $T$ in component $C.D$ is compiled to JVM interface \jvm{C/D\$T}.  The other traits that it extends, become interfaces that it extends.
+
+\subsection{Objects}
+A Fortress object $O$ in component $C.D$ is compiled to the JVM final class \jvm{C/D\$O}.
+The traits it extends become the interfaces that it implements.
+
+\subsection{$\fit{Object}$}
+$\fit{Object}$ is the root for the Fortress trait hierarchy.  It is compiled to the JVM interface \jvm{fortress/CompilerBuiltin\$Object}.
+
+\subsection{$\fit{Any}$}
+$\fit{Any}$, the root of the Fortress type hierarchy and supertype of Tuples, Arrows, and $\fit{Object}$,
+is compiled to JVM interface \jvm{fortress/AnyType\$Any}.
+
+\subsection{Primitive types}
+For the time being, some primitive types are treated as special cases.
+\begin{table}[htdp]
+%\caption{default}
+\begin{center}
+\begin{tabular}{|r|l|}
+\ftt{CompilerBuiltin.Boolean}&\jvm{com/sun/fortress/compiler/runtimeValues/FBoolean}\\
+\ftt{CompilerBuiltin.Char}&\jvm{com/sun/fortress/compiler/runtimeValues/FChar}\\
+\ftt{CompilerBuiltin.String}&\jvm{fortress/CompilerBuiltin\$String}\\
+\ftt{CompilerBuiltin.JavaString}&\jvm{com/sun/fortress/compiler/runtimeValues/FJavaString}\\
+ (trait for JavaString)&\jvm{fortress/CompilerBuiltin\$JavaString}\\
+\ftt{CompilerBuiltin.RR32}&\jvm{com/sun/fortress/compiler/runtimeValues/FRR32}\\
+\ftt{CompilerBuiltin.ZZ32}&\jvm{com/sun/fortress/compiler/runtimeValues/FZZ32}\\
+\ftt{CompilerBuiltin.RR64}&\jvm{com/sun/fortress/compiler/runtimeValues/FRR64}\\
+\ftt{CompilerBuiltin.ZZ64}&\jvm{com/sun/fortress/compiler/runtimeValues/FZZ64}\\
+explicit \ftt{()} values&\jvm{com/sun/fortress/compiler/runtimeValues/FVoid}\\
+\ftt{()} as a static parameter&\SNOW
+\end{tabular}
+\end{center}
+\label{default}
+\end{table}%
+
+
+\subsection{Instantiated (invariant) generic types}
+
+The Fortress type $\fit{SomeT}\TLOBR X,Y,Z\ROBR$, with \fit{SomeT}, $X$, $Y$, and $Z$ all in component $C.D$,
+compiles to (pre-mangling, using dangerous-characters mangling)
+\begin{center}
+\jvm{C/D\$SomeT\LOBR C/D\$X,C/D\$Y,C/D\$Z\ROBR}
+\end{center}
+Post-mangling (what is actually encoded in the bytecodes) this is
+\begin{center}
+\verb+C/D$\=SomeT+\LOBR\verb+C\|D\%X,C\|D\%Y,C\|D\%Z+\ROBR
+\end{center}
+Because instantiated generic types can only extend other ground types, and can only mention ground types as static parameters, the set is closed.  The transitive closure of the extends lists (not the subtype relation, but the lists themselves) cannot mention the same generic stem with different parameters more than once, so the number of types generated for each instantiation is proportional to the size of the closure of extends lists; this is judged to be an acceptable cost.  Furthermore, the extends list is visible and can be expressed at the moment the type is mentioned; therefore, the type created by classloader template expansion, looks like a Java type, and the type relationships carry over.
+
+\section{Additional queries on generic types}
+
+In certain cases, it is necessary to perform dynamic type inference at a call site.  In that case, it is necessary to manipulate types at runtime.  The value-instanceof-type and value-cast-to-type operations are already supported, either by the mapping of types into JVM types, or through an element-by-element query (for \jvm{Tuple} and \jvm{Arrow} types).  The additional queries are:
+\begin{itemize}
+\item Does $T1$ extend $T2$?
+\item Is $T1$ an instantiation of a generic with (constant) stem ST?
+\item Given $S$, where $S$ is known to extend some generic with stem ST, and ST has $n$ static parameters, what is the stem ST's $i$th static parameter, for $1 \leq i \leq n$?
+\item Given $T1$ and $T2$, form the join (in the completed type lattice) of $T1$ and $T2$.  If $T1$ and $T2$ are tuples, the result is their elementwise join; if $T1$ extends $T2$, the result is $T2$, otherwise the result is the union of $T1$ and $T2$ (as a special case, when a single trait $P$ comprises $T1$ and $T2$ and the set union of the traits extended by $T1$ and $T2$ contains only $P$ (and what $P$ transitively extends), then their union is $P$; this generalizes to $n$ types, where $P$ in turn comprises all $n$ of them).
+\item Given $T1$ and $T2$, form the meet of the two types.  If $T1$ and $T2$ are tuples, the result is their elementwise meet; if $T1$ extends $T2$, the result is $T1$, otherwise the result is the intersection of $T1$ and $T2$.
+\end{itemize}
+
+Join operations occur at a call to a generic function where a static parameter is repeated in covariant context, for example, $f\TLOBR T\ROBR(x:T, y:T)$.  Meet operations occur at a call to a generic function where a static parameter is repeated in contravariant context, for example
+$f\TLOBR T\ROBR(x:T\RARW(), y:T\RARW())$
+
+\section{Tuple and Arrow types}
+A Fortress tuple type $(X,Y,Z)$ with $X$, $Y$, and $Z$ all in component $C.D$, compiles to the JVM type 
+\begin{center}
+\jvm{Tuple\LOBR C/D\$X,C/D\$Y,C/D\$Z\ROBR}
+\end{center}
+Post-mangling (what is actually encoded in the bytecodes) this is
+\begin{center} % not using \jvm yet
+\verb+Tuple\=+\LOBR\verb+C\|D\%X,C\|D\%Y,C\|D\%Z+\ROBR
+\end{center}
+
+Tuples are covariant in their element types; that is, if $X$, $Y$, and $Z$ each extend $\OBJ$, then $(X,Y,Z)$ extends $(\OBJ,Y,Z)$, $(X,\OBJ,Z)$, $(X,Y,\OBJ)$, $(\OBJ,\OBJ,Z)$, $(X,\OBJ,\OBJ)$, $(\OBJ,Y,\OBJ)$ and $(\OBJ,\OBJ,\OBJ)$.
+In principle, it is possible to encode the relationships between all possible Tuple types into relationships between Java types, but in practice this leads to far too many types pre-encoded into the hierarchy, where the vast majority of those types will never be mentioned in a program's execution.
+
+Instead, tuple subtype queries are compiled into element-by-element subtype queries, and when a tuple is passed into a supertype context, at the JVM level a new object of the desired type is allocated and initialized from the elements of the original.  This approach works easily because tuples are value types; there is no notion of tuple object identity.
+
+Fortress arrow types are compiled into the following cases:
+\begin{itemize}
+\item $\ldots \rightarrow ()$ compiles to \jvm{Arrow\LOBR...,\SNOW\ROBR}
+\item $\ldots \rightarrow Y$ compiles to \jvm{Arrow\LOBR...,Y\ROBR}
+\item $\ldots \rightarrow (X,Y)$ compiles to \jvm{Arrow\LOBR...,Tuple\LOBR X,Y\ROBR\ROBR}
+\item $() \rightarrow \ldots$ compiles to \jvm{Arrow\LOBR\SNOW,...\ROBR}
+\item $X \rightarrow \ldots$ compiles to \jvm{Arrow\LOBR X,...\ROBR}
+\item $(X,Y) \rightarrow \ldots$ compiles to \jvm{Arrow\LOBR X,Y,...\ROBR}
+\end{itemize}
+\SNOW\ is Unicode ``SNOWMAN", used as a placeholder to indicate the Fortress ``void" type.
+
+Each Arrow type supplies (up to) three methods named \jvm{apply}\ with different signatures.  One receives the argument list passed as correctly-typed Java objects.  The second receives the argument list as a sequence of \verb+java/lang/Object+; this is used for casting \jvm{Arrow}\ types.  The third receives the argument list as a single \jvm{Tuple}\ of the appropriate element types; this is necessary to support certain forms of generic instantiation (if a type parameter is instantiated with a \jvm{Tuple}, for example).
+
+Arrow types are CO-variant in return type, but CONTRA-variant in the argument type.  Because generic types are instantiated on-demand at run time, and because of the possibility of polymorphic recursion, it is not possible to map the (potential) Arrow type hierarchies into the JVM type hierarchy ahead-of-time.  Type queries are instead performed element-by-element, with the appropriate variance, and type casts are accomplished by wrapping with an appropriate forwarding method.  Unlike \jvm{Tuple}\ types, Arrow types have no associated data with a JVM run-time-type tag, so the ``elements" that are queried are elements from the Fortress RTTI for the \jvm{Arrow}\ type.  The forwarding methods rely on all \jvm{Arrow}\ types supplying an objects-to-object \jvm{apply}\ method.
+
+\section{Covariant and Contravariant generic types}
+
+We are scared of contravariant generic types.  To simplify dispatch, we think that we will identify ``self'' types specially (they do have special rules) and otherwise demand an ordering between the constraints on generic type parameters.  
+
+\section{Union and Intersection types}
+
+Union types occur when a static parameter is repeated in covariant context, and the actual types at the variance occurrences are neither tuples nor otherwise related.  For example, in the case of $f\TLOBR T\ROBR(x:T, y:T)$, if the actual types of $x$ and $y$ are {\it String} and $\zz32$, then the type inferred for $T$ is (must be) $\fit{String} \cup \zz32$.  In the Fortress type lattice, both {\it String} and $\zz32$ extend this union type, but in the JVM type system predeclaring all possible union type relationships is combinatorially outlandish.  The translation of the union type $X \cup Y$ is \jvm{Union\LOBR{}X,Y\ROBR}; however, this is used only in the construction of the names of other Fortress entities (generic types, functions, and methods, where the union type appears as a static parameter), and in the compilation of certain type queries; in the translation to JVM bytecodes, mentions of the Union type are otherwise erased (currently, this is \jvm{java/lang/Object}, found in \jvm{Naming.ERASED\_UNION\_TYPE}).  This will in turn require casting when values are transferred from an erased-type context to a non-erased context.  Another candidate for the erased-to JVM type is \jvm{fortress/AnyType\$Any} (note that in principle, we might see a type as perverse as $(X\rightarrow Y) \cup (X,Y)$ -- a pair is just a very limited instance of a function, right?)  Another possible erasure type is the meet of the elements of the union type, if that is a singleton.  In that case, it can be encoded into a JVM type, and the methods of that type will describe exactly those methods that can be applied to values of the union type without first performing type queries.
+
+\subsection{Canonicalization}
+
+Because union and intersection types are structural, they must be canonicalized.  The easiest way to do this is to simply sort by name (or perhaps, by inheritance depth, then name); however, there are additional canonicalizing steps, and union or intersection must be preferred as the outer stem.
+Thus,\begin{itemize}
+\item if $B$ extends $A$, then $A \cup (B \cap C) = A$
+\item $A \cap (B \cup C) = (A \cap B) \cup (A \cap C)$
+\item if $A$ comprises $B$ and $C$, then $B \cup C = A$
+\item ...
+\end{itemize}
+
+Canonicalization poses a possible cart-horse problem in the class loader.  When a union type occurs in the bytecodes of a generic type \fit{G\LOBR T\ROBR}, it must be canonicalized for each instantiation of \fit{G\LOBR A\ROBR}\ before the bytecodes are delivered to the classloader.  If it mentions \fit{G\LOBR A\ROBR}\ in the union type, then it clearly cannot rely on the JVM-based type information; instead it must use the Fortress-specific type data structures.
+
+\section{Interface injection optimizations}
+
+In several cases, the use of \jvm{Tuple}, \jvm{Arrow}, \jvm{Union}\ and \jvm{Intersection}\ types expresses relationships that would be nice if they were true, but we cannot afford to guarantee them in general.  However, we have at least three ways of guaranteeing them in important cases, that have the potential to improve performance (there will be experiments and benchmarks to determine this).
+
+\begin{enumerate}
+\item For well-known types, the relation can be optimistically created.  For example, the subtyping relationship between $(T,U,V)$ and $(\OBJ, \OBJ, \OBJ)$ might be compiled ahead of time.  Casts to tuples of \OBJ\ can occur without any reallocation and copying.
+\item If interface injection is supported in a future JVM, the necessary type relationships can be created on-the-fly, and then they will be true for the rest of the execution.  However, interface injection is not yet supported in any JVMs.
+\item Profiling of unimplemented subtype relations (those requiring copying, wrapping, or other special treatment) can be performed in one run of an application, and the actually-used relations can be recorded for later use.  Because all but the JDK classes are loaded with a custom classloader, the classloader has the option of reading the profiled type relations from previous executions, and modifying classes when they are loaded to add the relations.
+\item Some subtype queries will be visible at compile time; these can be preloaded into the ``profiling" information.
+\end{enumerate}
+
+When interfaces are injected, either dynamically, or through the classloader, the
+\jvm{Tuple}\ and \jvm{Arrow}\ types are relatively easy; these classes are already synthesized,
+and their content is straightforward and simple.
+The \jvm{Arrow} and \jvm{Tuple} hierarchies must be carefully designed, but it is not a deep problem.
+\begin{itemize}
+\item \jvm{interface AnyTuple\LOBR $N$\ROBR\ extends AnyType\$Any}\\provides object getters $\jvm{o}_1$ through $\jvm{o}_n$
+\item \jvm{interface Tuple\LOBR$T_1,...,T_N$\ROBR\ extends AnyTuple\LOBR $N$\ROBR}\\provides typed getters $\jvm{e}_1$ through $\jvm{e}_n$
+\item \jvm{abstract class AnyConcreteTuple\LOBR$N$\ROBR\ implements AnyTuple\LOBR $N$\ROBR}\\provides \jvm{size}\ and \jvm{get(I)}.
+\item \jvm{abstract class ConcreteTuple\LOBR$T_1,...,T_N$\ROBR\ extends AnyConcreteTuple\LOBR $N$\ROBR\\implements Tuple\LOBR$T_1,...,T_N$\ROBR}\\provides fields, typed getters, and object getters.
+\end{itemize}
+This permits a variety of \jvm{ConcreteTuple}\ implementations to implement a particular \jvm{Tuple}\ interface.
+
+\jvm{Union}\ and \jvm{Intersection}\ types make this somewhat more interesting,
+because they require inserting relationships into existing classes based on compilation of user code.
+Suppose the following Fortress input:
+{\slantverbatim
+\begin{verbatim}
+trait T tm():T end
+trait U um():U end
+trait V vm():V end
+trait W wm():W end
+object A extends {T,U,V}
+object B extends   {U,V,W}
+object C extends {T,U,V,W}
+\end{verbatim}
+}
+
+And suppose, further, that the types $A\cup B$ and $B\cup C$ are both inferred during execution of the program.
+The following class/interface relationships would permit the "best" (minimized coercion and casting) execution of the program:
+\begin{verbatim}
+class A implements T, U, V, Union⟦A, B⟧
+class B implements U, V, W, Union⟦A, B⟧, Union⟦B, C⟧
+class C implements T, U, V, W, Union⟦B, C⟧
+interface Union⟦A, B⟧ extends Intersection⟦U, V⟧
+interface Union⟦B, C⟧ extends Intersection⟦U, V, W⟧
+interface Intersection⟦U, V⟧ extends U, V
+interface Intersection⟦U, V, W⟧ extends U, V, W
+\end{verbatim}
+It may not be necessary to create the intersection types; because the \jvm{Union} types can actually be created, no erased types will be required.
+
+Doing this optimization for union and intersection types will require a more careful rewriting than what is described here; in some cases the Union type will contain methods for erasure, in other cases it contains a supertype.
+
+\end{document}

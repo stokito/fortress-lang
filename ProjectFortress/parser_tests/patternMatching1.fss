@@ -1,0 +1,37 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait T(a:ZZ32, b:String) end
+object P(a:ZZ32, b:String) extends T end
+object Q(a:ZZ32, b:String) extends T end
+object O(d:RR64) end
+
+assert(x:Any, y:Any): () = ()
+
+run():() = do
+  expr1 = P(3, "rrr")
+  expr11= Q(8, "sss")
+  expr2 = O(3.5)
+
+  p:T(q,r) = expr1
+  s:T(t,u) = expr11
+  v:O(w)   = expr2    (* (v, w) = (O(3.5), 3.5) *)
+
+  println (q + t)
+
+  assert(q, 3)
+  assert(r, "rrr")
+  assert(t, 8)
+  assert(u, "sss")
+  assert(w, 3.5)
+end

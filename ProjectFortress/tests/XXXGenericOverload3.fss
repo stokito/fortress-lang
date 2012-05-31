@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXGenericOverload3
+export Executable
+
+(* Should not compile *)
+
+trait B  end
+object A extends B end
+object C extends B end
+
+f[\ U, V extends U \](x:U, y:V) = 1
+f[\ U, V extends U \](x:V, y:U) = 2
+f[\ U, V extends U \](x:V, y:V) = 3
+
+run():() = do
+  g = f[\B, A\]
+
+  println( g(A,A) )
+  println( g(A,C) )
+  println( g(C,A) )
+
+  h = f[\C, C\]
+
+  println( h(C,C) )
+
+
+end
+
+end

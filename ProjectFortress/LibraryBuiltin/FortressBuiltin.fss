@@ -1,0 +1,701 @@
+(*******************************************************************************
+    Copyright 2008,2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+native component FortressBuiltin
+export FortressBuiltin
+
+private language="java"
+private package="com.sun.fortress.interpreter.glue.prim"
+
+(** The %builtinPrimitive% function is actually recognized as a special piece
+    of built-in magic by the Fortress interpreter.  The %javaClass%
+    argument names a Java Class which is a subclass of
+    \texttt{com.sun.fortress.interpreter.glue.NativeApp}, which provides code
+    for the closure which is used in place of the call to
+    %builtinPrimitive%.  Meanwhile all the necessary type information,
+    argument names, etc. must be declared here in Fortress-land.  For
+    examples, see the end of this file.
+
+    In practice, if you are extending the interpreter you will probably
+    want to extend \texttt{com.sun.fortress.interpreter.glue.NativeFn0,1,2,3,4}
+    or one of their subclasses defined in
+    \texttt{com.sun.fortress.interpreter.glue.primitive}.  These types are
+    generally easier to work with, and the boilerplate packing and
+    unpacking of values is done for you.
+**)
+builtinPrimitive[\T\](javaClass:String):T =
+  fail ("Implementation should not invoke builtinPrimitive " javaClass)
+
+trait Object extends Any
+    getter ilkName(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ObjectPrims$ClassName")
+    getter asString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ObjectPrims$ToString")
+    getter asDebugString(): String  = do  (* for debugging; may contain more information *)
+        ilk = self.ilkName
+        firstChar = ilk[0]
+        article = if firstChar = 'a' OR: firstChar = 'e' OR: firstChar = 'i' OR: firstChar = 'o' then "an " else "a " end
+        article ilk ": " self.asString
+      end
+    getter asExprString(): String
+        = "no expression for "  self.asString
+
+    getter toString(): String = self.asString             (* deprecated *)
+end
+
+value object Float extends RR64
+    getter asString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ToString")
+    getter asExprString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ToString")
+    (** returns true if the value is an IEEE NaN **)
+    getter isNaN(): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$isNaN")
+    (** returns true if the value is an IEEE infinity **)
+    getter isInfinite(): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$isInfinite")
+    (** obtain the raw bits of the IEEE floating-point representation of this value. **)
+    getter rawBits():ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$RawBits")
+    getter signBit():ZZ32 = if self.rawBits < 0 then 1 else 0 end
+    (** next higher IEEE float **)
+    getter nextUp():RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$NextUp")
+    (** next lower IEEE float **)
+    getter nextDown():RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$NextDown")
+    asFloat(self): Float = self
+    (** returns a value of type RR32 **)
+    narrow(self): RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Narrow")
+    opr |self| : Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Abs")
+    opr =(self, b:Float):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Eq")
+    opr =/=(self, b:Float):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$NEq")
+    opr <(self, b:Float):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Less")
+    opr <=(self, b:Float):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$LessEq")
+    opr >(self, b:Float):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Greater")
+    opr >=(self, b:Float):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$GreaterEq")
+    (** In case of NaN, %MIN% and %MAX% return a NaN, otherwise it respects the
+        total order. **)
+    opr MIN(self, b:Float):Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Min")
+    opr MAX(self, b:Float):Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Max")
+    opr MINMAX(self, b:Float): Number = (self MIN b, self MAX b)
+
+    opr -(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Negate")
+    opr +(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Add")
+    opr -(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sub")
+    opr DOT(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
+    opr TIMES(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
+    opr juxtaposition
+         (self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Mul")
+    opr /(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Div")
+    opr SQRT(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sqrt")
+    opr PLUS_UP(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$AddUpNoNaN")
+    opr MINUS_UP(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SubUpNoNaN")
+    opr DOT_UP(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$MulUpNoNaN")
+    opr SLASH_UP(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivUpNoNaN")
+    opr SQRT_UP(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SqrtUp")
+    opr PLUS_DOWN(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$AddDownNoNaN")
+    opr MINUS_DOWN(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SubDownNoNaN")
+    opr DOT_DOWN(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$MulDownNoNaN")
+    opr SLASH_DOWN(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivDownNoNaN")
+    opr SQRT_DOWN(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SqrtDown")
+    opr IEEE_PLUS_UP(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$AddUp")
+    opr IEEE_MINUS_UP(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SubUp")
+    opr IEEE_DOT_UP(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$MulUp")
+    opr IEEE_SLASH_UP(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivUp")
+    opr IEEE_PLUS_DOWN(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$AddDown")
+    opr IEEE_MINUS_DOWN(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$SubDown")
+    opr IEEE_DOT_DOWN(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$MulDown")
+    opr IEEE_SLASH_DOWN(self,b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$DivDown")
+    opr ^(self, b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
+    opr ^(self, b:RR32):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
+    opr ^(self, b:Number):RR64 = self^(asFloat(b))
+    (** Shouldn't need this extra declaration. **)
+    opr ^(self, b:AnyIntegral):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
+    sin(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Sin")
+    cos(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Cos")
+    tan(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Tan")
+    asin(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ASin")
+    acos(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ACos")
+    atan(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ATan")
+    atan2(self,x:Number):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ATan2")
+    log(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Log")
+    exp(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Exp")
+    floor(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Floor")
+    opr |\self/| : ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$IFloor")
+    ceiling(self):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Ceiling")
+    opr |/self\| : ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$ICeiling")
+    truncate(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Truncate")
+    round(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Round")
+end
+
+object FloatLiteral extends RR64
+    getter asString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FloatLiteral$ToString")
+    getter asExprString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FloatLiteral$ToString")
+    asFloat(self): Float =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FloatLiteral$AsFloat")
+end
+
+value object RR32 extends RR64
+    getter zero(): Number = narrow(0.0)
+    getter one(): Number = narrow(1.0)
+    getter asString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$ToString")
+    getter asExprString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$ToString")
+
+    (** returns true if the value is an IEEE NaN **)
+    getter isNaN(): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$isNaN")
+    (** returns true if the value is an IEEE infinity **)
+    getter isInfinite(): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$isInfinite")
+    (** returns true if the value is a valid number (not NaN) **)
+    getter isNumber(): Boolean = NOT self.isNaN
+    (** returns true if the value is finite **)
+    getter isFinite(): Boolean = NOT (self.isInfinite OR self.isNaN)
+    (** check returns Just(its argument) if it is finite, otherwise Nothing. **)
+    getter check(): Maybe[\RR32\] =
+        if self.isFinite then Just[\RR32\](self) else Nothing[\RR32\] end
+    (** check_star returns Just(its argument) if it is non-NaN, otherwise Nothing. **)
+    getter check_star(): Maybe[\RR32\] =
+        if self.isNaN then Nothing[\RR32\] else Just[\RR32\](self) end
+    (** obtain the raw bits of the IEEE floating-point representation of this value. **)
+    getter rawBits():ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$RawBits")
+    getter signBit():ZZ32 = if self.rawBits < 0 then 1 else 0 end
+    (** next higher IEEE float **)
+    getter nextUp():RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$NextUp")
+    (** next lower IEEE float **)
+    getter nextDown():RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$NextDown")
+
+    asFloat(self): Float =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$AsFloat")
+
+    opr |self| : Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Abs")
+    opr =(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Eq")
+    opr =/=(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$NEq")
+    opr <(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Less")
+    opr <=(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$LessEq")
+    opr >(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Greater")
+    opr >=(self, b:Number):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$GreaterEq")
+    opr CMP(self, b:Number):Comparison =
+        if self<b then LessThan
+        elif self>b then GreaterThan
+        elif self=b then EqualTo
+        else Unordered
+        end
+    (** In case of NaN, %MIN% and %MAX% return a NaN, otherwise it respects the
+        total order. **)
+    opr MIN(self, b:Number):Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Min")
+    opr MAX(self, b:Number):Number =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Max")
+    opr MINMAX(self, b:Number): Number =
+        (self MIN b, self MAX b)
+
+    opr -(self):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Negate")
+    opr +(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Add")
+    opr -(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Sub")
+    opr DOT(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Mul")
+    opr TIMES(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Mul")
+    opr juxtaposition
+         (self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Mul")
+    opr /(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Div")
+    opr SQRT(self):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Sqrt")
+    opr PLUS_UP(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$AddUpNoNaN")
+    opr MINUS_UP(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$SubUpNoNaN")
+    opr DOT_UP(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$MulUpNoNaN")
+    opr SLASH_UP(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$DivUpNoNaN")
+    opr SQRT_UP(self):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$SqrtUp")
+    opr PLUS_DOWN(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$AddDownNoNaN")
+    opr MINUS_DOWN(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$SubDownNoNaN")
+    opr DOT_DOWN(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$MulDownNoNaN")
+    opr SLASH_DOWN(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$DivDownNoNaN")
+    opr SQRT_DOWN(self):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$SqrtDown")
+    opr IEEE_PLUS_UP(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$AddUp")
+    opr IEEE_MINUS_UP(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$SubUp")
+    opr IEEE_DOT_UP(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$MulUp")
+    opr IEEE_SLASH_UP(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$DivUp")
+    opr IEEE_PLUS_DOWN(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$AddDown")
+    opr IEEE_MINUS_DOWN(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$SubDown")
+    opr IEEE_DOT_DOWN(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$MulDown")
+    opr IEEE_SLASH_DOWN(self,b:Number):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$DivDown")
+    opr ^(self, b:RR32):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Pow")
+    opr ^(self, b:Float):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Pow")
+    opr ^(self, b:Number):RR64 = self^asFloat(b)
+    (** Shouldn't need this extra declaration. **)
+    opr ^(self, b:ZZ64):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Pow")
+    floor(self):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Floor")
+    opr |\self/| : ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$IFloor")
+    ceiling(self):RR32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Ceiling")
+    opr |/self\| : ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$ICeiling")
+    truncate(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Truncate")
+    round(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.RR32$Round")
+
+    (** %MINNUM% and %MAXNUM% return a numeric result where possible (avoiding NaN).
+        Note that %MINNUM% and %MAX% form a lattice with NaN at the top, and
+        that %MAXNUM% and %MIN% form a lattice with NaN at the bottom.  **)
+    opr MINNUM(self, b:RR32):RR32 = do
+        r = self MIN b
+        if r.isNaN then
+            if self.isNumber then self
+            elif b.isNumber then b
+            else r end
+        else
+            r
+        end
+      end
+    opr MAXNUM(self, b:RR32):RR32 = do
+        r = self MAX b
+        if r.isNaN then
+            if self.isNumber then self
+            elif b.isNumber then b
+            else r end
+        else
+            r
+        end
+      end
+end
+
+value object Int extends ZZ32
+    getter asString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$ToString")
+    getter asExprString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$ToString")
+    asFloat(self): Float =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$AsFloat")
+end
+
+value object Long extends ZZ64
+    getter asString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$ToString")
+    getter asExprString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$ToString")
+    asFloat(self): Float =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$AsFloat")
+end
+
+value object NN32 extends { StandardTotalOrder[\NN32\], NN64 }
+    getter zero(): Number = unsigned(0)
+    getter one(): Number = unsigned(1)
+    getter asString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$ToString")
+    getter asExprString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$ToString")
+
+    asFloat(self): Float =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$AsFloat")
+
+    opr |self| : NN32 = self
+    opr =(self, b:NN32):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Eq")
+    opr <(self, b:NN32):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Less")
+
+    opr -(self):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Negate")
+    opr +(self,b:NN32):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Add")
+    opr -(self,b:NN32):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Sub")
+    opr DOT(self,b:NN32):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Mul")
+    opr TIMES(self,b:NN32):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Mul")
+    opr juxtaposition(self,b:NN32):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Mul")
+    opr DIV(self,b:NN32):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Div")
+    opr REM(self,b:NN32):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Rem")
+    opr MOD(self,b:NN32):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Mod")
+    opr GCD(self,b:NN32):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Gcd")
+    opr LCM(self,b:NN32):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Lcm")
+    opr CHOOSE(self,b:NN32):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Choose")
+    opr BITAND(self,b:NN32):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$BitAnd")
+    opr BITOR(self,b:NN32):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$BitOr")
+    opr BITXOR(self,b:NN32):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$BitXor")
+    opr LSHIFT(self,b:AnyIntegral):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$LShift")
+    opr RSHIFT(self,b:AnyIntegral):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$RShift")
+    opr BITNOT(self):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$BitNot")
+    opr ^(self, b:AnyIntegral):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Pow")
+    widen(self):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$ToUnsignedLong")
+    partitionL(self):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$Partition")
+    signed(self):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.NN32$ToInt")
+end
+
+value object UnsignedLong extends NN64
+    getter zero(): UnsignedLong = widen(unsigned(0))
+    getter one(): UnsignedLong = widen(unsigned(1))
+    getter asString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$ToString")
+    getter asExprString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$ToString")
+    asFloat(self): Float =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$AsFloat")
+end
+
+object IntLiteral extends ZZ32
+    getter zero(): IntLiteral = big(0)
+    getter one(): IntLiteral = big(1)
+    getter asString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$ToString")
+    getter asExprString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$ToString")
+
+    asFloat(self): Float =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$AsFloat")
+
+    opr |self| : ZZ32 = if self>=0 then self else -self end
+    opr =(self, b: IntLiteral):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Eq")
+    opr <(self, other:IntLiteral): Boolean = self.cmp(other) < 0
+    opr <=(self, other:IntLiteral): Boolean = self.cmp(other) <= 0
+    opr >(self, other:IntLiteral): Boolean = self.cmp(other) > 0
+    opr >=(self, other:IntLiteral): Boolean = self.cmp(other) >= 0
+    opr CMP(self, other:IntLiteral): TotalComparison = self.cmp(other) CMP 0
+    cmp(b:IntLiteral): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Cmp")
+
+(*
+Do not enable these until coercion is implemented; doing so will
+cause all our arithmetic to occur on IntLiterals.
+
+    opr -(self): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Negate")
+    opr +(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Add")
+    opr -(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Sub")
+    opr DOT(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mul")
+    opr juxtaposition(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mul")
+    opr TIMES(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mul")
+    opr DIV(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Div")
+    opr REM(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Rem")
+    opr MOD(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Mod")
+    opr GCD(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Gcd")
+    opr LCM(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Lcm")
+    opr CHOOSE(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Choose")
+    opr BITAND(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitAnd")
+    opr BITOR(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitOr")
+    opr BITXOR(self, b: IntLiteral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitXor")
+    opr LSHIFT(self, b:AnyIntegral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$LShift")
+    opr RSHIFT(self, b:AnyIntegral): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$RShift")
+    opr BITNOT(self): IntLiteral =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$BitNot")
+    opr ^(self, b:AnyIntegral):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.IntLiteral$Pow")
+*)
+end
+
+value object BigNum extends ZZ
+    getter asString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$ToString")
+    getter asExprString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$ToString")
+    asFloat(self): Float =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$AsFloat")
+end
+
+
+value object Boolean
+        extends { Condition[\()\], StandardTotalOrder[\Boolean\] }
+    getter holds(): Boolean = self
+    getter get(): () = ()
+    getter asString(): String = self.asExprString
+    getter asExprString(): String = if self then "true" else "false" end
+    getter size(): ZZ32 = |self|
+    opr |self| : ZZ32 = if self then 1 else 0 end
+    cond[\R\](t:()->R, e:()->R) : R = if self then t() else e() end
+    generate[\R\](r:Reduction[\R\],b:()->R): R =
+        if self then b() else r.empty() end
+    map[\G\](f: ()->G): Maybe[\G\] =
+        if self then Just[\G\](f()) else Nothing[\G\] end
+    cross[\G\](g: Generator[\G\]): Generator[\((),G)\] =
+        if self
+        then g.map[\((),G)\](fn (e:G):((),G) => ((),e))
+        else Nothing[\((),G)\] end
+
+    mapReduce[\R\](b: ()->R, _:(R,R)->R, z:R): R =
+        if self then b() else z end
+    loop(f:()->()): () = if self then f() end
+
+    opr =(self, other:Boolean): Boolean =
+        if self then other else NOT other end
+    opr <(self, other:Boolean): Boolean =
+        if self then false else other end
+    opr CMP(self, other:Boolean): TotalComparison =
+        if self then
+            if other then EqualTo else GreaterThan end
+        else
+            if other then LessThan else EqualTo end
+        end
+end
+
+myJavaDigit(x:Char, radix:ZZ32): ZZ32 = javaDigit(x, radix)
+
+value object Char extends { StandardTotalOrder[\Char\] }
+    getter asString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToString")
+    getter asExprString(): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToExprString")
+    getter codePoint(): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$CodePoint")
+    opr |self| : ZZ32 = self.codePoint
+    opr =(self, other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Eq")
+    opr <(self, other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$LessThan")
+
+    opr SIMEQ(self, other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$SimEq")
+    opr NSIMEQ(self, other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$NotSimEq")
+    opr LNSIM(self, other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$LessNotSim")
+    opr LESSSIM(self, other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$LessSim")
+    opr GNSIM(self, other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$GreaterNotSim")
+    opr GTRSIM(self, other:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$GreaterSim")
+
+    javaDigit(self, radix:ZZ32): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$JavaDigit")
+
+    digit(self): Maybe[\ZZ32\] = do
+        x:ZZ32 = myJavaDigit(self,10)
+        if (x = -1) then Nothing[\ZZ32\] else Just[\ZZ32\](x) end
+      end
+    digit(self, radix:ZZ32): Maybe[\ZZ32\] = do
+        (* radix 12 is a special case whose behavior deviates from
+           Character.digit in Java, so we handle it differently here. *)
+        if(11 <= radix <= 12) then
+            if(self = 'X' OR self = 'x') then
+                Just[\ZZ32\](10)
+            elif(self = 'E' OR self = 'e') then
+                Just[\ZZ32\](11)
+            else
+                Nothing[\ZZ32\]
+            end
+        else
+            x:ZZ32 = myJavaDigit(self, radix)
+            if(x = -1 OR (NOT(2 <= radix <= 16))) then
+                Nothing[\ZZ32\]
+            else
+                Just[\ZZ32\](x)
+            end
+        end
+    end
+
+    getDirectionality(self): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$GetDirectionality")
+    getNumericValue(self): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$GetNumericValue")
+    getType(self): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$GetType")
+    isDefined(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsDefined")
+    isDigit(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsDigit")
+    isFortressIdentifierPart(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsFortressIdentifierPart")
+    isFortressIdentifierStart(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsFortressIdentifierStart")
+    isHighSurrogate(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsHighSurrogate")
+    isIdentifierIgnorable(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsIdentifierIgnorable")
+    isISOControl(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsISOControl")
+    isJavaIdentifierPart(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsJavaIdentifierPart")
+    isJavaIdentifierStart(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsJavaIdentifierStart")
+    isLetter(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsLetter")
+    isLetterOrDigit(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsLetterOrDigit")
+    isLowerCase(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsLowerCase")
+    isLowSurrogate(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsLowSurrogate")
+    isMirrored(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsMirrored")
+    isSpaceChar(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsSpaceChar")
+    isSupplementaryCodePoint(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsSupplementaryCodePoint")
+    isSurrogatePair(self, low:Char): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsSurrogatePair")
+    isTitleCase(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsTitleCase")
+    isUnicodeIdentifierPart(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsUnicodeIdentifierPart")
+    isUnicodeIdentifierStart(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsUnicodeIdentifierStart")
+    isUpperCase(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsUpperCase")
+    isValidCodePoint(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsValidCodePoint")
+    isWhitespace(self): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$IsWhitespace")
+    toLowerCase(self): Char =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToLowerCase")
+    toTitleCase(self): Char =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToTitleCase")
+    toUpperCase(self): Char =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$ToUpperCase")
+end
+
+object Thread[\T\] (fcn:()->T)
+    val():T         =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$val")
+    wait():()       =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$wait")
+    ready():Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$ready")
+    stop():()       =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$stop")
+end
+
+abort():() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Thread$abort")
+
+end

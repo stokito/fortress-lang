@@ -1,0 +1,131 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Reduction Variables}
+\seclabel{reduction-vars}
+
+\note{Reduction variables are not yet supported.}
+
+To perform computations as locally as possible, and avoid the need to
+synchronize in the middle of relatively simple \KWD{for} loops,
+Fortress gives special treatment to \emph{reductions}.  We say that an
+operator \EXP{\odot} is a \emph{reduction operator} for type $T$ if
+$T$ is a subtype of
+%Monoid[\T, ODOT\]
+\(\TYP{Monoid}\llbracket{}T, \odot\rrbracket\), which implies that
+\EXP{\odot} is an associative binary infix operator on $T$ (see
+\secref{monoids-groups-rings-fields} for details about the
+\TYP{Monoid} trait).
+
+We say that a variable \VAR{l} is a \emph{reduction variable} reduced using
+the reduction operator $\odot$ for a particular thread group if it
+satisfies the following conditions:
+\begin{itemize}
+\item Every assignment to \VAR{l} within the thread group is of the
+  form \EXP{l \mathrel{\oplus}= e}, where exactly one operator $\oplus$ or its
+  group inverse $\ominus$ (see below) is used in these assignments.
+\item The value of \VAR{l} is not otherwise read within the thread group.
+\item The variable \VAR{l} is not a free variable of a functional.
+  This includes the fields of the receiver object in a method
+  definition.
+\end{itemize}
+Other threads which simultaneously reference a reduction variable
+while a loop is running may see an arbitrary value for that variable.
+Any updates performed by those threads may be lost.  The association
+of terms in the reduction is arbitrary and guided by the loop
+generators (\secref{defining-generators}).  The order of terms in the
+reduction is the natural order of elements in the generator.  When the
+operator is commutative, the order of terms is also arbitrary.
+
+Several common mathematical operators are declared to be monoids in
+\library.  These include \EXP{+}, $\cdot$, \EXP{\wedge}, \EXP{\vee},
+and \EXP{\xor}.  If a type $T$ extends
+%Group[\T, OPLUS, OMINUS\]
+\EXP{\TYP{Group}\llbracket{}T, \oplus, \ominus\rrbracket}
+(see \secref{monoids-groups-rings-fields} for details about the
+\TYP{Group} trait)
+then reduction expressions of the following form are also permitted:
+%x OMINUS= y
+\begin{Fortress}
+\(x \mathrel{\ominus}= y\)
+\end{Fortress}
+Such expressions may be transformed into an algebraic equivalent such
+as the following:
+%x OPLUS= Identity[\OPLUS\] OMINUS y
+\begin{Fortress}
+\(x \mathrel{\oplus}= \TYP{Identity}\llbracket\oplus\rrbracket \ominus y\)
+\end{Fortress}
+
+The semantics of reductions enables implementation strategies such as
+the one used in OpenMP~\cite{OpenMP}: A reduction variable \VAR{l} is
+assigned \EXP{\TYP{Identity}\llbracket\oplus\rrbracket}
+at the beginning of each iteration.  The
+original variable value may be read ahead of time, resulting in the
+loss of parallel updates to the variable which occur in other threads
+while the loop is running.  When all iterations are complete, the
+initial value of the reduction variable and values of the variable at
+the end of each implicit thread are reduced and the result is assigned
+to the reduction variable as the group completes.
+
+In the following example, \VAR{sum} is a reduction variable:
+\note{I manually rendered the array type.}
+%arraySum[\nat x\](a:ZZ64[x]):ZZ64 = do
+%    sum:ZZ64 := 0
+%    for i<-a.indices do
+%        sum+=a[i]
+%    end
+%    sum
+%end
+\begin{Fortress}
+\(\VAR{arraySum}\llbracket\KWD{nat}\mskip 4mu plus 4mu{x}\rrbracket(a\COLONOP\mathbb{Z}64[x])\COLONOP\mathbb{Z}64 = \;\KWD{do}\)\\
+{\tt~~~~}\pushtabs\=\+\(    \VAR{sum}\COLONOP\mathbb{Z}64 \ASSIGN 0\)\\
+\(    \KWD{for}  \null\)\pushtabs\=\+\(i\leftarrow{}a.\VAR{indices} \KWD{do}\)\\
+\(        \VAR{sum}\mathrel{+}=a[i]\)\-\\\poptabs
+\(    \KWD{end}\)\\
+\(    \VAR{sum}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+The following demonstrates the use of a reduction variable \VAR{prod}
+in a parallel \KWD{do}:
+\note{The $\mathrel{\cdot}$ is manually edited.}
+%prod : ZZ64 := 1
+%do
+%    prod DOT= g(y)
+%also do
+%    prod DOT= f(x)
+%    prod DOT= g(x)
+%also do
+%    h(x,y)
+%end
+\begin{Fortress}
+\(\VAR{prod} \mathrel{\mathtt{:}}\mskip 4mu plus 4mu\mathbb{Z}64 \ASSIGN 1\)\\
+\(\KWD{do}\)\\
+{\tt~~~~}\pushtabs\=\+\(    \VAR{prod} \mathrel{\cdot}= g(y)\)\-\\\poptabs
+\(\KWD{also}\;\;\KWD{do}\)\\
+{\tt~~~~}\pushtabs\=\+\(    \VAR{prod} \mathrel{\cdot}= f(x)\)\\
+\(    \VAR{prod} \mathrel{\cdot}= g(x)\)\-\\\poptabs
+\(\KWD{also}\;\;\KWD{do}\)\\
+{\tt~~~~}\pushtabs\=\+\(    h(x,y)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+The operator associated with a reduction variable can be invoked in
+several places during evaluation of a thread group.  Most obviously,
+it can be invoked anywhere the reduction operation occurs textually in
+the code for that group.  The operator can also be invoked multiple
+times implicitly and in parallel after the completion of some or all
+of the threads in the group.  The group as a whole does not complete
+normally until all these operator invocations have completed normally
+and the reduced result has been assigned to the reduction variable for
+use in subsequent computation.  If any operator invocation completes
+abruptly, it is treated just as if an ordinary implicit thread in the
+group completed abruptly.

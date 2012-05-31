@@ -1,0 +1,98 @@
+\begin{figure}[p]
+\typicallabel{x}
+
+\newjudge{Existential subtyping}{\begin{array}{@{}l@{}}\jleinnerusing{\Xi}{\Xi}{\sigma} \\ \jle{\Xi}{\Xi} \\ \jleusing{\Xi}{\Xi}{\sigma} \end{array}}
+
+\medskip
+
+\infrule[E-Sub]
+  { \Delta' = \Delta \cup \setb{\bdb{\chi} \extends \kwd{invariant}\;P \extends \bdb{\eta}}
+    \\[2pt]
+    \setb{P} \cap \FV(\bar{\chi'},\bar{\eta'},{\alpha'}) = \emptyset
+    \andalso
+    \sigma = \Bigsubstb{\gamma}{Q}
+    \\[6pt]
+    \jbsubtype[\Delta']{\underline{\sigma}\chi'}{\gamma}
+    \andalso
+    \jbsubtype[\Delta']{\gamma}{\underline{\sigma}\eta'}
+    \andalso
+    \jsubtype[\Delta']{\alpha}{\sigma\alpha'}
+  }
+  { \jleinnerusingtight{\existstypeb{\bdb{\chi} \mathord{\extends} P \mathord{\extends} \bdb{\eta}}{\alpha}}{\existstypebigb{\bdb{\chi'} \mathord{\extends} Q \mathord{\extends} \bdb{\eta'}}{\alpha'}}{\sigma} }
+
+\medskip
+
+\infrule
+  { \jtreds{\Xi}{\Xi'}{\dontcare} \andalso \jleinnerusing{\Xi'}{\Xi''}{\sigma} }
+  {  \jle{\Xi}{\Xi''}  \andalso  \jleusing{\Xi}{\Xi''}{\sigma} }
+
+\bigskip
+
+\newjudge{Universal subtyping}{\begin{array}{@{}l@{}}\jleinnerusing{\Upsilon}{\Upsilon}{\sigma} \\ \jle{\Upsilon}{\Upsilon} \\ \jleusing{\Upsilon}{\Upsilon}{\sigma} \end{array}}
+
+\medskip
+
+\infrule[U-Sub]
+  { \Delta' = \Delta \cup \setb{\bdb{\chi'} \extends \kwd{invariant}\;Q \extends \bdb{\eta'}}
+    \\[2pt]
+    \setb{Q} \cap \FV(\bar{\chi},\bar{\eta},{\alpha}) = \emptyset
+    \andalso
+    \sigma = \Bigsubstb{\gamma}{P}
+    \\[6pt]
+    \jbsubtype[\Delta']{\underline{\sigma}\chi}{\gamma}
+    \andalso
+    \jbsubtype[\Delta']{\gamma}{\underline{\sigma}\eta}
+    \andalso
+    \jsubtype[\Delta']{\sigma\alpha}{\alpha'}
+  }
+  { \jleinnerusingtight{\foralltypebigb{\bdb{\chi} \mathord{\extends} P \mathord{\extends} \bdb{\eta}}{\alpha}}{\foralltypeb{\bdb{\chi'} \mathord{\extends} Q \mathord{\extends} \bdb{\eta'}}{\alpha'}}{\sigma} }
+
+\medskip
+
+\infrule
+  { \jleinnerusing{\Upsilon}{\Upsilon''}{\sigma} \andalso \jtreds{\Upsilon'}{\Upsilon''}{\dontcare} }
+  { \jle{\Upsilon}{\Upsilon'}  \andalso  \jleusing{\Upsilon}{\Upsilon'}{\sigma}  }
+
+\bigskip
+
+\newjudge{Existential reduction}{\jtreds{\Xi}{\Xi}{\sigma}}
+
+\medskip
+
+\infrule
+  {\jcnequiv{\alpha}{\Bottom}{\C} \andalso \toConstraint{\setb{K}}{\C'} \\
+   \jsolve{\C \wedge \C'}{\sigma}{\C''} \andalso \toBounds{\C''}{\setb{K'}}}
+  {\jtreds{\existstypeb{K}{\alpha}}{\existstypeb{K'}{\sigma(\alpha)}}{\sigma}}
+
+\medskip
+
+\infrule
+  {\text{otherwise}}
+  {\jtreds{\existstypeb{K}{\alpha}}{\existstypeb{K}{\alpha}}{\emptysubst}}
+
+\bigskip
+  
+\newjudge{Universal reduction}{\jtreds{\Upsilon}{\Upsilon}{\sigma}}
+
+\medskip
+
+\infrule
+  { \jtreds{\existstypeb{K}{\alpha}}{\existstypeb{K'}{\alpha'}}{\sigma} }
+  { \jtreds{\foralltypeb{K}{\arrowtype{\alpha}{\omega}}}{\foralltypeb{K'}{\arrowtype{\alpha'}{\sigma(\omega)}}}{\sigma} }
+
+\bigskip
+
+\newjudge{Intersection of existential types}{\Xi\existentialmeet\Xi}
+
+\medskip
+
+\infrule
+  { \mathit{distinct}(\bar{P},\bar{P'})  \\
+    \FV(\bar{\chi},\bar{\eta},\alpha)\cap\setb{P'}=\FV(\bar{\chi'},\bar{\eta'},\alpha')\cap\setb{P}=\emptyset }
+  { \Bigtuple{\existstypeBigb{\bdb{\chi} \mathord{\extends} P \mathord{\extends} \bdb{\eta}}{\alpha}} \existentialmeet \Bigtuple{\existstypeBigb{\bdb{\chi'} \mathord{\extends} P' \mathord{\extends} \bdb{\eta'}}{\alpha'}} = \\[2pt]
+    \existstypeBig{\bar{\bdb{\chi} \mathord{\extends} P \mathord{\extends} \bdb{\eta}},\bar{\bdb{\chi'} \mathord{\extends} P' \mathord{\extends} \bdb{\eta'}}}{\intersectiontype{\alpha}{\alpha'}} }
+
+\medskip
+\caption{Typing Rules for Quantified Types. Note that alpha-renaming of type variables may be necessary to apply some of these rules.}
+\label{fig:quantified}
+\end{figure}

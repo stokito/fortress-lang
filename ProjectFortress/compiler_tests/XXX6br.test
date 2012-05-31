@@ -1,0 +1,19 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled6.br
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled6.br.fss:16:10-47:\n\
+\ Could not assign an expression of type ZZ32 to variable s of type String.\n\
+${STATIC_TESTS_DIR}/Compiled6.br.fss:16:33-34:\n\
+\ Function body has type String, but declared return type is ZZ32.\n\
+File Compiled6.br.fss has 2 errors.\n
+compile_out_equals=

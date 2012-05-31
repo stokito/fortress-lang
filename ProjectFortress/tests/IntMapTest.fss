@@ -1,0 +1,101 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component IntMapTest
+export Executable
+import IntMap.{...}
+import List.{...}
+import Shuffle.{...}
+
+assEq(a:IntMap[\ZZ32\], b:IntMap[\ZZ32\], msg:Any...): () =
+    if a.check()=/=b.check() then
+        println(toDots(a,b))
+        fail((BIG || msg) // a // "=/=" // b)
+    end
+
+run(): () = do
+    me = {[\ZZ32\] }
+    mz = {[\ZZ32\] widen(0) |-> 1}
+    m0 = {[\ZZ32\] widen(x) |-> (x+5) | x <- (-7):57:3}
+    a = toArray((-7):57:3)
+    shuffle(a)
+    m1 = {[\ZZ32\] widen(i) |-> (i+5) | i <- a }
+    b = toArray((-3):17)
+    shuffle(b)
+    m2 = {[\ZZ32\] widen(i) |-> i | i <- b }
+    maps = <| me, mz, m0, m1, m2 |>
+    checkedMaps = maps.map[\IntMap[\ZZ32\]\](fn (m:IntMap[\ZZ32\]):IntMap[\ZZ32\] => m.check)
+    (* Test member *)
+    for i <- (-8):58 do
+        assert(m0.member(i).holds, ((i+7) MOD 3) = 0)
+    end
+    (* Test equality *)
+    assEq(me,me)
+    assEq(mz,mz)
+    assEq(m0,m0)
+    assEq(m0,m1)
+    assEq(m2,m2)
+    assert(m1=m2, false, m1, "=", m2)
+    (* Test add *)
+    assEq(me.add(0,1),mz)
+    assEq(mz.add(0,17),mz)
+    assEq(m0.add(5,15), m0)
+    assert(m0.add(6,17).member(6).get, 17)
+    (* Test update *)
+    assEq(me.update(0,1),mz)
+    assert(mz.update(0,17).member(0).get, 17)
+    assert(m0.update(5,15).member(5).get, 15)
+    assert(m0.update(6,17).member(6).get, 17)
+    (* Test DIFFERENCE *)
+    diffSpec(x,y) = {[\ZZ32\] i |-> v | (i,v) <- x, NOT (y.member(i).holds) }
+    assEq(me DIFFERENCE m0, me, "Difference E")
+    assEq(mz DIFFERENCE mz, me, "Difference Z")
+    assEq(m0 DIFFERENCE mz, m0, "Difference EE")
+    assEq(m2.delete(0), m2 DIFFERENCE mz, "Difference Delete")
+    assEq(diffSpec(m2,m1), m2 DIFFERENCE m1, "Difference 1 of\n", m2, "\nand\n", m1)
+    assEq(diffSpec(m1,m2), m1 DIFFERENCE m2, "Difference 2")
+    (* Test UNION *)
+    unionSpec(x,y) = {[\ZZ32\] i |-> v | m <- <|x,y DIFFERENCE x|>, (i,v) <- m }
+    assEq(me UNION me, me, "Union E")
+    assEq(mz UNION mz, mz, "Union Z")
+    assEq(me UNION mz, mz, "Union Z'")
+    assEq(mz UNION me, mz, "Union Z\"")
+    assEq(m2 UNION mz, m2, "Union m2")
+    assEq(unionSpec(m0,m2), m0 UNION m2, "Union 1")
+    (* Test INTERSECTION *)
+    interSpec(x,y) = {[\(ZZ32,ZZ32)\] i |-> (v1,v2) | (i,v1) <- x, v2 <- y.member(i) }
+    fst(m:IntMap[\(ZZ32,ZZ32)\]) = m.map[\ZZ32\](fn (_:ZZ64,v:(ZZ32,ZZ32)):ZZ32 => do (x,y) = v; x end)
+    inter(x,y) = x.intersection[\ZZ32,ZZ32\]((fn (_:ZZ64,z:ZZ32,_:ZZ32): ZZ32 => z), y)
+    assEq(inter(me, me), me)
+    assEq(inter(mz, me), me)
+    assEq(inter(mz, mz), mz)
+    assEq(inter(m0, m0), m0)
+    assEq(inter(m0, mz), me)
+    assEq(inter(mz, m2), mz)
+    assEq(inter(m0,m2), fst(m0 INTERSECTION m2))
+    assEq(inter(m2,m0), fst(m2 INTERSECTION m0))
+    (* Test SYMDIFF *)
+    symdiffSpec(x,y) = (x UNION y) DIFFERENCE (x INTERSECTION y)
+    assEq(symdiffSpec(m0,m2), m0 SYMDIFF m2, "Symdiff 1")
+    assEq(me SYMDIFF me, me)
+    assEq(mz SYMDIFF mz, me)
+    assEq(me SYMDIFF mz, mz)
+    assEq(mz SYMDIFF me, mz)
+    assEq(me SYMDIFF m2, m2)
+    (* Test delete *)
+    assEq(mz.delete(0),me)
+    assEq(mz.delete(1),mz)
+    assEq(m0.delete(0),m0)
+    assert(m2.delete(0), m2 DIFFERENCE mz)
+    println("OK")
+  end
+
+end

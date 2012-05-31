@@ -1,0 +1,38 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+Decls = Decl (br Decl)*
+
+Decl =
+     TraitDecl
+   / ObjectDecl
+   / VarDecl
+   / FnDecl
+   / DimUnitDecl
+   / TypeAlias
+   / TestDecl
+   / PropertyDecl
+   / ExternalSyntax
+
+AbsDecls = AbsDecl (br AbsDecl)*
+
+AbsDecl =
+     AbsTraitDecl
+   / AbsObjectDecl
+   / AbsVarDecl
+   / AbsFnDecl
+   / DimUnitDecl
+   / TypeAlias
+   / TestDecl
+   / PropertyDecl
+   / AbsExternalSyntax
+\end{verbatim}

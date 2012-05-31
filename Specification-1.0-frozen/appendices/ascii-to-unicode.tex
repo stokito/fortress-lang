@@ -1,0 +1,543 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Support for Unicode Input in ASCII}
+\applabel{ascii-unicode}
+
+\note{Only \secref{preprocessing-unicode-names} is supported.}
+
+\note{QUESTIONS/NOTES from Victor:
+\begin{itemize}
+\item does micro convert to MICRO SIGN by itself,
+or only as part of a restricted word?  (The latter is currently specified.)
+\item Is '' ASCII shorthand for double prime (and the analogous qns
+for ''' `` and ```)?  If so, then we need to fix the example in
+ the character literal section, which says ''' is a character
+ literal that evaluates to the APOSTROPHE character.
+\item The section on conversion of ASCII symbol sequences still needs
+ to be fixed up.  I think it should list all the ASCII shorthand
+ (certainly it needs to list all the shorthand for non-operators),
+ and then it needs to deal with not converting sequences that are
+ subsequences of multicharacter enclosing operators.
+\end{itemize}
+}
+
+To facilitate the writing of Fortress programs
+using ASCII-based tools,
+Fortress programs are subject to \emph{ASCII conversion},
+an idempotent process consisting of three steps
+described in this appendix.
+We expect that IDEs that support Unicode
+may apply ASCII conversion immediately,
+saving programs as converted Unicode character sequences.
+
+
+\section{Word Pasting across Line Terminators}
+\seclabel{identifier-pasting}
+
+Consider any line terminator in the program
+for which the last non-whitespace character before the line terminator
+is an ampersand (\txt{\&}) that is immediately preceded by a word character,
+and the first non-whitespace character after the line terminator
+is an ampersand that is immediately followed by a word character.
+All the characters between the ampersands inclusive
+are removed from the program.
+Note that the removed characters other than the two ampersands
+must be whitespace characters
+(including one or more line terminators).
+This step permits very long names and numerals
+to be split across line boundaries.
+For example:
+
+\begin{verbatim}
+supercalifragilisticexpiali&
+   &docious = 0.142857142857142857&
+   &142857 TIMES &
+       GREEK_SMALL_LETTER_&
+
+   &UPSILON_WITH_DIALYTICA_AND_TONOS
+\end{verbatim}
+becomes
+\begin{verbatim}
+supercalifragilisticexpialidocious = 0.142857142857142857142857 TIMES &
+       GREEK_SMALL_LETTER_UPSILON_WITH_DIALYTICA_AND_TONOS
+\end{verbatim}
+
+To ensure the idempotence of ASCII conversion,
+it is a static error if
+an ampersand is immediately followed by another ampersand,
+or if it is immediately followed
+by one or more whitespace characters,
+not including a line terminator,
+followed by an ASCII letter or ampersand.
+In other words,
+if an ampersand is not the last non-whitespace character on a line
+then the next non-whitespace character must not be an ampersand,
+nor can it be an ASCII letter
+unless it is adjacent to the ampersand.
+
+
+\section{Converting Names of Unicode Characters and ASCII Shorthand}
+\seclabel{preprocessing-unicode-names}
+
+After word pasting across line terminators,
+certain ASCII character sequences are converted
+into single Unicode characters.
+These character sequences fall into two categories:
+restricted words (or parts of restricted words)
+and ASCII shorthand for operators and special characters.
+In some cases,
+ampersands adjacent to converted sequences are removed.
+
+\subsection{Determining Potentially Convertible Character Sequences}
+\seclabel{determining-conversion-chunks}
+
+We first identify nonoverlapping contiguous subsequences
+of the program
+that may be subject to conversion in this step.
+In particular,
+names of characters and ASCII shorthand consist of
+only ASCII characters,
+and they are \emph{not} converted within string literals.
+
+The boundaries of string literals (and comments)
+are determined follows:
+There are three modes of processing:
+outside any comment or string literal,
+inside a string literal
+and inside a comment.
+Within a comment,
+we also keep track of ``nesting depth''
+(this is 0 when not within a comment).
+Processing proceeds from left to right.
+Outside any comment or string literal,
+encountering an unescaped string literal delimiter
+(i.e., a string literal delimiter not immediately
+preceded by an unescaped backslash)
+changes processing to the mode for within a string literal
+(however, it is a static error if the string literal delimiter
+is the right double quotation mark),
+and encountering
+the opening comment delimiter ``\txt{(*}''
+changes processing to the mode for within a comment,
+incrementing the nesting depth (to 1).
+All other characters are ignored,
+except to note they are not within a string literal.
+In particular,
+because character literal delimiters are ignored,
+string literal delimiters must be escaped within
+character literals.
+
+Within a string literal,
+all characters other than an unescaped string literal delimiter
+are ignored
+(except to note that they are within a string literal).
+An unescaped string literal delimiter switches processing
+to the mode for outside any comment or string literal.
+However,
+it is a static error if a line terminator appears
+within a string literal
+(Fortress provides \emph{escape sequences}
+to include line terminators in strings;
+see~\secref{preprocessing-string-literals}),
+or if the opening and closing string literal delimiters
+do not ``match''
+(again see~\secref{preprocessing-string-literals}).
+
+Within a comment,
+all characters, including unescaped string literal delimiters, are ignored
+(except to note that they are not within a string literal)
+other than the two-character opening and closing comment delimiters
+``\txt{(*}'' and ``\txt{*)}''.
+Whenever the opening comment delimiter is encountered,
+the nesting depth is incremented,
+and each time the closing comment delimiter is encountered,
+the nesting depth is decremented,
+until it becomes 0.
+At that point, processing is changed again to the mode
+for outside any comment or string literal.
+
+A contiguous subsequence of ASCII characters
+not within any string literal
+is a candidate for conversion in this step
+if it is either a restricted word,
+or it is a maximal such subsequence
+that does not contain any restricted-word characters,
+control characters,
+whitespace characters
+or ampersands
+(i.e., it must be delimited by whitespace,
+a control or non-ASCII characters,
+string literals,
+restricted words,
+ampersands,
+or the beginning or end of the file).
+We call the latter kind of subsequence
+an \emph{ASCII symbol sequence}.
+The conversion of restricted words and ASCII symbol sequences
+are described in \secref{convert-restricted-words}
+and \secref{convert-symbol-sequences} respectively.
+Whitespace characters and ampersands are not converted,
+but some ampersands may be eliminated,
+as described in \secref{convert-ampersand}.
+
+
+\subsection{Converting Restricted Words}
+\seclabel{convert-restricted-words}
+
+A restricted word that ``names'' a Unicode character
+that is not protected\footnote{Protecting
+the backslash (an ASCII character)
+and string literal delimiters
+preserves the boundaries of string literals
+determined as described above;
+protecting the other ASCII characters
+ensures that the ASCII conversion process is idempotent.
+}
+(i.e., not an ASCII or control character
+nor a string literal delimiter)
+is replaced by that character.
+A restricted word may name a character in various ways,
+described below.
+In a few cases,
+a restricted word may name more than one character
+(via different ways),
+so the order in which we consider these ways is important.
+Also,
+in some cases,
+only part of the restricted word is replaced by a Unicode character.
+
+Fortress explicitly provides short ASCII names
+for many characters,
+especially ones that programmers might most commonly want.
+Some characters have more than one short name.
+For operators,
+these names are given in \appref{operators},
+including the following common ones:
+
+\begin{tabular}{rcl@{\hspace{5ex}}rcl@{\hspace{5ex}}rcl}
+        \txt{LE} & \emph{becomes} & $\leq$ &
+        \txt{GE} & \emph{becomes} & $\geq$ &
+        \txt{NE} & \emph{becomes} & $\neq$ \\
+        \txt{BY}  & \emph{becomes} & $\times$ &
+        \txt{TIMES}  & \emph{becomes} & $\times$ &
+        \txt{CROSS} & \emph{becomes} & $\times$ \\
+        \txt{DOT}  & \emph{becomes} & $\csdot$ &
+        \txt{PROD} & \emph{becomes} & $\prod$ &
+        \txt{SUM} & \emph{becomes} & $\sum$ \\
+        \txt{CUP} & \emph{becomes} & $\cup$ &
+        \txt{CAP} & \emph{becomes} & $\cap$ &
+        \txt{SUBSET} & \emph{becomes} & $\subset$ \\
+        \txt{EMPTYSET} & \emph{becomes} & $\emptyset$ &
+        \txt{AND} & \emph{becomes} & $\wedge$ &
+        \txt{OR} & \emph{becomes} & $\vee$ \\
+\end{tabular}
+
+To provide a level of compatibility with Fortran,
+\appref{operators} also gives short names
+for the following ASCII (and thus protected) characters:
+
+\begin{tabular}{rcl@{\hspace*{5ex}}rcl@{\hspace*{5ex}}rcl}
+        \txt{LT} & \emph{becomes} & $<$ &
+        \txt{GT} & \emph{becomes} & $>$ &
+        \txt{EQ} & \emph{becomes} & $=$
+\end{tabular}
+
+These names are the only ones converted to a protected character.
+Furthermore,
+they are \emph{not} replaced by the corresponding character
+unless they are delimited by whitespace characters
+(\emph{not} ampersands).
+Thus, they cannot participate in further conversion,
+maintaining the idempotence of ASCII conversion.
+
+
+The following non-operator characters also have short names:
+
+\begin{tabular}{rcl@{\hspace{5ex}}rcl@{\hspace{5ex}}rcl}
+        \txt{ALPHA} & \emph{becomes} & A &
+        \txt{alpha} & \emph{becomes} & $\alpha$ &
+        \txt{BOTTOM} & \emph{becomes} & $\bot$ \\
+        \txt{BETA} & \emph{becomes} & B &
+        \txt{beta} & \emph{becomes} & $\beta$ &
+        \txt{TOP} & \emph{becomes} & $\top$ \\
+        \txt{GAMMA} & \emph{becomes} & $\Gamma$ &
+        \txt{gamma} & \emph{becomes} & $\gamma$ &
+        \txt{INF} & \emph{becomes} & $\infty$ \\
+        \txt{DELTA} & \emph{becomes} & $\Delta$ &
+        \txt{delta} & \emph{becomes} & $\delta$ &
+        \txt{FORALL} & \emph{becomes} & $\forall$ \\
+        \txt{EPSILON} & \emph{becomes} & E &
+        \txt{epsilon} & \emph{becomes} & $\epsilon$ &
+        \txt{EXISTS} & \emph{becomes} & $\exists$ \\
+        \txt{ZETA} & \emph{becomes} & Z &
+        \txt{zeta} & \emph{becomes} & $\zeta$ \\
+        \txt{ETA} & \emph{becomes} & H &
+        \txt{eta} & \emph{becomes} & $\eta$ \\
+        \txt{THETA} & \emph{becomes} & $\Theta$ &
+        \txt{theta} & \emph{becomes} & $\theta$ \\
+        \txt{IOTA} & \emph{becomes} & I &
+        \txt{iota} & \emph{becomes} & $\iota$ \\
+        \txt{KAPPA} & \emph{becomes} & K &
+        \txt{kappa} & \emph{becomes} & $\kappa$ \\
+        \txt{LAMBDA} & \emph{becomes} & $\Lambda$ &
+        \txt{lambda} & \emph{becomes} & $\lambda$ \\
+        \txt{MU} & \emph{becomes} & M &
+        \txt{mu} & \emph{becomes} & $\mu$ \\
+        \txt{NU} & \emph{becomes} & N &
+        \txt{nu} & \emph{becomes} & $\nu$ \\
+        \txt{XI} & \emph{becomes} & $\Xi$ &
+        \txt{xi} & \emph{becomes} & $\xi$ \\
+        \txt{OMICRON} & \emph{becomes} & O &
+        \txt{omicron} & \emph{becomes} & $o$ \\
+        \txt{PI} & \emph{becomes} & $\Pi$ &
+        \txt{pi} & \emph{becomes} & $\pi$ \\
+        \txt{RHO} & \emph{becomes} & P &
+        \txt{rho} & \emph{becomes} & $\rho$ \\
+        \txt{SIGMA} & \emph{becomes} & $\Sigma$ &
+        \txt{sigma} & \emph{becomes} & $\sigma$ \\
+        \txt{TAU} & \emph{becomes} & T &
+        \txt{tau} & \emph{becomes} & $\tau$ \\
+        \txt{UPSILON} & \emph{becomes} & $\Upsilon$ &
+        \txt{upsilon} & \emph{becomes} & $\upsilon$ \\
+        \txt{PHI} & \emph{becomes} & $\Phi$ &
+        \txt{phi} & \emph{becomes} & $\phi$ \\
+        \txt{CHI} & \emph{becomes} & X &
+        \txt{chi} & \emph{becomes} & $\chi$ \\
+        \txt{PSI} & \emph{becomes} & $\Psi$ &
+        \txt{psi} & \emph{becomes} & $\psi$ \\
+        \txt{OMEGA} & \emph{becomes} & $\Omega$ &
+        \txt{omega} & \emph{becomes} & $\omega$
+\end{tabular}
+
+A restricted word that is not a short name specified by Fortress
+is compared to names of characters
+specified by the Unicode Standard~\cite{Unicode}.
+Because restricted words consist only of
+letters, digits and underscores,
+while Unicode names may include hyphens and spaces
+(but not underscores),
+hyphens and spaces in the Unicode names
+are replaced by underscores for this comparison.
+Specifically,
+if a restricted word is the official \unicode\ name of a character
+with hyphens and spaces replaced by underscores,
+it is replaced by that character.
+For any Unicode character other than the control characters,
+there is a unique official \unicode\ name
+not shared by any other Unicode character.
+Since control characters are protected,
+they do not present a problem in this regard.
+
+If there is no matching official \unicode\ name,
+the restricted word is compared to the alternative names for characters
+specified by the Unicode Standard,
+again with hyphens and spaces replaced by underscores,
+and converted to a character with such a matching name.
+If more than one character has a matching alternative name,
+then the restricted word is converted to the first such non-protected character
+(i.e., the one with the smallest code point).
+If there is no matching alternative name,
+then the restricted word is compared to
+official \unicode\ names
+and any alternative names specified in the Unicode Standard,
+with underscores in place of hyphens and spaces,
+where any of the following substrings may be omitted:
+\begin{verbatim}
+  "LETTER_"
+  "DIGIT_"
+  "RADICAL_"
+  "NUMERAL_"
+\end{verbatim}
+If there are multiple such substrings in a given name,
+any combination of them may be omitted.
+Again,
+if there are multiple characters with matching abridged names,
+the restricted word is converted to the first such non-protected character.
+
+If the restricted word is not converted to a single Unicode character
+by any of the above rules,
+parts of it may be converted as follows:
+If the restricted word begins with the short name
+(i.e., the name in the table above)
+of a Greek letter followed by an underscore or a digit,
+or ends with the short name of a Greek letter
+that is preceded by an underscore,
+or contains the short name of a Greek letter
+with an underscore on each side of it,
+then the short name of the Greek letter
+is replaced by the Greek letter itself.
+In the same manner,
+the character sequence ``micro'' is replaced
+with the character \txt{MICRO SIGN} $\mu$
+(U+00B5,
+which looks just like the Greek lowercase mu $\mu$ but is different).
+If a word-part being thus replaced
+has an underscore to each side,
+and the underscore on the right is the last character of the restricted word,
+then the underscore on the left is removed as the name is replaced;
+this ad hoc rule is for
+the sake of the abbreviations of certain dimensional units,
+so that, for example, \txt{micro\_OMEGA\_}
+is converted to \txt{$\mathrm{\mu\Omega\_}$},
+signifying micro-ohms,
+and \txt{G\_OMEGA\_} is converted to \txt{$\mathrm{G\Omega\_}$},
+signifying gigaohms.
+Here are some other examples:
+
+\begin{tabular}{rcl@{\hspace{5ex}}rcl}
+        \txt{alpha} & \emph{becomes} & $\alpha$ &
+        \txt{OMEGA13} & \emph{becomes} & $\Omega13$ \\
+        \txt{alpha\_hat} & \emph{becomes} & $\alpha\_hat$ &
+        \txt{theta\_elephant} & \emph{becomes} & $\theta\_elephant$ \\
+        \txt{OMEGA\_} & \emph{becomes} & $\Omega\_$ &
+        \txt{\_XI} & \emph{becomes} & $\_\Xi$
+\end{tabular}
+
+
+\subsection{Converting ASCII Symbol Sequences}
+\seclabel{convert-symbol-sequences}
+
+
+
+
+For the sequences of characters other than restricted words,
+each is converted from left to right,
+with the longest possible substring being converted at once,
+with one exception:
+The sequence ``\txt{(<}'' is not converted
+if it is immediately followed by any of the
+following characters:
+`\txt{<}', '\txt{|}', `\txt{/}', `\txt{\char'134}', `\txt{*}', or `\txt{.}'.
+That is, with this one exception,
+the longest shorthand beginning from the first character,
+if any, is converted first.
+Then, the longest shorthand beginning from the next character
+of the string after replacement is converted, and so on.
+Here are the ASCII shorthands
+for some of the characters we expect to be most frequently used:
+
+\begin{tabular}{rcl@{\hspace{5ex}}rcl}
+        \txt{[{\char'134}} & \emph{becomes} & $\bTPl$ &
+        \txt{{\char'134}]} & \emph{becomes} & $\bTPr$ \\
+        \txt{->}  & \emph{becomes} & $\rightarrow$ &
+        \txt{=>}  & \emph{becomes} & $\Rightarrow$ \\
+        \txt{$\sim$>} & \emph{becomes} & $\leadsto$ &
+        \txt{|->} & \emph{becomes} & $\mapsto$ \\
+        \txt{>=} & \emph{becomes} & $\geq$ &
+        \txt{<=} & \emph{becomes} & $\leq$ \\
+        \txt{=/=} & \emph{becomes} & $\neq$ &
+        \text{...} & \emph{becomes} & $\ldots$ \\
+        \txt{:=} & \emph{becomes} & $:=$ &
+\end{tabular}
+
+Although the characters with string literals
+are generally not subject to this step of ASCII conversion,
+They are if they are part of a restricted-word escape sequence
+or a quoted-character escape sequence.
+See \secref{preprocessing-string-literals} for details.
+
+\subsection{Eliminating Ampersands}
+\seclabel{convert-ampersand}
+
+Finally,
+if an ampersand is adjacent to a sequence of characters
+that is changed by this step of ASCII conversion
+(even if the sequence was only partly changed,
+as long as the character adjacent to the ampersand is changed),
+the ampersand is removed after the transformation,
+\emph{unless} the ampersand is the first
+or last non-whitespace character on the line.
+\marginnote{Why leave the first?}
+Thus, the expression
+\begin{verbatim}
+(GREEK_SMALL_LETTER_PHI&GREEK_SMALL_LETTER_PSI +
+GREEK_SMALL_LETTER_OMEGA&GREEK_SMALL_LETTER_LAMBDA)
+\end{verbatim}
+
+is converted to:
+
+\begin{ttt}
+($\phi\psi$ +
+$\omega\lambda$)
+\end{ttt}
+
+in which there are two identifiers,
+each consisting of two Greek letters.
+On the other hand,
+
+\begin{verbatim}
+(GREEK_SMALL_LETTER_PHI GREEK_SMALL_LETTER_PSI +
+GREEK_SMALL_LETTER_OMEGA GREEK_SMALL_LETTER_LAMBDA)
+\end{verbatim}
+
+is converted to:
+
+\begin{ttt}
+($\phi$ $\psi$ +
+$\omega$ $\lambda$)
+\end{ttt}
+
+in which there are four identifiers.
+
+Because we never convert to protected characters,
+and converted sequences consist only of protected characters,
+this step is idempotent:
+repeated application has no effect beyond the first.
+\note{Commented out text:
+However,
+to ensure that the entire ASCII conversion process
+is idempotent,
+it is a static error
+if an ampersand is immediately followed by a word character
+after this step.
+This restriction prevents any word pasting
+in the converted program.
+}
+
+
+\section{Apostrophe Replacement within Numerals}
+\seclabel{digit-separator}
+
+The last step of ASCII conversion simply replaces
+apostrophes with digit-group separators
+when they appear in words that would otherwise be numerals.
+Specifically,
+consider any word that is not within a string literal
+(determined as described in \secref{determining-conversion-chunks}),
+has only digits, letters, underscores
+and apostrophes,
+and neither begins nor ends with an apostrophe or an underscore.
+Call such a word a \emph{proto-numeral}.
+If a proto-numeral begins with a digit
+or ends with a radix specifier
+(see \secref{numerals}),
+or if it is immediately followed by a `.'
+and then a proto-numeral that ends with a radix specifier,
+or it is immediately preceded by a `.',
+which is immediately preceded by a proto-numeral
+that begins with a digit,
+then replace each apostrophe in that proto-numeral
+with a digit-group separator.
+
+\section{Equivalence under ASCII Conversion}
+\seclabel{ascii-conversion-equivalence}
+
+Two (valid) Fortress programs are equivalent under ASCII conversion
+if they are identical after ASCII conversion
+except for string literals
+(determined as described in \secref{determining-conversion-chunks}),
+the converted programs have string literals
+in exactly corresponding places,
+and corresponding string literals evaluate to the same string.
+This exception and additional rule
+are necessary because string literals
+are not subject to ASCII conversion.

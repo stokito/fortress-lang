@@ -1,0 +1,29 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2009,2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component WhileLoop1
+  export Executable
+  
+  run() = do
+(** EXAMPLE **)
+  do
+    (*) Print the numbers 0 through 9 on separate lines.
+    k: ZZ := 0
+    while (k < 10) do
+      println(k)
+      k += 1
+    end
+  end
+(** END EXAMPLE **)
+  end
+end

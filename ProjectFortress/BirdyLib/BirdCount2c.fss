@@ -1,0 +1,74 @@
+(*******************************************************************************
+Copyright 2012 Michael Zody and Oracle. 
+All rights reserved.
+
+Oracle is the Copyright owner of the Fortress programming language software,
+and Michael Zody is the developer of the algorithm which this software implements and the
+Copyright owner of the software implementation of the algorithm, to which Oracle
+has a perpetual, irrevocable, royalty free right and license to use and distribute. 
+
+Use is subject to license terms accompanying the software.
+ ******************************************************************************)
+
+component BirdCount2c
+
+import Util.{...}
+import Bazaar.{...}
+import File.{...} 
+import FileSupport.{...} 
+import List.{...}
+import Map.{...} 
+import Pairs.{...}
+import Set.{...} 
+import GenomeUtil2c.{...}
+import Tuple.{...}
+
+export Executable
+
+chunkSize: ZZ32 = 237
+readSize: ZZ32 = 35   (*) This may change with newer technology, but for now it is OK.
+
+homeDir: String = "/Users/jean-baptistetristan/Code/workspace/PFC"
+referenceFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head" 
+sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
+errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
+sampleFilesFileName = "chr10.csfasta.ma.sorted.head"
+errorFilesFileName = "composite_error_model.txt"
+
+sampleNames: List[\String\] = <|[\String\]
+    "10a_LA_Frag35_20080704_white_leghorn_A",
+    "10b_LA_Frag35_20080704_white_leghorn_B"
+(*)    "17_LA_Frag35_20080909_high_grow_line",
+(*)    "18_LA_Frag35_20080909_low_grow_line",
+(*)    "17.1_LA_Frag35_20080925_high_grow_line",
+(*)    "18.1_LA_Frag35_20080925_low_grow_line",
+(*)    "16_LA_Frag35_20080829_broiler",
+(*)    "22_LA_Frag35_20081016_RJF",
+(*)    "16.1_LA_Frag35_20080925_broiler",
+(*)    "22.1_LA_Frag35_20081114_RJF"
+|>
+
+(* Process one sample against one chunk of the reference genome,
+   producing an event database and a coverage database.
+
+   =Arguments=
+   ; `name`:     the name of the sample
+   ; `rl`:       a list of the reads in the sample that overlap the reference genome chunk
+   ; `er`:       the error rates table for the sample
+   ; `refChunk`: the chunk of the reference genome
+
+   =Results=
+   # A map from positions in the reference genome to events that begin at that position
+   # A singleton map from the name of the sample to a map from positions in the genome to the number of reads beginning at that position
+
+   For every read in the sample that overlaps the given chunk of reference genome, events within that read are identified
+   by calling `eventGenerator`.
+*)
+
+run() = do
+  ref = getReferenceGenomeFromFile(referenceFile, chunkSize, readSize)
+  ref.loop(fn o => println("hello"))
+  println("OK!")
+end
+
+end

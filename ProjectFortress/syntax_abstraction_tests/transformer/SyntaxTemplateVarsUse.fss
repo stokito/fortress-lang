@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SyntaxTemplateVarsUse
+
+import SyntaxTemplateVars.helloworld
+
+export Executable
+
+run() = do
+                        println (hello beautiful beautiful world)
+                        println (hello foobar foobar world)
+(*                        println (a (x, y) x y foo) *)
+                      end
+end

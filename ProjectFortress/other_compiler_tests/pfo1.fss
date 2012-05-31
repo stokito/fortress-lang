@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Suspect inconsistency in internal naming of prefix operators in overloading;
+   this attempts to tickle the bug. *)
+
+opr FOO(x:Object):String = "FAIL"
+
+object O
+   opr FOO(self):String = "PASS"
+end
+
+o:Object = O
+
+run():() = do
+  println (FOO o)
+end
