@@ -66,9 +66,29 @@ sampleNames: List[\String\] = <|[\String\]
    by calling `eventGenerator`.
 *)
 
+object ErrorRates(single: List[\RR64\], multiple: List[\RR64\]) end
+
+object MyTuple(f: RR64,s: RR64) end
+
+transpose(l: List[\MyTuple\]): (List[\RR64\],List[\RR64\]) = 
+    ( <|[\RR64\] m.f | m <- l |>, <|[\RR64\] m.s | m <- l |> )
+
+readErrorRateFile(name: String): ErrorRates =
+  ErrorRates (transpose(<|[\MyTuple\] MyTuple(strToFloat(beyond(beyond(line,'\t'),'\t')),
+                                            strToFloat(upto(beyond(line,'\t'),'\t'))) |
+                          line <- FileReadStream(name.asJavaString).lines() |>))
+
+object Sample(s: String, r: ReadList, e: ErrorRates) end
+
+getSampleData(name: String): Sample = do
+  rl = getReadListFromFile(sampleFilesDir || "/" || name || "/" || sampleFilesFileName, readSize)
+  er = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
+  Sample(name, rl, er)
+end
+
 run() = do
-(*)  ref = getReferenceGenomeFromFile(referenceFile, chunkSize, readSize)
   ref = getReferenceGenomeFromFile(referenceFile, 50, 15)
+  samples = <|[\Sample\] getSampleData(name) | name <- sampleNames |>
   for refChunk <- ref do println(refChunk.getACGT(refChunk.range)) end
   println("OK!")
 end
