@@ -30,8 +30,10 @@ color(c1:Character, c2:Character): Character =
 
 colorsFromACGT(strACGT: String): String = BIG || <|[\Character\] color(p,q) | (p,q)<-pairs(toGenString(strACGT)) |>
 
+(*) This original version may be running afoul of a nested-generator transformation.
 colorsToACGT(start: Character, colorstr: String): String =
   start || (BIG || [i <- toGenZZ32(0 # |colorstr|)] ("ACGT"[encodeACGT(start) BITXOR (BIG BITXOR[k <- toGenZZ32(0#(i+1))] (colorstr[k].codePoint BITAND 3))]).asString)
+
 
 trait ReferenceGenome extends { DefaultSequentialGeneratorImplementation[\ReferenceGenomeChunk\] } end
 
@@ -81,7 +83,7 @@ object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ
 
   generate[\T extends Any\](red: Reduction[\T\], body: ReferenceGenomeChunk->T): T = red.id (*) WATCH OUT
   
-  loop[\T\](body: ReferenceGenomeChunk->()): () = do
+  loop[\T extends Any\](body: ReferenceGenomeChunk->()): () = do
         consume()
         while (NOT rs.eof) do
             if s <- readOne(rs) then
@@ -123,8 +125,8 @@ object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ
     Just(ReferenceGenomeChunk(currentChunkStart, currentChunkLength, buffer.asJavaString, padLength))
   end
 
-  generate[\T\](red: Reduction[\T\], body: ReferenceGenomeChunk->T): T = fg.generate(red, body)
-  loop[\T\](body: ReferenceGenomeChunk->()): () = fg.loop(body)
+  generate[\T extends Any\](red: Reduction[\T\], body: ReferenceGenomeChunk->T): T = fg.generate(red, body)
+  loop[\T extends Any\](body: ReferenceGenomeChunk->()): () = fg.loop(body)
 end FileBasedReferenceGenome
 *)
 
