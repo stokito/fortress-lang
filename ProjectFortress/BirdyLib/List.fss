@@ -69,8 +69,8 @@ end
 opr BIG <|[\T\]|> : Comprehension[\T,List[\T\],List[\T\],List[\T\]\] =
     Comprehension[\T,List[\T\],List[\T\],List[\T\]\](fn x => x,Cat[\T\],fn (x: T) => singleton(x))
 
-opr BIG ||[\T\]() : BigReduction[\List[\T\],List[\T\]\] =
-  BigReduction[\List[\T\],List[\T\]\](Cat[\T\])
+(*) opr BIG ||[\T\]() : BigReduction[\List[\T\],List[\T\]\] =
+(*)   BigReduction[\List[\T\],List[\T\]\](Cat[\T\])
 
 (*
 
