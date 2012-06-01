@@ -73,7 +73,7 @@ public abstract class VarCodeGen {
     }
     
     public String toString() {
-        return "VarCodeGen:" + name + "," + fortressType;
+        return "VarCodeGen[] " + name + ":" + fortressType;
     }
 
     public boolean isAMutableLocalVar() {
@@ -140,7 +140,7 @@ public abstract class VarCodeGen {
         }
 
         public String toString() {
-            return "VarCodeGen:StackVar" + name + "," + fortressType;
+            return "VarCodeGen[StackVar] " + name + ":" + fortressType;
         }
     }
 
@@ -183,7 +183,7 @@ public abstract class VarCodeGen {
         }
 
         public String toString() {
-            return "VarCodeGen:FieldVar" + name + "," + fortressType;
+            return "VarCodeGen[FieldVar] " + name + ":" + fortressType;
         }
 
         @Override
@@ -218,7 +218,7 @@ public abstract class VarCodeGen {
         }
 
         public String toString() {
-            return "VarCodeGen:MutableFieldVar" + name + "," + fortressType;
+            return "VarCodeGen[MutableFieldVar] " + name + ":" + fortressType;
         }
 
 
@@ -282,7 +282,7 @@ public abstract class VarCodeGen {
         }
 
         public String toString() {
-            return "VarCodeGen:StaticBinding" + name + "," + fortressType;
+            return "VarCodeGen[StaticBinding] " + name + ":" + fortressType;
         }
 
 
@@ -312,7 +312,7 @@ public abstract class VarCodeGen {
         }
 
         public String toString() {
-            return "VarCodeGen:ParamVar" + name + "," + fortressType;
+            return "VarCodeGen[ParamVar] " + name + ":" + fortressType;
         }
 
     }
@@ -331,7 +331,7 @@ public abstract class VarCodeGen {
         }
 
         public String toString() {
-            return "VarCodeGen: localVar: " + name + "," + fortressType;
+            return "VarCodeGen[localVar] " + name + ":" + fortressType;
         }
 
     }
@@ -436,7 +436,7 @@ public abstract class VarCodeGen {
         }
 
         public String toString() {
-            return "VarCodeGen: localMutableVar: " + name + "," + fortressType;
+            return "VarCodeGen[localMutableVar] " + name + ":" + fortressType;
         }
 
         public void outOfScope(CodeGenMethodVisitor mv) {
@@ -610,7 +610,7 @@ public abstract class VarCodeGen {
         }
 
         public String toString() {
-            return "VarCodeGen: MutableTaskVarCodeGen: " + name + "," + fortressType;
+            return "VarCodeGen[MutableTaskVarCodeGen] " + name + ":" + fortressType;
         }
 
         public void outOfScope(CodeGenMethodVisitor mv) {
