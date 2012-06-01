@@ -309,5 +309,6 @@ object VoidReduction extends { CommutativeMonoidReduction[\()\] }
     join(a: (), b: ()): ()
 end
 
+voidReduction: VoidReduction
 
 end

@@ -17,6 +17,7 @@ import Util.{...}
 import CompilerAlgebra.{...}
 
 pairs[\T\](g: Generator[\T\]): Generator[\(T,T)\]
+
 triples[\T\](g: Generator[\T\]): Generator[\(T,T,T)\]
 (*)runRanges(x: Indexed[\Boolean,ZZ32\]): List[\Range\]
 geometricMean(xs: List[\RR64\]): RR64

@@ -17,7 +17,7 @@ import Util.{...}
 import Maybe.{...}
 import Bazaar.{...}
 import CompilerAlgebra.{...}
-import GeneratorLibrary.{DefaultGeneratorImplementation}
+import GeneratorLibrary.{DefaultGeneratorImplementation, voidReduction}
 export Pairs
 
 pairs[\T\](g: Generator[\T\]): Generator[\(T,T)\] = Pairs(g)
@@ -27,6 +27,10 @@ object Pairs[\T\](g: Generator[\T\]) extends DefaultGeneratorImplementation[\(T,
     if (l,v,r) <- g.generate[\Maybe[\(T,R,T)\]\](PairReduction[\T,R\](red,m),
                              fn (t:T) => Just[\(T,R,T)\](t, red.id, t))
         then v else red.id end
+(*)     loop(m:(T,T)->()): () = do println "BL:AP";
+(*)         ign = g.generate[\Maybe[\(T,(),T)\]\](PairReduction[\T,()\](VoidReduction, m),
+(*)                              fn (t:T) => Just[\(T,(),T)\](t, (), t));
+(*)         () end
 end
 
 object PairReduction[\T,R extends Any\](red: Reduction[\R\], m:(T,T)->R)

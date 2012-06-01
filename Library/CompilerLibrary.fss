@@ -292,7 +292,7 @@ trait SeqGeneratorZZ32 extends GeneratorZZ32
     filter(f: ZZ32 -> Boolean): SeqGeneratorZZ32
 end
 
-__loop(g: GeneratorZZ32, body: ZZ32->()): () = g.loop(body)
+__loop(g: GeneratorZZ32, body: ZZ32->()): () = do println "BLAP!" ; g.loop(body) end
 
 __bigOperator(o:ReductionString,
               desugaredClauses:(ReductionString, String->String)->String): String =
