@@ -40,11 +40,12 @@ trait ReferenceGenome extends { DefaultSequentialGeneratorImplementation[\Refere
 object ReferenceGenomeChunk(start: ZZ32, length: ZZ32, buffer: String, padLength: ZZ32)
   getter range(): Range = start # length
   getACGT(r: Range): String = do
-    (*)buffer.substring(padLength + (r.lowerBound - start),|r|)
-       buffer.substring((r.lowerBound - start),padLength + |r|)
+    (*)println("Padlength: " || padLength)
+    (*)println("Range size: " || |r|)
+    buffer.substring(padLength + (r.lowerBound - start),padLength + (r.lowerBound - start) + |r| + 1)
   end
   getColors(r: Range): String = do
-    colorsFromACGT buffer.substring(padLength + (r.lowerBound - start),|r| + 1)
+    colorsFromACGT buffer.substring(padLength + (r.lowerBound - start), padLength + (r.lowerBound - start) + |r| + 1)
   end
 end ReferenceGenomeChunk
 
@@ -63,7 +64,7 @@ object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ
   consume():() = atomic do whenUnconsumed(); consumed := true end 
 
   readOne(rs': ReadStream): Maybe[\ReferenceGenomeChunk\] = do
-    buffer := buffer.substring(currentChunkLength,|buffer| - currentChunkLength) 
+    buffer := buffer.substring(currentChunkLength,|buffer|) 
     currentChunkStart += currentChunkLength
     currentChunkLength := 0
     while currentChunkLength < (chunkSize + padLength) AND: NOT rs'.eof do
@@ -197,11 +198,11 @@ object Read(header: String, sequence: String, name: String, pos: ZZ32, length: Z
   getter refACGT(): String = refChunk.getACGT(pos : seqend + 1).asJavaString
   getter refColors(): String = refChunk.getColors(pos : seqend + 1).asJavaString
   getter sampleColors(): JavaString = do
-    temp = sequence.substring(1,|sequence| - 1)
+    temp = sequence.substring(1,|sequence|)
     result = (if (negativeOrientation) then
                 (reverse(temp)).substring(0, |temp| - 2) || self.refColors[|temp| - 1]
               else
-                self.refColors[0] || temp.substring(1,|temp| - 1) 
+                self.refColors[0] || temp.substring(1,|temp|) 
               end)
     result.asJavaString
   end
@@ -220,7 +221,7 @@ private parseOneRead(r: ReadStream, refChunk: ReferenceGenomeChunk): Maybe[\Read
     loc: String = upto(beyond(beyond(header,','),'_'),'.')
     length: ZZ32 = |sequence| - 1
     negativeOrientation: Boolean = (loc[0] = '-')
-    pos: ZZ32 = if (negativeOrientation) then strToInt(loc.substring(1,|loc| - 1)) - length + 1 else strToInt(loc) - 1 end (*) HERE
+    pos: ZZ32 = if (negativeOrientation) then strToInt(loc.substring(1,|loc|)) - length + 1 else strToInt(loc) - 1 end (*) HERE
     seqend: ZZ32 = pos + length - 1
     Just Read(header, sequence, name, pos, length, seqend, negativeOrientation, refChunk)
   end
