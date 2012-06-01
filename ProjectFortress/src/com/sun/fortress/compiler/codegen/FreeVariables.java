@@ -103,4 +103,14 @@ public class FreeVariables extends NodeCollectingVisitor<BASet<IdOrOp>> {
         return set(i);
     }
 
+    public BASet<IdOrOp> forTraitType(TraitType that) {
+        BASet<IdOrOp> info_result = recur(that.getInfo());
+        BASet<IdOrOp> name_result = set();// recur(that.getName());
+        List<BASet<IdOrOp>> args_result = recurOnListOfStaticArg(that.getArgs());
+        List<BASet<IdOrOp>> traitStaticParams_result = recurOnListOfStaticParam(that.getTraitStaticParams());
+        return forTraitTypeOnly(that, info_result, name_result, args_result, traitStaticParams_result);
+    }
+
+
+    
 }
