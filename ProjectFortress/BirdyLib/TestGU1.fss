@@ -83,13 +83,14 @@ object Sample(s: String, r: ReadList, e: ErrorRates) end
 getSampleData(name: String): Sample = do
   rl = getReadListFromFile(sampleFilesDir || "/" || name || "/" || sampleFilesFileName, readSize)
   er = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
+  (*)er = ErrorRates(<|[\RR64\] |>,<|[\RR64\] |>)
   Sample(name, rl, er)
 end
 
 run() = do
   ref = getReferenceGenomeFromFile(referenceFile, 50, 15)
   samples = <|[\Sample\] getSampleData(name) | name <- sampleNames |>
-  for refChunk <- ref do println(refChunk.getACGT(refChunk.range)) end
+  for refChunk <- ref do println("chunk\n") ; println(refChunk.getACGT(refChunk.range)); println("\n") end
   println("OK!")
 end
 

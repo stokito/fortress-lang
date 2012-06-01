@@ -40,10 +40,11 @@ trait ReferenceGenome extends { DefaultSequentialGeneratorImplementation[\Refere
 object ReferenceGenomeChunk(start: ZZ32, length: ZZ32, buffer: String, padLength: ZZ32)
   getter range(): Range = start # length
   getACGT(r: Range): String = do
-    buffer.substring(padLength + (r.lowerBound - start),padLength + (r.lowerBound - start) + |r|)
+    (*)buffer.substring(padLength + (r.lowerBound - start),|r|)
+       buffer.substring((r.lowerBound - start),padLength + |r|)
   end
   getColors(r: Range): String = do
-    colorsFromACGT buffer.substring(padLength + (r.lowerBound - start),padLength + (r.lowerBound - start) + |r| + 1)
+    colorsFromACGT buffer.substring(padLength + (r.lowerBound - start),|r| + 1)
   end
 end ReferenceGenomeChunk
 
@@ -62,7 +63,7 @@ object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ
   consume():() = atomic do whenUnconsumed(); consumed := true end 
 
   readOne(rs': ReadStream): Maybe[\ReferenceGenomeChunk\] = do
-    buffer := buffer.substring(currentChunkLength,|buffer| - 1) 
+    buffer := buffer.substring(currentChunkLength,|buffer| - currentChunkLength) 
     currentChunkStart += currentChunkLength
     currentChunkLength := 0
     while currentChunkLength < (chunkSize + padLength) AND: NOT rs'.eof do
