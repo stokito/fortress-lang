@@ -1132,6 +1132,11 @@ public class Naming {
     	return "L" + type + ";";
     }
 
+    public static String internalToType(String type) {
+        if (type.equals(INTERNAL_SNOWMAN)) type = specialFortressTypes.get(type);
+        return  type ;
+    }
+
     /**
          * Returns "(" + param + ")" + result ; converts
          * to JVM method descriptor form.
