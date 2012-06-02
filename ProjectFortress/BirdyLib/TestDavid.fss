@@ -28,8 +28,7 @@ export Executable
 chunkSize: ZZ32 = 237
 readSize: ZZ32 = 35   (*) This may change with newer technology, but for now it is OK.
 
-(*) homeDir: String = "/Users/jean-baptistetristan/Code/workspace/PFC"
-homeDir: String = "/Users/gls/Fortress"
+homeDir: String = "YOUR PATH HERE"
 referenceFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head" 
 sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
 errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
@@ -83,13 +82,22 @@ object Sample(s: String, r: ReadList, e: ErrorRates) end
 getSampleData(name: String): Sample = do
   rl = getReadListFromFile(sampleFilesDir || "/" || name || "/" || sampleFilesFileName, readSize)
   er = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
+  (*)er = ErrorRates(<|[\RR64\] |>,<|[\RR64\] |>)
   Sample(name, rl, er)
 end
 
 run() = do
   ref = getReferenceGenomeFromFile(referenceFile, 50, 15)
   samples = <|[\Sample\] getSampleData(name) | name <- sampleNames |>
-  for refChunk <- ref do println(refChunk.getACGT(refChunk.range)) end
+  for refChunk <- ref do (*)println("chunk\n") 
+                         (*)println(refChunk.start)
+                         (*)println("Chunk length: " || refChunk.length) 
+                         println(refChunk.getACGT(refChunk.range)) 
+                         (*)println(refChunk.getACGT((refChunk.start + refChunk.length)#refChunk.padLength) || "\n")
+                         (*)println("Buffer length: " || |refChunk.buffer|)
+                         (*)println(refChunk.buffer) 
+                         (*)println("\n") 
+                      end
   println("OK!")
 end
 
