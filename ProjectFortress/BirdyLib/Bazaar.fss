@@ -84,7 +84,7 @@ component Bazaar
     
   opr ||(c: Character, s: String): String = c.asString || s  
 
-  opr =/=(x: Range, y: Range): Boolean = x.lowerBound = y.lowerBound  AND x.upperBound = y.upperBound
+  opr =/=(x: Range, y: Range): Boolean = x.lowerBound =/= y.lowerBound  OR x.upperBound =/= y.upperBound
 
   object CharGen(s: String) extends DefaultGeneratorImplementation[\Character\] 
     generate[\R extends Any\](r: Reduction[\R\], body: Character->R): R =  

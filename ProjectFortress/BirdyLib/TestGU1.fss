@@ -28,8 +28,8 @@ export Executable
 chunkSize: ZZ32 = 237
 readSize: ZZ32 = 35   (*) This may change with newer technology, but for now it is OK.
 
-(*) homeDir: String = "/Users/jean-baptistetristan/Code/workspace/PFC"
-homeDir: String = "/Users/gls/Fortress"
+homeDir: String = "/Users/jean-baptistetristan/Code/workspace/PFC"
+(*) homeDir: String = "/Users/gls/Fortress"
 referenceFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head" 
 sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
 errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
@@ -49,22 +49,38 @@ sampleNames: List[\String\] = <|[\String\]
 (*)    "22.1_LA_Frag35_20081114_RJF"
 |>
 
-(* Process one sample against one chunk of the reference genome,
-   producing an event database and a coverage database.
+object Event(s: Read, startPos: ZZ32, len: ZZ32, errorProb: RR64, fileName: String)
+  refStart: ZZ32 = s.pos + startPos
+  refEnd: ZZ32 = refStart + len - 1
+  refACGTSequence: String = s.refACGT.substring(startPos,startPos + len + 1) 
+  refColorsSequence: String = s.refColors.substring(startPos,startPos + len) 
+  sampleColorSequence: String = s.sampleColors.substring(startPos, startPos + len) 
+  sampleACGTSequence: String = colorsToACGT(s.refACGT[startPos], s.sampleColors.substring(startPos,startPos + len))
+  valid: Boolean = (if startPos + len = |s.sampleColors|
+                    then isValidTransitionString(refColorsSequence.substring(0,len-1), sampleColorSequence.substring(0,len-1))
+                    else isValidTransitionString(refColorsSequence, sampleColorSequence))
+  getter asString(): String =
+    (fileName "    " refStart "    " refEnd "    "
+     refColorsSequence "    " sampleColorSequence "   "
+     refACGTSequence "    " sampleACGTSequence "   " errorProb)
+  getter asDetailedString() = do
+    (s.header "  " errorProb " "  refStart "  " refEnd "  " refColorsSequence "  " sampleColorSequence "  "
+     (if valid then "VALID" else "inv") "  " refACGTSequence "   "
+     (if valid then sampleACGTSequence else ("x")^(len+1)) "    " startPos)
+  end
+end Event
 
-   =Arguments=
-   ; `name`:     the name of the sample
-   ; `rl`:       a list of the reads in the sample that overlap the reference genome chunk
-   ; `er`:       the error rates table for the sample
-   ; `refChunk`: the chunk of the reference genome
+isValidTransitionString(ref: String, sample: String) =
+  BIG AND[i <- toGenZZ32(0 # |ref| - 1)]  ((ref[i].codePoint BITXOR ref[i+1].codePoint) = (sample[i].codePoint BITXOR sample[i+1].codePoint))
 
-   =Results=
-   # A map from positions in the reference genome to events that begin at that position
-   # A singleton map from the name of the sample to a map from positions in the genome to the number of reads beginning at that position
-
-   For every read in the sample that overlaps the given chunk of reference genome, events within that read are identified
-   by calling `eventGenerator`.
-*)
+object MergedEvent(count: ZZ32, refStart: ZZ32, refEnd: ZZ32, 
+                   refNumberFormat: String, sampleNumberFormat: String,
+                   refACGTFormat: String, sampleACGTFormat: String,
+                   totalCoverage: RR64, probability: RR64, eventList: List[\Event\])
+  getter asString(): String = 
+    ("" count "  " refStart "  " refEnd "  " refNumberFormat "  " sampleNumberFormat "  "
+     refACGTFormat "  " sampleACGTFormat "  " totalCoverage "  " probability "  ")
+end MergedEvent
 
 object ErrorRates(single: List[\RR64\], multiple: List[\RR64\]) end
 
@@ -87,18 +103,42 @@ getSampleData(name: String): Sample = do
   Sample(name, rl, er)
 end
 
+(* Process one sample against one chunk of the reference genome,
+   producing an event database and a coverage database.
+
+   =Arguments=
+   ; `name`:     the name of the sample
+   ; `rl`:       a list of the reads in the sample that overlap the reference genome chunk
+   ; `er`:       the error rates table for the sample
+   ; `refChunk`: the chunk of the reference genome
+
+   =Results=
+   # A map from positions in the reference genome to events that begin at that position
+   # A singleton map from the name of the sample to a map from positions in the genome to the number of reads beginning at that position
+
+   For every read in the sample that overlaps the given chunk of reference genome, events within that read are identified
+   by calling `eventGenerator`.
+*)
+
 run() = do
   ref = getReferenceGenomeFromFile(referenceFile, 50, 15)
   samples = <|[\Sample\] getSampleData(name) | name <- sampleNames |>
   for refChunk <- ref do (*)println("chunk\n") 
                          (*)println(refChunk.start)
                          (*)println("Chunk length: " || refChunk.length) 
-                         println(refChunk.getACGT(refChunk.range)) 
+                         (*) println(refChunk.getACGT(refChunk.range)) 
                          (*)println(refChunk.getACGT((refChunk.start + refChunk.length)#refChunk.padLength) || "\n")
                          (*)println("Buffer length: " || |refChunk.buffer|)
                          (*)println(refChunk.buffer) 
                          (*)println("\n") 
-                      end
+                         for sample <- samples do l = sample.r.getReads(refChunk)
+                                                  for read <- l do println("Read:")
+                                                                   println(read.name) 
+                                                                   println(read.header)
+                                                                   println(read.sequence)
+                                                  end
+                                               end
+                      end                                   
   println("OK!")
 end
 
