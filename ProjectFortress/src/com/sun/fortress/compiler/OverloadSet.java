@@ -2217,9 +2217,13 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 Type domain = t1.size() == 1 ? t1.get(0) : NodeFactory.makeTupleType(t1);
                 // DRC why not fnni = new FnNameInfo(principalMember.tagF, cg.thisApi())?
                 // could be a name problem
-                FnNameInfo fnni = new FnNameInfo(sargs,
-                        ((HasTraitStaticParameters)(principalMember.tagF)).traitStaticParameters(),
-                        getRange(), domain, cg.thisApi(), (IdOrOp) name, span );
+                Functional eff = principalMember.tagF;
+                if (eff instanceof Method)
+                    eff =  ((Method) eff).originalMethod();
+                FnNameInfo fnni = new FnNameInfo(eff, cg.thisApi());
+//                FnNameInfo fnni = new FnNameInfo(sargs,
+//                        ((HasTraitStaticParameters)(principalMember.tagF)).traitStaticParameters(),
+//                        getRange(), domain, cg.thisApi(), (IdOrOp) name, span );
                 FnNameInfo fnni_closure = fnni.convertGenericMethodToClosureDecl(selfIndex,
                         cg.currentTraitObjectDecl.getHeader().getStaticParams());
                 CodeGen.GenericMethodBodyMaker gmbm = new CodeGen.GenericMethodBodyMaker () {
