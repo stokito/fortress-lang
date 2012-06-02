@@ -277,7 +277,8 @@ public class MethodInstantiater implements MethodVisitor {
 
     public void visitTypeInsn(int opcode, String type) {
         type = xlation.getTypeName(type);
-        mv.visitTypeInsn(opcode, type);
+       type = Naming.internalToType(type);
+       mv.visitTypeInsn(opcode, type);
     }
 
     public void visitVarInsn(int opcode, int var) {
