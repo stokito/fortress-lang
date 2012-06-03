@@ -850,8 +850,8 @@ trait FloatLiteral excludes {RR32, RR64}
 end
 
 trait Boolean 
-    extends { Equality[\Boolean\] }
-(*)    extends { Equality[\Boolean\], Condition[\()\] }
+(*)    extends { Equality[\Boolean\] }
+    extends { Equality[\Boolean\], Condition[\()\] }
     excludes { String, Number }
   getter isEmpty(): Boolean = NOT self
   getter nonEmpty(): Boolean = self
@@ -862,18 +862,22 @@ trait Boolean
   getter asExprString(): String = if self then "true" else "false" end
   getter size(): ZZ32 = |self|
   opr |self| : ZZ32 = if self then 1 else 0 end
-(*)   cond[\R\](t: ()->R, e: ()->R) : R = if self then t() else e() end
-(*)   generate[\R\](r: Reduction[\R\], b: ()->R): R =
-(*)       if self then b() else r.id end
-(*)   map[\G\](f: ()->G): Option[\G\] =
-(*)       if self then Some[\G\](f()) else NoneObject[\G\] end
-(*)   cross[\G\](g: Generator[\G\]): Generator[\((),G)\] =
-(*)       if self
-(*)       then g.map[\((),G)\](fn (e:G):((),G) => ((),e))
-(*)       else NoneObject[\((),G)\] end
-(*)   mapReduce[\R\](b: ()->R, _:(R,R)->R, z:R): R =
-(*)       if self then b() else z end
-(*)   loop(f:()->()): () = if self then f() end
+  cond[\R extends Any\](t: ()->R, e: ()->R) : R = if self then t() else e() end
+     generate[\R\](r: Reduction[\R\], b: ()->R): R =
+       if self then b() else r.id end
+   map[\G extends Any\](f: ()->G): Option[\G\] =
+       if self then Some[\G\](f()) else NoneObject[\G\] end
+   cross[\G extends Any\](g: Generator[\G\]): Generator[\((),G)\] =
+       if self
+       then g.map[\((),G)\](fn (e:G):((),G) => ((),e))
+       else NoneObject[\((),G)\] end
+   cross[\G extends Any\](g: SequentialGenerator[\G\]): SequentialGenerator[\((),G)\] =
+       if self
+       then g.map[\((),G)\](fn (e:G):((),G) => ((),e))
+       else NoneObject[\((),G)\] end       
+   mapReduce[\R extends Any\](b: ()->R, _:(R,R)->R, z:R): R =
+       if self then b() else z end
+   loop(f:()->()): () = if self then f() end
 
   opr NOT(self):Boolean = jBooleanNot(self)
   opr AND(self, other:Boolean):Boolean = jBooleanAnd(self, other)
