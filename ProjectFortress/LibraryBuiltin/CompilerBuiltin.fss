@@ -315,7 +315,7 @@ import java com.sun.fortress.nativeHelpers.{simpleArbitraryPrecisionArith.parse 
                                             }
                                        
 import AnyType.{Any}
-import CompilerAlgebra.{ Equality, StandardTotalOrder }
+import CompilerAlgebra.{ Equality, StandardTotalOrder, Comparison, LessThan, EqualTo, GreaterThan }
 export CompilerBuiltin
 
 nanoTime(): RR64 = jNanoTime()
@@ -355,13 +355,18 @@ trait Object extends Any
 (*) end
 end Object
 
-trait String
+trait String extends StandardTotalOrder[\String\]
     getter isEmpty(): Boolean
     getter asString(): String
     getter asJavaString(): JavaString
     opr |self| : ZZ32
     opr <(self, b: String): Boolean = false    (*) Needs to be replaced by generic definition once big operators work
     opr =(self, b: String): Boolean = false    (*) Needs to be replaced by generic definition once big operators work
+    opr >(self, b: String): Boolean = false
+    opr <=(self, b: String): Boolean = false
+    opr >=(self, b: String): Boolean = false
+    opr CMP(self, other:String): Comparison = 
+      if self < other then LessThan else if self > other then GreaterThan else EqualTo end end
     opr ||(self, b:Object): String
     opr |||(self, b:Object): String
     opr juxtaposition(self, b:Object): String = self ||| b
@@ -376,7 +381,10 @@ trait JavaString extends String
     getter asJavaString(): JavaString = self
     opr |self| : ZZ32 = jStrlen(self)
     opr <(self, b: JavaString): Boolean = (jCompareTo(self, b) < 0)
+    opr >(self, b: JavaString): Boolean = (jCompareTo(self, b) > 0)    
     opr =(self, b: JavaString): Boolean = (jCompareTo(self, b) = 0)
+    opr <=(self, b: JavaString): Boolean = (jCompareTo(self, b) <= 0)
+    opr >=(self, b: JavaString): Boolean = (jCompareTo(self, b) >= 0)        
     opr ||(self, b:Object): JavaString =  jConcatenate(self, b.asString.asJavaString)
     opr |||(self, b:Object): JavaString = jSmartConcatenate(self, b.asString.asJavaString)
     opr [i:ZZ32] : Character = jMakeCharacter(jCharAt(self, i))

@@ -43,6 +43,7 @@ trait Map[\Key extends StandardTotalOrder[\Key\], Val\]
     abstract getLeftChild(): Map[\Key, Val\]
     abstract getRightChild(): Map[\Key, Val\]
     (*)opr[k:Key]: Val throws NotFound
+    opr[k:Key,v: Val]: Val throws NotFound
     abstract mem(k: Key): Map[\Key, Val\]
     member(x: Key): Maybe[\Val\]
     member(x: Key, v: Val): Val
@@ -75,6 +76,7 @@ end
     
 singleton[\Key extends StandardTotalOrder[\Key\],Val\](k: Key, v: Val): Map[\Key, Val\]    
   
+emptymap[\Key extends StandardTotalOrder[\Key\],Val\]() : Map[\Key,Val\]
 
 opr BIG UPLUS[\Key extends StandardTotalOrder[\Key\],Val\]() : Comprehension[\Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\],Map[\Key,Val\]\] 
   

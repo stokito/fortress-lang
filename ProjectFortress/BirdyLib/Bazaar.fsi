@@ -18,6 +18,8 @@ api Bazaar
   opr BIG AND() :BigReduction[\Boolean,Boolean\]
 
   opr BIG +() :BigReduction[\ZZ32,ZZ32\]
+
+  opr BIG $() :BigReduction[\RR64,RR64\]
   
   opr PROD() :BigReduction[\ZZ32,ZZ32\]
 

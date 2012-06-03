@@ -28,8 +28,8 @@ export Executable
 chunkSize: ZZ32 = 237
 readSize: ZZ32 = 35   (*) This may change with newer technology, but for now it is OK.
 
-(*) homeDir: String = "/Users/jean-baptistetristan/Code/workspace/PFC"
-homeDir: String = "/Users/gls/Fortress"
+homeDir: String = "/Users/jean-baptistetristan/Code/workspace/PFC"
+(*) homeDir: String = "/Users/gls/Fortress"
 referenceFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head" 
 sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
 errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
@@ -49,6 +49,131 @@ sampleNames: List[\String\] = <|[\String\]
 (*)    "22.1_LA_Frag35_20081114_RJF"
 |>
 
+object Event(s: Read, startPos: ZZ32, len: ZZ32, errorProb: RR64, fileName: String)
+  refStart: ZZ32 = s.pos + startPos
+  refEnd: ZZ32 = refStart + len - 1
+  refACGTSequence: String = s.refACGT.substring(startPos,startPos + len + 1) 
+  refColorsSequence: String = s.refColors.substring(startPos,startPos + len) 
+  sampleColorSequence: String = s.sampleColors.substring(startPos, startPos + len) 
+  sampleACGTSequence: String = colorsToACGT(s.refACGT[startPos], s.sampleColors.substring(startPos,startPos + len))
+  valid: Boolean = (if startPos + len = |s.sampleColors|
+                    then isValidTransitionString(refColorsSequence.substring(0,len-1), sampleColorSequence.substring(0,len-1))
+                    else isValidTransitionString(refColorsSequence, sampleColorSequence))
+  getter asString(): String =
+    (fileName "    " refStart "    " refEnd "    "
+     refColorsSequence "    " sampleColorSequence "   "
+     refACGTSequence "    " sampleACGTSequence "   " errorProb)
+  getter asDetailedString() = do
+    (s.header "  " errorProb " "  refStart "  " refEnd "  " refColorsSequence "  " sampleColorSequence "  "
+     (if valid then "VALID" else "inv") "  " refACGTSequence "   "
+     (if valid then sampleACGTSequence else ("x")^(len+1)) "    " startPos)
+  end
+end Event
+
+isValidTransitionString(ref: String, sample: String) =
+  BIG AND[i <- toGenZZ32(0 # |ref| - 1)]  ((ref[i].codePoint BITXOR ref[i+1].codePoint) = (sample[i].codePoint BITXOR sample[i+1].codePoint))
+
+object MergedEvent(count: ZZ32, refStart: ZZ32, refEnd: ZZ32, 
+                   refNumberFormat: String, sampleNumberFormat: String,
+                   refACGTFormat: String, sampleACGTFormat: String,
+                   totalCoverage: RR64, probability: RR64, eventList: List[\Event\])
+  getter asString(): String = 
+    ("" count "  " refStart "  " refEnd "  " refNumberFormat "  " sampleNumberFormat "  "
+     refACGTFormat "  " sampleACGTFormat "  " totalCoverage "  " probability "  ")
+end MergedEvent
+
+calculateCoverage(fileName: String, refEnd: ZZ32, coverage: Map[\String, Map[\ZZ32,ZZ32\]\]):ZZ32 =
+  SUM[i <- toGenZZ32(refEnd - readSize + 1 : refEnd).seq()] coverage[fileName,emptymap[\ZZ32,ZZ32\]()].member(i,0)
+
+calculateBonferroniLibrary(fileName: String, events: List[\Event\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]): RR64 = do
+  gmp = geometricMean <|[\RR64\] e.errorProb | e <- events |>
+  cov = calculateCoverage(fileName, events.left().extract().refEnd, coverage)
+  BIG $ [j <- toGenZZ32((|events|):cov).seq()] gmp^(j.asRR64()) (cov CHOOSE j).asRR64()
+end
+
+calculateBonferroniTotal(eventsByFile: Map[\String, List[\Event\]\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]): RR64 = do
+  totcov = SUM[(file, events) <- eventsByFile] calculateCoverage(file, events.left().extract().refEnd, coverage)
+  totcalls = SUM[(_, events) <- eventsByFile] |events|
+  gmp = geometricMean <|[\RR64\] e.errorProb | (_, events) <- eventsByFile.seq(), e <- events.seq() |>
+  BIG $ [j <- toGenZZ32(totcalls:totcov).seq()] gmp^(j.asRR64()) (totcov CHOOSE j).asRR64()
+end
+
+calculateBonferroni(eventsByFile: Map[\String, List[\Event\]\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]): RR64 = do
+  minlibpval: RR64 = BIG MIN[(file, events) <- eventsByFile] calculateBonferroniLibrary(file, events, coverage)
+  combpval: RR64 = calculateBonferroniTotal(eventsByFile, coverage)
+  2.0 (combpval MIN minlibpval)
+end
+
+isvalid(e: Event): Boolean = e.valid
+
+
+(********* NOT TRANSCRIBED YET
+
+validEventsByChange(events: List[\Event\]) =
+  BIG UNIONCAT[\String,Event\] [e <- events, isvalid(e)] {[\String, List[\Event\]\] e.sampleACGTSequence |-> <|[\Event\] e |> }
+
+
+makeMergedDatabase(database: Map[\ZZ32, List[\Event\]\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]):
+    Map[\(ZZ32,String), List[\MergedEvent\]\] =
+  BIG UPLUS[\(ZZ32,String), List[\MergedEvent\]\][(key, events) <- database,
+                                                  (change, changeEvents) <- validEventsByChange(events),
+                                                  |changeEvents| > 0] mergeEvents(key, change, changeEvents, coverage)
+
+mergeEvents(key: ZZ32, change: String, changeEvents: List[\Event\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]):
+    Map[\(ZZ32, String),List[\MergedEvent\]\] = do
+  firstEvent: Event = changeEvents.left.get
+  eventsByFile: Map[\String, List[\Event\]\] =
+    BIG UNIONCAT[\String,Event\] [e <- changeEvents] {[\String, List[\Event\]\] e.fileName |-> <|[\Event\] e |> }
+  totalCoverage: ZZ32 = SUM[(file, events) <- eventsByFile] calculateCoverage(file, events.left.get.refEnd, coverage)
+  {[\(ZZ32, String),List[\MergedEvent\]\] (key, change) |->
+   <| MergedEvent(|changeEvents|, firstEvent.refStart, firstEvent.refEnd, 
+                  firstEvent.refColorsSequence, firstEvent.sampleColorSequence,
+                  firstEvent.refACGTSequence, firstEvent.sampleACGTSequence,
+                  totalCoverage, calculateBonferroni(eventsByFile, coverage), changeEvents) |> }
+end
+
+eventGenerator(rd: Read, name: String, er: ErrorRates, range: Range): Map[\ZZ32, List[\Event\]\] = do
+  (sample, ref) = (rd.sampleColors, rd.refColors)
+  mismatches = <| q OR (p AND r) | (p,q,r) <- triples (<| false |> || <| sample[i]=/=ref[i] | i <- 0 # |sample| |> || <| false |>) |> 
+  (*) `diffs = BIG || [i <- seq(0 # |sample|)] (if mismatches[i] then "X" else ".")`
+  {[\ZZ32, List[\Event\]\] rd.pos + r.lower |->
+   <|[\Event\] Event(rd, r.lower, |r|, errorProbability(ref, sample, r, name, er), name) |> |
+     r <- runRanges mismatches, |r| > 1, (rd.pos + r.lower) IN range }
+end
+
+errorProbability(ref: String, sample: String, r: Range, name: String, er: ErrorRates): RR64 =
+  if (|r| = 2) then er.single[r.lower] else PROD[i <- r.seq(), sample[i] =/= ref[i]] er.multiple[i] end
+
+processSample(name: String, rl: ReadList, er: ErrorRates, refChunk: ReferenceGenomeChunk): (Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32, ZZ32\]\]) = do
+  eventData = <| (eventGenerator(rd, name, er, refChunk.range), rd.pos) | rd <- rl.getReads(refChunk) |>
+  database = BIG UNIONCAT[\ZZ32,Event\][sd <- eventData] first(sd)
+  coverageDatabase = BIG UNIONPLUS[\ZZ32\][sd <- eventData] {[\ZZ32, ZZ32\] second(sd) |-> 1 }
+  (database, {[\String, Map[\ZZ32, ZZ32\]\] name |-> coverageDatabase })
+end
+
+*************)
+
+object ErrorRates(single: List[\RR64\], multiple: List[\RR64\]) end
+
+object MyTuple[\E\](f: E,s: E) end
+
+transpose[\E\](l: List[\MyTuple[\E\]\]): (List[\E\],List[\E\]) = 
+    ( <|[\E\] m.f | m <- l |>, <|[\E\] m.s | m <- l |> )
+
+readErrorRateFile(name: String): ErrorRates =
+  ErrorRates (transpose(<|[\MyTuple[\RR64\]\] MyTuple[\RR64\](strToFloat(beyond(beyond(line,'\t'),'\t')),
+                                            strToFloat(upto(beyond(line,'\t'),'\t'))) |
+                          line <- FileReadStream(name.asJavaString).lines() |>))
+
+object Sample(s: String, r: ReadList, e: ErrorRates) end
+
+getSampleData(name: String): Sample = do
+  rl = getReadListFromFile(sampleFilesDir || "/" || name || "/" || sampleFilesFileName, readSize)
+  (*)er = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
+  er = ErrorRates(<|[\RR64\] |>,<|[\RR64\] |>)
+  Sample(name, rl, er)
+end
+
 (* Process one sample against one chunk of the reference genome,
    producing an event database and a coverage database.
 
@@ -66,39 +191,25 @@ sampleNames: List[\String\] = <|[\String\]
    by calling `eventGenerator`.
 *)
 
-object ErrorRates(single: List[\RR64\], multiple: List[\RR64\]) end
-
-object MyTuple(f: RR64,s: RR64) end
-
-transpose(l: List[\MyTuple\]): (List[\RR64\],List[\RR64\]) = 
-    ( <|[\RR64\] m.f | m <- l |>, <|[\RR64\] m.s | m <- l |> )
-
-readErrorRateFile(name: String): ErrorRates =
-  ErrorRates (transpose(<|[\MyTuple\] MyTuple(strToFloat(beyond(beyond(line,'\t'),'\t')),
-                                            strToFloat(upto(beyond(line,'\t'),'\t'))) |
-                          line <- FileReadStream(name.asJavaString).lines() |>))
-
-object Sample(s: String, r: ReadList, e: ErrorRates) end
-
-getSampleData(name: String): Sample = do
-  rl = getReadListFromFile(sampleFilesDir || "/" || name || "/" || sampleFilesFileName, readSize)
-  (*)er = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
-  er = ErrorRates(<|[\RR64\] |>,<|[\RR64\] |>)
-  Sample(name, rl, er)
-end
-
 run() = do
   ref = getReferenceGenomeFromFile(referenceFile, 50, 15)
   samples = <|[\Sample\] getSampleData(name) | name <- sampleNames |>
   for refChunk <- ref do (*)println("chunk\n") 
                          (*)println(refChunk.start)
                          (*)println("Chunk length: " || refChunk.length) 
-                         println(refChunk.getACGT(refChunk.range)) 
+                         (*) println(refChunk.getACGT(refChunk.range)) 
                          (*)println(refChunk.getACGT((refChunk.start + refChunk.length)#refChunk.padLength) || "\n")
                          (*)println("Buffer length: " || |refChunk.buffer|)
                          (*)println(refChunk.buffer) 
                          (*)println("\n") 
-                      end
+                         for sample <- samples do l = sample.r.getReads(refChunk)
+                                                  for read <- l do println("Read:")
+                                                                   println(read.name) 
+                                                                   println(read.header)
+                                                                   println(read.sequence)
+                                                  end
+                                               end
+                      end                                   
   println("OK!")
 end
 
