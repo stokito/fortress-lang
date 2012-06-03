@@ -1,0 +1,102 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component setMakerTest0
+import System.{args}
+export Executable
+
+(* This test ought to pass once we can correctly coerce IntLiteral to
+   ZZ32, or as soon as we can propagate result type information into
+   the calling function. *)
+
+(* x = obj.meth[\T,U,V\](a1, a2) *)
+
+id[\T\](t:T):T = t
+
+trait Set[\T\]
+  add(x:T):Set[\T\]
+  opr |self| : ZZ32
+  opr IN(x:T,self):Boolean
+end
+
+object emptySet[\T\]() extends Set[\T\]
+  add(x:T):Set[\T\] = aSet[\T\](x, self)
+  opr |self| : ZZ32 = 0
+  opr IN(x:T,self):Boolean = false
+end
+
+object aSet[\T\](x:T, s:Set[\T\]) extends Set[\T\]
+  add(y:T):Set[\T\] = if y IN self then self else aSet[\T\](y, self) end
+  opr |self| : ZZ32 = 1 + |s|
+  opr IN(y:T,self):Boolean = x = y OR: y IN s
+end
+
+opr {[\T\] x:T...} = do
+   s:Set[\T\] := emptySet[\T\]()
+   print("{ ")
+   for v <- seq(x) do
+      print(v " ")
+      s := s.add(v)
+   end
+   println("}")
+   s
+end
+
+opr <|[\T, int b0, int b1, nat s\]x:Array1[\T, b0, s\], y:Array1[\T, b1, s\]|>:T = do
+   var a:ZZ32 = 0
+   for i <- 0#s do
+      a += x[b0+i] y[b1+i]
+   end
+   a
+end
+
+(*
+trait U
+  f(self, _:U) (* type for parameter, no name *)
+  g(self, u):U = u (* type for parameter, no name *)
+end
+*)
+
+object rng z:ZZ32 = 0 end (* Parsing test for SR *)
+(* object rng z:ZZ32 = 0; end (* FAILS *) *)
+(* object rng; z:ZZ32 = 0 end (* FAILS *) *)
+
+object SetMaker[\T\] extends Set[\T\]
+  add(x:T):() = println("add " x)
+end
+
+run():()=do
+
+    a:ZZ32[2,2] = [ 11 12 ;
+                  21 22 ]
+
+    (* [b c ;
+        d e ] = a; *)
+
+
+   if |args| > id(0) then
+      println(args[0])
+   end
+   i:ZZ32 = 1 + 2 + 3 + 4
+   a1:ZZ32[4] = [ 1 2 3 4 ]
+   a2:ZZ32[4] = [ 2 3 4 5 ]
+   s2:Set[\ZZ32\] = { 1 asif ZZ32, 2, 3, 4, i }
+   println("i=" i)
+
+   ip:ZZ32 = <| a1, a2 |>
+   println("ip=" ip);
+
+   s1:Set[\ZZ32\] = { 1 asif ZZ32, 2, 3, 4 } (* Now succeeds *)
+
+
+end
+
+end

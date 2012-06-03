@@ -1,0 +1,25 @@
+#    Copyright 2011, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests= Compiled12.invariantInference Compiled12.invariantInference2
+compile
+link
+run
+run_out_equals=Wsub None\n\
+Wsub Inv\n\
+Wsub Co,Contra\n\
+Wsub Inv,Co,Contra\n\
+Wsuper None\n\
+Wsuper Co,Contra\n\
+Wsuper Inv\n\
+Wsuper Inv,Co,Contra\n\
+Wsuper Inv,Co\n\
+Wsuper Inv,Co\n\
+Wsuper Co\n\
+Wsub Inv\n

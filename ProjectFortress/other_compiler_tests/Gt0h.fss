@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Gt0h
+export Executable
+
+trait T[\S\]
+  m(x:S):S = x
+  n(self):S
+end
+
+object O[\S\](x:S) extends T[\S\]
+  n(self):S = m(x)
+end
+
+run():() = do
+  x:T[\String\] = O("PASS")
+  println(n(x))
+end
+end

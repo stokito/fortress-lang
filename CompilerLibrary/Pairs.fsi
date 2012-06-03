@@ -1,0 +1,21 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+api Pairs
+
+import List.{...}
+
+pairs[\T\](g: Generator[\T\]): Generator[\(T,T)\]
+triples[\T\](g: Generator[\T\]): Generator[\(T,T,T)\]
+runRanges(x: Indexed[\Boolean,ZZ32\]): List[\CompactFullRange[\ZZ32\]\]
+geometricMean(xs: List[\RR64\]): RR64
+
+end

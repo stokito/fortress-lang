@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component MethodInvocationVarargs
+  export Executable
+
+  (* We'd like var args to work properly. The problem is
+     properly selecting the correct method when many
+     different tuple types are possible. *)
+
+  trait VarArgT
+    takeVararg(i1:ZZ32, s2:String, ss:String...):ZZ32
+
+    takeMoreVararg(ss:String...):ZZ32
+  end
+
+  foo(a:ZZ32, s:String, vat:VarArgT) : () = do
+    var result : ZZ32
+
+    result := vat.takeVararg(a,s,s,s,s,s)
+    result := vat.takeVararg(a,s)
+
+    result := vat.takeMoreVararg()
+    result := vat.takeMoreVararg(s)
+    result := vat.takeMoreVararg(s,s)
+  end
+
+  run():() = ()
+
+end

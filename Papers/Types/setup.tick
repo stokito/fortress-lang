@@ -1,0 +1,473 @@
+In this section, 
+we describe the standard parts of the type system 
+we consider in this paper, 
+and establish terminology and notation 
+for entities in this system.
+To minimize the syntactic overhead, 
+we avoid introducing a new language 
+and instead give a straightforward formalization of the type system.
+Novel parts of the type system, 
+including the rules for type checking overloaded function declarations, 
+are described in later sections.
+
+\subsection{Types}
+
+Following Kennedy and Pierce \cite{kennedy07},
+we define a world of types ranged over by metavariables $S$, $T$, $U$, $V$, and $W$. 
+% Types are of four forms: 
+% \emph{type variables} 
+% (ranged over by metavariables $X$, $Y$, and $Z$);
+% \emph{constructed types} 
+% (ranged over by metavariables $K$, $L$, $M$ and $N$), 
+% written `C[\T_bar\]` 
+% where `C` is a type constructor 
+% and `T_bar` is a list of types; 
+% \emph{structural types},
+% consisting of arrow and tuple types;
+% and \emph{compound types},
+% consisting of intersection and union types. 
+% In addition, 
+% there are two special constructed types, \Any\ and \Bottom, explained below.
+Types are of five forms:
+\emph{type variables} (ranged over by metavariables $X$, $Y$, and $Z$);
+\emph{constructed types} (ranged over by metavariables $K$, $L$, $M$ and $N$), 
+consisting of the special constructed type \Any\ 
+and type constructor applications, 
+written `C[\T_bar\]`, 
+where `C` is a type constructor 
+and `T_bar` is a list of types;
+\emph{structural types},
+consisting of arrow types and tuple types;
+\emph{compound types}, 
+consisting of intersection types and union types;
+and the special type \Bottom, 
+which represents the uninhabited type 
+(i.e., no value belongs to \Bottom).
+The abstract syntax of types is defined as follows
+(where $\bar{\emph{A}}$ indicates 
+a possibly empty comma-separated sequence of syntactic elements $\emph{A}$):
+\[
+\begin{array}{@{}l@{\;}l@{\;}l@{\;\;\;\;\;\;}l@{}}
+\emph{T} &::=& \emph{X} & \hbox{\rm type variable}\\
+&\mid& \Any \\
+&\mid& \emph{C}\llbracket\bar{\emph{T}}\rrbracket & \hbox{\rm type constructor application}\\
+&\mid& \emph{T} \rightarrow \emph{T} & \hbox{\rm arrow type}\\
+&\mid& ( \bar{\emph{T}} ) & \hbox{\rm tuple type}\\
+&\mid& \emph{T} \cap \emph{T} & \hbox{\rm intersection type}\\
+&\mid& \emph{T} \cup \emph{T} & \hbox{\rm union type}\\
+&\mid& \Bottom \\
+\end{array}
+\]
+
+A type may have multiple syntactic forms.\!\footnote{We abuse terminology 
+by not distinguishing type terms and types.}
+In particular,
+a tuple type of length one is synonymous with its element type, 
+and a tuple type with any \Bottom\ element 
+is synonymous with \Bottom.
+In addition, 
+any types that are provably equivalent as defined below 
+are also synonymous.
+
+As in Fortress, 
+compound types---intersection and union types---and \Bottom\ 
+are \emph{not} first-class:
+these forms of types cannot be written in a program; 
+rather, they are used by the type analyzer during type checking.
+For example, type variables may have multiple bounds, 
+so that any valid instantiation of such a variable
+must be a subtype of the intersection of its bounds.
+
+Type checking is done in the context of a \emph{class table} $\T$, 
+which is a set of type constructor declarations 
+(at most one declaration for each type constructor) 
+of the following form:
+\[
+C\tplist{X}{M} \extends \{\bar{N}\}
+\]
+where the only type variables that appear in $\bar{\bar{M}}$ and $\bar{N}$ 
+are those in $\bar{X}$.
+This declares the type constructor $C$, 
+and each $X_i$ is a \emph{type parameter} of $C$ 
+with \emph{bounds} $\bar{M_i}$.
+As usual for languages with nominal subtyping, 
+we allow recursive and mutually recursive references in $\T$ 
+(i.e., a type constructor can be mentioned 
+in the bounds and supertypes of its own and other type constructors' declarations).
+We say that $C$ \emph{extends} a type constructor $D$ 
+if $N_i = D\obb{T}$ for some $N_i$ and $\bar{T}$.
+A class table is \emph{well-formed} 
+if every type that appears in it is well-formed,
+as defined below, 
+and the extends relation over type constructors is acyclic.
+
+%% \TODO{Mention that given our restricted setting (i.e., no mixins), 
+%% the above definition (for well-formedness of class tables) 
+%% is equivalent to the one in Kennedy and Pierce?  
+%% (The one we had before was too weak: 
+%% see comment in source file for example.)}
+
+% A class table $\T$ is \emph{well-formed} if the resulting subtyping relation 
+% on its constructed types is a partial order.
+
+% Victor: This definition permits the following class table, which we want to disallow:
+%  A[\X\]
+%  B[\Y\] <: C[\A[\Y\]\]
+%  C[\Z\] <: B[\A[\Z\]\]
+
+The type constructor declaration above 
+specifies that the constructed type $C\obb{U}$ 
+(\emph{i}) is \emph{well-formed} (with respect to $\T$)
+if and only if $|\bar{U}| = |\bar{X}|$ and
+$U_i \subtypeof \substb{U}{X}M_{ij}$ 
+% for each bound $M_{ij}$
+for $1 \leq i \leq |\bar{U}|$ and $1 \leq j \leq |\bar{M_i}|$ 
+(where $\subtypeof$ is the subtyping relation defined below, 
+and $\substb{U}{X}M_{ij}$ is $M_{ij}$ 
+with $U_k$ substituted 
+for each occurrence of $X_k$ in $M_{ij}$ 
+for $1 \leq k \leq |\bar{U}|$);
+and 
+(\emph{ii}) is a subtype of $\substb{U}{X}N_l$ for $1 \leq l \leq |\bar{N}|$.
+The class table induces 
+a (nominal) \emph{subtyping relation} $\subtypeof$ over the constructed types 
+by taking the reflexive and transitive closure 
+of the subtyping relation derived from the declarations in the class table.
+In addition, 
+% \Any\ and \Bottom\ are well-formed with respect to any class table, and 
+every type is a subtype of \Any\ and a supertype of \Bottom.
+
+We say that a type $T$ (of any form) is \emph{well-formed} 
+with respect to $\T$, 
+and write $T \in \T$, 
+if every constructed type occurring in $T$ is well-formed with respect to $\T$.
+%% \TODO{Should this be restricted to ground types?}
+Typically, the class table is fixed and implicit, 
+and we assume it is well-formed 
+and often omit explicit reference to it.
+
+Given % a class table with 
+the type constructor declaration above, 
+we denote the set of explicitly declared supertypes 
+of the constructed type $C\obb{T}$ by:
+\[
+\myextends{C\obb{T}} = \{ \bar{\substb{T}{X}N} \}
+\]
+and the set of \emph{ancestors} of $C\obb{T}$ 
+(defined recursively) by:
+\[
+\ancestors(C\obb{T}) 
+   = \{C\obb{T}\} \cup 
+     \hspace*{-4ex} \bigcup_{M \in \myextends{C\obb{T}}} \hspace{-4ex} \ancestors(M).
+\]
+
+To reduce clutter, 
+nullary applications are written without brackets; 
+for example, `C[\ \]` is written `C`. 
+We also elide the braces delimiting 
+a singleton list of either bounds of a type parameter 
+or supertypes of a class in a type constructor declaration.
+
+We extend the subtyping relation to
+structural and compound types in the usual way:
+Arrow types are contravariant in their domain types 
+and covariant in their return types. 
+% (i.e., $\arrowtype{S}{T} \subtypeof \arrowtype{U}{V}$
+% if and only if $U \subtypeof S$ and $T \subtypeof V$).
+One tuple type is a subtype of another 
+if and only if they have the same number of elements, 
+and each element of the first is a subtype of the corresponding element of the other. 
+% (i.e., $( \tuple{\bar{S}} ) \subtypeof ( \tuple{\bar{T}} )$
+% if and only if $|\bar{S}| = |\bar{T}|$
+% and $S_i \subtypeof T_i$ for all $1 \leq i \leq |\bar{S}|$).
+An intersection type is the most general type 
+that is a subtype of each of its element types, 
+and a union type is the most specific type 
+that is a supertype of each of its element types.
+% An intersection type is by definition 
+% the most general type that is a subtype of each of its element types: 
+% $(A \cap B) <: A$, $(A \cap B) <: B$, and for all types $T$,
+% if $T <: A$ and $T <: B$ then $T <: (A \cap B)$.
+% Similarly, a union type is by definition 
+% the most specific type that is a supertype of each of its element types: 
+% $A <: (A \cup B)$, $B <: (A \cup B)$, and for all types $T$,
+% if $A <: T$ and $B <: T$ then $(A \cup B) <: T$.
+
+To extend the subtyping relation to type variables,
+we require  a \emph{type environment}, 
+which maps type variables to bounds:
+\[
+\Delta = \bds{X}{M}
+\]
+In the context of $\Delta$, 
+each type variable $X_i$ is a subtype of each of its bounds $M_{ij}$.
+Note that the type variables $X_i$ may appear within the bounds $M_{ij}$.
+We write $\jgsub{S}{T}$ 
+to indicate the judgment that $S$ is a subtype of $T$ 
+in the context of $\Delta$.
+When $\Delta$ is empty, 
+we write this judgment simply as $S \subtypeof T$.
+And we say that the types $S$ and $T$ are \emph{equivalent},
+written $S \equiv T$, 
+when $S \subtypeof T$ and $T \subtypeof S$.
+
+Henceforth, 
+given a type environment, 
+we consider only types whose (free) type variables 
+are bound in the type environment.
+Because our type language does not involve any type variable binding---%
+type variables are bound only by generic type constructor or function
+declarations---%
+the set of free type variables of $T$, written $\FV(T)$, is defined as
+the set of all type variables syntactically occurring within $T$.
+
+
+%% \TODO{Mention that we only support invariant parameters for now?}
+
+%% \TODO{Give class table with declarations for `ZZ`, `String`, `List` and `ArrayList`.}
+
+\subsection{Extensibility}
+
+To enable modular type checking and compilation, 
+we do not assume that the class table is complete;
+there might be declarations yet unknown.
+Specifically, 
+we cannot infer that two constructed types 
+have no common constructed subtype 
+from the lack of any such type in the class table.
+However, we do assume that each declaration is complete, 
+% and furthermore, 
+% that any type constructor used in the class table 
+% (e.g., in a bound or a supertype of another declaration)
+% is declared in the table, 
+so that all the supertypes of a constructed type 
+are known.
+
+A class table $\T'$ is an \emph{extension} of $\T$ (written $\T' \ctext \T$)
+if every declaration in $\T$ is also in $\T'$.
+From this, 
+it follows that 
+for any well-formed extension $\T'$ of a well-formed class table $\T$, 
+any type that is well-formed with respect to $\T$ 
+is well-formed with respect to $\T'$ 
+and the subtyping relation on $\T'$ agrees with that of $\T$. 
+That is, 
+$T \in \T$ implies $T \in \T'$, 
+and $T \subtypeof U$ in $\T$ implies $T \subtypeof U$ in $\T'$.
+
+%% \TODO{Expand on this?}
+
+
+\subsection{Values and Ilks}
+
+Types are intended to describe the values that might be produced by
+an expression or passed into a function.
+In Fortress, for example, there are three kinds of values: 
+objects, functions, and tuples;
+every object belongs to at least one constructed type,
+every function belongs to at least one arrow type,
+and every tuple belongs to at least one tuple type.
+We say that two types `T` and `U` have \emph{the same extent}
+if every value `v` belongs to `T` if and only if `v` belongs to `U`.
+No value belongs to \Bottom.
+
+We place a requirement on values and on the type system that describes them: 
+Although a value may belong to more than one type, 
+every value `v` belongs to a unique type `ilk(v)` 
+(the \emph{ilk} of the value) 
+that is \emph{representable in the type system}\footnote{The
+type system presented here satisfies this requirement 
+simply by providing intersection types.  
+%% Fortress satisfies it in another way as well, 
+%% which is typical of object-oriented languages: 
+%% every object is created as an instance of a single nominal constructed type, 
+%% and this type is its ilk.
+%% \TODO{This doesn't show that functions have ilks.
+%% And indeed, if generic functions were values, 
+%% we would need to extend the type system to include express their ilks.
+%% However, as long as generic functions aren't values, 
+%% we can represent the ilk of a function 
+%% by the intersection of arrow types.}
+} 
+and has the property that for every type `T`, 
+if `v` belongs to `T` then `ilk(v) <: T`.
+% moreover, `ilk(v) =/= Bottom`.  
+(This notion of `ilk` corresponds to what is sometimes called the
+````class'' or ````run-time type'' of the value.\footnote{%
+We prefer the term ````ilk'' to ````run-time type'' 
+because the notion---and usefulness---of 
+the most specific type to which a value belongs 
+is not confined to run time.
+We prefer it to the term ````class,'' 
+which is used in {\it The Java Language Specification}~\cite{JavaSpec}, 
+because not every language uses the term ````class'' 
+or requires that every value belong to a class.  
+For those who like acronyms, 
+we offer the mnemonic retronyms 
+````implementation-level kind'' 
+and ````intrinsically least kind.''})
+
+The implementation significance of ilks is that it is possible to
+select the dynamically most specific applicable function
+from an overload set using only the ilks of the argument values; no
+other information about the arguments is needed.
+%% \TODO{Context could be relevant.
+%% We use return type rule to ensure it's not.
+%% So perhaps this paragraph should really be expressing a desideratum:
+%% we want a system in which it is possible to select 
+%% the dynamically most specific applicable function 
+%% based only on the ilks.}
+
+In a safe type system,
+if an expression is determined by the type system to have type `T`, 
+then every value computed by the expression at run time
+will belong to type `T`; 
+moreover, 
+whenever a function whose ilk is `U->V` is applied to an argument value,
+then the argument value must belong to type `U`.
+
+
+\subsection{Generic Function Declarations}
+\label{terms}
+
+%% \TODO{Make consistent use of ````declarations'' vs.\ ````definitions''.}
+
+A function declaration (for a class table) 
+consists of 
+a name, 
+a sequence of type parameter declarations 
+(enclosed in white square brackets), 
+a type indicating the domain of the function, 
+and a type indicating the codomain of the function
+(i.e., the return type).  
+A type parameter declaration consists of
+a type parameter name and its bounds.
+% The abstract syntax of function declarations is as follows:
+% \[
+% \begin{array}{lll}
+% \emph{Decl} &::=& 
+% %\emph{Id}\llbracket\bar{\emph{Id}}\SHORTCUT{<}\bar{\emph{Type}}\rrbracket \emph{Type} \COLON \emph{Type}\\
+% \declg{\textit{Id}}{\textit{Id}}{\textit{Type}}{\textit{Type}}{\textit{Type}}  \\
+% &\mid& 
+% %\emph{Id}\ \emph{Type} \COLON \emph{Type}\\
+% \decl{\textit{Id}}{\textit{Type}}{\textit{Type}}
+% \end{array}
+% \]
+
+For example, in the following function declaration:
+
+`  f[\X <: M, Y <: N\](List[\X\], Tree[\Y\]): Map[\X, Y\]
+`
+the name of the function is `f`, 
+the type parameter declarations are `X <: M` and `Y <: N`, 
+the domain type is the tuple type `(List[\X\], Tree[\Y\])`, 
+and the return type is `Map[\X, Y\]`.
+We abbreviate a function declaration as \hdeclg{f}{\Delta}{S}{T} 
+when we do not want to emphasize the bounds.
+% (we are abusing notation by letting
+% $\Delta$ range over both type environments and bounds definitions).
+To reduce clutter,
+we omit the white square brackets of a declaration 
+when the sequence of type parameter declarations is empty, 
+and elide braces around singleton lists of bounds.
+% \TODO{Mention that a monomorphic function declaration
+% is just a degenerate generic one.}
+
+A function declaration $d = \declg{f}{X}{N}{S}{T}$
+may be \emph{instantiated} with type arguments $\bar{W}$ 
+if $|\bar{W}| = |\bar{X}|$ 
+and $W_i \subtypeof \substb{W}{X} N_{ij}$ for all $i$ and $j$;
+we call $\substb{W}{X} \decl{f}{S}{T}$
+the \emph{instantiation} of $d$ with $\bar{W}$. 
+When we do not care about $\bar{W}$, 
+we just say that $\decl{f}{U}{V}$
+is an \emph{instance} of $d$ 
+(and it is understood that $U=\substb{W}{X}S$
+and $V=\substb{W}{X}T$ for some $\bar{W}$).
+%
+We use the metavariable $\D$ 
+to range over finite collections of sets of function declarations 
+and $\Df$ for the subset of $\D$ 
+that contains all declarations of name $f$.
+
+An instance \decl{f}{U}{V} of a declaration $d$ 
+is \emph{applicable} to a type $T$ 
+if and only if $T \subtypeof U$.
+A function declaration is \emph{applicable} to a type 
+if and only if at least one of its instances is.
+%
+For any type $T$, the set $\Df(T)$ contains precisely those declarations
+in $\Df$ that are applicable to $T$.
+%
+% When we restrict analysis of overloaded functions $\Df$ to those
+% applicable to a type $T$, we write this subset as $\Df(T)$.
+
+
+%% \begin{figure}
+%%   \begin{minipage}{.462\textwidth}
+    
+%%   \fbox{\textbf{Type equivalence reduction:} \quad \jtred{\Delta}{T}{T}}
+%%   \TODO{rules for flattening/distributing $\cap, \cup$}
+%%   \TODO{is subtype/exclusion judgment in premises ok?}
+  
+%%   % INTERSECTION
+%%   \infrule
+%%     {\jgsub{\Delta}{T}{U}}
+%%     {\jtred{\Delta}{T \cap U}{T}}
+%%   \infrule
+%%     {\jgsub{\Delta}{U}{T}}
+%%     {\jtred{\Delta}{T \cap U}{U}}
+%%   \infrule
+%%     {\jexc{\Delta}{T}{U}}
+%%     {\jtred{\Delta}{T \cap U}{`Bottom`}}
+  
+%%   % UNION
+%%   \infrule
+%%     {\jgsub{\Delta}{T}{U}}
+%%     {\jtred{\Delta}{T \cup U}{U}}
+%%   \infrule
+%%     {\jgsub{\Delta}{U}{T}}
+%%     {\jtred{\Delta}{T \cup U}{T}}
+  
+%%   % ARROW
+%%   % \infrule
+%%   %   {\jtred{\Delta}{T}{T'}}
+%%   %   {\jtred{\Delta}{T \rightarrow U}{T' \rightarrow U}}
+%%   % \infrule
+%%   %   {\jtred{\Delta}{U}{U'}}
+%%   %   {\jtred{\Delta}{T \rightarrow U}{T \rightarrow U'}}
+  
+%%   % TUPLE
+%%   % \infrule
+%%   %   {\jtred{\Delta}{T_i}{T_i'}}
+%%   %   {\jtred{\Delta}{(T_1, \ldots, T_i, \ldots, T_n)}{(T_1, \ldots, T_i', \ldots, T_n)}}
+%%   \infrule
+%%     {T_i = `Bottom`}
+%%     {\jtred{\Delta}{(T_1, \ldots, T_i, \ldots, T_n)}{`Bottom`}}
+  
+%%   % CONSTRUCTED
+%%   % \infrule
+%%   %   {\jtred{\Delta}{T_i}{T_i'}}
+%%   %   {\jtred{\Delta}{C\ob{T_1, \ldots, T_i, \ldots, T_n}}{C\ob{T_1, \ldots, T_i', \ldots, T_n}}}
+  
+%%   % VARIABLE
+%%   \TODO{should be a subtype judgment instead?}
+%%   \infrule
+%%     {`X <: Bottom IN DELTA`}
+%%     {\jtred{\Delta}{X}{`Bottom`}}
+  
+%%   % REDUCTION CONTEXT GRAMMAR
+%%   \newcommand{\OR}{\;|\;}
+%%   \[ E \; ::= \; [] \OR E \rightarrow U \OR T \rightarrow E \]
+%%   \[ \OR (T_1, \ldots, E, \ldots, T_n) \]
+%%   \[ \OR C\ob{T_1, \ldots, E, \ldots, T_n} \]
+  
+%%   % CONGRUENCE
+%%   \infrule
+%%     {\jtred{\Delta}{T}{T'}}
+%%     {\jtred{\Delta}{E[T]}{E[T']}}
+  
+%%   \end{minipage}
+%%   \caption{Type equivalence reduction}
+%%   \label{fig:tred}
+%% \end{figure}

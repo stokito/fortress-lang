@@ -1,0 +1,31 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.Atomic
+
+export Executable
+
+(** EXAMPLE **)
+sum: ZZ32 := 0
+accumArray[\N extends Number, nat x\](a: Array1[\N,0,x\]): () =
+  for i <- a.indices do
+    atomic sum += a[i]
+  end
+(** END EXAMPLE **)
+
+run() = do
+  accumArray(array1[\ZZ32,3\]().fill(5))
+  println sum
+end
+
+end

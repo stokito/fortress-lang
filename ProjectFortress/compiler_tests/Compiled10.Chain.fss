@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled10.Chain
+export Executable
+
+(* cf tests/chain2.fss, which is identical. *)
+
+t(x:Boolean) = println( if x then "PASS" else "FAIL" end )
+
+run() = do
+  zero: ZZ32 = 0
+  one: ZZ32 = 1
+  two: ZZ32 = 2
+  t( zero<=zero<one )
+  t( zero<=zero<one=one<two<=two )
+  t( NOT (zero>=zero>one=one>two>=two) )
+end
+
+end

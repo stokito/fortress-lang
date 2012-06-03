@@ -1,0 +1,174 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ArrayListQuick
+import List.{...}
+export Executable
+
+assertStr[\T\](a:ZZ32, b:ZZ32, s:String, l: List[\T\]) =
+  if a=/=b then
+    fail(a "=/=" b ": " s l.asString)
+  end
+
+assertStr[\T\](a:Boolean, s:String, l: List[\T\]) =
+  if NOT a then
+    fail("Failed assertion: " s l.asString)
+  end
+
+assertStr[\T\](a:Boolean, s:String, l: List[\T\], r: List[\T\]) =
+  if NOT a then
+    fail("Failed assertion: " s l.asString " and " r.asString)
+  end
+
+chkApp(tl: List[\ZZ32\], t : List[\Object\]) = do
+    assert("Hello" IN t, true, "missing Hello from ", t)
+    assert(l IN t, true, "missing ",l," from ",t), l <- tl
+  end
+
+chkPop[\T\](l:List[\T\],fro:ZZ32,sz:ZZ32,by:ZZ32): () =
+  typecase l of
+    l':List[\ZZ32\] => chkPopZ(l',fro,sz,by)
+    else =>
+      assertStr(sz = 0 AND: |l| = 0," special case for empty comprehension",l)
+  end
+
+chkPopZ(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32,by:ZZ32): () = do
+  assertStr(sz,|l|," size mismatch in ",l)
+  n : ZZ32 := fro
+  for e <- seq(l) do
+      assertStr(e,n,"Element wrong in ",l)
+      n+=by
+  end
+  assertStr(n, fro + sz by," size mismatch in ",l)
+end
+
+chkPop(l:List[\ZZ32\],fro:ZZ32,sz:ZZ32): () = chkPopZ(l,fro,sz,1)
+
+chkPop(l:List[\ZZ32\],sz:ZZ32): () = chkPopZ(l,0,sz,1)
+
+chkExtract(l:List[\ZZ32\],sz:ZZ32): () = do
+  ll : List[\ZZ32\] := l
+  for i <- seq(0#sz) do
+      (e,ll0) = ll.extractLeft.get
+      assertStr(e,i,"extractLeft wrong in ",ll)
+      assertStr(ll.left.get,i,"left wrong in ",ll)
+      ll := ll0
+  end
+  assertStr(ll.isEmpty," not empty after extractLeft; it's ",ll)
+  ll := l
+  for i <- seq(1#sz) do
+      (ll0,e) = ll.extractRight.get
+      assertStr(e,sz-i,"extractRight wrong in ",ll)
+      assertStr(ll.right.get,sz-i,"right wrong in ",ll)
+      ll := ll0
+  end
+  assertStr(ll.isEmpty," not empty after extractRight; it's ",ll)
+end
+
+run():() = do
+  start = nanoTime()
+  (* The sizes which turned up bugs *)
+  testLens : List[\ZZ32\] = <|0 asif ZZ32,1,2,7,10|>
+  assert(20,SUM testLens,"sum wrong")
+  for i <- seq(testLens) do
+      print( // i ":")
+      li = list(0#i)
+      print(li)
+      chkPop(li,i)
+      chkExtract(li,i)
+      print(".")
+      assert(li,li,"Lists unequal")
+      assert(li CMP li,EqualTo,"Lists CMP unequal")
+      chkPop(li[#],i)
+      chkPop(li.addRight(i),i+1)
+      chkPop(li.addLeft(-1),-1,i+1)
+      (ll,lr) = li.split()
+      print(".")
+      lii = ll || lr
+      chkPop(lii,i)
+      print(".")
+      fli = li.filter(fn x => x REM 2 = 0)
+      print(".")
+      chkPop(fli,0,(i+1) DIV 2,2)
+      print(".")
+      flii = <|[\ZZ32\] x+3 | x <- li, x REM 2 = 0 |>
+      print(".")
+      chkPop(flii,3,(i+1) DIV 2,2)
+      print(".")
+      fliii = BIG CONCAT[\ZZ32\][x <- li, x REM 2 = 0] <|[\ZZ32\] x+3|>
+      print(".")
+      chkPop(fliii,3,(i+1) DIV 2,2)
+      print(".")
+      mli = li.map[\ZZ32\](fn (x):ZZ32 => x + 17)
+      chkPop(mli,17,i)
+      print(".")
+      assertStr(i=0 OR: li < mli," NOT < ",mli)
+      print(".")
+      cmli = li.concatMap[\ZZ32\](fn (x):List[\ZZ32\] => <|2 x asif ZZ32, 2 x + 1|>)
+      print(".")
+      chkPop(cmli,2 i)
+      print(".")
+      cmlii = <|[\ZZ32\] e+3 | x <- li, e <- <|2 x, 2 x + 1|> |>
+      print(".")
+      chkPop(cmlii,3,2 i,1)
+      print(".")
+      ivli = li.ivmap[\ZZ32\](fn (x,y) => x+y)
+      chkPop(ivli,0,i,2)
+      print(".")
+      rli=li.reverse
+      for j <- 0#i do
+          print(".")
+          assertStr(li[j],j,"indexing wrong for ",li)
+          assertStr(rli[i-j-1],j,"reverse indexing wrong for ",rli)
+      end
+      for j <- 0#(i+1) do
+          print(".")
+          (l,r) = li.split(j)
+          chkPop(l,j)
+          chkPop(r,j,i-j)
+          (l1,r1) = (li.take(j),li.drop(j))
+          chkPop(l1,j)
+          chkPop(r1,j,i-j)
+          (l2,r2) = (li[0#j],li[j#(i-j)])
+          chkPop(l2,j)
+          chkPop(r2,j,i-j)
+          (l3,r3) = (li[#j],li[j#])
+          chkPop(l3,j)
+          chkPop(r3,j,i-j)
+          (l4,r4) = (li[:(j-1)],li[j:])
+          chkPop(l4,j)
+          chkPop(r4,j,i-j)
+      end
+      for j <- testLens do
+          print(".")
+          lj = list(i#j)
+          chkPop(li || lj, i+j)
+          print(".")
+          gz = li.zip[\ZZ32\](lj)
+          assert(|gz|,|li| MIN |lj|, "zip size wrong")
+          assertStr(BIG AND [(x,y)<-gz] x+i=y,"zip mismatch ",li,lj)
+          print(".")
+          assertStr(j=0 OR: li < lj, " NOT < ", lj)
+      end
+  end
+  testStr : List[\String\] = <| "Hello" asif String |>
+  testU : List[\Object\] = testStr || testLens
+  chkApp(testLens,testU)
+  chkApp(testLens,(testU || testStr).drop(1))
+  chkApp(testLens,(testStr || testU).drop(1))
+  chkApp(testLens,testLens.addLeft("Hello"))
+  chkApp(testLens,testLens.addRight("Hello"))
+  finish = nanoTime()
+  ms = ((finish-start) + 500000) DIV 1000000
+  println( //"Succeeded in " (ms/1000.0) "s")
+end
+
+end

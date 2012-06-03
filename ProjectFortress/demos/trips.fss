@@ -1,0 +1,313 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(* Pythagorean Triples
+
+This file explores two approaches for generating Pythagorean triples:
+
+1. search directly for (a,b,c) where a^2 + b^2 = c^2
+2. search meta-variables n & m using Euclid's formula (see Wikipedia)
+
+Successive versions build ever more efficient approaches. *)
+
+component trips
+import List.{...}
+import Set.{...}
+import System.{args}
+export Executable
+
+printUsage() = do
+    println "\nGenerate and check Pythagorean triples up to some max"
+    println "0 args => Print this usage information and perform a default run."
+    println "1 arg  => Generate/print trips to the specified max."
+    println "Examples:"
+    println "fortress trips.fss    => print usage info; max=100"
+    println "fortress trips.fss 50 => max=50"
+    println ""
+end
+
+opr |  (x:ZZ32, y:ZZ32):Boolean =  x DIVIDES y
+coprime(x:ZZ32, y:ZZ32):Boolean = (1 = x GCD y)
+even   (x:ZZ32):       Boolean =    2|x
+
+(* The specification defines a builtin symbol for DIVIDES. Until it's
+implemented, I define it myself along with some helper functions. *)
+
+(* For debugging *)
+trueDat  (dat:Any):    Boolean = true
+tPrint   (dat:Any):    Boolean = trueDat(print   dat)
+tPrintln (dat:Any):    Boolean = trueDat(println dat)
+tAssert  (dat:Boolean):Boolean = trueDat(assert dat)
+
+object trip (a:ZZ32, b:ZZ32, c:ZZ32)
+    extends StandardTotalOrder[\trip\]
+    getter asString():String = "[trip " a " " b  " " c "]"
+    opr CMP(self, other:trip):TotalComparison =
+        (a CMP other.a) LEXICO (b CMP other.b) LEXICO (c CMP other.c)
+end trip
+
+(* When I did this exercise, using an object was a much faster way to
+represent a triple than a tuple or a list, likely due to genericity.
+Perhaps that will always be so as data structures shoud be cheap.
+
+Note: CMP & asString follow canonical patterns. Perhaps they could be
+specified implicitly or as defaults. *)
+
+(* The following definitions work around problems that arose when I tried the
+typechecker. *)
+
+opr MIN(a:ZZ32,b:ZZ32):ZZ32 = if a<=b then a else b end
+opr MAX(a:ZZ32,b:ZZ32):ZZ32 = if a>b then a else b end
+
+orderedTrip(a:ZZ32, b:ZZ32, c:ZZ32):trip =
+    trip ((a MIN b), (a MAX b), c)
+
+(* integer square-root using Newton's method
+   Use the argument as the initial guess. *)
+isqrt(n:ZZ64):ZZ64 = do
+    approx:ZZ64 = n
+    while NOT ( approx^2 <= n < (approx+1)^2 ) do
+        approx -= (approx - (n DIV approx) + 1) DIV 2
+    end
+    approx
+end
+
+(* generate the isqrt for perfect squares, otherwise generate nothing *)
+perfectSqrt(n:ZZ64):Maybe[\ZZ32\] = do
+    approx:ZZ64 = isqrt n
+    if n = approx^2
+      then just(narrow(approx))
+      else Nothing[\ZZ32\]
+    end
+end
+
+
+(* Generators: In this exercise, I define a number of triple
+generators. A generator object contains a doc string, a recommended
+max value as the argument, and the generator function. *)
+
+object generator(doc:String, max:ZZ32, fun:ZZ32->List[\trip\])
+    extends StandardTotalOrder[\trip\]
+    getter asString():String = "[generator " doc " max: " max "]"
+    opr CMP(self, other:generator):TotalComparison = doc CMP other.doc
+end generator
+
+generators = <|
+(*
+  generator ("Wikipedia 100", 100000, fn (max:ZZ32) => do
+    Wikipedia100 = (* Wikipedia lists triples under 100. *)
+        <|trip ( 3, 4, 5), trip ( 5,12,13), trip ( 7,24,25), trip ( 8,15,17),
+         trip ( 9,40,41), trip (11,60,61), trip (12,35,37), trip (13,84,85),
+         trip (16,63,65), trip (20,21,29), trip (28,45,53), trip (33,56,65),
+         trip (36,77,85), trip (39,80,89), trip (48,55,73), trip (65,72,97)|>
+    tripsTo (Wikipedia100, max)
+    end),
+*)
+
+  generator ("Naive search: Triple loop, then filter", 25, fn (max:ZZ32) =>
+    <| trip (a,b,c) |
+        a<-3:max, b<-3:max, c<-3:max,
+        a < b < c,
+        a^2 + b^2 = c^2,
+        coprime (a,b) |>),
+
+(* This generator syntax is being considered: 3 <= a < b < c <= max !!!
+This directly leads to the upper bound a <= max-2, which I missed for a
+while (I was using a <= max-1). *)
+
+(* Can I set up a global mutable collection of generators?
+var generators:Set[\generator\] = set()
+generators UNION= {generator ...}
+I got around that issue by defining the generator directly as members
+of the generator list *)
+
+  generator ("Naive search: Double loop, calculate c", 100, fn (max:ZZ32) =>
+    <| trip (a,b,c) |
+        a<-3:max, b<-3:max,
+        a < b,
+        c<-perfectSqrt(a^2 + b^2), c<=max,
+        coprime (a,b) |>),
+
+(* narrow will go away with automatic coercion. *)
+
+  generator ("Naive search: fold a<b & c<max into range bounds", 100, fn (max:ZZ32) =>
+    <| trip (a,b,c) |
+        a<-3:(max-2),
+        b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|),
+        c<-perfectSqrt(a^2 + b^2),
+        coprime (a,b) |>),
+
+  generator ("Naive search: fold a<b & c<max into range bounds", 100, fn (max:ZZ32) =>
+    <| trip (a,b,c) |
+        a<-3:(max-2),
+        b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|),
+        c<-perfectSqrt(a^2 + b^2),
+        coprime (a,b) |>),
+
+  generator ("Naive search: promote 2 as a common factor", 100, fn (max:ZZ32) =>
+    <| trip (a,b,c) |
+        a<-3:(max-2),
+        b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|),
+        NOT ((even a) AND (even b)),
+(*
+trueDat (if NOT ((even a) XOR (even b)) then
+println "Both a & b are odd: " a " " b end),
+
+This code fires (when not commented out), and that led me to explore
+the stronger filter (even a) XOR (even b), which also must be
+true. Victor offered a simple proof which depended on c being a
+square. *)
+        c<-perfectSqrt(a^2 + b^2),
+        coprime (a,b) |>),
+
+  generator ("Naive search: absorb 2 divisibility into b striding", 100, fn (max:ZZ32) =>
+    <| trip(a,b,c) |
+        a<-3:(max-2),
+        b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):(if even a then 2 else 1 end),
+        c<-perfectSqrt(a^2 + b^2),
+        coprime (a,b) |>),
+
+(* Since exactly one of a and b is even, we can simply make b's stride 2. *)
+
+  generator ("Naive search: clever b striding, maybe c", 100, fn (max:ZZ32) =>
+    <| trip(a,b,c) |
+        a<-3:(max-2),
+        b<-(a+1):narrow(|\SQRT(max^2 - a^2)/|):2,
+        c<-perfectSqrt(a^2 + b^2),
+        coprime (a,b) |>),
+
+  generator ("Euclid's formula with naive upper bounds", 100, fn (max:ZZ32) =>
+    <| orderedTrip(a, b, c) |
+        n<-1:max,
+        m<-n+1:max,
+        (even n) XOR (even m), coprime (n, m),
+        a<-just(2 n m),
+        b<-just(m^2 - n^2),
+        c<-just(m^2 + n^2),
+        c <= max |>),
+
+(* I'd really like to do explicit binding in a sequence of generators
+with an explicit syntax, but the overloaded use of = makes this hard.
+In this context, = indicates a predicate. *)
+
+  generator ("Euclid's formula, naive bounds, no binding", 100, fn (max:ZZ32) =>
+    <| orderedTrip(2 n m, m^2 - n^2, m^2 + n^2) |
+        n<-1:max,
+        m<-n+1:max,
+        (even n) XOR (even m), coprime (n, m),
+        m^2 + n^2 <= max |>),
+
+(* Promoting the quadratic filters above to the range upper bounds below in a
+compiler is a challenge, perhaps a good thesis. I think about it this way:
+m^2 + n^2 <= max all by itself implies
+m^2 <= max - n^2 which can be rearranged m <= SQRT(max - n^2)
+When can also combine m^2 + n^2 <= max with n<m, which imply
+2n^2 <= max which can be rearranged
+n <= SQRT(max DIV 2) --- this is a bit tricky.
+Then we simply merge upper bounds.
+*)
+
+  generator ("Euclid's, (m^2+n^2<=max) & n<m => bounds", 100000, fn (max:ZZ32) =>
+    <| orderedTrip(2 n m, m^2 - n^2, m^2 + n^2) |
+        n<-1:(narrow(|\SQRT(max DIV 2)/|)),
+        m<-n+1:(narrow(|\SQRT(max - n^2)/|)),
+        (even n) XOR (even m), coprime (n, m)|>),
+
+(* Again we can promote the XOR into b striding. *)
+
+  generator ("Euclid's, bounds & striding", 100000, fn (max:ZZ32) =>
+    <| orderedTrip(2 n m, m^2 - n^2, m^2 + n^2) |
+        n<-  1:(narrow (|\SQRT(max DIV  2 )/|)),
+        m<-n+1:(narrow (|\SQRT(max - n^2)/|)):2,
+        coprime (n, m) |>)
+
+  |>
+
+tripsTo(trips, max:ZZ32) = { t | t<-trips, t.a <= max, t.b <= max, t.c <= max }
+
+getTimeMS() = (nanoTime() + (500 TIMES 1000)) DIV (1000 TIMES 1000)
+totalTime:ZZ64 := 0
+
+(* This sort of thing might be nice to have generally available:
+getTimeNS() = nanoTime()
+getTimeMS() = (nanoTime() + (500 TIMES 1000)) DIV (1000 TIMES 1000)
+Jan suggested using floating point
+*)
+
+runAndTime(g:generator, n:ZZ32) = do
+    start = getTimeMS()
+    trips = g.fun n
+    time =  getTimeMS() - start
+    println (|trips| " triples under " n " in " time " ms - " g.doc)
+    (trips, time)
+end
+
+(* Are all the elements of a list the same? I had been thinking of
+this as a BIG = operation, but reductions are (T,T)->T, and = is
+(T,T)->Boolean ... . *)
+
+allSame (xs):Boolean = do
+    same = if   (x,ys) <- xs.extractLeft()
+           then BIG AND <| compareTwo(x,y) | y<-ys |>
+           else true end
+    assert (same, true, "No match for this set: " xs)
+    same
+end
+
+compareTwo(ps,qs):Boolean = do
+    psMax =  if |ps| = 0 then 0 else BIG MAX [p<-ps] (p.a MAX p.b MAX p.c) end
+    qsMax =  if |qs| = 0 then 0 else BIG MAX [q<-qs] (q.a MAX q.b MAX q.c) end
+    truncatedMatch = (tripsTo (ps, qsMax) = tripsTo (qs, psMax))
+    lengthMatch    = if (psMax = qsMax) then (|ps| = |qs|) else true end
+    truncatedMatch AND lengthMatch
+end
+
+(* The following comments based on code no longer present. Subsequencing is nice: ss[2:4] and subindexing would also be nice: sameAcross = allSame ss[<0,2,5,7>] *)
+
+(* Using = for binding means parens are needed in the = tests above.
+I'd prefer to use another symbol for binding. How about "IS"?  as in x
+IS 5? I had been noodling left arrow for binding & "double left arrow"
+for generation, but someone in the community has suggested the former
+for sequential generation and the later for parallel generation
+... interesting!  *)
+
+run() = do
+    if |args| = 0 then printUsage() end
+    n = if |args| = 0 then 100 else strToInt args[0] end
+    totalTime := 0
+
+    println("Irreducible Pythagorean triples under " n " ...")
+    tripsAndTime = <|runAndTime(g,n) | g<-generators, n<=g.max|>
+    allSame <|trips | (trips,time) <- tripsAndTime,
+        do atomic totalTime += time; true end |>
+    println("... in " totalTime " ms")
+
+(*    bestGenerator = generators[|generators| - 1]*)
+    bestGenerator = generators[4]
+    ts = bestGenerator.fun n
+    println ("\nThe " |ts| " trips under " n " in generated order:")
+    println ts
+    println ("\nThe " |ts| " trips under " n " in canonical order:")
+    println { t | t <- ts }
+end
+
+test compareEmAll() = do
+    (min,max,stride) = (3,200,3)
+    println ("Comparing " min " to " max " with stride " stride)
+    for  n <- seq(min:max:stride) do
+        println ("\nGenerate triples under " n)
+        tripsAndTime = <|runAndTime(g,n) | g<-generators, n<=g.max|>
+        allSame <|trips | (trips,time) <- tripsAndTime,
+            do atomic totalTime += time; true end |>
+    end
+end
+
+end trips

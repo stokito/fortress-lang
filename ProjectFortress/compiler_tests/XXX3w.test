@@ -1,0 +1,20 @@
+#    Copyright 2009,2010,2012 Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled3.w.fsi
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled3.w.fsi:18:1-17:\n\
+${STATIC_TESTS_DIR}/Compiled3.w.fsi:19:1-21:1:\n\
+\ Invalid overloading of f in API Compiled3.w:\n\
+\ (Compiled3.w.O, Compiled3.w.T)->() @ ${STATIC_TESTS_DIR}/Compiled3.w.fsi:18:1-17\n\
+\ and (Compiled3.w.T, Compiled3.w.O)->() @ ${STATIC_TESTS_DIR}/Compiled3.w.fsi:19:1-21:1\n\
+File Compiled3.w.fsi has 1 error.\n
+compile_out_equals=

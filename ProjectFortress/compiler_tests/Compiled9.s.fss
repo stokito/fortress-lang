@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  export Executable
+
+  bar() : () = do
+    "Error"
+    ()
+  end
+
+  foo() : () = do
+    a = 5
+    "This must void"
+    ()
+  end
+
+  run():() = do
+    f(s:String) : String = s
+    f("This should fail b/c it's not void!")
+    ()
+  end

@@ -1,0 +1,8 @@
+We have shown how to statically ensure safety of overloaded, polymorphic functions while imposing relatively minimal restrictions, solely on function definition sites. We provide rules on definitions that can be checked modularly, irrespective of call sites, and we show how to mechanically verify that a program satisfies these rules. The type analysis required for implementing these checks involves subtyping on universal and existential types, which adds complexity not required for similar checks on monomorphic functions. We have defined an object-oriented language to explain our system of static checks, and we have implemented them as part of the open-source Fortress compiler \cite{Fortress}.
+
+Further, we show that in order to check many ````natural'' overloaded
+functions with our system in the context of a generic, object-oriented
+language with multiple inheritance,
+richer type relations must be available to programmers---the subtyping relation prevalent among such languages does not afford enough type analysis alone. We have therefore introduced an explicit, nominal exclusion relation to check safety of more interesting overloaded functions.
+
+Variance annotations have proven to be a convenient and expressive addition to languages based on nominal subtyping \cite{bourdoncle97,kennedy07,scala}. They add additional complexity to polymorphic exclusion checking, so we leave them to future work.

@@ -1,0 +1,31 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled7.ApplicationErrors
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:15:31-36:\n\
+\ No such method Any.foo.\n\
+\ ${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:15:23-37:\n\
+\ Possibly because x: Any after argument inference\n\
+${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:18:27-32:\n\
+\ No such method IntLiteral.foo.\n\
+\ ${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:18:19-35:\n\
+\ Possibly because x: IntLiteral after argument inference\n\
+${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:25:14-22:\n\
+\ Could not check call to operator *\n\
+\ - (Object->String, ZZ32)->String is not applicable to any type of the form (_->_, IntLiteral).\n\
+\ - (ZZ32->String, ZZ32)->String is not applicable to any type of the form (_->_, IntLiteral).\n\
+${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:31:32:\n\
+\ Function body has type Any, but declared return type is ZZ32.\n\
+\ ${STATIC_TESTS_DIR}/Compiled7.ApplicationErrors.fss:31:17-32:\n\
+\ Possibly because x: Any after argument inference\n\
+File Compiled7.ApplicationErrors.fss has 4 errors.\n
+compile_out_equals=

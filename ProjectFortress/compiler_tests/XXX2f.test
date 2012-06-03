@@ -1,0 +1,23 @@
+#    Copyright 2009,2012 Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled2.f
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+
+compile
+
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled2.f.fss:19:1-22:\n\
+${STATIC_TESTS_DIR}/Compiled2.f.fss:20:1-23:\n\
+\    Invalid overloading of f in component Compiled2.f:\n\
+\     (O, T)->() @ ${STATIC_TESTS_DIR}/Compiled2.f.fss:19:1-22\n\
+\ and (T, O)->() @ ${STATIC_TESTS_DIR}/Compiled2.f.fss:20:1-23\n\
+File Compiled2.f.fss has 1 error.\n\
+
+compile_out_equals=

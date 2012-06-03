@@ -1,0 +1,14 @@
+#    Copyright 2012, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=VarianceTest1 VarianceTest2 VarianceTest3 \
+      VarianceTest4 VarianceTest5 VarianceTest6 \
+      VarianceTest7 VarianceTest8 VarianceTest9
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+typecheck

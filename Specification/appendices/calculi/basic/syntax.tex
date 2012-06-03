@@ -1,0 +1,80 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Syntax}\label{basic-syntax}
+
+A syntax for \basiccore\ is provided in Figure \ref{fig:basic-syntax}.
+We use the following notational conventions:
+\begin{itemize}
+\item For brevity, we omit separators such as \comma\ and \semicolon\ from
+  \basiccore.
+
+\item \seq{\ty} is a shorthand for a (possibly empty) sequence \tyn1,
+ \more, \tyn n.
+
+\item Similarly, we abbreviate a sequence of relations
+ \sub\tvone 1 \extends \sub\tappone 1, \more,
+ \sub\tvone n \extends \sub\tappone n to
+ \seq{\tvone \extends \tappone}
+
+\item We use \tyn i to denote the $i$th element of \seq\ty.
+
+\item For simplicity, we assume that every name (type variables,
+  field names, and parameters) is different and every trait/object
+  declaration declares unique name.
+
+\item We prohibit cycles in type hierarchies.
+
+\end{itemize}
+
+\begin{figure*}[htbp!]
+\[
+\begin{array}{llll}
+\tvone, \tvtwo&& &  \mbox{type variables}\\
+\fname&& &  \mbox{method name}\\
+\vname&& &  \mbox{field name}\\
+\tname&& &  \mbox{trait name}\\
+\oname&& &  \mbox{object name}\\
+\ty, \prm\ty, \prm{\prm\tau} &::=& \tvone &\mbox{type}\\
+         &|& \tynontv\\
+\tynontv&::=& \tappone & \mbox{type that is not a type variable}\\
+         &|& \oapp \\
+\tappone, \tapptwo, \tappthree &::=& \tapp
+ & \mbox{type that can be a type bound}\\
+         &|& \obj\\
+\exp   &::=& \vname & \mbox{expression}\\
+         &|& \self\\
+         &|& \objexp\\
+         &|& \fldacc\\
+         &|& \mthinvk\\
+\fd &::=& \fdsyntax& \mbox{method definition}\\
+\td &::=& \tdsyntax& \mbox{trait definition}\\
+\od &::=& \odsyntax& \mbox{object definition}\\
+\d &::=& \td &\mbox{definition}\\
+   &|  & \od \\
+\pgm &::=& \pd & \mbox{program}\\
+\end{array}
+\]
+\caption{Syntax of \basiccore}
+\label{fig:basic-syntax}
+\end{figure*}
+
+The syntax of \basiccore\ allows only a small subset of the Fortress
+language to be formalized.  \basiccore\ includes trait and object
+definitions, method and field invocations, and \KWD{self} expressions.
+The types of \basiccore\ include type variables, instantiated traits,
+instantiated objects, and the distinguished trait \TYP{Object}.
+Note that we syntactically prohibit extending objects.
+Among other features, \basiccore\ does \emph{not} include top-level
+variable and function definitions, overloading, \KWD{excludes} clauses,
+\KWD{comprises} clauses, \KWD{where} clauses, object expressions, and function
+expressions.  \basiccore\ will be extended to formalize a larger set
+of Fortress programs in the future.
