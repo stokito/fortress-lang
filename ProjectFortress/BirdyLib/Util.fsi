@@ -68,4 +68,6 @@ embiggen[\T\](j:(T,T)->T, z:T) : Comprehension[\T,T,T,T\]
     join(a: (), b: ()): () 
   end
 
+__filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\]
+
 end
