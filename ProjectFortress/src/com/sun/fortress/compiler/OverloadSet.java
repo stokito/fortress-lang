@@ -2218,13 +2218,15 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 // DRC why not fnni = new FnNameInfo(principalMember.tagF, cg.thisApi())?
                 // could be a name problem
                 Functional eff = principalMember.tagF;
+                Functional eff_original = principalMember.tagF;
                 if (eff instanceof Method)
-                    eff =  ((Method) eff).originalMethod();
-                FnNameInfo fnni = new FnNameInfo(eff, cg.thisApi());
+                    eff_original =  ((Method) eff).originalMethod();
+                FnNameInfo fnni = new FnNameInfo(eff_original, cg.thisApi());
+                FnNameInfo fnni_closure = new FnNameInfo(eff, cg.thisApi());
 //                FnNameInfo fnni = new FnNameInfo(sargs,
 //                        ((HasTraitStaticParameters)(principalMember.tagF)).traitStaticParameters(),
 //                        getRange(), domain, cg.thisApi(), (IdOrOp) name, span );
-                FnNameInfo fnni_closure = fnni.convertGenericMethodToClosureDecl(selfIndex,
+                 fnni_closure = fnni_closure.convertGenericMethodToClosureDecl(selfIndex,
                         cg.currentTraitObjectDecl.getHeader().getStaticParams());
                 CodeGen.GenericMethodBodyMaker gmbm = new CodeGen.GenericMethodBodyMaker () {
 
