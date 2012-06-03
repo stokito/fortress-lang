@@ -51,7 +51,7 @@ trait Map[\Key extends StandardTotalOrder[\Key\],Val \]
     getPairWithDefault(x: Key, v: Val): (Key,Val) = (x,v)
     getLeftChild():Map[\Key,Val\]
     getRightChild():Map[\Key,Val\]
-    (*)opr[k:Key]: Val throws NotFound = mem(k).getVal()
+    opr[k:Key,v: Val]: Val throws NotFound = mem(k).getValWithDefault(v)
 
     mem(k: Key): Map[\Key,Val\]
     
@@ -168,6 +168,8 @@ singleton[\Key extends StandardTotalOrder[\Key\],Val\](k:Key,v:Val): Map[\Key,Va
     e = EmptyMap[\Key,Val\]
     NodeMap[\Key,Val\](k,v,e,e)
   end
+
+emptymap[\Key extends StandardTotalOrder[\Key\],Val\]() : Map[\Key,Val\] = EmptyMap[\Key,Val\]
 
 mapping[\Key extends StandardTotalOrder[\Key\],Val\](): Map[\Key,Val\] = EmptyMap[\Key,Val\]
 mapping[\Key extends StandardTotalOrder[\Key\],Val\](g: Generator[\(Key,Val)\]): Map[\Key,Val\] =

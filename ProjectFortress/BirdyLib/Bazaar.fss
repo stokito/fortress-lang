@@ -33,6 +33,15 @@ component Bazaar
 
   opr BIG +() :BigReduction[\ZZ32,ZZ32\] = BigReduction[\ZZ32,ZZ32\](SumRed) 
 
+  object SumRR64Red extends MonoidReduction[\RR64\]
+    getter asString(): String = "RR64 red"
+    getter id(): RR64 = 0.0
+    join(x: RR64, y: RR64) = x + y    
+  end
+
+  opr BIG $() :BigReduction[\RR64,RR64\] = BigReduction[\RR64,RR64\](SumRR64Red) 
+
+
   object ProdRed extends MonoidReduction[\ZZ32\]
     getter asString(): String = "Prod red"
     getter id(): ZZ32 = 1
