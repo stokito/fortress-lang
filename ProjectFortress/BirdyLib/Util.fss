@@ -12,6 +12,7 @@
 component Util
 
   import Maybe.{...}
+  import GeneratorLibrary.{SimpleFilterGenerator}
 
   export Util
 
@@ -95,5 +96,7 @@ component Util
     getter id(): () = ()
     join(a: (), b: ()): () = ()
   end
+
+  __filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\] = SimpleFilterGenerator[\E\](g,p)
 
 end

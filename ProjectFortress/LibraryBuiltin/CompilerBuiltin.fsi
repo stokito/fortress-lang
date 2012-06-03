@@ -10,7 +10,7 @@
  ******************************************************************************)
 
 api CompilerBuiltin
-import CompilerAlgebra.{ Equality, StandardTotalOrder }
+import CompilerAlgebra.{ Equality, StandardTotalOrder, Comparison }
 import AnyType.{Any}
 
 trait Object extends Any
@@ -21,12 +21,16 @@ end Object
 
 nanoTime(): RR64
 
-trait String
+trait String extends StandardTotalOrder[\String\]
     abstract getter asJavaString(): JavaString
     abstract getter asString(): String
     abstract getter isEmpty(): Boolean
     opr <(self, b: String): Boolean
     opr =(self, b: String): Boolean
+    opr >(self, b: String): Boolean 
+    opr <=(self, b: String): Boolean 
+    opr >=(self, b: String): Boolean 
+    opr CMP(self, other:String): Comparison    
     abstract opr |self| : ZZ32
     abstract opr || (self, b:Object): String
     abstract opr juxtaposition(self, b:Object): String
