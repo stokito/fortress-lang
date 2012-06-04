@@ -46,7 +46,7 @@ public class RTHelpers {
         String mangledDots = Naming.sepToDot(mangledClassName);
         
         try {
-            return Class.forName(mangledDots); //ONLY.loadClass(Naming.sepToDot(mangledClassName), false);
+            return MainWrapper.icl.loadClass(mangledDots); //ONLY.loadClass(Naming.sepToDot(mangledClassName), false);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
             throw new RuntimeException("class " + mangledClassName.toString() + " failed to load");

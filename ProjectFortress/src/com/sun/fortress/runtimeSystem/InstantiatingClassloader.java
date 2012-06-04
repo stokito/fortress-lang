@@ -1895,7 +1895,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             String for_loading = Naming.sepToDot(Naming.mangleFortressIdentifier(member));
             Class cl = null;
             try {
-                cl = Class.forName(for_loading);
+                ClassLoader icl = MainWrapper.icl;
+                cl = icl.loadClass(for_loading);
+                // cl = Class.forName(for_loading);
             } catch (ClassNotFoundException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
