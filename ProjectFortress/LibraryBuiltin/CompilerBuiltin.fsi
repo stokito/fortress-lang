@@ -431,7 +431,7 @@ trait FloatLiteral excludes {RR32, RR64}
 end
 
 
-trait Boolean   extends { Equality[\Boolean\] }
+trait Boolean   extends { Equality[\Boolean\], Condition[\()\] }
     excludes { String, Number } 
   getter holds(): Boolean
   getter get(): ()
