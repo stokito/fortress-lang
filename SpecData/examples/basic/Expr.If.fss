@@ -1,0 +1,28 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.If
+
+import Set.{...}
+export Executable
+
+f(x) =
+(** EXAMPLE **)
+if x IN {0, 1, 2} then 0
+elif x IN {3, 4, 5} then 3
+else 6 end
+(** END EXAMPLE **)
+
+run() = println f(3)
+
+end

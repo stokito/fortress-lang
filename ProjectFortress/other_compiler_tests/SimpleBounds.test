@@ -1,0 +1,15 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=SimpleBounds1 SimpleBounds2 SimpleBounds3 SimpleBounds4 SimpleBounds5
+link
+run
+run_out_matches=general\n\
+specific\n
+

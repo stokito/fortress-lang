@@ -1,0 +1,167 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(*                     | 1| 2| 3| 4| 5| 6| 7| 8| 9|10|11|
+-----------------------|--|--|--|--|--|--|--|--|--|--|--|
+ 1) trait              | N|
+ 2) singleton object   | N| N
+ 3) object constructor | N| N| N
+ 4) top-level variable | Y| N| N| N
+ 5) top-level function | Y| N| Y| N| Y
+ 6) field              | Y| Y| Y| Y| Y| N
+ 7) dotted method      | Y| Y| Y| Y| Y| N| Y
+ 8) functional method  | Y| N| Y| N| Y| Y| Y| Y
+ 9) label              | Y| Y| Y| Y| Y| Y| Y| Y| N
+10) local variable     | Y| N| N| N| N| N| N| N| Y| N
+11) local function     | Y| N| N| N| N| N| N| N| Y| N| N
+ *)
+
+trait t end
+trait s end
+trait u end
+trait f end
+trait f end            (* 1-1 *)
+
+object o extends f end
+object f end           (* 2-1 *)
+object o end           (* 2-2 *)
+object f() end         (* 3-1 *)
+object o() end         (* 3-2 *)
+object p(x: ZZ32) end
+object p() end         (* 3-3 *)
+object q(x: String) end
+
+t = 3                  (* 4-1 *)
+o = "ou"               (* 4-2 *)
+p = "au"               (* 4-3 *)
+v = 2
+v = "here"             (* 4-4 *)
+
+s() = ()               (* 5-1 *)
+o() = ()               (* 5-2 *)
+q() = ()               (* 5-3 *)
+v() = ()               (* 5-4 *)
+g(z:ZZ32) = ()
+g() = ()               (* 5-5 *)
+
+object ObjField(x:ZZ32)
+  t = 3                (* 6-1 *)
+  o = 5                (* 6-2 *)
+  q = 7                (* 6-3 *)
+  v = "var"            (* 6-4 *)
+  g = "fn"             (* 6-5 *)
+  x = "fld"            (* 6-6 *)
+end
+
+object ObjMethod(x:ZZ32)
+  t() = 3              (* 7-1 *)
+  o() = 5              (* 7-2 *)
+  q() = 7              (* 7-3 *)
+  v() = "var"          (* 7-4 *)
+  g() = "fn"           (* 7-5 *)
+  x() = "fld"          (* 7-6 *)
+  m(y: ZZ32) = "method"
+  m() = 3              (* 7-7 *)
+end
+
+object ObjFunctional(x:ZZ32)
+  s(self) = 3          (* 8-1 *)
+  o(self) = 5          (* 8-2 *)
+  q(self) = 7          (* 8-3 *)
+  v(self) = "var"      (* 8-4 *)
+  g(self) = "fn"       (* 8-5 *)
+  x(self) = "fld"      (* 8-6 *)
+  m(y: ZZ32) = "method"
+  m(self) = 3          (* 8-7 *)
+  n(self, y: ZZ32) = "method"
+  n(self) = 3          (* 8-8 *)
+end
+
+labelTest() = do
+  label s () end s     (* 9-1 *)
+  label o () end o     (* 9-2 *)
+  label q () end q     (* 9-3 *)
+  label v () end v     (* 9-4 *)
+  label g () end g     (* 9-5 *)
+end
+
+trait labelTest
+  x: ZZ32
+  m(y: ZZ32) = "m"
+  n(self) = "n"
+  labelTest() = do
+    label x () end x   (* 9-6 *)
+    label m () end m   (* 9-7 *)
+    label n () end n   (* 9-8 *)
+    label l
+      label l () end l (* 9-9 *)
+    end l
+  end
+end
+
+localVarTest() = do
+  u = 3                (* 10-1 *)
+  o = 4                (* 10-2 *)
+  q = 5                (* 10-3 *)
+  v = 6                (* 10-4 *)
+  g = 7                (* 10-5 *)
+end
+
+trait localVarTest
+  x: ZZ32
+  m(y: ZZ32) = "m"
+  n(self) = "n"
+  localVarTest() = do
+    x = 3              (* 10-6 *)
+    m = 4              (* 10-7 *)
+    n = 5              (* 10-8 *)
+    label l            (* 10-9 *)
+      l = 8
+    end l
+    lv = 1
+    do lv = 2          (* 10-10 *)
+       println lv
+    end
+  end
+end
+
+localFnTest() = do
+  u() = 3              (* 11-1 *)
+  o() = 4              (* 11-2 *)
+  q() = 5              (* 11-3 *)
+  v() = 6              (* 11-4 *)
+  g() = 7              (* 11-5 *)
+end
+
+trait localFnTest
+  x: ZZ32
+  m(y: ZZ32) = "m"
+  n(self) = "n"
+  localFnTest() = do
+    x() = 3            (* 11-6 *)
+    m() = 4            (* 11-7 *)
+    n() = 5            (* 11-8 *)
+    label l            (* 11-9 *)
+      l() = 8
+    end l
+    lv = 1
+    lv() = 2           (* 11-10 *)
+    lf() = 3
+    lf(lp:ZZ32) = 4
+    do lf() = 2        (* 11-11 *)
+       println lf()
+    end
+  end
+end
+
+run() = ()

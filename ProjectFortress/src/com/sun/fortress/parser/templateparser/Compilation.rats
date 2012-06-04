@@ -1,0 +1,28 @@
+/*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress components and APIs.
+ */
+module com.sun.fortress.parser.templateparser.Compilation(Decl, Literal, Identifier, Keyword, Symbol,
+                                           Spacing);
+
+import Decl;
+import Literal;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+
+modify com.sun.fortress.parser.Compilation(Decl, Literal, Identifier, Keyword, Symbol, Spacing);
+
+void initParser  := w;

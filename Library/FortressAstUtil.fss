@@ -1,0 +1,51 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component FortressAstUtil
+import List.{...}
+import FortressAst.{...}
+export FortressAstUtil
+
+makeOp(s:String):Op = Op(Nothing[\APIName\], s, Nothing[\Fixity\])
+
+addFixity(op:Op,fix:Fixity):Op = Op(Nothing[\APIName\], op.in_text, Just[\Fixity\](fix))
+
+makeMultiFix(op:Op):Op = addFixity(op,MultiFixity)
+makeInfix(op:Op):Op = addFixity(op,InFixity)
+(*
+makeMultiFix(op:Op) = Op(Nothing[\APIName\], op.in_text, Just[\Fixity\](MultiFixity))
+makeInfix(op:Op) = Op(Nothing[\APIName\], op.in_text, Just[\Fixity\](Infixity))
+*)
+
+(* object OpRef (in_lexicalDepth:ZZ32, in_originalName:IdOrOp, in_ops:List[\IdOrOp\], in_staticArgs:List[\StaticArg\]) extends FunctionalRef *)
+makeMultiJuxt():OpRef = do
+    name = makeMultiFix(makeOp("juxtaposition"))
+    OpRef(0, name, singleton(name asif IdOrOp), <|[\StaticArg\] |>)
+end asif OpRef
+
+makeInfixJuxt():OpRef = do
+    name = makeInfix(makeOp("juxtaposition"))
+    OpRef(0, name, singleton(name asif IdOrOp), <|[\StaticArg\] |>)
+end
+
+LooseJuxt1(exprs:List[\Expr\]):Juxt =
+    Juxt(makeMultiJuxt(), makeInfixJuxt(), exprs)
+
+TightJuxt1(exprs:List[\Expr\]):Juxt =
+    Juxt(makeMultiJuxt(), makeInfixJuxt(), exprs)
+
+APIName1(in_ids:List[\Id\]):APIName = do
+    t1 = BIG || [e <- in_ids] (e ".")
+    t2 = t1[0#(|t1| - 1)]
+    APIName(in_ids,  t2)
+    end
+
+end

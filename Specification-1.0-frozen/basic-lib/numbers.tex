@@ -1,0 +1,566 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Numbers}
+\chaplabel{lib:numbers-basic}
+
+
+\section{Rational Numbers}
+\seclabel{basic-rationals}
+
+The trait \EXP{\mathbb{Q}} (\STR{QQ}) encompasses all finite rational numbers,
+the results of dividing any integer by any nonzero integer.
+The trait \EXP{\mathbb{Q}^*} (\STR{QQ{\char'137}star}) is \EXP{\mathbb{Q}} with
+two extra elements, \EXP{+\infty} and \EXP{-\infty}.
+The trait \EXP{\mathbb{Q}^{\#}} (\STR{QQ{\char'137}splat}) is \EXP{\mathbb{Q}^*} with
+one additional element, the indefinite rational (written \EXP{0/0}), which is used as the result
+of dividing zero by zero or of adding \EXP{-\infty} to \EXP{+\infty}.
+
+Often it is desirable to indicate that a variable ranges over only a subset of
+the rationals, such as only positive values or only nonnegative values or only
+nonzero values.
+Unfortunately, traditional notations such as \EXP{\mathbb{Q}^+} are not used consistently
+in the literature; one author may use \EXP{\mathbb{Q}^+} to mean the set of strictly positive rationals
+and another may use it to mean the set of nonnegative rationals.
+Fortress therefore uses a notation that is novel but unambiguous:
+
+\begin{tabbing}
+\EXP{\mathbb{Q}} (\STR{QQ}) is the set of rationals
+(it is a subtype of \EXP{\mathbb{R}} and \EXP{\mathbb{Q}^*}).
+\\
+\EXP{\mathbb{Q}_{<}} (\STR{QQ{\char'137}LT}) is the set of strictly negative rationals
+(it is a subtype of \EXP{\mathbb{R}_{<}}, \EXP{\mathbb{Q}^*_{<}}, \EXP{\mathbb{Q}}, \EXP{\mathbb{Q}_{\leq}}, and \EXP{\mathbb{Q}_{\neq}}).
+\\
+\EXP{\mathbb{Q}_{\leq}} (\STR{QQ{\char'137}LE}) is the set of nonpositive rationals, that is, \EXP{\mathbb{Q}_{<} \cup \{0\}}
+(it is a subtype of \EXP{\mathbb{R}_{\leq}}, \EXP{\mathbb{Q}^*_{\leq}}, and \EXP{\mathbb{Q}}).
+\\
+\EXP{\mathbb{Q}_{\geq}} (\STR{QQ{\char'137}GE}) is the set of nonnegative rationals, that is, \EXP{\mathbb{Q}_{>} \cup \{0\}}
+(it is a subtype of \EXP{\mathbb{R}_{\geq}}, \EXP{\mathbb{Q}^*_{\geq}}, and \EXP{\mathbb{Q}}).
+\\
+\EXP{\mathbb{Q}_{>}} (\STR{QQ{\char'137}GT}) is the set of strictly positive rationals
+(it is a subtype of \EXP{\mathbb{R}_{>}}, \EXP{\mathbb{Q}^*_{>}}, \EXP{\mathbb{Q}}, \EXP{\mathbb{Q}_{\geq}}, and \EXP{\mathbb{Q}_{\neq}}).
+\\
+\EXP{\mathbb{Q}_{\neq}} (\STR{QQ{\char'137}NE}) is the set of strictly nonzero rationals (that is, \EXP{\mathbb{Q}_{<} \cup \mathbb{Q}_{>}})
+(it is a subtype of \EXP{\mathbb{R}_{\neq}}, \EXP{\mathbb{Q}^*_{\neq}}, and \EXP{\mathbb{Q}}).
+\\
+\EXP{\mathbb{Q}^*} (\STR{QQ{\char'137}star}) is \EXP{\mathbb{Q}} with extra elements \EXP{+\infty} and \EXP{-\infty}
+(it is a subtype of \EXP{\mathbb{R}^*} and \EXP{\mathbb{Q}^{\#}}).
+\\
+\EXP{\mathbb{Q}^*_{<}} (\STR{QQ{\char'137}star{\char'137}LT}) is \EXP{\mathbb{Q}_{<}} with extra element \EXP{-\infty}
+(it is a subtype of \EXP{\mathbb{R}^*_{<}}, \EXP{\mathbb{Q}^{\#}_{<}}, \EXP{\mathbb{Q}^*}, \EXP{\mathbb{Q}^*_{\leq}}, and \EXP{\mathbb{Q}^*_{\neq}}).
+\\
+\EXP{\mathbb{Q}^*_{\leq}} (\STR{QQ{\char'137}star{\char'137}LE}) is \EXP{\mathbb{Q}_{\leq}} with extra element \EXP{-\infty}
+(it is a subtype of \EXP{\mathbb{R}^*_{\leq}}, \EXP{\mathbb{Q}^{\#}_{\leq}}, and \EXP{\mathbb{Q}^*}).
+\\
+\EXP{\mathbb{Q}^*_{\geq}} (\STR{QQ{\char'137}star{\char'137}GE}) is \EXP{\mathbb{Q}_{\geq}} with extra element \EXP{+\infty}
+(it is a subtype of \EXP{\mathbb{R}^*_{\geq}}, \EXP{\mathbb{Q}^{\#}_{\geq}}, and \EXP{\mathbb{Q}^*}).
+\\
+\EXP{\mathbb{Q}^*_{>}} (\STR{QQ{\char'137}star{\char'137}GT}) is \EXP{\mathbb{Q}_{>}} with extra element \EXP{+\infty}
+(it is a subtype of \EXP{\mathbb{R}^*_{>}}, \EXP{\mathbb{Q}^{\#}_{>}}, \EXP{\mathbb{Q}^*}, \EXP{\mathbb{Q}^*_{\geq}}, and \EXP{\mathbb{Q}^*_{\neq}}).
+\\
+\EXP{\mathbb{Q}^*_{\neq}} (\STR{QQ{\char'137}star{\char'137}NE}) is
+\EXP{\mathbb{Q}_{\neq}} with extra elements \EXP{+\infty} and \EXP{-\infty}
+(it is a subtype of \EXP{\mathbb{R}^*_{\neq}}, \EXP{\mathbb{Q}^{\#}_{\neq}}, and \EXP{\mathbb{Q}^*}).
+\\
+\EXP{\mathbb{Q}^{\#}} (\STR{QQ{\char'137}splat}) is \EXP{\mathbb{Q}^*} with extra element \EXP{0/0}
+(it is a subtype of \EXP{\mathbb{R}^{\#}}).
+\\
+\EXP{\mathbb{Q}^{\#}_{<}} (\STR{QQ{\char'137}splat{\char'137}LT}) is \EXP{\mathbb{Q}^*_{<}} with extra element \EXP{0/0}
+(it is a subtype of \EXP{\mathbb{R}^{\#}_{<}}, \EXP{\mathbb{Q}^{\#}}, \EXP{\mathbb{Q}^{\#}_{\leq}}, and \EXP{\mathbb{Q}^{\#}_{\neq}}).
+\\
+\EXP{\mathbb{Q}^{\#}_{\leq}} (\STR{QQ{\char'137}splat{\char'137}LE}) is \EXP{\mathbb{Q}^*_{\leq}} with extra element \EXP{0/0}
+(it is a subtype of \EXP{\mathbb{R}^{\#}_{\leq}} and \EXP{\mathbb{Q}^{\#}}).
+\\
+\EXP{\mathbb{Q}^{\#}_{\geq}} (\STR{QQ{\char'137}splat{\char'137}GE}) is \EXP{\mathbb{Q}^*_{\geq}} with extra element \EXP{0/0}
+(it is a subtype of \EXP{\mathbb{R}^{\#}_{\geq}} and \EXP{\mathbb{Q}^{\#}}).
+\\
+\EXP{\mathbb{Q}^{\#}_{>}} (\STR{QQ{\char'137}splat{\char'137}GT}) is \EXP{\mathbb{Q}^*_{>}} with extra element \EXP{0/0}
+(it is a subtype of \EXP{\mathbb{R}^{\#}_{>}}, \EXP{\mathbb{Q}^{\#}},
+\EXP{\mathbb{Q}^{\#}_{\geq}}, and \EXP{\mathbb{Q}^{\#}_{\neq}}).
+\\
+\EXP{\mathbb{Q}^{\#}_{\neq}} (\STR{QQ{\char'137}splat{\char'137}NE}) is \EXP{\mathbb{Q}^*_{\neq}} with extra element \EXP{0/0}
+(it is a subtype of \EXP{\mathbb{R}^{\#}_{\neq}} and \EXP{\mathbb{Q}^{\#}}).
+\end{tabbing}
+
+The Fortress type system tracks these types closely through various arithmetic
+operations; for example, adding two values of type \EXP{\mathbb{Q}_{>}} produces a result of type \EXP{\mathbb{Q}_{>}},
+and adding a value of type \EXP{\mathbb{Q}^*_{>}} and a value of type \EXP{\mathbb{Q}_{\geq}} produces a value
+of type \EXP{\mathbb{Q}^*_{\geq}}.
+
+Here we present only the trait \EXP{\mathbb{Q}} and its methods.
+The other rational types have exactly the same methods and differ
+only in the details of the types of method arguments and results
+and exactly what traits are extended by each rational type.
+For example, \EXP{\mathbb{Q}} is a field and is totally ordered,
+\EXP{\mathbb{Q}^*} is totally ordered but is not a field,
+and \EXP{\mathbb{Q}^{\#}} is neither totally ordered nor a field.
+For the exact details of how all this is implemented, \see{advanced-rationals}.
+
+%% trait QQ
+%%     extends { RR, QQ_star,
+%%               Field[\QQ,QQ_NE,+,-,DOT,/\],
+%%               Field[\QQ,QQ_NE,+,-,TIMES,/\],
+%%               Field[\QQ,QQ_NE,+,-,juxtaposition,/\],
+%%               TotalOrderOperators[\QQ,<,<=,>=,>,CMP\],
+%%               PartialOrderAndLattice[\QQ,<=,MIN,MAX\] }
+%%   coerce(x: Identity[\+\])
+%%   coerce(x: Identity[\DOT\])
+%%   coerce(x: Identity[\TIMES\])
+%%   coerce(x: Identity[\juxtaposition\])
+%%   coerce(x: Zero[\DOT\])
+%%   coerce(x: Zero[\TIMES\])
+%%   coerce(x: Zero[\juxtaposition\])
+%%   opr juxtaposition(self, other: QQ): QQ
+%%   opr +(self): QQ
+%%   opr +(self, other: QQ): QQ
+%%   opr -(self): QQ
+%%   opr -(self, other: QQ): QQ
+%%   opr DOT(self, other: QQ): QQ
+%%   opr TIMES(self, other: QQ): QQ
+%%   opr /(self): QQ_star
+%%   opr /(self, other: QQ): QQ_splat
+%%   opr ^(self, power: ZZ): QQ_splat
+%%   opr <(self, other: QQ): Boolean
+%%   opr <=(self, other: QQ): Boolean
+%%   opr =(self, other: QQ): Boolean
+%%   opr >=(self, other: QQ): Boolean
+%%   opr >(self, other: QQ): Boolean
+%%   opr CMP(self, other: QQ_star): TotalComparison
+%%   opr CMP(self, other: QQ_splat): Comparison
+%%   opr MAX(self, other: QQ): QQ
+%%   opr MIN(self, other: QQ): QQ
+%%   opr MAXNUM(self, other: QQ): QQ
+%%   opr MINNUM(self, other: QQ): QQ
+%%   opr |self| : QQ_GE
+%%   signum(self): ZZ
+%%   numerator(self): ZZ
+%%   denominator(self): ZZ
+%%   floor(self): ZZ
+%%   opr |\ self /|: ZZ
+%%   ceiling(self): ZZ
+%%   opr |/ self \|: ZZ
+%%   round(self): ZZ
+%%   truncate(self): ZZ
+%%   opr ||\ self /||: NN
+%%   opr ||/ self \||: NN
+%%   opr |||\ self /|||: NN
+%%   opr |||/ self \|||: NN
+%%   realpart(self): QQ
+%%   imagpart(self): QQ
+%%   check(self): QQ throws CastError
+%%   check_star(self): QQ_star throws CastError
+%%   check_LT(self): QQ_LT throws CastError
+%%   check_LE(self): QQ_LE throws CastError
+%%   check_GE(self): QQ_GE throws CastError
+%%   check_GT(self): QQ_GT throws CastError
+%%   check_NE(self): QQ_NE throws CastError
+%%   check_star_LT(self): QQ_star_LT throws CastError
+%%   check_star_LE(self): QQ_star_LE throws CastError
+%%   check_star_GE(self): QQ_star_GE throws CastError
+%%   check_star_GT(self): QQ_star_GT throws CastError
+%%   check_star_NE(self): QQ_star_NE throws CastError
+%%   check_splat_LT(self): QQ_splat_LT throws CastError
+%%   check_splat_LE(self): QQ_splat_LE throws CastError
+%%   check_splat_GE(self): QQ_splat_GE throws CastError
+%%   check_splat_GT(self): QQ_splat_GT throws CastError
+%%   check_splat_NE(self): QQ_splat_NE throws CastError
+%% end
+\begin{Fortress}
+\(\KWD{trait}\:\mathbb{Q}\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\mathbb{R}, \mathbb{Q}^*,\)\\
+\(              \TYP{Field}\llbracket\mathbb{Q},\mathbb{Q}_{\neq},+,-,\cdot,/\rrbracket,\)\\
+\(              \TYP{Field}\llbracket\mathbb{Q},\mathbb{Q}_{\neq},+,-,\times,/\rrbracket,\)\\
+\(              \TYP{Field}\llbracket\mathbb{Q},\mathbb{Q}_{\neq},+,-,\KWD{juxtaposition},/\rrbracket,\)\\
+\(              \TYP{TotalOrderOperators}\llbracket\mathbb{Q},<,\leq,\geq,>,\OPR{CMP}\rrbracket,\)\\
+\(              \TYP{PartialOrderAndLattice}\llbracket\mathbb{Q},\leq,\OPR{MIN},\OPR{MAX}\rrbracket\,\}\)\-\-\\\poptabs\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket+\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\cdot\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\times\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\KWD{juxtaposition}\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Zero}\llbracket\cdot\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Zero}\llbracket\times\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Zero}\llbracket\KWD{juxtaposition}\rrbracket)\)\\
+\(  \KWD{opr}\;\;\KWD{juxtaposition}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}\)\\
+\(  \KWD{opr} +(\KWD{self})\COLON \mathbb{Q}\)\\
+\(  \KWD{opr} +(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}\)\\
+\(  \KWD{opr} -(\KWD{self})\COLON \mathbb{Q}\)\\
+\(  \KWD{opr} -(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}\)\\
+\(  \KWD{opr} \mathord{\cdot}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}\)\\
+\(  \KWD{opr} \mathord{\times}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}\)\\
+\(  \KWD{opr} /(\KWD{self})\COLON \mathbb{Q}^*\)\\
+\(  \KWD{opr} /(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}^{\#}\)\\
+\(  \KWD{opr} \mathord{\hbox{\tt\char'136}}(\KWD{self}, \VAR{power}\COLON \mathbb{Z})\COLON \mathbb{Q}^{\#}\)\\
+\(  \KWD{opr} \mathord{<}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\leq}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{=}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\geq}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{>}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\OPR{CMP}}(\KWD{self}, \VAR{other}\COLON \mathbb{Q}^*)\COLON \TYP{TotalComparison}\)\\
+\(  \KWD{opr} \mathord{\OPR{CMP}}(\KWD{self}, \VAR{other}\COLON \mathbb{Q}^{\#})\COLON \TYP{Comparison}\)\\
+\(  \KWD{opr} \mathord{\OPR{MAX}}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}\)\\
+\(  \KWD{opr} \mathord{\OPR{MIN}}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}\)\\
+\(  \KWD{opr} \mathord{\OPR{MAXNUM}}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}\)\\
+\(  \KWD{opr} \mathord{\OPR{MINNUM}}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}\)\\
+\(  \KWD{opr} \left|\mathord{\KWD{self}}\right| \mathrel{\mathtt{:}}\:\mathbb{Q}_{\geq}\)\\
+\(  \VAR{signum}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \VAR{numerator}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \VAR{denominator}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \VAR{floor}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \lfloor \mathord{\KWD{self}} \rfloor\COLON \mathbb{Z}\)\\
+\(  \VAR{ceiling}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \lceil \mathord{\KWD{self}} \rceil\COLON \mathbb{Z}\)\\
+\(  \VAR{round}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \VAR{truncate}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \lhfloor \mathord{\KWD{self}} \rhfloor\COLON \mathbb{N}\)\\
+\(  \KWD{opr} \lhceil \mathord{\KWD{self}} \rhceil\COLON \mathbb{N}\)\\
+\(  \KWD{opr} \lhhfloor \mathord{\KWD{self}} \rhhfloor\COLON \mathbb{N}\)\\
+\(  \KWD{opr} \lhhceil \mathord{\KWD{self}} \rhhceil\COLON \mathbb{N}\)\\
+\(  \VAR{realpart}(\KWD{self})\COLON \mathbb{Q}\)\\
+\(  \VAR{imagpart}(\KWD{self})\COLON \mathbb{Q}\)\\
+\(  \VAR{check}(\KWD{self})\COLON \mathbb{Q} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^*(\KWD{self})\COLON \mathbb{Q}^* \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}_{<}(\KWD{self})\COLON \mathbb{Q}_{<} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}_{\leq}(\KWD{self})\COLON \mathbb{Q}_{\leq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}_{\geq}(\KWD{self})\COLON \mathbb{Q}_{\geq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}_{>}(\KWD{self})\COLON \mathbb{Q}_{>} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}_{\neq}(\KWD{self})\COLON \mathbb{Q}_{\neq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^*_{<}(\KWD{self})\COLON \mathbb{Q}^*_{<} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^*_{\leq}(\KWD{self})\COLON \mathbb{Q}^*_{\leq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^*_{\geq}(\KWD{self})\COLON \mathbb{Q}^*_{\geq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^*_{>}(\KWD{self})\COLON \mathbb{Q}^*_{>} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^*_{\neq}(\KWD{self})\COLON \mathbb{Q}^*_{\neq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^{\#}_{<}(\KWD{self})\COLON \mathbb{Q}^{\#}_{<} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^{\#}_{\leq}(\KWD{self})\COLON \mathbb{Q}^{\#}_{\leq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^{\#}_{\geq}(\KWD{self})\COLON \mathbb{Q}^{\#}_{\geq} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^{\#}_{>}(\KWD{self})\COLON \mathbb{Q}^{\#}_{>} \KWD{throws}\:\TYP{CastError}\)\\
+\(  \VAR{check}^{\#}_{\neq}(\KWD{self})\COLON \mathbb{Q}^{\#}_{\neq} \KWD{throws}\:\TYP{CastError}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+
+%%   coerce(x: Identity[\+\])
+%%   coerce(x: Identity[\DOT\])
+%%   coerce(x: Identity[\TIMES\])
+%%   coerce(x: Identity[\juxtaposition\])
+%%   coerce(x: Zero[\DOT\])
+%%   coerce(x: Zero[\TIMES\])
+%%   coerce(x: Zero[\juxtaposition\])
+\Method{\EXP{\KWD{coerce}(\VAR{x}\COLON \TYP{Identity}\llbracket+\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(\VAR{x}\COLON \TYP{Identity}\llbracket\cdot\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(\VAR{x}\COLON \TYP{Identity}\llbracket\times\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(\VAR{x}\COLON \TYP{Identity}\llbracket\KWD{juxtaposition}\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(\VAR{x}\COLON \TYP{Zero}\llbracket\cdot\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(\VAR{x}\COLON \TYP{Zero}\llbracket\times\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(\VAR{x}\COLON \TYP{Zero}\llbracket\KWD{juxtaposition}\rrbracket)}}
+
+The identity for \EXP{+} is 0.
+
+The identity for \KWD{juxtaposition} or \EXP{\cdot} or \EXP{\times} is 1.
+
+The zero for \KWD{juxtaposition} or \EXP{\cdot} or \EXP{\times} is 0.
+
+
+
+%  opr juxtaposition(self, other: QQ): QQ
+\Method{\EXP{\KWD{opr}\ \KWD{juxtaposition}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}}}
+
+Juxtaposition of rational expressions is equivalent to using the multiplication operator \EXP{\cdot}.
+
+
+%  opr +(self): QQ
+\Method{\EXP{\KWD{opr} +(\KWD{self})\COLON \mathbb{Q}}}
+
+The unary addition operator \EXP{+} simply returns its argument.
+
+
+%  opr +(self, other: QQ): QQ
+\Method{\EXP{\KWD{opr} +(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}}}
+
+The binary addition operator \EXP{+} returns the sum of its arguments.
+
+For types \EXP{\mathbb{Q}^*} and \EXP{\mathbb{Q}^{\#}}, the sum of an infinity
+and either a finite rational or another infinity of the same sign is equal to the given infinity,
+but the sum of infinities of differing sign is \EXP{0/0},
+and the sum of \EXP{0/0} and any rational value is \EXP{0/0}.
+
+
+%  opr -(self): QQ
+\Method{\EXP{\KWD{opr} -(\KWD{self})\COLON \mathbb{Q}}}
+
+The unary negation operator \EXP{-} returns the negative of its argument.
+
+For types \EXP{\mathbb{Q}^*} and \EXP{\mathbb{Q}^{\#}}, the negative of
+\EXP{+\infty} is \EXP{-\infty}, the negative of \EXP{-\infty} is \EXP{+\infty},
+and the negative of \EXP{0/0} is \EXP{0/0}.
+
+
+%  opr -(self, other: QQ): QQ
+\Method{\EXP{\KWD{opr} -(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}}}
+
+The binary subtraction operator \EXP{-} returns the difference of its arguments,
+which is equal to the sum of (a) the first argument and (b) the negation of the second argument.
+
+
+%%  opr DOT(self, other: QQ): QQ
+%%  opr TIMES(self, other: QQ): QQ
+\Method{\EXP{\KWD{opr} \mathord{\cdot}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}}}
+\Method*{\EXP{\KWD{opr} \mathord{\times}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}}}
+
+The multiplication operator \EXP{\cdot} (\STR{DOT}) returns the product of its arguments.
+The multiplication operator \EXP{\times} (\STR{TIMES}) does exactly the same thing.
+
+For types \EXP{\mathbb{Q}^*} and \EXP{\mathbb{Q}^{\#}}, the product of
+\EXP{0/0} and any rational value is \EXP{0/0}, and the product of
+zero and an infinity (regardless of sign) is \EXP{0/0};
+the product of an infinity and any rational value other than zero and \EXP{0/0}
+is an infinity whose sign is positive if and only if the two arguments have the same sign.
+
+
+%  opr /(self): QQ_star
+\Method{\EXP{\KWD{opr} /(\KWD{self})\COLON \mathbb{Q}^*}}
+
+The unary reciprocal operator \EXP{/} returns the reciprocal of its argument.
+The reciprocal of zero is \EXP{+\infty} (and therefore the result type of \EXP{/}
+when given an arguments of type \EXP{\mathbb{Q}} is necessarily \EXP{\mathbb{Q}^*}).
+
+For types \EXP{\mathbb{Q}^*} and \EXP{\mathbb{Q}^{\#}}, the reciprocal of
+either \EXP{+\infty} or \EXP{-\infty} is zero, and the reciprocal of \EXP{0/0} is \EXP{0/0}.
+
+
+%  opr /(self, other: QQ): QQ_star
+\Method{\EXP{\KWD{opr} /(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}^*}}
+
+The binary division operator \EXP{/} returns the quotient of its arguments,
+which is equal to the product of (a) the first argument and (b) the reciprocal of the second argument.
+
+
+%  opr ^(self, power: ZZ): QQ_splat
+\Method{\EXP{\KWD{opr} \mathord{\hbox{\tt\char'136}}(\KWD{self}, \VAR{power}\COLON \mathbb{Z})\COLON \mathbb{Q}^{\#}}}
+
+Exponentiation of a rational number to an integer power produces a rational result.
+If the \VAR{power} is \EXP{0}, then the result is always \EXP{1}, even if the rational number base is \EXP{0}
+(this definition is somewhat arbitrary but is computationally useful).
+
+%%  property FORALL(x, y:ZZ) x^y = 1/(x^(-y))
+%%  property FORALL(x, y:ZZ) x^y = x^(|\ y/2 /|) x^(|/ y/2 \|)
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{property} \forall(x, y\COLONOP\mathbb{Z})\; x^{y} = 1/(x^{-y})\)\\
+\( \KWD{property} \forall(x, y\COLONOP\mathbb{Z})\; x^{y} = x^{(\lfloor y/2 \rfloor)} x^{(\lceil y/2 \rceil)}\)\-\\\poptabs
+\end{Fortress}
+
+
+%  opr <(self, other: QQ): Boolean
+%  opr <=(self, other: QQ): Boolean
+%  opr =(self, other: QQ): Boolean
+%  opr >=(self, other: QQ): Boolean
+%  opr >(self, other: QQ): Boolean
+\Method{\EXP{\KWD{opr} \mathord{<}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\KWD{opr} \mathord{\leq}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\KWD{opr} \mathord{=}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\KWD{opr} \mathord{\geq}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\KWD{opr} \mathord{>}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \TYP{Boolean}}}
+
+The comparison operators \EXP{<}, \EXP{\leq}, \EXP{=}, \EXP{\geq}, and \EXP{>}
+allow any rational value to be compared numerically to any other rational value.
+
+For types \EXP{\mathbb{Q}^*} and \EXP{\mathbb{Q}^{\#}},
+the rational values are totally ordered except for \EXP{0/0},
+which is unordered with respect to all other rational values;
+moreover, for compatibility with floating-point arithmetic, \EXP{0/0} is
+unordered with respect to itself, and therefore these five comparison operators
+always return \VAR{false} if either argument is \EXP{0/0}.
+The value \EXP{-\infty} is less than any finite rational value,
+and \EXP{+\infty} is greater than any finite rational value.
+
+For \EXP{\neq} \see{operator-NE}.
+
+%  opr CMP(self, other: QQ): TotalComparison
+%  opr CMP(self, other: QQ_splat): Comparison
+\Method{\EXP{\KWD{opr} \mathord{\OPR{CMP}}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \TYP{TotalComparison}}}
+\Method*{\EXP{\KWD{opr} \mathord{\OPR{CMP}}(\KWD{self}, \VAR{other}\COLON \mathbb{Q}^{\#})\COLON \TYP{Comparison}}}
+
+The \OPR{CMP} operator compares the arguments and returns one of the four values
+\TYP{LessThan}, \TYP{EqualTo}, \TYP{GreaterThan}, and \TYP{Unordered}.
+If the argument types are such that the result cannot be \TYP{Unordered},
+then the result has type \TYP{TotalComparison} rather than simply \TYP{Comparison}.
+
+
+%  opr MAX(self, other: QQ): QQ
+%  opr MIN(self, other: QQ): QQ
+%  opr MAXNUM(self, other: QQ): QQ
+%  opr MINNUM(self, other: QQ): QQ
+\Method{\EXP{\KWD{opr} \mathord{\OPR{MAX}}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}}}
+\Method*{\EXP{\KWD{opr} \mathord{\OPR{MIN}}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}}}
+\Method*{\EXP{\KWD{opr} \mathord{\OPR{MAXNUM}}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}}}
+\Method*{\EXP{\KWD{opr} \mathord{\OPR{MINNUM}}(\KWD{self}, \VAR{other}\COLON \mathbb{Q})\COLON \mathbb{Q}}}
+
+The operators \OPR{MAX} and \OPR{MAXNUM} return whichever argument is larger
+in the total order defined by \EXP{<}, \EXP{\leq}, \EXP{=}, \EXP{\geq}, \EXP{>}, and \OPR{CMP},
+and the operators \OPR{MIN} and \OPR{MINNUM} return whichever argument is smaller.
+(For all four, if the arguments are equal, then the result equals that same value.)
+
+For type \EXP{\mathbb{Q}^{\#}}, \OPR{MAXNUM} and \OPR{MINNUM} differ from
+\OPR{MAX} and \OPR{MIN} in their treatment of \EXP{0/0}:
+if one argument is \EXP{0/0} and the other is not, then \OPR{MAX} or \OPR{MIN} returns \EXP{0/0} but
+\OPR{MAXNUM} or \OPR{MINNUM} returns the argument that is not \EXP{0/0}.
+
+
+%  opr |self| : QQ_GE
+\Method{\EXP{\KWD{opr} \left|\mathord{\KWD{self}}\right| \mathrel{\mathtt{:}} \mathbb{Q}_{\geq}}}
+
+The absolute value operator \EXP{\left|\ldots\right|} returns the negative of this rational number
+if the argument is less than zero, and otherwise returns the argument.
+
+For type \EXP{\mathbb{Q}^{\#}}, the absolute value of \EXP{0/0} is \EXP{0/0}.
+
+
+%  signum(self): ZZ
+\Method{\EXP{\VAR{signum}(\KWD{self})\COLON \mathbb{Z}}}
+
+The method \VAR{signum} returns \EXP{-1} if this rational number is less than zero,
+\EXP{0} if this rational number is zero, and \EXP{1} if this rational number is greater than zero.
+
+For type \EXP{\mathbb{Q}^{\#}}, the signum of \EXP{0/0} is \EXP{0/0}.
+
+
+%  numerator(self): ZZ
+%  denominator(self): ZZ
+\Method{\EXP{\VAR{numerator}(\KWD{self})\COLON \mathbb{Z}}}
+\Method*{\EXP{\VAR{denominator}(\KWD{self})\COLON \mathbb{Z}}}
+
+The method \VAR{numerator} returns the numerator of this rational number,
+and the method \VAR{denominator} returns the denominator of this rational number,
+when this rational number is represented in lowest terms (such that the greatest common divisor
+of numerator and denominator is 1).
+
+For types \EXP{\mathbb{Q}^*} and \EXP{\mathbb{Q}^{\#}},
+the numerator of \EXP{+\infty} is \EXP{1},
+the numerator of \EXP{-\infty} is \EXP{-1},
+and the numerator of \EXP{0/0} is \EXP{0};
+the denominator of \EXP{+\infty}, \EXP{-\infty}, or \EXP{0/0} is \EXP{0}.
+
+
+%  floor(self): ZZ
+%  opr LF self RF: ZZ
+%  ceiling(self): ZZ
+%  opr LC self RC: ZZ
+%  truncate(self): ZZ
+%  round(self): ZZ
+\Method{\EXP{\VAR{floor}(\KWD{self})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \lfloor \mathord{\KWD{self}} \rfloor\COLON \mathbb{Z}}}
+\Method*{\EXP{\VAR{ceiling}(\KWD{self})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \lceil \mathord{\KWD{self}} \rceil\COLON \mathbb{Z}}}
+\Method*{\EXP{\VAR{round}(\KWD{self})\COLON \mathbb{Z}}}
+\Method*{\EXP{\VAR{truncate}(\KWD{self})\COLON \mathbb{Z}}}
+
+The method \VAR{floor}, likewise the enclosing operator \EXP{\lfloor\ldots\rfloor},
+returns the largest integer that is not greater than this rational number.
+
+The method \VAR{ceiling}, likewise the enclosing operator \EXP{\lceil\ldots\rceil},
+returns the smallest integer that is not less than this rational number.
+
+The method \VAR{round} returns the integer that is closest to this rational number,
+but if this rational number is exactly halfway between two consecutive integers,
+then \VAR{round} returns whichever of the two integers is even.
+
+The method \VAR{truncate} returns the ceiling of this rational number if it is
+negative, and otherwise returns the floor of this rational number.
+(This has the effect of taking the floor of the magnitude, also called
+``rounding toward zero.'')
+
+For types \EXP{\mathbb{Q}^*} and \EXP{\mathbb{Q}^{\#}},
+all of these methods simply return the argument if it is
+\EXP{+\infty}, \EXP{-\infty}, or \EXP{0/0}.
+
+
+%%   opr ||\ self /||: NN
+%%   opr ||/ self \||: NN
+%%   opr |||\ self /|||: NN
+%%   opr |||/ self \|||: NN
+\begin{Fortress}
+{\tt~~}\pushtabs\=\+\(  \KWD{opr} \lhfloor \mathord{\KWD{self}} \rhfloor\COLON \mathbb{N}\)\\
+\(  \KWD{opr} \lhceil \mathord{\KWD{self}} \rhceil\COLON \mathbb{N}\)\\
+\(  \KWD{opr} \lhhfloor \mathord{\KWD{self}} \rhhfloor\COLON \mathbb{N}\)\\
+\(  \KWD{opr} \lhhceil \mathord{\KWD{self}} \rhhceil\COLON \mathbb{N}\)\-\\\poptabs
+\end{Fortress}
+
+The hyperfloor operation \EXP{\lhfloor{}x\rhfloor} computes \EXP{2^{(\lfloor {log}_{2} x \rfloor)}}
+and returns the result as a natural number.
+If the argument is equal to \EXP{0}, the result is \EXP{0}.
+If the argument is negative, an \TYP{InvalidArgument} is thrown.
+
+The hyperceiling operation \EXP{\lhceil{}x\rhceil} computes \EXP{2^{(\lceil {log}_{2} x \rceil)}}
+and returns the result as a natural number.
+If the argument is equal to \EXP{0}, the result is \EXP{0}.
+If the argument is negative, an \TYP{InvalidArgument} is thrown.
+
+The hyperhyperfloor operation \EXP{\lhhfloor{}x\rhhfloor} computes \EXP{2^{(\lhfloor {log}_{2} x \rhfloor)}}
+and returns the result as a natural number.
+If the argument is equal to \EXP{0} or \EXP{1}, the result is the same as the argument.
+If the argument is negative, an \TYP{InvalidArgument} is thrown.
+
+The hyperhyperceiling operation \EXP{\lhhceil{}x\rhhceil} computes \EXP{2^{(\lhceil {log}_{2} x \rhceil)}}
+and returns the result as a natural number.
+If the argument is equal to \EXP{0} or \EXP{1}, the result is the same as the argument.
+If the argument is negative, an \TYP{InvalidArgument} is thrown.
+
+
+%  realpart(self): QQ
+\Method{\EXP{\VAR{realpart}(\KWD{self})\COLON \mathbb{Q}}}
+
+The method \VAR{realpart} for a rational number simply returns its argument.
+
+
+%  imagpart(self): QQ
+\Method{\EXP{\VAR{imagpart}(\KWD{self})\COLON \mathbb{Q}}}
+
+The method \VAR{imagpart} for a rational number simply returns zero.
+
+
+\newpage
+%  check(self): QQ throws CastError
+%  check_star(self): QQ_star throws CastError
+%  check_LT(self): QQ_LT throws CastError
+%  check_LE(self): QQ_LE throws CastError
+%  check_GE(self): QQ_GE throws CastError
+%  check_GT(self): QQ_GT throws CastError
+%  check_NE(self): QQ_NE throws CastError
+%  check_star_LT(self): QQ_star_LT throws CastError
+%  check_star_LE(self): QQ_star_LE throws CastError
+%  check_star_GE(self): QQ_star_GE throws CastError
+%  check_star_GT(self): QQ_star_GT throws CastError
+%  check_star_NE(self): QQ_star_NE throws CastError
+%  check_splat_LT(self): QQ_splat_LT throws CastError
+%  check_splat_LE(self): QQ_splat_LE throws CastError
+%  check_splat_GE(self): QQ_splat_GE throws CastError
+%  check_splat_GT(self): QQ_splat_GT throws CastError
+%  check_splat_NE(self): QQ_splat_NE throws CastError
+\Method{\EXP{\VAR{check}(\KWD{self})\COLON \mathbb{Q} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^*(\KWD{self})\COLON \mathbb{Q}^* \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}_{<}(\KWD{self})\COLON \mathbb{Q}_{<} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}_{\leq}(\KWD{self})\COLON \mathbb{Q}_{\leq} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}_{\geq}(\KWD{self})\COLON \mathbb{Q}_{\geq} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}_{>}(\KWD{self})\COLON \mathbb{Q}_{>} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}_{\neq}(\KWD{self})\COLON \mathbb{Q}_{\neq} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^*_{<}(\KWD{self})\COLON \mathbb{Q}^*_{<} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^*_{\leq}(\KWD{self})\COLON \mathbb{Q}^*_{\leq} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^*_{\geq}(\KWD{self})\COLON \mathbb{Q}^*_{\geq} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^*_{>}(\KWD{self})\COLON \mathbb{Q}^*_{>} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^*_{\neq}(\KWD{self})\COLON \mathbb{Q}^*_{\neq} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^{\#}_{<}(\KWD{self})\COLON \mathbb{Q}^{\#}_{<} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^{\#}_{\leq}(\KWD{self})\COLON \mathbb{Q}^{\#}_{\leq} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^{\#}_{\geq}(\KWD{self})\COLON \mathbb{Q}^{\#}_{\geq} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^{\#}_{>}(\KWD{self})\COLON \mathbb{Q}^{\#}_{>} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^{\#}_{\neq}(\KWD{self})\COLON \mathbb{Q}^{\#}_{\neq} \KWD{throws} \TYP{CastError}}}
+
+Each of these methods checks this rational number to see whether it belongs
+to the result type of the method.  If, the number is returned; if not,
+a \TYP{CastError} is thrown.

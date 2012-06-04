@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component MaybeTest7
+export Executable
+
+trait TestEquality[\S\] comprises S
+    testEquals(other:S): Boolean = self SEQV other
+end
+
+object Baz extends TestEquality[\Baz\]
+  getter asString() = "Baz"
+end
+
+value trait TestMaybe[\T extends TestEquality[\T\]\] extends { TestEquality[\TestMaybe[\T\]\] }
+        comprises { TestNothingObject[\T\], TestJust[\T\] }
+end
+
+value object TestJust[\T extends TestEquality[\T\]\](x: T) extends TestMaybe[\T\]
+    testEquals(other: TestJust[\T\]): Boolean = x.testEquals(other.x)
+end
+
+value object TestNothingObject[\T extends TestEquality[\T\]\] extends TestMaybe[\T\]
+end
+
+
+run(): () = do
+    assert(TestNothingObject[\Baz\].testEquals(TestNothingObject[\Baz\])) 
+    deny(TestNothingObject[\Baz\].testEquals(TestJust[\Baz\](Baz)))
+    deny(TestJust[\Baz\](Baz).testEquals(TestNothingObject[\Baz\]))
+    assert(TestJust[\Baz\](Baz).testEquals(TestJust[\Baz\](Baz)))
+    println "PASS"
+end
+
+end

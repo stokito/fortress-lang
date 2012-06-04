@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component BigNum
+export Executable
+
+factorial(n:ZZ32):ZZ
+    requires {n >= 0}
+    = if n = 0 then big(1)
+    else (factorial (n-1)) n
+    end
+
+run():()=do
+  x:ZZ = 1934791870947204798109283471902037419
+  y:ZZ = big(1)
+  assert (x+y ,1934791870947204798109283471902037420, "BigNum + doesn't work")
+  assert (factorial(5), 120, "factorial(5)=120")
+  assert (factorial(30) DIV factorial(29), 30, "factorial test failed")
+end
+
+end

@@ -1,0 +1,45 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component objectTest7
+export Executable
+
+trait T
+  getI():ZZ32
+  getJ():ZZ32
+end
+
+object A(i:ZZ32, j:ZZ32) extends T
+
+     k:ZZ32 = 4
+     getI():ZZ32 = i
+     getJ():ZZ32 = j
+
+  b(n:ZZ32):T = object extends T
+     m:ZZ32 = n
+     getI():ZZ32 = i
+     getJ():ZZ32 = m
+  end
+
+
+end
+
+
+run():()=do
+  a:A = A(1,2)
+  b:T = a.b(3)
+  println("a.getI() = " a.getI())
+  println("a.getJ() = " a.getJ())
+  println("b.getI() = " b.getI())
+  println("b.getJ() = " b.getJ())
+
+end
+end

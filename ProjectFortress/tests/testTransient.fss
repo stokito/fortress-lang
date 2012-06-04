@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component testTransient
+export Executable
+
+object Method(a:ZZ32, b:ZZ32)
+  x = b
+  m() = a
+  n() = x
+end
+
+run() = do
+  o = Method(5, 8)
+  assert(o.m() = 5)
+  assert(o.n() = 8)
+end
+
+end

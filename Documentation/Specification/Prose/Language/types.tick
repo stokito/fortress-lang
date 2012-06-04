@@ -1,0 +1,1056 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newchap{Types}{types}
+
+Fortress provides a rich type system 
+for describing expressions and values.
+% Fortress types represent sets of values 
+% (i.e., types are first-order).
+Fortress includes mechanisms 
+for defining both nominal and structural types. 
+The type system supports \emph{parametric polymorphism} 
+(i.e., \emph{generic types})
+% only "let-polymorphism" (not first-class polymorphism)
+and \emph{quantified types} 
+(i.e., \emph{universal types} and \emph{existential types}).
+% only for functions
+Types are partially ordered by \emph{subtyping}
+(also called \emph{conformance})
+and can be combined using \emph{union} and \emph{intersection}.
+% Victor: I wrote it this way to get the word "combined" in here.
+Two types are \emph{equivalent} 
+if each is a subtype of the other;
+equivalent types are the same type.
+\note{Victor: This is necessary for subtyping to be a partial order.
+(This is why conformance is only a pre-order in Scala.)}
+In addition to subtyping and type equivalence,
+types may be related by \emph{exclusion},
+\emph{coercion}, 
+or \emph{covering}.
+
+Fortress types represent sets of values 
+(i.e., types are first-order);
+a value is an \emph{instance} of a type to which it belongs.
+% Victor: Do we want to use "instance"?  We could do without it.
+%   This is a general issue: we frequently have multiple terms
+%   for the same concept (sometimes they are different parts of speech)
+%   and we use all these terms, so I define them.  In a "real" specification,
+%   we would probably want to be more economical, and just make sure
+%   we use the same term.
+%   I'm going to see if we can _easily_ eliminate uses of "instance".
+%   (I'll leave the use commented, so we can easily search for it.)
+Fortress is \emph{strongly typed}: 
+Every expression has a \emph{static type}; 
+every value has an \emph{ilk},\footnote{%
+The notion of \emph{ilk} corresponds to what is sometimes called 
+the \emph{class} or \emph{run-time type} of a value.
+We prefer \emph{ilk} because this utility of this 
+because the notion---and usefulness---of the most specific type 
+to which a value belongs is not confined to run time. 
+We prefer it to the term ````class'', 
+which is used in The Java Language Specification [7], 
+because not every language uses the term ````class'' 
+or requires that every value belong to a class.
+For those who like acronyms, 
+we offer the mnemonic retronyms ````implementation-level kind'' and ````intrinsically least kind''.}
+which is the most specific type to which the value belongs;
+and the ilk of a value 
+that results from evaluating an expression 
+is always a subtype of the static type of the expression.
+
+\redundant[other parts of this chapter]
+
+
+\newsec{Kinds of Types}{type-kinds}
+
+% Include grammar for types?
+% Note that these types cannot in general be written down.
+\begin{figure}
+{\small
+\begin{verbatim}
+Type ::=
+      SimpleType
+    | FunctionType
+    | UniversalType
+    | ExistentialType
+    | UnionType
+    | IntersectionType
+SimpleType ::=
+      Any
+    | Bottom
+    | ()
+    | TraitType
+    | TupleType
+    | ArrowType
+TraitType ::=
+      Id
+    | Id[\ StaticArgList \]
+TupleType ::= ( Type, TypeList )
+ArrowType ::= io? SimpleType -> SimpleType Throws?
+FunctionType ::= fn{ GeneralizedArrowTypeList }
+GeneralizedArrowType ::=
+      ArrowType
+    | forall[ TypeParamList ] GenericArrowType
+UniversalType ::= forall[ TypeParamList? ] GenericSimpleType
+ExistentialType ::= exists[ TypeParamList? ] GenericSimpleType
+UnionType ::= Union{ SimpleTypeList? }
+IntersectionType ::= Intersect{ SimpleTypeList? }
+
+Throws ::= throws UnionType
+StaticArg ::= Type | Value | Opr
+TypeParam ::= Id <: IntersectionType
+
+GenericArrowType ::= io? GenericSimpleType -> GenericSimpleType GenericThrows?
+GenericThrows ::= throws GenericUnionType
+GenericUnionType ::= union{ GenericSimpleTypeList }
+GenericSimpleType ::= 
+      SimpleType
+    | GenericTraitType
+    | GenericTupleType
+    | GenericArrowType
+    | TypeVar
+
+TypeList ::= Type (, Type)*
+StaticArgList ::= StaticArg (, StaticArg)*
+GeneralizedArrowTypeList ::= GeneralizedArrowType (, GeneralizedArrowType)*
+TypeParamList ::= TypeParam (, TypeParam)*
+SimpleTypeList ::= SimpleType (, SimpleType)*
+GenericSimpleTypleList ::= GenericSimpleType (, GenericSimpleType)*
+\end{verbatim}}
+\caption{Draft of a grammar for types.
+It is buggy in several ways, but I don't think it makes sense to write out a full grammar 
+because it seems like it will be quite repetitious, 
+so as to distinguish generic types, expressible types, etc.}
+\end{figure}
+
+% Victor: Can we have tuple of quantified types?
+
+Fortress supports the following kinds of types:
+\begin{itemize}
+\item the types \Any, \Bottom\ and \Void\ (pronounced ````void'');
+\item \emph{trait types}, some of which are \emph{object trait types};
+% \item object expression types;
+\item \emph{tuple types};
+\item \emph{arrow types};
+\item \emph{function types};
+\item \emph{combined types}, 
+   which comprise \emph{union types} and \emph{intersection types};
+\item \emph{quantified types}, 
+   which comprise \emph{universal types} and \emph{existential types}.
+\end{itemize}
+
+Function types, quantified types, combined types and the type \Bottom\ 
+are not \emph{expressible}: 
+they cannot appear in a program.
+See \secref{expressible-types} for a precise specification 
+of which types are expressible.
+
+A type is \emph{simple} 
+% Victor: perhaps "basic" is better
+if it is \Any, \Bottom, \Void, 
+a trait type, 
+a tuple type 
+or an arrow type.
+% Victor: a union or intersection type could be simple 
+%    if it is equivalent to one of these.
+%    What about a quantified type with no type variable bindings?
+
+% Victor: Following doesn't make sense if there are no object expression types.
+% Collectively,
+% trait types and object expression types are \emph{defined} types;
+% the trait and object declarations and object expressions
+% are the types' \emph{definitions}.
+
+\newsec{\Any, \Bottom\ and the Type Hierarchy}{type-hierarchy}
+\seclabel{bottom-type}
+
+Types are partially ordered by subtyping (see \secref{subtyping}),
+which defines the \emph{type hierarchy}.
+\Any\ is the top of the type hierarchy:
+every type is a subtype of \Any\
+and every value belongs to \Any.
+% and every value is an instance of \Any.
+The only type that \Any\ excludes is \Bottom.
+
+\Bottom\ is the bottom of the type hierarchy:
+every type is a supertype of \Bottom.
+It is \emph{uninhabited}: 
+% Do we want to define this term?  
+% I don't know that we use it anywhere.
+no value belongs to \Bottom,  
+%no value is an instance of \Bottom
+and \Bottom\ excludes every type (including itself).
+\Bottom\ is the only type that excludes itself.
+\Bottom\ is also inexpressible:
+it cannot be written in a program 
+(see \secref{expressible-types})
+
+\redundant[\secref{subtyping}]
+
+\note{Victor: 
+Commented out definition of \emph{leaf type}.}
+% A type that has no strict subtypes other than \Bottom\ 
+% is called a \emph{leaf type}.
+
+\newsec{Type \Void}{void-type}
+
+The type \Void\ 
+(pronounced ````void'')
+is the ilk of the value \Void;
+no other value belongs to \Void.
+% It is a leaf type
+% (i.e., its only strict subtype is \Bottom), 
+Its only strict subtype is \Bottom\ 
+and its only strict supertype is \Any.
+\Void\ excludes every type other than \Any.
+
+\newsec{Trait Types and the Type \Object}{trait-types}
+
+\begin{Grammar}
+\emph{TraitType} &::=& \emph{Id} \\
+      &$|$& \emph{Id}$[\![$ \emph{StaticParamList} $]\!]$ \\ 
+\end{Grammar}
+% Victor: I'm a bit wary of putting syntax here
+%   because some trait types are not expressible
+%   (e.g., if it has an inexpressible type argument)
+
+A \emph{trait type} is a named type 
+defined by a trait or object declaration 
+(see \chaprefs{traits}{objects}).
+It is an \emph{object trait type}
+if it is defined by an object declaration.
+
+There is a special trait type \Object, 
+which is a supertype of 
+every trait type, arrow type and function type, 
+and of \Bottom.
+\Object excludes \Void\ and every tuple type, 
+and is a subtype of \Any.
+\note{Should \Object\ be a trait type, or its own special type?}
+
+A trait or object declaration may have \emph{static parameters}, 
+in which case it defines a \emph{generic type} with those parameters.
+% Victor: We might prefer to define generic type in its own section, 
+%   so that it applies to all types, not just trait types.
+%   I'm not sure we ever need to talk about other generic types though:
+%   all the types in extends/excludes/comprises clauses must be trait types.
+A generic type is \emph{not} a (first-order) type; 
+% (i.e., it does not represent a set of values);
+rather,
+it is a \emph{type schema} 
+whose parameters must be \emph{instantiated} 
+with \emph{static arguments} 
+to produce a trait type.
+The resulting type is an \emph{instantiation} 
+% (with the arguments) 
+of the generic type.
+% Victor: Does this sentence belong here?  (Perhaps only in traits chapter.)
+The trait or object declaration may impose conditions on the arguments 
+with which its static parameters may be instantiated.
+% Victor: I had "with which the generic type may be instantiated"
+%   which does not technically follow the terminology established above,
+%   though I don't think anyone would be confused.
+See \chapref{traits} for more of static parameters 
+and how they may be instantiated.
+
+For convenience, 
+we consider a trait or object declaration without static parameters
+to define a generic type (with no parameters)
+whose unique instantiation 
+is the trait type defined by the declaration.
+Thus, 
+properties of instantiations of generic types 
+also apply to trait types defined by 
+non-parameterized trait and object declarations.
+
+% Victor: I just made up this terminology.
+%  Is there standard terminology, or better alternatives?
+We say that one generic type $G$ 
+\emph{determines} another generic type $G'$ 
+if every parameter of $G'$ is a parameter of $G$.
+Given an instantiation $I$ of $G$, 
+the \emph{corresponding instantiation} of $G'$ 
+is the one in which the parameters of $G'$ are instantiated 
+with the corresponding arguments of $I$.
+
+% If a non-generic trait or object declaration has an \KWD{extends} clause, 
+% then the trait type it defines 
+% is a subtype of every type listed in the \KWD{extends} clause.
+% If it has an \KWD{excludes} clause
+% then the trait type it defines 
+% excludes every type listed in the \KWD{excludes} clause.
+% If it has a \KWD{comprises} clause 
+% then the trait type it defines is covered by 
+% the union of the types listed in the \KWD{comprises} clause.
+
+Every trait type is a subtype of \Object\ and \Any, 
+and a supertype of \Bottom.
+A trait or object declaration may have an \KWD{extends} clause, 
+which specifies a set of types and 
+generic types determined by the generic type defined by the declaration.
+% Victor: Do we have a term for this set?
+%   Perhaps it should be defined in the traits chapter.
+An instantiation of the generic type defined by such a declaration 
+is a subtype of every type in this set, 
+and of the corresponding instantiation of each generic type in this set.
+
+% Victor: Suppose we define the "extends set" for every trait or object declaration
+%   (it is empty if there is no extends clause).  Then we could write:
+% An instantiation of a generic type defined by a trait or object declaration 
+% is a subtype of every type in the extends set of that declaration
+% and of the corresponding instantiation of each generic type
+% in the extends set of the declaration.
+
+% A trait or object declaration may have an \KWD{extends} clause, 
+% which specifies a set of types and generic types.
+% Every parameter of any generic type in this set
+% must be a static parameter of the trait or object declaration.
+% An instantiation of the generic type defined by such a declaration 
+% is a subtype of every type in this set, 
+% and of the instantiation of each generic type in this set 
+% in which the parameters are instantiated with corresponding arguments.
+
+A static parameter of a trait declaration 
+may be declared with the \KWD{covariant} modifier.
+In this case, 
+% the generic type defined by the trait declaration 
+% is \emph{covariant} in that parameter.
+% Victor: I had the above text,
+% but it was convenient to define "covariant parameter":
+it is a \emph{covariant parameter} 
+of the generic type defined by the trait declaration.
+% Victor: the following sentence is a bit unwieldy.
+One instantiation of a generic type 
+is a subtype of another instantiation of the same generic type 
+if the argument instantiating each covariant parameter 
+in the first instantiation 
+is a subtype of the corresponding argument 
+in the second instantiation, 
+and the argument instantiating each non-covariant parameter 
+is the same in both instantiations.
+
+Every trait type excludes \Void, \Bottom\ and every tuple type.
+Every trait type other than \Object\ 
+also excludes every arrow type and function type.
+A trait declaration may have an \KWD{excludes} clause, 
+which also specifies a set of types and 
+generic types determined by the generic type defined by the declaration.
+% Victor: Do we have a term for this set?
+%   Perhaps it should be defined in the traits chapter.
+An instantiation of the generic type defined by such a declaration 
+excludes every type in this set 
+and the corresponding instantiation of each generic type in this set.
+
+% Multiple instantiation exclusion
+% Victor: I've shortened this to instantiation exclusion.
+Fortress also imposes a rule called \emph{instantiation exclusion}:
+% which defines the exclusion relation for different instantiations of a generic type:
+Two instantiations of a generic trait type exclude each other 
+if the corresponding arguments for any covariant parameter exclude each other, 
+or if the corresponding arguments for any non-covariant parameter 
+are not type equivalent.
+\note{I believe this exactly characterizes exclusion
+among different instantiations of a generic type, 
+but the rule we impose is stronger:
+Any trait that extends (possibly indirectly) 
+two instantiations of a generic type 
+must extend an \emph{expressible} instantiation of that generic type 
+that is a subtype of both.
+In other words,
+among all instantiations of a generic type 
+that are supertypes of some expressible trait type, 
+one must be a subtype of all the others, 
+and it must be expressible.
+This section should say only which instantiations exclude each other,
+as it does.
+It perhaps should make it clearer that what is said here 
+is a consequence of instantiation exclusion, 
+which is a rule applied to trait declarations.}
+
+
+% An object trait type is a leaf type:
+An object trait type has no strict subtype other than \Bottom, 
+and it excludes any type that is not its supertype.
+
+A trait declaration may have a \KWD{comprises} clause, 
+which also specifies a set of types and 
+generic types determined by the generic type of the declaration.
+An instantiation of the generic type defined by such a declaration 
+is covered by the union 
+of the types in this set 
+and the corresponding instantiations of the generic type in this set.
+
+% Victor: I'm not sure about the proper terminology here.
+A trait or object declaration may provide a \emph{coercion} from a type or a generic type.
+(See \secref{coercion-decl} and \chapref{coercion}.)
+If a trait or object declaration provides a coercion from a type, 
+then any instantiation of the generic type defined by that declaration 
+coerces that type.
+If it provides a coercion from a generic type, 
+then an instantiation of the generic type defined by that declaration 
+coerces the corresponding instantiation of the generic type of the coercion.
+
+
+\newsec{Tuple Types}{tuple-types}
+
+\begin{Grammar}
+\emph{TupleType} &::=&
+\texttt{(} \emph{Type}\EXP{,} \emph{TypeList} \texttt{)}\\
+
+\emph{TypeList} &::=& \emph{Type}(\EXP{,} \emph{Type})$^*$
+\end{Grammar}
+
+A tuple type consists of a parenthesized, comma-separated list
+of two or more types.
+
+Every tuple type is a supertype of \Bottom, 
+and a subtype of \Any.
+No other type is a supertype of all tuple types.
+Tuple types are \emph{covariant}:
+a tuple type $X$ is a subtype of tuple type $Y$
+if and only if they have the same number of element types
+and each element type of $X$ 
+is a subtype of the corresponding element type of $Y$.
+
+A tuple type excludes \Bottom, \Void, and every trait type, arrow type or function type.
+A tuple type excludes every tuple type 
+that does not have the same number of element types.
+Also, tuple types with the same number of element types exclude each other
+if any pair of corresponding element types exclude each other.
+
+Tuple types $X$ and $Y$ that do not exclude each other 
+must have the same number of elements, 
+and their intersection is defined elementwise:
+the intersection of $X$ and $Y$ 
+is equivalent to a tuple type with the same number of elements 
+in which each element type 
+is the intersection of the corresponding element types of $X$ and $Y$.
+(The intersection of tuple types---or any types---that exclude each other 
+is \Bottom.)
+
+
+\newsec{Arrow Types}{arrow-types}
+
+\begin{Grammar}
+\emph{ArrowType} &::=&
+\option{\KWD{io}} \emph{SimpleType} \EXP{\rightarrow} \emph{SimpleType}  \option{\emph{Throws}}\\
+
+\emph{Throws}
+&::=& \KWD{throws} \emph{UnionType} \\
+
+\end{Grammar}
+
+An \emph{arrow type} may be \emph{io} or not, 
+and has three constituent types:
+a \emph{parameter type},
+a \emph{return type}
+and an \emph{exception type}.
+An arrow type is written as 
+an optional \KWD{io} modifier, 
+followed by the \emph{parameter type} 
+followed by \EXP{\rightarrow},
+followed by the \emph{return type}, 
+followed by an optional \KWD{throws} clause, 
+which specifies the \emph{exception type}.
+It is \emph{io} if it has the \KWD{io} modifier.
+Its parameter type and return type must be simple types 
+(see \secref{type-kinds}); 
+its exception type must be a union type 
+(see \secref{union-types}).
+If an arrow type has no \KWD{throws} clause, 
+its exception type is \Bottom;
+that is, 
+an arrow type with no \KWD{throws} clause 
+is equivalent to one with a `throws { Bottom }` clause 
+(\Bottom\ is equivalent to $\Union\set{\Bottom}$).
+
+% Victor: The following belongs in the chapter on dispatch.
+% We say that an arrow type is \emph{applicable} to a type $A$
+% if $A$ is a subtype of the parameter type of the arrow type.
+% (If the parameter type has a varargs entry,
+% then $A$ must be a subtype of one of the types in the union
+% defined by the parameter type.)
+
+Every arrow type is a supertype of \Bottom, 
+and a subtype of \Object\ and \Any.
+No other type is a supertype of all arrow types.
+An arrow type $X$ is a subtype of another arrow type $Y$ 
+if the following conditions hold:
+\begin{itemize}
+\item $X$ is not io or $Y$ is io;
+\item they have equivalent parameter types;
+\item the return type of $X$ is a subtype of the return type of $Y$; and
+\item the exception type of $X$ is a subtype of the exception type of $Y$.
+\end{itemize}
+% Victor: Eliminate next sentence?  (It isn't needed for the spec.)
+Thus, 
+arrow types are covariant in their return type and exception type 
+and invariant in their parameter type.
+
+% Victor: Again, this belongs in dispatch
+%   Do we even need more specific definition for arrow types,
+%   or is it for function/method declarations?
+% For arrow types $S$ and $T$,
+% we say that $S$ is \emph{more specific than} $T$
+% if the parameter type of $S$ is a subtype of the parameter type of $T$.
+% We also say that $S$ is \emph{more restricted than} $T$
+% if the return type of $S$ is a subtype of the return type of $T$
+% and for every $X$ in the set of exception types of $S$,
+% there exists $Y$ in the set of exception types of $T$ such that
+% $X$ is a subtype of $Y$.
+% Thus, $S$ is a subtype of $T$ if and only if
+% $T$ is more specific than $S$ and $S$ is more restricted than $T$.
+
+An arrow type excludes \Bottom, \Void, 
+every trait type other than \Object,
+every tuple type, 
+and every function type that is not its subtype
+(see \secref{function-types}).
+However, arrow types do not exclude other arrow types because of
+overloading as described in \chapref{overloading}.
+
+An arrow type $Y$ coerces another arrow type $X$ 
+if the following conditions hold:
+\begin{itemize}
+\item $X$ is not io or $Y$ is io;
+\item the parameter type of $X$ is a strict supertype of the parameter type of $Y$;
+\item the return type of $X$ is a subtype of the return type of $Y$; and
+\item the exception type of $X$ is a subtype of the exception type of $Y$.
+\end{itemize}
+Note that all but the second of these conditions are the same 
+as the conditions for $X$ to be a subtype of $Y$.
+This coercion replaces what in some languages is handled by contravariance.
+
+
+\newsec{Function Types}{function-types}
+
+\begin{Grammar}
+\emph{FunctionType} 
+&::=&\KWD{fn} $\set{ \emph{UniversalArrowTypeList}  }$ \\
+
+\emph{UniversalArrowTypeList} 
+&::=& \emph{UniversalArrowType}(, \emph{UniversalArrowType})$^*$ \\
+
+\emph{UniversalArrowType} 
+&::=& \emph{ArrowType}  \\
+&$|$& $\forall$[\emph{TypeParamList}] \emph{GenericArrowType} \\
+
+\end{Grammar}
+
+A function type is the ilk of a function value.
+We distinguish them from arrow types 
+to handle overloaded functions 
+(see \chapref{overloading}).
+We represent a function type 
+by the keyword \KWD{fn} followed by a set 
+of arrow types and \emph{universal arrow types}, 
+where a universal arrow type is a universal type 
+whose constituent generic type is a generic arrow type 
+(see \secref{universal-types}).
+\note{More intuition of a function type?}
+Function types are \emph{not} expressible 
+(see \secref{expressible-types}), 
+and restrictions on overloading severely restrict 
+what function types arise in a program.
+See \chapref{overloading} for details.
+\note{Victor: 
+Commented out discussion about well-formed function types and applicability.
+That should be in the overloading chapter.
+Or do we really want to talk about a function \emph{type} 
+being applicable to an argument, 
+rather than function declarations.}
+% However, not every set of arrow types is a well-formed function type.
+% Rather, a function type $F$ is \emph{well-formed} if,
+% for every pair $(S_1,S_2)$ of distinct arrow types in $F$,
+% the following properties hold:
+% \begin{itemize}
+
+% \item
+% the parameter types of $S_1$ and $S_2$ are not the same,
+
+% \item
+% if $S_1$ is more specific than $S_2$
+% then $S_1$ is more restricted than $S_2$, and
+
+% \item
+% if the intersection of the parameter types of $S_1$ and $S_2$
+% is not \Bottom
+% (i.e., the parameter types of $S_1$ and $S_2$ do not exclude each other)
+% then $F$ has some constituent arrow type
+% that is more specific than both $S_1$ and $S_2$
+% (recall that the more specific relation is reflexive,
+% so the required constituent type may be $S_1$ or $S_2$).
+
+% \end{itemize}
+
+% Henceforth, we consider only well-formed function types.
+% The overloading rules ensure that all function values
+% have well-formed function types.
+
+% We say that a function type $F$ is \emph{applicable} to a type $A$
+% if any of its constituent arrow types is applicable to $A$.
+% We extend this terminology to values of the corresponding types.
+% That is, for example,
+% we say that a function of type $F$ is applicable to a value of type $A$
+% if $F$ is applicable to $A$.
+% Note that if a well-formed function type $F$ is applicable to a type $A$,
+% then among all constituent arrow types of $F$ that are applicable to $A$
+% (and there must be at least one),
+% one is more specific than all the others.
+% We say that this constituent type is the \emph{most specific} type of $F$
+% applicable to $A$.
+
+A function type is a subtype of each of its constituent types,
+and all of their supertypes, 
+including \Object\ and \Any.
+% It is a leaf type
+The only strict subtype of a function type is \Bottom, 
+and a function type excludes every type that is not its supertype.
+
+\newsec{Combined Types}{combined-types}
+\seclabel{union-types}
+\seclabel{intersection-types}
+
+\begin{Grammar}
+\emph{UnionType} 
+&::=& \emph{SimpleType} $\union$ \emph{SimpleType} \\
+&$|$& $\Union\{$ \option{\emph{SimpleTypeList}} $\}$ \\
+
+\emph{IntersectionType} 
+&::=& \emph{SimpleType} $\intersect$ \emph{SimpleType} \\
+&$|$& $\Intersect\{$ \option{\emph{SimpleTypeList}} $\}$ \\
+
+\emph{SimpleTypeList}
+&::=& \emph{SimpleType}(, \emph{SimpleType})$^*$ \\
+\end{Grammar}
+
+Any finite set of types may be \emph{combined} 
+by \emph{intersection} or \emph{union} 
+to produce an \emph{intersection type} or \emph{union type} respectively.
+Informally, 
+an intersection type 
+is the ````largest'' type 
+that is a subtype of all its constituent types; 
+a union type is the ````smallest'' type 
+that is a supertype of all its constituent types.
+
+Intersection and union types are not expressible 
+(see \secref{expressible-types}).
+\note{This is tricky: 
+technically, it is not a type that is expressible or not, 
+but the form of the type term.
+Perhaps it is better to do as Scala does, 
+and use ````type'' to refer to the form, 
+and so have subtyping define a pre-order on types, 
+and a partial order on equivalence classes of types.}
+
+An intersection type is a subtype of each of its constituents, 
+and it is a supertype of any type that is a subtype of all its constituents.
+A union type is a supertype of each of its constituents, 
+and it is a subtype of any type that is a supertype of all its constituents.
+
+If one constituent of an intersection type 
+is a subtype of all the constituents, 
+then the intersection type is equivalent to that constituent.
+If one constituent of a union type 
+is a supertype of all the constituents, 
+then the union type is equivalent to that constituent.
+
+An intersection type excludes a type $T$ 
+if any of its constituents excludes $T$.
+A union type excludes a type $T$ 
+if all its constituents exclude $T$.
+
+For example:
+%trait S comprises {U,V} end
+%trait T comprises {V,W} end
+%trait U extends S excludes W end
+%trait V extends {S,T} end
+%trait W extends T end
+\begin{Fortress}
+\(\KWD{trait} S \KWD{comprises} \{U,V\} \KWD{end}\)\\
+\(\KWD{trait} T \KWD{comprises} \{V,W\} \KWD{end}\)\\
+\(\KWD{trait} U \KWD{extends} S \KWD{excludes} W \KWD{end}\)\\
+\(\KWD{trait} V \KWD{extends} \{S,T\} \KWD{end}\)\\
+\(\KWD{trait} W \KWD{extends} T \KWD{end}\)
+\end{Fortress}
+because of the \KWD{comprises} clauses of $S$ and $T$ and the \KWD{excludes}
+clause of $U$, any subtype of both $S$ and $T$ must be a subtype of
+$V$.  Thus, $V = S \inter T$.
+
+% Intersection types (denoted by $\inter$) possess the following properties:
+% \begin{itemize}
+% \item Commutativity: $T \inter U = U \inter T$.
+% \item Associativity: $S \inter (T \inter U) = (S \inter T) \inter U$.
+% \item Subsumption: If $S \Ovrsubtype T$ then $S \inter T = S$.
+% \item Preservation of shared subtypes: If $T \Ovrsubtype S$ and $T \Ovrsubtype U$ then $T \Ovrsubtype S \inter U$.
+% \item Preservation of supertype: If $S \Ovrsubtype T$ then $\forall U.~S \inter U \Ovrsubtype T$.
+% \item Distribution over union types: $S \inter (T \uni U) =
+%   (S \inter T) \uni (S \inter U)$.
+% \end{itemize}
+
+% Union types (denoted by $\uni$) possess the following properties:
+% \begin{itemize}
+% \item Commutativity: $T \uni U = U \uni T$.
+% \item Associativity: $S \uni (T \uni U) = (S \uni T) \uni U$.
+% \item Subsumption: If $S \Ovrsubtype T$ then $S \uni T = T$.
+% \item Preservation of shared supertypes: If $S \Ovrsubtype T$ and $U \Ovrsubtype T$ then $S \uni U \Ovrsubtype T$.
+% \item Preservation of subtype: If $T \Ovrsubtype S$ then $\forall U.~T \Ovrsubtype S \uni U$.
+% \item Distribution over intersection types: $S \uni (T \inter U)
+%   = (S \uni T) \inter (S \uni U)$.
+% \end{itemize}
+
+
+\newsec{Quantified Types}{quantified-types}
+\seclabel{universal-types}
+\seclabel{existential-types}
+
+\begin{Grammar}
+\emph{UniversalType} 
+&::=& $\forall$[\option{\emph{StaticParamList}}] \emph{GenericSimpleType} \\
+
+\emph{ExistentialType} 
+&::=& $\exists$[\option{\emph{StaticParamList}}] \emph{GenericSimpleType} \\
+
+
+\emph{GenericSimpleType} 
+&::=& \emph{SimpleType} \\
+&$|$& \emph{GenericTraitType} \\
+&$|$& \emph{GenericTupleType} \\
+&$|$& \emph{GenericArrowType} \\
+&$|$& \emph{TypeVar} \\
+
+\end{Grammar}
+
+Fortress supports a restricted form 
+of \emph{universal types} and \emph{existential types},
+collectively called \emph{quantified types}.
+Even this restricted form is more general than necessary for Fortress: 
+the only quantified types that appear in the static type of an expression 
+or the ilk of a value, 
+or in any of their supertypes, 
+are universal arrow types, 
+which may be constituents of a function type, 
+and the type system could be formulated without these kinds of types entirely.
+However, 
+we extend the type system with these kinds of types 
+as a convenience for describing static type checking (and dispatch?).
+
+A quantified type is a quantifier (either $\forall$ or $\exists$) 
+followed by a bracketed list of static parameter bindings, 
+followed by a generic type, 
+which must have the form of a trait type, a tuple type or an arrow type 
+(or it can be degenerate; 
+that is,
+it must not have any parameters).
+As mentioned in \secref{trait-types}, 
+a generic type is not a type, 
+but a type schema with parameters that must be instantiated.
+Every parameter of the constituent generic type of a quantified type 
+must be declared in the list of static parameter bindings.
+\note{Do we allow degenerate quantified types 
+(i.e., ones with an empty static parameter list)? 
+I'm assuming we do for now.}
+
+If a static parameter of a quantified type 
+does not appear in the type's constituent generic type, 
+then the quantified type is equivalent to one 
+in which the binding for that static parameter is removed.
+A quantified type with no static parameters 
+is equivalent to the (unique) instantiation of its constituent generic type.
+
+Each static parameter binding specifies a constraint on the argument 
+that may instantiate that parameter.
+For a type parameter, it is an upper bound on the type argument 
+(i.e., the argument must be a subtype of the specified bound), 
+and this upper bound must be a simple type 
+or an intersection type.
+\note{Do we allow other kinds of static parameters?}
+A type is a \emph{valid instantiation} of a quantified type 
+if it is an instantiation of the quantified type's constituent generic type 
+with arguments that satisfy the specified constraints.
+Informally, 
+we can think of a universal type 
+as the intersection of all its valid instantiations, 
+and an existential type 
+as the union of all its valid instantiations.
+However, 
+quantified types are not special cases of combined types 
+because a quantified type may have infinitely many valid instantiations.
+
+A universal type is a subtype of any of its valid instantiations
+(and of any supertype of such types).
+It is a supertype of a type $T$
+if all its valid instantiations are supertypes of $T$.
+A universal type $U$ is a subtype of another universal type $V$
+if for every valid instantiation $I_V$ of $V$, 
+there is a valid instantiation of $U$ that is a subtype of $I_V$.
+A universal type excludes a non-quantified type $T$
+if any of its valid instantiations exclude $T$.
+Two universal types exclude each other
+if any valid instantiation of one excludes any valid instantation of the other.
+
+An existential type is a supertype of any of its valid instantiations constraints 
+(and of any supertype of such types).
+It is a subtype of a type $T$ 
+if all its valid instantiations are subtypes of $T$.
+An existential type $E$ is a subtype of another existential type $F$ 
+if for every valid instantiation $I_E$ of $E$,
+there is a valid instantiation of $F$ that is a supertype of $I_E$.
+An existential type excludes a non-quantified type $T$ 
+if all its valid instantiations exclude $T$.
+Two existential types exclude each other 
+if every valid instantiation of one excludes every valid instantiation of the other.
+
+From the above, 
+we can already derive that 
+a universal type is a subtype of an existential type 
+if some valid instantiation of the universal type 
+is a subtype of some valid instantiation of the existential type.
+An existential type is a subtype of a universal type 
+if every valid instantiation of the existential type 
+is a subtype of every valid instantiation of the universal type.
+A universal type and an existential type exclude each other 
+if every valid instantiation of the existential type 
+excludes some valid instantiation of the universal type.
+
+
+
+\newsec{Expressible Types}{expressible-types}
+
+% Object expression types, 
+Function types and \Bottom\ are not first-class types: 
+they cannot be written in a program.
+However, some values have object expression types and function types
+and \KWD{throw} and \KWD{exit} expressions have the type \Bottom.
+
+
+
+
+% Kinds of types
+
+% Type hierarchy 
+
+% Values and ilks
+
+% Type variables and type environments
+
+% Expressible types
+
+% Grammar for types
+
+% Exclusion
+% Type equivalence
+
+
+Syntactically,
+the positions in which a type may legally appear (i.e., \emph{type contexts})
+is determined by the nonterminal \emph{Type} in the Fortress grammar,
+defined in \appref{concrete-syntax}.
+
+
+
+\newsec{Relations on Types}{type-relations}
+
+
+\newsubsec{Subtyping}{subtyping}
+
+Types are partially ordered by the \emph{subtype relation}  
+(i.e, the subtype relation is reflexive, transitive and antisymmetric),
+which defines the \emph{type hierarchy}.
+% Victor: Do we want it to be irreflexive, and have "conform" be reflexive?
+For types $T$ and $U$,
+we write $T \Ovrsubtype U$ when $T$ is a subtype of $U$,
+and $T \strictsubtype U$ when $T \Ovrsubtype U$ and $T \neq U$;
+in the latter case,
+we say $T$ is a \emph{strict} subtype of $U$.
+We also say that $T$ is a \emph{(strict) supertype} of $U$ 
+if $U$ is a (strict) subtype of $T$.
+
+
+We define three fundamental relations on types: 
+\emph{subtype}, \emph{exclusion} and \emph{coercion}.
+
+The \emph{subtype relation} is a partial order on types
+that defines the \emph{type hierarchy};
+that is, 
+it is reflexive, transitive and antisymmetric.
+% Do we want it to be irreflexive, and have "conform" be reflexive?
+For types $T$ and $U$,
+we write $T \Ovrsubtype U$ when $T$ is a subtype of $U$,
+and $T \strictsubtype U$ when $T \Ovrsubtype U$ and $T \neq U$;
+in the latter case,
+we say $T$ is a \emph{strict} subtype of $U$.
+We also say that $T$ is a \emph{supertype} of $U$ if $U$ is a subtype of $T$.
+\Any\ is the top of the type hierarchy:
+every type is a subtype of \Any.
+\Bottom\ is the bottom of the type hierarchy:
+every type is a supertype of \Bottom.
+
+The \emph{exclusion relation} is a symmetric relation 
+between two types whose intersection is \Bottom.
+
+Because \Bottom is uninhabited
+(i.e., no value has type \Bottom),
+types that exclude each other are disjoint:
+no value can have a type that is a subtype of two types that exclude each other.
+% \note{
+% The converse is technically not true: we can define two traits with
+%  method declarations
+%  such that no trait or object can extend them both, so no value can have a
+%  type that is
+%  a subtype of both trait types, but the trait types do not exclude each
+%  other.  For example:
+%  trait A f(self, y: Object) = 1; end
+%  trait B f(x: Object, self) = 2; end
+%  trait C f() = 3; end
+% No pair of the three trait types defined above can be extended
+% but none of them exclude any of the others.
+% }
+Note that \Bottom excludes every type including itself
+(because the intersection of \Bottom and any type is \Bottom),
+and also that no type other than \Bottom excludes \Any
+(because the intersection of any type $T$ and \Any is $T$).
+\Bottom is the only type that excludes itself.
+Also note that if two types exclude each other
+then any subtypes of these types also exclude each other.
+
+% Thus, in the execution of a
+% valid Fortress program, an expression's runtime type is always a subtype of
+% its static type.
+% We say that a value is \emph{an instance of} its runtime
+% type and of every supertype of its runtime type; immediate subtypes of
+% \Any comprises of tuple types, arrow types, \TYP{()}, and \Object.
+
+% What about "covering"?
+
+
+
+Fortress also allows \emph{coercion} between types 
+(see \chapref{conversions-coercions}).  
+A coercion from $T$ to $U$ is defined in the declaration of $U$.  
+We write $T \coercedefto U$ 
+if $U$ defines a coercion from $T$.  
+We say that $T$ \emph{can be coerced to} $U$, 
+and write $T \coercesto U$, 
+if $U$ defines a coercion from $T$ or any supertype of $T$: 
+$T \coercesto U \iff \exists T':
+T \Ovrsubtype T' \logicand T' \coercedefto U$.
+
+
+The Fortress type hierarchy is acyclic with respect to both subtyping and
+coercion relations except for the following:
+\begin{itemize}
+\item The trait \Any is a single root of the type hierarchy and it
+forms a cycle as described in \chapref{lib:object}.
+\item There exists a bidirectional coercion between two tuple types if and
+  only if they have the same sorted form.
+\end{itemize}
+
+These relations are defined more precisely
+in the following sections describing each kind of type in more detail.
+Specifically,
+the relations are the smallest ones that satisfy
+all the properties given in those sections (and this one).
+
+
+
+\section{Types in the Fortress Standard Libraries}
+\seclabel{types-libraries}
+
+\Library\ define simple standard types for literals such as
+\EXP{\TYP{BooleanLiteral}\llbracket{}b\rrbracket},
+\TYP{()} (pronounced ````void''),
+\TYP{Character}, \TYP{String}, and
+\EXP{\TYP{Numeral}\llbracket{}n,m,r,v\rrbracket}
+for appropriate values of \VAR{b}, \VAR{n}, \VAR{m}, \VAR{r}, and \VAR{v}
+(See \secref{literals} for a discussion of Fortress literals).
+Moreover, there are several simple standard numeric types.
+These types are mutually exclusive; no value has more than one of them.
+Values of these types are immutable.
+
+The numeric types share the common supertype \TYP{Number}.
+Fortress includes types for
+arbitrary-precision integers (of type $\mathbb{Z}$),
+their unsigned equivalents (of type $\mathbb{N}$),
+rational numbers (of type $\mathbb{Q}$),
+real numbers (of type $\mathbb{R}$),
+complex numbers (of type $\mathbb{C}$),
+fixed-size representations for integers including the types
+{$\mathbb{Z}$8}, {$\mathbb{Z}$16}, {$\mathbb{Z}$32}, {$\mathbb{Z}$64},
+{$\mathbb{Z}$128}, their unsigned equivalents
+{$\mathbb{N}$8}, {$\mathbb{N}$16}, {$\mathbb{N}$32}, {$\mathbb{N}$64},
+{$\mathbb{N}$128},
+floating-point numbers (described below),
+intervals (of type \EXP{\TYP{Interval}\bTPl X\bTPr},
+abbreviated as \EXP{\bsINT{X}},
+where \EXP{X} can be instantiated
+with any number type), and imaginary and complex numbers of fixed size
+(in rectangular form with types $\mathbb{C}n$ for $n = 16, 32, 64, 128, 256$
+and polar form with type \EXP{\TYP{Polar}\bsTP{X}} where \EXP{X} can
+be instantiated with any real number type).
+
+\Library\ also define other simple standard types such as \Any,
+\Object, \TYP{Exception}, \TYP{Boolean}, and \TYP{BooleanInterval}
+as well as low-level binary data types such as \TYP{LinearSequence},
+\TYP{HeapSequence}, and \TYP{BinaryWord}.
+See Parts~\ref{part:basic-lib} and \ref{part:advanced-lib} for discussions
+of \library.
+
+
+
+% \newsec{Type Aliases}{type-alias}
+
+% \begin{Grammar}
+% \emph{TypeAlias} &::=& \KWD{type} \emph{Id} \option{\emph{StaticParams}}
+% \EXP{=} \emph{Type} \\
+% \end{Grammar}
+
+% Fortress allows names to serve as aliases for more complex type
+% instantiations.  A \emph{type alias} begins
+% with \KWD{type} followed by the name of the alias
+% type, followed by optional static parameters,
+% followed by \EXP{=}, followed by the type it stands for.
+% Parameterized type aliases are allowed but recursively
+% defined type aliases are not.  Here are some examples:
+% %type IntList = List[\ZZ64\]
+% %type BinOp = Float BY Float -> Float
+% %type SimpleFloat[\nat e, nat s\] = DetailedFloat[\Unity,e,s,false,false,false,false,true\]
+% \begin{Fortress}
+% \(\KWD{type} \TYP{IntList} = \TYP{List}\llbracket\mathbb{Z}64\rrbracket\)\\
+% \(\KWD{type} \TYP{BinOp} = \TYP{Float} \times \TYP{Float} \rightarrow \TYP{Float}\)\\
+% \(\KWD{type} \TYP{SimpleFloat}\llbracket\KWD{nat} e, \KWD{nat} s\rrbracket = \TYP{DetailedFloat}\llbracket\TYP{Unity},e,s,\VAR{false},\VAR{false},\VAR{false},\VAR{false},\VAR{true}\rrbracket\)
+% \end{Fortress}
+
+% All uses of type aliases are expanded before type checking.
+% Type aliases do not define new types nor
+% nominal equivalence relations among types.
+
+
+\newsec{Values and Ilks}{ilks}
+
+
+Every expression has a \emph{static type},
+and every value has an \emph{ilk}.
+% Some types may be parameterized by \emph{static parameters};
+% we call these types \emph{generic types}.
+% See \chapref{trait-parameters} for a discussion of static parameters.
+% A static parameter may be instantiated with a type or a value
+% depending on whether it is a type parameter.
+% % \note{
+% % Victor: I don't know if the follow really belongs here.
+% % It isn't complete in any case, because of union/intersection types.}
+% Two types are identical if and only if they are the same kind and
+% their names and static arguments (if any) are identical.
+% Types are related by several relationships as described in
+% \secref{type-relations}.
+

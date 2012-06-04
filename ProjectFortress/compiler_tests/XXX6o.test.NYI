@@ -1,0 +1,17 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled6.o
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled6.o.fss:21:1-24:2:\n\
+\ Coercion from a subtype to a supertype is not allowed.\n\
+File Compiled6.o.fss has 1 error.\n
+compile_out_equals=

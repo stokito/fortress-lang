@@ -1,0 +1,39 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.Do.treeSum
+
+export Executable
+
+trait Tree end
+object TreeLeaf extends Tree end
+object TreeNode(left: Tree, right: Tree, datum: ZZ32) extends Tree end
+
+(** EXAMPLE **)
+treeSum(t: TreeLeaf) = 0
+treeSum(t: TreeNode) = do
+  var accum:ZZ32 := 0
+  do
+    accum += treeSum(t.left)
+  also do
+    accum += treeSum(t.right)
+  also do
+    accum += t.datum
+  end
+  accum
+end
+(** END EXAMPLE **)
+
+run() = println treeSum(TreeLeaf)
+
+end

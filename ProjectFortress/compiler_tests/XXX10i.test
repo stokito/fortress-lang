@@ -1,0 +1,18 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled10.i
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled10.i.fss:26:1-32:\n\
+\ Invalid comprises clause: Uu has a comprises clause\n\
+\ but its immediate subtype TT is not eligible to extend it.\n\
+File Compiled10.i.fss has 1 error.\n
+compile_out_equals=

@@ -1,0 +1,23 @@
+component TestOPairs
+
+  import List.{...}
+  import OPairs.{...}
+  import Maybe.{...}
+  export Executable
+    
+  run() = 
+  do l: List[\ZZ32\] = <| |>
+     l1 = l.addLeft(2).addLeft(3)
+     println(l1)
+     l2 = l.addRight(5).addLeft(5)
+     println(l2)
+     l3 = <|[\ZZ32\] |> || l2
+     println(l3)
+     l4 = l1 || l2
+     for x <- l4 do println x end
+     for x <- opairs l4 do println("(" || x.l || "," || x.r || ")") end
+     println("PASS")
+  end
+  
+
+end

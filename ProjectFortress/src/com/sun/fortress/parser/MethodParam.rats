@@ -1,0 +1,106 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress method parameter declarations.
+ */
+module com.sun.fortress.parser.MethodParam(Param, Keyword);
+
+modify Param;
+import Keyword;
+
+/* MdValParam ::= ( (w MdParams)? w )
+   AbsMdValParam ::= ( (w AbsMdParams)? w )
+   MdParams ::=
+     (MdParam w , w)* (Varargs w , w)? MdKeyword (w , w MdKeyword)*
+   | (MdParam w , w)*  Varargs
+   |  MdParam (w , w MdParam)*
+   AbsMdParams ::=
+     (AbsMdParam w , w)* (Varargs w , w)? MdKeyword (w , w MdKeyword)*
+   | (AbsMdParam w , w)*  Varargs
+   |  AbsMdParam (w , w AbsMdParam)*
+   MdKeyword ::= MdParam w = w Expr
+   MdParam   ::= Param | self
+   AbsMdParam::= self | AbsParam
+ */
+List<Param> ValParam := openparen a1:(w Params)? w closeparen
+     { if (a1 == null) yyValue = Collections.<Param>emptyList();
+       else            yyValue = a1;
+     };
+
+List<Param> AbsValParam := openparen a1:(w AbsParams)? w closeparen
+     { if (a1 == null) yyValue = Collections.<Param>emptyList();
+       else            yyValue = a1;
+     };
+
+Param Param :=
+     PlainParam
+   / self
+     { yyValue = NodeFactory.makeParam(NodeFactory.makeId(createSpan(yyStart,yyCount),
+                                                          "self"));
+     };
+
+Param AbsParam :=
+     self
+     { yyValue = NodeFactory.makeParam(NodeFactory.makeId(createSpan(yyStart,yyCount),
+                                                          "self"));
+     }
+   / AbsPlainParam;
+
+/* OpMdHeaderFront ::=
+     opr (w BIG)? w ({| w -> | LeftEncloser | Encloser) (w StaticParams)?
+     (w Params)? w (RightEncloser | Encloser) (w := w ( w SubscriptAssignParam w ))?
+   | opr w ValParam w (Op | ExponentOp) (w StaticParams)?
+   | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w ValParam
+ */
+FnHeaderFront OpHeaderFront :=
+     <Enclosing> opr big:(w BIG)? w opa1:LeftOp
+     opa2:(w StaticParams)? opa3:(w Params)? w opa4:(RightEncloser / Encloser)
+     opa5:(w void:colonequals w openparen w SubscriptAssignParam w closeparen)?
+     { if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
+       if (opa3 == null) opa3 = Collections.<Param>emptyList();
+       yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
+                                            opa1, opa4.getText(),
+                                            Option.<String>wrap(big), opa2, opa3,
+					    !NodeUtil.hasSelfParameter(opa3),
+					    Option.<Param>wrap(opa5));
+     }
+   / ... ;
+
+/* AbsOpMdHeaderFront ::=
+     opr (w BIG)? w ({| w -> | LeftEncloser | Encloser) (w StaticParams)?
+     (w AbsParams)? w (RightEncloser | Encloser) (w := w ( w AbsSubscriptAssignParam w ))?
+   | opr w AbsValParam w (Op | ExponentOp) (w StaticParams)?
+   | opr (w BIG)? w (Op | ^ | Encloser | SUM | PROD) (w StaticParams)? w AbsValParam
+ */
+FnHeaderFront AbsOpHeaderFront :=
+     <Enclosing> opr big:(w BIG)? w opa1:LeftOp
+     opa2:(w StaticParams)? opa3:(w AbsParams)? w opa4:(RightEncloser / Encloser)
+     opa5:(w void:colonequals w openparen w AbsSubscriptAssignParam w closeparen)?
+     { if (opa2 == null) opa2 = Collections.<StaticParam>emptyList();
+       if (opa3 == null) opa3 = Collections.<Param>emptyList();
+       yyValue = NodeUtil.makeOpHeaderFront(writer, createSpan(yyStart,yyCount),
+                                            opa1, opa4.getText(),
+                                            Option.<String>wrap(big), opa2, opa3,
+					    !NodeUtil.hasSelfParameter(opa3),
+                                            Option.<Param>wrap(opa5));
+     }
+   / ... ;
+
+/* SubscriptAssignParam ::= Varargs | Param */
+private Param SubscriptAssignParam =
+     Varargs
+   / Param ;
+
+/* AbsSubscriptAssignParam ::= Varargs | AbsParam */
+private Param AbsSubscriptAssignParam =
+     Varargs
+   / AbsParam ;

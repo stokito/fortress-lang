@@ -1,0 +1,37 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXLabelShadowing
+export Executable
+run() =
+do
+    println (do
+        label blah exit blah with do
+            do
+                label blah exit blah with do
+                    do
+                        label blah exit blah with do
+                            1
+                            7
+                        end
+                        end blah
+                    end
+                    6
+                end
+                end blah
+            end
+            5
+        end
+        end blah
+    end)
+end
+
+end

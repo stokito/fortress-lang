@@ -1,0 +1,27 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component OprDecl.Infix
+
+export Executable
+
+(** EXAMPLE **)
+opr SMAX[\T extends String\](x: T, y: T):T = if x > y then x else y end
+(** END EXAMPLE **)
+
+run() = do
+  assert(("2" SMAX "3") = "3")
+  println("OprDecl.Infix.fss passed.")
+end
+
+end

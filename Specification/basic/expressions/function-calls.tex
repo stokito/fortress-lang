@@ -1,0 +1,66 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Naked Method Invocations}
+\seclabel{naked-method-calls}
+
+\note{Should be a static check that there is an applicable declaration.}
+
+\begin{Grammar}
+\emph{Primary} &::=& \emph{Id} \emph{Primary}\\
+
+\end{Grammar}
+
+Method invocations that are not prefixed by receivers are \emph{naked
+  method invocations}.  A naked method invocation is either a
+functional method call (see \secref{methods} for a discussion of
+functional methods) or a method invocation within a trait or object
+that provides the method declaration.  Syntactically, a naked method
+invocation is same as a function call except that the method name is
+used instead of an arbitrary expression denoting the applied method.
+Like function calls, an argument expression need not be parenthesized
+unless it is a tuple.  After the evaluation of the argument expression
+completes normally, the body of the method is evaluated with the parameter
+of the method bound to the value of the argument expression.  The value
+and the type of a naked method invocation are the value and the type
+of the method body.
+
+
+\section{Function Calls}
+\seclabel{function-calls}
+
+\note{Should be a static check that there is an applicable declaration.}
+
+\begin{Grammar}
+\emph{Primary} &::=& \emph{Primary} \emph{Primary}\\
+\end{Grammar}
+
+
+A \emph{function call} consists of two subexpressions: an expression
+denoting the applied function and an argument expression.  The
+argument expression and the expression denoting the applied function
+are evaluated \emph{in parallel} in separate implicit threads (see
+\secref{threads-parallelism}).  As with languages such as Scheme and
+the Java Programming Language, function calls in Fortress are
+call-by-value.  After the evaluation of the function and its arguments
+completes normally,
+the body of the function is evaluated with the parameter of the
+function bound to the value of the argument expression.
+The value and the type of a function call are the value and the type of
+the function body.
+See \secref{function-app} for a detailed description of function calls.
+
+
+Here are some examples:
+\input{\home/basic/examples/Expr.FnCall.a.tex}
+If the function's argument is not a tuple, then the argument need not be
+parenthesized:
+\input{\home/basic/examples/Expr.FnCall.b.tex}
