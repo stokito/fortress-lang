@@ -1680,15 +1680,23 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
 
         mv.visitLabel(startOver);
         mv.visitTryCatchBlock(start, end, handler, type);
+
         mv.visitLabel(start);
         forAtomicBlockHelper(x);
         mv.visitLabel(end);
         mv.visitJumpInsn(GOTO, exit);
+
+        // Exception Handler
         mv.visitLabel(handler);
         mv.visitInsn(POP); // Pop the exception
         mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/BaseTask", 
                            "cleanupTransaction", "()V");
+        // Wait a randomized exponential amount of time after an error
+        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/runtimeSystem/BaseTask",
+                           "delayTransaction", "()V");
         mv.visitJumpInsn(GOTO, startOver);
+
+        // Exit
         mv.visitLabel(exit);
     }
 

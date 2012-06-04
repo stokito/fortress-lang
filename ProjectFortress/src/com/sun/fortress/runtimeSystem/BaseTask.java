@@ -15,6 +15,7 @@ import jsr166y.ForkJoinPool;
 import jsr166y.ForkJoinTask;
 import jsr166y.RecursiveAction;
 
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.sun.fortress.runtimeSystem.FortressExecutable.numThreads;
@@ -43,6 +44,7 @@ public abstract class BaseTask extends FortressExecutable {
 
     BaseTask parent;
     Transaction transaction;
+    private static Random gen = new Random();
 
   // Debugging
     private static Boolean debug = false;
@@ -143,6 +145,7 @@ public abstract class BaseTask extends FortressExecutable {
             transaction.TXCommit();
             currentTask.setTransaction(transaction.getParent());
         }
+        ftr.resetRetries();
     }
 
     public static void cleanupTransaction() {
@@ -154,6 +157,21 @@ public abstract class BaseTask extends FortressExecutable {
             currentTask.setTransaction(transaction.getParent());
         else
             currentTask.setTransaction(null);
+    }
+
+    public static void delayTransaction() {
+        FortressTaskRunner ftr = (FortressTaskRunner) Thread.currentThread();
+        int k = 0;
+
+        // This really can't be very useful as a long...
+        if (useExponentialBackoff) {
+            double r = gen.nextDouble() + 0.5; // Random number between 0.5 and 1.5
+            long wait = (long) ((2 ^ (ftr.getRetries() + k)) * r);
+            try { ftr.sleep(wait); }
+            catch (Exception e) { } // Something should be done here
+        }
+
+        ftr.incRetries();
     }
 
     public static Transaction getCurrentTransaction() {

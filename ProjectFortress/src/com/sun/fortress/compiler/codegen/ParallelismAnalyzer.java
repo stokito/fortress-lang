@@ -64,8 +64,10 @@ public class ParallelismAnalyzer extends NodeDepthFirstVisitor_void {
     }
 
     private void removeFromComputeIntensive(ASTNode x) {
-        debug(x, "removing from computeIntensive");
-        computeIntensive.remove(x);
+        if (ANALYZATION_ON) {
+            debug(x, "removing from computeIntensive");
+            computeIntensive.remove(x);
+        }
     }
 
     private void debug(ASTNode x) {

@@ -29,6 +29,8 @@ public abstract class FortressExecutable extends RecursiveAction {
     public static final FortressTaskRunnerGroup group =
         new FortressTaskRunnerGroup(numThreads);
     public static final boolean useHelpJoin = getHelpJoin();
+    public static final boolean useExponentialBackoff = getBackoffStrategy();
+    public static final boolean defaultBackoffExponential = false; // no evidence that it helps
 
     public static int getNumThreads() {
         String numThreadsString = System.getenv("FORTRESS_THREADS");
@@ -55,6 +57,12 @@ public abstract class FortressExecutable extends RecursiveAction {
     static boolean getHelpJoin() {
         String getHelpJoinString = System.getenv("FORTRESS_HELP_JOIN");
         return envToBoolean(getHelpJoinString);
+    }
+
+    static boolean getBackoffStrategy() {
+        String backoffStrategyString = System.getenv("FORTRESS_EXP_BACKOFF");
+        if (backoffStrategyString != null) return envToBoolean(backoffStrategyString);
+        return useExponentialBackoff;
     }
 
     private static boolean envToBoolean(String s) {

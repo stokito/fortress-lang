@@ -24,17 +24,17 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
         return retries;
     }
 
-    private static void incRetries() {
+    public static void incRetries() {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
         runner.retries += 1;
     }
 
-    private static void resetRetries() {
+    public static void resetRetries() {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
         runner.retries = 0;
     }
 
-    private static int getRetries() {
+    public static int getRetries() {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
         return runner.retries;
     }
