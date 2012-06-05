@@ -51,12 +51,18 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
   
   // Checks when f is more specific than g
   def lteq(f: Functional, g: Functional): Boolean = {
-    val fa = makeArrowFromFunctional(f, true).get
-    val ga = makeArrowFromFunctional(g, true).get
-    lteq(fa, ga)
+    (f, g) match {
+      case (fm: FunctionalMethod, gm: FunctionalMethod) =>
+        val fa = makeSpecialArrowFromFunctionalMethod(fm).get
+        val ga = makeSpecialArrowFromFunctionalMethod(gm).get
+        lteq(fa, ga)
+      case (_,_) =>
+        val fa = makeArrowFromFunctional(f, true).get
+        val ga = makeArrowFromFunctional(g, true).get
+        lteq(fa, ga)
+    }
   }
 
-  // Dead code?
   def lteq(fa: ArrowType, ga: ArrowType): Boolean = {
     val fd = sa.makeDomainWithSelfFromArrow(fa)
     val gd = sa.makeDomainWithSelfFromArrow(ga)
@@ -300,7 +306,7 @@ class OverloadingOracle(implicit ta: TypeAnalyzer) extends PartialOrdering[Funct
   
   def getNoSelfDomainType(f: Functional): Type = {
     // might be better calling makeArrowWithoutSelfFromFunctional
-    val fa = makeArrowFromFunctional(f, true, true).get
+    val fa = makeArrowFromFunctional(f, true, true, None).get
     val fd = sa.makeDomainFromArrow(fa)
     fd
   }

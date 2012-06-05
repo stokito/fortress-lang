@@ -388,13 +388,19 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 }
             }
         }
-        
+
+        TaggedFunctionName nameTemp = pofuns[0].x;
         List<TopSortItemImpl<TaggedFunctionName>> specificFirst;
         try {
             specificFirst = TopSort.depthFirstArray(pofuns);
         } catch (CycleInRelation ex) {
+
+	    for (int fi = 0; fi < pofuns.length; fi++) {
+		System.out.println("# " + pofuns[fi].x);
+	    }
             throw new CompilerBug(
-"Likely bug in static analysis, apparently malformed overload set not rejected.\n"+
+"Likely bug in static analysis, apparently malformed overload set not rejected for\n" +
+nameTemp + "\n" +
 "Probable cause is a functional method and top level function with same signature.", ex);
         }
         

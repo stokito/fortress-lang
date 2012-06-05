@@ -132,22 +132,29 @@ object STypesUtil {
   }
   
   def makeArrowWithoutSelfFromFunctional(f: Functional): Option[ArrowType] = f match {
-    case _: FunctionalMethod => makeArrowFromFunctional(f, true, true)
-    case _ => makeArrowFromFunctional(f, false, true)
+    case _: FunctionalMethod => makeArrowFromFunctional(f, true, true, None)
+    case _ => makeArrowFromFunctional(f, false, true, None)
   }
   
   def makeLiftedArrowWithoutSelfFromFunctional(f: Functional): Option[ArrowType] = f match {
-    case _: FunctionalMethod => makeArrowFromFunctional(f, true, true)
-    case _ => makeArrowFromFunctional(f, true, true)
+    case _: FunctionalMethod => makeArrowFromFunctional(f, true, true, None)
+    case _ => makeArrowFromFunctional(f, true, true, None)
   }
+
+  // The "special" arrow includes the declaring trait/object so one can decide
+  // which is more specific, taking inheritance into account.
+  def makeSpecialArrowFromFunctionalMethod(f: FunctionalMethod): Option[ArrowType] =
+    makeArrowFromFunctional(f, true, false,
+                            Some(NF.makeTraitType(f.declaringTrait,
+                                                  staticParamsToArgs(f.traitStaticParameters))))
   
   /**
    *  Return the arrow type of the given Functional index.
    */
   def makeArrowFromFunctional(f: Functional, lifted: Boolean): Option[ArrowType] =
-    makeArrowFromFunctional(f, lifted, false)
+    makeArrowFromFunctional(f, lifted, false, None)
 
-  def makeArrowFromFunctional(f: Functional, lifted: Boolean, omitSelf: Boolean): Option[ArrowType] = f match {
+  def makeArrowFromFunctional(f: Functional, lifted: Boolean, omitSelf: Boolean, declarer: Option[TraitType]): Option[ArrowType] = f match {
     case f: DummyVariableFunction => Some(f.getArrowType())
     case _ =>
       val returnType = toOption(f.getReturnType).getOrElse(return None)
@@ -159,7 +166,7 @@ object STypesUtil {
 				    originalParams.drop(fhst.selfPosition + 1))
 				 else originalParams }
                    else originalParams
-      val argType = makeArgumentType(params)
+      val argType = makeArgumentType(declarer match { case Some(x) => params :+ x; case None => params })
       val effect = NF.makeEffect(f.thrownTypes)
       val where = f match {
         case f: Constructor => f.where

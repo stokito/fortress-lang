@@ -263,6 +263,8 @@ import java com.sun.fortress.nativeHelpers.{LocalRandom.localRandomDouble => jRa
 import java com.sun.fortress.nativeHelpers.{stringOps.compareTo => jCompareTo,
                                             stringOps.substring => jSubstring,
                                             stringOps.charAt => jCharAt,
+                                            stringOps.indexOf => jIndexOf,
+                                            stringOps.lastIndexOf => jLastIndexOf,
                                             stringOps.asString => jAsString}
 import java com.sun.fortress.nativeHelpers.{fileOps.jbrOpen => jJavaBufferedReaderOpen,
                                             fileOps.jbrAsString => jJavaBufferedReaderAsString,
@@ -315,7 +317,8 @@ import java com.sun.fortress.nativeHelpers.{simpleArbitraryPrecisionArith.parse 
                                             }
                                        
 import AnyType.{Any}
-import CompilerAlgebra.{ Equality, StandardTotalOrder, Comparison, LessThan, EqualTo, GreaterThan }
+(*) import CompilerAlgebra.{ Equality, StandardTotalOrder, Comparison, LessThan, EqualTo, GreaterThan }
+import CompilerAlgebra.{ Equality, StandardTotalOrder }
 export CompilerBuiltin
 
 nanoTime(): RR64 = jNanoTime()
@@ -355,7 +358,7 @@ trait Object extends Any
 (*) end
 end Object
 
-trait String extends StandardTotalOrder[\String\]
+trait String extends { StandardTotalOrder[\String\] }
     getter isEmpty(): Boolean
     getter asString(): String
     getter asJavaString(): JavaString
@@ -365,6 +368,7 @@ trait String extends StandardTotalOrder[\String\]
     opr >(self, b: String): Boolean = false
     opr <=(self, b: String): Boolean = false
     opr >=(self, b: String): Boolean = false
+    opr =/=(self, b: String): Boolean = false
     opr CMP(self, other:String): Comparison = 
       if self < other then LessThan else if self > other then GreaterThan else EqualTo end end
     opr ||(self, b:Object): String
@@ -373,7 +377,15 @@ trait String extends StandardTotalOrder[\String\]
     opr [i:ZZ32] : Character
     substring(lo:ZZ32, hi:ZZ32): String
     opr ^(self, n: ZZ32): String
+    indexOf(c: Character): Option[\ZZ32\]
+    lastIndexOf(c: Character): Option[\ZZ32\]
+    upto(c: Character): String
+    beyond(c: Character): String
+    backto(c: Character): String
+    before(c: Character): String
 end
+
+private emptyJavaString: JavaString = ("").asJavaString
 
 trait JavaString extends String
     getter isEmpty(): Boolean = (jStrlen(self) = 0)
@@ -385,18 +397,26 @@ trait JavaString extends String
     opr =(self, b: JavaString): Boolean = (jCompareTo(self, b) = 0)
     opr <=(self, b: JavaString): Boolean = (jCompareTo(self, b) <= 0)
     opr >=(self, b: JavaString): Boolean = (jCompareTo(self, b) >= 0)        
+    opr =/=(self, b: JavaString): Boolean = (jCompareTo(self, b) =/= 0)
     opr ||(self, b:Object): JavaString =  jConcatenate(self, b.asString.asJavaString)
     opr |||(self, b:Object): JavaString = jSmartConcatenate(self, b.asString.asJavaString)
     opr [i:ZZ32] : Character = jMakeCharacter(jCharAt(self, i))
     substring(lo:ZZ32, hi:ZZ32): JavaString = jSubstring(self, lo, hi)
     opr ^(self, n: ZZ32): JavaString =
       if n <= 1 then
-        if n=1 then self elif n=0 then ("").asJavaString else throw NegativeLength end
+        if n=1 then self elif n=0 then emptyJavaString else throw NegativeLength end
       else
         x = (self || self)^(n DIV 2)
         if odd n then x || self else x end
       end
+    indexOf(c: Character): Option[\ZZ32\] = intOption(jIndexOf(self, jCodePoint(c)))
+    lastIndexOf(c: Character): Option[\ZZ32\] = intOption(jLastIndexOf(self, jCodePoint(c)))
+    upto(c: Character): JavaString = do k = jIndexOf(self, jCodePoint(c)); if k >= 0 then self.substring(0, k) else self end end
+    beyond(c: Character): JavaString = do k = jIndexOf(self, jCodePoint(c)); if k >= 0 then self.substring(k+1, |self|) else emptyJavaString end end
+    backto(c: Character): JavaString = do k = jLastIndexOf(self, jCodePoint(c)); if k >= 0 then self.substring(k+1, |self|) else self end end
+    before(c: Character): JavaString = do k = jLastIndexOf(self, jCodePoint(c)); if k >= 0 then self.substring(0, k) else emptyJavaString end end
 end
+
 
 print(x:Object):() = jPrint(x.asString.asJavaString)
 (*) print(s:String):() = jPrint(s.asJavaString)
@@ -1305,12 +1325,127 @@ end
 
 value object None end
 
+private intOption(x: ZZ32): Option[\ZZ32\] = if x >= 0 then Some(x) else NoneObject[\ZZ32\] end
+
 
 (************************************************************
 * Comparison values
 ************************************************************)
 
 (*) Material not present for now.  See CompilerBuiltinComparison.txt
+
+
+(*
+  The four values of type `Comparison` are `LessThan`, `EqualTo`, `GreaterThan`, and `Unordered`;
+  they are used as the results of comparison operators such as `CMP` and `SQCMP`.
+
+  The comparison operators `<` and `<=` and `>=` and `>` treat these four values themselves as
+  being totally ordered in the order just given.
+
+  The combining operator `LEXICO` combines two comparison values in a manner that is convenient
+  for computing lexicographic order between two tuples:
+    `((a, b, c) CMP (d, e, f)) = ((a CMP d) LEXICO (b CMP e) LEXICO (c CMP f))`
+
+  The combining operator `SQCAP` combines two comparison values in a manner that is convenient
+  for computing product order between two tuples:
+    `((a, b, c) SQCMP (d, e, f)) = ((a CMP d) SQCAP (b CMP e) SQCAP (c CMP f))`
+
+  The unary operator `CONVERSE` converts a comparison result to the result that would have
+  occurred with the operands switched:
+    `CONVERSE (a CMP b) = (b CMP a)`
+ *)
+
+trait Comparison
+(*)        extends { Equality[\Comparison\] }
+        comprises { Unordered, TotalComparison }
+        excludes { String, Number, Boolean, Character, JavaBufferedReader, JavaBufferedWriter }
+    getter asExprString(): String = self.asString
+    (*) Default opr = is suitable for Comparison
+    (*) Lexicographic ordering:  An associative operator; leftmost non-equal comparison dictates result.
+    opr LEXICO(self, other:Comparison): Comparison =
+        if self=EqualTo then other else self end
+    opr LEXICO(self, other:()->Comparison): Comparison =
+        if self=EqualTo then other() else self end
+    (*) Symmetric comparison (product ordering).  A commutative and associative operator.
+    opr SQCAP(self, other:Comparison): Comparison = Unordered
+    opr SQCAP(self, other:()->Comparison): Comparison = self SQCAP other()
+    opr CONVERSE(self): Comparison = Unordered
+    (*) This ought to be provided by Equality[\Comparison\].
+    opr =(self, other: Comparison): Boolean = (self === other)
+    (*) This stuff ought to be provided by StandardPartialOrder[\Comparison\].
+    opr CMP(self, other:Comparison): Comparison =
+        if self < other then LessThan
+        elif other < self then GreaterThan
+        elif self = other then EqualTo
+        else Unordered
+        end
+    opr <(self, other:Comparison): Boolean = false
+    opr >(self, other:Comparison): Boolean = (other < self)
+    opr <=(self, other:Comparison): Boolean = (self = other OR: self < other)
+    opr >=(self, other:Comparison): Boolean = (other <= self)
+end
+
+(** Unordered is the outcome of a CMP b when a and b are partially
+    ordered and no ordering relationship exists between them. **)
+object Unordered extends Comparison
+    getter asString(): String = "Unordered"
+    opr <(self, other:Comparison): Boolean = false
+    opr SQCAP(self, other:()->Comparison): Comparison = Unordered
+    opr CONVERSE(self): Comparison = Unordered
+end
+
+trait TotalComparison
+(*)        extends { Comparison, StandardTotalOrder[\TotalComparison\] }
+        extends { Comparison }
+        comprises { LessThan, EqualTo, GreaterThan }
+    opr CMP(self, other: Unordered): Comparison = LessThan
+    opr CMP(self, other: TotalComparison): TotalComparison =
+        if self < other then LessThan
+        elif other < self then GreaterThan
+        else EqualTo
+        end
+    opr =(self, other: TotalComparison): Boolean = (self === other)
+    opr <(self, other: Unordered): Boolean = true
+    opr >(self, other: TotalComparison): Boolean = (other < self)
+    opr <=(self, other: TotalComparison): Boolean = (self = other OR: self < other)
+    opr >=(self, other: TotalComparison): Boolean = (other <= self)
+    opr LEXICO(self, other: TotalComparison): TotalComparison =
+        if self=EqualTo then other else self end
+    opr LEXICO(self, other: ()->TotalComparison): TotalComparison =
+        if self=EqualTo then other() else self end
+    opr CONVERSE(self): TotalComparison = EqualTo
+end
+
+object LessThan extends TotalComparison
+    getter asString(): String = "LessThan"
+    opr CMP(self, other:LessThan): TotalComparison = EqualTo
+    opr CMP(self, other:TotalComparison): TotalComparison = LessThan
+    opr <(self, other:LessThan): Boolean = false
+    opr <(self, other:TotalComparison): Boolean = true
+    opr SQCAP(self, other:LessThan): LessThan = LessThan
+    opr SQCAP(self, other:EqualTo): LessThan = LessThan
+    opr CONVERSE(self): GreaterThan = GreaterThan
+end
+
+object EqualTo extends TotalComparison
+    getter asString(): String = "EqualTo"
+    opr CMP(self, other:TotalComparison): TotalComparison = CONVERSE other
+    opr <(self, other:GreaterThan): Boolean = true
+    opr <(self, other:TotalComparison): Boolean = false
+    opr SQCAP(self, other: Comparison): Comparison = other
+    opr CONVERSE(self): EqualTo = EqualTo
+end
+
+object GreaterThan extends TotalComparison
+    getter asString(): String = "GreaterThan"
+    opr CMP(self, other:GreaterThan): TotalComparison = EqualTo
+    opr CMP(self, other:TotalComparison): TotalComparison = GreaterThan
+    opr <(self, other:TotalComparison): Boolean = false
+    opr SQCAP(self, other:GreaterThan): GreaterThan = GreaterThan
+    opr SQCAP(self, other:EqualTo): GreaterThan = GreaterThan
+    opr CONVERSE(self): LessThan = LessThan
+end
+
 
 
 (************************************************************

@@ -7,7 +7,7 @@
 #    This distribution may include materials developed by third parties.
 #
 
-tests=Comparison1 Comparison2
+tests=ComparisonTest1 ComparisonTest2
 link
 run
 run_out_WIcontains=PASS

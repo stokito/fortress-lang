@@ -49,6 +49,14 @@ class TraitTable(current: CompilationUnitIndex, globalEnv: GlobalEnvironment) ex
 	  val candidate = JOption.wrap(globalEnv.api(name).typeConses().get(simpleName))
 	  if (candidate.isSome && name.toString == "CompilerLibrary") return candidate
 	}
+	for (name: APIName <- globalEnv.apiNames) {
+	  val candidate = JOption.wrap(globalEnv.api(name).typeConses().get(simpleName))
+	  if (candidate.isSome && name.toString == "CompilerAlgebra") return candidate
+	}
+	for (name: APIName <- globalEnv.apiNames) {
+	  val candidate = JOption.wrap(globalEnv.api(name).typeConses().get(simpleName))
+	  if (candidate.isSome && name.toString == "GeneratorLibrary") return candidate
+	}
 // 	for (name: APIName <- globalEnv.apiNames) {
 // 	  val candidate = JOption.wrap(globalEnv.api(name).typeConses().get(simpleName))
 // 	  if (candidate.isSome) return candidate
