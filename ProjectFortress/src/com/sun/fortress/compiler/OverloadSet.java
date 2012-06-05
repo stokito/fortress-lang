@@ -1243,7 +1243,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         return variances;
     }
     
-    public void generateCall(MethodVisitor mv, int firstArgIndex, Label failLabel) {
+    public void generateCall(MethodVisitor mv, int firstArgIndex) {
         if (!splitDone) {
             throw new CompilerError("Must split overload set before generating call(s)");
         }
@@ -1983,17 +1983,17 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
     protected void generateBody(MethodVisitor mv) {
         mv.visitCode();
-        Label fail = new Label();
+     //   Label fail = new Label();
 
-        generateCall(mv, firstArg(), fail); // Guts of overloaded method
+        generateCall(mv, firstArg()); // Guts of overloaded method
 
         // Emit failure case
-        mv.visitLabel(fail);
-        // Boilerplate for throwing an error.
-        // mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                           NamingCzar.miscCodegen, NamingCzar.matchFailure, NamingCzar.errorReturn);
-        mv.visitInsn(Opcodes.ATHROW);
+//        mv.visitLabel(fail);
+//        // Boilerplate for throwing an error.
+//        // mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+//        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+//                           NamingCzar.miscCodegen, NamingCzar.matchFailure, NamingCzar.errorReturn);
+//        mv.visitInsn(Opcodes.ATHROW);
 
         mv.visitMaxs(getParamCount(), getParamCount()); // autocomputed
         mv.visitEnd();
