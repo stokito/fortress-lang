@@ -1272,11 +1272,14 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
             // skip parameters -- no 'this' for ordinary functions
  
-            if (parameters.size() == 1 && oa.getDomainType(eff) instanceof TupleType) {
+            if (parameters.size() == 1 &&
+                    oa.getDomainType(eff) instanceof TupleType) {
                 TupleType tt = (TupleType) oa.getDomainType(eff);
                 List<Type> tl = tt.getElements();
                 int storeAtIndex = tl.size() + firstArgIndex;
-                TypeStructure[] f_type_structures = new TypeStructure[storeAtIndex];
+                // little dubious here, not sure we are getting the
+                // right type structures for generic methods.  what about 'self'
+                TypeStructure[] f_type_structures = new TypeStructure[tl.size()];
                 type_structures[i] = f_type_structures;
                 
                 for (int j = 0; j < tl.size(); j++) {
