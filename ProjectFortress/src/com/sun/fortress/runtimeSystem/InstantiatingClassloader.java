@@ -207,7 +207,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             if (name.equals("com.sun.fortress.runtimeSystem.InstantiatingClassloader"))
                  new Error(); // why are we here?
             
+            try {
             byte[] classData = null;
+            boolean expanded  = false;
             try {
                 boolean isClosure = name.contains(Naming.ENVELOPE);
                 boolean isGenericFunction = name.contains(Naming.GEAR);
@@ -221,7 +223,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                 char right_char = isGenericOxford ?
                         Naming.RIGHT_OXFORD_CHAR : Naming.RIGHT_HEAVY_ANGLE_CHAR;
 
-                boolean expanded = (isGeneric || isGenericFunction || isClosure) ;
+                expanded = (isGeneric || isGenericFunction || isClosure) ;
                 if (name.startsWith(Naming.TUPLE_RTTI_TAG)) {
                     classData = instantiateTupleRTTI(name);
                     expanded = true;
@@ -305,6 +307,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
                     ClassWriter cw = new ClassWriter(0);
                     classADT.accept(cw);
                     classData = cw.toByteArray();*/
+                }
+                
+                } catch (java.io.EOFException ioe) {
+                    // output error msg if this is a real problem
+                    ioe.printStackTrace();
+                    throw new ClassNotFoundException(
+                                                     "IO Exception in reading class : " + name + " ", ioe);
                 }
                 
                 if (expanded && SAVE_EXPANDED_JAR != null) {
@@ -2772,7 +2781,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
         
         // 3) create class for this object
         String stem = Naming.rttiClassToBaseClass(rttiClassName);
-        if (xldata == null) {
+        if (true || xldata == null) {
             // NOT symbolic (and a problem if we pretend that it is)
             mv.visitLdcInsn(stem);
         } else {
