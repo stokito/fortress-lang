@@ -97,7 +97,7 @@ runRanges(x: Indexed[\Boolean,ZZ32\]): List[\Range\] =
   (BIG BOXPLUS[i <- 0 # |x|] (if x[i] then RangeSet(0, <|[\Range\] i:i |>, 0) else SingleRange(1))).ranges
 *)
 
-(***** STILL WORKING ON IT
+(********
 
 opr BIG BOXPLUS[\T\](): Comprehension[\RunRanges, RunRanges, RunRanges, RunRanges\] =
    embiggen[\RunRanges\](fn(a,b) => a BOXPLUS b, SingleRange(0))
@@ -124,7 +124,6 @@ object RangeSet(left: ZZ32, ranges: List[\Range\], right: ZZ32) extends RunRange
       RangeSet(left, ps || <| p.lowerBound:q.upperBound |> || qs, other.right)
     end
 end
-
-*****)
+****)
 
 end

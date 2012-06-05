@@ -15,6 +15,8 @@ import Util.{...}
 import Maybe.{...}
 import GeneratorLibrary.{DefaultGeneratorImplementation}
 
+object OutOfBounds extends UncheckedException end
+
 trait List[\E extends Any\] extends DefaultGeneratorImplementation[\E\]
 
   abstract getter isEmpty():Boolean    
@@ -35,7 +37,7 @@ trait List[\E extends Any\] extends DefaultGeneratorImplementation[\E\]
   abstract concat(t2:List[\E\]):List[\E\]
   abstract splitIndex(x:ZZ32):(List[\E\],List[\E\])
   abstract concat3(v:E, t2:List[\E\]):List[\E\]
-  
+  opr [i: ZZ32, def: E]: E  
   
   (*)zip[\F\](other: List[\F\]): Generator[\(E,F)\]
   (*)filter(p: E -> Boolean): List[\E\]
@@ -50,6 +52,7 @@ emptyList[\E\](): List[\E\]
 singleton[\E\](x:E): List[\E\]
 opr <|[\T\]|>: List[\T\]
 
+opr <|[\T\] x1: T |>: List[\T\]
 opr <|[\T\] x1: T, x2: T |>: List[\T\]
 
 opr BIG <|[\T\]|> : Comprehension[\T,List[\T\],List[\T\],List[\T\]\]

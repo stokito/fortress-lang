@@ -19,6 +19,8 @@ export List
 (** Thrown when taking big intersection of no Lists. **)
 object EmptyIntersection extends UncheckedException end
 
+object OutOfBounds extends UncheckedException end
+
 weight:ZZ32 = 4
 
 (** The natural order of the List, and indexing on the List, yields List
@@ -44,6 +46,14 @@ trait List[\E extends Any\] extends DefaultGeneratorImplementation[\E\]
     splitIndex(x:ZZ32):(List[\E\],List[\E\])
     concat3(v:E, t2:List[\E\]):List[\E\]
     
+    find(i: ZZ32, def: E): E =
+      if i <= |getLeftChild()| 
+         then getLeftChild().find(i,def) 
+         else if i = (|getLeftChild()| + 1) then getValWithDefault(def) else getRightChild().find(i,def)  end 
+      end
+    
+    opr [i: ZZ32, def: E]: E = if i < 0 OR i >= |self| then throw OutOfBounds else find(i,def) end
+
 
 end
 
@@ -58,6 +68,7 @@ emptyList[\E\](): List[\E\] = EmptyList[\E\]
 
 opr <|[\T\]|>: List[\T\] = EmptyList[\T\]
 
+opr <|[\T\] x1: T |>: List[\T\] = EmptyList[\T\].addLeft(x1)
 opr <|[\T\] x1: T, x2: T |>: List[\T\] = EmptyList[\T\].addLeft(x2).addLeft(x1)
 
 object Cat[\T\] extends MonoidReduction[\List[\T\]\]
