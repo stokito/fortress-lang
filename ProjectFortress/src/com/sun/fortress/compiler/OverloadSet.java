@@ -1275,7 +1275,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             if (parameters.size() == 1 && oa.getDomainType(eff) instanceof TupleType) {
                 TupleType tt = (TupleType) oa.getDomainType(eff);
                 List<Type> tl = tt.getElements();
-                int storeAtIndex = tl.size();
+                int storeAtIndex = tl.size() + firstArgIndex;
                 TypeStructure[] f_type_structures = new TypeStructure[storeAtIndex];
                 type_structures[i] = f_type_structures;
                 
@@ -1288,7 +1288,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 
             } else {
             
-                int storeAtIndex = parameters.size();
+                int storeAtIndex = parameters.size() + firstArgIndex;
                 TypeStructure[] f_type_structures = new TypeStructure[parameters.size()];
                 type_structures[i] = f_type_structures;
     
