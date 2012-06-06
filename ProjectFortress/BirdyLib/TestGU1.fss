@@ -203,7 +203,8 @@ eventGenerator(rd: Read, name: String, er: ErrorRates, range: Range): Map[\ZZ32,
   (*) `diffs = BIG || [i <- seq(0 # |sample|)] (if mismatches[i] then "X" else ".")`
   {[\ZZ32, List[\Event\]\] rd.pos + r.lowerBound |->
    <|[\Event\] Event(rd, r.lowerBound, |r|, errorProbability(ref, sample, r, name, er), name) |> |
-     r <- runRanges mismatches } (*) , |r| > 1, (rd.pos + r.lowerBound) IN range
+        r <- (runRanges mismatches).filter(fn r => |r| > 1).filter(fn r => (rd.pos + r.lowerBound) IN range) } 
+     (*)r <- runRanges mismatches, |r| > 1, (rd.pos + r.lowerBound) IN range } 
 end
 
 processSample(name: String, rl: ReadList, er: ErrorRates, refChunk: ReferenceGenomeChunk): MyTuple[\Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32, ZZ32\]\]\] = do
