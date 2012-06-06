@@ -29,8 +29,8 @@ export Executable
 chunkSize: ZZ32 = 237
 readSize: ZZ32 = 35   (*) This may change with newer technology, but for now it is OK.
 
-(*) homeDir: String = "/Users/jean-baptistetristan/Code/workspace/PFC"
-homeDir: String = "/Users/gls/Fortress"
+homeDir: String = "/Users/jean-baptistetristan/Code/workspace/PFC"
+(*) homeDir: String = "/Users/gls/Fortress"
 referenceFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head" 
 sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
 errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
@@ -159,51 +159,15 @@ object MySTOTuple[\E extends StandardTotalOrder[\E\], F extends StandardTotalOrd
 end
 *)
 
-object MySTOTuple(f: ZZ32,s: String) 
-   extends StandardTotalOrder[\MySTOTuple\] 
-   
-    opr <(self, other:MySTOTuple): Boolean = 
-       typecase self CMP other of
-         LessThan => true
-         GreaterThan => false
-         EqualTo => false
-       end
-    opr >(self, other:MySTOTuple): Boolean = 
-       typecase self CMP other of
-         LessThan => false
-         GreaterThan => true
-         EqualTo => false
-       end
-    opr =(self, other:MySTOTuple): Boolean =
-       typecase self CMP other of
-         LessThan => false
-         GreaterThan => false
-         EqualTo => true
-       end    
-    opr <=(self, other:MySTOTuple): Boolean =
-       typecase self CMP other of
-         LessThan => true
-         GreaterThan => false
-         EqualTo => true
-       end
-    opr >=(self, other:MySTOTuple): Boolean =
-       typecase self CMP other of
-         LessThan => false
-         GreaterThan => true
-         EqualTo => true
-       end
-    opr CMP(self, other:MySTOTuple): Comparison =
-      if self.f < other.f 
-         then LessThan  
-         else if self.f > other.f 
-                 then GreaterThan 
-                 else if self.s < other.s 
-                         then LessThan 
-                         else if self.s > other.s then GreaterThan else EqualTo end
-                      end
-              end
-      end
-   
+object MySTOTuple(f: ZZ32,s: String)
+  extends StandardTotalOrder[\MySTOTuple\]
+   opr <(self, other:MySTOTuple): Boolean = (self CMP other) === LessThan
+   opr >(self, other:MySTOTuple): Boolean = (self CMP other) === GreaterThan
+   opr =(self, other:MySTOTuple): Boolean = (self CMP other) === EqualTo
+   opr <=(self, other:MySTOTuple): Boolean = NOT (self > other)
+   opr >=(self, other:MySTOTuple): Boolean = NOT (self < other)
+   opr CMP(self, other:MySTOTuple): TotalComparison =
+     (self.f CMP other.f) LEXICO: (self.s CMP other.s)
 end
 
 mergeEvents(key: ZZ32, change: String, changeEvents: List[\Event\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]):
@@ -233,25 +197,21 @@ rprod(i: ZZ32, bound: ZZ32, ref: String, sample: String, l: List[\RR64\]): RR64 
 errorProbability(ref: String, sample: String, r: Range, name: String, er: ErrorRates): RR64 =
   if (|r| = 2) then er.single[r.lowerBound,0.0] else rprod(r.lowerBound,r.upperBound,ref,sample,er.multiple) end
 
-(********* NOT TRANSCRIBED YET
-
 eventGenerator(rd: Read, name: String, er: ErrorRates, range: Range): Map[\ZZ32, List[\Event\]\] = do
   (sample, ref) = (rd.sampleColors, rd.refColors)
-  mismatches = <| q OR (p AND r) | (p,q,r) <- triples (<| false |> || <| sample[i]=/=ref[i] | i <- 0 # |sample| |> || <| false |>) |> 
+  mismatches = <|[\Boolean\] q OR (p AND r) | (p,q,r) <- triples (<|[\Boolean\] false |> || <|[\Boolean\] sample[i]=/=ref[i] | i <- toGenZZ32(0 # |sample|) |> || <|[\Boolean\] false |>) |> 
   (*) `diffs = BIG || [i <- seq(0 # |sample|)] (if mismatches[i] then "X" else ".")`
-  singleton(rd.pos + r.lower,
-   <|[\Event\] Event(rd, r.lower, |r|, errorProbability(ref, sample, r, name, er), name) |> |
-     r <- runRanges mismatches, |r| > 1, (rd.pos + r.lower) IN range)
+  {[\ZZ32, List[\Event\]\] rd.pos + r.lowerBound |->
+   <|[\Event\] Event(rd, r.lowerBound, |r|, errorProbability(ref, sample, r, name, er), name) |> |
+     r <- runRanges mismatches } (*) , |r| > 1, (rd.pos + r.lowerBound) IN range
 end
 
-processSample(name: String, rl: ReadList, er: ErrorRates, refChunk: ReferenceGenomeChunk): (Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32, ZZ32\]\]) = do
-  eventData = <| (eventGenerator(rd, name, er, refChunk.range), rd.pos) | rd <- rl.getReads(refChunk) |>
-  database = BIG UNIONCAT[\ZZ32,Event\][sd <- eventData] first(sd)
-  coverageDatabase = BIG UNIONPLUS[\ZZ32\][sd <- eventData] {[\ZZ32, ZZ32\] second(sd) |-> 1 }
-  (database, {[\String, Map[\ZZ32, ZZ32\]\] name |-> coverageDatabase })
+processSample(name: String, rl: ReadList, er: ErrorRates, refChunk: ReferenceGenomeChunk): MyTuple[\Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32, ZZ32\]\]\] = do
+  eventData = <|[\MyTuple[\Map[\ZZ32, List[\Event\]\],ZZ32\]\] MyTuple[\Map[\ZZ32, List[\Event\]\],ZZ32\](eventGenerator(rd, name, er, refChunk.range), rd.pos) | rd <- rl.getReads(refChunk) |>
+  database = BIG UNIONCAT[\ZZ32,Event\][sd <- eventData] sd.f
+  coverageDatabase = BIG UNIONPLUS[\ZZ32\][sd <- eventData] singleton(sd.s, 1 typed ZZ32) (*) LOOK
+  MyTuple(database, singleton(name, coverageDatabase))
 end
-
-*************)
 
 object ErrorRates(single: List[\RR64\], multiple: List[\RR64\]) end
 
@@ -294,6 +254,30 @@ end
 run() = do
   ref = getReferenceGenomeFromFile(referenceFile, 50, 15)
   samples = <|[\Sample\] getSampleData(name) | name <- sampleNames |>
+  for refChunk <- ref do
+    (databaseData, coverageData) = transpose <|[\MyTuple[\Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32,ZZ32\]\]\]\]
+                                                  processSample(sample.s, sample.r, sample.e, refChunk) | sample <- samples |>
+    database: Map[\ZZ32, List[\Event\]\] = BIG UNIONCAT[\ZZ32,Event\][x <- databaseData] x
+    coverage: Map[\String, Map[\ZZ32,ZZ32\]\] = BIG UPLUS[\String, Map[\ZZ32,ZZ32\]\] [x <- coverageData] x
+
+    mergedDatabase: Map[\MySTOTuple, List[\MergedEvent\]\] = makeMergedDatabase(database, coverage)
+
+    println("Events")
+    for (_, entries) <- database.seq(), entry <- entries.seq() do println(entry.asDetailedString) end
+
+    println("Merged Events:")
+    for (_, events) <- mergedDatabase.seq(), event <- events.seq() do
+      println(event)
+      for e <- (event.eventList).seq() do println(e) end
+      println("-------")
+    end
+  end
+end
+
+(*
+run() = do
+  ref = getReferenceGenomeFromFile(referenceFile, 50, 15)
+  samples = <|[\Sample\] getSampleData(name) | name <- sampleNames |>
   for refChunk <- ref do (*)println("chunk\n") 
                          (*)println(refChunk.start)
                          (*)println("Chunk length: " || refChunk.length) 
@@ -312,5 +296,6 @@ run() = do
                       end                                   
   println("OK!")
 end
+*)
 
 end
