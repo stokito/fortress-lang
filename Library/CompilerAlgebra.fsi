@@ -11,13 +11,7 @@
 
 api CompilerAlgebra
 
-(*) trait Comparison comprises { LessThan , GreaterThan, EqualTo, Unordered } end
-(*) object LessThan extends Comparison end
-(*) object GreaterThan extends Comparison end
-(*) object EqualTo extends Comparison end
-(*) object Unordered extends Comparison end 
-  
-trait StandardTotalOrder[\T extends StandardTotalOrder[\T\]\] comprises T
+trait StandardTotalOrder[\T\] extends Equality[\T\] comprises T
   abstract opr <(self, other:T): Boolean
   abstract opr >(self, other:T): Boolean
   abstract opr <=(self, other:T): Boolean
