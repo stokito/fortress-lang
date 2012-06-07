@@ -149,6 +149,12 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     // Union types
     case (SUnionType(_,ss), t) =>
       pAnd(ss.map(pSub(_, t)))
+    case (s: TraitType, t@SUnionType(_, ts)) =>
+      val unionResult = pOr(ts.map(pSub(s, _)))
+      comprisedTypes(s) match {
+        case Some(cs) => pOr(unionResult, pAnd(cs.map(pSub(_, t)))) 
+        case None => unionResult
+      }
     case (s, SUnionType(_, ts)) =>
       pOr(ts.map(pSub(s, _)))
     // We must eliminate trait self types before making constraints  
@@ -259,7 +265,12 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       // println("checking " + s + " <: " + t)
       val par = parents(s)
       // println(s + " has parents " + par)
-      pOr(par.map(pSub(_, t)))
+      val parentResult = pOr(par.map(pSub(_, t)))
+//       comprisedTypes(s) match {   // Gets a stack overflow error; maybe we don't need this in practice.  GLS 6/6/12
+//         case Some(cs) => pOr(parentResult, pAnd(cs.map(c => parents(c.asInstanceOf[TraitType]).filter(!lteq(_,s)).map(pSub(_, t))).flatten))
+//         case None => parentResult
+//       }
+      parentResult
     case (s: ObjectExprType, t) => pSub(removeSelf(s), t)
     // Arrow types
     case (SArrowType(_, d1, r1, e1, i1, _), SArrowType(_, d2, r2, e2, i2, _)) =>
@@ -712,9 +723,7 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
     val STraitType(_, n, a, _) = t
     val index = typeCons(n).asInstanceOf[TraitIndex]
     toListFromImmutable(index.extendsTypes).
-      map(tw =>
-        substitute(a, toListFromImmutable(index.staticParameters), tw.getBaseType).asInstanceOf[BaseType]).
-          toSet
+      map(tw => substitute(a, toListFromImmutable(index.staticParameters), tw.getBaseType).asInstanceOf[BaseType]).toSet
   }
   
   def ancestors(t: TraitType): Set[BaseType] =
@@ -722,6 +731,18 @@ class TypeAnalyzer(val traits: TraitTable, val env: KindEnv) extends BoundedLatt
       case s:TraitType => Set(s) ++ ancestors(s)
       case x => Set(x)
     }
+
+  def comprisedTypes(t: TraitType): Option[Set[BaseType]] = {
+    val STraitType(_, n, a, _) = t
+    typeCons(n) match {
+      case index: ProperTraitIndex =>
+	val cs = index.comprisesTypes
+	if (cs.isEmpty) None
+        else
+	    Some(toSet(cs).map(typ => substitute(a, toListFromImmutable(index.staticParameters), typ).asInstanceOf[BaseType]).toSet)
+      case _ => None
+    }
+  }
   
   def excludesClause(t: TraitType): Set[TraitType] = {
     val ti = typeCons(t.getName).asInstanceOf[TraitIndex]
