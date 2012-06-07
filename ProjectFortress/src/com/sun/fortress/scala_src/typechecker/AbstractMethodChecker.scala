@@ -100,12 +100,12 @@ class AbstractMethodChecker(component: ComponentIndex,
         val moreSpecificConcreteMethodsAndDomains = concreteMethodsAndDomains.filter(x => x match { case (meth2, dom2) => tsa.subtypeED(dom2, thisDomain)})
         val domainList = moreSpecificConcreteMethodsAndDomains.map(x => x match { case (concMeth, domain) => domain }).toList
         val domainUnion = domainList.fold(BOTTOM)(tsa.joinED)
-//    	println("\nThis domain: " + thisDomain)
-//    	println("Concrete methods and domains: " + concreteMethodsAndDomains)
-//    	println("More specific concrete methods and domains: " + moreSpecificConcreteMethodsAndDomains)
-//    	println("Domain union of " + domainList + " is " + domainUnion)
         if (!tsa.subtypeED(thisDomain, domainUnion)) {
-	  // GLS 5/30/12 The following println produces a lousy message because the bounds of any method type parameters are not printted, and that matters.
+	  println("\nThis domain: " + thisDomain)
+	  println("Concrete methods and domains: " + concreteMethodsAndDomains)
+	  println("More specific concrete methods and domains: " + moreSpecificConcreteMethodsAndDomains)
+	  println("Domain union of " + domainList + " is " + domainUnion)
+	  // GLS 5/30/12 The following println produces a lousy message because the bounds of any method type parameters are not printed, and that matters.
   	  println("Domain " + thisDomain + " is not a subtype of " + domainUnion)
 	  error(NU.getSpan(od),
 		"The inherited abstract method " + meth.asInstanceOf[HasSelfType].ast + " from the trait " + tt +

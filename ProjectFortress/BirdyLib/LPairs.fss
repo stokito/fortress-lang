@@ -9,7 +9,7 @@
 
  ******************************************************************************)
 
-component Pairs
+component LPairs
 
 import List.{...}
 import Map.{...}
@@ -27,10 +27,10 @@ object Pairs[\T\](g: Generator[\T\]) extends DefaultGeneratorImplementation[\(T,
     if (l,v,r) <- g.generate[\Maybe[\(T,R,T)\]\](PairReduction[\T,R\](red,m),
                              fn (t:T) => Just[\(T,R,T)\](t, red.id, t))
         then v else red.id end
-(*)     loop(m:(T,T)->()): () = do println "BL:AP";
-(*)         ign = g.generate[\Maybe[\(T,(),T)\]\](PairReduction[\T,()\](VoidReduction, m),
-(*)                              fn (t:T) => Just[\(T,(),T)\](t, (), t));
-(*)         () end
+    loop(m:(T,T)->()): () = do println "BL:AP";
+        ign = g.generate[\Maybe[\(T,(),T)\]\](PairReduction[\T,()\](VoidReduction, m),
+                             fn (t:T) => Just[\(T,(),T)\](t, (), t));
+        () end
 end
 
 object PairReduction[\T,R extends Any\](red: Reduction[\R\], m:(T,T)->R)
@@ -79,20 +79,25 @@ end
 
 geometricMean(xs: List[\RR64\]): RR64 = (PROD xs)^(1.0/((|xs|).asRR64()))
 
-opr UNIONCAT[\T extends StandardTotalOrder[\T\],U\](a: Map[\T, List[\U\]\], b: Map[\T, List[\U\]\]): Map[\T, List[\U\]\] =
+opr UNIONCAT[\T extends { Object, StandardTotalOrder[\T\] },U\](a: Map[\T, List[\U\]\], b: Map[\T, List[\U\]\]): Map[\T, List[\U\]\] =
   a.union(fn(k,x,y) => x || y, b)
 
-opr UNIONPLUS[\T extends StandardTotalOrder[\T\]\](a: Map[\T, ZZ32\], b: Map[\T, ZZ32\]): Map[\T, ZZ32\] =
+opr UNIONPLUS[\T extends { Object, StandardTotalOrder[\T\] }\](a: Map[\T, ZZ32\], b: Map[\T, ZZ32\]): Map[\T, ZZ32\] =
   a.union(fn(k,x,y) => x + y, b)
 
-opr BIG UNIONCAT[\T extends StandardTotalOrder[\T\],U\](): Comprehension[\Map[\T, List[\U\]\],Map[\T, List[\U\]\],Map[\T, List[\U\]\],Map[\T, List[\U\]\]\] =
+opr BIG UNIONCAT[\T extends { Object, StandardTotalOrder[\T\] },U\](): Comprehension[\Map[\T, List[\U\]\],Map[\T, List[\U\]\],Map[\T, List[\U\]\],Map[\T, List[\U\]\]\] =
   embiggen[\Map[\T, List[\U\]\]\](fn(a,b) => a UNIONCAT b, {[\T,List[\U\]\]})
 
-opr BIG UNIONPLUS[\T extends StandardTotalOrder[\T\]\](): Comprehension[\Map[\T, ZZ32\],Map[\T, ZZ32\],Map[\T, ZZ32\],Map[\T, ZZ32\]\] =
+
+opr BIG UNIONPLUS[\T extends { Object, StandardTotalOrder[\T\] }\](): Comprehension[\Map[\T, ZZ32\],Map[\T, ZZ32\],Map[\T, ZZ32\],Map[\T, ZZ32\]\] =
   embiggen[\Map[\T, ZZ32\]\](fn(a,b) => a UNIONPLUS b, {[\T,ZZ32\]})
 
-runRanges(x: List[\Boolean\]): List[\Range\] =
-  (BIG BOXPLUS[i <- toGenZZ32(0 # |x|)] (if x[i,true] then RangeSet(0, <|[\Range\] i:i |>, 0) else SingleRange(1))).ranges
+(*
+runRanges(x: Indexed[\Boolean,ZZ32\]): List[\Range\] =
+  (BIG BOXPLUS[i <- 0 # |x|] (if x[i] then RangeSet(0, <|[\Range\] i:i |>, 0) else SingleRange(1))).ranges
+*)
+
+(***** STILL WORKING ON IT
 
 opr BIG BOXPLUS[\T\](): Comprehension[\RunRanges, RunRanges, RunRanges, RunRanges\] =
    embiggen[\RunRanges\](fn(a,b) => a BOXPLUS b, SingleRange(0))
@@ -103,16 +108,14 @@ trait RunRanges comprises { SingleRange, RangeSet }
 end
 
 object SingleRange(n: ZZ32) extends RunRanges
-  getter ranges() = <|[\Range\] |>  
-  opr BOXPLUS(self, x: RunRanges): RunRanges = throw UnpastingError
+  getter ranges() = <|[\Range\] |>
   opr BOXPLUS(self, other: SingleRange) = SingleRange(n + other.n)
-  opr BOXPLUS(self, other: RangeSet) = RangeSet(n + other.left, other.ranges, other.right) 
+  opr BOXPLUS(self, other: RangeSet) = RangeSet(n + other.left, other.ranges, other.right)
 end
 
 object RangeSet(left: ZZ32, ranges: List[\Range\], right: ZZ32) extends RunRanges
-  opr BOXPLUS(self, x: RunRanges): RunRanges = throw UnpastingError
   opr BOXPLUS(self, other: SingleRange) = RangeSet(left, ranges(), right + other.n)
-  opr BOXPLUS(self, other: RangeSet) =                                                     
+  opr BOXPLUS(self, other: RangeSet) =
     if right + other.left >= 2 then
       RangeSet(left, ranges() || other.ranges, other.right)
     else
@@ -121,5 +124,7 @@ object RangeSet(left: ZZ32, ranges: List[\Range\], right: ZZ32) extends RunRange
       RangeSet(left, ps || <| p.lowerBound:q.upperBound |> || qs, other.right)
     end
 end
+
+*****)
 
 end

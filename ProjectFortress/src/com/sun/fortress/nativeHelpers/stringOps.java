@@ -26,9 +26,18 @@ public class stringOps {
     public static int charAt(String s, int at) {
         return s.charAt(at);
     }
+
+    public static int indexOf(String s, int t) {
+	return s.indexOf(t);
+    }
+
+    public static int lastIndexOf(String s, int t) {
+	return s.lastIndexOf(t);
+    }
     
     public static String asString(fortress.AnyType.Any a) { // this can't be right! DRC
         //        return "<" + a.getClass() + ">";
         return a.toString(); // I think this is better CHF
     }
+
 }

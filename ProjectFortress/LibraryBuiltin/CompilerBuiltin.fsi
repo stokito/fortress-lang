@@ -10,7 +10,8 @@
  ******************************************************************************)
 
 api CompilerBuiltin
-import CompilerAlgebra.{ Equality, StandardTotalOrder, Comparison }
+(*) import CompilerAlgebra.{ Equality, StandardTotalOrder, Comparison }
+import CompilerAlgebra.{ Equality, StandardTotalOrder }
 import AnyType.{Any}
 
 trait Object extends Any
@@ -30,13 +31,21 @@ trait String extends StandardTotalOrder[\String\]
     opr >(self, b: String): Boolean 
     opr <=(self, b: String): Boolean 
     opr >=(self, b: String): Boolean 
+    opr =/=(self, b: String): Boolean
     opr CMP(self, other:String): Comparison    
     abstract opr |self| : ZZ32
     abstract opr || (self, b:Object): String
+    abstract opr ||| (self, b:Object): String
     abstract opr juxtaposition(self, b:Object): String
     abstract opr[i:ZZ32] : Character
     abstract substring(lo:ZZ32, hi:ZZ32): String
     abstract opr ^(self, n: ZZ32): String
+    abstract indexOf(c: Character): Option[\ZZ32\]
+    abstract lastIndexOf(c: Character): Option[\ZZ32\]
+    abstract upto(c: Character): String
+    abstract beyond(c: Character): String
+    abstract backto(c: Character): String
+    abstract before(c: Character): String
 end
 
 trait JavaString extends String
@@ -645,43 +654,41 @@ value object None end
 * Comparison values
 ************************************************************)
 
-(*) trait Comparison
-(*) (*)        extends { StandardPartialOrder[\Comparison\] }
-(*) (*)           extends { SnerdEquality[\Comparison\] }
-(*)         extends { Equality[\Comparison\] }
-(*)         comprises { Unordered, TotalComparison }
-(*)         excludes { String, Number, Boolean, Character, JavaBufferedReader, JavaBufferedWriter }
-(*)     opr LEXICO(self, other:Comparison): Comparison
-(*)     opr LEXICO(self, other:()->Comparison): Comparison
-(*)     opr SQCAP(self, other:Comparison): Comparison
-(*)     opr SQCAP(self, other:()->Comparison): Comparison
-(*)     opr CONVERSE(self): Comparison
-(*)     (*) This stuff ought to be provided by Equality[\Comparison\].
-(*)     opr =(self, other:Comparison): Boolean
-(*)     (*) This stuff ought to be provided by StandardPartialOrder.
-(*)     opr CMP(self, other:Comparison): Comparison
-(*)     opr <(self, other:Comparison): Boolean
-(*)     opr >(self, other:Comparison): Boolean
-(*)     opr <=(self, other:Comparison): Boolean
-(*)     opr >=(self, other:Comparison): Boolean
-(*) end
+trait Comparison
+(*)        extends { Equality[\Comparison\] }
+        comprises { Unordered, TotalComparison }
+        excludes { String, Number, Boolean, Character, JavaBufferedReader, JavaBufferedWriter }
+    opr LEXICO(self, other:Comparison): Comparison
+    opr LEXICO(self, other:()->Comparison): Comparison
+    opr SQCAP(self, other:Comparison): Comparison
+    opr SQCAP(self, other:()->Comparison): Comparison
+    opr CONVERSE(self): Comparison
+    (*) This stuff ought to be provided by StandardPartialOrder.
+    opr CMP(self, other:Comparison): Comparison
+    opr =(self, other:Comparison): Boolean
+    opr <(self, other:Comparison): Boolean
+    opr >(self, other:Comparison): Boolean
+    opr <=(self, other:Comparison): Boolean
+    opr >=(self, other:Comparison): Boolean
+end
 
-(*) object Unordered extends Comparison end
+object Unordered extends Comparison end
 
-(*) trait TotalComparison
-(*) (*)     extends { Comparison, StandardTotalOrder[\TotalComparison\] }
-(*)         extends { Comparison }
-(*)         comprises { LessThan, EqualTo, GreaterThan }
-(*)     opr LEXICO(self, other:TotalComparison): TotalComparison
-(*)     opr LEXICO(self, other:()->TotalComparison): TotalComparison
-(*)     opr CMP(self, other:TotalComparison): TotalComparison
-(*) end
+trait TotalComparison
+(*)        extends { Comparison, StandardTotalOrder[\TotalComparison\] }
+        extends { Comparison }
+        comprises { LessThan, EqualTo, GreaterThan }
+    opr LEXICO(self, other:TotalComparison): TotalComparison
+    opr LEXICO(self, other:()->TotalComparison): TotalComparison
+    opr CMP(self, other: TotalComparison): TotalComparison
+    opr =(self, other: TotalComparison): Boolean
+end
 
-(*) object LessThan extends TotalComparison end
+object LessThan extends TotalComparison end
 
-(*) object GreaterThan extends TotalComparison end
+object GreaterThan extends TotalComparison end
 
-(*) object EqualTo extends TotalComparison end
+object EqualTo extends TotalComparison end
 
 (************************************************************
 * Exception hierarchy
