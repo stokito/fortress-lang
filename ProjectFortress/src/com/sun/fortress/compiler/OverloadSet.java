@@ -1243,7 +1243,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         return variances;
     }
     
-    public void generateCall(MethodVisitor mv, int firstArgIndex) {
+    public void generateCall(MethodVisitor mv, int firstArgIndex, int one_if_method_closure) {
         if (!splitDone) {
             throw new CompilerError("Must split overload set before generating call(s)");
         }
@@ -1276,7 +1276,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     oa.getDomainType(eff) instanceof TupleType) {
                 TupleType tt = (TupleType) oa.getDomainType(eff);
                 List<Type> tl = tt.getElements();
-                int storeAtIndex = tl.size() + firstArgIndex;
+                int storeAtIndex = tl.size() ; // DRC back this out + firstArgIndex;
                 // little dubious here, not sure we are getting the
                 // right type structures for generic methods.  what about 'self'
                 TypeStructure[] f_type_structures = new TypeStructure[tl.size()];
@@ -1291,7 +1291,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 
             } else {
             
-                int storeAtIndex = parameters.size() + firstArgIndex;
+                int storeAtIndex = parameters.size() ; // DRC back this out + firstArgIndex;
                 TypeStructure[] f_type_structures = new TypeStructure[parameters.size()];
                 type_structures[i] = f_type_structures;
     
@@ -1315,33 +1315,40 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
             boolean infer = false;
 
             List<StaticParam> staticParams = staticParametersOf(f.getF());
-            
-            if (i < l-1) {
-                /* Trust the static checker; no need to verify
-                 * applicability of the last one.
-                 * Also, static parameters will be provided by static checker for the last one
-                 */
-                // Will need lookahead for the next one.
-                lookahead = new Label();
+            boolean last_case = i == l-1;
 
-                // if this was a generic method that needs inference, we need to include the receiver argument
-                // in the inference even if the firstArgIndex is 1 so that we can include it in inference
-                // and dispatch
-                //KBN-WIP is there a cleaner way to do this?
-                int offset = (f_type_structures.length == specificDispatchOrder[i].getParameters().size()) ? 
-                                firstArgIndex : 0; 
-                
+
+            /* Trust the static checker; no need to verify
+             * applicability of the last one.
+             * Also, static parameters will be provided by static checker for the last one
+             */
+            // Will need lookahead for the next one.
+            lookahead = new Label();
+
+            // if this was a generic method that needs inference, we need to include the receiver argument
+            // in the inference even if the firstArgIndex is 1 so that we can include it in inference
+            // and dispatch
+            //KBN-WIP is there a cleaner way to do this?
+            int offset = (f_type_structures.length == specificDispatchOrder[i].getParameters().size()) ? 
+                    firstArgIndex : 0; 
+
+            for (int j = 0; j < f_type_structures.length; j++) {
+                if (j != selfIndex()) {
+                    //inference needed if the type structure contains generics TODO: do generics not appearing in the parameters make sense?  probably not, but might need to deal with them.
+                    if (f_type_structures[j].containsTypeVariables)
+                        infer = true;
+                }
+            }
+
+            if (infer || !last_case)
                 for (int j = 0; j < f_type_structures.length; j++) {
                     // Load actual parameter
                     if (j != selfIndex()) {
                         mv.visitVarInsn(Opcodes.ALOAD, j + offset); 
                         f_type_structures[j].emitInstanceOf(mv, lookahead, true);
-                        //inference needed if the type structure contains generics TODO: do generics not appearing in the parameters make sense?  probably not, but might need to deal with them.
-                        if (f_type_structures[j].containsTypeVariables)
-                                infer = true;
                     }
                 }
-            }
+
             
             //Runtime inference for some cases
             if (infer) {
@@ -1583,6 +1590,12 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 String templateClass = Naming.genericFunctionPkgClass(
                         Naming.dotToSep(f.tagA.getText()), functionName, Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD, arrow);
                 
+                if (otherOverloadKeys.contains(templateClass)) {
+                    templateClass = Naming.genericFunctionPkgClass(
+                            Naming.dotToSep(f.tagA.getText()), NamingCzar.mangleAwayFromOverload(functionName), Naming.LEFT_OXFORD + Naming.RIGHT_OXFORD, arrow);
+                    //templateClass = NamingCzar.mangleAwayFromOverload(templateClass);
+                }
+                
                 mv.visitLdcInsn(templateClass);
                 
                 String ic_sig;
@@ -1637,7 +1650,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 for (int j = 0; j < f_type_structures.length; j++) {
                     // Load actual parameter
                     if (j != selfIndex()) {
-                        mv.visitVarInsn(Opcodes.ALOAD, j); // + firstArgIndex); KBN if a method, parameters already converted
+                        mv.visitVarInsn(Opcodes.ALOAD, j ); // DRC back this out+ one_if_method_closure); // + firstArgIndex); KBN if a method, parameters already converted
                         //no cast needed here - done by apply method
                     }
                 }
@@ -1976,7 +1989,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     null, // signature, // depends on generics, I think
                     exceptions); // exceptions);
         
-        generateBody(mv);
+        generateBody(mv, 0);
         
         if (PCNOuter != null) {
             InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cv);
@@ -1984,19 +1997,20 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
         }
     }
 
-    protected void generateBody(MethodVisitor mv) {
+    protected void generateBody(MethodVisitor mv, int one_if_method_closure) {
         mv.visitCode();
      //   Label fail = new Label();
 
-        generateCall(mv, firstArg()); // Guts of overloaded method
+        generateCall(mv, firstArg(), one_if_method_closure); // Guts of overloaded method
 
         // Emit failure case
 //        mv.visitLabel(fail);
 //        // Boilerplate for throwing an error.
 //        // mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
-//        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-//                           NamingCzar.miscCodegen, NamingCzar.matchFailure, NamingCzar.errorReturn);
-//        mv.visitInsn(Opcodes.ATHROW);
+        
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                           NamingCzar.miscCodegen, NamingCzar.matchFailure, NamingCzar.errorReturn);
+        mv.visitInsn(Opcodes.ATHROW);
 
         mv.visitMaxs(getParamCount(), getParamCount()); // autocomputed
         mv.visitEnd();
@@ -2237,8 +2251,8 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                     public void generateGenericMethodBody(CodeGen cg, int selfIndex,
                             String applied_method, String modified_sig) {
                         // TODO Auto-generated method stub
-                        MethodVisitor mv = cg.getCw().visitCGMethod(Opcodes.ACC_PUBLIC, applied_method, modified_sig, null, null);
-                        generateBody(mv);
+                        MethodVisitor mv = cg.getCw().visitCGMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, applied_method, modified_sig, null, null);
+                        generateBody(mv, 1);
                     }
                 };
                 String TO_method_name = cnb.stemClassName + Naming.UP_INDEX + overloaded_name;
@@ -2270,7 +2284,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                         null, // signature, // depends on generics, I think
                         exceptions); // exceptions);
 
-                generateBody(mv);
+                generateBody(mv, 0);
 
                 if (PCNOuter != null) {
                     InstantiatingClassloader.optionalStaticsAndClassInitForTO(isf_list, cv);

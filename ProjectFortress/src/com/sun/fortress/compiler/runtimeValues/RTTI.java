@@ -22,7 +22,9 @@ public abstract class RTTI {
     private final long serialNumber;
     
     public boolean runtimeSupertypeOf(RTTI other) {
-        return this.javaRep.isAssignableFrom( other.javaRep );
+        boolean result =  this.javaRep.isAssignableFrom( other.javaRep );
+        // System.err.println(other.toString() + (result ? " <: " : " not<: ")+ this.toString());
+        return result;
     }
     
     public RTTI(Class javaRep) {

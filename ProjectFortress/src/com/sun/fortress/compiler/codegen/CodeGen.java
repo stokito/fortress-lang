@@ -5618,20 +5618,26 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     if (t instanceof TupleType) {
                     	TupleType tt = (TupleType) t;
                         List<Type> tupleElts = tt.getElements();
-                    	
-                        for (Type it : tupleElts) {
-                        	if (it instanceof TraitType) {
-                        		generateTraitTypeReference(mv2,(TraitType) it, rttiClassName, spns);
-                        	} else if (it instanceof VarType) {
-                        		generateVarTypeReference(mv2,(VarType) it, rttiClassName, spns);
-                        	} else {
-                        		generateTypeReference(mv2,rttiClassName, null, Collections.<StaticArg>emptyList(), spns);
-                        	}
+                        
+                        if (tupleElts.size() == 0) {
+                            // need to get field_type right
+                            String void_rttic = Naming.stemClassToRTTIclass(NamingCzar.internalFortressVoid);
+                            mv2.visitFieldInsn(GETSTATIC, void_rttic, Naming.RTTI_SINGLETON, Naming.RTTI_CONTAINER_DESC);                                           
+                        } else {
+                            for (Type it : tupleElts) {
+                                if (it instanceof TraitType) {
+                                    generateTraitTypeReference(mv2,(TraitType) it, rttiClassName, spns);
+                                } else if (it instanceof VarType) {
+                                    generateVarTypeReference(mv2,(VarType) it, rttiClassName, spns);
+                                } else {
+                                    generateTypeReference(mv2,rttiClassName, null, Collections.<StaticArg>emptyList(), spns);
+                                }
+                            }
+                            String rttiClass = Naming.tupleRTTIclass(tupleElts.size());
+                            String tupleFactorySig = InstantiatingClassloader.jvmSignatureForNTypes(tupleElts.size(),
+                                    Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_CONTAINER_DESC); 
+                            mv.visitMethodInsn(INVOKESTATIC, rttiClass, "factory", tupleFactorySig);
                         }
-                        String rttiClass = Naming.tupleRTTIclass(tupleElts.size());
-                        String tupleFactorySig = InstantiatingClassloader.jvmSignatureForNTypes(tupleElts.size(),
-                                Naming.RTTI_CONTAINER_TYPE, Naming.RTTI_CONTAINER_DESC); 
-                        mv.visitMethodInsn(INVOKESTATIC, rttiClass, "factory", tupleFactorySig);
                         continue;
                     } else if (t instanceof ArrowType) {
                         ArrowType at = (ArrowType) t;
@@ -5663,7 +5669,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                     } else if (t instanceof SelfType) {
                         
                     } else if (t instanceof TraitType) {
-                    	generateTraitTypeReference(mv2,(TraitType) t, rttiClassName, spns);
+                        generateTraitTypeReference(mv2,(TraitType) t, rttiClassName, spns);
                         continue;
 
                     } else if (t instanceof VarType) {
