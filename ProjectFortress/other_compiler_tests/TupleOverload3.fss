@@ -1,0 +1,168 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+s1:String = "s" "1"
+s2:String = "s" "2"
+s3:String = "s" "1"
+s4:String = "s" "2"
+n1:ZZ32 = 1+0
+n2:ZZ32 = 2+0
+n3:ZZ32 = 3+0
+n4:ZZ32 = 4+0
+
+tuZZZZ = (n1, n2, n3, n4)
+
+tuSZZZ = (s1, n2, n3, n4)
+tuZSZZ = (n1, s2, n3, n4)
+tuZZSZ = (n1, n2, s3, n4)
+tuZZZS = (n1, n2, n3, s4)
+
+tuSSZZ = (s1, s2, n3, n4)
+tuSZSZ = (s1, n2, s3, n4)
+tuSZZS = (s1, n2, n3, s4)
+tuZSSZ = (n1, s2, s3, n4)
+tuZSZS = (n1, s2, n3, s4)
+tuZZSS = (n1, n2, s3, s4)
+
+tuSSSZ = (s1, s2, s3, n4)
+tuSSZS = (s1, s2, n3, s4)
+tuSZSS = (s1, n2, s3, s4)
+tuZSSS = (n1, s2, s3, s4)
+
+tuSSSS = (s1, s2, s3, s4)
+
+o(x:Any):Any = x
+
+f(d:String, s:String):String = "string " s
+f(d:String, n:ZZ32):String = "number " n.asString
+f(d:String, x:Object):String = "object"
+f(d:String, a:Any):String = "any"
+
+(* 0 *)
+
+f(z:String, t:(Object, Object, Object, Object) ) = do
+  (a, b, c, d) = t
+  "OOOO"
+end
+
+(* 1 *)
+
+f(z:String, t:(String, Object, Object, Object) ) = do
+  (a, b, c, d) = t
+  "SOOO"
+end
+
+f(z:String, t:(Object, String, Object, Object) ) = do
+  (a, b, c, d) = t
+  "OSOO"
+end
+
+f(z:String, t:(Object, Object, String, Object) ) = do
+  (a, b, c, d) = t
+  "OOSO"
+end
+
+f(z:String, t:(Object, Object, Object, String) ) = do
+  (a, b, c, d) = t
+  "OOOS"
+end
+
+(* 2 *)
+
+f(z:String, t:(String, String,  Object, Object) ) = do
+  (a, b, c, d) = t
+  "SSOO"
+end
+
+f(z:String, t:(String, Object, String, Object) ) = do
+  (a, b, c, d) = t
+  "SOSO"
+end
+
+f(z:String, t:(String, Object, Object, String) ) = do
+  (a, b, c, d) = t
+  "SOOS"
+end
+
+f(z:String, t:(Object, String, String, Object) ) = do
+  (a, b, c, d) = t
+  "OSSO"
+end
+
+f(z:String, t:(Object, String, Object, String) ) = do
+  (a, b, c, d) = t
+  "OSOS"
+end
+
+f(z:String, t:(Object, Object, String, String) ) = do
+  (a, b, c, d) = t
+  "OOSS"
+end
+
+(* 3 *)
+
+f(z:String, t:(String, Object, String, String) ) = do
+  (a, b, c, d) = t
+  "SOSS"
+end
+
+f(z:String, t:(Object, String, String, String) ) = do
+  (a, b, c, d) = t
+  "OSSS"
+end
+
+f(z:String, t:(String, String, Object, String) ) = do
+  (a, b, c, d) = t
+  "SSOS"
+end
+
+f(z:String, t:(String, String, String, Object) ) = do
+  (a, b, c, d) = t
+  "SSSO"
+end
+
+(* 4 *)
+
+f(z:String, t:(String, String, String, String) ) = do
+  (a, b, c, d) = t
+  "SSSS"
+end
+
+
+
+run():() = do
+  println(f("dummy",   o(s1)))
+  println(f("dummy",   o(n1)))
+  
+  println(f("dummy",   o(tuZZZZ)))
+  
+  println(f("dummy",   o(tuSZZZ)))
+  println(f("dummy",   o(tuZSZZ)))
+  println(f("dummy",   o(tuZZSZ)))
+  println(f("dummy",   o(tuZZZS)))
+  
+  println(f("dummy",   o(tuSSZZ)))
+  println(f("dummy",   o(tuSZSZ)))
+  println(f("dummy",   o(tuSZZS)))
+  println(f("dummy",   o(tuZSSZ)))
+  println(f("dummy",   o(tuZSZS)))
+  println(f("dummy",   o(tuZZSS)))
+
+  println(f("dummy",   o(tuSSSZ)))
+  println(f("dummy",   o(tuSSZS)))
+  println(f("dummy",   o(tuSZSS)))
+  println(f("dummy",   o(tuZSSS)))
+
+  println(f("dummy",   o(tuSSSS)))
+
+  end

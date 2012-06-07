@@ -1,0 +1,257 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Dimensions and Units}
+\chaplabel{dimunits}
+
+\note{Dimensions and units are not yet supported.
+
+The examples in this chapter are not tested nor run by the interpreter.}
+
+
+\begin{Grammar}
+\emph{TypeRef} :&:=& \emph{DimType}\\
+
+\emph{DimType} &::=& \emph{DimRef} \\
+&$|$& \emph{TypeRef} \emph{DimRef}\\
+&$|$& \emph{TypeRef} $\csdot$ \emph{DimRef} \\
+&$|$& \emph{TypeRef} \EXP{/} \emph{DimRef}\\
+&$|$& \emph{TypeRef} \TYP{per} \emph{DimRef}\\
+&$|$& \emph{TypeRef} \emph{UnitRef}\\
+&$|$& \emph{TypeRef} $\csdot$ \emph{UnitRef} \\
+&$|$& \emph{TypeRef} \EXP{/} \emph{UnitRef}\\
+&$|$& \emph{TypeRef} \TYP{per} \emph{UnitRef}\\
+&$|$& \emph{TypeRef} \KWD{in} \emph{DimRef}\\
+
+\emph{DimRef} &::=& \emph{StaticArg} \\
+
+\emph{StaticArg} &::=& \TYP{Unity} \\
+&$|$& \TYP{dimensionless}\\
+&$|$& \emph{StaticArg} $\csdot$ \emph{StaticArg} \\
+&$|$& \emph{StaticArg} \emph{StaticArg} \\
+&$|$& \emph{StaticArg} \EXP{/} \emph{StaticArg}\\
+&$|$& \EXP{1}\EXP{/}\emph{StaticArg}\\
+&$|$& \emph{StaticArg} \texttt{\^} \emph{StaticArg}\\
+&$|$& \emph{StaticArg} \TYP{per} \emph{StaticArg}\\
+&$|$& \emph{DUPreOp} \emph{StaticArg}\\
+&$|$& \emph{StaticArg} \emph{DUPostOp}\\
+&$|$& \emph{TypeRef} \\
+&$|$& \texttt{(}\emph{StaticArg}\texttt{)} \\
+
+\emph{DUPreOp} &::=&\TYP{square} \\
+&$|$& \TYP{cubic} \\
+&$|$& \TYP{inverse}\\
+
+\emph{DUPostOp}&::=&\TYP{squared} \\
+&$|$& \TYP{cubed}\\
+
+\end{Grammar}
+
+\begin{GrammarTwo}
+\emph{Expr} &::=& \emph{UnitExpr}\\
+
+\emph{UnitExpr} &::=& \emph{UnitRef}\\
+&$|$& \emph{Expr} \emph{UnitRef}\\
+&$|$& \emph{Expr} $\csdot$ \emph{UnitRef}\\
+&$|$& \emph{Expr} \EXP{/} \emph{UnitRef}\\
+&$|$& \emph{Expr} \TYP{per} \emph{UnitRef}\\
+&$|$& \emph{Expr} \KWD{in} \emph{UnitRef}\\
+
+\emph{UnitRef} &::=& \emph{StaticArg} \\
+
+\end{GrammarTwo}
+
+There are special type-like constructs called \emph{dimensions} that are
+separate from other types (described in \chapref{types}).
+There are also special constructs that modify types and values called
+\emph{units} that are instances of dimensions.
+These are used to describe physical quantities.
+
+\Library\ define dimensions and units for the standard SI system of measurement
+based on meters, kilograms, seconds, amperes, and so on (as described in
+\secref{lib:siunits}).   \Library\ also provide
+supplemental units of measurement, such as feet and miles (as described in
+\secref{lib:englishunits}).  For example,
+\library\ provide a dimension named \TYP{Length} whose default unit is named
+\TYP{meter} and abbreviated \verb$m_$.
+By rendering convention, this abbreviation is rendered in roman type
+without the underscore: \EXP{\mathrm{m}}. In contrast, the variable \txt{m} is rendered as in standard
+mathematical notation: \VAR{m}.
+See \secref{rendering} for a discussion of formatting conventions for tokens.
+
+For readability, plural forms of the unit names are defined as equivalent to the
+corresponding singular forms; thus one can write \EXP{\TYP{meters} \mathbin{\TYP{per}} \TYP{second}},
+for example.
+Standard SI prefixes may be used on both the name and the symbol, so that \TYP{nanometer}
+and \EXP{\mathrm{nm}} are also units of the dimension named \TYP{Length}, related to \TYP{meter}
+and \EXP{\mathrm{m}} by a conversion factor of $10^{-9}$.
+
+Every dimension may have a default unit that is used for representing
+values of quantities of that dimension if no unit is specified explicitly.
+\Library\ define these default dimensions and units:
+
+\begin{tabular}{ll@{\hspace{2\tabcolsep}}ll}
+\TYP{Length} & \TYP{meter} & \TYP{MagneticFlux} & \TYP{weber} \\
+\TYP{Mass} & \TYP{kilogram} & \TYP{MagneticFluxDensity} & \TYP{tesla} \\
+\TYP{Time} & \TYP{second} & \TYP{Inductance} & \TYP{henry} \\
+\TYP{Frequency} & \TYP{hertz} & \TYP{Velocity} & \EXP{\TYP{meters} \mathbin{\TYP{per}} \TYP{second}} \\
+\TYP{Force} & \TYP{newton} & \TYP{Acceleration} & \EXP{\TYP{meters} \mathbin{\TYP{per}} \TYP{second}\mskip 4mu plus 4mu\TYP{squared}} \\
+\TYP{Pressure} & \TYP{pascal} & \TYP{Angle} & \TYP{radian} \\
+\TYP{Energy} & \TYP{joule} & \TYP{SolidAngle} & \TYP{steradian} \\
+\TYP{Power} & \TYP{watt} & \TYP{LuminousIntensity} & \TYP{candela} \\
+\TYP{Temperature} & \TYP{kelvin} & \TYP{LuminousFlux} & \TYP{lumen} \\
+\TYP{Area} & \EXP{\mathbin{\TYP{square}}\mskip 4mu plus 4mu\TYP{meter}} & \TYP{Illuminance} & \TYP{lux} \\
+\TYP{Volume} & \EXP{\mathbin{\TYP{cubic}}\mskip 4mu plus 4mu\TYP{meter}} & \TYP{RadionuclideActivity} & \TYP{becquerel} \\
+\TYP{ElectricCurrent} & \TYP{ampere} & \TYP{AbsorbedDose} & \TYP{gray} \\
+\TYP{ElectricCharge} & \TYP{coulomb} & \TYP{DoseEquivalent} & \VAR{sievert} \\
+\TYP{ElectricPotential} & \TYP{volt} & \TYP{AmountOfSubstance} & \TYP{mole} \\
+\TYP{Capacitance} & \TYP{farad} & \TYP{CatalyticActivity} & \TYP{katal} \\
+\TYP{Resistance} & \TYP{ohm} & \TYP{MassDensity} & \EXP{\TYP{kilograms} \mathbin{\TYP{per}} \mathbin{\TYP{cubic}}\mskip 4mu plus 4mu\TYP{meter}} \\
+\TYP{Conductance} & \TYP{siemens} \\
+\end{tabular}
+
+
+In addition, \library\ define the dimension \TYP{Information} with
+units \TYP{bit} and \TYP{byte}
+(and the plurals \TYP{bits} and \TYP{bytes}), a \TYP{byte} being equal to 8
+\TYP{bits}.
+To avoid confusion, SI prefixes are \emph{not} provided for these units;
+instead, programmers must
+use appropriate powers of 2 or 10, for example \EXP{10^{6}
+  \TYP{bits}} or \EXP{2^{20} \TYP{bits}}.
+
+Here are some examples of the use of dimensions and units:
+%x: RR64 Length = 1.3 m_
+%t: RR64 Time = 5 s_
+%v: RR64 Velocity = x / t
+%w: RR64 Velocity in nm_/s_ = 17 nm_/s_
+%x: RR64 Velocity in furlongs per fortnight = v in furlongs per fortnight
+\begin{Fortress}
+\(x\COLON \mathbb{R}64\,\TYP{Length} = 1.3\,\mathrm{m}\)\\
+\(t\COLON \mathbb{R}64\,\TYP{Time} = 5\,\mathrm{s}\)\\
+\(v\COLON \mathbb{R}64\,\TYP{Velocity} = x / t\)\\
+\(w\COLON \mathbb{R}64\,\TYP{Velocity}\, \KWD{in}\, \mathrm{nm}/\mathrm{s} = 17\,\mathrm{nm}/\mathrm{s}\)\\
+\(x\COLON \mathbb{R}64\,\TYP{Velocity}\, \KWD{in}\, \TYP{furlongs} \mathbin{\TYP{per}} \TYP{fortnight} = v\, \KWD{in}\, \TYP{furlongs} \mathbin{\TYP{per}} \TYP{fortnight}\)
+\end{Fortress}
+
+
+
+Dimensions and units can be multiplied, divided, and raised to rational powers to produce new dimensions and units. Both the numerator and the denominator of a rational power of a dimension or a unit must be a valid \emph{\KWD{nat} parameter} instantiation
+(as described in \secref{natparams}).
+Multiplication can be expressed using juxtaposition or \EXP{\cdot};
+division can be expressed using \EXP{/} or \TYP{per}.
+The syntactic operators \TYP{square} and \TYP{cubic} may be applied to a dimension or unit in order to raise
+it to the second power, third power, respectively; the special postfix syntactic operators \TYP{squared}
+and \TYP{cubed} may be used for the same purpose.
+The syntactic operator \TYP{inverse} may be applied to a dimension or unit to divide it into 1.
+All of these syntactic operators are merely syntactic sugar, expanded before type checking.
+
+\note{I manually added a space between inverse and ohms below.}
+%grams per cubic centimeter
+%meter per second squared
+%inverse ohms
+\begin{Fortress}
+\(\TYP{grams} \mathbin{\TYP{per}} \mathbin{\TYP{cubic}}\mskip 4mu plus 4mu\TYP{centimeter} \)\\
+\(\TYP{meter} \mathbin{\TYP{per}} \TYP{second}\mskip 4mu plus 4mu\TYP{squared} \)\\
+\(\mathbin{\TYP{inverse}}\ \TYP{ohms}\)
+\end{Fortress}
+
+One can also write \EXP{1/X} as a synonym for \EXP{X^{-1}} if
+\VAR{X} is either a dimension or a unit.
+
+Most numerical values in Fortress are dimensionless quantity values.
+Multiplying or dividing a dimensionless value by a unit produces a dimensioned value;
+thus \EXP{5\,\mathrm{s}} is the dimensioned value equal to five seconds, which has
+numerical value \EXP{5} and \TYP{second} for its unit.
+A dimensioned value may also be
+multiplied or divided by a unit, and the result is to combine the units;
+the expression
+%% \EXP{17\,\mathrm{nm}/\mathrm{s}}
+\EXP{(17\,\mathrm{nm})/\mathrm{s}}
+first multiplies \EXP{17} by
+\EXP{\mathrm{nm}} to produce the dimensioned value seventeen nanometers,
+which is then divided by the unit \EXP{\mathrm{s}}
+to produce seventeen nanometers per second.
+
+The unit of a dimensioned value may be changed to another unit of the same dimension
+by using the \KWD{in} operator, which takes a quantity to its left and a unit to its right.
+The \KWD{in} operator changes the unit and multiplies or divides the numerical value
+by an appropriate conversion constant so as to preserve the overall dimensioned value.
+Thus \EXP{1.3\,\mathrm{m}\, \KWD{in}\, \mathrm{nm}} produces \EXP{1 300 000 000\,\mathrm{nm}}.
+
+Multiplying or dividing a dimensionless numerical type by a unit produces an equivalent
+dimensioned numerical type with that unit associated; thus \EXP{\mathbb{R}64\,\TYP{meter}} is a
+type that is just like \EXP{\mathbb{R}64} but whose values are values of dimension
+\TYP{Length} measured in \TYP{meters}.  A dimensioned numerical type may be
+further multiplied or divided by a unit.
+As a convenience,
+if a dimension has a default unit, a numerical type may
+also be multiplied or divided by a dimension, in which case the result is as if
+the default unit for that dimension had been used.
+The \KWD{in} operator may also
+be used to change the unit associated with a dimensioned type; in this situation
+the effect is merely to alter the unit associated with the type; no numerical
+operation is performed at run time.
+
+Certain aggregate types, such as \TYP{Vector}, may also have associated units.
+
+There are two reasons for using dimensions and units.  One is that the \KWD{in}
+operator can supply conversion factors automatically.  The other is that
+certain programming errors may be detected at compile time.
+When dimensioned values are added, subtracted, or compared,
+it is a static error if the units do not match.
+When dimensioned values are multiplied or divided, their units
+are multiplied or divided.  When taking the square root of a dimensioned
+value, the unit of the result is the square root of the argument's unit.
+Other numerical functions, such as \EXP{\sin} and \EXP{\log}, require
+dimensionless arguments.
+
+A variable whose declared
+type includes a dimension without an accompanying unit
+is understood to have the default unit for that dimension.
+Thus, in most cases, the runtime unit of an expression can be statically
+inferred. However, there are exceptions. For example,
+consider the following declaration:
+\note{I manually edited the array type.}
+% a : Object[3] = [5 mg_, 3 m_, 4 s_]
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( a \mathrel{\mathtt{:}} \TYP{Object}[3] = [5\,\mathrm{mg}, 3\,\mathrm{m}, 4\,\mathrm{s}]\)\-\\\poptabs
+\end{Fortress}
+
+Now suppose we declare a function that takes an array of objects and returns
+one of its elements:
+\note{I manually edited the array type.}
+% f(xs:Object[3]) = xs[1]
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( f(\VAR{xs}\COLONOP\TYP{Object}[3]) = \VAR{xs}_{1}\)\-\\\poptabs
+\end{Fortress}
+
+The value of the call \EXP{f(a)} is \EXP{3\,\mathrm{m}}. However, the static
+type of  \EXP{f(a)} is simply \TYP{Object}. When the value \EXP{3\,\mathrm{m}}
+is placed in an array of objects, the value is boxed, and the unit associated
+with the value must be included as part of the boxed value. However, unboxed
+values need not include unit information at runtime, as this information is
+statically evident in such cases.
+
+\note{Guy's explanation ---
+The thing to understand is that a measurement is a value object,
+but storing it in an \EXP{\TYP{Array}\llbracket\TYP{Object}\rrbracket} will force the value object
+to be boxed.  Boxing causes type information to be associated
+with the value.  Unit information is not really ``erased'' at compile
+time; rather, unit information is ``static'', that is, part of the type,
+and so the unit information can be omitted from a run-time
+representation exactly when type information can be omitted from
+a run-time representation.  The situation is exactly the same as for
+dimensionless numerical types such as ints and floats.}
+
+
+There are also special static parameters for units and dimensions; see
+\secref{dimunitparams}.

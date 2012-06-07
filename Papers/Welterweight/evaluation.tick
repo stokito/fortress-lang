@@ -1,0 +1,111 @@
+
+Figure~\ref{fig:values} gives conventional grammars for redexes (a subset of expressions that are subject to evaluation reduction),
+values (expressions that contain no redexes), and evaluation contexts.  It also defines how to compute the ilk of a value.
+The notation $\listof{\barearrowtype{\alpha}{\omega}}$ is the type of functions that produce a value of type $\omega$ when
+given an argument of type $\alpha$ \emph{and} furthermore go wrong (````get stuck'') when given an argument that is not
+of type $\alpha$.  Ilks (the possible ````run-time types'' of values), ground types (types that contain no type parameters),
+signature types (types that can contain type parameters, but not within an operand of $\cap$ or $\cup$),
+and parametric signature types (signature types that mention at least one type parameter)
+are also defined.
+
+In Welterweight Fortress there are three kinds of values: 
+objects, closures, and tuples.
+Every object belongs to at least one constructed type,
+every closure belongs to at least one arrow type,
+and every tuple belongs to at least one tuple type.
+No value belongs to $\Bottom$.
+
+Although a value may belong to more than one type, 
+for every value $v$ there is a unique type $\mathit{ilk}(v)$
+(the \emph{ilk} of the value) such that
+for every type $\alpha$,
+if $v$ belongs to $\alpha$ then $\mathit{ilk}(v)$ is a subtype of $\alpha$.
+(This notion of \emph{ilk} corresponds to what is sometimes called the
+````class'' or ````run-time type'' of the value.
+We prefer the term ````ilk'' to ````run-time type'' 
+because the notion---and usefulness---of 
+the most specific type to which a value belongs 
+is not confined to run time.)
+
+The implementation significance of ilks is that it is possible to
+select the dynamically most specific applicable function or method
+from an overload set using only the ilks of the argument values; no
+other information about the arguments is needed.
+
+Figure~\ref{fig:msa} gives the rules for determining which is the most specific applicable
+function or method for a given tuple of argument types.  It also defines a function $\arrow$
+that is related to $\dom$ and is needed for the Return Type Rule in Figure~\ref{fig:meetrule}.
+Figure~\ref{fig:evaluation} gives rules for reducing an expression to a value.
+The rules \rncite{R-Match-Succeeds} and \rncite{R-Match-Fails} test the ilk of a value
+to decide which of two expressions to evaluate.  The rules \rncite{R-Function} and \rncite{R-Method}
+are the dynamic counterparts to rules \rncite{T-Function} and \rncite{T-Method} of Figure~\ref{fig:expressiontypes}:
+they also use the function $\msavname$
+to find the \underline{m}ost \underline{s}pecific \underline{a}pplicable \underline{v}isible function or method
+for that invocation.  However, the last argument to $\msavname$ in rules \rncite{R-Function} and \rncite{R-Method}
+is not a tuple of the static types of the argument expressions, but rather
+a tuple of the \emph{ilks} of the argument \emph{values};
+therefore these uses of $\msavname$ identifies the \emph{dynamically} most specific applicable visible function or method.
+
+
+
+\input{fig-subtyping}
+
+\input{fig-exclusion}
+
+\input{fig-miscsubtyping}
+
+
+For the propositions that follow, assume a program
+$\Pi=\bar{\psi},\bar{\varphi},e$ is given, let $\Delta=\setb{\psi}$,
+and assume $\Pi$ is well-formed (that is, $\jtype[]{\Pi}{g}$ for some $g$).
+
+\begin{proposition}
+Whenever rule \rncite{T-Function} or \rncite{T-Method} is used, $\msavname$ always identifies exactly one function or method (thanks in large part to the Meet Rule).
+\end{proposition}
+
+\begin{proposition}
+Whenever rule \rncite{R-Function} is used, $\msavname$ always identifies exactly one function (thanks in large part to the Meet Rule),
+and the function identified is more specific than (or the same as) the function identified by rule \rncite{T-Function} for that call site.
+\end{proposition}
+
+If our type system is sound, then the following propositions should also hold:
+
+\begin{proposition}
+If for any expression $e$ in the program we have $\jtype{e}{\alpha}$,
+then every value computed by the expression at run time according to rules of Figure~\ref{fig:evaluation}
+will belong to type $\alpha$.
+\end{proposition}
+
+\begin{proposition}
+Whenever a closure whose ilk is $\listof{\barearrowtype{\alpha}{\omega}}$ is applied to an argument value
+by rule \rncite{R-Apply}, the argument value will belong to type $\alpha$.
+\end{proposition}
+
+\begin{proposition}
+Whenever a function or method is invoked,
+the argument values will belong to the types of the corresponding parameters.
+\end{proposition}
+
+The two big questions are of course these:
+
+\begin{proposition}
+(\emph{Termination}) Reduction of a well-formed program never gets ````stuck'' (unable to take a reduction step)
+before a value is produced.
+\end{proposition}
+
+\begin{proposition}
+(\emph{Soundness}) If $\jtype[]{\Pi}{g}$ and $\jevalstar[]{\Pi}{v}$ (note that $v$ refers to a value),
+then $\jsubtype{\ilk{v}}{g}\;$ .
+\end{proposition}
+
+We have not yet proved any of these propositions rigorously.
+Welterweight Fortress is based on the algorithms now in use in our prototype
+Fortress compiler; these algorithms are constantly vetted against a test suite
+as we continue to develop the code and have been in use for months (and in some
+cases years).  Nevertheless, errors may have crept in
+as we have transcribed and codified these algorithms into the inference rules
+presented here.
+We do have experience in mechanizing proofs of properties of a smaller model,
+Featherweight Fortress~\cite{featherweight-fortress}, using Coq.
+We expect that mechanizing proofs of the preceding propositions is feasible
+but will require many months of effort.

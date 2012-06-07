@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component InliningTest14
+export Executable
+
+
+simple(x:ZZ32):ZZ32 = do
+   if (x > 1) then if (x > 2) then 3 else 4 end else if (x > 5) then 6 else 7 end end 
+
+end
+
+run(): () = do
+   foo = simple(29)
+   println("doh")
+end
+end

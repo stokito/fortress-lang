@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component conditionalOp
+
+export Executable
+
+run() = do
+    println (false AND: fail("executed second branch of short circuit AND"))
+    println (true OR: fail("executed second branch of short circuit OR"))
+    println (false ->: fail("executed second branch of short circut ->"))
+    assert((true AND: (do println("AND true"); true end)), "AND true")
+    assert((false OR: (do println("OR true"); true end)), "OR true")
+    assert((true ->: (do println("-> true"); true end)), "-> true")
+    assert(NOT (true AND: (do println("AND false"); false end)), "AND false")
+    assert(NOT (false OR: (do println("OR false"); false end)), "OR false")
+    assert(NOT (true ->: (do println("-> false"); false end)), "-> false")
+end
+
+end

@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component compoundArray
+export Executable
+
+(* Tests that we can write compound array constants *)
+run():()= do
+  a : RR64[2,2] = [ (7.07106781186547462 10^(-1)) (7.07106781186547462 10^(-1))
+                    (7.07106781186547462 10^(-1)) (-7.07106781186547462 10^(-1)) ]
+  println(a[0,0] " " a[0,1] // a[1,0] " " a[1,1])
+  u : RR64 = 13.0
+  v : RR64 = 17.3
+  println( u v )
+  println(3 v^2)
+  println(u v^2)
+  println(3 10^2)
+  println(3 v^(-2))
+  println(3 10^(-2))
+  println(3.14 v^2)
+  println(u v^2)
+  println(3.14 10^2)
+  println(3.14 v^(-2))
+  println(3.14 10^(-2))
+  b : RR64[2,2] = [ 7.07106781186547462 10^(-1)  7.07106781186547462 10^(-1)
+                    7.07106781186547462 10^(-1) -7.07106781186547462 10^(-1) ]
+  println(b[0,0] " " b[0,1] // b[1,0] " " b[1,1])
+  println(u(v)^2)
+  println((u)(v))
+  println(3(v)^2)
+  println(3 v^2)
+  println((u)v^2)
+end
+
+end

@@ -1,0 +1,51 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component BitTwiddle
+export Executable
+
+doit[\I extends Integral[\I\]\](n:I,sz:ZZ64) = do
+  n_bar = BITNOT n
+  z : I = 0
+  z_bar = BITNOT z
+  assert((BITNOT z_bar), 0,"not not")
+  assert((-1), z_bar,"neg")
+  assert((BITNOT n_bar), n,"not")
+  assert((n BITAND n_bar), 0,"and 0")
+  assert((n BITOR n_bar), z_bar,"or 0")
+  assert((n BITAND z_bar), n,"and T")
+  assert((n BITOR z_bar), z_bar,"or T")
+  assert((n BITAND 0), 0,"and 0'")
+  assert((n BITOR 0), n,"or 0'")
+  assert((n BITXOR n), 0,"xor self")
+  assert((n BITXOR 0), n,"xor 0")
+  assert((n BITXOR z_bar), n_bar,"xor T")
+  assert((n LSHIFT 1), n+n,"shift sum")
+  assert((n LSHIFT 3), 8 n,"shift mul")
+  assert((n LSHIFT sz), 0,"shiftL out")
+  assert((n RSHIFT 1), (n DIV 2),"shift div2")
+  assert((n RSHIFT 3), (n DIV 8),"shift div8")
+  assert((n RSHIFT sz), 0,"shiftR out")
+  assert((n_bar RSHIFT 1) < 0,"shiftR neg")
+  assert(((n RSHIFT 1) LSHIFT 1), (n BITAND (BITNOT 1)),"shiftRL")
+  assert((n_bar RSHIFT sz), z_bar,"shiftR out neg")
+end
+
+run() = do
+  n : ZZ32 = 245
+  n' : ZZ64 = 24579235987
+  doit(n,32)
+  println("ZZ32 OK")
+  doit(n',64)
+  println("ZZ64 OK")
+end
+
+end

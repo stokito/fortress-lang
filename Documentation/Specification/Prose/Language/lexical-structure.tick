@@ -1,0 +1,600 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newchap{Lexical Structure}{lexical-structure}
+
+A program is of a finite sequence of \unicode\ abstract characters.
+This sequence is partitioned into \emph{input elements}, 
+as described in this chapter.
+
+To aid in program entry and facilitate interaction with legacy tools,
+Fortress specifies an ASCII encoding for programs, 
+described in \secref{ascii-encoding}.
+This encoding is deciphered by an idempotent \emph{preprocessing step}, 
+described in \appref{lexical-preprocessing},
+which occurs before any other processing is done
+Outside of \secref{ascii-encoding} and \appref{lexical-preprocessing},
+all constraints and properties of Fortress programs
+stipulated in this specification
+apply to the programs after preprocessing 
+unless otherwise specified.
+
+Fortress also specifies standard ways
+to \emph{render} (i.e., display) input elements 
+in order to approximate conventional mathematical notation.
+These are described in \secref{rendering}.
+
+\newsec{Characters}{characters}
+
+\unicode\ specifies a representation for each character
+as a sequence of \emph{code points}.\footnote{%
+\unicode\ also specifies several encodings for characters.
+Fortress does not distinguish different encodings of the same character, 
+and treats canonically equivalent characters as identical.
+See the Unicode Standard~\cite{Unicode} for a full discussion
+of encoding and canonical equivalence.}
+Fortress programs must not contain characters
+that map to multiple code points
+or to sequences of code points of length greater than 1.
+Thus, 
+every character in a valid program is associated with a single code point,
+designated by a hexadecimal numeral preceded by ````U+''.  % '' (balance extra backquotes)
+\unicode\ assigns each such character a unique name and a general category.
+
+We designate certain sets of characters as follows:
+\begin{itemize}
+
+\item
+\emph{letters}:
+characters in Unicode general category Lu, Ll, Lt, Lm or Lo,
+and $\infty$, $\top$ and $\bot$ (U+221E, U+22A4--5);
+
+\item 
+\emph{uppercase letters}:
+characters in Unicode general category Lu;
+
+\item
+\emph{digits}: 
+characters in Unicode general category Nd;
+
+\item
+\emph{prime characters}: 
+\, $'$ \; $''$ \; $'''$ (i.e., U+2032--4);
+
+\item
+\emph{word characters}:
+letters, digits, prime characters, and \txt{'} and $\_$ (i.e., apostrophe and underscore);
+
+\item
+\emph{operator characters},
+which are listed in \appref{operators};
+
+\item
+\emph{spaces}: 
+characters in Unicode general category Zs;
+
+\item
+\emph{whitespace characters}, 
+as designated by \unicode: 
+spaces, line separator (U+2028), paragraph separator (U+2029), 
+and six control characters (U+0009--D and U+0085);
+\note{Victor: 
+Removed information separators 1--4, 
+and added U+0085, 
+to be compatible with Unicode.  
+Is there any reason not to do so?}
+
+\item
+\emph{digit-group separator}: 
+the narrow no-break space (U+202F);
+
+\item
+\emph{character-literal delimiters}: 
+\, \txt{'}  \txt{``} \; `` \; ' 
+
+\item
+\emph{string-literal delimiters}: 
+\, \txt{"} \; ```` \; '' 
+
+\item
+\emph{special non-operator characters}: 
+\,
+\& \;
+\txt{'} \;
+( \;
+) \;
+, \;
+. \;
+; \;   
+$\backslash$ \;
+% $\_$ \;
+\ldots \;
+$\forall$ \;
+$\exists$ \;
+$:=$ \;
+`[\` \;
+`\]` 
+% \note{Victor:
+% Should $\_$ be a special character?  
+% Or is $\_$ by itself just an identifier that gets treated specially?}
+
+\item
+\emph{special operator characters}:
+\,
+* \;
+/ \;
+: \;
+$<$ \;
+$=$ \;
+$>$ \;
+$[$ \;
+$]$ \;
+\verb+^+ \;  
+$\{$ \;
+$|$ \;
+$\}$ \;
+$\rightarrow$ \;
+$\mapsto$ \;
+$\Rightarrow$ \;
+
+\item
+\emph{recognized characters}: 
+characters in any of the sets above.
+\end{itemize}
+Note that excepting apostrophe, 
+the recognized characters are partitioned into
+word characters, 
+operator characters, 
+whitespace character, 
+character-literal delimiters, 
+string-literal delimiters 
+and special non-operator characters.
+Apostrophe is both a word character and a character-literal delimiter.
+
+It is a static error for a program
+to contain any control character 
+(Unicode general category Cc)
+other than white\-space characters,
+except that ````control-Z'' (U+001A) is allowed and ignored
+if it is the last character of a program.
+It is a static error for 
+the horizontal and vertical tab characters (U+0009 and U+000B) 
+to occur outside a comment.
+It is a static error for $\backslash$, 
+any space with code point in U+2000--8, 
+and any character other than a recognized character 
+to appear outside of comments and string and character literals.
+
+To ensure the idempotence of preprocessing, 
+the use of the ampersand 
+outside of comments and string and character literals
+is also severely restricted.
+This restriction is described precisely in \appref{lexical-preprocessing}.
+\note{Do we support ampersand yet?}
+
+% The following characters have special meaning in specific contexts: \\
+% \txt{"} \;
+% \& \;
+% \txt{'} \;
+% ( \;
+% ) \;
+% * \;
+% , \;
+% . \;
+% / \;
+% : \;
+% ; \;   
+% $<$ \;
+% $=$ \;
+% $>$ \;
+% $[$ \;
+% $\backslash$ \;
+% $]$ \;
+% \verb+^+ \;  
+% $\_$ \; \\
+% \txt{``} \;
+% $\{$ \;
+% $|$ \;
+% $\}$ \;
+% `` \;
+% ' \;
+% ```` \;
+% '' \;
+% \ldots \;
+% $\rightarrow$ \;
+% $\mapsto$ \;
+% $\Rightarrow$ \;
+% $\forall$ \;
+% $\exists$ \;
+% $:=$ \;
+% `[\` \;
+% `\]` \\
+% Some of these special characters also play ````normal'' roles in other
+% contexts.
+
+\newsec{Words and Chunks}{words}
+
+In a sequence of characters,
+a \emph{chunk} is a nonempty contiguous subsequence.
+A \emph{word} is a maximal chunk consisting of only word characters
+(letters, digits, underscore,
+prime characters, and apostrophe);
+that is, a word is one or more consecutive word characters
+delimited by characters other than word characters
+(or the beginning or end of the entire sequence).
+
+\newsec{Lines, Pages and Position}{position}
+
+The characters in a Fortress program
+are partitioned into \emph{lines} and into \emph{pages},
+delimited by \emph{line terminators} and \emph{page terminators}
+respectively.
+A \emph{page terminator}
+is an occurrence of the character \verb$FORM_FEED$.
+A \emph{line terminator} is an occurrence of any of the following:
+\begin{itemize}
+
+\item
+\txt{LINE FEED} (U+000A),
+
+\item
+\txt{CARRIAGE RETURN} (U+000D) not immediately followed by \txt{LINE FEED},
+
+\item
+\txt{NEXT LINE} (U+0085),
+
+\item
+\txt{LINE SEPARATOR} (U+2028), or
+
+\item
+\txt{PARAGRAPH SEPARATOR} (U+2029).
+
+\end{itemize}
+
+A character is on page $n$
+(respectively line $n$) of a program
+if exactly $n-1$ page terminators (respectively line terminators)
+precede that character in the program.
+Thus, for example,
+the $n$th line terminator of a program
+is the last character on line $n$.
+A character is on line $k$ of page $n$
+if it is on page $n$
+and is preceded by exactly $k-1$ line terminators on page $n$.
+A character is at line position $k$ on line $n$
+if it is preceded by exactly $k-1$ characters on line $n$
+other than page terminators.
+Note that a page terminator does \emph{not} terminate a line;
+thus, the character immediately following a page terminator
+need not be at line position 1.
+
+If a character (or any other syntactic entity) $x$
+precedes another character $y$ in the program,
+we say that $x$ is \emph{to the left of} $y$
+and that $y$ is \emph{to the right of} $x$,
+regardless of how they may appear
+in a typical rendered display of the program.
+Thus, it is always meaningful to speak,
+for example,
+of the left-hand and right-hand operands of a binary operator,
+or the left-hand side of an assignment expression.
+
+% Before any other processing,
+% a Fortress program is \emph{preprocessed} 
+% (see \secref{preprocessing}),
+% which may replace chunks of ASCII characters
+% with single (typically non-ASCII) characters
+% and remove some other characters.
+% We expect that IDEs will typically display a program
+% by rendering the converted sequence of characters
+% rather than the actual input sequence.
+% Thus, a program may appear to have fewer (and different) characters
+% than it actually does.
+% Nonetheless,
+% the page, line and position of a character
+% is based on the program before conversion.\footnote{Of course,
+% an IDE may actually do the conversion
+% and manipulate the converted program,
+% in which case,
+% the page, line and position of characters will reflect the conversion.
+% }
+
+\newsec{Input Elements and Scanning}{scanning}
+
+After preprocessing 
+(see \secref{ascii-encoding} and \appref{lexical-preprocessing}),
+a program is partitioned into \emph{input elements}
+by a process called \emph{scanning}.
+% \footnote{Fortress has a facility for defining new syntax,
+% discussed in \chapref{syntax-expanders}.
+% However, except for that chapter, this specification
+% describes the Fortress language
+% only for programs that use the standard Fortress syntax
+% without using this facility.}
+Scanning transforms a program
+from a sequence of Unicode characters
+to a sequence of input elements.
+Input elements are always chunks:
+the characters that comprise an input element
+always appear contiguously in the program.
+Input elements are either
+\emph{whitespace elements}
+(including \emph{comments})
+or \emph{tokens}.
+A token is
+a \emph{reserved word},
+a \emph{literal},
+an \emph{identifier},
+an \emph{operator token},
+or a \emph{special token}.
+There are five kinds of literals:
+boolean literals,
+character literals,
+string literals,
+the void literal,
+and numerals (i.e., numeric literals).
+
+Conceptually,
+we can think of scanning as follows:
+First, the comments,
+character literals and string literals
+are identified.
+Then the remaining characters are partitioned into words
+(i.e., maximal chunks of letters, digits, prime characters,
+underscores and apostrophes),
+whitespace characters,
+and other characters.
+In some cases,
+words separated by a single \txt{.}
+or digit-group separator (and no other characters)
+are joined to form a single numeral
+(see \secref{numerals}).
+Words that are not so joined
+are classified as reserved words,
+boolean literals, numerals, identifiers, or operator tokens,
+as described in later sections in this chapter.
+It is a static error
+if any word in a program
+is not part of one of the input elements described above.
+All remaining whitespace characters,
+together with the comments,
+form whitespace elements,
+which may be \emph{line-breaking}.
+Finally,
+chunks of symbols
+(and a few other special cases)
+are checked to see whether they form
+void literals (see \secref{void-literal})
+or multicharacter operator tokens
+(see \secref{lexical-operators}).
+Every other character is a token by itself,
+either a special token
+(if it is a special character)
+or an operator token.
+
+
+\newsec{Comments}{comments}
+
+% \note{Describe to-the-end-of-line comments. (06/23/08)}
+% Victor: I didn't find this email.  There is a chain in April 2008.
+
+Fortress supports two kinds of comments, 
+block comments and end-of-line comments.
+When not within string literals,
+occurrences of ````\EXP{(*}'', ````\EXP{*)}'' and ````\EXP{(*)}'' 
+are \emph{opening comment delimiters},
+\emph{closing comment delimiters} 
+and \emph{end-of-line comment delimiters} respectively.
+Opening and closing comment delimiters 
+must be properly balanced,
+
+In a valid program,
+every opening comment delimiter
+is balanced by a closing comment delimiter;
+it is a static error if comment delimiters are not properly balanced.
+All the characters between a balanced pair of comment delimiters,
+including the comment delimiters themselves,
+comprise a \emph{comment}.
+Comments may be nested.
+For example, the following illustrates three comments,
+one of which is nested:
+\begin{quote}
+(* This is a comment. *)  (* As is this (* nested *) \\ comment *)
+\end{quote}
+
+
+
+
+\newsec{Whitespace Elements}{whitespace}
+
+A whitespace element is a maximal chunk
+consisting of comments,
+whitespace characters
+that are not within string or character literals
+or numerals, and ampersands (U+0026)
+that are not within string or character literals.
+
+We distinguish \emph{line-breaking whitespace}
+from \emph{non-line-breaking whitespace}
+using the following terminology:
+\begin{itemize}
+
+\item
+A \emph{line-terminating comment}
+is a comment that encloses one or more line terminators.
+All other comments are called \emph{spacing comments}.
+
+\item
+\emph{Spacing}
+refers to any chunk of spaces,
+\txt{FORM FEED} characters,
+whitespace characters other than line terminators,
+and spacing comments.
+
+\item
+A \emph{line break} is a line terminator
+or nonnested line-terminating comment
+that is not immediately preceded by an ampersand,
+possibly with intervening spacing.
+
+\item
+\emph{Whitespace} refers to any nonempty sequence of spacing,
+ampersands,
+line terminators, and line-terminating comments.
+
+\item \emph{Line-breaking whitespace} is whitespace that
+contains at least one line break.
+\end{itemize}
+
+It is a static error if an ampersand occurs in a program
+(after ASCII conversion) unless
+it is within a character or string literal or a comment,
+or it is immediately followed by a line terminator
+or line-terminating comment
+(possibly with intervening spacing).
+
+\section{Reserved Words}
+\seclabel{reserved-words}
+
+The following tokens are \emph{reserved words}:\\
+\input{\datadir/fortress-keywords.tex}
+
+\note{Victor: I don't think ````or'' should be reserved.
+  It is only so for its occurrence in ````widens or coerces''
+  but we can recognize it specially in that context,
+  which is never ambiguous because ````widens'' and ````coerces'' are reserved.}
+
+The following operators on units are also reserved words:\\
+\input{\datadir/fortress-unitOperators.tex}
+
+To avoid confusion, Fortress reserves the following tokens:\\
+\input{\datadir/fortress-specialReservedWords.tex}
+
+They do not have any special meanings 
+but they cannot be used as identifiers.
+
+\note{Victor: Some other words we might want to reserve:
+  subtype, subtypes, is, coercion, function, exception, match}
+
+
+
+\newsec{ASCII Encoding}{ascii-encoding}
+
+To support program entry and legacy tools, 
+Fortress provides an ASCII encoding; 
+that is, 
+for any valid program, 
+which may include non-ASCII characters, 
+there is an equivalent program consisting of only ASCII characters.\footnote{%
+See \appref{lexical-preprocessing} 
+for the precise notion of equivalence guaranteed here.}
+Before undergoing any other processing, 
+a program is \emph{preprocessed} 
+to convert ASCII-encoded chunks into Unicode characters.
+This section describes the ASCII encoding informally;
+the full details follow from the preprocessing step, 
+which is described precisely in \appref{lexical-preprocessing}.
+
+To allow string literals that evaluate to arbitrary strings, 
+preprocessing does \emph{not} convert chunks within string literals.
+Thus,
+preprocessing must determine, and maintain, 
+the boundaries of string literals.
+(This is why string literals must be escaped within character literals.)
+Also,
+because unescaped string-literal delimiters in comments 
+do not actually delimit string literals of the program
+(and need not even be balanced),
+preprocessing must also determine comment boundaries.
+
+First, 
+replace any next line character (U+0085) with a line feed (U+000A), 
+and replace any unescaped left or right double quotation mark (i.e., U+201C--D), 
+and any left or right double quotation mark in a comment 
+(escaped or not),
+by the ASCII quotation mark (U+0022).
+After this step, 
+if the program is valid, 
+there are no non-ASCII control characters,
+and a left or right double quotation mark
+can occur only escaped within a character or string literal.
+(This step could make an invalid program valid, 
+but it will not make a valid program invalid.)
+
+For every character,
+\unicode\ specifies a name 
+(sometimes it specifies several alternatives) 
+that consists of only ASCII letters, hyphens and spaces.
+Within a character literal, 
+replace any non-ASCII character 
+with its \unicode\ name.
+Within a string literal, 
+replace any non-ASCII character 
+with its name in a quoted-character escape sequence 
+(i.e., a character literal of that character 
+immediately preceded by backslash; 
+see \secref{string-literal}).
+
+After this step,
+a non-ASCII character must not be part of a string or character literal, 
+and it must not be a string-literal delimiter or a control character 
+(the only control character allowed in a valid program 
+is the next line character).
+Proceeding from left to right,
+replace each such character with the \emph{Fortress variant} of a name, 
+which is the string resulting from replacing hyphens and spaces in the name 
+with underscores.
+(For consistency, 
+it is also usually permissible to use the Fortress variant of a name 
+instead of the \unicode\ name 
+when replacing non-ASCII characters in character and string literals.)
+If the immediately preceding character is a letter, digit or underscore, 
+then insert an ampersand between them.
+(This prevents adjacent names from running together 
+and being interpreted as a single name.)
+
+Although the above encoding always works, 
+it tends to greatly expand the program, 
+and in particular, to produce very long lines, 
+because most \unicode\ names for characters are long 
+(to avoid clashes).
+The ASCII encoding of Fortress 
+mitigates these problems in two ways.
+
+First, it allows a word to broken across a line
+by putting an ampersand immediately after 
+the character before the break, 
+and one immediately before the character after the break 
+(with no intervening whitespace characters 
+between the word characters and the ampersands).
+
+Second, it specifies many short alternatives 
+to the standard Unicode names.
+For example, 
+a ````digit-group separator'' in a numeral (see \secref{numerals}) 
+can be replaced by an apostrophe.
+Similarly,
+many non-ASCII operators,
+including most of the common ones, 
+have \emph{shorthands} specified in \appref{operators}, 
+and \appref{lexical-preprocessing} specifies other short names 
+for some common non-ASCII non-operator characters, 
+such as $\infty$, $\top$ and $\bot$ and the Greek letters.
+(With the Greek letters, 
+it is even possible to omit adjacent ampersands in some cases.)
+Also, when there is no ambiguity, 
+Fortress allows Fortress variants of the names to be shortened 
+by omitting any of the following common words 
+(and the underscore immediately following them):
+\text{LETTER}, \text{DIGIT}, \text{RADICAL} and \text{NUMERAL}.
+
+
+

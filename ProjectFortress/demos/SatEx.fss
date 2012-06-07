@@ -1,0 +1,35 @@
+(*******************************************************************************
+    Copyright 2010 Joonhyung Hwang and Chulwoo Lee, KAIST
+    All rights reserved.
+ ******************************************************************************)
+
+export Executable
+import File.{...}
+import List.{...}
+import Satisfiability.{...}
+import System.{args}
+
+run() = do
+        for f <- seq(if |args| = 0 then array[\String\](1).fill("/dev/stdin") else args end) do
+                println "c FILE: " f
+                start = nanoTime()
+                q = readQuery(f)
+                fin = nanoTime()
+                println "c TIME (READING): " ((fin-start)/10.0^9) "s"
+                start' = nanoTime()
+                a = satisfiability(q)
+                fin' = nanoTime()
+                println "c TIME (SOLVING): " ((fin'-start')/10.0^9) "s"
+                if (0 IN a) then
+                        println "s UNSATISFIABLE"
+                else
+                        println "s SATISFIABLE"
+                        print "v"
+                        for v <- a do
+                                print " " v
+                        end
+                        println ""
+                end
+        end
+end
+

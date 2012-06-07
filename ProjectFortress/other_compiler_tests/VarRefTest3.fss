@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component VarRefTest3
+export Executable
+
+object Foo(x : ZZ32) extends Object
+    y : ZZ32 = 21
+    
+    doubleY() : ZZ32 = 2 y
+    
+end
+
+run(): () = do
+  (x,y,z) = (42,42,42)
+  f = Foo(42)
+  if f.x = f.doubleY() then println("PASS") else println("FAIL") end
+end
+
+end

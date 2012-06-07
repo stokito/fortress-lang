@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component objectExprMystery
+export Executable
+
+(* We trip up on Array2.fill(f:I->E) even though it works fine in
+   tests/matrixOps.fss! *)
+
+(* Commenting out the following declaration, or the argument type, causes
+   things to work. *)
+mtest(a:Array2[\RR64,0,6,0,6\]):() = ()
+
+run():() = do
+  a : RR64[6,6] = array2[\RR64,6,6\](0.0)
+end
+
+end

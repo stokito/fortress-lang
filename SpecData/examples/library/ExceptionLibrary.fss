@@ -1,0 +1,27 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component ExceptionLibrary
+
+export Executable
+
+trait CheckedException extends Exception end
+trait UncheckedException extends Exception end
+(** EXAMPLE **)
+trait Exception comprises { CheckedException, UncheckedException }
+end
+(** END EXAMPLE **)
+
+run() = ()
+
+end

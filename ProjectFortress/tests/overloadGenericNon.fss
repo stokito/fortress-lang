@@ -1,0 +1,37 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component overloadGenericNon
+
+export Executable
+
+(* similar to wrapZZ, but tests overloading of built-in operators,
+   which are currently represented as top-level functions rather than
+   as functional methods. *)
+
+object WrapZZ(n : ZZ32)
+end
+
+opr +(s:WrapZZ, o:WrapZZ) = WrapZZ(s.n + o.n)
+opr juxtaposition(s:WrapZZ, o:WrapZZ) = WrapZZ(s.n o.n)
+
+run():() = do
+  x : WrapZZ = WrapZZ(5)
+  y : WrapZZ = WrapZZ(7)
+  z = x y
+  w = x + y
+  println("z = " z.n // "w = " w.n)
+  if z.n =/= 35 OR w.n =/= 12 then
+    println("FAIL: EXPECTED 35 and 12")
+  end
+end
+
+end

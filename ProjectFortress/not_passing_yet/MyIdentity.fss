@@ -1,0 +1,39 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+(*
+If you fix this, please uncomment the changes in
+SpecData/examples/basic/StatParam.Opr.MyIdentity.fss
+
+This will pass with the compiled environments turned off;
+it demonstrates a glitch in the set of top-level names
+computed in typechecking.
+
+component StatParam.Opr.MyIdentity.
+*)
+
+component MyIdentity
+
+export Executable
+
+trait IdentityOp[\T extends IdentityOp[\T,ODOT\], opr ODOT\]
+  opr ODOT(self):T = self
+end
+
+(** EXAMPLE **)
+object MyIdentity extends IdentityOp[\MyIdentity, IDENTITY\] end
+(** END EXAMPLE **)
+
+run() = ()
+
+end

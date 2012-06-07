@@ -1,0 +1,24 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component importBig
+import List.{ opr BIG <| |>, singleton, List, Concat }
+export Executable
+
+run() = do
+  a: List[\ZZ32\] := singleton[\ZZ32\](3)
+  b: List[\ZZ32\] := singleton[\ZZ32\](5)
+  a := Concat[\ZZ32\].join(a, b)
+  a := <|[\ZZ32\] 10 i | i <- a |>
+  println a
+end
+
+end

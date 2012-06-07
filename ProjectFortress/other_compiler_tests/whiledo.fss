@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+******************************************************************************)
+
+component whiledo
+export Executable
+
+run() : () = do
+  var foo : ZZ32 = 7
+  while do foo := foo - 1 
+           (foo > 0) 
+        end do
+    println(foo)
+  end
+  println("PASS")
+end
+
+end

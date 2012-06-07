@@ -1,0 +1,33 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+component GS2
+export Executable
+
+(* Test: Can a generic singleton capture a value at its instantiation? *)
+
+counter:ZZ32 := 0
+
+getCounter():ZZ32 = do
+  counter += 1
+  counter
+end
+
+object G[\T\]
+   n = getCounter()
+end
+
+run():()= do
+   println(if G[\String\].n = G[\String\].n then "PASS" else "FAIL")
+   println(if G[\String\].n = G[\ZZ32\].n then "FAIL" else "PASS")
+
+   end
+
+end

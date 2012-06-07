@@ -1,0 +1,31 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component singleArgInference
+import List.{...}
+export Executable
+
+(* See #62 *)
+
+(* Hunt for bugs in boolean comprehension guards *)
+object Filt(x:Boolean) extends SequentialGenerator[\()\]
+   generate[\R\](r: Reduction[\R\], body: ()->R): R =
+       if x then body() else r.empty() end
+end
+
+run():() = do
+    q = <| q | q <- Just(17,3) |>
+    println(q)
+    f = <| x | x <- Filt(true) |>
+    println(f)
+  end
+
+end

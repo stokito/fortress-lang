@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ListTest
+import List.{...}
+export Executable
+
+prElt = fn x => print(x " ")
+fiveOrMore = fn x => x > 4
+
+run():() = do
+    list'  = emptyList[\ZZ32\]().addLeft(7).addLeft(5).addLeft(3)
+    list'' = <|[\ZZ32\] |>.addRight(8).addRight(6).addRight(4)
+
+    assert(|list'|,3," |list'|")
+    assert(list'.left.get,3," list'.left")
+    assert(list'.drop(1),<|5 asif ZZ32,7|>," list'.drop(1)")
+    assert((list'.drop(1))[1], 7," list'.drop(1)[1]")
+    l = list' || list''
+    assert(3 IN list'', false, "3 IN ", list'')
+    assert(BIG AND [e <- list''] e IN l, true,
+           l, " doesn't contain all of ", list'')
+    assert(l.indexOf(8).get,3,l,".indexOf(8)")
+    assert(list'.isEmpty, false, list', ".isEmpty")
+    assert(l.filter(fiveOrMore).map[\ZZ32\](fn x => 10 x),
+           <|50 asif ZZ32,70,80,60|>,"filter . map")
+    assert(BIG OR [e<-l] fiveOrMore(e),true,"exists five or more")
+    assert(BIG AND [e<-l] fiveOrMore(e),false,"all five or more")
+end
+
+end

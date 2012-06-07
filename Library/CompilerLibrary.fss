@@ -1,0 +1,592 @@
+(*******************************************************************************
+    Copyright 2008,2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component CompilerLibrary
+(*
+import java com.sun.fortress.nativeHelpers.{LocalRandom.localRandomDouble => jRandomDouble,
+                                            LocalRandom.localRandomInt => jRandomInt }
+*)
+import CompilerBuiltin.{...}
+import CompilerAlgebra.{...}
+import java com.sun.fortress.nativeHelpers.{equality.sEquiv => jSEQUIV}
+import java com.sun.fortress.nativeHelpers.{runtime.loopChunk => jLoopChunk}
+
+export CompilerLibrary
+
+
+(************************************************************
+ * Value bindings
+ ************************************************************)
+
+(************************************************************
+ * Simple Combinators
+ ************************************************************)
+
+(** Useful functions *)
+
+ignore(_: Any): () = ()
+
+identity[\T extends Any\](x: T): T = x
+
+cast[\T extends Any\](x: Any): T = 
+  typecase x of
+      y: T => y
+      else => throw CastException
+    end
+
+instanceOf[\T extends Any\](x: Any) : Boolean = 
+  typecase x of 
+    T => true
+    else => false
+  end  
+
+
+(************************************************************
+ * Control over locality and location
+ ************************************************************)
+
+(*) isShared(x:Any): Boolean = true
+
+(************************************************************
+ * Equality and ordering
+ ************************************************************)
+
+(* This is incomplete *)
+opr ===(a:Any, b:Any):Boolean = jSEQUIV(a,b)
+opr ===(a:ZZ64, b:ZZ64):Boolean = a=b
+opr ===(a:ZZ32, b:ZZ32):Boolean = a=b
+opr ===(a:RR64, b:RR64):Boolean = a=b
+opr ===(a:RR32, b:RR32):Boolean = a=b
+opr ===(a:String, b:String):Boolean = a=b
+opr ===(a:Boolean, b:Boolean):Boolean = a<->b
+
+opr NEQV(a:Any, b:Any):Boolean = NOT (a === b)
+
+fail(s: String): Zilch = do
+    errorPrintln("FAIL: " s)
+    throw FailCalled(s)
+end
+
+
+(** Assertion *)
+assert(flag: Boolean): () =
+    if NOT flag then
+        fail("Assertion failed!")
+    end
+
+assert(flag: Boolean, failMsg: String): () =
+    if NOT flag then
+        fail(failMsg)
+    end
+
+(*
+assert(x: Any, y: Any, failMsg: Any...): () =
+    if x =/= y then
+        msg = x.asDebugString " =/= " y.asDebugString "; " (BIG || failMsg)  (* use || here instead of loose juxt *)
+        fail(msg)
+    end
+*)
+
+
+deny(flag: Boolean): () = assert(NOT flag)
+
+deny(flag: Boolean, failMsg: String): () = assert(NOT flag, failMsg)
+
+(*
+deny(x: Any, y: Any, failMsg: Any...): () =
+    if x = y then
+        msg = x.asDebugString " = " y.asDebugString "; " (BIG || failMsg)
+        fail(msg)
+    end
+*)
+
+debugString(x: Any): String = "<function or long tuple>"
+debugString(x: Object): String = x.asString
+debugString(): String = "()"
+debugString(a: Any, b: Any): String =
+  ("(" || debugString(a) || ", " || debugString(b) || ")")
+debugString(a: Any, b: Any, c: Any): String =
+  ("(" || debugString(a) || ", " || debugString(b) || ", " || debugString(c) || ")")
+debugString(a: Any, b: Any, c: Any, d: Any): String =
+  ("(" || debugString(a) || ", " || debugString(b) || ", " || debugString(c) || ", " || debugString(d) || ")")
+debugString(a: Any, b: Any, c: Any, d: Any, e: Any): String =
+  ("(" || debugString(a) || ", " || debugString(b) || ", " || debugString(c) || ", " ||
+          debugString(d) || ", " || debugString(e) || ")")
+debugString(a: Any, b: Any, c: Any, d: Any, e: Any, f: Any): String =
+  ("(" || debugString(a) || ", " || debugString(b) || ", " || debugString(c) || ", " ||
+          debugString(d) || ", " || debugString(e) || ", " || debugString(f) || ")")
+debugString(a: Any, b: Any, c: Any, d: Any, e: Any, f: Any, g: Any): String =
+  ("(" || debugString(a) || ", " || debugString(b) || ", " || debugString(c) || ", " ||
+          debugString(d) || ", " || debugString(e) || ", " || debugString(f) || ", " || debugString(g) || ")")
+
+(************************************************************
+* Exception hierarchy
+************************************************************)
+
+(*) The upper parts of the exception hierarchy are in CompilerBuiltin:
+(*)  Exception
+(*)    UncheckedException
+(*)    CheckedException
+(*)      IOException
+(*)        IOFailure
+(*)        FileNotFoundException
+
+object FailCalled(s:String) extends UncheckedException
+    getter asString(): String = "FAIL: " s
+end
+
+object UnpastingError extends UncheckedException
+    getter asString(): String = "Unpasting error"
+end
+
+object CallerViolation extends UncheckedException
+    getter asString(): String = "Caller violation"
+end
+
+object CalleeViolation extends UncheckedException
+    getter asString(): String = "Callee violation"
+end
+
+object LabelException extends UncheckedException
+    getter asString(): String = "Exiting without an enclosing label block"
+end
+
+object TestFailure extends UncheckedException
+    getter asString(): String = "Test failure"
+end
+
+object ContractHierarchyViolation extends UncheckedException
+    getter asString(): String = "Contract hierarchy violation"
+end
+
+object NoEqualityOnFunctions extends UncheckedException
+    getter asString(): String = "No equality on functions"
+end
+
+object InvalidRange extends UncheckedException
+    getter asString(): String = "Invalid range"
+end
+
+object ForbiddenException(chain : Exception) extends UncheckedException
+    getter asString(): String = "Forbidden exception"
+end
+
+(* Should this be called "IndexNotFound" instead? *)
+object NotFound extends UncheckedException
+    getter asString(): String = "Not found"
+end
+
+(* Should this be called "IndexNotFound" instead? *)
+object NoValueForKey(x: Any) extends UncheckedException
+    getter asString(): String = "No value for key" debugString(x)
+end
+
+(*
+object IndexOutOfBounds[\I\](range:Range[\I\],index:I) extends UncheckedException
+    getter asString(): String = index " is outside the range " range
+end
+*)
+
+object EmptyReduction extends UncheckedException
+    getter asString(): String = "EmptyReduction: no identity, no elements"
+end
+
+object RationalComparisonError extends UncheckedException
+    getter asString(): String = "Rational comparison error"
+end
+
+object FloatingComparisonError extends UncheckedException
+    getter asString(): String = "Floating comparison error"
+end
+
+object MatchFailure extends UncheckedException
+    getter asString(): String = "Match failure"
+end    
+
+object CastException extends UncheckedException
+    getter asString(): String = "Cast exception"
+end    
+
+(* Checked Exceptions *)
+
+(*
+object CastError extends CheckedException
+    getter asString(): String = "Cast error"
+end
+
+object MatchFailure extends CheckedException
+    getter asString(): String = "Match failure"
+end
+
+(* SetsNotDisjoint? *)
+object DisjointUnionError extends CheckedException
+    getter asString(): String = "Disjoint union error"
+end
+
+object APIMissing extends CheckedException
+    getter asString(): String = "Api is missing"
+end
+
+object APINameCollision extends CheckedException
+    getter asString(): String = "Api name collides with another"
+end
+
+object ExportedAPIMissing extends CheckedException
+    getter asString(): String = "Exported api is missing"
+end
+
+object HiddenAPIMissing extends CheckedException
+    getter asString(): String = "Hidden api is missing"
+end
+
+object TryAtomicFailure extends CheckedException
+    getter asString(): String = "Try/atomic failure"
+end
+
+(* Should take a spawned thread as an argument *)
+object AtomicSpawnSynchronization extends {UncheckedException}
+    getter asString(): String = "Atomic spawn synchronization"
+end
+*)
+
+(*
+opr SEQV(a:Any, b:Any) = jSEQV(a,b)
+*)
+
+(************************************************************
+ * Simple Range support
+ ************************************************************)
+
+trait GeneratorZZ32 excludes { Boolean }  (*) excludes { Boolean, AllGenerators }
+    getter asString(): String
+    seq(self): SeqGeneratorZZ32 = SeqGenZZ32(self)
+    loop(body:ZZ32->()): ()
+    generate(r: ReductionString, body: ZZ32->String): String
+    generate(r: ReductionZZ32, body: ZZ32->ZZ32): ZZ32
+    seqloop(body:ZZ32->()): ()
+    seqgenerate(r: ReductionString, body: ZZ32->String): String
+    seqgenerate(r: ReductionZZ32, body: ZZ32->ZZ32): ZZ32
+    filter(f: ZZ32 -> Boolean): GeneratorZZ32
+    opr IN(x:ZZ32, self): Boolean = false
+end
+
+opr =(left:GeneratorZZ32, right:GeneratorZZ32): Boolean = false
+
+trait SeqGeneratorZZ32 extends GeneratorZZ32
+    getter asString(): String
+    seq(self): SeqGeneratorZZ32 = self
+    loop(body:ZZ32->()): () = seqloop(body)
+    generate(r: ReductionString, body: ZZ32->String): String = seqgenerate(r, body)
+    generate(r: ReductionZZ32, body: ZZ32->ZZ32): ZZ32 = seqgenerate(r, body)
+    seqloop(body:ZZ32->()): () = loop(body)
+    seqgenerate(r: ReductionString, body: ZZ32->String): String = generate(r,body)
+    seqgenerate(r: ReductionZZ32, body: ZZ32->ZZ32): ZZ32 = generate(r,body)
+    filter(f: ZZ32 -> Boolean): SeqGeneratorZZ32
+end
+
+__loop(g: GeneratorZZ32, body: ZZ32->()): () = do println "BLAP!" ; g.loop(body) end
+
+__bigOperator(o:ReductionString,
+              desugaredClauses:(ReductionString, String->String)->String): String =
+    desugaredClauses(o,fn (s:String):String => s)
+__bigOperator(o:ReductionZZ32,
+              desugaredClauses:(ReductionZZ32, ZZ32->ZZ32)->ZZ32): ZZ32 =
+    desugaredClauses(o,fn (s:ZZ32):ZZ32 => s)
+
+__generate(g: GeneratorZZ32, r: ReductionString, f:ZZ32->String): String =
+    g.generate(r,f)
+__generate(g: GeneratorZZ32, r: ReductionZZ32, f:ZZ32->ZZ32): ZZ32 =
+    g.generate(r,f)
+__generate(p: Boolean, r: ReductionString, f:()->String): String =
+    if p then f() else r.empty() end
+__generate(p: Boolean, r: ReductionZZ32, f:()->ZZ32): ZZ32 =
+    if p then f() else r.empty() end
+
+
+object SeqGenZZ32(g: GeneratorZZ32) extends SeqGeneratorZZ32
+    getter asString(): String = "seq(" g.asString ")"
+    loop(body:ZZ32->()): () = g.seqloop(body)
+    generate(r: ReductionString, body: ZZ32->String): String = g.seqgenerate(r, body)
+    generate(r: ReductionZZ32, body: ZZ32->ZZ32): ZZ32 = g.seqgenerate(r, body)
+    seqloop(body:ZZ32->()): () = g.seqloop(body)
+    seqgenerate(r: ReductionString, body: ZZ32->String): String = g.seqgenerate(r,body)
+    seqgenerate(r: ReductionZZ32, body: ZZ32->ZZ32): ZZ32 = g.seqgenerate(r,body)
+    filter(f: ZZ32 -> Boolean): SeqGeneratorZZ32 = seq(g.filter(f))
+end
+
+
+parloop(lo:ZZ32, hi:ZZ32, p:ZZ32->Boolean, body:ZZ32->()): () = do
+    loopChunk = jLoopChunk()
+    if loopChunk >= hi-lo then countedseqloop(lo,hi,p,body)
+    else
+        z = lo+hi                                           (*) Danger of overflow here
+        mid = if z >= 0 then z DIV 2 else (z-1) DIV 2 end   (*) Or use arithmetic shift
+        do
+           parloop(lo, mid, p, body)  
+        also do
+           parloop(mid+1, hi, p, body)
+        end
+    end
+end
+
+countedseqloop(lo:ZZ32, hi:ZZ32, p:ZZ32->Boolean, body:ZZ32->()): () =
+    if lo=hi then
+        if p(lo) then body(lo) end
+    else 
+        z = lo+hi                                          (*) Danger of overflow here
+        mid = if z >= 0 then z DIV 2 else (z-1) DIV 2 end  (*) Or use arithmetic shift
+        countedseqloop(lo, mid, p, body)
+        countedseqloop(mid+1, hi, p, body)
+    end
+
+gen(lo:ZZ32, hi:ZZ32, p: ZZ32->Boolean, r:ReductionString, body: ZZ32->String): String =
+    if lo=hi then
+        if p(lo) then body(lo) else r.empty() end
+    else
+        z = lo+hi                                           (*) Danger of overflow here
+        mid = if z >= 0 then z DIV 2 else (z-1) DIV 2 end   (*) Or use arithmetic shift
+        r.join(gen(lo, mid, p, r, body), gen(mid+1, hi, p, r, body))
+    end
+gen(lo:ZZ32, hi:ZZ32, p: ZZ32->Boolean, r:ReductionZZ32, body: ZZ32->ZZ32): ZZ32 =
+    if lo=hi then
+        if p(lo) then body(lo) else r.empty() end
+    else
+        z = lo+hi                                           (*) Danger of overflow here
+        mid = if z >= 0 then z DIV 2 else (z-1) DIV 2 end   (*) Or use arithmetic shift
+        r.join(gen(lo, mid, p, r, body), gen(mid+1, hi, p, r, body))
+    end
+
+seqgen(lo:ZZ32, hi:ZZ32, p: ZZ32->Boolean, r:ReductionString, body: ZZ32->String): String =
+    if lo=hi then
+        if p(lo) then body(lo) else r.empty() end
+    else
+        z = lo+hi                                           (*) Danger of overflow here
+        mid = if z >= 0 then z DIV 2 else (z-1) DIV 2 end   (*) Or use arithmetic shift
+        left = seqgen(lo, mid, p, r, body)
+        right = seqgen(mid+1, hi, p, r, body)
+        r.join(left, right)
+    end
+seqgen(lo:ZZ32, hi:ZZ32, p: ZZ32->Boolean, r:ReductionZZ32, body: ZZ32->ZZ32): ZZ32 =
+    if lo=hi then
+        if p(lo) then body(lo) else r.empty() end
+    else
+        z = lo+hi                                           (*) Danger of overflow here
+        mid = if z >= 0 then z DIV 2 else (z-1) DIV 2 end   (*) Or use arithmetic shift
+        left = seqgen(lo, mid, p, r, body)
+        right = seqgen(mid+1, hi, p, r, body)
+        r.join(left, right)
+    end
+
+trait Range extends GeneratorZZ32 excludes { Number, String, Boolean, Character }
+  getter lowerBound(): ZZ32
+  getter upperBound(): ZZ32
+end
+
+object FilteredRange(lo: ZZ32, hi:ZZ32, p: ZZ32 -> Boolean) extends Range
+    getter lowerBound(): ZZ32 = lo
+    getter upperBound(): ZZ32 = hi
+    getter asString(): String = "filtered(" lo.asString ":" hi.asString ")"
+    seq(self): SeqGeneratorZZ32 = SeqGenZZ32(self)
+    loop(body:ZZ32->()): () = if lo > hi then () else parloop(lo,hi,p,body) end
+    seqloop(body:ZZ32->()): () = if lo > hi then () else countedseqloop(lo,hi,p,body) end
+    generate(r: ReductionString, body: ZZ32->String): String =
+        if lo > hi then r.empty() else gen(lo,hi,p,r,body) end
+    generate(r: ReductionZZ32, body: ZZ32->ZZ32): ZZ32 =
+        if lo > hi then r.empty() else gen(lo,hi,p,r,body) end
+    seqgenerate(r: ReductionString, body: ZZ32->String): String =
+        if lo > hi then r.empty() else seqgen(lo,hi,p,r,body) end
+    seqgenerate(r: ReductionZZ32, body: ZZ32->ZZ32): ZZ32 =
+        if lo > hi then r.empty() else seqgen(lo,hi,p,r,body) end
+    filter(q: ZZ32 -> Boolean): FilteredRange =
+        FilteredRange(lo, hi, fn n => p(n) AND: q(n))
+end
+
+opr :(lo:ZZ32, hi:ZZ32): Range = FilteredRange(lo, hi, fn (n) => true)
+opr #(lo:ZZ32, sz:ZZ32): Range = lo : (lo+sz-1)
+
+trait ReductionString
+    empty(): String
+    join(a: String, b: String): String
+end
+
+trait ReductionZZ32 excludes ReductionString
+    empty(): ZZ32
+    join(a: ZZ32, b: ZZ32): ZZ32
+end
+
+object StringConcatenation extends ReductionString
+    empty(): String = ""
+    join(a: String, b: String): String = a || b
+end
+
+object ZZ32Addition extends ReductionZZ32
+    empty(): ZZ32 = 0
+    join(a: ZZ32, b: ZZ32): ZZ32 = a + b
+end
+
+object ZZ32Max extends ReductionZZ32
+    empty(): ZZ32 = do a: ZZ32 = 32768; b: ZZ32 = 65536; (-a) TIMES b end
+    join(a: ZZ32, b: ZZ32): ZZ32 = a MAX b
+end
+
+(*
+opr BIG ||(): StringConcatenation = StringConcatenation
+*)
+
+opr BIG MAX(): ReductionZZ32 = ZZ32Max
+opr BIG MAX(g: GeneratorZZ32): ZZ32 = __bigOperator(ZZ32Max, fn(r, b) => g.generate(r, b))
+
+(*) For now, use a sequential implementation
+opr PREFIX_SUM(x: ZZ32Vector): ZZ32Vector = do
+  result = x.copy
+  for i <- seq(1 # (|x| - 1)) do result[i] += result[i-1] end
+  result
+end
+
+(*) For now, use a sequential implementation
+(*) opr SUFFIX_SUM(x: ZZ32Vector): ZZ32Vector = do
+(*)   result = x.copy
+(*)   for i <- seq((|x| - 2):0:-1) do result[i] += result[i+1] end
+(*)   result
+(*) end
+
+opr +(x: ZZ32Vector, y: ZZ32): ZZ32Vector = do
+  result = x.copy
+  for i <- 0 # |x| do result[i] += y end
+  result
+end
+
+opr -(x: ZZ32Vector, y: ZZ32): ZZ32Vector = do
+  result = x.copy
+  for i <- 0 # |x| do result[i] -= y end
+  result
+end
+
+opr MIN(x: ZZ32Vector, y: ZZ32): ZZ32Vector = do
+  result = x.copy
+  for i <- 0 # |x| do result[i] MIN= y end
+  result
+end
+
+opr MAX(x: ZZ32Vector, y: ZZ32): ZZ32Vector = do
+  result = x.copy
+  for i <- 0 # |x| do result[i] MAX= y end
+  result
+end
+
+
+(************************************************************
+* Making vectors
+************************************************************)
+
+makeZZ32Vector(d1:ZZ32) : ZZ32Vector =
+  __makeZZ32Vector(0, d1, 0, 0)
+makeZZ32Vector(d1:ZZ32, d2:ZZ32) : ZZ32Vector =
+  __makeZZ32Vector(0, d1, 0, d2)
+makeZZ32Vector(r: Range) : ZZ32Vector =
+  __makeZZ32Vector(r.lowerBound, r.upperBound - r.lowerBound + 1, 0, 0)
+makeZZ32Vector(r1: Range, r2: Range) : ZZ32Vector =
+  __makeZZ32Vector(r1.lowerBound, r1.upperBound - r1.lowerBound + 1,
+                   r2.lowerBound, r2.upperBound - r2.lowerBound + 1)
+
+(************************************************************
+* Random numbers
+************************************************************)
+
+(*
+random(i:RR64): RR64 = jRandomDouble(i)
+randomZZ32(x:ZZ32): ZZ32 = jRandomInt(0,x)
+*)
+
+(************************************************************
+ * Matrices (stub)
+ ************************************************************)
+trait Matrix[\T, nat s0, nat s1\] extends Object end
+
+
+(************************************************************
+ * Number properties
+ ************************************************************)
+
+ZZ32_MIN: ZZ32 = 8000'0000_16
+ZZ32_MAX: ZZ32 = 7FFF'FFFF_16
+ZZ64_MIN: ZZ64 = 8000'0000'0000'0000_16
+ZZ64_MAX: ZZ64 = 7FFF'FFFF'FFFF'FFFF_16
+NN32_MIN: NN32 = 0000'0000_16
+NN32_MAX: NN32 = FFFF'FFFF_16
+NN64_MIN: NN64 = 0000'0000'0000'0000_16
+NN64_MAX: NN64 = FFFF'FFFF'FFFF'FFFF_16
+
+(************************************************************
+ * Character properties
+ ************************************************************)
+
+characterMinSupplementaryCodePoint: ZZ32 = 1'0000_16
+characterMinRadix: ZZ32 = 2
+characterMaxRadix: ZZ32 = 36
+
+(*) Character categories
+characterUnassigned: ZZ32 = 0
+characterUppercaseLetter: ZZ32 = 1
+characterLowercaseLetter: ZZ32 = 2
+characterTitlecaseLetter: ZZ32 = 3
+characterModifierLetter: ZZ32 = 4
+characterOtherLetter: ZZ32 = 5
+characterNonSpacingMark: ZZ32 = 6
+characterEnclosingMark: ZZ32 = 7
+characterCombiningSpacingMark: ZZ32 = 8
+characterDecimalDigitNumber: ZZ32 = 9
+characterLetterNumber: ZZ32 = 10
+characterOtherNumber: ZZ32 = 11
+characterSpaceSeparator: ZZ32 = 12
+characterLineSeparator: ZZ32 = 13
+characterParagraphSeparator: ZZ32 = 14
+characterControl: ZZ32 = 15
+characterFormat: ZZ32 = 16
+(*) There is no category 17
+characterPrivateUse: ZZ32 = 18
+characterSurrogate: ZZ32 = 19
+characterDashPunctuation: ZZ32 = 20
+characterStartPunctuation: ZZ32 = 21
+characterEndPunctuation: ZZ32 = 22
+characterConnectorPunctuation: ZZ32 = 23
+characterOtherPunctuation: ZZ32 = 24
+characterMathSymbol: ZZ32 = 25
+characterCurrencySymbol: ZZ32 = 26
+characterModifierSymbol: ZZ32 = 27
+characterOtherSymbol: ZZ32 = 28
+characterInitialQuotePunctuation: ZZ32 = 29
+characterFinalQuotePunctuation: ZZ32 = 30
+
+(*) Character directionality
+characterDirectionalityUndefined: ZZ32 = do a: ZZ32 = 1; -a end
+characterDirectionalityLeftToRight: ZZ32 = 0
+characterDirectionalityRightToLeft: ZZ32 = 1
+characterDirectionalityRightToLeftArabic: ZZ32 = 2
+characterDirectionalityEuropeanNumber: ZZ32 = 3
+characterDirectionalityEuropeanNumberSeparator: ZZ32 = 4
+characterDirectionalityEuropeanNumberTerminator: ZZ32 = 5
+characterDirectionalityArabicNumber: ZZ32 = 6
+characterDirectionalityCommonNumberSeparator: ZZ32 = 7
+characterDirectionalityNonspacingMark: ZZ32 = 8
+characterDirectionalityBoundaryNeutral: ZZ32 = 9
+characterDirectionalityParagraphSeparator: ZZ32 = 10
+characterDirectionalitySegmentSeparator: ZZ32 = 11
+characterDirectionalityWhitespace: ZZ32 = 12
+characterDirectionalityOtherNeutrals: ZZ32 = 13
+characterDirectionalityLeftToRightEmbedding: ZZ32 = 14
+characterDirectionalityLeftToRightOverride: ZZ32 = 15
+characterDirectionalityRightToLeftEmbedding: ZZ32 = 16
+characterDirectionalityRightToLeftOverride: ZZ32 = 17
+characterDirectionalityPopDirectionalFormat: ZZ32 = 18
+
+
+end

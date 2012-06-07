@@ -1,0 +1,426 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Dimension and Unit Declarations}
+\chaplabel{declaring-dimunits}
+
+\note{Dimensions and units are not yet supported.}
+
+\begin{Grammar}
+\emph{DimUnitDecl}
+&::=&
+\KWD{dim} \emph{Id} \options{\EXP{=} \emph{Type}}
+(\KWD{unit} $|$ \KWD{SI\_unit}) \emph{Id}$^+$
+\options{\EXP{=} \emph{Expr}}\\
+&$|$&
+\KWD{dim} \emph{Id}
+\options{\EXP{=} \emph{Type}} \options{\KWD{default} \emph{Id}}\\
+&$|$&
+(\KWD{unit} $|$ \KWD{SI\_unit})
+\emph{Id}$^+$ \options{\EXP{\mathrel{\mathtt{:}}} \emph{Type}}
+ \options{\EXP{=} \emph{Expr}}\\
+\end{Grammar}
+
+\section{Dimension Declarations}
+Dimensions may be explicitly declared;
+every declared dimension must be declared at the top level
+of a program component,
+not within a block expression or trait.
+Other dimensions may be constructed by multiplying and dividing other dimensions,
+as described in \chapref{dimunits}.
+An explicitly declared dimension may be a \emph{base dimension} (with no definition specified)
+or a \emph{derived dimension} (with a definition specified in the form of an initialization expression).
+
+The set of all dimensions has the algebraic structure of a free abelian group.
+The identity element of this group is the dimension \TYP{Unity}, which represents dimensionlessness.
+
+For every two dimensions \VAR{D} and \VAR{E}, there is a
+dimension \EXP{D E} (which may also be written \EXP{D \cdot E}),
+corresponding to the product of the dimensions \VAR{D} and \VAR{E} and a
+dimension \EXP{D/E}, corresponding to the quotient of the
+dimensions \VAR{D} and \VAR{E}. The syntactic sugar \EXP{1/D} is equivalent
+to \EXP{\TYP{Unity}/D} for all dimensions \VAR{D}.
+A dimension can be raised to a rational power where both
+the numerator and the denominator of the rational power
+must be a valid \emph{\KWD{nat} parameter} instantiation;
+\EXP{D^{0}} is the same as \TYP{Unity},
+\EXP{D^{1}} is the same as \VAR{D}, and
+\EXP{D^{m+n}} is the same as \EXP{D^{m} D^{n}}.
+The syntactic sugar \EXP{D^{-n}} is the same as \EXP{\TYP{Unity}/D^{n}}.
+
+Here are some examples of base dimension declarations:
+%% dim Length
+%% dim Mass
+%% dim Time
+%% dim ElectricCurrent
+\begin{Fortress}
+\(\KWD{dim} \TYP{Length}\)\\
+\(\KWD{dim} \TYP{Mass}\)\\
+\(\KWD{dim} \TYP{Time}\)\\
+\(\KWD{dim} \TYP{ElectricCurrent}\)
+\end{Fortress}
+Here are some examples of computed dimensions:
+%% Length / Time
+%% Velocity / Time
+%% Length \cdot Mass / Time^2
+%% Length Mass Time^(-2)
+%% ElectricCurrent / Length^2
+\begin{Fortress}
+\(\TYP{Length} / \TYP{Time}\)\\
+\(\TYP{Velocity} / \TYP{Time}\)\\
+\(\TYP{Length} \cdot \TYP{Mass} / \TYP{Time}^{2}\)\\
+\(\TYP{Length}\mskip 4mu plus 4mu\TYP{Mass}\mskip 4mu plus 4mu\TYP{Time}^{-2}\)\\
+\(\TYP{ElectricCurrent} / \TYP{Length}^{2}\)
+\end{Fortress}
+and here some of these computed dimensions are given names through the use of
+derived dimension declarations:
+%% dim Velocity = Length / Time
+%% dim Acceleration = Velocity / Time
+%% dim CurrentDensity = ElectricCurrent / Length^2
+\begin{Fortress}
+\(\KWD{dim} \TYP{Velocity} = \TYP{Length} / \TYP{Time}\)\\
+\(\KWD{dim} \TYP{Acceleration} = \TYP{Velocity} / \TYP{Time}\)\\
+\(\KWD{dim} \TYP{CurrentDensity} = \TYP{ElectricCurrent} / \TYP{Length}^{2}\)
+\end{Fortress}
+
+\section{Unit Declarations}
+Every unit belongs to exactly one dimension, which is the type of the unit.
+A dimension may have more than one unit,
+but one of these units may be singled out as the \emph{default unit} for that dimension
+by adding a \KWD{default} clause:
+%% dim Length default meter
+%% dim Mass default kilogram
+%% dim Time default second
+\begin{Fortress}
+\(\KWD{dim} \TYP{Length} \KWD{default} \TYP{meter}\)\\
+\(\KWD{dim} \TYP{Mass} \KWD{default} \TYP{kilogram}\)\\
+\(\KWD{dim} \TYP{Time} \KWD{default} \TYP{second}\)
+\end{Fortress}
+The default unit is used when a numerical type is multiplied by a
+dimension to produce a new type (see \chapref{dimunits}).
+If no default clause is specified for a base dimension, then it has
+no default unit.  If no default clause is specified for a derived
+dimension, then it has a default unit if and only if all the
+dimensions mentioned in its initialization expression have defaults,
+in which case its default unit is calculated using the initialization
+expression with each dimension replaced by its default unit.
+
+Some units are explicitly declared;
+every declared unit must be declared at the top level of
+a program component, not
+within a block expression or trait.
+Other units may be constructed by multiplying and dividing other units.
+An explicitly declared unit may be a \emph{base unit} (with no definition specified)
+or a \emph{derived unit} (with a definition specified in the form of an initialization expression).
+
+The set of all units, like the set of all dimensions, has the algebraic structure of a free abelian group.
+The identity element of this group is the unit \TYP{dimensionless}, of
+dimension \TYP{Unity}.
+Note that there may be other units of dimension \TYP{Unity}, such as
+\TYP{radian} and \TYP{steradian}, but only \TYP{dimensionless} is the
+identity of the group of all units.
+(Note that there is a straightforward homomorphism of units onto
+dimensions, wherein every unit is mapped to its dimension.)
+
+Here are some examples of base unit declarations:
+%% unit meter : Length
+%% unit kilogram : Mass
+%% unit second : Time
+%% unit ampere : ElectricCurrent
+\begin{Fortress}
+\(\KWD{unit} \TYP{meter} \mathrel{\mathtt{:}} \TYP{Length}\)\\
+\(\KWD{unit} \TYP{kilogram} \mathrel{\mathtt{:}} \TYP{Mass}\)\\
+\(\KWD{unit} \TYP{second} \mathrel{\mathtt{:}} \TYP{Time}\)\\
+\(\KWD{unit} \TYP{ampere} \mathrel{\mathtt{:}} \TYP{ElectricCurrent}\)
+\end{Fortress}
+Here are some examples of computed units:
+%% meter / second
+%% (meter / second) / second
+%% meter \cdot kilogram / second^2
+%% meter kilogram second^(-2)
+%% ampere / meter^2
+\begin{Fortress}
+\(\TYP{meter} / \TYP{second}\)\\
+\((\TYP{meter} / \TYP{second}) / \TYP{second}\)\\
+\(\TYP{meter} \cdot \TYP{kilogram} / \TYP{second}^{2}\)\\
+\(\TYP{meter}\mskip 4mu plus 4mu\TYP{kilogram}\mskip 4mu plus 4mu\TYP{second}^{-2}\)\\
+\(\TYP{ampere} / \TYP{meter}^{2}\)
+\end{Fortress}
+and here some computed units are given names through the use of
+derived unit declarations:
+%% unit newton: Force = meter \cdot kilogram / second^2
+%% unit joule: Energy = newton meter
+%% unit pascal: Pressure = newton / meter^2
+\begin{Fortress}
+\(\KWD{unit} \TYP{newton}\COLON \TYP{Force} = \TYP{meter} \cdot \TYP{kilogram} / \TYP{second}^{2}\)\\
+\(\KWD{unit} \TYP{joule}\COLON \TYP{Energy} = \TYP{newton}\mskip 4mu plus 4mu\TYP{meter}\)\\
+\(\KWD{unit} \TYP{pascal}\COLON \TYP{Pressure} = \TYP{newton} / \TYP{meter}^{2}\)
+\end{Fortress}
+In the preceding examples, the initialization expression for each unit
+is itself a unit.  It is also permitted for the initialization
+expression to be a dimensioned numerical value, in which case
+the unit being declared is related to the unit of the dimensioned
+numerical value by a numerical conversion factor.
+
+As with an ordinary variable declaration, one may omit the dimension for a unit
+if there is an initialization expression; the dimension of the declared unit is
+the dimension of the unit of the expression.
+
+\note{COMMENTED TEXT; I like the explanation below better. -- Eric
+
+Every unit can be reduced to a canonical unit as follows.  A base unit is
+canonical; a \KWD{unit} parameter is canonical; a defined unit is replaced
+by its initialization expression,
+but only if the value of the expression
+is a unit and not a dimensioned value, where every unit in that expression
+is replaced by its canonical unit;
+and finally all arithmetic is performed
+so as to reduce the expression to a single unit. Two units are considered
+equivalent if their canonical units are identical.
+
+Now here is a slightly different process.
+}
+
+Every unit can be reduced to a canonical value as follows.  A base unit is
+multiplied by the value \EXP{1}; a \KWD{unit} parameter is multiplied by
+the value \EXP{1}; a defined unit is replaced by its initialization
+expression and then every unit in that expression is replaced by its
+canonical form;
+and finally all arithmetic is performed so as to reduce the
+units to a single unit and the
+numerical values to a single numerical value.  A dimensioned value with unit
+\VAR{U} is convertible by the \KWD{in} operator to a value with unit
+\VAR{V} if the canonical values for \VAR{U} and \VAR{V} have the same
+unit; the conversion involves multiplying the numerical value by the
+ratio of the numerical value of the canonical form
+of \VAR{V} to the numerical value of the canonical form of \VAR{U}.
+
+For example, given the declarations:
+%% dim Length
+%% unit meter: Length; unit meters = meter
+%% unit kilometer: Length = 10^3 meter; unit kilometers = kilometer
+%% unit inch: Length = 2.54 \times 10^(-2) meter; unit inches = inch
+%% unit foot: Length = 12 inch; unit feet = foot
+%% unit mile: Length = 5280 foot; unit miles = mile
+\begin{Fortress}
+\(\KWD{dim} \TYP{Length}\)\\
+\(\KWD{unit} \TYP{meter}\COLON \TYP{Length}; \KWD{unit} \TYP{meters} = \TYP{meter}\)\\
+\(\KWD{unit} \TYP{kilometer}\COLON \TYP{Length} = 10^{3} \TYP{meter}; \KWD{unit} \TYP{kilometers} = \TYP{kilometer}\)\\
+\(\KWD{unit} \TYP{inch}\COLON \TYP{Length} = 2.54 \times 10^{-2} \TYP{meter}; \KWD{unit} \TYP{inches} = \TYP{inch} \)\\
+\(\KWD{unit} \TYP{foot}\COLON \TYP{Length} = 12\,\TYP{inch}; \KWD{unit} \TYP{feet} = \TYP{foot}\)\\
+\(\KWD{unit} \TYP{mile}\COLON \TYP{Length} = 5280\,\TYP{foot}; \KWD{unit} \TYP{miles} = \TYP{mile}\)
+\end{Fortress}
+then one can say \EXP{3\,\TYP{miles}\, \KWD{in}\, \TYP{kilometers}} and
+the \KWD{in} operator will multiply the numerical value \EXP{3} by
+the amount of
+\EXP{((2.54 \times 10^{-2})(12)(5280)/10^{3})},
+or \EXP{25146/15625}.
+
+Notice the subtle difference between these two declarations:
+%% unit radian = meter/meter
+%% unit radian = 1 meter/meter
+\begin{Fortress}
+\(\KWD{unit} \TYP{radian} = \TYP{meter}/\TYP{meter}\)\\
+\(\KWD{unit} \TYP{radian} = 1\,\TYP{meter}/\TYP{meter}\)
+\end{Fortress}
+The first declaration defines \TYP{radian} to be equivalent to
+\TYP{dimensionless}, and so a value with unit \TYP{radian} can be used
+anywhere a dimensionless value can be used, and vice versa.
+The second declaration defines \TYP{radian} to be convertible to
+\TYP{dimensionless} but not equivalent, and so it is necessary to use
+the \KWD{in} operator (or multiplication and division by \TYP{radian})
+to convert between values in radians and truly dimensionless values.
+
+
+\section{Abbreviating Dimension and Unit Declarations}
+\seclabel{abbrev-dimunits}
+
+For convenience, three forms of syntactic sugar are provided when declaring
+dimensions and units.
+First, in a \KWD{unit} declaration one may mention more than one name
+before the colon, and the extra names are defined to be synonyms for the
+first name; thus
+%% unit foot feet ft_: Length
+\begin{Fortress}
+\(\KWD{unit} \TYP{foot}\mskip 4mu plus 4mu\TYP{feet}\mskip 4mu plus 4mu\mathrm{ft}\COLON \TYP{Length}\)
+\end{Fortress}
+means exactly the same thing as
+%% unit foot: Length
+%% unit feet: Length = foot
+%% unit ft_: Length = foot
+\begin{Fortress}
+\(\KWD{unit} \TYP{foot}\COLON \TYP{Length}\)\\
+\(\KWD{unit} \TYP{feet}\COLON \TYP{Length} = \TYP{foot}\)\\
+\(\KWD{unit} \mathrm{ft}\COLON \TYP{Length} = \TYP{foot}\)
+\end{Fortress}
+Second, instead of the reserved word \KWD{unit} one may use the reserved
+word \KWD{SI\_unit}, which has the effect of defining not only the
+specified names but also names with the various SI prefixes attached.
+If more than one name is specified, then the last name is assumed
+to be a symbol and has symbol prefixes (such as \TYP{M} and \TYP{n})
+attached; all other names have the full prefixes (such as
+\TYP{mega} and \TYP{nano}) attached.
+Thus
+%% SI_unit name1 name2 name3: ...
+\begin{Fortress}
+\(\KWD{SI{\char'137}unit} {name}_{1}\;\;{name}_{2}\;\;{name}_{3}\COLON \ldots\)
+\end{Fortress}
+may be regarded as an abbreviation for
+%% unit~name1~name2~name3: ...
+%% unit yotta~name1~yotta name2~Y name3 = 10^24~name1
+%% unit zetta~name1~zetta name2~Z name3 = 10^21 ~name1
+%% unit exa~name1~exa name2~E name3 = 10^18 ~name1
+%% unit peta~name1~peta name2~P name3 = 10^15 ~name1
+%% unit tera~name1~tera name2~T name3 = 10^12 ~name1
+%% unit giga~name1~giga name2~G name3 = 10^9 ~name1
+%% unit mega~name1~mega name2~M name3 = 10^6 ~name1
+%% unit kilo~name1~kilo name2~k name3 = 10^3 ~name1
+%% unit hecto~name1~hecto name2~h name3 = 10^2 ~name1
+%% unit deka~name1~deka name2~da name3 = 10 ~name1
+%% unit deci~name1~deci name2~d name3 = 10^(-1) ~name1
+%% unit centi~name1~centi name2~c name3 = 10^(-2) ~name1
+%% unit milli~name1~milli name2~m name3 = 10^(-3) ~name1
+%% unit micro~name1~micro name2~micro name3 = 10^(-6) ~name1
+%% unit nano~name1~nano name2~n name3 = 10^(-9) ~name1
+%% unit pico~name1~pico name2~p name3 = 10^(-12) ~name1
+%% unit femto~name1~femto name2~f name3 = 10^(-15) ~name1
+%% unit atto~name1~atto name2~a name3 = 10^(-18) ~name1
+%% unit zepto~name1~zepto name2~z name3 = 10^(-21) ~name1
+%% unit yocto~name1~yocto name2~y name3 = 10^(-24) ~name1
+\begin{Fortress}
+\(\KWD{unit} {name}_{1}~{name}_{2}~{name}_{3}\COLON \ldots\)\\
+\(\KWD{unit} \TYP{yotta} {name}_{1}~\TYP{yotta} {name}_{2}~ \TYP{Y} {name}_{3} = 10^{24} {name}_{1}\)\\
+\(\KWD{unit} \TYP{zetta} {name}_{1}~\TYP{zetta} {name}_{2}~ \TYP{Z} {name}_{3} = 10^{21}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{exa} {name}_{1}~\TYP{exa} {name}_{2}~ \TYP{E} {name}_{3} = 10^{18}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{peta} {name}_{1}~\TYP{peta} {name}_{2}~ \TYP{P} {name}_{3} = 10^{15}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{tera} {name}_{1}~\TYP{tera} {name}_{2}~ \TYP{T} {name}_{3} = 10^{12}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{giga} {name}_{1}~\TYP{giga} {name}_{2}~ \TYP{G} {name}_{3} = 10^{9}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{mega} {name}_{1}~\TYP{mega} {name}_{2}~ \TYP{M} {name}_{3} = 10^{6}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{kilo} {name}_{1}~\TYP{kilo} {name}_{2}~ \TYP{k} {name}_{3} = 10^{3}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{hecto} {name}_{1}~\TYP{hecto} {name}_{2}~ \TYP{h} {name}_{3} = 10^{2}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{deka} {name}_{1}~\TYP{deka} {name}_{2}~ \TYP{da} {name}_{3} = 10  {name}_{1}\)\\
+\(\KWD{unit} \TYP{deci} {name}_{1}~\TYP{deci} {name}_{2}~ \TYP{d} {name}_{3} = 10^{-1}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{centi} {name}_{1}~\TYP{centi} {name}_{2}~ \TYP{c} {name}_{3} = 10^{-2}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{milli} {name}_{1}~\TYP{milli} {name}_{2}~ \TYP{m} {name}_{3} = 10^{-3}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{micro} {name}_{1}~\TYP{micro} {name}_{2}~ \mu {name}_{3} = 10^{-6}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{nano} {name}_{1}~\TYP{nano} {name}_{2}~ \TYP{n} {name}_{3} = 10^{-9}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{pico} {name}_{1}~\TYP{pico} {name}_{2}~ \TYP{p} {name}_{3} = 10^{-12}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{femto} {name}_{1}~\TYP{femto} {name}_{2}~ \TYP{f} {name}_{3} = 10^{-15}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{atto} {name}_{1}~\TYP{atto} {name}_{2}~ \TYP{a} {name}_{3} = 10^{-18}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{zepto} {name}_{1}~\TYP{zepto} {name}_{2}~ \TYP{z} {name}_{3} = 10^{-21}  {name}_{1}\)\\
+\(\KWD{unit} \TYP{yocto} {name}_{1}~\TYP{yocto} {name}_{2}~ \TYP{y} {name}_{3} = 10^{-24}  {name}_{1}\)
+\end{Fortress}
+where $\mu$ is the Unicode character U+00B5 MICRO SIGN.
+Third, a \KWD{dim} declaration and a \KWD{unit} or
+\EXP{\KWD{SI{\char'137}unit}} declaration
+may be collapsed into a single declaration by writing the \KWD{unit}
+or \EXP{\KWD{SI{\char'137}unit}}
+declaration in place of the \KWD{default} clause in the \KWD{dim} declaration
+and omitting the colon and dimension from the \KWD{unit} declaration.
+Thus
+%% dim Length  SI_unit meter meters m_
+%% dim Power = Energy/Time  SI_unit watt watts W_ = joule/second
+\begin{Fortress}
+\(\KWD{dim} \TYP{Length}  \KWD{SI{\char'137}unit} \TYP{meter}\mskip 4mu plus 4mu\TYP{meters}\mskip 4mu plus 4mu\mathrm{m}\)\\
+\(\KWD{dim} \TYP{Power} = \TYP{Energy}/\TYP{Time}  \KWD{SI{\char'137}unit} \TYP{watt}\mskip 4mu plus 4mu\TYP{watts}\mskip 4mu plus 4mu\mathrm{W} = \TYP{joule}/\TYP{second}\)
+\end{Fortress}
+is understood to abbreviate
+%% dim Length default meter; SI_unit meter meters m_: Length
+%% dim Power = Energy/Time default watt; SI_unit watt watts W_: Power = joule/second
+\begin{Fortress}
+\(\KWD{dim} \TYP{Length} \KWD{default} \TYP{meter}; \KWD{SI{\char'137}unit} \TYP{meter}\mskip 4mu plus 4mu\TYP{meters}\mskip 4mu plus 4mu\mathrm{m}\COLON \TYP{Length}\)\\
+\(\KWD{dim} \TYP{Power} = \TYP{Energy}/\TYP{Time} \KWD{default} \TYP{watt}; \KWD{SI{\char'137}unit} \TYP{watt}\mskip 4mu plus 4mu\TYP{watts}\mskip 4mu plus 4mu\mathrm{W}\COLON \TYP{Power} = \TYP{joule}/\TYP{second}\)
+\end{Fortress}
+In this way the names of the seven SI base units, along with all
+possible plural and prefixed forms, may be concisely defined as follows:
+%% dim Length  SI_unit meter meters m_
+%% dim Mass default kilogram; SI_unit gram grams g_: Mass
+%% dim Time  SI_unit second seconds s_
+%% dim ElectricCurrent  SI_unit ampere amperes A_
+%% dim Temperature  SI_unit kelvin kelvins K_
+%% dim AmountOfSubstance  SI_unit mole moles mol_
+%% dim LuminousIntensity  SI_unit candela candelas cd_
+\begin{Fortress}
+\(\KWD{dim} \TYP{Length}  \KWD{SI{\char'137}unit} \TYP{meter}\mskip 4mu plus 4mu\TYP{meters}\mskip 4mu plus 4mu\mathrm{m} \)\\
+\(\KWD{dim} \TYP{Mass} \KWD{default} \TYP{kilogram}; \KWD{SI{\char'137}unit} \TYP{gram}\mskip 4mu plus 4mu\TYP{grams}\mskip 4mu plus 4mu\mathrm{g}\COLON \TYP{Mass}\)\\
+\(\KWD{dim} \TYP{Time}  \KWD{SI{\char'137}unit} \TYP{second}\mskip 4mu plus 4mu\TYP{seconds}\mskip 4mu plus 4mu\mathrm{s}\)\\
+\(\KWD{dim} \TYP{ElectricCurrent}  \KWD{SI{\char'137}unit} \TYP{ampere}\mskip 4mu plus 4mu\TYP{amperes}\mskip 4mu plus 4mu\mathrm{A}\)\\
+\(\KWD{dim} \TYP{Temperature}  \KWD{SI{\char'137}unit} \TYP{kelvin}\mskip 4mu plus 4mu\TYP{kelvins}\mskip 4mu plus 4mu\mathrm{K}\)\\
+\(\KWD{dim} \TYP{AmountOfSubstance}  \KWD{SI{\char'137}unit} \TYP{mole}\mskip 4mu plus 4mu\TYP{moles}\mskip 4mu plus 4mu\mathrm{mol}\)\\
+\(\KWD{dim} \TYP{LuminousIntensity}  \KWD{SI{\char'137}unit} \TYP{candela}\mskip 4mu plus 4mu\TYP{candelas}\mskip 4mu plus 4mu\mathrm{cd}\)
+\end{Fortress}
+Note the subtle difference in the declaration of \TYP{Mass} that
+allows the default unit to be \TYP{kilogram} rather than \TYP{gram}.
+
+
+\section{Absorbing Units}
+\seclabel{absorbing-units}
+
+\begin{Grammar}
+\emph{StaticParam}
+&::=& \emph{Id} \option{\emph{Extends}} \options{\KWD{absorbs} \KWD{unit}} \\
+&$|$& \KWD{unit} \emph{Id} \options{\EXP{\mathrel{\mathtt{:}}} \emph{Type}}
+ \options{\KWD{absorbs} \KWD{unit}}\\
+\end{Grammar}
+
+The declaration of a type parameter or a \KWD{unit} parameter for
+a parameterized trait may contain a clause
+``\EXP{\KWD{absorbs}\;\;\KWD{unit}}''; at
+most one static parameter of a trait may have this clause.  An
+instance of a parameterized trait
+with a static parameter that ``\EXP{\KWD{absorbs}\;\;\KWD{unit}}'' may
+be multiplied
+or divided by a unit, the result being another instance of that
+parameterized trait in which the static argument corresponding to
+the unit-absorbing parameter has been multiplied or divided by the unit.
+
+A few examples should make this clear.  Given the declaration
+%% trait Vector[\EltType extends Number absorbs unit, nat len\] \ldots end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Vector}\llbracket\TYP{EltType} \KWD{extends} \TYP{Number} \KWD{absorbs}\;\;\KWD{unit}, \KWD{nat} \VAR{len}\rrbracket \ldots \KWD{end}\)
+\end{Fortress}
+then \EXP{\TYP{Vector}\llbracket\TYP{Float}, 3\rrbracket \TYP{meter}}
+means the same as
+\EXP{\TYP{Vector}\llbracket\TYP{Float}\mskip 4mu plus 4mu\TYP{meter}, 3\rrbracket},
+and \EXP{\TYP{Vector}\llbracket\TYP{Float}, 3\rrbracket /
+  \TYP{second}} means the same as
+\EXP{\TYP{Vector}\llbracket\TYP{Float} / \TYP{second}, 3\rrbracket}.
+Therefore,
+%[(3 m_) (2 m_) (5 m_)]
+\EXP{[(3\,\mathrm{m}) (2\,\mathrm{m}) (5\,\mathrm{m})]}
+means the same as
+%[3 2 5] m_
+\EXP{[3\;2\;5] \mathrm{m}}.
+%
+Similarly, given the declaration
+%% trait Float[\unit U absorbs unit, nat e, nat s\] \ldots end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Float}\llbracket\KWD{unit} U \KWD{absorbs}\;\;\KWD{unit}, \KWD{nat} e, \KWD{nat} s\rrbracket \ldots \KWD{end}\)
+\end{Fortress}
+then \EXP{\TYP{Float}\llbracket\TYP{meter}, 11, 53\rrbracket /
+  \TYP{second}} means the same as
+\EXP{\TYP{Float}\llbracket\TYP{meter} / \TYP{second}, 11, 53\rrbracket}, and
+\begin{Fortress}
+%% Float[\dimensionless, 8, 24\] meter kilogram / second^2
+\EXP{\TYP{Float}\llbracket\mathbin{\TYP{dimensionless}}, 8, 24\rrbracket \TYP{meter}\mskip 4mu plus 4mu\TYP{kilogram} / \TYP{second}^{2}}
+\end{Fortress}
+means the same as
+\begin{Fortress}
+%% Float[\dimensionless meter kilogram / second^2, 8, 24\]
+\EXP{\TYP{Float}\llbracket\mathbin{\TYP{dimensionless}}\, \TYP{meter}\mskip 4mu plus 4mu\TYP{kilogram} / \TYP{second}^{2}, 8, 24\rrbracket},
+\end{Fortress}
+which is the same as
+%% Float[\meter kilogram / second^2, 8, 24\]
+\begin{Fortress}
+\EXP{\TYP{Float}\llbracket\TYP{meter}\mskip 4mu plus 4mu\TYP{kilogram} / \TYP{second}^{2}, 8, 24\rrbracket}.
+\end{Fortress}
+This is the mechanism by which meaning is given to the multiplication
+and division of library-defined types by units.

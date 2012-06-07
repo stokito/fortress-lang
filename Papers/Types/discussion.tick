@@ -1,0 +1,184 @@
+% \subsection{Type Inference}
+% We have devised our notion of applicability of an overloaded generic function declaration to a type $T$ as an existential quantification over monomorphic instances that are applicable to $T$. Notably, we have not described a method
+% to \emph{compute} such an instance, given some particular argument type $T$; in other words, we are agnostic about the type inference mechanism by which polymorphic function applications are implicitly instantiated.
+
+% Any concrete programming language that
+% instantiates our framework of overloading should include some mechanism
+% by which these monomorphic instances are derived. For example, a programming language with implicit type instantiation on polymorphic function applications might use local type inference \cite{pierce00} or Damas-Milner type inference \cite{damas82}. In the Fortress programming language, a variant of local type inference is used by the type checker to infer instantiations of polymorphic
+% function applications.
+
+% \TODO{Do we need ot mention that Fortress does type inference at run time? Is it necessary that any language that instantiates our framework must do the same? I used to think so but in my tired state I'm not so sure. See the relevant part of the commented out explanation below.}
+
+% Another noteworthy aspect of our formulation of Overloading Safety concerns the 
+% 
+% 
+% 
+% Before describing a system for ensuring progress and preservation,
+% it is important to discuss some implications of these conditions on
+% type inference in a programming language.
+% The application of a function declaration to a type requires
+% instantiation of the type parameters of the declaration.
+% In most programming languages with parametric polymorphism,
+% a type inference mechanism automatically instantiates type parameters
+% based on the types of the arguments and the enclosing context.
+% But note that our progress and preservation conditions do not require
+% that the type parameters of the function declaration 
+% that is (dynamically) most specific 
+% of those applicable to the ilks of the argument values 
+% be the same as the type parameters
+% of the function declaration that is (statically) most specific 
+% of those applicable to the static types of the argument expressions.
+% Thus, the results of static type inference do not (in general) tell us how to
+% instantiate the type parameters of a most specific function
+% declaration at run time.  
+% In the Fortress programming language,
+% type inference is performed statically, 
+% and the results of that inference 
+% are passed to the run-time system 
+% to ensure that run-time type inference at a function call is sound.
+% The rules for overloaded function declarations
+% introduced in Section~\ref{sec:rules} ensure that
+% the declaration of the dynamically most applicable function declaration,
+% when instantiated with whatever we infer at run time,
+% is more specific than the declaration of the statically most applicable
+% function declaration, instantiated with what was inferred at compile time.
+% %% For the dynamically most applicable function declaration,
+% %% the instantiated declaration with whatever instantiation we infer
+% %% must be more specific than the instantiated declaration of the
+% %% statically most applicable function declaration with what was inferred
+% %% at compile time.
+% 
+% 
+% %% For the dynamically most applicable function declaration,
+% %% the instantiated declaration with whatever instantiation we infer
+% %% must be more specific than the instantiated declaration of the
+% %% statically most applicable function declaration with what was inferred
+% %% at compile time.
+% %% The rules on the overloaded function declarations
+% %% introduced in Section~\ref{sec:rules} ensure that
+% %% dynamically inferred types satisfy this requirement.
+% 
+% 
+% 
+% Aside from this caveat, our system for checking overloaded declarations 
+% is largely independent of how a specific type inference engine would choose 
+% instantiations\footnote{Type inference manifests itself as the choice of instantiation of type variables in existential and universal subtyping; specifically, $\bar{V}$ in the inference rules for subtyping in Figure~\ref{fig:existential}. Mitchell \cite{mitchell88} first showed how type inference interacts with polymorphic subtyping.}. Thus we do not discuss the specific features of a type inference
+% system further in this paper.
+
+% Section 2.1 last para: We should comment that this definition of
+% well-formedness agrees with that of the old system. If we view
+% monomorphic function declarations as polymorphic declarations with no
+% type parameters, then for each monomorphic declaration there is
+% exactly one instantiation of it (with an empty vector of type
+% arguments).  Then Preservation specifically says that if (monomorphic)
+% declaration f U: V is applicable to T, then for the most specific
+% declaration that is applicable to T, f' U': V', we have that V' <: V.
+% Thus if the polymorphic well-formedness is satisfied, so is the
+% monomorphic well-formedness.
+
+% \subsection{Modularity}
+
+To demonstrate the modularity of our design,
+we present a lightweight modeling of program modules,
+and show how applying our rules to each module separately
+suffices to guarantee the safety of the entire program.
+In our model, 
+a program is a \emph{module}, which may be either \emph{simple} or \emph{compound}.
+A \emph{simple module} consists of 
+(\emph{i}) a class table and 
+(\emph{ii}) a collection of function declarations.
+That is, a simple module is just a program as described in the rest of this paper.
+It is well-formed if it satisfies the well-formedness conditions of a whole program,
+as described in previous sections.
+
+A \emph{compound module} combines multiple modules, 
+possibly renaming members (i.e., classes and functions) of its constituents.
+More precisely, a compound module is a collection of \emph{filters},
+where a filter consists of a module 
+and a complete mapping from names of members of the module to names.
+The name of a member that is not renamed is simply mapped to itself.
+
+The semantics of a compound module is the semantics of the simple module
+that results from recursively \emph{flattening} the compound module as follows:
+\begin{itemize}
+
+\item
+Flattening a simple module simply yields the same module.
+
+\item Flattening a compound module `C`
+consisting of filters (module/mapping pairs) $(c_1, m_1), \ldots, (c_N, m_N)$
+yields a simple module whose class table and collection of function declarations
+are the unions of the class tables and collections of function declarations
+of $s_1, \ldots, s_N$, where $s_i$ is the simple module resulting from
+first flattening $c_i$ and then renaming all members
+of the resulting simple module according to the mapping $m_i$.
+
+\end{itemize}
+A compound module is well-formed if its flattened version is well-formed.
+This requirement implies that the type hierarchies in each constituent component 
+are consistent with the type hierarchy in the flattened version.
+
+We can now use this model of modularity to see 
+that we can separately compile and combine modules.
+
+First consider the case of a collection of modules with no overlapping function names
+such that each module has been checked separately 
+to ensure that the overloaded functions within them satisfy the overloading rules.
+Because the type hierarchies of each constituent of a compound module 
+must be consistent with that of the compound module, 
+all overloaded functions in the resulting compound module
+also obey the overloading rules.
+
+Now consider the case of a collection of separately checked modules 
+with some overlapping function names.
+When overloaded functions from separate modules are combined, 
+there are three rules that might be violated
+by the resulting overloaded definitions: 
+(1) the Meet Rule, (2) the No Duplicates Rule, (3) the Return Type Rule.
+If the Meet Rule is violated, 
+the programmer need only define yet another module to combine 
+that defines the missing meets of the various overloaded definitions.
+If the No Duplicates Rule or the Return Type Rule is violated, 
+the programmer can fix the problem by renaming functions 
+from one or more combined components to avoid the clash; 
+the programmer can then define another component 
+with more overloadings of the same function name 
+that dispatch to the various renamed functions in the manner the programmer intends.
+
+Consider the following example:\footnote{Suggested by 
+an anonymous reviewer of a previous version of this paper.}
+Suppose we have a type Number in module `A`, with a
+function:
+`
+  add : (Number, Number) -> Number
+`
+Suppose we have the type and function:
+`
+  BigNum <: Number
+  add : (BigNum, BigNum) -> BigNum
+`
+in module `B` and the type and function:
+`
+  Rational <: Number
+  add : (Rational, Rational) -> Rational
+`
+in module `C`.
+
+Each of modules `B` and `C` satisfy the No Duplicates and Meet rules.
+Now, suppose we define two compound modules `D` and `E`, 
+each of which combines modules `B` and `C` without renaming `add`.
+In each of `D` and `E`, 
+we have an ambiguity 
+in dispatching calls to `add` with types `(BigNum, Rational)` or `(Rational, BigNum)`.
+Our rules require adding two declarations, one in each of `D` and `E`,
+to resolve these ambiguities.
+
+Now let us suppose we wish to combine `D` and `E` into a compound component `F`.
+Without renaming, this combination would violate the No Duplicates Rule;
+each of `D` and `E` has an implementation of `add(Bignum, Rational)`. 
+To resolve this conflict, 
+the program can rename `add` from both `D` and `E`, 
+and define a new `add` in `F`. 
+This new definition could dispatch to either of the renamed functions from `D` or `E`, 
+or it could do something entirely different, 
+depending on the programmer's intent.
