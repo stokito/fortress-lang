@@ -76,7 +76,7 @@ public final class FZZ32Vector extends fortress.CompilerBuiltin.ZZ32Vector.Defau
 @Override
     public RTTI getRTTI() { return RTTIv.ONLY; }
     
-    public static class RTTIv extends RTTI {
+    public static class RTTIv extends fortress.CompilerBuiltin.ZZ32Vector.RTTIc {
         private RTTIv() { super(FZZ32Vector.class); };
         public static final RTTI ONLY = new RTTIv();
     }

@@ -27,7 +27,7 @@ public final class FNN32 extends fortress.CompilerBuiltin.NN32.DefaultTraitMetho
     @Override
     public RTTI getRTTI() { return RTTIc.ONLY; }
     
-    public static class RTTIc extends RTTI {
+    public static class RTTIc extends fortress.CompilerBuiltin.NN32.RTTIc {
         private RTTIc() { super(FNN32.class); };
         public static final RTTI ONLY = new RTTIc();
     }

@@ -23,7 +23,7 @@ public class FJavaString extends fortress.CompilerBuiltin.JavaString.DefaultTrai
     @Override
     public RTTI getRTTI() { return RTTIc.ONLY; }
     
-    public static class RTTIc extends RTTI {
+    public static class RTTIc extends fortress.CompilerBuiltin.JavaString.RTTIc {
         private RTTIc() { super(FJavaString.class); };
         public static final RTTI ONLY = new RTTIc();
     }

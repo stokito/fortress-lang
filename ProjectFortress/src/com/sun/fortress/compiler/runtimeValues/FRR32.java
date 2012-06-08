@@ -23,7 +23,7 @@ implements fortress.CompilerBuiltin.RR32, fortress.CompilerBuiltin.RR64 {
     @Override
     public RTTI getRTTI() { return RTTIc.ONLY; }
     
-    public static class RTTIc extends RTTI {
+    public static class RTTIc extends fortress.CompilerBuiltin.RR32.RTTIc {
         private RTTIc() { super(FRR32.class); };
         public static final RTTI ONLY = new RTTIc();
     }
