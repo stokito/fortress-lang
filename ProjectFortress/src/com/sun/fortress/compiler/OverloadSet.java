@@ -2338,10 +2338,13 @@ nameTemp + "\n" +
         @Override
         protected String generateClosureTableOwner(TaggedFunctionName f) {
             FnNameInfo info = new FnNameInfo(f.tagF, f.tagA);
-            ClassNameBundle cnb = this.cg.new_ClassNameBundle(((Method) f.tagF).declaringTrait(), 
+            Method m = (Method) f.tagF;
+            Id declaringTO = m.declaringTrait();
+            
+            ClassNameBundle cnb = this.cg.new_ClassNameBundle(declaringTO, 
                                                               info.getTrait_static_params(), 
                                                               null);
-            return  cnb.className + NamingCzar.springBoard;
+            return  m.declarerIsObject() ? cnb.className : (cnb.className + NamingCzar.springBoard);
         }
         
         /**

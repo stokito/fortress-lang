@@ -2,9 +2,9 @@ package com.sun.fortress.compiler.runtimeValues;
 
 import com.sun.fortress.runtimeSystem.Naming;
 
-public class VoidRTTI extends RTTI {
+abstract public class VoidRTTI extends RTTI {
 	
-	public static final RTTI ONLY = new VoidRTTI(VoidRTTI.class);
+	// public static final RTTI ONLY = new VoidRTTI(VoidRTTI.class);
 	
 	public VoidRTTI(Class javaRep) {
 		super(javaRep);

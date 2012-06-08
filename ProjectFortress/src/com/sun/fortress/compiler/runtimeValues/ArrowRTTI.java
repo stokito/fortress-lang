@@ -25,7 +25,7 @@ public abstract class ArrowRTTI extends RTTI {
 			 this.outputRTTI = params[params.length-1];
 		 } else { //TODO: when we know how to handle void types, we can put something here, or bomb, or something
 			 if (params.length == 1) this.outputRTTI = params[0];
-			 else this.outputRTTI = VoidRTTI.ONLY;
+			 else this.outputRTTI = FVoid.RTTIc.ONLY;
 			 
 			 this.inputsRTTI = new RTTI[0];
 		 }

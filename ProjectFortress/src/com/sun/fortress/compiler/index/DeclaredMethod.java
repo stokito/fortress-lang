@@ -33,6 +33,7 @@ public class DeclaredMethod extends Method {
     private final Option<SelfType> _selfType;
     private final List<StaticParam> _traitParams;
     private final Method _originalMethod;
+    private final boolean _declarerIsObject;
     
     public DeclaredMethod(FnDecl ast, TraitObjectDecl traitDecl) {
         _originalMethod = this;
@@ -42,6 +43,7 @@ public class DeclaredMethod extends Method {
         _traitParams = CollectUtil.makeList(IterUtil.map(NodeUtil.getStaticParams(traitDecl), liftStaticParam));
         if (NodeUtil.getReturnType(_ast).isSome())
             _thunk = Option.<Thunk<Option<Type>>>some(SimpleBox.make(NodeUtil.getReturnType(_ast)));
+        _declarerIsObject = traitDecl instanceof ObjectDecl;
     }
     
     // KBN - temp fix trying to transform methods in Overloading set
@@ -53,6 +55,7 @@ public class DeclaredMethod extends Method {
         _selfType = original._selfType;
         _traitParams = original._traitParams;
         _thunk = original._thunk;
+        _declarerIsObject = original._declarerIsObject;
     }
 
     /**
@@ -67,11 +70,16 @@ public class DeclaredMethod extends Method {
         _traitParams = params;
         _thunk = that._thunk;
         _thunkVisitors = that._thunkVisitors;
+        _declarerIsObject = that._declarerIsObject;
         pushVisitor(visitor);
     }
     
     public FnDecl ast() {
         return _ast;
+    }
+    
+    public boolean declarerIsObject() {
+        return _declarerIsObject;
     }
 
     @Override

@@ -29,5 +29,5 @@ public interface HasSelfType {
     public List<StaticParam> traitStaticParameters();
     public HasSelfType instantiateTraitStaticParameters(List<StaticParam> params, List<StaticArg> args);
     public HasSelfType instantiateTraitStaticParameters(List<StaticParam> params, StaticTypeReplacer str);
-    
+    public boolean declarerIsObject();
 }
