@@ -38,12 +38,14 @@ public class FunctionalMethod extends Function implements HasSelfType, HasTraitS
     protected final List<StaticParam> _traitParams;
     protected final Option<SelfType> _selfType;
     protected final int _selfPosition;
+    private final boolean _declarerIsObject;
 
     public FunctionalMethod(FnDecl ast, TraitObjectDecl traitDecl, List<StaticParam> traitParams) {
         _ast = ast;
         _declaringTrait = NodeUtil.getName(traitDecl);
         _traitParams = CollectUtil.makeList(IterUtil.map(traitParams, liftStaticParam));
         _selfType = traitDecl.getSelfType();
+        _declarerIsObject = traitDecl instanceof ObjectDecl;
         int i = 0;
         for (Param p : NodeUtil.getParams(ast)) {
             if (p.getName().equals(NamingCzar.SELF_NAME)) break;
@@ -64,7 +66,7 @@ public class FunctionalMethod extends Function implements HasSelfType, HasTraitS
         _traitParams = params;
         _selfType = visitor.recurOnOptionOfSelfType(that._selfType);
         _selfPosition = that._selfPosition;
-
+        _declarerIsObject = that._declarerIsObject;
         _thunk = that._thunk;
         _thunkVisitors = that._thunkVisitors;
         pushVisitor(visitor);
@@ -74,6 +76,10 @@ public class FunctionalMethod extends Function implements HasSelfType, HasTraitS
         return _ast;
     }
 
+    public boolean declarerIsObject() {
+        return _declarerIsObject;
+    }
+    
     public Modifiers mods() {
         return NodeUtil.getMods(ast());
     }

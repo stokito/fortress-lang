@@ -36,6 +36,7 @@ abstract public class FieldGetterOrSetterMethod extends Method {
     protected final List<StaticParam> _traitParams;
     protected final Option<FnDecl> _fnDecl;
     protected final Method _originalMethod;
+    private final boolean _declarerIsObject;
 
     /** Create an implicit getter/setter from a variable binding. */
     public FieldGetterOrSetterMethod(Binding b, TraitObjectDecl traitDecl) {
@@ -44,6 +45,7 @@ abstract public class FieldGetterOrSetterMethod extends Method {
         _selfType = traitDecl.getSelfType();
         _traitParams = CollectUtil.makeList(IterUtil.map(NodeUtil.getStaticParams(traitDecl), liftStaticParam));
         _fnDecl = Option.<FnDecl>none();
+        _declarerIsObject = traitDecl instanceof ObjectDecl;
         _originalMethod = this;
     }
 
@@ -54,6 +56,7 @@ abstract public class FieldGetterOrSetterMethod extends Method {
         _selfType = traitDecl.getSelfType();
         _traitParams = CollectUtil.makeList(IterUtil.map(NodeUtil.getStaticParams(traitDecl), liftStaticParam));
         _fnDecl = Option.some(f);
+        _declarerIsObject = traitDecl instanceof ObjectDecl;
         _originalMethod = this;
     }
     
@@ -75,12 +78,17 @@ abstract public class FieldGetterOrSetterMethod extends Method {
 
         _thunk = that._thunk;
         _thunkVisitors = that._thunkVisitors;
+        _declarerIsObject = that._declarerIsObject;
         pushVisitor(visitor);
     }
     
     @Override
     public Method originalMethod() {return _originalMethod;}
     
+    public boolean declarerIsObject() {
+        return _declarerIsObject;
+    }
+
     public Option<FnDecl> fnDecl() {
         return _fnDecl;
     }

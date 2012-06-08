@@ -694,7 +694,7 @@ public class Naming {
         StringBuilder sb = new StringBuilder();
          mangleOrNotFortressIdentifier(s,0, sb, true, null, false);
          String t = sb.toString();
-         if (t.startsWith("\\-=Arrow"))
+         if (t.contains("\\|FVoid"))
              throw new Error("AHA!");
          return t;
     }
@@ -718,14 +718,14 @@ public class Naming {
     public static String mangleFortressDescriptor(String s) {
         // This is a degenerate case of "signature"; if that is made pickier, this will not work.
         String t =  mangleMethodSignature(s);
-        if (t.startsWith("\\-=Arrow"))
+        if (t.contains("\\|FVoid"))
             throw new Error("AHA!");
         return t;
     }
     public static String mangleFortressDescriptor(String s, StringBuilder erasedContent, boolean erase_UI) {
         // This is a degenerate case of "signature"; if that is made pickier, this will not work.
         String t =  mangleMethodSignature(s, erasedContent, erase_UI);
-        if (t.startsWith("\\-=Arrow"))
+        if (t.contains("\\|FVoid"))
             throw new Error("AHA!");
         return t;
     }

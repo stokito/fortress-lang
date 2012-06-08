@@ -11,8 +11,6 @@
 
 package com.sun.fortress.compiler.runtimeValues;
 
-import com.sun.fortress.compiler.runtimeValues.FZZ32.RTTIc;
-
 public class FVoid  extends FValue {
     private FVoid() { }
     private final static FVoid V = new FVoid();
@@ -23,7 +21,7 @@ public class FVoid  extends FValue {
     @Override
     public RTTI getRTTI() { return RTTIc.ONLY; }
     
-    public static class RTTIc extends RTTI {
+    public static class RTTIc extends VoidRTTI {
         private RTTIc() { super(FVoid.class); };
         public static final RTTI ONLY = new RTTIc();
     }
