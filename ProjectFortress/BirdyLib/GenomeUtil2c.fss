@@ -77,7 +77,8 @@ object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ
     if rs'.eof then
       buffer ||= ("N")^padLength
     else
-      currentChunkLength -= padLength
+      (*)currentChunkLength -= padLength
+      ()
     end
     buffer := buffer.asJavaString
     Just(ReferenceGenomeChunk(currentChunkStart, currentChunkLength, buffer.asJavaString, padLength))
