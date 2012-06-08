@@ -369,7 +369,7 @@ trait String extends { StandardTotalOrder[\String\] }
     opr <=(self, b: String): Boolean = false
     opr >=(self, b: String): Boolean = false
     opr =/=(self, b: String): Boolean = false
-    opr CMP(self, other:String): Comparison = 
+    opr CMP(self, other:String): TotalComparison = 
       if self < other then LessThan else if self > other then GreaterThan else EqualTo end end
     opr ||(self, b:Object): String
     opr |||(self, b:Object): String
