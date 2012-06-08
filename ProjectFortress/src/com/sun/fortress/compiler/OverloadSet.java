@@ -1125,7 +1125,7 @@ nameTemp + "\n" +
             ArrowType at = ((ArrowType) t);
             Type range = at.getRange();
             Type domain = at.getDomain();
-            if (domain instanceof TupleType) {
+            if (false && domain instanceof TupleType) {
                 type_elements = Useful.<Type,Type>list(((TupleType) domain).getElements(), range);
             } else {
                 type_elements = Useful.<Type>list(domain, range);
