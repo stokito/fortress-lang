@@ -32,7 +32,7 @@ trait String extends StandardTotalOrder[\String\]
     opr <=(self, b: String): Boolean 
     opr >=(self, b: String): Boolean 
     opr =/=(self, b: String): Boolean
-    opr CMP(self, other:String): Comparison    
+    opr CMP(self, other:String): TotalComparison    
     abstract opr |self| : ZZ32
     abstract opr || (self, b:Object): String
     abstract opr ||| (self, b:Object): String
