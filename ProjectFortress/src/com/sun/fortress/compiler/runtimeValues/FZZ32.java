@@ -27,7 +27,7 @@ public final class FZZ32 extends fortress.CompilerBuiltin.ZZ32.DefaultTraitMetho
     @Override
     public RTTI getRTTI() { return RTTIc.ONLY; }
     
-    public static class RTTIc extends RTTI {
+    public static class RTTIc extends fortress.CompilerBuiltin.ZZ32.RTTIc {
         private RTTIc() { super(FZZ32.class); };
         public static final RTTI ONLY = new RTTIc();
     }
