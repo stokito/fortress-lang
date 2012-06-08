@@ -30,7 +30,7 @@ public class FCharacter  extends fortress.CompilerBuiltin.Character.DefaultTrait
     @Override
     public RTTI getRTTI() { return RTTIc.ONLY; }
     
-    public static class RTTIc extends RTTI {
+    public static class RTTIc extends fortress.CompilerBuiltin.Character.RTTIc {
         private RTTIc() { super(FCharacter.class); };
         public static final RTTI ONLY = new RTTIc();
     }

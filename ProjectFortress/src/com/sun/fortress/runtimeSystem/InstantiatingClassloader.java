@@ -1266,10 +1266,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
 
             for (int i = 0; i < unwrapped_l-1; i++) {
                 String t = flat_params_and_ret.get(i);
-                if (!t.equals(Naming.INTERNAL_SNOWMAN)) {
+                if (!t.equals(Naming.INTERNAL_SNOWMAN) || unwrapped_l > 2) {
                     mv.visitVarInsn(Opcodes.ALOAD, i+1); // element
                     // mv.visitTypeInsn(CHECKCAST, t);
-                    generalizedCastTo(mv, t);
+                    generalizedCastTo(mv, Naming.internalToType(t));
                 }
             }
 

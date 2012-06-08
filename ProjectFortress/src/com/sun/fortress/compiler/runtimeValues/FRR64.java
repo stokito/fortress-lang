@@ -24,7 +24,7 @@ public final class FRR64 extends fortress.CompilerBuiltin.RR64.DefaultTraitMetho
     @Override
     public RTTI getRTTI() { return RTTIc.ONLY; }
     
-    public static class RTTIc extends RTTI {
+    public static class RTTIc extends fortress.CompilerBuiltin.RR64.RTTIc {
         private RTTIc() { super(FRR64.class); };
         public static final RTTI ONLY = new RTTIc();
     }

@@ -24,7 +24,7 @@ public class FString  extends fortress.CompilerBuiltin.String.DefaultTraitMethod
     @Override
     public RTTI getRTTI() { return RTTIc.ONLY; }
     
-    public static class RTTIc extends RTTI {
+    public static class RTTIc extends fortress.CompilerBuiltin.String.RTTIc {
         private RTTIc() { super(FString.class); };
         public static final RTTI ONLY = new RTTIc();
     }

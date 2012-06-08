@@ -22,7 +22,7 @@ public class FZZ64  extends fortress.CompilerBuiltin.ZZ64.DefaultTraitMethods im
     @Override
     public RTTI getRTTI() { return RTTIc.ONLY; }
     
-    public static class RTTIc extends RTTI {
+    public static class RTTIc extends fortress.CompilerBuiltin.ZZ64.RTTIc {
         private RTTIc() { super(FZZ64.class); };
         public static final RTTI ONLY = new RTTIc();
     }

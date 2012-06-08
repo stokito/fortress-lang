@@ -45,7 +45,7 @@ public final class FStringVector extends fortress.CompilerBuiltin.StringVector.D
 @Override
     public RTTI getRTTI() { return RTTIv.ONLY; }
     
-    public static class RTTIv extends RTTI {
+    public static class RTTIv extends fortress.CompilerBuiltin.StringVector.RTTIc {
         private RTTIv() { super(FStringVector.class); };
         public static final RTTI ONLY = new RTTIv();
     }
