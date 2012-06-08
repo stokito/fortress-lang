@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SubscriptAssign
+  export Executable
+
+  foo(a:ZZ32, b:ZZ32):ZZ32 = do
+    var my_array : Array1[\ZZ32,0,3\]
+    my_array := [ a a a ]
+    my_array[a] := b
+    my_array[a]
+  end
+
+  run():() = ()
+end

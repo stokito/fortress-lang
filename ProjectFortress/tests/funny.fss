@@ -1,0 +1,50 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component funny
+export Executable
+
+object A(i:ZZ32, j:ZZ32)
+  id():A = self
+  getI():ZZ32 = self.i
+  getZ():ZZ32 = j
+end
+
+t(f:(ZZ32->ZZ32), i:ZZ32) = do
+  println("g(" i ")=" f(i))
+end
+
+run():()=do
+  var z:ZZ32 = 0
+  var y:ZZ32 = 1
+  f = fn (x:ZZ32):ZZ32 => do z+=2; x-y; end
+  g (x:ZZ32):ZZ32 = if x < 2 then x else fst= g(f x);
+                                         snd = g(f (f x));
+                                         fst+snd end
+
+  println("g(4)=" g(4))
+  println("z=" z)
+  z := 0
+  println("g(5)=" g(5))
+  println("z=" z)
+  z := 0
+  t(g,5)
+  println("z=" z)
+  z := 0
+  println("g(6)=" g(6))
+  println("z=" z)
+  y := 2; z := 0
+  println("g(4)=" g(4))
+  println("z=" z)
+
+end
+
+end

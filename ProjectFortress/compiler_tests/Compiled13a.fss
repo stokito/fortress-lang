@@ -1,0 +1,37 @@
+(*******************************************************************************
+    Copyright 2009,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Generic object with generic methods extending a generic trait.
+    Both functional and dotted methods.
+    Single inheritance.
+   No overloading with top level.
+ *)
+
+
+trait T[\S extends ZZ32\]
+  g():S
+end
+
+object O[\S extends ZZ32\](x: S) extends T[\S\]
+  g():S = x
+end
+
+run() =do
+  o = O[\ZZ32\](3)
+  b = o.g()           (*) 3
+
+  println(
+  if (b=3)
+     then "pass" else "fail" end
+  )
+end

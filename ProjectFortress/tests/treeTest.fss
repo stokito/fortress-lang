@@ -1,0 +1,273 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component treeTest
+export Executable
+
+trait Tree
+   getVal():ZZ32
+   getLeftChild():Tree
+   getRightChild():Tree
+   printTree():()
+   opr |self| : ZZ32
+   member(x:ZZ32):Boolean
+   add(z:ZZ32):Tree
+   balancedAdd(val:ZZ32, left:Tree, right:Tree):Tree
+   getWeight():ZZ32 = 4
+   union(t1:Tree, t2:Tree):Tree = do
+      if |t1| = 0 then t2
+      elif |t2| = 0 then t1
+      else
+         newl = split_lt(t1, t2.getVal())
+         newr = split_gt(t1, t2.getVal())
+         concat3(t2.getVal(), union(newl,t2.getLeftChild()), union(newr, t2.getRightChild()))
+      end
+   end
+
+   intersection(t1:Tree, t2:Tree):Tree = do
+      if |t1| = 0 then t1
+      elif |t2| = 0 then t2
+      else
+         s = t1
+         v = t2.getVal()
+         l = t2.getLeftChild()
+         r = t2.getRightChild()
+         newl = split_lt(s,v)
+         newr = split_gt(s,v)
+         if s.member(v) then concat3(v,intersection(newl,l),intersection(newr,r))
+         else concat(intersection(newl,l), intersection(newr, r))
+         end
+      end
+   end
+
+   concat(t1:Tree, t2:Tree):Tree = do
+      if |t2| = 0 then t1
+      else concat3(t2.minimum(), t1, t2.deleteMinimum())
+      end
+   end
+
+   split_lt(t:Tree, x:ZZ32):Tree = do
+      if |t| = 0 then t
+      else
+         v = t.getVal()
+         l = t.getLeftChild()
+         r = t.getRightChild()
+         if x < v then split_lt(l,x)
+         elif v < x then concat3(v,l,split_lt(r,x))
+         else l
+         end
+      end
+   end
+
+   split_gt(t:Tree, x:ZZ32):Tree = do
+      if |t| = 0 then t
+      else
+         v = t.getVal()
+         l = t.getLeftChild()
+         r = t.getRightChild()
+         if v < x then split_gt(r,x)
+         elif x < v then concat3(v,split_gt(l,x),r)
+         else r
+         end
+      end
+   end
+
+   concat3(v:ZZ32, t1:Tree, t2:Tree) = do
+      if |t1| = 0 then t2.add(v)
+      elif |t2| = 0 then t1.add(v)
+      else
+         v1 = t1.getVal()
+         n1 = |t1|
+         l1 = t1.getLeftChild()
+         r1 = t1.getRightChild()
+         v2 = t2.getVal()
+         n2 = |t2|
+         l2 = t2.getLeftChild()
+         r2 = t2.getRightChild()
+     if getWeight() n1 < n2 then balancedAdd(v2,concat3(v,t1,l2),r2)
+         elif getWeight() n2 < n1 then balancedAdd(v1,l1,concat3(v,r1,t2))
+         else Node(v,t1,t2) end
+      end
+   end
+end
+
+object emptyNode() extends Tree
+    getVal():ZZ32 = 1/0
+    getLeftChild():Tree = emptyNode()
+    getRightChild():Tree = emptyNode()
+    printTree():() = print(" emptyNode")
+    opr |self| : ZZ32 = 0
+    member(x:ZZ32):Boolean = false
+    minimum():ZZ32 = 1/0
+    add(z:ZZ32):Tree = Node(z,emptyNode(),emptyNode())
+    balancedAdd(val:ZZ32,  left:Tree, right:Tree):Node = Node(val,emptyNode(),emptyNode())
+end
+
+object Node(val:ZZ32,  left:Tree, right:Tree) extends Tree
+   getVal():ZZ32 = val
+   getLeftChild():Tree = left
+   getRightChild():Tree = right
+   opr |self| : ZZ32 = 1 + |left| + |right|
+
+   printTree():() = do
+      print("(")
+      print(val)
+      print(" ")
+      left.printTree()
+      right.printTree()
+      println(")")
+      end
+
+   member(z:ZZ32):Boolean = do
+      if (z = val) then true
+      elif (z < val) then left.member(z)
+      else right.member(z)
+      end
+   end
+
+   add(z:ZZ32):Tree = do
+      if (z = val) then self
+      else if (z < val) then balancedAdd(val,left.add(z),right)
+         else balancedAdd(val,left,right.add(z))
+         end
+      end
+   end
+
+   balancedAdd(val':ZZ32,  l:Tree, r:Tree):Node = do
+      ln = |l|
+      rn = |r|
+      if ln + rn < getWeight() then Node(val', l, r)
+      elif rn > getWeight() ln then do
+         rl = r.getRightChild().getLeftChild()
+         rr = r.getRightChild().getRightChild()
+         rln = |rl|
+         rrn = |rr|
+         if rln < rrn then single_L(val', l, r) else double_L(val', l, r) end
+         end
+      elif ln > getWeight() rn then do
+         ll = l.getLeftChild().getLeftChild()
+         lr = l.getLeftChild().getRightChild()
+         lln = |ll|
+         lrn = |lr|
+         if (lrn < lln) then single_R(val', l, r) else double_R(val',l,r) end
+         end
+      else Node(val',l,r) end
+   end
+
+   single_L(val':ZZ32,  l:Tree, r:Tree):Node = do
+      a = val'
+      x = l
+      b = r.getVal()
+      y = r.getLeftChild()
+      z = r.getRightChild()
+      Node(b, Node(a, x, y), z)
+   end
+
+   single_R(val':ZZ32,  l:Tree, r:Tree):Node = do
+      b = val'
+      a = r.getVal()
+      x = r.getLeftChild()
+      y = r.getRightChild()
+      z = l
+      Node(a,x,Node(b,y,z))
+      end
+
+   double_L(val':ZZ32,  l:Tree, r:Tree):Node = do
+      a = val'
+      x = l
+      c = r.getVal()
+      b = r.getLeftChild().getVal()
+      y1 = r.getLeftChild().getLeftChild()
+      y2 = r.getLeftChild().getRightChild()
+      z = r.getRightChild()
+      println("double_L " a " " b)
+      Node(b, Node(a,x,y1),Node(c,y2,z))
+      end
+
+   double_R(val':ZZ32,  l:Tree, r:Tree):Node = do
+      c = val'
+      a = l.getVal()
+      x = l.getLeftChild()
+      b = l.getRightChild().getVal()
+      y1 = l.getRightChild.getLeftChild()
+      y2 = l.getRightChild.getRightChild()
+      z = r
+      println("double_R " a " " b " " c)
+      Node(b, Node(a, x,y1), Node(c,y2,z))
+      end
+
+   delete(x:ZZ32):Tree = do
+      if x < val then balancedAdd(val,left.delete(x),right)
+      elif val < x then balancedAdd(val,left,right.delete(x)) else
+      balancedDelete(left,right)
+      end
+   end
+
+   balancedDelete(l:Tree, r:Tree):Tree = do
+      if |l| = 0 then r elif |r| = 0 then l else
+            min_elt = r.minimum()
+            balancedAdd(min_elt, l, r.delete(min_elt))
+      end
+   end
+
+   minimum():ZZ32 = do
+      if |left| = 0 then val else left.minimum() end
+   end
+
+   deleteMinimum():Tree = delete(minimum())
+end
+
+run():()=do
+   root:Tree := emptyNode()
+   root := root.add(1)
+   root := root.add(2)
+   root := root.add(3)
+   root := root.add(4)
+   root := root.add(5)
+   root := root.add(6)
+   root := root.add(7)
+   root := root.add(8)
+   root := root.add(9)
+   if root.member(5) then println("pass") else println("fail") end
+   if root.member(21) then println("fail") else println("pass") end
+   root := root.delete(7)
+   if root.member(7) then println("fail") else println("pass") end
+
+   treeodd:Tree := emptyNode()
+   treeodd := treeodd.add(1)
+   treeodd := treeodd.add(3)
+   treeodd := treeodd.add(5)
+   treeodd := treeodd.add(7)
+
+   treeeven:Tree := emptyNode()
+   treeeven := treeeven.add(2)
+   treeeven := treeeven.add(4)
+   treeeven := treeeven.add(6)
+   tree1 = treeodd.union(treeodd,treeeven)
+   if tree1.member(1) then println("pass") else println("fail") end
+   if tree1.member(2) then println("pass") else println("fail") end
+   if tree1.member(3) then println("pass") else println("fail") end
+   if tree1.member(4) then println("pass") else println("fail") end
+   if tree1.member(5) then println("pass") else println("fail") end
+   if tree1.member(6) then println("pass") else println("fail") end
+   if tree1.member(7) then println("pass") else println("fail") end
+   tree2 = tree1.intersection(tree1,treeodd)
+   if tree2.member(1) then println("pass") else println("fail") end
+   if tree2.member(2) then println("fail") else println("pass") end
+   if tree2.member(3) then println("pass") else println("fail") end
+   if tree2.member(4) then println("fail") else println("pass") end
+   if tree2.member(5) then println("pass") else println("fail") end
+   if tree2.member(6) then println("fail") else println("pass") end
+   if tree2.member(7) then println("pass") else println("fail") end
+
+end
+
+end

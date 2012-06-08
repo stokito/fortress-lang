@@ -1,0 +1,21 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Sequence
+export Sequence
+import api Collection
+
+trait Sequence[\alpha\] extends Generator[\alpha\]
+  opr DOUBLE_PLUS(self, other: Sequence[\alpha\]): Sequence[\alpha\]
+  addFront(a:alpha, self): Sequence[\alpha\]
+  addBack(self, a:alpha): Sequence[\alpha\]
+  removeFront(self): Maybe[\(alpha,Sequence[\alpha\])\]
+  removeBack(self): Maybe[\(Sequence[\alpha\],alpha)\]

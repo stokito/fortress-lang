@@ -1,0 +1,129 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Fortress in a Nutshell}
+
+\note{Keyword and varargs parameters, components linking,
+distributions are not yet supported.}
+
+Two basic concepts in Fortress are that of
+\emph{object} and of \emph{trait}.
+An \index{object}object consists of \emph{fields} and \emph{methods}.
+The fields of an object are specified in its definition.
+An object definition may also include method definitions.
+
+\index{trait}
+Traits are named
+program constructs that declare sets of methods.
+They were introduced in the Self programming language,
+and their semantic properties
+(and advantages over conventional class inheritance)
+were analyzed
+by Ducasse, Nierstrasz, Sch{\"a}rli, Wuyts and
+  Black \cite{traits}.
+In Fortress, a method declared by a trait
+may be either \emph{abstract}
+or \emph{concrete}:
+abstract methods have only
+\index{header!method}\index{method!header}\emph{headers};
+concrete methods also have
+\index{definition!method}\index{method!definition}\emph{definitions}.
+A trait may \emph{extend} other traits:
+it \emph{inherits}\index{inheritance}
+the methods provided by the traits it extends.
+\note{
+The terminology I'm trying to adopt here is as follows:
+traits \emph{declare} methods.
+Method declarations are syntactic entities
+contained in trait (and object) definitions
+(which are also syntactic entities),
+so a trait declares those methods
+for which its definition contains method declarations,
+as well as those methods it inherits.
+-- Victor}
+A trait provides the methods that it inherits
+as well as those explicitly declared in its declaration.
+
+Every object extends a set of traits (its ``supertraits'').
+An object inherits the concrete methods of its supertraits
+and must include a definition for every method
+declared but not defined by its supertraits.
+
+Note that the identifiers used in this example
+are not restricted to ASCII character sequences.
+Fortress allows the use of Unicode characters~\cite{Unicode}
+in program identifiers, as well as subscripts and superscripts
+(See \appref{ascii-unicode} for a discussion
+of Unicode and support for entering programs in
+ASCII.)
+Fortress also includes a set of standard formatting rules
+that follow the conventions of mathematical notation. For example,
+most variable references in Fortress programs are italicized.
+Moreover, multiplication
+can be expressed by simple juxtaposition.
+There is also support for operator overloading,
+as well as a facility for  extending
+the syntax with domain-specific languages.
+
+Although Fortress is statically and nominally typed,
+types are not specified for all fields,
+nor for all method parameters and return values.
+Instead, wherever possible,
+\index{type inference}\emph{type inference}
+is used
+to reconstruct types.
+In the examples throughout this specification,
+we often omit the types when they are clear from context.
+Additionally, types can be parametric with respect to other
+types and values (most notably natural numbers).
+
+These design decisions are motivated in part
+by our goal
+of making the scientist/programmer's life as easy as possible
+without compromising good software engineering.
+In particular,
+they allow us to write Fortress programs
+\index{mathematical notation, preserving}that preserve the look of standard
+mathematical notation.
+
+In addition to objects and traits,
+Fortress allows the programmer to define top-level functions.
+Functions are first-class values:
+They can be passed to and returned from functions,
+and assigned as values to fields and variables.
+Functions and methods can be overloaded, with calls
+to overloading methods resolved by multiple dynamic dispatch
+similarly to the manner described in \cite{MillsteinChambers}.
+\label{nutshellKwd}
+Keyword parameters and variable size argument lists
+are also supported.
+
+
+
+Fortress programs are organized into
+\index{component}\emph{components},
+which export and import APIs
+and can be linked together.
+APIs describe the ``shape'' of a component,
+specifying the types in traits, objects and functions
+provided by a component.
+All external references within a component
+(i.e., references to traits, objects and functions
+implemented by other components)
+are to APIs imported by the component.
+We discuss components and APIs in detail
+in \chapref{components}.
+
+To address the needs of modern high-performance computation,
+Fortress also supports a rich set of operations for defining parallel execution
+and distribution
+of large data structures. This support is built into the core of the language.
+For example, \KWD{for} loops in Fortress are parallel by default.

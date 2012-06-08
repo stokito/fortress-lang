@@ -1,0 +1,1894 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Algebraic Constraints}
+\chaplabel{lib:algebraic-constraints}
+
+The traits in this component are used to describe properties of traits and their associated operators.
+These traits provide very few concrete methods, but specify abstract methods and \KWD{property} declarations.
+
+
+\section{Predicates and Equivalence Relations}
+
+A \emph{predicate} is an operator that produces a boolean result.
+A binary predicate may be identified with a mathematical relation,
+where the predicate returns \VAR{true} in exactly those cases that its
+two operands satisfy the relation; therefore we use the mathematical terminology
+usually associated with relations to describe the properties of binary predicates.
+
+
+%trait UnaryPredicate[\T extends UnaryPredicate[\T,SIM\], opr SIM\]
+%    extends Any
+%  abstract opr SIM(self): Boolean
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{UnaryPredicate}\llbracket{}T \KWD{extends}\:\TYP{UnaryPredicate}\llbracket{}T,\sim\rrbracket, \KWD{opr} \mathord{\sim}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends}\:\TYP{Any}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{abstract}\;\;\KWD{opr} \mathord{\sim}(\KWD{self})\COLON \TYP{Boolean}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A unary predicate is a prefix operator that takes one argument and returns
+a boolean value (\VAR{true} or \VAR{false}).  Note that the symbol \EXP{\sim} is a
+static parameter, used here as a ``variable'' name for an operator.
+
+
+%trait BinaryPredicate[\T extends BinaryPredicate[\T,SIM\], opr SIM\]
+%    extends Any
+%  abstract opr SIM(self, other: T): Boolean
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{BinaryPredicate}\llbracket{}T \KWD{extends}\:\TYP{BinaryPredicate}\llbracket{}T,\sim\rrbracket, \KWD{opr} \mathord{\sim}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends}\:\TYP{Any}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{abstract}\;\;\KWD{opr} \mathord{\sim}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Boolean}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A binary predicate is an infix operator that takes two arguments and returns a boolean value.  Thus, for example,
+any trait \VAR{T} that extends \EXP{\TYP{BinaryPredicate}\llbracket{}T,\sqsubset\rrbracket}
+necessarily has an infix method for the operator \EXP{\sqsubset}, and that operator
+returns a boolean value.
+
+
+%trait Reflexive[\T extends Reflexive[\T,SIM\], opr SIM\]
+%    extends { BinaryPredicate[\T,SIM\] }
+%  property FORALL (a: T) (a SIM a)
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Reflexive}\llbracket{}T \KWD{extends} \TYP{Reflexive}\llbracket{}T,\sim\rrbracket, \KWD{opr} \mathord{\sim}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryPredicate}\llbracket{}T,\sim\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T)\; (a \sim a)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{reflexive} predicate always returns \VAR{true} when its operands are the same.
+Because this fact is expressed as a \KWD{property} declaration, the behavior
+of such an operator can be checked for correctness by unit testing.
+
+
+%trait Irreflexive[\T extends Irreflexive[\T,SIM\], opr SIM\]
+%    extends { BinaryPredicate[\T,SIM\] }
+%  property FORALL (a: T) NOT (a SIM a)
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Irreflexive}\llbracket{}T \KWD{extends} \TYP{Irreflexive}\llbracket{}T,\sim\rrbracket, \KWD{opr} \mathord{\sim}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryPredicate}\llbracket{}T,\sim\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T)\; \neg (a \sim a)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{irreflexive} predicate always returns \VAR{false} when its operands are the same.
+(Note that it is possible for a predicate to be neither reflexive nor irreflexive.)
+
+
+%trait Symmetric[\T extends Symmetric[\T,SIM\], opr SIM\]
+%    extends { BinaryPredicate[\T,SIM\] }
+%  property FORALL (a: T, b: T) (a SIM b) IFF (b SIM a)
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Symmetric}\llbracket{}T \KWD{extends} \TYP{Symmetric}\llbracket{}T,\sim\rrbracket, \KWD{opr} \mathord{\sim}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryPredicate}\llbracket{}T,\sim\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a \sim b) \leftrightarrow (b \sim a)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{symmetric} predicate doesn't care in which order its arguments are presented;
+the result is the same either way.
+
+
+%trait Transitive[\T extends Transitive[\T,SIM\], opr SIM\]
+%    extends { BinaryPredicate[\T,SIM\] }
+%  property FORALL (a: T, b: T, c: T) ((a SIM b) AND (b SIM c)) IMPLIES (a SIM c)
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Transitive}\llbracket{}T \KWD{extends} \TYP{Transitive}\llbracket{}T,\sim\rrbracket, \KWD{opr} \mathord{\sim}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryPredicate}\llbracket{}T,\sim\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T, c\COLON T)\; ((a \sim b) \wedge (b \sim c)) \rightarrow (a \sim c)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{transitive} predicate has the property that if \VAR{a} is related to \VAR{b} and \VAR{b} is related to \VAR{c},
+then \VAR{a} is related to \VAR{c}.
+
+
+%trait EquivalenceRelation[\T extends EquivalenceRelation[\T,SIM\], opr SIM\]
+%      extends { Reflexive[\T,SIM\], Symmetric[\T,SIM\], Transitive[\T,SIM\] }
+%end
+\begin{Fortress}
+\(\KWD{trait} \null\)\pushtabs\=\+\(\TYP{EquivalenceRelation}\llbracket{}T \KWD{extends} \TYP{EquivalenceRelation}\llbracket{}T,\sim\rrbracket, \KWD{opr} \mathord{\sim}\rrbracket\)\\
+\(      \KWD{extends} \{\,\TYP{Reflexive}\llbracket{}T,\sim\rrbracket, \TYP{Symmetric}\llbracket{}T,\sim\rrbracket, \TYP{Transitive}\llbracket{}T,\sim\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{equivalence relation} is any predicate that is reflexive, symmetric, and transitive.
+You can think of an equivalence relation as describing a way to separate a
+set of items into categories, such that each item belongs to exactly one
+category; the predicate is \VAR{true} of two items if and only if they are
+in the same category.
+
+
+%trait IdentityEquality[\T extends IdentityEquality[\T\]\]
+%    extends { EquivalenceRelation[\T,=\] }
+%  opr =(self, other: T): Boolean
+%  property FORALL (a: T, b: T) (self = other) IFF (self SEQUIV other)
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{IdentityEquality}\llbracket{}T \KWD{extends}\:\TYP{IdentityEquality}\llbracket{}T\rrbracket\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{opr} \mathord{=}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Boolean}\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (\mathord{\KWD{self}} = \VAR{other}) \leftrightarrow (\mathord{\KWD{self}} \sequiv \VAR{other})\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+This trait states that \EXP{=} is an equivalence relation over instances of the type \VAR{T}.
+
+
+%trait UnaryPredicateSubstitutionLaws[\T extends UnaryPredicateSubstitutionLaws[\T,SIM,SIMEQ\],
+%                                      opr SIM, opr SIMEQ\]
+%    extends { UnaryPredicate[\T,SIM\], BinaryPredicate[\T,SIMEQ\] }
+%  property FORALL (a: T, a': T) (a SIMEQ a') IMPLIES: ((SIM a) IFF (SIM a'))
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{UnaryPredicateSubstitutionLaws}\llbracket\null\)\pushtabs\=\+\(T \KWD{extends} \TYP{UnaryPredicateSubstitutionLaws}\llbracket{}T,\sim,\simeq\rrbracket,\)\\
+\(                                      \KWD{opr} \mathord{\sim}, \KWD{opr} \mathord{\simeq}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{UnaryPredicate}\llbracket{}T,\sim\rrbracket, \TYP{BinaryPredicate}\llbracket{}T,\simeq\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, a'\COLON T)\; (a \simeq a') \rightarrow\COLON ((\sim a) \leftrightarrow (\sim a'))\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+This handy trait states that the unary predicate \EXP{\sim} is consistent under substitutions
+described by the relation \EXP{\simeq} (which is typically, but not always, an equivalence relation);
+that is, the result produced by \EXP{\sim} is unchanged if its
+argument is replaced by some other value that is equivalent.
+
+
+%trait BinaryPredicateSubstitutionLaws[\T extends BinaryPredicateSubstitutionLaws[\T,SIM,SIMEQ\],
+%                                       opr SIM, opr SIMEQ\]
+%    extends { BinaryPredicate[\T,SIM\], BinaryPredicate[\T,SIMEQ\] }
+%  property FORALL (a: T, a': T) (a SIMEQ a') IMPLIES: FORALL (b: T) (a SIM b) IFF (a' SIM b)
+%  property FORALL (b: T, b': T) (b SIMEQ b') IMPLIES: FORALL (a: T) (a SIM b) IFF (a SIM b')
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{BinaryPredicateSubstitutionLaws}\llbracket\null\)\pushtabs\=\+\(T \KWD{extends} \TYP{BinaryPredicateSubstitutionLaws}\llbracket{}T,\sim,\simeq\rrbracket,\)\\
+\(                                       \KWD{opr} \mathord{\sim}, \KWD{opr} \mathord{\simeq}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryPredicate}\llbracket{}T,\sim\rrbracket, \TYP{BinaryPredicate}\llbracket{}T,\simeq\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, a'\COLON T)\; (a \simeq a') \rightarrow\COLON \forall (b\COLON T)\; (a \sim b) \leftrightarrow (a' \sim b)\)\\
+\(  \KWD{property} \forall (b\COLON T, b'\COLON T)\; (b \simeq b') \rightarrow\COLON \forall (a\COLON T)\; (a \sim b) \leftrightarrow (a \sim b')\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+This equally handy trait states that the binary predicate \EXP{\sim} is consistent under substitutions
+described by the relation \EXP{\simeq} (which is typically, but not always, an equivalence relation);
+that is, the result produced by \EXP{\sim} is unchanged if either
+argument is replaced by some other value that is equivalent.  (It is
+then easy to prove that the result is unchanged even when \emph{both}
+arguments are replaced by equivalent values.)
+
+
+
+\section{Partial and Total Orders}
+\seclabel{partial-total-orders}
+
+
+%trait Antisymmetric[\T extends AntiSymmetric[\T,SIM\], opr SIM\]
+%    extends { BinaryPredicate[\T,SIM\], EquivalenceRelation[\T,=\],
+%              BinaryPredicateSubstitutionLaws[\T,SIM,=\] }
+%  property FORALL (a: T, b: T) ((a SIM b) AND (b SIM a)) :IMPLIES: (a = b)
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Antisymmetric}\llbracket{}T \KWD{extends} \TYP{AntiSymmetric}\llbracket{}T,\sim\rrbracket, \KWD{opr} \mathord{\sim}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\null\)\pushtabs\=\+\(\TYP{BinaryPredicate}\llbracket{}T,\sim\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket,\)\\
+\(              \TYP{BinaryPredicateSubstitutionLaws}\llbracket{}T,\sim,=\rrbracket\,\}\)\-\-\\\poptabs\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; ((a \sim b) \wedge (b \sim a)) \mathrel{\mathtt{:}}\rightarrow\COLON (a = b)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A binary predicate \EXP{\sim} is \emph{antisymmetric} if and only if two conditions are true:
+(a) \EXP{\sim} is consistent under substitutions described by the predicate \EXP{=},
+which must be an equivalence relation; (b) whenever \EXP{\sim} holds true for a pair of arguments and for
+those same arguments in reverse order, those arguments are equivalent as specified by \EXP{=}.
+
+
+%trait PartialOrder[\T extends PartialOrder[\T,PRECEQ\], opr PRECEQ\]
+%    extends { Reflexive[\T,PRECEQ\], Antisymmetric[\T,PRECEQ\], Transitive[\T,PRECEQ\] }
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{PartialOrder}\llbracket{}T \KWD{extends} \TYP{PartialOrder}\llbracket{}T,\preccurlyeq\rrbracket, \KWD{opr} \mathord{\preccurlyeq}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{Reflexive}\llbracket{}T,\preccurlyeq\rrbracket, \TYP{Antisymmetric}\llbracket{}T,\preccurlyeq\rrbracket, \TYP{Transitive}\llbracket{}T,\preccurlyeq\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{partial order} is a binary predicate that is reflexive, antisymmetric, and transitive.
+
+
+%trait StrictPartialOrder[\T extends StrictPartialOrder[\T,PREC\], opr PREC\]
+%    extends { Irreflexive[\T,PREC\], Antisymmetric[\T,PREC\], Transitive[\T,PREC\] }
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{StrictPartialOrder}\llbracket{}T \KWD{extends} \TYP{StrictPartialOrder}\llbracket{}T,\prec\rrbracket, \KWD{opr} \mathord{\prec}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{Irreflexive}\llbracket{}T,\prec\rrbracket, \TYP{Antisymmetric}\llbracket{}T,\prec\rrbracket, \TYP{Transitive}\llbracket{}T,\prec\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{strict partial order} is a binary predicate that is irreflexive, antisymmetric, and transitive.
+(Thus it differs from an ordinary partial order in being irreflexive rather than reflexive.)
+
+It is easy to prove that, because \EXP{\prec} is irreflexive and antisymmetric,
+that \EXP{a \prec b} and \EXP{a=b} cannot both be true.  (If they were both true,
+then because antisymmetry requires that \EXP{\prec} obey substitution laws,
+\EXP{a \prec a} would be true---but that contradicts the fact that \EXP{\prec} is irreflexive.)
+It is then easy to prove that \EXP{a \prec b} and \EXP{b \prec a} cannot both be true.  (If they were both true,
+then by antisymmetry \EXP{a=b} must be true---but \EXP{a \prec b} and \EXP{a=b} cannot both be true.)
+
+
+
+%trait TotalOrder[\T extends TotalOrder[\T,PRECEQ\], opr PRECEQ\]
+%    extends { PartialOrder[\T,PRECEQ\] }
+%  property FORALL (a: T, b: T) (a PRECEQ b) OR (b PRECEQ a)
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{TotalOrder}\llbracket{}T \KWD{extends} \TYP{TotalOrder}\llbracket{}T,\preccurlyeq\rrbracket, \KWD{opr} \mathord{\preccurlyeq}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{PartialOrder}\llbracket{}T,\preccurlyeq\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a \preccurlyeq b) \vee (b \preccurlyeq a)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{total order} is a partial order in which every pair of operands
+must be related by the predicate \EXP{\preccurlyeq} in one order or the other; thus no two values are ever
+unordered with respect to each other.
+
+
+%trait StrictTotalOrder[\T extends StrictTotalOrder[\T,PREC\], opr PREC\]
+%    extends { StrictPartialOrder[\T,PREC\] }
+%  property FORALL (a: T, b: T) (a PREC b) OR (b PREC a) OR (a = b)
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{StrictTotalOrder}\llbracket{}T \KWD{extends} \TYP{StrictTotalOrder}\llbracket{}T,\prec\rrbracket, \KWD{opr} \mathord{\prec}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{StrictPartialOrder}\llbracket{}T,\prec\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a \prec b) \vee (b \prec a) \vee (a = b)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{strict total order} is a strict partial order in which every
+pair of operands must be related, either by equality \EXP{=} or by the
+predicate \EXP{\prec} in one order or the other; thus no two values
+are ever unordered with respect to each other.
+
+For a strict total order \emph{at least} one of \EXP{a \prec b}
+and \EXP{a=b} and \EXP{b \prec a} is true; but a strict total
+order is also a strict partial order, for which \emph{at most}
+one of \EXP{a \prec b} and \EXP{a=b} and \EXP{b \prec a} is true.
+Therefore a strict total order obeys the \emph{law of trichotomy}:
+for any \VAR{a} and \VAR{b}, \emph{exactly} one of \EXP{a \prec b}
+and \EXP{a=b} and \EXP{b \prec a} is true.
+
+
+%trait PartialOrderOperators[\T extends PartialOrderOperators[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\],
+%                             opr PREC, opr PRECEQ, opr SUCCEQ, opr SUCC, opr CMP\]
+%    extends { StrictPartialOrder[\T,PREC\], PartialOrder[\T, PRECEQ\],
+%              PartialOrder[\T,SUCCEQ\], StrictPartialOrder[\T,SUCC\] }
+%  abstract opr CMP(self, other: T):  Comparison
+%  property FORALL (a: T, b: T) ((a CMP b) === LessThan) IFF ((b CMP a) === GreaterThan)
+%  property FORALL (a: T, b: T) ((a CMP b) === EqualTo) IFF ((b CMP a) === EqualTo)
+%  property FORALL (a: T, b: T) ((a CMP b) === Unordered) IFF ((b CMP a) === Unordered)
+%  property FORALL (a: T, b: T) (a PREC b) IFF ((a CMP b) === LessThan)
+%  property FORALL (a: T, b: T) (a PRECEQ b) IFF ((a CMP b) === LessThan OR (a CMP b) === EqualTo)
+%  property FORALL (a: T, b: T) (a = b) IFF ((a CMP b) === EqualTo)
+%  property FORALL (a: T, b: T) (a SUCCEQ b) IFF ((a CMP b) === GreaterThan OR (a CMP b) === EqualTo)
+%  property FORALL (a: T, b: T) (a SUCC b) IFF ((a CMP b) === GreaterThan)
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{PartialOrderOperators}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{PartialOrderOperators}\llbracket{}T,\prec,\preccurlyeq,\succcurlyeq,\succ,\OPR{CMP}\rrbracket,\)\\
+\(                             \KWD{opr} \mathord{\prec}, \KWD{opr} \mathord{\preccurlyeq}, \KWD{opr} \mathord{\succcurlyeq}, \KWD{opr} \mathord{\succ}, \KWD{opr} \mathord{\OPR{CMP}}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{StrictPartialOrder}\llbracket{}T,\prec\rrbracket, \TYP{PartialOrder}\llbracket{}T, \preccurlyeq\rrbracket,\)\\
+\(              \TYP{PartialOrder}\llbracket{}T,\succcurlyeq\rrbracket, \TYP{StrictPartialOrder}\llbracket{}T,\succ\rrbracket\,\}\)\-\-\\\poptabs\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{abstract}\;\;\KWD{opr} \mathord{\OPR{CMP}}(\KWD{self}, \VAR{other}\COLON T)\COLON  \TYP{Comparison}\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; ((a \OPR{CMP}\:{b}) \sequiv \TYP{LessThan}) \leftrightarrow ((b \OPR{CMP}\:{a}) \sequiv \TYP{GreaterThan})\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; ((a \OPR{CMP}\:{b}) \sequiv \TYP{EqualTo}) \leftrightarrow ((b \OPR{CMP}\:{a}) \sequiv \TYP{EqualTo})\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; ((a \OPR{CMP}\:{b}) \sequiv \TYP{Unordered}) \leftrightarrow ((b \OPR{CMP}\:{a}) \sequiv \TYP{Unordered})\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a \prec b) \leftrightarrow ((a \OPR{CMP}\:{b}) \sequiv \TYP{LessThan})\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a \preccurlyeq b) \leftrightarrow ((a \OPR{CMP}\:{b}) \sequiv \TYP{LessThan} \vee (a \OPR{CMP}\:{b}) \sequiv \TYP{EqualTo})\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a = b) \leftrightarrow ((a \OPR{CMP}\:{b}) \sequiv \TYP{EqualTo})\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a \succcurlyeq b) \leftrightarrow ((a \OPR{CMP}\:{b}) \sequiv \TYP{GreaterThan} \vee (a \OPR{CMP}\:{b}) \sequiv \TYP{EqualTo})\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a \succ b) \leftrightarrow ((a \OPR{CMP}\:{b}) \sequiv \TYP{GreaterThan})\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+For practical programming, we assume that partial order operators come in groups of five:
+a ``less than'' predicate, a ``less than or equal~to'' predicate,
+a ``greater than or equal~to'' predicate, a ``greater than'' predicate,
+and a ``comparison'' operator that returns one of the four values
+\TYP{LessThan}, \TYP{EqualTo}, \TYP{GreaterThan}, and \TYP{Unordered}.
+The trait \TYP{PartialOrderOperators} declares such a set of five operators
+and describes the necessary algebraic constraints among them and the equality predicate \EXP{=}.
+
+
+%trait TotalOrderOperators[\T extends TotalOrderOperators[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\],
+%                           opr PREC, opr PRECEQ, opr SUCCEQ, opr SUCC, opr CMP\]
+%    extends { PartialOrderOperators[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\],
+%              StrictTotalOrder[\T,PREC\], TotalOrder[\T, PRECEQ\],
+%              TotalOrder[\T,SUCCEQ\], StrictTotalOrder[\T,SUCC\] }
+%  abstract opr CMP(self, other: T):  TotalComparison
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{TotalOrderOperators}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{TotalOrderOperators}\llbracket{}T,\prec,\preccurlyeq,\succcurlyeq,\succ,\OPR{CMP}\rrbracket,\)\\
+\(                           \KWD{opr} \mathord{\prec}, \KWD{opr} \mathord{\preccurlyeq}, \KWD{opr} \mathord{\succcurlyeq}, \KWD{opr} \mathord{\succ}, \KWD{opr} \mathord{\OPR{CMP}}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{PartialOrderOperators}\llbracket{}T,\prec,\preccurlyeq,\succcurlyeq,\succ,\OPR{CMP}\rrbracket,\)\\
+\(              \TYP{StrictTotalOrder}\llbracket{}T,\prec\rrbracket, \TYP{TotalOrder}\llbracket{}T, \preccurlyeq\rrbracket,\)\\
+\(              \TYP{TotalOrder}\llbracket{}T,\succcurlyeq\rrbracket, \TYP{StrictTotalOrder}\llbracket{}T,\succ\rrbracket\,\}\)\-\-\\\poptabs\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{abstract}\;\;\KWD{opr} \mathord{\OPR{CMP}}(\KWD{self}, \VAR{other}\COLON T)\COLON  \TYP{TotalComparison}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+Total order operators likewise come in groups of five:
+a ``less than'' predicate, a ``less than or equal~to'' predicate,
+a ``greater than or equal~to'' predicate, a ``greater than'' predicate,
+and a ``comparison'' operator that returns one of the three values
+\TYP{LessThan}, \TYP{EqualTo}, and \TYP{GreaterThan}.
+The trait \TYP{TotalOrderOperators} declares such a set of five operators
+and describes the necessary algebraic constraints among them and the equality predicate \EXP{=}.
+For a total order, the comparison operator \OPR{CMP} never returns \TYP{Unordered}.
+
+
+%trait PartialOrderBasedOnLE[\T extends PartialOrderBasedOnLE[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\],
+%                             opr PREC, opr PRECEQ, opr SUCCEQ, opr SUCC, opr CMP\]
+%    extends { PartialOrderOperators[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\] }
+%  opr CMP(self, other: T): Comparison
+%  opr PREC(self, other: T): Boolean
+%  opr =(self, other: T): Boolean
+%  opr SUCCEQ(self, other: T): Boolean
+%  opr SUCC(self, other: T): Boolean
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{PartialOrderBasedOnLE}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{PartialOrderBasedOnLE}\llbracket{}T,\prec,\preccurlyeq,\succcurlyeq,\succ,\OPR{CMP}\rrbracket,\)\\
+\(                             \KWD{opr} \mathord{\prec}, \KWD{opr} \mathord{\preccurlyeq}, \KWD{opr} \mathord{\succcurlyeq}, \KWD{opr} \mathord{\succ}, \KWD{opr} \mathord{\OPR{CMP}}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{PartialOrderOperators}\llbracket{}T,\prec,\preccurlyeq,\succcurlyeq,\succ,\OPR{CMP}\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{opr} \mathord{\OPR{CMP}}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Comparison}\)\\
+\(  \KWD{opr} \mathord{\prec}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{=}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\succcurlyeq}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\succ}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Boolean}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The trait \TYP{PartialOrderBasedOnLE} implements a partial order by
+assuming that the ``less than or equal~to'' predicate is already
+defined and providing definitions for the comparison operator, the
+``less than'' predicate, the equality predicate,
+the ``greater than or equal~to'' predicate, and the ``greater than''
+predicate in terms of the ``less than or equal~to'' predicate.
+
+
+
+%trait TotalOrderBasedOnLE[\T extends TotalOrderBasedOnLE[\T,PREC,PRECEQ,SUCCEQq,SUCC,CMP\],
+%                           opr PREC, opr PRECEQ, opr SUCCEQ, opr SUCC, opr CMP\]
+%    extends { TotalOrderOperators[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\] }
+%  opr CMP(self, other: T): TotalComparison
+%  opr PREC(self, other: T): Boolean
+%  opr =(self, other: T): Boolean
+%  opr SUCCEQ(self, other: T): Boolean
+%  opr SUCC(self, other: T): Boolean
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{TotalOrderBasedOnLE}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{TotalOrderBasedOnLE}\llbracket{}T,\prec,\preccurlyeq,\TYP{SUCCEQq},\succ,\OPR{CMP}\rrbracket,\)\\
+\(                           \KWD{opr} \mathord{\prec}, \KWD{opr} \mathord{\preccurlyeq}, \KWD{opr} \mathord{\succcurlyeq}, \KWD{opr} \mathord{\succ}, \KWD{opr} \mathord{\OPR{CMP}}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{TotalOrderOperators}\llbracket{}T,\prec,\preccurlyeq,\succcurlyeq,\succ,\OPR{CMP}\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{opr} \mathord{\OPR{CMP}}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{TotalComparison}\)\\
+\(  \KWD{opr} \mathord{\prec}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{=}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\succcurlyeq}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\succ}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Boolean}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The trait \TYP{TotalOrderBasedOnLE} implements a total order by
+assuming that the ``less than or equal~to'' predicate is already
+defined and providing definitions for the comparison operator, the
+``less than'' predicate, the equality predicate, the ``greater than or
+equal~to'' predicate, and the ``greater than'' predicate in terms of
+the ``less than or equal~to'' predicate.
+
+
+%trait TotalOrderBasedOnLT[\T extends TotalOrderBasedOnLT[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\],
+%                           opr PREC, opr PRECEQ, opr SUCCEQ, opr SUCC, opr CMP\]
+%    extends { TotalOrderOperators[\T,PREC,PRECEQ,SUCCEQ,SUCC,CMP\] }
+%  opr CMP(self, other: T): TotalComparison
+%  opr PRECEQ(self, other: T): Boolean
+%  opr =(self, other: T): Boolean
+%  opr SUCCEQ(self, other: T): Boolean
+%  opr SUCC(self, other: T): Boolean
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{TotalOrderBasedOnLT}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{TotalOrderBasedOnLT}\llbracket{}T,\prec,\preccurlyeq,\succcurlyeq,\succ,\OPR{CMP}\rrbracket,\)\\
+\(                           \KWD{opr} \mathord{\prec}, \KWD{opr} \mathord{\preccurlyeq}, \KWD{opr} \mathord{\succcurlyeq}, \KWD{opr} \mathord{\succ}, \KWD{opr} \mathord{\OPR{CMP}}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{TotalOrderOperators}\llbracket{}T,\prec,\preccurlyeq,\succcurlyeq,\succ,\OPR{CMP}\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{opr} \mathord{\OPR{CMP}}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{TotalComparison}\)\\
+\(  \KWD{opr} \mathord{\preccurlyeq}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{=}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\succcurlyeq}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\succ}(\KWD{self}, \VAR{other}\COLON T)\COLON \TYP{Boolean}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The trait \TYP{TotalOrderBasedOnLT} implements a total order by
+assuming that the ``less than'' predicate is already defined and
+providing definitions for the comparison operator,
+the ``less than or equal~to'' predicate, the equality predicate, the
+``greater than or equal~to'' predicate, and the ``greater than''
+predicate in terms of the ``less than'' predicate.
+
+%value object MaximalElement[\opr PRECEQ\] end
+%
+%trait HasMaximalElement[\T extends HasMaximalElement[\T,PRECEQ\], opr PRECEQ\]
+%    extends { PartialOrder[\T,PRECEQ\] }
+%    where { T coerces MaximalElement[\PRECEQ\] }
+%  property FORALL (a: T) a PRECEQ MaximalElement[\PRECEQ\]
+%end
+\begin{Fortress}
+\(\KWD{value}\;\;\KWD{object}\:\TYP{MaximalElement}\llbracket\KWD{opr} \mathord{\preccurlyeq}\rrbracket \KWD{end}\)\\[4pt]
+\(\KWD{trait}\:\TYP{HasMaximalElement}\llbracket{}T \KWD{extends}\:\TYP{HasMaximalElement}\llbracket{}T,\preccurlyeq\rrbracket, \KWD{opr} \mathord{\preccurlyeq}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{PartialOrder}\llbracket{}T,\preccurlyeq\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{MaximalElement}\llbracket\preceq\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLONOP{}T)\; a \preccurlyeq\:\TYP{MaximalElement}\llbracket\preceq\rrbracket\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The \TYP{HasMaximalElement} trait specifies that a partial order has a maximal
+element, that is, one to which every other element is related by the ordering predicate \EXP{\preccurlyeq}.
+The maximal element may be identified by coercing the object
+named \EXP{\TYP{MaximalElement}\llbracket\preceq\rrbracket} to type \VAR{T}.
+
+
+%value object MinimalElement[\opr PRECEQ\] end
+%
+%trait HasMinimalElement[\T extends HasMinimalElement[\T,PRECEQ\], opr PRECEQ\]
+%    extends { PartialOrder[\T,PRECEQ\] }
+%    where { T coerces MinimalElement[\PRECEQ\] }
+%  property FORALL (a: T) MinimalElement[\PRECEQ\] PRECEQ a
+%end
+\begin{Fortress}
+\(\KWD{value}\;\;\KWD{object}\:\TYP{MinimalElement}\llbracket\KWD{opr} \mathord{\preccurlyeq}\rrbracket \KWD{end}\)\\[4pt]
+\(\KWD{trait}\:\TYP{HasMinimalElement}\llbracket{}T \KWD{extends}\:\TYP{HasMinimalElement}\llbracket{}T,\preccurlyeq\rrbracket, \KWD{opr} \mathord{\preccurlyeq}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{PartialOrder}\llbracket{}T,\preccurlyeq\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{MinimalElement}\llbracket\preceq\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLONOP{}T)\; \TYP{MinimalElement}\llbracket\preceq\rrbracket \preccurlyeq\:{a}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The \TYP{HasMinimalElement} trait specifies that a partial order has a minimal
+element, that is, one to which every other element relates by the ordering predicate \EXP{\preccurlyeq}.
+The minimal element may be identified by coercing the object
+named \EXP{\TYP{MinimalElement}\llbracket\preceq\rrbracket} to type \VAR{T}.
+
+
+%% I manually edited ``BIG LEXICO''
+%% -- Sukyoung
+%trait LexicographicPartialOrder[\T extends LexicographicPartialOrder[\T,SQSUBSET,SQSUBSETEQ,EQV,SQSUPSETEQ,SQSUPSET,TCMP,
+%                                                                      X,PREC,PRECEQ,SIMEQ,SUCCEQ,SUCC,XCMP\],
+%                                 opr SQSUBSET, opr SQSUBSETEQ, opr EQV, opr SQSUPSETEQ, opr SQSUPSET, opr TCMP,
+%                                 X extends TotalOrderOperators[\X,PREC,PRECEQ,SIMEQ,SUCCEQ,SUCC,XCMP\],
+%                                 opr PREC, opr PRECEQ, opr SIMEQ, opr SUCCEQ, opr SUCC, opr XCMP\]
+%    extends { PartialOrderOperators[\LexicographicPartialOrder[\T,SQSUBSET,SQSUBSETEQ,EQV,SQSUPSETEQ,SQSUPSET,TCMP,
+%                                                                X,PREC,PRECEQ,SIMEQ,SUCCEQ,SUCC,XCMP\],
+%                                     SQSUBSET,SQSUBSETEQ,SQSUPSETEQ,SQSUPSET,TCMP\] }
+%        where { T extends ZeroBasedIndexing[\T,X\] }
+%  property FORALL (a: T, b: T) (a TCMP b) = (BIG LEXICO[i <- a.indices INTERSECTION b.indices] (a[i] XCMP b[i])) LEXICO (|a| CMP |b|)
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{LexicographicPartialOrder}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{LexicographicPartialOrder}\llbracket\,\null\)\pushtabs\=\+\(T,\sqsubset,\sqsubseteq,\equiv,\sqsupseteq,\sqsupset,\OPR{TCMP},\)\\
+\(                                                                      X,\prec,\preccurlyeq,\simeq,\succcurlyeq,\succ,\OPR{XCMP}\rrbracket,\)\-\\\poptabs
+\(                                 \KWD{opr} \mathord{\sqsubset}, \KWD{opr} \mathord{\sqsubseteq}, \KWD{opr} \mathord{\equiv}, \KWD{opr} \mathord{\sqsupseteq}, \KWD{opr} \mathord{\sqsupset}, \KWD{opr} \mathord{\OPR{TCMP}},\)\\
+\(                                 X \KWD{extends}\:\TYP{TotalOrderOperators}\llbracket{}X,\prec,\preccurlyeq,\simeq,\succcurlyeq,\succ,\OPR{XCMP}\rrbracket,\)\\
+\(                                 \KWD{opr} \mathord{\prec}, \KWD{opr} \mathord{\preccurlyeq}, \KWD{opr} \mathord{\simeq}, \KWD{opr} \mathord{\succcurlyeq}, \KWD{opr} \mathord{\succ}, \KWD{opr} \mathord{\OPR{XCMP}}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{PartialOrderOperators}\llbracket\,\null\)\pushtabs\=\+\(\TYP{LexicographicPartialOrder}\llbracket\,\null\)\pushtabs\=\+\(T,\sqsubset,\sqsubseteq,\equiv,\sqsupseteq,\sqsupset,\OPR{TCMP},\)\\
+\(                                                                X,\prec,\preccurlyeq,\simeq,\succcurlyeq,\succ,\OPR{XCMP}\rrbracket,\)\-\\\poptabs
+\(                                     \sqsubset,\sqsubseteq,\sqsupseteq,\sqsupset,\OPR{TCMP}\rrbracket\,\}\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(        \KWD{where} \{\,T \KWD{extends}\:\TYP{ZeroBasedIndexing}\llbracket{}T,X\rrbracket\,\}\)\-\-\\\poptabs\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a \OPR{TCMP}\:{b}) = (\mathop{\OPR{BIG~LEXICO}}\limits_{i \leftarrow a.\VAR{indices} \cap b.\VAR{indices}} (a_i \OPR{XCMP}\:{b}_i)) \OPR{LEXICO} (\left|a\right| \OPR{CMP} \left|b\right|)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The \TYP{Comparison} trait provides an associative operator
+\OPR{LEXICO} whose principal use is in defining lexicographic order on
+sequences of elements, which may be partial or total depending on
+whether the ordering of the elements is partial or total.
+
+A set of lexicographic partial order operators \EXP{\sqsubset,\sqsubseteq,\equiv,\sqsupseteq,\sqsupset,\OPR{TCMP}}
+may be defined in terms of a partial order on the elements of the sequence with operators
+\EXP{\prec,\preccurlyeq,\simeq,\succcurlyeq,\succ,\OPR{XCMP}}.  All that is really necessary is
+to define the lexicographic sequence comparison operator \OPR{TCMP} in terms of the element
+comparison operator \OPR{XCMP}; this is easily expressed by using the
+associative \OPR{LEXICO} operator to reduce the results of elementwise
+comparisons to a single value.  (If the sequences to be compared are of unequal length,
+then the shorter sequence is compared to a prefix of the longer sequence,
+and if they are equal, then the longer sequence is considered to be greater than the shorter sequence.
+This rule is implemented by an additional application of the \OPR{LEXICO} operator
+to the result of comparing the lengths of the sequences.)
+
+
+%trait LexicographicTotalOrder[\T extends LexicographicTotalOrder[\T,SQSUBSET,SQSUBSETEQ,EQV,SQSUPSETEQ,SQSUPSET,TCMP,
+%                                                                  X,PREC,PRECEQ,SIMEQ,SUCCEQ,SUCC,XCMP\],
+%                               opr SQSUBSET, opr SQSUBSETEQ, opr EQV, opr SQSUPSETEQ, opr SQSUPSET, opr TCMP,
+%                               X extends TotalOrderOperators[\X,PREC,PRECEQ,SIMEQ,SUCCEQ,SUCC,XCMP\],
+%                               opr PREC, opr PRECEQ, opr SIMEQ, opr SUCCEQ, opr SUCC, opr XCMP\]
+%    extends { LexicographicPartialOrder[\T,SQSUBSET,SQSUBSETEQ,EQV,SQSUPSETEQ,SQSUPSET,TCMP,X,PREC,PRECEQ,SIMEQ,SUCCEQ,SUCC,XCMP\],
+%              TotalOrderOperators[\LexicographicTotalOrder[\T,SQSUBSET,SQSUBSETEQ,EQV,SQSUPSETEQ,SQSUPSET,TCMP,
+%                                                            X,PREC,PRECEQ,SIMEQ,SUCCEQ,SUCC,XCMP\],
+%                                   SQSUBSET,SQSUBSETEQ,SQSUPSETEQ,SQSUPSET,TCMP\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{LexicographicTotalOrder}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{LexicographicTotalOrder}\llbracket\,\null\)\pushtabs\=\+\(T,\sqsubset,\sqsubseteq,\equiv,\sqsupseteq,\sqsupset,\OPR{TCMP},\)\\
+\(                                                                  X,\prec,\preccurlyeq,\simeq,\succcurlyeq,\succ,\OPR{XCMP}\rrbracket,\)\-\\\poptabs
+\(                               \KWD{opr} \mathord{\sqsubset}, \KWD{opr} \mathord{\sqsubseteq}, \KWD{opr} \mathord{\equiv}, \KWD{opr} \mathord{\sqsupseteq}, \KWD{opr} \mathord{\sqsupset}, \KWD{opr} \mathord{\OPR{TCMP}},\)\\
+\(                               X \KWD{extends}\:\TYP{TotalOrderOperators}\llbracket{}X,\prec,\preccurlyeq,\simeq,\succcurlyeq,\succ,\OPR{XCMP}\rrbracket,\)\\
+\(                               \KWD{opr} \mathord{\prec}, \KWD{opr} \mathord{\preccurlyeq}, \KWD{opr} \mathord{\simeq}, \KWD{opr} \mathord{\succcurlyeq}, \KWD{opr} \mathord{\succ}, \KWD{opr} \mathord{\OPR{XCMP}}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{LexicographicPartialOrder}\llbracket{}T,\sqsubset,\sqsubseteq,\equiv,\sqsupseteq,\sqsupset,\OPR{TCMP},X,\prec,\preccurlyeq,\simeq,\succcurlyeq,\succ,\OPR{XCMP}\rrbracket,\)\\
+\(              \TYP{TotalOrderOperators}\llbracket\,\null\)\pushtabs\=\+\(\TYP{LexicographicTotalOrder}\llbracket\,\null\)\pushtabs\=\+\(T,\sqsubset,\sqsubseteq,\equiv,\sqsupseteq,\sqsupset,\OPR{TCMP},\)\\
+\(                                                            X,\prec,\preccurlyeq,\simeq,\succcurlyeq,\succ,\OPR{XCMP}\rrbracket,\)\-\\\poptabs
+\(                                   \sqsubset,\sqsubseteq,\sqsupseteq,\sqsupset,\OPR{TCMP}\rrbracket\,\}\)\-\-\-\\\poptabs\poptabs\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+Similarly, a set of lexicographic total order operators \EXP{\sqsubset,\sqsubseteq,\equiv,\sqsupseteq,\sqsupset,\OPR{TCMP}}
+may be defined in terms of a total order on the elements of the sequence with operators
+\EXP{\prec,\preccurlyeq,\simeq,\succcurlyeq,\succ,\OPR{XCMP}}.
+
+
+
+\section{Operators and Their Properties}
+\seclabel{opr-properties}
+
+
+For some types, such as the integers \EXP{\mathbb{Z}} or the rationals \EXP{\mathbb{Q}},
+results are always exact, and algebraic properties can be expected to be obeyed exactly.
+For other types, such as floating-point numbers, results are not always numerically
+exact, and algebraic properties can be expected to be obeyed only approximately.
+For example, given three floating-point values \VAR{a} and \VAR{b} and \VAR{c},
+it may well be that \EXP{a+(b+c)} is not equal to \EXP{(a+b)+c}; but we would expect
+their values to be reasonably close---unless, of course, overflow occurred in one
+expression but not the other.
+
+In order to address the difficulties of such approximate computation,
+many of the traits described in this section come in two varieties:
+approximate and exact.  The \EXP{+} operator on integers or
+rationals is correctly described by the trait \TYP{Associative}, and
+the \EXP{+} operator on floating-point numbers is correctly described
+by the trait \TYP{ApproximatelyAssociative}.  An important distinction
+is that the predicate used to test acceptability of exact algebraic
+properties is \EXP{=}, which is required to be an equivalence relation
+and therefore transitive, but a type-dependent binary predicate
+(typically \EXP{\approx}) may be used to test acceptability of
+approximate algebraic properties, and this predicate is required only
+to be reflexive and symmetric.
+
+
+
+%trait UnaryOperator[\T extends UnaryOperator[\T,ODOT\], opr ODOT\]
+%    extends Any
+%  abstract opr ODOT(self): T
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{UnaryOperator}\llbracket{}T \KWD{extends}\:\TYP{UnaryOperator}\llbracket{}T,\odot\rrbracket, \KWD{opr} \mathord{\odot}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends}\:\TYP{Any}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{abstract}\;\;\KWD{opr} \mathord{\odot}(\KWD{self})\COLON T\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{unary operator} is a prefix operator that takes one argument and returns
+a value of the same type.  Note that \EXP{\odot} is a static parameter,
+used here as a ``variable'' name for an operator.
+
+
+%trait BinaryOperator[\T extends BinaryOperator[\T,ODOT\], opr ODOT\]
+%    extends Any
+%  abstract opr ODOT(self, other: T): T
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{BinaryOperator}\llbracket{}T \KWD{extends}\:\TYP{BinaryOperator}\llbracket{}T,\odot\rrbracket, \KWD{opr} \mathord{\odot}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends}\:\TYP{Any}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{abstract}\;\;\KWD{opr} \mathord{\odot}(\KWD{self}, \VAR{other}\COLON T)\COLON T\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{binary operator} is an infix operator that takes two arguments of the same type
+and returns a value of that type.  Thus, for example,
+any trait \VAR{T} that extends \EXP{\TYP{BinaryPredicate}\llbracket{}T,+\rrbracket}
+necessarily has an infix method for the operator \EXP{+}, and that operator
+takes two operands of type \VAR{T} and returns a value of type \VAR{T}.
+
+
+%trait IdentityOperator[\T extends IdentityOperator[\T\]\]
+%    extends { UnaryOperator[\T,IDENTITY\] }
+%  property FORALL (a: T) (IDENTITY a) === a
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{IdentityOperator}\llbracket{}T \KWD{extends}\:\TYP{IdentityOperator}\llbracket{}T\rrbracket\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{UnaryOperator}\llbracket{}T,\OPR{IDENTITY}\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T)\; (\OPR{IDENTITY}\:{a}) \sequiv a\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+%% The trait \TYP{IdentityOperator} provides a definition of the unary \OPR{IDENTITY} operator, which simply returns its argument.
+The trait \TYP{Object} extends \EXP{\TYP{IdentityOperator}\llbracket\TYP{Object}\rrbracket},
+so the \OPR{IDENTITY} operator is defined for every type whatsoever.  (This operator  may not be terribly useful for
+applications programming, but it has technical uses for specifying contracts and
+algebraic properties in libraries.  It is used, for example, when defining the
+trait \TYP{BooleanAlgebra} in terms of the trait \TYP{Ring}: because every value
+is its own inverse with respect to the ``exclusive \scap{or}'' operator in a Boolean Algebra,
+\OPR{IDENTITY} is the appropriate additive inverse operator for use with the trait \TYP{Ring}
+in this connection.)
+
+
+%trait ApproximatelyCommutative[\T extends ApproximatelyCommutative[\T,ODOT,APPROX\], opr ODOT, opr APPROX\]
+%    extends { BinaryOperator[\T,ODOT\], Reflexive[\T,APPROX\], Symmetric[\T,APPROX\] }
+%  property FORALL (a: T, b: T) (a ODOT b) :APPROX: (b ODOT a)
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{ApproximatelyCommutative}\llbracket{}T \KWD{extends} \TYP{ApproximatelyCommutative}\llbracket{}T,\odot,\approx\rrbracket, \KWD{opr} \mathord{\odot}, \KWD{opr} \mathord{\approx}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryOperator}\llbracket{}T,\odot\rrbracket, \TYP{Reflexive}\llbracket{}T,\approx\rrbracket, \TYP{Symmetric}\llbracket{}T,\approx\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a \odot b) \mathrel{\mathtt{:}}\approx\COLON (b \odot a)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The trait \TYP{ApproximatelyCommutative} requires the operator \EXP{\odot} to be
+\emph{approximately commutative}; that is, reversing the operands produces a result
+that is considered to be ``close enough'' as determined by the specified \EXP{\approx} predicate.
+
+
+%trait Commutative[\T extends Commutative[\T,ODOT\], opr ODOT\]
+%    extends { ApproximatelyCommutative[\T,ODOT,=\], EquivalenceRelation[\T,=\] }
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Commutative}\llbracket{}T \KWD{extends} \TYP{Commutative}\llbracket{}T,\odot\rrbracket, \KWD{opr} \mathord{\odot}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{ApproximatelyCommutative}\llbracket{}T,\odot,=\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The trait \TYP{Commutative} requires the operator \EXP{\odot} to be
+\emph{commutative}; that is, reversing the operands produces an equal result.
+
+
+%trait ApproximatelyAssociative[\T extends ApproximatelyAssociative[\T,ODOT,APPROX\], opr ODOT, opr APPROX\]
+%    extends { BinaryOperator[\T,ODOT\], Reflexive[\T,APPROX\], Symmetric[\T,APPROX\] }
+%  property FORALL (a: T, b: T, c: T) ((a ODOT b) ODOT c) :APPROX: (a ODOT (b ODOT c))
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{ApproximatelyAssociative}\llbracket{}T \KWD{extends} \TYP{ApproximatelyAssociative}\llbracket{}T,\odot,\approx\rrbracket, \KWD{opr} \mathord{\odot}, \KWD{opr} \mathord{\approx}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryOperator}\llbracket{}T,\odot\rrbracket, \TYP{Reflexive}\llbracket{}T,\approx\rrbracket, \TYP{Symmetric}\llbracket{}T,\approx\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T, c\COLON T)\; ((a \odot b) \odot c) \mathrel{\mathtt{:}}\approx\COLON (a \odot (b \odot c))\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The trait \TYP{ApproximatelyAssociative} requires the operator \EXP{\odot} to be
+\emph{approximately associative}; that is, the expressions \EXP{(a \odot b) \odot c}
+and \EXP{a \odot (b \odot c)} always produce results that are ``close enough'' to each other
+as determined by the specified \EXP{\approx} predicate.
+
+
+%trait Associative[\T extends Associative[\T,ODOT\], opr ODOT\]
+%    extends { ApproximatelyAssociative[\T,ODOT,=\], EquivalenceRelation[\T,=\] }
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Associative}\llbracket{}T \KWD{extends} \TYP{Associative}\llbracket{}T,\odot\rrbracket, \KWD{opr} \mathord{\odot}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{ApproximatelyAssociative}\llbracket{}T,\odot,=\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The trait \TYP{Associative} requires the operator \EXP{\odot} to be
+\emph{associative}; that is, the expressions \EXP{(a \odot b) \odot c}
+and \EXP{a \odot (b \odot c)} always produce equal results.
+
+
+%trait IdempotentBinaryOperator[\T extends IdempotentBinaryOperator[\T,ODOT\], opr ODOT\]
+%    extends { BinaryOperator[\T,ODOT\], EquivalenceRelation[\T,=\] }
+%  property FORALL (a: T) (a ODOT a) :=: a
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{IdempotentBinaryOperator}\llbracket{}T \KWD{extends} \TYP{IdempotentBinaryOperator}\llbracket{}T,\odot\rrbracket, \KWD{opr} \mathord{\odot}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryOperator}\llbracket{}T,\odot\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T)\; (a \odot a) \ASSIGN\COLON a\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An idempotent binary operator has the property that if its two arguments are the same
+then the result is equal to each argument.  For example, \OPR{MAX} and \OPR{MIN} are
+idempotent, as are \EXP{\wedge} and \EXP{\vee} applied to boolean arguments and
+\EXP{\cap} and \EXP{\cup} applied to sets; but \EXP{+} applied
+to integers is not idempotent because \EXP{1+1} does not produce \EXP{1},
+and \EXP{\oplus} applied to boolean arguments is not idempotent because
+\EXP{\VAR{true} \oplus \VAR{true}} produces \VAR{false}.  The property of idempotency
+is sometimes of interest when performing reductions such as \EXP{\mathop{\OPR{MAX}}\limits_{i\leftarrow{}1\COLONOP{}n} a_i}.
+
+
+%trait HasLeftIdentity[\T extends HasLeftIdentity[\T,ODOT\], opr ODOT\]
+%    extends { BinaryOperator[\T,ODOT\], EquivalenceRelation[\T,=\] }
+%  abstract isLeftIdentity(): Boolean
+%  property FORALL (a: T, b: T) a.isLeftIdentity() IMPLIES: ((a ODOT b) = b)
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{HasLeftIdentity}\llbracket{}T \KWD{extends}\:\TYP{HasLeftIdentity}\llbracket{}T,\odot\rrbracket, \KWD{opr} \mathord{\odot}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryOperator}\llbracket{}T,\odot\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{abstract}\:\VAR{isLeftIdentity}()\COLON \TYP{Boolean}\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; a.\VAR{isLeftIdentity}() \rightarrow\COLON ((a \odot b) = b)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A value \VAR{e} is a \emph{left identity} for
+a binary operator \EXP{\odot} if the result of \EXP{\odot} always equals the right-hand operand
+whenever \VAR{e} is the left-hand operand.
+For example, \EXP{0} is a left identity for the \EXP{+} operator
+on integers and the empty set is a left identity for the \EXP{\cup} operator on sets.
+
+
+%trait HasRightIdentity[\T extends HasRightIdentity[\T,ODOT\], opr ODOT\]
+%    extends { BinaryOperator[\T,ODOT\], EquivalenceRelation[\T,=\] }
+%  abstract isRightIdentity(): Boolean
+%  property FORALL (a: T, b: T) b.isRightIdentity() IMPLIES: ((a ODOT b) = a)
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{HasRightIdentity}\llbracket{}T \KWD{extends}\:\TYP{HasRightIdentity}\llbracket{}T,\odot\rrbracket, \KWD{opr} \mathord{\odot}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryOperator}\llbracket{}T,\odot\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{abstract}\:\VAR{isRightIdentity}()\COLON \TYP{Boolean}\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; b.\VAR{isRightIdentity}() \rightarrow\COLON ((a \odot b) = a)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A value \VAR{e} is a \emph{right identity} for
+a binary operator \EXP{\odot} if the result of \EXP{\odot} always equals the right-hand operand
+whenever \VAR{e} is the left-hand operand.
+For example, \EXP{0} is a right identity (as well as a left identity) for the \EXP{+} operator
+on integers and the empty set is a right identity (as well as a left identity) for the \EXP{\cup} operator on sets.
+By way of contrast, \EXP{1} is a right identity for division of rationals but not a left identity.
+
+
+%value object Identity[\opr ODOT\] end
+%
+%trait HasIdentity[\T extends HasIdentity[\T,ODOT\], opr ODOT\]
+%    extends { HasLeftIdentity[\T,ODOT\], HasRightIdentity[\T,ODOT\] }
+%    where { T coerces Identity[\ODOT\] }
+%  property FORALL (a: T) (a ODOT Identity[\ODOT\]) = a
+%  property FORALL (a: T) (Identity[\ODOT\] ODOT a) = a
+%  property FORALL (a: T) a.isLeftIdentity() <-> (a = Identity[\ODOT\])
+%  property FORALL (a: T) a.isRightIdentity() <-> (a = Identity[\ODOT\])
+%end
+\begin{Fortress}
+\(\KWD{value}\;\;\KWD{object}\:\TYP{Identity}\llbracket\KWD{opr} \mathord{\odot}\rrbracket \KWD{end}\)\\[4pt]
+\(\KWD{trait}\:\TYP{HasIdentity}\llbracket{}T \KWD{extends}\:\TYP{HasIdentity}\llbracket{}T,\odot\rrbracket, \KWD{opr} \mathord{\odot}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{HasLeftIdentity}\llbracket{}T,\odot\rrbracket, \TYP{HasRightIdentity}\llbracket{}T,\odot\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\odot\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T)\; (a \odot\:\TYP{Identity}\llbracket\odot\rrbracket) = a\)\\
+\(  \KWD{property} \forall (a\COLON T)\; (\TYP{Identity}\llbracket\odot\rrbracket \odot\:{a}) = a\)\\
+\(  \KWD{property} \forall (a\COLON T)\; a.\VAR{isLeftIdentity}() \leftrightarrow (a = \TYP{Identity}\llbracket\odot\rrbracket)\)\\
+\(  \KWD{property} \forall (a\COLON T)\; a.\VAR{isRightIdentity}() \leftrightarrow (a = \TYP{Identity}\llbracket\odot\rrbracket)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+If the same value is both a left identity and a right identity for \EXP{\odot},
+then it may be called simply an \emph{identity}---in fact, \emph{the} identity,
+for it is unique and may be obtained by coercing the object
+named \EXP{\TYP{Identity}\llbracket\odot\rrbracket} to type \VAR{T}.
+
+
+%trait ApproximatelyHasInverses[\T extends ApproximatelyHasInverses[\T,ODOT,OSLASH,APPROX\],
+%                                opr ODOT, opr OSLASH, opr APPROX\]
+%    extends { HasIdentity[\T,ODOT\], UnaryOperator[\T,OSLASH\], BinaryOperator[\T,OSLASH\] }
+%    where { T coerces Identity[\ODOT\] }
+%  property FORALL (a: T) (a ODOT (OSLASH a)) :APPROX: Identity[\ODOT\]
+%  property FORALL (a: T) ((OSLASH a) ODOT a) :APPROX: Identity[\ODOT\]
+%  property FORALL (a: T, b: T) (a OSLASH b) :APPROX: (a ODOT (OSLASH b))
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{ApproximatelyHasInverses}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{ApproximatelyHasInverses}\llbracket{}T,\odot,\oslash,\approx\rrbracket,\)\\
+\(                                \KWD{opr} \mathord{\odot}, \KWD{opr} \mathord{\oslash}, \KWD{opr} \mathord{\approx}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{HasIdentity}\llbracket{}T,\odot\rrbracket, \TYP{UnaryOperator}\llbracket{}T,\oslash\rrbracket, \TYP{BinaryOperator}\llbracket{}T,\oslash\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\odot\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T)\; (a \odot (\oslash a)) \mathrel{\mathtt{:}}\approx\COLON \TYP{Identity}\llbracket\odot\rrbracket\)\\
+\(  \KWD{property} \forall (a\COLON T)\; ((\oslash a) \odot a) \mathrel{\mathtt{:}}\approx\COLON \TYP{Identity}\llbracket\odot\rrbracket\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a \oslash b) \mathrel{\mathtt{:}}\approx\COLON (a \odot (\oslash b))\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A set of values with a binary operator \EXP{\odot} has \emph{approximate inverses} if and only if
+the operator has an identity and for every value \VAR{a} there is another value \EXP{a'}
+such that the result of applying \EXP{\odot} to \VAR{a} and \EXP{a'} (in either order) is ``close enough''
+to the identity.
+The unary operator \EXP{\oslash} returns the approximate inverse of its argument;
+as a notational convenience, it may also be used as a binary operator.
+
+
+%trait HasInverses[\T extends HasInverses[\T,ODOT,OSLASH\], opr ODOT, opr OSLASH\]
+%    extends { ApproximatelyHasInverses[\T,ODOT,OSLASH,=\] }
+%    where { T coerces Identity[\ODOT\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{HasInverses}\llbracket{}T \KWD{extends}\:\TYP{HasInverses}\llbracket{}T,\odot,\oslash\rrbracket, \KWD{opr} \mathord{\odot}, \KWD{opr} \mathord{\oslash}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{ApproximatelyHasInverses}\llbracket{}T,\odot,\oslash,=\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\odot\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A set of values with a binary operator \EXP{\odot} has \emph{inverses} if and only if
+the operator has an identity and for every value \VAR{a} there is another value \EXP{a'}
+such that the result of applying \EXP{\odot} to \VAR{a} and \EXP{a'} (in either order) equals the identity.
+The unary operator \EXP{\oslash} returns the inverse of its argument;
+as a notational convenience, it may also be used as a binary operator.
+A standard example is the operator \EXP{+} on integers; the identity is \EXP{0},
+and the unary operator \EXP{-} returns the additive inverse of its argument,
+such that \EXP{a+(-a)=0} and \EXP{(-a)+a=0}.  Moreover, \EXP{-} may be used
+as a binary operator: \EXP{a-b} means \EXP{a+(-b)}.
+
+
+%value object Operator[\opr ODOT\] end
+%
+%trait HasLeftZeroes[\T extends HasLeftZeroes[\T,ODOT\], opr ODOT\]
+%    extends { BinaryOperator[\T,ODOT\], EquivalenceRelation[\T,=\] }
+%  abstract isLeftZero(_: Operator[\ODOT\]): Boolean
+%  property FORALL (a: T, b: T) a.isLeftZero(Operator[\ODOT\]) IMPLIES: ((a ODOT b) = a)
+%end
+\begin{Fortress}
+\(\KWD{value}\;\;\KWD{object}\:\TYP{Operator}\llbracket\KWD{opr} \mathord{\odot}\rrbracket \KWD{end}\)\\[4pt]
+\(\KWD{trait}\:\TYP{HasLeftZeroes}\llbracket{}T \KWD{extends}\:\TYP{HasLeftZeroes}\llbracket{}T,\odot\rrbracket, \KWD{opr} \mathord{\odot}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryOperator}\llbracket{}T,\odot\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{abstract}\:\VAR{isLeftZero}(\_\COLON \TYP{Operator}\llbracket\odot\rrbracket)\COLON \TYP{Boolean}\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; a.\VAR{isLeftZero}(\TYP{Operator}\llbracket\odot\rrbracket) \rightarrow\COLON ((a \odot b) = a)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A value \VAR{e} is a \emph{left zero} for
+a binary operator \EXP{\odot} if the result of \EXP{\odot} always equals \VAR{e} whenever \VAR{e} is the left-hand operand.
+For example, \EXP{-\infty} is a left zero for the \OPR{MIN} operator
+on floating-point values, and \EXP{\mathtt{7FFFFFFF}_{16}} is a left zero
+for the \OPR{MAX} operator on values of type \EXP{\mathbb{Z}32}.
+The purpose of this trait is to specify a method that says whether a given
+element is a left zero for \EXP{\odot}.
+
+
+%trait HasRightZeroes[\T extends HasRightZeroes[\T,ODOT\], opr ODOT\]
+%    extends { BinaryOperator[\T,ODOT\], EquivalenceRelation[\T,=\] }
+%  abstract isRightZero(_: Operator[\ODOT\]): Boolean
+%  property FORALL (a: T, b: T) b.isRightZero(Operator[\ODOT\]) IMPLIES: ((a ODOT b) = b)
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{HasRightZeroes}\llbracket{}T \KWD{extends}\:\TYP{HasRightZeroes}\llbracket{}T,\odot\rrbracket, \KWD{opr} \mathord{\odot}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryOperator}\llbracket{}T,\odot\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{abstract}\:\VAR{isRightZero}(\_\COLON \TYP{Operator}\llbracket\odot\rrbracket)\COLON \TYP{Boolean}\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; b.\VAR{isRightZero}(\TYP{Operator}\llbracket\odot\rrbracket) \rightarrow\COLON ((a \odot b) = b)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A value \VAR{e} is a \emph{right zero} for a binary operator
+\EXP{\odot} if the result of \EXP{\odot} always equals \VAR{e} whenever \VAR{e}
+is the right-hand operand.  For example, \EXP{-\infty} is a right zero
+(as well as a left zero) for the \OPR{MIN} operator on
+floating-point values, and \EXP{\mathtt{7FFFFFFF}_{16}} is a right zero
+(as well as a left zero) for the \OPR{MAX} operator on
+values of type \EXP{\mathbb{Z}32}.  By way of contrast, \EXP{0} is a left zero
+for the arithmetic shift operator on integers, but is not a right zero.
+The purpose of this trait is to specify a method that says whether a given
+element is a right zero for \EXP{\odot}.
+
+
+
+%trait ApproximatelyLeftDistributive[\T extends ApproximatelyLeftDistributive[\T,OTIMES,OPLUS,APPROX\],
+%                                     opr OTIMES, opr OPLUS, opr APPROX\]
+%    extends { BinaryOperator[\T,OTIMES\], BinaryOperator[\T,OPLUS\], Reflexive[\T,APPROX\], Symmetric[\T,APPROX\] }
+%  property FORALL (a: T, b: T, c: T) (a OTIMES (b OPLUS c)) :APPROX: ((a OTIMES b) OPLUS (a OTIMES c))
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{ApproximatelyLeftDistributive}\llbracket\null\)\pushtabs\=\+\(T \KWD{extends} \TYP{ApproximatelyLeftDistributive}\llbracket{}T,\otimes,\oplus,\approx\rrbracket,\)\\
+\(                                     \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\approx}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryOperator}\llbracket{}T,\otimes\rrbracket, \TYP{BinaryOperator}\llbracket{}T,\oplus\rrbracket, \TYP{Reflexive}\llbracket{}T,\approx\rrbracket, \TYP{Symmetric}\llbracket{}T,\approx\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T, c\COLON T)\; (a \otimes (b \oplus c)) \mathrel{\mathtt{:}}\approx\COLON ((a \otimes b) \oplus (a \otimes c))\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The trait \TYP{ApproximatelyLeftDistributive} requires the operator \EXP{\otimes} to be
+\emph{approximately left distributive} over the operator \EXP{\oplus}; that is, the expressions \EXP{a \otimes (b \oplus c)}
+and \EXP{(a \otimes b) \oplus (a \otimes c)} always produce results that are ``close enough'' to each other
+as determined by the specified \EXP{\approx} predicate.
+
+
+%trait LeftDistributive[\T extends LeftDistributive[\T,OTIMES,OPLUS\], opr OTIMES, opr OPLUS\]
+%    extends { ApproximatelyLeftDistributive[\T,OTIMES,OPLUS,=\], EquivalenceRelation[\T,=\] }
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{LeftDistributive}\llbracket{}T \KWD{extends} \TYP{LeftDistributive}\llbracket{}T,\otimes,\oplus\rrbracket, \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\oplus}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{ApproximatelyLeftDistributive}\llbracket{}T,\otimes,\oplus,=\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The trait \TYP{LeftDistributive} requires the operator \EXP{\otimes} to be
+\emph{left distributive} over the operator \EXP{\oplus}; that is, the expressions \EXP{a \otimes (b \oplus c)}
+and \EXP{(a \otimes b) \oplus (a \otimes c)} always produce equal results.
+
+
+%trait ApproximatelyRightDistributive[\T extends ApproximatelyRightDistributive[\T,OTIMES,OPLUS,APPROX\],
+%                                      opr OTIMES, opr OPLUS, opr APPROX\]
+%    extends { BinaryOperator[\T,OTIMES\], BinaryOperator[\T,OPLUS\], Reflexive[\T,APPROX\], Symmetric[\T,APPROX\] }
+%  property FORALL (a: T, b: T, c: T) ((a OPLUS b) OTIMES c) :APPROX: ((a OTIMES c) OPLUS (b OTIMES c))
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{ApproximatelyRightDistributive}\llbracket\null\)\pushtabs\=\+\(T \KWD{extends} \TYP{ApproximatelyRightDistributive}\llbracket{}T,\otimes,\oplus,\approx\rrbracket,\)\\
+\(                                      \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\approx}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryOperator}\llbracket{}T,\otimes\rrbracket, \TYP{BinaryOperator}\llbracket{}T,\oplus\rrbracket, \TYP{Reflexive}\llbracket{}T,\approx\rrbracket, \TYP{Symmetric}\llbracket{}T,\approx\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T, c\COLON T)\; ((a \oplus b) \otimes c) \mathrel{\mathtt{:}}\approx\COLON ((a \otimes c) \oplus (b \otimes c))\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The trait \TYP{ApproximatelyRightDistributive} requires the operator \EXP{\otimes} to be
+\emph{approximately right distributive} over the operator \EXP{\oplus}; that is, the expressions \EXP{(a \oplus b) \otimes c}
+and \EXP{(a \otimes c) \oplus (b \otimes c)} always produce results that are ``close enough'' to each other
+as determined by the specified \EXP{\approx} predicate.
+
+
+%trait RightDistributive[\T extends RightDistributive[\T,OTIMES,OPLUS\], opr OTIMES, opr OPLUS\]
+%    extends { ApproximatelyRightDistributive[\T,OTIMES,OPLUS,=\], EquivalenceRelation[\T,=\] }
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{RightDistributive}\llbracket{}T \KWD{extends} \TYP{RightDistributive}\llbracket{}T,\otimes,\oplus\rrbracket, \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\oplus}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{ApproximatelyRightDistributive}\llbracket{}T,\otimes,\oplus,=\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The trait \TYP{RightDistributive} requires the operator \EXP{\otimes} to be
+\emph{right distributive} over the operator \EXP{\oplus}; that is, the expressions \EXP{(a \oplus b) \otimes c}
+and \EXP{(a \otimes c) \oplus (b \otimes c)} always produce equal results.
+
+
+%trait ApproximatelyDistributive[\T extends ApproximatelyDistributive[\T,OTIMES,OPLUS,APPROX\],
+%                                 opr OTIMES, opr OPLUS, opr APPROX\]
+%    extends { ApproximatelyLeftDistributive[\T,OTIMES,OPLUS,APPROX\],
+%              ApproximatelyRightDistributive[\T,OTIMES,OPLUS,APPROX\] }
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{ApproximatelyDistributive}\llbracket\null\)\pushtabs\=\+\(T \KWD{extends} \TYP{ApproximatelyDistributive}\llbracket{}T,\otimes,\oplus,\approx\rrbracket,\)\\
+\(                                 \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\approx}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\null\)\pushtabs\=\+\(\TYP{ApproximatelyLeftDistributive}\llbracket{}T,\otimes,\oplus,\approx\rrbracket,\)\\
+\(              \TYP{ApproximatelyRightDistributive}\llbracket{}T,\otimes,\oplus,\approx\rrbracket\,\}\)\-\-\\\poptabs\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The trait \TYP{ApproximatelyDistributive} requires the operator \EXP{\otimes} to be
+both approximately left distributive and approximately right distributive over the operator \EXP{\oplus}.
+
+
+%trait Distributive[\T extends Distributive[\T,OTIMES,OPLUS\], opr OTIMES, opr OPLUS\]
+%    extends { ApproximatelyDistributive[\T,OTIMES,OPLUS,=\], LeftDistributive[\T,OTIMES,OPLUS\], RightDistributive[\T,OTIMES,OPLUS\] }
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{Distributive}\llbracket{}T \KWD{extends} \TYP{Distributive}\llbracket{}T,\otimes,\oplus\rrbracket, \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\oplus}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{ApproximatelyDistributive}\llbracket{}T,\otimes,\oplus,=\rrbracket, \TYP{LeftDistributive}\llbracket{}T,\otimes,\oplus\rrbracket, \TYP{RightDistributive}\llbracket{}T,\otimes,\oplus\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The trait \TYP{Distributive} requires the operator \EXP{\otimes} to be
+both left distributive and right distributive over the operator \EXP{\oplus}.
+
+
+%trait AbsorptionLaws[\T extends AbsorptionLaws[\T,SQCAP,SQCUP\], opr SQCAP, opr SQCUP\]
+%    extends { BinaryOperator[\T,SQCAP\], BinaryOperator[\T,SQCUP\], EquivalenceRelation[\T,=\] }
+%  property FORALL (a: T, b: T) a SQCUP (a SQCAP b) = a = a SQCAP (a SQCUP b)
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{AbsorptionLaws}\llbracket{}T \KWD{extends}\:\TYP{AbsorptionLaws}\llbracket{}T,\sqcap,\sqcup\rrbracket, \KWD{opr} \mathord{\sqcap}, \KWD{opr} \mathord{\sqcup}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryOperator}\llbracket{}T,\sqcap\rrbracket, \TYP{BinaryOperator}\llbracket{}T,\sqcup\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; a \sqcup (a \sqcap b) = a = a \sqcap (a \sqcup b)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The \emph{absorption laws} specify certain relationships between two operators \EXP{\sqcap} and \EXP{\sqcup}.
+These laws are one of the defining properties of a lattice.
+
+
+%value object Zero[\opr OTIMES\] end
+%
+%trait ApproximateZeroAnnihilation[\T extends ApproximateZeroAnnihilation[\T,OTIMES,APPROX\],
+%                                   opr OTIMES, opr APPROX\]
+%    extends { BinaryOperator[\T,OTIMES\], Reflexive[\T,APPROX\], Symmetric[\T,APPROX\] }
+%    where { T coerces Zero[\OTIMES\] }
+%  property FORALL (a: T) (Zero[\OTIMES\] OTIMES a) :APPROX: Zero[\OTIMES\]
+%  property FORALL (a: T) (a OTIMES Zero[\OTIMES\]) :APPROX: Zero[\OTIMES\]
+%end
+\begin{Fortress}
+\(\KWD{value}\;\;\KWD{object}\:\TYP{Zero}\llbracket\KWD{opr} \mathord{\otimes}\rrbracket \KWD{end}\)\\[4pt]
+\(\KWD{trait}\:\TYP{ApproximateZeroAnnihilation}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{ApproximateZeroAnnihilation}\llbracket{}T,\otimes,\approx\rrbracket,\)\\
+\(                                   \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\approx}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryOperator}\llbracket{}T,\otimes\rrbracket, \TYP{Reflexive}\llbracket{}T,\approx\rrbracket, \TYP{Symmetric}\llbracket{}T,\approx\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T)\; (\TYP{Zero}\llbracket\otimes\rrbracket \otimes a) \mathrel{\mathtt{:}}\approx\COLON \TYP{Zero}\llbracket\otimes\rrbracket\)\\
+\(  \KWD{property} \forall (a\COLON T)\; (a \otimes \TYP{Zero}\llbracket\otimes\rrbracket) \mathrel{\mathtt{:}}\approx\COLON \TYP{Zero}\llbracket\otimes\rrbracket\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An operator \EXP{\otimes} obeys \emph{approximate zero annihilation} if and only if there is an element
+(call it \VAR{z}) that when used as either operand of \EXP{\otimes} causes the result to be
+``close enough'' to \VAR{z} as determined by the specified \EXP{\approx} predicate.
+This zero element may be obtained by coercing the object
+named \EXP{\TYP{Zero}\llbracket\otimes\rrbracket} to type \VAR{T}.
+
+
+
+%trait ZeroAnnihilation[\T extends ZeroAnnihilation[\T,OTIMES\], opr OTIMES\]
+%    extends { ApproximateZeroAnnihilation[\T,OTIMES,=\], EquivalenceRelation[\T,=\],
+%              HasLeftZeroes[\T,OTIMES\], HasRightZeroes[\T,OTIMES\] }
+%    where { T coerces Zero[\OTIMES\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{ZeroAnnihilation}\llbracket{}T \KWD{extends}\:\TYP{ZeroAnnihilation}\llbracket{}T,\otimes\rrbracket, \KWD{opr} \mathord{\otimes}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateZeroAnnihilation}\llbracket{}T,\otimes,=\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket,\)\\
+\(              \TYP{HasLeftZeroes}\llbracket{}T,\otimes\rrbracket, \TYP{HasRightZeroes}\llbracket{}T,\otimes\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An operator \EXP{\otimes} obeys \emph{zero annihilation} if and only if there is an element
+(call it \VAR{z}) that when used as either operand of \EXP{\otimes} causes the result to equal \VAR{z}.
+This element is both a left zero and a right zero for \EXP{\otimes}.
+
+
+%trait NoApproximateZeroDivisors[\T extends NoApproximateZeroDivisors[\T,OTIMES,APPROX\], opr OTIMES, opr APPROX\]
+%    extends { BinaryOperator[\T,OTIMES\], Reflexive[\T,APPROX\], Symmetric[\T,APPROX\] }
+%    where { T coerces Zero[\OTIMES\] }
+%  property FORALL (a: T, b: T) (a OTIMES b :APPROX: Zero[\OTIMES\]) IMPLIES (a APPROX Zero[\OTIMES\] OR b APPROX Zero[\OTIMES\])
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{NoApproximateZeroDivisors}\llbracket{}T \KWD{extends}\:\TYP{NoApproximateZeroDivisors}\llbracket{}T,\otimes,\approx\rrbracket, \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\approx}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryOperator}\llbracket{}T,\otimes\rrbracket, \TYP{Reflexive}\llbracket{}T,\approx\rrbracket, \TYP{Symmetric}\llbracket{}T,\approx\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a \otimes b \mathrel{\mathtt{:}}\approx\COLON \TYP{Zero}\llbracket\otimes\rrbracket) \rightarrow (a \approx \TYP{Zero}\llbracket\otimes\rrbracket \vee b \approx \TYP{Zero}\llbracket\otimes\rrbracket)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An operator \EXP{\otimes} has \emph{no approximate zero divisors} if and only if,
+for every pair of elements \VAR{a} and \VAR{b}, if \EXP{a \otimes b} is approximately zero
+then at least one of \VAR{a} and \VAR{b} is approximately zero.  (Great care
+is needed in the definition of ``approximately'' for this to work out correctly
+in practice.)
+
+
+
+%trait NoZeroDivisors[\T extends NoZeroDivisors[\T,OTIMES\], opr OTIMES\]
+%    extends { NoApproximateZeroDivisors[\T,OTIMES,=\], EquivalenceRelation[\T,=\] }
+%    where { T coerces Zero[\OTIMES\] }
+%  property FORALL (a: T, b: T) (a OTIMES b = Zero[\OTIMES\]) IMPLIES (a = Zero[\OTIMES\] OR b = Zero[\OTIMES\])
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{NoZeroDivisors}\llbracket{}T \KWD{extends}\:\TYP{NoZeroDivisors}\llbracket{}T,\otimes\rrbracket, \KWD{opr} \mathord{\otimes}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{NoApproximateZeroDivisors}\llbracket{}T,\otimes,=\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a \otimes b = \TYP{Zero}\llbracket\otimes\rrbracket) \rightarrow (a = \TYP{Zero}\llbracket\otimes\rrbracket \vee b = \TYP{Zero}\llbracket\otimes\rrbracket)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An operator \EXP{\otimes} has \emph{no zero divisors} if and only if,
+for every pair of elements \VAR{a} and \VAR{b}, if \EXP{a \otimes b} is zero
+then at least one of \VAR{a} and \VAR{b} is zero (put conversely,
+if \VAR{a} and \VAR{b} are both nonzero then \EXP{a \otimes b} must be nonzero).
+
+
+
+%trait UnaryOperatorSubstitutionLaws[\T extends UnaryOperatorSubstitutionLaws[\T,ODOT,EQ\],
+%                                     opr ODOT, opr SIMEQ\]
+%    extends { UnaryOperator[\T,ODOT\], BinaryPredicate[\T,SIMEQ\] }
+%  property FORALL (a: T, a': T) (a SIMEQ a') IMPLIES: (ODOT a) SIMEQ (ODOT a')
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{UnaryOperatorSubstitutionLaws}\llbracket\null\)\pushtabs\=\+\(T \KWD{extends} \TYP{UnaryOperatorSubstitutionLaws}\llbracket{}T,\odot,=\rrbracket,\)\\
+\(                                     \KWD{opr} \mathord{\odot}, \KWD{opr} \mathord{\simeq}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{UnaryOperator}\llbracket{}T,\odot\rrbracket, \TYP{BinaryPredicate}\llbracket{}T,\simeq\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, a'\COLON T)\; (a \simeq a') \rightarrow\COLON (\odot a) \simeq (\odot a')\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+This peculiarly spiffy trait states that the unary operator \EXP{\odot} is consistent under substitutions
+described by the relation \EXP{\simeq} (which is typically, but not always, an equivalence relation);
+that is, the result produced by \EXP{\odot} is unchanged if its
+argument is replaced by some other value that is equivalent.
+
+
+%trait BinaryOperatorSubstitutionLaws[\T extends BinaryOperatorSubstitutionLaws[\T,ODOT,EQ\],
+%                                      opr ODOT, opr SIMEQ\]
+%    extends { BinaryOperator[\T,ODOT\], BinaryPredicate[\T,SIMEQ\] }
+%  property FORALL (a: T, a': T) (a SIMEQ a') IMPLIES: FORALL (b: T) (a ODOT b) SIMEQ (a' ODOT b)
+%  property FORALL (b: T, b': T) (b SIMEQ b') IMPLIES: FORALL (a: T) (a ODOT b) SIMEQ (a ODOT b')
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{BinaryOperatorSubstitutionLaws}\llbracket\null\)\pushtabs\=\+\(T \KWD{extends} \TYP{BinaryOperatorSubstitutionLaws}\llbracket{}T,\odot,=\rrbracket,\)\\
+\(                                      \KWD{opr} \mathord{\odot}, \KWD{opr} \mathord{\simeq}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryOperator}\llbracket{}T,\odot\rrbracket, \TYP{BinaryPredicate}\llbracket{}T,\simeq\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, a'\COLON T)\; (a \simeq a') \rightarrow\COLON \forall (b\COLON T)\; (a \odot b) \simeq (a' \odot b)\)\\
+\(  \KWD{property} \forall (b\COLON T, b'\COLON T)\; (b \simeq b') \rightarrow\COLON \forall (a\COLON T)\; (a \odot b) \simeq (a \odot b')\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+This equally spiffy trait states that the binary operator \EXP{\odot} is consistent under substitutions
+described by the relation \EXP{\simeq} (which is typically, but not always, an equivalence relation);
+that is, the result produced by \EXP{\odot} is unchanged if either
+argument is replaced by some other value that is equivalent.  (It is
+then easy to prove that the result is unchanged even when \emph{both}
+arguments are replaced by equivalent values.)
+
+
+
+\section{Lattices}
+\seclabel{opr-lattices}
+
+%% trait Semilattice[\T extends Semilattice[\T,SQCAP\], opr SQCAP\]
+%%     extends { Commutative[\T,SQCAP\], Associative[\T,SQCAP\], IdempotentBinaryOperator[\T,SQCAP\] }
+%% end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{Semilattice}\llbracket{}T \KWD{extends}\:\TYP{Semilattice}\llbracket{}T,\sqcap\rrbracket, \KWD{opr} \mathord{\sqcap}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{Commutative}\llbracket{}T,\sqcap\rrbracket, \TYP{Associative}\llbracket{}T,\sqcap\rrbracket, \TYP{IdempotentBinaryOperator}\llbracket{}T,\sqcap\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{semilattice} is a set of values with an operator \EXP{\sqcap} that is commutative, associative, and idempotent.
+Examples of such operators are \EXP{\wedge}, \EXP{\vee}, \EXP{\cap}, \EXP{\cup}, \OPR{MAX}, \OPR{MIN}, \OPR{GCD}, and \OPR{LCM}.
+
+
+%% trait BoundedSemilattice[\T extends BoundedSemilattice[\T,SQCAP\], opr SQCAP\]
+%%     extends { Semilattice[\T,SQCAP\], CommutativeMonoid[\T,SQCAP\] }
+%%     where { T coerces Identity[\SQCAP\] }
+%% end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{BoundedSemilattice}\llbracket{}T \KWD{extends}\:\TYP{BoundedSemilattice}\llbracket{}T,\sqcap\rrbracket, \KWD{opr} \mathord{\sqcap}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{Semilattice}\llbracket{}T,\sqcap\rrbracket, \TYP{CommutativeMonoid}\llbracket{}T,\sqcap\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\sqcap\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{bounded semilattice} is a semilattice for which the operator \EXP{\sqcap} has an identity.
+For example, the boolean value \VAR{true} is the identity for \EXP{\wedge} and the empty set is the identity for \EXP{\cup}.
+
+
+%% trait Lattice[\T extends Lattice[\T,SQCAP,SQCUP\], opr SQCAP, opr SQCUP\]
+%%     extends { Semilattice[\T,SQCAP\], Semilattice[\T,SQCUP\], AbsorptionLaws[\T,SQCAP,SQCUP\] }
+%% end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{Lattice}\llbracket{}T \KWD{extends}\:\TYP{Lattice}\llbracket{}T,\sqcap,\sqcup\rrbracket, \KWD{opr} \mathord{\sqcap}, \KWD{opr} \mathord{\sqcup}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{Semilattice}\llbracket{}T,\sqcap\rrbracket, \TYP{Semilattice}\llbracket{}T,\sqcup\rrbracket, \TYP{AbsorptionLaws}\llbracket{}T,\sqcap,\sqcup\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{lattice} is a pair of semilattices that share the same set of values
+and whose operators together obey the absorption laws.  One operator
+(here, by convention, \EXP{\sqcap}) is called the \emph{meet} operator
+and the other (here, by convention, \EXP{\sqcup}) is called the \emph{join}
+operator.
+
+
+%% trait MeetBoundedLattice[\T extends MeetBoundedLattice[\T,SQCAP,SQCUP\], opr SQCAP, opr SQCUP\]
+%%     extends { Lattice[\T,SQCAP,SQCUP\], BoundedSemilattice[\T,SQCAP\] }
+%%     where { T coerces Identity[\SQCAP\] }
+%% end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{MeetBoundedLattice}\llbracket{}T \KWD{extends}\:\TYP{MeetBoundedLattice}\llbracket{}T,\sqcap,\sqcup\rrbracket, \KWD{opr} \mathord{\sqcap}, \KWD{opr} \mathord{\sqcup}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{Lattice}\llbracket{}T,\sqcap,\sqcup\rrbracket, \TYP{BoundedSemilattice}\llbracket{}T,\sqcap\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\sqcap\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+If the semilattice associated with the meet operator of a lattice is bounded,
+then the lattice is a \emph{meet-bounded lattice}.
+
+
+%% trait JoinBoundedLattice[\T extends JoinBoundedLattice[\T,SQCAP,SQCUP\], opr SQCAP, opr SQCUP\]
+%%     extends { Lattice[\T,SQCAP,SQCUP\], BoundedSemilattice[\T,SQCUP\]}
+%%     where { T coerces Identity[\SQCUP\] }
+%% end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{JoinBoundedLattice}\llbracket{}T \KWD{extends}\:\TYP{JoinBoundedLattice}\llbracket{}T,\sqcap,\sqcup\rrbracket, \KWD{opr} \mathord{\sqcap}, \KWD{opr} \mathord{\sqcup}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{Lattice}\llbracket{}T,\sqcap,\sqcup\rrbracket, \TYP{BoundedSemilattice}\llbracket{}T,\sqcup\rrbracket\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\sqcup\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+If the semilattice associated with the join operator of a lattice is bounded,
+then the lattice is a \emph{join-bounded lattice}.
+
+
+%% trait BoundedLattice[\T extends BoundedLattice[\T,SQCAP,SQCUP\], opr SQCAP, opr SQCUP\]
+%%     extends { MeetBoundedLattice[\T,SQCAP,SQCUP\], JoinBoundedLattice[\T,SQCAP,SQCUP\]}
+%%     where { T coerces Identity[\SQCAP\], T coerces Identity[\SQCUP\] }
+%% end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{BoundedLattice}\llbracket{}T \KWD{extends}\:\TYP{BoundedLattice}\llbracket{}T,\sqcap,\sqcup\rrbracket, \KWD{opr} \mathord{\sqcap}, \KWD{opr} \mathord{\sqcup}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{MeetBoundedLattice}\llbracket{}T,\sqcap,\sqcup\rrbracket, \TYP{JoinBoundedLattice}\llbracket{}T,\sqcap,\sqcup\rrbracket\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\sqcap\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\sqcup\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+If a lattice is both meet-bounded and join-bounded, then we simply say that the lattice is \emph{bounded}.
+
+
+
+%% trait PartialOrderAndLattice[\T extends PartialOrderLattice[\T,PRECEQ,SQCAP,SQCUP\],
+%%                               opr PRECEQ, opr SQCAP, opr SQCUP\]
+%%     extends { PartialOrder[\T,PRECEQ\], Lattice[\T,SQCAP,SQCUP\] }
+%%   property FORALL (a: T, b: T) (a PRECEQ b) IFF (a SQCAP b = a)
+%%   property FORALL (a: T, b: T) (a PRECEQ b) IFF (a SQCUP b = b)
+%% end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{PartialOrderAndLattice}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{PartialOrderLattice}\llbracket{}T,\preccurlyeq,\sqcap,\sqcup\rrbracket,\)\\
+\(                              \KWD{opr} \mathord{\preccurlyeq}, \KWD{opr} \mathord{\sqcap}, \KWD{opr} \mathord{\sqcup}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{PartialOrder}\llbracket{}T,\preccurlyeq\rrbracket, \TYP{Lattice}\llbracket{}T,\sqcap,\sqcup\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a \preccurlyeq b) \leftrightarrow (a \sqcap b = a)\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (a \preccurlyeq b) \leftrightarrow (a \sqcup b = b)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+Every lattice defines a partial order, and every partial order defines a lattice.
+This trait specifies that the type \VAR{T} provides the necessary operators to be regarded
+as both a partial order and a lattice, states the properties that should relate
+the partial-order behavior to the lattice behavior.  As an example, if the set of values
+is the integers \EXP{\mathbb{Z}}, the partial order operator is \OPR{LEQ}, and the lattice operators
+are \OPR{MIN} and \OPR{MAX}, then the requirements are that \EXP{a \OPR{LEQ}\:b} if and only if \EXP{a = a \OPR{MIN}\:b},
+and that \EXP{a \OPR{LEQ}\:b} if and only if \EXP{b = a \OPR{MAX} b}.
+
+
+%% trait PartialOrderAndMeetBoundedLattice[\T extends PartialOrderAndMeetBoundedLattice[\T,PRECEQ,SQCAP,SQCUP\],
+%%                                          opr PRECEQ, opr SQCAP, opr SQCUP\]
+%%     extends { PartialOrderAndLattice[\T,PRECEQ,SQCAP,SQCUP\],
+%%               MeetBoundedLattice[\T,SQCAP,SQCUP\],
+%%               HasMinimalElement[\T,PRECEQ\] }
+%%     where { T coerces Identity[\SQCAP\], T coerces MaximalElement[\PRECEQ\] }
+%%   property coerce_[\T\](Identity[\SQCAP\]) = coerce_[\T\](MaximalElement[\PRECEQ\])
+%% end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{PartialOrderAndMeetBoundedLattice}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{PartialOrderAndMeetBoundedLattice}\llbracket{}T,\preccurlyeq,\sqcap,\sqcup\rrbracket,\)\\
+\(                                         \KWD{opr} \mathord{\preccurlyeq}, \KWD{opr} \mathord{\sqcap}, \KWD{opr} \mathord{\sqcup}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{PartialOrderAndLattice}\llbracket{}T,\preccurlyeq,\sqcap,\sqcup\rrbracket,\)\\
+\(              \TYP{MeetBoundedLattice}\llbracket{}T,\sqcap,\sqcup\rrbracket,\)\\
+\(              \TYP{HasMinimalElement}\llbracket{}T,\preccurlyeq\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\sqcap\rrbracket, T \KWD{coerces}\:\TYP{MaximalElement}\llbracket\preccurlyeq\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property}\:\mathrm{coerce}\llbracket{}T\rrbracket(\TYP{Identity}\llbracket\sqcap\rrbracket) = \mathrm{coerce}\llbracket{}T\rrbracket(\TYP{MaximalElement}\llbracket\preccurlyeq\rrbracket)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The partial order associated with a meet-bounded lattice should have a maximal element,
+which is the identity of the meet operator.
+
+
+%% trait PartialOrderAndJoinBoundedLattice[\T extends PartialOrderAndJoinBoundedLattice[\T,PRECEQ,SQCAP,SQCUP\],
+%%                                          opr PRECEQ, opr SQCAP, opr SQCUP\]
+%%     extends { PartialOrderAndLattice[\T,PRECEQ,SQCAP,SQCUP\],
+%%               JoinBoundedLattice[\T,SQCAP,SQCUP\],
+%%               HasMaximalElement[\T,PRECEQ\] }
+%%     where { T coerces Identity[\SQCUP\], T coerces MinimalElement[\PRECEQ\] }
+%%   property coerce_[\T\](Identity[\SQCUP\]) = coerce_[\T\](MinimalElement[\PRECEQ\])
+%% end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{PartialOrderAndJoinBoundedLattice}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{PartialOrderAndJoinBoundedLattice}\llbracket{}T,\preccurlyeq,\sqcap,\sqcup\rrbracket,\)\\
+\(                                         \KWD{opr} \mathord{\preccurlyeq}, \KWD{opr} \mathord{\sqcap}, \KWD{opr} \mathord{\sqcup}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{PartialOrderAndLattice}\llbracket{}T,\preccurlyeq,\sqcap,\sqcup\rrbracket,\)\\
+\(              \TYP{JoinBoundedLattice}\llbracket{}T,\sqcap,\sqcup\rrbracket,\)\\
+\(              \TYP{HasMaximalElement}\llbracket{}T,\preccurlyeq\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\sqcup\rrbracket, T \KWD{coerces}\:\TYP{MinimalElement}\llbracket\preccurlyeq\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property}\:\mathrm{coerce}\llbracket{}T\rrbracket(\TYP{Identity}\llbracket\sqcup\rrbracket) = \mathrm{coerce}\llbracket{}T\rrbracket(\TYP{MinimalElement}\llbracket\preccurlyeq\rrbracket)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The partial order associated with a join-bounded lattice should have a minimal element,
+which is the identity of the join operator.
+
+
+%% trait PartialOrderAndBoundedLattice[\T extends PartialOrderAndBoundedLattice[\T,PRECEQ,SQCAP,SQCUP\],
+%%                                      opr PRECEQ, opr SQCAP, opr SQCUP\]
+%%     extends { PartialOrderAndMeetBoundedLattice[\T,PRECEQ,SQCAP,SQCUP\],
+%%               PartialOrderAndJoinBoundedLattice[\T,PRECEQ,SQCAP,SQCUP\] }
+%% end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{PartialOrderAndBoundedLattice}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{PartialOrderAndBoundedLattice}\llbracket{}T,\preccurlyeq,\sqcap,\sqcup\rrbracket,\)\\
+\(                                     \KWD{opr} \mathord{\preccurlyeq}, \KWD{opr} \mathord{\sqcap}, \KWD{opr} \mathord{\sqcup}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{PartialOrderAndMeetBoundedLattice}\llbracket{}T,\preccurlyeq,\sqcap,\sqcup\rrbracket,\)\\
+\(              \TYP{PartialOrderAndJoinBoundedLattice}\llbracket{}T,\preccurlyeq,\sqcap,\sqcup\rrbracket\,\}\)\-\-\\\poptabs\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+The partial order associated with a bounded lattice should have both a minimal element
+and a maximal element.
+
+
+
+\section{Monoids, Groups, Rings, and Fields}
+\seclabel{monoids-groups-rings-fields}
+
+%trait ApproximateMonoid[\T extends ApproximateMonoid[\T,ODOT,APPROX\], opr ODOT, opr APPROX\]
+%    extends { ApproximatelyAssociative[\T,ODOT,APPROX\], HasIdentity[\T,ODOT\] }
+%    where { T coerces Identity[\ODOT\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{ApproximateMonoid}\llbracket{}T \KWD{extends}\:\TYP{ApproximateMonoid}\llbracket{}T,\odot,\approx\rrbracket, \KWD{opr} \mathord{\odot}, \KWD{opr} \mathord{\approx}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{ApproximatelyAssociative}\llbracket{}T,\odot,\approx\rrbracket, \TYP{HasIdentity}\llbracket{}T,\odot\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\odot\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{approximate monoid} is a set of values with an approximately associative binary operator \EXP{\odot}
+that has an identity.
+For example, floating-point multiplication has identity \EXP{1} and is approximately associative.
+
+
+%trait Monoid[\T extends Monoid[\T,ODOT\], opr ODOT\]
+%    extends { ApproximateMonoid[\T,ODOT,=\], Associative[\T,ODOT\] }
+%    where { T coerces Identity[\ODOT\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{Monoid}\llbracket{}T \KWD{extends}\:\TYP{Monoid}\llbracket{}T,\odot\rrbracket, \KWD{opr} \mathord{\odot}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{ApproximateMonoid}\llbracket{}T,\odot,=\rrbracket, \TYP{Associative}\llbracket{}T,\odot\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\odot\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{monoid} is a set of values with an associative binary operator \EXP{\odot}
+that has an identity.
+For example, trait \TYP{String} extends \EXP{\TYP{Monoid}\llbracket\TYP{String},\|\rrbracket}
+where \EXP{\|} is the string concatenation operator.  Note that string concatenation
+is associative but not commutative and that the empty string is the identity for string concatenation,
+so coercing \EXP{\TYP{Identity}\llbracket\,\|\,\rrbracket} to type \TYP{String} produces the
+empty string.
+
+
+%trait ApproximateCommutativeMonoid[\T extends ApproximateCommutativeMonoid[\T,OPLUS,APPROX\],
+%                                    opr OPLUS, opr APPROX\]
+%    extends { ApproximateMonoid[\T,OPLUS,APPROX\], ApproximatelyCommutative[\T,OPLUS,APPROX\] }
+%    where { T coerces Identity[\OPLUS\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{ApproximateCommutativeMonoid}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{ApproximateCommutativeMonoid}\llbracket{}T,\oplus,\approx\rrbracket,\)\\
+\(                                    \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\approx}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{ApproximateMonoid}\llbracket{}T,\oplus,\approx\rrbracket, \TYP{ApproximatelyCommutative}\llbracket{}T,\oplus,\approx\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{approximate commutative monoid} is an approximate monoid whose binary operator is also approximately commutative.
+For example, floating-point multiplication has identity \EXP{1} and is approximately associative and also
+approximately (indeed, exactly) commutative.
+
+
+%trait CommutativeMonoid[\T extends CommutativeMonoid[\T,OPLUS\], opr OPLUS\]
+%    extends { ApproximateCommutativeMonoid[\T,OPLUS,=\], Monoid[\T,OPLUS\], Commutative[\T,OPLUS\] }
+%    where { T coerces Identity[\OPLUS\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{CommutativeMonoid}\llbracket{}T \KWD{extends}\:\TYP{CommutativeMonoid}\llbracket{}T,\oplus\rrbracket, \KWD{opr} \mathord{\oplus}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{ApproximateCommutativeMonoid}\llbracket{}T,\oplus,=\rrbracket, \TYP{Monoid}\llbracket{}T,\oplus\rrbracket, \TYP{Commutative}\llbracket{}T,\oplus\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{commutative monoid} is a monoid whose binary operator is also commutative.
+For example, the operator \EXP{\wedge} on boolean values is associative and commutative and has identity \VAR{true};
+likewise, the operator \EXP{\vee} on boolean values is associative and commutative and has identity \VAR{false}.
+
+
+%trait ApproximateGroup[\T extends ApproximateGroup[\T,ODOT,OSLASH,APPROX\], opr ODOT, opr OSLASH, opr APPROX\]
+%    extends { ApproximateMonoid[\T,ODOT,APPROX\], ApproximatelyHasInverses[\T,ODOT,OSLASH,APPROX\] }
+%    where { T coerces Identity[\ODOT\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{ApproximateGroup}\llbracket{}T \KWD{extends}\:\TYP{ApproximateGroup}\llbracket{}T,\odot,\oslash,\approx\rrbracket, \KWD{opr} \mathord{\odot}, \KWD{opr} \mathord{\oslash}, \KWD{opr} \mathord{\approx}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{ApproximateMonoid}\llbracket{}T,\odot,\approx\rrbracket, \TYP{ApproximatelyHasInverses}\llbracket{}T,\odot,\oslash,\approx\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\odot\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{approximate group} is an approximate monoid that has approximate inverses.
+For example, a floating-point representation of quaternions with multiplication
+as the binary operator would form an approximate group.
+
+
+%trait Group[\T extends Group[\T,ODOT,OSLASH\], opr ODOT, opr OSLASH\]
+%    extends { ApproximateGroup[\T,ODOT,OSLASH,=\], Monoid[\T,ODOT\], HasInverses[\T,ODOT,OSLASH\] }
+%    where { T coerces Identity[\ODOT\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{Group}\llbracket{}T \KWD{extends}\:\TYP{Group}\llbracket{}T,\odot,\oslash\rrbracket, \KWD{opr} \mathord{\odot}, \KWD{opr} \mathord{\oslash}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{ApproximateGroup}\llbracket{}T,\odot,\oslash,=\rrbracket, \TYP{Monoid}\llbracket{}T,\odot\rrbracket, \TYP{HasInverses}\llbracket{}T,\odot,\oslash\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\odot\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{group} is monoid that has inverses.
+
+
+%trait ApproximateAbelianGroup[\T extends ApproximateAbelianGroup[\T,OPLUS,OMINUS,APPROX\],
+%                               opr OPLUS, opr OMINUS, opr APPROX\]
+%    extends { ApproximateGroup[\T,OPLUS,OMINUS,APPROX\],
+%              ApproximateCommutativeMonoid[\T,OPLUS,APPROX\] }
+%    where { T coerces Identity[\OPLUS\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{ApproximateAbelianGroup}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{ApproximateAbelianGroup}\llbracket{}T,\oplus,\ominus,\approx\rrbracket,\)\\
+\(                               \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\ominus}, \KWD{opr} \mathord{\approx}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateGroup}\llbracket{}T,\oplus,\ominus,\approx\rrbracket,\)\\
+\(              \TYP{ApproximateCommutativeMonoid}\llbracket{}T,\oplus,\approx\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{approximate Abelian group} is an approximate group whose binary operator is also approximately commutative.
+
+
+%trait AbelianGroup[\T extends AbelianGroup[\T,OPLUS,OMINUS\], opr OPLUS, opr OMINUS\]
+%    extends { ApproximateAbelianGroup[\T,OPLUS,OMINUS,=\],
+%              Group[\T,OPLUS,OMINUS\], CommutativeMonoid[\T,OPLUS\] }
+%    where { T coerces Identity[\OPLUS\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{AbelianGroup}\llbracket{}T \KWD{extends}\:\TYP{AbelianGroup}\llbracket{}T,\oplus,\ominus\rrbracket, \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\ominus}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateAbelianGroup}\llbracket{}T,\oplus,\ominus,=\rrbracket,\)\\
+\(              \TYP{Group}\llbracket{}T,\oplus,\ominus\rrbracket, \TYP{CommutativeMonoid}\llbracket{}T,\oplus\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{Abelian group} is group whose binary operator is also commutative.
+(The term ``Abelian'' is traditionally used instead of ``commutative'' when
+discussing groups, in tribute to mathematician Niels Henrik Abel.)
+For example, the integers with the binary addition operator \EXP{+},
+unary negation operator \EXP{-}, and identity \EXP{0} form an Abelian group.
+As another example, the boolean values with the binary exclusive \scap{or} operator \EXP{\oplus} and
+unary negation operator \OPR{IDENTITY} form an Abelian group; the value \VAR{false} is the identity
+for \EXP{\oplus}.
+
+
+%trait ApproximateSemiRing[\T extends ApproximateSemiRing[\T,OPLUS,OTIMES,APPROX\],
+%                           opr OPLUS, opr OTIMES, opr APPROX\]
+%    extends { ApproximateCommutativeMonoid[\T,OPLUS,APPROX\],
+%              ApproximateMonoid[\T,OTIMES,APPROX\],
+%              ApproximatelyDistributive[\T,OTIMES,OPLUS,APPROX\],
+%              ApproximateZeroAnnihilation[\T,OTIMES,APPROX\] }
+%    where { T coerces Identity[\OPLUS\], T coerces Identity[\OTIMES\], T coerces Zero[\OTIMES\] }
+%  property coerce_[\T\](Zero[\OTIMES\]) APPROX coerce_[\T\](Identity[\OPLUS\])
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{ApproximateSemiRing}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{ApproximateSemiRing}\llbracket{}T,\oplus,\otimes,\approx\rrbracket,\)\\
+\(                           \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\approx}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateCommutativeMonoid}\llbracket{}T,\oplus,\approx\rrbracket,\)\\
+\(              \TYP{ApproximateMonoid}\llbracket{}T,\otimes,\approx\rrbracket,\)\\
+\(              \TYP{ApproximatelyDistributive}\llbracket{}T,\otimes,\oplus,\approx\rrbracket,\)\\
+\(              \TYP{ApproximateZeroAnnihilation}\llbracket{}T,\otimes,\approx\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\otimes\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property}\:\mathrm{coerce}\llbracket{}T\rrbracket(\TYP{Zero}\llbracket\otimes\rrbracket) \approx \mathrm{coerce}\llbracket{}T\rrbracket(\TYP{Identity}\llbracket\oplus\rrbracket)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{approximate semiring} is a set of values that has two binary operators \EXP{\oplus} and \EXP{\otimes},
+such that (a) the values form an approximate commutative monoid with \EXP{\oplus};
+(b) the values form an approximate monoid with \EXP{\otimes};
+(c) \EXP{\otimes} is approximately distributive over \EXP{\oplus}; and
+(d) \EXP{\otimes} obeys approximate zero annihilation, where the zero
+for \EXP{\otimes} is the same as the identity for \EXP{\oplus}.
+
+
+%trait SemiRing[\T extends SemiRing[\T,OPLUS,OTIMES\], opr OPLUS, opr OTIMES\]
+%    extends { ApproximateSemiRing[\T,OPLUS,OTIMES,=\],
+%              CommutativeMonoid[\T,OPLUS\],
+%              Monoid[\T,OTIMES\],
+%              Distributive[\T,OTIMES,OPLUS\],
+%              ZeroAnnihilation[\T,OTIMES\] }
+%    where { T coerces Identity[\OPLUS\], T coerces Identity[\OTIMES\], T coerces Zero[\OTIMES\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{SemiRing}\llbracket{}T \KWD{extends}\:\TYP{SemiRing}\llbracket{}T,\oplus,\otimes\rrbracket, \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\otimes}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateSemiRing}\llbracket{}T,\oplus,\otimes,=\rrbracket,\)\\
+\(              \TYP{CommutativeMonoid}\llbracket{}T,\oplus\rrbracket,\)\\
+\(              \TYP{Monoid}\llbracket{}T,\otimes\rrbracket,\)\\
+\(              \TYP{Distributive}\llbracket{}T,\otimes,\oplus\rrbracket,\)\\
+\(              \TYP{ZeroAnnihilation}\llbracket{}T,\otimes\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\otimes\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{semiring} is a set of values that has two binary operators \EXP{\oplus} and \EXP{\otimes},
+such that (a) the values form a commutative monoid with \EXP{\oplus};
+(b) the values form a monoid with \EXP{\otimes};
+(c) \EXP{\otimes} is distributive over \EXP{\oplus}; and
+(d) \EXP{\otimes} obeys zero annihilation, where the zero
+for \EXP{\otimes} is the same as the identity for \EXP{\oplus}.
+
+
+%trait ApproximateRing[\T extends ApproximateRing[\T,OPLUS,OMINUS,OTIMES,APPROX\],
+%                       opr OPLUS, opr OMINUS, opr OTIMES, opr APPROX\]
+%    extends { ApproximateAbelianGroup[\T,OPLUS,OMINUS,APPROX\],
+%              ApproximateSemiRing[\T,OPLUS,OTIMES,APPROX\] }
+%    where { T coerces Identity[\OPLUS\], T coerces Identity[\OTIMES\], T coerces Zero[\OTIMES\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{ApproximateRing}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{ApproximateRing}\llbracket{}T,\oplus,\ominus,\otimes,\approx\rrbracket,\)\\
+\(                       \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\ominus}, \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\approx}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateAbelianGroup}\llbracket{}T,\oplus,\ominus,\approx\rrbracket,\)\\
+\(              \TYP{ApproximateSemiRing}\llbracket{}T,\oplus,\otimes,\approx\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\otimes\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{approximate ring} is an approximate semiring that also has
+a unary operator \EXP{\ominus} that returns inverses for the \EXP{\oplus} operator
+so that the values form an approximate group with \EXP{\oplus} and \EXP{\ominus}.
+
+
+%trait Ring[\T extends Ring[\T,OPLUS,OMINUS,OTIMES\], opr OPLUS, opr OMINUS, opr OTIMES\]
+%    extends { ApproximateRing[\T,OPLUS,OMINUS,OTIMES,=\],
+%              AbelianGroup[\T,OPLUS,OMINUS\],
+%              SemiRing[\T,OPLUS,OTIMES\] }
+%    where { T coerces Identity[\OPLUS\], T coerces Identity[\OTIMES\], T coerces Zero[\OTIMES\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{Ring}\llbracket{}T \KWD{extends}\:\TYP{Ring}\llbracket{}T,\oplus,\ominus,\otimes\rrbracket, \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\ominus}, \KWD{opr} \mathord{\otimes}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateRing}\llbracket{}T,\oplus,\ominus,\otimes,=\rrbracket,\)\\
+\(              \TYP{AbelianGroup}\llbracket{}T,\oplus,\ominus\rrbracket,\)\\
+\(              \TYP{SemiRing}\llbracket{}T,\oplus,\otimes\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\otimes\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{ring} is a semiring that also has
+a unary operator \EXP{\ominus} that returns inverses for the \EXP{\oplus} operator
+so that the values form a group with \EXP{\oplus} and \EXP{\ominus}.
+
+
+%trait ApproximateCommutativeRing[\T extends ApproximateCommutativeRing[\T,OPLUS,OMINUS,OTIMES,APPROX\],
+%                                  opr OPLUS, opr OMINUS, opr OTIMES, opr APPROX\]
+%    extends { ApproximateRing[\T,OPLUS,OMINUS,OTIMES,APPROX\],
+%              ApproximateCommutativeMonoid[\T,OTIMES,APPROX\] }
+%    where { T coerces Identity[\OPLUS\], T coerces Identity[\OTIMES\], T coerces Zero[\OTIMES\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{ApproximateCommutativeRing}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{ApproximateCommutativeRing}\llbracket{}T,\oplus,\ominus,\otimes,\approx\rrbracket,\)\\
+\(                                  \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\ominus}, \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\approx}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateRing}\llbracket{}T,\oplus,\ominus,\otimes,\approx\rrbracket,\)\\
+\(              \TYP{ApproximateCommutativeMonoid}\llbracket{}T,\otimes,\approx\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\otimes\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{approximate commutative ring} is an approximate ring for which the
+binary operator \EXP{\otimes} is also approximately commutative.
+
+
+%trait CommutativeRing[\T extends CommutativeRing[\T,OPLUS,OMINUS,OTIMES\],
+%                       opr OPLUS, opr OMINUS, opr OTIMES\]
+%    extends { ApproximateCommutativeRing[\T,OPLUS,OMINUS,OTIMES,=\],
+%              Ring[\T,OPLUS,OMINUS,OTIMES\],
+%              CommutativeMonoid[\T,OTIMES\] }
+%    where { T coerces Identity[\OPLUS\], T coerces Identity[\OTIMES\], T coerces Zero[\OTIMES\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{CommutativeRing}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{CommutativeRing}\llbracket{}T,\oplus,\ominus,\otimes\rrbracket,\)\\
+\(                       \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\ominus}, \KWD{opr} \mathord{\otimes}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateCommutativeRing}\llbracket{}T,\oplus,\ominus,\otimes,=\rrbracket,\)\\
+\(              \TYP{Ring}\llbracket{}T,\oplus,\ominus,\otimes\rrbracket,\)\\
+\(              \TYP{CommutativeMonoid}\llbracket{}T,\otimes\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\otimes\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{commutative ring} is a ring for which the binary operator \EXP{\otimes} is also commutative.
+
+
+%trait ApproximateMathematicalDomain[\T extends ApproximateRing[\T,OPLUS,OMINUS,OTIMES,APPROX\],
+%                                     opr OPLUS, opr OMINUS, opr OTIMES, opr APPROX\]
+%    extends { ApproximateRing[\T,OPLUS,OMINUS,OTIMES,APPROX\],
+%              NoApproximateZeroDivisors[\T,OTIMES,APPROX\] }
+%    where { T coerces Identity[\OPLUS\], T coerces Identity[\OTIMES\], T coerces Zero[\OTIMES\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{ApproximateMathematicalDomain}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{ApproximateRing}\llbracket{}T,\oplus,\ominus,\otimes,\approx\rrbracket,\)\\
+\(                                     \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\ominus}, \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\approx}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateRing}\llbracket{}T,\oplus,\ominus,\otimes,\approx\rrbracket,\)\\
+\(              \TYP{NoApproximateZeroDivisors}\llbracket{}T,\otimes,\approx\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\otimes\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{approximate mathematical domain} is an approximate ring that has
+no approximate zero divisors.
+
+
+%trait MathematicalDomain[\T extends Ring[\T,OPLUS,OMINUS,OTIMES\],
+%                          opr OPLUS, opr OMINUS, opr OTIMES\]
+%    extends { ApproximateMathematicalDomain[\T,OPLUS,OMINUS,OTIMES,=\],
+%              Ring[\T,OPLUS,OMINUS,OTIMES\],
+%              NoZeroDivisors[\T,OTIMES\] }
+%    where { T coerces Identity[\OPLUS\], T coerces Identity[\OTIMES\], T coerces Zero[\OTIMES\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{MathematicalDomain}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{Ring}\llbracket{}T,\oplus,\ominus,\otimes\rrbracket,\)\\
+\(                          \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\ominus}, \KWD{opr} \mathord{\otimes}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateMathematicalDomain}\llbracket{}T,\oplus,\ominus,\otimes,=\rrbracket,\)\\
+\(              \TYP{Ring}\llbracket{}T,\oplus,\ominus,\otimes\rrbracket,\)\\
+\(              \TYP{NoZeroDivisors}\llbracket{}T,\otimes\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\otimes\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{mathematical domain} is a ring that has no zero divisors.  (In mathematics,
+this is called simply a \emph{domain}.  In Fortress, the term ``mathematical domain''
+is used instead to avoid consuming this word for a concept that
+admittedly is used rarely in programming when compared with other
+common single words such as``ring'' and ``field.'')
+
+
+%trait ApproximateIntegralDomain[\T extends ApproximateRing[\T,OPLUS,OMINUS,OTIMES,APPROX\],
+%                                 opr OPLUS, opr OMINUS, opr OTIMES, opr APPROX\]
+%    extends { ApproximateMathematicalDomain[\T,OPLUS,OMINUS,OTIMES,APPROX\],
+%              ApproximateCommutativeRing[\T,OPLUS,OMINUS,OTIMES,APPROX\] }
+%    where { T coerces Identity[\OPLUS\], T coerces Identity[\OTIMES\], T coerces Zero[\OTIMES\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{ApproximateIntegralDomain}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{ApproximateRing}\llbracket{}T,\oplus,\ominus,\otimes,\approx\rrbracket,\)\\
+\(                                 \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\ominus}, \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\approx}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateMathematicalDomain}\llbracket{}T,\oplus,\ominus,\otimes,\approx\rrbracket,\)\\
+\(              \TYP{ApproximateCommutativeRing}\llbracket{}T,\oplus,\ominus,\otimes,\approx\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\otimes\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{approximate integral domain} is an approximate mathematical domain
+for which the binary operator \EXP{\otimes} is also approximately commutative.
+
+
+%trait IntegralDomain[\T extends Ring[\T,OPLUS,OMINUS,OTIMES\],
+%                      opr OPLUS, opr OMINUS, opr OTIMES\]
+%    extends { ApproximateIntegralDomain[\T,OPLUS,OMINUS,OTIMES,=\],
+%              MathematicalDomain[\T,OPLUS,OMINUS,OTIMES\],
+%              CommutativeRing[\T,OPLUS,OMINUS,OTIMES\] }
+%    where { T coerces Identity[\OPLUS\], T coerces Identity[\OTIMES\], T coerces Zero[\OTIMES\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{IntegralDomain}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{Ring}\llbracket{}T,\oplus,\ominus,\otimes\rrbracket,\)\\
+\(                      \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\ominus}, \KWD{opr} \mathord{\otimes}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateIntegralDomain}\llbracket{}T,\oplus,\ominus,\otimes,=\rrbracket,\)\\
+\(              \TYP{MathematicalDomain}\llbracket{}T,\oplus,\ominus,\otimes\rrbracket,\)\\
+\(              \TYP{CommutativeRing}\llbracket{}T,\oplus,\ominus,\otimes\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\otimes\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{integral domain} is a mathematical domain
+for which the binary operator \EXP{\otimes} is also commutative.
+
+
+%trait ApproximateDivisionRing[\T extends ApproximateDivisionRing[\T,U,OPLUS,OMINUS,OTIMES,OSLASH,APPROX\],
+%                               U extends T,
+%                               opr OPLUS, opr OMINUS, opr OTIMES, opr OSLASH, opr APPROX\]
+%    extends { ApproximateMathematicalDomain[\T,OPLUS,OMINUS,OTIMES,APPROX\],
+%              ApproximateGroup[\U,OTIMES,OSLASH,APPROX\] }
+%    where { T coerces Identity[\OPLUS\], T coerces Identity[\OTIMES\], T coerces Zero[\OTIMES\] }
+%  property NOT instanceOf[\U\](coerce_[\T\](Zero[\OPLUS\]))
+%  property FORALL (a: T) a NE Zero[\OPLUS\] IMPLIES instanceOf[\U\](a)
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{ApproximateDivisionRing}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{ApproximateDivisionRing}\llbracket{}T,U,\oplus,\ominus,\otimes,\oslash,\approx\rrbracket,\)\\
+\(                               U \KWD{extends}\:T,\)\\
+\(                               \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\ominus}, \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\oslash}, \KWD{opr} \mathord{\approx}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateMathematicalDomain}\llbracket{}T,\oplus,\ominus,\otimes,\approx\rrbracket,\)\\
+\(              \TYP{ApproximateGroup}\llbracket{}U,\otimes,\oslash,\approx\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\otimes\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \neg \VAR{instanceOf}\llbracket{}U\rrbracket(\mathrm{coerce}\llbracket{}T\rrbracket(\TYP{Zero}\llbracket\oplus\rrbracket))\)\\
+\(  \KWD{property} \forall (a\COLON T)\; a \neq \TYP{Zero}\llbracket\oplus\rrbracket \rightarrow \VAR{instanceOf}\llbracket{}U\rrbracket(a)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{approximate division ring} is an approximate ring for which the
+binary operator \EXP{\otimes} also has approximate inverses, so that
+the values other than the zero of \EXP{\otimes} form an approximate group with \EXP{\otimes} and \EXP{\oslash}.
+An approximate division ring is in fact also an approximate mathematical domain.
+
+
+%trait DivisionRing[\T extends DivisionRing[\T,U,OPLUS,OMINUS,OTIMES,OSLASH\],
+%                    U extends T,
+%                    opr OPLUS, opr OMINUS, opr OTIMES, opr OSLASH\]
+%    extends { ApproximateDivisionRing[\T,U,OPLUS,OMINUS,OTIMES,OSLASH,=\],
+%              MathematicalDomain[\T,OPLUS,OMINUS,OTIMES,APPROX\],
+%              Group[\U,OTIMES,OSLASH\] }
+%    where { T coerces Identity[\OPLUS\], T coerces Identity[\OTIMES\], T coerces Zero[\OTIMES\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{DivisionRing}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{DivisionRing}\llbracket{}T,U,\oplus,\ominus,\otimes,\oslash\rrbracket,\)\\
+\(                    U \KWD{extends}\:T,\)\\
+\(                    \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\ominus}, \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\oslash}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateDivisionRing}\llbracket{}T,U,\oplus,\ominus,\otimes,\oslash,=\rrbracket,\)\\
+\(              \TYP{MathematicalDomain}\llbracket{}T,\oplus,\ominus,\otimes,\approx\rrbracket,\)\\
+\(              \TYP{Group}\llbracket{}U,\otimes,\oslash\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\otimes\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{division ring} is a ring for which the
+binary operator \EXP{\otimes} also has inverses, so that
+the values other than the zero of \EXP{\otimes} form a group with \EXP{\otimes} and \EXP{\oslash}.
+A division ring is in fact also a mathematical domain.
+
+
+%trait ApproximateField[\T extends ApproximateField[\T,U,OPLUS,OMINUS,OTIMES,OSLASH,APPROX\],
+%                        U extends T,
+%                        opr OPLUS, opr OMINUS, opr OTIMES, opr OSLASH, opr APPROX\]
+%    extends { ApproximateIntegralDomain[\T,OPLUS,OMINUS,OTIMES,APPROX\],
+%              ApproximateDivisionRing[\T,U,OPLUS,OMINUS,OTIMES,OSLASH,APPROX\],
+%              ApproximateAbelianGroup[\T,OTIMES,OSLASH,APPROX\] }
+%    where { T coerces Identity[\OPLUS\], T coerces Identity[\OTIMES\], T coerces Zero[\OTIMES\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{ApproximateField}\llbracket\,\null\)\pushtabs\=\+\(T \KWD{extends}\:\TYP{ApproximateField}\llbracket{}T,U,\oplus,\ominus,\otimes,\oslash,\approx\rrbracket,\)\\
+\(                        U \KWD{extends}\:T,\)\\
+\(                        \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\ominus}, \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\oslash}, \KWD{opr} \mathord{\approx}\rrbracket\)\-\\\poptabs
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateIntegralDomain}\llbracket{}T,\oplus,\ominus,\otimes,\approx\rrbracket,\)\\
+\(              \TYP{ApproximateDivisionRing}\llbracket{}T,U,\oplus,\ominus,\otimes,\oslash,\approx\rrbracket,\)\\
+\(              \TYP{ApproximateAbelianGroup}\llbracket{}T,\otimes,\oslash,\approx\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\otimes\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+An \emph{approximate field} is an approximately commutative ring that is also an
+approximate division ring: the binary operator \EXP{\otimes} is approximately
+commutative and also has approximate inverses, so that the values other than
+the zero of \EXP{\otimes} form an approximate Abelian group with \EXP{\otimes} and \EXP{\oslash}.
+An approximate field is in fact also an approximate integral domain.
+
+
+%trait Field[\T extends Field[\T,U,OPLUS,OMINUS,OTIMES,OSLASH\], U extends T, opr OPLUS, opr OMINUS, opr OTIMES, opr OSLASH\]
+%    extends { ApproximateField[\T,U,OPLUS,OMINUS,OTIMES,OSLASH,=\],
+%              IntegralDomain[\T,OPLUS,OMINUS,OTIMES\],
+%              DivisionRing[\T,U,OPLUS,OMINUS,OTIMES,OSLASH\],
+%              AbelianGroup[\U,OTIMES,OSLASH\] }
+%    where { T coerces Identity[\OPLUS\], T coerces Identity[\OTIMES\], T coerces Zero[\OTIMES\] }
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{Field}\llbracket{}T \KWD{extends}\:\TYP{Field}\llbracket{}T,U,\oplus,\ominus,\otimes,\oslash\rrbracket, U \KWD{extends}\:T, \KWD{opr} \mathord{\oplus}, \KWD{opr} \mathord{\ominus}, \KWD{opr} \mathord{\otimes}, \KWD{opr} \mathord{\oslash}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{ApproximateField}\llbracket{}T,U,\oplus,\ominus,\otimes,\oslash,=\rrbracket,\)\\
+\(              \TYP{IntegralDomain}\llbracket{}T,\oplus,\ominus,\otimes\rrbracket,\)\\
+\(              \TYP{DivisionRing}\llbracket{}T,U,\oplus,\ominus,\otimes,\oslash\rrbracket,\)\\
+\(              \TYP{AbelianGroup}\llbracket{}U,\otimes,\oslash\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{Identity}\llbracket\oplus\rrbracket, T \KWD{coerces}\:\TYP{Identity}\llbracket\otimes\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\otimes\rrbracket\,\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{field} is a commutative ring that is also a division ring: the binary
+operator \EXP{\otimes} is commutative and also has inverses, so that the values
+other than the zero of \EXP{\otimes} form an Abelian group with \EXP{\otimes} and \EXP{\oslash}.
+A field is in fact also an integral domain.
+
+
+\section{Boolean Algebras}
+
+
+%value object ComplementBound[\opr ODOT\] end
+%
+%trait HasComplements[\T extends HasComplements[\T,ODOT,SIM\], opr ODOT, opr SIM\]
+%    extends { BinaryOperator[\T,ODOT\], UnaryOperator[\T,SIM\], EquivalenceRelation[\T,=\] }
+%    where { T coerces ComplementBound[\ODOT\] }
+%  property FORALL (a: T) (a ODOT (SIM a)) :=: ComplementBound[\ODOT\]
+%end
+\begin{Fortress}
+\(\KWD{value}\;\;\KWD{object}\:\TYP{ComplementBound}\llbracket\KWD{opr} \mathord{\odot}\rrbracket \KWD{end}\)\\[4pt]
+\(\KWD{trait}\:\TYP{HasComplements}\llbracket{}T \KWD{extends}\:\TYP{HasComplements}\llbracket{}T,\odot,\sim\rrbracket, \KWD{opr} \mathord{\odot}, \KWD{opr} \mathord{\sim}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\TYP{BinaryOperator}\llbracket{}T,\odot\rrbracket, \TYP{UnaryOperator}\llbracket{}T,\sim\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket\,\}\)\\
+\(    \KWD{where} \{\,T \KWD{coerces}\:\TYP{ComplementBound}\llbracket\odot\rrbracket\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T)\; (a \odot (\sim\:{a})) \CONDEQ\:\TYP{ComplementBound}\llbracket\odot\rrbracket\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A set of values with a binary operator \EXP{\odot} has \emph{complements} if and only if
+there is a specific value \VAR{e} such that for every value \VAR{a} there is another value \EXP{a'}
+such that the result of applying \EXP{\odot} to \VAR{a} and \EXP{a'} (in either order) equals the specified value \VAR{e}.
+This value may be obtained by coercing the object named \EXP{\TYP{ComplementBound}\llbracket\odot\rrbracket} to type \VAR{T}.
+The unary operator \EXP{\sim} returns the complement of its argument with respect to the operator \EXP{\odot}.
+
+Note that the trait \TYP{HasComplements} is similar to the trait \TYP{HasInverses},
+but \TYP{HasComplements} does not require that that specified element be an identity
+of the binary operator.
+
+
+%trait DeMorgan[\T extends DeMorgan[\T,CURLYAND,CURLYOR,SIM\], opr CURLYAND, opr CURLYOR, opr SIM\]
+%    extends { BinaryOperator[\T,CURLYAND\], BinaryOperator[\T,CURLYOR\],
+%              UnaryOperator[\T,SIM\], EquivalenceRelation[\T,=\] }
+%  property FORALL (a: T, b: T) (SIM (a CURLYOR b)) :=: ((SIM a) CURLYAND (SIM b))
+%end
+\begin{Fortress}
+\(\KWD{trait} \TYP{DeMorgan}\llbracket{}T \KWD{extends} \TYP{DeMorgan}\llbracket{}T,\curlywedge,\curlyvee,\sim\rrbracket, \KWD{opr} \mathord{\curlywedge}, \KWD{opr} \mathord{\curlyvee}, \KWD{opr} \mathord{\sim}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\null\)\pushtabs\=\+\(\TYP{BinaryOperator}\llbracket{}T,\curlywedge\rrbracket, \TYP{BinaryOperator}\llbracket{}T,\curlyvee\rrbracket,\)\\
+\(              \TYP{UnaryOperator}\llbracket{}T,\sim\rrbracket, \TYP{EquivalenceRelation}\llbracket{}T,=\rrbracket\,\}\)\-\-\\\poptabs\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; (\sim (a \curlyvee b)) \ASSIGN\COLON ((\sim a) \curlywedge (\sim b))\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+This trait expresses De Morgan's law for two binary operators \EXP{\curlywedge} and \EXP{\curlyvee}
+and a unary operator \EXP{\sim}: the expressions \EXP{\sim (a \curlyvee b)} and \EXP{(\sim a) \curlywedge (\sim b)}
+produce equal results.
+
+
+%trait BooleanAlgebra[\T extends BooleanAlgebra[\T,CURLYAND,CURLYOR,SIM,XOR\], opr CURLYAND, opr CURLYOR, opr SIM, opr XOR\]
+%    extends { Commutative[\T,CURLYAND\], Associative[\T,CURLYAND\],
+%              Commutative[\T,CURLYOR\], Associative[\T,CURLYOR\],
+%              IdempotentBinaryOperator[\T,CURLYAND\],
+%              IdempotentBinaryOperator[\T,CURLYOR\],
+%              HasIdentity[\T,CURLYAND\], HasIdentity[\T,CURLYOR\],
+%              HasComplements[\T,CURLYOR,SIM\], HasComplements[\T,CURLYAND,SIM\],
+%              Distributive[\T,CURLYAND,CURLYOR\], Distributive[\T,CURLYOR,CURLYAND\],
+%              DeMorgan[\T,CURLYAND,CURLYOR,SIM\], DeMorgan[\T,CURLYOR,CURLYAND,SIM\],
+%              BoundedLattice[\T,CURLYAND,CURLYOR\], Ring[\T,XOR,IDENTITY,CURLYAND\] }
+%    where { T coerces Identity[\CURLYAND\], T coerces ComplementBound[\CURLYAND\],
+%            T coerces Identity[\CURLYOR\], T coerces ComplementBound[\CURLYOR\],
+%            T coerces Identity[\XOR\], T coerces Zero[\CURLYAND\] }
+%  property FORALL (a: T) (SIM (SIM a)) :=: a
+%  property FORALL (a: T, b: T) a XOR b = (a CURLYAND (SIM b)) CURLYOR ((SIM a) CURLYAND b))
+%  property coerce_[\T\](Identity[\XOR\]) = coerce_[\T\](Identity[\CURLYOR\])
+%  property coerce_[\T\](ComplementBound[\CURLYAND\]) = coerce_[\T\](Identity[\CURLYOR\])
+%  property coerce_[\T\](ComplementBound[\CURLYOR\]) = coerce_[\T\](Identity[\CURLYAND\])
+%end
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{BooleanAlgebra}\llbracket{}T \KWD{extends}\:\TYP{BooleanAlgebra}\llbracket{}T,\curlywedge,\curlyvee,\sim,\xor\rrbracket, \KWD{opr} \mathord{\curlywedge}, \KWD{opr} \mathord{\curlyvee}, \KWD{opr} \mathord{\sim}, \KWD{opr} \mathord{\xor}\rrbracket\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{Commutative}\llbracket{}T,\curlywedge\rrbracket, \TYP{Associative}\llbracket{}T,\curlywedge\rrbracket,\)\\
+\(              \TYP{Commutative}\llbracket{}T,\curlyvee\rrbracket, \TYP{Associative}\llbracket{}T,\curlyvee\rrbracket,\)\\
+\(              \TYP{IdempotentBinaryOperator}\llbracket{}T,\curlywedge\rrbracket,\)\\
+\(              \TYP{IdempotentBinaryOperator}\llbracket{}T,\curlyvee\rrbracket,\)\\
+\(              \TYP{HasIdentity}\llbracket{}T,\curlywedge\rrbracket, \TYP{HasIdentity}\llbracket{}T,\curlyvee\rrbracket,\)\\
+\(              \TYP{HasComplements}\llbracket{}T,\curlyvee,\sim\rrbracket, \TYP{HasComplements}\llbracket{}T,\curlywedge,\sim\rrbracket,\)\\
+\(              \TYP{Distributive}\llbracket{}T,\curlywedge,\curlyvee\rrbracket, \TYP{Distributive}\llbracket{}T,\curlyvee,\curlywedge\rrbracket,\)\\
+\(              \TYP{DeMorgan}\llbracket{}T,\curlywedge,\curlyvee,\sim\rrbracket, \TYP{DeMorgan}\llbracket{}T,\curlyvee,\curlywedge,\sim\rrbracket,\)\\
+\(              \TYP{BoundedLattice}\llbracket{}T,\curlywedge,\curlyvee\rrbracket, \TYP{Ring}\llbracket{}T,\xor,\OPR{IDENTITY},\curlywedge\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{where} \{\, \null\)\pushtabs\=\+\(T \KWD{coerces}\:\TYP{Identity}\llbracket\curlywedge\rrbracket, T \KWD{coerces}\:\TYP{ComplementBound}\llbracket\curlywedge\rrbracket,\)\\
+\(            T \KWD{coerces}\:\TYP{Identity}\llbracket\curlyvee\rrbracket, T \KWD{coerces}\:\TYP{ComplementBound}\llbracket\curlyvee\rrbracket,\)\\
+\(            T \KWD{coerces}\:\TYP{Identity}\llbracket\xor\rrbracket, T \KWD{coerces}\:\TYP{Zero}\llbracket\curlywedge\rrbracket\,\}\)\-\-\\\poptabs\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (a\COLON T)\; (\sim (\sim a)) \CONDEQ a\)\\
+\(  \KWD{property} \forall (a\COLON T, b\COLON T)\; a \xor b = (a \curlywedge (\sim b)) \curlyvee ((\sim a) \curlywedge b))\)\\
+\(  \KWD{property}\:\mathrm{coerce}\llbracket{}T\rrbracket(\TYP{Identity}\llbracket\xor\rrbracket) = \mathrm{coerce}\llbracket{}T\rrbracket(\TYP{Identity}\llbracket\curlyvee\rrbracket)\)\\
+\(  \KWD{property}\:\mathrm{coerce}\llbracket{}T\rrbracket(\TYP{ComplementBound}\llbracket\curlywedge\rrbracket) = \mathrm{coerce}\llbracket{}T\rrbracket(\TYP{Identity}\llbracket\curlyvee\rrbracket)\)\\
+\(  \KWD{property}\:\mathrm{coerce}\llbracket{}T\rrbracket(\TYP{ComplementBound}\llbracket\curlyvee\rrbracket) = \mathrm{coerce}\llbracket{}T\rrbracket(\TYP{Identity}\llbracket\curlywedge\rrbracket)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\vskip-\lastskip
+A \emph{boolean algebra} is an algebraic structure consisting of a set of values,
+three binary operators \EXP{\curlywedge}, \EXP{\curlyvee}, and \EXP{\xor},
+and a unary operator \EXP{\sim}, such that the operators obey a number of specific properties:
+\begin{itemize}
+\item \EXP{\curlywedge} is commutative, associative, and idempotent, and has a unique identity
+\item \EXP{\curlyvee} is commutative, associative, and idempotent, and has a unique identity
+\item \EXP{\curlywedge} has complements with respect to \EXP{\sim}
+\item \EXP{\curlyvee} has complements with respect to \EXP{\sim}
+\item \EXP{\curlywedge} and \EXP{\curlyvee} distribute over each other
+\item De Morgan's law applies to \EXP{\curlywedge}, \EXP{\curlyvee}, and \EXP{\sim},
+and also to \EXP{\curlyvee}, \EXP{\curlywedge}, and \EXP{\sim}
+\item The values form a bounded lattice with \EXP{\curlywedge} as the meet operator and \EXP{\curlyvee} as the join operator.
+\item The values form a ring with \EXP{\xor} as the addition operator,
+\OPR{IDENTITY} as the additive inverse operator, and \EXP{\curlywedge} as the
+multiplication operator
+\end{itemize}
+
+The type \TYP{Boolean} is the most familiar example of a boolean algebra.
+The power set of a set (that is, the set of all subsets of the set) also
+forms a boolean algebra with operators \EXP{\cap}, \EXP{\cup}, set complement,
+and symmetric set difference; the empty set is the identity for \EXP{\cup}, and the original set is
+the identity for \EXP{\cap}.

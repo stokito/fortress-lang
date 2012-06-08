@@ -1,0 +1,515 @@
+\comment{
+
+component Lib
+export Library
+
+trait Baz
+  p(x: Object): String = "/" x "/"
+  p(x: ZZ): String = "#" x "#"
+end
+end Lib
+
+api Library
+trait Baz
+  p(x: Object): String
+end
+end Library
+
+component User
+import Library.{ Baz }
+export Executable
+
+trait Bar extends Baz
+  p(x: ZZ): String = "[" x "]"
+end
+
+object Foo() extends Bar
+  p(x: String): String = "<" x ">"
+end
+
+run(): () = do
+  z = Foo()
+  println(z.p("Hello"))
+  println(p(17))
+  println(z.p(6.375))
+end
+end User
+----------------------------------------------------------------
+Create constructors:
+
+component Lib
+export Library
+
+trait Baz
+  p(x: Object): String = "/" x "/"
+  p(x: ZZ): String = "#" x "#"
+end
+end Lib
+
+api Library
+trait Baz
+  p(x: Object): String
+end
+end Library
+
+component User
+import Library.{ Baz }
+export Executable
+
+trait Bar extends Baz
+  p(x: ZZ): String = "[" x "]"
+end
+
+object Foo() extends Bar
+  constructor Foo() = do end
+  p(x: String): String = "<" x ">"
+end
+
+Foo(): Foo = new Foo()
+
+run(): () = do
+  z = Foo()
+  println(z.p("Hello"))
+  println(p(17))
+  println(z.p(6.375))
+end
+end User
+----------------------------------------------------------------
+Eliminate fields:
+----------------------------------------------------------------
+Eliminate functional methods:
+----------------------------------------------------------------
+Rename entities:
+
+component Lib
+export Library
+
+trait Lib$Baz
+  p(x: Object): String = "/" x "/"
+  p(x: ZZ): String = "#" x "#"
+end
+end Lib
+
+api Library
+trait Baz
+  p(x: Object): String
+end
+end Library
+
+component User
+import Library.{ Baz }
+export Executable
+
+trait User$Bar extends Baz
+  p(x: ZZ): String = "[" x "]"
+end
+
+object User$Foo() extends User$Bar
+  constructor User$Foo() = do end
+  p(x: String): String = "<" x ">"
+end
+
+Foo(): Foo = new User$Foo()
+
+run(): () = do
+  z = Foo()
+  println(z.p("Hello"))
+  println(p(17))
+  println(z.p(6.375))
+end
+end User
+----------------------------------------------------------------
+Assign unique integers for the API
+
+----------------------------------------------------------------
+Rewrite import statements
+
+component Lib
+export Library
+
+trait Lib$Baz
+  p(x: Object): String = "/" x "/"
+  p(x: ZZ): String = "#" x "#"
+end
+end Lib
+
+api Library
+trait Baz
+  p(x: Object): String    (*) 1
+end
+end Library
+
+component User
+import Library.{ Baz }
+export Executable
+
+trait User$Bar extends $Library$Baz
+  p(x: ZZ): String = "[" x "]"
+end
+
+object User$Foo() extends User$Bar
+  constructor User$Foo() = do end
+  p(x: String): String = "<" x ">"
+end
+
+Foo(): Foo = new User$Foo()
+
+run(): () = do
+  z = Foo()
+  println(z.p("Hello"))
+  println(p(17))
+  println(z.p(6.375))
+end
+end User
+----------------------------------------------------------------
+Copy inherited methods into traits and objects and assign unique integers
+
+component Lib
+export Library
+
+trait Lib$Baz
+  p(x: Object): String = "/" x "/"     (*) 2
+  p(x: ZZ): String = "#" x "#"         (*) 3
+end
+end Lib
+
+api Library
+trait Baz
+  p(x: Object): String    (*) 1
+end
+end Library
+
+component User
+import Library.{ Baz }
+export Executable
+
+trait User$Bar extends $Library$Baz
+  p(x: Object): String = this.$Library$Baz$p$1$entry(x)   (*) 4
+  String $Library$Baz$p$1$dispatchHook(x: Object, tau1: Type) = this.User$p$4$dispatchHook(x, tau1)
+  p(x: ZZ): String = "[" x "]"      (*) 5
+end
+
+object User$Foo() extends User$Bar
+  constructor User$Foo() = do end
+  p(x: Object): String = this.User$p$4$entry(x)       (*) 6
+  String User$p$4$dispatchHook(x: Object, tau1: Type) = this.User$p$6$dispatchHook(x, tau1)
+  p(x: ZZ): String =  this.User$p$5$entry(x)           (*) 7
+  String User$p$5$dispatchHook(x: Object, tau1: Type) = this.User$p$7$dispatchHook(x, tau1)
+  p(x: String): String = "<" x ">"                           (*) 8
+end
+
+Foo(): Foo = new User$Foo()   (*) 9
+
+run(): () = do
+  z = Foo()
+  println(z.p("Hello"))
+  println(p(17))
+  println(z.p(6.375))
+end
+end User
+----------------------------------------------------------------
+Rewrite calls
+
+component Lib
+export Library
+
+trait Lib$Baz
+  p(x: Object): String = "/" x "/"     (*) 2
+  p(x: ZZ): String = "#" x "#"         (*) 3
+end
+end Lib
+
+api Library
+trait Baz
+  p(x: Object): String    (*) 1
+end
+end Library
+
+component User
+import Library.{ Baz }
+export Executable
+
+trait User$Bar extends $Library$Baz
+  p(x: Object): String = this.$Library$Baz$p$1$entry(x)   (*) 4
+  String $Library$Baz$p$1$dispatchHook(x: Object, tau1: Type) = this.User$p$4$dispatchHook(x, tau1)
+  p(x: ZZ): String = "[" x "]"      (*) 5
+end
+
+object User$Foo() extends User$Bar
+  constructor User$Foo() = do end
+  p(x: Object): String = this.User$p$4$entry(x)       (*) 6
+  String User$p$4$dispatchHook(x: Object, tau1: Type) = this.User$p$6$dispatchHook(x, tau1)
+  p(x: ZZ): String =  this.User$p$5$entry(x)           (*) 7
+  String User$p$5$dispatchHook(x: Object, tau1: Type) = this.User$p$7$dispatchHook(x, tau1)
+  p(x: String): String = "<" x ">"                           (*) 8
+end
+
+Foo(): Foo = new User$Foo()   (*) 9
+
+run(): () = do
+  z = User$Foo$9$entry()
+  println(z.User$p$8$entry("Hello"))
+  println(User$p$7$entry(17))
+  println(z.User$p$6$entry(6.375))
+end
+end User
+----------------------------------------------------------------
+Rewrite functions and methods
+
+component Lib
+export Library
+trait Lib$Baz
+  Lib$p$2$entry(x: Object) = Lib$p$2$dispatch(self.ilk(), x, x.ilk())
+  Lib$p$2$dispatchHook(tau0: Type, x: Object, Tau1: Type) = Lib$p$2$dispatch(tau0, x, tau1)
+  Lib$p$2$dispatch(tau0: Type, x: Object, Tau1: Type) =
+    if this.Lib$p$3$applicable(tau0, tau1) then
+      this.Lib$p$3$dispatchHook(tau0, x, tau1)
+    else
+      this.Lib$p$2(x)
+    end
+  Lib$p$2$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(Lib$Baz.type) && tau1.isSubtype(Object.type)
+  Lib$p$2(x: Object): String = "/" x "/"
+  Lib$p$3$entry(x: ZZ) = Lib$p$3$dispatch(self.ilk(), x, x.ilk())
+  Lib$p$3$dispatchHook(tau0: Type, x: ZZ, Tau1: Type) = Lib$p$3(x) Lib$p$3$dispatch(tau0, x, tau1)
+  Lib$p$3$dispatch(tau0: Type, x: ZZ, Tau1: Type) = Lib$p$3(x)
+  Lib$p$3$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(Lib$Baz.type) && tau1.isSubtype(ZZ.type)
+  Lib$p$3(x: ZZ): String = "#" x "#"
+end
+end Lib
+
+api Library
+trait Baz
+  p(x: Object): String    (*) 1
+end
+end Library
+
+component User
+import Library.{ Baz }
+export Executable
+
+trait User$Bar extends $Library$Baz
+  User$p$4$entry(x: Object) = User$p$4$dispatch(self.ilk(), x, x.ilk())
+  User$p$4$dispatchHook(tau0: Type, x: Object, Tau1: Type) = User$p$4$dispatch(tau0, x, tau1)
+  User$p$4$dispatch(tau0: Type, x: Object, Tau1: Type) =
+    if this.User$p$5$applicable(tau0, tau1) then
+      this.User$p$5$dispatchHook(tau0, x, tau1)
+    else
+      this.User$p$4(x)
+    end
+  User$p$4$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(User$Bar.type) && tau1.isSubtype(Object.type)
+  User$p$4(x: Object): String = this.$Library$Baz$p$1$entry(x)
+  String $Library$Baz$p$1$dispatchHook(x: Object, tau1: Type) = this.User$p$4$dispatchHook(x, tau1)
+  User$p$5$entry(x: ZZ) = User$p$5$dispatch(self.ilk(), x, x.ilk())
+  User$p$5$dispatchHook(tau0: Type, x: ZZ, Tau1: Type) = User$p$5(x) User$p$5$dispatch(tau0, x, tau1)
+  User$p$5$dispatch(tau0: Type, x: ZZ, Tau1: Type) = User$p$5(x)
+  User$p$5$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(User$Bar.type) && tau1.isSubtype(ZZ.type)
+  User$p$5(x: ZZ): String = "[" x "]"
+end
+
+object User$Foo() extends User$Bar
+  constructor User$Foo() = do end
+  User$p$6$entry(x: Object) = User$p$6$dispatch(self.ilk(), x, x.ilk())
+  User$p$6$dispatchHook(tau0: Type, x: Object, Tau1: Type) = User$p$6$dispatch(tau0, x, tau1)
+  User$p$6$dispatch(tau0: Type, x: Object, Tau1: Type) =
+    if this.User$p$7$applicable(tau0, tau1) then
+      this.User$p$7$dispatchHook(tau0, x, tau1)
+    elif this.User$p$8$applicable(tau0, tau1) then
+      this.User$p$8$dispatchHook(tau0, x, tau1)
+    else
+      this.User$p$6(x)
+    end
+  User$p$6$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(User$Foo.type) && tau1.isSubtype(Object.type)
+  User$p$6(x: Object): String = this.User$p$4$entry(x)
+  String User$p$4$dispatchHook(x: Object, tau1: Type) = this.User$p$6$dispatchHook(x, tau1)
+  User$p$7$entry(x: ZZ) = User$p$7$dispatch(self.ilk(), x, x.ilk())
+  User$p$7$dispatchHook(tau0: Type, x: ZZ, Tau1: Type) = User$p$7(x) User$p$7$dispatch(tau0, x, tau1)
+  User$p$7$dispatch(tau0: Type, x: ZZ, Tau1: Type) = User$p$7(x)
+  User$p$7$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(User$Foo.type) && tau1.isSubtype(ZZ.type)
+  User$p$7(x: ZZ): String =  this.User$p$5$entry(x)
+  String User$p$5$dispatchHook(x: Object, tau1: Type) = this.User$p$7$dispatchHook(x, tau1)
+  User$p$8$entry(x: String) = User$p$8$dispatch(self.ilk(), x, x.ilk())
+  User$p$8$dispatchHook(tau0: Type, x: String, Tau1: Type) = User$p$8(x) User$p$8$dispatch(tau0, x, tau1)
+  User$p$8$dispatch(tau0: Type, x: String, Tau1: Type) = User$p$8(x)
+  User$p$8$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(user$Foo.type) && tau1.isSubtype(String.type)
+  User$p$8(x: String): String = "<" x ">"
+end
+
+User$Foo$9$entry() = User$Foo$9$dispatch()
+User$Foo$9$dispatch() = User$Foo$9()
+User$Foo$9(): Foo = new User$Foo()
+
+run(): () = do
+  z = User$Foo$9$entry()
+  println(z.User$p$8$entry("Hello"))
+  println(User$p$7$entry(17))
+  println(z.User$p$6$entry(6.375))
+end
+end User
+----------------------------------------------------------------
+Linking and final assembly
+
+component Lib
+export Library
+trait Lib$Baz
+  Lib$p$2$entry(x: Object) = Lib$p$2$dispatch(self.ilk(), x, x.ilk())
+  Lib$p$2$dispatchHook(tau0: Type, x: Object, Tau1: Type) = Lib$p$2$dispatch(tau0, x, tau1)
+  Lib$p$2$dispatch(tau0: Type, x: Object, Tau1: Type) =
+    if this.Lib$p$3$applicable(tau0, tau1) then
+      this.Lib$p$3$dispatchHook(tau0, x, tau1)
+    else
+      this.Lib$p$2(x)
+    end
+  Lib$p$2$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(Lib$Baz.type) && tau1.isSubtype(Object.type)
+  Lib$p$2(x: Object): String = "/" x "/"
+  Lib$p$3$entry(x: ZZ) = Lib$p$3$dispatch(self.ilk(), x, x.ilk())
+  Lib$p$3$dispatchHook(tau0: Type, x: ZZ, Tau1: Type) = Lib$p$3(x) Lib$p$3$dispatch(tau0, x, tau1)
+  Lib$p$3$dispatch(tau0: Type, x: ZZ, Tau1: Type) = Lib$p$3(x)
+  Lib$p$3$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(Lib$Baz.type) && tau1.isSubtype(ZZ.type)
+  Lib$p$3(x: ZZ): String = "#" x "#"
+end
+end Lib
+
+api Library
+trait Baz
+  p(x: Object): String    (*) 1
+end
+end Library
+
+component User
+import Library.{ Baz }
+export Executable
+
+trait User$Bar extends LibBaz
+  User$p$4$entry(x: Object) = User$p$4$dispatch(self.ilk(), x, x.ilk())
+  User$p$4$dispatchHook(tau0: Type, x: Object, Tau1: Type) = User$p$4$dispatch(tau0, x, tau1)
+  User$p$4$dispatch(tau0: Type, x: Object, Tau1: Type) =
+    if this.User$p$5$applicable(tau0, tau1) then
+      this.User$p$5$dispatchHook(tau0, x, tau1)
+    else
+      this.User$p$4(x)
+    end
+  User$p$4$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(User$Bar.type) && tau1.isSubtype(Object.type)
+  User$p$4(x: Object): String = this.Lib$p$2$entry(x)
+  String Lib$p$2$dispatchHook(x: Object, tau1: Type) = this.User$p$4$dispatchHook(x, tau1)
+  User$p$5$entry(x: ZZ) = User$p$5$dispatch(self.ilk(), x, x.ilk())
+  User$p$5$dispatchHook(tau0: Type, x: ZZ, Tau1: Type) = User$p$5$dispatch(tau0, x, tau1)
+  User$p$5$dispatch(tau0: Type, x: ZZ, Tau1: Type) = User$p$5(x)
+  User$p$5$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(User$Bar.type) && tau1.isSubtype(ZZ.type)
+  User$p$5(x: ZZ): String = "[" x "]"
+end
+
+object User$Foo() extends User$Bar
+  constructor User$Foo() = do end
+  User$p$6$entry(x: Object) = User$p$6$dispatch(self.ilk(), x, x.ilk())
+  User$p$6$dispatchHook(tau0: Type, x: Object, Tau1: Type) = User$p$6$dispatch(tau0, x, tau1)
+  User$p$6$dispatch(tau0: Type, x: Object, Tau1: Type) =
+    if this.User$p$7$applicable(tau0, tau1) then
+      this.User$p$7$dispatchHook(tau0, x, tau1)
+    elif this.User$p$8$applicable(tau0, tau1) then
+      this.User$p$8$dispatchHook(tau0, x, tau1)
+    else
+      this.User$p$6(x)
+    end
+  User$p$6$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(User$Foo.type) && tau1.isSubtype(Object.type)
+  User$p$6(x: Object): String = this.User$p$4$entry(x)
+  String User$p$4$dispatchHook(x: Object, tau1: Type) = this.User$p$6$dispatchHook(x, tau1)
+  User$p$7$entry(x: ZZ) = User$p$7$dispatch(self.ilk(), x, x.ilk())
+  User$p$7$dispatchHook(tau0: Type, x: ZZ, Tau1: Type) = User$p$7(x) User$p$7$dispatch(tau0, x, tau1)
+  User$p$7$dispatch(tau0: Type, x: ZZ, Tau1: Type) = User$p$7(x)
+  User$p$7$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(User$Foo.type) && tau1.isSubtype(ZZ.type)
+  User$p$7(x: ZZ): String =  this.User$p$5$entry(x)
+  String User$p$5$dispatchHook(x: Object, tau1: Type) = this.User$p$7$dispatchHook(x, tau1)
+  User$p$8$entry(x: String) = User$p$8$dispatch(self.ilk(), x, x.ilk())
+  User$p$8$dispatchHook(tau0: Type, x: String, Tau1: Type) = User$p$8(x) User$p$8$dispatch(tau0, x, tau1)
+  User$p$8$dispatch(tau0: Type, x: String, Tau1: Type) = User$p$8(x)
+  User$p$8$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(user$Foo.type) && tau1.isSubtype(String.type)
+  User$p$8(x: String): String = "<" x ">"
+end
+
+User$Foo$9$entry() = User$Foo$9$dispatch()
+User$Foo$9$dispatch() = User$Foo$9()
+User$Foo$9(): Foo = new User$Foo()
+
+run(): () = do
+  z = User$Foo$9$entry()
+  println(z.User$p$8$entry("Hello"))
+  println(User$p$7$entry(17))
+  println(z.User$p$6$entry(6.375))
+end
+end User
+
+
+----------------------------------------------------------------
+Copy all inherited methods
+
+object User$Foo() extends User$Bar
+  constructor User$Foo() = do end
+  Lib$p$2$entry(x: Object) = Lib$p$2$dispatch(self.ilk(), x, x.ilk())
+(*)  Lib$p$2$dispatchHook(tau0: Type, x: Object, Tau1: Type) = Lib$p$2$dispatch(tau0, x, tau1)
+  Lib$p$2$dispatch(tau0: Type, x: Object, Tau1: Type) =
+    if this.Lib$p$3$applicable(tau0, tau1) then
+      this.Lib$p$3$dispatchHook(tau0, x, tau1)
+    else
+      this.Lib$p$2(x)
+    end
+  Lib$p$2$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(Lib$Baz.type) && tau1.isSubtype(Object.type)
+  Lib$p$2(x: Object): String = "/" x "/"
+  Lib$p$3$entry(x: ZZ) = Lib$p$3$dispatch(self.ilk(), x, x.ilk())
+  Lib$p$3$dispatchHook(tau0: Type, x: ZZ, Tau1: Type) = Lib$p$3(x) Lib$p$3$dispatch(tau0, x, tau1)
+  Lib$p$3$dispatch(tau0: Type, x: ZZ, Tau1: Type) = Lib$p$3(x)
+  Lib$p$3$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(Lib$Baz.type) && tau1.isSubtype(ZZ.type)
+  Lib$p$3(x: ZZ): String = "#" x "#"
+  User$p$4$entry(x: Object) = User$p$4$dispatch(self.ilk(), x, x.ilk())
+(*)  User$p$4$dispatchHook(tau0: Type, x: Object, Tau1: Type) = User$p$4$dispatch(tau0, x, tau1)
+  User$p$4$dispatch(tau0: Type, x: Object, Tau1: Type) =
+    if this.User$p$5$applicable(tau0, tau1) then
+      this.User$p$5$dispatchHook(tau0, x, tau1)
+    else
+      this.User$p$4(x)
+    end
+  User$p$4$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(User$Bar.type) && tau1.isSubtype(Object.type)
+  User$p$4(x: Object): String = this.Lib$p$2$entry(x)
+  String Lib$p$2$dispatchHook(x: Object, tau1: Type) = this.User$p$4$dispatchHook(x, tau1)
+  User$p$5$entry(x: ZZ) = User$p$5$dispatch(self.ilk(), x, x.ilk())
+(*)  User$p$5$dispatchHook(tau0: Type, x: ZZ, Tau1: Type) = User$p$5$dispatch(tau0, x, tau1)
+  User$p$5$dispatch(tau0: Type, x: ZZ, Tau1: Type) = User$p$5(x)
+  User$p$5$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(User$Bar.type) && tau1.isSubtype(ZZ.type)
+  User$p$5(x: ZZ): String = "[" x "]"
+  User$p$6$entry(x: Object) = User$p$6$dispatch(self.ilk(), x, x.ilk())
+  User$p$6$dispatchHook(tau0: Type, x: Object, Tau1: Type) = User$p$6$dispatch(tau0, x, tau1)
+  User$p$6$dispatch(tau0: Type, x: Object, Tau1: Type) =
+    if this.User$p$7$applicable(tau0, tau1) then
+      this.User$p$7$dispatchHook(tau0, x, tau1)
+    elif this.User$p$8$applicable(tau0, tau1) then
+      this.User$p$8$dispatchHook(tau0, x, tau1)
+    else
+      this.User$p$6(x)
+    end
+  User$p$6$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(User$Foo.type) && tau1.isSubtype(Object.type)
+  User$p$6(x: Object): String = this.User$p$4$entry(x)
+  String User$p$4$dispatchHook(x: Object, tau1: Type) = this.User$p$6$dispatchHook(x, tau1)
+  User$p$7$entry(x: ZZ) = User$p$7$dispatch(self.ilk(), x, x.ilk())
+  User$p$7$dispatchHook(tau0: Type, x: ZZ, Tau1: Type) = User$p$7(x) User$p$7$dispatch(tau0, x, tau1)
+  User$p$7$dispatch(tau0: Type, x: ZZ, Tau1: Type) = User$p$7(x)
+  User$p$7$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(User$Foo.type) && tau1.isSubtype(ZZ.type)
+  User$p$7(x: ZZ): String =  this.User$p$5$entry(x)
+  String User$p$5$dispatchHook(x: Object, tau1: Type) = this.User$p$7$dispatchHook(x, tau1)
+  User$p$8$entry(x: String) = User$p$8$dispatch(self.ilk(), x, x.ilk())
+  User$p$8$dispatchHook(tau0: Type, x: String, Tau1: Type) = User$p$8(x) User$p$8$dispatch(tau0, x, tau1)
+  User$p$8$dispatch(tau0: Type, x: String, Tau1: Type) = User$p$8(x)
+  User$p$8$applicable(tau0: Type, Tau1: Type) = tau0.isSubtype(user$Foo.type) && tau1.isSubtype(String.type)
+  User$p$8(x: String): String = "<" x ">"
+end
+
+User$Foo$9$entry() = User$Foo$9$dispatch()
+User$Foo$9$dispatch() = User$Foo$9()
+User$Foo$9(): Foo = new User$Foo()
+
+run(): () = do
+  z = User$Foo$9$entry()
+  println(z.User$p$8$entry("Hello"))
+  println(User$p$7$entry(17))
+  println(z.User$p$6$entry(6.375))
+end
+end User
+

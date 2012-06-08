@@ -1,0 +1,12 @@
+component Test5
+
+  import Bazaar.{...}
+  export Executable
+  
+  run () = 
+  do println(reverse("hello"))
+     println(upto("hello",'l'))
+     println(beyond("hello",'l'))
+  end
+
+end

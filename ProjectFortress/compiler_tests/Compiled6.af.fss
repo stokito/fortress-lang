@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+  object A[\T, int n\]() end
+  object B[\T, U, V\]() end
+  f[\T\](x:T):T = x
+  g[\T, int n\](a:A[\T, n \]):A[\T,n\] = a
+  h[\T, U, V\](b:B[\V, U, T\]):() = ()
+
+  run():() = ()
+
+  blah[\ int c \]():() = do
+    a = A[\String, c\]()
+    b = B[\Boolean, ZZ32, String\]()
+    ignore(f[\String\]("asd"))
+    ignore(g[\String, c\](a))
+    h[\String, ZZ32, Boolean\](b)
+  end

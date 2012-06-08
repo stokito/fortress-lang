@@ -1,0 +1,29 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.Range
+
+export Executable
+
+a = 1
+b = 5
+j = 3
+f() = do
+(** EXAMPLE **)
+if j IN (a:b) then println "win" end
+(** END EXAMPLE **)
+end
+
+run() = f()
+
+end

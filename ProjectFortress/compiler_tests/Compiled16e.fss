@@ -1,0 +1,37 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Generic functional methods
+   OVERLOADING HAS BEEN REMOVED *)
+
+trait T
+  g[\S extends ZZ32, U\](self):ZZ32 = 8
+end
+
+trait V
+end
+
+object O(x: ZZ32) extends {V,T}
+end
+
+gee(o:T):ZZ32 = g[\ZZ32,String\](o)
+
+run() =do
+  o = O(3)
+  b = gee(o)  (*) 8
+
+  println(
+  if ( b=8 )
+     then "pass" else "fail" end
+  )
+end

@@ -1,0 +1,413 @@
+(*******************************************************************************
+Copyright 2010 Michael Zody and Sun Microsystems, Inc. 
+All rights reserved.
+
+Sun Microsystems, Inc. is the Copyright owner of the Fortress programming language software, and Michael Zody is the developer of the algorithm which this software implements and the Copyright owner of the software implementation of the algorithm, to which Sun Microsystems, Inc. has a perpetual, irrevocable, royalty free right and license to use and distribute. 
+
+Use is subject to license terms accompanying the software.
+
+ ******************************************************************************)
+
+component BirdCount1o
+import File.{...}
+import FileSupport.{...}
+import FlatString.{...}
+import List.{...}
+import Map.{...}
+import Set.{...}
+import System.{getProperty}
+import Tuple.{...}
+
+export Executable
+
+stringToFloat(s: String): RR64 = do   (*) Quick and dirty implementation
+  intpart = s UPTO '.'
+  frac = s BEYOND '.'
+  both = intpart || frac
+  1.0 (SUM[k <- 0 # |both|] 10^k (both[|both| - 1 - k].codePoint - '0'.codePoint))/(10^(|frac|))
+end
+
+opr UPTO(s: String, c: Char) =
+  if c IN s then
+    n = BIG MIN[i <- s.indices, s[i]=c] i
+    s[0:n-1]
+  else s end
+
+opr BEYOND(s: String, c: Char) =
+  if c IN s then
+    n = BIG MIN[i <- s.indices, s[i]=c] i
+    s[(n+1):]
+  else "" end
+
+(* Returns the single error rates and the multiple error rates. *)
+readErrorRateFile(name: String): (Map[\ZZ32,RR64\], Map[\ZZ32,RR64\]) = do
+  data = <|[\(RR64, RR64)\] (stringToFloat((line BEYOND '\t') BEYOND '\t'),
+                             stringToFloat((line BEYOND '\t') UPTO '\t')) |
+           line <- FileReadStream(name).lines |>
+  ( <|[\RR64\] first x | x <- data |>, <|[\RR64\] second x | x <- data |>)
+end
+
+var coverage: Map[\String, Map[\ZZ32,ZZ32\]\] := {[\String, Map [\ZZ32, ZZ32\] \] }
+
+homeDir: String = getProperty("fortress.autohome", ".")
+referenceChickenFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head"
+sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
+errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
+sampleFilesFileName = "chr10.csfasta.ma.sorted.head"
+errorFilesFileName = "composite_error_model.txt"
+
+sampleChickens:List[\String\] = <|[\String\]
+    "10a_LA_Frag35_20080704_white_leghorn_A",
+    "10b_LA_Frag35_20080704_white_leghorn_B"
+(*    "17_LA_Frag35_20080909_high_grow_line",
+    "18_LA_Frag35_20080909_low_grow_line",
+    "17.1_LA_Frag35_20080925_high_grow_line",
+    "18.1_LA_Frag35_20080925_low_grow_line",
+    "16_LA_Frag35_20080829_broiler",
+    "22_LA_Frag35_20081016_RJF",
+    "16.1_LA_Frag35_20080925_broiler",
+    "22.1_LA_Frag35_20081114_RJF" *)
+|>
+
+encodeACGT(c: Char): ZZ32 = case c of 'A' => 0; 'C' => 1; 'G' => 2; 'T' => 3; end
+
+convert(c1:Char, c2:Char): Char =
+    if (c1 = 'N') OR (c2 = 'N') then '4' else char('0'.codePoint + (encodeACGT(c1) BITXOR encodeACGT(c2))) end
+
+object Pairs[\T\](g: Generator[\T\]) extends Generator[\(T,T)\]
+    generate[\R\](red: Reduction[\R\], m:(T,T)->R): R =
+    if (l,v,r) <- g.generate[\Maybe[\(T,R,T)\]\](PairReduction[\T,R\](red,m),
+                             fn (t:T) => Just[\(T,R,T)\](t, red.empty(), t))
+        then v else red.empty() end
+end
+
+object PairReduction[\T,R\](red: Reduction[\R\], m:(T,T)->R)
+        extends Reduction[\Maybe[\(T,R,T)\]\]
+    empty():Maybe[\(T,R,T)\] = Nothing[\(T,R,T)\]
+    join(left:Maybe[\(T,R,T)\], right:Maybe[\(T,R,T)\]) : Maybe[\(T,R,T)\]=
+    if (l, v_l, m_l) <- left then
+        if (m_r, v_r, r) <- right then
+            Just[\(T,R,T)\](l, red.join(red.join(v_l, m(m_l, m_r)), v_r), r)
+        else left end
+    else right end
+end 
+
+trait dna comprises {dnaSequence, EmptySequence}
+       getter colorSequence(): String
+       opr OPLUS(self, other: dna) : dna
+end
+
+(* left and right are ACGT encoded, middle is color encoded *)
+
+object dnaSequence(left:Char, middle:String, right:Char) extends dna
+   getter colorSequence():String = middle
+   opr OPLUS(self, other:dnaSequence):dnaSequence =
+       dnaSequence(left, middle || convert(right, other.left) || other.middle(), other.right)
+   opr OPLUS(self, other:EmptySequence) = self
+end
+
+object EmptySequence extends dna
+    getter colorSequence():String = ""
+    opr OPLUS(self, other:dna) = other
+end
+
+opr BIG OPLUS[\T\](): BigReduction[\dna, dna\] =
+  embiggen[\dna\](fn(a,b) => a OPLUS b, EmptySequence)
+
+processReferenceFile(name: String): String =
+  (BIG OPLUS [line<-FileReadStream(name).lines(), line[0] =/= '>'] dnaSequence(line[0], BIG || [(p,q)<-Pairs(line)] convert(p,q), line[|line| - 1])).colorSequence
+
+readReferenceFile(name: String): String =
+  BIG || [line<-FileReadStream(name).lines(), line[0] =/= '>'] line
+
+colorsToACGT(start: Char, colorstr: String): String =
+  start || (BIG ||[i <- 0 # |colorstr|] "ACGT"[encodeACGT(start) BITXOR (BIG BITXOR[k <- 0#(i+1)] (colorstr[k].codePoint BITAND 3))])
+
+object Snip(header:String, sequence:String, name:String, pos:ZZ32, length:ZZ32, seqend:ZZ32, 
+            referenceChickenColorsSnip:String, sampleChickenColorsSnip:String,
+            referenceChickenACGTSnip:String) 
+    getter header():String = header
+    getter sequence():String = sequence
+    getter name():String = name
+    getter pos():ZZ32 = pos
+    getter length():ZZ32 = length
+    getter seqend():ZZ32 = seqend
+    getter referenceChickenColorsSnip():String = referenceChickenColorsSnip
+    getter sampleChickenColorsSnip():String = sampleChickenColorsSnip
+    getter referenceChickenACGTSnip():String = referenceChickenACGTSnip    
+    getter asString():String = pos || "  " || name || "  " || referenceChickenColorsSnip || "  " sampleChickenColorsSnip || "  " || referenceChickenACGTSnip 
+
+    sampleChickenACGTSnip():String = colorsToACGT(referenceChickenACGTSnip[0], sampleChickenColorsSnip)
+
+    printSnip():() = do
+        println("Snip:" name pos() "  ")
+        println(" " referenceChickenColorsSnip)
+        println(" " sampleChickenColorsSnip)
+        println(referenceChickenACGTSnip)
+(*        println(sampleChickenACGTSnip())  *)
+    end
+
+end
+
+reverse(sequence:String):String = BIG || [c<-sequence.reverse()] c
+
+getAdjustedSequence(negativeOri:Boolean, sequence:String, refChickenColorsSnip: String): String = do
+    temp = sequence[1:]
+    if (negativeOri) then
+        (reverse(temp))[0 : |temp| - 2] || refChickenColorsSnip[|temp| - 1]
+    else
+        refChickenColorsSnip[0] || temp[1:]
+    end
+end
+
+
+getReferenceChickenColorsSnip(adjustedLoc:ZZ32, seqEnd:ZZ32):FlatString = do
+   referenceChickenColors[adjustedLoc:seqEnd+1].asFlatString()
+end
+
+
+readASnip(r:ReadStream):Maybe[\Snip\] = do
+   header: String = r.uncheckedReadLine()
+   sequence: String = r.uncheckedReadLine()
+
+   if sequence = "" then Just(Snip(header, sequence, "", 0, 0, 0, "", "", "")) else
+      name: String = header UPTO ','
+      loc: String = ((header BEYOND ',') BEYOND '_') UPTO '.'
+      length: ZZ32 = |sequence| - 1
+      negativeOri: Boolean = (loc[0] = '-')
+      adjustedLocation:ZZ32 = if (negativeOri) then strToInt(loc[1:])-length+1 else strToInt(loc) - 1 end
+      sequenceEnd:ZZ32 = adjustedLocation + length - 1
+      referenceChickenColorsSnip: String = referenceChickenColors[adjustedLocation:sequenceEnd+1].asFlatString
+(*)      referenceChickenColorsSnip:FlatString = getReferenceChickenColorsSnip(adjustedLocation, sequenceEnd)
+      adjustedSequence:FlatString = getAdjustedSequence(negativeOri, sequence, referenceChickenColorsSnip).asFlatString
+      referenceChickenACGTSnip:String = referenceChickenACGT[adjustedLocation : sequenceEnd + 1].asFlatString
+
+      Just(Snip(header, adjustedSequence, name, adjustedLocation, length, sequenceEnd, referenceChickenColorsSnip, adjustedSequence, referenceChickenACGTSnip))
+   end
+end
+
+ChunkSize:ZZ32 = 10000
+
+(* Given two samples, this creates a list of the positions where they differ *)
+
+object Event(s:Snip, diffs:String, startPos:ZZ32, len:ZZ32, errorProb:RR64, fileName:String)
+    getter snip():Snip = s
+    getter startPos():ZZ32 = startPos
+    getter len():ZZ32 = len
+    getter diffs():String = diffs
+    getter asString():String =
+      (fileName || "    " || refStart() || "    " || refEnd() || "    " ||
+       referenceChickenColorsSnip() || "    " || sampleChickenColorsSnip() || "   " ||
+       refChickenACGTSnip() || "    " || sampleChickenDiffSnip() || "   " || errorProb)
+    getter errorProb():RR64 = errorProb
+    getter fileName():String = fileName
+    valid():Boolean = isValidTransition(s, startPos, diffs)
+(*) isValidTransition(s.referenceChickenColorsSnip[startPos#len], s.sampleChickenColorsSnip[startPos#len])
+
+    refStart():ZZ32 = s.pos() + startPos
+    refEnd():ZZ32 = refStart() + len - 1
+
+    referenceChickenColorsSnip() = s.referenceChickenColorsSnip[startPos # len]
+    sampleChickenColorsSnip() = s.sampleChickenColorsSnip[startPos # len]
+
+    sampleChickenDiffSnip():String = colorsToACGT(s.referenceChickenACGTSnip[startPos], s.sampleChickenColorsSnip[startPos#len])
+
+    refChickenACGTSnip():String = s.referenceChickenACGTSnip[startPos # len+1]
+
+    printEvent():() = do
+       eventStart:ZZ32 = s.pos() + startPos
+       eventEnd:ZZ32 = eventStart + len - 1
+       snipEnd:ZZ32 = len + startPos
+       
+       print(s.header() "  " errorProb " "  eventStart "  " eventEnd "  ")
+       print(s.referenceChickenColorsSnip[startPos:snipEnd-1] "  ")
+       print(s.sampleChickenColorsSnip[startPos:snipEnd-1] "  ")
+       if valid() then
+          print "VALID" 
+          print("  " refChickenACGTSnip() "   ")
+          print(sampleChickenDiffSnip())
+       else
+          print "inv" 
+          print("  " refChickenACGTSnip() "   ")
+          print ("x")^(len+1)
+       end
+       println("    " startPos) 
+    end
+end
+
+isValidTransition(reference:String, sample:String) =
+    BIG AND[i <- 0 # |reference| - 1]  ((reference[i].codePoint BITXOR reference[i+1].codePoint) = (sample[i].codePoint BITXOR sample[i+1].codePoint))
+
+isValidTransition(s:Snip, loc:ZZ32, diffs:String):Boolean = do
+   len:ZZ32 := loc
+   while (len < ((|diffs|) - 1) AND: diffs.get(len) = 'X') do len := len + 1 end
+   sample:String = s.sampleChickenColorsSnip[loc : len-1]
+   reference:String = s.referenceChickenColorsSnip[loc : len-1]
+   isValidTransition(reference, sample)
+end
+
+object MergedEvent(count:ZZ32, refStart:ZZ32, refEnd:ZZ32, 
+                   referenceNumberFormat:String, sampleNumberFormat:String,
+                   referenceACGTFormat:String, sampleACGTFormat:String,
+                   totalCoverage:RR64, probability:RR64, eventList:List[\Event\])
+  getter count():ZZ32 = count
+  getter refStart():ZZ32 = refStart
+  getter refEnd():ZZ32 = refEnd
+  getter referenceNumberFormat():String = referenceNumberFormat
+  getter sampleNumberFormat():String = sampleNumberFormat
+  getter referenceACGTFormat():String = referenceACGTFormat
+  getter sampleACGTFormat():String = sampleACGTFormat
+  getter totalCoverage():RR64 = totalCoverage
+  getter probability():RR64 = probability
+  getter eventList():List[\Event\] = eventList
+
+  getter asString():String = 
+    (count || "  " || refStart || "  " || refEnd || "  " || referenceNumberFormat || "  " || sampleNumberFormat || "  " ||
+     referenceACGTFormat || "  " || sampleACGTFormat || "  " || totalCoverage || "  " || probability || "  ")
+end
+
+opr UNIONCAT[\T\](a: Map[\T, List[\Event\]\], b: Map[\T, List[\Event\]\]): Map[\T, List[\Event\]\] =
+    a.union(fn(k,x,y) => x || y, b)
+
+opr BIG UNIONCAT[\T\](): BigReduction[\Map[\T, List[\Event\]\],Map[\T, List[\Event\]\]\] =
+    embiggen[\Map[\T, List[\Event\]\]\](fn(a,b) => a UNIONCAT b, {[\T,List[\Event\]\]})
+   
+opr UNIONPLUS[\T\](a: Map[\T, ZZ32\], b: Map[\T, ZZ32\]): Map[\T, ZZ32\] =
+    a.union(fn(k,x,y) => x + y, b)
+
+opr BIG UNIONPLUS[\T\](): BigReduction[\Map[\T, ZZ32\],Map[\T, ZZ32\]\] =
+    embiggen[\Map[\T, ZZ32\]\](fn(a,b) => a UNIONPLUS b, {[\T,ZZ32\]})
+
+(* This may change with newer technology, but for now it is OK. *)
+readSize:ZZ32 = 35
+
+calculateCoverage(fileName:String, refEnd:ZZ32):ZZ32 =
+    SUM[i <- seq(refEnd - readSize + 1 : refEnd)] coverage[fileName].member(i,0)
+
+calculateBonferroniLibrary(fileName:String, events:List[\Event\]):RR64 = do
+   gmp = geometricMean <|[\RR64\] e.errorProb | e <- events |>
+   cov = calculateCoverage(fileName, events.left().get().refEnd())
+   SUM[j <- seq((|events|):cov)] gmp^j (cov CHOOSE j)
+end
+
+geometricMean(xs: List[\RR64\]) = (PROD xs)^(1.0/(|xs|))
+
+calculateBonferroniTotal(EventsByFile:Map[\String, List[\Event\]\]):RR64 = do
+   totcov = SUM[(file, events) <- EventsByFile] calculateCoverage(file, events.left().get().refEnd())
+   totcalls = SUM[(_, events) <- EventsByFile] |events|
+   gmp = geometricMean <|[\RR64\] e.errorProb | (_, events) <- seq(EventsByFile), e <- seq(events) |>
+   SUM[j <- seq(totcalls:totcov)] gmp^j (totcov CHOOSE j)
+end
+
+calculateBonferroni(EventsByFile:Map[\String, List[\Event\]\]):RR64 = do
+   minlibpval: RR64 = BIG MIN[(file, events) <- EventsByFile] calculateBonferroniLibrary(file, events)
+   combpval: RR64 = calculateBonferroniTotal(EventsByFile)
+   2 (combpval MIN minlibpval)
+end
+
+maybeUpdateMergedDatabase(mergedDatabase:Map[\(ZZ32, String),List[\MergedEvent\]\],
+                          key:ZZ32, entryList:List[\Event\]):Map[\(ZZ32,String),  List[\MergedEvent\]\] = do
+   var resultMergedDatabase:Map[\(ZZ32, String), List[\MergedEvent\]\] := mergedDatabase
+   validEvents: List[\Event\] := <|[\Event\] event | event <- entryList, event.valid |>
+   EventsByChange: Map[\String, List[\Event\]\] = BIG UNIONCAT[\String\] [e <- validEvents] {[\String, List[\Event\]\] e.sampleChickenDiffSnip |->  <|[\Event\] e |> }
+
+   for (change, changeEvents) <- seq(EventsByChange) do
+      EventsByFile: Map[\String, List[\Event\]\] = BIG UNIONCAT[\String\] [e <- changeEvents] {[\String, List[\Event\]\] e.fileName |-> <|[\Event\] e |> }
+      if (|changeEvents| > 0) then
+         firstEvent: Event= changeEvents.left.get
+         probability: RR64 = calculateBonferroni(EventsByFile)
+         totalCoverage: ZZ32 = SUM[(file, events) <- EventsByFile] calculateCoverage(file, events.left.get.refEnd) 
+         me:MergedEvent = MergedEvent(|changeEvents|, firstEvent.refStart, firstEvent.refEnd, 
+                                      firstEvent.referenceChickenColorsSnip, firstEvent.sampleChickenColorsSnip,
+                                      firstEvent.refChickenACGTSnip, firstEvent.sampleChickenDiffSnip,
+                                      totalCoverage, probability, changeEvents)
+         resultMergedDatabase := resultMergedDatabase.update((key, change), <| me |>)
+      end
+   end
+   resultMergedDatabase
+end
+
+trait SampleEvents comprises { MatchRun, RangeSet }
+  getter ranges(): List[\CompactFullRange[\ZZ32\]\]
+  opr BOXPLUS(self, x: SampleEvents): SampleEvents
+end
+
+object MatchRun(n: ZZ32) extends SampleEvents
+  getter ranges() = <|[\CompactFullRange[\ZZ32\]\] |>
+  opr BOXPLUS(self, other: MatchRun) = MatchRun(n + other.n)
+  opr BOXPLUS(self, other: RangeSet) = RangeSet(n + other.left, other.ranges, other.right)
+end
+
+object RangeSet(left: ZZ32, ranges: List[\CompactFullRange[\ZZ32\]\], right: ZZ32) extends SampleEvents
+  getter ranges() = ranges
+  opr BOXPLUS(self, other: MatchRun) = RangeSet(left, ranges, right + other.n)
+  opr BOXPLUS(self, other: RangeSet) =
+    if right + other.left >= 2 then
+      RangeSet(left, ranges || other.ranges, other.right)
+    else
+      (ps, p) = ranges.extractRight.get()
+      (q, qs) = other.ranges.extractLeft.get()
+      RangeSet(left, ps || <| p.lower:q.upper |> || qs, other.right)
+    end
+end
+
+opr BIG BOXPLUS[\T\](): BigReduction[\SampleEvents, SampleEvents\] =
+   embiggen[\SampleEvents\](fn(a,b) => a BOXPLUS b, MatchRun(0))
+
+eventGenerator(s:Snip, name:String, singleErrorRates: List[\RR64\], multipleErrorRates: List[\RR64\]): Map[\ZZ32, List[\Event\]\] = do
+   ref = s.referenceChickenColorsSnip()
+   sample = s.sampleChickenColorsSnip()
+   ranges = (BIG BOXPLUS[i <- 0 # |sample|] (if sample[i]=/=ref[i] then RangeSet(0, <|[\CompactFullRange[\ZZ32\]\] i:i |>, 0) else MatchRun(1) end)).ranges
+   diffs = BIG || [i <- seq(0 # |sample|)] (if (sample[i]=/=ref[i]) OR: (BIG OR[r <- seq(ranges)] (i IN r)) then "X" else "." end)
+   {[\ZZ32, List[\Event\]\] s.pos + r.lower |-> <|[\Event\] Event(s, diffs, r.lower, |r|, errorProbability(ref, sample, r, name, singleErrorRates, multipleErrorRates), name) |> | r <- ranges, |r| > 1 }
+end
+
+errorProbability(ref: String, sample: String, r: CompactFullRange[\ZZ32\], name: String, singleErrorRates: List[\RR64\], multipleErrorRates: List[\RR64\]) =
+    if (|r| = 2) then
+        singleErrorRates[r.lower]
+    else
+        PROD[i <- seq(r), sample[i] =/= ref[i]] multipleErrorRates[i]
+    end
+
+processSampleChicken(name:String): (Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32, ZZ32\]\]) = do
+    (singleErrorRates, multipleErrorRates) = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
+    rs: FileReadStream = FileReadStream(sampleFilesDir || "/" || name || "/" || sampleFilesFileName)
+    fg: FileGenerator[\Snip\] = FileGenerator[\Snip\](rs, 60, readASnip)
+    snipData = <| (eventGenerator(snip, name, singleErrorRates, multipleErrorRates), snip.pos) | snip <- fg |>
+    database = BIG UNIONCAT[\ZZ32\][sd <- snipData] first(sd)
+    coverageDatabase = BIG UNIONPLUS[\ZZ32\][sd <- snipData] {[\ZZ32, ZZ32\] second(sd) |-> 1 }
+    (database, {[\String, Map[\ZZ32, ZZ32\]\] name |-> coverageDatabase })
+end
+
+var referenceChickenColors:String := ""
+var referenceChickenACGT:String := ""
+
+run() = do
+    referenceChickenACGT   := readReferenceFile(referenceChickenFile)
+    referenceChickenColors := processReferenceFile(referenceChickenFile)
+    var database:Map[\ZZ32, List[\Event\]\] := {[\ZZ32, List[\Event\]\] } 
+    var mergedDatabase:Map[\(ZZ32,String), List[\MergedEvent\]\] := {[\(ZZ32, String), List[\MergedEvent\]\] } 
+
+    for sampleChicken <- seq(sampleChickens) do  (*) Intentionally sequential processing of files
+        (db, covdb) = processSampleChicken(sampleChicken)
+        database UNIONCAT= db
+        coverage UPLUS= covdb
+    end
+
+    for (key,entries) <- seq(database) do
+       mergedDatabase := maybeUpdateMergedDatabase(mergedDatabase, key, entries) 
+    end
+
+    println("Events")
+    for (_, entries) <- seq(database), entry <- seq(entries) do entry.printEvent() end
+
+    println("Merged Events:")
+   
+    for (_, events) <- seq(mergedDatabase), event <- seq(events) do
+        println(event)
+        for e <- seq(event.eventList()) do println(e) end
+        println("-------")
+    end
+end  
+
+end

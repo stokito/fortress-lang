@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled1.ah
+  import NatReflect.{...}
+  export Executable
+
+  object W[\ nat n \]
+  end
+
+  bar[\ nat n \](): W[\n\] = W[\n\]
+  foo[\nat n\]() : N[\n\] = N[\n\]
+
+  run():() = ()
+end

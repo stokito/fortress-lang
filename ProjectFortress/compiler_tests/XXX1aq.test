@@ -1,0 +1,17 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled1.aq
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled1.aq.fss:15:10-11:\n\
+\ Right-hand side has type Bar, but declared type is Foo.\n\
+File Compiled1.aq.fss has 1 error.\n
+compile_out_equals=

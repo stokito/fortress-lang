@@ -1,0 +1,29 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newsec{Literals}{literals}
+
+A literal (\secref{}) denotes a fixed, unchanging value.
+
+%%%%% GRAMMAR %%%%%
+%Literal
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+
+The type of the literal `()` is `()`.
+The type of a Boolean literal is `Boolean`.
+The type of a character literal is `Character`.
+The type of a string literal is `String`.
+The type of a numeric literal is `QQ` if it contains a ``{`.`}' character, and otherwise is `NN`.
+
+Evaluation of a literal always completes normally and produces the value represented by the literal.
+
+All literals represent value objects; therefore their values do not have object identity.

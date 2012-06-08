@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+object O[\T extends Object\](x:T)
+  m():String = "PASS"
+end
+
+f(c:(ZZ32->O[\ZZ32\])):String = c(1+1).m()
+
+run():() = do
+      println(f(O[\ZZ32\]))
+end
+
