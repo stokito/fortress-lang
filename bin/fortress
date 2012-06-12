@@ -28,6 +28,6 @@ else
     if [ -z "$JAVA_FLAGS" ] ; then
       JAVA_FLAGS="-Xmx256m  -Xss32m"
     fi
-    JAVA_FLAGS+=" -Dfile.encoding=UTF-8"
+    JAVA_FLAGS="$JAVA_FLAGS -Dfile.encoding=UTF-8"
     "$JAVACMD" $JAVA_FLAGS -cp "$CP" com.sun.fortress.Shell "$@"
 fi

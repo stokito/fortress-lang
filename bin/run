@@ -34,7 +34,7 @@ if [ -z "$JAVA_FLAGS" ] ; then
   JAVA_FLAGS="-Xmx768m"
 fi
 
-JAVA_FLAGS+=" -Dfile.encoding=UTF-8 -Xfuture"
+JAVA_FLAGS="$JAVA_FLAGS -Dfile.encoding=UTF-8 -Xfuture"
 
 # echo "$JAVACMD" $JAVA_FLAGS "-Xbootclasspath/p:$CP" "$@"
 
