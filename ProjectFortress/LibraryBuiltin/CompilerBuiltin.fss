@@ -313,7 +313,11 @@ import java com.sun.fortress.nativeHelpers.{simpleArbitraryPrecisionArith.parse 
                                             simpleArbitraryPrecisionArith.xor => jAPXor,
                                             simpleArbitraryPrecisionArith.shiftLeft => jAPShiftLeft,
                                             simpleArbitraryPrecisionArith.ZZtoBI => ZZtoBI,
-                                            simpleArbitraryPrecisionArith.BItoZZ => BItoZZ
+                                            simpleArbitraryPrecisionArith.BItoZZ => BItoZZ,
+                                            simpleArbitraryPrecisionArith.makeZZfromZZ32 => jMakeZZfromZZ32,
+                                            simpleArbitraryPrecisionArith.makeZZfromZZ64 => jMakeZZfromZZ64,
+                                            simpleArbitraryPrecisionArith.makeZZfromNN32 => jMakeZZfromNN32,
+                                            simpleArbitraryPrecisionArith.makeZZfromNN64 => jMakeZZfromNN64
                                             }
                                        
 import AnyType.{Any}
@@ -485,6 +489,10 @@ value object IndefiniteNumber extends Number end
 
 trait ZZ extends { Number, Equality[\ZZ\] } excludes { RR64, ZZ64, ZZ32, NN32, NN64, IntLiteral }
     coerce(x: IntLiteral) = x.asZZ
+    coerce(x: ZZ32) = x.asZZ
+    coerce(x: ZZ64) = x.asZZ
+    coerce(x: NN32) = x.asZZ
+    coerce(x: NN64) = x.asZZ
     getter asString(): String = jAPToString(ZZtoBI(self))
     opr |self| : ZZ = BItoZZ(jAPAbs(ZZtoBI(self)))
     opr -(self): ZZ = BItoZZ(jAPNeg(ZZtoBI(self)))
@@ -517,6 +525,21 @@ trait ZZ extends { Number, Equality[\ZZ\] } excludes { RR64, ZZ64, ZZ32, NN32, N
     opr MIN(self, other:ZZ): ZZ = if self <= other then self else other end
     opr MAX(self, other:ZZ): ZZ = if self >= other then self else other end
     opr MINMAX(self, other:ZZ): (ZZ, ZZ) = if self <= other then (self, other) else (other, self) end
+    opr CHOOSE(self, other: ZZ): ZZ =
+      if 0 < other < self then
+        var result: ZZ := self
+        var n: ZZ := self
+        var k: ZZ := (1).asZZ
+        limit = other MIN (self - other)
+        while k < limit do
+          n -= (1).asZZ
+          k += (1).asZZ
+          result := (result TIMES n) DIV k
+        end
+        result
+      elif ((other = 0) OR (other = self)) AND (self >= 0) then (1).asZZ
+      else (0).asZZ
+      end
     even(self): Boolean = ((self BITAND 1) = 0)
     odd(self): Boolean = NOT (even self)
     (*) `floorAverage` computes `|\ (self+other)/2 /|` efficiently and without overflow.
@@ -529,6 +552,7 @@ trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 , ZZ }
     coerce(x: IntLiteral) = x.asZZ64
     coerce(x: ZZ32) = jIntToLong(x)
     getter asZZ32(): ZZ32 = jLongOverflowingToInt(self)
+    getter asZZ(): ZZ = jMakeZZfromZZ64(self)
     getter bitsAsNN64(): NN64 = jMakeNN64FromZZ64(self)
     getter asString(): String = jLongToString(self)
     opr |self| : ZZ64 = jLongOverflowingAbs(self)
@@ -586,6 +610,7 @@ trait ZZ32 extends { Number, Equality[\ZZ32\], StandardTotalOrder[\ZZ32\] } excl
     coerce(x: IntLiteral) = x.asZZ32
     getter asZZ32(): ZZ32 = self
     getter asZZ64(): ZZ32 = self
+    getter asZZ(): ZZ = jMakeZZfromZZ32(self)
     getter bitsAsNN32(): NN32 = jMakeNN32FromZZ32(self)
     getter asString(): String = jIntToString(self)
     opr |self| : ZZ32 = jIntOverflowingAbs(self)
@@ -644,6 +669,7 @@ end
 trait NN32 extends { Number, Equality[\NN32\] } excludes { ZZ32, ZZ64, RR32, RR64 }
     coerce(x: IntLiteral) = x.asNN32
     getter asNN32(): NN32 = self
+    getter asZZ(): ZZ = jMakeZZfromNN32(jMakeZZ32FromNN32(self))
     getter bitsAsZZ32(): ZZ32 = jMakeZZ32FromNN32(self)
     getter asString(): String = jUnsignedIntToString(jMakeZZ32FromNN32(self))
     opr |self| : NN32 = self
@@ -707,6 +733,7 @@ trait NN64 extends { Number, Equality[\NN64\] } excludes { ZZ32, ZZ64, RR32, RR6
     coerce(x: IntLiteral) = x.asNN64
     coerce(x: NN32) = jMakeNN64FromZZ64(jIntToLong(jMakeZZ32FromNN32(x)))
     getter asNN64(): NN64 = self
+    getter asZZ(): ZZ = jMakeZZfromNN64(jMakeZZ64FromNN64(self))
     getter bitsAsZZ64(): ZZ64 = jMakeZZ64FromNN64(self)
     getter asString(): String = junsignedLongToString(jMakeZZ64FromNN64(self))
     opr |self| : NN64 = self
@@ -1468,6 +1495,10 @@ end
 
 object IntegerOverflow extends UncheckedException
     getter asString(): String = "Integer overflow"
+end
+
+object IntegerDomainError extends UncheckedException
+    getter asString(): String = "Integer domain error"
 end
 
 trait CheckedException extends Exception excludes UncheckedException

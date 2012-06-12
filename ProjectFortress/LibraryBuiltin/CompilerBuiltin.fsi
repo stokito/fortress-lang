@@ -101,6 +101,10 @@ value object IndefiniteNumber extends Number end
 
 trait ZZ extends { Number, Equality[\ZZ\] } excludes { RR64, ZZ64, ZZ32, NN32, NN64, IntLiteral } 
     coerce(x: IntLiteral)
+    coerce(x: ZZ32)
+    coerce(x: ZZ64)
+    coerce(x: NN32)
+    coerce(x: NN64)
     opr |self| : ZZ
     opr -(self): ZZ
     opr BOXMINUS(self): ZZ
@@ -131,7 +135,8 @@ trait ZZ extends { Number, Equality[\ZZ\] } excludes { RR64, ZZ64, ZZ32, NN32, N
     opr <<<(self, other:ZZ32): ZZ
     opr MIN(self, other:ZZ): ZZ 
     opr MAX(self, other:ZZ): ZZ 
-    opr MINMAX(self, other:ZZ): (ZZ, ZZ) 
+    opr MINMAX(self, other:ZZ): (ZZ, ZZ)
+    opr CHOOSE(self, other: ZZ): ZZ
     even(self): Boolean
     odd(self): Boolean
     floorAverage(self, other: ZZ): ZZ
@@ -141,7 +146,8 @@ end
 trait ZZ64 extends { Number, Equality[\ZZ64\] } excludes { RR64 , ZZ }
     coerce(x: IntLiteral)
     coerce(x: ZZ32) 
-    getter asZZ32(): ZZ32 
+    getter asZZ32(): ZZ32
+    getter asZZ(): ZZ
     getter bitsAsNN64(): NN64
     opr |self| : ZZ64
     opr -(self): ZZ64
@@ -195,6 +201,7 @@ end
 trait ZZ32 extends { Number, Equality[\ZZ32\], StandardTotalOrder[\ZZ32\] } excludes { ZZ64, RR32, RR64 }
     coerce(x: IntLiteral)
     getter asZZ32(): ZZ32
+    getter asZZ(): ZZ
     getter bitsAsNN32(): NN32
     opr |self| : ZZ32
     opr -(self): ZZ32
@@ -248,6 +255,7 @@ end
 trait NN32 extends { Number, Equality[\NN32\] } excludes { ZZ32, ZZ64, RR32, RR64 }
     coerce(x: IntLiteral)
     getter asNN32(): NN32
+    getter asZZ(): ZZ
     getter bitsAsZZ32(): ZZ32
     getter asString(): String
     opr |self| : NN32
@@ -305,6 +313,7 @@ trait NN64 extends { Number, Equality[\NN64\] } excludes { ZZ32, ZZ64, RR32, RR6
     coerce(x: IntLiteral)
     coerce(x: NN32)
     getter asNN64(): NN64
+    getter asZZ(): ZZ
     getter bitsAsZZ64(): ZZ64
     getter asString(): String
     opr |self| : NN64
@@ -705,6 +714,8 @@ object NegativeLength extends UncheckedException end
 object DivisionByZero extends UncheckedException end
 
 object IntegerOverflow extends UncheckedException end
+
+object IntegerDomainError extends UncheckedException end
 
 trait CheckedException extends Exception excludes UncheckedException
 end
