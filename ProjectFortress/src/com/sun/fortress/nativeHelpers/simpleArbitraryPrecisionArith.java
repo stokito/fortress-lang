@@ -101,4 +101,22 @@ public class simpleArbitraryPrecisionArith {
     public static BigInteger BItoZZ(BigInteger i) {
     	return i;
     }
+
+    public static BigInteger makeZZfromZZ32(int k) {
+    	return BigInteger.valueOf(k);
+    }
+
+    public static BigInteger makeZZfromZZ64(long k) {
+    	return BigInteger.valueOf(k);
+    }
+
+    public static BigInteger makeZZfromNN32(int k) {
+    	return BigInteger.valueOf(((long)k) & 0x00000000FFFFFFFFL);
+    }
+
+    public static BigInteger makeZZfromNN64(long k) {
+	if (k >= 0) return BigInteger.valueOf(k);
+	else return BigInteger.valueOf((k << 1) >>> 1).setBit(63);
+    }
+
 }

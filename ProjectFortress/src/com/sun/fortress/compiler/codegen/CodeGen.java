@@ -1215,7 +1215,12 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 Type super_ret = super_inst.replaceInEverything(raw_super_ret);
                 int super_self_index = NodeUtil.selfParameterIndex(super_func.parameters());
                 Type raw_super_noself_domain = oa.getNoSelfDomainType(super_func);
-                Type super_noself_domain = super_inst.replaceInEverything(raw_super_noself_domain);
+                Type super_noself_domain_possibly_no_params = super_inst.replaceInEverything(raw_super_noself_domain);
+                Type super_noself_domain =
+		    super_noself_domain_possibly_no_params.getInfo().getStaticParams().isEmpty() ?
+		    STypesUtil.insertStaticParams(super_noself_domain_possibly_no_params,     // Aha!  GLS 6/12/12
+						  currentTraitObjectDecl.getHeader().getStaticParams()) :
+		    super_noself_domain_possibly_no_params;
 
                 for (Functional func : funcs) {
                     Type ret = local_inst.replaceInEverything(oa.getRangeType(func));
@@ -1255,9 +1260,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         boolean r_a_le_b = oa.lteq(ret, super_ret);
                         boolean r_b_le_a = oa.lteq(super_ret, ret);
                     }
+// 		    System.out.println("**** " + noself_domain.toStringReadable() + " { " + noself_domain.getInfo().getStaticParams() + " } "
+// 				       + " versus super " + super_noself_domain.toStringReadable() + " { " + super_noself_domain.getInfo().getStaticParams() + " }");
+// 		    System.out.println("** raw super is " + raw_super_noself_domain.toStringReadable() +
+// 				       " { " + raw_super_noself_domain.getInfo().getStaticParams() + " }");
+// 		    System.out.println("** replacer is " + super_inst);
                     boolean d_a_le_b = oa.lteq(noself_domain, super_noself_domain) ;
                     boolean d_b_le_a = oa.lteq(super_noself_domain, noself_domain) ;
-                    
+// 		    System.out.println("**** END");
+
                     boolean r_a_le_b = oa.lteq(ret, super_ret);
                     boolean r_b_le_a = oa.lteq(super_ret, ret);
                     

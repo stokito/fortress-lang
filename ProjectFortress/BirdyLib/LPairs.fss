@@ -18,7 +18,7 @@ import Maybe.{...}
 import Bazaar.{...}
 import CompilerAlgebra.{...}
 import GeneratorLibrary.{DefaultGeneratorImplementation, voidReduction}
-export Pairs
+export LPairs
 
 pairs[\T\](g: Generator[\T\]): Generator[\(T,T)\] = Pairs(g)
 
