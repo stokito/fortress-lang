@@ -23,6 +23,7 @@ import Set.{...}
 import GenomeUtil2c.{...}
 import Tuple.{...}
 import CompilerAlgebra.{...}
+import System.getProperty
 
 export Executable
 
@@ -30,7 +31,7 @@ chunkSize: ZZ32 = 237
 readSize: ZZ32 = 35   (*) This may change with newer technology, but for now it is OK.
 
 (*) homeDir: String = "/Users/jean-baptistetristan/Code/workspace/PFC"
-homeDir: String = "/Users/gls/Fortress"
+homeDir: String = getProperty("fortress.home", ".")
 referenceFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head" 
 sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
 errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
@@ -253,6 +254,7 @@ end
 *)
 
 run() = do
+  println("homeDir is " homeDir)
   ref = getReferenceGenomeFromFile(referenceFile, 50, 15)
   samples = <|[\Sample\] getSampleData(name) | name <- sampleNames |>
   for refChunk <- ref do

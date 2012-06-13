@@ -1,0 +1,19 @@
+(*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component System
+import java com.sun.fortress.nativeHelpers.{systemOps.getProperty => jGetProperty}
+export System
+                                            
+getProperty(what:String, ifMissing:String) = jGetProperty(what.asJavaString, ifMissing.asJavaString)
+
+end
+

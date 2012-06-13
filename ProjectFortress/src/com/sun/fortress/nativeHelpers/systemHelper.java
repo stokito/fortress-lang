@@ -11,6 +11,9 @@
 
 package com.sun.fortress.nativeHelpers;
 import com.sun.fortress.compiler.runtimeValues.FStringVector;
+import com.sun.fortress.repository.ProjectProperties;
+import com.sun.fortress.runtimeSystem.MainWrapper;
+
 import java.lang.reflect.*;
 
 
@@ -32,7 +35,7 @@ public class systemHelper {
     public static void registerArgs(String[] args) {
         try {
 
-        Class cl = Class.forName("CompilerSystem$args");
+        Class cl = Class.forName("CompilerSystem$args", true, MainWrapper.icl); // Class.forName("CompilerSystem$args");
         Field f = cl.getDeclaredField("ONLY");
 
         setFinalStatic(f, new FStringVector(args));
@@ -42,5 +45,4 @@ public class systemHelper {
             // If CompilerSystem isn't found then we don't need it ?
         }
     }
-
 }
