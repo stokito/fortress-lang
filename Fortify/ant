@@ -1,0 +1,36 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2008, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+if [ "$ANT_HOME" == "" ] ; then
+  export TMPDIR="$$".tmpdir
+  mkdir /tmp/$TMPDIR
+
+  ANT_HOME=`(cd /tmp/$TMPDIR; ant -diagnostics | sed -n -e 's/^ant\.home: //p' | head -1)`
+
+  rmdir /tmp/$TMPDIR
+
+  echo please set ANT_HOME, guessing $ANT_HOME
+else
+  echo ANT_HOME is $ANT_HOME
+fi
+
+#
+# For NetBeans, you should not need to adjust anything to
+# build and test Fortress.
+#
+# For Eclipse, workspace and ant builds should not require any
+# adjustments, but to run tests using Ant within Eclipse, you
+# will need to add junit.jar to
+# build.xml -> Run As -> Ant Build... -> Classpath -> User Entries -> Add JARs...
+#
+$ANT_HOME/bin/ant -noclasspath -lib $FORTRESS_HOME/ProjectFortress/third_party/junit "$@"

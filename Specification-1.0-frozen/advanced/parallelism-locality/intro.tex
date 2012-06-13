@@ -1,0 +1,52 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\note{Distributions are not yet supported.}
+
+\label{parallel-intro}
+Fortress is designed to make parallel programming as simple and as
+painless as possible.  This chapter describes the internals of
+Fortress parallelism designed for use by authors of library code (such as
+\emph{distributions}, generators, and arrays).  We adopt a multi-tiered
+approach to parallelism:
+\begin{itemize}
+
+\item At the highest level, we provide libraries that allocate
+locality-aware distributed
+shared arrays (\secref{arrays}) and implicitly
+  parallel constructs such as tuples and loops.  Synchronization is
+  accomplished through the use of atomic sections (\secref{atomic}).
+  More complex synchronization makes use of abortable atomicity,
+  described in \secref{transactions}.
+
+\item There is an extensive library of distributions, which
+  permits the programmer to specify locality and data distribution
+  explicitly (\secref{distributions}).
+
+\item
+Immediately below that, the \KWD{at} expression requests that a
+computation take place in a particular region of the machine
+(\secref{parallelism-fundamentals}).
+  We also provide a mechanism to
+  terminate a spawned thread early (\secref{early-termination}).
+
+\item Finally, there are mechanisms for constructing new generators
+  via recursive subdivision into tree structures with individual
+  elements at the leaves.
+  \secref{defining-generators} explains how
+  iterative constructs such as \KWD{for} loops and comprehensions
+  are desugared into calls to methods of trait \TYP{Generator}, and how
+  new instances of this trait may be defined.
+
+\end{itemize}
+
+We begin by describing the abstraction of \emph{regions}, which Fortress
+uses to describe the machine on which a program is run.

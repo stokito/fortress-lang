@@ -1,0 +1,32 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Overview.Tests
+
+export Executable
+
+factorial(n) =
+  if n = 0 then 1
+  else n factorial(n-1) end
+(** EXAMPLE **)
+test factorialResultLarger() = do
+  assert(0 <= factorial(0))
+  assert(1 <= factorial(1))
+  assert(10 <= factorial(10))
+  println "Test factorialResultLarger succeeded."
+end
+(** END EXAMPLE **)
+
+run() = println (factorial 5)
+
+end

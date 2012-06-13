@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component chain2
+export Executable
+
+t(x:Boolean) = println( if x then "PASS" else "FAIL" end )
+t(x:ZZ32, y:ZZ32) = if x = y then println "PASS" else
+                        println ("FAIL, Got " x " expected " y )
+                    end
+
+
+
+run() = do
+
+t( 0<=0<1=1<2<=2 )
+t( NOT (0>=0>1=1>2>=2) )
+
+end
+
+end

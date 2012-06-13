@@ -1,0 +1,9 @@
+component Bar
+
+import J.{...}
+export Executable
+
+run() : () =
+   println(j())
+
+end

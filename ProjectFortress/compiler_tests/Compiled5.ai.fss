@@ -1,0 +1,19 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+  import MyOwnLiterals.{...}
+  export AsIfInterface
+
+(* Test that expression type <: ascripted type. *)
+
+  trait MyOwnZZ32 end
+
+  foo():MyOwnZZ32 = (MyOwn0 asif MyOwnZZ32)

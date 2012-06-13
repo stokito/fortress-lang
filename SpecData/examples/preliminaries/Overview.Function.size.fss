@@ -1,0 +1,33 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Overview.Function.size
+
+export Executable
+
+trait List end
+object Nil extends List end
+object Cons(hd: ZZ32, tl: List) extends List
+  rest(self) = tl
+end
+
+list = Cons(3, Cons(2, Cons(1, Nil)))
+
+(** EXAMPLE **)
+size(x: Nil) = 0
+size(x: Cons) = 1 + size(rest(x))
+(** END EXAMPLE **)
+
+run() = println (size list)
+
+end

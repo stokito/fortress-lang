@@ -1,0 +1,33 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait R extends Object
+  m() = "R.m"
+end
+
+trait S extends R
+  m() = "S.m"
+end
+
+trait T extends Object
+  m() = "T.m"
+end
+
+trait U extends Object
+end
+
+object O extends {R,S,T,U}
+  m() = "O.m"
+end
+
+run() = println O.m()

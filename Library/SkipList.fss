@@ -1,0 +1,772 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SkipList
+import PureList.{...}
+export SkipList
+
+(*****************************************************************************
+   An implementation of Skip Lists, based on Pugh, William (June 1990).
+   "Skip lists: a probabilistic alternative to balanced trees". Communications
+   of the ACM 33: 668-676. The expected time for searching, inserting, or deleting
+   a key-element pair is O(log n). Skip Lists are represented here in a tree
+   structure, based on Xavier Messeguer (1997). "Skip Trees, an Alternative Data
+   Structure to Skip Lists in a Concurrent Approach". ITA 31(3): 251-269.
+
+   A skip tree is a variant of a B-tree.  It shares the B-tree property that
+   every path from the root to a leaf has the same length.  Every node contains
+   some number of keys (n) and exactly n + 1 children nodes. Skip trees do not
+   share the B-tree property of a minimum or a maximum number of keys per node.
+   All leaves live in level 0 of the tree, and values are stored only in the leaf
+   nodes.
+
+   This implementation of skip trees supports multiple values for a unique key.
+   If a key contains multiple values, then an arbitrary value is returned on
+   a search for that key.
+
+***************************************************************************)
+
+(* A SkipList type consists of a root node and pInverse = 1/p, where the fraction
+   p is used in the negative binomial distribution to select random levels for insertion.
+*)
+object SkipList[\Key,Val,nat pInverse\](root:Node[\Key,Val\])
+
+  p:RR64 = 1.0 / pInverse
+
+  getter asString():String = root.asString
+
+  (* The number of values stored. *)
+  getter size():ZZ32 = |root|
+  opr |self| : ZZ32 = |root|
+
+  (* Given a key, try to return a value that matches that key. *)
+  search(k:Key):Maybe[\Val\] = root.search(k)
+
+  (* Add a (key, value) pair. *)
+  add(k:Key, v:Val):SkipList[\Key,Val,pInverse\] = do
+    level:ZZ32 = randomLevel()
+    values:Array[\Val,ZZ32\] = array[\Val\](1)
+    values[0] := v
+    leaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\](k, values)
+    SkipList[\Key,Val,pInverse\](root.add(leaf, level))
+  end
+
+  (* Remove a (key, value) pair. *)
+  remove(k:Key):SkipList[\Key,Val,pInverse\] = do
+    (root', maybe) = root.remove(k)
+    SkipList[\Key,Val,pInverse\](root')
+  end
+
+  (* Merge two Skip Lists. *)
+  merge(other:SkipList[\Key,Val,pInverse\]):SkipList[\Key,Val,pInverse\] = do
+    (larger, smaller) = if |self| > |other| then (self, other) else (other, self) end
+    smallList = singleton[\Node[\Key,Val\]\](smaller.root)
+    SkipList[\Key,Val,pInverse\](larger.root.merge(smallList))
+  end
+
+  (* Return a random level >= 1 with a negative binomial distribution. *)
+  randomLevel():ZZ32 = do
+    level':ZZ32 := 1
+    while random(1.0) < p do
+      level' += 1
+    end
+    level'
+  end
+
+end
+
+(* Construct an empty Skip List. *)
+NewList[\Key,Val,nat pInverse\]():SkipList[\Key,Val,pInverse\] =
+  SkipList[\Key,Val,pInverse\](EmptyNode[\Key,Val\])
+
+
+(* A Node is the basic type for the Skip List data structure.
+   There are four types of Nodes:
+    i)   Empty Nodes - represents an empty tree.
+    ii)  Leaf Nodes - stores a (key,val) pair. Lives at the bottom of the tree.
+    iii) Internal Nodes - stores N keys and N+1 children for N > 0.
+    iv)  White Nodes - stores exactly zero keys and one child.
+*)
+trait Node[\Key,Val\]
+(*
+      comprises {EmptyNode[\Key,Val\], LeafNode[\Key,Val\],
+                 NonLeafNode[\Key,Val\],
+                 WhiteNodeHelper[\Key,Val,ChildType\]
+                     where [\ChildType extends Node[\Key,Val\]\],
+                 InternalNodeHelper[\SelfType,Key,Val,ChildType\]
+                     where [\SelfType extends InternalNodeHelper[\SelfType,Key,Val,ChildType\],
+                             ChildType extends Node[\KeyVal\]\],
+                 WhiteNode[\Key,Val\], InternalNode[\Key,Val\]}
+*)
+
+  (* The height of the current node.  Height = 0 must be a leaf *)
+  getter height():ZZ32
+
+  (* Deprecated.  Use |size| *)
+  getter size():ZZ32
+
+  (* The number of values stores in this subtree.  The number of
+     values is greater than or equal to the number of keys,
+     as duplicates are allowed in this implementation. *)
+  opr |self| : ZZ32
+
+  (* given a search key, try to return a value that matches that key *)
+  search(k:Key):Maybe[\Val\]
+
+  (* toGraphViz():String   wait until hashCode() is implemented*)
+
+  (* the add method will grow the tree if level > root height *)
+  add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\]
+
+  (* the add_helper method is only invoked if level <= root height *)
+  (* returns the new node and whether a new key was inserted *)
+  add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\], Boolean)
+
+  (* perform a search operation, and remove a value if it is found *)
+  remove(k:Key):(Node[\Key,Val\],Maybe[\Val\])
+
+  (* merge must always be invoked with at least one element in the merge list *)
+  merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\]
+
+  (* return the list of leaves that are under the current subtree *)
+  getLeaves():List[\LeafNode[\Key,Val\]\]
+
+end
+
+
+(* There are two types of white nodes:
+    a) WhiteLevel1 are white nodes that live at level 1 of the tree.  Their children are leaves.
+    b) WhiteLevelN are white nodes that live at level > 1 of the tree. Their children are non-leaves. *)
+trait WhiteNode[\Key,Val\]
+      extends Node[\Key,Val\]
+      excludes InternalNode[\Key,Val\]
+      comprises {WhiteLevel1[\Key,Val\], WhiteLevelN[\Key,Val\]}
+end
+
+(* There are two types of internal nodes:
+    a) InternalLevel1 are internal nodes that live at level 1 of the tree.  Their children are leaves.
+    b) InternalLevelN are internal nodes that live at level > 1 of the tree. Their children are non-leaves. *)
+trait InternalNode[\Key,Val\]
+      extends Node[\Key,Val\]
+      excludes WhiteNode[\Key,Val\]
+      comprises {InternalLevel1[\Key,Val\], InternalLevelN[\Key, Val\]}
+end
+
+(* There are four types of NonLeafNodes and they are the union of the WhiteNode types and InternalNode types *)
+trait NonLeafNode[\Key,Val\]
+      extends Node[\Key,Val\]
+      comprises {WhiteLevel1[\Key,Val\], WhiteLevelN[\Key,Val\],
+                 InternalLevel1[\Key,Val\], InternalLevelN[\Key, Val\]}
+end
+
+(* WhiteNodeHelper is the trait that is used to distinguish between WhiteLevel1 and WhiteLevelN *)
+trait WhiteNodeHelper[\Key,Val,ChildType extends Node[\Key,Val\]\]
+      extends Node[\Key,Val\]
+      comprises {WhiteLevel1[\Key,Val\], WhiteLevelN[\Key,Val\]}
+
+  getter child():ChildType
+  getter size():ZZ32 = |self.child|
+  getter height():ZZ32 = self.child.height + 1
+  getter asString():String = "{ [], [" self.child.asString "] }"
+
+  opr |self| : ZZ32 = |self.child|
+
+  search(k:Key):Maybe[\Val\] = self.child.search(k)
+
+  add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = do
+    tail:Node[\Key,Val\] = generate_tail[\Key,Val\](self, level - self.height)
+    (newNode, newKey) = tail.add_helper(leaf, level)
+    newNode
+  end
+
+  getLeaves():List[\LeafNode[\Key,Val\]\] = self.child.getLeaves()
+
+end
+
+(* InternalNodeHelper is the trait that is used to distinguish between InternalLevel1 and InternalLevelN *)
+trait InternalNodeHelper[\SelfType extends InternalNodeHelper[\SelfType,Key,Val,ChildType\],Key,Val,ChildType extends Node[\Key,Val\]\]
+      extends Node[\Key,Val\]
+      comprises {InternalLevel1[\Key,Val\], InternalLevelN[\Key,Val\]}
+
+  getter keys():Array[\Key,ZZ32\]
+  getter children():Array[\ChildType,ZZ32\]
+
+  getter size():ZZ32 = |self|
+
+  getter height():ZZ32 = self.children[0].height + 1
+
+  getter asString():String = "{" self.keys.asString ", " self.children.asString "}"
+
+  opr |self| : ZZ32 = SUM [node <- self.children] |node|
+
+  (* given an instance of SelfType, generate a singleton SelfType *)
+  singleton(keys':Array[\Key,ZZ32\], children':Array[\ChildType,ZZ32\]) : SelfType
+
+  (* given a key k, return the largest offset with a value less than or equal to k *)
+  find_index(k:Key):ZZ32 = do
+    index:ZZ32 := 0
+    while (index < |self.keys| AND: k >= self.keys[index]) do
+      index += 1
+    end
+    index
+  end
+
+  search(k:Key):Maybe[\Val\] = do
+    index:ZZ32 = find_index(k)
+    self.children[index].search(k)
+  end
+
+  add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = do
+    tail:Node[\Key,Val\] = generate_tail[\Key,Val\](self, level - self.height)
+    (newNode, newKey) = tail.add_helper(leaf, level)
+    newNode
+  end
+
+  getLeaves():List[\LeafNode[\Key,Val\]\] = self.children.generate[\List[\LeafNode[\Key,Val\]\]\](
+    Concat[\LeafNode[\Key,Val\]\],
+    fn (node:Node[\Key,Val\]): List[\LeafNode[\Key,Val\]\] => node.getLeaves())
+
+  (* break this internal node.
+     Returns the two halves along with an key array of size quantity used for splitting.
+     The values array is of size quantitiy - 1. *)
+  break(quantity:ZZ32):(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Array[\Key,ZZ32\],Array[\NonLeafNode[\Key,Val\],ZZ32\]) =
+  if |self.keys| = quantity then
+    onekey_break(quantity)
+  elif |self.keys| - 1 = quantity then
+    twokeys_break(quantity)
+  else
+    nkeys_break(quantity)
+  end
+
+  (* perform the break operation when we have a key count of quantity *)
+  onekey_break(quantity:ZZ32):(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Array[\Key,ZZ32\],Array[\NonLeafNode[\Key,Val\],ZZ32\]) = do
+    keys':Array[\Key,ZZ32\] = self.keys.copy()
+    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|self.keys| - 1)
+    for i <- 0 # |children'| do
+      children'[i] := generate_tail[\Key,Val\](self.children[i + 1], 1)
+    end
+    smaller:Node[\Key,Val\] = self.children[0]
+    larger:Node[\Key,Val\] = self.children[|self.children| - 1]
+    left:NonLeafNode[\Key,Val\] = generate_tail[\Key,Val\](smaller, 1)
+    right:NonLeafNode[\Key,Val\] = generate_tail[\Key,Val\](larger, 1)
+    (left, right, keys', children')
+  end
+
+  (* perform the break operation when we have a key count of (quantity + 1) *)
+  twokeys_break(quantity:ZZ32):(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Array[\Key,ZZ32\],Array[\NonLeafNode[\Key,Val\],ZZ32\]) = do
+    smaller:Node[\Key,Val\] = self.children[0]
+    keys':Array[\Key,ZZ32\] = self.keys[0 # (|self.keys| - 1)]
+    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|self.keys| - 2)
+    for i <- children'.indices do
+      children'[i] := generate_tail[\Key,Val\](self.children[i + 1], 1)
+    end
+    rkeys:Array[\Key,ZZ32\] = array[\Key\](1)
+    rchildren:Array[\ChildType,ZZ32\] = array[\ChildType\](2)
+    rkeys[0] := self.keys[|self.keys| - 1]
+    rchildren[0#2] := self.children[(|self.keys| - 1) # 2]
+    left:NonLeafNode[\Key,Val\] = generate_tail[\Key,Val\](smaller, 1)
+    right:NonLeafNode[\Key,Val\] = singleton(rkeys,rchildren)
+    (left, right, keys', children')
+  end
+
+  (* perform the break operation when we have a key count > (quantity + 1) *)
+  nkeys_break(quantity:ZZ32):(NonLeafNode[\Key,Val\],NonLeafNode[\Key,Val\],Array[\Key,ZZ32\],Array[\NonLeafNode[\Key,Val\],ZZ32\]) = do
+    leftovers:ZZ32 = |self.keys| - quantity
+    lsize:ZZ32 = leftovers DIV 2
+    rsize:ZZ32 = leftovers - lsize
+    (* make the left child *)
+    lkeys:Array[\Key,ZZ32\] = array[\Key\](lsize)
+    lchildren:Array[\ChildType,ZZ32\] = array[\ChildType\](lsize + 1)
+    lkeys[0 # lsize] := self.keys[0 # lsize]
+    lchildren[0 # (lsize + 1)] := self.children[0 # (lsize + 1)]
+    left:NonLeafNode[\Key,Val\] = singleton(lkeys,lchildren)
+    (* make the right child *)
+    rkeys:Array[\Key,ZZ32\] = array[\Key\](rsize)
+    rchildren:Array[\ChildType,ZZ32\] = array[\ChildType\](rsize + 1)
+    rkeys[0 # rsize] := self.keys[(|self.keys| - rsize) # rsize]
+    rchildren[0 # (rsize + 1)] := self.children[(|self.keys| - rsize) # (rsize + 1)]
+    right:NonLeafNode[\Key,Val\] = singleton(rkeys,rchildren)
+    (* make the center child *)
+    keys':Array[\Key,ZZ32\] = self.keys[lsize # quantity]
+    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](quantity - 1)
+    for i <- children'.indices do
+      children'[i] := generate_tail[\Key,Val\](self.children[i + lsize + 1], 1)
+    end
+    (left, right, keys', children')
+  end
+
+  (* return a new internal node that has self.children[index] and self.keys[index - 1] missing *)
+  index_remove(index:ZZ32): SelfType = do
+    keys':Array[\Key,ZZ32\] = array[\Key\](|self.keys| - 1)
+    children':Array[\ChildType,ZZ32\] = array[\ChildType\](|self.children| - 1)
+    replace:ZZ32 = 0 MAX (index - 1)
+    keys'[0 # replace] := self.keys[0 # replace]
+    keys'[replace # (|keys'| - replace)] := self.keys[(replace + 1) # (|keys'| - replace)]
+    children'[0 # index] := self.children[0 # index]
+    children'[index # (|children'| - index)] := self.children[(index + 1) # (|children'| - index)]
+    singleton(keys', children')
+  end
+
+end
+
+(* Helper function to generate a tail of white nodes coming off a leaf node *)
+generate_tail[\Key,Val\](node:LeafNode[\Key,Val\], length:ZZ32):Node[\Key,Val\] =
+if length > 0 then
+  generate_tail[\Key,Val\](WhiteLevel1[\Key,Val\](node), length - 1)
+else
+  node
+end
+
+(* Helper function to generate a tail of white nodes coming off a non leaf node *)
+generate_tail[\Key,Val\](node:NonLeafNode[\Key,Val\], length:ZZ32):Node[\Key,Val\] =
+if length > 0 then
+  generate_tail[\Key,Val\](WhiteLevelN[\Key,Val\](node), length - 1)
+else
+  node
+end
+
+(* A white node stores exactly zero keys and contains one child. White nodes are
+   used as placeholders to keep the height of all branches identical. A white node
+   has a height > 0 *)
+object WhiteLevel1[\Key,Val\](child:LeafNode[\Key,Val\])
+       extends {WhiteNode[\Key,Val\],
+                WhiteNodeHelper[\Key,Val,LeafNode[\Key,Val\]\],
+                NonLeafNode[\Key,Val\]}
+
+  getter child():LeafNode[\Key,Val\] = child
+
+  add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\], Boolean) = do
+    k:Key = leaf.key
+    k':Key = child.key
+    if k = k' then
+      values:Array[\Val,ZZ32\] = array[\Val\](|leaf.values| + |child.values|)
+      values[0 # |leaf.values|] := leaf.values[0 # |leaf.values|]
+      values[|leaf.values| # |child.values|] := child.values[#]
+      newleaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\](k, values)
+      (WhiteLevel1[\Key,Val\](newleaf), false)
+    else
+      keys:Array[\Key,ZZ32\] = array[\Key\](1)
+      children:Array[\LeafNode[\Key,Val\],ZZ32\] = array[\LeafNode[\Key,Val\]\](2)
+      (smaller,larger,lkey) = if k > k' then (child,leaf,k) else (leaf,child,k') end
+      keys[0] := lkey
+      children[0] := smaller
+      children[1] := larger
+      (InternalLevel1[\Key,Val\](keys,children), true)
+    end
+  end
+
+  remove(k:Key):(Node[\Key,Val\],Maybe[\Val\]) = do
+    if child.getKey() = k then
+      if |child.values| = 1 then
+        (EmptyNode[\Key,Val\], Just[\Val\](child.values[0]))
+      else
+        values:Array[\Val,ZZ32\] = array[\Val\](|child.values| - 1)
+        values[#] := child.values[0 # |values|]
+        newLeaf = LeafNode[\Key,Val\](k, values)
+        (WhiteLevel1[\Key,Val\](newLeaf), Just[\Val\](child.values[|values|]))
+      end
+    else
+      (self, Nothing[\Val\])
+    end
+  end
+
+  merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] =
+    height1_merge_leaves(nodes.generate[\List[\LeafNode[\Key,Val\]\]\](
+      Concat[\LeafNode[\Key,Val\]\],
+      fn (node:Node[\Key,Val\]): List[\LeafNode[\Key,Val\]\] => node.getLeaves()))
+
+  (* helper function for height1_merge where nodes is a list of all leaves *)
+  height1_merge_leaves(nodes:List[\LeafNode[\Key,Val\]\]):Node[\Key,Val\] = do
+    (* TODO: A bulk insert could be implemented that does not used serialized single inserts *)
+    newNode:Node[\Key,Val\] := self
+    for leaf <- seq(nodes) do
+      (tempNode, newKey) = newNode.add_helper(leaf, 1)
+      newNode := tempNode
+    end
+    newNode
+  end
+
+end
+
+
+(* A white node stores exactly zero keys and contains one child. White nodes are
+   used as placeholders to keep the height of all branches identical. A white node
+   has a height > 0 *)
+object WhiteLevelN[\Key,Val\](child:NonLeafNode[\Key,Val\])
+       extends {WhiteNode[\Key,Val\],
+                WhiteNodeHelper[\Key,Val,NonLeafNode[\Key,Val\]\],
+                NonLeafNode[\Key,Val\]}
+
+  getter child():NonLeafNode[\Key,Val\] = child
+
+  add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\], Boolean) = do
+    (child':Node[\Key,Val\], newKey:Boolean) = child.add_helper(leaf,level)
+    if level < self.height OR newKey = false then
+      (WhiteLevelN[\Key,Val\](child'), newKey)
+    else
+      (split(0, 1, child'), newKey)
+    end
+  end
+
+  remove(k:Key):(Node[\Key,Val\],Maybe[\Val\]) = do
+    (child':Node[\Key,Val\], maybe:Maybe[\Val\]) = child.remove(k)
+    if instanceOf[\EmptyNode[\Key,Val\]\](child') then
+      (child', maybe)
+    else
+      (WhiteLevelN[\Key,Val\](child'), maybe)
+    end
+  end
+
+  merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = WhiteLevelN[\Key,Val\](child.merge(nodes))
+
+  (* breaks the new child and sucks the split keys to this level *)
+  split(index:ZZ32, quantity:ZZ32, heir:InternalNode[\Key,Val\]):InternalLevelN[\Key,Val\] = do
+    children:Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](quantity + 1)
+    (left, right, keys, children') = heir.break(quantity)
+    children[0] := left
+    children[1 # |children'|] := children'[#]
+    children[|children| - 1] := right
+    InternalLevelN[\Key,Val\](keys,children)
+  end
+
+end
+
+(* An internal node stores N keys and N + 1 children where N > 0.
+   An internal nodes has a height > 0. *)
+object InternalLevel1[\Key,Val\](keys:Array[\Key,ZZ32\],
+                                 children:Array[\LeafNode[\Key,Val\],ZZ32\])
+       extends {InternalNode[\Key,Val\],
+                InternalNodeHelper[\InternalLevel1[\Key,Val\],Key,Val,LeafNode[\Key,Val\]\],
+                NonLeafNode[\Key,Val\]}
+
+  getter keys():Array[\Key,ZZ32\] = keys
+  getter children():Array[\LeafNode[\Key,Val\],ZZ32\] = children
+
+  singleton(keys':Array[\Key,ZZ32\], children':Array[\LeafNode[\Key,Val\],ZZ32\]) : InternalLevel1[\Key,Val\] = InternalLevel1[\Key,Val\](keys',children')
+
+  add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\],Boolean) = do
+    index:ZZ32 = find_index(leaf.getKey())
+    if children[index].getKey() = leaf.getKey() then
+      values:Array[\Val,ZZ32\] = array[\Val\](|leaf.values| + |children[index].values|)
+      values[0 # |leaf.values|] := leaf.values[#]
+      values[|leaf.values| # |children[index].values|] := children[index].values[#]
+      newleaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\](leaf.getKey(), values)
+      children':Array[\LeafNode[\Key,Val\],ZZ32\] = children.copy()
+      children'[index] := newleaf
+      (InternalLevel1[\Key,Val\](keys,children'), false)
+    else
+      keys':Array[\Key,ZZ32\] = array[\Key\](|keys| + 1)
+      children':Array[\LeafNode[\Key,Val\],ZZ32\] = array[\LeafNode[\Key,Val\]\](|children| + 1)
+      keysplit:ZZ32 = |keys| - index
+      (smaller,larger) = if leaf.getKey() > children[index].getKey() then (children[index], leaf) else (leaf, children[index]) end
+      children'[index] := smaller
+      children'[index + 1] := larger
+      children'[0 # index] := children[0 # index]
+      children'[(index + 2) # keysplit] := children[(index + 1) # keysplit]
+      keys'[index] := larger.getKey()
+      keys'[0 # index] := keys[0 # index]
+      keys'[(index + 1) # keysplit] := keys[index # keysplit]
+      (InternalLevel1[\Key,Val\](keys',children'), true)
+    end
+  end
+
+  remove(k:Key):(Node[\Key,Val\],Maybe[\Val\]) = do
+    index:ZZ32 = find_index(k)
+    if children[index].getKey() = k then
+      height1_remove_helper(k, index)
+    else
+      (self, Nothing[\Val\])
+    end
+  end
+
+  height1_remove_helper(k:Key, index:ZZ32):(Node[\Key,Val\], Maybe[\Val\]) = do
+    values:Array[\Val,ZZ32\] = children[index].values
+    val:Val = values[|values| - 1]
+    if |values| > 1 then
+      values':Array[\Val,ZZ32\] = array[\Val\](|values| - 1)
+      values'[#] := values[0 # |values'|]
+      newleaf:LeafNode[\Key,Val\] = LeafNode[\Key,Val\](k, values')
+      children':Array[\LeafNode[\Key,Val\],ZZ32\] = children.copy()
+      children'[index] := newleaf
+      InternalLevel1[\Key,Val\](keys,children')
+    elif |keys| = 1 then
+      (WhiteLevel1[\Key,Val\](children[(index + 1) MOD 2]), Just[\Val\](val))
+    else
+      (index_remove(index), Just[\Val\](val))
+    end
+  end
+
+  merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] =
+    height1_merge_leaves(nodes.generate[\List[\LeafNode[\Key,Val\]\]\](
+      Concat[\LeafNode[\Key,Val\]\],
+      fn (node:Node[\Key,Val\]): List[\LeafNode[\Key,Val\]\] => node.getLeaves()))
+
+  (* helper function for height1_merge where nodes is a list of all leaves *)
+  height1_merge_leaves(nodes:List[\LeafNode[\Key,Val\]\]):Node[\Key,Val\] = do
+    (* TODO: A bulk insert could be implemented that does not used serialized single inserts *)
+    newNode:Node[\Key,Val\] := self
+    for leaf <- seq(nodes) do
+      (tempNode, newKey) = newNode.add_helper(leaf, 1)
+      newNode := tempNode
+    end
+    newNode
+  end
+
+
+end
+
+(* An internal node stores N keys and N + 1 children where N > 0.
+   An internal nodes has a height > 0. *)
+object InternalLevelN[\Key,Val\](keys:Array[\Key,ZZ32\],
+                                 children:Array[\NonLeafNode[\Key,Val\],ZZ32\])
+       extends {InternalNode[\Key,Val\],
+                InternalNodeHelper[\InternalLevelN[\Key,Val\],Key,Val,NonLeafNode[\Key,Val\]\],
+                NonLeafNode[\Key,Val\]}
+
+  getter keys():Array[\Key,ZZ32\] = keys
+  getter children():Array[\NonLeafNode[\Key,Val\],ZZ32\] = children
+
+  singleton(keys':Array[\Key,ZZ32\], children':Array[\NonLeafNode[\Key,Val\],ZZ32\]) : InternalLevelN[\Key,Val\] = InternalLevelN[\Key,Val\](keys',children')
+
+  add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\],Boolean) = do
+    index:ZZ32 = find_index(leaf.getKey())
+    (child':Node[\Key,Val\], newKey:Boolean) = children[index].add_helper(leaf, level)
+    if level < self.height OR newKey = false then
+      children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|children|)
+      children'[0 # |children|] := children[#]
+      children'[index] := child'
+      (InternalLevelN[\Key,Val\](keys,children'), newKey)
+    else
+      (split(index, 1, child'), newKey)
+    end
+  end
+
+  remove(k:Key):(Node[\Key,Val\],Maybe[\Val\]) = do
+    index:ZZ32 = find_index(k)
+    (child':Node[\Key,Val\], maybe:Maybe[\Val\]) = children[index].remove(k)
+    if |keys| = 1 then
+      (heightn_remove_1key(index,child'), maybe)
+    else
+      (heightn_remove_nkeys(index,child'), maybe)
+    end
+  end
+
+  (* breaks the new child and sucks the split keys to this level *)
+  split(index:ZZ32, quantity:ZZ32, heir:InternalNode[\Key,Val\]):InternalLevelN[\Key,Val\] = do
+    keysplit:ZZ32 = |keys| - index
+    keys':Array[\Key,ZZ32\] = array[\Key\](|keys| + quantity)
+    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|children| + quantity)
+    (left, right, newkeys, newchildren) = heir.break(quantity)
+    keys'[0 # index] := keys[0 # index]
+    keys'[index # |newkeys|] := newkeys[#]
+    keys'[(index + |newkeys|) # keysplit] := keys[index # keysplit]
+    children'[0 # index] := children[0 # index]
+    children'[index] := left
+    children'[(index + 1) # |newchildren|] := newchildren[#]
+    children'[index + |newchildren| + 1] := right
+    children'[(index + |newchildren| + 2) # keysplit] := children[(index + 1) # keysplit]
+    InternalLevelN[\Key,Val\](keys',children')
+  end
+
+  merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = heightn_merge(nodes)
+
+  (* perform the remove operation when height > 1 and keys = 1 *)
+  heightn_remove_1key(index:ZZ32, child':Node[\Key,Val\]):Node[\Key,Val\] = do
+    other:ZZ32 = (index + 1) MOD 2
+    if instanceOf[\EmptyNode[\Key,Val\]\](child') then
+      WhiteLevelN[\Key,Val\](children[other])
+    else
+      keys':Array[\Key,ZZ32\] = array[\Key\](1)
+      children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](2)
+      keys'[0] := keys[0]
+      children'[index] := child'
+      children'[other] := children[other]
+      InternalLevelN[\Key,Val\](keys', children')
+    end
+  end
+
+  (* perform the remove operation when height > 1 and keys > 1 *)
+  heightn_remove_nkeys(index:ZZ32, child':Node[\Key,Val\]):Node[\Key,Val\] = do
+    if instanceOf[\EmptyNode[\Key,Val\]\](child') then
+      index_remove(index)
+    else
+      keys':Array[\Key,ZZ32\] = array[\Key\](|keys|)
+      children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|children|)
+      keys'[0 # |keys|] := keys[#]
+      children'[0 # |children|] := children[#]
+      children'[index] := child'
+      InternalLevelN[\Key,Val\](keys', children')
+    end
+  end
+
+  (* perform the merge operation when the height is greater than one *)
+  heightn_merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = do
+    destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\] = array[\List[\Node[\Key,Val\]\]\](|children|)
+    empty:List[\Node[\Key,Val\]\] = <|[\Node[\Key,Val\]\] |>
+    destinations.fill(empty)
+    for node <- nodes do
+      merge_destination_insert(node, destinations)
+    end
+    keys':Array[\Key,ZZ32\] = keys.copy()
+    children':Array[\NonLeafNode[\Key,Val\],ZZ32\] = array[\NonLeafNode[\Key,Val\]\](|children|)
+    for index <- children.indices do
+      if destinations[index].isEmpty then
+        children'[index] := children[index]
+      else
+        children'[index] := children[index].merge(destinations[index])
+      end
+    end
+    InternalLevelN[\Key,Val\](keys',children')
+  end
+
+  (* The following are a set of helper function for heightn_merge.
+     They try to unambiguously merge a target node into one of the children
+     of this node.  If an ambiguity occurs, then look at the children of the target node
+     and recursively repeat this process. *)
+
+  (* helper function for heightn_merge on EmptyNodes *)
+  merge_destination_insert(node:EmptyNode[\Key,Val\], destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() = ()
+
+  (* helper function for heightn_merge on LeafNodes *)
+  merge_destination_insert(node:LeafNode[\Key,Val\], destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() = do
+    index:ZZ32 = find_index(node.getKey())
+    atomic do
+      destinations[index] := destinations[index].addLeft(node)
+    end
+  end
+
+  (* helper function for heightn_merge on WhiteNodes *)
+  merge_destination_insert(node:WhiteNode[\Key,Val\], destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() = do
+    merge_destination_insert(node.child, destinations)
+  end
+
+  (* helper function for heightn_merge on InternalNodes *)
+  merge_destination_insert(node:InternalNode[\Key,Val\], destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() = do
+    for index <- node.children.indices do
+      merge_destination_insert_helper(node, index, destinations)
+    end
+  end
+
+  (* these method should be rewritten once intervals are implemened *)
+  merge_destination_insert_helper(node:InternalNode[\Key,Val\], index:ZZ32, destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() =
+  if index = 0 then
+    merge_destination_lower(node, index, destinations)
+  elif index = |node.keys| then
+    merge_destination_upper(node, index, destinations)
+  else
+    merge_destination_middle(node, index, destinations)
+  end
+
+  (* take care of intervals of the form (-INFINITY, x] *)
+  merge_destination_lower(node:InternalNode[\Key,Val\], index:ZZ32, destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() =
+  if node.keys[index] <= keys[0] then
+    atomic do
+      destinations[0] := destinations[0].addLeft(node.children[index])
+    end
+  else
+    merge_destination_insert(node.children[index], destinations)
+  end
+
+  (* take care of intervals of the form [x, INFINITY) *)
+  merge_destination_upper(node:InternalNode[\Key,Val\], index:ZZ32, destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() =
+  if node.keys[index - 1] >= keys[|keys| - 1] then
+    atomic do
+      destinations[|keys|] := destinations[|keys|].addLeft(node.children[index])
+    end
+  else
+    merge_destination_insert(node.children[index], destinations)
+  end
+
+  (* take care of all other intervals *)
+  merge_destination_middle(node:InternalNode[\Key,Val\], index:ZZ32, destinations:Array[\List[\Node[\Key,Val\]\],ZZ32\]):() = do
+    index':ZZ32 = find_unique(node, index)
+    if index' >= 0 then
+      atomic do
+        destinations[index'] := destinations[index'].addLeft(node.children[index])
+      end
+    else
+      merge_destination_insert(node.children[index], destinations)
+    end
+  end
+
+  (* find the unique interval in self that encompasses node.children[index], or return -1 *)
+  find_unique(node:InternalNode[\Key,Val\], index:ZZ32):ZZ32 = do
+    index':ZZ32 := -1
+    lower:Key = node.keys[index - 1]
+    upper:Key = node.keys[index]
+    for i <- 0 # (|keys| - 1) do
+      if (keys[i] <= lower AND keys[i + 1] >= upper) then
+        index' := (i + 1)
+      end
+    end
+    index'
+  end
+
+end
+
+(* The empty node represents an empty tree. It is neither a leaf node nor
+   an internal node, and the empty node does not have a height. *)
+object EmptyNode[\Key,Val\] extends Node[\Key,Val\]
+
+  getter height():ZZ32 = fail("Cannot get height of an empty tree")
+  getter size():ZZ32 = 0
+  getter asString():String = "{}"
+
+  opr |self| : ZZ32 = 0
+
+  search(k:Key):Maybe[\Val\] = Nothing[\Val\]
+
+  remove(k:Key):Node[\Key,Val\] = self
+
+  add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = do
+    (newNode, newKey) = add_helper(leaf, level)
+    newNode
+  end
+
+  add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):(Node[\Key,Val\], Boolean) = do
+    parent:WhiteLevel1[\Key,Val\] = WhiteLevel1[\Key,Val\](leaf)
+    (parent, true)
+  end
+
+  merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = nodes[0]
+
+  getLeaves():List[\LeafNode[\Key,Val\]\] =  <|[\LeafNode[\Key,Val\]\] |>
+
+end
+
+(* Leaf nodes are the only nodes that store values.  All leaf
+   nodes live at the bottom of the tree, and they all have height 0. *)
+object LeafNode[\Key,Val\](key: Key, values: Array[\Val,ZZ32\])
+       extends Node[\Key,Val\]
+
+  getter size():ZZ32 = |values|
+  getter asString():String = "<<" key ">>"
+  getter height():ZZ32 = 0
+  getKey():Key = key
+  getValues():Array[\Val,ZZ32\] = values
+
+  opr |self| : ZZ32 = |values|
+
+  search(k:Key):Maybe[\Val\] = if k = key then Just[\Val\](values[0]) else Nothing[\Val\] end
+
+  add(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = fail("Cannot add a new node into a leaf node.")
+  add_helper(leaf:LeafNode[\Key,Val\], level:ZZ32):Node[\Key,Val\] = fail("Cannot add a new node into a leaf node.")
+  remove(k:Key):Node[\Key,Val\] = fail("Cannot remove a key from a leaf node.")
+
+  merge(nodes:List[\Node[\Key,Val\]\]):Node[\Key,Val\] = fail("Cannot merge into a leaf node.")
+
+  getLeaves():List[\LeafNode[\Key,Val\]\] = singleton[\LeafNode[\Key,Val\]\](self)
+
+
+end
+
+
+end

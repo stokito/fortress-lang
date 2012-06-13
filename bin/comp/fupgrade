@@ -1,0 +1,58 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+
+if [ -z "$FORTRESS_HOME" ]; then
+   export FORTRESS_HOME="`${0%comp/finit}fortress_home`"
+fi
+
+FHOME=$FORTRESS_HOME/default_repository/caches/bytecode_cache
+
+export PATH=$PATH:"/Users/Tristan/Code/workspace/Project/bin/comp/"
+
+cd $FHOME
+
+if [ -d "___TMP/" ]
+then
+    rm -Rf ___TMP
+fi 
+mkdir ___TMP
+
+cat $FHOME/$2/symbolics |
+(
+    while read line
+    do
+        `echo "$line" |
+            awk '/unit/ {print "cp -R " $2 " ___TMP/"$2}'`
+    done
+)
+cat $FHOME/$2/symbolics |
+(
+    while read line
+    do
+        #`echo "$line" | sed 's/'$3'/'$4'/' | sed 's/'$2'/'$1'/'`
+        #echo "$line" | sed 's/'$3'/'$4'/' | sed 's/'$2'/'$1'/'
+        `echo "$line" | 
+            awk '/flink/ {print "flink " "___TMP/"$2 " " "___TMP/"$3 " " "___TMP/"$4}' | 
+            sed 's/___TMP\/'$3'/'$4'/' | 
+            sed 's/___TMP\/'$2'/'$1'/'`
+    done
+)
+
+
+
+
+
+
+
+    

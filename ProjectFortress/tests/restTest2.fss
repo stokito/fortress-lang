@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component restTest2
+export Executable
+
+
+foo(y:ZZ32, z:ZZ32, x:ZZ32...) =
+    y + z + (SUM x)
+
+foo(y:ZZ32) = y
+
+
+run():() = do
+   assert(foo(1,2,3,4,5),15,"foo(1,2,3,4,5)")
+   assert(foo(17),17,"foo(17)")
+end
+
+end

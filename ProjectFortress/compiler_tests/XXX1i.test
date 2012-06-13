@@ -1,0 +1,20 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled1.i
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled1.i.fss:12:11-21:\n\
+\ Multiple exported API declarations must not be satisfied by a single definition.\n\
+\ Multiple declarations: {(FirstAPI.T,SecondAPI.T)}\n\
+File Compiled1.i.fss has 1 error.\n
+compile_out_equals=
+
+

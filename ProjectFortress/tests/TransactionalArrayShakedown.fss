@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component TransactionalArrayShakedown
+export Executable
+
+job1(a:Array[\ZZ32,ZZ32\]):() = atomic do
+    for i <- seq(1#999) do
+        a[1000-i] -= a[999-i]
+    end
+    for i <- seq(0#999) do
+        a[i+1] := 2 a[i+1] + a[i]
+    end
+  end
+
+job2(a:Array[\ZZ32,ZZ32\]):() = do
+    body(i:ZZ32,v:ZZ32):ZZ32 =
+        if v=i then
+            1
+        elif v = 2 i then
+            0
+        else
+            fail(i " !!! " v)
+        end
+    pre = SUM [(i,v)<-a.indexValuePairs] body(i,v)
+    println(pre " pre and " (1000-pre) " post")
+  end
+
+run():() = do
+    a = toArray(0#1000)
+    (job2(a),job1(a),job2(a))
+    ()
+end
+
+end

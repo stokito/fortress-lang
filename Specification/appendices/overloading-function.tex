@@ -1,0 +1,135 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Proof of Overloading Resolution for Functions}
+\seclabel{proof-overloading-resolution}
+
+This section proves that the overloading rules for
+function declarations are sufficient to guarantee no undefined nor
+ambiguous call at run time (the case for methods is analogous).
+
+Consider a static function call $\f(\As)$ at some program point $Z$
+and its corresponding dynamic function call $\f(\Xs)$.  Let $\Delta$
+be the set of parameter types of function declarations of $\f$ that
+are visible at $Z$ and applicable to the dynamic call $\f(\Xs)$.  Let
+$\Sigma$ be the set of parameter types of function declarations of
+$\f$ that are visible at $Z$ and applicable to the static call
+$\f(\As)$.  Moreover, let $\sigma$ be the subset of $\Sigma$ for which
+no type in $\Sigma$ is more specific and let $\delta$ be the
+subset of $\Delta$ for which no type in $\Delta$ is more
+specific:
+\[
+\begin{array}{lclcll}
+\sigma & = & \set{S \in \Sigma & | & \lnot \exists S'\in\Sigma: S' \strictsubtype S & }
+\\
+\delta & = & \set{D \in \Delta & | & \lnot \exists D'\in\Delta: D' \strictsubtype D & }.
+\end{array}
+\]
+
+Below we prove:
+\[
+\begin{array}{l}
+|\Sigma| \neq 0 \ \text{implies} \ |\sigma| = 1, and
+\\
+|\Sigma| \neq 0 \ \text{implies} \ |\delta| = 1.
+\end{array}
+\]
+Informally, if any declaration is applicable to a static call then there
+exists a single most specific declaration that is applicable to the
+static call and a single most specific declaration that is applicable
+to the corresponding dynamic call.
+\\
+\begin{lemma}
+\label{lem:subset}
+$\Sigma \subseteq \Delta$.
+\end{lemma}
+
+\begin{proof}
+Notice that $\Xs \Ovrsubtype \As$ by type soundness.
+If $\f(\Ps)$ is applicable to
+the call $\f(\As)$ then $\As \Ovrsubtype \Ps$.  Notice that $\Xs
+\Ovrsubtype \As$ implies $\Xs \Ovrsubtype \Ps$.  Therefore
+$\f(\Ps)$ is applicable to the call $\f(\Xs)$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:dgesge-second}
+If $|\Delta| \ge 1$ then $|\delta| \ge 1$.
+Also, if $|\Sigma| \ge 1$ then $|\sigma| \ge 1$.
+\end{lemma}
+
+\begin{proof}
+Follows from Lemma \ref{lem:nonempty} where $S$ is the set of all
+types, $A$ is $\Delta$ and $\Sigma$ respectively,
+and the relation $\strictsubtype$ is acyclic and irreflexive.
+\end{proof}
+
+\begin{lemma}
+\label{lem:ge}
+If $|\Sigma| \ge 1$ then $|\delta| \ge 1$.
+\end{lemma}
+
+\begin{proof}
+Follows from Lemmas \ref{lem:subset} and \ref{lem:dgesge-second}.
+\end{proof}
+
+\begin{lemma}
+\label{lem:le}
+$|\sigma| \le 1$.  Also, $|\delta| \le 1$.
+\end{lemma}
+
+\begin{proof}
+We prove this for $\delta$, but the case for $\sigma$ is identical.
+For the purpose of contradiction suppose there are two declarations
+$\f(\Ps)$ and $\f(\Qs)$ in $\delta$.  Since both $\f(\Ps)$ and
+$\f(\Qs)$ are applicable without coercion to the call $\f(\Xs)$ we
+have $\Xs \Ovrsubtype \Ps \inter \Qs$.  Therefore it is not the case
+that $\Ps \incompatible \Qs$.  By the overloading rules, $\Ps
+\neq \Qs$ and either $\Ps \excludes \Qs$ or there is a declaration
+$\f(\Ps \inter \Qs)$ visible at $Z$.  Since it cannot be the case that
+$\Ps \excludes \Qs$ there must exist a declaration $\f(\Ps \inter
+\Qs)$ visible at $Z$.  Since $\Ps \inter \Qs \Ovrsubtype \Ps$ and $\Ps
+\inter \Qs \Ovrsubtype \Qs$ we know $\f(\Ps \inter \Qs)$ is applicable
+without coercion to the call $\f(\Xs)$.  Since $\Ps \neq \Qs$ either
+$\Ps \inter \Qs \strictsubtype \Ps$ or $\Ps \inter \Qs \strictsubtype
+\Qs$.  Either case contradicts our assumption.
+\end{proof}
+
+\begin{theorem}
+\label{thm:overloading-subtyping}
+If $|\Sigma| \neq 0$ then $|\sigma| = 1$.  Also, if $|\Sigma| \neq 0$
+then $|\delta| = 1$.
+\end{theorem}
+
+\begin{proof}
+Follows from Lemmas \ref{lem:dgesge-second}, \ref{lem:ge} and \ref{lem:le}.
+\end{proof}
+
+\begin{theorem}
+\label{thm:dynamic-subtype-static}
+If $\sigma = \set{S}$ and $\delta = \set{D}$ then $D \Ovrsubtype S$.
+\end{theorem}
+
+\begin{proof}
+If the declaration with parameter type $S$ and the declaration with
+parameter type $D$ satisfy the Subtype Rule then the theorem is
+proved.  Otherwise, by the definition of $\sigma$ we have $\sigma
+\subseteq \Sigma$.  Therefore $S \in \Sigma$.  By Lemma
+\ref{lem:subset}, $S \in \Delta$.  Notice that $S,D \in \Delta$ implies
+$X \Ovrsubtype S$ and $X \Ovrsubtype D$.  Therefore, $S \not \excludes
+D$.  By the More Specific Rule for Functions, there must exist a
+declaration with parameter type $S \inter D$.  Because $X
+\Ovrsubtype (S \inter D)$, $(S \inter D) \in \Delta$.
+Notice $(S \inter D) \Ovrsubtype S$ and $(S \inter D) \Ovrsubtype D$.
+By the definition of $\delta$, we have $\lnot \exists D'\in\Delta: D'
+\strictsubtype D$.  In particular, $(S \inter D) \not \strictsubtype
+D$.  Therefore $(S \inter D) = D$.
+\end{proof}

@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled180
+export Executable
+
+(* Generic overloaded functions at top level, with uniform generic type parameters.
+   Can this actually work? *)
+
+trait A[\T\] end
+object O extends A[\O\] end
+object P extends A[\P\] end
+
+anA():A[\O\] = O
+f[\T\](o:O):() = println("pass")
+f[\T\](a:A[\T\]):() = println("FAIL WITH A")
+f[\T\](p:P):() = println("FAIL WITH P")
+
+run():() = f(anA())
+
+end
