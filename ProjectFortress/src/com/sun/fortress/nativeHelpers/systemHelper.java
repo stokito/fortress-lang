@@ -33,16 +33,16 @@ public class systemHelper {
     }
 
     public static void registerArgs(String[] args) {
-        try {
-
-        Class cl = Class.forName("CompilerSystem$args", true, MainWrapper.icl); // Class.forName("CompilerSystem$args");
-        Field f = cl.getDeclaredField("ONLY");
-
-        setFinalStatic(f, new FStringVector(args));
-
-        } catch (Exception e) {
-            //            throw new RuntimeException("Error setting CompilerSystem args" + e);
-            // If CompilerSystem isn't found then we don't need it ?
-        }
+//        try {
+//
+//        Class cl = Class.forName("CompilerSystem$args", true, MainWrapper.icl); // Class.forName("CompilerSystem$args");
+//        Field f = cl.getDeclaredField("ONLY");
+//
+//        setFinalStatic(f, new FStringVector(args));
+//
+//        } catch (Exception e) {
+//            //            throw new RuntimeException("Error setting CompilerSystem args" + e);
+//            // If CompilerSystem isn't found then we don't need it ?
+//        }
     }
 }

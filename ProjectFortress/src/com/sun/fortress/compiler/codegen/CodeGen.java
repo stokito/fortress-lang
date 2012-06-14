@@ -627,10 +627,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         // run() recursively we lose).
 
         mv = cw.visitCGMethod(ACC_PUBLIC + ACC_STATIC, "main",
-                            NamingCzar.stringArrayToVoid, null, null);
+                            "()V", null, null);
         mv.visitCode();
-        mv.visitVarInsn(ALOAD, 0);
-        mv.visitMethodInsn(INVOKESTATIC, "com/sun/fortress/nativeHelpers/systemHelper", "registerArgs", NamingCzar.stringArrayToVoid);
 
         // new packageAndClassName()
         mv.visitTypeInsn(NEW, "com/sun/fortress/runtimeSystem/FortressTaskRunnerGroup");

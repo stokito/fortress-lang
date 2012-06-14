@@ -18,6 +18,7 @@ public class MainWrapper {
 
     public static ClassLoader icl = InstantiatingClassloader.ONLY;
 ;
+    public static String[] cachedArgs;
     
     /**
      * @param args
@@ -61,9 +62,10 @@ public class MainWrapper {
             // ensure that FortressExecutable is loaded and statically initialized
             // so that there is a task pool before any user code is run.
             Class cl = Class.forName(whatToRun, true, icl);
-            java.lang.reflect.Method m = cl.getDeclaredMethod("main", String[].class);
+            java.lang.reflect.Method m = cl.getDeclaredMethod("main");
             try {
-                m.invoke(null, (Object) subargs);
+                cachedArgs = subargs;
+                m.invoke(null);
             } finally {
                 InstantiatingClassloader.exitProgram();
             }
