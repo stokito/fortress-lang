@@ -24,7 +24,7 @@ trait DefaultGeneratorImplementation[\E1 extends Any\] extends Generator[\E1\] e
     abstract generate[\R extends Any\](r: Reduction[\R\], body: E1->R): R
     map[\Gyy extends Any\](f: E1->Gyy): Generator[\Gyy\]
 (*)    seq(self): SequentialGenerator[\E1\]
-    seq(): SequentialGenerator[\E1\]
+    abstract seq(): SequentialGenerator[\E1\]
     nest[\G1 extends Any\](f: E1 -> Generator[\G1\]): Generator[\G1\]
     filter(f: E1 -> Condition[\()\]): Generator[\E1\]
     cross[\G2 extends Any\](g: Generator[\G2\]): Generator[\(E1,G2)\]

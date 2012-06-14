@@ -20,12 +20,15 @@ import GeneratorLibrary.{DefaultGeneratorImplementation}
 (** Thrown when taking big intersection of no sets. **)
 object EmptyIntersection extends UncheckedException end
 
+
+trait AllSets end
+
 (**
  * Sets represented using a (size-balanced) tree structure.  The underlying type $E$
  * must support comparison using $<$ and $=$.  When generated, these sets
  * produce their elements in sorted order.
  **)
-trait Set[\E extends StandardTotalOrder[\E\]\] extends DefaultGeneratorImplementation[\E\]
+trait Set[\E extends StandardTotalOrder[\E\]\] extends { AllSets, DefaultGeneratorImplementation[\E\] }
  
    abstract getter isEmpty(): Boolean
 

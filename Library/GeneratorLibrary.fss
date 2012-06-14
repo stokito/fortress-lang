@@ -71,7 +71,7 @@ trait DefaultGeneratorImplementation[\E1 extends Any\] extends Generator[\E1\] e
         produces elements in a temporal order that matches this generator's
         natural order. *)
 (*)    seq(self): SequentialGenerator[\E1\] = self.seq()
-    seq(): SequentialGenerator[\E1\] = self.seq()
+    seq(): SequentialGenerator[\E1\]
 
     (** Nesting of generators: the argument `f` is a function from
         elements of this generator to new generators.  This allows an

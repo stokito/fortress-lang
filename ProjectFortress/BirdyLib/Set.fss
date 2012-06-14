@@ -22,9 +22,11 @@ object EmptyIntersection extends UncheckedException end
 
 weight:ZZ32 = 4
 
+trait AllSets end
+
 (** The natural order of the set, and indexing on the set, yields set
     elements in ascending order. **)
-trait Set[\E extends StandardTotalOrder[\E\]\] extends DefaultGeneratorImplementation[\E\]
+trait Set[\E extends StandardTotalOrder[\E\]\] extends { AllSets, DefaultGeneratorImplementation[\E\] }
     (*
     getter indexValuePairs():ZeroIndexed[\(ZZ32,E)\] =
         IndexValueSetGenerator[\E\](self)
@@ -45,6 +47,7 @@ trait Set[\E extends StandardTotalOrder[\E\]\] extends DefaultGeneratorImplement
     indexOf(x:E): Maybe[\ZZ32\] = self.indexOfI(0,x)
     indexOfI(i:ZZ32, x:E): Maybe[\ZZ32\]
     generate[\R extends Any\](r: Reduction[\R\], body: E->R): R
+    seq() = throw IntegerDomainError  (*) Yeah, right!
     minimum():Maybe[\E\]
     maximum():Maybe[\E\]
     deleteMinimum():Set[\E\] =

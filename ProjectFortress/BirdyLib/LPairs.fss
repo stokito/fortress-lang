@@ -27,6 +27,7 @@ object Pairs[\T\](g: Generator[\T\]) extends DefaultGeneratorImplementation[\(T,
     if (l,v,r) <- g.generate[\Maybe[\(T,R,T)\]\](PairReduction[\T,R\](red,m),
                              fn (t:T) => Just[\(T,R,T)\](t, red.id, t))
         then v else red.id end
+    seq() = throw IntegerDomainError  (*) Yeah, right!
     loop(m:(T,T)->()): () = do println "BL:AP";
         ign = g.generate[\Maybe[\(T,(),T)\]\](PairReduction[\T,()\](VoidReduction, m),
                              fn (t:T) => Just[\(T,(),T)\](t, (), t));
@@ -52,6 +53,7 @@ object Triples[\T\](g: Generator[\T\]) extends DefaultGeneratorImplementation[\(
     if (s,l,l',v,r',r) <- g.generate[\Maybe[\(Boolean,T,T,R,T,T)\]\](TripleReduction[\T,R\](red,m),
                              fn (t:T) => Just[\(Boolean,T,T,R,T,T)\](true, t, t, red.id, t, t))
         then v else red.id end
+    seq() = throw IntegerDomainError  (*) Yeah, right!
 end
 
 object TripleReduction[\T,R extends Any\](red: Reduction[\R\], m:(T,T,T)->R)

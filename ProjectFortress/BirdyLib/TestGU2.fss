@@ -1,0 +1,422 @@
+(*******************************************************************************
+Copyright 2012 Michael Zody and Oracle. 
+All rights reserved.
+
+Oracle is the Copyright owner of the Fortress programming language software,
+and Michael Zody is the developer of the algorithm which this software implements and the
+Copyright owner of the software implementation of the algorithm, to which Oracle
+has a perpetual, irrevocable, royalty free right and license to use and distribute. 
+
+Use is subject to license terms accompanying the software.
+ ******************************************************************************)
+
+component TestGU2
+
+import Util.{...}
+import Bazaar.{...}
+import File.{...} 
+import FileSupport.{...} 
+import List.{...}
+import Map.{...} 
+(*) import Pairs.{...}
+import Set.{...} 
+import GenomeUtil2c.{...}
+import Tuple.{...}
+import CompilerAlgebra.{...}
+
+import Maybe.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation, voidReduction}
+
+export Executable
+
+
+
+
+
+
+pairs[\T\](g: Generator[\T\]): Generator[\(T,T)\] = Pairs(g)
+
+object Pairs[\T\](g: Generator[\T\]) extends DefaultGeneratorImplementation[\(T,T)\] 
+    generate[\R extends Any\](red: Reduction[\R\], m:(T,T)->R): R =
+    if (l,v,r) <- g.generate[\Maybe[\(T,R,T)\]\](PairReduction[\T,R\](red,m),
+                             fn (t:T) => Just[\(T,R,T)\](t, red.id, t))
+        then v else red.id end
+    seq() = throw IntegerDomainError  (*) Yeah, right!
+(*)     loop(m:(T,T)->()): () = do println "BL:AP";
+(*)         ign = g.generate[\Maybe[\(T,(),T)\]\](PairReduction[\T,()\](VoidReduction, m),
+(*)                              fn (t:T) => Just[\(T,(),T)\](t, (), t));
+(*)         () end
+end
+
+object PairReduction[\T,R extends Any\](red: Reduction[\R\], m:(T,T)->R)
+        extends { Reduction[\Maybe[\(T,R,T)\]\] }
+    getter id():Maybe[\(T,R,T)\] = Nothing[\(T,R,T)\]
+    join(left:Maybe[\(T,R,T)\], right:Maybe[\(T,R,T)\]) : Maybe[\(T,R,T)\]=
+    if (l, v_l, m_l) <- left then
+        if (m_r, v_r, r) <- right then
+            Just[\(T,R,T)\](l, red.join(red.join(v_l, m(m_l, m_r)), v_r), r)
+        else left end
+    else right end
+end
+
+
+triples[\T\](g: Generator[\T\]): Generator[\(T,T,T)\] = Triples(g)
+
+object Triples[\T\](g: Generator[\T\]) extends DefaultGeneratorImplementation[\(T,T,T)\] 
+    generate[\R extends Any\](red: Reduction[\R\], m:(T,T,T)->R): R =
+    if (s,l,l',v,r',r) <- g.generate[\Maybe[\(Boolean,T,T,R,T,T)\]\](TripleReduction[\T,R\](red,m),
+                             fn (t:T) => Just[\(Boolean,T,T,R,T,T)\](true, t, t, red.id, t, t))
+        then v else red.id end
+    seq() = throw IntegerDomainError  (*) Yeah, right!
+end
+
+object TripleReduction[\T,R extends Any\](red: Reduction[\R\], m:(T,T,T)->R)
+        extends { Reduction[\Maybe[\(Boolean,T,T,R,T,T)\]\] }
+    getter id():Maybe[\(Boolean,T,T,R,T,T)\] = Nothing[\(Boolean,T,T,R,T,T)\]
+    join(left:Maybe[\(Boolean,T,T,R,T,T)\], right:Maybe[\(Boolean,T,T,R,T,T)\]) : Maybe[\(Boolean,T,T,R,T,T)\]=
+    if (s1,l1,l1',v1,r1',r1) <- left then
+        if (s2,l2,l2',v2,r2',r2) <- right then
+           if s1 then
+              if s2 then
+                Just[\(Boolean,T,T,R,T,T)\](false, l1, r2, red.id, l1, r2)
+              else
+                Just[\(Boolean,T,T,R,T,T)\](false, r1, l2, red.join(m(r1, l2, l2'), v2), r2', r2)
+              end
+           else
+              if s2 then
+                Just[\(Boolean,T,T,R,T,T)\](false, l1, l1', red.join(v1, m(r1', r1, l2)), r1, l2)
+              else
+                Just[\(Boolean,T,T,R,T,T)\](false, l1, l1', red.join(red.join(v1, m(r1', r1, l2)), red.join(m(r1, l2, l2'), v2)), r2', r2)
+              end
+           end
+        else left end
+    else right end
+end
+
+geometricMean(xs: List[\RR64\]): RR64 = (PROD xs)^(1.0/((|xs|).asRR64()))
+
+opr UNIONCAT[\T extends StandardTotalOrder[\T\],U\](a: Map[\T, List[\U\]\], b: Map[\T, List[\U\]\]): Map[\T, List[\U\]\] =
+  a.union(fn(k,x,y) => x || y, b)
+
+opr UNIONPLUS[\T extends StandardTotalOrder[\T\]\](a: Map[\T, ZZ32\], b: Map[\T, ZZ32\]): Map[\T, ZZ32\] =
+  a.union(fn(k,x,y) => x + y, b)
+
+opr BIG UNIONCAT[\T extends StandardTotalOrder[\T\],U\](): Comprehension[\Map[\T, List[\U\]\],Map[\T, List[\U\]\],Map[\T, List[\U\]\],Map[\T, List[\U\]\]\] =
+  embiggen[\Map[\T, List[\U\]\]\](fn(a,b) => a UNIONCAT b, {[\T,List[\U\]\]})
+
+opr BIG UNIONPLUS[\T extends StandardTotalOrder[\T\]\](): Comprehension[\Map[\T, ZZ32\],Map[\T, ZZ32\],Map[\T, ZZ32\],Map[\T, ZZ32\]\] =
+  embiggen[\Map[\T, ZZ32\]\](fn(a,b) => a UNIONPLUS b, {[\T,ZZ32\]})
+
+runRanges(x: List[\Boolean\]): List[\Range\] =
+  (BIG BOXPLUS[i <- toGenZZ32(0 # |x|)] (if x[i,true] then RangeSet(0, <|[\Range\] i:i |>, 0) else SingleRange(1))).ranges
+
+opr BIG BOXPLUS[\T\](): Comprehension[\RunRanges, RunRanges, RunRanges, RunRanges\] =
+   embiggen[\RunRanges\](fn(a,b) => a BOXPLUS b, SingleRange(0))
+
+trait RunRanges comprises { SingleRange, RangeSet }
+  getter ranges(): List[\Range\]
+  opr BOXPLUS(self, x: RunRanges): RunRanges
+end
+
+object SingleRange(n: ZZ32) extends RunRanges
+  getter ranges() = <|[\Range\] |>  
+  opr BOXPLUS(self, x: RunRanges): RunRanges = throw UnpastingError
+  opr BOXPLUS(self, other: SingleRange) = SingleRange(n + other.n)
+  opr BOXPLUS(self, other: RangeSet) = RangeSet(n + other.left, other.ranges, other.right) 
+end
+
+object RangeSet(left: ZZ32, ranges: List[\Range\], right: ZZ32) extends RunRanges
+  opr BOXPLUS(self, x: RunRanges): RunRanges = throw UnpastingError
+  opr BOXPLUS(self, other: SingleRange) = RangeSet(left, ranges(), right + other.n)
+  opr BOXPLUS(self, other: RangeSet) =                                                     
+    if right + other.left >= 2 then
+      RangeSet(left, ranges() || other.ranges, other.right)
+    else
+      (ps, p) = if x <- ranges().extractRight() then x else throw MatchFailure end
+      (q, qs) = if x <- other.ranges.extractLeft() then x else throw MatchFailure end
+      RangeSet(left, ps || <| p.lowerBound:q.upperBound |> || qs, other.right)
+    end
+end
+
+
+
+
+
+
+
+
+
+chunkSize: ZZ32 = 237
+readSize: ZZ32 = 35   (*) This may change with newer technology, but for now it is OK.
+
+(*) homeDir: String = "/Users/jean-baptistetristan/Code/workspace/PFC"
+homeDir: String = "/Users/gls/Fortress"
+referenceFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head" 
+sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
+errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
+sampleFilesFileName = "chr10.csfasta.ma.sorted.head"
+errorFilesFileName = "composite_error_model.txt"
+
+sampleNames: List[\String\] = <|[\String\]
+    "10a_LA_Frag35_20080704_white_leghorn_A",
+    "10b_LA_Frag35_20080704_white_leghorn_B"
+(*)    "17_LA_Frag35_20080909_high_grow_line",
+(*)    "18_LA_Frag35_20080909_low_grow_line",
+(*)    "17.1_LA_Frag35_20080925_high_grow_line",
+(*)    "18.1_LA_Frag35_20080925_low_grow_line",
+(*)    "16_LA_Frag35_20080829_broiler",
+(*)    "22_LA_Frag35_20081016_RJF",
+(*)    "16.1_LA_Frag35_20080925_broiler",
+(*)    "22.1_LA_Frag35_20081114_RJF"
+|>
+
+object Event(s: Read, startPos: ZZ32, len: ZZ32, errorProb: RR64, fileName: String)
+  refStart: ZZ32 = s.pos + startPos
+  refEnd: ZZ32 = refStart + len - 1
+  refACGTSequence: String = s.refACGT.substring(startPos,startPos + len + 1) 
+  refColorsSequence: String = s.refColors.substring(startPos,startPos + len) 
+  sampleColorSequence: String = s.sampleColors.substring(startPos, startPos + len) 
+  sampleACGTSequence: String = colorsToACGT(s.refACGT[startPos], s.sampleColors.substring(startPos,startPos + len))
+  valid: Boolean = (if startPos + len = |s.sampleColors|
+                    then isValidTransitionString(refColorsSequence.substring(0,len-1), sampleColorSequence.substring(0,len-1))
+                    else isValidTransitionString(refColorsSequence, sampleColorSequence))
+  getter asString(): String =
+    (fileName "    " refStart "    " refEnd "    "
+     refColorsSequence "    " sampleColorSequence "   "
+     refACGTSequence "    " sampleACGTSequence "   " errorProb)
+  getter asDetailedString() = do
+    (s.header "  " errorProb " "  refStart "  " refEnd "  " refColorsSequence "  " sampleColorSequence "  "
+     (if valid then "VALID" else "inv") "  " refACGTSequence "   "
+     (if valid then sampleACGTSequence else ("x")^(len+1)) "    " startPos)
+  end
+end Event
+
+isValidTransitionString(ref: String, sample: String) =
+  BIG AND[i <- toGenZZ32(0 # |ref| - 1)]  ((ref[i].codePoint BITXOR ref[i+1].codePoint) = (sample[i].codePoint BITXOR sample[i+1].codePoint))
+
+object MergedEvent(count: ZZ32, refStart: ZZ32, refEnd: ZZ32, 
+                   refNumberFormat: String, sampleNumberFormat: String,
+                   refACGTFormat: String, sampleACGTFormat: String,
+                   totalCoverage: RR64, probability: RR64, eventList: List[\Event\])
+  getter asString(): String = 
+    ("" count "  " refStart "  " refEnd "  " refNumberFormat "  " sampleNumberFormat "  "
+     refACGTFormat "  " sampleACGTFormat "  " totalCoverage "  " probability "  ")
+end MergedEvent
+
+calculateCoverage(fileName: String, refEnd: ZZ32, coverage: Map[\String, Map[\ZZ32,ZZ32\]\]):ZZ32 =
+  SUM[i <- toGenZZ32(refEnd - readSize + 1 : refEnd).seq()] coverage[fileName,emptymap[\ZZ32,ZZ32\]()].member(i,0)
+
+calculateBonferroniLibrary(fileName: String, events: List[\Event\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]): RR64 = do
+  gmp = geometricMean <|[\RR64\] e.errorProb | e <- events |>
+  cov = calculateCoverage(fileName, events.left().extract().refEnd, coverage)
+  BIG $ [j <- toGenZZ32((|events|):cov).seq()] gmp^(j.asRR64()) (cov CHOOSE j).asRR64()
+end
+
+calculateBonferroniTotal(eventsByFile: Map[\String, List[\Event\]\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]): RR64 = do
+  totcov = SUM[(file, events) <- eventsByFile] calculateCoverage(file, events.left().extract().refEnd, coverage)
+  totcalls = SUM[(_, events) <- eventsByFile] |events|
+  gmp = geometricMean <|[\RR64\] e.errorProb | (_, events) <- eventsByFile.seq(), e <- events.seq() |>
+  BIG $ [j <- toGenZZ32(totcalls:totcov).seq()] gmp^(j.asRR64()) (totcov CHOOSE j).asRR64()
+end
+
+calculateBonferroni(eventsByFile: Map[\String, List[\Event\]\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]): RR64 = do
+  minlibpval: RR64 = BIG MIN[(file, events) <- eventsByFile] calculateBonferroniLibrary(file, events, coverage)
+  combpval: RR64 = calculateBonferroniTotal(eventsByFile, coverage)
+  2.0 (combpval MIN minlibpval)
+end
+
+isvalid(e: Event): Boolean = e.valid
+
+validEventsByChange(events: List[\Event\]) =
+  BIG UNIONCAT[\String,Event\] [e <- events, isvalid(e)] singleton(e.sampleACGTSequence,<|[\Event\] e |>) (*) {[\String, List[\Event\]\] e.sampleACGTSequence |-> <|[\Event\] e |> }
+
+(* The abstract method checker rejects the following code. 
+object MySTOTuple[\E extends StandardTotalOrder[\E\], F extends StandardTotalOrder[\F\]\](f: E,s: F) 
+   extends StandardTotalOrder[\MySTOTuple[\E,F\]\] 
+   
+    opr <(self, other:MySTOTuple[\E,F\]): Boolean = 
+       typecase self CMP other of
+         LessThan => true
+         GreaterThan => false
+         EqualTo => false
+       end
+    opr >(self, other:MySTOTuple[\E,F\]): Boolean = 
+       typecase self CMP other of
+         LessThan => false
+         GreaterThan => true
+         EqualTo => false
+       end
+    opr =(self, other:MySTOTuple[\E,F\]): Boolean =
+       typecase self CMP other of
+         LessThan => false
+         GreaterThan => false
+         EqualTo => true
+       end    
+    opr <=(self, other:MySTOTuple[\E,F\]): Boolean =
+       typecase self CMP other of
+         LessThan => true
+         GreaterThan => false
+         EqualTo => true
+       end
+    opr >=(self, other:MySTOTuple[\E,F\]): Boolean =
+       typecase self CMP other of
+         LessThan => false
+         GreaterThan => true
+         EqualTo => true
+       end
+    opr CMP(self, other:MySTOTuple[\E,F\]): Comparison =
+      if self.f < other.f 
+         then LessThan  
+         else if self.f > other.f 
+                 then GreaterThan 
+                 else if self.s < other.s 
+                         then LessThan 
+                         else if self.s > other.s then GreaterThan else EqualTo end
+                      end
+              end
+      end
+   
+end
+*)
+
+object MySTOTuple(f: ZZ32,s: String)
+  extends StandardTotalOrder[\MySTOTuple\]
+   opr <(self, other:MySTOTuple): Boolean = (self CMP other) === LessThan
+   opr >(self, other:MySTOTuple): Boolean = (self CMP other) === GreaterThan
+   opr =(self, other:MySTOTuple): Boolean = (self CMP other) === EqualTo
+   opr <=(self, other:MySTOTuple): Boolean = NOT (self > other)
+   opr >=(self, other:MySTOTuple): Boolean = NOT (self < other)
+   opr CMP(self, other:MySTOTuple): TotalComparison =
+     (self.f CMP other.f) LEXICO: (self.s CMP other.s)
+end
+
+mergeEvents(key: ZZ32, change: String, changeEvents: List[\Event\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]):
+    Map[\MySTOTuple,List[\MergedEvent\]\] = do
+  firstEvent: Event = changeEvents.left().extract()
+  eventsByFile: Map[\String, List[\Event\]\] =
+    BIG UNIONCAT[\String,Event\] [e <- changeEvents] singleton(e.fileName, <|[\Event\] e |>)
+  totalCoverage: ZZ32 = SUM[(file, events) <- eventsByFile] calculateCoverage(file, events.left().extract().refEnd, coverage)
+  singleton(MySTOTuple(key, change),
+   <| MergedEvent(|changeEvents|, firstEvent.refStart, firstEvent.refEnd, 
+                  firstEvent.refColorsSequence, firstEvent.sampleColorSequence,
+                  firstEvent.refACGTSequence, firstEvent.sampleACGTSequence,
+                  totalCoverage.asRR64(), calculateBonferroni(eventsByFile, coverage), changeEvents) |>)
+end
+
+makeMergedDatabase(database: Map[\ZZ32, List[\Event\]\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]):
+    Map[\MySTOTuple, List[\MergedEvent\]\] =
+  BIG UPLUS[\MySTOTuple, List[\MergedEvent\]\][(key, events) <- database,
+                                                  (change, changeEvents) <- validEventsByChange(events),
+                                                  |changeEvents| > 0] mergeEvents(key, change, changeEvents, coverage)
+
+rprod(i: ZZ32, bound: ZZ32, ref: String, sample: String, l: List[\RR64\]): RR64 =
+  if i = bound then 1.0 else 
+    rprod(i + 1,bound,ref,sample,l) (if sample[i] =/= ref[i] then l[i,0.0] else 1.0 end)
+  end
+  
+errorProbability(ref: String, sample: String, r: Range, name: String, er: ErrorRates): RR64 =
+  if (|r| = 2) then er.single[r.lowerBound,0.0] else rprod(r.lowerBound,r.upperBound,ref,sample,er.multiple) end
+
+eventGenerator(rd: Read, name: String, er: ErrorRates, range: Range): Map[\ZZ32, List[\Event\]\] = do
+  (sample, ref) = (rd.sampleColors, rd.refColors)
+  mismatches = <|[\Boolean\] q OR (p AND r) | (p,q,r) <- triples (<|[\Boolean\] false |> || <|[\Boolean\] sample[i]=/=ref[i] | i <- toGenZZ32(0 # |sample|) |> || <|[\Boolean\] false |>) |> 
+  (*) `diffs = BIG || [i <- seq(0 # |sample|)] (if mismatches[i] then "X" else ".")`
+  {[\ZZ32, List[\Event\]\] rd.pos + r.lowerBound |->
+   <|[\Event\] Event(rd, r.lowerBound, |r|, errorProbability(ref, sample, r, name, er), name) |> |
+        r <- (runRanges mismatches).filter(fn r => |r| > 1).filter(fn r => (rd.pos + r.lowerBound) IN range) } 
+     (*)r <- runRanges mismatches, |r| > 1, (rd.pos + r.lowerBound) IN range } 
+end
+
+processSample(name: String, rl: ReadList, er: ErrorRates, refChunk: ReferenceGenomeChunk): MyTuple[\Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32, ZZ32\]\]\] = do
+  eventData = <|[\MyTuple[\Map[\ZZ32, List[\Event\]\],ZZ32\]\] MyTuple[\Map[\ZZ32, List[\Event\]\],ZZ32\](eventGenerator(rd, name, er, refChunk.range), rd.pos) | rd <- rl.getReads(refChunk) |>
+  database = BIG UNIONCAT[\ZZ32,Event\][sd <- eventData] sd.f
+  coverageDatabase = BIG UNIONPLUS[\ZZ32\][sd <- eventData] singleton(sd.s, 1 typed ZZ32) (*) LOOK
+  MyTuple(database, singleton(name, coverageDatabase))
+end
+
+object ErrorRates(single: List[\RR64\], multiple: List[\RR64\]) end
+
+object MyTuple[\E,F\](f: E,s: F) end
+
+transpose[\E,F\](l: List[\MyTuple[\E,F\]\]): (List[\E\],List[\F\]) = 
+    ( <|[\E\] m.f | m <- l |>, <|[\F\] m.s | m <- l |> )
+
+readErrorRateFile(name: String): ErrorRates =
+  ErrorRates (transpose(<|[\MyTuple[\RR64,RR64\]\] MyTuple[\RR64,RR64\](strToFloat(beyond(beyond(line,'\t'),'\t')),
+                                            strToFloat(upto(beyond(line,'\t'),'\t'))) |
+                          line <- FileReadStream(name.asJavaString).lines() |>))
+
+object Sample(s: String, r: ReadList, e: ErrorRates) end
+
+getSampleData(name: String): Sample = do
+  rl = getReadListFromFile(sampleFilesDir || "/" || name || "/" || sampleFilesFileName, readSize)
+  (*)er = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
+  er = ErrorRates(<|[\RR64\] |>,<|[\RR64\] |>)
+  Sample(name, rl, er)
+end
+
+(* Process one sample against one chunk of the reference genome,
+   producing an event database and a coverage database.
+
+   =Arguments=
+   ; `name`:     the name of the sample
+   ; `rl`:       a list of the reads in the sample that overlap the reference genome chunk
+   ; `er`:       the error rates table for the sample
+   ; `refChunk`: the chunk of the reference genome
+
+   =Results=
+   # A map from positions in the reference genome to events that begin at that position
+   # A singleton map from the name of the sample to a map from positions in the genome to the number of reads beginning at that position
+
+   For every read in the sample that overlaps the given chunk of reference genome, events within that read are identified
+   by calling `eventGenerator`.
+*)
+
+run() = do
+  ref = getReferenceGenomeFromFile(referenceFile, 50, 15)
+  samples = <|[\Sample\] getSampleData(name) | name <- sampleNames |>
+  for refChunk <- ref do
+    (databaseData, coverageData) = transpose <|[\MyTuple[\Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32,ZZ32\]\]\]\]
+                                                  processSample(sample.s, sample.r, sample.e, refChunk) | sample <- samples |>
+    database: Map[\ZZ32, List[\Event\]\] = BIG UNIONCAT[\ZZ32,Event\][x <- databaseData] x
+    coverage: Map[\String, Map[\ZZ32,ZZ32\]\] = BIG UPLUS[\String, Map[\ZZ32,ZZ32\]\] [x <- coverageData] x
+
+    mergedDatabase: Map[\MySTOTuple, List[\MergedEvent\]\] = makeMergedDatabase(database, coverage)
+
+    println("Events")
+    for (_, entries) <- database.seq(), entry <- entries.seq() do println(entry.asDetailedString) end
+
+    println("Merged Events:")
+    for (_, events) <- mergedDatabase.seq(), event <- events.seq() do
+      println(event)
+      for e <- (event.eventList).seq() do println(e) end
+      println("-------")
+    end
+  end
+end
+
+(*
+run() = do
+  ref = getReferenceGenomeFromFile(referenceFile, 50, 15)
+  samples = <|[\Sample\] getSampleData(name) | name <- sampleNames |>
+  for refChunk <- ref do (*)println("chunk\n") 
+                         (*)println(refChunk.start)
+                         (*)println("Chunk length: " || refChunk.length) 
+                         (*) println(refChunk.getACGT(refChunk.range)) 
+                         (*)println(refChunk.getACGT((refChunk.start + refChunk.length)#refChunk.padLength) || "\n")
+                         (*)println("Buffer length: " || |refChunk.buffer|)
+                         (*)println(refChunk.buffer) 
+                         (*)println("\n") 
+                         for sample <- samples do l = sample.r.getReads(refChunk)
+                                                  for read <- l do println("Read:")
+                                                                   println(read.name) 
+                                                                   println(read.header)
+                                                                   println(read.sequence)
+                                                  end
+                                               end
+                      end                                   
+  println("OK!")
+end
+*)
+
+end

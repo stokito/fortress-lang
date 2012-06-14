@@ -14,7 +14,7 @@ component Bazaar
   import Util.{...}
   import Maybe.{...}
   import List.{...}
-  import GeneratorLibrary.{DefaultGeneratorImplementation}
+  import GeneratorLibrary.{DefaultGeneratorImplementation, DefaultSequentialGeneratorImplementation}
   export Bazaar
 
   object AndRed extends MonoidReduction[\Boolean\]
@@ -96,8 +96,25 @@ component Bazaar
   opr =/=(x: Range, y: Range): Boolean = x.lowerBound =/= y.lowerBound  OR x.upperBound =/= y.upperBound
 
   object CharGen(s: String) extends DefaultGeneratorImplementation[\Character\] 
+    generate[\R extends Any\](r: Reduction[\R\], body: Character->R): R = do
+      n = |s|
+      if n > 1 then
+        m = |s| >> 1
+        r.join(CharGen(s.substring(0, m)).generate(r,body),
+               CharGen(s.substring(m, |s|)).generate(r,body))
+      elif n = 1 then body(s[0])
+      else r.id end
+    end
+    seq() = SequentialCharGen(s)
+  end
+
+  object SequentialCharGen(s: String) extends DefaultSequentialGeneratorImplementation[\Character\] 
     generate[\R extends Any\](r: Reduction[\R\], body: Character->R): R =  
-      r.join(body(s[0]),CharGen(s.substring(1,|s| - 1)).generate(r,body))
+      if |s| = 0 then r.id
+      else
+        q = body(s[0])
+        r.join(q, SequentialCharGen(s.substring(1,|s| - 1)).generate(r,body))
+      end
   end
   
   toGenString(s: String) : Generator[\Character\] = CharGen(s)
@@ -112,14 +129,29 @@ component Bazaar
                  r.join(range1.generate(r,body),range2.generate(r,body))
               end
         end
+      end
+    seq() = SeqZZ32Gen(x) 
+  end
+  
+  object SeqZZ32Gen(x: Range) extends DefaultSequentialGeneratorImplementation[\ZZ32\]
+    generate[\R extends Any\](r: Reduction[\R\], body: ZZ32->R): R = 
+      do dis = x.upperBound - x.lowerBound 
+         if dis = 0 then body(x.lowerBound) else 
+              do range1 = ZZ32Gen(x.lowerBound#1)
+                 range2 = ZZ32Gen((x.lowerBound + 1):x.upperBound)  (*) WATCH OUT
+                 q = range1.generate(r,body)
+                 r.join(q,range2.generate(r,body))
+              end
+        end
       end   
   end
 
   toGenZZ32(x: Range): Generator[\ZZ32\] = ZZ32Gen(x)
 
-  object BoolGen(b: Boolean) extends DefaultGeneratorImplementation[\Boolean\]
+  object BoolGen(b: Boolean) extends DefaultSequentialGeneratorImplementation[\Boolean\]
      generate[\R extends Any\](r: Reduction[\R\], body: Boolean->R): R =  
       body(b)
+     seq() = self
   end
 
   toBoolGen(x: Boolean): Generator[\Boolean\] = BoolGen(x)
