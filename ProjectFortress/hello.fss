@@ -11,11 +11,15 @@
 
 component hello
 import System.getProperty
+import CompilerSystem.args
 export Executable
 
 run() = do
  println("fortress.home is " getProperty("fortress.home", "not found"))
  println("Hello, World!")
+ for i <- 0#|args| do
+   println args[i]
+ end
 end
 
 end

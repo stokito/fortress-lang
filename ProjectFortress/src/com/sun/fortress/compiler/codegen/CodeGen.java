@@ -1216,11 +1216,18 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 int super_self_index = NodeUtil.selfParameterIndex(super_func.parameters());
                 Type raw_super_noself_domain = oa.getNoSelfDomainType(super_func);
                 Type super_noself_domain_possibly_no_params = super_inst.replaceInEverything(raw_super_noself_domain);
-                Type super_noself_domain =
-		    super_noself_domain_possibly_no_params.getInfo().getStaticParams().isEmpty() ?
-		    STypesUtil.insertStaticParams(super_noself_domain_possibly_no_params,     // Aha!  GLS 6/12/12
-						  currentTraitObjectDecl.getHeader().getStaticParams()) :
-		    super_noself_domain_possibly_no_params;
+                List<StaticParam> better_super_params =
+                    super_noself_domain_possibly_no_params.getInfo().getStaticParams();
+                for (StaticParam sp : currentTraitObjectDecl.getHeader().getStaticParams()) {
+                    if (! better_super_params.contains(sp))
+                        better_super_params.add(sp);
+                }
+                Type super_noself_domain = STypesUtil.insertStaticParams(STypesUtil.clearStaticParams(super_noself_domain_possibly_no_params),
+                        better_super_params);
+//		    super_noself_domain_possibly_no_params.getInfo().getStaticParams().isEmpty() ?
+//		    STypesUtil.insertStaticParams(super_noself_domain_possibly_no_params,     // Aha!  GLS 6/12/12
+//						  currentTraitObjectDecl.getHeader().getStaticParams()) :
+//		    super_noself_domain_possibly_no_params;
 
                 for (Functional func : funcs) {
                     Type ret = local_inst.replaceInEverything(oa.getRangeType(func));
@@ -1253,21 +1260,25 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                      *   shadowing and collisions.
                      *  
                      */
-                    if ((name.toString().contains("reverse") &&
-                            currentTraitObjectType.toString().startsWith("SimpleSequentialMappedGenerator"))) {
+                    if ((name.toString().contains("generate") &&
+                            currentTraitObjectType.toString().startsWith("PairGenerator"))) {
+                      System.out.println("******* " + noself_domain.toStringReadable() + " { " + noself_domain.getInfo().getStaticParams() + " } "
+                      + "\nvs super " + super_noself_domain.toStringReadable() + " { " + super_noself_domain.getInfo().getStaticParams() + " }");
+                      System.out.println("** raw super is " + raw_super_noself_domain.toStringReadable() +
+                      " { " + raw_super_noself_domain.getInfo().getStaticParams() + " }");
+                      // super_noself_domain_possibly_no_params
+                      System.out.println("** super pnp is " + super_noself_domain_possibly_no_params.toStringReadable() +
+                              " { " + super_noself_domain_possibly_no_params.getInfo().getStaticParams() + " }");
+                      System.out.println("** replacer is " + super_inst);
+                      System.out.println("** better super params is { " + better_super_params + " }");
                         boolean d_a_le_b = oa.lteq(noself_domain, super_noself_domain) ;
                         boolean d_b_le_a = oa.lteq(super_noself_domain, noself_domain) ;
                         boolean r_a_le_b = oa.lteq(ret, super_ret);
                         boolean r_b_le_a = oa.lteq(super_ret, ret);
+                      System.out.println("**** END");
                     }
-// 		    System.out.println("**** " + noself_domain.toStringReadable() + " { " + noself_domain.getInfo().getStaticParams() + " } "
-// 				       + " versus super " + super_noself_domain.toStringReadable() + " { " + super_noself_domain.getInfo().getStaticParams() + " }");
-// 		    System.out.println("** raw super is " + raw_super_noself_domain.toStringReadable() +
-// 				       " { " + raw_super_noself_domain.getInfo().getStaticParams() + " }");
-// 		    System.out.println("** replacer is " + super_inst);
                     boolean d_a_le_b = oa.lteq(noself_domain, super_noself_domain) ;
                     boolean d_b_le_a = oa.lteq(super_noself_domain, noself_domain) ;
-// 		    System.out.println("**** END");
 
                     boolean r_a_le_b = oa.lteq(ret, super_ret);
                     boolean r_b_le_a = oa.lteq(super_ret, ret);
@@ -1276,6 +1287,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         System.err.println("" + func + " ?? " + super_func + " " + d_a_le_b + d_b_le_a + r_a_le_b + r_b_le_a);
                     }
                     
+                    boolean schema_narrowed = false;
+                    if (func.staticParameters().size() > 0) {
+                        int selfIndex = ((HasSelfType)super_func).selfPosition();
+                        String from_name = genericMethodName(super_func, selfIndex);
+                        String to_name = genericMethodName(func, selfIndex);
+                        schema_narrowed = ! from_name.equals(to_name);
+                    } 
+
                     if (d_a_le_b && d_b_le_a) {
                         // equal domains
                         if (r_a_le_b) { // sub is LE
@@ -1283,13 +1302,6 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                                 // eq
                                 // note that GENERIC methods all have same Java return type,
                                 // hence "equal".
-                                boolean schema_narrowed = false;
-                                if (func.staticParameters().size() > 0) {
-                                    int selfIndex = ((HasSelfType)super_func).selfPosition();
-                                    String from_name = genericMethodName(super_func, selfIndex);
-                                    String to_name = genericMethodName(func, selfIndex);
-                                    schema_narrowed = ! from_name.equals(to_name);
-                                } 
                                 if (schema_narrowed) {
                                     narrowed = true; // could "continue" here
                                     narrowed_func = func;
