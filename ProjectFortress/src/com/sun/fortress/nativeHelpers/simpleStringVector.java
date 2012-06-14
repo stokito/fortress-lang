@@ -11,6 +11,7 @@
 
 package com.sun.fortress.nativeHelpers;
 import com.sun.fortress.compiler.runtimeValues.FStringVector;
+import com.sun.fortress.runtimeSystem.MainWrapper;
 
 public class simpleStringVector {
 
@@ -22,4 +23,5 @@ public class simpleStringVector {
     public static int getSize(FStringVector v) {return v.dim();}
 
     public static FStringVector make(int i) {return FStringVector.make(i);}
+    
 }

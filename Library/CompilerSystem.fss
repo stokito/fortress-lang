@@ -10,9 +10,10 @@
  ******************************************************************************)
 
 component CompilerSystem
+import java com.sun.fortress.nativeHelpers.{systemOps.getArgs => jGetArgs}
 export CompilerSystem
 
 
-args : StringVector = makeStringVector(0)
+args : StringVector = jGetArgs()
 
 end
