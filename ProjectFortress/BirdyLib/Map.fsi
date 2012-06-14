@@ -12,7 +12,7 @@
 api Map
 
 import Maybe.{...}
-import Set.{Set}
+import Set.{Set, AllSets}
 import Util.{...}
 import CompilerAlgebra.{...}
 import GeneratorLibrary.{DefaultGeneratorImplementation}
@@ -27,7 +27,7 @@ end
     Methods that operate on a particular key leave the rest of the map
     untouched unless otherwise specified. **)
 trait Map[\Key extends StandardTotalOrder[\Key\], Val\]
-    extends DefaultGeneratorImplementation[\(Key,Val)\]
+    extends DefaultGeneratorImplementation[\(Key,Val)\] excludes AllSets
     
     abstract getter isEmpty(): Boolean
     abstract getter asDebugString(): String

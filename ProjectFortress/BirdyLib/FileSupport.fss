@@ -201,7 +201,7 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
         a
       end
 
-    seq(self): SequentialGenerator[\S\] = do
+    seq(): SequentialGenerator[\S\] = do
         consume()
         SeqFileGenerator[\S\](reader, readOne)
       end
@@ -267,7 +267,7 @@ object SeqFileGenerator[\S\](reader:ReadStream, readOne:ReadStream -> Maybe[\S\]
         a
       end
 
-    seq(self): SequentialGenerator[\S\] = self
+    seq(): SequentialGenerator[\S\] = self
 
     loop(body:S->()): () = do
         consume()

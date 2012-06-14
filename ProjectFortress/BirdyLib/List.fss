@@ -13,7 +13,7 @@ component List
 
 import Maybe.{...}
 import Util.{...}
-import GeneratorLibrary.{DefaultGeneratorImplementation}
+import GeneratorLibrary.{DefaultGeneratorImplementation, DefaultSequentialGeneratorImplementation}
 export List
 
 (** Thrown when taking big intersection of no Lists. **)
@@ -33,6 +33,7 @@ trait List[\E extends Any\] extends DefaultGeneratorImplementation[\E\]
     getLeftChild():List[\E\]
     getRightChild():List[\E\]
     generate[\R extends Any\](r: Reduction[\R\], body: E->R): R
+    seq() = SeqGenerateList(self)
     left():Maybe[\E\]
     right():Maybe[\E\]
     extractLeft():Maybe[\(E, List[\E\])\]
@@ -53,8 +54,15 @@ trait List[\E extends Any\] extends DefaultGeneratorImplementation[\E\]
       end
     
     opr [i: ZZ32, def: E]: E = if i < 0 OR i >= |self| then throw OutOfBounds else find(i,def) end
+end
 
-
+object SeqGenerateList[\E extends Any\](x: List[\E\]) extends DefaultSequentialGeneratorImplementation[\E\]
+  generate[\R extends Any\](r: Reduction[\R\], body: E->R): R =
+    if (y, zs) <- x.extractLeft() then
+      q = body(y)
+      r.join(q, zs.seq().generate(r, body))
+    else r.id
+    end
 end
 
 singleton[\E\](x:E): List[\E\] = do

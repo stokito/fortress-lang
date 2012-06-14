@@ -23,9 +23,10 @@ triples[\T\](g: Generator[\T\]): Generator[\(T,T,T)\]
 geometricMean(xs: List[\RR64\]): RR64
 
 opr UNIONCAT[\T extends { Object, StandardTotalOrder[\T\] },U\](a: Map[\T, List[\U\]\], b: Map[\T, List[\U\]\]): Map[\T, List[\U\]\] 
-opr BIG UNIONCAT[\T extends {Object, StandardTotalOrder[\T\]},U\](): BigReduction[\Map[\T, List[\U\]\],Map[\T, List[\U\]\]\]
+opr BIG UNIONCAT[\T extends {Object, StandardTotalOrder[\T\]},U\](): Comprehension[\Map[\T, List[\U\]\],Map[\T, List[\U\]\],Map[\T, List[\U\]\],Map[\T, List[\U\]\]\]
+
 opr UNIONPLUS[\T extends { Object, StandardTotalOrder[\T\] }\](a: Map[\T, ZZ32\], b: Map[\T, ZZ32\]): Map[\T, ZZ32\] 
-opr BIG UNIONPLUS[\T extends {Object, StandardTotalOrder[\T\]}\](): BigReduction[\Map[\T, ZZ32\],Map[\T, ZZ32\]\]
+opr BIG UNIONPLUS[\T extends {Object, StandardTotalOrder[\T\]}\](): Comprehension[\Map[\T, ZZ32\],Map[\T, ZZ32\],Map[\T, ZZ32\],Map[\T, ZZ32\]\]
 
 
 end

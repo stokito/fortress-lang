@@ -26,7 +26,8 @@ object Pairs[\T\](g: Generator[\T\]) extends DefaultGeneratorImplementation[\Pai
     generate[\R extends Any\](red: Reduction[\R\], m:PairPair[\T\]->R): R =
     if z <- g.generate[\Maybe[\PairTriple[\T,R\]\]\](PairReduction[\T,R\](red,m),
                              fn (t:T) => Just[\PairTriple[\T,R\]\](PairTriple(t, red.id, t)))
-        then z.v else red.id end
+        then z.v else red.id en
+    seq() = throw IntegerDomainError  (*) Yeah, right!
 end
 
 object PairPair[\T\](l: T, r: T) end
