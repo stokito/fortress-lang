@@ -88,7 +88,9 @@ opr UNIONPLUS[\T extends StandardTotalOrder[\T\]\](a: Map[\T, ZZ32\], b: Map[\T,
 opr BIG UNIONCAT[\T extends StandardTotalOrder[\T\],U\](): Comprehension[\Map[\T, List[\U\]\],Map[\T, List[\U\]\],Map[\T, List[\U\]\],Map[\T, List[\U\]\]\] =
   embiggen[\Map[\T, List[\U\]\]\](fn(a,b) => a UNIONCAT b, {[\T,List[\U\]\]})
 
-opr BIG UNIONPLUS[\T extends StandardTotalOrder[\T\]\](): Comprehension[\Map[\T, ZZ32\],Map[\T, ZZ32\],Map[\T, ZZ32\],Map[\T, ZZ32\]\] =
+opr BIG UNIONPLUS[\T extends StandardTotalOrder[\T\]\]():
+  (*) BigReduction[\Map[\T, ZZ32\],Map[\T, ZZ32\]\] =
+  Comprehension[\Map[\T, ZZ32\],Map[\T, ZZ32\],Map[\T, ZZ32\],Map[\T, ZZ32\]\] =
   embiggen[\Map[\T, ZZ32\]\](fn(a,b) => a UNIONPLUS b, {[\T,ZZ32\]})
 
 runRanges(x: List[\Boolean\]): List[\Range\] =
