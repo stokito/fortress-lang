@@ -32,6 +32,8 @@ public abstract class FortressExecutable extends RecursiveAction {
     public static final boolean useExponentialBackoff = getBackoffStrategy();
     public static final boolean defaultBackoffExponential = false; // no evidence that it helps
 
+    public static final int machineConstant = getMachineConst();
+
     public static int getNumThreads() {
         String numThreadsString = System.getenv("FORTRESS_THREADS");
         if (numThreadsString != null) return Integer.parseInt(numThreadsString);
@@ -63,6 +65,12 @@ public abstract class FortressExecutable extends RecursiveAction {
         String backoffStrategyString = System.getenv("FORTRESS_EXP_BACKOFF");
         if (backoffStrategyString != null) return envToBoolean(backoffStrategyString);
         return useExponentialBackoff;
+    }
+
+    static int getMachineConst() {
+        String mc = System.getenv("FORTRESS_MACHINE_CONSTANT");
+        if (mc != null) return Integer.parseInt(mc);
+        return 0;
     }
 
     private static boolean envToBoolean(String s) {
