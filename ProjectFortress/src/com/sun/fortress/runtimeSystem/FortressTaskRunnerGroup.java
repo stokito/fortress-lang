@@ -25,8 +25,19 @@ public class FortressTaskRunnerGroup extends ForkJoinPool {
 
     static final FortressForkJoinWorkerThreadFactory factory = new FortressForkJoinWorkerThreadFactory();
 
+    private int allRetries = 0;
+    private long totalElapsedTime = 0;
+
     public FortressTaskRunnerGroup(int groupSize) {
         super(groupSize, factory);
+    }
+
+    public void addRetries(int retries) {
+        this.allRetries += retries;
+    }
+
+    public void addElapsedTime(long elapsedTime) {
+        this.totalElapsedTime += elapsedTime;
     }
 
     private static boolean envToBoolean(String s) {
@@ -36,7 +47,10 @@ public class FortressTaskRunnerGroup extends ForkJoinPool {
 
     public void printStatistics() {
         String printOnOutput = System.getenv("FORTRESS_THREAD_STATISTICS");
-        if (envToBoolean(printOnOutput))
+        if (envToBoolean(printOnOutput)) {
             System.out.println(toString());
+            System.out.println("Had to retry a transaction " + this.allRetries + " times, " + 
+                               "threads waited for a total of " + this.totalElapsedTime + " nanoseconds");
+        }
     }
 }

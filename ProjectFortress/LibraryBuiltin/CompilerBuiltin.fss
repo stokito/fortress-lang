@@ -260,6 +260,8 @@ import java com.sun.fortress.nativeHelpers.{simpleChar.charToString => jCharToSt
                                             simpleChar.charToUpperCase => jCharToUpperCase}
 import java com.sun.fortress.nativeHelpers.{LocalRandom.localRandomDouble => jRandomDouble,
                                             LocalRandom.localRandomInt => jRandomInt }
+import java com.sun.fortress.nativeHelpers.{DeterministicRandom.deterministicRandomDouble => jDeterministicRandomDouble,
+                                            DeterministicRandom.deterministicRandomInt => jDeterministicRandomInt }
 import java com.sun.fortress.nativeHelpers.{stringOps.compareTo => jCompareTo,
                                             stringOps.substring => jSubstring,
                                             stringOps.charAt => jCharAt,
@@ -1526,7 +1528,8 @@ end
 
 random(i:RR64): RR64 = jRandomDouble(i)
 randomZZ32(x:ZZ32): ZZ32 = jRandomInt(0,x)
-
+drandom(i : RR64) : RR64 = jDeterministicRandomDouble(i)
+(*) drandomZZ32(x : ZZ32) : ZZ32 = jDeterministicRandomInt(0, x) Still buggy
 
 (************************************************************
 * Character properties

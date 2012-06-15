@@ -18,10 +18,15 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
 
     public volatile BaseTask task;
     private int retries;
+    private long elapsedTime = 0;
     private static long startTime = System.currentTimeMillis();
 
     public int retries() {
         return retries;
+    }
+
+    public long elapsedTime() {
+        return elapsedTime;
     }
 
     public static void incRetries() {
@@ -32,6 +37,27 @@ public class FortressTaskRunner extends ForkJoinWorkerThread {
     public static void resetRetries() {
         FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
         runner.retries = 0;
+    }
+
+    public static void incElapsedTime(long elapsedTime) {
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+        runner.elapsedTime += elapsedTime;
+    }
+
+    public static void resetElapsedTime() {
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();
+        runner.elapsedTime = 0;
+    }
+
+    public static void recordEndTransaction() {
+        FortressTaskRunner runner = (FortressTaskRunner) Thread.currentThread();        
+        // When retries are reset, add the number of retries to a
+        // tally in the group as well
+        FortressTaskRunnerGroup ftrg = (FortressTaskRunnerGroup) runner.getPool();
+        ftrg.addRetries(runner.retries());
+        ftrg.addElapsedTime(runner.elapsedTime());
+        resetRetries();
+        resetElapsedTime();
     }
 
     public static int getRetries() {
