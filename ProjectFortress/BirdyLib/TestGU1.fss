@@ -231,8 +231,8 @@ object Sample(s: String, r: ReadList, e: ErrorRates) end
 
 getSampleData(name: String): Sample = do
   rl = getReadListFromFile(sampleFilesDir || "/" || name || "/" || sampleFilesFileName, readSize)
-  (*)er = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
-  er = ErrorRates(<|[\RR64\] |>,<|[\RR64\] |>)
+  er = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
+  (*)er = ErrorRates(<|[\RR64\] |>, <|[\RR64\] |>)
   Sample(name, rl, er)
 end
 
@@ -277,28 +277,5 @@ run() = do
   end
 end
 
-(*
-run() = do
-  ref = getReferenceGenomeFromFile(referenceFile, 50, 15)
-  samples = <|[\Sample\] getSampleData(name) | name <- sampleNames |>
-  for refChunk <- ref do (*)println("chunk\n") 
-                         (*)println(refChunk.start)
-                         (*)println("Chunk length: " || refChunk.length) 
-                         (*) println(refChunk.getACGT(refChunk.range)) 
-                         (*)println(refChunk.getACGT((refChunk.start + refChunk.length)#refChunk.padLength) || "\n")
-                         (*)println("Buffer length: " || |refChunk.buffer|)
-                         (*)println(refChunk.buffer) 
-                         (*)println("\n") 
-                         for sample <- samples do l = sample.r.getReads(refChunk)
-                                                  for read <- l do println("Read:")
-                                                                   println(read.name) 
-                                                                   println(read.header)
-                                                                   println(read.sequence)
-                                                  end
-                                               end
-                      end                                   
-  println("OK!")
-end
-*)
 
 end

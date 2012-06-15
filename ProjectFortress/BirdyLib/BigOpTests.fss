@@ -13,7 +13,11 @@ component BigOpTests
       else println("")
     end
 
-(*
+  pl(l: List[\List[\ZZ32\]\]): () =
+    if (hd,tl) <- l.extractLeft()
+      then do pl(hd) ; pl(tl) end
+      else println("")
+    end    
 
   object Cat[\T\] extends MonoidReduction[\List[\T\]\]
       getter asString(): String = "List red"
@@ -23,9 +27,11 @@ component BigOpTests
   
   opr BIG ||[\T\]() : BigReduction[\List[\T\],List[\T\]\] =
   BigReduction[\List[\T\],List[\T\]\](Cat[\T\])
-
-*)
   
+  p(x: ZZ32, y: ZZ32): Boolean = x =/= y
+  
+  f(x: ZZ32) : List[\ZZ32\] = <| x, x |>
+
   run() = 
     do z1: ZZ32 = 1
        z2: ZZ32 = 2
@@ -33,9 +39,22 @@ component BigOpTests
        l1 = <|[\ZZ32\] |> :: z1 :: z2 :: z3 :: z1 :: z2 :: z3
        pl(l1)
        l2 = <|[\ZZ32\] x + y | x <- l1, y <- l1 |>
-       pl(l2) 
+       pl(l2)
        l3 = <|[\ZZ32\] a + b | (a,b) <- l1.cross(l1) |>
-       pl(l3)
+       pl(l3)       
+       l4 = <|[\ZZ32\] x + x | x <- l1.filter(fn y => y =/= 2) |>
+       pl(l4)
+       l5 = <|[\List[\ZZ32\]\] <| x, y |> | x <- l1, y <- l1 |>   
+       pl(l5)
+       l6 = BIG ||[\ZZ32\] [l <- l5] l
+       pl(l6) 
+       l7 = <|[\ZZ32\] y | x <- l1, y <- f(x) |> 
+       pl(l7) 
+       l8 = <|[\ZZ32\] y | y <- l1.nest(f) |>  
+       pl(l8)   
+       l9 = <|[\ZZ32\] x + y | x <- l1, y <- l1, p(x,y) |>
+       pl(l9)    
+
        println("PASS")
     end
 

@@ -230,8 +230,7 @@ object Sample(s: String, r: ReadList, e: ErrorRates) end
 
 getSampleData(name: String): Sample = do
   rl = getReadListFromFile(sampleFilesDir || "/" || name || "/" || sampleFilesFileName, readSize)
-  (*)er = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
-  er = ErrorRates(<|[\RR64\] |>,<|[\RR64\] |>)
+  er = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
   Sample(name, rl, er)
 end
 
