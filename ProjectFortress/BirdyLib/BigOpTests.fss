@@ -32,6 +32,9 @@ component BigOpTests
   
   f(x: ZZ32) : List[\ZZ32\] = <| x, x |>
 
+  fst(x: ZZ32, y: ZZ32): ZZ32 = x
+  snd(x: ZZ32, y: ZZ32): ZZ32 = y
+
   run() = 
     do z1: ZZ32 = 1
        z2: ZZ32 = 2
@@ -51,9 +54,15 @@ component BigOpTests
        l7 = <|[\ZZ32\] y | x <- l1, y <- f(x) |> 
        pl(l7) 
        l8 = <|[\ZZ32\] y | y <- l1.nest(f) |>  
-       pl(l8)   
-       l9 = <|[\ZZ32\] x + y | x <- l1, y <- l1, p(x,y) |>
-       pl(l9)    
+       pl(l8)
+       l9 = <|[\ZZ32\] x + y + z | x <- l1 , y <- l1, z <- l1 |>
+       pl(l9)   
+       l10 = <|[\ZZ32\] x + y + z | (x,y) <- l1.cross(l1) , z <- l1 |>
+       pl(l10)
+       l11 = <|[\ZZ32\] fst(a) + snd(a) + b | (a,b) <- (l1.cross(l1)).cross(l1) |>
+       pl(l11)
+       (*)l9 = <|[\ZZ32\] x + y | x <- l1, y <- l1, p(x,y) |>
+       (*)pl(l9)    
 
        println("PASS")
     end
