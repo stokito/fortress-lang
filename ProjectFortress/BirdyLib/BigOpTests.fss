@@ -34,35 +34,71 @@ component BigOpTests
 
   fst(x: ZZ32, y: ZZ32): ZZ32 = x
   snd(x: ZZ32, y: ZZ32): ZZ32 = y
+  sum(x: ZZ32, y: ZZ32): ZZ32 = x + y
+  
+  sum(x: (ZZ32,ZZ32), z: ZZ32): ZZ32 = sum(x) + z
 
   run() = 
     do z1: ZZ32 = 1
        z2: ZZ32 = 2
        z3: ZZ32 = 3 
+       println("***l1***")
        l1 = <|[\ZZ32\] |> :: z1 :: z2 :: z3 :: z1 :: z2 :: z3
        pl(l1)
+       println("***l2***")
        l2 = <|[\ZZ32\] x + y | x <- l1, y <- l1 |>
        pl(l2)
+       println("***l3***")
        l3 = <|[\ZZ32\] a + b | (a,b) <- l1.cross(l1) |>
-       pl(l3)       
+       pl(l3)      
+       println("***l4***") 
        l4 = <|[\ZZ32\] x + x | x <- l1.filter(fn y => y =/= 2) |>
        pl(l4)
+       println("***l5***")
        l5 = <|[\List[\ZZ32\]\] <| x, y |> | x <- l1, y <- l1 |>   
        pl(l5)
+       println("***l6***")
        l6 = BIG ||[\ZZ32\] [l <- l5] l
        pl(l6) 
+       println("***l7***")
        l7 = <|[\ZZ32\] y | x <- l1, y <- f(x) |> 
        pl(l7) 
+       println("***l8***")
        l8 = <|[\ZZ32\] y | y <- l1.nest(f) |>  
        pl(l8)
+       println("***l9***")
        l9 = <|[\ZZ32\] x + y + z | x <- l1 , y <- l1, z <- l1 |>
-       pl(l9)   
+       pl(l9)      
+       println("***l10***")   
        l10 = <|[\ZZ32\] x + y + z | (x,y) <- l1.cross(l1) , z <- l1 |>
        pl(l10)
-       l11 = <|[\ZZ32\] fst(a) + snd(a) + b | (a,b) <- (l1.cross(l1)).cross(l1) |>
+       println("***l11***")
+       l11 = <|[\ZZ32\] sum(a) + b | (a,b) <- l1.cross(l1).cross(l1) |>
        pl(l11)
-       (*)l9 = <|[\ZZ32\] x + y | x <- l1, y <- l1, p(x,y) |>
-       (*)pl(l9)    
+       println("***l12***")
+       l12 = <|[\ZZ32\] sum(a) | a <- l1.cross(l1).cross(l1) |>
+       pl(l12)
+       println("***l13***")
+       l13 = <|[\ZZ32\] x + y + z | x <- l1 , y <- f(x), z <- f(y)  |>  
+       pl(l13) 
+       println("***l14***")          
+       l14 = <|[\ZZ32\] z | z <- l1.nest(f).nest(f) |>   
+       pl(l14)
+       println("***l15***")       
+       (*)l15 = <|[\ZZ32\] x + y | x <- l1, y <- l1, p(x,y) |>
+       (*)pl(l15)    
+       println("***l16***")
+       l16 = <|[\ZZ32\] x + y | x <- l1, y <- f(x) |> 
+       pl(l6) 
+       println("***17***")
+       l17 = <|[\ZZ32\] x + y | x <- l1, y <- l1.nest(f) |>
+       pl(l17)
+       println("***18***")
+       l18 = <|[\ZZ32\] x + y | (x,y) <- l1.cross(l1.nest(f)) |>
+       pl(l18)
+       println("***19***")
+       (*)l19 = <|[\ZZ32\] fst(a) + snd(a) + b | (a,b) <- (l1.cross(l1)).cross(l1) |>
+       (*)pl(l19)
 
        println("PASS")
     end
