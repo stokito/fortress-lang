@@ -1210,19 +1210,48 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                 Functional narrowed_func = null;
                 
                 Type raw_super_ret = oa.getRangeType(super_func);
-                Type super_ret = super_inst.replaceInEverything(raw_super_ret);
+                
                 int super_self_index = NodeUtil.selfParameterIndex(super_func.parameters());
                 Type raw_super_noself_domain = oa.getNoSelfDomainType(super_func);
                 Type super_noself_domain_possibly_no_params = super_inst.replaceInEverything(raw_super_noself_domain);
-                List<StaticParam> better_super_params =
-                    super_noself_domain_possibly_no_params.getInfo().getStaticParams();
+                List<StaticParam> better_super_params = new ArrayList<StaticParam>();
+                
+                /*
+                 * Combine all the static params for super, preferring the definitions from the
+                 * subtype when names match (those may be narrower).
+                 */
+                for(StaticParam bsp : super_noself_domain_possibly_no_params.getInfo().getStaticParams()) {
+                    boolean use_bsp = true;
+                    for (StaticParam sp : currentTraitObjectDecl.getHeader().getStaticParams()) {
+                        if (sp.getName().equals(bsp.getName())) {
+                            better_super_params.add(sp);
+                            use_bsp = false;
+                            break;
+                        }
+                    }
+                    if (use_bsp)
+                        better_super_params.add(bsp);
+                }
                 for (StaticParam sp : currentTraitObjectDecl.getHeader().getStaticParams()) {
-                    if (! better_super_params.contains(sp))
+                    boolean use_sp = true;
+                    for(StaticParam bsp : super_noself_domain_possibly_no_params.getInfo().getStaticParams()) {
+                        if (sp.getName().equals(bsp.getName())) {
+                            use_sp = false;
+                            break;
+                        }
+                    }
+                    if (use_sp)
                         better_super_params.add(sp);
                 }
+
                 Type super_noself_domain = STypesUtil.insertStaticParams(STypesUtil.clearStaticParams(super_noself_domain_possibly_no_params),
                         better_super_params);
-//		    super_noself_domain_possibly_no_params.getInfo().getStaticParams().isEmpty() ?
+
+                Type pre_super_ret = super_inst.replaceInEverything(raw_super_ret);
+                
+                Type super_ret = STypesUtil.insertStaticParams(STypesUtil.clearStaticParams(pre_super_ret),
+                        better_super_params);
+                //		    super_noself_domain_possibly_no_params.getInfo().getStaticParams().isEmpty() ?
 //		    STypesUtil.insertStaticParams(super_noself_domain_possibly_no_params,     // Aha!  GLS 6/12/12
 //						  currentTraitObjectDecl.getHeader().getStaticParams()) :
 //		    super_noself_domain_possibly_no_params;
@@ -1258,12 +1287,16 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                      *   shadowing and collisions.
                      *  
                      */
-                    if ((name.toString().contains("generate") &&
-                            currentTraitObjectType.toString().startsWith("PairGenerator"))) {
+                    if (name.toString().contains("seq")) {
                       System.out.println("******* " + noself_domain.toStringReadable() + " { " + noself_domain.getInfo().getStaticParams() + " } "
                       + "\nvs super " + super_noself_domain.toStringReadable() + " { " + super_noself_domain.getInfo().getStaticParams() + " }");
                       System.out.println("** raw super is " + raw_super_noself_domain.toStringReadable() +
                       " { " + raw_super_noself_domain.getInfo().getStaticParams() + " }");
+
+                      System.out.println("******* " + ret.toStringReadable() + " { " + ret.getInfo().getStaticParams() + " } "
+                              + "\nvs super " + super_ret.toStringReadable() + " { " + super_ret.getInfo().getStaticParams() + " }");
+                              System.out.println("** raw super is " + raw_super_ret.toStringReadable() +
+                              " { " + raw_super_ret.getInfo().getStaticParams() + " }");
                       // super_noself_domain_possibly_no_params
                       System.out.println("** super pnp is " + super_noself_domain_possibly_no_params.toStringReadable() +
                               " { " + super_noself_domain_possibly_no_params.getInfo().getStaticParams() + " }");
@@ -1273,6 +1306,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                         boolean d_b_le_a = oa.lteq(super_noself_domain, noself_domain) ;
                         boolean r_a_le_b = oa.lteq(ret, super_ret);
                         boolean r_b_le_a = oa.lteq(super_ret, ret);
+                        System.err.println("" + func + " ?? " + super_func + " " + d_a_le_b + d_b_le_a + r_a_le_b + r_b_le_a);
                       System.out.println("**** END");
                     }
                     boolean d_a_le_b = oa.lteq(noself_domain, super_noself_domain) ;

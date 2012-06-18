@@ -16,6 +16,7 @@ import com.sun.fortress.repository.ProjectProperties;
 import com.sun.fortress.runtimeSystem.MainWrapper;
 
 public class systemOps {
+    
     public static String getProperty(String what, String ifMissing) {
         return ProjectProperties.get(what, ifMissing);
     }
