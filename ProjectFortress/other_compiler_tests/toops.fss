@@ -1,0 +1,35 @@
+(*******************************************************************************
+   Copyright 2011, Oracle and/or its affiliates.
+   All rights reserved.
+
+
+   Use is subject to license terms.
+
+   This distribution may include materials developed by third parties.
+
+******************************************************************************)
+
+export Executable
+
+f(x : (Any,Any)) : String = "any"
+
+f(x : (General, General)) = "gg"
+
+f(x : (Specific, Specific)) = "ss"
+
+trait General end
+trait Specific extends General end
+
+object G extends General end
+object S extends Specific end
+
+run() : () = do
+   ss : (S,S) = (S,S)
+   gg : (General, G) = (G,G)
+   x : (Any,Any) = ss
+   y : (Any,Any) = gg
+   println(f(x))
+   println(f(y))
+   println(f(ss))
+   println(f(gg))
+end

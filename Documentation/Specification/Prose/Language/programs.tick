@@ -1,0 +1,25 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newchap{Programs}{programs}
+
+\note{The following sentences really belong in a chapter 
+describing this document rather than this chapter.}
+This document stipulates \emph{static constraints} 
+that must be satisfied by a \emph{valid} program, 
+and specifies how a valid program \emph{executes}.
+Violation of a static constraint is called a \emph{static error}.
+
+Sometimes we say that a program must not have some property.
+This is equivalent to saying that it is a static error if it has that property.
+
+
+

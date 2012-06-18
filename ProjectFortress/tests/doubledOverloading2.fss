@@ -1,0 +1,61 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component doubledOverloading2
+export Executable
+
+(*
+
+Under certain circumstances the same overloading got inserted
+twice into the table of overloadings for a functional method.  One of
+those cases is caught by doubledOverloading.  Here we're seeking
+another one.
+
+Here we must have:
+  * A parametric trait with a functional method
+  * That's extended by a parametric object with a functional method
+  * We must actually call the functional method with an instance of
+  the parametric object.
+  * The trait type must not have been instantiated before by some other
+  innocuous subtype (such as P below).
+
+Then we'll see:
+ @"tests/doubledOverloading2.fss",63:2~64:3: Cannot call before 'setFinished()'
+Context:
+	 @"tests/doubledOverloading2.fss",63:2~64:3
+	 @"tests/doubledOverloading2.fss",63:2~64:3
+	at com.sun.fortress.interpreter.evaluator.InterpreterBug.bug(InterpreterBug.java:81)
+	at com.sun.fortress.interpreter.evaluator.values.OverloadedFunction.bestMatchIndex(OverloadedFunction.java:408)
+        ...
+
+*)
+
+(* A must be parametric.
+   A must be a trait, not an object. *)
+trait A[\T\]
+  (* f must be a functional method or the bug doesn't manifest. *)
+  f(self):Boolean = true
+end
+
+object O[\T\] extends A[\T\]
+end
+
+(*
+object P extends A[\ZZ32\] end
+*)
+
+run(): () = do
+  t = O[\ZZ32\]
+  f(t)
+  ()
+end
+
+end

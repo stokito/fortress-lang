@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+component VarianceTest8
+
+  export Executable
+
+  trait Test[\contravariant T extends Any\]
+    hidden settable my: T
+  end
+
+  object Impl[\T extends Any\]() extends Test[\T\] 
+  end
+
+  trait Foo end
+    
+  run() = do
+    x: Test[\Foo\] = Impl[\Any\]()
+    ()
+  end
+
+end

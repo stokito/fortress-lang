@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXcaretOperator
+
+export Executable
+
+run() = do
+   temp1 = 5 7^2
+   if temp1 =/= 245 then
+    println("FAIL temp1 = " temp1)
+   end
+   temp2 = 5 7 ^ 2
+   println("FAIL temp2 = " temp2)
+end
+
+end

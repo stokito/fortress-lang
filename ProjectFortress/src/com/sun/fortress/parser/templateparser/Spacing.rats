@@ -1,0 +1,23 @@
+/*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress spacing including comments.
+ *
+ * Whitespace Convention in grammar productions:
+ * Every production which can be empty "owns" its leading whitespace.
+ * Exception: Modifiers own their trailing whitespace.
+ */
+module com.sun.fortress.parser.templateparser.Spacing(Symbol);
+
+import Symbol;
+
+modify com.sun.fortress.parser.Spacing(Symbol);

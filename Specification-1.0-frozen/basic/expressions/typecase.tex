@@ -1,0 +1,182 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Typecase Expressions}
+\seclabel{typecase}
+
+\note{This section should be revised according to the changes in the pattern matching proposal.}
+
+\note{Do we want to support \EXP{\KWD{typecase} \mathord{\KWD{self}} \KWD{of} \ldots}?
+
+How about \EXP{\KWD{typecase} (x, \KWD{self}, y) \KWD{of} \ldots}?
+
+[07/23/2007] \EXP{\mathord{\KWD{self}}} is not allowed in a shorthand form of
+\KWD{typecase} expresiosn.
+% foo(x) = 8
+% bar(x) = 3
+% trait Parent
+%    foo(x) = 10
+%    baz(x) =
+%      typecase self of
+%        Child => bar(x)
+%        Parent => 23
+%      end
+% end
+% trait Child extends Parent
+%    bar(x) = foo(x)
+% end
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \VAR{foo}(x) = 8\)\\
+\( \VAR{bar}(x) = 3\)\\
+\( \KWD{trait}\:\TYP{Parent}\)\\
+{\tt~~~}\pushtabs\=\+\(    \VAR{foo}(x) = 10\)\\
+\(    \VAR{baz}(x) =\)\\
+{\tt~~}\pushtabs\=\+\(      \KWD{typecase} \mathord{\KWD{self}} \KWD{of}\)\\
+{\tt~~}\pushtabs\=\+\(        \TYP{Child} \Rightarrow \VAR{bar}(x)\)\\
+\(        \TYP{Parent} \Rightarrow 23\)\-\\\poptabs
+\(      \KWD{end}\)\-\-\\\poptabs\poptabs
+\( \KWD{end}\)\\
+\( \KWD{trait}\:\TYP{Child} \KWD{extends}\:\TYP{Parent}\)\\
+{\tt~~~}\pushtabs\=\+\(    \VAR{bar}(x) = \VAR{foo}(x)\)\-\\\poptabs
+\( \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+}
+
+\begin{Grammar}
+\emph{DelimitedExpr}
+&::=& \KWD{typecase} \emph{TypecaseBindings} \KWD{of}
+\emph{TypecaseClauses} \option{\emph{CaseElse}} \KWD{end}\\
+
+\emph{TypecaseBindings} &::=& \emph{TypecaseVars}
+\options{\EXP{=} \emph{Expr}}\\
+
+\emph{TypecaseVars} &::=& \emph{BindId} \\
+&$|$& \texttt{(} \emph{BindId}(\EXP{,} \emph{BindId})$^+$ \texttt{)} \\
+
+\emph{TypecaseClauses} &::=& \emph{TypecaseClause}$^+$\\
+
+\emph{TypecaseClause} &::=&
+\emph{TypecaseTypes} \EXP{\Rightarrow} \emph{BlockElems} \\
+
+\emph{TypecaseTypes}
+&::=& \texttt{(} \emph{TypeList} \texttt{)}\\
+&$|$& \emph{Type} \\
+
+\emph{CaseElse} &::=& \KWD{else} \EXP{\Rightarrow} \emph{BlockElems}\\
+
+\end{Grammar}
+
+A \KWD{typecase} expression begins with \KWD{typecase} followed by
+an identifier or a sequence of parenthesized identifiers,
+optionally followed by the token \EXP{=} and a \emph{binding} expression,
+followed by \KWD{of}, a sequence of typecase clauses
+(each consisting of a sequence of \emph{guarding types}
+followed by the token \EXP{\Rightarrow}, followed by an expression block),
+an optional \KWD{else} clause
+(consisting of \KWD{else} followed by the token \EXP{\Rightarrow},
+followed by an expression block),
+and finally \KWD{end}.
+
+A \KWD{typecase} expression with a binding expression
+evaluates the expression first;
+if it completes normally, the value of the expression is bound
+to the identifiers and the first matching typecase clause is chosen.
+If there are multiple identifiers, the binding expression must be evaluated
+to a tuple value of the same number of elements.
+A typecase clause matches if the type of the value bound to each identifier
+is a subtype of the corresponding type in the clause.
+The expression block of the first matched clause
+(and only that clause) is evaluated (see \secref{block-expr}) to yield
+the value of the \KWD{typecase} expression.
+If no matched clause is found, a \TYP{MatchFailure} exception is thrown
+(\TYP{MatchFailure} is an unchecked exception).
+Unlike bindings in other contexts,
+the static type of such an identifier
+is \emph{not} determined by the static type of
+the expression it is bound to.
+If the static type of a subexpression
+in the bindings for a \KWD{typecase} expression has type \VAR{T},
+when typechecking each typecase clause,
+the static type of the corresponding identifier is the intersection of \VAR{T}
+and the corresponding guarding type for that clause.
+The type of a \KWD{typecase} expression is the union
+of types of all right-hand sides of the typecase clauses.
+
+
+\note{Q. [Victor] In a typecase expression, suppose a more specific clause
+appears after a less specific one?  Do we want that to be a static error
+(as it never makes sense to write that later clause since it will never
+be evaluated)?
+
+A. [Sukyoung \& Eric] No.  We may want to use the feature for reasoning
+and debugging in a devlopment environment.  Some IDE may give a warning.}
+
+For example:
+\input{\home/basic/examples/Expr.Typecase.tex}
+Note that \VAR{x} has a different type in each clause.
+
+For a \KWD{typecase} expression without a binding expression,
+the identifiers must be immutable variables in scope at that point.
+In that case, the \KWD{typecase} expression is equivalent to one
+that rebinds the variables to their values,
+with the new bindings shadowing the old ones:
+the first matching typecase clause is evaluated,
+and within that clause, the static type of the variable
+is the intersection of its original type and the guarding type.
+Otherwise, it is a static error.
+
+\note{
+ \begin{itemize}
+ \item \KWD{typecase} shorthand form with a mutable variable:
+%% typecase x of     (* suppose x has static type Object *)
+%%     String => x
+%%     else => x.toString()
+%%   end
+\begin{Fortress}
+\(\KWD{typecase}\:x \KWD{of}     \mathtt{(*}\;\hbox{\rm  suppose x has static type Object \unskip}\;\mathtt{*)}\)\\
+{\tt~~~~}\pushtabs\=\+\(    \TYP{String} \Rightarrow x\)\\
+\(    \KWD{else} \Rightarrow x.\VAR{toString}()\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{end}\)\-\\\poptabs
+\end{Fortress}
+Forbid this form if \VAR{x} is a mutable variable.
+We need to give an explanation with a concrete example why we disallow this. In general, we have a rule against rebinding an expression in a local scope.
+ \item \EXP{\mathord{\KWD{self}}} is not allowed in a shorthand form of
+ \KWD{typecase} expresiosn:
+%% foo(x) = 8
+%% bar(x) = 3
+%% trait Parent
+%%    foo(x) = 10
+%%    baz(x) =
+%%      typecase self of
+%%        Child => bar(x)
+%%        Parent => 23
+%%      end
+%% end
+%% trait Child extends Parent
+%%    bar(x) = foo(x)
+%% end
+\begin{Fortress}
+\(\VAR{foo}(x) = 8\)\\
+\(\VAR{bar}(x) = 3\)\\
+\(\KWD{trait}\:\TYP{Parent}\)\\
+{\tt~~~}\pushtabs\=\+\(   \VAR{foo}(x) = 10\)\\
+\(   \VAR{baz}(x) =\)\\
+{\tt~~}\pushtabs\=\+\(     \KWD{typecase} \mathord{\KWD{self}} \KWD{of}\)\\
+{\tt~~}\pushtabs\=\+\(       \TYP{Child} \Rightarrow \VAR{bar}(x)\)\\
+\(       \TYP{Parent} \Rightarrow 23\)\-\\\poptabs
+\(     \KWD{end}\)\-\-\\\poptabs\poptabs
+\(\KWD{end}\)\\
+\(\KWD{trait}\:\TYP{Child} \KWD{extends}\:\TYP{Parent}\)\\
+{\tt~~~}\pushtabs\=\+\(   \VAR{bar}(x) = \VAR{foo}(x)\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+\end{itemize}
+}

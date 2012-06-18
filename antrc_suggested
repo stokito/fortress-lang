@@ -1,0 +1,23 @@
+################################################################################
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+
+# 
+# This could be used for $HOME/.antrc or $/HOME/.ant/ant.conf.
+# It can be used to provide (OS-dependent) scripts in a local directory
+# for running ant; for example, .antrc_Linux, .antrc_Darwin, .antrc_SunOS.
+# These scripts can contain more shell scripting.
+#
+
+ANTRC=./.antrc_`uname`
+if [ -f "$ANTRC" ] ; then
+  . "$ANTRC"
+fi

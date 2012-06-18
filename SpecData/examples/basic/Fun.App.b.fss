@@ -1,0 +1,30 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Fun.App.b
+
+export Executable
+
+f() = do
+  x = 3.141592
+  n = 1
+(** EXAMPLE **)
+  sin x
+  log log n
+(** END EXAMPLE **)
+  println "OK"
+end
+
+run() = f()
+
+end

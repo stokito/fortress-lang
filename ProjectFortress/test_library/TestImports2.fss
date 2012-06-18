@@ -1,0 +1,36 @@
+(*******************************************************************************
+    Copyright 2008, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component TestImports2
+export TestImports2
+
+trait S
+  myname():String
+  s():String = "s from TestImports2.S object " myname()
+end
+
+trait T extends S
+  t():String = "t from TestImports2.T " myname()
+end
+
+trait U extends T
+  u():String = "u from TestImports2.U " myname()
+end
+
+object V extends U
+  myname():String = "TestImports2.V"
+end
+
+object W extends U
+  myname():String = "TestImports2.W"
+end
+
+end

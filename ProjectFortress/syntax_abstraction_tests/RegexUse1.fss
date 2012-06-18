@@ -1,0 +1,69 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component RegexUse1
+
+import Regex.{...}
+import List.{...}
+export Executable
+
+run() = do
+    (* println "// = " (//) *)
+
+    println "/abc/ = " (/abc/)
+    println "/a*bc/ = " (/a*bc/)
+    println "/a*?bc/ = " (/a*?bc/)
+    println "/a(bc)/ = " (/a(bc)/)
+    println "/a+bc/ = " (/a+bc/)
+    println "/a+?bc/ = " (/a+?bc/)
+    println "/(ab)*c/ = " (/(ab)*c/)
+    println "/^foo/ = " (/^foo/)
+    println "/bar$/ = " (/bar$/)
+    println "/^foo$/ = " (/^foo$/)
+    println "/foo.x/ = " (/foo.x/)
+    println "/x?/ = " (/x?/)
+    println "/[foo]/ = " (/[foo]/)
+    println "/[^foo]/ = " (/[^foo]/)
+
+    println "/a{1}/ = " (/a{1}/)
+    println "/a{1,}/ = " (/a{1,}/)
+    println "/a{1,2}/ = " (/a{1,2}/)
+    println "/a{,2}/ = " (/a{,2}/)
+
+    println "/\\a/ = " (/\a/)
+    println "/\\\\/ = " (/\\/)
+    println "/\\// = " (/\//)
+    println "/\\a\\b\\c\\d/ = " (/\a\b\c\d/)
+
+    println "/a|b/ = " (/a|b/)
+    println "/(abc)|(def)/ = " (/(abc)|(def)/)
+    println "/(abc|def)/ = " (/(abc|def)/)
+
+    println "/:/ = " (/:/)
+    println "/#/ = " (/#/)
+    println "/&/ = " (/&/)
+
+    println "/4/ = " (/#{2+2}/)
+    (* How do you match #{ ?? *)
+    println "/#{1+1}/ = " (/\#{1+1}/)
+
+    println "/a/ CONTAINS 'a'? " ((/a/) CONTAINS "a")
+    println "'a' IN /a/? " ("a" IN (/a/))
+    println "/\\d+?/ CONTAINS '542'? " ((/\d+?/) CONTAINS "542")
+    println "/'542' IN \\d+?/? " ("542" IN (/\d+?/))
+    println "/\\d+?/ CONTAINS 'apple542'? " ((/\d+?/) CONTAINS "apple542")
+    println "/\\w+\\d+?/ CONTAINS 'apple542'? " ((/\w+\d+?/) CONTAINS "apple542")
+    n = /123/
+    println "n = n? " (n = n)
+    println "/123/ = /123/? " ((/123/) = (/123/))
+end
+
+end

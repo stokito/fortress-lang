@@ -1,0 +1,68 @@
+(*******************************************************************************
+    Copyright 2008,2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component nestedTransactions3
+
+export Executable
+
+test1():() = do
+   var count : ZZ32 = 0
+   for i <- 1 # 5 do
+      atomic do
+         for j <- 1 # 5 do
+            atomic do
+               for k <- 1 # 5 do
+                  atomic do
+                     for l <- 1 # 5 do
+                        atomic do
+                           for m <- 1 # 5 do
+                              atomic do
+                                 for n <- 1 # 5 do
+                                    atomic do
+                                       for o <- 1 # 5 do
+                                          atomic do
+                                             for p <- 1 # 5 do
+                                                atomic do
+                                                   for q <- 1 # 5 do
+                                                      atomic do
+                                                         for r <- 1 # 5 do
+                                                            atomic do
+                                                               count := count + 1
+                                                            end
+                                                         end
+                                                      end
+                                                   end
+                                                end
+                                             end
+                                          end
+                                       end
+                                    end
+                                 end
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+   println("count = " || count)
+   assert(count=9765625)
+   println("PASS")
+end
+
+run():()=do
+    println("Starting test")
+    test1()
+end
+end

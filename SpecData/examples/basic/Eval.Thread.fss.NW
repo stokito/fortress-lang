@@ -1,0 +1,26 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Eval.Thread
+
+export Executable
+
+run(args:String...) = do
+(** EXAMPLE **)
+  r: ZZ64 = 0
+  (r := 1, while r = 0 do end)
+(** END EXAMPLE **)
+  println r
+end
+
+end

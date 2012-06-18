@@ -1,0 +1,80 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newsec{Enclosing Operators}{enclosing-ops}
+
+\begin{figure}[t]
+\begin{center}
+{ %start of local bindings
+  \def\two#1#2{\begin{tabular}{c}#1\\#2\end{tabular}}
+  \def\twoone#1{\two{\strut}{\raisebox{1.5ex}[0in][0in]{#1}}}
+  \def\four#1#2#3#4{\begin{tabular}{c}#1\\#2\\#3\\#4\end{tabular}}
+  \def\fourone#1{\four{\strut}{\strut}{\raisebox{1.5ex}[0in][0in]{#1}}{\strut}}
+
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+{\bf left context} & {\bf whitespace} & {\bf operator fixity} & {\bf whitespace} & {\bf right context} \\ \hline
+\fourone{primary tail} & \four{yes}{yes}{no}{no} & \four{{\bf infix}}{{\bf left encloser}}{{\bf right encloser}}{{\bf infix}}
+    & \four{yes}{no}{yes}{no} & \fourone{primary front} \\ \hline
+\fourone{primary tail} & \four{yes}{yes}{no}{no} & \four{{\bf infix}}{{\bf left encloser}}{{\bf right encloser}}{{\bf infix}}
+    & \four{yes}{no}{yes}{no} & \fourone{operator} \\ \hline
+\twoone{primary tail} & \two{yes}{no} & \two{{\bf error} (right encloser)}{{\bf right encloser}}  &  & \twoone{\txt{, ; }right encloser} \\ \hline
+\twoone{primary tail} & \two{yes}{no} & \two{{\bf infix}}{{\bf right encloser}}  &  & \twoone{line break} \\ \hline
+\twoone{operator} & & \two{{\bf error} (left encloser)}{{\bf left encloser}} & \two{yes}{no} & primary front \\ \hline
+\twoone{operator} & & \two{{\bf error} (left encloser)}{{\bf left encloser}} & \two{yes}{no} & operator \\ \hline
+operator         & & {\bf error} (nofix)  & & \txt{, ; }right encloser  \\ \hline
+operator         & & {\bf error} (nofix)  & & line break                 \\ \hline
+\txt{, ; }left encloser & & {\bf left encloser}         & & primary front           \\ \hline
+\txt{, ; }left encloser & & {\bf left encloser}         & & operator          \\ \hline
+\txt{, ; }left encloser & & {\bf nofix}                 & & \txt{, ; }right encloser  \\ \hline
+\txt{, ; }left encloser & & {\bf error} (left encloser) & & line break        \\ \hline
+\end{tabular}
+
+} %end of local bindings
+\end{center}
+\caption{Operator Fixity (II)}\figlabel{opr-fixity2}
+\end{figure}
+
+
+These operators are always used in pairs as enclosing operators:
+\begin{verbatim}
+                   (/   /)        (\   \)
+      [   ]        [/   /]                       [*   *]
+      {   }        {/   /}        {\   \}        {*   *}
+                   </   />        <\   \>
+                  <</   />>      <<\   \>>
+\end{verbatim}
+(ASCII encodings are shown here; they all correspond to particular single
+Unicode characters.)
+There are other pairs as well, such as \txt{$\lfloor$~~$\rfloor$} and
+\txt{$\lceil$~~$\rceil$} and multicharacter enclosing operators described
+in \secref{multichar-enclosers}.
+Note that the pairs \txt{(~~)} and \txt{[{\char'134}~~{\char'134}]} (also
+known as $\bsTP{~~}$) are not operators; they play special roles in the
+syntax of Fortress, and their behavior cannot be redefined by a library.
+The bracket pairs that may be used as enclosing operators are described in
+\secref{bracket-pairs}.
+
+
+Any number of ``\txt{|}' (vertical line) may also be used in pairs as
+enclosing operators but there is a trick to it,
+because on the face of it you can't tell whether
+any given occurrence is a left encloser or a right encloser.  Again, context
+is used to decide, this time according to \figref{opr-fixity2}.
+
+This is very similar to \figref{opr-fixity1} in \secref{operator-fixity};
+a rough rule of thumb is that if an ordinary operator would be considered
+a prefix operator, then one of these will be considered a left encloser;
+and if an ordinary operator would be considered
+a postfix operator, then one of these will be considered a right encloser.
+
+In this manner, one may use \txt{|$\ldots$|} for absolute values and
+\txt{||$\ldots$||} for matrix norms.

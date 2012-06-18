@@ -1,0 +1,50 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Function Expressions}
+\seclabel{func-expr}
+
+\note{Syntax is not up to date.
+
+Allow \KWD{io} function expressions?
+
+Types in \KWD{throws} clause can't be naked type parameter?
+
+Check that \emph{Expr} type is subtype of the declared return type.
+}
+
+\note{We want to allow function expressions to carry contracts; we need to work
+out how these contracts are evaluated, and what the implications are on
+variable scoping. -- Eric}
+
+\begin{Grammar}
+\emph{Expr} &::=&
+\KWD{fn} \emph{ValParam} \option{\emph{IsType}} \option{\emph{Throws}} \EXP{\Rightarrow} \emph{Expr}\\
+\end{Grammar}
+
+Function expressions denote function values; they do not
+require evaluation.  Syntactically,
+they start with \KWD{fn} followed by a parameter,
+optional return type,
+optional \KWD{throws} clause,
+$\Rightarrow$, and finally an expression.
+The type of a function expression is an arrow type consisting of the
+function's parameter type followed by the token \EXP{\rightarrow},
+followed by the function's return type,
+and the function's  optional \KWD{throws} clause.
+Unlike declared functions (described in
+\chapref{functions}), function expressions are not
+allowed to include static parameters
+nor \KWD{where} clauses (described in \chapref{trait-parameters}).
+
+
+Here is a simple example:
+\input{\home/basic/examples/Expr.FnExpr.tex}

@@ -1,0 +1,108 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Proof of Coercion Resolution for Functions}
+\seclabel{proof-coercion-resolution}
+
+This section proves that the overloading rules discussed in the previous
+sections guarantee the static resolution of coercion
+(described in \secref{resolving-coercion}) is well defined for functions
+(the case for methods is analogous).
+
+Consider a static function call $\f(\As)$ at some program point $Z$
+and its corresponding dynamic function call $\f(\Xs)$.  Let $\Sigma$
+be the set of parameter types of function declarations of $\f$ that
+are visible at $Z$ and applicable to the static call $\f(\As)$.  Let
+$\Sigma'$ be the set of parameter types of function declarations of
+$\f$ that are visible at $Z$ and applicable with coercion to the
+static call $\f(\As)$.  Moreover, let $\sigma'$ be the subset of
+$\Sigma'$ for which no type in $\Sigma'$ is more specific:
+\[
+\begin{array}{lclcll}
+\sigma' & = & \set{ S \in\Sigma' & | & \lnot \exists S'\in\Sigma': S' \morespecific S & }.
+\end{array}
+\]
+
+We prove the following:
+\[
+\begin{array}{l}
+|\Sigma| = 0 \ \text{and} \ |\Sigma'| \neq 0 \ \text{imply} \ |\sigma'| = 1.
+\end{array}
+\]
+Informally, if no declaration is applicable to a static call but there
+is a declaration that is applicable with coercion then there exists a
+single most specific declaration that is applicable with coercion to
+the static call.
+\\
+\begin{lemma}
+\label{lem:nonempty}
+Given an acyclic, irreflexive binary relation $R$ on a set $S$, and a
+finite nonempty subset $A$ of $S$, the set $\set{a \in A| \lnot
+\exists a' \in A : (a',a) \in R}$ is nonempty.
+\end{lemma}
+
+\begin{proof}
+Consider the relation $R$ on $S$ as a directed acyclic graph.  Let $A$
+represent a subgraph.  Then the Lemma amounts to proving that there
+exists a node in the graph represented by $A$ with no edges pointing
+to it.  This follows from the fact that $A$ is finite and the graph is
+acyclic.
+\end{proof}
+
+\begin{lemma}
+\label{lem:dgesge}
+%If $|\Delta| \ge 1$ then $|\delta| \ge 1$.  Also, i
+%If $|\Sigma| \ge 1$ then $|\sigma| \ge 1$.
+If $|\Sigma'| \ge 1$ then $|\sigma'| \ge 1$.
+\end{lemma}
+
+\begin{proof}
+Follows from Lemma \ref{lem:nonempty} where $S$ is the set of all
+types, $A$ is %$\Delta$, $\Sigma$ and
+$\Sigma'$, %respectively,
+and the relation %$\strictsubtype$ and
+$\morespecific$ is acyclic and irreflexive.
+\end{proof}
+
+\begin{lemma}
+\label{lem:le'}
+If $|\Sigma| = 0$ then $|\sigma'| \le 1$.
+\end{lemma}
+
+\begin{proof}
+For the purpose of contradiction suppose there are two declarations
+$\f(\Ps)$ and $\f(\Qs)$ in $\sigma'$.  Since both $\f(\Ps)$ and
+$\f(\Qs)$ are applicable with coercion to $\f(\As)$ and $|\Sigma| =
+0$ there must exist a coercion from some type $\Ps'$ to $\Ps$ and a
+coercion from some type $\Qs'$ to $\Qs$ such that $\As \Ovrsubtype
+\Ps' \inter \Qs'$.  Therefore it is not the case that $\Ps
+\incompatible \Qs$.  By the overloading rules, $\Ps \neq \Qs$
+and either $\Ps \morespecific \Qs$ or $\Qs \morespecific \Ps$ or
+for all $\Ps' \in \mathpzc{S}$ and $\Qs' \in \mathpzc{T}$ either $\Ps'
+\excludes \Qs'$, or there is a declaration $\f(\Ps' \inter \Qs')$
+visible at $Z$.  If $\Ps \morespecific \Qs$ or $\Qs \morespecific
+\Ps$ then we contradict our assumption.  Otherwise, if there exists a
+declaration $\f(\Ps' \inter \Qs')$ visible at $Z$ then this
+declaration is applicable to $\f(\As)$ without coercion.  This
+contradicts $|\Sigma| = 0$.  If such a declaration does not exist then
+it must be the case that $\Ps' \excludes \Qs'$.  Then both $\f(\Ps)$
+and $\f(\Qs)$ can not be applicable to the call $\f(\As)$ which is a
+contradiction.
+\end{proof}
+
+\begin{theorem}
+\label{thm:overloading-coercion}
+If $|\Sigma| = 0$ and $|\Sigma'| \neq 0$ then $|\sigma'| = 1$.
+\end{theorem}
+
+\begin{proof}
+Follows from Lemmas \ref{lem:dgesge} and \ref{lem:le'}.
+\end{proof}

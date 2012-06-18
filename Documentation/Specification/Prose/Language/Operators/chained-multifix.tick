@@ -1,0 +1,52 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newsec{Chained and Multifix Operators}{chained-multifix}
+
+Certain infix mathematical operators that are traditionally regarded as \emph{relational}
+operators, delivering boolean results, may be \emph{chained}.  For example,
+an expression such as \EXP{A \subseteq B \subset C \subseteq D}
+is treated as being equivalent to
+\EXP{(A \subseteq B) \wedge (B \subset C) \wedge (C \subseteq D)}
+except that the expressions \VAR{B} and \VAR{C} are evaluated only once
+(which matters only if they have side effects such as writes or
+input/output actions).
+Similarly, the expression \EXP{A \subseteq B = C \subset D}
+  is treated as being equivalent to
+  \EXP{(A \subseteq B) \wedge (B = C) \wedge (C \subset D)},
+  except that \VAR{B} and \VAR{C} are evaluated only once.
+Fortress restricts such chaining to a mixture of equivalence
+  operators and ordering operators; if a chain contains two or
+  more ordering operators, then they must be of the same
+  kind and have the same sense of monotonicity;
+for example, neither \EXP{A \subseteq B \leq C} nor \EXP{A \subseteq B
+  \supset C}
+is permitted.
+This transformation is done before type checking.
+In particular, it is done even if these operators do not return
+boolean values, and the resulting expression is checked for type
+correctness.
+(See \secref{precedence:relops} for a detailed description of which
+operators may be chained.)
+
+
+Any infix operator that does not chain may be treated as \emph{multifix}.
+If $n-1$ occurrences of the same operator separate $n$ operands where
+$n \geq 3$,
+then the compiler first checks to see whether there is a definition
+for that operator that will accept $n$ arguments.  If so, that definition is used;
+if not, then the operator is treated as left-associative and the compiler
+looks for a two-argument definition for the operator to use for each occurrence.
+As an example, the cartesian product
+\EXP{S_1 \times S_2 \times \cdots \times S_n}
+of $n$ sets may usefully be defined as a multifix operator, but
+ordinary addition
+\EXP{p + q + r + s} is normally treated as \EXP{((p + q) + r) + s}.

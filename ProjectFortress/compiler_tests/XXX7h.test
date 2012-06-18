@@ -1,0 +1,35 @@
+2#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled7.h
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:16:8:\n\
+\ Type f is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:17:8:\n\
+\ Top-level variable f is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:17:8:\n\
+\ Type f is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:19:1:\n\
+\ Top-level variable f is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:24:3:\n\
+\ Local function f is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:25:5:\n\
+\ Local function f is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:27:3:\n\
+\ Local function g is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:27:3:\n\
+\ Top-level variable g is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:28:3:\n\
+\ Variable h is already declared.\n\
+${STATIC_TESTS_DIR}/Compiled7.h.fss:30:11:\n\
+\ Label f is already declared.\n\
+File Compiled7.h.fss has 10 errors.\n
+compile_out_equals=
