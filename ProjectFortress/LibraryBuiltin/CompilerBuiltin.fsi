@@ -741,7 +741,7 @@ end
 random(i:RR64): RR64
 randomZZ32(x:ZZ32): ZZ32
 drandom(i : RR64) : RR64
-(*) drandomZZ32(x : ZZ32) : ZZ32 Still buggy
+drandomZZ32(x : ZZ32) : ZZ32
 
 (************************************************************
 * Character properties

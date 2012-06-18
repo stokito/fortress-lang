@@ -23,9 +23,21 @@ genRandoms() : RR64 = do
   sum
 end
 
+genRandomsZZ32() : ZZ32 = do
+  var sum : ZZ32 = 0
+  for _ <- 1#10 do
+    r : ZZ32 = drandomZZ32(5)
+    (*) println(r)
+    atomic do sum := sum + r end
+  end
+  sum
+end
+
 run() : () = do
   result : RR64 = genRandoms()
-  println("Returned : " || result || "\n")
+  println("Returned : " || result)
+  resultZZ32 : ZZ32 = genRandomsZZ32()
+  println("Returned : " || resultZZ32)
   println("PASS");
 end
 end
