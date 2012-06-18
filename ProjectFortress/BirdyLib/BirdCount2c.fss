@@ -29,8 +29,8 @@ export Executable
 chunkSize: ZZ32 = 237
 readSize: ZZ32 = 35   (*) This may change with newer technology, but for now it is OK.
 
-homeDir: String = "/Users/jean-baptistetristan/Code/workspace/PFC"
-(*) homeDir: String = "/Users/gls/Fortress"
+(*) homeDir: String = "/Users/jean-baptistetristan/Code/workspace/PFC"
+homeDir: String = "/Users/gls/Fortress"
 referenceFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head" 
 sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
 errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
@@ -270,6 +270,24 @@ run() = do
                                                   end
                                                end*)
                       end                                   
+  for refChunk <- ref do
+    (databaseData, coverageData) = transpose <|[\(Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32,ZZ32\]\])\]
+                                                  processSample(name, rl, er, refChunk) | (name, rl, er) <- samples |>
+    database: Map[\ZZ32, List[\Event\]\] = BIG UNIONCAT[x <- databaseData] x
+    coverage: Map[\String, Map[\ZZ32,ZZ32\]\] = BIG UPLUS[\String, Map[\ZZ32,ZZ32\]\] coverageData
+
+    mergedDatabase: Map[\MySTOTuple, List[\MergedEvent\]\] = makeMergedDatabase(database, coverage)
+
+    println("Events")
+    for (_, entries) <- seq(database), entry <- seq(entries) do println(entry.asDetailedString) end
+
+    println("Merged Events:")
+    for (_, events) <- seq(mergedDatabase), event <- seq(events) do
+      println(event)
+      for e <- seq(event.eventList) do println(e) end
+      println("-------")
+    end
+  end
   println("OK!")
 end
 

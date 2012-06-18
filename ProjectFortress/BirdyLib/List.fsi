@@ -54,6 +54,10 @@ opr <|[\T\]|>: List[\T\]
 
 opr <|[\T\] x1: T |>: List[\T\]
 opr <|[\T\] x1: T, x2: T |>: List[\T\]
+opr <|[\T\] x1: T, x2: T, x3: T|>: List[\T\]
+opr <|[\T\] x1: T, x2: T, x3: T, x4: T|>: List[\T\]
+opr <|[\T\] x1: T, x2: T, x3: T, x4: T, x5: T|>: List[\T\]
+opr <|[\T\] x1: T, x2: T, x3: T, x4: T, x5: T, x6: T|>: List[\T\]
 
 opr BIG <|[\T\]|> : Comprehension[\T,List[\T\],List[\T\],List[\T\]\]
 
