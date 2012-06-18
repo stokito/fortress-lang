@@ -78,6 +78,10 @@ opr <|[\T\]|>: List[\T\] = EmptyList[\T\]
 
 opr <|[\T\] x1: T |>: List[\T\] = EmptyList[\T\].addLeft(x1)
 opr <|[\T\] x1: T, x2: T |>: List[\T\] = EmptyList[\T\].addLeft(x2).addLeft(x1)
+opr <|[\T\] x1: T, x2: T, x3: T|>: List[\T\] = EmptyList[\T\].addLeft(x3).addLeft(x2).addLeft(x1)
+opr <|[\T\] x1: T, x2: T, x3: T, x4: T|>: List[\T\] = EmptyList[\T\].addLeft(x4).addLeft(x3).addLeft(x2).addLeft(x1)
+opr <|[\T\] x1: T, x2: T, x3: T, x4: T, x5: T|>: List[\T\] = EmptyList[\T\].addLeft(x5).addLeft(x4).addLeft(x3).addLeft(x2).addLeft(x1)
+opr <|[\T\] x1: T, x2: T, x3: T, x4: T, x5: T, x6: T|>: List[\T\] = EmptyList[\T\].addLeft(x6).addLeft(x5).addLeft(x4).addLeft(x3).addLeft(x2).addLeft(x1)
 
 object Cat[\T\] extends MonoidReduction[\List[\T\]\]
     getter asString(): String = "List red"
