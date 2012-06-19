@@ -1,0 +1,24 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component GrammarCompositionUseA
+import GrammarComposition.{A}
+export Executable
+
+run():() = do
+  assert(foo, 1)
+  assert(bar, 2)
+  assert((fn(baz) => baz)1, 1)
+  (*) assert((fn(foo) => foo)1, 1)  (*) illegal because foo is a keyword
+  println("A okay")
+end
+
+end

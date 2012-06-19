@@ -1,0 +1,45 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+******************************************************************************)
+
+(*) need generic overloading for this to work I guess...
+
+export Executable
+
+f[\T\](x:Any, y : T) : T = do
+    println("any")
+    y
+end
+
+f[\T\](x : Specific -> General,y : T) = do
+    println("k\nsg")
+    y
+end
+
+f[\T\](x : General -> Specific, y : T) = do
+    print("gs\no")
+    y
+end
+
+trait General end
+trait Specific extends General end
+
+object G extends General end
+object S extends Specific end
+
+sg(s : Specific) : G = G
+gs(g : General) : S = S
+
+run() : () = do
+    x : Any = gs
+    y : Any = sg
+    a = f(x,G)
+    b = f(y,G)
+end

@@ -1,0 +1,18 @@
+#    Copyright 2009,2012 Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled0.v
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled0.v.fss:13:1-22:\n\
+${STATIC_TESTS_DIR}/Compiled0.v.fss:14:1-22:\n\
+\    There are multiple declarations of run with the same parameter type: String\n\
+File Compiled0.v.fss has 1 error.\n
+compile_out_equals=

@@ -1,0 +1,492 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress headers.
+ */
+module com.sun.fortress.parser.MayNewlineHeader(Other, Type, Header, Expr,
+                                                DelimitedExpr, Literal,
+                                                Identifier, Keyword, Symbol,
+                                                Spacing);
+
+import Other;
+import Type;
+import Header;
+import Expr;
+import DelimitedExpr;
+import Literal;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* Pattern ::=
+     TypeRef w PatternValParam
+   | PatternValParam
+ */
+Pattern Pattern =
+     a1:TypeRef w a2:PatternValParam
+     { yyValue = NodeFactory.makePattern(createSpan(yyStart,yyCount), a1, a2); }
+   / !(openparen w closeparen / TupleType) a1:PatternValParam
+     !(w (rightarrow / DOT / slash / per / square / cubic / inverse / squared / cubed))
+     { yyValue = NodeFactory.makePattern(createSpan(yyStart,yyCount), a1); };
+
+/* PatternValParm ::= ( (w PatternParams)? w ) */
+private transient PatternArgs PatternValParam =
+     openparen a1:(w PatternParams)? w closeparen
+     { if (a1 == null)
+           yyValue = NodeFactory.makePatternArgs(createSpan(yyStart,yyCount));
+       else yyValue = NodeFactory.makePatternArgs(createSpan(yyStart,yyCount), a1);
+     };
+
+/* TypeOrPattern ::=
+     Pattern
+   | Type
+ */
+TypeOrPattern TypeOrPattern =
+     Pattern
+   / Type ;
+
+/* IsPattern ::= : w Pattern */
+private Pattern IsPattern = void:colon w Pattern ;
+
+/* IsTypeOrPattern ::=
+     IsPattern
+   | IsType
+ */
+TypeOrPattern IsTypeOrPattern =
+     IsPattern
+   / IsType ;
+
+/* PatternParams ::=
+     (PatternParam w , w)* PatternKeyword (w , w PatternKeyword)*
+   | PatternParam (w , w PatternParam)*
+ */
+private transient List<PatternBinding> PatternParams =
+     a1s:(PatternParam w comma w)* a2:PatternKeyword a3s:(w comma w PatternKeyword)*
+     { yyValue = new ArrayList<PatternBinding>();
+       for (List<PatternBinding> pb: a1s.list())
+           yyValue = Useful.concat(yyValue, pb);
+       yyValue = Useful.list(yyValue, a2);
+       yyValue = Useful.concat(yyValue, a3s.list());
+     }
+   / a1:PatternParam a2s:(w comma w PatternParam)*
+     { yyValue = Useful.list(a1);
+       for (List<PatternBinding> pb: a2s.list())
+           yyValue = Useful.concat(yyValue, pb);
+     };
+
+/* PatternParam ::=
+     PatternPlainParam
+   | PatternValParam
+ */
+private transient List<PatternBinding> PatternParam =
+     a1:PatternPlainParam { yyValue = Useful.list(a1); }
+   / a1:PatternValParam   { yyValue = a1.getPatterns(); };
+
+/* PatternKeyword ::= PatternPlainParam w = w Id */
+private transient PatternBinding PatternKeyword =
+     a1:PatternPlainParam w equals w a2:Id
+     { yyValue = NodeFactory.makePatternKeyword(createSpan(yyStart,yyCount), a1, a2); };
+
+/* PatternPlainParam ::=
+     BindId (w IsTypeOrPattern)?
+   | Pattern
+   | Type
+ */
+private transient PatternBinding PatternPlainParam =
+     a1:BindId w a2:IsTypeOrPattern
+     { yyValue = NodeFactory.makePlainPattern(createSpan(yyStart,yyCount),
+                                              a1, Modifiers.None,
+                                              Option.<TypeOrPattern>some(a2));
+     }
+   / a1:Pattern
+     { yyValue = NodeFactory.makeNestedPattern(createSpan(yyStart,yyCount), a1); }
+   / !(BindId) a1:Type
+     { yyValue = NodeFactory.makeTypePattern(createSpan(yyStart,yyCount), a1); }
+   / a1:BindId
+     { yyValue = NodeFactory.makePlainPattern(createSpan(yyStart,yyCount),
+                                              a1, Modifiers.None,
+                                              Option.<TypeOrPattern>none());
+     };
+
+/* NoNewlinePattern ::=
+     TypeRef s PatternValParam
+   | PatternValParam
+ */
+Pattern NoNewlinePattern =
+     a1:TypeRef s a2:PatternValParam
+     { yyValue = NodeFactory.makePattern(createSpan(yyStart,yyCount), a1, a2); }
+   / !(openparen w closeparen / TupleType) a1:PatternValParam
+     !(w (rightarrow / DOT / slash / per / square / cubic / inverse / squared / cubed))
+     { yyValue = NodeFactory.makePattern(createSpan(yyStart,yyCount), a1); };
+
+/* IsType ::= : w Type */
+Type IsType = void:colon w Type ;
+
+/* WhereConstraintList ::= WhereConstraint (w , w WhereConstraint)* */
+transient List<WhereConstraint> WhereConstraintList =
+     a1:WhereConstraint a2s:(w comma w WhereConstraint)*
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* WhereConstraint ::=
+     Id w Extends
+   | TypeAlias
+   | Type w coerces w Type
+   | Type w widens w Type
+   | UnitConstraint
+   | QualifiedName w = w QualifiedName
+   | IntConstraint
+   | BoolExpr
+   | Type w widens w or w coerces w Type
+ */
+transient WhereConstraint WhereConstraint =
+     a1:IdOrOpName w a2:Extends
+     { yyValue = NodeFactory.makeWhereExtends(writer, createSpan(yyStart,yyCount),
+                                              a1, a2);
+     }
+   / a1:TypeAlias
+     { yyValue = NodeFactory.makeWhereTypeAlias(createSpan(yyStart,yyCount), a1); }
+   / a1:Type w coerces w a2:Type
+     { yyValue = NodeFactory.makeWhereCoerces(createSpan(yyStart,yyCount), a1, a2,
+                                              true, false);
+     }
+   / a1:Type w widens w a2:Type
+     { yyValue = NodeFactory.makeWhereCoerces(createSpan(yyStart,yyCount), a1, a2,
+                                              false, true);
+     }
+   / UnitConstraint
+   / a1:QualifiedName w equals w a2:QualifiedName
+     { yyValue = NodeFactory.makeWhereEquals(createSpan(yyStart,yyCount), a1, a2); }
+   / IntConstraint
+   / a1:BoolExpr
+     { Span span = createSpan(yyStart,yyCount);
+       if ( a1 instanceof BoolConstraint )
+           yyValue = NodeFactory.makeBoolConstraintExpr(span, (BoolConstraint)a1);
+       else {
+           log(span, "Invalid boolean where constraint.");
+           BoolConstraint bc =
+               NodeFactory.makeBoolUnaryOp(span, false, a1,
+                                           NodeFactory.makeOpInfix(span, "NOT"));
+           yyValue = NodeFactory.makeBoolConstraintExpr(span, bc);
+       }
+     }
+   / a1:Type w widens w or w coerces w a2:Type
+     { yyValue = NodeFactory.makeWhereCoerces(createSpan(yyStart,yyCount), a1, a2,
+                                              true, true);
+     };
+
+/* UnitConstraint ::=
+     dimensionless w = w Id
+   | Id w = w dimensionless
+ */
+transient UnitConstraint UnitConstraint =
+     "dimensionless" w equals w a1:IdOrOpName
+     { yyValue = NodeFactory.makeUnitConstraint(writer, createSpan(yyStart,yyCount), a1); }
+   / a1:IdOrOpName w equals w "dimensionless"
+     { yyValue = NodeFactory.makeUnitConstraint(writer, createSpan(yyStart,yyCount), a1); };
+
+/* IntConstraint ::=
+     IntExpr w <= w IntExpr
+   | IntExpr w <  w IntExpr
+   | IntExpr w >= w IntExpr
+   | IntExpr w >  w IntExpr
+   | IntExpr w =  w IntExpr
+ */
+transient private IntConstraint IntConstraint =
+     a1:IntExpr w lessthanequal w a2:IntExpr
+     { Op op = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), "<=");
+       yyValue = NodeFactory.makeIntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+     }
+   / a1:IntExpr w lessthan w a2:IntExpr
+     { Op op = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), "<");
+       yyValue = NodeFactory.makeIntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+     }
+   / a1:IntExpr w greaterthanequal w a2:IntExpr
+     { Op op = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), ">=");
+       yyValue = NodeFactory.makeIntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+     }
+   / a1:IntExpr w greaterthan w a2:IntExpr
+     { Op op = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), ">");
+       yyValue = NodeFactory.makeIntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+     }
+   / a1:IntExpr w equals w a2:IntExpr
+     { Op op = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), "=");
+       yyValue = NodeFactory.makeIntConstraint(createSpan(yyStart,yyCount), a1, a2, op);
+     };
+
+/* IntVal ::=
+     IntLiteralExpr
+   | QualifiedName
+ */
+transient IntExpr IntVal =
+     a1:IntLiteralExpr
+     { yyValue = NodeFactory.makeIntBase(createSpan(yyStart,yyCount), false, a1); }
+   / a1:QualifiedName
+     { yyValue = NodeFactory.makeIntRef(createSpan(yyStart,yyCount), a1); };
+
+/* IntExpr ::= (IntExpr w (+ | -) w)? SumExpr
+   SumExpr ::= (SumExpr (w DOT w | sr))? MulExpr
+   MulExpr ::= IntBase (^ IntVal)?
+   IntBase ::= IntVal | ( w IntExpr w )
+ */
+transient IntExpr IntExpr =
+     seed:SumExpr list:IntExprTail*
+     { yyValue = (IntExpr)apply(list, seed); };
+private constant transient Action<IntExpr> IntExprTail =
+     SumIntExpr
+   / MinusIntExpr ;
+private constant inline Action<IntExpr> SumIntExpr =
+     w plus w a1:SumExpr
+     { yyValue = new Action<IntExpr>() {
+           public IntExpr run(IntExpr base) {
+               Span span = NodeUtil.spanTwo(NodeUtil.getSpan(a1),
+                                            createSpan(yyStart,yyCount));
+               Op plus = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), "+");
+               return NodeFactory.makeIntBinaryOp(span, (IntExpr)base, a1, plus);
+           }};
+     };
+private constant inline Action<IntExpr> MinusIntExpr =
+     w minus w a1:SumExpr
+     { yyValue = new Action<IntExpr>() {
+           public IntExpr run(IntExpr base) {
+               Op minus = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), "-");
+               Span span = NodeUtil.spanTwo(NodeUtil.getSpan(a1),
+                                            createSpan(yyStart,yyCount));
+               return NodeFactory.makeIntBinaryOp(span, (IntExpr)base, a1, minus);
+           }};
+     };
+
+transient IntExpr SumExpr =
+     seed:MulExpr list:SumExprTail*
+     { yyValue = (IntExpr)apply(list, seed); };
+private constant transient Action<IntExpr> SumExprTail =
+     ProductIntExpr ;
+private constant inline Action<IntExpr> ProductIntExpr =
+     (w DOT w / sr) a1:MulExpr
+     { yyValue = new Action<IntExpr>() {
+           public IntExpr run(IntExpr base) {
+               Op product = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), " ");
+               Span span = NodeUtil.spanTwo(NodeUtil.getSpan(a1),
+                                            createSpan(yyStart,yyCount));
+               return NodeFactory.makeIntBinaryOp(span, (IntExpr)base, a1, product);
+           }};
+     };
+
+transient IntExpr MulExpr =
+     a1:IntBase caret a2:IntVal
+     { Op exponent = NodeFactory.makeOpInfix(NodeUtil.getSpan(a2), "^");
+       yyValue = NodeFactory.makeIntBinaryOp(createSpan(yyStart,yyCount),
+                                             a1, a2, exponent);
+     }
+   / IntBase ;
+
+transient IntExpr IntBase =
+     IntVal
+   / openparen w a1:IntExpr w closeparen
+     { yyValue = NodeFactory.makeInParentheses(a1); };
+
+/* BoolExpr ::=
+     BoolPrimaryFront
+   | BoolConstraint
+   BoolConstraint ::=
+     NOT w BoolExpr
+   | BoolExpr w OR w BoolExpr
+   | BoolExpr w AND w BoolExpr
+   | BoolExpr w IMPLIES w BoolExpr
+   | BoolExpr w = w BoolExpr
+ */
+transient BoolExpr BoolExpr = a1:OpBool
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = NodeFactory.makeBoolExpr(writer,
+                                          Resolver.resolveOps(writer, span, a1));
+     };
+
+/* OpBool ::=
+     BoolPrimary
+   | BoolPrefix
+ */
+PureList<PrecedenceOpExpr> OpBool =
+     BoolPrimary
+   / BoolPrefix ;
+
+/* BoolPrimary ::=
+     BoolPrimaryFront BoolPrefix
+   | BoolPrimaryFront wr BoolPrimary
+   | BoolPrimaryFront wr Op wr OpBool
+   | BoolPrimaryFront
+ */
+PureList<PrecedenceOpExpr> BoolPrimary =
+     a1:BoolPrimaryFront a2:BoolPrefix
+     { yyValue = a2.cons(new RealExpr(a1)); }
+   / a1:BoolPrimaryFront wr a2:BoolPrimary
+     { yyValue = a2.cons(new RealExpr(a1)); }
+   / a1:BoolPrimaryFront wr a2:Op wr a3:OpBool
+     { yyValue = a3.cons((PrecedenceOpExpr)new LooseInfix(a2)).cons(new RealExpr(a1)); }
+   / a1:BoolPrimaryFront
+     { yyValue = PureList.make((PrecedenceOpExpr)new RealExpr(a1)); };
+
+/* BoolPrefix ::=
+     Op OpBool
+   | Op wr OpBool
+ */
+PureList<PrecedenceOpExpr> BoolPrefix =
+     a1:Op a2:OpBool
+     { yyValue = a2.cons((PrecedenceOpExpr)new TightPrefix(a1)); }
+   / a1:Op wr a2:OpBool
+     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); };
+
+/* BoolPrimaryFront ::=
+     true
+   | false
+   | QualifiedName
+   | ( w BoolExpr w )
+ */
+transient private Expr BoolPrimaryFront =
+     a1:"true"
+     { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); }
+   / a1:"false"
+     { yyValue = ExprFactory.makeVarRef(createSpan(yyStart,yyCount), a1); }
+   / a1:QualifiedName
+     { yyValue = ExprFactory.makeVarRef(NodeUtil.getSpan(a1), a1); }
+   / openparen w a1:OpBool w closeparen
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = ExprFactory.makeInParentheses(Resolver.resolveOps(writer, span, a1));
+     };
+
+/* UnitVal ::=
+     dimensionless
+   | QualifiedName
+ */
+transient UnitExpr UnitVal =
+     a1:"dimensionless"
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = NodeFactory.makeUnitRef(span, false, NodeFactory.makeId(span, a1));
+     }
+   / a1:QualifiedName
+     { yyValue = NodeFactory.makeUnitRef(createSpan(yyStart,yyCount), false, a1); };
+
+/* UnitExpr ::= (UnitExpr (w DOT w | sr | / | per))? MulDivUnit
+   MulDivUnit ::= UnitBase (^ UnitVal)?
+   UnitBase ::= UnitVal | ( w UnitExpr w )
+*/
+transient UnitExpr UnitExpr =
+     seed:MulDivUnit list:UnitExprTail*
+     { yyValue = (UnitExpr)apply(list, seed); };
+private constant transient Action<UnitExpr> UnitExprTail =
+     ProductUnitExpr
+   / QuotientUnitExpr ;
+private constant inline Action<UnitExpr> ProductUnitExpr =
+     (w DOT w / sr) a1:MulDivUnit
+     { yyValue = new Action<UnitExpr>() {
+           public UnitExpr run(UnitExpr base) {
+               Span span = NodeUtil.spanTwo(NodeUtil.getSpan(a1),
+                                            createSpan(yyStart,yyCount));
+               Op product = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), " ");
+               return NodeFactory.makeUnitBinaryOp(span, false, (UnitExpr)base,
+                                                   a1, product);
+           }};
+     };
+private constant inline Action<UnitExpr> QuotientUnitExpr =
+     (slash / per) a1:MulDivUnit
+     { yyValue = new Action<UnitExpr>() {
+           public UnitExpr run(UnitExpr base) {
+               Span span = NodeUtil.spanTwo(NodeUtil.getSpan(a1),
+                                            createSpan(yyStart,yyCount));
+               Op quotient = NodeFactory.makeOpInfix(NodeUtil.getSpan(a1), "/");
+               return NodeFactory.makeUnitBinaryOp(span, false, (UnitExpr)base,
+                                                   a1, quotient);
+           }};
+     };
+
+transient UnitExpr MulDivUnit =
+     a1:UnitBase caret a2:UnitVal
+     { Op exponent = NodeFactory.makeOpInfix(NodeUtil.getSpan(a2), "^");
+       yyValue = NodeFactory.makeUnitBinaryOp(createSpan(yyStart,yyCount), false,
+                                              a1, a2, exponent);
+     }
+   / UnitBase ;
+
+transient UnitExpr UnitBase =
+     UnitVal
+   / openparen w a1:UnitExpr w closeparen
+     { yyValue = NodeFactory.makeInParentheses(a1); };
+
+/* Requires ::= requires w { (w ExprList)? w } */
+transient List<Expr> Requires = requires w opencurly a1:(w ExprList)? w closecurly
+     { yyValue = (a1 == null) ? Collections.<Expr>emptyList() : a1; };
+
+/* Ensures  ::= ensures w { (w EnsuresClauseList)? w } */
+transient List<EnsuresClause> Ensures =
+     ensures w opencurly a1:(w EnsuresClauseList)? w closecurly
+     { yyValue = (a1 == null) ? Collections.<EnsuresClause>emptyList() : a1; };
+
+/* EnsuresClauseList ::= EnsuresClause (w , w EnsuresClause)* */
+transient private List<EnsuresClause> EnsuresClauseList =
+     a1:EnsuresClause a2s:(w comma w EnsuresClause)*
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* EnsuresClause ::= Expr (w provided w Expr)? */
+transient private EnsuresClause EnsuresClause = a1:Expr a2:(w provided w Expr)?
+     { yyValue = NodeFactory.makeEnsuresClause(createSpan(yyStart,yyCount), a1,
+                                               Option.<Expr>wrap(a2));
+     };
+
+/* Invariant::= invariant w { (w ExprList)? w } */
+transient List<Expr> Invariant =
+     invariant w opencurly a1:(w ExprList)? w closecurly
+     { yyValue = (a1 == null) ? Collections.<Expr>emptyList() : a1; };
+
+/* StaticArgs ::= [\ w StaticArgList w \] */
+List<StaticArg> StaticArgs =
+    opendoublesquare w StaticArgList w closedoublesquare ;
+
+/* StaticArgList ::= StaticArg (w , w StaticArg)*  */
+List<StaticArg> StaticArgList = a1:StaticArg a2s:(w comma w StaticArg)*
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* StaticArg ::=
+     Op
+   | IntExpr
+   | BoolExpr
+   | Type
+   | DimExpr
+   | UnitExpr
+ */
+StaticArg StaticArg =
+     a1:Op &(w comma / w closedoublesquare)
+     { yyValue = NodeFactory.makeOpArg(NodeUtil.getSpan(a1),
+                                       a1);
+     }
+   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
+                      w opendoublesquare / w opensquare / w rightarrow /
+                      w OR / w AND / w IMPLIES / w equals) /
+       "Unity" / "dimensionless" / "true" / "false")
+     a1:IntExpr
+     { yyValue = NodeFactory.makeIntArg(NodeUtil.getSpan(a1), a1); }
+   / !(QualifiedName (w closedoublesquare / w closesquare / w comma /
+                      w opendoublesquare / w opensquare / w rightarrow) /
+       "Unity" / "dimensionless")
+     a1:BoolExpr
+     { yyValue = NodeFactory.makeBoolArg(NodeUtil.getSpan(a1), a1); }
+   / a1:"true"
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = NodeFactory.makeBoolArg(span, NodeFactory.makeBoolBase(span, false, true));
+     }
+   / a1:"false"
+     { Span span = createSpan(yyStart,yyCount);
+       yyValue = NodeFactory.makeBoolArg(span, NodeFactory.makeBoolBase(span, false, false));
+     }
+   / !(QualifiedName (w DOT / w slash / w per / w DimPostfixOp) / "dimensionless")
+     a1:Type
+     { yyValue = NodeFactory.makeTypeArg(NodeUtil.getSpan(a1), a1); }
+   / a1:UnitExpr
+     { yyValue = NodeFactory.makeUnitArg(NodeUtil.getSpan(a1), a1); };

@@ -1,0 +1,93 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component monoidal
+export Executable
+
+object Identity[\opr OPLUS\]
+end
+
+object Zero[\opr OTIMES\]
+end
+
+trait Monoid[\T extends Monoid[\T,OPLUS\], opr OPLUS\]
+  opr OPLUS(self, other:T):T
+end
+
+trait EquivalenceRelation[\T extends EquivalenceRelation[\T, ~\], opr ~\]
+  opr ~(self, other:T):Boolean
+end
+
+trait TotalOrder[\T extends TotalOrder[\T,<,<=,=,>=,>\],opr <,opr <=,opr =,opr >=,opr >\]
+    extends { EquivalenceRelation[\T, =\] }
+  opr <(self, other:T):Boolean = NOT (self >= other)
+  opr <=(self, other:T):Boolean
+  opr >(self, other:T):Boolean = NOT (self <= other)
+  opr >=(self, other:T):Boolean = other <= self
+end
+
+object Nn(x:ZZ32)
+  extends { Monoid[\Nn, OTIMES\], Monoid[\Nn, OPLUS\], Monoid[\Nn, MAX\],
+            TotalOrder[\Nn, <, <=, =, >=, >\] }
+    opr OPLUS(self, other:Nn):Nn = Nn(x + other.x)
+    opr OTIMES(self, other:Nn):Nn = Nn(x other.x)
+    opr MAX(self, other:Nn):Nn = Nn(x MAX other.x)
+    opr EQ(self, other:Nn):Boolean = (x = other.x)
+    opr <=(self, other:Nn):Boolean = (x <= other.x)
+end
+
+c[\T extends TotalOrder[\T,<,<=,=,>=,>\]\](x:T, y:T): () =
+    if x < y then
+        assert(x <= y,"< not <=")
+        assert(NOT (x = y),"< =")
+        assert(NOT (x >= y),"< >=")
+        assert(NOT (x > y),"< >")
+        assert(y > x,"< not >")
+        assert(y >= x,"< not >=")
+        assert(NOT (y = x),"< = r")
+        assert(NOT (y <= x),"< <=")
+        assert(NOT (y < x),"< <")
+        println("< OK")
+    elif x > y then
+        assert(x >= y,"> not >=")
+        assert(NOT (x = y),"> =")
+        assert(NOT (x <= y),"> <=")
+        assert(y < x,"> not <")
+        assert(y <= x,"> not <=")
+        assert(NOT (y = x),"> = r")
+        assert(NOT (y >= x),"> >=")
+        assert(NOT (y > x),"> >")
+        println("> OK")
+    else
+        assert(x = y,"= not =")
+        assert(y = x,"= not = r")
+        assert(x >= y,"= not >=")
+        assert(y >= x,"= not >= r")
+        assert(x <= y,"= not <=")
+        assert(y <= x,"= not <= r")
+        assert(NOT (x > y),"= >")
+        assert(NOT (y > x),"= > r")
+        assert(NOT (x < y),"= <")
+        assert(NOT (y < x),"= < r")
+        println("= OK")
+    end
+
+run() = do
+  n1 = Nn(1)
+  n2 = Nn(2)
+  println(n1.x " and " n2.x)
+  c(n1,n1)
+  c(n2,n2)
+  c(n1,n2)
+  c(n2,n1)
+end
+
+end

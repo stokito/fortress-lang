@@ -1,0 +1,117 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Integer2
+export Executable
+
+(*) Test ZZ64 operators unary -, | |, +, -, DOT, juxtaposition, BITAND, BITOR, BITXOR, MAX, MIN, MINMAX, even, odd
+
+run(): () = do
+  three: ZZ64 = 3
+  four: ZZ64 = 4
+  five: ZZ64 = 5
+  six: ZZ64 = 6
+  seven: ZZ64 = 7
+  bits: ZZ64 = 110000000000_16
+  morebits: ZZ64 = 101000000000_16
+
+  assert(-(-seven) = seven)
+  assert(|four| = four)
+  assert(|(-four)| = four)
+
+  assert(four + five = 9)
+  assert(four + (-five) = -1)
+
+  assert(14 - five = 9)
+  assert(14 - (-six) = 20)
+
+  assert((four)(five) = 20)
+  assert((four) (five) = 20)
+  assert(three DOT seven = 21)
+  assert((-three) DOT seven = -21)
+  assert((-three) DOT (-seven) = 21)
+  assert(three DOT (-seven) = -21)
+
+  deny(three >= five)
+  assert(three <= five)
+  assert(six >= five)
+  deny(six <= five)
+  deny(-three >= five)
+  assert(-three <= five)
+  deny(-six >= five)
+  assert(-six <= five)
+  assert(three >= -five)
+  deny(three <= -five)
+  assert(six >= -five)
+  deny(six <= -five)
+  assert(-three >= -five)
+  deny(-three <= -five)
+  deny(-six >= -five)
+  assert(-six <= -five)
+
+  deny(three > five)
+  assert(three < five)
+  assert(six > five)
+  deny(six < five)
+  deny(-three > five)
+  assert(-three < five)
+  deny(-six > five)
+  assert(-six < five)
+  assert(three > -five)
+  deny(three < -five)
+  assert(six > -five)
+  deny(six < -five)
+  assert(-three > -five)
+  deny(-three < -five)
+  deny(-six > -five)
+  assert(-six < -five)
+
+  assert(BITNOT seven = -8)
+  assert(BITNOT (BITNOT seven) = seven)
+  assert((bits BITAND morebits) = 100000000000_16)
+  assert((bits BITOR morebits) = 111000000000_16)
+  assert((bits BITXOR morebits) = 011000000000_16)
+
+  assert(three MAX five = five)
+  assert(three MIN five = three)
+  assert(six MAX five = six)
+  assert(six MIN five = five)
+  assert(-three MAX five = five)
+  assert(-three MIN five = -three)
+  assert(-six MAX five = five)
+  assert(-six MIN five = -six)
+  assert(three MAX -five = three)
+  assert(three MIN -five = -five)
+  assert(six MAX -five = six)
+  assert(six MIN -five = -five)
+  assert(-three MAX -five = -three)
+  assert(-three MIN -five = -five)
+  assert(-six MAX -five = -five)
+  assert(-six MIN -five = -six)
+
+  assert(do (x, y) = three MINMAX five; (x = three AND y = five) end)
+  assert(do (x, y) = six MINMAX five; (x = five AND y = six) end)
+  assert(do (x, y) = -three MINMAX five; (x = -three AND y = five) end)
+  assert(do (x, y) = -six MINMAX five; (x = -six AND y = five) end)
+  assert(do (x, y) = three MINMAX -five; (x = -five AND y = three) end)
+  assert(do (x, y) = six MINMAX -five; (x = -five AND y = six) end)
+  assert(do (x, y) = -three MINMAX -five; (x = -five AND y = -three) end)
+  assert(do (x, y) = -six MINMAX -five; (x = -six AND y = -five) end)
+
+  assert(odd(five))
+  assert(even(four))
+  assert(odd(-five))
+  assert(even(-four))
+
+  println("PASS")
+end
+
+end

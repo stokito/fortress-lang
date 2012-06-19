@@ -1,0 +1,40 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newapp{Characters}{characters}
+
+
+The Unicode Standard~\cite{Unicode} specifies
+a \emph{general category} for each character,
+which we use to describe sets of characters below.
+
+\unicode\ also specifies a name for each character.\footnote{%
+Sixty-five ````control characters'' do not have proper names, 
+but many of them have \emph{Unicode 1.0 names} 
+or other names specified in the Unicode Character Database, 
+which we use instead.}
+
+We partition the Unicode 5.0 character set into the following classes:
+
+\begin{itemize}
+
+\item
+\emph{letters},
+which are characters with 
+
+\end{itemize}
+
+
+\newsec{}{}
+\newsec{}{}
+\newsec{}{}
+\newsec{}{}
+

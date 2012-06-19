@@ -1,0 +1,14 @@
+component Test4
+
+  import Map.{...}
+  export Executable
+    
+  run() = 
+  do k: ZZ32 = 0
+     v: ZZ32 = 4
+     m = singleton(k,v)
+     println m.asDebugString
+  end
+  
+
+end

@@ -1,0 +1,101 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component testRR32
+export Executable
+
+run():() = do
+  x : RR32 = narrow(14.0)
+  y : RR32 = narrow(14.0)
+  z : RR32 = x y
+  v : RR32 = narrow(4.5)
+  w : RR32 = narrow(-4.5)
+  sum : RR32 = narrow(28.0)
+  mul : RR32 = narrow(196.0)
+  zero : RR32 = narrow(0.0)
+  one : RR32 = narrow(1.0)
+  two : RR32 = narrow(2.0)
+  four : RR32 = narrow(4.0)
+  five : RR32 = narrow(5.0)
+  nfour : RR32 = narrow(-4.0)
+  nfive : RR32 = narrow(-5.0)
+  infinity: RR32 = narrow(1.0) / narrow(0.0)
+  NaN: RR32 = infinity - infinity
+
+  assert(x = y)
+  assert(x =/= z)
+  assert(x < z)
+  assert(x <= z)
+  assert(z > x)
+  assert(z >= x)
+  assert(x CMP z, LessThan)
+  assert(x MIN z, x)
+  assert(x MAX z, z)
+  assert((x MIN NaN).isNaN, true)
+  assert((x MAX NaN).isNaN, true)
+  assert(-x, narrow(-14.0))
+  assert(x + y, sum)
+  assert(x - y, zero)
+  assert(x DOT y, z)
+  assert(x TIMES y, z)
+  assert(z, mul)
+  assert(z / x, x)
+
+  assert(SQRT z, x)
+  assert(x PLUS_UP y, sum)
+  assert(x MINUS_UP y, zero)
+  assert(x DOT_UP y, mul)
+  assert(x SLASH_UP y, one)
+  assert(SQRT_UP z, x)
+  assert(x PLUS_DOWN y, sum)
+  assert(x MINUS_DOWN y, zero)
+  assert(x DOT_DOWN y, mul)
+  assert(x SLASH_DOWN y, one)
+  assert(SQRT_DOWN z, x)
+  assert(|x|, x)
+  assert(|-x|, x)
+  assert(x^two, mul)
+  assert(floor v, four)
+  assert(|\ v /|, four)
+  assert(ceiling v, five)
+  assert(|/ v \|, five)
+  assert(truncate v, four)
+  assert(floor w, nfive)
+  assert(|\ w /|, nfive)
+  assert(ceiling w, nfour)
+  assert(|/ w \|, nfour)
+  assert(truncate w, nfour)
+  assert(x.isNaN, false)
+  assert(x.isInfinite, false)
+  assert(infinity.isInfinite, true)
+  assert(x.isNumber, true)
+  assert(x.isFinite, true)
+  assert(infinity.isFinite, false)
+  assert(Just(v), Just(v))
+  assert(Just(z), Just(z))
+  (* If we do not give explicit type instantiation below, it fails... *)
+  assert(x.check, Just[\RR32\](x))
+  assert(infinity.check, Nothing[\RR32\])
+  assert(NaN.check, Nothing[\RR32\])
+
+  assert(x.check_star, Just[\RR32\](x))
+  assert(infinity.check_star, Just[\RR32\](infinity))
+  assert(NaN.check_star, Nothing[\RR32\])
+
+  (* We want to implement hexadecimal literals. *)
+  assert((x / x).rawBits, 1065353216)
+  assert(x MINNUM z, x)
+  assert(x MAXNUM z, z)
+  assert(x MINNUM NaN, x)
+  assert(x MAXNUM NaN, x)
+end
+
+end

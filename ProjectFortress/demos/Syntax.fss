@@ -1,0 +1,113 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Syntax
+import List.{...}
+export Syntax
+
+in_id: ZZ32 := 0
+nextId() = atomic do in_id += 1; in_id end
+indent = "    "
+
+(* Initialize the abstract syntax id to 0. *)
+initSyntax() = atomic in_id := 0
+
+(* abstract syntax tree *)
+trait Ast
+  getter asString(): String
+  getId(): ZZ32
+  toSource(): String
+end
+
+(* program *)
+(* p  ::= fd... e *)
+object Program(decls: List[\FnDecl\], expr: Expr) extends Ast
+  id = nextId()
+  getter asString() =
+    (BIG //[d <- decls] (indent d.asString)) // // indent expr.asString
+
+  getId() = id
+
+  toSource() =
+    (BIG //[d <- decls] (indent d.toSource())) // // indent expr.toSource()
+end
+
+(* function declaration *)
+(* fd ::= f(x:t) = e *)
+object FnDecl(name: String, param: String, body: Expr) extends Ast
+  id = nextId()
+  getter asString() = name "_" id "(" param ") = " body.asString
+  getId() = id
+  toSource() = name        "(" param ") = " body.toSource()
+end
+
+(* expressions *)
+(* e ::= x
+       | e e
+       | if e then e else e end
+       | v
+ *)
+trait Expr extends Ast comprises { Value, Var, App, If } end
+
+object Var(name: String) extends Expr
+  id = nextId()
+  getter asString() = name "_" id
+  getId() = id
+  toSource() = name
+end
+
+object App(function: Expr, argument: Expr) extends Expr
+  id = nextId()
+  getter asString() = function.asString "(_" id " " argument.asString ")"
+  getId() = id
+  toSource() = function.toSource() "("         argument.toSource() ")"
+end
+
+object If(cond: Expr, thenB: Expr, elseB: Expr) extends Expr
+  id = nextId()
+  getter asString() =
+    ("if_" id " " cond.asString "\n" indent "then " thenB.asString "\n"
+     indent "else " elseB.asString "\n" indent "end")
+  getId() = id
+  toSource() =
+    ("if  "   " " cond.toSource() "\n" indent "then " thenB.toSource() "\n"
+     indent "else " elseB.toSource() "\n" indent "end")
+end
+
+(* values *)
+(* v ::= fn x:t => e
+       | true
+       | false
+ *)
+trait Value extends Expr comprises { FnExpr, True, False } end
+
+object FnExpr(param: String, body: Expr) extends Value
+  id = nextId()
+  getter asString() = "fn_" id " " param " => " body.asString
+  getId() = id
+  toSource() = "fn"     " " param " => " body.toSource()
+end
+
+object True extends Value
+  id = nextId()
+  getter asString() = "true"
+  getId() = id
+  toSource() = self.asString
+end
+
+object False extends Value
+  id = nextId()
+  getter asString() = "false"
+  getId() = id
+  toSource() = self.asString
+end
+
+end

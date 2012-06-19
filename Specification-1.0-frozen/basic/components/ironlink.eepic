@@ -1,0 +1,63 @@
+\setlength{\unitlength}{0.00083333in}
+%
+\begingroup\makeatletter\ifx\SetFigFont\undefined%
+\gdef\SetFigFont#1#2#3#4#5{%
+  \reset@font\fontsize{#1}{#2pt}%
+  \fontfamily{#3}\fontseries{#4}\fontshape{#5}%
+  \selectfont}%
+\fi\endgroup%
+{\renewcommand{\dashlinestretch}{30}
+\begin{picture}(4090,3900)(0,1200)
+
+%% IronIo box
+\path(237,3204)(1587,3204)(1587,2379)
+ 	  (237,2379)(237,3204)
+\thinlines
+\path(237,2904)(1587,2904)
+%% exports of IronIo
+\path(1437,3054)(1587,3579)
+\blacken\thicklines
+\path(1603.483,3418.288)(1587.000,3579.000)(1488.100,3451.255)(1603.483,3418.288)
+
+%% IronLink box
+\path(12,4179)(3687,4179)(3687,1529)
+	(12,1529)(12,4179)
+\path(12,3879)(3687,3879)
+%% imports of IronLink
+\path(1662,1154)(1662,1529)
+\blacken\path(1722.000,1379.000)(1662.000,1529.000)(1602.000,1379.000)(1722.000,1379.000)
+%% exports of IronLink
+\thinlines
+\path(3387,4029)(3537,4554)
+\blacken\thicklines
+\path(3553.483,4393.288)(3537.000,4554.000)(3438.100,4426.255)(3553.483,4393.288)
+
+%% IronCrypto box
+\path(1812,3204)(3162,3204)(3162,2379)
+	  (1812,2379)(1812,3204)
+\path(1812,2904)(3162,2904)
+%% imports of ironcrypto
+\path(2487,2004)(2487,2379)
+\blacken\path(2547.000,2229.000)(2487.000,2379.000)(2427.000,2229.000)(2547.000,2229.000)
+%% exports of IronCrypto
+\thinlines
+\path(3012,3054)(3162,3579)
+\blacken\thicklines
+\path(3178.483,3418.288)(3162.000,3579.000)(3063.100,3451.255)(3178.483,3418.288)
+
+
+\put(3162,4854){\makebox(0,0)[lb]{\TYP{Fortress.IO}}}
+\put(2937,4629){\makebox(0,0)[lb]{\TYP{Fortress.Crypto}}}
+
+\put( 162,3954){\makebox(0,0)[lb]{\TYP{IronLink}}}
+\put(1000,3654){\makebox(0,0)[lb]{\TYP{Fortress.IO}}}
+\put(2100,2979){\makebox(0,0)[lb]{\TYP{IronCrypto}}}
+\put(687,2979){\makebox(0,0)[lb]{\TYP{IronIO}}}
+\put(2200,3654){\makebox(0,0)[lb]{\TYP{Fortress.Crypto}}}
+
+\put(2100,1879){\makebox(0,0)[lb]{\TYP{Fortress.IO}}}
+\put(1800,1654){\makebox(0,0)[lb]{\TYP{Fortress.Security}}}
+
+\put(900,954){\makebox(0,0)[lb]{\TYP{Fortress.Security}}}
+\end{picture}
+}

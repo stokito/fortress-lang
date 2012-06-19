@@ -1,0 +1,229 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newsec{Operator Declarations}{operatordefs}
+
+\note{Multifix operators and keyword parameters are not yet supported.}
+
+An operator declaration may appear anywhere a top-level function or
+method declaration may appear.  Operator declarations are like other
+function or method declarations in all respects except that an
+operator declaration has \KWD{opr} and has
+an operator name (see \secref{operator-names} for a discussion of
+valid operator names) instead of an identifier.  The precise placement
+of the operator name within the declaration depends on the fixity of
+the operator.  Like other functionals, operators may have overloaded
+declarations (see \chapref{multiple-dispatch} for a discussion of
+overloading).  These overloadings may be of the same or differing
+fixities.
+
+\begin{Grammar}
+\emph{FnDecl}
+&::=& \option{\emph{FnMods}} \emph{FnHeaderFront} \emph{FnHeaderClause}
+\options{\EXP{=} \emph{Expr}} \\
+
+\emph{FnHeaderFront}  &::=& \emph{OpHeaderFront} \\
+
+\emph{OpHeaderFront}
+&::=& \KWD{opr} \option{\KWD{BIG}}
+(\{\EXP{\mapsto} $|$ \emph{LeftEncloser} $|$ \emph{Encloser}) \option{\emph{StaticParams}}
+\option{\emph{Params}} \\
+&&(\emph{RightEncloser} $|$ \emph{Encloser}) \\
+&$|$& \KWD{opr} \emph{ValParam}
+(\emph{Op} $|$ \emph{ExponentOp}) \option{\emph{StaticParams}} \\
+&$|$& \KWD{opr} \option{\KWD{BIG}}
+(\emph{Op} $|$ \texttt{\^} $|$ \emph{Encloser} $|$ $\sum$ $|$ $\prod$)
+ \option{\emph{StaticParams}} \emph{ValParam} \\
+
+\emph{MdDecl} &::=& \emph{MdDef} \\
+&$|$& \option{\KWD{abstract}}
+\option{\emph{MdMods}} \emph{MdHeaderFront}
+\emph{FnHeaderClause} \\
+
+\emph{MdHeaderFront}  &::=& \emph{OpMdHeaderFront} \\
+
+\emph{OpMdHeaderFront}
+&::=& \KWD{opr} \option{\KWD{BIG}}
+(\{\EXP{\mapsto} $|$ \emph{LeftEncloser} $|$ \emph{Encloser}) \option{\emph{StaticParams}}
+\option{\emph{Params}} \\
+&&(\emph{RightEncloser} $|$ \emph{Encloser}) \\
+&&\options{\EXP{\ASSIGN} \texttt( \emph{SubscriptAssignParam} \texttt)}
+\\
+&$|$& \KWD{opr} \emph{ValParam}
+(\emph{Op} $|$ \emph{ExponentOp}) \option{\emph{StaticParams}} \\
+&$|$& \KWD{opr} \option{\KWD{BIG}}
+(\emph{Op} $|$ \texttt{\^} $|$ \emph{Encloser} $|$ $\sum$ $|$ $\prod$)
+ \option{\emph{StaticParams}} \emph{ValParam} \\
+
+\emph{SubscriptAssignParam}
+&::=& \emph{Varargs}\\
+&$|$& \emph{Param}\\
+\end{Grammar}
+
+An operator declaration has one of eight
+forms:
+multifix operator declaration,
+infix operator declaration,
+prefix operator declaration, postfix operator declaration,
+nofix operator declaration,
+bracketing operator declaration,
+subscripting operator method declaration,
+and subscripted assignment operator method declaration.
+Each is invoked according to specific rules of syntax.
+An operator method declaration must be a functional method declaration,
+a subscripting operator method declaration, or a subscripted assignment
+operator method declaration.
+
+\subsection{Multifix Operator Declarations}
+
+A multifix operator declaration has \KWD{opr}
+and then an operator name where a
+functional declaration would have an identifier.
+The declaration must not have any keyword parameters, and must
+be capable of accepting at least two arguments.  It is permissible
+to use a varargs parameter; in fact, this is a good way to
+define a multifix operator.
+Static parameters (described in \chapref{trait-parameters})
+ may also be present, between the operator and
+the parameter list.
+
+An expression consisting of a multifix operator applied to
+an expression will invoke a multifix operator declaration.
+The compiler considers all multifix operator declarations for that
+operator that are both
+accessible and applicable, and the most specific operator declaration
+is chosen according to the usual rules for overloaded functionals.
+The invocation will pass more than two arguments.
+
+A multifix operator declaration may also be invoked
+by an infix, a prefix, or nofix (but not a postfix) operator application if
+the declaration is applicable.
+
+Example:
+\note{Example is commented out because it is not supported nor run by the interpreter yet.}
+%\input{\home/advanced/examples/OprDecl.Multifix.tex}
+
+\subsection{Infix Operator Declarations}
+
+An infix operator declaration has \KWD{opr}
+and then an operator name where a
+functional declaration would have an identifier.
+The declaration must have two value parameter,
+which must not be a keyword parameter or varargs parameter.
+Static parameters may also be present,
+between the operator and the parameter list.
+
+An expression consisting of an infix operator applied to
+an expression will invoke an infix operator declaration.
+The compiler considers all infix and multifix
+operator declarations for that
+operator that are both
+accessible and applicable, and the most specific operator declaration
+is chosen according to the usual rules for overloaded functionals.
+
+Note that superscripting (\txt{{\char'136}}) may be defined using
+an infix operator declaration even though it has very high precedence
+and cannot be used as a multifix operator.
+
+Example:
+% XXX need to fix up this example
+%\input{\home/advanced/examples/OprDecl.Infix.tex}
+
+\subsection{Prefix Operator Declarations}
+
+A prefix operator declaration has \KWD{opr}
+and then an operator name where a
+functional declaration would have an identifier.
+The declaration must have one value parameter, which must not be a keyword parameter
+or varargs parameter.
+Static parameters may also be present, between the operator and the parameter list.
+
+An expression consisting of a prefix operator applied to
+an expression will invoke a prefix operator declaration.
+The compiler considers all prefix and multifix
+operator declarations for that
+operator that are both
+accessible and applicable, and the most specific operator declaration
+is chosen according to the usual rules for overloaded functionals.
+
+Example:
+% XXX need to fix up this example
+%\input{\home/advanced/examples/OprDecl.Prefix.tex}
+
+\subsection{Postfix Operator Declarations}
+\seclabel{postfix-opr-decl}
+
+A postfix operator declaration has \KWD{opr} where a
+functional declaration would have an identifier;
+the operator name itself \emph{follows} the parameter list.
+The declaration must have one value parameter, which must not be a keyword parameter
+or varargs parameter.
+Static parameters may also be present, between \KWD{opr}
+and the parameter list.
+
+An expression consisting of a postfix operator applied to
+an expression will invoke a postfix operator declaration.
+The compiler considers all postfix operator declarations for that
+operator that are both
+accessible and applicable, and the most specific operator declaration
+is chosen according to the usual rules for overloaded functionals.
+
+Example:
+% XXX need to fix up this example
+%\input{\home/advanced/examples/OprDecl.Postfix.tex}
+
+
+\subsection{Nofix Operator Declarations}
+
+A nofix operator declaration has \KWD{opr}
+and then an operator name where a functional declaration would have an
+identifier.  The declaration must have no parameters.
+
+An expression consisting only of a nofix operator
+will invoke a nofix operator declaration.
+The compiler considers all nofix and multifix
+operator declarations
+for that operator that are both
+accessible and applicable, and the most specific operator declaration
+is chosen according to the usual rules for overloaded functionals.
+
+Uses for nofix operators are rare, but those rare examples are very useful.
+For example, if the \EXP{@} operator is used to construct subscripting ranges,
+and it is the nofix declaration of \EXP{@} that allows a lone \EXP{@} to be
+used as a subscript:
+% XXX need to fix up this example
+%\input{\home/advanced/examples/OprDecl.Nofix.tex}
+
+
+\subsection{Bracketing Operator Declarations}
+\seclabel{bracketing-opr-decl}
+
+A bracketing operator declaration has \KWD{opr}
+where a functional declaration would have an identifier.
+The value parameter list, rather than being surrounded by parentheses,
+is surrounded by the brackets being defined.  A bracketing operator
+declaration may have any number of parameters, keyword parameters,
+and varargs parameters in the value parameter list.  Static parameters may
+also be present, between \KWD{opr} and the parameter list.  Any paired
+Unicode brackets
+may be so defined \emph{except} ordinary parentheses
+and white square brackets.
+
+An expression consisting of zero or more comma-separated expressions
+surrounded by a  bracket pair will invoke a bracketing operator
+declaration.  The compiler considers all bracketing operator
+declarations for that type of bracket pair that are both accessible and applicable, and the most
+specific operator declaration is chosen according to the usual rules for
+overloaded functionals.
+For example, the expression \EXP{\langle p,q \rangle} might invoke the
+following bracketing method declaration:
+% XXX need to fix up this example
+%\input{\home/advanced/examples/OprDecl.Bracketing.tex}

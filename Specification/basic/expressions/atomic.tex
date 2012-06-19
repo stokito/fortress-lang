@@ -1,0 +1,106 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Atomic Expressions}
+\seclabel{atomic}
+
+\note{Modifiers on functionals such as \KWD{atomic} and \KWD{io} are not yet supported.}
+
+\begin{Grammar}
+\emph{FlowExpr} &::=&  \KWD{atomic} \emph{AtomicBack}\\
+&$|$& \KWD{tryatomic} \emph{AtomicBack} \\
+
+\emph{AtomicBack}
+&::=& \emph{AssignExpr}\\
+&$|$& \emph{OpExpr}\\
+&$|$& \emph{DelimitedExpr}\\
+
+\end{Grammar}
+
+As Fortress is a parallel language, an executing Fortress program consists
+of a set of threads (See \secref{threads-parallelism} for a discussion of
+parallelism in Fortress).  In multithreaded programs,
+it is often convenient for a thread to evaluate some expressions
+\emph{atomically}.  For this purpose, Fortress provides \KWD{atomic}
+expressions.
+
+
+An \KWD{atomic} expression consists of \KWD{atomic}
+followed by a \emph{body expression}.  Evaluating an \KWD{atomic}
+expression is simply evaluating the body expression.  All reads and
+all writes which occur as part of this evaluation will appear to occur
+simultaneously in a single atomic step with respect to \emph{any}
+action performed by any thread which is dynamically outside.  This is
+specified in detail in \chapref{memory-model}.  The value and type of an
+\KWD{atomic} expression are the value and type of its body expression.
+
+A \KWD{tryatomic} expression consists of \KWD{tryatomic} followed by
+an expression.  It acts exactly like \KWD{atomic} except that in
+certain circumstances (see \secref{transactions}) it throws
+\TYP{TryAtomicFailure} and discards the effects of its body.
+
+A function or method with the modifier \KWD{atomic} acts as if its entire
+body were surrounded in an \KWD{atomic} expression.
+However, it is a static error if an API declares a functional \VAR{f}
+with the modifier \KWD{atomic} but a component implementing the API
+defines \VAR{f} whose body is an \KWD{atomic} expression without the
+modifier.  Functionals with the modifier \KWD{io} cannot be called
+within an \KWD{atomic} expression.  Thus, a
+functional must not have both \KWD{atomic} and \KWD{io} modifiers.
+
+When the body of an \KWD{atomic} expression completes abruptly, the
+\KWD{atomic} expression completes abruptly in the same way.  If it
+completes abruptly by exiting to an enclosing \KWD{label} expression,
+writes within the block are retained and become visible to other
+threads.  If it completes abruptly by throwing an uncaught exception,
+all writes to objects allocated before the \KWD{atomic}
+expression began evaluation are discarded.  Writes to newly
+allocated objects are retained.  Any variable reverts to the value it
+held before evaluation of the \KWD{atomic} expression began.  Thus, the
+only values retained from the abruptly completed \KWD{atomic} expression
+will be reachable from the exception object through a chain of newly
+allocated objects.
+
+Atomic expressions may be nested arbitrarily; the above semantics
+imply that an inner \KWD{atomic} expression is atomic with respect to
+evaluations which occur dynamically outside the inner \KWD{atomic}
+expression but dynamically inside an enclosing \KWD{atomic}.
+
+Implicit threads may be created dynamically within an \KWD{atomic}
+expression.  These implicit threads will complete before the
+\KWD{atomic} expression itself does so.  The implicit threads may
+run in parallel, and will see one another's writes; they may
+synchronize with one another using nested \KWD{atomic} expressions.
+
+Note that \KWD{atomic} expressions may be evaluated in parallel with
+other expressions.  An \KWD{atomic} expression experiences
+\emph{conflict} when another thread attempts to read or write a memory
+location which is accessed by the \KWD{atomic} expression.  The
+evaluation of such an expression must be partially serialized with the
+conflicting memory operation (which might be another \KWD{atomic}
+expression).  The exact mechanism by which this occurs will vary; the
+necessary serialization is provided by the implementation.  In
+general, the evaluation of a conflicting \KWD{atomic} expression may
+be abandoned, forcing the effects of execution to be discarded and
+execution to be retried.  The longer an \KWD{atomic} expression
+evaluates and the more memory it touches the greater the chance of
+conflict and the larger the bottleneck a conflict may impose.
+
+For example,
+the following code uses a shared counter atomically:
+\input{\home/basic/examples/Expr.Atomic.tex}
+The loop body reads \EXP{a_i} and \VAR{sum}, then adds them and
+writes the result back to \VAR{sum}; this will appear to occur
+atomically with respect to all other threads---including both other
+iterations of the loop body and other simultaneous calls to
+\VAR{accumArray}.  Note in particular that the \KWD{atomic} expression
+will appear atomic with respect to reads and writes of \EXP{a_i} and \VAR{sum} that do  not occur in
+\KWD{atomic} expressions.

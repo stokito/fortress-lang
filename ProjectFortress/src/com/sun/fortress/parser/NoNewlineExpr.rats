@@ -1,0 +1,215 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress expressions that do not include any newlines.
+ */
+module com.sun.fortress.parser.NoNewlineExpr(Expr, NoNewlineType, Keyword,
+                                             Symbol, Spacing);
+
+modify Expr;
+import NoNewlineType;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* NoNewlineExpr ::=
+     NoNewlineAssignExpr
+   | NoNewlineOpExpr
+   | DelimitedExpr
+   | NoNewlineFlowExpr
+   | fn w BindId (w Throws)? w => w Expr
+   | fn w ( (w Params)? w ) (w IsType)? (w Throws)? w => w NoNewlineExpr
+   | NoNewlineExpr s typed w Type
+   | NoNewlineExpr s asif w Type
+   NoNewlineFlowExpr ::=
+     exit (w Id)? (w with w NoNewlineExpr)?
+   | Accumulator (w [ w GeneratorClauseList w ] w)? w NoNewlineExpr
+   | atomic w NoNewlineAtomicBack
+   | tryatomic w NoNewlineAtomicBack
+   | spawn w NoNewlineExpr
+   | throw w NoNewlineExpr
+   NoNewlineAtomicBack ::=
+     NoNewlineAssignExpr
+   | NoNewlineOpExpr
+   | DelimitedExpr
+   NoNewlineAssignExpr ::= AssignLefts s AssignOp w NoNewlineExpr
+ */
+Expr NoNewlineExpr = Expr ;
+private Expr Expr := ... ;
+Expr ExprFront :=
+    <AssignExpr> NoNewlineAssignExpr
+  / ... ;
+Expr NoNewlineAssignExpr =
+    a1:AssignLefts s a2:AssignOp w a3:NoNewlineExpr
+    { yyValue = ExprFactory.makeAssignment(createSpan(yyStart,yyCount),
+                                           a1, a2, a3);};
+
+Action<Expr> ExprTail :=
+     <As> NoNewlineAs
+   / <AsIf> NoNewlineAsIf
+   ;
+
+inline Action<Expr> NoNewlineAs =
+     s typed w a1:NoNewlineType
+     { final Type t = a1;
+       yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               return ExprFactory.makeAsExpr(createSpan(yyStart,yyCount),
+                                             (Expr)base, t);
+           }};
+     };
+
+inline Action<Expr> NoNewlineAsIf =
+     s asif w a1:NoNewlineType
+     { final Type t = a1;
+       yyValue = new Action<Expr>() {
+           public Expr run(Expr base) {
+               return ExprFactory.makeAsIfExpr(createSpan(yyStart,yyCount),
+                                               (Expr)base, t);
+           }};
+     };
+
+/* NoNewlineOpExpr ::=
+     NoNewlineOpExprNoEnc
+   | NoNewlineOpExprLeftEncloser
+   | Encloser
+   NoNewlineOpExprNoEnc ::=
+     NoNewlineOpExprPrimary
+   | NoNewlineOpExprPrefix
+   | Op
+   NoNewlineTightInfixRight ::=
+     Encloser NoNewlineOpExprPrimary
+   | Encloser NoNewlineOpExprPrefix
+   | Encloser sr NoNewlineOpExprPrimary
+   | Encloser sr NoNewlineLooseInfix
+   | Encloser sr NoNewlineLeftLooseInfix
+   | Encloser
+ */
+PureList<PrecedenceOpExpr> TightInfixRight := ...
+   / <Primary>   a1:Encloser sr a2:OpExprPrimary
+     { yyValue = a2.cons((PrecedenceOpExpr)new Right(a1)); }
+   / <Loose>     a1:Encloser sr a2:LooseInfix
+     { yyValue = a2.cons((PrecedenceOpExpr)new Right(a1)); }
+   / <LeftLoose> a1:Encloser sr a2:LeftLooseInfix
+     { yyValue = a2.cons((PrecedenceOpExpr)new Right(a1)); };
+
+/* NoNewlineLeftLooseInfix ::=
+     NoNewlineOpExprLeftEncloser
+   | Encloser sr NoNewlineOpExprPrimary
+   | Encloser sr NoNewlineOpExprPrefix
+   | Encloser sr NoNewlineOpExprLeftEncloser
+ */
+PureList<PrecedenceOpExpr> LeftLooseInfix := ...
+   / <Primary> a1:Encloser sr a2:OpExprPrimary
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); }
+   / <Prefix>  a1:Encloser sr a2:OpExprPrefix
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); }
+   / <Left>    a1:Encloser sr a2:OpExprLeftEncloser
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); };
+
+/* NoNewlineOpExprLeftEncloser ::= Encloser NoNewlineOpExprNoEnc */
+/* NoNewlineOpExprPrimary ::=
+     Primary NoNewlineTightInfixPostfix
+   | Primary NoNewlineTightInfixRight
+   | Primary sr NoNewlineOpExprPrimary
+   | Primary sr NoNewlineLooseInfix
+   | Primary sr NoNewlineLeftLooseInfix
+   | Primary
+ */
+PureList<PrecedenceOpExpr> OpExprPrimary := ...
+   / <Primary>   a1:Primary sr a2:OpExprPrimary
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); }
+   / <Loose>     a1:Primary sr a2:LooseInfix
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); }
+   / <LeftLoose> a1:Primary sr a2:LeftLooseInfix
+     { yyValue = a2.cons(new RealExpr(ExprFactory.buildPrimary(a1))); };
+
+/* NoNewlineOpExprPrefix ::=
+     Op NoNewlineOpExprPrimary
+   | Op NoNewlineOpExprPrefix
+   | Op NoNewlineOpExprLeftEncloser
+   | Op sr NoNewlineOpExprPrimary
+   | Op sr NoNewlineOpExprPrefix
+   | Op sr NoNewlineOpExprLeftEncloser
+ */
+PureList<PrecedenceOpExpr> OpExprPrefix := ...
+   / <Primary> a1:Op sr a2:OpExprPrimary
+     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); }
+   / <Prefix>  a1:Op sr a2:OpExprPrefix
+     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); }
+   / <Left>    a1:Op sr a2:OpExprLeftEncloser
+     { yyValue = a2.cons((PrecedenceOpExpr)new LoosePrefix(a1)); };
+
+/* NoNewlineTightInfixPostfix ::=
+     Op NoNewlineOpExprPrimary
+   | Op NoNewlineOpExprPrefix
+   | Op NoNewlineOpExprLeftEncloser
+   | Op sr NoNewlineOpExprPrimary
+   | Op sr NoNewlineOpExprPrefix
+   | Op sr NoNewlineOpExprLeftEncloser
+   | Op
+ */
+PureList<PrecedenceOpExpr> TightInfixPostfix := ...
+   / <Primary> a1:Op sr a2:OpExprPrimary
+     { yyValue = a2.cons((PrecedenceOpExpr)new Postfix(a1)); }
+   / <Prefix>  a1:Op sr a2:OpExprPrefix
+     { yyValue = a2.cons((PrecedenceOpExpr)new Postfix(a1)); }
+   / <Left>    a1:Op sr a2:OpExprLeftEncloser
+     { yyValue = a2.cons((PrecedenceOpExpr)new Postfix(a1)); };
+
+/* NoNewlineLooseInfix ::=
+     Op wr NoNewlineOpExprPrimary
+   | Op wr NoNewlineOpExprPrefix
+   | Op sr NoNewlineOpExprLeftEncloser
+ */
+PureList<PrecedenceOpExpr> LooseInfix := ...
+   / <Left> a1:Op sr a2:OpExprLeftEncloser
+     { yyValue = a2.cons((PrecedenceOpExpr)new LooseInfix(a1)); };
+
+/* NoNewlineGeneratorClauseList ::=
+     NoNewlineGeneratorBinding (s , w NoNewlineGeneratorClause)*
+   NoNewlineGeneratorBinding ::= BindIdOrBindIdTuple w <- w NoNewlineExpr
+   NoNewlineGeneratorClause ::=
+     NoNewlineGeneratorBinding
+   | NoNewlineExpr
+ */
+List<GeneratorClause> GeneratorClauseList :=
+     a1:GeneratorBinding a2s:(s comma w GeneratorClause)*
+     { yyValue = Useful.cons(a1, a2s.list()); };
+List<GeneratorClause> NoNewlineGeneratorClauseList = GeneratorClauseList ;
+
+/* NoNewlineVarWTypes ::=
+     NoNewlineVarWType
+   | ( w NoNewlineVarWType (w , w NoNewlineVarWType)+ w )
+ */
+List<LValue> NoNewlineVarWTypes =
+     a1:NoNewlineVarWType
+     { yyValue = Useful.list(a1); }
+   / openparen w a1:NoNewlineVarWType a2s:(w comma w NoNewlineVarWType)+ w
+     closeparen
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* NoNewlineVarWType ::= BindId s NoNewlineIsType */
+LValue NoNewlineVarWType = a1:BindId s a2:NoNewlineIsType
+     { yyValue = NodeFactory.makeLValue(createSpan(yyStart,yyCount),a1,a2); };
+
+/* NoNewlineIsType ::= : w NoNewlineType */
+Type NoNewlineIsType = void:colon w NoNewlineType ;
+
+/* NoNewlineIsTypeOrZilch ::= : w NoNewlineTypeOrZilch */
+Type NoNewlineIsTypeOrZilch = void:colon w NoNewlineTypeOrZilch ;
+
+/* NoNewlineTypeOrZilch ::= NoNewlineType | Zilch */
+Type NoNewlineTypeOrZilch =
+     NoNewlineType
+   / Zilch
+     { yyValue = NodeFactory.makeBottomType(createSpan(yyStart,yyCount)); };

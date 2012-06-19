@@ -1,0 +1,25 @@
+trait Boolean
+  apply [\T \](t:T, f:T):T = f
+  and(o:Boolean):Boolean = False()
+  or(o:Boolean):Boolean = False()
+  not():Boolean = False()
+end
+
+object True () extends {Boolean}
+  apply [\T \](t:T, f:T):T = t
+  and(o:Boolean):Boolean = o
+  or(o:Boolean):Boolean = self
+  not():Boolean = False()
+end
+
+object False () extends {Boolean}
+  apply [\T \](t:T, f:T):T = f
+  and(o:Boolean):Boolean = self
+  or(o:Boolean):Boolean = o
+  not():Boolean = True()
+end
+
+object Cond () extends {Object}
+  ifthenelse [\T \](b:Boolean, then:T, else:T):T = b.apply [\T \](then, else)
+end
+  

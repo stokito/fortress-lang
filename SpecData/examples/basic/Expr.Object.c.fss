@@ -1,0 +1,32 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.Object.c
+
+export Executable
+
+trait Tree end
+object O
+  m() = do outer = self
+(** EXAMPLE **)
+object extends Tree
+  printTree():() = println "leaf"
+  opr |self| : ZZ32 = 0
+end
+(** END EXAMPLE **)
+        end
+end
+
+run() = O.m().printTree()
+
+end

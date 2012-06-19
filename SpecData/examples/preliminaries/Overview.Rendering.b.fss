@@ -1,0 +1,27 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Overview.Rendering.b
+
+export Executable
+
+f(i) = do
+a:ZZ32[3] = [ 10 11 12 ]
+(** EXAMPLE **)
+a[i]
+(** END EXAMPLE **)
+end
+
+run() = println (f 1)
+
+end
