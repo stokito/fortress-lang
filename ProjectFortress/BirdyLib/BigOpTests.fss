@@ -89,7 +89,7 @@ component BigOpTests
        (*)pl(l15)    
        println("***l16***")
        l16 = <|[\ZZ32\] x + y | x <- l1, y <- f(x) |> 
-       pl(l6) 
+       pl(l16) 
        println("***17***")
        l17 = <|[\ZZ32\] x + y | x <- l1, y <- l1.nest(f) |>
        pl(l17)
@@ -97,8 +97,8 @@ component BigOpTests
        l18 = <|[\ZZ32\] x + y | (x,y) <- l1.cross(l1.nest(f)) |>
        pl(l18)
        println("***19***")
-       (*)l19 = <|[\ZZ32\] fst(a) + snd(a) + b | (a,b) <- (l1.cross(l1)).cross(l1) |>
-       (*)pl(l19)
+       l19 = <|[\ZZ32\] fst(a) + snd(a) + b | (a,b) <- (l1.cross(l1)).cross(l1) |>
+       pl(l19)
 
        println("PASS")
     end
